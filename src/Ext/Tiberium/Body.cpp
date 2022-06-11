@@ -1,0 +1,113 @@
+#include "Body.h"
+
+template<> const DWORD TExtension<TiberiumClass>::Canary = 0xB16B00B5;
+TiberiumExt::ExtContainer TiberiumExt::ExtMap;
+
+void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+{
+	auto pThis = this->OwnerObject();
+	const char* pSection = pThis->ID;
+
+	if (!pINI->GetSection(pSection))
+		return;
+
+	INI_EX exINI(pINI);
+
+	this->OreTwinkle.Read(exINI, pSection,"OreTwinkle");
+	this->OreTwinkleChance.Read(exINI, pSection, "OreTwinkleChance");
+	this->Ore_TintLevel.Read(exINI, pSection, "OreTintLevel");
+
+	this->MinimapColor.Read(exINI, pSection, "MinimapColor");
+}
+
+// =============================
+// container
+template <typename T>
+void TiberiumExt::ExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->OreTwinkle)
+		.Process(this->OreTwinkleChance)
+		.Process(this->Ore_TintLevel)
+		.Process(this->MinimapColor)
+	;
+}
+
+void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+{
+	this->Serialize(Stm);
+}
+
+void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+{
+	this->Serialize(Stm);
+}
+
+bool TiberiumExt::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Success();
+}
+
+bool TiberiumExt::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Success();
+}
+
+TiberiumExt::ExtContainer::ExtContainer() : TExtensionContainer("TiberiumClass") {}
+TiberiumExt::ExtContainer::~ExtContainer() = default;
+
+// =============================
+// container hooks
+
+DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
+{
+	GET(TiberiumClass*, pItem, ESI);
+	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<TiberiumExt::ExtData>(pItem);
+	return 0;
+}
+
+DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
+{
+	GET(TiberiumClass*, pItem, ECX);
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x7220D0, TiberiumClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x721E80, TiberiumClass_SaveLoad_Prefix, 0x7)
+{
+	GET_STACK(TiberiumClass*, pThis, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+
+	TiberiumExt::ExtMap.PrepareStream(pThis, pStm);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x72208C, TiberiumClass_Load_Suffix, 0x7)
+{
+	TiberiumExt::ExtMap.LoadStatic();
+	return 0;
+}
+
+DEFINE_HOOK(0x72212C, TiberiumClass_Save_Suffix, 0x5)
+{
+	TiberiumExt::ExtMap.SaveStatic();
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
+DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
+DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
+{
+	GET(TiberiumClass*, pItem, ESI);
+	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
+
+	if (auto pExt = TiberiumExt::GetExtData(pItem))
+		pExt->LoadFromINI(pINI);
+
+	return 0;
+}
+

@@ -1,0 +1,330 @@
+#include "ElectricBoltClass.h"
+
+#include <Base/Always.h>
+#include <Utilities/TemplateDef.h>
+#include <TacticalClass.h>
+#include <Drawing.h>
+#include <Memory.h>
+#include <ScenarioClass.h>
+#include <Unsorted.h>
+#include <RulesClass.h>
+
+DynamicVectorClass<ElectricBoltClass*> ElectricBoltManager::ElectricBoltArray;
+
+void ElectricBoltClass::Clear()
+{
+	LineDrawList.Clear();
+}
+
+void ElectricBoltClass::Draw_It()
+{
+	if (DrawFrame == Unsorted::CurrentFrame)
+	{
+		/**
+		 *  This is our draw frame, so draw!
+		 */
+		if (LineDrawList.Count)
+		{
+			Draw_Bolts();
+		}
+
+	}
+	else
+	{
+
+		/**
+		 *  Clear previous lines, we are about to plot a new set.
+		 */
+		LineDrawList.Clear();
+
+		for (int i = 0; i < IterationCount; ++i)
+		{
+
+			if (Lifetime)
+			{
+				Point2D pixel_start;
+				Point2D pixel_end;
+
+				 TacticalClass::Instance->CoordsToClient(&StartCoord,&pixel_start);
+				 TacticalClass::Instance->CoordsToClient(&EndCoord,&pixel_end);
+
+				if (Game::Clip_Line(&pixel_start, &pixel_end, &Drawing::SurfaceDimensions_Hidden()))
+					Plot_Bolt(StartCoord, EndCoord);
+			}
+
+		}
+
+		/**
+		 *  Draw the initial set of lines.
+		 */
+		if (LineDrawList.Count)
+		{
+			Draw_Bolts();
+		}
+
+		/**
+		 *  Update the lifetime.
+		 */
+		--Lifetime;
+
+		DrawFrame = Unsorted::CurrentFrame;
+	}
+}
+
+void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjust ,ParticleSystemTypeClass* pSys , bool particleSysCoordFlip)
+{
+	StartCoord = start;
+	EndCoord = end;
+	ZAdjust = z_adjust;
+    ElectricBoltManager::ElectricBoltArray.AddItem(this);
+
+	/**
+	 *  Spawn a spark particle at the destination of the electric bolt.
+	 */
+	if(pSys)
+	GameCreate<ParticleSystemClass>(pSys, particleSysCoordFlip ? start : end);
+}
+
+void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
+{
+	struct EBoltPlotStruct
+	{
+		CoordStruct StartCoords[3];
+		CoordStruct EndCoords[3];
+		int Distance;
+		int Deviation;
+		int StartZ;
+		int EndZ;
+
+		bool operator==(const EBoltPlotStruct& that) const { return std::memcmp(this, &that, sizeof(EBoltPlotStruct)) == 0; }
+		bool operator!=(const EBoltPlotStruct& that) const { return std::memcmp(this, &that, sizeof(EBoltPlotStruct)) != 0; }
+	};
+
+	int SEGEMENT_COORDS_SIZE = sizeof(CoordStruct) * 3;
+
+	VectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
+
+	CoordStruct start_coords[3];
+	CoordStruct end_coords[3];
+	CoordStruct working_coords[3];
+
+	int deviation_values[6];
+
+	bool init_deviation_values = true;
+	int plot_index = 0;
+
+	/**
+	 *  Check to make sure there is actual distance between the two coords.
+	 */
+
+	auto Distance = [](const CoordStruct& coord1, const CoordStruct& coord2)
+	{
+		CoordStruct coord;
+		coord = coord1 - coord2;
+		auto nRes = Game::F2I(Math::sqrt((double)coord.X * (double)coord.X +
+			(double)coord.Y * (double)coord.Y +
+			(double)coord.Z * (double)coord.Z));
+
+		return nRes;
+	};
+
+	auto Sim_Random_Pick = [](int a, int b)
+	{
+		return Random2Class::NonCriticalRandomNumber()(a, b);
+	};
+
+	int distance = Distance(start, end);
+	int BoltCount = EBOLT_DEFAULT_SEGMENT_LINES;
+
+	if (distance)
+	{
+
+		for (int i = 0; i < BoltCount; ++i)
+		{
+			end_coords[i] = end;
+			start_coords[i] = start;
+		}
+
+		int line_start_z = ZAdjust;
+		int line_end_z = 0;
+
+		int dist_a = (102 * distance / Unsorted::LeptonsPerCell);
+
+		/**
+		 *  Max distance from line center, with "Deviation" as delta.
+		 */
+		int desired_deviation = 23;
+		int line_deviation = (int)((desired_deviation * Deviation) * distance / Unsorted::LeptonsPerCell);
+
+		while (true)
+		{
+
+			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < ebolt_plots.Length())
+			{
+
+				for (int i = 0; i < 3; ++i)
+				{
+					working_coords[i].X = (end_coords[i].X + start_coords[i].X) / 2;
+					working_coords[i].Y = (end_coords[i].Y + start_coords[i].Y) / 2;
+					working_coords[i].Z = (end_coords[i].Z + start_coords[i].Z) / 2;
+				}
+
+				/**
+				 *  Initialises the line deviation values.
+				 */
+				if (init_deviation_values)
+				{
+
+					for (int i = 0; i < ARRAY_SIZE(deviation_values); ++i)
+					{
+						deviation_values[i] = (int)(Math::sin((double)Sim_Random_Pick(0, Unsorted::LeptonsPerCell) * Math::Pi / (double)(i + 7)) * (double)line_deviation);
+					}
+
+					for (int i = 0; i < BoltCount; ++i)
+					{
+						working_coords[i].X += deviation_values[0] + deviation_values[3];
+						working_coords[i].Y += deviation_values[1] + deviation_values[5];
+						working_coords[i].Z += (deviation_values[2] + deviation_values[4] + 2 * line_deviation) / 2;
+					}
+
+					init_deviation_values = false;
+				}
+
+				if (distance <= (Unsorted::LeptonsPerCell / 2))
+				{
+					working_coords[0].X += 2 * line_deviation * Sim_Random_Pick(-1, 1);
+					working_coords[0].Y += 2 * line_deviation * Sim_Random_Pick(-1, 1);
+					working_coords[0].Z += 2 * line_deviation * Sim_Random_Pick(-1, 1);
+				}
+				else
+				{
+					working_coords[0].X += Sim_Random_Pick(-line_deviation, line_deviation);
+					working_coords[0].Y += Sim_Random_Pick(-line_deviation, line_deviation);
+					working_coords[0].Z += Sim_Random_Pick(-line_deviation, line_deviation);
+				}
+
+				if (distance > dist_a)
+				{
+					for (int i = 1; i < BoltCount; ++i)
+					{
+						working_coords[i].X = working_coords[0].X + (Sim_Random_Pick(-line_deviation, line_deviation) / 2);
+						working_coords[i].Y = working_coords[0].Y + (Sim_Random_Pick(-line_deviation, line_deviation) / 2);
+						working_coords[i].Z = working_coords[0].Z + (Sim_Random_Pick(-line_deviation, line_deviation) / 2);
+					}
+				}
+				else
+				{
+					for (int i = 1; i < BoltCount; ++i)
+					{
+						working_coords[i].X += Sim_Random_Pick(-line_deviation, line_deviation);
+						working_coords[i].Y += Sim_Random_Pick(-line_deviation, line_deviation);
+						working_coords[i].Z += Sim_Random_Pick(-line_deviation, line_deviation);
+					}
+				}
+
+				line_deviation /= 2;
+				distance /= 2;
+
+				EBoltPlotStruct& plot = ebolt_plots[plot_index];
+
+				std::memcpy(plot.StartCoords, working_coords, SEGEMENT_COORDS_SIZE);
+				std::memcpy(plot.EndCoords, end_coords, SEGEMENT_COORDS_SIZE);
+				std::memcpy(end_coords, working_coords, SEGEMENT_COORDS_SIZE);
+
+				plot.Distance = distance;
+				plot.Deviation = line_deviation;
+				plot.StartZ = (line_end_z + line_start_z) / 2;
+				plot.EndZ = line_end_z;
+
+				line_end_z = (line_end_z + line_start_z) / 2;
+
+				++plot_index;
+			}
+
+			/**
+			 *  Add the line segments to the draw list.
+			 */
+			Add_Plot_Line(start_coords[1], end_coords[1], LineColor2, line_start_z, line_end_z);
+			Add_Plot_Line(start_coords[2], end_coords[2], LineColor3, line_start_z, line_end_z);
+			Add_Plot_Line(start_coords[0], end_coords[0], LineColor1, line_start_z, line_end_z);
+
+			if (--plot_index < 0)
+			{
+				break;
+			}
+
+			EBoltPlotStruct& plot = ebolt_plots[plot_index];
+
+			distance = plot.Distance;
+			line_deviation = plot.Deviation;
+			line_start_z = plot.StartZ;
+			line_end_z = plot.EndZ;
+
+			std::memcpy(start_coords, plot.StartCoords, SEGEMENT_COORDS_SIZE);
+			std::memcpy(end_coords, plot.EndCoords, SEGEMENT_COORDS_SIZE);
+		}
+	}
+}
+
+void ElectricBoltClass::Draw_Bolts()
+{
+	for (int i = 0; i < LineDrawList.Count; ++i)
+	{
+		LineDrawDataStruct& data = LineDrawList[i];
+
+		Point2D start_pixel;
+		Point2D end_pixel;
+
+		TacticalClass::Instance->CoordsToClient(&data.Start,&start_pixel);
+		TacticalClass::Instance->CoordsToClient(&data.End,&end_pixel);
+
+		auto nRect = DSurface::ViewBounds();
+
+		int start_z = data.StartZ - Game::AdjustForZ(data.Start.Z) - 2;
+		int end_z = data.EndZ - Game::AdjustForZ(data.End.Z) - 2;
+
+		unsigned color = DSurface::RGBA_To_Pixel(data.Color.R, data.Color.G, data.Color.B);
+
+		DSurface::Composite->DrawLineColor_AZ(nRect, start_pixel, end_pixel, (COLORREF)color, start_z, end_z, false);
+	}
+}
+
+void ElectricBoltManager::Clear_All()
+{
+	for (int i = 0; i < ElectricBoltArray.Count; ++i)
+	{
+		GameDelete(ElectricBoltArray[i]);
+	}
+
+	ElectricBoltArray.Clear();
+}
+
+void ElectricBoltManager::Draw_All()
+{
+	if (ElectricBoltArray.Count <= 0)
+		return;
+
+	for (int i = ElectricBoltArray.Count - 1; i >= 0; --i)
+	{
+		ElectricBoltClass* ebolt = ElectricBoltArray[i];
+		if (!ebolt)
+		{
+			//Debug::Log("Invalid EBolt!\n");
+			continue;
+		}
+
+		/**
+		 *  Draw the current bolt line-set.
+		 */
+		ebolt->Draw_It();
+
+		/**
+		 *  Electric bolt has expired, delete it.
+		 */
+		if (ebolt->Lifetime <= 0)
+		{
+			ElectricBoltArray.Remove(ebolt);
+			GameDelete(ebolt);
+		}
+	}
+}

@@ -1,0 +1,112 @@
+#include "Body.h"
+
+#include <SuperClass.h>
+#include <Utilities/Macro.h>
+#include <BitFont.h>
+//#include <format>
+
+DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
+{
+	GET(SuperClass* const, pSuper, ECX);
+	GET_STACK(CoordStruct const, coords, 0x230); // I think?
+
+	if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type))
+		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, coords);
+
+	return 0;
+}
+
+#pragma region Otamaa
+namespace SWTimerTemp
+{
+	SuperClass* Super;
+	SWTypeExt::ExtData* SuperExt;
+}
+
+DEFINE_HOOK(0x6D4A10, TacticalClass_Render_FetchSW, 0x6)
+{
+	SWTimerTemp::Super = R->ECX<SuperClass*>();
+	SWTimerTemp::SuperExt = SWTypeExt::ExtMap.Find(R->ECX<SuperClass*>()->Type);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6D4A71, TacticalClass_Render_ClearSW, 0x5)
+{
+	SWTimerTemp::Super = nullptr;
+	SWTimerTemp::SuperExt = nullptr;
+	return 0x0;
+}
+
+static void __fastcall TacticalClass_PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
+{
+	JMP_STD(0x6D4B50);
+}
+
+namespace Timer
+{
+	void __fastcall DrawTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
+	{
+		if (!SWTimerTemp::Super || !SWTimerTemp::SuperExt || !SWTimerTemp::SuperExt->ChargeTimer.Get()) {
+			TacticalClass_PrintTimer(arg1, scheme, interval, string, pBlinkTimer, pBlinkState);
+			return;
+		}
+
+		auto const pFont = BitFont::BitFontPtr(
+		TextPrintType::UseGradPal |
+		TextPrintType::Right |
+		TextPrintType::NoShadow |
+		TextPrintType::Metal12 |
+		TextPrintType::unk400);
+
+		std::wstring lpDisplay = string;
+		lpDisplay += L"  ";
+		wchar_t Buffer[0x100];
+
+		//do
+		//{
+			int nTimeLeft = SWTimerTemp::Super->RechargeTimer.GetTimeLeft();
+			double nTimePrec = (((nTimeLeft * 1.0) / SWTimerTemp::Super->Type->RechargeTime) * 100.0);
+			double nRec = !SWTimerTemp::SuperExt->ChargeTimer_Backwards.Get() ? (100.0 - nTimePrec) : abs(nTimePrec);
+			int nRes = (int)nRec;
+			//lpTime = std::move(std::format(L"{} {}", nRes, Phobos::UI::PercentLabel.c_str()));
+			swprintf_s(Buffer,L"%03d %ls", nRes, Phobos::UI::PercentLabel);
+		//}
+		//while (false);
+
+		int nTimerIndex = arg1;
+
+		// Most code below were previded by @Secsome !
+		int nTimeWidth;
+		pFont->GetTextDimension(Buffer, &nTimeWidth, nullptr, DSurface::ViewBounds->Width);
+
+		ColorScheme* pTimeScheme = scheme;
+
+		if (!interval && pBlinkTimer && pBlinkState)
+		{
+			auto currentTime = Game::AudioGetTime();
+			if (pBlinkTimer->QuadPart <= currentTime.QuadPart)
+			{
+				pBlinkTimer->QuadPart = currentTime.QuadPart + 1000;
+				*pBlinkState = !*pBlinkState;
+			}
+
+			if (*pBlinkState)
+				pTimeScheme = ColorScheme::Array->GetItem(ColorScheme::White);
+		}
+
+		++nTimerIndex;
+
+		auto bounds = DSurface::ViewBounds();
+		auto nFlag = TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::unk400 | TextPrintType::Fonts;
+		Point2D location { (bounds.Width - (nTimeWidth-1) - 3) , (bounds.Height - nTimerIndex * (pFont->field_1C + 2)) };
+		DSurface::Composite->DrawColorSchemeText(lpDisplay.c_str(), bounds, location,scheme, nullptr, nFlag);
+
+		location.X +=(nTimeWidth-1);
+		DSurface::Composite->DrawColorSchemeText(Buffer, bounds, location, pTimeScheme, nullptr, nFlag);
+
+	}
+}
+
+DEFINE_POINTER_CALL(0x6D4A6B, &Timer::DrawTimer);
+
+#pragma endregion

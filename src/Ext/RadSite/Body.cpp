@@ -1,0 +1,229 @@
+#include "Body.h"
+
+#include <New/Type/RadTypeClass.h>
+#include <LightSourceClass.h>
+
+template<> const DWORD Extension<RadSiteClass>::Canary = 0x87654321;
+RadSiteExt::ExtContainer RadSiteExt::ExtMap;
+
+DynamicVectorClass<RadSiteExt::ExtData*> RadSiteExt::Array;
+
+void RadSiteExt::ExtData::InitializeConstants()
+{
+	this->Type = RadTypeClass::FindOrAllocate("Radiation");
+}
+
+void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
+{
+	// use real ctor
+	auto const pRadSite = GameCreate<RadSiteClass>();
+	auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+	if (!pRadExt)
+		Debug::FatalErrorAndExit("Uneable To find Ext for %x Radsite ! \n", pRadSite);
+
+	//Adding Owner to RadSite, from bullet
+	if (pWeaponExt) {
+		pRadExt->Weapon = pWeaponExt->OwnerObject();
+		pRadExt->Type = pWeaponExt->RadType;
+		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
+	}
+
+	if(pTech){
+		pRadExt->RadHouse = pTech->GetOwningHouse();
+		pRadExt->TechOwner = pTech;
+	}
+	pRadSite->SetBaseCell(&location);
+	pRadSite->SetSpread(spread);
+	pRadExt->SetRadLevel(amount);
+	pRadExt->CreateLight();
+
+	Array.AddUnique(pRadExt);
+}
+
+//RadSiteClass Activate , Rewritten
+void RadSiteExt::ExtData::CreateLight()
+{
+	auto pThis = OwnerObject();
+	auto nLevelDelay = Type->GetLevelDelay();
+	auto nLightDelay = Type->GetLightDelay();
+	auto nRadcolor = Type->GetColor();
+	auto const nTintFactor = Type->GetTintFactor();
+
+	auto nLightFactor = Math::min(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
+	auto nDuration = pThis->RadDuration;
+
+	pThis->RadLevelTimer.Start(nLevelDelay);
+	pThis->RadLightTimer.Start(nLightDelay);
+	pThis->Intensity = (int)(nLightFactor);
+	pThis->LevelSteps = nDuration / nLevelDelay;
+	pThis->IntensitySteps = nDuration / nLightDelay;
+	pThis->IntensityDecrement = (int)(nLightFactor) / (nDuration / nLightDelay);
+
+	TintStruct nTintBuffer {};
+	nTintBuffer.Red = (int)(Math::min(((1000 * nRadcolor.R) / 255) * nTintFactor, 2000.0));
+	nTintBuffer.Green = (int)(Math::min(((1000 * nRadcolor.G) / 255) * nTintFactor, 2000.0));
+	nTintBuffer.Blue = (int)(Math::min(((1000 * nRadcolor.B) / 255) * nTintFactor, 2000.0));
+
+	pThis->Tint = nTintBuffer;
+	bool update = false;
+
+	if (pThis->LightSource)
+	{
+		pThis->LightSource->ChangeLevels((int)(nLightFactor), nTintBuffer, update);
+		pThis->Radiate();
+	}
+	else
+	{
+		auto const pCell = MapClass::Instance->TryGetCellAt(pThis->BaseCell);
+		if (auto const pLight = GameCreate<LightSourceClass>(pCell->GetCoords(), pThis->SpreadInLeptons, (int)(nLightFactor), nTintBuffer))
+		{
+			pThis->LightSource = pLight;
+			pLight->DetailLevel = 0;
+			pLight->Activate(update);
+			pThis->Radiate();
+		}
+	}
+}
+
+// Rewrite because of crashing craziness
+void RadSiteExt::ExtData::Add(int amount)
+{
+	auto pThis = OwnerObject();
+	pThis->Deactivate();
+	auto nInput = ((pThis->RadLevel * pThis->RadTimeLeft) / pThis->RadDuration) + amount;
+	pThis->RadLevel = nInput;
+	auto nInput_2 = nInput * Type->GetDurationMultiple();
+	pThis->RadDuration = nInput_2;
+	pThis->RadTimeLeft = nInput_2;
+	CreateLight();
+}
+
+void RadSiteExt::ExtData::SetRadLevel(int amount)
+{
+	auto pThis = OwnerObject();
+	amount = Math::min(amount, Type->GetLevelMax());
+	const int mult = Type->GetDurationMultiple();
+	pThis->RadLevel = amount;
+	pThis->RadDuration = mult * amount;
+	pThis->RadTimeLeft = mult * amount;
+}
+
+// helper function provided by AlexB
+const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
+{
+	RadSiteClass* pThis = OwnerObject();
+	double nMax = static_cast<double>(pThis->SpreadInLeptons);
+	double nDistance = Map.GetCellAt(cell)->GetCoords()
+		.DistanceFrom(Map.GetCellAt(pThis->BaseCell)->GetCoords());
+	return (nDistance > nMax || pThis->GetRadLevel() <= 0 ) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
+
+
+	/*
+	auto nMax = (double)pThis->SpreadInLeptons;
+	auto nDist = Map.GetCellAt(cell)->GetCoords()
+		.DistanceFrom(Map.GetCellAt(pThis->BaseCell)->GetCoords());
+	auto nResult = ((nDist > nMax) ? 0.0 : ((nMax - nDist) == 0.0 ? 0.0 : ((nMax - nDist) / Math::min((nMax * pThis->RadLevel),1.0))));
+	auto nRadMax = (double)Type->GetLevelMax();
+	return Math::clamp(nResult, 0.0, nRadMax);*/
+}
+
+// =============================
+// load / save
+
+template <typename T>
+void RadSiteExt::ExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->Weapon)
+		.Process(this->RadHouse)
+		.Process(this->Type)
+		.Process(this->TechOwner)
+		;
+}
+
+void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+{
+	Extension<RadSiteClass>::LoadFromStream(Stm);
+	this->Serialize(Stm);
+}
+
+void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+{
+	Extension<RadSiteClass>::SaveToStream(Stm);
+	this->Serialize(Stm);
+}
+
+void RadSiteExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+
+bool RadSiteExt::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Success();
+}
+
+bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Success();
+}
+
+// =============================
+// container
+
+RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
+RadSiteExt::ExtContainer::~ExtContainer() = default;
+
+// =============================
+// container hooks
+
+DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		GET(RadSiteClass*, pThis, ESI);
+		RadSiteExt::ExtMap.FindOrAllocate(pThis);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x65B2F4, RadSiteClass_DTOR, 0x5)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		GET(RadSiteClass*, pThis, ECX);
+		RadSiteExt::ExtMap.Remove(pThis);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x65B3D0, RadSiteClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x65B450, RadSiteClass_SaveLoad_Prefix, 0x8)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		GET_STACK(RadSiteClass*, pItem, 0x4);
+		GET_STACK(IStream*, pStm, 0x8);
+
+		RadSiteExt::ExtMap.PrepareStream(pItem, pStm);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x65B43F, RadSiteClass_Load_Suffix, 0x7)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+		RadSiteExt::ExtMap.LoadStatic();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+		RadSiteExt::ExtMap.SaveStatic();
+
+	return 0;
+}

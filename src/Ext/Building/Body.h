@@ -1,0 +1,95 @@
+#pragma once
+#include <BuildingClass.h>
+#include <HouseClass.h>
+#include <TiberiumClass.h>
+#include <FactoryClass.h>
+
+#include <Helpers/Macro.h>
+#include <Utilities/Container.Otamaa.h>
+#include <Utilities/TemplateDef.h>
+
+#include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Building/Body.h>
+
+class BuildingExt
+{
+public:
+	using base_type = BuildingClass;
+
+	class ExtData final : public Extension<BuildingClass>
+	{
+	public:
+
+		bool DeployedTechno;
+		int LimboID;
+		int GrindingWeapon_LastFiredFrame;
+		BuildingClass* CurrentAirFactory;
+		int AccumulatedGrindingRefund;
+
+		std::vector<AnimClass*> DamageFireAnims;
+		TimerStruct AutoSellTimer;
+
+		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
+			, DeployedTechno { false }
+			, LimboID { -1 }
+			, GrindingWeapon_LastFiredFrame { 0 }
+			, CurrentAirFactory { nullptr }
+			, AccumulatedGrindingRefund { 0 }
+			, DamageFireAnims { }
+			, AutoSellTimer { }
+
+		{ }
+
+		virtual ~ExtData() = default;
+		virtual size_t Size() const { return sizeof(*this); }
+		// virtual void LoadFromINIFile(CCINIClass* pINI) override;
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
+
+			AnnounceInvalidPointer(CurrentAirFactory, ptr);
+		}
+
+		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
+		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		virtual void InitializeConstants() override;
+
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
+	};
+
+	class ExtContainer final : public Container<BuildingExt>
+	{
+	public:
+		ExtContainer();
+		~ExtContainer();
+
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Building:
+				return false;
+			default:
+				return true;
+			}
+		}
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+	};
+
+	static ExtContainer ExtMap;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
+
+	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);
+	static int CountOccupiedDocks(BuildingClass* pBuilding);
+	static bool HasFreeDocks(BuildingClass* pBuilding);
+	static bool CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno);
+	static bool DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno);
+};

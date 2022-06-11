@@ -1,0 +1,25 @@
+#pragma once
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <Utilities/TemplateDef.h>
+
+class SpawnSupport
+{
+public:
+
+	int supportFLHMult;
+	TimerStruct supportFireROF;
+	TimerStruct spawnFireOnceDelay;
+	bool spawnFireFlag;
+
+	template <typename T>
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(supportFLHMult)
+			.Process(supportFireROF)
+			.Process(spawnFireOnceDelay)
+			.Process(spawnFireFlag)
+			;
+	}
+};
+#endif

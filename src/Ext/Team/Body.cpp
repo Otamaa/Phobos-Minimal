@@ -1,0 +1,120 @@
+#include "Body.h"
+
+template<> const DWORD TExtension<TeamClass>::Canary = 0x414B4B41;
+TeamExt::ExtContainer TeamExt::ExtMap;
+
+void TeamExt::ExtData::InitializeConstants() { }
+// =============================
+// load / save
+
+template <typename T>
+void TeamExt::ExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->WaitNoTargetAttempts)
+		.Process(this->NextSuccessWeightAward)
+		.Process(this->IdxSelectedObjectFromAIList)
+		.Process(this->CloseEnough)
+		.Process(this->Countdown_RegroupAtLeader)
+		.Process(this->MoveMissionEndMode)
+		.Process(this->WaitNoTargetCounter)
+		.Process(this->WaitNoTargetTimer)
+		.Process(this->ForceJump_Countdown)
+		.Process(this->ForceJump_InitialCountdown)
+		.Process(this->ForceJump_RepeatMode)
+		.Process(this->TeamLeader)
+		.Process(this->GenericStatus)
+		;
+}
+
+void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+{
+	//Extension<TeamClass>::LoadFromStream(Stm);
+	this->Serialize(Stm);
+}
+
+void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+{
+	//Extension<TeamClass>::SaveToStream(Stm);
+	this->Serialize(Stm);
+}
+
+//void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
+
+bool TeamExt::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Success();
+}
+
+bool TeamExt::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Success();
+}
+
+// =============================
+// container
+
+TeamExt::ExtContainer::ExtContainer() : TExtensionContainer("TeamClass") { }
+TeamExt::ExtContainer::~ExtContainer() = default;
+
+// =============================
+// container hooks
+
+//Everything InitEd beside the Vector below this address
+DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
+{
+	GET(TeamClass*, pThis, ESI);
+
+	//TeamExt::ExtMap.FindOrAllocate(pThis);
+	ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<TeamExt::ExtData>(pThis);
+
+	return 0;
+}
+
+//before `test` i hope not crash the game ,..
+DEFINE_HOOK(0x6E8EC6, TeamClass_DTOR, 0x9)
+{
+	GET(TeamClass*, pThis, ESI);
+
+	//TeamExt::ExtMap.Remove(pThis);
+	ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x6EC450, TeamClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x6EC540, TeamClass_SaveLoad_Prefix, 0x8)
+{
+	GET_STACK(TeamClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+
+	TeamExt::ExtMap.PrepareStream(pItem, pStm);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6EC52F, TeamClass_Load_Suffix, 0x6)
+{
+	TeamExt::ExtMap.LoadStatic();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
+{
+	TeamExt::ExtMap.SaveStatic();
+	return 0;
+}
+
+DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x6)
+{
+	GET(TeamClass*, pThis, ECX);
+	GET(void*, target, EAX);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	if (auto pExt = TeamExt::GetExtData(pThis))
+		pExt->InvalidatePointer(target, all);
+
+	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
+}

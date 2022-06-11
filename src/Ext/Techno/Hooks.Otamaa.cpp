@@ -1,0 +1,625 @@
+#include "Body.h"
+
+#include <InfantryClass.h>
+#include <ScenarioClass.h>
+#include <BuildingClass.h>
+#include <ScenarioClass.h>
+#include <UnitClass.h>
+
+#include <Ext/Anim/Body.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/WeaponType/Body.h>
+#include <Ext/BulletType/Body.h>
+
+#include <Utilities/EnumFunctions.h>
+#include <Utilities/GeneralUtils.h>
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
+#endif
+
+
+#pragma region Otamaa
+
+DEFINE_HOOK(0x6F7893, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
+{
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(TechnoClass*, pThis, ESI);
+
+	bool bRangeVertical = pThis->IsInAir();
+	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+		bRangeVertical = bRangeVertical && !pExt->Range_IgnoreVertical.Get();
+	}
+
+	R->AL(bRangeVertical);
+	return 0x6F7898;
+}
+
+DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (pWeaponExt->OccupantAnim_UseMultiple.Get())
+	{
+		switch (pWeaponExt->OccupantAnims.size())
+		{
+		case 0:
+			break;
+		case 1:
+			pDecidedMuzzle = pWeaponExt->OccupantAnims[0];
+			break;
+		default:
+			pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioGlobal->Random(0, pWeaponExt->OccupantAnims.size() - 1)];
+			break;
+		}
+	}
+
+	R->EDI(pDecidedMuzzle);
+	return 0x6FF32F;
+}
+
+// this hook already inside loop function !
+DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
+{
+	struct DrawPipDataStruct
+	{
+		int nOccupantsCount; int Y; SHPStruct* pShape; int nMaxOccupants;
+	};
+
+	GET(BuildingClass*, pThis, EBP);
+	GET(int, nOccupantIdx, EDI);
+	GET(int, nOffset_X, EBX);
+	GET_STACK(int, nOffset_Y, STACK_OFFS(0x74, 0x50));
+	GET_STACK(DrawPipDataStruct, nPipDataStruct, STACK_OFFS(0x74, 0x60));
+	GET_STACK(Point2D, nDrawOffset, STACK_OFFS(0x74, 0x24));
+	GET_STACK(Point2D, nOffsetadd, STACK_OFFS(0x74, 0x1C));
+	GET_STACK(RectangleStruct*, pRect, STACK_OFFS(0x74, -0xC));
+	GET(int, nOffsetY_Increment, ESI);
+
+	int nPipFrameIndex = 6;
+	SHPStruct* pPipFile = nPipDataStruct.pShape;
+	ConvertClass* pPalette = FileSystem::THEATER_PAL;
+
+	if (nOccupantIdx < nPipDataStruct.nMaxOccupants)
+	{
+		if (auto const pInfantry = pThis->Occupants.GetItem(nOccupantIdx))
+		{
+			const auto pExt = TechnoTypeExt::ExtMap.Find(pInfantry->Type);
+
+			if (auto const pGarrisonPip = pExt->PipGarrison.Get(nullptr)) {
+				pPipFile = pGarrisonPip;
+				nPipFrameIndex = pExt->PipGarrison_FrameIndex.Get();
+				nPipFrameIndex = Math::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
+				pPalette = pExt->PipGarrison_Palette.GetOrDefaultConvert(pPalette);
+			}
+			else
+			{
+				nPipFrameIndex = (int)pInfantry->Type->OccupyPip;
+			}
+		}
+	}
+
+	Point2D nOffset{ nOffset_X + nDrawOffset.X ,nDrawOffset.Y + nOffset_Y };
+	if (pPipFile)
+	{
+		DSurface::Temp->DrawSHP(
+			pPalette,
+			pPipFile,
+			nPipFrameIndex,
+			&nOffset,
+			pRect,
+			BlitterFlags(0x600),
+			0,
+			0,
+			ZGradient::None,
+			1000,
+			0,
+			0,
+			0,
+			0,
+			0);
+	}
+
+	++nOccupantIdx;
+	nOffset_X += nOffsetadd.X;
+	nOffset_Y += nOffsetY_Increment;
+
+	// need to forward the value bacause it is needed for next loop
+	R->EBX(nOffset_X);
+	R->ECX(nOffset_Y);
+	R->EDI(nOccupantIdx);
+	R->EAX(nPipDataStruct.nOccupantsCount);
+
+	return 0x709D11;
+}
+
+DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x0) //4
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	if (!pThis || !pThis->GetTechnoType())
+		return 0x0;
+
+	GET_STACK(int, nMult, 0x4);
+
+	auto const pType = pThis->GetTechnoType();
+
+	auto const Detonate = [pThis, pType, nMult](WeaponTypeClass* pDecided, bool RulesDeathWeapon)
+	{
+		if (pDecided)
+		{
+			auto const pBonus = RulesDeathWeapon ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
+			auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
+
+			if (auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
+			{
+				pBullet->SetWeaponType(pDecided);
+				pBullet->Limbo();
+				pBullet->SetLocation(pThis->Location);
+				pBullet->Explode(true);
+				pBullet->UnInit();
+			}
+		}
+
+		return 0x70D796;
+	};
+
+	bool FromRules = false;
+	auto pTechDeathWeapon = pType->DeathWeapon;
+	WeaponTypeClass* pWeaponResult = nullptr;
+
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+		// Using Promotable<WeaponTypeClass*>
+		// tags : "%sDeathWeapon (%s replaced with rank level);
+		pTechDeathWeapon = pExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
+
+	auto pWeaponS = pThis->GetWeapon(0);
+
+	if (!pTechDeathWeapon && pWeaponS)
+		pTechDeathWeapon = pWeaponS->WeaponType;
+
+	if (pTechDeathWeapon) {
+		pWeaponResult = pTechDeathWeapon;
+	}
+	else {
+		pWeaponResult = RulesGlobal->DeathWeapon;
+		FromRules = true;
+	}
+
+	return Detonate(pWeaponResult, FromRules);
+}
+
+DEFINE_HOOK_AGAIN(0x4DABAB, ObjectClass_WasFallingDown, 0x6)
+DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if (!pThis || pThis->IsFallingDown)
+		return 0x0;
+
+	if (pThis->What_Am_I() == AbstractType::Aircraft)
+		return 0x0;
+
+	if (auto const pTechno = generic_cast<TechnoClass*>(pThis))
+	{
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType()))
+		{
+			auto const GetLandingAnim = [pExt, pTechno]() {
+				auto pDecidedAnim = pExt->Landing_Anim.Get();
+				if (auto const pCell = pTechno->GetCell()) {
+					if (!pCell->ContainsBridge() && pCell->LandType == LandType::Water)
+						pDecidedAnim = pExt->Landing_AnimOnWater.Get();
+				}
+
+				return pDecidedAnim;
+			};
+
+			if (auto pDecidedAnim = GetLandingAnim())
+			{
+				auto const nCoord = pTechno->GetCenterCoord();
+				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, 0x600, 0, 0))
+				{
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, false);
+					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+						pAnimExt->Invoker = pTechno;
+				}
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4CE680, FlyLocomotionClass_TakeOffAnim, 0x5)
+{
+	GET(FlyLocomotionClass*, pThis, ECX);
+
+	if (auto pAir = specific_cast<AircraftClass*>(pThis->LinkedTo)) {
+
+		if (pAir->IsInAir()
+			|| !pAir->GetCell()
+			|| pAir->GetHeight() > pAir->GetCell()->GetFloorHeight({ 1,1 }))
+			return 0x0;
+
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pAir->Type)) {
+			if (auto pDecidedAnim = pExt->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get())) {
+				auto const nCoord = pAir->GetCenterCoord();
+				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, 0x600, 0, 0))
+				{
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, false);
+					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+						pAnimExt->Invoker = pAir;
+				}
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
+{
+	GET(AircraftClass*, pLinked, ECX);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
+
+	auto pType = pLinked->Type;
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType)) {
+
+		auto GetDefaultType = [pType]() {
+			if (pType->IsDropship)
+				return RulesExt::Global()->DropShip_LandAnim.Get();
+			else if (pType->Carryall)
+				return RulesExt::Global()->CarryAll_LandAnim.Get();
+
+			return (AnimTypeClass*)nullptr;
+		};
+
+		auto pFirst = pLinked->GetCell() && pLinked->GetCell()->LandType == LandType::Water && !pLinked->GetCell()->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
+				? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExt::Global()->Aircraft_LandAnim.Get());
+
+		AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType();
+
+		if (pDecidedType)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, 0x600, 0, 0))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pLinked->GetOwningHouse(), nullptr, false);
+				if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+					pAnimExt->Invoker = pLinked;
+			}
+		}
+
+		return 0x4CEC5D;
+	}
+
+	return 0x0;
+}
+
+/*
+DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	int nResult = 0;
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pExt && pExt->ROF_Random.Get())
+	{
+		auto const nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
+		Point2D nBuff { 0, 2 };
+
+		if (nData != nBuff)
+		{
+			if (nData.X || nData.Y)
+			{
+				nBuff.X = abs(nData.X);
+				nBuff.Y = abs(nData.Y);
+
+				if (nBuff.X > nBuff.Y)
+					std::swap(nBuff.X, nBuff.Y);
+			}
+		}
+
+		nResult = (ScenarioGlobal->Random.RandomRanged(nBuff.X, nBuff.Y));
+	}
+
+	R->EAX((double)nResult);
+	return 0x6FD0B5;
+}
+*/
+//handle everything ourself
+DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x5)
+{
+	GET(BuildingClass* const, pBld, ESI);
+
+	if (!pBld || !pBld->Type)
+		return 0x441C39; //return 0 causing crash
+
+	auto const cost = pBld->Type->GetActualCost(pBld->Owner);
+	auto const stength = pBld->Type->Strength;
+	auto const ShakeRules = RulesGlobal->ShakeScreen;
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+
+	//and can be disabled manually
+	if (pExt
+		&& ShakeRules
+		&& !pExt->DontShake.Get()
+		&& cost
+		&& cost > ShakeRules
+		&& stength
+		//&& pBld->IsOnMyView()
+		)
+	{
+		if (int costfactor = cost / RulesGlobal->ShakeScreen)
+			GScreen.ScreenShakeX = Random2Class::NonCriticalRandomNumber->Random() % costfactor;
+
+		if (int strfactor = stength / RulesGlobal->ShakeScreen)
+			GScreen.ScreenShakeY = Random2Class::NonCriticalRandomNumber->Random() % strfactor;
+
+	}
+
+	return 0x441C39; //return 0 causing crash
+}
+
+//7387DD , 5
+//handle everything ourself
+DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
+{
+	GET(UnitClass* const, pUnit, ESI); //forEXT
+
+	if (!pUnit || !pUnit->Type)
+		return 0x738801;
+
+	GET(int const, UnitStreght, ECX);
+	GET(int const, Rules_Shake, EAX);
+
+	auto pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+
+	if (pExt
+		&& UnitStreght
+		&& Rules_Shake
+		&& UnitStreght > Rules_Shake
+		&& !pExt->DontShake.Get()
+		//&& pUnit->IsOnMyView()
+		)
+	{
+		//original calculation
+		auto  nMin = Math::max((UnitStreght % (Rules_Shake / 2)), 6);
+		auto  nMax = Math::max((UnitStreght / (Rules_Shake / 2) + 3), 6);
+
+		if (nMin || nMax)
+			GScreen.ScreenShakeX = abs(Random2Class::NonCriticalRandomNumber->RandomRanged(nMin, nMax));
+
+		if (nMin || nMax)
+			GScreen.ScreenShakeY = abs(Random2Class::NonCriticalRandomNumber->RandomRanged(nMin, nMax));
+	}
+
+	return 0x738801;
+}
+
+DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0xA)
+{
+	GET(FootClass* const, pThis, ESI);
+
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	{
+		pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioGlobal->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
+
+		if (!ScenarioGlobal->Random(0, 1))
+			pThis->RockingSidewaysPerFrame = -pThis->RockingSidewaysPerFrame;
+
+		pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioGlobal->Random.RandomDouble() * 0.1 * pExt->CrashSpinVerticalRate.Get());
+
+		return 0x4DED4B;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x8)
+{
+	enum { Skip = 0x4D42D2, SetMissionRate = 0x4D4569, Continue = 0x0 };
+
+	GET(FootClass* const, pThis, ESI);
+
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (pExt && pExt->Is_Cow.Get())
+	{
+		pThis->UpdateIdleAction();
+		return pThis->Destination ? Skip : SetMissionRate;
+	}
+
+	return Continue;
+}
+
+DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x7)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	{
+		R->EDI(R->EAX());
+		R->BL(pExt->Is_Cow.Get());
+		return 0x51CEAA;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0xB)
+{
+	GET(DiskLaserClass* const, pThis, ESI);
+
+	if (pThis && pThis->Owner)
+	{
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
+		{
+			R->ECX(pExt->DiskLaserChargeUp.Get(RulesGlobal->DiskLaserChargeUp));
+			return 0x4A7760;
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
+{
+	GET(TechnoClass*, Drainer, ESI);
+	GET(TechnoClass*, pVictim, EDI);
+
+	if (Drainer && pVictim)
+	{
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType()))
+		{
+			AnimClass* pDrainAnim = nullptr;
+
+			if (auto pAnimType = pExt->DrainAnimationType.Get(RulesGlobal->DrainAnimationType))
+			{
+				auto nCoord = Drainer->GetCoords();
+				if (auto pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x600, 0, false))
+				{
+					AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, false);
+					if (auto const pAnimExt = AnimExtAlt::GetExtData(pDrainAnimCreated))
+						pAnimExt->Invoker = Drainer;
+					pDrainAnim = pDrainAnimCreated;
+				}
+			}
+
+			R->EAX(pDrainAnim);
+			return 0x70FE07;
+		}
+	}
+
+	return 0x0;
+}
+
+/*
+DEFINE_HOOK(0x4B387A, DriveLocoClass_ClearNavCom2_Empty_WTF, 0x4)
+{
+	GET(UnitClass*, pLinked, ECX);
+
+	if (pLinked->Destination)
+	{
+		if (auto pDest = specific_cast<AircraftClass*>(pLinked->Destination))
+		{
+			return 0x4B3607;
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
+{
+	GET(AbstractClass*, pDest, ECX);
+
+	return pDest->WhatAmI() == AbstractType::Infantry || pDest->WhatAmI() == AbstractType::Aircraft ? 0x4B05F8 : 0x4B063D;
+}*/
+
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+
+#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
+#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+
+// this init before phobos does !
+DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoExt::GetExtData(pThis);
+
+	if (!pExt || !pTypeExt)
+		return 0x0;
+
+	if (pTypeExt->VirtualUnit.Get())
+		pExt->VirtualUnit = true;
+
+	if (pExt->VirtualUnit)
+	{
+		pThis->UpdatePlacement(PlacementType::Remove);
+		pThis->IsOnMap = false;
+		pThis->GetTechnoType()->DontScore = true;
+		pThis->GetTechnoType()->Selectable = false;
+		pThis->GetTechnoType()->Immune = true;
+	}
+
+	AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+	return 0x0;
+}
+
+/*
+DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
+{
+	GET(WeaponStruct*, nWeaponStruct, EAX);
+	GET(TechnoClass*, pThis, EBX);
+	GET_STACK(int, idxWeapon, 0x8);
+
+	CoordStruct nRet = nWeaponStruct->FLH;
+
+	if (auto const pInf = specific_cast<InfantryClass*>(pThis))
+	{
+		if (pInf->Crawling)
+		{
+			if (auto const pExt = TechnoTypeExt::ExtMap.Find(pInf->Type))
+			{
+				if (!pThis->Veterancy.IsElite())
+				{
+					if (idxWeapon == 0)
+						nRet = pExt->PrimaryCrawlFLH.Get(nWeaponStruct->FLH);
+					else
+						nRet = pExt->SecondaryCrawlFLH.Get(nWeaponStruct->FLH);
+				}
+				else
+				{
+					if (idxWeapon == 0)
+						nRet = pExt->Elite_PrimaryCrawlFLH.Get(nWeaponStruct->FLH);
+					else
+						nRet = pExt->Elite_SecondaryCrawlFLH.Get(nWeaponStruct->FLH);
+				}
+			}
+		}
+	}
+
+	R->ECX(nRet.X);
+	R->EBP(nRet.Y);
+	R->EAX(nRet.Z);
+
+	return 0x6F3B37;
+}*/
+#endif
+
+/*
+DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 0x5)
+{
+	GET(InfantryClass *, pInf, ESI);
+	GET(BuildingClass *, pBld, EBP);
+	if(TechnoExt::ExtData*  pExt = TechnoExt::GetExtData(pInf))
+		pExt->GarrisonedIn = pBld;
+	return 0;
+}
+
+DEFINE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
+{
+	GET(InfantryClass *, pThis, ESI);
+	if(TechnoExt::ExtData* pData = TechnoExt::GetExtData(pThis))
+		pData->GarrisonedIn = nullptr;
+	return 0;
+}
+
+DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 0x5)
+{
+	GET(InfantryClass *, pThis, EDI);
+	if(TechnoExt::ExtData* pData = TechnoExt::GetExtData(pThis))
+		pData->GarrisonedIn = nullptr;
+	return 0;
+}*/
+
+#pragma endregion

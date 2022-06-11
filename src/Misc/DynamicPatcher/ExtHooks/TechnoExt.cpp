@@ -1,0 +1,250 @@
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <TechnoClass.h>
+
+#include <Utilities/Macro.h>
+
+#include <Ext/WeaponType/Body.h>
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFirefunctional.h>
+#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
+#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTargetFunctional.h>
+#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
+//#include <Misc/DynamicPatcher/Techno/FireSW/FireSWFunctional.h>
+#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
+#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
+//#include <Misc/DynamicPatcher/Techno/AttackBeacon/AttackBeaconFunctional.h>
+
+/*
+DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
+{
+	GET(AircraftClass*, pThis, EBP);
+	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto pManager = pExt->AnotherData.MyManager.get())
+		pManager->Render2(pThis, !pThis->IsActive());
+
+	return 0x4149F5;
+}
+
+DEFINE_HOOK(0x519616, InfantryClass_Render2, 0x5)
+{
+	GET(InfantryClass*, pThis, EBP);
+	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto pManager = pExt->AnotherData.MyManager.get())
+		pManager->Render2(pThis, !pThis->IsActive());
+
+	R->ECX(pThis);
+	return 0x51961F;
+}
+
+DEFINE_HOOK(0x73D40C, UnitClass_Render2, 0x7)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto pManager = pExt->AnotherData.MyManager.get())
+		pManager->Render2(pThis, !pThis->IsActive());
+
+	R->ECX(pThis);
+	return 0x73D415;
+}
+
+DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
+{
+	GET(ObjectClass*, pObject, ESI);
+
+	if (auto pTechno = generic_cast<TechnoClass*>(pObject))
+	{
+		auto const pExt = TechnoExt::GetExtData(pTechno);
+		if (auto pManager = pExt->AnotherData.MyManager.get())
+			pManager->StopCommand();
+	}
+	return 0;
+}
+
+
+DEFINE_HOOK(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	auto const pExt = TechnoExt::GetExtData(pThis);
+
+	return pExt && pExt->VirtualUnit ? 0x6925E6 : 0x0;
+}
+#endif
+DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_DP, 0x7)
+{
+	GET(TechnoClass*, pThis, EDI);
+
+	auto pUnit = specific_cast<UnitClass*>(pThis);
+	const bool bNotSlectable = pUnit && pUnit->DeatFrameCounter > 0;
+
+	bool Slectable = true;
+
+	#ifdef COMPILE_PORTED_DP_FEATURES
+	if (auto pExt = TechnoExt::GetExtData(pThis))
+		Slectable = !pExt->VirtualUnit.Get();
+	#endif
+
+	return Slectable || !bNotSlectable ? 0x0 : 0x5F45A9;
+}
+*/
+
+//#ifdef COMPILE_PORTED_DP_FEATURES
+DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	//GET(WeaponTypeClass*, pWeapon, EDI);
+	//GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
+	bool bCeaseFire = false;
+
+	PassengersFunctional::CanFire(pThis, bCeaseFire);
+
+	return bCeaseFire ? 0x6FCB7E : 0x0;
+}
+
+namespace CalculatePinch
+{
+	void Calc(TechnoClass* pFirer, int nWeaponIdx)
+	{
+		auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
+		if (pWeapon && pWeapon->WeaponType)
+		{
+			auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
+
+			if (ext && (ext->RockerPitch.Get() > 0.0f))
+			{
+				double halfPI = Math::PI / 2;
+				double theta = 0;
+
+				if (pFirer->HasTurret())
+				{
+					double turretRad = pFirer->GetRealFacing().current().radians() - halfPI;
+					double bodyRad = pFirer->PrimaryFacing.current().radians() - halfPI;
+					const Matrix3D& matrix3D = Matrix3D(true);
+					matrix3D.RotateZ((float)turretRad);
+					matrix3D.RotateZ((float)-bodyRad);
+					theta = matrix3D.GetZRotation();
+				}
+
+				double gamma = (double)ext->RockerPitch.Get();
+				int lrSide = 1;
+				int fbSide = 1;
+				if (theta < 0)
+				{
+					lrSide *= -1;
+				}
+				if (theta >= halfPI || theta <= -halfPI)
+				{
+					fbSide *= -1;
+				}
+
+				double pitch = gamma;
+				double roll = 0.0;
+				if (theta != 0)
+				{
+					if (Math::sin(halfPI - theta) == 0.0)
+					{
+						pitch = 0.0;
+						roll = gamma * lrSide;
+					}
+					else
+					{
+						double l = Math::cos(gamma);
+						double y = l / Math::sin(halfPI - theta);
+						double z = Math::sin(gamma);
+						double lyz = Math::sqrt(std::pow(y, 2) + std::pow(z, 2));
+						pitch = Math::acos(std::abs(y) / lyz) * fbSide;
+						roll = (gamma - std::abs(pitch)) * lrSide;
+					}
+				}
+				pFirer->RockingForwardsPerFrame = -(float)pitch;
+				pFirer->RockingSidewaysPerFrame = (float)roll;
+			}
+		}
+	}
+}
+
+DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(int, nWeapon, 0x8);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
+
+	CalculatePinch::Calc(pThis, nWeapon);
+	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoExt::GetExtData(pThis);
+
+	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
+	SpawnSupportFunctional::OnFire(pThis);
+	if (pExt && pTypeExt)
+	{
+		AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
+		//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
+	}
+	return 0x0;
+}
+
+DEFINE_HOOK(0x702050, TechnoClass_Destroy, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoExt::GetExtData(pThis);
+	if (pExt && pTypeExt) {
+		GiftBoxFunctional::Destroy(pExt, pTypeExt);
+	}
+	return 0;
+}
+
+DEFINE_HOOK(0x6F6CA0, TechnoClass_Put_DP, 0x7)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(CoordStruct*, pCoord, 0x4);
+	GET_STACK(DirStruct, faceDir, 0x8);
+
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoExt::GetExtData(pThis);
+
+	if (pExt && pTypeExt) {
+
+		GiftBoxFunctional::Init(pExt, pTypeExt);
+		AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pExt = TechnoExt::GetExtData(pThis);
+	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
+}
+
+DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x7 )
+{
+	GET(TechnoClass*, pThis, ESI);
+	//GET(int*, pRealDamage , EBX);
+	GET(WarheadTypeClass*, pWH , EBP);
+	GET(DamageState, damageState , EDI);
+
+	auto pExt = TechnoExt::GetExtData(pThis);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if(pExt && pTypeExt) {
+		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x5)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	R->EDI(pTechno->GetTechnoType()->GuardRange ? pTechno->GetTechnoType()->GuardRange:512);
+	return 0x6F903E;
+}
+#endif
