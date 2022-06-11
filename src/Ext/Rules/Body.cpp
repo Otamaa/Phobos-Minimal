@@ -326,6 +326,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->Aircraft_TakeOffAnim)
 		.Process(this->DisablePathfindFailureLog)
 		.Process(this->CreateSound_PlayerOnly)
+		.Process(this->CivilianSideIndex)
+		.Process(this->SpecialCountryIndex)
+		.Process(this->NeutralCountryIndex)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);
@@ -488,4 +491,21 @@ DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x9)
+{
+	if (R->AL()) //ScenarioLoadSucceed
+	{
+		if (auto pRulesGlobal = RulesExt::Global()) {
+			pRulesGlobal->CivilianSideIndex = SideClass::FindIndex("Civilian");
+			Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
+			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexOfName("Neutral");
+			Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
+			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexOfName("Special");
+			Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
+		}
+	}
+
+	return 0x0;
 }

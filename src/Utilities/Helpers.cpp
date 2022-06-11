@@ -15,7 +15,7 @@ bool Helpers::Otamaa::LauchSW(SuperWeaponTypeClass* LaunchWhat,
 	bool IgnoreInhibitor,
 	bool IgnoreMoney)
 {
-	auto const HouseOwner = !pOwner  || pOwner->Defeated ? HouseClass::FindCivilianSide():pOwner;
+	auto const HouseOwner = !pOwner  || pOwner->Defeated ? HouseExt::FindCivilianSide():pOwner;
 
 	if (HouseOwner)
 	{

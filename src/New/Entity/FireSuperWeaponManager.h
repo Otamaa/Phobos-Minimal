@@ -114,7 +114,7 @@ private:
 			if (!pHouse || pHouse->Defeated)
 			{
 				// find civilian
-				pHouse = HouseClass::FindCivilianSide();
+				pHouse = HouseExt::FindCivilianSide();
 
 				if (!pHouse)
 				{

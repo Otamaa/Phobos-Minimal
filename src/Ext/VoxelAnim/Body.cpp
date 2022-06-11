@@ -25,7 +25,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 		return;
 
 	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(OwnerObject(), pTypeExt->Damage_DealtByOwner.Get());
-	auto const pOwner = pInvoker ? pInvoker->Owner : pThis->OwnerHouse ? pThis->OwnerHouse : HouseClass::FindCivilianSide();
+	auto const pOwner = pInvoker ? pInvoker->Owner : pThis->OwnerHouse ? pThis->OwnerHouse : HouseExt::FindCivilianSide();
 
 	size_t  nTotal = 0;
 

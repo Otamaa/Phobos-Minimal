@@ -74,7 +74,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 		if (auto unit = pTypeExt->CreateUnit.Get())
 		{
 			HouseClass* decidedOwner = (pThis->Owner)
-				? pThis->Owner : HouseClass::FindCivilianSide();
+				? pThis->Owner : HouseExt::FindCivilianSide();
 
 			auto pCell = pThis->GetCell();
 			CoordStruct location = pThis->GetCoords();

@@ -28,7 +28,7 @@ static DamageAreaResult __fastcall BulletClass_DamageArea
 	HouseClass* pSourceHouse //nullptr
 )
 {
-	if (auto const BulletOwner = pSource && !pSourceHouse ? pSource->GetOwningHouse() : HouseClass::FindCivilianSide())
+	if (auto const BulletOwner = pSource && !pSourceHouse ? pSource->GetOwningHouse() : HouseExt::FindCivilianSide())
 		pSourceHouse = BulletOwner;
 
 	auto const nCoord = *pCoord;

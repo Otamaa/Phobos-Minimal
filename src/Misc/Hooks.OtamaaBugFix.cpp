@@ -11,6 +11,7 @@
 #include <TunnelLocomotionClass.h>
 #include <IsometricTileTypeClass.h>
 
+/*
 static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
 {
 	if (!pThis->GetTechnoType()->Invisible)
@@ -18,6 +19,7 @@ static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWh
 }
 
 DEFINE_POINTER_CALL(0x6FA2D3, &_DrawBehindAnim)
+*/
 
 DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 {
@@ -227,11 +229,10 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	//Eax is discarded anyway
 	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, 0x600, 0, false))
 	{
-		if (auto const pExt = BulletExt::GetExtData(pThis))
-		{
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() : pExt->Owner
-							, pThis->Target ? pThis->GetOwningHouse() : nullptr, false);
-		}
+		auto const pExt = BulletExt::GetExtData(pThis);
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
+											(pExt && pExt->Owner) ? pExt->Owner : nullptr
+								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, false);
 
 		if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim)) {
 			pAnimExt->Invoker = pThis->Owner;
@@ -356,4 +357,27 @@ DEFINE_HOOK(0x7BAE60 , Surface_GetPixel_CheckParameters, 0x5)
 	}
 
 	return 0x7BAE9A;
+}
+
+DEFINE_HOOK(0x48439A, CellClass_GetColourComponents, 0x5)
+{
+	GET(int, Distance, EAX);
+	GET(LightSourceClass*, LS, ESI);
+
+	GET_STACK(int*, Intensity, 0x44);
+	GET_STACK(int*, Tint_Red, 0x54);
+	GET_STACK(int*, Tint_Green, 0x58);
+	GET_STACK(int*, Tint_Blue, 0x5C);
+
+	const int RangeVisibilityFactor = 1000;
+	const int RangeDistanceFactor = 1000;
+	const int LightMultiplier = 1000;
+
+	int LSEffect = (RangeVisibilityFactor * LS->LightVisibility - RangeDistanceFactor * Distance) / LS->LightVisibility;
+	*Intensity += int(LSEffect * LS->LightIntensity / LightMultiplier);
+	*Tint_Red += int(LSEffect * LS->LightTint.Red / LightMultiplier);
+	*Tint_Green += int(LSEffect * LS->LightTint.Green / LightMultiplier);
+	*Tint_Blue += int(LSEffect * LS->LightTint.Blue / LightMultiplier);
+
+	return 0x484440;
 }

@@ -53,6 +53,19 @@ int HouseExt::CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const 
 	return pHouseExt->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
 }
 
+HouseClass* HouseExt::FindCivilianSide() {
+	return HouseClass::FindBySideIndex(RulesExt::Global()->CivilianSideIndex);
+}
+
+
+HouseClass* HouseExt::FindSpecial() {
+	return HouseClass::FindByCountryIndex(RulesExt::Global()->SpecialCountryIndex);
+}
+
+HouseClass* HouseExt::FindNeutral(){
+	return  HouseClass::FindByCountryIndex(RulesExt::Global()->NeutralCountryIndex);
+}
+
 // Ares
 HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const kind, bool const allowRandom, HouseClass* const pDefault, HouseClass* const pInvoker, HouseClass* const pVictim)
 {
@@ -63,11 +76,11 @@ HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const kind, bool const allowRa
 	case OwnerHouseKind::Victim:
 		return pVictim ? pVictim : pDefault;
 	case OwnerHouseKind::Civilian:
-		return HouseClass::FindCivilianSide();
+		return HouseExt::FindCivilianSide();// HouseClass::FindCivilianSide();
 	case OwnerHouseKind::Special:
-		return HouseClass::FindSpecial();
+		return HouseExt::FindSpecial();//  HouseClass::FindSpecial();
 	case OwnerHouseKind::Neutral:
-		return HouseClass::FindNeutral();
+		return HouseExt::FindNeutral();//  HouseClass::FindNeutral();
 	case OwnerHouseKind::Random:
 		if (allowRandom) {
 			auto& Random = ScenarioClass::Instance->Random;

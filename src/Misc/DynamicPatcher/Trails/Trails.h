@@ -5,6 +5,7 @@
 #include <CellClass.h>
 #include "TrailType.h"
 
+#include <Ext/House/Body.h>
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
 #include "../Helpers/EffectHelpers.h"
 
@@ -115,7 +116,7 @@ public:
 	void DrawTrail(HouseClass* pHouse, CoordStruct& sourcePos, const CoordStruct& createOffset)
 	{
 		if (!pHouse)
-			pHouse = HouseClass::FindCivilianSide();
+			pHouse = HouseExt::FindCivilianSide();
 
 		if (sourcePos != CoordStruct::Empty)
 		{

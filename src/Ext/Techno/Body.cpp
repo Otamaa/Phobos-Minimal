@@ -630,7 +630,7 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 	if (auto pTypeExt = TechnoTypeExt::ExtMap[pThis->GetTechnoType()])
 	{
-		auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseClass::FindCivilianSide();
+		auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
 
 		if (pExt->LaserTrails.empty())
 		{

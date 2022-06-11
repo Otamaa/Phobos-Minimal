@@ -12,9 +12,7 @@ public:
 
 	AnimClass* _AnimClass_CTOR(AnimTypeClass* pType, const CoordStruct& pCoord, int nLoopDelay,
 		int nLoopCount, DWORD nflags, int nForceZAdjust, bool nReverse)
-	{
-		JMP_THIS(0x421EA0);
-	}
+	{ JMP_THIS(0x421EA0); }
 };
 
 class VoxelAnimClassCopy final : public VoxelAnimClass

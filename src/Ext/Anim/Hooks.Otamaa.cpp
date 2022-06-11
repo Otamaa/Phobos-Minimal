@@ -3,6 +3,7 @@
 
 #include <Ext/Tiberium/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/House/Body.h>
 #include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Helpers.h>
@@ -313,7 +314,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 		{
 			auto pAnimTypeExt = pTypeExt;
 			auto const pObject = AnimExt::GetTechnoInvoker(pThis,pTypeExt->Damage_DealtByInvoker.Get());
-			auto const pHouse = ((pObject) ? pObject->GetOwningHouse() : pThis->Owner ? pThis->Owner : HouseClass::FindCivilianSide());
+			auto const pHouse = ((pObject) ? pObject->GetOwningHouse() : pThis->Owner ? pThis->Owner : HouseExt::FindCivilianSide());
 
 			SpawnMultiple(
 				pAnimTypeExt->SpawnsMultiple,
@@ -369,7 +370,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	GET(AnimTypeClass*, pBounceAnim, ECX);
 	GET(AnimClass*, pThis, EBP);
 
-	HouseClass* pHouse = HouseClass::FindCivilianSide();
+	HouseClass* pHouse = HouseExt::FindCivilianSide();
 	TechnoClass* pObject = nullptr;
 
 	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim)){

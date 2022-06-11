@@ -77,5 +77,8 @@ public:
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);
+	static HouseClass* FindCivilianSide();
+	static HouseClass* FindSpecial();
+	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
 };

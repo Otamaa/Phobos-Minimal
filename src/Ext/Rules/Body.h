@@ -87,6 +87,11 @@ public:
 
 		Valueable<bool> DisablePathfindFailureLog;
 		Valueable<bool> CreateSound_PlayerOnly;
+
+		int CivilianSideIndex;
+		int SpecialCountryIndex;
+		int NeutralCountryIndex;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -147,6 +152,11 @@ public:
 			, Aircraft_TakeOffAnim { nullptr }
 			, DisablePathfindFailureLog { false }
 			, CreateSound_PlayerOnly { false }
+
+			, CivilianSideIndex { -1 }
+			, SpecialCountryIndex { -1 }
+			, NeutralCountryIndex { -1 }
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

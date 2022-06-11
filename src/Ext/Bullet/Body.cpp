@@ -61,7 +61,7 @@ void BulletExt::ExtData::InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt)
 		return;
 
 	if (pTypeExt) {
-		auto pOwner = pThis->Owner ? pThis->Owner->Owner : (Owner ? Owner : HouseClass::FindCivilianSide());
+		auto pOwner = pThis->Owner ? pThis->Owner->Owner : (Owner ? Owner : HouseExt::FindCivilianSide());
 		auto OwnerLaserColor = pOwner->LaserColor;
 
 		for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {

@@ -38,6 +38,12 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0xC)
 	return 0x472287;
 }
 
+// nCuridx is following Overload .size , so it may causing problem if other vector .size not match Overload .size
+// fixed it !
+static inline int FixIdx (const Iterator<int>& iter, int nInput) {
+	return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];
+}
+
 void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void* _)
 {
 	auto pOwner = pThis->Owner;
@@ -64,17 +70,24 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 			int nCurIdx = 0;
 			int nNodeCount = pThis->ControlNodes.Count;
 
-			for (int i = 0; i < (int)(OverloadCount.size()); ++i)
-			{
-				if (nNodeCount > OverloadCount[i])
-					nCurIdx = i + 1;
-			}
+			/* Vanilla code !
+			int MaxVal = 0;
+			if (nNodeCount > *OverloadCount.begin()) {
 
-			// nCuridx is following Overload .size , so it may causing problem if other vector .size not match Overload .size
-			// fixed it !
-			constexpr auto FixIdx = [](const Iterator<int>& iter, int nInput) {
-				return iter.empty() ? 0 : iter[nInput > (int)iter.size() ? (int)iter.size() : nInput];
-			};
+				do {
+					if (nCurIdx >= static_cast<int>((OverloadCount.size())) - 1) {
+						break;
+					}
+
+					MaxVal = *(OverloadCount.begin()+1);
+					++nCurIdx;
+				} while (nNodeCount > MaxVal);
+			}
+			*/
+			for (int i = 0; i < (int)(OverloadCount.size()); ++i) {
+				if (nNodeCount > OverloadCount[i]){
+					nCurIdx = i+1; }
+			}
 
 			auto const nOverloadfr = pOwnerTypeExt->Overload_Frames.GetElements(RulesGlobal->OverloadFrames);
 			pThis->OverloadDamageDelay = FixIdx(nOverloadfr, nCurIdx);
@@ -99,8 +112,7 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 
 				if (auto const pParticle = pOwnerTypeExt->Overload_ParticleSys.Get(RulesGlobal->DefaultSparkSystem))
 				{
-					for (int i = pOwnerTypeExt->Overload_ParticleSysCount.Get(5); i > 0; --i)
-					{
+					for (int i = pOwnerTypeExt->Overload_ParticleSysCount.Get(5); i > 0; --i) {
 						auto const nRandomY = ScenarioGlobal->Random.RandomRanged(-200, 200);
 						auto const nRamdomX = ScenarioGlobal->Random.RandomRanged(-200, 200);
 						CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, pOwner->Location.Z + 100 };
@@ -112,7 +124,7 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 				{
 					double const nBase = (nCurIdx != 1) ? 0.015 : 0.029999999;
 					double const nCopied_base = (ScenarioGlobal->Random.RandomRanged(0, 100) < 50) ? -nBase : nBase;
-					pOwner->RockingSidewaysPerFrame = (float)nCopied_base;
+					pOwner->RockingSidewaysPerFrame = static_cast<float>(nCopied_base);
 				}
 			}
 		}
@@ -124,7 +136,6 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 }
 
 DEFINE_POINTER_CALL(0x6FA730, &CaptureManagerClass_Overload_AI);
-
 
 DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit, 0x7)
 {
