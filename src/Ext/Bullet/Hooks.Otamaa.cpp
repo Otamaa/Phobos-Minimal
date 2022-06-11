@@ -3,7 +3,6 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/BulletType/Body.h>
-#include <Misc/CaptureManager.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>

@@ -81,7 +81,6 @@
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
     <ClCompile Include="src\Lib\LodePNG\LodePNG.cpp" />
     <ClCompile Include="src\Lib\MapViewOfFileClass.cpp" />
-    <ClCompile Include="src\Misc\CaptureManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Helpers\Helpers.cpp" />
@@ -220,7 +219,6 @@
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Lib\LodePNG\LodePNG.h" />
     <ClInclude Include="src\Lib\MapViewOfFileClass.h" />
-    <ClInclude Include="src\Misc\CaptureManager.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\SimulateBurst.h" />

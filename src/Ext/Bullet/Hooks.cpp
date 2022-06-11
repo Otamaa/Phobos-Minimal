@@ -4,7 +4,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/BulletType/Body.h>
-#include <Misc/CaptureManager.h>
+#include <Ext/CaptureManager/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl, 0x6)
 	auto pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
 	auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
 
-	R->AL(CaptureManager::CaptureUnit(pThis->Owner->CaptureManager, pTechno, pControlledAnimType));
+	R->AL(CaptureExt::CaptureUnit(pThis->Owner->CaptureManager, pTechno, pControlledAnimType));
 
 	return 0x4692D5;
 }

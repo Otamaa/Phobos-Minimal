@@ -103,7 +103,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x8)
 
 namespace CalculatePinch
 {
-	void Calc(TechnoClass* pFirer, int nWeaponIdx)
+	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
 	{
 		auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
 		if (pWeapon && pWeapon->WeaponType)
