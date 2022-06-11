@@ -113,7 +113,7 @@ public:
 	{ return { X / nval, Y / nval, Z / nval }; }
 
 	CoordStruct operator/(double ndVal) const
-	{ return { (int)(X / ndVal), (int)(Y / ndVal), (int)(Z / ndVal) };}
+	{ return { static_cast<int>(X / ndVal), static_cast<int>(Y / ndVal), static_cast<int>(Z / ndVal) };}
 
 	CoordStruct& operator-=(const CoordStruct& nThat)
 	{
@@ -139,14 +139,14 @@ public:
 
 	//scalar multiplication
 	//CoordStruct operator*(double r) const
-	//{ return { (int)(X * r), (int)(Y * r), (int)(Z * r) }; }
+	//{ return { static_cast<int>(X * r), static_cast<int>(Y * r), static_cast<int>(Z * r) }; }
 
 	//scalar multiplication
 	CoordStruct& operator*=(double r)
 	{
-		X = (int)(X * r);
-		Y = (int)(Y * r);
-		Z = (int)(Z * r);
+		X = static_cast<int>(X * r);
+		Y = static_cast<int>(Y * r);
+		Z = static_cast<int>(Z * r);
 		return *this;
 	}
 
@@ -163,7 +163,7 @@ public:
 	{ return std::sqrt(MagnitudeSquared()); }
 
 	int MagnitudeInt() const
-	{ return (int)(Magnitude() * 0.00390625);}
+	{ return static_cast<int>(Magnitude() * 0.00390625);}
 
 	//vector multiplication
 	CoordStruct operator*(const CoordStruct& a) const
@@ -185,7 +185,7 @@ public:
 	{ return (*this - nThat).Magnitude(); }
 
 	inline int DistanceFromI(const CoordStruct& nThat) const
-	{ return (int)(*this - nThat).Magnitude(); }
+	{ return static_cast<int>((*this - nThat).Magnitude()); }
 
 	static const  CoordStruct Empty;
 
@@ -194,9 +194,9 @@ public:
 		auto coord1 = *this;
 		CoordStruct coord;
 
-		coord.X = (int)(((double)coord1.X * (1.0f - (double)t)) + ((double)nThat.X * t));
-		coord.Y = (int)(((double)coord1.Y * (1.0f - (double)t)) + ((double)nThat.Y * t));
-		coord.Z = (int)(((double)coord1.Z * (1.0f - (double)t)) + ((double)nThat.Z * t));
+		coord.X = static_cast<int>(((double)coord1.X * (1.0f - (double)t)) + ((double)nThat.X * t));
+		coord.Y = static_cast<int>(((double)coord1.Y * (1.0f - (double)t)) + ((double)nThat.Y * t));
+		coord.Z = static_cast<int>(((double)coord1.Z * (1.0f - (double)t)) + ((double)nThat.Z * t));
 
 		return coord;
 	}
@@ -299,7 +299,7 @@ public:
 	{
 		double Mag = (nThat).Magnitude();
 		double MagT = this->Magnitude();
-		double Dot = (double)((this->X * nThat.X) + (this->Y * nThat.Y) + (this->Z * nThat.Z));
+		double Dot = static_cast<double>((this->X * nThat.X) + (this->Y * nThat.Y) + (this->Z * nThat.Z));
 		double v = Dot / (Mag * MagT);
 
 		v = fmax(v, -1.0);
@@ -372,7 +372,7 @@ public:
 
 		if (len2 != 0.0)
 		{
-			double oolen = (double)(Math::Q_invsqrt(static_cast<float>(len2)));
+			double oolen = static_cast<double>(Math::Q_invsqrt(static_cast<float>(len2)));
 			buffer.X = X*oolen;
 			buffer.Y = Y*oolen;
 			buffer.Z = Z*oolen;

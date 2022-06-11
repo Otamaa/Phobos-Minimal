@@ -37,11 +37,15 @@ public:
 
 	//AbstractTypeClass
 
-	void CalculateSpeed()
+	void CalculateSpeed() const
 		{ JMP_THIS(0x7729F0); }
 
-    int GetWeaponSpeed(int range)
+    int GetWeaponSpeed(int range) const
     { JMP_THIS(0x773070); }
+
+	int GetWeaponSpeed(CoordStruct const& sourcePos, CoordStruct const& targetPos) const {
+		return GetWeaponSpeed(sourcePos.DistanceFromI(targetPos));
+	}
 
 	bool IsWallDestroyer() const
 	{ JMP_THIS(0x772AC0); }
