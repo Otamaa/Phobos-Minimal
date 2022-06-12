@@ -113,7 +113,7 @@ public:
 		Valueable<bool> Transact_SpreadAmongTargets;
 
 		Valueable<int> NotHuman_DeathSequence;
-		Valueable<bool> AllowDamageOnSelf;
+		Nullable<bool> AllowDamageOnSelf;
 		Valueable<bool> Debris_Conventional;
 
 		#pragma region Otamaa
@@ -231,7 +231,7 @@ public:
 			, Transact_SpreadAmongTargets { false }
 
 			, NotHuman_DeathSequence { -1 }
-			, AllowDamageOnSelf{ false }
+			, AllowDamageOnSelf{ }
 			, Debris_Conventional{ false }
 
 			, NotHuman_DeathAnim { }

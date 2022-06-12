@@ -115,4 +115,6 @@ static	void __fastcall _Log_Disable_These(const char* pFormat, ...) {
 DEFINE_POINTER_CALL(0x40A55D, &_Log_Disable_These);
 DEFINE_POINTER_CALL(0x40A5BC, &_Log_Disable_These);
 DEFINE_POINTER_CALL(0x69A79D, &_Log_Disable_These);
+DEFINE_POINTER_CALL(0x42CC65, &_Log_Disable_These);
+DEFINE_POINTER_CALL(0x42CBDE, &_Log_Disable_These);
 #endif

@@ -52,6 +52,7 @@
     <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
     <ClCompile Include="src\Ext\RadSite\Hooks.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
+    <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
@@ -74,8 +75,9 @@
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
     <ClCompile Include="src\Ext\Terrain\Body.cpp" />
     <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
-    <ClCompile Include="src\Ext\TEvent\Hooks.cpp" />
     <ClCompile Include="src\Ext\TEvent\Body.cpp" />
+    <ClCompile Include="src\Ext\TEvent\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Tiberium\Hooks.cpp" />
     <ClCompile Include="src\Ext\Trigger\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
@@ -97,6 +99,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
+    <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.FileClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameThread.cpp" />
@@ -130,7 +133,6 @@
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\RadSite\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Body.cpp" />
-    <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\Script\Body.cpp" />
     <ClCompile Include="src\Ext\Script\Hooks.cpp" />
     <ClCompile Include="src\Ext\Rules\Body.cpp" />
@@ -150,7 +152,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Tiberium\Body.cpp" />
-    <ClCompile Include="src\Ext\Tiberium\Hooks.cpp" />
     <ClCompile Include="src\Ext\VoxelAnimType\Body.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Hooks.cpp" />
@@ -170,7 +171,6 @@
     <ClCompile Include="src\Utilities\Stream.cpp" />
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
     <ClCompile Include="src\Phobos.cpp" />
-    <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Hooks.LaserDraw.cpp" />
@@ -543,7 +543,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DPFeatures|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>

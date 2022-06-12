@@ -117,7 +117,7 @@ DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0x9C, -0x4));
 
 	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH)) {
-		if (pWHExt->AllowDamageOnSelf.Get())
+		if (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get())
 			return SkipCheck;
 	}
 

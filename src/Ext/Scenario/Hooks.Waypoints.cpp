@@ -1,8 +1,11 @@
 #include <Helpers/Macro.h>
+#include <Utilities/Macro.h>
 
 #include "Body.h"
 
 #include <MapClass.h>
+
+#define WAYPOINTSNAME reinterpret_cast<const char*>(0x82DB0C)
 
 DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 {
@@ -58,13 +61,13 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 
 	CellStruct buffer;
 
-	for (int i = 0; i < pINI->GetKeyCount("Waypoints"); ++i)
+	for (int i = 0; i < pINI->GetKeyCount(WAYPOINTSNAME); ++i)
 	{
-		const auto pName = pINI->GetKeyName("Waypoints", i);
+		const auto pName = pINI->GetKeyName(WAYPOINTSNAME, i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
 			Debug::Log("[Developer Warning] Failed to parse waypoint %s.\n", pName);
-		int nCoord = pINI->ReadInteger("Waypoints", pName, 0);
+		int nCoord = pINI->ReadInteger(WAYPOINTSNAME, pName, 0);
 
 		if (nCoord)
 		{
@@ -89,17 +92,18 @@ DEFINE_HOOK(0x6874E7, ScenarioClass_ReadINI_CellParsed, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5)
+DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 {
 	GET_STACK(INIClass*, pINI, 0x4);
-
-	pINI->Clear("Waypoints", nullptr);
-
+	pINI->Clear(WAYPOINTSNAME, nullptr);
+	char buffer[32];
 	for (const auto& pair : ScenarioExt::Global()->Waypoints)
 	{
-		char buffer[32];
+		if (pair.second == CellStruct::Empty)
+			continue;
+
 		sprintf_s(buffer, "%d", pair.first);
-		pINI->WriteInteger("Waypoints", buffer, pair.second.X + 1000 * pair.second.Y, false);
+		pINI->WriteInteger(WAYPOINTSNAME, buffer, pair.second.X + 1000 * pair.second.Y, false);
 	}
 
 	return 0x68BF1F;
@@ -161,7 +165,7 @@ DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
 	GET(char*, pString, ECX);
 
 	int n = 0;
-	int len = strlen(pString);
+	int len = CRT::strlen(pString);
 	for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
 	{
 		int c = toupper(pString[i]);
@@ -264,3 +268,5 @@ DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 	R->EDX(nStartingPoints);
 	return 0x68AF86;
 }
+
+#undef WAYPOINTSNAME

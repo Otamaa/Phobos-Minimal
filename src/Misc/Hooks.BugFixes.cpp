@@ -494,8 +494,10 @@ DEFINE_HOOK(0x6FA781, TechnoClass_AI_SelfHealing_BuildingGraphics, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		pBuilding->UpdatePlacement(PlacementType::Redraw);
-		pBuilding->ToggleDamagedAnims(false);
+		if(pBuilding->IsThisBreathing()){
+			pBuilding->UpdatePlacement(PlacementType::Redraw);
+			pBuilding->ToggleDamagedAnims(false);
+		}
 	}
 
 	return 0;

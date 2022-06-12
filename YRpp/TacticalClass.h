@@ -130,6 +130,10 @@ public:
 		return nBuffer;
 	}
 
+	void Coordoordmap_math_6D62E0(int v16, int v37, int* x2, int* a4) const {
+		JMP_THIS(0x6D62E0);
+	}
+
 public:
 
 	wchar_t ScreenText[64];

@@ -155,9 +155,8 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead))
-	{
-		if (pWHExt->AllowDamageOnSelf.Get())
+	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead)) {
+		if (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get())
 			return SkipCheck;
 	}
 

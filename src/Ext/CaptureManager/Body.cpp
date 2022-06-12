@@ -51,8 +51,8 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				}
 
 				// Fix : Player defeated should not get this unit.
-				auto pOriginOwner = pNode->OriginalOwner->Defeated ?
-					HouseClass::FindNeutral() : pNode->OriginalOwner;
+				auto const pOriginOwner = pNode->OriginalOwner->Defeated ?
+					HouseExt::FindNeutral() : pNode->OriginalOwner;
 
 				pTarget->SetOwningHouse(pOriginOwner);
 				pManager->DecideUnitFate(pTarget);

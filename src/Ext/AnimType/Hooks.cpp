@@ -88,7 +88,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
-	 TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
+	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
 
 	int damageMultiplier = 1;
 

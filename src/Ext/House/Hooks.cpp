@@ -48,26 +48,3 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 
 	return 0x508D07;
 }
-
-DEFINE_HOOK(0x73E474, UnitClass_Unload_Storage, 0x6)
-{
-	GET(BuildingClass* const, pBuilding, EDI);
-	GET(int const, idxTiberium, EBP);
-	REF_STACK(float, amount, 0x1C);
-
-	if (!pBuilding || !pBuilding->Owner)
-		return 0;
-
-	if (auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
-	{
-		auto storageTiberiumIndex = RulesExt::Global()->Storage_TiberiumIndex;
-
-		if (pTypeExt->Refinery_UseStorage && storageTiberiumIndex >= 0)
-		{
-			BuildingExt::StoreTiberium(pBuilding, amount, idxTiberium, storageTiberiumIndex);
-			amount = 0.0f;
-		}
-	}
-
-	return 0;
-}

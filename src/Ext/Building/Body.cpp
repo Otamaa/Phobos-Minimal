@@ -174,7 +174,7 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 	if (!pBuilding->Type->Grinding)
 		return false;
 
-	if (pTechno->WhatAmI() != AbstractType::Infantry || pTechno->WhatAmI() != AbstractType::Unit)
+	if (pTechno->WhatAmI() != AbstractType::Infantry && pTechno->WhatAmI() != AbstractType::Unit)
 		return false;
 
 	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) &&
@@ -186,10 +186,10 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 
 	if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
 	{
-		if (pBuilding->Owner == pTechno->Owner && !pExt->Grinding_AllowOwner)
+		if (pBuilding->Owner == pTechno->Owner && !pExt->Grinding_AllowOwner.Get())
 			return false;
 
-		if (pBuilding->Owner != pTechno->Owner && pBuilding->Owner->IsAlliedWith(pTechno) && !pExt->Grinding_AllowAllies)
+		if (pBuilding->Owner != pTechno->Owner && pBuilding->Owner->IsAlliedWith(pTechno) && !pExt->Grinding_AllowAllies.Get())
 			return false;
 
 		if (pExt->Grinding_AllowTypes.size() > 0 && !pExt->Grinding_AllowTypes.Contains(pTechno->GetTechnoType()))
