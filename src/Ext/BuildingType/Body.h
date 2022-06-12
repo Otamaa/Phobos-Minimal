@@ -6,6 +6,93 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
+
+struct BuildSpeedBonus
+{
+	bool Enabled;
+	double SpeedBonus_Aircraft;
+	double SpeedBonus_Building;
+	double SpeedBonus_Infantry;
+	double SpeedBonus_Unit;
+	ValueableVector<TechnoTypeClass*> AffectedType;
+
+	BuildSpeedBonus() : Enabled { false }
+		, SpeedBonus_Aircraft { 1.000 }
+		, SpeedBonus_Building { 1.000 }
+		, SpeedBonus_Infantry { 1.000 }
+		, SpeedBonus_Unit { 1.000 }
+		, AffectedType { }
+	{}
+
+	void Read(INI_EX& parser, const char* pSection)
+	{
+		Nullable<double> nBuff {};
+		nBuff.Read(parser, pSection, "BuildSpeedBonus.Aircraft");
+
+		if (nBuff.isset() && nBuff.Get() != 0.000)
+		{
+			Enabled = true;
+			SpeedBonus_Aircraft = nBuff.Get();
+		}
+
+		nBuff.Reset();
+		nBuff.Read(parser, pSection, "BuildSpeedBonus.Building");
+
+		if (nBuff.isset() && nBuff.Get() != 0.000)
+		{
+			Enabled = true;
+			SpeedBonus_Building = nBuff.Get();
+		}
+
+		nBuff.Reset();
+		nBuff.Read(parser, pSection, "BuildSpeedBonus.Infantry");
+
+		if (nBuff.isset() && nBuff.Get() != 0.000)
+		{
+			Enabled = true;
+			SpeedBonus_Infantry = nBuff.Get();
+		}
+
+		nBuff.Reset();
+		nBuff.Read(parser, pSection, "BuildSpeedBonus.Unit");
+
+		if (nBuff.isset() && nBuff.Get() != 0.000)
+		{
+			Enabled = true;
+			SpeedBonus_Unit = nBuff.Get();
+		}
+
+		if (Enabled)
+			AffectedType.Read(parser, pSection, "BuildSpeedBonus.AffectedTypes");
+	}
+
+	bool Load(PhobosStreamReader& stm, bool registerForChange)
+	{
+		return Serialize(stm);
+	}
+
+	bool Save(PhobosStreamWriter& stm) const
+	{
+		return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
+	}
+
+private:
+	template <typename T>
+	bool Serialize(T& stm)
+	{
+		Debug::Log("Processing Items From BuildSpeedBonus ! \n");
+
+		return stm
+			.Process(Enabled)
+			.Process(SpeedBonus_Aircraft)
+			.Process(SpeedBonus_Building)
+			.Process(SpeedBonus_Infantry)
+			.Process(SpeedBonus_Unit)
+			.Process(AffectedType)
+			.Success();
+	}
+};
+
 class BuildingTypeExt
 {
 public:
@@ -92,8 +179,8 @@ public:
 		Valueable<bool> IsJuggernaut;
 
 		Nullable<SHPStruct*> BuildingPlacementGrid_Shape;
-		Nullable<double> SpeedBonus;
-		ValueableVector<TechnoTypeClass*> SpeedBonusTo;
+		BuildSpeedBonus SpeedBonus;
+
 		CustomPalette RubblePalette;
 
 #pragma endregion
@@ -163,7 +250,6 @@ public:
 			, IsJuggernaut { false }
 			, BuildingPlacementGrid_Shape { }
 			, SpeedBonus {}
-			, SpeedBonusTo {}
 			, RubblePalette { CustomPalette::PaletteMode::Temperate }
 		{ }
 
@@ -198,6 +284,7 @@ public:
 
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
+	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat , HouseClass* pOwner);
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 

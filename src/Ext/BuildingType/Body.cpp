@@ -37,13 +37,13 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	return 0;
 }
 
-double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
+double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pWhat->GetOwningHouse() || !pWhat->GetTechnoType() || pWhat->GetOwningHouse()->Defeated)
+	if (!pWhat || !pOwner || !pWhat->GetTechnoType() || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer)
 		return fFactor;
 
-	if (auto pHouseExt = HouseExt::ExtMap.Find(pWhat->GetOwningHouse()))
+	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
@@ -51,17 +51,42 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
 			{
 				if (const auto& pExt = pair.first)
 				{
-					if (!pExt->SpeedBonusTo.Contains(pWhat->GetTechnoType()))
+					if (!pExt->SpeedBonus.AffectedType.empty())
+						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
+							continue;
+
+					auto nBonus = 1.000;
+					switch (pWhat->WhatAmI())
+					{
+					case AbstractType::Aircraft:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
+						break;
+					case AbstractType::Building:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Building;
+						break;
+					case AbstractType::Unit:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
+						break;
+					case AbstractType::Infantry:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
+						break;
+					default:
 						continue;
+						break;
+					}
 
 					const auto& nCount = pair.second;
-					fFactor *= std::pow(pExt->SpeedBonus.Get(), nCount);
+					fFactor *= std::pow(nBonus, nCount);
 				}
 			}
 		}
 	}
 
 	return fFactor;
+}
+
+double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat) {
+	return BuildingTypeExt::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());
 }
 
 int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse) // not including producing upgrades
@@ -254,8 +279,7 @@ PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = tr
 	this->Power_DegradeWithHealth.Read(exINI, pSection, "Power.DegradeWithHealth");
 	this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
 	this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
-	this->SpeedBonus.Read(exINI, pSection, "ExternalFactorySpeedBonus");
-	this->SpeedBonusTo.Read(exINI, pSection, "ExternalFactorySpeedBonus.Type");
+	this->SpeedBonus.Read(exINI, pSection);
 
 #pragma endregion
 
@@ -378,7 +402,6 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsJuggernaut)
 		.Process(this->BuildingPlacementGrid_Shape)
 		.Process(this->SpeedBonus)
-		.Process(this->SpeedBonusTo)
 		.Process(this->RubblePalette)
 		;
 }

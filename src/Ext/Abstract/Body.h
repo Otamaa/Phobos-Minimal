@@ -18,9 +18,6 @@ class IExtension
 public:
 
 	IExtension() = default;
-	IExtension(const IExtension& other) = delete;
-	void operator=(const IExtension& RHS) = delete;
-
 	virtual ~IExtension() = default;
 
 	virtual size_t GetSize() const = 0;
@@ -56,16 +53,16 @@ public:
 
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject{ OwnerObject }
-	{ }
+	{ InitializeConstants(); }
 
 	TExtension() : IExtension { }
-		, AttachedToObject { }
+		, AttachedToObject { nullptr }
 	{ }
 
-	TExtension(const TExtension& other) = delete;
-	void operator=(const TExtension& RHS) = delete;
+	TExtension(const TExtension&) = delete;
+	void operator=(const TExtension&) = delete;
 
-	virtual ~TExtension() = default;
+	virtual ~TExtension() { Uninitialize() };
 
 	inline T* const& OwnerObject() const {
 		return this->AttachedToObject;
@@ -134,23 +131,29 @@ public:
 	}
 
 	inline void DestoryExtensionObject() {
+		GameDelete(this->ExtensionObject);
+		this->ExtensionObject = nullptr;
 
-		if (this->ExtensionObject) {
-			this->ExtensionObject->Uninitialize();
-			GameDelete(this->ExtensionObject);
-			this->ExtensionObject = nullptr;
-		}
+		//if (this->ExtensionObject) {
+		//	this->ExtensionObject->Uninitialize();
+		//	GameDelete(this->ExtensionObject);
+		//	this->ExtensionObject = nullptr;
+		//}
 	}
 
 	template<typename TExt , typename TObj>
 	inline void CreateExtensionObject(TObj Obj) {
-		if(!this->ExtensionObject && Obj) {
-			this->ExtensionObject = GameCreate<TExt>(Obj);
-			this->ExtensionObject->InitializeConstants();
-		}
-		else {
-			Debug::Log("Failed To Create Extension !\n");
-		}
+
+		this->DestoryExtensionObject();
+		this->ExtensionObject = GameCreate<TExt>(Obj);
+
+		//if(!this->ExtensionObject && Obj) {
+		//	this->ExtensionObject = GameCreate<TExt>(Obj);
+		//	this->ExtensionObject->InitializeConstants();
+		//}
+		//else {
+		//	Debug::Log("Failed To Create Extension !\n");
+		//}
 	}
 
 	HRESULT Load(IStream* pStm, AbstractClass* pThis) const
@@ -347,4 +350,8 @@ protected:
 		return nullptr;
 	}
 
+private:
+	TExtensionContainer(const TExtensionContainer&) = delete;
+	TExtensionContainer& operator = (const TExtensionContainer&) = delete;
+	TExtensionContainer& operator = (TExtensionContainer&&) = delete;
 };

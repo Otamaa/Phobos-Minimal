@@ -382,7 +382,6 @@ namespace Savegame
 			Value.clear();
 
 			size_t Capacity = 0;
-
 			if (!Stm.Load(Capacity))
 				return false;
 

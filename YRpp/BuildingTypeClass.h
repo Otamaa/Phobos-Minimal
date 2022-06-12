@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CRT.h>
 #include <TechnoTypeClass.h>
 class OverlayTypeClass;
 

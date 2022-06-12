@@ -276,21 +276,21 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 // =============================
 #pragma region SyringeHandshake
-const DWORD YR_SIZE_1000 = 0x496110;
-const DWORD YR_SIZE_1001 = 0x497110;
-const DWORD YR_SIZE_1001_UC = 0x497FE0;
-const DWORD YR_SIZE_NPATCH = 0x5AB000;
-
-const DWORD YR_TIME_1000 = 0x3B846665;
-const DWORD YR_TIME_1001 = 0x3BDF544E;
-
-const DWORD YR_CRC_1000 = 0xB701D792;
-const DWORD YR_CRC_1001_CD = 0x098465B3;
-const DWORD YR_CRC_1001_TFD = 0xEB903080;
-const DWORD YR_CRC_1001_UC = 0x1B499086;
-
 SYRINGE_HANDSHAKE(pInfo)
 {
+	//const DWORD YR_SIZE_1000 = 0x496110;
+	const DWORD YR_SIZE_1001 = 0x497110;
+	const DWORD YR_SIZE_1001_UC = 0x497FE0;
+	const DWORD YR_SIZE_NPATCH = 0x5AB000;
+
+	const DWORD YR_TIME_1000 = 0x3B846665;
+	const DWORD YR_TIME_1001 = 0x3BDF544E;
+
+	//const DWORD YR_CRC_1000 = 0xB701D792;
+	const DWORD YR_CRC_1001_CD = 0x098465B3;
+	const DWORD YR_CRC_1001_TFD = 0xEB903080;
+	const DWORD YR_CRC_1001_UC = 0x1B499086;
+
 	if (pInfo)
 	{
 		const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " _STR(BUILD_NUMBER) ".";
@@ -368,7 +368,7 @@ SYRINGE_HANDSHAKE(pInfo)
 #pragma endregion
 
 #pragma region hooks
-
+/*
 //ToDo: Decrypt ?
 BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped) {
 	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
@@ -388,7 +388,7 @@ HANDLE __stdcall CreateFileA_(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dw
 HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID* ppvObj){
 	return OleLoadFromStream(pStm, iidInterface, ppvObj);
 }
-
+*/
 DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 {
 	DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
@@ -422,7 +422,7 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 			L"Debugger Notice", MB_OK);
 		}
 	}
-
+	/*
 	typedef BOOL (__stdcall* _imp_ReadFile__)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 	typedef BOOL (__stdcall* _imp_CloseHandle__)(HANDLE hFile);
 	typedef HANDLE(__stdcall* _imp_CreateFileA__)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE  hTemplateFile);
@@ -434,7 +434,7 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 	Patch::Apply<_imp_CloseHandle__>(0x7E11E0, CloseHandle_, protect_flag);
 	Patch::Apply<_imp_CreateFileA__>(0x7E11BC, CreateFileA_, protect_flag);
 	Patch::Apply<_imp_OleLoadFromStream__>(0x7E15F8, OleLoadFromStream_, protect_flag);
-
+	*/
 	return 0;
 }
 

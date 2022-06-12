@@ -51,6 +51,8 @@ void LaserTrailClass::FixZLoc(bool forWho)
 template <typename T>
 bool LaserTrailClass::Serialize(T& stm)
 {
+	Debug::Log("Processing Element From LaserTrailClass ! \n");
+
 	return stm
 		.Process(this->Type)
 		.Process(this->Visible)

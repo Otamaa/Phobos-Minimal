@@ -862,6 +862,44 @@ namespace detail {
 	}
 
 	template <>
+	inline bool read<AbstractType>(AbstractType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			AbstractType parsed = AbstractType::None;
+			auto const str = parser.value();
+
+			if (str != nullptr
+				&& CRT::strlen(str) != 0)
+			{
+				if (IS_SAME_STR_(str, "Infantry"))
+				{
+					parsed = AbstractType::Infantry;
+				}
+				else if (IS_SAME_STR_(str, "Unit"))
+				{
+					parsed = AbstractType::Unit;
+				}
+				else if (IS_SAME_STR_(str, "Aircraft"))
+				{
+					parsed = AbstractType::Aircraft;
+				}
+				else if (IS_SAME_STR_(str, "Building"))
+				{
+					parsed = AbstractType::Building;
+				} else {
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
+				}
+
+				value = parsed;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	template <>
 	inline bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		if (parser.ReadString(pSection, pKey))

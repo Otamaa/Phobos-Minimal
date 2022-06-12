@@ -29,7 +29,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 					++pHouseExt->BuildingCounter[pExt];
 				}
 
-				if (pExt->SpeedBonus.isset() && !pExt->SpeedBonusTo.empty())
+				if (pExt->SpeedBonus.Enabled)
 					++pHouseExt->Building_BuildSpeedBonusCounter[pExt];
 			}
 		}
