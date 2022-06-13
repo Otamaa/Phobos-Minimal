@@ -145,8 +145,8 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 		{
 			for (; (pCell->X != 0x7FFF || pCell->Y != 0x7FFF); ++pCell)
 			{
-				auto nCellAdd = pThis->GetMapCoords() + *pCell;
-				auto nDestCoord = CoordStruct { (nCellAdd.X * 256) + 128,(nCellAdd.Y * 256) + 128,0 };
+				auto const&[nCellX , nCellY] = pThis->GetMapCoords() + *pCell;
+				auto nDestCoord = CoordStruct { (nCellX * 256) + 128,(nCellY * 256) + 128,0 };
 				nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
 				auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)

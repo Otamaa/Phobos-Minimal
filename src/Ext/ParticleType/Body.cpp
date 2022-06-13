@@ -33,7 +33,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.Read(exINI, pID);
+	this->Trails.Read(exINI, pID, false);
 #endif
 }
 

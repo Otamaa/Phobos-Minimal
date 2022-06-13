@@ -6,7 +6,7 @@ void DriveDataFunctional::AI(TechnoExt::ExtData* pThis)
 {
 	auto pTechno = pThis->OwnerObject();
 
-	if (!pTechno || !TechnoExt::IsActive(pTechno))
+	if (!TechnoExt::IsActive(pTechno))
 		return;
 
 	Mission const mission = pTechno->CurrentMission;

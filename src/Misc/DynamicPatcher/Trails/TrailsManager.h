@@ -75,7 +75,7 @@ struct TrailsReader
 
 	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(1); };
 
-	void Read(INI_EX& nParser, const char* pSection, bool IsTechno = false)
+	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{
 		char tempBuffer[32];
 
@@ -96,9 +96,8 @@ struct TrailsReader
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
 			flh.Read(nParser, pSection, tempBuffer);
 
-			Nullable<bool> isOnTurret;
-			if (IsTechno)
-			{
+			Nullable<bool> isOnTurret {};
+			if (IsForTechno) {
 				_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
 				isOnTurret.Read(nParser, pSection, tempBuffer);
 			}
@@ -111,7 +110,7 @@ struct TrailsReader
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
 			nTiles.Read(nParser, pSection, tempBuffer);
 
-			CurrentData.emplace_back(trail.Get(),land,nTiles,flh.Get(),isOnTurret.Get(false));
+			CurrentData.emplace_back(trail.Get(),std::move(land), std::move(nTiles),flh.Get(),isOnTurret.Get(false));
 			++nTotal;
 		}
 

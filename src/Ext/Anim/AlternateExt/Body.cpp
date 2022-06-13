@@ -100,6 +100,25 @@ DEFINE_HOOK(0x4253FF, AnimClass_AltExt_Save_Suffix, 0x5)
 	return 0;
 }
 
+DEFINE_HOOK(0x425164, AnimClass_Detach, 0x8)
+{
+	GET(AnimClass* const, pThis, ESI);
+	GET(void*, target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	//yes this happen  , for  some reason owner object is gone
+	//before it can be evaluated
+	//and its causing IE/Desync with this function
+	//so we skip evaluating these
+	if (!pThis->Type && !pThis->OwnerObject)
+		return 0x0;
+
+	if (auto pAnimExt = AnimExtAlt::GetExtData(pThis))
+		pAnimExt->InvalidatePointer(target, all);
+
+	return 0x0;
+}
+/*
 DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
@@ -110,4 +129,4 @@ DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
 		pAnimExt->InvalidatePointer(target,all);
 
 	return pThis->AttachedBullet == target ? 0x4251B9 :0x4251C9;
-}
+}*/

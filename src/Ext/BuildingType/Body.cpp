@@ -19,10 +19,8 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	{
 		if (pBuilding)
 		{
-			for (const auto& pair : pHouseExt->BuildingCounter)
+			for (const auto& [pExt ,nCount] : pHouseExt->BuildingCounter)
 			{
-				const auto& pExt = pair.first;
-				const auto& nCount = pair.second;
 				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 				{
 					fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
@@ -47,9 +45,9 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
-			for (const auto pair : pHouseExt->Building_BuildSpeedBonusCounter)
+			for (const auto&[pExt , nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
-				if (const auto& pExt = pair.first)
+				if (pExt)
 				{
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
@@ -75,7 +73,6 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 						break;
 					}
 
-					const auto& nCount = pair.second;
 					fFactor *= std::pow(nBonus, nCount);
 				}
 			}
@@ -233,10 +230,9 @@ PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = tr
 		if (!nVec.empty())
 		{
 			//remove invalid items to keep memory clean !
-			for (auto const& nData : nVec)
-			{
-				if (!nData.second)
-					nVec.erase(nData.first);
+			for (auto const&[nIdx , pAnimType]  : nVec) {
+				if (!pAnimType)
+					nVec.erase(nIdx);
 			}
 		}
 	};

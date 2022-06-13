@@ -54,7 +54,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		if (!nData.Read(exINI, pID, i))
 			break;
 
-		this->Launchs.push_back((nData));
+		this->Launchs.emplace_back(std::move(nData));
 	}
 
 	this->ParticleRangeMin.Read(exINI, pID, "SpawnsParticle.RangeMinimum");

@@ -62,7 +62,7 @@ public:
 	TExtension(const TExtension&) = delete;
 	void operator=(const TExtension&) = delete;
 
-	virtual ~TExtension() { Uninitialize() };
+	virtual ~TExtension() { Uninitialize(); };
 
 	inline T* const& OwnerObject() const {
 		return this->AttachedToObject;

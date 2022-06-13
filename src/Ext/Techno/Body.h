@@ -190,7 +190,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static bool IsActive(TechnoClass* pThis);
+	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false);
+	static bool IsAlive(TechnoClass* pThis);
 
 	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission eMission = Mission::Guard);

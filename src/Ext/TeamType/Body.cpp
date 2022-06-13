@@ -113,7 +113,7 @@ DEFINE_HOOK(0x6F1479, TeamTypeClass_LoadFromINI, 0xA)
 
 DEFINE_HOOK(0x6F181B, TeamTypeClass_WriteToINI, 0x8)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TeamTypeClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EBX);
 

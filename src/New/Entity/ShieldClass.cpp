@@ -653,13 +653,9 @@ void ShieldClass::CreateAnim()
 
 void ShieldClass::KillAnim()
 {
-	if (this->IdleAnim)
-	{
-		this->IdleAnim->RemainingIterations = 0;
-		//this->IdleAnim->AnnounceExpiredPointer();
-		this->IdleAnim->DetachFromObject(this->Techno, true);
+	if (this->IdleAnim) {
+		this->IdleAnim->DetachFromObject(this->Techno, false);
 		//this->IdleAnim->UnInit();
-		//GameDelete(this->IdleAnim);
 		this->IdleAnim = nullptr;
 	}
 }

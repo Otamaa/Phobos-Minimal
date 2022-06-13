@@ -198,11 +198,11 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 						// 产生标靶
 						int p = ScenarioGlobal->Random.RandomRanged(0, flag);
 						// 检查命中
-						for (auto const& target : targetPad) {
-							Point2D tKey = target.first;
+						for (auto const& [point,idx] : targetPad) {
+							Point2D tKey = point;
 							if (p >= tKey.X && p < tKey.Y) {
 								// 中
-								index = target.second;
+								index = idx;
 							}
 						}
 						// 计算概率

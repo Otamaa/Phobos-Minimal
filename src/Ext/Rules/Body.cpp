@@ -497,6 +497,9 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x9)
 {
 	if (R->AL()) //ScenarioLoadSucceed
 	{
+		//pre iterate this important indexes
+		//so we dont need to do lookups with name multiple times
+		//these function only executed when ScenarioClass::ReadScenario return true (AL)
 		if (auto pRulesGlobal = RulesExt::Global()) {
 			pRulesGlobal->CivilianSideIndex = SideClass::FindIndex("Civilian");
 			Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);

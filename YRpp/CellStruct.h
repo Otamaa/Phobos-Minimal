@@ -1,6 +1,7 @@
 #pragma once
 
 #include <YRMath.h>
+#include <utility>
 
 class CellStruct
 {
@@ -15,6 +16,12 @@ public:
 
 	CellStruct() : X { 0 }, Y { 0 }
 	{ }
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_pair(X, Y);
+	}
 
 	//equality
 	bool operator==(const CellStruct& a) const

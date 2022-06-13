@@ -110,11 +110,11 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 
 				auto const nFrame = Math::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(bBuildupPresent ? ((pImage->Frames / 2) - 1) : 0), 0, (int)pImage->Frames);
 				auto const nHeight = pCell->GetFloorHeight({ 0,0 });
-				auto const nOffset = pTypeExt->PlacementPreview_Offset.Get();
+				auto const&[nOffsetX , nOffsetY , nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
 				Point2D nPoint { 0,0 };
-				TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffset.Z), &nPoint);
-				nPoint.X += nOffset.X;
-				nPoint.Y += nOffset.Y;
+				TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint);
+				nPoint.X += nOffsetX;
+				nPoint.Y += nOffsetY;
 				auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
 				auto nREct = DSurface::Temp()->Get_Rect();
 				nREct.Height -= 32;

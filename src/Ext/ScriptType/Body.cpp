@@ -20,7 +20,7 @@ template <typename T>
 void ScriptTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(PhobosNode) //need to make template for this Node
+		.Process(PhobosNode)
 		;
 }
 

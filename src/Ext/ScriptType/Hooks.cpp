@@ -6,17 +6,21 @@ DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 	GET_STACK(ScriptActionNode*, pNode, 0x4);
 	GET(int, nCurIndex, EDX);
 
-	auto pTypeExt = ScriptTypeExt::ExtMap.Find(pThis->Type);
+	if (nCurIndex > pThis->Type->ActionsCount)
+		nCurIndex = pThis->Type->ActionsCount;
 
-	if ((!pTypeExt || pTypeExt->PhobosNode.empty()) && nCurIndex <= 50)
-	{
+	if (nCurIndex <= 50) {
 		pNode->Action = pThis->Type->ScriptActions[nCurIndex].Action;
 		pNode->Argument = pThis->Type->ScriptActions[nCurIndex].Argument;
-	}
-	else
-	{
-		pNode->Action = pTypeExt->PhobosNode[nCurIndex].Action;
-		pNode->Argument = pTypeExt->PhobosNode[nCurIndex].Argument;
+	} else {
+		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pThis->Type);
+		if(pTypeExt && !pTypeExt->PhobosNode.empty()){
+			pNode->Action = pTypeExt->PhobosNode[nCurIndex - 50].Action;
+			pNode->Argument = pTypeExt->PhobosNode[nCurIndex - 50].Argument;
+		} else {
+			pNode->Action = pThis->Type->ScriptActions[50].Action;
+			pNode->Argument = pThis->Type->ScriptActions[50].Argument;
+		}
 	}
 
 	R->EAX(pNode);
@@ -28,19 +32,25 @@ DEFINE_HOOK(0x691566, ScriptClass_GetNextAction_extra, 0xB)
 	GET(ScriptTypeClass*, pType, EDX);
 	GET_STACK(ScriptActionNode*, pNode, STACK_OFFS(0x4, -0x4));
 	GET(int, nCurIndex, ECX);
-	auto pTypeExt = ScriptTypeExt::ExtMap.Find(pType);
 
 	nCurIndex += 1;
 
-	if ((!pTypeExt || pTypeExt->PhobosNode.empty()) && nCurIndex <= 50)
+	if (nCurIndex > pType->ActionsCount)
+		nCurIndex = pType->ActionsCount;
+
+	if (nCurIndex <= 50)
 	{
 		pNode->Action = pType->ScriptActions[nCurIndex].Action;
 		pNode->Argument = pType->ScriptActions[nCurIndex].Argument;
-	}
-	else
-	{
-		pNode->Action = pTypeExt->PhobosNode[nCurIndex].Action;
-		pNode->Argument = pTypeExt->PhobosNode[nCurIndex].Argument;
+	} else {
+		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pType);
+		if (pTypeExt && !pTypeExt->PhobosNode.empty()) {
+			pNode->Action = pTypeExt->PhobosNode[nCurIndex - 50].Action;
+			pNode->Argument = pTypeExt->PhobosNode[nCurIndex - 50].Argument;
+		}else {
+			pNode->Action = pType->ScriptActions[50].Action;
+			pNode->Argument = pType->ScriptActions[50].Argument;
+		}
 	}
 
 	R->EAX(pNode);
@@ -62,16 +72,20 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 		nCount -= 1; //name
 
 	if (nCount > 0) {
-		for (int i = 0; i < nCount; ++i)
-		{
+		for (int i = 0; i < nCount; ++i) {
 			CRT::sprintf(pBuffer, "%d", i);
 			CRT::strtrim(pBuffer);
 			if (pRules->ReadString(pThis->ID, pBuffer, "", Phobos::readBuffer)) {
 				ScriptActionNode nBuffer;
 				nBuffer.FillIn(Phobos::readBuffer);
-				pExt->PhobosNode.push_back(nBuffer);
+				if (i <= 50) {
+					pThis->ScriptActions[i] = std::move(nBuffer);
+				}else{
+					pExt->PhobosNode.push_back(std::move(nBuffer));
+				}
 
-				++pThis->ActionsCount;
+				if (++pThis->ActionsCount >= std::numeric_limits<int>::max())
+					break;
 			}
 		}
 	}

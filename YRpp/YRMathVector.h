@@ -2,6 +2,7 @@
 #pragma once
 
 #include <YRMath.h>
+#include <tuple>
 
 /*==========================================
 ============ 2D Vector =====================
@@ -14,6 +15,12 @@ public:
 
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y;
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_pair(X, Y);
+	}
 
 	Vector2D& operator=(const Vector2D& v)
 	{
@@ -386,6 +393,12 @@ public:
 
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X,Y,Z;
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(X, Y, Z);
+	}
 
 	//operator overloads
 	//addition
@@ -842,6 +855,12 @@ public:
 
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y, Z, W;
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(X, Y, Z, W);
+	}
 
 	inline bool operator==(const Vector4D &b)
 	{

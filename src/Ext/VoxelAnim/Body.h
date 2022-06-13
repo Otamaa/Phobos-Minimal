@@ -40,7 +40,7 @@ public:
 		virtual size_t Size() const { return sizeof(*this); };
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {
 			if (VoxelAnimExt::Invokers.find(OwnerObject()) != VoxelAnimExt::Invokers.end()) {
-				if (VoxelAnimExt::Invokers.at(OwnerObject()) == ptr || !VoxelAnimExt::Invokers.at(OwnerObject()))
+				if (VoxelAnimExt::Invokers.at(OwnerObject()) == ptr)
 					VoxelAnimExt::Invokers.erase(OwnerObject());
 			}
 		}

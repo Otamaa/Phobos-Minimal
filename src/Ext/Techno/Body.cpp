@@ -427,17 +427,34 @@ void TechnoExt::Stop(TechnoClass* pThis, Mission eMission)
 	pThis->Stun();
 }
 
-bool TechnoExt::IsActive(TechnoClass* pThis)
+bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactivated)
 {
-	return
-		pThis &&
-		!pThis->TemporalTargetingMe &&
-		!pThis->BeingWarpedOut &&
-		!pThis->IsUnderEMP() &&
-		pThis->IsAlive &&
-		pThis->Health > 0 &&
-		!pThis->InLimbo;
+	if (!TechnoExt::IsAlive(pThis))
+		return false;
+
+	const bool IsUnderEMP = bCheckEMP && pThis->IsUnderEMP();
+	const bool IsDeactivated = bCheckDeactivated && pThis->Deactivated;
+
+	return !pThis->BeingWarpedOut && !IsUnderEMP && !IsDeactivated;
 }
+
+bool TechnoExt::IsAlive(TechnoClass* pThis)
+{
+	if (!pThis)
+		return false;
+
+	if (pThis->InLimbo || pThis->Absorbed || !pThis->IsOnMap)
+		return false;
+
+	if (pThis->IsCrashing || pThis->IsSinking)
+		return false;
+
+	if (auto pUnit = specific_cast<UnitClass*>(pThis))
+		return !(pUnit->DeathFrameCounter > 0);
+
+	return pThis->IsAlive && pThis->Health > 0;
+}
+
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {

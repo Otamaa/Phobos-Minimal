@@ -2,6 +2,7 @@
 
 #include <ASMMacros.h>
 #include <Helpers/CompileTime.h>
+#include <tuple>
 /*
 		Otamaa : 18/09/2021
 
@@ -18,6 +19,13 @@ struct HSVClass
 	char Hue;
 	char Sat;
 	char Val;
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(Hue, Sat, Val);
+	}
+
 };
 
 //static_assert(sizeof(HSVClass) == 0x3);

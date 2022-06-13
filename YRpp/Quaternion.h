@@ -4,12 +4,19 @@
 // obviously, this class needs some serious expansion
 // if it is to be used for serious stuff.
 #include <Matrix3D.h>
+#include <tuple>
 
 class Quaternion
 {
 public:
 	//Constructor
 	Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f) : X(x), Y(y), Z(z), W(w) {}
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(X, Y, W);
+	}
 
 	void Normalize() { JMP_THIS(0x645C70); }
 	//

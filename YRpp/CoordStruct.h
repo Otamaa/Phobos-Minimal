@@ -2,7 +2,7 @@
 
 #include <YRMath.h>
 #include <GeneralStructures.h>
-
+#include <tuple>
 /*
 		Otamaa : 18/09/2021
 
@@ -60,6 +60,12 @@ private:
 	CellStruct* ToCellStruct(const CellStruct& ret)
 	{ JMP_THIS(0x413A30); }
 public:
+
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(X, Y, Z);
+	}
 
 	CellStruct TocellStruct()
 	{

@@ -33,6 +33,12 @@ public:
 		return (*this == Point2D::Empty);
 	}
 
+	auto operator()()
+	{
+		// returns a tuple to make it work with std::tie
+		return std::make_pair(X, Y);
+	}
+
 	__forceinline operator bool() const
 	{
 		return !(*this == Point2D::Empty);

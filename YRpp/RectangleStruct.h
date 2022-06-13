@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GeneralStructures.h>
-
+#include <tuple>
 /*
 		Otamaa : 04/08/2021
 
@@ -32,6 +32,11 @@ public:
 	RectangleStruct(const RectangleStruct& that)
 		:X(that.X), Y(that.Y), Width(that.Width), Height(that.Height)
 	{ }
+
+	auto operator()() {
+		// returns a tuple to make it work with std::tie
+		return std::make_tuple(X, Y, Width, Height);
+	}
 
 	RectangleStruct &operator=(const RectangleStruct &that)
 	{

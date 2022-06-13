@@ -108,7 +108,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	#pragma region Otamaa
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.Read(exArtINI, pArtSection);
+	this->Trails.Read(exArtINI, pArtSection, false);
 #endif
 	#pragma endregion
 

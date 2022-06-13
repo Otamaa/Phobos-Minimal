@@ -97,13 +97,13 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 	GET_STACK(INIClass*, pINI, 0x4);
 	pINI->Clear(WAYPOINTSNAME, nullptr);
 	char buffer[32];
-	for (const auto& pair : ScenarioExt::Global()->Waypoints)
+	for (const auto& [nidx,nCell] : ScenarioExt::Global()->Waypoints)
 	{
-		if (pair.second == CellStruct::Empty)
+		if (nCell == CellStruct::Empty)
 			continue;
 
-		sprintf_s(buffer, "%d", pair.first);
-		pINI->WriteInteger(WAYPOINTSNAME, buffer, pair.second.X + 1000 * pair.second.Y, false);
+		sprintf_s(buffer, "%d", nidx);
+		pINI->WriteInteger(WAYPOINTSNAME, buffer, nCell.X + 1000 * nCell.Y, false);
 	}
 
 	return 0x68BF1F;

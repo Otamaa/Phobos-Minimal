@@ -226,6 +226,9 @@ public:
 	static void DistributedLoadOntoTransport(TeamClass* pTeam, int type);
 	static void FollowFriendlyByGroup(TeamClass* pTeam, int group);
 
+	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
+	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
+
 private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
