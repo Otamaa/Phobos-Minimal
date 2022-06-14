@@ -8,12 +8,11 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/BulletType/Body.h>
 
-#include "Trajectories/PhobosTrajectory.h"
-
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 #endif
 
+class PhobosTrajectory;
 class BulletExt
 {
 public:
@@ -61,11 +60,7 @@ public:
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override {
-
-			if (Trajectory)
-			  GameDelete(Trajectory);
-		}
+		virtual void Uninitialize() override;
 
 		void ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel);
 		void InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt);

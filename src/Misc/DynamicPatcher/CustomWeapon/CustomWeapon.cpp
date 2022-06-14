@@ -1,6 +1,7 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include "CustomWeapon.h"
 
+
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -57,7 +58,12 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 	}
 }
 
-bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult)
+bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
+	TechnoClass* pAttacker,
+	AbstractClass* pTarget,
+	WeaponTypeClass* pWeapon,
+	const CoordStruct& flh,
+	const CoordStruct& bulletSourcePos, double rofMult , FireBulletToTarget callback)
 {
 	bool isFire = false;
 	pShooter = WhoIsShooter(pShooter);
@@ -101,7 +107,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* p
 
 				//}
 
-				SimulateBurst newBurst = SimulateBurst(pWeapon, pShooter, pTarget, fireFLH, burst, minRange, range, fireData, flipY);
+				SimulateBurst newBurst = SimulateBurst(pWeapon, pShooter, pTarget, fireFLH, burst, minRange, range, fireData, flipY , callback);
 				SimulateBurstFire(pShooter, pAttacker, pTarget, pWeapon, newBurst);
 				simulateBurstQueue.push_back(std::move(newBurst));
 				isFire = true;
@@ -110,14 +116,14 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* p
 			{
 				if (!fireData.CheckRange || InRange(pShooter, pTarget, pWeapon))
 				{
-					Helpers_DP::FireWeaponTo(pShooter, pAttacker, pTarget, pWeapon, fireFLH, bulletSourcePos, fireData.RadialFire, fireData.RadialAngle);
+					Helpers_DP::FireWeaponTo(pShooter, pAttacker, pTarget, pWeapon, fireFLH, callback, bulletSourcePos, fireData.RadialFire, fireData.RadialAngle);
 					isFire = true;
 				}
 			}
 		}
 		else
 		{
-			Helpers_DP::FireWeaponTo(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos);
+			Helpers_DP::FireWeaponTo(pShooter, pAttacker, pTarget, pWeapon, flh, callback, bulletSourcePos);
 			isFire = true;
 		}
 
@@ -149,13 +155,15 @@ void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoCla
 	{
 		RadialFireHelper radialFireHelper = RadialFireHelper(pShooter, burst.Burst, burst.FireData.RadialAngle);
 		bulletVelocity = radialFireHelper.GetBulletVelocity(burst.Index);
-	}
-	else
-	{
+	} else {
 		bulletVelocity = Helpers_DP::GetBulletVelocity(sourcePos, targetPos);
 	}
 
-	Helpers_DP::FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
+	auto pBullet = Helpers_DP::FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
+
+	if (burst.Callback && pBullet) {
+		burst.Callback(burst.Index, burst.Burst, pBullet, pTarget);
+	}
 
 	burst.CountOne();
 }

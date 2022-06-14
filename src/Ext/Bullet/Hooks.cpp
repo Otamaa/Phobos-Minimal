@@ -16,6 +16,8 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
 
+#include <Ext/Bullet/Trajectories/StraightTrajectory.h>
+
 // has everything inited except SpawnNextAnim at this point
 DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 {
@@ -200,6 +202,31 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 	if (auto const pExt = BulletExt::GetExtData(pThis))
 		if (pThis->Type->Inviso && pExt->IsInterceptor)
 			return DetonateBullet;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6)
+{
+	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 };
+
+	GET(BulletClass*, pThis, ESI);
+
+	if (pThis->Type->Inviso)
+		return ForceSnap;
+
+	if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+	{
+		if (pTypeExt->TrajectoryType &&
+			pTypeExt->TrajectoryType->Flag == TrajectoryFlag::Straight
+		)
+		{
+			auto type = static_cast<StraightTrajectoryType*>(pTypeExt->TrajectoryType);
+
+			if (type && !type->SnapOnTarget)
+				return NoSnap;
+		}
+	}
 
 	return 0;
 }

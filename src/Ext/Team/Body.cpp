@@ -24,6 +24,7 @@ void TeamExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForceJump_RepeatMode)
 		.Process(this->TeamLeader)
 		.Process(this->GenericStatus)
+		.Process(this->FailedCounter)
 		;
 }
 

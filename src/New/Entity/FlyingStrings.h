@@ -32,6 +32,6 @@ private:
 public:
 	static void Clear() { Data.clear(); }
 	static void Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
-	static void AddMoneyString(bool Display, int amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty);
+	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty);
 	static void UpdateAll();
 };

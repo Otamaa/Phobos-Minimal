@@ -25,7 +25,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 	return GetFLHAbsoluteCoords(pTechno, flh, isOnTurret, flipY, turretOffset, nextFrame);
 }
 
-void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
+void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, FireBulletToTarget callback,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
 {
 	if (!pTarget)
 		return;
@@ -61,12 +61,17 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 			auto nFLh_ = flh;
 			sourcePos = GetFLHAbsoluteCoords(pShooter, nFLh_, true, flipY);
 		}
+
 		if (!bulletVelocity)
 		{
 			bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
 		}
 
-		FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
+		auto pBullet = FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
+
+		if (callback && pBullet) {
+			callback(i, burst, pBullet, pTarget);
+		}
 
 	}
 }
@@ -107,9 +112,9 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 		fireMult = GetDamageMult(pAttacker);
 	}
 
-	int damage = (int)(pWeapon->Damage * fireMult);
+	int damage = static_cast<int>(pWeapon->Damage * fireMult);
 	auto pWH = pWeapon->Warhead;
-	int speed = pWeapon->Speed;
+	int speed = pWeapon->GetWeaponSpeed(sourcePos, targetPos);
 	bool bright = pWeapon->Bright || pWH->Bright;
 
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);

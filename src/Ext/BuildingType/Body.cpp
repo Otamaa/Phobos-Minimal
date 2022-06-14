@@ -45,7 +45,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
-			for (const auto&[pExt , nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+			for (const auto& [pExt , nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
 				if (pExt)
 				{

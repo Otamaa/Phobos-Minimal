@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Ext/WeaponType/Body.h> //for weaponTypeExt::ExtData
+#include <Ext/Bullet/Body.h>
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
@@ -20,6 +21,7 @@ enum class TrajectoryCheckReturnType : int
 	ExecuteGameCheck = 0,
 	SkipGameCheck = 1,
 	SatisfyGameCheck = 2,
+	Detonate = 3
 };
 
 class PhobosTrajectoryType
@@ -43,29 +45,53 @@ public:
 	TrajectoryFlag Flag;
 };
 
+
+template<typename T>
+concept TrajectoryType = std::is_base_of<PhobosTrajectoryType, T>::value;
+
 class PhobosTrajectory
 {
 public:
+	const BulletExt::ExtData* BulletExtData { nullptr };
+
 	PhobosTrajectory(noinit_t) { }
-	PhobosTrajectory(TrajectoryFlag flag) : Flag { flag } { }
+	PhobosTrajectory(TrajectoryFlag flag) : Flag { flag }
+		, BulletExtData { nullptr }
+	{ }
+
+	PhobosTrajectory(TrajectoryFlag flag , const BulletExt::ExtData* pData) : Flag { flag }
+		, BulletExtData { pData }
+	{ }
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
-	virtual void OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity) = 0;
-	virtual void OnAI(BulletClass* pBullet) = 0;
-	virtual void OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition) = 0;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet) = 0;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno) = 0;
+	virtual void OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity) = 0;
+	virtual bool OnAI() = 0;
+	virtual void OnAIPreDetonate() = 0;
+	virtual void OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition) = 0;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct coords) = 0;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) = 0;
 
-	template<typename T = PhobosTrajectoryType>
-	T* GetTrajectoryType(BulletClass* pBullet) const
+	template<TrajectoryType T>
+	T* GetTrajectoryType() const
 	{
-		return static_cast<T*>(BulletTypeExt::ExtMap.Find(pBullet->Type)->TrajectoryType);
+		if (!BulletExtData || !BulletExtData->TypeExt) {
+			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! , Missing Pointer ! \n");
+			return nullptr;
+		}
+
+		if (BulletExtData->TypeExt->TrajectoryType->Flag != Flag) {
+			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! ,  Tryng to Cast From Different Flag! \n");
+			return nullptr;
+		}
+
+		return static_cast<T*>(BulletExtData->TypeExt->TrajectoryType);
 	}
+
 	double GetTrajectorySpeed(BulletClass* pBullet) const;
 
-	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity);
+	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletExt::ExtData* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity);
 
 	static PhobosTrajectory* LoadFromStream(PhobosStreamReader& Stm);
 	static void WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <YRPPCore.h>
+#include <algorithm>
 #include <ASMMacros.h>
 #include <Helpers/CompileTime.h>
 #include <tuple>
@@ -51,7 +53,7 @@ struct ColorStruct
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
-	ColorStruct(int rgb, bool wordcolor = false)
+	ColorStruct(const int& rgb, bool wordcolor = false)
 	{
 		if (!wordcolor)
 		{
@@ -61,9 +63,9 @@ struct ColorStruct
 		}
 		else
 		{
-			R = (BYTE)((WORD)rgb >> RedShiftLeft) << RedShiftRight;
-			G = (BYTE)((WORD)rgb >> GreenShiftLeft) << GreenShiftRight;
-			B = (BYTE)((WORD)rgb >> BlueShiftLeft) << BlueShiftRight;
+			R = static_cast<BYTE>((static_cast<WORD>(rgb) >> RedShiftLeft.get()) << RedShiftRight.get());
+			G = static_cast<BYTE>((static_cast<WORD>(rgb) >> GreenShiftLeft.get()) << GreenShiftRight.get());
+			B = static_cast<BYTE>((static_cast<WORD>(rgb) >> BlueShiftLeft.get()) << BlueShiftRight.get());
 		}
 	}
 
@@ -96,7 +98,7 @@ struct ColorStruct
 	ColorStruct* Adjust_Brightness(ColorStruct* color, float adjust)
 	{ JMP_THIS(0x661190); }
 
-	static ColorStruct Interpolate(ColorStruct& from, ColorStruct& towards, float amount)
+	static inline ColorStruct Interpolate(const ColorStruct& from, const ColorStruct& towards, float amount)
 	{
 		ColorStruct tmp;
 		tmp.R = (BYTE)std::clamp(from.R * (1.0f - amount) + towards.R * amount, 0.0f, 255.0f);
@@ -108,7 +110,7 @@ struct ColorStruct
 	ColorStruct* Lerp(ColorStruct& lower, ColorStruct& upper, float adjust) const
 	{ JMP_THIS(0x661020); }
 
-	unsigned int ToInit() const
+	uintptr_t ToInit() const
 	{ JMP_THIS(0x63DAD0); }
 
 	void Adjust(int adjust, const ColorStruct& that)
@@ -216,6 +218,9 @@ struct Color16Struct
 	explicit operator DWORD() const
 	{ return static_cast<DWORD>(ColorStruct(*this)); }
 
+	uintptr_t ToInit() const
+	{ JMP_THIS(0x63DAD0); }
+
 	unsigned short B : 5;
 	unsigned short G : 6;
 	unsigned short R : 5;
@@ -247,3 +252,9 @@ struct Byte16Palette
 	Color16Struct const& operator [](int const idx) const
 	{ return this->Entries[idx]; }
 };
+
+static inline Color16Struct ToColor16(ColorStruct const nColor)
+{
+	Color16Struct nRet(nColor);
+	return nRet;
+}

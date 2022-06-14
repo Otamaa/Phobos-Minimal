@@ -104,6 +104,11 @@ public:
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright) const;
 
+		double GetAdjustedGravity()
+		{
+			auto const nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
+			return this->OwnerObject()->Floater ? nGravity * 0.5 : nGravity;
+		}
 
 	private:
 		template <typename T>

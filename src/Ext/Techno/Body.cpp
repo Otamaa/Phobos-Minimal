@@ -450,7 +450,7 @@ bool TechnoExt::IsAlive(TechnoClass* pThis)
 		return false;
 
 	if (auto pUnit = specific_cast<UnitClass*>(pThis))
-		return !(pUnit->DeathFrameCounter > 0);
+		return (pUnit->DeathFrameCounter > 0) ? false : true;
 
 	return pThis->IsAlive && pThis->Health > 0;
 }

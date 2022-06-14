@@ -165,7 +165,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		auto pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->Owner;
 
 		MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-		MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
+		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 	}
 
 	return Continue;

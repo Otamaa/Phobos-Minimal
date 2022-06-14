@@ -45,9 +45,10 @@ bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
+void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity)
 {
-	this->Height = this->GetTrajectoryType<BombardTrajectoryType>(pBullet)->Height + pBullet->TargetCoords.Z;
+	auto pBullet = BulletExtData->OwnerObject();
+	this->Height = this->GetTrajectoryType<BombardTrajectoryType>()->Height + pBullet->TargetCoords.Z;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
@@ -55,22 +56,26 @@ void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Bul
 	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
 }
 
-void BombardTrajectory::OnAI(BulletClass* pBullet)
+bool BombardTrajectory::OnAI()
 {
+	auto pBullet = BulletExtData->OwnerObject();
 	// Close enough
 	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < 100) // This value maybe adjusted?
-	{
-		pBullet->Explode(true);
-		pBullet->UnInit();
-		pBullet->LastMapCoords = CellClass::Coord2Cell(pBullet->Location);
-	}
+		return true;
+
+	return false;
 }
 
-void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition)
+void BombardTrajectory::OnAIPreDetonate()
+{
+}
+
+void BombardTrajectory::OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition)
 {
 	if (!this->IsFalling)
 	{
-		pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
+		auto pBullet = BulletExtData->OwnerObject();
+		pSpeed->Z += BulletExtData->TypeExt->GetAdjustedGravity();
 		if (pBullet->Location.Z + pBullet->Velocity.Z >= this->Height)
 		{
 			this->IsFalling = true;
@@ -84,12 +89,12 @@ void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpee
 
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(BulletClass* pBullet)
+TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(CoordStruct coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }

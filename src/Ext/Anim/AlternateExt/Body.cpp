@@ -106,10 +106,9 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x8)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	//yes this happen  , for  some reason owner object is gone
-	//before it can be evaluated
-	//and its causing IE/Desync with this function
-	//so we skip evaluating these
+	//when these 2 elements not present
+	//the Ext data is already gone
+	//so , we just skip these and dont take care any invalidation
 	if (!pThis->Type && !pThis->OwnerObject)
 		return 0x0;
 

@@ -1540,8 +1540,19 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 			}
 
 			// This action finished
+
+			if (pTeamData->FailedCounter <= 0 || pTeamData->FailedCounter < 4) {
+				pTeamData->FailedCounter++;
+				Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument, pLeaderUnit->GetTechnoType()->get_ID(), pLeaderUnit->UniqueID);
+			} else {
+
+				if(pTeamData->FailedCounter == 4) {
+					pTeamData->TeamLeader = FindTheTeamLeader(pTeam);
+					pTeamData->FailedCounter = -1;
+				}
+			}
+
 			pTeam->StepCompleted = true;
-			Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument, pLeaderUnit->GetTechnoType()->get_ID(), pLeaderUnit->UniqueID);
 
 			return;
 		}
@@ -1707,7 +1718,6 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass *pTechno, int method, int cal
 		auto object = TechnoClass::Array->GetItem(i);
 		auto objectType = object->GetTechnoType();
 
-
 		if (!TechnoExt::IsActive(object,false,false) || !objectType || !object->Owner)
 			continue;
 
@@ -1727,7 +1737,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass *pTechno, int method, int cal
 		{
 			auto nArmor = objectType->Armor;
 			if (auto pObjectExt = TechnoExt::GetExtData(object))
-				if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive())
+				if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
 					nArmor = pObjectExt->GetShield()->GetType()->Armor;
 
 			if (weaponType->AmbientDamage > 0)
@@ -1872,7 +1882,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass *pTechno, int method, int cal
 
 bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass *pTeamLeader = nullptr)
 {
-	if (!pTechno || !pTechno->Owner || !pTeamLeader->Owner)
+	if (!pTechno || !pTechno->Owner || (pTeamLeader && !pTeamLeader->Owner))
 		return false;
 
 	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();
@@ -1923,7 +1933,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 			}
 
 			if (auto pInf = specific_cast<InfantryClass*>(pTechno)) {
-				return pInf->Type->Slaved && pInf->SlaveOwner;
+				return pInf->Type->Slaved && pInf->SlaveOwner && pTechnoType->ResourceGatherer;
 			}
 		}
 		return false;
@@ -1957,7 +1967,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	{
 		if (!pTechno->Owner->IsNeutral()) {
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
-				return pBld->Type->Factory != AbstractType::None && pBld->Factory;
+				return pBld->Factory != nullptr;
 		}
 		return false;
 	}
@@ -2028,7 +2038,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	{
 		// Occupied Building
 		if (auto pBld = specific_cast<BuildingClass*>(pTechno)) {
-			return (pBld && pBld->Occupants.Count > 0);
+			return (pBld->Occupants.Count > 0);
 		}
 
 		return false;
@@ -2065,13 +2075,12 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				return !(pUnit->Type->Harvester || pUnit->Type->Weeder)
 					&& pUnit->Type->ResourceGatherer
 					&& pUnit->Type->DeploysInto
-					&& pUnit->Type->DeploysInto->Enslaves
 					;
 			}
 
 			if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
 				return pBuilding->Type->ResourceGatherer
-					&& (pBuilding->Type->Refinery || (pBuilding->SlaveManager && pBuilding->Type->Enslaves));
+					|| (pBuilding->Type->Refinery || (pBuilding->SlaveManager && pBuilding->Type->Enslaves));
 			}
 
 		}
@@ -2136,7 +2145,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				}
 			}
 
-			return pTechno->WhatAmI() == AbstractType::Unit;
+			return pTechno->WhatAmI() == AbstractType::Unit && !pTechno->IsInAir() && !pTechnoType->Naval;
 		}
 
 		return false;
@@ -2158,6 +2167,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 					|| (pBld->Upgrades[1] && pBld->Upgrades[1]->ProduceCashAmount > 0)
 					|| (pBld->Upgrades[2] && pBld->Upgrades[2]->ProduceCashAmount > 0)
 					|| pBld->Type->Refinery
+					|| pBld->Type->ProduceCashAmount
 					|| pBld->Type->OrePurifier
 					|| pBld->Type->ResourceGatherer
 					|| (pTechno->SlaveManager  && pBld->Type->Enslaves)
@@ -2232,34 +2242,65 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 25:
 	{
 		// Super Weapon building
+		bool IsOK = false;
 		if (!pTechno->Owner->IsNeutral()){
-			if(auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType)){
-				auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding);
+			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+			{
+				auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
-				int nSuperWeapons = !pBuildingExt ? 0: pBuildingExt->SuperWeapons.Count;
 
-				return (pTypeBuilding->SuperWeapon >= 0
-					|| pTypeBuilding->SuperWeapon2 >= 0
+				int nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+
+				IsOK = (pBld->Type->SuperWeapon >= 0
+					|| pBld->Type->SuperWeapon2 >= 0
 					|| nSuperWeapons > 0);
+
+				if (!IsOK && pBld->Upgrades[0])
+				{
+					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[0]);
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+
+					IsOK = (pBld->Upgrades[0]->SuperWeapon >= 0
+						|| pBld->Upgrades[0]->SuperWeapon2 >= 0
+						|| nSuperWeapons > 0);
+				}
+
+				if (!IsOK && pBld->Upgrades[1])
+				{
+					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[1]);
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+
+					IsOK = (pBld->Upgrades[1]->SuperWeapon >= 0
+						|| pBld->Upgrades[1]->SuperWeapon2 >= 0
+						|| nSuperWeapons > 0);
+				}
+
+				if (!IsOK && pBld->Upgrades[2])
+				{
+					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[2]);
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+
+					IsOK = (pBld->Upgrades[2]->SuperWeapon >= 0
+						|| pBld->Upgrades[2]->SuperWeapon2 >= 0
+						|| nSuperWeapons > 0);
+				}
 			}
 		}
 
-		return false;
+		return IsOK;
 	}
 	case 26:
 	{
-		auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
 
 		// Construction Yard
-		if (!pTechno->Owner->IsNeutral()
-			&& pTypeBuilding
-			&& pTypeBuilding->Factory == AbstractType::BuildingType
-			&& pTypeBuilding->ConstructionYard) {
-			return true;
-		} else {
+		if (!pTechno->Owner->IsNeutral())
+		{
+			if (auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType)) {
+				return (pTypeBuilding && pTypeBuilding->Factory == AbstractType::BuildingType && pTypeBuilding->ConstructionYard);
+			}
+
 			if (pTechnoType->WhatAmI() == AbstractType::UnitType) {
 				auto const BaseUnitIter = make_iterator(RulesClass::Instance->BaseUnit);
-
 				return (!BaseUnitIter.empty() && BaseUnitIter.contains(static_cast<UnitTypeClass*>(pTechnoType)));
 			}
 		}
@@ -2272,11 +2313,35 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 28:
 	{
 		// Cloak Generator & Gap Generator
-		auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
+		bool IsOk = false;
+		if (!pTechno->Owner->IsNeutral())
+		{
+			if (auto pBuilding = specific_cast<BuildingClass*>(pTechno))
+			{
+				IsOk = pBuilding->Type->GapGenerator
+					|| pBuilding->Type->CloakGenerator;
 
-		return (!pTechno->Owner->IsNeutral()
-			&& (pTypeBuilding && (pTypeBuilding->GapGenerator
-				|| pTypeBuilding->CloakGenerator)));
+				if (!IsOk && pBuilding->Upgrades[0])
+				{
+					IsOk = pBuilding->Upgrades[0]->GapGenerator
+						|| pBuilding->Upgrades[0]->CloakGenerator;
+				}
+
+				if (!IsOk && pBuilding->Upgrades[1])
+				{
+					IsOk = pBuilding->Upgrades[1]->GapGenerator
+						|| pBuilding->Upgrades[1]->CloakGenerator;
+				}
+
+				if (!IsOk && pBuilding->Upgrades[2])
+				{
+					IsOk = pBuilding->Upgrades[2]->GapGenerator
+						|| pBuilding->Upgrades[2]->CloakGenerator;
+				}
+			}
+		}
+
+		return IsOk;
 	}
 	case 29:
 	{
@@ -2305,20 +2370,27 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	}
 	case 32:
 	{
-		auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
-		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding);
-
 		// Any non-building unit
-		return (!pTechno->Owner->IsNeutral()
-			&& (pTechnoType->WhatAmI() != AbstractType::BuildingType
-				|| (pTechnoType->WhatAmI() == AbstractType::BuildingType
-					&& pTypeBuilding
-					&& (pTypeBuilding->Artillary
-						|| pTypeBuilding->TickTank
-						|| (pBuildingExt && pBuildingExt->IsJuggernaut)
-						|| pTypeBuilding->ICBMLauncher
-						|| pTypeBuilding->SensorArray
-						|| pTypeBuilding->ResourceGatherer))));
+		if (!pTechno->Owner->IsNeutral())
+		{
+			if (auto pUnit = specific_cast<UnitClass*>(pTechno)) {
+				return !pUnit->Type->DeploysInto;
+			}
+
+			if (auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType))
+			{
+				auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding);
+				return pTypeBuilding->UndeploysInto &&
+					(pTypeBuilding->Artillary
+					|| pTypeBuilding->TickTank
+					|| (pBuildingExt && pBuildingExt->IsJuggernaut)
+					|| pTypeBuilding->ICBMLauncher
+					|| pTypeBuilding->SensorArray
+					|| pTypeBuilding->ResourceGatherer);
+			}
+		}
+
+		return false;
 	}
 	case 33:
 	{

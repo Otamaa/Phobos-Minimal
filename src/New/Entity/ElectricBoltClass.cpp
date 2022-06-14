@@ -39,7 +39,6 @@ void ElectricBoltClass::Draw_It()
 
 		for (int i = 0; i < IterationCount; ++i)
 		{
-
 			if (Lifetime)
 			{
 				Point2D pixel_start;
@@ -117,17 +116,6 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 	 *  Check to make sure there is actual distance between the two coords.
 	 */
 
-	auto Distance = [](const CoordStruct& coord1, const CoordStruct& coord2)
-	{
-		CoordStruct coord;
-		coord = coord1 - coord2;
-		auto nRes = Game::F2I(Math::sqrt((double)coord.X * (double)coord.X +
-			(double)coord.Y * (double)coord.Y +
-			(double)coord.Z * (double)coord.Z));
-
-		return nRes;
-	};
-
 	auto Sim_Random_Pick = [](int a, int b)
 	{
 		return Random2Class::NonCriticalRandomNumber()(a, b);
@@ -154,7 +142,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 		 *  Max distance from line center, with "Deviation" as delta.
 		 */
 		int desired_deviation = 23;
-		int line_deviation = (int)((desired_deviation * Deviation) * distance / Unsorted::LeptonsPerCell);
+		int line_deviation = static_cast<int>((desired_deviation * Deviation) * distance / Unsorted::LeptonsPerCell);
 
 		while (true)
 		{
@@ -177,7 +165,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 					for (int i = 0; i < ARRAY_SIZE(deviation_values); ++i)
 					{
-						deviation_values[i] = (int)(Math::sin((double)Sim_Random_Pick(0, Unsorted::LeptonsPerCell) * Math::Pi / (double)(i + 7)) * (double)line_deviation);
+						deviation_values[i] = static_cast<int>(Math::sin(static_cast<double>(Sim_Random_Pick(0, Unsorted::LeptonsPerCell) * Math::Pi / static_cast<double>(i + 7)) * static_cast<double>(line_deviation)));
 					}
 
 					for (int i = 0; i < BoltCount; ++i)
@@ -285,14 +273,13 @@ void ElectricBoltClass::Draw_Bolts()
 
 		unsigned color = DSurface::RGBA_To_Pixel(data.Color.R, data.Color.G, data.Color.B);
 
-		DSurface::Composite->DrawLineColor_AZ(nRect, start_pixel, end_pixel, (COLORREF)color, start_z, end_z, false);
+		DSurface::Composite->DrawLineColor_AZ(nRect, start_pixel, end_pixel, static_cast<COLORREF>(color), start_z, end_z, false);
 	}
 }
 
 void ElectricBoltManager::Clear_All()
 {
-	for (int i = 0; i < ElectricBoltArray.Count; ++i)
-	{
+	for (int i = 0; i < ElectricBoltArray.Count; ++i) {
 		GameDelete(ElectricBoltArray[i]);
 	}
 
@@ -307,9 +294,8 @@ void ElectricBoltManager::Draw_All()
 	for (int i = ElectricBoltArray.Count - 1; i >= 0; --i)
 	{
 		ElectricBoltClass* ebolt = ElectricBoltArray[i];
-		if (!ebolt)
-		{
-			//Debug::Log("Invalid EBolt!\n");
+
+		if (!ebolt) {
 			continue;
 		}
 

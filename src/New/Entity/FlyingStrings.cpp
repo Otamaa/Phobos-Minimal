@@ -8,6 +8,8 @@
 #include <ScenarioClass.h>
 #include <BitFont.h>
 
+#include <string_view>
+
 #include <Utilities/EnumFunctions.h>
 
 std::vector<FlyingStrings::Item> FlyingStrings::Data;
@@ -37,7 +39,7 @@ void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStr
 	Data.push_back(std::move(item));
 }
 
-void FlyingStrings::AddMoneyString(bool Display , int amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset)
+void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset)
 {
 	if (!coords || !Display || !owner)
 		return;

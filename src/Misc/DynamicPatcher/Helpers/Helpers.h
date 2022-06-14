@@ -12,11 +12,14 @@
 //typedef Delegate<TechnoClass*> FoundTechno;
 //typedef Delegate<AircraftClass*> FoundAircraft;
 
+typedef bool(__stdcall* FireBulletToTarget)(int index, int burst, BulletClass* pBullet, AbstractClass* pTarget);
+
 struct Helpers_DP
 {
 private:
 	NO_CONSTRUCT_CLASS(Helpers_DP)
 public:
+
 
 	static bool DamageMe(TechnoClass* pThis, int damage, int distanceFromEpicenter, WarheadTypeClass* warheadType, int& realDamage, bool effectsRequireDamage = false)
 	{
@@ -484,7 +487,14 @@ public:
 		});
 	}*/
 
-	static void FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos = CoordStruct::Empty, bool radialFire = false, int splitAngle = 180);
+	static void FireWeaponTo(TechnoClass* pShooter,
+		TechnoClass* pAttacker,
+		AbstractClass* pTarget,
+		WeaponTypeClass* pWeapon,
+		const CoordStruct& flh,
+		FireBulletToTarget callback = nullptr,
+		const CoordStruct& bulletSourcePos = CoordStruct::Empty,
+		bool radialFire = false, int splitAngle = 180);
 
 	static double GetDamageMult(TechnoClass* pTechno)
 	{

@@ -1,5 +1,7 @@
 #pragma once
 #ifdef COMPILE_PORTED_DP_FEATURES
+
+#include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <queue>
 #include "SimulateBurst.h"
 #include "DelayFireWeapon.h"
@@ -18,7 +20,7 @@ struct CustomWeaponManager
 	}
 
 	void Update(TechnoClass* pAttacker);
-	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult);
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult, FireBulletToTarget callback);
 	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	TechnoClass* WhoIsShooter(TechnoClass* pAttacker);
@@ -79,9 +81,9 @@ struct FireWeaponManager
 		DelayFires.emplace_back(pWeapon, pTarget, delay, count);
 	}
 
-	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1)
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1, FireBulletToTarget callback = nullptr)
 	{
-		return CWeaponManager.FireCustomWeapon(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos, rofMult);
+		return CWeaponManager.FireCustomWeapon(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos, rofMult, callback);
 	}
 
 	void TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker);

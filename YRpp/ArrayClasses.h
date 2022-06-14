@@ -353,7 +353,7 @@ public:
 	}
 
 	bool Remove(const T &item) {
-		/*
+#ifdef Causing_Crash
 		auto ArrBegin = Items;
 		auto ArrEnd = &ArrBegin[Count];
 
@@ -369,13 +369,13 @@ public:
 
 			return true;
 		}
-
-		//int idx = this->FindItemIndex(item);
-		//return idx >= 0 && this->RemoveItem(this->FindItemIndex(item));
-		return false;*/
+		return false;
+#else
 		int idx = this->FindItemIndex(item);
 		return idx >= 0 && this->RemoveItem(idx);
+#endif
 	}
+
 
 	void Swap(DynamicVectorClass& other) noexcept {
 		VectorClass<T>::Swap(other);

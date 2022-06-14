@@ -46,7 +46,7 @@ struct RadialFireHelper
 		matrix3D.RotateZ(static_cast<float>(targetDir.radians()));
 		matrix3D.Translate(1, 0, 0);
 		auto offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
-		return BulletVelocity { offset.X, -offset.Y, DeltaZ * z };
+		return { offset.X, -offset.Y, DeltaZ * z };
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)

@@ -6,9 +6,17 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
+#include "Trajectories/PhobosTrajectory.h"
 
 template<> const DWORD TExtension<BulletClass>::Canary = 0x2A2A2A2A;
 BulletExt::ExtContainer BulletExt::ExtMap;
+
+void BulletExt::ExtData::Uninitialize()
+{
+	if (Trajectory)
+		GameDelete(Trajectory);
+
+}
 
 void BulletExt::ExtData::InitializeConstants() {
 	//Type is not initialize here , wtf
@@ -83,8 +91,6 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 	if (!pExt || !pTypeExt)
 		return;
-
-	pExt->InterceptedStatus = InterceptedStatus::Targeted;
 
 	bool canAffect = false;
 	bool isIntercepted = false;

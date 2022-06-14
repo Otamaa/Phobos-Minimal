@@ -475,6 +475,44 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	return 0;
 }
 
+
+DEFINE_HOOK(0x423630, AnimClass_Draw_It_Building, 0x6)
+{
+	GET(AnimClass*, pAnim, ESI);
+
+	if (pAnim && pAnim->IsBuildingAnim)
+	{
+		CoordStruct location = pAnim->GetCoords();
+		if (auto pCell = MapClass::Instance->TryGetCellAt(location))
+		{
+			if (auto pBuilding = pCell->GetBuilding())
+			{
+				REF_STACK(int, nTintColor, 0x38);
+				GET(int, nIntensity, EBP);
+
+				if (pBuilding->IsIronCurtained())
+					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
+
+				if (pBuilding->ForceShielded)
+					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+
+				if (pBuilding->Berzerk)
+					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
+
+				// Boris
+				if (pBuilding->Airstrike && pBuilding->Airstrike->Target == pBuilding)
+					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
+
+				// EMP
+				if (pBuilding->Deactivated)
+					R->EBP(nIntensity / 2);
+			}
+		}
+	}
+
+	return 0;
+}
+
 // Fixed the bug that units' lighting get corrupted after loading a save with a different lighting being set
 // Author: secsome
 DEFINE_HOOK(0x67E6E5, LoadGame_RecalcLighting, 0x7)

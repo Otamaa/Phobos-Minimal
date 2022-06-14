@@ -5,7 +5,10 @@
 class BombardTrajectoryType final : public PhobosTrajectoryType
 {
 public:
-	BombardTrajectoryType() : PhobosTrajectoryType(TrajectoryFlag::Bombard)
+
+	double Height;
+
+	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard }
 		, Height { 0.0 }
 	{ }
 
@@ -14,18 +17,21 @@ public:
 
 	virtual void Read(CCINIClass* const pINI, const char* pSection) override;
 
-	double Height;
 };
 
 class BombardTrajectory final : public PhobosTrajectory
 {
 public:
-	BombardTrajectory() : PhobosTrajectory(TrajectoryFlag::Bombard)
+
+	bool IsFalling;
+	double Height;
+
+	BombardTrajectory() : PhobosTrajectory { TrajectoryFlag::Bombard }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}
 
-	BombardTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory(TrajectoryFlag::Bombard)
+	BombardTrajectory(PhobosTrajectoryType* pType, const BulletExt::ExtData* pData) : PhobosTrajectory { TrajectoryFlag::Bombard  , pData }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}
@@ -33,12 +39,11 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
-	virtual void OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity) override;
-	virtual void OnAI(BulletClass* pBullet) override;
-	virtual void OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition) override;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet) override;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno) override;
+	virtual void OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct coords) override;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
-	bool IsFalling;
-	double Height;
 };

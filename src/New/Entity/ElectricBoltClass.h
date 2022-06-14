@@ -5,6 +5,7 @@
 #include <ColorStruct.h>
 #include <ArrayClasses.h>
 #include <GeneralStructures.h>
+#include <Unsorted.h>
 
 constexpr auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
 constexpr auto  EBOLT_DEFAULT_INTERATIONS = 1;
@@ -30,18 +31,18 @@ class ElectricBoltClass
 {
 public:
 	ElectricBoltClass() :
-		StartCoord(),
-		EndCoord(),
-		ZAdjust(0),
-		Deviation(EBOLT_DEFAULT_DEVIATION),
-		Lifetime(EBOLT_DEFAULT_LIFETIME),
-		IterationCount(EBOLT_DEFAULT_INTERATIONS),
-		LineColor1({ 255,255,255 }),
-		LineColor2({ 82,81,255 }),
-		LineColor3({ 82,81,255 }),
-		LineSegmentCount(EBOLT_DEFAULT_LINE_SEGEMENTS),
-		LineDrawList(),
-		DrawFrame(-1)
+		StartCoord {},
+		EndCoord {},
+		ZAdjust {0},
+		Deviation { EBOLT_DEFAULT_DEVIATION },
+		Lifetime { EBOLT_DEFAULT_LIFETIME },
+		IterationCount { EBOLT_DEFAULT_INTERATIONS },
+		LineColor1 { 255,255,255 },
+		LineColor2 { 82,81,255 },
+		LineColor3 { 82,81,255 },
+		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
+		LineDrawList {},
+		DrawFrame {-1}
 	{ }
 
 	~ElectricBoltClass() {
@@ -52,6 +53,16 @@ public:
 	void Create(CoordStruct& start, CoordStruct& end, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 
 	void Flag_To_Delete() { Lifetime = 0; }
+
+	static inline auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
+	{
+		 CoordStruct coord = coord1 - coord2;
+		 return Game::F2I(Math::sqrt(
+			 static_cast<double>(coord.X) * static_cast<double>(coord.X) +
+			 static_cast<double>(coord.Y) * static_cast<double>(coord.Y) +
+			 static_cast<double>(coord.Z) * static_cast<double>(coord.Z)
+		 ));
+	}
 
 private:
 	void Clear();

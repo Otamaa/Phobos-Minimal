@@ -2,10 +2,11 @@
 
 #include <ScenarioClass.h>
 
-#include <Ext/Bullet/Body.h>
+#include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Utilities/EnumFunctions.h>
+
 
 // Weapon Selection
 DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
@@ -187,6 +188,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
 		if (!pThis->Owner->CanTransactMoney(nMoney))
 			return CannotFire;
 	}
+
 	if (const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon))
 	{
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
@@ -333,10 +335,12 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 
 		if (pSourceTypeExt && pSourceTypeExt->Interceptor.Get())
 		{
-			if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
-			{
+			if (auto const pBulletExt = BulletExt::GetExtData(pBullet)) {
 				pBulletExt->IsInterceptor = true;
 			}
+
+			if (auto const pBulletExt = BulletExt::GetExtData(pTargetObject))
+				pBulletExt->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
 			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
@@ -396,16 +400,15 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 {
 	GET(BulletClass*, pBullet, EBX);
 
-	auto const pData = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto const pBulletExt = BulletExt::GetExtData(pBullet);
 
-	if (auto pTraj = pData->TrajectoryType)
-		if (pTraj->Flag != TrajectoryFlag::Invalid)
-			return 0x0;
+	if (pBulletExt->Trajectory)
+		return 0x0;
 
-	if (pBullet->Type->Arcing && BulletTypeExt::GetAdjustedGravity(pBullet->Type) == 0.0)
+	if (pBullet->Type->Arcing && pBulletExt->TypeExt->GetAdjustedGravity() == 0.0)
 	{
 		pBullet->Velocity *= -1;
-		if (pData->Gravity_HeightFix)
+		if (pBulletExt->TypeExt->Gravity_HeightFix)
 		{
 			auto speed = pBullet->Velocity.Magnitude();
 
