@@ -66,6 +66,41 @@ HouseClass* HouseExt::FindNeutral(){
 	return  HouseClass::FindByCountryIndex(RulesExt::Global()->NeutralCountryIndex);
 }
 
+void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
+{
+	auto pHouseExt = HouseExt::ExtMap.Find(pThis);
+
+	if (!pThis || !pHouseExt)
+		return;
+
+	if (mode < 0 || mode > 2)
+		mode = -1;
+
+	enum { ForceFalse = 0, ForceTrue = 1, ForceRandom = 2, UseDefault = -1 };
+
+	pHouseExt->ForceOnlyTargetHouseEnemyMode = mode;
+
+	switch (mode)
+	{
+	case ForceFalse:
+		pHouseExt->ForceOnlyTargetHouseEnemy = false;
+		break;
+
+	case ForceTrue:
+		pHouseExt->ForceOnlyTargetHouseEnemy = true;
+		break;
+
+	case ForceRandom:
+		pHouseExt->ForceOnlyTargetHouseEnemy = (bool)ScenarioClass::Instance->Random.RandomRanged(0, 1);;
+		break;
+
+	default:
+		pHouseExt->ForceOnlyTargetHouseEnemy = false;
+		break;
+	}
+}
+
+
 // Ares
 HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const kind, bool const allowRandom, HouseClass* const pDefault, HouseClass* const pInvoker, HouseClass* const pVictim)
 {
@@ -106,6 +141,8 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->OwnedLimboBuildingTypes)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->HouseAirFactory)
+		.Process(this->ForceOnlyTargetHouseEnemy)
+		.Process(this->ForceOnlyTargetHouseEnemyMode)
 		;
 }
 

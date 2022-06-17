@@ -33,10 +33,10 @@ public:
 		:X(that.X), Y(that.Y), Width(that.Width), Height(that.Height)
 	{ }
 
-	auto operator()() {
+	//auto operator()() {
 		// returns a tuple to make it work with std::tie
-		return std::make_tuple(X, Y, Width, Height);
-	}
+	//	return std::make_tuple(X, Y, Width, Height);
+	//}
 
 	RectangleStruct &operator=(const RectangleStruct &that)
 	{

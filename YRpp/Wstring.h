@@ -350,7 +350,7 @@ public:
 		bool bRemoved = false;
 		if (auto p = TCharTraits().Find(Buffer, ch))
 		{
-			for (size_t len = Length(); p = TCharTraits().Find(Buffer, ch);)
+			for (size_t len = Length(); p; p = TCharTraits().Find(Buffer, ch))
 			{
 				memcpy(p, p + 1, Buffer - p + len-- - 1);
 				Buffer[len] = TCharTraits::Null;

@@ -285,7 +285,7 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 			if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
 				if(!HouseClass::IsPlayerObserver()){
 					if (auto pOwnerHouse = pFoot->GetOwningHouse()) {
-						if (!pOwnerHouse->IsNeutral() && pOwnerHouse->IsAlliedWith(HouseClass::Player)) {
+						if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::Player)) {
 							if (auto pEnemyUIName = pTechnoTypeExt->EnemyUIName.Get().Text) {
 								if (wcslen(pEnemyUIName)) {
 									R->EAX(pEnemyUIName);
@@ -309,19 +309,18 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	GET(BuildingClass*, pBuilding, ESI);
 	GET(FootClass*, pFoot, EDI);
 
-	if (pBuilding && pBuilding->Type->Cloning && pFoot)
-	{
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType()))
-		{
-			if (auto pTypeUnit = pFoot->GetTechnoType())
-			{
-				Vector2D<double> range = pTypeExt->InitialStrength_Cloning.Get();
-				double percentage = range.X >= range.Y ? range.X : static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(range.X * 100), static_cast<int>(range.Y * 100)) / 100.0);
-				int strength = static_cast<int>(pTypeUnit->Strength * percentage);
-				strength = Math::LessOrEqualTo(strength, 1);
+	if (pBuilding && pBuilding->Type->Cloning && pFoot) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())) {
+			if (auto pTypeUnit = pFoot->GetTechnoType()) {
+				if(pTypeExt->InitialStrength_Cloning.Get().X || pTypeExt->InitialStrength_Cloning.Get().Y) {
+					Vector2D<double> range = pTypeExt->InitialStrength_Cloning.Get();
+					double percentage = range.X >= range.Y ? range.X : static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(range.X * 100), static_cast<int>(range.Y * 100)) / 100.0);
+					int strength = static_cast<int>(pTypeUnit->Strength * percentage);
+					strength = Math::LessOrEqualTo(strength, 1);
 
-				pFoot->Health = strength;
-				pFoot->EstimatedHealth = strength;
+					pFoot->Health = strength;
+					pFoot->EstimatedHealth = strength;
+				}
 			}
 		}
 	}

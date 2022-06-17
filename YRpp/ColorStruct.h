@@ -22,11 +22,11 @@ struct HSVClass
 	char Sat;
 	char Val;
 
-	auto operator()()
-	{
+	//auto operator()()
+	//{
 		// returns a tuple to make it work with std::tie
-		return std::make_tuple(Hue, Sat, Val);
-	}
+	//	return std::make_tuple(Hue, Sat, Val);
+	//}
 
 };
 

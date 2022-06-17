@@ -4,6 +4,7 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
 #include <Ext/Scenario/Body.h>
@@ -257,7 +258,9 @@ void ScriptExt::ProcessAction(TeamClass* pTeam)
 		// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
 		ScriptExt::Set_ForceJump_Countdown(pTeam, true, -1);
 		break;
-
+	case PhobosScripts::ForceGlobalOnlyTargetHouseEnemy:
+		ScriptExt::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
+		break;
 	case PhobosScripts::ChangeTeamGroup:
 		ScriptExt::TeamMemberSetGroup(pTeam, argument);
 		break;
@@ -1248,6 +1251,14 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 		return;
 	}
 
+	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+	if (!pHouseExt)
+	{
+		// This action finished
+		pTeam->StepCompleted = true;
+		return;
+	}
+
 	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
 	if (pTeamData->WaitNoTargetCounter > 0)
 	{
@@ -1421,12 +1432,17 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 		}
 	}
 
+	bool onlyTargetHouseEnemy = pTeam->Type->OnlyTargetHouseEnemy;
+
+	if (pHouseExt->ForceOnlyTargetHouseEnemyMode != -1)
+		onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemy;
+
 	if (!pFocus && !bAircraftsWithoutAmmo)
 	{
 		// This part of the code is used for picking a new target.
 
 		// Favorite Enemy House case. If set, AI will focus against that House
-		if (pTeam->Type->OnlyTargetHouseEnemy && pLeaderUnit->Owner->EnemyHouseIndex >= 0)
+		if (onlyTargetHouseEnemy && pLeaderUnit->Owner->EnemyHouseIndex >= 0)
 			enemyHouse = HouseClass::Array->GetItem(pLeaderUnit->Owner->EnemyHouseIndex);
 
 		int targetMask = scriptArgument;
@@ -2843,10 +2859,16 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass *pTechno, int method, int cal
 	// Favorite Enemy House case. If set, AI will focus against that House
 	if (!pickAllies && pTechno->BelongsToATeam()) {
 		if (auto pFoot = abstract_cast<FootClass*>(pTechno)) {
-			if(pFoot->Team->FirstUnit->Owner) {
+			if(pFoot->Team &&  pFoot->Team->FirstUnit->Owner) {
 				int enemyHouseIndex = pFoot->Team->FirstUnit->Owner->EnemyHouseIndex;
 
-				if (pFoot->Team->Type->OnlyTargetHouseEnemy && enemyHouseIndex >= 0) {
+				bool onlyTargetHouseEnemy = pFoot->Team->Type->OnlyTargetHouseEnemy;
+				auto pHouseExt = HouseExt::ExtMap.Find(pFoot->Team->Owner);
+
+				if (pHouseExt && pHouseExt->ForceOnlyTargetHouseEnemyMode != -1)
+					onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemy;
+
+				if (onlyTargetHouseEnemy && enemyHouseIndex >= 0) {
 						enemyHouse = HouseClass::Array->GetItem(enemyHouseIndex);
 				}
 			}
@@ -3602,6 +3624,31 @@ bool ScriptExt::IsExtVariableAction(int action)
 {
 	auto eAction = static_cast<PhobosScripts>(action);
 	return eAction >= PhobosScripts::LocalVariableAdd && eAction <= PhobosScripts::GlobalVariableAndByGlobal;
+}
+
+void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
+{
+	if (!pTeam)
+		return;
+
+	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
+	if (!pHouseExt)
+	{
+		// This action finished
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	if (mode < 0 || mode > 2)
+		mode = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+
+	if (mode < -1 || mode > 2)
+		mode = -1;
+
+	HouseExt::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
+
+	// This action finished
+	pTeam->StepCompleted = true;
 }
 
 #undef TECHNO_IS_ALIVE

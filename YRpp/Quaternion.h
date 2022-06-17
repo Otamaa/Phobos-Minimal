@@ -12,11 +12,11 @@ public:
 	//Constructor
 	Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f) : X(x), Y(y), Z(z), W(w) {}
 
-	auto operator()()
-	{
+	//auto operator()()
+	//{
 		// returns a tuple to make it work with std::tie
-		return std::make_tuple(X, Y, Z, W);
-	}
+	//	return std::make_tuple(X, Y, Z, W);
+	//}
 
 	void Normalize() { JMP_THIS(0x645C70); }
 	//

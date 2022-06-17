@@ -28,6 +28,9 @@ public:
 	//virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass
+
+	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) JMP_THIS(0x4DEAE0);
+
 	//MissionClass
 	//virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
 

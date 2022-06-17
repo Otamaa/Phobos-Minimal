@@ -20,12 +20,16 @@ public:
 		CounterClass OwnedLimboBuildingTypes;
 		std::map<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
 		DynamicVectorClass<BuildingClass*> HouseAirFactory;
+		bool ForceOnlyTargetHouseEnemy;
+		int ForceOnlyTargetHouseEnemyMode;
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
 			, Building_BuildSpeedBonusCounter {}
 			, HouseAirFactory { }
+			, ForceOnlyTargetHouseEnemy { false }
+			, ForceOnlyTargetHouseEnemyMode { -1 }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -81,4 +85,5 @@ public:
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
+	static void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 };

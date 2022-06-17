@@ -17,11 +17,11 @@ public:
 	CellStruct() : X { 0 }, Y { 0 }
 	{ }
 
-	auto operator()()
-	{
+	//auto operator()()
+	//{
 		// returns a tuple to make it work with std::tie
-		return std::make_pair(X, Y);
-	}
+	//	return std::make_pair(X, Y);
+	//}
 
 	//equality
 	bool operator==(const CellStruct& a) const
@@ -98,16 +98,13 @@ public:
 	}
 
 	//and do sqrt when needed only
-	double DistanceFromAutoMethod(const CellStruct& a, bool nQuick = false) const
-	{
-		if (nQuick)
-			return Quick_Distance(a);
-
-		return DistanceFrom(a);
+	template<bool T = false>
+	double DistanceFromAutoMethod(const CellStruct& a) const {
+		return Distance(a, std::bool_constant<T>::type());
 	}
 
-	double Quick_Distance(const CellStruct& b) const
-	{
+private:
+	double Distance(const CellStruct& b, const std::true_type) {
 		CellStruct buffer = *this;
 		double x_diff = abs(static_cast<double>(buffer.X - b.X));
 		double y_diff = abs(static_cast<double>(buffer.Y - b.Y));
@@ -120,5 +117,9 @@ public:
 		{
 			return (x_diff / 2) + y_diff;
 		}
+	}
+
+	double Distance(const CellStruct& a, const std::false_type) {
+		return (a - *this).Magnitude();
 	}
 };

@@ -61,11 +61,11 @@ private:
 	{ JMP_THIS(0x413A30); }
 public:
 
-	auto operator()()
-	{
+	//auto operator()()
+	//{
 		// returns a tuple to make it work with std::tie
-		return std::make_tuple(X, Y, Z);
-	}
+	//	return std::make_tuple(X, Y, Z);
+	//}
 
 	CellStruct TocellStruct()
 	{
