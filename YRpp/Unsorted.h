@@ -8,11 +8,15 @@
 
 struct TacticalSelectableStruct;
 class SideClass;
+class HouseClass;
+class WeaponTypeClass;
+class BulletTypeClass;
 class ObjectTypeClass;
 class ObjectClass;
 struct RectangleStruct;
 struct CoordStruct;
 class CCFileClass;
+class CellClass;
 // things that I can't put into nice meaningful classes
 class Game
 {
@@ -170,6 +174,18 @@ public:
 
 	static void __fastcall Compute_All_CRC() {
 		JMP_STD(0x64DAB0);
+	}
+
+	static bool __fastcall WillItReachTargetInTime(int speed, int distance, int heignt, double gravity) {
+		JMP_STD(0x48ABC0);
+	}
+
+	static CellClass* __fastcall GetCellOfFirstObstacle(CoordStruct* start, CoordStruct* end, BulletTypeClass* bullet, HouseClass* house) {
+		JMP_STD(0x4CC100);
+	}
+
+	static CellClass* __fastcall Get_Cell_Of_First_Obstacle_0(CoordStruct* start, CoordStruct* end, WeaponTypeClass* weapon, HouseClass* house) {
+		JMP_STD(0x4CC310);
 	}
 };
 

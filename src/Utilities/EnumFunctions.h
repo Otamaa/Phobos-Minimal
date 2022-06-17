@@ -16,4 +16,5 @@ public:
 	static bool IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed);
 	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse  const& allowedHouses, HouseClass* owner, bool explicitEmptyCells = false);
 	static BlitterFlags GetTranslucentLevel(int const& nInt);
+	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);
 };

@@ -3,21 +3,6 @@
 #include <Utilities/Enumerable.h>
 #include <Utilities/Template.h>
 
-static constexpr std::array<const char*, 11> DefaultArmorName
-{ {
-	"none",
-	"flak",
-	"plate",
-	"light",
-	"medium",
-	"heavy",
-	"wood",
-	"steel",
-	"concrete",
-	"special_1",
-	"special_2",
-} };
-
 class ArmorTypeClass final : public Enumerable<ArmorTypeClass>
 {
 public:
@@ -41,6 +26,8 @@ public:
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
 	void EvaluateDefault();
+
+	static const char* const DefaultArmorName[11];
 
 private:
 	template <typename T>

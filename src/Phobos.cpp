@@ -74,10 +74,10 @@ bool Phobos::Otamaa::DisableCustomRadSite = false;
 TCHAR Phobos::Otamaa::PCName[MAX_COMPUTERNAME_LENGTH + 1];
 bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
-
+#ifdef ENABLE_TLS
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_1;
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
-
+#endif
 #pragma region Tools
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
@@ -197,7 +197,7 @@ bool Phobos::DetachFromDebugger()
 //static std::filesystem::path  g_target_executable_path;
 //static std::wstring Ares_dll_Fullpath;
 
-#ifdef aaa
+#ifdef Ares_ExperimentalHooks
 #include "ViniferaStyle_Hooks.h"
 
 DECLARE_PATCH(Ares_RecalculateStats_intercept_Armor)
@@ -368,7 +368,7 @@ SYRINGE_HANDSHAKE(pInfo)
 #pragma endregion
 
 #pragma region hooks
-/*
+#ifdef ENABLE_ENCRYPTION_HOOKS
 //ToDo: Decrypt ?
 BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped) {
 	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
@@ -388,7 +388,7 @@ HANDLE __stdcall CreateFileA_(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dw
 HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID* ppvObj){
 	return OleLoadFromStream(pStm, iidInterface, ppvObj);
 }
-*/
+#endif
 DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 {
 	DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
@@ -422,7 +422,7 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 			L"Debugger Notice", MB_OK);
 		}
 	}
-	/*
+#ifdef ENABLE_ENCRYPTION_HOOKS
 	typedef BOOL (__stdcall* _imp_ReadFile__)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 	typedef BOOL (__stdcall* _imp_CloseHandle__)(HANDLE hFile);
 	typedef HANDLE(__stdcall* _imp_CreateFileA__)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE  hTemplateFile);
@@ -434,7 +434,7 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 	Patch::Apply<_imp_CloseHandle__>(0x7E11E0, CloseHandle_, protect_flag);
 	Patch::Apply<_imp_CreateFileA__>(0x7E11BC, CreateFileA_, protect_flag);
 	Patch::Apply<_imp_OleLoadFromStream__>(0x7E15F8, OleLoadFromStream_, protect_flag);
-	*/
+#endif
 	return 0;
 }
 
@@ -559,6 +559,7 @@ DEFINE_HOOK(0x4A3B4B, _YR_Fetch_Resource, 0x9)
 }
 #endif
 
+#ifdef ENABLE_TLS
 DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 0x5)
 {
 	if ((TLS_Thread::dwTlsIndex_SHPDRaw_1 = TlsAlloc()) == TLS_OUT_OF_INDEXES)
@@ -581,7 +582,8 @@ static DWORD Phobos_EndProgHandle_add()
 	return DeInt_72AC40();
 }
 
-DEFINE_POINTER_CALL(0x6BE118, Phobos_EndProgHandle_add);
+DEFINE_POINTER_CALL(0x6BE118, &Phobos_EndProgHandle_add);
+#endif
 
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 {

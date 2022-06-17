@@ -3,7 +3,7 @@
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
 	if (!ownerHouse || !targetHouse)
-		return true;
+		return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
 
 	return (flags & AffectedHouse::Owner) && ownerHouse == targetHouse ||
 		(flags & AffectedHouse::Allies) && ownerHouse != targetHouse && ownerHouse->IsAlliedWith(targetHouse) ||
@@ -103,4 +103,14 @@ BlitterFlags EnumFunctions::GetTranslucentLevel(int const& nInt)
 	}
 
 	return BlitterFlags::None;
+}
+
+TextPrintType EnumFunctions::CastAlignToFlags(HorizontalPosition const& pos)
+{
+	if (pos == HorizontalPosition::Center)
+		return TextPrintType::Center;
+	if (pos == HorizontalPosition::Right)
+		return TextPrintType::Right;
+
+	return (TextPrintType)0x0; // TextPrintType::Left that doesn't exist and is assumed by default
 }

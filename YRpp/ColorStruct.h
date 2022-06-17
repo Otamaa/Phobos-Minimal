@@ -222,8 +222,8 @@ struct Color16Struct
 	{ JMP_THIS(0x63DAD0); }
 
 	unsigned short B : 5;
-	unsigned short G : 6;
-	unsigned short R : 5;
+	unsigned short R : 6;
+	unsigned short G : 5;
 };
 #pragma pack(pop)
 

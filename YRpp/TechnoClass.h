@@ -287,7 +287,7 @@ public:
 	virtual int vt_entry_3E8() R0;
 	virtual int IsNotSprayAttack2() const R0;
 	virtual WeaponStruct* GetDeployWeapon() const R0;
-	virtual WeaponStruct* GetTurretWeapon() const R0;
+	virtual WeaponStruct* GetTurretWeapon() const R0; //Get_Primary_Weapon
 	virtual WeaponStruct* GetWeapon(int nWeaponIndex) const R0;
 	virtual bool HasTurret() const R0;
 	virtual bool CanOccupyFire() const R0;
@@ -569,6 +569,10 @@ public:
 
 	bool InRange(CoordStruct& location, AbstractClass* pTarget, WeaponTypeClass* pWeapon) {
 		JMP_THIS(0x6F7220);
+	}
+
+	unsigned int EvaluateTargetElevation(AbstractClass* pTarget) const {
+		JMP_THIS(0x6F6F60);
 	}
 
 	void CreateTalkBubble(int frame) const {

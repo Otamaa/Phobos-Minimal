@@ -6,7 +6,7 @@ class BombardTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 
-	double Height;
+	Valueable<double> Height;
 
 	BombardTrajectoryType() : PhobosTrajectoryType { TrajectoryFlag::Bombard }
 		, Height { 0.0 }
@@ -24,14 +24,15 @@ class BombardTrajectory final : public PhobosTrajectory
 public:
 
 	bool IsFalling;
-	double Height;
+	Valueable<double> Height;
 
 	BombardTrajectory() : PhobosTrajectory { TrajectoryFlag::Bombard }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}
 
-	BombardTrajectory(PhobosTrajectoryType* pType, const BulletExt::ExtData* pData) : PhobosTrajectory { TrajectoryFlag::Bombard  , pData }
+	BombardTrajectory(PhobosTrajectoryType* pType) :
+		PhobosTrajectory { TrajectoryFlag::Bombard , pType }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}
@@ -39,11 +40,21 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
-	virtual void OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity) override;
-	virtual bool OnAI() override;
-	virtual void OnAIPreDetonate() override;
-	virtual void OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition) override;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct coords) override;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+	BombardTrajectoryType* GetTrajectoryType() const
+	{
+		if (!Type) {
+			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! , Missing Pointer ! \n");
+			return nullptr;
+		}
+
+		return static_cast<BombardTrajectoryType*>(Type);
+	}
+
+	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, BulletVelocity* pVelocity) override;
+	virtual bool OnAI(BulletClass* pBullet) override;
+	virtual void OnAIPreDetonate(BulletClass* pBullet) override;
+	virtual void OnAIVelocity(BulletClass* pBullet,BulletVelocity* pSpeed, BulletVelocity* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet,CoordStruct coords) override;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) override;
 
 };

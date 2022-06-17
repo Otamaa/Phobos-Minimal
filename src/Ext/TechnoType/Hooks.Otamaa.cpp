@@ -304,7 +304,7 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
 							{
 								AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), false);
-								if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnimPlayed))
+								if (auto const pAnimExt = AnimExt::GetExtData(pAnimPlayed))
 									pAnimExt->Invoker = pAttacker;
 							}
 						}

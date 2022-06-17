@@ -17,7 +17,7 @@ void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 	if (pAnim && pInvoker) {
 		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location)) {
 			AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false);
-			if (auto pExt = AnimExtAlt::GetExtData(pCreated))
+			if (auto pExt = AnimExt::GetExtData(pCreated))
 				pExt->Invoker = pInvoker;
 		}
 	}

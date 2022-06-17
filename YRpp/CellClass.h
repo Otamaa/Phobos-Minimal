@@ -19,6 +19,7 @@ class ObjectClass;
 class TechnoClass;
 class BuildingClass;
 class BuildingTypeClass;
+class BulletTypeClass;
 class UnitClass;
 class InfantryClass;
 class AircraftClass;
@@ -59,30 +60,7 @@ public:
 	//virtual CoordStruct* GetAltCoords(CoordStruct* pCrd) const override JMP_THIS(0x486890); //GetCoords__
 
 	// non-virtual
-	static constexpr std::array<const TileTypeData, 21> TileArray
-	{ {
-		{TileType::Unk, 0x0},
-		{TileType::Tunnel, 0x484AB0},
-		{TileType::Water, 0x485060},
-		{TileType::Blank, 0x486380},
-		{TileType::Ramp, 0x4863A0},
-		{TileType::Cliff, 0x4863D0},
-		{TileType::Shore, 0x4865B0},
-		{TileType::Wet, 0x4865D0},
-		{TileType::MiscPave, 0x486650},
-		{TileType::Pave, 0x486670},
-		{TileType::DirtRoad, 0x486690},
-		{TileType::PavedRoad, 0x4866D0},
-		{TileType::PavedRoadEnd, 0x4866F0},
-		{TileType::PavedRoadSlope, 0x486710},
-		{TileType::Median, 0x486730},
-		{TileType::Bridge, 0x486750},
-		{TileType::WoodBridge, 0x486770},
-		{TileType::ClearToSandLAT, 0x486790},
-		{TileType::Green, 0x4867B0},
-		{TileType::NotWater, 0x4867E0},
-		{TileType::DestroyableCliff, 0x486900},
-	}};
+	static std::array<const TileTypeData, 21> TileArray;
 
 	bool TileIs(TileType tileType) const
 	{
@@ -480,6 +458,8 @@ public:
 	bool operator != (const CellClass & cell) const { return cell.MapCoords != MapCoords; }
 	bool operator == (const CellClass & cell) const { return cell.MapCoords == MapCoords; }
 	bool IsValidMapCoords() const  { return MapCoords; }
+	int GetCliffIndex_() const { JMP_THIS(0x487D50); }
+	CellClass* GetBulletObstacleCell(CellClass* cell, CoordStruct coord, BulletTypeClass* bullet, HouseClass* house) const { JMP_THIS(0x4CC360); }
 
 protected:
 	//Constructor

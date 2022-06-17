@@ -113,6 +113,15 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 			TechnoClass_AI_GattlingDamage(pThis);
 		}
 #endif
+
+		if (auto pPaintBall = pExt->PaintBallState.get())
+		{
+			if (!pPaintBall->IsActive())
+				pPaintBall->Disable(false);
+			else
+				if (pThis->WhatAmI() == AbstractType::Building)
+					pThis->UpdatePlacement(PlacementType::Redraw);
+		}
 	}
 
 #endif

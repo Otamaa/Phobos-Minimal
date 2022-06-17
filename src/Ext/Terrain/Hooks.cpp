@@ -63,7 +63,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), false);
-				if (auto pAnimExt = AnimExtAlt::GetExtData(pAnim))
+				if (auto pAnimExt = AnimExt::GetExtData(pAnim))
 					pAnimExt->Invoker = ReceiveDamageArgs.Attacker;
 			}
 		}

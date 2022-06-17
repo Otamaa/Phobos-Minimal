@@ -87,10 +87,9 @@ DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x0)
 
 DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x4)
 {
-	class Dummy_WWCRCEngine {
+	class WWCRCEngine {
 	public:
-		void Add(bool bIn)
-		{
+		void Add(bool bIn) {
 			JMP_THIS(0x4A1CA0);
 		}
 
@@ -105,7 +104,7 @@ DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x4)
 	};
 
 	GET(AbstractClass*, pThis, ESI);
-	GET(Dummy_WWCRCEngine*, pCheck, EDI);
+	GET(WWCRCEngine*, pCheck, EDI);
 
 	pCheck->Add(ExtensionWrapper::GetWrapper(pThis)->IsDirty());
 

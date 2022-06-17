@@ -2,6 +2,8 @@
 
 #include "PhobosToolTip.h"
 
+#include <Ext/BuildingType/Body.h>
+
 #include <AircraftClass.h>
 #include <BuildingClass.h>
 #include <UnitClass.h>

@@ -65,7 +65,7 @@ playDestroyAnim:
 				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 				{
 					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-					auto const pAnimExt = AnimExtAlt::GetExtData(pAnim);
+					auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 					if (!pAnimTypeExt || !pAnimExt)
 						return;
@@ -253,7 +253,7 @@ DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x6)
 	R->EDI(2);
 
 	//this plane stuck on mission::Move ! so letst redirect it to other address that deal with this
-	return !pThis->Spawned && pThis->Type->OpenTopped && pThis->QueuedMission == Mission::Move ? 0x417944 : 0x417AD4;
+	return !pThis->Spawned && pThis->Type->OpenTopped && pThis->QueuedMission != Mission::Attack ? 0x417944 : 0x417AD4;
 }
 
 /*
@@ -365,4 +365,21 @@ DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x5)
 
 	return Nothing;
 }
+
+#ifdef TEST_CODE
+DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)
+{
+	GET(AircraftClass*, pThis, EDI);
+	R->EAX(pThis->GetWeaponRange(pThis->SelectWeapon(pThis->Target)));
+	return 0x419808;
+}
+
+DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x5)
+{
+	GET(AircraftClass*, pThis, ESI);
+	auto const pTarget = generic_cast<TechnoClass*>(pThis->Target);
+	pThis->SetDestination(pTarget ? pTarget->GetCell() : pThis->GoodTargetLoc(pThis->Target), true);
+	return 0x418087;
+}
+#endif
 #pragma endregion

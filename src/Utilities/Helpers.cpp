@@ -1,6 +1,7 @@
 #include "Helpers.h"
 #include <Ext/SWType/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/House/Body.h>
 
 bool Helpers::Otamaa::LauchSW(SuperWeaponTypeClass* LaunchWhat,
 	HouseClass* pOwner,

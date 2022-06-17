@@ -16,12 +16,15 @@ void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		return;
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
+	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 
 #pragma region Otamaa
-	this->SplashList.Read(exINI, pID, "SplashList");
+	this->SplashList.Read(exINI, pID, "SplashAnims");
+	this->SplashList_Pickrandom.Read(exINI, pID, "SplashAnims.PickRandom");
 	this->WakeAnim.Read(exINI, pID, "WakeAnim");
 	this->ExplodeOnWater.Read(exINI, pID, "ExplodeOnWater");
 	this->Damage_DealtByOwner.Read(exINI, pID, "Damage.DealtByOwner");
+	this->ExpireDamage_ConsiderInvokerVet.Read(exINI, pID, "ExpireDamage.ConsiderInvokerVeterancy");
 	this->Weapon.Read(exINI, pID, "Weapon", true);
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exINI, pID, true);
@@ -38,10 +41,13 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(LaserTrail_Types)
 
 		.Process(SplashList)
+		.Process(SplashList_Pickrandom)
+		.Process(Warhead_Detonate)
 		.Process(WakeAnim)
 		.Process(ExplodeOnWater)
 		.Process(Damage_DealtByOwner)
 		.Process(Weapon)
+		.Process(ExpireDamage_ConsiderInvokerVet)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);

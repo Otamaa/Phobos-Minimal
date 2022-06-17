@@ -8,6 +8,7 @@
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
 
 #include <Ext/BuildingType/Body.h>
 
@@ -43,6 +44,7 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	ShieldTypeClass::LoadFromINIList(pINI);
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
+	HoverTypeClass::LoadFromINIList(pINI);
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -161,6 +163,7 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 
 	ArmorTypeClass::AddDefaults();
 	ShieldTypeClass::AddDefaults();
+	HoverTypeClass::AddDefaults();
 
 	if (!Phobos::Otamaa::IsAdmin)
 		Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);

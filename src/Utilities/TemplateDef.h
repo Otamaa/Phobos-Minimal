@@ -94,6 +94,60 @@ namespace detail {
 	}
 
 	template <>
+	inline bool read<HorizontalPosition>(HorizontalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "left"))
+			{
+				value = HorizontalPosition::Left;
+			}
+			else if (IS_SAME_STR_(parser.value(), "center")|| IS_SAME_STR_(parser.value(), "centre"))
+			{
+				value = HorizontalPosition::Center;
+			}
+			else if (IS_SAME_STR_(parser.value(), "right"))
+			{
+				value = HorizontalPosition::Right;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<VerticalPosition>(VerticalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "top"))
+			{
+				value = VerticalPosition::Top;
+			}
+			else if (IS_SAME_STR_(parser.value(), "center") || IS_SAME_STR_(parser.value(), "centre"))
+			{
+				value = VerticalPosition::Center;
+			}
+			else if (IS_SAME_STR_(parser.value(), "bottom"))
+			{
+				value = VerticalPosition::Bottom;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	inline bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate) {
 		bool buffer;
 		if (parser.ReadBool(pSection, pKey, &buffer)) {
@@ -295,12 +349,10 @@ namespace detail {
 				else
 				_snprintf_s(flag, 255, "%s", pValue);
 
-				if (auto const pTheaterSuffix = strstr(flag, "~"))
-				{
-					auto theater = ScenarioGlobal->Theater;
-					auto const pExt = Theater::GetTheater(theater).Letter;
-					pTheaterSuffix[0] = pExt[0];
-					pTheaterSuffix[1] = pExt[1];
+				if (auto const pToReplace = strstr(flag, "~")) {
+					auto const pExt = Theater::GetTheater(ScenarioGlobal->Theater).Letter;
+					pToReplace[0] = pExt[0];
+					pToReplace[1] = pExt[1];
 				}
 
 				//Debug::Log("[%s]%s = Loading SHP File %s ! \n", pSection, pKey, flag);

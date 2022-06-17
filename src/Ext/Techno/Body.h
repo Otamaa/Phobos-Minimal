@@ -18,6 +18,7 @@
 #include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTarget.h>
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
+#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 #endif
 /*
 class AltBuildingExt final : public TExtension<BuildingClass>
@@ -46,6 +47,7 @@ public:
 	class ExtData final : public TExtension<TechnoClass>
 	{
 	public:
+		std::string MyID;
 		std::unique_ptr<ShieldClass> Shield;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
@@ -76,6 +78,7 @@ public:
 		//std::unique_ptr<GiftBox> MyGiftBox;
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
+		std::unique_ptr<PaintBall> PaintBallState;
 		FireWeaponManager MyWeaponManager;
 		DriveData MyDriveData;
 		AircraftDive MyDiveData;
@@ -85,6 +88,7 @@ public:
 #endif;
 	#pragma endregion
 		ExtData(TechnoClass* OwnerObject) : TExtension<TechnoClass>(OwnerObject)
+			, MyID { }
 			, Shield {}
 			, LaserTrails {}
 			, ReceiveDamage { false }
@@ -110,6 +114,7 @@ public:
 			, ExtraWeaponTimers { }
 			, Trails { }
 			, MyGiftBox {}
+			, PaintBallState {}
 			, MyWeaponManager { }
 			, MyDriveData { }
 			, MyDiveData { }
@@ -119,7 +124,7 @@ public:
 #endif;
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() { Uninitialize(); };
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override
 		{

@@ -24,26 +24,30 @@ public:
 	public:
 
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
-
+		Valueable<bool> Warhead_Detonate;
 #pragma region Otamaa
 		NullableVector <AnimTypeClass*> SplashList;//
+		Valueable<bool> SplashList_Pickrandom;
 		Nullable<AnimTypeClass*> WakeAnim; //
 		Valueable<bool> ExplodeOnWater;
 		Valueable<bool> Damage_DealtByOwner;
-		Valueable<WeaponTypeClass*> Weapon;
+		Nullable<WeaponTypeClass*> Weapon;
+		Valueable<bool> ExpireDamage_ConsiderInvokerVet;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
 #pragma endregion
 
 		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
-			, LaserTrail_Types()
-
+			, LaserTrail_Types { }
+			, Warhead_Detonate { false }
 			, SplashList { }
+			, SplashList_Pickrandom { true }
 			, WakeAnim { }
 			, ExplodeOnWater { false }
 			, Damage_DealtByOwner { false }
-			, Weapon(nullptr)
+			, Weapon { }
+			, ExpireDamage_ConsiderInvokerVet { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

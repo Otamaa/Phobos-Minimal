@@ -10,6 +10,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
@@ -455,7 +456,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)]) {
 					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
 						AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, false);
-						if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 							pAnimExt->Invoker = pThis->Owner;
 					}
 				}

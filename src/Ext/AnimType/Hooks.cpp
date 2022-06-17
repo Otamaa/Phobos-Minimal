@@ -3,6 +3,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
@@ -164,7 +165,10 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 		auto pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->Owner;
 
-		MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+		if(pTypeExt->Warhead_Detonate.Get())
+			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult);
+		else
+			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 	}
 

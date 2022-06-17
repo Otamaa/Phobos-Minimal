@@ -27,11 +27,16 @@ enum class TrajectoryCheckReturnType : int
 class PhobosTrajectoryType
 {
 public:
-	PhobosTrajectoryType(noinit_t) { }
-	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag } { }
+	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
+	Nullable<Leptons> DetonationDistance;
 
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	virtual bool Save(PhobosStreamWriter& Stm) const;
+	PhobosTrajectoryType(noinit_t) { }
+	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag }
+		, DetonationDistance { }
+	{}
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
+	virtual bool Save(PhobosStreamWriter& Stm) const { return true; }
 
 	virtual void Read(CCINIClass* const pINI, const char* pSection) = 0;
 
@@ -42,63 +47,60 @@ public:
 	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectoryType* pType);
 	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectoryType* pType);
 
-	TrajectoryFlag Flag;
+	//nonstatic but not virtuals !
+	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool SaveBase(PhobosStreamWriter& Stm) const;
+	bool ReadBase(CCINIClass* const pINI, const char* pSection);
 };
 
 
 template<typename T>
 concept TrajectoryType = std::is_base_of<PhobosTrajectoryType, T>::value;
 
+//template<typename T>
+//concept Trajectory = std::is_base_of<PhobosTrajectory, T>::value;
+
 class PhobosTrajectory
 {
 public:
-	const BulletExt::ExtData* BulletExtData { nullptr };
+
+	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
+	PhobosTrajectoryType* Type;
+	Leptons DetonationDistance;
 
 	PhobosTrajectory(noinit_t) { }
-	PhobosTrajectory(TrajectoryFlag flag) : Flag { flag }
-		, BulletExtData { nullptr }
+	PhobosTrajectory(TrajectoryFlag flag ) : Flag { flag }
+		, Type { nullptr }
+		, DetonationDistance { 0 }
 	{ }
 
-	PhobosTrajectory(TrajectoryFlag flag , const BulletExt::ExtData* pData) : Flag { flag }
-		, BulletExtData { pData }
+	PhobosTrajectory(TrajectoryFlag flag , PhobosTrajectoryType* type) : Flag { flag }
+		, Type { type }
+		, DetonationDistance { 0 }
 	{ }
 
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	virtual bool Save(PhobosStreamWriter& Stm) const;
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
+	virtual bool Save(PhobosStreamWriter& Stm) const { return true; };
 
-	virtual void OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity) = 0;
-	virtual bool OnAI() = 0;
-	virtual void OnAIPreDetonate() = 0;
-	virtual void OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition) = 0;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct coords) = 0;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) = 0;
-
-	template<TrajectoryType T>
-	T* GetTrajectoryType() const
-	{
-		if (!BulletExtData || !BulletExtData->TypeExt) {
-			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! , Missing Pointer ! \n");
-			return nullptr;
-		}
-
-		if (BulletExtData->TypeExt->TrajectoryType->Flag != Flag) {
-			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! ,  Tryng to Cast From Different Flag! \n");
-			return nullptr;
-		}
-
-		return static_cast<T*>(BulletExtData->TypeExt->TrajectoryType);
-	}
+	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, BulletVelocity* pVelocity) = 0;
+	virtual bool OnAI(BulletClass* pBullet) = 0;
+	virtual void OnAIPreDetonate(BulletClass* pBullet) = 0;
+	virtual void OnAIVelocity(BulletClass* pBullet,BulletVelocity* pSpeed, BulletVelocity* pPosition) = 0;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet,CoordStruct coords) = 0;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) = 0;
 
 	double GetTrajectorySpeed(BulletClass* pBullet) const;
 
-	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletExt::ExtData* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity);
+	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity);
 
 	static PhobosTrajectory* LoadFromStream(PhobosStreamReader& Stm);
 	static void WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);
 	static PhobosTrajectory* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectory* pTraj);
 	static PhobosTrajectory* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);
 
-	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
+	//nonstatic but not virtuals !
+	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool SaveBase(PhobosStreamWriter& Stm) const;
 };
 
 /*

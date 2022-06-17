@@ -9,6 +9,7 @@
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
+#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 #endif
 class WarheadTypeExt
 {
@@ -145,6 +146,10 @@ public:
 	#ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
+	#ifdef COMPILE_PORTED_DP_FEATURES
+		Valueable<int> PaintBallDuration;
+		PaintballType PaintBallData;
+	#endif
 		#pragma endregion
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, SpySat { false }
@@ -252,6 +257,11 @@ public:
 			, PermaMC { false }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
+
+#endif
+#ifdef COMPILE_PORTED_DP_FEATURES
+			, PaintBallDuration { -1 }
+			, PaintBallData { }
 
 #endif
 		{ }

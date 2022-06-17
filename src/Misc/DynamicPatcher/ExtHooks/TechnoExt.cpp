@@ -88,17 +88,20 @@ DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_DP, 0x7)
 }
 */
 
+static bool CeaseFire(TechnoClass* pThis)
+{
+	bool bCeaseFire = false;
+	PassengersFunctional::CanFire(pThis, bCeaseFire);
+	return bCeaseFire;
+}
+
 //#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EDI);
 	//GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
-	bool bCeaseFire = false;
-
-	PassengersFunctional::CanFire(pThis, bCeaseFire);
-
-	return bCeaseFire ? 0x6FCB7E : 0x0;
+	return CeaseFire(pThis) ? 0x6FCB7E : 0x0;
 }
 
 namespace CalculatePinch

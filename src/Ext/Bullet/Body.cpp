@@ -5,6 +5,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/House/Body.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include "Trajectories/PhobosTrajectory.h"
 
@@ -123,9 +124,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 			return;
 
 		auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pTypeExt->Interceptable_WeaponOverride.Get(nullptr));
-		bool detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pTypeExt->Interceptable_DeleteOnIntercept);
-
-		pExt->Intercepted_Detonate = detonate;
+		pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pTypeExt->Interceptable_DeleteOnIntercept);
 
 		if (pWeaponOverride)
 		{
@@ -184,6 +183,7 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->InterceptedStatus)
 		.Process(this->Intercepted_Detonate)
 		.Process(this->LaserTrails)
+		.Process(this->SnappedToTarget)
 		.Process(this->BrightCheckDone)
 		.Process(this->Owner)
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -242,9 +242,7 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
-	//BulletExt::ExtMap.Remove(pItem);
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-
 	return 0;
 }
 

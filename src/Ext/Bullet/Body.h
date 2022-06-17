@@ -27,7 +27,7 @@ public:
 		InterceptedStatus InterceptedStatus;
 		bool Intercepted_Detonate;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-
+		bool SnappedToTarget;
 #pragma region Otamaa
 		bool BrightCheckDone;
 		HouseClass* Owner;
@@ -44,6 +44,7 @@ public:
 			, InterceptedStatus { InterceptedStatus::None }
 			, Intercepted_Detonate { true }
 			, LaserTrails {}
+			, SnappedToTarget { false }
 			, BrightCheckDone { false }
 			, Owner { nullptr }
 #ifdef COMPILE_PORTED_DP_FEATURES

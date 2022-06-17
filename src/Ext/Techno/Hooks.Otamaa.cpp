@@ -21,6 +21,26 @@
 
 
 #pragma region Otamaa
+/*
+DEFINE_HOOK(0x6F7891, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0xC));
+	GET(TechnoClass*, pTarget, EBX);
+
+	bool bRangeIgnoreVertical = false;
+	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+		bRangeIgnoreVertical = pExt->Range_IgnoreVertical.Get();
+	}
+
+	if (pThis->IsInAir() && !bRangeIgnoreVertical) {
+		nCoord.Z = pTarget->GetCoords().Z;
+	}
+
+	R->EAX(pThis->InRange(nCoord, pTarget, pWeapon));
+	return 0x6F78BD;
+}
 
 DEFINE_HOOK(0x6F7893, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
 {
@@ -34,28 +54,18 @@ DEFINE_HOOK(0x6F7893, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
 
 	R->AL(bRangeVertical);
 	return 0x6F7898;
-}
+}*/
 
 DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	if (pWeaponExt->OccupantAnim_UseMultiple.Get())
-	{
-		switch (pWeaponExt->OccupantAnims.size())
-		{
-		case 0:
-			break;
-		case 1:
-			pDecidedMuzzle = pWeaponExt->OccupantAnims[0];
-			break;
-		default:
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	if (pWeaponExt && pWeaponExt->OccupantAnim_UseMultiple.Get()) {
+		if(!pWeaponExt->OccupantAnims.empty())
 			pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioGlobal->Random(0, pWeaponExt->OccupantAnims.size() - 1)];
-			break;
-		}
 	}
 
 	R->EDI(pDecidedMuzzle);
@@ -137,7 +147,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	return 0x709D11;
 }
 
-DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x0) //4
+DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 {
 	GET(TechnoClass*, pThis, ECX);
 
@@ -224,7 +234,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, 0x600, 0, 0))
 				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, false);
-					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 						pAnimExt->Invoker = pTechno;
 				}
 			}
@@ -234,7 +244,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4CE680, FlyLocomotionClass_TakeOffAnim, 0x5)
+DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
@@ -251,7 +261,7 @@ DEFINE_HOOK(0x4CE680, FlyLocomotionClass_TakeOffAnim, 0x5)
 				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, 0x600, 0, 0))
 				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, false);
-					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 						pAnimExt->Invoker = pAir;
 				}
 			}
@@ -288,7 +298,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 			if (auto pAnim = GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, 0x600, 0, 0))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pLinked->GetOwningHouse(), nullptr, false);
-				if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 					pAnimExt->Invoker = pLinked;
 			}
 		}
@@ -483,7 +493,7 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
 				if (auto pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x600, 0, false))
 				{
 					AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, false);
-					if (auto const pAnimExt = AnimExtAlt::GetExtData(pDrainAnimCreated))
+					if (auto const pAnimExt = AnimExt::GetExtData(pDrainAnimCreated))
 						pAnimExt->Invoker = Drainer;
 					pDrainAnim = pDrainAnimCreated;
 				}

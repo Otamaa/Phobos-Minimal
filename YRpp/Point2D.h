@@ -57,8 +57,14 @@ public:
 		return *this;
 	}
 
+	//scalar multiplication
+	Point2D operator*(double r) const
+	{
+		return Point2D { static_cast<int>(X * r), static_cast<int>(Y * r) };
+	}
+
 	int Length() const {
-		JMP_THIS(0x4C1B50);
+		return static_cast<int>(Math::sqrt(static_cast<double>(this->X * this->X + this->Y * this->Y)));
 	}
 
 	int X, Y;

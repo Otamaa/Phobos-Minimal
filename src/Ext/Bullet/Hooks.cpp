@@ -29,8 +29,6 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 
 		if (pThis->Type)
 		{
-			//pExt->CurrentStrength = pThis->Type->Strength;
-
 			if (auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 			{
 				pExt->TypeExt = pTypeExt;
@@ -144,6 +142,7 @@ DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl, 0x6)
 
 DEFINE_HOOK(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
 {
+	//GET(BulletClass* const, pThis, EBP);
 	GET(BulletTypeClass* const, pType, EAX);
 
 	auto const nGravity = BulletTypeExt::GetAdjustedGravity(pType);
@@ -212,19 +211,22 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6)
 
 	GET(BulletClass*, pThis, ESI);
 
-	if (pThis->Type->Inviso)
+	if (pThis->Type->Inviso) {
+		R->EAX(pThis->Type);
 		return ForceSnap;
+	}
 
-	if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pExt = BulletExt::GetExtData(pThis))
 	{
-		if (pTypeExt->TrajectoryType &&
-			pTypeExt->TrajectoryType->Flag == TrajectoryFlag::Straight
+		if (pExt->Trajectory &&
+			pExt->Trajectory->Flag == TrajectoryFlag::Straight
 		)
 		{
-			auto type = static_cast<StraightTrajectoryType*>(pTypeExt->TrajectoryType);
+			auto type = static_cast<StraightTrajectory*>(pExt->Trajectory)->GetTrajectoryType();
 
-			if (type && !type->SnapOnTarget)
+			if (type && !type->SnapOnTarget) {
 				return NoSnap;
+			}
 		}
 	}
 

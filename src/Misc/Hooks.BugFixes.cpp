@@ -12,6 +12,7 @@
 #include <FlyLocomotionClass.h>
 #include <JumpjetLocomotionClass.h>
 #include <TemporalClass.h>
+#include <CellClass.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -219,23 +220,6 @@ DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 	// Restore overridden instructions
 	GET(Mission, eax, EAX);
 	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
-}
-
-DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	int weaponIndex = pThis->GetTechnoType()->DeployFireWeapon;
-
-	if (pThis->GetFireError(pThis->Target, weaponIndex, true) == FireError::OK) {
-		pThis->Fire(pThis->Target, weaponIndex);
-		auto const pWeapon = pThis->GetWeapon(weaponIndex);
-
-		if (pWeapon && pWeapon->WeaponType->FireOnce)
-			pThis->QueueMission(Mission::Guard, true);
-	}
-
-	return 0x73DD3C;
 }
 
 // issue #250: Building placement hotkey not responding
@@ -449,6 +433,7 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 
 // Fix the issue that SHP units doesn't apply IronCurtain or other color effects and doesn't accept EMP intensity
 // Author: secsome
+
 DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -471,44 +456,6 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	// EMP
 	if (pThis->Deactivated)
 		R->EBP(nIntensity / 2);
-
-	return 0;
-}
-
-
-DEFINE_HOOK(0x423630, AnimClass_Draw_It_Building, 0x6)
-{
-	GET(AnimClass*, pAnim, ESI);
-
-	if (pAnim && pAnim->IsBuildingAnim)
-	{
-		CoordStruct location = pAnim->GetCoords();
-		if (auto pCell = MapClass::Instance->TryGetCellAt(location))
-		{
-			if (auto pBuilding = pCell->GetBuilding())
-			{
-				REF_STACK(int, nTintColor, 0x38);
-				GET(int, nIntensity, EBP);
-
-				if (pBuilding->IsIronCurtained())
-					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
-
-				if (pBuilding->ForceShielded)
-					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
-
-				if (pBuilding->Berzerk)
-					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
-
-				// Boris
-				if (pBuilding->Airstrike && pBuilding->Airstrike->Target == pBuilding)
-					nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
-
-				// EMP
-				if (pBuilding->Deactivated)
-					R->EBP(nIntensity / 2);
-			}
-		}
-	}
 
 	return 0;
 }

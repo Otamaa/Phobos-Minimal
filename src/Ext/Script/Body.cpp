@@ -303,6 +303,12 @@ bool ScriptExt::StopTeamMemberMoving(TeamClass* pTeam)
 	bool stillMoving = false;
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
+		if (pUnit->WhatAmI() == AbstractType::Unit)
+			if (auto pCell = pUnit->GetCell())
+				if (auto pBld = pCell->GetBuilding())
+					if (!pBld->Type->Naval && pBld->Type->WeaponsFactory && !pUnit->IsInAir())
+						continue;
+
 		if (pUnit->CurrentMission == Mission::Move || pUnit->Locomotor->Is_Moving())
 		{
 			pUnit->ForceMission(Mission::Wait);
@@ -1547,6 +1553,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 			} else {
 
 				if(pTeamData->FailedCounter == 4) {
+					pTeam->RemoveMember(pTeamData->TeamLeader);
 					pTeamData->TeamLeader = FindTheTeamLeader(pTeam);
 					pTeamData->FailedCounter = -1;
 				}

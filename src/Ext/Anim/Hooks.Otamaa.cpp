@@ -5,7 +5,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/WeaponType/Body.h>
-
+#include <Utilities/AnimHelpers.h>
 #include <Utilities/Helpers.h>
 #include <SmudgeClass.h>
 #include <SmudgeTypeClass.h>
@@ -24,8 +24,8 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 				{
 					if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords()))
 					{
-							AnimExt::AnimCellUpdater::Marked.push_back(location);
-							AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
+						AnimExt::AnimCellUpdater::Marked.push_back(location);
+						AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
 					}
 				}
 			}
@@ -35,6 +35,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 	return 0x6850E5;
 }
 
+/*
 DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
@@ -50,11 +51,14 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 
 	//Default
 
-	const auto GetOriginalAnimResult = [pType]() {
-		if (pType->IsMeteor) {
+	const auto GetOriginalAnimResult = [pType]()
+	{
+		if (pType->IsMeteor)
+		{
 			auto const splash = RulesClass::Instance->SplashList;
 
-			if (splash.Count > 0) {
+			if (splash.Count > 0)
+			{
 				return splash[ScenarioClass::Instance->Random(0, splash.Count - 1)];
 			}
 		}
@@ -65,24 +69,37 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 	AnimTypeClass* pSplashAnim = nullptr;
 	TechnoClass* pInvoker = nullptr;
 
-	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
-		if (pAnimTypeExt->ExplodeOnWater.Get()) {
-			if (auto const pWarhead = pType->Warhead) {
+	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	{
+		if (pAnimTypeExt->ExplodeOnWater.Get())
+		{
+			if (auto const pWarhead = pType->Warhead)
+			{
 				auto const nDamage = Game::F2I(pThis->Accum);
 				pInvoker = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 				pOwner = pInvoker ? pInvoker->GetOwningHouse() : pOwner;
-				MapClass::DamageArea(nLocation, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-				MapClass::FlashbangWarheadAt(nDamage, pWarhead, nLocation);
-				auto nLand = pThis->GetCell() ? pThis->GetCell()->LandType : LandType::Clear;
-				pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pWarhead, nLand, nLocation);
-				flags = 0x2600u;
-				ForceZAdjust = -30;
+
+				if (pAnimTypeExt->Warhead_Detonate)
+				{
+					WarheadTypeExt::DetonateAt(pWarhead, nLocation, pInvoker, nDamage);
+				}
+				else
+				{
+					MapClass::DamageArea(nLocation, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+					MapClass::FlashbangWarheadAt(nDamage, pWarhead, nLocation);
+					auto nLand = pThis->GetCell() ? pThis->GetCell()->LandType : LandType::Clear;
+					pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pWarhead, nLand, nLocation);
+					flags = 0x2600u;
+					ForceZAdjust = -30;
+				}
 			}
 
-			if (auto pExpireAnim = pType->ExpireAnim) {
-				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0)) {
+			if (auto pExpireAnim = pType->ExpireAnim)
+			{
+				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0))
+				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-					if (auto pExt = AnimExtAlt::GetExtData(pAnim))
+					if (auto pExt = AnimExt::GetExtData(pAnim))
 						pExt->Invoker = pInvoker;
 				}
 			}
@@ -102,19 +119,24 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 					pSplashAnim = splash.at(nIndex);
 				}
 			}
-			else {
+			else
+			{
 				pSplashAnim = pAnimTypeExt->WakeAnim.Get(RulesClass::Instance->Wake);
 			}
 		}
 
-	} else {
+	}
+	else
+	{
 		pSplashAnim = GetOriginalAnimResult();
 	}
 
-	if (pSplashAnim){
-		if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, flags, ForceZAdjust)) {
+	if (pSplashAnim)
+	{
+		if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, flags, ForceZAdjust))
+		{
 			AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
-			if (auto pExt = AnimExtAlt::GetExtData(pSplashAnimCreated))
+			if (auto pExt = AnimExt::GetExtData(pSplashAnimCreated))
 				pExt->Invoker = pInvoker;
 		}
 	}
@@ -134,15 +156,18 @@ DEFINE_HOOK(0x423DE7, AnimClass_Expired_Extra_OnLand_DamageArea, 0x6)
 
 		auto nCoords = pThis->Bounce.GetCoords();
 
-		if (auto pExpireAnim = pType->ExpireAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nCoords, 0, 1, 0x2600u, -30, 0)) {
+		if (auto pExpireAnim = pType->ExpireAnim)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nCoords, 0, 1, 0x2600u, -30, 0))
+			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-				if (auto pExt = AnimExtAlt::GetExtData(pAnim))
+				if (auto pExt = AnimExt::GetExtData(pAnim))
 					pExt->Invoker = pTechOwner;
 			}
 		}
 
-		if (auto const pWarhead = pType->Warhead) {
+		if (auto const pWarhead = pType->Warhead)
+		{
 			auto const nDamage = Game::F2I(pType->Damage);
 			MapClass::DamageArea(nCoords, nDamage, pTechOwner, pWarhead, pWarhead->Tiberium, pOwner);
 			MapClass::FlashbangWarheadAt(nDamage, pWarhead, nCoords, false);
@@ -151,71 +176,61 @@ DEFINE_HOOK(0x423DE7, AnimClass_Expired_Extra_OnLand_DamageArea, 0x6)
 
 	return 0x423EFD;
 }
-
-#pragma region helpers
-static void SpawnMultiple(std::vector<AnimTypeClass*>& nAnims, DynamicVectorClass<int>& nAmount, CoordStruct Where,TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
+*/
+DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 {
-	if (!nAnims.empty()) {
-		auto nCreateAnim = [&](int nIndex) {
-			if (auto const pMultipleSelected = nAnims[nIndex]) {
-				if ((size_t)nAmount[nIndex] > 0) {
-					for (size_t k = (size_t)nAmount[nIndex]; k > 0; --k) {
-						if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where)) {
-							AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, false);
-							if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnimCreated))
-								pAnimExt->Invoker = pInvoker;
-						}
-					}
+	enum { SkipGameCode = 0x423EFD };
+
+	GET(AnimClass* const, pThis, ESI);
+	GET(bool const, heightFlag, EAX);
+
+	if (!pThis || !pThis->Type)
+		return SkipGameCode;
+
+	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	TechnoClass* pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
+	auto const pOwner = pTechOwner ? pTechOwner->GetOwningHouse() : pThis->Owner;
+
+	if (pThis->GetCell()->LandType != LandType::Water || heightFlag)
+	{
+		Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner , pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+
+		if (auto const pExpireAnim = pThis->Type->ExpireAnim)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, 0, 0))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+					pAnimExt->Invoker = pTechOwner;
+			}
+		}
+	}
+	else
+	{
+		if (!pAnimTypeExt->ExplodeOnWater)
+		{
+			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesGlobal->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
+			{
+				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false))
+				{
+					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
+					if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
+						pAnimExt->Invoker = pTechOwner;
 				}
 			}
-		};
-
-		if (!bRandom) {
-			for (size_t i = 0; i < nAnims.size(); i++) {
-				nCreateAnim(i);
-			}
 		}
-		else {
-			nCreateAnim(ScenarioGlobal->Random.RandomRanged(0, nAnims.size() - 1));
+		else
+		{
+			Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner , pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 		}
 	}
+
+	return SkipGameCode;
 }
 
-static bool CheckMinMax(double nMin, double nMax, int& nOutMin, int& nOutMax)
-{
-	int nMinL = Game::F2I(abs(nMin) * 256.0);
-	int nMaxL = Game::F2I(abs(nMax) * 256.0);
+#pragma region helpers
 
-	if (!nMinL && !nMaxL)
-		return false;
 
-	if (nMinL > nMaxL)
-		std::swap(nMinL, nMaxL);
-
-	nOutMin = nMinL;
-	nOutMax = nMaxL;
-
-	return true;
-}
-
-static CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, CoordStruct nPos, int Increment)
-{
-	CoordStruct nBuff = nPos;
-	int nMinL = 0;
-	int nMaxL = 0;
-
-	if (CheckMinMax(nMin, nMax, nMinL, nMaxL))
-	{
-		auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
-			(abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * Math::min(Increment, 1)),
-			ScenarioClass::Instance->Random.RandomRanged(0, 1));
-
-		nRandomCoords.Z = MapClass::Instance->GetCellFloorHeight(nRandomCoords);;
-		nBuff = nRandomCoords;
-	}
-
-	return nBuff;
-}
 #pragma endregion
 
 
@@ -313,13 +328,13 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 		if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
 		{
 			auto pAnimTypeExt = pTypeExt;
-			auto const pObject = AnimExt::GetTechnoInvoker(pThis,pTypeExt->Damage_DealtByInvoker.Get());
+			auto const pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 			auto const pHouse = ((pObject) ? pObject->GetOwningHouse() : pThis->Owner ? pThis->Owner : HouseExt::FindCivilianSide());
 
-			SpawnMultiple(
+			Helper::Otamaa::SpawnMultiple(
 				pAnimTypeExt->SpawnsMultiple,
 				pAnimTypeExt->SpawnsMultiple_amouts,
-				pThis->GetCenterCoord(), pObject ,pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
+				pThis->GetCenterCoord(), pObject, pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
 
 			if (pType->SpawnsParticle != -1)
 			{
@@ -334,7 +349,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 						if (pAnimTypeExt->ParticleChance.isset() ?
 							(ScenarioGlobal->Random(0, 99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
 						{
-							nDestCoord = GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
+							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
 						}
 					}
@@ -373,8 +388,9 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	HouseClass* pHouse = HouseExt::FindCivilianSide();
 	TechnoClass* pObject = nullptr;
 
-	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim)){
-	    pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim))
+	{
+		pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 		pHouse = ((pObject) ? pObject->GetOwningHouse() : pThis->Owner ? pThis->Owner : pHouse);
 	}
 
@@ -382,47 +398,15 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, 0x600, 0, 0))
 	{
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, false);
-			if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
-				pAnimExt->Invoker = pObject;
+		if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+			pAnimExt->Invoker = pObject;
 	}
 
 	return 0x4239D3;
 }
-/*
-namespace AnimClass_AI_BackupHookDef
-{
-	AnimTypeClass* TypeBack;
-}
-
-DEFINE_HOOK(0x424507, AnimClass_AI_BackupHook, 0xC)
-{
-	GET(AnimClass*, pThis, ESI);
-
-	AnimClass_AI_BackupHookDef::TypeBack = pThis->Type;
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x42465D, AnimClass_MidPoint_NoType, 0x8)
-{
-	GET(AnimClass*, pThis, ESI);
-
-	if (!pThis->Type)
-	{
-		if (AnimClass_AI_BackupHookDef::TypeBack)
-		{
-			R->EAX(AnimClass_AI_BackupHookDef::TypeBack);
-			pThis->Type = AnimClass_AI_BackupHookDef::TypeBack;
-			AnimClass_AI_BackupHookDef::TypeBack = nullptr;
-			return 0x424663;
-		}
-	}
-
-	AnimClass_AI_BackupHookDef::TypeBack = nullptr;
-	return 0x0;
-}*/
 
 // Draw Tiled !
+
 DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 {
 	GET(AnimClass*, pThis, ESI);
@@ -442,9 +426,15 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 	if (!pShp)
 		return 0x42371B;
 
-	auto pPal = pTypeExt && pTypeExt->Palette.GetConvert()  ? pTypeExt->Palette.GetConvert() : FileSystem::ANIM_PAL();
-	auto Y_Doffs = pThis->Type->YDrawOffset;
+	auto pPal = FileSystem::ANIM_PAL();
 
+	if (pTypeExt && pTypeExt->Palette.GetConvert()) {
+		//if(!pTypeExt->Palette.Name.empty())
+		//	Debug::Log("Anim[%s] with Custom Pal [%s] DrawTiled ! \n", pThis->get_ID(), pTypeExt->Palette.Name.c_str());
+		pPal = pTypeExt->Palette.GetConvert();
+	}
+
+	auto Y_Doffs = pThis->Type->YDrawOffset;
 
 	for (; nYadd_Loc >= 0;)
 	{
@@ -472,7 +462,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 		nY_Loc -= nSHPHeight + (nSHPHeight / 2);
 		nPoint->Y = nYadd_Loc + Y_Doffs;
 	}
-	/*
+	#ifdef Other_Impl_AnimPal
 	do
 	{
 		DSurface::Temp->DrawSHP(
@@ -496,12 +486,13 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 		nY_Loc -= nSHPHeight + nSHPHeight / 2;
 		nPoint->Y = nYadd_Loc + Y_Doffs;
 	}
-	while (nYadd_Loc >= 0);*/
-
+	while (nYadd_Loc >= 0);
+	#endif
 	return 0x42371B;
 }
 
-HouseClass* __fastcall AnimClassGetOwningHouse_Wrapper(AnimClass* pThis, void* _) {
+HouseClass* __fastcall AnimClassGetOwningHouse_Wrapper(AnimClass* pThis, void* _)
+{
 	return pThis->Owner;
 }
 
@@ -534,7 +525,7 @@ static DWORD SpawnCreater(AnimClass* pThis, CellClass* pCell, Point2D& nVal)
 				}
 				else
 				{
-					bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()): true;
+					bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
 					if (bSpawn)
 						SmudgeTypeClass::CreateRandomSmudge(nCoord, nVal.X, nVal.Y, false);
 				}
@@ -561,12 +552,12 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 struct DummyStructForDrawing
 {
 	static void Callme(
-		Surface *dest_surface,
-		ConvertClass *drawer,
-		SHPReference *shape,
+		Surface* dest_surface,
+		ConvertClass* drawer,
+		SHPReference* shape,
 		int shapenum,
-		Point2D *xy,
-		RectangleStruct *rect1,
+		Point2D* xy,
+		RectangleStruct* rect1,
 		BlitterFlags flags,
 		int drawerval,
 		int height_offset,
@@ -580,11 +571,14 @@ struct DummyStructForDrawing
 	{
 		SHPReference* v16 = nullptr;
 		BSurface* v35 = nullptr;
-		RectangleStruct z_shape_rect{ 0,0,0,0 };
+		RectangleStruct z_shape_rect { 0,0,0,0 };
 
-		if (shape) {
-			if (shape->Type == -1) {
-				if (!shape->Loaded) {
+		if (shape)
+		{
+			if (shape->Type == -1)
+			{
+				if (!shape->Loaded)
+				{
 					shape->Load();
 				}
 				v16 = shape->AsReference();
@@ -605,17 +599,18 @@ struct DummyStructForDrawing
 					auto height = v16->Height;
 					auto v23 = v21;
 					auto width = v16->Width;
-					MemoryBuffer Buffer{ v23 ,shape_rect.Height * shape_rect.Width };
-					BSurface shape_surface{ shape_rect.Width, shape_rect.Height,1, &Buffer };
+					MemoryBuffer Buffer { v23 ,shape_rect.Height * shape_rect.Width };
+					BSurface shape_surface { shape_rect.Width, shape_rect.Height,1, &Buffer };
 
 					if (z_shape)
 					{
 						z_shape_rect = z_shape->GetFrameBounds(z_shape_frame);
-						MemoryBuffer nMemBuffer{ z_shape_rect.Height * z_shape_rect.Width };
+						MemoryBuffer nMemBuffer { z_shape_rect.Height * z_shape_rect.Width };
 						v35 = GameCreate<BSurface>(z_shape_rect.Width, z_shape_rect.Height, 1, &nMemBuffer);
 					}
 
-					if ((BYTE(flags) & 2) != 0) {
+					if ((BYTE(flags) & 2) != 0)
+					{
 						xpos += width / -2;
 						ypos += height / -2;
 					}
@@ -631,7 +626,7 @@ struct DummyStructForDrawing
 					shape_rect.X = 0;
 					shape_rect.Y = 0;
 					int intersect_rect_height = 0;
-					RectangleStruct reused_rect{};
+					RectangleStruct reused_rect {};
 
 					if (!z_shape)
 						goto noZShapeFound;
@@ -653,7 +648,8 @@ struct DummyStructForDrawing
 					if (shape_rect.Width > 0 && intersect_rect_height > 0)
 					{
 					noZShapeFound:
-						if (drawerval) {
+						if (drawerval)
+						{
 							flags |= (BlitterFlags)16;
 						}
 
@@ -717,7 +713,8 @@ struct DummyStructForDrawing
 						}
 					}
 
-					if (v35) {
+					if (v35)
+					{
 						GameDelete(v35);
 					}
 

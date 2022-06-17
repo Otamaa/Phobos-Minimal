@@ -59,7 +59,7 @@ if (const auto pExt = TechnoExt::GetExtData(pTarget)) {\
 	if (pShieldData->IsActive()) { R->EAX(pShieldData->GetType()->Armor);\
 		return R->Origin() + 6; } } } return 0;}
 
-REPLACE_ARMOR(0x70CF39, EBX , ESI , TechnoClass_EvalThreatRating_Shield)
+REPLACE_ARMOR(0x70CF39, EBX, ESI , TechnoClass_EvalThreatRating_Shield)
 REPLACE_ARMOR(0x6F7D31, EBP, ESI, TechnoClass_CanAutoTargetObject_Shield) //
 REPLACE_ARMOR(0x6FCB64, EBX, EBP, TechnoClass_CanFire_Shield) //
 REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //

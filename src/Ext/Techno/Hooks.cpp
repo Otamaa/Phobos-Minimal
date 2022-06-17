@@ -15,6 +15,7 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Debug.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
@@ -164,7 +165,7 @@ DEFINE_HOOK(0x518505, InfantryClass_TakeDamage_NotHuman, 0x4)
 				{
 					auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), true);
-					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 						pAnimExt->Invoker = receiveDamageArgs.Attacker;
 
 					pAnim->ZAdjust = pThis->GetZAdjustment();
@@ -183,23 +184,6 @@ DEFINE_HOOK(0x518505, InfantryClass_TakeDamage_NotHuman, 0x4)
 
 	//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
 	return (!pThis->PlayAnim(static_cast<DoType>(resultSequence), true)) ? Delete : DoOtherAffects;
-}
-
-//Author : Otamaa
-DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
-{
-	GET(InfantryClass*, pThis, ESI);
-	R->EDI(pThis->Type->DeployFireWeapon == -1 ? pThis->SelectWeapon(pThis->Target) : pThis->Type->DeployFireWeapon);
-	return 0x5223B9;
-}
-
-//Author : Otamaa
-DEFINE_HOOK(0x746CEA, UnitClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
-{
-	GET(UnitTypeClass*, pType, EAX);
-	//GET_STACK(AbstractClass*, pTarget, 0x4);
-
-	return pType->DeployFireWeapon == -1 ? 0x746CF3 : 0x0;
 }
 
 // Customizable OpenTopped Properties
@@ -426,7 +410,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
 
 	int maxSpeed = 0;
 
-	if (pThis)
+	if (pThis && pThis->GetTechnoType())
 	{
 		maxSpeed = pThis->GetTechnoType()->Speed;
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -467,8 +451,9 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	{
 		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
 		{
-			if (pTypeExt->Spawner_DelayFrames.isset()) { }
-			R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
+			if (pTypeExt->Spawner_DelayFrames.isset()) {
+				R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
+			}
 		}
 	}
 
@@ -478,8 +463,6 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 // Reimplements the game function with few changes / optimizations
 DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
 {
-	enum { ReturnResult = 0x70138F };
-
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0x8, -0x4));
 
@@ -498,23 +481,21 @@ DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
 			int smallestRange = INT32_MAX;
 			auto pPassenger = pThis->Passengers.FirstPassenger;
 
-			while (pPassenger && (pPassenger->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
-			{
+			while (pPassenger && (pPassenger->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None) {
 				int openTWeaponIndex = pPassenger->GetTechnoType()->OpenTransportWeapon;
 				int tWeaponIndex = 0;
 
 				if (openTWeaponIndex != -1)
 					tWeaponIndex = openTWeaponIndex;
-				else if (pPassenger->GetTechnoType()->TurretCount > 0)
+				else if (pPassenger->HasTurret())
 					tWeaponIndex = pPassenger->CurrentWeaponNumber;
 
-				WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType;
-
-				if (pTWeapon)
-				{
+				if (WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType) {
 					if (pTWeapon->Range < smallestRange)
 						smallestRange = pTWeapon->Range;
-				}
+				}else{
+				Debug::Log("Techno[%s] With Passengers[%s] Failed To get WeaponType To Check Range ! \n",pThis->get_ID(),pPassenger->get_ID()); }
+
 
 				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
 			}
@@ -524,6 +505,33 @@ DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
 		}
 	}
 
+	if(result == 0 && pThis->GetTechnoType()->OpenTopped)
+		Debug::Log("Warning ! , Opentopped Techno[%s] return 0 range result will cause Unit/Aircraft to stuck ! \n", pThis->get_ID());
+
 	R->EBX(result);
-	return ReturnResult;
+	return 0x70138F;
+}
+
+/*
+DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
+{
+	GET(FootClass*, pThis, ECX);
+	if (pTypeExt->CanBeIronCurtain)
+		return 0x4DEB38;
+	return 0;
+}*/
+
+DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
+{
+	GET(InfantryClass*, pThis, ECX);
+	GET_STACK(int, nDuration, 0x4);
+	GET_STACK(HouseClass*, pSource, 0x8);
+	GET_STACK(bool, ForceShield, 0xC);
+
+	if (!pThis->Type->Organic)
+		pThis->FootClass::IronCurtain(nDuration, pSource, ForceShield);
+	else
+		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource);
+
+	return 0x522639;
 }

@@ -15,7 +15,7 @@ public:
 	auto operator()()
 	{
 		// returns a tuple to make it work with std::tie
-		return std::make_tuple(X, Y, W);
+		return std::make_tuple(X, Y, Z, W);
 	}
 
 	void Normalize() { JMP_THIS(0x645C70); }

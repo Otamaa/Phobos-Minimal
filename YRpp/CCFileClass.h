@@ -31,52 +31,6 @@ enum class FileAccessType : unsigned int
 				  // existing data.
 };
 
-static constexpr std::array<const char*, 42> FileErrorToString
-{ {
-		  "Non-error. "
-		, "Operation not permitted. "
-		, "No such file or directory. "
-		, "No such process. "
-		, "Interrupted function call. "
-		, "Input/output error. "
-		, "No such device or address. "
-		, "Argument list too long. "
-		, "Exec format error. "
-		, "Bad file descriptor. "
-		, "No child processes. "
-		, "Resource temporarily unavailable. "
-		, "Not enough space/cannot allocate memory. "
-		, "Permission denied. "
-		, "Bad address. "
-		, "Unknown error 15. "
-		, "Device or resource busy. "
-		, "File exists. "
-		, "Improper link. "
-		, "No such device. "
-		, "Not a directory. "
-		, "Is a directory. "
-		, "Invalid argument. "
-		, "Too many open files in system. "
-		, "Too many open files. "
-		, "Unknown error 26. "
-		, "Inappropriate I/O control operation. "
-		, "File too large. "
-		, "No space left on device. "
-		, "Invalid seek. "
-		, "Read-only filesystem. "
-		, "Too many links. "
-		, "Broken pipe. "
-		, "Mathematics argument out of domain of function. "
-		, "Result too large. "
-		, "Unknown error 36. "
-		, "Resource deadlock avoided. "
-		, "Filename too long. "
-		, "No locks available. "
-		, "Function not implemented. "
-		, "Directory not empty. "
-		, "Invalid or incomplete multibyte or wide character. "
-} };
-
 enum class FileErrorType : int
 {
 	/**
@@ -133,6 +87,8 @@ enum class FileErrorType : int
 class FileClass
 {
 public:
+	static const char* const FileErrorToString[];
+
 	//Destructor
 	virtual	~FileClass() {}
 	//FileClass
@@ -174,7 +130,7 @@ public:
 	operator const char* () { return GetFileName(); }
 
 	static const char* File_Error_To_String(FileErrorType error) {
-		if(static_cast<int>(error) > 42 || static_cast<int>(error) < 0)
+		if(static_cast<int>(error) >= 42 || static_cast<int>(error) < 0)
 			return "Unknown error. ";
 		else
 			return FileErrorToString[static_cast<int>(error)];

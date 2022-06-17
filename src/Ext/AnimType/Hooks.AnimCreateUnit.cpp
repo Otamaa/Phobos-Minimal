@@ -10,8 +10,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Anim/Body.h>
-#include <Ext/Anim/AlternateExt/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/House/Body.h>
 
 DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 {
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 			if (auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
 			{
 				bool success = false;
-				if (auto const pExt = AnimExtAlt::GetExtData(pThis))
+				if (auto const pExt = AnimExt::GetExtData(pThis))
 				{
 					auto aFacing = pTypeExt->CreateUnit_RandomFacing.Get()
 						? static_cast<unsigned short>(ScenarioGlobal->Random.RandomRanged(0, 255)) : pTypeExt->CreateUnit_Facing.Get();
@@ -171,7 +171,7 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x0)
 
 		if(auto pTech = pThis->Owner) {
 			pInvoker =pThis->Owner->GetOwningHouse();
-			if(auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+			if(auto const pAnimExt = AnimExt::GetExtData(pAnim))
 				pAnimExt->Invoker = pTech;
 		}
 

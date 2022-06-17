@@ -7,6 +7,7 @@
 
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
@@ -264,6 +265,8 @@ public:
 		NullableIdx<VocClass>SlaveFreeSound;
 		Valueable<bool> NoAirportBound_DisableRadioContact;
 		Nullable<AnimTypeClass*> SinkAnim;
+		Nullable<double> Tunnel_Speed;
+		Nullable<HoverTypeClass*> HoverType;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -496,6 +499,8 @@ public:
 			, SlaveFreeSound { }
 			, NoAirportBound_DisableRadioContact { false }
 			, SinkAnim { }
+			, Tunnel_Speed { }
+			, HoverType { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

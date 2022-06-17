@@ -11,6 +11,7 @@
 #include <TunnelLocomotionClass.h>
 #include <IsometricTileTypeClass.h>
 
+#include <Memory.h>
 /*
 static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
 {
@@ -84,7 +85,7 @@ static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea
 	(nCoord, nDamage, pSource, pWarhead, pWarhead->Tiberium, pHouseOwner);
 }
 
-DEFINE_POINTER_CALL(0x6632C7, _RocketLocomotionClass_DamageArea);
+DEFINE_POINTER_CALL(0x6632C7, &_RocketLocomotionClass_DamageArea);
 
 
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
@@ -133,7 +134,7 @@ SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_POINTER_CALL(0x74D5BC, DrawShape_VeinHole);
+DEFINE_POINTER_CALL(0x74D5BC, &DrawShape_VeinHole);
 
 static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 {
@@ -144,7 +145,7 @@ static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 		VeinholeMonsterClass::VeinSHPData = pImage;
 }
 
-DEFINE_POINTER_CALL(0x685136, Replace_VeinholeShapeLoad);
+DEFINE_POINTER_CALL(0x685136, &Replace_VeinholeShapeLoad);
 
 static	void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 {
@@ -152,14 +153,14 @@ static	void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 	Replace_VeinholeShapeLoad(nTheater);
 }
 
-DEFINE_POINTER_CALL(0x4AD0A3, DisplayClass_ReadINI_add)
+DEFINE_POINTER_CALL(0x4AD0A3, &DisplayClass_ReadINI_add)
 
 static	int __fastcall SelectParticle(char* pName)
 {
 	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
 }
 
-DEFINE_POINTER_CALL(0x74D0DF, SelectParticle);
+DEFINE_POINTER_CALL(0x74D0DF, &SelectParticle);
 
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 {
@@ -234,7 +235,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 											(pExt && pExt->Owner) ? pExt->Owner : nullptr
 								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, false);
 
-		if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim)) {
+		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
 			pAnimExt->Invoker = pThis->Owner;
 		}
 	}
@@ -252,14 +253,13 @@ static AnimTypeClass* GetSinkAnim(TechnoClass* pThis) {
 
 DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
-	GET(AnimClassCopy*, pAnim, EAX);
+	GET(AnimClass*, pAnim, EAX);
 	GET(AircraftClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
-	pAnim->_AnimClass_CTOR(GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-
+	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-	if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim)) {
+	if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
 		pAnimExt->Invoker = pThis;
 	}
 
@@ -268,14 +268,13 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 
 DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 {
-	GET(AnimClassCopy*, pAnim, EAX);
+	GET(AnimClass*, pAnim, EAX);
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
-	pAnim->_AnimClass_CTOR(GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-
+	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-	if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim)) {
+	if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
 		pAnimExt->Invoker = pThis;
 	}
 
@@ -321,7 +320,7 @@ static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, vo
 //544C3F
 DEFINE_POINTER_CALL(0x544C3F, &Isotile_LoadFile_Wrapper);
 //544C97
-DEFINE_POINTER_CALL(0x544C97, &Isotile_LoadFile_Wrapper);
+DEFINE_POINTER_CALL(0x544C97,&Isotile_LoadFile_Wrapper);
 //544CC9
 DEFINE_POINTER_CALL(0x544CC9, &Isotile_LoadFile_Wrapper);
 //546FCC

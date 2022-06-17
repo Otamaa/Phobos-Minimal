@@ -55,12 +55,8 @@ DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 
 	R->Stack(STACK_OFFS(0xF8, 0xE4), Point2D { pPoint->X + nRect_X , pPoint->Y + nRect_Y });
 	R->EAX(ColorScheme::Array()->Items);
+	R->ECX((pThisType->FirersPalette && (pThis->InheritedColor != -1)) ? pThis->InheritedColor : pThisType->Color);
 
-	int nIdx = pThisType->Color;
-	if (pThisType->FirersPalette && (pThis->InheritedColor != -1))
-		nIdx = pThis->InheritedColor;
-
-	R->ECX(nIdx);
 	return 0x46B1F2;
 }
 

@@ -14,12 +14,12 @@ union storage
 	std::decay_t<Callable> callable;
 };
 
-template<int, typename Callable, typename Ret, typename... Args>
+template<typename Callable, typename Ret, typename... Args>
 static auto fnptr_impl(Callable&& c, Ret(*)(Args...))
 {
 	using calltype = Ret(__fastcall*)(Args...);
 	static bool used = false;
-	static storage<Callable> s;
+	static storage<calltype> s;
 	using type = decltype(s.callable);
 
 	if (used)
@@ -32,7 +32,7 @@ static auto fnptr_impl(Callable&& c, Ret(*)(Args...))
 	};
 }
 
-template<typename Fn,  int N = 0, typename Callable>
-static Fn* fnptr(Callable&& c) {
-	return fnptr_impl<N>(std::forward<Callable>(c), (Fn*)nullptr);
+template<typename Fn,typename Callable>
+static Fn* __fastcall fnptr(Callable&& c) {
+	return fnptr_impl(std::forward<Callable>(c), (Fn*)nullptr);
 }

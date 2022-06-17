@@ -8,7 +8,6 @@
 #include <UnitClass.h>
 
 #include <Ext/Anim/Body.h>
-#include <Ext/Anim/AlternateExt/Body.h>
 #include <Ext/TechnoType/Body.h>
 
 template<> const DWORD Extension<AnimTypeClass>::Canary = 0xEEEEEEEE;
@@ -43,6 +42,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
 	this->Damage_ConsiderOwnerVeterancy.Read(exINI, pID, "Damage.ConsiderOwnerVeterancyBonus");
+	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 
 #pragma region Otamaa
 
@@ -61,9 +61,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ParticleRangeMax.Read(exINI, pID, "SpawnsParticle.RangeMaximum");
 	this->ParticleChance.Read(exINI, pID, "SpawnsParticle.Chance");
 
-	this->SplashList.Read(exINI, pID, "SplashList");
-	this->SplashIndex.Read(exINI, pID, "Splash.Index");
-	this->SplashIndexRandom.Read(exINI, pID, "Splash.IsRandom");
+	this->SplashList.Read(exINI, pID, "SplashAnims");
+	this->SplashIndexRandom.Read(exINI, pID, "SplashAnims.PickRandom");
 
 	this->WakeAnim.Read(exINI, pID, "WakeAnim");
 	this->ExplodeOnWater.Read(exINI, pID, "ExplodeOnWater");
@@ -141,8 +140,7 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 			{
 				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-				//auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
-				auto const pAnimExt = AnimExtAlt::GetExtData(pAnim);
+				auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 				if (!pAnimTypeExt || !pAnimExt)
 					return;
@@ -191,9 +189,9 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Damage_DealtByInvoker)
 		.Process(this->Damage_ApplyOnce)
 		.Process(this->Damage_ConsiderOwnerVeterancy)
+		.Process(this->Warhead_Detonate)
 
 		.Process(SplashList)
-		.Process(SplashIndex)
 		.Process(SplashIndexRandom)
 		.Process(WakeAnim)
 		.Process(ExplodeOnWater)
@@ -241,7 +239,7 @@ bool AnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 void AnimTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
-AnimTypeExt::ExtContainer::ExtContainer() : OriginalContainer("AnimTypeClass") { }
+AnimTypeExt::ExtContainer::ExtContainer() : Container("AnimTypeClass") { }
 AnimTypeExt::ExtContainer::~ExtContainer() = default;
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)

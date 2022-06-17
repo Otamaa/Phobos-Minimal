@@ -4,30 +4,35 @@
 
 bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectoryType::Load(Stm, false);
+	this->LoadBase(Stm, RegisterForChange);
 	Stm.Process(this->Height, false);
 	return true;
 }
 
 bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
+	this->SaveBase(Stm);
 	Stm.Process(this->Height);
 	return true;
 }
 
 void BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	this->Height = pINI->ReadDouble(pSection, "Trajectory.Bombard.Height", 0.0);
+	if (!this->PhobosTrajectoryType::ReadBase(pINI, pSection))
+		return;
+
+	INI_EX exINI(pINI);
+
+	this->Height.Read(exINI, pSection, "Trajectory.Bombard.Height");
 }
 
 bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
+	this->LoadBase(Stm, RegisterForChange);
 
 	Stm
-		.Process(this->IsFalling)
-		.Process(this->Height)
+		.Process(this->IsFalling, false)
+		.Process(this->Height, false)
 		;
 
 	return true;
@@ -35,20 +40,21 @@ bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
+	this->SaveBase(Stm);
 	Stm
-		.Process(this->IsFalling)
-		.Process(this->Height)
+		.Process(this->IsFalling, false)
+		.Process(this->Height, false)
 		;
 
 	return true;
 }
 
-void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity)
+void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
 {
-	auto pBullet = BulletExtData->OwnerObject();
-	this->Height = this->GetTrajectoryType<BombardTrajectoryType>()->Height + pBullet->TargetCoords.Z;
+	auto pType = this->GetTrajectoryType();
+
+	this->DetonationDistance = pType->DetonationDistance.Get(Leptons(102));
+	this->Height = pType->Height.Get() + pBullet->TargetCoords.Z;
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
@@ -56,26 +62,22 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity
 	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
 }
 
-bool BombardTrajectory::OnAI()
+bool BombardTrajectory::OnAI(BulletClass* pBullet)
 {
-	auto pBullet = BulletExtData->OwnerObject();
 	// Close enough
-	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < 100) // This value maybe adjusted?
+	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) <  this->DetonationDistance) // This value maybe adjusted?
 		return true;
 
 	return false;
 }
 
-void BombardTrajectory::OnAIPreDetonate()
-{
-}
+void BombardTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
 
-void BombardTrajectory::OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition)
+void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition)
 {
 	if (!this->IsFalling)
 	{
-		auto pBullet = BulletExtData->OwnerObject();
-		pSpeed->Z += BulletExtData->TypeExt->GetAdjustedGravity();
+		pSpeed->Z += BulletExt::GetExtData(pBullet)->TypeExt->GetAdjustedGravity();
 		if (pBullet->Location.Z + pBullet->Velocity.Z >= this->Height)
 		{
 			this->IsFalling = true;
@@ -89,12 +91,12 @@ void BombardTrajectory::OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPo
 
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(CoordStruct coords)
+TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
+TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }

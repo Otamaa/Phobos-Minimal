@@ -1,4 +1,5 @@
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <UnitClass.h>
 #include <UnitTypeClass.h>

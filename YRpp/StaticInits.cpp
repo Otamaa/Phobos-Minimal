@@ -1222,3 +1222,74 @@ void Game::Unselect_All_Except(ObjectClass* object)
 		}
 	}
 }
+
+	std::array<const TileTypeData, 21> CellClass::TileArray =
+	{ {
+		{TileType::Unk, 0x0},
+		{TileType::Tunnel, 0x484AB0},
+		{TileType::Water, 0x485060},
+		{TileType::Blank, 0x486380},
+		{TileType::Ramp, 0x4863A0},
+		{TileType::Cliff, 0x4863D0},
+		{TileType::Shore, 0x4865B0},
+		{TileType::Wet, 0x4865D0},
+		{TileType::MiscPave, 0x486650},
+		{TileType::Pave, 0x486670},
+		{TileType::DirtRoad, 0x486690},
+		{TileType::PavedRoad, 0x4866D0},
+		{TileType::PavedRoadEnd, 0x4866F0},
+		{TileType::PavedRoadSlope, 0x486710},
+		{TileType::Median, 0x486730},
+		{TileType::Bridge, 0x486750},
+		{TileType::WoodBridge, 0x486770},
+		{TileType::ClearToSandLAT, 0x486790},
+		{TileType::Green, 0x4867B0},
+		{TileType::NotWater, 0x4867E0},
+		{TileType::DestroyableCliff, 0x486900},
+	}};
+
+const char* const FileClass::FileErrorToString[] =
+ {
+		  "Non-error. "
+		, "Operation not permitted. "
+		, "No such file or directory. "
+		, "No such process. "
+		, "Interrupted function call. "
+		, "Input/output error. "
+		, "No such device or address. "
+		, "Argument list too long. "
+		, "Exec format error. "
+		, "Bad file descriptor. "
+		, "No child processes. "
+		, "Resource temporarily unavailable. "
+		, "Not enough space/cannot allocate memory. "
+		, "Permission denied. "
+		, "Bad address. "
+		, "Unknown error 15. "
+		, "Device or resource busy. "
+		, "File exists. "
+		, "Improper link. "
+		, "No such device. "
+		, "Not a directory. "
+		, "Is a directory. "
+		, "Invalid argument. "
+		, "Too many open files in system. "
+		, "Too many open files. "
+		, "Unknown error 26. "
+		, "Inappropriate I/O control operation. "
+		, "File too large. "
+		, "No space left on device. "
+		, "Invalid seek. "
+		, "Read-only filesystem. "
+		, "Too many links. "
+		, "Broken pipe. "
+		, "Mathematics argument out of domain of function. "
+		, "Result too large. "
+		, "Unknown error 36. "
+		, "Resource deadlock avoided. "
+		, "Filename too long. "
+		, "No locks available. "
+		, "Function not implemented. "
+		, "Directory not empty. "
+		, "Invalid or incomplete multibyte or wide character. "
+};

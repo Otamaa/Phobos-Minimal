@@ -313,6 +313,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	ReadHitTextData("DamageText");
 
 #endif
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	PaintBallData.Read(exINI,pSection);
+	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
+#endif
 #pragma endregion
 
 }
@@ -426,8 +431,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(DamageTextPerArmor)
 
 #endif
-
+#ifdef COMPILE_PORTED_DP_FEATURES
+		.Process(PaintBallDuration)
+#endif
 		;
+#ifdef COMPILE_PORTED_DP_FEATURES
+		PaintBallData.Serialize(Stm);
+#endif
 }
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

@@ -208,7 +208,11 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->Shield_SelfHealing_Duration > 0 ||
 		this->Shield_AttachTypes.size() > 0 ||
 		this->Shield_RemoveTypes.size() > 0 ||
-		this->Transact || ISPermaMC;
+		this->Transact || ISPermaMC
+#ifdef COMPILE_PORTED_DP_FEATURES
+		|| (this->PaintBallData.Color != ColorStruct::Empty)
+#endif
+		;
 
 	bool bulletWasIntercepted = false;
 	if(pBullet)
@@ -273,6 +277,11 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 		this->ApplyCrit(pHouse, pTarget, pOwner);
+#ifdef COMPILE_PORTED_DP_FEATURES
+	if (auto pExt = TechnoExt::GetExtData(pTarget))
+		pExt->PaintBallState->Enable(this->PaintBallDuration.Get() , PaintBallData, this->OwnerObject()->get_ID());
+#endif
+
 }
 
 void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -455,7 +464,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pTarget->GetOwningHouse(), false);
-			if (auto pAnimExt = AnimExtAlt::GetExtData(pAnim))
+			if (auto pAnimExt = AnimExt::GetExtData(pAnim))
 				pAnimExt->Invoker = pOwner;
 		}
 	}

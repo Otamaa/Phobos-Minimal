@@ -228,7 +228,7 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr);
-			if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 				pAnimExt->Invoker = Techno;
 		}
 	}
@@ -559,7 +559,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 		{
 			pAnim->SetOwnerObject(this->Techno);
 			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr);
-			if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 				pAnimExt->Invoker = Techno;
 		}
 	}

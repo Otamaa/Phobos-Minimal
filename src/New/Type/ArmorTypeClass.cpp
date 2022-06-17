@@ -5,6 +5,21 @@
 
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
+const char* const ArmorTypeClass::DefaultArmorName[11] =
+{
+	"none",
+	"flak",
+	"plate",
+	"light",
+	"medium",
+	"heavy",
+	"wood",
+	"steel",
+	"concrete",
+	"special_1",
+	"special_2",
+};
+
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
 {
 	return "ArmorTypes";

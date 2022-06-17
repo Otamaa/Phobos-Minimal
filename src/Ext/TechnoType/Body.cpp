@@ -343,6 +343,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
 	this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
 	this->SinkAnim.Read(exINI, pSection, "Sink.Anim");
+	this->Tunnel_Speed.Read(exINI, pSection, "TunnelSpeed");
+	this->HoverType.Read(exINI, pSection, "HoverType");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 	this->MyExtraFireData.ReadRules(exINI, pSection);
@@ -650,6 +652,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SlaveFreeSound)
 		.Process(this->NoAirportBound_DisableRadioContact)
 		.Process(this->SinkAnim)
+		.Process(this->Tunnel_Speed)
+		.Process(this->HoverType)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

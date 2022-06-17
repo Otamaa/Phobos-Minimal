@@ -230,8 +230,8 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
 
-	//pItem->Strength = 0;
-	//pItem->Armor = Armor::None;
+	pItem->Strength = 0;
+	pItem->Armor = Armor::None;
 	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 	return 0;
 }

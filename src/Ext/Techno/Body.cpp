@@ -18,6 +18,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <JumpjetLocomotionClass.h>
 
@@ -513,8 +514,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 	if (pTypeData->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
 	{
-		if (auto pTransport = pThis->Transporter)
-		{
+		if (auto pTransport = pThis->Transporter) {
 			if (pTransport->WhatAmI() == AbstractType::Aircraft)
 				if (!pTransport->IsInAir())
 					return;
@@ -675,6 +675,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	if (!pTypeExt)
 		return;
 
+	pExt->MyID = pThis->get_ID();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 	if (pThis->WhatAmI() != AbstractType::Building)
@@ -691,6 +692,10 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 		TrailsManager::Construct(pThis);
 #endif
 	}
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	pExt->PaintBallState = std::make_unique<PaintBall>();
+#endif
 }
 
 void TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
@@ -863,7 +868,7 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 							{
 								pAnim->SetOwnerObject(pThis);
 								AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pPassenger->GetOwningHouse(), false);
-								if (auto pAnimExt = AnimExtAlt::GetExtData(pAnim))
+								if (auto pAnimExt = AnimExt::GetExtData(pAnim))
 									pAnimExt->Invoker = pThis;
 							}
 						}
@@ -1192,7 +1197,7 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 
 					do
 					{
-						TechnoTypeClass* passengerType = passenger->GetTechnoType();
+						TechnoTypeClass*  passengerType = passenger->GetTechnoType();
 						auto pPassengerExt = TechnoTypeExt::ExtMap.Find(passengerType);
 
 						if (pPassengerExt && pPassengerExt->Ammo_Shared.Get())
@@ -1241,6 +1246,10 @@ void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 {
 	if (const auto pExt = TechnoExt::GetExtData(pThis))
 	{
+		//converted , update the name
+		if (!pExt->MyID.empty() && pExt->MyID != pThis->get_ID())
+			pExt->MyID = pThis->get_ID();
+
 		if (pThis->IsMindControlled())
 		{
 			if (pThis->MindControlRingAnim && !pExt->MindControlRingAnimType)
@@ -1296,6 +1305,7 @@ template <typename T>
 void TechnoExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->MyID)
 		.Process(this->Shield)
 		.Process(this->LaserTrails)
 		.Process(this->ReceiveDamage)
@@ -1320,6 +1330,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWeaponTimers)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
+		.Process(this->PaintBallState)
 #endif;
 		;
 	//should put this inside techo ext , ffs

@@ -36,10 +36,10 @@ public:
 		Valueable<bool> Damage_DealtByInvoker;
 		Valueable<bool> Damage_ApplyOnce;
 		Valueable<bool> Damage_ConsiderOwnerVeterancy;
+		Valueable<bool> Warhead_Detonate;
 
 		#pragma region Otamaa
 		NullableVector <AnimTypeClass*> SplashList;
-		Nullable<int> SplashIndex;
 		Valueable<bool> SplashIndexRandom;
 
 		Nullable<AnimTypeClass*> WakeAnim;
@@ -81,9 +81,9 @@ public:
 			, Damage_DealtByInvoker { false }
 			, Damage_ApplyOnce{ false }
 			, Damage_ConsiderOwnerVeterancy { true }
+			, Warhead_Detonate { false }
 
 			, SplashList {}
-			, SplashIndex {}
 			, SplashIndexRandom { false }
 			, WakeAnim {}
 			, ExplodeOnWater { false }
@@ -99,7 +99,7 @@ public:
 			, Launchs {}
 
 			, CraterChance { 0.5 }
-			, SpawnCrater {  }
+			, SpawnCrater { }
 			, ScorchChance { }
 			, SpecialDraw { false }
 		{ }
@@ -129,7 +129,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public OriginalContainer<AnimTypeExt>
+	class ExtContainer final : public Container<AnimTypeExt>
 	{
 	public:
 		ExtContainer();

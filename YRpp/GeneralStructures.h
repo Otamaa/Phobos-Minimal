@@ -106,6 +106,12 @@ public:
 		return !this->IsTicking() || !this->HasTimeLeft();
 	}
 
+	void Add(int nTime) {
+		this->Pause();
+		this->TimeLeft = nTime;
+		this->Resume();
+	}
+
 protected:
 	bool IsTicking() const {
 		return this->StartTime != -1;

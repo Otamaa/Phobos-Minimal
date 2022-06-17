@@ -73,7 +73,8 @@ using UniqueDLLPtr = std::unique_ptr<T, DLLDeleter>;
 
 struct Leptons {
 	Leptons() = default;
-	explicit Leptons(int value) noexcept : value(value) {}
+	//explicit Leptons(int value) noexcept : value(value) {}
+	explicit Leptons(const int value) noexcept : value(value) { }
 	explicit Leptons(double velue) noexcept : value(Game::F2I(velue * 256.0)){}
 
 	operator int() const
@@ -108,6 +109,7 @@ public:
 	};
 
 	PaletteMode Mode{ PaletteMode::Default };
+	std::string Name { };
 	UniqueGamePtr<ConvertClass> Convert{ nullptr };
 	UniqueGamePtr<BytePalette> Palette{ nullptr };
 

@@ -52,7 +52,7 @@ DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x7)
 				{
 					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : pThis->GetOwningHouse();
 					AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, false);
-					if (auto const pAnimExt = AnimExtAlt::GetExtData(pAnim))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 						pAnimExt->Invoker = pThis->Owner;
 
 					return Handled;

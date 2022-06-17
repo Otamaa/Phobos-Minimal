@@ -4,11 +4,11 @@
 
 bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectoryType::Load(Stm, false);
-
+	this->LoadBase(Stm, RegisterForChange);
 	Stm
 		.Process(this->SnapOnTarget, false)
-		.Process(this->DetonationDistance, false)
+		.Process(this->SnapThreshold, false)
+		.Process(this->PassThrough, false)
 		;
 
 	return true;
@@ -16,11 +16,11 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 
 bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
-
+	this->SaveBase(Stm);
 	Stm
-		.Process(this->SnapOnTarget)
-		.Process(this->DetonationDistance)
+		.Process(this->SnapOnTarget, false)
+		.Process(this->SnapThreshold, false)
+		.Process(this->PassThrough, false)
 		;
 
 	return true;
@@ -29,17 +29,23 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 void StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	this->SnapOnTarget = pINI->ReadBool(pSection, "Trajectory.Straight.SnapOnTarget", this->SnapOnTarget);
-	this->DetonationDistance = Leptons(pINI->ReadInteger(pSection, "Trajectory.Straight.DetonationDistance", DetonationDistance));
+	if (!this->PhobosTrajectoryType::ReadBase(pINI, pSection))
+		return;
+
+	INI_EX exINI(pINI);
+
+	this->SnapOnTarget.Read(exINI, pSection, "Trajectory.Straight.SnapOnTarget");
+	this->SnapThreshold.Read(exINI, pSection, "Trajectory.Straight.SnapThreshold");
+	this->PassThrough.Read(exINI, pSection, "Trajectory.Straight.PassThrough");
 }
 
 bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-this->PhobosTrajectory::Load(Stm, false);
-
+	this->LoadBase(Stm, RegisterForChange);
 	Stm
-		.Process(this->SnapOnTarget)
-		.Process(this->DetonationDistance)
+		.Process(this->SnapOnTarget, false)
+		.Process(this->SnapThreshold, false)
+		.Process(this->PassThrough, false)
 		;
 
 	return true;
@@ -47,61 +53,78 @@ this->PhobosTrajectory::Load(Stm, false);
 
 bool StraightTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
+	this->SaveBase(Stm);
 	Stm
-		.Process(this->SnapOnTarget)
-		.Process(this->DetonationDistance)
+		.Process(this->SnapOnTarget, false)
+		.Process(this->SnapThreshold, false)
+		.Process(this->PassThrough, false)
 		;
 
 	return true;
 }
 
-void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, BulletVelocity* pVelocity)
+void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
 {
-	auto type = this->GetTrajectoryType<StraightTrajectoryType>();
+	auto type = this->GetTrajectoryType();
 
-	this->SnapOnTarget = type->SnapOnTarget;
-	this->DetonationDistance = type->DetonationDistance;
+	this->DetonationDistance = type->DetonationDistance.Get(Leptons());
+	this->SnapOnTarget = type->SnapOnTarget.Get();
+	this->SnapThreshold = type->SnapThreshold.Get();
+	this->PassThrough = type->PassThrough.Get();
 
-	auto pBullet = BulletExtData->OwnerObject();
-	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
-	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
-	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+	if (this->PassThrough) {
+		pBullet->TargetCoords.X = INT_MAX;
+		pBullet->TargetCoords.Y = INT_MAX;
+		pBullet->TargetCoords.Z = INT_MAX;
+	} else {
+		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
+		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+		pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
+	}
 }
 
-bool StraightTrajectory::OnAI()
+bool StraightTrajectory::OnAI(BulletClass* pBullet)
 {
-	auto pBullet = BulletExtData->OwnerObject();
+	if (this->PassThrough)
+	{
+		pBullet->Data.Distance = INT_MAX;
+		int maxTravelDistance = this->DetonationDistance > 0 ? this->DetonationDistance : INT_MAX;
 
-	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < this->DetonationDistance)
+		if (pBullet->SourceCoords.DistanceFrom(pBullet->Location) >= (maxTravelDistance))
+			return true;
+	}
+	else if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < (this->DetonationDistance.value))
+	{
 		return true;
+	}
 
 	return false;
 }
 
-void StraightTrajectory::OnAIPreDetonate()
+void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 {
-	if (this->SnapOnTarget)
+	if (this->SnapOnTarget && !this->PassThrough)
 	{
-		auto pBullet = BulletExtData->OwnerObject();
 		auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
 		auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
-		pBullet->SetLocation(pCoords);
+
+		if (pCoords.DistanceFrom(pBullet->Location) <= this->SnapThreshold)
+		{
+			BulletExt::GetExtData(pBullet)->SnappedToTarget = true;
+			pBullet->SetLocation(pCoords);
+		}
 	}
 }
 
-void StraightTrajectory::OnAIVelocity(BulletVelocity* pSpeed, BulletVelocity* pPosition)
+void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition)
 {
-	pSpeed->Z += BulletExtData->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
+	pSpeed->Z += BulletExt::GetExtData(pBullet)->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 
-TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(CoordStruct coords)
+TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)
 {
-	auto pBullet = BulletExtData->OwnerObject();
-	int bulletX = coords.X / Unsorted::LeptonsPerCell;
-	int bulletY = coords.Y / Unsorted::LeptonsPerCell;
+	int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
+	int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
 	int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
 	int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
 
@@ -111,7 +134,7 @@ TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(CoordStruct c
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }
 
-TrajectoryCheckReturnType StraightTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
+TrajectoryCheckReturnType StraightTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }

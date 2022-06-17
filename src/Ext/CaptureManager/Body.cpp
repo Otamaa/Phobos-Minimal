@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/TechnoType/Body.h>
+#include <Ext/House/Body.h>
 
 template<> const DWORD TExtension<CaptureExt::base_type>::Canary = 0x87654121;
 CaptureExt::ExtContainer CaptureExt::ExtMap;

@@ -35,7 +35,7 @@ public:
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
+		virtual void Initialize() override { } //Init After INI Read
 		inline AnimTypeClass* GetTwinkleAnim() const {
 			return this->OreTwinkle.Get(RulesGlobal->OreTwinkle);
 		}

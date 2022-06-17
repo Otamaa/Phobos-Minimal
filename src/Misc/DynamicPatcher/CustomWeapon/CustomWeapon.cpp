@@ -13,11 +13,6 @@ bool InRange(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWe
 	return pShooter->InRange(nLoc,pTarget, pWeapon);
 }
 
-bool InRange(TechnoClass* pShooter, AbstractClass* pTarget, SimulateBurst burst)
-{
-	return InRange(pShooter, pTarget, burst.WeaponType);
-}
-
 void CustomWeaponManager::Update(TechnoClass* pAttacker)
 {
 	if (!pAttacker
@@ -45,7 +40,7 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 					if (pWeaponType
 						&& pShooter && pShooter->IsAlive
 						&& pTargetTech && !Helpers_DP::IsDeadOrInvisible(pTargetTech)
-						&& (!burst.FireData.CheckRange || InRange(pShooter, pTarget, burst)) &&
+						&& (!burst.FireData.CheckRange || InRange(pShooter, pTarget, burst.WeaponType)) &&
 						(!pAttacker->Transporter || (pWeaponType->FireInTransport || burst.FireData.OnlyFireInTransport))
 					) {
 						SimulateBurstFire(pShooter, pAttacker, pTarget, pWeaponType, burst);

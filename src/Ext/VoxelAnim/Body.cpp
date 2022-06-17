@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Ext/House/Body.h>
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 

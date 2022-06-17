@@ -171,6 +171,20 @@ enum class TextAlign : int
 
 MAKE_ENUM_FLAGS(TextAlign);
 
+enum class HorizontalPosition
+{
+	Left = 0,
+	Center = 1,
+	Right = 2
+};
+
+enum class VerticalPosition
+{
+	Top = 0,
+	Center = 1,
+	Bottom = 2
+};
+
 class MouseCursorHotSpotX {
 public:
 	typedef MouseHotSpotX Value;

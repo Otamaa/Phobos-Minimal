@@ -34,7 +34,7 @@ public:
 
 	//real name `Detach`
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-
+	// called after the Extension Constructed
 	virtual void InitializeConstants() {}
 	virtual void Uninitialize() {}
 
@@ -62,7 +62,7 @@ public:
 	TExtension(const TExtension&) = delete;
 	void operator=(const TExtension&) = delete;
 
-	virtual ~TExtension() { Uninitialize(); };
+	virtual ~TExtension() override = default;
 
 	inline T* const& OwnerObject() const {
 		return this->AttachedToObject;
@@ -131,14 +131,11 @@ public:
 	}
 
 	inline void DestoryExtensionObject() {
-		GameDelete(this->ExtensionObject);
-		this->ExtensionObject = nullptr;
-
-		//if (this->ExtensionObject) {
-		//	this->ExtensionObject->Uninitialize();
-		//	GameDelete(this->ExtensionObject);
-		//	this->ExtensionObject = nullptr;
-		//}
+		if (this->ExtensionObject) {
+			this->ExtensionObject->Uninitialize();
+			GameDelete(this->ExtensionObject);
+			this->ExtensionObject = nullptr;
+		}
 	}
 
 	template<typename TExt , typename TObj>

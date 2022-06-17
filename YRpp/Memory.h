@@ -93,29 +93,19 @@ struct GameAllocator {
 		return static_cast<T*>(YRMemory::AllocateChecked(count * sizeof(T)));
 	}
 
+	void destroy(T* const ptr) const noexcept {
+		std::destroy_at(ptr);
+	}
+
 	void deallocate(T* const ptr, size_t count) const noexcept {
 		YRMemory::Deallocate(ptr);
 	}
-	/*
-	void construct(T* p, const T& arg) {
-		destroy(p);
-		new(p) T(arg);
-	}
 
 	template<class U, class... Args>
-	void construct(U* p, Args&&... args) {
-		destroy(p);
+	void construct(U* p, Args&&... args)  const noexcept {
 		std::construct_at(p, std::forward<Args>(args)...);
 	}
 
-	void destroy(T* p) {
-		std::destroy_at(p);
-	}
-
-	template<class U>
-	void destroy(U* p) {
-		std::destroy_at(p);
-	}*/
 };
 
 // construct or destroy objects using an allocator.
@@ -127,6 +117,11 @@ public:
 		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1);
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 		return ptr;
+	};
+
+	template <typename T, typename TAlloc, typename... TArgs>
+	static inline void ConstructAt(TAlloc& alloc,T* ptr , TArgs&&... args)  {
+		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 	};
 
 	// destruct scalars
@@ -178,6 +173,16 @@ static inline T* GameCreate(TArgs&&... args) {
 
 	GameAllocator<T> alloc;
 	return Memory::Create<T>(alloc, std::forward<TArgs>(args)...);
+}
+
+//Construct an This Object to an avaible memort space !
+template <typename T, typename... TArgs>
+static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
+{
+	static_assert(std::is_constructible<T, TArgs...>::value, "Cannot construct T from TArgs.");
+
+	GameAllocator<T> alloc;
+	Memory::ConstructAt<T>(alloc, AllocatedSpace, std::forward<TArgs>(args)...);
 }
 
 template<typename T>
