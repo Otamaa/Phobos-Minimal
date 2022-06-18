@@ -187,6 +187,9 @@ public:
 	static CellClass* __fastcall Get_Cell_Of_First_Obstacle_0(CoordStruct* start, CoordStruct* end, WeaponTypeClass* weapon, HouseClass* house) {
 		JMP_STD(0x4CC310);
 	}
+
+	static void __fastcall Init_Voxel_Light(float theta) { JMP_STD(0x754C00); }
+	static void __fastcall Init_Voxel_Projections() { JMP_STD(0x754CB0); }
 };
 
 // this fake class contains the IIDs used by the game

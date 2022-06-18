@@ -127,6 +127,8 @@ struct ColorStruct
 	BYTE R, G, B;
 };
 
+typedef ColorStruct RGBClass;
+
 struct BytePalette
 {
 	BytePalette(const ColorStruct& rgb = ColorStruct(0, 0, 0)) {

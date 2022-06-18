@@ -788,6 +788,8 @@ public:
 	void basecenter_4FAF00(SuperClass* a2,CellStruct& nCell) const
 		{ JMP_THIS(0x4FAF00); }
 
+	void Func_505180() const
+		{ JMP_THIS(0x505180); }
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

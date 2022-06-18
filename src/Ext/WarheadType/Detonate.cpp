@@ -208,7 +208,10 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->Shield_SelfHealing_Duration > 0 ||
 		this->Shield_AttachTypes.size() > 0 ||
 		this->Shield_RemoveTypes.size() > 0 ||
-		this->Transact || ISPermaMC
+		this->Transact || ISPermaMC ||
+		this->GattlingStage > 0 ||
+		this->GattlingRateUp != 0 ||
+		this->ReloadAmmo != 0
 #ifdef COMPILE_PORTED_DP_FEATURES
 		|| (this->PaintBallData.Color != ColorStruct::Empty)
 #endif
@@ -282,6 +285,17 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		pExt->PaintBallState->Enable(this->PaintBallDuration.Get() , PaintBallData, this->OwnerObject()->get_ID());
 #endif
 
+	if (this->GattlingStage > 0) {
+		this->ApplyGattlingStage(pTarget, this->GattlingStage);
+	}
+
+	if (this->GattlingRateUp != 0) {
+		this->ApplyGattlingRateUp(pTarget, this->GattlingRateUp);
+	}
+
+	if (this->ReloadAmmo != 0) {
+		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
+	}
 }
 
 void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -475,4 +489,78 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		WarheadTypeExt::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage);
 	else
 		pTarget->ReceiveDamage(&damage, 0, this->OwnerObject(), pOwner, false, false, pHouse);
+}
+
+void WarheadTypeExt::ExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage)
+{
+	auto pData = pTarget->GetTechnoType();
+	if (pData->IsGattling) {
+		// if exceeds, pick the largest stage
+		if (Stage > pData->WeaponStages)
+		{
+			Stage = pData->WeaponStages;
+		}
+
+		pTarget->CurrentGattlingStage = Stage - 1;
+		if (Stage == 1)
+		{
+			pTarget->GattlingValue = 0;
+			pTarget->GattlingAudioPlayed = false;
+		}
+		else
+		{
+			pTarget->GattlingValue = pTarget->Veterancy.IsElite() ? pData->EliteStage[Stage - 2] : pData->WeaponStage[Stage - 2];
+			pTarget->GattlingAudioPlayed = true;
+		}
+	}
+}
+
+void WarheadTypeExt::ExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp)
+{
+	auto pData = pTarget->GetTechnoType();
+	if (pData->IsGattling) {
+		auto curValue = pTarget->GattlingValue + RateUp;
+		auto maxValue = pTarget->Veterancy.IsElite() ? pData->EliteStage[pData->WeaponStages - 1] : pData->WeaponStage[pData->WeaponStages - 1];
+
+		//set current weapon stage manually
+		if (curValue <= 0)
+		{
+			pTarget->GattlingValue = 0;
+			pTarget->CurrentGattlingStage = 0;
+			pTarget->GattlingAudioPlayed = false;
+		}
+		else if (curValue >= maxValue)
+		{
+			pTarget->GattlingValue = maxValue;
+			pTarget->CurrentGattlingStage = pData->WeaponStages - 1;
+			pTarget->GattlingAudioPlayed = true;
+		}
+		else
+		{
+			pTarget->GattlingValue = curValue;
+			pTarget->GattlingAudioPlayed = true;
+			for (int i = 0; i < pData->WeaponStages; i++)
+			{
+				if (pTarget->Veterancy.IsElite() && curValue < pData->EliteStage[i])
+				{
+					pTarget->CurrentGattlingStage = i;
+					break;
+				}
+				else if (curValue < pData->WeaponStage[i])
+				{
+					pTarget->CurrentGattlingStage = i;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void WarheadTypeExt::ExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount)
+{
+	auto pData = pTarget->GetTechnoType();
+	if (pData->Ammo > 0) {
+		auto const ammo = pTarget->Ammo + ReloadAmount;
+		pTarget->Ammo = Math::clamp(ammo, 0, pData->Ammo);
+	}
 }

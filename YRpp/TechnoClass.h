@@ -579,6 +579,10 @@ public:
 		JMP_THIS(0x70F120);
 	}
 
+	void RemoveFromTargetingAndTeam() const {
+		JMP_THIS(0x70D4A0);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

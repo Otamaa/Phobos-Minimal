@@ -116,7 +116,9 @@ public:
 		Valueable<int> NotHuman_DeathSequence;
 		Nullable<bool> AllowDamageOnSelf;
 		Valueable<bool> Debris_Conventional;
-
+		Valueable<int> GattlingStage;
+		Valueable<int> GattlingRateUp;
+		Valueable<int> ReloadAmmo;
 		#pragma region Otamaa
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim;
 
@@ -238,6 +240,9 @@ public:
 			, NotHuman_DeathSequence { -1 }
 			, AllowDamageOnSelf{ }
 			, Debris_Conventional{ false }
+			, GattlingStage { 0 }
+			, GattlingRateUp { 0 }
+			, ReloadAmmo { 0 }
 
 			, NotHuman_DeathAnim { }
 			, IsNukeWarhead { false }
@@ -273,6 +278,10 @@ public:
 		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 		void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 		void ApplyShieldModifiers(TechnoClass* pTarget);
+
+		void ApplyGattlingStage(TechnoClass* pTarget, int Stage);
+		void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp);
+		void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount);
 
 		void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 		void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);

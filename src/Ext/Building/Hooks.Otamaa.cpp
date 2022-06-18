@@ -42,10 +42,9 @@ namespace Replacer
 		if (pThis
 			&& pThis->IsAlive
 			&& (pThis->Occupants.Count > 0)
-			&& pThis->GetOwningHouse()
 			) {
 			if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) { {
-					auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->GetOwningHouse()->Type);
+					auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
 					if (nIndex != -1) {
 
 						AnimTypeClass* pDecidedAnim = nullptr;

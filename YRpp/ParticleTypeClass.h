@@ -10,7 +10,6 @@
 
 //forward declarations
 class WarheadTypeClass;
-class RGBClass;
 
 class DECLSPEC_UUID("703E044B-0FB1-11D2-8172-006008055BB5")
 	NOVTABLE ParticleTypeClass : public ObjectTypeClass

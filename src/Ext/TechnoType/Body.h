@@ -385,7 +385,7 @@ public:
 			, InsigniaFrame { -1 }
 			, Insignia_ShowEnemy {}
 			, InsigniaFrames { { -1, -1, -1 } }
-			, InitialStrength_Cloning{ { 1.0, 0.0 } }
+			, InitialStrength_Cloning{ { 0.0, 0.0 } }
 			, SHP_SelectBrdSHP{  }
 			, SHP_SelectBrdPAL{ CustomPalette::PaletteMode::Temperate }
 			, UseCustomSelectBrd{}

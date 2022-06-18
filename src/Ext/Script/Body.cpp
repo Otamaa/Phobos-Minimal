@@ -26,10 +26,10 @@ ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 	if (nIdx <= 50) {
 		return pScript->Type->ScriptActions[nIdx];
 	} else {
-		auto const pTypeExt = ScriptTypeExt::ExtMap.Find(pScript->Type);
-		if (pTypeExt && !pTypeExt->PhobosNode.empty()) {
-			return pTypeExt->PhobosNode[nIdx - 50];
-		}
+		//auto const pTypeExt = ScriptTypeExt::ExtMap.Find(pScript->Type);
+		//if (pTypeExt && !pTypeExt->PhobosNode.empty()) {
+		//	return pTypeExt->PhobosNode[nIdx - 50];
+		//}
 	}
 
 	return pScript->Type->ScriptActions[50];

@@ -910,14 +910,27 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 							}
 						}
 
+						if (pThis->GetTechnoType()->OpenTopped) {
+							pThis->ExitedOpenTopped(pPassenger);
+						}
+
 						if (auto pPassangerOwner = pPassenger->GetOwningHouse()) {
 							if (auto pBld = specific_cast<BuildingClass*>(pThis)){
 								if (pBld->Absorber()){
 									pPassangerOwner->RecheckPower = true;
-									pBld->UpdateThreatInCell(pBld->GetCell());
 								}
+
+								if (pBld->Type->Bunker)
+									pBld->ClearBunker();
+
+								pBld->UpdateThreatInCell(pBld->GetCell());
 							}
-							pPassangerOwner->RecheckTechTree = true;
+
+							if (!pPassangerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant){
+								pPassangerOwner->RegisterLoss(pPassenger, false);
+								pPassangerOwner->RemoveTracking(pPassenger);
+								pPassangerOwner->RecheckTechTree = true;
+							}
 						}
 
 						pPassenger->UnInit();
@@ -954,7 +967,24 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 {
 	if (isPeaceful)
 	{
+		// this shit is not really good idea to pull of
+		// some stuffs doesnt really handled properly , wtf
 		pThis->Limbo();
+
+		if(auto pOwner = pThis->GetOwningHouse()) {
+			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant) {
+				pOwner->RegisterLoss(pThis, false);
+				pOwner->RemoveTracking(pThis);
+				pOwner->RecheckTechTree = true;
+			}
+		}
+
+		pThis->RemoveFromTargetingAndTeam();
+
+		for (auto const& pBullet : *BulletClass::Array)
+			if (pBullet && pBullet->Target == pThis)
+				pBullet->LoseTarget();
+
 		pThis->UnInit();
 	}
 	else

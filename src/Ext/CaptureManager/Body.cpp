@@ -124,8 +124,19 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					}
 				}
 
+
 				pTarget->QueueMission(Mission::Move, false);
-				pTarget->SetDestination(pTarget->GetCell(), true);
+				if (pManager->Owner->IsHumanControlled && pTarget->Target)
+					pTarget->SetDestination(pTarget->GetCell(), true);
+				{
+					if (auto pTargetFoot = abstract_cast<FootClass*>(pTarget))
+					{
+						pTargetFoot->SetTarget(nullptr);
+						pTargetFoot->QueueMission(Mission::Guard, false);
+						pTargetFoot->SetDestination(pTarget->GetCell(), true);
+						pTargetFoot->NextMission();
+					}
+				}
 
 				return true;
 			}

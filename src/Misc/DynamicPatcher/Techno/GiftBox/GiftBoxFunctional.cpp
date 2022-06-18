@@ -7,6 +7,10 @@
 const bool OpenDisallowed(TechnoClass* const pTechno)
 {
 	if (pTechno) {
+
+		if (pTechno->InLimbo)
+			return false;
+
 		bool bIsOnWarfactory = false;
 		if (pTechno->WhatAmI() == AbstractType::Unit) {
 			if (auto const pCell = pTechno->GetCell()) {
@@ -72,6 +76,22 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 	if (pExt->MyGiftBox->IsOpen) {
 		if (pTypeExt->MyGiftBoxData.Remove) {
 			pExt->OwnerObject()->Limbo();
+			if (auto pOwner = pExt->OwnerObject()->GetOwningHouse())
+			{
+				if (!pOwner->IsNeutral() && !pExt->OwnerObject()->GetTechnoType()->Insignificant)
+				{
+					pOwner->RegisterLoss(pExt->OwnerObject(), false);
+					pOwner->RemoveTracking(pExt->OwnerObject());
+					pOwner->RecheckTechTree = true;
+				}
+			}
+
+			pExt->OwnerObject()->RemoveFromTargetingAndTeam();
+
+			for (auto const& pBullet : *BulletClass::Array)
+				if (pBullet && pBullet->Target == pExt->OwnerObject())
+					pBullet->LoseTarget();
+
 			pExt->OwnerObject()->UnInit();
 
 			return;
@@ -251,7 +271,16 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 						pCell = pNewCell;
 
 				if (auto const pGift = Helpers_DP::CreateAndPutTechno(pTech, pHouse, location, pCell)) {
-					//pGift->IsInPlayfield = true;
+
+					if (auto pOwnerHouse = pGift->GetOwningHouse())
+					{
+						if (!pOwnerHouse->IsNeutral() && !pGift->GetTechnoType()->Insignificant)
+						{
+							pOwnerHouse->RegisterGain(pGift, false);
+							pOwnerHouse->AddTracking(pGift);
+							pOwnerHouse->RecheckTechTree = true;
+						}
+					}
 					if (auto pAir = specific_cast<AircraftClass*>(pGift)) {
 						if (pAir->IsInAir()) {
 							pAir->Tracker_4134A0();

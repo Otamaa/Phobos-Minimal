@@ -132,15 +132,17 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 
 					if (success)
 					{
+
+						if (!decidedOwner->IsNeutral() && !unit->Insignificant) {
+							decidedOwner->RegisterGain(pTechno, false);
+							decidedOwner->AddTracking(pTechno);
+							decidedOwner->RecheckTechTree = 1;
+						}
+
 						if (pTechno->HasTurret() && pExt->FromDeathUnit && pExt->DeathUnitHasTurret && pTypeExt->CreateUnit_InheritTurretFacings.Get())
 							pTechno->SecondaryFacing.set(pExt->DeathUnitTurretFacing);
 
-
-						if (!pTechno->InLimbo)
-							pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
-
-						if (!decidedOwner->IsNeutral())
-							decidedOwner->RecheckTechTree = true;
+						pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
 					}
 					else
 					{

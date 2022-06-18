@@ -12,6 +12,7 @@ struct SHPReference;
 struct SHPFile;
 
 //SHP file stuff
+//ShapeCache
 struct SHPStruct //header
 {
 	SHPStruct() : Type(0), Width(0), Height(0), Frames(0)

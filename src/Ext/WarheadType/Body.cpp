@@ -278,13 +278,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 
 		//remove invalid items!
-		if (!ArmorHitAnim.empty())
-		{
+		if (!ArmorHitAnim.empty()) {
 			//remove invalid items to keep memory clean !
-			for (auto const& nData : ArmorHitAnim)
-			{
-				if (!nData.second)
-					ArmorHitAnim.erase(nData.first);
+			for (auto const& [nArmor , Anim] : ArmorHitAnim) {
+				if (!Anim)
+					ArmorHitAnim.erase(nArmor);
 			}
 		}
 	};

@@ -131,7 +131,7 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-		std::string ModNameTemp;
+		std::string_view ModNameTemp;
 		pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
 		ModNameTemp = Phobos::readBuffer;
 
