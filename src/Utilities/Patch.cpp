@@ -4,10 +4,7 @@
 #include "Debug.h"
 #include <Phobos.h>
 
-//#include <Dbghelp.h>
 #include <tlhelp32.h>
-//#include <winternl.h>
-//#include <cfenv>
 
 int GetSection(char* sectionName, LPVOID* pVirtualAddress)
 {

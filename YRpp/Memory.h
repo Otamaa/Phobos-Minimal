@@ -120,7 +120,7 @@ public:
 	};
 
 	template <typename T, typename TAlloc, typename... TArgs>
-	static inline void ConstructAt(TAlloc& alloc,T* ptr , TArgs&&... args)  {
+	static inline void ConstructAt(TAlloc& alloc, T* ptr , TArgs&&... args)  {
 		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
 	};
 
@@ -148,6 +148,27 @@ public:
 		}
 		return ptr;
 	}
+
+	// construct vectors
+	template <typename T, typename TAlloc, typename... TArgs>
+	static inline T* CreateArrayAt(TAlloc& alloc, T* ptr, size_t capacity, TArgs&&... args)
+	{
+		if (capacity && !sizeof...(args) && std::is_scalar<T>::value)
+		{
+			// set to 0
+			std::memset(ptr, 0, capacity * sizeof(T));
+		}
+		else
+		{
+			for (size_t i = 0; i < capacity; ++i)
+			{
+				// use args... here. can't move args, because we need to reuse them
+				std::allocator_traits<TAlloc>::construct(alloc, &ptr[i], args...);
+			}
+		}
+		return ptr;
+	}
+
 
 	// destruct vectors
 	template<typename T, typename TAlloc>
@@ -197,6 +218,15 @@ static inline T* GameCreateArray(size_t capacity, TArgs&&... args) {
 
 	GameAllocator<T> alloc;
 	return Memory::CreateArray<T>(alloc, capacity, std::forward<TArgs>(args)...);
+}
+
+template <typename T, typename... TArgs>
+static inline T* GameConstructArray(T* AllocatedSpace, size_t capacity, TArgs&&... args)
+{
+	static_assert(std::is_constructible<T>::value, "Cannot construct T from TArgs.");
+
+	GameAllocator<T> alloc;
+	return Memory::CreateArrayAt<T>(alloc, AllocatedSpace , capacity, std::forward<TArgs>(args)...);
 }
 
 template<typename T>

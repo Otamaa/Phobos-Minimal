@@ -170,11 +170,8 @@ DEFINE_HOOK(0x46A3D6, BulletClass_Shrapnel_Forced, 0xA)
 	return Skip;
 }
 
-DEFINE_HOOK(0x4690D4, BulletClass_Logics_ScreenShake, 0x6)
-{
-	// we handle it thru warhead
-	return 0x469130;
-}
+// we handle ScreenShake thru warhead
+DEFINE_LJMP(0x4690D4, 0x469130)
 
 DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 {
@@ -216,17 +213,11 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6)
 		return ForceSnap;
 	}
 
-	if (auto const pExt = BulletExt::GetExtData(pThis))
-	{
+	if (auto const pExt = BulletExt::GetExtData(pThis)) {
 		if (pExt->Trajectory &&
-			pExt->Trajectory->Flag == TrajectoryFlag::Straight
-		)
-		{
-			auto type = static_cast<StraightTrajectory*>(pExt->Trajectory)->GetTrajectoryType();
-
-			if (type && !type->SnapOnTarget) {
+			pExt->Trajectory->Flag == TrajectoryFlag::Straight &&
+			!pExt->SnappedToTarget) {
 				return NoSnap;
-			}
 		}
 	}
 

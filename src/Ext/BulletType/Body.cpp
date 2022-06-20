@@ -95,8 +95,8 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
 
-	this->Cluster_Scatter_Min.Read(exINI, pSection, "Cluster.Scatter.Min");
-	this->Cluster_Scatter_Max.Read(exINI, pSection, "Cluster.Scatter.Max");
+	this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
+	this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
 
 	// Ares 0.7
 	this->BallisticScatter_Min.Read(exINI, pSection, "BallisticScatter.Min");

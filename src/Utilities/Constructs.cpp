@@ -70,7 +70,6 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	auto ret = Stm.Load(this->Mode) && Stm.Load(hasPalette);
 
 	if (ret && hasPalette) {
-		Stm.Process(Name, false);
 		this->Palette.reset(GameCreate<BytePalette>());
 		ret = Stm.Load(*this->Palette);
 
@@ -86,7 +85,6 @@ bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
 	Stm.Save(this->Mode);
 	Stm.Save(this->Palette != nullptr);
-	Stm.Process(this->Name, false);
 	if (this->Palette) {
 		Stm.Save(*this->Palette);
 	}
@@ -99,7 +97,6 @@ bool CustomPalette::LoadFromName(const char* PaletteName)
 
 	if (auto pPal = FileSystem::AllocatePalette(PaletteName))
 	{
-		this->Name = PaletteName;
 		this->Palette.reset(pPal);
 		this->CreateConvert();
 	}
@@ -109,7 +106,6 @@ bool CustomPalette::LoadFromName(const char* PaletteName)
 
 void CustomPalette::Clear()
 {
-	this->Name.clear();
 	this->Convert = nullptr;
 	this->Palette = nullptr;
 }

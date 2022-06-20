@@ -36,7 +36,7 @@ namespace Helper
 			return nullptr;
 		}
 
-		inline void Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner , bool DamageConsiderVet)
+		inline std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
 
@@ -62,11 +62,14 @@ namespace Helper
 				{
 					MapClass::DamageArea(Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
+					return  { true , nDamage };
 				}
 			}
+
+			return { false , 0 };
 		}
 
-		inline void Detonate(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		inline std::pair<bool, int> Detonate(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
 			if (pWarhead)
 			{
@@ -78,8 +81,11 @@ namespace Helper
 				else {
 					MapClass::DamageArea(Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
+					return { true, nDamage };
 				}
 			}
+
+			return { false , 0 };
 		}
 
 		inline void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, DynamicVectorClass<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
@@ -119,40 +125,34 @@ namespace Helper
 			}
 		}
 
-		inline bool CheckMinMax(double nMin, double nMax, int& nOutMin, int& nOutMax)
+		inline std::tuple<bool ,int , int> CheckMinMax(double nMin, double nMax)
 		{
 			int nMinL = Game::F2I(abs(nMin) * 256.0);
 			int nMaxL = Game::F2I(abs(nMax) * 256.0);
 
 			if (!nMinL && !nMaxL)
-				return false;
+				return {false ,0,0};
 
 			if (nMinL > nMaxL)
 				std::swap(nMinL, nMaxL);
 
-			nOutMin = nMinL;
-			nOutMax = nMaxL;
-
-			return true;
+			return { true ,nMinL,nMaxL };
 		}
 
 		inline CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, const CoordStruct& nPos, int Increment)
 		{
-			CoordStruct nBuff = nPos;
-			int nMinL = 0;
-			int nMaxL = 0;
+			auto const [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
 
-			if (CheckMinMax(nMin, nMax, nMinL, nMaxL))
-			{
+			if (nMinMax) {
 				auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
 					(abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * Math::min(Increment, 1)),
 					ScenarioClass::Instance->Random.RandomRanged(0, 1));
 
 				nRandomCoords.Z = MapClass::Instance->GetCellFloorHeight(nRandomCoords);;
-				nBuff = nRandomCoords;
+				return nRandomCoords;
 			}
 
-			return nBuff;
+			return nPos;
 		}
 	}
 }

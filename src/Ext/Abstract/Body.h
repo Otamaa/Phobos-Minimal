@@ -18,7 +18,7 @@ class IExtension
 public:
 
 	IExtension() = default;
-	virtual ~IExtension() = default;
+	virtual ~IExtension() { Uninitialize(); }
 
 	virtual size_t GetSize() const = 0;
 
@@ -131,11 +131,8 @@ public:
 	}
 
 	inline void DestoryExtensionObject() {
-		if (this->ExtensionObject) {
-			this->ExtensionObject->Uninitialize();
-			GameDelete(this->ExtensionObject);
-			this->ExtensionObject = nullptr;
-		}
+		GameDelete(this->ExtensionObject);
+		this->ExtensionObject = nullptr;
 	}
 
 	template<typename TExt , typename TObj>

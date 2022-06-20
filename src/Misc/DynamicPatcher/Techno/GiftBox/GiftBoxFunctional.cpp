@@ -287,11 +287,11 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 						}
 					}
 
-					auto pExt = TechnoExt::GetExtData(pGift);
-					if (pExt && pOwner->IsSelected) {
-						pExt->SkipVoice = true;
+					if (pOwner->IsSelected) {
+						auto const feedback = Unsorted::MoveFeedback();
+						Unsorted::MoveFeedback() = false;
 						pGift->Select();
-						pExt->SkipVoice = false;
+						Unsorted::MoveFeedback() = feedback;
 					}
 
 					if (!pDest && !pFocus) {

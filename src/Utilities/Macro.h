@@ -123,3 +123,12 @@ namespace VARIABLE_PATCH                                             \
 {                                                                    \
 	const patch_decl* name = &VARIABLE_PATCH##offset::patch;         \
 };
+
+#define DEFINE_VARIABLE_LJMP(from, to ,name)						\
+namespace VARIABLE_PATCH##from  {									\
+	const ljmp_decl data = {LJMP_LETTER, to-from-5};				\
+	const patch_decl patch = { from, 5, (byte*)&data };				\
+};																	\
+namespace VARIABLE_PATCH {											\
+	const patch_decl* name = &VARIABLE_PATCH##from::patch;			\
+};

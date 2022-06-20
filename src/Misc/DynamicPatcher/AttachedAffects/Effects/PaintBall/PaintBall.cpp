@@ -24,27 +24,27 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 	Accumulate = nBuffBool.Get();
 }
 
-void PaintBall::Enable(int duration, const std::string_view token, const PaintballType& data)
+void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)
 {
 
-	if (Token.empty()) {
+	if (!Token) {
 		if (duration <= -1)
 			return;
 
-		Token = token;
-		Data = data;
+		Token = pAffector;
+		Data = std::make_unique<PaintballType>(data);
 		timer.Start(duration);
 		return;
 	}
 
-	if (Token == token) {
+	if (Token == pAffector) {
 		if (!data.Accumulate && IsActive()) {
 			return;
 		} else {
 			auto nTimeLeft = timer.GetTimeLeft() + duration;
 			if (nTimeLeft <= 0) {
 				timer.Stop();
-				Token.clear();
+				Token = nullptr;
 				Data.reset();
 
 			} else {
@@ -55,18 +55,18 @@ void PaintBall::Enable(int duration, const std::string_view token, const Paintba
 		return;
 	}
 
-	if(Token != token) {
+	if(Token != pAffector) {
 		if (duration <= -1)
 			return;
 
 		if(IsActive()) {
 			timer.Stop();
-			Token.clear();
+			Token = nullptr;
 			Data.reset();
 		}
 
-		Token = token;
-		Data = data;
+		Token = pAffector;
+		Data = std::make_unique<PaintballType>(data);
 		timer.Start(duration);
 		return;
 	}
@@ -162,10 +162,10 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 {
 	GET(UnitClass* const, pOwnerObject, EBP);
-	auto pExt = TechnoExt::GetExtData(pOwnerObject);
-	if (auto pPaintBall = pExt->PaintBallState.get()) {
-			pPaintBall->DrawVXL_Paintball(pOwnerObject, R, false);
-	}
+
+	if(auto pExt = TechnoExt::GetExtData(pOwnerObject))
+		pExt->PaintBallState.DrawVXL_Paintball(pOwnerObject, R, false);
+
 	return 0;
 }
 
@@ -177,9 +177,8 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
 		CoordStruct location = pAnim->GetCoords();
 		if (auto pCell = MapClass::Instance->TryGetCellAt(location)) {
 			if (auto pBuilding = pCell->GetBuilding()) {
-				auto pExt = TechnoExt::GetExtData(pBuilding);
-				if (auto pPaintBall = pExt->PaintBallState.get()) {
-					pPaintBall->DrawSHP_Paintball_BuildAnim(pBuilding, R);
+				if (auto pExt = TechnoExt::GetExtData(pBuilding)) {
+					pExt->PaintBallState.DrawSHP_Paintball_BuildAnim(pBuilding, R);
 				}
 			}
 		}
@@ -193,9 +192,8 @@ DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 {
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
-	auto pExt = TechnoExt::GetExtData(pOwnerObject);
-	if (auto pPaintBall = pExt->PaintBallState.get()) {
-		pPaintBall->DrawSHP_Paintball(pOwnerObject, R);
+	if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
+		pExt->PaintBallState.DrawSHP_Paintball(pOwnerObject, R);
 	}
 
 	return 0;
@@ -206,9 +204,8 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
 	if (pOwnerObject->WhatAmI() == AbstractType::Building) {
-		auto pExt = TechnoExt::GetExtData(pOwnerObject);
-		if (auto pPaintBall = pExt->PaintBallState.get()) {
-			pPaintBall->DrawVXL_Paintball(pOwnerObject, R, true);
+		if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
+			pExt->PaintBallState.DrawVXL_Paintball(pOwnerObject, R, true);
 		}
 	}
 

@@ -103,6 +103,10 @@ public:
 		return Distance(a, std::bool_constant<T>::type());
 	}
 
+	short Length() const {
+		return static_cast<short>(Math::sqrt(static_cast<double>(X) * static_cast<double>(X) + static_cast<double>(Y) * static_cast<double>(Y)));
+	}
+
 private:
 	double Distance(const CellStruct& b, const std::true_type) {
 		CellStruct buffer = *this;

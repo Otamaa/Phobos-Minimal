@@ -31,6 +31,11 @@ public:
 #pragma region Otamaa
 		bool BrightCheckDone;
 		HouseClass* Owner;
+
+		//bool Bouncing;
+		//ObjectClass* LastObject;
+		//int BounceAmount;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
@@ -47,6 +52,12 @@ public:
 			, SnappedToTarget { false }
 			, BrightCheckDone { false }
 			, Owner { nullptr }
+
+			//
+			//, Bouncing { false }
+			//, LastObject { nullptr }
+			//, BounceAmount { 0 }
+			//
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

@@ -5,6 +5,7 @@
 
 template<> const DWORD Extension<BuildingTypeClass>::Canary = 0x11111111;
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
+const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
 void BuildingTypeExt::ExtData::InitializeConstants() {
 
 	AIBuildInsteadPerDiff.reserve(3);
@@ -53,7 +54,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
 							continue;
 
-					auto nBonus = 1.000;
+					auto nBonus = 0.000;
 					switch (pWhat->WhatAmI())
 					{
 					case AbstractType::Aircraft:
@@ -72,6 +73,9 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 						continue;
 						break;
 					}
+
+					if (nBonus == 0.000)
+						continue;
 
 					fFactor *= std::pow(nBonus, nCount);
 				}
@@ -423,14 +427,11 @@ bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm
 
 bool BuildingTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
-
 	return Stm.Success();
 }
 
 bool BuildingTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
-
-
 	return Stm.Success();
 }
 

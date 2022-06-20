@@ -38,6 +38,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/SmudgeType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/FoggedObject.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -90,7 +91,8 @@ auto MassActions = MassAction <
 	// New classes
 	ShieldTypeClass,
 	LaserTrailTypeClass,
-	RadTypeClass
+	RadTypeClass,
+	HoverTypeClass
 	// other classes
 > ();
 

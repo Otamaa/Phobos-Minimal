@@ -146,7 +146,7 @@ DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x8)
 
 //there is 2 hooks that get weird optimization behaviour
 //so disable  it for them
-#pragma optimize( "", off )
+//#pragma optimize( "", off )
 DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -155,8 +155,7 @@ DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 	//nDir = TranslateFixedPoint(16, 16, nDir, 0);
 	//nDir = nDir << 8;
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)){
-		auto pBuildingType = pBuilding->Type;
-		auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType);
+		auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 		//auto Allow = [](BuildingTypeClass const * pType) {
 		//	if(pType->Wall || pType->LaserFence || pType->LaserFencePost || pType->FirestormWall)
 		//		return false;
@@ -165,8 +164,7 @@ DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 
 		if (pTypeExt) {
 			if (pTypeExt->IsJuggernaut.Get()) {
-				DirStruct nDirOut(0x7FFF);
-				R->ECX(&nDirOut);
+				R->ECX(&BuildingTypeExt::DefaultJuggerFacing);
 			} //else if (Allow(pBuildingType)) {
 			//	const auto nDirOut = CreateDir(pBuildingType->StartFacing);
 			//	R->ECX(&nDirOut);
@@ -176,21 +174,21 @@ DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 
 	return 0x0;
 }
-
+//#pragma optimize("", on)
+//#pragma optimize( "", off )
 DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
 	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
 		if (pTypeExt->IsJuggernaut.Get()) {
-			DirStruct nDirOut(0x7FFF);
-			R->EDX(&nDirOut);
+			R->EDX(&BuildingTypeExt::DefaultJuggerFacing);
 		}
 	}
 
 	return 0x0;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 {

@@ -114,14 +114,11 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 		}
 #endif
 
-		if (auto pPaintBall = pExt->PaintBallState.get())
-		{
-			if (!pPaintBall->IsActive())
-				pPaintBall->Disable(false);
-			else
-				if (pThis->WhatAmI() == AbstractType::Building)
-					pThis->UpdatePlacement(PlacementType::Redraw);
-		}
+		if (!pExt->PaintBallState.IsActive())
+			pExt->PaintBallState.Disable(false);
+		else
+			if (pThis->WhatAmI() == AbstractType::Building)
+				pThis->UpdatePlacement(PlacementType::Redraw);
 	}
 
 #endif

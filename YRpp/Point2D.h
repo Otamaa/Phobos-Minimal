@@ -5,66 +5,65 @@ class Point2D
 public:
 	static const Point2D Empty;
 
-	Point2D operator+(const Point2D& a) const
+	Point2D& operator=(const Point2D& that)
 	{
-		return Point2D{ X + a.X, Y + a.Y };
-	}
-
-	Point2D& operator+=(const Point2D& a)
-	{
-		X += a.X;
-		Y += a.Y;
+		if (this != &that)
+		{
+			X = that.X;
+			Y = that.Y;
+		}
 		return *this;
 	}
 
-	//equality
-	bool operator==(const Point2D& a) const
-	{
-		return (X == a.X && Y == a.Y);
-	}
-	//unequality
-	inline bool operator!=(const Point2D& a) const
-	{
-		return (X != a.X || Y != a.Y);
-	}
+	bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
+	bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }
 
-	bool operator!() const
+	Point2D operator+() const { return Point2D{+X, +Y};}
+	Point2D operator-() const { return Point2D{-X, -Y};}
+
+	Point2D operator+(const Point2D& that) const { return Point2D{X + that.X, Y + that.Y};}
+	Point2D& operator+=(const Point2D& that) { X += that.X; Y += that.Y; return *this; }
+
+	Point2D operator-(const Point2D& that) const { return Point2D{X - that.X, Y - that.Y};}
+	Point2D& operator-=(const Point2D& that) { X -= that.X; Y -= that.Y; return *this; }
+
+	Point2D operator*(const Point2D& that) const { return Point2D{X * that.X, Y * that.Y};}
+	Point2D operator*=(const Point2D& that) { X *= that.X; Y *= that.Y; return *this; }
+	Point2D operator*(int factor) const { return Point2D{X * factor, Y * factor};}
+	Point2D& operator*=(int factor) { X *= factor; Y *= factor; return *this; }
+
+	Point2D operator*(double factor) const { return Point2D{static_cast<int>(X * factor), static_cast<int>(Y * factor)};}
+	Point2D& operator*=(double factor) { X *= static_cast<int>(factor); Y *= static_cast<int>(factor); return *this; }
+
+	Point2D operator/(const Point2D& that) const { return Point2D{X / that.X, Y / that.Y};}
+	Point2D operator/=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
+	Point2D operator/(int factor) const { return Point2D{X / factor, Y / factor};}
+	Point2D& operator/=(int factor) { X /= factor; Y /= factor; return *this; }
+
+	Point2D operator%(const Point2D& that) const { return Point2D{X / that.X, Y / that.Y};}
+	Point2D operator%=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
+	Point2D operator%(int factor) const { return Point2D{X / factor, Y / factor};}
+	Point2D& operator%=(int factor) { X /= factor; Y /= factor; return *this; }
+
+	Point2D operator&(const Point2D& that) const { return Point2D{X & that.X, Y & that.Y};}
+	Point2D operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }
+	Point2D operator&(int factor) const { return Point2D{X & factor, Y & factor};}
+	Point2D& operator&=(int factor) { X &= factor; Y &= factor; return *this; }
+
+	bool operator>(const Point2D& that) const { return X > that.X || X == that.X && Y > that.Y; }
+	bool operator>=(const Point2D& that) const { return X >= that.X || X == that.X && Y >= that.Y; }
+
+	bool operator<(const Point2D& that) const { return X < that.X || X == that.X && Y < that.Y; }
+	bool operator<=(const Point2D& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
+
+	__forceinline bool operator!() const
 	{
 		return (*this == Point2D::Empty);
 	}
 
-	//auto operator()()
-	//{
-		// returns a tuple to make it work with std::tie
-	//	return std::make_pair(X, Y);
-	//}
-
 	__forceinline operator bool() const
 	{
 		return !(*this == Point2D::Empty);
-	}
-
-	//substraction
-	Point2D operator-(const Point2D& a) const
-	{
-		return Point2D { X - a.X, Y - a.Y };
-	}
-	//substraction
-	Point2D& operator-=(const Point2D& a)
-	{
-		X -= a.X;
-		Y -= a.Y;
-		return *this;
-	}
-
-	//scalar multiplication
-	Point2D operator*(double r) const
-	{
-		return Point2D { static_cast<int>(X * r), static_cast<int>(Y * r) };
-	}
-
-	int Length() const {
-		return static_cast<int>(Math::sqrt(static_cast<double>(this->X * this->X + this->Y * this->Y)));
 	}
 
 	int X, Y;

@@ -34,8 +34,7 @@ DEFINE_HOOK(0x71AB47, TemporalClass_GetHelperDamage_AfterAres, 0x5)
 	GET(WeaponStruct* const, Weapon, EAX);
 	//GET(TemporalClass*, Temp, ESI);
 
-	if (auto const TemporalWeapon = Weapon->WeaponType)
-	{
+	if (auto const TemporalWeapon = Weapon->WeaponType) {
 		WeaponTypeExt::Temporal_WP = TemporalWeapon;
 	}
 

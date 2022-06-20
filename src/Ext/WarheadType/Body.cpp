@@ -44,10 +44,9 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
-			auto nWHVerses = GeneralUtils::GetWarheadVersusArmor(OwnerObject(), nArmor);
 			//if(IS_SAME_STR_(OwnerObject()->get_ID() , "NebulaWH"))
 			//	Debug::Log("%s WH Calculating Damage Against %s : [%s] : [%fl] ! \n", OwnerObject()->get_ID() , pTechno->get_ID() , ArmorTypeClass::Array[(int)nArmor]->Name.data(), nWHVerses);
-			return (fabs(nWHVerses) >= 0.001);
+			return (fabs(GeneralUtils::GetWarheadVersusArmor(OwnerObject(), nArmor)) >= 0.001);
 		}
 	}
 
@@ -93,8 +92,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (pHouse && pTarget)
-	{
+	if (pHouse && pTarget) {
 		return CanAffectHouse(pHouse, pTarget->GetOwningHouse());
 	}
 

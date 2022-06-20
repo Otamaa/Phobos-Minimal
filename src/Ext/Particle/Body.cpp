@@ -28,7 +28,7 @@ void ParticleExt::ExtData::InitializeConstants()
 			{
 				if (auto const pLaserType = LaserTrailTypeClass::Array[idxTrail].get())
 				{
-					LaserTrails.push_back(std::make_unique<LaserTrailClass>(pLaserType, nColor, nFLH));
+					LaserTrails.emplace_back(std::make_unique<LaserTrailClass>(pLaserType, nColor, nFLH));
 
 				}
 			}

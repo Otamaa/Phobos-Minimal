@@ -12,7 +12,7 @@
 #include <IsometricTileTypeClass.h>
 
 #include <Memory.h>
-/*
+
 static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
 {
 	if (!pThis->GetTechnoType()->Invisible)
@@ -20,7 +20,6 @@ static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWh
 }
 
 DEFINE_POINTER_CALL(0x6FA2D3, &_DrawBehindAnim)
-*/
 
 DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 {

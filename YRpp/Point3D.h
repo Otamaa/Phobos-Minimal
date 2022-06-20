@@ -7,12 +7,54 @@ class Point3D
 public:
 	static const Point3D Empty;
 
-	//auto operator()()
-	//{
-		// returns a tuple to make it work with std::tie
-	//	return std::make_tuple(X, Y, Z);
-	//}
+	Point3D& operator=(const Point3D& that)
+	{
+		if (this != &that)
+		{
+			X = that.X;
+			Y = that.Y;
+			Z = that.Z;
+		}
+		return *this;
+	}
 
-	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
+	bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
+	bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }
+
+	Point3D operator+() const { return Point3D{+X, +Y, +Z};}
+	Point3D operator-() const { return Point3D{-X, -Y, -Z};}
+
+	Point3D operator+(const Point3D& that) const { return Point3D{X + that.X, Y + that.Y, Z + that.Z};}
+	Point3D& operator+=(const Point3D& that) { X += that.X; Y += that.Y; Z += that.Z; return *this; }
+
+	Point3D operator-(const Point3D& that) const { return Point3D{X - that.X, Y - that.Y, Z - that.Z};}
+	Point3D& operator-=(const Point3D& that) { X -= that.X; Y -= that.Y; Z -= that.Z; return *this; }
+
+	Point3D operator*(const Point3D& that) const { return Point3D{X * that.X, Y * that.Y, Z * that.Z};}
+	Point3D operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
+	Point3D operator*(int factor) const { return Point3D{X * factor, Y * factor, Z * factor};}
+	Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
+
+	Point3D operator%(const Point3D& that) const { return Point3D{X / that.X, Y / that.Y, Z / that.Z};}
+	Point3D operator%=(const Point3D& that) { X /= that.X; Y /= that.Y; Z /= that.Z; return *this; }
+	Point3D operator%(int factor) const { return Point3D{X / factor, Y / factor, Z / factor};}
+	Point3D& operator%=(int factor) { X /= factor; Y /= factor; Z /= factor; return *this; }
+
+	Point3D operator&(const Point3D& that) const { return Point3D{X & that.X, Y & that.Y, Z & that.Z};}
+	Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
+	Point3D operator&(int factor) const { return Point3D{X & factor, Y & factor, Z & factor};}
+	Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
+
+	__forceinline bool operator!() const
+	{
+		return (*this == Point3D::Empty);
+	}
+
+	__forceinline operator bool() const
+	{
+		return !(*this == Point3D::Empty);
+	}
+
+
 	int X, Y, Z;
 };

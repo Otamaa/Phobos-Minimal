@@ -37,7 +37,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 	{
 		if (auto const pLaserType = LaserTrailTypeClass::Array[idxTrail].get())
 		{
-			LaserTrails.push_back(std::make_unique<LaserTrailClass>
+			LaserTrails.emplace_back(std::make_unique<LaserTrailClass>
 				(pLaserType, pOwner->LaserColor));
 			++nTotal;
 		}

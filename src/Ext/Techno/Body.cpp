@@ -557,7 +557,6 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 						return false;
 				}
 
-
 				return true;
 			}
 		}
@@ -648,6 +647,7 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	if (auto pTypeExt = TechnoTypeExt::ExtMap[pThis->GetTechnoType()])
 	{
 		auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+		size_t count = 0;
 
 		if (pExt->LaserTrails.empty())
 		{
@@ -655,10 +655,16 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 			{
 				if (auto const pLaserType = LaserTrailTypeClass::Array[entry.idxType].get())
 				{
-					pExt->LaserTrails.push_back(std::move(std::make_unique<LaserTrailClass>(
+					pExt->LaserTrails.emplace_back((std::make_unique<LaserTrailClass>(
 						pLaserType, pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
+					++count;
 				}
 			}
+
+			if (!count)
+				pExt->LaserTrails.clear();
+			else
+				pExt->LaserTrails.resize(count);
 		}
 	}
 }
@@ -692,10 +698,6 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 		TrailsManager::Construct(pThis);
 #endif
 	}
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	pExt->PaintBallState = std::make_unique<PaintBall>();
-#endif
 }
 
 void TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
@@ -918,12 +920,9 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 							if (auto pBld = specific_cast<BuildingClass*>(pThis)){
 								if (pBld->Absorber()){
 									pPassangerOwner->RecheckPower = true;
+
+									pBld->UpdateThreatInCell(pBld->GetCell());
 								}
-
-								if (pBld->Type->Bunker)
-									pBld->ClearBunker();
-
-								pBld->UpdateThreatInCell(pBld->GetCell());
 							}
 
 							if (!pPassangerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant){
@@ -1360,12 +1359,12 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWeaponTimers)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
-		.Process(this->PaintBallState)
 #endif;
 		;
 	//should put this inside techo ext , ffs
 #ifdef COMPILE_PORTED_DP_FEATURES
 	//this->MyGiftBox.Serialize(Stm);
+	this->PaintBallState.Serialize(Stm);
 	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);

@@ -181,7 +181,7 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 
 #endif
 
-///#ifdef ENABLE_CELLSPREAD_LOCOWH
+#ifdef ENABLE_CELLSPREAD_LOCOWH
 static void  ManipulateLoco(FootClass* pFirer, AbstractClass* pTarget, BulletClass* pBullet, bool Area)
 {
 	AbstractClass* pTarget_1 = pTarget;
@@ -333,4 +333,4 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 
 	return 0x71033A;
 }
-//#endif
+#endif

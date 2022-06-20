@@ -1,6 +1,6 @@
 #include "Body.h"
 
-template<> const DWORD TExtension<CellClass>::Canary = 0x87688621;
+template<> const DWORD Extension<CellClass>::Canary = 0x87688621;
 CellExt::ExtContainer CellExt::ExtMap;
 
 // ============================ =
@@ -9,7 +9,7 @@ CellExt::ExtContainer CellExt::ExtMap;
 void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
 	Stm
-		.Process(NewPowerups)
+		//.Process(NewPowerups)
 		//.Process(FoggedObjects)
 		;
 }
@@ -17,7 +17,7 @@ void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 void CellExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
 	Stm
-		.Process(NewPowerups)
+		//.Process(NewPowerups)
 		//.Process(FoggedObjects)
 		;
 }
@@ -37,7 +37,7 @@ bool CellExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CellExt::ExtContainer::ExtContainer() : TExtensionContainer("CellClass") { };
+CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
 CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -46,14 +46,14 @@ CellExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, EAX);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<CellExt::ExtData>(pItem);
+	CellExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
 {
 	GET(CellClass*, pItem, ECX);
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	CellExt::ExtMap.Remove(pItem);
 	return 0;
 }
 

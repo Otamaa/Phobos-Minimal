@@ -78,7 +78,7 @@ public:
 		//std::unique_ptr<GiftBox> MyGiftBox;
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
-		std::unique_ptr<PaintBall> PaintBallState;
+		PaintBall PaintBallState;
 		FireWeaponManager MyWeaponManager;
 		DriveData MyDriveData;
 		AircraftDive MyDiveData;

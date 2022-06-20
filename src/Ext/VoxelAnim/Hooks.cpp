@@ -68,7 +68,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 		Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
 
 		if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, 0, 0))
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
 				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
@@ -90,7 +90,17 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 			}
 		}else
 		{
-			Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pInvoker, pOwner ,pTypeExt->ExpireDamage_ConsiderInvokerVet);
+			auto const [bPlayWHAnim , nDamage] = Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
+
+			if (bPlayWHAnim) {
+				if(auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage,pThis->Type->Warhead, pThis->GetCell()->LandType , pThis->GetCenterCoord())) {
+					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, 0x2600u, -30)) {
+					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
+						if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
+							pAnimExt->Invoker = pInvoker;
+					}
+				}
+			}
 		}
 	}
 

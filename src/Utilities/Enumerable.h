@@ -52,6 +52,11 @@ public:
 		return ((Idx < 0)) ? nullptr : Array[static_cast<size_t>(Idx)].get();
 	}
 
+	static T* FindFromIndexFix(int Idx) {
+		Idx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
+		return Array[static_cast<size_t>(Idx)].get();
+	}
+
 	static T* FindOrAllocate(const char* Title)
 	{
 		if (T* find = Find(Title))

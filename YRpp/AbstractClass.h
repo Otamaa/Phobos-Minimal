@@ -15,7 +15,9 @@ class Checksummer;
 
 struct StorageClass
 {
-	static const size_t Size = 4;
+	static constexpr size_t Size = 4;
+
+	StorageClass() { JMP_THIS(0x6C95E0) };
 
 	float GetAmount(int index) const
 		{ JMP_THIS(0x6C9680); }
@@ -32,10 +34,14 @@ struct StorageClass
 	int GetTotalValue() const
 		{ JMP_THIS(0x6C9600); }
 
-	float Tiberium1;
-	float Tiberium2;
-	float Tiberium3;
-	float Tiberium4;
+	int First_Used_Slot() const { JMP_THIS(0x6C9820); };
+
+	StorageClass operator+(StorageClass& that) const { JMP_THIS(0x6C96E0); }
+	StorageClass operator+=(StorageClass& that) { JMP_THIS(0x6C9740); }
+	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }
+	StorageClass operator-=(StorageClass& that) { JMP_THIS(0x6C97E0); }
+
+	float Tiberium[Size];
 };
 //---
 

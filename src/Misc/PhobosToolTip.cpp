@@ -67,8 +67,8 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// It has to be these four classes, otherwise pType will just be nullptr
 	reinterpret_cast<TechnoClass*>(pTrick)->Owner = HouseClass::Player;
 	int nTimeToBuild = reinterpret_cast<TechnoClass*>(pTrick)->TimeToBuild();
-	double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(reinterpret_cast<TechnoClass*>(pTrick), HouseClass::Player);
-	nTimeToBuild = static_cast<int>(nMult * nTimeToBuild);
+	//double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(reinterpret_cast<TechnoClass*>(pTrick), HouseClass::Player);
+	nTimeToBuild = static_cast<int>(nTimeToBuild);
 	// 54 frames at least
 	return nTimeToBuild < 54 ? 54 : nTimeToBuild;
 }

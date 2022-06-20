@@ -3,9 +3,9 @@
 
 #include <CoordStruct.h>
 #include <ColorStruct.h>
-#include <ArrayClasses.h>
 #include <GeneralStructures.h>
 #include <Unsorted.h>
+#include <ExtraHeaders/DataVectors.h>
 
 constexpr auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
 constexpr auto  EBOLT_DEFAULT_INTERATIONS = 1;
@@ -68,7 +68,7 @@ private:
 	void Clear();
 
 	void Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
-		LineDrawList.AddItem(LineDrawDataStruct { start, end, line_color, start_z, end_z });
+		LineDrawList.Add(LineDrawDataStruct { start, end, line_color, start_z, end_z });
 	}
 
 	void Plot_Bolt(CoordStruct& start, CoordStruct& end);
@@ -122,7 +122,7 @@ public:
 	 *  The list of pending lines to draw.
 	 */
 
-	DynamicVectorClass<LineDrawDataStruct> LineDrawList;
+	ViDynamicVectorClass<LineDrawDataStruct> LineDrawList;
 
 	/**
 	 *  The frame in which we should draw on. This helps clamp the drawing
@@ -134,7 +134,7 @@ public:
 
 struct ElectricBoltManager
 {
-	static DynamicVectorClass<ElectricBoltClass*> ElectricBoltArray;
+	static ViDynamicVectorClass<ElectricBoltClass*> ElectricBoltArray;
 
 	static void Draw_All();
 	static void Clear_All();

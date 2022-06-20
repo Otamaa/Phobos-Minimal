@@ -149,7 +149,6 @@ DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
 	return 0;
 }
 
-
 DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 {
 	enum { SkipCheck = 0x489702 };
@@ -204,11 +203,11 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 	{
 		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 		{
-			int default = RulesClass::Instance->BallisticScatter;
+			int defaultmax = RulesClass::Instance->BallisticScatter;
 			int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
-			int max = pTypeExt->BallisticScatter_Max.Get(Leptons(default));
+			int max = pTypeExt->BallisticScatter_Max.Get(Leptons(defaultmax));
 
-			int result = (int)((mult * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)) / pThis->WeaponType->Range);
+			int result = static_cast<int>((mult * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)) / pThis->WeaponType->Range);
 			R->EAX(result);
 		}
 	}

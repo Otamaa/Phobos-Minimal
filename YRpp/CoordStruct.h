@@ -109,6 +109,10 @@ public:
 		return *this;
 	}
 
+	CoordStruct operator+=(const double nThat) {
+		return { static_cast<int>(X + nThat) ,static_cast<int>(Y + nThat) ,static_cast<int>(Z + nThat) };
+	}
+
 	CoordStruct operator-(const CoordStruct& nThat) const
 	{ return { (X - nThat.X), (Y - nThat.Y), (Z - nThat.Z) }; }
 

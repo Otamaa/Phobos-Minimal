@@ -9,7 +9,7 @@
 #include <Unsorted.h>
 #include <RulesClass.h>
 
-DynamicVectorClass<ElectricBoltClass*> ElectricBoltManager::ElectricBoltArray;
+ViDynamicVectorClass<ElectricBoltClass*> ElectricBoltManager::ElectricBoltArray;
 
 void ElectricBoltClass::Clear()
 {
@@ -23,7 +23,7 @@ void ElectricBoltClass::Draw_It()
 		/**
 		 *  This is our draw frame, so draw!
 		 */
-		if (LineDrawList.Count)
+		if (LineDrawList.Count())
 		{
 			Draw_Bolts();
 		}
@@ -56,7 +56,7 @@ void ElectricBoltClass::Draw_It()
 		/**
 		 *  Draw the initial set of lines.
 		 */
-		if (LineDrawList.Count)
+		if (LineDrawList.Count())
 		{
 			Draw_Bolts();
 		}
@@ -75,7 +75,7 @@ void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjus
 	StartCoord = start;
 	EndCoord = end;
 	ZAdjust = z_adjust;
-    ElectricBoltManager::ElectricBoltArray.AddItem(this);
+    ElectricBoltManager::ElectricBoltArray.Add(this);
 
 	/**
 	 *  Spawn a spark particle at the destination of the electric bolt.
@@ -256,7 +256,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 void ElectricBoltClass::Draw_Bolts()
 {
-	for (int i = 0; i < LineDrawList.Count; ++i)
+	for (int i = 0; i < LineDrawList.Count(); ++i)
 	{
 		LineDrawDataStruct& data = LineDrawList[i];
 
@@ -279,7 +279,7 @@ void ElectricBoltClass::Draw_Bolts()
 
 void ElectricBoltManager::Clear_All()
 {
-	for (int i = 0; i < ElectricBoltArray.Count; ++i) {
+	for (int i = 0; i < ElectricBoltArray.Count(); ++i) {
 		GameDelete(ElectricBoltArray[i]);
 	}
 
@@ -288,10 +288,10 @@ void ElectricBoltManager::Clear_All()
 
 void ElectricBoltManager::Draw_All()
 {
-	if (ElectricBoltArray.Count <= 0)
+	if (ElectricBoltArray.Count() <= 0)
 		return;
 
-	for (int i = ElectricBoltArray.Count - 1; i >= 0; --i)
+	for (int i = ElectricBoltArray.Count() - 1; i >= 0; --i)
 	{
 		ElectricBoltClass* ebolt = ElectricBoltArray[i];
 
@@ -309,7 +309,7 @@ void ElectricBoltManager::Draw_All()
 		 */
 		if (ebolt->Lifetime <= 0)
 		{
-			ElectricBoltArray.Remove(ebolt);
+			ElectricBoltArray.Delete(i);
 			GameDelete(ebolt);
 		}
 	}

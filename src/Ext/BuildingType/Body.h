@@ -5,7 +5,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-
+#include <ExtraHeaders/DirClass.h>
 
 struct BuildSpeedBonus
 {
@@ -17,10 +17,10 @@ struct BuildSpeedBonus
 	ValueableVector<TechnoTypeClass*> AffectedType;
 
 	BuildSpeedBonus() : Enabled { false }
-		, SpeedBonus_Aircraft { 1.000 }
-		, SpeedBonus_Building { 1.000 }
-		, SpeedBonus_Infantry { 1.000 }
-		, SpeedBonus_Unit { 1.000 }
+		, SpeedBonus_Aircraft { 0.000 }
+		, SpeedBonus_Building { 0.000 }
+		, SpeedBonus_Infantry { 0.000 }
+		, SpeedBonus_Unit { 0.000 }
 		, AffectedType { }
 	{}
 
@@ -287,6 +287,8 @@ public:
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat , HouseClass* pOwner);
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
+
+	static const DirClass DefaultJuggerFacing;
 
 	template<auto  T>
 	struct BunkerSound

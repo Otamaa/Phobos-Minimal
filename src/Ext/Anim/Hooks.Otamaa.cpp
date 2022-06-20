@@ -197,7 +197,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 
 		if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 		{
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, 0, 0))
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
 				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
@@ -221,18 +221,24 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		}
 		else
 		{
-			Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner , pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+			auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+			if(bPlayWHAnim)
+			{
+				if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCenterCoord()))
+				{
+					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30))
+					{
+						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
+						 if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
+							pAnimExt->Invoker = pTechOwner;
+					}
+				}
+			}
 		}
 	}
 
 	return SkipGameCode;
 }
-
-#pragma region helpers
-
-
-#pragma endregion
-
 
 //DEFINE_HOOK(0x423AC0, AnimClass_Update, 0x6)
 //{
@@ -491,8 +497,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 	return 0x42371B;
 }
 
-HouseClass* __fastcall AnimClassGetOwningHouse_Wrapper(AnimClass* pThis, void* _)
-{
+HouseClass* __fastcall AnimClassGetOwningHouse_Wrapper(AnimClass* pThis, void* _) {
 	return pThis->Owner;
 }
 

@@ -62,22 +62,14 @@ public:
 	// non-virtual
 	static std::array<const TileTypeData, 21> TileArray;
 
-	bool TileIs(TileType tileType) const
+	//Using typedef resulting on dll address wtf , so this weird code
+	inline bool TileIs(TileType tileType) const
 	{
-		if (tileType != TileType::Unk && ((int)tileType <= 21))
-		{
-			for (const auto& nTile : TileArray)
-			{
-				if (nTile.Type == tileType)
-				{
-					auto nAddr = nTile.Data;
-					EPILOG_THISCALL;
-					JMP(nAddr);
-				}
-			}
-		}
+		if(tileType == TileType::Unk || ((int)tileType >= 21))
+			return false;
 
-		return false;
+		const uintptr_t addr = TileArray[(int)tileType].Data;
+		return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
 	}
 
 	// get content objects
@@ -106,8 +98,9 @@ public:
 	 * failing that, calls FindTechnoNearestTo,
 	 * if that fails too, reiterates Content looking for Terrain
 	 */
-	ObjectClass* GetSomeObject(Point2D const& offsetPixel, bool alt) const
-		{ JMP_THIS(0x47C5A0); }
+	ObjectClass* GetSomeObject(Point2D const& offsetPixel, bool alt) const {
+		return reinterpret_cast<ObjectClass*(*)(const CellClass*, Point2D const&, bool)>(0x47C5A0)(this, offsetPixel, alt);
+	}
 
 	// misc
 	void SetWallOwner()

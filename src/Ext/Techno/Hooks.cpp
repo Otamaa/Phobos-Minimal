@@ -528,10 +528,6 @@ DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
 	GET_STACK(HouseClass*, pSource, 0x8);
 	GET_STACK(bool, ForceShield, 0xC);
 
-	if (!pThis->Type->Organic)
-		pThis->FootClass::IronCurtain(nDuration, pSource, ForceShield);
-	else
-		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource);
-
+	R->EAX(pThis->FootClass::IronCurtain(nDuration, pSource, ForceShield));
 	return 0x522639;
 }

@@ -253,7 +253,10 @@ DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x6)
 	R->EDI(2);
 
 	//this plane stuck on mission::Move ! so letst redirect it to other address that deal with this
-	return !pThis->Spawned && pThis->Type->OpenTopped && pThis->QueuedMission != Mission::Attack ? 0x417944 : 0x417AD4;
+	return !pThis->Spawned &&
+		pThis->Type->OpenTopped &&
+		(pThis->QueuedMission != Mission::Attack) && !pThis->Target
+		? 0x417944 : 0x417AD4;
 }
 
 /*

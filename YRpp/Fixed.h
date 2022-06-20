@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <CRT.h>
+#include <Base/Always.h>
 #include <YRPPCore.h>
 
 #pragma warning(push)

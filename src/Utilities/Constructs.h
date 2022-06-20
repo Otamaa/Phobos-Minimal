@@ -109,7 +109,6 @@ public:
 	};
 
 	PaletteMode Mode{ PaletteMode::Default };
-	std::string Name { };
 	UniqueGamePtr<ConvertClass> Convert{ nullptr };
 	UniqueGamePtr<BytePalette> Palette{ nullptr };
 

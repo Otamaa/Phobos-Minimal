@@ -24,22 +24,36 @@ public:
 		, Accumulate { false }
 	{}
 
-	PaintballType(const PaintballType& nData) :Color { nData.Color }
+	virtual ~PaintballType() = default;
+
+	PaintballType(const PaintballType& nData) : Color { nData.Color }
+		, BrightMultiplier { nData.BrightMultiplier }
+		, Accumulate { nData.Accumulate }
+	{}
+
+	PaintballType(PaintballType& nData) : Color { nData.Color }
 		, BrightMultiplier { nData.BrightMultiplier }
 		, Accumulate { nData.Accumulate }
 	{}
 
 	void Read(INI_EX& parser, const char* pSection);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<PaintballType*>(this)->Serialize(Stm); }
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
 		Debug::Log("Processing Element From PaintballType ! \n");
 
-		Stm
+		return Stm
 			.Process(Color)
 			.Process(BrightMultiplier)
 			.Process(Accumulate)
+			.Success()
 			;
 	}
 };
@@ -47,19 +61,22 @@ public:
 class PaintBall
 {
 public:
-	virtual void Enable(int duration, const std::string_view token, const PaintballType& data);
 
-	virtual void Disable(const std::string_view token)
+	virtual ~PaintBall() = default;
+
+	virtual void Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data);
+
+	virtual void Disable(WarheadTypeClass* pAffector)
 	{
-		if (Token == token) {
+		if (Token == pAffector) {
 			timer.Stop();
 		}
 	}
 
 	virtual void Disable(bool bForce) {
-		if ((!Token.empty()) || bForce) {
+		if ((!Token) || bForce) {
 			timer.Stop();
-			Token.clear();
+			Token = nullptr;
 			Data.reset();
 		}
 	}
@@ -67,13 +84,9 @@ public:
 
 	virtual bool IsActive() { return timer.InProgress(); }
 
-	void Enable(PaintballType data) {
-		Enable(-1, "null", data);
-	}
-
-	void Enable(int nDuration , PaintballType data, const std::string_view nToken)
+	void Enable(int nDuration , PaintballType data, WarheadTypeClass* pAffector)
 	{
-		Enable(nDuration, nToken.data(), data);
+		Enable(nDuration, pAffector, data);
 	}
 
 	//needpaint , changeColor , changeBright
@@ -81,7 +94,7 @@ public:
 	{
 		bool changeColor = false;
 		bool changeBright = false;
-		bool active = IsActive() && Data.has_value();
+		bool active = IsActive() && Data.get();
 
 		if (active)
 		{
@@ -109,22 +122,39 @@ public:
 	void DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R);
 	void DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding);
 
-	std::string Token;
-	std::optional<PaintballType> Data;
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<PaintBall*>(this)->Serialize(Stm); }
+
+	WarheadTypeClass* Token;
+	std::unique_ptr<PaintballType> Data;
 
 protected:
 	TimerStruct timer;
 public:
 
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
 		Debug::Log("Processing Element From PaintBall ! \n");
-		Stm
+		return Stm
 			.Process(Token)
 			.Process(Data)
 			.Process(timer)
+			.Success()
 			;
 	}
 };
+
+
+template <>
+struct Savegame::ObjectFactory<PaintBall>
+{
+	std::unique_ptr<PaintBall> operator() (PhobosStreamReader& Stm) const {
+		return std::make_unique<PaintBall>();
+	}
+};
+
 #endif
