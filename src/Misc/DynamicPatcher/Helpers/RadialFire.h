@@ -31,7 +31,7 @@ struct RadialFireHelper
 		DeltaZ = 1.0f / (Burst / 2.0f + 1);
 	}
 
-	BulletVelocity GetBulletVelocity(int index)
+	VelocityClass GetBulletVelocity(int index)
 	{
 		int z = 0;
 		float temp = Burst / 2.0f;

@@ -452,6 +452,9 @@ DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 DEFINE_HOOK(0x6E4761, TActionClass_SDDTOR, 0x6)
 {
 	GET(TActionClass*, pItem, ESI);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

@@ -22,6 +22,14 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 	Valueable<bool> nBuffBool { Accumulate };
 	nBuffBool.Read(parser, pSection, "PaintBall.Accumulate");
 	Accumulate = nBuffBool.Get();
+
+	nBuffBool = IgnoreFog;
+	nBuffBool.Read(parser, pSection, "PaintBall.IgnoreFog");
+	IgnoreFog = nBuffBool.Get();
+
+	nBuffBool = IgnoreShroud;
+	nBuffBool.Read(parser, pSection, "PaintBall.IgnoreShroud");
+	IgnoreShroud = nBuffBool.Get();
 }
 
 void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)
@@ -81,14 +89,35 @@ uintptr_t PaintBall::GetColor() {
 	return nRet.ToInit();
 }
 
+static inline bool AllowRedraw(TechnoClass* pWho, bool bForce ,bool bIgnoreShroud , bool bIgnoreFog)
+{
+	if(auto pCell = pWho->GetCell()) {
+
+		if (pCell->IsShrouded() && !bIgnoreShroud)
+			return false;
+
+		if (pCell->IsFogged() && !bIgnoreFog)
+			return false;
+	}
+
+	if (pWho->Berzerk)
+		return false;
+
+	if ((pWho->Airstrike && pWho->Airstrike->Target == pWho))
+		return false;
+
+	if (pWho->IsIronCurtained())
+		return false;
+
+	return true;
+}
+
 void PaintBall::DrawSHP_Paintball(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || pTech->Berzerk || pTech->IsIronCurtained() || pTech->Airstrike && pTech->Airstrike->Target == pTech)
-	{
+	if (!rePaint || !AllowRedraw(pTech ,!rePaint,Data->IgnoreShroud,Data->IgnoreFog))
 		return;
-	}
 
 	if (changeColor)
 	{
@@ -105,10 +134,8 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || pTech->Berzerk || pTech->IsIronCurtained() || pTech->Airstrike && pTech->Airstrike->Target == pTech) {
-
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
 		return;
-	}
 
 	if (changeColor) {
 		R->EBP(GetColor());
@@ -124,10 +151,8 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || pTech->Berzerk || pTech->IsIronCurtained() || pTech->Airstrike && pTech->Airstrike->Target == pTech)
-	{
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
 		return;
-	}
 
 	if (changeColor)
 	{

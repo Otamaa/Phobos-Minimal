@@ -49,7 +49,7 @@ bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
+void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
 {
 	auto pType = this->GetTrajectoryType();
 
@@ -73,7 +73,7 @@ bool BombardTrajectory::OnAI(BulletClass* pBullet)
 
 void BombardTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
 
-void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition)
+void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	if (!this->IsFalling)
 	{

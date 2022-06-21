@@ -18,10 +18,14 @@ public:
 	ColorStruct Color;
 	float BrightMultiplier;
 	bool Accumulate;
+	bool IgnoreFog;
+	bool IgnoreShroud;
 
 	PaintballType() : Color { 0,0,0 }
 		, BrightMultiplier { 1.0f }
 		, Accumulate { false }
+		, IgnoreFog { false }
+		, IgnoreShroud { false }
 	{}
 
 	virtual ~PaintballType() = default;
@@ -29,11 +33,15 @@ public:
 	PaintballType(const PaintballType& nData) : Color { nData.Color }
 		, BrightMultiplier { nData.BrightMultiplier }
 		, Accumulate { nData.Accumulate }
+		, IgnoreFog { nData.IgnoreFog }
+		, IgnoreShroud { nData.IgnoreShroud }
 	{}
 
 	PaintballType(PaintballType& nData) : Color { nData.Color }
 		, BrightMultiplier { nData.BrightMultiplier }
 		, Accumulate { nData.Accumulate }
+		, IgnoreFog { nData.IgnoreFog }
+		, IgnoreShroud { nData.IgnoreShroud }
 	{}
 
 	void Read(INI_EX& parser, const char* pSection);

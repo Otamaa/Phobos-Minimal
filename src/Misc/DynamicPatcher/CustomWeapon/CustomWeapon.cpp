@@ -144,7 +144,7 @@ void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoCla
 	// Pointer<TechnoClass> pShooter = WhoIsShooter(pShooter);
 	CoordStruct sourcePos = Helpers_DP::GetFLHAbsoluteCoords(pShooter, burst.FLH, true, burst.FlipY);
 	CoordStruct targetPos = pTarget->GetCoords();
-	BulletVelocity bulletVelocity = BulletVelocity::Empty;
+	VelocityClass bulletVelocity = VelocityClass { 0.0,0.0,0.0 };
 
 	if (burst.FireData.RadialFire)
 	{

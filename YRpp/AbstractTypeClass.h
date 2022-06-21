@@ -127,7 +127,7 @@ public:
 		return this->ID;
 	}
 
-	bool SameName(AbstractTypeClass* pThat) const
+	bool SameName(const char* pThat) const
 		{ JMP_THIS(0x410A40); }
 
 

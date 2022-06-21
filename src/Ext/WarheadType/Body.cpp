@@ -311,8 +311,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	PaintBallData.Read(exINI,pSection);
 	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
+	PaintBallData.Read(exINI, pSection);
 #endif
 #pragma endregion
 

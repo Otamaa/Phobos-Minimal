@@ -436,6 +436,18 @@ private:
 class VelocityClass final : public Vector3D<double>
 {
 public:
+	//scalar multiplication
+	VelocityClass operator*(double r) const
+	{
+		return {
+			static_cast<double>(X * r),
+			static_cast<double>(Y * r),
+			static_cast<double>(Z * r) };
+	}
+
+	VelocityClass operator-(const VelocityClass& a) const {
+		return { X - a.X, Y - a.Y, Z - a.Z };
+	}
 
 	DirStruct* GetDirectionFromXY(DirStruct* pRetDir)
 	{ JMP_THIS(0x41C2E0); }

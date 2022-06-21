@@ -71,6 +71,9 @@ DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
 {
 	GET(TiberiumClass*, pItem, ECX);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

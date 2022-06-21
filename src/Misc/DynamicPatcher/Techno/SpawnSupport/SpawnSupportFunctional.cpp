@@ -97,7 +97,7 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis ,bool I
 
 		auto nSourcePos = Helpers_DP::GetFLHAbsoluteCoords(pSpawnOwner, nFLH, true);
 		auto nTargetPos = Helpers_DP::GetFLHAbsoluteCoords(pThis, nFLH, true);
-		BulletVelocity nVel = Helpers_DP::GetBulletVelocity(nSourcePos, nTargetPos);
+		VelocityClass nVel = Helpers_DP::GetBulletVelocity(nSourcePos, nTargetPos);
 
 		Helpers_DP::FireBulletTo(pSpawnOwner, pThis, pSupportWeapon, nSourcePos, nTargetPos, nVel);
 

@@ -334,3 +334,664 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 	return 0x71033A;
 }
 #endif
+
+/*
+void BulletClass_AI(BulletClass* pThis)
+{
+	pThis->ObjectClass::Update();
+	if (!pThis->IsAlive)
+	{
+		return;
+	}
+	CoordStruct v148 = CoordStruct::Empty;
+
+	auto type = pThis->Type;
+	if (!pThis->SpawnNextAnim)
+	{
+		bool v137 = 0;
+		bool v136 = 0;
+		if (type->Dropping && !pThis->IsFallingDown) {
+			v136 = 1;
+		}
+
+		if (type->AnimLow || type->AnimHigh)
+		{
+			if (!--pThis->AnimRateCounter)
+			{
+				pThis->AnimRateCounter = type->AnimRate;
+				if (pThis->AnimFrame++ > type->AnimHigh)
+				{
+					pThis->AnimFrame = type->AnimLow;
+				}
+			}
+		}
+		auto coord = pThis->Location;
+
+		if (type->Trailer)
+		{
+			if (auto v6 = type->ScaledSpawnDelay)
+			{
+				if (!(Unsorted::CurrentFrame % v6))
+				{
+					GameCreate<AnimClass>(type->Trailer, coord, 1, 1, 0x600u, 0, 0);
+				}
+			}
+			else if (!(Unsorted::CurrentFrame % type->SpawnDelay))
+			{
+				GameCreate<AnimClass>(type->Trailer, coord, 1, 1, 0x600u, 0, 0);
+			}
+		}
+
+		auto v8 = type;
+		int pos = 0;
+		if (v8->ROT > 0)
+		{
+			auto nMaxSpeed = pThis->Speed;
+			auto nVelMag = pThis->Velocity.Magnitude();
+			auto type_1 = type;
+			auto X = nVelMag;
+
+			if (type_1->CourseLockDuration)
+			{
+				if (pThis->__CourseLockedDuration < type_1->CourseLockDuration)
+				{
+					if (++pThis->__CourseLockedDuration >= type_1->CourseLockDuration)
+					{
+						goto LABEL_32;
+					}
+				}
+			}
+			else if (pThis->Speed >= 40 || (double)nMaxSpeed <= X + 0.5)
+			{
+			LABEL_32:
+				pThis->__CourseLocked = 0;
+				goto LABEL_33;
+			}
+		LABEL_33:
+			auto v17 = pThis->__CourseLocked;
+			auto v18 = type_1->Acceleration;
+			auto Accel = v18;
+
+			if (v17 && !type_1->CourseLockDuration)
+			{
+				v18 = (Unsorted::CurrentFrame % 2 == 0);
+				Accel = v18;
+			}
+
+			auto nMaxSpeed_ = (double)nMaxSpeed;
+			if (X >= nMaxSpeed_)
+			{
+				if (X <= nMaxSpeed_)
+				{
+					goto LABEL_51;
+				}
+
+				nMaxSpeed = (v18 / 2);
+				X = X - (double)(v18 / 2);
+				if (X <= 0.0)
+				{
+					X = 0.0;
+				}
+
+				if (pThis->Velocity)
+				{
+
+				LABEL_50:
+					auto v20 = pThis->Velocity.Magnitude();
+					auto v21 = X / v20;
+					pThis->Velocity *= v21;
+
+				LABEL_51:
+
+					auto v25 = CoordStruct::Empty;
+
+					if (pThis->Target) {
+						v25 = pThis->GetAltCoords();
+					}
+
+					CoordStruct a3 = v25;
+					if (pThis->Target && (pThis->Target->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None) {
+						((ObjectClass*)pThis->Target)->GetPosition_0(&a3);
+					}
+
+					auto v27 = RulesGlobal->MissileROTVar;
+					nMaxSpeed = ((Unsorted::CurrentFrame + pThis->Fetch_ID() ) % 15);
+					auto nMaxSpeed__ = ((Math::sin((double)nMaxSpeed * 0.06666666666666667 * 6.283185307179586) * v27 + v27 + 1.0)* (double)pThis->Type->ROT);
+					nMaxSpeed = nMaxSpeed__;
+					auto v30 = pThis->GetCenterCoord();
+					auto v31 = v30 - a3;
+					if (v31.Magnitude() < 256) {
+						nMaxSpeed__ = (nMaxSpeed * 1.5);
+					}
+
+					CoordStruct a2 = coord;
+					auto v35 = pThis->Target && pThis->Target->WhatAmI()  == AbstractType::Aircraft;
+					auto v36 = pThis->__CourseLocked == 0 ? (unsigned __int8)nMaxSpeed__ : 0;
+					auto v37 = pThis->Type;
+					DirStruct nDir = DirStruct { v36 };
+					nDir = BulletClass::ProjectileMotion(
+												 &coord,
+												 &pThis->Velocity,
+												 &a3,
+												 &nDir,
+												 v35,
+												 v37->Airburst,
+												 v37->VeryHigh,
+												 v37->Level);
+
+					auto v144 = Map[coord];
+					X = (double)nMaxSpeed;
+					auto v41 = pThis->Velocity.Magnitude();
+
+					if (v41 * 0.5 >= X || pThis->GetHeight() <= 0)
+					{
+						v136 = 1;
+						pos = 1;
+						if (pThis->GetHeight() > 0
+						  && !pThis->Type->Airburst
+						  && (a3))
+						{
+							coord = a3;
+						}
+					}
+					if (!a3 && pThis->GetHeight() >= RulesGlobal->MissileSafetyAltitude)
+					{
+						v136 = 1;
+						pos = 1;
+					}
+
+					auto v43 = a2 - a3;
+					auto nDistance = v43.Magnitude();
+					auto v46 =  coord - a3;
+					auto nDistance_ = nDistance - v46.Magnitude();
+
+					if (!pThis->__CourseLocked)
+					{
+						auto v49 = pThis->SomeIntIncrement_118;
+						if (v49 >= 60)
+						{
+							auto v51 = pThis->unknown_120 * 0.9833333333333333 + nDistance_;
+							pThis->unknown_120 = v51;
+							if (//!v53 && , WTF is this ?
+								v51 < 60.0)
+							{
+								auto v54 = pThis->Type;
+								if (!v54->Airburst && !v54->VeryHigh)
+								{
+									v136 = 1;
+									pos = 1;
+									goto LABEL_192;
+								}
+							}
+						}
+						else
+						{
+							auto v50 = nDistance_;
+							pThis->SomeIntIncrement_118 = v49 + 1;
+							pThis->unknown_120 = v50 + pThis->unknown_120;
+						}
+					}
+					if (!pos
+					  && ((v144->Flags & CellFlags::Bridge) != CellFlags::Empty
+						  || (Map[a2]->Flags & CellFlags::Bridge) != CellFlags::Empty))
+					{
+						auto v55 = 416 + Map.GetCellFloorHeight(coord);
+						if (coord.Z > v55 && a2.Z < v55)
+						{
+							pos = 1;
+							coord.Z = v55;
+						LABEL_191:
+							v136 = 1;
+							goto LABEL_192;
+						}
+						if (coord.Z < v55 && a2.Z > v55)
+						{
+							pos = 1;
+							coord.Z = v55;
+							goto LABEL_191;
+						}
+					}
+				LABEL_192:
+					PlacementType n = PlacementType::Redraw;
+
+					if (pos == 2)
+					{
+						pThis->UpdatePlacement(n);
+					}
+					else
+					{
+						pThis->UpdatePlacement(n);
+						pThis->SetLocation(coord);
+						bool v104 = false;
+
+						if (v136
+						  || (a2 = pThis->Location,
+							  v104 = pThis->IsForceToExplode(a2),
+							  v136 = v104,
+							  pThis->SetLocation(a2),
+							  v104))
+						{
+							if (pThis->GetHeight() < 0)
+							{
+								pThis->SetHeight(0);
+							}
+						}
+
+						auto v105 = pThis->Type;
+						Fuse fuse_result = Fuse::DontIgnite;
+
+						if (v105->ROT > 0 || v105->Ranged)
+						{
+							fuse_result = pThis->Data.BulletStateCheck(coord);
+						}
+
+						auto v107 = pThis->Owner;
+						auto v143 = fuse_result;
+						if (v107 && v107->GetTechnoType()->JumpJet && fuse_result == Fuse::Ignite_DistaceFactor)
+						{
+							fuse_result = Fuse::Ignite;
+							v143 = Fuse::Ignite;
+						}
+
+						if (!v136)
+						{
+							auto v108 = pThis->Type;
+							if (v108->Dropping || fuse_result == Fuse::DontIgnite)
+							{
+								if (v108->Ranged)
+								{
+									if (pThis->Health > 5)
+									{
+										--pThis->Health;
+									}
+								}
+								goto LABEL_241;
+							}
+						}
+
+						auto v110 = pThis->Target;
+						if (v110 && (v143 == Fuse::Ignite || v137))
+						{
+							auto v111 = pThis->Type;
+							if (!v111->Airburst && !v111->Inaccurate)
+							{
+								auto v112 = coord.X;
+								auto v113 = coord.Y;
+								auto v114 = coord.Z;
+								auto v115 = v110->GetAltCoords();
+								v148.X = v115.X;
+								v148.Y = v115.Y;
+								auto v116 = v115.Z;
+								a2.Y = v113 - v115.Y;
+								a2.Z = (v116 + v114) / 2 - v116;
+								a2.X = v112 - v115.X;
+								auto v117 = Math::sqrt(
+													(double)(v112 - v115.X) * (double)(v112 - v115.X)
+												  + (double)a2.Z * (double)a2.Z
+												  + (double)a2.Y * (double)a2.Y);
+								nDistance_ = v117;
+
+								if (v137) {
+									nDistance_ = v117 / 3;
+								}
+
+								auto nMag = pThis->Velocity.Magnitude();
+								auto v119 = nMag >= 128.0 ? nMag + nMag : 128.0;
+
+								if (v143 == Fuse::Ignite
+								  ||nDistance_ <= v119)
+								{
+									auto v122 = pThis->Target->GetCoords();
+									pThis->SetLocation(v122);
+								}
+							}
+						}
+						if (pThis->WH->SameName("NUKE"))
+						{
+							if (pThis->GetHeight() < 0){
+								pThis->SetHeight(0);
+							}
+
+							NukeFlash::FadeIn();
+
+							auto v123 = pThis->GetMapCoords();
+							RadarEventClass::Create(RadarEventType::SuperweaponActivated, v123);
+
+							auto v124 = AnimTypeClass::FindIndex("NUKEBALL");
+							if (v124 != -1)
+							{
+								if (auto v125 = AnimTypeClass::Array->GetItem(v124))
+								{
+								    AnimClass* v128 = GameCreate<AnimClass>(v125,pThis->Location,0,1, 0x2600u,-15,0);
+									pThis->NextAnim = v128;
+									pThis->SpawnNextAnim = 1;
+									BulletClass::Array->AddItem(pThis);
+									goto LABEL_241;
+								}
+							}
+						}
+
+						pThis->Explode(v136);
+					}
+					pThis->UnInit();
+				LABEL_241:
+					pThis->LastMapCoords = coord.TocellStruct();
+					return;
+				}
+			}
+			else
+			{
+				X = v18 + X;
+				if (X >= nMaxSpeed_) {
+					X = nMaxSpeed_;
+				}
+
+				if (pThis->Velocity)
+				{
+					goto LABEL_50;
+				}
+			}
+
+			pThis->Velocity.X = 5.333806864e-315;
+			goto LABEL_50;
+		}
+
+		if (pThis->Velocity.Magnitude() < 8.0) {
+			pos = 1;
+		}
+
+		auto v59 = pThis->Type;
+		VelocityClass CoordToVelX = { (double)coord.X  ,(double)coord.Y ,(double)coord.Z };
+
+		auto v60 = (double)RulesGlobal->Gravity;
+		if (v59->Floater) {
+			v60 = v60 * 0.5;
+		}
+
+		auto v61 = v59;
+		if (v61->Vertical)
+		{
+			auto v62 = pThis->Velocity.Magnitude();
+			if ((int)v62 < pThis->Speed)
+			{
+				auto mnMaxSpeed = (v62 + pThis->Type->Acceleration);
+				auto X =mnMaxSpeed;
+				if (!pThis->Velocity) {
+					pThis->Velocity.X = 5.333806864e-315;
+				}
+
+				auto v63 = pThis->Velocity.Magnitude();
+				auto v64 = X / v63;
+				pThis->Velocity *= v64;
+			}
+
+			auto v67 = pThis->Type;
+			CoordStruct a2 = coord;
+			coord.X += pThis->Velocity.X;
+			coord.Y += pThis->Velocity.Y;
+			coord.Z += pThis->Velocity.Z;
+
+			if (coord.Z <= v67->DetonationAltitude)
+			{
+				if (pThis->GetHeight() >= 0)
+				{
+					auto v68 = Map.GetCellFloorHeight(coord) + 412;
+					if ((Map[coord]->Flags & CellFlags::Bridge) != CellFlags::Empty
+					  || (Map[a2]->Flags & CellFlags::Bridge) != CellFlags::Empty)
+					{
+						if (coord.Z < v68)
+						{
+							if (a2.Z >= v68)
+							{
+								pos = 1;
+								v136 = 1;
+							}
+						}
+						else if (a2.Z < v68)
+						{
+							pos = 1;
+							v136 = 1;
+						}
+					}
+				}
+				else
+				{
+					pos = 1;
+					v136 = 1;
+				}
+			}
+			else
+			{
+				pos = 1;
+				v136 = 1;
+			}
+		LABEL_159:
+			auto aPart = coord.TocellStruct();
+			auto bPart = pThis->TargetCoords.TocellStruct();
+			int BulletHeightLimit = 104;
+			CellClass* pCell_aPart = Map[aPart];
+			CellClass* pCell_bPart = Map[bPart];
+			auto v90 = pCell_aPart->GetBuilding();
+			auto v91 = pCell_bPart->GetBuilding();
+
+			if (aPart == bPart
+			  && !pThis->Type->Vertical
+			  && pThis->GetHeight() < 2 * BulletHeightLimit
+			  || (v90)
+			  && !pThis->Type->Vertical
+			  && v90 == v91
+			  && pThis->GetHeight() < 2 * BulletHeightLimit)
+			{
+				pos = 1;
+				v136 = 1;
+				v137 = 1;
+				goto LABEL_192;
+			}
+
+			auto v92 = Map[coord];
+			auto v93 = v92->FindTechnoNearestTo({0,0}, 0, nullptr);
+			bool v135 = 1;
+
+			if (!pThis->Owner || (v93 != pThis->Owner))
+			{
+				v135 = 0;
+			}
+
+			bool v134 = pThis->Owner ? pThis->Owner->Owner ? pThis->Owner->Owner->IsAlliedWith(v93): false : false;
+
+			bool v98 = 0;
+			if (v93)
+			{
+				if (coord.DistanceFrom(v93->Location) < 128)
+				{
+					v98 = 1;
+				}
+			}
+			if (v135 || v134 || !v98)
+			{
+				if (!Map.IsValid(coord))
+				{
+					pos = 2;
+					v136 = 1;
+					coord = pThis->Location;
+					goto LABEL_192;
+				}
+				auto v100 = pThis->Type;
+
+				//CoordStruct v145 = coord;
+
+				if (!v100->Vertical) {
+					pThis->Velocity = CoordToVelX;
+				}
+
+				if (pThis->Velocity.Magnitude() < 10.0
+				  && pThis->GetHeight() < 10) {
+					pos = 1;
+					goto LABEL_191;
+				}
+			}
+			else
+			{
+				auto v99 = pThis->Type;
+				pos = 1;
+				v136 = 1;
+				if (!v99->Inaccurate)
+				{
+					coord = v93->Location;
+				}
+			}
+			goto LABEL_192;
+		}
+
+		auto v71 = pThis->Owner;
+		VelocityClass v142 = { v61->Elasticity ,v61->Elasticity , CoordToVelX.Z - v60 };
+		CoordToVelX += v142;
+		CoordStruct v145 = { CoordToVelX.X ,CoordToVelX.Y,CoordToVelX.Z };
+		auto nCompare = v148 - v145;
+		auto nZPosHere = Map.GetCellFloorHeight(v145);
+		auto v73 = nZPosHere + 412;
+		auto v143 = nZPosHere + 412;
+		auto v74 = Map[v145];
+		bool v135 = 0;
+		bool v134 = 0;
+
+		if ((v74->Flags & CellFlags::Bridge) != CellFlags::Empty ||
+			(Map[nCompare]->Flags & CellFlags::Bridge) != CellFlags::Empty)
+		{
+			if (v145.Z < (int)v73)
+			{
+				if (v148.Z >= (int)v73)
+				{
+					v135 = 1;
+				}
+			}
+			else if (v148.Z < (int)v73)
+			{
+				v134 = 1;
+			}
+		}
+
+		bool v75 = 0;
+		if (!v135 && !v134)
+		{
+			auto v76 = (double)nZPosHere;
+			if (CoordToVelX.Z < v76 || CoordToVelX.Z - 150.0 >= v76)
+			{
+			LABEL_140:
+				auto a3_X = (double)nZPosHere;
+				if (CoordToVelX.Z >= a3_X && !v135 && !v134 && !v75)
+				{
+					goto LABEL_158;
+				}
+				if (v71)
+				{
+					double v84 = 0.0;
+
+					if (v135)
+					{
+						v84 = (double)v143;
+					}
+					else
+					{
+						if (!v134)
+						{
+						LABEL_158:
+							coord.X = CoordToVelX.X;
+							coord.Y = CoordToVelX.Y;
+							coord.Z = CoordToVelX.Z;
+							goto LABEL_159;
+						}
+						nZPosHere = (v73 - 20);
+						v84 = (double)(v73 - 20);
+					}
+					CoordToVelX.Z = v84;
+				}
+				else
+				{
+					if (v135)
+					{
+						CoordToVelX.Z = (double)v143;
+					}
+					else if (v134)
+					{
+						v73 = (v73 - 20);
+						CoordToVelX.Z = (double)(v73 - 20);
+					}
+					else
+					{
+						v73 -= 25;
+						if ((double)v73 < CoordToVelX.Z)
+						{
+							CoordToVelX.Z = (double)nZPosHere;
+						}
+					}
+
+					auto v79 = TacticalGlobal->GetRamp(&v145);
+					Matrix3D v152;
+					Game::GetRampMtx(&v152, v79);
+
+					Matrix3D v153;
+					Matrix3D::sub_5AFC20(&v153,&v152);
+					auto nZ = CoordToVelX.Z;
+					auto nY = -CoordToVelX.Y;
+					auto nX = CoordToVelX.X;
+					Vector3D<float> a3 = { nX , nY , nZ };
+					auto v80 = Matrix3D::Rotate_Vector(v153, a3);
+					Vector3D<float> a4 = *v80;
+					a4 *= a3;
+					auto v80 = Matrix3D::Rotate_Vector(v152, a4);
+					CoordToVelX.X = v80->X;
+					CoordToVelX.Y = -v80->Y;
+					CoordToVelX.Z = v80->Z;
+				}
+				pos = 1;
+				v136 = 1;
+				goto LABEL_158;
+			}
+
+			auto v77 = v74->GetBuilding();
+			if (!v77 && !v74->ConnectsToOverlay(-1, -1))
+			{
+				v73 = v143;
+				goto LABEL_140;
+			}
+
+			v75 = 1;
+			if (v77)
+			{
+				auto v78 = pThis->Owner;
+				if (v77 == pThis->Owner || v77->Type->LaserFence && v77->LaserFenceFrame >= 8)
+				{
+					v75 = 0;
+				}
+				if (v77->IsStrange())
+				{
+					v75 = 0;
+				}
+				if (v78 && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(v77))
+				{
+					v75 = 0;
+				}
+			}
+		}
+		v73 = v143;
+		goto LABEL_140;
+	}
+
+	if (!pThis->NextAnim)
+	{
+		auto v2 = BulletClass::Array->FindItemIndex(pThis);
+		if (v2 != -1 && v2 < BulletClass::Array->Count)
+		{
+			--BulletClass::Array->Count;
+			for (; v2 < BulletClass::Array->Count; BulletClass::Array->Items[v2 - 1] = BulletClass::Array->Items[v2])
+			{
+				++v2;
+			}
+		}
+
+		pThis->SpawnNextAnim = 0;
+		pThis->Explode(false);
+		pThis->UnInit();
+	}
+}*/

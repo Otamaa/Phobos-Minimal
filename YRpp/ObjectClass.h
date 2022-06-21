@@ -46,6 +46,7 @@ public:
 	virtual ~ObjectClass() RX;
 
 	//AbstractClass
+	virtual void Update() override JMP_THIS(0x5F3E70);
 
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) RX;

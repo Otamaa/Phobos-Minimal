@@ -1400,6 +1400,9 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

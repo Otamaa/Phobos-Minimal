@@ -190,6 +190,10 @@ public:
 
 	static void __fastcall Init_Voxel_Light(float theta) { JMP_STD(0x754C00); }
 	static void __fastcall Init_Voxel_Projections() { JMP_STD(0x754CB0); }
+
+	static Matrix3D* __fastcall GetRampMtx(Matrix3D* pRet, int nRampIdx) {
+		JMP_STD(0x7559B0);
+	}
 };
 
 // this fake class contains the IIDs used by the game

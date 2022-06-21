@@ -85,8 +85,8 @@ public:
 	bool Level;
 	bool Inviso;
 	bool Proximity;
-	bool Ranged;
-	bool NoRotate; // actually has opposite meaning of Rotates. false means Rotates=yes.
+	bool Ranged; //IsFueled
+	bool NoRotate; // actually has opposite meaning of Rotates. false means Rotates=yes. , IsFaceless
 	bool Inaccurate;
 	bool FlakScatter;
 	bool AA;

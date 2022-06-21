@@ -18,7 +18,7 @@ public:
 		ExtData(ParasiteClass* OwnerObject) : TExtension<ParasiteClass>(OwnerObject)
         { }
 
-        virtual ~ExtData() = default;
+        virtual ~ExtData() override = default;
 		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;

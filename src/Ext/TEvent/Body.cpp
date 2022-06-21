@@ -201,6 +201,9 @@ DEFINE_HOOK(0x71E6C1, TEventClass_CTOR, 0xD)
 DEFINE_HOOK(0x71E931, TEventClass_SDDTOR, 0x7)
 {
 	GET(TEventClass*, pItem, ESI);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

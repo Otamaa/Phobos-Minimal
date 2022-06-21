@@ -105,7 +105,13 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
 	this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride", true);
 
-	#pragma region Otamaa
+#pragma region Otamaa
+	this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
+	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon" , true);
+	this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
+	this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
+	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
+	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
@@ -144,6 +150,12 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AirburstWeapons)
 		.Process(this->Splits_Range)
 		.Process(this->Splits_RandomCellUseHarcodedRange)
+		.Process(this->BounceAmount)
+		.Process(this->BounceHitWeapon)
+		.Process(this->BounceOnTerrain)
+		.Process(this->BounceOnBuilding)
+		.Process(this->BounceOnInfantry)
+		.Process(this->BounceOnVehicle)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
 #endif

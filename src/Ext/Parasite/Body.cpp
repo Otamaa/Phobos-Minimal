@@ -63,6 +63,9 @@ DEFINE_HOOK(0x6296C4, ParasiteClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x62940D, ParasiteClass_DTOR, 0x5)
 {
 	GET(ParasiteClass*, pItem, ESI);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

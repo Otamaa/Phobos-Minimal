@@ -444,10 +444,12 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
 
 	if (pThis->IsIronCurtained())
-		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
-
-	if (pThis->ForceShielded)
-		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+	{
+		if(pThis->ForceShielded != 1)
+			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
+		else
+			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+	}
 
 	if (pThis->Berzerk)
 		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);

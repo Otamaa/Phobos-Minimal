@@ -214,6 +214,9 @@ DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
 DEFINE_HOOK(0x4729E1, CaptureManagerClass_DTOR, 0xD)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

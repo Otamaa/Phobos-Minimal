@@ -63,7 +63,7 @@ bool StraightTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
+void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
 {
 	auto type = this->GetTrajectoryType();
 
@@ -81,6 +81,8 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Bu
 		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 		pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
 	}
+
+	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
 }
 
 bool StraightTrajectory::OnAI(BulletClass* pBullet)
@@ -116,7 +118,7 @@ void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 	}
 }
 
-void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, BulletVelocity* pSpeed, BulletVelocity* pPosition)
+void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
 {
 	pSpeed->Z += BulletExt::GetExtData(pBullet)->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
 }

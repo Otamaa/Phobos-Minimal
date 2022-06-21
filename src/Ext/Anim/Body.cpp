@@ -102,6 +102,9 @@ DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
 DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	R->EAX(pItem->Type);
 	return 0;

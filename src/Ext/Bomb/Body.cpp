@@ -45,6 +45,9 @@ DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6) // is this inline ?
 DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
 {
 	GET(BombClass *, pItem, ECX);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

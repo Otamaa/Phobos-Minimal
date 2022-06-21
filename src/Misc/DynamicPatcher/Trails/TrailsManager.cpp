@@ -280,7 +280,7 @@ void TrailsManager::AI(BulletClass* pOwner)
 		for (auto const& pTrails : pExt->Trails)
 		{
 			CoordStruct location = (pOwner)->Location;
-			BulletVelocity& velocity = (pOwner)->Velocity;
+			VelocityClass& velocity = (pOwner)->Velocity;
 
 			// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
 			// Pretty meh solution but works until we fix the bug - Kerbiter

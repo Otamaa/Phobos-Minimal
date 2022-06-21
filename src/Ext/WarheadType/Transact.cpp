@@ -84,6 +84,9 @@ std::vector<std::vector<int>> WarheadTypeExt::ExtData::TransactGetSourceAndTarge
 		if (!pTarget)
 			return DisablepTargetCheck;
 
+		if (!pTarget->GetTechnoType()->Trainable)
+			return false;
+
 		return true;
 	};
 
@@ -157,6 +160,7 @@ void WarheadTypeExt::ExtData::TransactOnAllUnits(HouseClass* pHouse, const Coord
 
 		const auto Eligible = [&](TechnoClass* const pTech) {
 			return (pTech && pTech->GetTechnoType() &&
+			pTech->GetTechnoType()->Trainable &&
 			CanTargetHouse(pHouse, pTech)
 			&& CanDealDamage(pTech));
 		};

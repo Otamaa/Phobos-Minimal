@@ -32,9 +32,9 @@ public:
 		bool BrightCheckDone;
 		HouseClass* Owner;
 
-		//bool Bouncing;
-		//ObjectClass* LastObject;
-		//int BounceAmount;
+		bool Bouncing;
+		ObjectClass* LastObject;
+		int BounceAmount;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
@@ -54,9 +54,9 @@ public:
 			, Owner { nullptr }
 
 			//
-			//, Bouncing { false }
-			//, LastObject { nullptr }
-			//, BounceAmount { 0 }
+			, Bouncing { false }
+			, LastObject { nullptr }
+			, BounceAmount { 0 }
 			//
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
@@ -66,7 +66,7 @@ public:
 
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;

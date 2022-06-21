@@ -5,25 +5,30 @@
 #pragma once
 
 #include <ObjectClass.h>
+#include <GeneralStructures.h>
 #include <BulletTypeClass.h>
 
 class TechnoClass;
 class ObjectClass;
 class WarheadTypeClass;
 
+enum class Fuse : unsigned int
+{ DontIgnite, Ignite, Ignite_DistaceFactor };
+
 struct BulletData
 {
+	//4E11F0
+	Fuse BulletStateCheck(CoordStruct const& Destination) const
+	{ JMP_THIS(0x4E11F0); }
+
 	TimerStruct UnknownTimer;
 	TimerStruct ArmTimer;
 	CoordStruct Location;
 	int Distance;
 };
 
-enum class BulletDataResult : unsigned int
-{  DontIgnite , Ignite , Ignite_DistaceFactor };
-
 // the velocities along the axes, or something like that
-using BulletVelocity = Vector3D<double>; // :3 -pd
+//using BulletVelocity = Vector3D<double>; // :3 -pd
 
 class DECLSPEC_UUID("0E272DC9-9C0F-11D1-B709-00A024DDAFD1")
 	NOVTABLE BulletClass : public ObjectClass
@@ -52,38 +57,38 @@ public:
 	//BulletClass
 	virtual BYTE GetAnimFrame() const R0;
 	virtual void SetTarget(AbstractClass* pTarget) RX;
-	virtual bool MoveTo(const CoordStruct& where, const BulletVelocity& velocity) R0;
+	virtual bool MoveTo(const CoordStruct& nwhere, const VelocityClass& velocity) R0;
 
 	// non-virtual
 	// after CoCreateInstance creates a bullet, this configures it
-	void Construct(
+	void Construct (
 		BulletTypeClass* pType,
 		AbstractClass* pTarget,
 		TechnoClass* pOwner,
 		int damage,
 		WarheadTypeClass* pWarhead,
 		int speed,
-		bool bright)
+		bool bright) const
 		{ JMP_THIS(0x4664C0); }
 
 	// calls Detonate with the appropriate coords
-	void Explode(bool destroy = false)
+	void Explode(bool destroy = false) const
 		{ JMP_THIS(0x468D80); }
 
 	// detonate the bullet at specific coords
-	void Detonate(const CoordStruct& coords)
+	void Detonate(const CoordStruct& coords) const
 		{ JMP_THIS(0x4690B0); }
 
 	// spawns off the proper amount of shrapnel projectiles
-	void Shrapnel()
+	void Shrapnel() const
 		{ JMP_THIS(0x46A310); }
 
-	static void ApplyRadiationToCell(CellStruct cell, int radius, int amount)
+	static void ApplyRadiationToCell(const CellStruct& cell, int radius, int amount)
 		{ JMP_STD(0x46ADE0); }
 
 	// this bullet will miss and hit the ground instead.
 	// if the original target is in air, it will disappear.
-	void LoseTarget()
+	void LoseTarget() const
 		{ JMP_THIS(0x468430); }
 
 	bool IsHoming() const
@@ -92,7 +97,7 @@ public:
 	void SetWeaponType(WeaponTypeClass *weapon)
 		{ this->WeaponType = weapon; }
 
-	WeaponTypeClass * GetWeaponType() const
+	WeaponTypeClass* GetWeaponType() const
 		{ return this->WeaponType; }
 
 	// only called in UnitClass::Fire if Type->Scalable
@@ -103,18 +108,14 @@ public:
 	void NukeMaker()
 		{ JMP_THIS(0x46B310); }
 
-    //4E11F0
-    BulletDataResult* __thiscall BulletStateCheck(BulletData* pData, CoordStruct* Destination)
-    	{ JMP_STD(0x4E11F0);}
-
     //468BB0
-    bool IsForceToExplode(CoordStruct&loc)
+    bool IsForceToExplode(const CoordStruct& loc)
   	    {JMP_THIS(0x468BB0);}
 
-	static int __fastcall ProjectileMotion(
-		CoordStruct* pCoord,
-		BulletVelocity* pVel,
-		CoordStruct* pSecondCoord,
+	static DirStruct __fastcall ProjectileMotion(
+		const CoordStruct& pCoord,
+		VelocityClass* pVel,
+		const CoordStruct& pSecondCoord,
 		DirStruct* pDir,
 		bool bInAir,
 		bool bAirburs,
@@ -155,10 +156,10 @@ public:
 	BulletData Data;
 	bool Bright;
 	DWORD unknown_E4;
-	BulletVelocity Velocity;
+	VelocityClass Velocity;
 	DWORD unknown_100;
-	bool unknown_104;
-	DWORD unknown_108;
+	bool __CourseLocked;
+	int __CourseLockedDuration;
 	AbstractClass* Target;
 	int Speed;
 	int InheritedColor;

@@ -29,7 +29,7 @@ public:
 			, MinimapColor {}
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}

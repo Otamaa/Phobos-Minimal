@@ -186,6 +186,9 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->SnappedToTarget)
 		.Process(this->BrightCheckDone)
 		.Process(this->Owner)
+		.Process(this->Bouncing)
+		.Process(this->LastObject)
+		.Process(this->BounceAmount)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
 #endif
@@ -242,6 +245,10 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
+
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }

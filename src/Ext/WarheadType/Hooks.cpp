@@ -373,7 +373,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 						auto const cos_factor = -2.44921270764e-16;
 						auto const flatSpeed = cos_factor * pBullet->Speed;
 
-						BulletVelocity velocity;
+						VelocityClass velocity;
 						velocity.X = cos_rad * flatSpeed;
 						velocity.Y = sin_rad * flatSpeed;
 						velocity.Z = -pBullet->Speed;

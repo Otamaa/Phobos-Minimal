@@ -532,6 +532,10 @@ public:
 	bool CanMoveHere(const CellStruct& position, int arg4, int a3, SpeedType SpeedType, int zone, MovementZone MovementZone, int level, bool bool1, char a9)
 		{ JMP_THIS(0x56E7C0); }
 
+	bool IsValid(CoordStruct const& nCoord) const {
+		JMP_THIS(0x568350);
+	}
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

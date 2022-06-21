@@ -47,7 +47,7 @@ public:
 			, FailedCounter { -1 }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)

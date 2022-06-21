@@ -12,6 +12,8 @@ public:
 		, Height { 0.0 }
 	{ }
 
+	virtual ~BombardTrajectoryType() override = default;
+
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
@@ -37,6 +39,8 @@ public:
 		, Height { 0.0 }
 	{}
 
+	virtual ~BombardTrajectory() override = default;
+
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
@@ -50,10 +54,10 @@ public:
 		return static_cast<BombardTrajectoryType*>(Type);
 	}
 
-	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, BulletVelocity* pVelocity) override;
+	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, VelocityClass* pVelocity) override;
 	virtual bool OnAI(BulletClass* pBullet) override;
 	virtual void OnAIPreDetonate(BulletClass* pBullet) override;
-	virtual void OnAIVelocity(BulletClass* pBullet,BulletVelocity* pSpeed, BulletVelocity* pPosition) override;
+	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet,CoordStruct coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) override;
 

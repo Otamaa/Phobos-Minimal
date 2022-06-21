@@ -40,6 +40,7 @@ public:
 
 	virtual void Read(CCINIClass* const pINI, const char* pSection) = 0;
 
+	virtual ~PhobosTrajectoryType() = default;
 	static void CreateType(PhobosTrajectoryType*& pType, CCINIClass* const pINI, const char* pSection, const char* pKey);
 
 	static PhobosTrajectoryType* LoadFromStream(PhobosStreamReader& Stm);
@@ -79,19 +80,23 @@ public:
 		, DetonationDistance { 0 }
 	{ }
 
+	virtual ~PhobosTrajectory() {
+		Type = nullptr;
+	};
+
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
 	virtual bool Save(PhobosStreamWriter& Stm) const { return true; };
 
-	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, BulletVelocity* pVelocity) = 0;
+	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, VelocityClass* pVelocity) = 0;
 	virtual bool OnAI(BulletClass* pBullet) = 0;
 	virtual void OnAIPreDetonate(BulletClass* pBullet) = 0;
-	virtual void OnAIVelocity(BulletClass* pBullet,BulletVelocity* pSpeed, BulletVelocity* pPosition) = 0;
+	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet,CoordStruct coords) = 0;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) = 0;
 
 	double GetTrajectorySpeed(BulletClass* pBullet) const;
 
-	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity);
+	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
 
 	static PhobosTrajectory* LoadFromStream(PhobosStreamReader& Stm);
 	static void WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);

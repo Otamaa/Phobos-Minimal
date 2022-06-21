@@ -98,7 +98,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
 	if ((!pBulletExt->LaserTrails.empty()))
 	{
 		CoordStruct location = pThis->GetCoords();
-		const BulletVelocity& velocity = pThis->Velocity;
+		const VelocityClass& velocity = pThis->Velocity;
 
 		// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
 		// Pretty meh solution but works until we fix the bug - Kerbiter

@@ -52,9 +52,12 @@ public:
 		Valueable<bool> Splits_RandomCellUseHarcodedRange;
 
 		//
-		//int BounceAmount;
-		//WeaponTypeClass* BounceHitWeapon;
-		//bool BounceOnTerrain;
+		Valueable<int> BounceAmount;
+		Valueable<WeaponTypeClass*> BounceHitWeapon;
+		Valueable<bool> BounceOnTerrain;
+		Valueable<bool> BounceOnBuilding;
+		Valueable<bool> BounceOnInfantry;
+		Valueable<bool> BounceOnVehicle;
 		//
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
@@ -89,16 +92,18 @@ public:
 			, AirburstWeapons { }
 			, Splits_Range { 1280.0 }
 			, Splits_RandomCellUseHarcodedRange { true }
-			//, BounceHitWeapon { nullptr }
-			//, BounceAmount { 10 }
-			//, BounceOnTerrain { true }
+
+			, BounceAmount { 0 }
+			, BounceHitWeapon { nullptr }
+			, BounceOnTerrain { true }
+			, BounceOnBuilding { false }
+			, BounceOnInfantry { false }
+			, BounceOnVehicle { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
 			, TrajectoryType { nullptr }
-		{
-			//BounceHitWeapon = WeaponTypeClass::FindOrAllocate("AcidSprayE");
-		}
+		{ }
 
 		virtual ~ExtData() = default;
 		virtual size_t Size() const { return sizeof(*this); }

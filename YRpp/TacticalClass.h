@@ -134,6 +134,8 @@ public:
 		JMP_THIS(0x6D62E0);
 	}
 
+	int GetRamp(CoordStruct* pCoord) const { JMP_THIS(0x6D6AD0); }
+
 public:
 
 	wchar_t ScreenText[64];

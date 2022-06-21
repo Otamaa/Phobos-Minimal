@@ -124,8 +124,7 @@ public:
 #endif;
 		{ }
 
-		virtual ~ExtData() { Uninitialize(); };
-
+		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();

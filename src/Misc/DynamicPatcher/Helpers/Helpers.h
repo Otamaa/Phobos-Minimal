@@ -377,7 +377,7 @@ public:
 		return Vector3D<float>::Empty;
 	}
 
-	static BulletVelocity GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos)
+	static VelocityClass GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos)
 	{
 		CoordStruct bulletFLH { 1, 0, 0 };
 		DirStruct bulletDir = Point2Dir(sourcePos, targetPos);
@@ -589,8 +589,8 @@ public:
 	}
 
 	static void DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos ,TechnoClass* pOwner , AbstractClass* pTarget);
-	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, BulletVelocity& bulletVelocity);
-	static BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, BulletVelocity& bulletVelocity);
+	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
+	static BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
 
 	static TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell = nullptr)
 	{

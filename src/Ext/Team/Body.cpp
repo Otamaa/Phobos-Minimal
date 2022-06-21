@@ -79,7 +79,9 @@ DEFINE_HOOK(0x6E8EC6, TeamClass_DTOR, 0x9)
 {
 	GET(TeamClass*, pThis, ESI);
 
-	//TeamExt::ExtMap.Remove(pThis);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
+		pExt->Uninitialize();
+
 	ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
 	return 0;
 }

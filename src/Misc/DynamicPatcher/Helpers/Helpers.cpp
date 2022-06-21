@@ -46,7 +46,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 	for (int i = 0; i < burst; i++)
 	{
-		BulletVelocity bulletVelocity = BulletVelocity::Empty;
+		VelocityClass bulletVelocity = VelocityClass { 0.0 , 0.0 , 0.0 };
 		if (radialFire) {
 			flipY = (i < burst / 2.0f) ? -1 : 1;
 			bulletVelocity = radialFireHelper.GetBulletVelocity(i);
@@ -76,7 +76,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 	}
 }
 
-BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, BulletVelocity& bulletVelocity)
+BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
 	if (!pTarget)
 		return nullptr;
@@ -94,7 +94,7 @@ BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTa
 	return pBullet;
 }
 
-BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, BulletVelocity& bulletVelocity)
+BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
 	double fireMult = 1;
 

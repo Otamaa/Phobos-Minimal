@@ -136,7 +136,7 @@ bool PhobosTrajectory::SaveBase(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, BulletVelocity* pVelocity)
+PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
 {
 	PhobosTrajectory* pRet = nullptr;
 
@@ -243,8 +243,8 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 {
 	GET(BulletClass*, pThis, EBP);
-	LEA_STACK(BulletVelocity*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
-	LEA_STACK(BulletVelocity*, pPosition, STACK_OFFS(0x1AC, 0x144));
+	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
+	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
 	if(auto const pExt = BulletExt::GetExtData(pThis))
 		if (auto pTraj = pExt->Trajectory)
@@ -314,7 +314,7 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 {
 	GET(BulletClass*, pThis, EBX);
 	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
-	GET_STACK(BulletVelocity*, pVelocity, STACK_OFFS(0x54, -0x8));
+	GET_STACK(VelocityClass*, pVelocity, STACK_OFFS(0x54, -0x8));
 
 	auto const pData = BulletTypeExt::ExtMap.Find(pThis->Type);
 	auto const pExt = BulletExt::GetExtData(pThis);

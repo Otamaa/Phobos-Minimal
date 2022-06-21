@@ -9,20 +9,16 @@ namespace Utils
 	void DetonateBullet(WeaponTypeClass* pWeapon, BulletClass* pFrom, CoordStruct const& nCoord)
 	{
 		CoordStruct coords = nCoord;
-
-		 coords.Y = 0; // Wtf ?
-
 		auto payback = pFrom->Owner;
-		if (!generic_cast<TechnoClass*>(pFrom->Owner))
-		{
+
+		if (!generic_cast<TechnoClass*>(pFrom->Owner)) {
 			payback = nullptr;
 		}
 
 		if (auto v9 = pWeapon->Projectile->CreateBullet(pFrom->GetCell(), payback, pWeapon->Damage, pWeapon->Warhead, 0, pWeapon->Bright))
 		{
 			v9->WeaponType = pWeapon;
-			if (pWeapon->Projectile->ShrapnelWeapon)
-			{
+			if (pWeapon->Projectile->ShrapnelWeapon) {
 				v9->SetLocation(coords);
 			}
 
@@ -39,34 +35,80 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x164));
 	GET(bool, bForceDetonate, EBX);
 
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = BulletExt::GetExtData(pThis);
+	auto pTypeExt = pExt->TypeExt;
 
 	if (pTypeExt->BounceAmount)
 	{
-		auto pExt = BulletExt::GetExtData(pThis);
 		//auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
 
 		auto pCell = Map.GetCellAt(nCoord);
 		bool bAlt = (static_cast<unsigned int>(pCell->Flags) >> 8) & 1;
 		//Point2D Offs = { static_cast<short>(nCoord.X / 256),static_cast<short>(nCoord.Y / 256) };
-		auto pObj = pCell->GetSomeObject({0,0}, bAlt);
-
-		if (!pObj || pObj == pExt->LastObject)
+		auto pObj = pCell->GetSomeObject({ nCoord.X,nCoord.Y }, bAlt);
+		if (!pObj)
 		{
-			if (!bForceDetonate || (pExt->Bouncing && --pExt->BounceAmount <= 0))
+			if (pObj == pExt->LastObject)
 			{
+				if (!bForceDetonate || (pExt->Bouncing && --pExt->BounceAmount <= 0))
+				{
+					R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
+					return 0;
+				}
+			}
+
+			pExt->LastObject = pObj;
+			if (pObj->WhatAmI() == AbstractType::Building)
+			{
+				auto pBldCell = pObj->GetCell();
+				auto pBldCoord = pBldCell->GetCoords();
+
+				if (pBldCoord.Y < nCoord.Y)
+				{
+					pThis->Velocity.Y = -pThis->Velocity.Y;
+				}
+				else
+				{
+					pThis->Velocity.X = -pThis->Velocity.X;
+				}
+
+				if (auto pWeapon = pTypeExt->BounceHitWeapon)
+				{
+					Utils::DetonateBullet(pWeapon, pThis, nCoord);
+				}
+
+				pThis->Velocity *= pThis->Type->Elasticity;
+
+				if (!pExt->Bouncing)
+				{
+					pExt->BounceAmount = pTypeExt->BounceAmount;
+					pExt->Bouncing = true;
+					R->EBX(false);
+					return 0x467C0C;
+				}
+
+				if (pExt->BounceAmount)
+				{
+					R->EBX(false);
+					return 4619276;
+				}
+
 				R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
 				return 0;
 			}
-		}
 
-		pExt->LastObject = pObj;
-		if (pObj->WhatAmI() == AbstractType::Building)
-		{
-			auto pBldCell = pObj->GetCell();
-			auto pBldCoord = pBldCell->GetCoords();
+			if ((!pTypeExt->BounceOnTerrain && pObj->WhatAmI() == AbstractType::Terrain)
+				|| nCoord.DistanceFrom(pObj->Location) >= 128.0
+				)
+			{
+				if (!bForceDetonate || (pExt->Bouncing && --pExt->BounceAmount <= 0))
+				{
+					R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
+					return 0;
+				}
+			}
 
-			if (pBldCoord.Y < nCoord.Y)
+			if (pObj->Location.Y < nCoord.Y)
 			{
 				pThis->Velocity.Y = -pThis->Velocity.Y;
 			}
@@ -80,7 +122,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 				Utils::DetonateBullet(pWeapon, pThis, nCoord);
 			}
 
-			pThis->Velocity *= pThis->Type->Elasticity;
+			pThis->Velocity = (pThis->Velocity * pThis->Type->Elasticity);
 
 			if (!pExt->Bouncing)
 			{
@@ -98,52 +140,8 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 
 			R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
 			return 0;
+
 		}
-
-		if ((!pTypeExt->BounceOnTerrain && pObj->WhatAmI() == AbstractType::Terrain)
-			|| nCoord.DistanceFrom(pObj->Location) >= 128.0
-			)
-		{
-			if (!bForceDetonate || (pExt->Bouncing && --pExt->BounceAmount <= 0))
-			{
-				R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
-				return 0;
-			}
-		}
-
-		if (pObj->Location.Y < nCoord.Y)
-		{
-			pThis->Velocity.Y = -pThis->Velocity.Y;
-		}
-		else
-		{
-			pThis->Velocity.X = -pThis->Velocity.X;
-		}
-
-		if (auto pWeapon = pTypeExt->BounceHitWeapon)
-		{
-			Utils::DetonateBullet(pWeapon, pThis, nCoord);
-		}
-
-		pThis->Velocity *= pThis->Type->Elasticity;
-
-		if (!pExt->Bouncing)
-		{
-			pExt->BounceAmount = pTypeExt->BounceAmount;
-			pExt->Bouncing = true;
-			R->EBX(false);
-			return 0x467C0C;
-		}
-
-		if (pExt->BounceAmount)
-		{
-			R->EBX(false);
-			return 4619276;
-		}
-
-		R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);
-		return 0;
-
 	}
 
 	return 0;
@@ -151,9 +149,9 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 
 DEFINE_HOOK(0x467609, BulletClass_Update_CheckBounce, 0x6)
 {
-	GET(BulletClass* ,pThis, EBP);
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	return pTypeExt->BounceAmount ? 0x467615 : 0x46777A;
+	GET(BulletClass*, pThis, EBP);
+	auto pExt = BulletExt::GetExtData(pThis);
+	return pExt->TypeExt->BounceAmount ? 0x467615 : 0x46777A;
 }
 
 DEFINE_HOOK(0x4679CA, BulletClass_Update_CheckDistToObject, 0x5)
@@ -167,23 +165,30 @@ DEFINE_HOOK(0x46794B, BulletClass_Update_CheckNearbyTechno, 0x6)
 	GET(BulletClass*, pThis, EBP);
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoClass*, pFirer, EAX);
-	//auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	// check bounce properties
-	// if Bounce.Times
-	// Bounce.Ally , Bounce.Inf , Bounce.Unit
+
+	auto pExt = BulletExt::GetExtData(pThis);
+
+	if (pExt->TypeExt->BounceAmount)
+	{
+		if (pTarget->WhatAmI() == AbstractType::Infantry)
+			R->AL(pExt->TypeExt->BounceOnInfantry);
+		else if (pTarget->WhatAmI() == AbstractType::Unit)
+			R->AL(pExt->TypeExt->BounceOnVehicle);
+		return 0x467957;
+	}
+
 	R->AL(pFirer->Owner->IsAlliedWith(pTarget));
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	if (pTypeExt->BounceAmount)
-		R->AL(true);
 	return 0x467957;
 }
 
 DEFINE_HOOK(0x46786C, BulletClass_Update_ContactTarget, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
-	GET(int, nDistance, EAX);
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	return pTypeExt->BounceAmount || nDistance >= 208 ? 0x467890 : 0x467879;
+	GET(int, nHeight, EAX);
+
+	auto pExt = BulletExt::GetExtData(pThis);
+
+	return (pExt->TypeExt->BounceAmount) || nHeight >= 208 ? 0x467890 : 0x467879;
 }
 
 DEFINE_HOOK(0x4678DC, BulletClass_Update_CrossingBuilding, 0x7)
@@ -192,28 +197,24 @@ DEFINE_HOOK(0x4678DC, BulletClass_Update_CrossingBuilding, 0x7)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoClass*, pExTechno, EAX);
 
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = BulletExt::GetExtData(pThis);
+	auto pTypeExt = pExt->TypeExt;
 
 	if (pTarget == pThis->Owner)
 		return 0x4678F8;
 
 	if (!pTypeExt->BounceAmount)
 		return pTarget == pExTechno && pThis->GetHeight() < 208 ? 0x467879 : 0x4678F8;
-
-	/*
-	const bool HasOwner = pThis->Owner && pThis->Owner->GetOwningHouse()->IsAlliedWith(pTarget);
-	if (Ext->Bounce_On_bld || HasOwner && Ext->Bounce_Ally) {
-		return 0x4678F8;
-	}*/
-
-	return 0x467879;
+	else
+		return pTypeExt->BounceOnBuilding ? 0x4678F8:0x467879;
 }
 
 DEFINE_HOOK(0x46779B, BulletClass_Update_DetonateNow, 0x8)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto pExt = BulletExt::GetExtData(pThis);
+	auto pTypeExt = pExt->TypeExt;
 
 	if (!pTypeExt->BounceAmount)
 	{
@@ -221,8 +222,6 @@ DEFINE_HOOK(0x46779B, BulletClass_Update_DetonateNow, 0x8)
 		R->Stack(0x18, true);
 		return 0x4677A8;
 	}
-
-	auto pExt = BulletExt::GetExtData(pThis);
 
 	if (pExt->Bouncing)
 	{
@@ -245,10 +244,9 @@ DEFINE_HOOK(0x46779B, BulletClass_Update_DetonateNow, 0x8)
 
 	CoordStruct nCoord = { nX , nY , nZ };
 
-	auto pCell = Map.TryGetCellAt(nCoord);
+	auto pCell = Map.GetCellAt(nCoord);
 	bool bAlt = (static_cast<unsigned int>(pCell->Flags) >> 8) & 1;
-	//Point2D nPoint = { static_cast<short>(nX / 256),static_cast<short>(nY / 256) };
-	auto nObj = pCell->GetSomeObject({0,0}, bAlt);
+	auto nObj = pCell->GetSomeObject({ nX,nY }, bAlt);
 
 	if (!nObj || nObj != pThis->Target)
 	{

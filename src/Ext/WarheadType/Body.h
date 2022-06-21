@@ -267,7 +267,6 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, PaintBallDuration { -1 }
 			, PaintBallData { }
-
 #endif
 		{ }
 

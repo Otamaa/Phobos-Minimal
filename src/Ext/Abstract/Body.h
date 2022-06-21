@@ -18,7 +18,7 @@ class IExtension
 public:
 
 	IExtension() = default;
-	virtual ~IExtension() { Uninitialize(); }
+	virtual ~IExtension() = default;
 
 	virtual size_t GetSize() const = 0;
 
@@ -36,7 +36,7 @@ public:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
 	// called after the Extension Constructed
 	virtual void InitializeConstants() {}
-	virtual void Uninitialize() {}
+	virtual void Uninitialize() { }
 
 #define FAIL_CHECK(hr) if(FAILED(hr)) return hr;
 };
@@ -83,6 +83,7 @@ public:
 			this->LoadFromINIFile(pINI);
 		}
 	}
+
 
 protected:
 

@@ -63,7 +63,7 @@ public:
 	static std::array<const TileTypeData, 21> TileArray;
 
 	//Using typedef resulting on dll address wtf , so this weird code
-	inline bool TileIs(TileType tileType) const
+	bool TileIs(TileType tileType) const
 	{
 		if(tileType == TileType::Unk || ((int)tileType >= 21))
 			return false;
@@ -99,7 +99,7 @@ public:
 	 * if that fails too, reiterates Content looking for Terrain
 	 */
 	ObjectClass* GetSomeObject(Point2D const& offsetPixel, bool alt) const {
-		return reinterpret_cast<ObjectClass*(*)(const CellClass*, Point2D const&, bool)>(0x47C5A0)(this, offsetPixel, alt);
+		JMP_THIS(0x47C5A0);
 	}
 
 	// misc
