@@ -47,6 +47,48 @@ public:
 		}
 	}
 
+	static inline std::pair<bool, double> Str2ArmorCheck(const char* buf, WarheadFlags* whFlags) {
+		if (!buf) { return { false ,0.0 }; }
+
+		if (strchr(buf, '%')) {
+
+			if (strlen(buf) == 2) {
+				switch (*buf) {
+				case '0': {
+					whFlags->ForceFire = false;
+					whFlags->Retaliate = false;
+					whFlags->PassiveAcquire = false;
+				}
+				break;
+				case '1': {
+					whFlags->ForceFire = true;
+					whFlags->Retaliate = false;
+					whFlags->PassiveAcquire = false;
+				}
+				break;
+				case '2':{
+					whFlags->ForceFire = true;
+					whFlags->Retaliate = true;
+					whFlags->PassiveAcquire = false;
+					break;
+				}
+				}
+			}
+			else {
+
+				whFlags->ForceFire = true;
+				whFlags->Retaliate = true;
+				whFlags->PassiveAcquire = true;
+			}
+
+			return { true , atoi(buf) * 0.01 };
+		}
+		else {
+			return { false ,  0.0};
+		}
+	}
+
+
 	// narrow_cast(): a searchable way to do narrowing casts of values
 	template <class T, class U>
 	static T narrow_cast(U&& u) noexcept

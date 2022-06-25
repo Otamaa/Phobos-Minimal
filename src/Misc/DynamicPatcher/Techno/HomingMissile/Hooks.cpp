@@ -28,7 +28,7 @@ DEFINE_HOOK(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
 {
 	GET(TechnoClass*, pRocket, ESI);
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pRocket->GetTechnoType())) {
+	if (auto pExt = TechnoTypeExt::GetExtData(pRocket->GetTechnoType())) {
 		if (pExt->MissileHoming.Get()) {
 			R->EAX(R->ECX());
 			return 0x54E475;
@@ -42,7 +42,7 @@ DEFINE_HOOK(0x6622C0, RocketLocomotionClass_Process, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
+	if (auto pExt = TechnoTypeExt::GetExtData(pFoot->GetTechnoType())) {
 		if (pExt->MissileHoming.Get()) {
 			auto pLocomotor = static_cast<RocketLocomotionClass*>(pFoot->Locomotor.get());
 			if (pLocomotor->MissionState == 0)
@@ -64,7 +64,7 @@ DEFINE_HOOK(0x662CAC, RocketLocomotionClass_Process_Step5_To_Lazy_4, 0x6)
 	//It is an offset to ILocomotion pointer -AlexB
 	if (const auto pLoco = static_cast<RocketLocomotionClass*>(pILoco)) {
 		if (auto pResult = pLoco->LinkedTo) {
-			if (auto pExt = TechnoTypeExt::ExtMap.Find(pResult->GetTechnoType())) {
+			if (auto pExt = TechnoTypeExt::GetExtData(pResult->GetTechnoType())) {
 				if (pExt->MissileHoming.Get())
 					return 0x662A32;
 			}

@@ -28,7 +28,7 @@ DEFINE_HOOK(0x62A71C, ParasiteClass_ExitUnit_ExitSound, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x3C, 0x18));
 
 	if (pParasiteOwner)
-		if (auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType()))
+		if (auto pOwnerTypeExt = TechnoTypeExt::GetExtData(pParasiteOwner->GetTechnoType()))
 			VoxClass::PlayAtPos(pOwnerTypeExt->ParasiteExit_Sound.Get(), &nCoord);
 
 	return 0;
@@ -51,9 +51,9 @@ DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x7)
 				if (auto pAnim = GameCreate<AnimClass>(pSplashType, *pCoord))
 				{
 					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : pThis->GetOwningHouse();
-					AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, false);
-					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = pThis->Owner;
+					if (AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, false))
+						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+							pAnimExt->Invoker = pThis->Owner;
 
 					return Handled;
 				}

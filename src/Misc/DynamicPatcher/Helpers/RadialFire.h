@@ -42,7 +42,8 @@ struct RadialFireHelper
 
 		double angle = Degrees + Delta * (index + 1);
 		DirStruct targetDir = DirStruct(Math::deg2rad(angle));
-		Matrix3D matrix3D = Matrix3D(true);
+		Matrix3D matrix3D = Matrix3D { };
+		matrix3D.MakeIdentity();
 		matrix3D.RotateZ(static_cast<float>(targetDir.radians()));
 		matrix3D.Translate(1, 0, 0);
 		auto offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);

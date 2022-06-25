@@ -62,29 +62,33 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 
 			auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
 
-			if (RadSiteExt::Array.Size() > 0) {
-				auto const it = std::find_if(RadSiteExt::Array.begin(), RadSiteExt::Array.end(),
-					[=](RadSiteExt::ExtData* const pSite) {
+			if (RadSiteClass::Array_Constant->Count > 0) {
+				auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+					[=](RadSiteClass* const pSite) {
 
-						if (pSite->Type != pDefault)
-							return false;
+						auto pSiteExt = RadSiteExt::GetExtData(pSite);
 
-						if (pSite->OwnerObject()->BaseCell != location)
-							return false;
+						{
+							if (pSiteExt->Type != pDefault)
+								return false;
 
-						if (spread != pSite->OwnerObject()->Spread)
-							return false;
+							if (pSite->BaseCell != location)
+								return false;
 
-						if (pThis->WeaponType != pSite->Weapon)
-							return false;
+							if (spread != pSite->Spread)
+								return false;
+
+							if (pThis->WeaponType != pSiteExt->Weapon)
+								return false;
+						}
 
 						return true;
 					});
 
-				if (it != RadSiteExt::Array.end()) {
+				if (it != RadSiteClass::Array_Constant->end()) {
 					auto nAmount = amount;
-					if ((*it)->OwnerObject()->GetRadLevel() + amount >= pDefault->GetLevelMax()) {
-						nAmount = pDefault->GetLevelMax() - (*it)->OwnerObject()->GetRadLevel();
+					if ((*it)->GetRadLevel() + amount >= pDefault->GetLevelMax()) {
+						nAmount = pDefault->GetLevelMax() - (*it)->GetRadLevel();
 					}
 
 					(*it)->Add(nAmount);
@@ -116,31 +120,33 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 				auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 				auto currentCoord = pThis->GetMapCoords();
 
-				if (RadSiteExt::Array.Count > 0) {
-					auto const it = std::find_if(RadSiteExt::Array.begin(), RadSiteExt::Array.end(),
-						[=](RadSiteExt::ExtData* const pSite) {
+			if (RadSiteClass::Array_Constant->Count > 0) {
+				auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+					[=](RadSiteClass* const pSite) {
+						auto pSiteExt = RadSiteExt::GetExtData(pSite);
 
-							if (pSite->Type != pWeaponExt->RadType)
-								return false;
+						if (pSiteExt->Type != pWeaponExt->RadType)
+							return false;
 
-							if (pSite->OwnerObject()->BaseCell != currentCoord)
-								return false;
+						if (pSite->BaseCell != currentCoord)
+							return false;
 
-							if (Game::F2I(pWeapon->Warhead->CellSpread) != pSite->OwnerObject()->Spread)
-								return false;
+						if (Game::F2I(pWeapon->Warhead->CellSpread) != pSite->Spread)
+							return false;
 
-							if (pWeapon != pSite->Weapon)
-								return false;
+						if (pWeapon != pSiteExt->Weapon)
+							return false;
 
-							if (!pSite->TechOwner)
-								return false;
+						if (pSiteExt->TechOwner)
+							return pSiteExt->TechOwner == pThis;
 
-							return pSite->TechOwner == pThis;
+						return true ;
 
 					});
 
-					if (it != RadSiteExt::Array.end()) {
-						radLevel = Game::F2I((*it)->GetRadLevelAt(currentCoord));
+					if (it != RadSiteClass::Array_Constant->end()) {
+						auto pSiteExt = RadSiteExt::GetExtData((*it));
+						radLevel = Game::F2I(pSiteExt->GetRadLevelAt(currentCoord));
 					}
 				}
 
@@ -203,9 +209,10 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 			auto nCellStruct = buildingCoords + *pFoundation;
 			auto nCurrentCoord = Map[nCellStruct]->GetCoords();
 
-			for (const auto& pRadExt : RadSiteExt::Array)
+			for (const auto pRad : *RadSiteClass::Array_Constant)
 			{
-				RadSiteClass* pRadSite = pRadExt->OwnerObject();
+				RadSiteExt::ExtData* pRadExt = RadSiteExt::GetExtData(pRad);
+				RadSiteClass* pRadSite = pRad;
 				RadTypeClass* pType = pRadExt->Type;
 
 				// Check the distance, if not in range, just skip this one
@@ -266,13 +273,15 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 			auto CurrentCoord = pFoot->GetCoords();
 
 			// Loop for each different radiation stored in the RadSites container
-			for (const auto& pRadExt : RadSiteExt::Array)
+			for (const auto pRad : *RadSiteClass::Array_Constant)
 			{
+				RadSiteExt::ExtData* pRadExt = RadSiteExt::GetExtData(pRad);
+
 				if (auto pUnit = specific_cast<UnitClass*>(pFoot))
 					if (pUnit->DeathFrameCounter > 0)
 						break;
 
-				RadSiteClass* pRadSite = pRadExt->OwnerObject();
+				RadSiteClass* pRadSite = pRad;
 
 				// Check the distance, if not in range, just skip this one
 				double orDistance = Map[pRadSite->BaseCell]->GetCoords().DistanceFrom(CurrentCoord);
@@ -304,6 +313,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 						break; //dont continue , meaningless
 				}
 			}
+
 			return pFoot->IsAlive ? CheckOtherState : SkipEverything;
 		}
 	}
@@ -312,7 +322,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 
 #define GET_RADSITE(reg, value)\
 	GET(RadSiteClass* const, pThis, reg);\
-	auto pExt = RadSiteExt::ExtMap.Find(pThis);\
+	auto pExt = RadSiteExt::GetExtData(pThis);\
 	auto output = pExt->Type->## value ##;
 
 DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)

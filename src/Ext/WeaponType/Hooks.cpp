@@ -62,8 +62,8 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord))
 					{
 						pAnim->ZAdjust = pTarget->GetZAdjustment() - 3;
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
-							, pTarget->GetOwningHouse(), false);
+						if (AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
+							, pTarget->GetOwningHouse(), false))
 						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
 							pAnimExt->Invoker = pThis->Owner;
 					}

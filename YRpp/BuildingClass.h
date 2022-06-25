@@ -280,7 +280,10 @@ public:
 
 	int GetRadiuses_4566B0() const { JMP_THIS(0x4566B0); }
 
-	//Constructor
+	InfantryTypeClass* GetBuildingCrewType() const {//this was virtual , but , wahtever
+		JMP_THIS(0x44EB10);
+	}
+										 //Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())
 	{ JMP_THIS(0x43B740); }

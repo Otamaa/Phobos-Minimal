@@ -110,7 +110,7 @@ DEFINE_HOOK(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
 		{
 			if (!pThis->Locomotor.get()->Is_Moving_Now())
 			{
-				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+				auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
 				auto pExt = TechnoExt::GetExtData(pThis);
 
 				if (auto pTarget = pThis->Target)

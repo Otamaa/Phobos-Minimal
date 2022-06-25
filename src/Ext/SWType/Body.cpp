@@ -83,7 +83,7 @@ bool SWTypeExt::IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOw
 	if (IsInhibitor(pSWType, pOwner, pTechno))
 	{
 		const auto pType = pTechno->GetTechnoType();
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pExt = TechnoTypeExt::GetExtData(pType);
 
 		// get the inhibitor's center
 		auto center = pTechno->GetCoords();

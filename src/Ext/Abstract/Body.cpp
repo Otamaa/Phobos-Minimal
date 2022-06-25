@@ -64,27 +64,6 @@ DEFINE_HOOK(0x41020B, AbsractClass_DTOR, 0x5)
 	return 0;
 }
 
-/*
-DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x0)
-{
-	constexpr static unsigned char ret_bytes[] =
-	{
-		0x51,                           // push    ecx
-		0x8B, 0xCF,                     // mov     ecx, edi
-		0xE8, 0x72, 0x18, 0x09, 0x00,   // call    CRCEngine::operator bool
-		0x5F,                           // pop     edi
-		0x5E,                           // pop     esi
-		0xC2, 0x04, 0x00                // retn    4
-	};
-
-	GET(AbstractClass*, pThis, ESI);
-
-	R->ECX(ExtensionWrapper::GetWrapper(pThis)->IsDirty());
-
-	return (int)ret_bytes;
-}
-*/
-
 DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x4)
 {
 	class WWCRCEngine {

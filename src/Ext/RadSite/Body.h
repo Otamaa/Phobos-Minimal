@@ -3,7 +3,7 @@
 #include <RadSiteClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/WeaponType/Body.h>
@@ -15,7 +15,7 @@ class RadSiteExt
 public:
 	using base_type = RadSiteClass;
 
-	class ExtData final : public Extension<RadSiteClass>
+	class ExtData final : public TExtension<base_type>
 	{
 	public:
 		WeaponTypeClass* Weapon;
@@ -24,7 +24,7 @@ public:
 		TechnoClass* TechOwner;
 		bool NoOwner;
 
-		ExtData(RadSiteClass* OwnerObject) : Extension<RadSiteClass>(OwnerObject)
+		ExtData(base_type* OwnerObject) : TExtension<base_type>(OwnerObject)
 			, RadHouse { nullptr }
 			, Type { nullptr }
 			, Weapon { nullptr }
@@ -33,18 +33,30 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); }
+		virtual size_t GetSize() const override { return sizeof(*this); }
+
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) {
-			AnnounceInvalidPointer(RadHouse, ptr);
-			AnnounceInvalidPointer(TechOwner, ptr);
+
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::House:
+			case AbstractType::Building:
+			case AbstractType::Aircraft:
+			case AbstractType::Unit:
+			case AbstractType::Infantry:
+			{
+				AnnounceInvalidPointer(RadHouse, ptr);
+				AnnounceInvalidPointer(TechOwner, ptr);
+			}break;
+			}
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override {
-			RadSiteExt::Array.Remove(this);
-		}
+		virtual void Uninitialize() override { }
+
 		void CreateLight();
 		void Add(int amount);
 		void SetRadLevel(int amount);
@@ -55,31 +67,19 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static DynamicVectorClass<RadSiteExt::ExtData*> Array;
+	__declspec(noinline) static RadSiteExt::ExtData* GetExtData(base_type* pThis)
+	{
+		return pThis && pThis->WhatAmI() == AbstractType::RadSite ? reinterpret_cast<RadSiteExt::ExtData*>
+			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
+	}
 
 	static void CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
-	class ExtContainer final : public Container<RadSiteExt>
+	class ExtContainer final : public TExtensionContainer<RadSiteExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::House:
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry:
-				return false;
-			default:
-				return true;
-			}
-		}
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};

@@ -114,6 +114,7 @@
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\PNGFile.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
+    <ClCompile Include="src\Misc\UnitTrackerClass.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
     <ClCompile Include="src\New\Entity\FlyingStrings.cpp" />
     <ClCompile Include="src\New\Entity\LauchSWData.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\PNGFile.h" />
+    <ClInclude Include="src\Misc\UnitTrackerClass.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />

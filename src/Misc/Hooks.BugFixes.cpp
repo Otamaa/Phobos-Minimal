@@ -192,7 +192,8 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 				{
 					if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
 						&nCoords, pThis->Owner))
-						VoxelAnimExt::Invokers[pVoxAnim] = pThis;
+						if(auto pVoxExt = VoxelAnimExt::GetExtData(pVoxAnim))
+							pVoxExt->Invoker = pThis;
 				}
 
 				if (totalSpawnAmount <= 0)

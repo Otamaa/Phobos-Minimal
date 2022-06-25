@@ -42,7 +42,7 @@ int WarheadTypeExt::ExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeCl
 	return transferred;
 }
 
-static int TransactGetValue_F(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget)
+int WarheadTypeExt::ExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget)
 {
 	int flatValue = 0, percentValue = 0;
 
@@ -61,19 +61,18 @@ static int TransactGetValue_F(TechnoClass* pTarget, TechnoClass* pOwner, int fla
 	return abs(percentValue) > abs(flatValue) ? percentValue : flatValue;
 }
 
-std::vector<std::vector<int>> WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
+std::pair<std::vector<int>, std::vector<int>> WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
 {
-	std::vector<std::vector<int>> allValues;
 	std::vector<int> sourceValues;
 	std::vector<int> targetValues;
 
-	const auto IsTargetAffected = [this](TechnoClass* pThis, TechnoClass* pTarget , bool DisablepThisCheck ,bool DisablepTargetCheck)
+	const auto IsTargetAffected = [this](TechnoClass* pThis, TechnoClass* pTarget , bool DisablepThisCheck ,bool DisablepTargetCheck , bool IsFlipped = false)
 	{
 		if (!pThis)
 			return DisablepThisCheck;
 
 		if (!CanDealDamage(pTarget))
-			return false;
+			return IsFlipped;
 
 		if (!pThis->GetOwningHouse())
 			return true;
@@ -93,27 +92,22 @@ std::vector<std::vector<int>> WarheadTypeExt::ExtData::TransactGetSourceAndTarge
 	// SOURCE
 	//		Experience
 	int sourceExp = IsTargetAffected(pOwner, pTarget , !this->Transact_Experience_Target_Percent_CalcFromSource, !this->Transact_Experience_Source_Percent_CalcFromTarget) ?
-		TransactGetValue_F(pTarget, pOwner,
+		TransactGetValue(pTarget, pOwner,
 		this->Transact_Experience_Source_Flat,
 		this->Transact_Experience_Source_Percent,
 		this->Transact_Experience_Source_Percent_CalcFromTarget) : 0;
 
 	sourceValues.push_back(sourceExp / targets);
-	// Others ...
-	allValues.push_back(sourceValues);
-
 	// TARGET
 	//		Experience
-	int targetExp = IsTargetAffected(pTarget, pOwner , !this->Transact_Experience_Source_Percent_CalcFromTarget , !this->Transact_Experience_Target_Percent_CalcFromSource) ?
-		TransactGetValue_F(pOwner, pTarget,
+	int targetExp = IsTargetAffected(pTarget, pOwner , !this->Transact_Experience_Source_Percent_CalcFromTarget , !this->Transact_Experience_Target_Percent_CalcFromSource , true) ?
+		TransactGetValue(pOwner, pTarget,
 		this->Transact_Experience_Target_Flat, this->Transact_Experience_Target_Percent,
 		this->Transact_Experience_Target_Percent_CalcFromSource) : 0;
 
 	targetValues.push_back(targetExp / targets);
-	//		Others ...
-	allValues.push_back(targetValues);
 
-	return allValues;
+	return { sourceValues,targetValues };
 }
 
 void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets)
@@ -121,11 +115,11 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 	auto const pTargetType = pTarget ? pTarget->GetTechnoType() : nullptr;
 	auto const pOwnerType = pOwner ? pOwner->GetTechnoType() : nullptr;
 
-	std::vector<std::vector<int>> allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
+	std::pair<std::vector<int> , std::vector<int>> allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
 
-	for (unsigned int i = 0; i < allValues[0].size(); i++) {
-		int sourceValue = allValues[0][i];
-		int targetValue = allValues[1][i];
+	for (unsigned int i = 0; i < allValues.first.size(); i++) {
+		int sourceValue = allValues.first[i];
+		int targetValue = allValues.second[i];
 
 		// Transact (A loses B gains)
 		if (sourceValue != 0 && targetValue != 0 && targetValue * sourceValue < 0) {
@@ -152,33 +146,32 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 	}
 }
 
-void WarheadTypeExt::ExtData::TransactOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
+#include <algorithm>
+
+void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, HouseClass* pHouse,TechnoClass* pOwner)
 {
-	std::vector<TechnoClass*> nVector = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
+	//since we are on last chain of the event , we can do these thing
+	const auto NotEligible = [this, pHouse , pOwner](TechnoClass* const pTech)
+	{
+		return !(pTech && pTech->GetTechnoType() &&
+		pTech->GetTechnoType()->Trainable &&
+		CanTargetHouse(pHouse, pTech)
+		&& CanDealDamage(pTech));
+	};
 
-	if (!nVector.empty()) {
+	const auto [rFirst , rEnd] = std::ranges::remove_if(nVec, NotEligible);
+	nVec.erase(rFirst, rEnd);
 
-		const auto Eligible = [&](TechnoClass* const pTech) {
-			return (pTech && pTech->GetTechnoType() &&
-			pTech->GetTechnoType()->Trainable &&
-			CanTargetHouse(pHouse, pTech)
-			&& CanDealDamage(pTech));
-		};
+	if (!nVec.empty()) {
 
-		int const count = std::count_if(nVector.begin(), nVector.end(), Eligible);
-		int const targets = this->Transact_SpreadAmongTargets ? count : 1;
+		const int count = !this->Transact_SpreadAmongTargets ? 1: nVec.size();
 
-		std::for_each(nVector.begin(), nVector.end(), [&](TechnoClass* const pTech) {
-
-			if (Eligible(pTech)) {
-				TransactOnOneUnit(pTech, pOwner, targets);
-			}
-
-		 });
+		std::for_each(nVec.begin(), nVec.end(), [this, pOwner, pHouse ,&count](TechnoClass* const pTech) {
+			TransactOnOneUnit(pTech, pOwner, count);
+		});
 
 	} else {
 		TransactOnOneUnit(nullptr, pOwner, 1);
 	}
 
-	nVector.clear();
 }

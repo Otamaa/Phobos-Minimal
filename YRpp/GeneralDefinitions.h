@@ -664,7 +664,7 @@ enum class SpotlightFlags : unsigned int {
 	NoGreen = 0x4,
 	NoBlue = 0x8
 };
-
+MAKE_ENUM_FLAGS(SpotlightFlags);
 enum class BehavesLike : int {
 	Smoke = 0,
 	Gas = 1,
@@ -1583,6 +1583,8 @@ enum class MouseEvent : unsigned char {
 	RightHeld = 0x20,
 	RightUp = 0x40
 };
+
+MAKE_ENUM_FLAGS(MouseEvent);
 
 //control key flags
 typedef DWORD eControlKeyFlags;

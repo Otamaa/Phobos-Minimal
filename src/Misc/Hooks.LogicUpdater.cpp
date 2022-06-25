@@ -30,7 +30,7 @@ static int GattParticlesCount { 1 };
 
 void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 {
-	auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pThisTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 	auto pExt = TechnoExt::GetExtData(pThis);
 
 	if (!pThisTypeExt || !pExt) {
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 	auto const pExt = TechnoExt::GetExtData(pThis);
 
 	if (pExt && pTypeExt)
@@ -144,10 +144,9 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 		}
 	}
 
-	auto const pFoot = static_cast<FootClass*>(pThis);
 #ifdef COMPILE_PORTED_DP_FEATURES
 	auto const pExt = TechnoExt::GetExtData(pThis);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{
@@ -183,20 +182,18 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 	}
 
 #endif
-	pFoot->AI();
+	pThis->FootClass::Update();
 }
 
 DEFINE_POINTER_CALL(0x414DA3, &AircraftClass_AI_);
 
 static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 {
-	auto const pFoot = static_cast<FootClass*>(pThis);
-
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	auto const pExt = TechnoExt::GetExtData(pThis);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{
@@ -204,7 +201,7 @@ static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 	}
 
 #endif
-	pFoot->AI();
+	pThis->FootClass::Update();
 }
 
 DEFINE_POINTER_CALL(0x73647B, &UnitClass_AI_);
@@ -214,7 +211,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 	GET(FootClass*, pThis, ESI);
 
 	//auto const pExt = TechnoExt::GetExtData(pThis);
-	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
 	{
@@ -239,7 +236,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	bool const IsMovingNow = R->AL();
 
 	auto const pExt = TechnoExt::GetExtData(pThis);
-	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (IsMovingNow)
 	{
@@ -272,7 +269,7 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 
 	auto pExt = BuildingExt::ExtMap.Find(pThis);
 	auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTechTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
 
 	if (pTypeExt && pExt && pTechTypeExt)
 	{

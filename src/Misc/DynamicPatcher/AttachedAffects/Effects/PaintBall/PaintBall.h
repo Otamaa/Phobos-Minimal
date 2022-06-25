@@ -20,12 +20,14 @@ public:
 	bool Accumulate;
 	bool IgnoreFog;
 	bool IgnoreShroud;
+	bool Override;
 
 	PaintballType() : Color { 0,0,0 }
 		, BrightMultiplier { 1.0f }
 		, Accumulate { false }
 		, IgnoreFog { false }
 		, IgnoreShroud { false }
+		, Override { true }
 	{}
 
 	virtual ~PaintballType() = default;
@@ -35,6 +37,7 @@ public:
 		, Accumulate { nData.Accumulate }
 		, IgnoreFog { nData.IgnoreFog }
 		, IgnoreShroud { nData.IgnoreShroud }
+		, Override { nData.Override }
 	{}
 
 	PaintballType(PaintballType& nData) : Color { nData.Color }
@@ -42,6 +45,7 @@ public:
 		, Accumulate { nData.Accumulate }
 		, IgnoreFog { nData.IgnoreFog }
 		, IgnoreShroud { nData.IgnoreShroud }
+		, Override { nData.Override }
 	{}
 
 	void Read(INI_EX& parser, const char* pSection);
@@ -61,6 +65,9 @@ public:
 			.Process(Color)
 			.Process(BrightMultiplier)
 			.Process(Accumulate)
+			.Process(IgnoreFog)
+			.Process(IgnoreShroud)
+			.Process(Override)
 			.Success()
 			;
 	}

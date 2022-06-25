@@ -70,7 +70,7 @@ DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
 	GET(RulesClass*, pRules, ECX);
 	GET(BulletClass*, pBullet, ESI);
 
-	if (auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type))
+	if (auto const pBulletTypeExt = BulletTypeExt::GetExtData(pBullet->Type))
 	{
 		R->EDX(pBulletTypeExt->Parachute.Get(pRules->BombParachute));
 		return 0x5F5A8C;
@@ -155,7 +155,7 @@ DEFINE_HOOK(0x466BBC, BulletClass_AI_MissileROTVar, 0x6)
 	GET(RulesClass*, pRules, ECX);
 
 	double dRes = pRules->MissileROTVar;
-	if (auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pBulletTypeExt = BulletTypeExt::GetExtData(pThis->Type))
 	{
 		dRes = pBulletTypeExt->MissileROTVar.Get(pRules->MissileROTVar);
 	}
@@ -170,7 +170,7 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 	GET(int, comparator, EAX);
 
 	int nAltitude = RulesGlobal->MissileSafetyAltitude;
-	if (auto const& pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const& pBulletTypeExt = BulletTypeExt::GetExtData(pThis->Type))
 	{
 		nAltitude = pBulletTypeExt->MissileSafetyAltitude.Get(RulesGlobal->MissileSafetyAltitude);
 	}

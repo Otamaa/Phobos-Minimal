@@ -16,7 +16,11 @@ struct WarheadFlags {
 	bool Retaliate;
 	bool PassiveAcquire;
 
-	WarheadFlags(bool FF = true, bool Retal = true, bool Acquire = true) : ForceFire(FF), Retaliate(Retal), PassiveAcquire(Acquire) {};
+	WarheadFlags(bool FF = true, bool Retal = true, bool Acquire = true) :
+		ForceFire{ FF }
+	,	Retaliate{ Retal }
+	,	PassiveAcquire{ Acquire }
+	{};
 };
 
 class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")

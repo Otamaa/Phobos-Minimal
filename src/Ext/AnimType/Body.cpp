@@ -10,7 +10,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-template<> const DWORD Extension<AnimTypeClass>::Canary = 0xEEEEEEEE;
+template<> const DWORD TExtension<AnimTypeClass>::Canary = 0xEEEEEEEE;
 AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
 
 void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
@@ -102,7 +102,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->SpawnCrater.Read(exINI, pID, "Crater.Spawn");
 	this->ScorchChance.Read(exINI, pID, "Scorch.Chance");
 	this->SpecialDraw.Read(exINI, pID, "SpecialDraw");
-
+	this->NoOwner.Read(exINI, pID, "NowOwner");
 #pragma endregion
 }
 
@@ -116,7 +116,7 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 	if (pThis->Type->DestroyAnim.Count > 0)
 	{
 		auto facing = pThis->PrimaryFacing.current().value256();
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
 
 		int idxAnim = 0;
 
@@ -139,15 +139,16 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 			{
-				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+				auto pAnimTypeExt = AnimTypeExt::GetExtData(pAnim->Type);
 				auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 				if (!pAnimTypeExt || !pAnimExt)
 					return;
 
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner);
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner)) {
+					pAnimExt->Invoker = pThis;
+				}
 
-				pAnimExt->Invoker = pThis;
 				pAnimExt->FromDeathUnit = true;
 
 				if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
@@ -210,18 +211,19 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(SpawnCrater)
 		.Process(ScorchChance)
 		.Process(SpecialDraw)
+		.Process(NoOwner)
 		;
 }
 
 void AnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AnimTypeClass>::LoadFromStream(Stm);
+	//Extension<AnimTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void AnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AnimTypeClass>::SaveToStream(Stm);
+	//Extension<AnimTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -239,14 +241,15 @@ bool AnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 void AnimTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
-AnimTypeExt::ExtContainer::ExtContainer() : Container("AnimTypeClass") { }
+AnimTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("AnimTypeClass") { }
 AnimTypeExt::ExtContainer::~ExtContainer() = default;
 
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 
-	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
+	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<AnimTypeExt::ExtData>(pItem);
+
 	return 0;
 }
 
@@ -254,7 +257,11 @@ DEFINE_HOOK(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, ECX);
 
-	AnimTypeExt::ExtMap.Remove(pItem);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+
 	return 0;
 }
 
@@ -288,6 +295,8 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 	GET(AnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xBC);
 
-	AnimTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	if (auto pExt = AnimTypeExt::GetExtData(pItem))
+		pExt->LoadFromINI(pINI);
+
 	return 0;
 }

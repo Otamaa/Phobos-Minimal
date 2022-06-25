@@ -59,7 +59,7 @@ public:
 	{
 		for (const auto& selected : Array)
 			if (Tactical_IsInSelectionRect(pThis, rect, selected) && ObjectClass_IsSelectable(selected.Techno))
-				if (!TechnoTypeExt::ExtMap.Find(selected.Techno->GetTechnoType())->LowSelectionPriority)
+				if (!TechnoTypeExt::GetExtData(selected.Techno->GetTechnoType())->LowSelectionPriority)
 					return true;
 
 		return false;
@@ -78,7 +78,7 @@ public:
 			{
 				const auto pTechno = selected.Techno;
 				auto pTechnoType = pTechno->GetTechnoType();
-				auto TypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+				auto TypeExt = TechnoTypeExt::GetExtData(pTechnoType);
 
 				if (bPriorityFiltering && TypeExt && TypeExt->LowSelectionPriority)
 					continue;

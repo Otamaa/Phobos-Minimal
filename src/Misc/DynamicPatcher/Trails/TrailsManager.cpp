@@ -114,7 +114,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 		return;
 
 	auto const pExt = TechnoExt::GetExtData(pOwner);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pClassType);
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -165,7 +165,7 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted) {
 
 	auto pClassType = pOwner->Type;
 	auto const pExt = BulletExt::GetExtData(pOwner);
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pClassType);
+	auto const pTypeExt = BulletTypeExt::GetExtData(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -207,7 +207,47 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 	if (!pOwner || TrailType::Array.empty())
 		return;
 
-	CheckAndContruct<VoxelAnimExt, VoxelAnimTypeExt>(pOwner, pOwner->Type, false, false);
+	if (!pOwner->Type)
+		return;
+
+	auto pClassType = pOwner->Type;
+	auto const pExt = VoxelAnimExt::GetExtData(pOwner);
+	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pClassType);
+
+	if (!pExt || !pTypeExt)
+		return;
+
+	if (!pExt->Trails.empty())
+	{
+		return;
+	}
+
+	if (pTypeExt->Trails.CurrentData.empty())
+		return;
+
+	size_t nTotal = 0;
+	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
+	{
+		if (auto const pType = TrailType::Array[pTrails.CurrentType].get())
+		{
+			if (pType->Mode != TrailMode::NONE)
+			{
+				if (auto pTrail = std::make_unique<UniversalTrail>(pType, pTrails.FLHs
+					, false))
+				{
+					pTrail->OnLandTypes = pTrails.OnLand;
+					pTrail->OnTileTypes = pTrails.OnTileTypes;
+					pExt->Trails.push_back(std::move(pTrail));
+					++nTotal;
+				}
+			}
+		}
+	}
+
+	if (nTotal > 0)
+		pExt->Trails.resize(nTotal);
+	else
+		pExt->Trails.clear();
 }
 
 template<>
@@ -302,8 +342,8 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto  pExt = VoxelAnimExt::ExtMap.Find(pOwner);
-	auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pOwner->Type);
+	auto  pExt = VoxelAnimExt::GetExtData(pOwner);
+	auto pTypeExt = VoxelAnimTypeExt::GetExtData(pOwner->Type);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -388,8 +428,18 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		if (!ClearLastLoc<VoxelAnimExt>((VoxelAnimClass*)pOwner))
+		auto const pExt = VoxelAnimExt::GetExtData((VoxelAnimClass*)pOwner);
+
+		if (!pExt)
 			return;
+
+		if (!pExt->Trails.empty())
+		{
+			for (auto const& pTrail : pExt->Trails)
+			{
+				pTrail->ClearLastLocation();
+			}
+		}
 	}
 	break;
 	case AbstractType::Particle:
@@ -437,8 +487,12 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		if (!ClearVector<VoxelAnimExt>((VoxelAnimClass*)pOwner))
+		auto const pExt = VoxelAnimExt::GetExtData((VoxelAnimClass*)pOwner);
+
+		if (!pExt)
 			return;
+
+		pExt->Trails.clear();
 	}
 	break;
 	case AbstractType::Particle:

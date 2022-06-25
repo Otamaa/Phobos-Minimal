@@ -155,8 +155,8 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 	GET_STACK(int, idxRight, STACK_OFFS(0x1C, -0x10));
 	GET_STACK(AbstractType, rttiLeft, STACK_OFFS(0x1C, -0x4));
 	GET_STACK(AbstractType, rttiRight, STACK_OFFS(0x1C, -0xC));
-	auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find(pLeft);
-	auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find(pRight);
+	auto pLeftTechnoExt = TechnoTypeExt::GetExtData(pLeft);
+	auto pRightTechnoExt = TechnoTypeExt::GetExtData(pRight);
 	auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
 		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxLeft)) : nullptr;
 	auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
@@ -229,7 +229,7 @@ static void __fastcall StripClass_Draw_GClockSHP(Surface* Surface, ConvertClass*
 
 	if (GClockTemp::Techno)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(GClockTemp::Techno))
+		if (auto const pExt = TechnoTypeExt::GetExtData(GClockTemp::Techno))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);

@@ -74,10 +74,9 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	}
 
 	// Obtain a list of air factories for optimizing the comparisons
-	for (auto const& pBuilding : pOwner->Buildings)
-	{
+	std::for_each(pOwner->Buildings.begin(), pOwner->Buildings.end(), [&](BuildingClass* pBuilding) {
 		if (!pBuilding || !pBuilding->Type)
-			continue;
+			return;
 
 		if (pBuilding->Type->Factory == AbstractType::AircraftType)
 		{
@@ -86,27 +85,27 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 
 			HouseExt->HouseAirFactory.AddUnique(pBuilding);
 		}
-	}
+	});
 
 	if (BuildingExt->CurrentAirFactory)
 	{
-		for (auto const& pBuilding : HouseExt->HouseAirFactory)
-		{
+		std::for_each(HouseExt->HouseAirFactory.begin(), HouseExt->HouseAirFactory.end(), [&](BuildingClass* pBuilding) {
 			if (!pBuilding || !pBuilding->Type)
-				continue;
+				return;
 
 			if (pBuilding == BuildingExt->CurrentAirFactory)
 			{
 				BuildingExt->CurrentAirFactory->Factory = currFactory;
 				BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
 			}
-			else {
+			else
+			{
 				pBuilding->IsPrimaryFactory = false;
 
 				if (pBuilding->Factory)
 					pBuilding->Factory->AbandonProduction();
 			}
-		}
+		});
 
 		return;
 	}
@@ -114,10 +113,9 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!currFactory)
 		return;
 
-	for (auto const& pBuilding : HouseExt->HouseAirFactory)
-	{
+	std::for_each(HouseExt->HouseAirFactory.begin(), HouseExt->HouseAirFactory.end(), [&](BuildingClass* pBuilding) {
 		if (!pBuilding || !pBuilding->Type)
-			continue;
+			return;
 
 		int nDocks = pBuilding->Type->NumberOfDocks;
 		int nOccupiedDocks = CountOccupiedDocks(pBuilding);
@@ -131,7 +129,7 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 				newBuilding->IsPrimaryFactory = true;
 				BuildingExt->CurrentAirFactory = newBuilding;
 
-				continue;
+				return;
 			}
 		}
 
@@ -139,7 +137,8 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 
 		if (pBuilding->Factory)
 			pBuilding->Factory->AbandonProduction();
-	}
+
+	});
 
 	return;
 }

@@ -205,10 +205,15 @@ public:
 				append("\n");
 			}
 
-			auto pTarget = abstract_cast<TechnoClass*>(pFoot->Target);
+			auto pTarget = abstract_cast<ObjectClass*>(pFoot->Target);
+			auto pTargetCell = specific_cast<CellClass*>(pFoot->Target);
 			if (pTarget)
 			{
-				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->GetTechnoType()->ID, (pTarget->DistanceFrom(pFoot) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+			}else
+			if (pTargetCell)
+			{
+				append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
 			}
 
 			append("Current HP = (%d / %d)", pFoot->Health, pType->Strength);
@@ -258,10 +263,17 @@ public:
 			if (pBuilding->Type->Ammo > 0)
 				append("Ammo = (%d / %d)\n", pBuilding->Ammo, pBuilding->Type->Ammo);
 
-			auto pTarget = abstract_cast<TechnoClass*>(pBuilding->Target);
+
+			auto pTarget = abstract_cast<ObjectClass*>(pBuilding->Target);
+			auto pTargetCell = specific_cast<CellClass*>(pBuilding->Target);
 			if (pTarget)
 			{
-				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->GetTechnoType()->ID, (pTarget->DistanceFrom(pBuilding) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pBuilding) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+			}
+			else
+			if (pTargetCell)
+			{
+				append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pBuilding->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
 			}
 
 			append("Current HP = (%d / %d)\n", pBuilding->Health, pBuilding->Type->Strength);

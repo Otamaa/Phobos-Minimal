@@ -44,9 +44,10 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
+			auto nVal = GeneralUtils::GetWarheadVersusArmor(OwnerObject(), nArmor);
 			//if(IS_SAME_STR_(OwnerObject()->get_ID() , "NebulaWH"))
 			//	Debug::Log("%s WH Calculating Damage Against %s : [%s] : [%fl] ! \n", OwnerObject()->get_ID() , pTechno->get_ID() , ArmorTypeClass::Array[(int)nArmor]->Name.data(), nWHVerses);
-			return (fabs(GeneralUtils::GetWarheadVersusArmor(OwnerObject(), nArmor)) >= 0.001);
+			return (fabs(nVal) >= 0.001);
 		}
 	}
 
@@ -102,7 +103,7 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0,0,pThis->Bright))
@@ -119,7 +120,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(nullptr, pOwner,
 		damage, pThis, 0 , 0 , pThis->Bright))

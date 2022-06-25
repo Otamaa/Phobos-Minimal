@@ -20,6 +20,9 @@ void BulletExt::ExtData::Uninitialize()
 }
 
 void BulletExt::ExtData::InitializeConstants() {
+
+	this->LaserTrails.reserve(1);
+	this->Trails.reserve(1);
 	//Type is not initialize here , wtf
 }
 
@@ -30,27 +33,31 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto pRadType = pWeaponExt->RadType;
 
-	if (RadSiteExt::Array.Count > 0) {
-		auto const it = std::find_if(RadSiteExt::Array.begin(), RadSiteExt::Array.end(),
-			[=](RadSiteExt::ExtData* const pSite) {
-				if (pSite->Type != pRadType)
+	if (RadSiteClass::Array_Constant->Count > 0)
+	{
+		auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+			[=](RadSiteClass* const pSite)
+{
+				auto pSiteExt = RadSiteExt::GetExtData(pSite);
+
+				if (pSiteExt->Type != pRadType)
 					return false;
 
-				if (pSite->OwnerObject()->BaseCell != Cell)
+				if (pSite->BaseCell != Cell)
 					return false;
 
-				if (Spread != pSite->OwnerObject()->Spread)
+				if (Spread != pSite->Spread)
 					return false;
 
-				if (pWeapon != pSite->Weapon)
+				if (pWeapon != pSiteExt->Weapon)
 					return false;
 
 				return true;
 			});
 
-		if (it != RadSiteExt::Array.end()) {
-			if ((*it)->OwnerObject()->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
-				RadLevel = pRadType->GetLevelMax() - (*it)->OwnerObject()->GetRadLevel();
+		if (it != RadSiteClass::Array_Constant->end()) {
+			if ((*it)->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
+				RadLevel = pRadType->GetLevelMax() - (*it)->GetRadLevel();
 			}
 
 			// Handle It
@@ -84,9 +91,6 @@ void BulletExt::ExtData::InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt)
 
 void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon)
 {
-	if (!pThis || !pSource || !pWeapon)
-		return;
-
 	auto const pExt = BulletExt::GetExtData(pThis);
 	auto const pTypeExt = pExt->TypeExt;
 
@@ -119,7 +123,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 	if (canAffect)
 	{
-		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
+		auto const pTechnoTypeExt = TechnoTypeExt::GetExtData(pSource->GetTechnoType());
 		if (!pTechnoTypeExt)
 			return;
 
@@ -139,7 +143,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 			if (replaceType && pWeaponOverride->Projectile != pThis->Type)
 			{
-				auto pNewProjTypeExt = BulletTypeExt::ExtMap.Find(pWeaponOverride->Projectile);
+				auto pNewProjTypeExt = BulletTypeExt::GetExtData(pWeaponOverride->Projectile);
 
 				if (!pNewProjTypeExt)
 				{

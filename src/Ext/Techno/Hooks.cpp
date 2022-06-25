@@ -55,7 +55,7 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
- 	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+ 	if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {
 		auto strength = pTypeExt->InitialStrength.Get(R->EDX<int>());
 		pThis->Health = strength;
 		pThis->EstimatedHealth = strength;
@@ -67,7 +67,7 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 #define SET_INITIAL_HP(addr , destReg , name)\
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(TechnoClass*, pThis, ESI);\
-if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {\
+if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {\
 R->##destReg##(pTypeExt->InitialStrength.Get(R->##destReg##<int>()));} return 0; }
 
 SET_INITIAL_HP(0x7355C0, EAX ,UnitClass_Init_InitialStrength)
@@ -149,7 +149,7 @@ DEFINE_HOOK(0x518505, InfantryClass_TakeDamage_NotHuman, 0x4)
 	constexpr auto Die = [](int x) { return x + 10; };
 
 	int resultSequence = Die(1);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 	R->ECX(pThis);
 
 	if (pTypeExt->NotHuman_RandomDeathSequence.Get())
@@ -164,9 +164,9 @@ DEFINE_HOOK(0x518505, InfantryClass_TakeDamage_NotHuman, 0x4)
 				if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
 				{
 					auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), true);
-					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = receiveDamageArgs.Attacker;
+					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), true))
+						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+							pAnimExt->Invoker = receiveDamageArgs.Attacker;
 
 					pAnim->ZAdjust = pThis->GetZAdjustment();
 
@@ -195,7 +195,7 @@ DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0
 
 	if (auto pTransport = pThis->Transporter)
 	{
-		if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
+		if (auto pExt = TechnoTypeExt::GetExtData(pTransport->GetTechnoType()))
 		{
 			R->EAX(pExt->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus));
 			return 0x6F72DE;
@@ -211,7 +211,7 @@ DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0xC)
 
 	if (auto pTransport = pThis->Owner->Transporter)
 	{
-		if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
+		if (auto pExt = TechnoTypeExt::GetExtData(pTransport->GetTechnoType()))
 		{
 			R->EDX(pExt->OpenTopped_WarpDistance.Get(RulesClass::Instance->OpenToppedWarpDistance));
 			return 0x71A838;
@@ -225,7 +225,7 @@ DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
 	{
 		if (pExt->AutoFire)
 		{
@@ -369,7 +369,7 @@ DEFINE_HOOK(0x54AEC0, JumpjetLoco_Process, 0x8)
 	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
 	const auto pThis = pLoco->Owner;
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::GetExtData(pType);
 
 	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
 		pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
@@ -413,7 +413,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
 	if (pThis && pThis->GetTechnoType())
 	{
 		maxSpeed = pThis->GetTechnoType()->Speed;
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 		if (pTypeExt && pTypeExt->UseDisguiseMovementSpeed && pThis->IsDisguised())
 		{
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x6B73AD, SpawnManagerClass_AI_SpawnTimer, 0x5)
 
 	if (pThis->Owner)
 	{
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
+		if (auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Owner->GetTechnoType()))
 		{
 			if (pTypeExt->Spawner_DelayFrames.isset())
 				R->ECX(pTypeExt->Spawner_DelayFrames.Get());
@@ -449,7 +449,7 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 
 	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching && pThis->CountDockedSpawns() != 0)
 	{
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
+		if (auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Owner->GetTechnoType()))
 		{
 			if (pTypeExt->Spawner_DelayFrames.isset()) {
 				R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
@@ -461,17 +461,17 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 }
 
 // Reimplements the game function with few changes / optimizations
-DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
+DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, weaponIndex, STACK_OFFS(0x8, -0x4));
+	GET_STACK(int, weaponIndex,0x4);
 
 	int result = 0;
 
 	if (auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
 	{
 		result = pWeapon->Range;
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 		if (!pTypeExt)
 			return 0x0;
@@ -493,8 +493,9 @@ DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
 				if (WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType) {
 					if (pTWeapon->Range < smallestRange)
 						smallestRange = pTWeapon->Range;
-				}else{
-				Debug::Log("Techno[%s] With Passengers[%s] Failed To get WeaponType To Check Range ! \n",pThis->get_ID(),pPassenger->get_ID()); }
+				}
+				//else{
+				//Debug::Log("Techno[%s] With Passengers[%s] Failed To get WeaponType To Check Range ! \n",pThis->get_ID(),pPassenger->get_ID()); }
 
 
 				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
@@ -505,11 +506,11 @@ DEFINE_HOOK(0x7012C2, TechnoClass_WeaponRange, 0x8)
 		}
 	}
 
-	if(result == 0 && pThis->GetTechnoType()->OpenTopped)
-		Debug::Log("Warning ! , Opentopped Techno[%s] return 0 range result will cause Unit/Aircraft to stuck ! \n", pThis->get_ID());
+	if(result == 0 && pThis->GetTechnoType()->OpenTopped && pThis->WhatAmI() == AbstractType::Aircraft)
+		Debug::Log("Warning ! , Opentopped Aircraft[%s] return 0 range result will cause Aircraft to stuck ! \n", pThis->get_ID());
 
-	R->EBX(result);
-	return 0x70138F;
+	R->EAX(result);
+	return 0x701393;
 }
 
 /*

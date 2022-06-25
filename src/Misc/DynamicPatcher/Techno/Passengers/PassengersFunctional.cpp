@@ -10,7 +10,7 @@ void PassengersFunctional::AI(TechnoClass* pThis)
 	{
 		if (pTranporter->GetTechnoType()->OpenTopped)
 		{
-			if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType()))
+			if (auto const pTransportExt = TechnoTypeExt::GetExtData(pTranporter->GetTechnoType()))
 			{
 				if (!pTransportExt->MyPassangersData.PassiveAcquire)
 				{
@@ -32,7 +32,7 @@ void PassengersFunctional::CanFire(TechnoClass* pThis, bool& cease)
 	{
 		if (pTranporter->GetTechnoType()->OpenTopped)
 		{
-			if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType()))
+			if (auto const pTransportExt = TechnoTypeExt::GetExtData(pTranporter->GetTechnoType()))
 			{
 				switch (pTranporter->GetCurrentMission())
 				{

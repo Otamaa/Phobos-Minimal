@@ -275,25 +275,19 @@ public:
 	}
 
 	T* begin() const {
-		//if(!this->IsInitialized) {
-		//	return nullptr;
-		//}
 		return &this->Items[0];
 	}
 
 	T* end() const {
-		//if(!this->IsInitialized) {
-		//	return nullptr;
-		//}
-		return &this->Items[this->Count];
+		return (&this->Items[this->Count]);
 	}
 
-	T* front() const {
-		return begin();
+	T* begin() {
+		return (&this->Items[0]);
 	}
 
-	T* back() const {
-		return end() - 1;
+	T* end() {
+		return (&this->Items[this->Count]);
 	}
 
 	bool AddItem(T item) {

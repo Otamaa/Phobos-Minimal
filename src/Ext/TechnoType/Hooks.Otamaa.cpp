@@ -16,7 +16,7 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0xC)
 {
 	GET(InfantryClass*, pSlave, EDI);
 
-	if (auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type))
+	if (auto const pData = TechnoTypeExt::GetExtData(pSlave->Type))
 	{
 		if (pData->SlaveFreeSound_Enable.Get())
 		{
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 	{
 		auto nSpeak = reinterpret_cast<const char*>(0x8249A0);
 
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType()))
+		if (auto const pTechnoTypeExt = TechnoTypeExt::GetExtData(pProduct->GetTechnoType()))
 		{
 			if (GeneralUtils::IsValidString(pTechnoTypeExt->Eva_Complete.data()))
 			{
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x9)
 
 	if (pTech && pTech_)
 	{
-		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech))
+		if (auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pTech))
 		{
 			if (pTechnoTypeExt->VoiceCreate.Get() != -1)
 				pTech_->QueueVoice(pTechnoTypeExt->VoiceCreate.Get());
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 	{
 		auto nSpeak = reinterpret_cast<const char*>(0x83FA80);
 
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType()))
+		if (auto const pTechnoTypeExt = TechnoTypeExt::GetExtData(pTech->GetTechnoType()))
 		{
 			if (GeneralUtils::IsValidString(pTechnoTypeExt->Eva_Complete.data()))
 			{
@@ -192,7 +192,7 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 
 static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 {
-	if (auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+	if (auto TypeExt = TechnoTypeExt::GetExtData(pThis->Type)) {
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
 		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 
@@ -287,7 +287,7 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 						CoordStruct nBuffer { 0, 0 , 0 };
 						if (pTechno)
 						{
-							if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType()))
+							if (auto const pTechnoTypeExt = TechnoTypeExt::GetExtData(pTechno->GetTechnoType()))
 							{
 								if (!pTechnoTypeExt->HitCoordOffset.empty())
 								{
@@ -301,9 +301,9 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 							auto const nCoord = pThis->GetCenterCoord() + nBuffer;
 							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
 							{
-								AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), false);
-								if (auto const pAnimExt = AnimExt::GetExtData(pAnimPlayed))
-									pAnimExt->Invoker = pAttacker;
+								if (AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), false))
+									if (auto const pAnimExt = AnimExt::GetExtData(pAnimPlayed))
+										pAnimExt->Invoker = pAttacker;
 							}
 						}
 					}
@@ -322,7 +322,7 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 	GET(RocketLocomotionClass*, pThis, ESI);
 	if (auto pAir = specific_cast<AircraftClass*>(pThis->Owner))
 	{
-		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type))
+		if (const auto pExt = TechnoTypeExt::GetExtData(pAir->Type))
 		{
 			if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir))
 			{
@@ -339,7 +339,7 @@ DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile
 	enum { Handled = 0x66351B, Skip = 0x0 };
 
 	GET(AircraftTypeClass*, pType, ECX);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExt::GetExtData(pType);
 
 	if (pExt && pExt->IsCustomMissile.Get())
 	{

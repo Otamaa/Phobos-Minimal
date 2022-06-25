@@ -1,6 +1,6 @@
 #include "Body.h"
 
-template<> const DWORD Extension<CellClass>::Canary = 0x87688621;
+template<> const DWORD TExtension<CellClass>::Canary = 0x87688621;
 CellExt::ExtContainer CellExt::ExtMap;
 
 // ============================ =
@@ -37,7 +37,7 @@ bool CellExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
+CellExt::ExtContainer::ExtContainer() : TExtensionContainer("CellClass") { };
 CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -46,14 +46,18 @@ CellExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, EAX);
-	CellExt::ExtMap.FindOrAllocate(pItem);
+	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<CellExt::ExtData>(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
 {
 	GET(CellClass*, pItem, ECX);
-	CellExt::ExtMap.Remove(pItem);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+
 	return 0;
 }
 

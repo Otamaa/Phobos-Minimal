@@ -133,7 +133,7 @@ public:
 
 	void SetName(const char* buf) const
 	{
-		std::strncpy((char *)ID, buf, sizeof(ID));
+		CRT::strncpy((char *)ID, buf, sizeof(ID));
 		((char &)ID[sizeof(ID) - 1]) = '\0';
 	};
 

@@ -270,7 +270,8 @@ public:
 			}
 		}
 
-		Matrix3D matrix3D(true);
+		Matrix3D matrix3D { };
+		matrix3D.MakeIdentity();
 		return matrix3D;
 	}
 
@@ -369,7 +370,8 @@ public:
 	{
 		if (flh)
 		{
-			Matrix3D matrix3D(true);
+			Matrix3D matrix3D {  };
+			matrix3D.MakeIdentity();
 			matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
 			matrix3D.RotateZ(static_cast<float>(dir.radians()));
 			return GetFLHOffset(matrix3D, flh);

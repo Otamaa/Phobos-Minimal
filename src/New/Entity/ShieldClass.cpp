@@ -227,9 +227,9 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 		auto nCoord = this->Techno->GetCenterCoord();
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
 		{
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr);
-			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-				pAnimExt->Invoker = Techno;
+			if(AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr))
+				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+					pAnimExt->Invoker = Techno;
 		}
 	}
 }
@@ -425,7 +425,7 @@ bool ShieldClass::ConvertCheck()
 		return false;
 
 	const auto pTechnoExt = TechnoExt::GetExtData(this->Techno);
-	const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(this->Techno->GetTechnoType());
+	const auto pTechnoTypeExt = TechnoTypeExt::GetExtData(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
 
@@ -438,7 +438,7 @@ bool ShieldClass::ConvertCheck()
 
 		return true;
 	}
-	else if (pTechnoTypeExt->ShieldType->Strength)
+	else if (pTechnoTypeExt->ShieldType && pTechnoTypeExt->ShieldType->Strength)
 	{
 		pTechnoExt->CurrentShieldType = pTechnoTypeExt->ShieldType;
 	}
@@ -558,9 +558,9 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, this->Techno->Location))
 		{
 			pAnim->SetOwnerObject(this->Techno);
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr);
-			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-				pAnimExt->Invoker = Techno;
+			if (AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr))
+				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+					pAnimExt->Invoker = Techno;
 		}
 	}
 

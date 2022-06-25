@@ -14,13 +14,6 @@ public:
 
 	Matrix3D() = default;
 
-	explicit Matrix3D(bool identity) :
-		Matrix3D()
-	{
-		if (identity)
-			this->MakeIdentity();
-	}
-
 	// plain floats ctor
 	Matrix3D(
 		float m00, float m01, float m02, float m03,

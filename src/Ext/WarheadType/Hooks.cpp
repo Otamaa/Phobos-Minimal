@@ -172,7 +172,7 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 	if (pThis->Type->Cluster > 0)
 	{
-		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+		if (auto const pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
 		{
 			int min = pTypeExt->Cluster_Scatter_Min.Get(Leptons(256));
 			int max = pTypeExt->Cluster_Scatter_Max.Get(Leptons(512));
@@ -201,7 +201,7 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 
 	if (pThis->WeaponType)
 	{
-		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+		if (auto const pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
 		{
 			int defaultmax = RulesClass::Instance->BallisticScatter;
 			int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
@@ -240,7 +240,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 {
 	auto pType = pThis->Type;
 
-	auto pExt = BulletTypeExt::ExtMap.Find(pType);
+	auto pExt = BulletTypeExt::GetExtData(pType);
 
 	if (pExt->HasSplitBehavior())
 	{
@@ -285,7 +285,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 				});
 
 				// we want as many as we get, not more, not less
-				cluster = targets.Size();
+				cluster = targets.Count;
 
 			}
 			else
@@ -293,32 +293,29 @@ static DWORD Do_Airburst(BulletClass* pThis)
 				auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 				// fill with technos in range
-				for (auto pTechno : *TechnoClass::Array)
-				{
+				std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
+
 					if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0)
 					{
 						if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-							continue;
+							return;
 
 						if (pWHExt->CanDealDamage(pTechno) && pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
 						{
 							if (pTechno->InWhichLayer() == Layer::Underground ||
 								pTechno->InWhichLayer() == Layer::None)
-								continue;
+								return;
 
 							CoordStruct crdTechno = pTechno->GetCoords();
 							if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
 								&& ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
 								)
 							{
-								//if (targets.FindItemIndex(pTechno) != -1 || pThis->Target == pTechno)
-								//	continue;
-								//else
 								targets.AddItem(pTechno);
 							}
 						}
 					}
-				}
+				});
 
 				// fill up the list to cluster count with random cells around destination
 				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
@@ -341,18 +338,18 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 				if (!pExt->Splits) {
 					// simple iteration
-					pTarget = targets.GetItem(i);
+					pTarget = targets[i];
 
 				} else if (!pTarget || pExt->RetargetAccuracy < random.RandomDouble()) {
 					// select another target randomly
 					int index = random.RandomRanged(0, targets.Count - 1);
-					pTarget = targets.GetItem(index);
+					pTarget = targets[index];
 
 					// firer would hit itself
 					if (pTarget == pThis->Owner) {
 						if (random.RandomDouble() > 0.5) {
 							index = random.RandomRanged(0, targets.Count - 1);
-							pTarget = targets.GetItem(index);
+							pTarget = targets[index];
 						}
 					}
 
@@ -361,7 +358,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 				}
 
 				if (pTarget) {
-					auto pSplitExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
+					auto pSplitExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
 
 					if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon)) {
 						pBullet->SetWeaponType(pWeapon);
@@ -432,7 +429,8 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 				for (; nAmountToSpawn > 0; --nAmountToSpawn) {
 					if (auto const pVoxelAnimType = pWarhead->DebrisTypes[nCurIdx])
 						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
-							VoxelAnimExt::Invokers[pVoxAnim] = pThis->Owner;
+							if(auto pVoxExt = VoxelAnimExt::GetExtData(pVoxAnim))
+								pVoxExt->Invoker = pThis->Owner;
 				}
 			}
 
@@ -454,9 +452,9 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			for (int i = 0; i < nTotalSpawn; ++i) {
 				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)]) {
 					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, false);
-						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-							pAnimExt->Invoker = pThis->Owner;
+						if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, false))
+							if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+								pAnimExt->Invoker = pThis->Owner;
 					}
 				}
 			}

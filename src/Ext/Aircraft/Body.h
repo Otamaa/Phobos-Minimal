@@ -6,6 +6,7 @@
 class AircraftExt
 {
 public:
+	/*
 	using base_type = AircraftClass;
 
 	class ExtData final : public Extension<AircraftClass>
@@ -41,7 +42,7 @@ public:
 	static ExtContainer ExtMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);*/
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber);
 };
 

@@ -29,7 +29,7 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 
 		if (pThis->Type)
 		{
-			if (auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+			if (auto pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
 			{
 				pExt->TypeExt = pTypeExt;
 				pExt->CurrentStrength = pTypeExt->Health.Get();
@@ -157,7 +157,7 @@ DEFINE_HOOK(0x46A3D6, BulletClass_Shrapnel_Forced, 0xA)
 
 	GET(BulletClass*, pBullet, EDI);
 
-	auto const pData = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	auto const pData = BulletTypeExt::GetExtData(pBullet->Type);
 
 	if (auto const pObject = pBullet->GetCell()->FirstObject)
 	{

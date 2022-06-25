@@ -30,6 +30,10 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 	nBuffBool = IgnoreShroud;
 	nBuffBool.Read(parser, pSection, "PaintBall.IgnoreShroud");
 	IgnoreShroud = nBuffBool.Get();
+
+	nBuffBool = Override;
+	nBuffBool.Read(parser, pSection, "PaintBall.OverrideSameAffect");
+	Override = nBuffBool.Get();
 }
 
 void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)
@@ -47,7 +51,14 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 
 	if (Token == pAffector) {
 		if (!data.Accumulate && IsActive()) {
-			return;
+			if(!data.Override)
+				return;
+			else
+			{
+				timer.Stop();
+				timer.Start(duration);
+				return;
+			}
 		} else {
 			auto nTimeLeft = timer.GetTimeLeft() + duration;
 			if (nTimeLeft <= 0) {
@@ -81,12 +92,13 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 }
 
 uintptr_t PaintBall::GetColor() {
-	auto nColor = Data->Color;
-	unsigned short B = static_cast<unsigned short>(nColor.B >> 3);
-	unsigned short G = static_cast<unsigned short>(nColor.G >> 2);
-	unsigned short R = static_cast<unsigned short>(nColor.R >> 3);
-	Color16Struct nRet = { R,G,B };
-	return nRet.ToInit();
+	// readed as 3Bytes
+	// but this is actually Color16
+	// then need to make it ColorStruct
+	// then convert it to DWORD
+	Color16Struct nColor16 = { Data->Color.R,Data->Color.G,Data->Color.B };
+	ColorStruct nColorAgain = ColorStruct { nColor16 };
+	return Drawing::RGB2DWORD(nColorAgain);
 }
 
 static inline bool AllowRedraw(TechnoClass* pWho, bool bForce ,bool bIgnoreShroud , bool bIgnoreFog)

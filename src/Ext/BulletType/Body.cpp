@@ -3,12 +3,12 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
-template<> const DWORD Extension<BulletTypeClass>::Canary = 0xF00DF00D;
+template<> const DWORD TExtension<BulletTypeClass>::Canary = 0xF00DF00D;
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
-	auto const pData = BulletTypeExt::ExtMap.Find(pType);
+	auto const pData = BulletTypeExt::GetExtData(pType);
 	auto const nGravity = pData->Gravity.Get(RulesClass::Instance->Gravity);
 	return pType->Floater ? nGravity * 0.5 : nGravity;
 }
@@ -166,13 +166,13 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 
 void BulletTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BulletTypeClass>::LoadFromStream(Stm);
+	//Extension<BulletTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BulletTypeClass>::SaveToStream(Stm);
+	//Extension<BulletTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -193,7 +193,7 @@ bool BulletTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BulletTypeExt::ExtContainer::ExtContainer() : Container("BulletTypeClass") { }
+BulletTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("BulletTypeClass") { }
 BulletTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -202,14 +202,18 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
+	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BulletTypeExt::ExtData>(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
-	BulletTypeExt::ExtMap.Remove(pItem);
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+		pExt->Uninitialize();
+
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+
 	return 0;
 }
 
@@ -244,6 +248,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 
 	pItem->Strength = 0;
 	pItem->Armor = Armor::None;
-	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	if (auto pExt = BulletTypeExt::GetExtData(pItem))
+		pExt->LoadFromINI(pINI);
 	return 0;
 }

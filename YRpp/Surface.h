@@ -316,6 +316,9 @@ static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleSt
   JMP_STD(0x437350);
 }
 
+static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct* rect1, RectangleStruct* rect2, Surface* src_surf, RectangleStruct* rect3, RectangleStruct* rect4, bool* checkme, __int16* dst_buffer, __int16* src_buffer)
+{ JMP_STD(0x7BC040) }
+
 #pragma warning(pop)
 #pragma endregion CommonFunction
 class DSurface : public XSurface

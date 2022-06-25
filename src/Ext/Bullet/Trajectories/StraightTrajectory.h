@@ -28,21 +28,20 @@ class StraightTrajectory final : public PhobosTrajectory
 {
 public:
 
-	bool SnapOnTarget;
-	Leptons SnapThreshold;
-	bool PassThrough;
+	//bool SnapOnTarget;
+	//Leptons SnapThreshold;
+	//bool PassThrough;
 
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
-		, SnapOnTarget { true }
-		, SnapThreshold { 0 }
-		, PassThrough { false }
+		//, SnapOnTarget { true }
+		//, SnapThreshold { 0 }
+		//, PassThrough { false }
 	{ }
 
-	StraightTrajectory(PhobosTrajectoryType* pType) :
-		PhobosTrajectory {TrajectoryFlag::Straight , pType }
-		, SnapOnTarget { true }
-		, SnapThreshold { 0 }
-		, PassThrough { false }
+	StraightTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory {TrajectoryFlag::Straight , pType }
+		//, SnapOnTarget { true }
+		//, SnapThreshold { 0 }
+		//, PassThrough { false }
 	{}
 
 	virtual ~StraightTrajectory() override = default;
