@@ -96,7 +96,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 
 				//if (BulletTypeClass* pBulletType = pWeapon->Projectile)
 				//{
-					//auto bulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+					//auto bulletTypeExt = BulletTypeExt::GetExtData(pBulletType);
 					//if (bulletTypeExt && bulletTypeExt->MissileData.ReverseVelocity)
 					//	flipY = -1;
 

@@ -1,8 +1,8 @@
 #include "Body.h"
 #include <Ext/WeaponType/Body.h>
 
-template<> const DWORD Extension<AircraftClass>::Canary = 0x55555765;
-AircraftExt::ExtContainer AircraftExt::ExtMap;
+//template<> const DWORD Extension<AircraftClass>::Canary = 0x55555765;
+//AircraftExt::ExtContainer AircraftExt::ExtMap;
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
@@ -24,6 +24,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 
 // =============================
 // load / save
+/*
 template <typename T>
 void AircraftExt::ExtData::Serialize(T& Stm)
 {
@@ -62,4 +63,4 @@ bool AircraftExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 AircraftExt::ExtContainer::ExtContainer() : Container("AircraftClass") { }
 AircraftExt::ExtContainer::~ExtContainer() = default;
-
+*/

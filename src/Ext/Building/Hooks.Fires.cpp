@@ -160,9 +160,9 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 							auto pKiller = ReceiveDamageArgs.Attacker;
 							auto Invoker = (pKiller) ? pKiller->Owner : ReceiveDamageArgs.SourceHouse;
 
-							AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, false);
-							if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-								pAnimExt->Invoker = pKiller;
+							if (AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, false))
+								if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+									pAnimExt->Invoker = pKiller;
 						}
 					}
 				};

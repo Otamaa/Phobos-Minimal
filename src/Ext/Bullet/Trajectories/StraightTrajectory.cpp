@@ -43,9 +43,9 @@ bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->LoadBase(Stm, RegisterForChange);
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(this->PassThrough, false)
+		//.Process(this->SnapOnTarget, false)
+		//.Process(this->SnapThreshold, false)
+		//.Process(this->PassThrough, false)
 		;
 
 	return true;
@@ -55,9 +55,9 @@ bool StraightTrajectory::Save(PhobosStreamWriter& Stm) const
 {
 	this->SaveBase(Stm);
 	Stm
-		.Process(this->SnapOnTarget, false)
-		.Process(this->SnapThreshold, false)
-		.Process(this->PassThrough, false)
+		//.Process(this->SnapOnTarget, false)
+		//.Process(this->SnapThreshold, false)
+		//.Process(this->PassThrough, false)
 		;
 
 	return true;
@@ -68,11 +68,11 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Ve
 	auto type = this->GetTrajectoryType();
 
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons());
-	this->SnapOnTarget = type->SnapOnTarget.Get();
-	this->SnapThreshold = type->SnapThreshold.Get();
-	this->PassThrough = type->PassThrough.Get();
+	//this->SnapOnTarget = type->SnapOnTarget.Get();
+	//this->SnapThreshold = type->SnapThreshold.Get();
+	//this->PassThrough = ;
 
-	if (this->PassThrough) {
+	if (type->PassThrough.Get()) {
 		pBullet->TargetCoords.X = INT_MAX;
 		pBullet->TargetCoords.Y = INT_MAX;
 		pBullet->TargetCoords.Z = INT_MAX;
@@ -87,7 +87,8 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Ve
 
 bool StraightTrajectory::OnAI(BulletClass* pBullet)
 {
-	if (this->PassThrough)
+	auto type = this->GetTrajectoryType();
+	if (type->PassThrough.Get())
 	{
 		pBullet->Data.Distance = INT_MAX;
 		int maxTravelDistance = this->DetonationDistance > 0 ? this->DetonationDistance : INT_MAX;
@@ -95,22 +96,19 @@ bool StraightTrajectory::OnAI(BulletClass* pBullet)
 		if (pBullet->SourceCoords.DistanceFrom(pBullet->Location) >= (maxTravelDistance))
 			return true;
 	}
-	else if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < (this->DetonationDistance.value))
-	{
-		return true;
-	}
 
-	return false;
+	return (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < (this->DetonationDistance.value));
 }
 
 void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 {
-	if (this->SnapOnTarget && !this->PassThrough)
+	auto type = this->GetTrajectoryType();
+	if (type->SnapOnTarget.Get() && !type->PassThrough.Get())
 	{
 		auto pTarget = abstract_cast<ObjectClass*>(pBullet->Target);
 		auto pCoords = pTarget ? pTarget->GetCoords() : pBullet->Data.Location;
 
-		if (pCoords.DistanceFrom(pBullet->Location) <= this->SnapThreshold)
+		if (pCoords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get())
 		{
 			BulletExt::GetExtData(pBullet)->SnappedToTarget = true;
 			pBullet->SetLocation(pCoords);

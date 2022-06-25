@@ -79,7 +79,7 @@ DEFINE_HOOK(0x7294E6, TunnelLocomotionClass_7294E0_Speed, 0x9)
 */
 static double GetTunnelSpeed(TechnoTypeClass* pThis , RulesClass* pRules)
 {
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
+	if (auto pExt = TechnoTypeExt::GetExtData(pThis))
 		return pExt->Tunnel_Speed.Get(pRules->TunnelSpeed);
 
 	return pRules->TunnelSpeed;
@@ -107,8 +107,8 @@ DEFINE_HOOK(0x72951C, TunnelLocomotionClass_7294E0_Speed, 0x8)
 	GET(RulesClass*, pRules, ECX);
 	GET(int, nCurrentMovementSpeed, EAX);
 
-	auto nLinked = pLoco->LinkedTo ? pLoco->LinkedTo->get_ID() : "None";
-	Debug::Log(__FUNCTION__" [%x] Owner [%s] \n", pThis, nLinked);
+	//auto nLinked = pLoco->LinkedTo ? pLoco->LinkedTo->get_ID() : "None";
+	//Debug::Log(__FUNCTION__" [%x] Owner [%s] \n", pThis, nLinked);
 
 	R->EAX(Game::F2I((nCurrentMovementSpeed) * GetTunnelSpeed(pLoco->LinkedTo->GetTechnoType() , pRules)));
 

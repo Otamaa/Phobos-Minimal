@@ -10,6 +10,8 @@
 #include <SmudgeClass.h>
 #include <SmudgeTypeClass.h>
 
+#include <Memory.h>
+
 DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
 	GET(CellClass* const, location, ESI);
@@ -69,7 +71,7 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 	AnimTypeClass* pSplashAnim = nullptr;
 	TechnoClass* pInvoker = nullptr;
 
-	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pAnimTypeExt = AnimTypeExt::GetExtData(pThis->Type))
 	{
 		if (pAnimTypeExt->ExplodeOnWater.Get())
 		{
@@ -150,7 +152,7 @@ DEFINE_HOOK(0x423DE7, AnimClass_Expired_Extra_OnLand_DamageArea, 0x6)
 
 	if (auto const pType = pThis->Type)
 	{
-		auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+		auto const pAnimTypeExt = AnimTypeExt::GetExtData(pThis->Type);
 		TechnoClass* pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
 		auto const pOwner = pTechOwner ? pTechOwner->GetOwningHouse() : pThis->Owner;
 
@@ -187,7 +189,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	if (!pThis || !pThis->Type)
 		return SkipGameCode;
 
-	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	auto const pAnimTypeExt = AnimTypeExt::GetExtData(pThis->Type);
 	TechnoClass* pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
 	auto const pOwner = pTechOwner ? pTechOwner->GetOwningHouse() : pThis->Owner;
 
@@ -199,9 +201,9 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0))
 			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-					pAnimExt->Invoker = pTechOwner;
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+						pAnimExt->Invoker = pTechOwner;
 			}
 		}
 	}
@@ -213,7 +215,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 			{
 				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false))
 				{
-					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
+					if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
 					if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
 						pAnimExt->Invoker = pTechOwner;
 				}
@@ -228,7 +230,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 				{
 					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30))
 					{
-						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
+						if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
 						 if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
 							pAnimExt->Invoker = pTechOwner;
 					}
@@ -331,7 +333,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 
 	{
 		auto pType = pThis->Type;
-		if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
+		if (auto pTypeExt = AnimTypeExt::GetExtData(pType))
 		{
 			auto pAnimTypeExt = pTypeExt;
 			auto const pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
@@ -394,7 +396,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	HouseClass* pHouse = HouseExt::FindCivilianSide();
 	TechnoClass* pObject = nullptr;
 
-	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim))
+	if (auto pTypeExt = AnimTypeExt::GetExtData(pBounceAnim))
 	{
 		pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 		pHouse = ((pObject) ? pObject->GetOwningHouse() : pThis->Owner ? pThis->Owner : pHouse);
@@ -403,9 +405,9 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	auto nCoord = pThis->GetCenterCoord();
 	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, 0x600, 0, 0))
 	{
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, false);
-		if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-			pAnimExt->Invoker = pObject;
+		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, false))
+			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+				pAnimExt->Invoker = pObject;
 	}
 
 	return 0x4239D3;
@@ -427,7 +429,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 	GET_STACK(int, nTintColor, STACK_OFFS(0x110, 0xF4));
 	GET_STACK(int, nBrightness, STACK_OFFS(0x110, 0xD8));
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::GetExtData(pThis->Type);
 
 	if (!pShp)
 		return 0x42371B;
@@ -512,7 +514,7 @@ static DWORD SpawnCreater(AnimClass* pThis, CellClass* pCell, Point2D& nVal)
 		if (!pType)
 			return 0x0;
 
-		if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
+		if (auto pTypeExt = AnimTypeExt::GetExtData(pType))
 		{
 			if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 			{
@@ -551,6 +553,44 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 
 	Point2D nVal { nX , nY };
 	return SpawnCreater(pThis, pCell, nVal);
+}
+
+DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x4)
+{
+	GET(AnimClass*, pMem, EDI);
+	GET(AnimClass*, pThis, ESI);
+
+	GameConstruct(pMem, pThis->Type->TrailerAnim, pThis->GetCoords(), 1, 1, 0x600, 0, false);
+	if (AnimExt::SetAnimOwnerHouseKind(pMem, pThis->GetOwningHouse(), nullptr, false)){
+		auto const pMemExt = AnimExt::GetExtData(pMem);
+		auto const pAnimExt = AnimExt::GetExtData(pThis);
+
+		if (pMemExt && pAnimExt) {
+			pMemExt->Invoker = pAnimExt->Invoker;
+		}
+	}
+
+	return 0x424322;
+}
+
+DEFINE_HOOK(0x423F9D, AnimClass_Spawn_Override , 0x8)
+{
+	GET(AnimClass*, pMem, EAX);
+	GET(AnimClass*, pThis, ESI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x8C, 0x4C));
+
+	GameConstruct(pMem, pThis->Type->Spawns, pThis->GetCoords(), 0, 1, 0x600, 0, false);
+	if (AnimExt::SetAnimOwnerHouseKind(pMem, pThis->GetOwningHouse(), nullptr, false))
+	{
+		auto const pMemExt = AnimExt::GetExtData(pMem);
+		auto const pAnimExt = AnimExt::GetExtData(pThis);
+
+		if (pMemExt && pAnimExt)
+		{
+			pMemExt->Invoker = pAnimExt->Invoker;
+		}
+	}
+	return 0x423FC3;
 }
 
 #ifdef OVERRIDE_SHP_DRAWING

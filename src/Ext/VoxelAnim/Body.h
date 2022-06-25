@@ -2,7 +2,7 @@
 
 #include <VoxelAnimClass.h>
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
@@ -21,15 +21,16 @@ class VoxelAnimExt
 public:
 	using base_type = VoxelAnimClass;
 
-	class ExtData final : public Extension<VoxelAnimClass>
+	class ExtData final : public TExtension<VoxelAnimClass>
 	{
 	public:
 
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+		TechnoClass* Invoker;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
-		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
+		ExtData(VoxelAnimClass* OwnerObject) : TExtension<VoxelAnimClass>(OwnerObject)
 			, LaserTrails { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
@@ -37,19 +38,26 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); };
+		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {
-			if (VoxelAnimExt::Invokers.find(OwnerObject()) != VoxelAnimExt::Invokers.end()) {
-				if (VoxelAnimExt::Invokers.at(OwnerObject()) == ptr)
-					VoxelAnimExt::Invokers.erase(OwnerObject());
+
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Aircraft:
+			case AbstractType::Building:
+			case AbstractType::Infantry:
+			case AbstractType::Unit:
+				AnnounceInvalidPointer(Invoker, ptr);
+				break;
 			}
+
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
 		virtual void InitializeConstants() override;
 		virtual void Uninitialize() override {
-			VoxelAnimExt::Invokers.erase(OwnerObject());
 		}
 
 		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
@@ -58,26 +66,17 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<VoxelAnimExt>
+	__declspec(noinline) static VoxelAnimExt::ExtData* GetExtData(base_type* pThis)
+	{
+		return pThis && pThis->WhatAmI() == AbstractType::VoxelAnim ? reinterpret_cast<VoxelAnimExt::ExtData*>
+			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
+	}
+
+	class ExtContainer final : public TExtensionContainer<VoxelAnimExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Aircraft:
-			case AbstractType::Building:
-			case AbstractType::Infantry:
-			case AbstractType::Unit:
-				return false;
-			default:
-				return true;
-			}
-		}
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
@@ -86,7 +85,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static std::map<VoxelAnimClass*, TechnoClass*> Invokers; //make an minimal map to severely reduce lookups
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner);
 
 };

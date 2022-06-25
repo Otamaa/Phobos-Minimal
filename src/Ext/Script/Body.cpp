@@ -2149,7 +2149,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		if (!pTechno->Owner->IsNeutral())
 		{
 			auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
-			auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+			auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pTechnoType);
 			return ((pTechnoTypeExt
 				&& (pTechnoTypeExt->RadarJamRadius > 0
 					|| pTechnoTypeExt->InhibitorRange.isset()))
@@ -2369,7 +2369,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 29:
 	{
 		// Radar Jammer
-		auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		auto pTypeTechnoExt = TechnoTypeExt::GetExtData(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral() &&
 			(pTypeTechnoExt && (pTypeTechnoExt->RadarJamRadius > 0)));
@@ -2377,7 +2377,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 30:
 	{
 		// Inhibitor
-		auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		auto pTypeTechnoExt = TechnoTypeExt::GetExtData(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral()
 			&& (pTypeTechnoExt

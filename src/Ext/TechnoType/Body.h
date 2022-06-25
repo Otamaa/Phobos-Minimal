@@ -2,7 +2,7 @@
 #include <TechnoTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/ShieldTypeClass.h>
@@ -28,7 +28,7 @@ class TechnoTypeExt
 public:
 	using base_type = TechnoTypeClass;
 
-	class ExtData final : public Extension<TechnoTypeClass>
+	class ExtData final : public TExtension<TechnoTypeClass>
 	{
 	public:
 		Valueable<bool> HealthBar_Hide;
@@ -289,7 +289,7 @@ public:
 #endif
 
 #pragma endregion
-		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
+		ExtData(TechnoTypeClass* OwnerObject) : TExtension<TechnoTypeClass>(OwnerObject)
 
 			, HealthBar_Hide { false }
 			, UIDescription {}
@@ -529,7 +529,7 @@ public:
 		virtual ~ExtData() = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override;
-		virtual size_t Size() const { return sizeof(*this); }
+		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
@@ -545,7 +545,17 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TechnoTypeExt>
+	_declspec(noinline) static TechnoTypeExt::ExtData* GetExtData(base_type* pThis)
+	{
+		return  (pThis && (pThis->WhatAmI() == AbstractType::BuildingType
+			|| pThis->WhatAmI() == AbstractType::UnitType
+			|| pThis->WhatAmI() == AbstractType::AircraftType
+			|| pThis->WhatAmI() == AbstractType::InfantryType))
+			? reinterpret_cast<TechnoTypeExt::ExtData*>
+			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
+	}
+
+	class ExtContainer final : public TExtensionContainer<TechnoTypeExt>
 	{
 	public:
 		ExtContainer();

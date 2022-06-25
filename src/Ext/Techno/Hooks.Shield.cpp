@@ -7,7 +7,7 @@
 #include <Ext/WarheadType/Body.h>
 
 // #issue 88 : shield logic
-DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
+DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x7) //was 6
 {
 	GET(TechnoClass*, pThis, ECX);
 	LEA_STACK(args_ReceiveDamage*, args, 0x4);
@@ -71,7 +71,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	const auto pExt = TechnoExt::GetExtData(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{

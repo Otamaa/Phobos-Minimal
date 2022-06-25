@@ -14,13 +14,13 @@ static void __fastcall AircraftClass_TriggerCrashWeapon(TechnoClass* pThis, void
 {
 	if (auto pType = pThis->GetTechnoType())
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExt::GetExtData(pType);
 
 		if (pTypeExt)
 		{
 			if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
 			{
-				auto pWeaponExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
+				auto pWeaponExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
 
 				if (BulletClass* pBullet = pWeaponExt->CreateBullet(pThis->GetCell(), pThis,
 					pWeapon))
@@ -64,7 +64,7 @@ playDestroyAnim:
 			{
 				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 				{
-					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+					auto const pAnimTypeExt = AnimTypeExt::GetExtData(pAnim->Type);
 					auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 					if (!pAnimTypeExt || !pAnimExt)
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 {
 	GET(AircraftClass*, pThis, EDI);
 
-	if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Type))
 	{
 		if (pThis->Passengers.FirstPassenger)
 		{
@@ -133,7 +133,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 /*DEFINE_HOOK(0x4CD8C9, FlyLocomotionClass_Movement_AI_DisableTSExp, 0x9)
 {
 	GET(FootClass*, pFoot, EDX);
-	auto const& pTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+	auto const& pTypeExt = TechnoTypeExt::GetExtData(pFoot->GetTechnoType());
 	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
 }
 
@@ -146,7 +146,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(int, comparator, EAX);
 
 	int nRadius = RulesGlobal->ParadropRadius;
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {
 		nRadius = pExt->ParadropOverflRadius.Get(nRadius) ;
 	}
 
@@ -161,7 +161,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(int, comparator, EAX);
 
 	int nRadius = RulesGlobal->ParadropRadius;
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {
 		nRadius = pExt->ParadropRadius.Get(nRadius) ;
 	}
 
@@ -175,7 +175,7 @@ DEFINE_HOOK(0x413D74, AircraftClass_CTOR_ParaLeft, 0xD)
 	//to prevent S/L related Crash
 	if (auto const pType = pThis->Type)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+		if (auto const pExt = TechnoTypeExt::GetExtData(pType))
 		{
 			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get(5); //5
 			return 0x413D7B;
@@ -192,7 +192,7 @@ DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x9)
 	//to prevent S/L related Crash
 	if (auto const pType = pThis->Type)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+		if (auto const pExt = TechnoTypeExt::GetExtData(pType))
 		{
 			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get(5); //5
 			return 0x415E9A;
@@ -206,7 +206,7 @@ DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EAX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
+	if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type))
 	{
 		R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
 		R->ECX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
@@ -221,7 +221,7 @@ DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, ECX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
+	if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type))
 	{
 		R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
 		R->EDX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
@@ -238,7 +238,7 @@ DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 
 	int nIDx = pRules->SpyPlaneCamera;
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
+	if (const auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type))
 	{
 		R->ECX(pTypeExt->SpyplaneCameraSound.Get(nIDx));
 	}
@@ -360,7 +360,7 @@ DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x5)
 	GET(AircraftClass*, pProduct, EBP);
 
 	if (pProduct) {
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
+		auto const pTypeExt = TechnoTypeExt::GetExtData(pProduct->Type);
 		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get()) {
 			return SkipAllSet;
 		}

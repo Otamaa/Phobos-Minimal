@@ -98,7 +98,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	{
 		if (auto const pInfantry = pThis->Occupants.GetItem(nOccupantIdx))
 		{
-			const auto pExt = TechnoTypeExt::ExtMap.Find(pInfantry->Type);
+			const auto pExt = TechnoTypeExt::GetExtData(pInfantry->Type);
 
 			if (auto const pGarrisonPip = pExt->PipGarrison.Get(nullptr)) {
 				pPipFile = pGarrisonPip;
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 		if (pDecided)
 		{
 			auto const pBonus = RulesDeathWeapon ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-			auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
+			auto pBulletTypeExt = BulletTypeExt::GetExtData(pDecided->Projectile);
 
 			if (auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
 			{
@@ -182,7 +182,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	auto pTechDeathWeapon = pType->DeathWeapon;
 	WeaponTypeClass* pWeaponResult = nullptr;
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+	if (auto const pExt = TechnoTypeExt::GetExtData(pType))
 		// Using Promotable<WeaponTypeClass*>
 		// tags : "%sDeathWeapon (%s replaced with rank level);
 		pTechDeathWeapon = pExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 
 	if (auto const pTechno = generic_cast<TechnoClass*>(pThis))
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType()))
+		if (auto const pExt = TechnoTypeExt::GetExtData(pTechno->GetTechnoType()))
 		{
 			auto const GetLandingAnim = [pExt, pTechno]() {
 				auto pDecidedAnim = pExt->Landing_Anim.Get();
@@ -233,9 +233,9 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 				auto const nCoord = pTechno->GetCenterCoord();
 				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, 0x600, 0, 0))
 				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, false);
-					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = pTechno;
+					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, false))
+						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+							pAnimExt->Invoker = pTechno;
 				}
 			}
 		}
@@ -255,14 +255,14 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 			|| pAir->GetHeight() > pAir->GetCell()->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pAir->Type)) {
+		if (auto const pExt = TechnoTypeExt::GetExtData(pAir->Type)) {
 			if (auto pDecidedAnim = pExt->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get())) {
 				auto const nCoord = pAir->GetCenterCoord();
 				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, 0x600, 0, 0))
 				{
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, false);
-					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = pAir;
+					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, false))
+						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+							pAnimExt->Invoker = pAir;
 				}
 			}
 		}
@@ -277,7 +277,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
 
 	auto pType = pLinked->Type;
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType)) {
+	if (auto const pExt = TechnoTypeExt::GetExtData(pType)) {
 
 		auto GetDefaultType = [pType]() {
 			if (pType->IsDropship)
@@ -297,9 +297,9 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, 0x600, 0, 0))
 			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pLinked->GetOwningHouse(), nullptr, false);
-				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-					pAnimExt->Invoker = pLinked;
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pLinked->GetOwningHouse(), nullptr, false))
+					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
+						pAnimExt->Invoker = pLinked;
 			}
 		}
 
@@ -315,7 +315,7 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 
 	int nResult = 0;
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 
 	if (pExt && pExt->ROF_Random.Get())
 	{
@@ -352,7 +352,7 @@ DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x5)
 	auto const cost = pBld->Type->GetActualCost(pBld->Owner);
 	auto const stength = pBld->Type->Strength;
 	auto const ShakeRules = RulesGlobal->ShakeScreen;
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+	auto const pExt = TechnoTypeExt::GetExtData(pBld->Type);
 
 	//and can be disabled manually
 	if (pExt
@@ -387,7 +387,7 @@ DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
 	GET(int const, UnitStreght, ECX);
 	GET(int const, Rules_Shake, EAX);
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+	auto pExt = TechnoTypeExt::GetExtData(pUnit->Type);
 
 	if (pExt
 		&& UnitStreght
@@ -415,7 +415,7 @@ DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0xA)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
 	{
 		pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioGlobal->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
 
@@ -436,7 +436,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x8)
 
 	GET(FootClass* const, pThis, ESI);
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 	if (pExt && pExt->Is_Cow.Get())
 	{
 		pThis->UpdateIdleAction();
@@ -450,7 +450,7 @@ DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x7)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
 	{
 		R->EDI(R->EAX());
 		R->BL(pExt->Is_Cow.Get());
@@ -466,7 +466,7 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0xB)
 
 	if (pThis && pThis->Owner)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
+		if (auto const pExt = TechnoTypeExt::GetExtData(pThis->Owner->GetTechnoType()))
 		{
 			R->ECX(pExt->DiskLaserChargeUp.Get(RulesGlobal->DiskLaserChargeUp));
 			return 0x4A7760;
@@ -483,7 +483,7 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
 
 	if (Drainer && pVictim)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType()))
+		if (auto const pExt = TechnoTypeExt::GetExtData(Drainer->GetTechnoType()))
 		{
 			AnimClass* pDrainAnim = nullptr;
 
@@ -492,9 +492,10 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
 				auto nCoord = Drainer->GetCoords();
 				if (auto pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x600, 0, false))
 				{
-					AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, false);
-					if (auto const pAnimExt = AnimExt::GetExtData(pDrainAnimCreated))
-						pAnimExt->Invoker = Drainer;
+					if (AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, false))
+						if (auto const pAnimExt = AnimExt::GetExtData(pDrainAnimCreated))
+							pAnimExt->Invoker = Drainer;
+
 					pDrainAnim = pDrainAnimCreated;
 				}
 			}
@@ -542,7 +543,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
 	auto const pExt = TechnoExt::GetExtData(pThis);
 
 	if (!pExt || !pTypeExt)
@@ -578,7 +579,7 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 	{
 		if (pInf->Crawling)
 		{
-			if (auto const pExt = TechnoTypeExt::ExtMap.Find(pInf->Type))
+			if (auto const pExt = TechnoTypeExt::GetExtData(pInf->Type))
 			{
 				if (!pThis->Veterancy.IsElite())
 				{

@@ -8,7 +8,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 
 	enum { SetDisguise = 0x5227BF, DefaultDisguise = 0x6F4277 };
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
 	{
 		//ToDo:
 #ifdef TANK_DISGUISE
@@ -123,7 +123,7 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 	GET(UnitClass*, pTarget, ESI);
 	GET(UnitClass*, pThis, EDI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
 	auto const& nData = pTypeExt->AnotherData;
 
 	if (pTarget->IsDisguised() || !nData.TankDisguiseAsTank.Get())
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	if (!pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
 		return 0x746714;
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pExt = TechnoTypeExt::GetExtData(pThis->Type);
 	auto const& nData = pExt->AnotherData;
 
 	if (!pTarget->IsDisguised())
@@ -231,7 +231,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 
 static void __fastcall UnitClass_DisguiseAI_(UnitClass* pThis, void* _)
 {
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pExt = TechnoTypeExt::GetExtData(pThis->Type);
 	auto const& nData = pExt->AnotherData;
 
 	if (!nData.TankDisguiseAsTank.Get())
@@ -245,7 +245,7 @@ DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0xB)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
 	auto const& nData = pTypeExt->AnotherData;
 
 	if (!nData.TankDisguiseAsTank.Get())
@@ -261,7 +261,7 @@ DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x5)
 	GET(InfantryClass*, pThis, EDI);
 	GET(InfantryClass*, pThat, ESI);
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto const pExt = TechnoTypeExt::GetExtData(pThis->Type);
 	auto const& nData = pExt->AnotherData;
 
 	return Allowed(nData, pThat->Type) ? 0x0 : 0x522772;

@@ -7,7 +7,7 @@ void MissileBulletFunctional::Put(BulletClass* pThis)
 	if (!pThis || !pThis->Type)
 		return;
 
-	auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = BulletTypeExt::GetExtData(pThis->Type);
 
 	if (!pTypeExt)
 		return;

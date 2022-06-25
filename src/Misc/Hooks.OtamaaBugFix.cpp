@@ -230,12 +230,13 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, 0x600, 0, false))
 	{
 		auto const pExt = BulletExt::GetExtData(pThis);
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
+		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
 											(pExt && pExt->Owner) ? pExt->Owner : nullptr
-								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, false);
+								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, false)){
 
-		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-			pAnimExt->Invoker = pThis->Owner;
+			if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
+				pAnimExt->Invoker = pThis->Owner;
+			}
 		}
 	}
 
@@ -243,7 +244,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 }
 
 static AnimTypeClass* GetSinkAnim(TechnoClass* pThis) {
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {
 		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
 	}
 
@@ -257,9 +258,9 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
 	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-	if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-		pAnimExt->Invoker = pThis;
+	if(AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
+		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
+			pAnimExt->Invoker = pThis;
 	}
 
 	return 0x414ED0;
@@ -272,10 +273,10 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
 	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-	if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-		pAnimExt->Invoker = pThis;
-	}
+	if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
+		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
+			pAnimExt->Invoker = pThis;
+		}
 
 	return 0x7365BB;
 }

@@ -3,21 +3,20 @@
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
 
-template<> const DWORD Extension<RadSiteClass>::Canary = 0x87654321;
+template<> const DWORD TExtension<RadSiteClass>::Canary = 0x87654321;
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
-
-DynamicVectorClass<RadSiteExt::ExtData*> RadSiteExt::Array;
 
 void RadSiteExt::ExtData::InitializeConstants()
 {
-	this->Type = RadTypeClass::FindOrAllocate("Radiation");
+	this->Type = RadTypeClass::Find("Radiation");
 }
 
 void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
 	auto const pRadSite = GameCreate<RadSiteClass>();
-	auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+	auto pRadExt = RadSiteExt::GetExtData(pRadSite);
+
 	if (!pRadExt)
 		Debug::FatalErrorAndExit("Uneable To find Ext for %x Radsite ! \n", pRadSite);
 
@@ -37,7 +36,6 @@ void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, Wea
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
 
-	Array.AddUnique(pRadExt);
 }
 
 //RadSiteClass Activate , Rewritten
@@ -143,13 +141,11 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 
 void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<RadSiteClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<RadSiteClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -170,7 +166,7 @@ bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
+RadSiteExt::ExtContainer::ExtContainer() : TExtensionContainer("RadSiteClass") { };
 RadSiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -181,7 +177,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		RadSiteExt::ExtMap.FindOrAllocate(pThis);
+		ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<RadSiteExt::ExtData>(pThis);
 	}
 
 	return 0;
@@ -192,7 +188,10 @@ DEFINE_HOOK(0x65B2F4, RadSiteClass_DTOR, 0x5)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ECX);
-		RadSiteExt::ExtMap.Remove(pThis);
+		if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
+			pExt->Uninitialize();
+
+		ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
 	}
 
 	return 0;

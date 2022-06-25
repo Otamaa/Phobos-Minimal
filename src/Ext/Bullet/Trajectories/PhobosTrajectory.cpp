@@ -316,7 +316,7 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
 	GET_STACK(VelocityClass*, pVelocity, STACK_OFFS(0x54, -0x8));
 
-	auto const pData = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pData = BulletTypeExt::GetExtData(pThis->Type);
 	auto const pExt = BulletExt::GetExtData(pThis);
 
 	if(pData && pExt)

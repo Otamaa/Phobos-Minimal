@@ -33,7 +33,6 @@ public:
 		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override
 		{
-
 			if (Invoker == ptr)
 				Invoker = nullptr;
 

@@ -10,15 +10,15 @@
 	GET(ILocomotion *, Loco, reg_Loco); \
 	TeleportLocomotionClass *pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
 	TechnoTypeClass *pType = pLocomotor->LinkedTo->GetTechnoType(); \
-	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::ExtMap.Find(pType);
+	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::GetExtData(pType);
 
 void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 {
 	if (pAnim && pInvoker) {
 		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location)) {
-			AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false);
-			if (auto pExt = AnimExt::GetExtData(pCreated))
-				pExt->Invoker = pInvoker;
+			if (AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false))
+				if (auto pExt = AnimExt::GetExtData(pCreated))
+					pExt->Invoker = pInvoker;
 		}
 	}
 }

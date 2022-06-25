@@ -2,7 +2,7 @@
 #include <BulletTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
@@ -15,7 +15,7 @@ class BulletTypeExt
 public:
 	using base_type = BulletTypeClass;
 
-	class ExtData final : public Extension<BulletTypeClass>
+	class ExtData final : public TExtension<BulletTypeClass>
 	{
 	public:
 		Valueable<int> Health;
@@ -65,7 +65,7 @@ public:
 		#pragma endregion
 
 		PhobosTrajectoryType* TrajectoryType;
-		ExtData(BulletTypeClass* OwnerObject) : Extension<BulletTypeClass>(OwnerObject)
+		ExtData(BulletTypeClass* OwnerObject) : TExtension<BulletTypeClass>(OwnerObject)
 			, Health { 0 }
 			, Armor { -1 }
 			, Interceptable { false }
@@ -106,7 +106,7 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); }
+		virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override { LaserTrail_Types.reserve(1); }
 		virtual void Uninitialize() override;
@@ -131,7 +131,14 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BulletTypeExt> {
+	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis)
+	{
+		return pThis && pThis->WhatAmI() == AbstractType::BulletType
+			? reinterpret_cast<BulletTypeExt::ExtData*>
+			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
+	}
+
+	class ExtContainer final : public TExtensionContainer<BulletTypeExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

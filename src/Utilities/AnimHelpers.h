@@ -102,9 +102,9 @@ namespace Helper
 							{
 								if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where))
 								{
-									AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, false);
-									if (auto const pAnimExt = AnimExt::GetExtData(pAnimCreated))
-										pAnimExt->Invoker = pInvoker;
+									if (AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, false))
+										if (auto const pAnimExt = AnimExt::GetExtData(pAnimCreated))
+											pAnimExt->Invoker = pInvoker;
 								}
 							}
 						}

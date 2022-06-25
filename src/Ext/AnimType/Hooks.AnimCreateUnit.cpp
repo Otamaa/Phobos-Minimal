@@ -48,7 +48,7 @@ DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = AnimTypeExt::GetExtData(pThis->Type);
 
 	if (pTypeExt && pTypeExt->CreateUnit.Get())
 	{
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pTypeExt = AnimTypeExt::GetExtData(pThis->Type))
 	{
 		if (auto unit = pTypeExt->CreateUnit.Get())
 		{

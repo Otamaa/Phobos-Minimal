@@ -26,15 +26,14 @@ class BombardTrajectory final : public PhobosTrajectory
 public:
 
 	bool IsFalling;
-	Valueable<double> Height;
+	double Height;
 
 	BombardTrajectory() : PhobosTrajectory { TrajectoryFlag::Bombard }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}
 
-	BombardTrajectory(PhobosTrajectoryType* pType) :
-		PhobosTrajectory { TrajectoryFlag::Bombard , pType }
+	BombardTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Bombard , pType }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{}

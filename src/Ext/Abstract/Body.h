@@ -266,6 +266,7 @@ public:
 		this->SavingStream = nullptr;
 	}
 
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { };
 protected:
 
 	// override this method to do type-specific stuff

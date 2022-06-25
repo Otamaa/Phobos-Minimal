@@ -13,7 +13,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 
 	if (isOnTurret)
 	{
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
+		if (auto const pTypeExt = TechnoTypeExt::GetExtData(pType))
 		{
 			turretOffset = pTypeExt->TurretOffset;
 		}
@@ -117,7 +117,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 	int speed = pWeapon->GetWeaponSpeed(sourcePos, targetPos);
 	bool bright = pWeapon->Bright || pWH->Bright;
 
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
+	auto pBulletTypeExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 	BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pAttacker, damage, pWH, speed, pExt->GetProjectileRange(), bright);
@@ -161,9 +161,9 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, sourcePos))
 			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner ? pOwner->GetOwningHouse() : nullptr, pTarget ? pTarget->GetOwningHouse() : nullptr, false);
-				if (auto pAnimExt = AnimExt::GetExtData(pAnim))
-					pAnimExt->Invoker = pOwner;
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner ? pOwner->GetOwningHouse() : nullptr, pTarget ? pTarget->GetOwningHouse() : nullptr, false))
+					if (auto pAnimExt = AnimExt::GetExtData(pAnim))
+						pAnimExt->Invoker = pOwner;
 			}
 		}
 	}

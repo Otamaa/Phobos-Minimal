@@ -12,6 +12,8 @@ ParticleExt::ExtContainer ParticleExt::ExtMap;
 
 void ParticleExt::ExtData::InitializeConstants()
 {
+	LaserTrails.reserve(1);
+	Trails.reserve(1);
 
 	auto pThis = OwnerObject();
 
@@ -28,7 +30,7 @@ void ParticleExt::ExtData::InitializeConstants()
 			{
 				if (auto const pLaserType = LaserTrailTypeClass::Array[idxTrail].get())
 				{
-					LaserTrails.emplace_back(std::make_unique<LaserTrailClass>(pLaserType, nColor, nFLH));
+					LaserTrails.push_back(std::make_unique<LaserTrailClass>(pLaserType, nColor, nFLH));
 
 				}
 			}

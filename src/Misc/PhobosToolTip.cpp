@@ -99,7 +99,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (!pType)
 		return;
 
-	auto const pData = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pData = TechnoTypeExt::GetExtData(pType);
 
 	int nBuildTime = this->GetBuildTime(pType);
 	int nSec = nBuildTime / 15 % 60;

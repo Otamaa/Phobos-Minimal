@@ -25,7 +25,7 @@ public:
 	virtual ~FootClass() RX;
 
 	//AbstractClass
-	//virtual void Update() override JMP_THIS(0x4DA530);
+	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass
 
@@ -138,9 +138,6 @@ public:
 	bool LiberateMember(int idx = -1, byte count = 0u);
 
 	CellStruct GetRandomDirection(FootClass* pFoot);
-
-	void AI() const //this is basicly update function , put it here for direct adress call
-	{ JMP_THIS(0x4DA530) }
 
 	void Draw_(Point2D* pPoint, RectangleStruct* pRect) const
 	{ JMP_THIS(0x4DB250); }
