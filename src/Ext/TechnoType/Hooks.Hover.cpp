@@ -18,7 +18,7 @@
 
 static HoverTypeClass* GetHover(TechnoTypeClass* pThis)
 {
-	if (auto pExt = TechnoTypeExt::GetExtData(pThis))
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
 		if (pExt->HoverType.isset())
 			return pExt->HoverType.Get();
 
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x514A65, HoverLocomotionClass_513D20_AnimUnderWater, 0xB)
 
 	auto const Linked = pLoco->Owner;
 	auto const pType = Linked->GetTechnoType();
-	auto const pExt = TechnoTypeExt::GetExtData(pType);
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto pAnimType = pExt->HoverType->GetAboveWaterAnim();
 
 	if (pAnimType && (Linked->CloakState != CloakState::Cloaked || Linked->CloakState != CloakState::Cloaking))

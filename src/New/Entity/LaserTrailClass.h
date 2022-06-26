@@ -46,7 +46,7 @@ public:
 		, InitialDelayTimer {}
 	{ }
 
-	bool Update(CoordStruct location);
+	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange);
@@ -56,7 +56,7 @@ private:
 	template <typename T>
 	bool Serialize(T& stm);
 
-	bool AllowDraw(CoordStruct location)
+	bool AllowDraw(CoordStruct const& location)
 	{
 		return Type && this->Visible && (this->Type->IgnoreVertical ?
 		  (abs(location.X - this->LastLocation.Get().X) > 16 || abs(location.Y - this->LastLocation.Get().Y) > 16) : true) && IsInitialDelayFinish();

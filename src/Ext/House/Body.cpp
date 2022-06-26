@@ -16,10 +16,10 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 {
 	if (!pThis || !pThis->IsPlayer()) return 0;
 
-	auto const pTechArr = TechnoClass::Array();
-	int result = std::count_if(pTechArr->begin(), pTechArr->end(), [pThis](TechnoClass* techno)
+	int result =
+	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis](TechnoClass* techno)
 	{
-		if (auto pTechnoExt = TechnoTypeExt::GetExtData(techno->GetTechnoType()))
+		if (auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno->GetTechnoType()))
 			if (pTechnoExt->IsCountedAsHarvester() && techno->Owner == pThis)
 					return TechnoExt::IsHarvesting(techno);
 
@@ -31,13 +31,13 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 
 int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 {
-	if (!pThis || !pThis->IsPlayer())	return 0;
+	if (!pThis || !pThis->IsPlayer()) return 0;
 
 	int result = 0;
-	auto const pTechArr = TechnoTypeClass::Array();
-	std::for_each(pTechArr->begin(), pTechArr->end(), [&result,pThis](TechnoTypeClass* techno)
+
+	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [&result,pThis](TechnoTypeClass* techno)
 	{
-		if (auto const pTechnoExt = TechnoTypeExt::GetExtData(techno))	{
+		if (auto const pTechnoExt = TechnoTypeExt::ExtMap.Find(techno))	{
 			if (pTechnoExt->IsCountedAsHarvester())	{
 				result += pThis->CountOwnedAndPresent(techno);
 			}
@@ -56,7 +56,6 @@ int HouseExt::CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const 
 HouseClass* HouseExt::FindCivilianSide() {
 	return HouseClass::FindBySideIndex(RulesExt::Global()->CivilianSideIndex);
 }
-
 
 HouseClass* HouseExt::FindSpecial() {
 	return HouseClass::FindByCountryIndex(RulesExt::Global()->SpecialCountryIndex);
@@ -100,9 +99,8 @@ void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 	}
 }
 
-
 // Ares
-HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const kind, bool const allowRandom, HouseClass* const pDefault, HouseClass* const pInvoker, HouseClass* const pVictim)
+HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const& kind, bool const allowRandom, HouseClass* const pDefault, HouseClass* const pInvoker, HouseClass* const pVictim)
 {
 	switch (kind) {
 	case OwnerHouseKind::Invoker:

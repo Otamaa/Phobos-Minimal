@@ -75,7 +75,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x7)
 		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
 		if (auto pTransport = pThis->Transporter)
 		{
-			if (auto pExt = TechnoTypeExt::GetExtData(pTransport->GetTechnoType()))
+			if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
 			{
 				float nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
 				R->EAX(Game::F2I(nDamage * nDamageMult));
@@ -166,7 +166,7 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 
 	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
 	{
-		auto const pSourceTypeExt = TechnoTypeExt::GetExtData(pSource->GetTechnoType());
+		auto const pSourceTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
 
 		if (pSourceTypeExt && pSourceTypeExt->Interceptor.Get())
 		{

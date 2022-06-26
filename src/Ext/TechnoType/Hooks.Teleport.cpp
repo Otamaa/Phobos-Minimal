@@ -10,7 +10,7 @@
 	GET(ILocomotion *, Loco, reg_Loco); \
 	TeleportLocomotionClass *pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
 	TechnoTypeClass *pType = pLocomotor->LinkedTo->GetTechnoType(); \
-	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::GetExtData(pType);
+	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 {

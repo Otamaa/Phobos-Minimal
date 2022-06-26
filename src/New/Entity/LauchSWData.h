@@ -15,7 +15,7 @@ struct LauchSWData
 	bool LaunchSW_IgnoreInhibitors;
 	bool LauchSW_IgnoreMoney;
 
-	bool Read(INI_EX& exINI, const char* pID, int Prefix);
+	bool Read(INI_EX & exINI, const char* pID, int Prefix);
 
 	LauchSWData() : LaunchWhat { nullptr }
 		, LaunchWaitcharge { false }
@@ -29,6 +29,9 @@ struct LauchSWData
 		, LauchSW_IgnoreMoney { false }
 	{ }
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
+
 	template <typename T>
-	void Serialize(T& Stm);
+	bool Serialize(T& Stm);
 };

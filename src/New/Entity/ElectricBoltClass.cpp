@@ -5,7 +5,6 @@
 #include <TacticalClass.h>
 #include <Drawing.h>
 #include <Memory.h>
-#include <ScenarioClass.h>
 #include <Unsorted.h>
 #include <RulesClass.h>
 
@@ -41,8 +40,8 @@ void ElectricBoltClass::Draw_It()
 		{
 			if (Lifetime)
 			{
-				Point2D pixel_start;
-				Point2D pixel_end;
+				Point2D pixel_start {};
+				Point2D pixel_end {};
 
 				 TacticalClass::Instance->CoordsToClient(&StartCoord,&pixel_start);
 				 TacticalClass::Instance->CoordsToClient(&EndCoord,&pixel_end);
@@ -115,11 +114,6 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 	/**
 	 *  Check to make sure there is actual distance between the two coords.
 	 */
-
-	auto Sim_Random_Pick = [](int a, int b)
-	{
-		return Random2Class::NonCriticalRandomNumber()(a, b);
-	};
 
 	int distance = Distance(start, end);
 	int BoltCount = EBOLT_DEFAULT_SEGMENT_LINES;
@@ -260,8 +254,8 @@ void ElectricBoltClass::Draw_Bolts()
 	{
 		LineDrawDataStruct& data = LineDrawList[i];
 
-		Point2D start_pixel;
-		Point2D end_pixel;
+		Point2D start_pixel {};
+		Point2D end_pixel {};
 
 		TacticalClass::Instance->CoordsToClient(&data.Start,&start_pixel);
 		TacticalClass::Instance->CoordsToClient(&data.End,&end_pixel);

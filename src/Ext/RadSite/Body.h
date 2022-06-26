@@ -67,9 +67,14 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	__declspec(noinline) static RadSiteExt::ExtData* GetExtData(base_type* pThis)
+	__declspec(noinline) static RadSiteExt::ExtData* TryGetExtData(base_type* pThis)
 	{
 		return pThis && pThis->WhatAmI() == AbstractType::RadSite ? reinterpret_cast<RadSiteExt::ExtData*>
+			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
+	}
+	__declspec(noinline) static RadSiteExt::ExtData* GetExtData(base_type* pThis)
+	{
+		return pThis ? reinterpret_cast<RadSiteExt::ExtData*>
 			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
 	}
 

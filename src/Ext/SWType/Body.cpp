@@ -7,6 +7,8 @@
 template<> const DWORD Extension<SuperWeaponTypeClass>::Canary = 0x11111111;
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
+SuperClass* SWTypeExt::TempSuper = nullptr;
+
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->OwnerObject();
@@ -83,7 +85,7 @@ bool SWTypeExt::IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOw
 	if (IsInhibitor(pSWType, pOwner, pTechno))
 	{
 		const auto pType = pTechno->GetTechnoType();
-		const auto pExt = TechnoTypeExt::GetExtData(pType);
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		// get the inhibitor's center
 		auto center = pTechno->GetCoords();
@@ -151,13 +153,28 @@ void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
 
 bool SWTypeExt::LoadGlobals(PhobosStreamReader& Stm) {
 	return Stm
+		.Process(SWTypeExt::TempSuper)
 		.Success();
 }
 
 bool SWTypeExt::SaveGlobals(PhobosStreamWriter& Stm) {
 	return Stm
+		.Process(SWTypeExt::TempSuper)
 		.Success();
 }
+
+void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Super:
+	{
+		AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
+	}
+	break;
+	}
+};
 
 // =============================
 // container

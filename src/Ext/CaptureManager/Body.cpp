@@ -13,7 +13,7 @@ bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 	if (pManager->MaxControlNodes == 1)
 		return pManager->CanCapture(pTarget);
 
-	auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pManager->Owner->GetTechnoType());
+	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType());
 	if (pTechnoTypeExt && pTechnoTypeExt->MultiMindControl_ReleaseVictim)
 	{
 		// I hate Ares' completely rewritten things - secsome
@@ -154,7 +154,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno
 		const auto pTarget = pTechno->AbsDerivateID & AbstractFlags::Techno ? pTechno : nullptr;
 
 		bool bRemoveFirst = false;
-		if (auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pManager->Owner->GetTechnoType()))
+		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType()))
 			bRemoveFirst = pTechnoTypeExt->MultiMindControl_ReleaseVictim;
 
 		return CaptureExt::CaptureUnit(pManager, pTarget, bRemoveFirst, pControlledAnimType);

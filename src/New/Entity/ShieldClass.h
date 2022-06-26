@@ -16,8 +16,8 @@ public:
 	~ShieldClass() = default;
 
 	int ReceiveDamage(args_ReceiveDamage* args);
-	bool CanBeTargeted(WeaponTypeClass* pWeapon);
-	bool CanBePenetrated(WarheadTypeClass* pWarhead);
+	bool CanBeTargeted(WeaponTypeClass* pWeapon) const;
+	bool CanBePenetrated(WarheadTypeClass* pWarhead) const;
 
 	void BreakShield(AnimTypeClass* pBreakAnim = nullptr, WeaponTypeClass* pBreakWeapon = nullptr);
 	void SetRespawn(int duration, double amount, int rate, bool resetTimer);
@@ -31,14 +31,15 @@ public:
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void InvalidatePointer(void* ptr);
 
-	double GetHealthRatio();
+	double GetHealthRatio() const;
 	void SetHP(int amount);
-	int GetHP();
-	bool IsActive();
-	bool IsAvailable();
-	bool IsBrokenAndNonRespawning();
-	ShieldTypeClass* GetType();
-	int GetFramesSinceLastBroken();
+	int GetHP() const;
+	bool IsActive() const;
+	bool IsAvailable() const;
+	bool IsBrokenAndNonRespawning() const;
+	ShieldTypeClass* GetType() const;
+	Armor GetArmor() const;
+	int GetFramesSinceLastBroken() const;
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 
@@ -52,16 +53,16 @@ private:
 	void UpdateType();
 
 	void SelfHealing();
-	int GetPercentageAmount(double iStatus);
+	int GetPercentageAmount(double iStatus) const;
 
 	void RespawnShield();
 
 	void CreateAnim();
 	void UpdateIdleAnim();
-	AnimTypeClass* GetIdleAnimType();
+	AnimTypeClass* GetIdleAnimType() const;
 
 	void WeaponNullifyAnim(AnimTypeClass* pHitAnim = nullptr);
-	void ResponseAttack();
+	void ResponseAttack() const;
 
 	void CloakCheck();
 	void OnlineCheck();

@@ -17,7 +17,7 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 
 	if (pTarget)
 	{
-		if (const auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
+		if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		{
 			if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet)
 			{
@@ -75,7 +75,7 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 		if (!pTargetType)
 			return 0;
 
-		if (auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pTechnoType))
+		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType))
 		{
 			if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 				&& pTargetType->Cloakable && pTargetType->Naval
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x7)
 			targetCell = pObject->GetCell();
 	}
 
-	if (const auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 	{
 		if (const auto pSecondary = pThis->GetWeapon(1))
 		{

@@ -10,7 +10,7 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
 
-template<> const DWORD TExtension<TechnoTypeClass>::Canary = 0x11111111;
+template<> const DWORD Extension<TechnoTypeClass>::Canary = 0x11111111;
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 
 void TechnoTypeExt::ExtData::Initialize()
@@ -35,7 +35,7 @@ void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 
 void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor)
 {
-	if (auto ext = TechnoTypeExt::GetExtData(pType))
+	if (auto ext = TechnoTypeExt::ExtMap.Find(pType))
 		ext->ApplyTurretOffset(mtx, factor);
 }
 
@@ -47,20 +47,20 @@ const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
 
 const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
 {
-	if (auto pExt = TechnoTypeExt::GetExtData(type_cast<TechnoTypeClass*>(pType)))
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(type_cast<TechnoTypeClass*>(pType)))
 		return pExt->GetSelectionGroupID();
 
 	return pType->ID;
 }
 
-bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const char* pID)
+bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::string_view pID)
 {
 	auto id = TechnoTypeExt::GetSelectionGroupID(pType);
 
-	return (IS_SAME_STR_(id, pID));
+	return (IS_SAME_STR_(id, pID.data()));
 }
 
-bool TechnoTypeExt::ExtData::IsCountedAsHarvester()
+bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 {
 	auto pThis = this->OwnerObject();
 	UnitTypeClass* pUnit = nullptr;
@@ -682,13 +682,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 }
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Extension<TechnoTypeClass>::LoadFromStream(Stm);
+	Extension<TechnoTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	//Extension<TechnoTypeClass>::SaveToStream(Stm);
+	Extension<TechnoTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -729,7 +729,7 @@ bool TechnoTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TechnoTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("TechnoTypeClass") { }
+TechnoTypeExt::ExtContainer::ExtContainer() : Container("TechnoTypeClass") { }
 TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -739,7 +739,7 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ESI);
 
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<TechnoTypeExt::ExtData>(pItem);
+	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
 
 	return 0;
 }
@@ -747,10 +747,7 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	TechnoTypeExt::ExtMap.Remove(pItem);
 
 	return 0;
 }
@@ -786,8 +783,6 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	GET(TechnoTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x380);
 
-	if (auto pExt = TechnoTypeExt::GetExtData(pItem))
-		pExt->LoadFromINI(pINI);
-
+	TechnoTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 	return 0;
 }

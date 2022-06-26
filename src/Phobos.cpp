@@ -257,7 +257,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			//Patch_Call(GetAddr("CellClass_CrateBeingCollected_Speed2", 0x47), &Ares_RecalculateStats_intercept_Speed);
 		//}
 
-		//Patch::Apply();
+		Patch::Apply();
 		//Phobos::init_Crt();
 
 	}
@@ -394,9 +394,8 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 	DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
 	GetComputerName(Phobos::Otamaa::PCName, &dwSize);
 
-	Patch::Apply();
 
-	if (_strcmpi(Phobos::Otamaa::PCName, ADMIN_STR) == 0)
+	if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 	{
 		Phobos::Otamaa::IsAdmin = true;
 

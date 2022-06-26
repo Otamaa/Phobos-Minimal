@@ -176,7 +176,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	CalculatePinch::Calc(pThis, nWeapon);
 	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pType);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pExt = TechnoExt::GetExtData(pThis);
 
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
@@ -193,7 +193,7 @@ DEFINE_HOOK(0x702050, TechnoClass_Destroy, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const pExt = TechnoExt::GetExtData(pThis);
 	if (pExt && pTypeExt) {
 		GiftBoxFunctional::Destroy(pExt, pTypeExt);
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Put_DP, 0x7)
 	GET_STACK(DirStruct, faceDir, 0x8);
 
 	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pType);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pExt = TechnoExt::GetExtData(pThis);
 
 	if (pExt && pTypeExt) {
@@ -236,7 +236,7 @@ DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x7 )
 	GET(DamageState, damageState , EDI);
 
 	auto pExt = TechnoExt::GetExtData(pThis);
-	auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if(pExt && pTypeExt) {
 		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);

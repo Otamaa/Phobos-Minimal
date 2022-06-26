@@ -216,8 +216,8 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false))
 				{
 					if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
-					if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
-						pAnimExt->Invoker = pTechOwner;
+						if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
+							pAnimExt->Invoker = pTechOwner;
 				}
 			}
 		}
@@ -231,8 +231,8 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30))
 					{
 						if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
-						 if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
-							pAnimExt->Invoker = pTechOwner;
+							if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
+								pAnimExt->Invoker = pTechOwner;
 					}
 				}
 			}

@@ -54,7 +54,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		if (!nData.Read(exINI, pID, i))
 			break;
 
-		this->Launchs.emplace_back(std::move(nData));
+		this->Launchs.push_back(std::move(nData));
 	}
 
 	this->ParticleRangeMin.Read(exINI, pID, "SpawnsParticle.RangeMinimum");
@@ -116,7 +116,7 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 	if (pThis->Type->DestroyAnim.Count > 0)
 	{
 		auto facing = pThis->PrimaryFacing.current().value256();
-		auto pTypeExt = TechnoTypeExt::GetExtData(pThis->Type);
+		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 		int idxAnim = 0;
 
@@ -139,13 +139,13 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 			{
-				auto pAnimTypeExt = AnimTypeExt::GetExtData(pAnim->Type);
+				auto const pAnimTypeExt = AnimTypeExt::GetExtData(pAnimType);
 				auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 				if (!pAnimTypeExt || !pAnimExt)
 					return;
 
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner)) {
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim,pAnimTypeExt, pInvoker, pThis->Owner,true)) {
 					pAnimExt->Invoker = pThis;
 				}
 

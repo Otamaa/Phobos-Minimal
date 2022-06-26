@@ -84,6 +84,6 @@ public:
 	static HouseClass* FindCivilianSide();
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
-	static HouseClass* GetHouseKind(OwnerHouseKind kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
+	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
 	static void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 };

@@ -19,6 +19,7 @@ DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
 		if (CCINIClass::INI_Art->ReadString(infantryType->ImageFile, "Image", 0, nameBuffer, 0x19) != 0)
 		{
 			Debug::Log("[Phobos] Replacing image for %s with %s.\n", infantryType->ImageFile, nameBuffer);
+
 			char filename[260];
 			_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
 			infantryType->Image = GameCreate<SHPReference>(filename);

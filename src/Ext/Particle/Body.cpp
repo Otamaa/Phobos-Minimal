@@ -13,8 +13,9 @@ ParticleExt::ExtContainer ParticleExt::ExtMap;
 void ParticleExt::ExtData::InitializeConstants()
 {
 	LaserTrails.reserve(1);
+#ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
-
+#endif
 	auto pThis = OwnerObject();
 
 	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type))

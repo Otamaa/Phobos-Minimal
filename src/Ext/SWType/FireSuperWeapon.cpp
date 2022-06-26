@@ -13,7 +13,7 @@
 // Too big to be kept in ApplyLimboDelivery
 void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 {
-	auto pOwnerExt = HouseExt::ExtMap.Find(pOwner);
+	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
 
 	// BuildLimit check goes before creation
 	if (pType->BuildLimit > 0)
@@ -28,7 +28,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 			return;
 	}
 
-	BuildingClass* pBuilding = abstract_cast<BuildingClass*>(pType->CreateObject(pOwner));
+	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
 
 	// All of these are mandatory
 	pBuilding->InLimbo = false;
@@ -72,7 +72,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 		pBuildingExt->LimboID = ID;
 }
 
-void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, CoordStruct coords)
+void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords)
 {
 	if (this->LimboDelivery_Types.size())
 		ApplyLimboDelivery(pHouse);
@@ -119,7 +119,7 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 				if (index < ids)
 					id = this->LimboDelivery_IDs[index];
 
-				LimboDeliver(abstract_cast<BuildingTypeClass*>(this->LimboDelivery_Types[index]), pHouse, id);
+				LimboDeliver(this->LimboDelivery_Types[index], pHouse, id);
 			}
 		}
 	}
@@ -134,7 +134,7 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 			if (i < ids)
 				id = this->LimboDelivery_IDs[i];
 
-			LimboDeliver(abstract_cast<BuildingTypeClass*>(this->LimboDelivery_Types[i]), pHouse, id);
+			LimboDeliver(this->LimboDelivery_Types[i], pHouse, id);
 		}
 	}
 }

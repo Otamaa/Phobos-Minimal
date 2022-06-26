@@ -14,29 +14,25 @@
 
 std::vector<FlyingStrings::Item> FlyingStrings::Data;
 
-bool FlyingStrings::DrawAllowed(CoordStruct& nCoords)
+bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords)
 {
 	if (!nCoords)
 		return false;
 
 	if (auto const pCell = MapClass::Instance->TryGetCellAt(nCoords))
 	{
-		Point2D screenCoords;
+		Point2D screenCoords { 0,0 };
 		return (!pCell->IsFogged() && !pCell->IsShrouded()) && TacticalClass::Instance->CoordsToClient(nCoords, &screenCoords);
 	}
 
 	return false;
 }
 
-void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
+void FlyingStrings::Add(const std::wstring_view text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
 {
-	Item item {};
-	item.Location = coords;
-	item.PixelOffset = pixelOffset;
-	item.Duration = 75;
-	item.Color = Drawing::RGB2DWORD(color);
-	PhobosCRT::wstrCopy(item.Text, text, 0x20);
-	Data.push_back(std::move(item));
+	Item nItem{ coords,pixelOffset,75, Drawing::RGB2DWORD(color) , L"" };
+	nItem.Text = text;
+	Data.push_back(std::move(nItem));
 }
 
 void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset)
@@ -44,7 +40,7 @@ void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass*
 	if (!coords || !Display || !owner)
 		return;
 
-	if (displayToHouses == AffectedHouse::All || EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::Player))
+	if (displayToHouses == AffectedHouse::All || EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::Player()))
 	{
 		bool isPositive = amount > 0;
 		auto color = isPositive ? ColorStruct{ 0, 255, 0 } : ColorStruct{ 255, 0, 0 };
@@ -87,7 +83,7 @@ void FlyingStrings::UpdateAll()
 			if (dataItem.Duration < 70)
 				pos.Y = dataItem.Duration + pos.Y - 70;
 
-			Simple_Text_Print_Wide(&tmp, dataItem.Text, DSurface::Temp(), &bound, &pos, dataItem.Color, 0, TextPrintType::Center, 1);
+			Simple_Text_Print_Wide(&tmp, dataItem.Text.c_str(), DSurface::Temp(), &bound, &pos, dataItem.Color, 0, TextPrintType::Center, 1);
 		}
 
 		if (--dataItem.Duration <= 0) {

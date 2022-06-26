@@ -10,7 +10,7 @@ DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, ECX);
 
-	const auto pThisExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	R->ECX(pThisExt->PipShapes01.Get(pPipShape01));
 
 	return 0;
@@ -21,7 +21,7 @@ DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, EAX);
 
-	const auto pThisExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	R->EAX(pThisExt->PipShapes01.Get(pPipShape01));
 
 	return 0;
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape02, EBX);
 
-	const auto pThisExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());;
+	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());;
 	R->EBX(pThisExt->PipShapes02.Get(pPipShape02));
 
 	return 0;
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	const auto pThisExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	R->EDX(pThisExt->PipShapes01.Get(FileSystem::PIPS_SHP()));
 
 	return 0x6F6728;
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(SHPStruct*, pDefaultPip, EAX);
 
-	const auto pThisExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 	ConvertClass* nPal = nullptr;
 
@@ -89,7 +89,7 @@ namespace DrawHeathData
 {
 	void DrawNumber(TechnoClass* const pThis, Point2D* pLocation, RectangleStruct* pBounds)
 	{
-		auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 		if (!pTypeExt->HealthNumber_Show.Get() || !pThis->IsAlive)
 			return;
@@ -170,7 +170,7 @@ namespace DrawHeathData
 				auto const nLocTemp = nLocation;
 				pBldType->Dimension2(&nDimension);
 				CoordStruct nDimension2 { -nDimension.X / 2,nDimension.Y / 2,nDimension.Z / 2 };
-				Point2D nDest;
+				Point2D nDest {};
 				TacticalGlobal->CoordsToScreen(&nDest, &nDimension2);
 
 				XOffset = nDest.X + nLocTemp.X + pTypeExt->Healnumber_Offset.Get().X + 2;
@@ -229,17 +229,20 @@ namespace DrawHeathData
 		auto const pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
 		bool IsDisguised = false;
 
-		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player) && pDisguise) {
+		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player) && pDisguise)
+		{
 			pType = (pDisguise);
-			auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) :nullptr;
-			pTechConvert = pSchemeColor ?pSchemeColor->LightConvert:nullptr;
+			auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) : nullptr;
+			pTechConvert = pSchemeColor ? pSchemeColor->LightConvert : nullptr;
 			IsDisguised = true;
-		} else {
+		}
+		else
+		{
 			pType = pThis->GetTechnoType();
 			pTechConvert = pThis->GetRemapColour();
 		}
 
-		auto pTypeExt = TechnoTypeExt::GetExtData(pType);
+		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 		auto const pPipsShape = pTypeExt->HealthBarSHP.Get(FileSystem::PIPS_SHP());
 		auto const pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
 		auto const pPalette = pTypeExt->HealthbarRemap.Get() && pTechConvert ? pTechConvert :
@@ -250,7 +253,8 @@ namespace DrawHeathData
 		auto const nBracketDelta = pType->PixelSelectionBracketDelta + pTypeExt->HealthBarSHPBracketOffset.Get();
 		Point2D nPoint { nLocation.X,nLocation.Y };
 
-		if (pThis->IsSelected) {
+		if (pThis->IsSelected)
+		{
 			nPoint.X += (bIsInfantry ? 11 : 1);
 			nPoint.Y += nBracketDelta - (bIsInfantry ? 25 : 26);
 

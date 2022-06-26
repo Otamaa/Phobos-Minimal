@@ -28,7 +28,7 @@ DEFINE_HOOK(0x62A71C, ParasiteClass_ExitUnit_ExitSound, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x3C, 0x18));
 
 	if (pParasiteOwner)
-		if (auto pOwnerTypeExt = TechnoTypeExt::GetExtData(pParasiteOwner->GetTechnoType()))
+		if (auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType()))
 			VoxClass::PlayAtPos(pOwnerTypeExt->ParasiteExit_Sound.Get(), &nCoord);
 
 	return 0;

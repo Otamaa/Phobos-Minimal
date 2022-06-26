@@ -20,18 +20,18 @@ private:
 		CoordStruct Location;
 		Point2D PixelOffset;
 		int Duration;
-		wchar_t Text[0x20];
 		COLORREF Color;
+		std::wstring Text;
 
 	};
 
 	static std::vector<Item> Data;
 
-	static bool DrawAllowed(CoordStruct& nCoords);
+	static bool DrawAllowed(CoordStruct const& nCoords);
 
 public:
 	static void Clear() { Data.clear(); }
-	static void Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
+	static void Add(const std::wstring_view text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
 	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty);
 	static void UpdateAll();
 };

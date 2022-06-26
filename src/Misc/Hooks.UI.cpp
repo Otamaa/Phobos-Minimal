@@ -76,9 +76,9 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 		wchar_t counter[0x20];
 		auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
 		auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
-		auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
+		const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
-		ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
+		const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
 			? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 			? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
@@ -100,11 +100,11 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 		wchar_t counter[0x20];
 		auto delta = HouseClass::Player->PowerOutput - HouseClass::Player->PowerDrain;
 
-		double percent = HouseClass::Player->PowerOutput != 0
+		const double percent = HouseClass::Player->PowerOutput != 0
 			? (double)HouseClass::Player->PowerDrain / (double)HouseClass::Player->PowerOutput : HouseClass::Player->PowerDrain != 0
 			? Phobos::UI::PowerDelta_ConditionRed*2.f : Phobos::UI::PowerDelta_ConditionYellow;
 
-		ColorStruct clrToolTip = percent < Phobos::UI::PowerDelta_ConditionYellow
+		const ColorStruct clrToolTip = percent < Phobos::UI::PowerDelta_ConditionYellow
 			? pSideExt->Sidebar_PowerDelta_Green : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 			? pSideExt->Sidebar_PowerDelta_Yellow : pSideExt->Sidebar_PowerDelta_Red;
 
@@ -135,7 +135,7 @@ DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::R
 	_strlwr_s(pFilename);
 
 	if (_stricmp(pFilename, "xxicon.shp")
-		&& strstr(pFilename, ".shp"))
+		&& CRT::strstr(pFilename, ".shp"))
 	{
 		if (auto pFile = FileSystem::LoadFile(RulesExt::Global()->MissingCameo, false))
 		{
@@ -155,8 +155,8 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 	GET_STACK(int, idxRight, STACK_OFFS(0x1C, -0x10));
 	GET_STACK(AbstractType, rttiLeft, STACK_OFFS(0x1C, -0x4));
 	GET_STACK(AbstractType, rttiRight, STACK_OFFS(0x1C, -0xC));
-	auto pLeftTechnoExt = TechnoTypeExt::GetExtData(pLeft);
-	auto pRightTechnoExt = TechnoTypeExt::GetExtData(pRight);
+	auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find(pLeft);
+	auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find(pRight);
 	auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
 		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxLeft)) : nullptr;
 	auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
@@ -225,11 +225,10 @@ static void __fastcall StripClass_Draw_GClockSHP(Surface* Surface, ConvertClass*
 
 		CC_Draw_Shape(Surface, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 		return;
-	}
-
+	}else
 	if (GClockTemp::Techno)
 	{
-		if (auto const pExt = TechnoTypeExt::GetExtData(GClockTemp::Techno))
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(GClockTemp::Techno))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);

@@ -20,8 +20,8 @@ DEFINE_HOOK(0x6EAD80, TeamClass_Recuits_CompareType_Convert_UnitType, 0xD)
 	GET(int, nMemberIdx, EBP);
 
 
-	auto pThatTech = TechnoTypeExt::GetExtData(pGoingToBeRecuited->Type);
-	auto pThisTech = TechnoTypeExt::GetExtData(pTeam->Entries[nMemberIdx].Type);
+	auto pThatTech = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited->Type);
+	auto pThisTech = TechnoTypeExt::ExtMap.Find(pTeam->Entries[nMemberIdx].Type);
 
 	return pGoingToBeRecuited->Type == pTeam->Entries[nMemberIdx].Type
 		|| GroupAllowed(pThatTech->GroupAs.data() , pThisTech->GroupAs.data()) ?
@@ -38,8 +38,8 @@ DEFINE_HOOK(0x6EA6CD, TeamClass_Recuits_CompareType_Convert_All, 0xD)
 	GET(TeamTypeClass*, pTeam, ECX);
 	GET(int, nMemberIdx, EDI);
 
-	auto pThatTech = TechnoTypeExt::GetExtData(pGoingToBeRecuited);
-	auto pThisTech = TechnoTypeExt::GetExtData(pTeam->TaskForce->Entries[nMemberIdx].Type);
+	auto pThatTech = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited);
+	auto pThisTech = TechnoTypeExt::ExtMap.Find(pTeam->TaskForce->Entries[nMemberIdx].Type);
 
 	return pGoingToBeRecuited == pTeam->TaskForce->Entries[nMemberIdx].Type
 		|| GroupAllowed(pThatTech->GroupAs.data(), pThisTech->GroupAs.data()) ?

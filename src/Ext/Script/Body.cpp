@@ -77,10 +77,468 @@ void ScriptExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 ScriptExt::ExtContainer::~ExtContainer() = default;
 
+/*
+#include <SlaveManagerClass.h>
+
+namespace AresHouseExt
+{
+	struct Data
+	{
+		 Data(HouseClass* pWho) :OwnerObject { pWho }
+		 { }
+
+		HouseClass* OwnerObject { nullptr };
+		int TeamPowerAdd { 0 };
+
+	};
+
+	struct ExtMap
+	{
+		static AresHouseExt::Data* Find(HouseClass* Own)
+		{
+			return GameCreate<AresHouseExt::Data>(Own);
+		}
+	};
+};
+
+namespace AresTechnoExt
+{
+	struct Data
+	{
+		Data(TechnoClass* pWho) :OwnerObject { pWho }
+		{ }
+
+		TechnoClass* OwnerObject { nullptr };
+		bool DriverKilled { false };
+		TimerStruct CloakSkipTimer { };
+		TimerStruct DisableWeaponTimer { };
+	};
+
+	struct ExtMap
+	{
+		static AresTechnoExt::Data* Find(TechnoClass* Own)
+		{
+			return GameCreate<AresTechnoExt::Data>(Own);
+		}
+	};
+};
+
+namespace TechnoTypeExtAres
+{
+	Nullable<double> ProtectedTreshold { };
+	Valueable<bool> Protected { false };
+	Promotable<bool> ProtectedRiver { false };
+	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
+}
+
+bool IsKillDriverAdvisable(FootClass* pThis, double HPTreshold)
+{
+	if (pThis->WhatAmI() == AbstractType::Infantry ||
+		pThis->GetTechnoType()->Natural ||
+		pThis->GetTechnoType()->Organic ||
+		pThis->BeingWarpedOut ||
+		pThis->IsIronCurtained()
+		) {
+		return false;
+	}
+
+	if (pThis->WhatAmI() == AbstractType::Aircraft) {
+		auto const pAir = static_cast<AircraftClass*>(pThis);
+		if (pAir->Type->AirportBound || pAir->Type->Dock.Count)
+			return false;
+
+	}else if (pThis->WhatAmI() == AbstractType::Unit) {
+
+		if (const auto pBuilding = pThis->GetCell()->GetBuilding()) {
+			if (pBuilding == pThis->GetRadioContact()) {
+				auto const pType = pBuilding->Type;
+				if (pType->WeaponsFactory && !pType->Naval)
+					return false;
+			}
+		}
+	}
+
+	if (TechnoTypeExtAres::ProtectedRiver.Get(pThis))
+		return false;
+
+	const auto nOtherTresh = TechnoTypeExtAres::ProtectedTreshold.Get(TechnoTypeExtAres::Protected ? 0.0 : 1.0);
+
+	if (nOtherTresh <= HPTreshold)
+		HPTreshold = nOtherTresh;
+
+	//Check if HP is good ?
+	if (pThis->GetHealthPercentage() > HPTreshold)
+		return false;
+
+	return true;
+}
+
+bool ConvertType(TechnoClass* pThis, TechnoTypeClass* pToType)
+{
+	AbstractType nCurType = AbstractType::None;
+
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry:
+	{
+		nCurType = AbstractType::InfantryType;
+		break;
+	}
+	case AbstractType::Unit:
+	{
+		nCurType = AbstractType::UnitType;
+		break;
+	}
+	case AbstractType::Aircraft:
+	{
+		nCurType = AbstractType::AircraftType;
+		break;
+	}
+	default:
+		return false;
+	}
+
+	if (nCurType == AbstractType::None || nCurType != pToType->WhatAmI())
+		return false;
+
+	if (auto pTemp = pThis->TemporalImUsing)
+		if (pTemp->Target)
+			pTemp->Detach();
+
+	auto pOwner = pThis->Owner;
+
+	if (!pThis->InLimbo)
+	{
+		pOwner->RegisterLoss(pThis, false);
+	}
+
+	pOwner->RemoveTracking(pThis);
+
+	auto nHealth = pThis->Health/ pThis->GetType()->Strength ;
+
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Infantry: {
+		static_cast<InfantryClass*>(pThis)->Type = static_cast<InfantryTypeClass*>(pToType);
+		break;
+	}
+	case AbstractType::Unit: {
+		static_cast<UnitClass*>(pThis)->Type = static_cast<UnitTypeClass*>(pToType);
+		break;
+	}
+	case AbstractType::Aircraft: {
+		static_cast<AircraftClass*>(pThis)->Type = static_cast<AircraftTypeClass*>(pToType);
+		break;
+	}
+	}
+
+	pThis->AdjustStrength(nHealth); //health adjusted after type change
+	pThis->EstimatedHealth = pThis->Health;
+	pOwner->AddTracking(pThis);
+
+	if (!pThis->InLimbo)
+		pOwner->RegisterGain(pThis, true);
+
+	pOwner->RecheckTechTree = true;
+
+	//clearing some AresStateHere
+	//
+	//
+
+	//ammo
+	auto nNewAmmo = pToType->Ammo;
+	if (nNewAmmo >= pThis->Ammo)
+		nNewAmmo = pThis->Ammo;
+
+	pThis->Ammo = nNewAmmo;
+
+	//Update Ares BuildingLightClass
+
+	//ROT
+	pThis->PrimaryFacing.turn_rate(pToType->ROT);
+
+	//Set Turrent Facing Here
+
+	//Replace Locomotor
+	GUID nCurID { };
+	static_cast<LocomotionClass*>(static_cast<FootClass*>(pThis)->Locomotor.get())->GetClassID(&nCurID);
+
+	if (nCurID != pToType->Locomotor)
+	{
+		// because we are throwing away the locomotor in a split second, piggybacking
+		// has to be stopped. otherwise the object might remain in a weird state.
+		while (LocomotionClass::End_Piggyback(static_cast<FootClass*>(pThis)->Locomotor)) { };
+
+		if (auto NewLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
+		{
+			static_cast<FootClass*>(pThis)->Locomotor = std::move(NewLoco);
+			static_cast<FootClass*>(pThis)->Locomotor->Link_To_Object(pThis);
+		}
+
+		// handling for Locomotor weapons: since we took this unit from the Magnetron
+		// in an unfriendly way, set these fields here to unblock the unit
+		if (static_cast<FootClass*>(pThis)->IsAttackedByLocomotor || static_cast<FootClass*>(pThis)->IsLetGoByLocomotor)
+		{
+			static_cast<FootClass*>(pThis)->IsAttackedByLocomotor = false;
+			static_cast<FootClass*>(pThis)->IsLetGoByLocomotor = false;
+			static_cast<FootClass*>(pThis)->FrozenStill = false;
+		}
+	}
+
+	return true;
+}
+
+bool KillTheDriver(TechnoClass* pVictim, TechnoClass* pDestroyer, HouseClass* pHouseAfter)
+{
+	if (!((pVictim->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None))
+		return false;
+
+	auto pVictimExt = TechnoExt::GetExtData(pVictim);
+
+	auto const passive = pHouseAfter->Type->MultiplayPassive;
+	pVictimExt->DriverKilled = passive;
+
+	// exit if owner would not change
+	if (pVictim->Owner == pHouseAfter) {
+		return false;
+	}
+	auto pType = pVictim->GetTechnoType();
+	auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto pTarget = pVictim;
+	auto pSource = pDestroyer;
+	// If this vehicle uses Operator=, we have to take care of actual "physical" drivers, rather than theoretical ones
+	if (pVictimTypeExt->IsAPromiscuousWhoreAndLetsAnyoneRideIt && pVictim->Passengers.GetFirstPassenger())
+	{
+		// kill first passenger
+		auto const pPassenger = pVictim->RemoveFirstPassenger();
+		pPassenger->RegisterDestruction(pDestroyer);
+		pPassenger->UnInit();
+	}
+	else if (auto const pOperatorType = pVictimTypeExt->Operator)
+	{
+		// find the driver cowardly hiding among the passengers, then kill him
+		for (NextObject passenger(pVictim->Passengers.GetFirstPassenger()); passenger; ++passenger)
+		{
+			auto const pPassenger = static_cast<FootClass*>(*passenger);
+			if (pPassenger->GetTechnoType() == pOperatorType)
+			{
+				pVictim->RemovePassenger(pPassenger);
+				pPassenger->RegisterDestruction(pDestroyer);
+				pPassenger->UnInit();
+				break;
+			}
+		}
+	}
+	// if passengers remain in the vehicle, operator-using or not, they should leave
+	if (pVictim->Passengers.GetFirstPassenger())
+	{
+		TechnoExt::EjectPassengers(pVictim, -1);
+	}
+	pTarget->HijackerInfantryType = -1;
+	// If this unit is driving under influence, we have to free it first
+	if (auto const pController = pTarget->MindControlledBy)
+	{
+		if (auto const pCaptureManager = pController->CaptureManager)
+		{
+			pCaptureManager->FreeUnit(pTarget);
+		}
+	}
+	pTarget->MindControlledByAUnit = false;
+	pTarget->MindControlledByHouse = nullptr;
+	// remove the mind-control ring anim
+	if (pTarget->MindControlRingAnim)
+	{
+		pTarget->MindControlRingAnim->UnInit();
+		pTarget->MindControlRingAnim = nullptr;
+	}
+	// If this unit mind controls stuff, we should free the controllees, since they still belong to the previous owner
+	if (pTarget->CaptureManager)
+	{
+		pTarget->CaptureManager->FreeAll();
+	}
+	// This unit will be freed of its duties
+	static_cast<FootClass*>(pTarget)->LiberateMember();
+	// If this unit spawns stuff, we should kill the spawns, since they still belong to the previous owner
+	if (auto const pSpawnManager = pTarget->SpawnManager)
+	{
+		pSpawnManager->KillNodes();
+		pSpawnManager->ResetTarget();
+	}
+	// If this unit enslaves stuff, we should free the slaves, since they still belong to the previous owner
+			// <DCoder> SlaveManagerClass::Killed() sets the manager's Owner to NULL
+			// <Renegade> okay, does Killed() also destroy the slave manager, or just unlink it from the unit?
+			// <DCoder> unlink
+			// <Renegade> so on principle, I could just re-link it?
+			// <DCoder> yes you can
+	if (auto const pSlaveManager = pTarget->SlaveManager)
+	{
+		pSlaveManager->Killed(pSource);
+		pSlaveManager->ZeroOutSlaves();
+		pSlaveManager->Owner = pTarget;
+		if (passive)
+		{
+			pSlaveManager->SuspendWork();
+		}
+		else
+		{
+			pSlaveManager->ResumeWork();
+		}
+	}
+	// Hand over to a different house
+	pTarget->SetOwningHouse(pHouseAfter);
+	if (passive) {
+		pTarget->QueueMission(Mission::Harmless, true);
+	}
+
+	pTarget->SetTarget(nullptr);
+	pTarget->SetDestination(nullptr, false);
+
+	if (auto pTag = pTarget->AttachedTag) {
+		pTag->RaiseEvent(static_cast<TriggerEvent>(0x44), pTarget, CellStruct::Empty, false, pDestroyer); //new
+	}
+
+	if(pTarget->IsAlive) {
+		if (auto pTag = pTarget->AttachedTag) {
+			pTag->RaiseEvent(static_cast<TriggerEvent>(0x43), pTarget, CellStruct::Empty, false, nullptr); //new
+		}
+	}
+
+	return true;
+}
+
+bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
+{
+	auto const& [action, argument] = nNode;
+	enum class AresScripts : int
+	{
+		AuxPower = 65 ,
+		KillDriver = 66,
+		TakeVehicle = 67,
+		ConvertType = 68 ,
+		DisableWeapon = 69 ,
+		SonarReveal
+	};
+
+	//ares reuse this
+
+	if (action > 64)
+	{
+		switch (static_cast<AresScripts>(action))
+		{
+		case AresScripts::AuxPower:
+		{
+			auto const pOwner = pTeam->Owner;
+			auto const pExt = AresHouseExt::ExtMap::Find(pOwner);
+			pExt->TeamPowerAdd += argument;
+			pOwner->RecheckPower = 1;
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		case AresScripts::KillDriver:
+		{
+			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+			{
+				if (pCur->Health > 0 && pCur->IsAlive && pCur->IsOnMap && !pCur->InLimbo)
+				{
+					auto pExt = AresTechnoExt::ExtMap::Find(pCur);
+					if (!pExt->DriverKilled)
+					{
+						if (IsKillDriverAdvisable(pCur,1.0))
+						{
+							KillTheDriver(pCur,nullptr,HouseExt::FindSpecial());
+						}
+					}
+				}
+			}
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		case AresScripts::TakeVehicle:
+		{
+			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+			{
+				//auto pUnitExt = TechnoExt::GetExtData(pCur);
+				//pUnitExt->TakeVehicle = true;//used on GarrisonStructure function hook , if yes replace it wit take vehicle func
+				//if (pCur->GarrisonStructure()) {
+				//	pTeam->LiberateMember(pCur,-1,1);
+				//}
+			}
+
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		case AresScripts::ConvertType:
+		{
+			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+			{
+				if (auto pConvertType = TechnoTypeExtAres::Convert_Script.Get()) {
+					ConvertType(pCur, pConvertType);
+				}
+			}
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		case AresScripts::SonarReveal:
+		{
+			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+			{
+				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
+				{
+					auto const delay = Math::max(pExt->CloakSkipTimer.GetTimeLeft(), argument);
+					pExt->CloakSkipTimer.Start(delay);
+
+					// actually detect this
+					if (pCur->CloakState != CloakState::Uncloaked)
+					{
+						pCur->Uncloak(true);
+						pCur->NeedsRedraw = true;
+					}
+				}
+			}
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		case AresScripts::DisableWeapon:
+		{
+			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+			{
+				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
+				{
+					auto const delay = Math::max(pExt->DisableWeaponTimer.GetTimeLeft(), argument);
+					pExt->DisableWeaponTimer.Start(delay);
+
+					// actually detect this
+					if (pCur->CloakState != CloakState::Uncloaked)
+					{
+						pCur->Uncloak(true);
+						pCur->NeedsRedraw = true;
+					}
+				}
+			}
+			pTeam->StepCompleted = 1;
+			return true;
+		}
+		}
+	}else
+	if (action == 64)
+	{
+		for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
+		{
+			if (pCur->GarrisonStructure()) {
+				pTeam->LiberateMember(pCur,-1,1);
+			}
+		}
+		pTeam->StepCompleted = 1;
+		return true;
+	}
+
+	return false;
+}
+*/
+
 void ScriptExt::ProcessAction(TeamClass* pTeam)
 {
-	const int action = pTeam->CurrentScript->GetCurrentAction().Action;
-	const int argument = pTeam->CurrentScript->GetCurrentAction().Argument;
+	auto const&[action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
 	switch (static_cast<PhobosScripts>(action))
 	{
@@ -2149,7 +2607,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		if (!pTechno->Owner->IsNeutral())
 		{
 			auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
-			auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pTechnoType);
+			auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 			return ((pTechnoTypeExt
 				&& (pTechnoTypeExt->RadarJamRadius > 0
 					|| pTechnoTypeExt->InhibitorRange.isset()))
@@ -2369,7 +2827,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 29:
 	{
 		// Radar Jammer
-		auto pTypeTechnoExt = TechnoTypeExt::GetExtData(pTechnoType);
+		auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral() &&
 			(pTypeTechnoExt && (pTypeTechnoExt->RadarJamRadius > 0)));
@@ -2377,7 +2835,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 	case 30:
 	{
 		// Inhibitor
-		auto pTypeTechnoExt = TechnoTypeExt::GetExtData(pTechnoType);
+		auto pTypeTechnoExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 		return (!pTechno->Owner->IsNeutral()
 			&& (pTypeTechnoExt

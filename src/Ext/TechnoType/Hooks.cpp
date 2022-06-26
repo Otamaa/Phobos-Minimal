@@ -16,7 +16,7 @@
 DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
-	auto pTypeData = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto pUnit = specific_cast<UnitClass*>(pThis);
 	bool bDisableThis = pUnit && pUnit->DeathFrameCounter > 0;
 
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x0)
 {
 	GET(TechnoTypeClass*, technoType, EAX);
 
-	auto const pTypeData = TechnoTypeExt::GetExtData(technoType);
+	auto const pTypeData = TechnoTypeExt::ExtMap.Find(technoType);
 
 	if (pTypeData && *pTypeData->TurretOffset.GetEx() == CoordStruct { 0, 0, 0 })
 		return 0x73B78A;
@@ -94,7 +94,7 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pThis->Owner->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
 	if (pTypeExt && pTypeExt->Promote_IncludeSpawns)
 	{
 		for (auto i : pThis->SpawnedNodes)
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
 
-	if (auto const pData = TechnoTypeExt::GetExtData(pType))
+	if (auto const pData = TechnoTypeExt::ExtMap.Find(pType))
 	{
 		auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
 		auto idxArray = pData->OreGathering_Tiberiums.size() > 0 ? pData->OreGathering_Tiberiums.IndexOf(idxTiberium) : 0;
@@ -165,7 +165,7 @@ DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		return pExt->NoManualMove.Get() ? 0x700C62 : 0;
 
 	return 0;
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
 
 	if (pThis->IsInAir())
 	{
-		if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		{
 			if (!pExt->JumpjetAllowLayerDeviation.Get(RulesExt::Global()->JumpjetAllowLayerDeviation.Get()))
 			{
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pTypeExt && pTypeExt->DeployingAnim_KeepUnitVisible.Get() && (pThis->Deploying || pThis->Undeploying))
 		return 0x73CF62;
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 	{
 		if (pThis->Type->DeployingAnim)
 		{
-			auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+			auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 			if (pExt && pExt->DeployingAnim_AllowAnyDirection.Get())
 				return PlayAnim;
 
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
 
 	bool isDeploying = R->Origin() == 0x739BA8;
 
-	if (auto const pExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 	{
 		if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
 			pThis->Location, 0, 1, 0x600, 0,
@@ -282,7 +282,7 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	if (auto pFoot = generic_cast<FootClass*>(pObject)) {
 		if (!pObject->IsDisguised()) {
-			if (auto pTechnoTypeExt = TechnoTypeExt::GetExtData(pFoot->GetTechnoType())) {
+			if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
 				if(!HouseClass::IsPlayerObserver()){
 					if (auto pOwnerHouse = pFoot->GetOwningHouse()) {
 						if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::Player)) {
@@ -310,7 +310,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	GET(FootClass*, pFoot, EDI);
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot) {
-		if (auto pTypeExt = TechnoTypeExt::GetExtData(pBuilding->GetTechnoType())) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())) {
 			if (auto pTypeUnit = pFoot->GetTechnoType()) {
 				if(pTypeExt->InitialStrength_Cloning.Get().X || pTypeExt->InitialStrength_Cloning.Get().Y) {
 					Vector2D<double> range = pTypeExt->InitialStrength_Cloning.Get();

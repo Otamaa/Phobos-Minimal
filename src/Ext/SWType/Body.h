@@ -18,7 +18,7 @@ public:
 		Valueable<int> Money_Amount;
 		Valueable<CSFText> UIDescription;
 		Valueable<int> CameoPriority;
-		ValueableVector<TechnoTypeClass*> LimboDelivery_Types;
+		ValueableVector<BuildingTypeClass*> LimboDelivery_Types;
 		ValueableVector<int> LimboDelivery_IDs;
 		ValueableVector<float> LimboDelivery_RollChances;
 		Valueable<AffectedHouse> LimboKill_Affected;
@@ -61,7 +61,7 @@ public:
 		{ }
 
 
-		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, CoordStruct coords);
+		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords);
 
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual ~ExtData() = default;
@@ -84,6 +84,8 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;
@@ -93,4 +95,6 @@ public:
 	static bool IsInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, TechnoClass* pTechno);
 	static bool HasInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords);
 	static bool IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno);
+
+	static SuperClass* TempSuper;
 };

@@ -102,7 +102,7 @@ public:
 			, SpawnCrater { }
 			, ScorchChance { }
 			, SpecialDraw { false }
-			, NoOwner { true }
+			, NoOwner { false }
 		{ }
 
 		virtual ~ExtData() = default;

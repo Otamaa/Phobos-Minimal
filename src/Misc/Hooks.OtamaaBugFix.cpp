@@ -86,7 +86,6 @@ static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea
 
 DEFINE_POINTER_CALL(0x6632C7, &_RocketLocomotionClass_DamageArea);
 
-
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
 	GET(VeinholeMonsterClass*, pThis, ESI);
@@ -138,9 +137,9 @@ DEFINE_POINTER_CALL(0x74D5BC, &DrawShape_VeinHole);
 static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 {
 	//TheaterTypeClass::GetCharExtension(nTheater)
-	char flag[0x100];
-	_snprintf_s(flag, _TRUNCATE, "VEINHOLE.%s", Theater::GetTheater(nTheater).Extension);
-	if (auto const pImage = FileSystem::LoadSHPFile(flag))
+	std::string flag { "VEINHOLE." };
+	flag += Theater::GetTheater(nTheater).Extension;
+	if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
 		VeinholeMonsterClass::VeinSHPData = pImage;
 }
 
@@ -154,8 +153,7 @@ static	void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 
 DEFINE_POINTER_CALL(0x4AD0A3, &DisplayClass_ReadINI_add)
 
-static	int __fastcall SelectParticle(char* pName)
-{
+static	int __fastcall SelectParticle(char* pName) {
 	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
 }
 
@@ -189,8 +187,7 @@ DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
-{
+DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6) {
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
 }
 
@@ -204,8 +201,7 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 	return pThis ? 0x0 : 0x62A976;
 }
 
-DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
-{
+DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5) {
 	return R->ESI<TechnoClass*>()->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
 }
 
@@ -244,7 +240,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 }
 
 static AnimTypeClass* GetSinkAnim(TechnoClass* pThis) {
-	if (auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType())) {
+	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
 		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
 	}
 
@@ -380,3 +376,121 @@ DEFINE_HOOK(0x48439A, CellClass_GetColourComponents, 0x5)
 
 	return 0x484440;
 }
+
+#ifdef _Dis
+/*
+ *  Custom area damage logic for DTA.
+ *  Coded in a way that makes it easy to adapt for many uses,
+ *  hence takes an ObjectClass pointer instead of an AnimClass pointer.
+ *
+ *  @author: Rampastring
+*/
+void DTA_DoAtomDamage(const ObjectClass* object_ptr, const int damageradius, const int rawdamage, const int damagepercentageatmaxrange, const bool createsmudges, const WarheadTypeClass* warhead)
+{
+	Cell cell = Coord_Cell(object_ptr->Center_Coord());
+
+	int				distance;	          // Distance to unit.
+	ObjectClass*	object;			      // Working object pointer.
+	ObjectClass*	objects[128];	      // Maximum number of objects that can be damaged.
+	int             distances[128];       // Distances of the objects that can be damaged.
+	int             count = 0;            // Number of objects to damage.
+
+	for (int x = -damageradius; x <= damageradius; x++)
+	{
+		for (int y = -damageradius; y <= damageradius; y++)
+		{
+			int xpos = cell.X + x;
+			int ypos = cell.Y + y;
+
+			/*
+			**	If the potential damage cell is outside of the map bounds,
+			**	then don't process it. This unusual check method ensures that
+			**	damage won't wrap from one side of the map to the other.
+			*/
+			if ((unsigned)xpos > MAP_CELL_W)
+			{
+				continue;
+			}
+			if ((unsigned)ypos > MAP_CELL_H)
+			{
+				continue;
+			}
+			Cell tcell = XY_Cell(xpos, ypos);
+			if (!Map.In_Radar(tcell)) continue;
+
+			Coordinate tcellcoord = Cell_Coord(tcell);
+
+			object = Map[tcell].Cell_Occupier();
+			while (object)
+			{
+				if (!object->IsToDamage)
+				{
+					object->IsToDamage = true;
+					objects[count] = object;
+
+					if (object->What_Am_I() == RTTI_BUILDING)
+					{
+						// Find the cell of the building that is closest
+						// to the explosion point and use that as the reference point for the distance
+
+						BuildingClass* building = reinterpret_cast<BuildingClass*>(object);
+
+						Cell* occupy = building->Class->Occupy_List();
+						distances[count] = INT_MAX;
+
+						while (occupy->X != REFRESH_EOL && occupy->Y != REFRESH_EOL)
+						{
+							Coordinate buildingcellcoord = building->Coord + Cell_Coord(*occupy, true) - Coordinate(CELL_LEPTON_W / 2, CELL_LEPTON_H / 2, 0);
+							distance = Distance(Cell_Coord(cell, true), buildingcellcoord);
+							distances[count] = std::min(distance, distances[count]);
+							occupy++;
+						}
+					}
+					else
+					{
+						// For non-building objects, just check the distance directly
+						distances[count] = Distance(Cell_Coord(cell, true), object->Center_Coord());
+					}
+
+					count++;
+					if (count >= ARRAY_SIZE(objects)) break;
+				}
+
+				object = object->Next;
+			}
+			if (count >= ARRAY_SIZE(objects)) break;
+
+		}
+	}
+
+	int maxdistance = damageradius * CELL_LEPTON_W;
+
+	/*
+	**	Sweep through the objects to be damaged and damage them.
+	*/
+	for (int index = 0; index < count; index++)
+	{
+		object = objects[index];
+
+		object->IsToDamage = false;
+		if (object->IsActive)
+		{
+			distance = distances[index];
+
+			float distancemult = (float)distance / (float)maxdistance;
+			if (distancemult > 1.0f)
+				distancemult = 1.0f;
+
+			if (object->IsDown && !object->IsInLimbo)
+			{
+				int percentDecrease = (100 - damagepercentageatmaxrange) * distancemult;
+				int damage = rawdamage - ((percentDecrease * rawdamage) / 100);
+
+				// We've taken the distance into account already
+				object->Take_Damage(damage, 0, warhead, nullptr, false);
+			}
+		}
+	}
+
+}
+#endif

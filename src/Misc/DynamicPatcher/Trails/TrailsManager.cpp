@@ -114,7 +114,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 		return;
 
 	auto const pExt = TechnoExt::GetExtData(pOwner);
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pClassType);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;

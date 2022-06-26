@@ -4,7 +4,7 @@
 
 // Draws LaserTrail if the conditions are suitable.
 // Returns true if drawn, false otherwise.
-bool LaserTrailClass::Update(CoordStruct location)
+bool LaserTrailClass::Update(CoordStruct const& location)
 {
 	bool result = false;
 
@@ -15,7 +15,7 @@ bool LaserTrailClass::Update(CoordStruct location)
 	}
 	else if (location.DistanceFrom(this->LastLocation.Get()) > this->Type->SegmentLength) // TODO reimplement IgnoreVertical properly?
 	{
-		if (AllowDraw(location))
+		if (LaserTrailClass::AllowDraw(location))
 		{
 			// We spawn new laser segment if the distance is long enough, the game will do the rest - Kerbiter
 			LaserDrawClass* pLaser = GameCreate<LaserDrawClass>(

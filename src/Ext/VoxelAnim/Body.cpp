@@ -51,8 +51,9 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 void VoxelAnimExt::ExtData::InitializeConstants()
 {
 	LaserTrails.reserve(1);
+#ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
-
+#endif
 	if (auto pTypeExt = VoxelAnimTypeExt::GetExtData(OwnerObject()->Type))
 	{
 		if (pTypeExt->LaserTrail_Types.size() > 0)

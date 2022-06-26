@@ -13,7 +13,8 @@ namespace LaserDrawTemp
 
 DEFINE_HOOK(0x550D1F, LaserDrawClass_DrawInHouseColor_Context_Set, 0x6)
 {
-	LaserDrawTemp::maxColor = ColorStruct(*R->lea_Stack<ColorStruct*>(0x14));
+	LEA_STACK(ColorStruct*, pColor, 0x14);
+	LaserDrawTemp::maxColor = *pColor;
 	return 0;
 }
 

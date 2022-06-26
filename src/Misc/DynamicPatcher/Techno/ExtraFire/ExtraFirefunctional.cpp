@@ -19,7 +19,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	if (!pExt || !pType)
 		return;
 
-	auto const pTypeExt = TechnoTypeExt::GetExtData(pType);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (!pTypeExt)
 		return;
@@ -31,7 +31,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 	if (auto pTransporter = pThis->Transporter)
 	{
-		if (auto const pTrasTypeExt = TechnoTypeExt::GetExtData(pTransporter->GetTechnoType()))
+		if (auto const pTrasTypeExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
 		{
 			const auto& pTransExtraFire = pTrasTypeExt->MyExtraFireData;
 			nSelectedFLH = pTransExtraFire.AttachedFLH;

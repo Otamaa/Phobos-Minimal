@@ -61,10 +61,20 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix)
 	return true;
 }
 
-template <typename T>
-void LauchSWData::Serialize(T& Stm)
+bool LauchSWData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	Stm
+	return Serialize(Stm);
+}
+
+bool LauchSWData::Save(PhobosStreamWriter& Stm) const
+{
+	return const_cast<LauchSWData*>(this)->Serialize(Stm);
+}
+
+template <typename T>
+bool LauchSWData::Serialize(T& Stm)
+{
+	return Stm
 		.Process(LaunchWhat)
 		.Process(LaunchWaitcharge)
 		.Process(LaunchResetCharge)
@@ -75,5 +85,6 @@ void LauchSWData::Serialize(T& Stm)
 		.Process(LaunchSW_Manual)
 		.Process(LaunchSW_IgnoreInhibitors)
 		.Process(LauchSW_IgnoreMoney)
+		.Success()
 		;
 }

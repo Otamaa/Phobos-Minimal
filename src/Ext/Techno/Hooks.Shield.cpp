@@ -71,7 +71,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	const auto pExt = TechnoExt::GetExtData(pThis);
-	const auto pTypeExt = TechnoTypeExt::GetExtData(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{

@@ -217,7 +217,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (pOwner) {
 		if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
 		{
-			auto const pTypeExt = TechnoTypeExt::GetExtData(pOwner->GetTechnoType());
+			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
 			if (pTypeExt->Interceptor && pBulletExt->IsInterceptor)
 				this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
@@ -501,7 +501,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 	if (this->Crit_Chance < dice)
 		return;
 
-	if (auto pTypeExt = TechnoTypeExt::GetExtData(pTarget->GetTechnoType()))
+	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType()))
 	{
 		if (pTypeExt->ImmuneToCrit)
 			return;

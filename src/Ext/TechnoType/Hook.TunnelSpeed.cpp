@@ -79,7 +79,7 @@ DEFINE_HOOK(0x7294E6, TunnelLocomotionClass_7294E0_Speed, 0x9)
 */
 static double GetTunnelSpeed(TechnoTypeClass* pThis , RulesClass* pRules)
 {
-	if (auto pExt = TechnoTypeExt::GetExtData(pThis))
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
 		return pExt->Tunnel_Speed.Get(pRules->TunnelSpeed);
 
 	return pRules->TunnelSpeed;

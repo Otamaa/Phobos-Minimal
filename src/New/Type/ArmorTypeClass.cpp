@@ -3,6 +3,8 @@
 #include <Utilities/TemplateDef.h>
 #include <Utilities/GeneralUtils.h>
 
+#include <Conversions.h>
+
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
 const char* const ArmorTypeClass::DefaultArmorName[11] =
@@ -57,14 +59,14 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		char buffer[0x40];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
-		if (GeneralUtils::IsValidString(buffer))
+		if(GeneralUtils::IsValidString(buffer) && !Conversions::IsValidArmorValue(buffer))
 			this->DefaultString = buffer;
 	}
 }
 
 void ArmorTypeClass::EvaluateDefault()
 {
-	if (strlen(DefaultString) && !IsDefault(Name.data()) && DefaultTo == -1)
+	if (!IsDefault(Name.data()) && CRT::strlen(DefaultString.data()) && DefaultTo == -1)
 	{
 		DefaultTo = FindIndex(DefaultString);
 		DefaultString = "\0";

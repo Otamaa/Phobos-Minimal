@@ -4,7 +4,9 @@
 
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
+
 #include <Utilities/TemplateDef.h>
+#include <Utilities/EventHandler.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
@@ -190,23 +192,25 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	static EventQueue<TechnoClass> EventScripts;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false);
-	static bool IsAlive(TechnoClass* pThis);
+	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false, bool bIgnoreAbsorb = false);
+	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreAbsorb = false);
 
 	static int GetSizeLeft(FootClass* const pThis);
-	static void Stop(TechnoClass* pThis, Mission eMission = Mission::Guard);
+	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
 	static bool IsHarvesting(TechnoClass* pThis);
 	static bool HasAvailableDock(TechnoClass* pThis);
 
 	static void InitializeItems(TechnoClass* pThis);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
+	static Matrix3D GetMatrix(FootClass* pThis);
 	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, CoordStruct flh, bool turretFLH = false , CoordStruct Overrider = CoordStruct::Empty);
-	static CoordStruct GetBurstFLH(TechnoClass* pThis, int weaponIndex, bool& FLHFound);
-	static CoordStruct GetInfantryFLH(InfantryClass* pThis, int weaponIndex, bool& FLHFound);
+	static std::pair<bool, CoordStruct> GetBurstFLH(TechnoClass* pThis, int weaponIndex);
+	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 
 	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
 
@@ -218,6 +222,7 @@ public:
 	static void ApplySpawn_LimitRange(TechnoClass* pThis);
 	static void CheckDeathConditions(TechnoClass* pThis);
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
+	static int GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
 	static void EatPassengers(TechnoClass* pThis);
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);

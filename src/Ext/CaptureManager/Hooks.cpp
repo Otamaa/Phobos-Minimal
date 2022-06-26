@@ -20,7 +20,7 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0xC)
 
 	auto const Allow = [pAttackerType]()
 	{
-		if (const auto pExt = TechnoTypeExt::GetExtData(pAttackerType))
+		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pAttackerType))
 			return pExt->Draw_MindControlLink.Get();
 
 		return true;
@@ -47,7 +47,7 @@ static inline int FixIdx (const Iterator<int>& iter, int nInput) {
 void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void* _)
 {
 	auto pOwner = pThis->Owner;
-	auto pOwnerTypeExt = TechnoTypeExt::GetExtData(pOwner->GetTechnoType());
+	auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
 	if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
 	{

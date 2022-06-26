@@ -13,7 +13,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 
 	if (isOnTurret)
 	{
-		if (auto const pTypeExt = TechnoTypeExt::GetExtData(pType))
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
 		{
 			turretOffset = pTypeExt->TurretOffset;
 		}

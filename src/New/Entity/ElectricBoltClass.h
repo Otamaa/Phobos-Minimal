@@ -4,6 +4,8 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GeneralStructures.h>
+#include <ScenarioClass.h>
+
 #include <Unsorted.h>
 #include <ExtraHeaders/DataVectors.h>
 
@@ -63,6 +65,11 @@ public:
 			 static_cast<double>(coord.Z) * static_cast<double>(coord.Z)
 		 ));
 	}
+
+	static inline int Sim_Random_Pick(int a, int b) {
+		return Random2Class::NonCriticalRandomNumber()(a, b);
+	}
+
 
 private:
 	void Clear();

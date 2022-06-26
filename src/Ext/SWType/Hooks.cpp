@@ -17,22 +17,20 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 }
 
 #pragma region Otamaa
-namespace SWTimerTemp
-{
-	SuperClass* Super;
+namespace SWTimerTemp {
 	SWTypeExt::ExtData* SuperExt;
 }
 
 DEFINE_HOOK(0x6D4A10, TacticalClass_Render_FetchSW, 0x6)
 {
-	SWTimerTemp::Super = R->ECX<SuperClass*>();
+	SWTypeExt::TempSuper = R->ECX<SuperClass*>();
 	SWTimerTemp::SuperExt = SWTypeExt::ExtMap.Find(R->ECX<SuperClass*>()->Type);
 	return 0x0;
 }
 
 DEFINE_HOOK(0x6D4A71, TacticalClass_Render_ClearSW, 0x5)
 {
-	SWTimerTemp::Super = nullptr;
+	SWTypeExt::TempSuper = nullptr;
 	SWTimerTemp::SuperExt = nullptr;
 	return 0x0;
 }
@@ -46,7 +44,7 @@ namespace Timer
 {
 	void __fastcall DrawTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
 	{
-		if (!SWTimerTemp::Super || !SWTimerTemp::SuperExt || !SWTimerTemp::SuperExt->ChargeTimer.Get()) {
+		if (!SWTypeExt::TempSuper || !SWTimerTemp::SuperExt || !SWTimerTemp::SuperExt->ChargeTimer.Get()) {
 			TacticalClass_PrintTimer(arg1, scheme, interval, string, pBlinkTimer, pBlinkState);
 			return;
 		}
@@ -64,8 +62,8 @@ namespace Timer
 
 		//do
 		//{
-			int nTimeLeft = SWTimerTemp::Super->RechargeTimer.GetTimeLeft();
-			double nTimePrec = (((nTimeLeft * 1.0) / SWTimerTemp::Super->Type->RechargeTime) * 100.0);
+			int nTimeLeft = SWTypeExt::TempSuper->RechargeTimer.GetTimeLeft();
+			double nTimePrec = (((nTimeLeft * 1.0) / SWTypeExt::TempSuper->Type->RechargeTime) * 100.0);
 			double nRec = !SWTimerTemp::SuperExt->ChargeTimer_Backwards.Get() ? (100.0 - nTimePrec) : abs(nTimePrec);
 			int nRes = (int)nRec;
 			//lpTime = std::move(std::format(L"{} {}", nRes, Phobos::UI::PercentLabel.c_str()));

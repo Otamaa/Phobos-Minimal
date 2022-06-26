@@ -22,7 +22,9 @@ void BulletExt::ExtData::Uninitialize()
 void BulletExt::ExtData::InitializeConstants() {
 
 	this->LaserTrails.reserve(1);
+#ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.reserve(1);
+#endif
 	//Type is not initialize here , wtf
 }
 
@@ -123,7 +125,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 	if (canAffect)
 	{
-		auto const pTechnoTypeExt = TechnoTypeExt::GetExtData(pSource->GetTechnoType());
+		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
 		if (!pTechnoTypeExt)
 			return;
 

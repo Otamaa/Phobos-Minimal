@@ -412,7 +412,7 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 	if (isWall) {
 		for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject) {
 			if (pObject->Health > 0) {
-				if (auto pBuilding = abstract_cast<BuildingClass*>(pObject)) {
+				if (auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
 					auto pBType = pBuilding->Type;
 					if ((RulesClass::Instance->EWGates.FindItemIndex(pBType) != -1) && (state == 2 || state == 6))
 						return Attachable;
