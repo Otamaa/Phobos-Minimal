@@ -68,20 +68,12 @@ bool reverse
 DEFINE_POINTER_CALL(0x520CA4, _InfantryClass_DoingAI_AnimCtor);
 */
 
-static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea
-(
-	CoordStruct* pCoord,
-	int nDamage,
-	TechnoClass* pSource,
-	WarheadTypeClass* pWarhead,
-	bool AffectTiberium, //false
-	HouseClass* pSourceHouse //nullptr
-)
+static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(const args_DamageArea& nArgs)
 {
-	HouseClass* pHouseOwner = pSource ? pSource->GetOwningHouse() : nullptr;
-	auto nCoord = *pCoord;
+	HouseClass* pHouseOwner = nArgs.Source ? nArgs.Source->GetOwningHouse() : nullptr;
+	auto nCoord = *nArgs.Coord;
 	return Map.DamageArea
-	(nCoord, nDamage, pSource, pWarhead, pWarhead->Tiberium, pHouseOwner);
+	(nCoord, nArgs.Damage, nArgs.Source, nArgs.Warhead, nArgs.Warhead->Tiberium, pHouseOwner);
 }
 
 DEFINE_POINTER_CALL(0x6632C7, &_RocketLocomotionClass_DamageArea);
@@ -121,15 +113,12 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 }
 
 static	void __fastcall DrawShape_VeinHole
-(Surface* pSurface, ConvertClass* pPal, SHPStruct* SHP, int FrameIndex,
-const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags,
-int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor,
-SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset
+(const args_DrawSHP& nArgs
 )
 {
 	bool bUseTheaterPal = true;
-	CC_Draw_Shape(pSurface, bUseTheaterPal ? FileSystem::THEATER_PAL() : pPal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
-	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+	CC_Draw_Shape(nArgs.Surface, bUseTheaterPal ? FileSystem::THEATER_PAL() : nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness
+	 , nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
 }
 
 DEFINE_POINTER_CALL(0x74D5BC, &DrawShape_VeinHole);
@@ -145,7 +134,7 @@ static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 
 DEFINE_POINTER_CALL(0x685136, &Replace_VeinholeShapeLoad);
 
-static	void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
+static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 {
 	SmudgeTypeClass::TheaterInit(nTheater);
 	Replace_VeinholeShapeLoad(nTheater);
@@ -153,7 +142,7 @@ static	void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 
 DEFINE_POINTER_CALL(0x4AD0A3, &DisplayClass_ReadINI_add)
 
-static	int __fastcall SelectParticle(char* pName) {
+static int __fastcall SelectParticle(char* pName) {
 	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
 }
 
@@ -239,21 +228,13 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	return 0x4668BD;
 }
 
-static AnimTypeClass* GetSinkAnim(TechnoClass* pThis) {
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
-	}
-
-	return RulesGlobal->Wake;
-}
-
 DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(AircraftClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
-	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
 	if(AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
 		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
 			pAnimExt->Invoker = pThis;
@@ -268,7 +249,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
-	GameConstruct(pAnim, GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
 	if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
 		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
 			pAnimExt->Invoker = pThis;

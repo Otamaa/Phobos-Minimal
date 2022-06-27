@@ -24,6 +24,15 @@ void TechnoTypeExt::ExtData::Initialize()
 	LaserTrailData.reserve(4);
 }
 
+AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
+{
+	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
+	}
+
+	return RulesGlobal->Wake;
+}
+
 void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
 	float x = static_cast<float>(this->TurretOffset.GetEx()->X * factor);

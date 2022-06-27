@@ -73,3 +73,10 @@ public:
 };
 
 static_assert(sizeof(VoxelAnimClass) == 0x148, "Invalid size.");
+
+struct args_VoxelAnimClassCTOR
+{
+	VoxelAnimTypeClass* pType;
+	const CoordStruct& pCoord;
+	HouseClass* OwnerHouse;
+};

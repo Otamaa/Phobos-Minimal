@@ -130,18 +130,12 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 }
 
 //Make Building placement Grid tranparent
-static void __fastcall CellClass_Draw_It_Shape(Surface* Surface, ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
-	const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags,
-	int Remap,
-	int ZAdjust, // + 1 = sqrt(3.0) pixels away from screen
-	ZGradient ZGradientDescIndex,
-	int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
-	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+static void __fastcall CellClass_Draw_It_Shape(const args_DrawSHP& nArgs)
 {
-	Flags = Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
+	auto nFlag = nArgs.Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
 
-	CC_Draw_Shape(Surface, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust,
-		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+	CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nFlag, nArgs.Remap, nArgs.ZAdjust,
+		nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
 }
 
 DEFINE_POINTER_CALL(0x47EFB4, &CellClass_Draw_It_Shape);

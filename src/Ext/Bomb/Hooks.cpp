@@ -15,15 +15,7 @@ DEFINE_HOOK(0x438771, BombClass_Detonate_fetch, 0x6)
 	return 0x0;
 }
 
-static DamageAreaResult __fastcall BombClass_Detonate_DamageArea
-(
-	CoordStruct* pCoord,
-	int nDamage,
-	TechnoClass* pSource,
-	WarheadTypeClass* pWarhead,
-	bool AffectTiberium, //false
-	HouseClass* pSourceHouse //nullptr
-)
+static DamageAreaResult __fastcall BombClass_Detonate_DamageArea(const args_DamageArea& nArgs)
 {
 	auto pThisBomb = FetchBomb::pThisBomb;
 	auto OwningHouse = pThisBomb->GetOwningHouse();
@@ -33,11 +25,11 @@ static DamageAreaResult __fastcall BombClass_Detonate_DamageArea
 		Debug::Log("Extension for Bomb[%x] found House = %s ! \n", pExt , pHouse);
 	}
 
-	auto nCoord = *pCoord;
-	auto nResult = Map.DamageArea(nCoord, nDamage, pSource, pWarhead, pWarhead->Tiberium, OwningHouse);
-				   Map.FlashbangWarheadAt(nDamage, pWarhead, nCoord);
+	auto nCoord = *nArgs.Coord;
+	auto nResult = Map.DamageArea(nCoord, nArgs.Damage, nArgs.Source, nArgs.Warhead, nArgs.Warhead->Tiberium, OwningHouse);
+				   Map.FlashbangWarheadAt(nArgs.Damage, nArgs.Warhead, nCoord);
 
-	if (auto pAnimType = Map.SelectDamageAnimation(nDamage, pWarhead, Map[nCoord]->LandType, nCoord)) {
+	if (auto pAnimType = Map.SelectDamageAnimation(nArgs.Damage, nArgs.Warhead, Map[nCoord]->LandType, nCoord)) {
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x2600, -15, false)) {
 			if (AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pThisBomb->Target ? pThisBomb->Target->GetOwningHouse() : nullptr, false))
 				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))

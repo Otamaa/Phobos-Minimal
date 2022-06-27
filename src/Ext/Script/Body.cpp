@@ -129,6 +129,9 @@ namespace TechnoTypeExtAres
 	Valueable<bool> Protected { false };
 	Promotable<bool> ProtectedRiver { false };
 	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
+	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
+	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
+
 }
 
 bool IsKillDriverAdvisable(FootClass* pThis, double HPTreshold)
@@ -288,6 +291,21 @@ bool ConvertType(TechnoClass* pThis, TechnoTypeClass* pToType)
 	return true;
 }
 
+void TechnoClassUpdate(TechnoClass* pThis)
+{
+	auto const pCurType = pThis->GetTechnoType();
+
+	if (TechnoTypeExtAres::Convert_Land || TechnoTypeExtAres::Convert_Water)
+	{
+		if (pThis->WhatAmI() != AbstractType::Aircraft || pThis->WhatAmI() != AbstractType::Building)
+		{
+			auto pNewType = pThis->OnBridge ? TechnoTypeExtAres::Convert_Land : TechnoTypeExtAres::Convert_Water;
+			if (pCurType && pCurType != pNewType)
+				ConvertType(pThis, pNewType);
+		}
+	}
+}
+
 bool KillTheDriver(TechnoClass* pVictim, TechnoClass* pDestroyer, HouseClass* pHouseAfter)
 {
 	if (!((pVictim->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None))
@@ -445,7 +463,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 					{
 						if (IsKillDriverAdvisable(pCur,1.0))
 						{
-							KillTheDriver(pCur,nullptr,HouseExt::FindSpecial());
+							//KillTheDriver(pCur,nullptr,HouseExt::FindSpecial());
 						}
 					}
 				}
@@ -533,8 +551,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 	}
 
 	return false;
-}
-*/
+}*/
 
 void ScriptExt::ProcessAction(TeamClass* pTeam)
 {
@@ -1581,9 +1598,8 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass *pTeam, int countdown = -
 		pLeaderUnit->QueueMission(Mission::Guard, false);
 
 		// Check if units are around the leader
-		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, false, true); pUnit = pUnit->NextTeamMember)
 		{
-			if (TechnoExt::IsActive(pUnit,false,true))
 			{
 				auto pTypeUnit = pUnit->GetTechnoType();
 
@@ -1798,9 +1814,8 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 		}
 	}
 
-	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+	for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true, true); pUnit = pUnit->NextTeamMember)
 	{
-		if (TechnoExt::IsActive(pUnit,true,true))
 		{
 			if (auto pUnitType = pUnit->GetTechnoType())
 			{
@@ -1870,9 +1885,8 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 
 	// Special case: a Leader with OpenTopped tag
 	if (pLeaderUnitType->OpenTopped && pLeaderUnit->Passengers.NumPassengers > 0) {
-		for (NextObject j(pLeaderUnit->Passengers.FirstPassenger->NextObject); j && abstract_cast<FootClass*>(*j); ++j) {
-			auto passenger = static_cast<FootClass*>(*j);
-			auto [passengerWeaponType1, passengerWeaponType2] = ScriptExt::GetWeapon(passenger);
+		for (NextObject j(pLeaderUnit->Passengers.FirstPassenger->NextObject); abstract_cast<FootClass*>(*j); ++j) {
+			auto [passengerWeaponType1, passengerWeaponType2] = ScriptExt::GetWeapon(static_cast<FootClass*>(*j));
 
 			// Used for filtering targets.
 			// Note: the units inside a openTopped Leader are used for this task
@@ -1915,9 +1929,8 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 			pTeamData->WaitNoTargetTimer.Stop();
 			pTeamData->WaitNoTargetCounter = 0; // Disable Script Waits if there are any because a new target was selected
 
-			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+			for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true, true); pUnit = pUnit->NextTeamMember)
 			{
-				if (TechnoExt::IsActive(pUnit,true,true))
 				{
 					auto pUnitType = pUnit->GetTechnoType();
 					if (pUnitType && pUnit != selectedTarget && pUnit->Target != selectedTarget)
@@ -2057,15 +2070,13 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 
 			bool bForceNextAction = false;
 
-			for (auto pUnit = pTeam->FirstUnit; pUnit && !bForceNextAction; pUnit = pUnit->NextTeamMember)
+			for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true, true) && !bForceNextAction; pUnit = pUnit->NextTeamMember)
 			{
-				auto pUnitType = pUnit->GetTechnoType();
-
-				if (TechnoExt::IsActive(pUnit,true,true))
+				if (auto pUnitType = pUnit->GetTechnoType())
 				{
 					// Aircraft case 1
 					if ((pUnitType->WhatAmI() == AbstractType::AircraftType
-						&& abstract_cast<AircraftTypeClass*>(pUnitType)->AirportBound)
+						&& static_cast<AircraftTypeClass*>(pUnitType)->AirportBound)
 						&& pUnit->Ammo > 0
 						&& (pUnit->Target != pFocus && !pUnit->InAir))
 					{
@@ -2139,7 +2150,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 
 					// Tanya / Commando C4 case
 					if ((pUnitType->WhatAmI() == AbstractType::InfantryType
-						&& abstract_cast<InfantryTypeClass*>(pUnitType)->C4
+						&& static_cast<InfantryTypeClass*>(pUnitType)->C4
 						|| pUnit->HasAbility(AbilityType::C4)) && pUnit->GetCurrentMission() != Mission::Sabotage)
 					{
 						pUnit->Mission_Attack();
@@ -2377,6 +2388,8 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		return std::find(nVec.begin(), nVec.end(), pTechnoType) != nVec.end();
 	}
 
+	// mask shoud be replaced with proper enum class
+	// it is more readable
 	switch (mask)
 	{
 	case 1:

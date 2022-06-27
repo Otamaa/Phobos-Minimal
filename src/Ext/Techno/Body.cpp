@@ -42,6 +42,19 @@ void TechnoExt::ExtData::InitializeConstants()
 #endif
 }
 
+void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
+{
+	if (pAnim && pInvoker)
+	{
+		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location))
+		{
+			if (AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false))
+				if (auto pExt = AnimExt::GetExtData(pCreated))
+					pExt->Invoker = pInvoker;
+		}
+	}
+}
+
 double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 {
 	if (!pSouce || ForceDisable || !pSouce->GetTechnoType())
@@ -342,6 +355,7 @@ bool TechnoExt::CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget)
 		&& fErr != FireError::CANT
 		&& fErr != FireError::MOVING
 		&& fErr != FireError::RANGE)
+
 	{
 		return pThis->IsCloseEnough(pTarget, wpnIdx);
 	}
@@ -513,7 +527,7 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 
 void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 {
-	if (!TechnoExt::IsActive(pThis, true, true,true))
+	if (!TechnoExt::IsActive(pThis, true, true,false))
 		return;
 
 	auto const pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -581,7 +595,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 
 void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis)
 {
-	if (!TechnoExt::IsActive(pThis, true, true))
+	if (!TechnoExt::IsActive(pThis, true, true,true))
 		return;
 
 	auto const pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());

@@ -562,6 +562,8 @@ public:
 
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string_view pID);
+	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

@@ -106,11 +106,13 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.FileClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GameThread.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.OtamaaBugFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
+    <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\PNGFile.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
@@ -268,6 +270,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
     <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
+    <ClInclude Include="src\Misc\MapRevealer.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\PNGFile.h" />

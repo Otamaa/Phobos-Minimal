@@ -35,17 +35,12 @@ DEFINE_HOOK(0x6D4A71, TacticalClass_Render_ClearSW, 0x5)
 	return 0x0;
 }
 
-static void __fastcall TacticalClass_PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
-{
-	JMP_STD(0x6D4B50);
-}
-
 namespace Timer
 {
 	void __fastcall DrawTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
 	{
 		if (!SWTypeExt::TempSuper || !SWTimerTemp::SuperExt || !SWTimerTemp::SuperExt->ChargeTimer.Get()) {
-			TacticalClass_PrintTimer(arg1, scheme, interval, string, pBlinkTimer, pBlinkState);
+			TacticalClass::PrintTimer(arg1, scheme, interval, string, pBlinkTimer, pBlinkState);
 			return;
 		}
 

@@ -201,13 +201,7 @@ DEFINE_HOOK(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
 	return 0x0;
 }
 
-static void __fastcall StripClass_Draw_GClockSHP(Surface* Surface, ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
-	const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags,
-	int Remap,
-	int ZAdjust,
-	ZGradient ZGradientDescIndex,
-	int Brightness,
-	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+static void __fastcall StripClass_Draw_GClockSHP(args_DrawSHP& nArgs)
 {
 	int Gclock_int = -1;
 
@@ -215,34 +209,34 @@ static void __fastcall StripClass_Draw_GClockSHP(Surface* Surface, ConvertClass*
 	{
 		if (auto const pExt = SWTypeExt::ExtMap.Find(GClockTemp::Super))
 		{
-			SHP = pExt->GClock_Shape.Get(SHP);
+			nArgs.SHP = pExt->GClock_Shape.Get(nArgs.SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			Palette = pExt->GClock_Palette.GetOrDefaultConvert(Palette);
+			nArgs.Pal = pExt->GClock_Palette.GetOrDefaultConvert(nArgs.Pal);
 		}
 
 		if (Gclock_int != -1)
-			Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
+			nArgs.Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
 
-		CC_Draw_Shape(Surface, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+		CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
 		return;
 	}else
 	if (GClockTemp::Techno)
 	{
 		if (auto const pExt = TechnoTypeExt::ExtMap.Find(GClockTemp::Techno))
 		{
-			SHP = pExt->GClock_Shape.Get(SHP);
+			nArgs.SHP = pExt->GClock_Shape.Get(nArgs.SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			Palette = pExt->GClock_Palette.GetOrDefaultConvert(Palette);
+			nArgs.Pal = pExt->GClock_Palette.GetOrDefaultConvert(nArgs.Pal);
 		}
 
 		if (Gclock_int != -1)
-			Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
+			nArgs.Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
 
-		CC_Draw_Shape(Surface, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+		CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
 		return;
 	}
 
-	CC_Draw_Shape(Surface, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+	CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
 }
 
 DEFINE_POINTER_CALL(0x6A9E97, &StripClass_Draw_GClockSHP);

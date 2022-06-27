@@ -12,22 +12,11 @@
 	TechnoTypeClass *pType = pLocomotor->LinkedTo->GetTechnoType(); \
 	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
-{
-	if (pAnim && pInvoker) {
-		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location)) {
-			if (AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false))
-				if (auto pExt = AnimExt::GetExtData(pCreated))
-					pExt->Invoker = pInvoker;
-		}
-	}
-}
-
 DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
 {
 	GET_LOCO(ESI);
 
-	PlayAnim(pExt->WarpOut.Get(RulesClass::Instance->WarpOut), pLocomotor->LinkedTo);
+	TechnoExt::PlayAnim(pExt->WarpOut.Get(RulesClass::Instance->WarpOut), pLocomotor->LinkedTo);
 
 	if (pExt->WarpOutWeapon.isset())
 		WeaponTypeExt::DetonateAt(pExt->WarpOutWeapon.Get(), pLocomotor->LinkedTo, pLocomotor->LinkedTo);
@@ -52,7 +41,7 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 {
 	GET_LOCO(ESI);
 
-	PlayAnim(pExt->WarpIn.Get(RulesClass::Instance->WarpOut),pLocomotor->LinkedTo);
+	TechnoExt::PlayAnim(pExt->WarpIn.Get(RulesClass::Instance->WarpOut),pLocomotor->LinkedTo);
 
 	if (auto pTechnoExt = TechnoExt::GetExtData(pLocomotor->LinkedTo)) {
 		auto weaponType = pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.Get(RulesClass::Instance->ChronoRangeMinimum) ? pExt->WarpInMinRangeWeapon.Get(pExt->WarpInWeapon.isset() ? pExt->WarpInWeapon.Get() : nullptr) :
@@ -93,7 +82,7 @@ DEFINE_HOOK(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
 {
 	GET_LOCO(ESI);
 
-	PlayAnim(pExt->WarpAway.Get(RulesClass::Instance->WarpOut), pLocomotor->LinkedTo);
+	TechnoExt::PlayAnim(pExt->WarpAway.Get(RulesClass::Instance->WarpOut), pLocomotor->LinkedTo);
 	return 0x719878;
 }
 

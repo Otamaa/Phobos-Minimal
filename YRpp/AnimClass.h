@@ -155,3 +155,14 @@ public:
 	DECLARE_PROPERTY(AudioController, Audio4);
 };
 static_assert(sizeof(AnimClass) == 0x1C8, "Invalid size.");
+
+struct args_AnimClassCTOR
+{
+	AnimTypeClass* pType;
+	const CoordStruct& pCoord;
+	int nLoopDelay;
+	int nLoopCount;
+	DWORD nflags;
+	int nForceZAdjust;
+	bool nReverse;
+};
