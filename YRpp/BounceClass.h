@@ -67,13 +67,3 @@ private:
 };
 
 static_assert(sizeof(BounceClass) == 0x50 , "Invalid size.");
-
-struct args_BounceClassInt
-{
-	CoordStruct* Coord;
-	double Els;
-	double Grav;
-	double maxVel;
-	Vector3D<float>* Vel;
-	double aVel;
-};

@@ -414,7 +414,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	GET(WarheadTypeClass*, pWarhead, EAX);
 
 	auto pExt = BulletExt::GetExtData(pThis);
-	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt && pExt->Owner ? pExt->Owner :HouseExt::FindCivilianSide());
+	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt && pExt->Owner ? pExt->Owner :nullptr);
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
 
@@ -429,7 +429,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 				for (; nAmountToSpawn > 0; --nAmountToSpawn) {
 					if (auto const pVoxelAnimType = pWarhead->DebrisTypes[nCurIdx])
 						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
-							if(auto pVoxExt = VoxelAnimExt::GetExtData(pVoxAnim))
+							if(auto pVoxExt = VoxelAnimExt::ExtMap.Find(pVoxAnim))
 								pVoxExt->Invoker = pThis->Owner;
 				}
 			}
@@ -452,9 +452,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			for (int i = 0; i < nTotalSpawn; ++i) {
 				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random(0, AnimDebris.size() - 1)]) {
 					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
-						if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, false))
-							if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-								pAnimExt->Invoker = pThis->Owner;
+						AnimExt::SetAnimOwnerHouseKind(pAnim, pOWner, Victim, pThis->Owner, false);
 					}
 				}
 			}

@@ -1,3 +1,4 @@
+
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -5,6 +6,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Utilities/Macro.h>
 #include <Ext/House/Body.h>
+
+#include <MapClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
@@ -20,35 +23,35 @@
 
 #endif
 
-#ifdef GATTLING_OVERLOAD
-static std::vector<int> GattValues { { 450 } };
-static std::vector<int> GattFrames { { 20} };
-static std::vector<int> GattDamage { { 2 } };
-static int GattSound { -1 };
-static ParticleSystemTypeClass* GattParticles {  };
-static int GattParticlesCount { 1 };
+#include <Phobos_ECS.h>
 
 void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 {
-	auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto pExt = TechnoExt::GetExtData(pThis);
+	auto const pType = pThis->GetTechnoType();
 
-	if (!pThisTypeExt || !pExt) {
+	if (!pType->IsGattling)
 		return;
-	}
+
+	auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (!pThisTypeExt->Gattling_Overload.Get())
+		return;
+
+	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const curValue = pThis->GattlingValue;
+	auto const maxValue = pThis->Veterancy.IsElite() ? pType->EliteStage[pType->WeaponStages - 1] : pType->WeaponStage[pType->WeaponStages - 1];
 
 	if (pExt->GattlingDmageDelay <= 0)
 	{
-		int nStage = pThis->GetCurrentGattlingValue();
-		if (nStage != 450) {
+		int nStage = curValue;
+		if (nStage < maxValue) {
 			pExt->GattlingDmageDelay = -1;
 			pExt->GattlingDmageSound = false;
 			return;
 		}
 
-		pExt->GattlingDmageDelay = 15;
-
-		auto nDamage = 15;
+		pExt->GattlingDmageDelay = pThisTypeExt->Gattling_Overload_Frames.Get();
+		auto nDamage = pThisTypeExt->Gattling_Overload_Damage.Get();
 
 		if (nDamage <= 0) {
 			pExt->GattlingDmageSound = false;
@@ -56,14 +59,14 @@ void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 			pThis->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, 0, 0, 0, 0);
 
 			if (!pExt->GattlingDmageSound) {
-				if(GattSound >= 0 )
-					VocClass::PlayAt(GattSound, pThis->Location, 0);
+				if(pThisTypeExt->Gattling_Overload_DeathSound.Get(-1) >= 0)
+					VocClass::PlayAt(pThisTypeExt->Gattling_Overload_DeathSound, pThis->Location, 0);
 
 				pExt->GattlingDmageSound = true;
 			}
 
-			if (auto const pParticle = RulesGlobal->DefaultSparkSystem) {
-				for (int i = GattParticlesCount; i > 0; --i)
+			if (auto const pParticle = pThisTypeExt->Gattling_Overload_ParticleSys.Get()) {
+				for (int i = pThisTypeExt->Gattling_Overload_ParticleSysCount.Get() ; i > 0; --i)
 				{
 					auto const nRandomY = ScenarioGlobal->Random(-200, 200);
 					auto const nRamdomX = ScenarioGlobal->Random(-200, 200);
@@ -72,7 +75,7 @@ void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 				}
 			}
 
-			if (pThis->WhatAmI() == AbstractType::Unit &&  pThis->IsAlive) {
+			if (pThis->WhatAmI() == AbstractType::Unit &&  pThis->IsAlive && pThis->IsVoxel()) {
 				double const nBase = ScenarioGlobal->Random(0,1) ? 0.015:0.029999999;
 				double const nCopied_base = (ScenarioGlobal->Random(0, 100) < 50) ? -nBase : nBase;
 				pThis->RockingSidewaysPerFrame = (float)nCopied_base;
@@ -83,44 +86,98 @@ void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 	}
 
 }
-#endif
 
-EventQueue<TechnoClass> TechnoExt::EventScripts
+static void KillSlave(TechnoClass* pThis)
 {
-	UpdateMindControlAnim,
-	ApplyMindControlRangeLimit,
-	ApplyInterceptor,
-	ApplySpawn_LimitRange,
-	CheckDeathConditions ,
-	EatPassengers
+	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
+		if (pInf->Type->Slaved && !pInf->InLimbo && pInf->IsAlive && pInf->Health > 0 && !pInf->TemporalTargetingMe) {
+			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+			if (!pInf->SlaveOwner && pTypeExt->Death_WithMaster.Get())
+				TechnoExt::KillSelf(pInf, pTypeExt->Death_Method);
+		}
+	}
+}
+
+void TechnoExt::ExtData::InitFunctionEvents()
+{
+	/*
+	GenericFuctions.clear();
+
+	//register desired functions !
+	GenericFuctions += TechnoExt::UpdateMindControlAnim;
+	GenericFuctions += TechnoExt::ApplyMindControlRangeLimit;
+	GenericFuctions += TechnoExt::ApplyInterceptor;
+	GenericFuctions += TechnoExt::ApplySpawn_LimitRange;
+	GenericFuctions += TechnoExt::CheckDeathConditions;
+	GenericFuctions += TechnoExt::EatPassengers;
+#ifdef COMPILE_PORTED_DP_FEATURES
+	GenericFuctions += PassengersFunctional::AI;
+	GenericFuctions += SpawnSupportFunctional::AI;
+#endif
+	GenericFuctions += TechnoClass_AI_GattlingDamage;
+	*/
+}
+
+void TechnoExt::InitializeItems(TechnoClass* pThis)
+{
+	auto pExt = TechnoExt::GetExtData(pThis);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pExt || !pTypeExt)
+		return;
+
+	//pExt->InitFunctionEvents();
+	pExt->ID = pThis->get_ID();
+	pExt->CurrentShieldType = pTypeExt->ShieldType;
+
+	if (pThis->WhatAmI() != AbstractType::Building)
+	{
+		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
+			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	, PassengersFunctional::AI
-	, SpawnSupportFunctional::AI
+		pExt->IsMissileHoming = pTypeExt->MissileHoming.Get();
 #endif
-};
+		TechnoExt::InitializeLaserTrail(pThis, false);
 
+#ifdef COMPILE_PORTED_DP_FEATURES
+		TrailsManager::Construct(pThis);
+#endif
+	}
+}
 
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	TechnoExt::EventScripts.run_each(pThis);
+	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pExt && pTypeExt) {
+		if (CRT::strlen(pExt->ID.data()) && CRT::strcmp(pExt->ID.data(), pThis->get_ID()))
+			pExt->ID = pThis->get_ID();
+
+		TechnoExt::UpdateMindControlAnim(pThis);
+		TechnoExt::ApplyMindControlRangeLimit(pThis);
+		TechnoExt::ApplyInterceptor(pThis);
+		TechnoExt::ApplySpawn_LimitRange(pThis);
+		//KillSlave(pThis);
+		TechnoExt::CheckDeathConditions(pThis);
+		TechnoExt::EatPassengers(pThis);
+#ifdef COMPILE_PORTED_DP_FEATURES
+		PassengersFunctional::AI(pThis);
+		SpawnSupportFunctional::AI(pThis);
+#endif
+		TechnoClass_AI_GattlingDamage(pThis);
+		//if (pExt->GenericFuctions.AfterLoadGame)
+			//pExt->InitFunctionEvents();
+
+		//pExt->GenericFuctions.run_each(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pExt = TechnoExt::GetExtData(pThis);
-
-	if (pExt && pTypeExt)
-	{
 		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 		DriveDataFunctional::AI(pExt);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
-#ifdef GATTLING_OVERLOAD
-		if (pTypeExt->OwnerObject()->IsGattling) {
-			TechnoClass_AI_GattlingDamage(pThis);
-		}
-#endif
 
 		if (!pExt->PaintBallState.IsActive())
 			pExt->PaintBallState.Disable(false);
@@ -128,7 +185,6 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 			if (pThis->WhatAmI() == AbstractType::Building)
 				pThis->UpdatePlacement(PlacementType::Redraw);
 	}
-
 #endif
 
 	return 0;
@@ -193,7 +249,7 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 	pThis->FootClass::Update();
 }
 
-DEFINE_POINTER_CALL(0x414DA3, &AircraftClass_AI_);
+DEFINE_JUMP(CALL,0x414DA3,GET_OFFSET(AircraftClass_AI_));
 
 static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 {
@@ -212,7 +268,7 @@ static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 	pThis->FootClass::Update();
 }
 
-DEFINE_POINTER_CALL(0x73647B, &UnitClass_AI_);
+DEFINE_JUMP(CALL,0x73647B, GET_OFFSET(UnitClass_AI_));
 
 DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
@@ -346,5 +402,12 @@ void __fastcall HouseClass_AI_SWHandler_Add(HouseClass* pThis, void* _)
 	pThis->SuperWeapon_Handler();
 }
 
-DEFINE_POINTER_CALL(0x4F92F6, &HouseClass_AI_SWHandler_Add);
+DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
+
+void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
+{
+	pLogic->Update();
+}
+
+DEFINE_JUMP(CALL,0x55DC9E ,GET_OFFSET(LogicClass_AI_));

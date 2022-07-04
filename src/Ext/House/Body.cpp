@@ -90,7 +90,7 @@ void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 		break;
 
 	case ForceRandom:
-		pHouseExt->ForceOnlyTargetHouseEnemy = (bool)ScenarioClass::Instance->Random.RandomRanged(0, 1);;
+		pHouseExt->ForceOnlyTargetHouseEnemy = static_cast<bool>(ScenarioClass::Instance->Random.RandomRanged(0, 1));
 		break;
 
 	default:
@@ -127,6 +127,29 @@ HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const& kind, bool const allowR
 	default:
 		return pDefault;
 	}
+}
+
+HouseClass* HouseExt::GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* const pKiller, HouseClass* const pVictim)
+{
+	switch (kind)
+	{
+	case SlaveReturnTo::Killer:
+		return pKiller;
+	case SlaveReturnTo::Master:
+		return pVictim;
+	case SlaveReturnTo::Civilian:
+		return HouseExt::FindCivilianSide();
+	case SlaveReturnTo::Special:
+		return HouseExt::FindSpecial();
+	case SlaveReturnTo::Neutral:
+		return HouseExt::FindNeutral();
+	case SlaveReturnTo::Random:
+			auto& Random = ScenarioClass::Instance->Random;
+			return HouseClass::Array->GetItem(
+				Random.RandomRanged(0, HouseClass::Array->Count - 1));
+	}
+
+	return pKiller;
 }
 // =============================
 // load / save
@@ -172,7 +195,6 @@ bool HouseExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 
 HouseExt::ExtContainer::ExtContainer() : Container("HouseClass") {}
-
 HouseExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

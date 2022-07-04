@@ -230,7 +230,7 @@ public:
 
 	static void GreenLine(CoordStruct sourcePos, CoordStruct targetPos, int thickness = 1, int duration = 1)
 	{
-		DrawLine(sourcePos, targetPos, ColorStruct(0, 255, 0), ColorStruct::Empty, thickness, duration);
+		DrawLine(sourcePos, targetPos, { 0, 255, 0 }, ColorStruct::Empty, thickness, duration);
 	}
 
 	static void BlueLineZ(CoordStruct sourcePos, int length, int thickness = 1, int duration = 1)
@@ -240,7 +240,7 @@ public:
 
 	static void BlueLine(CoordStruct sourcePos, CoordStruct targetPos, int thickness = 1, int duration = 1)
 	{
-		DrawLine(sourcePos, targetPos, ColorStruct(0, 0, 255), ColorStruct::Empty, thickness, duration);
+		DrawLine(sourcePos, targetPos, { 0, 0, 255 }, ColorStruct::Empty, thickness, duration);
 	}
 
 	static void DrawLine(CoordStruct sourcePos, CoordStruct targetPos, ColorStruct innerColor, ColorStruct outerColor = ColorStruct::Empty, int thickness = 2, int duration = 15)

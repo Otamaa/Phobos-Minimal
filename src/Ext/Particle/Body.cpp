@@ -47,6 +47,7 @@ void ParticleExt::ExtData::InitializeConstants()
 // =============================
 // load / save
 
+
 template <typename T>
 void ParticleExt::ExtData::Serialize(T& Stm)
 {
@@ -78,7 +79,7 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+/*
 DEFINE_HOOK(0x62BB06, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
@@ -101,7 +102,7 @@ bool __fastcall ObjectClass_limbo_Particle(ObjectClass* pObj, void* _)
 	return pObj->Limbo();
 }
 
-DEFINE_POINTER_CALL(0x62D9BF, &ObjectClass_limbo_Particle);
+DEFINE_JUMP(CALL,0x62D9BF, GET_OFFSET(ObjectClass_limbo_Particle));
 
 DEFINE_HOOK_AGAIN(0x62D810, ParticleClass_SaveLoad_Prefix, 0x8)
 DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
@@ -128,4 +129,4 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)
 {
 	ParticleExt::ExtMap.SaveStatic();
 	return 0;
-}
+}*/

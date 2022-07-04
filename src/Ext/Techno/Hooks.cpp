@@ -156,15 +156,10 @@ DEFINE_HOOK(0x518505, InfantryClass_TakeDamage_NotHuman, 0x4)
 		{
 			if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
 			{
-				if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
-				{
+				if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location)) {
 					auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
-					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), true))
-						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-							pAnimExt->Invoker = receiveDamageArgs.Attacker;
-
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), receiveDamageArgs.Attacker, true);
 					pAnim->ZAdjust = pThis->GetZAdjustment();
-
 					return Delete;
 				}
 			}
@@ -501,8 +496,11 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
 		}
 	}
 
-	if(result == 0 && pThis->GetTechnoType()->OpenTopped && pThis->WhatAmI() == AbstractType::Aircraft)
-		Debug::Log("Warning ! , Opentopped Aircraft[%s] return 0 range result will cause Aircraft to stuck ! \n", pThis->get_ID());
+	if (result == 0 && pThis->GetTechnoType()->OpenTopped && pThis->WhatAmI() == AbstractType::Aircraft) {
+		result = pThis->GetTechnoType()->GuardRange;
+		if(result == 0)
+			Debug::Log("Warning ! , range of Aircraft[%s] return 0 result will cause Aircraft to stuck ! \n", pThis->get_ID());
+	}
 
 	R->EAX(result);
 	return 0x701393;
@@ -582,3 +580,50 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 	return 0x4DEBA2;
 }*/
+#include <SlaveManagerClass.h>
+
+DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x8)
+{
+	enum { KillTheSlave = 0x6B0BDF ,SkipSetEax = 0x6B0BB4 };
+
+	GET_STACK(const SlaveManagerClass*, pThis, STACK_OFFS(0x24, 0x10));
+	GET(InfantryClass*, pSlave, ESI);
+	GET(TechnoClass*, pKiller, EBX);
+	GET_STACK(HouseClass*, pDefaultRetHouse, STACK_OFFS(0x24, 0x14));
+
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->GetTechnoType()))
+	{
+		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
+			return KillTheSlave;
+
+		const auto pVictim = pThis->Owner ? pThis->Owner->GetOwningHouse() : pSlave->GetOwningHouse();
+		R->EAX(HouseExt::GetSlaveHouse(pTypeExt->Slaved_ReturnTo, pKiller->GetOwningHouse(), pVictim ? pVictim : pDefaultRetHouse));
+		return SkipSetEax;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+	GET(FootClass*, pFoot, EDI);
+
+	if (pBuilding && pBuilding->Type->Cloning && pFoot) {
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())) {
+			if (auto const pTypeUnit = pFoot->GetTechnoType()) {
+				auto const& [rangeX, rangeY] = pTypeExt->InitialStrength_Cloning.Get();
+
+				if (rangeX || rangeY) {
+					const double percentage = rangeX >= rangeY ? rangeX :
+					static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(rangeX * 100), static_cast<int>(rangeY * 100)) / 100.0);
+					const int strength = Math::clamp(static_cast<int>(pTypeUnit->Strength * percentage), 1, pTypeUnit->Strength);
+					pFoot->Health = strength;
+					pFoot->EstimatedHealth = strength;
+				}
+			}
+		}
+	}
+
+	return 0;
+}

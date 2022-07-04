@@ -124,23 +124,14 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					}
 				}
 
-
-				pTarget->QueueMission(Mission::Move, false);
-				if (pManager->Owner->IsHumanControlled && pTarget->Target)
+				if (pTarget->Target) {
+					pTarget->SetTarget(nullptr);
+					pTarget->Override_Mission(pTarget->Owner->ControlledByHuman() ? Mission::Guard : Mission::Hunt, nullptr,nullptr);
 					pTarget->SetDestination(pTarget->GetCell(), true);
-				{
-					if (auto pTargetFoot = abstract_cast<FootClass*>(pTarget))
-					{
-						pTargetFoot->SetTarget(nullptr);
-						pTargetFoot->QueueMission(Mission::Guard, false);
-						pTargetFoot->SetDestination(pTarget->GetCell(), true);
-						pTargetFoot->NextMission();
-					}
 				}
 
 				return true;
 			}
-
 		}
 	}
 

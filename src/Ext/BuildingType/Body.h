@@ -130,7 +130,8 @@ public:
 		Valueable<bool> PlacementPreview_Remap;
 		CustomPalette PlacementPreview_Palette;
 		Nullable<int> PlacementPreview_TranslucentLevel;
-
+		Valueable<bool> EVA_Sold_Disabled;
+		ValueableIdx<VoxClass> EVA_Sold;
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -209,6 +210,9 @@ public:
 			, PlacementPreview_Remap { true }
 			, PlacementPreview_Palette {}
 			, PlacementPreview_TranslucentLevel {}
+
+			, EVA_Sold_Disabled { false }
+			, EVA_Sold { -1 }
 
 			, DamageFireTypes {}
 			, OnFireTypes {}

@@ -9,6 +9,9 @@
 #define GET(clsname, var, reg) \
 	clsname var = R->reg<clsname>();
 
+#define GET8(clsname , var , reg) \
+	clsname var = R->reg();
+
 // it's really not a good idea to GET_STACK(not_a_pointer)
 // no, really
 #define LEA_STACK(clsname, var, offset) \

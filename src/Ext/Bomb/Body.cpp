@@ -34,6 +34,7 @@ BombExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 // BombListClass::Plant()
+/*
 DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
 DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6) // is this inline ?
 {
@@ -71,4 +72,4 @@ DEFINE_HOOK(0x438BE4, BombClass_Save_Suffix, 0x5)
 {
 	BombExt::ExtMap.SaveStatic();
 	return 0;
-}
+}*/

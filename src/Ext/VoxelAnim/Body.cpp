@@ -3,7 +3,7 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-template<> const DWORD TExtension<VoxelAnimClass>::Canary = 0xAAAAAACC;
+template<> const DWORD Extension<VoxelAnimClass>::Canary = 0xAAAAAACC;
 VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner)
@@ -11,7 +11,7 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOw
 	if (!DealthByOwner)
 		return nullptr;
 
-	if (auto pExt = VoxelAnimExt::GetExtData(pThis))
+	if (auto pExt = VoxelAnimExt::ExtMap.Find(pThis))
 		return pExt->Invoker;
 
 	return nullptr;
@@ -25,7 +25,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 		return;
 
 	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(OwnerObject(), pTypeExt->Damage_DealtByOwner.Get());
-	auto const pOwner = pInvoker ? pInvoker->Owner : pThis->OwnerHouse ? pThis->OwnerHouse : HouseExt::FindCivilianSide();
+	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
 	size_t  nTotal = 0;
 
@@ -82,11 +82,13 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<VoxelAnimClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<VoxelAnimClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -109,7 +111,7 @@ bool VoxelAnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-VoxelAnimExt::ExtContainer::ExtContainer() : TExtensionContainer("VoxelAnimClass") { }
+VoxelAnimExt::ExtContainer::ExtContainer() : Container("VoxelAnimClass") { }
 VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -119,7 +121,7 @@ VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74942E, VoxelAnimClass_CTOR, 0xC)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<VoxelAnimExt::ExtData>(pItem);
+	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
@@ -127,10 +129,7 @@ DEFINE_HOOK(0x7499F1, VoxelAnimClass_DTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
 
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	VoxelAnimExt::ExtMap.Remove(pItem);
 
 	return 0;
 }

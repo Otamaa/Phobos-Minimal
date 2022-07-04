@@ -20,6 +20,11 @@ public:
 			insert(item);
 	}
 
+	EventQueue() : _events { }
+		, curIdx { 0 }
+		, AfterLoadGame { false }
+	{ }
+
 	bool operator() (function_type item)
 	{
 		insert(item);
@@ -29,6 +34,21 @@ public:
 	void insert(function_type value)
 	{
 		_events.push_back(value);
+	}
+
+	void operator +=(function_type value)
+	{
+		_events.push_back(value);
+	}
+
+	bool empty() const
+	{
+		return _events.empty();
+	}
+
+	void clear()
+	{
+		return _events.clear();
 	}
 
 	size_t size() const
@@ -48,17 +68,50 @@ public:
 
 	void run_each(T* pointer) const
 	{
-		for (auto nevent : _events)
-			nevent(pointer);
+
+		//make everything concistent
+		// so if the game loaded
+		if (!AfterLoadGame) {
+			for (size_t i = 0; i < _events.size(); ++i) {
+				curIdx = i;
+				_events.at(i)(pointer);
+			}
+		} else {
+			for (size_t i = curIdx; i < _events.size(); ++i) {
+				_events.at(i)(pointer);
+			}
+
+			AfterLoadGame = false;
+		}
 	}
 
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
-		return Stm.Process(_events);
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		Debug::Log("Processing Element From EventQueue ! \n");
+
+		if(Stm
+			.Process(curIdx)
+			.Success()){
+
+			AfterLoadGame = true;
+			return true;
+		}
+
+		return false;
 	}
 
-	inline bool Save(PhobosStreamWriter& Stm) const {
-		return Stm.Process(_events);
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		Debug::Log("Processing Element From EventQueue ! \n");
+		return
+			Stm
+			.Process(curIdx)
+			.Success()
+			;
 	}
+
+	mutable bool AfterLoadGame;
+	mutable size_t curIdx;
 
 private:
 	container_type _events;

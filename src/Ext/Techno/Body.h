@@ -6,7 +6,7 @@
 #include <Ext/Abstract/Body.h>
 
 #include <Utilities/TemplateDef.h>
-#include <Utilities/EventHandler.h>
+//#include <Utilities/EventHandler.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
@@ -49,8 +49,64 @@ public:
 	class ExtData final : public TExtension<TechnoClass>
 	{
 	public:
-		std::string MyID;
+		//EventQueue<base_type> GenericFuctions;
+		PhobosFixedString<0x100> ID;
 		std::unique_ptr<ShieldClass> Shield;
+		/*
+		struct TestBuildingExt final : public  TExtensionBranch<BuildingClass>
+		{
+			bool DeployedTechno;
+			int LimboID;
+			int GrindingWeapon_LastFiredFrame;
+			BuildingClass* CurrentAirFactory;
+			int AccumulatedGrindingRefund;
+			TimerStruct AutoSellTimer;
+
+			TestBuildingExt() : TExtensionBranch { }
+				, DeployedTechno { false }
+				, LimboID { -1 }
+				, GrindingWeapon_LastFiredFrame { 0 }
+				, CurrentAirFactory { nullptr }
+				, AccumulatedGrindingRefund { 0 }
+				, AutoSellTimer { }
+			{ }
+
+			virtual ~TestBuildingExt() = default;
+
+			virtual size_t GetSize() const override { return sizeof(*this); }
+			virtual void LoadBranchFromStream(PhobosStreamReader& Stm) override { Serialize(Stm); }
+			virtual void SaveBranchToStream(PhobosStreamWriter& Stm) override { Serialize(Stm); }
+			virtual void InitializeConstants() override { }
+			virtual void Uninitialize() override {}
+			virtual void InvalidatePointer(void* ptr, bool bRemoved) override
+			{
+				auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+				switch (abs)
+				{
+				case AbstractType::Building:
+				{
+					AnnounceInvalidPointer(CurrentAirFactory, ptr);
+				}
+				}
+			}
+
+			template <typename T>
+			void Serialize(T& Stm)
+			{
+				Debug::Log("Processing Element From TestBuildingExt ! \n");
+				Stm
+					.Process(this->DeployedTechno)
+					.Process(this->LimboID)
+					.Process(this->GrindingWeapon_LastFiredFrame)
+					.Process(this->CurrentAirFactory)
+					.Process(this->AccumulatedGrindingRefund)
+					.Process(this->AutoSellTimer)
+
+					;
+			}
+		};
+
+		TestBuildingExt* BExt;*/
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
 		bool LastKillWasTeamTarget;
@@ -87,11 +143,14 @@ public:
 		JJFacingToTarget MyJJData;
 		SpawnSupport MySpawnSuport;
 		FighterAreaGuard MyFighterData;
+
 #endif;
 	#pragma endregion
 		ExtData(TechnoClass* OwnerObject) : TExtension<TechnoClass>(OwnerObject)
-			, MyID { }
+			//, GenericFuctions { }
+			, ID { }
 			, Shield {}
+			//, BExt { nullptr }
 			, LaserTrails {}
 			, ReceiveDamage { false }
 			, LastKillWasTeamTarget { false }
@@ -124,7 +183,7 @@ public:
 			, MySpawnSuport { }
 			, MyFighterData { }
 #endif;
-		{ }
+		{ InitializeConstants(); }
 
 		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override
@@ -143,15 +202,14 @@ public:
 				if (this->GetShield())
 					this->GetShield()->InvalidatePointer(ptr);
 
+				//if (auto pBldExt = BExt)
+				//	pBldExt->InvalidatePointer(ptr, bRemoved);
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 				MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 #endif;
 				AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-				return;
 			}
-			break;
-			default:
-				return;
 			}
 		}
 
@@ -167,7 +225,11 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 			ExtraWeaponTimers.clear();
 #endif
+		//	if (BExt)
+			//	GameDelete(BExt);
 		}
+
+		void InitFunctionEvents();
 
 	private:
 		template <typename T>
@@ -192,13 +254,16 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static EventQueue<TechnoClass> EventScripts;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false, bool bIgnoreAbsorb = false);
-	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreAbsorb = false);
+	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false,bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
+	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
+
+	static inline bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
+	static inline bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
+	static inline bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
 
 	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
@@ -232,6 +297,7 @@ public:
 	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
+	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true);
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);

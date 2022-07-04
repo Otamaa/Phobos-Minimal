@@ -87,7 +87,12 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 #endif
 #pragma endregion
 	this->Storage_TiberiumIndex.Read(exINI, GENERAL_SECTION, "Storage.TiberiumIndex");
+
 	this->RadApplicationDelay_Building.Read(exINI, RADIATION_SECTION, "RadApplicationDelay.Building");
+	this->RadWarhead_Detonate.Read(exINI, RADIATION_SECTION, "RadSiteWarhead.Detonate");
+	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
+	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
+
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
 	this->Pips_Shield_Buildings.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
 	this->MissingCameo.Read(pINI, AUDIOVISUAL_SECTION, "MissingCameo");
@@ -318,6 +323,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SelectBrd_DefaultTranslucentLevel)
 		.Process(this->SelectBrd_DefaultShowEnemy)
+
+		.Process(this->RadWarhead_Detonate)
+		.Process(this->RadHasOwner)
+		.Process(this->RadHasInvoker)
 
 		.Process(this->VeinholeParticle)
 		.Process(this->NukeWarheadName)

@@ -37,6 +37,7 @@
     <ClCompile Include="src\Ext\Building\Hooks.Fires.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\BombardTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectory.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
+    <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
@@ -113,6 +115,7 @@
     <ClCompile Include="src\Misc\Hooks.OtamaaBugFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
+    <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\PNGFile.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
@@ -211,6 +214,7 @@
     <ClInclude Include="src\ExtraHeaders\RegionClass.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\BombardTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectory.h" />
@@ -285,6 +289,7 @@
     <ClInclude Include="src\New\Type\LaserTrailTypeClass.h" />
     <ClInclude Include="src\New\Entity\LaserTrailClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
+    <ClInclude Include="src\Phobos_ECS.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
@@ -428,6 +433,7 @@
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>
     <TargetName>phobos</TargetName>
+    <LibraryPath>B:\Projects\Phobos-devlop27-new\Phobos\src\Lib\flecs-2.4.8;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -569,7 +575,7 @@
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;USE_VINIFERA_CONTAINER_MAP;_USING_V110_SDK71_;_WINDLL;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;USE_VINIFERA_CONTAINER_MAP;_WINDLL;NODEFAULTLIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -590,7 +596,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>

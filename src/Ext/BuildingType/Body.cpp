@@ -9,6 +9,8 @@ const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
 void BuildingTypeExt::ExtData::InitializeConstants() {
 
 	AIBuildInsteadPerDiff.reserve(3);
+	const char* const Eva_structureSold = reinterpret_cast<const char*>(0x819030);
+	EVA_Sold = VoxClass::FindIndex(Eva_structureSold);
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
@@ -205,6 +207,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PlacementPreview_Palette.Read(pINI, pSection, "PlacementPreview.Palette");
 	this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
+	this->EVA_Sold_Disabled.Read(exINI, pSection, "EVA.Sold.Disabled");
+	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
+
 #pragma region Otamaa
 	//   this->OwnerObject()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
@@ -360,6 +365,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PlacementPreview_Shape)
 		.Process(this->PlacementPreview_ShapeFrame)
 		.Process(this->PlacementPreview_TranslucentLevel)
+
+		.Process(this->EVA_Sold_Disabled)
+		.Process(this->EVA_Sold)
 
 		.Process(this->DamageFireTypes)
 		.Process(this->OnFireTypes)

@@ -4,7 +4,7 @@
 
 #include <Utilities/Container.Otamaa.h>
 #include <Utilities/Enum.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/Template.h>
 
 #include <New/Entity/LauchSWData.h>
@@ -14,7 +14,7 @@ class AnimTypeExt
 public:
 	using base_type = AnimTypeClass;
 
-	class ExtData final : public TExtension<AnimTypeClass>
+	class ExtData final : public Extension<AnimTypeClass>
 	{
 	public:
 		CustomPalette Palette;
@@ -61,7 +61,7 @@ public:
 		Valueable<bool> SpecialDraw;
 		Valueable<bool> NoOwner;
 	    #pragma endregion
-		ExtData(AnimTypeClass* OwnerObject) : TExtension<AnimTypeClass>(OwnerObject)
+		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, CreateUnit { }
 			, CreateUnit_Facing { 0 }
@@ -106,7 +106,7 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override { } //Init After INI Read
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
@@ -130,14 +130,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static AnimTypeExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::AnimType
-			? reinterpret_cast<AnimTypeExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
-
-	class ExtContainer final : public TExtensionContainer<AnimTypeExt>
+	class ExtContainer final : public Container<AnimTypeExt>
 	{
 	public:
 		ExtContainer();

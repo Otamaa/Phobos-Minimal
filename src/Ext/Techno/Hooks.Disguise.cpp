@@ -31,7 +31,6 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	return 0;
 }
 
-#ifdef DISGUISE_HOOKS
 #define CAN_BLINK_DISGUISE(pTechno) \
 RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::Player):true))
 
@@ -109,7 +108,6 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 }
 
 #undef CAN_BLINK_DISGUISE
-#endif
 
 #pragma region Otamaa
 #ifdef Advanched_DISGUISE
@@ -238,7 +236,7 @@ static void __fastcall UnitClass_DisguiseAI_(UnitClass* pThis, void* _)
 		pThis->UpdateDisguise();
 }
 
-DEFINE_POINTER_CALL(0x73649C, &UnitClass_DisguiseAI_);
+DEFINE_JUMP(CALL,0x73649C, GET_OFFSET(UnitClass_DisguiseAI_));
 
 
 DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0xB)

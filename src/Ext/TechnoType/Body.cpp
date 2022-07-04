@@ -161,7 +161,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
 	this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 	this->Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
+	this->Death_Method.Read(exINI, pSection, "Death.Method");
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
+	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.OwnerWhenMasterDead");
 	this->ShieldType.Read(exINI, pSection, "ShieldType", true);
 	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
@@ -205,6 +207,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->OpenTopped_DamageMultiplier.Read(exINI, pSection, "OpenTopped.DamageMultiplier");
 	this->OpenTopped_WarpDistance.Read(exINI, pSection, "OpenTopped.WarpDistance");
 	this->OpenTopped_IgnoreRangefinding.Read(exINI, pSection, "OpenTopped.IgnoreRangefinding");
+	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, pSection, "OpenTopped.AllowFiringIfDeactivated");
 
 	this->AutoFire.Read(exINI, pSection, "AutoFire");
 	this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
@@ -354,6 +357,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SinkAnim.Read(exINI, pSection, "Sink.Anim");
 	this->Tunnel_Speed.Read(exINI, pSection, "TunnelSpeed");
 	this->HoverType.Read(exINI, pSection, "HoverType");
+
+	this->Gattling_Overload.Read(exINI, pSection, "Gattling.Overload");
+	this->Gattling_Overload_Damage.Read(exINI, pSection, "Gattling.Overload.Damage");
+	this->Gattling_Overload_Frames.Read(exINI, pSection, "Gattling.Overload.Frames");
+	this->Gattling_Overload_DeathSound.Read(exINI, pSection, "Gattling.Overload.DeathSound");
+	this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
+	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
+
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 	this->MyExtraFireData.ReadRules(exINI, pSection);
@@ -479,7 +491,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Death_NoAmmo)
 		.Process(this->Death_Countdown)
 		.Process(this->Death_Peaceful)
+		.Process(this->Death_Method)
 		.Process(this->Death_WithMaster)
+		.Process(this->Slaved_ReturnTo)
 		.Process(this->ShieldType)
 		.Process(this->WarpOut)
 		.Process(this->WarpIn)
@@ -518,6 +532,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->OpenTopped_DamageMultiplier)
 		.Process(this->OpenTopped_WarpDistance)
 		.Process(this->OpenTopped_IgnoreRangefinding)
+		.Process(this->OpenTopped_AllowFiringIfDeactivated)
 		.Process(this->AutoFire)
 		.Process(this->AutoFire_TargetSelf)
 		.Process(this->NoSecondaryWeaponFallback)
@@ -663,6 +678,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SinkAnim)
 		.Process(this->Tunnel_Speed)
 		.Process(this->HoverType)
+
+		.Process(this->Gattling_Overload)
+		.Process(this->Gattling_Overload_Damage)
+		.Process(this->Gattling_Overload_Frames)
+		.Process(this->Gattling_Overload_DeathSound)
+		.Process(this->Gattling_Overload_ParticleSys)
+		.Process(this->Gattling_Overload_ParticleSysCount)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

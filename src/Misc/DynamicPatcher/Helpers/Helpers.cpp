@@ -161,9 +161,7 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, sourcePos))
 			{
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner ? pOwner->GetOwningHouse() : nullptr, pTarget ? pTarget->GetOwningHouse() : nullptr, false))
-					if (auto pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = pOwner;
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner ? pOwner->GetOwningHouse() : nullptr, pTarget ? pTarget->GetOwningHouse() : nullptr, pOwner, false);
 			}
 		}
 	}

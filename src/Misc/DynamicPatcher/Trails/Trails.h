@@ -172,6 +172,9 @@ private:
 	bool IsOnTile(CellClass* pCell)
 	{
 		auto const pCount = std::count_if(OnTileTypes.begin(), OnTileTypes.end(), [pCell](TileType const& nTile) {
+			if (nTile == TileType::Unk || ((int)nTile >= 21))
+				return false;
+
 			return (pCell)->TileIs(nTile);
 		});
 

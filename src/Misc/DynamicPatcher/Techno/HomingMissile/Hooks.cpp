@@ -79,5 +79,5 @@ static bool __fastcall RocketLoco_6620F0(RocketLocomotionClass* pThis, void* _, 
 	return pThis->Func_6620F0(pDW);
 }
 
-DEFINE_POINTER_CALL(0x662CB2, &RocketLoco_6620F0);*/
+DEFINE_JUMP(CALL,0x662CB2, GET_OFFSET(RocketLoco_6620F0));*/
 #endif

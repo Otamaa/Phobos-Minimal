@@ -203,7 +203,7 @@ static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 	pThis->UpdateRotation();
 }
 
-DEFINE_POINTER_CALL(0x7365E8, UnitClass_RotationAI_);
+DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
 
 DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 {
@@ -299,11 +299,8 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 							}
 
 							auto const nCoord = pThis->GetCenterCoord() + nBuffer;
-							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
-							{
-								if (AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), false))
-									if (auto const pAnimExt = AnimExt::GetExtData(pAnimPlayed))
-										pAnimExt->Invoker = pAttacker;
+							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord)) {
+							  AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), pAttacker, false);
 							}
 						}
 					}

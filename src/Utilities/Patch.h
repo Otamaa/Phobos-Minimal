@@ -1,7 +1,7 @@
 #pragma once
 
+#include <Base/Always.h>
 #include <vector>
-#include <Lib/MapViewOfFileClass.h>
 
 struct module_export
 {
@@ -10,17 +10,28 @@ struct module_export
 	unsigned short ordinal;
 };
 
-struct patch_decl;
+// no more than 8 characters
+#define PATCH_SECTION_NAME ".patch"
+#pragma section(PATCH_SECTION_NAME, read)
 
-struct Patch final
+#pragma pack(push, 1)
+#pragma warning(push)
+#pragma warning( disable : 4324)
+struct __declspec(novtable)
+	Patch
 {
-	static void Apply();
-	static void Apply(const patch_decl* pItem);
-	static void Apply(HANDLE process, const patch_decl* pItem);
+	unsigned int offset;
+	unsigned int size;
+	BYTE* pData;
+
+	static void ApplyStatic();
+	void Apply();
 
 	template<typename TFrom, typename To>
-	static inline void Apply(uintptr_t addrFrom, To toImpl , DWORD& protect_flag , size_t size = 4u) {
-		if (VirtualProtect((LPVOID)addrFrom, size, PAGE_READWRITE, &protect_flag) == TRUE) {
+	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
+	{
+		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE)
+		{
 			*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
 			VirtualProtect((LPVOID)addrFrom, size, protect_flag, NULL);
 		}
@@ -30,7 +41,8 @@ struct Patch final
 	 *  Get the memory address of a function.
 	 */
 	template<typename T>
-	static inline uintptr_t Get_Func_Address(T func) {
+	static inline uintptr_t Get_Func_Address(T func)
+	{
 		return reinterpret_cast<uintptr_t>((void*&)func);
 	}
 
@@ -44,7 +56,8 @@ struct Patch final
 	 *  So use these helpers to commit treason and adjust the pointer... I'm sorry...
 	 */
 	template<class T>
-	static __forceinline T Adjust_Ptr(T ptr, int amount) {
+	static __forceinline T Adjust_Ptr(T ptr, int amount)
+	{
 		uintptr_t rawptr = reinterpret_cast<uintptr_t>(ptr);
 		return reinterpret_cast<T>(rawptr + amount);
 	}
@@ -52,5 +65,6 @@ struct Patch final
 	static std::vector<module_export> enumerate_module_exports(HMODULE handle);
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static DWORD GetDebuggerProcessId(DWORD dwSelfProcessId);
-
 };
+#pragma warning(pop)
+#pragma pack(pop)

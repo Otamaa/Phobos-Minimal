@@ -1,5 +1,7 @@
 #include <Phobos.h>
 
+#include "Phobos_ECS.h"
+
 #include <CCINIClass.h>
 #include <Unsorted.h>
 #include <Drawing.h>
@@ -24,7 +26,6 @@ bool HideWarning = false;
 #endif
 
 HMODULE Phobos::hInstance = NULL;
-
 char Phobos::readBuffer[Phobos::readLength];
 wchar_t Phobos::wideBuffer[Phobos::readLength];
 const char Phobos::readDelims[4] = ",";
@@ -177,16 +178,20 @@ bool Phobos::DetachFromDebugger()
 				{
 					sprintf_s(Phobos::readBuffer, "taskkill /F /PID %d", pid);
 					WinExec(Phobos::readBuffer, SW_HIDE);
+					NtClose(hDebug);
+					FreeLibrary(hModule);
 					return true;
 				}
 			}
 			NtClose(hDebug);
 		}
+
 		FreeLibrary(hModule);
 	}
 
 	return false;
 }
+
 #pragma warning( pop )
 #pragma endregion
 
@@ -257,13 +262,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			//Patch_Call(GetAddr("CellClass_CrateBeingCollected_Speed2", 0x47), &Ares_RecalculateStats_intercept_Speed);
 		//}
 
-		Patch::Apply();
 		//Phobos::init_Crt();
 
 	}
 	break;
 
 	case DLL_PROCESS_DETACH:
+		//MyEcs.quit();
 		//uninstall();
 		//if (AresDllHmodule) {
 		//	Vinifera_Hooker::StopHooking(AresDllHmodule);
@@ -389,11 +394,11 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 	return OleLoadFromStream(pStm, iidInterface, ppvObj);
 }
 #endif
-DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
+DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
+	Patch::ApplyStatic();
 	DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
 	GetComputerName(Phobos::Otamaa::PCName, &dwSize);
-
 
 	if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 	{
@@ -434,6 +439,7 @@ DEFINE_HOOK(0x7CD810, ExeRun, 0x9)
 	Patch::Apply<_imp_CreateFileA__>(0x7E11BC, CreateFileA_, protect_flag);
 	Patch::Apply<_imp_OleLoadFromStream__>(0x7E15F8, OleLoadFromStream_, protect_flag);
 #endif
+
 	return 0;
 }
 
@@ -442,6 +448,7 @@ DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(char**, ppArgs, ESI);
 	GET(int, nNumArgs, EDI);
 
+	//MyEcs = flecs::world(nNumArgs, ppArgs);
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	return 0;
 }
@@ -511,10 +518,7 @@ DEFINE_HOOK(0x5FACDF, OptionsClass_LoadSettings_LoadPhobosSettings, 0x5)
 
 		if (pINI_UIMD->ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", true))
 		{
-			Patch::Apply(VARIABLE_PATCH::Blit25TranslucencyFix);
-			Patch::Apply(VARIABLE_PATCH::Blit50TranslucencyFix1);
-			Patch::Apply(VARIABLE_PATCH::Blit50TranslucencyFix2);
-			Patch::Apply(VARIABLE_PATCH::Blit75TranslucencyFix);
+			BlittersFix::Apply();
 		}
 
 		Phobos::CloseConfig(pINI_UIMD);
@@ -581,7 +585,7 @@ static DWORD Phobos_EndProgHandle_add()
 	return DeInt_72AC40();
 }
 
-DEFINE_POINTER_CALL(0x6BE118, &Phobos_EndProgHandle_add);
+DEFINE_JUMP(CALL,0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 #endif
 
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)

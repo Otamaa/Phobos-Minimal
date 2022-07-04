@@ -31,6 +31,7 @@
 
 #pragma region OtamaaStuffs
 //#include <Ext/Bomb/Body.h>
+//#include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
 #include <Ext/ScriptType/Body.h>
@@ -40,7 +41,7 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
-#include <New/Entity/FoggedObject.h>
+//#include <New/Entity/FoggedObject.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 #endif
@@ -101,11 +102,6 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
 
-	std::for_each(VoxelAnimClass::Array->begin(), VoxelAnimClass::Array->end(), [&](VoxelAnimClass* pVox) {
-		if (auto pExt = VoxelAnimExt::GetExtData(pVox))
-			pExt->InvalidatePointer(pInvalid, removed);
-	});
-
 	Phobos::PointerGotInvalid(pInvalid, removed);
 
 	return 0;
@@ -121,7 +117,7 @@ void Phobos::Clear()
 {
 	MassActions.Clear();
 	//AnimExt::Invokers.clear();
-	AnimExt::AnimCellUpdater::Clear();
+	//AnimExt::AnimCellUpdater::Clear();
 	FlyingStrings::Clear();
 #ifdef COMPILE_PORTED_DP_FEATURES
 	ElectricBoltManager::Clear_All();

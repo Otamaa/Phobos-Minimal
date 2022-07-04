@@ -18,9 +18,12 @@ private:
 	Nullable<int> LevelDelay;
 	Nullable<int> LightDelay;
 	Nullable<WarheadTypeClass*> RadWarhead;
+	Nullable<bool> RadWarhead_Detonate;
 	Nullable<ColorStruct> RadSiteColor;
 	Nullable<double> LightFactor;
 	Nullable<double> TintFactor;
+	Nullable<bool> RadHasOwner;
+	Nullable<bool> RadHasInvoker;
 
 public:
 
@@ -33,9 +36,12 @@ public:
 		, LevelDelay {}
 		, LightDelay {}
 		, RadWarhead {}
+		, RadWarhead_Detonate {}
 		, RadSiteColor {}
 		, LightFactor {}
 		, TintFactor {}
+		, RadHasOwner {}
+		, RadHasInvoker {}
 	{ }
 
 	virtual ~RadTypeClass() override = default;
@@ -45,6 +51,31 @@ public:
 	WarheadTypeClass* GetWarhead()
 	{
 		return RadWarhead.Get(RulesGlobal->RadSiteWarhead);
+	}
+
+	bool GetWarheadDetonate() const
+	{
+		return this->RadWarhead_Detonate.Get(RulesExt::Global()->RadWarhead_Detonate);
+	}
+
+	bool GetHasOwner(const Nullable<bool>&nOwner) const
+	{
+		return nOwner.Get(this->RadHasOwner.Get(RulesExt::Global()->RadHasOwner));
+	}
+
+	bool GetHasInvoker(const Nullable<bool>& nOwner) const
+	{
+		return nOwner.Get(this->RadHasInvoker.Get(RulesExt::Global()->RadHasInvoker));
+	}
+
+	bool GetHasOwner() const
+	{
+		return (this->RadHasOwner.Get(RulesExt::Global()->RadHasOwner));
+	}
+
+	bool GetHasInvoker() const
+	{
+		return (this->RadHasInvoker.Get(RulesExt::Global()->RadHasInvoker));
 	}
 
 	const ColorStruct& GetColor()

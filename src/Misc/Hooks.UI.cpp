@@ -201,7 +201,24 @@ DEFINE_HOOK(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
 	return 0x0;
 }
 
-static void __fastcall StripClass_Draw_GClockSHP(args_DrawSHP& nArgs)
+static void __fastcall StripClass_Draw_GClockSHP(
+	Surface* Surface,
+	ConvertClass* Pal,
+	SHPStruct* SHP,
+	int FrameIndex,
+	const Point2D* const Position,
+	const RectangleStruct* const Bounds,
+	BlitterFlags Flags,
+	int Remap,
+	int ZAdjust,
+	ZGradient ZGradientDescIndex,
+	int Brightness,
+	int TintColor,
+	SHPStruct* ZShape,
+	int ZShapeFrame,
+	int XOffset,
+	int YOffset
+)
 {
 	int Gclock_int = -1;
 
@@ -209,37 +226,31 @@ static void __fastcall StripClass_Draw_GClockSHP(args_DrawSHP& nArgs)
 	{
 		if (auto const pExt = SWTypeExt::ExtMap.Find(GClockTemp::Super))
 		{
-			nArgs.SHP = pExt->GClock_Shape.Get(nArgs.SHP);
+			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			nArgs.Pal = pExt->GClock_Palette.GetOrDefaultConvert(nArgs.Pal);
+			Pal = pExt->GClock_Palette.GetOrDefaultConvert(Pal);
 		}
 
 		if (Gclock_int != -1)
-			nArgs.Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
-
-		CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
-		return;
+			Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
 	}else
 	if (GClockTemp::Techno)
 	{
 		if (auto const pExt = TechnoTypeExt::ExtMap.Find(GClockTemp::Techno))
 		{
-			nArgs.SHP = pExt->GClock_Shape.Get(nArgs.SHP);
+			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			nArgs.Pal = pExt->GClock_Palette.GetOrDefaultConvert(nArgs.Pal);
+			Pal = pExt->GClock_Palette.GetOrDefaultConvert(Pal);
 		}
 
 		if (Gclock_int != -1)
-			nArgs.Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
-
-		CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
-		return;
+			Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
 	}
 
-	CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
+	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_POINTER_CALL(0x6A9E97, &StripClass_Draw_GClockSHP);
+DEFINE_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
 
 DEFINE_HOOK(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
 {

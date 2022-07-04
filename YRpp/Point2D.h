@@ -66,5 +66,17 @@ public:
 		return !(*this == Point2D::Empty);
 	}
 
+public:
+	const int DistanceFrom(Point2D const& nThat)
+	{
+		return abs((nThat.X - X) * (nThat.X - X)) + abs((nThat.Y - Y) * (nThat.Y - Y));
+	}
+
+	int Length() const
+	{
+		return static_cast<int>(Math::sqrt(static_cast<double>(this->X * this->X + this->Y * this->Y)));
+	}
+
+
 	int X, Y;
 };

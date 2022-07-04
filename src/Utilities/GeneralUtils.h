@@ -28,6 +28,8 @@ public:
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
 	static std::vector<CellStruct> AdjacentCellsInRange(unsigned int range);
+	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
+
 	static inline const int GetRangedRandomOrSingleValue(Point2D const& range)
 	{
 		return range.X >= range.Y ?

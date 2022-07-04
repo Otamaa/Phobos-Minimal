@@ -10,7 +10,7 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 	GET(AnimClass* const, pThis, ECX);
 	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
 
-	if (auto const pThisTypeExt = AnimTypeExt::GetExtData(pThis->Type))
+	if (auto const pThisTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
 		pCoord->X += pThisTypeExt->XDrawOffset;
 
 	return 0;
@@ -24,7 +24,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 	if (pType->HideIfNoOre)
 	{
 		int nThreshold = 0;
-		if (auto const pExt = AnimTypeExt::GetExtData(pType))
+		if (auto const pExt = AnimTypeExt::ExtMap.Find(pType))
 			nThreshold = abs(pExt->HideIfNoOre_Threshold.Get());
 
 		auto pCell = pThis->GetCell();
@@ -39,16 +39,15 @@ DEFINE_HOOK(0x424CB0, AnimClass_In_Which_Layer_AttachedObjectLayer, 0x6)
 {
 	enum { ReturnValue = 0x424CBF };
 
-	GET(AnimClass*, pThis, ECX);
+	GET(const AnimClass*, pThis, ECX);
 
-	auto pExt = AnimTypeExt::GetExtData(pThis->Type);
-
-	if (pExt && pThis->OwnerObject && pExt->Layer_UseObjectLayer.isset())
+	if (const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type))
 	{
-		Layer layer = pThis->Type->Layer;
+		Layer layer = pThis->Type ? pThis->Type->Layer : Layer::Air;
 
 		if (pExt->Layer_UseObjectLayer.Get())
-			layer = pThis->OwnerObject->InWhichLayer();
+			layer = pThis->OwnerObject && pThis->OwnerObject->IsAlive ?
+				pThis->OwnerObject->InWhichLayer() : Layer::Ground;
 
 		R->EAX(layer);
 
@@ -64,7 +63,7 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 	GET(ObjectClass*, pObject, EDI);
 	GET(CoordStruct*, pCoords, EAX);
 
-	auto pExt = AnimTypeExt::GetExtData(pThis->Type);
+	auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pExt && pExt->UseCenterCoordsIfAttached)
 	{
@@ -87,7 +86,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
 		return SkipDamage;
 
-	const auto pTypeExt = AnimTypeExt::GetExtData(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
 
@@ -163,7 +162,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			CRT::strcmp(pThis->get_ID(), INVISO_NAME) ? RulesGlobal->FlameDamage2 : RulesGlobal->C4Warhead;
 
-		auto pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->Owner;
+		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 		if(pTypeExt->Warhead_Detonate.Get())
 			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult);

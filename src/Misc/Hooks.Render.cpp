@@ -24,7 +24,7 @@ static void __fastcall ___eb_DrawAll()
 
 }
 
-DEFINE_POINTER_CALL(0x6D466E, &___eb_DrawAll);
+DEFINE_JUMP(CALL,0x6D466E, GET_OFFSET(___eb_DrawAll));
 
 static	void __fastcall TacticalClass_Render()
 {
@@ -32,7 +32,7 @@ static	void __fastcall TacticalClass_Render()
 	VeinholeMonsterClass::DrawAll();
 }
 
-DEFINE_POINTER_CALL(0x6D4656, TacticalClass_Render);
+DEFINE_JUMP(CALL,0x6D4656, GET_OFFSET(TacticalClass_Render));
 
 DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0xB)
 {

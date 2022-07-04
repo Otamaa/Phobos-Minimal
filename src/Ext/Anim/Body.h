@@ -67,6 +67,7 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim,AnimTypeExt::ExtData* pExt, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
+	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim,TechnoClass* pTechnoInvoker, bool defaultToVictimOwner = true);
 	static TechnoClass* GetTechnoInvoker(AnimClass* pThis,bool DealthByOwner);
 	//ToDo :
 	// utilize this ,..

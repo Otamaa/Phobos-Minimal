@@ -100,6 +100,6 @@ namespace Timer
 	}
 }
 
-DEFINE_POINTER_CALL(0x6D4A6B, &Timer::DrawTimer);
+DEFINE_JUMP(CALL,0x6D4A6B, GET_OFFSET(Timer::DrawTimer));
 
 #pragma endregion

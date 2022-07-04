@@ -523,11 +523,8 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		int idx = this->OwnerObject()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
 			ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
 
-		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location))
-		{
-			if (AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pTarget->GetOwningHouse(), false))
-				if (auto pAnimExt = AnimExt::GetExtData(pAnim))
-					pAnimExt->Invoker = pOwner;
+		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location)) {
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pTarget->GetOwningHouse(), pOwner, false);
 		}
 	}
 

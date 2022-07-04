@@ -2,6 +2,9 @@
 #include "Debug.h"
 #include <ScenarioClass.h>
 #include <Conversions.h>
+#include <Networking.h>
+#include <NetworkEvents.h>
+#include <VocClass.h>
 
 #include <Ext/Techno/Body.h>
 
@@ -59,6 +62,35 @@ std::vector<CellStruct> GeneralUtils::AdjacentCellsInRange(unsigned int range)
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
 {
 	return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
+}
+
+const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
+{
+	if (auto pItem = ObjectTypeClass::GetTechnoType(AbstractType::BuildingType, idxBuilding))
+	{
+		if (pOwner->CanBuild(pItem, true, true) == CanBuildResult::Buildable)
+		{
+			if (pItem->FindFactory(true, true, true, pOwner))
+			{
+				auto pBuilding = abstract_cast<BuildingTypeClass*>(pItem);
+				if (pOwner->GetPrimaryFactory(AbstractType::Building, false, pBuilding->BuildCat))
+					return false;
+
+				NetworkEvent vEvent {};
+
+				VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
+				vEvent.FillEvent_ProduceAbandonSuspend(
+					pOwner->ArrayIndex, NetworkEvents::Produce, pItem->WhatAmI(), pItem->GetArrayIndex(), pItem->Naval
+				);
+
+				Networking::AddEvent(&vEvent);
+
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 #pragma region Otamaa

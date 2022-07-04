@@ -19,6 +19,25 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class NavalTargetingType : int
+{
+	Underwater_never = 0x0,
+	Underwater_secondary = 0x1,
+	Underwater_only = 0x2,
+	Organic_secondary = 0x3,
+	Seal_special = 0x4,
+	Naval_all = 0x5,
+	Naval_none = 0x6,
+	Naval_primary = 0x7,
+};
+
+enum class LandTargetingType : int
+{
+	Land_okay = 0x0,
+	Land_not_okay = 0x1,
+	Land_secondary = 0x2,
+};
+
 enum class ThreatType : int
 {
 	Range = 0x1,
@@ -1602,6 +1621,8 @@ enum class Edge : int {
 	West = 3,
 	Air = 4
 };
+
+typedef Edge ZoneType;
 
 enum class Move : int {
 	OK = 0,

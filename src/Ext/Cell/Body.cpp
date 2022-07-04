@@ -42,7 +42,7 @@ CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+/* loading this from save causing performance issues for some reason :s
 DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, EAX);
@@ -80,4 +80,4 @@ DEFINE_HOOK(0x483C79, CellClass_Save_Suffix, 0x6)
 {
 	CellExt::ExtMap.SaveStatic();
 	return 0;
-}
+}*/

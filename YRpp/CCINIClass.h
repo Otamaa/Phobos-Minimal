@@ -129,7 +129,7 @@ public:
 
 	//Writes an integer value.
 	bool WriteInteger(const char* pSection, const char* pKey, int nValue, bool bHex)
-		{ JMP_THIS(0x5276D0); }
+		{ JMP_THIS(0x5275C0); }
 
 	//Reads a decimal value.
 	double ReadDouble(const char* pSection, const char* pKey, double dDefault)

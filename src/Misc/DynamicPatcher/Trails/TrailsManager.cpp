@@ -37,29 +37,19 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 	if (pTypeExt->Trails.CurrentData.empty())
 		return false;
 
-	size_t nTotal = 0;
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
 		if (auto const pType = TrailType::Array[pTrails.CurrentType].get())
 		{
 			if (pType->Mode != TrailMode::NONE)
 			{
-				if (auto pTrail = std::make_unique<UniversalTrail>(pType, pTrails.FLHs
-					, IsTechno ? pTrails.Onturrents : false))
-				{
-					pTrail->OnLandTypes = pTrails.OnLand;
-					pTrail->OnTileTypes = pTrails.OnTileTypes;
-					pExt->Trails.push_back(std::move(pTrail));
-					++nTotal;
-				}
+				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, IsTechno ? pTrails.Onturrents : false));
+				auto const& pBackTrail = pExt->Trails.back();
+				pBackTrail->OnLandTypes = pTrails.OnLand;
+				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
 		}
 	}
-
-	if (nTotal > 0)
-		pExt->Trails.resize(nTotal);
-	else
-		pExt->Trails.clear();
 
 	return true;
 }
@@ -130,29 +120,19 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 	if (pTypeExt->Trails.CurrentData.empty())
 		return;
 
-	size_t nTotal = 0;
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
 		if (auto const pType = TrailType::Array[pTrails.CurrentType].get())
 		{
 			if (pType->Mode != TrailMode::NONE)
 			{
-				if (auto pTrail = std::make_unique<UniversalTrail>(pType, pTrails.FLHs
-					, pTrails.Onturrents ))
-				{
-					pTrail->OnLandTypes = pTrails.OnLand;
-					pTrail->OnTileTypes = pTrails.OnTileTypes;
-					pExt->Trails.push_back(std::move(pTrail));
-					++nTotal;
-				}
+				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, pTrails.Onturrents));
+				auto const& pBackTrail = pExt->Trails.back();
+				pBackTrail->OnLandTypes = pTrails.OnLand;
+				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
 		}
 	}
-
-	if (nTotal > 0)
-		pExt->Trails.resize(nTotal);
-	else
-		pExt->Trails.clear();
 }
 
 template<>
@@ -177,29 +157,19 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted) {
 	if (pTypeExt->Trails.CurrentData.empty())
 		return;
 
-	size_t nTotal = 0;
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		if (auto const pType = TrailType::Array[pTrails.CurrentType].get())
+		if (auto pType = TrailType::Array[pTrails.CurrentType].get())
 		{
 			if (pType->Mode != TrailMode::NONE)
 			{
-				if (auto pTrail = std::make_unique<UniversalTrail>(pType, pTrails.FLHs
-					, false))
-				{
-					pTrail->OnLandTypes = pTrails.OnLand;
-					pTrail->OnTileTypes = pTrails.OnTileTypes;
-					pExt->Trails.push_back(std::move(pTrail));
-					++nTotal;
-				}
+				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType , pTrails.FLHs , false));
+				auto const& pBackTrail = pExt->Trails.back();
+				pBackTrail->OnLandTypes = pTrails.OnLand;
+				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
 		}
 	}
-
-	if (nTotal > 0)
-		pExt->Trails.resize(nTotal);
-	else
-		pExt->Trails.clear();
 }
 
 template<>
@@ -211,7 +181,7 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 		return;
 
 	auto pClassType = pOwner->Type;
-	auto const pExt = VoxelAnimExt::GetExtData(pOwner);
+	auto const pExt = VoxelAnimExt::ExtMap.Find(pOwner);
 	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pClassType);
 
 	if (!pExt || !pTypeExt)
@@ -225,29 +195,19 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 	if (pTypeExt->Trails.CurrentData.empty())
 		return;
 
-	size_t nTotal = 0;
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
 		if (auto const pType = TrailType::Array[pTrails.CurrentType].get())
 		{
 			if (pType->Mode != TrailMode::NONE)
 			{
-				if (auto pTrail = std::make_unique<UniversalTrail>(pType, pTrails.FLHs
-					, false))
-				{
-					pTrail->OnLandTypes = pTrails.OnLand;
-					pTrail->OnTileTypes = pTrails.OnTileTypes;
-					pExt->Trails.push_back(std::move(pTrail));
-					++nTotal;
-				}
+				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
+				auto const& pBackTrail = pExt->Trails.back();
+				pBackTrail->OnLandTypes = pTrails.OnLand;
+				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
 		}
 	}
-
-	if (nTotal > 0)
-		pExt->Trails.resize(nTotal);
-	else
-		pExt->Trails.clear();
 }
 
 template<>
@@ -342,7 +302,7 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto  pExt = VoxelAnimExt::GetExtData(pOwner);
+	auto  pExt = VoxelAnimExt::ExtMap.Find(pOwner);
 	auto pTypeExt = VoxelAnimTypeExt::GetExtData(pOwner->Type);
 
 	if (!pExt || !pTypeExt)
@@ -428,7 +388,7 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		auto const pExt = VoxelAnimExt::GetExtData((VoxelAnimClass*)pOwner);
+		auto const pExt = VoxelAnimExt::ExtMap.Find((VoxelAnimClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -448,8 +408,6 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 			return;
 	}
 	break;
-	default:
-		break;
 	}
 }
 
@@ -487,7 +445,7 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		auto const pExt = VoxelAnimExt::GetExtData((VoxelAnimClass*)pOwner);
+		auto const pExt = VoxelAnimExt::ExtMap.Find((VoxelAnimClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -501,8 +459,6 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 			return;
 	}
 	break;
-	default:
-		break;
 	}
 }
 

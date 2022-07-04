@@ -74,7 +74,7 @@ void __fastcall Phobos_HandleMouseThread()
 	Debug::Log("MouseThread Finish Creating Thread !\n");
 }
 
-DEFINE_POINTER_CALL(0x6BD849, &Phobos_HandleMouseThread);
+DEFINE_JUMP(CALL,0x6BD849, GET_OFFSET(Phobos_HandleMouseThread));
 
 #ifdef SYNC_DISPATCH_RESOURCE
 DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)

@@ -74,6 +74,10 @@ public:
 		Valueable<int> SelectBrd_DefaultTranslucentLevel;
 		Valueable<bool> SelectBrd_DefaultShowEnemy;
 
+		Valueable<bool> RadWarhead_Detonate;
+		Valueable<bool> RadHasOwner;
+		Valueable<bool> RadHasInvoker;
+
 	#pragma region Otamaa
 		NullableIdx<ParticleTypeClass> VeinholeParticle;
 		PhobosFixedString<0x19> NukeWarheadName;
@@ -141,6 +145,10 @@ public:
 
 			, SelectBrd_DefaultTranslucentLevel{ 0 }
 			, SelectBrd_DefaultShowEnemy{ true }
+
+			, RadWarhead_Detonate { false }
+			, RadHasOwner { false }
+			, RadHasInvoker { false }
 
 			, VeinholeParticle { }
 			, NukeWarheadName { }

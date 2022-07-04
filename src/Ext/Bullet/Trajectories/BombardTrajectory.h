@@ -50,7 +50,7 @@ public:
 			return nullptr;
 		}
 
-		return static_cast<BombardTrajectoryType*>(Type);
+		return reinterpret_cast<BombardTrajectoryType*>(Type);
 	}
 
 	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, VelocityClass* pVelocity) override;

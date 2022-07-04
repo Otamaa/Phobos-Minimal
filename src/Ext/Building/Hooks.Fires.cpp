@@ -84,9 +84,9 @@ namespace DamageFireAnims
 	}
 };
 
-DEFINE_POINTER_CALL(0x43FC92, &DamageFireAnims::Construct);
-DEFINE_LJMP(0x460388, 0x46048E); // no thankyou , we handle it ourself !
-DEFINE_LJMP(0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
+DEFINE_JUMP(CALL,0x43FC92,GET_OFFSET(DamageFireAnims::Construct));
+DEFINE_JUMP(LJMP,0x460388, 0x46048E); // no thankyou , we handle it ourself !
+DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,name, size ,ret) \
 DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
@@ -160,9 +160,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 							auto pKiller = ReceiveDamageArgs.Attacker;
 							auto Invoker = (pKiller) ? pKiller->Owner : ReceiveDamageArgs.SourceHouse;
 
-							if (AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, false))
-								if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-									pAnimExt->Invoker = pKiller;
+							AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 						}
 					}
 				};

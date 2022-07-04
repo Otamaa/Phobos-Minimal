@@ -58,13 +58,9 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
 		auto const nCoords = pThis->GetCenterCoord();
 		VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 
-		if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr))
-		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
-			{
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), false))
-					if (auto pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = ReceiveDamageArgs.Attacker;
+		if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
+			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
+				AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), ReceiveDamageArgs.Attacker, false);
 			}
 		}
 	}

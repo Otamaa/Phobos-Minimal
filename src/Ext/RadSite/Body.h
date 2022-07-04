@@ -30,7 +30,7 @@ public:
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
 			, NoOwner { true }
-		{ }
+		{ InitializeConstants();}
 
 		virtual ~ExtData() = default;
 		virtual size_t GetSize() const override { return sizeof(*this); }

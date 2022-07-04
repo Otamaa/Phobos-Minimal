@@ -85,5 +85,6 @@ public:
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
+	static HouseClass* GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* pKiller, HouseClass* pVictim);
 	static void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 };

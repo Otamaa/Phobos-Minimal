@@ -135,7 +135,7 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 	}
 }
 
-DEFINE_POINTER_CALL(0x6FA730, &CaptureManagerClass_Overload_AI);
+DEFINE_JUMP(CALL,0x6FA730,GET_OFFSET(CaptureManagerClass_Overload_AI));
 
 DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit, 0x7)
 {

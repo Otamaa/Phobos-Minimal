@@ -19,7 +19,7 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0xC)
 {
 	GET(VoxelAnimClass* const, pThis, EBX);
 
-	auto pThisExt = VoxelAnimExt::GetExtData(pThis);
+	auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
 
 	if (pThisExt && !pThisExt->LaserTrails.empty())
 	{
@@ -50,42 +50,38 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	enum { SkipGameCode = 0x74A22A };
 
 	GET(VoxelAnimClass* const, pThis, EBX);
-	GET(int, flag, EAX);
-
-	bool heightFlag = flag & 0xFF;
+	GET8(const bool, LandIsWater, CL);
+	GET8(const bool, EligibleHeight, AL);
 
 	if (!pThis || !pThis->Type)
 		return SkipGameCode;
 
 	CoordStruct nLocation;
 	pThis->GetCenterCoord(&nLocation);
-	auto const pOwner = pThis->OwnerHouse;
+
 	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pThis->Type);
 	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
+	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
 
-	if (pThis->GetCell()->LandType != LandType::Water || heightFlag)
+	//overridden instruction
+	R->Stack(0x12, EligibleHeight);
+
+	if (!LandIsWater || EligibleHeight)
 	{
 		Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
 
 		if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0))
-			{
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false))
-					if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-						pAnimExt->Invoker = pInvoker;
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0)) {
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pInvoker, false);
 			}
 		}
 	}
 	else {
 		if (!pTypeExt->ExplodeOnWater.Get())
 		{
-			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pTypeExt->SplashList, RulesClass::Instance->Wake, pTypeExt->SplashList_Pickrandom.Get(), pThis->Type->IsMeteor))
-			{
-				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, 0x600u, false))
-				{
-					if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
-						if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
-							pAnimExt->Invoker = pInvoker;
+			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pTypeExt->SplashList, RulesClass::Instance->Wake, pTypeExt->SplashList_Pickrandom.Get(), pThis->Type->IsMeteor)) {
+				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, 0x600u, false)) {
+					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pInvoker, false);
 				}
 			}
 		}else
@@ -95,9 +91,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 			if (bPlayWHAnim) {
 				if(auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage,pThis->Type->Warhead, pThis->GetCell()->LandType , pThis->GetCenterCoord())) {
 					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, 0x2600u, -30)) {
-						if (AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false))
-							if (auto const pAnimExt = AnimExt::GetExtData(pSplashAnimCreated))
-								pAnimExt->Invoker = pInvoker;
+						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pInvoker, false) ;
 					}
 				}
 			}
@@ -117,11 +111,8 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0xA)
 	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, TypeExt && TypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->OwnerHouse;
 
-	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->BounceAnim, nCoords, 0, 1, 0x600, 0, 0))
-	{
-		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false))
-			if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-				pAnimExt->Invoker = pInvoker;
+	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->BounceAnim, nCoords, 0, 1, 0x600, 0, 0)) {
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pInvoker, false);
 	}
 
 	return 0x74A884;

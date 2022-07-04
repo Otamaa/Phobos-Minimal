@@ -64,7 +64,7 @@ public:
 			, Trajectory { nullptr }
 
 
-		{ }
+		{ InitializeConstants(); }
 
 		virtual ~ExtData() override = default;
 		virtual size_t GetSize() const override { return sizeof(*this); }

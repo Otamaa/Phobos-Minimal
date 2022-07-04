@@ -27,10 +27,14 @@ void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, Wea
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 
-	if(pTech){
-		pRadExt->RadHouse = pTech->GetOwningHouse();
+	if(pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner){
+
+		if(pRadExt->Type->GetHasOwner())
+			pRadExt->RadHouse = pTech->GetOwningHouse();
+
 		pRadExt->TechOwner = pTech;
 	}
+
 	pRadSite->SetBaseCell(&location);
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);

@@ -75,7 +75,9 @@ public:
 		Valueable<bool> Death_NoAmmo;
 		Valueable<int> Death_Countdown;
 		Valueable<bool> Death_Peaceful;
+		Valueable<KillMethod> Death_Method;
 		Valueable<bool> Death_WithMaster;
+		Valueable<SlaveReturnTo> Slaved_ReturnTo;
 		Valueable<ShieldTypeClass*> ShieldType;
 
 		Nullable<AnimTypeClass*> WarpOut;
@@ -95,7 +97,6 @@ public:
 		ValueableVector<AnimTypeClass*> OreGathering_Anims;
 		ValueableVector<int> OreGathering_Tiberiums;
 		ValueableVector<int> OreGathering_FramesPerDir;
-		Valueable<bool> OpenTopped_IgnoreRangefinding;
 
 		std::vector<DynamicVectorClass<CoordStruct>> WeaponBurstFLHs;
 		std::vector<DynamicVectorClass<CoordStruct>> EliteWeaponBurstFLHs;
@@ -108,6 +109,8 @@ public:
 		Nullable<int> OpenTopped_RangeBonus;
 		Nullable<float> OpenTopped_DamageMultiplier;
 		Nullable<int> OpenTopped_WarpDistance;
+		Valueable<bool> OpenTopped_IgnoreRangefinding;
+		Valueable<bool> OpenTopped_AllowFiringIfDeactivated;
 
 		Valueable<bool> AutoFire;
 		Valueable<bool> AutoFire_TargetSelf;
@@ -267,6 +270,14 @@ public:
 		Nullable<AnimTypeClass*> SinkAnim;
 		Nullable<double> Tunnel_Speed;
 		Nullable<HoverTypeClass*> HoverType;
+
+		Valueable<bool> Gattling_Overload;
+		Nullable<int> Gattling_Overload_Damage;
+		Nullable<int> Gattling_Overload_Frames;
+		NullableIdx<VocClass> Gattling_Overload_DeathSound;
+		Nullable<ParticleSystemTypeClass*> Gattling_Overload_ParticleSys;
+		Nullable<int> Gattling_Overload_ParticleSysCount;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -335,7 +346,9 @@ public:
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
 			, Death_Peaceful { false }
+			, Death_Method { KillMethod::Explode }
 			, Death_WithMaster{ false }
+			, Slaved_ReturnTo { SlaveReturnTo::Killer }
 			, ShieldType { nullptr }
 			, WarpOut {}
 			, WarpIn {}
@@ -361,6 +374,7 @@ public:
 			, OpenTopped_DamageMultiplier {}
 			, OpenTopped_WarpDistance {}
 			, OpenTopped_IgnoreRangefinding { false }
+			, OpenTopped_AllowFiringIfDeactivated { true }
 			, AutoFire { false }
 			, AutoFire_TargetSelf { false }
 			, NoSecondaryWeaponFallback { false }
@@ -501,6 +515,13 @@ public:
 			, SinkAnim { }
 			, Tunnel_Speed { }
 			, HoverType { }
+
+			, Gattling_Overload { false }
+			, Gattling_Overload_Damage {}
+			, Gattling_Overload_Frames {}
+			, Gattling_Overload_DeathSound {}
+			, Gattling_Overload_ParticleSys {}
+			, Gattling_Overload_ParticleSysCount {}
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

@@ -15,25 +15,30 @@ DEFINE_HOOK(0x438771, BombClass_Detonate_fetch, 0x6)
 	return 0x0;
 }
 
-static DamageAreaResult __fastcall BombClass_Detonate_DamageArea(const args_DamageArea& nArgs)
+static DamageAreaResult __fastcall BombClass_Detonate_DamageArea(
+	CoordStruct* pCoord,
+	int Damage,
+	TechnoClass* Source,
+	WarheadTypeClass* Warhead,
+	bool AffectTiberium,
+	HouseClass* SourceHouse
+)
 {
 	auto pThisBomb = FetchBomb::pThisBomb;
 	auto OwningHouse = pThisBomb->GetOwningHouse();
 
-	if (auto const pExt = BombExt::GetExtData(pThisBomb)) {
-		const char* pHouse = OwningHouse ? OwningHouse->get_ID() : NONE_STR;
-		Debug::Log("Extension for Bomb[%x] found House = %s ! \n", pExt , pHouse);
-	}
+	//if (auto const pExt = BombExt::GetExtData(pThisBomb)) {
+	//	const char* pHouse = OwningHouse ? OwningHouse->get_ID() : NONE_STR;
+	//	Debug::Log("Extension for Bomb[%x] found House = %s ! \n", pExt , pHouse);
+	//}
 
-	auto nCoord = *nArgs.Coord;
-	auto nResult = Map.DamageArea(nCoord, nArgs.Damage, nArgs.Source, nArgs.Warhead, nArgs.Warhead->Tiberium, OwningHouse);
-				   Map.FlashbangWarheadAt(nArgs.Damage, nArgs.Warhead, nCoord);
+	auto nCoord = *pCoord;
+	auto nResult = Map.DamageArea(nCoord, Damage, Source, Warhead, Warhead->Tiberium, OwningHouse);
+				   Map.FlashbangWarheadAt(Damage, Warhead, nCoord);
 
-	if (auto pAnimType = Map.SelectDamageAnimation(nArgs.Damage, nArgs.Warhead, Map[nCoord]->LandType, nCoord)) {
+	if (auto pAnimType = Map.SelectDamageAnimation(Damage, Warhead, Map[nCoord]->LandType, nCoord)) {
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x2600, -15, false)) {
-			if (AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pThisBomb->Target ? pThisBomb->Target->GetOwningHouse() : nullptr, false))
-				if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-					pAnimExt->Invoker = pThisBomb->Owner;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pThisBomb->Target ? pThisBomb->Target->GetOwningHouse() : nullptr, pThisBomb->Owner, false);
 		}
 	}
 
@@ -42,10 +47,10 @@ static DamageAreaResult __fastcall BombClass_Detonate_DamageArea(const args_Dama
 }
 
 // skip the Explosion Anim block
-DEFINE_LJMP(0x4387A8, 0x438857);
-DEFINE_POINTER_CALL(0x4387A3, &BombClass_Detonate_DamageArea);
+DEFINE_JUMP(LJMP,0x4387A8, 0x438857);
+DEFINE_JUMP(CALL,0x4387A3, GET_OFFSET(BombClass_Detonate_DamageArea));
 
 HouseClass* __fastcall BombClass_GetOwningHouse_Wrapper(BombClass* pThis, void* _)
 { return pThis->Owner ? pThis->Owner->Owner : pThis->OwnerHouse; }
 
-DEFINE_VTABLE_PATCH(0x7E3D4C, &BombClass_GetOwningHouse_Wrapper);
+DEFINE_JUMP(VTABLE,0x7E3D4C,GET_OFFSET(BombClass_GetOwningHouse_Wrapper));

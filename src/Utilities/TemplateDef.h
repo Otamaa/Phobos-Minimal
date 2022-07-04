@@ -396,6 +396,80 @@ namespace detail {
 		return false;
 	}
 
+	template <>
+	inline bool read<SlaveReturnTo>(SlaveReturnTo& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "suicide"))
+			{
+				value = SlaveReturnTo::Suicide;
+			}
+			else if (IS_SAME_STR_(parser.value(), "master"))
+			{
+				value = SlaveReturnTo::Master;
+			}
+			else if (IS_SAME_STR_(parser.value(), "killer"))
+			{
+				value = SlaveReturnTo::Killer;
+			}
+			else if (IS_SAME_STR_(parser.value(), "neutral"))
+			{
+				value = SlaveReturnTo::Neutral;
+			}
+			else if (IS_SAME_STR_(parser.value(), "civilian"))
+			{
+				value = SlaveReturnTo::Civilian;
+			}
+			else if (IS_SAME_STR_(parser.value(), "special"))
+			{
+				value = SlaveReturnTo::Special;
+			}
+			else if (IS_SAME_STR_(parser.value(), "random"))
+			{
+				value = SlaveReturnTo::Random;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default killer");
+				value = SlaveReturnTo::Killer;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<KillMethod>(KillMethod& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "sell"))
+			{
+				value = KillMethod::Sell;
+			}
+			else if (IS_SAME_STR_(parser.value(), "vanish"))
+			{
+				value = KillMethod::Vanish;
+			}
+			else if (IS_SAME_STR_(parser.value(), "kill"))
+			{
+				value = KillMethod::Explode;
+			}
+			else if (IS_SAME_STR_(parser.value(), "random"))
+			{
+				value = KillMethod::Random;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a suicide option, default disabled");
+				value = KillMethod::Explode;
+			}
+			return true;
+		}
+		return false;
+	}
+
 /*
 	template <>
 	inline bool read<ShapeHandlerEnumerator*>(ShapeHandlerEnumerator*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -653,6 +727,10 @@ namespace detail {
 				}
 				else if (IS_SAME_STR_(cur, "buildings")) {
 					parsed |= AffectedTarget::Building;
+				}
+				else if (IS_SAME_STR_(cur, "aircraft"))
+				{
+					parsed |= AffectedTarget::Aircraft;
 				}
 				else if (IS_SAME_STR_(cur, "all")) {
 					parsed |= AffectedTarget::All;

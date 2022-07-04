@@ -16,13 +16,13 @@
 1512    HoverBrake=.03          ; time to decelerate to full stop
 */
 
-static HoverTypeClass* GetHover(TechnoTypeClass* pThis)
+static const HoverTypeClass* GetHover(TechnoTypeClass* pThis)
 {
+	auto const pDefault = HoverTypeClass::FindOrAllocate(NONE_STR);
 	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
-		if (pExt->HoverType.isset())
-			return pExt->HoverType.Get();
+			return pExt->HoverType.Get(pDefault);
 
-	return HoverTypeClass::Find(NONE_STR);
+	return pDefault;
 }
 
 DEFINE_HOOK(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)
@@ -129,7 +129,7 @@ DEFINE_HOOK(0x514A65, HoverLocomotionClass_513D20_AnimUnderWater, 0xB)
 	{
 		auto nCoord = Linked->GetCenterCoords();
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, AnimTypeExt::GetExtData(pAnim->Type)->Anim_Owner.Get(), false);
+			AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, AnimTypeExt::ExtMap.Find(pAnim->Type)->Anim_Owner.Get(), false);
 	}
 
 	return 0x514AC8;
@@ -207,8 +207,8 @@ DEFINE_HOOK(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
 	return 0x516818;
 }
 
-#define LODWORD(x)  (*((unsigned int*)&(x)))  // low dword
-#define HIDWORD(x)  (*((unsigned int*)&(x)+1))
+//#define LODWORD(x)  (*((unsigned int*)&(x)))  // low dword
+//#define HIDWORD(x)  (*((unsigned int*)&(x)+1))
 
 DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0xC)
 {

@@ -199,3 +199,21 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
+{
+	enum { DisallowFiring = 0x6FC86A };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto const pTransport = pThis->Transporter)
+	{
+		if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
+		{
+			if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
+				return DisallowFiring;
+		}
+	}
+
+	return 0;
+}

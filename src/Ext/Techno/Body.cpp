@@ -25,6 +25,8 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Cast.h>
 
+#include <Phobos_ECS.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
@@ -32,6 +34,8 @@
 #include <memory>
 
 template<> const DWORD TExtension<TechnoClass>::Canary = 0x55555555;
+template<> const DWORD TExtensionBranch<BuildingClass>::Canary = 0x87654321;
+
 TechnoExt::ExtContainer TechnoExt::ExtMap;
 
 void TechnoExt::ExtData::InitializeConstants()
@@ -40,17 +44,14 @@ void TechnoExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(2);
 #endif
+
 }
 
 void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 {
-	if (pAnim && pInvoker)
-	{
-		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location))
-		{
-			if (AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, false))
-				if (auto pExt = AnimExt::GetExtData(pCreated))
-					pExt->Invoker = pInvoker;
+	if (pAnim && pInvoker) {
+		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location)) {
+			AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, pInvoker, false);
 		}
 	}
 }
@@ -77,15 +78,12 @@ double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 
 std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
 {
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	bool FLHFound = false;
 	CoordStruct FLH = CoordStruct::Empty;
 
-	if (!pThis || weaponIndex < 0)
-		return { FLHFound , FLH };
-
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	if (!pExt)
-		return { FLHFound , FLH };
+	if (!pThis || weaponIndex < 0 || !pExt)
+		goto Return;
 
 	auto pInf = abstract_cast<InfantryClass*>(pThis);
 	auto& pickedFLHs = pExt->WeaponBurstFLHs;
@@ -116,6 +114,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 		}
 	}
 
+	Return:
 	return { FLHFound , FLH };
 }
 
@@ -125,7 +124,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetInfantryFLH(InfantryClass* pThis, int
 	CoordStruct FLH = CoordStruct::Empty;
 
 	if (!pThis || weaponIndex < 0)
-		return  { FLHFound , FLH };
+		goto Return;
 
 	if (auto pTechnoType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 	{
@@ -184,6 +183,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetInfantryFLH(InfantryClass* pThis, int
 		}
 	}
 
+	Return:
 	return { FLHFound , FLH };
 }
 
@@ -332,13 +332,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (frameIndex != -1 && pShapeFile)
 	{
 		offset.X += 5;
-		offset.Y += 2;
-
-		if (pThis->WhatAmI() != AbstractType::Infantry)
-		{
-			offset.X += 5;
-			offset.Y += 4;
-		}
+		offset.Y += pThis->WhatAmI() != AbstractType::Infantry ? 4:2;
 
 		DSurface::Temp->DrawSHP(
 			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
@@ -449,34 +443,45 @@ void TechnoExt::Stop(TechnoClass* pThis, Mission const& eMission)
 	pThis->Stun();
 }
 
-bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactivated, bool bIgnoreLimbo , bool bIgnoreAbsorb )
-{
-	if (!TechnoExt::IsAlive(pThis , bIgnoreLimbo, bIgnoreAbsorb))
-		return false;
-
-	const bool IsUnderEMP = bCheckEMP && pThis->IsUnderEMP();
-	const bool IsDeactivated = bCheckDeactivated && pThis->Deactivated;
-
-	return !pThis->BeingWarpedOut && !IsUnderEMP && !IsDeactivated;
+bool TechnoExt::IsOnLimbo(TechnoClass* pThis, bool bIgnore) {
+	return !bIgnore && pThis->InLimbo;
 }
 
-bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreAbsorb)
+bool TechnoExt::IsDeactivated(TechnoClass* pThis, bool bIgnore) {
+	return !bIgnore && pThis->Deactivated;
+}
+
+bool TechnoExt::IsUnderEMP(TechnoClass* pThis, bool bIgnore) {
+	return !bIgnore && pThis->IsUnderEMP();
+}
+
+bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactivated, bool bIgnoreLimbo, bool bIgnoreIsOnMap , bool bIgnoreAbsorb )
+{
+	if (!TechnoExt::IsAlive(pThis , bIgnoreLimbo, bIgnoreIsOnMap, bIgnoreAbsorb))
+		return false;
+
+	if (pThis->BeingWarpedOut || IsUnderEMP(pThis, !bCheckEMP) || IsDeactivated(pThis, !bCheckDeactivated))
+		return false;
+
+	return true ;
+}
+
+bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnMap, bool bIgnoreAbsorb)
 {
 	if (!pThis)
 		return false;
 
-	if ((pThis->InLimbo && !bIgnoreLimbo) || (pThis->Absorbed && !bIgnoreAbsorb) || !pThis->IsOnMap)
+	if ((IsOnLimbo(pThis,!bIgnoreLimbo)) || (pThis->Absorbed && !bIgnoreAbsorb) || (!pThis->IsOnMap && !bIgnoreIsOnMap))
 		return false;
 
 	if (pThis->IsCrashing || pThis->IsSinking)
 		return false;
 
-	if (auto pUnit = specific_cast<UnitClass*>(pThis))
-		return (pUnit->DeathFrameCounter > 0) ? false : true;
+	if (pThis->WhatAmI() == AbstractType::Unit)
+		return (static_cast<UnitClass*>(pThis)->DeathFrameCounter > 0) ? false : true;
 
 	return pThis->IsAlive && pThis->Health > 0;
 }
-
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
@@ -486,7 +491,7 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 
 		if (pVictimTechnoData && pKiller)
 		{
-			TechnoClass* pObjectKiller;
+			TechnoClass* pObjectKiller = nullptr;
 
 			if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
 				pObjectKiller = pKiller->SpawnOwner;
@@ -527,7 +532,7 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 
 void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 {
-	if (!TechnoExt::IsActive(pThis, true, true,false))
+	if (!TechnoExt::IsActive(pThis, true, true,true,true))
 		return;
 
 	auto const pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -686,37 +691,6 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	}
 }
 
-void TechnoExt::InitializeItems(TechnoClass* pThis)
-{
-	auto pExt = TechnoExt::GetExtData(pThis);
-
-	if (!pExt)
-		return;
-
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (!pTypeExt)
-		return;
-
-	pExt->MyID = pThis->get_ID();
-	pExt->CurrentShieldType = pTypeExt->ShieldType;
-
-	if (pThis->WhatAmI() != AbstractType::Building)
-	{
-		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
-			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-		pExt->IsMissileHoming = pTypeExt->MissileHoming.Get();
-#endif
-		TechnoExt::InitializeLaserTrail(pThis, false);
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-		TrailsManager::Construct(pThis);
-#endif
-	}
-}
-
 void TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
 {
 	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis);
@@ -839,17 +813,15 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 
 					if (pPassenger) {
 
+						pPassenger->LiberateMember();
+
 						if(pData->PassengerDeletion_ReportSound.isset() && pData->PassengerDeletion_ReportSound != -1)
 							VocClass::PlayAt(pData->PassengerDeletion_ReportSound, pThis->GetCoords(), nullptr);
 
-						if (const auto pAnimType = pData->PassengerDeletion_Anim.Get(nullptr))
-						{
-							if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
-							{
+						if (const auto pAnimType = pData->PassengerDeletion_Anim.Get(nullptr)) {
+							if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location)) {
 								pAnim->SetOwnerObject(pThis);
-								if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pPassenger->GetOwningHouse(), false))
-									if (auto pAnimExt = AnimExt::GetExtData(pAnim))
-										pAnimExt->Invoker = pThis;
+								AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pPassenger->GetOwningHouse(), pThis, false);
 							}
 						}
 
@@ -946,7 +918,8 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	{
 		// this shit is not really good idea to pull of
 		// some stuffs doesnt really handled properly , wtf
-		pThis->Limbo();
+		if(!pThis->InLimbo)
+			pThis->Limbo();
 
 		if(auto pOwner = pThis->GetOwningHouse()) {
 			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant) {
@@ -955,6 +928,9 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 				pOwner->RecheckTechTree = true;
 			}
 		}
+
+		if (auto pFoot = generic_cast<FootClass*>(pThis))
+			pFoot->LiberateMember();
 
 		pThis->RemoveFromTargetingAndTeam();
 
@@ -966,13 +942,79 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	}
 	else
 	{
-		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, pThis->Owner);
+		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+	}
+}
+
+void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , bool RegisterKill)
+{
+	KillMethod nOpt = deathOption;
+	if (deathOption == KillMethod::Random) {
+		nOpt = static_cast<KillMethod>(ScenarioGlobal->Random.RandomRanged(0, 2));
+	}
+
+	switch (nOpt)
+	{
+	case KillMethod::Explode:
+	{
+		Kill:
+		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+	}break;
+	case KillMethod::Vanish:
+	{
+		// this shit is not really good idea to pull off
+		// some stuffs doesnt really handled properly , wtf
+		if (!pThis->InLimbo)
+			pThis->Limbo();
+
+		if(RegisterKill)
+			pThis->RegisterKill(pThis->Owner);
+
+		if (auto pOwner = pThis->GetOwningHouse())
+		{
+			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
+			{
+				pOwner->RegisterLoss(pThis, false);
+				pOwner->RemoveTracking(pThis);
+				pOwner->RecheckTechTree = true;
+			}
+		}
+
+		if (auto pFoot = generic_cast<FootClass*>(pThis))
+			pFoot->LiberateMember();
+
+		pThis->RemoveFromTargetingAndTeam();
+
+		for (auto const pBullet : *BulletClass::Array)
+			if (pBullet && pBullet->Target == pThis)
+				pBullet->LoseTarget();
+
+		pThis->UnInit();
+
+	}break;
+	case KillMethod::Sell:
+	{
+		if (const auto pBld = specific_cast<BuildingClass*>(pThis)) {
+			if (pBld->Type->LoadBuildup()) {
+				pBld->Sell(true);
+			} else {
+				Debug::Log("Building [%s] can't be sold, killing it instead\n", pThis->get_ID());
+				goto Kill;
+			}
+		} else {
+			goto Kill;
+		}
+
+	}break;
 	}
 }
 
 // Feature: Kill Object Automatically
 void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 {
+	if (!TechnoExt::IsActive(pThis, false, false))
+		return;
+
 	auto pTypeThis = pThis->GetTechnoType();
 	auto pData = TechnoExt::GetExtData(pThis);
 	if (!pData)
@@ -983,13 +1025,14 @@ void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 		return;
 
 	const bool peacefulDeath = pTypeData->Death_Peaceful.Get();
+	const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeData->Death_Method.Get();
 
 	// Death if no ammo
 	if (pTypeData->Death_NoAmmo)
 	{
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
-			TechnoExt::KillSelf(pThis, peacefulDeath);
+			TechnoExt::KillSelf(pThis, nKillMethod);
 		}
 	}
 
@@ -1006,7 +1049,7 @@ void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 			{
 				// Countdown ended. Kill the unit
 				pData->Death_Countdown = -1;
-				TechnoExt::KillSelf(pThis, peacefulDeath);
+				TechnoExt::KillSelf(pThis, nKillMethod);
 			}
 		}
 		else
@@ -1015,10 +1058,6 @@ void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 		}
 	}
 
-	// Death if slave owner dead
-	if(auto pInf = specific_cast<InfantryClass*>(pThis))
-		if (pInf->Type->Slaved && (!pInf->SlaveOwner || !pInf->SlaveOwner->IsAlive) && pTypeData->Death_WithMaster.Get())
-			TechnoExt::KillSelf(pInf, peacefulDeath);
 }
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
@@ -1260,10 +1299,6 @@ void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 {
 	if (const auto pExt = TechnoExt::GetExtData(pThis))
 	{
-		//converted , update the name
-		if (!pExt->MyID.empty() && pExt->MyID != pThis->get_ID())
-			pExt->MyID = pThis->get_ID();
-
 		if (pThis->IsMindControlled())
 		{
 			if (pThis->MindControlRingAnim && !pExt->MindControlRingAnimType)
@@ -1318,9 +1353,13 @@ bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
 template <typename T>
 void TechnoExt::ExtData::Serialize(T& Stm)
 {
+	Debug::Log("Processing Element From TechnoExt ! \n");
+
 	Stm
-		.Process(this->MyID)
+		//.Process(this->GenericFuctions)
+		.Process(this->ID)
 		.Process(this->Shield)
+		//.Process(this->BExt)
 		.Process(this->LaserTrails)
 		.Process(this->ReceiveDamage)
 		.Process(this->PassengerDeletionTimer)
@@ -1356,6 +1395,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
 	this->MyFighterData.Serialize(Stm);
+
 #endif;
 }
 
@@ -1385,10 +1425,12 @@ DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
 
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject) 		{
+		pExt->Uninitialize();
+		ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	}
+
 	return 0;
 }
 

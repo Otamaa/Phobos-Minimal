@@ -26,7 +26,7 @@ void AnimExt::ExtData::Serialize(T& Stm)
 //Modified from Ares
 const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
-	if (auto const pTypeExt = AnimTypeExt::GetExtData(pAnim->Type))
+	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type))
 	{
 		if (!pTypeExt->NoOwner)
 		{
@@ -56,6 +56,43 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 	// this return also will prevent Techno `Invoker` to be set !
 	return false;
 }
+
+const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim,TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
+{
+	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type))
+	{
+		if (!pTypeExt->NoOwner)
+		{
+			if (auto pExt = AnimExt::GetExtData(pAnim))
+				pExt->Invoker = pTechnoInvoker;
+
+			if (!pTypeExt->CreateUnit.Get())
+			{
+				if (!pAnim->Owner && pInvoker)
+					pAnim->SetHouse(pInvoker);
+
+				return true; //yes return true
+			}
+			else
+			{
+				if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+				{
+					pAnim->SetHouse(newOwner);
+
+					if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+
+					return true;//yes
+				}
+			}
+		}
+	}
+
+	// no we dont set the owner
+	// this return also will prevent Techno `Invoker` to be set !
+	return false;
+}
+
 //Modified from Ares
 const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, AnimTypeExt::ExtData* pExt, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
@@ -116,14 +153,14 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 bool AnimExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
-		.Process(AnimCellUpdater::Marked)
+		//.Process(AnimCellUpdater::Marked)
 		.Success();
 }
 
 bool AnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
-		.Process(AnimCellUpdater::Marked)
+		//.Process(AnimCellUpdater::Marked)
 		.Success();
 }
 
@@ -194,16 +231,11 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x8)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	//when these 2 elements not present
-	//the Ext data is already gone
-	//so , we just skip these and dont take care any invalidation
-	if (!pThis->Type && !pThis->OwnerObject)
-		return 0x0;
-
 	if (auto pAnimExt = AnimExt::GetExtData(pThis))
 		pAnimExt->InvalidatePointer(target, all);
 
-	return 0x0;
+	R->EBX(0);
+	return target && pThis->OwnerObject == target ? 0x425174:0x4251A3;
 }
 /*
 DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)

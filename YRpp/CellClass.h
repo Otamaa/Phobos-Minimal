@@ -65,9 +65,6 @@ public:
 	//Using typedef resulting on dll address wtf , so this weird code
 	bool TileIs(TileType tileType) const
 	{
-		if(tileType == TileType::Unk || ((int)tileType >= 21))
-			return false;
-
 		const uintptr_t addr = TileArray[(int)tileType].Data;
 		return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
 	}

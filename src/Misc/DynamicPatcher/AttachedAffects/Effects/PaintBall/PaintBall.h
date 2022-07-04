@@ -146,7 +146,7 @@ public:
 	WarheadTypeClass* Token;
 	std::unique_ptr<PaintballType> Data;
 
-protected:
+private:
 	TimerStruct timer;
 public:
 

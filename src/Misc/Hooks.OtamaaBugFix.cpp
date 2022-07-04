@@ -19,7 +19,7 @@ static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWh
 		pThis->DrawBehind(pWhere, pBounds);
 }
 
-DEFINE_POINTER_CALL(0x6FA2D3, &_DrawBehindAnim)
+DEFINE_JUMP(CALL,0x6FA2D3, GET_OFFSET(_DrawBehindAnim));
 
 DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 {
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 }
 
 //Lunar limitation
-DEFINE_LJMP(0x546C8B, 0x546CBF);
+DEFINE_JUMP(LJMP,0x546C8B, 0x546CBF);
 
 /*
 static AnimClass* __fastcall _InfantryClass_DoingAI_AnimCtor(
@@ -65,18 +65,26 @@ bool reverse
 	return pAnim;
 }
 
-DEFINE_POINTER_CALL(0x520CA4, _InfantryClass_DoingAI_AnimCtor);
+DEFINE_JUMP(CALL,0x520CA4, GET_OFFSET(_InfantryClass_DoingAI_AnimCtor));
 */
 
-static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(const args_DamageArea& nArgs)
+static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
+	CoordStruct* pCoord ,
+	int Damage,
+	TechnoClass* Source,
+	WarheadTypeClass* Warhead,
+	bool AffectTiberium,
+	HouseClass* SourceHouse
+
+)
 {
-	HouseClass* pHouseOwner = nArgs.Source ? nArgs.Source->GetOwningHouse() : nullptr;
-	auto nCoord = *nArgs.Coord;
+	HouseClass* pHouseOwner = Source ? Source->GetOwningHouse() : nullptr;
+	auto nCoord = *pCoord;
 	return Map.DamageArea
-	(nCoord, nArgs.Damage, nArgs.Source, nArgs.Warhead, nArgs.Warhead->Tiberium, pHouseOwner);
+	(nCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
 }
 
-DEFINE_POINTER_CALL(0x6632C7, &_RocketLocomotionClass_DamageArea);
+DEFINE_JUMP(CALL,0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
 
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
@@ -113,15 +121,30 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 }
 
 static	void __fastcall DrawShape_VeinHole
-(const args_DrawSHP& nArgs
+(	Surface* Surface,
+	ConvertClass* Pal,
+	SHPStruct* SHP,
+	int FrameIndex,
+	const Point2D* const Position,
+	const RectangleStruct* const Bounds,
+	BlitterFlags Flags,
+	int Remap,
+	int ZAdjust,
+	ZGradient ZGradientDescIndex,
+	int Brightness,
+	int TintColor,
+	SHPStruct* ZShape,
+	int ZShapeFrame,
+	int XOffset,
+	int YOffset
 )
 {
 	bool bUseTheaterPal = true;
-	CC_Draw_Shape(nArgs.Surface, bUseTheaterPal ? FileSystem::THEATER_PAL() : nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nArgs.Flags, nArgs.Remap, nArgs.ZAdjust, nArgs.ZGradientDescIndex, nArgs.Brightness
-	 , nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
+	CC_Draw_Shape(Surface, bUseTheaterPal ? FileSystem::THEATER_PAL() : Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
+	 , TintColor, ZShape, ZShapeFrame,XOffset, YOffset);
 }
 
-DEFINE_POINTER_CALL(0x74D5BC, &DrawShape_VeinHole);
+DEFINE_JUMP(CALL,0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
 static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 {
@@ -132,7 +155,7 @@ static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
 		VeinholeMonsterClass::VeinSHPData = pImage;
 }
 
-DEFINE_POINTER_CALL(0x685136, &Replace_VeinholeShapeLoad);
+DEFINE_JUMP(CALL,0x685136, GET_OFFSET(Replace_VeinholeShapeLoad));
 
 static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 {
@@ -140,13 +163,13 @@ static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
 	Replace_VeinholeShapeLoad(nTheater);
 }
 
-DEFINE_POINTER_CALL(0x4AD0A3, &DisplayClass_ReadINI_add)
+DEFINE_JUMP(CALL,0x4AD0A3, GET_OFFSET(DisplayClass_ReadINI_add));
 
 static int __fastcall SelectParticle(char* pName) {
 	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
 }
 
-DEFINE_POINTER_CALL(0x74D0DF, &SelectParticle);
+DEFINE_JUMP(CALL,0x74D0DF, GET_OFFSET(SelectParticle));
 
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 {
@@ -215,14 +238,10 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, 0x600, 0, false))
 	{
 		auto const pExt = BulletExt::GetExtData(pThis);
-		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
 											(pExt && pExt->Owner) ? pExt->Owner : nullptr
-								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, false)){
+								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner, false);
 
-			if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-				pAnimExt->Invoker = pThis->Owner;
-			}
-		}
 	}
 
 	return 0x4668BD;
@@ -235,10 +254,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-	if(AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
-		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-			pAnimExt->Invoker = pThis;
-	}
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
 
 	return 0x414ED0;
 }
@@ -250,10 +266,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
-	if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false))
-		if (auto const pAnimExt = AnimExt::GetExtData(pAnim)) {
-			pAnimExt->Invoker = pThis;
-		}
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false) ;
 
 	return 0x7365BB;
 }
@@ -295,17 +308,17 @@ static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, vo
 }
 
 //544C3F
-DEFINE_POINTER_CALL(0x544C3F, &Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x544C3F, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //544C97
-DEFINE_POINTER_CALL(0x544C97,&Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x544C97, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //544CC9
-DEFINE_POINTER_CALL(0x544CC9, &Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x544CC9, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //546FCC
-DEFINE_POINTER_CALL(0x546FCC, &Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //549AF7
-DEFINE_POINTER_CALL(0x549AF7, &Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //549E67
-DEFINE_POINTER_CALL(0x549E67, &Isotile_LoadFile_Wrapper);
+DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
 #pragma endregion
 
 DEFINE_HOOK(0x7BAE60 , Surface_GetPixel_CheckParameters, 0x5)

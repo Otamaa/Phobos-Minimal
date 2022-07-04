@@ -192,7 +192,7 @@ static bool __fastcall BuildingClass_IsFactory_Wrapper(BuildingClass* pThis, voi
 	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
 }
 
-DEFINE_VTABLE_PATCH(0x7E4140, &BuildingClass_IsFactory_Wrapper);
+DEFINE_JUMP(VTABLE,0x7E4140, GET_OFFSET(BuildingClass_IsFactory_Wrapper));
 
 /*
 DEFINE_HOOK(0x443FF9 ,BuildingClass_ExitObject_Aircraft , 0x5)

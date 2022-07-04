@@ -5,7 +5,7 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
-#include <New/Entity/FoggedObject.h>
+//#include <New/Entity/FoggedObject.h>
 
 class CellExt
 {

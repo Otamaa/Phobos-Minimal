@@ -11,6 +11,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <Ext/WarheadType/Body.h>
+
 #include <Utilities/Macro.h>
 /*
 	Custom Radiations
@@ -35,7 +37,8 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 		GET(WeaponTypeClass*, pWeapon, ECX);
 		GET(int, nAmount, EDI);
 
-		if(auto pExt = BulletExt::GetExtData(pThis)) {
+		if (auto pExt = BulletExt::GetExtData(pThis))
+		{
 			auto cell = CellClass::Coord2Cell(*pCoords);
 			auto spread = Game::F2I(pWeapon->Warhead->CellSpread);
 			pExt->ApplyRadiationToCell(cell, spread, nAmount);
@@ -58,36 +61,41 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		GET_STACK(int, spread, 0x8);
 		GET_STACK(int, amount, 0xC);
 
-		if (!pThis) {
+		if (!pThis)
+		{
 
 			auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
 
-			if (RadSiteClass::Array_Constant->Count > 0) {
+			if (RadSiteClass::Array_Constant->Count > 0)
+			{
 				auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
-					[=](RadSiteClass* const pSite) {
+					[=](RadSiteClass* const pSite)
+ {
 
-						auto pSiteExt = RadSiteExt::GetExtData(pSite);
+	 auto pSiteExt = RadSiteExt::GetExtData(pSite);
 
-						{
-							if (pSiteExt->Type != pDefault)
-								return false;
+	 {
+		 if (pSiteExt->Type != pDefault)
+			 return false;
 
-							if (pSite->BaseCell != location)
-								return false;
+		 if (pSite->BaseCell != location)
+			 return false;
 
-							if (spread != pSite->Spread)
-								return false;
+		 if (spread != pSite->Spread)
+			 return false;
 
-							if (pThis->WeaponType != pSiteExt->Weapon)
-								return false;
-						}
+		 if (pThis->WeaponType != pSiteExt->Weapon)
+			 return false;
+	 }
 
-						return true;
+	 return true;
 					});
 
-				if (it != RadSiteClass::Array_Constant->end()) {
+				if (it != RadSiteClass::Array_Constant->end())
+				{
 					auto nAmount = amount;
-					if ((*it)->GetRadLevel() + amount >= pDefault->GetLevelMax()) {
+					if ((*it)->GetRadLevel() + amount >= pDefault->GetLevelMax())
+					{
 						nAmount = pDefault->GetLevelMax() - (*it)->GetRadLevel();
 					}
 
@@ -110,41 +118,47 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 {
 	enum { FireCheck = 0x5213F4, SetMissionRate = 0x521484, Continue = 0x0 };
 
-	if (!Phobos::Otamaa::DisableCustomRadSite) {
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
 		GET(InfantryClass*, pThis, ESI);
 		int radLevel = 0;
 		int weaponRadLevel = 0;
 
-		if (auto pWeaponStruct = pThis->GetDeployWeapon()) {
-			if (auto pWeapon = pWeaponStruct->WeaponType) {
+		if (auto pWeaponStruct = pThis->GetDeployWeapon())
+		{
+			if (auto pWeapon = pWeaponStruct->WeaponType)
+			{
 				auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 				auto currentCoord = pThis->GetMapCoords();
 
-			if (RadSiteClass::Array_Constant->Count > 0) {
-				auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
-					[=](RadSiteClass* const pSite) {
-						auto pSiteExt = RadSiteExt::GetExtData(pSite);
+				if (RadSiteClass::Array_Constant->Count > 0)
+				{
+					auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+						[=](RadSiteClass* const pSite)
+	 {
+		 auto pSiteExt = RadSiteExt::GetExtData(pSite);
 
-						if (pSiteExt->Type != pWeaponExt->RadType)
-							return false;
+		 if (pSiteExt->Type != pWeaponExt->RadType)
+			 return false;
 
-						if (pSite->BaseCell != currentCoord)
-							return false;
+		 if (pSite->BaseCell != currentCoord)
+			 return false;
 
-						if (Game::F2I(pWeapon->Warhead->CellSpread) != pSite->Spread)
-							return false;
+		 if (Game::F2I(pWeapon->Warhead->CellSpread) != pSite->Spread)
+			 return false;
 
-						if (pWeapon != pSiteExt->Weapon)
-							return false;
+		 if (pWeapon != pSiteExt->Weapon)
+			 return false;
 
-						if (pSiteExt->TechOwner)
-							return pSiteExt->TechOwner == pThis;
+		 if (pSiteExt->TechOwner)
+			 return pSiteExt->TechOwner == pThis;
 
-						return true ;
+		 return true;
 
-					});
+						});
 
-					if (it != RadSiteClass::Array_Constant->end()) {
+					if (it != RadSiteClass::Array_Constant->end())
+					{
 						auto pSiteExt = RadSiteExt::GetExtData((*it));
 						radLevel = Game::F2I(pSiteExt->GetRadLevelAt(currentCoord));
 					}
@@ -188,7 +202,8 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x4)
 // Too OP, be aware
 DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite) {
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
 		GET(BuildingClass* const, pBuilding, ECX);
 
 		if (pBuilding->IsIronCurtained() ||
@@ -202,54 +217,69 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 			return 0;
 		}
 
-		auto buildingCoords = pBuilding->GetMapCoords();
-		for (auto pFoundation = pBuilding->GetFoundationData(false);
-			*pFoundation != CellStruct{ 0x7FFF, 0x7FFF }; ++pFoundation)
+		if (pBuilding->IsAlive && pBuilding->Health > 0)
 		{
-			auto nCellStruct = buildingCoords + *pFoundation;
-			auto nCurrentCoord = Map[nCellStruct]->GetCoords();
-
-			for (const auto pRad : *RadSiteClass::Array_Constant)
+			auto buildingCoords = pBuilding->GetMapCoords();
+			for (auto pFoundation = pBuilding->GetFoundationData(false);
+				*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 			{
-				RadSiteExt::ExtData* pRadExt = RadSiteExt::GetExtData(pRad);
-				RadSiteClass* pRadSite = pRad;
-				RadTypeClass* pType = pRadExt->Type;
 
-				// Check the distance, if not in range, just skip this one
-				double orDistance = Map[pRadSite->BaseCell]->GetCoords().DistanceFrom(nCurrentCoord);
-				if (static_cast<int>(orDistance) > pRadSite->SpreadInLeptons)
-					continue;
+				auto nCellStruct = buildingCoords + *pFoundation;
+				auto nCurrentCoord = Map[nCellStruct]->GetCoords();
 
-				int delay = pType->GetBuildingApplicationDelay();
-				if ((delay <= 0) || (Unsorted::CurrentFrame % delay != 0))
-					continue;
+				for (const auto pRad : *RadSiteClass::Array_Constant)
+				{
+					RadSiteExt::ExtData* pRadExt = RadSiteExt::GetExtData(pRad);
+					RadSiteClass* pRadSite = pRad;
+					RadTypeClass* pType = pRadExt->Type;
 
-				auto nRadLevel = pRadExt->GetRadLevelAt(nCellStruct);
-				if (nRadLevel <= 0.0|| !pType->GetWarhead())
-					continue;
+					// Check the distance, if not in range, just skip this one
+					double orDistance = Map[pRadSite->BaseCell]->GetCoords().DistanceFrom(nCurrentCoord);
+					if (static_cast<int>(orDistance) > pRadSite->SpreadInLeptons)
+						continue;
 
-				auto damage = Game::F2I((nRadLevel)*pType->GetLevelFactor());
+					int delay = pType->GetBuildingApplicationDelay();
+					if ((delay <= 0) || (Unsorted::CurrentFrame % delay != 0))
+						continue;
 
-				if (damage == 0)
-					continue;
+					auto nRadLevel = pRadExt->GetRadLevelAt(nCellStruct);
+					if (nRadLevel <= 0.0 || !pType->GetWarhead())
+						continue;
 
-				auto pWarhead = pType->GetWarhead();
-				auto absolute = pWarhead->WallAbsoluteDestroyer;
-				bool ignore = pBuilding->Type->Wall && absolute;
+					auto damage = Game::F2I((nRadLevel)*pType->GetLevelFactor());
 
-				auto pTechnoOwner = !pRadExt->NoOwner ? pRadExt->TechOwner : nullptr;
-				auto pHouseOwner = !pRadExt->NoOwner ? pRadExt->RadHouse : nullptr;
+					if (damage == 0)
+						continue;
 
-				if (pBuilding->IsAlive) // simple fix for previous issues
-					if (pBuilding->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pTechnoOwner, ignore, absolute, pHouseOwner) == DamageState::NowDead)
-						break; //dont continue , meaningless
+					if (pBuilding->IsAlive && pBuilding->Health > 0) // simple fix for previous issues
+					{
+						auto pWarhead = pType->GetWarhead();
+
+						if (!pType->GetWarheadDetonate())
+						{
+							auto absolute = pWarhead->WallAbsoluteDestroyer;
+							bool ignore = pBuilding->Type->Wall && absolute;
+							if (pBuilding->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pRadExt->TechOwner, ignore, false, pRadExt->RadHouse) == DamageState::NowDead)
+								return 0;
+						}
+						else
+						{
+							const auto coords = pBuilding->GetCoords();
+							WarheadTypeExt::DetonateAt(pWarhead, coords, pRadExt->TechOwner, damage);
+
+							if (!(pBuilding->IsAlive && pBuilding->Health > 0))
+								return 0;
+						}
+					}
+				}
 			}
 		}
 	}
 	return 0;
 }
+
 // skip Frame % RadApplicationDelay
-//DEFINE_LJMP(0x4DA554, 0x4DA56E);
+//DEFINE_JUMP(LJMP,0x4DA554, 0x4DA56E);
 DEFINE_HOOK(0x4DA554, FootClass_AI_SkipForCustomRad, 0x5)
 {
 	return !Phobos::Otamaa::DisableCustomRadSite ? 0x4DA56E : 0x0;
@@ -263,29 +293,26 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(FootClass* const, pFoot, ESI);
+		auto const pUnit = specific_cast<UnitClass*>(pFoot);
 
-		if (!pFoot->GetTechnoType()->Immune &&
-			!pFoot->IsIronCurtained() &&
-			pFoot->IsInPlayfield &&
-			!pFoot->TemporalTargetingMe
-			) {
+		if (pFoot->GetTechnoType()->Immune ||
+			pFoot->IsIronCurtained() ||
+			!pFoot->IsInPlayfield ||
+			pFoot->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0)) {
+			goto Return;
+		}
 
-			auto CurrentCoord = pFoot->GetCoords();
+		const auto CurrentCoord = pFoot->GetCoords();
 
-			// Loop for each different radiation stored in the RadSites container
-			for (const auto pRad : *RadSiteClass::Array_Constant)
+		// Loop for each different radiation stored in the RadSites container
+		for (const auto pRad : *RadSiteClass::Array_Constant)
 			{
 				RadSiteExt::ExtData* pRadExt = RadSiteExt::GetExtData(pRad);
-
-				if (auto pUnit = specific_cast<UnitClass*>(pFoot))
-					if (pUnit->DeathFrameCounter > 0)
-						break;
-
 				RadSiteClass* pRadSite = pRad;
 
 				// Check the distance, if not in range, just skip this one
 				double orDistance = Map[pRadSite->BaseCell]->GetCoords().DistanceFrom(CurrentCoord);
-				if ( static_cast<int>(orDistance) > pRadSite->SpreadInLeptons)
+				if (static_cast<int>(orDistance) > pRadSite->SpreadInLeptons)
 					continue;
 
 				RadTypeClass* pType = pRadExt->Type;
@@ -303,20 +330,33 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 				if (damage == 0)
 					continue;
 
-				auto pWarhead = pType->GetWarhead();
-				auto absolute = pWarhead->WallAbsoluteDestroyer;
-				auto pTechnoOwner = !pRadExt->NoOwner ? pRadExt->TechOwner : nullptr;
-				auto pHouseOwner = !pRadExt->NoOwner ? pRadExt->RadHouse : nullptr;
+				if (pFoot->IsAlive && !pFoot->IsSinking && !pFoot->IsCrashing)
+				{
+					auto pWarhead = pType->GetWarhead();
+					if (!pType->GetWarheadDetonate())
+					{
+						if (pFoot->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pRadExt->TechOwner, false, false, pRadExt->RadHouse) == DamageState::NowDead)
+							return SkipEverything;
+					}
+					else
+					{
+						auto const coords = pFoot->GetCoords();
+						WarheadTypeExt::DetonateAt(pWarhead, coords, pRadExt->TechOwner, damage);
 
-				if (pFoot->IsAlive &&  !pFoot->IsSinking && !pFoot->IsCrashing) {
-					if (pFoot->ReceiveDamage(&damage,static_cast<int>(orDistance), pWarhead, pTechnoOwner, false, absolute, pHouseOwner) == DamageState::NowDead)
-						break; //dont continue , meaningless
+						if (!pFoot->IsAlive)
+							return SkipEverything;
+					}
+
+					//after damage dealed , wi check if this this still eligible
+					if (pUnit && pUnit->DeathFrameCounter > 0)
+						goto Return;
 				}
 			}
 
-			return pFoot->IsAlive ? CheckOtherState : SkipEverything;
-		}
+		Return:
+		return pFoot->IsAlive ? CheckOtherState : SkipEverything;
 	}
+
 	return Continue;
 }
 

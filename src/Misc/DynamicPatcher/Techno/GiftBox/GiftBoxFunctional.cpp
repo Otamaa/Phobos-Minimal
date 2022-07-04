@@ -99,7 +99,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 
 		if (pTypeExt->MyGiftBoxData.Destroy) {
 			auto nDamage = (pExt->OwnerObject()->Health + 1);
-			pExt->OwnerObject()->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, nullptr, true,
+			pExt->OwnerObject()->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, nullptr, false,
 				!pTypeExt->OwnerObject()->Crewed, nullptr);
 
 			return;

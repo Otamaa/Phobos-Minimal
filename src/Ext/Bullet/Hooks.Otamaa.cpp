@@ -35,7 +35,7 @@ static DamageAreaResult __fastcall BulletClass_DamageArea
 	return Map.DamageArea(nCoord, nDamage, pSource, pWarhead, pWarhead->Tiberium, pSourceHouse);
 }
 
-//DEFINE_POINTER_CALL(0x469A83, &BulletClass_DamageArea);
+//DEFINE_JUMP(CALL,0x469A83, GET_OFFSET(BulletClass_DamageArea));
 */
 
 DEFINE_HOOK(0x46889D, BulletClass_Unlimbo_FlakScatter_SetTargetCoords, 0x8)
@@ -100,7 +100,7 @@ bool bLevel)
 	return BulletClass::ProjectileMotion(pCoord, pVel, pSecondCoord, pDir, bInAir, bAirburs, pBullet->Type->VeryHigh, bLevel);
 }
 
-DEFINE_POINTER_CALL(0x466D31, ProjectileMotion_Exec);
+DEFINE_JUMP(CALL,0x466D31, GET_OFFSET(ProjectileMotion_Exec));
 
 DEFINE_HOOK(0x5B260B, BulletClass_ProjectileMotion_Fix1, 0x7)
 {

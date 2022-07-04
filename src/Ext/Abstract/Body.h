@@ -34,9 +34,8 @@ public:
 
 	//real name `Detach`
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-	// called after the Extension Constructed
-	virtual void InitializeConstants() {}
-	virtual void Uninitialize() { }
+
+	virtual void Uninitialize() { };
 
 #define FAIL_CHECK(hr) if(FAILED(hr)) return hr;
 };
@@ -53,7 +52,7 @@ public:
 
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject{ OwnerObject }
-	{ InitializeConstants(); }
+	{ }
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
@@ -84,6 +83,8 @@ public:
 		}
 	}
 
+	// called after the Extension Constructed
+	virtual void InitializeConstants() { }
 
 protected:
 
@@ -103,6 +104,60 @@ protected:
 	}
 
 	virtual HRESULT Save(IStream* pStm) override { return S_OK; }
+};
+
+template<typename T>
+class TExtensionBranch
+{
+public:
+	static const DWORD Canary;
+
+	virtual size_t GetSize() const = 0;
+
+	TExtensionBranch()
+	{ }
+
+	//real name `Detach`
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
+	virtual void Uninitialize() = 0;
+
+	virtual ~TExtensionBranch() = default;
+
+	//this one used for `Container` later to S/L after everything done
+	//which using `Container` class as core infrastructures
+	virtual inline void SaveBranchToStream(PhobosStreamWriter& Stm) = 0;
+	virtual inline void LoadBranchFromStream(PhobosStreamReader& Stm) = 0;
+
+	// called after the Extension Constructed
+	virtual void InitializeConstants() = 0;
+
+	inline void LoadFromINI(CCINIClass* pINI)
+	{
+		if (pINI)
+		{
+			this->Initialize();
+
+			if (pINI == CCINIClass::INI_Rules)
+				this->LoadFromRulesFile(pINI);
+
+			this->LoadFromINIFile(pINI);
+		}
+	}
+
+protected:
+
+	// called before the first ini file is read
+	virtual void Initialize() { }
+
+	// for things that only logically work in rules - countries, sides, etc
+	virtual void LoadFromRulesFile(CCINIClass* pINI) { }
+
+	// load any ini file: rules, game mode, scenario or map
+	virtual void LoadFromINIFile(CCINIClass* pINI) { }
+
+	//we dont want to load these after techno , but wait until the branch function called
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true };
+	bool Save(PhobosStreamWriter& Stm) const { return true };
 };
 
 // This class is just a wrapper to replace
@@ -350,4 +405,94 @@ private:
 	TExtensionContainer(const TExtensionContainer&) = delete;
 	TExtensionContainer& operator = (const TExtensionContainer&) = delete;
 	TExtensionContainer& operator = (TExtensionContainer&&) = delete;
+};
+
+template<typename T>
+class TExtensionBranchContainer
+{
+private:
+	using base_type = typename T::base_type;
+	using base_type_ptr = base_type*;
+	using const_base_type_ptr = const base_type*;
+	using no_const_base_type_ptr = base_type*;
+
+	base_type_ptr SavingObject;
+	IStream* SavingStream;
+	FixedString<0x100> Name;
+
+public:
+	explicit TExtensionBranchContainer(const char* pName) :
+		SavingObject { nullptr },
+		SavingStream { nullptr },
+		Name { pName }
+	{}
+
+	virtual ~TExtensionBranchContainer() = default;
+
+	inline auto GetName() const
+	{
+		return this->Name.data();
+	}
+
+	void PrepareStream(base_type_ptr key, IStream* pStm)
+	{
+		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		this->SavingObject = key;
+		this->SavingStream = pStm;
+	}
+
+	inline IStream* GetStream() const
+	{
+		return this->SavingStream;
+	}
+
+	void SaveStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
+			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
+			if (!this->Save(this->SavingObject, this->SavingStream))
+				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
+		}
+		else
+		{
+			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
+				this->Name.data(), this->SavingObject, this->SavingStream);
+		}
+
+		this->SavingObject = nullptr;
+		this->SavingStream = nullptr;
+	}
+
+	void LoadStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
+			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
+			if (!this->Load(this->SavingObject, this->SavingStream))
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+		}
+		else
+		{
+			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
+				this->Name.data(), this->SavingObject, this->SavingStream);
+		}
+
+		this->SavingObject = nullptr;
+		this->SavingStream = nullptr;
+	}
+
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+protected:
+
+	// override this method to do type-specific stuff
+	virtual bool Save(base_type_ptr key, IStream* pStm) { return true; }
+
+	// override this method to do type-specific stuff
+	virtual bool Load(base_type_ptr key, IStream* pStm) { return true; }
+
+private:
+	TExtensionBranchContainer(const TExtensionBranchContainer&) = delete;
+	TExtensionBranchContainer& operator = (const TExtensionBranchContainer&) = delete;
+	TExtensionBranchContainer& operator = (TExtensionBranchContainer&&) = delete;
 };

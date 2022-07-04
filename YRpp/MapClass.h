@@ -159,7 +159,7 @@ public:
 		{ JMP_THIS(0x55BAE0); }
 
 	void Update()
-		{ JMP_THIS(0x55BAE0); }
+		{ JMP_THIS(0x55AFB0); }
 };
 
 class NOVTABLE MapClass : public GScreenClass
@@ -586,17 +586,4 @@ public:
 	Crate Crates [0x100];
 	BOOL Redraws;
 	DynamicVectorClass<CellStruct> TaggedCells;
-};
-
-struct args_DamageArea
-{
-	CoordStruct* Coord;
-	int Damage;
-	TechnoClass* Source;
-	WarheadTypeClass* Warhead;
-	bool AffectTiberium;
-private:
-	bool padding_AffectTiberium[3];
-public:
-	HouseClass* SourceHouse;
 };

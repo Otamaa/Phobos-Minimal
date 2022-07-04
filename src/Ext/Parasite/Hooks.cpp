@@ -42,19 +42,12 @@ DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x7)
 	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x70, 0xC));
 	GET(ParasiteClass* const, pThis, ESI);
 
-	if (auto pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead))
-	{
-		if (auto const AnimType = pWhExt->SquidSplash.GetElements(RulesClass::Instance->SplashList))
-		{
-			if (auto pSplashType = AnimType.at(ScenarioClass::Instance->Random(0, (AnimType.size() - 1))))
-			{
-				if (auto pAnim = GameCreate<AnimClass>(pSplashType, *pCoord))
-				{
+	if (auto pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)) {
+		if (auto const AnimType = pWhExt->SquidSplash.GetElements(RulesClass::Instance->SplashList)) {
+			if (auto pSplashType = AnimType.at(ScenarioClass::Instance->Random(0, (AnimType.size() - 1)))) {
+				if (auto pAnim = GameCreate<AnimClass>(pSplashType, *pCoord)) {
 					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : pThis->GetOwningHouse();
-					if (AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, false))
-						if (auto const pAnimExt = AnimExt::GetExtData(pAnim))
-							pAnimExt->Invoker = pThis->Owner;
-
+					AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
 					return Handled;
 				}
 			}

@@ -13,7 +13,7 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 	result.Y *= -1;
 	nCurLoc += { (int)result.X, (int)result.Y, (int)result.Z };
 	return nCurLoc;
-}*/
+}
 
 DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0xF) //this is the end, here's the beginning: 0x62CE49 0x6
 {
@@ -48,4 +48,4 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0xF) //this is the end, here's the begin
 	TrailsManager::AI(pThis);
 #endif
 	return 0;
-}
+}*/

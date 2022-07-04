@@ -1,6 +1,8 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
+#define Blowfishdll_name reinterpret_cast<const char*>(0x840A78)
+
 HRESULT __stdcall Blowfish_Loader(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
@@ -17,7 +19,7 @@ HRESULT __stdcall Blowfish_Loader(
 	if (SUCCEEDED(result))
 		return result;
 
-	HMODULE hDll = LoadLibrary("Blowfish.dll");
+	HMODULE hDll = LoadLibrary(Blowfishdll_name);
 	if (hDll) {
 		auto GetClassObject = (pDllGetClassObject)GetProcAddress(hDll, "DllGetClassObject");
 		if (GetClassObject) {
@@ -35,7 +37,7 @@ HRESULT __stdcall Blowfish_Loader(
 	if (!SUCCEEDED(result)) {
 		FreeLibrary(hDll);
 
-		char* Message = "File Blowfish.dll was not found\n";
+		const char* Message = "File Blowfish.dll was not found\n";
 		MessageBox(0, Message, "Fatal error ", MB_ICONERROR);
 		Debug::FatalErrorAndExit(Message);
 	}
@@ -43,12 +45,8 @@ HRESULT __stdcall Blowfish_Loader(
 	return result;
 }
 
-DEFINE_NAKED_LJMP(0x6BEDDD, _Blowfish_Loader_Init) {
-	CALL(Blowfish_Loader);
-	JMP(0x6BEDE3);
-}
+DEFINE_JUMP(CALL6,0x6BEDDD, GET_OFFSET(Blowfish_Loader));
+DEFINE_JUMP(CALL6,0x437F6E, GET_OFFSET(Blowfish_Loader));
 
-DEFINE_NAKED_LJMP(0x437F6E, _Blowfish_Loader_Create) {
-	CALL(Blowfish_Loader);
-	JMP(0x437F74);
-}
+
+#undef Blowfishdll_name

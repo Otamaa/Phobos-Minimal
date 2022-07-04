@@ -82,10 +82,10 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 
 				if (!pTypeExt->PlacementPreview_Shape.isset())
 				{
-					if (pType->LoadBuildup())
+					if (auto pBuildup = pType->LoadBuildup())
 					{
 						bBuildupPresent = true;
-						Selected = pType->LoadBuildup();
+						Selected = pBuildup;
 					}
 					else
 					{
@@ -130,12 +130,41 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 }
 
 //Make Building placement Grid tranparent
-static void __fastcall CellClass_Draw_It_Shape(const args_DrawSHP& nArgs)
+static void __fastcall CellClass_Draw_It_Shape(
+	Surface* Surface,
+	ConvertClass* Pal,
+	SHPStruct* SHP,
+	int FrameIndex,
+	const Point2D* const Position,
+	const RectangleStruct* const Bounds,
+	BlitterFlags Flags,
+	int Remap,
+	int ZAdjust,
+	ZGradient ZGradientDescIndex,
+	int Brightness,
+	int TintColor,
+	SHPStruct* ZShape,
+	int ZShapeFrame,
+	int XOffset,
+	int YOffset
+)
 {
-	auto nFlag = nArgs.Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
+	auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
 
-	CC_Draw_Shape(nArgs.Surface, nArgs.Pal, nArgs.SHP, nArgs.FrameIndex, nArgs.Position, nArgs.Bounds, nFlag, nArgs.Remap, nArgs.ZAdjust,
-		nArgs.ZGradientDescIndex, nArgs.Brightness, nArgs.TintColor, nArgs.ZShape, nArgs.ZShapeFrame, nArgs.XOffset, nArgs.YOffset);
+	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, nFlag, Remap, ZAdjust,
+		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_POINTER_CALL(0x47EFB4, &CellClass_Draw_It_Shape);
+DEFINE_JUMP(CALL,0x47EFB4, GET_OFFSET(CellClass_Draw_It_Shape));
+
+DEFINE_HOOK_AGAIN(0x449CC1, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
+DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThis->IsHumanControlled && !pThis->Type->UndeploysInto && !pTypeExt->EVA_Sold_Disabled.Get())
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
+
+	return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
+}

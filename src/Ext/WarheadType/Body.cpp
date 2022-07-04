@@ -238,6 +238,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeahAnim");
 	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
 	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
+
+	this->GattlingStage.Read(exINI, pSection, "TargetGattlingStage");
+	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
+	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
+
 #pragma region Otamaa
 
 	this->SquidSplash.Read(exINI, pSection, "Squid.SplashAnims");
@@ -423,6 +428,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Steal_Display_Houses)
 		.Process(Steal_Display)
 		.Process(Steal_Display_Offset)
+
+		.Process(GattlingStage)
+		.Process(GattlingRateUp)
+		.Process(ReloadAmmo)
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)

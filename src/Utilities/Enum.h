@@ -92,10 +92,11 @@ enum class AffectedTarget : unsigned char {
 	Infantry = 0x8,
 	Unit = 0x10,
 	Building = 0x20,
+	Aircraft = 0x40,
 
 	All = 0xFF,
 	AllCells = Land | Water,
-	AllTechnos = Infantry | Unit | Building,
+	AllTechnos = Infantry | Unit | Building | Aircraft,
 	AllContents = NoContent | AllTechnos
 };
 
@@ -238,6 +239,25 @@ enum class InterceptedStatus
 	None = 0,
 	Targeted = 1,
 	Intercepted = 2
+};
+
+enum class SlaveReturnTo
+{
+	Killer = 0, //default
+	Master = 1,
+	Suicide = 2,
+	Neutral = 3,
+	Civilian = 4,
+	Special = 5,
+	Random = 6
+};
+
+enum class KillMethod
+{
+	Explode = 0,     //default death option
+	Vanish = 1,
+	Sell = 2,     // buildings only
+	Random = 3
 };
 
 #pragma region Otamaa

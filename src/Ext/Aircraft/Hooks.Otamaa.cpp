@@ -64,7 +64,7 @@ playDestroyAnim:
 			{
 				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 				{
-					auto const pAnimTypeExt = AnimTypeExt::GetExtData(pAnim->Type);
+					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
 					auto const pAnimExt = AnimExt::GetExtData(pAnim);
 
 					if (!pAnimTypeExt || !pAnimExt)
@@ -92,7 +92,7 @@ playDestroyAnim:
 	}
 }
 
-DEFINE_POINTER_CALL(0x4CD809, &AircraftClass_TriggerCrashWeapon);
+DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftClass_TriggerCrashWeapon));
 
 /*
 namespace ReplaceParadropWithFire
@@ -106,7 +106,7 @@ namespace ReplaceParadropWithFire
 	}
 };
 
-DEFINE_POINTER_CALL(0x4159FB, &ReplaceParadropWithFire::DropCarGo);
+DEFINE_JUMP(CALL,0x4159FB, GET_OFFSET(ReplaceParadropWithFire::DropCarGo));
 */
 
 DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)

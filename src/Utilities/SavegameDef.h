@@ -462,11 +462,12 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<T>& Value, bool RegisterForChange) const
 		{
+			Value.clear();
+
 			size_t Capacity = 0;
 			if (!Stm.Load(Capacity))
 				return false;
 
-			Value.clear();
 			Value.reserve(Capacity);
 
 			size_t Count = 0;

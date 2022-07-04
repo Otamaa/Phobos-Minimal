@@ -79,13 +79,12 @@ void BulletExt::ExtData::InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt)
 		return;
 
 	if (pTypeExt) {
-		auto pOwner = pThis->Owner ? pThis->Owner->Owner : (Owner ? Owner : HouseExt::FindCivilianSide());
-		auto OwnerLaserColor = pOwner->LaserColor;
+		const auto pOwner = pThis->Owner ? pThis->Owner->Owner : (Owner ? Owner : HouseExt::FindCivilianSide());
 
 		for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
 			if (auto pLaserType = LaserTrailTypeClass::Array[idxTrail].get()) {
 				LaserTrails.push_back(
-					std::make_unique<LaserTrailClass>(pLaserType, OwnerLaserColor));
+					std::make_unique<LaserTrailClass>(pLaserType, pOwner->LaserColor));
 			}
 		}
 	}
