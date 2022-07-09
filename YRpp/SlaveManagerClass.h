@@ -77,6 +77,9 @@ public:
 	bool ShouldWakeUpNow()
 		{ JMP_THIS(0x6B1020); }
 
+	bool ShouldWakeUpNow(InfantryClass* pSlave, const CellStruct& nCell) const
+		{ JMP_THIS(0x6B0880); }
+
 	// the slaves will become free citizens without any announcements or cheers, if you don't call Killed() beforehand
 	void ZeroOutSlaves();
 

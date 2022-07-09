@@ -33,10 +33,14 @@
 
 #include <memory>
 
-template<> const DWORD TExtension<TechnoClass>::Canary = 0x55555555;
-template<> const DWORD TExtensionBranch<BuildingClass>::Canary = 0x87654321;
+template<> const DWORD Extension<TechnoClass>::Canary = 0x55555555;
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
+
+TechnoExt::ExtData* TechnoExt::GetExtData(TechnoExt::base_type* pThis)
+{
+	return  ExtMap.Find(pThis);
+}
 
 void TechnoExt::ExtData::InitializeConstants()
 {
@@ -408,7 +412,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	int width = 0, height = 0;
 	BitFont::Instance->GetTextDimension(damageStr, &width, &height, 120);
 
-	if (!pExt->DamageNumberOffset.isset() || pExt->DamageNumberOffset >= maxOffset)
+	if (pExt->DamageNumberOffset >= maxOffset || pExt->DamageNumberOffset.empty())
 		pExt->DamageNumberOffset = -maxOffset;
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
@@ -950,7 +954,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , boo
 {
 	KillMethod nOpt = deathOption;
 	if (deathOption == KillMethod::Random) {
-		nOpt = static_cast<KillMethod>(ScenarioGlobal->Random.RandomRanged(0, 2));
+		nOpt = static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
 	}
 
 	switch (nOpt)
@@ -997,13 +1001,22 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , boo
 		if (const auto pBld = specific_cast<BuildingClass*>(pThis)) {
 			if (pBld->Type->LoadBuildup()) {
 				pBld->Sell(true);
-			} else {
-				Debug::Log("Building [%s] can't be sold, killing it instead\n", pThis->get_ID());
-				goto Kill;
+				return;
 			}
-		} else {
-			goto Kill;
+
+		} else if (const auto pFoot = generic_cast<FootClass*>(pThis)) {
+			if (auto const pCell = pFoot->GetCell()) {
+				if (auto const pBuilding = pCell->GetBuilding()) {
+					if (pBuilding->Type->UnitRepair) {
+						pFoot->Sell(true);
+						return;
+					}
+				}
+			}
 		}
+
+		Debug::Log("Techno [%s] can't be sold, killing it instead\n", pThis->get_ID());
+		goto Kill;
 
 	}break;
 	}
@@ -1369,6 +1382,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Death_Countdown)
 		.Process(this->MindControlRingAnimType)
 		.Process(this->DamageNumberOffset)
+		.Process(this->CurrentLaserWeaponIndex)
 		.Process(this->OriginalPassengerOwner)
 		.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)
@@ -1383,12 +1397,13 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWeaponTimers)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
+		//.Process(this->PaintBallState)
 #endif;
 		;
 	//should put this inside techo ext , ffs
 #ifdef COMPILE_PORTED_DP_FEATURES
 	//this->MyGiftBox.Serialize(Stm);
-	this->PaintBallState.Serialize(Stm);
+	//this->PaintBallState.Serialize(Stm);
 	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
@@ -1399,16 +1414,18 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 #endif;
 }
 
-TechnoExt::ExtContainer::ExtContainer() : TExtensionContainer("TechnoClass") { }
+TechnoExt::ExtContainer::ExtContainer() : Container("TechnoClass") { }
 TechnoExt::ExtContainer::~ExtContainer() = default;
 
 void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<TechnoClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<TechnoClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -1418,19 +1435,14 @@ void TechnoExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<TechnoExt::ExtData>(pItem);
+	TechnoExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
-
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject) 		{
-		pExt->Uninitialize();
-		ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-	}
-
+	TechnoExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -1455,6 +1467,7 @@ DEFINE_HOOK(0x70C264, TechnoClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+/*
 DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -1465,4 +1478,4 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
-}
+}*/

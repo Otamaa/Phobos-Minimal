@@ -5,8 +5,13 @@
 #include <ColorScheme.h>
 
 std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
-template<> const DWORD TExtension<AnimExt::base_type>::Canary = 0xAAAAAAAA;
+template<> const DWORD Extension<AnimExt::base_type>::Canary = 0xAAAAAAAA;
 AnimExt::ExtContainer AnimExt::ExtMap;
+
+AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
 
 // =============================
 // load / save
@@ -166,8 +171,20 @@ bool AnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container
+void AnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+{
+	Extension<AnimClass>::LoadFromStream(Stm);
+	this->Serialize(Stm);
+}
 
-AnimExt::ExtContainer::ExtContainer() : TExtensionContainer("AnimClass") { }
+void AnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+{
+	Extension<AnimClass>::SaveToStream(Stm);
+	this->Serialize(Stm);
+}
+
+
+AnimExt::ExtContainer::ExtContainer() : Container("AnimClass") { }
 AnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -178,7 +195,7 @@ DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_AltExt_CTOR, 0x9)
 DEFINE_HOOK(0x422126, AnimClass_AltExt_CTOR, 0x5)
 {
 	GET(AnimClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<AnimExt::ExtData>(pItem);
+	AnimExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
@@ -194,10 +211,7 @@ DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
 DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	AnimExt::ExtMap.Remove(pItem);
 	R->EAX(pItem->Type);
 	return 0;
 }
@@ -225,19 +239,24 @@ DEFINE_HOOK(0x4253FF, AnimClass_AltExt_Save_Suffix, 0x5)
 	return 0;
 }
 
+/*
 DEFINE_HOOK(0x425164, AnimClass_Detach, 0x8)
 {
 	GET(AnimClass* const, pThis, ESI);
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pAnimExt = AnimExt::GetExtData(pThis))
-		pAnimExt->InvalidatePointer(target, all);
+	//if the type is gone , it is mostly already detached
+	if(pThis->Type) {
+		if (auto pAnimExt = AnimExt::GetExtData(pThis)) {
+			pAnimExt->InvalidatePointer(target, all);
+		}
+	}
 
 	R->EBX(0);
 	return target && pThis->OwnerObject == target ? 0x425174:0x4251A3;
 }
-/*
+
 DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);

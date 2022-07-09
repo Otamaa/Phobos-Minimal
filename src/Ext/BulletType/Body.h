@@ -2,7 +2,7 @@
 #include <BulletTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
@@ -15,7 +15,7 @@ class BulletTypeExt
 public:
 	using base_type = BulletTypeClass;
 
-	class ExtData final : public TExtension<BulletTypeClass>
+	class ExtData final : public Extension<BulletTypeClass>
 	{
 	public:
 		Valueable<int> Health;
@@ -59,13 +59,15 @@ public:
 		Valueable<bool> BounceOnInfantry;
 		Valueable<bool> BounceOnVehicle;
 		//
+
+		Nullable<double> PreExplodeRange;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
 		#pragma endregion
 
 		PhobosTrajectoryType* TrajectoryType;
-		ExtData(BulletTypeClass* OwnerObject) : TExtension<BulletTypeClass>(OwnerObject)
+		ExtData(BulletTypeClass* OwnerObject) : Extension<BulletTypeClass>(OwnerObject)
 			, Health { 0 }
 			, Armor { -1 }
 			, Interceptable { false }
@@ -99,6 +101,8 @@ public:
 			, BounceOnBuilding { false }
 			, BounceOnInfantry { false }
 			, BounceOnVehicle { false }
+
+			, PreExplodeRange { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
@@ -106,7 +110,7 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override { LaserTrail_Types.reserve(1); }
 		virtual void Uninitialize() override;
@@ -120,9 +124,9 @@ public:
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright) const;
 
-		double GetAdjustedGravity()
+		double GetAdjustedGravity() const
 		{
-			auto const nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
+			auto const nGravity = this->Gravity.Get(RulesGlobal->Gravity);
 			return this->OwnerObject()->Floater ? nGravity * 0.5 : nGravity;
 		}
 
@@ -131,14 +135,9 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::BulletType
-			? reinterpret_cast<BulletTypeExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<BulletTypeExt> {
+	class ExtContainer final : public Container<BulletTypeExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

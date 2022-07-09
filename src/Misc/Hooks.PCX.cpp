@@ -41,6 +41,40 @@ DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x552F81, PCX_LoadingScreen_Campaign, 0x5)
+{
+	GET(LoadProgressManager*, pThis, EBP);
+
+	DSurface* pSurface = reinterpret_cast<DSurface*>(pThis->ProgressSurface);
+	const std::string fileName = ScenarioClass::Instance->LS800BkgdName;
+
+	if (fileName.length() < 4U || fileName.empty()) {
+		Debug::Log("[LS800BkgdName] illegal filename [%s]\n", fileName.c_str());
+		return 0x0;
+	}
+
+	if (PhobosCRT::stristr(fileName.c_str(), ".pcx") == 0
+		|| PhobosCRT::stristr(fileName.c_str(), ".png") == 0 )
+	{
+		PCX::Instance->LoadFile(fileName.c_str());
+		if (BSurface* pcx = PCX::Instance->GetSurface(fileName.c_str()))
+		{
+			RectangleStruct destClip = {
+				(pSurface->Width - pcx->Width) / 2,
+				(pSurface->Height - pcx->Height) / 2,
+				pcx->Width, pcx->Height
+			};
+
+			PCX::Instance->BlitToSurface(&destClip, pSurface, pcx);
+		}
+
+		R->EBX(R->EDI());
+		return 0x552FC6;
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 {
 	GET_STACK(SHPStruct*, pCameo, STACK_OFFS(0x48C, 0x444));

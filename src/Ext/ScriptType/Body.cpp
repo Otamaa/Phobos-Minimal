@@ -63,9 +63,7 @@ DEFINE_HOOK_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
-
 	ScriptTypeExt::ExtMap.FindOrAllocate(pThis);
-
 	return 0;
 }
 

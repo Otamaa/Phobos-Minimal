@@ -121,10 +121,8 @@ TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
-
 	TerrainTypeExt::ExtMap.FindOrAllocate(pItem);
 	pItem->RadarInvisible = false;
-
 	return 0;
 }
 

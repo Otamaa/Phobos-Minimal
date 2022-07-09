@@ -33,7 +33,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
 		// Ignore target cell for airborne technos.
 		if (!pTechno || !pTechno->IsInAir())
 		{
-			if (const auto pCell = abstract_cast<CellClass*>(pTarget))
+			if (const auto pCell = specific_cast<CellClass*>(pTarget))
 				targetCell = pCell;
 			else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
 				targetCell = pObject->GetCell();
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
 
 		if (targetCell)
 		{
-			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget.Get(), true))
+			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget, true))
 				return CannotFire;
 		}
 
@@ -51,8 +51,8 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
 				if (pUnit->DeathFrameCounter > 0)
 					return CannotFire;
 
-			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget.Get()) ||
-				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses.Get(), pThis->Owner, pTechno->Owner))
+			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
+				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner))
 			{
 				return CannotFire;
 			}
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x7)
 		{
 			if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
 			{
-				float nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
+				const float nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
 				R->EAX(Game::F2I(nDamage * nDamageMult));
 				return ApplyDamageMult;
 			}
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x7)
 
 	GET(TechnoClass* const, pThis, ESI);
 	GET(CellClass* const, pCell, EAX);
-	GET_STACK(WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
+	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
 	if (auto pExt = WeaponTypeExt::ExtMap.Find(pWeaponType))
 	{
@@ -101,7 +101,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x7)
 		{
 			auto const range = pWeaponType->Range / Unsorted::d_LeptonsPerCell;
 
-			std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(static_cast<size_t>(range + 0.99));
+			const std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(static_cast<size_t>(range + 0.99));
 			size_t size = adjacentCells.size();
 
 			for (unsigned int i = 0; i < size; i++)

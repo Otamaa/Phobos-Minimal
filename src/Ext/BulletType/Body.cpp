@@ -3,7 +3,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
-template<> const DWORD TExtension<BulletTypeClass>::Canary = 0xF00DF00D;
+template<> const DWORD Extension<BulletTypeClass>::Canary = 0xF00DF00D;
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
@@ -11,6 +11,11 @@ double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 	auto const pData = BulletTypeExt::GetExtData(pType);
 	auto const nGravity = pData->Gravity.Get(RulesClass::Instance->Gravity);
 	return pType->Floater ? nGravity * 0.5 : nGravity;
+}
+
+BulletTypeExt::ExtData* BulletTypeExt::GetExtData(BulletTypeExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
 }
 
 BulletTypeClass* BulletTypeExt::GetDefaultBulletType()
@@ -113,6 +118,8 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
 	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
+	this->PreExplodeRange.Read(exINI, pSection, "PreExplode.Range");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
 #endif
@@ -156,6 +163,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceOnBuilding)
 		.Process(this->BounceOnInfantry)
 		.Process(this->BounceOnVehicle)
+		.Process(this->PreExplodeRange)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
 #endif
@@ -166,13 +174,13 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 
 void BulletTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Extension<BulletTypeClass>::LoadFromStream(Stm);
+	Extension<BulletTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	//Extension<BulletTypeClass>::SaveToStream(Stm);
+	Extension<BulletTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -193,7 +201,7 @@ bool BulletTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BulletTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("BulletTypeClass") { }
+BulletTypeExt::ExtContainer::ExtContainer() : Container("BulletTypeClass") { }
 BulletTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -202,18 +210,14 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BulletTypeExt::ExtData>(pItem);
+	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-
+	BulletTypeExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -248,7 +252,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 
 	pItem->Strength = 0;
 	pItem->Armor = Armor::None;
-	if (auto pExt = BulletTypeExt::GetExtData(pItem))
-		pExt->LoadFromINI(pINI);
+	BulletTypeExt::ExtMap.LoadFromINI(pItem,pINI);
+
 	return 0;
 }

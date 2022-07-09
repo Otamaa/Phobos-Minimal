@@ -2,6 +2,7 @@
 #include <Phobos.Ext.h>
 
 #include <Ext/Aircraft/Body.h>
+#include <Ext/AITriggerType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
@@ -41,6 +42,7 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
+#include <New/Entity/VerticalLaserClass.h>
 //#include <New/Entity/FoggedObject.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
@@ -66,6 +68,7 @@ auto MassActions = MassAction <
 #pragma endregion
 	// Ext classes
 	AircraftExt,
+	AITriggerTypeExt,
 	AnimTypeExt,
 	AnimExt,
 	BuildingExt,
@@ -93,7 +96,8 @@ auto MassActions = MassAction <
 	ShieldTypeClass,
 	LaserTrailTypeClass,
 	RadTypeClass,
-	HoverTypeClass
+	HoverTypeClass,
+	VerticalLaserClass
 	// other classes
 > ();
 

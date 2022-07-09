@@ -49,7 +49,7 @@ namespace Timer
 		TextPrintType::Right |
 		TextPrintType::NoShadow |
 		TextPrintType::Metal12 |
-		TextPrintType::unk400);
+		TextPrintType::Background);
 
 		std::wstring lpDisplay = string;
 		lpDisplay += L"  ";
@@ -90,7 +90,7 @@ namespace Timer
 		++nTimerIndex;
 
 		auto bounds = DSurface::ViewBounds();
-		auto nFlag = TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::unk400 | TextPrintType::Fonts;
+		auto nFlag = TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background | TextPrintType::Fonts;
 		Point2D location { (bounds.Width - (nTimeWidth-1) - 3) , (bounds.Height - nTimerIndex * (pFont->field_1C + 2)) };
 		DSurface::Composite->DrawColorSchemeText(lpDisplay.c_str(), bounds, location,scheme, nullptr, nFlag);
 

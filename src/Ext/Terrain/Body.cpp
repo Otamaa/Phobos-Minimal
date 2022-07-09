@@ -151,7 +151,6 @@ DEFINE_HOOK(0x71BBF8, TerrainClass_CTOR, 0xD)
 //DEFINE_HOOK(0x71BE6D, TerrainClass_CTOR, 0xC)
 {
 	GET(TerrainClass*, pItem, ESI);
-
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }

@@ -12,7 +12,7 @@ bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange
 bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
 	this->SaveBase(Stm);
-	Stm.Process(this->Height);
+	Stm.Process(this->Height, false);
 	return true;
 }
 

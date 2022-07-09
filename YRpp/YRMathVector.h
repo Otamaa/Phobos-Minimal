@@ -1,6 +1,7 @@
 //pd's Vector classes (math sense)
 #pragma once
 
+#include <Base/SSE_Math.h>
 #include <YRMath.h>
 #include <tuple>
 
@@ -104,7 +105,7 @@ public:
 	//magnitude
 	double Magnitude() const
 	{
-		return Math::sqrt(MagnitudeSquared());
+		return sqrt_fast_tpl(MagnitudeSquared());
 	}
 	//magnitude squared
 	double MagnitudeSquared() const
@@ -374,7 +375,7 @@ private:
 
 	double MagnitudeFor(Vector2D v)
 	{
-		return Math::sqrt(SqrMagnitude(v));
+		return sqrt_fast_tpl(SqrMagnitude(v));
 	}
 
 };
@@ -487,11 +488,11 @@ public:
 	//magnitude
 	double Magnitude() const
 	{
-		return Math::sqrt(MagnitudeSquared());
+		return sqrt_fast_tpl(MagnitudeSquared());
 	}
 
 	double MagnitudeXY()
-	{ return Math::sqrt(X * X + Y * Y); }
+	{ return sqrt_fast_tpl(X * X + Y * Y); }
 
 	//magnitude squared
 	double MagnitudeSquared() const
@@ -833,7 +834,7 @@ private:
 
 	double MagnitudeFor(Vector3D v)
 	{
-		return Math::sqrt(SqrMagnitude(v));
+		return sqrt_fast_tpl(SqrMagnitude(v));
 	}
 
 	double SqrMagnitude(Vector3D v)
@@ -876,7 +877,7 @@ public:
 
 	double Length() const
 	{
-		return Math::sqrt(Length2());
+		return sqrt_fast_tpl(Length2());
 	}
 
 	inline void Swap(Vector4D &b)

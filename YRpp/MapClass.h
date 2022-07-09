@@ -528,6 +528,7 @@ public:
 	int Index(CellClass& ptr) { return Cells.FindItemIndex(&ptr); }
 
 	bool IsValidCell(CellStruct* cell) { JMP_THIS(0x5657E0); }
+	bool IsValidCell(CellStruct const& nCoord) { JMP_THIS(0x5657E0); }
 
 	bool CanMoveHere(const CellStruct& position, int arg4, int a3, SpeedType SpeedType, int zone, MovementZone MovementZone, int level, bool bool1, char a9)
 		{ JMP_THIS(0x56E7C0); }

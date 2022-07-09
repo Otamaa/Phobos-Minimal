@@ -44,7 +44,7 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 			return;
 
 		Token = pAffector;
-		Data = std::make_unique<PaintballType>(data);
+		Data = data;
 		timer.Start(duration);
 		return;
 	}
@@ -64,7 +64,7 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 			if (nTimeLeft <= 0) {
 				timer.Stop();
 				Token = nullptr;
-				Data.reset();
+				Data.clear();
 
 			} else {
 				timer.Add(nTimeLeft);
@@ -81,11 +81,11 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 		if(IsActive()) {
 			timer.Stop();
 			Token = nullptr;
-			Data.reset();
+			Data.clear();
 		}
 
 		Token = pAffector;
-		Data = std::make_unique<PaintballType>(data);
+		Data = (data);
 		timer.Start(duration);
 		return;
 	}
@@ -96,7 +96,7 @@ uintptr_t PaintBall::GetColor() {
 	// but this is actually Color16
 	// then need to make it ColorStruct
 	// then convert it to DWORD
-	Color16Struct nColor16 = { Data->Color.R,Data->Color.G,Data->Color.B };
+	Color16Struct nColor16 = { Data.get().Color.R,Data.get().Color.G,Data.get().Color.B };
 	ColorStruct nColorAgain = ColorStruct { nColor16 };
 	return Drawing::RGB2DWORD(nColorAgain);
 }
@@ -128,7 +128,7 @@ void PaintBall::DrawSHP_Paintball(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech ,!rePaint,Data->IgnoreShroud,Data->IgnoreFog))
+	if (!rePaint || !AllowRedraw(pTech ,!rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
 		return;
 
 	if (changeColor)
@@ -146,7 +146,7 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
 		return;
 
 	if (changeColor) {
@@ -163,7 +163,7 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data->IgnoreShroud, Data->IgnoreFog))
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
 		return;
 
 	if (changeColor)
@@ -201,7 +201,8 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 	GET(UnitClass* const, pOwnerObject, EBP);
 
 	if(auto pExt = TechnoExt::GetExtData(pOwnerObject))
-		pExt->PaintBallState.DrawVXL_Paintball(pOwnerObject, R, false);
+		if(pExt->PaintBallState.get())
+			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
 
 	return 0;
 }
@@ -215,7 +216,8 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
 		if (auto pCell = MapClass::Instance->TryGetCellAt(location)) {
 			if (auto pBuilding = pCell->GetBuilding()) {
 				if (auto pExt = TechnoExt::GetExtData(pBuilding)) {
-					pExt->PaintBallState.DrawSHP_Paintball_BuildAnim(pBuilding, R);
+					if (pExt->PaintBallState.get())
+						pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
 				}
 			}
 		}
@@ -230,7 +232,8 @@ DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
 	if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
-		pExt->PaintBallState.DrawSHP_Paintball(pOwnerObject, R);
+		if(pExt->PaintBallState.get())
+			pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
 	}
 
 	return 0;
@@ -242,7 +245,8 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 
 	if (pOwnerObject->WhatAmI() == AbstractType::Building) {
 		if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
-			pExt->PaintBallState.DrawVXL_Paintball(pOwnerObject, R, true);
+			if (pExt->PaintBallState.get())
+				pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
 		}
 	}
 

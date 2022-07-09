@@ -282,9 +282,128 @@ namespace DrawHeathData
 			DSurface::Temp->DrawSHP(pPalette, pPipsShape, nHealthFrameResult, &nPoint, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
+
+	/*
+	void DrawIronCurtaindBar(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound)
+	{
+		if (pThis->IsIronCurtained())
+		{
+			auto const nFrame = DrawBar_PipFrame(pThis);
+
+			if (pThis->WhatAmI() == AbstractType::Building)
+				DrawBar_Building(pThis,iLength, pLocation, pBound , nFrame,1,2);
+			else
+				DrawdBar_Other(pThis,iLength, pLocation, pBound,nFrame,2);
+		}
+	}
+
+	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound , int frame , int empty_frame, int bracket_delta)
+	{
+		CoordStruct vCoords = { 0, 0, 0 };
+		pThis->GetTechnoType()->Dimension2(&vCoords);
+		Point2D vPos2 = { 0, 0 };
+		CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
+		TacticalClass::Instance->CoordsToScreen(&vPos2, &vCoords2);
+
+		Point2D vLoc = *pLocation;
+		vLoc.X -= 5;
+		vLoc.Y -= 3 + bracket_delta;
+
+		Point2D vPos = { 0, 0 };
+
+		const int iTotal = DrawBar_PipAmount(pThis,iLength);
+
+		if (iTotal > 0)
+		{
+			int frameIdx, deltaX, deltaY;
+			for (frameIdx = iTotal, deltaX = 0, deltaY = 0;
+				frameIdx;
+				frameIdx--, deltaX += 4, deltaY -= 2)
+			{
+				vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
+				vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
+
+				DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+					frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			}
+		}
+
+		if (iTotal < iLength)
+		{
+			int frameIdx, deltaX, deltaY;
+			for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
+				frameIdx;
+				frameIdx--, deltaX += 4, deltaY -= 2)
+			{
+				vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
+				vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
+				DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+					empty_frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			}
+		}
+	}
+
+	void DrawdBar_Other(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int frame, int bracket_delta)
+	{
+		const auto pipBoard = FileSystem::PIPBRD_SHP();;
+
+		if (!pipBoard)
+			return;
+
+		Point2D vPos = { 0,0 };
+		Point2D vLoc = *pLocation;
+		int frame, XOffset, YOffset;
+		YOffset = pThis->GetTechnoType()->PixelSelectionBracketDelta + bracket_delta;
+		vLoc.Y -= 5;
+
+		if (iLength == 8)
+		{
+			vPos.X = vLoc.X + 11;
+			vPos.Y = vLoc.Y - 25 + YOffset;
+			frame = pipBoard->Frames > 2 ? 3 : 1;
+			XOffset = -5;
+			YOffset -= 24;
+		}
+		else
+		{
+			vPos.X = vLoc.X + 1;
+			vPos.Y = vLoc.Y - 26 + YOffset;
+			frame = pipBoard->Frames > 2 ? 2 : 0;
+			XOffset = -15;
+			YOffset -= 25;
+		}
+
+		if (pThis->IsSelected)
+		{
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pipBoard,
+				frame, &vPos, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+
+		const int iTotal = DrawBar_PipAmount(pThis,iLength);
+
+		for (int i = 0; i < iTotal; ++i)
+		{
+			vPos.X = vLoc.X + XOffset + 2 * i;
+			vPos.Y = vLoc.Y + YOffset;
+
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+				frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+	}
+
+	int DrawBar_PipAmount(TechnoClass* pThis, int iLength)
+	{
+		return Math::clamp((int)round(pThis->IronCurtainTimer.GetTimeLeft() * iLength), 0, iLength);
+	}
+
+	int DrawBar_PipFrame(TechnoClass* pThis)
+	{
+		// IC : FC
+		return pThis->ForceShielded != 1 ? 2 : 3;
+	}*/
 }
 
-DEFINE_HOOK(0x6F65D1, TechnoClass_DrawHealthBar_DrawBuildingShieldBar, 0x6)
+DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, iLength, EBX);
@@ -302,7 +421,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawHealthBar_DrawBuildingShieldBar, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F683C, TechnoClass_DrawHealthBar_Custom, 0x7)
+DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));

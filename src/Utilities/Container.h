@@ -3,6 +3,7 @@
 #ifdef ROBIN_HOOD_ENABLED
 #include <Lib/robin_hood.h>
 #else
+#include <Lib/VectorMap.h>
 #include <unordered_map>
 #endif
 
@@ -227,6 +228,7 @@ public:
 #ifdef ROBIN_HOOD_ENABLED
 	using iterator = typename robin_hood::unordered_map<key_ptr, value_ptr>::const_iterator;
 #else
+	//using iterator = typename VectorMap<key_ptr, value_ptr>::const_iterator;
 	using iterator = typename std::unordered_map<key_ptr, value_ptr>::const_iterator;
 #endif
 	ContainerMap() = default;
@@ -380,6 +382,110 @@ private:
 	ViniferaContainerMap& operator = (ViniferaContainerMap&&) = delete;
 };
 
+template<typename Key, typename Value>
+class VectorMapContainer
+{
+public:
+	using map_type = VectorMap<const Key*, Value*>;
+	using iterator = typename map_type::iterator;
+	using const_iterator = typename map_type::const_iterator;
+
+public:
+	VectorMapContainer() : Items() { }
+	~VectorMapContainer() { }
+
+	/**
+	 *  Finds element with specific key.
+	 */
+	Value* find(const Key* key) const
+	{
+		const auto it = Items.find(key);
+		if (it != Items.end()) {
+			return it->second;
+		}
+
+		return nullptr;
+	}
+
+	/**
+	 *  Insert a new element instance into the map.
+	 */
+	Value* insert(const Key* key, Value* value)
+	{
+		Items.insert({ key, value });
+		return value;
+	}
+
+	/**
+	 *  Remove an element from the map.
+	 */
+	Value* remove(const Key* key)
+	{
+		const auto it = Items.find(key);
+		if (it != Items.end())
+		{
+			Value* value = it->second;
+			Items.erase(it);
+			return value;
+		}
+		return nullptr;
+	}
+
+	/**
+	 *  Checks whether the container is empty.
+	 */
+	bool empty() const
+	{
+		return Items.empty();
+	}
+
+	/**
+	 *  Clears the contents of the map.
+	 */
+	void clear()
+	{
+		Items.clear();
+	}
+
+	/**
+	 *  Returns the number of elements in the map.
+	 */
+	size_t size() const
+	{
+		return Items.size();
+	}
+
+	/**
+	 *  Returns an iterator to the beginning.
+	 */
+	iterator begin() const
+	{
+		auto item = Items.begin();
+		return reinterpret_cast<iterator&>(item);
+	}
+
+	/**
+	 *  Returns an iterator to the end.
+	 */
+	iterator end() const
+	{
+		auto item = Items.end();
+		return reinterpret_cast<iterator&>(item);
+	}
+
+private:
+	/**
+	 *  The unordered map of items.
+	 */
+	map_type Items;
+
+private:
+	VectorMapContainer(const VectorMapContainer&) = delete;
+	VectorMapContainer& operator = (const VectorMapContainer&) = delete;
+	VectorMapContainer& operator = (VectorMapContainer&&) = delete;
+};
+
+
 template <typename T>
 class Container
 {
@@ -390,7 +496,8 @@ private:
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
 
-	ViniferaContainerMap<base_type, extension_type> Items;
+	//ViniferaContainerMap<base_type, extension_type> Items;
+	VectorMapContainer<base_type, extension_type> Items;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -452,7 +559,7 @@ if (auto val = new extension_type(key)) {\
     Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());\
 return nullptr;
 
-	extension_type_ptr JustAllocate(base_type_ptr key)
+	extension_type_ptr Allocate(base_type_ptr key)
 	{
 		Alloc_EXT(key);
 	}
@@ -474,12 +581,12 @@ return nullptr;
 
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		return key ? this->Items.find(key) : nullptr;
+		return this->Items.find(key);
 	}
 
 	extension_type_ptr operator[] (const_base_type_ptr key) const
 	{
-		return key ? this->Items.find(key) : nullptr;
+		return this->Items.find(key);
 	}
 
 	void Remove(const_base_type_ptr key)

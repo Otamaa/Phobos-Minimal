@@ -188,7 +188,6 @@ SWTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
-
 	SWTypeExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }

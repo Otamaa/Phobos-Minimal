@@ -34,8 +34,10 @@ public:
 		Valueable<Point3D> Pips_Shield_Buildings;
 		Valueable<int> RadApplicationDelay_Building;
 		PhobosFixedString<32u> MissingCameo;
+
 		DynamicVectorClass<DynamicVectorClass<TechnoTypeClass*>> AITargetTypesLists;
 		DynamicVectorClass<DynamicVectorClass<ScriptTypeClass*>> AIScriptsLists;
+		DynamicVectorClass<DynamicVectorClass<std::string>> AIConditionsLists;
 
 		Valueable<double> JumpjetCrash;
 		Valueable<bool> JumpjetNoWobbles;
@@ -108,6 +110,7 @@ public:
 			, MissingCameo { "xxicon.shp" }
 			, AITargetTypesLists { }
 			, AIScriptsLists { }
+			, AIConditionsLists { }
 			, JumpjetCrash { 5.0 }
 			, JumpjetNoWobbles { false }
 			, JumpjetAllowLayerDeviation { true }

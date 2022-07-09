@@ -43,8 +43,6 @@ public:
 
 		virtual void Uninitialize() override
 		{
-			ClearLightSource();
-			ClearAnim();
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;

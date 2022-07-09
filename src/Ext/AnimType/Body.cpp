@@ -247,9 +247,7 @@ AnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
-
 	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 
@@ -257,7 +255,7 @@ DEFINE_HOOK(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, ECX);
 
-	AnimTypeExt::ExtMap.Find(pItem);
+	AnimTypeExt::ExtMap.Remove(pItem);
 
 	return 0;
 }

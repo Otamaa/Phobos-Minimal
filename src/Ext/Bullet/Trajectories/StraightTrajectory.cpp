@@ -68,14 +68,22 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Ve
 	auto type = this->GetTrajectoryType();
 
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons());
-
-	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
-	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
+	//this->SnapOnTarget = type->SnapOnTarget.Get();
+	//this->SnapThreshold = type->SnapThreshold.Get();
+	//this->PassThrough = ;
 
 	if (type->PassThrough.Get())
-		pBullet->Velocity.Z = static_cast<double>(std::max(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z, 0));
+	{
+		pBullet->TargetCoords.X = INT_MAX;
+		pBullet->TargetCoords.Y = INT_MAX;
+		pBullet->TargetCoords.Z = INT_MAX;
+	}
 	else
+	{
+		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
+		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 		pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
+	}
 
 	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
 }
@@ -118,18 +126,13 @@ void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpee
 
 TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)
 {
-	auto type = this->GetTrajectoryType();
+	int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
+	int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
+	int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
+	int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
 
-	if (!type->PassThrough.Get())
-	{
-		int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
-		int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
-		int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
-		int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
-
-		if (bulletX == targetX && bulletY == targetY && pBullet->GetHeight() < 2 * Unsorted::LevelHeight)
-			return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
-	}
+	if (bulletX == targetX && bulletY == targetY && pBullet->GetHeight() < 2 * Unsorted::LevelHeight)
+		return TrajectoryCheckReturnType::Detonate; // Detonate projectile.
 
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }

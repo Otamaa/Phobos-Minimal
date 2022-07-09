@@ -1,9 +1,14 @@
 #include "Body.h"
 
 
-template<> const DWORD TExtension<VoxelAnimTypeClass>::Canary = 0xAAAEEEEE;
+template<> const DWORD Extension<VoxelAnimTypeClass>::Canary = 0xAAAEEEEE;
 
 VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
+
+VoxelAnimTypeExt::ExtData* VoxelAnimTypeExt::GetExtData(VoxelAnimTypeExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
 
 void VoxelAnimTypeExt::ExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
@@ -58,11 +63,13 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<VoxelAnimTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<VoxelAnimTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -83,7 +90,7 @@ bool VoxelAnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-VoxelAnimTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("VoxelVoxelAnimTypeClass") {}
+VoxelAnimTypeExt::ExtContainer::ExtContainer() : Container("VoxelVoxelAnimTypeClass") {}
 VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -92,7 +99,7 @@ VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74AEB0, VoxelAnimTypeClass_CTOR, 0xB)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<VoxelAnimTypeExt::ExtData>(pItem);
+	VoxelAnimTypeExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
@@ -100,10 +107,7 @@ DEFINE_HOOK(0x74BA31, VoxelAnimTypeClass_DTOR, 0x5)
 {
 	GET(VoxelAnimTypeClass*, pItem, ECX);
 
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	VoxelAnimTypeExt::ExtMap.Remove(pItem);
 
 	return 0;
 }
@@ -140,8 +144,7 @@ DEFINE_HOOK(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x4);
 
-	if (auto pExt = VoxelAnimTypeExt::GetExtData(pItem))
-		pExt->LoadFromINI(pINI);
+	VoxelAnimTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 
 	return 0;
 }

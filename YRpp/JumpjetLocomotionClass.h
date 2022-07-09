@@ -81,14 +81,14 @@ public:
 	float Wobbles;
 	int Deviation;
 	bool NoWobbles;
-	BYTE unknown_3D;
-	BYTE unknown_3E;
-	BYTE unknown_3F;
+	//BYTE unknown_3D;
+	//BYTE unknown_3E;
+	//BYTE unknown_3F;
 	CoordStruct HeadToCoord;
 	bool IsMoving;
-	BYTE unknown_4D;
-	BYTE unknown_4E;
-	BYTE unknown_4F;
+	//BYTE unknown_4D;
+	//BYTE unknown_4E;
+	//BYTE unknown_4F;
 	int NextState;
 	FacingStruct Facing;
 	BYTE unknown_6C;
@@ -104,9 +104,9 @@ public:
 	BYTE unknown_87;
 	double __currentWobble;
 	bool DestinationReached;
-	BYTE unknown_91;
-	BYTE unknown_92;
-	BYTE unknown_93;
+	//BYTE unknown_91;
+	//BYTE unknown_92;
+	//BYTE unknown_93;
 	AbstractClass* Raider;
 };
 

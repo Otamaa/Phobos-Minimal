@@ -56,9 +56,13 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
 	if (!pBulletExt)
 		return 0;
 
+	bool bChangeOwner = false;
 	auto const pBulletCurOwner = pThis->GetOwningHouse();
 	if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pBulletExt->Owner)
+	{
+		bChangeOwner = true;
 		pBulletExt->Owner = pBulletCurOwner;
+	}
 
 	if (pThis->WeaponType && pThis->WH)
 	{
@@ -68,12 +72,31 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
 		}
 	}
 
+	bool DetonateNow = false;
+	bool HandleRemove = false;
+
+	if (pBulletExt->TypeExt->PreExplodeRange.isset())
+	{
+		const auto ThisCoord = pThis->GetCoords();
+		const auto TargetCoords = pThis->GetTargetCoords();
+		HandleRemove =  DetonateNow = abs(ThisCoord.DistanceFrom(TargetCoords))
+			<= pBulletExt->TypeExt->PreExplodeRange.Get(0) * 256;
+	}
+
 	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted)
 	{
-		if (pBulletExt->Intercepted_Detonate)
-			pThis->Detonate(pThis->GetCoords());
+		if (!DetonateNow && pBulletExt->Intercepted_Detonate){
+			DetonateNow = true;
+		}
 
-		if(!pThis->InLimbo)
+		HandleRemove = true;
+	}
+
+	if (DetonateNow) { pThis->Detonate(pThis->GetCoords()); }
+
+	if (HandleRemove) {
+
+		if (!pThis->InLimbo)
 			pThis->Limbo();
 
 		pThis->UnInit();
@@ -116,6 +139,9 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
 			// TODO move hack to BulletClass creation
 			if (!trail->LastLocation.isset())
 				trail->LastLocation = location;
+
+			if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
+				trail->CurrentColor = pBulletExt->Owner->LaserColor;
 
 			trail->Update(drawnCoords);
 		}
@@ -236,7 +262,23 @@ static const rtti_object_locator* RTTI_GetObjectLocator(void* inptr)
 	return obj_locator;
 }
 
-DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6)
+DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
+{
+	enum { DontExplode = 0x468D73 };
+
+	GET(BulletClass*, pThis, ESI);
+
+	if (auto const pExt = BulletExt::GetExtData(pThis)) {
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+			// Straight trajectory has its own proximity checks.
+			return DontExplode;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0xC)
 {
 	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 };
 
@@ -258,7 +300,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6)
 	return 0;
 }
 
-/*
+
 DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
 {
 	GET(BulletClass*, pBullet, ESI);
@@ -371,4 +413,60 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 	}
 
 	return 0;
-}*/
+}
+
+DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
+{
+	enum { ReturnFromFunction = 0x46A2FB };
+
+	GET(BulletClass*, pThis, ESI);
+
+	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
+	{
+		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
+		{
+			pWHExt->WasDetonatedOnAllMapObjects = true;
+			auto const pExt = BulletExt::ExtMap.Find(pThis);
+			auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
+
+			auto tryDetonate = [pThis, pWHExt, pOwner](TechnoClass* pTechno)
+			{
+				if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner))
+				{
+					pThis->Target = pTechno;
+					pThis->Detonate(pTechno->GetCoords());
+				}
+			};
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
+			{
+				for (auto const pTechno : *AircraftClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
+			{
+				for (auto const pTechno : *BuildingClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
+			{
+				for (auto const pTechno : *InfantryClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
+			{
+				for (auto const  pTechno : *UnitClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			pWHExt->WasDetonatedOnAllMapObjects = false;
+
+			return ReturnFromFunction;
+		}
+	}
+
+	return 0;
+}

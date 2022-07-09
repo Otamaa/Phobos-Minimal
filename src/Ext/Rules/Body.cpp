@@ -247,9 +247,29 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
 
 #pragma endregion
-	// Section AITargetTypes
+
+	const char* const sectionAIConditionsList  = "AIConditionsList";
+
 	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes", true);
 	ObjectTypeParser::Exec(pINI, AIScriptsLists, "AIScriptsList", true);
+
+	// Section AIConditionsList
+	for (int i = 0; i < pINI->GetKeyCount(sectionAIConditionsList); ++i)
+	{
+		DynamicVectorClass<std::string> objectsList;
+
+		char* context = nullptr;
+		pINI->ReadString(sectionAIConditionsList, pINI->GetKeyName(sectionAIConditionsList, i), "", Phobos::readBuffer);
+
+		for (char* cur = strtok_s(Phobos::readBuffer, "/", &context);
+			cur;
+			cur = strtok_s(nullptr, "/", &context)) {
+			objectsList.AddItem(cur);
+		}
+
+		AIConditionsLists.AddItem(objectsList);
+		objectsList.Clear();
+	}
 }
 
 bool RulesExt::DetailsCurrentlyEnabled()
@@ -290,6 +310,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->JumpjetTurnToTarget)
 		.Process(this->AITargetTypesLists)
 		.Process(this->AIScriptsLists)
+		.Process(this->AIConditionsLists)
 		.Process(this->Storage_TiberiumIndex)
 		.Process(this->PlacementGrid_TranslucentLevel)
 		.Process(this->BuildingPlacementPreview_TranslucentLevel)

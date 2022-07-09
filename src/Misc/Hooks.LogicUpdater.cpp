@@ -23,6 +23,7 @@
 
 #endif
 
+#include <New/Entity/VerticalLaserClass.h>
 #include <Phobos_ECS.h>
 
 void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
@@ -87,12 +88,12 @@ void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 
 }
 
-static void KillSlave(TechnoClass* pThis)
+static void KillSlave(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt)
 {
 	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
 		if (pInf->Type->Slaved && !pInf->InLimbo && pInf->IsAlive && pInf->Health > 0 && !pInf->TemporalTargetingMe) {
 			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
-			if (!pInf->SlaveOwner && pTypeExt->Death_WithMaster.Get())
+			if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() || pExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
 				TechnoExt::KillSelf(pInf, pTypeExt->Death_Method);
 		}
 	}
@@ -129,7 +130,9 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	//pExt->InitFunctionEvents();
 	pExt->ID = pThis->get_ID();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
-
+#ifdef COMPILE_PORTED_DP_FEATURES
+	pExt->PaintBallState = std::make_unique<PaintBall>();
+#endif
 	if (pThis->WhatAmI() != AbstractType::Building)
 	{
 		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
@@ -161,7 +164,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 		TechnoExt::ApplyMindControlRangeLimit(pThis);
 		TechnoExt::ApplyInterceptor(pThis);
 		TechnoExt::ApplySpawn_LimitRange(pThis);
-		//KillSlave(pThis);
+		KillSlave(pThis , pTypeExt);
 		TechnoExt::CheckDeathConditions(pThis);
 		TechnoExt::EatPassengers(pThis);
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -179,13 +182,16 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 		DriveDataFunctional::AI(pExt);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-		if (!pExt->PaintBallState.IsActive())
-			pExt->PaintBallState.Disable(false);
-		else
-			if (pThis->WhatAmI() == AbstractType::Building)
-				pThis->UpdatePlacement(PlacementType::Redraw);
-	}
+		if (pExt->PaintBallState.get()) {
+			if (!pExt->PaintBallState->IsActive())
+				pExt->PaintBallState->Disable(false);
+			else
+				if (pThis->WhatAmI() == AbstractType::Building)
+					pThis->UpdatePlacement(PlacementType::Redraw);
+		}
 #endif
+	}
+
 
 	return 0;
 }
@@ -301,6 +307,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 
 	auto const pExt = TechnoExt::GetExtData(pThis);
 	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//auto const pLasetOwner = pThis->GetOwningHouse();
 
 	if (IsMovingNow)
 	{
@@ -338,21 +345,21 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	if (pTypeExt && pExt && pTechTypeExt)
 	{
 			//TechnoExt::ApplyPowered_KillSpawns
-			if (pTechTypeExt->Powered_KillSpawns && pThis->Type->Powered && !pThis->IsPowerOnline())
+		if (pTechTypeExt->Powered_KillSpawns && pThis->Type->Powered && !pThis->IsPowerOnline())
+		{
+			if (auto pManager = pThis->SpawnManager)
 			{
-				if (auto pManager = pThis->SpawnManager)
+				pManager->ResetTarget();
+				for (auto pItem : pManager->SpawnedNodes)
 				{
-					pManager->ResetTarget();
-					for (auto pItem : pManager->SpawnedNodes)
+					if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
 					{
-						if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
-						{
-							if (pItem->Unit)
-								pItem->Unit->ReceiveDamage(&pItem->Unit->Health, 0,
-									RulesClass::Instance()->C4Warhead, nullptr, false, false, nullptr);
-						}
+						if (pItem->Unit)
+							pItem->Unit->ReceiveDamage(&pItem->Unit->Health, 0,
+								RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
 					}
 				}
+			}
 		}
 
 		if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
@@ -404,6 +411,7 @@ void __fastcall HouseClass_AI_SWHandler_Add(HouseClass* pThis, void* _)
 
 DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
+#include <Kamikaze.h>
 
 void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
 {
@@ -411,3 +419,11 @@ void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
 }
 
 DEFINE_JUMP(CALL,0x55DC9E ,GET_OFFSET(LogicClass_AI_));
+
+void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void*_)
+{
+	pThis->Update();
+	VerticalLaserClass::Draw_All();
+}
+
+DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));

@@ -96,7 +96,6 @@ SideExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
 {
 	GET(SideClass*, pItem, ESI);
-
 	SideExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }

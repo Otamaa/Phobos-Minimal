@@ -2,7 +2,7 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/AnimType/Body.h>
@@ -12,7 +12,7 @@ class AnimExt
 public:
 	using base_type = AnimClass;
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
 		short DeathUnitFacing;
@@ -21,7 +21,7 @@ public:
 		bool DeathUnitHasTurret;
 		TechnoClass* Invoker;
 
-		ExtData(base_type* OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, DeathUnitFacing { 0 }
 			, DeathUnitTurretFacing {}
 			, FromDeathUnit { false }
@@ -30,7 +30,7 @@ public:
 		{}
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override
 		{
 			if (Invoker == ptr)
@@ -38,8 +38,8 @@ public:
 
 		}
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override { this->Serialize(Stm); }
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override { this->Serialize(Stm); }
+		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
+		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 
 	private:
@@ -47,18 +47,28 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	__declspec(noinline) static AnimExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::Anim ? reinterpret_cast<AnimExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	static AnimExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<AnimExt>
+	class ExtContainer final : public Container<AnimExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Building:
+			case AbstractType::Infantry:
+			case AbstractType::Unit:
+			case AbstractType::Aircraft:
+				return false;
+			default:
+				return true;
+			}
+		}
 	};
 
 	static ExtContainer ExtMap;
@@ -91,4 +101,34 @@ public:
 			Marked.clear();
 		}
 	};
+
+	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _)
+	{
+		if (pThis->OwnerObject) {
+			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+			if (!pExt || !pExt->Layer_UseObjectLayer.isset()) {
+				return Layer::Ground;
+			}
+
+			if (pExt->Layer_UseObjectLayer.Get()) {
+				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
+					if (auto pLocomotor = pFoot->Locomotor.get())
+						return pLocomotor->In_Which_Layer();
+				}
+				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+					return pBullet->InWhichLayer();
+
+				return pThis->OwnerObject->ObjectClass::InWhichLayer();
+			}
+		}
+
+		return pThis->Type ? pThis->Type->Layer : Layer::Air;
+	}
+
+	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
+	{
+		return pThis->Owner;
+	}
+
 };

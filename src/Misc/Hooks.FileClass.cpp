@@ -92,7 +92,7 @@ DEFINE_HOOK(0x65CA70, RawFileClass_Error_, 0x5)
 	GET_STACK(const char*, pFilename, 0xC);
 
 	Debug::Log("File - Error:(%d) \"%s\"  can_retry:%s  filename:%s.\n",
-		error, pThis->File_Error_To_String(error),
+		error, FileClass::File_Error_To_String(error),
 		can_retry ? "true" : "false",
 		pFilename != nullptr ? pFilename : pThis->FileName);
 

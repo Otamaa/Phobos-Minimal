@@ -33,7 +33,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	__declspec(noinline) static CaptureExt::ExtData* GetExtData(base_type* pThis)
+	static CaptureExt::ExtData* GetExtData(base_type* pThis)
 	{
 		return pThis && pThis->WhatAmI() == AbstractType::CaptureManager ? reinterpret_cast<CaptureExt::ExtData*>
 			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject):nullptr;

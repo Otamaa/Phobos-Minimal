@@ -21,7 +21,6 @@ static void __fastcall ___eb_DrawAll()
 {
 	_eb_DrawAll_Impl();
 	ElectricBoltManager::Draw_All();
-
 }
 
 DEFINE_JUMP(CALL,0x6D466E, GET_OFFSET(___eb_DrawAll));
@@ -39,7 +38,6 @@ DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0xB)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	PrintTextManager::PrintAllText();
 #endif
-
 	FlyingStrings::UpdateAll();
 	return 0;
 }

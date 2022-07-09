@@ -109,7 +109,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 				if (auto const pExt = AnimExt::GetExtData(pThis))
 				{
 					auto aFacing = pTypeExt->CreateUnit_RandomFacing.Get()
-						? static_cast<unsigned short>(ScenarioGlobal->Random.RandomRanged(0, 255)) : pTypeExt->CreateUnit_Facing.Get();
+						? ScenarioGlobal->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
 
 					short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->FromDeathUnit)
 						? pExt->DeathUnitFacing : aFacing;
@@ -117,7 +117,8 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 					if (pCell)
 						pTechno->OnBridge = pCell->ContainsBridge();
 
-					BuildingClass* pBuilding = pCell ? pCell->GetBuilding() : Map[location]->GetBuilding();
+					BuildingClass* pBuilding = pCell ? 
+					pCell->GetBuilding() : Map[location]->GetBuilding();
 
 					if (!pBuilding)
 					{

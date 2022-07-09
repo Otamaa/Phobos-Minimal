@@ -24,7 +24,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 			return ReturnNegative;
 		}
 
-		bool isAmphibious = pFrom->GetTechnoType()->MovementZone == MovementZone::Amphibious || pFrom->GetTechnoType()->MovementZone == MovementZone::AmphibiousCrusher ||
+		const bool isAmphibious = pFrom->GetTechnoType()->MovementZone == MovementZone::Amphibious || pFrom->GetTechnoType()->MovementZone == MovementZone::AmphibiousCrusher ||
 			pFrom->GetTechnoType()->MovementZone == MovementZone::AmphibiousDestroyer;
 
 		if (!isAmphibious && (pThis->GetTechnoType()->Naval && !pFrom->GetTechnoType()->Naval ||
@@ -71,11 +71,11 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	GET(InfantryClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
 		{
-			bool canBeGrinded = BuildingExt::CanGrindTechno(pBuilding, pThis);
+			const bool canBeGrinded = BuildingExt::CanGrindTechno(pBuilding, pThis);
 			R->EBP(canBeGrinded ? Action::Repair : Action::NoGRepair);
 			return ReturnValue;
 		}
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x0)
 	if (InputManagerClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
 		{
@@ -122,8 +122,8 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x0)
 			{
 				if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
 				{
-					bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
-					bool canBeGrinded = BuildingExt::CanGrindTechno(pBuilding, pThis);
+					const bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
+					const bool canBeGrinded = BuildingExt::CanGrindTechno(pBuilding, pThis);
 					action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter : !isFlying ? Action::Enter : Action::NoEnter;
 					R->EBX(action);
 				}

@@ -1,7 +1,7 @@
 #pragma once
 #include <VoxelAnimTypeClass.h>
 
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
@@ -19,7 +19,7 @@ class VoxelAnimTypeExt
 public:
 	using base_type = VoxelAnimTypeClass;
 
-	class ExtData final : public TExtension<VoxelAnimTypeClass>
+	class ExtData final : public Extension<VoxelAnimTypeClass>
 	{
 	public:
 
@@ -38,7 +38,7 @@ public:
 #endif
 #pragma endregion
 
-		ExtData(VoxelAnimTypeClass* OwnerObject) : TExtension<VoxelAnimTypeClass>(OwnerObject)
+		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
 			, LaserTrail_Types { }
 			, Warhead_Detonate { false }
 			, SplashList { }
@@ -54,7 +54,7 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
@@ -67,13 +67,9 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	__declspec(noinline) static VoxelAnimTypeExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::VoxelAnimType ? reinterpret_cast<VoxelAnimTypeExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	static VoxelAnimTypeExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<VoxelAnimTypeExt>
+	class ExtContainer final : public Container<VoxelAnimTypeExt>
 	{
 	public:
 		ExtContainer();

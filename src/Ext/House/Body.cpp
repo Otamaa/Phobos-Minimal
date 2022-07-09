@@ -90,7 +90,7 @@ void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 		break;
 
 	case ForceRandom:
-		pHouseExt->ForceOnlyTargetHouseEnemy = static_cast<bool>(ScenarioClass::Instance->Random.RandomRanged(0, 1));
+		pHouseExt->ForceOnlyTargetHouseEnemy = ScenarioClass::Instance->Random.RandomBool();
 		break;
 
 	default:
@@ -203,7 +203,6 @@ HouseExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
-
 	HouseExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }

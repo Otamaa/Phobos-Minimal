@@ -43,6 +43,10 @@ public:
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 
+	bool IsGreenSP();
+	bool IsYellowSP();
+	bool IsRedSP();
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 

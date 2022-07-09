@@ -27,7 +27,7 @@ public:
 		virtual void InitializeConstants() override { }
 	};
 
-	__declspec(noinline) static BombExt::ExtData* GetExtData(base_type* pThis)
+	static BombExt::ExtData* GetExtData(base_type* pThis)
 	{
 		return  pThis && pThis->WhatAmI() == AbstractType::Bomb ? reinterpret_cast<BombExt::ExtData*>
 			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;

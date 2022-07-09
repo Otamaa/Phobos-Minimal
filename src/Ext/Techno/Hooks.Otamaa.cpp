@@ -157,16 +157,12 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	GET_STACK(int, nMult, 0x4);
 
 	auto const pType = pThis->GetTechnoType();
-
-	auto const Detonate = [pThis, pType, nMult](WeaponTypeClass* pDecided, bool RulesDeathWeapon)
-	{
-		if (pDecided)
-		{
+	auto const Detonate = [pThis, pType, nMult](WeaponTypeClass* pDecided, bool RulesDeathWeapon) {
+		if (pDecided) {
 			auto const pBonus = RulesDeathWeapon ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-			auto pBulletTypeExt = BulletTypeExt::GetExtData(pDecided->Projectile);
+			auto const pBulletTypeExt = BulletTypeExt::GetExtData(pDecided->Projectile);
 
-			if (auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
-			{
+			if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright)) {
 				pBullet->SetWeaponType(pDecided);
 				pBullet->Limbo();
 				pBullet->SetLocation(pThis->Location);
@@ -187,7 +183,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 		// tags : "%sDeathWeapon (%s replaced with rank level);
 		pTechDeathWeapon = pExt->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
 
-	auto pWeaponS = pThis->GetWeapon(0);
+	const auto pWeaponS = pThis->GetWeapon(0);
 
 	if (!pTechDeathWeapon && pWeaponS)
 		pTechDeathWeapon = pWeaponS->WeaponType;
@@ -244,7 +240,7 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
-	if (auto pAir = specific_cast<AircraftClass*>(pThis->LinkedTo)) {
+	if (const auto pAir = specific_cast<AircraftClass*>(pThis->LinkedTo)) {
 
 		if (pAir->IsInAir()
 			|| !pAir->GetCell()
@@ -269,7 +265,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	GET(AircraftClass*, pLinked, ECX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
 
-	auto pType = pLinked->Type;
+	const auto pType = pLinked->Type;
 	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType)) {
 
 		auto GetDefaultType = [pType]() {
@@ -376,7 +372,7 @@ DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
 	GET(int const, UnitStreght, ECX);
 	GET(int const, Rules_Shake, EAX);
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
 
 	if (pExt
 		&& UnitStreght
@@ -472,18 +468,14 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
 
 	if (Drainer && pVictim) {
 		if (auto const pExt = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType())) {
-			AnimClass* pDrainAnim = nullptr;
-
-			if (auto pAnimType = pExt->DrainAnimationType.Get(RulesGlobal->DrainAnimationType)) {
-				auto nCoord = Drainer->GetCoords();
-				if (auto pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x600, 0, false)) {
+			if (auto const pAnimType = pExt->DrainAnimationType.Get(RulesGlobal->DrainAnimationType)) {
+				auto const nCoord = Drainer->GetCoords();
+				if (auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x600, 0, false)) {
 					AnimExt::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
-					pDrainAnim = pDrainAnimCreated;
+					R->EAX(pDrainAnimCreated);
+					return 0x70FE07;
 				}
 			}
-
-			R->EAX(pDrainAnim);
-			return 0x70FE07;
 		}
 	}
 

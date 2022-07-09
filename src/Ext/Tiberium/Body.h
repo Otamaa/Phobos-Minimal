@@ -2,7 +2,7 @@
 #include <TiberiumClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
@@ -13,7 +13,7 @@ class TiberiumExt
 public:
 	using base_type = TiberiumClass;
 
-	class ExtData final : public TExtension<TiberiumClass>
+	class ExtData final : public Extension<TiberiumClass>
 	{
 	public:
 
@@ -22,7 +22,7 @@ public:
 		Nullable<int> Ore_TintLevel;
 		Nullable<ColorStruct> MinimapColor;
 
-		ExtData(TiberiumClass* OwnerObject) : TExtension<TiberiumClass>(OwnerObject)
+		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
 			, OreTwinkle {}
 			, OreTwinkleChance {}
 			, Ore_TintLevel {}
@@ -30,7 +30,7 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
@@ -49,14 +49,9 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static TiberiumExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::Tiberium
-			? reinterpret_cast<TiberiumExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject):nullptr;
-	}
+	static TiberiumExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<TiberiumExt>
+	class ExtContainer final : public Container<TiberiumExt>
 	{
 	public:
 		ExtContainer();

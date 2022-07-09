@@ -164,7 +164,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	// Ares SuperWeapons tag
 	pINI->ReadString(pSection, "SuperWeapons", "", Phobos::readBuffer);
 	//char* super_weapons_list = Phobos::readBuffer;
-	if (strlen(Phobos::readBuffer) > 0 && SuperWeaponTypeClass::Array->Count > 0)
+	if (CRT::strlen(Phobos::readBuffer) > 0 && SuperWeaponTypeClass::Array->Count > 0)
 	{
 		//DynamicVectorClass<SuperWeaponTypeClass*> objectsList;
 		char* context = nullptr;
@@ -456,7 +456,6 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-
 	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }

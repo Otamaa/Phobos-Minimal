@@ -56,12 +56,12 @@ void ArtilleryTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, V
 	{
 		auto const pTypeExt = BulletTypeExt::GetExtData(pBullet->Type);
 
-		int ballisticScatter = RulesClass::Instance()->BallisticScatter;
-		int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? (int)(pTypeExt->BallisticScatter_Max.Get() * 256.0) : ballisticScatter;
-		int scatterMin = pTypeExt->BallisticScatter_Min.isset() ? (int)(pTypeExt->BallisticScatter_Min.Get() * 256.0) : (scatterMax / 2);
+		const int ballisticScatter = RulesClass::Instance()->BallisticScatter;
+		const int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? static_cast<int>(pTypeExt->BallisticScatter_Max.Get() * 256.0) : ballisticScatter;
+		const int scatterMin = pTypeExt->BallisticScatter_Min.isset() ? static_cast<int>(pTypeExt->BallisticScatter_Min.Get() * 256.0) : (scatterMax / 2);
 
-		double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
-		double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
+		const double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
+		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
 
 		const CoordStruct offset
 		{
@@ -87,8 +87,8 @@ void ArtilleryTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
 
 bool ArtilleryTrajectory::OnAI(BulletClass* pBullet)
 {
-	int zDelta = this->InitialTargetLocation.Z - this->InitialSourceLocation.Z;
-	double maxHeight = this->GetTrajectoryType()->MaxHeight + (double)zDelta;
+	const int zDelta = this->InitialTargetLocation.Z - this->InitialSourceLocation.Z;
+	const double maxHeight = this->GetTrajectoryType()->MaxHeight + static_cast<double>(zDelta);
 
 	CoordStruct bulletCoords = pBullet->Location;
 	bulletCoords.Z = 0;
@@ -102,31 +102,31 @@ bool ArtilleryTrajectory::OnAI(BulletClass* pBullet)
 	double currentBulletDistance = initialSourceLocation.DistanceFrom(bulletCoords);
 
 	// Trajectory angle
-	int sinDecimalTrajectoryAngle = 90;
-	double sinRadTrajectoryAngle = Math::sin(Math::deg2rad(sinDecimalTrajectoryAngle));
+	const int sinDecimalTrajectoryAngle = 90;
+	const double sinRadTrajectoryAngle = Math::sin(Math::deg2rad(sinDecimalTrajectoryAngle));
 
 	// Angle of the projectile in the current location
-	double angle = (currentBulletDistance * sinDecimalTrajectoryAngle) / halfInitialDistance;
-	double sinAngle = Math::sin(Math::deg2rad(angle));
+	const double angle = (currentBulletDistance * sinDecimalTrajectoryAngle) / halfInitialDistance;
+	const double sinAngle = Math::sin(Math::deg2rad(angle));
 
 	// Height of the flying projectile in the current location
-	double currHeight = (sinAngle * maxHeight) / sinRadTrajectoryAngle;
+	const double currHeight = (sinAngle * maxHeight) / sinRadTrajectoryAngle;
 
 	if (currHeight != 0)
-		pBullet->Location.Z = this->InitialSourceLocation.Z + (int)currHeight;
+		pBullet->Location.Z = this->InitialSourceLocation.Z + static_cast<int>(currHeight);
 
 	// If the projectile is close enough to the target then explode it
-	double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
+	const double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
 	if (closeEnough < 100)
 	{
 		auto pBulletExt = BulletExt::GetExtData(pBullet);
 
 		if (pBulletExt->LaserTrails.size())
 			pBulletExt->LaserTrails.clear();
-
+#ifdef COMPILE_PORTED_DP_FEATURES
 		if (pBulletExt->Trails.size())
 			pBulletExt->Trails.clear();
-
+#endif
 		return true;
 	}
 

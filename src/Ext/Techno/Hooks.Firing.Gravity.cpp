@@ -39,7 +39,8 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 
 	auto const pBulletExt = BulletExt::GetExtData(pBullet);
 
-	if (pBulletExt->TypeExt->TrajectoryType && pBulletExt->TypeExt->TrajectoryType->Flag == TrajectoryFlag::Invalid)
+	if (pBulletExt->Trajectory &&
+		pBulletExt->Trajectory->Flag != TrajectoryFlag::Invalid)
 		return 0x0;
 
 	if (pBullet->Type->Arcing && pBulletExt->TypeExt->GetAdjustedGravity() == 0.0)
@@ -47,13 +48,13 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 		pBullet->Velocity *= -1;
 		if (pBulletExt->TypeExt->Gravity_HeightFix)
 		{
-			auto speed = pBullet->Velocity.Magnitude();
+			const auto speed = pBullet->Velocity.Magnitude();
 
 			pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 			pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 			pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
 
-			auto magnitude = pBullet->Velocity.Magnitude();
+			const auto magnitude = pBullet->Velocity.Magnitude();
 			pBullet->Velocity *= speed / magnitude;
 		}
 	}

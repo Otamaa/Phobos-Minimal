@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Utilities/Macro.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -27,7 +28,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 		if (auto const pExt = AnimTypeExt::ExtMap.Find(pType))
 			nThreshold = abs(pExt->HideIfNoOre_Threshold.Get());
 
-		auto pCell = pThis->GetCell();
+		auto const pCell = pThis->GetCell();
 
 		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue() <= nThreshold;
 	}
@@ -35,27 +36,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 	return 0x423BBF;
 }
 
-DEFINE_HOOK(0x424CB0, AnimClass_In_Which_Layer_AttachedObjectLayer, 0x6)
-{
-	enum { ReturnValue = 0x424CBF };
-
-	GET(const AnimClass*, pThis, ECX);
-
-	if (const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type))
-	{
-		Layer layer = pThis->Type ? pThis->Type->Layer : Layer::Air;
-
-		if (pExt->Layer_UseObjectLayer.Get())
-			layer = pThis->OwnerObject && pThis->OwnerObject->IsAlive ?
-				pThis->OwnerObject->InWhichLayer() : Layer::Ground;
-
-		R->EAX(layer);
-
-		return ReturnValue;
-	}
-
-	return 0;
-}
+DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
 
 DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 {
@@ -63,7 +44,7 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 	GET(ObjectClass*, pObject, EDI);
 	GET(CoordStruct*, pCoords, EAX);
 
-	auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pExt && pExt->UseCenterCoordsIfAttached)
 	{
@@ -101,8 +82,8 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
 	{
-		if (pThis->Animation.Value == std::max(delay - 1, 1))
-			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage)) * damageMultiplier;
+		if (pThis->Animation.Value == max(delay - 1, 1))
+			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
 		else
 			return SkipDamage;
 	}
@@ -114,7 +95,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 		// Deal damage if it is at least 1, otherwise accumulate it for later.
 		if (damage >= 1.0)
-			appliedDamage = static_cast<int>(std::round(damage));
+			appliedDamage = static_cast<int>(int_round(damage));
 		else
 			return SkipDamage;
 	}
@@ -143,18 +124,13 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	auto nCoord = pThis->GetCoords();
 	auto const nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
-	if (pTypeExt->Weapon.isset())
-	{
-		if (auto const pWeapon = pTypeExt->Weapon.Get())
-		{
-			if (auto const pBullet = pWeapon->Projectile->CreateBullet(pThis->GetCell(), pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright))
-			{
-				pBullet->SetWeaponType(pWeapon);
-				pBullet->Limbo();
-				pBullet->SetLocation(nCoord);
-				pBullet->Explode(true);
-				pBullet->UnInit();
-			}
+	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr)) {
+		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pThis->GetCell(), pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright)) {
+			pBullet->SetWeaponType(pWeapon);
+			pBullet->Limbo();
+			pBullet->SetLocation(nCoord);
+			pBullet->Explode(true);
+			pBullet->UnInit();
 		}
 	}
 	else

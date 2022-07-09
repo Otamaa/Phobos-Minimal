@@ -1,9 +1,16 @@
 #include "Body.h"
 
-template<> const DWORD TExtension<TeamClass>::Canary = 0x414B4B41;
+template<> const DWORD Extension<TeamClass>::Canary = 0x414B4B41;
 TeamExt::ExtContainer TeamExt::ExtMap;
 
+TeamExt::ExtData* TeamExt::GetExtData(TeamExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
+
 void TeamExt::ExtData::InitializeConstants() { }
+void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+
 // =============================
 // load / save
 
@@ -30,17 +37,15 @@ void TeamExt::ExtData::Serialize(T& Stm)
 
 void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Extension<TeamClass>::LoadFromStream(Stm);
+	Extension<TeamClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	//Extension<TeamClass>::SaveToStream(Stm);
+	Extension<TeamClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
-
-//void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 
 bool TeamExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -57,7 +62,7 @@ bool TeamExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TeamExt::ExtContainer::ExtContainer() : TExtensionContainer("TeamClass") { }
+TeamExt::ExtContainer::ExtContainer() : Container("TeamClass") { }
 TeamExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -68,8 +73,8 @@ DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
-	//TeamExt::ExtMap.FindOrAllocate(pThis);
-	ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<TeamExt::ExtData>(pThis);
+	TeamExt::ExtMap.FindOrAllocate(pThis);
+	//ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<TeamExt::ExtData>(pThis);
 
 	return 0;
 }
@@ -78,11 +83,11 @@ DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
 DEFINE_HOOK(0x6E8EC6, TeamClass_DTOR, 0x9)
 {
 	GET(TeamClass*, pThis, ESI);
+	TeamExt::ExtMap.Remove(pThis);
+	//if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
+	//	pExt->Uninitialize();
 
-	if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
+	//ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
 	return 0;
 }
 
@@ -110,6 +115,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+/*
 DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x6)
 {
 	GET(TeamClass*, pThis, ECX);
@@ -120,4 +126,4 @@ DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x6)
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-}
+}*/

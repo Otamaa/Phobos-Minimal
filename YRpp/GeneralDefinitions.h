@@ -340,7 +340,7 @@ enum class TextPrintType : int
 	LightShadow = 0x80,
 	Center = 0x100,
 	Right = 0x200,
-	unk400 = 0x400,
+	Background = 0x400,
 	MediumColor = 0x1000,
 	BrightColor = 0x2000,
 	UseGradPal = 0x4000,

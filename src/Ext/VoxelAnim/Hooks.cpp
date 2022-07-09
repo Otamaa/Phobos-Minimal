@@ -7,6 +7,7 @@
 #include <WarheadTypeClass.h>
 #include <Utilities/GeneralUtils.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/House/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -53,6 +54,9 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	GET8(const bool, LandIsWater, CL);
 	GET8(const bool, EligibleHeight, AL);
 
+	//overridden instruction
+	R->Stack(0x12, EligibleHeight);
+
 	if (!pThis || !pThis->Type)
 		return SkipGameCode;
 
@@ -60,11 +64,8 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	pThis->GetCenterCoord(&nLocation);
 
 	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pThis->Type);
-	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
+	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
-
-	//overridden instruction
-	R->Stack(0x12, EligibleHeight);
 
 	if (!LandIsWater || EligibleHeight)
 	{

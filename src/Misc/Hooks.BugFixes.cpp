@@ -84,6 +84,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 		if(pThis->IsAttackedByLocomotor && pThis->GetTechnoType()->Crashable)
 			pThis->IsAttackedByLocomotor = false;
 
+#ifndef COMPILE_PORTED_DP_FEATURES
 		if(!pThis->Type->Voxel){
 			if (pThis->Type->MaxDeathCounter > 0
 				&& !pThis->InLimbo
@@ -101,6 +102,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 				pThis->DeathFrameCounter = 1;
 			}
 		}
+#endif
 	}
 
 	if (result != DamageState::PostMortem && pThis->DeathFrameCounter > 0){
@@ -498,10 +500,12 @@ DEFINE_HOOK(0x4CDA78, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 
-	double currentSpeed = pThis->LinkedTo->GetTechnoType()->Speed * pThis->CurrentSpeed *
-		TechnoExt::GetCurrentSpeedMultiplier(pThis->LinkedTo);
+	if (auto const pLinked = pThis->LinkedTo) {
+		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
+			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 
-	R->EAX(static_cast<int>(currentSpeed));
+		R->EAX(Game::F2I(currentSpeed));
+	}
 
 	return 0;
 }
@@ -510,10 +514,12 @@ DEFINE_HOOK(0x4CE4BF, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
-	double currentSpeed = pThis->LinkedTo->GetTechnoType()->Speed * pThis->CurrentSpeed *
-		TechnoExt::GetCurrentSpeedMultiplier(pThis->LinkedTo);
+	if(auto const pLinked = pThis->LinkedTo){
+		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
+			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 
-	R->EAX(static_cast<int>(currentSpeed));
+		R->EAX(Game::F2I(currentSpeed));
+	}
 
 	return 0;
 }
@@ -522,8 +528,10 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
-	double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pThis->LinkedTo);
-	pThis->Speed = (int)(pThis->LinkedTo->GetTechnoType()->JumpjetSpeed * multiplier);
+	if (auto const pLinked = pThis->LinkedTo) {
+		const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+		pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+	}
 
 	return 0;
 }
@@ -591,5 +599,5 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 
 // Fixes an issue in TechnoClass::Record_The_Kill that prevents vehicle kills from being recorded
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
-// Author: Starkku
-DEFINE_JUMP(LJMP,0x7032BA, 0x7032C6);
+// Author: Starkku (modified by Otamaa)
+DEFINE_JUMP(LJMP,0x7032BA, 0x7032D0); //this was checking (IsActive) twice , wtf

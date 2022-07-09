@@ -3,7 +3,7 @@
 
 #include <Helpers/Enumerators.h>
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Phobos.h>
 
@@ -12,7 +12,7 @@ class TeamExt
 public:
 	using base_type = TeamClass;
 
-	class ExtData final : public TExtension<TeamClass>
+	class ExtData final : public Extension<TeamClass>
 	{
 	public:
 		int WaitNoTargetAttempts;
@@ -30,7 +30,7 @@ public:
 		int GenericStatus;
 		int FailedCounter;
 
-		ExtData(TeamClass* OwnerObject) : TExtension<TeamClass>(OwnerObject)
+		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
 			, WaitNoTargetAttempts { 0 }
 			, NextSuccessWeightAward { 0 }
 			, IdxSelectedObjectFromAIList { -1 }
@@ -49,26 +49,13 @@ public:
 
 		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry:
-			{
-				if (TeamLeader == ptr)
-					TeamLeader = nullptr;
-			}
-			break;
-			default:
-				return;
-			}
+			if (TeamLeader == ptr)
+				TeamLeader = nullptr;
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InitializeConstants() override;
 
 	private:
@@ -76,33 +63,31 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static TeamExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::Team ? reinterpret_cast<TeamExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	static TeamExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<TeamExt>
+	class ExtContainer final : public Container<TeamExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		/*
+
 		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
-			case AbstractType::Infantry:
-			case AbstractType::Unit:
+			case AbstractType::Building:
 			case AbstractType::Aircraft:
+			case AbstractType::Unit:
+			case AbstractType::Infantry:
 				return false;
 			default:
 				return true;
 			}
 		}
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;*/
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;

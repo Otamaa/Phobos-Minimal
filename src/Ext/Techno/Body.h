@@ -3,7 +3,7 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 
 #include <Utilities/TemplateDef.h>
 //#include <Utilities/EventHandler.h>
@@ -46,7 +46,7 @@ class TechnoExt
 public:
 	using base_type = TechnoClass;
 
-	class ExtData final : public TExtension<TechnoClass>
+	class ExtData final : public Extension<TechnoClass>
 	{
 	public:
 		//EventQueue<base_type> GenericFuctions;
@@ -116,7 +116,8 @@ public:
 		int LastWarpDistance;
 		int Death_Countdown;
 		AnimTypeClass* MindControlRingAnimType;
-		Nullable<int> DamageNumberOffset;
+		OptionalStruct<int, false> DamageNumberOffset;
+		OptionalStruct<int, true> CurrentLaserWeaponIndex;
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 		HouseClass* OriginalPassengerOwner;
@@ -133,10 +134,9 @@ public:
 
 		CoordStruct HomingTargetLocation;
 		PhobosMap<WeaponTypeClass*, TimerStruct> ExtraWeaponTimers;
-		//std::unique_ptr<GiftBox> MyGiftBox;
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
-		PaintBall PaintBallState;
+		std::unique_ptr<PaintBall> PaintBallState;
 		FireWeaponManager MyWeaponManager;
 		DriveData MyDriveData;
 		AircraftDive MyDiveData;
@@ -146,7 +146,7 @@ public:
 
 #endif;
 	#pragma endregion
-		ExtData(TechnoClass* OwnerObject) : TExtension<TechnoClass>(OwnerObject)
+		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			//, GenericFuctions { }
 			, ID { }
 			, Shield {}
@@ -161,6 +161,7 @@ public:
 			, Death_Countdown {-1}
 			, MindControlRingAnimType { nullptr }
 			, DamageNumberOffset {}
+			, CurrentLaserWeaponIndex {}
 			, OriginalPassengerOwner{ nullptr }
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
@@ -217,7 +218,7 @@ public:
 			return this->Shield.get();
 		}
 
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override;
@@ -236,21 +237,30 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static TechnoExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return  (pThis && (pThis->WhatAmI() == AbstractType::Building
-				|| pThis->WhatAmI() == AbstractType::Unit
-				|| pThis->WhatAmI() == AbstractType::Aircraft
-				|| pThis->WhatAmI() == AbstractType::Infantry ))
-			? reinterpret_cast<TechnoExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	static TechnoExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<TechnoExt>
+	class ExtContainer final : public Container<TechnoExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::House:
+			case AbstractType::Building:
+			case AbstractType::Aircraft:
+			case AbstractType::Unit:
+			case AbstractType::Infantry:
+			case AbstractType::Anim:
+				return false;
+			default:
+				return true;
+			}
+		}
 	};
 
 	static ExtContainer ExtMap;

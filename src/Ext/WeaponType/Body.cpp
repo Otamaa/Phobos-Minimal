@@ -207,9 +207,7 @@ WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-
 	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 

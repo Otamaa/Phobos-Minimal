@@ -768,10 +768,8 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
-	GET(TechnoTypeClass*, pItem, ESI);
-
+	GET(TechnoTypeClass* const, pItem, ESI);
 	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 

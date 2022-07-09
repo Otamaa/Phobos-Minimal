@@ -187,23 +187,25 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	GET8(const bool, LandIsWater, BL);
 	GET8(const bool, EligibleHeight, AL);
 
+	//overriden instruction !
+	R->Stack(0x13, EligibleHeight);
+
 	if (!pThis || !pThis->Type)
 		return SkipGameCode;
 
 	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	TechnoClass* pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
+	TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
 	auto const pOwner = pThis->Owner ? pThis->Owner : pTechOwner ? pTechOwner->GetOwningHouse() : nullptr;
-
-	//overriden instruction !
-	R->Stack(0x13, EligibleHeight);
 
 	if (!LandIsWater || EligibleHeight)
 	{
-		Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner , pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+		Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 
-		if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr,pTechOwner, false);
+		if (auto const pExpireAnim = pThis->Type->ExpireAnim)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTechOwner, false);
 			}
 		}
 	}
@@ -213,7 +215,8 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		{
 			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesGlobal->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 			{
-				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false)) {
+				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false))
+				{
 					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
 				}
 			}
@@ -221,11 +224,12 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		else
 		{
 			auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
-			if(bPlayWHAnim)
+			if (bPlayWHAnim)
 			{
 				if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCenterCoord()))
 				{
-					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30)) {
+					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30))
+					{
 						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
 					}
 				}
@@ -397,7 +401,8 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	}
 
 	auto nCoord = pThis->GetCenterCoord();
-	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, 0x600, 0, 0)) {
+	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, 0x600, 0, 0))
+	{
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, pObject, false);
 	}
 
@@ -405,7 +410,6 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 }
 
 // Draw Tiled !
-
 DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 {
 	GET(AnimClass*, pThis, ESI);
@@ -427,7 +431,8 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 
 	auto pPal = FileSystem::ANIM_PAL();
 
-	if (pTypeExt && pTypeExt->Palette.GetConvert()) {
+	if (pTypeExt && pTypeExt->Palette.GetConvert())
+	{
 		//if(!pTypeExt->Palette.Name.empty())
 		//	Debug::Log("Anim[%s] with Custom Pal [%s] DrawTiled ! \n", pThis->get_ID(), pTypeExt->Palette.Name.c_str());
 		pPal = pTypeExt->Palette.GetConvert();
@@ -461,7 +466,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 		nY_Loc -= nSHPHeight + (nSHPHeight / 2);
 		nPoint->Y = nYadd_Loc + Y_Doffs;
 	}
-	#ifdef Other_Impl_AnimPal
+#ifdef Other_Impl_AnimPal
 	do
 	{
 		DSurface::Temp->DrawSHP(
@@ -486,54 +491,12 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 		nPoint->Y = nYadd_Loc + Y_Doffs;
 	}
 	while (nYadd_Loc >= 0);
-	#endif
+#endif
 	return 0x42371B;
 }
 
-HouseClass* __fastcall AnimClassGetOwningHouse_Wrapper(AnimClass* pThis, void* _) {
-	return pThis->Owner;
-}
-
 // Bruh ,..
-DEFINE_JUMP(VTABLE,0x7E3390, GET_OFFSET(AnimClassGetOwningHouse_Wrapper));
-
-static DWORD SpawnCreater(AnimClass* pThis, CellClass* pCell, Point2D& nVal)
-{
-	//if (auto pExt = AnimExt::ExtMap.Find(pThis))
-	{
-		auto pType = pThis->Type;
-		if (!pType)
-			return 0x0;
-
-		if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
-		{
-			if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
-			{
-				auto nCoord = pThis->GetCenterCoord();
-				if (!pType->Scorch || (pType->Crater && ScenarioGlobal->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
-				{
-					if (pType->Crater)
-					{
-						pCell->ReduceTiberium(6);
-						if (pType->ForceBigCraters)
-							SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, 300, 300, true);
-						else
-							SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, nVal.X, nVal.Y, false);
-					}
-				}
-				else
-				{
-					bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
-					if (bSpawn)
-						SmudgeTypeClass::CreateRandomSmudge(nCoord, nVal.X, nVal.Y, false);
-				}
-			}
-
-			return 0x42513F;
-		}
-	}
-	return 0x0;
-}
+DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));
 
 DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 {
@@ -542,8 +505,38 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	Point2D nVal { nX , nY };
-	return SpawnCreater(pThis, pCell, nVal);
+	auto pType = pThis->Type;
+	if (!pType)
+		return 0x0;
+
+	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
+	{
+		if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
+		{
+			auto nCoord = pThis->GetCenterCoord();
+			if (!pType->Scorch || (pType->Crater && ScenarioGlobal->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
+			{
+				if (pType->Crater)
+				{
+					pCell->ReduceTiberium(6);
+					if (pType->ForceBigCraters)
+						SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, 300, 300, true);
+					else
+						SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, nX, nY, false);
+				}
+			}
+			else
+			{
+				bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+				if (bSpawn)
+					SmudgeTypeClass::CreateRandomSmudge(nCoord, nX, nY, false);
+			}
+		}
+
+		return 0x42513F;
+	}
+
+	return 0x0;
 }
 
 DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x4)
@@ -563,16 +556,18 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x4)
 	return 0x424322;
 }
 
-DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override , 0x8)
+DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override, 0x8)
 {
 	GET(AnimClass*, pMem, EAX);
 	GET(AnimClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x8C, 0x4C));
 
 	GameConstruct(pMem, pThis->Type->Spawns, pThis->GetCoords(), 0, 1, 0x600, 0, false);
-	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
+	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	{
 		auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
 		auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
+
 		AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
 	}
 

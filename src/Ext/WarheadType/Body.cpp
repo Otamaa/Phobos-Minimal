@@ -3,6 +3,7 @@
 #include <BulletClass.h>
 #include <HouseClass.h>
 
+#include <Utilities/EnumFunctions.h>
 #include <Ext/BulletType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
@@ -33,12 +34,13 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 
 bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 {
-	if (pTechno) {
-
+	if (pTechno)
+	{
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
-		if (EffectsRequireVerses.Get()) {
+		if (EffectsRequireVerses.Get())
+		{
 			auto nArmor = pTechno->GetTechnoType()->Armor;
 			if (auto pExt = TechnoExt::GetExtData(pTechno))
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
@@ -91,9 +93,46 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 }
 
+bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
+{
+	if (pTechno)
+	{
+		if (pTechno->GetTechnoType()->Immune)
+			return false;
+
+		if (pOwner && (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner)))
+			return false;
+
+		if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
+			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pTechno->GetTechnoType())) ||
+			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pTechno->GetTechnoType()))
+		{
+			return false;
+		}
+
+		if (this->DetonateOnAllMapObjects_RequireVerses)
+		{
+			auto nArmor = pTechno->GetTechnoType()->Armor;
+			if (auto const pExt = TechnoExt::GetExtData(pTechno))
+				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
+					nArmor = pExt->CurrentShieldType->Armor;
+
+			if (fabs(GeneralUtils::GetWarheadVersusArmor(this->OwnerObject(), nArmor)) == 0.000) {
+				return false;
+			}
+		}
+
+		if (pTechno->IsOnMap && pTechno->IsAlive && !pTechno->InLimbo)
+			return true;
+	}
+
+	return false;
+}
+
 bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (pHouse && pTarget) {
+	if (pHouse && pTarget)
+	{
 		return CanAffectHouse(pHouse, pTarget->GetOwningHouse());
 	}
 
@@ -106,7 +145,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0,0,pThis->Bright))
+		damage, pThis, 0, 0, pThis->Bright))
 	{
 		const CoordStruct& coords = pTarget->GetCoords();
 
@@ -123,7 +162,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(nullptr, pOwner,
-		damage, pThis, 0 , 0 , pThis->Bright))
+		damage, pThis, 0, 0, pThis->Bright))
 	{
 		pBullet->Limbo();
 		pBullet->SetLocation(coords);
@@ -243,6 +282,19 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
 	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
 
+	this->MindControl_Threshold.Read(exINI, pSection, "MindControl.Threshold");
+	this->MindControl_Threshold_Inverse.Read(exINI, pSection, "MindControl.Threshold.Inverse");
+	this->MindControl_AlternateDamage.Read(exINI, pSection, "MindControl.AlternateDamage");
+	this->MindControl_AlternateWarhead.Read(exINI, pSection, "MindControl.AlternateWarhead", true);
+	this->MindControl_CanKill.Read(exINI, pSection, "MindControl.CanKill");
+
+	this->DetonateOnAllMapObjects.Read(exINI, pSection, "DetonateOnAllMapObjects");
+	this->DetonateOnAllMapObjects_RequireVerses.Read(exINI, pSection, "DetonateOnAllMapObjects.RequireVerses");
+	this->DetonateOnAllMapObjects_AffectTargets.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTargets");
+	this->DetonateOnAllMapObjects_AffectHouses.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectHouses");
+	this->DetonateOnAllMapObjects_AffectTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTypes");
+	this->DetonateOnAllMapObjects_IgnoreTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.IgnoreTypes");
+
 #pragma region Otamaa
 
 	this->SquidSplash.Read(exINI, pSection, "Squid.SplashAnims");
@@ -282,9 +334,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 
 		//remove invalid items!
-		if (!ArmorHitAnim.empty()) {
+		if (!ArmorHitAnim.empty())
+		{
 			//remove invalid items to keep memory clean !
-			for (auto const& [nArmor , Anim] : ArmorHitAnim) {
+			for (auto const& [nArmor, Anim] : ArmorHitAnim)
+			{
 				if (!Anim)
 					ArmorHitAnim.erase(nArmor);
 			}
@@ -408,6 +462,25 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllowDamageOnSelf)
 		.Process(this->Debris_Conventional)
 
+		.Process(GattlingStage)
+		.Process(GattlingRateUp)
+		.Process(ReloadAmmo)
+
+		.Process(this->MindControl_Threshold)
+		.Process(this->MindControl_Threshold_Inverse)
+		.Process(this->MindControl_AlternateDamage)
+		.Process(this->MindControl_AlternateWarhead)
+		.Process(this->MindControl_CanKill)
+
+		.Process(this->DetonateOnAllMapObjects)
+		.Process(this->DetonateOnAllMapObjects_RequireVerses)
+		.Process(this->DetonateOnAllMapObjects_AffectTargets)
+		.Process(this->DetonateOnAllMapObjects_AffectHouses)
+		.Process(this->DetonateOnAllMapObjects_AffectTypes)
+		.Process(this->DetonateOnAllMapObjects_IgnoreTypes)
+
+		.Process(this->WasDetonatedOnAllMapObjects)
+
 		.Process(NotHuman_DeathAnim)
 		.Process(IsNukeWarhead)
 		.Process(Remover)
@@ -429,10 +502,6 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Steal_Display)
 		.Process(Steal_Display_Offset)
 
-		.Process(GattlingStage)
-		.Process(GattlingRateUp)
-		.Process(ReloadAmmo)
-
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -442,7 +511,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 #endif
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
-		PaintBallData.Serialize(Stm);
+	PaintBallData.Serialize(Stm);
 #endif
 }
 
@@ -486,9 +555,7 @@ void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
-
 	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 

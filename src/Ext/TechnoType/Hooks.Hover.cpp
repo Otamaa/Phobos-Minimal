@@ -1,3 +1,4 @@
+#ifdef _ENALBLE_HOVER_LOCO_HOOKS
 #include <New/Type/HoverTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>
@@ -225,3 +226,4 @@ DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0xC)
 
 	return 0x516152;
 }
+#endif

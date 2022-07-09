@@ -33,6 +33,27 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	return ReturnGameCode;
 }
 
+DEFINE_HOOK_AGAIN(0x6FF660, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+	GET_BASE(int, weaponIndex, 0xC);
+
+	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
+	{
+		if (auto const pExt = TechnoExt::GetExtData(pThis))
+		{
+			if (pExt->CurrentLaserWeaponIndex.empty())
+				pExt->CurrentLaserWeaponIndex = weaponIndex;
+			else
+				pExt->CurrentLaserWeaponIndex.clear();
+		}
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 {
 	enum { Secondary = 0x6F3745 };
@@ -63,19 +84,19 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 
 	if (pTechno && pTechno->Target)
 	{
-		auto pTechnoType = pTechno->GetTechnoType();
+		const auto pTechnoType = pTechno->GetTechnoType();
 		if (!pTechnoType)
 			return 0;
 
-		auto pTarget = abstract_cast<TechnoClass*>(pTechno->Target);
+		const auto pTarget = abstract_cast<TechnoClass*>(pTechno->Target);
 		if (!pTarget)
 			return 0;
 
-		auto pTargetType = pTarget->GetTechnoType();
+		const auto pTargetType = pTarget->GetTechnoType();
 		if (!pTargetType)
 			return 0;
 
-		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType))
+		if (const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType))
 		{
 			if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 				&& pTargetType->Cloakable && pTargetType->Naval

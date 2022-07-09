@@ -62,12 +62,12 @@ public:
 		Debug::Log("Processing Element From PaintballType ! \n");
 
 		return Stm
-			.Process(Color)
-			.Process(BrightMultiplier)
-			.Process(Accumulate)
-			.Process(IgnoreFog)
-			.Process(IgnoreShroud)
-			.Process(Override)
+			.Process(Color,false)
+			.Process(BrightMultiplier, false)
+			.Process(Accumulate, false)
+			.Process(IgnoreFog, false)
+			.Process(IgnoreShroud, false)
+			.Process(Override, false)
 			.Success()
 			;
 	}
@@ -92,7 +92,7 @@ public:
 		if ((!Token) || bForce) {
 			timer.Stop();
 			Token = nullptr;
-			Data.reset();
+			Data.clear();
 		}
 	}
 
@@ -109,12 +109,12 @@ public:
 	{
 		bool changeColor = false;
 		bool changeBright = false;
-		bool active = IsActive() && Data.get();
+		bool active = IsActive() && !Data.empty();
 
 		if (active)
 		{
-			changeColor = Data->Color != ColorStruct::Empty;
-			changeBright = Data->BrightMultiplier != 1.0f;
+			changeColor = Data.get().Color != ColorStruct::Empty;
+			changeBright = Data.get().BrightMultiplier != 1.0f;
 		}
 
 		return { active  ,changeColor, changeBright };
@@ -124,7 +124,7 @@ public:
 
 	uintptr_t GetBright(uintptr_t bright)
 	{
-		double b = bright * Data->BrightMultiplier;
+		double b = bright * Data.get().BrightMultiplier;
 		return static_cast<uintptr_t>(std::clamp(static_cast<int>(b),0,2000));
 	}
 
@@ -144,7 +144,7 @@ public:
 	{ return const_cast<PaintBall*>(this)->Serialize(Stm); }
 
 	WarheadTypeClass* Token;
-	std::unique_ptr<PaintballType> Data;
+	OptionalStruct<PaintballType,true> Data;
 
 private:
 	TimerStruct timer;
@@ -155,9 +155,9 @@ public:
 	{
 		Debug::Log("Processing Element From PaintBall ! \n");
 		return Stm
-			.Process(Token)
-			.Process(Data)
-			.Process(timer)
+			.Process(Token,true)
+			.Process(Data, true)
+			.Process(timer,false)
 			.Success()
 			;
 	}

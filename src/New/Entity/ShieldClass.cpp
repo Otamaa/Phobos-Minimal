@@ -444,7 +444,7 @@ bool ShieldClass::ConvertCheck()
 	// Update shield properties.
 	if (pNewType->Strength && this->Available)
 	{
-		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesGlobal->ConditionYellow;
 		double healthRatio = this->GetHealthRatio();
 
 		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
@@ -668,7 +668,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 	if (!this->Type || !this->Techno)
 		return nullptr;
 
-	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesGlobal->ConditionYellow;
 
 	return this->Type->GetIdleAnimType(isDamaged, this->GetHealthRatio());
 }
@@ -795,9 +795,9 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 	if (pips_Shield.X != -1)
 		shieldPip = pips_Shield;
 
-	if (this->HP > RulesClass::Instance->ConditionYellow * strength && shieldPip.X != -1)
+	if (this->HP > RulesGlobal->ConditionYellow * strength && shieldPip.X != -1)
 		return shieldPip.X;
-	else if (this->HP > RulesClass::Instance->ConditionRed * strength && (shieldPip.Y != -1 || shieldPip.X != -1))
+	else if (this->HP > RulesGlobal->ConditionRed * strength && (shieldPip.Y != -1 || shieldPip.X != -1))
 		return shieldPip.Y == -1 ? shieldPip.X : shieldPip.Y;
 	else if (shieldPip.Z != -1 || shieldPip.X != -1)
 		return shieldPip.Z == -1 ? shieldPip.X : shieldPip.Z;
@@ -860,4 +860,19 @@ bool ShieldClass::IsAvailable() const
 bool ShieldClass::IsBrokenAndNonRespawning() const
 {
 	return this->HP <= 0 && !this->Type->Respawn;
+}
+
+bool ShieldClass::IsGreenSP()
+{
+	return RulesGlobal->ConditionYellow * Type->Strength.Get() < HP;
+}
+
+bool ShieldClass::IsYellowSP()
+{
+	return RulesGlobal->ConditionRed * Type->Strength.Get() < HP && HP <= RulesGlobal->ConditionYellow * Type->Strength.Get();
+}
+
+bool ShieldClass::IsRedSP()
+{
+	return HP <= RulesGlobal->ConditionRed * Type->Strength.Get();
 }

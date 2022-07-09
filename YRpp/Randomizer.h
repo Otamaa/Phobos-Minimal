@@ -2,6 +2,8 @@
 
 #include <Helpers/CompileTime.h>
 
+#include <Point2D.h>
+
 class RandomClass
 {
 public:
@@ -37,26 +39,40 @@ public:
 	Random2Class(DWORD seed = *reinterpret_cast<DWORD*>(0xA8ED94))
 	{ JMP_THIS(0x65C6D0); }
 
-	int Random()
+	int Random() const
 	{ JMP_THIS(0x65C780); }
 
-	int RandomRanged(int nMin, int nMax)
+	int RandomRanged(int nMin, int nMax) const
 	{ JMP_THIS(0x65C7E0); }
 
-	int operator()()
+	int RandomRanged(const Point2D& nMinMax) const
+	{ JMP_THIS(0x65C7E0); }
+
+	int operator()(const Point2D& nMinMax) const
+	{ return RandomRanged(nMinMax); }
+
+	int operator()() const
 	{ return Random(); }
 
-	int operator()(int nMin, int nMax)
+	int operator()(int nMin, int nMax) const
 	{ return RandomRanged(nMin, nMax); }
 
-	bool PercentChance(int percent)
+	bool PercentChance(int percent) const
 	{ return RandomRanged(0,99) < percent; }
 
-	bool PercentChance(double dChance)
+	bool PercentChance(double dChance) const
 	{ return RandomDouble() < dChance; }
 
-	double RandomDouble()
+	double RandomDouble() const
 	{ return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1); }
+
+	bool RandomBool() const
+	{ return static_cast<bool>(RandomRanged(0, 1)); }
+
+	template<typename T> requires std::is_integral<T>::value
+	T RandomRangedSpecific(T nMin, T nMax) const {
+		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
+	}
 
 public:
 	bool unknownBool_00;

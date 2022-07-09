@@ -31,12 +31,12 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 		return;
 
 	CoordStruct targetPos = CoordStruct::Empty;
-	if (auto pFoot = generic_cast<FootClass*>(pTarget))
+	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
 		targetPos = CellClass::Cell2Coord(pFoot->GetDestinationMapCoords());
 	else
 		targetPos = pTarget->GetCoords();
 
-	if(auto pCell  = Map[targetPos])
+	if(auto const pCell  = Map[targetPos])
 		targetPos.Z = pCell->GetFloorHeight({0,0});
 
 	// radial fire

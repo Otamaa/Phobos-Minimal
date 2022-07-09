@@ -90,7 +90,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 				if (pExt->BounceAmount)
 				{
 					R->EBX(false);
-					return 4619276;
+					return 0x467C0C;
 				}
 
 				R->EBX(pExt->Bouncing && pExt->BounceAmount <= 0);

@@ -3,12 +3,16 @@
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
 
-template<> const DWORD TExtension<RadSiteClass>::Canary = 0x87654321;
+template<> const DWORD Extension<RadSiteClass>::Canary = 0x87654321;
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()
 {
 	this->Type = RadTypeClass::Find("Radiation");
+}
+
+RadSiteExt::ExtData* RadSiteExt::GetExtData(RadSiteExt::base_type const* pTr) {
+	return RadSiteExt::ExtMap.Find(pTr);
 }
 
 void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
@@ -118,15 +122,6 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 	double nDistance = Map.GetCellAt(cell)->GetCoords()
 		.DistanceFrom(Map.GetCellAt(pThis->BaseCell)->GetCoords());
 	return (nDistance > nMax || pThis->GetRadLevel() <= 0 ) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
-
-
-	/*
-	auto nMax = (double)pThis->SpreadInLeptons;
-	auto nDist = Map.GetCellAt(cell)->GetCoords()
-		.DistanceFrom(Map.GetCellAt(pThis->BaseCell)->GetCoords());
-	auto nResult = ((nDist > nMax) ? 0.0 : ((nMax - nDist) == 0.0 ? 0.0 : ((nMax - nDist) / Math::min((nMax * pThis->RadLevel),1.0))));
-	auto nRadMax = (double)Type->GetLevelMax();
-	return Math::clamp(nResult, 0.0, nRadMax);*/
 }
 
 // =============================
@@ -140,16 +135,19 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 		.Process(this->RadHouse)
 		.Process(this->Type)
 		.Process(this->TechOwner)
+		.Process(this->NoOwner)
 		;
 }
 
 void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<RadSiteClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<RadSiteClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -170,7 +168,7 @@ bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-RadSiteExt::ExtContainer::ExtContainer() : TExtensionContainer("RadSiteClass") { };
+RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
 RadSiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -181,7 +179,10 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<RadSiteExt::ExtData>(pThis);
+
+		if (pThis->WhatAmI() == AbstractType::RadSite)
+			if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
+				pRadExt->InitializeConstants();
 	}
 
 	return 0;
@@ -192,10 +193,7 @@ DEFINE_HOOK(0x65B2F4, RadSiteClass_DTOR, 0x5)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ECX);
-		if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
-			pExt->Uninitialize();
-
-		ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
+		RadSiteExt::ExtMap.Remove(pThis);
 	}
 
 	return 0;

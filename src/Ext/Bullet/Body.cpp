@@ -9,8 +9,13 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include "Trajectories/PhobosTrajectory.h"
 
-template<> const DWORD TExtension<BulletClass>::Canary = 0x2A2A2A2A;
+template<> const DWORD Extension<BulletClass>::Canary = 0x2A2A2A2A;
 BulletExt::ExtContainer BulletExt::ExtMap;
+
+BulletExt::ExtData* BulletExt::GetExtData(BulletExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
 
 void BulletExt::ExtData::Uninitialize()
 {
@@ -204,13 +209,13 @@ void BulletExt::ExtData::Serialize(T& Stm)
 
 void BulletExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Extension<BulletClass>::LoadFromStream(Stm);
+	Extension<BulletClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	//Extension<BulletClass>::SaveToStream(Stm);
+	Extension<BulletClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -231,7 +236,7 @@ bool BulletExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BulletExt::ExtContainer::ExtContainer() : TExtensionContainer("BulletClass") { }
+BulletExt::ExtContainer::ExtContainer() : Container("BulletClass") { }
 BulletExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -241,8 +246,8 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
 
-	//BulletExt::ExtMap.FindOrAllocate(pItem);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BulletExt::ExtData>(pItem);
+	BulletExt::ExtMap.FindOrAllocate(pItem);
+	//ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BulletExt::ExtData>(pItem);
 
 	return 0;
 }
@@ -251,10 +256,11 @@ DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
 
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
+	//if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
+	//	pExt->Uninitialize();
 
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	//ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	BulletExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -282,6 +288,7 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
+/*
 DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 {
 	GET(BulletClass*, pThis, ESI);
@@ -292,4 +299,4 @@ DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-}
+}*/

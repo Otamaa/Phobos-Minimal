@@ -2,7 +2,7 @@
 #include <BulletClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Entity/LaserTrailClass.h>
@@ -18,7 +18,7 @@ class BulletExt
 public:
 	using base_type = BulletClass;
 
-	class ExtData final : public TExtension<BulletClass>
+	class ExtData final : public Extension<BulletClass>
 	{
 	public:
 		BulletTypeExt::ExtData* TypeExt;
@@ -42,7 +42,7 @@ public:
 #pragma region
 		PhobosTrajectory* Trajectory;
 
-		ExtData(BulletClass* OwnerObject) : TExtension<BulletClass>(OwnerObject)
+		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject)
 			, TypeExt { nullptr }
 			, CurrentStrength { 0 }
 			, IsInterceptor { false }
@@ -67,7 +67,7 @@ public:
 		{ InitializeConstants(); }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -82,13 +82,9 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	__declspec(noinline) static BulletExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::Bullet ? reinterpret_cast<BulletExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
+	static BulletExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<BulletExt> {
+	class ExtContainer final : public Container<BulletExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

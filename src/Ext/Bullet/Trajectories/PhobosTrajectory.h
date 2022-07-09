@@ -15,6 +15,7 @@ enum class TrajectoryFlag : int
 	Straight = 0,
 	Bombard = 1,
 	Artillery = 2,
+	Bounce= 3
 };
 
 enum class TrajectoryCheckReturnType : int

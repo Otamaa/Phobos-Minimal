@@ -91,18 +91,13 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	LightConvertClass* convert = nullptr;
-
 	auto const pType = pThis->IsDisguised() ? type_cast<TechnoTypeClass*>(pThis->Disguise)  : nullptr;
+	int const colorIndex = pThis->GetDisguiseHouse(true)->ColorSchemeIndex;
 
-	int colorIndex = pThis->GetDisguiseHouse(true)->ColorSchemeIndex;
-
-	if (pType && pType->Palette && pType->Palette->Count > 0)
-		convert = pType->Palette->GetItem(colorIndex)->LightConvert;
-	else
-		convert = ColorScheme::Array->GetItem(colorIndex)->LightConvert;
-
-	R->EBX(convert);
+	R->EBX((pType&& pType->Palette&& pType->Palette->Count > 0) ?
+		pType->Palette->GetItem(colorIndex)->LightConvert :
+		ColorScheme::Array->GetItem(colorIndex)->LightConvert
+	);
 
 	return SkipGameCode;
 }

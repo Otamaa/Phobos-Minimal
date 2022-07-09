@@ -55,7 +55,7 @@ public:
 	virtual SHPStruct* GetImage() const R0;
 	virtual Action MouseOverCell(CellStruct const& cell, bool checkFog = false, bool ignoreForce = false) const RT(Action);
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const RT(Action);
-	virtual Layer InWhichLayer() const RT(Layer);
+	virtual Layer InWhichLayer() const JMP_THIS(0x5F4260);
 	virtual bool IsSurfaced() R0; // opposed to being submerged
 
  /*

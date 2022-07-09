@@ -31,7 +31,8 @@ DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_Add, 0x7)
 	auto nDamage = ReceiveDamageArgs.Damage;
 	if (!pThis->IsBurning && *nDamage > 0 && ReceiveDamageArgs.WH->Sparky)
 	{
-		bool spawn = pWarheadExt->Flammability.isset() ? (ScenarioClass::Instance->Random(0, 99) < abs(pWarheadExt->Flammability.Get())):true;
+		const bool spawn = pWarheadExt->Flammability.isset() ?
+			(ScenarioClass::Instance->Random.PercentChance(abs(pWarheadExt->Flammability.Get()))):true;
 
 		if (spawn)
 			pThis->Ignite();

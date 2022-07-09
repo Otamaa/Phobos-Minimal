@@ -17,6 +17,8 @@
 #include <Utilities/EnumFunctions.h>
 #include <New/Entity/FlyingStrings.h>
 
+#include <New/Entity/VerticalLaserClass.h>
+
 static void applyPermaMC(WarheadTypeExt::ExtData* pThis, HouseClass* const Owner, AbstractClass* const Target)
 {
 	if (Owner)
@@ -212,8 +214,20 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 		});
 	}
 }
+
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
+
+#if 0
+	if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser)) {
+
+		if(auto pTechn = generic_cast<TechnoClass*>(pBullet->Target))
+			GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, pTechn->GetHeight());
+		else if (specific_cast<CellClass*>(pBullet->Target))
+			GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords,Map.GetCellFloorHeight(coords));
+	}
+#endif
+
 	if (pOwner) {
 		if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
 		{
@@ -358,7 +372,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (auto pExt = TechnoExt::GetExtData(pTarget))
-		pExt->PaintBallState.Enable(this->PaintBallDuration.Get(), PaintBallData, this->OwnerObject());
+		if (pExt->PaintBallState.get())
+			pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->OwnerObject());
 #endif
 
 	if (this->GattlingStage > 0)

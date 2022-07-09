@@ -9,6 +9,7 @@
 #include "BombardTrajectory.h"
 #include "StraightTrajectory.h"
 #include "ArtilleryTrajectory.h"
+#include "BounceTrajectory.h"
 
 bool PhobosTrajectoryType::ReadBase(CCINIClass* const pINI, const char* pSection)
 {
@@ -21,6 +22,7 @@ bool PhobosTrajectoryType::ReadBase(CCINIClass* const pINI, const char* pSection
 
 	return true;
 }
+
 bool PhobosTrajectoryType::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	Stm
@@ -52,27 +54,39 @@ void PhobosTrajectoryType::CreateType(PhobosTrajectoryType*& pType, CCINIClass* 
 		pNewType = GameCreate<BombardTrajectoryType>();
 	else if (_stricmp(Phobos::readBuffer, "Artillery") == 0)
 		pNewType = GameCreate<ArtilleryTrajectoryType>();
+	else if (_stricmp(Phobos::readBuffer, "Bounce") == 0)
+		pNewType = GameCreate<BounceTrajectoryType>();
 	else
 		bUpdateType = false;
 
 	if (pNewType)
+	{
 		pNewType->Read(pINI, pSection);
 
-	if (bUpdateType)
-	{
+		if (pNewType->Flag == TrajectoryFlag::Bounce) {
+			const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pNewType);
+			if(!(pBounceType->BounceAmount > 0))
+				GameDelete(pNewType);
+		}
+	}
+
+	if (bUpdateType) {
 		GameDelete(pType); // GameDelete already has if(pType) check here.
-		pType = pNewType;
+		pType = (pNewType);
 	}
 }
 
 PhobosTrajectoryType* PhobosTrajectoryType::LoadFromStream(PhobosStreamReader& Stm)
 {
 	PhobosTrajectoryType* pType = nullptr;
-	Stm.Process(pType, false);
-	if (pType)
+	bool bExist = false;
+	Stm.Load(bExist);
+
+	if (bExist)
 	{
-		Stm.Process(pType->Flag, false);
-		switch (pType->Flag)
+		TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
+		Stm.Process(nFlag, false);
+		switch (nFlag)
 		{
 		case TrajectoryFlag::Straight:
 			pType = GameCreate<StraightTrajectoryType>();
@@ -86,20 +100,25 @@ PhobosTrajectoryType* PhobosTrajectoryType::LoadFromStream(PhobosStreamReader& S
 			pType = GameCreate<ArtilleryTrajectoryType>();
 			break;
 
+		case TrajectoryFlag::Bounce:
+			pType = GameCreate<BounceTrajectoryType>();
+			break;
+
 		default:
 			return nullptr;
 		}
 		pType->Load(Stm, false);
 	}
+
 	return pType;
 }
 
 void PhobosTrajectoryType::WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectoryType* pType)
 {
-	Stm.Process(pType);
-	if (pType)
-	{
-		Stm .Process(pType->Flag);
+	const bool Exist = pType;
+	Stm.Save(Exist);
+	if (Exist) {
+		Stm.Process(pType->Flag,false);
 		pType->Save(Stm);
 	}
 }
@@ -120,8 +139,8 @@ double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
 {
 	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType))
 		return pWeaponExt->Trajectory_Speed;
-	else
-		return 100.0;
+
+	return 100.0;
 }
 
 bool PhobosTrajectory::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -161,6 +180,10 @@ PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, 
 		pRet = GameCreate<ArtilleryTrajectory>(pType);
 		break;
 
+	case TrajectoryFlag::Bounce:
+		pRet = GameCreate<BounceTrajectory>(pType);
+		break;
+
 	default:
 		return nullptr;
 	}
@@ -175,12 +198,14 @@ PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, 
 PhobosTrajectory* PhobosTrajectory::LoadFromStream(PhobosStreamReader& Stm)
 {
 	PhobosTrajectory* pTraj = nullptr;
-	Stm.Process(pTraj, false);
-	if (pTraj)
-	{
-		Stm .Process(pTraj->Flag, false) ;
+	bool bExist = false;
+	Stm.Load(bExist);
 
-		switch (pTraj->Flag)
+	if (bExist)
+	{
+		TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
+		Stm.Process(nFlag, false);
+		switch (nFlag)
 		{
 		case TrajectoryFlag::Straight:
 			pTraj = GameCreate<StraightTrajectory>();
@@ -194,6 +219,10 @@ PhobosTrajectory* PhobosTrajectory::LoadFromStream(PhobosStreamReader& Stm)
 			pTraj = GameCreate<ArtilleryTrajectory>();
 			break;
 
+		case TrajectoryFlag::Bounce:
+			pTraj = GameCreate<BounceTrajectory>();
+			break;
+
 		default:
 			return nullptr;
 		}
@@ -204,10 +233,11 @@ PhobosTrajectory* PhobosTrajectory::LoadFromStream(PhobosStreamReader& Stm)
 
 void PhobosTrajectory::WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj)
 {
-	Stm.Process(pTraj);
-	if (pTraj)
+	const bool Exist = pTraj;
+	Stm.Save(Exist);
+	if (Exist)
 	{
-		Stm .Process(pTraj->Flag);
+		Stm.Process(pTraj->Flag);
 		pTraj->Save(Stm);
 	}
 }
@@ -341,4 +371,3 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 
 	return 0;
 }
-//#endif

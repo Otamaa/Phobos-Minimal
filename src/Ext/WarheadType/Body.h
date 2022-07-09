@@ -119,6 +119,22 @@ public:
 		Valueable<int> GattlingStage;
 		Valueable<int> GattlingRateUp;
 		Valueable<int> ReloadAmmo;
+
+		Valueable<double> MindControl_Threshold;
+		Valueable<bool> MindControl_Threshold_Inverse;
+		Nullable<int> MindControl_AlternateDamage;
+		Nullable<WarheadTypeClass*> MindControl_AlternateWarhead;
+		Valueable<bool> MindControl_CanKill;
+
+		Valueable<bool> DetonateOnAllMapObjects;
+		Valueable<bool> DetonateOnAllMapObjects_RequireVerses;
+		Valueable<AffectedTarget> DetonateOnAllMapObjects_AffectTargets;
+		Valueable<AffectedHouse> DetonateOnAllMapObjects_AffectHouses;
+		ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_AffectTypes;
+		ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_IgnoreTypes;
+
+		bool WasDetonatedOnAllMapObjects;
+
 		#pragma region Otamaa
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim;
 
@@ -244,6 +260,20 @@ public:
 			, GattlingRateUp { 0 }
 			, ReloadAmmo { 0 }
 
+			, MindControl_Threshold { 1.0 }
+			, MindControl_Threshold_Inverse { false }
+			, MindControl_AlternateDamage {}
+			, MindControl_AlternateWarhead {}
+			, MindControl_CanKill { false }
+
+			, DetonateOnAllMapObjects { false }
+			, DetonateOnAllMapObjects_RequireVerses { false }
+			, DetonateOnAllMapObjects_AffectTargets { AffectedTarget::All }
+			, DetonateOnAllMapObjects_AffectHouses { AffectedHouse::All }
+			, DetonateOnAllMapObjects_AffectTypes {}
+			, DetonateOnAllMapObjects_IgnoreTypes {}
+			, WasDetonatedOnAllMapObjects { false }
+
 			, NotHuman_DeathAnim { }
 			, IsNukeWarhead { false }
 			, Remover { false }
@@ -296,6 +326,7 @@ public:
 		bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);
 		bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
 		bool CanDealDamage(TechnoClass* pTechno);
+		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 
 		virtual ~ExtData() = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;

@@ -362,7 +362,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 					if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon)) {
 						pBullet->SetWeaponType(pWeapon);
-						DirStruct const dir(5, static_cast<short>(random.RandomRanged(0, 31)));
+						DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 31));
 						auto const radians = dir.radians();
 
 						auto const sin_rad = Math::sin(radians);

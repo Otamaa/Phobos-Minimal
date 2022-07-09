@@ -1,7 +1,12 @@
 #include "Body.h"
 
-template<> const DWORD TExtension<TiberiumClass>::Canary = 0xB16B00B5;
+template<> const DWORD Extension<TiberiumClass>::Canary = 0xB16B00B5;
 TiberiumExt::ExtContainer TiberiumExt::ExtMap;
+
+TiberiumExt::ExtData* TiberiumExt::GetExtData(TiberiumExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
 
 void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
@@ -35,11 +40,13 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 
 void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<TiberiumClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<TiberiumClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -55,7 +62,7 @@ bool TiberiumExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-TiberiumExt::ExtContainer::ExtContainer() : TExtensionContainer("TiberiumClass") {}
+TiberiumExt::ExtContainer::ExtContainer() : Container("TiberiumClass") {}
 TiberiumExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -64,17 +71,14 @@ TiberiumExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<TiberiumExt::ExtData>(pItem);
+	TiberiumExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x721888, TiberiumClass_DTOR, 0x6)
 {
 	GET(TiberiumClass*, pItem, ECX);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	TiberiumExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -108,8 +112,7 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	GET(TiberiumClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
 
-	if (auto pExt = TiberiumExt::GetExtData(pItem))
-		pExt->LoadFromINI(pINI);
+	TiberiumExt::ExtMap.LoadFromINI(pItem, pINI);
 
 	return 0;
 }

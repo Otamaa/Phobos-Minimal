@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Base/SSE_Math.h>
 #include <YRMath.h>
 #include <GeneralStructures.h>
-#include <tuple>
 /*
 		Otamaa : 18/09/2021
 
@@ -167,10 +167,10 @@ public:
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
 	double Magnitude_() const
-	{ return Math::sqrt(MagnitudeSquared()); }
+	{ return sqrt_fast_tpl(MagnitudeSquared()); }
 
 	double Magnitude() const
-	{ return std::sqrt(MagnitudeSquared()); }
+	{ return sqrt_fast_tpl(MagnitudeSquared()); }
 
 	int MagnitudeInt() const
 	{ return static_cast<int>(Magnitude() * 0.00390625);}

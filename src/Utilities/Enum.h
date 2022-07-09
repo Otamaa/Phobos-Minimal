@@ -234,14 +234,14 @@ public:
 	}
 };
 
-enum class InterceptedStatus
+enum class InterceptedStatus : int
 {
 	None = 0,
 	Targeted = 1,
 	Intercepted = 2
 };
 
-enum class SlaveReturnTo
+enum class SlaveReturnTo : int
 {
 	Killer = 0, //default
 	Master = 1,
@@ -252,7 +252,7 @@ enum class SlaveReturnTo
 	Random = 6
 };
 
-enum class KillMethod
+enum class KillMethod : int
 {
 	Explode = 0,     //default death option
 	Vanish = 1,
@@ -262,7 +262,7 @@ enum class KillMethod
 
 #pragma region Otamaa
 
-enum class AircraftFireMode
+enum class AircraftFireMode : int
 {
 	FireAt = 0,
 	Strafe2 = 1,

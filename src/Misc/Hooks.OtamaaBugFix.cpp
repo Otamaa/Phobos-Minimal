@@ -179,11 +179,13 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
 
 	//Debug::Log("Wave Receive Damage for Victim [%x] ! \n", pVictim);
-	if(auto pUnit = specific_cast<UnitClass*>(pVictim))
+	if(const auto pUnit = specific_cast<UnitClass*>(pVictim))
 		if(pUnit->DeathFrameCounter > 0)
 			return 0x75F432;
 
 	pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
+	//MapClass::DamageArea(pTechnoOwner->Location, nDamage, pTechnoOwner, pWarhead, pWarhead->Tiberium, pTechnoOwner->GetOwningHouse());
+	//MapClass::FlashbangWarheadAt(nDamage, pWarhead, pTechnoOwner->Location);
 
 	return 0x75F432;
 }
@@ -217,6 +219,7 @@ DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5) {
 	return R->ESI<TechnoClass*>()->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
 }
 
+/*
 DEFINE_HOOK(0x6F3481, TechnoClass_WhatWeaponShoudIUse_CheckWH, 0x8)
 {
 	GET(WeaponTypeClass*, pWeapon, EAX);
@@ -226,7 +229,7 @@ DEFINE_HOOK(0x6F3481, TechnoClass_WhatWeaponShoudIUse_CheckWH, 0x8)
 		Debug::FatalErrorAndExit("Weapon [%s] , Has Missing Warhead at %s ! \n", pWeapon->get_ID(), __FUNCTION__);
 
 	return 0x0;
-}
+}*/
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
@@ -321,6 +324,7 @@ DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
 #pragma endregion
 
+/*
 DEFINE_HOOK(0x7BAE60 , Surface_GetPixel_CheckParameters, 0x5)
 {
 	GET(Surface*, pSurface, ECX);
@@ -370,7 +374,7 @@ DEFINE_HOOK(0x48439A, CellClass_GetColourComponents, 0x5)
 
 	return 0x484440;
 }
-
+*/
 #ifdef _Dis
 /*
  *  Custom area damage logic for DTA.
@@ -488,3 +492,23 @@ void DTA_DoAtomDamage(const ObjectClass* object_ptr, const int damageradius, con
 
 }
 #endif
+#include <TiberiumClass.h>
+
+DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
+{
+	enum { increment = 0x72312F ,
+		   SetCell = 0x723005
+	};
+
+	GET(const MapSurfaceData*, pSurfaceData, EBX);
+	R->EBX(pSurfaceData);
+	const auto nCell = pSurfaceData->MapCoord;
+
+	if (!Map.IsValidCell(nCell)) {
+		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
+		return increment;
+	}
+
+	R->EAX(Map[nCell]);
+	return SetCell;
+}
