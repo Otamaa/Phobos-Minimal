@@ -8,8 +8,8 @@ class ObjectClass;
 struct TrailData
 {
 	int CurrentType;
-	ValueableVector<LandType> OnLand;
-	ValueableVector<TileType> OnTileTypes;
+	std::vector<LandType> OnLand;
+	std::vector<TileType> OnTileTypes;
 	CoordStruct FLHs;
 	bool Onturrents;
 
@@ -21,23 +21,15 @@ struct TrailData
 		, Onturrents { false }
 	{ }
 
-	TrailData(int cur, ValueableVector<LandType> nOnLand, ValueableVector<TileType> nOnTileTypes, CoordStruct flh, bool nTur) :
+	TrailData(int cur, CoordStruct flh, bool nTur) :
 		CurrentType { cur }
-		, OnLand { nOnLand }
-		, OnTileTypes { nOnTileTypes }
+		, OnLand { }
+		, OnTileTypes { }
 		, FLHs { flh }
 		, Onturrents { nTur }
 	{ }
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ return Serialize(Stm); }
-
-	bool Save(PhobosStreamWriter& Stm)
-	{ return Serialize(Stm); }
-
-private:
-	template <typename T>
-	bool Serialize(T& Stm)
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		Debug::Log("Processing Element From TrailData ! \n");
 		return Stm
@@ -49,6 +41,20 @@ private:
 			.Success()
 			;
 	}
+
+	inline bool Save(PhobosStreamWriter& Stm) const
+	{
+		Debug::Log("Processing Element From TrailData ! \n");
+		return Stm
+			.Process(CurrentType)
+			.Process(OnLand)
+			.Process(OnTileTypes)
+			.Process(FLHs)
+			.Process(Onturrents)
+			.Success()
+			;
+	}
+
 };
 
 //managing the vector
@@ -110,7 +116,11 @@ struct TrailsReader
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
 			nTiles.Read(nParser, pSection, tempBuffer);
 
-			CurrentData.emplace_back(trail.Get(),std::move(land), std::move(nTiles),flh.Get(),isOnTurret.Get(false));
+			CurrentData.emplace_back(trail.Get(),flh.Get(),isOnTurret.Get(false));
+			auto &Back = CurrentData.back();
+			Back.OnLand.assign(land.begin(), land.end());
+			Back.OnTileTypes.assign(nTiles.begin(), nTiles.end());
+
 			++nTotal;
 		}
 

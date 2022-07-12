@@ -40,13 +40,13 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 
 void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TiberiumClass>::LoadFromStream(Stm);
+	Extension<TiberiumClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TiberiumClass>::SaveToStream(Stm);
+	Extension<TiberiumClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

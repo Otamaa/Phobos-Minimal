@@ -14,12 +14,12 @@ namespace Get
 	{
 		if (pCell->OverlayTypeIndex != -1)
 		{
-			auto nTibIndex = TiberiumClass::FindIndex(pCell->OverlayTypeIndex);
+			const auto nTibIndex = TiberiumClass::FindIndex(pCell->OverlayTypeIndex);
 			if (nTibIndex != -1)
 			{
-				if (auto pTiberium = TiberiumClass::Array()->GetItem(nTibIndex))
+				if (const auto pTiberium = TiberiumClass::Array->GetItem(nTibIndex))
 				{
-					auto nSlope = (int)pCell->SlopeIndex;
+					const auto nSlope = (int)pCell->SlopeIndex;
 					if (nSlope > 0)
 						return nSlope + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1;
 
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 	GET(OverlayTypeClass*, pOverlay, ESI);
 
 	if (pOverlay->Tiberium)
-		pOverlay = OverlayTypeClass::Array.get()->GetItem(Get::Index(pThis));
+		pOverlay = OverlayTypeClass::Array->GetItem(Get::Index(pThis));
 
 	R->EBX(pOverlay->GetImage());
 
@@ -60,19 +60,19 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
 
-	auto nIndex = Get::Index(pThis);
-	auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
+	const auto nIndex = Get::Index(pThis);
+	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
 
 	if (!pShape)
 		return 0x47FB86;
 
-	auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
-	auto pPalette = FileSystem::x_PAL.get();
+	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
+	const auto pPalette = FileSystem::x_PAL.get();
 	int nOreTint = 1000;
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
 	//this is just pointers to files in ram, no vector #tomsons26
 
-	if (auto pTibExt = TiberiumExt::GetExtData(TiberiumClass::Array->GetItem(pThis->GetContainedTiberiumIndex()))) {
+	if (const auto pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(pThis->GetContainedTiberiumIndex()))) {
 			//pPalette = pTibExt->Ore_Palette.GetOrDefaultConvert(pPalette);
 		if (pTibExt->Ore_TintLevel.isset())
 			nOreTint = Math::min(pTibExt->Ore_TintLevel.Get(), 1000);

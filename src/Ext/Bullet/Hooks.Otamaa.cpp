@@ -17,26 +17,6 @@
 #endif
 
 #pragma region Otamaa
-/*
-static DamageAreaResult __fastcall BulletClass_DamageArea
-(
-	CoordStruct* pCoord,
-	int nDamage,
-	TechnoClass* pSource,
-	WarheadTypeClass* pWarhead,
-	bool AffectTiberium, //true
-	HouseClass* pSourceHouse //nullptr
-)
-{
-	if (auto const BulletOwner = pSource && !pSourceHouse ? pSource->GetOwningHouse() : HouseExt::FindCivilianSide())
-		pSourceHouse = BulletOwner;
-
-	auto const nCoord = *pCoord;
-	return Map.DamageArea(nCoord, nDamage, pSource, pWarhead, pWarhead->Tiberium, pSourceHouse);
-}
-
-//DEFINE_JUMP(CALL,0x469A83, GET_OFFSET(BulletClass_DamageArea));
-*/
 
 DEFINE_HOOK(0x46889D, BulletClass_Unlimbo_FlakScatter_SetTargetCoords, 0x8)
 {

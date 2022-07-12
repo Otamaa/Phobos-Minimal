@@ -142,12 +142,12 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 }
 
 void SWTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	Extension<SuperWeaponTypeClass>::LoadFromStream(Stm);
+	Extension<SuperWeaponTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	Extension<SuperWeaponTypeClass>::SaveToStream(Stm);
+	Extension<SuperWeaponTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

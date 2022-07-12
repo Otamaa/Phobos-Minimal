@@ -208,8 +208,7 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 		if (!pTypeExt)
 			return false;
 
-		if (pTypeExt->Grinding_DisplayRefund && pTypeExt->Grinding_DisplayRefund_Houses == AffectedHouse::All ||
-			EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::Player))
+		if (pTypeExt->Grinding_DisplayRefund &&	EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::Player))
 		{
 			pExt->AccumulatedGrindingRefund += pTechno->GetRefund();
 		}
@@ -252,13 +251,13 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 
 void BuildingExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BuildingClass>::LoadFromStream(Stm);
+	Extension<BuildingClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void BuildingExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BuildingClass>::SaveToStream(Stm);
+	Extension<BuildingClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

@@ -36,6 +36,7 @@ constexpr const char* UIMD_ = "uimd.ini";
 #define AUDIOVISUAL_SECTION reinterpret_cast<const char*>(0x839EA8)
 #define SPECIALWEAPON_SECTION reinterpret_cast<const char*>(0x839EB4)
 #define JUMPJET_SECTION reinterpret_cast<const char*>(0x839D58)
+#define COMBATDAMAGE_SECTION reinterpret_cast<const char*>(0x839E8C)
 
 #define FAILEDTOLOADUIMD_MSG reinterpret_cast<const char*>(0x827DAC)
 
@@ -108,6 +109,7 @@ public:
 	{
 		NO_CONSTRUCT_CLASS(Config)
 	public:
+		static bool HideWarning;
 		static bool ToolTipDescriptions;
 		static bool PrioritySelectionFiltering;
 		static bool DevelopmentCommands;

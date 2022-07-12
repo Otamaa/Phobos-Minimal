@@ -86,7 +86,9 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		{
 			int nCount = 0;
 			char* context = nullptr;
-			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				int buffer;
 				if (Parser<int>::TryParse(cur, &buffer))
@@ -102,7 +104,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->SpawnCrater.Read(exINI, pID, "Crater.Spawn");
 	this->ScorchChance.Read(exINI, pID, "Scorch.Chance");
 	this->SpecialDraw.Read(exINI, pID, "SpecialDraw");
-	this->NoOwner.Read(exINI, pID, "NowOwner");
+	this->NoOwner.Read(exINI, pID, "NoOwner");
 #pragma endregion
 }
 
@@ -217,13 +219,13 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 
 void AnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AnimTypeClass>::LoadFromStream(Stm);
+	Extension<AnimTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void AnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AnimTypeClass>::SaveToStream(Stm);
+	Extension<AnimTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

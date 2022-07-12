@@ -76,24 +76,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 	if (pExt->MyGiftBox->IsOpen) {
 		if (pTypeExt->MyGiftBoxData.Remove) {
 			pExt->OwnerObject()->Limbo();
-			if (auto pOwner = pExt->OwnerObject()->GetOwningHouse())
-			{
-				if (!pOwner->IsNeutral() && !pExt->OwnerObject()->GetTechnoType()->Insignificant)
-				{
-					pOwner->RegisterLoss(pExt->OwnerObject(), false);
-					pOwner->RemoveTracking(pExt->OwnerObject());
-					pOwner->RecheckTechTree = true;
-				}
-			}
-
-			pExt->OwnerObject()->RemoveFromTargetingAndTeam();
-
-			for (auto const& pBullet : *BulletClass::Array)
-				if (pBullet && pBullet->Target == pExt->OwnerObject())
-					pBullet->LoseTarget();
-
-			pExt->OwnerObject()->UnInit();
-
+			TechnoExt::HandleRemove(pExt->OwnerObject());
 			return;
 		}
 

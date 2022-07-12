@@ -107,7 +107,7 @@ public:
 	bool           LegalTarget;
 	bool           Insignificant;
 	bool           Immune;
-	bool           IsLogic; // add objects to the logic vector
+	bool           IsLogic; // add objects to the logic vector IsSentient
 	bool           AllowCellContent;
 	bool           Voxel;
 	bool           NewTheater;

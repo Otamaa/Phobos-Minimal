@@ -117,16 +117,13 @@ public:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual void Uninitialize() { }
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm)
-	{
-		//Stm.Save(this->AttachedToObject);
-		Stm.Save(this->Initialized);
-	}
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) = 0;
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) = 0;
 
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm)
+	template<typename StmType>
+	inline void Serialize(StmType& Stm)
 	{
-		//Stm.Load(this->AttachedToObject);
-		Stm.Load(this->Initialized);
+		Stm.Process(this->Initialized);
 	}
 
 protected:
@@ -553,7 +550,7 @@ protected:
 public:
 
 #define Alloc_EXT(key)\
-if (auto val = new extension_type(key)) {\
+if (const auto val = new extension_type(key)) {\
 	val->EnsureConstanted();\
 	return this->Items.insert(key, val); }\
     Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());\

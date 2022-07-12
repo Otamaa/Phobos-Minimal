@@ -64,13 +64,13 @@ void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<SideClass>::LoadFromStream(Stm);
+	Extension<SideClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SideExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<SideClass>::SaveToStream(Stm);
+	Extension<SideClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

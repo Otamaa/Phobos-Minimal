@@ -2,6 +2,9 @@
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
+	if (flags == AffectedHouse::All)
+		return true;
+
 	if (!ownerHouse || !targetHouse)
 		return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
 

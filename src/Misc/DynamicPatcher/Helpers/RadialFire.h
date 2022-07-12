@@ -40,7 +40,7 @@ struct RadialFireHelper
 		else
 			z = abs(index - Burst + 1);
 
-		double angle = Degrees + Delta * (index + 1);
+		const double angle = Degrees + Delta * (index + 1);
 		DirStruct targetDir = DirStruct(Math::deg2rad(angle));
 		Matrix3D matrix3D = Matrix3D { };
 		matrix3D.MakeIdentity();

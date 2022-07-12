@@ -28,13 +28,13 @@ void SidebarExt::ExtData::Serialize(T& Stm)
 
 void SidebarExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<SidebarClass>::LoadFromStream(Stm);
+	Extension<SidebarClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SidebarExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<SidebarClass>::SaveToStream(Stm);
+	Extension<SidebarClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

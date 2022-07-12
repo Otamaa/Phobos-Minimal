@@ -23,13 +23,13 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 {
 	GET(BulletClass*, pThis, ECX);
 
-	if (auto pExt = BulletExt::GetExtData(pThis))
+	if (const auto pExt = BulletExt::ExtMap.Find(pThis))
 	{
 		pExt->Owner = pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr;
 
 		if (pThis->Type)
 		{
-			if (auto pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
+			if (const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 			{
 				pExt->TypeExt = pTypeExt;
 				pExt->CurrentStrength = pTypeExt->Health.Get();
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
 {
 	GET(BulletClass*, pThis, EBP);
-	auto pBulletExt = BulletExt::GetExtData(pThis);
+	const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
 
 	if (!pBulletExt)
 		return 0;
@@ -158,9 +158,9 @@ DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl, 0x6)
 {
 	GET(BulletClass*, pThis, ESI);
 
-	auto pTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-	auto pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
-	auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
+	auto const pTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	auto const pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
+	auto const pTechno = generic_cast<TechnoClass*>(pThis->Target);
 
 	R->AL(CaptureExt::CaptureUnit(pThis->Owner->CaptureManager, pTechno, pControlledAnimType));
 
@@ -184,7 +184,7 @@ DEFINE_HOOK(0x46A3D6, BulletClass_Shrapnel_Forced, 0xA)
 
 	GET(BulletClass*, pBullet, EDI);
 
-	auto const pData = BulletTypeExt::GetExtData(pBullet->Type);
+	auto const pData = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 	if (auto const pObject = pBullet->GetCell()->FirstObject)
 	{
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 	GET(BulletClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, ECX);
 
-	if (auto const pExt = BulletExt::GetExtData(pThis))
+	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
 		if (!pHouse)
 			R->ECX(pExt->Owner);
 
@@ -222,44 +222,11 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 
 	GET(BulletClass*, pThis, EBP);
 
-	if (auto const pExt = BulletExt::GetExtData(pThis))
+	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
 		if (pThis->Type->Inviso && pExt->IsInterceptor)
 			return DetonateBullet;
 
 	return 0;
-}
-
-typedef void (*v_table_ptr)();
-
-typedef struct _cpp_object
-{
-	v_table_ptr* vtable;
-} cpp_object;
-
-typedef struct
-{
-	unsigned int signature;
-	int base_class_offset;
-	unsigned int flags;
-	unsigned int type_descriptor;
-	unsigned int type_hierarchy;
-	unsigned int object_locator;
-} rtti_object_locator;
-
-/* Get type info from an object (internal) */
-static const rtti_object_locator* RTTI_GetObjectLocator(void* inptr)
-{
-	cpp_object* cppobj = (cpp_object*)inptr;
-	const rtti_object_locator* obj_locator = 0;
-
-	if (!IsBadReadPtr(cppobj, sizeof(void*)) &&
-		!IsBadReadPtr(cppobj->vtable - 1, sizeof(void*)) &&
-		!IsBadReadPtr((void*)cppobj->vtable[-1], sizeof(rtti_object_locator)))
-	{
-		obj_locator = (rtti_object_locator*)cppobj->vtable[-1];
-	}
-
-	return obj_locator;
 }
 
 DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
@@ -268,7 +235,7 @@ DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
 
 	GET(BulletClass*, pThis, ESI);
 
-	if (auto const pExt = BulletExt::GetExtData(pThis)) {
+	if (auto const pExt = BulletExt::ExtMap.Find(pThis)) {
 		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
 			// Straight trajectory has its own proximity checks.
 			return DontExplode;
@@ -289,7 +256,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0xC)
 		return ForceSnap;
 	}
 
-	if (auto const pExt = BulletExt::GetExtData(pThis)) {
+	if (auto const pExt = BulletExt::ExtMap.Find(pThis)) {
 		if (pExt->Trajectory &&
 			 pExt->Trajectory->Flag == TrajectoryFlag::Straight &&
 			!pExt->SnappedToTarget) {
@@ -308,35 +275,35 @@ DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
 	if (!pBullet->Target)
 		return 0;
 
-	auto pBulletWH = pBullet->WH;
-	auto pTarget = generic_cast<TechnoClass*>(pBullet->Target);
+	const auto pBulletWH = pBullet->WH;
+	const auto pTarget = generic_cast<TechnoClass*>(pBullet->Target);
 
 	if (pTarget
 		&& pBullet->Owner
 		&& pBulletWH
 		&& pBulletWH->MindControl)
 	{
-		if (auto pTargetType = pTarget->GetTechnoType())
+		if (const auto pTargetType = pTarget->GetTechnoType())
 		{
 			if (auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH))
 			{
-				double currentHealthPerc = pTarget->GetHealthPercentage();
-				bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
+				const double currentHealthPerc = pTarget->GetHealthPercentage();
+				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 
 				if (pWarheadExt->MindControl_Threshold < 0.0 || pWarheadExt->MindControl_Threshold > 1.0)
 					pWarheadExt->MindControl_Threshold = flipComparations ? 0.0 : 1.0;
 
-				bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
-				bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
+				const bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
+				const bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
 
 				if (skipMindControl
 					&& healthComparation
 					&& pWarheadExt->MindControl_AlternateDamage.isset()
 					&& pWarheadExt->MindControl_AlternateWarhead.isset())
 				{
-					int damage = pWarheadExt->MindControl_AlternateDamage;
+					const int damage = pWarheadExt->MindControl_AlternateDamage;
 					WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead;
-					int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, pTargetType->Armor, 0);
+					const int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, pTargetType->Armor, 0);
 
 					if (!pWarheadExt->MindControl_CanKill && pTarget->Health <= realDamage && realDamage > 1)
 						pTarget->Health = realDamage;
@@ -358,23 +325,23 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 	if (!pBullet->Target)
 		return 0;
 
-	auto pBulletWH = pBullet->WH;
-	auto pTarget = generic_cast<TechnoClass*>(pBullet->Target);
+	const auto pBulletWH = pBullet->WH;
+	const auto pTarget = generic_cast<TechnoClass*>(pBullet->Target);
 
 	if (pTarget
 		&& pBullet->Owner
 		&& pBulletWH
 		&& pBulletWH->MindControl)
 	{
-		if (auto pTargetType = pTarget->GetTechnoType())
+		if (const auto pTargetType = pTarget->GetTechnoType())
 		{
 			if (auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH))
 			{
-				double currentHealthPerc = pTarget->GetHealthPercentage();
-				bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
+				const double currentHealthPerc = pTarget->GetHealthPercentage();
+				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 
-				bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
-				bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
+				const bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
+				const bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
 
 				if (skipMindControl
 					&& healthComparation
@@ -383,8 +350,8 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 				{
 					int damage = pWarheadExt->MindControl_AlternateDamage;
 					WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead;
-					auto pAttacker = pBullet->Owner;
-					auto pAttackingHouse = pBullet->Owner->Owner;
+					const auto pAttacker = pBullet->Owner;
+					const auto pAttackingHouse = pBullet->Owner->Owner;
 					int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, pTargetType->Armor, 0);
 
 					if (!pWarheadExt->MindControl_CanKill && pTarget->Health <= realDamage)

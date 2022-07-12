@@ -294,7 +294,7 @@ void ShieldClass::AI()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive)
 	{
-		if (auto pTechnoExt = TechnoExt::GetExtData(this->Techno))
+		if (auto const pTechnoExt = TechnoExt::GetExtData(this->Techno))
 		{
 			pTechnoExt->Shield = nullptr;
 			return;

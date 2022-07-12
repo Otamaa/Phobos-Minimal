@@ -40,34 +40,6 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 //Lunar limitation
 DEFINE_JUMP(LJMP,0x546C8B, 0x546CBF);
 
-/*
-static AnimClass* __fastcall _InfantryClass_DoingAI_AnimCtor(
-AnimClassCopy* pThis,
-void* _,
-AnimTypeClass* pType,
-CoordStruct* pCoord,
-int LoopDelay,
-int LoopCount,
-DWORD flags,
-int ForceZAdjust,
-bool reverse
-)
-{
-	GET_REGISTER_STATIC_TYPE(InfantryClass*, pThisInf, esi);
-	auto const pAnim = pThis->_AnimClass_CTOR(pType, pCoord, LoopDelay, LoopCount, flags, ForceZAdjust, reverse);
-
-	if (pAnim && pThisInf)
-	{
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pThisInf->GetOwningHouse(),
-			pThisInf->Target ? pThisInf->Target->GetOwningHouse() : nullptr, false);
-	}
-
-	return pAnim;
-}
-
-DEFINE_JUMP(CALL,0x520CA4, GET_OFFSET(_InfantryClass_DoingAI_AnimCtor));
-*/
-
 static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
 	CoordStruct* pCoord ,
 	int Damage,
@@ -107,6 +79,16 @@ DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
 
 	R->EAX(pRules->VeinholeShrinkRate + nRand);
 	return 0x74D37C;
+}
+
+DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
+{
+	GET(RulesClass*, pRules, EAX);
+	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
+		ScenarioGlobal->Random(0, pRules->VeinholeGrowthRate / 2) : 0;
+
+	R->EAX(pRules->VeinholeGrowthRate + nRand);
+	return 0x74C5E7;
 }
 
 DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
@@ -184,8 +166,6 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 			return 0x75F432;
 
 	pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
-	//MapClass::DamageArea(pTechnoOwner->Location, nDamage, pTechnoOwner, pWarhead, pWarhead->Tiberium, pTechnoOwner->GetOwningHouse());
-	//MapClass::FlashbangWarheadAt(nDamage, pWarhead, pTechnoOwner->Location);
 
 	return 0x75F432;
 }
@@ -218,18 +198,6 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5) {
 	return R->ESI<TechnoClass*>()->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
 }
-
-/*
-DEFINE_HOOK(0x6F3481, TechnoClass_WhatWeaponShoudIUse_CheckWH, 0x8)
-{
-	GET(WeaponTypeClass*, pWeapon, EAX);
-	GET(WarheadTypeClass*, pWarhead, ECX);
-
-	if (!pWarhead)
-		Debug::FatalErrorAndExit("Weapon [%s] , Has Missing Warhead at %s ! \n", pWeapon->get_ID(), __FUNCTION__);
-
-	return 0x0;
-}*/
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)

@@ -9,6 +9,7 @@
 #include <BulletClass.h>
 
 #include <Ext/BulletType/Body.h>
+#include <Base/SSE_Math.h>
 
 DynamicVectorClass<VerticalLaserClass*> VerticalLaserClass::Array;
 
@@ -54,6 +55,7 @@ void  VerticalLaserClass::DealDamage(const CoordStruct& to)
 	auto const pWeaponExt = BulletTypeExt::ExtMap.Find(Weapon->Projectile);
 	if (const auto pBullet = pWeaponExt->CreateBullet(Map[to], nullptr, Weapon))
 	{
+
 		pBullet->Limbo();
 		pBullet->SetLocation(to);
 		pBullet->Explode(true);

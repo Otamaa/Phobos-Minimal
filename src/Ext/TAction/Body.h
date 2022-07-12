@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/Template.h>
 
 #include <Helpers/Template.h>
@@ -25,27 +25,21 @@ class TActionExt
 public:
 	using base_type = TActionClass;
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
-		ExtData(TActionClass* const OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override  { }
 	};
 
-	_declspec(noinline) static TActionExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return specific_cast<base_type*>(pThis) ?  reinterpret_cast<TActionExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject):nullptr;
-	}
-
-	class ExtContainer final : public TExtensionContainer<TActionExt>
+	class ExtContainer final : public Container<TActionExt>
 	{
 	public:
 		ExtContainer();

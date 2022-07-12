@@ -31,7 +31,8 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 				{
 					pTechno->Owner->TransactMoney(pType->Cost);
 					pTechno->Limbo();
-					pTechno->UnInit();
+					TechnoExt::HandleRemove(pTechno);
+
 					return;
 				}
 			}

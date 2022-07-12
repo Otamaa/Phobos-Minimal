@@ -53,7 +53,7 @@ public:
 	//nonstatic but not virtuals !
 	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool SaveBase(PhobosStreamWriter& Stm) const;
-	bool ReadBase(CCINIClass* const pINI, const char* pSection);
+	std::pair<bool, INI_EX> ReadBase(CCINIClass* const pINI, const char* pSection);
 };
 
 

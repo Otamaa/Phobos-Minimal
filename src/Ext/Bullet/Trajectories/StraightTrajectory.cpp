@@ -29,10 +29,10 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 void StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	if (!this->PhobosTrajectoryType::ReadBase(pINI, pSection))
-		return;
+	auto[bAvail, exINI] = this->PhobosTrajectoryType::ReadBase(pINI, pSection);
 
-	INI_EX exINI(pINI);
+	if (!bAvail)
+		return;
 
 	this->SnapOnTarget.Read(exINI, pSection, "Trajectory.Straight.SnapOnTarget");
 	this->SnapThreshold.Read(exINI, pSection, "Trajectory.Straight.SnapThreshold");

@@ -8,6 +8,9 @@
 #include <AnimClass.h>
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Cast.h>
+
+#include <Ext/Anim/Body.h>
 
 namespace TerrainTypeTemp
 {
@@ -15,26 +18,105 @@ namespace TerrainTypeTemp
 	TerrainTypeExt::ExtData* pCurrentExt = nullptr;
 }
 
-DEFINE_HOOK(0x71C853, TerrainTypeClass_Context_Set, 0x6)
-{
-	TerrainTypeTemp::pCurrentType = R->ECX<TerrainTypeClass*>();
-	TerrainTypeTemp::pCurrentExt = TerrainTypeExt::ExtMap.Find(TerrainTypeTemp::pCurrentType);
-
-	return 0;
-}
-
 // thiscall is being emulated here, ECX = pThis, EDX is discarded, second arg is passed thru stack - Kerbiter
-void __fastcall TerrainClass_AI_CellsPerAnim(CellClass* pThis, void*, bool forced)
-{
-	int cellCount = 1;
-	if (TerrainTypeTemp::pCurrentExt)
-		cellCount = TerrainTypeTemp::pCurrentExt->GetCellsPerAnim();
+//void __fastcall TerrainClass_AI_CellsPerAnim(CellClass* pThis, void*, bool forced)
+//{
+//	int cellCount = 1;
+//	if (TerrainTypeTemp::pCurrentExt)
+//		cellCount = TerrainTypeTemp::pCurrentExt->GetCellsPerAnim();
+//
+//	for (int i = 0; i < cellCount; i++)
+//		pThis->SpreadTiberium(forced);
+//}
 
-	for (int i = 0; i < cellCount; i++)
-		pThis->SpreadTiberium(forced);
+//DEFINE_JUMP(CALL,0x71C8D0, GET_OFFSET(TerrainClass_AI_CellsPerAnim));
+
+DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 6)
+{
+	//GET(ObjectClass*, pThis, ESI);
+	GET(ObjectTypeClass*, pType, EBX);
+
+	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
+
+	if(pType->IsLogic){
+		if (pType->WhatAmI() == AbstractType::TerrainType) {
+			auto const pTerrainType = reinterpret_cast<TerrainTypeClass* const>(pType);
+			if (pTerrainType->SpawnsTiberium || pTerrainType->IsFlammable || pTerrainType->IsAnimated) {
+				return FurtherCheck;
+			}
+		}
+		else {
+			return FurtherCheck;
+		}
+	}
+
+	return NoUpdate;
 }
 
-DEFINE_JUMP(CALL,0x71C8D0, GET_OFFSET(TerrainClass_AI_CellsPerAnim));
+DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
+{
+	enum {
+		DoCellChailReact = 0x71BAC4 ,
+		RetOriginalFunct = 0x0
+	};
+
+	GET(const TerrainClass*, pThis, ESI);
+
+	auto const pTerrainTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pTerrainTypeExt)
+		return RetOriginalFunct;
+
+	auto const nCoord = pThis->Location;
+	auto const nDamage = pTerrainTypeExt->Damage.Get(100);
+	auto const pWH = pTerrainTypeExt->Warhead.Get(RulesGlobal->C4Warhead);
+
+	if (auto const pAnim = Map.SelectDamageAnimation(nDamage, pWH, Map[nCoord]->LandType, nCoord)){
+		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, nCoord, 0, 1, 0x2600, -15, 0)){
+			AnimExt::SetAnimOwnerHouseKind(pAnimC, nullptr, nullptr, false);
+		}
+	}
+
+	if (pTerrainTypeExt->AreaDamage) {
+		Map.DamageArea(nCoord, nDamage, nullptr, pWH, true, nullptr);
+		Map.FlashbangWarheadAt(nDamage, pWH, nCoord);
+	}
+
+	return DoCellChailReact;
+}
+
+DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
+{
+	enum { SkipGameCode = 0x71C8D5 };
+
+	GET(TerrainClass* const, pThis, ESI);
+
+	if (pThis->Type->IsAnimated) {
+		if (pThis->Animation.Value == pThis->Type->GetImage()->Frames / 2) {
+			pThis->Animation.Value = 0;
+			pThis->Animation.Start(0);
+
+			if (pThis->Type->SpawnsTiberium) {
+
+				auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+				auto const pCell = pThis->GetCell();
+				int const cellCount = pTypeExt->GetCellsPerAnim();
+				// Set context for CellClass hooks.
+				TerrainTypeTemp::pCurrentType = pThis->Type;
+				TerrainTypeTemp::pCurrentExt = pTypeExt;
+
+				for (int i = 0; i < cellCount; i++)
+					pCell->SpreadTiberium(true);
+
+				// Unset context for CellClass hooks.
+				TerrainTypeTemp::pCurrentType = nullptr;
+				TerrainTypeTemp::pCurrentExt = nullptr;
+			}
+		}
+	}
+
+	return SkipGameCode;
+}
 
 DEFINE_HOOK(0x483811, CellClass_SpreadTiberium_TiberiumType, 0x8)
 {
@@ -82,14 +164,6 @@ DEFINE_HOOK(0x48381D, CellClass_SpreadTiberium_CellSpread, 0x6)
 
 		return NoSpreadReturn;
 	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x71C8D7, TerrainTypeClass_Context_Unset, 0x5)
-{
-	TerrainTypeTemp::pCurrentType = nullptr;
-	TerrainTypeTemp::pCurrentExt = nullptr;
 
 	return 0;
 }

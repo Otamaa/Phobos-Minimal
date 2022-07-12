@@ -42,8 +42,10 @@ namespace Replacer
 			&& pThis->IsAlive
 			&& (pThis->Occupants.Count > 0)
 			) {
-			if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) { {
-					auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
+			if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+			{
+				{
+					const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
 					if (nIndex != -1) {
 
 						AnimTypeClass* pDecidedAnim = nullptr;
@@ -176,9 +178,6 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 
 		pThis->DestroyExtrasFunctions(pThis->C4AppliedBy);
 		return 0x441F20;
-		//pThis->KillCargo(pKiller);
-		//R->EAX(pPointer);
-		//return 0x441F30;
 	}
 
 	return 0x0;

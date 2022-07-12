@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef DISABLE_DIRECT_Ext
 #include <AbstractClass.h>
 
 #include <Utilities/PhobosFixedString.h>
@@ -496,3 +496,4 @@ private:
 	TExtensionBranchContainer& operator = (const TExtensionBranchContainer&) = delete;
 	TExtensionBranchContainer& operator = (TExtensionBranchContainer&&) = delete;
 };
+#endif

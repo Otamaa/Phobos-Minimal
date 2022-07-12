@@ -41,12 +41,15 @@ class INI_EX {
 	CCINIClass* IniFile;
 
 public:
+	INI_EX() : IniFile { nullptr }
+	{ }
+
 	explicit INI_EX(CCINIClass* pIniFile)
-		: IniFile(pIniFile)
+		: IniFile { pIniFile }
 	{ }
 
 	explicit INI_EX(CCINIClass& iniFile)
-		: IniFile(&iniFile)
+		: IniFile { &iniFile }
 	{ }
 
 	char* value() const {

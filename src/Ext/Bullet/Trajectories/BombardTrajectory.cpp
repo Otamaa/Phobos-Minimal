@@ -18,10 +18,10 @@ bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 void BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	if (!this->PhobosTrajectoryType::ReadBase(pINI, pSection))
-		return;
+	auto[bAvail, exINI] = this->PhobosTrajectoryType::ReadBase(pINI, pSection);
 
-	INI_EX exINI(pINI);
+	if (!bAvail)
+		return;
 
 	this->Height.Read(exINI, pSection, "Trajectory.Bombard.Height");
 }

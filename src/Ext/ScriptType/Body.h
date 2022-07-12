@@ -29,7 +29,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual size_t Size() const { return sizeof(*this); }
-		virtual void Initialize() override {
+		virtual void InitializeConstants() override {
 			PhobosNode.reserve(50);
 		}
 

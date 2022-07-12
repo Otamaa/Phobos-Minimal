@@ -181,7 +181,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x4)
 
 	AbstractClass* pTarget = nullptr; //default WWP nullptr
 
-	auto pWeapon = pThis->GetDeployWeapon()->WeaponType;
+	auto const pWeapon = pThis->GetDeployWeapon()->WeaponType;
 
 	if (pWeapon
 		&& pWeapon->DecloakToFire
@@ -254,18 +254,19 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 					if (pBuilding->IsAlive && pBuilding->Health > 0) // simple fix for previous issues
 					{
 						auto pWarhead = pType->GetWarhead();
+						auto const pTechno = pRadExt->TechOwner;
 
 						if (!pType->GetWarheadDetonate())
 						{
 							auto absolute = pWarhead->WallAbsoluteDestroyer;
 							bool ignore = pBuilding->Type->Wall && absolute;
-							if (pBuilding->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pRadExt->TechOwner, ignore, false, pRadExt->RadHouse) == DamageState::NowDead)
+							if (pBuilding->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pTechno, ignore, false, pTechno ? pTechno->GetOwningHouse():nullptr) == DamageState::NowDead)
 								return 0;
 						}
 						else
 						{
 							const auto coords = pBuilding->GetCoords();
-							WarheadTypeExt::DetonateAt(pWarhead, coords, pRadExt->TechOwner, damage);
+							WarheadTypeExt::DetonateAt(pWarhead, coords, pTechno, damage);
 
 							if (!(pBuilding->IsAlive && pBuilding->Health > 0))
 								return 0;
@@ -333,15 +334,17 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 				if (pFoot->IsAlive && !pFoot->IsSinking && !pFoot->IsCrashing)
 				{
 					auto pWarhead = pType->GetWarhead();
+					auto const pTechno = pRadExt->TechOwner;
+
 					if (!pType->GetWarheadDetonate())
 					{
-						if (pFoot->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pRadExt->TechOwner, false, false, pRadExt->RadHouse) == DamageState::NowDead)
+						if (pFoot->ReceiveDamage(&damage, static_cast<int>(orDistance), pWarhead, pTechno, false, false, pTechno ? pTechno->GetOwningHouse():nullptr) == DamageState::NowDead)
 							return SkipEverything;
 					}
 					else
 					{
 						auto const coords = pFoot->GetCoords();
-						WarheadTypeExt::DetonateAt(pWarhead, coords, pRadExt->TechOwner, damage);
+						WarheadTypeExt::DetonateAt(pWarhead, coords, pTechno, damage);
 
 						if (!pFoot->IsAlive)
 							return SkipEverything;

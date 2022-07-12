@@ -3,7 +3,7 @@
 #define SET_THREATEVALS(addr , techAddr , name ,size , ret)\
 DEFINE_HOOK(addr, name, size) {\
 GET(TechnoClass* , pThis , techAddr);\
-	if (auto pTransport = pThis->Transporter) {\
+	if (auto const  pTransport = pThis->Transporter) {\
 		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())) {\
 			if (pTypeExt->Passengers_SyncOwner) return ret; }} return 0; }
 

@@ -330,12 +330,12 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 	GET(AnimClass*, pThis, ESI);
 
 	{
-		auto pType = pThis->Type;
-		if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
+		const auto pType = pThis->Type;
+		if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
 		{
 			auto pAnimTypeExt = pTypeExt;
-			auto const pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
-			auto const pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
+			const auto pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+			const auto pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
 
 			Helper::Otamaa::SpawnMultiple(
 				pAnimTypeExt->SpawnsMultiple,
@@ -344,8 +344,8 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 
 			if (pType->SpawnsParticle != -1)
 			{
-				auto const pParticleType = ParticleTypeClass::Array.get()->GetItem(pType->SpawnsParticle);
-				auto const nCoord = pThis->GetCenterCoord();
+				const auto pParticleType = ParticleTypeClass::Array.get()->GetItem(pType->SpawnsParticle);
+				const auto nCoord = pThis->GetCenterCoord();
 
 				if (pType->NumParticles > 0 && pParticleType)
 				{
@@ -505,11 +505,9 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	auto pType = pThis->Type;
-	if (!pType)
-		return 0x0;
+	const auto pType = pThis->Type;
 
-	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
+	if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType))
 	{
 		if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 		{
@@ -527,7 +525,7 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 			}
 			else
 			{
-				bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+				const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
 				if (bSpawn)
 					SmudgeTypeClass::CreateRandomSmudge(nCoord, nX, nY, false);
 			}
@@ -546,7 +544,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x4)
 
 	GameConstruct(pMem, pThis->Type->TrailerAnim, pThis->GetCoords(), 1, 1, 0x600, 0, false);
 
-	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
 	{
 		auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
 		auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
@@ -563,15 +561,14 @@ DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override, 0x8)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x8C, 0x4C));
 
 	GameConstruct(pMem, pThis->Type->Spawns, pThis->GetCoords(), 0, 1, 0x600, 0, false);
-	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
 	{
-		auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
-		auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
+		const auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+		const auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
 
 		AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
 	}
 
-	R->EAX(pMem);
 	return 0x423FC3;
 }
 

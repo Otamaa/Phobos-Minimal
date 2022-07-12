@@ -74,7 +74,7 @@ public:
 
 	int Length() const
 	{
-		return static_cast<int>(Math::sqrt(static_cast<double>(this->X * this->X + this->Y * this->Y)));
+		return static_cast<int>(Math::sqrt(static_cast<double>((X * X) + (Y * Y))));
 	}
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/Template.h>
 
 #include <Helpers/Template.h>
@@ -54,14 +54,14 @@ class TEventExt
 public:
 	using base_type = TEventClass;
 
-	class ExtData final : public TExtension<TEventClass>
+	class ExtData final : public Extension<TEventClass>
 	{
 	public:
-		ExtData(TEventClass* const OwnerObject) : TExtension<TEventClass>(OwnerObject)
+		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -71,12 +71,6 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static TEventExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return specific_cast<base_type*>(pThis) ? reinterpret_cast<TEventExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject):nullptr;
-	}
-
 	static bool Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, ObjectClass* pObject,
 					TimerStruct* pTimer, bool* isPersitant, TechnoClass* pSource, bool& bHandled);
 
@@ -85,7 +79,7 @@ public:
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
 
-	class ExtContainer final : public TExtensionContainer<TEventExt>
+	class ExtContainer final : public Container<TEventExt>
 	{
 	public:
 		ExtContainer();

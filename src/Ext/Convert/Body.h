@@ -14,7 +14,7 @@ public:
 	{
 	public:
 
-		std::string Name;
+		PhobosFixedString<0x100> Name;
 		ExtData(ConvertClass* OwnerObject) : Extension<ConvertClass>(OwnerObject)
 			, Name { }
 		{ }

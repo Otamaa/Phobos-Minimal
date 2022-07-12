@@ -9,7 +9,7 @@
 
 bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
 {
-	auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
+	const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
 	if (pUpgradeExt && EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
 	{
 		// PowersUpBuilding

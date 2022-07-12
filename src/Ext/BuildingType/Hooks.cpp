@@ -28,8 +28,8 @@ DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pType = pThis->Type;
-	if(	auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
+	const auto pType = pThis->Type;
+	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
 		if (pType->MaxNumberOccupants > 10) {
 			GET(int, nFiringIndex, EBX);
 			R->EAX(&pTypeExt->OccupierMuzzleFlashes[nFiringIndex]);
@@ -42,8 +42,8 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pType = pThis->Type;
-	if(auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
+	const auto pType = pThis->Type;
+	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
 		if (pType->MaxNumberOccupants > 10) {
 			R->EDX(&pTypeExt->OccupierMuzzleFlashes[pThis->FiringOccupantIndex]);
 		}
@@ -56,8 +56,8 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pType = pThis->Type;
-	if(auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
+	const auto pType = pThis->Type;
+	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
 		if (pType->MaxNumberOccupants > 10) {
 			GET(int, nFiringIndex, EDI);
 			R->ECX(&pTypeExt->OccupierMuzzleFlashes[nFiringIndex]);
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 
 				if (!pTypeExt->PlacementPreview_Shape.isset())
 				{
-					if (auto pBuildup = pType->LoadBuildup())
+					if (const auto pBuildup = pType->LoadBuildup())
 					{
 						bBuildupPresent = true;
 						Selected = pBuildup;

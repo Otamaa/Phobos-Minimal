@@ -67,12 +67,12 @@ public:
 	DWORD          PanicDurationLeft; // set in ReceiveDamage on panicky units
 	bool           PermanentBerzerk; // set by script action, not cleared anywhere
 	bool           Technician;
-	bool           unknown_bool_6DA;
+	bool           IsStroked; //0x6DA
 	bool           Crawling;
-	bool           unknown_bool_6DC;
-	bool           unknown_bool_6DD;
+	bool           IsZoneCheat; //0x6DC
+	bool           _WasSelected; //0x6DD
 	DWORD          unknown_6E0;
 	bool           ShouldDeploy;
-	int            unknown_int_6E8;
+	int            _OnLand; //6E8
 	PROTECTED_PROPERTY(DWORD, unused_6EC); //??
 };

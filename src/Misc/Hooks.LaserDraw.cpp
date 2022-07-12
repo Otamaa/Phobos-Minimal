@@ -29,20 +29,15 @@ DEFINE_HOOK(0x550F47, LaserDrawClass_DrawInHouseColor_BetterDrawing, 0x0)
 	GET_STACK(int, currentThickness, 0x5C)
 
 	double mult = 1.0;
-	if (pThis->Thickness > 1)
-	{
+	if (pThis->Thickness > 1) {
 		double falloffStep = 1.0 / pThis->Thickness;
 		double falloffMult = GeneralUtils::FastPow(1.0 - falloffStep, currentThickness);
 		mult = (1.0 - falloffStep * currentThickness) * falloffMult;
 	}
 
-	unsigned int r = (unsigned int)(mult * LaserDrawTemp::maxColor.R);
-	unsigned int g = (unsigned int)(mult * LaserDrawTemp::maxColor.G);
-	unsigned int b = (unsigned int)(mult * LaserDrawTemp::maxColor.B);
-
-	R->EAX(r);
-	R->ECX(g);
-	R->EDX(b);
+	R->EAX((unsigned int)(mult * LaserDrawTemp::maxColor.R));
+	R->ECX((unsigned int)(mult * LaserDrawTemp::maxColor.G));
+	R->EDX((unsigned int)(mult * LaserDrawTemp::maxColor.B));
 
 	return 0x550F9D;
 }

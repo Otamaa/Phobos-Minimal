@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Utilities/Debug.h>
+
 template<> const DWORD Extension<ConvertClass>::Canary = 0xAAAAAACC;
 ConvertExt::ExtContainer ConvertExt::ExtMap;
 
@@ -12,11 +14,11 @@ void ConvertExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_view nName) {
 	if (pConvert) {
 		if (auto pConvertExt = ConvertExt::ExtMap.Find(pConvert)) {
-			if (pConvertExt->Name.empty())
-				pConvertExt->Name = nName;
+			if (pConvertExt->Name)
+				pConvertExt->Name = nName.data();
 			else
-				if(pConvertExt->Name == nName)
-				Debug::Log("Found Duplicate Convert[%x][%s] with same Palette ! \n", pConvert,pConvertExt->Name.c_str());
+				if(strcmp(pConvertExt->Name.data(),nName.data()))
+					Debug::Log("Found Duplicate Convert[%x][%s] with same Palette ! \n", pConvert,pConvertExt->Name.data());
 		}
 	}
 }

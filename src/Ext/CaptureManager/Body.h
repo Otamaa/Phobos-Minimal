@@ -2,7 +2,7 @@
 #include <CaptureManagerClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
 #include <AnimTypeClass.h>
@@ -14,15 +14,15 @@ class CaptureExt
 public:
 	using base_type = CaptureManagerClass;
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
 
-		ExtData(CaptureManagerClass* OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -33,13 +33,9 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static CaptureExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return pThis && pThis->WhatAmI() == AbstractType::CaptureManager ? reinterpret_cast<CaptureExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject):nullptr;
-	}
+	static CaptureExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public TExtensionContainer<CaptureExt>
+	class ExtContainer final : public Container<CaptureExt>
 	{
 	public:
 		ExtContainer();

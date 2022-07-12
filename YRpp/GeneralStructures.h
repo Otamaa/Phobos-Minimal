@@ -122,6 +122,7 @@ protected:
 	}
 };
 
+typedef TimerStruct CDTimerClass;
 class RepeatableTimerStruct : public TimerStruct
 {
 public:
@@ -139,6 +140,8 @@ public:
 		this->TimerStruct::Start(this->Duration);
 	}
 };
+
+typedef RepeatableTimerStruct RateTimer;
 
 inline unsigned int TranslateFixedPoint(size_t bitsFrom, size_t bitsTo, unsigned int value, unsigned int offset = 0) {
 	const size_t MaskIn = ((1u << bitsFrom) - 1);

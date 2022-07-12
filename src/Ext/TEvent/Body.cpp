@@ -9,7 +9,7 @@
 #include <AircraftClass.h>
 
 //Static init
-template<> const DWORD TExtension<TEventClass>::Canary = 0x91919191;
+template<> const DWORD Extension<TEventClass>::Canary = 0x91919191;
 TEventExt::ExtContainer TEventExt::ExtMap;
 
 void TEventExt::ExtData::InitializeConstants() { }
@@ -25,11 +25,13 @@ void TEventExt::ExtData::Serialize(T& Stm)
 
 void TEventExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<TEventClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TEventExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<TEventClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -172,7 +174,7 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 // =============================
 // container
 
-TEventExt::ExtContainer::ExtContainer() : TExtensionContainer("TEventClass") { }
+TEventExt::ExtContainer::ExtContainer() : Container("TEventClass") { }
 TEventExt::ExtContainer::~ExtContainer() = default;
 
 bool TEventExt::LoadGlobals(PhobosStreamReader& Stm)

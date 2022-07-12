@@ -1,5 +1,5 @@
 #include "Body.h"
-
+#ifdef DISABLE_DIRECT_Ext
 #include <Base/Always.h>
 #include <SwizzleManagerClass.h>
 #include <Checksummer.h>
@@ -158,3 +158,4 @@ DEFINE_HOOK(0x410380, AbstractClass_Load, 0x5)
 
 	return 0x41038F;
 }
+#endif

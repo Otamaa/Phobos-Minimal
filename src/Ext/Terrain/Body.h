@@ -20,22 +20,19 @@ public:
 	{
 	public:
 
-		UniqueGamePtr<LightSourceClass> LighSource;
+		LightSourceClass* LighSource;
 		UniqueGamePtr<AnimClass> AttachedAnim;
-		TerrainTypeExt::ExtData* TypeData;
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
 			, LighSource { }
 			, AttachedAnim { }
-			, TypeData { nullptr }
 		{ }
 
 		virtual ~ExtData() = default;
 		virtual size_t Size() const { return sizeof(*this); };
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override
 		{
-			if (LighSource.get() && (void*)LighSource.get() == ptr)
-				LighSource.release();
+			AnnounceInvalidPointer(LighSource,ptr);
 
 			if (AttachedAnim.get() && (void*)AttachedAnim.get() == ptr)
 				AttachedAnim.release();

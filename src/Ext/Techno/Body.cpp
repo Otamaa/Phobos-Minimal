@@ -42,6 +42,18 @@ TechnoExt::ExtData* TechnoExt::GetExtData(TechnoExt::base_type* pThis)
 	return  ExtMap.Find(pThis);
 }
 
+void TechnoExt::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
+{
+	if (pFrom->IsIronCurtained() && !pFrom->ForceShielded) {
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pFrom->GetTechnoType());
+		if (pTypeExt->IronCurtain_SyncDeploysInto.Get(RulesExt::Global()->IronCurtain_SyncDeploysInto))
+		{
+			pTo->IronCurtain(pFrom->IronCurtainTimer.GetTimeLeft(), pFrom->Owner, false);
+			pTo->IronTintStage = pFrom->IronTintStage;
+		}
+	}
+}
+
 void TechnoExt::ExtData::InitializeConstants()
 {
 	LaserTrails.reserve(2);
@@ -89,7 +101,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 	if (!pThis || weaponIndex < 0 || !pExt)
 		goto Return;
 
-	auto pInf = abstract_cast<InfantryClass*>(pThis);
+	const auto pInf = abstract_cast<InfantryClass*>(pThis);
 	auto& pickedFLHs = pExt->WeaponBurstFLHs;
 
 	if (pThis->Veterancy.IsElite())
@@ -395,7 +407,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	if (!pThis || damage == 0)
 		return;
 
-	const auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (!pExt)
 		return;
@@ -491,7 +503,7 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
 	if (auto pVictimTechno = static_cast<TechnoClass*>(pVictim))
 	{
-		auto pVictimTechnoData = TechnoExt::GetExtData(pVictim);
+		auto pVictimTechnoData = TechnoExt::ExtMap.Find(pVictim);
 
 		if (pVictimTechnoData && pKiller)
 		{
@@ -504,7 +516,7 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 
 			if (pObjectKiller && pObjectKiller->BelongsToATeam())
 			{
-				if (auto pKillerTechnoData = TechnoExt::GetExtData(pObjectKiller))
+				if (auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller))
 				{
 					auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller);
 					auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
@@ -547,7 +559,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 	if (pTypeData->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
 	{
-		if (auto pTransport = pThis->Transporter) {
+		if (auto const pTransport = pThis->Transporter) {
 			if (pTransport->WhatAmI() == AbstractType::Aircraft)
 				if (!pTransport->IsInAir())
 					return;
@@ -556,7 +568,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 		auto const iter = std::find_if(BulletClass::Array->begin(), BulletClass::Array->end(), [=](BulletClass* const pBullet)
 	{
 
-		if (const auto pBulletTypeData = BulletTypeExt::GetExtData(pBullet->Type))
+		if (const auto pBulletTypeData = BulletTypeExt::ExtMap.Find(pBullet->Type))
 		{
 			if (!pBulletTypeData->Interceptable || pBullet->Health <= 0 || pBullet->InLimbo)
 				return false;
@@ -578,7 +590,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 				}
 
 				// dont target same bulet multiple time , ugh ,..
-				if (const auto pBulletExt = BulletExt::GetExtData(pBullet))
+				if (const auto pBulletExt = BulletExt::ExtMap.Find(pBullet))
 				{
 					const auto bulletOwner = pBullet->Owner ? pBullet->Owner->GetOwningHouse() : pBulletExt->Owner;
 
@@ -669,7 +681,7 @@ bool TechnoExt::HasAvailableDock(TechnoClass* pThis)
 
 void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 {
-	auto pExt = TechnoExt::GetExtData(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (!pExt || pThis->WhatAmI() == AbstractType::Building || pThis->GetTechnoType()->Invisible)
 		return;
@@ -776,7 +788,7 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 	if (!TechnoExt::IsActive(pThis, false, false))
 		return;
 
-	auto pExt = TechnoExt::GetExtData(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	if (!pExt)
 		return;
 
@@ -873,9 +885,9 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 						if (auto pPassangerOwner = pPassenger->GetOwningHouse()) {
 							if (auto pBld = specific_cast<BuildingClass*>(pThis)){
 								if (pBld->Absorber()){
-									pPassangerOwner->RecheckPower = true;
-
-									pBld->UpdateThreatInCell(pBld->GetCell());
+									if (pBld->Type->ExtraPowerBonus > 0) {
+										pBld->Owner->RecheckPower = true;
+									}
 								}
 							}
 
@@ -916,6 +928,33 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 	return false;
 }
 
+void TechnoExt::HandleRemove(TechnoClass* pThis)
+{
+	pThis->KillCargo(pThis);
+
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		pBuilding->KillOccupants(nullptr);
+	}
+
+	if (const auto pOwner = pThis->GetOwningHouse()) {
+		if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant) {
+			pOwner->RegisterLoss(pThis, false);
+			pOwner->RemoveTracking(pThis);
+			pOwner->RecheckTechTree = true;
+		}
+	}
+
+	if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		pFoot->LiberateMember();
+
+	pThis->RemoveFromTargetingAndTeam();
+
+	for (auto const pBullet : *BulletClass::Array)
+		if (pBullet && pBullet->Target == pThis)
+			pBullet->LoseTarget();
+
+}
+
 void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 {
 	if (isPeaceful)
@@ -925,24 +964,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 		if(!pThis->InLimbo)
 			pThis->Limbo();
 
-		if(auto pOwner = pThis->GetOwningHouse()) {
-			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant) {
-				pOwner->RegisterLoss(pThis, false);
-				pOwner->RemoveTracking(pThis);
-				pOwner->RecheckTechTree = true;
-			}
-		}
-
-		if (auto pFoot = generic_cast<FootClass*>(pThis))
-			pFoot->LiberateMember();
-
-		pThis->RemoveFromTargetingAndTeam();
-
-		for (auto const& pBullet : *BulletClass::Array)
-			if (pBullet && pBullet->Target == pThis)
-				pBullet->LoseTarget();
-
-		pThis->UnInit();
+		TechnoExt::HandleRemove(pThis);
 	}
 	else
 	{
@@ -974,26 +996,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , boo
 		if(RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		if (auto pOwner = pThis->GetOwningHouse())
-		{
-			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
-			{
-				pOwner->RegisterLoss(pThis, false);
-				pOwner->RemoveTracking(pThis);
-				pOwner->RecheckTechTree = true;
-			}
-		}
-
-		if (auto pFoot = generic_cast<FootClass*>(pThis))
-			pFoot->LiberateMember();
-
-		pThis->RemoveFromTargetingAndTeam();
-
-		for (auto const pBullet : *BulletClass::Array)
-			if (pBullet && pBullet->Target == pThis)
-				pBullet->LoseTarget();
-
-		pThis->UnInit();
+		TechnoExt::HandleRemove(pThis);
 
 	}break;
 	case KillMethod::Sell:
@@ -1029,7 +1032,7 @@ void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 		return;
 
 	auto pTypeThis = pThis->GetTechnoType();
-	auto pData = TechnoExt::GetExtData(pThis);
+	auto pData = TechnoExt::ExtMap.Find(pThis);
 	if (!pData)
 		return;
 
@@ -1310,7 +1313,7 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 
 void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 {
-	if (const auto pExt = TechnoExt::GetExtData(pThis))
+	if (const auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		if (pThis->IsMindControlled())
 		{
@@ -1397,7 +1400,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->ExtraWeaponTimers)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
-		//.Process(this->PaintBallState)
+		.Process(this->PaintBallState)
 #endif;
 		;
 	//should put this inside techo ext , ffs
@@ -1419,13 +1422,13 @@ TechnoExt::ExtContainer::~ExtContainer() = default;
 
 void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TechnoClass>::LoadFromStream(Stm);
+	Extension<TechnoClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TechnoClass>::SaveToStream(Stm);
+	Extension<TechnoClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -1474,7 +1477,7 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	GET(void*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = TechnoExt::GetExtData(pThis))
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;

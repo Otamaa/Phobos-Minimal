@@ -18,7 +18,7 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	GET(UnitClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));
 
-	if(auto pExt = TechnoExt::GetExtData(pThis))
+	if(const auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		R->ECX(R->ESI());
 		pExt->ReceiveDamage = true;
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x738807, UnitClass_Destroy_DestroyAnim, 0x8)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (auto const Extension = TechnoExt::GetExtData(pThis)) {
+	if (auto const Extension = TechnoExt::ExtMap.Find(pThis)) {
 		if(!Extension->ReceiveDamage)
 			AnimTypeExt::ProcessDestroyAnims(pThis);
 
@@ -69,9 +69,9 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
 	{
-		if (auto unit = pTypeExt->CreateUnit.Get())
+		if (const auto unit = pTypeExt->CreateUnit.Get())
 		{
 			HouseClass* decidedOwner = (pThis->Owner)
 				? pThis->Owner : HouseExt::FindCivilianSide();
@@ -106,18 +106,18 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 			if (auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
 			{
 				bool success = false;
-				if (auto const pExt = AnimExt::GetExtData(pThis))
+				if (const auto pExt = AnimExt::ExtMap.Find(pThis))
 				{
-					auto aFacing = pTypeExt->CreateUnit_RandomFacing.Get()
+					const auto aFacing = pTypeExt->CreateUnit_RandomFacing.Get()
 						? ScenarioGlobal->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
 
-					short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->FromDeathUnit)
+					const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->FromDeathUnit)
 						? pExt->DeathUnitFacing : aFacing;
 
 					if (pCell)
 						pTechno->OnBridge = pCell->ContainsBridge();
 
-					BuildingClass* pBuilding = pCell ? 
+					BuildingClass* pBuilding = pCell ?
 					pCell->GetBuilding() : Map[location]->GetBuilding();
 
 					if (!pBuilding)
@@ -147,8 +147,9 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 					}
 					else
 					{
-						if (pTechno)
-							pTechno->UnInit();
+						if (pTechno) {
+							TechnoExt::HandleRemove(pTechno);
+						}
 					}
 				}
 			}
@@ -174,7 +175,7 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x0)
 
 		if(auto pTech = pThis->Owner) {
 			pInvoker =pThis->Owner->GetOwningHouse();
-			if(auto const pAnimExt = AnimExt::GetExtData(pAnim))
+			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
 				pAnimExt->Invoker = pTech;
 		}
 

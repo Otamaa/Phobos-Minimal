@@ -138,7 +138,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 	if (ReceiveDamageArgs.WH->Sparky)
 	{
 		auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-		bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
+		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
 		if (Onfire && pFireType.size() >= 3)
@@ -157,8 +157,8 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop))
 						{
 							pAnim->SetOwnerObject(pThis);
-							auto pKiller = ReceiveDamageArgs.Attacker;
-							auto Invoker = (pKiller) ? pKiller->Owner : ReceiveDamageArgs.SourceHouse;
+							const auto pKiller = ReceiveDamageArgs.Attacker;
+							const auto Invoker = (pKiller) ? pKiller->Owner : ReceiveDamageArgs.SourceHouse;
 
 							AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 						}

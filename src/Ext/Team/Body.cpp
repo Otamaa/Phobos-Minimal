@@ -37,13 +37,13 @@ void TeamExt::ExtData::Serialize(T& Stm)
 
 void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TeamClass>::LoadFromStream(Stm);
+	Extension<TeamClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TeamClass>::SaveToStream(Stm);
+	Extension<TeamClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

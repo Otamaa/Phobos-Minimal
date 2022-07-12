@@ -164,23 +164,22 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceOnInfantry)
 		.Process(this->BounceOnVehicle)
 		.Process(this->PreExplodeRange)
-#ifdef COMPILE_PORTED_DP_FEATURES
-		.Process(this->Trails)
-#endif
 		;
-
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->Trails.Serialize(Stm);
+#endif
 	this->TrajectoryType = PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
 
 void BulletTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BulletTypeClass>::LoadFromStream(Stm);
+	Extension<BulletTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BulletTypeClass>::SaveToStream(Stm);
+	Extension<BulletTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

@@ -31,11 +31,7 @@ void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, Wea
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 
-	if(pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner){
-
-		if(pRadExt->Type->GetHasOwner())
-			pRadExt->RadHouse = pTech->GetOwningHouse();
-
+	if(pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner()){
 		pRadExt->TechOwner = pTech;
 	}
 
@@ -132,7 +128,6 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Weapon)
-		.Process(this->RadHouse)
 		.Process(this->Type)
 		.Process(this->TechOwner)
 		.Process(this->NoOwner)
@@ -141,13 +136,13 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 
 void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<RadSiteClass>::LoadFromStream(Stm);
+	Extension<RadSiteClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<RadSiteClass>::SaveToStream(Stm);
+	Extension<RadSiteClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

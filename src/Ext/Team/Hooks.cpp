@@ -2,12 +2,12 @@
 
 #include <Ext/TechnoType/Body.h>
 
-static bool GroupAllowed(const std::string_view nFirst, const std::string_view nSecond)
+static bool GroupAllowed(const std::string& nFirst, const std::string& nSecond)
 {
-	if (IS_SAME_STR_(nFirst.data(), NONE_STR) || IS_SAME_STR_(nSecond.data(), NONE_STR))
+	if (IS_SAME_STR_(nFirst.c_str(), NONE_STR) || IS_SAME_STR_(nSecond.c_str(), NONE_STR))
 		return false;
 
-	return IS_SAME_STR_(nFirst.data(), nSecond.data());
+	return IS_SAME_STR_(nFirst.c_str(), nSecond.c_str());
 }
 
 DEFINE_HOOK(0x6EAD80, TeamClass_Recuits_CompareType_Convert_UnitType, 0xD)

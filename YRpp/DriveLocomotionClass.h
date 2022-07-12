@@ -38,7 +38,7 @@ public:
 
 	DWORD Ramp1;
 	DWORD Ramp2;
-	RepeatableTimerStruct SlopeTimer;
+	RateTimer SlopeTimer;
 	CoordStruct Destination;
 	CoordStruct HeadToCoord;
 	int SpeedAccum;
@@ -46,12 +46,11 @@ public:
 	DWORD TrackNumber;
 	int TrackIndex;
 	bool IsOnShortTrack;
-	BYTE field_61;
+	BYTE IsTurretLockedDown;
 	bool IsRotating;
-	bool IsDriving;
-	bool can_crush_64;
+	bool IsDriving; 
 	bool IsLocked;
-	AbstractClass *Raider;
+	AbstractClass* Raider;
 	int field_6C;
 };
 

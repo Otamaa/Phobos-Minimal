@@ -192,7 +192,7 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 
 static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 {
-	if (auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
 		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 

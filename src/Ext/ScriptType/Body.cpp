@@ -26,13 +26,13 @@ void ScriptTypeExt::ExtData::Serialize(T& Stm)
 
 void ScriptTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<ScriptTypeClass>::LoadFromStream(Stm);
+	Extension<ScriptTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void ScriptTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<ScriptTypeClass>::SaveToStream(Stm);
+	Extension<ScriptTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

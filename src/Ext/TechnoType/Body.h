@@ -196,6 +196,7 @@ public:
 		std::vector<DynamicVectorClass<CoordStruct>> DeployedWeaponBurstFLHs;
 		std::vector<DynamicVectorClass<CoordStruct>> EliteDeployedWeaponBurstFLHs;
 
+		Nullable<bool> IronCurtain_SyncDeploysInto;
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
@@ -423,6 +424,7 @@ public:
 			, DeployedWeaponBurstFLHs{ }
 			, EliteDeployedWeaponBurstFLHs{ }
 
+			, IronCurtain_SyncDeploysInto { }
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }
@@ -582,7 +584,7 @@ public:
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
 
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag);
-	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string_view pID);
+	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

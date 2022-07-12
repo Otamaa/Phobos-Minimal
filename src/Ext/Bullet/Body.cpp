@@ -45,7 +45,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 		auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
 			[=](RadSiteClass* const pSite)
 {
-				auto pSiteExt = RadSiteExt::GetExtData(pSite);
+				const auto pSiteExt = RadSiteExt::GetExtData(pSite);
 
 				if (pSiteExt->Type != pRadType)
 					return false;
@@ -58,6 +58,9 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 
 				if (pWeapon != pSiteExt->Weapon)
 					return false;
+
+				if (pSiteExt->TechOwner && pThis->Owner)
+					return pSiteExt->TechOwner == pThis->Owner;
 
 				return true;
 			});
@@ -209,13 +212,13 @@ void BulletExt::ExtData::Serialize(T& Stm)
 
 void BulletExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BulletClass>::LoadFromStream(Stm);
+	Extension<BulletClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BulletClass>::SaveToStream(Stm);
+	Extension<BulletClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

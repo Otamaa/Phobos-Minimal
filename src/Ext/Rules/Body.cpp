@@ -92,6 +92,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RadWarhead_Detonate.Read(exINI, RADIATION_SECTION, "RadSiteWarhead.Detonate");
 	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
+	this->IronCurtain_SyncDeploysInto.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
 
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
 	this->Pips_Shield_Buildings.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
@@ -115,7 +116,6 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->InfantryGainSelfHealCap.Read(exINI, GENERAL_SECTION, "InfantryGainSelfHealCap");
 	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
 
-
 	this->EnemyInsignia.Read(exINI, GENERAL_SECTION, "EnemyInsignia");
 	this->ShowAllyDisguiseBlinking.Read(exINI, GENERAL_SECTION, "ShowAllyDisguiseBlinking");
 
@@ -136,7 +136,7 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-		std::string_view ModNameTemp;
+		std::string ModNameTemp;
 		pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
 		ModNameTemp = Phobos::readBuffer;
 
@@ -348,7 +348,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->RadWarhead_Detonate)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
-
+		.Process(this->IronCurtain_SyncDeploysInto)
 		.Process(this->VeinholeParticle)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
@@ -370,13 +370,13 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 void RulesExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<RulesClass>::LoadFromStream(Stm);
+	Extension<RulesClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void RulesExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<RulesClass>::SaveToStream(Stm);
+	Extension<RulesClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

@@ -90,9 +90,9 @@ void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
 
 static void KillSlave(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt)
 {
-	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
+	if (const auto pInf = specific_cast<InfantryClass*>(pThis)) {
 		if (pInf->Type->Slaved && !pInf->InLimbo && pInf->IsAlive && pInf->Health > 0 && !pInf->TemporalTargetingMe) {
-			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
 			if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() || pExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
 				TechnoExt::KillSelf(pInf, pTypeExt->Death_Method);
 		}
@@ -259,7 +259,6 @@ DEFINE_JUMP(CALL,0x414DA3,GET_OFFSET(AircraftClass_AI_));
 
 static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 {
-
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	auto const pExt = TechnoExt::GetExtData(pThis);
@@ -278,24 +277,18 @@ DEFINE_JUMP(CALL,0x73647B, GET_OFFSET(UnitClass_AI_));
 
 DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
-
-	//auto const pExt = TechnoExt::GetExtData(pThis);
-	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	GET(const FootClass*, pThis, ESI);
 
 	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
 	{
 		//Spawnee trying to chase Aircraft that go out of map until it reset
 		//fix this , so reset immedietely if target is not on map
-		if (pThis->SpawnOwner && (!pTargetTech->IsOnMap || pTargetTech->TemporalTargetingMe))
+		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe))
 		{
 			pThis->SpawnOwner->SetTarget(nullptr);
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
 	}
-
-
-	//if (pExt && pTypeExt) { }
 
 	return pThis->IsLocked() ? 0x4DA677 : 0x4DA643;
 }

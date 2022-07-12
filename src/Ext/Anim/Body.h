@@ -113,7 +113,7 @@ public:
 
 			if (pExt->Layer_UseObjectLayer.Get()) {
 				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
-					if (auto pLocomotor = pFoot->Locomotor.get())
+					if (auto const pLocomotor = pFoot->Locomotor.get())
 						return pLocomotor->In_Which_Layer();
 				}
 				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))

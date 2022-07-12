@@ -16,7 +16,7 @@ DEFINE_HOOK(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 	if (pUnit->Type->DeployToFire && pUnit->Target)
 		pStructure->LastTarget = pUnit->Target;
 
-	if (auto pStructureExt = BuildingExt::ExtMap.Find(pStructure))
+	if (const auto pStructureExt = BuildingExt::ExtMap.Find(pStructure))
 		pStructureExt->DeployedTechno = true;
 
 	return 0;
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x0)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
+	const auto pExt = BuildingExt::ExtMap.Find(pThis);
 	if (pExt && pExt->DeployedTechno && pThis->LastTarget)
 	{
 		pThis->Target = pThis->LastTarget;
@@ -50,7 +50,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0xC)
 	if (!pBuilding)
 		return 0;
 
-	HouseClass* pOwner = pBuilding->Owner;
+	const HouseClass* pOwner = pBuilding->Owner;
 
 	if (!pOwner)
 		return 0;
@@ -76,17 +76,13 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 	{
 		if (Unsorted::CurrentFrame % 15 == 0 && pExt->AccumulatedGrindingRefund)
 		{
-			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-
-			int refundAmount = pExt->AccumulatedGrindingRefund;
-			bool isPositive = refundAmount > 0;
-			auto color = isPositive ? ColorStruct { 0, 255, 0 } : ColorStruct { 255, 0, 0 };
+			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+			const  int refundAmount = pExt->AccumulatedGrindingRefund;
+			const bool isPositive = refundAmount > 0;
+			const auto color = isPositive ? ColorStruct { 0, 255, 0 } : ColorStruct { 255, 0, 0 };
 			wchar_t moneyStr[0x20];
 			swprintf_s(moneyStr, L"%s$%d", isPositive ? L"+" : L"-", std::abs(refundAmount));
-
-			auto coords = CoordStruct::Empty;
-			coords = *pThis->GetCenterCoord(&coords);
-
+			auto coords = pThis->GetCenterCoord();
 			int width = 0, height = 0;
 			BitFont::Instance->GetTextDimension(moneyStr, &width, &height, 120);
 

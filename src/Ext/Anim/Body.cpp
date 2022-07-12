@@ -68,7 +68,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 	{
 		if (!pTypeExt->NoOwner)
 		{
-			if (auto pExt = AnimExt::GetExtData(pAnim))
+			if (const auto pExt = AnimExt::GetExtData(pAnim))
 				pExt->Invoker = pTechnoInvoker;
 
 			if (!pTypeExt->CreateUnit.Get())
@@ -134,7 +134,7 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 	if (!DealthByOwner)
 		return nullptr;
 
-	auto pExt = AnimExt::GetExtData(pThis);
+	auto const pExt = AnimExt::GetExtData(pThis);
 	if (pExt && pExt->Invoker)
 		return pExt->Invoker;
 
@@ -173,16 +173,15 @@ bool AnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 void AnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AnimClass>::LoadFromStream(Stm);
+	Extension<AnimClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void AnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AnimClass>::SaveToStream(Stm);
+	Extension<AnimClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
-
 
 AnimExt::ExtContainer::ExtContainer() : Container("AnimClass") { }
 AnimExt::ExtContainer::~ExtContainer() = default;
@@ -206,7 +205,6 @@ DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
 	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	return 0;
 }*/
-
 
 DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 {

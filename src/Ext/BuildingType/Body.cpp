@@ -416,13 +416,13 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 
 void BuildingTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BuildingTypeClass>::LoadFromStream(Stm);
+	Extension<BuildingTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void BuildingTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BuildingTypeClass>::SaveToStream(Stm);
+	Extension<BuildingTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

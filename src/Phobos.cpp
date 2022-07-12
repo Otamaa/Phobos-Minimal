@@ -22,7 +22,7 @@
 #include <cfenv>
 
 #ifndef IS_RELEASE_VER
-bool HideWarning = false;
+bool Phobos::Config::HideWarning = false;
 #endif
 
 HMODULE Phobos::hInstance = NULL;
@@ -118,7 +118,7 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		*/
 		if (_stricmp(pArg, "-b=" _STR(BUILD_NUMBER)) == 0)
 		{
-			HideWarning = true;
+			Phobos::Config::HideWarning = true;
 		}
 	}
 
@@ -308,7 +308,6 @@ SYRINGE_HANDSHAKE(pInfo)
 		// accept tfd and cd version 1.001
 		if (pInfo->exeTimestamp == YR_TIME_1001)
 		{
-
 			// don't accept expanded exes
 			switch (pInfo->exeFilesize)
 			{
@@ -397,33 +396,37 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 	Patch::ApplyStatic();
-	DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-	GetComputerName(Phobos::Otamaa::PCName, &dwSize);
 
-	if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
+	if (!Phobos::Config::HideWarning)
 	{
-		Phobos::Otamaa::IsAdmin = true;
+		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+		GetComputerName(Phobos::Otamaa::PCName, &dwSize);
 
-		if (Phobos::DetachFromDebugger())
+		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
-			MessageBoxW(NULL,
-			L"You can now attach a debugger.\n\n"
+			Phobos::Otamaa::IsAdmin = true;
 
-			L"Press OK to continue YR execution.",
-			L"Debugger Notice", MB_OK);
-		}
-		else
-		{
-			MessageBoxW(NULL,
-			L"You can now attach a debugger.\n\n"
+			if (Phobos::DetachFromDebugger())
+			{
+				MessageBoxW(NULL,
+				L"You can now attach a debugger.\n\n"
 
-			L"To attach a debugger find the YR process in Process Hacker "
-			L"/ Visual Studio processes window and detach debuggers from it, "
-			L"then you can attach your own debugger. After this you should "
-			L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
+				L"Press OK to continue YR execution.",
+				L"Debugger Notice", MB_OK);
+			}
+			else
+			{
+				MessageBoxW(NULL,
+				L"You can now attach a debugger.\n\n"
 
-			L"Press OK to continue YR execution.",
-			L"Debugger Notice", MB_OK);
+				L"To attach a debugger find the YR process in Process Hacker "
+				L"/ Visual Studio processes window and detach debuggers from it, "
+				L"then you can attach your own debugger. After this you should "
+				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
+
+				L"Press OK to continue YR execution.",
+				L"Debugger Notice", MB_OK);
+			}
 		}
 	}
 #ifdef ENABLE_ENCRYPTION_HOOKS
@@ -590,7 +593,7 @@ DEFINE_JUMP(CALL,0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 {
-	if (!HideWarning) {
+	if (!Phobos::Config::HideWarning) {
 		auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
 
 		RectangleStruct rect = {

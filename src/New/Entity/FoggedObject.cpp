@@ -1,5 +1,5 @@
 #include "FoggedObject.h"
-
+#ifdef ENABLE_FOGGED_OBJ
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Cell/Body.h>
 
@@ -549,3 +549,4 @@ DEFINE_HOOK(0x685659, Clear_Scenario_FoggedObjects, 0xA)
 
 	return 0;
 }
+#endif

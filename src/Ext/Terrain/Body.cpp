@@ -5,16 +5,17 @@ template<> const DWORD Extension<TerrainClass>::Canary = 0xE1E2E3E4;
 TerrainExt::ExtContainer TerrainExt::ExtMap;
 
 void TerrainExt::ExtData::InitializeConstants() {
-	auto const pData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);
-	this->TypeData = pData;
+
 }
 
 void TerrainExt::ExtData::InitializeLightSource()
 {
+	auto const TypeData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);
+
 	if (!TypeData->LightIntensity.isset())
 		return;
 
-	if (!this->LighSource.get())
+	if (!this->LighSource)
 	{
 		auto const nVisibility = TypeData->LightVisibility.Get();
 
@@ -26,7 +27,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 		if (auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
-			this->LighSource.reset(light);
+			this->LighSource = std::move(light);
 			this->LighSource->Activate();
 		}
 	}
@@ -36,6 +37,8 @@ void TerrainExt::ExtData::InitializeAnim()
 {
 	if (!AttachedAnim.get())
 	{
+		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);
+
 		if (TypeData->AttachedAnim.empty())
 			return;
 
@@ -71,10 +74,10 @@ void TerrainExt::ExtData::ClearAnim()
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	if (auto const pLight = this->LighSource.get())
+	if (auto const pLight = this->LighSource)
 	{
 		pLight->Deactivate();
-		this->LighSource.release();
+		GameDelete(LighSource);
 	}
 }
 
@@ -116,13 +119,13 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 
 void TerrainExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TerrainClass>::LoadFromStream(Stm);
+	Extension<TerrainClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TerrainClass>::SaveToStream(Stm);
+	Extension<TerrainClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

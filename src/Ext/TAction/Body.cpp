@@ -14,19 +14,17 @@
 //Static init
 #include <TagClass.h>
 
-template<> const DWORD TExtension<TActionExt::base_type>::Canary = 0x87154321;
+template<> const DWORD Extension<TActionExt::base_type>::Canary = 0x87154321;
 TActionExt::ExtContainer TActionExt::ExtMap;
 
 void TActionExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Stm
-		;
+	Extension<TActionClass>::Serialize(Stm);
 }
 
 void TActionExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Stm
-		;
+	Extension<TActionClass>::Serialize(Stm);
 }
 
 bool TActionExt::LoadGlobals(PhobosStreamReader& Stm)
@@ -44,7 +42,7 @@ bool TActionExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TActionExt::ExtContainer::ExtContainer() : TExtensionContainer("TActionClass") { };
+TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
 TActionExt::ExtContainer::~ExtContainer() = default;
 
 //

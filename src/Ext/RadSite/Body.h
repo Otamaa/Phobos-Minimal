@@ -20,12 +20,10 @@ public:
 	public:
 		WeaponTypeClass* Weapon;
 		RadTypeClass* Type;
-		HouseClass* RadHouse;
 		TechnoClass* TechOwner;
 		bool NoOwner;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, RadHouse { nullptr }
 			, Type { nullptr }
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
@@ -34,7 +32,6 @@ public:
 
 		virtual ~ExtData() = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override{
-			AnnounceInvalidPointer(RadHouse, ptr);
 			AnnounceInvalidPointer(TechOwner, ptr);
 		}
 
@@ -65,7 +62,6 @@ public:
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
-			case AbstractType::House:
 			case AbstractType::Building:
 			case AbstractType::Aircraft:
 			case AbstractType::Unit:

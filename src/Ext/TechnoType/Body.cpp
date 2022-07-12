@@ -62,11 +62,11 @@ const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
 	return pType->ID;
 }
 
-bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::string_view pID)
+bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID)
 {
 	auto id = TechnoTypeExt::GetSelectionGroupID(pType);
 
-	return (IS_SAME_STR_(id, pID.data()));
+	return (IS_SAME_STR_(id, pID.c_str()));
 }
 
 bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
@@ -424,6 +424,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->E_DeployedPrimaryFireFLH.Read(exArtINI, pArtSection, "EliteDeployedPrimaryFireFLH");
 	this->E_DeployedSecondaryFireFLH.Read(exArtINI, pArtSection, "EliteDeployedSecondaryFireFLH");
 
+	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -441,11 +442,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	PrimaryCrawlFLH.Read(exArtINI, pArtSection, "PrimaryCrawlingFLH");
-	Elite_PrimaryCrawlFLH.Read(exArtINI, pArtSection, "ElitePrimaryCrawlingFLH");
+	this->PrimaryCrawlFLH.Read(exArtINI, pArtSection, "PrimaryCrawlingFLH");
+	this->Elite_PrimaryCrawlFLH.Read(exArtINI, pArtSection, "ElitePrimaryCrawlingFLH");
 
-	SecondaryCrawlFLH.Read(exArtINI, pArtSection, "SecondaryCrawlingFLH");
-	Elite_SecondaryCrawlFLH.Read(exArtINI, pArtSection, "EliteSecondaryCrawlingFLH");
+	this->SecondaryCrawlFLH.Read(exArtINI, pArtSection, "SecondaryCrawlingFLH");
+	this->Elite_SecondaryCrawlFLH.Read(exArtINI, pArtSection, "EliteSecondaryCrawlingFLH");
 
 	this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 	this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
@@ -576,10 +577,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->E_DeployedPrimaryFireFLH)
 		.Process(this->E_DeployedSecondaryFireFLH)
 
-
-		.Process(this->E_DeployedPrimaryFireFLH)
-		.Process(this->E_DeployedSecondaryFireFLH)
-
+		.Process(this->IronCurtain_SyncDeploysInto)
 
 		.Process(this->CrouchedWeaponBurstFLHs)
 		.Process(this->EliteCrouchedWeaponBurstFLHs)
@@ -713,13 +711,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 }
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TechnoTypeClass>::LoadFromStream(Stm);
+	Extension<TechnoTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TechnoTypeClass>::SaveToStream(Stm);
+	Extension<TechnoTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

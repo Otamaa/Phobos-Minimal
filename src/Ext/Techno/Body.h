@@ -312,6 +312,8 @@ public:
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
-
+	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
+
+	static void HandleRemove(TechnoClass* pThis);
 };

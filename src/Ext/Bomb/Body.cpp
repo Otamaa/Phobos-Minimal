@@ -1,16 +1,25 @@
 #include "Body.h"
 
-template<> const DWORD TExtension<BombClass>::Canary = 0x87659781;
+template<> const DWORD Extension<BombClass>::Canary = 0x87659781;
 BombExt::ExtContainer BombExt::ExtMap;
 
 // =============================
 // load / save
 
+template <typename T>
+void BombExt::ExtData::Serialize(T& Stm) { }
+
 void BombExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{ }
+{
+	Extension<BombClass>::Serialize(Stm);
+	this->Serialize(Stm);
+}
 
 void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{ }
+{
+	Extension<BombClass>::Serialize(Stm);
+	this->Serialize(Stm);
+}
 
 bool BombExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -27,29 +36,25 @@ bool BombExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BombExt::ExtContainer::ExtContainer() : TExtensionContainer("BombClass") { };
+BombExt::ExtContainer::ExtContainer() : Container("BombClass") { };
 BombExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
 
 // BombListClass::Plant()
-/*
 DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
 DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6) // is this inline ?
 {
 	GET(BombClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BombExt::ExtData>(pItem);
+	BombExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
 {
 	GET(BombClass *, pItem, ECX);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	BombExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -72,4 +77,4 @@ DEFINE_HOOK(0x438BE4, BombClass_Save_Suffix, 0x5)
 {
 	BombExt::ExtMap.SaveStatic();
 	return 0;
-}*/
+}

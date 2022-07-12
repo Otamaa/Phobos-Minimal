@@ -45,3 +45,5 @@ public:
 	RepeatableTimerStruct Timer{};
 	int Step{ 1 }; // added to value every time the timer expires
 };
+
+typedef ProgressTimer StageClass;

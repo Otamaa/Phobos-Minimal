@@ -117,14 +117,14 @@ public:
 			changeBright = Data.get().BrightMultiplier != 1.0f;
 		}
 
-		return { active  ,changeColor, changeBright };
+		return { active  ,  changeColor, changeBright };
 	}
 
 	uintptr_t GetColor();
 
 	uintptr_t GetBright(uintptr_t bright)
 	{
-		double b = bright * Data.get().BrightMultiplier;
+		const double b = bright * Data.get().BrightMultiplier;
 		return static_cast<uintptr_t>(std::clamp(static_cast<int>(b),0,2000));
 	}
 

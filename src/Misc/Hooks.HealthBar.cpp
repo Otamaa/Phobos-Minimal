@@ -411,8 +411,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
 	const auto pExt = TechnoExt::GetExtData(pThis);
-	if (const auto pShieldData = pExt->Shield.get())
-	{
+	if (const auto pShieldData = pExt->Shield.get()) {
 		if (pShieldData->IsAvailable())
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 	}
@@ -428,10 +427,8 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
 	const auto pExt = TechnoExt::GetExtData(pThis);
-	if (const auto pShieldData = pExt->Shield.get())
-	{
-		if (pShieldData->IsAvailable())
-		{
+	if (const auto pShieldData = pExt->Shield.get()) {
+		if (pShieldData->IsAvailable()) {
 			const int iLength = pThis->WhatAmI() == AbstractType::Infantry ? 8 : 17;
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 		}

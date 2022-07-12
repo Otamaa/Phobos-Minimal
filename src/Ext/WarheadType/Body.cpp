@@ -517,13 +517,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<WarheadTypeClass>::LoadFromStream(Stm);
+	Extension<WarheadTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void WarheadTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<WarheadTypeClass>::SaveToStream(Stm);
+	Extension<WarheadTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

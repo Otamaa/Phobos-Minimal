@@ -77,7 +77,6 @@ public:
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
-			case AbstractType::Building:
 			case AbstractType::Aircraft:
 			case AbstractType::Unit:
 			case AbstractType::Infantry:

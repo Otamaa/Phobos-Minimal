@@ -45,7 +45,10 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->LightGreenTint.Read(exINI, pSection, "LightGreenTint");
 	this->LightBlueTint.Read(exINI, pSection, "LightBlueTint");
 
-	this->AttachedAnim.Read(exINI, pSection, "AttachedAnims");
+	this->AttachedAnim.Read(exINI, pSection, "AttachedAnims",true);
+	this->Warhead.Read(exINI, pSection, "SpawnsTiberium.ExplodeWarhead");
+	this->Damage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDamage");
+	this->AreaDamage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDealAreaDamage");
 #pragma endregion
 }
 
@@ -75,13 +78,13 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 void TerrainTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TerrainTypeClass>::LoadFromStream(Stm);
+	Extension<TerrainTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TerrainTypeClass>::SaveToStream(Stm);
+	Extension<TerrainTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

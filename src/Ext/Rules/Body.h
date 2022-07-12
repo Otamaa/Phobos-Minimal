@@ -79,7 +79,7 @@ public:
 		Valueable<bool> RadWarhead_Detonate;
 		Valueable<bool> RadHasOwner;
 		Valueable<bool> RadHasInvoker;
-
+		Valueable<bool> IronCurtain_SyncDeploysInto;
 	#pragma region Otamaa
 		NullableIdx<ParticleTypeClass> VeinholeParticle;
 		PhobosFixedString<0x19> NukeWarheadName;
@@ -152,7 +152,7 @@ public:
 			, RadWarhead_Detonate { false }
 			, RadHasOwner { false }
 			, RadHasInvoker { false }
-
+			, IronCurtain_SyncDeploysInto { false }
 			, VeinholeParticle { }
 			, NukeWarheadName { }
 			, Building_PlacementPreview { }

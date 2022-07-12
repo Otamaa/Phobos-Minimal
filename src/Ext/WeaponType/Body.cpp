@@ -124,14 +124,14 @@ void WeaponTypeExt::ExtContainer::InvalidatePointer(void *ptr, bool bRemoved)
 
 void WeaponTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<WeaponTypeClass>::LoadFromStream(Stm);
+	Extension<WeaponTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 
 }
 
 void WeaponTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<WeaponTypeClass>::SaveToStream(Stm);
+	Extension<WeaponTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

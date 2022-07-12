@@ -29,13 +29,13 @@ void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 
 void SmudgeTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<SmudgeTypeClass>::LoadFromStream(Stm);
+	Extension<SmudgeTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SmudgeTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<SmudgeTypeClass>::SaveToStream(Stm);
+	Extension<SmudgeTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

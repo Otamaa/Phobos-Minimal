@@ -110,21 +110,21 @@ DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0xC)
 #pragma region BunkerSounds
 DEFINE_HOOK(0x45933D, BuildingClass_BunkerWallUpSound, 0x5)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	BuildingTypeExt::BunkerSound<true>()(pThis);
 	return 0x459374;
 }
 
 DEFINE_HOOK(0x4595D9, BuildingClass_4595C0_BunkerDownSound, 0x5)
 {
-	GET(BuildingClass*, pThis, EDI);
+	GET(BuildingClass* const, pThis, EDI);
 	BuildingTypeExt::BunkerSound<false>()(pThis);
 	return 0x459612;
 }
 
 DEFINE_HOOK(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	BuildingTypeExt::BunkerSound<false>()(pThis);
 	return 0x4594CD;
 }
@@ -237,7 +237,7 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x4)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
-	volatile int nVal = 1;
+	int nVal = 1;
 
 	if (pThis) {
 		auto nStep = RulesGlobal->RepairStep;
@@ -266,7 +266,7 @@ DEFINE_HOOK(0x464758, BuildingTypeClass_LoadFromINI_PowerUPZAdjust, 0x8) {
 DEFINE_HOOK(0x706389, TechnoClass_Draw_Object_NormalLight, 0x6) {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
 		if ((pBuilding->CurrentMission == Mission::Construction)
 			&& !pBuilding->BState
 			&& pBuilding->Type->Buildup

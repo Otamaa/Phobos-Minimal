@@ -17,8 +17,8 @@ DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)
 	strcpy_s(pFilename, name);
 	_strlwr_s(pFilename);
 
-	if (PhobosCRT::stristr(pFilename, ".pcx")
-		|| PhobosCRT::stristr(pFilename, ".png")) {
+	if (strstr(pFilename, ".pcx")
+		|| strstr(pFilename, ".png")) {
 
 		BSurface* pCXSurf = nullptr;
 
@@ -41,31 +41,33 @@ DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)
 	return 0;
 }
 
+/*
 DEFINE_HOOK(0x552F81, PCX_LoadingScreen_Campaign, 0x5)
 {
 	GET(LoadProgressManager*, pThis, EBP);
 
 	DSurface* pSurface = reinterpret_cast<DSurface*>(pThis->ProgressSurface);
-	const std::string fileName = ScenarioClass::Instance->LS800BkgdName;
+	char pFilename[0x20];
+	strcpy_s(pFilename, ScenarioClass::Instance->LS800BkgdName);
+	_strlwr_s(pFilename);
 
-	if (fileName.length() < 4U || fileName.empty()) {
-		Debug::Log("[LS800BkgdName] illegal filename [%s]\n", fileName.c_str());
-		return 0x0;
-	}
-
-	if (PhobosCRT::stristr(fileName.c_str(), ".pcx") == 0
-		|| PhobosCRT::stristr(fileName.c_str(), ".png") == 0 )
+	if (strstr(pFilename, ".pcx") == 0
+		|| strstr(pFilename, ".png") == 0 )
 	{
-		PCX::Instance->LoadFile(fileName.c_str());
-		if (BSurface* pcx = PCX::Instance->GetSurface(fileName.c_str()))
+		BSurface* pCXSurf = nullptr;
+
+		if (PCX::Instance->LoadFile(pFilename))
+			pCXSurf = PCX::Instance->GetSurface(pFilename);
+
+		if (pCXSurf)
 		{
 			RectangleStruct destClip = {
-				(pSurface->Width - pcx->Width) / 2,
-				(pSurface->Height - pcx->Height) / 2,
-				pcx->Width, pcx->Height
+				(pSurface->Width - pCXSurf->Width) / 2,
+				(pSurface->Height - pCXSurf->Height) / 2,
+				pCXSurf->Width, pCXSurf->Height
 			};
 
-			PCX::Instance->BlitToSurface(&destClip, pSurface, pcx);
+			PCX::Instance->BlitToSurface(&destClip, pSurface, pCXSurf);
 		}
 
 		R->EBX(R->EDI());
@@ -73,7 +75,7 @@ DEFINE_HOOK(0x552F81, PCX_LoadingScreen_Campaign, 0x5)
 	}
 
 	return 0;
-}
+}*/
 
 DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 {
@@ -87,8 +89,8 @@ DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 		_strlwr_s(pFilename);
 
 		if (!_stricmp(pCameoRef->Filename, "xxicon.shp")
-			&& (PhobosCRT::stristr(pFilename, ".pcx")
-				|| PhobosCRT::stristr(pFilename, ".png")))
+			&& (strstr(pFilename, ".pcx")
+				|| strstr(pFilename, ".png")))
 		{
 
 			BSurface* pCXSurf = nullptr;

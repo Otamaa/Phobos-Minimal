@@ -63,9 +63,9 @@ public:
 
 	static CoordStruct OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
 	{
-		double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
-		int y = static_cast<int>(256 * Math::tan(angle));
-		int x = static_cast<int>(256 / Math::tan(angle));
+		const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+		int y = static_cast<int>(256.0 * Math::tan(angle));
+		int x = static_cast<int>(256.0 / Math::tan(angle));
 		CoordStruct offset = CoordStruct::Empty;
 		if (y == 0)
 		{

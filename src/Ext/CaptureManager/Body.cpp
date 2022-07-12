@@ -3,10 +3,15 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
 
-template<> const DWORD TExtension<CaptureExt::base_type>::Canary = 0x87654121;
+template<> const DWORD Extension<CaptureExt::base_type>::Canary = 0x87654121;
 CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }
+
+CaptureExt::ExtData* CaptureExt::GetExtData(CaptureExt::base_type* pThis)
+{
+	return ExtMap.Find(pThis);
+}
 
 bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 {
@@ -167,11 +172,13 @@ void CaptureExt::ExtData::Serialize(T& Stm) { }
 
 void CaptureExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<CaptureManagerClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void CaptureExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<CaptureManagerClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -189,27 +196,24 @@ bool CaptureExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CaptureExt::ExtContainer::ExtContainer() : TExtensionContainer("CaptureManagerClass") { };
+CaptureExt::ExtContainer::ExtContainer() : Container("CaptureManagerClass") { };
 CaptureExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
 
-/*
+
 DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<CaptureExt::ExtData>(pItem);
+	CaptureExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x4729E1, CaptureManagerClass_DTOR, 0xD)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	CaptureExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -218,9 +222,7 @@ DEFINE_HOOK(0x472720, CaptureManagerClass_SaveLoad_Prefix, 0x8)
 {
 	GET_STACK(CaptureManagerClass*, pThis, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-
 	CaptureExt::ExtMap.PrepareStream(pThis, pStm);
-
 	return 0;
 }
 
@@ -234,4 +236,4 @@ DEFINE_HOOK(0x472958, CaptureManagerClass_Save_Suffix, 0x7)
 {
 	CaptureExt::ExtMap.SaveStatic();
 	return 0;
-}*/
+}

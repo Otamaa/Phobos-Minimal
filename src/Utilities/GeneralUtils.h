@@ -110,7 +110,7 @@ public:
 	static const DirStruct& Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir;
-		unsigned short value = (short)Game::F2I((Math::atan2((double)(y2 - y1), (double)(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1)))));
+		unsigned short value = static_cast<short>(Game::F2I((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.value(value);
 		return dir;
 	}

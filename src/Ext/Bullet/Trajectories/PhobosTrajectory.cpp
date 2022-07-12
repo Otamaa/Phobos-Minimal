@@ -11,16 +11,16 @@
 #include "ArtilleryTrajectory.h"
 #include "BounceTrajectory.h"
 
-bool PhobosTrajectoryType::ReadBase(CCINIClass* const pINI, const char* pSection)
+std::pair<bool, INI_EX> PhobosTrajectoryType::ReadBase(CCINIClass* const pINI, const char* pSection)
 {
 	if (!pINI->GetSection(pSection))
-		return false;
+		return{ false,{ } };
 
 	INI_EX exINI(pINI);
 
 	this->DetonationDistance.Read(exINI, pSection, "Trajectory.DetonationDistance");
 
-	return true;
+	return {true ,exINI};
 }
 
 bool PhobosTrajectoryType::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)

@@ -2,7 +2,7 @@
 #include <BombClass.h>
 
 #include <Helpers/Macro.h>
-#include <Ext/Abstract/Body.h>
+#include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
 class BombExt
@@ -10,30 +10,28 @@ class BombExt
 public:
 	using base_type = BombClass;
 
-	class ExtData final : public TExtension<BombClass>
+	class ExtData final : public Extension<BombClass>
 	{
 	public:
 
-		ExtData(BombClass* OwnerObject) : TExtension<BombClass>(OwnerObject)
+		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual size_t GetSize() const override { return sizeof(*this); }
+		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 		virtual void InitializeConstants() override { }
+
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
 	};
 
-	static BombExt::ExtData* GetExtData(base_type* pThis)
-	{
-		return  pThis && pThis->WhatAmI() == AbstractType::Bomb ? reinterpret_cast<BombExt::ExtData*>
-			(ExtensionWrapper::GetWrapper(pThis)->ExtensionObject) : nullptr;
-	}
-
-	class ExtContainer final : public TExtensionContainer<BombExt>
+	class ExtContainer final : public Container<BombExt>
 	{
 	public:
 		ExtContainer();

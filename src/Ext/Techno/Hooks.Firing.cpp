@@ -73,14 +73,16 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x7)
 	if (pThis->InOpenToppedTransport)
 	{
 		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
-		if (auto pTransport = pThis->Transporter)
+		if (auto const  pTransport = pThis->Transporter)
 		{
-			if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
-			{
-				const float nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
-				R->EAX(Game::F2I(nDamage * nDamageMult));
-				return ApplyDamageMult;
+			float nDamageMult = RulesGlobal->OpenToppedDamageMultiplier;
+
+			if (auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())) {
+				nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(nDamageMult);
 			}
+
+			R->EAX(Game::F2I(nDamage* nDamageMult));
+			return ApplyDamageMult;
 		}
 	}
 
@@ -95,7 +97,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x7)
 	GET(CellClass* const, pCell, EAX);
 	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
-	if (auto pExt = WeaponTypeExt::ExtMap.Find(pWeaponType))
+	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeaponType))
 	{
 		if (pExt->AreaFire_Target == AreaFireTarget::Random)
 		{
@@ -208,7 +210,7 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 
 	if (auto const pTransport = pThis->Transporter)
 	{
-		if (auto pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
+		if (auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
 		{
 			if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
 				return DisallowFiring;

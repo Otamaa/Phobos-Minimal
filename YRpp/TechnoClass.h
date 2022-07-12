@@ -513,6 +513,9 @@ public:
 	void KillCargo(TechnoClass* pSource) const
 	{ JMP_THIS(0x707CB0); }
 
+	void KillPassengers(TechnoClass* pSource) const
+	{ JMP_THIS(0x707CB0); }
+
 	int TimeToBuild() const
 	{ JMP_THIS(0x6F47A0); }
 
@@ -581,6 +584,10 @@ public:
 
 	void RemoveFromTargetingAndTeam() const {
 		JMP_THIS(0x70D4A0);
+	}
+
+	void SetTargetingDelay() const {
+		JMP_THIS(0x70F770)
 	}
 
 	//Constructor

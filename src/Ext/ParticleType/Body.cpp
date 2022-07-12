@@ -52,13 +52,13 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-    Extension<ParticleTypeClass>::LoadFromStream(Stm);
+    Extension<ParticleTypeClass>::Serialize(Stm);
     this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-    Extension<ParticleTypeClass>::SaveToStream(Stm);
+    Extension<ParticleTypeClass>::Serialize(Stm);
     this->Serialize(Stm);
 }
 

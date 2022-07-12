@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Ext/Rules/Body.h>
+#include <Utilities/TemplateDef.h>
 
 template<> const DWORD Extension<AITriggerTypeClass>::Canary = 0x2C2C2C2C;
 AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
@@ -11,11 +12,13 @@ AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
 
 void AITriggerTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
+	Extension<AITriggerTypeClass>::Serialize(Stm);
 	// Nothing yet
 }
 
 void AITriggerTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
+	Extension<AITriggerTypeClass>::Serialize(Stm);
 	// Nothing yet
 }
 

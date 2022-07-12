@@ -23,7 +23,7 @@ ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 	if (nIdx > pScript->Type->ActionsCount)
 		nIdx = pScript->Type->ActionsCount;
 
-	if (nIdx <= 50) {
+	if (nIdx < 50) {
 		return pScript->Type->ScriptActions[nIdx];
 	}
 	//else {
@@ -33,7 +33,7 @@ ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 		//}
 	//}
 
-	return pScript->Type->ScriptActions[50];
+	return pScript->Type->ScriptActions[49];
 }
 
 static inline bool IsEmpty(TeamClass* pTeam)
@@ -51,13 +51,13 @@ static inline bool IsEmpty(TeamClass* pTeam)
 
 void ScriptExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	//Extension<ScriptClass>::LoadFromStream(Stm);
+	Extension<ScriptClass>::Serialize(Stm);
 	// Nothing yet
 }
 
 void ScriptExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	//Extension<ScriptClass>::SaveToStream(Stm);
+	Extension<ScriptClass>::Serialize(Stm);
 	// Nothing yet
 }
 
@@ -314,7 +314,7 @@ bool KillTheDriver(TechnoClass* pVictim, TechnoClass* pDestroyer, HouseClass* pH
 	if (!((pVictim->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None))
 		return false;
 
-	auto pVictimExt = TechnoExt::GetExtData(pVictim);
+	auto pVictimExt = TechnoExt::ExtMap.Find(pVictim);
 
 	auto const passive = pHouseAfter->Type->MultiplayPassive;
 	pVictimExt->DriverKilled = passive;
@@ -478,7 +478,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 		{
 			for (auto pCur = pTeam->FirstUnit; pCur; pCur->NextTeamMember)
 			{
-				//auto pUnitExt = TechnoExt::GetExtData(pCur);
+				//auto pUnitExt = TechnoExt::ExtMap.Find(pCur);
 				//pUnitExt->TakeVehicle = true;//used on GarrisonStructure function hook , if yes replace it wit take vehicle func
 				//if (pCur->GarrisonStructure()) {
 				//	pTeam->LiberateMember(pCur,-1,1);
@@ -821,7 +821,7 @@ void ScriptExt::DistributedLoadOntoTransport(TeamClass* pTeam, int nArg)
 
 	int nType = HIWORD(nArg);
 	int nNum = LOWORD(nArg);
-	auto pExt = TeamExt::GetExtData(pTeam);
+	auto pExt = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pExt) {
 		pTeam->StepCompleted = true;
@@ -1327,7 +1327,7 @@ bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType
 void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = false, int count = 0)
 {
 	bool bSucceeded = false;
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		if (count <= 0)
 			count = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -1359,7 +1359,7 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
 {
 	bool bSucceeded = false;
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		pTeamData->ForceJump_InitialCountdown = -1;
 		pTeamData->ForceJump_Countdown.Stop();
@@ -1389,7 +1389,6 @@ void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 
 			pUnit->QueueMission(Mission::Area_Guard, true);
 		}
-
 
 		pTeam->GuardAreaTimer.Start(15 * pTeam->CurrentScript->GetCurrentAction().Argument);
 	}
@@ -1421,8 +1420,11 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 		if (!TechnoExt::IsActive(pTransport, true ,true))
 			continue;
 
-		for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true ,true); pUnit = pUnit->NextTeamMember)
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
+			if (!TechnoExt::IsActive(pUnit, true, true))
+				continue;
+
 			auto const pTransportType = pTransport->GetTechnoType();
 			auto const pUnitType = pUnit->GetTechnoType();
 			if (pTransport != pUnit
@@ -1468,8 +1470,11 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 
 void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 {
-	for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit,true,true); pUnit = pUnit->NextTeamMember)
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
+		if (!TechnoExt::IsActive(pUnit, true, true))
+			continue;
+
 		if (!pUnit->Spawned && pUnit->Owner)
 		{
 			if (pUnit->GetTechnoType()->Ammo > 0 && pUnit->Ammo < pUnit->GetTechnoType()->Ammo)
@@ -1509,7 +1514,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass *pTeam, int countdown = -
 	FootClass *pLeaderUnit = nullptr;
 	int initialCountdown = pTeam->CurrentScript->GetCurrentAction().Argument;
 	bool gatherUnits = false;
-	auto pExt = TeamExt::GetExtData(pTeam);
+	auto pExt = TeamExt::ExtMap.Find(pTeam);
 
 	// This team has no units! END
 	if(!pExt || (IsEmpty(pTeam) && !pExt->TeamLeader)) {
@@ -1601,8 +1606,11 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass *pTeam, int countdown = -
 		pLeaderUnit->QueueMission(Mission::Guard, false);
 
 		// Check if units are around the leader
-		for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, false, true); pUnit = pUnit->NextTeamMember)
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
+			if (!TechnoExt::IsActive(pUnit, true, true))
+				continue;
+
 			{
 				auto pTypeUnit = pUnit->GetTechnoType();
 
@@ -1715,7 +1723,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 	TechnoClass* pFocus = nullptr;
 	bool agentMode = false;
 	bool pacifistTeam = true;
-	auto pTeamData = TeamExt::GetExtData(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pScript)
 		return;
@@ -1772,7 +1780,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		auto pKillerTechnoData = TechnoExt::GetExtData(pUnit);
+		auto pKillerTechnoData = TechnoExt::ExtMap.Find(pUnit);
 		if (pKillerTechnoData && pKillerTechnoData->LastKillWasTeamTarget)
 		{
 			// Time for Team award check! (if set any)
@@ -1793,7 +1801,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 				for (auto pTeamUnit = pTeam->FirstUnit; pTeamUnit; pTeamUnit = pTeamUnit->NextTeamMember)
 				{
 					// Let's reset all Team Members objective
-					if(auto pKillerTeamUnitData = TechnoExt::GetExtData(pTeamUnit))
+					if(auto pKillerTeamUnitData = TechnoExt::ExtMap.Find(pTeamUnit))
 						pKillerTeamUnitData->LastKillWasTeamTarget = false;
 
 					if (pTeamUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType)
@@ -1817,8 +1825,11 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 		}
 	}
 
-	for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true, true); pUnit = pUnit->NextTeamMember)
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
+		if (!TechnoExt::IsActive(pUnit, true, true))
+			continue;
+
 		{
 			if (auto pUnitType = pUnit->GetTechnoType())
 			{
@@ -1932,8 +1943,10 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 			pTeamData->WaitNoTargetTimer.Stop();
 			pTeamData->WaitNoTargetCounter = 0; // Disable Script Waits if there are any because a new target was selected
 
-			for (auto pUnit = pTeam->FirstUnit; TechnoExt::IsActive(pUnit, true, true); pUnit = pUnit->NextTeamMember)
+			for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 			{
+				if (!TechnoExt::IsActive(pUnit, true, true))
+					continue;
 				{
 					auto pUnitType = pUnit->GetTechnoType();
 					if (pUnitType && pUnit != selectedTarget && pUnit->Target != selectedTarget)
@@ -2231,7 +2244,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass *pTechno, int method, int cal
 		if (weaponType)
 		{
 			auto nArmor = objectType->Armor;
-			if (auto pObjectExt = TechnoExt::GetExtData(object))
+			if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
 				if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
 					nArmor = pObjectExt->GetShield()->GetType()->Armor;
 
@@ -3024,7 +3037,7 @@ void ScriptExt::WaitIfNoTarget(TeamClass *pTeam, int attempts = 0)
 	if (attempts < 0)
 		attempts = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::GetExtData(pTeam)) {
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam)) {
 		if (attempts <= 0)
 			pTeamData->WaitNoTargetAttempts = -1; // Infinite waits if no target
 		else
@@ -3042,7 +3055,7 @@ void ScriptExt::TeamWeightReward(TeamClass *pTeam, double award = 0)
 	if (award <= 0)
 		award = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 		if (award > 0)
 			pTeamData->NextSuccessWeightAward = award;
 
@@ -3094,7 +3107,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 void ScriptExt::Mission_Attack_List(TeamClass *pTeam, bool repeatAction, int calcThreatMode, int attackAITargetType)
 {
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 		pTeamData->IdxSelectedObjectFromAIList = -1;
 
 	if (attackAITargetType < 0)
@@ -3117,7 +3130,7 @@ void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pick
 	bool bAircraftsWithoutAmmo = false;
 	TechnoClass* pFocus = nullptr;
 
-	auto pTeamData = TeamExt::GetExtData(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pScript)
 		return;
@@ -3478,7 +3491,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass *pTeam, bool repeatAction, 
 	int idxSelectedObject = -1;
 	std::vector<int> validIndexes;
 
-	auto pTeamData = TeamExt::GetExtData(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -3555,7 +3568,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass *pTeam, bool repeatAction, 
 
 void ScriptExt::Mission_Move_List(TeamClass *pTeam, int calcThreatMode, bool pickAllies, int attackAITargetType)
 {
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 		pTeamData->IdxSelectedObjectFromAIList = -1;
 
 	if (attackAITargetType < 0)
@@ -3574,7 +3587,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass *pTeam, int calcThreatMode, b
 	int idxSelectedObject = -1;
 	std::vector<int> validIndexes;
 
-	auto pTeamData = TeamExt::GetExtData(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 
 	if (!pTeamData)
 	{
@@ -3648,7 +3661,7 @@ void ScriptExt::SetCloseEnoughDistance(TeamClass *pTeam, double distance = -1)
 	if (distance <= 0)
 		distance = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		if (distance > 0)
 			pTeamData->CloseEnough = distance;
@@ -3676,7 +3689,7 @@ void ScriptExt::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
 	if (mode < 0 || mode > 2)
 		mode = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	if (auto pTeamData = TeamExt::GetExtData(pTeam))
+	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		if (mode >= 0 && mode <= 2)
 			pTeamData->MoveMissionEndMode = mode;
@@ -3698,7 +3711,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 
 	double closeEnough = RulesClass::Instance->CloseEnough / 256.0;
 
-	auto pTeamData = TeamExt::GetExtData(pTeam);
+	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
 	if (pTeamData && pTeamData->CloseEnough > 0)
 		closeEnough = pTeamData->CloseEnough;
 
@@ -3804,7 +3817,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 void ScriptExt::SkipNextAction(TeamClass * pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	auto pTeamExt = TeamExt::GetExtData(pTeam);
+	auto pTeamExt = TeamExt::ExtMap.Find(pTeam);
 	if (!pTeamExt || (IsEmpty(pTeam) && !pTeamExt->TeamLeader))
 	{
 		// This action finished
@@ -3826,9 +3839,7 @@ void ScriptExt::SkipNextAction(TeamClass * pTeam, int successPercentage = 0)
 	if (successPercentage > 100)
 		successPercentage = 100;
 
-	int percentage = ScenarioClass::Instance->Random.RandomRanged(1, 100);
-
-	if (percentage <= successPercentage)
+	if (ScenarioGlobal->Random.PercentChance(successPercentage))
 	{
 		Debug::Log("DEBUG: ScripType: [%s] [%s] (line: %d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
 			pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, pTeam->CurrentScript->CurrentMission + 2,

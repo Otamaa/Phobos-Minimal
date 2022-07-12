@@ -1,25 +1,23 @@
 #include "Body.h"
 
-template<> const DWORD TExtension<CellClass>::Canary = 0x87688621;
+template<> const DWORD Extension<CellClass>::Canary = 0x87688621;
 CellExt::ExtContainer CellExt::ExtMap;
 
 // ============================ =
 // load / save
+template <typename T>
+void CellExt::ExtData::Serialize(T& Stm) { }
 
 void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Stm
-		//.Process(NewPowerups)
-		//.Process(FoggedObjects)
-		;
+	Extension<CellClass>::Serialize(Stm);
+	this->Serialize(Stm);
 }
 
 void CellExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Stm
-		//.Process(NewPowerups)
-		//.Process(FoggedObjects)
-		;
+	Extension<CellClass>::Serialize(Stm);
+	this->Serialize(Stm);
 }
 
 bool CellExt::LoadGlobals(PhobosStreamReader& Stm)
@@ -37,27 +35,23 @@ bool CellExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CellExt::ExtContainer::ExtContainer() : TExtensionContainer("CellClass") { };
+CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
 CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-/* loading this from save causing performance issues for some reason :s
+/* loading this from save causing performance issues for some reason :s*/
 DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, EAX);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<CellExt::ExtData>(pItem);
+	CellExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
 DEFINE_HOOK(0x47BB60, CellClass_DTOR, 0x6)
 {
 	GET(CellClass*, pItem, ECX);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-
+	CellExt::ExtMap.Remove(pItem);
 	return 0;
 }
 
@@ -80,4 +74,4 @@ DEFINE_HOOK(0x483C79, CellClass_Save_Suffix, 0x6)
 {
 	CellExt::ExtMap.SaveStatic();
 	return 0;
-}*/
+}

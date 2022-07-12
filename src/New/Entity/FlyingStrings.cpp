@@ -28,7 +28,7 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords)
 	return false;
 }
 
-void FlyingStrings::Add(const std::wstring_view text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
+void FlyingStrings::Add(const std::wstring& text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
 {
 	Item nItem{ coords,pixelOffset,75, Drawing::RGB2DWORD(color) , L"" };
 	nItem.Text = text;
@@ -40,7 +40,7 @@ void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass*
 	if (!coords || !Display || !owner)
 		return;
 
-	if (displayToHouses == AffectedHouse::All || EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::Player()))
+	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::Player()))
 	{
 		bool isPositive = amount > 0;
 		auto color = isPositive ? ColorStruct{ 0, 255, 0 } : ColorStruct{ 255, 0, 0 };

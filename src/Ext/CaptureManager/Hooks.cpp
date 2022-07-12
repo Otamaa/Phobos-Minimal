@@ -4,8 +4,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
-static void __stdcall DrawALinkTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
-{
+static void __stdcall DrawALinkTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color) {
 	JMP_STD(0x704E40);
 }
 
@@ -15,8 +14,8 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0xC)
 	GET(TechnoClass*, pVictim, ECX);
 	GET_STACK(int, nNodeCount, STACK_OFFS(0x30, 0x1C));
 
-	auto pAttacker = pThis->Owner;
-	auto pAttackerType = pAttacker->GetTechnoType();
+	const auto pAttacker = pThis->Owner;
+	const auto pAttackerType = pAttacker->GetTechnoType();
 
 	auto const Allow = [pAttackerType]()
 	{
@@ -30,7 +29,7 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0xC)
 	{
 		auto nVictimCoord = pVictim->Location;
 		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;
-		auto nFLH = pAttacker->GetFLH(-1 - nNodeCount % 5, CoordStruct::Empty);
+		const auto nFLH = pAttacker->GetFLH(-1 - nNodeCount % 5, CoordStruct::Empty);
 		DrawALinkTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
 	}
 
@@ -46,8 +45,8 @@ static inline int FixIdx (const Iterator<int>& iter, int nInput) {
 
 void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void* _)
 {
-	auto pOwner = pThis->Owner;
-	auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	const auto pOwner = pThis->Owner;
+	const auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
 	if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
 	{
@@ -68,7 +67,7 @@ void __fastcall CaptureManagerClass_Overload_AI(CaptureManagerClass* pThis, void
 				return;
 
 			int nCurIdx = 0;
-			int nNodeCount = pThis->ControlNodes.Count;
+			const int nNodeCount = pThis->ControlNodes.Count;
 
 			/* Vanilla code !
 			int MaxVal = 0;

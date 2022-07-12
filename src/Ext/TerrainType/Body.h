@@ -33,7 +33,9 @@ public:
 		Nullable<double> LightBlueTint;
 
 		ValueableVector<AnimTypeClass*> AttachedAnim;
-
+		Nullable<WarheadTypeClass*> Warhead;
+		Nullable<int> Damage;
+		Valueable<bool> AreaDamage;
 		#pragma endregion
 
 		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
@@ -41,9 +43,12 @@ public:
 			, SpawnsTiberium_Range { 1 }
 			, SpawnsTiberium_GrowthStage { { 3, 0 } }
 			, SpawnsTiberium_CellsPerAnim { { 1, 0 } }
+
 			, DestroyAnim {}
 			, DestroySound {}
 			, MinimapColor {}
+			, IsPassable { false }
+			, CanBeBuiltOn { false }
 
 			, LightVisibility { 0 }
 			, LightIntensity { }
@@ -51,9 +56,10 @@ public:
 			, LightGreenTint { }
 			, LightBlueTint { }
 			, AttachedAnim { }
+			, Warhead { }
+			, Damage { }
+			, AreaDamage { false }
 
-			, IsPassable { false }
-			, CanBeBuiltOn { false }
 		{ }
 
 		virtual ~ExtData() = default;

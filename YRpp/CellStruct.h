@@ -110,8 +110,8 @@ public:
 private:
 	double Distance(const CellStruct& b, const std::true_type) {
 		CellStruct buffer = *this;
-		double x_diff = abs(static_cast<double>(buffer.X - b.X));
-		double y_diff = abs(static_cast<double>(buffer.Y - b.Y));
+		const double x_diff = abs(static_cast<double>(buffer.X - b.X));
+		const double y_diff = abs(static_cast<double>(buffer.Y - b.Y));
 
 		if (x_diff > y_diff)
 		{
