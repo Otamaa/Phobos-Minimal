@@ -14,10 +14,15 @@ public:
 		SLFail = 114514
 	};
 
+	static void FreeMouse();
 	static void __cdecl Log(const char* pFormat, ...);
 	static void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
 	static void FatalErrorAndExit(const char* pFormat, ...);
-	static void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...);
+
+	static void FatalError(bool Dump = false); /* takes formatted message from Ares::readBuffer */
+	static void FatalError(const char* Message, ...);
+	[[noreturn]] static void FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...);
+
 #pragma region Otamaa
 	static void DumpStack(const char* function, REGISTERS* R, size_t len, int startAt = 0);
 	static void DumpObj(void const* data, size_t len);

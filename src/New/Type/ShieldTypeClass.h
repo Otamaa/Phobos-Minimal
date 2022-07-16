@@ -37,6 +37,8 @@ public:
 	Valueable<Point3D> Pips_Building;
 	Nullable<int> Pips_Building_Empty;
 
+	Valueable<bool> ImmuneToPsychedelic;
+
 private:
 	Valueable<double> Respawn_Rate__InMinutes;
 	Valueable<double> SelfHealing_Rate__InMinutes;
@@ -67,9 +69,9 @@ public:
 		, Pips_Background_SHP {}
 		, Pips_Building { { -1,-1,-1 } }
 		, Pips_Building_Empty {}
+		, ImmuneToPsychedelic { false }
 		, Respawn_Rate__InMinutes { 0.0 }
 		, SelfHealing_Rate__InMinutes { 0.0 }
-
 
 	{};
 

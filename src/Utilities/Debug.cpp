@@ -1,5 +1,6 @@
 #include "Debug.h"
 #include "Macro.h"
+#include <Phobos.h>
 
 #include <YRPPCore.h>
 #include <AbstractClass.h>
@@ -30,7 +31,7 @@ void Debug::FatalErrorAndExit(const char* pFormat, ...)
 	FatalExit(static_cast<int>(ExitCode::Undefined));
 }
 
-void Debug::FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
+[[noreturn]] void Debug::FatalErrorAndExit(ExitCode nExitCode, const char* pFormat, ...)
 {
 	char buffer[0x400];
 	va_list args;
@@ -140,5 +141,66 @@ void Debug::DumpStack(const char* function, size_t len, int startAt)
 		Debug::LogUnflushed("esp+%04X = %08X\n", i * 4, mem[i]);
 	}
 	Debug::Log("Phobos::Dumping[%s] Done.\n", function); // flushes
+}
+
+void Debug::FreeMouse()
+{
+	Game::StreamerThreadFlush();
+
+	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+	WWMouseClass::Instance->ReleaseMouse();
+
+	ShowCursor(TRUE);
+
+	auto const BlackSurface = [](DSurface* const pSurface)
+	{
+		if (pSurface)
+		{
+			pSurface->Fill(0);
+		}
+	};
+
+	BlackSurface(DSurface::Alternate);
+	BlackSurface(DSurface::Composite);
+	BlackSurface(DSurface::Hidden);
+	BlackSurface(DSurface::Hidden_2);
+	BlackSurface(DSurface::Primary);
+	BlackSurface(DSurface::Sidebar);
+	BlackSurface(DSurface::Tile);
+
+	ShowCursor(TRUE);
+}
+
+void Debug::FatalError(bool Dump)
+{
+	wchar_t Message[0x400];
+	wsprintfW(Message,
+		L"An internal error has been encountered and the game is unable to continue normally. "
+		L"Please notify the mod's creators about this issue, or Contact Otamaa at "
+		L"Discord for updates and support.\n\n"
+		L"%hs",
+		Phobos::readBuffer);
+
+	Debug::Log("\nFatal Error:\n");
+	Debug::Log("%s\n", Phobos::readBuffer);
+
+	MessageBoxW(Game::hWnd, Message, L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+
+	if (Dump)
+	{
+		// Debug::FullDump(); // Not Supported
+	}
+}
+
+void Debug::FatalError(const char* Message, ...)
+{
+	Debug::FreeMouse();
+
+	va_list args;
+	va_start(args, Message);
+	vsnprintf_s(Phobos::readBuffer, Phobos::readLength - 1, Message, args); /* note that the message will be truncated somewhere after 0x300 chars... */
+	va_end(args);
+
+	Debug::FatalError(false);
 }
 #pragma endregion

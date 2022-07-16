@@ -118,8 +118,7 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 	if (pThis->GetCurrentMission() == Mission::Selling)
 	{
 		pThis->Health = 0;
-		if (R->AL())
-		{
+		if (R->AL()) {
 			pThis->NoCrew = true;
 		}
 

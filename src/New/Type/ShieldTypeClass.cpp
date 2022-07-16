@@ -60,6 +60,8 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Pips_Background_SHP.Read(exINI, pSection, "Pips.Background");
 	this->Pips_Building.Read(exINI, pSection, "Pips.Building");
 	this->Pips_Building_Empty.Read(exINI, pSection, "Pips.Building.Empty");
+
+	this->ImmuneToPsychedelic.Read(exINI, pSection, "ImmuneToPsychedelic");
 }
 
 template <typename T>
@@ -91,6 +93,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->Pips_Background_SHP)
 		.Process(this->Pips_Building)
 		.Process(this->Pips_Building_Empty)
+		.Process(this->ImmuneToPsychedelic)
 		;
 }
 

@@ -74,6 +74,10 @@ public:
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
 
+	int RandomFromMax(int nMax) const {
+		return RandomRanged(0, nMax);
+	}
+
 public:
 	bool unknownBool_00;
 	PROTECTED_PROPERTY(BYTE, padding[3]);

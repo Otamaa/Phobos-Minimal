@@ -386,7 +386,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0xA)
 	HouseClass* pHouse = nullptr;
 	TechnoClass* pObject = nullptr;
 
-	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim))
+	if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pBounceAnim))
 	{
 		pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 		pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : pHouse);
@@ -529,28 +529,26 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x4)
+DEFINE_HOOK(0x4242E1, AnimClass_Trail_Override, 0x5)
 {
-	GET(AnimClass*, pMem, EDI);
 	GET(AnimClass*, pThis, ESI);
 
-	GameConstruct(pMem, pThis->Type->TrailerAnim, pThis->GetCoords(), 1, 1, 0x600, 0, false);
-
-	if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
-	{
-		auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
-		auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
-		AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
+	if(auto pMem = GameCreate<AnimClass>(pThis->Type->TrailerAnim, pThis->GetCoords(), 1, 1, 0x600, 0, false)) {
+		if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+		{
+			const auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+			const auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
+			AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
+		}
 	}
 
 	return 0x424322;
 }
 
-DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override, 0x8)
+DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override, 0x6)
 {
 	GET(AnimClass*, pMem, EAX);
 	GET(AnimClass*, pThis, ESI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x8C, 0x4C));
 
 	GameConstruct(pMem, pThis->Type->Spawns, pThis->GetCoords(), 0, 1, 0x600, 0, false);
 	if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))

@@ -23,6 +23,7 @@ public:
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;
 
+		DWORD RandomNumber;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -30,6 +31,7 @@ public:
 			, HouseAirFactory { }
 			, ForceOnlyTargetHouseEnemy { false }
 			, ForceOnlyTargetHouseEnemyMode { -1 }
+			, RandomNumber { 0 }
 		{ }
 
 		virtual ~ExtData() = default;

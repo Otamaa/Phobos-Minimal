@@ -42,6 +42,7 @@ public:
 	int GetFramesSinceLastBroken() const;
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
+	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
 	bool IsGreenSP();
 	bool IsYellowSP();

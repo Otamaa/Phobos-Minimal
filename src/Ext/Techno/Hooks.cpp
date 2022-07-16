@@ -493,7 +493,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 	auto const Iter = GetDeathBodies(pThisType);
 
 	if(!Iter.empty()){
-		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomRanged(0,Iter.size() - 1))) {
+		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1))) {
 			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, 0x600, 0, 0)) {
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 			}

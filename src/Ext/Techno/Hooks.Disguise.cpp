@@ -31,6 +31,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	return 0;
 }
 
+#ifdef ENABLE_BLINK_DISGUISE
 #define CAN_BLINK_DISGUISE(pTechno) \
 RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::Player):true))
 
@@ -84,6 +85,8 @@ DEFINE_HOOK(0x70EDAD, TechnoClass_DisguiseBlitFlags_BlinkAllyDisguise, 0x6)
 
 	return 0;
 }
+#undef CAN_BLINK_DISGUISE
+#endif
 
 DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 {
@@ -91,18 +94,28 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pType = pThis->IsDisguised() ? type_cast<TechnoTypeClass*>(pThis->Disguise)  : nullptr;
-	int const colorIndex = pThis->GetDisguiseHouse(true)->ColorSchemeIndex;
+	auto pType = pThis->GetTechnoType();
+	const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
+	LightConvertClass* pConvert = nullptr;
+	int nColorIdx = -1;
 
-	R->EBX((pType&& pType->Palette&& pType->Palette->Count > 0) ?
-		pType->Palette->GetItem(colorIndex)->LightConvert :
-		ColorScheme::Array->GetItem(colorIndex)->LightConvert
-	);
+	if (pThis->IsDisguised() && pDisguise) {
+		if (const auto pHouse = pThis->GetDisguiseHouse(true))
+			nColorIdx = pHouse->ColorSchemeIndex;
+
+		pType = pDisguise;
+	}else
+	{ nColorIdx = pThis->GetOwningHouse()->ColorSchemeIndex; }
+
+	if (pType->Palette && pType->Palette->Count > 0)
+		pConvert = pType->Palette->GetItem(nColorIdx)->LightConvert;
+	else
+		pConvert = ColorScheme::Array->GetItem(nColorIdx)->LightConvert;
+
+	R->EBX(pConvert);
 
 	return SkipGameCode;
 }
-
-#undef CAN_BLINK_DISGUISE
 
 #pragma region Otamaa
 #ifdef Advanched_DISGUISE

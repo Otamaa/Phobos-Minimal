@@ -233,7 +233,8 @@ DEFINE_HOOK(0x712120, TechnoTypeClass_GetRepairStep_Building, 0x5)
 	return 0x71212B;
 }
 
-DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x4)
+//was 4
+DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 

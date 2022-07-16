@@ -399,13 +399,13 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 
 	GET(BulletClass*, pThis, ESI);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
+	if (const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
 	{
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
-			auto const pExt = BulletExt::ExtMap.Find(pThis);
-			auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
+			const auto pExt = BulletExt::ExtMap.Find(pThis);
+			const auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
 
 			auto tryDetonate = [pThis, pWHExt, pOwner](TechnoClass* pTechno)
 			{
@@ -458,7 +458,7 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 	if (pThis->Type->Cluster > 0)
 	{
-		if (auto const pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
+		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 		{
 			const int min = pTypeExt->Cluster_Scatter_Min.Get(Leptons(256));
 			const int max = pTypeExt->Cluster_Scatter_Max.Get(Leptons(512));
@@ -489,14 +489,11 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 
 	if (pThis->WeaponType)
 	{
-		if (auto const pTypeExt = BulletTypeExt::GetExtData(pThis->Type))
+		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 		{
-			int defaultmax = RulesClass::Instance->BallisticScatter;
-			int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
-			int max = pTypeExt->BallisticScatter_Max.Get(Leptons(defaultmax));
-
-			int result = static_cast<int>((mult * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)) / pThis->WeaponType->Range);
-			R->EAX(result);
+			const int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
+			const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(RulesGlobal->BallisticScatter));
+			R->EAX(static_cast<int>((mult * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)) / pThis->WeaponType->Range));
 		}
 	}
 
@@ -509,9 +506,8 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 
 	GET(BulletClass*, pThis, ESI);
 
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-
-	bool isLand = pThis->GetCell()->LandType != LandType::Water || pThis->GetCell()->ContainsBridge();
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const bool isLand = pThis->GetCell()->LandType != LandType::Water || pThis->GetCell()->ContainsBridge();
 
 	if (pWHExt && !isLand && pWHExt->Debris_Conventional.Get())
 		return SkipGameCode;
@@ -526,9 +522,8 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 
 static DWORD Do_Airburst(BulletClass* pThis)
 {
-	auto pType = pThis->Type;
-
-	auto pExt = BulletTypeExt::GetExtData(pType);
+	const auto pType = pThis->Type;
+	const auto pExt = BulletTypeExt::ExtMap.Find(pType);
 
 	if (pExt->HasSplitBehavior())
 	{
@@ -542,7 +537,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 		if (WeaponTypeClass* pWeapon = GetWeapon())
 		{
-			auto pBulletExt = BulletExt::GetExtData(pThis);
+			const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
 			TechnoClass* pBulletOwner = pThis->Owner ? pThis->Owner : nullptr;
 			HouseClass* pBulletHouseOwner = pBulletOwner ? pBulletOwner->GetOwningHouse() : (pBulletExt ? pBulletExt->Owner : nullptr);
 
@@ -552,10 +547,10 @@ static DWORD Do_Airburst(BulletClass* pThis)
 			int cluster = pType->Cluster;
 
 			// get final target coords and cell
-			CoordStruct crdDest = pExt->AroundTarget.Get(pExt->Splits.Get())
+			const CoordStruct crdDest = pExt->AroundTarget.Get(pExt->Splits.Get())
 				? pThis->GetTargetCoords() : pThis->GetCoords();
 
-			CellStruct cellDest = CellClass::Coord2Cell(crdDest);
+			const CellStruct cellDest = CellClass::Coord2Cell(crdDest);
 
 			// create a list of cluster targets
 			std::vector<AbstractClass*> targets;
@@ -595,7 +590,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 							pTechno->InWhichLayer() == Layer::None)
 							return;
 
-						CoordStruct crdTechno = pTechno->GetCoords();
+						const CoordStruct crdTechno = pTechno->GetCoords();
 						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
 							&& ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
 							)
@@ -616,9 +611,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 					int y = random.RandomRanged(-nMinRange, nMaxRange);
 
 					CellStruct cell = { static_cast<short>(cellDest.X + x), static_cast<short>(cellDest.Y + y) };
-					CellClass* pCell = MapClass::Instance->GetCellAt(cell);
-
-					targets.push_back(pCell);
+					targets.push_back(MapClass::Instance->GetCellAt(cell));
 				}
 			}
 
@@ -655,9 +648,9 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 				if (pTarget)
 				{
-					auto pSplitExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
+					const auto pSplitExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
 
-					if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon))
+					if (const auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon))
 					{
 						pBullet->SetWeaponType(pWeapon);
 						DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 31));
@@ -711,7 +704,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	GET(int, nTotalSpawn, EBX);
 	GET(WarheadTypeClass*, pWarhead, EAX);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt && pExt->Owner ? pExt->Owner : nullptr);
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };

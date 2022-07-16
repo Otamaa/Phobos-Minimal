@@ -8,6 +8,8 @@
 #include <UnitClass.h>
 #include <AircraftClass.h>
 
+#include <New/Entity/ShieldClass.h>
+
 //Static init
 template<> const DWORD Extension<TEventClass>::Canary = 0x91919191;
 TEventExt::ExtContainer TEventExt::ExtMap;
@@ -131,7 +133,8 @@ bool TEventExt::Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, Obje
 		return TEventExt::VariableCheckBinary<true, true, std::less_equal<int>>(pThis);
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
 		return TEventExt::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
-
+	case PhobosTriggerEvent::ShieldBroken:
+		return ShieldClass::TEventIsShieldBroken(pObject);
 	default:
 		bHandled = false;
 		return true;
