@@ -114,16 +114,25 @@ public:
 		}
 	}
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
 	virtual void Uninitialize() { }
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) = 0;
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) = 0;
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { }
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
 
 	template<typename StmType>
-	inline void Serialize(StmType& Stm)
+	inline void Serialize(StmType& Stm) { }
+
+	template<>
+	inline void Serialize(PhobosStreamWriter& Stm)
 	{
-		Stm.Process(this->Initialized);
+		Stm.Save(this->Initialized);
+	}
+
+	template<>
+	inline void Serialize(PhobosStreamReader& Stm)
+	{
+		Stm.Load(this->Initialized);
 	}
 
 protected:

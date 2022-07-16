@@ -75,8 +75,7 @@ void FlyingStrings::UpdateAll()
 		auto& dataItem = Data[i];
 		auto pos = TacticalClass::Instance->CoordsToView(dataItem.Location);
 		pos += dataItem.PixelOffset;
-		auto bound = DSurface::Temp->Get_Rect();
-		bound.Height -= 32;
+		auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
 		if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height)) {
 			Point2D tmp { 0,0 };

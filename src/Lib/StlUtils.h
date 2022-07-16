@@ -114,13 +114,13 @@ namespace stl
 	//! Fills vector with contents of map.
 	//////////////////////////////////////////////////////////////////////////
 	template <class Map, class Vector>
-	inline void map_to_vector(const Map& theMap, Vector& array)
+	inline void map_to_vector(const Map& theMap, Vector& aarray)
 	{
-		array.resize(0);
-		array.reserve(theMap.size());
+		aarray.resize(0);
+		aarray.reserve(theMap.size());
 		for (typename Map::const_iterator it = theMap.begin(); it != theMap.end(); ++it)
 		{
-			array.push_back(it->second);
+			aarray.push_back(it->second);
 		}
 	}
 

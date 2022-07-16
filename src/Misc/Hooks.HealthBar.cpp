@@ -1,3 +1,4 @@
+
 #include <Utilities/Macro.h>
 
 #include <Ext/Techno/Body.h>
@@ -225,14 +226,14 @@ namespace DrawHeathData
 	{
 		TechnoTypeClass* pType = nullptr;
 		LightConvertClass* pTechConvert = nullptr;
-		bool const bIsInfantry = pThis->WhatAmI() == AbstractType::Infantry;
-		auto const pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
+		const bool bIsInfantry = pThis->WhatAmI() == AbstractType::Infantry;
+		const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
 		bool IsDisguised = false;
 
 		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player) && pDisguise)
 		{
-			pType = (pDisguise);
-			auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) : nullptr;
+			pType = pDisguise;
+			const auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) : nullptr;
 			pTechConvert = pSchemeColor ? pSchemeColor->LightConvert : nullptr;
 			IsDisguised = true;
 		}
@@ -242,30 +243,31 @@ namespace DrawHeathData
 			pTechConvert = pThis->GetRemapColour();
 		}
 
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-		auto const pPipsShape = pTypeExt->HealthBarSHP.Get(FileSystem::PIPS_SHP());
-		auto const pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
-		auto const pPalette = pTypeExt->HealthbarRemap.Get() && pTechConvert ? pTechConvert :
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pPipsShape = pTypeExt->HealthBarSHP.Get(FileSystem::PIPS_SHP());
+		const auto pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
+		const auto pPalette = pTypeExt->HealthbarRemap.Get() && pTechConvert ? pTechConvert :
 			pTypeExt->HealthBarSHP_Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL());
 
 		Point2D nLocation = *pLocation;
 		nLocation += pTypeExt->HealthBarSHP_PointOffset.Get();
-		auto const nBracketDelta = pType->PixelSelectionBracketDelta + pTypeExt->HealthBarSHPBracketOffset.Get();
-		Point2D nPoint { nLocation.X,nLocation.Y };
+		const auto nBracketDelta = pType->PixelSelectionBracketDelta + pTypeExt->HealthBarSHPBracketOffset.Get();
+		Point2D nPoint { 0,0 };
+		const Point2D DrawOffset { 2,0 };
 
 		if (pThis->IsSelected)
 		{
-			nPoint.X += (bIsInfantry ? 11 : 1);
-			nPoint.Y += nBracketDelta - (bIsInfantry ? 25 : 26);
+			nPoint.X = nLocation.X + (bIsInfantry ? 11 : 1);
+			nPoint.Y = nLocation.Y + nBracketDelta - (bIsInfantry ? 25 : 26);
 
 			DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 			TechnoExt::DrawSelectBrd(pThis, pTypeExt, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
 		}
 
-		int const nOffsetX = (bIsInfantry ? -5 : -15);
-		int const nLength = (bIsInfantry ? 8 : 17);
-		int const nYDelta = nBracketDelta - (bIsInfantry ? 24 : 25);
-		int const nDraw = pThis->IsAlive ? Math::clamp((int)(round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
+		const int nOffsetX = (bIsInfantry ? -5 : -15);
+		const int nLength = (bIsInfantry ? 8 : 17);
+		const int nYDelta = nBracketDelta - (bIsInfantry ? 24 : 25);
+		const int nDraw = pThis->IsAlive ? Math::clamp((int)(round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
 		CoordStruct const nHealthFrame = pTypeExt->HealthBarSHP_HealthFrame.Get();
 		int nHealthFrameResult = nHealthFrame.Y; //Green
 
@@ -277,24 +279,19 @@ namespace DrawHeathData
 
 		for (int i = 0; i < nDraw; ++i)
 		{
-			nPoint.Y = nYDelta + nLocation.Y;
-			nPoint.X = nOffsetX + nLocation.X + 2 * i;
+			nPoint.Y = nYDelta + nLocation.Y + DrawOffset.Y * i;
+			nPoint.X = nOffsetX + nLocation.X + DrawOffset.X * i;
 			DSurface::Temp->DrawSHP(pPalette, pPipsShape, nHealthFrameResult, &nPoint, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
 
-	/*
-	void DrawIronCurtaindBar(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound)
+	int DrawBar_PipAmount(TechnoClass* pThis, int iLength)
 	{
-		if (pThis->IsIronCurtained())
-		{
-			auto const nFrame = DrawBar_PipFrame(pThis);
+		const auto passed = Unsorted::CurrentFrame - pThis->IronCurtainTimer.StartTime;
+		const auto left = static_cast<double>(pThis->IronCurtainTimer.TimeLeft - passed);
+		const auto nTime = (left / pThis->IronCurtainTimer.TimeLeft);
 
-			if (pThis->WhatAmI() == AbstractType::Building)
-				DrawBar_Building(pThis,iLength, pLocation, pBound , nFrame,1,2);
-			else
-				DrawdBar_Other(pThis,iLength, pLocation, pBound,nFrame,2);
-		}
+		return Math::clamp((int)round(nTime * iLength), 0, iLength);
 	}
 
 	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound , int frame , int empty_frame, int bracket_delta)
@@ -343,14 +340,13 @@ namespace DrawHeathData
 		}
 	}
 
-	void DrawdBar_Other(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int frame, int bracket_delta)
+	void DrawdBar_Other(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int aframe, int bracket_delta)
 	{
-		const auto pipBoard = FileSystem::PIPBRD_SHP();;
-
-		if (!pipBoard)
-			return;
+		const auto pPipsShape = FileSystem::PIPS_SHP();
+		const auto pPipsShapeSelected = FileSystem::PIPBRD_SHP();
 
 		Point2D vPos = { 0,0 };
+		Point2D nLoc = *pLocation;
 		Point2D vLoc = *pLocation;
 		int frame, XOffset, YOffset;
 		YOffset = pThis->GetTechnoType()->PixelSelectionBracketDelta + bracket_delta;
@@ -360,7 +356,7 @@ namespace DrawHeathData
 		{
 			vPos.X = vLoc.X + 11;
 			vPos.Y = vLoc.Y - 25 + YOffset;
-			frame = pipBoard->Frames > 2 ? 3 : 1;
+			frame = pPipsShapeSelected->Frames > 2 ? 3 : 1;
 			XOffset = -5;
 			YOffset -= 24;
 		}
@@ -368,39 +364,40 @@ namespace DrawHeathData
 		{
 			vPos.X = vLoc.X + 1;
 			vPos.Y = vLoc.Y - 26 + YOffset;
-			frame = pipBoard->Frames > 2 ? 2 : 0;
+			frame = pPipsShapeSelected->Frames > 2 ? 2 : 0;
 			XOffset = -15;
 			YOffset -= 25;
 		}
 
 		if (pThis->IsSelected)
 		{
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pipBoard,
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pPipsShapeSelected,
 				frame, &vPos, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 
-		const int iTotal = DrawBar_PipAmount(pThis,iLength);
+		const auto iTotal = DrawBar_PipAmount(pThis,iLength);
 
 		for (int i = 0; i < iTotal; ++i)
 		{
-			vPos.X = vLoc.X + XOffset + 2 * i;
-			vPos.Y = vLoc.Y + YOffset;
+			vPos.X = nLoc.X + XOffset + 2 * i;
+			vPos.Y = nLoc.Y + YOffset;
 
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
-				frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pPipsShape,
+				aframe, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
 
-	int DrawBar_PipAmount(TechnoClass* pThis, int iLength)
+	void DrawIronCurtaindBar(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		return Math::clamp((int)round(pThis->IronCurtainTimer.GetTimeLeft() * iLength), 0, iLength);
+		if (pThis->IsIronCurtained())
+		{
+			if (pThis->WhatAmI() == AbstractType::Building)
+				DrawBar_Building(pThis, iLength, pLocation, pBound, pThis->ForceShielded != 1 ? 2 : 3, 0, 0);
+			else
+				DrawdBar_Other(pThis, iLength, pLocation, pBound, 18, 0);
+		}
 	}
 
-	int DrawBar_PipFrame(TechnoClass* pThis)
-	{
-		// IC : FC
-		return pThis->ForceShielded != 1 ? 2 : 3;
-	}*/
 }
 
 DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
@@ -417,6 +414,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	}
 
 	DrawHeathData::DrawNumber(pThis, pLocation, pBound);
+	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 	return 0;
 }
 
@@ -425,17 +423,19 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
+	const int iLength = pThis->WhatAmI() == AbstractType::Infantry ? 8 : 17;
 
 	const auto pExt = TechnoExt::GetExtData(pThis);
 	if (const auto pShieldData = pExt->Shield.get()) {
 		if (pShieldData->IsAvailable()) {
-			const int iLength = pThis->WhatAmI() == AbstractType::Infantry ? 8 : 17;
+
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 		}
 	}
 
 	DrawHeathData::DrawBar(pThis, pLocation, pBound);
 	DrawHeathData::DrawNumber(pThis, pLocation, pBound);
+	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 
 	return 0x6F6A58;
 }

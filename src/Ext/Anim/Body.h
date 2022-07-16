@@ -31,12 +31,7 @@ public:
 
 		virtual ~ExtData() override = default;
 		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override
-		{
-			if (Invoker == ptr)
-				Invoker = nullptr;
-
-		}
+		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

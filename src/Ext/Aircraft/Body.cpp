@@ -1,8 +1,96 @@
 #include "Body.h"
 #include <Ext/WeaponType/Body.h>
 
+#include <Ext/AnimType/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/WeaponType/Body.h>
+#include <Ext/BulletType/Body.h>
+
 //template<> const DWORD Extension<AircraftClass>::Canary = 0x55555765;
 //AircraftExt::ExtContainer AircraftExt::ExtMap;
+
+void __fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, void* _, int nMult)
+{
+	if (auto pType = pThis->GetTechnoType())
+	{
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (pTypeExt)
+		{
+			if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
+			{
+				auto pWeaponExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
+
+				if (BulletClass* pBullet = pWeaponExt->CreateBullet(pThis->GetCell(), pThis,
+					pWeapon))
+				{
+					const CoordStruct& coords = pThis->GetCoords();
+					pBullet->SetWeaponType(pWeapon);
+					pBullet->Limbo();
+					pBullet->SetLocation(coords);
+					pBullet->Explode(true);
+					pBullet->UnInit();
+					goto playDestroyAnim;
+				}
+			}
+		}
+
+		pThis->FireDeathWeapon(nMult);
+
+	playDestroyAnim:
+
+		if (pType->DestroyAnim.Size() > 0)
+		{
+			auto const facing = pThis->PrimaryFacing.current().value256();
+			int idxAnim = 0;
+
+			if (pTypeExt && !pTypeExt->DestroyAnim_Random.Get())
+			{
+				if (pType->DestroyAnim.Count >= 8)
+				{
+					idxAnim = pType->DestroyAnim.Count;
+					if (pType->DestroyAnim.Count % 2 == 0)
+						idxAnim *= static_cast<int>(facing / 256.0);
+				}
+			}
+			else
+			{
+				if (pType->DestroyAnim.Count > 1)
+					idxAnim = ScenarioClass::Instance->Random.RandomRanged(0, (pType->DestroyAnim.Count - 1));
+			}
+
+			if (AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim])
+			{
+				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+				{
+					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+					auto const pAnimExt = AnimExt::GetExtData(pAnim);
+
+					if (!pAnimTypeExt || !pAnimExt)
+						return;
+
+					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
+						pAnimExt->Invoker = pThis;
+
+					pAnimExt->FromDeathUnit = true;
+
+					if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
+						pAnimExt->DeathUnitFacing = facing;
+
+					if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
+					{
+						if (pThis->HasTurret())
+						{
+							pAnimExt->DeathUnitHasTurret = true;
+							pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.current();
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
@@ -34,13 +122,13 @@ void AircraftExt::ExtData::Serialize(T& Stm)
 
 void AircraftExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AircraftClass>::LoadFromStream(Stm);
+	Extension<AircraftClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void AircraftExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AircraftClass>::SaveToStream(Stm);
+	Extension<AircraftClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

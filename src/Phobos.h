@@ -51,6 +51,10 @@ constexpr const char* UIMD_ = "uimd.ini";
 // "<none>";
 #define NONE_STR reinterpret_cast<const char*>(0x817474)
 
+#define Eva_structureSold reinterpret_cast<const char*>(0x819030)
+#define Eva_UnitSold reinterpret_cast<const char*>(0x822630)
+
+
 struct Phobos final
 {
 private:

@@ -1,3 +1,5 @@
+#include "Body.h"
+
 #include <TiberiumClass.h>
 #include <OverlayTypeClass.h>
 #include <OverlayClass.h>
@@ -6,31 +8,6 @@
 
 #include <Ext/Tiberium/Body.h>
 #include <Ext/BuildingType/Body.h>
-// Dont call it without checking Tiberium existence
-// otherwise crash
-namespace Get
-{
-	int Index(CellClass* pCell)
-	{
-		if (pCell->OverlayTypeIndex != -1)
-		{
-			const auto nTibIndex = TiberiumClass::FindIndex(pCell->OverlayTypeIndex);
-			if (nTibIndex != -1)
-			{
-				if (const auto pTiberium = TiberiumClass::Array->GetItem(nTibIndex))
-				{
-					const auto nSlope = (int)pCell->SlopeIndex;
-					if (nSlope > 0)
-						return nSlope + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1;
-
-					return pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages;
-				}
-			}
-		}
-
-		return 0;
-	}
-}
 
 DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 {
@@ -38,7 +15,7 @@ DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 	GET(OverlayTypeClass*, pOverlay, ESI);
 
 	if (pOverlay->Tiberium)
-		pOverlay = OverlayTypeClass::Array->GetItem(Get::Index(pThis));
+		pOverlay = OverlayTypeClass::Array->GetItem(CellExt::GetOverlayIndex(pThis));
 
 	R->EBX(pOverlay->GetImage());
 
@@ -60,7 +37,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
 
-	const auto nIndex = Get::Index(pThis);
+	const auto nIndex = CellExt::GetOverlayIndex(pThis);
 	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
 
 	if (!pShape)
@@ -77,7 +54,6 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 		if (pTibExt->Ore_TintLevel.isset())
 			nOreTint = Math::min(pTibExt->Ore_TintLevel.Get(), 1000);
 	}
-
 
 	SHPStruct* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)

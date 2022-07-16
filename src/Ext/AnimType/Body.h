@@ -89,8 +89,8 @@ public:
 			, ExplodeOnWater { false }
 
 			, SpawnsMultiple {}
-			, SpawnsMultiple_amouts {}
 			, SpawnsMultiple_Random { false }
+			, SpawnsMultiple_amouts {}
 
 			, ParticleRangeMin { 0.0 }
 			, ParticleRangeMax { 0.0 }

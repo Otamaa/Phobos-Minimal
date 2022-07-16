@@ -1,7 +1,10 @@
 #include "Body.h"
 
 #include <Ext/House/Body.h>
+#include <Ext/Rules/Body.h>
+
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/EnumFunctions.h>
 
 template<> const DWORD Extension<BuildingTypeClass>::Canary = 0x11111111;
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
@@ -9,8 +12,73 @@ const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
 void BuildingTypeExt::ExtData::InitializeConstants() {
 
 	AIBuildInsteadPerDiff.reserve(3);
-	const char* const Eva_structureSold = reinterpret_cast<const char*>(0x819030);
-	EVA_Sold = VoxClass::FindIndex(Eva_structureSold);
+}
+
+int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
+{
+	//pthis check is just in  case
+	if (pThis
+		&& pThis->IsAlive
+		&& (pThis->Occupants.Count > 0)
+		)
+	{
+		if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+		{
+			const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
+			if (nIndex != -1)
+			{
+
+				AnimTypeClass* pDecidedAnim = nullptr;
+
+				switch (nSlot)
+				{
+				case BuildingAnimSlot::Active:
+					if (!pBuildingExt->GarrisonAnim_ActiveOne.empty())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne.get_or_default(nIndex);
+					break;
+				case BuildingAnimSlot::ActiveTwo:
+					if (!pBuildingExt->GarrisonAnim_ActiveTwo.empty())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo.get_or_default(nIndex);
+					break;
+				case BuildingAnimSlot::ActiveThree:
+					if (!pBuildingExt->GarrisonAnim_ActiveThree.empty())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree.get_or_default(nIndex);
+					break;
+				case BuildingAnimSlot::ActiveFour:
+					if (!pBuildingExt->GarrisonAnim_ActiveFour.empty())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour.get_or_default(nIndex);
+					break;
+				case BuildingAnimSlot::Idle:
+					if (!pBuildingExt->GarrisonAnim_idle.empty())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_idle.get_or_default(nIndex);
+					break;
+				}
+
+				if (pDecidedAnim) {
+					return pDecidedAnim->ArrayIndex;
+				}
+			}
+		}
+	}
+
+	return AnimTypeClass::FindIndex(pDefault);
+
+}
+
+bool __fastcall BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
+{
+	if (!pThis || !pThis->Type)
+		return false;
+
+	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
+}
+
+void __fastcall BuildingTypeExt::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+{
+	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
+
+	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, nFlag, Remap, ZAdjust,
+		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
@@ -207,9 +275,6 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PlacementPreview_Palette.Read(pINI, pSection, "PlacementPreview.Palette");
 	this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
-	this->EVA_Sold_Disabled.Read(exINI, pSection, "EVA.Sold.Disabled");
-	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
-
 #pragma region Otamaa
 	//   this->OwnerObject()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
@@ -365,9 +430,6 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PlacementPreview_Shape)
 		.Process(this->PlacementPreview_ShapeFrame)
 		.Process(this->PlacementPreview_TranslucentLevel)
-
-		.Process(this->EVA_Sold_Disabled)
-		.Process(this->EVA_Sold)
 
 		.Process(this->DamageFireTypes)
 		.Process(this->OnFireTypes)

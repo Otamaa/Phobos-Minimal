@@ -18,8 +18,7 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	GET(UnitClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));
 
-	if(const auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
+	if(const auto pExt = TechnoExt::ExtMap.Find(pThis)) {
 		R->ECX(R->ESI());
 		pExt->ReceiveDamage = true;
 		AnimTypeExt::ProcessDestroyAnims(pThis, Receivedamageargs.Attacker);
@@ -30,13 +29,14 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x738807, UnitClass_Destroy_DestroyAnim, 0x8)
+DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0xC)
 {
 	GET(UnitClass* const, pThis, ESI);
 
 	if (auto const Extension = TechnoExt::ExtMap.Find(pThis)) {
-		if(!Extension->ReceiveDamage)
+		if (!Extension->ReceiveDamage) {
 			AnimTypeExt::ProcessDestroyAnims(pThis);
+		}
 
 		return 0x73887E;
 	}

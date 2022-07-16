@@ -139,8 +139,16 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 			j++;
 			cur[j] = strtok_s(NULL, ",", &context);
 		}
-		essentialRequirementsCount = atoi(cur[0]);
-		leastOptionalRequirementsCount = atoi(cur[1]);
+
+		if (cur[0])
+			essentialRequirementsCount = atoi(cur[0]);
+		else
+			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Essential Reqirments Count [0] !.\n");
+
+		if (cur[1])
+			leastOptionalRequirementsCount = atoi(cur[1]);
+		else
+			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Least Optional Reqirments Count [1] !.\n");
 
 		//parse other strings
 		for (int i = 1; i < thisAICondition.Count; i++)
@@ -162,9 +170,21 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 			TechnoTypeClass* buffer;
 			if (Parser<TechnoTypeClass*>::TryParse(cur2[3], &buffer))
 			{
-				pickMode = atoi(cur2[0]);
-				compareMode = atoi(cur2[1]);
-				Number = atoi(cur2[2]);
+				if (cur2[0])
+					pickMode = atoi(cur2[0]);
+				else
+					Debug::Log("DEBUG : [AIConditionsList]: Error parsing Pick [0] !.\n");
+
+				if (cur2[1])
+					compareMode = atoi(cur2[1]);
+				else
+					Debug::Log("DEBUG : [AIConditionsList]: Error parsing Compare [1] !.\n");
+
+				if (cur2[2])
+					Number = atoi(cur2[2]);
+				else
+					Debug::Log("DEBUG : [AIConditionsList]: Error parsing Number [2] !.\n");
+
 				TechnoType = buffer;
 			}
 			else

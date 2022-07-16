@@ -187,8 +187,8 @@ struct Color16Struct
 
 	explicit Color16Struct(ColorStruct const color) :
 		B(static_cast<unsigned short>(color.B >> 3u)),
-		G(static_cast<unsigned short>(color.G >> 2u)),
-		R(static_cast<unsigned short>(color.R >> 3u))
+		R(static_cast<unsigned short>(color.R >> 3u)),
+		G(static_cast<unsigned short>(color.G >> 2u))
 	{ }
 
 	explicit Color16Struct(WORD const color)
@@ -199,7 +199,7 @@ struct Color16Struct
 	{ }
 
 	Color16Struct(WORD const r, WORD const g, WORD const b)
-		: R(r), G(g), B(b)
+		:B(b) ,R(r) , G(g)
 	{ }
 
 	bool operator == (Color16Struct const rhs) const
@@ -230,9 +230,9 @@ struct Color16Struct
 #pragma pack(pop)
 
 inline ColorStruct::ColorStruct(Color16Struct const color) :
-	B(static_cast<BYTE>(color.B << 3u | color.B >> 2u)),
+	R(static_cast<BYTE>(color.R << 3u | color.R >> 2u)),
 	G(static_cast<BYTE>(color.G << 2u | color.G >> 4u)),
-	R(static_cast<BYTE>(color.R << 3u | color.R >> 2u))
+	B(static_cast<BYTE>(color.B << 3u | color.B >> 2u))
 { }
 
 inline ColorStruct::ColorStruct(WORD const color) :

@@ -42,8 +42,7 @@ public:
 		if (ObjectClass::CurrentObjects->Count < 0)
 			return;
 
-		auto const pCurObject = ObjectClass::CurrentObjects();
-		std::for_each(pCurObject->begin(), pCurObject->end(), [](ObjectClass* const object) {
+		std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object) {
 			if (!object || !(object->AbstractFlags & AbstractFlags::Techno))
 				return;
 

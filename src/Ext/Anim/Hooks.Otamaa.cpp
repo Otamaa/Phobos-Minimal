@@ -193,44 +193,36 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	if (!pThis || !pThis->Type)
 		return SkipGameCode;
 
-	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt && pAnimTypeExt->Damage_DealtByInvoker);
-	auto const pOwner = pThis->Owner ? pThis->Owner : pTechOwner ? pTechOwner->GetOwningHouse() : nullptr;
+	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
+		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
+		auto const pOwner = pThis->Owner ? pThis->Owner : pTechOwner ? pTechOwner->GetOwningHouse() : nullptr;
 
-	if (!LandIsWater || EligibleHeight)
-	{
-		Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+		if (!LandIsWater || EligibleHeight) {
+			Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 
-		if (auto const pExpireAnim = pThis->Type->ExpireAnim)
-		{
-			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0))
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTechOwner, false);
-			}
-		}
-	}
-	else
-	{
-		if (!pAnimTypeExt->ExplodeOnWater)
-		{
-			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesGlobal->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
-			{
-				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
+			if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
+				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, 0x2600u, -30, 0)) {
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTechOwner, false);
 				}
 			}
 		}
 		else
 		{
-			auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
-			if (bPlayWHAnim)
-			{
-				if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCenterCoord()))
-				{
-					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30))
-					{
+			if (!pAnimTypeExt->ExplodeOnWater) {
+				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesGlobal->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor)) {
+					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x600u, false)) {
 						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
+					}
+				}
+			}
+			else
+			{
+				auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCenterCoord(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				if (bPlayWHAnim) {
+					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCenterCoord())) {
+						if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCenterCoord(), 0, 1, 0x2600u, -30)) {
+							AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
+						}
 					}
 				}
 			}
@@ -493,7 +485,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
 	while (nYadd_Loc >= 0);
 #endif
 	return 0x42371B;
-}
+	}
 
 // Bruh ,..
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

@@ -11,6 +11,10 @@ template<> const DWORD Extension<HouseClass>::Canary = 0x11111111;
 HouseExt::ExtContainer HouseExt::ExtMap;
 
 void HouseExt::ExtData::InitializeConstants() { }
+void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	HouseAirFactory.Remove(reinterpret_cast<BuildingClass*>(ptr));
+}
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 {

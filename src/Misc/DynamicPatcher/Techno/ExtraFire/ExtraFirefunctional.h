@@ -4,12 +4,8 @@
 
 class AbstractClass;
 class TechnoClass;
-struct ExtraFirefunctional
+namespace ExtraFirefunctional
 {
-private:
-	NO_CONSTRUCT_CLASS(ExtraFirefunctional)
-public:
-
-	static void GetWeapon(TechnoClass* pThis, AbstractClass* pTarget , int nWeaponIdx);
+	void GetWeapon(TechnoClass* pThis, AbstractClass* pTarget , int nWeaponIdx);
 };
 #endif

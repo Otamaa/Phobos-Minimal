@@ -17,6 +17,11 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOw
 	return nullptr;
 }
 
+void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(Invoker, ptr);
+}
+
 void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt)
 {
 	auto pThis = OwnerObject();

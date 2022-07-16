@@ -18,6 +18,11 @@ void BuildingExt::ExtData::InitializeConstants()
 #endif
 }
 
+void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(CurrentAirFactory, ptr);
+}
+
 void BuildingExt::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
 {
 	auto const pDepositableTiberium = TiberiumClass::Array->GetItem(idxStorageTiberiumType);

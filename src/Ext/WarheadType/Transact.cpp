@@ -4,6 +4,8 @@
 #include <Utilities/Helpers.h>
 #include <Ext/Techno/Body.h>
 
+#include <algorithm>
+
 // Add or substract experience for real
 int AddExpCustom(VeterancyStruct* vstruct, int targetCost, int exp)
 {
@@ -145,8 +147,6 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 		}
 	}
 }
-
-#include <algorithm>
 
 void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, HouseClass* pHouse,TechnoClass* pOwner)
 {

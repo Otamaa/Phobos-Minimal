@@ -24,13 +24,13 @@ void OverlayTypeExt::ExtData::Serialize(T& Stm)
 
 void OverlayTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<OverlayTypeClass>::LoadFromStream(Stm);
+	Extension<OverlayTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void OverlayTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<OverlayTypeClass>::SaveToStream(Stm);
+	Extension<OverlayTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 

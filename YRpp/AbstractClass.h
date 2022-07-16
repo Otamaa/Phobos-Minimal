@@ -151,11 +151,11 @@ public:
 	}
 
 	//Operators
-	bool operator < (const AbstractClass &rhs) const {
+	bool operator < (const AbstractClass& rhs) const {
 		return this->UniqueID < rhs.UniqueID;
 	}
 
-	bool operator==(const AbstractClass* rhs) const {
+	bool operator==(const AbstractClass& rhs) const {
 		JMP_THIS(0x588C10);
 	}
 

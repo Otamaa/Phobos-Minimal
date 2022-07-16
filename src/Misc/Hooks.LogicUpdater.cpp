@@ -8,6 +8,7 @@
 #include <Ext/House/Body.h>
 
 #include <MapClass.h>
+#include <Kamikaze.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
@@ -24,6 +25,7 @@
 #endif
 
 #include <New/Entity/VerticalLaserClass.h>
+#include <New/Entity/HomingMissileTargetTracker.h>
 #include <Phobos_ECS.h>
 
 void TechnoClass_AI_GattlingDamage(TechnoClass* pThis)
@@ -135,10 +137,25 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 #endif
 	if (pThis->WhatAmI() != AbstractType::Building)
 	{
+#ifdef ENABLE_HOMING_MISSILE
+		if (const auto pFoot = specific_cast<AircraftClass*>(pThis))
+		{
+			if (auto const pLoco = static_cast<LocomotionClass*>(pFoot->Locomotor.get()))
+			{
+				CLSID nID { };
+				pLoco->GetClassID(&nID);
+
+				if (nID == LocomotionClass::CLSIDs::Rocket && pTypeExt->MissileHoming)
+				{
+					pExt->MissileTargetTracker = GameCreate<HomingMissileTargetTracker>();
+				}
+			}
+		}
+#endif
 		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+#ifdef ENABLE_HOMING_MISSILE
 		pExt->IsMissileHoming = pTypeExt->MissileHoming.Get();
 #endif
 		TechnoExt::InitializeLaserTrail(pThis, false);
@@ -182,9 +199,9 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 		DriveDataFunctional::AI(pExt);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-		if (pExt->PaintBallState.get()) {
-			if (!pExt->PaintBallState->IsActive())
-				pExt->PaintBallState->Disable(false);
+		if (auto const pPaintBall = pExt->PaintBallState.get()) {
+			if (!pPaintBall->IsActive())
+				pPaintBall->Disable(false);
 			else
 				if (pThis->WhatAmI() == AbstractType::Building)
 					pThis->UpdatePlacement(PlacementType::Redraw);
@@ -198,7 +215,9 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 
 static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 {
-	if (pThis->Type->OpenTopped)
+	auto const pExt = TechnoExt::GetExtData(pThis);
+
+	if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
 	{
 		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
 		{
@@ -212,10 +231,12 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 				}
 			}
 		}
+
+		pExt->AircraftOpentoppedInitEd = true;
 	}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	auto const pExt = TechnoExt::GetExtData(pThis);
+
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
@@ -223,28 +244,24 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 		AircraftPutDataFunctional::AI(pExt, pTypeExt);
 		AircraftDiveFunctional::AI(pExt, pTypeExt);
 		FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-#ifdef HOMING_MISSILE
-		if (pExt->IsMissileHoming
+
+#ifdef ENABLE_HOMING_MISSILE
+		if (pTypeExt->MissileHoming
 			&& pThis->Spawned
-			&& pThis->Type->MissileSpawn)
-		{
-			auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+			&& pThis->Type->MissileSpawn) {
+			const auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+			CLSID nID { };
+			pLoco->GetClassID(&nID);
 
-			if (pThis->Type->Locomotor == LocomotionClass::CLSIDs::Rocket())
-			{
-				if (auto pTechnoTarget = generic_cast<TechnoClass*>(pThis->Target))
-				{
-					if (!Helpers_DP::IsDeadOrInvisibleOrCloaked(pTechnoTarget))
-					{
-						pExt->HomingTargetLocation = pTechnoTarget->GetCoords();
-					}
-				}
-
-				if (pExt->HomingTargetLocation)
-				{
+			if (nID == LocomotionClass::CLSIDs::Rocket()) {
+				if (auto const pTracker = pExt->MissileTargetTracker) {
+					pTracker->AI();
 					auto const pRocket = static_cast<RocketLocomotionClass*>(pLoco);
-					if (pRocket->MissionState > 2)
-						pRocket->MovingDestination = pExt->HomingTargetLocation;
+
+					//check if the coord is actually valid
+					// if not , just move on
+					if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
+						pRocket->MovingDestination = pTracker->Coord;
 				}
 			}
 		}
@@ -404,19 +421,28 @@ void __fastcall HouseClass_AI_SWHandler_Add(HouseClass* pThis, void* _)
 
 DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
-#include <Kamikaze.h>
 
-void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
-{
+void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _) {
 	pLogic->Update();
 }
 
 DEFINE_JUMP(CALL,0x55DC9E ,GET_OFFSET(LogicClass_AI_));
 
-void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void*_)
-{
+void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void*_) {
 	pThis->Update();
-	VerticalLaserClass::Draw_All();
 }
 
 DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
+
+//DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
+{
+	VerticalLaserClass::Draw_All();
+#ifdef ENABLE_HOMING_MISSILE
+	HomingMissileTargetTracker::Update_All();
+#endif
+	return 0x0;
+}

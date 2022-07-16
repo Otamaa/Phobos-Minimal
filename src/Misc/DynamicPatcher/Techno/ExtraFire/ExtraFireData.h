@@ -37,6 +37,8 @@ struct ExtraFireData
 			, WeaponXFLH { }
 			, EliteWeaponXFLH { }
 		{ }
+
+		~FLHData() = default;
 	};
 
 	struct WeaponData
@@ -70,6 +72,8 @@ struct ExtraFireData
 			, WeaponX { }
 			, EliteWeaponX { }
 		{ }
+
+		~WeaponData() = default;
 	};
 
 	FLHData AttachedFLH;

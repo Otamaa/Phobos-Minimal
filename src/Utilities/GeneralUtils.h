@@ -102,7 +102,7 @@ public:
 	static const int ScaleF2I(float value, int scale)
 	{
 		value = std::clamp(value, 0.0f, 1.0f);
-		return Game::F2I(value * scale);
+		return static_cast<int>(value * scale);
 	}
 
 
@@ -137,6 +137,37 @@ public:
 	//https://noobtuts.com/cpp/compare-float-values
 	static __forceinline bool cmpf(float A, float B, float epsilon = 0.005f) {
 		return (fabs(A - B) < epsilon);
+	}
+
+	template<typename First , typename ... T>
+	static inline decltype(auto) variadic_min(const First& f, const T& ... t) {
+		const First* retval = std::addressof(f);
+		( (retval = std::addressof(std::min(*retval,t))),...);
+		return *retval;
+	}
+
+	template<typename First, typename ... T>
+	static inline decltype(auto) variadic_max(const First& f, const T& ... t)
+	{
+		const First* retval = std::addressof(f);
+		((retval = std::addressof(std::max(*retval, t))), ...);
+		return *retval;
+	}
+
+	template<typename First, typename ... T>
+	static inline decltype(auto) variadic_fmin(const First& f, const T& ... t)
+	{
+		First retval = f;
+		((retval = std::fmin(retval, t)), ...);
+		return retval;
+	}
+
+	template<typename First, typename ... T>
+	static inline decltype(auto) variadic_fmax(const First& f, const T& ... t)
+	{
+		First retval = f;
+		((retval = std::fmax(retval, t)), ...);
+		return retval;
 	}
 
 #pragma endregion

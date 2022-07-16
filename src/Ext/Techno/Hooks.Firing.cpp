@@ -219,3 +219,59 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 
 	return 0;
 }
+
+// Reimplements the game function with few changes / optimizations
+DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(int, weaponIndex, 0x4);
+
+	int result = 0;
+
+	if (const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
+	{
+		result = pWeapon->Range;
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+		if (!pTypeExt)
+			return 0x0;
+
+		if (pThis->GetTechnoType()->OpenTopped && !pTypeExt->OpenTopped_IgnoreRangefinding.Get())
+		{
+			int smallestRange = INT32_MAX;
+			auto pPassenger = pThis->Passengers.FirstPassenger;
+
+			while (pPassenger && (pPassenger->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
+			{
+				int openTWeaponIndex = pPassenger->GetTechnoType()->OpenTransportWeapon;
+				int tWeaponIndex = 0;
+
+				if (openTWeaponIndex != -1)
+					tWeaponIndex = openTWeaponIndex;
+				else if (pPassenger->HasTurret())
+					tWeaponIndex = pPassenger->CurrentWeaponNumber;
+
+				if (WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType)
+				{
+					if (pTWeapon->Range < smallestRange)
+						smallestRange = pTWeapon->Range;
+				}
+
+				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+			}
+
+			if (result > smallestRange)
+				result = smallestRange;
+		}
+	}
+
+	if (result == 0 && pThis->GetTechnoType()->OpenTopped && pThis->WhatAmI() == AbstractType::Aircraft)
+	{
+		result = pThis->GetTechnoType()->GuardRange;
+		if (result == 0)
+			Debug::Log("Warning ! , range of Aircraft[%s] return 0 result will cause Aircraft to stuck ! \n", pThis->get_ID());
+	}
+
+	R->EAX(result);
+	return 0x701393;
+}

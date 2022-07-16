@@ -32,7 +32,7 @@ public:
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
 	Nullable<Leptons> DetonationDistance;
 
-	PhobosTrajectoryType(noinit_t) { }
+	PhobosTrajectoryType(noinit_t){ }
 	PhobosTrajectoryType(TrajectoryFlag flag) : Flag { flag }
 		, DetonationDistance { }
 	{}
@@ -53,7 +53,7 @@ public:
 	//nonstatic but not virtuals !
 	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool SaveBase(PhobosStreamWriter& Stm) const;
-	std::pair<bool, INI_EX> ReadBase(CCINIClass* const pINI, const char* pSection);
+	bool ReadBase(INI_EX& exINI, const char* pSection);
 };
 
 

@@ -3,13 +3,10 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-struct AircraftDiveFunctional
+namespace AircraftDiveFunctional
 {
-private:
-	NO_CONSTRUCT_CLASS(AircraftDiveFunctional)
-public:
-	static void Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx);
+	void Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx);
 };
 #endif

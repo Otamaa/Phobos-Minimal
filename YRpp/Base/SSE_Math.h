@@ -4,6 +4,9 @@
 #include <xmmintrin.h>
 #include <limits>
 
+#pragma warning( push )
+#pragma warning (disable : 4244)
+
 const f32 gf_PI = f32(3.14159265358979323846264338327950288419716939937510);
 const f64 g_PI = 3.14159265358979323846264338327950288419716939937510; // pi
 
@@ -352,3 +355,31 @@ ILINE int32 idxmax3(const F* pdata)
 	return imax & (2 | (imax >> 1 ^ 1));
 }
 
+ILINE float Linear(const float a, const float b, float t)
+{
+	return a * t + (1 - t) * b;
+}
+
+ILINE float Cosine(const float a, const float b, float t)
+{
+	float ft = t * gf_PI;
+	t = (1 - cos(ft)) * 0.5;
+	return Linear(a, b, t);
+}
+
+ILINE float Cubic(float v0, float v1, float v2, float v3, float t)
+{
+	return v0 + 0.5 * t * (v2 - v0 + t * (2.0 * v0 - 5.0 * v1 + 4.0 * v2 - v3 + t * (3.0 * (v1 - v2) + v3 - v0)));
+}
+
+ILINE float Hermite(float v0, float m0, float v1, float m1, float t)
+{
+	return v0 + t * (m0 + t * (-3 * v0 - 2 * m0 - m1 + 3 * v1 + t * (2 * v0 + m0 + m1 - 2 * v1)));
+}
+
+ILINE float roundoff(float value, unsigned char prec)
+{
+	float pow_10 = pow(10.0f, (float)prec);
+	return round(value * pow_10) / pow_10;
+}
+#pragma warning( pop )

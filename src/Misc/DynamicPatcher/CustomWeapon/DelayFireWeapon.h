@@ -9,8 +9,9 @@ struct DelayFireWeapon
 	WeaponTypeClass* Weapon;
 	AbstractClass* Target;
 	int Delay;
-	TimerStruct Timer;
 	int Count;
+	TimerStruct Timer;
+
 
 	DelayFireWeapon(int weaponIndex, AbstractClass* ptarget, int delay, int count) :
 		FireOwnWeapon { true }
@@ -41,6 +42,8 @@ struct DelayFireWeapon
 		, Count { 1 }
 		, Timer { 0 }
 	{ }
+
+	~DelayFireWeapon() = default;
 
 	bool TimesUp()
 	{

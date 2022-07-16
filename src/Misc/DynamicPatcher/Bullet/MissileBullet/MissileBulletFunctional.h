@@ -1,7 +1,7 @@
 #pragma once
 
 class BulletClass;
-struct MissileBulletFunctional
+namespace MissileBulletFunctional
 {
 	static void Put(BulletClass* pThis);
 };

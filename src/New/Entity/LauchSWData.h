@@ -2,7 +2,7 @@
 
 #include <Utilities/TemplateDef.h>
 
-struct LauchSWData
+struct LauchSWData final
 {
 	SuperWeaponTypeClass* LaunchWhat;
 	bool LaunchWaitcharge;
@@ -28,6 +28,8 @@ struct LauchSWData
 		, LaunchSW_IgnoreInhibitors { false }
 		, LauchSW_IgnoreMoney { false }
 	{ }
+
+	~LauchSWData() = default;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;

@@ -55,4 +55,14 @@ public:
 		AnimTypeClass* pControlledAnimType = RulesClass::Instance->ControlledAnimationType);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot);
 
+	static void __stdcall DrawLinkTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color) {
+		JMP_STD(0x704E40);
+	}
+
+	static inline int FixIdx(const Iterator<int>& iter, int nInput) {
+		return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];
+	}
+
+	static bool AllowDrawLink(TechnoTypeClass* pType);
+	static void __fastcall Overload_AI(CaptureManagerClass* pThis, void* _);
 };

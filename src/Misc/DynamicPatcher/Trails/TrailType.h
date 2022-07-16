@@ -63,6 +63,8 @@ public:
 			:ParticleSystem { nullptr }
 		{ };
 
+		~ParticleTrailType() = default;
+
 		Valueable<ParticleSystemTypeClass*> ParticleSystem;
 
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -87,7 +89,7 @@ public:
 		, Distance { 64 }
 		, IgnoreVertical { false }
 		, InitialDelay { 0 }
-
+		, HideWhenCloak { true }
 		//
 		, AnimTrailType { }
 		, BeamTrailType { RadBeamType::Eruption }
@@ -96,7 +98,7 @@ public:
 
 		//
 		, ParticleTrailType { }
-		, HideWhenCloak { true }
+
 
 	{ }
 

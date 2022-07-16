@@ -41,14 +41,17 @@ class INI_EX {
 	CCINIClass* IniFile;
 
 public:
-	INI_EX() : IniFile { nullptr }
+
+	INI_EX() noexcept : IniFile { nullptr }
 	{ }
 
-	explicit INI_EX(CCINIClass* pIniFile)
+	~INI_EX() { IniFile = nullptr; }
+
+	explicit INI_EX(CCINIClass* pIniFile) noexcept
 		: IniFile { pIniFile }
 	{ }
 
-	explicit INI_EX(CCINIClass& iniFile)
+	explicit INI_EX(CCINIClass& iniFile) noexcept
 		: IniFile { &iniFile }
 	{ }
 
@@ -65,6 +68,42 @@ public:
 	}
 
 	CCINIClass* GetINI() const {
+		return IniFile;
+	}
+
+	INI_EX(INI_EX const& other)
+		: IniFile { other.IniFile }
+	{ }
+
+	INI_EX& operator=(INI_EX const& other) {
+		// Use copy and swap idiom to implement assignment.
+		INI_EX copy(other);
+		swap(*this, copy);
+		return *this;
+	}
+
+	INI_EX(INI_EX&& that) noexcept
+		: IniFile { nullptr }               // Set the state so we know it is undefined
+	{
+		swap(*this, that);
+	}
+
+	INI_EX& operator=(INI_EX&& that) noexcept
+	{
+		swap(*this, that);
+		return *this;
+	}
+
+	friend void swap(INI_EX& lhs, INI_EX& rhs) noexcept
+	{
+		std::swap(lhs.IniFile, rhs.IniFile);
+	}
+
+	CCINIClass* operator->() const {
+		return IniFile;
+	}
+
+	operator bool() const {
 		return IniFile;
 	}
 

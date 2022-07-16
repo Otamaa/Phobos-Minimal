@@ -67,6 +67,12 @@ public:
 
 	virtual bool IsDSurface() const JMP_THIS(0x4115C0); // guessed - secsome
 
+	RectangleStruct Get_Rect_WithoutBottomBar() {
+		auto nRect = Get_Rect();
+		nRect.Height -= 32;
+		return nRect;
+	}
+
 	bool Clear() { return Fill(0u); }
 	bool Clear(RectangleStruct& area) { return Fill_Rect(area, 0u); }
 

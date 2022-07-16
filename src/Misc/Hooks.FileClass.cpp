@@ -44,6 +44,7 @@ static long RawFileClass_Read(RawFileClass* pThis, void* buffer, int length)
 			total += bytesread;
 			if (nStreamerAccess)
 				break;
+
 			pThis->Error(FileErrorType(GetLastError()), true, pThis->FileName);
 
 		}

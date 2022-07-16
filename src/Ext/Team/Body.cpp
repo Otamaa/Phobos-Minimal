@@ -8,6 +8,11 @@ TeamExt::ExtData* TeamExt::GetExtData(TeamExt::base_type* pThis)
 	return ExtMap.Find(pThis);
 }
 
+void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(TeamLeader, ptr);
+}
+
 void TeamExt::ExtData::InitializeConstants() { }
 void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
@@ -115,15 +120,14 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x6)
 {
 	GET(TeamClass*, pThis, ECX);
 	GET(void*, target, EAX);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = TeamExt::GetExtData(pThis))
+	if (const auto pExt = TeamExt::GetExtData(pThis))
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-}*/
+}

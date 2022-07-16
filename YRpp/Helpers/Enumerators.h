@@ -176,8 +176,10 @@ class CellRangeEnumerator
 
 public:
 	CellRangeEnumerator(CellStruct const center, double const radius)
-		: center(center), radius_sqr(radius * radius),
-		inner(convert(center, radius))
+		:
+			inner(convert(center, radius)) ,
+			center(center),
+			radius_sqr(radius * radius)
 	{
 		next();
 	}

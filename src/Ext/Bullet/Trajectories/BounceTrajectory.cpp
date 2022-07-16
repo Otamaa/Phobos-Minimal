@@ -50,9 +50,9 @@ bool BounceTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 void BounceTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	auto[bAvail, exINI] = this->PhobosTrajectoryType::ReadBase(pINI, pSection);
+	INI_EX exINI { pINI };
 
-	if (!bAvail)
+	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
 		return;
 
 	Valueable<int> nBounceAmount { 0 };

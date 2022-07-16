@@ -66,7 +66,7 @@ public:
 	}
 
 	static // Reversed from Tactical::Select
-	void Tactical_SelectFiltered(TacticalClass* pThis, LTRBStruct* pRect, callback_type check_callback, bool bPriorityFiltering)
+	void Tactical_SelectFiltered(TacticalClass* pThis, LTRBStruct* pRect, callback_type fpCheckCallback, bool bPriorityFiltering)
 	{
 		Unsorted::MoveFeedback = true;
 
@@ -85,8 +85,8 @@ public:
 
 				if (TypeExt && Game::IsTypeSelecting())
 					Game::UICommands_TypeSelect_7327D0(TypeExt->GetSelectionGroupID());
-				else if (check_callback)
-					(*check_callback)(pTechno);
+				else if (fpCheckCallback)
+					(*fpCheckCallback)(pTechno);
 				else
 				{
 					const auto pBldType = abstract_cast<BuildingTypeClass*>(pTechnoType);
@@ -104,7 +104,7 @@ public:
 	}
 
 	static // Reversed from Tactical::MakeSelection
-	void __fastcall Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type check_callback)
+	void __fastcall Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type fpCheckCallback)
 	{
 		if (pThis->Band.Left || pThis->Band.Top) {
 			int nLeft = pThis->Band.Left;
@@ -120,7 +120,7 @@ public:
 			LTRBStruct rect { nLeft , nTop, nRight - nLeft + 1, nBottom - nTop + 1 };
 
 			bool bPriorityFiltering = Phobos::Config::PrioritySelectionFiltering && Tactical_IsHighPriorityInRect(pThis, &rect);
-			Tactical_SelectFiltered(pThis, &rect, check_callback, bPriorityFiltering);
+			Tactical_SelectFiltered(pThis, &rect, fpCheckCallback, bPriorityFiltering);
 
 			pThis->Band.Left = 0;
 			pThis->Band.Top = 0;

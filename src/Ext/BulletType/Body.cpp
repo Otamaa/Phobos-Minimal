@@ -9,7 +9,7 @@ BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
 	auto const pData = BulletTypeExt::GetExtData(pType);
-	auto const nGravity = pData->Gravity.Get(RulesClass::Instance->Gravity);
+	auto const nGravity = pData->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
 	return pType->Floater ? nGravity * 0.5 : nGravity;
 }
 
@@ -249,9 +249,9 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
 
+	BulletTypeExt::ExtMap.LoadFromINI(pItem,pINI);
 	pItem->Strength = 0;
 	pItem->Armor = Armor::None;
-	BulletTypeExt::ExtMap.LoadFromINI(pItem,pINI);
 
 	return 0;
 }

@@ -48,11 +48,7 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			if (TeamLeader == ptr)
-				TeamLeader = nullptr;
-		}
-
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		//virtual size_t GetSize() const override { return sizeof(*this); }

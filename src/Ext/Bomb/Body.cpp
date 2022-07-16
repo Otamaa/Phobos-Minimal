@@ -1,7 +1,31 @@
 #include "Body.h"
 
+#include <Ext/Anim/Body.h>
+
 template<> const DWORD Extension<BombClass>::Canary = 0x87659781;
 BombExt::ExtContainer BombExt::ExtMap;
+BombClass* BombExt::BombTemp = nullptr;
+
+HouseClass* __fastcall BombExt::GetOwningHouse(BombClass* pThis, void* _) { return pThis->OwnerHouse; }
+
+DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse)
+{
+	const auto pBomb = BombExt::BombTemp;
+	const auto OwningHouse = pBomb->GetOwningHouse();
+	const auto nCoord = *pCoord;
+	const auto nResult = Map.DamageArea(nCoord, Damage, Source, Warhead, Warhead->Tiberium, OwningHouse);
+						 Map.FlashbangWarheadAt(Damage, Warhead, nCoord);
+	const auto pCell = Map.TryGetCellAt(nCoord);
+
+	if (auto pAnimType = Map.SelectDamageAnimation(Damage, Warhead, pCell ? pCell->LandType : LandType::Clear, nCoord)) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x2600, -15, false)) {
+			AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pBomb->Target ? pBomb->Target->GetOwningHouse() : nullptr, pBomb->Owner, false);
+		}
+	}
+
+	BombExt::BombTemp = nullptr;
+	return nResult;
+}
 
 // =============================
 // load / save
@@ -23,14 +47,12 @@ void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 
 bool BombExt::LoadGlobals(PhobosStreamReader& Stm)
 {
-	return Stm
-		.Success();
+	return Stm >> BombExt::BombTemp;
 }
 
 bool BombExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return Stm
-		.Success();
+	return Stm << BombExt::BombTemp;
 }
 
 // =============================

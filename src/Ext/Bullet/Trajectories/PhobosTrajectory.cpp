@@ -11,16 +11,14 @@
 #include "ArtilleryTrajectory.h"
 #include "BounceTrajectory.h"
 
-std::pair<bool, INI_EX> PhobosTrajectoryType::ReadBase(CCINIClass* const pINI, const char* pSection)
+bool PhobosTrajectoryType::ReadBase(INI_EX& exINI, const char* pSection)
 {
-	if (!pINI->GetSection(pSection))
-		return{ false,{ } };
-
-	INI_EX exINI(pINI);
+	if (!exINI || !exINI->GetSection(pSection))
+		return false;
 
 	this->DetonationDistance.Read(exINI, pSection, "Trajectory.DetonationDistance");
 
-	return {true ,exINI};
+	return true;
 }
 
 bool PhobosTrajectoryType::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -185,7 +183,7 @@ PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, 
 		break;
 
 	default:
-		return nullptr;
+		break;
 	}
 
 	if (pRet) {
@@ -261,15 +259,10 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 
 	GET(BulletClass*, pThis, EBP);
 
-	bool detonate = false;
-
-	if (auto const pExt = BulletExt::GetExtData(pThis))
-		if (auto pTraj = pExt->Trajectory)
-			detonate = pTraj->OnAI(pThis);
-
-	if (detonate && !pThis->SpawnNextAnim)
-	{
-		return Detonate;
+	if (!pThis->SpawnNextAnim) {
+		if (auto const pExt = BulletExt::GetExtData(pThis))
+			if (auto pTraj = pExt->Trajectory)
+				return pTraj->OnAI(pThis) ? Detonate : 0x0;
 	}
 
 	return 0;

@@ -31,10 +31,14 @@
 #include <New/Type/LaserTrailTypeClass.h>
 
 #pragma region OtamaaStuffs
-//#include <Ext/Bomb/Body.h>
-//#include <Ext/Parasite/Body.h>
+#include <Ext/Bomb/Body.h>
+#include <Ext/CaptureManager/Body.h>
+#include <Ext/Cell/Body.h>
+#include <Ext/Convert/Body.h>
+#include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
+#include <Ext/Super/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/Terrain/Body.h>
@@ -43,6 +47,7 @@
 #include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
+#include <New/Entity/HomingMissileTargetTracker.h>
 //#include <New/Entity/FoggedObject.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
@@ -54,10 +59,15 @@
 // Add more class names as you like
 auto MassActions = MassAction <
 #pragma region OtamaaStuffs
-	//BombExt,
+	BombExt,
+	CaptureExt,
+	CellExt,
+	ConvertExt,
+	ParasiteExt,
 	ParticleExt,
 	ParticleTypeExt,
 	ScriptTypeExt,
+	SuperExt,
 	ArmorTypeClass,
 	TeamTypeExt,
 	TerrainExt,
@@ -98,6 +108,9 @@ auto MassActions = MassAction <
 	RadTypeClass,
 	HoverTypeClass,
 	VerticalLaserClass
+#ifdef ENABLE_HOMING_MISSILE
+	, HomingMissileTargetTracker
+#endif
 	// other classes
 > ();
 
@@ -120,7 +133,6 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses, 0xa)
 void Phobos::Clear()
 {
 	MassActions.Clear();
-	//AnimExt::Invokers.clear();
 	//AnimExt::AnimCellUpdater::Clear();
 	FlyingStrings::Clear();
 #ifdef COMPILE_PORTED_DP_FEATURES

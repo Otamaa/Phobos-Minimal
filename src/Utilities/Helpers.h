@@ -108,8 +108,8 @@ namespace Helpers {
 			}
 
 			template <typename Func>
-			void for_each(Func&& action) const {
-				std::find_if_not(begin(), end(), action);
+			auto for_each(Func&& action) const {
+				return std::find_if_not(begin(), end(), action);
 			}
 
 			template <typename Func>

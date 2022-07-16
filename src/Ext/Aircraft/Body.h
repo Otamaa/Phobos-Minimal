@@ -1,4 +1,5 @@
 #pragma once
+
 #include <AircraftClass.h>
 #include <Utilities/Enum.h>
 #include <Utilities/Container.h>
@@ -44,5 +45,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);*/
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber);
+	static void __fastcall TriggerCrashWeapon(TechnoClass* pThis, void* _, int nMult);
 };
 

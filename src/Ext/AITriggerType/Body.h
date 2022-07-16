@@ -20,8 +20,7 @@ public:
 
 		ExtData(AITriggerTypeClass* OwnerObject) : Extension<AITriggerTypeClass>(OwnerObject)
 			// Nothing yet
-		{
-		}
+		{ }
 
 		virtual ~ExtData() = default;
 

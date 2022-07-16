@@ -7,7 +7,7 @@
 class TechnoClass;
 class WarheadTypeClass;
 
-class ShieldClass
+class ShieldClass final
 {
 public:
 	ShieldClass();

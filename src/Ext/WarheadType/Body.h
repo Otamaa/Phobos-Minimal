@@ -229,11 +229,11 @@ public:
 			, Shield_Respawn_Amount { 0.0 }
 			, Shield_Respawn_Rate { -1 }
 			, Shield_Respawn_Rate_InMinutes { -1.0 }
+			, Shield_SelfHealing_Rate_InMinutes { -1.0 }
 			, Shield_Respawn_ResetTimer { false }
 			, Shield_SelfHealing_Duration { 0 }
 			, Shield_SelfHealing_Amount { }
 			, Shield_SelfHealing_Rate { -1 }
-			, Shield_SelfHealing_Rate_InMinutes { -1.0 }
 			, Shield_SelfHealing_ResetTimer { false }
 			, Shield_AttachTypes {}
 			, Shield_RemoveTypes {}
@@ -311,6 +311,11 @@ public:
 		void ApplyGattlingStage(TechnoClass* pTarget, int Stage);
 		void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp);
 		void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount);
+
+		//Otamaa
+		void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
+		void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
+		void applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
 
 		void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 		void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);

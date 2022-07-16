@@ -19,7 +19,7 @@
 
 #include <New/Entity/VerticalLaserClass.h>
 
-static void applyPermaMC(WarheadTypeExt::ExtData* pThis, HouseClass* const Owner, AbstractClass* const Target)
+void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
 {
 	if (Owner)
 	{
@@ -76,9 +76,9 @@ static void applyPermaMC(WarheadTypeExt::ExtData* pThis, HouseClass* const Owner
 	}
 }
 
-static void applyStealMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* const Owner, TechnoClass* const Target)
+void WarheadTypeExt::ExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target)
 {
-	int nStealAmout = pThis->StealMoney.Get();
+	const int nStealAmout = StealMoney.Get();
 
 	if (nStealAmout != 0)
 	{
@@ -95,9 +95,9 @@ static void applyStealMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* const O
 					if (pBulletOwnerHouse->CanTransactMoney(nStealAmout) && pBulletTargetHouse->CanTransactMoney(-nStealAmout))
 					{
 						pBulletOwnerHouse->TransactMoney(nStealAmout);
-						FlyingStrings::AddMoneyString(pThis->Steal_Display.Get(), nStealAmout, Owner, pThis->Steal_Display_Houses.Get(), Owner->GetCoords(), pThis->Steal_Display_Offset.Get());
+						FlyingStrings::AddMoneyString(Steal_Display.Get(), nStealAmout, Owner, Steal_Display_Houses.Get(), Owner->GetCoords(), Steal_Display_Offset.Get());
 						pBulletTargetHouse->TransactMoney(-nStealAmout);
-						FlyingStrings::AddMoneyString(pThis->Steal_Display.Get(), -nStealAmout, Target, pThis->Steal_Display_Houses.Get(), Target->GetCoords(), pThis->Steal_Display_Offset.Get());
+						FlyingStrings::AddMoneyString(Steal_Display.Get(), -nStealAmout, Target, Steal_Display_Houses.Get(), Target->GetCoords(), Steal_Display_Offset.Get());
 
 					}
 				}
@@ -106,7 +106,7 @@ static void applyStealMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* const O
 	}
 }
 
-static void applyTransactMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords)
+void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords)
 {
 	int nTransactVal = 0;
 	bool bForSelf = true;
@@ -116,30 +116,30 @@ static void applyTransactMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* pOwn
 	{
 		if (pBullet && pBullet->Target)
 		{
-			applyStealMoney(pThis, pBullet->Owner, static_cast<TechnoClass*>(pBullet->Target));
+			this->applyStealMoney(pBullet->Owner, static_cast<TechnoClass*>(pBullet->Target));
 
-			if (pThis->TransactMoney != 0)
+			if (TransactMoney != 0)
 			{
 				auto const pBulletTargetHouse = pBullet->Target->GetOwningHouse();
 				if (pBulletTargetHouse)
 				{
 					if ((!pHouse->IsNeutral() && !pHouse->IsObserver()) && (!pBulletTargetHouse->IsNeutral() && !pBulletTargetHouse->IsObserver()))
 					{
-						if (pThis->Transact_AffectsOwner.Get() && pBulletTargetHouse == pHouse)
+						if (Transact_AffectsOwner.Get() && pBulletTargetHouse == pHouse)
 						{
-							nTransactVal = pThis->TransactMoney;
+							nTransactVal = TransactMoney;
 							if (nTransactVal != 0 && pHouse->CanTransactMoney(nTransactVal))
 							{
-								bSucceed = pHouse->TransactMoney(pThis->TransactMoney);
+								bSucceed = pHouse->TransactMoney(TransactMoney);
 								return;
 							}
 						}
 
 						if (pHouse->IsAlliedWith(pBulletTargetHouse))
 						{
-							if (pThis->Transact_AffectsAlly.Get() && pBulletTargetHouse != pHouse)
+							if (Transact_AffectsAlly.Get() && pBulletTargetHouse != pHouse)
 							{
-								nTransactVal = pThis->TransactMoney_Ally.Get(pThis->TransactMoney);
+								nTransactVal = TransactMoney_Ally.Get(TransactMoney);
 								if (nTransactVal != 0 && pBulletTargetHouse->CanTransactMoney(nTransactVal))
 								{
 									bSucceed = pBulletTargetHouse->TransactMoney(nTransactVal);
@@ -150,9 +150,9 @@ static void applyTransactMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* pOwn
 						}
 						else
 						{
-							if (pThis->Transact_AffectsEnemies.Get())
+							if (Transact_AffectsEnemies.Get())
 							{
-								nTransactVal = pThis->TransactMoney_Enemy.Get(pThis->TransactMoney);
+								nTransactVal = TransactMoney_Enemy.Get(TransactMoney);
 								if (nTransactVal != 0 && pBulletTargetHouse->CanTransactMoney(nTransactVal))
 								{
 									bSucceed = pBulletTargetHouse->TransactMoney(nTransactVal);
@@ -166,20 +166,20 @@ static void applyTransactMoney(WarheadTypeExt::ExtData* pThis, TechnoClass* pOwn
 			}
 		}
 
-		nTransactVal = pThis->TransactMoney;
+		nTransactVal = TransactMoney;
 		if (nTransactVal != 0 && pHouse->CanTransactMoney(nTransactVal))
-			bSucceed = pHouse->TransactMoney(pThis->TransactMoney);
+			bSucceed = pHouse->TransactMoney(TransactMoney);
 
 	};
 
 	TransactMoneyFunc();
 
-	if (nTransactVal != 0 && bSucceed && pThis->TransactMoney_Display.Get())
+	if (nTransactVal != 0 && bSucceed && TransactMoney_Display.Get())
 	{
-		auto displayCoord = pThis->TransactMoney_Display_AtFirer ? (pOwner ? pOwner->Location : coords) : (!bForSelf ? pBullet && pBullet->Target ? pBullet->Target->GetCoords() : coords : coords);
-		auto pDrawOwner = pThis->TransactMoney_Display_AtFirer ? (pOwner ? pOwner : nullptr) : (!bForSelf ? (pBullet && pBullet->Target ? generic_cast<TechnoClass*>(pBullet->Target) : nullptr) : nullptr);
+		auto displayCoord = TransactMoney_Display_AtFirer ? (pOwner ? pOwner->Location : coords) : (!bForSelf ? pBullet && pBullet->Target ? pBullet->Target->GetCoords() : coords : coords);
+		auto pDrawOwner = TransactMoney_Display_AtFirer ? (pOwner ? pOwner : nullptr) : (!bForSelf ? (pBullet && pBullet->Target ? generic_cast<TechnoClass*>(pBullet->Target) : nullptr) : nullptr);
 
-		FlyingStrings::AddMoneyString(true, nTransactVal, pDrawOwner, pThis->TransactMoney_Display_Houses.Get(), displayCoord, pThis->TransactMoney_Display_Offset.Get());
+		FlyingStrings::AddMoneyString(true, nTransactVal, pDrawOwner, TransactMoney_Display_Houses.Get(), displayCoord, TransactMoney_Display_Offset.Get());
 	}
 }
 
@@ -217,16 +217,14 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
+	//if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser)) {
+	///
+	//	if(auto pTechn = generic_cast<TechnoClass*>(pBullet->Target))
+		//	GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, pTechn->GetHeight());
+		//else if (specific_cast<CellClass*>(pBullet->Target))
+		//	GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords,Map.GetCellFloorHeight(coords));
+	//}
 
-#if 0
-	if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser)) {
-
-		if(auto pTechn = generic_cast<TechnoClass*>(pBullet->Target))
-			GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, pTechn->GetHeight());
-		else if (specific_cast<CellClass*>(pBullet->Target))
-			GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords,Map.GetCellFloorHeight(coords));
-	}
-#endif
 
 	if (pOwner) {
 		if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
@@ -253,7 +251,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		if (this->SpySat)
 			MapClass::Instance->Reveal(pHouse);
 
-		applyTransactMoney(this, pOwner, pHouse, pBullet, coords);
+		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
 	this->HasCrit = false;
@@ -365,7 +363,7 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		this->ApplyRemoveMindControl(pHouse, pTarget);
 
 	if (this->PermaMC && !BulletFound)
-		applyPermaMC(this, pHouse, pTarget);
+		this->applyPermaMC(pHouse, pTarget);
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 		this->ApplyCrit(pHouse, pTarget, pOwner);

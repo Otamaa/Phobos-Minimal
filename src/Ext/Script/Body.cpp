@@ -2962,12 +2962,18 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		}
 
 		break;*/
-
-	default:
-
-		// The possible target doesn't fit in te masks
-		return false;
+	case 37:
+	{
+		if (!pTechno->Owner->IsNeutral()) {
+			if (pTechno->WhatAmI() == AbstractType::Infantry) {
+				auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+				return pTypeExt->IsHero.Get();
+			}
+		}
 	}
+	}
+
+	return false;
 }
 
 void ScriptExt::DecreaseCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine = true, double modifier = 0)
@@ -4116,21 +4122,17 @@ void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 	if (!pTeam)
 		return;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner);
-	if (!pHouseExt)
+	if (const auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner))
 	{
-		// This action finished
-		pTeam->StepCompleted = true;
-		return;
+		if (mode < 0 || mode > 2)
+			mode = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+
+		if (mode < -1 || mode > 2)
+			mode = -1;
+
+		HouseExt::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
+
 	}
-
-	if (mode < 0 || mode > 2)
-		mode = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
-
-	if (mode < -1 || mode > 2)
-		mode = -1;
-
-	HouseExt::ForceOnlyTargetHouseEnemy(pTeam->Owner, mode);
 
 	// This action finished
 	pTeam->StepCompleted = true;

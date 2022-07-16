@@ -15,6 +15,7 @@
 #include <Misc/Patches.h>
 
 #include "Phobos.Threads.h"
+//#include "Phobos.Lua.h"
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -246,7 +247,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hModule;
-
+		//PhobosLua::Construct();
 		//g_target_executable_path = get_module_path(nullptr);
 		//Ares_dll_Fullpath = (g_target_executable_path.parent_path() / ARES_DLL).wstring();
 		//Phobos::AresBaseAddress = GetModuleBaseAddress(ARES_DLL_S);
@@ -268,6 +269,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	break;
 
 	case DLL_PROCESS_DETACH:
+		//PhobosLua::Destroy();
 		//MyEcs.quit();
 		//uninstall();
 		//if (AresDllHmodule) {
@@ -429,6 +431,9 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 			}
 		}
 	}
+
+	//PhobosLua::Test();
+
 #ifdef ENABLE_ENCRYPTION_HOOKS
 	typedef BOOL (__stdcall* _imp_ReadFile__)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 	typedef BOOL (__stdcall* _imp_CloseHandle__)(HANDLE hFile);
@@ -594,7 +599,7 @@ DEFINE_JUMP(CALL,0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 {
 	if (!Phobos::Config::HideWarning) {
-		auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
+		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
 
 		RectangleStruct rect = {
 			DSurface::Composite->Get_Width() - wanted.Width - 10,

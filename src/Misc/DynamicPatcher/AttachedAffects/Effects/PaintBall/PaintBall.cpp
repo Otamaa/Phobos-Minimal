@@ -12,7 +12,6 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 		return;
 
 	Color = nBuffColor.Get();
-	Debug::Log("Found PaintBall.Color = %d %d %d for [%s] ! \n", Color.R, Color.G, Color.B, pSection);
 
 	Valueable<float> nBuffFloat { BrightMultiplier };
 	nBuffFloat = std::clamp(nBuffFloat.Get(), 0.0f, 2.0f);

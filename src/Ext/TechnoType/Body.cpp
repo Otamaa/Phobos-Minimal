@@ -158,12 +158,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");
 	this->NoManualMove.Read(exINI, pSection, "NoManualMove");
 	this->InitialStrength.Read(exINI, pSection, "InitialStrength");
+
+	//TODO : Tag name Change
 	this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
 	this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 	this->Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 	this->Death_Method.Read(exINI, pSection, "Death.Method");
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.OwnerWhenMasterDead");
+	//
+
 	this->ShieldType.Read(exINI, pSection, "ShieldType", true);
 	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
@@ -365,7 +369,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
 	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
 
-
+	this->IsHero.Read(exINI, pSection, "Hero");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 	this->MyExtraFireData.ReadRules(exINI, pSection);
@@ -425,6 +429,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->E_DeployedSecondaryFireFLH.Read(exArtINI, pArtSection, "EliteDeployedSecondaryFireFLH");
 
 	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+	this->SellSound.Read(exINI, pSection, "SellSound");
+	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
+
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -579,6 +586,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->IronCurtain_SyncDeploysInto)
 
+		.Process(this->SellSound)
+		.Process(this->EVA_Sold)
+
 		.Process(this->CrouchedWeaponBurstFLHs)
 		.Process(this->EliteCrouchedWeaponBurstFLHs)
 		.Process(this->DeployedWeaponBurstFLHs)
@@ -683,6 +693,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Gattling_Overload_DeathSound)
 		.Process(this->Gattling_Overload_ParticleSys)
 		.Process(this->Gattling_Overload_ParticleSysCount)
+		.Process(this->IsHero)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

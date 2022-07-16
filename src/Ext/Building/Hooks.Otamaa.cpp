@@ -18,12 +18,14 @@ DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x442A24 , BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
+DEFINE_HOOK(0x442A24, BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
 {
 	GET(BuildingClass* const, pThis, ESI);
 
-	if(pThis && pThis->Type){
-		if(auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type)){
+	if (pThis && pThis->Type)
+	{
+		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+		{
 			R->AL(pStructureExt->PlayerReturnFire.Get(RulesGlobal->PlayerReturnFire));
 			return 0x442A30;
 		}
@@ -32,71 +34,14 @@ DEFINE_HOOK(0x442A24 , BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
 	return 0x0;
 }
 
-//#ifdef GARRISON_ANIM_REPLACE
-namespace Replacer
-{
-	std::string ReplaceOccupantAnimNameTo(BuildingClass* pThis, BuildingAnimSlot const& nSlot, const char* pDefault)
-	{
-		//pthis check is just in  case
-		if (pThis
-			&& pThis->IsAlive
-			&& (pThis->Occupants.Count > 0)
-			) {
-			if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
-			{
-				{
-					const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
-					if (nIndex != -1) {
-
-						AnimTypeClass* pDecidedAnim = nullptr;
-
-						switch (nSlot)
-						{
-						case BuildingAnimSlot::Active:
-							if (!pBuildingExt->GarrisonAnim_ActiveOne.empty())
-								pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne.get_or_default(nIndex);
-							break;
-						case BuildingAnimSlot::ActiveTwo:
-							if (!pBuildingExt->GarrisonAnim_ActiveTwo.empty())
-								pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo.get_or_default(nIndex);
-							break;
-						case BuildingAnimSlot::ActiveThree:
-							if (!pBuildingExt->GarrisonAnim_ActiveThree.empty())
-								pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree.get_or_default(nIndex);
-							break;
-						case BuildingAnimSlot::ActiveFour:
-							if (!pBuildingExt->GarrisonAnim_ActiveFour.empty())
-								pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour.get_or_default(nIndex);
-							break;
-						case BuildingAnimSlot::Idle:
-							if (!pBuildingExt->GarrisonAnim_idle.empty())
-								pDecidedAnim = pBuildingExt->GarrisonAnim_idle.get_or_default(nIndex);
-							break;
-						}
-
-						if (pDecidedAnim) {
-							return pDecidedAnim->get_ID();
-						}
-					}
-				}
-			}
-		}
-
-		return pDefault;
-	}
-}
-
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(const char*, pDecidedName, STACK_OFFS(0x34, -0x4));
 	GET_STACK(BuildingAnimSlot, nSlot, STACK_OFFS(0x34, -0x8));
-
-	R->EAX(AnimTypeClass::FindIndex(Replacer::ReplaceOccupantAnimNameTo(pThis, nSlot, pDecidedName).c_str()));
-
+	R->EAX(BuildingTypeExt::GetBuildingAnimTypeIndex(pThis, nSlot, pDecidedName));
 	return 0x4518D8;
 }
-//#endif
 
 /*
 DEFINE_HOOK(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
@@ -170,9 +115,11 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 	//GET_STACK(TechnoClass*, pKiller, STACK_OFFS(0x64, -0x8));
 	//GET_STACK(void*, pPointer, STACK_OFFS(0x64, 0x14));
 
-	if (pThis->GetCurrentMission() == Mission::Selling) {
+	if (pThis->GetCurrentMission() == Mission::Selling)
+	{
 		pThis->Health = 0;
-		if (R->AL()) {
+		if (R->AL())
+		{
 			pThis->NoCrew = true;
 		}
 
@@ -183,15 +130,7 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 	return 0x0;
 }
 
-static bool __fastcall BuildingClass_IsFactory_Wrapper(BuildingClass* pThis, void* _)
-{
-	if (!pThis || !pThis->Type)
-		return false;
-
-	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
-}
-
-DEFINE_JUMP(VTABLE,0x7E4140, GET_OFFSET(BuildingClass_IsFactory_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExt::IsFactory));
 
 /*
 DEFINE_HOOK(0x443FF9 ,BuildingClass_ExitObject_Aircraft , 0x5)

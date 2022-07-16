@@ -15,6 +15,11 @@ RadSiteExt::ExtData* RadSiteExt::GetExtData(RadSiteExt::base_type const* pTr) {
 	return RadSiteExt::ExtMap.Find(pTr);
 }
 
+void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(TechOwner, ptr);
+}
+
 void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor

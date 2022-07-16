@@ -1,113 +1,13 @@
 #include "Body.h"
-#include <AircraftClass.h>
+
 #include <Utilities/Macro.h>
 #include <Utilities/Enum.h>
 
-#include <Ext/AnimType/Body.h>
-#include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Ext/WeaponType/Body.h>
-#include <Ext/BulletType/Body.h>
 
 #pragma region Otamaa
-static void __fastcall AircraftClass_TriggerCrashWeapon(TechnoClass* pThis, void* _, int nMult)
-{
-	if (auto pType = pThis->GetTechnoType())
-	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-		if (pTypeExt)
-		{
-			if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
-			{
-				auto pWeaponExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
-
-				if (BulletClass* pBullet = pWeaponExt->CreateBullet(pThis->GetCell(), pThis,
-					pWeapon))
-				{
-					const CoordStruct& coords = pThis->GetCoords();
-					pBullet->SetWeaponType(pWeapon);
-					pBullet->Limbo();
-					pBullet->SetLocation(coords);
-					pBullet->Explode(true);
-					pBullet->UnInit();
-					goto playDestroyAnim;
-				}
-			}
-		}
-
-		pThis->FireDeathWeapon(nMult);
-
-playDestroyAnim:
-
-		if (pType->DestroyAnim.Size() > 0)
-		{
-			auto const facing = pThis->PrimaryFacing.current().value256();
-			int idxAnim = 0;
-
-			if (pTypeExt && !pTypeExt->DestroyAnim_Random.Get())
-			{
-				if (pType->DestroyAnim.Count >= 8)
-				{
-					idxAnim = pType->DestroyAnim.Count;
-					if (pType->DestroyAnim.Count % 2 == 0)
-						idxAnim *= static_cast<int>(facing / 256.0);
-				}
-			}
-			else
-			{
-				if (pType->DestroyAnim.Count > 1)
-					idxAnim = ScenarioClass::Instance->Random.RandomRanged(0, (pType->DestroyAnim.Count - 1));
-			}
-
-			if (AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim])
-			{
-				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
-				{
-					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-					auto const pAnimExt = AnimExt::GetExtData(pAnim);
-
-					if (!pAnimTypeExt || !pAnimExt)
-						return;
-
-					if(AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
-						pAnimExt->Invoker = pThis;
-
-					pAnimExt->FromDeathUnit = true;
-
-					if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-						pAnimExt->DeathUnitFacing = facing;
-
-					if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
-					{
-						if (pThis->HasTurret())
-						{
-							pAnimExt->DeathUnitHasTurret = true;
-							pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.current();
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftClass_TriggerCrashWeapon));
-
-/*
-namespace ReplaceParadropWithFire
-{
-	void __fastcall DropCarGo(AircraftClass* pThis, void* _)
-	{
-		if (!pThis->Spawned)
-			pThis->Fire(pThis->Target ? pThis->Target : pThis->Destination ? pThis->Destination : Map[pThis->Location], 0);
-		else
-			pThis->DropOffParadropCargo();
-	}
-};
-
-DEFINE_JUMP(CALL,0x4159FB, GET_OFFSET(ReplaceParadropWithFire::DropCarGo));
-*/
+DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
 
 DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 {
@@ -246,7 +146,7 @@ DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
 	return 0x4156F7;
 }
 
-DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x6)
+DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
 {
 	GET(AircraftClass*, pThis, ESI);
 

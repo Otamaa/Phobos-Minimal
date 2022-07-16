@@ -16,6 +16,8 @@ struct FighterAreaGuardData
 		, MaxAmmo { 1 }
 	{ }
 
+	~FighterAreaGuardData() = default;
+
 	void Read(INI_EX& parser, const char* pSection ,TechnoTypeClass* pType)
 	{
 		Valueable<bool> bFAreaGuard { AreaGuard };

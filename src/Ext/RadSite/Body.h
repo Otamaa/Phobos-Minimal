@@ -18,8 +18,8 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
-		WeaponTypeClass* Weapon;
 		RadTypeClass* Type;
+		WeaponTypeClass* Weapon;
 		TechnoClass* TechOwner;
 		bool NoOwner;
 
@@ -28,12 +28,10 @@ public:
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
 			, NoOwner { true }
-		{ InitializeConstants();}
+		{}
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override{
-			AnnounceInvalidPointer(TechOwner, ptr);
-		}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved);
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

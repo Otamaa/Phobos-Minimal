@@ -34,6 +34,8 @@ struct DamageTextData : public PrintTextData
 		}
 	}
 
+	~DamageTextData() = default;
+
 	void Read(INI_EX& reader, const char* section, const char* title);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)

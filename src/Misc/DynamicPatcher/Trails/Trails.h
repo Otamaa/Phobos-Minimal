@@ -9,20 +9,20 @@
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
 #include "../Helpers/EffectHelpers.h"
 
-class TrailsManager;
+//class TrailsManager;
 class UniversalTrail
 {
 public:
 
-	Nullable<CoordStruct> LastLocation;
-	bool canDraw;
-	int initialDelay;
-	TimerStruct DelayTimer;
-	bool forceDraw;
-	DrivingState drivingState;
 	TrailType* Type;
+	Nullable<CoordStruct> LastLocation;
+	TimerStruct DelayTimer;
 	CoordStruct FLH;
+	int initialDelay;
+	bool canDraw;
+	bool forceDraw;
 	bool IsOnTurret;
+	DrivingState drivingState;
 	std::vector<LandType> OnLandTypes;
 	std::vector<TileType> OnTileTypes;
 
@@ -31,10 +31,10 @@ public:
 		, LastLocation { CoordStruct::Empty }
 		, DelayTimer { }
 		, FLH { flh }
-		, IsOnTurret { onturret }
 		, initialDelay { type->InitialDelay > 0 ? type->InitialDelay:0 }
 		, canDraw { !(type->InitialDelay > 0) }
 		, forceDraw { false }
+		, IsOnTurret { onturret }
 		, drivingState { DrivingState::Moving }
 		, OnLandTypes { }
 		, OnTileTypes { }
@@ -44,15 +44,17 @@ public:
 		Type { nullptr }
 		, LastLocation { CoordStruct::Empty }
 		, DelayTimer { }
-		, FLH { 0,0,0 }
-		, IsOnTurret { false }
+		, FLH { CoordStruct::Empty }
 		, initialDelay { 0 }
-		, canDraw { false}
+		, canDraw { false }
 		, forceDraw { false }
+		, IsOnTurret { false }
 		, drivingState { DrivingState::Stop }
 		, OnLandTypes { }
 		, OnTileTypes { }
 	{ }
+
+	~UniversalTrail() = default;
 
 	void ClearLastLocation() {
 		LastLocation.Reset();

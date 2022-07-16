@@ -19,6 +19,8 @@ public:
 		, LastMission { Mission::None }
 	{}
 
+	~DriveData() = default;
+
 	template <typename T>
 	void Serialize(T& Stm)
 	{

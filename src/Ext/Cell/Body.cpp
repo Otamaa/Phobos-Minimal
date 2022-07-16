@@ -3,6 +3,27 @@
 template<> const DWORD Extension<CellClass>::Canary = 0x87688621;
 CellExt::ExtContainer CellExt::ExtMap;
 
+int CellExt::GetOverlayIndex(CellClass* pCell)
+{
+	if (pCell->OverlayTypeIndex != -1)
+	{
+		const auto nTibIndex = TiberiumClass::FindIndex(pCell->OverlayTypeIndex);
+
+		if (nTibIndex != -1)
+		{
+			if (const auto pTiberium = TiberiumClass::Array->GetItem(nTibIndex))
+			{
+				if (pCell->SlopeIndex > 0)
+					return pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1;
+
+				return pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages;
+			}
+		}
+	}
+
+	return 0;
+}
+
 // ============================ =
 // load / save
 template <typename T>

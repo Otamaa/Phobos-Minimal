@@ -3,11 +3,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-struct JJFacingFunctional
+namespace JJFacingFunctional
 {
-private:
-	NO_CONSTRUCT_CLASS(JJFacingFunctional)
-public:
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
 };
 #endif

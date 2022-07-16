@@ -50,4 +50,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
+	// Dont call it without checking Tiberium existence
+	// otherwise crash
+	static int GetOverlayIndex(CellClass* pCell);
+
 };

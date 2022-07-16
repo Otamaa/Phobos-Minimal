@@ -2,7 +2,7 @@
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
-	if (flags == AffectedHouse::All)
+	if ((flags & AffectedHouse::All) != AffectedHouse::None)
 		return true;
 
 	if (!ownerHouse || !targetHouse)

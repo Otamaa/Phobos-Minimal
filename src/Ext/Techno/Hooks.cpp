@@ -364,7 +364,7 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK(0x54AEC0, JumpjetLoco_Process, 0x8)
+DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
 {
 	GET_STACK(ILocomotion*, iLoco, 0x4);
 	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
@@ -459,59 +459,6 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	return 0;
 }
 
-// Reimplements the game function with few changes / optimizations
-DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, weaponIndex,0x4);
-
-	int result = 0;
-
-	if (const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
-	{
-		result = pWeapon->Range;
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-		if (!pTypeExt)
-			return 0x0;
-
-		if (pThis->GetTechnoType()->OpenTopped && !pTypeExt->OpenTopped_IgnoreRangefinding.Get())
-		{
-			int smallestRange = INT32_MAX;
-			auto pPassenger = pThis->Passengers.FirstPassenger;
-
-			while (pPassenger && (pPassenger->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None) {
-				int openTWeaponIndex = pPassenger->GetTechnoType()->OpenTransportWeapon;
-				int tWeaponIndex = 0;
-
-				if (openTWeaponIndex != -1)
-					tWeaponIndex = openTWeaponIndex;
-				else if (pPassenger->HasTurret())
-					tWeaponIndex = pPassenger->CurrentWeaponNumber;
-
-				if (WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType) {
-					if (pTWeapon->Range < smallestRange)
-						smallestRange = pTWeapon->Range;
-				}
-
-				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-			}
-
-			if (result > smallestRange)
-				result = smallestRange;
-		}
-	}
-
-	if (result == 0 && pThis->GetTechnoType()->OpenTopped && pThis->WhatAmI() == AbstractType::Aircraft) {
-		result = pThis->GetTechnoType()->GuardRange;
-		if(result == 0)
-			Debug::Log("Warning ! , range of Aircraft[%s] return 0 result will cause Aircraft to stuck ! \n", pThis->get_ID());
-	}
-
-	R->EAX(result);
-	return 0x701393;
-}
-
 /*
 DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 {
@@ -520,27 +467,36 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 		return 0x4DEB38;
 	return 0;
 }*/
-static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void*_ , int nDur , HouseClass* pSource , bool bIsFC)
-{
-	if (nDur == 0)
-		return pThis->ReceiveDamage(&pThis->Type->Strength, 0, RulesGlobal->C4Warhead, nullptr, true,false , pSource);
-	else
-		return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);
+static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void*_ , int nDur , HouseClass* pSource , bool bIsFC) {
+	return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);
 }
 
 DEFINE_JUMP(VTABLE,0x7EB1AC  ,GET_OFFSET(InfantryClass_IronCurtain));
+
+static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType) {
+	Iterator<AnimTypeClass*> Iter;
+
+	if (pThisType->DeadBodies.Count > 0)
+		Iter = pThisType->DeadBodies;
+
+	if (!pThisType->NotHuman)
+		Iter = RulesGlobal->DeadBodies;
+
+	return Iter;
+}
 
 DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);
 	GET(InfantryTypeClass* const, pThisType, ECX);
 
-	const Iterator<AnimTypeClass*> Iter = pThisType->DeadBodies.Count > 0 && !pThisType->NotHuman
-		? pThisType->DeadBodies : RulesGlobal->DeadBodies;
+	auto const Iter = GetDeathBodies(pThisType);
 
-	if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomRanged(0,Iter.size() - 1))) {
-		if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, 0x600, 0, 0)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	if(!Iter.empty()){
+		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomRanged(0,Iter.size() - 1))) {
+			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, 0x600, 0, 0)) {
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+			}
 		}
 	}
 
@@ -678,4 +634,42 @@ DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
 	// Restore overridden instructions.
 	R->EAX(pThis->GetTechnoType());
 	return Continue;
+}
+
+DEFINE_HOOK_AGAIN(0x449CC1, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
+DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt && pThis->IsHumanControlled && !pThis->Type->UndeploysInto)
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
+
+	return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
+}
+
+DEFINE_HOOK(0x44A850, BuildingClass_Mission_Deconstruction_Sellsound, 0x6)
+{
+	enum { PlayVocLocally = 0x44A856 };
+	GET(BuildingClass*, pThis, EBP);
+
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+		R->ECX(pTypeExt->SellSound.Get(RulesGlobal->SellSound));
+		return PlayVocLocally;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
+{
+	enum { SkipVoxVocPlay = 0x4D9FB5 };
+	GET(FootClass*, pThis, ESI);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_UnitSold)));
+	//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
+	VocClass::PlayAt(pTypeExt->SellSound.Get(RulesGlobal->SellSound), pThis->Location);
+
+	return SkipVoxVocPlay;
 }

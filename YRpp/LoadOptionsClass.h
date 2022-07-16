@@ -14,10 +14,10 @@ public:
 		TechLevel(0),
 		HouseIndex(-1),
 		CampaignIndex(-1),
+		LastWriteTime({ 0, 0 }),
 		IsValid(true),
 		IsWrongVersion(false),
-		GameMode(GameMode::Campaign),
-		LastWriteTime({0, 0})
+		GameMode(GameMode::Campaign)
 	{ }
 
 	static int Compare(const FileEntryClass& lhs, const FileEntryClass& rhs) {

@@ -590,6 +590,14 @@ public:
 		JMP_THIS(0x70F770)
 	}
 
+	int GetAirstrikeTint(int nIn) const {
+		JMP_THIS(0x70E4B0);
+	}
+
+	int GetIronCurtainTint(int nInt) const {
+		JMP_THIS(0x70E380);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

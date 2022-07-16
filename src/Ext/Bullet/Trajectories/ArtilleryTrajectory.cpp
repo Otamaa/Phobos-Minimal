@@ -18,9 +18,9 @@ bool ArtilleryTrajectoryType::Save(PhobosStreamWriter& Stm) const
 
 void ArtilleryTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	auto[bAvail, exINI] = this->PhobosTrajectoryType::ReadBase(pINI, pSection);
+	INI_EX exINI { pINI };
 
-	if (!bAvail)
+	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
 		return;
 
 	this->MaxHeight.Read(exINI,pSection, "Trajectory.Artillery.MaxHeight");

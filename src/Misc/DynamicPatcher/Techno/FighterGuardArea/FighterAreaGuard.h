@@ -33,6 +33,8 @@ struct FighterAreaGuard
 		, areaGuardTargetCheckRof { 20 }
 	{ }
 
+	~FighterAreaGuard() = default;
+
 	template <typename T>
 	void Serialize(T& Stm)
 	{

@@ -9,17 +9,15 @@ struct SimulateBurst
 	TechnoClass* Shooter;
 	AbstractClass* Target;
 	CoordStruct FLH;
-	AttachFireData FireData;
-	FireBulletToTarget Callback;
 	int Burst;
 	int MinRange;
 	int Range;
-
+	AttachFireData FireData;
+	FireBulletToTarget Callback;
 	int FlipY;
-	int Index;
-
-	TimerStruct Timer;
 	int Flag;
+	int Index;
+	TimerStruct Timer;
 
 	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range, AttachFireData fireData, int flipY, FireBulletToTarget callback)
 		:WeaponType { pWeaponType }
@@ -52,6 +50,8 @@ struct SimulateBurst
 		, Index { 0 }
 		, Timer { }
 	{ }
+
+	~SimulateBurst() = default;
 
 	SimulateBurst Clone() {
 		SimulateBurst newObj = SimulateBurst(WeaponType, Shooter, Target, FLH, Burst, MinRange, Range, FireData, FlipY,Callback);

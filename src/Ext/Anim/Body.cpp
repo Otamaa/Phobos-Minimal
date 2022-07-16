@@ -13,6 +13,11 @@ AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
 	return ExtMap.Find(pThis);
 }
 
+void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(Invoker, ptr);
+}
+
 // =============================
 // load / save
 
@@ -220,6 +225,7 @@ DEFINE_HOOK(0x4253B0, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
 	GET_STACK(AnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	AnimExt::ExtMap.PrepareStream(pItem, pStm);
+
 	return 0;
 }
 

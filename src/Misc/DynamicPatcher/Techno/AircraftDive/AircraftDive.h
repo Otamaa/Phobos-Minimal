@@ -5,13 +5,12 @@
 class AircraftDive
 {
 public:
+	int Speed;
+	int DataDelay;
 
 	int ZOffset;
 	int Delay;
 	bool CanDive;
-
-	int Speed;
-	int DataDelay;
 
 	AircraftDive() :
 		Speed { 0 }

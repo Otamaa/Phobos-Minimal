@@ -3,12 +3,9 @@
 #include <Base/Always.h>
 
 class TechnoClass;
-struct PassengersFunctional
+namespace PassengersFunctional
 {
-private:
-	NO_CONSTRUCT_CLASS(PassengersFunctional)
-public:
-	static void AI(TechnoClass* pThis);
-	static void CanFire(TechnoClass* pThis, bool& cease);
+	void AI(TechnoClass* pThis);
+	void CanFire(TechnoClass* pThis, bool& cease);
 };
 #endif

@@ -332,7 +332,7 @@ DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
 
 DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 {
-	auto pRulesExt = RulesExt::Global();
+	const auto pRulesExt = RulesExt::Global();
 	if (!pRulesExt)
 		return 0;
 
@@ -408,14 +408,14 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 	GET(CellClass*, pThis, EBP);
 	GET(int, idxOverlay, EBX);
 	GET_STACK(int, state, STACK_OFFS(0x10, -0x8));
-	bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+	const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
 	enum { Attachable = 0x480549 };
 
 	if (isWall) {
 		for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject) {
 			if (pObject->Health > 0) {
-				if (auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
-					auto pBType = pBuilding->Type;
+				if (const auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
+					const auto pBType = pBuilding->Type;
 					if ((RulesClass::Instance->EWGates.FindItemIndex(pBType) != -1) && (state == 2 || state == 6))
 						return Attachable;
 					else if ((RulesClass::Instance->NSGates.FindItemIndex(pBType) != -1) && (state == 0 || state == 4))

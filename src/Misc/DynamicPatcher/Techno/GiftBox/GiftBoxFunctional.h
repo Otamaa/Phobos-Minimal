@@ -4,14 +4,11 @@
 #include <Ext/Techno/Body.h>
 
 class GiftBoxData;
-struct GiftBoxFunctional
+namespace GiftBoxFunctional
 {
-private:
-	NO_CONSTRUCT_CLASS(GiftBoxFunctional)
-public:
-	static void Init(TechnoExt::ExtData* pExt  , TechnoTypeExt::ExtData* pTypeExt);
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void Destroy(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt,WarheadTypeClass* pWH ,DamageState nState);
+	void Init(TechnoExt::ExtData* pExt  , TechnoTypeExt::ExtData* pTypeExt);
+	void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void Destroy(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt,WarheadTypeClass* pWH ,DamageState nState);
 };
 #endif

@@ -80,8 +80,7 @@ DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 	// Yeah, we just simply recreating these lightsource...
 	// Stupid but works fine.
 
-	auto const pBldArr = BuildingClass::Array();
-	std::for_each(pBldArr->begin(), pBldArr->end(), [](BuildingClass* const pBld) {
+	std::for_each(BuildingClass::Array->begin(), BuildingClass::Array->end(), [](BuildingClass* const pBld) {
 		if (pBld->LightSource)
 		{
 			GameDelete(pBld->LightSource);
@@ -97,7 +96,7 @@ DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 		}
 	});
 
-	for (auto pRadSite : RadSiteClass::Array())
+	std::for_each(RadSiteClass::Array->begin(), RadSiteClass::Array->end(), [](RadSiteClass* const pRadSite)
 	{
 		if (pRadSite->LightSource)
 		{
@@ -113,7 +112,7 @@ DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 
 			pRadSite->LightSource->Activate();
 		}
-	}
+	 });
 
 	return 0;
 }

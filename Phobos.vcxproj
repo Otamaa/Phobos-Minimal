@@ -63,6 +63,7 @@
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\FireSuperWeapon.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
@@ -70,7 +71,6 @@
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\TeamType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
-    <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
@@ -104,6 +104,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFirefunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuardFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\GiftBox\GiftBoxFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\HomingMissile\Hooks.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\JumjetFaceTarget\JJFacingToTargetFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\Passengers\PassengersFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportFunctional.cpp" />
@@ -122,6 +123,7 @@
     <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
     <ClCompile Include="src\New\Entity\FlyingStrings.cpp" />
+    <ClCompile Include="src\New\Entity\HomingMissileTargetTracker.cpp" />
     <ClCompile Include="src\New\Entity\LauchSWData.cpp" />
     <ClCompile Include="src\New\Entity\ShieldClass.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -232,17 +234,13 @@
     <ClInclude Include="src\Ext\Sidebar\Body.h" />
     <ClInclude Include="src\Ext\Anim\Body.h" />
     <ClInclude Include="src\Ext\SmudgeType\Body.h" />
+    <ClInclude Include="src\Ext\Super\Body.h" />
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
     <ClInclude Include="src\Ext\Team\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Lib\LodePNG\LodePNG.h" />
-    <ClInclude Include="src\Lib\MiniQueue.h" />
-    <ClInclude Include="src\Lib\MultiThread_Containers.h" />
-    <ClInclude Include="src\Lib\StlUtils.h" />
-    <ClInclude Include="src\Lib\TRange.h" />
-    <ClInclude Include="src\Lib\VectorMap.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.h" />
@@ -289,6 +287,7 @@
     <ClInclude Include="src\Misc\PNGFile.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
+    <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
     <ClInclude Include="src\New\Entity\VerticalLaserClass.h" />
@@ -329,6 +328,7 @@
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
+    <ClInclude Include="src\Utilities\StreamB.h" />
     <ClInclude Include="src\Utilities\Swizzle.h" />
     <ClInclude Include="src\Phobos.CRT.h" />
     <ClInclude Include="src\Phobos.version.h" />
@@ -443,7 +443,7 @@
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>
     <TargetName>phobos</TargetName>
-    <LibraryPath>B:\Projects\Phobos-devlop27-new\Phobos\src\Lib\flecs-2.4.8;$(LibraryPath)</LibraryPath>
+    <LibraryPath>B:\Projects\Phobos-devlop27-new\Phobos\src\Lib\Lua;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -549,7 +549,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
@@ -557,7 +557,7 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;26495;</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>Default</LanguageStandard_C>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
     </ClCompile>
@@ -598,17 +598,18 @@
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalOptions>/w14287 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/w14287 /w15038 %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26495;26444;26451;6305</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>Default</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

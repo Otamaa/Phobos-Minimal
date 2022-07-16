@@ -8,7 +8,7 @@
 
 #include <vector>
 
-class LaserTrailClass
+class LaserTrailClass final
 {
 public:
 	LaserTrailTypeClass* Type;
@@ -17,9 +17,9 @@ public:
 	bool IsOnTurret;
 	ColorStruct CurrentColor;
 	Nullable<CoordStruct> LastLocation;
-	TimerStruct InitialDelayTimer;
 	bool CanDraw;
 	int InitialDelay;
+	TimerStruct InitialDelayTimer;
 
 	LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :
@@ -45,6 +45,8 @@ public:
 		, InitialDelay {0}
 		, InitialDelayTimer {}
 	{ }
+
+	~LaserTrailClass() = default;
 
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);

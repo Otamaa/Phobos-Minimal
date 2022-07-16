@@ -197,6 +197,9 @@ public:
 		std::vector<DynamicVectorClass<CoordStruct>> EliteDeployedWeaponBurstFLHs;
 
 		Nullable<bool> IronCurtain_SyncDeploysInto;
+
+		NullableIdx<VoxClass> EVA_Sold;
+		NullableIdx<VocClass> SellSound;
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
@@ -247,11 +250,11 @@ public:
 		Nullable<SHPStruct*> HealthNumber_SHP;
 		Nullable<Point2D> Healnumber_Decrement;
 		Nullable<SHPStruct*> HealthBarSHP;
-		Valueable<Point2D> HealthBarSHP_PointOffset;
 		Nullable<SHPStruct*> HealthBarSHP_Selected;
 		Valueable<int> HealthBarSHPBracketOffset;
 		Valueable<CoordStruct> HealthBarSHP_HealthFrame;
 		CustomPalette HealthBarSHP_Palette;
+		Valueable<Point2D> HealthBarSHP_PointOffset;
 		Valueable<bool> HealthbarRemap;
 
 		Nullable<SHPStruct*> GClock_Shape;
@@ -279,6 +282,7 @@ public:
 		Nullable<ParticleSystemTypeClass*> Gattling_Overload_ParticleSys;
 		Nullable<int> Gattling_Overload_ParticleSysCount;
 
+		Valueable<bool> IsHero;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -393,8 +397,8 @@ public:
 			, Ammo_Shared_Group { -1 }
 			, Passengers_SyncOwner{ false }
 			, Passengers_SyncOwner_RevertOnExit{ true }
-			, EnemyUIName {}
 			, LaserTrailData {}
+			, EnemyUIName {}
 			, UseDisguiseMovementSpeed {}
 			, Insignia {}
 			, InsigniaFrame { -1 }
@@ -409,22 +413,24 @@ public:
 			, SelectBrd_TranslucentLevel{}
 			, SelectBrd_ShowEnemy{}
 
-			, PronePrimaryFireFLH{ }
-			, ProneSecondaryFireFLH{ }
-			, DeployedPrimaryFireFLH{ }
-			, DeployedSecondaryFireFLH{ }
+			, PronePrimaryFireFLH { }
+			, ProneSecondaryFireFLH { }
+			, DeployedPrimaryFireFLH { }
+			, DeployedSecondaryFireFLH { }
+
+			, E_PronePrimaryFireFLH { }
+			, E_ProneSecondaryFireFLH { }
+			, E_DeployedPrimaryFireFLH { }
+			, E_DeployedSecondaryFireFLH { }
+
 			, CrouchedWeaponBurstFLHs{ }
-
-			, E_PronePrimaryFireFLH{ }
-			, E_ProneSecondaryFireFLH{ }
-			, E_DeployedPrimaryFireFLH{ }
-			, E_DeployedSecondaryFireFLH{ }
-
-			, EliteCrouchedWeaponBurstFLHs{ }
-			, DeployedWeaponBurstFLHs{ }
-			, EliteDeployedWeaponBurstFLHs{ }
+			, EliteCrouchedWeaponBurstFLHs { }
+			, DeployedWeaponBurstFLHs { }
+			, EliteDeployedWeaponBurstFLHs { }
 
 			, IronCurtain_SyncDeploysInto { }
+			, EVA_Sold { }
+			, SellSound{ }
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }
@@ -449,8 +455,8 @@ public:
 			, Paradrop_MaxAttempt { }
 
 			, IsCustomMissile { false }
-			, CustomMissileRaise { true }
 			, CustomMissileData {}
+			, CustomMissileRaise { true }
 
 			, Draw_MindControlLink { true }
 
@@ -469,8 +475,8 @@ public:
 			, HitCoordOffset_Random { true }
 
 			, DeathWeapon { }
-			, CrashWeapon { }
 			, CrashWeapon_s { nullptr }
+			, CrashWeapon { }
 			, Disable_C4WarheadExp { false }
 
 
@@ -524,6 +530,7 @@ public:
 			, Gattling_Overload_DeathSound {}
 			, Gattling_Overload_ParticleSys {}
 			, Gattling_Overload_ParticleSysCount {}
+			, IsHero { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

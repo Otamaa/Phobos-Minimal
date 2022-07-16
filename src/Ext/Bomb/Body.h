@@ -1,7 +1,7 @@
 #pragma once
 #include <BombClass.h>
 
-#include <Helpers/Macro.h>
+#include <Utilities/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
@@ -42,4 +42,8 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static BombClass* BombTemp;
+	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void* _);
+	static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse);
 };

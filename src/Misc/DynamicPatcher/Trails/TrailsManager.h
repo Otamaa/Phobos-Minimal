@@ -29,6 +29,8 @@ struct TrailData
 		, Onturrents { nTur }
 	{ }
 
+	~TrailData() = default;
+
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		Debug::Log("Processing Element From TrailData ! \n");
@@ -58,19 +60,16 @@ struct TrailData
 };
 
 //managing the vector
-class TrailsManager
+namespace TrailsManager
 {
-	NO_CONSTRUCT_CLASS(TrailsManager)
-public:
+	template<typename T>
+	void Construct(T* pOwner, bool IsConverted = false);
 
 	template<typename T>
-	static void Construct(T* pOwner, bool IsConverted = false);
+	void AI(T* pOwner);
 
-	template<typename T>
-	static void AI(T* pOwner);
-
-	static void Hide(ObjectClass* pOwner);
-	static void CleanUp(ObjectClass* pOwner);
+	void Hide(ObjectClass* pOwner);
+	void CleanUp(ObjectClass* pOwner);
 
 };
 
@@ -80,6 +79,8 @@ struct TrailsReader
 	ValueableVector<TrailData> CurrentData;
 
 	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(1); };
+
+	~TrailsReader() = default;
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{

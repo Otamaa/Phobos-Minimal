@@ -285,6 +285,18 @@ private:
 
 	void EmitSwizzleWarning(long id, void* pointer, std::true_type) const;
 	void EmitSwizzleWarning(long id, void* pointer, std::false_type) const { }
+public :
+	template<typename T>
+	PhobosStreamReader& operator>>(T& dt)
+	{
+		this->Process(dt);
+		return *this;
+	}
+
+	operator bool() const
+	{
+		return this->success;
+	}
 };
 
 class PhobosStreamWriter : public PhobosStreamWorkerBase
@@ -390,5 +402,16 @@ public:
 	{
 		this->Save(oldPtr);
 		return true;
+	}
+
+	template<typename T>
+	PhobosStreamWriter& operator<<(T& dt)
+	{
+		this->Process(dt);
+		return *this;
+	}
+
+	operator bool() const {
+		return this->success;
 	}
 };

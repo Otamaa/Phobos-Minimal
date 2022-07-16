@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoordStruct.h>
-#include <ArrayClasses.h>
 #include <Utilities/SavegameDef.h>
 
 class WeaponTypeClass;
@@ -19,13 +18,11 @@ public:
 	int Height;
 	int radius_decrement;
 
-	void Reset() {
-		Expired = true;
-	}
+	void Reset();
 
 	VerticalLaserClass();
 	VerticalLaserClass(WeaponTypeClass* Weapon ,CoordStruct From , int Height);
-	virtual ~VerticalLaserClass() = default;
+	~VerticalLaserClass() = default;
 
 	void AI();
 	CoordStruct GetCoords(int start , int i , int increase);
@@ -35,7 +32,7 @@ public:
 	bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
 	bool Save(PhobosStreamWriter& stm) const { return true; }
 
-	static DynamicVectorClass<VerticalLaserClass*> Array;
+	static std::vector<VerticalLaserClass*> Array;
 
 	static void Draw_All();
 	static void Clear();

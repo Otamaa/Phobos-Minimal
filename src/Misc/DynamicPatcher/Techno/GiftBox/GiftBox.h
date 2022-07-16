@@ -27,6 +27,8 @@ public:
 		, DelayTimer { }
 	{}
 
+	~GiftBox() = default;
+
 	bool CanOpen()
 	{
 		return !IsOpen && Timeup();

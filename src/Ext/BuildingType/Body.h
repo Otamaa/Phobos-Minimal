@@ -130,8 +130,6 @@ public:
 		Valueable<bool> PlacementPreview_Remap;
 		CustomPalette PlacementPreview_Palette;
 		Nullable<int> PlacementPreview_TranslucentLevel;
-		Valueable<bool> EVA_Sold_Disabled;
-		ValueableIdx<VoxClass> EVA_Sold;
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -211,9 +209,6 @@ public:
 			, PlacementPreview_Palette {}
 			, PlacementPreview_TranslucentLevel {}
 
-			, EVA_Sold_Disabled { false }
-			, EVA_Sold { -1 }
-
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}
@@ -244,8 +239,8 @@ public:
 			, GarrisonAnim_ActiveThree {}
 			, GarrisonAnim_ActiveFour {}
 
-			, PipShapes01Remap { false }
 			, PipShapes01Palette { CustomPalette::PaletteMode::Temperate }
+			, PipShapes01Remap { false }
 
 			, TurretAnim_LowPower {}
 			, TurretAnim_DamagedLowPower {}
@@ -327,4 +322,7 @@ public:
 		}
 	};
 
+	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
+	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
+	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex,	int Brightness,	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset,	int YOffset);
 };

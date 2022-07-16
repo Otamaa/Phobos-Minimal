@@ -4,44 +4,63 @@
 
 static bool GroupAllowed(const std::string& nFirst, const std::string& nSecond)
 {
-	if (IS_SAME_STR_(nFirst.c_str(), NONE_STR) || IS_SAME_STR_(nSecond.c_str(), NONE_STR))
+	if (nFirst.empty() || nSecond.empty())
 		return false;
 
-	return IS_SAME_STR_(nFirst.c_str(), nSecond.c_str());
+	auto const None = NONE_STR;
+	if (nFirst == None || nSecond == None)
+		return false;
+
+	return (nFirst == nSecond);
 }
 
-DEFINE_HOOK(0x6EAD80, TeamClass_Recuits_CompareType_Convert_UnitType, 0xD)
+DEFINE_HOOK(0x6EAD80, TeamClass_Recuits_CompareType_Convert_UnitType, 0x6)
 {
-	enum { AllowAdd = 0x6EAD8F ,
+	enum { ContinueCheck = 0x6EAD8F ,
 		   ContinueLoop = 0x6EADB3
 	};
-	GET(UnitClass*, pGoingToBeRecuited, ESI);
-	GET(TaskForceClass* const , pTeam, EDX);
+
+	GET(const UnitClass*, pGoingToBeRecuited, ESI);
+	GET(const TaskForceClass* const , pTeam, EDX);
 	GET(int, nMemberIdx, EBP);
 
+	const auto pThisTech = pTeam->Entries[nMemberIdx].Type;
 
-	auto pThatTech = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited->Type);
-	auto pThisTech = TechnoTypeExt::ExtMap.Find(pTeam->Entries[nMemberIdx].Type);
+	if (pGoingToBeRecuited->Type == pThisTech)
+		return ContinueCheck;
 
-	return pGoingToBeRecuited->Type == pTeam->Entries[nMemberIdx].Type
-		|| GroupAllowed(pThatTech->GroupAs.data() , pThisTech->GroupAs.data()) ?
-		AllowAdd : ContinueLoop;
+	const auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited->Type);
+	const auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThisTech);
+
+	if (!pThatTechExt || !pThisTechExt)
+		return ContinueLoop;
+
+	return GroupAllowed(pThatTechExt->GroupAs.data() , pThisTechExt->GroupAs.data()) ?
+		ContinueCheck : ContinueLoop;
 }
 
-DEFINE_HOOK(0x6EA6CD, TeamClass_Recuits_CompareType_Convert_All, 0xD)
+DEFINE_HOOK(0x6EA6CD, TeamClass_Recuits_CompareType_Convert_All, 0x6)
 {
 	enum {
-		AllowAdd = 0x6EA6F2,
+		Break = 0x6EA6F2,
 		ContinueLoop = 0x6EA6DC
 	};
-	GET(TechnoTypeClass*, pGoingToBeRecuited, EAX);
-	GET(TeamTypeClass*, pTeam, ECX);
+
+	GET(const TechnoTypeClass*, pGoingToBeRecuited, EAX);
+	GET(const TeamTypeClass*, pTeam, ECX);
 	GET(int, nMemberIdx, EDI);
 
-	auto pThatTech = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited);
-	auto pThisTech = TechnoTypeExt::ExtMap.Find(pTeam->TaskForce->Entries[nMemberIdx].Type);
+	const auto pThisTechn = pTeam->TaskForce->Entries[nMemberIdx].Type;
 
-	return pGoingToBeRecuited == pTeam->TaskForce->Entries[nMemberIdx].Type
-		|| GroupAllowed(pThatTech->GroupAs.data(), pThisTech->GroupAs.data()) ?
-		AllowAdd : ContinueLoop;
+	if (pThisTechn == pGoingToBeRecuited)
+		return Break;
+
+	const auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pGoingToBeRecuited);
+	const auto pThisTechExt = TechnoTypeExt::ExtMap.Find(pThisTechn);
+
+	if (!pThatTechExt || !pThisTechExt)
+		return ContinueLoop;
+
+	return GroupAllowed(pThatTechExt->GroupAs.data(), pThisTechExt->GroupAs.data()) ?
+		Break : ContinueLoop;
 }

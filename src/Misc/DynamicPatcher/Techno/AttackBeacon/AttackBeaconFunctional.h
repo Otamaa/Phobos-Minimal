@@ -3,8 +3,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-struct AttackBeaconFunctional
+namespace AttackBeaconFunctional
 {
-	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
-	static void OnFire(TechnoExt::ExtData* pExt, AbstractClass* pTarget, int nWeapon);
+	void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	void OnFire(TechnoExt::ExtData* pExt, AbstractClass* pTarget, int nWeapon);
 };

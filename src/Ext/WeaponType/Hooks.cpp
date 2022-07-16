@@ -45,22 +45,20 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
-	if (auto const pTarget = pThis->Target)
-	{
+	if (auto const pTarget = pThis->Target) {
 		pTarget->UpdatePlacement(PlacementType::Redraw);
 
-		if (auto pWeapon = WeaponTypeExt::Temporal_WP)
-		{
-			if (auto const Warhead = pWeapon->Warhead)
-			{
+		if (auto pWeapon = WeaponTypeExt::Temporal_WP) {
+			if (auto const Warhead = pWeapon->Warhead) {
+
 				auto const pTempOwner = pThis->Owner;
 				auto const peWHext = WarheadTypeExt::ExtMap.Find(Warhead);
 
-				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get())
-				{
+				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get()) {
+
 					auto nCoord = pTarget->GetCenterCoord();
-					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord))
-					{
+
+					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord)) {
 						pAnim->ZAdjust = pTarget->GetZAdjustment() - 3;
 						AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
 							, pTarget->GetOwningHouse(), pThis->Owner, false) ;
@@ -70,8 +68,9 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 				if (peWHext->TemporalExpiredApplyDamage.Get())
 				{
 					auto const pTargetStreght = pTarget->GetTechnoType()->Strength;
-					if (pThis->WarpRemaining > 0)
-					{
+
+					if (pThis->WarpRemaining > 0) {
+
 						auto damage = Game::F2I((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
 							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
 
@@ -86,21 +85,21 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 	return 0x71AC5D;
 }
 
-
 DEFINE_HOOK(0x71A9EE, TemporalClass_Update_RemoveBuildingTarget, 0x9)
 {
 	GET(TemporalClass* const, pThis, ESI);
 
-	BuildingClass* BuildingTarget = nullptr;
+	BuildingClass* BuildingTargetResult = nullptr;
 
 	if (auto const pTarget = pThis->Target)
 	{
 		if (pTarget->IsSelected)
 			pTarget->Deselect();
 
-		BuildingTarget = specific_cast<BuildingClass*>(pTarget);
-		if (BuildingTarget)
+		if (auto const BuildingTarget= specific_cast<BuildingClass*>(pTarget))
 		{
+			BuildingTargetResult = BuildingTarget;
+
 			if (BuildingTarget->BunkerLinkedItem)
 				BuildingTarget->UnloadBunker();
 
@@ -130,7 +129,7 @@ DEFINE_HOOK(0x71A9EE, TemporalClass_Update_RemoveBuildingTarget, 0x9)
 		}
 	}
 
-	R->ECX(BuildingTarget);
+	R->ECX(BuildingTargetResult);
 	return 0x71AA1D;
 }
 #pragma endregion

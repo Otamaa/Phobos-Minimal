@@ -39,6 +39,8 @@ public:
 		}
 	};
 
+	~LaserType() = default;
+
 	void SetInnerColor(int R, int G, int B)
 	{ InnerColor = ColorStruct((byte)R, (byte)G, (byte)B); }
 
@@ -80,6 +82,8 @@ public:
 	{
 		SetBeamType(radBeamType);
 	};
+
+	~BeamType() = default;
 
 	void SetBeamType(RadBeamType radBeamType)
 	{
@@ -129,6 +133,8 @@ public:
 		Color2 = ColorStruct(nDraw->BufferMid[IsAlternateColor ? 5 : 10]);
 		Color3 = ColorStruct(nDraw->BufferMid[15]);
 	};
+
+	~BoltType() = default;
 
 	template <typename T>
 	bool Serialize(T& Stm)

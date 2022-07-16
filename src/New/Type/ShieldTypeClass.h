@@ -63,12 +63,13 @@ public:
 		, AbsorbPercent { 1.0 }
 		, PassPercent { 0.0 }
 		, AllowTransfer {}
-		, Respawn_Rate__InMinutes { 0.0 }
-		, SelfHealing_Rate__InMinutes { 0.0 }
 		, Pips { { -1,-1,-1 } }
 		, Pips_Background_SHP {}
 		, Pips_Building { { -1,-1,-1 } }
 		, Pips_Building_Empty {}
+		, Respawn_Rate__InMinutes { 0.0 }
+		, SelfHealing_Rate__InMinutes { 0.0 }
+
 
 	{};
 

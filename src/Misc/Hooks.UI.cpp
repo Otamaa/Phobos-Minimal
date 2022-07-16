@@ -149,24 +149,31 @@ DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::R
 
 DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 {
+	enum {
+		rTrue = 0x6A8692,
+		rFalse = 0x6A86A0,
+		rTrue_ = 0x6A8477,
+		rFalse_ = 0x6A8468
+	};
+
 	GET_STACK(TechnoTypeClass*, pLeft, STACK_OFFS(0x1C, 0x8));
 	GET_STACK(TechnoTypeClass*, pRight, STACK_OFFS(0x1C, 0x4));
 	GET_STACK(int, idxLeft, STACK_OFFS(0x1C, -0x8));
 	GET_STACK(int, idxRight, STACK_OFFS(0x1C, -0x10));
 	GET_STACK(AbstractType, rttiLeft, STACK_OFFS(0x1C, -0x4));
 	GET_STACK(AbstractType, rttiRight, STACK_OFFS(0x1C, -0xC));
-	auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find(pLeft);
-	auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find(pRight);
-	auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
+
+	const auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find(pLeft);
+	const auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find(pRight);
+	const auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
 		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxLeft)) : nullptr;
-	auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
+	const auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
 		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxRight)) : nullptr;
 
 	if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
 	{
-		auto leftPriority = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority : pLeftSWExt->CameoPriority;
-		auto rightPriority = pRightTechnoExt ? pRightTechnoExt->CameoPriority : pRightSWExt->CameoPriority;
-		enum { rTrue = 0x6A8692, rFalse = 0x6A86A0 };
+		const auto leftPriority = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority : pLeftSWExt->CameoPriority;
+		const auto rightPriority = pRightTechnoExt ? pRightTechnoExt->CameoPriority : pRightSWExt->CameoPriority;
 
 		if (leftPriority > rightPriority)
 			return rTrue;
@@ -176,7 +183,7 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 
 	// Restore overridden instructions
 	GET(AbstractType, rtti1, ESI);
-	return rtti1 == AbstractType::Special ? 0x6A8477 : 0x6A8468;
+	return rtti1 == AbstractType::Special ? rTrue_ : rFalse_;
 }
 
 #pragma region Otamaa
@@ -222,9 +229,9 @@ static void __fastcall StripClass_Draw_GClockSHP(
 {
 	int Gclock_int = -1;
 
-	if (GClockTemp::Super)
+	if (auto const pSuper = GClockTemp::Super)
 	{
-		if (auto const pExt = SWTypeExt::ExtMap.Find(GClockTemp::Super))
+		if (auto const pExt = SWTypeExt::ExtMap.Find(pSuper))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);
@@ -234,9 +241,9 @@ static void __fastcall StripClass_Draw_GClockSHP(
 		if (Gclock_int != -1)
 			Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
 	}else
-	if (GClockTemp::Techno)
+	if (auto const pTechno = GClockTemp::Techno)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(GClockTemp::Techno))
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno))
 		{
 			SHP = pExt->GClock_Shape.Get(SHP);
 			Gclock_int = pExt->GClock_Transculency.Get(-1);

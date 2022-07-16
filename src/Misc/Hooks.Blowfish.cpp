@@ -3,7 +3,8 @@
 
 #define Blowfishdll_name reinterpret_cast<const char*>(0x840A78)
 
-HRESULT __stdcall Blowfish_Loader(
+static HRESULT __stdcall
+Blowfish_Loader(
 	REFCLSID  rclsid,
 	LPUNKNOWN pUnkOuter,
 	DWORD	 dwClsContext,
@@ -21,8 +22,7 @@ HRESULT __stdcall Blowfish_Loader(
 
 	HMODULE hDll = LoadLibrary(Blowfishdll_name);
 	if (hDll) {
-		auto GetClassObject = (pDllGetClassObject)GetProcAddress(hDll, "DllGetClassObject");
-		if (GetClassObject) {
+		if (const auto GetClassObject = (pDllGetClassObject)GetProcAddress(hDll, "DllGetClassObject")) {
 
 			IClassFactory* pIFactory;
 			result = GetClassObject(rclsid, IID_IClassFactory, &pIFactory);
@@ -35,8 +35,8 @@ HRESULT __stdcall Blowfish_Loader(
 	}
 
 	if (!SUCCEEDED(result)) {
-		FreeLibrary(hDll);
 
+		if(hDll) FreeLibrary(hDll);
 		const char* Message = "File Blowfish.dll was not found\n";
 		MessageBox(0, Message, "Fatal error ", MB_ICONERROR);
 		Debug::FatalErrorAndExit(Message);
@@ -47,6 +47,5 @@ HRESULT __stdcall Blowfish_Loader(
 
 DEFINE_JUMP(CALL6,0x6BEDDD, GET_OFFSET(Blowfish_Loader));
 DEFINE_JUMP(CALL6,0x437F6E, GET_OFFSET(Blowfish_Loader));
-
 
 #undef Blowfishdll_name

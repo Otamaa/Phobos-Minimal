@@ -35,9 +35,7 @@ public:
 		virtual ~ExtData() = default;
 
 		//virtual void Initialize() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			HouseAirFactory.Remove(reinterpret_cast<BuildingClass*>(ptr));
-		}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
 		virtual void Uninitialize() override {
 			BuildingCounter.clear();

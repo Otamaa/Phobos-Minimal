@@ -201,7 +201,9 @@ public:
 // a poor man's map with contiguous storage
 template <typename TKey, typename TValue>
 class PhobosMap {
+	using container_t = std::vector<std::pair<TKey, TValue>>;
 public:
+
 	TValue& operator[] (const TKey& key) {
 		if (auto pValue = this->find(key)) {
 			return *pValue;
@@ -215,7 +217,7 @@ public:
 	}
 
 	const TValue* find(const TKey& key) const {
-		auto it = this->get_iterator(key);
+		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {
 			return &it->second;
 		}
@@ -237,7 +239,7 @@ public:
 	}
 
 	bool erase(const TKey& key) {
-		auto it = this->get_iterator(key);
+		auto it = this->get_key_iterator(key);
 		if (it != this->values.end()) {
 			this->values.erase(it);
 			return true;
@@ -246,7 +248,7 @@ public:
 	}
 
 	bool contains(const TKey& key) const {
-		return this->get_iterator(key) != this->values.end();
+		return this->get_key_iterator(key) != values.end();
 	}
 
 	bool insert(const TKey& key, TValue value) {
@@ -258,15 +260,15 @@ public:
 	}
 
 	size_t size() const {
-		return this->values.size();
+		return values.size();
 	}
 
 	bool empty() const {
-		return this->values.empty();
+		return values.empty();
 	}
 
 	void clear() {
-		this->values.clear();
+		values.clear();
 	}
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
@@ -292,36 +294,49 @@ public:
 	bool save(PhobosStreamWriter& Stm) const {
 		Stm.Save(this->values.size());
 
-		for (const auto& item : this->values) {
-			Savegame::WritePhobosStream(Stm, item.first);
-			Savegame::WritePhobosStream(Stm, item.second);
+		for (const auto& [first,second] : this->values) {
+			Savegame::WritePhobosStream(Stm, first);
+			Savegame::WritePhobosStream(Stm, second);
 		}
 
 		return true;
 	}
 
-	//not sure if these correct ?
-	auto begin() const {
-		return this->values.begin();
+	using iterator = container_t::iterator;
+	using const_iterator = container_t::const_iterator;
+
+	[[nodiscard]] iterator begin() noexcept
+	{
+		return values.begin();
 	}
 
-	auto end() const {
-		return  this->values.end();
+	[[nodiscard]] const_iterator begin() const noexcept
+	{
+		return values.begin();
 	}
 
-private:
-	using container_t = std::vector<std::pair<TKey, TValue>>;
+	[[nodiscard]] iterator end() noexcept
+	{
+		return values.end();
+	}
 
-	typename container_t::const_iterator get_iterator(const TKey& key) const {
+	[[nodiscard]] const_iterator end() const noexcept
+	{
+		return values.end();
+	}
+
+	typename container_t::const_iterator get_key_iterator(const TKey& key) const {
 		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 			return item.first == key;
-			});
+		});
 	}
 
 	TValue& insert_unchecked(const TKey& key, TValue value) {
 		this->values.emplace_back(key, std::move(value));
 		return this->values.back().second;
 	}
+
+private:
 
 	container_t values;
 };
@@ -489,6 +504,14 @@ struct OptionalStruct {
 
 	bool empty() const {
 		return !this->HasValue;
+	}
+
+	constexpr explicit operator bool() const noexcept {
+		return this->HasValue;
+	}
+
+	constexpr bool has_value() const noexcept {
+		return this->HasValue;
 	}
 
 	const T& get() const noexcept {

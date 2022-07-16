@@ -128,7 +128,6 @@ DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 }
 #endif
 
-
 DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);

@@ -10,6 +10,7 @@
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
+#include <New/Entity/HomingMissileTargetTracker.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
@@ -52,61 +53,6 @@ public:
 		//EventQueue<base_type> GenericFuctions;
 		PhobosFixedString<0x100> ID;
 		std::unique_ptr<ShieldClass> Shield;
-		/*
-		struct TestBuildingExt final : public  TExtensionBranch<BuildingClass>
-		{
-			bool DeployedTechno;
-			int LimboID;
-			int GrindingWeapon_LastFiredFrame;
-			BuildingClass* CurrentAirFactory;
-			int AccumulatedGrindingRefund;
-			TimerStruct AutoSellTimer;
-
-			TestBuildingExt() : TExtensionBranch { }
-				, DeployedTechno { false }
-				, LimboID { -1 }
-				, GrindingWeapon_LastFiredFrame { 0 }
-				, CurrentAirFactory { nullptr }
-				, AccumulatedGrindingRefund { 0 }
-				, AutoSellTimer { }
-			{ }
-
-			virtual ~TestBuildingExt() = default;
-
-			virtual size_t GetSize() const override { return sizeof(*this); }
-			virtual void LoadBranchFromStream(PhobosStreamReader& Stm) override { Serialize(Stm); }
-			virtual void SaveBranchToStream(PhobosStreamWriter& Stm) override { Serialize(Stm); }
-			virtual void InitializeConstants() override { }
-			virtual void Uninitialize() override {}
-			virtual void InvalidatePointer(void* ptr, bool bRemoved) override
-			{
-				auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-				switch (abs)
-				{
-				case AbstractType::Building:
-				{
-					AnnounceInvalidPointer(CurrentAirFactory, ptr);
-				}
-				}
-			}
-
-			template <typename T>
-			void Serialize(T& Stm)
-			{
-				Debug::Log("Processing Element From TestBuildingExt ! \n");
-				Stm
-					.Process(this->DeployedTechno)
-					.Process(this->LimboID)
-					.Process(this->GrindingWeapon_LastFiredFrame)
-					.Process(this->CurrentAirFactory)
-					.Process(this->AccumulatedGrindingRefund)
-					.Process(this->AutoSellTimer)
-
-					;
-			}
-		};
-
-		TestBuildingExt* BExt;*/
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
 		bool LastKillWasTeamTarget;
@@ -125,6 +71,7 @@ public:
 		bool IsDriverKilled;
 		int GattlingDmageDelay;
 		bool GattlingDmageSound;
+		bool AircraftOpentoppedInitEd;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -137,6 +84,9 @@ public:
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;
+#ifdef ENABLE_HOMING_MISSILE
+		HomingMissileTargetTracker* MissileTargetTracker;
+#endif
 		FireWeaponManager MyWeaponManager;
 		DriveData MyDriveData;
 		AircraftDive MyDiveData;
@@ -166,6 +116,7 @@ public:
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }
+			, AircraftOpentoppedInitEd { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
@@ -177,6 +128,9 @@ public:
 			, Trails { }
 			, MyGiftBox {}
 			, PaintBallState {}
+#ifdef ENABLE_HOMING_MISSILE
+			, MissileTargetTracker { nullptr }
+#endif
 			, MyWeaponManager { }
 			, MyDriveData { }
 			, MyDiveData { }
@@ -184,35 +138,10 @@ public:
 			, MySpawnSuport { }
 			, MyFighterData { }
 #endif;
-		{ InitializeConstants(); }
+		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::House:
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry:
-			case AbstractType::Anim:
-			{
-
-				if (this->GetShield())
-					this->GetShield()->InvalidatePointer(ptr);
-
-				//if (auto pBldExt = BExt)
-				//	pBldExt->InvalidatePointer(ptr, bRemoved);
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-				MyWeaponManager.InvalidatePointer(ptr, bRemoved);
-#endif;
-				AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-			}
-			}
-		}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
 		ShieldClass* GetShield() const {
 			return this->Shield.get();
@@ -223,11 +152,15 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override;
 		virtual void Uninitialize() override {
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			ExtraWeaponTimers.clear();
+
+#ifdef ENABLE_HOMING_MISSILE
+			if (MissileTargetTracker)
+				HomingMissileTargetTracker::Remove(MissileTargetTracker);
 #endif
-		//	if (BExt)
-			//	GameDelete(BExt);
+#endif
 		}
 
 		void InitFunctionEvents();

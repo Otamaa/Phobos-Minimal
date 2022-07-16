@@ -7,8 +7,8 @@ class AircraftPutDataRules
 public :
 
 	Valueable<Point3D> PosOffset;
-	Valueable<bool> ForceOffset;
 	Valueable<bool> RemoveIfNoDocks;
+	Valueable<bool> ForceOffset;
 
 	AircraftPutDataRules():
 		PosOffset { {0,0,0} }
