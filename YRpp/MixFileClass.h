@@ -12,6 +12,42 @@ struct MixHeaderData
 	DWORD Size;
 };
 
+class MixCache
+{
+public:
+	static void __fastcall Insert(MixCache* pNew, MixCache* pOld) {
+		JMP_STD(0x5B3FF0);
+	}
+
+	static MixCache* __fastcall Find(unsigned int CRC, MixCache* pNode) {
+		JMP_STD(0x5B4020);
+	}
+
+	static MixCache* __fastcall Invalidate(unsigned int crc, MixCache* pNode) {
+		JMP_STD(0x5B4050);
+	}
+
+	static void __fastcall Delete(MixCache* pNode) {
+		JMP_STD(0x5B4080);
+	}
+
+	static void* __fastcall CacheFile(char* filename) {
+		JMP_STD(0x5B4270);
+	}
+
+	static void __fastcall Destroy() {
+		JMP_STD(0x5B4310);
+	}
+
+public:
+	MixCache* Prev;
+	MixCache* Next;
+	unsigned int CRC;
+	void* FilePtr;
+};
+
+static_assert(sizeof(MixCache) == 0x10);
+
 class MixFileClass : public Node<MixFileClass>
 {
 	struct GenericMixFiles
@@ -86,6 +122,12 @@ public:
     static void* __fastcall Retrieve(const char *pFilename, bool bLoadAsSHP = false)
 		{ JMP_STD(0x5B40B0); }
 
+	static void* Retrieve(char* name, bool forceShapeCache)
+		{ JMP_STD(0x5B40B0); }
+
+	static bool __fastcall Offset(const char* filename, void*& data,
+		MixFileClass*& mixfile, int& offset, int& length)
+	{ JMP_STD(0x5B4430); }
 
 	MixFileClass(const char* pFileName)
 		: Node<MixFileClass>()
@@ -94,17 +136,6 @@ public:
 		PUSH_VAR32(pFileName);
 		THISCALL(0x5B3C20);
 	}
-
-	static void* Retrieve(char* name, bool forceShapeCache)
-		{ JMP_STD(0x5B40B0); }
-
-	static bool __fastcall Offset(const char* filename, void*& data,
-		MixFileClass*& mixfile, int& offset, int& length)
-	{ JMP_STD(0x5B4430); }
-
-protected:
-	/*PROPERTY(MixFileClass*, Next);
-	MixFileClass* Prev;*/
 
 public:
 
@@ -118,4 +149,4 @@ public:
 	int field_24;
 };
 
-//static_assert(sizeof(MixFileClass) == 0x28);
+static_assert(sizeof(MixFileClass) == 0x28);

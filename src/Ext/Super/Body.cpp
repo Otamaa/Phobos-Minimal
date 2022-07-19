@@ -80,3 +80,11 @@ DEFINE_HOOK(0x6CDFEA, SuperClass_Save_Suffix, 0x5)
 	SuperExt::ExtMap.SaveStatic();
 	return 0;
 }
+
+/*
+DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
+{
+	GET(SuperClass*, pThis, ESI);
+	GET(void*, target, EBP);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8)); ??
+}*/

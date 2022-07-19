@@ -78,4 +78,9 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static CoordStruct* __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _ ,CoordStruct* pBuffer) {
+		 Map.TryGetCellAt(pThis->BaseCell)->GetCoords(pBuffer);
+		 return pBuffer;
+	}
 };

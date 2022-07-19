@@ -26,25 +26,34 @@ void TechnoTypeExt::ExtData::Initialize()
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
 {
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
 		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
 	}
 
 	return RulesGlobal->Wake;
 }
 
+double TechnoTypeExt::GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules)
+{
+	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
+		return pExt->Tunnel_Speed.Get(pRules->TunnelSpeed);
+
+	return pRules->TunnelSpeed;
+}
+
 void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 {
-	float x = static_cast<float>(this->TurretOffset.GetEx()->X * factor);
-	float y = static_cast<float>(this->TurretOffset.GetEx()->Y * factor);
-	float z = static_cast<float>(this->TurretOffset.GetEx()->Z * factor);
+	auto const pOffs = this->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * factor);
+	float y = static_cast<float>(pOffs->Y * factor);
+	float z = static_cast<float>(pOffs->Z * factor);
 
 	mtx->Translate(x, y, z);
 }
 
 void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor)
 {
-	if (auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
 		ext->ApplyTurretOffset(mtx, factor);
 }
 
@@ -56,7 +65,7 @@ const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
 
 const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
 {
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(type_cast<TechnoTypeClass*>(pType)))
+	if (const auto pExt = TechnoTypeExt::ExtMap.Find(type_cast<TechnoTypeClass*>(pType)))
 		return pExt->GetSelectionGroupID();
 
 	return pType->ID;
@@ -64,7 +73,7 @@ const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
 
 bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID)
 {
-	auto id = TechnoTypeExt::GetSelectionGroupID(pType);
+	const auto id = TechnoTypeExt::GetSelectionGroupID(pType);
 
 	return (IS_SAME_STR_(id, pID.c_str()));
 }
@@ -448,6 +457,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
 
+	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
+	this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
+	this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
+	this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
+	this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
+	this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
+	this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
+	this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->PrimaryCrawlFLH.Read(exArtINI, pArtSection, "PrimaryCrawlingFLH");
 	this->Elite_PrimaryCrawlFLH.Read(exArtINI, pArtSection, "ElitePrimaryCrawlingFLH");
@@ -694,6 +712,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Gattling_Overload_ParticleSys)
 		.Process(this->Gattling_Overload_ParticleSysCount)
 		.Process(this->IsHero)
+
+		.Process(this->FireSelf_Weapon)
+		.Process(this->FireSelf_ROF)
+		.Process(this->FireSelf_Weapon_GreenHeath)
+		.Process(this->FireSelf_ROF_GreenHeath)
+		.Process(this->FireSelf_Weapon_YellowHeath)
+		.Process(this->FireSelf_ROF_YellowHeath)
+		.Process(this->FireSelf_Weapon_RedHeath)
+		.Process(this->FireSelf_ROF_RedHeath)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

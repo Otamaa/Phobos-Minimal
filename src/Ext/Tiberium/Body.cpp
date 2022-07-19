@@ -7,6 +7,8 @@ TiberiumExt::ExtData* TiberiumExt::GetExtData(TiberiumExt::base_type* pThis)
 {
 	return ExtMap.Find(pThis);
 }
+void TiberiumExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved) {
+}
 
 void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {

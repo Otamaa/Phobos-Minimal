@@ -407,38 +407,14 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 			const auto pExt = BulletExt::ExtMap.Find(pThis);
 			const auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
 
-			auto tryDetonate = [pThis, pWHExt, pOwner](TechnoClass* pTechno)
+			std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis, pWHExt, pOwner](TechnoClass* pTechno)
 			{
 				if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner))
 				{
 					pThis->Target = pTechno;
 					pThis->Detonate(pTechno->GetCoords());
 				}
-			};
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
-			{
-				for (auto const pTechno : *AircraftClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
-			{
-				for (auto const pTechno : *BuildingClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
-			{
-				for (auto const pTechno : *InfantryClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
-			{
-				for (auto const pTechno : *UnitClass::Array)
-					tryDetonate(pTechno);
-			}
+			});
 
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 
@@ -487,12 +463,11 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 	GET(BulletClass*, pThis, EBX);
 	GET_STACK(float, mult, STACK_OFFS(0x5C, 0x44));
 
-	if (pThis->WeaponType)
-	{
-		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
-		{
+	if (pThis->WeaponType) {
+		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type)) {
+			const int defaultmax = RulesClass::Instance->BallisticScatter;
 			const int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
-			const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(RulesGlobal->BallisticScatter));
+			const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(defaultmax));
 			R->EAX(static_cast<int>((mult * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)) / pThis->WeaponType->Range));
 		}
 	}

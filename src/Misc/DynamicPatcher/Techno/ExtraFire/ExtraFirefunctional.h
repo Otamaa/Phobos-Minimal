@@ -4,8 +4,8 @@
 
 class AbstractClass;
 class TechnoClass;
-namespace ExtraFirefunctional
+struct ExtraFirefunctional
 {
-	void GetWeapon(TechnoClass* pThis, AbstractClass* pTarget , int nWeaponIdx);
+	static void GetWeapon(TechnoClass* pThis, AbstractClass* pTarget , int nWeaponIdx);
 };
 #endif

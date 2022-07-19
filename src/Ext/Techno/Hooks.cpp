@@ -27,7 +27,6 @@
 DEFINE_HOOK(0x6F42F7, TechnoClass_Init_NewEntities, 0x2)
 {
 	GET(TechnoClass*, pThis, ESI);
-
 	TechnoExt::InitializeItems(pThis);
 	return 0;
 }

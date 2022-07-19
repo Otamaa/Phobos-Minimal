@@ -23,6 +23,10 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType()
 	return BulletTypeClass::FindOrAllocate(NONE_STR);
 }
 
+void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
+	if (TrajectoryType)
+		TrajectoryType->InvalidatePointer(ptr, bRemoved);
+}
 bool BulletTypeExt::ExtData::HasSplitBehavior()
 {
 	// behavior in FS: Splits defaults to Airburst.

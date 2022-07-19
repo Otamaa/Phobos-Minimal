@@ -196,7 +196,8 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 }
 
 DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5) {
-	return R->ESI<TechnoClass*>()->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
+	GET(const TechnoClass* , pThis , ESI);
+	return pThis->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
 }
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)

@@ -39,42 +39,42 @@ public:
 	Random2Class(DWORD seed = *reinterpret_cast<DWORD*>(0xA8ED94))
 	{ JMP_THIS(0x65C6D0); }
 
-	int Random() const
+	int Random()
 	{ JMP_THIS(0x65C780); }
 
-	int RandomRanged(int nMin, int nMax) const
+	int RandomRanged(int nMin, int nMax)
 	{ JMP_THIS(0x65C7E0); }
 
-	int RandomRanged(const Point2D& nMinMax) const
-	{ JMP_THIS(0x65C7E0); }
+	int RandomRanged(const Point2D& nMinMax)
+	{ return RandomRanged(nMinMax.X, nMinMax.Y); }
 
-	int operator()(const Point2D& nMinMax) const
+	int operator()(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax); }
 
-	int operator()() const
+	int operator()()
 	{ return Random(); }
 
-	int operator()(int nMin, int nMax) const
+	int operator()(int nMin, int nMax)
 	{ return RandomRanged(nMin, nMax); }
 
-	bool PercentChance(int percent) const
+	bool PercentChance(int percent)
 	{ return RandomRanged(0,99) < percent; }
 
-	bool PercentChance(double dChance) const
+	bool PercentChance(double dChance)
 	{ return RandomDouble() < dChance; }
 
-	double RandomDouble() const
+	double RandomDouble()
 	{ return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1); }
 
-	bool RandomBool() const
+	bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }
 
 	template<typename T> requires std::is_integral<T>::value
-	T RandomRangedSpecific(T nMin, T nMax) const {
+	T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
 
-	int RandomFromMax(int nMax) const {
+	int RandomFromMax(int nMax) {
 		return RandomRanged(0, nMax);
 	}
 

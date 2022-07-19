@@ -14,6 +14,7 @@ public:
 	class ExtData final : public Extension<TerrainTypeClass>
 	{
 	public:
+		CustomPalette CustomPalette;
 		Valueable<int> SpawnsTiberium_Type;
 		Valueable<int> SpawnsTiberium_Range;
 		Valueable<Point2D> SpawnsTiberium_GrowthStage;
@@ -39,6 +40,7 @@ public:
 		#pragma endregion
 
 		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
+			, CustomPalette { CustomPalette::PaletteMode::Temperate }
 			, SpawnsTiberium_Type { 0 }
 			, SpawnsTiberium_Range { 1 }
 			, SpawnsTiberium_GrowthStage { { 3, 0 } }

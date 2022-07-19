@@ -33,6 +33,13 @@ void BulletExt::ExtData::InitializeConstants() {
 	//Type is not initialize here , wtf
 }
 
+void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
+	AnnounceInvalidPointer(Owner , ptr);
+
+	if (Trajectory)
+		Trajectory->InvalidatePointer(ptr, bRemoved);
+ }
+
 void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel)
 {
 	auto pThis = this->OwnerObject();
@@ -40,38 +47,36 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto pRadType = pWeaponExt->RadType;
 
-	if (RadSiteClass::Array_Constant->Count > 0)
+	if (!RadSiteExt::ExtMap.empty())
 	{
-		auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
-			[=](RadSiteClass* const pSite)
-{
-				const auto pSiteExt = RadSiteExt::GetExtData(pSite);
+		auto const it = std::find_if(RadSiteExt::ExtMap.begin(), RadSiteExt::ExtMap.end(),
+			[=](auto const pSite) {
 
-				if (pSiteExt->Type != pRadType)
+				if (pSite.second->Type != pRadType)
 					return false;
 
-				if (pSite->BaseCell != Cell)
+				if (pSite.first->BaseCell != Cell)
 					return false;
 
-				if (Spread != pSite->Spread)
+				if (Spread != pSite.first->Spread)
 					return false;
 
-				if (pWeapon != pSiteExt->Weapon)
+				if (pWeapon != pSite.second->Weapon)
 					return false;
 
-				if (pSiteExt->TechOwner && pThis->Owner)
-					return pSiteExt->TechOwner == pThis->Owner;
+				if (pSite.second->TechOwner && pThis->Owner)
+					return pSite.second->TechOwner == pThis->Owner;
 
 				return true;
 			});
 
-		if (it != RadSiteClass::Array_Constant->end()) {
-			if ((*it)->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
-				RadLevel = pRadType->GetLevelMax() - (*it)->GetRadLevel();
+		if (it != RadSiteExt::ExtMap.end()) {
+			if ((*it).first->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
+				RadLevel = pRadType->GetLevelMax() - (*it).first->GetRadLevel();
 			}
 
 			// Handle It
-			(*it)->Add(RadLevel);
+			(*it).first->Add(RadLevel);
 			return;
 		}
 	}

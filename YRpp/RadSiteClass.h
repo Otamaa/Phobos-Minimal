@@ -36,51 +36,51 @@ public:
 	//non-virtual
 public:
 	// Start irradiating an area. Be sure to set the BaseCell, Spread and RadLevel first!
-	void Activate()
+	void Activate() const
 		{ JMP_THIS(0x65B580); }
 
 	// Remove the radiation effect of this site completely
-	void Deactivate()
+	void Deactivate() const
 		{ JMP_THIS(0x65BB50); }
 
 	// Add the radiation of this RadSite to the cells.
-	void Radiate()
+	void Radiate() const
 		{ JMP_THIS(0x65B9C0); }
 
 	// Decrease the radiation of this RadSite by one step.
-	void DecreaseRadiation()
+	void DecreaseRadiation() const
 		{ JMP_THIS(0x65BD00); }
 
 	// Decrease the cell tint and intensity of this RadSite.
-	void DecreaseLight()
+	void DecreaseLight() const
 		{ JMP_THIS(0x65BE90); }
 
 	// Add this RadLevel to the current radiation.
-	void Add(int nRadLevel)
+	void Add(int nRadLevel) const
 		{ JMP_THIS(0x65B530); }
 
 	// Gets the current rad level (corresponds to the RadLevel at BaseCell).
-	int GetRadLevel()
+	int GetRadLevel() const
 		{ JMP_THIS(0x65B510); }
 
 	// Gets the rad level applied by this RadSite to a certain cell.
-	int GetRadLevelAt(CellStruct* pCell)
+	int GetRadLevelAt(CellStruct* pCell) const
 		{ JMP_THIS(0x65B8F0); }
 
 	// Sets the rad level and the appropriate duration values.
-	void SetRadLevel(int nRadLevel)
+	void SetRadLevel(int nRadLevel) const
 		{ JMP_THIS(0x65B4F0); }
 
 	// Sets the center cell. Do not change when RadSite is activated.
-	void SetBaseCell(CellStruct* pCell)
+	void SetBaseCell(CellStruct* pCell) const
 		{ JMP_THIS(0x65B4C0); }
 
 	// Gets the spread in cells.
-	void GetSpread()
+	void GetSpread() const
 		{ JMP_THIS(0x65B4B0); }
 
 	// Sets the spread in cells. Also updates the SpreadInLeptons.
-	void SetSpread(int nCells)
+	void SetSpread(int nCells) const
 		{ JMP_THIS(0x65B4D0); }
 
 	//helper methods

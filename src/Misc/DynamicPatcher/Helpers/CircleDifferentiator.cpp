@@ -1,7 +1,7 @@
 #include "CircleDifferentiator.h"
 #include "VectorHelpers.h"
 
-std::vector<CoordStruct> CircleDifferentiator::DivideArcByTolerance(CoordStruct center, int radius, int tolerance, Vector3D<float> upVector)
+std::vector<CoordStruct> CircleDifferentiator::DivideArcByTolerance(const CoordStruct& center, int radius, int tolerance, const Vector3D<float>& upVector)
 {
 	tolerance = Math::min(tolerance, (int)(Math::stdsqrt(2) * radius));
 
@@ -22,10 +22,12 @@ std::vector<CoordStruct> CircleDifferentiator::DivideArcByTolerance(CoordStruct 
 	return DivideArcByCount(center, radius, n, upVector);
 }
 
-std::vector<CoordStruct> CircleDifferentiator::DivideArcByCount(CoordStruct center, int radius, int pointCount, Vector3D<float> upVector)
+std::vector<CoordStruct> CircleDifferentiator::DivideArcByCount(const CoordStruct& center, int radius, int pointCount, const Vector3D<float>& upVector)
 {
+	Vector3D<float> UpVec = upVector;
+
 	if (upVector == Vector3D<float>::Empty)
-		upVector = {0,0,1};
+		UpVec = {0,0,1};
 
 	if (pointCount <= 0)
 		pointCount = 1;
@@ -34,7 +36,7 @@ std::vector<CoordStruct> CircleDifferentiator::DivideArcByCount(CoordStruct cent
 	list.reserve(pointCount);
 
 	double dRad = 2 * Math::C_Sharp_Pi / pointCount;
-	Quaternion q = Helpers_DP_Vec::FromToRotation(Vector3D<float>{0.0f,0.0f,1.0f}, upVector);
+	Quaternion q = Helpers_DP_Vec::FromToRotation(Vector3D<float>{0.0f,0.0f,1.0f}, UpVec);
 
 	Vector3D<float> nDummy = Vector3D<float>::Empty;
 	auto const UnitZ = Vector3D<float> { 0.0f , 0.0f , 1.0f };
@@ -45,7 +47,7 @@ std::vector<CoordStruct> CircleDifferentiator::DivideArcByCount(CoordStruct cent
 		nDummy.X = (float)(radius * Math::cos(rad));
 		nDummy.Y = (float)(radius * Math::sin(rad));
 
-		if (upVector != UnitZ) {
+		if (UpVec != UnitZ) {
 			nDummy = Helpers_DP_Vec::Transform(nDummy, q);
 		}
 

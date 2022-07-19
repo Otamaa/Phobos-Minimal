@@ -108,10 +108,10 @@ namespace CalculatePinch
 {
 	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
 	{
-		auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
+		const auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
 		if (pWeapon && pWeapon->WeaponType)
 		{
-			auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
+			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
 			if (ext && (ext->RockerPitch.Get() > 0.0f))
 			{
@@ -224,19 +224,20 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pExt = TechnoExt::GetExtData(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
-DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x7 )
+//was 7
+DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x9 )
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(int*, pRealDamage , EBX);
 	GET(WarheadTypeClass*, pWH , EBP);
 	GET(DamageState, damageState , EDI);
 
-	auto pExt = TechnoExt::GetExtData(pThis);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if(pExt && pTypeExt) {
 		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
@@ -245,7 +246,8 @@ DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x7 )
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x5)
+//was 5
+DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	R->EDI(pTechno->GetTechnoType()->GuardRange ? pTechno->GetTechnoType()->GuardRange:512);

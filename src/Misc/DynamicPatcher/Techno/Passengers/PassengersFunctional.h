@@ -3,9 +3,9 @@
 #include <Base/Always.h>
 
 class TechnoClass;
-namespace PassengersFunctional
+struct PassengersFunctional
 {
-	void AI(TechnoClass* pThis);
-	void CanFire(TechnoClass* pThis, bool& cease);
+	static void AI(TechnoClass* pThis);
+	static void CanFire(TechnoClass* pThis, bool& cease);
 };
 #endif

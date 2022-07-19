@@ -202,28 +202,28 @@ namespace Helpers {
 			// flying objects are not included normally
 			if (includeInAir) {
 				// the not quite so fast way. skip everything not in the air.
-				for (auto const& pTechno : *TechnoClass::Array) {
+				std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
 					if (pTechno->GetHeight() > 0) {
 						// rough estimation
 						if (pTechno->Location.DistanceFrom(coords) <= spread * 256) {
 							set.insert(pTechno);
 						}
 					}
-				}
+				});
 			}
 
 			// look closer. the final selection. put all affected items in a vector.
 			std::vector<TechnoClass*> ret;
 			ret.reserve(set.size());
 
-			for (auto const& pTechno : set) {
+			std::for_each(set.begin(), set.end(), [&](TechnoClass* pTechno) {
 				auto const abs = pTechno->WhatAmI();
 
 				// ignore buildings that are not visible, like ambient light posts
 				if (abs == AbstractType::Building) {
-					auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
 					if (pBuilding->Type->InvisibleInGame) {
-						continue;
+						return;
 					}
 				}
 
@@ -237,10 +237,12 @@ namespace Helpers {
 				}
 
 				// this is good
-				if (dist <= spread * 256) {
-					ret.push_back(pTechno);
+				if (!(dist <= spread * 256)) {
+					return;
 				}
-			}
+
+				ret.push_back(pTechno);
+			});
 
 			return ret;
 		}

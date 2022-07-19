@@ -155,7 +155,7 @@ public:
 		return this->UniqueID < rhs.UniqueID;
 	}
 
-	bool operator==(const AbstractClass& rhs) const {
+	bool IsSameWith(const AbstractClass& rhs) const {
 		JMP_THIS(0x588C10);
 	}
 

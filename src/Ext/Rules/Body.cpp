@@ -177,6 +177,12 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 	Phobos::Config::ArtImageSwap = pINI->ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
 	Phobos::Config::AllowParallelAIQueues = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowParallelAIQueues", false);
 
+	Phobos::Config::ForbidParallelAIQueues_Infantry = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry", Phobos::Config::AllowParallelAIQueues);
+	Phobos::Config::ForbidParallelAIQueues_Vehicle = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Vehicle", Phobos::Config::AllowParallelAIQueues);
+	Phobos::Config::ForbidParallelAIQueues_Navy = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Navy", Phobos::Config::AllowParallelAIQueues);
+	Phobos::Config::ForbidParallelAIQueues_Aircraft = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft", Phobos::Config::AllowParallelAIQueues);
+	Phobos::Config::ForbidParallelAIQueues_Building = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building", Phobos::Config::AllowParallelAIQueues);
+
 }
 
 // this runs between the before and after type data loading methods for rules ini

@@ -52,7 +52,7 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x0)
 
 	auto const pTypeData = TechnoTypeExt::ExtMap.Find(technoType);
 
-	if (pTypeData && *pTypeData->TurretOffset.GetEx() == CoordStruct { 0, 0, 0 })
+	if (pTypeData && *pTypeData->TurretOffset.GetEx() == CoordStruct::Empty)
 		return 0x73B78A;
 
 	return 0x73B790;
@@ -94,10 +94,10 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
 	if (pTypeExt && pTypeExt->Promote_IncludeSpawns)
 	{
-		for (auto i : pThis->SpawnedNodes)
+		for (const auto i : pThis->SpawnedNodes)
 		{
 			if (i->Unit && i->Unit->Veterancy.Veterancy < pThis->Owner->Veterancy.Veterancy)
 				i->Unit->Veterancy.Add(pThis->Owner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
@@ -115,7 +115,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	LEA_STACK(Point2D*, pLocation, STACK_OFFS(0x50, 0x18));
 	GET_STACK(int, nBrightness, STACK_OFFS(0x50, -0x4));
 
-	auto pType = pThis->GetTechnoType();
+	const auto pType = pThis->GetTechnoType();
 
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
@@ -165,7 +165,7 @@ DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		return pExt->NoManualMove.Get() ? 0x700C62 : 0;
 
 	return 0;
@@ -194,7 +194,7 @@ DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pTypeExt && pTypeExt->DeployingAnim_KeepUnitVisible.Get() && (pThis->Deploying || pThis->Undeploying))
 		return 0x73CF62;
@@ -263,8 +263,8 @@ DEFINE_HOOK(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	bool isDeploying = R->Origin() == 0x739C86;
-	bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
+	const bool isDeploying = R->Origin() == 0x739C86;
+	const bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
 
 	if (isDoneWithDeployUndeploy)
 		return 0; // Only play sound when done with deploying or undeploying.
@@ -282,15 +282,13 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	if (auto pFoot = generic_cast<FootClass*>(pObject)) {
 		if (!pObject->IsDisguised()) {
-			if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
+			if (const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
 				if(!HouseClass::IsPlayerObserver()){
-					if (auto pOwnerHouse = pFoot->GetOwningHouse()) {
+					if (const auto pOwnerHouse = pFoot->GetOwningHouse()) {
 						if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::Player)) {
-							if (auto pEnemyUIName = pTechnoTypeExt->EnemyUIName.Get().Text) {
-								if (wcslen(pEnemyUIName)) {
-									R->EAX(pEnemyUIName);
-									return SetUIName;
-								}
+							if (!pTechnoTypeExt->EnemyUIName.Get().empty()) {
+								R->EAX(pTechnoTypeExt->EnemyUIName.Get().Text);
+								return SetUIName;
 							}
 						}
 					}

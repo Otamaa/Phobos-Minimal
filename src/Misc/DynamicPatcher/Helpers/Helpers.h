@@ -579,12 +579,9 @@ public:
 
 	static void PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos)
 	{
-		if (pWeapon->Report.Count > 0)
-		{
-			int index = ScenarioGlobal->Random.RandomRanged(0, pWeapon->Report.Count - 1);
-			int soundIndex = pWeapon->Report.GetItem(index);
-			if (soundIndex != -1)
-			{
+		if (pWeapon->Report.Count > 0) {
+			const int soundIndex = pWeapon->Report.GetItem(ScenarioGlobal->Random.RandomFromMax(pWeapon->Report.Count - 1));
+			if (soundIndex != -1) {
 				VocClass::PlayAt(soundIndex, sourcePos, nullptr);
 			}
 		}
@@ -606,7 +603,7 @@ public:
 
 			if (pCell)
 			{
-				auto occFlags = pCell->OccupationFlags;
+				const auto occFlags = pCell->OccupationFlags;
 				pTechno->OnBridge = pCell->ContainsBridge();
 				++Unsorted::IKnowWhatImDoing;
 				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), Direction::E);
@@ -660,8 +657,7 @@ public:
 		//bool allied = false;
 		//bool enemies = false;
 
-		auto const pAircraftArr = AircraftClass::Array();
-		int count = std::count_if(pAircraftArr->begin(),pAircraftArr->end() , [pHouse,&padList](AircraftClass* const pAircraft){
+		int count = std::count_if(AircraftClass::Array->begin(), AircraftClass::Array->end() , [pHouse,&padList](AircraftClass* const pAircraft){
 
 			if (!IsDeadOrInvisible(pAircraft) && pAircraft->Owner && pAircraft->Owner == pHouse && pAircraft->Type->AirportBound)
 				return padList.contains(pAircraft->Type);

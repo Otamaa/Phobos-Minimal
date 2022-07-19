@@ -72,6 +72,10 @@ public:
 		int GattlingDmageDelay;
 		bool GattlingDmageSound;
 		bool AircraftOpentoppedInitEd;
+
+		ValueableVector<int> FireSelf_Count;
+		ValueableVector<WeaponTypeClass*> FireSelf_Weapon;
+		ValueableVector<int> FireSelf_ROF;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -117,6 +121,9 @@ public:
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }
 			, AircraftOpentoppedInitEd { false }
+			, FireSelf_Count {}
+			, FireSelf_Weapon {}
+			, FireSelf_ROF {}
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
@@ -216,7 +223,7 @@ public:
 	static void InitializeItems(TechnoClass* pThis);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
 	static Matrix3D GetMatrix(FootClass* pThis);
-	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, CoordStruct flh, bool turretFLH = false , CoordStruct Overrider = CoordStruct::Empty);
+	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool turretFLH = false , const CoordStruct& Overrider = CoordStruct::Empty);
 	static std::pair<bool, CoordStruct> GetBurstFLH(TechnoClass* pThis, int weaponIndex);
 	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 
@@ -226,16 +233,16 @@ public:
 	static double GetDamageMult(TechnoClass* pSouce, bool ForceDisable = false);
 
 	static void ApplyMindControlRangeLimit(TechnoClass* pThis);
-	static void ApplyInterceptor(TechnoClass* pThis);
-	static void ApplySpawn_LimitRange(TechnoClass* pThis);
-	static void CheckDeathConditions(TechnoClass* pThis);
+	static void ApplyInterceptor(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt);
+	static void ApplySpawn_LimitRange(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt);
+	static void CheckDeathConditions(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
 	static int GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
-	static void EatPassengers(TechnoClass* pThis);
+	static void EatPassengers(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
 	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
-	static void UpdateMindControlAnim(TechnoClass* pThis);
+	static void UpdateMindControlAnim(TechnoExt::ExtData* pExt);
 	static bool CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget);
 	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage);
@@ -247,6 +254,8 @@ public:
 	static void DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
-
+	static void RunFireSelf(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	static void KillSlave(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt);
+	static void GattlingDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
 	static void HandleRemove(TechnoClass* pThis);
 };

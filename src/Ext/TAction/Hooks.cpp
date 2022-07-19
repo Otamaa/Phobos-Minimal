@@ -11,6 +11,8 @@
 #include <ScenarioClass.h>
 #include <TriggerClass.h>
 
+#include <Ext/Terrain/Body.h>
+
 #include <Utilities/Macro.h>
 
 DEFINE_HOOK(0x6DD8B0, TActionClass_Execute, 0x6)
@@ -114,6 +116,14 @@ DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 		}
 	 });
 
+	std::for_each(TerrainExt::ExtMap.begin(), TerrainExt::ExtMap.end(), [](auto const& nPair) {
+		if (nPair.second && !nPair.first->InLimbo)
+		{
+			nPair.second->ClearLightSource();
+			nPair.second->InitializeLightSource();
+		}
+	});
+
 	return 0;
 }
 
@@ -137,9 +147,8 @@ DEFINE_HOOK(0x6E0D60, TActionClass_Text_Trigger, 0x6)
 		else
 			pNewOwner = pHouse->FindByCountryIndex(nNewOwner);
 	}
-	if (!pNewOwner)
-		return 0;
-	if (HouseClass::Player == pNewOwner)
+
+	if (!pNewOwner || HouseClass::Player == pNewOwner)
 		return 0;
 
 	R->AL(1);

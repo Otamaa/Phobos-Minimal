@@ -40,7 +40,7 @@ enum class TransactValueType : int
 	// Other....
 };
 
-enum class AttachedAnimFlag {
+enum class AttachedAnimFlag : int {
 	None = 0x0,
 	Hides = 0x1,
 	Temporal = 0x2,
@@ -111,20 +111,20 @@ enum class AffectedHouse : unsigned char {
 	Team = Owner | Allies,
 	NotAllies = Owner | Enemies,
 	NotOwner = Allies | Enemies,
-	All = Owner | Allies | Enemies
+	All = 0xA
 };
 
 MAKE_ENUM_FLAGS(AffectedHouse);
 
 enum class OwnerHouseKind : int {
-	Default,
-	Invoker,
-	Killer,
-	Victim,
-	Civilian,
-	Special,
-	Neutral,
-	Random
+	Default = 0,
+	Invoker = 1,
+	Killer = 2,
+	Victim = 3,
+	Civilian = 4,
+	Special = 5,
+	Neutral = 6,
+	Random = 7
 };
 
 enum class SuperWeaponFlags : unsigned short {
@@ -139,8 +139,6 @@ enum class SuperWeaponFlags : unsigned short {
 	PreClick = 0x80,
 	PostClick = 0x100
 };
-
-MAKE_ENUM_FLAGS(SuperWeaponFlags);
 
 enum class AreaFireTarget
 {
@@ -170,8 +168,6 @@ enum class TextAlign : int
 	Right = 0x200,
 };
 
-MAKE_ENUM_FLAGS(TextAlign);
-
 enum class HorizontalPosition
 {
 	Left = 0,
@@ -184,6 +180,13 @@ enum class VerticalPosition
 	Top = 0,
 	Center = 1,
 	Bottom = 2
+};
+
+enum class FeedBackType
+{
+	WeaponFire = 0 ,
+	HealthLevel = 1,
+	ReceiveDamage = 2
 };
 
 class MouseCursorHotSpotX {

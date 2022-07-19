@@ -8,6 +8,15 @@ void TerrainExt::ExtData::InitializeConstants() {
 
 }
 
+void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
+{
+	AnnounceInvalidPointer(LighSource,ptr);
+
+	if (AttachedAnim.get() && (void*)AttachedAnim.get() == ptr)
+		AttachedAnim.release();
+}
+
+
 void TerrainExt::ExtData::InitializeLightSource()
 {
 	auto const TypeData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);

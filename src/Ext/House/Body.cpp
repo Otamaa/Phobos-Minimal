@@ -17,6 +17,11 @@ void HouseExt::ExtData::InitializeConstants() {
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	HouseAirFactory.Remove(reinterpret_cast<BuildingClass*>(ptr));
+	AnnounceInvalidPointer(Factory_BuildingType,ptr);
+	AnnounceInvalidPointer(Factory_InfantryType, ptr);
+	AnnounceInvalidPointer(Factory_VehicleType, ptr);
+	AnnounceInvalidPointer(Factory_NavyType, ptr);
+	AnnounceInvalidPointer(Factory_AircraftType, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -172,6 +177,11 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
 		.Process(this->RandomNumber)
+		.Process(this->Factory_BuildingType)
+		.Process(this->Factory_InfantryType)
+		.Process(this->Factory_VehicleType)
+		.Process(this->Factory_NavyType)
+		.Process(this->Factory_AircraftType)
 		;
 }
 

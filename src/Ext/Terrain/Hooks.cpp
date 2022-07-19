@@ -103,3 +103,16 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x8)
 	return pThis->InLimbo || bFogged ? Draw : Skip;
 }
 */
+
+DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
+{
+	GET(ConvertClass*, pConvert, EDX);
+	GET(TerrainTypeClass*, pThisType, EAX);
+
+	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType)) {
+		pConvert = pTerrainExt->CustomPalette.GetOrDefaultConvert(pConvert);
+	}
+
+	R->EDX(pConvert);
+	return 0x0;
+}

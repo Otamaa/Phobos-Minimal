@@ -4,11 +4,11 @@
 
 class TechnoClass;
 class AbstractClass;
-namespace SpawnSupportFunctional
+struct SpawnSupportFunctional
 {
-	void Construct(TechnoClass* pThis);
-	void AI(TechnoClass* pThis);
-	void OnFire(TechnoClass* pThis);
-	void FireSupportWeaponToSpawn(TechnoClass* pThis,bool InUpdateFunc = false, bool useROF = false);
+	static void Construct(TechnoClass* pThis);
+	static void AI(TechnoClass* pThis);
+	static void OnFire(TechnoClass* pThis);
+	static void FireSupportWeaponToSpawn(TechnoClass* pThis,bool InUpdateFunc = false, bool useROF = false);
 };
 #endif

@@ -67,6 +67,12 @@ bool Phobos::Config::AllowParallelAIQueues = true;
 bool Phobos::Config::EnableBuildingPlacementPreview = false;
 bool Phobos::Config::EnableSelectBrd = false;
 
+bool Phobos::Config::ForbidParallelAIQueues_Infantry = false;
+bool Phobos::Config::ForbidParallelAIQueues_Vehicle = false;
+bool Phobos::Config::ForbidParallelAIQueues_Navy = false;
+bool Phobos::Config::ForbidParallelAIQueues_Aircraft = false;
+bool Phobos::Config::ForbidParallelAIQueues_Building = false;
+
 std::string Phobos::AppIconPath;
 char Phobos::AppName[0x40] = "";
 

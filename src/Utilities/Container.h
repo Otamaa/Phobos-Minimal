@@ -542,6 +542,9 @@ public:
 		return this->Name.data();
 	}
 
+	bool empty() const {
+		return this->Items.empty();
+	}
 protected:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 

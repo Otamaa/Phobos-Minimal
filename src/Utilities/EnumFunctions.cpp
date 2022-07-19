@@ -5,19 +5,20 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* owner
 	if ((flags & AffectedHouse::All) != AffectedHouse::None)
 		return true;
 
-	if (!ownerHouse || !targetHouse)
-		return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
+	if (ownerHouse && targetHouse) {
+		return (flags & AffectedHouse::Owner) && ownerHouse == targetHouse ||
+			   (flags & AffectedHouse::Allies) && ownerHouse != targetHouse && ownerHouse->IsAlliedWith(targetHouse) ||
+			   (flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !ownerHouse->IsAlliedWith(targetHouse);
+	}
 
-	return (flags & AffectedHouse::Owner) && ownerHouse == targetHouse ||
-		(flags & AffectedHouse::Allies) && ownerHouse != targetHouse && ownerHouse->IsAlliedWith(targetHouse) ||
-		(flags & AffectedHouse::Enemies) && ownerHouse != targetHouse && !ownerHouse->IsAlliedWith(targetHouse);
+	return (flags & AffectedHouse::Enemies) != AffectedHouse::None;
 }
 
 bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const& allowed, bool explicitEmptyCells)
 {
 	if (explicitEmptyCells)
 	{
-		auto pTechno = pCell->FirstObject ? abstract_cast<TechnoClass*>(pCell->FirstObject) : nullptr;
+		const auto pTechno = pCell->FirstObject ? abstract_cast<TechnoClass*>(pCell->FirstObject) : nullptr;
 
 		if (!pTechno && !(allowed & AffectedTarget::NoContent))
 			return false;
@@ -25,7 +26,7 @@ bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const&
 
 	if (allowed & AffectedTarget::AllCells)
 	{
-		if (pCell->LandType == LandType::Water) // check whether it supports water
+		if (pCell->LandType == LandType::Water && !pCell->ContainsBridge()) // check whether it supports water
 			return (allowed & AffectedTarget::Water) != AffectedTarget::None;
 		else                                    // check whether it supports non-water
 			return (allowed & AffectedTarget::Land) != AffectedTarget::None;

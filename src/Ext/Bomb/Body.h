@@ -36,6 +36,8 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;

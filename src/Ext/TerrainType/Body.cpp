@@ -49,6 +49,8 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Warhead.Read(exINI, pSection, "SpawnsTiberium.ExplodeWarhead");
 	this->Damage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDamage");
 	this->AreaDamage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDealAreaDamage");
+
+	this->CustomPalette.Read(exINI.GetINI(), pSection, "CustomPalette");
 #pragma endregion
 }
 
@@ -59,6 +61,7 @@ template <typename T>
 void TerrainTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->CustomPalette)
 		.Process(this->SpawnsTiberium_Type)
 		.Process(this->SpawnsTiberium_Range)
 		.Process(this->SpawnsTiberium_GrowthStage)

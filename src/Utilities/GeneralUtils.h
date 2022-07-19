@@ -46,8 +46,10 @@ public:
 		float sum = 0.0;
 		float sum2 = 0.0;
 
-		for (size_t i = 0; i < weights->size(); i++)
-			sum += (*weights)[i];
+		std::for_each(weights->begin(), weights->end(), [&sum](auto const weights) { sum += weights; });
+
+		//for (size_t i = 0; i < weights->size(); i++)
+		//	sum += (*weights)[i];
 
 		for (size_t i = 0; i < weights->size(); i++)
 		{

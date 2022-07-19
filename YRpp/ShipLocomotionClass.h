@@ -46,11 +46,11 @@ public:
 	DWORD TrackNumber;
 	int TrackIndex;
 	bool IsOnShortTrack;
-	BYTE field_61;
-	BYTE IsRotating;
-	BYTE headtopmatches63;
-	BYTE byte64;
-	BYTE byte65;
+	BYTE IsTurretLockedDown;
+	bool IsRotating;
+	bool IsDriving;
+	bool IsRocking;
+	bool IsLocked;
 	int dword68;
 };
 static_assert(sizeof(ShipLocomotionClass) == 0x6C, "Invalid size.");

@@ -283,6 +283,16 @@ public:
 		Nullable<int> Gattling_Overload_ParticleSysCount;
 
 		Valueable<bool> IsHero;
+
+		ValueableVector<WeaponTypeClass*> FireSelf_Weapon;
+		ValueableVector<int> FireSelf_ROF;
+		ValueableVector<WeaponTypeClass*> FireSelf_Weapon_GreenHeath;
+		ValueableVector<int> FireSelf_ROF_GreenHeath;
+		ValueableVector<WeaponTypeClass*> FireSelf_Weapon_YellowHeath;
+		ValueableVector<int> FireSelf_ROF_YellowHeath;
+		ValueableVector<WeaponTypeClass*> FireSelf_Weapon_RedHeath;
+		ValueableVector<int> FireSelf_ROF_RedHeath;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -531,6 +541,14 @@ public:
 			, Gattling_Overload_ParticleSys {}
 			, Gattling_Overload_ParticleSysCount {}
 			, IsHero { false }
+			, FireSelf_Weapon {}
+			, FireSelf_ROF {}
+			, FireSelf_Weapon_GreenHeath {}
+			, FireSelf_ROF_GreenHeath {}
+			, FireSelf_Weapon_YellowHeath {}
+			, FireSelf_ROF_YellowHeath {}
+			, FireSelf_Weapon_RedHeath {}
+			, FireSelf_ROF_RedHeath {}
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -593,6 +611,7 @@ public:
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
+	static double GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -16,15 +16,11 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0xC)
 {
 	GET(InfantryClass*, pSlave, EDI);
 
-	if (auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type))
-	{
-		if (pData->SlaveFreeSound_Enable.Get())
-		{
+	if (auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type)) {
+		if (pData->SlaveFreeSound_Enable.Get()) {
 			auto const nSound = pData->SlaveFreeSound.Get(RulesGlobal->SlavesFreeSound);
-			if (nSound != -1)
-			{
-				auto nCoord = pSlave->GetCoords();
-				VocClass::PlayAt(nSound, nCoord);
+			if (nSound != -1) {
+				VocClass::PlayAt(nSound, pSlave->GetCoords());
 			}
 		}
 
@@ -135,8 +131,7 @@ DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x8)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis))
-	{
+	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis)) {
 		R->CL(pThis->TickTank || pTypeExt->IsJuggernaut.Get());
 		return 0x739807;
 	}
@@ -144,38 +139,21 @@ DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x8)
 	return 0x0;
 }
 
-//there is 2 hooks that get weird optimization behaviour
-//so disable  it for them
-//#pragma optimize( "", off )
 DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
-	//GET_STACK(int, nDir, STACK_OFFS(0x28, -0x8));
 
-	//nDir = TranslateFixedPoint(16, 16, nDir, 0);
-	//nDir = nDir << 8;
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)){
-		auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		//auto Allow = [](BuildingTypeClass const * pType) {
-		//	if(pType->Wall || pType->LaserFence || pType->LaserFencePost || pType->FirestormWall)
-		//		return false;
-		//	return true;
-	//	};
-
-		if (pTypeExt) {
-			if (pTypeExt->IsJuggernaut.Get()) {
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		if (const auto pTypconsteExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
+			if (pTypconsteExt->IsJuggernaut.Get()) {
 				R->ECX(&BuildingTypeExt::DefaultJuggerFacing);
-			} //else if (Allow(pBuildingType)) {
-			//	const auto nDirOut = CreateDir(pBuildingType->StartFacing);
-			//	R->ECX(&nDirOut);
-		//	}
+			}
 		}
 	}
 
 	return 0x0;
 }
-//#pragma optimize("", on)
-//#pragma optimize( "", off )
+
 DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
@@ -188,7 +166,6 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 
 	return 0x0;
 }
-//#pragma optimize("", on)
 
 static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 {
@@ -317,12 +294,9 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 	enum { Handled = 0x6624C8, Skip = 0x0 };
 
 	GET(RocketLocomotionClass*, pThis, ESI);
-	if (auto pAir = specific_cast<AircraftClass*>(pThis->Owner))
-	{
-		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type))
-		{
-			if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir))
-			{
+	if (const auto pAir = specific_cast<AircraftClass*>(pThis->Owner)) {
+		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type)) {
+			if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir)) {
 				return Handled;
 			}
 		}
@@ -336,12 +310,12 @@ DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile
 	enum { Handled = 0x66351B, Skip = 0x0 };
 
 	GET(AircraftTypeClass*, pType, ECX);
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pExt && pExt->IsCustomMissile.Get())
-	{
-		R->EAX(&pExt->CustomMissileData);
-		return Handled;
+	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType)) {
+		if (pExt->IsCustomMissile.Get()) {
+			R->EAX(&pExt->CustomMissileData);
+			return Handled;
+		}
 	}
 
 	return Skip;

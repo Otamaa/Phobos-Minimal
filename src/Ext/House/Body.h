@@ -24,6 +24,13 @@ public:
 		int ForceOnlyTargetHouseEnemyMode;
 
 		DWORD RandomNumber;
+
+		BuildingClass* Factory_BuildingType;
+		BuildingClass* Factory_InfantryType;
+		BuildingClass* Factory_VehicleType;
+		BuildingClass* Factory_NavyType;
+		BuildingClass* Factory_AircraftType;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -32,6 +39,12 @@ public:
 			, ForceOnlyTargetHouseEnemy { false }
 			, ForceOnlyTargetHouseEnemyMode { -1 }
 			, RandomNumber { 0 }
+
+			, Factory_BuildingType { nullptr }
+			, Factory_InfantryType { nullptr }
+			, Factory_VehicleType { nullptr }
+			, Factory_NavyType { nullptr }
+			, Factory_AircraftType { nullptr }
 		{ }
 
 		virtual ~ExtData() = default;

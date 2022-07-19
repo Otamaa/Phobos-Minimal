@@ -15,7 +15,7 @@ public:
 	{ }
 
 	virtual ~BounceTrajectoryType() override = default;
-
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
@@ -41,7 +41,7 @@ public:
 	{}
 
 	virtual ~BounceTrajectory() override = default;
-
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

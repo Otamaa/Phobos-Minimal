@@ -83,7 +83,7 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 		if (!pBuilding || !pBuilding->Type)
 			return;
 
-		if (pBuilding->Type->Factory == AbstractType::AircraftType)
+		if (pBuilding->Type->Factory == AbstractType::AircraftType && Phobos::Config::ForbidParallelAIQueues_Aircraft)
 		{
 			if (!currFactory && pBuilding->Factory)
 				currFactory = pBuilding->Factory;
@@ -205,6 +205,7 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 
 	return true;
 }
+
 bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
 	if (const auto pExt = BuildingExt::ExtMap.Find(pBuilding))
@@ -234,8 +235,6 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 
 	return false;
 }
-
-
 // =============================
 // load / save
 

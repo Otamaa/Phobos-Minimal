@@ -30,14 +30,7 @@ public:
 
 		virtual ~ExtData() = default;
 		virtual size_t Size() const { return sizeof(*this); };
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override
-		{
-			AnnounceInvalidPointer(LighSource,ptr);
-
-			if (AttachedAnim.get() && (void*)AttachedAnim.get() == ptr)
-				AttachedAnim.release();
-		}
-
+		virtual void InvalidatePointer(void *ptr, bool bRemoved) override;
 		virtual void Uninitialize() override
 		{
 		}

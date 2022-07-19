@@ -95,25 +95,36 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
-	if (pTechno)
-	{
-		if (pTechno->GetTechnoType()->Immune)
+	if (pTechno) {
+
+		auto const pType = pTechno->GetTechnoType();
+
+		if (!(pTechno->IsOnMap && pTechno->IsAlive && !pTechno->InLimbo))
+			return false;
+
+		auto const pWhat = pTechno->WhatAmI();
+		const auto pBld = specific_cast<BuildingClass*>(pTechno);
+
+		if(!(pWhat == AbstractType::Aircraft && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
+			|| pWhat == AbstractType::Infantry && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
+			|| pWhat == AbstractType::Unit && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
+			|| (pBld && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None) && !pBld->Type->InvisibleInGame)))
 			return false;
 
 		if (pOwner && (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner)))
 			return false;
 
 		if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
-			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pTechno->GetTechnoType())) ||
-			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pTechno->GetTechnoType()))
+			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
+			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
 		{
 			return false;
 		}
 
 		if (this->DetonateOnAllMapObjects_RequireVerses)
 		{
-			auto nArmor = pTechno->GetTechnoType()->Armor;
-			if (auto const pExt = TechnoExt::GetExtData(pTechno))
+			auto nArmor = pType->Armor;
+			if (auto const pExt = TechnoExt::ExtMap.Find(pTechno))
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
@@ -122,8 +133,7 @@ bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno,
 			}
 		}
 
-		if (pTechno->IsOnMap && pTechno->IsAlive && !pTechno->InLimbo)
-			return true;
+		return true;
 	}
 
 	return false;

@@ -13,7 +13,7 @@ public:
 	{ }
 
 	virtual ~BombardTrajectoryType() override = default;
-
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
@@ -39,7 +39,7 @@ public:
 	{}
 
 	virtual ~BombardTrajectory() override = default;
-
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

@@ -58,6 +58,10 @@ bool BombExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
+void BombExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {
+	AnnounceInvalidPointer(BombExt::BombTemp, ptr);
+}
+
 BombExt::ExtContainer::ExtContainer() : Container("BombClass") { };
 BombExt::ExtContainer::~ExtContainer() = default;
 

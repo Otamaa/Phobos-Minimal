@@ -37,6 +37,7 @@ public:
 		, DetonationDistance { }
 	{}
 
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
 	virtual bool Save(PhobosStreamWriter& Stm) const { return true; }
 
@@ -86,6 +87,7 @@ public:
 		Type = nullptr;
 	};
 
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
 	virtual bool Save(PhobosStreamWriter& Stm) const { return true; };
 

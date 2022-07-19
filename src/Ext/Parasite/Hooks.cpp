@@ -44,8 +44,8 @@ DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x7)
 
 	if (auto const pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)) {
 		if (auto const AnimType = pWhExt->SquidSplash.GetElements(RulesClass::Instance->SplashList)) {
-			if (auto const pSplashType = AnimType.at(ScenarioClass::Instance->Random(0, (AnimType.size() - 1)))) {
-				if (auto const pAnim = GameCreate<AnimClass>(pSplashType, *pCoord)) {
+			if (auto const pSplashType = AnimType.at(ScenarioClass::Instance->Random.RandomFromMax((AnimType.size() - 1)))) {
+				if (auto pAnim = GameCreate<AnimClass>(pSplashType, *pCoord)) {
 					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : pThis->GetOwningHouse();
 					AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
 					return Handled;

@@ -6,7 +6,7 @@
 #include <vector>
 #include <MapClass.h>
 
-namespace DebugUtilities
+struct DebugUtilities
 {
 	static void MarkLocation(CoordStruct location, ColorStruct color, int beamHeight = 1000, int thickness = 4, int duration = 10)
 	{
@@ -66,5 +66,5 @@ namespace DebugUtilities
 			HighlightObjectBlock_Draw(color,points[i], points[(i + 1) % points.size()], thickness,duration);
 		}
 	}*/
-}
+};
 #endif

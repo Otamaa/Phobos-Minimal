@@ -8,12 +8,19 @@ struct Theater	//US English spelling to keep it consistent with the game
 public:
 	static constexpr reference<Theater, 0x7E1B78u, 6u> const Array{};
 
-	static Theater& GetTheater(TheaterType theater) {
+	static Theater& GetTheater(const TheaterType& theater) {
 		return Array[static_cast<int>(theater)];
+	}
+
+	static Theater* Get(const TheaterType& theater) {
+		return &Array[static_cast<int>(theater)];
 	}
 
 	static int __fastcall FindIndex(const char* pName)
 		{ JMP_STD(0x48DBE0); }
+
+	static void __fastcall Init(TheaterType theater)
+		{ JMP_STD(0x5349C0); }
 
 	char	Identifier[0x10];		//e.g. "TEMPERATE"
 	char	UIName[0x20];			//e.g. "Name:Temperate"
