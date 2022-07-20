@@ -23,7 +23,7 @@ public:
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;
 
-		DWORD RandomNumber;
+		//DWORD RandomNumber;
 
 		BuildingClass* Factory_BuildingType;
 		BuildingClass* Factory_InfantryType;
@@ -38,7 +38,7 @@ public:
 			, HouseAirFactory { }
 			, ForceOnlyTargetHouseEnemy { false }
 			, ForceOnlyTargetHouseEnemyMode { -1 }
-			, RandomNumber { 0 }
+			//, RandomNumber { 0 }
 
 			, Factory_BuildingType { nullptr }
 			, Factory_InfantryType { nullptr }

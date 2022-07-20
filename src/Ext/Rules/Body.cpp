@@ -21,10 +21,16 @@ std::unique_ptr<RulesExt::ExtData> RulesExt::Data = nullptr;
 void RulesExt::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExt::ExtData>(pThis);
+
+	if (Data)
+		Data->EnsureConstanted();
 }
 
 void RulesExt::Remove(RulesClass* pThis)
 {
+	if (Data)
+		Data->Uninitialize();
+
 	Data = nullptr;
 }
 
@@ -521,13 +527,10 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 
 DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 {
-	//GET(CCINIClass*, pINI, ESI);
-
-	for (auto const& pType : *BuildingTypeClass::Array)
-	{
-		auto const pExt = BuildingTypeExt::ExtMap.Find(pType);
-		pExt->CompleteInitialization();
-	}
+	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](const BuildingTypeClass* pType) {
+		if(auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
+			pExt->CompleteInitialization();
+	});
 
 	return 0;
 }

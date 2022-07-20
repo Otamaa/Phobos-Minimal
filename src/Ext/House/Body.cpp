@@ -6,7 +6,6 @@
 #include <ScenarioClass.h>
 
 //Static init
-
 template<> const DWORD Extension<HouseClass>::Canary = 0x11111111;
 HouseExt::ExtContainer HouseExt::ExtMap;
 
@@ -31,7 +30,7 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 	int result =
 	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis](TechnoClass* techno)
 	{
-		if (auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno->GetTechnoType()))
+		if (const auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno->GetTechnoType()))
 			if (pTechnoExt->IsCountedAsHarvester() && techno->Owner == pThis)
 					return TechnoExt::IsHarvesting(techno);
 
@@ -49,7 +48,7 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [&result,pThis](TechnoTypeClass* techno)
 	{
-		if (auto const pTechnoExt = TechnoTypeExt::ExtMap.Find(techno))	{
+		if (const auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno))	{
 			if (pTechnoExt->IsCountedAsHarvester())	{
 				result += pThis->CountOwnedAndPresent(techno);
 			}
@@ -61,8 +60,8 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 int HouseExt::CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const pItem)
 {
-	auto pHouseExt = HouseExt::ExtMap.Find(pThis);
-	return pHouseExt->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
+	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
+	return pHouseExt && pHouseExt->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
 }
 
 HouseClass* HouseExt::FindCivilianSide() {
@@ -79,7 +78,7 @@ HouseClass* HouseExt::FindNeutral(){
 
 void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 {
-	auto pHouseExt = HouseExt::ExtMap.Find(pThis);
+	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
 
 	if (!pThis || !pHouseExt)
 		return;
@@ -130,7 +129,7 @@ HouseClass* HouseExt::GetHouseKind(OwnerHouseKind const& kind, bool const allowR
 		if (allowRandom) {
 			auto& Random = ScenarioClass::Instance->Random;
 			return HouseClass::Array->GetItem(
-				Random.RandomRanged(0, HouseClass::Array->Count - 1));
+				Random.RandomFromMax(HouseClass::Array->Count - 1));
 		}
 		else {
 			return pDefault;
@@ -158,7 +157,7 @@ HouseClass* HouseExt::GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* const
 	case SlaveReturnTo::Random:
 			auto& Random = ScenarioClass::Instance->Random;
 			return HouseClass::Array->GetItem(
-				Random.RandomRanged(0, HouseClass::Array->Count - 1));
+				Random.RandomFromMax(HouseClass::Array->Count - 1));
 	}
 
 	return pKiller;
@@ -176,7 +175,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->HouseAirFactory)
 		.Process(this->ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
-		.Process(this->RandomNumber)
+		//.Process(this->RandomNumber)
 		.Process(this->Factory_BuildingType)
 		.Process(this->Factory_InfantryType)
 		.Process(this->Factory_VehicleType)

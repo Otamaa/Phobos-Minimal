@@ -55,7 +55,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 				if (pSite.second->Type != pRadType)
 					return false;
 
-				if (pSite.first->BaseCell != Cell)
+				if (Map[pSite.first->BaseCell] != Map[Cell])
 					return false;
 
 				if (Spread != pSite.first->Spread)

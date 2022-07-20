@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BasicStructures.h>
-
+#include <RectangleStruct.h>
 /*
 *	SHP structs come in different forms: the plain file data, and a kind of
 *	reference used for caching. Usually, it is not needed to know what type a
@@ -38,7 +38,8 @@ struct SHPStruct //header
 
 	RectangleStruct GetFrameBounds(int idxFrame) const {
 		RectangleStruct buffer;
-		return *GetFrameBounds(buffer, idxFrame);
+		GetFrameBounds(buffer, idxFrame);
+		return buffer;
 	}
 
 	ColorStruct* GetColor(ColorStruct &buffer, int idxFrame) const

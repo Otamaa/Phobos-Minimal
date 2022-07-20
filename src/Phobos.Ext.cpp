@@ -33,6 +33,7 @@
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
+#include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Ext/Convert/Body.h>
 #include <Ext/Parasite/Body.h>
@@ -61,6 +62,7 @@ auto MassActions = MassAction <
 #pragma region OtamaaStuffs
 	BombExt,
 	CaptureExt,
+	//SHPRefExt,
 	CellExt,
 	ConvertExt,
 	ParasiteExt,

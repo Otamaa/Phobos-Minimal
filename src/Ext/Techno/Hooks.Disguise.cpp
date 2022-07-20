@@ -94,7 +94,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pType = pThis->GetTechnoType();
+	TechnoTypeClass* pType = nullptr;
 	const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
 	LightConvertClass* pConvert = nullptr;
 	int nColorIdx = -1;
@@ -104,10 +104,12 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 			nColorIdx = pHouse->ColorSchemeIndex;
 
 		pType = pDisguise;
-	}else
-	{ nColorIdx = pThis->GetOwningHouse()->ColorSchemeIndex; }
+	} else {
+		nColorIdx = pThis->GetOwningHouse()->ColorSchemeIndex;
+		pType = pThis->GetTechnoType();
+	}
 
-	if (pType->Palette && pType->Palette->Count > 0)
+	if (pType && pType->Palette && pType->Palette->Count > 0)
 		pConvert = pType->Palette->GetItem(nColorIdx)->LightConvert;
 	else
 		pConvert = ColorScheme::Array->GetItem(nColorIdx)->LightConvert;

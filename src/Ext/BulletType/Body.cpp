@@ -123,6 +123,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
 	this->PreExplodeRange.Read(exINI, pSection, "PreExplode.Range");
+	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
@@ -168,6 +169,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceOnInfantry)
 		.Process(this->BounceOnVehicle)
 		.Process(this->PreExplodeRange)
+		.Process(this->Trajectory_Speed)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);

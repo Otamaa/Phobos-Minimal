@@ -61,6 +61,7 @@ public:
 		//
 
 		Nullable<double> PreExplodeRange;
+		Nullable <double> Trajectory_Speed;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -103,6 +104,7 @@ public:
 			, BounceOnVehicle { false }
 
 			, PreExplodeRange { }
+			, Trajectory_Speed { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

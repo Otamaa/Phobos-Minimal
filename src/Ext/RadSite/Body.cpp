@@ -21,7 +21,7 @@ void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(TechOwner, ptr);
 }
 
-void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
+void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
 	const auto pRadSite = GameCreate<RadSiteClass>();
@@ -41,7 +41,8 @@ void RadSiteExt::CreateInstance(CellStruct location, int spread, int amount, Wea
 		pRadExt->TechOwner = pTech;
 	}
 
-	pRadSite->SetBaseCell(&location);
+	auto nLoc = location;
+	pRadSite->SetBaseCell(&nLoc);
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();

@@ -135,10 +135,25 @@ PhobosTrajectoryType* PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter
 
 double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
 {
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType))
-		return pWeaponExt->Trajectory_Speed;
+	Nullable<double> TrajDummy {};
 
-	return 100.0;
+	if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet))
+		TrajDummy = pBulletExt->TypeExt->Trajectory_Speed;
+
+	double nResult = 100.0;
+	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType))
+		nResult =  pWeaponExt->Trajectory_Speed.Get();
+
+	return TrajDummy.Get(nResult);
+}
+
+double PhobosTrajectory::GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) const
+{
+	double nResult = 100.0;
+	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBulletExt->OwnerObject()->WeaponType))
+		nResult = pWeaponExt->Trajectory_Speed.Get();
+
+	return pBulletExt->TypeExt->Trajectory_Speed.Get(nResult);
 }
 
 bool PhobosTrajectory::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -260,7 +275,7 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 	GET(BulletClass*, pThis, EBP);
 
 	if (!pThis->SpawnNextAnim) {
-		if (auto const pExt = BulletExt::GetExtData(pThis))
+		if (auto const pExt = BulletExt::ExtMap.Find(pThis))
 			if (auto pTraj = pExt->Trajectory)
 				return pTraj->OnAI(pThis) ? Detonate : 0x0;
 	}
@@ -272,7 +287,7 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	if (auto const pExt = BulletExt::GetExtData(pThis))
+	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
 		if (auto pTraj = pExt->Trajectory)
 			pTraj->OnAIPreDetonate(pThis);
 
@@ -285,7 +300,7 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
 	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
-	if(auto const pExt = BulletExt::GetExtData(pThis))
+	if(auto const pExt = BulletExt::ExtMap.Find(pThis))
 		if (auto pTraj = pExt->Trajectory)
 			pTraj->OnAIVelocity(pThis,pSpeed, pPosition);
 
@@ -299,7 +314,7 @@ DEFINE_HOOK(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
 
-	if(auto const pExt = BulletExt::GetExtData(pThis))
+	if(auto const pExt = BulletExt::ExtMap.Find(pThis))
 	{
 		if (auto pTraj = pExt->Trajectory)
 		{
@@ -328,7 +343,7 @@ DEFINE_HOOK(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
 	GET(BulletClass*, pThis, EBP);
 	GET(TechnoClass*, pTechno, ESI);
 
-	if(auto const pExt = BulletExt::GetExtData(pThis))
+	if(auto const pExt = BulletExt::ExtMap.Find(pThis))
 	{
 		if (auto pTraj = pExt->Trajectory)
 		{
@@ -355,8 +370,8 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
 	GET_STACK(VelocityClass*, pVelocity, STACK_OFFS(0x54, -0x8));
 
-	auto const pData = BulletTypeExt::GetExtData(pThis->Type);
-	auto const pExt = BulletExt::GetExtData(pThis);
+	auto const pData = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
 
 	if(pData && pExt)
 		if (auto pType = pData->TrajectoryType)

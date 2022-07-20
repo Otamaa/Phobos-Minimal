@@ -347,7 +347,6 @@ SYRINGE_HANDSHAKE(pInfo)
 				desc = "RockPatch or an NPatch-derived patch";
 				msg = PatchDetectedMessage;
 				break;
-
 			default:
 				// expanded exe, unknown make
 				desc = "an unknown game patch";

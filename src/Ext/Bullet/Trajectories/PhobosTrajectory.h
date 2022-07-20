@@ -99,6 +99,7 @@ public:
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) = 0;
 
 	double GetTrajectorySpeed(BulletClass* pBullet) const;
+	double GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) const;
 
 	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
 

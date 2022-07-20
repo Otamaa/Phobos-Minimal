@@ -67,6 +67,7 @@
     <ClCompile Include="src\Ext\SWType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
+    <ClCompile Include="src\Ext\TAction\Hooks.MoreString.cpp" />
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\TeamType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
@@ -296,7 +297,6 @@
     <ClInclude Include="src\New\Type\LaserTrailTypeClass.h" />
     <ClInclude Include="src\New\Entity\LaserTrailClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
-    <ClInclude Include="src\Phobos_ECS.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\Cast.h" />

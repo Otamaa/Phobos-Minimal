@@ -379,6 +379,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
 
 	this->IsHero.Read(exINI, pSection, "Hero");
+
+	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
+	this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
+	this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
+	this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
+	this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
+	this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
+	this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
+	this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 	this->MyExtraFireData.ReadRules(exINI, pSection);
@@ -456,15 +466,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
-
-	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
-	this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
-	this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
-	this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
-	this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
-	this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
-	this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
-	this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->PrimaryCrawlFLH.Read(exArtINI, pArtSection, "PrimaryCrawlingFLH");

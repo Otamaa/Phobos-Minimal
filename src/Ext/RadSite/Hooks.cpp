@@ -72,7 +72,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 						 if (pSite.second->Type != pDefault)
 							return false;
 
-						 if (pSite.first->BaseCell != location)
+						 if (Map[pSite.first->BaseCell] != Map[location])
 							 return false;
 
 						 if (spread != pSite.first->Spread)
@@ -97,6 +97,9 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 			}
 
 			RadSiteExt::CreateInstance(location, spread, amount, nullptr, nullptr);
+		} else {
+			if (const auto pExt = BulletExt::ExtMap.Find(pThis))
+				pExt->ApplyRadiationToCell(location, spread, amount);
 		}
 
 		return Handled;
@@ -116,12 +119,12 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 		int radLevel = 0;
 		int weaponRadLevel = 0;
 
-		if (auto pWeaponStruct = pThis->GetDeployWeapon())
+		if (const auto pWeaponStruct = pThis->GetDeployWeapon())
 		{
-			if (auto pWeapon = pWeaponStruct->WeaponType)
+			if (const auto pWeapon = pWeaponStruct->WeaponType)
 			{
-				auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-				auto currentCoord = pThis->GetMapCoords();
+				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+				const auto currentCoord = pThis->GetMapCoords();
 
 				if (!RadSiteExt::ExtMap.empty())
 				{
@@ -131,7 +134,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 							 if (pPair.second->Type != pWeaponExt->RadType)
 								 return false;
 
-							 if (pPair.first->BaseCell != currentCoord)
+							 if (Map[pPair.first->BaseCell] != pThis->GetCell())
 								 return false;
 
 							 if (Game::F2I(pWeapon->Warhead->CellSpread) != pPair.first->Spread)
@@ -348,7 +351,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 
 #define GET_RADSITE(reg, value)\
 	GET(RadSiteClass* const, pThis, reg);\
-	auto pExt = RadSiteExt::GetExtData(pThis);\
+	auto pExt = RadSiteExt::ExtMap.Find(pThis);\
 	auto output = pExt->Type->## value ##;
 
 DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)

@@ -39,16 +39,20 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x6)
 // Passable TerrainTypes Hook #2 - Do not display attack cursor unless force-firing.
 DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 {
-	enum { Skip = 0x70020E };
+	enum { ReturnAction = 0x70020E };
 
+	GET(TechnoClass*, pThis, ESI);
 	GET(ObjectClass*, pTarget, EDI);
 	GET_STACK(bool, isForceFire, STACK_OFFS(0x1C, -0x8));
+
+	if (!pThis->Owner->ControlledByPlayer() || !pThis->IsControllable())
+		return 0;
 
 	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget)) {
 		if (auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type)) {
 			if (pTypeExt->IsPassable && !isForceFire) {
-				R->EBP(1);
-				return Skip;
+				R->EBP(Action::Move);
+				return ReturnAction;
 			}
 		}
 	}

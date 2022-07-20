@@ -45,7 +45,7 @@ struct DelayFireWeapon
 
 	~DelayFireWeapon() = default;
 
-	bool TimesUp()
+	bool TimesUp() const
 	{
 		return Timer.Expired();
 	}
@@ -56,7 +56,7 @@ struct DelayFireWeapon
 		Timer.Start(Delay);
 	}
 
-	bool NotDone()
+	bool NotDone() const
 	{
 		return Count > 0;
 	}

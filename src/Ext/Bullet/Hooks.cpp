@@ -553,27 +553,27 @@ static DWORD Do_Airburst(BulletClass* pThis)
 				// fill with technos in range
 				std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno)
 				{
-
-				if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0)
-				{
-					if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-						return;
-
-					if (pWHExt->CanDealDamage(pTechno) && pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
+					if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0)
 					{
-						if (pTechno->InWhichLayer() == Layer::Underground ||
-							pTechno->InWhichLayer() == Layer::None)
+						if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
 							return;
 
-						const CoordStruct crdTechno = pTechno->GetCoords();
-						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
-							&& ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
-							)
+						if (pWHExt->CanDealDamage(pTechno) && pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
 						{
-							targets.push_back(pTechno);
+							const auto nLayer = pTechno->InWhichLayer();
+							if (nLayer == Layer::Underground ||
+								nLayer == Layer::None)
+								return;
+
+							const CoordStruct crdTechno = pTechno->GetCoords();
+							if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
+								&& ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
+								)
+							{
+								targets.push_back(pTechno);
+							}
 						}
 					}
-				}
 				});
 
 				// fill up the list to cluster count with random cells around destination

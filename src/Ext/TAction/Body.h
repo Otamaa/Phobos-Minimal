@@ -18,6 +18,8 @@ enum class PhobosTriggerAction : unsigned int
 	BinaryOperation = 504,
 	RunSuperWeaponAtLocation = 505,
 	RunSuperWeaponAtWaypoint = 506,
+
+	DrawLaserBetweenWeaypoints = 9940
 };
 
 class TActionExt
@@ -28,7 +30,21 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
+
+		std::string Value1;
+		std::string Value2;
+		std::string Parm3;
+		std::string Parm4;
+		std::string Parm5;
+		std::string Parm6;
+
 		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
+		, Value1 { }
+		, Value2 { }
+		, Parm3 { }
+		, Parm4 { }
+		, Parm5 { }
+		, Parm6 { }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -37,6 +53,10 @@ public:
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants() override  { }
+
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
 	};
 
 	class ExtContainer final : public Container<TActionExt>
@@ -66,6 +86,8 @@ public:
 	ACTION_FUNC(BinaryOperation);
 	ACTION_FUNC(RunSuperWeaponAtLocation);
 	ACTION_FUNC(RunSuperWeaponAtWaypoint);
+
+	ACTION_FUNC(DrawLaserBetweenWaypoints);
 
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
 

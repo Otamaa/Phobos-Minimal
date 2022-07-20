@@ -206,16 +206,19 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-		DriveDataFunctional::AI(pExt);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
 		if (auto const pPaintBall = pExt->PaintBallState.get())
 		{
-			if (!pPaintBall->IsActive())
-				pPaintBall->Disable(false);
-			else
+			if (pPaintBall->IsActive())
+			{
 				if (pThis->WhatAmI() == AbstractType::Building)
 					pThis->UpdatePlacement(PlacementType::Redraw);
+			}
+			else
+			{
+				pPaintBall->Disable(false);
+			}
 		}
 #endif
 	}
@@ -227,31 +230,31 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 {
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
-	{
-		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
-		{
-			if (auto const pInf = generic_cast<FootClass*>(*object))
-			{
-				if (!pInf->Transporter || !pInf->InOpenToppedTransport)
-				{
-					pThis->EnteredOpenTopped(pInf);
-					pInf->Transporter = pThis;
-					pInf->Undiscover();
-				}
-			}
-		}
-
-		pExt->AircraftOpentoppedInitEd = true;
-	}
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{
+
+		if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
+		{
+			for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
+			{
+				if (auto const pInf = generic_cast<FootClass*>(*object))
+				{
+					if (!pInf->Transporter || !pInf->InOpenToppedTransport)
+					{
+						pThis->EnteredOpenTopped(pInf);
+						pInf->Transporter = pThis;
+						pInf->Undiscover();
+					}
+				}
+			}
+
+			pExt->AircraftOpentoppedInitEd = true;
+		}
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+
 		AircraftPutDataFunctional::AI(pExt, pTypeExt);
 		AircraftDiveFunctional::AI(pExt, pTypeExt);
 		FighterAreaGuardFunctional::AI(pExt, pTypeExt);
@@ -278,9 +281,9 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 						pRocket->MovingDestination = pTracker->Coord;
 				}
 			}
-		}
-#endif
 	}
+#endif
+}
 
 #endif
 	pThis->FootClass::Update();
@@ -310,18 +313,17 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
 	GET(const FootClass*, pThis, ESI);
 
-	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
-	{
+	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target)) {
 		//Spawnee trying to chase Aircraft that go out of map until it reset
 		//fix this , so reset immedietely if target is not on map
-		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe))
-		{
+		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe)) {
 			pThis->SpawnOwner->SetTarget(nullptr);
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
 	}
 
 	return pThis->IsLocked() ? 0x4DA677 : 0x4DA643;
+	//return 0;
 }
 
 DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
@@ -332,7 +334,10 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	//auto const pLasetOwner = pThis->GetOwningHouse();
-
+#ifdef COMPILE_PORTED_DP_FEATURES
+	if (pExt)
+		DriveDataFunctional::AI(pExt);
+#endif
 	if (IsMovingNow)
 	{
 		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw

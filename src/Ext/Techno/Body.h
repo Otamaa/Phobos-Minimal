@@ -73,9 +73,9 @@ public:
 		bool GattlingDmageSound;
 		bool AircraftOpentoppedInitEd;
 
-		ValueableVector<int> FireSelf_Count;
-		ValueableVector<WeaponTypeClass*> FireSelf_Weapon;
-		ValueableVector<int> FireSelf_ROF;
+		std::vector<int> FireSelf_Count;
+		std::vector<WeaponTypeClass*> FireSelf_Weapon;
+		std::vector<int> FireSelf_ROF;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;

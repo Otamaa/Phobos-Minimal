@@ -163,7 +163,8 @@ void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoCla
 	burst.CountOne();
 }
 
-TechnoClass*  CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) {
+TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
+{
 	return pAttacker->Transporter ? pAttacker->Transporter: pAttacker;
 }
 

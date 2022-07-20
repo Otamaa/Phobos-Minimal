@@ -23,7 +23,7 @@ struct CustomWeaponManager
 	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult, FireBulletToTarget callback);
 	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
-	TechnoClass* WhoIsShooter(TechnoClass* pAttacker);
+	TechnoClass* WhoIsShooter(TechnoClass* pAttacker) const;
 
 	void InvalidatePointer(void* ptr, bool bRemoved)
 	{

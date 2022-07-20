@@ -123,7 +123,7 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 				auto const pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetDrawer() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
 
 				//auto const bClearToBuild = pCell->CanThisExistHere(pType->SpeedType, pType, pBuilding->Owner);
-				//auto const nColor = bClearToBuild ? ColorStruct { 0,255,0 } : ColorStruct { 255,0,0 };
+				//ColorStruct const nColor = bClearToBuild ? { 0,255,0 } : { 255,0,0 };
 
 				DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, &nPoint, &nREct, nFlag,
 					0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
