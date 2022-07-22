@@ -502,15 +502,19 @@ struct OptionalStruct {
 		this->HasValue = false;
 	}
 
-	bool empty() const {
+	bool empty() const noexcept {
 		return !this->HasValue;
 	}
 
-	constexpr explicit operator bool() const noexcept {
+	explicit operator bool() const noexcept {
 		return this->HasValue;
 	}
 
-	constexpr bool has_value() const noexcept {
+	bool has_value() const noexcept {
+		return this->HasValue;
+	}
+
+	bool isset() const noexcept {
 		return this->HasValue;
 	}
 

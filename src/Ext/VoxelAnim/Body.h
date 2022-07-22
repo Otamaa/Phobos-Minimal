@@ -25,13 +25,13 @@ public:
 	class ExtData final : public Extension<VoxelAnimClass>
 	{
 	public:
-
-		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		TechnoClass* Invoker;
+		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
 		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
+			, Invoker { nullptr }
 			, LaserTrails { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }

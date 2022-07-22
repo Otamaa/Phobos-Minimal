@@ -4,7 +4,7 @@
 
 void DriveDataFunctional::AI(TechnoExt::ExtData* pThis)
 {
-	auto pTechno = pThis->OwnerObject();
+	auto pTechno = pThis->Get();
 
 	if (!TechnoExt::IsActive(pTechno))
 		return;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Unsorted.h>
 #include <MessageListClass.h>
+#include <Phobos.h>
 
 class AbstractClass;
 class REGISTERS;

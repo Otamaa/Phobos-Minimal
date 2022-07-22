@@ -42,7 +42,7 @@ void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 
 void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	auto pWeapon = pThis->GetWeaponType();
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto pRadType = pWeaponExt->RadType;
@@ -76,7 +76,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 			}
 
 			// Handle It
-			(*it).first->Add(RadLevel);
+			(*it).second->Add(RadLevel);
 			return;
 		}
 	}
@@ -86,7 +86,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 
 void BulletExt::ExtData::InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt)
 {
-	auto pThis = OwnerObject();
+	auto pThis = Get();
 
 	if (LaserTrails.size() || pThis->Type->Inviso)
 		return;
@@ -175,8 +175,8 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 				}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-				TrailsManager::CleanUp(pExt->OwnerObject());
-				TrailsManager::Construct(pExt->OwnerObject());
+				TrailsManager::CleanUp(pExt->Get());
+				TrailsManager::Construct(pExt->Get());
 #endif
 			}
 		}

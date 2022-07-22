@@ -60,6 +60,8 @@ public:
 		Nullable<double> ScorchChance;
 		Valueable<bool> SpecialDraw;
 		Valueable<bool> NoOwner;
+
+		Valueable<int> Spawns_Delay;
 	    #pragma endregion
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
@@ -103,6 +105,7 @@ public:
 			, ScorchChance { }
 			, SpecialDraw { false }
 			, NoOwner { false }
+			, Spawns_Delay { 0 }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -112,7 +115,7 @@ public:
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 
 		virtual void InitializeConstants() override {
-			auto pObj = OwnerObject();
+			auto pObj = Get();
 			SpecialDraw = IS_SAME_STR_(pObj->get_ID(), RING1_NAME);
 			Launchs.reserve(2);
 		}

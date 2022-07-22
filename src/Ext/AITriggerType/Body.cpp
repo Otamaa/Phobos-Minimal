@@ -70,14 +70,13 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 
 	int count = 0;
 
-	for (int i = 0; i < TechnoClass::Array->Count; i++)
-	{
-		auto pTechno = TechnoClass::Array->GetItem(i);
+	std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](const TechnoClass* pTechno) {
 		if (pTechno->GetTechnoType() == TechnoType
 			&& pTechno->IsAlive
 			&& !pTechno->InLimbo
 			&& pTechno->IsOnMap
 			&& !pTechno->Absorbed
+			&& pTechno->Owner
 			&& ((!pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 0)
 				|| (pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 1)
 				|| (pTechno->Owner == pHouse && pickMode == 2)
@@ -95,17 +94,15 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 		{
 			count++;
 		}
-	}
-	if ((count < Number && compareMode == 0)
+	});
+
+	return ((count < Number && compareMode == 0)
 		|| (count <= Number && compareMode == 1)
 		|| (count == Number && compareMode == 2)
 		|| (count >= Number && compareMode == 3)
 		|| (count > Number && compareMode == 4)
 		|| (count != Number && compareMode == 5)
-		)
-		return true;
-	else
-		return false;
+		);
 }
 
 void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition)
@@ -143,12 +140,12 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		if (cur[0])
 			essentialRequirementsCount = atoi(cur[0]);
 		else
-			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Essential Reqirments Count [0] !.\n");
+			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Essential Requirements Count [0] !.\n");
 
 		if (cur[1])
 			leastOptionalRequirementsCount = atoi(cur[1]);
 		else
-			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Least Optional Reqirments Count [1] !.\n");
+			Debug::Log("DEBUG : [AIConditionsList]: Error parsing Least Optional Requirements Count [1] !.\n");
 
 		//parse other strings
 		for (int i = 1; i < thisAICondition.Count; i++)
@@ -202,13 +199,13 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 				&& compareMode >= 0 && compareMode <= 5
 				&& Number >= 0)
 			{
-				//essential requirements judgement
+				//essential requirements judgment
 				if (i <= essentialRequirementsCount)
 				{
 					if (ReadCustomizableAICondition(pHouse, pickMode, compareMode, Number, TechnoType))
 						essentialRequirementsMetCount++;
 				}
-				//optional requirements judgement
+				//optional requirements judgment
 				else
 				{
 					if (ReadCustomizableAICondition(pHouse, pickMode, compareMode, Number, TechnoType))
@@ -227,7 +224,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 	{
 		//thoroughly disable it
 		pAITriggerType->IsEnabled = false;
-		Debug::Log("DEBUG: [AIConditionsList]: Conditin number overflew!.\n");
+		Debug::Log("DEBUG: [AIConditionsList]: Condition number overflew!.\n");
 		return;
 	}
 	if (essentialRequirementsCount == essentialRequirementsMetCount && leastOptionalRequirementsCount <= optionalRequirementsMetCount)

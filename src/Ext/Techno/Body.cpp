@@ -331,10 +331,10 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 	CoordStruct FLH = CoordStruct::Empty;
 
 	if (!pThis || weaponIndex < 0 || !pExt)
-		goto Return;
+		return { FLHFound , FLH };
 
-	const auto pInf = abstract_cast<InfantryClass*>(pThis);
-	auto& pickedFLHs = pExt->WeaponBurstFLHs;
+	const auto pInf = specific_cast<InfantryClass*>(pThis);
+	std::vector<DynamicVectorClass<CoordStruct>> pickedFLHs = pExt->WeaponBurstFLHs;
 
 	if (pThis->Veterancy.IsElite())
 	{
@@ -362,7 +362,6 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 		}
 	}
 
-	Return:
 	return { FLHFound , FLH };
 }
 
@@ -485,7 +484,7 @@ void TechnoExt::DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeE
 		RulesExt::Global()->SelectBrd_DrawOffset_Infantry.Get() : RulesExt::Global()->SelectBrd_DrawOffset_Unit.Get());
 
 	XOffset = vOfs.X;
-	YOffset = pTypeExt->OwnerObject()->PixelSelectionBracketDelta + vOfs.Y;
+	YOffset = pTypeExt->Get()->PixelSelectionBracketDelta + vOfs.Y;
 	vLoc.Y -= 5;
 
 	if (iLength == 8)
@@ -859,10 +858,10 @@ void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis, TechnoTypeExt::ExtData
 					weaponRange = pWeaponType->Range;
 			};
 
-			setWeaponRange(pExt->OwnerObject()->Weapon[0].WeaponType);
-			setWeaponRange(pExt->OwnerObject()->Weapon[1].WeaponType);
-			setWeaponRange(pExt->OwnerObject()->EliteWeapon[0].WeaponType);
-			setWeaponRange(pExt->OwnerObject()->EliteWeapon[1].WeaponType);
+			setWeaponRange(pExt->Get()->Weapon[0].WeaponType);
+			setWeaponRange(pExt->Get()->Weapon[1].WeaponType);
+			setWeaponRange(pExt->Get()->EliteWeapon[0].WeaponType);
+			setWeaponRange(pExt->Get()->EliteWeapon[1].WeaponType);
 
 			weaponRange += weaponRangeExtra;
 
@@ -1010,7 +1009,7 @@ int TechnoExt::GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoT
 
 void TechnoExt::EatPassengers(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	auto const pThis = pExt->OwnerObject();
+	auto const pThis = pExt->Get();
 
 	if (!TechnoExt::IsActive(pThis, false, false))
 		return;
@@ -1251,12 +1250,12 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , boo
 // Feature: Kill Object Automatically
 void TechnoExt::CheckDeathConditions(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	const auto pThis = pExt->OwnerObject();
+	const auto pThis = pExt->Get();
 
 	if (!TechnoExt::IsActive(pThis, false, false))
 		return;
 
-	auto pTypeThis = pTypeExt->OwnerObject();
+	auto pTypeThis = pTypeExt->Get();
 	const bool peacefulDeath = pTypeExt->Death_Peaceful.Get();
 	const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeExt->Death_Method.Get();
 
@@ -1529,7 +1528,7 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 
 void TechnoExt::UpdateMindControlAnim(TechnoExt::ExtData* pExt)
 {
-	if (const auto pThis  = pExt->OwnerObject())
+	if (const auto pThis  = pExt->Get())
 	{
 		if (pThis->IsMindControlled())
 		{
@@ -1570,7 +1569,7 @@ void TechnoExt::UpdateMindControlAnim(TechnoExt::ExtData* pExt)
 
 void TechnoExt::RunFireSelf(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	const auto pThis = pExt->OwnerObject();
+	const auto pThis = pExt->Get();
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
 		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon_RedHeath;

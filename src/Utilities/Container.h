@@ -63,9 +63,8 @@ class Extension
 public:
 	static const DWORD Canary;
 
-	Extension(T* const OwnerObject) :
-		AttachedToObject { OwnerObject },
-		Initialized { InitState::Blank }
+	Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
+		, Initialized { InitState::Blank }
 	{ }
 
 	Extension(const Extension& other) = delete;
@@ -75,22 +74,18 @@ public:
 	virtual ~Extension() = default;
 
 	// the object this Extension expands
-	T* const& OwnerObject() const
-	{
+	T* const& Get() const {
 		return this->AttachedToObject;
 	}
 
-	void EnsureConstanted()
-	{
-		if (this->Initialized < InitState::Constanted)
-		{
+	void EnsureConstanted() {
+		if (this->Initialized < InitState::Constanted) {
 			this->InitializeConstants();
 			this->Initialized = InitState::Constanted;
 		}
 	}
 
-	void LoadFromINI(CCINIClass* pINI)
-	{
+	void LoadFromINI(CCINIClass* pINI) {
 		if (!pINI)
 			return;
 
@@ -98,12 +93,15 @@ public:
 		{
 		case InitState::Blank:
 			this->EnsureConstanted();
+			[[fallthrough]];
 		case InitState::Constanted:
 			this->InitializeRuled();
 			this->Initialized = InitState::Ruled;
+			[[fallthrough]];
 		case InitState::Ruled:
 			this->Initialize();
 			this->Initialized = InitState::Inited;
+			[[fallthrough]];
 		case InitState::Inited:
 		case InitState::Completed:
 			if (pINI == CCINIClass::INI_Rules)
@@ -121,21 +119,20 @@ public:
 	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
 
 	template<typename StmType>
-	inline void Serialize(StmType& Stm) { }
+	inline void Serialize(StmType& Stm) { static_assert(true,"Please Implement Specific function for this !"); }
 
 	template<>
-	inline void Serialize(PhobosStreamWriter& Stm)
-	{
+	inline void Serialize(PhobosStreamWriter& Stm) {
 		Stm.Save(this->Initialized);
 	}
 
 	template<>
-	inline void Serialize(PhobosStreamReader& Stm)
-	{
+	inline void Serialize(PhobosStreamReader& Stm) {
 		Stm.Load(this->Initialized);
 	}
 
 protected:
+
 	// right after construction. only basic initialization tasks possible;
 	// owner object is only partially constructed! do not use global state!
 	virtual void InitializeConstants() { }

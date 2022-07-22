@@ -263,7 +263,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 			for (auto const& pLaserTrail : pTechnoExt->LaserTrails)
 			{
 				pLaserTrail->Visible = false;
-				pLaserTrail->LastLocation.Reset();
+				pLaserTrail->LastLocation.clear();
 			}
 		}
 	}
@@ -289,7 +289,7 @@ DEFINE_HOOK(0x5F4F4E, ObjectClass_Unlimbo_LaserTrails, 0x7)
 				{
 					if (pLaserTrail)
 					{
-						pLaserTrail->LastLocation.Reset();
+						pLaserTrail->LastLocation.clear();
 						pLaserTrail->Visible = true;
 					}
 				}
@@ -357,6 +357,11 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
+
+	if (const auto pFoot = generic_cast<FootClass*>(pThis))
+		if (const auto pParasiteFoot = pFoot->ParasiteEatingMe)
+			if (const auto pParasite = pParasiteFoot->ParasiteImUsing)
+				TechnoExt::DrawParasitedPips(pFoot, pLocation, pBounds);
 
 	TechnoExt::DrawSelfHealPips(pThis, pLocation, pBounds);
 
@@ -493,7 +498,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 
 	if(!Iter.empty()){
 		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1))) {
-			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, 0x600, 0, 0)) {
+			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 			}
 		}

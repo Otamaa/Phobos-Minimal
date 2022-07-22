@@ -35,6 +35,7 @@ bool ConvertExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
+/*
 DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
 {
 	GET(ConvertClass*, pItem, ESI);
@@ -54,4 +55,4 @@ DEFINE_HOOK(0x491210, ConvertClass_DTOR, 0xA)
 	ConvertExt::ExtMap.Remove(pItem);
 
 	return 0;
-}
+}*/

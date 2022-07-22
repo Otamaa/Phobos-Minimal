@@ -1,6 +1,7 @@
 #pragma once
 #include <Helpers/String.h>
 #include <CCINIClass.h>
+#include <Phobos.h>
 
 // fixed string with read method
 template <std::size_t Capacity>

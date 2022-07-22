@@ -73,16 +73,11 @@ void __fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, void* _, int
 					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
 						pAnimExt->Invoker = pThis;
 
-					pAnimExt->FromDeathUnit = true;
-
 					if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
 						pAnimExt->DeathUnitFacing = facing;
 
-					if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
-					{
-						if (pThis->HasTurret())
-						{
-							pAnimExt->DeathUnitHasTurret = true;
+					if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get()) {
+						if (pThis->HasTurret()) {
 							pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.current();
 						}
 					}

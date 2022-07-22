@@ -238,7 +238,7 @@ DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
 	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 	{
 		if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
-			pThis->Location, 0, 1, 0x600, 0,
+			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
 			!isDeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false))
 		{
 			pThis->DeployAnim = pAnim;

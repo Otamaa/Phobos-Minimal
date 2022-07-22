@@ -15,7 +15,7 @@ AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
 
 void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->Get()->ID;
 
 	INI_EX exINI(pINI);
 
@@ -105,6 +105,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ScorchChance.Read(exINI, pID, "Scorch.Chance");
 	this->SpecialDraw.Read(exINI, pID, "SpecialDraw");
 	this->NoOwner.Read(exINI, pID, "NoOwner");
+	this->Spawns_Delay.Read(exINI, pID, "Spawns.InitialDelay");
+
 #pragma endregion
 }
 
@@ -151,16 +153,11 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 					pAnimExt->Invoker = pThis;
 				}
 
-				pAnimExt->FromDeathUnit = true;
-
 				if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
 					pAnimExt->DeathUnitFacing = facing;
 
-				if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
-				{
-					if (pThis->HasTurret())
-					{
-						pAnimExt->DeathUnitHasTurret = true;
+				if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get()) {
+					if (pThis->HasTurret()) {
 						pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.current();
 					}
 				}
@@ -214,6 +211,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(ScorchChance)
 		.Process(SpecialDraw)
 		.Process(NoOwner)
+		.Process(Spawns_Delay)
 		;
 }
 

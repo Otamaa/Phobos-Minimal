@@ -15,17 +15,13 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
-		short DeathUnitFacing;
-		DirStruct DeathUnitTurretFacing;
-		bool FromDeathUnit;
-		bool DeathUnitHasTurret;
+		OptionalStruct<short , true> DeathUnitFacing;
+		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, DeathUnitFacing { 0 }
+			, DeathUnitFacing { }
 			, DeathUnitTurretFacing {}
-			, FromDeathUnit { false }
-			, DeathUnitHasTurret { false }
 			, Invoker { nullptr }
 		{}
 

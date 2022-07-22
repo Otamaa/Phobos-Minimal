@@ -16,7 +16,7 @@ void VoxelAnimTypeExt::ExtData::Initialize(){
 
 void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->Get()->ID;
 	INI_EX exINI(pINI);
 
 	if (!pINI->GetSection(pID))

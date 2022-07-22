@@ -199,7 +199,7 @@ public:
 	constexpr DynamicVectorClass() noexcept = default;
 
 	explicit DynamicVectorClass(int capacity, T* pMem = nullptr)
-		: VectorClass(capacity, pMem)
+		: VectorClass<T>(capacity, pMem)
 	{ }
 
 	DynamicVectorClass(const DynamicVectorClass &other) {
@@ -322,11 +322,11 @@ public:
 		return true;
 	}
 
-	template <class... _Valty>
-	constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
-		AddItem(T{ _Val... });
-		return *back();
-	}
+	//template <class... _Valty>
+	//constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
+	//	AddItem(T{ _Val... });
+	//	return *back();
+	//}
 
 	bool AddUnique(const T &item) {
 		int idx = this->FindItemIndex(item);
@@ -410,15 +410,15 @@ public:
 	constexpr TypeList() noexcept = default;
 
 	explicit TypeList(int capacity, T* pMem = nullptr)
-		: DynamicVectorClass(capacity, pMem)
+		: DynamicVectorClass<T>(capacity, pMem)
 	{ }
 
 	TypeList(const TypeList &other)
-		: DynamicVectorClass(other), unknown_18(other.unknown_18)
+		: DynamicVectorClass<T>(other), unknown_18(other.unknown_18)
 	{ }
 
 	TypeList(TypeList &&other) noexcept
-		: DynamicVectorClass(std::move(other)), unknown_18(other.unknown_18)
+		: DynamicVectorClass<T>(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
 	TypeList& operator = (const TypeList &other) {
@@ -432,7 +432,7 @@ public:
 	}
 
 	void Swap(TypeList& other) noexcept {
-		DynamicVectorClass::Swap(other);
+		DynamicVectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->unknown_18, other.unknown_18);
 	}

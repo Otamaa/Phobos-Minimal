@@ -19,7 +19,7 @@ void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
 
 void TerrainExt::ExtData::InitializeLightSource()
 {
-	auto const TypeData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);
+	auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
 	if (!TypeData->LightIntensity.isset())
 		return;
@@ -32,7 +32,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 			return;
 
 		auto Tint = TypeData->GetLightTint();
-		auto Coords = this->OwnerObject()->GetCoords();
+		auto Coords = this->Get()->GetCoords();
 
 		if (auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
@@ -46,7 +46,7 @@ void TerrainExt::ExtData::InitializeAnim()
 {
 	if (!AttachedAnim.get())
 	{
-		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->OwnerObject()->Type);
+		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
 		if (TypeData->AttachedAnim.empty())
 			return;
@@ -59,11 +59,11 @@ void TerrainExt::ExtData::InitializeAnim()
 
 		if (pAnimType)
 		{
-			auto const Coords = this->OwnerObject()->GetCoords();
+			auto const Coords = this->Get()->GetCoords();
 
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, Coords))
 			{
-				pAnim->SetOwnerObject(this->OwnerObject());
+				pAnim->SetOwnerObject(this->Get());
 				AttachedAnim.reset(pAnim);
 			}
 		}

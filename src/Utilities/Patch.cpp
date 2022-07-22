@@ -9,7 +9,7 @@
 int GetSection(const char* sectionName, void** pVirtualAddress)
 {
 	char buf[MAX_PATH + 1] = { 0 };
-	GetModuleFileName(NULL, buf, sizeof(buf));
+	GetModuleFileNameA(NULL, buf, sizeof(buf));
 
 	auto hInstance = Phobos::hInstance;
 
@@ -94,7 +94,7 @@ uintptr_t Patch::GetModuleBaseAddress(const char* modName)
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(hCurrentProcess));
 	if (hSnap != INVALID_HANDLE_VALUE)
 	{
-		MODULEENTRY32 modEntry;
+		MODULEENTRY32 modEntry { };
 		modEntry.dwSize = sizeof(modEntry);
 		if (Module32First(hSnap, &modEntry))
 		{
@@ -119,7 +119,7 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
 	if (hSnapshot != INVALID_HANDLE_VALUE)
 	{
-		PROCESSENTRY32 pe32;
+		PROCESSENTRY32 pe32 { };
 		pe32.dwSize = sizeof(PROCESSENTRY32);
 		if (Process32First(hSnapshot, &pe32))
 		{

@@ -6,11 +6,11 @@ template<> const DWORD Extension<BuildingClass>::Canary = 0x87654321;
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 void BuildingExt::ExtData::InitializeConstants()
 {
-	if (!OwnerObject() || !OwnerObject()->Type)
+	if (!Get() || !Get()->Type)
 		return;
 #ifdef REPLACE_BUILDING_ONFIRE
 	//YR doing similar thing , by memset the 8 Point2D array
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(OwnerObject()->Type))
+	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type))
 	{
 		if (pTypeExt->DamageFire_Offs.Count > 0)
 			DamageFireAnims.reserve((size_t)pTypeExt->DamageFire_Offs.Count);

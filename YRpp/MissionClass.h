@@ -27,7 +27,7 @@ public:
 		return &Controls[(int)nIN + 1];
 	}
 
-	const char* MissionControlClass::Name() {
+	const char* ToString() {
 
 		if (this->ArrayIndex == 0)
 		{
@@ -182,9 +182,9 @@ public:
 		}
 	}
 
-	const char* MissionClass::MissionName(MissionFlags nFlag) const
+	const char* ToString(MissionFlags nFlag) const
 	{
-		return GetMissionControl(nFlag)->Name();
+		return GetMissionControl(nFlag)->ToString();
 	}
 
 

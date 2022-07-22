@@ -150,7 +150,7 @@ double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
 double PhobosTrajectory::GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) const
 {
 	double nResult = 100.0;
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBulletExt->OwnerObject()->WeaponType))
+	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBulletExt->Get()->WeaponType))
 		nResult = pWeaponExt->Trajectory_Speed.Get();
 
 	return pBulletExt->TypeExt->Trajectory_Speed.Get(nResult);

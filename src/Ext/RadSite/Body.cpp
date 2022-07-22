@@ -32,7 +32,7 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt) {
-		pRadExt->Weapon = pWeaponExt->OwnerObject();
+		pRadExt->Weapon = pWeaponExt->Get();
 		pRadExt->Type = pWeaponExt->RadType;
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
@@ -52,42 +52,41 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 //RadSiteClass Activate , Rewritten
 void RadSiteExt::ExtData::CreateLight()
 {
-	auto pThis = OwnerObject();
-	auto nLevelDelay = Type->GetLevelDelay();
-	auto nLightDelay = Type->GetLightDelay();
-	auto nRadcolor = Type->GetColor();
-	auto const nTintFactor = Type->GetTintFactor();
+	const auto pThis = Get();
+	const auto nLevelDelay = Type->GetLevelDelay();
+	const auto nLightDelay = Type->GetLightDelay();
+	const auto nRadcolor = Type->GetColor();
+	const auto nTintFactor = Type->GetTintFactor();
 
-	auto nLightFactor = Math::min(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
-	auto nDuration = pThis->RadDuration;
+	const auto nLightFactor = Math::min(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
+	const auto nDuration = pThis->RadDuration;
 
 	pThis->RadLevelTimer.Start(nLevelDelay);
 	pThis->RadLightTimer.Start(nLightDelay);
-	pThis->Intensity = (int)(nLightFactor);
+	pThis->Intensity = static_cast<int>(nLightFactor);
 	pThis->LevelSteps = nDuration / nLevelDelay;
 	pThis->IntensitySteps = nDuration / nLightDelay;
 	pThis->IntensityDecrement = (int)(nLightFactor) / (nDuration / nLightDelay);
 
 	TintStruct nTintBuffer {};
-	nTintBuffer.Red = (int)(Math::min(((1000 * nRadcolor.R) / 255) * nTintFactor, 2000.0));
-	nTintBuffer.Green = (int)(Math::min(((1000 * nRadcolor.G) / 255) * nTintFactor, 2000.0));
-	nTintBuffer.Blue = (int)(Math::min(((1000 * nRadcolor.B) / 255) * nTintFactor, 2000.0));
+	nTintBuffer.Red = static_cast<int>(Math::min(((1000 * nRadcolor.R) / 255) * nTintFactor, 2000.0));
+	nTintBuffer.Green = static_cast<int>(Math::min(((1000 * nRadcolor.G) / 255) * nTintFactor, 2000.0));
+	nTintBuffer.Blue = static_cast<int>(Math::min(((1000 * nRadcolor.B) / 255) * nTintFactor, 2000.0));
 
 	pThis->Tint = nTintBuffer;
-	bool update = false;
 
 	if (pThis->LightSource)
 	{
-		pThis->LightSource->ChangeLevels((int)(nLightFactor), nTintBuffer, update);
+		pThis->LightSource->ChangeLevels(static_cast<int>(nLightFactor), nTintBuffer, false);
 		pThis->Radiate();
 	}
 	else
 	{
-		if (auto const pLight = GameCreate<LightSourceClass>(pThis->GetCoords(), pThis->SpreadInLeptons, (int)(nLightFactor), nTintBuffer))
+		if (auto const pLight = GameCreate<LightSourceClass>(pThis->GetCoords(), pThis->SpreadInLeptons, static_cast<int>(nLightFactor), nTintBuffer))
 		{
 			pThis->LightSource = pLight;
 			pLight->DetailLevel = 0;
-			pLight->Activate(update);
+			pLight->Activate(false);
 			pThis->Radiate();
 		}
 	}
@@ -96,11 +95,11 @@ void RadSiteExt::ExtData::CreateLight()
 // Rewrite because of crashing craziness
 void RadSiteExt::ExtData::Add(int amount)
 {
-	auto pThis = OwnerObject();
+	const auto pThis = Get();
 	pThis->Deactivate();
-	auto nInput = ((pThis->RadLevel * pThis->RadTimeLeft) / pThis->RadDuration) + amount;
+	const auto nInput = ((pThis->RadLevel * pThis->RadTimeLeft) / pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
-	auto nInput_2 = nInput * Type->GetDurationMultiple();
+	const auto nInput_2 = nInput * Type->GetDurationMultiple();
 	pThis->RadDuration = nInput_2;
 	pThis->RadTimeLeft = nInput_2;
 	CreateLight();
@@ -108,7 +107,7 @@ void RadSiteExt::ExtData::Add(int amount)
 
 void RadSiteExt::ExtData::SetRadLevel(int amount)
 {
-	auto pThis = OwnerObject();
+	const auto pThis = Get();
 	amount = Math::min(amount, Type->GetLevelMax());
 	const int mult = Type->GetDurationMultiple();
 	pThis->RadLevel = amount;
@@ -119,9 +118,9 @@ void RadSiteExt::ExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	RadSiteClass* pThis = OwnerObject();
-	double nMax = static_cast<double>(pThis->SpreadInLeptons);
-	double nDistance = Map.GetCellAt(cell)->GetCoords()
+	const RadSiteClass* pThis = Get();
+	const double nMax = static_cast<double>(pThis->SpreadInLeptons);
+	const double nDistance = Map.GetCellAt(cell)->GetCoords()
 		.DistanceFrom(pThis->GetCoords());
 	return (nDistance > nMax || pThis->GetRadLevel() <= 0 ) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
 }

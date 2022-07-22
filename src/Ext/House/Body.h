@@ -16,9 +16,9 @@ public:
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:
-		std::map<BuildingTypeExt::ExtData*, int> BuildingCounter;
+		PhobosMap<BuildingTypeExt::ExtData*, int> BuildingCounter;
 		CounterClass OwnedLimboBuildingTypes;
-		std::map<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
+		PhobosMap<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
 		DynamicVectorClass<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;
@@ -99,5 +99,5 @@ public:
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
 	static HouseClass* GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* pKiller, HouseClass* pVictim);
-	static void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
+	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 };

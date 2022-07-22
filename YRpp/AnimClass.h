@@ -9,6 +9,28 @@
 #include <BounceClass.h>
 #include <ProgressTimer.h>
 
+enum class AnimFlag : unsigned int
+{
+	AnimFlag_1 = 0x1,
+	AnimFlag_2 = 0x2 ,
+	AnimFlag_4 = 0x4,
+	AnimFlag_8 = 0x8,
+	AnimFlag_10 = 0x10,
+	AnimFlag_20 = 0x20,
+	AnimFlag_40 = 0x40,
+	AnimFlag_80 = 0x80,
+	AnimFlag_100 = 0x100,
+	AnimFlag_200 = 0x200, // always ?
+	AnimFlag_400 = 0x400, // always ?
+	AnimFlag_800 = 0x800,
+	AnimFlag_1000 = 0x1000, // building anim
+	AnimFlag_2000 = 0x2000, // IvanDamage nuke
+	AnimFlag_4000 = 0x4000,
+	AnimFlag_8000 = 0x8000,
+};
+
+MAKE_ENUM_FLAGS(AnimFlag);
+
 //forward declarations
 class AnimTypeClass;
 class BulletClass;
@@ -97,7 +119,7 @@ public:
 	//Constructor
 	// TODO fix
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay = 0,
-		int LoopCount = 1, DWORD flags = 0x600, int ForceZAdjust = 0, bool reverse = false) noexcept
+		int LoopCount = 1, AnimFlag flags = AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, int ForceZAdjust = 0, bool reverse = false) noexcept
 		: AnimClass(noinit_t())
 	{ JMP_THIS(0x421EA0); }
 

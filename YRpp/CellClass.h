@@ -125,27 +125,27 @@ public:
 		return nBuffer;
 	}
 
-	bool IsFogged() // Check Fog maybe?
+	bool IsFogged() const // Check Fog maybe?
 		{ JMP_THIS(0x4879B0); }
 
-	void FogCell()
+	void FogCell() const
 		{ JMP_THIS(0x486A70); }
 
-	void CleanFog()
+	void CleanFog() const
 		{ JMP_THIS(0x486BF0); }
 
-	void ClearFoggedObjects()
+	void ClearFoggedObjects() const
 		{ JMP_THIS(0x486C50); }
 
 	// adjusts LAT
-	void SetupLAT()
+	void SetupLAT() const
 		{ JMP_THIS(0x47CA80); }
 
 	// checks for nearby cliff impassability, calls SetupLAT(), sets up TubeClass if tunnel, cell anim if attached, etc
-	void Setup(DWORD dwUnk)
+	void Setup(DWORD dwUnk) const
 		{ JMP_THIS(0x47D2B0); }
 
-	void BlowUpBridge()
+	void BlowUpBridge() const
 		{ JMP_THIS(0x47DD70); }
 
 	bool CanThisExistHere(SpeedType SpeedType, BuildingTypeClass* pObject, HouseClass* pOwner) const
@@ -155,7 +155,7 @@ public:
 		{ JMP_THIS(0x4834A0); }
 
 	// those unks are passed to TechnoClass::Scatter in that same order
-	void ScatterContent(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination, bool alt)
+	void ScatterContent(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination, bool alt) const
 		{ JMP_THIS(0x481670); }
 
 	CellClass* GetNeighbourCell(unsigned int direction) const
@@ -166,16 +166,16 @@ public:
 		{ JMP_THIS(0x481810); }
 
 	// called whenever anything moves, first to remove threat from source cell, second time to add threat to dest cell
-	void UpdateThreat(unsigned int SourceHouse, int ThreatLevel)
+	void UpdateThreat(unsigned int SourceHouse, int ThreatLevel) const
 		{ JMP_THIS(0x481870); }
 
-	void CollectCrate(FootClass* pCollector)
+	void CollectCrate(FootClass* pCollector) const
 		{ JMP_THIS(0x481A00); }
 
-	void ProcessColourComponents(int* arg0, int* pIntensity, int* pAmbient, int* a5, int* a6, int* tintR, int* tintG, int* tintB)
+	void ProcessColourComponents(int* arg0, int* pIntensity, int* pAmbient, int* a5, int* a6, int* tintR, int* tintG, int* tintB) const
 		{ JMP_THIS(0x484180); }
 
-	TubeClass* GetTunnel()
+	TubeClass* GetTunnel() const
 		{ JMP_THIS(0x484F20); }
 
 	RectangleStruct* GetContainingRect(RectangleStruct* dest) const
@@ -199,33 +199,33 @@ public:
 	int GetContainedTiberiumValue() const
 		{ JMP_THIS(0x485020); }
 
-	bool SpreadTiberium(bool forced)
+	bool SpreadTiberium(bool forced) const
 		{ JMP_THIS(0x483780); }
 
 	// add or create tiberium of the specified type
-	bool IncreaseTiberium(int idxTiberium, int amount)
+	bool IncreaseTiberium(int idxTiberium, int amount) const
 		{ JMP_THIS(0x487190); }
 
 	// decreases thze tiberium in the cell
-	void ReduceTiberium(int amount)
+	void ReduceTiberium(int amount) const
 		{ JMP_THIS(0x480A80); }
 
-	bool CanTiberiumGerminate(TiberiumClass* tib)
+	bool CanTiberiumGerminate(TiberiumClass* tib) const
 		{ JMP_THIS(0x4838E0); }
 
-	void SetMapCoords(const CoordStruct& coords)
+	void SetMapCoords(const CoordStruct& coords) const
 		{ JMP_THIS(0x485240); }
 
 	// in leptons
-	CoordStruct* Get3DCoords(CoordStruct* result)
+	CoordStruct* Get3DCoords(CoordStruct* result) const
 		{ JMP_THIS(0x486840); }
 
 	// depends on one of the cell flags being set
-	CoordStruct* Get3DCoords2(CoordStruct* result)
+	CoordStruct* Get3DCoords2(CoordStruct* result) const
 		{ JMP_THIS(0x486890); }
 
 	// used by ambient waves and stuff
-	CoordStruct* Get3DCoords3(CoordStruct* result)
+	CoordStruct* Get3DCoords3(CoordStruct* result) const
 		{ JMP_THIS(0x480A30); }
 
 	int GetFloorHeight(Point2D const& subcoords) const
@@ -245,13 +245,13 @@ public:
 		return buffer;
 	}
 
-	void ActivateVeins()
+	void ActivateVeins() const
 		{ JMP_THIS(0x486920); }
 
-	void RedrawForVeins()
+	void RedrawForVeins() const
 		{ JMP_THIS(0x485AF0); }
 
-	bool IsVeinsExistHere()
+	bool IsVeinsExistHere() const
 		{ JMP_THIS(0x485460); }
 	//
 	// cloak generators
@@ -301,10 +301,10 @@ public:
 	int GetRadLevel() const
 		{ JMP_THIS(0x487CB0); }
 
-	void RadLevel_Increase(double amount)
+	void RadLevel_Increase(double amount) const
 		{ JMP_THIS(0x487CE0); }
 
-	void RadLevel_Decrease(double amount)
+	void RadLevel_Decrease(double amount) const
 		{ JMP_THIS(0x487D00); }
 
 	// helper
@@ -353,7 +353,7 @@ public:
 		return FixHeight(buffer);
 	}
 
-	void MarkForRedraw()
+	void MarkForRedraw() const
 		{ JMP_THIS(0x486E70); }
 
 	void ChainReaction() {
@@ -371,32 +371,32 @@ public:
 		return outBuffer;
 	}
 
-	bool TryAssignJumpjet(FootClass* pObject)
+	bool TryAssignJumpjet(FootClass* pObject) const
 		{ JMP_THIS(0x487D70); }
 
-	void  AddContent(ObjectClass* Content, bool onBridge)
+	void AddContent(ObjectClass* Content, bool onBridge) const
 		{ JMP_THIS(0x47E8A0); }
 
-	void  RemoveContent(ObjectClass* pContent, bool onBridge)
+	void RemoveContent(ObjectClass* pContent, bool onBridge) const
 		{ JMP_THIS(0x47EA90); }
 
-	void ReplaceTag(TagClass* pTag)
+	void ReplaceTag(TagClass* pTag) const
 		{ JMP_THIS(0x485250) }
 
-	void UpdateCellLighting()
+	void UpdateCellLighting() const
 		{ JMP_THIS(0x484680); }
 
-	void CalculateLightSourceLighting(int& nIntensity, int& nAmbient, int& Red1, int& Green1, int& Blue1, int& Red2, int& Green2, int& Blue2)
+	void CalculateLightSourceLighting(int& nIntensity, int& nAmbient, int& Red1, int& Green1, int& Blue1, int& Red2, int& Green2, int& Blue2) const
 		{ JMP_THIS(0x484180); }
 
 	void InitLightConvert(LightConvertClass* pDrawer = nullptr, int nIntensity = 0x10000,
-		int nAmbient = 0, int Red1 = 1000, int Green1 = 1000, int Blue1 = 1000)
+		int nAmbient = 0, int Red1 = 1000, int Green1 = 1000, int Blue1 = 1000) const
 		{ JMP_THIS(0x483E30); }
 
-	void DrawOverlay(const Point2D& Location, const RectangleStruct& Bound)
+	void DrawOverlay(const Point2D& Location, const RectangleStruct& Bound) const
 		{ JMP_THIS(0x47F6A0); }
 
-	void DrawOverlayShadow(const Point2D& Location, const RectangleStruct& Bound)
+	void DrawOverlayShadow(const Point2D& Location, const RectangleStruct& Bound) const
 		{ JMP_THIS(0x47F510); }
 
 	bool IsBuildable() const
@@ -415,10 +415,10 @@ public:
 		return ret;
 	}
 
-	void CellColor(ColorStruct& arg0 , ColorStruct& arg1)
+	void CellColor(ColorStruct& arg0 , ColorStruct& arg1) const
 		{ JMP_THIS(0x47C060); }
 
-	unsigned int MinimapCellColor(void* a1, bool a2 = false)
+	unsigned int MinimapCellColor(void* a1, bool a2 = false) const
 		{ JMP_THIS(0x47BDB0); }
 
 	ObjectClass* Cell_Occupier(bool alt = false) const
@@ -426,13 +426,13 @@ public:
 
 	unsigned int ReduceWall(int nDamage = -1) const { JMP_THIS(0x480CB0); }
 
-	char DrawIt_47EC90(CoordStruct& nCoord, RectangleStruct& nRect, bool bBlit)
+	char DrawIt_47EC90(CoordStruct& nCoord, RectangleStruct& nRect, bool bBlit) const
 		{ JMP_THIS(0x47EC90);}
 
-	RectangleStruct* GetTileRect(RectangleStruct* pRet)
+	RectangleStruct* GetTileRect(RectangleStruct* pRet) const
 		{ JMP_THIS(0x47FF80); }
 
-	RectangleStruct GetTileRect()
+	RectangleStruct GetTileRect() const
 	{
 		RectangleStruct nBuff;
 		GetTileRect(&nBuff);

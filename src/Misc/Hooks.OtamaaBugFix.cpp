@@ -207,7 +207,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	//GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x184));
 
 	//Eax is discarded anyway
-	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, 0x600, 0, false))
+	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 	{
 		auto const pExt = BulletExt::GetExtData(pThis);
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
@@ -225,7 +225,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
 
 	return 0x414ED0;
@@ -237,7 +237,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, 0x600, 0, false);
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false) ;
 
 	return 0x7365BB;

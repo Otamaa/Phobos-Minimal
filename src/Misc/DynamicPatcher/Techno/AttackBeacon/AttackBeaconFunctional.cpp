@@ -18,8 +18,8 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 		candidates;
 
 	auto const TechnoArr = TechnoClass::Array();
-	auto pHouse = pExt->OwnerObject()->Owner;
-	CoordStruct location = pExt->OwnerObject()->GetCoords();
+	auto pHouse = pExt->Get()->Owner;
+	CoordStruct location = pExt->Get()->GetCoords();
 	std::map<double, std::vector<TechnoClass*>> nTargetDummy;
 
 	for (int i = TechnoArr->Count - 1; i > 0; i--)
@@ -39,7 +39,7 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 			double nDistance = location.DistanceFrom(pTarget->GetCoords());
 			if (nDistance > BeaconTypeData.RangeMin && (BeaconTypeData.RangeMax < 0.0 ? true : nDistance < BeaconTypeData.RangeMax))
 			{
-				if (BeaconTypeData.Force || !pTarget->Target|| pTarget->Target != pExt->OwnerObject())
+				if (BeaconTypeData.Force || !pTarget->Target|| pTarget->Target != pExt->Get())
 				{ 
 					if (candidates.contains(pTargetType))
 					{
@@ -66,9 +66,9 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 		}
 	}
 
-	AbstractClass* pBeacon = pExt->OwnerObject();
+	AbstractClass* pBeacon = pExt->Get();
 	if (BeaconTypeData.TargetToCell) {
-		pBeacon = pExt->OwnerObject()->GetCell();
+		pBeacon = pExt->Get()->GetCell();
 	}
 
 	bool noLimit = BeaconTypeData.Types.empty() || BeaconTypeData.Types.size() <= 0;
@@ -111,6 +111,6 @@ void AttackBeaconFunctional::OnFire(TechnoExt::ExtData* pExt, AbstractClass* pTa
 	if (pExt->AnotherData.Recuited)
 	{
 		pExt->AnotherData.Recuited = false;
-		pExt->OwnerObject()->SetTarget(nullptr);
+		pExt->Get()->SetTarget(nullptr);
 	}
 }

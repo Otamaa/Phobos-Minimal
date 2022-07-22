@@ -9,7 +9,7 @@ void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pT
 	if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget.Get()))
 		return;
 
-	if (auto const pFoot = generic_cast<FootClass*>(pExt->OwnerObject()))
+	if (auto const pFoot = generic_cast<FootClass*>(pExt->Get()))
 	{
 		if (pTypeExt->MyJJData.Enable
 			&& pFoot->GetTechnoType()->JumpJet
@@ -42,7 +42,7 @@ void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pT
 
 				int nWeapon = pFoot->SelectWeapon(pTarget);
 				bool canFire = false;
-				auto const nFireError = pExt->OwnerObject()->GetFireError(pTarget, nWeapon, true);
+				auto const nFireError = pExt->Get()->GetFireError(pTarget, nWeapon, true);
 				switch (nFireError)
 				{
 				case FireError::ILLEGAL:
@@ -51,14 +51,14 @@ void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pT
 				case FireError::RANGE:
 					break;
 				default:
-					canFire = pExt->OwnerObject()->IsCloseEnough(pTarget, nWeapon);
+					canFire = pExt->Get()->IsCloseEnough(pTarget, nWeapon);
 					break;
 				}
 
 				if (canFire)
 				{
-					CoordStruct sourcePos = pExt->OwnerObject()->Location;
-					CoordStruct targetPos = pExt->OwnerObject()->Target->GetCoords();
+					CoordStruct sourcePos = pExt->Get()->Location;
+					CoordStruct targetPos = pExt->Get()->Target->GetCoords();
 					DirStruct toDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
 					DirStruct selfDir = pFoot->PrimaryFacing.current();
 					int facing = pTypeExt->MyJJData.Facing;

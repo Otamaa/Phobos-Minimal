@@ -82,10 +82,12 @@ void ScenarioExt::LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI)
 
 void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	// auto pThis = this->OwnerObject();
+	// auto pThis = this->Get();
 
 	// INI_EX exINI(pINI);
 
+	ParTitle = ScenarioClass::Instance->OverParTitle;
+	ParMessage = ScenarioClass::Instance->OverParMessage;
 }
 
 template <typename T>
@@ -95,6 +97,11 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 		.Process(this->Waypoints)
 		.Process(this->Variables[0])
 		.Process(this->Variables[1])
+
+		.Process(this->ParTitle)
+		.Process(this->ParMessage)
+		.Process(this->ScoreCampaignTheme)
+		.Process(this->NextMission)
 		;
 }
 

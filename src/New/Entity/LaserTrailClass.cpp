@@ -8,18 +8,18 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 {
 	bool result = false;
 
-	if (!this->LastLocation.isset())
+	if (!this->LastLocation.has_value() || !this->LastLocation.get())
 	{
 		// The trail was just inited
 		this->LastLocation = location;
 	}
-	else if (location.DistanceFrom(this->LastLocation.Get()) > this->Type->SegmentLength) // TODO reimplement IgnoreVertical properly?
+	else if (location.DistanceFrom(this->LastLocation.get()) > this->Type->SegmentLength) // TODO reimplement IgnoreVertical properly?
 	{
 		if (LaserTrailClass::AllowDraw(location))
 		{
 			// We spawn new laser segment if the distance is long enough, the game will do the rest - Kerbiter
 			LaserDrawClass* pLaser = GameCreate<LaserDrawClass>(
-				this->LastLocation.Get(), location,
+				this->LastLocation.get(), location,
 				this->CurrentColor, ColorStruct { 0, 0, 0 }, ColorStruct { 0, 0, 0 },
 				this->Type->FadeDuration.Get());
 
@@ -38,9 +38,9 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 
 void LaserTrailClass::FixZLoc(bool forWho)
 {
-	if (forWho && LastLocation.isset())
+	if (forWho && LastLocation.has_value())
 	{
-		auto nLastLoc = LastLocation.Get();
+		auto nLastLoc = LastLocation.get();
 		nLastLoc.Z = Map.GetCellFloorHeight(nLastLoc);
 		LastLocation = nLastLoc;
 	}

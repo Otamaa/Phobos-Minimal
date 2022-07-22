@@ -200,6 +200,15 @@ public:
 
 		NullableIdx<VoxClass> EVA_Sold;
 		NullableIdx<VocClass> SellSound;
+
+		Valueable<bool> MobileRefinery;
+		Valueable<float> MobileRefinery_TransRate;
+		Valueable<int> MobileRefinery_MaxAmount;
+		ValueableVector<int> MobileRefinery_FrontOffset;
+		ValueableVector<int> MobileRefinery_LeftOffset;
+		Valueable<bool> MobileRefinery_Display;
+		Nullable<ColorStruct> MobileRefinery_DisplayColor;
+
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
@@ -441,6 +450,15 @@ public:
 			, IronCurtain_SyncDeploysInto { }
 			, EVA_Sold { }
 			, SellSound{ }
+
+			, MobileRefinery { false }
+			, MobileRefinery_TransRate { 1.0 }
+			, MobileRefinery_MaxAmount { 0 }
+			, MobileRefinery_FrontOffset { }
+			, MobileRefinery_LeftOffset { }
+			, MobileRefinery_Display { true }
+			, MobileRefinery_DisplayColor { }
+
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }

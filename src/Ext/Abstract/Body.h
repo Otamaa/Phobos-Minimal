@@ -63,7 +63,7 @@ public:
 
 	virtual ~TExtension() override = default;
 
-	inline T* const& OwnerObject() const {
+	inline T* const& Get() const {
 		return this->AttachedToObject;
 	}
 

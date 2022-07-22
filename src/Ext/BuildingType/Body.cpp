@@ -90,7 +90,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	{
 		if (pBuilding)
 		{
-			for (const auto& [pExt ,nCount] : pHouseExt->BuildingCounter)
+			for (const auto& [pExt,nCount] : pHouseExt->BuildingCounter)
 			{
 				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 				{
@@ -116,9 +116,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
-			for (const auto& [pExt , nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+			for (const auto& [pExt, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
-				if (pExt)
 				{
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
@@ -199,7 +198,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 
 void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
@@ -276,7 +275,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
 #pragma region Otamaa
-	//   this->OwnerObject()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
+	//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
 
 	auto GetGarrisonAnim = [&exINI, pSection](
 		PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
@@ -397,7 +396,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 void BuildingTypeExt::ExtData::CompleteInitialization()
 {
-	auto const pThis = this->OwnerObject();
+	auto const pThis = this->Get();
 	UNREFERENCED_PARAMETER(pThis);
 }
 

@@ -16,7 +16,7 @@ public:
 	CoordStruct FLH;
 	bool IsOnTurret;
 	ColorStruct CurrentColor;
-	Nullable<CoordStruct> LastLocation;
+	OptionalStruct<CoordStruct,true> LastLocation;
 	bool CanDraw;
 	int InitialDelay;
 	TimerStruct InitialDelayTimer;
@@ -37,13 +37,13 @@ public:
 	LaserTrailClass() :
 		Type {nullptr}
 		, Visible {false}
-		, FLH {}
+		, FLH { }
 		, IsOnTurret {false}
 		, CurrentColor {0, 0, 0}
-		, LastLocation {}
+		, LastLocation { }
 		, CanDraw {true}
 		, InitialDelay {0}
-		, InitialDelayTimer {}
+		, InitialDelayTimer { }
 	{ }
 
 	~LaserTrailClass() = default;
@@ -61,7 +61,7 @@ private:
 	bool AllowDraw(CoordStruct const& location)
 	{
 		return Type && this->Visible && (this->Type->IgnoreVertical ?
-		  (abs(location.X - this->LastLocation.Get().X) > 16 || abs(location.Y - this->LastLocation.Get().Y) > 16) : true) && IsInitialDelayFinish();
+		  (abs(location.X - this->LastLocation.get().X) > 16 || abs(location.Y - this->LastLocation.get().Y) > 16) : true) && IsInitialDelayFinish();
 	}
 
 	bool IsInitialDelayFinish()

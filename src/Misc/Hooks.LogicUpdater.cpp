@@ -24,14 +24,15 @@
 
 #endif
 
+#include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
 #include <Phobos_ECS.h>
 
 void TechnoExt::GattlingDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	auto const pThis = pExt->OwnerObject();
-	auto const pType = pTypeExt->OwnerObject();
+	auto const pThis = pExt->Get();
+	auto const pType = pTypeExt->Get();
 
 	if (!pType->IsGattling)
 		return;
@@ -174,19 +175,61 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	}
 }
 
+void TechnoExt::ApplyMobileRefinery(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+{
+	auto const pThis = pExt->Get();
+
+	if (!pTypeExt->MobileRefinery || !abstract_cast<FootClass*>(pThis) || !pThis->Owner)
+		return;
+
+	const int cellCount = static_cast<int>(Math::max(pTypeExt->MobileRefinery_FrontOffset.size(), pTypeExt->MobileRefinery_LeftOffset.size()));
+
+	CoordStruct flh = { 0,0,0 };
+
+	for (int idx = 0; idx <= cellCount; idx++)
+	{
+		flh.X = static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()) > idx ? pTypeExt->MobileRefinery_FrontOffset[idx] : 0;
+		flh.Y = static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()) > idx ? pTypeExt->MobileRefinery_LeftOffset[idx] : 0;
+		const CellClass* pCell = MapClass::Instance->GetCellAt(TechnoExt::GetFLHAbsoluteCoords(pThis, flh, false));
+
+		if (!pCell)
+			continue;
+
+		const int tValue = pCell->GetContainedTiberiumValue();
+		int value = pTypeExt->MobileRefinery_MaxAmount ? Math::min(pTypeExt->MobileRefinery_MaxAmount.Get(), tValue) : tValue;
+
+		if (value) {
+
+			pCell->ReduceTiberium(value);
+			value = static_cast<int>(value * pTypeExt->MobileRefinery_TransRate.Get());
+
+			if (pThis->Owner->CanTransactMoney(value)) {
+				pThis->Owner->TransactMoney(value);
+				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display , value,pThis,AffectedHouse::All, pThis->GetCoords());
+			}
+		}
+	}
+}
+
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	// this one is bad idea i think
+	// what if they go converted on middle of something here
+	// we fcked up , need to revise this
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{
-		if (CRT::strlen(pExt->ID.data()) && CRT::strcmp(pExt->ID.data(), pThis->get_ID()))
+		if (CRT::strlen(pExt->ID.data()) && CRT::strcmp(pExt->ID.data(), pThis->get_ID())) {
 			pExt->ID = pThis->get_ID();
+		}
 
 		TechnoExt::RunFireSelf(pExt, pTypeExt);
+		TechnoExt::ApplyMobileRefinery(pExt , pTypeExt);
 		TechnoExt::UpdateMindControlAnim(pExt);
 		TechnoExt::ApplyMindControlRangeLimit(pThis);
 		TechnoExt::ApplyInterceptor(pThis, pTypeExt);
@@ -230,6 +273,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 {
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	// this one is bad idea i think
+	// what if they go converted on middle of something here
+	// we fcked up , need to revise this
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
@@ -281,11 +328,11 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 						pRocket->MovingDestination = pTracker->Coord;
 				}
 			}
+		}
+#endif
+#endif
 	}
-#endif
-}
 
-#endif
 	pThis->FootClass::Update();
 }
 
@@ -296,6 +343,10 @@ static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	// this one is bad idea i think
+	// what if they go converted on middle of something here
+	// we fcked up , need to revise this
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
@@ -332,8 +383,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET8(const bool, IsMovingNow, AL);
 
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	//auto const pLasetOwner = pThis->GetOwningHouse();
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (pExt)
 		DriveDataFunctional::AI(pExt);
@@ -347,7 +397,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 			for (auto const& trail : pExt->LaserTrails)
 			{
 				if (pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir() && trail->LastLocation.isset())
-					trail->LastLocation.Reset();
+					trail->LastLocation.clear();
 
 				trail->Update(TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret));
 			}
@@ -367,9 +417,9 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	auto pExt = BuildingExt::ExtMap.Find(pThis);
-	auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pTypeExt && pExt && pTechTypeExt)
 	{

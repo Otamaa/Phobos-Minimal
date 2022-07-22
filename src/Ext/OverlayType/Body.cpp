@@ -5,7 +5,7 @@ OverlayTypeExt::ExtContainer OverlayTypeExt::ExtMap;
 
 void OverlayTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->get_ID();
 
 	if (!pINI->GetSection(pSection))

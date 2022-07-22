@@ -108,11 +108,9 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 				bool success = false;
 				if (const auto pExt = AnimExt::ExtMap.Find(pThis))
 				{
-					const auto aFacing = pTypeExt->CreateUnit_RandomFacing.Get()
+					const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->DeathUnitFacing.has_value())
+						? pExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
 						? ScenarioGlobal->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
-
-					const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->FromDeathUnit)
-						? pExt->DeathUnitFacing : aFacing;
 
 					if (pCell)
 						pTechno->OnBridge = pCell->ContainsBridge();
@@ -140,8 +138,9 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 							decidedOwner->RecheckTechTree = 1;
 						}
 
-						if (pTechno->HasTurret() && pExt->FromDeathUnit && pExt->DeathUnitHasTurret && pTypeExt->CreateUnit_InheritTurretFacings.Get())
-							pTechno->SecondaryFacing.set(pExt->DeathUnitTurretFacing);
+						if (pTechno->HasTurret() && pExt->DeathUnitTurretFacing.has_value()){
+							pTechno->SecondaryFacing.set(pExt->DeathUnitTurretFacing.get());
+						}
 
 						pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
 					}

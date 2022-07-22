@@ -129,7 +129,7 @@ public:
 		double GetAdjustedGravity() const
 		{
 			auto const nGravity = this->Gravity.Get(RulesGlobal->Gravity);
-			return this->OwnerObject()->Floater ? nGravity * 0.5 : nGravity;
+			return this->Get()->Floater ? nGravity * 0.5 : nGravity;
 		}
 
 	private:

@@ -72,7 +72,7 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
 	auto const pWH = pTerrainTypeExt->Warhead.Get(RulesGlobal->C4Warhead);
 
 	if (auto const pAnim = Map.SelectDamageAnimation(nDamage, pWH, Map[nCoord]->LandType, nCoord)){
-		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, nCoord, 0, 1, 0x2600, -15, 0)){
+		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0)){
 			AnimExt::SetAnimOwnerHouseKind(pAnimC, nullptr, nullptr, false);
 		}
 	}

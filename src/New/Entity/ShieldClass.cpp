@@ -120,7 +120,7 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
 	if (!this->HP || this->Temporal || *args->Damage == 0 ||
-		this->Techno->IsIronCurtained() || CanBePenetrated(pWHExt->OwnerObject()))
+		this->Techno->IsIronCurtained() || CanBePenetrated(pWHExt->Get()))
 	{
 		return *args->Damage;
 	}
@@ -245,7 +245,7 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 {
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
-	if ((pWHExt && CanBePenetrated(pWHExt->OwnerObject())) || !this->HP)
+	if ((pWHExt && CanBePenetrated(pWHExt->Get())) || !this->HP)
 		return true;
 
 	auto verses = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, this->Type->Armor);

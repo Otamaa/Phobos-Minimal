@@ -5,8 +5,8 @@ ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	auto pThis = this->OwnerObject();
-    const char* pID = this->OwnerObject()->ID;
+	auto pThis = this->Get();
+    const char* pID = this->Get()->ID;
 
 	if (!pINI->GetSection(pID))
 		return;
@@ -44,10 +44,11 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 {
     Stm
 		.Process(this->LaserTrail_Types)
-#ifdef COMPILE_PORTED_DP_FEATURES
-		.Process(this->Trails)
-#endif
         ;
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->Trails.Serialize(Stm);
+#endif
 }
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

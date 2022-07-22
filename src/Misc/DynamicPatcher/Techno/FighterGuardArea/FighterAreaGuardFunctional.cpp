@@ -2,9 +2,21 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
+static constexpr std::array<CoordStruct, 6> areaGuardCoords
+{
+	{
+		  {-300,-300,0}
+		, { -300 ,0,0 }
+		, { 0,0,0 }
+		, { 300,0,0 }
+		, {300,300,0 }
+		, {0 , 300 ,0 }
+	}
+};
+
 void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	if (pExt->OwnerObject()->Spawned)
+	if (pExt->Get()->Spawned)
 		return;
 
 	if (!pTypeExt->MyFighterData.AreaGuard)
@@ -13,18 +25,18 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 	auto &nData = pExt->MyFighterData;
 	auto& nDataType = pTypeExt->MyFighterData;
 
-	if (pExt->OwnerObject()->CurrentMission == Mission::Move)
+	if (pExt->Get()->CurrentMission == Mission::Move)
 	{
 		nData.isAreaProtecting = false;
 		nData.isAreaGuardReloading = false;
 		return;
 	}
 
-	if (auto pFoot = (FootClass*)(pExt->OwnerObject()))
+	if (auto pFoot = (FootClass*)(pExt->Get()))
 	{
 		if (!nData.isAreaProtecting)
 		{
-			if (pExt->OwnerObject()->CurrentMission == Mission::Area_Guard)
+			if (pExt->Get()->CurrentMission == Mission::Area_Guard)
 			{
 				nData.isAreaProtecting = true;
 				CoordStruct dest = pFoot->Locomotor.get()->Destination();
@@ -35,11 +47,11 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 		if (nData.isAreaProtecting)
 		{
 			//没弹药的情况下返回机场
-			if (pExt->OwnerObject()->Ammo == 0 && !nData.isAreaGuardReloading)
+			if (pExt->Get()->Ammo == 0 && !nData.isAreaGuardReloading)
 			{
-				pExt->OwnerObject()->SetTarget(nullptr);
-				pExt->OwnerObject()->SetDestination(nullptr, false);
-				pExt->OwnerObject()->ForceMission(Mission::Stop);
+				pExt->Get()->SetTarget(nullptr);
+				pExt->Get()->SetDestination(nullptr, false);
+				pExt->Get()->ForceMission(Mission::Stop);
 				nData.isAreaGuardReloading = true;
 				return;
 			}
@@ -47,39 +59,39 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 			//填弹完毕后继续巡航
 			if (nData.isAreaGuardReloading)
 			{
-				if (pExt->OwnerObject()->Ammo >= nDataType.MaxAmmo)
+				if (pExt->Get()->Ammo >= nDataType.MaxAmmo)
 				{
 					nData.isAreaGuardReloading = false;
-					pExt->OwnerObject()->ForceMission(Mission::Area_Guard);
+					pExt->Get()->ForceMission(Mission::Area_Guard);
 				}
 				else
 				{
-					if (pExt->OwnerObject()->CurrentMission != Mission::Sleep &&
-						pExt->OwnerObject()->CurrentMission != Mission::Enter)
+					if (pExt->Get()->CurrentMission != Mission::Sleep &&
+						pExt->Get()->CurrentMission != Mission::Enter)
 					{
-						if (pExt->OwnerObject()->CurrentMission == Mission::Guard)
+						if (pExt->Get()->CurrentMission == Mission::Guard)
 						{
-							pExt->OwnerObject()->ForceMission(Mission::Sleep);
+							pExt->Get()->ForceMission(Mission::Sleep);
 						}
 						else
 						{
-							pExt->OwnerObject()->ForceMission(Mission::Enter);
+							pExt->Get()->ForceMission(Mission::Enter);
 						}
 						return;
 					}
 				}
 			}
 
-			if (pExt->OwnerObject()->CurrentMission == Mission::Move)
+			if (pExt->Get()->CurrentMission == Mission::Move)
 			{
 				nData.isAreaProtecting = false;
 				return;
 			}
-			else if (pExt->OwnerObject()->CurrentMission == Mission::Attack)
+			else if (pExt->Get()->CurrentMission == Mission::Attack)
 			{
 				return;
 			}
-			else if (pExt->OwnerObject()->CurrentMission == Mission::Enter)
+			else if (pExt->Get()->CurrentMission == Mission::Enter)
 			{
 				if (nData.isAreaGuardReloading)
 				{
@@ -87,10 +99,10 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 				}
 				else
 				{
-					pExt->OwnerObject()->ForceMission(Mission::Stop);
+					pExt->Get()->ForceMission(Mission::Stop);
 				}
 			}
-			else if (pExt->OwnerObject()->CurrentMission == Mission::Sleep)
+			else if (pExt->Get()->CurrentMission == Mission::Sleep)
 			{
 				if (nData.isAreaGuardReloading)
 				{
@@ -101,11 +113,11 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 			if (nData.areaProtectTo)
 			{
 				auto dest = nData.areaProtectTo;
-				auto house = pExt->OwnerObject()->Owner;
+				auto house = pExt->Get()->Owner;
 
 				if (pTypeExt->MyFighterData.AutoFire)
 				{
-					if (nData.areaProtectTo.DistanceFrom(pExt->OwnerObject()->GetCoords()) <= 2000)
+					if (nData.areaProtectTo.DistanceFrom(pExt->Get()->GetCoords()) <= 2000)
 					{
 						if (nData.areaGuardTargetCheckRof-- <= 0)
 						{
@@ -123,7 +135,7 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 										pTech->GetOwningHouse()->IsAlliedWith(pOwner) ||
 										pTech->GetOwningHouse() == pOwner ||
 										pTech->GetOwningHouse()->IsNeutral()||
-										pTech == pExt->OwnerObject() ||
+										pTech == pExt->Get() ||
 										Helpers_DP::IsDeadOrInvisibleOrCloaked(pTech) ||
 										pTech->GetTechnoType()->Immune ||
 										pTech->GetTechnoType()->Invisible
@@ -154,28 +166,28 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 
 							if (TechnoClass* pTarget = FindOneTechno(house))
 							{
-								pExt->OwnerObject()->SetTarget(pTarget);
-								pExt->OwnerObject()->ForceMission(Mission::Stop);
-								pExt->OwnerObject()->ForceMission(Mission::Attack);
+								pExt->Get()->SetTarget(pTarget);
+								pExt->Get()->ForceMission(Mission::Stop);
+								pExt->Get()->ForceMission(Mission::Attack);
 								return;
 							}
 						}
 					}
 				}
 
-				if (nData.areaProtectTo.DistanceFrom(pExt->OwnerObject()->GetCoords()) <= 2000)
+				if (nData.areaProtectTo.DistanceFrom(pExt->Get()->GetCoords()) <= 2000)
 				{
-					if (nData.currentAreaProtectedIndex > (int)(nData.areaGuardCoords.size() - 1))
+					if (nData.currentAreaProtectedIndex > (int)(areaGuardCoords.size() - 1))
 					{
 						nData.currentAreaProtectedIndex = 0;
 					}
-					dest += nData.areaGuardCoords[nData.currentAreaProtectedIndex];
+					dest += areaGuardCoords[nData.currentAreaProtectedIndex];
 					nData.currentAreaProtectedIndex++;
 				}
 
 				pFoot->Locomotor.get()->Move_To(dest);
 				if (auto const pCell = Map[CellClass::Coord2Cell(dest)]) {
-					pExt->OwnerObject()->SetDestination(pCell, false);
+					pExt->Get()->SetDestination(pCell, false);
 				}
 			}
 		}

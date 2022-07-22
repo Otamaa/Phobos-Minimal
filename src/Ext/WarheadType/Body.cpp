@@ -12,7 +12,7 @@ template<> const DWORD Extension<WarheadTypeClass>::Canary = 0x22222222;
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 void WarheadTypeExt::ExtData::Initialize()
 {
-	this->IsNukeWarhead = !std::strcmp(RulesExt::Global()->NukeWarheadName.data(), this->OwnerObject()->get_ID());
+	this->IsNukeWarhead = !std::strcmp(RulesExt::Global()->NukeWarheadName.data(), this->Get()->get_ID());
 	this->Launchs.reserve(2);
 }
 
@@ -21,10 +21,10 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 	if (pOwnerHouse && pTargetHouse)
 	{
 		if (pTargetHouse == pOwnerHouse)
-			return this->AffectsOwner.Get(this->OwnerObject()->AffectsAllies);
+			return this->AffectsOwner.Get(this->Get()->AffectsAllies);
 
 		if (pOwnerHouse->IsAlliedWith(pTargetHouse) && pTargetHouse != pOwnerHouse)
-			return this->OwnerObject()->AffectsAllies;
+			return this->Get()->AffectsAllies;
 
 		return AffectsEnemies.Get();
 	}
@@ -46,9 +46,9 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
-			auto nVal = GeneralUtils::GetWarheadVersusArmor(OwnerObject(), nArmor);
-			//if(IS_SAME_STR_(OwnerObject()->get_ID() , "NebulaWH"))
-			//	Debug::Log("%s WH Calculating Damage Against %s : [%s] : [%fl] ! \n", OwnerObject()->get_ID() , pTechno->get_ID() , ArmorTypeClass::Array[(int)nArmor]->Name.data(), nWHVerses);
+			auto nVal = GeneralUtils::GetWarheadVersusArmor(Get(), nArmor);
+			//if(IS_SAME_STR_(Get()->get_ID() , "NebulaWH"))
+			//	Debug::Log("%s WH Calculating Damage Against %s : [%s] : [%fl] ! \n", Get()->get_ID() , pTechno->get_ID() , ArmorTypeClass::Array[(int)nArmor]->Name.data(), nWHVerses);
 			return (fabs(nVal) >= 0.001);
 		}
 	}
@@ -65,9 +65,9 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 			nArmor = pExt->GetShield()->GetType()->Armor;
 
 	if (damageIn > 0)
-		DamageResult = MapClass::GetTotalDamage(damageIn, OwnerObject(), nArmor, distanceFromEpicenter);
+		DamageResult = MapClass::GetTotalDamage(damageIn, Get(), nArmor, distanceFromEpicenter);
 	else
-		DamageResult = -MapClass::GetTotalDamage(-damageIn, OwnerObject(), nArmor, distanceFromEpicenter);
+		DamageResult = -MapClass::GetTotalDamage(-damageIn, Get(), nArmor, distanceFromEpicenter);
 
 	if (damageIn == 0)
 	{
@@ -77,7 +77,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 	{
 		if (EffectsRequireVerses)
 		{
-			if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, OwnerObject(), nArmor, 0) == 0.0)
+			if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, Get(), nArmor, 0) == 0.0)
 			{
 				return false;
 			}
@@ -128,7 +128,7 @@ bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno,
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
-			if (fabs(GeneralUtils::GetWarheadVersusArmor(this->OwnerObject(), nArmor)) == 0.000) {
+			if (fabs(GeneralUtils::GetWarheadVersusArmor(this->Get(), nArmor)) == 0.000) {
 				return false;
 			}
 		}
@@ -186,7 +186,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
 	if (!pINI->GetSection(pSection))
@@ -328,6 +328,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
 	this->Parasite_GrappleAnimIndex.Read(exINI, pSection, "Parasite.GrappleAnim");
+	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
+	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
 
 	auto ReadHitAnim = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -503,6 +505,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(TemporalDetachDamageFactor)
 		.Process(Parasite_DisableRocking)
 		.Process(Parasite_GrappleAnimIndex)
+		.Process(Parasite_ParticleSys)
+		.Process(Parasite_TreatInfantryAsVehicle)
+
 		.Process(Flammability)
 		.Process(Launchs)
 		.Process(PermaMC)

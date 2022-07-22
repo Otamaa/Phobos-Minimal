@@ -1,5 +1,8 @@
 #include <Phobos.h>
 
+#ifdef ENABLE_CLR
+#include <Scripting/CLR.h>
+#endif
 #include "Phobos_ECS.h"
 
 #include <CCINIClass.h>
@@ -153,7 +156,7 @@ std::filesystem::path get_module_path(HMODULE module)
 #pragma warning (disable : 4245)
 bool Phobos::DetachFromDebugger()
 {
-	HMODULE hModule = LoadLibrary("ntdll.dll");
+	HMODULE hModule = LoadLibraryA("ntdll.dll");
 	if (hModule != NULL) {
 		auto const NtRemoveProcessDebug =
 			(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(hModule, "NtRemoveProcessDebug");
@@ -246,6 +249,23 @@ DECLARE_PATCH(Ares_RecalculateStats_intercept_Speed)
 }
 #endif
 
+#ifdef ENABLE_CLR
+DEFINE_HOOK(0x6BB9D2, PatcherLoader_Action,0x6)
+{
+	if (AllocConsole())
+	{
+		CLR::Init();
+		CLR::Load();
+	}
+	else
+	{
+		MessageBoxW(NULL, TEXT("Alloc console error"), TEXT("Phobos"), MB_OK);
+	}
+
+	return 0x0;
+}
+#endif
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -275,6 +295,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	break;
 
 	case DLL_PROCESS_DETACH:
+		//FreeConsole();
 		//PhobosLua::Destroy();
 		//MyEcs.quit();
 		//uninstall();

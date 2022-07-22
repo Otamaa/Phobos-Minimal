@@ -131,7 +131,7 @@ namespace stl
 	template <class Container, class Value>
 	inline bool find_and_erase(Container& container, const Value& value)
 	{
-		typename Container::iterator it = AZStd::find(container.begin(), container.end(), value);
+		typename Container::iterator it = std::find(container.begin(), container.end(), value);
 		if (it != container.end())
 		{
 			container.erase(it);
@@ -204,7 +204,7 @@ namespace stl
 	template <class Container, class Value>
 	inline bool push_back_unique(Container& container, const Value& value)
 	{
-		if (AZStd::find(container.begin(), container.end(), value) == container.end())
+		if (std::find(container.begin(), container.end(), value) == container.end())
 		{
 			container.push_back(value);
 			return true;

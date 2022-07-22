@@ -18,7 +18,7 @@ int TerrainTypeExt::ExtData::GetCellsPerAnim()
 
 void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
 	if (!pINI->GetSection(pSection))

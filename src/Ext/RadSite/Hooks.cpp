@@ -91,7 +91,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 						nAmount = pDefault->GetLevelMax() - (*it).first->GetRadLevel();
 					}
 
-					(*it).first->Add(nAmount);
+					(*it).second->Add(nAmount);
 					return Handled;
 				}
 			}
@@ -179,7 +179,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x4)
 		&& pWeapon->DecloakToFire
 		&& (pThis->CloakState == CloakState::Cloaked || pThis->CloakState == CloakState::Cloaking))
 	{
-		// FYI this are hack to immedietely stop the Cloaking
+		// FYI this are hack to immediately stop the Cloaking
 		// since this function is always failing to decloak and set target when cell is occupied
 		// something is wrong somewhere  # Otamaa
 		pThis->CloakDelayTimer.Start(static_cast<int>(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));

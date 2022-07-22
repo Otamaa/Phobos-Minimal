@@ -3,7 +3,7 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-template<> const DWORD Extension<VoxelAnimClass>::Canary = 0xAAAAAACC;
+template<> const DWORD Extension<VoxelAnimClass>::Canary = 0xAAACAACC;
 VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner)
@@ -24,12 +24,12 @@ void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt)
 {
-	auto pThis = OwnerObject();
+	auto pThis = Get();
 
 	if (LaserTrails.size())
 		return;
 
-	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(OwnerObject(), pTypeExt->Damage_DealtByOwner.Get());
+	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(Get(), pTypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
 	size_t  nTotal = 0;
@@ -55,18 +55,17 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 
 void VoxelAnimExt::ExtData::InitializeConstants()
 {
-	LaserTrails.reserve(1);
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif
-	if (auto pTypeExt = VoxelAnimTypeExt::GetExtData(OwnerObject()->Type))
+	if (auto pTypeExt = VoxelAnimTypeExt::GetExtData(Get()->Type))
 	{
 		if (pTypeExt->LaserTrail_Types.size() > 0)
 			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 		InitializeLaserTrails(pTypeExt);
 #ifdef COMPILE_PORTED_DP_FEATURES
-		TrailsManager::Construct(OwnerObject());
+		TrailsManager::Construct(Get());
 #endif
 	}
 }
@@ -76,9 +75,10 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 template <typename T>
 void VoxelAnimExt::ExtData::Serialize(T& Stm)
 {
-	Stm
+	Debug::Log("Processing Element From VoxelAnimExt ! \n");
+
+	 Stm.Process(Invoker)
 		.Process(LaserTrails)
-		.Process(Invoker)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(Trails)
 #endif
@@ -133,9 +133,7 @@ DEFINE_HOOK(0x74942E, VoxelAnimClass_CTOR, 0xC)
 DEFINE_HOOK(0x7499F1, VoxelAnimClass_DTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
-
 	VoxelAnimExt::ExtMap.Remove(pItem);
-
 	return 0;
 }
 
@@ -150,7 +148,7 @@ DEFINE_HOOK(0x74AA10, VoxelAnimClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x74A9FB, VoxelAnimClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x74A9FD, VoxelAnimClass_Load_Suffix, 0x5)
 {
 	VoxelAnimExt::ExtMap.LoadStatic();
 	return 0;

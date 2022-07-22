@@ -13,18 +13,6 @@ struct FighterAreaGuard
 	bool isAreaGuardReloading;
 	int areaGuardTargetCheckRof;
 
-	static constexpr std::array<CoordStruct, 6> areaGuardCoords
-	{
-		{
-			  {-300,-300,0}
-			, { -300 ,0,0 }
-			, { 0,0,0 }
-			, { 300,0,0 }
-			, {300,300,0 }
-			, {0 , 300 ,0 }
-		}
-	};
-
 	FighterAreaGuard() :
 		isAreaProtecting { false }
 		, areaProtectTo { 0,0,0 }

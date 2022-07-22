@@ -858,7 +858,8 @@ static void Fill_Triangle_Top(Surface& surface, Point2D& point1, Point2D& point2
 	{
 		for (int idx = left; idx <= right; ++idx)
 		{
-			surface.Put_Pixel(Point2D { idx, idy }, color);
+			Point2D nBuffer = { idx, idy };
+			surface.Put_Pixel(nBuffer, color);
 		}
 		left += a;
 		right += b;
@@ -882,7 +883,8 @@ static void Fill_Triangle_Bottom(Surface& surface, Point2D& point1, Point2D& poi
 	{
 		for (int idx = left; idx <= right; ++idx)
 		{
-			surface.Put_Pixel(Point2D { idx, idy }, color);
+			Point2D nBuffer = { idx, idy };
+			surface.Put_Pixel(nBuffer, color);
 		}
 		left -= a;
 		right -= b;

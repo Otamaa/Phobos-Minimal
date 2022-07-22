@@ -154,6 +154,8 @@ public:
 
 		Valueable<bool> Parasite_DisableRocking;
 		NullableIdx<AnimTypeClass> Parasite_GrappleAnimIndex;
+		Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys;
+		Valueable<bool> Parasite_TreatInfantryAsVehicle;
 
 		Nullable<int> Flammability;
 
@@ -286,6 +288,9 @@ public:
 			, TemporalDetachDamageFactor { 1.0 }
 			, Parasite_DisableRocking {}
 			, Parasite_GrappleAnimIndex {}
+			, Parasite_ParticleSys {}
+			, Parasite_TreatInfantryAsVehicle { false }
+
 			, Flammability {}
 
 			, Launchs {}

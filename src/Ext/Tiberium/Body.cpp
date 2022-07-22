@@ -12,7 +12,7 @@ void TiberiumExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved) {
 
 void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
 	if (!pINI->GetSection(pSection))

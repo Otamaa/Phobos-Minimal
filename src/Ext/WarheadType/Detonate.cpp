@@ -188,7 +188,7 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	if (!pOwner || !pWeapon)
 		return;
 
-	const float cellSpread = this->OwnerObject()->CellSpread;
+	const float cellSpread = this->Get()->CellSpread;
 
 	if (cellSpread == 0.0)
 	{
@@ -284,7 +284,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 			if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
 				ThisbulletWasIntercepted = pBulletExt && pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted;
 
-		const float cellSpread = OwnerObject()->CellSpread;
+		const float cellSpread = Get()->CellSpread;
 
 		//if the warhead itself has cellspread
 		if (fabs(cellSpread) >= 0.1f)
@@ -371,7 +371,7 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (auto pExt = TechnoExt::GetExtData(pTarget))
 		if (pExt->PaintBallState.get())
-			pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->OwnerObject());
+			pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
 #endif
 
 	if (this->GattlingStage > 0)
@@ -533,7 +533,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 
 	if (this->Crit_AnimOnAffectedTargets && this->Crit_AnimList.size())
 	{
-		int idx = this->OwnerObject()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
+		int idx = this->Get()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
 			ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
 
 		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location)) {
@@ -546,7 +546,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 	if (this->Crit_Warhead.isset())
 		WarheadTypeExt::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage);
 	else
-		pTarget->ReceiveDamage(&damage, 0, this->OwnerObject(), pOwner, false, false, pHouse);
+		pTarget->ReceiveDamage(&damage, 0, this->Get(), pOwner, false, false, pHouse);
 }
 
 void WarheadTypeExt::ExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage)

@@ -15,7 +15,7 @@ class UniversalTrail
 public:
 
 	TrailType* Type;
-	Nullable<CoordStruct> LastLocation;
+	OptionalStruct<CoordStruct,true> LastLocation;
 	TimerStruct DelayTimer;
 	CoordStruct FLH;
 	int initialDelay;
@@ -28,7 +28,7 @@ public:
 
 	UniversalTrail(TrailType* type ,CoordStruct flh, bool onturret) :
 		Type { type }
-		, LastLocation { CoordStruct::Empty }
+		, LastLocation { }
 		, DelayTimer { }
 		, FLH { flh }
 		, initialDelay { type->InitialDelay > 0 ? type->InitialDelay:0 }
@@ -42,7 +42,7 @@ public:
 
 	UniversalTrail() :
 		Type { nullptr }
-		, LastLocation { CoordStruct::Empty }
+		, LastLocation { }
 		, DelayTimer { }
 		, FLH { CoordStruct::Empty }
 		, initialDelay { 0 }
@@ -57,7 +57,7 @@ public:
 	~UniversalTrail() = default;
 
 	void ClearLastLocation() {
-		LastLocation.Reset();
+		LastLocation.clear();
 	}
 
 	void SetDrivingState(DrivingState& state)
@@ -120,11 +120,11 @@ public:
 		if (!pHouse)
 			pHouse = HouseExt::FindCivilianSide();
 
-		if (sourcePos != CoordStruct::Empty)
+		if (sourcePos)
 		{
-			if (LastLocation.Get(CoordStruct::Empty) != CoordStruct::Empty)
+			if (LastLocation.has_value() && LastLocation.get())
 			{
-				CoordStruct targetPos = LastLocation;
+				CoordStruct targetPos = LastLocation.get();
 				int distance = Type->Distance;
 
 				if (sourcePos.DistanceFromI(targetPos) > distance || forceDraw)

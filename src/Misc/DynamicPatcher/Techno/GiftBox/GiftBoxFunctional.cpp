@@ -50,11 +50,11 @@ void GiftBoxFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* p
 
 void GiftBoxFunctional::Destroy(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->OwnerObject()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->Get()))
 		return;
 
 	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->MyGiftBox->IsOpen) {
-		pExt->MyGiftBox->Release(pExt->OwnerObject() ,pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->Get() ,pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
@@ -62,28 +62,28 @@ void GiftBoxFunctional::Destroy(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 
 void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->OwnerObject()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->Get()))
 		return;
 
 	if (!pTypeExt->MyGiftBoxData.OpenWhenDestoryed &&
 		!pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset() &&
 		pExt->MyGiftBox->CanOpen()) {
 
-		pExt->MyGiftBox->Release(pExt->OwnerObject(),pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->Get(),pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
 	if (pExt->MyGiftBox->IsOpen) {
 		if (pTypeExt->MyGiftBoxData.Remove) {
-			pExt->OwnerObject()->Limbo();
-			TechnoExt::HandleRemove(pExt->OwnerObject());
+			pExt->Get()->Limbo();
+			TechnoExt::HandleRemove(pExt->Get());
 			return;
 		}
 
 		if (pTypeExt->MyGiftBoxData.Destroy) {
-			auto nDamage = (pExt->OwnerObject()->Health + 1);
-			pExt->OwnerObject()->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, nullptr, false,
-				!pTypeExt->OwnerObject()->Crewed, nullptr);
+			auto nDamage = (pExt->Get()->Health + 1);
+			pExt->Get()->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, nullptr, false,
+				!pTypeExt->Get()->Crewed, nullptr);
 
 			return;
 		}
@@ -107,12 +107,12 @@ void GiftBoxFunctional::TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtD
 		return;
 
 	if (nState != DamageState::NowDead &&
-		(!OpenDisallowed(pExt->OwnerObject())) &&
+		(!OpenDisallowed(pExt->Get())) &&
 		pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset()) {
 		// 计算血量百分比是否达到开启条件
-		double healthPercent = pExt->OwnerObject()->GetHealthPercentage();
+		double healthPercent = pExt->Get()->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get()) {
-			pExt->MyGiftBox->Release(pExt->OwnerObject(), pTypeExt->MyGiftBoxData);
+			pExt->MyGiftBox->Release(pExt->Get(), pTypeExt->MyGiftBoxData);
 			pExt->MyGiftBox->IsOpen = true;
 		}
 	}

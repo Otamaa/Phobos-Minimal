@@ -48,7 +48,7 @@ public:
 
 	static void AddDefaults();
 
-	WarheadTypeClass* GetWarhead()
+	WarheadTypeClass* GetWarhead() const
 	{
 		return RadWarhead.Get(RulesGlobal->RadSiteWarhead);
 	}
@@ -78,52 +78,52 @@ public:
 		return (this->RadHasInvoker.Get(RulesExt::Global()->RadHasInvoker));
 	}
 
-	const ColorStruct& GetColor()
+	ColorStruct GetColor() const
 	{
-		return *this->RadSiteColor.GetEx(&RulesGlobal->RadColor);
+		return this->RadSiteColor.Get(RulesGlobal->RadColor);
 	}
 
-	int GetDurationMultiple()
+	int GetDurationMultiple() const
 	{
 		return this->DurationMultiple.Get(RulesGlobal->RadDurationMultiple);
 	}
 
-	int GetApplicationDelay()
+	int GetApplicationDelay()  const
 	{
 		return abs(this->ApplicationDelay.Get(RulesGlobal->RadApplicationDelay));
 	}
 
-	int GetBuildingApplicationDelay()
+	int GetBuildingApplicationDelay() const
 	{
-		return abs(this->BuildingApplicationDelay.Get(RulesExt::Global()->RadApplicationDelay_Building));
+		return abs(this->BuildingApplicationDelay.Get(RulesExt::Global()->RadApplicationDelay_Building.Get()));
 	}
 
-	int GetLevelMax()
+	int GetLevelMax()  const
 	{
 		return this->LevelMax.Get(RulesGlobal->RadLevelMax);
 	}
 
-	int GetLevelDelay()
+	int GetLevelDelay() const
 	{
 		return this->LevelDelay.Get(RulesGlobal->RadLevelDelay);
 	}
 
-	int GetLightDelay()
+	int GetLightDelay() const
 	{
 		return this->LightDelay.Get(RulesGlobal->RadLightDelay);
 	}
 
-	double GetLevelFactor()
+	double GetLevelFactor() const
 	{
 		return this->LevelFactor.Get(RulesGlobal->RadLevelFactor);
 	}
 
-	double GetLightFactor()
+	double GetLightFactor() const
 	{
 		return this->LightFactor.Get(RulesGlobal->RadLightFactor);
 	}
 
-	double GetTintFactor()
+	double GetTintFactor() const
 	{
 		return this->TintFactor.Get(RulesGlobal->RadTintFactor);
 	}

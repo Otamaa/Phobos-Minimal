@@ -33,3 +33,20 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
 	Phobos::LoadGameData(pStm);
 	return 0;
 }
+
+//this one after everything done
+//unfortunately whe need to map the pointer needed ourself
+/*https://github.com/Phobos-developers/Phobos/pull/658
+DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
+{
+	GET_STACK(IStream*, pStm, 0x1C);
+	Phobos::SaveGameDataAfter(pStm);
+	return 0;
+}
+
+DEFINE_HOOK(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
+{
+	GET_STACK(IStream*, pStm, 0x10);
+	Phobos::LoadGameDataAfter(pStm);
+	return 0;
+}*/

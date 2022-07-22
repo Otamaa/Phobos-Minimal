@@ -93,7 +93,7 @@ public:
 		{ JMP_THIS(0x528A10); }
 
 	int GetString(const char* pSection, const char* pKey, char* pBuffer,size_t szBufferSize)
-		{ return ReadString(pSection, pKey, pBuffer, "", szBufferSize); }
+		{ return ReadString(pSection, pKey, "", pBuffer ,szBufferSize); }
 
 	//Writes an ANSI string.
 	bool WriteString(const char* pSection, const char* pKey, const char* pString)

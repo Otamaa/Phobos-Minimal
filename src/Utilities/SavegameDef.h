@@ -161,7 +161,6 @@ namespace Savegame
 
 
 	// specializations
-
 	template <typename T>
 	struct Savegame::PhobosStreamObject<VectorClass<T>>
 	{
@@ -542,9 +541,11 @@ namespace Savegame
 
 			for (auto ix = 0u; ix < Count; ++ix) {
 				std::pair<TKey, TValue> buffer;
-				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
+				if (!Savegame::ReadPhobosStream(Stm, buffer.first, RegisterForChange)
+					|| !Savegame::ReadPhobosStream(Stm, buffer.second, RegisterForChange)) {
 					return false;
 				}
+
 				Value.insert(buffer);
 			}
 
@@ -559,10 +560,10 @@ namespace Savegame
 			if (nSize <= 0)
 				return true;
 
-			for (const auto& item : Value) {
-				if (!Savegame::WritePhobosStream(Stm, item)) {
+			for (const auto& [first, second] : Value) {
+				if (!Savegame::WritePhobosStream(Stm, first) || !
+				Savegame::WritePhobosStream(Stm, second))
 					return false;
-				}
 			}
 
 			return true;
@@ -703,7 +704,6 @@ namespace Savegame
 		}
 	};
 
-
 	template <typename T>
 	struct Savegame::PhobosStreamObject<std::queue<T>>
 	{
@@ -803,18 +803,22 @@ namespace Savegame
 			Value.clear();
 
 			size_t Count = 0;
-			if (!Stm.Load(Count))
-			{
+			if (!Stm.Load(Count)) {
 				return false;
 			}
+
+			if (Count <= 0)
+				return true;
 
 			for (auto ix = 0u; ix < Count; ++ix)
 			{
 				std::pair<TKey, TValue> buffer;
-				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
+				if (!Savegame::ReadPhobosStream(Stm, buffer.first, RegisterForChange)
+					|| !Savegame::ReadPhobosStream(Stm, buffer.second, RegisterForChange))
 				{
 					return false;
 				}
+
 				Value.insert(buffer);
 			}
 
@@ -823,15 +827,19 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_map<TKey, TValue>& Value) const
 		{
-			Stm.Save(Value.size());
+			size_t const nSize = Value.size();
+			Stm.Save(nSize);
 
-			for (const auto& item : Value)
+			if (nSize <= 0)
+				return true;
+
+			for (const auto& [first, second] : Value)
 			{
-				if (!Savegame::WritePhobosStream(Stm, item))
-				{
+				if (!Savegame::WritePhobosStream(Stm, first) || !
+				Savegame::WritePhobosStream(Stm, second))
 					return false;
-				}
 			}
+
 			return true;
 		}
 	};

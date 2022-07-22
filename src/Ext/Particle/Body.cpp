@@ -16,12 +16,12 @@ void ParticleExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif
-	auto pThis = OwnerObject();
+	const auto pThis = Get();
 
 	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type))
 	{
 		CoordStruct nFLH = CoordStruct::Empty;
-		ColorStruct nColor = pThis->GetOwningHouse() ? pThis->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+		const ColorStruct nColor = pThis->GetOwningHouse() ? pThis->GetOwningHouse()->LaserColor : ColorStruct::Empty;
 
 		if (LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
 		{
@@ -39,7 +39,7 @@ void ParticleExt::ExtData::InitializeConstants()
 	}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	TrailsManager::Construct(OwnerObject());
+	TrailsManager::Construct(Get());
 #endif
 
 }
@@ -51,6 +51,8 @@ void ParticleExt::ExtData::InitializeConstants()
 template <typename T>
 void ParticleExt::ExtData::Serialize(T& Stm)
 {
+	Debug::Log("Processing Element From ParticleExt ! \n");
+
 	Stm
 		.Process(this->LaserTrails)
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -71,6 +73,13 @@ void ParticleExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
+void ParticleExt::ExtData::Uninitialize() {
+	LaserTrails.clear();
+#ifdef COMPILE_PORTED_DP_FEATURES
+	Trails.clear();
+#endif
+}
+
 // =============================
 // container
 
@@ -79,23 +88,17 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
+
 /*
 DEFINE_HOOK(0x62BB06, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 	ParticleExt::ExtMap.FindOrAllocate(pItem);
-
 	return 0;
 }
 
-bool __fastcall ObjectClass_limbo_Particle(ObjectClass* pObj, void* _)
-{
-	if(auto pParticle = specific_cast<ParticleClass*>(pObj))
-	{
-		if (auto pExt = ParticleExt::ExtMap.Find(pParticle)) {
-			pExt->LaserTrails.clear();
-		}
-
+bool __fastcall ObjectClass_limbo_Particle(ObjectClass* pObj, void* _) {
+	if(const auto pParticle = specific_cast<ParticleClass*>(pObj)) {
 		ParticleExt::ExtMap.Remove(pParticle);
 	}
 
@@ -117,12 +120,8 @@ DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
 
 DEFINE_HOOK(0x62D803, ParticleClass_Load_Suffix, 0x5)
 {
-	constexpr static unsigned char ret_bytes[] = {
-		0x5E,
-		0xC2, 0x08, 0x00 };
-
 	ParticleExt::ExtMap.LoadStatic();
-	return (int)ret_bytes;
+	return 0;
 }
 
 DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)

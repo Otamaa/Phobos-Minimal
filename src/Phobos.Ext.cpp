@@ -17,6 +17,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/TAction/Body.h>
+#include <Ext/Temporal/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -33,9 +34,9 @@
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
-#include <Ext/SHPReference/Body.h>
+//#include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
-#include <Ext/Convert/Body.h>
+//#include <Ext/Convert/Body.h>
 #include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
@@ -64,7 +65,7 @@ auto MassActions = MassAction <
 	CaptureExt,
 	//SHPRefExt,
 	CellExt,
-	ConvertExt,
+	//ConvertExt,
 	ParasiteExt,
 	ParticleExt,
 	ParticleTypeExt,
@@ -74,6 +75,7 @@ auto MassActions = MassAction <
 	TeamTypeExt,
 	TerrainExt,
 	SmudgeTypeExt,
+	TemporalExt,
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType,
 #endif
@@ -167,4 +169,13 @@ void Phobos::LoadGameData(IStream* pStm)
 		Debug::Log("Error loading the game\n");
 	else
 		Debug::Log("Finished loading the game\n");
+}
+
+HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
+{
+	return S_OK;
+}
+
+void Phobos::LoadGameDataAfter(IStream* pStm)
+{
 }

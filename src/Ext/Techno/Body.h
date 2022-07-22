@@ -51,7 +51,7 @@ public:
 	{
 	public:
 		//EventQueue<base_type> GenericFuctions;
-		PhobosFixedString<0x100> ID;
+		FixedString<0x100> ID;
 		std::unique_ptr<ShieldClass> Shield;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
@@ -236,6 +236,7 @@ public:
 	static void ApplyInterceptor(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt);
 	static void ApplySpawn_LimitRange(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt);
 	static void CheckDeathConditions(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+	static void ApplyMobileRefinery(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
 	static int GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
 	static void EatPassengers(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
@@ -249,6 +250,7 @@ public:
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
 	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true);
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
+	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);

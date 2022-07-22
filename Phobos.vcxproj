@@ -47,13 +47,12 @@
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Body.cpp" />
-    <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
     <ClCompile Include="src\Ext\RadSite\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Scenario\Hooks.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
@@ -82,6 +81,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
+    <ClCompile Include="src\Ext\Temporal\Body.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
     <ClCompile Include="src\Ext\Terrain\Body.cpp" />
     <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
@@ -176,6 +176,7 @@
     <ClCompile Include="src\Misc\Hooks.Savegame.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
+    <ClCompile Include="src\Utilities\Component.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Body.cpp" />
@@ -225,7 +226,6 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
-    <ClInclude Include="src\Ext\Convert\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
@@ -237,6 +237,7 @@
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
     <ClInclude Include="src\Ext\Team\Body.h" />
+    <ClInclude Include="src\Ext\Temporal\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Lib\LodePNG\LodePNG.h" />
@@ -300,6 +301,7 @@
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
+    <ClInclude Include="src\Utilities\Component.h" />
     <ClInclude Include="src\Utilities\Container.Otamaa.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />
     <ClInclude Include="src\Ext\Aircraft\Body.h" />
@@ -436,7 +438,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DPFeatures|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>$(SolutionDir)src\;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)yrpp;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)src\;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)yrpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\IntDir\</IntDir>
@@ -534,10 +536,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;ENABLE_PHOBOS_DAMAGEDELAYANIM;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;ENABLE_PHOBOS_DAMAGEDELAYANIM;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -580,10 +582,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;_WINDLL;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

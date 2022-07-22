@@ -26,9 +26,9 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x7) //was 6
 				if (nDamageLeft >= 0)
 					*args->Damage = nDamageLeft;
 
-				//if (auto const pTag = pThis->AttachedTag)
-				//	pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
-				//		CellStruct::Empty,false,args->Attacker);//where is this? is this correct?
+				if (auto const pTag = pThis->AttachedTag)
+					pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
+						CellStruct::Empty,false,args->Attacker);//where is this? is this correct?
 			}
 		}
 	}

@@ -20,7 +20,7 @@ Blowfish_Loader(
 	if (SUCCEEDED(result))
 		return result;
 
-	HMODULE hDll = LoadLibrary(Blowfishdll_name);
+	HMODULE hDll = LoadLibraryA(Blowfishdll_name);
 	if (hDll) {
 		if (const auto GetClassObject = (pDllGetClassObject)GetProcAddress(hDll, "DllGetClassObject")) {
 
@@ -38,7 +38,7 @@ Blowfish_Loader(
 
 		if(hDll) FreeLibrary(hDll);
 		const char* Message = "File Blowfish.dll was not found\n";
-		MessageBox(0, Message, "Fatal error ", MB_ICONERROR);
+		MessageBoxA(0, Message, "Fatal error ", MB_ICONERROR);
 		Debug::FatalErrorAndExit(Message);
 	}
 

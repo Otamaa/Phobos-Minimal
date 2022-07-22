@@ -30,7 +30,7 @@ void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 bool BulletTypeExt::ExtData::HasSplitBehavior()
 {
 	// behavior in FS: Splits defaults to Airburst.
-	return this->OwnerObject()->Airburst || this->Splits.Get();
+	return this->Get()->Airburst || this->Splits.Get();
 }
 
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
@@ -45,7 +45,7 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
 	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright) const
 {
-	auto pBullet = this->OwnerObject()->CreateBullet(pTarget, pOwner, static_cast<int>(damage * TechnoExt::GetDamageMult(pOwner)), pWarhead, speed, bright);
+	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, static_cast<int>(damage * TechnoExt::GetDamageMult(pOwner)), pWarhead, speed, bright);
 
 	if (pBullet) {
 		pBullet->Range = range;
@@ -63,7 +63,7 @@ void  BulletTypeExt::ExtData::Uninitialize() {
 
 void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	auto pArtInI = &CCINIClass::INI_Art;
 
 	const char *pSection = pThis->ID;

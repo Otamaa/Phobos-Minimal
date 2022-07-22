@@ -89,6 +89,14 @@ public:
 	static bool __fastcall SaveGame(const char* FileName, const wchar_t* Description, bool BarGraph = false)
 		{ JMP_STD(0x67CEF0); }
 
+	//not sure if this correct ?
+	static HRESULT __fastcall SaveAll(IStream*)
+		{ JMP_STD(0x67D300); }
+
+	//not sure if this correct ?
+	static HRESULT __fastcall LoadAll(IStream*)
+		{ JMP_STD(0x67E730); }
+
 	void ReadStartPoints(INIClass &ini)
 		{ JMP_THIS(0x689D30); }
 

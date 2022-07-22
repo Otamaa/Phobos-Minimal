@@ -19,7 +19,7 @@ DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 	{
 		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());
 
-		R->EAX(LoadImage(NULL, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
+		R->EAX(LoadImageA(NULL, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
 		return 0x777C4A;
 	}
 

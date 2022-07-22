@@ -15,7 +15,7 @@ TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 
 void TechnoTypeExt::ExtData::Initialize()
 {
-	Is_Cow = CRT::strcmp(OwnerObject()->ID, "COW") == 0;
+	Is_Cow = CRT::strcmp(Get()->ID, "COW") == 0;
 
 	this->ShieldType = ShieldTypeClass::FindOrAllocate(NONE_STR);
 	OreGathering_Anims.reserve(1);
@@ -60,7 +60,7 @@ void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, dou
 // Ares 0.A source
 const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
 {
-	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->OwnerObject()->ID;
+	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->Get()->ID;
 }
 
 const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
@@ -80,7 +80,7 @@ bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::strin
 
 bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	UnitTypeClass* pUnit = nullptr;
 
 	if (pThis->WhatAmI() == AbstractType::UnitType)
@@ -132,7 +132,7 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX &exArtINI, const
 
 void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
@@ -271,6 +271,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SelectBrd_DrawOffset.Read(exINI, pSection, "SelectBrd.DrawOffset");
 	this->SelectBrd_TranslucentLevel.Read(exINI, pSection, "SelectBrd.TranslucentLevel");
 	this->SelectBrd_ShowEnemy.Read(exINI, pSection, "SelectBrd.ShowEnemy");
+
+	this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
+	this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransRate");
+	this->MobileRefinery_MaxAmount.Read(exINI, pSection, "MobileRefinery.MaxAmount");
+	this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
+	this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
+	this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
+	this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
 
 #pragma region Otamaa
 	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
@@ -593,6 +601,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelectBrd_DrawOffset)
 		.Process(this->SelectBrd_TranslucentLevel)
 		.Process(this->SelectBrd_ShowEnemy)
+
+		.Process(this->MobileRefinery)
+		.Process(this->MobileRefinery_TransRate)
+		.Process(this->MobileRefinery_MaxAmount)
+		.Process(this->MobileRefinery_FrontOffset)
+		.Process(this->MobileRefinery_LeftOffset)
+		.Process(this->MobileRefinery_Display)
+		.Process(this->MobileRefinery_DisplayColor)
 
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)

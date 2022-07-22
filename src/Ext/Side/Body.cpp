@@ -7,7 +7,7 @@ SideExt::ExtContainer SideExt::ExtMap;
 
 void SideExt::ExtData::Initialize()
 {
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->Get()->ID;
 
 	this->ArrayIndex = SideClass::FindIndex(pID);
 	this->Sidebar_GDIPositions = this->ArrayIndex == 0; // true = Allied
@@ -15,7 +15,7 @@ void SideExt::ExtData::Initialize()
 
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	auto pThis = this->OwnerObject();
+	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
 	if (!pINI->GetSection(pSection)) {

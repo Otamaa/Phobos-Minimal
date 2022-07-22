@@ -5,7 +5,7 @@ ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
 void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
-	const char* pID = this->OwnerObject()->ID;
+	const char* pID = this->Get()->ID;
 
 	if (!pINI->GetSection(pID))
 		return;

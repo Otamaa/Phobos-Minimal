@@ -18,7 +18,7 @@ DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage,
 	const auto pCell = Map.TryGetCellAt(nCoord);
 
 	if (auto pAnimType = Map.SelectDamageAnimation(Damage, Warhead, pCell ? pCell->LandType : LandType::Clear, nCoord)) {
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, 0x2600, -15, false)) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false)) {
 			AnimExt::SetAnimOwnerHouseKind(pAnim, OwningHouse, pBomb->Target ? pBomb->Target->GetOwningHouse() : nullptr, pBomb->Owner, false);
 		}
 	}
@@ -79,6 +79,7 @@ DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6) // is this inline ?
 
 DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
 {
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(BombClass *, pItem, ECX);
 	BombExt::ExtMap.Remove(pItem);
 	return 0;
@@ -87,20 +88,23 @@ DEFINE_HOOK(0x4393F2, BombClass_SDDTOR, 0x5)
 DEFINE_HOOK_AGAIN(0x438B40, BombClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x438BD0, BombClass_SaveLoad_Prefix, 0x8)
 {
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET_STACK(BombClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	BombExt::ExtMap.PrepareStream(pItem, pStm);
 	return 0;
 }
 
-DEFINE_HOOK(0x438BBD, BombClass_Load_Suffix, 0xA)
+DEFINE_HOOK(0x438BBD, BombClass_Load_Suffix, 0x5)
 {
+	Debug::Log("%s Executed ! \n", __FUNCTION__);
 	BombExt::ExtMap.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x438BE4, BombClass_Save_Suffix, 0x5)
 {
+	Debug::Log("%s Executed ! \n", __FUNCTION__);
 	BombExt::ExtMap.SaveStatic();
 	return 0;
 }
