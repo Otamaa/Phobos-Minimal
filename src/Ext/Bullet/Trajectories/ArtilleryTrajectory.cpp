@@ -4,31 +4,32 @@
 
 bool ArtilleryTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm , RegisterForChange);
+	PhobosTrajectoryType::Load(Stm , RegisterForChange);
 	Stm.Process(this->MaxHeight, false);
 	return true;
 }
 
 bool ArtilleryTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectoryType::Save(Stm);
 	Stm.Process(this->MaxHeight, false);
 	return true;
 }
 
-void ArtilleryTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
+bool ArtilleryTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
+	if (!this->PhobosTrajectoryType::Read(pINI, pSection))
+		return false;
+
 	INI_EX exINI { pINI };
 
-	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
-		return;
-
 	this->MaxHeight.Read(exINI,pSection, "Trajectory.Artillery.MaxHeight");
+	return true;
 }
 
 bool ArtilleryTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectory::Load(Stm, RegisterForChange);
 
 	Stm
 		.Process(this->MaxHeight, false) // Creo que esto no hace falta aquí porque no se actualiza....
@@ -39,7 +40,7 @@ bool ArtilleryTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool ArtilleryTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectory::Save(Stm);
 
 	Stm
 		.Process(this->MaxHeight, false) // Creo que esto no hace falta aquí porque no se actualiza....

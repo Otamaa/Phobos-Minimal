@@ -12,7 +12,6 @@
 
 #define TECHNO_IS_ALIVE(tech) TechnoExt::IsAlive(tech)
 
-template<> const DWORD Extension<ScriptClass>::Canary = 0x3B3B3B3B;
 ScriptExt::ExtContainer ScriptExt::ExtMap;
 
 void ScriptExt::ExtData::InitializeConstants() { }
@@ -2394,8 +2393,9 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		return false;
 
 	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();
+	auto const pTargetTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
-	if (!pTechnoType)
+	if (!pTargetTypeExt || pTargetTypeExt->IsDummy.Get())
 		return false;
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section

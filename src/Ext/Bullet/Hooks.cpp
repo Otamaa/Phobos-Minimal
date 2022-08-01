@@ -558,7 +558,10 @@ static DWORD Do_Airburst(BulletClass* pThis)
 						if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
 							return;
 
-						if (pWHExt->CanDealDamage(pTechno) && pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
+						if (pExt->Splits_TargetingUseVerses.Get() && !pWHExt->CanDealDamage(pTechno))
+							return;
+
+						if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
 						{
 							const auto nLayer = pTechno->InWhichLayer();
 							if (nLayer == Layer::Underground ||
@@ -623,8 +626,11 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 				if (pTarget)
 				{
+#ifdef DEBUG_AIRBURSTSPLITS_TARGETING
+					if(const auto pTechno = generic_cast<TechnoClass*>(pTarget))
+						Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID() , pTechno->get_ID());
+#endif
 					const auto pSplitExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
-
 					if (const auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon))
 					{
 						pBullet->SetWeaponType(pWeapon);

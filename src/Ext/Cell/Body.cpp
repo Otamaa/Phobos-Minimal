@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<CellClass>::Canary = 0x87688621;
 CellExt::ExtContainer CellExt::ExtMap;
 
 int CellExt::GetOverlayIndex(CellClass* pCell)
@@ -27,7 +26,11 @@ int CellExt::GetOverlayIndex(CellClass* pCell)
 // ============================ =
 // load / save
 template <typename T>
-void CellExt::ExtData::Serialize(T& Stm) { }
+void CellExt::ExtData::Serialize(T& Stm) {
+
+	Stm
+		;
+}
 
 void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {

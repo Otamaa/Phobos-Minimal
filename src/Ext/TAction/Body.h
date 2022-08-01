@@ -25,6 +25,7 @@ enum class PhobosTriggerAction : unsigned int
 class TActionExt
 {
 public:
+	static constexpr size_t Canary = 0x87154321;
 	using base_type = TActionClass;
 
 	class ExtData final : public Extension<base_type>

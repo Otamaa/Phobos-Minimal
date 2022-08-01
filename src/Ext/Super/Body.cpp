@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<SuperClass>::Canary = 0x12311111;
 SuperExt::ExtContainer SuperExt::ExtMap;
 
 // =============================

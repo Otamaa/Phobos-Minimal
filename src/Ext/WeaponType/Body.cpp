@@ -2,7 +2,6 @@
 
 #include <Ext/BulletType/Body.h>
 
-template<> const DWORD Extension<WeaponTypeClass>::Canary = 0x22222222;
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 WeaponTypeClass* WeaponTypeExt::Temporal_WP = nullptr;
 

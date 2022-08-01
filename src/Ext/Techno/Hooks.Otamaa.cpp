@@ -513,12 +513,15 @@ DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
 // this init before phobos does !
+
+
 DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const pExt = TechnoExt::GetExtData(pThis);
+
 
 	if (!pExt || !pTypeExt)
 		return 0x0;

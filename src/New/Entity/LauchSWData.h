@@ -1,8 +1,9 @@
 #pragma once
 
+#include <Utilities/BaseClassTemplates.h>
 #include <Utilities/TemplateDef.h>
 
-struct LauchSWData final
+struct LauchSWData final : public BaseClassTemplate
 {
 	SuperWeaponTypeClass* LaunchWhat;
 	bool LaunchWaitcharge;
@@ -15,7 +16,7 @@ struct LauchSWData final
 	bool LaunchSW_IgnoreInhibitors;
 	bool LauchSW_IgnoreMoney;
 
-	bool Read(INI_EX & exINI, const char* pID, int Prefix);
+	bool Read(INI_EX& exINI, const char* pID, int Prefix);
 
 	LauchSWData() : LaunchWhat { nullptr }
 		, LaunchWaitcharge { false }
@@ -29,10 +30,10 @@ struct LauchSWData final
 		, LauchSW_IgnoreMoney { false }
 	{ }
 
-	~LauchSWData() = default;
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm) const;
+	virtual ~LauchSWData() = default;
+	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	virtual bool Save(PhobosStreamWriter& Stm) const;
 
 	template <typename T>
 	bool Serialize(T& Stm);

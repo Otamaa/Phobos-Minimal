@@ -333,33 +333,50 @@ namespace detail {
 	}
 
 	template <>
-	inline bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<Theater_SHPStruct*>(Theater_SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
 			auto const pValue = parser.value();
+			GeneralUtils::ApplyTheaterSuffixToString(pValue);
 
-			if (GeneralUtils::IsValidString(pValue))
+			std::string Result = pValue;
+
+			if (Result.find(".shp") == std::string::npos){
+				Result += ".shp";
+			}
+
+			if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
 			{
-				char flag[256];
-				auto const pSuffix = PhobosCRT::stristr(pValue, ".shp");
+				value = reinterpret_cast<Theater_SHPStruct*>(pImage);
+				return true;
+			}
+			else
+			{
+				Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
+			}
+		}
+		return false;
+	}
 
-				if(!pSuffix)
-				_snprintf_s(flag, 255, "%s.shp", pValue);
-				else
-				_snprintf_s(flag, 255, "%s", pValue);
+	template <>
+	inline bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey)) {
+			auto const pValue = _strlwr(parser.value());
 
-				if (auto const pToReplace = strstr(flag, "~")) {
-					auto const pExt = Theater::GetTheater(ScenarioGlobal->Theater).Letter;
-					pToReplace[0] = pExt[0];
-					pToReplace[1] = pExt[1];
+			if (GeneralUtils::IsValidString(pValue)) {
+				std::string flag = pValue;
+
+				if (flag.find(".shp") == std::string::npos) {
+					flag += ".shp";
 				}
 
-				//Debug::Log("[%s]%s = Loading SHP File %s ! \n", pSection, pKey, flag);
+				if (flag.find("~") != std::string::npos) {
+					flag.replace(flag.begin() + flag.find("~"),flag.end() , Theater::GetTheater(ScenarioGlobal->Theater).Letter);;
+				}
 
-				if (auto const pImage = FileSystem::LoadSHPFile(flag))
-				{
-					//Debug::Log("[%s]%s = Succeed Loading SHP[%x] File %s ! \n", pSection, pKey, pImage, flag);
+				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str())) {
 					value = pImage;
 					return true;
 				}

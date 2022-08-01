@@ -5,11 +5,15 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
 #include <TerrainTypeClass.h>
 #include <SmudgeTypeClass.h>
 #include <TunnelLocomotionClass.h>
 #include <IsometricTileTypeClass.h>
+
+#include <TiberiumClass.h>
+#include <JumpjetLocomotionClass.h>
 
 #include <Memory.h>
 
@@ -243,6 +247,40 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	return 0x7365BB;
 }
 
+DEFINE_HOOK(0x70253F, TechnoClass_TakeDamage_Metallic_AnimDebris, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
+	GET(int, nIdx, EAX);
+	//REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+
+	//well , the owner dies , so taking Invoker is not nessesary here ,..
+	GameConstruct(pAnim, RulesGlobal->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr , false);
+
+	return 0x70256B;
+}
+
+DEFINE_HOOK(0x702484, TechnoClass_TakeDamage_AnimDebris, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(AnimClass*, pAnim, EBX);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
+	GET(int, nIdx, EDI);
+	//REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+
+	//well , the owner dies , so taking Invoker is not nessesary here ,..
+	GameConstruct(pAnim, pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+
+	return 0x7024AF;
+}
+
+//ObjectClass TakeDamage , 5F559C
+//UnitClass TakeDamage , 4428E4 , 737F0E
+
 #pragma region tomsons26_IsotileDebug
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
@@ -293,175 +331,61 @@ DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
 #pragma endregion
 
-/*
-DEFINE_HOOK(0x7BAE60 , Surface_GetPixel_CheckParameters, 0x5)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
-	GET(Surface*, pSurface, ECX);
-	GET_STACK(Point2D*, pPoint, 0x4);
-
-	R->EAX(NULL);
-
-	if ((pPoint->X < 0 || pPoint->X >= pSurface->Width) ||
-		(pPoint->Y < 0 || pPoint->Y >= pSurface->Height)) {
-		return 0x7BAE9A;
-	}
-
-	if (auto pResult = pSurface->Lock(pPoint->X, pPoint->Y))
-	{
-		if (pSurface->Get_Bytes_Per_Pixel() == 1) {
-			R->EAX<int>(*reinterpret_cast<int*>(pResult));
-			pSurface->Unlock();
-			return 0x7BAE9A;
-		}
-
-		R->EAX<int>(*reinterpret_cast<int*>(pResult));
-		pSurface->Unlock();
-	}
-
-	return 0x7BAE9A;
+	GET(TechnoClass*, pThis, ESI);
+	return pThis->Owner->IsPlayerControl() ? 0x70383C : 0x703828;
 }
 
-DEFINE_HOOK(0x48439A, CellClass_GetColourComponents, 0x5)
+DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
 {
-	GET(int, Distance, EAX);
-	GET(LightSourceClass*, LS, ESI);
+	GET(FootClass*, pFoot, ECX);
 
-	GET_STACK(int*, Intensity, 0x44);
-	GET_STACK(int*, Tint_Red, 0x54);
-	GET_STACK(int*, Tint_Green, 0x58);
-	GET_STACK(int*, Tint_Blue, 0x5C);
-
-	const int RangeVisibilityFactor = 1000;
-	const int RangeDistanceFactor = 1000;
-	const int LightMultiplier = 1000;
-
-	int LSEffect = (RangeVisibilityFactor * LS->LightVisibility - RangeDistanceFactor * Distance) / LS->LightVisibility;
-	*Intensity += int(LSEffect * LS->LightIntensity / LightMultiplier);
-	*Tint_Red += int(LSEffect * LS->LightTint.Red / LightMultiplier);
-	*Tint_Green += int(LSEffect * LS->LightTint.Green / LightMultiplier);
-	*Tint_Blue += int(LSEffect * LS->LightTint.Blue / LightMultiplier);
-
-	return 0x484440;
-}
-*/
-#ifdef _Dis
-/*
- *  Custom area damage logic for DTA.
- *  Coded in a way that makes it easy to adapt for many uses,
- *  hence takes an ObjectClass pointer instead of an AnimClass pointer.
- *
- *  @author: Rampastring
-*/
-void DTA_DoAtomDamage(const ObjectClass* object_ptr, const int damageradius, const int rawdamage, const int damagepercentageatmaxrange, const bool createsmudges, const WarheadTypeClass* warhead)
-{
-	Cell cell = Coord_Cell(object_ptr->Center_Coord());
-
-	int				distance;	          // Distance to unit.
-	ObjectClass*	object;			      // Working object pointer.
-	ObjectClass*	objects[128];	      // Maximum number of objects that can be damaged.
-	int             distances[128];       // Distances of the objects that can be damaged.
-	int             count = 0;            // Number of objects to damage.
-
-	for (int x = -damageradius; x <= damageradius; x++)
-	{
-		for (int y = -damageradius; y <= damageradius; y++)
-		{
-			int xpos = cell.X + x;
-			int ypos = cell.Y + y;
-
-			/*
-			**	If the potential damage cell is outside of the map bounds,
-			**	then don't process it. This unusual check method ensures that
-			**	damage won't wrap from one side of the map to the other.
-			*/
-			if ((unsigned)xpos > MAP_CELL_W)
-			{
-				continue;
-			}
-			if ((unsigned)ypos > MAP_CELL_H)
-			{
-				continue;
-			}
-			Cell tcell = XY_Cell(xpos, ypos);
-			if (!Map.In_Radar(tcell)) continue;
-
-			Coordinate tcellcoord = Cell_Coord(tcell);
-
-			object = Map[tcell].Cell_Occupier();
-			while (object)
-			{
-				if (!object->IsToDamage)
-				{
-					object->IsToDamage = true;
-					objects[count] = object;
-
-					if (object->What_Am_I() == RTTI_BUILDING)
-					{
-						// Find the cell of the building that is closest
-						// to the explosion point and use that as the reference point for the distance
-
-						BuildingClass* building = reinterpret_cast<BuildingClass*>(object);
-
-						Cell* occupy = building->Class->Occupy_List();
-						distances[count] = INT_MAX;
-
-						while (occupy->X != REFRESH_EOL && occupy->Y != REFRESH_EOL)
-						{
-							Coordinate buildingcellcoord = building->Coord + Cell_Coord(*occupy, true) - Coordinate(CELL_LEPTON_W / 2, CELL_LEPTON_H / 2, 0);
-							distance = Distance(Cell_Coord(cell, true), buildingcellcoord);
-							distances[count] = std::min(distance, distances[count]);
-							occupy++;
-						}
-					}
-					else
-					{
-						// For non-building objects, just check the distance directly
-						distances[count] = Distance(Cell_Coord(cell, true), object->Center_Coord());
-					}
-
-					count++;
-					if (count >= ARRAY_SIZE(objects)) break;
-				}
-
-				object = object->Next;
-			}
-			if (count >= ARRAY_SIZE(objects)) break;
-
-		}
+	bool Allow = false;
+	if (pFoot->GetTechnoType()->TiltCrashJumpjet) {
+		Allow = LocomotionClass::End_Piggyback(pFoot->Locomotor);
 	}
 
-	int maxdistance = damageradius * CELL_LEPTON_W;
-
-	/*
-	**	Sweep through the objects to be damaged and damage them.
-	*/
-	for (int index = 0; index < count; index++)
-	{
-		object = objects[index];
-
-		object->IsToDamage = false;
-		if (object->IsActive)
-		{
-			distance = distances[index];
-
-			float distancemult = (float)distance / (float)maxdistance;
-			if (distancemult > 1.0f)
-				distancemult = 1.0f;
-
-			if (object->IsDown && !object->IsInLimbo)
-			{
-				int percentDecrease = (100 - damagepercentageatmaxrange) * distancemult;
-				int damage = rawdamage - ((percentDecrease * rawdamage) / 100);
-
-				// We've taken the distance into account already
-				object->Take_Damage(damage, 0, warhead, nullptr, false);
-			}
-		}
-	}
-
+	return Allow ? 0x54DCE8 : 0x54DF13;
 }
+
+DEFINE_HOOK(0x54C14B , JumpjetLocomotionClass_UpdateMoving, 0x7)
+{
+	GET(FootClass*, pFoot, EDI);
+
+	if (pFoot->GetTechnoType()->Sensors)
+		pFoot->UpdatePosition(2);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
+{
+	enum {
+		ContinueCheck = 0x6FC23A ,
+		BypassCheck = 0x6FC24D
+	};
+
+	GET(TechnoClass*, pThis, ESI);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	return pTypeExt->AllowFire_IroncurtainedTarget.Get() ? BypassCheck : ContinueCheck;
+}
+
+DEFINE_HOOK(0x452831 , BuildingClass_Overpowerer_AddUnique, 0x6)
+{
+	enum {
+		AddItem = 0x45283C,
+		Skip = 0x45289C
+	};
+
+	GET(const DynamicVectorClass<TechnoClass*>*, pVec, ECX);
+	GET(TechnoClass* const, pOverpowerer, ESI);
+
+	return pVec->FindItemIndex(pOverpowerer) == -1 ? AddItem : Skip;
+}
+
 #endif
-#include <TiberiumClass.h>
 
 DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
 {

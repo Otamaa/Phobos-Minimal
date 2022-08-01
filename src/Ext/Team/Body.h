@@ -10,6 +10,7 @@
 class TeamExt
 {
 public:
+	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
 
 	class ExtData final : public Extension<TeamClass>

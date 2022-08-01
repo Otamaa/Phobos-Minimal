@@ -8,6 +8,7 @@
 class SuperExt
 {
 public:
+	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
 
 	class ExtData final : public Extension<SuperClass>

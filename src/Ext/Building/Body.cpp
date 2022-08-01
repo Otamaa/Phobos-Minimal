@@ -2,7 +2,6 @@
 #include <Utilities/EnumFunctions.h>
 #include <Ext/House/Body.h>
 
-template<> const DWORD Extension<BuildingClass>::Canary = 0x87654321;
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 void BuildingExt::ExtData::InitializeConstants()
 {
@@ -211,7 +210,7 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 	if (const auto pExt = BuildingExt::ExtMap.Find(pBuilding))
 	{
 		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		if (!pTypeExt)
+		if (!pTypeExt || !pTechno)
 			return false;
 
 		if (pTypeExt->Grinding_DisplayRefund &&	EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::Player))

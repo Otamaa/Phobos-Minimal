@@ -12,12 +12,12 @@ public:
 		, Height { 0.0 }
 	{ }
 
-	virtual ~BombardTrajectoryType() override = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual ~BombardTrajectoryType() = default;
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
-	virtual void Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
 
 };
 
@@ -38,8 +38,8 @@ public:
 		, Height { 0.0 }
 	{}
 
-	virtual ~BombardTrajectory() override = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual ~BombardTrajectory() = default;
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

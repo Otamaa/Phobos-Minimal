@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef COMPILE_PORTED_DP_FEATURES
+#include <Utilities/BaseClassTemplates.h>
 #include <Utilities/TemplateDef.h>
 
 #include <ColorStruct.h>
@@ -12,7 +13,7 @@
 class TechnoClass;
 class REGISTERS;
 
-class PaintballType
+class PaintballType : public SaveLoadBaseClassTemplate
 {
 public:
 	ColorStruct Color;
@@ -50,10 +51,10 @@ public:
 
 	void Read(INI_EX& parser, const char* pSection);
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	bool Save(PhobosStreamWriter& Stm) const
+	virtual bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<PaintballType*>(this)->Serialize(Stm); }
 
 	template <typename T>
@@ -73,7 +74,7 @@ public:
 	}
 };
 
-class PaintBall
+class PaintBall : public SaveLoadBaseClassTemplate
 {
 public:
 
@@ -137,10 +138,10 @@ public:
 	void DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R);
 	void DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding);
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	bool Save(PhobosStreamWriter& Stm) const
+	virtual bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<PaintBall*>(this)->Serialize(Stm); }
 
 	WarheadTypeClass* Token;

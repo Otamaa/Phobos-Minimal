@@ -3,6 +3,7 @@
 #include <CCINIClass.h>
 #include <CellSpread.h>
 #include <StopWatch.h>
+#include <Theater.h>
 
 #include <Helpers/Iterators.h>
 #include <Helpers/Enumerators.h>
@@ -96,6 +97,50 @@ public:
 		}
 
 		return false;
+	}
+
+	static bool inline ApplyTheaterSuffixToString(char* str )
+	{
+		  str = _strlwr(str);
+
+		if (auto pSuffix = strstr(str, "~~~"))
+		{
+			auto pExtension = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
+			pSuffix[0] = pExtension[0];
+			pSuffix[1] = pExtension[1];
+			pSuffix[2] = pExtension[2];
+			return true;
+		}
+
+		return false;
+	}
+
+	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
+	{
+		CellStruct cell = CellClass::Coord2Cell(InOut);
+		auto const nDummy = GeneralUtils::AdjacentCellsInRange(nSpread);
+
+		int const max = (int)nDummy.size();
+		for (int i = 0; i < max; i++)
+		{
+			int index = ScenarioGlobal->Random.RandomFromMax(max - 1);
+			CellStruct const offset = nDummy[index];
+
+			if (offset == CellStruct::Empty)
+				continue;
+
+			if (const auto pNewCell = MapClass::Instance->TryGetCellAt(cell + offset))
+			{
+				if (pNewCell->LandType != pIn->LandType || (EmptyCell && pNewCell->GetContent()))
+					continue;
+
+				InOut = pNewCell->GetCoordsWithBridge();
+				return pNewCell;
+				break;
+			}
+		}
+
+		return nullptr;
 	}
 
 #pragma region Otamaa

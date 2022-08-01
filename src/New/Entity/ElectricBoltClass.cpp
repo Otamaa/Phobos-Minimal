@@ -43,8 +43,8 @@ void ElectricBoltClass::Draw_It()
 				Point2D pixel_start {};
 				Point2D pixel_end {};
 
-				 TacticalClass::Instance->CoordsToClient(&StartCoord,&pixel_start);
-				 TacticalClass::Instance->CoordsToClient(&EndCoord,&pixel_end);
+				TacticalClass::Instance->CoordsToClient(&StartCoord,&pixel_start);
+				TacticalClass::Instance->CoordsToClient(&EndCoord,&pixel_end);
 
 				if (Game::Clip_Line(&pixel_start, &pixel_end, &Drawing::SurfaceDimensions_Hidden()))
 					Plot_Bolt(StartCoord, EndCoord);
@@ -100,7 +100,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 	int SEGEMENT_COORDS_SIZE = sizeof(CoordStruct) * 3;
 
-	VectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
+	std::vector<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
 
 	CoordStruct start_coords[3];
 	CoordStruct end_coords[3];
@@ -141,7 +141,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 		while (true)
 		{
 
-			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < ebolt_plots.Length())
+			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < static_cast<int>(ebolt_plots.size()))
 			{
 
 				for (int i = 0; i < 3; ++i)

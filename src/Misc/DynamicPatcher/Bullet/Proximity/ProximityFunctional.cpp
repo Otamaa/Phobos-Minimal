@@ -178,8 +178,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 						{
 							CoordStruct sourceTestPos = cellPos;
 							sourceTestPos.Z = sourcePos.Z;
-							auto ntargetTestPosBuff = CoordStruct{0, 0, BulletProx->Data.ZOffset};
-							CoordStruct targetTestPos = targetPos + ntargetTestPosBuff;
+							CoordStruct targetTestPos = targetPos + CoordStruct {0, 0, BulletProx->Data.ZOffset};
 							hit = targetTestPos.DistanceFrom(sourceTestPos) <= BulletProx->Data.Arm;
 						}
 

@@ -29,15 +29,20 @@
 #include <New/Entity/HomingMissileTargetTracker.h>
 #include <Phobos_ECS.h>
 
-void TechnoExt::GattlingDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void TechnoExt::GattlingDamage(TechnoClass* pThis)
 {
-	auto const pThis = pExt->Get();
-	auto const pType = pTypeExt->Get();
-
-	if (!pType->IsGattling)
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	if (!pExt)
 		return;
 
-	if (!pTypeExt->Gattling_Overload.Get())
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pTypeExt)
+		return;
+
+	const auto pType = pTypeExt->Get();
+
+	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get())
 		return;
 
 	auto const curValue = pThis->GattlingValue;
@@ -95,16 +100,16 @@ void TechnoExt::GattlingDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData*
 	{
 		--pExt->GattlingDmageDelay;
 	}
-
 }
 
-void TechnoExt::KillSlave(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt)
+void TechnoExt::KillSlave(TechnoClass* pThis)
 {
 	if (const auto pInf = specific_cast<InfantryClass*>(pThis))
 	{
 		if (pInf->Type->Slaved && !pInf->InLimbo && pInf->IsAlive && pInf->Health > 0 && !pInf->TemporalTargetingMe)
 		{
-			if (!pInf->SlaveOwner && (pExt->Death_WithMaster.Get() || pExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
+			const auto pExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+			if (pExt && !pInf->SlaveOwner && (pExt->Death_WithMaster.Get() || pExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
 				TechnoExt::KillSelf(pInf, pExt->Death_Method);
 		}
 	}
@@ -133,14 +138,18 @@ void TechnoExt::ExtData::InitFunctionEvents()
 void TechnoExt::InitializeItems(TechnoClass* pThis)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (!pExt || !pTypeExt)
+	if (!pExt)
 		return;
 
-	//pExt->InitFunctionEvents();
-	pExt->ID = pThis->get_ID();
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pTypeExt)
+		return;
+
+	//pExt->ID = pThis->get_ID();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 #endif
@@ -175,37 +184,82 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	}
 }
 
-void TechnoExt::ApplyMobileRefinery(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 {
-	auto const pThis = pExt->Get();
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (!pTypeExt->MobileRefinery || !abstract_cast<FootClass*>(pThis) || !pThis->Owner)
+	if (!pExt || !pTypeExt)
 		return;
 
-	const int cellCount = static_cast<int>(Math::max(pTypeExt->MobileRefinery_FrontOffset.size(), pTypeExt->MobileRefinery_LeftOffset.size()));
+	if (!pTypeExt->MobileRefinery || !abstract_cast<FootClass*>(pThis) || !pThis->Owner || (pTypeExt->MobileRefinery_TransRate > 0 &&
+		Unsorted::CurrentFrame % pTypeExt->MobileRefinery_TransRate))
+		return;
+
+	const int cellCount = std::clamp(static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()), 1, static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()));
 
 	CoordStruct flh = { 0,0,0 };
 
-	for (int idx = 0; idx <= cellCount; idx++)
+	for (int idx = 0; idx < cellCount; idx++)
 	{
-		flh.X = static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()) > idx ? pTypeExt->MobileRefinery_FrontOffset[idx] : 0;
-		flh.Y = static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()) > idx ? pTypeExt->MobileRefinery_LeftOffset[idx] : 0;
-		const CellClass* pCell = MapClass::Instance->GetCellAt(TechnoExt::GetFLHAbsoluteCoords(pThis, flh, false));
+		flh.X = static_cast<int>(pTypeExt->MobileRefinery_FrontOffset.size()) > idx ? pTypeExt->MobileRefinery_FrontOffset[idx] * Unsorted::LeptonsPerCell : 0;
+		flh.Y = static_cast<int>(pTypeExt->MobileRefinery_LeftOffset.size()) > idx ? pTypeExt->MobileRefinery_LeftOffset[idx] * Unsorted::LeptonsPerCell : 0;
+		auto nPos = TechnoExt::GetFLHAbsoluteCoords(pThis, flh, false);
+		const CellClass* pCell = MapClass::Instance->GetCellAt(nPos);
 
 		if (!pCell)
 			continue;
 
-		const int tValue = pCell->GetContainedTiberiumValue();
-		int value = pTypeExt->MobileRefinery_MaxAmount ? Math::min(pTypeExt->MobileRefinery_MaxAmount.Get(), tValue) : tValue;
+		nPos.Z += pThis->Location.Z;
 
-		if (value) {
-
-			pCell->ReduceTiberium(value);
-			value = static_cast<int>(value * pTypeExt->MobileRefinery_TransRate.Get());
+		if (const int tValue = pCell->GetContainedTiberiumValue())
+		{
+			const int tibValue = TiberiumClass::Array->GetItem(pCell->GetContainedTiberiumIndex())->Value;
+			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
+			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? Math::min(pTypeExt->MobileRefinery_AmountPerCell.Get(), tAmount) : tAmount;
+			pCell->ReduceTiberium(amount);
+			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
 
 			if (pThis->Owner->CanTransactMoney(value)) {
 				pThis->Owner->TransactMoney(value);
-				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display , value,pThis,AffectedHouse::All, pThis->GetCoords());
+				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display, value, pThis, AffectedHouse::All, nPos, Point2D::Empty, pTypeExt->MobileRefinery_DisplayColor);
+			}
+
+
+			if (!pTypeExt->MobileRefinery_Anims.empty())
+			{
+				AnimTypeClass* pAnimType = nullptr;
+				int facing = pThis->PrimaryFacing.current().value8();
+
+				if (facing >= 7)
+					facing = 0;
+				else
+					facing++;
+
+				switch (pTypeExt->MobileRefinery_Anims.size())
+				{
+				case 1:
+					pAnimType = pTypeExt->MobileRefinery_Anims[0];
+					break;
+				case 8:
+					pAnimType = pTypeExt->MobileRefinery_Anims[facing];
+					break;
+				default:
+					pAnimType = pTypeExt->MobileRefinery_Anims[
+						ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->MobileRefinery_Anims.size() - 1)];
+					break;
+				}
+
+				if (pAnimType)
+				{
+					if (auto pAnim = GameCreate<AnimClass>(pAnimType, nPos))
+					{
+						AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+
+						if (pTypeExt->MobileRefinery_AnimMove)
+							pAnim->SetOwnerObject(pThis);
+					}
+				}
 			}
 		}
 	}
@@ -215,39 +269,42 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	//auto pExt = TechnoExt::ExtMap.Find(pThis);
+	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	// this one is bad idea i think
-	// what if they go converted on middle of something here
-	// we fcked up , need to revise this
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//if (pExt && pTypeExt) {
+	//	if (pExt->ID != pThis->get_ID()) {
+	//		pExt->ID = pThis->get_ID();
+	//	}
+	//}
+
+	TechnoExt::RunFireSelf(pThis);
+	TechnoExt::ApplyMobileRefinery(pThis);
+	TechnoExt::UpdateMindControlAnim(pThis);
+	TechnoExt::ApplyMindControlRangeLimit(pThis);
+	TechnoExt::ApplyInterceptor(pThis);
+	TechnoExt::ApplySpawn_LimitRange(pThis);
+	TechnoExt::KillSlave(pThis);
+	TechnoExt::CheckDeathConditions(pThis);
+	TechnoExt::EatPassengers(pThis);
+#ifdef COMPILE_PORTED_DP_FEATURES
+	PassengersFunctional::AI(pThis);
+	SpawnSupportFunctional::AI(pThis);
+#endif
+	TechnoExt::GattlingDamage(pThis);
+
+
+	//if (pExt->GenericFuctions.AfterLoadGame)
+		//pExt->InitFunctionEvents();
+
+	//pExt->GenericFuctions.run_each(pThis);
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
 	{
-		if (CRT::strlen(pExt->ID.data()) && CRT::strcmp(pExt->ID.data(), pThis->get_ID())) {
-			pExt->ID = pThis->get_ID();
-		}
-
-		TechnoExt::RunFireSelf(pExt, pTypeExt);
-		TechnoExt::ApplyMobileRefinery(pExt , pTypeExt);
-		TechnoExt::UpdateMindControlAnim(pExt);
-		TechnoExt::ApplyMindControlRangeLimit(pThis);
-		TechnoExt::ApplyInterceptor(pThis, pTypeExt);
-		TechnoExt::ApplySpawn_LimitRange(pThis, pTypeExt);
-		TechnoExt::KillSlave(pThis, pTypeExt);
-		TechnoExt::CheckDeathConditions(pExt, pTypeExt);
-		TechnoExt::EatPassengers(pExt, pTypeExt);
-#ifdef COMPILE_PORTED_DP_FEATURES
-		PassengersFunctional::AI(pThis);
-		SpawnSupportFunctional::AI(pThis);
-#endif
-		TechnoExt::GattlingDamage(pExt, pTypeExt);
-		//if (pExt->GenericFuctions.AfterLoadGame)
-			//pExt->InitFunctionEvents();
-
-		//pExt->GenericFuctions.run_each(pThis);
-
-#ifdef COMPILE_PORTED_DP_FEATURES
 		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
@@ -263,9 +320,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 				pPaintBall->Disable(false);
 			}
 		}
-#endif
 	}
-
+#endif
 
 	return 0;
 }
@@ -364,10 +420,12 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
 	GET(const FootClass*, pThis, ESI);
 
-	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target)) {
+	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+	{
 		//Spawnee trying to chase Aircraft that go out of map until it reset
 		//fix this , so reset immedietely if target is not on map
-		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe)) {
+		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe))
+		{
 			pThis->SpawnOwner->SetTarget(nullptr);
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
@@ -511,7 +569,7 @@ DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
 
 DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
 {
-	VerticalLaserClass::Draw_All();
+	VerticalLaserClass::OnUpdateAll();
 #ifdef ENABLE_HOMING_MISSILE
 	HomingMissileTargetTracker::Update_All();
 #endif

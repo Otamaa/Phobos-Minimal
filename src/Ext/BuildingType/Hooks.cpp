@@ -79,54 +79,47 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 			if (pTypeExt &&
 				pTypeExt->PlacementPreview_Show.Get(RulesExt::Global()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview)))
 			{
-				SHPStruct* Selected = nullptr;
-				bool bBuildupPresent = false;
-
-				if (!pTypeExt->PlacementPreview_Shape.isset())
-				{
-					if (const auto pBuildup = pType->LoadBuildup())
-					{
-						bBuildupPresent = true;
-						Selected = pBuildup;
-					}
-					else
-					{
-						Selected = pType->GetImage();
-					}
-				}
-				else
-				{
-					Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
-				}
-
-				auto const pImage = Selected;
-
-				if (!pImage)
-					return 0x0;
-
 				CellStruct const nDisplayCell = Make_Global<CellStruct>(0x88095C);
 				CellStruct const nDisplayCell_Offset = Make_Global<CellStruct>(0x880960);
-				auto const pCell = MapClass::Instance->TryGetCellAt(nDisplayCell + nDisplayCell_Offset);
 
-				if (!pCell)
-					return 0x0;
+				if (auto const pCell = MapClass::Instance->TryGetCellAt(nDisplayCell + nDisplayCell_Offset)) {
 
-				auto const nFrame = Math::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(bBuildupPresent ? ((pImage->Frames / 2) - 1) : 0), 0, (int)pImage->Frames);
-				auto const nHeight = pCell->GetFloorHeight({ 0,0 });
-				auto const& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
-				Point2D nPoint { 0,0 };
-				TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint);
-				nPoint.X += nOffsetX;
-				nPoint.Y += nOffsetY;
-				auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
-				auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
-				auto const pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetDrawer() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
+					SHPStruct* Selected = nullptr;
+					int nDecidedFrame = 0;
 
-				//auto const bClearToBuild = pCell->CanThisExistHere(pType->SpeedType, pType, pBuilding->Owner);
-				//ColorStruct const nColor = bClearToBuild ? { 0,255,0 } : { 255,0,0 };
+					if (!pTypeExt->PlacementPreview_Shape.isset()) {
+						if (const auto pBuildup = pType->LoadBuildup()) {
+							nDecidedFrame = ((pBuildup->Frames / 2) - 1);
+							Selected = pBuildup;
+						} else {
+							Selected = pType->GetImage();
+						}
+					} else {
+						Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
+					}
 
-				DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, &nPoint, &nREct, nFlag,
-					0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+					if (Selected)
+					{
+						auto const nFrame = Math::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
+						auto const nHeight = pCell->GetFloorHeight({ 0,0 });
+						auto const& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
+						Point2D nPoint { 0,0 };
+
+						if(TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint)) {
+							nPoint.X += nOffsetX;
+							nPoint.Y += nOffsetY;
+							auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
+							auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
+							auto const pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetDrawer() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
+
+							//auto const bClearToBuild = pCell->CanThisExistHere(pType->SpeedType, pType, pBuilding->Owner);
+							//ColorStruct const nColor = bClearToBuild ? { 0,255,0 } : { 255,0,0 };
+
+							DSurface::Temp()->DrawSHP(pPalette, Selected, nFrame, &nPoint, &nREct, nFlag,
+								0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -135,4 +128,11 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 }
 
 //Make Building placement Grid tranparent
+//DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
+//{
+//	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
+//	*blitFlags |= EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel);
+//	return 0;
+//}
+
 DEFINE_JUMP(CALL,0x47EFB4, GET_OFFSET(BuildingTypeExt::DrawPlacementGrid));

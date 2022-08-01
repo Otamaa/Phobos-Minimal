@@ -3,7 +3,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
 
-template<> const DWORD Extension<CaptureExt::base_type>::Canary = 0x87654121;
 CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }

@@ -279,7 +279,7 @@ private:
 };
 
 template<typename Key, typename Value>
-class ViniferaContainerMap
+class ViniferaContainerMap final
 {
 public:
 #ifdef ROBIN_HOOD_ENABLED
@@ -386,24 +386,23 @@ private:
 };
 
 template<typename Key, typename Value>
-class VectorMapContainer
+class VectorMapContainer final
 {
 public:
 	using map_type = VectorMap<const Key*, Value*>;
 	using iterator = typename map_type::iterator;
 	using const_iterator = typename map_type::const_iterator;
 
-public:
 	VectorMapContainer() : Items() { }
 	~VectorMapContainer() { }
 
 	/**
 	 *  Finds element with specific key.
 	 */
-	Value* find(const Key* key) const
-	{
+	Value* find(const Key* key) const {
 		const auto it = Items.find(key);
-		if (it != Items.end()) {
+		if (it != Items.end())
+		{
 			return it->second;
 		}
 
@@ -413,17 +412,15 @@ public:
 	/**
 	 *  Insert a new element instance into the map.
 	 */
-	Value* insert(const Key* key, Value* value)
-	{
+	Value* insert(const Key* key, Value* value) {
 		Items.insert({ key, value });
 		return value;
 	}
 
 	/**
-	 *  Remove an element from the map.
+	 *  Remove and get an element from the map.
 	 */
-	Value* remove(const Key* key)
-	{
+	Value* remove(const Key* key) {
 		const auto it = Items.find(key);
 		if (it != Items.end())
 		{
@@ -431,38 +428,42 @@ public:
 			Items.erase(it);
 			return value;
 		}
+
 		return nullptr;
+	}
+
+	/**
+	*  Remove an element from the map.
+	*/
+	void erase(const Key* key) {
+		Items.erase(key);
 	}
 
 	/**
 	 *  Checks whether the container is empty.
 	 */
-	bool empty() const
-	{
+	bool empty() const {
 		return Items.empty();
 	}
 
 	/**
 	 *  Clears the contents of the map.
 	 */
-	void clear()
-	{
+	void clear() {
 		Items.clear();
 	}
 
 	/**
 	 *  Returns the number of elements in the map.
 	 */
-	size_t size() const
-	{
+	size_t size() const {
 		return Items.size();
 	}
 
 	/**
 	 *  Returns an iterator to the beginning.
 	 */
-	iterator begin() const
-	{
+	iterator begin() const {
 		auto item = Items.begin();
 		return reinterpret_cast<iterator&>(item);
 	}
@@ -470,15 +471,14 @@ public:
 	/**
 	 *  Returns an iterator to the end.
 	 */
-	iterator end() const
-	{
+	iterator end() const {
 		auto item = Items.end();
 		return reinterpret_cast<iterator&>(item);
 	}
 
 private:
 	/**
-	 *  The unordered map of items.
+	 *  The map of items.
 	 */
 	map_type Items;
 
@@ -488,6 +488,8 @@ private:
 	VectorMapContainer& operator = (VectorMapContainer&&) = delete;
 };
 
+template <class T>
+concept HasOffset = requires(T) { T::ExtOffset; };
 
 template <typename T>
 class Container
@@ -581,13 +583,26 @@ return nullptr;
 		if (auto const ptr = this->Items.find(key))
 			return ptr;
 
-		Alloc_EXT(key);
+		if constexpr (HasOffset<T>) {
+
+			*(extension_type_ptr*)((size_t)key + T::ExtOffset) = Allocate(key);
+
+			return *(extension_type_ptr*)((size_t)key + T::ExtOffset);
+
+		} else{
+			Alloc_EXT(key);
+		}
+
 	}
+
 #undef Alloc
 
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		return this->Items.find(key);
+		if constexpr (HasOffset<T>)
+			return *(extension_type_ptr*)((size_t)key + T::ExtOffset);
+		else
+			return this->Items.find(key);
 	}
 
 	extension_type_ptr operator[] (const_base_type_ptr key) const
@@ -597,10 +612,13 @@ return nullptr;
 
 	void Remove(const_base_type_ptr key)
 	{
-		if(auto Item = this->Items.remove(key))
-		{
+		if(auto Item = this->Items.remove(key)) {
 			Item->Uninitialize();
-			delete Item;
+
+			if constexpr (HasOffset<T>)
+				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
+
+		  delete Item;
 		}
 	}
 
@@ -609,6 +627,17 @@ return nullptr;
 		if (this->Items.size())
 		{
 			Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
+
+			for (const auto&[pKey , pValue] : this->Items) {
+				pValue->Uninitialize();
+
+				if constexpr (HasOffset<T>)
+					*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
+
+				delete pValue;
+				Items.erase(pKey);
+			}
+
 			this->Items.clear();
 		}
 	}
@@ -707,7 +736,7 @@ protected:
 		PhobosByteStream saver(sizeof(*buffer));
 		PhobosStreamWriter writer(saver);
 
-		writer.Save(extension_type::Canary);
+		writer.Save(T::Canary);
 		writer.Save(buffer);
 
 		// save the data
@@ -750,7 +779,7 @@ protected:
 		}
 
 		PhobosStreamReader reader(loader);
-		if (reader.Expect(extension_type::Canary) && reader.RegisterChange(buffer))
+		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
 		{
 			buffer->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())

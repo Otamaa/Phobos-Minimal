@@ -13,6 +13,7 @@ class RadTypeClass;
 class RadSiteExt
 {
 public:
+	static constexpr size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
 
 	class ExtData final : public Extension<base_type>

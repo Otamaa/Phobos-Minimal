@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Utilities/BaseClassTemplates.h>
+
 #include <GeneralStructures.h>
 #include <LaserDrawClass.h>
 #include <HouseClass.h>
@@ -8,7 +10,7 @@
 
 #include <vector>
 
-class LaserTrailClass final
+class LaserTrailClass final : public BaseClassTemplate
 {
 public:
 	LaserTrailTypeClass* Type;
@@ -46,13 +48,14 @@ public:
 		, InitialDelayTimer { }
 	{ }
 
-	~LaserTrailClass() = default;
+	virtual ~LaserTrailClass() = default;
 
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);
 
-	bool Load(PhobosStreamReader& stm, bool registerForChange);
-	bool Save(PhobosStreamWriter& stm) const;
+	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
+	virtual bool Load(PhobosStreamReader& stm, bool registerForChange);
+	virtual bool Save(PhobosStreamWriter& stm) const;
 
 private:
 	template <typename T>

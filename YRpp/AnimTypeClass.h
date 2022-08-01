@@ -3,7 +3,7 @@
 */
 
 #pragma once
-
+#include <GlobalConfig.h>
 #include <ObjectTypeClass.h>
 
 //forward declarations
@@ -11,6 +11,7 @@ class OverlayTypeClass;
 class ParticleTypeClass;
 class WarheadTypeClass;
 
+//#pragma pack(push, 8)
 class DECLSPEC_UUID("AE8B33DA-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE AnimTypeClass : public ObjectTypeClass
 {
@@ -32,7 +33,7 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* owner) R0; // ! this just returns NULL instead of creating the anim, fucking slackers
 
 	//AnimTypeClass
-	virtual SHPStruct* LoadImage() R0;
+	virtual SHPStruct* LoadAnimImage() R0;
 	virtual void Load2DArt() RX;
 
 	//Destructor
@@ -113,6 +114,7 @@ public:
 	bool IsAnimatedTiberium;
 	bool AltPalette;
 	bool Normalized;
+	PROTECTED_PROPERTY(byte, _pada);
 	Layer Layer;
 	bool DoubleThick;
 	bool Flat;
@@ -127,6 +129,7 @@ public:
 	bool Shadow;
 	bool PsiWarning;
 	bool ShouldFogRemove;
+	PROTECTED_PROPERTY(byte, _pad[3]);
 };
-
-static_assert(sizeof(AnimTypeClass) == 0x378 , "Invalid size.");
+//#pragma pack(pop)
+static_assert(sizeof(AnimTypeClass) == (0x378), "Invalid size.");

@@ -76,7 +76,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 			HouseClass* decidedOwner = (pThis->Owner)
 				? pThis->Owner : HouseExt::FindCivilianSide();
 
-			auto pCell = pThis->GetCell();
+			const auto pCell = pThis->GetCell();
 			CoordStruct location = pThis->GetCoords();
 
 			if (pCell)
@@ -86,24 +86,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 
 			pThis->UnmarkAllOccupationBits(location);
 
-			if (pTypeExt->CreateUnit_ConsiderPathfinding)
-			{
-				bool allowBridges = unit->SpeedType != SpeedType::Float;
-
-				auto const nCell = Map.NearByLocation(CellClass::Coord2Cell(location),
-				unit->SpeedType, -1, unit->MovementZone, false, 1, 1, true,
-				false, false, allowBridges, CellStruct::Empty, false, false);
-
-				pCell = Map[nCell];
-				location = pThis->GetCoords();
-
-				if (pCell)
-					location = pCell->GetCoordsWithBridge();
-				else
-					location.Z = Map.GetCellFloorHeight(location);
-			}
-
-			if (auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
+			if (const auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
 			{
 				bool success = false;
 				if (const auto pExt = AnimExt::ExtMap.Find(pThis))
@@ -115,10 +98,10 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 					if (pCell)
 						pTechno->OnBridge = pCell->ContainsBridge();
 
-					BuildingClass* pBuilding = pCell ?
+					const BuildingClass* pBuilding = pCell ?
 					pCell->GetBuilding() : Map[location]->GetBuilding();
 
-					if (!pBuilding)
+					if (!pBuilding && !pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 					{
 						++Unsorted::IKnowWhatImDoing;
 						success = pTechno->Unlimbo(location, resultingFacing);
@@ -131,6 +114,9 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 
 					if (success)
 					{
+						//if (const auto pFoot = generic_cast<FootClass*>(pTechno))
+							//if (const auto pLoco = pFoot->Locomotor.get())
+								//pLoco->Process();
 
 						if (!decidedOwner->IsNeutral() && !unit->Insignificant) {
 							decidedOwner->RegisterGain(pTechno, false);

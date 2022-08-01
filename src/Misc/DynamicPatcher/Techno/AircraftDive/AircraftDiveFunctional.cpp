@@ -29,22 +29,11 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 	CoordStruct targetPos = pTarget->GetCoords();
 
 	int distance = pTypeExt->MyDiveData.Distance;
-	int nBackupDistance = pTechno->GetTechnoType()->GuardRange;
-
-	if (distance == 0)
-	{
-		int const weaponIndex = pTechno->SelectWeapon(pTarget);
-		auto const pWeaponStruct = pTechno->GetWeapon(weaponIndex);
-
-		if (!pWeaponStruct)
-			distance = nBackupDistance;
-
-		auto const pWeaponType = pWeaponStruct->WeaponType;
-
-		if (!pWeaponType)
-			distance = nBackupDistance;
-
-		distance = pWeaponType->Range * 2;
+	if (distance == 0) {
+		distance = pTechno->GetTechnoType()->GuardRange;
+		if (auto const pWeaponStruct = pTechno->GetWeapon(pTechno->SelectWeapon(pTarget)))
+			if (auto const pWeaponType = pWeaponStruct->WeaponType)
+				distance = pWeaponType->Range * 2;
 	}
 
 	if (location.DistanceFrom(targetPos) < distance && pExt->MyDiveData.CanDive)

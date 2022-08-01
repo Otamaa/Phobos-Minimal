@@ -16,6 +16,7 @@ class PhobosTrajectory;
 class BulletExt
 {
 public:
+	static constexpr size_t Canary = 0x2A2A2A2A;
 	using base_type = BulletClass;
 
 	class ExtData final : public Extension<BulletClass>

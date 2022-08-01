@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<TiberiumClass>::Canary = 0xB16B00B5;
 TiberiumExt::ExtContainer TiberiumExt::ExtMap;
 
 TiberiumExt::ExtData* TiberiumExt::GetExtData(TiberiumExt::base_type* pThis)

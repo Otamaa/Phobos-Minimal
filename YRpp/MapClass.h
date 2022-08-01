@@ -537,6 +537,10 @@ public:
 		JMP_THIS(0x568350);
 	}
 
+	bool Is_In_Same_Zone_56D100(CellStruct* cell1, CellStruct* cell2, MovementZone mzone, bool isbridge1, bool isbridge2, bool skip_zone) const {
+		JMP_THIS(0x56D100);
+	}
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

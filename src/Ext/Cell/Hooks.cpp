@@ -47,7 +47,6 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 	const auto pPalette = FileSystem::x_PAL.get();
 	int nOreTint = 1000;
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
-	//this is just pointers to files in ram, no vector #tomsons26
 
 	if (const auto pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(pThis->GetContainedTiberiumIndex()))) {
 			//pPalette = pTibExt->Ore_Palette.GetOrDefaultConvert(pPalette);
@@ -57,7 +56,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 
 	SHPStruct* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)
-		pZShape = IsometricTileTypeClass::SlopeZshape[nSlope];
+		pZShape = IsometricTileTypeClass::SlopeZshape[nSlope];	//this is just pointers to files in ram, no vector #tomsons26
 
 	DSurface::Temp->DrawSHP(pPalette, pShape, pThis->OverlayData, &nPos, pBound, BlitterFlags(0x4E00), 0, nZAdjust, ZGradient::Ground, nOreTint, 0, pZShape, 0, 0, 0);
 	DSurface::Temp->DrawSHP(pPalette, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);

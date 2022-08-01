@@ -591,42 +591,7 @@ public:
 	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
 	static BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
 
-	static TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell = nullptr)
-	{
-		if (pType)
-		{
-			auto const pTechno = generic_cast<TechnoClass*>(pType->CreateObject(pHouse));
-			bool UnlimboSuccess = false;
-
-			if (!pCell && location != CoordStruct::Empty)
-				pCell = Map[location];
-
-			if (pCell)
-			{
-				const auto occFlags = pCell->OccupationFlags;
-				pTechno->OnBridge = pCell->ContainsBridge();
-				++Unsorted::IKnowWhatImDoing;
-				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), Direction::E);
-				--Unsorted::IKnowWhatImDoing;
-
-				if (UnlimboSuccess)
-				{
-					pCell->OccupationFlags = occFlags;
-					pTechno->SetLocation(location);
-					return pTechno;
-				}
-				else
-				{
-					if (pTechno) {
-						pTechno->UnInit();
-						//	GameDelete(pTechno);
-					}
-				}
-			}
-		}
-
-		return nullptr;
-	}
+	static TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell = nullptr);
 
 	static ValueableVector<BulletClass*> GetCellSpreadBullets(CoordStruct& location, double spread)
 	{

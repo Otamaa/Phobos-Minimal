@@ -3,7 +3,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
-template<> const DWORD Extension<BulletTypeClass>::Canary = 0xF00DF00D;
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
@@ -27,6 +26,7 @@ void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 	if (TrajectoryType)
 		TrajectoryType->InvalidatePointer(ptr, bRemoved);
 }
+
 bool BulletTypeExt::ExtData::HasSplitBehavior()
 {
 	// behavior in FS: Splits defaults to Airburst.
@@ -98,6 +98,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->Splits_Range.Read(exINI, pSection, "Splits.TechnoRange");
 	this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
+	this->Splits_TargetingUseVerses.Read(exINI, pSection ,"Splits.TargetingUseVerses");
 
 	if (!pArtInI->GetSection(pArtSection))
 		pArtSection = pSection;
@@ -162,6 +163,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AirburstWeapons)
 		.Process(this->Splits_Range)
 		.Process(this->Splits_RandomCellUseHarcodedRange)
+		.Process(this->Splits_TargetingUseVerses)
 		.Process(this->BounceAmount)
 		.Process(this->BounceHitWeapon)
 		.Process(this->BounceOnTerrain)

@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<SmudgeTypeClass>::Canary = 0xBEE75008;
 SmudgeTypeExt::ExtContainer SmudgeTypeExt::ExtMap;
 
 void SmudgeTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)

@@ -2,9 +2,10 @@
 
 #include <CoordStruct.h>
 #include <Utilities/SavegameDef.h>
+#include <Utilities/BaseClassTemplates.h>
 
 class WeaponTypeClass;
-class VerticalLaserClass
+class VerticalLaserClass final : public BaseClassTemplate
 {
 	bool Expired;
 public:
@@ -22,33 +23,17 @@ public:
 
 	VerticalLaserClass();
 	VerticalLaserClass(WeaponTypeClass* Weapon ,CoordStruct From , int Height);
-	~VerticalLaserClass() = default;
+	virtual ~VerticalLaserClass() = default;
 
 	void AI();
 	CoordStruct GetCoords(int start , int i , int increase);
 	void Draw(const CoordStruct& from, const CoordStruct& to);
 	void DealDamage(const CoordStruct& to);
 	void AI(int start, int count);
-	bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
-	bool Save(PhobosStreamWriter& stm) const { return true; }
 
-	static std::vector<VerticalLaserClass*> Array;
+	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
+	virtual bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
+	virtual bool Save(PhobosStreamWriter& stm) const { return true; }
 
-	static void Draw_All();
-	static void Clear();
-
-	bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return Stm
-			.Process(Array)
-			.Success();
-	}
-
-	bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return Stm
-			.Process(Array)
-			.Success();
-	}
-
+	GlobalBaseClassTemplate(VerticalLaserClass)
 };

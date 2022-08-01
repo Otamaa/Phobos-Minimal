@@ -65,6 +65,10 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 				pBld->Place(false);
 
 			pBld->IsReadyToCommence = true;
+
+			if (pThis->Param3 > 1 && SessionClass::Instance->GameMode == GameMode::Campaign)
+				pBld->ShouldRebuild = true;
+
 			bCreated = true;
 		}
 	}

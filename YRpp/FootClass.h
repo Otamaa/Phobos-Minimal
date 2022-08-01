@@ -37,6 +37,8 @@ public:
 	//TechnoClass
 	virtual void Destroyed(ObjectClass* Killer) RX;
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
+	virtual bool IsInSameZoneAs(AbstractClass* pTarget) override JMP_THIS(0x4DBA50);
+	virtual bool IsInSameZone(const CoordStruct* nZone) override JMP_THIS(0x4D3810);
 
 	//FootClass
 	virtual void ReceiveGunner(FootClass* Gunner) RX;

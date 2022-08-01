@@ -9,6 +9,7 @@
 class TeamTypeExt
 {
 public:
+	static constexpr size_t Canary = 0xBEE79008;
 	using base_type = TeamTypeClass;
 
 	class ExtData final : public Extension<TeamTypeClass>
@@ -17,10 +18,12 @@ public:
 
 		Nullable<int> AI_SafeDIstance;
 		Nullable<int> AI_FriendlyDistance;
+		Valueable<bool> AttackWaypoint_AllowCell;
 
 		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
 			, AI_SafeDIstance { }
 			, AI_FriendlyDistance { }
+			, AttackWaypoint_AllowCell { true }
 		{ }
 
 		virtual ~ExtData() = default;

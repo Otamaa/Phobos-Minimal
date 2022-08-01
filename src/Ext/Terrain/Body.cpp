@@ -1,7 +1,6 @@
 #include "Body.h"
 #include <Ext/TerrainType/Body.h>
 
-template<> const DWORD Extension<TerrainClass>::Canary = 0xE1E2E3E4;
 TerrainExt::ExtContainer TerrainExt::ExtMap;
 
 void TerrainExt::ExtData::InitializeConstants() {

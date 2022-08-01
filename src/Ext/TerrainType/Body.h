@@ -9,6 +9,7 @@
 class TerrainTypeExt
 {
 public:
+	static constexpr size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
 
 	class ExtData final : public Extension<TerrainTypeClass>

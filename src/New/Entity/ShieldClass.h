@@ -2,20 +2,33 @@
 
 #include <GeneralStructures.h>
 #include <SpecificStructures.h>
+#include <Utilities/BaseClassTemplates.h>
 #include <Ext/TechnoType/Body.h>
 
 class TechnoClass;
 class WarheadTypeClass;
 
-class ShieldClass final
+class ShieldClass final : public BaseClassTemplate , public BaseBehaviourClass
 {
 public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
-	~ShieldClass() = default;
+	virtual ~ShieldClass() = default;
 
-	int ReceiveDamage(args_ReceiveDamage* args);
+	virtual void OnInit() { }
+	virtual void OnUnInit() { }
+	virtual void OnDetonate(CoordStruct* location) { }
+	virtual void OnPut(CoordStruct pCoord, short faceDirValue8) { }
+	virtual void OnRemove();
+	virtual void OnReceiveDamage(args_ReceiveDamage* args);
+	virtual void OnFire(AbstractClass* pTarget, int weaponIndex) { }
+
+	virtual void OnSelect(bool& selectable) { }
+	virtual void OnGuardCommand() { }
+	virtual void OnStopCommand() { }
+	virtual void OnDeploy() { }
+
 	bool CanBeTargeted(WeaponTypeClass* pWeapon) const;
 	bool CanBePenetrated(WarheadTypeClass* pWarhead) const;
 
@@ -25,11 +38,10 @@ public:
 
 	void KillAnim();
 
-	void AI_Temporal();
-	void AI();
+	virtual void OnTemporalUpdate(TemporalClass* pTemporal);
+	virtual void OnUpdate();
 
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	void InvalidatePointer(void* ptr);
 
 	double GetHealthRatio() const;
 	void SetHP(int amount);
@@ -48,8 +60,9 @@ public:
 	bool IsYellowSP();
 	bool IsRedSP();
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm) const;
+	virtual void InvalidatePointer(void* ptr, bool bDetach);
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	virtual bool Save(PhobosStreamWriter& Stm) const;
 
 private:
 	template <typename T>
@@ -81,24 +94,13 @@ private:
 
 	/// Properties ///
 	TechnoClass* Techno;
-	char TechnoID[0x18];
+	std::string TechnoID;
 	int HP;
 
-	struct Timers
-	{
-		Timers() :
-			SelfHealing { }
-			, SelfHealing_Warhead { }
-			, Respawn { }
-			, Respawn_Warhead { }
-		{ }
-
-		TimerStruct SelfHealing;
-		TimerStruct SelfHealing_Warhead;
-		TimerStruct Respawn;
-		TimerStruct Respawn_Warhead;
-
-	} Timers;
+		TimerStruct Timers_SelfHealing;
+		TimerStruct Timers_SelfHealing_Warhead;
+		TimerStruct Timers_Respawn;
+		TimerStruct Timers_Respawn_Warhead;
 
 	AnimClass* IdleAnim;
 	bool Cloak;

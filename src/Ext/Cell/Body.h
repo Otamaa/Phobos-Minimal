@@ -10,6 +10,7 @@
 class CellExt
 {
 public:
+	static constexpr size_t Canary = 0x87688621;
 	using base_type = CellClass;
 
 	class ExtData final : public Extension<CellClass>

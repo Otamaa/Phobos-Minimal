@@ -9,7 +9,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include "Trajectories/PhobosTrajectory.h"
 
-template<> const DWORD Extension<BulletClass>::Canary = 0x2A2A2A2A;
 BulletExt::ExtContainer BulletExt::ExtMap;
 
 BulletExt::ExtData* BulletExt::GetExtData(BulletExt::base_type* pThis)
@@ -47,39 +46,38 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto pRadType = pWeaponExt->RadType;
 
-	if (!RadSiteExt::ExtMap.empty())
-	{
-		auto const it = std::find_if(RadSiteExt::ExtMap.begin(), RadSiteExt::ExtMap.end(),
+		auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
 			[=](auto const pSite) {
 
-				if (pSite.second->Type != pRadType)
+				auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
+				if (pRadExt->Type != pRadType)
 					return false;
 
-				if (Map[pSite.first->BaseCell] != Map[Cell])
+				if (Map[pSite->BaseCell] != Map[Cell])
 					return false;
 
-				if (Spread != pSite.first->Spread)
+				if (Spread != pSite->Spread)
 					return false;
 
-				if (pWeapon != pSite.second->Weapon)
+				if (pWeapon != pRadExt->Weapon)
 					return false;
 
-				if (pSite.second->TechOwner && pThis->Owner)
-					return pSite.second->TechOwner == pThis->Owner;
+				if (pRadExt->TechOwner && pThis->Owner)
+					return pRadExt->TechOwner == pThis->Owner;
 
 				return true;
 			});
 
-		if (it != RadSiteExt::ExtMap.end()) {
-			if ((*it).first->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
-				RadLevel = pRadType->GetLevelMax() - (*it).first->GetRadLevel();
+		if (it != RadSiteClass::Array_Constant->end()) {
+			if ((*it)->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
+				RadLevel = pRadType->GetLevelMax() - (*it)->GetRadLevel();
 			}
 
+			auto const pRadExt = RadSiteExt::ExtMap.Find((*it));
 			// Handle It
-			(*it).second->Add(RadLevel);
+			pRadExt->Add(RadLevel);
 			return;
 		}
-	}
 
 	RadSiteExt::CreateInstance(Cell, Spread, RadLevel, pWeaponExt, pThis->Owner);
 }

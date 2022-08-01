@@ -25,6 +25,43 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 	return GetFLHAbsoluteCoords(pTechno, flh, isOnTurret, flipY, turretOffset, nextFrame);
 }
 
+TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell)
+{
+	if (pType)
+	{
+		auto const pTechno = generic_cast<TechnoClass*>(pType->CreateObject(pHouse));
+		bool UnlimboSuccess = false;
+
+		if (!pCell && location != CoordStruct::Empty)
+			pCell = Map[location];
+
+		if (pCell)
+		{
+			const auto occFlags = pCell->OccupationFlags;
+			pTechno->OnBridge = pCell->ContainsBridge();
+			++Unsorted::IKnowWhatImDoing;
+			UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), Direction::E);
+			--Unsorted::IKnowWhatImDoing;
+
+			if (UnlimboSuccess)
+			{
+				pCell->OccupationFlags = occFlags;
+				pTechno->SetLocation(location);
+				return pTechno;
+			}
+			else
+			{
+				if (pTechno)
+				{
+					TechnoExt::HandleRemove(pTechno);
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
 void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, FireBulletToTarget callback,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
 {
 	if (!pTarget)

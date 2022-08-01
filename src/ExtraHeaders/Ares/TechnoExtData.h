@@ -1,0 +1,53 @@
+#pragma once
+
+#include <Base/Always.h>
+
+struct AresTechnoExtData
+{
+	DWORD dword0;
+	DWORD dword4;
+	DWORD dword8;
+	DWORD dwordC;
+	DWORD dword10;
+	DWORD dword14;
+	DWORD dword18;
+	DWORD dword1C;
+	DWORD dword20;
+	DWORD dword24;
+	DWORD dword28;
+	DWORD dword2C;
+	WORD word30;
+	BYTE gap32[2];
+	DWORD dword34;
+	DWORD dword38;
+	DWORD dword3C;
+	DWORD dword40;
+	DWORD dword44;
+	DWORD dword48;
+	DWORD dword4C;
+	DWORD dword50;
+	DWORD dword54;
+	DWORD dword58;
+	DWORD dword5C;
+	DWORD dword60;
+	DWORD dword64;
+	DWORD dword68;
+	DWORD dword6C;
+	DWORD dword70;
+	BYTE gap74[4];
+	double ROFMult;
+	double FirePowerMult;
+	double ArmorMult;
+	double SpeedMult;
+	BYTE byte98;
+	WORD word99;
+	BYTE gap9B;
+	BYTE DiverKilled;
+	BYTE gap9D;
+	WORD word9E;
+	DWORD dwordA0;
+	DWORD dwordA4;
+	DWORD dwordA8;
+	DWORD dwordAC;
+	BYTE byteB0;
+};

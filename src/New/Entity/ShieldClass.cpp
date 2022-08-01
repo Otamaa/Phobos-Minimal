@@ -15,13 +15,19 @@
 
 ShieldClass::ShieldClass() : Techno { nullptr }
 , HP { 0 }
-, Timers { }
+, Timers_SelfHealing { }
+, Timers_SelfHealing_Warhead { }
+, Timers_Respawn { }
+, Timers_Respawn_Warhead { }
 { }
 
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , TechnoID { }
 , HP { 0 }
-, Timers { }
+, Timers_SelfHealing { }
+, Timers_SelfHealing_Warhead { }
+, Timers_Respawn { }
+, Timers_Respawn_Warhead { }
 , IdleAnim { nullptr }
 , Cloak { false }
 , Online { true }
@@ -37,7 +43,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 {
 	this->UpdateType();
 	SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
-	strcpy(this->TechnoID, this->Techno->get_ID());
+	this->TechnoID = this->Techno->get_ID();
 }
 
 void ShieldClass::UpdateType()
@@ -52,10 +58,10 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Techno)
 		.Process(this->TechnoID)
 		.Process(this->HP)
-		.Process(this->Timers.SelfHealing)
-		.Process(this->Timers.SelfHealing_Warhead)
-		.Process(this->Timers.Respawn)
-		.Process(this->Timers.Respawn_Warhead)
+		.Process(this->Timers_SelfHealing)
+		.Process(this->Timers_SelfHealing_Warhead)
+		.Process(this->Timers_Respawn)
+		.Process(this->Timers_Respawn_Warhead)
 		.Process(this->IdleAnim)
 		.Process(this->Cloak)
 		.Process(this->Online)
@@ -66,9 +72,10 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->SelfHealing_Rate_Warhead)
 		.Process(this->Respawn_Warhead)
 		.Process(this->Respawn_Rate_Warhead)
-		.Process(this->Type)
 		.Process(this->LastBreakFrame)
 		.Process(this->LastTechnoHealthRatio)
+		.Process(this->Type)
+
 		.Success();
 }
 
@@ -88,14 +95,14 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	const auto pFromExt = TechnoExt::GetExtData(pFrom);
 	const auto pToExt = TechnoExt::GetExtData(pTo);
 
-	if (!pToExt && !pFromExt)
+	if (!pToExt || !pFromExt)
 		return;
 
 	if (pFromExt->Shield)
 	{
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
 		pToExt->Shield = std::make_unique<ShieldClass>(pTo);
-		strcpy(pToExt->Shield->TechnoID, pFromExt->Shield->TechnoID);
+		pToExt->Shield->TechnoID = pFromExt->Shield->TechnoID;
 		pToExt->Shield->Available = pFromExt->Shield->Available;
 		pToExt->Shield->HP = pFromExt->Shield->HP;
 	}
@@ -103,6 +110,8 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->Shield)
 		pFromExt->Shield = nullptr;
 }
+
+void ShieldClass::OnRemove() { KillAnim(); }
 
 bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 {
@@ -115,14 +124,13 @@ bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 	return false;
 }
 
-int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
+void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 {
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
-	if (!this->HP || this->Temporal || *args->Damage == 0 ||
-		this->Techno->IsIronCurtained() || CanBePenetrated(pWHExt->Get()))
-	{
-		return *args->Damage;
+	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0 ||
+		this->Techno->IsIronCurtained() || CanBePenetrated(pWHExt->Get())) {
+		return;
 	}
 
 	int nDamage = 0;
@@ -148,11 +156,13 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 	if (Phobos::Debug_DisplayDamageNumbers && shieldDamage != 0)
 		TechnoExt::DisplayDamageNumberString(this->Techno, shieldDamage, true);
 
+	int nDamageResult = 0;
+
 	if (shieldDamage > 0)
 	{
-		const int rate = this->Timers.SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+		const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
 
-		this->Timers.SelfHealing.Start(rate); // when attacked, restart the timer
+		this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
 		this->ResponseAttack();
 
 		if (pWHExt->DecloakDamagedTargets)
@@ -166,7 +176,7 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 
 			this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
 
-			return this->Type->AbsorbOverDamage ? healthDamage : residueDamage + healthDamage;
+			nDamageResult = this->Type->AbsorbOverDamage ? healthDamage : residueDamage + healthDamage;
 		}
 		else
 		{
@@ -175,7 +185,7 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 
 			UpdateIdleAnim();
 
-			return healthDamage;
+			nDamageResult = healthDamage;
 		}
 	}
 	else if (shieldDamage < 0)
@@ -187,7 +197,7 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 			if (result * GeneralUtils::GetWarheadVersusArmor(args->WH, this->Techno->GetTechnoType()->Armor) > 0)
 				result = 0;
 
-			return result;
+			nDamageResult = result;
 		}
 
 		const int nRemainLostHP = nLostHP + shieldDamage;
@@ -199,11 +209,15 @@ int ShieldClass::ReceiveDamage(args_ReceiveDamage* args)
 
 		UpdateIdleAnim();
 
-		return 0;
+		nDamageResult = 0;
 	}
 
 	// else if (nDamage == 0)
-	return healthDamage;
+	nDamageResult = healthDamage;
+
+	if (nDamageResult >= 0)
+		*args->Damage = nDamageResult;
+
 }
 
 void ShieldClass::ResponseAttack() const
@@ -265,13 +279,13 @@ bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const
 	return pWHExt->Shield_Penetrate;
 }
 
-void ShieldClass::AI_Temporal()
+void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 {
 	if (!this->Temporal)
 	{
 		this->Temporal = true;
 
-		const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
+		const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 		timer->Pause();
 
 		this->CloakCheck();
@@ -301,7 +315,7 @@ void ShieldClass::AI_Temporal()
 	}
 }
 
-void ShieldClass::AI()
+void ShieldClass::OnUpdate()
 {
 	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
 		return;
@@ -357,7 +371,7 @@ void ShieldClass::OnlineCheck()
 	if (!this->Type->Powered)
 		return;
 
-	const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
+	const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 
 	auto pTechno = this->Techno;
 	bool isActive = !(pTechno->Deactivated || pTechno->IsUnderEMP());
@@ -416,7 +430,7 @@ void ShieldClass::TemporalCheck()
 
 	this->Temporal = false;
 
-	const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
+	const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 	timer->Resume();
 
 	if (this->IdleAnim)
@@ -431,7 +445,7 @@ bool ShieldClass::ConvertCheck()
 {
 	const auto newID = this->Techno->get_ID();
 
-	if (CRT::strcmp(this->TechnoID, newID) == 0)
+	if (this->TechnoID == newID)
 		return false;
 
 	const auto pTechnoExt = TechnoExt::GetExtData(this->Techno);
@@ -472,7 +486,7 @@ bool ShieldClass::ConvertCheck()
 	}
 	else
 	{
-		const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
+		const auto timer = (this->HP <= 0) ? &this->Timers_Respawn : &this->Timers_SelfHealing;
 		if (pNewType->Strength && !this->Available)
 		{ // Resume this shield when became Available
 			timer->Resume();
@@ -486,7 +500,7 @@ bool ShieldClass::ConvertCheck()
 		}
 	}
 
-	strcpy(this->TechnoID, newID);
+	this->TechnoID = newID;
 
 	return false;
 }
@@ -494,8 +508,8 @@ bool ShieldClass::ConvertCheck()
 void ShieldClass::SelfHealing()
 {
 	const auto pType = this->Type;
-	const auto timer = &this->Timers.SelfHealing;
-	const auto timerWH = &this->Timers.SelfHealing_Warhead;
+	const auto timer = &this->Timers_SelfHealing;
+	const auto timerWH = &this->Timers_SelfHealing_Warhead;
 
 	if (timerWH->Expired() && timer->InProgress())
 	{
@@ -544,7 +558,7 @@ int ShieldClass::GetPercentageAmount(double iStatus) const
 	return (int)trunc(iStatus);
 }
 
-void ShieldClass::InvalidatePointer(void* ptr)
+void ShieldClass::InvalidatePointer(void* ptr, bool bDetach)
 {
 	if (this->IdleAnim == ptr)
 		this->KillAnim();
@@ -555,9 +569,9 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	this->HP = 0;
 
 	if (this->Type->Respawn)
-		this->Timers.Respawn.Start(Timers.Respawn_Warhead.InProgress() ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
+		this->Timers_Respawn.Start(Timers_Respawn_Warhead.InProgress() ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
 
-	this->Timers.SelfHealing.Stop();
+	this->Timers_SelfHealing.Stop();
 
 	this->KillAnim();
 
@@ -582,8 +596,8 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 
 void ShieldClass::RespawnShield()
 {
-	const auto timer = &this->Timers.Respawn;
-	const auto timerWH = &this->Timers.Respawn_Warhead;
+	const auto timer = &this->Timers_Respawn;
+	const auto timerWH = &this->Timers_Respawn_Warhead;
 
 	if (this->HP <= 0 && timer->Completed())
 	{
@@ -601,8 +615,8 @@ void ShieldClass::RespawnShield()
 
 void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTimer)
 {
-	const auto timer = &this->Timers.Respawn;
-	const auto timerWH = &this->Timers.Respawn_Warhead;
+	const auto timer = &this->Timers_Respawn;
+	const auto timerWH = &this->Timers_Respawn_Warhead;
 
 	this->Respawn_Warhead = amount > 0 ? amount : Type->Respawn;
 	this->Respawn_Rate_Warhead = rate >= 0 ? rate : Type->Respawn_Rate;
@@ -623,8 +637,8 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool resetTi
 
 void ShieldClass::SetSelfHealing(int duration, double amount, int rate, bool resetTimer)
 {
-	auto timer = &this->Timers.SelfHealing;
-	auto timerWH = &this->Timers.SelfHealing_Warhead;
+	auto timer = &this->Timers_SelfHealing;
+	auto timerWH = &this->Timers_SelfHealing_Warhead;
 
 	this->SelfHealing_Warhead = amount;
 	this->SelfHealing_Rate_Warhead = rate >= 0 ? rate : Type->SelfHealing_Rate;

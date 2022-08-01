@@ -463,14 +463,66 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	return 0;
 }
 
-/*
+#ifdef IC_AFFECT
+//https://github.com/Phobos-developers/Phobos/pull/674
+DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(HouseClass*, pSource, 0x8);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->IronCurtain_Affect.isset())
+	{
+		if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::Kill) {
+			R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
+			return 0x457CDB;
+		}
+		else if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::NoAffect) {
+			R->EAX(DamageState::Unaffected);
+			return 0x457CDB;
+		}
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
-	if (pTypeExt->CanBeIronCurtain)
+	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
+	const TechnoTypeClass* pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
+
+	if (pType->Organic || pThis->WhatAmI() == AbstractType::Infantry)
+	{
+		if (pTypeExt->IronCurtain_Affect.isset())
+			ironAffect = pTypeExt->IronCurtain_Affect.Get();
+		else
+			ironAffect = RulesExt::Global()->IronCurtainToOrganic.Get();
+	}
+	else
+	{
+		if (pTypeExt->IronCurtain_Affect.isset())
+			ironAffect = pTypeExt->IronCurtain_Affect.Get();
+	}
+
+	if (ironAffect == IronCurtainAffects::Kill)
+	{
+		R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
+	}
+	else if (ironAffect == IronCurtainAffects::Affect)
+	{
+		R->ESI(pThis);
 		return 0x4DEB38;
-	return 0;
-}*/
+	}
+
+	R->EAX(DamageState::Unaffected);
+	return 0x4DEBA2;
+}
+#endif
+
 static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void*_ , int nDur , HouseClass* pSource , bool bIsFC) {
 	return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);
 }

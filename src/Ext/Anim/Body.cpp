@@ -5,8 +5,10 @@
 #include <ColorScheme.h>
 
 std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
-template<> const DWORD Extension<AnimExt::base_type>::Canary = 0xAAAAAAAA;
 AnimExt::ExtContainer AnimExt::ExtMap;
+
+void AnimExt::ExtData::InitializeConstants() {
+}
 
 AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
 {
@@ -71,7 +73,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 	{
 		if (!pTypeExt->NoOwner)
 		{
-			if (const auto pExt = AnimExt::GetExtData(pAnim))
+			if (const auto pExt = AnimExt::ExtMap.Find(pAnim))
 				pExt->Invoker = pTechnoInvoker;
 
 			if (!pTypeExt->CreateUnit.Get())

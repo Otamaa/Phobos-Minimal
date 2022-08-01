@@ -14,7 +14,6 @@
 //Static init
 #include <TagClass.h>
 
-template<> const DWORD Extension<TActionExt::base_type>::Canary = 0x87154321;
 TActionExt::ExtContainer TActionExt::ExtMap;
 
 template <typename T>

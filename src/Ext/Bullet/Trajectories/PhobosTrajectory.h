@@ -5,7 +5,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-#include <Utilities/Savegame.h>
+#include <Utilities/BaseClassTemplates.h>
 
 #include <BulletClass.h>
 
@@ -26,7 +26,7 @@ enum class TrajectoryCheckReturnType : int
 	Detonate = 3
 };
 
-class PhobosTrajectoryType
+class PhobosTrajectoryType : public ReadableBaseClassTemplate
 {
 public:
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
@@ -38,10 +38,9 @@ public:
 	{}
 
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
-	virtual bool Save(PhobosStreamWriter& Stm) const { return true; }
-
-	virtual void Read(CCINIClass* const pINI, const char* pSection) = 0;
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	virtual bool Save(PhobosStreamWriter& Stm) const;
+	virtual bool Read(CCINIClass* const pINI, const char* pSection);
 
 	virtual ~PhobosTrajectoryType() = default;
 	static void CreateType(PhobosTrajectoryType*& pType, CCINIClass* const pINI, const char* pSection, const char* pKey);
@@ -51,10 +50,6 @@ public:
 	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectoryType* pType);
 	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectoryType* pType);
 
-	//nonstatic but not virtuals !
-	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool SaveBase(PhobosStreamWriter& Stm) const;
-	bool ReadBase(INI_EX& exINI, const char* pSection);
 };
 
 
@@ -64,7 +59,7 @@ concept TrajectoryType = std::is_base_of<PhobosTrajectoryType, T>::value;
 //template<typename T>
 //concept Trajectory = std::is_base_of<PhobosTrajectory, T>::value;
 
-class PhobosTrajectory
+class PhobosTrajectory : public BaseClassTemplate
 {
 public:
 
@@ -84,12 +79,12 @@ public:
 	{ }
 
 	virtual ~PhobosTrajectory() {
-		Type = nullptr;
+		Type = nullptr; //TrajectoryType had its own way to destruct , don't do it here !
 	};
 
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true; }
-	virtual bool Save(PhobosStreamWriter& Stm) const { return true; };
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	virtual bool Save(PhobosStreamWriter& Stm) const;
 
 	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, VelocityClass* pVelocity) = 0;
 	virtual bool OnAI(BulletClass* pBullet) = 0;
@@ -108,9 +103,6 @@ public:
 	static PhobosTrajectory* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectory* pTraj);
 	static PhobosTrajectory* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);
 
-	//nonstatic but not virtuals !
-	bool LoadBase(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool SaveBase(PhobosStreamWriter& Stm) const;
 };
 
 /*

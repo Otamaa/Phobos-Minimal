@@ -101,6 +101,7 @@ public:
 	int ShrapnelCount;
 	int DetonationAltitude;
 	bool Vertical;
+	DWORD field_2C4;  //unused , can be used to store ExtData
 	double Elasticity;
 	int Acceleration;
 	int Color; //not a pointer , but index ! -Otamaa

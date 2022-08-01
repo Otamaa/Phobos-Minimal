@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<ScriptTypeClass>::Canary = 0x414B4B41;
 ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
 void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)

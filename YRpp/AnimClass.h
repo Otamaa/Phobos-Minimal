@@ -3,7 +3,7 @@
 */
 
 #pragma once
-
+#include <GlobalConfig.h>
 #include <ObjectClass.h>
 #include <AnimTypeClass.h>
 #include <BounceClass.h>
@@ -36,7 +36,7 @@ class AnimTypeClass;
 class BulletClass;
 class HouseClass;
 class LightConvertClass;
-
+#pragma pack(push, 4)
 class DECLSPEC_UUID("0E272DC3-9C0F-11D1-B709-00A024DDAFD1")
 	  NOVTABLE AnimClass : public ObjectClass
 {
@@ -176,4 +176,5 @@ public:
 	DECLARE_PROPERTY(AudioController, Audio3);
 	DECLARE_PROPERTY(AudioController, Audio4);
 };
-static_assert(sizeof(AnimClass) == 0x1C8, "Invalid size.");
+#pragma pack(pop)
+static_assert(sizeof(AnimClass) == (0x1C8), "Invalid size.");

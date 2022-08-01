@@ -118,32 +118,6 @@ void GiftBoxFunctional::TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtD
 	}
 }
 
-CellClass* GiftBox::GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
-{
-	CellStruct cell = CellClass::Coord2Cell(InOut);
-	auto const nDummy = GeneralUtils::AdjacentCellsInRange(nSpread);
-
-	size_t const max = nDummy.size();
-	for (size_t i = 0; i < max; i++) {
-		int index = ScenarioGlobal->Random(0, max - 1);
-		CellStruct const offset = nDummy[index];
-
-		if (offset == CellStruct::Empty)
-			continue;
-
-		if (auto pNewCell = MapClass::Instance->TryGetCellAt(cell + offset)) {
-			if (pNewCell->LandType != pIn->LandType || (EmptyCell && pNewCell->GetContent()))
-				continue;
-
-			InOut = pNewCell->GetCoordsWithBridge();
-			return pNewCell;
-			break;
-		}
-	}
-
-	return nullptr;
-}
-
 void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 {
 	auto const pHouse = pOwner->GetOwningHouse();
@@ -250,7 +224,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 			for (auto const& pTech : nOut) {
 
 				if (nData.RandomRange > 0)
-					if (auto const pNewCell = GetCell(pCell, location, (size_t)(nData.RandomRange.Get()), nData.EmptyCell))
+					if (auto const pNewCell = GeneralUtils::GetCell(pCell, location, (size_t)(nData.RandomRange.Get()), nData.EmptyCell))
 						pCell = pNewCell;
 
 				if (auto const pGift = Helpers_DP::CreateAndPutTechno(pTech, pHouse, location, pCell)) {
@@ -264,6 +238,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 							pOwnerHouse->RecheckTechTree = true;
 						}
 					}
+
 					if (auto pAir = specific_cast<AircraftClass*>(pGift)) {
 						if (pAir->IsInAir()) {
 							pAir->Tracker_4134A0();

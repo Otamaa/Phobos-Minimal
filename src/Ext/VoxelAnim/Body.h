@@ -20,6 +20,7 @@
 class VoxelAnimExt
 {
 public:
+	static constexpr size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
 
 	class ExtData final : public Extension<VoxelAnimClass>

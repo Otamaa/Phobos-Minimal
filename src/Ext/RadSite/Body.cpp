@@ -3,7 +3,6 @@
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
 
-template<> const DWORD Extension<RadSiteClass>::Canary = 0x87654321;
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()

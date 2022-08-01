@@ -2,7 +2,6 @@
 
 #include <Ext/Anim/Body.h>
 
-template<> const DWORD Extension<BombClass>::Canary = 0x87659781;
 BombExt::ExtContainer BombExt::ExtMap;
 BombClass* BombExt::BombTemp = nullptr;
 
@@ -97,14 +96,14 @@ DEFINE_HOOK(0x438BD0, BombClass_SaveLoad_Prefix, 0x8)
 
 DEFINE_HOOK(0x438BBD, BombClass_Load_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	BombExt::ExtMap.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x438BE4, BombClass_Save_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	BombExt::ExtMap.SaveStatic();
 	return 0;
 }

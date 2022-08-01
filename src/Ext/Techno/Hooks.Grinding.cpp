@@ -151,6 +151,35 @@ DEFINE_HOOK(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 	return 0;
 }
 
+#ifndef OriginalHooks
+DEFINE_HOOK(0x5198AD, InfantryClass_PerCellProcess_GrindingSound, 0x6)
+{
+	enum
+	{
+		Skip = 0x5198CE,
+		Continue = 0x0
+	};
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EBX);
+
+	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Skip : 0;
+}
+
+DEFINE_HOOK(0x73A1BC, UnitClass_PerCellProcess_GrindingSound, 0x7)
+{
+	enum
+	{
+		Skip = 0x73A1DE,
+		Continue = 0x0
+	};
+
+	GET(UnitClass*, pThis, EBP);
+	GET(BuildingClass*, pBuilding, EBX);
+
+	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Skip : 0;
+}
+#else
 DEFINE_HOOK(0x5198B3, InfantryClass_PerCellProcess_GrindingSound, 0x5)
 {
 	enum { Continue = 0x5198CE };
@@ -170,3 +199,4 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_GrindingSound, 0x5)
 
 	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Continue : 0;
 }
+#endif

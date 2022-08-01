@@ -17,6 +17,7 @@ struct ExtendedVariable
 class ScenarioExt
 {
 public:
+	static constexpr size_t Canary = 0xABCD1595;
 	using base_type = ScenarioClass;
 
 	class ExtData final : public Extension<ScenarioClass>

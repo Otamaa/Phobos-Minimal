@@ -11,12 +11,11 @@ public:
 		, MaxHeight { 1500.0 }
 	{ }
 
-	virtual ~ArtilleryTrajectoryType() override = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual ~ArtilleryTrajectoryType() = default;
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-
-	virtual void Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
 };
 
 class ArtilleryTrajectory final : public PhobosTrajectory
@@ -34,7 +33,7 @@ public:
 		, MaxHeight { 0.0 }
 	{}
 
-	virtual ~ArtilleryTrajectory() override = default;
+	virtual ~ArtilleryTrajectory() = default;
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;

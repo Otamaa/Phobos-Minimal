@@ -21,52 +21,7 @@
 // Parasite not removed when heal
 // Parasite Gain victim control instead of damaging
 
-void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
-{
-	#ifdef PARASITE_PIPS
-	{
-		//bool IsHost = false;
-		//bool IsSelected = false;					//Red         //Green           //White
-		//ColorScheme Color = IsSelected ? (IsHost ? {255, 0, 0} : {0, 255, 0}) : {255,255,255};
-		int xOffset = 0;
-		int yOffset = 0;
-
-		int nBracket = pThis->GetTechnoType()->PixelSelectionBracketDelta;
-		if (auto pFoot = generic_cast<FootClass*>(pThis->Disguise))
-			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player))
-				nBracket = pFoot->GetTechnoType()->PixelSelectionBracketDelta;
-
-		switch (pThis->WhatAmI())
-		{
-		case AbstractType::Unit:
-		case AbstractType::Aircraft:
-		{
-			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Units_Offset.Get();
-			xOffset = offset.X;
-			yOffset = offset.Y + nBracket;
-		}
-		break;
-		case AbstractType::Infantry:
-		{
-			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Infantry_Offset.Get();
-			xOffset = offset.X;
-			yOffset = offset.Y + nBracket;
-		}
-		break;
-		}
-
-		int pipFrame = 4;
-
-		Point2D position { pLocation->X + xOffset, pLocation->Y + yOffset };
-
-		auto flags = BlitterFlags::bf_400 | BlitterFlags::Centered;
-
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
-			pipFrame, &position, pBounds, flags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-	}
-	#endif
-}
-
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 {
 	//GET(ParasiteClass* const, pThis, ESI);
@@ -105,11 +60,15 @@ DEFINE_HOOK(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
 		ReceiveDamage_LikeVehicle = 0x62A0D3 // not instant kill the infantry , but give it damage per second
 	};
 
-	GET(ParasiteClass* const, pThis, ESI);
+	//GET(ParasiteClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const , pWeapon, EDI);
 	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	R->ECX(pThis->Victim);
-	return pWarheadExt && pWarheadExt->Parasite_TreatInfantryAsVehicle.Get() ? ReceiveDamage_LikeVehicle : ReceiveDamage;
+
+	if(pWarheadExt && pWarheadExt->Parasite_TreatInfantryAsVehicle.Get()){
+		return ReceiveDamage_LikeVehicle;
+	}
+
+	return ReceiveDamage;
 }
 
 DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x7)
@@ -122,6 +81,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x7)
 	return (pWarheadExt && pWarheadExt->Parasite_DisableRocking.Get()) || pThis->Victim->WhatAmI() == AbstractType::Infantry
 		? 0x62A222 : 0x0;
 }
+#endif
 
 DEFINE_HOOK(0x62A71C, ParasiteClass_ExitUnit_ExitSound, 0x6)
 {

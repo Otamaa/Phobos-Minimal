@@ -15,7 +15,7 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 #endif
-template<> const DWORD Extension<RulesClass>::Canary = 0x12341234;
+
 std::unique_ptr<RulesExt::ExtData> RulesExt::Data = nullptr;
 
 void RulesExt::Allocate(RulesClass* pThis)
@@ -136,6 +136,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SelectBrd_DrawOffset_Unit.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DrawOffset.Unit");
 	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");
 	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
+
+	this->AIRepairBaseNodes.Read(exINI, "Basic", "AIRepairBaseNodes");
 }
 
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
@@ -301,9 +303,11 @@ bool RulesExt::DetailsCurrentlyEnabled(int const minDetailLevel)
 		&& DetailsCurrentlyEnabled();
 }
 
-void RulesExt::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n"); }
+void RulesExt::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n");
+}
 
-void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n"); }
+void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n");
+}
 
 // =============================
 // load / save
@@ -356,6 +360,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SelectBrd_DefaultTranslucentLevel)
 		.Process(this->SelectBrd_DefaultShowEnemy)
+
+		.Process(this->AIRepairBaseNodes)
 
 		.Process(this->RadWarhead_Detonate)
 		.Process(this->RadHasOwner)
@@ -445,7 +451,7 @@ DEFINE_HOOK(0x678841, RulesClass_Load_Suffix, 0x7)
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(RulesExt::ExtData::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(RulesExt::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -458,7 +464,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	PhobosByteStream saver(sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(RulesExt::ExtData::Canary);
+	writer.Expect(RulesExt::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);
@@ -544,11 +550,11 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x9)
 		//these function only executed when ScenarioClass::ReadScenario return true (AL)
 		if (auto pRulesGlobal = RulesExt::Global()) {
 			pRulesGlobal->CivilianSideIndex = SideClass::FindIndex("Civilian");
-			Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
+			//Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
 			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexOfName("Neutral");
-			Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
+			//Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
 			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexOfName("Special");
-			Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
+			//Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
 		}
 	}
 

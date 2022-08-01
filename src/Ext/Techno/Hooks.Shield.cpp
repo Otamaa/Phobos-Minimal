@@ -22,13 +22,12 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x7) //was 6
 				if (!pShieldData->IsActive())
 					return 0;
 
-				const int nDamageLeft = pShieldData->ReceiveDamage(args);
-				if (nDamageLeft >= 0)
-					*args->Damage = nDamageLeft;
+				pShieldData->OnReceiveDamage(args);
 
 				if (auto const pTag = pThis->AttachedTag)
 					pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
-						CellStruct::Empty,false,args->Attacker);//where is this? is this correct?
+						CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
+
 			}
 		}
 	}
@@ -36,6 +35,34 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x7) //was 6
 	return 0;
 }
 
+/*
+DEFINE_HOOK(0x5F5399, ObjectClass_ReceiveDamage_Shield, 0xB)
+{
+	GET(ObjectClass*, pThis, ECX);
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFS(0x24,-0x4));
+
+	const auto pTechno = generic_cast<TechnoClass*>(pThis);
+
+	if (!args->IgnoreDefenses && pTechno) {
+		if (const auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
+			if (const auto pShieldData = pExt->GetShield())
+			{
+				if (pShieldData->IsActive()){
+
+					pShieldData->OnReceiveDamage(args);
+
+					if(!pShieldData->ReceiveDamageExecuted)
+					if (auto const pTag = pTechno->AttachedTag)
+						pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pTechno,
+							CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+*/
 DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -85,11 +112,13 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
 			pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 		// Create shield class instance if it does not exist.
-		if (pExt->CurrentShieldType && pExt->CurrentShieldType->Strength && !pExt->Shield)
+		if (pExt->CurrentShieldType && pExt->CurrentShieldType->Strength && !pExt->Shield){
 			pExt->Shield = std::make_unique<ShieldClass>(pThis);
+			pExt->Shield->OnInit();
+		}
 
 		if (const auto pShieldData = pExt->GetShield())
-			pShieldData->AI();
+			pShieldData->OnUpdate();
 	}
 
 	return 0;
@@ -100,14 +129,11 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x0)
 {
 	GET(TemporalClass*, pThis, ESI);
 
-	if (auto const pTarget = pThis->Target)
-	{
-		if (const auto pExt = TechnoExt::GetExtData(pTarget))
-		{
-			if (const auto pShieldData = pExt->GetShield())
-			{
+	if (auto const pTarget = pThis->Target) {
+		if (const auto pExt = TechnoExt::GetExtData(pTarget)) {
+			if (const auto pShieldData = pExt->GetShield()) {
 				if (pShieldData->IsAvailable())
-					pShieldData->AI_Temporal();
+					pShieldData->OnTemporalUpdate(pThis);
 			}
 		}
 	}
@@ -120,10 +146,9 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pExt = TechnoExt::GetExtData(pThis))
-	{
-		if (pExt->Shield)
-			pExt->Shield->KillAnim();
+	if (const auto pExt = TechnoExt::GetExtData(pThis)) {
+		if (const auto pShieldData = pExt->GetShield())
+			 pShieldData->OnRemove();
 	}
 
 	return 0;
@@ -139,6 +164,7 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //UnitCla
 	TechnoExt::SyncIronCurtainStatus(pFrom, pTo);
 	return 0;
 }
+
 #pragma region HealingWeapons
 
 #pragma region TechnoClass__Evaluate_Object

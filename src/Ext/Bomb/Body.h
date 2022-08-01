@@ -8,6 +8,7 @@
 class BombExt
 {
 public:
+	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
 
 	class ExtData final : public Extension<BombClass>

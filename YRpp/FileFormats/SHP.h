@@ -75,6 +75,8 @@ struct SHPStruct //header
 	short	Frames;
 };
 
+struct Theater_SHPStruct : SHPStruct { };
+
 struct SHPReference : public SHPStruct
 {
 	//=== GLOBAL LINKED LIST OF ALL LOADED SHP FILES

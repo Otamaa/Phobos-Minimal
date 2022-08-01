@@ -128,6 +128,7 @@ public:
 	int Spread;
 	double SpreadPercentage;
 	int Growth;
+	DWORD field_AC;  //unused , can be used to store ExtData
 	double GrowthPercentage;
 	int Value;
 	int Power;

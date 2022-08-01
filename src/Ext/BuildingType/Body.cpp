@@ -6,7 +6,6 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
 
-template<> const DWORD Extension<BuildingTypeClass>::Canary = 0x11111111;
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
 void BuildingTypeExt::ExtData::InitializeConstants() {
@@ -258,10 +257,11 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
 	{
-		if (GeneralUtils::IsValidString(Phobos::readBuffer))
+		auto pValue = Phobos::readBuffer;
+		if (GeneralUtils::IsValidString(pValue))
 		{
 			// we cannot load same SHP file twice it may produce artifact , prevent it !
-			if (CRT::strcmpi(Phobos::readBuffer, pSection) || CRT::strcmpi(Phobos::readBuffer, pArtSection))
+			if (CRT::strcmpi(pValue, pSection) || CRT::strcmpi(pValue, pArtSection))
 				this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
 			else
 				Debug::Log("Cannot Load PlacementPreview.Shape for [%s]Art[%s] ! \n", pSection, pArtSection);

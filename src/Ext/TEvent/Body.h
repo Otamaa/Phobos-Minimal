@@ -54,6 +54,7 @@ enum PhobosTriggerEvent
 class TEventExt
 {
 public:
+	static constexpr size_t Canary = 0x91919191;
 	using base_type = TEventClass;
 
 	class ExtData final : public Extension<TEventClass>

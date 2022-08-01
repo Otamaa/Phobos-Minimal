@@ -6,7 +6,6 @@
 #include <ScenarioClass.h>
 
 //Static init
-template<> const DWORD Extension<HouseClass>::Canary = 0x11111111;
 HouseExt::ExtContainer HouseExt::ExtMap;
 
 void HouseExt::ExtData::InitializeConstants() {
@@ -80,7 +79,7 @@ void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 {
 	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
 
-	if (!pThis || !pHouseExt)
+	if (!pHouseExt)
 		return;
 
 	if (mode < 0 || mode > 2)
@@ -227,7 +226,6 @@ DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 DEFINE_HOOK(0x4F7371, HouseClass_DTOR, 0x6)
 {
 	GET(HouseClass*, pItem, ESI);
-
 	HouseExt::ExtMap.Remove(pItem);
 	return 0;
 }
@@ -237,9 +235,7 @@ DEFINE_HOOK(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(HouseClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
-
 	HouseExt::ExtMap.PrepareStream(pItem, pStm);
-
 	return 0;
 }
 

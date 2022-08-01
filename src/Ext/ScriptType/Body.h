@@ -12,6 +12,7 @@
 class ScriptTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = ScriptTypeClass;
 
 	class ExtData final : public Extension<ScriptTypeClass>

@@ -15,6 +15,7 @@ class HouseTypeClass;
 class ObjectClass;
 class BuildingClass;
 
+//#pragma pack(push, 4)
 class NOVTABLE ObjectTypeClass : public AbstractTypeClass
 {
 public:
@@ -120,5 +121,6 @@ public:
 
 	IndexClass<int, int> VoxelCaches [4]; //These don't even seem to be of any use...
 };
+//#pragma pack(pop)
 
-//static_assert(sizeof(ObjectTypeClass) == 0x294);
+static_assert(sizeof(ObjectTypeClass) == 0x294);

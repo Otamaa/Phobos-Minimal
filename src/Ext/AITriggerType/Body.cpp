@@ -4,7 +4,6 @@
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
-template<> const DWORD Extension<AITriggerTypeClass>::Canary = 0x2C2C2C2C;
 AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
 
 // =============================
@@ -232,3 +231,41 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 	return;
 }
+
+#ifdef ENABLE_NEWHOOKS
+
+DEFINE_HOOK(0x41E471, AITriggerTypeClass_CTOR, 0x7)
+{
+	GET(AITriggerTypeClass*, pThis, ESI);
+	AITriggerTypeExt::ExtMap.FindOrAllocate(pThis);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x420066, AITriggerTypeClass_DTOR, 0x6)
+{
+	GET(AITriggerTypeClass*, pThis, ESI);
+	AITriggerTypeExt::ExtMap.Remove(pThis);
+	return 0x0;
+}
+
+DEFINE_HOOK_AGAIN(0x41E540 , AITriggerTypeClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x41E5C0, AITriggerTypeClass_SaveLoad_Prefix, 0x8)
+{
+	GET_STACK(AITriggerTypeClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+	AITriggerTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	return 0;
+}
+
+DEFINE_HOOK(0x41E5A1 , AITriggerTypeClass_Load_Suffix, 0x6)
+{
+	AITriggerTypeExt::ExtMap.LoadStatic();
+	return 0;
+}
+
+DEFINE_HOOK(0x41E5DA , AITriggerTypeClass_Save_Suffix, 0x5)
+{
+	AITriggerTypeExt::ExtMap.SaveStatic();
+	return 0;
+}
+#endif

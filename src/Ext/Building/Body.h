@@ -15,6 +15,7 @@
 class BuildingExt
 {
 public:
+	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
 
 	class ExtData final : public Extension<BuildingClass>

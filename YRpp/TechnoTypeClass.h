@@ -59,15 +59,6 @@ struct WeaponStruct
 	static bool __cdecl IsValid(WeaponStruct* WpStructe)
 		{ JMP_STD(0x70E240); }
 
-	WeaponStruct() : WeaponType(nullptr),
-		FLH(CoordStruct::Empty),
-		BarrelLength(0),
-		BarrelThickness(0),
-		TurretLocked(false)
-	{ }
-
-	bool operator == (const WeaponStruct& pWeap) const
-		{ return false; }
 };
 static_assert(sizeof(WeaponStruct) == 0x1C ,"Invalid size.");
 
@@ -189,7 +180,7 @@ public:
 	double          TargetDistanceCoefficient;
 	double          ThreatAvoidanceCoefficient;
 	int             SlowdownDistance;
-	DWORD           align_2FC;
+	DWORD           align_2FC;  //unused , can be used to store ExtData
 	double          DeaccelerationFactor; //300
 	double          AccelerationFactor;
 	int             CloakingSpeed;

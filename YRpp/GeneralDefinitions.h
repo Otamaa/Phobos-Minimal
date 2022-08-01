@@ -1335,6 +1335,8 @@ enum class DoType : int {
 	SecondaryProne = 41
 };
 
+//MAKE_ENUM_FLAGS(DoType);
+
 enum class DoTypeFacing : unsigned int {
 	N = 0,
 	NE = 1,

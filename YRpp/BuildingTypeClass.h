@@ -176,7 +176,7 @@ public:
 	BuildCat BuildCat;
 	CoordStruct HalfDamageSmokeLocation1;
 	CoordStruct HalfDamageSmokeLocation2;
-	DWORD align_E24;
+	DWORD align_E24;  //unused , can be used to store ExtData
 	double GateCloseDelay;
 	int LightVisibility;
 	int LightIntensity;

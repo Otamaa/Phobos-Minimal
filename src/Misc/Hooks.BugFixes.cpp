@@ -112,6 +112,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 	return 0;
 }
 
+#ifndef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -133,6 +134,7 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 
 	return 0x0;
 }
+#endif
 
 /*
 DEFINE_HOOK(0x5F53A1, ObjectClass_ReceiveDamage_DeathcCounter, 0x5)
@@ -332,15 +334,15 @@ DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
 
 DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 {
-	const auto pRulesExt = RulesExt::Global();
-	if (!pRulesExt)
-		return 0;
+	if (const auto pRulesExt = RulesExt::Global())
+	{
+		GET(CCINIClass*, pINI, EDI);
 
-	GET(CCINIClass*, pINI, EDI);
-	INI_EX exINI(pINI);
+		INI_EX exINI(pINI);
 
-	pRulesExt->JumpjetCrash.Read(exINI, "JumpjetControls", "Crash");
-	pRulesExt->JumpjetNoWobbles.Read(exINI, "JumpjetControls", "NoWobbles");
+		pRulesExt->JumpjetCrash.Read(exINI, "JumpjetControls", "Crash");
+		pRulesExt->JumpjetNoWobbles.Read(exINI, "JumpjetControls", "NoWobbles");
+	}
 
 	return 0;
 }
@@ -439,7 +441,6 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 
 // Fix the issue that SHP units doesn't apply IronCurtain or other color effects and doesn't accept EMP intensity
 // Author: secsome
-
 DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -583,7 +584,7 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 	switch (pThis->MissionStatus)
 	{
 	case 1: {
-		if (auto conyType = pThis->Type->DeploysInto) {
+		if (const auto conyType = pThis->Type->DeploysInto) {
 			if (conyType->ConstructionYard || conyType->WeaponsFactory)
 				pThis->QueueMission(Mission::Guard, false);
 		}

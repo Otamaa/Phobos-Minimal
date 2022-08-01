@@ -8,7 +8,6 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
 
-template<> const DWORD Extension<WarheadTypeClass>::Canary = 0x22222222;
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 void WarheadTypeExt::ExtData::Initialize()
 {

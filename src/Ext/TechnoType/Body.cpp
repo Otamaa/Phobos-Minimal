@@ -10,7 +10,6 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
 
-template<> const DWORD Extension<TechnoTypeClass>::Canary = 0x11111111;
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 
 void TechnoTypeExt::ExtData::Initialize()
@@ -129,6 +128,15 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX &exArtINI, const
 		}
 	}
 };
+
+void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
+{
+	char tempBuffer[32];
+	_snprintf_s(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
+	nFlh.Read(exArtINI, pArtSection, tempBuffer);
+	_snprintf_s(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
+	nEFlh.Read(exArtINI, pArtSection, tempBuffer);
+}
 
 void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
@@ -274,11 +282,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
 	this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransRate");
-	this->MobileRefinery_MaxAmount.Read(exINI, pSection, "MobileRefinery.MaxAmount");
+	this->MobileRefinery_CashMultiplier.Read(exINI, pSection, "MobileRefinery.CashMultiplier");
+	this->MobileRefinery_AmountPerCell.Read(exINI, pSection, "MobileRefinery.AmountPerCell");
 	this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
 	this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
 	this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
 	this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
+	this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
+	this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
 
 #pragma region Otamaa
 	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
@@ -387,6 +398,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
 
 	this->IsHero.Read(exINI, pSection, "Hero");
+	this->IsDummy.Read(exINI, pSection, "Dummy");
 
 	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
 	this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
@@ -396,6 +408,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
 	this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
 	this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+
+	this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowFireICedTarget");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
@@ -432,28 +446,17 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
 		isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
 
-		auto nTrail = trail.Get();
-		auto nFLH = flh.Get();
-		auto bOnTur = isOnTurret.Get();
-
-		this->LaserTrailData.emplace_back(nTrail, nFLH, bOnTur);
+		this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
 	}
 
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
 
-	this->PronePrimaryFireFLH.Read(exArtINI, pArtSection, "PronePrimaryFireFLH");
-	this->ProneSecondaryFireFLH.Read(exArtINI, pArtSection, "ProneSecondaryFireFLH");
-
-	this->E_PronePrimaryFireFLH.Read(exArtINI, pArtSection, "ElitePronePrimaryFireFLH");
-	this->E_ProneSecondaryFireFLH.Read(exArtINI, pArtSection, "EliteProneSecondaryFireFLH");
-
-	this->DeployedPrimaryFireFLH.Read(exArtINI, pArtSection, "DeployedPrimaryFireFLH");
-	this->DeployedSecondaryFireFLH.Read(exArtINI, pArtSection, "DeployedSecondaryFireFLH");
-
-	this->E_DeployedPrimaryFireFLH.Read(exArtINI, pArtSection, "EliteDeployedPrimaryFireFLH");
-	this->E_DeployedSecondaryFireFLH.Read(exArtINI, pArtSection, "EliteDeployedSecondaryFireFLH");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
 	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 	this->SellSound.Read(exINI, pSection, "SellSound");
@@ -476,11 +479,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->PrimaryCrawlFLH.Read(exArtINI, pArtSection, "PrimaryCrawlingFLH");
-	this->Elite_PrimaryCrawlFLH.Read(exArtINI, pArtSection, "ElitePrimaryCrawlingFLH");
 
-	this->SecondaryCrawlFLH.Read(exArtINI, pArtSection, "SecondaryCrawlingFLH");
-	this->Elite_SecondaryCrawlFLH.Read(exArtINI, pArtSection, "EliteSecondaryCrawlingFLH");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
+	TechnoTypeExt::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
 
 	this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 	this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
@@ -604,11 +605,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->MobileRefinery)
 		.Process(this->MobileRefinery_TransRate)
-		.Process(this->MobileRefinery_MaxAmount)
+		.Process(this->MobileRefinery_CashMultiplier)
+		.Process(this->MobileRefinery_AmountPerCell)
 		.Process(this->MobileRefinery_FrontOffset)
 		.Process(this->MobileRefinery_LeftOffset)
 		.Process(this->MobileRefinery_Display)
 		.Process(this->MobileRefinery_DisplayColor)
+		.Process(this->MobileRefinery_Anims)
+		.Process(this->MobileRefinery_AnimMove)
 
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)
@@ -729,6 +733,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Gattling_Overload_ParticleSys)
 		.Process(this->Gattling_Overload_ParticleSysCount)
 		.Process(this->IsHero)
+		.Process(this->IsDummy)
 
 		.Process(this->FireSelf_Weapon)
 		.Process(this->FireSelf_ROF)
@@ -738,6 +743,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FireSelf_ROF_YellowHeath)
 		.Process(this->FireSelf_Weapon_RedHeath)
 		.Process(this->FireSelf_ROF_RedHeath)
+		.Process(this->AllowFire_IroncurtainedTarget)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

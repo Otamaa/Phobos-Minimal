@@ -1,8 +1,5 @@
 #include "Body.h"
 
-
-template<> const DWORD Extension<VoxelAnimTypeClass>::Canary = 0xAAAEEEEE;
-
 VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
 
 VoxelAnimTypeExt::ExtData* VoxelAnimTypeExt::GetExtData(VoxelAnimTypeExt::base_type* pThis)

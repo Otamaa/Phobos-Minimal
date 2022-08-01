@@ -3,7 +3,6 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-template<> const DWORD Extension<VoxelAnimClass>::Canary = 0xAAACAACC;
 VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner)

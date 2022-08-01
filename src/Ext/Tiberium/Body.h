@@ -11,6 +11,7 @@ class AnimTypeClass;
 class TiberiumExt
 {
 public:
+	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
 
 	class ExtData final : public Extension<TiberiumClass>

@@ -4,31 +4,31 @@
 
 bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectoryType::Load(Stm, RegisterForChange);
 	Stm.Process(this->Height, false);
 	return true;
 }
 
 bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectoryType::Save(Stm);
 	Stm.Process(this->Height, false);
 	return true;
 }
 
-void BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
+bool BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
+	if (!this->PhobosTrajectoryType::Read(pINI, pSection))
+		return false;
+
 	INI_EX exINI { pINI };
-
-	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
-		return;
-
 	this->Height.Read(exINI, pSection, "Trajectory.Bombard.Height");
+	return true;
 }
 
 bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectory::Load(Stm, RegisterForChange);
 
 	Stm
 		.Process(this->IsFalling, false)
@@ -40,7 +40,7 @@ bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectory::Save(Stm);
 	Stm
 		.Process(this->IsFalling, false)
 		.Process(this->Height, false)

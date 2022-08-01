@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <GlobalConfig.h>
 #include <YRPP.h>
 #include <HouseTypeClass.h>
 #include <TeamTypeClass.h>
@@ -12,13 +13,15 @@
 //forward declarations
 class TechnoTypeClass;
 class TeamTypeClass;
-
+#pragma pack(push, 4)
 struct AITriggerConditionComparator
 {
 	int ComparatorType;
 	int ComparatorOperand;
 };
+#pragma pack(pop)
 
+#pragma pack(push, 4)
 class DECLSPEC_UUID("BA093524-4CF4-11D2-BC26-00104B8FB04D")
 	NOVTABLE AITriggerTypeClass : public AbstractTypeClass
 {
@@ -170,7 +173,7 @@ public:
 	int              HouseIndex;
 	int              SideIndex;
 	int              TechLevel;
-	int              unknown_B4;
+	int              unknown_B4; //this seems unsided ?
 	double           Weight_Current;
 	double           Weight_Minimum;
 	double           Weight_Maximum;
@@ -186,5 +189,7 @@ public:
 	int              TimesExecuted;
 	int              TimesCompleted;
 	int              unknown_10C;
-
 };
+#pragma pack(pop)
+
+static_assert(sizeof(AITriggerTypeClass) == (0x110), "Invalid Size");

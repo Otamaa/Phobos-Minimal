@@ -14,6 +14,7 @@
 class WarheadTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
 
 	class ExtData final : public Extension<WarheadTypeClass>

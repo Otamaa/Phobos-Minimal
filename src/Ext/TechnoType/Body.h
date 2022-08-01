@@ -2,6 +2,7 @@
 #include <TechnoTypeClass.h>
 
 #include <Helpers/Macro.h>
+#include <Utilities/BaseClassTemplates.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
@@ -26,6 +27,7 @@ class Matrix3D;
 class TechnoTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x11111111;
 	using base_type = TechnoTypeClass;
 
 	class ExtData final : public Extension<TechnoTypeClass>
@@ -137,14 +139,14 @@ public:
 		Valueable<bool> Passengers_SyncOwner;
 		Valueable<bool> Passengers_SyncOwner_RevertOnExit;
 
-		struct LaserTrailDataEntry
+		struct LaserTrailDataEntry : public SaveLoadBaseClassTemplate
 		{
 			int idxType;
 			CoordStruct FLH;
 			bool IsOnTurret;
 
-			bool Load(PhobosStreamReader& stm, bool registerForChange);
-			bool Save(PhobosStreamWriter& stm) const;
+			virtual bool Load(PhobosStreamReader& stm, bool registerForChange);
+			virtual bool Save(PhobosStreamWriter& stm) const;
 
 			// For some Fcking unknown reason `emplace_back` doesnt knowh the default contructor for this
 			LaserTrailDataEntry(int nIdx , const CoordStruct& nFlh , bool OnTur) :
@@ -158,6 +160,9 @@ public:
 				, FLH { 0,0,0 }
 				, IsOnTurret { false }
 			{ }
+
+			virtual ~LaserTrailDataEntry() = default;
+
 		private:
 			template <typename T>
 			bool Serialize(T& stm);
@@ -202,12 +207,15 @@ public:
 		NullableIdx<VocClass> SellSound;
 
 		Valueable<bool> MobileRefinery;
-		Valueable<float> MobileRefinery_TransRate;
-		Valueable<int> MobileRefinery_MaxAmount;
+		Valueable<int> MobileRefinery_TransRate;
+		Valueable<float> MobileRefinery_CashMultiplier;
+		Valueable<int> MobileRefinery_AmountPerCell;
 		ValueableVector<int> MobileRefinery_FrontOffset;
 		ValueableVector<int> MobileRefinery_LeftOffset;
 		Valueable<bool> MobileRefinery_Display;
-		Nullable<ColorStruct> MobileRefinery_DisplayColor;
+		Valueable<ColorStruct> MobileRefinery_DisplayColor;
+		ValueableVector<AnimTypeClass*> MobileRefinery_Anims;
+		Valueable<bool> MobileRefinery_AnimMove;
 
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
@@ -292,6 +300,7 @@ public:
 		Nullable<int> Gattling_Overload_ParticleSysCount;
 
 		Valueable<bool> IsHero;
+		Valueable<bool> IsDummy;
 
 		ValueableVector<WeaponTypeClass*> FireSelf_Weapon;
 		ValueableVector<int> FireSelf_ROF;
@@ -302,6 +311,7 @@ public:
 		ValueableVector<WeaponTypeClass*> FireSelf_Weapon_RedHeath;
 		ValueableVector<int> FireSelf_ROF_RedHeath;
 
+		Valueable<bool> AllowFire_IroncurtainedTarget;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -452,12 +462,13 @@ public:
 			, SellSound{ }
 
 			, MobileRefinery { false }
-			, MobileRefinery_TransRate { 1.0 }
-			, MobileRefinery_MaxAmount { 0 }
+			, MobileRefinery_TransRate { 30 }
+			, MobileRefinery_CashMultiplier { 1.0 }
+			, MobileRefinery_AmountPerCell { 0 }
 			, MobileRefinery_FrontOffset { }
 			, MobileRefinery_LeftOffset { }
 			, MobileRefinery_Display { true }
-			, MobileRefinery_DisplayColor { }
+			, MobileRefinery_DisplayColor { { 57,197,187 } }
 
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
@@ -559,6 +570,7 @@ public:
 			, Gattling_Overload_ParticleSys {}
 			, Gattling_Overload_ParticleSysCount {}
 			, IsHero { false }
+			, IsDummy { false }
 			, FireSelf_Weapon {}
 			, FireSelf_ROF {}
 			, FireSelf_Weapon_GreenHeath {}
@@ -567,6 +579,7 @@ public:
 			, FireSelf_ROF_YellowHeath {}
 			, FireSelf_Weapon_RedHeath {}
 			, FireSelf_ROF_RedHeath {}
+			, AllowFire_IroncurtainedTarget { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -627,6 +640,7 @@ public:
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
 
 	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag);
+	static void GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
 	static double GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules);

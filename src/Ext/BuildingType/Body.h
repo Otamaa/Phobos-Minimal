@@ -2,12 +2,13 @@
 #include <BuildingTypeClass.h>
 #include <SuperWeaponTypeClass.h>
 
+#include <Utilities/BaseClassTemplates.h>
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/DirClass.h>
 
-struct BuildSpeedBonus
+struct BuildSpeedBonus : public SaveLoadBaseClassTemplate
 {
 	bool Enabled;
 	double SpeedBonus_Aircraft;
@@ -66,12 +67,11 @@ struct BuildSpeedBonus
 			AffectedType.Read(parser, pSection, "BuildSpeedBonus.AffectedTypes");
 	}
 
-	bool Load(PhobosStreamReader& stm, bool registerForChange)
+	virtual bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return Serialize(stm);
 	}
-
-	bool Save(PhobosStreamWriter& stm) const
+	virtual bool Save(PhobosStreamWriter& stm) const
 	{
 		return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
 	}
@@ -96,6 +96,7 @@ private:
 class BuildingTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x11111111;
 	using base_type = BuildingTypeClass;
 
 	class ExtData final : public Extension<BuildingTypeClass>
@@ -124,7 +125,7 @@ public:
 		Valueable<Point2D> Grinding_DisplayRefund_Offset;
 
 		Nullable<bool> PlacementPreview_Show;
-		Nullable<SHPStruct*> PlacementPreview_Shape;
+		Nullable<Theater_SHPStruct*> PlacementPreview_Shape;
 		Nullable<int> PlacementPreview_ShapeFrame;
 		Valueable<CoordStruct> PlacementPreview_Offset;
 		Valueable<bool> PlacementPreview_Remap;
@@ -301,7 +302,7 @@ public:
 		{
 			auto nSound = RulesGlobal->BunkerWallsUpSound;
 
-			if (auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
+			if (const auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
 				nSound = TypeExt->BunkerWallsUpSound.Get(nSound);
 			}
 
@@ -313,7 +314,7 @@ public:
 		{
 			auto nSound = RulesGlobal->BunkerWallsDownSound;
 
-			if (auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
+			if (const auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
 				nSound = TypeExt->BunkerWallsDownSound.Get(nSound);
 			}
 

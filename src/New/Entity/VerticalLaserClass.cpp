@@ -13,14 +13,14 @@
 
 std::vector<VerticalLaserClass*> VerticalLaserClass::Array;
 
-VerticalLaserClass::VerticalLaserClass() : Expired {}
+VerticalLaserClass::VerticalLaserClass() : Expired { }
 , count {} , angle {}, cur_frames {}, frames_max {}
 , radius {}, Weapon { }, From {}, Height {}
 , radius_decrement {}
 { VerticalLaserClass::Array.push_back(this); }
 
 VerticalLaserClass::VerticalLaserClass(WeaponTypeClass* Weapon, CoordStruct From, int Height) : Expired { false }
- ,count { 5 } , angle { 0 }, cur_frames { 0 }, frames_max { 300 }
+,count { 5 } , angle { 0 }, cur_frames { 0 }, frames_max { 300 }
 , radius { 1024.0 }, Weapon { Weapon }, From { From }, Height { Height }
 , radius_decrement { 11 }
 { VerticalLaserClass::Array.push_back(this); }
@@ -212,7 +212,7 @@ void VerticalLaserClass::Clear()
 	Array.clear();
 }
 
-void VerticalLaserClass::Draw_All()
+void VerticalLaserClass::OnUpdateAll()
 {
 	if (Array.empty())
 		return;
@@ -232,4 +232,20 @@ void VerticalLaserClass::Draw_All()
 			GameDelete(vLaser);
 		}
 	}
+}
+
+void VerticalLaserClass::PointerGotInvalid(void* ptr, bool bDetach) {}
+
+bool VerticalLaserClass::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return Stm
+		.Process(Array)
+		.Success();
+}
+
+bool VerticalLaserClass::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return Stm
+		.Process(Array)
+		.Success();
 }

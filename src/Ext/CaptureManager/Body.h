@@ -12,6 +12,7 @@
 class CaptureExt
 {
 public:
+	static constexpr size_t Canary = 0x87654121;
 	using base_type = CaptureManagerClass;
 
 	class ExtData final : public Extension<base_type>

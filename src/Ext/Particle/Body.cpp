@@ -7,7 +7,6 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
 
-template<> const DWORD Extension<ParticleClass>::Canary = 0xAAAABBBB;
 ParticleExt::ExtContainer ParticleExt::ExtMap;
 
 void ParticleExt::ExtData::InitializeConstants()

@@ -10,7 +10,11 @@
 class AnimExt
 {
 public:
+	static constexpr size_t Canary = 0xAAAAAAAA;
 	using base_type = AnimClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x1CC;
+#endif
 
 	class ExtData final : public Extension<base_type>
 	{
@@ -21,17 +25,16 @@ public:
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, DeathUnitFacing { }
-			, DeathUnitTurretFacing {}
+			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
-		{}
+		{ }
 
 		virtual ~ExtData() override = default;
 		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
-
+		virtual void InitializeConstants() override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
 
 	private:
 		template <typename T>

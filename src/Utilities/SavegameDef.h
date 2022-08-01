@@ -622,6 +622,57 @@ namespace Savegame
 	};
 
 	template <>
+	struct Savegame::PhobosStreamObject<Theater_SHPStruct*>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, Theater_SHPStruct*& Value, bool RegisterForChange) const
+		{
+			if (Value && !Value->IsReference())
+				Debug::Log("Value contains SHP file data. Possible leak.\n");
+
+			Value = nullptr;
+
+			bool hasValue = true;
+			if (Savegame::ReadPhobosStream(Stm, hasValue) && hasValue)
+			{
+				std::string name;
+				if (Savegame::ReadPhobosStream(Stm, name))
+				{
+					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
+					{
+						Value = static_cast<Theater_SHPStruct*>(pSHP);
+						return true;
+					}
+				}
+			}
+
+			return !hasValue;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, Theater_SHPStruct* const& Value) const
+		{
+			const char* filename = nullptr;
+			if (Value)
+			{
+				if (auto pRef = Value->AsReference())
+					filename = pRef->Filename;
+				else
+					Debug::Log("Cannot save SHPStruct, because it isn't a reference.\n");
+			}
+
+			if (Savegame::WritePhobosStream(Stm, filename != nullptr))
+			{
+				if (filename)
+				{
+					std::string file(filename);
+					return Savegame::WritePhobosStream(Stm, file);
+				}
+			}
+
+			return filename == nullptr;
+		}
+	};
+
+	template <>
 	struct Savegame::PhobosStreamObject<RocketStruct>
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, RocketStruct& Value, bool RegisterForChange) const
@@ -844,4 +895,50 @@ namespace Savegame
 		}
 	};
 
+	template <typename TKey, typename TValue, typename Cmp>
+	struct Savegame::PhobosStreamObject<std::multimap<TKey, TValue, Cmp>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::multimap<TKey, TValue, Cmp>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Count = 0;
+			if (!Stm.Load(Count))
+			{
+				return false;
+			}
+
+			for (auto ix = 0u; ix < Count; ++ix)
+			{
+				TKey key = TKey();
+
+				if (!Savegame::ReadPhobosStream(Stm, key, false))
+					return false;
+
+				Value.emplace(key, TValue());
+				auto it = Value.end();
+				--it;
+
+				if (!Savegame::ReadPhobosStream(Stm, it->second, RegisterForChange))
+					return false;
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::multimap<TKey, TValue, Cmp>& Value) const
+		{
+			Stm.Save(Value.size());
+
+			for (const auto&[key , val] : Value)
+			{
+				if (!Savegame::WritePhobosStream(Stm, key)
+					|| !Savegame::WritePhobosStream(Stm, val))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+	};
 }

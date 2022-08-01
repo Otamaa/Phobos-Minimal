@@ -14,12 +14,12 @@ public:
 		, BounceWeapon { nullptr }
 	{ }
 
-	virtual ~BounceTrajectoryType() override = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual ~BounceTrajectoryType() = default;
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
-	virtual void Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
 
 };
 
@@ -41,7 +41,7 @@ public:
 	{}
 
 	virtual ~BounceTrajectory() override = default;
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 

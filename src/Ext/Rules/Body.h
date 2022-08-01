@@ -25,6 +25,7 @@ class WarheadTypeClass;
 class RulesExt
 {
 public:
+	static constexpr size_t Canary = 0x12341234;
 	using base_type = RulesClass;
 
 	class ExtData final : public Extension<RulesClass>
@@ -75,6 +76,8 @@ public:
 		Valueable<Point2D> SelectBrd_DrawOffset_Unit;
 		Valueable<int> SelectBrd_DefaultTranslucentLevel;
 		Valueable<bool> SelectBrd_DefaultShowEnemy;
+
+		Valueable<bool> AIRepairBaseNodes;
 
 		Valueable<bool> RadWarhead_Detonate;
 		Valueable<bool> RadHasOwner;
@@ -148,6 +151,8 @@ public:
 
 			, SelectBrd_DefaultTranslucentLevel{ 0 }
 			, SelectBrd_DefaultShowEnemy{ true }
+
+			, AIRepairBaseNodes { false }
 
 			, RadWarhead_Detonate { false }
 			, RadHasOwner { false }

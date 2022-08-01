@@ -8,7 +8,7 @@
 class ParasiteExt
 {
 public:
-
+	static constexpr size_t Canary = 0x99954321;
 	using base_type = ParasiteClass;
 
     class ExtData final : public Extension<ParasiteClass>

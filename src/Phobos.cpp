@@ -38,12 +38,12 @@ const char Phobos::readDefval[4] = "";
 uintptr_t Phobos::AresBaseAddress;
 
 
-#ifdef STR_GIT_COMMIT
-const wchar_t* Phobos::VersionDescription = L"Phobos nightly build (" STR_GIT_COMMIT L" @ " STR_GIT_BRANCH L"). DO NOT SHIP IN MODS!";
-#elif !defined(IS_RELEASE_VER)
+#ifdef ENABLE_NEWHOOKS
+const wchar_t* Phobos::VersionDescription = L"Phobos Unstable build (" _STR(BUILD_NUMBER) L"). DO NOT SHIP IN MODS!";
+#elif defined(COMPILE_PORTED_DP_FEATURES)
 const wchar_t* Phobos::VersionDescription = L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping.";
 #else
-//const wchar_t* Phobos::VersionDescription = L"Phobos release build v" FILE_VERSION_STR L".";
+const wchar_t* Phobos::VersionDescription = L"Beta version #" _STR(BUILD_NUMBER) L".provided by Otamaa" ;
 #endif
 
 bool Phobos::UI::DisableEmptySpawnPositions = false;
@@ -126,10 +126,12 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			strcpy_s(Phobos::AppName, 64, nBuff);
 		}
 		*/
+#ifndef ENABLE_NEWHOOKS
 		if (_stricmp(pArg, "-b=" _STR(BUILD_NUMBER)) == 0)
 		{
 			Phobos::Config::HideWarning = true;
 		}
+#endif
 	}
 
 	Debug::Log("Initialized Phobos " PRODUCT_VERSION "\n");
@@ -642,6 +644,14 @@ DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 	return 0;
 }
 
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
+{
+	GET_STACK(int, nDataSize, 0x4);
+	R->Stack(0x4, nDataSize + 0x4);
+	return 0x0;
+}
+#endif
 /*
 DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x8)
 {

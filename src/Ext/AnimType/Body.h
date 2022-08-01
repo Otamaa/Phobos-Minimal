@@ -12,7 +12,11 @@
 class AnimTypeExt
 {
 public:
+	static constexpr size_t Canary = 0xEEEEEEEE;
 	using base_type = AnimTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x37C;
+#endif
 
 	class ExtData final : public Extension<AnimTypeClass>
 	{

@@ -6,7 +6,7 @@ namespace Helpers_DP_Vec
 {
 	static Vector3D<float> Cross(const Vector3D<float>& a, const Vector3D<float>& b)
 	{
-		return Vector3D<float>{
+		return {
 			a.Y* b.Z - a.Z - b.Y,
 				a.Z* b.X - a.X - b.Z,
 				a.X* b.Y - a.Y * b.X};
@@ -16,7 +16,7 @@ namespace Helpers_DP_Vec
 	{
 		float num = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
 		float num2 = Math::sqrt(num);
-		return Vector3D<float>{value.X / num2, value.Y / num2, value.Z / num2};
+		return {value.X / num2, value.Y / num2, value.Z / num2};
 	}
 
 	static Quaternion FromToRotation(Vector3D<float> fromDirection, Vector3D<float> toDirection)
@@ -37,10 +37,10 @@ namespace Helpers_DP_Vec
 		// opposite directions
 		if (dot < -0.999999)
 		{
-			normal = Cross(Vector3D<float>{ 1.0f, 0.0f, 0.0f}, from);
+			normal = Cross({ 1.0f, 0.0f, 0.0f}, from);
 
 			if (normal.Magnitude() < 0.000001)
-				normal = Cross(Vector3D<float>{ 0.0f, 1.0f, 0.0f}, from);
+				normal = Cross({ 0.0f, 1.0f, 0.0f}, from);
 
 			normal = Normalize(normal);
 			return ret.FromAxis(normal, (float)Math::C_Sharp_Pi);
@@ -71,10 +71,11 @@ namespace Helpers_DP_Vec
 		float yz2 = rotation.Y * z2;
 		float zz2 = rotation.Z * z2;
 
-		return Vector3D<float>{
+		return {
 			value.X* (1.0f - yy2 - zz2) + value.Y * (xy2 - wz2) + value.Z * (xz2 + wy2),
 				value.X* (xy2 + wz2) + value.Y * (1.0f - xx2 - zz2) + value.Z * (yz2 - wx2),
-				value.X* (xz2 - wy2) + value.Y * (yz2 + wx2) + value.Z * (1.0f - xx2 - yy2)};
+				value.X* (xz2 - wy2) + value.Y * (yz2 + wx2) + value.Z * (1.0f - xx2 - yy2)
+		};
 	}
 
 }

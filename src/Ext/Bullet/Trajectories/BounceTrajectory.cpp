@@ -34,7 +34,7 @@ namespace Utils
 
 bool BounceTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectoryType::Load(Stm, RegisterForChange);
 	Stm.Process(this->BounceAmount, false);
 	Stm.Process(this->BounceWeapon, true);
 	return true;
@@ -42,29 +42,30 @@ bool BounceTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool BounceTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectoryType::Save(Stm);
 	Stm.Process(this->BounceAmount, false);
 	Stm.Process(this->BounceWeapon, true);
 	return true;
 }
 
-void BounceTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
+bool BounceTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	INI_EX exINI { pINI };
+	if (!this->PhobosTrajectoryType::Read(pINI, pSection))
+		return false;
 
-	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
-		return;
+	INI_EX exINI { pINI };
 
 	Valueable<int> nBounceAmount { 0 };
 	nBounceAmount.Read(exINI, pSection, "Trajectory.Bounce.Amount");
 
 	this->BounceAmount = abs(nBounceAmount.Get());
 	this->BounceWeapon.Read(exINI, pSection, "Trajectory.Bounce.Weapon");
+	return true;
 }
 
 bool BounceTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectory::Load(Stm, RegisterForChange);
 
 	Stm
 		.Process(this->IsBouncing, false)
@@ -76,7 +77,7 @@ bool BounceTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool BounceTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectory::Save(Stm);
 	Stm
 		.Process(this->IsBouncing, false)
 		.Process(this->BounceLeft, false)

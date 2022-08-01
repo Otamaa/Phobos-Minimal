@@ -33,8 +33,6 @@
 
 #include <memory>
 
-template<> const DWORD Extension<TechnoClass>::Canary = 0x55555555;
-
 TechnoExt::ExtContainer TechnoExt::ExtMap;
 
 TechnoExt::ExtData* TechnoExt::GetExtData(TechnoExt::base_type* pThis)
@@ -704,6 +702,7 @@ bool TechnoExt::IsUnderEMP(TechnoClass* pThis, bool bIgnore) {
 
 bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactivated, bool bIgnoreLimbo, bool bIgnoreIsOnMap , bool bIgnoreAbsorb )
 {
+
 	if (!TechnoExt::IsAlive(pThis , bIgnoreLimbo, bIgnoreIsOnMap, bIgnoreAbsorb))
 		return false;
 
@@ -777,12 +776,14 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 	}
 }
 
-void TechnoExt::ApplyInterceptor(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt)
+void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 {
 	if (!TechnoExt::IsActive(pThis, true, true,true,true))
 		return;
 
-	if (pExt->Interceptor.Get() && !pThis->Target &&
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pExt && pExt->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
 	{
 		if (auto const pTransport = pThis->Transporter) {
@@ -840,12 +841,14 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis, TechnoTypeExt::ExtData* pEx
 	}
 }
 
-void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis, TechnoTypeExt::ExtData* pExt)
+void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis)
 {
 	if (!TechnoExt::IsActive(pThis, true, true,true))
 		return;
 
-	if (pExt->Spawn_LimitedRange)
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pExt && pExt->Spawn_LimitedRange)
 	{
 		if (auto const pManager = pThis->SpawnManager)
 		{
@@ -1007,11 +1010,19 @@ int TechnoExt::GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoT
 	return 0;
 }
 
-void TechnoExt::EatPassengers(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void TechnoExt::EatPassengers(TechnoClass* pThis)
 {
-	auto const pThis = pExt->Get();
-
 	if (!TechnoExt::IsActive(pThis, false, false))
+		return;
+
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (!pExt)
+		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pTypeExt)
 		return;
 
 	if ((pTypeExt->PassengerDeletion_Rate > 0 || pTypeExt->PassengerDeletion_UseCostAsRate))
@@ -1173,6 +1184,8 @@ void TechnoExt::HandleRemove(TechnoClass* pThis)
 		if (pBullet && pBullet->Target == pThis)
 			pBullet->LoseTarget();
 
+	pThis->UnInit();
+
 }
 
 void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
@@ -1248,11 +1261,19 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption , boo
 }
 
 // Feature: Kill Object Automatically
-void TechnoExt::CheckDeathConditions(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 {
-	const auto pThis = pExt->Get();
-
 	if (!TechnoExt::IsActive(pThis, false, false))
+		return;
+
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (!pExt)
+		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pTypeExt)
 		return;
 
 	auto pTypeThis = pTypeExt->Get();
@@ -1526,9 +1547,9 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 		(pThis->HasAbility(AbilityType::Faster) ? RulesClass::Instance->VeteranSpeed : 1.0);
 }
 
-void TechnoExt::UpdateMindControlAnim(TechnoExt::ExtData* pExt)
+void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 {
-	if (const auto pThis  = pExt->Get())
+	if (const auto pExt  = TechnoExt::ExtMap.Find(pThis))
 	{
 		if (pThis->IsMindControlled())
 		{
@@ -1567,9 +1588,14 @@ void TechnoExt::UpdateMindControlAnim(TechnoExt::ExtData* pExt)
 	}
 }
 
-void TechnoExt::RunFireSelf(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
+void TechnoExt::RunFireSelf(TechnoClass* pThis)
 {
-	const auto pThis = pExt->Get();
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pExt || !pTypeExt)
+		return;
+
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
 		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon_RedHeath;
@@ -1628,7 +1654,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 	Stm
 		//.Process(this->GenericFuctions)
-		.Process(this->ID)
+		//.Process(this->ID)
 		.Process(this->Shield)
 		//.Process(this->BExt)
 		.Process(this->LaserTrails)
@@ -1680,7 +1706,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	if (auto pShield = this->GetShield())
-		pShield->InvalidatePointer(ptr);
+		pShield->InvalidatePointer(ptr , bRemoved);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);

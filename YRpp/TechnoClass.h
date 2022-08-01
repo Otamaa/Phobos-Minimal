@@ -209,9 +209,9 @@ public:
 	virtual int GetPipFillLevel() const R0;
 	virtual int GetRefund() const R0;
 	virtual int GetThreatValue() const R0;
-	virtual bool vt_entry_2C4(DWORD dwUnk) R0;
-	virtual DWORD vt_entry_2C8(DWORD dwUnk, DWORD dwUnk2) R0;
-	virtual bool vt_entry_2CC(DWORD dwUnk) R0;
+	virtual bool IsInSameZoneAs(AbstractClass* pTarget) R1;
+	virtual DirStruct* GetFacingAgainst(DirStruct* pRet, AbstractClass* pTarget) JMP_THIS(0x6FDA00);
+	virtual bool IsInSameZone(const CoordStruct* nZone) JMP_THIS(0x707F60);
 	virtual int GetCrewCount() const R0;
 	virtual int GetAntiAirValue() const R0;
 	virtual int GetAntiArmorValue() const R0;
@@ -631,7 +631,7 @@ public:
 	int              TurretAnimFrame;
 	HouseClass*      InitialOwner; // only set in ctor
 	DECLARE_PROPERTY(VeterancyStruct, Veterancy);
-	PROTECTED_PROPERTY(DWORD, align_154);
+	DWORD			 align_154;  //unused , can be used to store ExtData
 	double           ArmorMultiplier;
 	double           FirepowerMultiplier;
 	DECLARE_PROPERTY(TimerStruct, IdleActionTimer); // MOO CDTimerClass

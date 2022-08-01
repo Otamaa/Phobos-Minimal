@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<ParticleTypeClass>::Canary = 0xEAEEEEEE;
 ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)

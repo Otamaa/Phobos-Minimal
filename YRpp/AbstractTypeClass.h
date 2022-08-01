@@ -105,7 +105,7 @@ enum class AbstractBaseType : int
 	TechnoType
 };
 
-
+//#pragma pack(push, 4)
 class NOVTABLE AbstractTypeClass : public AbstractClass
 {
 public:
@@ -164,3 +164,4 @@ private:
 	AbstractTypeClass(const AbstractTypeClass&) = delete;
 	AbstractTypeClass& operator=(const AbstractTypeClass&) = delete;
 };
+//#pragma pack(pop)

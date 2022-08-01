@@ -11,7 +11,6 @@
 #include <New/Entity/ShieldClass.h>
 
 //Static init
-template<> const DWORD Extension<TEventClass>::Canary = 0x91919191;
 TEventExt::ExtContainer TEventExt::ExtMap;
 
 void TEventExt::ExtData::InitializeConstants() { }

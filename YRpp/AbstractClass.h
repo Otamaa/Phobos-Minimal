@@ -45,6 +45,7 @@ struct StorageClass
 };
 //---
 
+//#pragma pack(push, 4)
 //The AbstractClass is the base class of all game objects.
 class NOVTABLE AbstractClass : public IPersistStream, public IRTTITypeInfo, public INoticeSink, public INoticeSource
 {
@@ -203,3 +204,4 @@ private:
 };
 static_assert(sizeof(AbstractClass) == 0x24, "Invalid size.");
 //typedef AbstractClass* TARGET;
+//#pragma pack(pop)

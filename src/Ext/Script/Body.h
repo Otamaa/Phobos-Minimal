@@ -153,6 +153,7 @@ enum class PhobosScripts : unsigned int
 class ScriptExt
 {
 public:
+	static constexpr size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
 	class ExtData final : public Extension<ScriptClass>

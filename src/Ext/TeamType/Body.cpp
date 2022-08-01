@@ -1,6 +1,5 @@
 #include "Body.h"
 
-template<> const DWORD Extension<TeamTypeClass>::Canary = 0xBEE79008;
 TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
 void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
@@ -14,6 +13,7 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exINI(pINI);
 	this->AI_SafeDIstance.Read(exINI, pSection, "AISafeDistance");
 	this->AI_FriendlyDistance.Read(exINI, pSection, "AIFriendlyDistance");
+	this->AttackWaypoint_AllowCell.Read(exINI, pSection, "AttackWaypoint.AllowCell");
 }
 
 // =============================
@@ -25,6 +25,7 @@ void TeamTypeExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->AI_SafeDIstance)
 		.Process(this->AI_FriendlyDistance)
+		.Process(this->AttackWaypoint_AllowCell)
 		;
 
 }
@@ -81,7 +82,7 @@ DEFINE_HOOK(0x6F0926, TeamTypeClass_DTOR, 0x7)
 DEFINE_HOOK_AGAIN(0x6F1BB0, TeamTypeClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x6F1B90, TeamTypeClass_SaveLoad_Prefix, 0x8)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET_STACK(TeamTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	TeamTypeExt::ExtMap.PrepareStream(pItem, pStm);
@@ -90,14 +91,14 @@ DEFINE_HOOK(0x6F1B90, TeamTypeClass_SaveLoad_Prefix, 0x8)
 
 DEFINE_HOOK(0x6F1C35, TeamTypeClass_Load_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	TeamTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x6F1BAA, TeamTypeClass_Save_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	TeamTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
@@ -117,12 +118,14 @@ DEFINE_HOOK(0x6F181B, TeamTypeClass_WriteToINI, 0x8)
 	GET(TeamTypeClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EBX);
 
-	if (auto pExt = TeamTypeExt::ExtMap.Find(pItem)) {
+	if (const auto pExt = TeamTypeExt::ExtMap.Find(pItem)) {
 		if(pExt->AI_SafeDIstance.isset())
 			pINI->WriteInteger(pItem->get_ID(), "AISafeDistance", pExt->AI_SafeDIstance.Get(), false);
 
 		if(pExt->AI_FriendlyDistance.isset())
 			pINI->WriteInteger(pItem->get_ID(), "AIFriendlyDistance", pExt->AI_FriendlyDistance.Get(), false);
+
+		pINI->WriteInteger(pItem->get_ID(), "AttackWaypoint.AllowCell", pExt->AttackWaypoint_AllowCell.Get(), true);
 	}
 
 	return 0x0;

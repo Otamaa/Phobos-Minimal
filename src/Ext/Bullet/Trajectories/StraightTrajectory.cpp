@@ -4,7 +4,7 @@
 
 bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
+	PhobosTrajectoryType::Load(Stm, RegisterForChange);
 	Stm
 		.Process(this->SnapOnTarget, false)
 		.Process(this->SnapThreshold, false)
@@ -16,7 +16,7 @@ bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 
 bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
+	PhobosTrajectoryType::Save(Stm);
 	Stm
 		.Process(this->SnapOnTarget, false)
 		.Process(this->SnapThreshold, false)
@@ -27,40 +27,27 @@ bool StraightTrajectoryType::Save(PhobosStreamWriter& Stm) const
 }
 
 
-void StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
+bool StraightTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	INI_EX exINI { pINI };
+	if (!this->PhobosTrajectoryType::Read(pINI, pSection))
+		return false;
 
-	if (!this->PhobosTrajectoryType::ReadBase(exINI, pSection))
-		return;
+	INI_EX exINI { pINI };
 
 	this->SnapOnTarget.Read(exINI, pSection, "Trajectory.Straight.SnapOnTarget");
 	this->SnapThreshold.Read(exINI, pSection, "Trajectory.Straight.SnapThreshold");
 	this->PassThrough.Read(exINI, pSection, "Trajectory.Straight.PassThrough");
+	return true;
 }
 
 bool StraightTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->LoadBase(Stm, RegisterForChange);
-	Stm
-		//.Process(this->SnapOnTarget, false)
-		//.Process(this->SnapThreshold, false)
-		//.Process(this->PassThrough, false)
-		;
-
-	return true;
+	return PhobosTrajectory::Load(Stm, RegisterForChange);
 }
 
 bool StraightTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->SaveBase(Stm);
-	Stm
-		//.Process(this->SnapOnTarget, false)
-		//.Process(this->SnapThreshold, false)
-		//.Process(this->PassThrough, false)
-		;
-
-	return true;
+	return PhobosTrajectory::Save(Stm);
 }
 
 void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
@@ -68,9 +55,6 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Ve
 	auto type = this->GetTrajectoryType();
 
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons());
-	//this->SnapOnTarget = type->SnapOnTarget.Get();
-	//this->SnapThreshold = type->SnapThreshold.Get();
-	//this->PassThrough = ;
 
 	if (type->PassThrough.Get())
 	{

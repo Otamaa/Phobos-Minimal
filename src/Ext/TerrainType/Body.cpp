@@ -3,7 +3,6 @@
 #include <TerrainTypeClass.h>
 #include <Utilities/GeneralUtils.h>
 
-template<> const DWORD Extension<TerrainTypeClass>::Canary = 0xBEE78007;
 TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
 
 int TerrainTypeExt::ExtData::GetTiberiumGrowthStage()

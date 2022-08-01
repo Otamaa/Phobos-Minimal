@@ -9,6 +9,7 @@ class SuperClass;
 class SWTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x11111111;
 	using base_type = SuperWeaponTypeClass;
 
 	class ExtData final : public Extension<SuperWeaponTypeClass>

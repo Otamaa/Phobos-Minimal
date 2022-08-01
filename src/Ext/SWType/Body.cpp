@@ -4,7 +4,6 @@
 #include <StringTable.h>
 #include <Ext/TechnoType/Body.h>
 
-template<> const DWORD Extension<SuperWeaponTypeClass>::Canary = 0x11111111;
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
 SuperClass* SWTypeExt::TempSuper = nullptr;

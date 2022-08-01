@@ -16,6 +16,7 @@
 class WeaponTypeExt
 {
 public:
+	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
 
 	class ExtData final : public Extension<WeaponTypeClass>

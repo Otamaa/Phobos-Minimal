@@ -386,5 +386,8 @@ public:
 	CoordStruct PrismTargetCoords;
 	DWORD DelayBeforeFiring; //714
 
-	int BunkerState; // used in UpdateBunker and friends
+	int BunkerState; // used in UpdateBunker and friends 0x718
+	DWORD field_71C;  //unused , can be used to store ExtData
 };
+
+static_assert(sizeof(BuildingClass) == 0x720 , "Invalid Size");

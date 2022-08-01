@@ -12,7 +12,9 @@
 class HouseExt
 {
 public:
+	static constexpr size_t Canary = 0x11111111;
 	using base_type = HouseClass;
+
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:

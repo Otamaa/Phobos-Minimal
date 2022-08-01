@@ -11,31 +11,31 @@
 #include "ArtilleryTrajectory.h"
 #include "BounceTrajectory.h"
 
-bool PhobosTrajectoryType::ReadBase(INI_EX& exINI, const char* pSection)
+bool PhobosTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 {
-	if (!exINI || !exINI->GetSection(pSection))
+	if (!pINI || !pINI->GetSection(pSection))
 		return false;
 
+	INI_EX exINI { pINI };
 	this->DetonationDistance.Read(exINI, pSection, "Trajectory.DetonationDistance");
 
 	return true;
 }
 
-bool PhobosTrajectoryType::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
+bool PhobosTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	Stm
+	return 	Stm
 		.Process(this->DetonationDistance, false)
+		.Success()
 		;
-
-	return true;
 }
 
-bool PhobosTrajectoryType::SaveBase(PhobosStreamWriter& Stm) const
+bool PhobosTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	Stm
+	return 	Stm
 		.Process(this->DetonationDistance, false)
+		.Success()
 		;
-	return true;
 }
 
 void PhobosTrajectoryType::CreateType(PhobosTrajectoryType*& pType, CCINIClass* const pINI, const char* pSection, const char* pKey)
@@ -156,23 +156,22 @@ double PhobosTrajectory::GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) cons
 	return pBulletExt->TypeExt->Trajectory_Speed.Get(nResult);
 }
 
-bool PhobosTrajectory::LoadBase(PhobosStreamReader& Stm, bool RegisterForChange)
+bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	Stm
+	return 	Stm
 		.Process(this->Type, true)
 		.Process(this->DetonationDistance, false)
+		.Success()
 		;
-
-	return true;
 }
 
-bool PhobosTrajectory::SaveBase(PhobosStreamWriter& Stm) const
+bool PhobosTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	Stm
+	return 	Stm
 		.Process(this->Type, true)
 		.Process(this->DetonationDistance, false)
+		.Success()
 		;
-	return true;
 }
 
 PhobosTrajectory* PhobosTrajectory::CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)

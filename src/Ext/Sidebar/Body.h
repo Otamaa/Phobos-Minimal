@@ -11,6 +11,7 @@
 class SidebarExt
 {
 public:
+	static constexpr size_t Canary = 0x51DEBA12;
 	using base_type = SidebarClass;
 
 	class ExtData final : public Extension<SidebarClass>

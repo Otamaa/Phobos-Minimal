@@ -708,8 +708,15 @@ public:
 		return this == Player;
 	}
 
-	bool IsPlayerControl() const
-		{ JMP_THIS(0x50B730); }
+	bool IsPlayerControl() const //{ JMP_THIS(0x50B730); }
+	{
+		bool result = CurrentPlayer;
+		if (SessionClass::Instance->GameMode == GameMode::Campaign) {
+			result = result || PlayerControl;
+		}
+
+		return result;
+	}
 
 	// whether this house is equal to Observer
 	bool IsObserver() const {
@@ -836,14 +843,16 @@ public:
 	double                BuildTimeMultiplier; // ... unused ends
 	double                RepairDelay;
 	double                BuildDelay;
-	int                   IQLevel;
-	int                   TechLevel;
-	IndexBitfield<HouseClass*> AltAllies; // ask question, receive brain damage
-	int                   StartingCredits;	//not sure how these are used // actual credits = this * 100
-	Edge                  StartingEdge;
+	//struct StaticDataClass {
+		int                   IQLevel;
+		int                   TechLevel;
+		IndexBitfield<HouseClass*> AltAllies; // ask question, receive brain damage
+		int                   StartingCredits;	//not sure how these are used // actual credits = this * 100
+		Edge                  StartingEdge;
+	//}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
-	bool                  CurrentPlayer;		//is controlled by the player at this computer
+	bool                  CurrentPlayer;		//is controlled by the player at this computer ,IsHuman
 	bool                  PlayerControl;		//a human controls this House
 	bool                  Production;		//AI production has begun
 	bool                  AutocreateAllowed;
@@ -1074,7 +1083,7 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<IConnectionPoint*>, WaypointPath);
 	DWORD __ConnectionPoints_1607C;
 	DWORD unknown_16080;
-	DWORD unknown_16084;//
+	DWORD unknown_16084; //unused , can be used to store ExtData
 	double unused_16088;
 	double unused_16090;
 	DWORD padding_16098;

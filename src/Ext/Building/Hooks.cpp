@@ -187,6 +187,10 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 
 	HouseClass* pOwner = pFactory->Owner;
 	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
+
+	if (!pData)
+		return 0;
+
 	TechnoClass* pTechno = pFactory->Object;
 
 	switch (pTechno->WhatAmI())
@@ -225,7 +229,7 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	GET(BuildingClass*, pBuilding, ESI);
 	HouseClass* pOwner = pBuilding->Owner;
 
-	if (pOwner->Production && Phobos::Config::AllowParallelAIQueues)
+	if (pOwner && pOwner->Production && Phobos::Config::AllowParallelAIQueues)
 	{
 		HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
 		BuildingClass* currFactory = nullptr;
@@ -292,4 +296,21 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x4506D4, BuildingClass_UpdateRepair_Campaign, 0x6)
+{
+	enum { GoRepair = 0x4506F5, SkipRepair = 0x450813 };
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pHouse, ECX);
+
+	//Vanilla code
+	if (pThis->HasBeenCaptured || pThis->ShouldRebuild || pHouse->ControlledByHuman())
+		return GoRepair;
+
+	if (pThis->BeingProduced && SessionClass::Instance->GameMode == GameMode::Campaign)
+		if (RulesExt::Global()->AIRepairBaseNodes)
+			return GoRepair;
+
+	return SkipRepair;
 }

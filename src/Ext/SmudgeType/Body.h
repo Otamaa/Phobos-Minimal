@@ -9,6 +9,7 @@
 class SmudgeTypeExt
 {
 public:
+	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
 
 	class ExtData final : public Extension<SmudgeTypeClass>

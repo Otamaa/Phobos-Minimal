@@ -26,8 +26,7 @@ void StraightBulletFunctional::Put(BulletClass* pBullet)
 		{
 			double distance = targetPos.DistanceFrom(sourcePos);
 			DirStruct facing = pBullet->Owner->GetRealFacing().current();
-			auto ntargetTestPosBuff = CoordStruct { (int)distance, 0, 0 };
-			targetPos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, ntargetTestPosBuff, facing);
+			targetPos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, { (int)distance, 0, 0 }, facing);
 			pBullet->TargetCoords = targetPos;
 		}
 

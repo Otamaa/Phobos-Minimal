@@ -55,7 +55,6 @@ public:
 	}
 
 	void Release(TechnoClass* pOwner , GiftBoxData& nData);
-	CellClass* GetCell(CellClass* pIn , CoordStruct& InOut, size_t nSpread, bool EmptyCell);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
