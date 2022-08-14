@@ -13,7 +13,7 @@ public:
 	static constexpr size_t Canary = 0xAAAAAAAA;
 	using base_type = AnimClass;
 #ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0x1CC;
+	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
 	class ExtData final : public Extension<base_type>
@@ -62,6 +62,7 @@ public:
 			default:
 				return true;
 			}
+
 		}
 	};
 

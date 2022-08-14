@@ -14,6 +14,9 @@ class HouseExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = HouseClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<HouseClass>
 	{
@@ -21,7 +24,7 @@ public:
 		PhobosMap<BuildingTypeExt::ExtData*, int> BuildingCounter;
 		CounterClass OwnedLimboBuildingTypes;
 		PhobosMap<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
-		DynamicVectorClass<BuildingClass*> HouseAirFactory;
+		std::vector<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;
 
@@ -58,7 +61,7 @@ public:
 			BuildingCounter.clear();
 			OwnedLimboBuildingTypes.Clear();
 			Building_BuildSpeedBonusCounter.clear();
-			HouseAirFactory.Clear();
+			HouseAirFactory.clear();
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;

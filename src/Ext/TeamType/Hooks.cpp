@@ -1,6 +1,7 @@
 #include "Body.h"
 #include <TeamClass.h>
 
+#ifdef ENABLE_NEWHOOKS
 //6EF8B0
 DEFINE_HOOK(0x6EF8B0, TeamMission_GatherAt_Enemy, 0x8)
 {
@@ -40,7 +41,7 @@ DEFINE_HOOK(0x472589, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 
 	return 0x4725B0;
 }
-#ifdef ENABLE_NEWHOOKS
+
 static void __fastcall TeamClass_Assign_Mission_Target(TeamClass* pThis, void* _, AbstractClass* pNewTarget)
 {
 	if(pNewTarget && pNewTarget->WhatAmI() == AbstractType::Cell){

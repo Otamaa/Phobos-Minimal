@@ -73,9 +73,12 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
+	if (Unsorted::CurrentFrame % 15 != 0)
+		return 0;
+
 	if (auto const pExt = BuildingExt::ExtMap.Find(pThis))
 	{
-		if (Unsorted::CurrentFrame % 15 == 0 && pExt->AccumulatedGrindingRefund)
+		if (pExt->AccumulatedGrindingRefund)
 		{
 			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 			const  int refundAmount = pExt->AccumulatedGrindingRefund;

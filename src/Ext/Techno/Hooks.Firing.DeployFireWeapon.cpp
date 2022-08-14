@@ -9,6 +9,7 @@ DEFINE_HOOK(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	return 0x5223B9;
 }
 
+#ifndef ENABLE_NEWHOOKS
 //Author : Otamaa
 DEFINE_HOOK(0x746CEA, UnitClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 {
@@ -17,6 +18,7 @@ DEFINE_HOOK(0x746CEA, UnitClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 
 	return pType->DeployFireWeapon == -1 ? 0x746CF3 : 0x0;
 }
+#endif
 
 DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x7)
 {

@@ -9,7 +9,8 @@ void TerrainExt::ExtData::InitializeConstants() {
 
 void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(LighSource,ptr);
+	if(LighSource)
+		AnnounceInvalidPointer(LighSource,ptr);
 
 	if (AttachedAnim.get() && (void*)AttachedAnim.get() == ptr)
 		AttachedAnim.release();
@@ -162,7 +163,11 @@ DEFINE_HOOK(0x71BBF8, TerrainClass_CTOR, 0xD)
 //DEFINE_HOOK(0x71BE6D, TerrainClass_CTOR, 0xC)
 {
 	GET(TerrainClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	TerrainExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

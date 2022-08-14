@@ -10,6 +10,9 @@ class BombExt
 public:
 	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<BombClass>
 	{

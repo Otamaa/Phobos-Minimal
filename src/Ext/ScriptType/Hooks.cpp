@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#ifdef ENABLE_NEWHOOKS_SCIPT
 DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 {
 	GET(ScriptClass*, pThis, ECX);
@@ -94,3 +95,4 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 
 	return 0x691953;
 }
+#endif

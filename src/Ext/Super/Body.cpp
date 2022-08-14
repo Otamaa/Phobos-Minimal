@@ -46,7 +46,11 @@ void SuperExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	SuperExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	SuperExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

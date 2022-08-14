@@ -569,7 +569,13 @@ void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
+
+#ifdef ENABLE_NEWHOOKS
+	WarheadTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+
 	return 0;
 }
 

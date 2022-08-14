@@ -316,6 +316,7 @@ template <typename T>
 void RulesExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
 		.Process(this->RadApplicationDelay_Building)
@@ -324,6 +325,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->JumpjetNoWobbles)
 		.Process(this->JumpjetAllowLayerDeviation)
 		.Process(this->JumpjetTurnToTarget)
+		.Process(this->MissingCameo)
 		.Process(this->AITargetTypesLists)
 		.Process(this->AIScriptsLists)
 		.Process(this->AIConditionsLists)

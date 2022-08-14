@@ -62,7 +62,12 @@ SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6B52DA, SmudgeTypeClass_CTOR, 0xC)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	SmudgeTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	SmudgeTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+
 	return 0;
 }
 

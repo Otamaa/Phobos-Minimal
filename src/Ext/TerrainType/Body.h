@@ -11,6 +11,9 @@ class TerrainTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<TerrainTypeClass>
 	{

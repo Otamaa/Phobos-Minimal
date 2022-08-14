@@ -15,8 +15,9 @@ public:
 	using base_type = AITriggerTypeClass;
 	static constexpr size_t Canary = 0x2C2C2C2C;
 #ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0x114;
+	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
+
 	class ExtData final : public Extension<AITriggerTypeClass>
 	{
 	public:

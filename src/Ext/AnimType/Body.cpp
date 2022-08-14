@@ -246,7 +246,13 @@ AnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
+
+#ifdef ENABLE_NEWHOOKS
+	AnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+
 	return 0;
 }
 

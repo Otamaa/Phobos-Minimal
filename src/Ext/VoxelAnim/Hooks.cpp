@@ -5,7 +5,10 @@
 #include <AnimTypeClass.h>
 #include <ScenarioClass.h>
 #include <WarheadTypeClass.h>
+
+#include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
+
 #include <Ext/Anim/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/AnimType/Body.h>
@@ -118,4 +121,16 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0xA)
 
 	return 0x74A884;
 }
+
+static void __fastcall VoxelAnimClass_Remove_This(VoxelAnimClass* pThis)
+{
+	if (pThis->Type && pThis->Type->StopSound != -1)
+		VocClass::PlayAt(pThis->Type->StopSound, pThis->Location, nullptr);
+
+	pThis->ObjectClass::UnInit();
+
+}
+
+DEFINE_JUMP(VTABLE, 0x7F6410, GET_OFFSET(VoxelAnimClass_Remove_This));
+
 #pragma endregion

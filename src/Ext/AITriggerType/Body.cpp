@@ -237,7 +237,12 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 DEFINE_HOOK(0x41E471, AITriggerTypeClass_CTOR, 0x7)
 {
 	GET(AITriggerTypeClass*, pThis, ESI);
+
+#ifdef ENABLE_NEWHOOKS
+	AITriggerTypeExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr Type !");
+#else
 	AITriggerTypeExt::ExtMap.FindOrAllocate(pThis);
+#endif
 	return 0x0;
 }
 

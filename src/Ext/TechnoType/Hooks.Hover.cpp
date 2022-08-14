@@ -1,4 +1,4 @@
-#ifdef _ENALBLE_HOVER_LOCO_HOOKS
+#ifdef ENABLE_NEWHOOKS
 #include <New/Type/HoverTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>

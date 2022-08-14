@@ -61,6 +61,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Range_IgnoreVertical.Read(exINI, pSection, "Range.IgnoreVertical");
 	// brought back from TS
 	this->ProjectileRange.Read(exINI, pSection, "ProjectileRange");
+	this->Decloak_InstantFire.Read(exINI, pSection, "DecloakInstantFire");
 
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
@@ -107,7 +108,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->OccupantAnim_UseMultiple)
 		.Process(this->Range_IgnoreVertical)
 		.Process(this->ProjectileRange)
-		#ifdef COMPILE_PORTED_DP_FEATURES
+		.Process(this->Decloak_InstantFire)
+#ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif
 		;
@@ -206,7 +208,13 @@ WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
+
+#ifdef ENABLE_NEWHOOKS
+	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+
 	return 0;
 }
 

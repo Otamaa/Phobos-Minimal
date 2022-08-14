@@ -87,7 +87,13 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 			if (!currFactory && pBuilding->Factory)
 				currFactory = pBuilding->Factory;
 
-			HouseExt->HouseAirFactory.AddUnique(pBuilding);
+			const auto It = std::find_if_not(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](const auto pData)
+			{
+				return pData == pBuilding;
+			});
+
+			if(It == std::end(HouseExt->HouseAirFactory))
+			HouseExt->HouseAirFactory.push_back(pBuilding);
 		}
 	});
 

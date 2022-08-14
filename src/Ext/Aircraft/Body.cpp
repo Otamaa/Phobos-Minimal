@@ -10,7 +10,7 @@
 //template<> const DWORD Extension<AircraftClass>::Canary = 0x55555765;
 //AircraftExt::ExtContainer AircraftExt::ExtMap;
 
-void __fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, void* _, int nMult)
+void AircraftExt::TriggerCrashWeapon(TechnoClass* pThis,int nMult)
 {
 	if (auto pType = pThis->GetTechnoType())
 	{

@@ -124,6 +124,10 @@ class BaseClass
 public:
 	BaseClass()
 		{ JMP_THIS(0x42E6F0); }
+
+	BaseClass(noinit_t)
+		{ JMP_THIS(0x42F1E0); }
+
 	~BaseClass()
 	{
 		BaseNodes.~DynamicVectorClass();
@@ -132,15 +136,48 @@ public:
 	}
 
 	//VTable
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm) R0;
-	virtual void CalculateChecksum(Checksummer& checksum) const RX;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_THIS(0x42EE30);
+	virtual HRESULT __stdcall Save(IStream* pStm) JMP_THIS(0x42F070);
+	virtual void CalculateChecksum(Checksummer& checksum) const JMP_THIS(0x42F180);
 
 	//virtual ~BaseClass() { /*???*/ }; // gcc demands a virtual since virtual funcs exist
 
 	int FailedToPlaceNode(BaseNodeClass *Node) // called after AI fails to place building, obviously
 		{ JMP_THIS(0x42F380); }
 
+	bool IsBuilt(int index)
+		{ JMP_THIS(0x42E780); }
+
+	bool IsPlaced(int a2)
+		{ JMP_THIS(0x42E800); }
+
+	BuildingClass* GetBuilding(int a2)
+		{ JMP_THIS(0x42E820); }
+
+	bool IsNode(BuildingClass* building)
+		{ JMP_THIS(0x42E990); }
+
+	BaseNodeClass* GetNode(BuildingClass* a2)
+		{ JMP_THIS(0x42EA30); }
+
+	BaseNodeClass* GetNode(CellStruct* a2)
+		{ JMP_THIS(0x42EA30); }
+
+	BaseNodeClass* NextBuildable(int type)
+		{ JMP_THIS(0x42EB20); }
+
+	void ReadINI(CCINIClass* ini, char* hname)
+		{ JMP_THIS(0x42EBE0); }
+
+	void WriteINI(CCINIClass* ini, char* hname)
+		{ JMP_THIS(0x42ED60); }
+
+	void Place_maybe(BuildingClass* building)
+		{ JMP_THIS(0x42F260); }
+
+	BaseNodeClass* Next_unplaced_maybe(BuildingTypeClass* building)
+		{ JMP_THIS(0x42F340); }
+//
 	//Properties
 	DECLARE_PROPERTY(DynamicVectorClass<BaseNodeClass>, BaseNodes);
 	int                               PercentBuilt;

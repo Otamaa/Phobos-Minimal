@@ -204,12 +204,13 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	else
 	{
 		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet) {
-			if (pTargetBullet->Health > 0 && !pTargetBullet->InLimbo) {
-				auto const pTargetBulletTypeExt = BulletTypeExt::GetExtData(pTargetBullet->Type);
-
-				// Cells don't know about bullets that may or may not be located on them so it has to be this way.
-				if (pTargetBulletTypeExt->Interceptable && pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
-					BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
+			if(auto const pBulletExt = BulletExt::ExtMap.Find(pTargetBullet)){
+				if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo) {
+					auto const pTargetBulletTypeExt = BulletTypeExt::GetExtData(pTargetBullet->Type);
+					// Cells don't know about bullets that may or may not be located on them so it has to be this way.
+					if (pTargetBulletTypeExt->Interceptable && pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+						BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
+				}
 			}
 		});
 	}

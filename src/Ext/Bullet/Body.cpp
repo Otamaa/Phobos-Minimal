@@ -112,7 +112,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 	bool canAffect = false;
 	bool isIntercepted = false;
 
-	if ((int)pTypeExt->Armor >= 0)
+	if (pTypeExt->Armor.isset())
 	{
 		double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pTypeExt->Armor);
 
@@ -252,8 +252,11 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
 
+#ifdef ENABLE_NEWHOOKS
+	BulletExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	BulletExt::ExtMap.FindOrAllocate(pItem);
-	//ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<BulletExt::ExtData>(pItem);
+#endif
 
 	return 0;
 }

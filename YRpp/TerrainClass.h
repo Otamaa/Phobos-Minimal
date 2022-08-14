@@ -58,6 +58,8 @@ public:
 	TerrainTypeClass* Type;
 	bool IsBurning; // this terrain object has been ignited
 	bool TimeToDie; // finish the animation and uninit
+	PROTECTED_PROPERTY(BYTE, TerrainPad[0x2]);
 	RectangleStruct unknown_rect_D0;
 
 };
+static_assert(sizeof(TerrainClass) == 0xE0, "Invalid Size!");

@@ -62,7 +62,11 @@ DEFINE_HOOK_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
+#ifdef ENABLE_NEWHOOKS
+	ScriptTypeExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
+#else
 	ScriptTypeExt::ExtMap.FindOrAllocate(pThis);
+#endif
 	return 0;
 }
 

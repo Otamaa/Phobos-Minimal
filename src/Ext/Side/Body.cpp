@@ -95,7 +95,11 @@ SideExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
 {
 	GET(SideClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	SideExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	SideExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

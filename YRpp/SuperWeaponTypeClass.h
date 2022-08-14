@@ -75,8 +75,7 @@ public:
 	int     SpecialSound;
 	int     StartSound;
 	BuildingTypeClass* AuxBuilding;
-	char SidebarImageFile [0x18];
-	PROTECTED_PROPERTY(BYTE, zero_E4);
+	char SidebarImageFile [0x19];
 	bool    UseChargeDrain;
 	bool    IsPowered;
 	bool    DisableableFromShell;
@@ -84,10 +83,14 @@ public:
 	bool    AIDefendAgainst;
 	bool    PreClick;
 	bool    PostClick;
+	PROTECTED_PROPERTY(BYTE, zero_EF);
 	int		PreDependent;
 	bool    ShowTimer;
 	bool    ManualControl;
+	PROTECTED_PROPERTY(BYTE, zero_F6[2]);
 	float   Range;
 	int     LineMultiplier;
 
 };
+//COMPILE_TIME_SIZEOF(SuperWeaponTypeClass)
+static_assert(sizeof(SuperWeaponTypeClass) == 0x100, "Invalid Size !");

@@ -13,6 +13,9 @@ class TiberiumExt
 public:
 	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<TiberiumClass>
 	{

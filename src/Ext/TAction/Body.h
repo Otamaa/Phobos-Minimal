@@ -16,8 +16,9 @@ enum class PhobosTriggerAction : unsigned int
 	GenerateRandomNumber = 502,
 	PrintVariableValue = 503,
 	BinaryOperation = 504,
-	RunSuperWeaponAtLocation = 505,
-	RunSuperWeaponAtWaypoint = 506,
+	AdjustLighting = 505,
+	RunSuperWeaponAtLocation = 506,
+	RunSuperWeaponAtWaypoint = 507,
 
 	DrawLaserBetweenWeaypoints = 9940
 };
@@ -27,6 +28,9 @@ class TActionExt
 public:
 	static constexpr size_t Canary = 0x87154321;
 	using base_type = TActionClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<base_type>
 	{
@@ -71,7 +75,7 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
+	static void RecreateLightSources();
 	static bool Execute(TActionClass* pThis, HouseClass* pHouse,
 			ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& bHandled);
 
@@ -85,6 +89,8 @@ public:
 	ACTION_FUNC(GenerateRandomNumber);
 	ACTION_FUNC(PrintVariableValue);
 	ACTION_FUNC(BinaryOperation);
+	ACTION_FUNC(AdjustLighting);
+
 	ACTION_FUNC(RunSuperWeaponAtLocation);
 	ACTION_FUNC(RunSuperWeaponAtWaypoint);
 

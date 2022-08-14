@@ -16,11 +16,14 @@
 DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
-	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto pUnit = specific_cast<UnitClass*>(pThis);
-	bool bDisableThis = pUnit && pUnit->DeathFrameCounter > 0;
 
-	if ((pTypeData && pTypeData->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking || bDisableThis)
+	if(const auto pUnit = specific_cast<UnitClass*>(pThis))
+		if(pUnit && pUnit->DeathFrameCounter > 0)
+			return 0x6F6AB6;
+
+	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if ((pTypeData && pTypeData->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
 		return 0x6F6AB6;
 
 	return 0;

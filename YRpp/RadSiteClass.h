@@ -130,3 +130,5 @@ public:
 	int               RadDuration; // as currently set up, the rad site will stay for so many frames
 	int               RadTimeLeft; // the remaining frames. divided by RadDuration gives the factor
 };
+
+static_assert(sizeof(RadSiteClass) == 0x74, "Invalid Size !");

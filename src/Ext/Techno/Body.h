@@ -188,19 +188,7 @@ public:
 
 		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
 		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::House:
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry:
-			case AbstractType::Anim:
-				return false;
-			default:
-				return true;
-			}
+			return true;
 		}
 	};
 

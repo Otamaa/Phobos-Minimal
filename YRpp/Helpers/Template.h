@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Syringe.h>
-
+#include <vector>
 #include <ArrayClasses.h>
 
 // here be dragons(plenty)
@@ -49,8 +49,9 @@ public:
 
 // invalid pointers
 
-template<typename T1>
-void AnnounceInvalidPointer(T1 &elem, void *ptr) {
+template<typename T>
+void AnnounceInvalidPointer(T &elem, void *ptr) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(ptr == static_cast<void*>(elem)) {
 		elem = nullptr;
 	}
@@ -58,12 +59,23 @@ void AnnounceInvalidPointer(T1 &elem, void *ptr) {
 
 template<typename T>
 void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	auto idx = elem.FindItemIndex(reinterpret_cast<T*>(ptr));
 	if(idx != -1) {
 		elem.RemoveItem(idx);
 	}
 }
 
+template<typename T>
+void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr)
+{
+	static_assert(std::is_pointer<T>::value,"Pointer Required !");
+	const auto nData = std::find_if(elem.begin(), elem.end(), [&](auto const pData) { return reinterpret_cast<T>(ptr) == pData; });
+
+	if (nData != elem.end()) {
+		elem.erase(nData);
+	}
+}
 
 // vroom vroom
 // Westwood uses if(((1 << HouseClass::ArrayIndex) & TechnoClass::DisplayProductionToHouses) != 0) and other bitfields like this (esp. in CellClass, omg optimized). helper wrapper just because

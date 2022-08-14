@@ -744,6 +744,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FireSelf_Weapon_RedHeath)
 		.Process(this->FireSelf_ROF_RedHeath)
 		.Process(this->AllowFire_IroncurtainedTarget)
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

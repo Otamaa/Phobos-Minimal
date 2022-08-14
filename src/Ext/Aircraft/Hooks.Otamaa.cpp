@@ -7,7 +7,17 @@
 
 #pragma region Otamaa
 
-DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
+//DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
+
+//DEFINE_JUMP(LJMP, 0x4CD7DA , 0x4CD7DB)
+DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
+{
+	GET(AircraftClass*, pThis, ECX);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x6C, 0x1C));
+	R->Stack(STACK_OFFS(0x6C, 0x44), CellClass::Coord2Cell(nCoord));
+	AircraftExt::TriggerCrashWeapon(pThis,0);
+	return 0x4CD80E;
+}
 
 DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 {
@@ -252,7 +262,8 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
 }
 
 //size
-DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x5)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x0)
 {
 	enum { SkipAllSet = 0x444053, Nothing = 0x0 };
 
@@ -268,6 +279,7 @@ DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x5)
 
 	return Nothing;
 }
+#endif
 
 #ifdef TEST_CODE
 DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)

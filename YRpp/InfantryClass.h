@@ -26,6 +26,9 @@ public:
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int	Size() const R0;
 
+	//TechnoClass
+	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);
+
 	//FootClass
 	//virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);
 

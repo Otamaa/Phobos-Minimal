@@ -187,12 +187,14 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 {
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (!pExt || !pTypeExt)
+	if (!pExt || !abstract_cast<FootClass*>(pThis))
 		return;
 
-	if (!pTypeExt->MobileRefinery || !abstract_cast<FootClass*>(pThis) || !pThis->Owner || (pTypeExt->MobileRefinery_TransRate > 0 &&
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (!pTypeExt)
+		return;
+
+	if (!pTypeExt->MobileRefinery || !pThis->Owner || (pTypeExt->MobileRefinery_TransRate > 0 &&
 		Unsorted::CurrentFrame % pTypeExt->MobileRefinery_TransRate))
 		return;
 
@@ -220,7 +222,8 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 			pCell->ReduceTiberium(amount);
 			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
 
-			if (pThis->Owner->CanTransactMoney(value)) {
+			if (pThis->Owner->CanTransactMoney(value))
+			{
 				pThis->Owner->TransactMoney(value);
 				FlyingStrings::AddMoneyString(pTypeExt->MobileRefinery_Display, value, pThis, AffectedHouse::All, nPos, Point2D::Empty, pTypeExt->MobileRefinery_DisplayColor);
 			}
@@ -277,9 +280,16 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	//		pExt->ID = pThis->get_ID();
 	//	}
 	//}
+	//if (pThis->TemporalTargetingMe)
+	//if (auto const pCell = pThis->GetCell())
+	//if (auto const pBld = pCell->GetBuilding())
+	//if (pBld->Type->BridgeRepairHut)
+	//pThis->TemporalTargetingMe->Detach();
 
+//#ifdef ENABLE_NEWHOOKS
 	TechnoExt::RunFireSelf(pThis);
 	TechnoExt::ApplyMobileRefinery(pThis);
+//#endif
 	TechnoExt::UpdateMindControlAnim(pThis);
 	TechnoExt::ApplyMindControlRangeLimit(pThis);
 	TechnoExt::ApplyInterceptor(pThis);
@@ -300,24 +310,24 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	//pExt->GenericFuctions.run_each(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pExt && pTypeExt)
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
-		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-		GiftBoxFunctional::AI(pExt, pTypeExt);
-
-		if (auto const pPaintBall = pExt->PaintBallState.get())
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		{
-			if (pPaintBall->IsActive())
+			pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+			GiftBoxFunctional::AI(pExt, pTypeExt);
+
+			if (auto const pPaintBall = pExt->PaintBallState.get())
 			{
-				if (pThis->WhatAmI() == AbstractType::Building)
-					pThis->UpdatePlacement(PlacementType::Redraw);
-			}
-			else
-			{
-				pPaintBall->Disable(false);
+				if (pPaintBall->IsActive())
+				{
+					if (pThis->WhatAmI() == AbstractType::Building)
+						pThis->UpdatePlacement(PlacementType::Redraw);
+				}
+				else
+				{
+					pPaintBall->Disable(false);
+				}
 			}
 		}
 	}
@@ -328,93 +338,165 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 
 static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 {
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	// this one is bad idea i think
-	// what if they go converted on middle of something here
-	// we fcked up , need to revise this
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pExt && pTypeExt)
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
-
-		if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		{
-			for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
+
+			if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
 			{
-				if (auto const pInf = generic_cast<FootClass*>(*object))
+				for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
 				{
-					if (!pInf->Transporter || !pInf->InOpenToppedTransport)
+					if (auto const pInf = generic_cast<FootClass*>(*object))
 					{
-						pThis->EnteredOpenTopped(pInf);
-						pInf->Transporter = pThis;
-						pInf->Undiscover();
+						if (!pInf->Transporter || !pInf->InOpenToppedTransport)
+						{
+							pThis->EnteredOpenTopped(pInf);
+							pInf->Transporter = pThis;
+							pInf->Undiscover();
+						}
 					}
 				}
-			}
 
-			pExt->AircraftOpentoppedInitEd = true;
-		}
+				pExt->AircraftOpentoppedInitEd = true;
+			}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-		AircraftPutDataFunctional::AI(pExt, pTypeExt);
-		AircraftDiveFunctional::AI(pExt, pTypeExt);
-		FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+			AircraftPutDataFunctional::AI(pExt, pTypeExt);
+			AircraftDiveFunctional::AI(pExt, pTypeExt);
+			FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 
 #ifdef ENABLE_HOMING_MISSILE
-		if (pTypeExt->MissileHoming
-			&& pThis->Spawned
-			&& pThis->Type->MissileSpawn)
-		{
-			const auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
-			CLSID nID { };
-			pLoco->GetClassID(&nID);
-
-			if (nID == LocomotionClass::CLSIDs::Rocket())
+			if (pTypeExt->MissileHoming
+				&& pThis->Spawned
+				&& pThis->Type->MissileSpawn)
 			{
-				if (auto const pTracker = pExt->MissileTargetTracker)
-				{
-					pTracker->AI();
-					auto const pRocket = static_cast<RocketLocomotionClass*>(pLoco);
+				const auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+				CLSID nID { };
+				pLoco->GetClassID(&nID);
 
-					//check if the coord is actually valid
-					// if not , just move on
-					if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
-						pRocket->MovingDestination = pTracker->Coord;
+				if (nID == LocomotionClass::CLSIDs::Rocket())
+				{
+					if (auto const pTracker = pExt->MissileTargetTracker)
+					{
+						pTracker->AI();
+						auto const pRocket = static_cast<RocketLocomotionClass*>(pLoco);
+
+						//check if the coord is actually valid
+						// if not , just move on
+						if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
+							pRocket->MovingDestination = pTracker->Coord;
+					}
 				}
 			}
+#endif
+#endif
 		}
-#endif
-#endif
 	}
 
 	pThis->FootClass::Update();
 }
 
-DEFINE_JUMP(CALL, 0x414DA3, GET_OFFSET(AircraftClass_AI_));
+
+//DEFINE_JUMP(CALL, 0x414DA3, GET_OFFSET(AircraftClass_AI_));
+
+DEFINE_HOOK(0x414DA1 ,AircraftClass_AI_FootClass_AI, 0x6) //was 7
+{
+	GET(AircraftClass* , pThis ,ESI);
+
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		{
+
+			if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
+			{
+				for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
+				{
+					if (auto const pInf = generic_cast<FootClass*>(*object))
+					{
+						if (!pInf->Transporter || !pInf->InOpenToppedTransport)
+						{
+							pThis->EnteredOpenTopped(pInf);
+							pInf->Transporter = pThis;
+							pInf->Undiscover();
+						}
+					}
+				}
+
+				pExt->AircraftOpentoppedInitEd = true;
+			}
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+
+			AircraftPutDataFunctional::AI(pExt, pTypeExt);
+			AircraftDiveFunctional::AI(pExt, pTypeExt);
+			FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+#ifdef ENABLE_HOMING_MISSILE
+			if (pTypeExt->MissileHoming
+				&& pThis->Spawned
+				&& pThis->Type->MissileSpawn)
+			{
+				const auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+				CLSID nID { };
+				pLoco->GetClassID(&nID);
+
+				if (nID == LocomotionClass::CLSIDs::Rocket())
+				{
+					if (auto const pTracker = pExt->MissileTargetTracker)
+					{
+						pTracker->AI();
+						auto const pRocket = static_cast<RocketLocomotionClass*>(pLoco);
+
+						//check if the coord is actually valid
+						// if not , just move on
+						if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
+							pRocket->MovingDestination = pTracker->Coord;
+					}
+				}
+			}
+#endif
+#endif
+		}
+	}
+
+	pThis->FootClass::Update();
+	return 0x414DA8;
+}
 
 static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
 {
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	// this one is bad idea i think
-	// what if they go converted on middle of something here
-	// we fcked up , need to revise this
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pExt && pTypeExt)
-	{
-		JJFacingFunctional::AI(pExt, pTypeExt);
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			JJFacingFunctional::AI(pExt, pTypeExt);
+		}
 	}
 
 #endif
 	pThis->FootClass::Update();
 }
 
-DEFINE_JUMP(CALL, 0x73647B, GET_OFFSET(UnitClass_AI_));
+//DEFINE_JUMP(CALL, 0x73647B, GET_OFFSET(UnitClass_AI_));
+
+DEFINE_HOOK(0x736479 , UnitClass_AI_FootClass_AI , 0x7)
+{
+	GET(UnitClass* , pThis , ESI);
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			JJFacingFunctional::AI(pExt, pTypeExt);
+		}
+	}
+#endif
+	pThis->FootClass::Update();
+
+	return 0x736480;
+}
 
 DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
@@ -475,63 +557,64 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	const auto pExt = BuildingExt::ExtMap.Find(pThis);
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	const auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	if (pTypeExt && pExt && pTechTypeExt)
+	if (const auto pExt = BuildingExt::ExtMap.Find(pThis))
 	{
-		//TechnoExt::ApplyPowered_KillSpawns
-		if (pTechTypeExt->Powered_KillSpawns && pThis->Type->Powered && !pThis->IsPowerOnline())
+		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		const auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		if (pTypeExt && pTechTypeExt)
 		{
-			if (auto pManager = pThis->SpawnManager)
+
+			//TechnoExt::ApplyPowered_KillSpawns
+			if (pTechTypeExt->Powered_KillSpawns && pThis->Type->Powered && !pThis->IsPowerOnline())
 			{
-				pManager->ResetTarget();
-				for (auto pItem : pManager->SpawnedNodes)
+				if (auto pManager = pThis->SpawnManager)
 				{
-					if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
+					pManager->ResetTarget();
+					for (auto pItem : pManager->SpawnedNodes)
 					{
-						if (pItem->Unit)
-							pItem->Unit->ReceiveDamage(&pItem->Unit->Health, 0,
-								RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
+						if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
+						{
+							if (pItem->Unit)
+								pItem->Unit->ReceiveDamage(&pItem->Unit->Health, 0,
+									RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
+						}
 					}
 				}
 			}
-		}
 
-		if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
-		{
-			auto pRulesExt = RulesExt::Global();
-			auto nMission = pThis->GetCurrentMission();
-
-			if (pTypeExt->AutoSellTime.isset())
+			if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
 			{
-				if (pTypeExt->AutoSellTime.Get() > 0.0f && nMission != Mission::Selling)
-				{
-					if (pExt->AutoSellTimer.StartTime == -1 || nMission == Mission::Attack)
-						pExt->AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
-					else
-						if (pExt->AutoSellTimer.Completed())
-							pThis->Sell(-1);
-				}
-			}
+				auto pRulesExt = RulesExt::Global();
+				auto nMission = pThis->GetCurrentMission();
 
-			if (!pRulesExt->AI_AutoSellHealthRatio.empty() && pRulesExt->AI_AutoSellHealthRatio.size() >= 3 && (nMission != Mission::Selling))
-			{
-				if (!pThis->Occupants.Count)
+				if (pTypeExt->AutoSellTime.isset())
 				{
-					if (pThis->Owner && !pThis->Owner->IsPlayer() && !pThis->Owner->Type->MultiplayPassive)
+					if (pTypeExt->AutoSellTime.Get() > 0.0f && nMission != Mission::Selling)
 					{
-						auto nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
+						if (pExt->AutoSellTimer.StartTime == -1 || nMission == Mission::Attack)
+							pExt->AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
+						else
+							if (pExt->AutoSellTimer.Completed())
+								pThis->Sell(-1);
+					}
+				}
 
-						if (nValue > 0.0f && pThis->GetHealthPercentage() <= nValue)
-							pThis->Sell(-1);
+				if (!pRulesExt->AI_AutoSellHealthRatio.empty() && pRulesExt->AI_AutoSellHealthRatio.size() >= 3 && (nMission != Mission::Selling))
+				{
+					if (!pThis->Occupants.Count)
+					{
+						if (pThis->Owner && !pThis->Owner->IsPlayer() && !pThis->Owner->Type->MultiplayPassive)
+						{
+							auto nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
+
+							if (nValue > 0.0f && pThis->GetHealthPercentage() <= nValue)
+								pThis->Sell(-1);
+						}
 					}
 				}
 			}
 		}
 	}
-
 	return 0x0;
 }
 
@@ -549,6 +632,7 @@ void __fastcall HouseClass_AI_SWHandler_Add(HouseClass* pThis, void* _)
 DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
 
+#ifdef ENABLE_NEWHOOKS
 void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
 {
 	pLogic->Update();
@@ -567,6 +651,7 @@ DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
 //	return 0x0;
 //}
 
+
 DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
 {
 	VerticalLaserClass::OnUpdateAll();
@@ -575,3 +660,4 @@ DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
 #endif
 	return 0x0;
 }
+#endif

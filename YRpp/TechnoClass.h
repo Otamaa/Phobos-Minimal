@@ -217,7 +217,7 @@ public:
 	virtual int GetAntiArmorValue() const R0;
 	virtual int GetAntiInfantryValue() const R0;
 	virtual void GotHijacked() RX;
-	virtual int SelectWeapon(AbstractClass *pTarget) const R0;
+	virtual int SelectWeapon(AbstractClass *pTarget) const JMP_THIS(0x6F3330);
 	virtual NavalTargetingType SelectNavalTargeting(AbstractClass *pTarget) const JMP_THIS(0x6F3820);
 	virtual int GetZAdjustment() const R0;
 	virtual ZGradient GetZGradient() const RT(ZGradient);

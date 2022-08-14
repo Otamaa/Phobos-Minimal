@@ -11,7 +11,7 @@
 #include <ScenarioClass.h>
 #include <TriggerClass.h>
 
-#include <Ext/Terrain/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -83,50 +83,11 @@ DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
 DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
 DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 {
-	// Yeah, we just simply recreating these lightsource...
-	// Stupid but works fine.
+	TActionExt::RecreateLightSources();
 
-	std::for_each(BuildingClass::Array->begin(), BuildingClass::Array->end(), [](BuildingClass* const pBld) {
-		if (pBld->LightSource)
-		{
-			GameDelete(pBld->LightSource);
-			if (pBld->Type->LightIntensity)
-			{
-				TintStruct color { pBld->Type->LightRedTint, pBld->Type->LightGreenTint, pBld->Type->LightBlueTint };
-
-				pBld->LightSource = GameCreate<LightSourceClass>(pBld->GetCoords(),
-					pBld->Type->LightVisibility, pBld->Type->LightIntensity, color);
-
-				pBld->LightSource->Activate();
-			}
-		}
-	});
-
-	std::for_each(RadSiteClass::Array->begin(), RadSiteClass::Array->end(), [](RadSiteClass* const pRadSite)
-	{
-		if (pRadSite->LightSource)
-		{
-			auto coord = pRadSite->LightSource->Location;
-			auto color = pRadSite->LightSource->LightTint;
-			auto intensity = pRadSite->LightSource->LightIntensity;
-			auto visibility = pRadSite->LightSource->LightVisibility;
-
-			GameDelete(pRadSite->LightSource);
-
-			pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
-				visibility, intensity, color);
-
-			pRadSite->LightSource->Activate();
-		}
-	 });
-
-	std::for_each(TerrainExt::ExtMap.begin(), TerrainExt::ExtMap.end(), [](auto const& nPair) {
-		if (nPair.second && !nPair.first->InLimbo)
-		{
-			nPair.second->ClearLightSource();
-			nPair.second->InitializeLightSource();
-		}
-	});
+	ScenarioExt::Global()->CurrentTint_Tiles =
+	ScenarioExt::Global()->CurrentTint_Schemes =
+	ScenarioExt::Global()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
 
 	return 0;
 }

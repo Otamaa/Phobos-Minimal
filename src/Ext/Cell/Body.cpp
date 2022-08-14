@@ -68,7 +68,11 @@ CellExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, EAX);
+#ifdef ENABLE_NEWHOOKS
+	CellExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	CellExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

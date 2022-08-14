@@ -430,7 +430,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
 	R->EAX(maxSpeed);
 	return SkipGameCode;
 }
-
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK_AGAIN(0x6B73BE, SpawnManagerClass_AI_SpawnTimer, 0x6)
 DEFINE_HOOK(0x6B73AD, SpawnManagerClass_AI_SpawnTimer, 0x5)
 {
@@ -462,7 +462,7 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 
 	return 0;
 }
-
+#endif
 #ifdef IC_AFFECT
 //https://github.com/Phobos-developers/Phobos/pull/674
 DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
@@ -524,11 +524,22 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 #endif
 
 static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void*_ , int nDur , HouseClass* pSource , bool bIsFC) {
+
+	if (pThis->TemporalTargetingMe)
+		return DamageState::Unaffected;
+
+	if(nDur == 0) {
+		auto nDamage = pThis->Health;
+		return pThis->ReceiveDamage(&nDamage,0,RulesGlobal->C4Warhead,0,1,0,pSource);
+	}
+
 	return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);
 }
 
 DEFINE_JUMP(VTABLE,0x7EB1AC  ,GET_OFFSET(InfantryClass_IronCurtain));
 
+
+#ifdef ENABLE_NEWHOOKS
 static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType) {
 	Iterator<AnimTypeClass*> Iter;
 
@@ -558,6 +569,7 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 
 	return 0x520CA9;
 }
+#endif
 /*
 DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
 {

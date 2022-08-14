@@ -187,7 +187,12 @@ SWTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
+#ifdef ENABLE_NEWHOOKS
+	SWTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	SWTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+
 	return 0;
 }
 

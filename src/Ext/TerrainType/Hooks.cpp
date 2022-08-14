@@ -16,7 +16,8 @@ namespace TerrainTypeTemp {
 	TerrainTypeExt::ExtData* pCurrentExt = nullptr;
 }
 
-DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 6)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 {
 	//GET(ObjectClass*, pThis, ESI);
 	GET(ObjectTypeClass*, pType, EBX);
@@ -41,6 +42,7 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 6)
 
 	return NoUpdate;
 }
+#endif
 
 DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
 {

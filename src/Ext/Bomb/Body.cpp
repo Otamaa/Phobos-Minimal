@@ -72,7 +72,11 @@ DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
 DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6) // is this inline ?
 {
 	GET(BombClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	BombExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	BombExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

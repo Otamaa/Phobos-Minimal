@@ -12,6 +12,9 @@ class CellExt
 public:
 	static constexpr size_t Canary = 0x87688621;
 	using base_type = CellClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<CellClass>
 	{

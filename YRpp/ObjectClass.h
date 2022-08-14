@@ -129,7 +129,7 @@ public:
 	virtual void DropAsBomb() RX;
 	virtual void MarkAllOccupationBits(const CoordStruct& coords) RX;
 	virtual void UnmarkAllOccupationBits(const CoordStruct& coords) RX;
-	virtual void UnInit() RX;  // RemoveThis_DeleteThis 0xF8
+	virtual void UnInit() JMP_THIS(0x5F65F0);  // RemoveThis_DeleteThis 0xF8
 	virtual void Reveal() RX; // uncloak when object is bumped, damaged, detected, ... , DoShimmer  0xFC
 	virtual KickOutResult KickOutUnit(TechnoClass* pTechno, CellStruct Cell) RT(KickOutResult); //Exit Object 0x100
 	virtual bool DrawIfVisible(RectangleStruct *pBounds, bool EvenIfCloaked, DWORD dwUnk3) const R0;

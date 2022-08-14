@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Base/Always.h>
+#include <TechnoClass.h>
 
 struct AresTechnoExtData
 {
-	DWORD dword0;
-	DWORD dword4;
+	TechnoClass* AttachedObject;
+	DWORD InitState;
 	DWORD dword8;
 	DWORD dwordC;
 	DWORD dword10;

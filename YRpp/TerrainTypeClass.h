@@ -53,6 +53,7 @@ public:
 	int ArrayIndex;
 	int Foundation;
 	ColorStruct RadarColor;
+	PROTECTED_PROPERTY(BYTE, TTypePadA);
 	int AnimationRate;
 	float AnimationProbability;
 	int TemperateOccupationBits;
@@ -62,5 +63,8 @@ public:
 	bool IsFlammable;
 	bool IsAnimated;
 	bool IsVeinhole;
+	PROTECTED_PROPERTY(BYTE, TTypePadB[3]);
 	CellStruct* FoundationData;
 };
+
+static_assert(sizeof(TerrainTypeClass) == 0x2BC, "Invalid Size !");

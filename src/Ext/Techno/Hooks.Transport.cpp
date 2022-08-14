@@ -121,7 +121,6 @@ DEFINE_HOOK(0x4DE67B, FootClass_LeaveTransport_SyncOwner, 0x8)
 	return 0;
 }
 
-
 // Has to be done here, before Ares survivor hook to take effect.
 DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
 {

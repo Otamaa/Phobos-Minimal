@@ -126,7 +126,11 @@ TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	TerrainTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	TerrainTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	pItem->RadarInvisible = false;
 	return 0;
 }

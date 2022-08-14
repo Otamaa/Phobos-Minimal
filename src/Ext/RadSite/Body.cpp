@@ -179,9 +179,13 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 
-		if (pThis->WhatAmI() == AbstractType::RadSite)
-			if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
-				pRadExt->InitializeConstants();
+#ifdef ENABLE_NEWHOOKS
+		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
+#else
+		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
+			pRadExt->InitializeConstants();
+#endif
+
 	}
 
 	return 0;

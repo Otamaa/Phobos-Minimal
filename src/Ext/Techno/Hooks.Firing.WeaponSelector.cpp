@@ -9,11 +9,8 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 {
 	enum { ReturnGameCode = 0x6F3341, ReturnHandled = 0x6F3406 };
 
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
-
-	if (!pThis)
-		Debug::FatalErrorAndExit(__FUNCTION__" Has Missing TechnoPointer ! \n");
+	GET(const TechnoClass*, pThis, ESI);
+	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
 	if (pTarget)
 	{
@@ -31,27 +28,6 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	R->EAX(pThis->GetTechnoType());
 
 	return ReturnGameCode;
-}
-
-DEFINE_HOOK_AGAIN(0x6FF660, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
-DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-	GET_BASE(int, weaponIndex, 0xC);
-
-	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
-	{
-		if (auto const pExt = TechnoExt::GetExtData(pThis))
-		{
-			if (pExt->CurrentLaserWeaponIndex.empty())
-				pExt->CurrentLaserWeaponIndex = weaponIndex;
-			else
-				pExt->CurrentLaserWeaponIndex.clear();
-		}
-	}
-
-	return 0;
 }
 
 DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
@@ -186,4 +162,24 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x7)
 	}
 
 	return OriginalCheck;
+}
+//DEFINE_HOOK_AGAIN(0x6FF660, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+	GET_BASE(int, weaponIndex, 0xC);
+
+	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
+	{
+		if (auto const pExt = TechnoExt::GetExtData(pThis))
+		{
+			if (pExt->CurrentLaserWeaponIndex.empty())
+				pExt->CurrentLaserWeaponIndex = weaponIndex;
+			else
+				pExt->CurrentLaserWeaponIndex.clear();
+		}
+	}
+
+	return 0;
 }

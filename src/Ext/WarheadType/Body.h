@@ -16,6 +16,9 @@ class WarheadTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<WarheadTypeClass>
 	{

@@ -21,7 +21,7 @@
 
 
 #pragma region Otamaa
-/*
+/* Dont Enable ! , broke targeting !
 DEFINE_HOOK(0x6F7891, TechnoClass_TriggersCellInset_IgnoreVertical, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);

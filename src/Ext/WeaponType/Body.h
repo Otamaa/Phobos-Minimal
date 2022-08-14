@@ -18,6 +18,9 @@ class WeaponTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<WeaponTypeClass>
 	{
@@ -52,6 +55,7 @@ public:
 		Valueable<bool>Range_IgnoreVertical;
 		// brought back from TS
 		Valueable<Leptons> ProjectileRange;
+		Nullable<bool> Decloak_InstantFire;
 
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
@@ -87,6 +91,7 @@ public:
 			, OccupantAnim_UseMultiple { false }
 			, Range_IgnoreVertical { false }
 			, ProjectileRange { Leptons(100000) }
+			, Decloak_InstantFire { }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }

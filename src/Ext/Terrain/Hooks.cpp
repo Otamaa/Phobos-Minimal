@@ -87,23 +87,6 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	return 0;
 }
 
-/*
-DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x8)
-{
-	enum { Draw = 0x71CD8D , Skip = 0x71CC9A };
-
-	GET(TerrainClass*, pThis, EDI);
-	pThis->NeedsRedraw = false;
-
-	bool bFogged = false;
-
-	if (auto pCell = pThis->GetCell())
-		bFogged = pCell->IsFogged();
-
-	return pThis->InLimbo || bFogged ? Draw : Skip;
-}
-*/
-
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
 {
 	GET(ConvertClass*, pConvert, EDX);

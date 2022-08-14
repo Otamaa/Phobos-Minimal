@@ -128,28 +128,6 @@ template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
 inline bool operator != (const T& other, const Valueable<T>& val) {
 	return !(val == other);
 }
-
-class ArmorType : public Valueable<int>
-{
-public:
-	template <typename T>
-	ArmorType(T value)
-	{
-		this->Value = (int)std::move(value);
-	}
-
-	template <typename T>
-	ArmorType &operator = (T value)
-	{
-		this->Value = std::move(value);
-		return *this;
-	}
-
-	operator Armor() const { return  (Armor)this->Value; }
-
-	bool Read(INI_EX &parser, const char *pSection, const char *pKey, bool Allocate = false);
-};
-
 // more fun
 template<typename Lookuper>
 class ValueableIdx : public Valueable<int> {
@@ -477,9 +455,19 @@ protected:
 	bool YellowOnFire;
 
 public:
-	HealthOnFireData() :
+	HealthOnFireData() noexcept :
 		RedOnFire { true }, GreenOnFire { false }, YellowOnFire { true }
 	{ }
+
+	HealthOnFireData(bool All) noexcept :
+		RedOnFire { All }, GreenOnFire { All }, YellowOnFire { All }
+	{ }
+
+	HealthOnFireData(bool R , bool G , bool Y) noexcept :
+		RedOnFire { R }, GreenOnFire { G }, YellowOnFire { Y }
+	{ }
+
+	~HealthOnFireData() noexcept = default;
 
 	inline bool Get(HealthState const& nState) const noexcept
 	{
@@ -492,3 +480,28 @@ public:
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	inline bool Save(PhobosStreamWriter& Stm) const;
 };
+
+class ArmorType
+{
+public:
+	Nullable<int> Value;
+
+	ArmorType(int value)  noexcept : Value { value }
+	{ }
+
+	ArmorType(Armor value) noexcept : Value { static_cast<int>(value) }
+	{ }
+
+	ArmorType() noexcept = default;
+	~ArmorType() noexcept = default;
+
+	operator Armor() const { return  (Armor)this->Value.Get(); }
+	operator int() const { return this->Value.Get(); }
+
+	inline bool isset() const { return this->Value.isset(); }
+	bool Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return Stm.Process(Value); }
+	inline bool Save(PhobosStreamWriter& Stm) const { return Stm.Process(Value); }
+
+};
+

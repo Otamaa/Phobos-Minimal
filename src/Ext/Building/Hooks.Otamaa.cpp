@@ -18,6 +18,7 @@ DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
 	return 0;
 }
 
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x442A24, BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -33,6 +34,7 @@ DEFINE_HOOK(0x442A24, BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
 
 	return 0x0;
 }
+#endif
 
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
@@ -130,12 +132,13 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 }
 
 DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExt::IsFactory));
-
 /*
-DEFINE_HOOK(0x443FF9 ,BuildingClass_ExitObject_Aircraft , 0x5)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0x2)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pProduct, EBP);
+	//GET(CoordStruct*, pCoord,EAX);
 
 	if (!pProduct->Type->AirportBound)
 	{
@@ -151,7 +154,8 @@ DEFINE_HOOK(0x443FF9 ,BuildingClass_ExitObject_Aircraft , 0x5)
 	}
 
 	return 0x0;
-}*/
-
+}
+#endif
+*/
 #pragma endregion
 

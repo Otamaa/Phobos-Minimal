@@ -17,29 +17,23 @@ void ElectricBoltClass::Clear()
 
 void ElectricBoltClass::Draw_It()
 {
-	if (DrawFrame == Unsorted::CurrentFrame)
-	{
+	if (DrawFrame == Unsorted::CurrentFrame) {
 		/**
 		 *  This is our draw frame, so draw!
 		 */
-		if (LineDrawList.size())
-		{
+		if (LineDrawList.size()) {
 			Draw_Bolts();
 		}
 
-	}
-	else
-	{
+	} else {
 
 		/**
 		 *  Clear previous lines, we are about to plot a new set.
 		 */
 		LineDrawList.clear();
 
-		for (int i = 0; i < IterationCount; ++i)
-		{
-			if (Lifetime)
-			{
+		for (int i = 0; i < IterationCount; ++i) {
+			if (Lifetime) {
 				Point2D pixel_start {};
 				Point2D pixel_end {};
 
@@ -49,14 +43,12 @@ void ElectricBoltClass::Draw_It()
 				if (Game::Clip_Line(&pixel_start, &pixel_end, &Drawing::SurfaceDimensions_Hidden()))
 					Plot_Bolt(StartCoord, EndCoord);
 			}
-
 		}
 
 		/**
 		 *  Draw the initial set of lines.
 		 */
-		if (LineDrawList.size())
-		{
+		if (LineDrawList.size()) {
 			Draw_Bolts();
 		}
 
@@ -100,7 +92,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 	int SEGEMENT_COORDS_SIZE = sizeof(CoordStruct) * 3;
 
-	std::vector<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
+	DynamicVectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
 
 	CoordStruct start_coords[3];
 	CoordStruct end_coords[3];
@@ -141,7 +133,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 		while (true)
 		{
 
-			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < static_cast<int>(ebolt_plots.size()))
+			while (distance > (Unsorted::LeptonsPerCell / 4) && plot_index < static_cast<int>(ebolt_plots.Size()))
 			{
 
 				for (int i = 0; i < 3; ++i)
@@ -230,8 +222,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 			Add_Plot_Line(start_coords[2], end_coords[2], LineColor3, line_start_z, line_end_z);
 			Add_Plot_Line(start_coords[0], end_coords[0], LineColor1, line_start_z, line_end_z);
 
-			if (--plot_index < 0)
-			{
+			if (--plot_index < 0) {
 				break;
 			}
 
@@ -285,8 +276,7 @@ void ElectricBoltManager::Draw_All()
 	if (ElectricBoltArray.empty())
 		return;
 
-	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i)
-	{
+	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i) {
 		ElectricBoltClass* ebolt = ElectricBoltArray[i];
 
 		if (!ebolt) {
@@ -301,8 +291,7 @@ void ElectricBoltManager::Draw_All()
 		/**
 		 *  Electric bolt has expired, delete it.
 		 */
-		if (ebolt->Lifetime <= 0)
-		{
+		if (ebolt->Lifetime <= 0) {
 			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
 			GameDelete(ebolt);
 		}

@@ -10,6 +10,9 @@ class SideExt
 public:
 	static constexpr size_t Canary = 0x05B10501;
 	using base_type = SideClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<SideClass>
 	{

@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Utilities/Macro.h>
+#include <string>
+
 ///Phobos/pull/706
 
 namespace ActionsString
@@ -13,7 +15,7 @@ DEFINE_HOOK(0x727544, TriggerClass_LoadFromINI_Actions, 0x5)
 {
 	GET(const char*, pString, EDX);
 	ActionsString::ActionsString = pString;
-	std::stringstream sin(ActionsString::ActionsString);
+	std::stringstream sin { ActionsString::ActionsString };
 	std::deque<std::string>& substrs = ActionsString::SubStrings;
 	substrs.clear();
 	std::string tmp;

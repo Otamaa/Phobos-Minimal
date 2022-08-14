@@ -150,6 +150,8 @@ protected:
 
 };
 
+template <class T>
+concept HasOffset = requires(T) { T::ExtOffset; };
 
 // a non-virtual base class for a pointer to pointer map.
 // pointers are not owned by this map, so be cautious.
@@ -162,7 +164,7 @@ public:
 #ifdef ROBIN_HOOD_ENABLED
 	using map_type = robin_hood::unordered_map<const_key_ptr, value_ptr>;
 #else
-	using map_type = std::unordered_map<const_key_ptr, value_ptr>;
+		using map_type = std::unordered_map<const_key_ptr, value_ptr>;
 #endif
 	using const_iterator = map_type::const_iterator;
 	using iterator = const_iterator;
@@ -219,6 +221,83 @@ private:
 	map_type Items;
 };
 
+/*
+class ContainerVectorBase final
+{
+public:
+	using key_ptr = void*;
+	using const_key_ptr = const void*;
+	using value_ptr = void*;
+	using map_type = std::vector<value_ptr>;
+	using const_iterator = map_type::const_iterator;
+	using iterator = const_iterator;
+
+	ContainerVectorBase() = default;
+	ContainerVectorBase(ContainerVectorBase const&) = delete;
+	~ContainerVectorBase() = default;
+
+	ContainerVectorBase& operator=(ContainerVectorBase const&) = delete;
+	ContainerVectorBase& operator=(ContainerVectorBase&&) = delete;
+
+	value_ptr find(const_key_ptr key) const
+	{
+		auto const it = std::find(this->Items.begin(), this->Items.end(), [&](auto const pKey) {
+			return std::memcmp(pKey,key,sizeof(pKey)) == 0;
+		});
+
+		if (it != this->Items.end())
+			return (*it);
+
+		return nullptr;
+	}
+
+	void insert(const_key_ptr key, value_ptr value)
+	{
+		this->Items.push_back(value);
+	}
+
+	value_ptr remove(const_key_ptr key)
+	{
+		auto const it = std::find(this->Items.begin(), this->Items.end(), [&](auto const pKey) {
+			return std::memcmp(pKey, key, sizeof(pKey)) == 0;
+		});
+
+		if (it != this->Items.cend())
+		{
+			auto const value = (*it);
+			this->Items.erase(it);
+
+			return value;
+		}
+
+		return nullptr;
+	}
+
+	void clear()
+	{
+		// this leaks all objects inside. this case is logged.
+		this->Items.clear();
+	}
+
+	size_t size() const
+	{
+		return this->Items.size();
+	}
+
+	const_iterator begin() const
+	{
+		return this->Items.cbegin();
+	}
+
+	const_iterator end() const
+	{
+		return this->Items.cend();
+	}
+
+private:
+	map_type Items;
+};
+*/
 // looks like a typed map, but is really a thin wrapper around the untyped map
 // pointers are not owned here either, see that each pointer is deleted
 template <typename Key, typename Value>
@@ -228,12 +307,7 @@ public:
 	using key_ptr = Key*;
 	using const_key_ptr = const Key*;
 	using value_ptr = Value*;
-#ifdef ROBIN_HOOD_ENABLED
-	using iterator = typename robin_hood::unordered_map<key_ptr, value_ptr>::const_iterator;
-#else
-	//using iterator = typename VectorMap<key_ptr, value_ptr>::const_iterator;
-	using iterator = typename std::unordered_map<key_ptr, value_ptr>::const_iterator;
-#endif
+
 	ContainerMap() = default;
 	ContainerMap(ContainerMap const&) = delete;
 
@@ -264,14 +338,16 @@ public:
 		return this->Items.size();
 	}
 
-	iterator begin() const {
+	std::unordered_map<key_ptr, value_ptr>::const_iterator begin() const
+	{
 		auto ret = this->Items.begin();
-		return reinterpret_cast<iterator& >(ret);
+		return reinterpret_cast<std::unordered_map<key_ptr, value_ptr>::const_iterator&>(ret);
 	}
 
-	iterator end() const {
+	std::unordered_map<key_ptr, value_ptr>::const_iterator end() const
+	{
 		auto ret = this->Items.end();
-		return reinterpret_cast<iterator& >(ret);
+		return reinterpret_cast<std::unordered_map<key_ptr, value_ptr>::const_iterator&>(ret);
 	}
 
 private:
@@ -488,9 +564,6 @@ private:
 	VectorMapContainer& operator = (VectorMapContainer&&) = delete;
 };
 
-template <class T>
-concept HasOffset = requires(T) { T::ExtOffset; };
-
 template <typename T>
 class Container
 {
@@ -503,6 +576,7 @@ private:
 
 	//ViniferaContainerMap<base_type, extension_type> Items;
 	VectorMapContainer<base_type, extension_type> Items;
+	//ContainerMap<base_type, extension_type> Items;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -563,6 +637,7 @@ public:
 #define Alloc_EXT(key)\
 if (const auto val = new extension_type(key)) {\
 	val->EnsureConstanted();\
+	if constexpr (HasOffset<T>) (*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;\
 	return this->Items.insert(key, val); }\
     Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());\
 return nullptr;
@@ -570,6 +645,28 @@ return nullptr;
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
 		Alloc_EXT(key);
+	}
+
+	void JustAllocate(base_type_ptr key, bool bCond ,const std::string& nMessage)
+	{
+		if (!key)
+			return;
+
+		if constexpr (HasOffset<T>)
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)nullptr;
+
+		if(!bCond && !nMessage.empty()){
+			Debug::Log("%s \n", nMessage.c_str());
+		}
+
+		if (const auto val = new extension_type(key)) {
+			val->EnsureConstanted();
+
+			if constexpr (HasOffset<T>)
+				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+
+			this->Items.insert(key, val);
+		}
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
@@ -580,16 +677,19 @@ return nullptr;
 			return nullptr;
 		}
 
-		if (auto const ptr = this->Items.find(key))
-			return ptr;
-
 		if constexpr (HasOffset<T>) {
 
-			*(extension_type_ptr*)((size_t)key + T::ExtOffset) = Allocate(key);
+			if (!(extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
+				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)Allocate(key);
 
-			return *(extension_type_ptr*)((size_t)key + T::ExtOffset);
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 
 		} else{
+
+			if (auto const ptr = this->Items.find(key))
+				return ptr;
+
+
 			Alloc_EXT(key);
 		}
 
@@ -599,9 +699,12 @@ return nullptr;
 
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		if constexpr (HasOffset<T>)
-			return *(extension_type_ptr*)((size_t)key + T::ExtOffset);
-		else
+		if constexpr (HasOffset<T>) {
+			if (key)
+				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
+			else
+				return nullptr;
+		} else
 			return this->Items.find(key);
 	}
 
@@ -635,7 +738,8 @@ return nullptr;
 					*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
 
 				delete pValue;
-				Items.erase(pKey);
+
+				//Items.erase(pKey);
 			}
 
 			this->Items.clear();

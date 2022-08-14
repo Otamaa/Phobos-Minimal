@@ -14,7 +14,7 @@ void HouseExt::ExtData::InitializeConstants() {
 
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	HouseAirFactory.Remove(reinterpret_cast<BuildingClass*>(ptr));
+	AnnounceInvalidPointer(HouseAirFactory,reinterpret_cast<BuildingClass*>(ptr));
 	AnnounceInvalidPointer(Factory_BuildingType,ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
@@ -41,7 +41,7 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 
 int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 {
-	if (!pThis || !pThis->IsPlayer()) return 0;
+	if (!pThis || !pThis->IsPlayer() || pThis->Defeated) return 0;
 
 	int result = 0;
 
@@ -219,7 +219,11 @@ HouseExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
+#ifdef ENABLE_NEWHOOKS
+	HouseExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	HouseExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

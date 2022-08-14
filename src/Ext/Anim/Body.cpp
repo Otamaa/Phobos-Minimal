@@ -17,7 +17,9 @@ AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(Invoker, ptr);
+	if(Invoker)
+	  AnnounceInvalidPointer(Invoker, ptr);
+
 }
 
 // =============================
@@ -199,18 +201,30 @@ DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_AltExt_CTOR, 0x9)
 DEFINE_HOOK(0x422126, AnimClass_AltExt_CTOR, 0x5)
 {
 	GET(AnimClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	AnimExt::ExtMap.JustAllocate(pItem,pItem->Type,"Creating an animation with null Type !");
+#else
 	AnimExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 
-/*
-DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x426590, AnimClass_SDDTOR, 0x8)
 {
-	GET(AnimClass* const, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-	return 0;
-}*/
+	GET(AnimClass* const, pItem, ECX);
+	GET_STACK(char, nFlag, 0x4);
 
+	pItem->DestroyPointer();
+	if ((nFlag & 1) != 0)
+		YRMemory::Deallocate(pItem);
+
+	AnimExt::ExtMap.Remove(pItem);
+
+	R->EAX(pItem);
+	return 0x4265AB;
+}
+#else
 DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
@@ -218,6 +232,16 @@ DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 	R->EAX(pItem->Type);
 	return 0;
 }
+#endif
+
+/*
+DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
+{
+	GET(AnimClass* const, pItem, ESI);
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	return 0;
+}
+*/
 
 DEFINE_HOOK_AGAIN(0x425280, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x4253B0, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
@@ -261,13 +285,14 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x8)
 	return target && pThis->OwnerObject == target ? 0x425174:0x4251A3;
 }
 
+
 DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 	GET(void* , target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pAnimExt = AnimExt::GetExtData(pThis))
+	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
 		pAnimExt->InvalidatePointer(target,all);
 
 	return pThis->AttachedBullet == target ? 0x4251B9 :0x4251C9;

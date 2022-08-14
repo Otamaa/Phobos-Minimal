@@ -188,7 +188,30 @@ static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 	pThis->UpdateRotation();
 }
 
-DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
+//DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
+
+DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x5) //was 7
+{
+	GET(UnitClass* , pThis , ESI);
+
+	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+#ifdef ENABLE_NEWHOOKS
+		//if (pThis->align_154)
+		//	if (const AresTechnoExtData* pData = reinterpret_cast<const AresTechnoExtData*>(pThis->align_154))
+		//		if (pData->DiverKilled)
+		//			return;
+#endif
+		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
+		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
+
+		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
+			return 0x7365ED;
+	}
+
+	pThis->UpdateRotation();
+
+	return 0x7365ED;
+}
 
 DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
 {

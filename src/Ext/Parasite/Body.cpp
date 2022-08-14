@@ -92,7 +92,11 @@ DEFINE_HOOK(0x62932B, ParasiteClass_CTOR, 0x9)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(ParasiteClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	ParasiteExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	ParasiteExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

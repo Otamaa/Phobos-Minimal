@@ -232,12 +232,13 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					}
 				}
 
+#ifdef ENABLE_NEWHOOKS
 				if (pTarget->Target) {
 					pTarget->SetTarget(nullptr);
 					pTarget->Override_Mission(pTarget->Owner->ControlledByHuman() ? Mission::Guard : Mission::Hunt, nullptr,nullptr);
 					pTarget->SetDestination(pTarget->GetCell(), true);
 				}
-
+#endif
 				return true;
 			}
 		}
@@ -309,7 +310,11 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	CaptureExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	CaptureExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

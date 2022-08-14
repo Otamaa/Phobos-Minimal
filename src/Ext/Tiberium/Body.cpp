@@ -72,7 +72,11 @@ TiberiumExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	TiberiumExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	TiberiumExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

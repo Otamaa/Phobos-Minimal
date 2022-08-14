@@ -14,6 +14,9 @@ class ScriptTypeExt
 public:
 	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = ScriptTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<ScriptTypeClass>
 	{

@@ -11,6 +11,9 @@ class SmudgeTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<SmudgeTypeClass>
 	{

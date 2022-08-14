@@ -10,6 +10,9 @@ class SuperExt
 public:
 	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<SuperClass>
 	{

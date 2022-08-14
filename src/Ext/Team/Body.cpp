@@ -77,8 +77,11 @@ DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
+#ifdef ENABLE_NEWHOOKS
+	TeamExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
+#else
 	TeamExt::ExtMap.FindOrAllocate(pThis);
-	//ExtensionWrapper::GetWrapper(pThis)->CreateExtensionObject<TeamExt::ExtData>(pThis);
+#endif
 
 	return 0;
 }
@@ -88,10 +91,6 @@ DEFINE_HOOK(0x6E8EC6, TeamClass_DTOR, 0x9)
 {
 	GET(TeamClass*, pThis, ESI);
 	TeamExt::ExtMap.Remove(pThis);
-	//if (auto pExt = ExtensionWrapper::GetWrapper(pThis)->ExtensionObject)
-	//	pExt->Uninitialize();
-
-	//ExtensionWrapper::GetWrapper(pThis)->DestoryExtensionObject();
 	return 0;
 }
 

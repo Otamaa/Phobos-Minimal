@@ -10,6 +10,8 @@
 #include <Drawing.h>
 #include <filesystem>
 
+
+#include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
@@ -479,6 +481,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	return 0;
 }
 
+DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 {
 	GET(char**, ppArgs, ESI);

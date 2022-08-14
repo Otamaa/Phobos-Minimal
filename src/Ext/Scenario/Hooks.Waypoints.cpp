@@ -48,9 +48,8 @@ DEFINE_HOOK(0x68BD60, ScenarioClass_Clear_All_Waypoints, 0x6)
 DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 {
 	GET_STACK(int, nWaypoint, 0x4);
-	auto& waypoints = ScenarioExt::Global()->Waypoints;
-
-	R->AL(nWaypoint >= 0 && waypoints.find(nWaypoint) != waypoints.end() && waypoints[nWaypoint].X && waypoints[nWaypoint].Y);
+	const auto& waypoints = ScenarioExt::Global()->Waypoints;
+	R->AL(nWaypoint >= 0 && waypoints.contains(nWaypoint) && waypoints.at(nWaypoint));
 
 	return 0x68BDB3;
 }
@@ -58,8 +57,6 @@ DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 {
 	GET_STACK(INIClass* const, pINI, 0x4);
-
-	CellStruct buffer;
 
 	for (int i = 0; i < pINI->GetKeyCount(WAYPOINTSNAME); ++i)
 	{
@@ -69,18 +66,24 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 			Debug::Log("[Developer Warning] Failed to parse waypoint %s.\n", pName);
 		int nCoord = pINI->ReadInteger(WAYPOINTSNAME, pName, 0);
 
+		CellStruct buffer = CellStruct::Empty;
+
 		if (nCoord)
 		{
 			buffer.X = static_cast<short>(nCoord % 1000);
 			buffer.Y = static_cast<short>(nCoord / 1000);
-			if (auto const pCell = MapClass::Instance->TryGetCellAt(buffer))
+
+			if (auto const pCell = Map[buffer])
 				pCell->Flags |= CellFlags::IsWaypoint;
 			else if (ScenarioExt::CellParsed)
 				Debug::Log("[Developer Warning] Can not get waypoint %d : [%d, %d]!\n", id, buffer.X, buffer.Y);
-			ScenarioExt::Global()->Waypoints[id] = buffer;
 		}
 		else
 			Debug::Log("[Developer Warning] Invalid waypoint %d!\n", id);
+
+
+		Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
+		ScenarioExt::Global()->Waypoints[id] = buffer;
 	}
 
 	return 0x68BE8C;
@@ -99,7 +102,7 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 	char buffer[32];
 	for (const auto& [nidx,nCell] : ScenarioExt::Global()->Waypoints)
 	{
-		if (nCell == CellStruct::Empty)
+		if (!nCell)
 			continue;
 
 		sprintf_s(buffer, "%d", nidx);
@@ -165,7 +168,7 @@ DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
 	GET(char*, pString, ECX);
 
 	int n = 0;
-	int len = CRT::strlen(pString);
+	int len = strlen(pString);
 	for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
 	{
 		int c = toupper(pString[i]);
@@ -208,11 +211,13 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	REF_STACK(CellStruct, buffer, STACK_OFFS(0x40, 0x20));
 	GET(int, i, ESI);
 
-	if (ScenarioClass::Instance->IsDefinedWaypoint(i))
-	{
-		waypoints.AddItem(ScenarioExt::Global()->Waypoints[i]);
-		Debug::Log("Multiplayer start waypoint found at cell %d,%d\n", buffer.X, buffer.Y);
+	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
+		buffer = ScenarioExt::Global()->Waypoints.at(i);
+		waypoints.AddItem(buffer);
+		Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.Size());
 	}
+
+
 	return 0x6884EF;
 }
 
@@ -269,4 +274,10 @@ DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 	return 0x68AF86;
 }
 
+//DEFINE_HOOK(0x5D6C1D, Scen_Multiplay_BaseSpawnCell_replace, 0x5)
+//{
+//	GET(CellStruct, nCell, ESI);
+//
+//	R->EDX(ScenarioExt::Global()->Waypoints());
+//}
 #undef WAYPOINTSNAME

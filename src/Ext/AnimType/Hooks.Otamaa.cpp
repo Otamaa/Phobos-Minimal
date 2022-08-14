@@ -1,6 +1,6 @@
 #include "Body.h"
 
-
+#ifdef ENABLE_NEWHOOKS_
 DEFINE_HOOK(0x422CC6, AnimClass_DrawIT_SpecialDraw , 0xA)
 {
 	GET(AnimClass* const, pThis, ESI);
@@ -15,3 +15,4 @@ DEFINE_HOOK(0x422CC6, AnimClass_DrawIT_SpecialDraw , 0xA)
 
 	return 0x0;
 }
+#endif

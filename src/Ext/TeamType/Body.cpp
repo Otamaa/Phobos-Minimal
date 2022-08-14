@@ -67,7 +67,11 @@ DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TeamTypeClass*, pItem, ESI);
+//#ifdef ENABLE_NEWHOOKS
+//	TeamTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//#else
 	TeamTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 

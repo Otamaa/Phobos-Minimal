@@ -1329,7 +1329,8 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 	if (auto pTeamData = TeamExt::ExtMap.Find(pTeam))
 	{
 		if (count <= 0)
-			count = pTeam->CurrentScript->GetCurrentAction().Argument;
+					//PR #724
+			count = 15 * pTeam->CurrentScript->GetCurrentAction().Argument;
 
 		if (count > 0)
 		{

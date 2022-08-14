@@ -217,7 +217,11 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
+#ifdef ENABLE_NEWHOOKS
+	BulletTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

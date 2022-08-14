@@ -23,7 +23,19 @@ static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWh
 		pThis->DrawBehind(pWhere, pBounds);
 }
 
-DEFINE_JUMP(CALL,0x6FA2D3, GET_OFFSET(_DrawBehindAnim));
+//DEFINE_JUMP(CALL,0x6FA2D3, GET_OFFSET(_DrawBehindAnim));
+
+DEFINE_HOOK(0x6FA2C7 , TechnoClass_AI_DrawBehindAnim , 0x4)
+{
+	GET(TechnoClass* , pThis , ESI);
+	GET_STACK(Point2D , nPoint , STACK_OFFS(0x78 ,0x50));
+	GET_STACK(RectangleStruct , nBound , STACK_OFFS(0x78 ,0x50));
+
+	if (!pThis->GetTechnoType()->Invisible)
+		pThis->DrawBehind(&nPoint, &nBound);
+
+	return 0x6FA2D8;
+}
 
 DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 {
@@ -223,65 +235,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	return 0x4668BD;
 }
 
-DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
-{
-	GET(AnimClass*, pAnim, EAX);
-	GET(AircraftClass*, pThis, ESI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
-
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
-
-	return 0x414ED0;
-}
-
-DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
-{
-	GET(AnimClass*, pAnim, EAX);
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
-
-	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false) ;
-
-	return 0x7365BB;
-}
-
-DEFINE_HOOK(0x70253F, TechnoClass_TakeDamage_Metallic_AnimDebris, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
-	GET(int, nIdx, EAX);
-	//REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
-
-	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	GameConstruct(pAnim, RulesGlobal->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr , false);
-
-	return 0x70256B;
-}
-
-DEFINE_HOOK(0x702484, TechnoClass_TakeDamage_AnimDebris, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	GET(AnimClass*, pAnim, EBX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
-	GET(int, nIdx, EDI);
-	//REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
-
-	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	GameConstruct(pAnim, pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-
-	return 0x7024AF;
-}
-
-//ObjectClass TakeDamage , 5F559C
-//UnitClass TakeDamage , 4428E4 , 737F0E
-
-#pragma region tomsons26_IsotileDebug
+#ifdef tomsons26_IsotileDebug
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;
@@ -329,9 +283,67 @@ DEFINE_JUMP(CALL,0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
 DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //549E67
 DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
-#pragma endregion
+#endif endregion
 
 #ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
+{
+	GET(AnimClass*, pAnim, EAX);
+	GET(AircraftClass*, pThis, ESI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
+
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+
+	return 0x414ED0;
+}
+
+DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
+{
+	GET(AnimClass*, pAnim, EAX);
+	GET(UnitClass*, pThis, ESI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
+
+	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+
+	return 0x7365BB;
+}
+
+DEFINE_HOOK(0x70253F, TechnoClass_TakeDamage_Metallic_AnimDebris, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
+	GET(int, nIdx, EAX);
+	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+
+	//well , the owner dies , so taking Invoker is not nessesary here ,..
+	GameConstruct(pAnim, RulesGlobal->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, Receivedamageargs.Attacker ? Receivedamageargs.Attacker->GetOwningHouse() : Receivedamageargs.SourceHouse, pThis->GetOwningHouse(), false);
+
+	return 0x70256B;
+}
+
+DEFINE_HOOK(0x702484, TechnoClass_TakeDamage_AnimDebris, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(AnimClass*, pAnim, EBX);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
+	GET(int, nIdx, EDI);
+	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+
+	//well , the owner dies , so taking Invoker is not nessesary here ,..
+	GameConstruct(pAnim, pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, Receivedamageargs.Attacker ? Receivedamageargs.Attacker->GetOwningHouse() : Receivedamageargs.SourceHouse, pThis->GetOwningHouse(), false);
+
+	return 0x7024AF;
+}
+
+//ObjectClass TakeDamage , 5F559C
+//UnitClass TakeDamage , 4428E4 , 737F0E
+
 DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -385,8 +397,6 @@ DEFINE_HOOK(0x452831 , BuildingClass_Overpowerer_AddUnique, 0x6)
 	return pVec->FindItemIndex(pOverpowerer) == -1 ? AddItem : Skip;
 }
 
-#endif
-
 DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
 {
 	enum { increment = 0x72312F ,
@@ -405,3 +415,274 @@ DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
 	R->EAX(Map[nCell]);
 	return SetCell;
 }
+
+DEFINE_HOOK(0x452831, BuildingClass_UpdateOverpowerState, 0x6)
+{
+	GET(const BuildingClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, ECX);
+
+	return pThis->SelectWeapon(pTarget) == -1 ?
+		0x45283C : 0x45289C;
+}
+
+#include <Ext/WeaponType/Body.h>
+
+DEFINE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 0x6)
+{
+	enum
+	{
+		FireErrorCloaked = 0x6FCA4F,
+		ContinueCheck = 0x6FCA5E
+	};
+
+	GET(const TechnoClass*, pThis, ESI);
+	GET(const WeaponTypeClass*, pWeapon, EBX);
+
+	if(const auto pTransport = pThis->Transporter)
+		if(pTransport->CloakState == CloakState::Cloaked) return FireErrorCloaked;
+
+	if (pThis->CloakState == CloakState::Uncloaked)
+		return ContinueCheck;
+
+	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	if (pExt && pExt->Decloak_InstantFire.isset())
+		if(!pExt->Decloak_InstantFire.Get() && pThis->WhatAmI() != AbstractType::Aircraft)
+			return FireErrorCloaked;
+
+	return (pThis->CloakState == CloakState::Cloaked) ? FireErrorCloaked : ContinueCheck;
+}
+
+DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
+{
+	GET(UnitClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
+
+	const auto pType = pThis->Type;
+	R->EAX((pThis->Deployed && pType->DeployFire && pType->DeployFireWeapon != -1) ?
+		pType->DeployFireWeapon : pThis->TechnoClass::SelectWeapon(pTarget));
+
+	return 0x746CFD;
+}
+
+//struct WeaponWeight
+//{
+//	short index;
+//	bool InRange;
+//	float DPF;
+//	bool operator < (const WeaponWeight& RHS) const
+//	{
+//		return (this->InRange < RHS.InRange&& this->DPF < RHS.DPF);
+//	}
+//};
+//
+//static float EvalVersesAgainst(TechnoClass* pThis, ObjectClass* pTarget, WeaponTypeClass* W)
+//{
+//	Armor nArmor = pTarget->GetType()->Armor;
+//	if (const auto pTargetTech = generic_cast<TechnoClass*>(pTarget))
+//		if (auto const pExt = TechnoExt::ExtMap.Find(pTargetTech))
+//			if (auto const pShield = pExt->GetShield())
+//				if (pShield->IsActive() && pExt->CurrentShieldType)
+//					nArmor = pShield->GetArmor();
+//
+//	const double Verses = GeneralUtils::GetWarheadVersusArmor(W->Warhead, nArmor);
+//	return (W->Damage * TechnoExt::GetDamageMult(pThis)) * Verses / (W->ROF * Helpers_DP::GetROFMult(pThis));
+//}
+//
+//static bool EvalWeaponAgainst(TechnoClass* pThis, AbstractClass* pTarget, WeaponTypeClass* W)
+//{
+//	if (!W || W->NeverUse || !pTarget) { return 0; }
+//
+//	WarheadTypeClass* WH = W->Warhead;
+//	if (!WH) { return 0; }
+//
+//	if (!pTarget->AsTechno())
+//		return 0;
+//
+//	TechnoTypeClass* pTargetT = ((TechnoClass*)pTarget)->GetTechnoType();
+//
+//	if (WH->Airstrike)
+//	{
+//		if (pTarget->WhatAmI() != AbstractType::Building) {
+//			return 0;
+//		}
+//
+//		BuildingTypeClass* pBT = ((BuildingClass*)pTarget)->Type;
+//		// not my design, leave me alone
+//		return pBT->CanC4 && (!pBT->ResourceDestination || !pBT->ResourceGatherer);
+//	}
+//
+//	if (WH->IsLocomotor) {
+//		return (pTarget->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None;
+//	}
+//
+//	if (W->DrainWeapon) {
+//		return pTargetT->Drainable && !pThis->DrainTarget && !pThis->Owner->IsAlliedWith(pTarget);
+//	}
+//
+//	if (W->AreaFire) {
+//		return pThis->GetCurrentMission() == Mission::Unload;
+//	}
+//
+//	if (pTarget->WhatAmI() == AbstractType::Building && ((BuildingClass*)pTarget)->Type->Overpowerable) {
+//		return WH->ElectricAssault && pThis->Owner->CanOverpower(((TechnoClass*)pTarget));
+//	}
+//
+//	if (pTarget->IsInAir() && !W->Projectile->AA) {
+//		return 0;
+//	}
+//
+//	if (pTarget->IsOnFloor() && !W->Projectile->AG) {
+//		return 0;
+//	}
+//
+//	return 1;
+//}
+//
+//static int EvalDistanceAndVerses(TechnoClass* pThis, ObjectClass* pTarget)
+//{
+//	auto const pType = pThis->GetTechnoType();
+//
+//	int WCount = 2;
+//	if (pType->WeaponCount > 0) {
+//		WCount = pType->WeaponCount;
+//	}
+//
+//	std::vector<WeaponWeight> Weights(WCount);
+//
+//	for (short i = 0; i < WCount; ++i)
+//	{
+//		WeaponTypeClass* W = pThis->GetWeapon(i)->WeaponType;
+//		Weights[i].index = i;
+//		if (W)
+//		{
+//			CoordStruct xyz1 = pThis->GetCoords();
+//			CoordStruct xyz2 = pTarget->GetCoords();
+//			float distance = abs(xyz1.DistanceFrom(xyz2));
+//			bool CloseEnough = distance <= W->Range && distance >= W->MinimumRange;
+//			Weights[i].DPF = EvalVersesAgainst(pThis, pTarget, W);
+//			Weights[i].InRange = CloseEnough;
+//		}
+//		else
+//		{
+//			Weights[i].DPF = 0.0;
+//			Weights[i].InRange = 0;
+//		}
+//	}
+//	std::stable_sort(Weights.begin(), Weights.end());
+//	std::reverse(Weights.begin(), Weights.end());
+//	return Weights[0].index;
+//}
+//
+//static int SelectWeaponAgainst(TechnoClass* pThis, AbstractClass* pTarget)
+//{
+//	int Index = 0;
+//	if (!pTarget)
+//		return 0;
+//
+//	const TechnoTypeClass* pThisT = pThis->GetTechnoType();
+//
+//	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThisT)) {
+//		if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet) {
+//			return(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
+//		}
+//	}
+//
+//	//WeaponStruct* W1 = pThis->GetWeapon(0);
+//	//WeaponTypeClass* W1T = W1->WeaponType;
+//	WeaponStruct* W2 = pThis->GetWeapon(1);
+//	WeaponTypeClass* W2T = W2->WeaponType;
+//
+//	if (pThisT->HasMultipleTurrets() && !pThisT->IsGattling) {
+//		return pThis->CurrentWeaponNumber;
+//	}
+//
+//	if (pThis->CanOccupyFire()) {
+//		return 0;
+//	}
+//
+//	if (pThis->InOpenToppedTransport) {
+//		Index = pThisT->OpenTransportWeapon;
+//		if (Index != -1) {
+//			return Index;
+//		}
+//	}
+//
+//	if (pThisT->IsGattling) {
+//		int CurrentStage = pThis->CurrentGattlingStage * 2;
+//		if (pTarget->AbstractFlags & AbstractFlags::Techno && pTarget->IsInAir()) {
+//			if (W2T && W2T->Projectile->AA) {
+//				return CurrentStage + 1;
+//			}
+//		}
+//		return CurrentStage;
+//	}
+//
+//	if (pThis->WhatAmI() == AbstractType::Building && ((BuildingClass*)pThis)->IsOverpowered) {
+//		return 1;
+//	}
+//
+//	if (pTarget->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)pTarget)->IsCrashing) {
+//		return 1;
+//	}
+//
+//	// haaaaaaaate
+//	if (pTarget->WhatAmI() == AbstractType::Cell) {
+//		CellClass* pTargetCell = (CellClass*)pTarget;
+//		if (
+//
+//			(pTargetCell->LandType != LandType::Water && pTargetCell->IsOnFloor())
+//			|| ((pTargetCell->ContainsBridge()) && pThisT->Naval)
+//
+//			&& (!pTargetCell->IsInAir() && pThisT->LandTargeting == LandTargetingType::Land_secondary)
+//
+//		) {
+//			return 1;
+//		}
+//	}
+//
+//	auto const pTechnShit = generic_cast<ObjectClass*>(pTarget);
+//	const LandType ltTgt = pTechnShit->GetCell()->LandType;
+//	bool InWater = !pTechnShit->OnBridge && !pTarget->IsInAir() && (ltTgt == LandType::Water || ltTgt == LandType::Beach);
+//
+//	if (InWater)
+//	{
+//		Index = (int)pThis->SelectNavalTargeting(pTarget);
+//		if (Index != -1) {
+//			return Index;
+//		}
+//		else {
+//			return 0; // what?
+//		}
+//	}
+//
+//	if (!pTarget->IsInAir() && pThisT->LandTargeting == LandTargetingType::Land_secondary) {
+//		return 1;
+//	}
+//
+//	return EvalDistanceAndVerses(pThis, pTechnShit);
+//}
+//
+//static int HandleSelectWeapon(TechnoClass* pThis, AbstractClass* pTarget)
+//{
+//	//const TechnoTypeClass* pThisT = pThis->GetTechnoType();
+//	//if(pThisT->Spawns)
+//	return SelectWeaponAgainst(pThis,pTarget);
+//}
+
+/*
+//complete replacement ?
+DEFINE_HOOK(0x6F3330, TechnoClass_SelectWeapon, 5)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
+
+	const int v5 = HandleSelectWeapon(pThis, pTarget);
+	if (pTarget == pThis->Target)
+		pThis->CurrentWeaponNumber = v5;
+
+
+	R->EAX(v5);
+	return 0x6F3813;
+}
+*/
+#endif

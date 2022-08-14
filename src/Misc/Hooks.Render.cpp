@@ -23,7 +23,26 @@ static void __fastcall ___eb_DrawAll()
 	ElectricBoltManager::Draw_All();
 }
 
-DEFINE_JUMP(CALL,0x6D466E, GET_OFFSET(___eb_DrawAll));
+DEFINE_HOOK(0x6D466E, TacticalClass_Render_ReplaceEbolt, 0x5)
+{
+	EBolt::DrawAll();
+	ElectricBoltManager::Draw_All();
+	return 0x6D4673;
+}
+
+//DEFINE_JUMP(CALL,0x6D466E, GET_OFFSET(___eb_DrawAll));
+//DEFINE_HOOK(0x6D466E , TacticalClass_Render_BeforeGameEBolt, 0xA)
+//{
+//	ElectricBoltManager::Draw_All();
+//	VeinholeMonsterClass::DrawAll();
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x6D4656 , TacticalClass_Render_BeforeIonBlast , 0x7)
+//{
+//	VeinholeMonsterClass::DrawAll();
+//	return 0x0;
+//}
 
 static	void __fastcall TacticalClass_Render()
 {
@@ -31,7 +50,13 @@ static	void __fastcall TacticalClass_Render()
 	VeinholeMonsterClass::DrawAll();
 }
 
-DEFINE_JUMP(CALL,0x6D4656, GET_OFFSET(TacticalClass_Render));
+//DEFINE_JUMP(CALL,0x6D4656, GET_OFFSET(TacticalClass_Render));
+DEFINE_HOOK(0x6D4656, TacticalClass_Render_ReplaceIonBlast, 0x5)
+{
+	IonBlastClass::DrawAll();
+	VeinholeMonsterClass::DrawAll();
+	return 0x6D465B;
+}
 
 DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0xB)
 {

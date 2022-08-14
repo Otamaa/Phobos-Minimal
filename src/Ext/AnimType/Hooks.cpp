@@ -36,7 +36,51 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 	return 0x423BBF;
 }
 
-DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
+//DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
+
+DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x5) //was 6
+{
+	GET(AnimClass*, pThis, ECX);
+
+	enum {
+		RetLayerGround = 0x424CBA,
+		RetLayerAir = 0x0424CD1,
+		RetTypeLayer = 0x424CCA,
+		ReturnSetManualResult = 0x424CD6
+	};
+
+	if (pThis->OwnerObject) {
+		const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+		if (!pExt || !pExt->Layer_UseObjectLayer.isset()) {
+			return RetLayerGround;
+		}
+
+		if (pExt->Layer_UseObjectLayer.Get()) {
+			Layer nRes = Layer::Ground;
+
+			if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
+				if (auto const pLocomotor = pFoot->Locomotor.get())
+					nRes = pLocomotor->In_Which_Layer();
+			}
+			else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+				nRes = pBullet->InWhichLayer();
+			else
+				nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
+
+			R->EAX(nRes);
+			return ReturnSetManualResult;
+		}
+	}
+
+	if (pThis->Type) {
+		R->EAX(pThis->Type->Layer);
+		return ReturnSetManualResult;
+	} else {
+		return RetLayerAir;
+	}
+
+}
 
 DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 {
@@ -124,8 +168,10 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	auto nCoord = pThis->GetCoords();
 	auto const nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
-	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr)) {
-		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pThis->GetCell(), pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright)) {
+	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
+	{
+		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pThis->GetCell(), pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright))
+		{
 			pBullet->SetWeaponType(pWeapon);
 			pBullet->Limbo();
 			pBullet->SetLocation(nCoord);
@@ -140,7 +186,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
-		if(pTypeExt->Warhead_Detonate.Get())
+		if (pTypeExt->Warhead_Detonate.Get())
 			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult);
 		else
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);

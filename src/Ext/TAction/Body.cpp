@@ -9,7 +9,12 @@
 #include <Ext/SWType/Body.h>
 #include <Utilities/SavegameDef.h>
 
+#include <BuildingClass.h>
+#include <RadSiteClass.h>
+#include <LightSourceClass.h>
+
 #include <Ext/Scenario/Body.h>
+#include <Ext/Terrain/Body.h>
 
 //Static init
 #include <TagClass.h>
@@ -105,6 +110,8 @@ bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* p
 		return TActionExt::PrintVariableValue(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::BinaryOperation:
 		return TActionExt::BinaryOperation(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::AdjustLighting:
+		return TActionExt::AdjustLighting(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::RunSuperWeaponAtLocation:
 		return TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint:
@@ -470,13 +477,119 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 	return true;
 }
 
+void TActionExt::RecreateLightSources()
+{
+	// Yeah, we just simply recreating these lightsource...
+	// Stupid but works fine.
+
+	std::for_each(BuildingClass::Array->begin(), BuildingClass::Array->end(), [](BuildingClass* const pBld)
+ {
+	 if (pBld->LightSource)
+	 {
+		 bool activated = pBld->LightSource->Activated;
+
+		 GameDelete(pBld->LightSource);
+		 if (pBld->Type->LightIntensity)
+		 {
+			 TintStruct color { pBld->Type->LightRedTint, pBld->Type->LightGreenTint, pBld->Type->LightBlueTint };
+
+			 pBld->LightSource = GameCreate<LightSourceClass>(pBld->GetCoords(),
+				 pBld->Type->LightVisibility, pBld->Type->LightIntensity, color);
+
+			 if (activated)
+				 pBld->LightSource->Activate();
+			 else
+				 pBld->LightSource->Deactivate();
+		 }
+	 }
+	});
+
+	std::for_each(RadSiteClass::Array->begin(), RadSiteClass::Array->end(), [](RadSiteClass* const pRadSite)
+	{
+		if (pRadSite->LightSource)
+		{
+			bool activated = pRadSite->LightSource->Activated;
+			auto coord = pRadSite->LightSource->Location;
+			auto color = pRadSite->LightSource->LightTint;
+			auto intensity = pRadSite->LightSource->LightIntensity;
+			auto visibility = pRadSite->LightSource->LightVisibility;
+
+			GameDelete(pRadSite->LightSource);
+
+			pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
+				visibility, intensity, color);
+
+			if (activated)
+				pRadSite->LightSource->Activate();
+			else
+				pRadSite->LightSource->Deactivate();
+		}
+	 });
+
+	std::for_each(TerrainExt::ExtMap.begin(), TerrainExt::ExtMap.end(), [](auto const& nPair)
+ {
+	 if (nPair.second && !nPair.first->InLimbo)
+	 {
+		 nPair.second->ClearLightSource();
+		 nPair.second->InitializeLightSource();
+	 }
+	});
+
+}
+
+bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (pThis->Param3 != -1)
+		ScenarioClass::Instance->NormalLighting.Tint.Red = pThis->Param3;
+	if (pThis->Param4 != -1)
+		ScenarioClass::Instance->NormalLighting.Tint.Green = pThis->Param4;
+	if (pThis->Param5 != -1)
+		ScenarioClass::Instance->NormalLighting.Tint.Blue = pThis->Param5;
+
+	const int r = ScenarioClass::Instance->NormalLighting.Tint.Red * 10;
+	const int g = ScenarioClass::Instance->NormalLighting.Tint.Green * 10;
+	const int b = ScenarioClass::Instance->NormalLighting.Tint.Blue * 10;
+
+	if (pThis->Value & 0b001) // Update Tiles
+	{
+		for (auto& pLightConvert : *LightConvertClass::Array)
+			pLightConvert->UpdateColors(r, g, b, false);
+
+		ScenarioExt::Global()->CurrentTint_Tiles = ScenarioClass::Instance->NormalLighting.Tint;
+	}
+
+	if (pThis->Value & 0b010) // Update Units & Buildings
+	{
+		for (auto& pScheme : *ColorScheme::Array)
+			pScheme->LightConvert->UpdateColors(r, g, b, false);
+		ScenarioExt::Global()->CurrentTint_Schemes = ScenarioClass::Instance->NormalLighting.Tint;
+	}
+
+	if (pThis->Value & 0b100) // Update CustomPalettes (vanilla YR LightConvertClass one, not the Ares ConvertClass only one)
+	{
+		ScenarioClass::UpdateHashPalLighting(r, g, b, false);
+		ScenarioExt::Global()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
+	}
+
+	ScenarioClass::UpdateCellLighting();
+	MapClass::Instance->RedrawSidebar(1); // GScreenClass::Flag_To_Redraw
+
+	// #issue 429
+	TActionExt::RecreateLightSources();
+
+	return true;
+}
 // =============================
 // container hooks
 
 DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 {
 	GET(TActionClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	TActionExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	TActionExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

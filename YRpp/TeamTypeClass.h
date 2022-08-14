@@ -133,3 +133,4 @@ public:
 	bool     OnlyTargetHouseEnemy;
 
 };
+static_assert(sizeof(TeamTypeClass) == 0xF8, "Invalid size.");

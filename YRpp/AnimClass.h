@@ -116,6 +116,8 @@ public:
 	void RemoveThis() const
 	{ JMP_THIS(0x4255B0); }
 
+	void DestroyPointer() const { JMP_THIS(0x4228E0); }
+
 	//Constructor
 	// TODO fix
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay = 0,
