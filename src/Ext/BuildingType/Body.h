@@ -8,7 +8,7 @@
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/DirClass.h>
 
-struct BuildSpeedBonus : public SaveLoadBaseClassTemplate
+struct BuildSpeedBonus
 {
 	bool Enabled;
 	double SpeedBonus_Aircraft;
@@ -67,11 +67,11 @@ struct BuildSpeedBonus : public SaveLoadBaseClassTemplate
 			AffectedType.Read(parser, pSection, "BuildSpeedBonus.AffectedTypes");
 	}
 
-	virtual bool Load(PhobosStreamReader& stm, bool registerForChange)
+	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return Serialize(stm);
 	}
-	virtual bool Save(PhobosStreamWriter& stm) const
+	bool Save(PhobosStreamWriter& stm) const
 	{
 		return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
 	}

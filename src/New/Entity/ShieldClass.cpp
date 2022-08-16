@@ -453,7 +453,7 @@ bool ShieldClass::ConvertCheck()
 {
 	const auto newID = this->Techno->get_ID();
 
-	if (this->TechnoID == newID)
+	if (strcmp(this->TechnoID.data(), newID) == 0)
 		return false;
 
 	const auto pTechnoExt = TechnoExt::GetExtData(this->Techno);

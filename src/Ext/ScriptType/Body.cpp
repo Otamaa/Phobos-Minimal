@@ -57,6 +57,8 @@ ScriptTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
+
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK_AGAIN(0x691D05, ScriptTypeClass_CTOR, 0x6)
 DEFINE_HOOK_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
@@ -101,3 +103,4 @@ DEFINE_HOOK(0x691DFA, ScriptTypeClass_Save_Suffix, 0x5)
 	ScriptTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
+#endif

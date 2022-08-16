@@ -101,15 +101,19 @@ void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 template <typename T>
 void ScenarioExt::ExtData::Serialize(T& Stm)
 {
+	Debug::Log("Processing ScenarioExt ! /n");
 	Stm
+		// Extra datas
+		//.Process(SessionClass::Instance->Config.GameSpeed)
+
 		.Process(this->Waypoints)
 		.Process(this->Variables[0])
 		.Process(this->Variables[1])
 
-		.Process(this->ParTitle)
-		.Process(this->ParMessage)
-		.Process(this->ScoreCampaignTheme)
-		.Process(this->NextMission)
+		//.Process(this->ParTitle)
+		//.Process(this->ParMessage)
+		//.Process(this->ScoreCampaignTheme)
+		//.Process(this->NextMission)
 
 		.Process(this->DefaultNormalLighting)
 		.Process(this->DefaultAmbientOriginal)
@@ -119,9 +123,8 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 		.Process(this->CurrentTint_Schemes)
 		.Process(this->CurrentTint_Hashes)
 
-		// Extra datas
-		.Process(SessionClass::Instance->Config)
-		
+
+
 		;
 }
 

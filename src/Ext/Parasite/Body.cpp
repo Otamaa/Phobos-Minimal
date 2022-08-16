@@ -87,7 +87,7 @@ ParasiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x62932B, ParasiteClass_CTOR, 0x9)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
@@ -133,3 +133,4 @@ DEFINE_HOOK(0x6296C4, ParasiteClass_Save_Suffix, 0x5)
 	ParasiteExt::ExtMap.SaveStatic();
 	return 0;
 }
+#endif

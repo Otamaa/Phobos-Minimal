@@ -16,8 +16,8 @@
 #define NoArrayGlobalBaseClassTemplate()\
 	static void PointerGotInvalid(void* ptr, bool bDetach);\
 	static bool LoadGlobals(PhobosStreamReader& Stm);\
-	static bool SaveGlobals(PhobosStreamWriter& Stm);\
-
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+/*
 class BaseClassTemplate
 {
 public:
@@ -77,4 +77,4 @@ public:
 	virtual void OnTemporalUpdate(TemporalClass* pTemporal) = 0;
 	virtual void OnUpdate() = 0;
 
-};
+};*/

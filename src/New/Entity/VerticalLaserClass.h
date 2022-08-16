@@ -5,7 +5,7 @@
 #include <Utilities/BaseClassTemplates.h>
 
 class WeaponTypeClass;
-class VerticalLaserClass final : public BaseClassTemplate
+class VerticalLaserClass final
 {
 	bool Expired;
 public:
@@ -31,9 +31,8 @@ public:
 	void DealDamage(const CoordStruct& to);
 	void AI(int start, int count);
 
-	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
-	virtual bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
-	virtual bool Save(PhobosStreamWriter& stm) const { return true; }
+	bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
+	bool Save(PhobosStreamWriter& stm) const { return true; }
 
 	GlobalBaseClassTemplate(VerticalLaserClass)
 };

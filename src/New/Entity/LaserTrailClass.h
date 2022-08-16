@@ -10,7 +10,7 @@
 
 #include <vector>
 
-class LaserTrailClass final : public BaseClassTemplate
+class LaserTrailClass final
 {
 public:
 	LaserTrailTypeClass* Type;
@@ -53,9 +53,8 @@ public:
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);
 
-	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
-	virtual bool Load(PhobosStreamReader& stm, bool registerForChange);
-	virtual bool Save(PhobosStreamWriter& stm) const;
+	bool Load(PhobosStreamReader& stm, bool registerForChange);
+	bool Save(PhobosStreamWriter& stm) const;
 
 private:
 	template <typename T>

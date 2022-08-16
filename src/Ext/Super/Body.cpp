@@ -42,7 +42,7 @@ void SuperExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks
-
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
@@ -91,3 +91,5 @@ DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
 	GET(void*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8)); ??
 }*/
+
+#endif

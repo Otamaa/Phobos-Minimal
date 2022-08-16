@@ -5,7 +5,7 @@
 #include <BitFont.h>
 //#include <format>
 
-#ifdef OLD_HOOK
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 {
 	GET(SuperClass* const, pSuper, ECX);
@@ -16,7 +16,7 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 
 	return 0;
 }
-#endif
+#else
 
 //Ares hooked from 0x6CC390 and jumped to this offset
 DEFINE_HOOK(0x6CDE40, SuperClass_Launch_finale, 0x3)
@@ -116,5 +116,5 @@ namespace Timer
 }
 
 DEFINE_JUMP(CALL,0x6D4A6B, GET_OFFSET(Timer::DrawTimer));
-
+#endif
 #pragma endregion

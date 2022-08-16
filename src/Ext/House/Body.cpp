@@ -168,9 +168,9 @@ template <typename T>
 void HouseExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-	    //.Process(this->BuildingCounter)
+	    .Process(this->BuildingCounter)
 		.Process(this->OwnedLimboBuildingTypes)
-		//.Process(this->Building_BuildSpeedBonusCounter)
+		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->HouseAirFactory)
 		.Process(this->ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)

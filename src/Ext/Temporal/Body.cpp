@@ -26,12 +26,12 @@ void TemporalExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 
 bool TemporalExt::LoadGlobals(PhobosStreamReader& Stm)
 {
-	return Stm.Success();
+	return true;// Stm.Success();
 }
 
 bool TemporalExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return Stm.Success();
+	return true;//Stm.Success();
 }
 
 // =============================
@@ -46,7 +46,7 @@ TemporalExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK_AGAIN(0x71A482, TemporalClass_CTOR, 0xB)
 DEFINE_HOOK(0x71A538, TemporalClass_CTOR, 0xB)
 {
@@ -88,3 +88,4 @@ DEFINE_HOOK(0x71A714, TemporalClass_Save_Suffix, 0x5)
 	TemporalExt::ExtMap.SaveStatic();
 	return 0;
 }
+#endif

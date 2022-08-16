@@ -8,7 +8,7 @@
 class TechnoClass;
 class WarheadTypeClass;
 
-class ShieldClass final : public BaseClassTemplate , public BaseBehaviourClass
+class ShieldClass final
 {
 public:
 	ShieldClass();
@@ -61,8 +61,8 @@ public:
 	bool IsRedSP();
 
 	virtual void InvalidatePointer(void* ptr, bool bDetach);
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	virtual bool Save(PhobosStreamWriter& Stm) const;
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
 private:
 	template <typename T>
@@ -94,7 +94,7 @@ private:
 
 	/// Properties ///
 	TechnoClass* Techno;
-	std::string TechnoID;
+	FixedString<0x80> TechnoID;
 	int HP;
 
 		TimerStruct Timers_SelfHealing;

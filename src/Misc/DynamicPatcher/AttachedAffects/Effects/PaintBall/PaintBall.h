@@ -13,7 +13,7 @@
 class TechnoClass;
 class REGISTERS;
 
-class PaintballType : public SaveLoadBaseClassTemplate
+class PaintballType
 {
 public:
 	ColorStruct Color;
@@ -51,10 +51,10 @@ public:
 
 	void Read(INI_EX& parser, const char* pSection);
 
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	virtual bool Save(PhobosStreamWriter& Stm) const
+	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<PaintballType*>(this)->Serialize(Stm); }
 
 	template <typename T>
@@ -74,7 +74,7 @@ public:
 	}
 };
 
-class PaintBall : public SaveLoadBaseClassTemplate
+class PaintBall
 {
 public:
 
@@ -138,10 +138,10 @@ public:
 	void DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R);
 	void DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding);
 
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
-	virtual bool Save(PhobosStreamWriter& Stm) const
+	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<PaintBall*>(this)->Serialize(Stm); }
 
 	WarheadTypeClass* Token;

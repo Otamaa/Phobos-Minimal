@@ -3,7 +3,7 @@
 #include <Utilities/BaseClassTemplates.h>
 #include <Utilities/TemplateDef.h>
 
-struct LauchSWData final : public BaseClassTemplate
+struct LauchSWData final
 {
 	SuperWeaponTypeClass* LaunchWhat;
 	bool LaunchWaitcharge;
@@ -31,9 +31,8 @@ struct LauchSWData final : public BaseClassTemplate
 	{ }
 
 	virtual ~LauchSWData() = default;
-	virtual void InvalidatePointer(void* ptr, bool bDetach) { }
-	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	virtual bool Save(PhobosStreamWriter& Stm) const;
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
 	template <typename T>
 	bool Serialize(T& Stm);

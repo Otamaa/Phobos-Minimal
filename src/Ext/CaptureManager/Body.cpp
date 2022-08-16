@@ -307,6 +307,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
@@ -345,3 +346,4 @@ DEFINE_HOOK(0x472958, CaptureManagerClass_Save_Suffix, 0x7)
 	CaptureExt::ExtMap.SaveStatic();
 	return 0;
 }
+#endif

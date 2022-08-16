@@ -139,14 +139,14 @@ public:
 		Valueable<bool> Passengers_SyncOwner;
 		Valueable<bool> Passengers_SyncOwner_RevertOnExit;
 
-		struct LaserTrailDataEntry : public SaveLoadBaseClassTemplate
+		struct LaserTrailDataEntry
 		{
 			int idxType;
 			CoordStruct FLH;
 			bool IsOnTurret;
 
-			virtual bool Load(PhobosStreamReader& stm, bool registerForChange);
-			virtual bool Save(PhobosStreamWriter& stm) const;
+			bool Load(PhobosStreamReader& stm, bool registerForChange);
+			bool Save(PhobosStreamWriter& stm) const;
 
 			// For some Fcking unknown reason `emplace_back` doesnt knowh the default contructor for this
 			LaserTrailDataEntry(int nIdx , const CoordStruct& nFlh , bool OnTur) :

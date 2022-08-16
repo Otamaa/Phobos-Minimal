@@ -21,9 +21,9 @@ public:
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:
-		PhobosMap<BuildingTypeExt::ExtData*, int> BuildingCounter;
+		std::map<BuildingTypeExt::ExtData*, int> BuildingCounter;
 		CounterClass OwnedLimboBuildingTypes;
-		PhobosMap<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
+		std::map<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
 		std::vector<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;

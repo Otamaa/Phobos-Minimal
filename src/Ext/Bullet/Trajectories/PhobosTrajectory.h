@@ -26,7 +26,7 @@ enum class TrajectoryCheckReturnType : int
 	Detonate = 3
 };
 
-class PhobosTrajectoryType : public ReadableBaseClassTemplate
+class PhobosTrajectoryType
 {
 public:
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
@@ -59,7 +59,7 @@ concept TrajectoryType = std::is_base_of<PhobosTrajectoryType, T>::value;
 //template<typename T>
 //concept Trajectory = std::is_base_of<PhobosTrajectory, T>::value;
 
-class PhobosTrajectory : public BaseClassTemplate
+class PhobosTrajectory
 {
 public:
 
