@@ -427,30 +427,31 @@ DEFINE_HOOK(0x452831, BuildingClass_UpdateOverpowerState, 0x6)
 
 #include <Ext/WeaponType/Body.h>
 
-DEFINE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 0x6)
-{
-	enum
-	{
-		FireErrorCloaked = 0x6FCA4F,
-		ContinueCheck = 0x6FCA5E
-	};
-
-	GET(const TechnoClass*, pThis, ESI);
-	GET(const WeaponTypeClass*, pWeapon, EBX);
-
-	if(const auto pTransport = pThis->Transporter)
-		if(pTransport->CloakState == CloakState::Cloaked) return FireErrorCloaked;
-
-	if (pThis->CloakState == CloakState::Uncloaked)
-		return ContinueCheck;
-
-	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	if (pExt && pExt->Decloak_InstantFire.isset())
-		if(!pExt->Decloak_InstantFire.Get() && pThis->WhatAmI() != AbstractType::Aircraft)
-			return FireErrorCloaked;
-
-	return (pThis->CloakState == CloakState::Cloaked) ? FireErrorCloaked : ContinueCheck;
-}
+//crash ?
+//DEFINE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 0x6)
+//{
+//	enum
+//	{
+//		FireErrorCloaked = 0x6FCA4F,
+//		ContinueCheck = 0x6FCA5E
+//	};
+//
+//	GET(const TechnoClass*, pThis, ESI);
+//	GET(const WeaponTypeClass*, pWeapon, EBX);
+//
+//	if(const auto pTransport = pThis->Transporter)
+//		if(pTransport->CloakState == CloakState::Cloaked) return FireErrorCloaked;
+//
+//	if (pThis->CloakState == CloakState::Uncloaked)
+//		return ContinueCheck;
+//
+//	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+//	if (pExt && pExt->Decloak_InstantFire.isset())
+//		if(!pExt->Decloak_InstantFire.Get() && pThis->WhatAmI() != AbstractType::Aircraft)
+//			return FireErrorCloaked;
+//
+//	return (pThis->CloakState == CloakState::Cloaked) ? FireErrorCloaked : ContinueCheck;
+//}
 
 DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 {

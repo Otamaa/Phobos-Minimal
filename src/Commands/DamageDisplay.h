@@ -10,6 +10,10 @@
 class DamageDisplayCommandClass : public PhobosCommandClass
 {
 public:
+
+	DamageDisplayCommandClass() : PhobosCommandClass() { }
+	virtual ~DamageDisplayCommandClass() { }
+
 	virtual const char* GetName() const override
 	{
 		return "Display Damage Numbers";

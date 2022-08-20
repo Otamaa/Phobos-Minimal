@@ -160,7 +160,7 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 						pBuilding->IsOnMap = false;
 						pTargetHouse->RegisterLoss(pBuilding, false);
 						pTargetHouse->UpdatePower();
-						pTargetHouse->RecheckTechTree = true;
+						//pTargetHouse->RecheckTechTree = true;
 						pTargetHouse->RecheckPower = true;
 						pTargetHouse->RecheckRadar = true;
 						pTargetHouse->Buildings.Remove(pBuilding);
@@ -182,7 +182,8 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 							pTargetHouse->NumOrePurifiers--;
 
 						// Remove completely
-						pBuilding->UnInit();
+						TechnoExt::HandleRemove(pBuilding);
+						//pBuilding->UnInit();
 					}
 				}
 			}

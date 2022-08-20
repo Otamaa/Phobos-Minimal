@@ -29,10 +29,10 @@
 #include <New/Entity/HomingMissileTargetTracker.h>
 #include <Phobos_ECS.h>
 
-void TechnoExt::GattlingDamage(TechnoClass* pThis)
+void TechnoExt::ExtData::GattlingDamage()
 {
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	if (!pExt)
+	auto const pThis = this->Get();
+	if (!TechnoExt::IsAlive(pThis, false, false, false))
 		return;
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -48,33 +48,33 @@ void TechnoExt::GattlingDamage(TechnoClass* pThis)
 	auto const curValue = pThis->GattlingValue;
 	auto const maxValue = pThis->Veterancy.IsElite() ? pType->EliteStage[pType->WeaponStages - 1] : pType->WeaponStage[pType->WeaponStages - 1];
 
-	if (pExt->GattlingDmageDelay <= 0)
+	if (GattlingDmageDelay <= 0)
 	{
 		int nStage = curValue;
 		if (nStage < maxValue)
 		{
-			pExt->GattlingDmageDelay = -1;
-			pExt->GattlingDmageSound = false;
+			GattlingDmageDelay = -1;
+			GattlingDmageSound = false;
 			return;
 		}
 
-		pExt->GattlingDmageDelay = pTypeExt->Gattling_Overload_Frames.Get();
+		GattlingDmageDelay = pTypeExt->Gattling_Overload_Frames.Get();
 		auto nDamage = pTypeExt->Gattling_Overload_Damage.Get();
 
 		if (nDamage <= 0)
 		{
-			pExt->GattlingDmageSound = false;
+			GattlingDmageSound = false;
 		}
 		else
 		{
 			pThis->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, 0, 0, 0, 0);
 
-			if (!pExt->GattlingDmageSound)
+			if (!GattlingDmageSound)
 			{
 				if (pTypeExt->Gattling_Overload_DeathSound.Get(-1) >= 0)
 					VocClass::PlayAt(pTypeExt->Gattling_Overload_DeathSound, pThis->Location, 0);
 
-				pExt->GattlingDmageSound = true;
+				GattlingDmageSound = true;
 			}
 
 			if (auto const pParticle = pTypeExt->Gattling_Overload_ParticleSys.Get())
@@ -98,7 +98,7 @@ void TechnoExt::GattlingDamage(TechnoClass* pThis)
 	}
 	else
 	{
-		--pExt->GattlingDmageDelay;
+		--GattlingDmageDelay;
 	}
 }
 
@@ -186,8 +186,10 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 
 void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 {
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	if (!pExt || !abstract_cast<FootClass*>(pThis))
+	if (!TechnoExt::IsAlive(pThis, false, false, false))
+		return;
+
+	if (!abstract_cast<FootClass*>(pThis))
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -272,7 +274,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	//auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	//if (pExt && pTypeExt) {
@@ -287,21 +289,26 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	//pThis->TemporalTargetingMe->Detach();
 
 //#ifdef ENABLE_NEWHOOKS
-	TechnoExt::RunFireSelf(pThis);
-	TechnoExt::ApplyMobileRefinery(pThis);
+	if (pExt) {
+		pExt->RunFireSelf();
 //#endif
-	TechnoExt::UpdateMindControlAnim(pThis);
+		pExt->UpdateMindControlAnim();
+	}
+	TechnoExt::ApplyMobileRefinery(pThis);
 	TechnoExt::ApplyMindControlRangeLimit(pThis);
 	TechnoExt::ApplyInterceptor(pThis);
 	TechnoExt::ApplySpawn_LimitRange(pThis);
 	TechnoExt::KillSlave(pThis);
-	TechnoExt::CheckDeathConditions(pThis);
-	TechnoExt::EatPassengers(pThis);
+	if (pExt) {
+		pExt->CheckDeathConditions();
+		pExt->EatPassengers();
+	}
 #ifdef COMPILE_PORTED_DP_FEATURES
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
 #endif
-	TechnoExt::GattlingDamage(pThis);
+	if (pExt) {
+		pExt->GattlingDamage();
 
 
 	//if (pExt->GenericFuctions.AfterLoadGame)
@@ -310,8 +317,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	//pExt->GenericFuctions.run_each(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
+
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 		{
 			pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
@@ -330,8 +336,9 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 				}
 			}
 		}
-	}
 #endif
+	}
+
 
 	return 0;
 }

@@ -159,6 +159,9 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 		}
 	}
 
+	if(auto const pBullet = pThis->AttachedBullet)
+		return pBullet->Owner;
+
 	return nullptr;
 }
 
@@ -229,7 +232,7 @@ DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
 	AnimExt::ExtMap.Remove(pItem);
-	R->EAX(pItem->Type);
+    //R->EAX(pItem->Type);
 	return 0;
 }
 #endif

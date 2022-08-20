@@ -13,6 +13,10 @@
 class NextIdleHarvesterCommandClass : public PhobosCommandClass
 {
 public:
+
+	NextIdleHarvesterCommandClass() : PhobosCommandClass() { }
+	virtual ~NextIdleHarvesterCommandClass() { }
+
 	// CommandClass
 	virtual const char* GetName() const override
 	{

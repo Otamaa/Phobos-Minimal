@@ -8,6 +8,9 @@ class ShowHealthPercentCommandClass : public PhobosCommandClass
 {
 public:
 
+	ShowHealthPercentCommandClass() : PhobosCommandClass() { }
+	virtual ~ShowHealthPercentCommandClass() { }
+
 	// CommandClass
 	virtual const char* GetName() const override
 	{

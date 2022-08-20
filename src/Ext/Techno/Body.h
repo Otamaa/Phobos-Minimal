@@ -171,6 +171,13 @@ public:
 #endif
 		}
 
+		void CheckDeathConditions();
+		int GetEatPassangersTotalTime(TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
+		void EatPassengers();
+		void UpdateMindControlAnim();
+		void RunFireSelf();
+		void GattlingDamage();
+
 		void InitFunctionEvents();
 
 	private:
@@ -209,44 +216,42 @@ public:
 	static bool IsHarvesting(TechnoClass* pThis);
 	static bool HasAvailableDock(TechnoClass* pThis);
 
-	static void InitializeItems(TechnoClass* pThis);
-	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
 	static Matrix3D GetMatrix(FootClass* pThis);
 	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool turretFLH = false , const CoordStruct& Overrider = CoordStruct::Empty);
 	static std::pair<bool, CoordStruct> GetBurstFLH(TechnoClass* pThis, int weaponIndex);
 	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 
-	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
-
 	static void TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo);
 	static double GetDamageMult(TechnoClass* pSouce, bool ForceDisable = false);
 
-	static void ApplyMindControlRangeLimit(TechnoClass* pThis);
-	static void ApplyInterceptor(TechnoClass* pThis);
-	static void ApplySpawn_LimitRange(TechnoClass* pThis);
-	static void CheckDeathConditions(TechnoClass* pThis);
-	static void ApplyMobileRefinery(TechnoClass* pThis);
+	static void InitializeItems(TechnoClass* pThis);
+	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
+
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
-	static int GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
-	static void EatPassengers(TechnoClass* pThis);
-	static void UpdateSharedAmmo(TechnoClass* pThis);
-	static double GetCurrentSpeedMultiplier(FootClass* pThis);
-	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
-	static void UpdateMindControlAnim(TechnoClass* pThis);
-	static bool CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget);
-	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
+
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
 	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true);
+	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
+	static bool CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget);
+	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
+	static double GetCurrentSpeedMultiplier(FootClass* pThis);
+	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
+
+	static void UpdateSharedAmmo(TechnoClass* pThis);
+
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
+	static void ApplySpawn_LimitRange(TechnoClass* pThis);
+	static void ApplyInterceptor(TechnoClass* pThis);
+	static void ApplyMindControlRangeLimit(TechnoClass* pThis);
+	static void ApplyMobileRefinery(TechnoClass* pThis);
+
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
-	static void RunFireSelf(TechnoClass* pThis);
 	static void KillSlave(TechnoClass* pThis);
-	static void GattlingDamage(TechnoClass* pThis);
 	static void HandleRemove(TechnoClass* pThis);
 };

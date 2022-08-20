@@ -8,7 +8,7 @@
 #include "DamageDisplay.h"
 
 #define Make(arg)\
-		MakeCommand<arg>();
+		Make<arg>();
 
 DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 {

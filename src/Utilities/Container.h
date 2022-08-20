@@ -754,7 +754,7 @@ return nullptr;
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
-		if (auto const ptr = this->Items.find(key))
+		if (auto const ptr = this->Find(key))
 			ptr->LoadFromINI(pINI);
 	}
 

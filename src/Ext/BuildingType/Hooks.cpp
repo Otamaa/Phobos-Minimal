@@ -127,12 +127,12 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 	return 0x0;
 }
 
-//Make Building placement Grid tranparent
-DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
-{
-	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
-	*blitFlags |= EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel);
-	return 0;
-}
+////Make Building placement Grid tranparent
+//DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
+//{
+//	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
+//	*blitFlags |= EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel);
+//	return 0;
+//}
 
-//DEFINE_JUMP(CALL,0x47EFB4, GET_OFFSET(BuildingTypeExt::DrawPlacementGrid));
+DEFINE_JUMP(CALL,0x47EFB4, GET_OFFSET(BuildingTypeExt::DrawPlacementGrid));

@@ -21,6 +21,9 @@ class ObjectInfoCommandClass : public PhobosCommandClass
 {
 public:
 
+	ObjectInfoCommandClass() : PhobosCommandClass() { }
+	virtual ~ObjectInfoCommandClass() { }
+
 	virtual const char* GetName() const override
 	{
 		return "Dump ObjectInfo";

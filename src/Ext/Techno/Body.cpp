@@ -610,15 +610,19 @@ bool TechnoExt::CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget)
 
 void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 {
+	const auto pFoot = abstract_cast<UnitClass*>(pThis);
+	if (!pFoot)
+		return;
+
 	const auto pType = pThis->GetTechnoType();
 	if (pType->Locomotor == LocomotionClass::CLSIDs::Jumpjet && pThis->IsInAir()
 		&& !pType->TurretSpins)
 	{
-		const auto pFoot = abstract_cast<UnitClass*>(pThis);
+
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget)
-			&& pFoot && pFoot->GetCurrentSpeed() == 0)
+		   && pFoot->GetCurrentSpeed() == 0)
 		{
 			if (const auto pTarget = pThis->Target)
 			{
@@ -740,9 +744,9 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	if (auto pVictimTechno = static_cast<TechnoClass*>(pVictim))
+	if (pVictim)
 	{
-		auto pVictimTechnoData = TechnoExt::ExtMap.Find(pVictim);
+		const auto pVictimTechnoData = TechnoExt::ExtMap.Find(pVictim);
 
 		if (pVictimTechnoData && pKiller)
 		{
@@ -755,17 +759,18 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 
 			if (pObjectKiller && pObjectKiller->BelongsToATeam())
 			{
-				if (auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller))
+				if (const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller))
 				{
-					auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller);
-					auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
-					/*
-					Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
-						pFootKiller->Team->Type->ID, pObjectKiller->get_ID(), pVictim->get_ID());
-					*/
-					pKillerTechnoData->LastKillWasTeamTarget = false;
-					if (pFocus == pVictim)
-						pKillerTechnoData->LastKillWasTeamTarget = true;
+					if(auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller)) {
+						auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
+						/*
+						Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
+							pFootKiller->Team->Type->ID, pObjectKiller->get_ID(), pVictim->get_ID());
+						*/
+						pKillerTechnoData->LastKillWasTeamTarget = false;
+						if (pFocus && pFocus == pVictim)
+							pKillerTechnoData->LastKillWasTeamTarget = true;
+					}
 				}
 			}
 		}
@@ -991,7 +996,7 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	return location;
 }
 
-int TechnoExt::GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger)
+int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger)
 {
 
 	if (pData->PassengerDeletion_UseCostAsRate.Get())
@@ -1017,15 +1022,145 @@ int TechnoExt::GetEatPassangersTotalTime(TechnoExt::ExtData const* pExt, TechnoT
 	return 0;
 }
 
-void TechnoExt::EatPassengers(TechnoClass* pThis)
+/*
+void TechnoExt::ExtData::EatPassengers()
 {
+	auto const pThis = this->OwnerObject();
+	auto const pTypeExt = this->TypeExtData;
+
+	if (!TechnoExt::IsActive(pThis))
+		return;
+
+	if (pTypeExt && (pTypeExt->PassengerDeletion_Rate > 0 || pTypeExt->PassengerDeletion_UseCostAsRate))
+	{
+		if (pThis->Passengers.NumPassengers > 0)
+		{
+			// Passengers / CargoClass is essentially a stack, last in, first out (LIFO) kind of data structure
+			FootClass* pPassenger = nullptr;          // Passenger to potentially delete
+			FootClass* pPreviousPassenger = nullptr;  // Passenger immediately prior to the deleted one in the stack
+			ObjectClass* pLastPassenger = nullptr;    // Passenger that is last in the stack
+			auto pCurrentPassenger = pThis->Passengers.GetFirstPassenger();
+
+			// Find the first entered passenger that is eligible for deletion.
+			while (pCurrentPassenger)
+			{
+				if (EnumFunctions::CanTargetHouse(pTypeExt->PassengerDeletion_AllowedHouses, pThis->Owner, pCurrentPassenger->Owner))
+				{
+					pPreviousPassenger = abstract_cast<FootClass*>(pLastPassenger);;
+					pPassenger = pCurrentPassenger;
+				}
+
+				pLastPassenger = pCurrentPassenger;
+				pCurrentPassenger = abstract_cast<FootClass*>(pCurrentPassenger->NextObject);
+			}
+
+			if (!pPassenger)
+			{
+				this->PassengerDeletionTimer.Stop();
+				return;
+			}
+
+			if (!this->PassengerDeletionTimer.IsTicking()) // Execute only if timer has been stopped or not started
+			{
+				int timerLength = 0;
+
+				if (pTypeExt->PassengerDeletion_UseCostAsRate)
+				{
+					// Use passenger cost as countdown.
+					timerLength = (int)(pPassenger->GetTechnoType()->Cost * pTypeExt->PassengerDeletion_CostMultiplier);
+
+					if (pTypeExt->PassengerDeletion_CostRateCap.isset())
+						timerLength = std::min(timerLength, pTypeExt->PassengerDeletion_CostRateCap.Get());
+				}
+				else
+				{
+					// Use explicit rate optionally multiplied by unit size as countdown.
+					timerLength = pTypeExt->PassengerDeletion_Rate;
+
+					if (pTypeExt->PassengerDeletion_Rate_SizeMultiply && pPassenger->GetTechnoType()->Size > 1.0)
+						timerLength *= (int)(pPassenger->GetTechnoType()->Size + 0.5);
+				}
+
+				this->PassengerDeletionTimer.Start(timerLength);
+			}
+			else if (this->PassengerDeletionTimer.Completed()) // Execute only if timer has ran out after being started
+			{
+				--pThis->Passengers.NumPassengers;
+
+				if (pLastPassenger)
+					pLastPassenger->NextObject = nullptr;
+
+				if (pPreviousPassenger)
+					pPreviousPassenger->NextObject = pPassenger->NextObject;
+
+				if (pThis->Passengers.NumPassengers <= 0)
+					pThis->Passengers.FirstPassenger = nullptr;
+
+				if (auto const pPassengerType = pPassenger->GetTechnoType())
+				{
+					if (pTypeExt->PassengerDeletion_ReportSound.isset())
+						VocClass::PlayAt(pTypeExt->PassengerDeletion_ReportSound.Get(), pThis->GetCoords(), nullptr);
+
+					if (pTypeExt->PassengerDeletion_Anim.isset())
+					{
+						const auto pAnimType = pTypeExt->PassengerDeletion_Anim.Get();
+						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
+						{
+							pAnim->SetOwnerObject(pThis);
+							pAnim->Owner = pThis->Owner;
+						}
+					}
+
+					// Check if there is money refund
+					if (pTypeExt->PassengerDeletion_Soylent &&
+						EnumFunctions::CanTargetHouse(pTypeExt->PassengerDeletion_SoylentAllowedHouses, pThis->Owner, pPassenger->Owner))
+					{
+						int nMoneyToGive = (int)(pPassenger->GetTechnoType()->GetRefund(pPassenger->Owner, true) * pTypeExt->PassengerDeletion_SoylentMultiplier);
+
+						if (nMoneyToGive > 0)
+						{
+							pThis->Owner->GiveMoney(nMoneyToGive);
+							if (pTypeExt->PassengerDeletion_DisplaySoylent)
+							{
+								FlyingStrings::AddMoneyString(nMoneyToGive, pThis->Owner,
+									pTypeExt->PassengerDeletion_DisplaySoylentToHouses, pThis->Location, pTypeExt->PassengerDeletion_DisplaySoylentOffset);
+							}
+						}
+					}
+
+					// Handle gunner change.
+					if (pThis->GetTechnoType()->Gunner)
+					{
+						if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+						{
+							pFoot->RemoveGunner(pPassenger);
+
+							if (pThis->Passengers.NumPassengers > 0)
+								pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
+						}
+					}
+
+					auto pSource = pTypeExt->PassengerDeletion_DontScore ? nullptr : pThis;
+					pPassenger->KillPassengers(pSource);
+					pPassenger->RegisterDestruction(pSource);
+					pPassenger->UnInit();
+				}
+
+				this->PassengerDeletionTimer.Stop();
+			}
+		}
+		else
+		{
+			this->PassengerDeletionTimer.Stop();
+		}
+	}
+}*/
+
+void TechnoExt::ExtData::EatPassengers()
+{
+	auto const pThis = this->Get();
 	if (!TechnoExt::IsActive(pThis, false, false))
-		return;
-
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (!pExt)
-		return;
+		return;;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -1038,16 +1173,16 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 		{
 			FootClass* pPassenger = pThis->Passengers.GetFirstPassenger();
 
-			if (pExt->PassengerDeletionCountDown < 0)
+			if (PassengerDeletionCountDown < 0)
 			{
 				// Setting & start countdown. Bigger units needs more time
-				int passengerSize = TechnoExt::GetEatPassangersTotalTime(pExt, pTypeExt, pPassenger);
-				pExt->PassengerDeletionCountDown = passengerSize;
-				pExt->PassengerDeletionTimer.Start(passengerSize);
+				int passengerSize = this->GetEatPassangersTotalTime(pTypeExt, pPassenger);
+				PassengerDeletionCountDown = passengerSize;
+				PassengerDeletionTimer.Start(passengerSize);
 			}
 			else
 			{
-				if (pExt->PassengerDeletionTimer.Completed())
+				if (PassengerDeletionTimer.Completed())
 				{
 					ObjectClass* pLastPassenger = nullptr;
 
@@ -1150,15 +1285,15 @@ void TechnoExt::EatPassengers(TechnoClass* pThis)
 						pPassenger->UnInit();
 					}
 
-					pExt->PassengerDeletionTimer.Stop();
-					pExt->PassengerDeletionCountDown = -1;
+					PassengerDeletionTimer.Stop();
+					PassengerDeletionCountDown = -1;
 				}
 			}
 		}
 		else
 		{
-			pExt->PassengerDeletionTimer.Stop();
-			pExt->PassengerDeletionCountDown = -1;
+			PassengerDeletionTimer.Stop();
+			PassengerDeletionCountDown = -1;
 		}
 	}
 }
@@ -1291,14 +1426,10 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 }
 
 // Feature: Kill Object Automatically
-void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
+void TechnoExt::ExtData::CheckDeathConditions()
 {
+	auto const pThis = this->Get();
 	if (!TechnoExt::IsActive(pThis, false, false))
-		return;
-
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (!pExt)
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -1323,23 +1454,23 @@ void TechnoExt::CheckDeathConditions(TechnoClass* pThis)
 	// Death if countdown ends
 	if (pTypeExt->Death_Countdown > 0)
 	{
-		if (pExt->Death_Countdown >= 0)
+		if (Death_Countdown >= 0)
 		{
-			if (pExt->Death_Countdown > 0)
+			if (Death_Countdown > 0)
 			{
-				pExt->Death_Countdown--; // Update countdown
+				Death_Countdown--; // Update countdown
 			}
 			else
 			{
 				// Countdown ended. Kill the unit
-				pExt->Death_Countdown = -1;
+				Death_Countdown = -1;
 				TechnoExt::KillSelf(pThis, nKillMethod);
 				return;
 			}
 		}
 		else
 		{
-			pExt->Death_Countdown = pTypeExt->Death_Countdown; // Start countdown
+			Death_Countdown = pTypeExt->Death_Countdown; // Start countdown
 		}
 	}
 
@@ -1579,17 +1710,17 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 		(pThis->HasAbility(AbilityType::Faster) ? RulesClass::Instance->VeteranSpeed : 1.0);
 }
 
-void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
+void TechnoExt::ExtData::UpdateMindControlAnim()
 {
-	if (const auto pExt = TechnoExt::ExtMap.Find(pThis))
+	 const auto pThis = this->Get();
 	{
 		if (pThis->IsMindControlled())
 		{
-			if (pThis->MindControlRingAnim && !pExt->MindControlRingAnimType)
+			if (pThis->MindControlRingAnim && !MindControlRingAnimType)
 			{
-				pExt->MindControlRingAnimType = pThis->MindControlRingAnim->Type;
+				MindControlRingAnimType = pThis->MindControlRingAnim->Type;
 			}
-			else if (!pThis->MindControlRingAnim && pExt->MindControlRingAnimType &&
+			else if (!pThis->MindControlRingAnim && MindControlRingAnimType &&
 				pThis->CloakState == CloakState::Uncloaked && !pThis->InLimbo && pThis->IsAlive)
 			{
 				auto coords = CoordStruct::Empty;
@@ -1603,7 +1734,7 @@ void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 
 				coords.Z += offset;
 
-				if (auto anim = GameCreate<AnimClass>(pExt->MindControlRingAnimType, coords, 0, 1))
+				if (auto anim = GameCreate<AnimClass>(MindControlRingAnimType, coords, 0, 1))
 				{
 					pThis->MindControlRingAnim = anim;
 					pThis->MindControlRingAnim->SetOwnerObject(pThis);
@@ -1613,20 +1744,16 @@ void TechnoExt::UpdateMindControlAnim(TechnoClass* pThis)
 				}
 			}
 		}
-		else if (pExt->MindControlRingAnimType)
+		else if (MindControlRingAnimType)
 		{
-			pExt->MindControlRingAnimType = nullptr;
+			MindControlRingAnimType = nullptr;
 		}
 	}
 }
 
-void TechnoExt::RunFireSelf(TechnoClass* pThis)
+void TechnoExt::ExtData::RunFireSelf()
 {
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (!pExt)
-		return;
-
+	const auto pThis = this->Get();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (!pTypeExt)
@@ -1634,48 +1761,48 @@ void TechnoExt::RunFireSelf(TechnoClass* pThis)
 
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
-		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon_RedHeath;
-		pExt->FireSelf_ROF = pTypeExt->FireSelf_ROF_RedHeath;
+		FireSelf_Weapon = pTypeExt->FireSelf_Weapon_RedHeath;
+		FireSelf_ROF = pTypeExt->FireSelf_ROF_RedHeath;
 	}
 	else if (pThis->IsYellowHP() && !pTypeExt->FireSelf_Weapon_YellowHeath.empty() && !pTypeExt->FireSelf_ROF_YellowHeath.empty())
 	{
-		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon_YellowHeath;
-		pExt->FireSelf_ROF = pTypeExt->FireSelf_ROF_YellowHeath;
+		FireSelf_Weapon = pTypeExt->FireSelf_Weapon_YellowHeath;
+		FireSelf_ROF = pTypeExt->FireSelf_ROF_YellowHeath;
 	}
 	else if (pThis->IsGreenHP() && !pTypeExt->FireSelf_Weapon_GreenHeath.empty() && !pTypeExt->FireSelf_ROF_GreenHeath.empty())
 	{
-		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon_GreenHeath;
-		pExt->FireSelf_ROF = pTypeExt->FireSelf_ROF_GreenHeath;
+		FireSelf_Weapon = pTypeExt->FireSelf_Weapon_GreenHeath;
+		FireSelf_ROF = pTypeExt->FireSelf_ROF_GreenHeath;
 	}
 	else
 	{
-		pExt->FireSelf_Weapon = pTypeExt->FireSelf_Weapon;
-		pExt->FireSelf_ROF = pTypeExt->FireSelf_ROF;
+		FireSelf_Weapon = pTypeExt->FireSelf_Weapon;
+		FireSelf_ROF = pTypeExt->FireSelf_ROF;
 	}
 
-	if (pExt->FireSelf_Weapon.empty()) return;
-	if (pExt->FireSelf_Count.size() < pExt->FireSelf_Weapon.size())
+	if (FireSelf_Weapon.empty()) return;
+	if (FireSelf_Count.size() < FireSelf_Weapon.size())
 	{
-		int p = int(pExt->FireSelf_Count.size());
-		while (pExt->FireSelf_Count.size() < pExt->FireSelf_Weapon.size())
+		int p = int(FireSelf_Count.size());
+		while (FireSelf_Count.size() < FireSelf_Weapon.size())
 		{
 			int ROF = 10;
-			if (p >= (int)pExt->FireSelf_ROF.size()) ROF = pExt->FireSelf_Weapon[p]->ROF;
-			else ROF = pExt->FireSelf_ROF[p];
-			pExt->FireSelf_Count.emplace_back(ROF);
+			if (p >= (int)FireSelf_ROF.size()) ROF = FireSelf_Weapon[p]->ROF;
+			else ROF = FireSelf_ROF[p];
+			FireSelf_Count.emplace_back(ROF);
 		}
 	}
-	for (int i = 0; i < (int)pExt->FireSelf_Count.size(); i++)
+	for (int i = 0; i < (int)FireSelf_Count.size(); i++)
 	{
-		pExt->FireSelf_Count[i]--;
-		if (pExt->FireSelf_Count[i] > 0) continue;
+		FireSelf_Count[i]--;
+		if (FireSelf_Count[i] > 0) continue;
 		else
 		{
 			int ROF = 10;
-			if (i >= (int)pExt->FireSelf_ROF.size()) ROF = pExt->FireSelf_Weapon[i]->ROF;
-			else ROF = pExt->FireSelf_ROF[i];
-			pExt->FireSelf_Count[i] = ROF;
-			WeaponTypeExt::DetonateAt(pExt->FireSelf_Weapon[i], pThis, pThis);
+			if (i >= (int)FireSelf_ROF.size()) ROF = FireSelf_Weapon[i]->ROF;
+			else ROF = FireSelf_ROF[i];
+			FireSelf_Count[i] = ROF;
+			WeaponTypeExt::DetonateAt(FireSelf_Weapon[i], pThis, pThis);
 		}
 	}
 }

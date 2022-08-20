@@ -15,7 +15,7 @@ DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 	GET(AircraftClass*, pThis, ECX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x6C, 0x1C));
 	R->Stack(STACK_OFFS(0x6C, 0x44), CellClass::Coord2Cell(nCoord));
-	AircraftExt::TriggerCrashWeapon(pThis,0);
+	AircraftExt::TriggerCrashWeapon(pThis, 0);
 	return 0x4CD80E;
 }
 
@@ -46,7 +46,6 @@ DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 	auto const& pTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
 	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
 }
-
 
 DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 {
@@ -245,7 +244,8 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
 
 	if (auto pPassanger = pThis->Passengers.GetFirstPassenger())
 	{
-		if (auto pDest = pThis->Destination) {
+		if (auto pDest = pThis->Destination)
+		{
 			auto nCoord = pDest->GetCoords();
 			auto pDestCell = Map[nCoord];
 
@@ -263,22 +263,25 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
 
 //size
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x0)
-{
-	enum { SkipAllSet = 0x444053, Nothing = 0x0 };
-
-	//GET(BuildingClass*, pBuilding, ESI);
-	GET(AircraftClass*, pProduct, EBP);
-
-	if (pProduct) {
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
-		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get()) {
-			return SkipAllSet;
-		}
-	}
-
-	return Nothing;
-}
+//Crash
+//DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x0)
+//{
+//	enum { SkipAllSet = 0x444053, Nothing = 0x0 };
+//
+//	//GET(BuildingClass*, pBuilding, ESI);
+//	GET(AircraftClass*, pProduct, EBP);
+//
+//	if (pProduct)
+//	{
+//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
+//		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get())
+//		{
+//			return SkipAllSet;
+//		}
+//	}
+//
+//	return Nothing;
+//}
 #endif
 
 #ifdef TEST_CODE
