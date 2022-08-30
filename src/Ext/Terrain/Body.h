@@ -25,14 +25,17 @@ public:
 	public:
 
 		LightSourceClass* LighSource;
-		UniqueGamePtr<AnimClass> AttachedAnim;
+		AnimClass* AttachedAnim;
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
 			, LighSource { }
 			, AttachedAnim { }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() {
+			CallDTOR(LighSource);
+			CallDTOR(AttachedAnim);
+		};
 		virtual size_t Size() const { return sizeof(*this); };
 		virtual void InvalidatePointer(void *ptr, bool bRemoved) override;
 		virtual void Uninitialize() override

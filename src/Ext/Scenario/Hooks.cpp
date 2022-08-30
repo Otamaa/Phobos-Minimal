@@ -56,7 +56,7 @@ DEFINE_HOOK(0x6851AC, LoadGame_Initialize_IonStormClass, 0x5)
 	for (auto pCell = MapClass::Instance->CellIteratorNext(); pCell; pCell = MapClass::Instance->CellIteratorNext())
 	{
 		if (pCell->LightConvert)
-			GameDelete(pCell->LightConvert);
+			CallDTOR<false>(pCell->LightConvert);
 
 		pCell->InitLightConvert();
 	}

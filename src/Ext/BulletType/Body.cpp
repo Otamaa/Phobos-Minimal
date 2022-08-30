@@ -7,7 +7,7 @@ BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 BulletTypeExt::ExtData::~ExtData()
 {
 	if (TrajectoryType)
-		GameDelete(TrajectoryType);
+		GameDelete<true>(TrajectoryType);
 }
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)

@@ -52,5 +52,5 @@ void Load(HMODULE pLib, LPDIRECT3DDEVICE9 pDevice , const char* pFile , LPDIRECT
 		}
 	}
 
-	GameDelete(pOpen);
+	GameDelete<true>(pOpen);
 }

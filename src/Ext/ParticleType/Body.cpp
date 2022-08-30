@@ -84,7 +84,7 @@ ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
     GET(ParticleTypeClass*, pItem, ESI);
@@ -133,3 +133,4 @@ DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
     ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI);
     return 0;
 }
+#endif

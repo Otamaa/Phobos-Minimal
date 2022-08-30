@@ -41,7 +41,7 @@ void AnimExt::ExtData::CreateAttachedSystem()
 	const auto pThis = this->Get();
 	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pTypeExt && !this->AttachedSystem)
+	if (pTypeExt && pTypeExt->AttachedSystem && !this->AttachedSystem)
 	{
 		if (auto const pSystem = GameCreate<ParticleSystemClass>(pTypeExt->AttachedSystem.Get(), pThis->Location, pThis->GetCell(), pThis, CoordStruct::Empty, nullptr))
 			this->AttachedSystem = pSystem;
@@ -53,7 +53,7 @@ void AnimExt::ExtData::DeleteAttachedSystem()
 	if (this->AttachedSystem)
 	{
 		this->AttachedSystem->Owner = nullptr;
-		GameDelete(this->AttachedSystem);
+		CallDTOR<false>(this->AttachedSystem);
 		this->AttachedSystem = nullptr;
 	}
 

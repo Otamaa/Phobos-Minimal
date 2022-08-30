@@ -686,7 +686,7 @@ void ShieldClass::KillAnim()
 	{
 		this->IdleAnim->RemainingIterations = 0;
 		this->IdleAnim->SetOwnerObject(nullptr);
-		GameDelete(this->IdleAnim);
+		CallDTOR<false>(this->IdleAnim);
 		this->IdleAnim = nullptr;
 	}
 }

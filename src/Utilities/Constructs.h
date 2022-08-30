@@ -57,6 +57,9 @@ class ConvertClass;
 template <typename T>
 using UniqueGamePtr = std::unique_ptr<T, GameDeleter>;
 
+template <typename T>
+using UniqueGamePtrB = std::unique_ptr<T,GameDTORCaller>;
+
 //doesnt work with array !
 //make new one !
 template<typename T , typename... TArgs>
@@ -109,7 +112,7 @@ public:
 	};
 
 	PaletteMode Mode{ PaletteMode::Default };
-	UniqueGamePtr<ConvertClass> Convert{ nullptr };
+	UniqueGamePtrB<ConvertClass> Convert{ nullptr };
 	UniqueGamePtr<BytePalette> Palette{ nullptr };
 
 	CustomPalette() = default;

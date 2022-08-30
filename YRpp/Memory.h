@@ -129,12 +129,22 @@ public:
 	};
 
 	// destruct scalars
-	template<typename T, typename TAlloc>
+	template<bool calldtor = false , typename T, typename TAlloc>
 	static inline void Delete(TAlloc& alloc, T* ptr) {
 		if(ptr) {
-			std::allocator_traits<TAlloc>::destroy(alloc, ptr);
+			if constexpr (calldtor)
+			  std::allocator_traits<TAlloc>::destroy(alloc, ptr);
+
 			std::allocator_traits<TAlloc>::deallocate(alloc, ptr, 1);
 		}
+	};
+
+	template<bool calldtor = false, typename T, typename TAlloc>
+	static inline void DeleteB(TAlloc& alloc, T* ptr)
+	{
+		if constexpr (calldtor)
+			std::allocator_traits<TAlloc>::destroy(alloc, ptr);
+		std::allocator_traits<TAlloc>::deallocate(alloc, ptr, 1);
 	};
 
 	// construct vectors
@@ -210,10 +220,22 @@ static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 	Memory::ConstructAt<T>(alloc, AllocatedSpace, std::forward<TArgs>(args)...);
 }
 
-template<typename T>
+template<bool calldtor = false,bool check = true, typename T>
 static inline void GameDelete(T* ptr) {
 	GameAllocator<T> alloc;
-	Memory::Delete(alloc, ptr);
+	if constexpr (check)
+	Memory::Delete<calldtor>(alloc, ptr);
+	else
+	Memory::DeleteB<calldtor>(alloc, ptr);
+}
+
+template<bool check = true , typename T>
+static inline void CallDTOR(T* ptr) {
+	GameAllocator<T> alloc;
+	if constexpr (check)
+		Memory::Delete<true>(alloc, ptr);
+	else
+		Memory::DeleteB<true>(alloc, ptr);
 }
 
 template <typename T, typename... TArgs>
@@ -270,9 +292,14 @@ static inline void DLLDeleteArray(T* ptr, size_t capacity) {
 struct GameDeleter {
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
-		if(ptr) {
-			GameDelete(ptr);
-		}
+		GameDelete(ptr);
+	}
+};
+
+struct GameDTORCaller {
+	template <typename T>
+	void operator ()(T* ptr) noexcept {
+		CallDTOR(ptr);
 	}
 };
 
@@ -280,7 +307,7 @@ struct DLLDeleter
 {
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
-			if (ptr) {
+		if (ptr) {
 			DLLDelete(ptr);
 		}
 	}

@@ -195,6 +195,7 @@ bool Phobos::DetachFromDebugger()
 					{
 						BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
 						CloseHandle(hDbgProcess);
+						FreeLibrary(hModule);
 						return ret;
 					}
 				}

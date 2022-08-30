@@ -25,7 +25,7 @@ public:
 	{
 		auto result = std::find_if(Array.begin(), Array.end(), [Title](std::unique_ptr<T>& Item)
 			{
-				return IS_SAME_STR_(Item->Name, Title);
+				return CRT::strcmp(Item->Name.data(), Title) == 0;
 			});
 
 		if (result == Array.end())
@@ -156,8 +156,8 @@ public:
 
 	static const char* GetMainSection();
 
-	Enumerable(const char* Title) : Name { Title }
-	{ }
+	Enumerable(const char* Title) : Name { }
+	{ Name = Title; }
 
 	virtual ~Enumerable() = default;
 
@@ -167,5 +167,5 @@ public:
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
-	PhobosFixedString<32> Name;
+    FixedString<32> Name;
 };

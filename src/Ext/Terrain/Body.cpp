@@ -12,8 +12,8 @@ void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
 	if(LighSource)
 		AnnounceInvalidPointer(LighSource,ptr);
 
-	if (AttachedAnim.get() && (void*)AttachedAnim.get() == ptr)
-		AttachedAnim.release();
+	if (AttachedAnim)
+		AnnounceInvalidPointer(AttachedAnim, ptr);
 }
 
 
@@ -44,7 +44,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 void TerrainExt::ExtData::InitializeAnim()
 {
-	if (!AttachedAnim.get())
+	if (!AttachedAnim)
 	{
 		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
@@ -63,8 +63,8 @@ void TerrainExt::ExtData::InitializeAnim()
 
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, Coords))
 			{
-				pAnim->SetOwnerObject(this->Get());
-				AttachedAnim.reset(pAnim);
+				//pAnim->SetOwnerObject(this->Get());
+				AttachedAnim = pAnim;
 			}
 		}
 	}
@@ -72,21 +72,22 @@ void TerrainExt::ExtData::InitializeAnim()
 
 void TerrainExt::ExtData::ClearAnim()
 {
-	if (auto const pAnim = AttachedAnim.get())
+	if (AttachedAnim)
 	{
-		pAnim->RemainingIterations = 0;
-		pAnim->UnInit();
-		AttachedAnim.release();
+		AttachedAnim->RemainingIterations = 0;
+		CallDTOR<false>(AttachedAnim);
+		AttachedAnim = nullptr;
 	}
 }
 
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	if (auto const pLight = this->LighSource)
+	if (LighSource)
 	{
-		pLight->Deactivate();
-		GameDelete(LighSource);
+		LighSource->Deactivate();
+		CallDTOR<false>(LighSource);
+		LighSource = nullptr;
 	}
 }
 

@@ -72,7 +72,7 @@ void HomingMissileTargetTracker::Remove(HomingMissileTargetTracker* pWho)
 
 	if (Iter != Array.end())
 	{
-		GameDelete(*Iter);
+		GameDelete<true>(*Iter);
 		Array.erase(Iter);
 	}
 
@@ -82,7 +82,7 @@ void HomingMissileTargetTracker::Clear()
 {
 	for (auto const& pData : Array)
 	{
-		GameDelete(pData);
+		GameDelete<true>(pData);
 	}
 
 	Array.clear();

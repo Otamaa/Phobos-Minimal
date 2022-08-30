@@ -7,17 +7,18 @@
 
 #pragma region Otamaa
 
-//DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
+DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
 
 //DEFINE_JUMP(LJMP, 0x4CD7DA , 0x4CD7DB)
+/* wrong stack ?
 DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 {
 	GET(AircraftClass*, pThis, ECX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x6C, 0x1C));
-	R->Stack(STACK_OFFS(0x6C, 0x44), CellClass::Coord2Cell(nCoord));
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x6C, 0x18));
+	R->Stack(STACK_OFFS(0x6C, 0x3C), CellClass::Coord2Cell(nCoord));
 	AircraftExt::TriggerCrashWeapon(pThis, 0);
 	return 0x4CD80E;
-}
+}*/
 
 DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 {

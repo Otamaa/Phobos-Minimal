@@ -78,4 +78,4 @@ public:
 	BYTE   hasremaining; //131
 	PROTECTED_PROPERTY(DWORD,        unused_134); //??
 };
-//static_assert(sizeof(ParticleClass) == 0x138);
+static_assert(sizeof(ParticleClass) == 0x138);

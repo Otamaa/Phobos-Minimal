@@ -265,7 +265,7 @@ void ElectricBoltClass::Draw_Bolts()
 void ElectricBoltManager::Clear_All()
 {
 	for (int i = 0; i < (int)ElectricBoltArray.size(); ++i) {
-		GameDelete(ElectricBoltArray[i]);
+		GameDelete<true>(ElectricBoltArray[i]);
 	}
 
 	ElectricBoltArray.clear();
@@ -293,7 +293,7 @@ void ElectricBoltManager::Draw_All()
 		 */
 		if (ebolt->Lifetime <= 0) {
 			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
-			GameDelete(ebolt);
+			GameDelete<true>(ebolt);
 		}
 	}
 }

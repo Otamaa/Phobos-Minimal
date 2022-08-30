@@ -24,7 +24,7 @@ DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 	{
 		if (SidebarExt::TabProducingProgress[i])
 		{
-			GameDelete(SidebarExt::TabProducingProgress[i]);
+			GameDelete<true>(SidebarExt::TabProducingProgress[i]);
 			SidebarExt::TabProducingProgress[i] = nullptr;
 		}
 	}

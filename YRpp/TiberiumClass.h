@@ -40,7 +40,7 @@ public:
 
 	void Destruct()
 	{
-		GameDelete(Heap);
+		GameDelete<true>(Heap);
 		Heap = nullptr;
 
 		if (Datas)

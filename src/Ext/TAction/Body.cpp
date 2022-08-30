@@ -488,7 +488,8 @@ void TActionExt::RecreateLightSources()
 	 {
 		 bool activated = pBld->LightSource->Activated;
 
-		 GameDelete(pBld->LightSource);
+		 CallDTOR<false>(pBld->LightSource);
+
 		 if (pBld->Type->LightIntensity)
 		 {
 			 TintStruct color { pBld->Type->LightRedTint, pBld->Type->LightGreenTint, pBld->Type->LightBlueTint };
@@ -514,7 +515,7 @@ void TActionExt::RecreateLightSources()
 			auto intensity = pRadSite->LightSource->LightIntensity;
 			auto visibility = pRadSite->LightSource->LightVisibility;
 
-			GameDelete(pRadSite->LightSource);
+			GameDelete<true>(pRadSite->LightSource);
 
 			pRadSite->LightSource = GameCreate<LightSourceClass>(coord,
 				visibility, intensity, color);

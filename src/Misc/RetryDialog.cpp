@@ -41,7 +41,7 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
 			const bool bIsAboutToLoad = pDialog->LoadDialog();
 			RetryDialogFlag::IsCalledFromRetryDialog = false;
-			GameDelete(pDialog);
+			GameDelete<true>(pDialog);
 
 			if (!bIsAboutToLoad)
 				continue;

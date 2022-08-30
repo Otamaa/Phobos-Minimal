@@ -87,7 +87,8 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+ 
+#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x62BB06, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
@@ -127,3 +128,4 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)
 	ParticleExt::ExtMap.SaveStatic();
 	return 0;
 }
+#endif

@@ -138,7 +138,8 @@ struct BytePalette
 	BytePalette(const BytePalette& that) {
 		JMP_THIS(0x626070);
 	}
-	~BytePalette() { };
+
+	~BytePalette() = default;
 
 	operator const unsigned char* () const { return (const unsigned char*)&Entries[0]; }
 	operator unsigned char* () { return (unsigned char*)&Entries[0]; }

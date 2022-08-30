@@ -45,6 +45,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);*/
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber);
-	static void TriggerCrashWeapon(TechnoClass* pThis ,int nMult);
+	static void _fastcall TriggerCrashWeapon(TechnoClass* pThis ,DWORD, int nMult);
 };
 
