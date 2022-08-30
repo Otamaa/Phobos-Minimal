@@ -98,6 +98,10 @@ public:
 	bool ShouldFlashTab() const // sidebar
 		{ JMP_THIS(0x6CE1A0); }
 
+	// smooth operator
+	const char* get_ID() const {
+		return Type ? Type->get_ID() : "<none>";
+	}
 	//Constructor
 	SuperClass(SuperWeaponTypeClass* pSWType, HouseClass* pOwner) noexcept
 		: SuperClass(noinit_t())

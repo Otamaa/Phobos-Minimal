@@ -9,12 +9,20 @@ GET(TechnoClass* , pThis , techreg);\
 		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())) {\
 			if (pTypeExt->Passengers_SyncOwner.Get()) return ret; }} return 0; }
 
+#define SET_THREATEVALSB(addr , techreg , name ,size , ret)\
+DEFINE_HOOK(addr, name, size) {\
+GET(TechnoClass* , pThis , techreg);\
+	if (auto const  pTransport = pThis->Transporter) {\
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())) {\
+			if (pTypeExt->Passengers_SyncOwner.Get()) return ret; }} return 0; }
+
 SET_THREATEVALS(0x6FA33C,ESI,TechnoClass_AI_ThreatEvals_OpenToppedOwner,0x6,0x6FA37A) //
-SET_THREATEVALS(0x6F89F4,ESI,TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner,0x6,0x6F8A0F)
+SET_THREATEVALSB(0x6F89F4,ESI,TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner,0x6,0x6F8A0F)
 SET_THREATEVALS(0x6F8FD7,ESI,TechnoClass_Greatest_Threat_ThreatEvals_OpenToppedOwner,0x5,0x6F8FDC)
 SET_THREATEVALS(0x6F7EC2,EDI,TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner,0x6,0x6F7EDA)
 
 #undef SET_THREATEVALS
+#undef SET_THREATEVALSB
 #else
 DEFINE_HOOK_AGAIN(0x6FA33C, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::AI
 DEFINE_HOOK_AGAIN(0x6F89F4, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateCell

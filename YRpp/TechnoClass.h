@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Audio.h>
 #include <RadioClass.h>
 #include <TechnoTypeClass.h>
 #include <Helpers/Template.h>
@@ -227,7 +228,7 @@ public:
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;
 	virtual FacingStruct* GetRealFacing(FacingStruct* pBuffer) const R0;
-	virtual InfantryTypeClass* GetCrew() const R0;
+	virtual InfantryTypeClass* GetCrew() const { JMP_THIS(0x707D20); }
 	virtual bool vt_entry_310() const R0;
 	virtual bool CanDeploySlashUnload() const R0;
 	virtual int GetROF(int nWeapon) const R0;

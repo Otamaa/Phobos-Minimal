@@ -172,8 +172,11 @@ struct DirStruct
 	explicit DirStruct(double rad) : DirStruct() {
 		this->radians(rad);
 	}
-	explicit DirStruct(double nVelZ, double nVelDistanceXY) : DirStruct()
-		{ this->radians(Math::atan2(nVelZ, nVelDistanceXY)); }
+
+	explicit DirStruct(double nVelZ, double nVelDistanceXY) : DirStruct() {
+		double const atan2 = Math::atan2(nVelZ, nVelDistanceXY) - Math::DEG90_AS_RAD;
+		this->radians(atan2);
+	}
 
 	DirStruct(size_t bits, value_type value)
 		: DirStruct(static_cast<value_type>(TranslateFixedPoint(bits, 16, static_cast<unsigned_type>(value), 0)))

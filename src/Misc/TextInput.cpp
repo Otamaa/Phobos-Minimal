@@ -1,5 +1,6 @@
 #include <Utilities\Macro.h>
 
+#include <CRT.h>
 // Allow message entry in Skirmish
 // DEFINE_JUMP(LJMP,0x55E484, 0x55E48D);
 
@@ -12,7 +13,7 @@ UINT GetCurentCodepage()
 	LCID locale = MAKELCID(lang, SORT_DEFAULT);
 	GetLocaleInfoA(locale, LOCALE_IDEFAULTANSICODEPAGE, szLCData, _countof(szLCData));
 
-	return atoi(szLCData);
+	return CRT::atoi(szLCData);
 }
 
 wchar_t LocalizeCaracter(char character)

@@ -89,6 +89,17 @@ public:
 		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
 	}
 
+	bool Blit_Alter(
+		RectangleStruct* pClipRect,
+		RectangleStruct* pClipRect2,	//again? hmm
+		Surface* pSrc,
+		RectangleStruct* pDestRect,	//desired dest rect of pSrc ? (stretched? clipped?)
+		RectangleStruct* pSrcRect,	//desired source rect of pSrc ?
+		bool bUnk1,
+		bool bUnk2)
+	{
+		return Copy_From(*pClipRect, *pClipRect2, pSrc, *pDestRect, *pSrcRect, bUnk1, bUnk2);
+	}
 	void DrawText_Old(const wchar_t* pText, RectangleStruct* pBounds, Point2D* pLocation, DWORD dwColor, DWORD unknown5, DWORD flags)
 	{
 		Point2D tmp = { 0, 0 };

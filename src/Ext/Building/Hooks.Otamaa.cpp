@@ -132,6 +132,7 @@ DEFINE_HOOK(0x441EFC, BuildingClass_Destroy_PreventRubble, 0xB)
 }
 
 DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExt::IsFactory));
+
 /*
 #ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0x2)

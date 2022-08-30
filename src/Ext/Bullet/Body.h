@@ -70,7 +70,10 @@ public:
 
 		{ }
 
-		virtual ~ExtData() override = default;
+
+
+		virtual ~ExtData();
+
 		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;

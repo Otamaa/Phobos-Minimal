@@ -63,7 +63,7 @@ public:
 		JMP_STD(0x704E40);
 	}
 
-	static inline int FixIdx(const Iterator<int>& iter, int nInput) {
+	static int FixIdx(const Iterator<int>& iter, int nInput) {
 		return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];
 	}
 

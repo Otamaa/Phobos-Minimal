@@ -87,8 +87,12 @@ public:
 		static wchar_t* __cdecl wcsncat(wchar_t* a1, const wchar_t* a2, size_t a3)
 			{ JMP_STD(0x7CB504); }
 
+		static int __cdecl wcsicmp(const wchar_t* a1, const wchar_t* a2)
+			{ JMP_STD(0x7DD0F8); }
+
 		static void __cdecl exit_noreturn(size_t reason)
 			{ JMP_STD(0x7CBDDC); }
+
 		// memory management
 		static void *__cdecl malloc(size_t sz)
 			{ JMP_STD(0x7C9430); }

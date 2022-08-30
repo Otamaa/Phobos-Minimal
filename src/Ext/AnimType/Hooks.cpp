@@ -38,7 +38,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 
 //DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
 
-DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x5) //was 6
+DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 {
 	GET(AnimClass*, pThis, ECX);
 
@@ -96,6 +96,22 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 		pCoords->X += 128;
 		pCoords->Y += 128;
 	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	const auto pExt = AnimExt::ExtMap.Find(pThis);
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem)
+		pExt->DeleteAttachedSystem();
+
+	if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
+		pExt->CreateAttachedSystem();
 
 	return 0;
 }

@@ -17,32 +17,6 @@ namespace TerrainTypeTemp {
 }
 
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
-{
-	//GET(ObjectClass*, pThis, ESI);
-	GET(ObjectTypeClass*, pType, EBX);
-
-	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
-
-	if (pType->IsLogic)
-	{
-		if (pType->WhatAmI() == AbstractType::TerrainType)
-		{
-			auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
-			if (pTerrainType->SpawnsTiberium || pTerrainType->IsFlammable || pTerrainType->IsAnimated)
-			{
-				return FurtherCheck;
-			}
-		}
-		else
-		{
-			return FurtherCheck;
-		}
-	}
-
-	return NoUpdate;
-}
-#endif
 
 DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
 {
@@ -79,6 +53,33 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
 
 	return DoCellChailReact;
 }
+#endif
+
+DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
+{
+	//GET(ObjectClass*, pThis, ESI);
+	GET(ObjectTypeClass*, pType, EBX);
+
+	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
+
+	if (pType->IsLogic)
+	{
+		if (pType->WhatAmI() == AbstractType::TerrainType)
+		{
+			auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
+			if (pTerrainType->SpawnsTiberium || pTerrainType->IsFlammable || pTerrainType->IsAnimated)
+			{
+				return FurtherCheck;
+			}
+		}
+		else
+		{
+			return FurtherCheck;
+		}
+	}
+
+	return NoUpdate;
+}
 
 DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 {
@@ -88,31 +89,35 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 	if (pThis->Type) {
 		if (pThis->Type->IsAnimated) {
-			if (pThis->Animation.Value == pThis->Type->GetImage()->Frames / 2) {
-				pThis->Animation.Value = 0;
-				pThis->Animation.Start(0);
+			if(auto const pImage = pThis->Type->GetImage()) {
+				if (pThis->Animation.Value == pImage->Frames / 2) {
+					pThis->Animation.Value = 0;
+					pThis->Animation.Start(0);
 
-				if (pThis->Type->SpawnsTiberium && Map.IsValid(pThis->Location)) {
-					if (auto const pCell = Map[pThis->Location]) {
-						int cellCount = 1;
-						if(auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type)) {
-							cellCount = pTypeExt->GetCellsPerAnim();
+					if (pThis->Type->SpawnsTiberium && Map.IsValid(pThis->Location)) {
+						if (auto const pCell = Map[pThis->Location]) {
+							int cellCount = 1;
+							if(auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type)) {
+								cellCount = pTypeExt->GetCellsPerAnim();
 
-							// Set context for CellClass hooks.
-							TerrainTypeTemp::pCurrentExt = pTypeExt;
+								// Set context for CellClass hooks.
+								TerrainTypeTemp::pCurrentExt = pTypeExt;
+							}
+
+							for (int i = 0; i < cellCount; i++)
+								pCell->SpreadTiberium(true);
+
+
 						}
-
-						for (int i = 0; i < cellCount; i++)
-							pCell->SpreadTiberium(true);
-
-						// Unset context for CellClass hooks.
-						TerrainTypeTemp::pCurrentExt = nullptr;
 					}
 				}
 			}
+			else { Debug::Log("Terrain [%s] With Corrupted Image !\n", pThis->Type->get_ID()); }
 		}
 	}
 
+	// Unset context for CellClass hooks.
+	TerrainTypeTemp::pCurrentExt = nullptr;
 	return SkipGameCode;
 }
 

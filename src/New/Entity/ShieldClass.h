@@ -14,7 +14,7 @@ public:
 	ShieldClass();
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
-	virtual ~ShieldClass() = default;
+	virtual ~ShieldClass() { KillAnim(); };
 
 	virtual void OnInit() { }
 	virtual void OnUnInit() { }

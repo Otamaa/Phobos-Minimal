@@ -56,6 +56,9 @@ public:
 		// brought back from TS
 		Valueable<Leptons> ProjectileRange;
 		Nullable<bool> Decloak_InstantFire;
+		Valueable<AnimTypeClass*> Feedback_Anim;
+		Valueable<CoordStruct> Feedback_Anim_Offset;
+		Valueable<bool> Feedback_Anim_UseFLH;
 
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
@@ -92,6 +95,9 @@ public:
 			, Range_IgnoreVertical { false }
 			, ProjectileRange { Leptons(100000) }
 			, Decloak_InstantFire { }
+			, Feedback_Anim { nullptr }
+			, Feedback_Anim_Offset{{ 0,0,0 } }
+			, Feedback_Anim_UseFLH { true }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }

@@ -63,6 +63,13 @@ public:
 		};
 	}
 
+	void* SelectProperBlitter(SHPStruct* SHP, int FrameIndex, BlitterFlags flags) {
+		return (SHP->HasCompression(FrameIndex))
+			? static_cast<void*>(this->Select_Blitter(flags))
+			: static_cast<void*>(this->Select_RLE_Blitter(flags))
+			;
+	}
+
 	ConvertClass(
 	BytePalette const& palette,
 	BytePalette const& palette2, //???

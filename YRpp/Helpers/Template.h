@@ -60,7 +60,7 @@ void AnnounceInvalidPointer(T &elem, void *ptr) {
 template<typename T>
 void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
-	auto idx = elem.FindItemIndex(reinterpret_cast<T*>(ptr));
+	auto idx = elem.FindItemIndex(reinterpret_cast<T>(ptr));
 	if(idx != -1) {
 		elem.RemoveItem(idx);
 	}
@@ -99,6 +99,10 @@ public:
 
 	void Clear() {
 		this->data = 0u;
+	}
+
+	operator DWORD() const {
+		return this->data;
 	}
 
 	DWORD data{ 0 };

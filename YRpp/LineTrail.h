@@ -24,6 +24,13 @@ public:
 	~LineTrail()
 		{ JMP_THIS(0x556B30); }
 
+	LineTrail(ObjectClass* pOwner, ColorStruct const& nColor, int nDec) : LineTrail{}
+	{
+		Owner = pOwner;
+		Color = nColor;
+		Decrement = nDec;
+	}
+
 	void Detach()
 		{ JMP_THIS(0x556AD0); }
 

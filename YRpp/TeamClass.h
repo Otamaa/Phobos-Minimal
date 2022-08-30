@@ -103,12 +103,12 @@ public:
 	TimerStruct	   SuspendTimer;
 	TagClass*      Tag;
 	bool           IsTransient;
-	bool           NeedsReGrouping;
-	bool           GuardSlowerIsNotUnderStrength;
-	bool           IsForcedActive;
+	bool           NeedsReGrouping; //75
+	bool           GuardSlowerIsNotUnderStrength; //76
+	bool           IsForcedActive; //77
 
-	bool           IsHasBeen;
-	bool           IsFullStrength;
+	bool           IsHasBeen; //78
+	bool           IsFullStrength; //79
 	bool           IsUnderStrength;
 	bool           IsReforming;
 
@@ -127,4 +127,4 @@ public:
 	int CountObjects [6]; // counts of each object specified in the Type
 };
 
-//static_assert(sizeof(TeamClass) == 0xA0);
+static_assert(sizeof(TeamClass) == 0xA0);

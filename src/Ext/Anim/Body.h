@@ -1,5 +1,6 @@
 #pragma once
 #include <AnimClass.h>
+#include <ParticleSystemClass.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
@@ -22,19 +23,27 @@ public:
 		OptionalStruct<short , true> DeathUnitFacing;
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
+		ParticleSystemClass* AttachedSystem;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, DeathUnitFacing { }
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
+			, AttachedSystem {}
 		{ }
 
-		virtual ~ExtData() override = default;
+		virtual ~ExtData()
+		{
+			DeleteAttachedSystem();
+		}
 		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
 		virtual void InitializeConstants() override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		void CreateAttachedSystem();
+		void DeleteAttachedSystem();
 
 	private:
 		template <typename T>
@@ -58,6 +67,7 @@ public:
 			case AbstractType::Infantry:
 			case AbstractType::Unit:
 			case AbstractType::Aircraft:
+			case AbstractType::ParticleSystem:
 				return false;
 			default:
 				return true;

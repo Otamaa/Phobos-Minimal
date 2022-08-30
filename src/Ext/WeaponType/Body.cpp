@@ -63,6 +63,10 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->ProjectileRange.Read(exINI, pSection, "ProjectileRange");
 	this->Decloak_InstantFire.Read(exINI, pSection, "DecloakInstantFire");
 
+	this->Feedback_Anim.Read(exINI, pSection, "FeedbackAnim");
+	this->Feedback_Anim_Offset.Read(exINI, pSection, "FeedbackAnim.Offset");
+	this->Feedback_Anim_UseFLH.Read(exINI, pSection, "FeedbackAnim.UseFLH");
+
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
@@ -109,6 +113,9 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Range_IgnoreVertical)
 		.Process(this->ProjectileRange)
 		.Process(this->Decloak_InstantFire)
+		.Process(this->Feedback_Anim)
+		.Process(this->Feedback_Anim_Offset)
+		.Process(this->Feedback_Anim_UseFLH)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif

@@ -83,14 +83,17 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x7)
 }
 #endif
 
-DEFINE_HOOK(0x62A71C, ParasiteClass_ExitUnit_ExitSound, 0x6)
+DEFINE_HOOK_AGAIN(0x62A399 , ParasiteClass_ExitUnit_ExitSound ,0x0) //ParasiteClass_Detach
+DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0x0) //ParasiteClass_Uninfect
 {
-	GET(TechnoClass* const, pParasiteOwner, EAX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x3C, 0x18));
+	GET(ParasiteClass* const, pParasite, ESI);
 
-	if (pParasiteOwner)
-		if (auto const pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType()))
+	if (auto const pParasiteOwner = pParasite->Owner) {
+		if (auto const pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType())) {
+			auto nCoord = pParasiteOwner->GetCoords();
 			VoxClass::PlayAtPos(pOwnerTypeExt->ParasiteExit_Sound.Get(), &nCoord);
+		}
+	}
 
 	return 0;
 }

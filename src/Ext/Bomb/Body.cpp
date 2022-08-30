@@ -24,7 +24,6 @@ DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage,
 		}
 	}
 
-	BombExt::BombTemp = nullptr;
 	return nResult;
 }
 

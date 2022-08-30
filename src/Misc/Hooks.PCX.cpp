@@ -17,8 +17,8 @@ DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)
 	strcpy_s(pFilename, name);
 	_strlwr_s(pFilename);
 
-	if (strstr(pFilename, ".pcx")
-		|| strstr(pFilename, ".png")) {
+	if (CRT::strstr(pFilename, ".pcx")
+		|| CRT::strstr(pFilename, ".png")) {
 
 		BSurface* pCXSurf = nullptr;
 
@@ -89,8 +89,8 @@ DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 		_strlwr_s(pFilename);
 
 		if (!_stricmp(pCameoRef->Filename, "xxicon.shp")
-			&& (strstr(pFilename, ".pcx")
-				|| strstr(pFilename, ".png")))
+			&& (CRT::strstr(pFilename, ".pcx")
+				|| CRT::strstr(pFilename, ".png")))
 		{
 
 			BSurface* pCXSurf = nullptr;

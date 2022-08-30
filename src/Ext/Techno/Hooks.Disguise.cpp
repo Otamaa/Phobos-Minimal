@@ -86,7 +86,7 @@ DEFINE_HOOK(0x70EDAD, TechnoClass_DisguiseBlitFlags_BlinkAllyDisguise, 0x6)
 	return 0;
 }
 #undef CAN_BLINK_DISGUISE
-#endif
+
 
 DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 {
@@ -118,6 +118,8 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	return SkipGameCode;
 }
+
+#endif
 
 #pragma region Otamaa
 #ifdef Advanched_DISGUISE

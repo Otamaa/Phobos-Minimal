@@ -42,6 +42,7 @@ struct BuildType
 		{ JMP_STD(0x6A8420); }
 };
 
+typedef BuildType CameoDataStruct;
 // SidebarClass::StripClass
 struct StripClass
 {
@@ -90,6 +91,7 @@ public:
 	BuildType         Cameos[75];
 };
 
+typedef StripClass TabDataStruct;
 //static_assert(sizeof(StripClass) == 0xF94);
 
 class NOVTABLE SidebarClass : public PowerClass

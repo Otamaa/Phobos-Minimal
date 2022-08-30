@@ -639,7 +639,8 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x8)
 {
-	enum { KillTheSlave = 0x6B0BDF ,SkipSetEax = 0x6B0BB4 };
+	//Kill slave is buged because it doesnt do IgnoreDamage -Otamaa
+	enum { KillTheSlave = 0x6B0BDF, SkipSetEax = 0x6B0BB4, LoopCheck = 0x6B0C0B };
 
 	GET_STACK(const SlaveManagerClass*, pThis, STACK_OFFS(0x24, 0x10));
 	GET(InfantryClass*, pSlave, ESI);
@@ -648,8 +649,11 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x8)
 
 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->GetTechnoType()))
 	{
-		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
-			return KillTheSlave;
+		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide) {
+			auto nStr = pSlave->Health;
+			pSlave->ReceiveDamage(&nStr, 0, RulesGlobal->C4Warhead, nullptr, true, true, nullptr);
+			return LoopCheck;
+		}
 
 		const auto pVictim = pThis->Owner ? pThis->Owner->GetOwningHouse() : pSlave->GetOwningHouse();
 		R->EAX(HouseExt::GetSlaveHouse(pTypeExt->Slaved_ReturnTo, pKiller->GetOwningHouse(), pVictim ? pVictim : pDefaultRetHouse));

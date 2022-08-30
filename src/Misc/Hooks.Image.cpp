@@ -21,7 +21,8 @@ DEFINE_HOOK(0x524734, InfantryTypeClass_ReadINI, 0x6)
 			Debug::Log("[Phobos] Replacing image for %s with %s.\n", infantryType->ImageFile, nameBuffer);
 
 			char filename[260];
-			_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+			//_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+			CRT::_makepath(filename, 0, 0, nameBuffer, ".SHP");
 			infantryType->Image = GameCreate<SHPReference>(filename);
 		}
 	}
@@ -42,15 +43,19 @@ DEFINE_HOOK(0x747B49, VehicleTypeClass_ReadINI, 0x6)
 			if (unitType->Voxel)
 			{
 				char savedName[0x19];
-				strcpy_s(savedName, unitType->ImageFile);
-				strcpy_s(unitType->ImageFile, nameBuffer);
+				//strcpy_s(savedName, unitType->ImageFile);
+				//strcpy_s(unitType->ImageFile, nameBuffer);
+				CRT::strcpy(savedName, unitType->ImageFile);
+				CRT::strcpy(unitType->ImageFile, nameBuffer);
 				unitType->LoadVoxel__();
-				strcpy_s(unitType->ImageFile, savedName);
+				//strcpy_s(unitType->ImageFile, savedName);
+				CRT::strcpy(unitType->ImageFile, savedName);
 			}
 			else
 			{
 				char filename[260];
-				_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+				//_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+				CRT::_makepath(filename, 0, 0, nameBuffer, ".SHP");
 				unitType->Image = GameCreate<SHPReference>(filename);
 			}
 		}
@@ -72,10 +77,14 @@ DEFINE_HOOK(0x41CD54, AircraftTypeClass_ReadINI, 0x6)
 			{
 				Debug::Log("[Phobos] Replacing image for %s with %s.\n", aircraftType->ImageFile, nameBuffer);
 				char savedName[0x19];
-				strcpy_s(savedName, aircraftType->ImageFile);
-				strcpy_s(aircraftType->ImageFile, nameBuffer);
+				//strcpy_s(savedName, aircraftType->ImageFile);
+				//strcpy_s(aircraftType->ImageFile, nameBuffer);
+				CRT::strcpy(savedName, aircraftType->ImageFile);
+				CRT::strcpy(aircraftType->ImageFile, nameBuffer);
 				aircraftType->LoadVoxel__();
-				strcpy_s(aircraftType->ImageFile, savedName);
+				//strcpy_s(aircraftType->ImageFile, savedName);
+				CRT::strcpy(aircraftType->ImageFile, savedName);
+
 			}
 		}
 	}

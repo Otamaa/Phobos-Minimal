@@ -87,6 +87,7 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	return 0;
 }
 
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
 {
 	GET(ConvertClass*, pConvert, EDX);
@@ -99,3 +100,4 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
 	R->EDX(pConvert);
 	return 0x0;
 }
+#endif

@@ -716,8 +716,6 @@ return nullptr;
 	void Remove(const_base_type_ptr key)
 	{
 		if(auto Item = this->Items.remove(key)) {
-			Item->Uninitialize();
-
 			if constexpr (HasOffset<T>)
 				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
 
@@ -732,14 +730,10 @@ return nullptr;
 			Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
 
 			for (const auto&[pKey , pValue] : this->Items) {
-				pValue->Uninitialize();
-
 				if constexpr (HasOffset<T>)
 					*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
 
 				delete pValue;
-
-				//Items.erase(pKey);
 			}
 
 			this->Items.clear();

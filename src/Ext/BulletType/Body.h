@@ -116,7 +116,7 @@ public:
 			, TrajectoryType { nullptr }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData();
 		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override { LaserTrail_Types.reserve(1); }

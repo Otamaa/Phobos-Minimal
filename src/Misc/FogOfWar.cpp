@@ -16,6 +16,7 @@
 #include <InfantryTypeClass.h>
 
 //440B8D = BuildingClass_Put_CheckFog, 6
+//486BF0 = CellClass_CleanFog, 9
 
 DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 {

@@ -16,10 +16,15 @@ BulletExt::ExtData* BulletExt::GetExtData(BulletExt::base_type* pThis)
 	return ExtMap.Find(pThis);
 }
 
-void BulletExt::ExtData::Uninitialize()
+BulletExt::ExtData::~ExtData()
 {
 	if (Trajectory)
 		GameDelete(Trajectory);
+}
+
+void BulletExt::ExtData::Uninitialize()
+{
+
 
 }
 

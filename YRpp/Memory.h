@@ -63,10 +63,11 @@ namespace YRMemory {
 	}
 
 	__declspec(noinline) inline void* AllocateChecked(size_t sz) {
-		if(auto const ptr = YRMemory::Allocate(sz)) {
-			return ptr;
-		}
-		exit(static_cast<int>(0x30000000u | sz));
+		//if(auto const ptr = YRMemory::Allocate(sz)) {
+		//	return ptr;
+		//}
+		//exit(static_cast<int>(0x30000000u | sz));
+		return YRMemory::Allocate(sz);
 	}
 }
 
@@ -114,9 +115,12 @@ public:
 	// construct scalars
 	template <typename T, typename TAlloc, typename... TArgs>
 	static inline T* Create(TAlloc& alloc, TArgs&&... args) {
-		auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1);
-		std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
-		return ptr;
+		if(auto const ptr = std::allocator_traits<TAlloc>::allocate(alloc, 1)){
+			std::allocator_traits<TAlloc>::construct(alloc, ptr, std::forward<TArgs>(args)...);
+			return ptr;
+		}
+
+		return nullptr;
 	};
 
 	template <typename T, typename TAlloc, typename... TArgs>

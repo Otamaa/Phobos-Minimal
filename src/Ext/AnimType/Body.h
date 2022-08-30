@@ -67,6 +67,8 @@ public:
 
 		Valueable<int> Spawns_Delay;
 	    #pragma endregion
+		Valueable<ParticleSystemTypeClass*> AttachedSystem;
+
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, CreateUnit { }
@@ -110,6 +112,8 @@ public:
 			, SpecialDraw { false }
 			, NoOwner { false }
 			, Spawns_Delay { 0 }
+
+			, AttachedSystem {}
 		{ }
 
 		virtual ~ExtData() = default;

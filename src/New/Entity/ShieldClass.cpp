@@ -453,7 +453,7 @@ bool ShieldClass::ConvertCheck()
 {
 	const auto newID = this->Techno->get_ID();
 
-	if (strcmp(this->TechnoID.data(), newID) == 0)
+	if (CRT::strcmp(this->TechnoID.data(), newID) == 0)
 		return false;
 
 	const auto pTechnoExt = TechnoExt::GetExtData(this->Techno);
@@ -568,8 +568,7 @@ int ShieldClass::GetPercentageAmount(double iStatus) const
 
 void ShieldClass::InvalidatePointer(void* ptr, bool bDetach)
 {
-	if (this->IdleAnim == ptr)
-		this->KillAnim();
+	AnnounceInvalidPointer(this->IdleAnim, ptr);
 }
 
 void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreakWeapon)
@@ -685,8 +684,9 @@ void ShieldClass::KillAnim()
 {
 	if (this->IdleAnim)
 	{
-		this->IdleAnim->DetachFromObject(this->Techno, false);
-		//this->IdleAnim->UnInit();
+		this->IdleAnim->RemainingIterations = 0;
+		this->IdleAnim->SetOwnerObject(nullptr);
+		GameDelete(this->IdleAnim);
 		this->IdleAnim = nullptr;
 	}
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <CRT.h>
 #include <ArrayClasses.h>
+#include <CoordStruct.h>
 #include <GeneralDefinitions.h>
 
 #include <Helpers/CompileTime.h>

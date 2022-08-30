@@ -8,6 +8,7 @@ std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
 AnimExt::ExtContainer AnimExt::ExtMap;
 
 void AnimExt::ExtData::InitializeConstants() {
+	CreateAttachedSystem();
 }
 
 AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
@@ -17,9 +18,8 @@ AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
-	if(Invoker)
-	  AnnounceInvalidPointer(Invoker, ptr);
-
+	AnnounceInvalidPointer(Invoker, ptr);
+	AnnounceInvalidPointer(AttachedSystem, ptr);
 }
 
 // =============================
@@ -32,9 +32,32 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeathUnitFacing)
 		.Process(this->DeathUnitTurretFacing)
 		.Process(this->Invoker)
+		.Process(this->AttachedSystem)
 		;
 }
 
+void AnimExt::ExtData::CreateAttachedSystem()
+{
+	const auto pThis = this->Get();
+	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt && !this->AttachedSystem)
+	{
+		if (auto const pSystem = GameCreate<ParticleSystemClass>(pTypeExt->AttachedSystem.Get(), pThis->Location, pThis->GetCell(), pThis, CoordStruct::Empty, nullptr))
+			this->AttachedSystem = pSystem;
+	}
+}
+
+void AnimExt::ExtData::DeleteAttachedSystem()
+{
+	if (this->AttachedSystem)
+	{
+		this->AttachedSystem->Owner = nullptr;
+		GameDelete(this->AttachedSystem);
+		this->AttachedSystem = nullptr;
+	}
+
+}
 //Modified from Ares
 const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {

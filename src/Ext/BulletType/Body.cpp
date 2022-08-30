@@ -4,6 +4,11 @@
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
+BulletTypeExt::ExtData::~ExtData()
+{
+	if (TrajectoryType)
+		GameDelete(TrajectoryType);
+}
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
@@ -55,8 +60,7 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 }
 
 void  BulletTypeExt::ExtData::Uninitialize() {
-	if (TrajectoryType)
-		GameDelete(TrajectoryType);
+
 }
 // =============================
 // load / save

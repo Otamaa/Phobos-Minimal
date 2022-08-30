@@ -34,6 +34,7 @@ public:
 	virtual int Size() const R0;
 
 	//TechnoClass
+	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x746CD0);
 
 	//FootClass

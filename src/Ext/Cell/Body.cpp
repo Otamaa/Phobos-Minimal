@@ -10,7 +10,7 @@ int CellExt::GetOverlayIndex(CellClass* pCell)
 
 		if (nTibIndex != -1)
 		{
-			if (const auto pTiberium = TiberiumClass::Array->GetItem(nTibIndex))
+			if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(nTibIndex))
 			{
 				if (pCell->SlopeIndex > 0)
 					return pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1;

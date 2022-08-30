@@ -438,7 +438,6 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 	return 0;
 }
 
-
 // Fix the issue that SHP units doesn't apply IronCurtain or other color effects and doesn't accept EMP intensity
 // Author: secsome
 DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
@@ -601,4 +600,4 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // Fixes an issue in TechnoClass::Record_The_Kill that prevents vehicle kills from being recorded
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
-DEFINE_JUMP(LJMP,0x7032BA, 0x7032D0); //this was checking (IsActive) twice , wtf
+DEFINE_JUMP(LJMP,0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf

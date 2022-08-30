@@ -105,6 +105,10 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->SpecialDraw.Read(exINI, pID, "SpecialDraw");
 	this->NoOwner.Read(exINI, pID, "NoOwner");
 	this->Spawns_Delay.Read(exINI, pID, "Spawns.InitialDelay");
+	this->AttachedSystem.Read(exINI, pID, "AttachedSystem");
+
+	if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
+		AttachedSystem = nullptr;
 
 #pragma endregion
 }
@@ -211,6 +215,8 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(SpecialDraw)
 		.Process(NoOwner)
 		.Process(Spawns_Delay)
+
+		.Process(this->AttachedSystem)
 		;
 }
 

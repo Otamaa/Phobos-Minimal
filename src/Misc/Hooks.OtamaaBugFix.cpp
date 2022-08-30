@@ -4,6 +4,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -235,7 +236,40 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	return 0x4668BD;
 }
 
-#ifdef tomsons26_IsotileDebug
+DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x6)
+{
+	enum
+	{
+		Goto2NdCheck = 0x6FF427
+		, Continue = 0x0
+	};
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
+
+	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+		if (auto pAnimType = pWeaponExt->Feedback_Anim.Get()) {
+			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCenterCoord()) + pWeaponExt->Feedback_Anim_Offset;
+			if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+				if (pThis->WhatAmI() != AbstractType::Building)
+					pFeedBackAnim->SetOwnerObject(pThis);
+			}
+		}
+	}
+
+	if (!pAnim)
+		return Goto2NdCheck;
+
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+
+	return pThis->WhatAmI() == AbstractType::Building ? 0x6FF3D9 : Goto2NdCheck;
+}
+
+#ifdef ENABLE_NEWHOOKS
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;
@@ -283,9 +317,10 @@ DEFINE_JUMP(CALL,0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
 DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //549E67
 DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
-#endif endregion
 
-#ifdef ENABLE_NEWHOOKS
+
+
+
 DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);

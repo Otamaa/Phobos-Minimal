@@ -58,7 +58,7 @@ SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-//ToDo : Check Size !
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6B52DA, SmudgeTypeClass_CTOR, 0xC)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
@@ -110,4 +110,4 @@ DEFINE_HOOK(0x6B57C7, SmudgeTypeClass_LoadFromINI, 0x6)
 	SmudgeTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 	return 0x6B57CD;
 }
-
+#endif

@@ -17,7 +17,8 @@ struct StorageClass
 {
 	static constexpr size_t Size = 4;
 
-	StorageClass() { JMP_THIS(0x6C95E0) };
+	//StorageClass() { JMP_THIS(0x6C95E0) };
+	//~StorageClass() = default;
 
 	float GetAmount(int index) const
 		{ JMP_THIS(0x6C9680); }
@@ -41,7 +42,7 @@ struct StorageClass
 	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }
 	StorageClass operator-=(StorageClass& that) { JMP_THIS(0x6C97E0); }
 
-	float Tiberium[Size];
+	float Tiberium[Size] { 0.0f };
 };
 //---
 
