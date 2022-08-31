@@ -63,8 +63,10 @@ void PhobosTrajectoryType::CreateType(PhobosTrajectoryType*& pType, CCINIClass* 
 
 		if (pNewType->Flag == TrajectoryFlag::Bounce) {
 			const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pNewType);
-			if(!(pBounceType->BounceAmount > 0))
-				GameDelete<true>(pNewType);
+			if(!(pBounceType->BounceAmount > 0)) {
+				GameDelete<true,false>(pNewType);
+				pNewType = nullptr;
+			}
 		}
 	}
 

@@ -52,7 +52,7 @@ DEFINE_HOOK(0x71A538, TemporalClass_CTOR, 0xB)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TemporalClass*, pItem, ESI);
-	TemporalExt::ExtMap.FindOrAllocate(pItem);
+	TemporalExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 	return 0;
 }
 

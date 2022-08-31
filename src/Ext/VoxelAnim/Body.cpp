@@ -59,6 +59,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 #endif
 	if (auto pTypeExt = VoxelAnimTypeExt::GetExtData(Get()->Type))
 	{
+		ID = Get()->Type->ID;
 		if (pTypeExt->LaserTrail_Types.size() > 0)
 			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
@@ -76,7 +77,9 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 {
 	Debug::Log("Processing Element From VoxelAnimExt ! \n");
 
-	 Stm.Process(Invoker)
+	 Stm
+		.Process(ID)
+		.Process(Invoker)
 		.Process(LaserTrails)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(Trails)
@@ -125,7 +128,11 @@ VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74942E, VoxelAnimClass_CTOR, 0xC)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

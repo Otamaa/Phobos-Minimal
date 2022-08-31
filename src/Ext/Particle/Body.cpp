@@ -87,8 +87,9 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
- 
+
 #ifdef COMPILE_PORTED_DP_FEATURES
+//doenst work with new ext stuffs :s
 DEFINE_HOOK(0x62BB06, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);

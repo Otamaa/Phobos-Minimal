@@ -165,7 +165,7 @@ void  VerticalLaserClass::DealDamage(const CoordStruct& to)
 	auto const pWeaponExt = BulletTypeExt::ExtMap.Find(Weapon->Projectile);
 	if (const auto pBullet = pWeaponExt->CreateBullet(Map[to], nullptr, Weapon))
 	{
-
+		pBullet->SetWeaponType(Weapon);
 		pBullet->Limbo();
 		pBullet->SetLocation(to);
 		pBullet->Explode(true);

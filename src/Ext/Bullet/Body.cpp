@@ -18,8 +18,7 @@ BulletExt::ExtData* BulletExt::GetExtData(BulletExt::base_type* pThis)
 
 BulletExt::ExtData::~ExtData()
 {
-	if (Trajectory)
-		GameDelete<true>(Trajectory);
+	GameDelete<true>(Trajectory);
 }
 
 void BulletExt::ExtData::Uninitialize()

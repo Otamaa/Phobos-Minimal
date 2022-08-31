@@ -96,7 +96,11 @@ VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74AEB0, VoxelAnimTypeClass_CTOR, 0xB)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS
+	VoxelAnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	VoxelAnimTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

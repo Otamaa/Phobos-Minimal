@@ -63,6 +63,7 @@ namespace YRMemory {
 	}
 
 	__declspec(noinline) inline void* AllocateChecked(size_t sz) {
+		// why they do it like this ,..
 		//if(auto const ptr = YRMemory::Allocate(sz)) {
 		//	return ptr;
 		//}
@@ -130,7 +131,7 @@ public:
 
 	// destruct scalars
 	template<bool calldtor = false , typename T, typename TAlloc>
-	static inline void Delete(TAlloc& alloc, T* ptr) {
+	static inline void Delete(std::true_type,TAlloc& alloc, T* ptr) {
 		if(ptr) {
 			if constexpr (calldtor)
 			  std::allocator_traits<TAlloc>::destroy(alloc, ptr);
@@ -140,10 +141,11 @@ public:
 	};
 
 	template<bool calldtor = false, typename T, typename TAlloc>
-	static inline void DeleteB(TAlloc& alloc, T* ptr)
+	static inline void Delete(std::false_type ,TAlloc& alloc, T* ptr)
 	{
 		if constexpr (calldtor)
 			std::allocator_traits<TAlloc>::destroy(alloc, ptr);
+
 		std::allocator_traits<TAlloc>::deallocate(alloc, ptr, 1);
 	};
 
@@ -223,19 +225,13 @@ static inline void GameConstruct(T* AllocatedSpace , TArgs&&... args)
 template<bool calldtor = false,bool check = true, typename T>
 static inline void GameDelete(T* ptr) {
 	GameAllocator<T> alloc;
-	if constexpr (check)
-	Memory::Delete<calldtor>(alloc, ptr);
-	else
-	Memory::DeleteB<calldtor>(alloc, ptr);
+	Memory::Delete<calldtor>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template<bool check = true , typename T>
 static inline void CallDTOR(T* ptr) {
 	GameAllocator<T> alloc;
-	if constexpr (check)
-		Memory::Delete<true>(alloc, ptr);
-	else
-		Memory::DeleteB<true>(alloc, ptr);
+	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
 }
 
 template <typename T, typename... TArgs>

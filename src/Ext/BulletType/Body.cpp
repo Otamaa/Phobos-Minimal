@@ -6,8 +6,7 @@
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 BulletTypeExt::ExtData::~ExtData()
 {
-	if (TrajectoryType)
-		GameDelete<true>(TrajectoryType);
+	GameDelete<true>(TrajectoryType);
 }
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
@@ -42,9 +41,13 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 {
 	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	return this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
-		pWeapon->Speed, pExt->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright);
+	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
+		pWeapon->Speed, pExt->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright))
+	{
+		return pBullet;
+	}
 
+	return nullptr;
 }
 
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,

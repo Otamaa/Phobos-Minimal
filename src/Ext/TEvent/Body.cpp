@@ -194,21 +194,18 @@ bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container hooks
 
-#ifdef MAKE_GAME_SLOWER_FOR_NO_REASON
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x71E6C1, TEventClass_CTOR, 0xD)
 {
 	GET(TEventClass*, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->CreateExtensionObject<TEventExt::ExtData>(pItem);
+	TEventExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 	return 0;
 }
 
 DEFINE_HOOK(0x71E931, TEventClass_SDDTOR, 0x7)
 {
 	GET(TEventClass*, pItem, ESI);
-	if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-		pExt->Uninitialize();
-
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	TEventExt::ExtMap.Remove(pItem);
 	return 0;
 }
 

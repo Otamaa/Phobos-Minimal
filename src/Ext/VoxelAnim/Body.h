@@ -22,16 +22,21 @@ class VoxelAnimExt
 public:
 	static constexpr size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
+#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = sizeof(base_type);
+#endif
 
 	class ExtData final : public Extension<VoxelAnimClass>
 	{
 	public:
+		FixedString<0x32> ID;
 		TechnoClass* Invoker;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
 		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
+			, ID { }
 			, Invoker { nullptr }
 			, LaserTrails { }
 #ifdef COMPILE_PORTED_DP_FEATURES

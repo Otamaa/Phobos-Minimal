@@ -179,23 +179,22 @@ DEFINE_HOOK(0x423DE7, AnimClass_Expired_Extra_OnLand_DamageArea, 0x6)
 	return 0x423EFD;
 }
 */
+
 DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 {
 	enum { SkipGameCode = 0x423EFD };
 
 	GET(AnimClass* const, pThis, ESI);
-	GET8(const bool, LandIsWater, BL);
-	GET8(const bool, EligibleHeight, AL);
 
 	//overriden instruction !
-	R->Stack(0x13, EligibleHeight);
-
-	if (!pThis || !pThis->Type)
-		return SkipGameCode;
+	R->Stack(0x13, R->AL());
 
 	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
 		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 		auto const pOwner = pThis->Owner ? pThis->Owner : pTechOwner ? pTechOwner->GetOwningHouse() : nullptr;
+
+		GET8(bool, LandIsWater, BL);
+		GET8(bool, EligibleHeight, AL);
 
 		if (!LandIsWater || EligibleHeight) {
 			Helper::Otamaa::Detonate(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
@@ -244,22 +243,22 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 			auto pAnimTypeExt = pTypeExt;
 			const auto pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
 			const auto pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
+			const auto nCoord = pThis->GetCenterCoord();
 
 			Helper::Otamaa::SpawnMultiple(
 				pAnimTypeExt->SpawnsMultiple,
 				pAnimTypeExt->SpawnsMultiple_amouts,
-				pThis->GetCenterCoord(), pObject, pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
+				nCoord, pObject, pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
 
 			if (pType->SpawnsParticle != -1)
 			{
 				const auto pParticleType = ParticleTypeClass::Array.get()->GetItem(pType->SpawnsParticle);
-				const auto nCoord = pThis->GetCenterCoord();
 
 				if (pType->NumParticles > 0 && pParticleType)
 				{
 					for (int i = 0; i < pType->NumParticles; ++i)
 					{
-						CoordStruct nDestCoord;
+						CoordStruct nDestCoord = CoordStruct::Empty;
 						if (pAnimTypeExt->ParticleChance.isset() ?
 							(ScenarioGlobal->Random(0, 99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
 						{
@@ -276,7 +275,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 				{
 					Helpers::Otamaa::LauchSW(
 							nLauch.LaunchWhat, pHouse,
-							pThis->GetCenterCoord(), nLauch.LaunchWaitcharge,
+							nCoord, nLauch.LaunchWaitcharge,
 							nLauch.LaunchResetCharge,
 							nLauch.LaunchGrant,
 							nLauch.LaunchGrant_RepaintSidebar,

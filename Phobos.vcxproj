@@ -70,6 +70,7 @@
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
+    <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\FireSuperWeapon.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="src\Ext\Anim\Body.h" />
     <ClInclude Include="src\Ext\SmudgeType\Body.h" />
     <ClInclude Include="src\Ext\Super\Body.h" />
+    <ClInclude Include="src\Ext\Surface\Body.h" />
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
     <ClInclude Include="src\Ext\Team\Body.h" />

@@ -527,7 +527,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 {
 	GET(FootClass*, pThis, ESI);
-	GET8(const bool, IsMovingNow, AL);
+	GET8(bool, IsMovingNow, AL);
 
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 

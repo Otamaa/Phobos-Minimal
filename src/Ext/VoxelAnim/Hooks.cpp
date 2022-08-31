@@ -54,14 +54,14 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	enum { SkipGameCode = 0x74A22A };
 
 	GET(VoxelAnimClass* const, pThis, EBX);
-	GET8(const bool, LandIsWater, CL);
-	GET8(const bool, EligibleHeight, AL);
 
 	//overridden instruction
-	R->Stack(0x12, EligibleHeight);
+	R->Stack(0x12, R->AL());
+	const auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
 
-	if (!pThis || !pThis->Type)
-		return SkipGameCode;
+	if (!pThis->Type) {
+		pThis->Type = VoxelAnimTypeClass::Find(pThisExt->ID.data());
+	}
 
 	CoordStruct nLocation;
 	pThis->GetCenterCoord(&nLocation);
@@ -69,6 +69,9 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pThis->Type);
 	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
+
+	GET8(bool, LandIsWater, CL);
+	GET8(bool, EligibleHeight, AL);
 
 	if (!LandIsWater || EligibleHeight)
 	{
