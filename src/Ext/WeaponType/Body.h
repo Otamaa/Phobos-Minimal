@@ -106,14 +106,12 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override;
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		void LoadFromINIFile(CCINIClass* pINI);
+		void Initialize();
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 		int GetProjectileRange() const {
@@ -130,7 +128,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-        virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+        void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

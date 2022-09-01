@@ -54,6 +54,19 @@ enum class InitState
  *
  */
 
+template <class T>
+concept HasEnsureConstanted = requires(T t) { t.InitializeConstants(); };
+template <class T>
+concept HasInitializeRuled = requires(T t) { t.InitializeRuled(); };
+template <class T>
+concept HasInitialize = requires(T t) { t.Initialize(); };
+template <class T>
+concept HasLoadFromRulesFile = requires(T t, CCINIClass* pINI) { t.LoadFromRulesFile(pINI); };
+template <class T>
+concept HasLoadFromINIFile = requires(T t, CCINIClass* pINI) { t.LoadFromINIFile(pINI); };
+template <class T>
+concept HasInvalidatePointer = requires(T t, void* ptr, bool removed) { t.InvalidatePointer(ptr,removed); };
+
 template <typename T>
 class Extension
 {
@@ -80,7 +93,10 @@ public:
 
 	void EnsureConstanted() {
 		if (this->Initialized < InitState::Constanted) {
-			this->InitializeConstants();
+
+			//if constexpr (HasEnsureConstanted<Extension<T>>)
+				this->InitializeConstants();
+
 			this->Initialized = InitState::Constanted;
 		}
 	}
@@ -95,26 +111,31 @@ public:
 			this->EnsureConstanted();
 			[[fallthrough]];
 		case InitState::Constanted:
-			this->InitializeRuled();
+			// if constexpr (HasInitializeRuled<Extension<T>>)
+				this->InitializeRuled();
 			this->Initialized = InitState::Ruled;
 			[[fallthrough]];
 		case InitState::Ruled:
-			this->Initialize();
+			// if constexpr (HasInitialize<Extension<T>>)
+				this->Initialize();
 			this->Initialized = InitState::Inited;
 			[[fallthrough]];
 		case InitState::Inited:
 		case InitState::Completed:
-			if (pINI == CCINIClass::INI_Rules)
-				this->LoadFromRulesFile(pINI);
 
+			// if constexpr (HasLoadFromRulesFile<Extension<T>>)
+			{
+				if (pINI == CCINIClass::INI_Rules)
+					this->LoadFromRulesFile(pINI);
+			}
+
+			// if constexpr (HasLoadFromINIFile<Extension<T>>)
 			this->LoadFromINIFile(pINI);
 			this->Initialized = InitState::Completed;
 		}
 	}
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-	virtual void Uninitialize() { }
-
+	//virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
 	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { }
 	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
 
@@ -135,18 +156,18 @@ protected:
 
 	// right after construction. only basic initialization tasks possible;
 	// owner object is only partially constructed! do not use global state!
-	virtual void InitializeConstants() { }
+	 virtual void InitializeConstants() { }
 
-	virtual void InitializeRuled() { }
+	 virtual void InitializeRuled() { }
 
 	// called before the first ini file is read
-	virtual void Initialize() { }
+	 virtual void Initialize() { }
 
 	// for things that only logically work in rules - countries, sides, etc
-	virtual void LoadFromRulesFile(CCINIClass* pINI) { }
+	 virtual void LoadFromRulesFile(CCINIClass* pINI) { }
 
 	// load any ini file: rules, game mode, scenario or map
-	virtual void LoadFromINIFile(CCINIClass* pINI) { }
+	 virtual void LoadFromINIFile(CCINIClass* pINI) { }
 
 };
 
@@ -564,6 +585,9 @@ private:
 	VectorMapContainer& operator = (VectorMapContainer&&) = delete;
 };
 
+template <class T>
+concept HasInvalidateExtDataIgnorable = requires(T t,void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
+
 template <typename T>
 class Container
 {
@@ -592,13 +616,6 @@ public:
 
 	virtual ~Container() = default;
 
-	void PointerGotInvalid(void* ptr, bool bRemoved)
-	{
-		this->InvalidatePointer(ptr, bRemoved);
-		if (!this->InvalidateExtDataIgnorable(ptr))
-			this->InvalidateExtDataPointer(ptr, bRemoved);
-	}
-
 	auto begin() const {
 		return this->Items.begin();
 	}
@@ -618,19 +635,26 @@ public:
 	bool empty() const {
 		return this->Items.empty();
 	}
+
+	void PointerGotInvalid(void* ptr, bool bRemoved)
+	{
+		//if constexpr (HasInvalidatePointer<Container<T>>)
+			this->InvalidatePointer(ptr, bRemoved);
+
+		if constexpr (HasInvalidatePointer<extension_type>)
+		{
+			if (!this->InvalidateExtDataIgnorable(ptr))
+			{
+				for (const auto& i : this->Items)
+					i.second->InvalidatePointer(ptr, bRemoved);
+			}
+		}
+	}
+
 protected:
+
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-
-	virtual bool InvalidateExtDataIgnorable(void* const ptr) const
-	{
-		return true;
-	}
-
-	void InvalidateExtDataPointer(void* ptr, bool bRemoved)
-	{
-		for (const auto& i : this->Items)
-			i.second->InvalidatePointer(ptr, bRemoved);
-	}
+	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
 
 public:
 

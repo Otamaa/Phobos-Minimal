@@ -166,19 +166,18 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const  { return sizeof(*this); }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		void InvalidatePointer(void* ptr, bool bRemoved) {}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void InitializeConstants();
 	};
 
 	class ExtContainer final : public Container<ScriptExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static void ProcessAction(TeamClass * pTeam);

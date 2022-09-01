@@ -30,7 +30,8 @@ DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	int weaponIndex = pThis->GetTechnoType()->DeployFireWeapon;
+	int const deployFireIdx = pThis->GetTechnoType()->DeployFireWeapon;
+	int weaponIndex = deployFireIdx == -1 ? pThis->SelectWeapon(pThis->Target): deployFireIdx;
 
 	if (pThis->GetFireError(pThis->Target, weaponIndex, true) == FireError::OK)
 	{

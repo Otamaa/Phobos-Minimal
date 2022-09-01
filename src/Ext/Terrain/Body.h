@@ -36,15 +36,15 @@ public:
 			CallDTOR(LighSource);
 			CallDTOR(AttachedAnim);
 		};
-		virtual size_t Size() const { return sizeof(*this); };
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override;
-		virtual void Uninitialize() override
+
+		void InvalidatePointer(void *ptr, bool bRemoved);
+		void Uninitialize()
 		{
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		virtual void InitializeConstants() override;
+		void InitializeConstants();
 		void InitializeLightSource();
 		void InitializeAnim();
 		void ClearLightSource();
@@ -62,7 +62,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
@@ -74,7 +74,8 @@ public:
 				return true;
 			}
 		}
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

@@ -83,6 +83,11 @@ public:
 		Valueable<bool> RadHasOwner;
 		Valueable<bool> RadHasInvoker;
 		Valueable<bool> IronCurtain_SyncDeploysInto;
+
+		Valueable<ColorStruct> ToolTip_Background_Color;
+		Valueable<int> ToolTip_Background_Opacity;
+		Valueable<float> ToolTip_Background_BlurSize;
+
 	#pragma region Otamaa
 		NullableIdx<ParticleTypeClass> VeinholeParticle;
 		PhobosFixedString<0x19> NukeWarheadName;
@@ -101,6 +106,7 @@ public:
 		int SpecialCountryIndex;
 		int NeutralCountryIndex;
 
+		ValueableVector<BuildingTypeClass*> WallTowers;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -158,6 +164,11 @@ public:
 			, RadHasOwner { false }
 			, RadHasInvoker { false }
 			, IronCurtain_SyncDeploysInto { false }
+
+			, ToolTip_Background_Color { {0, 0, 0} }
+			, ToolTip_Background_Opacity { 100 }
+			, ToolTip_Background_BlurSize { 0.f }
+
 			, VeinholeParticle { }
 			, NukeWarheadName { }
 			, Building_PlacementPreview { }
@@ -173,20 +184,21 @@ public:
 			, SpecialCountryIndex { -1 }
 			, NeutralCountryIndex { -1 }
 
+			, WallTowers { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		void Uninitialize() { }
+		void LoadFromINIFile(CCINIClass* pINI);
 		virtual void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 		virtual void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
-		virtual void InitializeConstants() override;
+		void InitializeConstants();
 		void InitializeAfterTypeData(RulesClass* pThis);
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

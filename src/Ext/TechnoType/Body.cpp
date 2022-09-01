@@ -11,6 +11,8 @@
 #include <Utilities/Cast.h>
 
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
+double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
+double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 
 void TechnoTypeExt::ExtData::Initialize()
 {
@@ -40,21 +42,28 @@ double TechnoTypeExt::GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules)
 	return pRules->TunnelSpeed;
 }
 
-void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
-{
-	auto const pOffs = this->TurretOffset.GetEx();
-	float x = static_cast<float>(pOffs->X * factor);
-	float y = static_cast<float>(pOffs->Y * factor);
-	float z = static_cast<float>(pOffs->Z * factor);
-
-	mtx->Translate(x, y, z);
-}
-
-void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor)
-{
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-		ext->ApplyTurretOffset(mtx, factor);
-}
+//void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
+//{
+//	auto const pOffs = this->TurretOffset.GetEx();
+//	float x = static_cast<float>(pOffs->X * factor);
+//	float y = static_cast<float>(pOffs->Y * factor);
+//	float z = static_cast<float>(pOffs->Z * factor);
+//
+//	mtx->Translate(x, y, z);
+//}
+//
+//void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor)
+//{
+//	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType)) {
+//
+//		auto const pOffs = ext->TurretOffset.GetEx();
+//		float x = static_cast<float>(pOffs->X * factor);
+//		float y = static_cast<float>(pOffs->Y * factor);
+//		float z = static_cast<float>(pOffs->Z * factor);
+//
+//		mtx->Translate(x, y, z);
+//	}
+//}
 
 // Ares 0.A source
 const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
@@ -181,8 +190,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 	this->Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 	this->Death_Method.Read(exINI, pSection, "Death.Method");
+
+	this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
+	this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
+	this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
+	this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
+
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.OwnerWhenMasterDead");
+
 	//
 
 	this->ShieldType.Read(exINI, pSection, "ShieldType", true);
@@ -524,12 +540,19 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CameoPriority)
 		.Process(this->NoManualMove)
 		.Process(this->InitialStrength)
+
 		.Process(this->Death_NoAmmo)
 		.Process(this->Death_Countdown)
 		.Process(this->Death_Peaceful)
 		.Process(this->Death_Method)
+		.Process(this->AutoDeath_Nonexist)
+		.Process(this->AutoDeath_Nonexist_House)
+		.Process(this->AutoDeath_Exist)
+		.Process(this->AutoDeath_Exist_House)
+
 		.Process(this->Death_WithMaster)
 		.Process(this->Slaved_ReturnTo)
+
 		.Process(this->ShieldType)
 		.Process(this->WarpOut)
 		.Process(this->WarpIn)

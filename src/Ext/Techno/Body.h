@@ -148,19 +148,8 @@ public:
 #endif;
 		{ }
 
-		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-
-		ShieldClass* GetShield() const {
-			return this->Shield.get();
-		}
-
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override {
-
+		virtual ~ExtData()
+		{
 #ifdef COMPILE_PORTED_DP_FEATURES
 			ExtraWeaponTimers.clear();
 
@@ -170,6 +159,17 @@ public:
 #endif
 #endif
 		}
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
+
+		ShieldClass* GetShield() const {
+			return this->Shield.get();
+		}
+
+		//virtual size_t GetSize() const override { return sizeof(*this); }
+		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
+		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void InitializeConstants();
 
 		void CheckDeathConditions();
 		int GetEatPassangersTotalTime(TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
@@ -193,9 +193,8 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
-		{
-			return true;
+		bool InvalidateExtDataIgnorable(void* const ptr) const {
+			return false;
 		}
 	};
 

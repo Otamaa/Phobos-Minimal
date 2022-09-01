@@ -383,7 +383,7 @@ DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
 		{
 			const CoordStruct source = pThis->Location;
 			const CoordStruct target = pTarget->GetCoords();
-			const DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
+			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
 			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
 				pLoco->Facing.turn(tgtDir);
 		}

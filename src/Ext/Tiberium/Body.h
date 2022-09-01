@@ -34,12 +34,11 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override;
+		void LoadFromINIFile(CCINIClass* pINI);
+		void InvalidatePointer(void *ptr, bool bRemoved);
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void Initialize() override { } //Init After INI Read
+		void Initialize() { } //Init After INI Read
 		inline AnimTypeClass* GetTwinkleAnim() const {
 			return this->OreTwinkle.Get(RulesGlobal->OreTwinkle);
 		}

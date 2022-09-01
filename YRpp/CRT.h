@@ -176,6 +176,9 @@ public:
 		static char * __cdecl strtok(char * Str ,const char * Delim)
 			{ JMP_STD(0x7C9CC2);}
 
+		static char* __cdecl strtok(char* Str, const char* Delim, char** ctx)
+			{ return strtok_s(Str, Delim, ctx); }
+
 		static int __cdecl sprintf(char *Buffer, const char *Format, ...)
 			{ JMP_STD(0x7C8EF4); }
 
@@ -247,5 +250,18 @@ public:
 
 		static PHEADER __cdecl _sbh_find_block(void* ptr) {
 			JMP_STD(0x7CF7BD);
+		}
+
+		//
+		static int __cdecl isalpha(int c) {
+			JMP_STD(0x7C990E);
+		}
+
+		static int __cdecl toupper(int c) {
+			JMP_STD(0x7C97D3);
+		}
+
+		static int __cdecl tolower(int a1) {
+			JMP_STD(0x7CAFF4);
 		}
 };

@@ -174,8 +174,7 @@ struct DirStruct
 	}
 
 	explicit DirStruct(double nVelZ, double nVelDistanceXY) : DirStruct() {
-		double const atan2 = Math::atan2(nVelZ, nVelDistanceXY) - Math::DEG90_AS_RAD;
-		this->radians(atan2);
+		this->radians(Math::atan2(nVelZ, nVelDistanceXY));
 	}
 
 	DirStruct(size_t bits, value_type value)

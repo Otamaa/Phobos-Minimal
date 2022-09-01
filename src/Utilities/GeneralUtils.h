@@ -103,7 +103,7 @@ public:
 	{
 		  str = _strlwr(str);
 
-		if (auto pSuffix = strstr(str, "~~~"))
+		if (auto pSuffix = CRT::strstr(str, "~~~"))
 		{
 			auto pExtension = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
 			pSuffix[0] = pExtension[0];

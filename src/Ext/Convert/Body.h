@@ -20,9 +20,8 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); };
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
-		virtual void InitializeConstants() override;
+		void InvalidatePointer(void *ptr, bool bRemoved) {}
+		void InitializeConstants();
 	};
 
 	class ExtContainer final : public Container<ConvertExt>
@@ -30,7 +29,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

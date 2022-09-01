@@ -79,6 +79,12 @@ public:
 		Valueable<bool> Death_Peaceful;
 		Valueable<KillMethod> Death_Method;
 		Valueable<bool> Death_WithMaster;
+
+		ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist;
+		Valueable<AffectedHouse> AutoDeath_Nonexist_House;
+		ValueableVector<TechnoTypeClass*> AutoDeath_Exist;
+		Valueable<AffectedHouse> AutoDeath_Exist_House;
+
 		Valueable<SlaveReturnTo> Slaved_ReturnTo;
 		Valueable<ShieldTypeClass*> ShieldType;
 
@@ -377,11 +383,17 @@ public:
 			, PassengerDeletion_DisplaySoylent{ false }
 			, PassengerDeletion_DisplaySoylentToHouses{ AffectedHouse::All }
 			, PassengerDeletion_DisplaySoylentOffset{ { 0, 0 } }
+
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
 			, Death_Peaceful { false }
 			, Death_Method { KillMethod::Explode }
 			, Death_WithMaster{ false }
+			, AutoDeath_Nonexist {}
+			, AutoDeath_Nonexist_House { AffectedHouse::Owner }
+			, AutoDeath_Exist {}
+			, AutoDeath_Exist_House { AffectedHouse::Owner }
+
 			, Slaved_ReturnTo { SlaveReturnTo::Killer }
 			, ShieldType { nullptr }
 			, WarpOut {}
@@ -606,14 +618,12 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override;
-		size_t Size() const { return sizeof(*this); }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		void LoadFromINIFile(CCINIClass* pINI);
+		void Initialize();
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void ApplyTurretOffset(Matrix3D* mtx, double factor = 1.0);
 		bool IsCountedAsHarvester() const;
 
 		// Ares 0.A
@@ -629,12 +639,14 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;
+	static double TurretMultiOffsetDefaultMult;
+	static double TurretMultiOffsetOneByEightMult;
 
-	static void ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor = 1.0);
+	//static inline void ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor = 1.0);
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);

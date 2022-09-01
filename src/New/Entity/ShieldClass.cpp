@@ -684,9 +684,11 @@ void ShieldClass::KillAnim()
 {
 	if (this->IdleAnim)
 	{
-		this->IdleAnim->RemainingIterations = 0;
 		this->IdleAnim->SetOwnerObject(nullptr);
-		CallDTOR<false>(this->IdleAnim);
+
+		if(this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
+			CallDTOR<false>(this->IdleAnim);
+
 		this->IdleAnim = nullptr;
 	}
 }

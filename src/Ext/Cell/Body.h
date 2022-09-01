@@ -29,9 +29,8 @@ public:
         { };
 
 		virtual ~ExtData() = default;
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void Initialize() override { } //Init After INI Read
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
+		void Initialize() { } //Init After INI Read
+		void InvalidatePointer(void* ptr, bool bRemoved) {
 			//FoggedObjects wtf ?
 		}
 

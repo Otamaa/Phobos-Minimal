@@ -67,7 +67,7 @@ public:
 			{
 				int nCount = 0;
 				char* context = nullptr;
-				for (char* cur = strtok_s(parser.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				for (char* cur = CRT::strtok(parser.value(), Phobos::readDelims, &context); cur; cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
 				{
 
 					int buffer = 1;

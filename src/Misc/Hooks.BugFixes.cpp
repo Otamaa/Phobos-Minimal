@@ -418,9 +418,13 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 			if (pObject->Health > 0) {
 				if (const auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
 					const auto pBType = pBuilding->Type;
+
+
 					if ((RulesClass::Instance->EWGates.FindItemIndex(pBType) != -1) && (state == 2 || state == 6))
 						return Attachable;
 					else if ((RulesClass::Instance->NSGates.FindItemIndex(pBType) != -1) && (state == 0 || state == 4))
+						return Attachable;
+					else if (RulesExt::Global()->WallTowers.Contains(pBType))
 						return Attachable;
 				}
 			}
@@ -449,17 +453,17 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	if (pThis->IsIronCurtained())
 	{
 		if(pThis->ForceShielded != 1)
-			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
+			nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
 		else
-			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+			nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
 	}
 
 	if (pThis->Berzerk)
-		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
+		nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
 
 	// Boris
 	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
-		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
+		nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
 
 	// EMP
 	if (pThis->Deactivated)

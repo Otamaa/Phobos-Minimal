@@ -53,11 +53,10 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override  { }
+		void InitializeConstants() { }
 
 	private:
 		template <typename T>

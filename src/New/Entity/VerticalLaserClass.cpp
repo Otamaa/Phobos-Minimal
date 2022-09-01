@@ -229,7 +229,7 @@ void VerticalLaserClass::OnUpdateAll()
 		if (vLaser->Expired)
 		{
 			Array.erase(Array.begin() + i);
-			GameDelete<true>(vLaser);
+			GameDelete<true,false>(vLaser);
 		}
 	}
 }

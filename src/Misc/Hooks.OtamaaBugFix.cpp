@@ -18,6 +18,9 @@
 
 #include <Memory.h>
 
+//dont bother to clear type pointer
+DEFINE_JUMP(LJMP, 0x4251A3, 0x4251B1);
+
 static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
 {
 	if (!pThis->GetTechnoType()->Invisible)
@@ -44,11 +47,12 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 	GET(int, nRawData, EAX);
 
 	const auto nBuildingIdx = nRawData & 0xFFFF;
-	const auto nTypeIdx = nRawData >> 16 & 0xFFFF;
-	const auto nScript = pThis->CurrentScript;
 
 	if (nBuildingIdx < BuildingTypeClass::Array()->Count)
 		return 0x0;
+
+	const auto nTypeIdx = nRawData >> 16 & 0xFFFF;
+	const auto nScript = pThis->CurrentScript;
 
 	Debug::Log("Team[%x] script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
 	return 0x6EE7C3;
@@ -236,24 +240,16 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	return 0x4668BD;
 }
 
-DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x6)
+DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x6)
 {
-	enum
-	{
-		Goto2NdCheck = 0x6FF427
-		, Continue = 0x0
-	};
-
 	GET(TechnoClass* const, pThis, ESI);
-	GET(AnimClass*, pAnim, EDI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
 	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
 		if (auto pAnimType = pWeaponExt->Feedback_Anim.Get()) {
 			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCenterCoord()) + pWeaponExt->Feedback_Anim_Offset;
-			if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
-			{
+			if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord)) {
 				AnimExt::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 				if (pThis->WhatAmI() != AbstractType::Building)
 					pFeedBackAnim->SetOwnerObject(pThis);
@@ -261,15 +257,177 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x6)
 		}
 	}
 
+	return R->EDI<AnimTypeClass*>() ? 0x6FF39C : 0x6FF43F;
+}
+
+DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x6)
+{
+	enum
+	{
+		Goto2NdCheck = 0x6FF427,
+		DontSetAnim = 0x6FF43F
+		, Continue = 0x0
+	};
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	//GET(WeaponTypeClass*, pWeapon, EBX);
+	//GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
+
 	if (!pAnim)
-		return Goto2NdCheck;
+		return DontSetAnim;
 
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 
 	return pThis->WhatAmI() == AbstractType::Building ? 0x6FF3D9 : Goto2NdCheck;
 }
 
+#pragma region WallTower
+//TODO : check sizes
+
+DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->ECX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x4405CF : 0x440606;
+}
+
+DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->EDX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
+}
+
+DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
+{
+	GET(BuildingClass*, pThis, EDI);
+	R->EDX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
+}
+
+DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
+{
+	GET(BuildingClass*, pThis, ESI);
+	R->ECX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x445AED : 0x445B81;
+}
+
+DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	R->ECX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
+}
+
+DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EBX);
+	R->EDX(RulesGlobal);
+	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x45EF23 : 0x45F00B;
+}
+
+DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
+{
+	GET(int, nHouseIDx, EAX);
+	GET(CellClass*, pCell, EDI);
+	GET(int, idxOverlay, ECX);
+	GET_STACK(BuildingTypeClass*, PlacingObject, STACK_OFFS(0x18 , -0x8));
+	GET_STACK(HouseClass*, PlacingOwner, STACK_OFFS(0x18, -0xC));
+
+	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
+
+	HouseClass* OverlayOwner = nHouseIDx >= 0 ? HouseClass::Array->GetItem(nHouseIDx) : nullptr;
+
+	if (PlacingObject) {
+		bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+
+		if (ContainsWall && (PlacingObject->Gate || RulesExt::Global()->WallTowers.Contains(PlacingObject))) {
+			Status = Adequate;
+		}
+
+		if (OverlayTypeClass* ToOverlay = PlacingObject->ToOverlay)	{
+			if (ToOverlay->ArrayIndex == idxOverlay) {
+				if (pCell->OverlayData >= 0x10)	{
+					Status = Adequate;
+				}
+			}
+		}
+	}
+
+	if (Status == Inadequate) {
+		switch (idxOverlay)
+		{
+		case OVERLAY_GASAND:
+		case OVERLAY_GAWALL:
+			if (RulesExt::Global()->WallTowers.Contains(PlacingObject) ||
+					PlacingObject == RulesClass::Instance->GDIGateOne ||
+					PlacingObject == RulesClass::Instance->GDIGateTwo)
+			{
+				Status = Adequate;
+			}
+			break;
+		case OVERLAY_NAWALL:
+			if (PlacingObject == RulesClass::Instance->NodGateOne ||
+				PlacingObject == RulesClass::Instance->NodGateTwo)
+			{
+				Status = Adequate;
+			}
+			break;
+		}
+	}
+
+	if (Status == Adequate)	{
+		if (PlacingOwner != OverlayOwner) {
+			Status = Inadequate;
+		}
+	}
+
+	return Status;
+}
+
+DEFINE_HOOK(0x4FE546, BuildingClass_AI_WallTowers, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EAX);
+	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
+}
+
+DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
+{
+	GET(int, nNodeBuilding, EAX);
+
+	if (nNodeBuilding == -1 || RulesExt::Global()->WallTowers.empty())
+		return 0x4FE696;
+
+	auto const it =
+		std::find_if(RulesExt::Global()->WallTowers.begin(), RulesExt::Global()->WallTowers.end(),
+		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; });
+
+	return (it != RulesExt::Global()->WallTowers.end()) ? 0x4FE656 : 0x4FE696;
+}
+
+DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EAX);
+	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x50735C : 0x507306;
+}
+
+DEFINE_HOOK(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x50A980 : 0x50AB90;
+}
+
+DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
+{
+	GET(BuildingClass*, pThis, EBX);
+	R->EAX(pThis->Type);
+	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x50A9EA : 0x50AB3D;
+}
+
+#pragma endregion
 #ifdef ENABLE_NEWHOOKS
+
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;

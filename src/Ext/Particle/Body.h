@@ -36,11 +36,11 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		void InvalidatePointer(void* ptr, bool bRemoved) {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override;
+		void InitializeConstants();
+		void Uninitialize();
 
 	private:
 		template <typename T>

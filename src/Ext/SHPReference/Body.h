@@ -18,8 +18,7 @@ public:
 		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject) {}
 
 		virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); }
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
+		void InvalidatePointer(void *ptr, bool bRemoved) {}
 
 	};
 
@@ -28,7 +27,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

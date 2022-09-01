@@ -28,7 +28,9 @@ public:
 	virtual bool Fill_Rect(RectangleStruct& RectangleStruct, unsigned color)PURE;
 	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& RectangleStruct, unsigned color) PURE;
 	virtual bool Fill(unsigned color) PURE;
-	virtual bool Fill_Rect_Trans(RectangleStruct& RectangleStruct, const ColorStruct& color, unsigned opacity)PURE;
+	//virtual bool Fill_Rect_Trans(RectangleStruct& RectangleStruct, const ColorStruct& color, unsigned opacity) PURE;
+	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) PURE;
+
 	virtual bool Draw_Ellipse(Point2D center, int radius_x, int radius_y, RectangleStruct clip, unsigned color) PURE;
 	virtual bool Put_Pixel(Point2D& point, unsigned color) PURE;
 	virtual unsigned Get_Pixel(Point2D& point) PURE;
@@ -164,7 +166,8 @@ public:
 	virtual bool Fill_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BB020);
 	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BB050);
 	virtual bool Fill(unsigned color) override JMP_THIS(0x7BBAB0);
-	virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override JMP_THIS(0x7BB340);
+	//virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override
+	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) JMP_THIS(0x7BB340);
 	virtual bool Draw_Ellipse(Point2D point, int radius_x, int radius_y, RectangleStruct clip, unsigned color) override JMP_THIS(0x7BB350);
 	virtual bool Put_Pixel(Point2D& point, unsigned color) override JMP_THIS(0x7BAEB0);
 	virtual unsigned Get_Pixel(Point2D& point) override JMP_THIS(0x7BAE60);
@@ -427,7 +430,8 @@ public:
 	virtual bool Copy_From(Surface* fromsurface, bool trans_blit = false, bool a3 = true) override JMP_THIS(0x4C1A900);
 	virtual bool Fill_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x4BB5F0);
 	virtual bool Fill_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x4BB620);
-	virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override JMP_THIS(0x4BB830);
+	//virtual bool Fill_Rect_Trans(RectangleStruct& rect, const ColorStruct& color, unsigned opacity) override
+	virtual bool Fill_Rect_Trans(RectangleStruct* pClipRect, ColorStruct* pColor, int nOpacity) JMP_THIS(0x4BB830);
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) override JMP_THIS(0x4BFD30);
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) override JMP_THIS(0x4BBCA0);

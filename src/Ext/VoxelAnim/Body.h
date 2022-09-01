@@ -45,13 +45,12 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override {
-		}
+		void InitializeConstants();
+		void Uninitialize() {}
 
 		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
 	private:
@@ -65,7 +64,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
@@ -80,7 +79,7 @@ public:
 			return true;
 		}
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+	    void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

@@ -186,7 +186,7 @@ public:
 			this->Strings.Clear();
 
 			char* context = nullptr;
-			for (auto cur = strtok_s(this->Buffer, ",", &context); cur && *cur; cur = strtok_s(nullptr, ",", &context)) {
+			for (auto cur = CRT::strtok(this->Buffer, ",", &context); cur && *cur; cur = CRT::strtok(nullptr, ",", &context)) {
 				this->Strings.AddItem(cur);
 			}
 		}
@@ -195,7 +195,7 @@ public:
 	void Tokenize(const char* pBuffer) {
 		if (pBuffer) {
 			this->Clear();
-			this->Buffer = _strdup(pBuffer);
+			this->Buffer = CRT::strdup(pBuffer);
 			this->Tokenize();
 		}
 	}

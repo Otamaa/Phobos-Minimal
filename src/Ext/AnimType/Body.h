@@ -117,12 +117,8 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override { } //Init After INI Read
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-
-		virtual void InitializeConstants() override {
+		void LoadFromINIFile(CCINIClass* pINI);
+		void InitializeConstants() {
 			auto pObj = Get();
 			SpecialDraw = IS_SAME_STR_(pObj->get_ID(), RING1_NAME);
 			Launchs.reserve(2);
@@ -146,7 +142,8 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

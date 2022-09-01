@@ -28,12 +28,11 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		void InvalidatePointer(void* ptr, bool bRemoved) {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual size_t Size() const { return sizeof(*this); }
-		virtual void InitializeConstants() override {
+		void LoadFromINIFile(CCINIClass* pINI);
+		void InitializeConstants() {
 			PhobosNode.reserve(50);
 		}
 
@@ -47,7 +46,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

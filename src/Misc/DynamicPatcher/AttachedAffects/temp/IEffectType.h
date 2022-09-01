@@ -27,7 +27,7 @@ struct EffectType
 		_snprintf_s(Buffer, sizeof(Buffer), "%sAffectWho", title);
 		if (reader.ReadString(section, Buffer))
 		{
-			switch (toupper(static_cast<unsigned char>(*reader.value())))
+			switch (CRT::toupper(static_cast<unsigned char>(*reader.value())))
 			{
 			case 'A':
 				Affectwho = AffectWho::ALL;

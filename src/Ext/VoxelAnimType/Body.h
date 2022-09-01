@@ -58,11 +58,10 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		void LoadFromINIFile(CCINIClass* pINI);
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual void Initialize() override;
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void Initialize();
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
 
@@ -78,7 +77,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

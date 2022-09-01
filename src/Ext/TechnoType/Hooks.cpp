@@ -32,9 +32,17 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x0)
 {
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
-	GET(TechnoTypeClass*, technoType, EDX);
+	GET(TechnoTypeClass*, pType, EDX);
 
-	TechnoTypeExt::ApplyTurretOffset(technoType, mtx);
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	{
+		auto const pOffs = ext->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+
+		mtx->Translate(x, y, z);
+	}
 
 	return 0x6F3C6D;
 }
@@ -42,9 +50,17 @@ DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x0)
 DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x0)
 {
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xCC, 0x90));
-	GET(TechnoTypeClass*, technoType, EBP);
+	GET(TechnoTypeClass*, pType, EBP);
 
-	TechnoTypeExt::ApplyTurretOffset(technoType, mtx);
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	{
+		auto const pOffs = ext->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+
+		mtx->Translate(x, y, z);
+	}
 
 	return 0x6F3E85;
 }
@@ -64,11 +80,18 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x0)
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x0)
 {
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
-	GET(TechnoTypeClass*, technoType, EBX);
+	GET(TechnoTypeClass*, pType, EBX);
 
 	double& factor = *reinterpret_cast<double*>(0xB1D008);
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	{
+		auto const pOffs = ext->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * factor);
+		float y = static_cast<float>(pOffs->Y * factor);
+		float z = static_cast<float>(pOffs->Z * factor);
 
-	TechnoTypeExt::ApplyTurretOffset(technoType, mtx, factor);
+		mtx->Translate(x, y, z);
+	}
 
 	return 0x73BA68;
 }
@@ -76,9 +99,17 @@ DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x0)
 DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x0)
 {
 	LEA_STACK(Matrix3D*, mtx, 0x80);
-	GET(TechnoTypeClass*, technoType, EAX);
+	GET(TechnoTypeClass*, pType, EAX);
 
-	TechnoTypeExt::ApplyTurretOffset(technoType, mtx, 1 / 8);
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	{
+		auto const pOffs = ext->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+
+		mtx->Translate(x, y, z);
+	}
 
 	return 0x73C8B7;
 }
@@ -86,9 +117,17 @@ DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x0)
 DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x0)
 {
 	LEA_STACK(Matrix3D*, mtx, 0x60);
-	GET(TechnoTypeClass*, technoType, EDX);
+	GET(TechnoTypeClass*, pType, EDX);
 
-	TechnoTypeExt::ApplyTurretOffset(technoType, mtx, 1 / 8);
+	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+	{
+		auto const pOffs = ext->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+
+		mtx->Translate(x, y, z);
+	}
 
 	return 0x43E0E8;
 }

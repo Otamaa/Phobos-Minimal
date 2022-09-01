@@ -31,6 +31,10 @@ public:
 		Valueable<ColorStruct> Sidebar_PowerDelta_Red;
 		Valueable<TextAlign> Sidebar_PowerDelta_Align;
 
+		Nullable<ColorStruct> ToolTip_Background_Color;
+		Nullable<int> ToolTip_Background_Opacity;
+		Nullable<float> ToolTip_Background_BlurSize;
+
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
 			, Sidebar_GDIPositions { false }
@@ -45,15 +49,18 @@ public:
 			, Sidebar_PowerDelta_Yellow { { 255,255,0 } }
 			, Sidebar_PowerDelta_Red { { 255,0,0 } }
 			, Sidebar_PowerDelta_Align { TextAlign::Left }
+
+			, ToolTip_Background_Color { }
+			, ToolTip_Background_Opacity { }
+			, ToolTip_Background_BlurSize { }
 		{ }
 
 		virtual ~ExtData() = default;
 
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override;
-		virtual void InitializeConstants() override { }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual size_t Size() const { return sizeof(*this); }
+		void LoadFromINIFile(CCINIClass* pINI);
+		void Initialize();
+		void InitializeConstants() { }
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -67,7 +74,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 
 	};
 

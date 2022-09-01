@@ -12,6 +12,7 @@
 
 #include <Ext/BuildingType/Body.h>
 
+#include <Utilities/Macro.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 #endif
@@ -118,6 +119,10 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Pips_SelfHeal_Infantry_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Infantry.Offset");
 	this->Pips_SelfHeal_Units_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Units.Offset");
 	this->Pips_SelfHeal_Buildings_Offset.Read(exINI, AUDIOVISUAL_SECTION, "Pips.SelfHeal.Buildings.Offset");
+
+	this->ToolTip_Background_Color.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Color");
+	this->ToolTip_Background_Opacity.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Opacity");
+	this->ToolTip_Background_BlurSize.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.BlurSize");
 
 	this->InfantryGainSelfHealCap.Read(exINI, GENERAL_SECTION, "InfantryGainSelfHealCap");
 	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
@@ -259,6 +264,7 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft");
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
 
+	this->WallTowers.Read(exINI, GENERAL_SECTION, "WallTowers");
 #pragma endregion
 
 	const char* const sectionAIConditionsList  = "AIConditionsList";
@@ -368,6 +374,11 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
 		.Process(this->IronCurtain_SyncDeploysInto)
+
+		.Process(this->ToolTip_Background_Color)
+		.Process(this->ToolTip_Background_Opacity)
+		.Process(this->ToolTip_Background_BlurSize)
+
 		.Process(this->VeinholeParticle)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
@@ -381,6 +392,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->CivilianSideIndex)
 		.Process(this->SpecialCountryIndex)
 		.Process(this->NeutralCountryIndex)
+		.Process(this->WallTowers)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);
@@ -561,3 +573,6 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x9)
 
 	return 0x0;
 }
+
+//Skip game WallTower read
+//DEFINE_JUMP(LJMP,0x66F553, 0x66F589);

@@ -35,12 +35,12 @@ public:
 		{}
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved);
+		void InvalidatePointer(void* ptr, bool bRemoved);
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override { }
+		void InitializeConstants();
+		void Uninitialize() { }
 
 		void CreateLight();
 		void Add(int amount);
@@ -60,7 +60,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* ptr) const override {
+		bool InvalidateExtDataIgnorable(void* const ptr) const {
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
@@ -73,7 +73,8 @@ public:
 			}
 			return true;
 		}
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

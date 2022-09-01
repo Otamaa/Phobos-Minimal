@@ -396,8 +396,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 void BuildingTypeExt::ExtData::CompleteInitialization()
 {
-	auto const pThis = this->Get();
-	UNREFERENCED_PARAMETER(pThis);
+	//auto const pThis = this->Get();
+	//UNREFERENCED_PARAMETER(pThis);
 }
 
 template <typename T>

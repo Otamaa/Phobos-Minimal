@@ -4,6 +4,9 @@
 
 #include <Ext/BuildingType/Body.h>
 
+#include <Ext/Side/Body.h>
+#include <Ext/Surface/Body.h>
+
 #include <AircraftClass.h>
 #include <BuildingClass.h>
 #include <UnitClass.h>
@@ -324,7 +327,7 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 //
 //		BitFont::Instance->field_41 = 1;
 //		BitFont::Instance->SetBounds(&bounds);
-//		BitFont::Instance->Color = static_cast<WORD>(Drawing::RGB2DWORD(191, 98, 10));
+//		BitFont::Instance->Color = static_cast<WORD>(Drawing::RGB_To_Int(191, 98, 10));
 //
 //		BitText::Instance->DrawText(BitFont::Instance, pSurface, PhobosToolTip::Instance.GetBuffer(),
 //			bounds.X + 4, bounds.Y + 2, bounds.Width, bounds.Height, 0, 0, 0);
@@ -335,12 +338,49 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 
 // If tooltip rectangle width is constrained, make sure
 // there is a padding zone so text isn't drawn into border
-DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
+//DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
+//{
+//	if (PhobosToolTip::Instance.IsCameo)
+//	{
+//		if (Phobos::UI::MaxToolTipWidth > 0)
+//			R->EDX(R->EDX() - 5);
+//	}
+//
+//	return 0;
+//}
+
+void __declspec(naked) _CCToolTip_Draw2_FillRect_RET()
+{
+	ADD_ESP(8); // We need to handle origin two push here...
+	JMP(0x478FE1);
+}
+
+DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 {
 	if (PhobosToolTip::Instance.IsCameo)
 	{
-		if (Phobos::UI::MaxToolTipWidth > 0)
-			R->EDX(R->EDX() - 5);
+		GET(SurfaceExt*, pThis, ESI);
+		LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
+
+		// Should we make some SideExt items as static to improve the effeciency?
+		// Though it might not be a big improvement... - secsome
+		const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
+		if (auto const pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
+		{
+			if (auto const pData = SideExt::ExtMap.Find(pSide))
+			{
+				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
+
+				pThis->Fill_Rect_Trans(pRect,
+					pData->ToolTip_Background_Color.GetEx(&RulesExt::Global()->ToolTip_Background_Color),
+					pData->ToolTip_Background_Opacity.Get(RulesExt::Global()->ToolTip_Background_Opacity)
+				);
+
+				pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExt::Global()->ToolTip_Background_BlurSize));
+
+				return (int)_CCToolTip_Draw2_FillRect_RET;
+			}
+		}
 	}
 
 	return 0;

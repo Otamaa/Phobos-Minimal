@@ -54,19 +54,11 @@ public:
 
 		virtual ~ExtData() = default;
 
-		//virtual void Initialize() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-
-		virtual void Uninitialize() override {
-			BuildingCounter.clear();
-			OwnedLimboBuildingTypes.Clear();
-			Building_BuildSpeedBonusCounter.clear();
-			HouseAirFactory.clear();
-		}
-
+		void InvalidatePointer(void* ptr, bool bRemoved);
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void InitializeConstants();
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -77,7 +69,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)

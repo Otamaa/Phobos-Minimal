@@ -293,7 +293,7 @@ void ElectricBoltManager::Draw_All()
 		 */
 		if (ebolt->Lifetime <= 0) {
 			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
-			GameDelete<true>(ebolt);
+			GameDelete<true,false>(ebolt);
 		}
 	}
 }

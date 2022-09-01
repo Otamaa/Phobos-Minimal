@@ -84,7 +84,7 @@ void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D&
 
 	if (pThis->Group >= 0)
 	{
-		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
+		const COLORREF GroupIDColor = Drawing::RGB_To_Int(pHouse->Color);
 
 		RectangleStruct rect
 		{
@@ -136,7 +136,7 @@ void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& Gr
 			vLoc.Y -= 23;
 		}
 
-		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
+		const COLORREF GroupIDColor = Drawing::RGB_To_Int(pHouse->Color);
 
 		RectangleStruct rect
 		{
@@ -631,7 +631,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 				{
 					const CoordStruct source = pThis->Location;
 					const CoordStruct target = pTarget->GetCoords();
-					const DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
+					const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
 
 					if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
 						pLoco->Facing.turn(tgtDir);
@@ -972,7 +972,15 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		TechnoTypeExt::ApplyTurretOffset(pType, &mtx);
+		if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+		{
+			auto const pOffs = ext->TurretOffset.GetEx();
+			float x = static_cast<float>(pOffs->X * 1.0);
+			float y = static_cast<float>(pOffs->Y * 1.0);
+			float z = static_cast<float>(pOffs->Z * 1.0);
+
+			mtx.Translate(x, y, z);
+		}
 
 		double turretRad = (pThis->TurretFacing().value32() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.current().value32() - 8) * -(Math::Pi / 16);
@@ -1446,6 +1454,59 @@ void TechnoExt::ExtData::CheckDeathConditions()
 	{
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
+			TechnoExt::KillSelf(pThis, nKillMethod);
+			return;
+		}
+	}
+
+	// Death if nonexist
+	if (!pTypeExt->AutoDeath_Nonexist.empty())
+	{
+		bool exist = std::any_of
+		(
+			pTypeExt->AutoDeath_Nonexist.begin(),
+			pTypeExt->AutoDeath_Nonexist.end(),
+			[pThis, pTypeExt](TechnoTypeClass* const pType)
+			{
+			for (HouseClass* const pHouse : *HouseClass::Array)
+			{
+				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
+					pHouse->CountOwnedAndPresent(pType))
+					return true;
+			}
+
+			return false;
+			}
+		);
+
+		if (!exist) {
+			TechnoExt::KillSelf(pThis, nKillMethod);
+			return;
+		}
+
+	}
+
+	// Death if exist
+	if (!pTypeExt->AutoDeath_Exist.empty())
+	{
+		bool exist = std::any_of
+		(
+			pTypeExt->AutoDeath_Exist.begin(),
+			pTypeExt->AutoDeath_Exist.end(),
+			[pThis, pTypeExt](TechnoTypeClass* const pType)
+			{
+			for (HouseClass* const pHouse : *HouseClass::Array)
+			{
+				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
+					pHouse->CountOwnedAndPresent(pType))
+					return true;
+			}
+
+			return false;
+			}
+		);
+
+		if (exist) {
 			TechnoExt::KillSelf(pThis, nKillMethod);
 			return;
 		}

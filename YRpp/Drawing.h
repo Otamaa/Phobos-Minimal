@@ -31,7 +31,13 @@ namespace Drawing
 {
 	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
 	constexpr static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
-	constexpr static reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
+	static constexpr reference<ColorStruct, 0xB0FA1C> const TooltipColor {};
+	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
+	static constexpr reference<int, 0x8A0DD8> const RedShiftLeft {};
+	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
+	static constexpr reference<int, 0x8A0DE0> const BlueShiftLeft {};
+	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
+	static constexpr reference<int, 0x8A0DE8> const GreenShiftLeft {};
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
@@ -149,6 +155,40 @@ namespace Drawing
 		return static_cast<WORD>((color.B >> 3) | ((color.G >> 2) << 5) | ((color.R >> 3) << 11));
 	}
 
+	static int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
+	{
+		// JMP_STD(0x4355D0);
+		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
+	}
+
+	static int RGB_To_Int(const ColorStruct& Color)
+	{
+		return RGB_To_Int(Color.R, Color.G, Color.B);
+	}
+
+	static int RGB_To_Int(ColorStruct&& Color)
+	{
+		return RGB_To_Int(Color.R, Color.G, Color.B);
+	}
+
+	static void Int_To_RGB(int color, BYTE& red, BYTE& green, BYTE& blue)
+	{
+		red = static_cast<BYTE>(color >> RedShiftLeft << RedShiftRight);
+		green = static_cast<BYTE>(color >> GreenShiftLeft << GreenShiftRight);
+		blue = static_cast<BYTE>(color >> BlueShiftLeft << BlueShiftRight);
+	}
+
+	static void Int_To_RGB(int color, ColorStruct& buffer)
+	{
+		Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
+	}
+
+	static ColorStruct Int_To_RGB(int color)
+	{
+		ColorStruct ret;
+		Int_To_RGB(color, ret);
+		return ret;
+	}
 	static DWORD __fastcall RGB2DWORD(int red, int green, int blue)
 	{ JMP_STD(0x4355D0); }
 

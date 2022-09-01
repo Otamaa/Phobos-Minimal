@@ -117,11 +117,10 @@ public:
 		{ }
 
 		virtual ~ExtData();
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override { LaserTrail_Types.reserve(1); }
-		virtual void Uninitialize() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void LoadFromINIFile(CCINIClass* pINI);
+		void Initialize() { LaserTrail_Types.reserve(1); }
+		void Uninitialize();
+		void InvalidatePointer(void* ptr, bool bRemoved);
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -148,7 +147,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

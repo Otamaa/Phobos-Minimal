@@ -34,12 +34,11 @@ public:
         { }
 
         virtual ~ExtData() = default;
-		virtual size_t Size() const { return sizeof(*this); };
-        virtual void LoadFromINIFile(CCINIClass* pINI) override;
-        virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
+        void LoadFromINIFile(CCINIClass* pINI);
+        void InvalidatePointer(void *ptr, bool bRemoved) {}
         virtual void LoadFromStream(PhobosStreamReader& Stm)override;
         virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		virtual void Initialize() override { LaserTrail_Types.reserve(1); }
+		void Initialize() { LaserTrail_Types.reserve(1); }
     private:
         template <typename T>
         void Serialize(T& Stm);
@@ -50,7 +49,7 @@ public:
     public:
         ExtContainer();
         ~ExtContainer();
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
     };
 
     static ExtContainer ExtMap;

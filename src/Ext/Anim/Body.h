@@ -36,9 +36,9 @@ public:
 		{
 			DeleteAttachedSystem();
 		}
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
-		virtual void InitializeConstants() override;
+
+		void InvalidatePointer(void* const ptr, bool bRemoved);
+		void InitializeConstants();
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -58,7 +58,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)

@@ -223,7 +223,7 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 		{
 			int nCount = 0;
 			char* context = nullptr;
-			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			for (char* cur = CRT::strtok(exINI.value(), Phobos::readDelims, &context); cur; cur = CRT::strtok(nullptr, Phobos::readDelims, &context))
 			{
 				if (Phobos::Config::MoreDetailSLDebugLog)
 					Debug::Log("Parsing %d Size of [%s]%s=%s idx[%d] \n", nBaseSize, pSection, pNumKey, cur, nCount);

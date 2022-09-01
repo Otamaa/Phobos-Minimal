@@ -161,7 +161,7 @@ public:
 
 	static DirStruct Radians2Dir(double radians)
 	{
-		return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
+		return DirStruct(radians);
 	}
 
 	static bool IsDead(TechnoClass* pTechno)

@@ -22,7 +22,7 @@ public:
 	{
 		if (Heap)
 		{
-			GameDelete(Heap);
+			GameDelete<true>(Heap);
 			Heap = nullptr;
 		}
 

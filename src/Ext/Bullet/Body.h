@@ -74,12 +74,11 @@ public:
 
 		virtual ~ExtData();
 
-		//virtual size_t GetSize() const override { return sizeof(*this); }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		virtual void Uninitialize() override;
+		void InitializeConstants();
+		void Uninitialize();
 
 		void ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel);
 		void InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt);
@@ -96,7 +95,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
