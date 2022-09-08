@@ -15,9 +15,9 @@ class BulletTypeExt
 public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#endif
 
 	class ExtData final : public Extension<BulletTypeClass>
 	{
@@ -66,6 +66,7 @@ public:
 
 		Nullable<double> PreExplodeRange;
 		Nullable <double> Trajectory_Speed;
+		Nullable<int> Proximity_Range;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -110,6 +111,7 @@ public:
 
 			, PreExplodeRange { }
 			, Trajectory_Speed { }
+			, Proximity_Range { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
@@ -143,7 +145,7 @@ public:
 
 	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<BulletTypeExt> {
+	class ExtContainer final : public Container<BulletTypeExt ,true> {
 	public:
 		ExtContainer();
 		~ExtContainer();

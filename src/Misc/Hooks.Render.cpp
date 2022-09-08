@@ -58,7 +58,7 @@ DEFINE_HOOK(0x6D4656, TacticalClass_Render_ReplaceIonBlast, 0x5)
 	return 0x6D465B;
 }
 
-DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0xB)
+DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0x6) //B
 {
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	PrintTextManager::PrintAllText();

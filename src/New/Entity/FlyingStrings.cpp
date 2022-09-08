@@ -30,7 +30,7 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords)
 
 void FlyingStrings::Add(const std::wstring& text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
 {
-	Item nItem{ coords,pixelOffset,75, Drawing::RGB_To_Int(color) , L"" };
+	Item nItem{ coords,pixelOffset,75, Drawing::RGB2DWORD(color) , L"" };
 	nItem.Text = text;
 	Data.push_back(std::move(nItem));
 }

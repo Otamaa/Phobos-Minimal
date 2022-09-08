@@ -2,11 +2,23 @@
 
 //Locomotor = {92612C46-F71F-11d1-AC9F-006008055BB5}
 #include <LocomotionClass.h>
+
 class  DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 	JumpjetLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-//IUnknown
+
+	enum class State : int
+	{
+		On_ground = 0,
+		Take_off,
+		Hover,
+		Moving,
+		Deploy_to_land,
+		Crash
+	};
+
+	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
 	virtual ULONG __stdcall AddRef() R0;
 	virtual ULONG __stdcall Release() R0;

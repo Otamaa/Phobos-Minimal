@@ -154,6 +154,54 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	return fFactor;
 }
 
+double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
+{
+	double fFactor = 1.0;
+	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer ||  pOwner == HouseClass::Observer())
+		return fFactor;
+
+	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
+	{
+		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
+		{
+			for (const auto& [pExt, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+			{
+				{
+					if (!pExt->SpeedBonus.AffectedType.empty())
+						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
+							continue;
+
+					auto nBonus = 0.000;
+					switch (pWhat->WhatAmI())
+					{
+					case AbstractType::AircraftType:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
+						break;
+					case AbstractType::BuildingType:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Building;
+						break;
+					case AbstractType::UnitType:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
+						break;
+					case AbstractType::InfantryType:
+						nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
+						break;
+					default:
+						continue;
+						break;
+					}
+
+					if (nBonus == 0.000)
+						continue;
+
+					fFactor *= std::pow(nBonus, nCount);
+				}
+			}
+		}
+	}
+
+	return fFactor;
+}
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat) {
 	return BuildingTypeExt::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());
 }
@@ -517,7 +565,11 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
+//#ifdef ENABLE_NEWHOOKS
+	BuildingTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//#else
+//	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 

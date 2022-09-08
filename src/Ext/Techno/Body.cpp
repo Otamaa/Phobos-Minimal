@@ -24,6 +24,7 @@
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Macro.h>
 
 #include <Phobos_ECS.h>
 
@@ -84,7 +85,7 @@ void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D&
 
 	if (pThis->Group >= 0)
 	{
-		const COLORREF GroupIDColor = Drawing::RGB_To_Int(pHouse->Color);
+		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
 
 		RectangleStruct rect
 		{
@@ -136,7 +137,7 @@ void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& Gr
 			vLoc.Y -= 23;
 		}
 
-		const COLORREF GroupIDColor = Drawing::RGB_To_Int(pHouse->Color);
+		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
 
 		RectangleStruct rect
 		{
@@ -1290,7 +1291,8 @@ void TechnoExt::ExtData::EatPassengers()
 							}
 						}
 
-						pPassenger->UnInit();
+						GameDelete<true, false>(pPassenger);
+						//pPassenger->UnInit();
 					}
 
 					PassengerDeletionTimer.Stop();
@@ -1348,7 +1350,8 @@ void TechnoExt::HandleRemove(TechnoClass* pThis)
 		if (pBullet && pBullet->Target == pThis)
 			pBullet->LoseTarget();
 
-	pThis->UnInit();
+	GameDelete<true, false>(pThis);
+	//pThis->UnInit();
 
 }
 
@@ -1603,7 +1606,8 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 					if (pThis->WhatAmI() == AbstractType::Unit || pThis->WhatAmI() == AbstractType::Building)
 					{
 						if (const auto dmgParticle = pThis->DamageParticleSystem)
-							dmgParticle->UnInit();
+							GameDelete<true, false>(dmgParticle);
+							//dmgParticle->UnInit();
 					}
 				}
 			}
@@ -1899,6 +1903,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->FireSelf_Count)
 		.Process(this->FireSelf_Weapon)
 		.Process(this->FireSelf_ROF)
+		.Process(this->EngineerCaptureDelay)
+		.Process(this->FlhChanged)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -1958,6 +1964,58 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	}
 }
 
+// Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.
+int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback)
+{
+	CellClass* targetCell = nullptr;
+
+	// Ignore target cell for airborne target technos.
+	if (!pTargetTechno || !pTargetTechno->IsInAir())
+	{
+		if (const auto pCell = abstract_cast<CellClass*>(pTarget))
+			targetCell = pCell;
+		else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
+			targetCell = pObject->GetCell();
+	}
+
+	const auto pWeaponStructOne = pThis->GetWeapon(weaponIndexOne);
+	const auto pWeaponStructTwo = pThis->GetWeapon(weaponIndexTwo);
+
+	if (!pWeaponStructOne && !pWeaponStructTwo)
+		return -1;
+	else if (!pWeaponStructTwo)
+		return weaponIndexOne;
+	else if (!pWeaponStructOne)
+		return weaponIndexTwo;
+
+	const auto pWeaponOne = pWeaponStructOne->WeaponType;
+	const auto pWeaponTwo = pWeaponStructTwo->WeaponType;
+
+	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo))
+	{
+		if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true)) ||
+			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
+				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+		{
+			return weaponIndexOne;
+		}
+		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne))
+		{
+			if (!allowFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
+				return weaponIndexOne;
+
+			if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pFirstExt->CanTarget, true)) ||
+				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
+					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner))))
+			{
+				return weaponIndexTwo;
+			}
+		}
+	}
+
+	return -1;
+}
+
 void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
 	Extension<TechnoClass>::Serialize(Stm);
@@ -1991,7 +2049,11 @@ bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-	TechnoExt::ExtMap.FindOrAllocate(pItem);
+//#ifdef ENABLE_NEWHOOKS
+	TechnoExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//#else
+//	TechnoExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 
@@ -2034,3 +2096,15 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
+
+//#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x6F3100, TechnoClass_CTOR_0x4FC, 0x6)
+{
+	R->EDX(0);
+	return 0x6F3106;
+}
+
+DEFINE_JUMP(LJMP, 0x6FA6C9, 0x6FA6CF);
+DEFINE_JUMP(LJMP, 0x7094A9, 0x7094AF);
+DEFINE_JUMP(LJMP, 0x70982E, 0x709834);
+//#endif

@@ -23,7 +23,7 @@ public:
 
 		virtual ~ExtData() = default;
 		void Uninitialize() { }
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
@@ -56,7 +56,7 @@ public:
 
 	static void PointerGotInvalid(void* ptr, bool removed)
 	{
-		Global()->InvalidatePointer(ptr, removed);
+		// Global()->InvalidatePointer(ptr, removed);
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

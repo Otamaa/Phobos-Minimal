@@ -30,14 +30,26 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
 
-DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
+DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 {
-
 	GET(CellClass*, pThis, ESI);
+
+	const auto pTiberium = CellExt::GetTiberium(pThis);
+
+	if (!pTiberium)
+		return 0x47FB86;
+
+	const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+
+	if (!pTibExt->EnableLighningFix.Get()){
+		R->EBX(pTiberium);
+		return 0x47F882;
+	}
+
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
 
-	const auto nIndex = CellExt::GetOverlayIndex(pThis);
+	auto nIndex = CellExt::GetOverlayIndex(pThis ,pTiberium);
 	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
 
 	if (!pShape)
@@ -45,14 +57,9 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 
 	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
 	const auto pPalette = FileSystem::x_PAL.get();
-	int nOreTint = 1000;
+	int nOreTint = Math::min(pTibExt->Ore_TintLevel.Get(1000), 1000);
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
-
-	if (const auto pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(pThis->GetContainedTiberiumIndex()))) {
-			//pPalette = pTibExt->Ore_Palette.GetOrDefaultConvert(pPalette);
-		if (pTibExt->Ore_TintLevel.isset())
-			nOreTint = Math::min(pTibExt->Ore_TintLevel.Get(), 1000);
-	}
+	//pPalette = pTibExt->Ore_Palette.GetOrDefaultConvert(FileSystem::x_PAL.get());
 
 	SHPStruct* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)
@@ -64,36 +71,27 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8)
 	return 0x47FB86;
 }
 
-/*
-DEFINE_HOOK(0x47F629, CellClass_DrawOverlay_Shadow_Rubble_Palette, 0x9	)
-{
-	GET(CellClass* const, pCell, ESI);
-
-	if (auto pBuildingType = pCell->Rubble) {
-		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
-		return 0x47F62C;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x47FB77 , CellClass_DrawOverlay_Rubble_Palette , 0x0)
-{
-	GET(CellClass* const, pCell, ESI);
-
-	constexpr static unsigned char ret_bytes[] = {
-		0x50                    // push  eax
-	};
-
-	if (auto pBuildingType = pCell->Rubble) {
-		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
-	}
-	else {
-		R->EDX(pCell->LightConvert);
-	}
-
-	//return 0x47FB7A;
-	return (int)ret_bytes;
-}*/
+//DEFINE_HOOK(0x47F62C, CellClass_DrawOverlay_Shadow_Rubble_Palette, 0x6)
+//{
+//	GET(CellClass* const, pCell, ESI);
+//
+//	if (auto pBuildingType = pCell->Rubble) {
+//		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+//		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
+//		return 0x47F62C;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x47FB77, CellClass_DrawOverlay_Rubble_Palette , 0xA)
+//{
+//	GET(CellClass* const, pCell, ESI);
+//
+//	if (auto pBuildingType = pCell->Rubble) {
+//		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+//		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
+//	}
+//
+//	return 0x0;
+//}

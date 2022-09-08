@@ -88,6 +88,7 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 }
 
 #ifdef ENABLE_NEWHOOKS
+//TODO : desync test and use new ext system for better performance
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
 {
 	GET(ConvertClass*, pConvert, EDX);

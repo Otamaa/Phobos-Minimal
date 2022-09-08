@@ -39,7 +39,6 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	return 0;
 }
 
-
 DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 {
 	enum { LoseDestination = 0x4D4D43 };
@@ -58,7 +57,7 @@ DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x0)
+DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x7) //0
 {
 	enum { Skip = 0x51F05E, ReturnValue = 0x51F17E };
 
@@ -100,7 +99,7 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x0)
+DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x7) //0
 {
 	enum { Continue = 0x7401C1 };
 

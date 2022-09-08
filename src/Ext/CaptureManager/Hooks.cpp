@@ -4,7 +4,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0xC)
+DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 {
 	GET(CaptureManagerClass*, pThis, EDI);
 	GET(TechnoClass*, pVictim, ECX);

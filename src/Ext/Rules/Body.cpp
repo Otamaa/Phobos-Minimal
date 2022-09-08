@@ -142,7 +142,6 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");
 	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
 
-	this->AIRepairBaseNodes.Read(exINI, "Basic", "AIRepairBaseNodes");
 }
 
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
@@ -367,8 +366,6 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->SelectBrd_DefaultTranslucentLevel)
 		.Process(this->SelectBrd_DefaultShowEnemy)
-
-		.Process(this->AIRepairBaseNodes)
 
 		.Process(this->RadWarhead_Detonate)
 		.Process(this->RadHasOwner)

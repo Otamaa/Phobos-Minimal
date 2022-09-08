@@ -640,6 +640,7 @@ DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
 
 #ifdef ENABLE_NEWHOOKS
+//TODO : re-enabled if used
 void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
 {
 	pLogic->Update();

@@ -1,4 +1,6 @@
-#ifdef F
+#ifdef ENABLE_NEWHOOKS
+//TODO : rework , and desync test
+
 #include "Body.h"
 
 #include <Ext/TechnoType/Body.h>

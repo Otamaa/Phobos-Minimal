@@ -588,7 +588,7 @@ private:
 template <class T>
 concept HasInvalidateExtDataIgnorable = requires(T t,void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
-template <typename T>
+template <typename T ,bool NoInsert = false>
 class Container
 {
 private:
@@ -641,7 +641,7 @@ public:
 		//if constexpr (HasInvalidatePointer<Container<T>>)
 			this->InvalidatePointer(ptr, bRemoved);
 
-		if constexpr (HasInvalidatePointer<extension_type>)
+		if constexpr (HasInvalidatePointer<extension_type> && !NoInsert)
 		{
 			if (!this->InvalidateExtDataIgnorable(ptr))
 			{
@@ -658,30 +658,36 @@ protected:
 
 public:
 
-#define Alloc_EXT(key)\
-if (const auto val = new extension_type(key)) {\
-	val->EnsureConstanted();\
-	if constexpr (HasOffset<T>) (*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;\
-	return this->Items.insert(key, val); }\
-    Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());\
-return nullptr;
-
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		Alloc_EXT(key);
+		if (const auto val = new extension_type(key))
+		{
+			val->EnsureConstanted();
+			if constexpr (HasOffset<T>){
+				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+			}
+
+			if constexpr (NoInsert) {
+				return val;
+			} else {
+				return this->Items.insert(key, val);
+			}
+
+		}
+
+		Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());
+		return nullptr;
 	}
 
-	void JustAllocate(base_type_ptr key, bool bCond ,const std::string& nMessage)
+	void JustAllocate(base_type_ptr key, bool bCond ,const std::string_view& nMessage)
 	{
-		if (!key)
+		if (!key || (!bCond && !nMessage.empty())){
+			Debug::Log("%s \n", nMessage.data());
 			return;
+		}
 
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)nullptr;
-
-		if(!bCond && !nMessage.empty()){
-			Debug::Log("%s \n", nMessage.c_str());
-		}
 
 		if (const auto val = new extension_type(key)) {
 			val->EnsureConstanted();
@@ -689,85 +695,81 @@ return nullptr;
 			if constexpr (HasOffset<T>)
 				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 
-			this->Items.insert(key, val);
+			if constexpr (!NoInsert)
+				this->Items.insert(key, val);
 		}
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
-		if (key == nullptr)
-		{
-			Debug::Log("CTOR of %s attempted for a NULL pointer! WTF!\n", this->Name.data());
-			return nullptr;
-		}
+		if (auto const ptr = Find(key))
+			return ptr;
 
-		if constexpr (HasOffset<T>) {
-
-			if (!(extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
-				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)Allocate(key);
-
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-
-		} else{
-
-			if (auto const ptr = this->Items.find(key))
-				return ptr;
-
-
-			Alloc_EXT(key);
-		}
-
+		return Allocate(key);
 	}
-
-#undef Alloc
 
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
 		if constexpr (HasOffset<T>) {
-			if (key)
-				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-			else
-				return nullptr;
-		} else
+			return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
+
+		} else {
 			return this->Items.find(key);
+		}
 	}
 
 	extension_type_ptr operator[] (const_base_type_ptr key) const
 	{
-		return this->Items.find(key);
+		return Find(key);
 	}
 
 	void Remove(const_base_type_ptr key)
 	{
+		if constexpr (!NoInsert){
 		if(auto Item = this->Items.remove(key)) {
 			if constexpr (HasOffset<T>)
 				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
 
 		  delete Item;
 		}
+		}
+		else
+		{
+			if(auto Item = *(extension_type_ptr*)((size_t)key + T::ExtOffset)) {
+				delete Item;
+				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
+			}
+		}
 	}
 
 	void Clear()
 	{
-		if (this->Items.size())
+		if constexpr (!NoInsert)
 		{
-			Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
+			if (this->Items.size())
+			{
+				Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
 
-			for (const auto&[pKey , pValue] : this->Items) {
-				if constexpr (HasOffset<T>)
-					*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
+				for (const auto& [pKey, pValue] : this->Items)
+				{
+					if constexpr (HasOffset<T>)
+						*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
 
-				delete pValue;
+					delete pValue;
+				}
+
+				this->Items.clear();
 			}
-
-			this->Items.clear();
 		}
 	}
 
 	void LoadAllFromINI(CCINIClass* pINI)
 	{
-		for (const auto& i : this->Items)
-			i.second->LoadFromINI(pINI);
+		if constexpr (!NoInsert)
+		{
+			for (const auto& i : this->Items)
+				i.second->LoadFromINI(pINI);
+		}
 	}
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)

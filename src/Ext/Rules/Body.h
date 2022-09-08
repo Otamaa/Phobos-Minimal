@@ -77,8 +77,6 @@ public:
 		Valueable<int> SelectBrd_DefaultTranslucentLevel;
 		Valueable<bool> SelectBrd_DefaultShowEnemy;
 
-		Valueable<bool> AIRepairBaseNodes;
-
 		Valueable<bool> RadWarhead_Detonate;
 		Valueable<bool> RadHasOwner;
 		Valueable<bool> RadHasInvoker;
@@ -157,8 +155,6 @@ public:
 
 			, SelectBrd_DefaultTranslucentLevel{ 0 }
 			, SelectBrd_DefaultShowEnemy{ true }
-
-			, AIRepairBaseNodes { false }
 
 			, RadWarhead_Detonate { false }
 			, RadHasOwner { false }

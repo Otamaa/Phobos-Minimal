@@ -1,4 +1,5 @@
 #ifdef ENABLE_NEWHOOKS
+//TODO : desync test
 #include <New/Type/HoverTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>
@@ -136,7 +137,7 @@ DEFINE_HOOK(0x514A65, HoverLocomotionClass_513D20_AnimUnderWater, 0xB)
 	return 0x514AC8;
 }*/
 
-DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0xB)
+DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 
@@ -211,7 +212,7 @@ DEFINE_HOOK(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
 //#define LODWORD(x)  (*((unsigned int*)&(x)))  // low dword
 //#define HIDWORD(x)  (*((unsigned int*)&(x)+1))
 
-DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0xC)
+DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 

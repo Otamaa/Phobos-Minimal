@@ -57,7 +57,7 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
- 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
 		const auto strength = pTypeExt->InitialStrength.Get(R->EDX<int>());
 		pThis->Health = strength;
 		pThis->EstimatedHealth = strength;
@@ -107,6 +107,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	std::pair<bool,CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
 
 	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry) {
@@ -118,6 +119,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 		R->ECX(nResult.second.X);
 		R->EBP(nResult.second.Y);
 		R->EAX(nResult.second.Z);
+		pExt->FlhChanged = true;
 	}
 
 	return 0;
@@ -128,8 +130,12 @@ DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	if (TechnoExt::GetBurstFLH(pThis, weaponIndex).first)
-		R->EAX(0);
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (pExt->FlhChanged) {
+			pExt->FlhChanged = false;
+			R->EAX(0);
+		}
+	}
 
 	return 0;
 }
@@ -184,7 +190,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 
 // Customizable OpenTopped Properties
 // Author: Otamaa
-DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0xC)
+DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0x6) //C
 {
 	GET(TechnoClass* const, pThis, ESI);
 
@@ -200,7 +206,7 @@ DEFINE_HOOK(0x6F72D2, TechnoClass_IsCloseEnoughToTarget_OpenTopped_RangeBonus, 0
 	return 0;
 }
 
-DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0xC)
+DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 {
 	GET(TemporalClass* const, pThis, ESI);
 
@@ -430,7 +436,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
 	R->EAX(maxSpeed);
 	return SkipGameCode;
 }
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK_AGAIN(0x6B73BE, SpawnManagerClass_AI_SpawnTimer, 0x6)
 DEFINE_HOOK(0x6B73AD, SpawnManagerClass_AI_SpawnTimer, 0x5)
 {
@@ -462,7 +468,7 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 
 	return 0;
 }
-#endif
+
 #ifdef IC_AFFECT
 //https://github.com/Phobos-developers/Phobos/pull/674
 DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
@@ -539,7 +545,7 @@ static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, vo
 DEFINE_JUMP(VTABLE,0x7EB1AC  ,GET_OFFSET(InfantryClass_IronCurtain));
 
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType) {
 	Iterator<AnimTypeClass*> Iter;
 
@@ -569,7 +575,8 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 
 	return 0x520CA9;
 }
-#endif
+
+//#endif
 /*
 DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
 {
@@ -637,7 +644,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 	return 0x4DEBA2;
 }*/
 
-DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x8)
+DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 {
 	//Kill slave is buged because it doesnt do IgnoreDamage -Otamaa
 	enum { KillTheSlave = 0x6B0BDF, SkipSetEax = 0x6B0BB4, LoopCheck = 0x6B0C0B };

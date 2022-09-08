@@ -14,9 +14,9 @@ class AnimTypeExt
 public:
 	static constexpr size_t Canary = 0xEEEEEEEE;
 	using base_type = AnimTypeClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x374;
+//#endif
 
 	class ExtData final : public Extension<AnimTypeClass>
 	{
@@ -59,6 +59,7 @@ public:
 
 		std::vector<LauchSWData> Launchs;
 
+		Valueable<int> CraterDecreaseTiberiumAmount;
 		Valueable<double> CraterChance;
 		Nullable<bool> SpawnCrater;
 		Nullable<double> ScorchChance;
@@ -66,6 +67,10 @@ public:
 		Valueable<bool> NoOwner;
 
 		Valueable<int> Spawns_Delay;
+
+		Valueable<double> ConcurrentChance;
+		ValueableVector<AnimTypeClass*> ConcurrentAnim;
+		Valueable<bool> ShouldFogRemove;
 	    #pragma endregion
 		Valueable<ParticleSystemTypeClass*> AttachedSystem;
 
@@ -106,6 +111,7 @@ public:
 
 			, Launchs {}
 
+			, CraterDecreaseTiberiumAmount { 6 }
 			, CraterChance { 0.5 }
 			, SpawnCrater { }
 			, ScorchChance { }
@@ -113,6 +119,9 @@ public:
 			, NoOwner { false }
 			, Spawns_Delay { 0 }
 
+			, ConcurrentChance { 0.0 }
+			, ConcurrentAnim { }
+			, ShouldFogRemove { true }
 			, AttachedSystem {}
 		{ }
 
@@ -137,7 +146,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<AnimTypeExt>
+	class ExtContainer final : public Container<AnimTypeExt,true>
 	{
 	public:
 		ExtContainer();

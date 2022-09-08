@@ -22,7 +22,7 @@ public:
         { }
 
         virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) {}
+		//void InvalidatePointer(void* ptr, bool bRemoved) {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants() { }

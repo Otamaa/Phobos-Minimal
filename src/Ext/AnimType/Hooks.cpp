@@ -17,7 +17,7 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
+DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 	GET(AnimTypeClass* const, pType, EDX);
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x8)
 	}
 
 	return 0x423BBF;
-}
+} //was 8
 
 //DEFINE_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExt::GetLayer_patch));
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x8)
+DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -111,7 +111,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x8)
 			pExt->DeleteAttachedSystem();
 
 		if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
-			pExt->CreateAttachedSystem();
+			pExt->CreateAttachedSystem(pTypeExt);
 	}
 
 	return 0;
@@ -121,12 +121,18 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x8)
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
 DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 {
-	enum { SkipDamage = 0x42465D, Continue = 0x42464C };
+	enum { SkipDamage = 0x424663, Continue = 0x42464C };
 
 	GET(AnimClass*, pThis, ESI);
 
-	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
+	auto Ret_SkipDamage = [R, pThis]()
+	{
+		R->EAX(pThis->Type);
 		return SkipDamage;
+	};
+
+	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
+		return Ret_SkipDamage();
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
@@ -146,7 +152,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		if (pThis->Animation.Value == max(delay - 1, 1))
 			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
 		else
-			return SkipDamage;
+			return Ret_SkipDamage();
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
@@ -158,7 +164,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		if (damage >= 1.0)
 			appliedDamage = static_cast<int>(int_round(damage));
 		else
-			return SkipDamage;
+			return Ret_SkipDamage();
 	}
 	else
 	{
@@ -167,14 +173,14 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		pThis->Accum = damage;
 
 		if (damage < delay)
-			return SkipDamage;
+			return Ret_SkipDamage();
 
 		// Use Type->Damage as the actually dealt damage.
 		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return SkipDamage;
+		return Ret_SkipDamage();
 
 	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
 	if (adjustAccum)

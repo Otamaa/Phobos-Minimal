@@ -132,6 +132,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
 	this->PreExplodeRange.Read(exINI, pSection, "PreExplode.Range");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
+	this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
@@ -179,6 +180,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceOnVehicle)
 		.Process(this->PreExplodeRange)
 		.Process(this->Trajectory_Speed)
+		.Process(this->Proximity_Range)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
@@ -224,11 +226,11 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	BulletTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+	//BulletTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 

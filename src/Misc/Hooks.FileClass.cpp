@@ -1,7 +1,7 @@
 #include <CCFileClass.h>
 #include <Utilities/Debug.h>
 #include <Helpers/Macro.h>
-
+#ifndef ENABLE_NEWHOOK
 static long RawFileClass_Read(RawFileClass* pThis, void* buffer, int length)
 {
 	if (buffer == nullptr)
@@ -76,7 +76,7 @@ static void Game_Emergency_Exit(int code)
 	JMP_STD(0x6BEC50);
 }
 
-DEFINE_HOOK(0x65CCE0, RawFileClass_Read_Replace, 0x4)
+DEFINE_HOOK(0x65CCE0, RawFileClass_Read_Replace, 0x7) //4
 {
 	GET(RawFileClass*, pThis, ECX);
 	GET_STACK(void*, pBuff, 0x4);
@@ -85,7 +85,7 @@ DEFINE_HOOK(0x65CCE0, RawFileClass_Read_Replace, 0x4)
 	return 0x65CD0C;
 }
 
-DEFINE_HOOK(0x65CA70, RawFileClass_Error_, 0x5)
+DEFINE_HOOK(0x65CA70, RawFileClass_Error_, 0x3) // 5
 {
 	GET(RawFileClass*, pThis, ECX);
 	GET_STACK(FileErrorType, error, 0x4);
@@ -105,3 +105,4 @@ DEFINE_HOOK(0x65CA70, RawFileClass_Error_, 0x5)
 
 	return 0x0;
 }
+#endif

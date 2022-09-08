@@ -1,7 +1,7 @@
 #include "Body.h"
 
 // Draw Tiled !
-DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0xA)
+DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 {
 	GET(AnimClass*, pThis, ESI);
 	GET(int, nY_Loc, EDI);

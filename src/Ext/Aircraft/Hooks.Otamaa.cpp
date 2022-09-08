@@ -20,7 +20,7 @@ DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 	return 0x4CD80E;
 }*/
 
-DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
+DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 {
 	GET(AircraftClass*, pThis, EDI);
 
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x415EEE, AircraftClass_ParadropCargo_Dont, 0x8)
 	GET(FootClass*, pFoot, EDX);
 	auto const& pTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
 	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
-}
+}*/
 
 DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 {
@@ -78,37 +78,34 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 
-DEFINE_HOOK(0x413D74, AircraftClass_CTOR_ParaLeft, 0xD)
+DEFINE_HOOK(0x413F98, AircraftClass_Init, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
+	GET(AircraftTypeClass*, pThisType, EDI);
 
-	//to prevent S/L related Crash
-	if (auto const pType = pThis->Type)
-	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
-		{
-			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get(5); //5
-			return 0x413D7B;
-		}
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThisType)) {
+		if(pExt->Paradrop_MaxAttempt.isset())
+			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get();
 	}
 
 	return 0x0;
 }
 
-DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x9)
+DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x7)
 {
 	GET(AircraftClass*, pThis, EDI);
 
-	//to prevent S/L related Crash
-	if (auto const pType = pThis->Type)
-	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
-		{
-			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get(5); //5
-			return 0x415E9A;
+	BYTE nAttempt = 5;
+	if (auto const pType = pThis->Type) {
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType)) {
+			if(pExt->Paradrop_MaxAttempt.isset())
+				nAttempt = pExt->Paradrop_MaxAttempt.Get();
+
 		}
 	}
-	return 0x0;
+
+	pThis->___paradrop_attempts = nAttempt;
+	return 0x415E9A;
 }
 
 DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
@@ -116,8 +113,7 @@ DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EAX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
-	{
+	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
 		R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
 		R->ECX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
 		return 0x41654C;
@@ -131,8 +127,7 @@ DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, ECX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
-	{
+	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
 		R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
 		R->EDX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
 		return 0x416587;
@@ -140,19 +135,18 @@ DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
 
 	return 0x0;
 }
-*/
 
-DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
-{
+DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6) {
 	GET(RulesClass* const, pRules, EAX);
 	GET(AircraftClass* const, pThis, ESI);
 
 	int nIDx = pRules->SpyPlaneCamera;
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
-	{
-		R->ECX(pTypeExt->SpyplaneCameraSound.Get(nIDx));
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+		if(pTypeExt->SpyplaneCameraSound.isset())
+			nIDx = pTypeExt->SpyplaneCameraSound.Get();
 	}
 
+	R->ECX(nIDx);
 	return 0x4156F7;
 }
 
@@ -216,7 +210,7 @@ DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
 	return 0x41530C;
 }*/
 
-DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x8)
+DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x6) //was 8
 {
 	GET(AircraftClass*, pCarryall, ESI);
 
@@ -239,7 +233,7 @@ DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x8)
 	return 0x416EE4;
 }
 
-DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
+DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) //5
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -263,7 +257,7 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
 }
 
 //size
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 //Crash
 //DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x0)
 //{
@@ -283,7 +277,7 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x5)
 //
 //	return Nothing;
 //}
-#endif
+//#endif
 
 #ifdef TEST_CODE
 DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)

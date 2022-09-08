@@ -65,7 +65,7 @@ public:
 		virtual ~ExtData() = default;
 		void Uninitialize() { }
 		void LoadFromINIFile(CCINIClass* pINI);
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -99,7 +99,7 @@ public:
 
 	static void PointerGotInvalid(void* ptr, bool removed)
 	{
-		Global()->InvalidatePointer(ptr, removed);
+		//Global()->InvalidatePointer(ptr, removed);
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

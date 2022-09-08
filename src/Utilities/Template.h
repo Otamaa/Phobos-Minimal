@@ -313,6 +313,10 @@ public:
 		return -1;
 	}
 
+	void PushbackUnique(const T& other) const { if (Contains(other)) return;
+	  else { push_back(other); }
+	}
+
 	Iterator<T> GetElements() const noexcept {
 		return Iterator<T>(*this);
 	}

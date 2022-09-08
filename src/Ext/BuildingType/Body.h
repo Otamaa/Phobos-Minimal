@@ -98,6 +98,9 @@ class BuildingTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = BuildingTypeClass;
+//#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x1794;
+//#endif
 
 	class ExtData final : public Extension<BuildingTypeClass>
 	{
@@ -182,7 +185,6 @@ public:
 		BuildSpeedBonus SpeedBonus;
 
 		CustomPalette RubblePalette;
-
 #pragma endregion
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -269,7 +271,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingTypeExt>
+	class ExtContainer final : public Container<BuildingTypeExt ,true>
 	{
 	public:
 		ExtContainer();
@@ -285,6 +287,7 @@ public:
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat , HouseClass* pOwner);
+	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 

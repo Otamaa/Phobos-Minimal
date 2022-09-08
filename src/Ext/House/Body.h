@@ -36,6 +36,11 @@ public:
 		BuildingClass* Factory_NavyType;
 		BuildingClass* Factory_AircraftType;
 
+		bool AllRepairEventTriggered;
+		int LastBuildingTypeArrayIdx;
+
+		bool RepairBaseNodes[3];
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -50,6 +55,10 @@ public:
 			, Factory_VehicleType { nullptr }
 			, Factory_NavyType { nullptr }
 			, Factory_AircraftType { nullptr }
+
+			, AllRepairEventTriggered { false }
+			, LastBuildingTypeArrayIdx { -1 }
+			, RepairBaseNodes { false,false,false }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -58,6 +67,7 @@ public:
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
+		void LoadFromINIFile(CCINIClass* pINI);
 
 	private:
 		template <typename T>
@@ -96,5 +106,9 @@ public:
 	static HouseClass* FindNeutral();
 	static HouseClass* GetHouseKind(OwnerHouseKind const& kind, bool allowRandom, HouseClass* pDefault, HouseClass* pInvoker = nullptr, HouseClass* pVictim = nullptr);
 	static HouseClass* GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* pKiller, HouseClass* pVictim);
+	static signed int PrereqValidate(HouseClass const* const pHouse, TechnoTypeClass const* const pItem,bool const buildLimitOnly, bool const includeQueued)
+	{
+		return 1;
+	}
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 };

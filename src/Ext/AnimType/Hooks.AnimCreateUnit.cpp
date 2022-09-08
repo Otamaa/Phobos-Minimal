@@ -29,7 +29,7 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0xC)
+DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 }
 
 // this set after ares set their ownership
-DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x0)
+DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 {
 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
 

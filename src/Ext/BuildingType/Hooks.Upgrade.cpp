@@ -87,6 +87,8 @@ int CheckBuildLimit(HouseClass const* const pHouse, BuildingTypeClass const* con
 
 }
 
+#include <Utilities/Cast.h>
+
 DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
 {
 	GET(HouseClass const* const, pThis, ECX);
@@ -94,7 +96,7 @@ DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
 	GET_STACK(bool const, includeInProduction, 0xC);
 	GET(CanBuildResult const, resultOfAres, EAX);
 
-	if (auto pBuilding = static_cast<BuildingTypeClass const*>(pItem))
+	if (auto pBuilding = type_cast<BuildingTypeClass const*>(pItem))
 	{
 		if (auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBuilding))
 		{

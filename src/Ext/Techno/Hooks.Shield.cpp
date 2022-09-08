@@ -8,7 +8,7 @@
 #include <Ext/TEvent/Body.h>
 
 // #issue 88 : shield logic
-DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x7) //was 6
+DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	LEA_STACK(args_ReceiveDamage*, args, 0x4);
@@ -85,13 +85,31 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(WeaponTypeClass*, pWeapon, regWP);\
 GET(TechnoClass*, pTarget, regTech);\
-if (const auto pExt = TechnoExt::GetExtData(pTarget)) {\
-	if (const auto pShieldData = pExt->Shield.get()) {\
+if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {\
+	if (auto pShieldData = pExt->Shield.get()) {\
 	if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;\
 	if (pShieldData->IsActive()) { R->EAX(pShieldData->GetType()->Armor);\
 		return R->Origin() + 6; } } } return 0;}
 
-REPLACE_ARMOR(0x70CF39, EBX, ESI , TechnoClass_EvalThreatRating_Shield)
+DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6) {
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET_STACK(TechnoClass*, pTarget, STACK_OFFS(0x5C ,-0x8));
+
+	if(pTarget->IsAlive){
+		if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {
+			if (auto pShieldData = pExt->Shield.get()) {
+			if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;
+				if (pShieldData->IsActive()) {
+					R->EAX(pShieldData->GetType()->Armor);
+					return R->Origin() + 6;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
 REPLACE_ARMOR(0x6F7D31, EBP, ESI, TechnoClass_CanAutoTargetObject_Shield) //
 REPLACE_ARMOR(0x6FCB64, EBX, EBP, TechnoClass_CanFire_Shield) //
 REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
@@ -102,7 +120,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	const auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt && pTypeExt)
@@ -125,7 +143,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
 }
 
 // Ares-hook jmp to this offset
-DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x0)
+DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 {
 	GET(TemporalClass*, pThis, ESI);
 

@@ -318,7 +318,8 @@ public:
 
 	PROTECTED_PROPERTY(char , align_5C5[3]);
 
-	AnimClass * DamageFireAnims [0x8];
+	//DWORD DamageFireAnims1; //0x5C8
+	AnimClass* DamageFireAnims[0x8];
 	bool RequiresDamageFires; // if set, ::Update spawns damage fire anims and zeroes it
 
 	//5E8 - 5F8 ????????
@@ -334,8 +335,7 @@ public:
 	ProgressTimer RepairProgress; // for hospital, armory, unitrepair etc
 	RectangleStruct unknown_rect_63C;
 	CoordStruct unknown_coord_64C;
-	int unknown_int_658;
-	DWORD unknown_65C;
+	Point2D unknown_point_658;
 	bool HasPower;
 	bool IsOverpowered;
 

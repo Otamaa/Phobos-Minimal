@@ -29,6 +29,9 @@ class TechnoTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = TechnoTypeClass;
+//#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x35C;
+//#endif
 
 	class ExtData final : public Extension<TechnoTypeClass>
 	{
@@ -317,7 +320,14 @@ public:
 		ValueableVector<WeaponTypeClass*> FireSelf_Weapon_RedHeath;
 		ValueableVector<int> FireSelf_ROF_RedHeath;
 
-		Valueable<bool> AllowFire_IroncurtainedTarget;
+		Nullable<bool> AllowFire_IroncurtainedTarget;
+		Valueable<int> EngineerCaptureDelay;
+
+		Nullable<ColorStruct> CommandLine_Move_Color;
+		Nullable<ColorStruct> CommandLine_Attack_Color;
+		Valueable<bool> CloakMove;
+		Nullable<bool> PassiveAcquire_AI;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -327,6 +337,7 @@ public:
 		Nullable<CoordStruct> Elite_SecondaryCrawlFLH;
 
 		Valueable<bool> MissileHoming;
+
 		ExtraFireData MyExtraFireData;
 		AircraftDiveData MyDiveData;
 		AircraftPutData MyPutData;
@@ -591,7 +602,12 @@ public:
 			, FireSelf_ROF_YellowHeath {}
 			, FireSelf_Weapon_RedHeath {}
 			, FireSelf_ROF_RedHeath {}
-			, AllowFire_IroncurtainedTarget { false }
+			, AllowFire_IroncurtainedTarget { }
+			, EngineerCaptureDelay { 0 }
+			, CommandLine_Move_Color { }
+			, CommandLine_Attack_Color { }
+			, CloakMove { false }
+			, PassiveAcquire_AI { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -620,7 +636,7 @@ public:
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
 		void Initialize();
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -634,7 +650,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TechnoTypeExt>
+	class ExtContainer final : public Container<TechnoTypeExt, true>
 	{
 	public:
 		ExtContainer();

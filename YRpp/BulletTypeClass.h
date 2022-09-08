@@ -110,7 +110,7 @@ public:
 	int CourseLockDuration;
 	int SpawnDelay;
 	int ScaledSpawnDelay;
-	bool Scalable;
+	DWORD Scalable;
 	int Arm;
 	byte AnimLow;
 	byte AnimHigh;

@@ -17,6 +17,9 @@ class BuildingExt
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
+//#ifdef ENABLE_NEWHOOKS_
+	static constexpr size_t ExtOffset = 0x6FC;
+//#endif
 
 	class ExtData final : public Extension<BuildingClass>
 	{
@@ -56,7 +59,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingExt>
+	class ExtContainer final : public Container<BuildingExt,true>
 	{
 	public:
 		ExtContainer();

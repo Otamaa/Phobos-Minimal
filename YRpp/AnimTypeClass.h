@@ -128,8 +128,9 @@ public:
 	bool Reverse;
 	bool Shadow;
 	bool PsiWarning;
-	bool ShouldFogRemove;
-	PROTECTED_PROPERTY(byte, _pad[3]);
+	//bool ShouldFogRemove;
+	//PROTECTED_PROPERTY(byte, _pad[3]);
+	DWORD Dummy_space;
 };
 //#pragma pack(pop)
 static_assert(sizeof(AnimTypeClass) == (0x378), "Invalid size.");

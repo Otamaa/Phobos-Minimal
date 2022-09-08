@@ -97,7 +97,7 @@ uintptr_t PaintBall::GetColor() {
 	// then convert it to DWORD
 	Color16Struct nColor16 = { Data.get().Color.R,Data.get().Color.G,Data.get().Color.B };
 	ColorStruct nColorAgain = ColorStruct { nColor16 };
-	return Drawing::RGB_To_Int(nColorAgain);
+	return Drawing::RGB2DWORD(nColorAgain);
 }
 
 static inline bool AllowRedraw(TechnoClass* pWho, bool bForce ,bool bIgnoreShroud , bool bIgnoreFog)

@@ -243,8 +243,10 @@ void ShieldClass::ResponseAttack() const
 		{
 			const auto pos = pUnit->GetDestination(pUnit);
 
-			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(pos)))
-				VoxClass::Play("EVA_OreMinerUnderAttack");
+			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(pos))){
+				const auto EVA_OreMinerUnderAttack = Make_Global<const char*>(0x824784);
+				VoxClass::Play(EVA_OreMinerUnderAttack);
+			}
 		}
 	}
 }
@@ -682,9 +684,7 @@ void ShieldClass::CreateAnim()
 
 void ShieldClass::KillAnim()
 {
-	if (this->IdleAnim)
-	{
-		this->IdleAnim->SetOwnerObject(nullptr);
+	if (this->IdleAnim) {
 
 		if(this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
 			CallDTOR<false>(this->IdleAnim);

@@ -186,7 +186,7 @@ void SurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
 			auto q = p;
 			for (int x = 0; x < bound.Width; ++x)
 			{
-				*q = (WORD)Drawing::RGB_To_Int(d[0], d[1], d[2]);
+				*q = (WORD)Drawing::RGB2DWORD(d[0], d[1], d[2]);
 				d += 3;
 				++q;
 			}

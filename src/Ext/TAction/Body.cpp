@@ -83,6 +83,295 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
 TActionExt::ExtContainer::~ExtContainer() = default;
 
+static bool something_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto nVal = pThis->Value;
+	if (nVal <= 2) {
+		if (nVal < 0)
+			nVal = 0;
+	} else {
+		nVal = 2;
+	}
+
+	bool IsEligible = false;
+	for (auto pTech : *TechnoClass::Array)
+	{
+		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
+		{
+			if (!pTech->AttachedTag || !pTech->AttachedTag->ContainsTrigger(pTrigger))
+			{
+				IsEligible = false;
+			}
+			else
+			{
+				IsEligible = true;
+				pTech->Veterancy.Veterancy = (nVal * 1.0f);
+			}
+		}
+	}
+
+	return IsEligible;
+
+}
+
+static bool something_701(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Param4);
+
+	if (!pOwner)
+		return false;
+
+	if (pThis->Param3) {
+		auto nAmount = pOwner->Available_Money();
+		pOwner->TakeMoney(nAmount);
+		pOwner->GiveMoney(abs(pThis->Value));
+	} else {
+		pOwner->TransactMoney(pThis->Value);
+	}
+
+	return true;
+}
+
+static bool something_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Param3);
+
+	if (!pOwner)
+		return false;
+
+	auto pSuperType = SuperWeaponTypeClass::FindIndex(pThis->Text);
+
+	if (pSuperType == -1 || pThis->Waypoint == -1)
+		return false;
+
+	CellStruct nBufer { };
+	ScenarioGlobal->GetWaypointCoords(&nBufer, pThis->Waypoint);
+
+	if(const auto pSuper = pOwner->Supers[pSuperType]) {
+		pSuper->IsCharged = true;
+		pSuper->Launch(nBufer, pOwner == HouseClass::Player());
+	}
+
+	return true;
+}
+
+static bool something_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Param3);
+
+	if (!pOwner)
+		return false;
+
+	switch (abs(pThis->Value))
+	{
+	case 0 :
+		pOwner->AIMode = AIMode::General;
+		break;
+	case 1 :
+	case 2 :
+		pOwner->AIMode = AIMode::LowOnCash;
+		break;
+	case 3 :
+		pOwner->AIMode = AIMode::BuildBase;
+		break;
+	default:
+		pOwner->AIMode = AIMode::SellAll;
+		break;
+	}
+
+	return true;
+}
+
+static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pAnimType  = AnimTypeClass::Find(pThis->Text);
+
+	if (!pAnimType || !pAnimType->Image)
+		return false;
+
+	auto pImage = pAnimType->Image;
+	auto MapRect = Make_Global<RectangleStruct>(0x87F8DC);
+
+	/*
+	87F8D4 = X
+	87F8D8 = Y
+	87F8DC = Width
+	87F8E0 = Height
+	*/
+
+	int nShpWidth = pImage->Width;
+	int nHeight = pImage->Height;
+	auto nShpWidth_ = nShpWidth;
+	auto nRectByt = 30 * MapRect.Width;
+	auto v29 = nHeight / 2 - 30 * MapRect.Width;
+
+	if (v29 >= 30 * MapRect.Width)
+		return true;
+
+	auto nDimension = (15 * MapRect.Height + nShpWidth / 2);
+	auto v33 = 45 * MapRect.Height;
+
+	do
+	{
+		if (nDimension < v33)
+		{
+			do
+			{
+				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f};
+				Vector3D<float> Vec3Dresult { };
+				Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
+				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
+				GameCreate<AnimClass>(pAnimType, nCoord);
+				nDimension += nShpWidth_;
+			}
+			while (nDimension < v33);
+		}
+		v29 += nHeight;
+	}
+	while (v29 < nRectByt);
+
+
+	return true;
+}
+
+static bool something_705(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Param3);
+
+	if (!pOwner)
+		return false;
+
+	CellStruct nBufer { };
+	ScenarioGlobal->GetWaypointCoords(&nBufer, pThis->Waypoint);
+	const auto pCell = Map.TryGetCellAt(nBufer);
+
+	for (auto pFoot : *FootClass::Array)
+	{
+		if (pFoot->Owner == pOwner)
+		{
+			pFoot->SetDestination(pCell, false);
+		}
+	}
+
+	return true;
+}
+
+static bool something_713(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	for (auto pTech : *TechnoClass::Array) {
+		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
+		{
+			if (pTech->AttachedTag && pTech->AttachedTag->ContainsTrigger(pTrigger))
+				pTech->Flash(pThis->Value);
+		}
+	}
+
+	return true;
+}
+
+static bool something_716(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	auto pOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value);
+
+	if (!pOwner)
+		return false;
+
+	for (auto pTech : *TechnoClass::Array)
+	{
+		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
+		{
+			auto pOrigOwner = pTech->GetOriginalOwner();
+			if ((pOrigOwner == pOwner && pTech->Owner == pOrigOwner) || !pTech->CaptureManager || !pTech->CaptureManager->SetOriginalOwnerToCivilian())
+			{
+				if (auto pTemp = pTech->TemporalTargetingMe)
+					pTemp->JustLetGo();
+
+				GameDelete(pTech);
+			}
+		}
+	}
+
+	return true;
+}
+
+static bool something_717(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (!pTrigger)
+		return false;
+
+	for (auto pTech : *TechnoClass::Array) {
+		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking)) {
+			GameDelete(pTech);
+		}
+	}
+
+	return true;
+}
+
+CoordStruct* GetSomething(CoordStruct* a1)
+{
+	auto MapRect = Make_Global<RectangleStruct>(0x87F8DC);
+	auto v1 = 60 * MapRect.Width;
+	auto v2 = 30 * MapRect.Height;
+	auto vect_X = ScenarioGlobal->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
+	auto vect_Y = (v2 / 2 + ScenarioGlobal->Random.RandomFromMax(v2));
+	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f};
+	Vector3D<float> Vec3Dresult { };
+	Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
+	a1->Z = 0;
+	a1->X = (int)Vec3Dresult.X;
+	a1->Y = (int)Vec3Dresult.Y;
+	return a1;
+}
+
+static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
+	TriggerClass* pTrigger, CellStruct const& location)
+{
+	if (pThis->Value <= 0 || !pObject)
+		return false;
+
+	for (int i = 0; i < pThis->Value; ++i) {
+		auto ncell = pObject->GetMapCoords();
+		LightningStorm::Strike(ncell);
+	}
+
+	return true;
+}
+
+
 bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
 	TriggerClass* pTrigger, CellStruct const& location, bool& bHandled)
 {
@@ -116,6 +405,26 @@ bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* p
 		return TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint:
 		return TActionExt::RunSuperWeaponAtWaypoint(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_700:
+		return something_700(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_701:
+		return something_701(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::LauchSWAtWaypoint:
+		return something_702(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::AISetMode:
+		return something_703(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_704:
+		return something_704(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_705:
+		return something_705(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::DoFlash:
+		return something_713(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_716:
+		return something_716(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::Something_717:
+		return something_717(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::DoLighningStormStrike:
+		return something_720(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::DrawLaserBetweenWeaypoints:
 		return TActionExt::DrawLaserBetweenWaypoints(pThis, pHouse, pObject, pTrigger, location);
 	default:

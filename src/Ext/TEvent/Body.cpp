@@ -13,7 +13,7 @@
 //Static init
 TEventExt::ExtContainer TEventExt::ExtMap;
 
-void TEventExt::ExtData::InitializeConstants() { }
+ void TEventExt::ExtData::InitializeConstants() { }
 
 // =============================
 // load / save

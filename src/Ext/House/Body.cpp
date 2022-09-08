@@ -11,6 +11,13 @@ HouseExt::ExtContainer HouseExt::ExtMap;
 void HouseExt::ExtData::InitializeConstants() {
 
 }
+void HouseExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+{
+	const char* pSection = this->Get()->PlainName;
+
+	INI_EX exINI(pINI);
+	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
+}
 
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
@@ -180,6 +187,9 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->Factory_VehicleType)
 		.Process(this->Factory_NavyType)
 		.Process(this->Factory_AircraftType)
+		.Process(this->AllRepairEventTriggered)
+		.Process(this->LastBuildingTypeArrayIdx)
+		.Process(this->RepairBaseNodes)
 		;
 }
 

@@ -158,8 +158,11 @@ namespace Drawing
 	static int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
 	{
 		// JMP_STD(0x4355D0);
-		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
+		return (red >> RedShiftRight << RedShiftLeft) |
+			(green >> GreenShiftRight << GreenShiftLeft) |
+			(blue >> BlueShiftRight << BlueShiftLeft);
 	}
+
 
 	static int RGB_To_Int(const ColorStruct& Color)
 	{

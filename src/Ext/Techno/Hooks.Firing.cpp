@@ -8,7 +8,7 @@
 #include <Utilities/EnumFunctions.h>
 
 // Pre-Firing Checks
-DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
+DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
@@ -57,7 +57,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x8)
 }
 
 // Weapon Firing
-DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x7)
+DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 {
 	enum { ApplyDamageMult = 0x6FE45A, ContinueCheck = 0x6FE460 };
 
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x7)
 	return ContinueCheck;
 }
 
-DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x7)
+DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 {
 	enum { Continue = 0x0, DoNotFire = 0x6FE4E7, SkipSetTarget = 0x6FE1D5 };
 
@@ -127,7 +127,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x7)
 	return Continue;
 }
 
-DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x8)
+DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 }
 
 // Reimplements the game function with few changes / optimizations
-DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
+DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, weaponIndex, 0x4);
@@ -261,4 +261,35 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x4)
 
 	R->EAX(result);
 	return 0x701393;
+}
+
+DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
+{
+	enum { DisallowFiring = 0x6FC86A };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
+
+	const auto pType = pThis->GetTechnoType();
+	auto pCell = abstract_cast<CellClass*>(pTarget);
+
+	if (pCell)
+	{
+		if (pType->NavalTargeting == NavalTargetingType::Naval_none &&
+			(pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+		{
+			return DisallowFiring;
+		}
+	}
+	else if (const auto pTerrain = abstract_cast<TerrainClass*>(pTarget))
+	{
+		pCell = pTerrain->GetCell();
+
+		if (pType->LandTargeting == LandTargetingType::Land_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
+			return DisallowFiring;
+		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+			return DisallowFiring;
+	}
+
+	return 0;
 }

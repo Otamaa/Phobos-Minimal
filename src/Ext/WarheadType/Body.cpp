@@ -362,6 +362,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Remover.Read(exINI, pSection, "Remover");
 	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
+	this->Sound.Read(exINI, pSection, "Sound");
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
@@ -510,7 +511,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Flammability)
 		.Process(Launchs)
 		.Process(PermaMC)
-
+		.Process(Sound)
 		.Process(StealMoney)
 		.Process(Steal_Display_Houses)
 		.Process(Steal_Display)
@@ -570,11 +571,11 @@ DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	WarheadTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+//	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 
 	return 0;
 }

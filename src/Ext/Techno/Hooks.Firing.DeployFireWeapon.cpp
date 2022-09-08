@@ -20,7 +20,7 @@ DEFINE_HOOK(0x746CEA, UnitClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 }
 #endif
 
-DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x7)
+DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) //7
 {
 	GET(InfantryClass*, pThis, ESI);
 	return pThis->Type->DeployFireWeapon == -1 ? 0x52194E : 0x0;
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	int const deployFireIdx = pThis->GetTechnoType()->DeployFireWeapon;
-	int weaponIndex = deployFireIdx == -1 ? pThis->SelectWeapon(pThis->Target): deployFireIdx;
+	int weaponIndex = deployFireIdx == -1 ? pThis->SelectWeapon(pThis->Target) : deployFireIdx;
 
 	if (pThis->GetFireError(pThis->Target, weaponIndex, true) == FireError::OK)
 	{

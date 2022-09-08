@@ -2,6 +2,7 @@
 #include <Phobos.h>
 #include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/Macro.h>
 #include <HouseTypeClass.h>
 #include <HouseClass.h>
 #include <ScenarioClass.h>
@@ -99,12 +100,17 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		}
 	}
 
+	this->CraterDecreaseTiberiumAmount.Read(exINI, pID, "Crater.DecreaseTiberiumAmount");
 	this->CraterChance.Read(exINI, pID, "Crater.Chance");
 	this->SpawnCrater.Read(exINI, pID, "Crater.Spawn");
 	this->ScorchChance.Read(exINI, pID, "Scorch.Chance");
 	this->SpecialDraw.Read(exINI, pID, "SpecialDraw");
 	this->NoOwner.Read(exINI, pID, "NoOwner");
 	this->Spawns_Delay.Read(exINI, pID, "Spawns.InitialDelay");
+
+	this->ConcurrentChance.Read(exINI, pID, "ConcurrentChance");
+	this->ConcurrentAnim.Read(exINI, pID, "ConcurrentAnim");
+	this->ShouldFogRemove.Read(exINI, pID, "ShouldFogRemove");
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem");
 
 	if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
@@ -209,6 +215,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(Launchs)
 
+		.Process(CraterDecreaseTiberiumAmount)
 		.Process(CraterChance)
 		.Process(SpawnCrater)
 		.Process(ScorchChance)
@@ -216,7 +223,10 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(NoOwner)
 		.Process(Spawns_Delay)
 
-		.Process(this->AttachedSystem)
+		.Process(ConcurrentChance)
+		.Process(ConcurrentAnim)
+		.Process(ShouldFogRemove)
+		.Process(AttachedSystem)
 		;
 }
 
@@ -253,11 +263,11 @@ DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	AnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+//	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 
 	return 0;
 }
@@ -303,4 +313,20 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 
 	AnimTypeExt::ExtMap.LoadFromINI(pItem , pINI);
 	return 0;
+}
+
+DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
+{
+	GET(AnimTypeClass*, pItem, ESI);
+	pItem->IsAnimatedTiberium = R->AL();
+	return 0x4282DC;
+}
+
+DEFINE_JUMP(LJMP,0x4282DC, 0x4282E2);
+
+DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
+{
+	GET(AnimTypeClass*, pType, EAX);
+	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
+	return 0x423024;
 }

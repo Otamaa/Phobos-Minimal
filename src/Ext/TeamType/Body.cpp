@@ -68,11 +68,11 @@ DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TeamTypeClass*, pItem, ESI);
 //doesnt work ?
-//#ifdef ENABLE_NEWHOOKS
-//	TeamTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
+#ifdef ENABLE_NEWHOOKS_
+	TeamTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	TeamTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#endif
 	return 0;
 }
 
@@ -124,13 +124,15 @@ DEFINE_HOOK(0x6F181B, TeamTypeClass_WriteToINI, 0x8)
 	GET(CCINIClass*, pINI, EBX);
 
 	if (const auto pExt = TeamTypeExt::ExtMap.Find(pItem)) {
+		auto const pSection = pItem->ID;
+
 		if(pExt->AI_SafeDIstance.isset())
-			pINI->WriteInteger(pItem->get_ID(), "AISafeDistance", pExt->AI_SafeDIstance.Get(), false);
+			pINI->WriteInteger(pSection, "AISafeDistance", pExt->AI_SafeDIstance.Get(), false);
 
 		if(pExt->AI_FriendlyDistance.isset())
-			pINI->WriteInteger(pItem->get_ID(), "AIFriendlyDistance", pExt->AI_FriendlyDistance.Get(), false);
+			pINI->WriteInteger(pSection, "AIFriendlyDistance", pExt->AI_FriendlyDistance.Get(), false);
 
-		pINI->WriteInteger(pItem->get_ID(), "AttackWaypoint.AllowCell", pExt->AttackWaypoint_AllowCell.Get(), true);
+		pINI->WriteInteger(pSection, "AttackWaypoint.AllowCell", pExt->AttackWaypoint_AllowCell.Get(), true);
 	}
 
 	return 0x0;

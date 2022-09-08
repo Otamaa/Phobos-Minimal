@@ -90,7 +90,7 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 		};
 
 		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
-		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0,
+		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0,
 			TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	}
 
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 		};
 
 		RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
-		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0, TextFlags);
+		DSurface::Sidebar->DSurfaceDrawText(counter, &vRect, &vPos, Drawing::RGB2DWORD(clrToolTip), 0, TextFlags);
 	}
 
 	return 0;

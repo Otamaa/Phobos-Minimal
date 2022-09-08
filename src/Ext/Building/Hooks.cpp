@@ -23,7 +23,7 @@ DEFINE_HOOK(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x0)
+DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -41,7 +41,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x0)
 	return 0x449AE8;
 }
 
-DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0xC)
+DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
@@ -305,15 +305,13 @@ DEFINE_HOOK(0x4506D4, BuildingClass_UpdateRepair_Campaign, 0x6)
 {
 	enum { GoRepair = 0x4506F5, SkipRepair = 0x450813 };
 	GET(BuildingClass*, pThis, ESI);
-	GET(HouseClass*, pHouse, ECX);
+	//GET(HouseClass*, pHouse, ECX);
 
-	//Vanilla code
-	if (pThis->HasBeenCaptured || pThis->ShouldRebuild || pHouse->ControlledByHuman())
-		return GoRepair;
+	auto hExt = HouseExt::ExtMap.Find(pThis->Owner);
 
 	if (pThis->BeingProduced && SessionClass::Instance->GameMode == GameMode::Campaign)
-		if (RulesExt::Global()->AIRepairBaseNodes)
+		if (hExt->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
 			return GoRepair;
 
-	return SkipRepair;
+	return 0x0;
 }

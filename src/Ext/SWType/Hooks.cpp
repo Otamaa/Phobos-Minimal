@@ -5,7 +5,8 @@
 #include <BitFont.h>
 //#include <format>
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 {
 	GET(SuperClass* const, pSuper, ECX);
@@ -32,6 +33,7 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Launch_finale, 0x3)
 }
 
 #pragma region Otamaa
+//TODO : Better Code ?
 namespace SWTimerTemp {
 	SWTypeExt::ExtData* SuperExt;
 }

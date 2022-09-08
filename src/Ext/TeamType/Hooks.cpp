@@ -1,7 +1,8 @@
 #include "Body.h"
 #include <TeamClass.h>
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
+//TODO : retest for desync
 //6EF8B0
 DEFINE_HOOK(0x6EF8B0, TeamMission_GatherAt_Enemy, 0x8)
 {
@@ -27,16 +28,18 @@ DEFINE_HOOK(0x6EFB78, TeamMission_GatherAt_BaseTeam, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x472589, CaptureManagerClass_TeamChooseAction_Random, 0x6)
+DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
-	GET(TeamTypeClass*, pTeamType, ECX);
+	GET(FootClass*, pFoot ,EAX);
 
-	if (auto nTeamDecision = pTeamType->MindControlDecision) {
-		if (nTeamDecision > 5)
-			nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
+	if (auto pTeam = pFoot->Team) {
+		if (auto nTeamDecision = pTeam->Type->MindControlDecision) {
+			if (nTeamDecision > 5)
+				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
 
-		R->EAX(nTeamDecision);
-		return 0x472593;
+			R->EAX(nTeamDecision);
+			return 0x472589;
+		}
 	}
 
 	return 0x4725B0;
@@ -102,7 +105,7 @@ DEFINE_HOOK(0x65DF8D, TeamTypeClass_GenerateTeamMemembers_OpenTopped, 0x6)
 	GET(FootClass* , pFoot , ESI);
 	GET_STACK(TechnoClass*, pWho, 0x14);
 
-	if (pFoot->GetTechnoType()->OpenTopped)
+	if (pFoot->GetTechnoType()->OpenTopped && !pWho->Transporter)
 	{
 		pFoot->EnteredOpenTopped(pWho);
 		pWho->Transporter = pFoot;
@@ -124,4 +127,4 @@ DEFINE_HOOK(0x6EF23A,TeamClass_ExecuteTransportUnload_Transporter, 0x6)
 	auto const v2 = pFoot->Passengers.FirstPassenger == 0;
 	return (!pFoot->Passengers.NumPassengers || !v2) ? 0x6EF2A7 :0x6EF244;
 }
-#endif
+//#endif

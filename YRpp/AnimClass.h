@@ -128,6 +128,13 @@ public:
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay , int LoopCount, DWORD flags , int ForceZAdjust = 0, bool reverse = false) noexcept
 		: AnimClass(noinit_t())
 	{ JMP_THIS(0x421EA0); }
+
+	//Coord were refence , just to save time crated this
+	AnimClass(AnimTypeClass* pAnimType, CoordStruct* pLocation, int LoopDelay,
+	int LoopCount , AnimFlag flags , int ForceZAdjust , bool reverse) noexcept
+		: AnimClass(noinit_t())
+	{ JMP_THIS(0x421EA0); }
+
 protected:
 	explicit __forceinline AnimClass(noinit_t) noexcept
 		: ObjectClass(noinit_t())

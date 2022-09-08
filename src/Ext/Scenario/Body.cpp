@@ -46,7 +46,7 @@ void ScenarioExt::ExtData::ReadVariables(bool bIsGlobal, CCINIClass* pINI)
 		{
 			auto& var = Global()->Variables[bIsGlobal][nIndex];
 			pINI->ReadString("VariableNames", pKey, pKey, Phobos::readBuffer);
-			char* buffer;
+			char* buffer = nullptr;
 			strcpy_s(var.Name, strtok_s(Phobos::readBuffer, ",", &buffer));
 			if (auto pState = strtok_s(nullptr, ",", &buffer))
 				var.Value = atoi(pState);
@@ -60,8 +60,8 @@ void ScenarioExt::Allocate(ScenarioClass* pThis)
 {
 	Data = std::make_unique<ScenarioExt::ExtData>(pThis);
 
-	if (Data)
-		Data->EnsureConstanted();
+	//if (Data)
+	//	Data->EnsureConstanted();
 }
 
 void ScenarioExt::Remove(ScenarioClass* pThis)
@@ -74,6 +74,7 @@ void ScenarioExt::Remove(ScenarioClass* pThis)
 void ScenarioExt::LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI)
 {
 	Data->LoadFromINI(pINI);
+
 }
 
 // =============================
@@ -104,7 +105,7 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 	Debug::Log("Processing ScenarioExt ! /n");
 	Stm
 		// Extra datas
-		//.Process(SessionClass::Instance->Config.GameSpeed)
+		.Process(SessionClass::Instance->Config)
 
 		.Process(this->Waypoints)
 		.Process(this->Variables[0])

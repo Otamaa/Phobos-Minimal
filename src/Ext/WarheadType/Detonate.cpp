@@ -226,6 +226,9 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		//	GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords,Map.GetCellFloorHeight(coords));
 	//}
 
+	auto const nSound = Sound.Get();
+	if (nSound != -1)
+		VocClass::PlayAt(nSound, coords);
 
 	if (pOwner) {
 		if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
@@ -236,6 +239,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 				this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
 		}
 	}
+
 
 	if (pHouse) {
 		if (this->BigGap) {

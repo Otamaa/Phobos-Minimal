@@ -18,9 +18,9 @@ class WeaponTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#endif
 
 	class ExtData final : public Extension<WeaponTypeClass>
 	{
@@ -59,7 +59,8 @@ public:
 		Valueable<AnimTypeClass*> Feedback_Anim;
 		Valueable<CoordStruct> Feedback_Anim_Offset;
 		Valueable<bool> Feedback_Anim_UseFLH;
-
+		Valueable<bool> DestroyTechnoAfterFiring;
+		Valueable<bool> RemoveTechnoAfterFiring;
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
 		AttachFireData MyAttachFireDatas;
@@ -98,6 +99,8 @@ public:
 			, Feedback_Anim { nullptr }
 			, Feedback_Anim_Offset{{ 0,0,0 } }
 			, Feedback_Anim_UseFLH { true }
+			, DestroyTechnoAfterFiring { false }
+			, RemoveTechnoAfterFiring { false }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }
@@ -109,7 +112,7 @@ public:
 
 		void LoadFromINIFile(CCINIClass* pINI);
 		void Initialize();
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -123,7 +126,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WeaponTypeExt>
+	class ExtContainer final : public Container<WeaponTypeExt,true>
 	{
 	public:
 		ExtContainer();

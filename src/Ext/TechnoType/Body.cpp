@@ -92,7 +92,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 	UnitTypeClass* pUnit = nullptr;
 
 	if (pThis->WhatAmI() == AbstractType::UnitType)
-		pUnit = abstract_cast<UnitTypeClass*>(pThis);
+		pUnit = specific_cast<UnitTypeClass*>(pThis);
 
 	if (this->Harvester_Counted.Get(pThis->Enslaves || pUnit && (pUnit->Harvester || pUnit->Enslaves)))
 		return true;
@@ -477,6 +477,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 	this->SellSound.Read(exINI, pSection, "SellSound");
 	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
+	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay");
+
+	this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
+	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
+	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
+	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
 
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
@@ -493,7 +499,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
-
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
@@ -767,7 +772,11 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FireSelf_Weapon_RedHeath)
 		.Process(this->FireSelf_ROF_RedHeath)
 		.Process(this->AllowFire_IroncurtainedTarget)
-
+		.Process(this->EngineerCaptureDelay)
+		.Process(this->CommandLine_Move_Color)
+		.Process(this->CommandLine_Attack_Color)
+		.Process(this->CloakMove)
+		.Process(this->PassiveAcquire_AI)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 
@@ -852,7 +861,11 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* const, pItem, ESI);
-	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
+//#ifdef ENABLE_NEWHOOKS
+	TechnoTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//#else
+//	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 

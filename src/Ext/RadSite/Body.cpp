@@ -24,7 +24,7 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 {
 	// use real ctor
 	const auto pRadSite = GameCreate<RadSiteClass>();
-	const auto pRadExt = RadSiteExt::GetExtData(pRadSite);
+	auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
 
 	if (!pRadExt)
 		Debug::FatalErrorAndExit("Uneable To find Ext for [%x] Radsite ! \n", pRadSite);
@@ -179,12 +179,12 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
-#else
-		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
-			pRadExt->InitializeConstants();
-#endif
+//#else
+//		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
+//			pRadExt->InitializeConstants();
+//#endif
 
 	}
 

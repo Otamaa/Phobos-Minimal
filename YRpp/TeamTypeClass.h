@@ -13,7 +13,7 @@ class FootClass;
 class TagClass;
 class TeamClass;
 class TechnoTypeClass;
-
+#pragma pack(push, 4)
 class DECLSPEC_UUID("D1DBA64E-0778-11D2-ACA5-006008055BB5")
 	NOVTABLE TeamTypeClass : public AbstractTypeClass
 {
@@ -133,4 +133,6 @@ public:
 	bool     OnlyTargetHouseEnemy;
 
 };
+#pragma pack(pop)
+
 static_assert(sizeof(TeamTypeClass) == 0xF8, "Invalid size.");

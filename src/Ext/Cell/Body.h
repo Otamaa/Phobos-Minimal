@@ -30,9 +30,9 @@ public:
 
 		virtual ~ExtData() = default;
 		void Initialize() { } //Init After INI Read
-		void InvalidatePointer(void* ptr, bool bRemoved) {
+		//void InvalidatePointer(void* ptr, bool bRemoved) {
 			//FoggedObjects wtf ?
-		}
+		//}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -55,6 +55,8 @@ public:
 
 	// Dont call it without checking Tiberium existence
 	// otherwise crash
+	static TiberiumClass* GetTiberium(CellClass* pCell);
+	static int GetOverlayIndex(CellClass* pCell ,TiberiumClass* pTiberium);
 	static int GetOverlayIndex(CellClass* pCell);
 
 };

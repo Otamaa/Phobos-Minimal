@@ -327,7 +327,7 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 }
 */
 //handle everything ourself
-DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x5)
+DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 {
 	GET(BuildingClass* const, pBld, ESI);
 
@@ -396,7 +396,7 @@ DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
 	return 0x738801;
 }
 
-DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0xA)
+DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 {
 	GET(FootClass* const, pThis, ESI);
 
@@ -415,7 +415,7 @@ DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x8)
+DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 {
 	enum { Skip = 0x4D42D2, SetMissionRate = 0x4D4569, Continue = 0x0 };
 
@@ -431,7 +431,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x8)
 	return Continue;
 }
 
-DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x7)
+DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -445,7 +445,7 @@ DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0xB)
+DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 {
 	GET(DiskLaserClass* const, pThis, ESI);
 
@@ -461,7 +461,7 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0xB)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0xA)
+DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 {
 	GET(TechnoClass*, Drainer, ESI);
 	GET(TechnoClass*, pVictim, EDI);

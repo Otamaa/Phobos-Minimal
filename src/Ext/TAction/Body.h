@@ -20,6 +20,17 @@ enum class PhobosTriggerAction : unsigned int
 	RunSuperWeaponAtLocation = 506,
 	RunSuperWeaponAtWaypoint = 507,
 
+	//ES
+	Something_700 = 700,
+	Something_701 = 701,
+	LauchSWAtWaypoint = 702,
+	AISetMode = 703,
+	Something_704 = 704,
+	Something_705 = 705 ,
+	DoFlash = 713 ,
+	Something_716 = 716 ,
+	Something_717 = 717,
+	DoLighningStormStrike  = 720 ,
 	DrawLaserBetweenWeaypoints = 9940
 };
 
@@ -53,7 +64,7 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants() { }

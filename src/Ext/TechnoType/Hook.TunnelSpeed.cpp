@@ -2,7 +2,7 @@
 #include <TunnelLocomotionClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-DEFINE_HOOK(0x72929D, TunnelLocomotionClass_7291F0_Speed, 0x6)
+DEFINE_HOOK(0x72929D, TunnelLocomotionClass_7291F0_Speed, 0x8) //6
 {
 	GET(TechnoClass*, pLinkedTo, ECX);
 	auto const pType = pLinkedTo->GetTechnoType();

@@ -47,6 +47,10 @@ class TechnoExt
 public:
 	static constexpr size_t Canary = 0x55555555;
 	using base_type = TechnoClass;
+//#ifdef ENABLE_NEWHOOKS
+	//static constexpr size_t ExtOffset = 0x4FC;
+	static constexpr size_t ExtOffset = 0x34C;
+//#endif
 
 	class ExtData final : public Extension<TechnoClass>
 	{
@@ -77,6 +81,8 @@ public:
 		std::vector<int> FireSelf_Count;
 		std::vector<WeaponTypeClass*> FireSelf_Weapon;
 		std::vector<int> FireSelf_ROF;
+		TimerStruct EngineerCaptureDelay;
+		bool FlhChanged;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -125,6 +131,8 @@ public:
 			, FireSelf_Count {}
 			, FireSelf_Weapon {}
 			, FireSelf_ROF {}
+			, EngineerCaptureDelay { }
+			, FlhChanged { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
@@ -187,7 +195,7 @@ public:
 
 	static TechnoExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<TechnoExt>
+	class ExtContainer final : public Container<TechnoExt, true>
 	{
 	public:
 		ExtContainer();
@@ -253,4 +261,6 @@ public:
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void KillSlave(TechnoClass* pThis);
 	static void HandleRemove(TechnoClass* pThis);
+
+	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
 };

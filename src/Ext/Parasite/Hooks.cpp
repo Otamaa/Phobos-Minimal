@@ -21,7 +21,8 @@
 // Parasite not removed when heal
 // Parasite Gain victim control instead of damaging
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
+//TODO : retest for desync
 DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 {
 	//GET(ParasiteClass* const, pThis, ESI);
@@ -51,40 +52,66 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	return 0x62A16A;
 }
 
-DEFINE_HOOK(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
+
+DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 {
 	enum
 	{
 		SkippAll = 0x62A24D,
-		ReceiveDamage = 0x0,
+		ReceiveDamage = 0x62A0B7,
 		ReceiveDamage_LikeVehicle = 0x62A0D3 // not instant kill the infantry , but give it damage per second
 	};
 
-	//GET(ParasiteClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const , pWeapon, EDI);
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	GET(ParasiteClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EDI);
+	GET(WarheadTypeClass* const, pWarhead, EBP);
 
-	if(pWarheadExt && pWarheadExt->Parasite_TreatInfantryAsVehicle.Get()){
-		return ReceiveDamage_LikeVehicle;
+	pThis->DamageDeliveryTimer.Start(pWeapon->ROF);
+	pThis->SuppressionTimer.Start(pWarhead->Paralyzes);
+
+	if (pThis->Victim->WhatAmI() == AbstractType::Infantry) {
+		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+		if (!pWarheadExt->Parasite_TreatInfantryAsVehicle.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg))
+			return ReceiveDamage;
 	}
 
-	return ReceiveDamage;
+	return ReceiveDamage_LikeVehicle;
 }
 
-DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x7)
+//DEFINE_HOOK(0x62A0B7, ParasiteClass_AI_InfantryAction, 0x5)
+//{
+//	enum
+//	{
+//		SkippAll = 0x62A24D,
+//		ReceiveDamage = 0x62A0BA,
+//		ReceiveDamage_LikeVehicle = 0x62A0D3 // not instant kill the infantry , but give it damage per second
+//	};
+//
+//	GET(ParasiteClass* const, pThis, ESI);
+//	GET(WeaponTypeClass* const , pWeapon, EDI);
+//
+//	if(pWarheadExt->Parasite_TreatInfantryAsVehicle.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg)) {
+//		return ReceiveDamage_LikeVehicle;
+//	}
+//
+//	R->ECX(pThis->Victim);
+//	return ReceiveDamage;
+//}
+
+DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 {
 	GET(ParasiteClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EDI);
 
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 	return (pWarheadExt && pWarheadExt->Parasite_DisableRocking.Get()) || pThis->Victim->WhatAmI() == AbstractType::Infantry
 		? 0x62A222 : 0x0;
 }
-#endif
+//#endif
 
-DEFINE_HOOK_AGAIN(0x62A399 , ParasiteClass_ExitUnit_ExitSound ,0x0) //ParasiteClass_Detach
-DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0x0) //ParasiteClass_Uninfect
+DEFINE_HOOK_AGAIN(0x62A399 , ParasiteClass_ExitUnit_ExitSound ,0x9) //ParasiteClass_Detach
+DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uninfect
 {
 	GET(ParasiteClass* const, pParasite, ESI);
 
@@ -98,7 +125,7 @@ DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0x0) //ParasiteClass_Uni
 	return 0;
 }
 
-DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x7)
+DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 {
 	enum { Handled = 0x629B9C, Continue = 0x0 };
 

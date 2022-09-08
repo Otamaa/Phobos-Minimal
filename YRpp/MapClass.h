@@ -541,6 +541,11 @@ public:
 		JMP_THIS(0x56D100);
 	}
 
+	bool IsBrideRepairNeeded(CellStruct const& nCell)
+	{
+		JMP_THIS(0x587410);
+	}
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

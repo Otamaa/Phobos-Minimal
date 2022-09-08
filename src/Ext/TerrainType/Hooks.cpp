@@ -16,9 +16,9 @@ namespace TerrainTypeTemp {
 	TerrainTypeExt::ExtData* pCurrentExt = nullptr;
 }
 
-#ifdef ENABLE_NEWHOOKS
-
-DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
+//#ifdef ENABLE_NEWHOOKS
+//TODO : and desync test
+DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
 {
 	enum
 	{
@@ -53,7 +53,7 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0xA)
 
 	return DoCellChailReact;
 }
-#endif
+//#endif
 
 DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 {

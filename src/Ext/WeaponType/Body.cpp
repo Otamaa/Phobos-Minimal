@@ -67,6 +67,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Feedback_Anim_Offset.Read(exINI, pSection, "FeedbackAnim.Offset");
 	this->Feedback_Anim_UseFLH.Read(exINI, pSection, "FeedbackAnim.UseFLH");
 
+	this->DestroyTechnoAfterFiring.Read(exINI, pSection, "DeleteAfterFiring");
+	this->RemoveTechnoAfterFiring.Read(exINI, pSection, "RemoveAfterFiring");
+
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
@@ -116,6 +119,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Feedback_Anim)
 		.Process(this->Feedback_Anim_Offset)
 		.Process(this->Feedback_Anim_UseFLH)
+		.Process(this->DestroyTechnoAfterFiring)
+		.Process(this->RemoveTechnoAfterFiring)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif
@@ -216,11 +221,11 @@ DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+//	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 
 	return 0;
 }

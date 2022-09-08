@@ -2,25 +2,36 @@
 
 CellExt::ExtContainer CellExt::ExtMap;
 
-int CellExt::GetOverlayIndex(CellClass* pCell)
+TiberiumClass* CellExt::GetTiberium(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1)
-	{
-		const auto nTibIndex = TiberiumClass::FindIndex(pCell->OverlayTypeIndex);
+		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex)))
+			return pTiberium;
 
-		if (nTibIndex != -1)
-		{
-			if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(nTibIndex))
-			{
-				if (pCell->SlopeIndex > 0)
-					return pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1;
+	return nullptr;
+}
 
-				return pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages;
-			}
-		}
+int CellExt::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
+{
+	if (pTiberium) {
+		return (pCell->SlopeIndex > 0) ?
+		(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
+		;
 	}
 
 	return 0;
+}
+
+int CellExt::GetOverlayIndex(CellClass* pCell)
+{
+	if (pCell->OverlayTypeIndex != -1) {
+		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(TiberiumClass::FindIndex(pCell->OverlayTypeIndex))) {
+			return (pCell->SlopeIndex > 0) ?
+			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages);
+		}
+	}
+
+	return 0 ;
 }
 
 // ============================ =

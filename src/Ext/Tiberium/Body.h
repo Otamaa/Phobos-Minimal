@@ -13,9 +13,9 @@ class TiberiumExt
 public:
 	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#endif
 
 	class ExtData final : public Extension<TiberiumClass>
 	{
@@ -25,17 +25,19 @@ public:
 		Nullable<int> OreTwinkleChance;
 		Nullable<int> Ore_TintLevel;
 		Nullable<ColorStruct> MinimapColor;
+		Valueable<bool> EnableLighningFix;
 
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
 			, OreTwinkle {}
 			, OreTwinkleChance {}
 			, Ore_TintLevel {}
 			, MinimapColor {}
+			, EnableLighningFix { true } //TODO : default to true
 		{ }
 
 		virtual ~ExtData() override = default;
 		void LoadFromINIFile(CCINIClass* pINI);
-		void InvalidatePointer(void *ptr, bool bRemoved);
+		// void InvalidatePointer(void *ptr, bool bRemoved);
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void Initialize() { } //Init After INI Read
@@ -54,7 +56,7 @@ public:
 
 	static TiberiumExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<TiberiumExt>
+	class ExtContainer final : public Container<TiberiumExt ,true>
 	{
 	public:
 		ExtContainer();

@@ -170,7 +170,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 }
 
 // Fix for desolator unable to fire his deploy weapon when cloaked
-DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x4)
+DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 {
 	GET(InfantryClass* const, pThis, ESI);
 

@@ -6,8 +6,8 @@ TiberiumExt::ExtData* TiberiumExt::GetExtData(TiberiumExt::base_type* pThis)
 {
 	return ExtMap.Find(pThis);
 }
-void TiberiumExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved) {
-}
+
+// void TiberiumExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved) {}
 
 void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
@@ -24,6 +24,7 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Ore_TintLevel.Read(exINI, pSection, "OreTintLevel");
 
 	this->MinimapColor.Read(exINI, pSection, "MinimapColor");
+	this->EnableLighningFix.Read(exINI, pSection, "EnableLighningFix");
 }
 
 // =============================
@@ -36,6 +37,7 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 		.Process(this->OreTwinkleChance)
 		.Process(this->Ore_TintLevel)
 		.Process(this->MinimapColor)
+		.Process(this->EnableLighningFix)
 	;
 }
 
@@ -72,11 +74,11 @@ TiberiumExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	TiberiumExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	TiberiumExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+///	TiberiumExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 

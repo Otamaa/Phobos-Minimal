@@ -13,7 +13,7 @@
 
 #pragma region Otamaa
 
-DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0xB)
+DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
 {
 	enum
 	{
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0xB)
 	return Nothing;
 }
 
-DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0xB)
+DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
 {
 	enum
 	{
@@ -55,7 +55,7 @@ DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0xB)
 	return Nothing;
 }
 
-DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0xC)
+DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
 {
 	enum
 	{
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0xC)
 	return Nothing;
 }
 
-DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0xC)
+DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 {
 	enum
 	{
@@ -190,7 +190,7 @@ DEFINE_HOOK(0x70272E, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
 	return Nothing;
 }*/
 
-DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0xB)
+DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 {
 	GET(BuildingClass* const, pThis, ESI);
 
@@ -204,7 +204,7 @@ DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0xB)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x70BEF9, TechnoClass_canHealRepair_Building, 0xB)
+DEFINE_HOOK(0x70BEF9, TechnoClass_canHealRepair_Building, 0x5) //B
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -235,7 +235,7 @@ DEFINE_HOOK(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
 }
 
 //was 4
-DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x4)
+DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 
@@ -316,17 +316,17 @@ if (pTech) {\
 R->EDX(nTime);\
 return ret;
 
-DEFINE_HOOK(0x4CA702, HouseClass_RecalcAllFactory_ExternalBonus, 0x4)
+DEFINE_HOOK(0x4CA702, HouseClass_RecalcAllFactory_ExternalBonus, 0x9) //4
 {
 	GET_TIMETO_BUILD(0x4CA70D);
 }
 
-DEFINE_HOOK(0x4C9FB5, FactoryClass_TimeToBuild_ExternalBonus, 0x4)
+DEFINE_HOOK(0x4C9FB5, FactoryClass_TimeToBuild_ExternalBonus, 0x9) //4
 {
 	GET_TIMETO_BUILD(0x4C9FC0);
 }
 
-DEFINE_HOOK(0x4C9EEB, FactoryClass_Start_ExternalBonus, 0x4)
+DEFINE_HOOK(0x4C9EEB, FactoryClass_Start_ExternalBonus, 0x9) //4
 {
 	GET_TIMETO_BUILD(0x4C9EF6);
 }

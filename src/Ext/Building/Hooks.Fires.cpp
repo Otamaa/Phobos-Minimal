@@ -8,36 +8,35 @@
 #include <Ext/Anim/Body.h>
 #include <Utilities/Macro.h>
 
-#ifdef REPLACE_BUILDING_ONFIRE
+#ifdef ENABLE_NEWHOOKS
+//TODO : retest for functionality
 namespace DamageFireAnims
 {
-	void HandleRemove(BuildingClass* pThis)
-	{
-		if (auto const pExt = BuildingExt::ExtMap.Find(pThis))
-		{
-			for (auto& pItem : pExt->DamageFireAnims)
-			{
-				if (pItem != nullptr)
-				{
-					pItem->RemainingIterations = 0;
-					pItem->DetachFromObject(pItem->OwnerObject, true);
-					pItem->UnInit();
-					//GameDelete(pItem);
-					pItem = nullptr;
-				}
+	void HandleRemove(BuildingClass* pThis) {
+		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
+			for (int i = 0; i < pExt->DamageFireAnims.size(); ++i) {
+
+				if (auto Item = pExt->DamageFireAnims.at(i))
+					GameDelete(Item);
+
+				pExt->DamageFireAnims.erase(pExt->DamageFireAnims.begin() + i);
 			}
 		}
 	}
 
-	void HandleInvalidPtr(BuildingClass* pThis, void* ptr)
-	{
-		if (auto const pExt = BuildingExt::ExtMap.Find(pThis))
-		{
-			for (auto& pItem : pExt->DamageFireAnims) {
-				if ((void*)pItem == ptr) {
-					pItem = nullptr;
-				}
-			}
+	void HandleRemove(BuildingExt::ExtData* pExt) {
+		for (int i = 0; i < pExt->DamageFireAnims.size(); ++i) {
+
+			if(auto Item = pExt->DamageFireAnims.at(i))
+				GameDelete(Item);
+
+			pExt->DamageFireAnims.erase(pExt->DamageFireAnims.begin() + i);
+		}
+	}
+
+	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
+		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
+			AnnounceInvalidPointer(pExt->DamageFireAnims, ptr);
 		}
 	}
 
@@ -50,18 +49,19 @@ namespace DamageFireAnims
 		if (!pExt || !pTypeext)
 			return;
 
+		HandleRemove(pExt);
+
 		auto const pFire = pTypeext->DamageFireTypes.GetElements(RulesGlobal->DamageFireTypes);
 
 		if (!pFire.empty() &&
 			!(pTypeext->DamageFire_Offs.Count == 0)
 			)
 		{
-
 			for (int i = 0; i < pTypeext->DamageFire_Offs.Count; ++i)
 			{
-				auto nFireOffs = pTypeext->DamageFire_Offs[i];
-				auto nPixel = TacticalGlobal->ApplyOffsetPixel(nFireOffs);
-				CoordStruct nPixCoord { nPixel.X, nPixel.Y, 0 };
+				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
+				const auto[nPiX ,nPiY] = TacticalGlobal->ApplyOffsetPixel(nFireOffs);
+				CoordStruct nPixCoord { nPiX, nPiY, 0 };
 				nPixCoord += pThis->GetCenterCoord();
 
 				if (auto const pFireType = pFire[ScenarioGlobal->Random(0, pFire.size() - 1)])
@@ -112,7 +112,7 @@ DEFINE_HOOK(0x4415F9, BuildingClass_handleRemoveFire5, 0x5)
 	return 0x44161C;
 }
 
-DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x5)
+DEFINE_HOOK(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 {
 	GET(BuildingClass*, pThis, ECX);
 	DamageFireAnims::HandleRemove(pThis);
@@ -126,6 +126,9 @@ DEFINE_HOOK(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 	DamageFireAnims::HandleInvalidPtr(pThis, ptr);
 	return 0x44EA2F;
 }
+
+//remove it from load
+DEFINE_JUMP(LJMP, 0x454154, 0x454170);
 #endif
 
 DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)

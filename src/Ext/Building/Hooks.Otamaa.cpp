@@ -18,23 +18,23 @@ DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x442A24, BuildingClass_ReceiveDamage_RotateVsAircraft, 0xC)
+//#ifdef ENABLE_NEWHOOKS
+//TODO : retest for desync
+DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 {
 	GET(BuildingClass* const, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
 
-	if (pThis && pThis->Type)
-	{
-		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
-		{
-			R->AL(pStructureExt->PlayerReturnFire.Get(RulesGlobal->PlayerReturnFire));
+	if (pThis && pThis->Type) {
+		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
+			R->AL(pStructureExt->PlayerReturnFire.Get(pRules->PlayerReturnFire));
 			return 0x442A30;
 		}
 	}
 
 	return 0x0;
 }
-#endif
+//#endif
 
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
@@ -135,7 +135,7 @@ DEFINE_JUMP(VTABLE, 0x7E4140, GET_OFFSET(BuildingTypeExt::IsFactory));
 
 /*
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0x2)
+DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pProduct, EBP);

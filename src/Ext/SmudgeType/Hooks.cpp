@@ -6,6 +6,7 @@
 //ToDo : Overlap , better render code ?
 //https://github.com/Phobos-developers/Phobos/issues/448
 #ifdef ENABLE_NEWHOOKS
+//TODO : use new Ext , for better performance
 DEFINE_HOOK(0x588B23, MapClass_ClearSmudge_Clearable, 0x5)
 {
 	GET(SmudgeTypeClass*, pSmudge, EBX);

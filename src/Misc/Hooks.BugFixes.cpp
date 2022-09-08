@@ -113,7 +113,7 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 }
 
 #ifndef COMPILE_PORTED_DP_FEATURES
-DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x8)
+DEFINE_HOOK(0x5F452E, TechnoClass_Selectable_DeathCounter, 0x6) // 8
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -453,17 +453,17 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	if (pThis->IsIronCurtained())
 	{
 		if(pThis->ForceShielded != 1)
-			nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
+			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
 		else
-			nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
 	}
 
 	if (pThis->Berzerk)
-		nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
+		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
 
 	// Boris
 	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
-		nTintColor |= Drawing::RGB_To_Int(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
+		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
 
 	// EMP
 	if (pThis->Deactivated)
@@ -605,3 +605,16 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
 DEFINE_JUMP(LJMP,0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf
+
+DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Type->JumpJet &&  !pThis->Target && !pThis->Type->TurretSpins) {
+		pThis->SecondaryFacing.turn(pThis->PrimaryFacing.current());
+		pThis-> __IsTurretTurning_49C = pThis->PrimaryFacing.in_motion();
+		return 0x736C09;
+	}
+
+	return 0;
+}

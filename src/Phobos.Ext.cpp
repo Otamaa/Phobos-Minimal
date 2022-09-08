@@ -28,6 +28,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+#include <Misc/TriggerMPOwner.h>
+
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
 
@@ -112,7 +114,8 @@ auto MassActions = MassAction <
 	LaserTrailTypeClass,
 	RadTypeClass,
 	HoverTypeClass,
-	VerticalLaserClass
+	VerticalLaserClass,
+	TriggerMPOwner
 #ifdef ENABLE_HOMING_MISSILE
 	, HomingMissileTargetTracker
 #endif

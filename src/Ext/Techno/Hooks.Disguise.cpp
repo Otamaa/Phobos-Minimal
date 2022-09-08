@@ -32,6 +32,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 }
 
 #ifdef ENABLE_NEWHOOKS
+//TODO : rework , and desync test
 #define CAN_BLINK_DISGUISE(pTechno) \
 RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::Player):true))
 

@@ -18,7 +18,7 @@
 DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 {
 	GET(AircraftClass*, pThis, EBP);
-	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -28,7 +28,7 @@ DEFINE_HOOK(0x4149EE, AircraftClass_Render2, 0x5)
 DEFINE_HOOK(0x519616, InfantryClass_Render2, 0x5)
 {
 	GET(InfantryClass*, pThis, EBP);
-	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -40,7 +40,7 @@ DEFINE_HOOK(0x73D40C, UnitClass_Render2, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (auto const pExt = TechnoExt::GetExtData(pThis))
+	if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
 	if (auto pManager = pExt->AnotherData.MyManager.get())
 		pManager->Render2(pThis, !pThis->IsActive());
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 
 	if (auto pTechno = generic_cast<TechnoClass*>(pObject))
 	{
-		auto const pExt = TechnoExt::GetExtData(pTechno);
+		auto const pExt = TechnoExt::ExtMap.Find(pTechno);
 		if (auto pManager = pExt->AnotherData.MyManager.get())
 			pManager->StopCommand();
 	}
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 DEFINE_HOOK(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	return pExt && pExt->VirtualUnit ? 0x6925E6 : 0x0;
 }
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_DP, 0x7)
 	bool Slectable = true;
 
 	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::GetExtData(pThis))
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 		Slectable = !pExt->VirtualUnit.Get();
 	#endif
 
@@ -96,7 +96,7 @@ static bool CeaseFire(TechnoClass* pThis)
 }
 
 //#ifdef COMPILE_PORTED_DP_FEATURES
-DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x8)
+DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EDI);
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
 	SpawnSupportFunctional::OnFire(pThis);
@@ -189,12 +189,12 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x702050, TechnoClass_Destroy, 0x8)
+DEFINE_HOOK(0x702050, TechnoClass_Destroy, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 	if (pExt && pTypeExt) {
 		GiftBoxFunctional::Destroy(pExt, pTypeExt);
 	}
@@ -209,7 +209,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Put_DP, 0x7)
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (pExt && pTypeExt) {
 
@@ -224,19 +224,19 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
-//was 7
-DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x9 )
+
+DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall, 0x7) //9
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(int*, pRealDamage , EBX);
 	GET(WarheadTypeClass*, pWH , EBP);
 	GET(DamageState, damageState , EDI);
 
-	const auto pExt = TechnoExt::GetExtData(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if(pExt && pTypeExt) {
@@ -246,11 +246,12 @@ DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall,0x9 )
 	return 0x0;
 }
 
-//was 5
-DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+//9
+DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x5)
 {
 	GET(TechnoClass*, pTechno, ESI);
-	R->EDI(pTechno->GetTechnoType()->GuardRange ? pTechno->GetTechnoType()->GuardRange:512);
+	auto nGuarRange = pTechno->GetTechnoType()->GuardRange;
+	R->EDI(nGuarRange ? nGuarRange : 512);
 	return 0x6F903E;
 }
 #endif

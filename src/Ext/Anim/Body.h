@@ -13,19 +13,21 @@ class AnimExt
 public:
 	static constexpr size_t Canary = 0xAAAAAAAA;
 	using base_type = AnimClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#ifdef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0xD0;
+//#endif
 
 	class ExtData final : public Extension<base_type>
 	{
 	public:
+		CoordStruct Something;
 		OptionalStruct<short , true> DeathUnitFacing;
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
 		ParticleSystemClass* AttachedSystem;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, Something { 0,0,0 }
 			, DeathUnitFacing { }
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
@@ -42,7 +44,7 @@ public:
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
-		void CreateAttachedSystem();
+		void CreateAttachedSystem(AnimTypeExt::ExtData* pData = nullptr);
 		void DeleteAttachedSystem();
 
 	private:
@@ -52,7 +54,7 @@ public:
 
 	static AnimExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<AnimExt>
+	class ExtContainer final : public Container<AnimExt ,true>
 	{
 	public:
 		ExtContainer();
@@ -83,7 +85,7 @@ public:
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim,AnimTypeExt::ExtData* pExt, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim,TechnoClass* pTechnoInvoker, bool defaultToVictimOwner = true);
-	static TechnoClass* GetTechnoInvoker(AnimClass* pThis,bool DealthByOwner);
+	static TechnoClass* GetTechnoInvoker(const AnimClass* const pThis ,bool DealthByOwner);
 	//ToDo :
 	// utilize this ,..
 	// here as dummy atm

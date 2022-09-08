@@ -9,6 +9,12 @@ enum class PhobosAIConditionTypes : int
 	CustomizableAICondition = 1,
 };
 
+enum class PhobosAINewConditionTypes : int
+{
+	CheckPrereq = 8,
+	CheckBridgeCondition = 9
+};
+
 class AITriggerTypeExt
 {
 public:

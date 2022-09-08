@@ -39,8 +39,9 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	return 0;
 }
 
+//was 8
 #define Hook_AircraftBurstFix(addr , Mode , ret)\
-DEFINE_HOOK(addr , AircraftClass_Mission_Attack_##Mode##_Strafe_BurstFix,0x8){ \
+DEFINE_HOOK(addr , AircraftClass_Mission_Attack_##Mode##_Strafe_BurstFix,0x6){ \
 GET(AircraftClass* const, pThis, ESI); \
 AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::##Mode##); return ret; }
 
@@ -50,7 +51,7 @@ Hook_AircraftBurstFix(0x418914,Strafe3,0x418935)
 Hook_AircraftBurstFix(0x418A23,Strafe4,0x418A44)
 Hook_AircraftBurstFix(0x418B1F,Strafe5,0x418B40)
 
-DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x8)
+DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
 {
 	GET(AircraftClass*, pThis, ESI);
 

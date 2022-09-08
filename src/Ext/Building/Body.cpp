@@ -1,5 +1,6 @@
 #include "Body.h"
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Macro.h>
 #include <Ext/House/Body.h>
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
@@ -7,10 +8,9 @@ void BuildingExt::ExtData::InitializeConstants()
 {
 	if (!Get() || !Get()->Type)
 		return;
-#ifdef REPLACE_BUILDING_ONFIRE
-	//YR doing similar thing , by memset the 8 Point2D array
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type))
-	{
+
+#ifdef ENABLE_NEWHOOKS
+	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type)) {
 		if (pTypeExt->DamageFire_Offs.Count > 0)
 			DamageFireAnims.reserve((size_t)pTypeExt->DamageFire_Offs.Count);
 	}
@@ -295,7 +295,11 @@ BuildingExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
+#ifdef ENABLE_NEWHOOKS_
+	BuildingExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
 	BuildingExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 
@@ -333,8 +337,10 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-/*
-DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x8)
+//BuildingClass 6FC
+DEFINE_JUMP(LJMP, 0x41D9FB, 0x41DA05);
+
+DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(void*, target, EBP);
@@ -343,5 +349,5 @@ DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x8)
 	if (auto pExt = BuildingExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(target, all);
 
-	return pThis->LightSource == target ? 0x44E948:0x44E94E;
-}*/
+	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
+}

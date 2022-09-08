@@ -12,7 +12,7 @@
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #endif
 
-DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0xC)
+DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 {
 	GET(InfantryClass*, pSlave, EDI);
 
@@ -30,33 +30,36 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0xC)
 	return 0x0;
 }
 
-/*
+
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass*, pProduct, ESI);
 
-	if (pProduct && (pProduct->WhatAmI() != AbstractType::Building) && pProduct->GetOwningHouse() && pProduct->GetOwningHouse()->IsPlayer())
-	{
-		auto nSpeak = reinterpret_cast<const char*>(0x8249A0);
+	auto nSpeak = reinterpret_cast<const char*>(0x8249A0);
 
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType()))
-		{
-			if (GeneralUtils::IsValidString(pTechnoTypeExt->Eva_Complete.data()))
+	if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType())) {
+		if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data())) {
+			if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
+			 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
+			 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
+			{
+				return 0x4FB649;
+			}
+			else
 			{
 				nSpeak = pTechnoTypeExt->Eva_Complete.data();
 			}
 		}
-
-		VoxClass::Play(nSpeak);
-
-		return 0x4FB649;
 	}
 
-	return 0x0;
+	VoxClass::Play(nSpeak);
+
+	return 0x4FB649;
 }
 
-DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x9)
+DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
 {
+	GET(HouseClass*, pThis, EDI);
 	GET(TechnoTypeClass*, pTech, ESI);
 	GET_STACK(TechnoClass*, pTech_, STACK_OFFS(0x1C, -0x4));
 
@@ -71,7 +74,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x9)
 				return 0x4FB804;
 
 			if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
-				return pTech_->GetOwningHouse() && pTech_->GetOwningHouse()->IsPlayer() ? 0x0 : 0x4FB804;
+				return pThis->IsPlayer() ? 0x0 : 0x4FB804;
 
 		}
 	}
@@ -87,25 +90,29 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 		pTech->GetOwningHouse() &&
 		pTech->GetOwningHouse()->IsPlayer())
 	{
-		auto nSpeak = reinterpret_cast<const char*>(0x83FA80);
-
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType()))
-		{
-			if (GeneralUtils::IsValidString(pTechnoTypeExt->Eva_Complete.data()))
-			{
-				nSpeak = pTechnoTypeExt->Eva_Complete.data();
+		auto nSpeak = reinterpret_cast<const char*>(0x83FA80); //EVA_ConstructionComplete
+		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())) {
+			if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data())) {
+				if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
+				 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
+				 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
+				{
+					return 0x6A8E34;
+				}
+				else
+				{
+					nSpeak = pTechnoTypeExt->Eva_Complete.data();
+				}
 			}
 		}
 
 		VoxClass::Play(nSpeak);
-
-		return 0x6A8E34;
 	}
-	return 0x0;
-}
-*/
 
-DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x8)
+	return 0x6A8E34;
+}
+
+DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 
@@ -116,7 +123,7 @@ DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x8)
+DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 
@@ -127,7 +134,7 @@ DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x8)
+DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 
@@ -190,7 +197,7 @@ static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
 
 //DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
 
-DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x5) //was 7
+DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x7) //was 5
 {
 	GET(UnitClass* , pThis , ESI);
 
@@ -213,7 +220,7 @@ DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x5) //was 7
 	return 0x7365ED;
 }
 
-DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x8)
+DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 {
 	GET(ObjectClass*, pThis, ESI);
 

@@ -15,9 +15,9 @@ class RadSiteExt
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#endif
 
 	class ExtData final : public Extension<base_type>
 	{

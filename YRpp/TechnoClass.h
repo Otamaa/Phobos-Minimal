@@ -810,7 +810,7 @@ public:
 
 	DECLARE_PROPERTY(AudioController, Audio3);
 
-	DWORD            unknown_49C;
+	DWORD            __IsTurretTurning_49C;
 	DWORD            __IsTurretTurning_4A0;
 
 	DECLARE_PROPERTY(AudioController, Audio4);

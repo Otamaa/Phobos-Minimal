@@ -16,9 +16,9 @@ class WarheadTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+//#endif
 
 	class ExtData final : public Extension<WarheadTypeClass>
 	{
@@ -159,14 +159,14 @@ public:
 		Valueable<bool> Parasite_DisableRocking;
 		NullableIdx<AnimTypeClass> Parasite_GrappleAnimIndex;
 		Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys;
-		Valueable<bool> Parasite_TreatInfantryAsVehicle;
+		Nullable<bool> Parasite_TreatInfantryAsVehicle;
 
 		Nullable<int> Flammability;
 
 		std::vector<LauchSWData> Launchs;
 
 		Valueable<bool> PermaMC;
-
+		ValueableIdx<VocClass> Sound;
 	#ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -293,12 +293,13 @@ public:
 			, Parasite_DisableRocking {}
 			, Parasite_GrappleAnimIndex {}
 			, Parasite_ParticleSys {}
-			, Parasite_TreatInfantryAsVehicle { false }
+			, Parasite_TreatInfantryAsVehicle { }
 
 			, Flammability {}
 
 			, Launchs {}
 			, PermaMC { false }
+			, Sound { -1 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -344,7 +345,7 @@ public:
 
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		void Initialize();
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -355,7 +356,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WarheadTypeExt>
+	class ExtContainer final : public Container<WarheadTypeExt,true>
 	{
 	public:
 		ExtContainer();

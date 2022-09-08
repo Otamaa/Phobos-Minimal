@@ -70,8 +70,8 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// It has to be these four classes, otherwise pType will just be nullptr
 	reinterpret_cast<TechnoClass*>(pTrick)->Owner = HouseClass::Player;
 	int nTimeToBuild = reinterpret_cast<TechnoClass*>(pTrick)->TimeToBuild();
-	//double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(reinterpret_cast<TechnoClass*>(pTrick), HouseClass::Player);
-	nTimeToBuild = static_cast<int>(nTimeToBuild);
+	double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(pType, HouseClass::Player);
+	nTimeToBuild = static_cast<int>(nTimeToBuild * nMult);
 	// 54 frames at least
 	return nTimeToBuild < 54 ? 54 : nTimeToBuild;
 }
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x478EE1, CCToolTip_Draw2_SetBuffer, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x478E10, CCToolTip_Draw1, 0x0)
+DEFINE_HOOK(0x478E10, CCToolTip_Draw1, 0x6) //0
 {
 	GET(CCToolTip*, pThis, ECX);
 	GET_STACK(bool, bFullRedraw, 0x4);
@@ -327,7 +327,7 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 //
 //		BitFont::Instance->field_41 = 1;
 //		BitFont::Instance->SetBounds(&bounds);
-//		BitFont::Instance->Color = static_cast<WORD>(Drawing::RGB_To_Int(191, 98, 10));
+//		BitFont::Instance->Color = static_cast<WORD>(Drawing::RGB2DWORD(191, 98, 10));
 //
 //		BitText::Instance->DrawText(BitFont::Instance, pSurface, PhobosToolTip::Instance.GetBuffer(),
 //			bounds.X + 4, bounds.Y + 2, bounds.Width, bounds.Height, 0, 0, 0);
@@ -338,16 +338,15 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 
 // If tooltip rectangle width is constrained, make sure
 // there is a padding zone so text isn't drawn into border
-//DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
-//{
-//	if (PhobosToolTip::Instance.IsCameo)
-//	{
-//		if (Phobos::UI::MaxToolTipWidth > 0)
-//			R->EDX(R->EDX() - 5);
-//	}
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
+{
+	if (PhobosToolTip::Instance.IsCameo) {
+		if (Phobos::UI::MaxToolTipWidth > 0)
+			R->EDX(R->EDX() - 5);
+	}
+
+	return 0;
+}
 
 void __declspec(naked) _CCToolTip_Draw2_FillRect_RET()
 {

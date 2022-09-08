@@ -22,6 +22,9 @@ public:
 	static void __fastcall Init(TheaterType theater)
 		{ JMP_STD(0x5349C0); }
 
+	static void __fastcall SetTheaterLetter(char* string, int theater)
+		{ JMP_STD(0x5F96B0); }
+
 	char	Identifier[0x10];		//e.g. "TEMPERATE"
 	char	UIName[0x20];			//e.g. "Name:Temperate"
 	char	ControlFileName[0xA];	//e.g. "TEMPERAT" -> INI and MIX

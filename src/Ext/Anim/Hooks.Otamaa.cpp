@@ -232,7 +232,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 }
 
 //crash and corrup ESI pointer around
-DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
+DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 {
 	GET(AnimClass*, pThis, ESI);
 
@@ -293,7 +293,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0xC)
 	return 0x42504D;
 }
 
-DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
+DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 {
 	GET(AnimClass*, pThis, ESI);
 	GET_STACK(CellClass*, pCell, STACK_OFFS(0x30, 0x14));
@@ -311,7 +311,9 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 			{
 				if (pType->Crater)
 				{
-					pCell->ReduceTiberium(6);
+					if(pTypeExt->CraterDecreaseTiberiumAmount.Get() > 0)
+						pCell->ReduceTiberium(pTypeExt->CraterDecreaseTiberiumAmount.Get());
+
 					if (pType->ForceBigCraters)
 						SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, 300, 300, true);
 					else
@@ -331,3 +333,42 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0x4)
 
 	return 0x0;
 }
+
+DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
+{
+	GET(AnimClass*, pThis, ESI);
+	GET_BASE(CoordStruct, nCoord, 0xC);
+
+	if (auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	{
+		if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
+		{
+			if (ScenarioGlobal->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get())
+			{
+				auto const nIdx = ScenarioGlobal->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
+				if (auto pAnim = GameCreate<AnimClass>(pTypeExt->ConcurrentAnim.at(nIdx), nCoord))
+					pAnim->Owner = pThis->GetOwningHouse();
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+#ifdef ENABLE_NEWHOOKS
+TODO : retest for desync
+
+
+DEFINE_HOOK(0x4242BA, AnimClass_AI_SetCoord, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	if (auto const pExt = AnimExt::ExtMap.Find(pThis)) {
+		if (pExt->Something) {
+			auto nCoord = pThis->GetCoords() + pExt->Something;
+			pThis->SetLocation(nCoord);
+		}
+	}
+	return 0x0;
+}
+#endif

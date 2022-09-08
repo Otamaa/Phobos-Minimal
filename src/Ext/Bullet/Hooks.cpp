@@ -50,7 +50,7 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x466705, BulletClass_AI, 0x8)
+DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	GET(BulletClass*, pThis, EBP);
 	const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
@@ -721,7 +721,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 #pragma endregion
 
 #ifndef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0xC)
+DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
 {
 	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 };
 
@@ -747,7 +747,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0xC)
 }
 #else
 /// TODO : snap checks test
-DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0xC) //was 6
+DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 {
 	enum { SkipAirburstCheck = 0x467CDE , SkipSnapFunc = 0x467E53 };
 
@@ -775,7 +775,7 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0xC) //was 6
 	return 0;
 }
 
-DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0xC) //was6
+DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 {
 	enum { SkipAirburstChecks = 0x468E7B , SkipCoordFunc = 0x468E9F };
 
@@ -806,7 +806,7 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0xC) //was6
 	return 0;
 }
 
-DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0xC) //was 6
+DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 {
 	enum { SkipInitialChecks = 0x468EC7, SkipSetCoordinate = 0x468F23 };
 
