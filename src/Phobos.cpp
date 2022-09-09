@@ -650,14 +650,14 @@ DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
 	REF_STACK(int, nDataSize, 0x4);
 	nDataSize += 0x4;
 	return 0x0;
 }
-//#endif
+#endif
 /*
 DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x8)
 {

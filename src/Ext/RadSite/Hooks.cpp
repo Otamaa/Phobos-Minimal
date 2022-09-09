@@ -74,7 +74,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 						if (Map[pSite->BaseCell] != Map[location])
 							return false;
 
-						if (spread != pSite->Spread)
+						if (spread != pRadExt->Spread)
 							return false;
 
 						if (pThis->WeaponType != pRadExt->Weapon)
@@ -140,7 +140,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 						if (Map[pPair->BaseCell] != pThis->GetCell())
 							return false;
 
-						if (Game::F2I(pWeapon->Warhead->CellSpread) != pPair->Spread)
+						if (Game::F2I(pWeapon->Warhead->CellSpread) != pRadExt->Spread)
 							return false;
 
 						if (pWeapon != pRadExt->Weapon)

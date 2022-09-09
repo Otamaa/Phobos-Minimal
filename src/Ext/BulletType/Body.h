@@ -16,7 +16,7 @@ public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
 //#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+	static constexpr size_t ExtOffset = 0x2EC;
 //#endif
 
 	class ExtData final : public Extension<BulletTypeClass>
@@ -67,6 +67,7 @@ public:
 		Nullable<double> PreExplodeRange;
 		Nullable <double> Trajectory_Speed;
 		Nullable<int> Proximity_Range;
+		Valueable<bool> IsScalable;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -112,6 +113,7 @@ public:
 			, PreExplodeRange { }
 			, Trajectory_Speed { }
 			, Proximity_Range { }
+			, IsScalable { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
@@ -145,7 +147,11 @@ public:
 
 	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<BulletTypeExt ,true> {
+	class ExtContainer final : public Container<BulletTypeExt
+//#ifdef ENABLE_NEWHOOKS
+		, true
+//#endif
+	> {
 	public:
 		ExtContainer();
 		~ExtContainer();
@@ -157,5 +163,5 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static double GetAdjustedGravity(BulletTypeClass* pType);
-	static BulletTypeClass* GetDefaultBulletType();
+	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
 };

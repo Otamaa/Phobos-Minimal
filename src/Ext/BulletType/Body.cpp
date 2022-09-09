@@ -3,6 +3,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
+#include <Utilities/Macro.h>
+
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 BulletTypeExt::ExtData::~ExtData()
 {
@@ -21,9 +23,16 @@ BulletTypeExt::ExtData* BulletTypeExt::GetExtData(BulletTypeExt::base_type* pThi
 	return ExtMap.Find(pThis);
 }
 
-BulletTypeClass* BulletTypeExt::GetDefaultBulletType()
+BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 {
-	return BulletTypeClass::FindOrAllocate(NONE_STR);
+	BulletTypeClass* pType = nullptr;
+
+	if(pBullet) {
+		pType = BulletTypeClass::Find(pBullet);
+	}
+
+	//an dummy bullet , huh
+	return pType ? pType : GameCreate<BulletTypeClass>(DEFAULT_STR2);
 }
 
 void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
@@ -133,7 +142,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PreExplodeRange.Read(exINI, pSection, "PreExplode.Range");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 	this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
-
+	this->IsScalable.Read(exINI, pSection, "Scalable");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
 #endif
@@ -181,6 +190,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PreExplodeRange)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Proximity_Range)
+		.Process(this->IsScalable)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
@@ -229,7 +239,7 @@ DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 //#ifdef ENABLE_NEWHOOKS
 	BulletTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 //#else
-	//BulletTypeExt::ExtMap.FindOrAllocate(pItem);
+//	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
 //#endif
 	return 0;
 }
@@ -276,3 +286,21 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 
 	return 0;
 }
+
+//#ifdef ENABLE_NEWHOOKS
+DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
+DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
+DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)
+{
+	GET(BulletTypeClass*, pBulletType, EAX);
+	R->CL(BulletTypeExt::ExtMap.Find(pBulletType)->IsScalable.Get());
+	return 0x741433;
+}
+
+DEFINE_HOOK(0x4685EC, BulletClass_Detach_Scalable, 0x6)
+{
+	GET(BulletTypeClass*, pBulletType, ECX);
+	auto pExt = BulletTypeExt::ExtMap.Find(pBulletType);
+	return pExt && pExt->IsScalable.Get() ? 0x4685F4 : 0x46865F;
+}
+//#endif

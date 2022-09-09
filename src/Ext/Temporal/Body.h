@@ -10,8 +10,9 @@ class TemporalExt
 public:
 	static constexpr size_t Canary = 0x82229781;
 	using base_type = TemporalClass;
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-
+#endif
 	class ExtData final : public Extension<TemporalClass>
 	{
 	public:

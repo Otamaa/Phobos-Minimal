@@ -147,6 +147,79 @@ DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 	return ReturnValue;
 }
 
+//DEFINE_HOOK(0x6F3436, TechnoClass_SelectGattlingWeapon, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EBP);
+//
+//	enum { Odd = 0x6F346A, Even = 0x6F345C, Origin = 0 };
+//	int gattlingStage = pThis->CurrentGattlingStage;
+//	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//
+//	if (pTypeExt->Gattling_SelectWeaponByVersus)
+//	{
+//		WeaponTypeClass* pWeaponOdd = pThis->GetWeapon(gattlingStage << 1)->WeaponType;
+//		WeaponTypeClass* pWeaponEven = pThis->GetWeapon(gattlingStage << 1 | 1)->WeaponType;
+//
+//		if (auto pTargetTechno = abstract_cast<TechnoClass*>(pTarget))
+//		{
+//			R->ESI(gattlingStage);
+//
+//			//auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno);
+//			Armor nArmor = pTargetTechno->GetTechnoType()->Armor;
+//
+//			if (pTargetTechno->IsInAir())
+//			{
+//				if (!pWeaponEven->Projectile->AA)
+//					return Odd;
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponEven->Warhead, nArmor) != 0.0)
+//					return Even;
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead, nArmor) == 0.0)
+//					return Even;
+//
+//				return Odd;
+//			}
+//			else
+//			{
+//				if (!pWeaponOdd->Projectile->AG)
+//					return Even;
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead, nArmor) != 0.0)
+//					return Odd;
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponEven->Warhead, nArmor) == 0.0)
+//					return Odd;
+//
+//				return Even;
+//			}
+//		}
+//		else
+//		{
+//			if (auto pTargetObject = abstract_cast<ObjectClass*>(pTarget))
+//			{
+//				ObjectTypeClass* pTargetType = pTargetObject->GetType();
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead, pTargetType->Armor) != 0.0)
+//					return Odd;
+//
+//				if (GeneralUtils::GetWarheadVersusArmor(pWeaponEven->Warhead, pTargetType->Armor) == 0.0)
+//					return Odd;
+//
+//				return Even;
+//			}
+//			else
+//			{
+//				return Odd;
+//			}
+//		}
+//	}
+//
+//	return Origin;
+//}
+
+
 DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 {
 	enum { ReturnValue = 0x6F37AF };
@@ -169,8 +242,6 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 		auto const pWeapon = pThis->GetWeapon(primaryIndex)->WeaponType;
 		auto const pWeaponSec = pThis->GetWeapon(secondaryIndex)->WeaponType;
 		bool skipRemainingChecks = false;
-
-
 
 		if (const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno))
 		{

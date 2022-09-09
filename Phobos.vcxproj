@@ -120,7 +120,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
-    <ClCompile Include="src\Misc\Hooks.FileClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />

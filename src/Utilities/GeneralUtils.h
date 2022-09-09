@@ -31,6 +31,27 @@ public:
 	static std::vector<CellStruct> AdjacentCellsInRange(unsigned int range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
+	static std::string IntToDigits(int num)
+	{
+		std::string sDigits;
+
+		if (num == 0)
+		{
+			sDigits.push_back('0');
+			return sDigits;
+		}
+
+		while (num)
+		{
+			sDigits.push_back(static_cast<char>(num % 10) + '0');
+			num /= 10;
+		}
+
+		std::reverse(sDigits.begin(), sDigits.end());
+
+		return sDigits;
+
+	}
 	static inline const int GetRangedRandomOrSingleValue(Point2D const& range)
 	{
 		return range.X >= range.Y ?

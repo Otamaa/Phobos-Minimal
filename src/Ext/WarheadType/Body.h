@@ -17,7 +17,7 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
 //#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+	static constexpr size_t ExtOffset = 0x100;
 //#endif
 
 	class ExtData final : public Extension<WarheadTypeClass>
@@ -356,7 +356,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WarheadTypeExt,true>
+	class ExtContainer final : public Container<WarheadTypeExt
+//#ifdef ENABLE_NEWHOOKS
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();

@@ -16,7 +16,7 @@ public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
 //#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+	static constexpr size_t ExtOffset = 0x44;
 //#endif
 
 	class ExtData final : public Extension<base_type>
@@ -26,12 +26,14 @@ public:
 		WeaponTypeClass* Weapon;
 		TechnoClass* TechOwner;
 		bool NoOwner;
+		int Spread;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, Type { nullptr }
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
 			, NoOwner { true }
+			, Spread { 0 }
 		{}
 
 		virtual ~ExtData() = default;

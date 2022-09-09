@@ -8,6 +8,8 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
 
+#include <Utilities/Macro.h>
+
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 void WarheadTypeExt::ExtData::Initialize()
 {
@@ -624,3 +626,9 @@ DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 
 	return 0;
 }
+
+//#ifdef ENABLE_NEWHOOKS
+DEFINE_JUMP(LJMP, 0x75D798 , 0x75D7AC)
+DEFINE_JUMP(LJMP, 0x75D7B2 , 0x75D7B8)
+DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
+//#endif

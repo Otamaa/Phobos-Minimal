@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/BulletType/Body.h>
+#include <Utilities/Macro.h>
 
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 WeaponTypeClass* WeaponTypeExt::Temporal_WP = nullptr;
@@ -69,6 +70,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->DestroyTechnoAfterFiring.Read(exINI, pSection, "DeleteAfterFiring");
 	this->RemoveTechnoAfterFiring.Read(exINI, pSection, "RemoveAfterFiring");
+	this->OpentoppedAnim.Read(exINI, pSection, "OpenToppedAnim", true);
 
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
@@ -121,6 +123,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Feedback_Anim_UseFLH)
 		.Process(this->DestroyTechnoAfterFiring)
 		.Process(this->RemoveTechnoAfterFiring)
+		.Process(this->OpentoppedAnim)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif
@@ -275,3 +278,16 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 
 	return 0;
 }
+
+//#ifdef ENABLE_NEWHOOKS
+DEFINE_JUMP(LJMP , 0x7725D1 , 0x772604)
+DEFINE_JUMP(LJMP , 0x77260A , 0x772610)
+DEFINE_JUMP(LJMP , 0x772E67 , 0x772E78)
+
+DEFINE_HOOK(0x6FF33D, TechnoClass_FireAT_OpentoppedAnim, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	R->EAX(WeaponTypeExt::ExtMap.Find(pWeapon)->OpentoppedAnim.Get());
+	return 0x6FF343;
+}
+//#endif

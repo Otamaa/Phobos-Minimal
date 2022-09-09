@@ -38,7 +38,7 @@ public:
 	Nullable<int> Pips_Building_Empty;
 
 	Valueable<bool> ImmuneToPsychedelic;
-
+	Nullable<int> ThreadPosed;
 private:
 	Valueable<double> Respawn_Rate__InMinutes;
 	Valueable<double> SelfHealing_Rate__InMinutes;
@@ -70,8 +70,10 @@ public:
 		, Pips_Building { { -1,-1,-1 } }
 		, Pips_Building_Empty {}
 		, ImmuneToPsychedelic { false }
+		, ThreadPosed { }
 		, Respawn_Rate__InMinutes { 0.0 }
 		, SelfHealing_Rate__InMinutes { 0.0 }
+
 
 	{};
 

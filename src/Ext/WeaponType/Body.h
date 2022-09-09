@@ -19,7 +19,7 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
 //#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+	static constexpr size_t ExtOffset = 0x118;
 //#endif
 
 	class ExtData final : public Extension<WeaponTypeClass>
@@ -61,6 +61,7 @@ public:
 		Valueable<bool> Feedback_Anim_UseFLH;
 		Valueable<bool> DestroyTechnoAfterFiring;
 		Valueable<bool> RemoveTechnoAfterFiring;
+		Valueable<AnimTypeClass*> OpentoppedAnim;
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
 		AttachFireData MyAttachFireDatas;
@@ -101,6 +102,7 @@ public:
 			, Feedback_Anim_UseFLH { true }
 			, DestroyTechnoAfterFiring { false }
 			, RemoveTechnoAfterFiring { false }
+			, OpentoppedAnim { nullptr }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }
@@ -126,7 +128,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WeaponTypeExt,true>
+	class ExtContainer final :public Container<WeaponTypeExt
+//#ifdef ENABLE_NEWHOOKS
+		,true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();

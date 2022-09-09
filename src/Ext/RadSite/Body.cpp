@@ -2,6 +2,7 @@
 
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
+#include <Utilities/Macro.h>
 
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
@@ -42,6 +43,7 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 
 	auto nLoc = location;
 	pRadSite->SetBaseCell(&nLoc);
+	pRadExt->Spread = spread;
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
@@ -135,6 +137,7 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 		.Process(this->Type)
 		.Process(this->TechOwner)
 		.Process(this->NoOwner)
+		.Process(this->Spread)
 		;
 }
 
@@ -231,3 +234,22 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x0)
+{
+	GET(RadSiteClass*, pThis, ECX);
+	R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
+	return 0x65B4B3;
+}
+
+DEFINE_HOOK_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
+DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
+{
+	GET(RadSiteClass*, pThis, ECX);
+	auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
+	R->ESI(nSpread);
+	R->EDX(R->EDX<int>() - nSpread);
+	return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
+}
+
+DEFINE_JUMP(LJMP, 0x65B4D4, 0x65B4D7);

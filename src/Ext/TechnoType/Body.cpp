@@ -197,7 +197,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
 
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
-	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.OwnerWhenMasterDead");
+	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 
 	//
 

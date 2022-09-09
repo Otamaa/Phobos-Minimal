@@ -77,11 +77,11 @@ DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	TeamExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
-//#else
-	//TeamExt::ExtMap.FindOrAllocate(pThis);
-//#endif
+#else
+	TeamExt::ExtMap.FindOrAllocate(pThis);
+#endif
 
 	return 0;
 }
@@ -118,6 +118,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 {
 	GET(TeamClass*, pThis, ECX);
@@ -129,3 +130,4 @@ DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 
 	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
 }
+#endif

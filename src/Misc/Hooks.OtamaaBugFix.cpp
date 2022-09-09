@@ -926,6 +926,7 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 	return !R->ESI<TechnoClass*>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
+#ifdef ENABLE_TOMSOnOVERLAYWRAPPER
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;
@@ -973,7 +974,7 @@ DEFINE_JUMP(CALL,0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
 DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
 //549E67
 DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
-
+#endif
 
 #ifdef ENABLE_NEWCHECK
 

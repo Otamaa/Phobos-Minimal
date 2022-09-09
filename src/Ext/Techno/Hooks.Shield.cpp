@@ -249,13 +249,17 @@ public:
 
 };
 
-/*
 static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	if (auto pExt = TechnoExt::GetExtData(pThis))
-		if (const auto pShieldData = pExt->Shield.get())
-			if (pShieldData->IsAvailable())
-				return pType->ThreatPosed + 1;
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)){
+		if (const auto pShieldData = pExt->Shield.get()){
+			if (pShieldData->IsAvailable()){
+				auto const pShiedType = pShieldData->GetType();
+				if (pShiedType->ThreadPosed.isset())
+					return pShiedType->ThreadPosed.Get();
+			}
+		}
+	}
 
 	return pType->ThreatPosed;
 }
@@ -291,7 +295,7 @@ DEFINE_HOOK(0x4F6B27, HouseClass_Category_Power_Shield, 0x6)
 	R->ECX(ReplaceThreadPosed(pThis, pType));
 	return 0x4F6B2D;
 }
-*/
+
 #pragma region UnitClass_GetFireError_Heal
 
 FireError __fastcall UnitClass__GetFireError(UnitClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
