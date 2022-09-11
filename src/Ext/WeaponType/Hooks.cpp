@@ -90,8 +90,8 @@ DEFINE_HOOK(0x71A9EE, TemporalClass_Update_RemoveBuildingTarget, 0x9)
 	GET(TemporalClass* const, pThis, ESI);
 
 	BuildingClass* BuildingTargetResult = nullptr;
+	auto const pTarget = pThis->Target;
 
-	if (auto const pTarget = pThis->Target)
 	{
 		if (pTarget->IsSelected)
 			pTarget->Deselect();

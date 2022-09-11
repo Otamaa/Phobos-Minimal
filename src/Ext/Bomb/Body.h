@@ -8,11 +8,11 @@
 class BombExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+
 
 	class ExtData final : public Extension<BombClass>
 	{
@@ -47,7 +47,7 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
+#endif
 	static BombClass* BombTemp;
 	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void* _);
 	static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse);

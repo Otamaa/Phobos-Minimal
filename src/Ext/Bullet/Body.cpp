@@ -256,11 +256,11 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	BulletExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-	//BulletExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	BulletExt::ExtMap.FindOrAllocate(pItem);
+#endif
 
 	return 0;
 }
@@ -300,7 +300,6 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	BulletExt::ExtMap.SaveStatic();
 	return 0;
 }
-
 
 DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 {

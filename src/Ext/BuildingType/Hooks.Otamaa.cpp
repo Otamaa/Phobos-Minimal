@@ -150,45 +150,7 @@ DEFINE_HOOK(0x44A86A, BuildingClass_Mi_Selling_PackupSound, 0xC)
 	return Handled;
 }
 
-DEFINE_HOOK_AGAIN(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
-DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
-DEFINE_HOOK(0x70272E, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
-{
-	enum
-	{
-		BuildingClass_TakeDamage_DamageSound = 0x4426DB,
-		BuildingClass_TakeDamage_DamageSound_Handled_ret = 0x44270B,
-
-		TechnoClass_TakeDamage_Building_DamageSound_01 = 0x702777,
-		TechnoClass_TakeDamage_Building_DamageSound_01_Handled_ret = 0x7027AE,
-
-		TechnoClass_TakeDamage_Building_DamageSound_02 = 0x70272E,
-		TechnoClass_TakeDamage_Building_DamageSound_02_Handled_ret = 0x702765,
-
-		Nothing = 0x0
-	};
-
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		auto const pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		if (pExt && pExt->DisableDamageSound.Get())
-		{
-			switch (R->Origin())
-			{
-			case BuildingClass_TakeDamage_DamageSound:
-				return BuildingClass_TakeDamage_DamageSound_Handled_ret;
-			case TechnoClass_TakeDamage_Building_DamageSound_01:
-				return TechnoClass_TakeDamage_Building_DamageSound_01_Handled_ret;
-			case TechnoClass_TakeDamage_Building_DamageSound_02:
-				return TechnoClass_TakeDamage_Building_DamageSound_02_Handled_ret;
-			}
-		}
-	}
-
-	return Nothing;
-}*/
+*/
 
 DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 {

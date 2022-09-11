@@ -29,8 +29,9 @@ class TechnoTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = TechnoTypeClass;
-//#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0x35C;
+//#ifdef ENABLE_NEWEXT
+	//static constexpr size_t ExtOffset = 0x35C;
+	static constexpr size_t ExtOffset = 0xDF4;
 //#endif
 
 	class ExtData final : public Extension<TechnoTypeClass>
@@ -650,12 +651,17 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TechnoTypeExt, true>
+	class ExtContainer final : public Container<TechnoTypeExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
+	//	void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

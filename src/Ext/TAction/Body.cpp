@@ -210,7 +210,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		return false;
 
 	auto pImage = pAnimType->Image;
-	auto MapRect = Make_Global<RectangleStruct>(0x87F8DC);
+	const auto MapRect = &Make_Global<RectangleStruct>(0x87F8DC);
 
 	/*
 	87F8D4 = X
@@ -222,14 +222,14 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	int nShpWidth = pImage->Width;
 	int nHeight = pImage->Height;
 	auto nShpWidth_ = nShpWidth;
-	auto nRectByt = 30 * MapRect.Width;
-	auto v29 = nHeight / 2 - 30 * MapRect.Width;
+	auto nRectByt = 30 * MapRect->Width;
+	auto v29 = nHeight / 2 - 30 * MapRect->Width;
 
-	if (v29 >= 30 * MapRect.Width)
+	if (v29 >= 30 * MapRect->Width)
 		return true;
 
-	auto nDimension = (15 * MapRect.Height + nShpWidth / 2);
-	auto v33 = 45 * MapRect.Height;
+	auto nDimension = (15 * MapRect->Height + nShpWidth / 2);
+	auto v33 = 45 * MapRect->Height;
 
 	do
 	{
@@ -903,7 +903,7 @@ DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6E4761, TActionClass_SDDTOR, 0x6)
+DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
 {
 	GET(TActionClass*, pItem, ESI);
 	TActionExt::ExtMap.Remove(pItem);

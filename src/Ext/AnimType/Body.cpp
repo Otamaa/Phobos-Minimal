@@ -254,8 +254,6 @@ bool AnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-void AnimTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
-
 AnimTypeExt::ExtContainer::ExtContainer() : Container("AnimTypeClass") { }
 AnimTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -263,11 +261,11 @@ DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	AnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 
 	return 0;
 }
@@ -299,13 +297,13 @@ DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x5) // was 3
+DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3) // was 3
 {
 	AnimTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
+//DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 {
 	GET(AnimTypeClass*, pItem, ESI);
@@ -313,6 +311,15 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 
 	AnimTypeExt::ExtMap.LoadFromINI(pItem , pINI);
 	return 0;
+}
+
+//#ifdef ENABLE_NEWEXT
+
+DEFINE_HOOK(0x42772A, AnimTypeClass_CTOR_ShouldFogRemove, 0x7)
+{
+	GET(AnimTypeClass*, pItem, ESI);
+	pItem->ShouldFogRemove = 0;
+	return 0x427731;
 }
 
 DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
@@ -330,3 +337,4 @@ DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
 	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
 	return 0x423024;
 }
+//#endif

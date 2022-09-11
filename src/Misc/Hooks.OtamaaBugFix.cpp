@@ -24,7 +24,7 @@
 #include <Memory.h>
 
 //dont bother to clear type pointer
-DEFINE_JUMP(LJMP, 0x4251A3, 0x4251B1);
+//DEFINE_JUMP(LJMP, 0x4251A3, 0x4251B1);
 
 static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
 {

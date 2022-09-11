@@ -18,24 +18,6 @@ DEFINE_HOOK(0x44D0C3, BuildingClass_Missile_EMPFire_WeaponType, 0x5)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
-//TODO : retest for desync
-DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
-
-	if (pThis && pThis->Type) {
-		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-			R->AL(pStructureExt->PlayerReturnFire.Get(pRules->PlayerReturnFire));
-			return 0x442A30;
-		}
-	}
-
-	return 0x0;
-}
-//#endif
-
 DEFINE_HOOK(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);

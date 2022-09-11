@@ -195,7 +195,7 @@ bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container hooks
 
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x71E6C1, TEventClass_CTOR, 0xD)
+DEFINE_HOOK(0x1E7FB, TEventClass_CTOR, 0x5)
 {
 	GET(TEventClass*, pItem, ESI);
 	TEventExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");

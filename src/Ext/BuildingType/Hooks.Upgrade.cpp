@@ -27,7 +27,7 @@ bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pU
 	return false;
 }
 
-DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x8)
+DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 {
 	enum { Continue = 0x4526A7, ForbidUpgrade = 0x4526B5 };
 
@@ -44,7 +44,7 @@ DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x8)
 	return ForbidUpgrade;
 }
 
-DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0xA)
+DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 {
 	enum { Continue = 0x440912, ForbidUpgrade = 0x440926 };
 

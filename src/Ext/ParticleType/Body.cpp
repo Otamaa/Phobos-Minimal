@@ -84,7 +84,7 @@ ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-#ifdef COMPILE_PORTED_DP_FEATURES
+//#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
     GET(ParticleTypeClass*, pItem, ESI);
@@ -93,10 +93,9 @@ DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
     return 0;
 }
 
-//ares 6A5A3B 7
-DEFINE_HOOK(0x644E40, ParticleTypeClass_DTOR, 0x5)
+DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 {
-	GET(ParticleTypeClass*, pItem, ECX);
+	GET(ParticleTypeClass*, pItem, ESI);
 	ParticleTypeExt::ExtMap.Remove(pItem);
 
 	return 0;
@@ -133,4 +132,4 @@ DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
     ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI);
     return 0;
 }
-#endif
+//#endif

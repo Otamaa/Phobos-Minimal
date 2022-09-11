@@ -56,10 +56,10 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 		return 0x47FB86;
 
 	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
-	const auto pPalette = FileSystem::x_PAL.get();
-	int nOreTint = Math::min(pTibExt->Ore_TintLevel.Get(1000), 1000);
+	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Intensity_Terrain);
+	const int nOreTint =  std::clamp(nTint,0, 1000);
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
-	//pPalette = pTibExt->Ore_Palette.GetOrDefaultConvert(FileSystem::x_PAL.get());
+	const auto pPalette = pTibExt->Palette.GetOrDefaultConvert(FileSystem::x_PAL.get());
 
 	SHPStruct* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)

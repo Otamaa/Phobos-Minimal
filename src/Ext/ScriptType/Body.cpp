@@ -72,7 +72,7 @@ DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x691796, ScriptTypeClass_DTOR, 0xA)
+DEFINE_HOOK(0x691796, ScriptTypeClass_DTOR, 0x6)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
 

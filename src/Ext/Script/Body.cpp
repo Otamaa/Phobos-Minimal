@@ -1492,7 +1492,8 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 
 						// Fix YR bug (when returns from the last attack the aircraft switch in loop between Mission::Enter & Mission::Guard, making it impossible to land in the dock)
 						if (pAircraft->IsInAir() && pAircraft->CurrentMission != Mission::Enter)
-							if(auto const pBld = pAircraft->GetCell()->GetBuilding())
+						if(auto pCell = pAircraft->GetCell() )
+							if(auto const pBld = pCell->GetBuilding())
 								if(pBld->Type->Helipad && !nContactIter.empty())
 									if(nContactIter.contains(pBld))
 										pAircraft->QueueMission(Mission::Enter, true);

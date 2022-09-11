@@ -18,7 +18,7 @@ class WeaponTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x118;
 //#endif
 
@@ -129,15 +129,15 @@ public:
 	};
 
 	class ExtContainer final :public Container<WeaponTypeExt
-//#ifdef ENABLE_NEWHOOKS
-		,true
+//#ifdef ENABLE_NEWEXT
+		, true
 //#endif
 	>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-        void InvalidatePointer(void* ptr, bool bRemoved);
+		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

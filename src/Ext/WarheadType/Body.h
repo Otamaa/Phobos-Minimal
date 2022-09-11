@@ -16,7 +16,7 @@ class WarheadTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x100;
 //#endif
 
@@ -357,7 +357,8 @@ public:
 	};
 
 	class ExtContainer final : public Container<WarheadTypeExt
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
+		, true
 		, true
 //#endif
 	>
@@ -366,7 +367,7 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		//void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

@@ -59,7 +59,7 @@ SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x6B52DA, SmudgeTypeClass_CTOR, 0xC)
+DEFINE_HOOK(0x6B535A, SmudgeTypeClass_CTOR, 0x7)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
 #ifdef ENABLE_NEWHOOKS
@@ -71,9 +71,9 @@ DEFINE_HOOK(0x6B52DA, SmudgeTypeClass_CTOR, 0xC)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B6164, SmudgeTypeClass_SDDTOR, 0xC)
+DEFINE_HOOK(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 {
-	GET(SmudgeTypeClass*, pItem, ECX);
+	GET(SmudgeTypeClass*, pItem, ESI);
 	SmudgeTypeExt::ExtMap.Remove(pItem);
 	return 0;
 }

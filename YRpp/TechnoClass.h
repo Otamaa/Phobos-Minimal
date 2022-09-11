@@ -205,7 +205,7 @@ public:
 	virtual bool ShouldNotBeCloaked() const R0;
 	virtual DirStruct* TurretFacing(DirStruct* pBuffer) const R0;
 	virtual bool IsArmed() const R0; // GetWeapon(primary) && GetWeapon(primary)->WeaponType
-	virtual void vt_entry_2B0() const RX;
+	virtual bool vt_entry_2B0() const R0;
 	virtual double GetStoragePercentage() const R0;
 	virtual int GetPipFillLevel() const R0;
 	virtual int GetRefund() const R0;
@@ -222,8 +222,8 @@ public:
 	virtual NavalTargetingType SelectNavalTargeting(AbstractClass *pTarget) const JMP_THIS(0x6F3820);
 	virtual int GetZAdjustment() const R0;
 	virtual ZGradient GetZGradient() const RT(ZGradient);
-	virtual CellStruct* GetSomeCellStruct() const R0;
-	virtual void SetLastCellStruct(CellStruct* Buffer) RX;
+	virtual CellStruct* GetSomeCellStruct(CellStruct* buffer) const R0;
+	virtual void SetLastCellStruct(CellStruct Buffer) RX;
 	virtual CellStruct* FindExitCell(CellStruct* Buffer, TechnoClass* pDocker, CellStruct nDefault) const; //
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;
@@ -723,7 +723,7 @@ public:
 
 	float            PitchAngle; // not exactly, and it doesn't affect the drawing, only internal state of a dropship
 	DECLARE_PROPERTY(TimerStruct, ArmTimer); //DiskLaserTimer
-	int            __ROFCounter_2F8;
+	int              ROF;
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
 

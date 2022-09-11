@@ -1,7 +1,7 @@
 #include "Body.h"
 #include <TunnelLocomotionClass.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+//#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x72929D, TunnelLocomotionClass_7291F0_Speed, 0x8) //6
 {
 	GET(TechnoClass*, pLinkedTo, ECX);
@@ -29,4 +29,4 @@ DEFINE_HOOK(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
 	R->EAX(Game::F2I((nCurrentMovementSpeed) * TechnoTypeExt::GetTunnelSpeed(pLoco->LinkedTo->GetTechnoType(), pRules)));
 	return 0x72995F;
 }
-#endif
+//#endif

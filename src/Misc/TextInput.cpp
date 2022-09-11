@@ -41,15 +41,15 @@ DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 }
 
 // It is required to add Imm32.lib to AdditionalDependencies
-/*
-HIMC& IMEContext = *reinterpret_cast<HIMC*>(0xB7355C);
-wchar_t* IMECompositionString = reinterpret_cast<wchar_t*>(0xB73318);
-
-DEFINE_HOOK(0x777F15, IMEUpdateCompositionString, 0x7)
-{
-	IMECompositionString[0] = 0;
-	ImmGetCompositionStringW(IMEContext, GCS_COMPSTR, IMECompositionString, 256);
-
-	return 0;
-}
-*/
+//
+//HIMC& IMEContext = *reinterpret_cast<HIMC*>(0xB7355C);
+//wchar_t* IMECompositionString = reinterpret_cast<wchar_t*>(0xB73318);
+//
+//DEFINE_HOOK(0x777F15, IMEUpdateCompositionString, 0x7)
+//{
+//	IMECompositionString[0] = 0;
+//	ImmGetCompositionStringW(IMEContext, GCS_COMPSTR, IMECompositionString, 256);
+//
+//	return 0;
+//}
+//

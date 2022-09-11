@@ -15,7 +15,7 @@ class BulletTypeExt
 public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x2EC;
 //#endif
 
@@ -148,14 +148,15 @@ public:
 	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
 
 	class ExtContainer final : public Container<BulletTypeExt
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
+		, true
 		, true
 //#endif
 	> {
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
+	//	void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

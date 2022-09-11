@@ -308,7 +308,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 
 
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
+DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
 #ifdef ENABLE_NEWHOOKS
@@ -319,7 +319,7 @@ DEFINE_HOOK(0x471832, CaptureManagerClass_CTOR, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x4729E1, CaptureManagerClass_DTOR, 0xD)
+DEFINE_HOOK(0x472A53, CaptureManagerClass_DTOR, 0x7)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
 	CaptureExt::ExtMap.Remove(pItem);

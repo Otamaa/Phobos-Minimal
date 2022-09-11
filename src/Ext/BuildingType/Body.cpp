@@ -552,7 +552,7 @@ bool BuildingTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 	return Stm.Success();
 }
 
-void BuildingTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+
 // =============================
 // container
 
@@ -565,11 +565,11 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	BuildingTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

@@ -88,24 +88,21 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-#ifdef COMPILE_PORTED_DP_FEATURES
+//#ifdef COMPILE_PORTED_DP_FEATURES
 //doenst work with new ext stuffs :s
-DEFINE_HOOK(0x62BB06, ParticleClass_CTOR, 0x5)
+DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 	ParticleExt::ExtMap.FindOrAllocate(pItem);
 	return 0;
 }
 
-bool __fastcall ObjectClass_limbo_Particle(ObjectClass* pObj, void* _) {
-	if(const auto pParticle = specific_cast<ParticleClass*>(pObj)) {
-		ParticleExt::ExtMap.Remove(pParticle);
-	}
-
-	return pObj->Limbo();
+DEFINE_HOOK(0x62D9CD, ParticleClass_DTOR, 0xA)
+{
+	GET(ParticleClass* const, pItem, ESI);
+	ParticleExt::ExtMap.Remove(pItem);
+	return 0;
 }
-
-DEFINE_JUMP(CALL,0x62D9BF, GET_OFFSET(ObjectClass_limbo_Particle));
 
 DEFINE_HOOK_AGAIN(0x62D810, ParticleClass_SaveLoad_Prefix, 0x8)
 DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
@@ -129,4 +126,4 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)
 	ParticleExt::ExtMap.SaveStatic();
 	return 0;
 }
-#endif
+//#endif

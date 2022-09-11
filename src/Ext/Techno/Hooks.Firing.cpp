@@ -17,13 +17,13 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	const auto pWH = pWeapon->Warhead;
 	enum { CannotFire = 0x6FCB7E };
 
-	if (const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
+	if (const auto pWHExt = WarheadTypeExt::ExtMap.Find<false>(pWH)) {
 		const int nMoney = pWHExt->TransactMoney;
 		if (nMoney != 0 && !pThis->Owner->CanTransactMoney(nMoney))
 			return CannotFire;
 	}
 
-	if (const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+	if (const auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
 		CellClass* targetCell = nullptr;
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 		if (auto const  pTransport = pThis->Transporter) {
 			float nDamageMult = RulesGlobal->OpenToppedDamageMultiplier;
 
-			if (auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())) {
+			if (auto const  pExt = TechnoTypeExt::ExtMap.Find<false>(pTransport->GetTechnoType())) {
 				nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(nDamageMult);
 			}
 
@@ -89,7 +89,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	GET(CellClass* const, pCell, EAX);
 	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find(pWeaponType)) {
+	if (auto const pExt = WeaponTypeExt::ExtMap.Find<false>(pWeaponType)) {
 		if (pExt->AreaFire_Target == AreaFireTarget::Random) {
 			auto const range = pWeaponType->Range / Unsorted::d_LeptonsPerCell;
 
@@ -132,7 +132,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
 		if (pWeaponExt->FeedbackWeapon.isset()) {
 			auto fbWeapon = pWeaponExt->FeedbackWeapon.Get();
 
@@ -263,6 +263,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	return 0x701393;
 }
 
+/*
 DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 {
 	enum { DisallowFiring = 0x6FC86A };
@@ -355,4 +356,4 @@ DEFINE_HOOK(0x6F889B, TechnoClass_CanAutoTarget_BuildingOut2, 0xA)
 	}
 
 	return GameCode;
-}
+}*/

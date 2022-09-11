@@ -20,8 +20,8 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 	if (!pClassType)
 		return false;
 
-	auto const pExt = T::ExtMap.Find(pClass);
-	auto const pTypeExt = Ttype::ExtMap.Find(pClassType);
+	auto const pExt = T::ExtMap.Find<false>(pClass);
+	auto const pTypeExt = Ttype::ExtMap.Find<false>(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return false;
@@ -57,7 +57,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 template<typename Text, typename Tbase>
 static bool ClearLastLoc(Tbase* pBase)
 {
-	auto const& pExt = Text::ExtMap.Find(pBase);
+	auto const& pExt = Text::ExtMap.Find<false>(pBase);
 
 	if (!pExt)
 		return false;
@@ -76,7 +76,7 @@ static bool ClearLastLoc(Tbase* pBase)
 template <typename Text, typename Tbase>
 static bool ClearVector(Tbase* pBase)
 {
-	auto const& pExt = Text::ExtMap.Find(pBase);
+	auto const& pExt = Text::ExtMap.Find<false>(pBase);
 
 	if (!pExt)
 		return false;
@@ -103,8 +103,8 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 	if (!pClassType || pClassType->Invisible)
 		return;
 
-	auto const pExt = TechnoExt::GetExtData(pOwner);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pClassType);
+	auto const pExt = TechnoExt::ExtMap.Find<false>(pOwner);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -144,8 +144,8 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted) {
 		return;
 
 	auto pClassType = pOwner->Type;
-	auto const pExt = BulletExt::GetExtData(pOwner);
-	auto const pTypeExt = BulletTypeExt::GetExtData(pClassType);
+	auto const pExt = BulletExt::ExtMap.Find<false>(pOwner);
+	auto const pTypeExt = BulletTypeExt::ExtMap.Find<false>(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -181,8 +181,8 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 		return;
 
 	auto pClassType = pOwner->Type;
-	auto const pExt = VoxelAnimExt::ExtMap.Find(pOwner);
-	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pClassType);
+	auto const pExt = VoxelAnimExt::ExtMap.Find<false>(pOwner);
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find<false>(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -231,7 +231,7 @@ void TrailsManager::AI(TechnoClass* pOwner)
 	if (!pOwner || pOwner->WhatAmI() == AbstractType::Building || TrailType::Array.empty())
 		return;
 
-	auto const pExt = TechnoExt::GetExtData((TechnoClass*)pOwner);
+	auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
 
 	if (!pExt)
 		return;
@@ -270,7 +270,7 @@ void TrailsManager::AI(BulletClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto const pExt = BulletExt::GetExtData(pOwner);
+	auto const pExt = BulletExt::ExtMap.Find<false>(pOwner);
 
 	if (!pExt)
 		return;
@@ -302,8 +302,8 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto  pExt = VoxelAnimExt::ExtMap.Find(pOwner);
-	auto pTypeExt = VoxelAnimTypeExt::GetExtData(pOwner->Type);
+	auto  pExt = VoxelAnimExt::ExtMap.Find<false>(pOwner);
+	auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find<false>(pOwner->Type);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -326,7 +326,7 @@ void TrailsManager::AI(ParticleClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto const pExt = ParticleExt::ExtMap.Find(pOwner);
+	auto const pExt = ParticleExt::ExtMap.Find<false>(pOwner);
 
 	if (!pExt)
 		return;
@@ -355,7 +355,7 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 	case AbstractType::Infantry:
 	case AbstractType::Aircraft:
 	{
-		auto const pExt = TechnoExt::GetExtData((TechnoClass*)pOwner);
+		auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -372,7 +372,7 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 	break;
 	case AbstractType::Bullet:
 	{
-		auto const pExt = BulletExt::GetExtData((BulletClass*)pOwner);
+		auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -388,7 +388,7 @@ void TrailsManager::Hide(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		auto const pExt = VoxelAnimExt::ExtMap.Find((VoxelAnimClass*)pOwner);
+		auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -425,7 +425,7 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 	case AbstractType::Infantry:
 	case AbstractType::Aircraft:
 	{
-		auto const pExt = TechnoExt::GetExtData((TechnoClass*)pOwner);
+		auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -435,7 +435,7 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 	break;
 	case AbstractType::Bullet:
 	{
-		auto const pExt = BulletExt::GetExtData((BulletClass*)pOwner);
+		auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);
 
 		if (!pExt)
 			return;
@@ -445,7 +445,7 @@ void TrailsManager::CleanUp(ObjectClass* pOwner)
 	break;
 	case AbstractType::VoxelAnim:
 	{
-		auto const pExt = VoxelAnimExt::ExtMap.Find((VoxelAnimClass*)pOwner);
+		auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
 
 		if (!pExt)
 			return;

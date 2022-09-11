@@ -5,6 +5,7 @@
 
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 WeaponTypeClass* WeaponTypeExt::Temporal_WP = nullptr;
+int WeaponTypeExt::nOldCircumference = 240;
 
 void WeaponTypeExt::ExtData::Initialize()
 {
@@ -224,11 +225,11 @@ DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 
 	return 0;
 }
@@ -279,7 +280,7 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP , 0x7725D1 , 0x772604)
 DEFINE_JUMP(LJMP , 0x77260A , 0x772610)
 DEFINE_JUMP(LJMP , 0x772E67 , 0x772E78)

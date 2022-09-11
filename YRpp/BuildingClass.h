@@ -307,10 +307,10 @@ public:
 	int QueueBState;
 	DWORD OwnerCountryIndex;
 	InfantryClass* C4AppliedBy;
-    DWORD LastStrength; //544
+	DWORD LastStrength; //544
 	AnimClass* FirestormAnim; //pointer
 	AnimClass* PsiWarnAnim; //pointer
-    TimerStruct PlacementDelay; //550
+	TimerStruct PlacementDelay; //550
 
 // see eBuildingAnims above for slot index meanings
 	AnimClass * Anims [0x15];
@@ -326,7 +326,7 @@ public:
 	BuildingTypeClass * Upgrades [0x3];
 
 	int FiringSWType; // type # of sw being launched
-    DWORD upgrade_5FC;
+	DWORD upgrade_5FC;
 	BuildingLightClass* Spotlight;
 	RepeatableTimerStruct GateTimer;
 	LightSourceClass * LightSource; // tiled light , LightIntensity > 0
@@ -358,21 +358,21 @@ public:
 	bool ShouldRebuild;
 	bool HasEngineer; // used to pass the NeedsEngineer check
 	TimerStruct CashProductionTimer;
-    bool IsAllowedToSell; //6DC
-    bool IsReadyToCommence; //6DD
+	bool IsAllowedToSell; //6DC
+	bool IsReadyToCommence; //6DD
 	bool NeedsRepairs; // AI handholder for repair logic,
 	bool C4Applied;
 	bool NoCrew;
-    bool IsCharging; //6E1
-    bool IsCharged;	//6E2
+	bool IsCharging; //6E1
+	bool IsCharged;	//6E2
 	bool HasBeenCaptured; // has this building changed ownership at least once? affects crew and repair.
 	bool ActuallyPlacedOnMap;
 	bool unknown_bool_6E5;
 	bool IsDamaged; // AI handholder for repair logic,
 	bool IsFogged;
 	bool IsBeingRepaired; // show animooted repair wrench
-    bool __hasBuildupData_6E9;
-    bool StuffEnabled; // status set by EnableStuff() and DisableStuff()
+	bool HasBuildup;
+	bool StuffEnabled; // status set by EnableStuff() and DisableStuff()
 	char HasCloakingData; // some fugly buffers
 	byte CloakRadius; // from Type->CloakRadiusInCells
 	char Translucency;

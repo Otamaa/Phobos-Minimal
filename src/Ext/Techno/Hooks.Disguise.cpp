@@ -8,7 +8,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 
 	enum { SetDisguise = 0x5227BF, DefaultDisguise = 0x6F4277 };
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 	{
 		//ToDo:
 #ifdef TANK_DISGUISE

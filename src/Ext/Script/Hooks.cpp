@@ -77,6 +77,6 @@ DEFINE_HOOK(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 	cell.X = static_cast<short>(nCoord % nDivisor);
 	cell.Y = static_cast<short>(nCoord / nDivisor);
 
-	R->EAX(Map[cell]);
+	R->EAX(Map.GetCellAt(cell));
 	return 0x6E959C;
 }

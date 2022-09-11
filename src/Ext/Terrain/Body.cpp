@@ -160,8 +160,8 @@ TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks
-DEFINE_HOOK(0x71BBF8, TerrainClass_CTOR, 0xD)
-//DEFINE_HOOK(0x71BE6D, TerrainClass_CTOR, 0xC)
+DEFINE_HOOK_AGAIN(0x71BDD5, TerrainClass_CTOR, 0x6)
+DEFINE_HOOK(0x71BFA6, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 #ifdef ENABLE_NEWHOOKS
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x71BBF8, TerrainClass_CTOR, 0xD)
 	return 0;
 }
 
-DEFINE_HOOK(0x71B7C9, TerrainClass_DTOR, 0xD)
+DEFINE_HOOK(0x71B7EB, TerrainClass_DTOR, 0x7)
 {
 	GET(TerrainClass*, pItem, ESI);
 

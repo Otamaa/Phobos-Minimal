@@ -82,3 +82,26 @@ int __cdecl AnimClass_Expired_SpawnsParticle(REGISTERS *a1)
   return result;
 }
 */
+
+
+/*
+DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
+{
+	GET(AnimClass* const, pItem, ESI);
+	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
+	return 0;
+}
+*/
+
+/*
+DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
+{
+	GET(AnimClass* const, pThis, ESI);
+	GET(void* , target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
+		pAnimExt->InvalidatePointer(target,all);
+
+	return pThis->AttachedBullet == target ? 0x4251B9 :0x4251C9;
+}*/

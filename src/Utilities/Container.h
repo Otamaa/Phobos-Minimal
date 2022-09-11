@@ -588,7 +588,7 @@ private:
 template <class T>
 concept HasInvalidateExtDataIgnorable = requires(T t,void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
-template <typename T ,bool NoInsert = false>
+template <typename T ,bool NoInsert = false , bool NoInvalidatePointer = false>
 class Container
 {
 private:
@@ -638,7 +638,7 @@ public:
 
 	void PointerGotInvalid(void* ptr, bool bRemoved)
 	{
-		//if constexpr (HasInvalidatePointer<Container<T>>)
+		if constexpr (!NoInvalidatePointer)
 			this->InvalidatePointer(ptr, bRemoved);
 
 		if constexpr (HasInvalidatePointer<extension_type> && !NoInsert)
@@ -708,10 +708,14 @@ public:
 		return Allocate(key);
 	}
 
+	template<bool check = false>
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
 		if constexpr (HasOffset<T>) {
-			return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
+			if constexpr (check)
+				return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
+			else
+				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 
 		} else {
 			return this->Items.find(key);
@@ -726,12 +730,12 @@ public:
 	void Remove(const_base_type_ptr key)
 	{
 		if constexpr (!NoInsert){
-		if(auto Item = this->Items.remove(key)) {
-			if constexpr (HasOffset<T>)
-				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
+			if(auto Item = this->Items.remove(key)) {
+				if constexpr (HasOffset<T>)
+					*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
 
-		  delete Item;
-		}
+			 delete Item;
+			}
 		}
 		else
 		{
@@ -749,15 +753,6 @@ public:
 			if (this->Items.size())
 			{
 				Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
-
-				for (const auto& [pKey, pValue] : this->Items)
-				{
-					if constexpr (HasOffset<T>)
-						*(extension_type_ptr*)((size_t)pKey + T::ExtOffset) = nullptr;
-
-					delete pValue;
-				}
-
 				this->Items.clear();
 			}
 		}
@@ -774,7 +769,7 @@ public:
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
-		if (auto const ptr = this->Find(key))
+		if (auto const ptr = this->Find<true>(key))
 			ptr->LoadFromINI(pINI);
 	}
 

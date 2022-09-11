@@ -79,7 +79,7 @@ DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x6F0926, TeamTypeClass_DTOR, 0x7)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
-	GET(TeamTypeClass*, pItem, ECX);
+	GET(TeamTypeClass*, pItem, ESI);
 	TeamTypeExt::ExtMap.Remove(pItem);
 	return 0;
 }

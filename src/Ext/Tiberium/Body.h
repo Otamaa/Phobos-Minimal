@@ -20,19 +20,22 @@ public:
 	class ExtData final : public Extension<TiberiumClass>
 	{
 	public:
-
+		CustomPalette Palette;
 		Nullable<AnimTypeClass*> OreTwinkle;
 		Nullable<int> OreTwinkleChance;
 		Nullable<int> Ore_TintLevel;
 		Nullable<ColorStruct> MinimapColor;
 		Valueable<bool> EnableLighningFix;
+		Valueable<bool> UseNormalLight;
 
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
+			, Palette { CustomPalette::PaletteMode::Temperate }
 			, OreTwinkle {}
 			, OreTwinkleChance {}
 			, Ore_TintLevel {}
 			, MinimapColor {}
 			, EnableLighningFix { true } //TODO : default to true
+			, UseNormalLight { true }
 		{ }
 
 		virtual ~ExtData() override = default;

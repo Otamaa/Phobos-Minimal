@@ -27,28 +27,9 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 // Bruh ,..
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));
 
-
-//TODO : retest for desync
-DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
-{
-	GET(AnimClass*, pAnim, EDI);
-	GET(AnimClass*, pThis, ESI);
-
-	auto nCoord = pThis->GetCenterCoord();
-	GameConstruct(pAnim, pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	{
-		if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
-		{
-			const auto pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
-			const auto pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
-		}
-	}
-
-	return 0x424322;
-}
-
 #ifdef ENABLE_NEWHOOKS
+
+
 // Animation Created From this hooks not showing for some reason , wtf ?
 //DEFINE_HOOK(0x423F9D, AnimClass_Spawns_Override, 0x6)
 //{

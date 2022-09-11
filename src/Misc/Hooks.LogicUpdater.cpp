@@ -35,7 +35,7 @@ void TechnoExt::ExtData::GattlingDamage()
 	if (!TechnoExt::IsAlive(pThis, false, false, false))
 		return;
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (!pTypeExt)
 		return;
@@ -108,7 +108,7 @@ void TechnoExt::KillSlave(TechnoClass* pThis)
 	{
 		if (pInf->Type->Slaved && !pInf->InLimbo && pInf->IsAlive && pInf->Health > 0 && !pInf->TemporalTargetingMe)
 		{
-			const auto pExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+			const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pInf->Type);
 			if (pExt && !pInf->SlaveOwner && (pExt->Death_WithMaster.Get() || pExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
 				TechnoExt::KillSelf(pInf, pExt->Death_Method);
 		}
@@ -151,7 +151,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	pExt->PaintBallState = std::make_unique<PaintBall>();
+	//pExt->PaintBallState = std::make_unique<PaintBall>();
 #endif
 	if (pThis->WhatAmI() != AbstractType::Building)
 	{
@@ -192,7 +192,7 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 	if (!abstract_cast<FootClass*>(pThis))
 		return;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 	if (!pTypeExt)
 		return;
 
@@ -269,12 +269,6 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 		}
 	}
 }
-
-DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
-{
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	//if (pExt && pTypeExt) {
@@ -282,72 +276,87 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 	//		pExt->ID = pThis->get_ID();
 	//	}
 	//}
+	//
 	//if (pThis->TemporalTargetingMe)
-	//if (auto const pCell = pThis->GetCell())
-	//if (auto const pBld = pCell->GetBuilding())
-	//if (pBld->Type->BridgeRepairHut)
-	//pThis->TemporalTargetingMe->Detach();
+	//{
+	//	if (auto const pCell = pThis->GetCell())
+	//	{
+	//		if (auto const pBld = pCell->GetBuilding())
+	//		{
+	//			if (pBld->Type->BridgeRepairHut)
+	//			{
+	//				pThis->TemporalTargetingMe->Detach();
+	//			}
+	//		}
+	//	}
+	//}
+
+DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
+//DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto pExt = TechnoExt::ExtMap.Find<false> (pThis);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+
+		// Set current shield type if it is not set.
+	if (!pExt->CurrentShieldType || (!pExt->CurrentShieldType->Strength && pTypeExt->ShieldType->Strength))
+		pExt->CurrentShieldType = pTypeExt->ShieldType;
+
+		// Create shield class instance if it does not exist.
+	if (pExt->CurrentShieldType && pExt->CurrentShieldType->Strength && !pExt->Shield)
+	{
+		pExt->Shield = std::make_unique<ShieldClass>(pThis);
+		pExt->Shield->OnInit();
+	}
+
+	if (auto pShieldData = pExt->GetShield())
+		pShieldData->OnUpdate();
 
 //#ifdef ENABLE_NEWHOOKS
-	if (pExt) {
-		pExt->RunFireSelf();
-//#endif
-		pExt->UpdateMindControlAnim();
-	}
+	pExt->RunFireSelf();
+	pExt->UpdateMindControlAnim();
 	TechnoExt::ApplyMobileRefinery(pThis);
 	TechnoExt::ApplyMindControlRangeLimit(pThis);
 	TechnoExt::ApplyInterceptor(pThis);
 	TechnoExt::ApplySpawn_LimitRange(pThis);
 	TechnoExt::KillSlave(pThis);
-	if (pExt) {
-		pExt->CheckDeathConditions();
-		pExt->EatPassengers();
-	}
+	pExt->CheckDeathConditions();
+	pExt->EatPassengers();
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
 #endif
-	if (pExt) {
 		pExt->GattlingDamage();
 
 
-	//if (pExt->GenericFuctions.AfterLoadGame)
-		//pExt->InitFunctionEvents();
+		//if (pExt->GenericFuctions.AfterLoadGame)
+			//pExt->InitFunctionEvents();
 
-	//pExt->GenericFuctions.run_each(pThis);
+		//pExt->GenericFuctions.run_each(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-		{
-			pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-			GiftBoxFunctional::AI(pExt, pTypeExt);
+		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-			if (auto const pPaintBall = pExt->PaintBallState.get())
-			{
-				if (pPaintBall->IsActive())
-				{
-					if (pThis->WhatAmI() == AbstractType::Building)
-						pThis->UpdatePlacement(PlacementType::Redraw);
-				}
-				else
-				{
-					pPaintBall->Disable(false);
-				}
-			}
-		}
+		//if (pExt->PaintBallState) {
+		//	pExt->PaintBallState->Update(pThis);
+		//}
+
 #endif
-	}
-
 
 	return 0;
 }
 
-static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
+DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	GET(AircraftClass*, pThis, ESI);
+
+	if (auto pExt = TechnoExt::ExtMap.Find<false>(pThis))
 	{
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 		{
 
 			if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
@@ -395,107 +404,26 @@ static void __fastcall AircraftClass_AI_(AircraftClass* pThis, void* _)
 						if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
 							pRocket->MovingDestination = pTracker->Coord;
 					}
-				}
-			}
-#endif
-#endif
 		}
 	}
-
-	pThis->FootClass::Update();
+#endif
+#endif
 }
-
-
-//DEFINE_JUMP(CALL, 0x414DA3, GET_OFFSET(AircraftClass_AI_));
-
-DEFINE_HOOK(0x414DA1 ,AircraftClass_AI_FootClass_AI, 0x6) //was 7
-{
-	GET(AircraftClass* , pThis ,ESI);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-		{
-
-			if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
-			{
-				for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
-				{
-					if (auto const pInf = generic_cast<FootClass*>(*object))
-					{
-						if (!pInf->Transporter || !pInf->InOpenToppedTransport)
-						{
-							pThis->EnteredOpenTopped(pInf);
-							pInf->Transporter = pThis;
-							pInf->Undiscover();
-						}
-					}
-				}
-
-				pExt->AircraftOpentoppedInitEd = true;
-			}
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-
-			AircraftPutDataFunctional::AI(pExt, pTypeExt);
-			AircraftDiveFunctional::AI(pExt, pTypeExt);
-			FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-
-#ifdef ENABLE_HOMING_MISSILE
-			if (pTypeExt->MissileHoming
-				&& pThis->Spawned
-				&& pThis->Type->MissileSpawn)
-			{
-				const auto pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
-				CLSID nID { };
-				pLoco->GetClassID(&nID);
-
-				if (nID == LocomotionClass::CLSIDs::Rocket())
-				{
-					if (auto const pTracker = pExt->MissileTargetTracker)
-					{
-						pTracker->AI();
-						auto const pRocket = static_cast<RocketLocomotionClass*>(pLoco);
-
-						//check if the coord is actually valid
-						// if not , just move on
-						if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
-							pRocket->MovingDestination = pTracker->Coord;
-					}
-				}
-			}
-#endif
-#endif
-		}
 	}
 
 	pThis->FootClass::Update();
 	return 0x414DA8;
 }
 
-static void __fastcall UnitClass_AI_(UnitClass* pThis, void* _)
+DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 {
-#ifdef COMPILE_PORTED_DP_FEATURES
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-			JJFacingFunctional::AI(pExt, pTypeExt);
-		}
-	}
-
-#endif
-	pThis->FootClass::Update();
-}
-
-//DEFINE_JUMP(CALL, 0x73647B, GET_OFFSET(UnitClass_AI_));
-
-DEFINE_HOOK(0x736479 , UnitClass_AI_FootClass_AI , 0x7)
-{
-	GET(UnitClass* , pThis , ESI);
+	GET(UnitClass*, pThis, ESI);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+	if (auto pExt = TechnoExt::ExtMap.Find<false>(pThis))
+	{
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
+		{
 			JJFacingFunctional::AI(pExt, pTypeExt);
 		}
 	}
@@ -529,7 +457,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (pExt)
@@ -564,10 +492,10 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (const auto pExt = BuildingExt::ExtMap.Find(pThis))
+	if (auto pExt = BuildingExt::ExtMap.Find<false>(pThis))
 	{
-		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-		const auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		auto pTypeExt = BuildingTypeExt::ExtMap.Find<false>(pThis->Type);
+		auto pTechTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type);
 		if (pTypeExt && pTechTypeExt)
 		{
 
@@ -641,23 +569,27 @@ DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 
 #ifdef ENABLE_NEWHOOKS
 //TODO : re-enabled if used
-void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
-{
-	pLogic->Update();
-}
-
-DEFINE_JUMP(CALL, 0x55DC9E, GET_OFFSET(LogicClass_AI_));
-
-void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void* _)
-{
-	pThis->Update();
-}
-
-DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
-
-//DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
-//	return 0x0;
+//void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
+//{
+//	pLogic->Update();
 //}
+//
+//DEFINE_JUMP(CALL, 0x55DC9E, GET_OFFSET(LogicClass_AI_));
+
+DEFINE_HOOK(0x55DC99, LoGicClassUpdate_probe, 0x5)
+{ return 0x0; }
+//void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void* _)
+//{
+//	pThis->Update();
+//}
+//
+//DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
+DEFINE_HOOK(0x55B4EB, KamikazeClass_AI_Probe, 0x5)
+{ return 0x0; }
+DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
+	VerticalLaserClass::OnUpdateAll();
+	return 0x0;
+}
 
 
 DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
@@ -667,5 +599,11 @@ DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
 	HomingMissileTargetTracker::Update_All();
 #endif
 	return 0x0;
+}
+
+// in progress: Initializing Tactical display
+DEFINE_HOOK(0x6875F3 , Scenario_Start1, 0x6) {
+
+	return 0;
 }
 #endif

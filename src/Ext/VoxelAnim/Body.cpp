@@ -124,8 +124,8 @@ VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-//DEFINE_HOOK(0x749951, VoxelAnimClass_CTOR, 0xC)
-DEFINE_HOOK(0x74942E, VoxelAnimClass_CTOR, 0xC)
+DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
+DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 #ifdef ENABLE_NEWHOOKS
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x74942E, VoxelAnimClass_CTOR, 0xC)
 	return 0;
 }
 
-DEFINE_HOOK(0x7499F1, VoxelAnimClass_DTOR, 0x5)
+DEFINE_HOOK(0x749B02, VoxelAnimClass_DTOR, 0xA)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
 	VoxelAnimExt::ExtMap.Remove(pItem);

@@ -158,6 +158,20 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 	}
 }
 
+void PaintBall::Update(TechnoClass* pThis)
+{
+	if(auto pExt = TechnoExt::ExtMap.Find(pThis)){
+		if (pExt->PaintBallState) {
+			if (pExt->PaintBallState->IsActive()) {
+				if (pThis->WhatAmI() == AbstractType::Building)
+					pThis->UpdatePlacement(PlacementType::Redraw);
+			} else {
+				pExt->PaintBallState->Disable(true);
+			}
+		}
+	}
+}
+
 void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
@@ -195,60 +209,62 @@ void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuild
 	}
 }
 
-DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
-{
-	GET(UnitClass* const, pOwnerObject, EBP);
+//DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
+//{
+//	GET(UnitClass* const, pOwnerObject, EBP);
+//
+//	if(auto pExt = TechnoExt::ExtMap.Find(pOwnerObject))
+//		if(pExt->PaintBallState.get())
+//			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
+//
+//	return 0;
+//}
 
-	if(auto pExt = TechnoExt::GetExtData(pOwnerObject))
-		if(pExt->PaintBallState.get())
-			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0x6)
-{
-	GET(AnimClass*, pAnim, ESI);
-
-	if (pAnim && pAnim->IsBuildingAnim) {
-		CoordStruct location = pAnim->GetCoords();
-		if (auto pCell = MapClass::Instance->TryGetCellAt(location)) {
-			if (auto pBuilding = pCell->GetBuilding()) {
-				if (auto pExt = TechnoExt::GetExtData(pBuilding)) {
-					if (pExt->PaintBallState.get())
-						pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
-				}
-			}
-		}
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0xC)
+//{
+//	GET(AnimClass*, pAnim, ESI);
+//
+//	if (pAnim && pAnim->IsBuildingAnim) {
+//		if (auto pCell = pAnim->GetCell()) {
+//			if (auto pBuilding = pCell->GetBuilding()) {
+//				if(pBuilding->IsAlive && !pBuilding->Type->Invisible){
+//					if (auto pExt = TechnoExt::ExtMap.Find(pBuilding)) {
+//						if (pExt->PaintBallState){
+//							pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
 // case VISUAL_NORMAL
-DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
-{
-	GET(TechnoClass* const, pOwnerObject, ESI);
-
-	if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
-		if(pExt->PaintBallState.get())
-			pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
-{
-	GET(TechnoClass* const, pOwnerObject, ECX);
-
-	if (pOwnerObject->WhatAmI() == AbstractType::Building) {
-		if (auto pExt = TechnoExt::GetExtData(pOwnerObject)) {
-			if (pExt->PaintBallState.get())
-				pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
-		}
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
+//{
+//	GET(TechnoClass* const, pOwnerObject, ESI);
+//
+//	if (auto pExt = TechnoExt::ExtMap.Find(pOwnerObject)) {
+//		if(pExt->PaintBallState.get())
+//			pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
+//{
+//	GET(TechnoClass* const, pOwnerObject, ECX);
+//
+//	if (pOwnerObject->WhatAmI() == AbstractType::Building) {
+//		if (auto pExt = TechnoExt::ExtMap.Find(pOwnerObject)) {
+//			if (pExt->PaintBallState.get())
+//				pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
+//		}
+//	}
+//
+//	return 0;
+//}
 #endif

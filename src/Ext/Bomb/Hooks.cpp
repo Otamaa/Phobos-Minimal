@@ -8,6 +8,7 @@ DEFINE_HOOK(0x438771, BombClass_Detonate_fetch, 0x6)
 }
 
 DEFINE_JUMP(CALL, 0x4387A3, GET_OFFSET(BombExt::DamageArea));
+
 // skip the Explosion Anim block
 DEFINE_HOOK(0x4387A8, BombClass_Detonate_ExplosionAnimHandled, 0x5)
 {

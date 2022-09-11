@@ -17,7 +17,7 @@ class BuildingExt
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
-//#ifdef ENABLE_NEWHOOKS_
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x6FC;
 //#endif
 
@@ -59,7 +59,12 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingExt,true>
+	class ExtContainer final : public Container<BuildingExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();

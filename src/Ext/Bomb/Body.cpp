@@ -2,7 +2,10 @@
 
 #include <Ext/Anim/Body.h>
 
+#ifdef ENABLE_NEWHOOKS
 BombExt::ExtContainer BombExt::ExtMap;
+#endif
+
 BombClass* BombExt::BombTemp = nullptr;
 
 HouseClass* __fastcall BombExt::GetOwningHouse(BombClass* pThis, void* _) { return pThis->OwnerHouse; }
@@ -27,6 +30,7 @@ DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage,
 	return nResult;
 }
 
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // load / save
 
@@ -68,7 +72,7 @@ BombExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK_AGAIN(0x438EE9, BombClass_CTOR , 0x6)
 DEFINE_HOOK(0x4385FC, BombClass_CTOR, 0x6)
 {

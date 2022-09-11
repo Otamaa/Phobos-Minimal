@@ -102,7 +102,7 @@ public:
 	void UnInitBibShape() const
 		{ JMP_THIS(0x465B30); }
 
-	void UnInitBuildup() const
+	void ClearBuildUp() const
 		{ JMP_THIS(0x465AF0); }
 	//
 

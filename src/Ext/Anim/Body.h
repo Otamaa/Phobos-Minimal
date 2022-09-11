@@ -13,7 +13,7 @@ class AnimExt
 public:
 	static constexpr size_t Canary = 0xAAAAAAAA;
 	using base_type = AnimClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0xD0;
 //#endif
 
@@ -54,12 +54,17 @@ public:
 
 	static AnimExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<AnimExt ,true>
+	class ExtContainer final : public Container<AnimExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
+#ifndef ENABLE_NEWEXT
 		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
@@ -76,6 +81,7 @@ public:
 			}
 
 		}
+#endif
 	};
 
 	static ExtContainer ExtMap;

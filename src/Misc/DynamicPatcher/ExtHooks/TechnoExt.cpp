@@ -189,7 +189,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x702050, TechnoClass_Destroy, 0x6) //8
+DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 

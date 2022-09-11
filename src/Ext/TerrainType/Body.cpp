@@ -135,9 +135,9 @@ DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x71E364, TerrainTypeClass_SDDTOR, 0x6)
+DEFINE_HOOK(0x71E3B5, TerrainTypeClass_SDDTOR, 0x7)
 {
-	GET(TerrainTypeClass*, pItem, ECX);
+	GET(TerrainTypeClass*, pItem, ESI);
 
 	TerrainTypeExt::ExtMap.Remove(pItem);
 

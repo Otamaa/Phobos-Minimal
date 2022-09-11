@@ -14,7 +14,7 @@ class AnimTypeExt
 public:
 	static constexpr size_t Canary = 0xEEEEEEEE;
 	using base_type = AnimTypeClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x374;
 //#endif
 
@@ -146,13 +146,16 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<AnimTypeExt,true>
+	class ExtContainer final : public Container<AnimTypeExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

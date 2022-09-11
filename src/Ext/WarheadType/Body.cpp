@@ -561,10 +561,7 @@ WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
 
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 
-void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
-
-}
+//void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks
@@ -573,11 +570,11 @@ DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	WarheadTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 
 	return 0;
 }
@@ -627,8 +624,8 @@ DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP, 0x75D798 , 0x75D7AC)
 DEFINE_JUMP(LJMP, 0x75D7B2 , 0x75D7B8)
 DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
-//#endif
+//

@@ -374,9 +374,9 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::GetExtData(pTarget))
-		if (pExt->PaintBallState.get())
-			pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
+	//if (auto pExt = TechnoExt::GetExtData(pTarget))
+	//	if (pExt->PaintBallState.get())
+	//		pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
 #endif
 
 	if (this->GattlingStage > 0)

@@ -249,7 +249,7 @@ DEFINE_HOOK(0x6855E4, Scen_Waypoint_Call_2, 0x5)
 	return 0x6855FC;
 }
 
-DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x5)
+DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
 {
 	GET(int, nWaypoint, EDI);
 

@@ -72,8 +72,8 @@ TeamExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-//Everything InitEd beside the Vector below this address
-DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
+//Everything InitEd
+DEFINE_HOOK(0x6E8DBE, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
@@ -86,8 +86,7 @@ DEFINE_HOOK(0x6E8B46, TeamClass_CTOR, 0x7)
 	return 0;
 }
 
-//before `test` i hope not crash the game ,..
-DEFINE_HOOK(0x6E8EC6, TeamClass_DTOR, 0x9)
+DEFINE_HOOK(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 	TeamExt::ExtMap.Remove(pThis);

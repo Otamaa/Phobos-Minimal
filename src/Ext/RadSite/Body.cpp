@@ -43,7 +43,6 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 
 	auto nLoc = location;
 	pRadSite->SetBaseCell(&nLoc);
-	pRadExt->Spread = spread;
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
@@ -182,12 +181,12 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
-//#else
-//		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
-//			pRadExt->InitializeConstants();
-//#endif
+#else
+		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
+			pRadExt->InitializeConstants();
+#endif
 
 	}
 
@@ -235,7 +234,8 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x0)
+#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 {
 	GET(RadSiteClass*, pThis, ECX);
 	R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
@@ -252,4 +252,12 @@ DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
 	return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
 }
 
-DEFINE_JUMP(LJMP, 0x65B4D4, 0x65B4D7);
+DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
+{
+	GET(RadSiteClass*, pThis, ECX);
+	GET_STACK(int, spread, 0x4);
+	RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
+	pThis->SpreadInLeptons = (spread << 8) + 128;
+	return 0x65B4E2;
+}
+#endif

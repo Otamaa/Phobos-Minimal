@@ -98,7 +98,7 @@ class BuildingTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = BuildingTypeClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x1794;
 //#endif
 
@@ -271,12 +271,16 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingTypeExt ,true>
+	class ExtContainer final : public Container<BuildingTypeExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
 		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
 	};
 

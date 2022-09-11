@@ -81,7 +81,7 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 		if (pExt->AccumulatedGrindingRefund)
 		{
 			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-			const  int refundAmount = pExt->AccumulatedGrindingRefund;
+			const int refundAmount = pExt->AccumulatedGrindingRefund;
 			const bool isPositive = refundAmount > 0;
 			const auto color = isPositive ? ColorStruct { 0, 255, 0 } : ColorStruct { 255, 0, 0 };
 			wchar_t moneyStr[0x20];

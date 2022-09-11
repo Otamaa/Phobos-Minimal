@@ -5,8 +5,27 @@
 //Unfinised
 
 class TechnoClass;
-class PlanningMemberClass;
-class PlanningBranchClass;
+class PlanningMemberClass
+{
+public:
+	int int0 ;
+	DWORD dword4;
+	DWORD field_8;
+	BYTE field_C;
+	BYTE field_D;
+	BYTE field_E;
+	BYTE field_F;
+};
+static_assert(sizeof(PlanningMemberClass) == 0x10);
+
+class PlanningBranchClass
+{
+public:
+	BYTE gap[112];
+	DWORD  val_70;
+	DWORD va74;
+};
+static_assert(sizeof(PlanningBranchClass) == 0x78);
 
 class PlanningNodeClass
 {
@@ -25,6 +44,17 @@ public:
     DWORD dwordB4;
 };
 static_assert(sizeof(PlanningNodeClass) == 0xB8);
+
+class PlanningNode
+{
+public:
+	DWORD field_0;
+	DWORD field_4;
+	DWORD field_8;
+	DWORD field_C;
+	int field_10;
+	DWORD field_14;
+};
 
 class PlanningTokenClass
 {
@@ -53,15 +83,15 @@ public:
 	//===========================================================================
 
 public:
-	TechnoClass * OwnerUnit;
-	DynamicVectorClass<PlanningNodeClass*> NodeVector;
-	BYTE byte1C;
-    char byte1D[0x6C];
-	DWORD dword8C;
-	DWORD dword90;
-	DWORD dword94;
-    BYTE byte98;
-    BYTE byte99;
-	PROTECTED_PROPERTY(BYTE, Padding[2]);
+TechnoClass *OwnerUnit;
+	DynamicVectorClass<PlanningNode *> PlanningNodes;
+
+	DECLARE_PROPERTY_ARRAY(DWORD, unknown, 0x1C);
+
+	int field_8C;
+	int ClosedLoopNodeCount;
+	int StepsToClosedLoop;
+
+	DECLARE_PROPERTY(DWORD, field_98);
 };
 static_assert(sizeof(PlanningTokenClass) == 0x9C);

@@ -419,7 +419,6 @@ DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 				if (const auto pBuilding = specific_cast<BuildingClass*>(pObject)) {
 					const auto pBType = pBuilding->Type;
 
-
 					if ((RulesClass::Instance->EWGates.FindItemIndex(pBType) != -1) && (state == 2 || state == 6))
 						return Attachable;
 					else if ((RulesClass::Instance->NSGates.FindItemIndex(pBType) != -1) && (state == 0 || state == 4))
@@ -605,16 +604,3 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
 DEFINE_JUMP(LJMP,0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf
-
-DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->JumpJet &&  !pThis->Target && !pThis->Type->TurretSpins) {
-		pThis->SecondaryFacing.turn(pThis->PrimaryFacing.current());
-		pThis-> __IsTurretTurning_49C = pThis->PrimaryFacing.in_motion();
-		return 0x736C09;
-	}
-
-	return 0;
-}

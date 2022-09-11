@@ -650,6 +650,11 @@ DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
+{
+	return 0x0;
+}
+
 #ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
@@ -659,9 +664,31 @@ DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 }
 #endif
 /*
-DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x8)
+DEFINE_HOOK(0x7D5408, Game_strdup_replace, 0x5)
 {
-	return 0x0;
+	GET_STACK(const char*, In, 0x4);
+
+	char* str;
+	char* p;
+	int len = 0;
+
+	while (In[len])
+	{
+		len++;
+	}
+
+	str = (char*)CRT::malloc(len + 1);
+	p = str;
+
+	while (*In)
+	{
+		*p++ = *In++;
+	}
+
+	*p = '\0';
+
+	R->EAX(str);
+	return 0x7D542E;
 }
 
 DEFINE_HOOK_AGAIN(0x777D71, WindowName_ApplyCustom, 0x5)
@@ -692,31 +719,6 @@ DEFINE_HOOK(0x7D107D, Game_msize_replace, 0x8)
 
 	R->EAX(nSize);
 	return 0x7D10C1;
-}
-
-DEFINE_HOOK(0x7D5408, Game_strdup_replace, 0x5)
-{
-	GET_STACK(const char*, In, 0x4);
-
-	char* str;
-	char* p;
-	int len = 0;
-
-	while (In[len]) {
-		len++;
-	}
-
-	str = (char*)CRT::malloc(len + 1);
-	p = str;
-
-	while (*In) {
-		*p++ = *In++;
-	}
-
-	*p = '\0';
-
-	R->EAX(str);
-	return 0x7D542E;
 }
 */
 #pragma endregion

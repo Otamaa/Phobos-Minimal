@@ -41,13 +41,6 @@ DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 	return 0x0;
 }
 
-/*DEFINE_HOOK(0x4CD8C9, FlyLocomotionClass_Movement_AI_DisableTSExp, 0x9)
-{
-	GET(FootClass*, pFoot, EDX);
-	auto const& pTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
-	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
-}*/
-
 DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 {
 	enum { ConditionMeet = 0x41599F, ConditionFailed = 0x4159C8 };
@@ -163,53 +156,6 @@ DEFINE_HOOK(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
 		? 0x417944 : 0x417AD4;
 }
 
-/*
-DEFINE_HOOK(0x416748, AircraftClass_MI_Move_AirportBound, 0x5)
-{
-	GET(AircraftClass*, pThis, ESI);
-
-	return pThis->Type->AirportBound ? 0x41675D : 0x0;
-}
-*/
-/*
-DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
-{
-	GET(AircraftClass*, pThis, ESI);
-
-	if (pThis->Destination) {
-		if (pThis->Type->IsDropship) {
-			CellStruct nCell = CellStruct::Empty;
-			if (pThis->SelectNavalTargeting(pThis->Destination) != 11) {
-				if (auto pTech = pThis->Destination->AsTechno()) {
-					auto nCoord = pTech->GetCoords();
-					nCell = CellClass::Coord2Cell(nCoord);
-
-					if (nCell != CellStruct::Empty) {
-						if (auto pCell = Map[nCell]) {
-							for (auto pOccupy = pCell->FirstObject;
-								pOccupy;
-								pOccupy = pOccupy->NextObject) {
-								if (pOccupy->WhatAmI() == AbstractType::Building) {
-									auto pGoodLZ = pThis->GoodLandingZone();
-									pThis->SetDestination(pGoodLZ, true);
-								}
-								else {
-									nCoord = pThis->GetCoords();
-									pOccupy->Scatter(nCoord, true, true);
-								}
-							}
-						}
-					}
-				}
-			}
-		} else {
-			return 0x41531B;
-		}
-	}
-
-	return 0x41530C;
-}*/
-
 DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x6) //was 8
 {
 	GET(AircraftClass*, pCarryall, ESI);
@@ -256,28 +202,6 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) //
 	return 0x41700E;
 }
 
-//size
-//#ifdef ENABLE_NEWHOOKS
-//Crash
-//DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x0)
-//{
-//	enum { SkipAllSet = 0x444053, Nothing = 0x0 };
-//
-//	//GET(BuildingClass*, pBuilding, ESI);
-//	GET(AircraftClass*, pProduct, EBP);
-//
-//	if (pProduct)
-//	{
-//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
-//		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get())
-//		{
-//			return SkipAllSet;
-//		}
-//	}
-//
-//	return Nothing;
-//}
-//#endif
 
 #ifdef TEST_CODE
 DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)

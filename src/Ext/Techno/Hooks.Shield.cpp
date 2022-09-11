@@ -93,7 +93,7 @@ if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {\
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6) {
 	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET_STACK(TechnoClass*, pTarget, STACK_OFFS(0x5C ,-0x8));
+	GET(TechnoClass*, pTarget, ESI);
 
 	if(pTarget->IsAlive){
 		if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {
@@ -116,31 +116,16 @@ REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 
-DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
-{
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pExt && pTypeExt)
-	{
-		// Set current shield type if it is not set.
-		if (!pExt->CurrentShieldType || (!pExt->CurrentShieldType->Strength && pTypeExt->ShieldType->Strength))
-			pExt->CurrentShieldType = pTypeExt->ShieldType;
-
-		// Create shield class instance if it does not exist.
-		if (pExt->CurrentShieldType && pExt->CurrentShieldType->Strength && !pExt->Shield){
-			pExt->Shield = std::make_unique<ShieldClass>(pThis);
-			pExt->Shield->OnInit();
-		}
-
-		if (const auto pShieldData = pExt->GetShield())
-			pShieldData->OnUpdate();
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//
+//	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+//
+//
+//
+//	return 0;
+//}
 
 // Ares-hook jmp to this offset
 DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0

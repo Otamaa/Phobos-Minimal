@@ -223,16 +223,18 @@ AnimExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-DEFINE_HOOK_AGAIN(0x4226F0, AnimClass_AltExt_CTOR, 0x6)
-DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_AltExt_CTOR, 0x5)
-DEFINE_HOOK(0x422126, AnimClass_AltExt_CTOR, 0x5)
+//DEFINE_HOOK_AGAIN(0x4226F0, AnimClass_AltExt_CTOR, 0x6)
+//DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_AltExt_CTOR, 0x5)
+
+//Only Extend Anim that Has "Type" Pointer
+DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-	//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	AnimExt::ExtMap.JustAllocate(pItem, pItem->Type, "Creating an animation with null Type !");
-	//#else
-	//	AnimExt::ExtMap.FindOrAllocate(pItem);
-	//#endif
+#else
+	AnimExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 
@@ -252,26 +254,16 @@ DEFINE_HOOK(0x426590, AnimClass_SDDTOR, 0x8)
 	return 0x4265AB;
 }
 #else
-DEFINE_HOOK(0x422967, AnimClass_AltExt_DTOR, 0x6)
+DEFINE_HOOK(0x422A59, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
 	AnimExt::ExtMap.Remove(pItem);
-	//R->EAX(pItem->Type);
 	return 0;
 }
 #endif
 
-/*
-DEFINE_HOOK(0x422A18, AnimClass_AltExt_DTOR, 0x8)
-{
-	GET(AnimClass* const, pItem, ESI);
-	ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
-	return 0;
-}
-*/
-
-DEFINE_HOOK_AGAIN(0x425280, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x4253B0, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK_AGAIN(0x425280, AnimClass_SaveLoad_Prefix, 0x5)
+DEFINE_HOOK(0x4253B0, AnimClass_SaveLoad_Prefix, 0x5)
 {
 	GET_STACK(AnimClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
@@ -280,15 +272,15 @@ DEFINE_HOOK(0x4253B0, AnimClass_AltExt_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x425391, AnimClass_AltExt_Load_Suffix, 0x7)
-DEFINE_HOOK_AGAIN(0x4253A2, AnimClass_AltExt_Load_Suffix, 0x7)
-DEFINE_HOOK(0x425358, AnimClass_AltExt_Load_Suffix, 0x7)
+DEFINE_HOOK_AGAIN(0x425391, AnimClass_Load_Suffix, 0x7)
+DEFINE_HOOK_AGAIN(0x4253A2, AnimClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x425358, AnimClass_Load_Suffix, 0x7)
 {
 	AnimExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x4253FF, AnimClass_AltExt_Save_Suffix, 0x5)
+DEFINE_HOOK(0x4253FF, AnimClass_Save_Suffix, 0x5)
 {
 	AnimExt::ExtMap.SaveStatic();
 	return 0;
@@ -309,6 +301,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
 }
 
+//#ifdef ENABLE_NEWEXT
 DEFINE_HOOK_AGAIN(0x421EF4 , AnimClass_CTOR_setD0, 0x6)
 DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
 {
@@ -316,16 +309,4 @@ DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
 	pThis->unknown_D0 = 0;
 	return R->Origin() + 0x6;
 }
-
-/*
-DEFINE_HOOK(0x4251B1, AnimClass_Detach, 0x6)
-{
-	GET(AnimClass* const, pThis, ESI);
-	GET(void* , target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
-		pAnimExt->InvalidatePointer(target,all);
-
-	return pThis->AttachedBullet == target ? 0x4251B9 :0x4251C9;
-}*/
+//#endif

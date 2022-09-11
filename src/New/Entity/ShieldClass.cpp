@@ -332,7 +332,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive)
 	{
-		if (auto const pTechnoExt = TechnoExt::GetExtData(this->Techno))
+		if (auto const pTechnoExt = TechnoExt::TechnoExt::ExtMap.Find<false>(this->Techno))
 		{
 			pTechnoExt->Shield = nullptr;
 			return;

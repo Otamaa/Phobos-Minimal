@@ -3,7 +3,7 @@
 // Draw Tiled !
 DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(AnimClass* const, pThis, ESI);
 	GET(int, nY_Loc, EDI);
 	GET(int, nYadd_Loc, EBP);
 	GET(BlitterFlags, nFlags, EBX);
@@ -20,15 +20,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 	if (!pShp)
 		return 0x42371B;
 
-	auto pPal = FileSystem::ANIM_PAL();
-
-	if (pTypeExt && pTypeExt->Palette.GetConvert())
-	{
-		//if(!pTypeExt->Palette.Name.empty())
-		//	Debug::Log("Anim[%s] with Custom Pal [%s] DrawTiled ! \n", pThis->get_ID(), pTypeExt->Palette.Name.c_str());
-		pPal = pTypeExt->Palette.GetConvert();
-	}
-
+	auto pPal = pTypeExt->Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL());
 	auto Y_Doffs = pThis->Type->YDrawOffset;
 
 	for (; nYadd_Loc >= 0;)

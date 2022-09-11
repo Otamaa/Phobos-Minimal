@@ -47,8 +47,8 @@ TemporalExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK_AGAIN(0x71A482, TemporalClass_CTOR, 0xB)
-DEFINE_HOOK(0x71A538, TemporalClass_CTOR, 0xB)
+DEFINE_HOOK_AGAIN(0x71A4D6, TemporalClass_CTOR, 0x4)
+DEFINE_HOOK(0x71A594, TemporalClass_CTOR, 0x7)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TemporalClass*, pItem, ESI);
@@ -56,8 +56,8 @@ DEFINE_HOOK(0x71A538, TemporalClass_CTOR, 0xB)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x71B1E6 , TemporalClass_SDDTOR, 0x5)
-DEFINE_HOOK(0x71A606, TemporalClass_SDDTOR, 0x5)
+DEFINE_HOOK_AGAIN(0x71B218, TemporalClass_SDDTOR, 0x7)
+DEFINE_HOOK(0x71A638, TemporalClass_SDDTOR, 0x7)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(TemporalClass*, pItem, ESI);

@@ -88,7 +88,7 @@ ParasiteExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 #ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x62932B, ParasiteClass_CTOR, 0x9)
+DEFINE_HOOK(0x62937F, ParasiteClass_CTOR, 0x6)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(ParasiteClass*, pItem, ESI);
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x62932B, ParasiteClass_CTOR, 0x9)
 	return 0;
 }
 
-DEFINE_HOOK(0x62940D, ParasiteClass_DTOR, 0x5)
+DEFINE_HOOK(0x6294B7, ParasiteClass_DTOR, 0x7)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET(ParasiteClass*, pItem, ESI);

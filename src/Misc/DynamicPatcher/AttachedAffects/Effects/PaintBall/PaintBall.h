@@ -129,6 +129,8 @@ public:
 		return static_cast<uintptr_t>(std::clamp(static_cast<int>(b),0,2000));
 	}
 
+	void Update(TechnoClass* pThis);
+
 	PaintBall() : Token { }
 		, Data { }
 		, timer { }

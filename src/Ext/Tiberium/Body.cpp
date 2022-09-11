@@ -19,12 +19,20 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+	this->Palette.Read(pINI, pSection, "CustomPalette");
 	this->OreTwinkle.Read(exINI, pSection,"OreTwinkle");
 	this->OreTwinkleChance.Read(exINI, pSection, "OreTwinkleChance");
 	this->Ore_TintLevel.Read(exINI, pSection, "OreTintLevel");
 
 	this->MinimapColor.Read(exINI, pSection, "MinimapColor");
 	this->EnableLighningFix.Read(exINI, pSection, "EnableLighningFix");
+
+	//INI_EX exArtINI(CCINIClass::INI_Art());
+	//auto const pArtSection = pThis->Image->ImageFile;
+	//if (!exArtINI.GetINI()->GetSection(pArtSection))
+	//	return;
+
+	this->UseNormalLight.Read(exINI, pSection, pSection, "UseNormalLight");
 }
 
 // =============================
@@ -33,11 +41,13 @@ template <typename T>
 void TiberiumExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Palette)
 		.Process(this->OreTwinkle)
 		.Process(this->OreTwinkleChance)
 		.Process(this->Ore_TintLevel)
 		.Process(this->MinimapColor)
 		.Process(this->EnableLighningFix)
+		.Process(this->UseNormalLight)
 	;
 }
 

@@ -723,8 +723,6 @@ struct ColorPacker
 	static constexpr reference<CellStruct, 0x88096Au> Display_ZoneCell2 {};
 	static constexpr reference<CellStruct, 0x880960u> Display_ZoneOffset {};
 	static constexpr reference<CellStruct, 0x88096Eu> Display_ZoneOffset2 {};
-
-	static constexpr int CellHeight = 728;
 };
 
 struct CheatData {

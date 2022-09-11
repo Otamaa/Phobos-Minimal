@@ -28,23 +28,6 @@ DEFINE_HOOK(0x6EFB78, TeamMission_GatherAt_BaseTeam, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
-{
-	GET(FootClass*, pFoot ,EAX);
-
-	if (auto pTeam = pFoot->Team) {
-		if (auto nTeamDecision = pTeam->Type->MindControlDecision) {
-			if (nTeamDecision > 5)
-				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
-
-			R->EAX(nTeamDecision);
-			return 0x472589;
-		}
-	}
-
-	return 0x4725B0;
-}
-
 static void __fastcall TeamClass_Assign_Mission_Target(TeamClass* pThis, void* _, AbstractClass* pNewTarget)
 {
 	if(pNewTarget && pNewTarget->WhatAmI() == AbstractType::Cell){

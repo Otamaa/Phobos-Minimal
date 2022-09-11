@@ -102,24 +102,24 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_Rearm_Delay_BurstDelays, 0x7)
 	return idxCurrentBurst <= 0 || idxCurrentBurst > 4 ? 0x6FD084 : 0x6FD067;
 }
 
+static bool FLHChanged = false;
 DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 {
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	//auto pExt = TechnoExt::ExtMap.Find(pThis);
 	std::pair<bool,CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
 
 	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry) {
 		nResult = TechnoExt::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
 	}
 
-	if (nResult.first)
-	{
+	if (nResult.first) {
 		R->ECX(nResult.second.X);
 		R->EBP(nResult.second.Y);
 		R->EAX(nResult.second.Z);
-		pExt->FlhChanged = true;
+		FLHChanged = true;
 	}
 
 	return 0;
@@ -127,12 +127,13 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 
 DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 {
-	GET(TechnoClass*, pThis, EBX);
-	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
+	//GET(TechnoClass*, pThis, EBX);
+	//GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		if (pExt->FlhChanged) {
-			pExt->FlhChanged = false;
+	//if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		if (FLHChanged) {
+			FLHChanged = false;
 			R->EAX(0);
 		}
 	}
@@ -262,7 +263,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 {
 	GET(TechnoClass*, pTechno, EDI);
 
-	if (const auto pTechnoExt = TechnoExt::GetExtData(pTechno))
+	if (const auto pTechnoExt = TechnoExt::ExtMap.Find<false>(pTechno))
 	{
 		if (pTechnoExt->LaserTrails.size())
 		{
@@ -287,7 +288,7 @@ DEFINE_HOOK(0x5F4F4E, ObjectClass_Unlimbo_LaserTrails, 0x7)
 
 	if (auto const pTechno = generic_cast<TechnoClass*>(pThis))
 	{
-		if (auto const pTechnoExt = TechnoExt::GetExtData(pTechno))
+		if (auto const pTechnoExt = TechnoExt::ExtMap.Find<false>(pTechno))
 		{
 			if (!pTechnoExt->LaserTrails.empty())
 			{
@@ -325,8 +326,7 @@ DEFINE_HOOK(0x6FD446, TechnoClass_FireLaser_IsSingleColor, 0x7)
 	GET(WeaponTypeClass* const, pWeapon, ECX);
 	GET(LaserDrawClass* const, pLaser, EAX);
 
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon))
-	{
+	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
 		if (!pLaser->IsHouseColor && pWeaponExt->Laser_IsSingleColor)
 			pLaser->IsHouseColor = true;
 	}
@@ -380,7 +380,7 @@ DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
 	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
 	const auto pThis = pLoco->Owner;
 	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
 
 	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
 		pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
@@ -413,7 +413,7 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 }
 //#endif
 
-DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
+DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 {
 	enum { SkipGameCode = 0x70EFF2 };
 
@@ -425,7 +425,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x6)
 	if (pThis && pType) {
 
 		maxSpeed = pType->Speed;
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
 
 		if (pTypeExt && pTypeExt->UseDisguiseMovementSpeed && pThis->IsDisguised()) {
 			if (auto const pDisguiseType = type_cast<TechnoTypeClass*>(pThis->Disguise))
@@ -443,7 +443,7 @@ DEFINE_HOOK(0x6B73AD, SpawnManagerClass_AI_SpawnTimer, 0x5)
 	GET(SpawnManagerClass* const, pThis, ESI);
 
 	if (pThis->Owner) {
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())) {
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Owner->GetTechnoType())) {
 			if (pTypeExt->Spawner_DelayFrames.isset())
 				R->ECX(pTypeExt->Spawner_DelayFrames.Get());
 		}
@@ -456,10 +456,8 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 {
 	GET(SpawnManagerClass* const, pThis, ESI);
 
-	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching && pThis->CountDockedSpawns() != 0)
-	{
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
-		{
+	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching && pThis->CountDockedSpawns() != 0) {
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Owner->GetTechnoType())) {
 			if (pTypeExt->Spawner_DelayFrames.isset()) {
 				R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
 			}
@@ -544,39 +542,6 @@ static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, vo
 
 DEFINE_JUMP(VTABLE,0x7EB1AC  ,GET_OFFSET(InfantryClass_IronCurtain));
 
-
-//#ifdef ENABLE_NEWHOOKS
-static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType) {
-	Iterator<AnimTypeClass*> Iter;
-
-	if (pThisType->DeadBodies.Count > 0)
-		Iter = pThisType->DeadBodies;
-
-	if (!pThisType->NotHuman)
-		Iter = RulesGlobal->DeadBodies;
-
-	return Iter;
-}
-
-DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
-{
-	GET(InfantryClass* const, pThis, ESI);
-	GET(InfantryTypeClass* const, pThisType, ECX);
-
-	auto const Iter = GetDeathBodies(pThisType);
-
-	if(!Iter.empty()){
-		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1))) {
-			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCenterCoord(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-			}
-		}
-	}
-
-	return 0x520CA9;
-}
-
-//#endif
 /*
 DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
 {
@@ -654,7 +619,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	GET(TechnoClass*, pKiller, EBX);
 	GET_STACK(HouseClass*, pDefaultRetHouse, STACK_OFFS(0x24, 0x14));
 
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->GetTechnoType()))
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSlave->GetTechnoType()))
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide) {
 			auto nStr = pSlave->Health;
@@ -676,7 +641,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	GET(FootClass*, pFoot, EDI);
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot) {
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())) {
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pBuilding->GetTechnoType())) {
 			if (auto const pTypeUnit = pFoot->GetTechnoType()) {
 				auto const& [rangeX, rangeY] = pTypeExt->InitialStrength_Cloning.Get();
 
@@ -702,7 +667,7 @@ DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (pThis->WhatAmI() == AbstractType::Building) {
-		if (auto const pExt = TechnoExt::GetExtData(pThis)) {
+		if (auto const pExt = TechnoExt::ExtMap.Find<false>(pThis)) {
 			if (!pExt->CurrentLaserWeaponIndex.empty()) {
 				R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex.get()));
 				return ReturnResult;
@@ -719,12 +684,15 @@ DEFINE_HOOK_AGAIN(0x449CC1, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type)) {
+		if (pTypeExt && pThis->IsHumanControlled && !pThis->Type->UndeploysInto)
+			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
 
-	if (pTypeExt && pThis->IsHumanControlled && !pThis->Type->UndeploysInto)
-		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
+		return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
+	}
 
-	return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
+
+	return 0x0;
 }
 
 DEFINE_HOOK(0x44A850, BuildingClass_Mission_Deconstruction_Sellsound, 0x6)
@@ -732,7 +700,7 @@ DEFINE_HOOK(0x44A850, BuildingClass_Mission_Deconstruction_Sellsound, 0x6)
 	enum { PlayVocLocally = 0x44A856 };
 	GET(BuildingClass*, pThis, EBP);
 
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type)) {
 		R->ECX(pTypeExt->SellSound.Get(RulesGlobal->SellSound));
 		return PlayVocLocally;
 	}
@@ -744,11 +712,31 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 {
 	enum { SkipVoxVocPlay = 0x4D9FB5 };
 	GET(FootClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_UnitSold)));
-	//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-	VocClass::PlayAt(pTypeExt->SellSound.Get(RulesGlobal->SellSound), pThis->Location);
+	if(const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType())) {
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_UnitSold)));
+		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
+		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesGlobal->SellSound), pThis->Location);
 
-	return SkipVoxVocPlay;
+
+		return SkipVoxVocPlay;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_54BFF0_UpdateSensors, 0x7)
+{
+	GET(FootClass* const, pLinkedTo, ECX);
+	GET(CellStruct const, currentCell, EAX);
+
+	auto const pType = pLinkedTo->GetTechnoType();
+
+	if (pType->SensorsSight)
+	{
+		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
+		pLinkedTo->AddSensorsAt(currentCell);
+	}
+
+	return 0;
 }

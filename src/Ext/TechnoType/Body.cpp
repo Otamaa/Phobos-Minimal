@@ -835,7 +835,7 @@ bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
 		.Success();
 }
 
-void TechnoTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+//void TechnoTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 bool TechnoTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -861,11 +861,11 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* const, pItem, ESI);
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	TechnoTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 

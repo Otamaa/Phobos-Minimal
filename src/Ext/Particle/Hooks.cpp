@@ -15,7 +15,7 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 	return nCurLoc;
 }
 */
-#ifdef COMPILE_PORTED_DP_FEATURES
+//#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the beginning: 0x62CE49 0x6
 {
 	GET(ParticleClass*, pThis, ESI);
@@ -51,4 +51,4 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 #endif
 	return 0;
 }
-#endif
+//#endif

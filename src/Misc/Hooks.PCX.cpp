@@ -6,7 +6,7 @@
 DEFINE_HOOK(0x6B9D9C, RGB_PCX_Loader, 0x7)
 {
 	GET(BSurface*, pSurf, EDI);
-	return(pSurf->BytesPerPixel == 2) ? 0x6B9EE7: 0x0;
+	return (pSurf->BytesPerPixel == 2) ? 0x6B9EE7: 0x0;
 }
 
 DEFINE_HOOK(0x5535D0, PCX_LoadScreen, 0x6)

@@ -47,7 +47,7 @@ class TechnoExt
 public:
 	static constexpr size_t Canary = 0x55555555;
 	using base_type = TechnoClass;
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 	//static constexpr size_t ExtOffset = 0x4FC;
 	static constexpr size_t ExtOffset = 0x34C;
 //#endif
@@ -195,7 +195,13 @@ public:
 
 	static TechnoExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<TechnoExt, true>
+	class ExtContainer final : public Container<TechnoExt
+//#ifdef ENABLE_NEWEXT
+		, true
+		, true
+//#endif
+	>
+
 	{
 	public:
 		ExtContainer();

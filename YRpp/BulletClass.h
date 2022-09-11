@@ -108,9 +108,9 @@ public:
 	void NukeMaker()
 		{ JMP_THIS(0x46B310); }
 
-    //468BB0
-    bool IsForceToExplode(const CoordStruct& loc)
-  	    {JMP_THIS(0x468BB0);}
+	//468BB0
+	bool IsForceToExplode(const CoordStruct& loc)
+		{JMP_THIS(0x468BB0);}
 
 	static DirStruct __fastcall ProjectileMotion(
 		const CoordStruct& pCoord,

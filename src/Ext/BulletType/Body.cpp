@@ -210,7 +210,7 @@ void BulletTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-void BulletTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
+//void BulletTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 
 bool BulletTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -236,11 +236,11 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	BulletTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 
@@ -287,7 +287,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
 DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
 DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)

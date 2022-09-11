@@ -54,9 +54,9 @@ DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CB120, SuperClass_SDDTOR, 0x7)
+DEFINE_HOOK(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 {
-	GET(SuperClass*, pItem, ECX);
+	GET(SuperClass*, pItem, ESI);
 	SuperExt::ExtMap.Remove(pItem);
 	return 0;
 }

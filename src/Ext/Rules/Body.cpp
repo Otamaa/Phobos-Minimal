@@ -551,7 +551,7 @@ DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x9)
+DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 {
 	if (R->AL()) //ScenarioLoadSucceed
 	{

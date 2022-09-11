@@ -542,7 +542,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 		}
 	}
 
-	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
 
 	bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::Player))
 		|| HouseClass::IsPlayerObserver()
@@ -647,7 +647,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	if (!pThis || damage == 0)
 		return;
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 
 	if (!pExt)
 		return;
@@ -782,7 +782,7 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 {
 	if (const auto pCapturer = pThis->MindControlledBy)
 	{
-		const auto pCapturerExt = TechnoTypeExt::ExtMap.Find(pCapturer->GetTechnoType());
+		const auto pCapturerExt = TechnoTypeExt::ExtMap.Find<false>(pCapturer->GetTechnoType());
 		if (pCapturerExt && pCapturerExt->MindControlRangeLimit.Get() > 0 &&
 			pThis->DistanceFrom(pCapturer) > pCapturerExt->MindControlRangeLimit.Get())
 		{
@@ -796,7 +796,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 	//if (!TechnoExt::IsActive(pThis, true, true, true, true))
 	//	return;
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (pExt && pExt->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
@@ -818,7 +818,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 			{
 				//if (const auto pBulletTypeData = BulletTypeExt::ExtMap.Find(pBullet->Type))
 				{
-					if (const auto pBulletExt = BulletExt::ExtMap.Find(pBullet))
+					if (const auto pBulletExt = BulletExt::ExtMap.Find<false>(pBullet))
 					{
 						if (!pBulletExt->TypeExt->Interceptable || pBullet->InLimbo || pBulletExt->CurrentStrength <= 0 || pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
 							return false;
@@ -858,7 +858,7 @@ void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis)
 	if (!TechnoExt::IsActive(pThis, true, true, true))
 		return;
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (pExt && pExt->Spawn_LimitedRange)
 	{
@@ -973,7 +973,7 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
+		if (const auto ext = TechnoTypeExt::ExtMap.Find<false>(pType))
 		{
 			auto const pOffs = ext->TurretOffset.GetEx();
 			float x = static_cast<float>(pOffs->X * 1.0);
@@ -1171,7 +1171,7 @@ void TechnoExt::ExtData::EatPassengers()
 	if (!TechnoExt::IsActive(pThis, false, false))
 		return;;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (!pTypeExt)
 		return;
@@ -1443,7 +1443,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 	if (!TechnoExt::IsActive(pThis, false, false))
 		return;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (!pTypeExt)
 		return;
@@ -1546,7 +1546,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (pThis->Health && healthDeficit > 0)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 		{
 			const bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
 			const bool isOrganic = pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit && pThis->GetTechnoType()->Organic;
@@ -1623,7 +1623,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	bool isInfantryHeal = false;
 	int selfHealFrames = 0;
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 	{
 		if (pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::None)
 			return;
@@ -1722,7 +1722,7 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 	{
 		if (pType->OpenTopped && pThis->Passengers.NumPassengers > 0)
 		{
-			if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType))
+			if (const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pType))
 			{
 				if (pExt->Ammo_Shared && pType->Ammo > 0)
 				{
@@ -1731,7 +1731,7 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 					do
 					{
 						TechnoTypeClass* passengerType = passenger->GetTechnoType();
-						auto pPassengerExt = TechnoTypeExt::ExtMap.Find(passengerType);
+						auto pPassengerExt = TechnoTypeExt::ExtMap.Find<false>(passengerType);
 
 						if (pPassengerExt && pPassengerExt->Ammo_Shared.Get())
 						{
@@ -1819,7 +1819,7 @@ void TechnoExt::ExtData::UpdateMindControlAnim()
 void TechnoExt::ExtData::RunFireSelf()
 {
 	const auto pThis = this->Get();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	if (!pTypeExt)
 		return;
@@ -2049,11 +2049,11 @@ bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 	TechnoExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//#else
-//	TechnoExt::ExtMap.FindOrAllocate(pItem);
-//#endif
+#else
+	TechnoExt::ExtMap.FindOrAllocate(pItem);
+#endif
 	return 0;
 }
 
@@ -2097,7 +2097,7 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
 
-//#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWEXT
 DEFINE_HOOK(0x6F3100, TechnoClass_CTOR_0x4FC, 0x6)
 {
 	R->EDX(0);
@@ -2107,4 +2107,4 @@ DEFINE_HOOK(0x6F3100, TechnoClass_CTOR_0x4FC, 0x6)
 DEFINE_JUMP(LJMP, 0x6FA6C9, 0x6FA6CF);
 DEFINE_JUMP(LJMP, 0x7094A9, 0x7094AF);
 DEFINE_JUMP(LJMP, 0x70982E, 0x709834);
-//#endif
+#endif

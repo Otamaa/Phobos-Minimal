@@ -89,7 +89,7 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 
 #ifdef ENABLE_NEWHOOKS
 //TODO : desync test and use new ext system for better performance
-DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
+DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
@@ -102,3 +102,68 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x8)
 	return 0x0;
 }
 #endif
+
+//#ifdef ENABLE_NEWHOOKS
+//TODO : and desync test
+DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
+{
+	enum
+	{
+		DoCellChailReact = 0x71BAC4,
+		RetOriginalFunct = 0x0
+	};
+
+	GET(const TerrainClass*, pThis, ESI);
+
+	auto const pTerrainTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pTerrainTypeExt)
+		return RetOriginalFunct;
+
+	auto const nCoord = pThis->Location;
+	auto const nDamage = pTerrainTypeExt->Damage.Get(100);
+	auto const pWH = pTerrainTypeExt->Warhead.Get(RulesGlobal->C4Warhead);
+
+	if (auto const pAnim = Map.SelectDamageAnimation(nDamage, pWH, Map[nCoord]->LandType, nCoord))
+	{
+		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0))
+		{
+			AnimExt::SetAnimOwnerHouseKind(pAnimC, nullptr, nullptr, false);
+		}
+	}
+
+	if (pTerrainTypeExt->AreaDamage)
+	{
+		Map.DamageArea(nCoord, nDamage, nullptr, pWH, true, nullptr);
+		Map.FlashbangWarheadAt(nDamage, pWH, nCoord);
+	}
+
+	return DoCellChailReact;
+}
+
+DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
+{
+	//GET(ObjectClass*, pThis, ESI);
+	GET(ObjectTypeClass*, pType, EBX);
+
+	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
+
+	if (pType->IsLogic)
+	{
+		if (pType->WhatAmI() == AbstractType::TerrainType)
+		{
+			auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
+			if (pTerrainType->SpawnsTiberium || pTerrainType->IsFlammable || pTerrainType->IsAnimated)
+			{
+				return FurtherCheck;
+			}
+		}
+		else
+		{
+			return FurtherCheck;
+		}
+	}
+
+	return NoUpdate;
+}
+//#endif
