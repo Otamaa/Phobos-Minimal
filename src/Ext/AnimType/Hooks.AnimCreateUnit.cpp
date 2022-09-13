@@ -152,7 +152,7 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 	GET(BulletClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
 
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 
 	if (pAnim) {
 		HouseClass* pInvoker =  nullptr;

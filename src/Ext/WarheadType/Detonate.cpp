@@ -194,7 +194,7 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	{
 		if (auto const pBullet = specific_cast<BulletClass*>(pOwner->Target))
 		{
-			auto const pTypeExt = BulletTypeExt::GetExtData(pBullet->Type);
+			auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 			// 1/8th of a cell as a margin of error.
 			if (pTypeExt->Interceptable && pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)
@@ -204,11 +204,11 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	else
 	{
 		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet) {
-			if(auto const pBulletExt = BulletExt::ExtMap.Find(pTargetBullet)){
+			if(pTargetBullet){
+				auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
 				if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo) {
-					auto const pTargetBulletTypeExt = BulletTypeExt::GetExtData(pTargetBullet->Type);
 					// Cells don't know about bullets that may or may not be located on them so it has to be this way.
-					if (pTargetBulletTypeExt->Interceptable && pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+					if (pBulletExt->TypeExt->Interceptable && pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
 						BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
 				}
 			}
@@ -218,26 +218,40 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
-	//if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser)) {
-	///
-	//	if(auto pTechn = generic_cast<TechnoClass*>(pBullet->Target))
-		//	GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, pTechn->GetHeight());
-		//else if (specific_cast<CellClass*>(pBullet->Target))
-		//	GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords,Map.GetCellFloorHeight(coords));
+	//if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser) && pOwner) {
+
+	//	const auto it = std::find_if(VerticalLaserClass::Array.begin(), VerticalLaserClass::Array.end(), [pOwner](auto const pData) { return pData->Owner == pOwner;  });
+	//	if(VerticalLaserClass::Array.empty() || it == VerticalLaserClass::Array.end()){
+
+	//		int nHeight = 0;
+	//		switch (pBullet->Target->WhatAmI())
+	//		{
+	//		case AbstractType::Building:
+	//		case AbstractType::Infantry:
+	//		case AbstractType::Aircraft:
+	//		case AbstractType::Unit:
+	//			nHeight = static_cast<TechnoClass*>(pBullet->Target)->GetHeight();
+	//			break;
+	//		default:
+	//			nHeight = Map.GetCellFloorHeight(coords);
+	//			break;
+	//		}
+
+	//		if (auto pLaser = GameCreate<VerticalLaserClass>(pBullet->WeaponType, coords, nHeight))
+	//			pLaser->Owner = pOwner;
+	//	}
 	//}
 
 	auto const nSound = Sound.Get();
 	if (nSound != -1)
 		VocClass::PlayAt(nSound, coords);
 
-	if (pOwner) {
-		if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
-		{
-			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	if (pOwner && pBullet) {
+		auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
-			if (pTypeExt->Interceptor && pBulletExt->IsInterceptor)
-				this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
-		}
+		if (pTypeExt->Interceptor && pBulletExt->IsInterceptor)
+			this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
 	}
 
 
@@ -285,10 +299,10 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (isCellSpreadWarhead)
 	{
 		bool ThisbulletWasIntercepted = false;
-		if (pBullet)
-			if (auto const pBulletExt = BulletExt::GetExtData(pBullet))
-				ThisbulletWasIntercepted = pBulletExt && pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted;
-
+		if (pBullet){
+			auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+			ThisbulletWasIntercepted = pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted;
+		}
 		const float cellSpread = Get()->CellSpread;
 
 		//if the warhead itself has cellspread
@@ -321,10 +335,10 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 				{
 					const auto Eligible = [&](TechnoClass* const pTech)
 					{
-						if (pTech && pTech->GetTechnoType() &&
+						if (CanDealDamage(pTech) &&
 						CanTargetHouse(pHouse, pTech) &&
 						pTech->GetTechnoType()->Trainable
-						&& CanDealDamage(pTech)) return pTech;
+						) return pTech;
 
 						return static_cast<TechnoClass* const>(nullptr);
 					};
@@ -350,13 +364,10 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 
 void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, bool BulletFound, bool bulletWasIntercepted)
 {
-	if (!pTarget || pTarget->InLimbo || !pTarget->IsAlive || !pTarget->Health)
+	if (!this->CanDealDamage(pTarget))
 		return;
 
 	if (!this->CanTargetHouse(pHouse, pTarget))
-		return;
-
-	if (!this->CanDealDamage(pTarget))
 		return;
 
 	this->ApplyShieldModifiers(pTarget);
@@ -374,9 +385,10 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	//if (auto pExt = TechnoExt::GetExtData(pTarget))
-	//	if (pExt->PaintBallState.get())
-	//		pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
+	auto pExt = TechnoExt::ExtMap.Find(pTarget);
+
+	if (pExt->PaintBallState.get())
+		pExt->PaintBallState->Enable(this->PaintBallDuration.Get(), PaintBallData, this->Get());
 #endif
 
 	if (this->GattlingStage > 0)
@@ -405,7 +417,8 @@ void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const Coord
 
 void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
-	if (auto pExt = TechnoExt::GetExtData(pTarget))
+	auto pExt = TechnoExt::ExtMap.Find(pTarget);
+
 	{
 		int shieldIndex = -1;
 		double ratio = 1.0;
@@ -519,7 +532,7 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 	if (this->Crit_Chance < dice)
 		return;
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType()))
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
 	{
 		if (pTypeExt->ImmuneToCrit)
 			return;

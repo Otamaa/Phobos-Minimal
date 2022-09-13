@@ -40,6 +40,8 @@
 #include "Enum.h"
 #include "Constructs.h"
 #include "SavegameDef.h"
+#include "TranslucencyLevel.h"
+#include "GeneralUtils.h"
 
 #include <InfantryTypeClass.h>
 #include <AircraftTypeClass.h>
@@ -52,7 +54,6 @@
 
 #include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>
-#include <Utilities/GeneralUtils.h>
 
 namespace detail {
 	template <typename T>
@@ -91,6 +92,12 @@ namespace detail {
 			}
 		}
 		return false;
+	}
+
+	template <>
+	inline bool read<TranslucencyLevel>(TranslucencyLevel& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		return value.Read(parser, pSection, pKey);
 	}
 
 	template <>

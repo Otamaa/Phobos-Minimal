@@ -159,11 +159,11 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 
 		if (pSourceTypeExt && pSourceTypeExt->Interceptor.Get())
 		{
-			if (auto const pBulletExt = BulletExt::GetExtData(pBullet)) {
+			if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet)) {
 				pBulletExt->IsInterceptor = true;
 			}
 
-			if (auto const pBulletExt = BulletExt::GetExtData(pTargetObject))
+			if (auto const pBulletExt = BulletExt::ExtMap.Find(pTargetObject))
 				pBulletExt->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.

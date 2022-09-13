@@ -14,6 +14,7 @@ struct LauchSWData final
 	bool LaunchGrant_OnHold;
 	bool LaunchSW_Manual;
 	bool LaunchSW_IgnoreInhibitors;
+	bool LaunchSW_IgnoreDesignators;
 	bool LauchSW_IgnoreMoney;
 
 	bool Read(INI_EX& exINI, const char* pID, int Prefix);
@@ -27,6 +28,7 @@ struct LauchSWData final
 		, LaunchGrant_OnHold { false }
 		, LaunchSW_Manual { false }
 		, LaunchSW_IgnoreInhibitors { false }
+		, LaunchSW_IgnoreDesignators { true }
 		, LauchSW_IgnoreMoney { false }
 	{ }
 

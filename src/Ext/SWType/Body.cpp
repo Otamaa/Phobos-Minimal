@@ -4,6 +4,8 @@
 #include <StringTable.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Utilities/Macro.h>
+
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
 SuperClass* SWTypeExt::TempSuper = nullptr;
@@ -47,6 +49,8 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	// inhibitor related
 	this->SW_Inhibitors.Read(exINI, pSection, "SW.Inhibitors");
 	this->SW_AnyInhibitor.Read(exINI, pSection, "SW.AnyInhibitor");
+	this->SW_Designators.Read(exINI, pSection, "SW.Designators");
+	this->SW_AnyDesignator.Read(exINI, pSection, "SW.AnyDesignator");
 
 	#pragma region Otamaa
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
@@ -60,7 +64,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 // load / save
 
 //Ares 0.A helpers
-bool SWTypeExt::IsInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, TechnoClass* pTechno)
+bool SWTypeExt::ExtData::IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno)
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
@@ -72,16 +76,16 @@ bool SWTypeExt::IsInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, Tec
 					return false;
 			}
 
-			return pSWType->SW_AnyInhibitor
-				|| pSWType->SW_Inhibitors.Contains(pTechno->GetTechnoType());
+			return SW_AnyInhibitor
+				|| SW_Inhibitors.Contains(pTechno->GetTechnoType());
 		}
 	}
 	return false;
 }
 
-bool SWTypeExt::IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno)
+bool SWTypeExt::ExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno)
 {
-	if (IsInhibitor(pSWType, pOwner, pTechno))
+	if (IsInhibitor(pOwner, pTechno))
 	{
 		const auto pType = pTechno->GetTechnoType();
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
@@ -102,16 +106,59 @@ bool SWTypeExt::IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOw
 	return false;
 }
 
-bool SWTypeExt::HasInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords)
+bool SWTypeExt::ExtData::HasInhibitor(HouseClass* pOwner, const CellStruct& Coords)
 {
 	// does not allow inhibitors
-	if (pSWType->SW_Inhibitors.empty() && !pSWType->SW_AnyInhibitor)
+	if (SW_Inhibitors.empty() && !SW_AnyInhibitor)
 		return false;
 
 	// a single inhibitor in range suffices
 	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &Coords](TechnoClass* pTechno)
-						{ return IsInhibitorEligible(pSWType, pOwner, Coords, pTechno); }
+						{ return IsInhibitorEligible(pOwner, Coords, pTechno); }
 	);
+}
+
+// Designators check
+bool SWTypeExt::ExtData::IsDesignator(HouseClass* pOwner, TechnoClass* pTechno) const
+{
+	if (pTechno->Owner == pOwner && pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
+		return this->SW_AnyDesignator || this->SW_Designators.Contains(pTechno->GetTechnoType());
+
+	return false;
+}
+
+bool SWTypeExt::ExtData::IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const
+{
+	if (this->IsDesignator(pOwner, pTechno))
+	{
+		const auto pType = pTechno->GetTechnoType();
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		// get the designator's center
+		auto center = pTechno->GetCoords();
+		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+		{
+			center = pBuilding->GetCoords();
+			center.X += pBuilding->Type->GetFoundationWidth() / 2;
+			center.Y += pBuilding->Type->GetFoundationHeight(false) / 2;
+		}
+
+		// has to be closer than the designator range (which defaults to Sight)
+		return coords.DistanceFrom(CellClass::Coord2Cell(center)) <= pExt->DesignatorRange.Get(pType->Sight);
+	}
+
+	return false;
+}
+
+bool SWTypeExt::ExtData::HasDesignator(HouseClass* pOwner, const CellStruct& coords) const
+{
+	// does not require designators
+	if (this->SW_Designators.empty() && !this->SW_AnyDesignator)
+		return true;
+
+	// a single designator in range suffices
+	return std::any_of(TechnoClass::Array->begin(), TechnoClass::Array->end(), [=, &coords](TechnoClass* pTechno)
+		{ return this->IsDesignatorEligible(pOwner, coords, pTechno); });
 }
 
 template <typename T>
@@ -130,6 +177,8 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RandomBuffer)
 		.Process(this->SW_Inhibitors)
 		.Process(this->SW_AnyInhibitor)
+		.Process(this->SW_Designators)
+		.Process(this->SW_AnyDesignator)
 
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
@@ -187,7 +236,7 @@ SWTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	SWTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	SWTypeExt::ExtMap.FindOrAllocate(pItem);
@@ -237,3 +286,6 @@ DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
+#ifndef ENABLE_NEWHOOKS
+DEFINE_JUMP(LJMP, 0x6CE93A, 0x6CE972);
+#endif

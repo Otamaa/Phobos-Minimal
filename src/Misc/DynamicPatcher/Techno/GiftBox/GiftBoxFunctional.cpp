@@ -103,7 +103,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 
 void GiftBoxFunctional::TakeDamage(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, WarheadTypeClass* pWH, DamageState nState) {
 
-	if (!pExt->MyGiftBox)
+	if (!pExt->MyGiftBox.get())
 		return;
 
 	if (nState != DamageState::NowDead &&

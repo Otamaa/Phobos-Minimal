@@ -15,8 +15,8 @@ void ProximityFunctional::Put(BulletClass* pBullet)
 	if (!pBullet || !pBullet->Type)
 		return;
 
-	auto pBulletExt = BulletExt::GetExtData(pBullet);
-	auto pBulletTypeExt = BulletTypeExt::GetExtData(pBullet->Type);
+	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 	if (!pBulletExt || !pBulletTypeExt)
 		return;
@@ -44,7 +44,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 	if (!pBullet || !pBullet->Type)
 		return;
 
-	auto pBulletExt = BulletExt::GetExtData(pBullet);
+	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
 	if (!pBulletExt)
 		return;
@@ -206,7 +206,7 @@ bool ProximityFunctional::ManualDetonation(BulletClass* pBullet, CoordStruct sou
 	if (!pBullet)
 		return false;
 
-	auto pBulletExt = BulletExt::GetExtData(pBullet);
+	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
 	if (!pBulletExt)
 		return false;

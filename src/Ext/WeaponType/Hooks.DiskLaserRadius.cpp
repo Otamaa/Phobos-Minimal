@@ -6,7 +6,7 @@ DEFINE_HOOK(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
 
 	auto const pTypeData = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	if (pTypeData && WeaponTypeExt::nOldCircumference != pTypeData->DiskLaser_Circumference) {
+	if (WeaponTypeExt::nOldCircumference != pTypeData->DiskLaser_Circumference) {
 		int new_Circumference = pTypeData->DiskLaser_Circumference;
 		WeaponTypeExt::nOldCircumference = new_Circumference;
 

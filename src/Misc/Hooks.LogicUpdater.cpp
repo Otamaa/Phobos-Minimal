@@ -151,7 +151,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	//pExt->PaintBallState = std::make_unique<PaintBall>();
+	pExt->PaintBallState = std::make_unique<PaintBall>();
 #endif
 	if (pThis->WhatAmI() != AbstractType::Building)
 	{
@@ -330,20 +330,14 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 #endif
 		pExt->GattlingDamage();
 
-
-		//if (pExt->GenericFuctions.AfterLoadGame)
-			//pExt->InitFunctionEvents();
-
-		//pExt->GenericFuctions.run_each(pThis);
-
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 		GiftBoxFunctional::AI(pExt, pTypeExt);
 
-		//if (pExt->PaintBallState) {
-		//	pExt->PaintBallState->Update(pThis);
-		//}
+		if (pExt->PaintBallState) {
+			pExt->PaintBallState->Update(pThis);
+		}
 
 #endif
 
@@ -558,39 +552,23 @@ DEFINE_HOOK(0x4F8FE1, Houseclass_AI_Add, 0x5)
 {
 	return 0x0;
 }
-
-void __fastcall HouseClass_AI_SWHandler_Add(HouseClass* pThis, void* _)
-{
-	pThis->SuperWeapon_Handler();
-}
-
-DEFINE_JUMP(CALL,0x4F92F6, GET_OFFSET(HouseClass_AI_SWHandler_Add));
 */
 
-#ifdef ENABLE_NEWHOOKS
-//TODO : re-enabled if used
-//void __fastcall LogicClass_AI_(LogicClass* pLogic, void* _)
-//{
-//	pLogic->Update();
-//}
-//
-//DEFINE_JUMP(CALL, 0x55DC9E, GET_OFFSET(LogicClass_AI_));
 
 DEFINE_HOOK(0x55DC99, LoGicClassUpdate_probe, 0x5)
-{ return 0x0; }
-//void __fastcall KamikazeClass_AI_(Kamikaze* pThis, void* _)
-//{
-//	pThis->Update();
-//}
-//
-//DEFINE_JUMP(CALL, 0x55B4F0, GET_OFFSET(KamikazeClass_AI_));
+{
+	return 0x0;
+}
+
 DEFINE_HOOK(0x55B4EB, KamikazeClass_AI_Probe, 0x5)
-{ return 0x0; }
+{
+   return 0x0;
+}
+
 DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
 	VerticalLaserClass::OnUpdateAll();
 	return 0x0;
 }
-
 
 DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
 {
@@ -606,4 +584,3 @@ DEFINE_HOOK(0x6875F3 , Scenario_Start1, 0x6) {
 
 	return 0;
 }
-#endif

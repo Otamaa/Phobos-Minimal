@@ -180,9 +180,9 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 	GET(BulletClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, ECX);
 
-	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
-		if (!pHouse)
-			R->ECX(pExt->Owner);
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	if (!pHouse)
+		R->ECX(pExt->Owner);
 
 	return 0;
 }
@@ -197,11 +197,8 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 
 	GET(BulletClass*, pThis, EBP);
 
-	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
-		if (pThis->Type->Inviso && pExt->IsInterceptor)
-			return DetonateBullet;
-
-	return 0;
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	return (pThis->Type->Inviso && pExt->IsInterceptor) ? DetonateBullet:0x0;
 }
 
 /*
@@ -240,7 +237,7 @@ DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
 	{
 		if (const auto pTargetType = pTarget->GetTechnoType())
 		{
-			if (auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH))
+			auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH);
 			{
 				const double currentHealthPerc = pTarget->GetHealthPercentage();
 				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
@@ -290,7 +287,7 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 	{
 		if (const auto pTargetType = pTarget->GetTechnoType())
 		{
-			if (auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH))
+			auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH);
 			{
 				const double currentHealthPerc = pTarget->GetHealthPercentage();
 				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
@@ -344,8 +341,9 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 
 	GET(BulletClass*, pThis, ESI);
 
-	if (const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
+	if (pThis->WH)
 	{
+		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
@@ -379,7 +377,7 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 
 	if (pThis->Type->Cluster > 0)
 	{
-		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
 		{
 			const int min = pTypeExt->Cluster_Scatter_Min.Get(Leptons(256));
 			const int max = pTypeExt->Cluster_Scatter_Max.Get(Leptons(512));
@@ -408,8 +406,9 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 	GET(BulletClass*, pThis, EBX);
 	GET_STACK(float, mult, STACK_OFFS(0x5C, 0x44));
 
-	if (pThis->WeaponType) {
-		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type)) {
+	if (pThis->WeaponType && pThis->Type) {
+		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+		{
 			const int defaultmax = RulesClass::Instance->BallisticScatter;
 			const int min = pTypeExt->BallisticScatter_Min.Get(Leptons(0));
 			const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(defaultmax));
@@ -429,7 +428,7 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 	const bool isLand = pThis->GetCell()->LandType != LandType::Water || pThis->GetCell()->ContainsBridge();
 
-	if (pWHExt && !isLand && pWHExt->Debris_Conventional.Get())
+	if (!isLand && pWHExt->Debris_Conventional.Get())
 		return SkipGameCode;
 
 	// Fix the debris count to be in range of Min, Max instead of Min, Max-1.
@@ -438,7 +437,7 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 	return SetDebrisCount;
 }
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
 {
 	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 };
@@ -481,12 +480,11 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 	{
 		return nRet();
 	}
-	else if (auto const pExt = BulletExt::ExtMap.Find(pThis))
-	{
-		if (pExt->Trajectory)
-		{
-			if (pExt->Trajectory->Flag == TrajectoryFlag::Straight)
-				return !pExt->SnappedToTarget ? nRet() : SkipSnapFunc;
+	else {
+		auto const pExt = BulletExt::ExtMap.Find(pThis);
+
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+			return !pExt->SnappedToTarget ? nRet() : SkipSnapFunc;
 		}
 	}
 
@@ -512,11 +510,10 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	{
 		return 0;
 	}
-	else if (auto const pExt = BulletExt::ExtMap.Find(pThis))
-	{
-		if (pExt->Trajectory)
-		{
-			if (pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+	else {
+		auto const pExt = BulletExt::ExtMap.Find(pThis);
+
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
 				return !pExt->SnappedToTarget ? nRet() : SkipCoordFunc;
 		}
 	}
@@ -543,13 +540,11 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
-	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	{
-		if (pExt->Trajectory)
-		{
-			if (pExt->Trajectory->Flag == TrajectoryFlag::Straight)
-				return SkipSetCoordinate;
-				//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+			return SkipSetCoordinate;
+			//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
 		}
 	}
 

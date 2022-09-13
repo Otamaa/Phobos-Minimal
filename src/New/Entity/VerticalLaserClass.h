@@ -18,6 +18,7 @@ public:
 	CoordStruct From;
 	int Height;
 	int radius_decrement;
+	TechnoClass* Owner;
 
 	void Reset();
 

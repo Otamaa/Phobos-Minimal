@@ -53,6 +53,11 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix)
 	bool_Dummy.Read(exINI, pID, nBuff);
 	LaunchSW_IgnoreInhibitors = bool_Dummy.Get();
 
+	bool_Dummy =  LaunchSW_IgnoreDesignators;
+	_snprintf(nBuff, sizeof(nBuff), "LaunchSW%d.IgnoreDesignators", Prefix);
+	bool_Dummy.Read(exINI, pID, nBuff);
+	LaunchSW_IgnoreDesignators = bool_Dummy.Get();
+
 	bool_Dummy = LauchSW_IgnoreMoney;
 	_snprintf(nBuff, sizeof(nBuff), "LaunchSW%d.IgnoreMoney", Prefix);
 	bool_Dummy.Read(exINI, pID, nBuff);
@@ -84,6 +89,7 @@ bool LauchSWData::Serialize(T& Stm)
 		.Process(LaunchGrant_OnHold)
 		.Process(LaunchSW_Manual)
 		.Process(LaunchSW_IgnoreInhibitors)
+		.Process(LaunchSW_IgnoreDesignators)
 		.Process(LauchSW_IgnoreMoney)
 		.Success()
 		;

@@ -15,9 +15,9 @@ class BulletTypeExt
 public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
-//#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x2EC;
-//#endif
+#endif
 
 	class ExtData final : public Extension<BulletTypeClass>
 	{
@@ -148,10 +148,10 @@ public:
 	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
 
 	class ExtContainer final : public Container<BulletTypeExt
-//#ifdef ENABLE_NEWEXT
-		, true
-		, true
-//#endif
+#ifndef ENABLE_NEWEXT
+, true
+, true
+#endif
 	> {
 	public:
 		ExtContainer();

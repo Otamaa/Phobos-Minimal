@@ -148,8 +148,8 @@ public:
 
 	class ExtContainer final : public Container<AnimTypeExt
 //#ifdef ENABLE_NEWEXT
-		, true
-		, true
+, true
+, true
 //#endif
 	>
 	{

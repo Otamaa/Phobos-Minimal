@@ -26,9 +26,10 @@ public:
 
 	 static ConvertClass* CreateFromFile(const char* pal_filename);
 
-	ConvertClass() { }
+	//ConvertClass() { }
 
-	virtual ~ConvertClass() JMP_THIS(0x491210);
+	virtual ~ConvertClass() RX;//JMP_THIS(0x491210);
+	//virtual void UpdateColors(int red, int green, int blue, bool tinted) RX;
 
 	void Alloc_Blitters() JMP_THIS(0x48EBF0);
 	void Dealloc_Blitters() JMP_THIS(0x490490);
@@ -92,7 +93,7 @@ public:
 	int BytesPerPixel;
 	BlitterCore* Blitters[50];
 	RLEBlitterCore* RLEBlitters[39];
-	size_t ShadeCount;
+	int ShadeCount;
 	void* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
 	WORD* BufferMid; // points to the middle of BufferA above, ??
 	void* BufferB; // if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
@@ -101,7 +102,7 @@ public:
 	DWORD QuarterColorMask; // for masking colors right-shifted by 2
 };
 
-//static_assert(sizeof(ConvertClass) == 0x188);
+static_assert(sizeof(ConvertClass) == 0x188);
 
 class LightConvertClass : public ConvertClass
 {
@@ -144,9 +145,11 @@ public:
 	BytePalette const* UsedPalette1;
 	BytePalette const* UsedPalette2;
 	BYTE* IndexesToIgnore;
-	int UsageCount;
+	int RefCount;
 	TintStruct Color1;
 	TintStruct Color2;
 	bool Tinted;
 	PROTECTED_PROPERTY(BYTE, align_1B1[3]);
 };
+
+static_assert(sizeof(LightConvertClass) == 0x1B4);

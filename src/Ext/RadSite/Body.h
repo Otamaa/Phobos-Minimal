@@ -15,7 +15,7 @@ class RadSiteExt
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = 0x44;
 #endif
 
@@ -56,7 +56,7 @@ public:
 
 	static void CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
-	class ExtContainer final : public Container<RadSiteExt>
+	class ExtContainer final : public Container<RadSiteExt,false,true>
 	{
 	public:
 		ExtContainer();
@@ -76,7 +76,7 @@ public:
 			return true;
 		}
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		//void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

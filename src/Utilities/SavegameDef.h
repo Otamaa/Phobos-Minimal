@@ -22,6 +22,7 @@
 #include <queue>
 #include <optional>
 
+#include "TranslucencyLevel.h"
 #include "Swizzle.h"
 #include "Debug.h"
 
@@ -939,6 +940,20 @@ namespace Savegame
 				}
 			}
 			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<TranslucencyLevel>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, TranslucencyLevel*& Value, bool RegisterForChange) const
+		{
+			return Value->Load(Stm, RegisterForChange);
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, TranslucencyLevel* const& Value) const
+		{
+			return Value->Save(Stm);
 		}
 	};
 }

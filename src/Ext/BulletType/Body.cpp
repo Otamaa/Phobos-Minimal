@@ -236,7 +236,7 @@ BulletTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	BulletTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	BulletTypeExt::ExtMap.FindOrAllocate(pItem);
@@ -274,7 +274,7 @@ DEFINE_HOOK(0x46C74A, BulletTypeClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
+//DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 {
 	GET(BulletTypeClass*, pItem, ESI);
@@ -287,7 +287,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
 DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
 DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)
@@ -303,4 +303,4 @@ DEFINE_HOOK(0x4685EC, BulletClass_Detach_Scalable, 0x6)
 	auto pExt = BulletTypeExt::ExtMap.Find(pBulletType);
 	return pExt && pExt->IsScalable.Get() ? 0x4685F4 : 0x46865F;
 }
-//#endif
+#endif

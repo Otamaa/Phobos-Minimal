@@ -22,11 +22,11 @@ DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
 {
 	GET(BulletClass* const, pThis, ESI);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
-	{
+	if (pThis->WH) {
 		GET_BASE(const CoordStruct*, pCoords, 0x8);
 
-		auto const pExt = BulletExt::GetExtData(pThis);
+		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+		auto const pExt = BulletExt::ExtMap.Find(pThis);
 		auto const pTechno = pThis ? pThis->Owner : nullptr;
 		auto const pHouse = pTechno ? pTechno->Owner : pExt && pExt->Owner ? pExt->Owner :nullptr;
 
@@ -48,7 +48,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
 	GET_BASE(const WarheadTypeClass*, pWH, 0x0C);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
+	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 	{
 		// GET(const int, Damage, EDX);
 		// GET_BASE(const bool, AffectsTiberium, 0x10);
@@ -88,6 +88,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 						Lauch.LaunchGrant_OnHold,
 						Lauch.LaunchSW_Manual,
 						Lauch.LaunchSW_IgnoreInhibitors,
+						Lauch.LaunchSW_IgnoreDesignators,
 						Lauch.LauchSW_IgnoreMoney
 					);
 				}
@@ -108,7 +109,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
 
-	if (pWHExt && pWHExt->SplashList.size())
+	if (pWHExt->SplashList.size())
 	{
 		GET(int, nDamage, ECX);
 		int idx = pWHExt->SplashList_PickRandom ?
@@ -126,7 +127,7 @@ DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
 
-	return pWHExt && pWHExt->AnimList_PickRandom ? 0x48A5C7 : 0;
+	return pWHExt->AnimList_PickRandom ? 0x48A5C7 : 0;
 }
 
 DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
@@ -134,7 +135,7 @@ DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
 	GET(WarheadTypeClass* const, pThis, ESI);
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
 
-	if (pWHExt && pWHExt->HasCrit && pWHExt->Crit_AnimList.size() && !pWHExt->Crit_AnimOnAffectedTargets)
+	if (pWHExt->HasCrit && pWHExt->Crit_AnimList.size() && !pWHExt->Crit_AnimOnAffectedTargets)
 	{
 		GET(int, nDamage, ECX);
 		int idx = pThis->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
@@ -153,7 +154,8 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead)) {
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+	{
 		if (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get())
 			return SkipCheck;
 	}

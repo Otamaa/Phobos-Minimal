@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/House/Body.h>
+#include <Utilities/Macro.h>
 
 #include <ColorScheme.h>
 
@@ -230,7 +231,7 @@ AnimExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	AnimExt::ExtMap.JustAllocate(pItem, pItem->Type, "Creating an animation with null Type !");
 #else
 	AnimExt::ExtMap.FindOrAllocate(pItem);
@@ -302,6 +303,8 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 }
 
 //#ifdef ENABLE_NEWEXT
+DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
+
 DEFINE_HOOK_AGAIN(0x421EF4 , AnimClass_CTOR_setD0, 0x6)
 DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
 {

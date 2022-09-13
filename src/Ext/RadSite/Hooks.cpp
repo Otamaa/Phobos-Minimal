@@ -37,7 +37,7 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 		GET(WeaponTypeClass*, pWeapon, ECX);
 		GET(int, nAmount, EDI);
 
-		if (const auto pExt = BulletExt::GetExtData(pThis))
+		if (const auto pExt = BulletExt::ExtMap.Find(pThis))
 		{
 			auto cell = CellClass::Coord2Cell(*pCoords);
 			auto spread = Game::F2I(pWeapon->Warhead->CellSpread);

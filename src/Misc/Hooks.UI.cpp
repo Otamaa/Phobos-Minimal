@@ -163,12 +163,12 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 	GET_STACK(AbstractType, rttiLeft, STACK_OFFS(0x1C, -0x4));
 	GET_STACK(AbstractType, rttiRight, STACK_OFFS(0x1C, -0xC));
 
-	const auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find(pLeft);
-	const auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find(pRight);
+	const auto pLeftTechnoExt = TechnoTypeExt::ExtMap.Find<true>(pLeft);
+	const auto pRightTechnoExt = TechnoTypeExt::ExtMap.Find<true>(pRight);
 	const auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
-		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxLeft)) : nullptr;
+		? SWTypeExt::ExtMap.Find<true>(SuperWeaponTypeClass::Array->GetItemOrDefault(idxLeft)) : nullptr;
 	const auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
-		? SWTypeExt::ExtMap.Find(SuperWeaponTypeClass::Array->GetItem(idxRight)) : nullptr;
+		? SWTypeExt::ExtMap.Find<true>(SuperWeaponTypeClass::Array->GetItemOrDefault(idxRight)) : nullptr;
 
 	if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
 	{

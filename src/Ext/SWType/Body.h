@@ -11,8 +11,8 @@ class SWTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = SuperWeaponTypeClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+#ifndef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0xAC;
 #endif
 
 	class ExtData final : public Extension<SuperWeaponTypeClass>
@@ -33,6 +33,8 @@ public:
 
 		ValueableVector<TechnoTypeClass*> SW_Inhibitors;
 		Valueable<bool> SW_AnyInhibitor;
+		ValueableVector<TechnoTypeClass*> SW_Designators;
+		Valueable<bool> SW_AnyDesignator;
 
 		#pragma region Otamaa
 		Nullable<SHPStruct*> GClock_Shape;
@@ -56,6 +58,8 @@ public:
 
 			, SW_Inhibitors {}
 			, SW_AnyInhibitor { false }
+			, SW_Designators { }
+			, SW_AnyDesignator { false }
 
 			, GClock_Shape { }
 			, GClock_Transculency { }
@@ -66,6 +70,14 @@ public:
 
 
 		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords);
+
+		bool IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno);
+		bool HasInhibitor(HouseClass* pOwner, const CellStruct& Coords);
+		bool IsInhibitorEligible(HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno);
+		bool IsDesignator(HouseClass* pOwner, TechnoClass* pTechno) const;
+		bool HasDesignator(HouseClass* pOwner, const CellStruct& coords) const;
+		bool IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const;
+
 
 		void LoadFromINIFile(CCINIClass* pINI);
 		virtual ~ExtData() = default;
@@ -82,7 +94,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SWTypeExt>
+	class ExtContainer final : public Container<SWTypeExt
+#ifndef ENABLE_NEWHOOKS
+		,true,false,true
+#endif
+	>
 	{
 	public:
 		ExtContainer();
@@ -94,10 +110,6 @@ public:
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static bool IsInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, TechnoClass* pTechno);
-	static bool HasInhibitor(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords);
-	static bool IsInhibitorEligible(SWTypeExt::ExtData* pSWType, HouseClass* pOwner, const CellStruct& Coords, TechnoClass* pTechno);
 
 	static SuperClass* TempSuper;
 };

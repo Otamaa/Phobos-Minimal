@@ -235,7 +235,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	//Eax is discarded anyway
 	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 	{
-		auto const pExt = BulletExt::GetExtData(pThis);
+		auto const pExt = BulletExt::ExtMap.Find(pThis);
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
 											(pExt && pExt->Owner) ? pExt->Owner : nullptr
 								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner, false);
@@ -602,15 +602,15 @@ DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
 	return Allow ? 0x54DCE8 : 0x54DF13;
 }
 
-DEFINE_HOOK(0x54C14B, JumpjetLocomotionClass_State3, 0x7)
-{
-	GET(FootClass*, pFoot, EDI);
-
-	if (pFoot->GetTechnoType()->Sensors)
-		pFoot->UpdatePosition(2);
-
-	return 0;
-}
+//DEFINE_HOOK(0x54C14B, JumpjetLocomotionClass_State3, 0x7)
+//{
+//	GET(FootClass*, pFoot, EDI);
+//
+//	if (pFoot->GetTechnoType()->Sensors)
+//		pFoot->UpdatePosition(2);
+////
+//	return 0;
+//}
 
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {

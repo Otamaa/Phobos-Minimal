@@ -225,7 +225,7 @@ DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);

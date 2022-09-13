@@ -29,10 +29,10 @@ class TechnoTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = TechnoTypeClass;
-//#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	//static constexpr size_t ExtOffset = 0x35C;
 	static constexpr size_t ExtOffset = 0xDF4;
-//#endif
+#endif
 
 	class ExtData final : public Extension<TechnoTypeClass>
 	{
@@ -43,6 +43,7 @@ public:
 		PhobosFixedString<0x20> GroupAs;
 		Valueable<int> RadarJamRadius;
 		Nullable<int> InhibitorRange;
+		Nullable<int> DesignatorRange;
 		Valueable<Leptons> MindControlRangeLimit;
 		Valueable<bool> Interceptor;
 		Valueable<AffectedHouse> Interceptor_CanTargetHouses;
@@ -171,7 +172,8 @@ public:
 				, IsOnTurret { false }
 			{ }
 
-			virtual ~LaserTrailDataEntry() = default;
+			//virtual ~LaserTrailDataEntry() = default;
+			~LaserTrailDataEntry() = default;
 
 		private:
 			template <typename T>
@@ -360,6 +362,7 @@ public:
 			, GroupAs { NONE_STR }
 			, RadarJamRadius { 0 }
 			, InhibitorRange { }
+			, DesignatorRange { }
 			, MindControlRangeLimit {}
 			, Interceptor { false }
 			, Interceptor_CanTargetHouses { AffectedHouse::Enemies }
@@ -652,10 +655,10 @@ public:
 	};
 
 	class ExtContainer final : public Container<TechnoTypeExt
-//#ifdef ENABLE_NEWEXT
-		, true
-		, true
-//#endif
+#ifndef ENABLE_NEWEXT
+, true
+, true
+#endif
 	>
 	{
 	public:

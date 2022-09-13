@@ -116,6 +116,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 
 	enum { Primary = 0x6F37AD, Secondary = 0x6F3745, FurtherCheck = 0x6F3754, OriginalCheck = 0x6F36E3 };
 
+	/*
 	CellClass* targetCell = nullptr;
 
 	// Ignore target cell for airborne technos.
@@ -179,6 +180,42 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	}
 
 	return OriginalCheck;
+
+	*/
+
+	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	{
+		int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
+
+		if (weaponIndex != -1)
+			return weaponIndex == 1 ? Secondary : Primary;
+
+		if (!pTargetTechno)
+			return Primary;
+
+		if (const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno))
+		{
+			if (const auto pShield = pTargetExt->Shield.get())
+			{
+				if (pShield->IsActive())
+				{
+					if (pThis->GetWeapon(1) && !(pTypeExt->NoSecondaryWeaponFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
+					{
+						if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
+							return Secondary;
+						else
+							return FurtherCheck;
+					}
+
+					return Primary;
+				}
+			}
+		}
+	}
+
+	return OriginalCheck;
+
+
 }
 
 DEFINE_HOOK_AGAIN(0x6FF660, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
@@ -202,26 +239,19 @@ DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 {
-	enum { ReturnValue = 0x6F37AF };
+	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
 
-	//GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x18, 0x4));
 	GET(WeaponTypeClass*, pSecWeapon, EAX);
 
-	int returnValue = 0;
+	if (!pWeapon->Projectile->AA && pSecWeapon->Projectile->AA && pTargetTechno && pTargetTechno->IsInAir())
+		return Secondary;
 
-	if(pTargetTechno && pTargetTechno->IsInAir()) {
-		returnValue = !pWeapon->Projectile->AA && pSecWeapon->Projectile->AA ? 1 : 0;
-	}
-
-	R->EAX(returnValue);
-	return ReturnValue;
+	return Primary;
 }
-*/
 
 //DEFINE_HOOK(0x6F3436, TechnoClass_SelectGattlingWeapon, 0x6)
 //{
@@ -344,3 +374,69 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	R->EAX(weaponIndex);
 	return ReturnValue;
 }*/
+
+DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
+{
+	enum { ReturnValue = 0x6F37AF };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pTargetTechno, EBP);
+	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
+
+	int oddWeaponIndex = 2 * pThis->CurrentGattlingStage;
+	int evenWeaponIndex = oddWeaponIndex + 1;
+	int chosenWeaponIndex = oddWeaponIndex;
+	int eligibleWeaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, oddWeaponIndex, evenWeaponIndex, true);
+
+	if (eligibleWeaponIndex != -1)
+	{
+		chosenWeaponIndex = eligibleWeaponIndex;
+	}
+	else if (pTargetTechno)
+	{
+		auto const pWeaponOdd = pThis->GetWeapon(oddWeaponIndex)->WeaponType;
+		auto const pWeaponEven = pThis->GetWeapon(evenWeaponIndex)->WeaponType;
+		bool skipRemainingChecks = false;
+
+		if (const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno))
+		{
+			if (const auto pShield = pTargetExt->Shield.get())
+			{
+				if (pShield->IsActive() && !pShield->CanBeTargeted(pWeaponOdd))
+				{
+					chosenWeaponIndex = evenWeaponIndex;
+					skipRemainingChecks = true;
+				}
+			}
+		}
+
+		if (!skipRemainingChecks)
+		{
+			if (GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead, pTargetTechno->GetTechnoType()->Armor) == 0.0)
+			{
+				chosenWeaponIndex = evenWeaponIndex;
+			}
+			else
+			{
+				auto pCell = pTargetTechno->GetCell();
+				bool isOnWater = (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pTargetTechno->IsInAir();
+
+				if (!pTargetTechno->OnBridge && isOnWater)
+				{
+					int navalTargetWeapon = pThis->SelectNavalTargeting(pTargetTechno);
+
+					if (navalTargetWeapon != -1)
+						chosenWeaponIndex = navalTargetWeapon;
+				}
+				else if ((pTargetTechno->IsInAir() && !pWeaponOdd->Projectile->AA && pWeaponEven->Projectile->AA) ||
+					!pTargetTechno->IsInAir() && pThis->GetTechnoType()->LandTargeting == LandTargetingType::Land_secondary)
+				{
+					chosenWeaponIndex = evenWeaponIndex;
+				}
+			}
+		}
+	}
+
+	R->EAX(chosenWeaponIndex);
+	return ReturnValue;
+}

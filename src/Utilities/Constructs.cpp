@@ -36,6 +36,7 @@
 #include <FileSystem.h>
 #include <ScenarioClass.h>
 #include "GeneralUtils.h"
+#include "TranslucencyLevel.h"
 
 //#include <Ext/Convert/Body.h>
 
@@ -142,4 +143,29 @@ bool CustomPalette::CreateFromBytePalette(BytePalette nBytePal)
 
 	this->Convert.reset(buffer);
 	return this->Convert != nullptr;
+}
+
+bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* pKey)
+{
+	if (parser.ReadString(pSection, pKey))
+	{
+		auto pValue = parser.value();
+		GeneralUtils::ApplyTheaterSuffixToString(pValue);
+
+		std::string Result = pValue;
+		if (!strstr(pValue, ".shp"))
+			Result += ".shp";
+
+		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
+		{
+			value = pImage;
+			return true;
+		}
+		else
+		{
+			Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
+		}
+	}
+
+	return false;
 }

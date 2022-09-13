@@ -334,6 +334,10 @@ DEFINE_HOOK(0x6FD446, TechnoClass_FireLaser_IsSingleColor, 0x7)
 	return 0;
 }
 
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#endif
+
 DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_FlyingStrings, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -341,6 +345,19 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_FlyingStrings, 0x7)
 
 	if (Phobos::Debug_DisplayDamageNumbers && *pDamage)
 		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false);
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+
+	GET(DamageState, damageState , EDI);
+	GET(WarheadTypeClass*, pWH , EBP);
+
+	if(auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
+		}
+	}
+
+#endif
 
 	return 0;
 }
@@ -730,12 +747,9 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_54BFF0_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	auto const pType = pLinkedTo->GetTechnoType();
-
-	if (pType->SensorsSight)
-	{
+	if (pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
-		pLinkedTo->AddSensorsAt(currentCell);
+		pLinkedTo->AddSensorsAt(CellStruct::Empty);
 	}
 
 	return 0;

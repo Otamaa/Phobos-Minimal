@@ -77,7 +77,7 @@ void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed
 {
 	if (!this->IsFalling)
 	{
-		pSpeed->Z += BulletExt::GetExtData(pBullet)->TypeExt->GetAdjustedGravity();
+		pSpeed->Z += BulletExt::ExtMap.Find(pBullet)->TypeExt->GetAdjustedGravity();
 		if (pBullet->Location.Z + pBullet->Velocity.Z >= this->Height)
 		{
 			this->IsFalling = true;

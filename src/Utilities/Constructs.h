@@ -48,9 +48,12 @@
 #include <Phobos.h>
 #include <Phobos.CRT.h>
 
+#include "INIParser.h"
+
 #include "PhobosFixedString.h"
 #include "Savegame.h"
 #include "Debug.h"
+
 
 class ConvertClass;
 
@@ -73,6 +76,47 @@ UniqueGamePtr<T> Make_UniqueGamePtr(TArgs&&... args)
 
 template <typename T>
 using UniqueDLLPtr = std::unique_ptr<T, DLLDeleter>;
+
+class TheaterSpecificSHP
+{
+public:
+	constexpr TheaterSpecificSHP() noexcept = default;
+
+	TheaterSpecificSHP(SHPStruct* pSHP)
+	{
+		*this = pSHP;
+	}
+
+	TheaterSpecificSHP& operator = (SHPStruct* pSHP)
+	{
+		this->value = pSHP;
+	}
+
+	operator SHPStruct* ()
+	{
+		return this->value;
+	}
+
+	SHPStruct* GetSHP()
+	{
+		return *this;
+	}
+
+	bool Read(INI_EX& parser, const char* pSection, const char* pKey);
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Savegame::ReadPhobosStream(Stm, this->value, RegisterForChange);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Savegame::WritePhobosStream(Stm, this->value);
+	}
+
+private:
+	SHPStruct* value { nullptr };
+};
 
 struct Leptons {
 	Leptons() = default;

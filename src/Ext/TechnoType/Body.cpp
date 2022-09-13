@@ -265,6 +265,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	// Ares 0.9
 	this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");
+	this->DesignatorRange.Read(exINI, pSection, "DesignatorRange");
 
 	// Ares 0.A
 	this->GroupAs.Read(pINI, pSection, "GroupAs");
@@ -533,6 +534,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->GroupAs)
 		.Process(this->RadarJamRadius)
 		.Process(this->InhibitorRange)
+		.Process(this->DesignatorRange)
 		.Process(this->TurretOffset)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
@@ -861,7 +863,7 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* const, pItem, ESI);
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	TechnoTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
@@ -902,7 +904,7 @@ DEFINE_HOOK(0x717094, TechnoTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x716132, TechnoTypeClass_LoadFromINI, 0x5)
+//DEFINE_HOOK_AGAIN(0x716132, TechnoTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, EBP);

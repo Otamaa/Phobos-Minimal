@@ -139,7 +139,7 @@ DEFINE_HOOK(0x467609, BulletClass_AI_CheckBounce, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	const auto pExt = BulletExt::GetExtData(pThis);
+	const auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
 	{
@@ -154,7 +154,7 @@ DEFINE_HOOK(0x46786C, BulletClass_AI_Before_TechnoCheck, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 	GET(int, nHeight, EAX);
-	const auto pExt = BulletExt::GetExtData(pThis);
+	const auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
 	{
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x164));
 	GET(bool, bForceDetonate, EBX);
 
-	const auto pExt = BulletExt::GetExtData(pThis);
+	const auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
 	{
@@ -286,7 +286,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)
 DEFINE_HOOK(0x46779B, BulletClass_AI_DetonateNow, 0x8)
 {
 	GET(BulletClass*, pThis, EBP);
-	const auto pExt = BulletExt::GetExtData(pThis);
+	const auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (!pExt->Trajectory || pExt->Trajectory->Flag != TrajectoryFlag::Bounce) {
 		R->Stack(0x20, true);

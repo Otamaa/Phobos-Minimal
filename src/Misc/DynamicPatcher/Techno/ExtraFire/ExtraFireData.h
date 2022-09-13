@@ -9,13 +9,13 @@ struct ExtraFireData
 {
 	struct FLHData
 	{
-		Valueable<CoordStruct> PrimaryWeaponFLH;
-		Nullable<CoordStruct> ElitePrimaryWeaponFLH;
-		Valueable<CoordStruct> SecondaryWeaponFLH;
-		Nullable<CoordStruct> EliteSecondaryWeaponFLH;
+		Valueable<CoordStruct> PrimaryWeaponFLH { {0,0,0} };
+		Nullable<CoordStruct> ElitePrimaryWeaponFLH { };
+		Valueable<CoordStruct> SecondaryWeaponFLH { {0,0,0} };
+		Nullable<CoordStruct> EliteSecondaryWeaponFLH { };
 
-		ValueableVector<CoordStruct> WeaponXFLH;
-		NullableVector<CoordStruct> EliteWeaponXFLH;
+		ValueableVector<CoordStruct> WeaponXFLH { };
+		NullableVector<CoordStruct> EliteWeaponXFLH { };
 
 		template <typename T>
 		void Serialize(T& Stm)
@@ -28,28 +28,17 @@ struct ExtraFireData
 				.Process(WeaponXFLH)
 				.Process(EliteWeaponXFLH);
 		}
-
-		FLHData() :
-			PrimaryWeaponFLH { {0,0,0} }
-			, ElitePrimaryWeaponFLH { }
-			, SecondaryWeaponFLH { {0,0,0} }
-			, EliteSecondaryWeaponFLH { }
-			, WeaponXFLH { }
-			, EliteWeaponXFLH { }
-		{ }
-
-		~FLHData() = default;
 	};
 
 	struct WeaponData
 	{
-		ValueableVector<WeaponTypeClass*> PrimaryWeapons;
-		ValueableVector<WeaponTypeClass*> SecondaryWeapons;
-		NullableVector<WeaponTypeClass*> ElitePrimaryWeapons;
-		NullableVector<WeaponTypeClass*> EliteSecondaryWeapons;
+		ValueableVector<WeaponTypeClass*> PrimaryWeapons { };
+		ValueableVector<WeaponTypeClass*> SecondaryWeapons { };
+		NullableVector<WeaponTypeClass*> ElitePrimaryWeapons { };
+		NullableVector<WeaponTypeClass*> EliteSecondaryWeapons { };
 
-		ValueableVector<std::vector<WeaponTypeClass*>> WeaponX;
-		ValueableVector<std::vector<WeaponTypeClass*>> EliteWeaponX;
+		ValueableVector<std::vector<WeaponTypeClass*>> WeaponX { };
+		ValueableVector<std::vector<WeaponTypeClass*>> EliteWeaponX { };
 
 		template <typename T>
 		void Serialize(T& Stm)
@@ -63,28 +52,10 @@ struct ExtraFireData
 				.Process(EliteWeaponX)
 				;
 		}
-
-		WeaponData():
-			  PrimaryWeapons { }
-			, SecondaryWeapons { }
-			, ElitePrimaryWeapons { }
-			, EliteSecondaryWeapons { }
-			, WeaponX { }
-			, EliteWeaponX { }
-		{ }
-
-		~WeaponData() = default;
 	};
 
-	FLHData AttachedFLH;
-	WeaponData AttachedWeapon;
-
-	ExtraFireData() :
-		AttachedFLH { }
-		, AttachedWeapon { }
-	{ }
-
-	~ExtraFireData() = default;
+	FLHData AttachedFLH { };
+	WeaponData AttachedWeapon { };
 
 	//confuse ? , yeah me too :kekw:
 	void ReadArt(INI_EX& parserArt, const char* pSection_Art);

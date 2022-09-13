@@ -295,7 +295,7 @@ BuildingExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	BuildingExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	BuildingExt::ExtMap.FindOrAllocate(pItem);
@@ -337,9 +337,9 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP, 0x41D9FB, 0x41DA05);
-//#endif
+#endif
 
 DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
 {

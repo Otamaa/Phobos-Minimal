@@ -485,6 +485,7 @@ namespace Helpers {
 		bool GrantOnHold,
 		bool Manual,
 		bool IgnoreInhibitor,
+		bool IgnoreDesignator,
 		bool IgnoreMoney
 		);
 	}

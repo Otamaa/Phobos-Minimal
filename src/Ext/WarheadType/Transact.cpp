@@ -153,10 +153,9 @@ void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec
 	//since we are on last chain of the event , we can do these thing
 	const auto NotEligible = [this, pHouse , pOwner](TechnoClass* const pTech)
 	{
-		return !(pTech && pTech->GetTechnoType() &&
+		return !(CanDealDamage(pTech) &&
 		pTech->GetTechnoType()->Trainable &&
-		CanTargetHouse(pHouse, pTech)
-		&& CanDealDamage(pTech));
+		CanTargetHouse(pHouse, pTech));
 	};
 
 	const auto [rFirst , rEnd] = std::ranges::remove_if(nVec, NotEligible);

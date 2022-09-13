@@ -6,10 +6,10 @@ void EffectsBase::SetAEManager(ObjectClass* pOwner)
 {
 	if (auto pTechno = generic_cast<TechnoClass*>(pOwner))
 	{
-		OwnerAEM = TechnoExt::GetExtData(pTechno)->AnotherData.MyManager.get();
+		OwnerAEM = TechnoExt::ExtMap.Find(pTechno)->AnotherData.MyManager.get();
 	}
 	else if (auto pBullet = specific_cast<BulletClass*>(pOwner))
 	{
-		OwnerAEM = BulletExt::GetExtData(pBullet)->AnotherData.MyManager.get();
+		OwnerAEM = BulletExt::ExtMap.Find(pBullet)->AnotherData.MyManager.get();
 	}
 }

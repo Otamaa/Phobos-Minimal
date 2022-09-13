@@ -14,9 +14,9 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	// wtf is this , really
 
 	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (!pExt || !pType)
+	if (!pExt || !pType || !pTarget)
 		return;
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);

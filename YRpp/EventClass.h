@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Helpers/CompileTime.h>
+
+#include <TargetClass.h>
+
 enum EventType : char
 {
   EMPTY = 0
@@ -52,116 +56,250 @@ enum EventType : char
 , LAST_EVENT = 47
 };
 
-#pragma pack(push , 1)
+#pragma pack(push, 1)
+union EventData
+{
+	EventData()
+	{
+
+	}
+
+	struct
+	{
+		char Data[104];
+	} SpaceGap; // Just a space gap to align the struct
+
+	struct
+	{
+		int ID; // Anim ID
+		int AnimOwner; // House ID
+		CellStruct Location;
+	} Animation;
+
+	struct
+	{
+		unsigned int CRC;
+		unsigned short CommandCount;
+		unsigned char Delay;
+	} FrameInfo;
+
+	struct
+	{
+		TargetClass Whom;
+	} Target;
+
+	struct
+	{
+		TargetClass Whom;
+		unsigned char Mission; // Mission but should be byte
+		char _gap_;
+		TargetClass Target;
+		TargetClass Destination;
+		TargetClass Follow;
+		bool IsPlanningEvent;
+	} MegaMission;
+
+	struct
+	{
+		TargetClass Whom;
+		unsigned char Mission;
+		TargetClass Target;
+		TargetClass Destination;
+		int Speed;
+		int MaxSpeed;
+	} MegaMission_F; // Seems unused in YR?
+
+	struct
+	{
+		int RTTI_ID;
+		int Heap_ID;
+		int IsNaval;
+	} Production;
+
+	struct
+	{
+		int Unknown_0;
+		long long Data;
+		int Unknown_C;
+	} Unknown_LongLong;
+
+	struct
+	{
+		int Unknown_0;
+		int Unknown_4;
+		int Data;
+		int Unknown_C;
+	} Unknown_Tuple;
+
+	struct
+	{
+		AbstractType RTTIType;
+		int HeapID;
+		int IsNaval;
+		CellStruct Location;
+	} Place;
+
+	struct
+	{
+		int ID;
+		CellStruct Location;
+	} SpecialPlace;
+
+	struct
+	{
+		AbstractType RTTIType;
+		int ID;
+	} Specific;
+};
+
+class EventClass;
+
+template<size_t Length>
+struct EventList
+{
+public:
+	int Count;
+	int Head;
+	int Tail;
+	EventClass List[Length];
+	int Timings[Length];
+};
+
 class EventClass
 {
 public:
+	static constexpr reference<const char*, 0x82091C, 47> const EventNames {};
+
+	static constexpr reference<EventList<0x80>, 0xA802C8> OutList {};
+	// If the event is a MegaMission, then add it to this list
+	static constexpr reference<EventList<0x100>, 0xA83ED0> MegaMissionList {};
+	static constexpr reference<EventList<0x4000>, 0x8B41F8> DoList {};
+
+	// this points to CRCs from 0x100 last frames
+	static constexpr reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
+	static constexpr reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
+
+	static bool AddEvent(const EventClass& event)
+	{
+		if (OutList->Count >= 128)
+			return false;
+
+		OutList->List[OutList->Tail] = event;
+
+		// timeGetTime();
+		//OutList->Timings[OutList->Tail] = ((int(__stdcall*)())0x7E1530)();
+		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime());
+
+		++OutList->Count;
+		OutList->Tail = (OutList->Tail + 1) & 127;
+	}
+
+	// Special
+	explicit EventClass(int houseIndex, int id)
+	{
+		JMP_THIS(0x4C65A0);
+	}
+
+	// Target
+	explicit EventClass(int houseIndex, EventType eventType, int id, int rtti)
+	{
+		JMP_THIS(0x4C65E0);
+	}
+
+	// Sellcell
+	explicit EventClass(int houseIndex, EventType eventType, const CellStruct& cell)
+	{
+		JMP_THIS(0x4C6650);
+	}
+
+	// Archive & Planning_Connect
+	explicit EventClass(int houseIndex, EventType eventType, TargetClass src, TargetClass dest)
+	{
+		JMP_THIS(0x4C6780);
+	}
+
+	// Anim
+	explicit EventClass(int houseIndex, int anim_id, HouseClass* pHouse, const CellStruct& cell)
+	{
+		JMP_THIS(0x4C6800);
+	}
+
+	// MegaMission
+	explicit EventClass(int houseIndex, TargetClass src, Mission mission, TargetClass target, TargetClass dest, TargetClass follow)
+	{
+		JMP_THIS(0x4C6860);
+	}
+
+	// MegaMission_F
+	explicit EventClass(int houseIndex, TargetClass src, Mission mission, TargetClass target, TargetClass dest, SpeedType speed, int/*MPHType*/ maxSpeed)
+	{
+		JMP_THIS(0x4C68E0);
+	}
+
+	// Production
+	explicit EventClass(int houseIndex, EventType eventType, int rtti_id, int heap_id, BOOL is_naval)
+	{
+		JMP_THIS(0x4C6970);
+	}
+
+	// Unknown_LongLong
+	explicit EventClass(int houseIndex, EventType eventType, int unknown_0, const int& unknown_c)
+	{
+		JMP_THIS(0x4C69E0);
+	}
+
+	// Unknown_Tuple
+	explicit EventClass(int houseIndex, EventType eventType, int unknown_0, int unknown_4, int unknown_c)
+	{
+		JMP_THIS(0x4C6A60);
+	}
+
+	// Place
+	explicit EventClass(int houseIndex, EventType eventType, AbstractType rttitype, int heapid, int is_naval, const CellStruct& cell)
+	{
+		JMP_THIS(0x4C6AE0);
+	}
+
+	// SpecialPlace
+	explicit EventClass(int houseIndex, EventType eventType, int id, const CellStruct& cell)
+	{
+		JMP_THIS(0x4C6B60);
+	}
+
+	// Specific?, maybe int[2] otherwise
+	explicit EventClass(int houseIndex, EventType eventType, AbstractType rttitype, int id)
+	{
+		JMP_THIS(0x4C6BE0);
+	}
+
+	// Address Change
+	explicit EventClass(int houseIndex, void*/*IPAddressClass*/ ip, char unknown_0)
+	{
+		JMP_THIS(0x4C6C50);
+	}
+
+	explicit EventClass(const EventClass& another)
+	{
+		memcpy(this, &another, sizeof(*this));
+	}
+
+	EventClass& operator=(const EventClass& another)
+	{
+		memcpy(this, &another, sizeof(*this));
+	}
 
 	EventType Type;
-	char IsExec;
-	char OwnerIndex;
-	int Frame;
-	int CRC;
-	short CommandCount;
-	char Data_FrameInfo_Delay;
-	char field_E;
-	char field_F;
-	char field_10;
-	char field_11;
-	char field_12;
-	char field_13;
-	char field_14;
-	char field_15;
-	char field_16;
-	char field_17;
-	char field_18;
-	char field_19;
-	char field_1A;
-	char field_1B;
-	char takemissionfield_1C;
-	char field_1D;
-	char field_1E;
-	char field_1F;
-	char field_20;
-	char field_21;
-	char field_22;
-	char field_23;
-	char field_24;
-	char field_25;
-	char field_26;
-	char field_27;
-	char field_28;
-	char field_29;
-	char field_2A;
-	char field_2B;
-	char field_2C;
-	char field_2D;
-	char field_2E;
-	char field_2F;
-	char field_30;
-	char field_31;
-	char field_32;
-	char field_33;
-	char field_34;
-	char field_35;
-	char field_36;
-	char field_37;
-	char field_38;
-	char field_39;
-	char field_3A;
-	char field_3B;
-	char field_3C;
-	char field_3D;
-	char field_3E;
-	char field_3F;
-	char field_40;
-	char field_41;
-	char field_42;
-	char field_43;
-	char field_44;
-	char field_45;
-	char field_46;
-	char field_47;
-	char field_48;
-	char field_49;
-	char field_4A;
-	char field_4B;
-	char field_4C;
-	char field_4D;
-	char field_4E;
-	char field_4F;
-	char field_50;
-	char field_51;
-	char field_52;
-	char field_53;
-	char field_54;
-	char field_55;
-	char field_56;
-	char field_57;
-	char field_58;
-	char field_59;
-	char field_5A;
-	char field_5B;
-	char field_5C;
-	char field_5D;
-	char field_5E;
-	char field_5F;
-	char field_60;
-	char field_61;
-	char field_62;
-	char field_63;
-	char field_64;
-	char field_65;
-	char field_66;
-	char field_67;
-	char field_68;
-	char field_69;
-	char field_6A;
-	char field_6B;
-	char field_6C;
-	char field_6D;
-	char field_6E;
+	bool IsExecuted;
+	char HouseIndex; // '-1' stands for not a valid house
+	unsigned int Frame; // 'Frame' is the frame that the command should execute on.
+
+	EventData Data;
+
+	bool operator==(const EventClass& q) const
+	{
+		return memcmp(this, &q, sizeof(q)) == 0;
+	};
 };
 #pragma pack(pop)
 
-static_assert(sizeof(EventClass) == 111, "Invalid size.");
+static_assert(sizeof(EventClass) == 111);

@@ -37,7 +37,7 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 {
 	GET(BulletClass*, pBullet, EBX);
 
-	auto const pBulletExt = BulletExt::GetExtData(pBullet);
+	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
 	if (pBulletExt->Trajectory &&
 		pBulletExt->Trajectory->Flag != TrajectoryFlag::Invalid)

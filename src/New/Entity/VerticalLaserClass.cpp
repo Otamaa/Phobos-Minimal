@@ -15,19 +15,23 @@ std::vector<VerticalLaserClass*> VerticalLaserClass::Array;
 
 VerticalLaserClass::VerticalLaserClass() : Expired { }
 , count {} , angle {}, cur_frames {}, frames_max {}
-, radius {}, Weapon { }, From {}, Height {}
-, radius_decrement {}
+, radius {}, Weapon {}, From {}, Height {}
+, radius_decrement {} , Owner {}
 { VerticalLaserClass::Array.push_back(this); }
 
 VerticalLaserClass::VerticalLaserClass(WeaponTypeClass* Weapon, CoordStruct From, int Height) : Expired { false }
 ,count { 5 } , angle { 0 }, cur_frames { 0 }, frames_max { 300 }
-, radius { 1024.0 }, Weapon { Weapon }, From { From }, Height { Height }
-, radius_decrement { 11 }
+, radius { 512.0 }, Weapon { Weapon }, From { From }, Height { Height }
+, radius_decrement { 5 }, Owner { nullptr }
 { VerticalLaserClass::Array.push_back(this); }
 
 void VerticalLaserClass::Reset()
 {
-	Expired = true;
+	angle = 0;
+	radius = 0;
+	cur_frames = 0;
+
+	Expired = !Owner;
 }
 
 void DrawSecond(const CoordStruct& from, const  CoordStruct& to, const ColorStruct& innerColor, const ColorStruct& outerColor, const ColorStruct& outerSpread, int Height)
@@ -138,11 +142,17 @@ void VerticalLaserClass::AI(int start, int count)
 {
 	const int increasement = 360 / count;
 	CoordStruct from = From;
+	CoordStruct grnd = From;
+
+	if (auto pCell = Map.TryGetCellAt(From)) {
+		grnd.Z = pCell->GetCoords().Z;
+	}
+
 	from.Z += 5000;
 
 	for (int i = 0; i < count; i++)
 	{
-		const CoordStruct to = From + GetCoords(start, i , increasement);
+		const CoordStruct to = grnd + GetCoords(start, i , increasement);
 		Draw(from, to);
 
 		if (cur_frames > frames_max)
@@ -150,13 +160,12 @@ void VerticalLaserClass::AI(int start, int count)
 		else
 			cur_frames++;
 	}
-
 }
 
 CoordStruct VerticalLaserClass::GetCoords(int start, int i, int increase)
 {
-	const double x = radius * Math::cos((start + (i * increase)) * Math::C_Sharp_Pi / 180);
-	const double y = radius * Math::sin((start + (i * increase)) * Math::C_Sharp_Pi / 180);
+	const double x = radius * std::cos((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
+	const double y = radius * std::sin((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
 	return  { static_cast<int>(x), static_cast<int>(y), -Height };
 }
 
@@ -180,7 +189,7 @@ void VerticalLaserClass::Draw(const CoordStruct& from, const CoordStruct& to)
 		if (auto pLaser = GameCreate<LaserDrawClass>(from, to, Weapon->LaserInnerColor,
 			Weapon->LaserOuterColor,
 			Weapon->LaserOuterSpread,
-			Weapon->LaserDuration)
+			8)
 		)
 		{
 			pLaser->Thickness = 10;
@@ -189,17 +198,66 @@ void VerticalLaserClass::Draw(const CoordStruct& from, const CoordStruct& to)
 	}
 }
 
+void KillUpdate(VerticalLaserClass* pLaser , TechnoClass* Owner)
+{
+	if (Owner)
+	{
+		auto pTechno = Owner;
+
+		int height = pTechno->GetHeight();
+
+		auto Attack = [pTechno , pLaser, height](int start, int count)
+		{
+			int increasement = 360 / count;
+			CoordStruct curLocation = pTechno->GetCoords();
+			CoordStruct from = curLocation + CoordStruct{0, 0, 5000};
+			CoordStruct groundLocation = curLocation;
+
+			if (auto pCell = Map.TryGetCellAt(CellClass::Coord2Cell(curLocation))) {
+				groundLocation.Z = pCell->GetCoords().Z;
+			}
+
+			for (int i = 0; i < count; i++)
+			{
+				double x = pLaser->radius * std::cos((start + i * increasement) * Math::C_Sharp_Pi / 180);
+				double y = pLaser->radius * std::sin((start + i * increasement) * Math::C_Sharp_Pi / 180);
+				CoordStruct to = groundLocation + CoordStruct((int)x, (int)y, -height);
+
+				pLaser->Draw(from,to);
+
+				if (pLaser->cur_frames > pLaser->frames_max) {
+					pLaser->DealDamage(to);
+				}
+				else {
+					pLaser->cur_frames++;
+				}
+			}
+		};
+
+		Attack(pLaser->angle, 5);
+		pLaser->angle = (pLaser->angle + 4) % 360;
+		pLaser->radius -= pLaser->radius_decrement;
+		if (pLaser->radius < 0)
+		{
+			pLaser->Reset();
+		}
+	}
+}
+
 void VerticalLaserClass::AI()
 {
+	if (!Owner)
+		return;
+
+	/*
 	AI(angle, count);
 	angle = (angle + 4) % 360;
 	radius -= radius_decrement;
 
-	if (radius <= 0)
-	{
+	if (radius < 0) {
 		Reset();
-	}
-
+	}*/
+	KillUpdate(this, Owner);
 }
 
 void VerticalLaserClass::Clear()
@@ -226,15 +284,20 @@ void VerticalLaserClass::OnUpdateAll()
 
 		vLaser->AI();
 
-		if (vLaser->Expired)
-		{
+		if (vLaser->Expired || !vLaser->Owner) {
 			Array.erase(Array.begin() + i);
 			GameDelete<true,false>(vLaser);
 		}
 	}
 }
 
-void VerticalLaserClass::PointerGotInvalid(void* ptr, bool bDetach) {}
+void VerticalLaserClass::PointerGotInvalid(void* ptr, bool bDetach) {
+
+	for (auto const& pData : Array) {
+		if (pData->Owner == ptr)
+			pData->Owner = nullptr;
+	}
+}
 
 bool VerticalLaserClass::LoadGlobals(PhobosStreamReader& Stm)
 {

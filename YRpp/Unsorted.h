@@ -681,34 +681,34 @@ struct ColorPacker
 
   Building destruction uses it:
   if(!SomeMutex) {
-  	Building->ShutdownSensorArray();
-  	Building->ShutdownDisguiseSensor();
+	Building->ShutdownSensorArray();
+	Building->ShutdownDisguiseSensor();
   }
 
   Building placement uses it:
   if(!SomeMutex) {
-  	UnitTypeClass *freebie = Building->Type->FreeUnit;
-  	if(freebie) {
-  		freebie->CreateObject(blah);
-  	}
+	UnitTypeClass *freebie = Building->Type->FreeUnit;
+	if(freebie) {
+		freebie->CreateObject(blah);
+	}
   }
 
   Building state animations use it:
   if(SomeMutex) {
-  	// foreach attached anim
-  	// update anim state (normal | damaged | garrisoned) if necessary, play anim
+	// foreach attached anim
+	// update anim state (normal | damaged | garrisoned) if necessary, play anim
   }
 
   building selling uses it:
   if(blah) {
-  	++SomeMutex;
-  	this->Type->UndeploysInto->CreateAtMapCoords(blah);
-  	--SomeMutex;
+	++SomeMutex;
+	this->Type->UndeploysInto->CreateAtMapCoords(blah);
+	--SomeMutex;
   }
 
   Robot Control Centers use it:
   if ( !SomeMutex ) {
-  	VoxClass::PlayFromName("EVA_RobotTanksOffline/BackOnline", -1, -1);
+	VoxClass::PlayFromName("EVA_RobotTanksOffline/BackOnline", -1, -1);
   }
 
   and so on...

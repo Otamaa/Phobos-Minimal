@@ -187,7 +187,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	GET(AnimClass* const, pThis, ESI);
 
 	//overriden instruction !
-	R->Stack(0x13, R->AL());
+	R->Stack(STACK_OFFS(0x8C , 0x78), R->AL());
 
 	if (auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
 		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
@@ -283,6 +283,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 							nLauch.LaunchGrant_OnHold,
 							nLauch.LaunchSW_Manual,
 							nLauch.LaunchSW_IgnoreInhibitors,
+							nLauch.LaunchSW_IgnoreDesignators,
 							nLauch.LauchSW_IgnoreMoney
 					);
 				}

@@ -1350,8 +1350,8 @@ void TechnoExt::HandleRemove(TechnoClass* pThis)
 		if (pBullet && pBullet->Target == pThis)
 			pBullet->LoseTarget();
 
-	GameDelete<true, false>(pThis);
-	//pThis->UnInit();
+	//GameDelete<true, false>(pThis);
+	pThis->UnInit();
 
 }
 
@@ -2049,7 +2049,7 @@ bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	TechnoExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TechnoExt::ExtMap.FindOrAllocate(pItem);
@@ -2097,7 +2097,7 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
 
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 DEFINE_HOOK(0x6F3100, TechnoClass_CTOR_0x4FC, 0x6)
 {
 	R->EDX(0);

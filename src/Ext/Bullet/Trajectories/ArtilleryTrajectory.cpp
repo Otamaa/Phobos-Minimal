@@ -120,7 +120,7 @@ bool ArtilleryTrajectory::OnAI(BulletClass* pBullet)
 	const double closeEnough = pBullet->TargetCoords.DistanceFrom(pBullet->Location);
 	if (closeEnough < 100)
 	{
-		auto pBulletExt = BulletExt::GetExtData(pBullet);
+		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
 		if (pBulletExt->LaserTrails.size())
 			pBulletExt->LaserTrails.clear();

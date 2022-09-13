@@ -588,7 +588,7 @@ private:
 template <class T>
 concept HasInvalidateExtDataIgnorable = requires(T t,void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
-template <typename T ,bool NoInsert = false , bool NoInvalidatePointer = false>
+template <typename T ,bool NoInsert = false , bool NoContainerInvalidatePointer = false , bool NoextDataInvalidatePointer = false>
 class Container
 {
 private:
@@ -599,8 +599,8 @@ private:
 	using extension_type_ptr = extension_type*;
 
 	//ViniferaContainerMap<base_type, extension_type> Items;
-	VectorMapContainer<base_type, extension_type> Items;
-	//ContainerMap<base_type, extension_type> Items;
+	//VectorMapContainer<base_type, extension_type> Items;
+	ContainerMap<base_type, extension_type> Items;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -638,10 +638,10 @@ public:
 
 	void PointerGotInvalid(void* ptr, bool bRemoved)
 	{
-		if constexpr (!NoInvalidatePointer)
+		if constexpr (!NoContainerInvalidatePointer)
 			this->InvalidatePointer(ptr, bRemoved);
 
-		if constexpr (HasInvalidatePointer<extension_type> && !NoInsert)
+		if constexpr (HasInvalidatePointer<extension_type> && !NoInsert && !NoextDataInvalidatePointer)
 		{
 			if (!this->InvalidateExtDataIgnorable(ptr))
 			{
@@ -687,7 +687,7 @@ public:
 		}
 
 		if constexpr (HasOffset<T>)
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)nullptr;
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 
 		if (const auto val = new extension_type(key)) {
 			val->EnsureConstanted();
@@ -732,16 +732,16 @@ public:
 		if constexpr (!NoInsert){
 			if(auto Item = this->Items.remove(key)) {
 				if constexpr (HasOffset<T>)
-					*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
+					(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 
 			 delete Item;
 			}
 		}
 		else
 		{
-			if(auto Item = *(extension_type_ptr*)((size_t)key + T::ExtOffset)) {
+			if(auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset))) {
 				delete Item;
-				*(extension_type_ptr*)((size_t)key + T::ExtOffset) = nullptr;
+				(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 			}
 		}
 	}
@@ -769,7 +769,7 @@ public:
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
-		if (auto const ptr = this->Find<true>(key))
+		if (auto ptr = this->Find<true>(key))
 			ptr->LoadFromINI(pINI);
 	}
 

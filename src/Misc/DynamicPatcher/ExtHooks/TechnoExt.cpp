@@ -95,13 +95,14 @@ static bool CeaseFire(TechnoClass* pThis)
 	return bCeaseFire;
 }
 
-//#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EDI);
 	//GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
-	return CeaseFire(pThis) ? 0x6FCB7E : 0x0;
+	return CeaseFire(pThis) ?//
+		0x6FCB7E
+		: 0x0;
 }
 
 namespace CalculatePinch
@@ -109,7 +110,6 @@ namespace CalculatePinch
 	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
 	{
 		const auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
-		if (pWeapon && pWeapon->WeaponType)
 		{
 			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
@@ -170,21 +170,19 @@ namespace CalculatePinch
 DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, nWeapon, 0x8);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
+	GET_STACK(const int, nWeapon, 0x8);
+	//GET(AbstractClass*, pTarget, EDI);
 
 	CalculatePinch::Calc(pThis, nWeapon);
 	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
-	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
 	SpawnSupportFunctional::OnFire(pThis);
-	if (pExt && pTypeExt)
-	{
-		AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
-		//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
+			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
+		}
 	}
 	return 0x0;
 }
@@ -193,28 +191,26 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	if (pExt && pTypeExt) {
-		GiftBoxFunctional::Destroy(pExt, pTypeExt);
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			GiftBoxFunctional::Destroy(pExt, pTypeExt);
+		 }
 	}
+
 	return 0;
 }
 
-DEFINE_HOOK(0x6F6CA0, TechnoClass_Put_DP, 0x7)
+DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(CoordStruct*, pCoord, 0x4);
-	GET_STACK(DirStruct, faceDir, 0x8);
+	GET_STACK(CoordStruct*, pCoord, (0x4));
+	GET_STACK(DirType, faceDir, (0x8));
 
-	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pExt && pTypeExt) {
-
-		GiftBoxFunctional::Init(pExt, pTypeExt);
-		AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+	if (auto pExt = TechnoExt::ExtMap.Find<true>(pThis)) {
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			GiftBoxFunctional::Init(pExt, pTypeExt);
+			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+		}
 	}
 
 	return 0;
@@ -224,30 +220,29 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find<true>(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
-
-DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall, 0x7) //9
-{
-	GET(TechnoClass*, pThis, ESI);
-	//GET(int*, pRealDamage , EBX);
-	GET(WarheadTypeClass*, pWH , EBP);
-	GET(DamageState, damageState , EDI);
-
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if(pExt && pTypeExt) {
-		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall, 0x7) //9
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	//GET(int*, pRealDamage , EBX);
+//	GET(WarheadTypeClass*, pWH , EBP);
+//	GET(DamageState, damageState , EDI);
+//
+//	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//
+//	if(pExt && pTypeExt) {
+//		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
+//	}
+//
+//	return 0x0;
+//}
 
 //9
-DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x5)
+DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	auto nGuarRange = pTechno->GetTechnoType()->GuardRange;

@@ -52,7 +52,7 @@ DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
 	GET(RulesClass*, pRules, ECX);
 	GET(BulletClass*, pBullet, ESI);
 
-	if (auto const pBulletTypeExt = BulletTypeExt::GetExtData(pBullet->Type))
+	if (auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find<true>(pBullet->Type))
 	{
 		R->EDX(pBulletTypeExt->Parachute.Get(pRules->BombParachute));
 		return 0x5F5A8C;
@@ -314,6 +314,194 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 #pragma endregion
 
 
+template<bool Reverse =false>
+static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed)
+{
+	VelocityClass velocity { 0.0,0.0,0.0 };
+	//inline get Direction from 2 coords
+	CoordStruct const nCenter = pTarget->GetCoords();
+	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
+
+	if (velocity.X == 0.0 && velocity.Y == 0.0)
+	{
+		velocity.X = 100.0;
+	}
+
+	double const nFirstMag = velocity.MagnitudeXY();
+	double const radians_fromXY = dir_fromXY.radians();
+	double const sin_rad = Math::sin(radians_fromXY);
+	double const cos_rad = Math::cos(radians_fromXY);
+
+	velocity.X = cos_rad * nFirstMag;
+	velocity.Y -= sin_rad * nFirstMag;
+
+	if constexpr (!Reverse)
+	{
+		double const nSecMag = velocity.MagnitudeXY();
+		DirStruct const dir_forZ(velocity.Z, nSecMag);
+		double const radians_foZ = dir_forZ.radians();
+
+		double const nThirdMag = velocity.MagnitudeXY();
+		if (radians_foZ != 0.0)
+		{
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
+		}
+
+		double const nMult_Cos = Math::cos(0.7853262558535721);
+		double const nMult_Sin = Math::sin(0.7853262558535721);
+		velocity.X *= nMult_Cos;
+		velocity.Y *= nMult_Cos;
+		velocity.Z *= nMult_Sin * nThirdMag;
+
+		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
+		{
+			velocity.X = 100.0;
+		}
+
+		const double nFullMag = velocity.Magnitude();
+		const double nDevidedBySpeed = nSpeed / nFullMag;
+		velocity *= nDevidedBySpeed;
+	}
+	else
+	{
+		const double nFullMag = velocity.Magnitude();
+		const double nDevidedBySpeed = nSpeed / nFullMag;
+		velocity *= nDevidedBySpeed;
+
+		double const nSecMag = velocity.MagnitudeXY();
+		DirStruct const dir_forZ(velocity.Z, nSecMag);
+		double const radians_foZ = dir_forZ.radians();
+
+		double const nThirdMag = velocity.MagnitudeXY();
+		if (radians_foZ != 0.0)
+		{
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
+		}
+
+		double const nMult_Cos = Math::cos(0.7853262558535721);
+		double const nMult_Sin = Math::sin(0.7853262558535721);
+		velocity.X *= nMult_Cos;
+		velocity.Y *= nMult_Cos;
+		velocity.Z *= nMult_Sin * nThirdMag;
+
+		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
+		{
+			velocity.X = 100.0;
+		}
+	}
+
+	return velocity;
+}
+
+void ShrapnelsExec(BulletClass* pThis)
+{
+	auto const pType = pThis->Type;
+	int nCount = pType->ShrapnelCount;
+
+	if (nCount < 0)
+	{
+		if (auto pOwner = pThis->Owner)
+		{
+			auto nRes = (-pType->ShrapnelCount) - static_cast<int>(pOwner->GetCoords().DistanceFrom(pThis->Location) / 256.0);
+			if (nRes <= 0)
+				return;
+
+			nCount = nRes;
+		}
+		else
+		{
+			nCount = 3;
+		}
+	}
+
+	auto const pBulletCell = pThis->GetCell();
+	if (auto pFirstOccupy = pBulletCell->FirstObject)
+	{
+		if (pFirstOccupy->WhatAmI() != AbstractType::Building)
+		{
+			auto& random = ScenarioClass::Instance->Random;
+			auto const pShrapWeapon = pType->ShrapnelWeapon;
+			auto const nRange = (random.RandomRanged(pShrapWeapon->MinimumRange , pShrapWeapon->Range) / 256);
+
+			if (nRange >= 1)
+			{
+				std::vector<CellClass*> pTargets;
+				int nTotal = 0;
+				auto cell = pThis->GetMapCoords();
+
+				for (size_t direction = 0; direction <= 7; direction += 2)
+				{
+					CellStruct directionOffset = CellSpread::GetNeighbourOffset(direction); // coordinates of the neighboring cell in the given direction relative to the current cell (e.g. 0,1)
+					CellStruct cellToCheck = cell;
+					for (short distanceFromCenter = 1; distanceFromCenter <= nRange; ++distanceFromCenter)
+					{
+						cellToCheck += directionOffset; // adjust the cell to check based on current distance, relative to the selected cell
+						CellClass* pCell = MapClass::Instance->TryGetCellAt(cellToCheck);
+						if (!pCell) { // don't parse this cell if it doesn't exist (duh)
+							break;
+						}
+
+						pTargets.push_back(pCell);
+					}
+				}
+
+				for (auto const& pCell : pTargets)
+				{
+					auto const pTarget = pCell->FirstObject;
+					if (pTarget && pTarget != pThis->Owner && pThis->Owner && !pThis->Owner->Owner->IsAlliedWith(pTarget)
+						)
+					{
+						auto pSplitExt = BulletTypeExt::ExtMap.Find(pShrapWeapon->Projectile);
+
+						if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
+						{
+							VelocityClass velocity = GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed);
+							pBullet->MoveTo(pThis->Location, velocity);
+						}
+
+						//escapes
+						if (++nTotal > nCount)
+							return;
+					}
+
+				}
+
+				// get random coords for last remaining shrapnel if the total still less than ncount
+				if (nTotal < nCount)
+				{
+					for (int nAmountHere = nCount - nTotal; nAmountHere > 0; --nAmountHere)
+					{
+						const int nX = ScenarioClass::Instance->Random.RandomRanged(-2, 2);
+						const int nY = ScenarioClass::Instance->Random.RandomRanged(-2, 2);
+						CellStruct nNextCoord = pThis->GetMapCoords();
+						nNextCoord.X += nX;
+						nNextCoord.Y += nY;
+						if (auto pTarget = MapClass::Instance->TryGetCellAt(nNextCoord))
+						{
+							auto pSplitExt = BulletTypeExt::ExtMap.Find(pShrapWeapon->Projectile);
+
+							if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
+							{
+								VelocityClass velocity = GenerateVelocity<true>(pThis, pTarget, pShrapWeapon->Speed);
+								pBullet->MoveTo(pThis->Location, velocity);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+//
+//
+//DEFINE_HOOK(0x469A4F , BulletClass_Detonate_Shrapnel, 0x7)
+//{
+//	ShrapnelsExec(R->ESI<BulletClass*>());
+//	return 4627030;
+//}
+
 #ifdef ENABLE_BULLETADJUSTVELHOOKS
 DEFINE_HOOK(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
 {
@@ -390,7 +578,7 @@ DEFINE_HOOK(0x466BBC, BulletClass_AI_MissileROTVar, 0x6)
 	GET(RulesClass*, pRules, ECX);
 
 	double dRes = pRules->MissileROTVar;
-	if (auto const pBulletTypeExt = BulletTypeExt::GetExtData(pThis->Type))
+	if (auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 	{
 		dRes = pBulletTypeExt->MissileROTVar.Get(pRules->MissileROTVar);
 	}
@@ -405,7 +593,7 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 	GET(int, comparator, EAX);
 
 	int nAltitude = RulesGlobal->MissileSafetyAltitude;
-	if (auto const& pBulletTypeExt = BulletTypeExt::GetExtData(pThis->Type))
+	if (auto const& pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
 	{
 		nAltitude = pBulletTypeExt->MissileSafetyAltitude.Get(RulesGlobal->MissileSafetyAltitude);
 	}

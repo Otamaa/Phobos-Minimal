@@ -63,7 +63,7 @@ public:
 		Debug::Log("Processing Element From PaintballType ! \n");
 
 		return Stm
-			.Process(Color,false)
+			.Process(Color, false)
 			.Process(BrightMultiplier, false)
 			.Process(Accumulate, false)
 			.Process(IgnoreFog, false)

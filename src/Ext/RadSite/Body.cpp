@@ -152,7 +152,7 @@ void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-void RadSiteExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
+//void RadSiteExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 bool RadSiteExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -181,7 +181,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	{
 		GET(RadSiteClass*, pThis, ESI);
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
 #else
 		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
@@ -234,7 +234,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 {
 	GET(RadSiteClass*, pThis, ECX);

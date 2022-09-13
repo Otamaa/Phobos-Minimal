@@ -21,7 +21,6 @@
 
 class GeneralUtils final
 {
-	NO_CONSTRUCT_CLASS(GeneralUtils)
 public:
 	static bool IsValidString(const char* str);
 	static void IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min = MIN_VAL(int), int max = MAX_VAL(int));

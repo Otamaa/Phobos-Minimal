@@ -107,7 +107,7 @@ void BulletExt::ExtData::InitializeLaserTrails(BulletTypeExt::ExtData* pTypeExt)
 
 void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon)
 {
-	auto const pExt = BulletExt::GetExtData(pThis);
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	auto const pTypeExt = pExt->TypeExt;
 
 	if (!pExt || !pTypeExt)
@@ -139,52 +139,53 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 	if (canAffect)
 	{
-		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
-		if (!pTechnoTypeExt)
-			return;
+		bool bKeepIntact = true;
+		if (pSource) {
+			auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
+			bKeepIntact = pTechnoTypeExt->Interceptor_KeepIntact.Get();
+			auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pTypeExt->Interceptable_WeaponOverride.Get(nullptr));
+			pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pTypeExt->Interceptable_DeleteOnIntercept);
 
-		auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pTypeExt->Interceptable_WeaponOverride.Get(nullptr));
-		pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pTypeExt->Interceptable_DeleteOnIntercept);
-
-		if (pWeaponOverride)
-		{
-			bool replaceType = pTechnoTypeExt->Interceptor_WeaponReplaceProjectile;
-			bool cumulative = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage;
-
-			pThis->WeaponType = pWeaponOverride;
-			pThis->Health = cumulative ? pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
-			pThis->WH = pWeaponOverride->Warhead;
-			pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
-			pThis->Speed = pWeaponOverride->Speed;
-
-			if (replaceType && pWeaponOverride->Projectile != pThis->Type)
+			if (pWeaponOverride)
 			{
-				auto pNewProjTypeExt = BulletTypeExt::GetExtData(pWeaponOverride->Projectile);
+				bool replaceType = pTechnoTypeExt->Interceptor_WeaponReplaceProjectile;
+				bool cumulative = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage;
 
-				if (!pNewProjTypeExt)
+				pThis->WeaponType = pWeaponOverride;
+				pThis->Health = cumulative ? pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
+				pThis->WH = pWeaponOverride->Warhead;
+				pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
+				pThis->Speed = pWeaponOverride->Speed;
+
+				if (replaceType && pWeaponOverride->Projectile != pThis->Type)
 				{
-					Debug::Log("Failed to find BulletTypeExt For [%s] ! \n", pWeaponOverride->Projectile->get_ID());
-					return;
-				}
+					auto pNewProjTypeExt = BulletTypeExt::GetExtData(pWeaponOverride->Projectile);
 
-				pExt->TypeExt = pNewProjTypeExt;
+					if (!pNewProjTypeExt)
+					{
+						Debug::Log("Failed to find BulletTypeExt For [%s] ! \n", pWeaponOverride->Projectile->get_ID());
+						return;
+					}
 
-				pThis->Type = pWeaponOverride->Projectile;
+					pExt->TypeExt = pNewProjTypeExt;
 
-				if (pExt->LaserTrails.size()) {
-					pExt->LaserTrails.clear();
-					pExt->InitializeLaserTrails(pNewProjTypeExt);
-				}
+					pThis->Type = pWeaponOverride->Projectile;
+
+					if (pExt->LaserTrails.size()) {
+						pExt->LaserTrails.clear();
+						pExt->InitializeLaserTrails(pNewProjTypeExt);
+					}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-				TrailsManager::CleanUp(pExt->Get());
-				TrailsManager::Construct(pExt->Get());
+					TrailsManager::CleanUp(pExt->Get());
+					TrailsManager::Construct(pExt->Get());
 #endif
+				}
 			}
 		}
 
 		if (isIntercepted) {
-			if (!pTechnoTypeExt->Interceptor_KeepIntact)
+			if (!bKeepIntact)
 				pExt->InterceptedStatus = InterceptedStatus::Intercepted;
 		}
 	}
@@ -256,7 +257,7 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
 
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	BulletExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	BulletExt::ExtMap.FindOrAllocate(pItem);
@@ -268,11 +269,6 @@ DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 DEFINE_HOOK(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
-
-	//if (auto pExt = ExtensionWrapper::GetWrapper(pItem)->ExtensionObject)
-	//	pExt->Uninitialize();
-
-	//ExtensionWrapper::GetWrapper(pItem)->DestoryExtensionObject();
 	BulletExt::ExtMap.Remove(pItem);
 	return 0;
 }

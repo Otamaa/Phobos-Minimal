@@ -37,31 +37,39 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 {
 	if (pTechno)
 	{
+		if (pTechno->InLimbo
+			|| !pTechno->IsAlive
+			|| !pTechno->Health
+			|| pTechno->IsSinking
+			|| !pTechno->GetTechnoType()
+			)
+			return false;
+
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
 		if (EffectsRequireVerses.Get())
 		{
 			auto nArmor = pTechno->GetTechnoType()->Armor;
-			if (auto pExt = TechnoExt::GetExtData(pTechno))
+			if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
 			auto nVal = GeneralUtils::GetWarheadVersusArmor(Get(), nArmor);
-			//if(IS_SAME_STR_(Get()->get_ID() , "NebulaWH"))
-			//	Debug::Log("%s WH Calculating Damage Against %s : [%s] : [%fl] ! \n", Get()->get_ID() , pTechno->get_ID() , ArmorTypeClass::Array[(int)nArmor]->Name.data(), nWHVerses);
 			return (fabs(nVal) >= 0.001);
 		}
+
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
 {
 	auto nArmor = pTechno->GetTechnoType()->Armor;
 
-	if (auto pExt = TechnoExt::GetExtData(pTechno))
+	if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
 		if (pExt->GetShield() && pExt->GetShield()->IsActive())
 			nArmor = pExt->GetShield()->GetType()->Armor;
 
@@ -153,7 +161,7 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
@@ -170,7 +178,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::GetExtData(pType);
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(nullptr, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
@@ -570,7 +578,7 @@ DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
 
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	WarheadTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);

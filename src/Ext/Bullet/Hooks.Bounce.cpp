@@ -35,7 +35,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x164));
 	GET(bool, bForceDetonate, EBX);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 	auto pTypeExt = pExt->TypeExt;
 
 	if (pTypeExt->BounceAmount)
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 DEFINE_HOOK(0x467609, BulletClass_Update_CheckBounce, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 	return pExt->TypeExt->BounceAmount ? 0x467615 : 0x46777A;
 }
 
@@ -166,7 +166,7 @@ DEFINE_HOOK(0x46794B, BulletClass_Update_CheckNearbyTechno, 0x6)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoClass*, pFirer, EAX);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (pExt->TypeExt->BounceAmount)
 	{
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x46786C, BulletClass_Update_ContactTarget, 0x6)
 	GET(BulletClass*, pThis, EBP);
 	GET(int, nHeight, EAX);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 
 	return (pExt->TypeExt->BounceAmount) || nHeight >= 208 ? 0x467890 : 0x467879;
 }
@@ -197,7 +197,7 @@ DEFINE_HOOK(0x4678DC, BulletClass_Update_CrossingBuilding, 0x7)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoClass*, pExTechno, EAX);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 	auto pTypeExt = pExt->TypeExt;
 
 	if (pTarget == pThis->Owner)
@@ -213,7 +213,7 @@ DEFINE_HOOK(0x46779B, BulletClass_Update_DetonateNow, 0x8)
 {
 	GET(BulletClass*, pThis, EBP);
 
-	auto pExt = BulletExt::GetExtData(pThis);
+	auto pExt = BulletExt::ExtMap.Find(pThis);
 	auto pTypeExt = pExt->TypeExt;
 
 	if (!pTypeExt->BounceAmount)

@@ -121,13 +121,9 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKiller)
 {
-	if (!pThis)
-		return;
-
-	HouseClass* pInvoker = pKiller ? pKiller->Owner : nullptr;
-
 	if (pThis->Type->DestroyAnim.Count > 0)
 	{
+		HouseClass* pInvoker = pKiller ? pKiller->Owner : nullptr;
 		auto facing = pThis->PrimaryFacing.current().value256();
 		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
@@ -144,19 +140,15 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 		}
 		else
 		{
-			if (pThis->Type->DestroyAnim.Count > 1)
-				idxAnim = ScenarioGlobal->Random.RandomRanged(0, (pThis->Type->DestroyAnim.Count - 1));
+			idxAnim = ScenarioGlobal->Random.RandomFromMax(pThis->Type->DestroyAnim.Count - 1);
 		}
 
 		if (AnimTypeClass* pAnimType = pThis->Type->DestroyAnim[idxAnim])
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 			{
-				auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
-				auto const pAnimExt = AnimExt::GetExtData(pAnim);
-
-				if (!pAnimTypeExt || !pAnimExt)
-					return;
+				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
+				auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
 
 				if (AnimExt::SetAnimOwnerHouseKind(pAnim,pAnimTypeExt, pInvoker, pThis->Owner,true)) {
 					pAnimExt->Invoker = pThis;
@@ -261,7 +253,7 @@ DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 
-#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 	AnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
@@ -313,14 +305,14 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWEXT
+#ifndef ENABLE_NEWEXT
 
-DEFINE_HOOK(0x42772A, AnimTypeClass_CTOR_ShouldFogRemove, 0x7)
-{
-	GET(AnimTypeClass*, pItem, ESI);
-	pItem->ShouldFogRemove = 0;
-	return 0x427731;
-}
+//DEFINE_HOOK(0x42772A, AnimTypeClass_CTOR_ShouldFogRemove, 0x7)
+//{
+//	GET(AnimTypeClass*, pItem, ESI);
+//	pItem->ShouldFogRemove = 0;
+//	return 0x427731;
+//}
 
 DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
 {
@@ -337,4 +329,4 @@ DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
 	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
 	return 0x423024;
 }
-//#endif
+#endif
