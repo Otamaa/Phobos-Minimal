@@ -86,7 +86,7 @@ DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_DP, 0x7)
 
 	return Slectable || !bNotSlectable ? 0x0 : 0x5F45A9;
 }
-*/
+
 
 static bool CeaseFire(TechnoClass* pThis)
 {
@@ -104,14 +104,17 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 		0x6FCB7E
 		: 0x0;
 }
-
+*/
 namespace CalculatePinch
 {
 	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
 	{
 		const auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
 		{
-			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
+			if (!pFirer->IsVoxel())
+				return;
+
+			auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
 			if (ext && (ext->RockerPitch.Get() > 0.0f))
 			{
@@ -167,6 +170,19 @@ namespace CalculatePinch
 	}
 }
 
+DEFINE_HOOK(0x6FDD61, TechnoClass_Fire_OverrideWeapon, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	//GET_STACK(AbstractClass*, pTarget, 0x4);
+
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		R->EBX(pThis->GetWeapon(pExt->CurrentWeaponIdx)->WeaponType);
+		return 0x6FDD71;
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -179,6 +195,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
 	SpawnSupportFunctional::OnFire(pThis);
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		pExt->CurrentWeaponIdx = nWeapon;
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
 			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
 			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
@@ -242,11 +259,26 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 //}
 
 //9
-DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	auto nGuarRange = pTechno->GetTechnoType()->GuardRange;
-	R->EDI(nGuarRange ? nGuarRange : 512);
-	return 0x6F903E;
-}
+//DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+//{
+//	GET(TechnoClass*, pTechno, ESI);
+//	auto nGuarRange = pTechno->GetTechnoType()->GuardRange;
+//
+//	if (auto pPri = pTechno->GetWeapon(0)) {
+//		if (auto pPriW = pPri->WeaponType)
+//			if (pPriW->Range > nGuarRange)
+//				nGuarRange = pPriW->Range;
+//	}
+//
+//	if(auto pSec = pTechno->GetWeapon(1))
+//	{
+//		if (auto pSecW = pSec->WeaponType)
+//			if (pSecW->Range > nGuarRange)
+//				nGuarRange = pSecW->Range;
+//	}
+//
+//
+//	R->EDI(nGuarRange ? nGuarRange : 512);
+//	return 0x6F903E;
+//}
 #endif

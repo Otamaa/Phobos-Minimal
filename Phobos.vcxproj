@@ -58,6 +58,8 @@
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
+    <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
+    <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
@@ -140,6 +142,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
@@ -204,6 +207,7 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
+    <ClCompile Include="YRpp\AircraftClass.cpp" />
     <ClCompile Include="YRpp\CStreamClass.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
@@ -234,6 +238,8 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
+    <ClInclude Include="src\Ext\InfantryType\Body.h" />
+    <ClInclude Include="src\Ext\Infantry\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
@@ -629,7 +635,7 @@
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
       <AdditionalOptions>/w14287 /w15038 %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26495;26444;26451;6305</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4458;4819;4505;26495;26444;26451;6305;4201</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>

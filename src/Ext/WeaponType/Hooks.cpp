@@ -4,6 +4,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Temporal/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 
@@ -32,10 +33,10 @@ DEFINE_HOOK(0x773087, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 DEFINE_HOOK(0x71AB47, TemporalClass_GetHelperDamage_AfterAres, 0x5)
 {
 	GET(WeaponStruct* const, Weapon, EAX);
-	//GET(TemporalClass*, Temp, ESI);
+	GET(TemporalClass*, pTemp, ESI);
 
 	if (auto const TemporalWeapon = Weapon->WeaponType) {
-		WeaponTypeExt::Temporal_WP = TemporalWeapon;
+		TemporalExt::ExtMap.Find(pTemp)->Weapon = TemporalWeapon;
 	}
 
 	return 0;
@@ -48,7 +49,7 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 	if (auto const pTarget = pThis->Target) {
 		pTarget->UpdatePlacement(PlacementType::Redraw);
 
-		if (auto pWeapon = WeaponTypeExt::Temporal_WP) {
+		if (auto pWeapon = TemporalExt::ExtMap.Find(pThis)->Weapon) {
 			if (auto const Warhead = pWeapon->Warhead) {
 
 				auto const pTempOwner = pThis->Owner;

@@ -6,6 +6,16 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Utilities/EnumFunctions.h>
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
+
+static bool CeaseFire(TechnoClass* pThis)
+{
+	bool bCeaseFire = false;
+	PassengersFunctional::CanFire(pThis, bCeaseFire);
+	return bCeaseFire;
+}
+#endif
 
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
@@ -17,13 +27,23 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	const auto pWH = pWeapon->Warhead;
 	enum { CannotFire = 0x6FCB7E };
 
-	if (const auto pWHExt = WarheadTypeExt::ExtMap.Find<false>(pWH)) {
+#ifdef COMPILE_PORTED_DP_FEATURES
+	if(CeaseFire(pThis))
+		return CannotFire;
+#endif
+	//auto pTechnoExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
 		const int nMoney = pWHExt->TransactMoney;
 		if (nMoney != 0 && !pThis->Owner->CanTransactMoney(nMoney))
 			return CannotFire;
 	}
 
-	if (const auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
+	//if (pTechnoExt->Interceptor && !specific_cast<BulletClass*>(pTarget)) {
+	//	return CannotFire;
+	//}
+
+	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
 		CellClass* targetCell = nullptr;
@@ -263,7 +283,6 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	return 0x701393;
 }
 
-/*
 DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 {
 	enum { DisallowFiring = 0x6FC86A };
@@ -295,65 +314,66 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6F858F, TechnoClass_CanAutoTarget_BuildingOut1, 0x6)
-{
-	GET(TechnoClass*, pThis, EDI);
-	GET(TechnoClass*, pTarget, ESI);
+//DEFINE_HOOK(0x6F858F, TechnoClass_CanAutoTarget_BuildingOut1, 0x6)
+//{
+//	GET(TechnoClass*, pThis, EDI);
+//	GET(TechnoClass*, pTarget, ESI);
+//
+//	enum { CannotTarget = 0x6F85F8, NextIf = 0x6F860C, FarIf = 0x6F866D };
+//
+//	if (FootClass* pFoot = abstract_cast<FootClass*>(pThis))
+//	{
+//		if (pFoot->Team != nullptr
+//			|| !pFoot->Owner->ControlledByHuman()
+//			|| pTarget->IsStrange()
+//			|| pTarget->WhatAmI() != AbstractType::Building
+//			|| pTarget->GetTurretWeapon() && pTarget->GetTurretWeapon()->WeaponType != nullptr && pTarget->GetThreatValue())
+//		{
+//			//game code
+//			if (!pThis->IsEngineer())
+//				return FarIf;
+//
+//			return NextIf;
+//		}
+//		else
+//		{
+//			if (!pThis->IsEngineer())
+//			{
+//				//dehardcode
+//				if (pTarget->WhatAmI() == AbstractType::Building && pTarget->GetThreatValue())
+//				{
+//					return FarIf;
+//				}
+//
+//				return CannotTarget;
+//			}
+//
+//			return NextIf;
+//		}
+//	}
+//
+//	return NextIf;
+//}
 
-	enum { CannotTarget = 0x6F85F8, NextIf = 0x6F860C, FarIf = 0x6F866D };
-
-	if (FootClass* pFoot = abstract_cast<FootClass*>(pThis))
-	{
-		if (pFoot->Team != nullptr
-			|| !pFoot->Owner->ControlledByHuman()
-			|| pTarget->IsStrange()
-			|| pTarget->WhatAmI() != AbstractType::Building
-			|| pTarget->GetTurretWeapon() && pTarget->GetTurretWeapon()->WeaponType != nullptr && pTarget->GetThreatValue())
-		{
-			//game code
-			if (!pThis->IsEngineer())
-				return FarIf;
-
-			return NextIf;
-		}
-		else
-		{
-			if (!pThis->IsEngineer())
-			{
-				//dehardcode
-				if (pTarget->WhatAmI() == AbstractType::Building && pTarget->GetThreatValue())
-				{
-					return FarIf;
-				}
-
-				return CannotTarget;
-			}
-
-			return NextIf;
-		}
-	}
-
-	return NextIf;
-}
-
-DEFINE_HOOK(0x6F889B, TechnoClass_CanAutoTarget_BuildingOut2, 0xA)
-{
-	GET(TechnoClass*, pTarget, ESI);
-
-	enum { CannotTarget = 0x6F894F, GameCode = 0x6F88BF };
-
-	if (pTarget->WhatAmI() != AbstractType::Building)
-		return CannotTarget;
-
-	WeaponStruct* pWeapon = pTarget->GetTurretWeapon();
-
-	if (pWeapon == nullptr || pWeapon->WeaponType == nullptr)
-	{
-		if (pTarget->GetThreatValue())
-			return GameCode;
-
-		return CannotTarget;
-	}
-
-	return GameCode;
-}*/
+//
+//DEFINE_HOOK(0x6F889B, TechnoClass_CanAutoTarget_BuildingOut2, 0xA)
+//{
+//	GET(TechnoClass*, pTarget, ESI);
+//
+//	enum { CannotTarget = 0x6F894F, GameCode = 0x6F88BF };
+//
+//	if (pTarget->WhatAmI() != AbstractType::Building)
+//		return CannotTarget;
+//
+//	WeaponStruct* pWeapon = pTarget->GetTurretWeapon();
+//
+//	if (pWeapon == nullptr || pWeapon->WeaponType == nullptr)
+//	{
+//		if (pTarget->GetThreatValue())
+//			return GameCode;
+//
+//		return CannotTarget;
+//	}
+//
+//	return GameCode;
+//}

@@ -11,7 +11,7 @@ class CaptureObjectsCommandClass : public PhobosCommandClass
 public:
 
 	CaptureObjectsCommandClass() : PhobosCommandClass() { IsDeveloper = true; }
-	virtual ~CaptureObjectsCommandClass() { }
+	virtual ~CaptureObjectsCommandClass() = default;
 
 	// CommandClass
 	virtual const char* GetName() const override
@@ -42,7 +42,7 @@ public:
 		if (!((SessionGlobal.GameMode == GameMode::Campaign) || (SessionGlobal.GameMode == GameMode::Skirmish)))
 			return;
 
-		if (ObjectClass::CurrentObjects->Count < 0)
+		if (!ObjectClass::CurrentObjects)
 			return;
 
 		std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object) {
@@ -62,7 +62,14 @@ public:
 			Given = true;
 		}
 
-		Map.Reveal(HouseClass::Player());
-		Map.Recalc();
+		if (!HouseClass::Player->Visionary)
+		{
+			HouseClass::Player->Visionary = 1;
+			MapClass::Instance->CellIteratorReset();
+			for (auto i = MapClass::Instance->CellIteratorNext(); i; i = MapClass::Instance->CellIteratorNext())
+				RadarClass::Instance->MapCell(&i->MapCoords, HouseClass::Player);
+
+			GScreenClass::Instance->MarkNeedsRedraw(1);
+		}
 	}
 };

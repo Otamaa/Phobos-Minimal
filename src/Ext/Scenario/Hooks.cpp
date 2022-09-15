@@ -97,3 +97,10 @@ DEFINE_HOOK(0x6851AC, LoadGame_Initialize_IonStormClass, 0x5)
 
 	return 0x6851B1;
 }
+
+//DEFINE_HOOK(0x683A3A, ScenarioClass_Init_Bugfix, 0x6)
+//{
+//	GET(ScenarioClass*, pThis, EBP);
+//	pThis->NumberStartingPoints = 0;
+//	return 0;
+//}

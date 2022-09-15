@@ -3080,7 +3080,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 	bool changeFailed = true;
 
-	if (idxScriptsList >= 0) {
+	if (idxScriptsList >= 0 && RulesExt::Global()->AIScriptsLists.Count > 0) {
 		auto const& objectsList = RulesExt::Global()->AIScriptsLists.GetItem(idxScriptsList);
 		if (idxScriptsList < objectsList.Count && objectsList.Count > 0) {
 			const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomRanged(0, objectsList.Count - 1);

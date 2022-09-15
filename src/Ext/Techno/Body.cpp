@@ -762,7 +762,8 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 			{
 				if (const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller))
 				{
-					if(auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller)) {
+					if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
+					{
 						auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
 						/*
 						Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
@@ -801,54 +802,57 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 	if (pExt && pExt->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
 	{
-		if (auto const pTransport = pThis->Transporter)
-		{
+		if (auto const pTransport = pThis->Transporter) {
 			if (pTransport->WhatAmI() == AbstractType::Aircraft)
 				if (!pTransport->IsInAir())
 					return;
 		}
 
-		auto const iter = std::find_if(BulletClass::Array->begin(), BulletClass::Array->end(), [=](BulletClass* const pBullet)
+		BulletClass* pTargetBullet = nullptr;
+		for (auto pBullet : *BulletClass::Array)
 		{
 			const auto& guardRange = pExt->Interceptor_GuardRange.Get(pThis);
 			const auto& minguardRange = pExt->Interceptor_MinimumGuardRange.Get(pThis);
 			const auto  distance = pBullet->Location.DistanceFrom(pThis->Location);
 
-			if (distance > guardRange || distance < minguardRange)
+			if (distance > guardRange || distance < minguardRange || pBullet->InLimbo)
+			   continue;
+
+			int weaponIndex = pThis->SelectWeapon(pBullet);
+			auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+
+			if(pExt->Interceptor_ConsiderWeaponRange.Get() &&
+				(distance > pWeapon->Range || distance < pWeapon->MinimumRange) )
+					continue;
+
+			if (const auto pBulletExt = BulletExt::ExtMap.Find<false>(pBullet))
 			{
-				//if (const auto pBulletTypeData = BulletTypeExt::ExtMap.Find(pBullet->Type))
+				if (!pBulletExt->TypeExt->Interceptable ||
+					pBulletExt->CurrentStrength <= 0 ||
+					pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
+					continue;
+
+				if (pBulletExt->TypeExt->Armor.isset())
 				{
-					if (const auto pBulletExt = BulletExt::ExtMap.Find<false>(pBullet))
-					{
-						if (!pBulletExt->TypeExt->Interceptable || pBullet->InLimbo || pBulletExt->CurrentStrength <= 0 || pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
-							return false;
+					double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pBulletExt->TypeExt->Armor);
 
-						if (pBulletExt->TypeExt->Armor.isset())
-						{
-							int weaponIndex = pThis->SelectWeapon(pBullet);
-							auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
-							double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pBulletExt->TypeExt->Armor);
+					if (!((fabs(versus) >= 0.001)))
+						continue;
+				}
 
-							if (!((fabs(versus) >= 0.001)))
-								return false;
-						}
+				const auto bulletOwner = pBullet->Owner ? pBullet->Owner->GetOwningHouse() : pBulletExt->Owner;
 
-						const auto bulletOwner = pBullet->Owner ? pBullet->Owner->GetOwningHouse() : pBulletExt->Owner;
-
-						if (!EnumFunctions::CanTargetHouse(pExt->Interceptor_CanTargetHouses.Get(), pThis->Owner, bulletOwner))
-							return false;
-					}
-
-					return true;
+				if (EnumFunctions::CanTargetHouse(pExt->Interceptor_CanTargetHouses.Get(), pThis->Owner, bulletOwner))
+				{
+					pTargetBullet = pBullet;
+					break;
 				}
 			}
+		}
 
-			return false;
-		});
-
-		if (iter != BulletClass::Array->end())
+		if (pTargetBullet)
 		{
-			pThis->SetTarget((*iter));
+			pThis->SetTarget(pTargetBullet);
 		}
 	}
 }
@@ -1291,8 +1295,7 @@ void TechnoExt::ExtData::EatPassengers()
 							}
 						}
 
-						GameDelete<true, false>(pPassenger);
-						//pPassenger->UnInit();
+						pPassenger->UnInit();
 					}
 
 					PassengerDeletionTimer.Stop();
@@ -1350,7 +1353,6 @@ void TechnoExt::HandleRemove(TechnoClass* pThis)
 		if (pBullet && pBullet->Target == pThis)
 			pBullet->LoseTarget();
 
-	//GameDelete<true, false>(pThis);
 	pThis->UnInit();
 
 }
@@ -1471,18 +1473,19 @@ void TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Nonexist.end(),
 			[pThis, pTypeExt](TechnoTypeClass* const pType)
 			{
-			for (HouseClass* const pHouse : *HouseClass::Array)
-			{
-				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
-					pHouse->CountOwnedAndPresent(pType))
-					return true;
-			}
+				for (HouseClass* const pHouse : *HouseClass::Array)
+				{
+					if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
+						pHouse->CountOwnedAndPresent(pType))
+						return true;
+				}
 
-			return false;
+				return false;
 			}
 		);
 
-		if (!exist) {
+		if (!exist)
+		{
 			TechnoExt::KillSelf(pThis, nKillMethod);
 			return;
 		}
@@ -1498,18 +1501,19 @@ void TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Exist.end(),
 			[pThis, pTypeExt](TechnoTypeClass* const pType)
 			{
-			for (HouseClass* const pHouse : *HouseClass::Array)
-			{
-				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
-					pHouse->CountOwnedAndPresent(pType))
-					return true;
-			}
+				for (HouseClass* const pHouse : *HouseClass::Array)
+				{
+					if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
+						pHouse->CountOwnedAndPresent(pType))
+						return true;
+				}
 
-			return false;
+				return false;
 			}
 		);
 
-		if (exist) {
+		if (exist)
+		{
 			TechnoExt::KillSelf(pThis, nKillMethod);
 			return;
 		}
@@ -1607,7 +1611,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 					{
 						if (const auto dmgParticle = pThis->DamageParticleSystem)
 							GameDelete<true, false>(dmgParticle);
-							//dmgParticle->UnInit();
+						//dmgParticle->UnInit();
 					}
 				}
 			}
@@ -1777,7 +1781,7 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 
 void TechnoExt::ExtData::UpdateMindControlAnim()
 {
-	 const auto pThis = this->Get();
+	const auto pThis = this->Get();
 	{
 		if (pThis->IsMindControlled())
 		{
@@ -1916,6 +1920,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
 		.Process(this->PaintBallState)
+		.Process(this->CurrentWeaponIdx)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -1935,16 +1940,16 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
-	{
-	case AbstractType::House:
-	case AbstractType::Building:
-	case AbstractType::Aircraft:
-	case AbstractType::Unit:
-	case AbstractType::Infantry:
-	case AbstractType::Anim:
-	{
+	//auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	//switch (abs)
+	//{
+	//case AbstractType::House:
+	//case AbstractType::Building:
+	//case AbstractType::Aircraft:
+	//case AbstractType::Unit:
+	//case AbstractType::Infantry:
+	//case AbstractType::Anim:
+	//{
 		if (auto pShield = this->GetShield())
 			pShield->InvalidatePointer(ptr, bRemoved);
 
@@ -1957,11 +1962,11 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		if (MissileTargetTracker)
 			MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
 #endif
-	}
-	break;
-	default:
-		return;
-	}
+//	}
+//	break;
+//	default:
+//		return;
+//	}
 }
 
 // Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.

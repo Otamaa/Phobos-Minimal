@@ -2,7 +2,7 @@
 #include <Utilities/Debug.h>
 
 #include <ExtraHeaders/ExtraAudio.h>
-#ifdef fuck
+#ifndef fuck
 #include <Ext/Rules/Body.h>
 
 static	void __fastcall _Log_LocalMix(const char* pFormat, ...)
@@ -56,16 +56,15 @@ namespace AnnoyingAudioLogSutffs
 	bool bDisableNoDigestLog = true;
 }
 
-//40A55D
-static	void __fastcall _Log_soundFrameOrBufferSize(const char* pFormat, ...)
-{
-	if (!AnnoyingAudioLogSutffs::Disable)
-		Debug::Log(pFormat);
-}
-
-DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_soundFrameOrBufferSize));
-DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_soundFrameOrBufferSize));
-
+////40A55D
+//static	void __fastcall _Log_soundFrameOrBufferSize(const char* pFormat, ...)
+//{
+//	if (!AnnoyingAudioLogSutffs::Disable)
+//		Debug::Log(pFormat);
+//}
+//
+//DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_soundFrameOrBufferSize));
+//DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_soundFrameOrBufferSize));
 
 static	void __fastcall _Log_PathFailere_1(const char* pFormat, ...)
 {
@@ -115,7 +114,7 @@ static	void __fastcall _Log_Disable_These(const char* pFormat, ...) {
 
 DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_Disable_These));
 DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_Disable_These));
-DEFINE_JUMP(CALL,0x69A79D, GET_OFFSET(_Log_Disable_These));
+//DEFINE_JUMP(CALL,0x69A79D, GET_OFFSET(_Log_Disable_These));
 //DEFINE_JUMP(CALL,0x42CC65, GET_OFFSET(_Log_Disable_These));
 //DEFINE_JUMP(CALL,0x42CBDE, GET_OFFSET(_Log_Disable_These));
 #endif

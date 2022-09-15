@@ -20,6 +20,34 @@
 
 #include <Ext/Bullet/Trajectories/StraightTrajectory.h>
 
+static void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
+{
+	if (bDetonate)
+		pThis->Detonate(pThis->GetCoords());
+
+	if (bRemove)
+	{
+		if (!pThis->InLimbo)
+			pThis->Limbo();
+
+		pThis->UnInit();
+
+		const auto pTechno = pThis->Owner;
+		const bool isLimbo =
+			pTechno &&
+			pTechno->InLimbo &&
+			pThis->WeaponType &&
+			pThis->WeaponType->LimboLaunch;
+
+		if (isLimbo)
+		{
+			pThis->SetTarget(nullptr);
+			auto damage = pTechno->Health * 2;
+			pTechno->SetLocation(pThis->GetCoords());
+			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+		}
+	}
+}
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	GET(BulletClass*, pThis, EBP);
@@ -45,51 +73,18 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		}
 	}
 
-	bool DetonateNow = false;
-	bool HandleRemove = false;
-
 	if (pBulletExt->TypeExt->PreExplodeRange.isset())
 	{
 		const auto ThisCoord = pThis->GetCoords();
 		const auto TargetCoords = pThis->GetTargetCoords();
-		HandleRemove = DetonateNow = abs(ThisCoord.DistanceFrom(TargetCoords))
-			<= pBulletExt->TypeExt->PreExplodeRange.Get(0) * 256;
+		if (abs(ThisCoord.DistanceFrom(TargetCoords))
+			<= pBulletExt->TypeExt->PreExplodeRange.Get(0) * 256)
+			HandleBulletRemove(pThis, true, true);
 	}
 
-	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted)
-	{
-		if (!DetonateNow && pBulletExt->Intercepted_Detonate)
-		{
-			DetonateNow = true;
-		}
+	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted) {
 
-		HandleRemove = true;
-	}
-
-	if (DetonateNow) { pThis->Detonate(pThis->GetCoords()); }
-
-	if (HandleRemove)
-	{
-
-		if (!pThis->InLimbo)
-			pThis->Limbo();
-
-		pThis->UnInit();
-
-		const auto pTechno = pThis->Owner;
-		const bool isLimbo =
-			pTechno &&
-			pTechno->InLimbo &&
-			pThis->WeaponType &&
-			pThis->WeaponType->LimboLaunch;
-
-		if (isLimbo)
-		{
-			pThis->SetTarget(nullptr);
-			auto damage = pTechno->Health * 2;
-			pTechno->SetLocation(pThis->GetCoords());
-			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-		}
+		HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true);
 	}
 
 	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
@@ -198,7 +193,7 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 	GET(BulletClass*, pThis, EBP);
 
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
-	return (pThis->Type->Inviso && pExt->IsInterceptor) ? DetonateBullet:0x0;
+	return (pThis->Type->Inviso && pExt->IsInterceptor) ? DetonateBullet : 0x0;
 }
 
 /*
@@ -406,7 +401,8 @@ DEFINE_HOOK(0x4687F8, BulletClass_Unlimbo_FlakScatter, 0x6)
 	GET(BulletClass*, pThis, EBX);
 	GET_STACK(float, mult, STACK_OFFS(0x5C, 0x44));
 
-	if (pThis->WeaponType && pThis->Type) {
+	if (pThis->WeaponType && pThis->Type)
+	{
 		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
 		{
 			const int defaultmax = RulesClass::Instance->BallisticScatter;
@@ -466,11 +462,12 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
 /// TODO : snap checks test
 DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 {
-	enum { SkipAirburstCheck = 0x467CDE , SkipSnapFunc = 0x467E53 };
+	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
 
 	GET(BulletClass*, pThis, EBP);
 
-	auto nRet = [=]() {
+	auto nRet = [=]()
+	{
 		R->EAX(pThis->Type);
 		return SkipAirburstCheck;
 	};
@@ -480,10 +477,12 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 	{
 		return nRet();
 	}
-	else {
+	else
+	{
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
 
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+		{
 			return !pExt->SnappedToTarget ? nRet() : SkipSnapFunc;
 		}
 	}
@@ -493,10 +492,11 @@ DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 
 DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 {
-	enum { SkipAirburstChecks = 0x468E7B , SkipCoordFunc = 0x468E9F };
+	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F };
 
 	GET(BulletClass*, pThis, ESI);
-	auto nRet = [=]() {
+	auto nRet = [=]()
+	{
 		R->EAX(pThis->Type);
 		return SkipAirburstChecks;
 	};
@@ -510,11 +510,13 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	{
 		return 0;
 	}
-	else {
+	else
+	{
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
 
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
-				return !pExt->SnappedToTarget ? nRet() : SkipCoordFunc;
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+		{
+			return !pExt->SnappedToTarget ? nRet() : SkipCoordFunc;
 		}
 	}
 
@@ -542,7 +544,8 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	// Fixes issues with walls etc.
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	{
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+		{
 			return SkipSetCoordinate;
 			//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
 		}

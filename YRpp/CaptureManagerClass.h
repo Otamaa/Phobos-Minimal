@@ -11,14 +11,28 @@ class TechnoClass;
 
 struct ControlNode
 {
-	explicit ControlNode() noexcept { }
+	explicit ControlNode() noexcept
+		: Unit { nullptr }
+		, OriginalOwner { nullptr }
+		, LinkDrawTimer { }
+	{ }
+
+	~ControlNode() noexcept = default;
+
+	explicit ControlNode(TechnoClass* pCaptured , HouseClass* pOrigHouse , int nTimer) noexcept
+		: Unit { pCaptured }
+		, OriginalOwner { pOrigHouse }
+		, LinkDrawTimer { }
+	{
+		LinkDrawTimer.Start(nTimer);
+	}
 
 	TechnoClass* Unit;
 	HouseClass* OriginalOwner;
 	DECLARE_PROPERTY(TimerStruct, LinkDrawTimer);
 };
 
-//static_assert(sizeof(ControlNode) == 0x14);
+static_assert(sizeof(ControlNode) == 0x14);
 
 class DECLSPEC_UUID("0679E982-AD9D-11D3-BE16-00104B62A16C")
 	NOVTABLE CaptureManagerClass : public AbstractClass

@@ -92,27 +92,28 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 
 	return 0x0;
 }
-#ifdef ENABLE_NEWHOOKS
-#//include <ExtraHeaders/Ares/TechnoExtData.h>
-#endif
-static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
-{
-	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-#ifdef ENABLE_NEWHOOKS
-		//if (pThis->align_154)
-		//	if (const AresTechnoExtData* pData = reinterpret_cast<const AresTechnoExtData*>(pThis->align_154))
-		//		if (pData->DiverKilled)
-		//			return;
-#endif
-		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
-		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
+//#ifdef ENABLE_NEWHOOKS
 
-		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
-			return;
-	}
-
-	pThis->UpdateRotation();
-}
+//#include <ExtraHeaders/Ares/TechnoExtData.h>
+//#endif
+//static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
+//{
+//	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+//#ifdef ENABLE_NEWHOOKS
+//		//if (pThis->align_154)
+//		//	if (const AresTechnoExtData* pData = reinterpret_cast<const AresTechnoExtData*>(pThis->align_154))
+//		//		if (pData->DiverKilled)
+//		//			return;
+//#endif
+//		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
+//		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
+//
+//		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
+//			return;
+//	}
+//
+//	pThis->UpdateRotation();
+//}
 
 //DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
 
@@ -128,7 +129,7 @@ DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x7) //was 5
 		//			return;
 #endif
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
-		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
+		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 
 		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
 			return 0x7365ED;

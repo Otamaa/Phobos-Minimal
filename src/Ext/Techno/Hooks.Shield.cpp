@@ -7,6 +7,20 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
 
+namespace EvaluateObjectTemp
+{
+	WeaponTypeClass* PickedWeapon = nullptr;
+}
+
+DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EBP);
+
+	EvaluateObjectTemp::PickedWeapon = pWeapon;
+
+	return 0;
+}
+
 // #issue 88 : shield logic
 DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 {
@@ -93,10 +107,10 @@ if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {\
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6) {
 	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(TechnoClass*, pTarget, ESI);
+	GET(ObjectClass*, pTarget, ESI);
 
-	if(pTarget->IsAlive){
-		if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {
+	if(auto pTechno = generic_cast<TechnoClass*>(pTarget)){
+		if (auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
 			if (auto pShieldData = pExt->Shield.get()) {
 			if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;
 				if (pShieldData->IsActive()) {
@@ -182,11 +196,16 @@ double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno , void* _)
 			if (const auto pShieldData = pExt->Shield.get())
 			{
 				if (pShieldData->IsActive())
-					result = pShieldData->GetHealthRatio();
+				{
+					const auto pWeapon = EvaluateObjectTemp::PickedWeapon;
+					if (!pShieldData->CanBePenetrated(pWeapon ? pWeapon->Warhead : nullptr))
+						result = pExt->Shield->GetHealthRatio();
+				}
 			}
 		}
 	}
 
+	EvaluateObjectTemp::PickedWeapon = nullptr;
 	return result;
 }
 

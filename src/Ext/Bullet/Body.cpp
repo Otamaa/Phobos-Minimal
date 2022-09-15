@@ -184,9 +184,8 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 			}
 		}
 
-		if (isIntercepted) {
-			if (!bKeepIntact)
-				pExt->InterceptedStatus = InterceptedStatus::Intercepted;
+		if (isIntercepted && !bKeepIntact) {
+			pExt->InterceptedStatus = InterceptedStatus::Intercepted;
 		}
 	}
 }

@@ -26,7 +26,7 @@ public:
 		ExtData(CellClass* OwnerObject) : Extension<CellClass>(OwnerObject)
 			//, NewPowerups {-1}
 			//, FoggedObjects { }
-        { };
+		{ };
 
 		virtual ~ExtData() = default;
 		void Initialize() { } //Init After INI Read
@@ -40,7 +40,7 @@ public:
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
-    };
+	};
 
 	class ExtContainer final : public Container<CellExt>
 	{

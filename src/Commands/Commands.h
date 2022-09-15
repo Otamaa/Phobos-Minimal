@@ -9,7 +9,7 @@ class PhobosCommandClass : public CommandClass
 {
 public:
 	PhobosCommandClass() : CommandClass(), IsDeveloper(false), IsMultiplayerOnly(false) { }
-	virtual ~PhobosCommandClass() { }
+	virtual ~PhobosCommandClass() = default;
 
 	//virtual KeyNumType Default_Key() const = 0;
 

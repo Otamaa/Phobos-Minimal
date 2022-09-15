@@ -209,6 +209,55 @@ bool Phobos::DetachFromDebugger()
 	return false;
 }
 
+void Phobos::ExeRun()
+{
+	Patch::ApplyStatic();
+
+	if (!Phobos::Config::HideWarning)
+	{
+		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
+		GetComputerName(Phobos::Otamaa::PCName, &dwSize);
+
+		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
+		{
+			Phobos::Otamaa::IsAdmin = true;
+
+			if (Phobos::DetachFromDebugger())
+			{
+				MessageBoxW(NULL,
+				L"You can now attach a debugger.\n\n"
+
+				L"Press OK to continue YR execution.",
+				L"Debugger Notice", MB_OK);
+			}
+			else
+			{
+				MessageBoxW(NULL,
+				L"You can now attach a debugger.\n\n"
+
+				L"To attach a debugger find the YR process in Process Hacker "
+				L"/ Visual Studio processes window and detach debuggers from it, "
+				L"then you can attach your own debugger. After this you should "
+				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
+
+				L"Press OK to continue YR execution.",
+				L"Debugger Notice", MB_OK);
+			}
+		}
+	}
+
+	if (!Console::Create())
+	{
+		MessageBoxW(NULL,
+		L"Failed to allocate the debug console!",
+		L"Debug Console Notice", MB_OK);
+	}
+}
+
+void Phobos::ExeTerminate()
+{
+	Console::Release();
+}
 #pragma warning( pop )
 #pragma endregion
 
@@ -272,6 +321,22 @@ DEFINE_HOOK(0x6BB9D2, PatcherLoader_Action,0x6)
 	return 0x0;
 }
 #endif
+
+void NAKED _ExeTerminate()
+{
+	// Call WinMain
+	SET_REG32(EAX, 0x6BB9A0);
+	CALL(EAX);
+	PUSH_REG(EAX);
+
+	Phobos::ExeTerminate();
+
+	// Jump back
+	POP_REG(EAX);
+	SET_REG32(EBX, 0x7CD8EF);
+	__asm {jmp ebx};
+}
+DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -430,43 +495,10 @@ HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID*
 #endif
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
-	Patch::ApplyStatic();
 
-	if (!Phobos::Config::HideWarning)
-	{
-		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
-		GetComputerName(Phobos::Otamaa::PCName, &dwSize);
-
-		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
-		{
-			Phobos::Otamaa::IsAdmin = true;
-
-			if (Phobos::DetachFromDebugger())
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
-			else
-			{
-				MessageBoxW(NULL,
-				L"You can now attach a debugger.\n\n"
-
-				L"To attach a debugger find the YR process in Process Hacker "
-				L"/ Visual Studio processes window and detach debuggers from it, "
-				L"then you can attach your own debugger. After this you should "
-				L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
-
-				L"Press OK to continue YR execution.",
-				L"Debugger Notice", MB_OK);
-			}
-		}
-	}
+	Phobos::ExeRun();
 
 	//PhobosLua::Test();
-
 #ifdef ENABLE_ENCRYPTION_HOOKS
 	typedef BOOL (__stdcall* _imp_ReadFile__)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 	typedef BOOL (__stdcall* _imp_CloseHandle__)(HANDLE hFile);

@@ -391,27 +391,57 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
-{
-	GET_STACK(ILocomotion*, iLoco, 0x4);
-	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
-	const auto pThis = pLoco->Owner;
-	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
+//DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
+//{
+	//GET_STACK(ILocomotion*, iLoco, 0x4);
+//	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
+//const auto pThis = pLoco->Owner;
+//	const auto pType = pThis->GetTechnoType();
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
+//
+//	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
+	//	pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
+	//{
+	//	if (const auto pTarget = pThis->Target)
+	//	{
+//			const CoordStruct source = pThis->Location;
+	//		const CoordStruct target = pTarget->GetCoords();
+//			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
+//			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
+	//			pLoco->Facing.turn(tgtDir);
+//		}
+//	}
+//	return 0;
+//}
 
-	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
-		pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
+// Bugfix: Jumpjet turn to target when attacking
+// Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
+DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
+{
+	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE };
+	GET(JumpjetLocomotionClass* const, pLoco, ESI);
+	GET(FootClass* const, pLinkedTo, EDI);
+
+	const auto pTarget = pLinkedTo->Target;
+	if (!pTarget)
+		return ContinueNoTarget;
+
+	if (const auto pThis = abstract_cast<UnitClass*>(pLinkedTo))
 	{
-		if (const auto pTarget = pThis->Target)
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
 		{
-			const CoordStruct source = pThis->Location;
-			const CoordStruct target = pTarget->GetCoords();
-			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
-			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
+			CoordStruct& source = pThis->Location;
+			CoordStruct target = pTarget->GetCoords();
+			DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
+
+			if (pThis->GetRealFacing().current().value32()  != tgtDir.value32())
 				pLoco->Facing.turn(tgtDir);
 		}
 	}
-	return 0;
+
+	R->EAX(pTarget);
+	return EndFunction;
 }
 
 //#ifdef DISGUISE_HOOKS
@@ -546,12 +576,14 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void*_ , int nDur , HouseClass* pSource , bool bIsFC) {
 
-	if (pThis->TemporalTargetingMe)
-		return DamageState::Unaffected;
-
-	if(nDur == 0) {
-		auto nDamage = pThis->Health;
-		return pThis->ReceiveDamage(&nDamage,0,RulesGlobal->C4Warhead,0,1,0,pSource);
+	if (pThis->TemporalTargetingMe) {
+		if(auto const pCell = pThis->GetCell()) {
+			if (auto const pBld = pCell->GetBuilding()) {
+				if (pBld->Type->BridgeRepairHut) {
+					return DamageState::Unaffected;
+				}
+			}
+		}
 	}
 
 	return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);

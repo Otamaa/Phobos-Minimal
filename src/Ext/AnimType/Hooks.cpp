@@ -127,8 +127,8 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 	auto Ret_SkipDamage = [R, pThis]()
 	{
-		R->EAX(pThis->Type);
-		return SkipDamage;
+		//R->EAX(pThis->Type);
+		return 0x42465D;
 	};
 
 	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)

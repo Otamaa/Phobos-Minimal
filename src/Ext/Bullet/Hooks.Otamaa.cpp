@@ -320,6 +320,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 	VelocityClass velocity { 0.0,0.0,0.0 };
 	//inline get Direction from 2 coords
 	CoordStruct const nCenter = pTarget->GetCoords();
+	//this->radians(Math::atan2(a, b));
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
 
 	if (velocity.X == 0.0 && velocity.Y == 0.0)
@@ -447,6 +448,7 @@ void ShrapnelsExec(BulletClass* pThis)
 					}
 				}
 
+				//double loop , mabe shoulndt do this ,..
 				for (auto const& pCell : pTargets)
 				{
 					auto const pTarget = pCell->FirstObject;
@@ -459,6 +461,19 @@ void ShrapnelsExec(BulletClass* pThis)
 						{
 							VelocityClass velocity = GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed);
 							pBullet->MoveTo(pThis->Location, velocity);
+#ifdef COMPILE_PORTED_DP_FEATURES
+							auto sourcePos = pThis->Location;
+							auto targetPos = pTarget->GetCoords();
+
+							// Draw bullet effect
+							Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+							// Draw particle system
+							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
+							// Play report sound
+							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
+							// Draw weapon anim
+							Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+#endif
 						}
 
 						//escapes
@@ -486,6 +501,19 @@ void ShrapnelsExec(BulletClass* pThis)
 							{
 								VelocityClass velocity = GenerateVelocity<true>(pThis, pTarget, pShrapWeapon->Speed);
 								pBullet->MoveTo(pThis->Location, velocity);
+#ifdef COMPILE_PORTED_DP_FEATURES
+								auto sourcePos = pThis->Location;
+								auto targetPos = pTarget->GetCoords();
+
+								// Draw bullet effect
+								Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+								// Draw particle system
+								Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
+								// Play report sound
+								Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
+								// Draw weapon anim
+								Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+#endif
 							}
 						}
 					}

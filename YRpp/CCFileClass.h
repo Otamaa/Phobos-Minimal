@@ -177,7 +177,7 @@ public:
 	virtual bool SetFileTime(LONG date_time) override { JMP_THIS(0x65D240); }
 	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override RX;
 
-    void Bias(off_t start, int length = -1)
+	void Bias(off_t start, int length = -1)
 	{ JMP_THIS(0x65D2B0); }
 
 	HANDLE Get_File_Handle() { return Handle; }

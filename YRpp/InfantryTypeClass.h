@@ -79,6 +79,10 @@ public:
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
 
+	void ReadSequence() const {
+		JMP_THIS(0x523D00);
+	}
+
 	//Constructor
 	InfantryTypeClass(const char* pID) noexcept
 		: InfantryTypeClass(noinit_t())

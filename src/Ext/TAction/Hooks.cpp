@@ -84,10 +84,10 @@ DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
 DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
 {
 	TActionExt::RecreateLightSources();
-
-	ScenarioExt::Global()->CurrentTint_Tiles =
-	ScenarioExt::Global()->CurrentTint_Schemes =
-	ScenarioExt::Global()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
+	TintStruct tint = ScenarioClass::Instance->NormalLighting.Tint;
+	ScenarioExt::Global()->CurrentTint_Tiles = tint;
+	ScenarioExt::Global()->CurrentTint_Schemes = tint;
+	ScenarioExt::Global()->CurrentTint_Hashes = tint;
 
 	return 0;
 }

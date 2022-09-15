@@ -22,7 +22,7 @@ class ObjectInfoCommandClass : public PhobosCommandClass
 public:
 
 	ObjectInfoCommandClass() : PhobosCommandClass() { }
-	virtual ~ObjectInfoCommandClass() { }
+	virtual ~ObjectInfoCommandClass() = default;
 
 	virtual const char* GetName() const override
 	{
@@ -199,11 +199,19 @@ public:
 
 			if (pFoot->Passengers.NumPassengers > 0)
 			{
-				append("Passengers: %s", pFoot->Passengers.FirstPassenger->GetTechnoType()->ID);
-				for (NextObject j(pFoot->Passengers.FirstPassenger->NextObject); j && abstract_cast<FootClass*>(*j); ++j)
+				auto pFirst = pFoot->Passengers.FirstPassenger;
+				if (pFoot->Passengers.NumPassengers == 1) {
+					auto pTarget = generic_cast<ObjectClass*>(pFirst->Target);
+					append("Passengers: %s , Mission %s , Target %s ", pFirst->GetTechnoType()->ID , getMissionName((int)pFirst->CurrentMission), pTarget ? pTarget->get_ID() : NONE_STR2);
+				}
+				else
 				{
-					auto passenger = static_cast<FootClass*>(*j);
-					append(", %s", passenger->GetTechnoType()->ID);
+					append("Passengers: %s", pFirst->GetTechnoType()->ID);
+					for (NextObject j(pFoot->Passengers.FirstPassenger->NextObject); j && abstract_cast<FootClass*>(*j); ++j) {
+
+						auto passenger = static_cast<FootClass*>(*j);
+						append(", %s", passenger->GetTechnoType()->ID);
+					}
 				}
 				append("\n");
 			}

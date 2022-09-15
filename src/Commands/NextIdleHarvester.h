@@ -15,7 +15,7 @@ class NextIdleHarvesterCommandClass : public PhobosCommandClass
 public:
 
 	NextIdleHarvesterCommandClass() : PhobosCommandClass() { }
-	virtual ~NextIdleHarvesterCommandClass() { }
+	virtual ~NextIdleHarvesterCommandClass() = default;
 
 	// CommandClass
 	virtual const char* GetName() const override

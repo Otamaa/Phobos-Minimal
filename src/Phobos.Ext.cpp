@@ -36,6 +36,8 @@
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
 //#include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
 //#include <Ext/Convert/Body.h>
@@ -78,6 +80,8 @@ auto MassActions = MassAction <
 	TerrainExt,
 	SmudgeTypeExt,
 	TemporalExt,
+	InfantryExt,
+	InfantryTypeExt,
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType,
 #endif

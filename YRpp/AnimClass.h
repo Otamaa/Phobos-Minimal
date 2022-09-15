@@ -175,8 +175,8 @@ public:
 	BlitterFlags AnimFlags; // argument that's 0x600 most of the time
 	bool HasExtras; // enables IsMeteor and Bouncer special behavior (AnimExtras)
 	BYTE RemainingIterations; // defaulted to deleteAfterIterations, when reaches zero, UnInit() is called
-    BYTE __lighting__celldraw_196;
-    BYTE __ToDelete_197;
+	BYTE __lighting__celldraw_196;
+	BYTE __ToDelete_197;
 	bool IsPlaying;
 	bool IsFogged;
 	bool FlamingGuyExpire; // finish animation and remove

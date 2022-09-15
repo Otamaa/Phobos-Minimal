@@ -313,12 +313,12 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	if (auto pShieldData = pExt->GetShield())
 		pShieldData->OnUpdate();
 
+	TechnoExt::ApplyInterceptor(pThis);
 //#ifdef ENABLE_NEWHOOKS
 	pExt->RunFireSelf();
 	pExt->UpdateMindControlAnim();
 	TechnoExt::ApplyMobileRefinery(pThis);
 	TechnoExt::ApplyMindControlRangeLimit(pThis);
-	TechnoExt::ApplyInterceptor(pThis);
 	TechnoExt::ApplySpawn_LimitRange(pThis);
 	TechnoExt::KillSlave(pThis);
 	pExt->CheckDeathConditions();

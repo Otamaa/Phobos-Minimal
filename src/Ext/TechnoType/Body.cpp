@@ -174,6 +174,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Interceptor_WeaponReplaceProjectile.Read(exINI, pSection, "Interceptor.WeaponReplaceProjectile");
 	this->Interceptor_WeaponCumulativeDamage.Read(exINI, pSection, "Interceptor.WeaponCumulativeDamage");
 	this->Interceptor_KeepIntact.Read(exINI, pSection, "Interceptor.KeepIntact");
+	this->Interceptor_ConsiderWeaponRange.Read(exINI, pSection, "Interceptor.ConsiderWaponRange");
 	this->Powered_KillSpawns.Read(exINI, pSection, "Powered.KillSpawns");
 	this->Spawn_LimitedRange.Read(exINI, pSection, "Spawner.LimitRange");
 	this->Spawn_LimitedExtraRange.Read(exINI, pSection, "Spawner.ExtraLimitRange");
@@ -531,6 +532,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Interceptor_WeaponReplaceProjectile)
 		.Process(this->Interceptor_WeaponCumulativeDamage)
 		.Process(this->Interceptor_KeepIntact)
+		.Process(this->Interceptor_ConsiderWeaponRange)
 		.Process(this->GroupAs)
 		.Process(this->RadarJamRadius)
 		.Process(this->InhibitorRange)

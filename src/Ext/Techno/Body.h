@@ -95,6 +95,7 @@ public:
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;
+		int CurrentWeaponIdx;
 #ifdef ENABLE_HOMING_MISSILE
 		HomingMissileTargetTracker* MissileTargetTracker;
 #endif
@@ -144,6 +145,7 @@ public:
 			, Trails { }
 			, MyGiftBox {}
 			, PaintBallState {}
+			, CurrentWeaponIdx { -1}
 #ifdef ENABLE_HOMING_MISSILE
 			, MissileTargetTracker { nullptr }
 #endif

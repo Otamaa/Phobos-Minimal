@@ -72,8 +72,13 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 		pBuildingExt->LimboID = ID;
 }
 
-void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords)
+void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsPlayer)
 {
+	if(!pHouse) {
+		Debug::Log("SW[%x] Trying To execute %s with nullptr HouseOwner ! \n" , pSW , "FireSuperWeapon");
+		return;
+	}
+
 	if (this->LimboDelivery_Types.size())
 		ApplyLimboDelivery(pHouse);
 

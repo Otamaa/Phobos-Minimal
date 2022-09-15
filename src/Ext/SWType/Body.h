@@ -69,7 +69,7 @@ public:
 		{ }
 
 
-		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords);
+		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsPlayer);
 
 		bool IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno);
 		bool HasInhibitor(HouseClass* pOwner, const CellStruct& Coords);

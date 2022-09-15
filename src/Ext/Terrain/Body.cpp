@@ -74,7 +74,6 @@ void TerrainExt::ExtData::ClearAnim()
 {
 	if (AttachedAnim)
 	{
-		AttachedAnim->RemainingIterations = 0;
 		CallDTOR<false>(AttachedAnim);
 		AttachedAnim = nullptr;
 	}

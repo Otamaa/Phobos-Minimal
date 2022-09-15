@@ -26,11 +26,11 @@
 //dont bother to clear type pointer
 //DEFINE_JUMP(LJMP, 0x4251A3, 0x4251B1);
 
-static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
-{
-	if (!pThis->GetTechnoType()->Invisible)
-		pThis->DrawBehind(pWhere, pBounds);
-}
+//static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
+//{
+//	if (!pThis->GetTechnoType()->Invisible)
+//		pThis->DrawBehind(pWhere, pBounds);
+//}
 
 //DEFINE_JUMP(CALL,0x6FA2D3, GET_OFFSET(_DrawBehindAnim));
 
@@ -154,30 +154,48 @@ static	void __fastcall DrawShape_VeinHole
 
 DEFINE_JUMP(CALL,0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
-static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
-{
-	//TheaterTypeClass::GetCharExtension(nTheater)
-	std::string flag { "VEINHOLE." };
-	flag += Theater::GetTheater(nTheater).Extension;
-	if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
-		VeinholeMonsterClass::VeinSHPData = pImage;
-}
+//static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
+//{
+//	//TheaterTypeClass::GetCharExtension(nTheater)
+//	std::string flag { "VEINHOLE." };
+//	flag += Theater::GetTheater(nTheater).Extension;
+//	if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
+//		VeinholeMonsterClass::VeinSHPData = pImage;
+//}
+//
+//DEFINE_JUMP(CALL,0x685136, GET_OFFSET(Replace_VeinholeShapeLoad));
 
-DEFINE_JUMP(CALL,0x685136, GET_OFFSET(Replace_VeinholeShapeLoad));
+//static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
+//{
+//	SmudgeTypeClass::TheaterInit(nTheater);
+//	Replace_VeinholeShapeLoad(nTheater);
+//}
+//
+//DEFINE_JUMP(CALL,0x4AD0A3, GET_OFFSET(DisplayClass_ReadINI_add));
 
-static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
+DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
+	auto nTheater = ScenarioGlobal->Theater;
 	SmudgeTypeClass::TheaterInit(nTheater);
-	Replace_VeinholeShapeLoad(nTheater);
+	VeinholeMonsterClass::TheaterInit(nTheater);
+	return 0x4AD0A8;
 }
 
-DEFINE_JUMP(CALL,0x4AD0A3, GET_OFFSET(DisplayClass_ReadINI_add));
+//static int __fastcall SelectParticle(char* pName) {
+//	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
+//}
+//
+//DEFINE_JUMP(CALL,0x74D0DF, GET_OFFSET(SelectParticle));
 
-static int __fastcall SelectParticle(char* pName) {
-	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
+DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
+{
+	//overriden instructions
+	R->Stack(0x2C, R->EDX());
+	R->Stack(0x30, R->EAX());
+	auto const pDefault = Make_Global<const char*>(0x84610C);
+	R->EAX(RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pDefault)));
+	return 0x74D0E4;
 }
-
-DEFINE_JUMP(CALL,0x74D0DF, GET_OFFSET(SelectParticle));
 
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 {
@@ -878,6 +896,7 @@ DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 	return 0;
 }
 
+//DEFINE_HOOK_AGAIN(0x6A91E5, SidebarClass_Update_MultiMoney, 0x6)
 //DEFINE_HOOK(0x6A9137, SidebarClass_Update_MultiMoney, 0x6)
 //{
 //	GET(int, nMoney, EAX);
@@ -926,7 +945,63 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 	return !R->ESI<TechnoClass*>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
-#ifdef ENABLE_TOMSOnOVERLAYWRAPPER
+//
+//DEFINE_HOOK(0x67E875, LoadGame_Start_AfterMouse, 0x6)
+//{
+//	Unsorted::CursorSize = nullptr;
+//	return 0;
+//}
+
+DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
+{
+	GET(TechnoClass*, pProduct, ECX);
+	pProduct->UnInit();
+	return 0x4CA0FF;
+}
+
+// TODO : more stack ?
+//DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
+//{
+//	GET(ObjectClass*, pTarget, ESI);
+//	GET_BASE(const WarheadTypeClass*, pWH, 0xC);
+//	GET_BASE(TechnoClass*, pSource, 0x8);
+//	//GET_BASE(HouseClass*, pHouse, 0x14);
+//
+//	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
+//		if (auto pTechnp = generic_cast<TechnoClass*>(pTarget)) {
+//			Debug::Log("[%x]=%s MapClass::ExplosionDamage Detonating To [%x]= %s \n", pSource , pSource ? pSource->get_ID() : NONE_STR, pTechnp, pTechnp->get_ID());
+//		}
+//	}
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
+	GET(InfantryClass*, pThis, ECX);
+	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
+}
+
+//DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
+//DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)
+//{
+//	Debug::Log("%s\n", R->ESP<char*>());
+//	return R->Origin() + 5;
+//}
+
+DEFINE_HOOK(0x00, TechnoClass_Deactivate, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	if (auto pType = pThis->GetTechnoType()) {
+		if (pType->PoweredUnit && pThis->Owner) {
+			pThis->Owner->RecheckPower = true;
+		}
+	}
+
+	return 0x0;
+}
+
+#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;
@@ -1454,19 +1529,6 @@ DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_OnFire, 0x5)
 //	return 0x4FD907;
 //}
 //
-//DEFINE_HOOK(0x67E875, LoadGame_Start_AfterMouse, 0x6)
-//{
-//	Unsorted::CursorSize = nullptr;
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
-//{
-//	GET(TechnoClass*, pProduct, ECX);
-//	pProduct->UnInit();
-//	return 0x4CA0FF;
-//}
-
 
 //DEFINE_HOOK(0x519B58, InfantryClass_PerCellProcess_AutoSellCheck, 0x6)
 //{

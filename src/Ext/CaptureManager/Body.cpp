@@ -197,13 +197,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit);
 		}
 
-		if (auto pControlNode = GameCreate<ControlNode>())
+		if (auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames))
 		{
-			pControlNode->OriginalOwner = pTarget->Owner;
-			pControlNode->Unit = pTarget;
-
 			pManager->ControlNodes.AddItem(pControlNode);
-			pControlNode->LinkDrawTimer.Start(RulesClass::Instance->MindControlAttackLineFrames);
 
 			if (pTarget->SetOwningHouse(pManager->Owner->Owner))
 			{
@@ -211,7 +207,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 				pManager->DecideUnitFate(pTarget);
 
-				auto const pBld = abstract_cast<BuildingClass*>(pTarget);
+				auto const pBld = specific_cast<BuildingClass*>(pTarget);
 				auto const pType = pTarget->GetTechnoType();
 				CoordStruct location = pTarget->GetCoords();
 
@@ -307,7 +303,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
@@ -319,7 +315,7 @@ DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x472A53, CaptureManagerClass_DTOR, 0x7)
+DEFINE_HOOK(0x4729EF, CaptureManagerClass_DTOR, 0x7)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);
 	CaptureExt::ExtMap.Remove(pItem);
@@ -335,7 +331,7 @@ DEFINE_HOOK(0x472720, CaptureManagerClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x4728CA, CaptureManagerClass_Load_Suffix, 0xA)
+DEFINE_HOOK(0x4728CA, CaptureManagerClass_Load_Suffix, 0x7)
 {
 	CaptureExt::ExtMap.LoadStatic();
 	return 0;

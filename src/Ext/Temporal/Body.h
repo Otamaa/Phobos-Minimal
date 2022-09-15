@@ -16,8 +16,9 @@ public:
 	class ExtData final : public Extension<TemporalClass>
 	{
 	public:
-
+		WeaponTypeClass* Weapon;
 		ExtData(TemporalClass* OwnerObject) : Extension<TemporalClass>(OwnerObject)
+			, Weapon { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

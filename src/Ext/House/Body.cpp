@@ -229,7 +229,7 @@ HouseExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	HouseExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	HouseExt::ExtMap.FindOrAllocate(pItem);

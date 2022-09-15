@@ -25,8 +25,6 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 	return 0x472287;
 }
 
-//DEFINE_JUMP(CALL,0x6FA730,GET_OFFSET(CaptureExt::Overload_AI));
-
 DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
 {
 	GET(TechnoClass*, pOwner, ESI);

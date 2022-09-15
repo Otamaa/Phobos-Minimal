@@ -10,13 +10,13 @@ MSVC++
 */
 
 #define PROLOG_THISCALL \
-    _asm { push ecx } \
-    _asm { push esp, ebp } \
-    _asm { push ebp }
+	_asm { push ecx } \
+	_asm { push esp, ebp } \
+	_asm { push ebp }
 
 #define PROLOG_STDCALL \
-    _asm { mov esp, ebp } \
-    _asm { push ebp }
+	_asm { mov esp, ebp } \
+	_asm { push ebp }
 
 //Jump
 #define JMP(address) \
@@ -24,8 +24,8 @@ MSVC++
 	_asm{jmp eax}
 
 #define JMP_REG(reg, address) \
-    _asm { mov reg, address } \
-    _asm { jmp reg }
+	_asm { mov reg, address } \
+	_asm { jmp reg }
 
 #define JMP_REG_THIS(pThis,reg, address)\
 	{_asm{mov ecx, pThis}\
@@ -187,49 +187,49 @@ MSVC++
 	_asm { pop ebp }
 
 #define DEFINE_IMPLEMENTATION(prototype, address, ...) \
-    __declspec(noinline) __declspec(naked) \
-    prototype \
-    { \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	__declspec(noinline) __declspec(naked) \
+	prototype \
+	{ \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #define DEFINE_IMPLEMENTATION_INLINE(prototype, address, ...) \
-    inline __declspec(naked) \
-    prototype \
-    { \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	inline __declspec(naked) \
+	prototype \
+	{ \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #define DEFINE_IMPLEMENTATION_UNWIND(prototype, address, ...) \
-    prototype \
-    { \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	prototype \
+	{ \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #define DEFINE_IMPLEMENTATION_CONSTRUCTOR(prototype, address, ...) \
-    __declspec(noinline) \
-    prototype \
-    { \
-        _asm { mov ecx, this } \
-	    _asm { mov esp, ebp } \
-	    _asm { pop ebp } \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	__declspec(noinline) \
+	prototype \
+	{ \
+		_asm { mov ecx, this } \
+		_asm { mov esp, ebp } \
+		_asm { pop ebp } \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #define DEFINE_IMPLEMENTATION_CONSTRUCTOR_BASE(prototype, base, address, ...) \
    __declspec(noinline) \
-    prototype : base(NoInitClass()) \
-    { \
-        _asm { mov ecx, this } \
-	    _asm { mov esp, ebp } \
-	    _asm { pop ebp } \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	prototype : base(NoInitClass()) \
+	{ \
+		_asm { mov ecx, this } \
+		_asm { mov esp, ebp } \
+		_asm { pop ebp } \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #define DESTRUCTOR_EPILOG \
 	_asm { pop edi } \
@@ -239,12 +239,12 @@ MSVC++
 	_asm { pop ebp }
 
 #define DEFINE_IMPLEMENTATION_DESTRUCTOR(prototype, address, ...) \
-    __declspec(noinline) \
-    prototype \
-    { \
-        DESTRUCTOR_EPILOG; \
-        _asm { mov eax, address } \
-        _asm { jmp eax } \
-    }
+	__declspec(noinline) \
+	prototype \
+	{ \
+		DESTRUCTOR_EPILOG; \
+		_asm { mov eax, address } \
+		_asm { jmp eax } \
+	}
 
 #endif

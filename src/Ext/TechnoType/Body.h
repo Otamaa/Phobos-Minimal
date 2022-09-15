@@ -55,6 +55,7 @@ public:
 		Valueable<bool> Interceptor_WeaponReplaceProjectile;
 		Valueable<bool> Interceptor_WeaponCumulativeDamage;
 		Valueable<bool> Interceptor_KeepIntact;
+		Valueable<bool> Interceptor_ConsiderWeaponRange;
 		Valueable<CoordStruct> TurretOffset;
 		Valueable<bool> Powered_KillSpawns;
 		Valueable<bool> Spawn_LimitedRange;
@@ -368,12 +369,13 @@ public:
 			, Interceptor_CanTargetHouses { AffectedHouse::Enemies }
 			, Interceptor_GuardRange {}
 			, Interceptor_MinimumGuardRange {}
-			, Interceptor_Weapon { 0 }
+			, Interceptor_Weapon { -1 }
 			, Interceptor_DeleteOnIntercept {}
 			, Interceptor_WeaponOverride {}
 			, Interceptor_WeaponReplaceProjectile { false }
 			, Interceptor_WeaponCumulativeDamage { false }
 			, Interceptor_KeepIntact { false }
+			, Interceptor_ConsiderWeaponRange { false }
 			, TurretOffset { { 0, 0, 0 } }
 			, Powered_KillSpawns { false }
 			, Spawn_LimitedRange { false }
