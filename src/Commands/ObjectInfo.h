@@ -22,7 +22,7 @@ class ObjectInfoCommandClass : public PhobosCommandClass
 public:
 
 	ObjectInfoCommandClass() : PhobosCommandClass() { }
-	virtual ~ObjectInfoCommandClass() = default;
+	virtual ~ObjectInfoCommandClass() { }
 
 	virtual const char* GetName() const override
 	{

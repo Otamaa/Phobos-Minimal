@@ -44,10 +44,10 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
+#endif
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
+
 	static BombClass* BombTemp;
 	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void* _);
 	static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse);

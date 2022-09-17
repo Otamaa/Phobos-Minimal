@@ -169,7 +169,7 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
 
-	} else if (pWarheadExt && pWarheadExt->IsNukeWarhead.Get()) {
+	} else if (pWarheadExt->IsNukeWarhead.Get()) {
 		return NukeWarheadExtras;
 	}
 

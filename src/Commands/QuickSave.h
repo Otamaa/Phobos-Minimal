@@ -11,7 +11,7 @@ class QuickSaveCommandClass : public PhobosCommandClass
 public:
 
 	QuickSaveCommandClass() : PhobosCommandClass() { }
-	virtual ~QuickSaveCommandClass() = default;
+	virtual ~QuickSaveCommandClass() { }
 
 	// CommandClass
 	virtual const char* GetName() const override

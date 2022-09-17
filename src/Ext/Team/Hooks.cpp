@@ -25,7 +25,7 @@ static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 	if (pThis == pThat)
 		return true;
 
-	 //InfantryClass doenst support this ,..
+	 //InfantryClass doesnt support this ,..
 	 if (pThis->WhatAmI() == AbstractType::InfantryType)
 	 	return false;
 

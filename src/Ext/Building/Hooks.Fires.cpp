@@ -8,39 +8,46 @@
 #include <Ext/Anim/Body.h>
 #include <Utilities/Macro.h>
 
-#ifdef ENABLE_NEWHOOKS
-//TODO : retest for functionality
+#ifndef ENABLE_NEWHOOKS
+// Brief :
+// The AnimClass* memory is owned by the vector , dont delete it
+// just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
 	void HandleRemove(BuildingClass* pThis) {
 		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
-			for (int i = 0; i < pExt->DamageFireAnims.size(); ++i) {
-
-				if (auto Item = pExt->DamageFireAnims.at(i))
-					GameDelete(Item);
-
-				pExt->DamageFireAnims.erase(pExt->DamageFireAnims.begin() + i);
+			for (int i = 0; i < pExt->DamageFireAnims.Count; i++)
+			{
+				if (pExt->DamageFireAnims[i]) {
+					pExt->DamageFireAnims[i]->~AnimClass();
+					pExt->DamageFireAnims[i] = nullptr;
+				}
 			}
 		}
 	}
 
 	void HandleRemove(BuildingExt::ExtData* pExt) {
-		for (int i = 0; i < pExt->DamageFireAnims.size(); ++i) {
-
-			if(auto Item = pExt->DamageFireAnims.at(i))
-				GameDelete(Item);
-
-			pExt->DamageFireAnims.erase(pExt->DamageFireAnims.begin() + i);
+		for (int i = 0; i < pExt->DamageFireAnims.Count; i++)
+		{
+			if (pExt->DamageFireAnims[i])
+			{
+				pExt->DamageFireAnims[i]->~AnimClass();
+				pExt->DamageFireAnims[i] = nullptr;
+			}
 		}
 	}
 
 	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
 		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
-			AnnounceInvalidPointer(pExt->DamageFireAnims, ptr);
+			for (int i = 0; i < pExt->DamageFireAnims.Count; i++) {
+				if (pExt->DamageFireAnims[i] == ptr) {
+					pExt->DamageFireAnims[i] = nullptr;
+				}
+			}
 		}
 	}
 
-	void __fastcall Construct(BuildingClass* pThis, void* _)
+	void Construct(BuildingClass* pThis)
 	{
 		auto pType = pThis->Type;
 		auto pExt = BuildingExt::ExtMap.Find(pThis);
@@ -76,7 +83,7 @@ namespace DamageFireAnims
 							pAnim->Animation.Value = ScenarioGlobal->Random(0, pAnim->Type->End - 1);
 
 						pAnim->Owner = pThis->GetOwningHouse();
-						pExt->DamageFireAnims.push_back(pAnim);
+						pExt->DamageFireAnims[i] = std::move(pAnim);
 					}
 				}
 			}
@@ -84,22 +91,29 @@ namespace DamageFireAnims
 	}
 };
 
-DEFINE_JUMP(CALL,0x43FC92,GET_OFFSET(DamageFireAnims::Construct));
+DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+	DamageFireAnims::Construct(pThis);
+	return 0x43FC97;
+}
+
+//DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
 DEFINE_JUMP(LJMP,0x460388, 0x46048E); // no thankyou , we handle it ourself !
 DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
-#define HANDLEREMOVE_HOOKS(addr ,name, size ,ret) \
+#define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
 DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \
-	GET(BuildingClass*, pThis, ESI);\
+	GET(BuildingClass*, pThis, reg);\
 	DamageFireAnims::HandleRemove(pThis);\
 	return ret;\
 }
 
-HANDLEREMOVE_HOOKS(0x43BDD5, DTOR, 0x6, 0x43BDF6)
-HANDLEREMOVE_HOOKS(0x44AB87, Fire1, 0x6, 0x44ABAC)
-HANDLEREMOVE_HOOKS(0x440076, Fire2, 0x6, 0x44009B)
-HANDLEREMOVE_HOOKS(0x43FC99, Fire3, 0x6, 0x43FCBE)
-HANDLEREMOVE_HOOKS(0x4458E4, Fire4, 0x6, 0x445905)
+HANDLEREMOVE_HOOKS(0x43BDD5,ESI, DTOR, 0x6, 0x43BDF6)
+HANDLEREMOVE_HOOKS(0x44AB87,EBP, Fire1, 0x6, 0x44ABAC)
+HANDLEREMOVE_HOOKS(0x440076,ESI, Fire2, 0x6, 0x44009B)
+HANDLEREMOVE_HOOKS(0x43FC99,ESI, Fire3, 0x6, 0x43FCBE)
+HANDLEREMOVE_HOOKS(0x4458E4,ESI, Fire4, 0x6, 0x445905)
 
 #undef HANDLEREMOVE_HOOKS
 

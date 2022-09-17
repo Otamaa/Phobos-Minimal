@@ -50,6 +50,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Laser_IsSingleColor.Read(exINI, pSection, "IsSingleColor");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 
+	this->Abductor.Read(exINI, pSection, "Abductor");
 #pragma region Otamaa
 	this->Ylo.Read(exINI, pSection, "ShakeYlo");
 	this->Yhi.Read(exINI, pSection, "ShakeYhi");
@@ -108,7 +109,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FeedbackWeapon)
 		.Process(this->Laser_IsSingleColor)
 		.Process(this->Trajectory_Speed)
-
+		.Process(this->Abductor)
 		.Process(this->Ylo)
 		.Process(this->Xlo)
 		.Process(this->Xhi)

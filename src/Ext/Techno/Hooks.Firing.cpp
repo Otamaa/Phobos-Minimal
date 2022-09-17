@@ -31,7 +31,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	if(CeaseFire(pThis))
 		return CannotFire;
 #endif
-	//auto pTechnoExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pTechnoExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
 		const int nMoney = pWHExt->TransactMoney;
@@ -39,9 +39,12 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 			return CannotFire;
 	}
 
-	//if (pTechnoExt->Interceptor && !specific_cast<BulletClass*>(pTarget)) {
-	//	return CannotFire;
-	//}
+	//this code is used to remove Techno as auto target consideration , so interceptor can find target faster
+	if (pTechnoExt->Interceptor.Get() &&
+		pTechnoExt->Interceptor_OnlyTargetBullet.Get() &&
+		!specific_cast<BulletClass*>(pTarget)) {
+		return CannotFire;
+	}
 
 	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
@@ -59,12 +62,31 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		if (targetCell) {
 			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget, true))
 				return CannotFire;
+
+			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex)) {
+				if ((pOverlayType->Wall)) {
+					if (!pWeapon->IsWallDestroyer() ||
+						!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex))) {
+						return CannotFire;
+					}
+				}
+			}
 		}
 
 		if (pTechno) {
-			if (const auto pUnit = specific_cast<UnitClass*>(pTechno))
-				if (pUnit->DeathFrameCounter > 0)
+			if (const auto pFoot = generic_cast<FootClass*>(pTechno)){
+
+				if(pFoot->WhatAmI() == AbstractType::Unit){
+					auto const pUnit = static_cast<UnitClass*>(pTechno);
+					auto const bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
+
+					if (pUnit->DeathFrameCounter > 0 || bDriverKilled && pWeaponExt->Abductor.Get())
+						return CannotFire;
+				}
+
+				if (pFoot->ChronoLockRemaining > 0)
 					return CannotFire;
+			}
 
 			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner)) {

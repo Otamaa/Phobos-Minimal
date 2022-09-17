@@ -3,14 +3,29 @@
 #include <Base/Always.h>
 #include <TechnoClass.h>
 
+struct WeaponPacks
+{
+	BYTE idxSlot_Wave;
+	BYTE idxSlot_Beam;
+	BYTE idxSlot_Warp;
+	BYTE idxSlot_Parasite;
+	BYTE idxSlot_5;
+	BYTE idxSlot_6;
+	BYTE idxSlot_7;
+	BYTE idxSlot_8;
+};
+
 struct AresTechnoExtData
 {
 	TechnoClass* AttachedObject;
-	DWORD InitState;
-	DWORD dword8;
-	DWORD dwordC;
+	DWORD dword4;
+	BYTE idxSlot_Wave;
+	BYTE idxSlot_Beam;
+	BYTE idxSlot_Warp;
+	BYTE idxSlot_Parasite;
+	BuildingClass* GarrisonedIn;
 	DWORD dword10;
-	DWORD dword14;
+	Mission EMPLastMission;
 	DWORD dword18;
 	DWORD dword1C;
 	DWORD dword20;
@@ -41,11 +56,12 @@ struct AresTechnoExtData
 	double ArmorMult;
 	double SpeedMult;
 	BYTE byte98;
-	WORD word99;
-	BYTE gap9B;
-	BYTE DiverKilled;
+	BYTE word99;
+	BYTE word9A;
+	BYTE Survivors_Done;
+	BYTE DriverKilled;
 	BYTE gap9D;
-	WORD word9E;
+	BYTE InitialPayloadCreated;
 	DWORD dwordA0;
 	DWORD dwordA4;
 	DWORD dwordA8;

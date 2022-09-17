@@ -21,8 +21,21 @@ AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(Invoker, ptr);
-	AnnounceInvalidPointer(AttachedSystem, ptr);
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::ParticleSystem:
+		AnnounceInvalidPointer(Invoker, ptr);
+		AnnounceInvalidPointer(AttachedSystem, ptr);
+		break;
+	default:
+		return;
+	}
+
 }
 
 // =============================

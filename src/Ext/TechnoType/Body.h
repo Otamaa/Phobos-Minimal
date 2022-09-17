@@ -56,6 +56,8 @@ public:
 		Valueable<bool> Interceptor_WeaponCumulativeDamage;
 		Valueable<bool> Interceptor_KeepIntact;
 		Valueable<bool> Interceptor_ConsiderWeaponRange;
+		Valueable<bool> Interceptor_OnlyTargetBullet;
+
 		Valueable<CoordStruct> TurretOffset;
 		Valueable<bool> Powered_KillSpawns;
 		Valueable<bool> Spawn_LimitedRange;
@@ -376,6 +378,7 @@ public:
 			, Interceptor_WeaponCumulativeDamage { false }
 			, Interceptor_KeepIntact { false }
 			, Interceptor_ConsiderWeaponRange { false }
+			, Interceptor_OnlyTargetBullet { false }
 			, TurretOffset { { 0, 0, 0 } }
 			, Powered_KillSpawns { false }
 			, Spawn_LimitedRange { false }

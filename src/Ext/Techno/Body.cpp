@@ -1940,16 +1940,16 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	//auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	//switch (abs)
-	//{
-	//case AbstractType::House:
-	//case AbstractType::Building:
-	//case AbstractType::Aircraft:
-	//case AbstractType::Unit:
-	//case AbstractType::Infantry:
-	//case AbstractType::Anim:
-	//{
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::House:
+	case AbstractType::Building:
+	case AbstractType::Aircraft:
+	case AbstractType::Unit:
+	case AbstractType::Infantry:
+	case AbstractType::Anim:
+	{
 		if (auto pShield = this->GetShield())
 			pShield->InvalidatePointer(ptr, bRemoved);
 
@@ -1962,11 +1962,11 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		if (MissileTargetTracker)
 			MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
 #endif
-//	}
-//	break;
-//	default:
-//		return;
-//	}
+	}
+	break;
+	default:
+		return;
+	}
 }
 
 // Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.

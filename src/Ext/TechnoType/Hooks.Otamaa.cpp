@@ -121,13 +121,11 @@ DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x7) //was 5
 {
 	GET(UnitClass* , pThis , ESI);
 
+	auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
+	if(bDriverKilled)
+		return 0x7365ED;
+
 	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-#ifdef ENABLE_NEWHOOKS
-		//if (pThis->align_154)
-		//	if (const AresTechnoExtData* pData = reinterpret_cast<const AresTechnoExtData*>(pThis->align_154))
-		//		if (pData->DiverKilled)
-		//			return;
-#endif
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
 		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 

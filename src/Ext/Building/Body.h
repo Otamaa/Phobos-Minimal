@@ -31,7 +31,7 @@ public:
 		BuildingClass* CurrentAirFactory;
 		int AccumulatedGrindingRefund;
 
-		std::vector<AnimClass*> DamageFireAnims;
+		DynamicVectorClass<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)

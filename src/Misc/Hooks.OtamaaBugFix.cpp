@@ -358,7 +358,7 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
-	HouseClass* OverlayOwner = nHouseIDx >= 0 ? HouseClass::Array->GetItem(nHouseIDx) : nullptr;
+	HouseClass* OverlayOwner = nHouseIDx >= 0 ? HouseClass::Array->Items[nHouseIDx] : nullptr;
 
 	if (PlacingObject) {
 		bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
@@ -826,22 +826,6 @@ DEFINE_HOOK(0x54D20F, JumpjetLocomotionClass_MovementAI_Deactivated_Wobble, 0x9)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
-{
-	enum
-	{
-		ContinueCheck = 0x5F54C4
-		, ResultHalf = 0x5F54B8
-	};
-
-	GET(int, nOldStr, EDX);
-	GET(int, nCurStr, EBP);
-	GET(int, nDamage, ECX);
-
-	const auto curstr = static_cast<int>(static_cast<double>(nCurStr) * RulesGlobal->ConditionYellow);
-	return (nOldStr <= curstr || !((nOldStr - nDamage) < curstr)) ? ContinueCheck : ResultHalf;
-}
-
 static void ClearShit(TechnoTypeClass* a1)
 {
 	auto pObjectToSelect = MapClass::Instance->NextObject(
@@ -976,10 +960,10 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
-	GET(InfantryClass*, pThis, ECX);
-	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
-}
+//DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
+//	GET(InfantryClass*, pThis, ECX);
+//	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
+//}
 
 //DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
 //DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)
@@ -987,18 +971,30 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
 //	Debug::Log("%s\n", R->ESP<char*>());
 //	return R->Origin() + 5;
 //}
+//
+//DEFINE_HOOK_AGAIN(0x70FC90, TechnoClass_Deactivate, 0x6)
+//DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//
+//	if (auto pType = pThis->GetTechnoType()) {
+//		if (pType->PoweredUnit && pThis->Owner) {
+//			pThis->Owner->RecheckPower = true;
+//		}
+//	}
+//
+//	return 0x0;
+//}
 
-DEFINE_HOOK(0x00, TechnoClass_Deactivate, 0x6)
+//#include <ExtraHeaders/Ares/TechnoExtData.h>
+//
+DEFINE_HOOK(0x7463A8 , UnitClass_Captured_DriverKilled ,0x6)
 {
-	GET(TechnoClass*, pThis, ECX);
+	enum { Failed = 0x7463EC, Continue = 0x0 };
+	GET(UnitClass*, pThis, EDI);
 
-	if (auto pType = pThis->GetTechnoType()) {
-		if (pType->PoweredUnit && pThis->Owner) {
-			pThis->Owner->RecheckPower = true;
-		}
-	}
-
-	return 0x0;
+	auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
+	return bDriverKilled ? Failed : Continue;
 }
 
 #ifndef ENABLE_TOMSOnOVERLAYWRAPPER

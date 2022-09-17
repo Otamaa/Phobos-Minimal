@@ -29,7 +29,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 
 	if (!args->IgnoreDefenses)
 	{
-		if(const auto pExt = TechnoExt::GetExtData(pThis))
+		if (const auto pExt = TechnoExt::GetExtData(pThis))
 		{
 			if (auto pShieldData = pExt->GetShield())
 			{
@@ -105,15 +105,20 @@ if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {\
 	if (pShieldData->IsActive()) { R->EAX(pShieldData->GetType()->Armor);\
 		return R->Origin() + 6; } } } return 0;}
 
-DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6) {
+DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
+{
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(ObjectClass*, pTarget, ESI);
 
-	if(auto pTechno = generic_cast<TechnoClass*>(pTarget)){
-		if (auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
-			if (auto pShieldData = pExt->Shield.get()) {
-			if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;
-				if (pShieldData->IsActive()) {
+	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
+	{
+		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
+		{
+			if (auto pShieldData = pExt->Shield.get())
+			{
+				if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;
+				if (pShieldData->IsActive())
+				{
 					R->EAX(pShieldData->GetType()->Armor);
 					return R->Origin() + 6;
 				}
@@ -146,9 +151,12 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 {
 	GET(TemporalClass*, pThis, ESI);
 
-	if (auto const pTarget = pThis->Target) {
-		if (const auto pExt = TechnoExt::GetExtData(pTarget)) {
-			if (const auto pShieldData = pExt->GetShield()) {
+	if (auto const pTarget = pThis->Target)
+	{
+		if (const auto pExt = TechnoExt::GetExtData(pTarget))
+		{
+			if (const auto pShieldData = pExt->GetShield())
+			{
 				if (pShieldData->IsAvailable())
 					pShieldData->OnTemporalUpdate(pThis);
 			}
@@ -163,9 +171,10 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pExt = TechnoExt::GetExtData(pThis)) {
+	if (const auto pExt = TechnoExt::GetExtData(pThis))
+	{
 		if (const auto pShieldData = pExt->GetShield())
-			 pShieldData->OnRemove();
+			pShieldData->OnRemove();
 	}
 
 	return 0;
@@ -186,7 +195,7 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //UnitCla
 
 #pragma region TechnoClass__Evaluate_Object
 
-double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno , void* _)
+double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno, void* _)
 {
 	double result = pTechno->GetHealthPercentage();
 	if (result >= 1.0)
@@ -209,7 +218,7 @@ double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno , void* _)
 	return result;
 }
 
-DEFINE_JUMP(CALL,0x6F7F51, GET_OFFSET(HealthRatio_Wrapper));
+DEFINE_JUMP(CALL, 0x6F7F51, GET_OFFSET(HealthRatio_Wrapper));
 
 #pragma endregion TechnoClass__Evaluate_Object
 
@@ -217,24 +226,23 @@ class AresScheme
 {
 	static inline ObjectClass* LinkedObj = nullptr;
 public:
-	static void __cdecl Prefix(ObjectClass* pObj)
+	static void __cdecl Prefix(TechnoClass* pThis, ObjectClass* pObj, int nWeaponIndex)
 	{
 		if (LinkedObj)
 			return;
 
-		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj))
-		{
-			if (const auto pExt = TechnoExt::GetExtData(pTechno))
-			{
-				if (const auto pShieldData = pExt->Shield.get())
-				{
-					if (pShieldData->IsActive())
-					{
-						const auto shieldRatio = pExt->Shield->GetHealthRatio();
-						if (shieldRatio < 1.0)
-						{
-							LinkedObj = pObj;
-							--LinkedObj->Health;
+		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj)) {
+			if (const auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
+				if (const auto pShieldData = pExt->Shield.get()) {
+					if (pShieldData->IsActive()) {
+
+						const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) :nWeaponIndex);
+
+						if (pWeapon && pWeapon->WeaponType &&  !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead)) {
+							if (pExt->Shield->GetHealthRatio() < 1.0) {
+								LinkedObj = pObj;
+								--LinkedObj->Health;
+							}
 						}
 					}
 				}
@@ -255,9 +263,12 @@ public:
 
 static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)){
-		if (const auto pShieldData = pExt->Shield.get()){
-			if (pShieldData->IsAvailable()){
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		if (const auto pShieldData = pExt->Shield.get())
+		{
+			if (pShieldData->IsAvailable())
+			{
 				auto const pShiedType = pShieldData->GetType();
 				if (pShiedType->ThreadPosed.isset())
 					return pShiedType->ThreadPosed.Get();
@@ -309,12 +320,12 @@ FireError __fastcall UnitClass__GetFireError(UnitClass* pThis, void* _, ObjectCl
 
 FireError __fastcall UnitClass__GetFireError_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
 {
-	AresScheme::Prefix(pObj);
+	AresScheme::Prefix(pThis, pObj, nWeaponIndex);
 	auto const result = UnitClass__GetFireError(pThis, _, pObj, nWeaponIndex, ignoreRange);
 	AresScheme::Suffix();
 	return result;
 }
-DEFINE_JUMP(VTABLE,0x7F6030, GET_OFFSET(UnitClass__GetFireError_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F6030, GET_OFFSET(UnitClass__GetFireError_Wrapper));
 #pragma endregion UnitClass_GetFireError_Heal
 
 #pragma region InfantryClass_GetFireError_Heal
@@ -324,12 +335,12 @@ FireError __fastcall InfantryClass__GetFireError(InfantryClass* pThis, void* _, 
 }
 FireError __fastcall InfantryClass__GetFireError_Wrapper(InfantryClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
 {
-	AresScheme::Prefix(pObj);
+	AresScheme::Prefix(pThis, pObj, nWeaponIndex);
 	auto const result = InfantryClass__GetFireError(pThis, _, pObj, nWeaponIndex, ignoreRange);
 	AresScheme::Suffix();
 	return result;
 }
-DEFINE_JUMP(VTABLE,0x7EB418, GET_OFFSET(InfantryClass__GetFireError_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7EB418, GET_OFFSET(InfantryClass__GetFireError_Wrapper));
 #pragma endregion InfantryClass_GetFireError_Heal
 
 #pragma region UnitClass__WhatAction
@@ -340,12 +351,12 @@ Action __fastcall UnitClass__WhatAction(UnitClass* pThis, void* _, ObjectClass* 
 
 Action __fastcall UnitClass__WhatAction_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
 {
-	AresScheme::Prefix(pObj);
+	AresScheme::Prefix(pThis, pObj, -1);
 	auto const result = UnitClass__WhatAction(pThis, _, pObj, ignoreForce);
 	AresScheme::Suffix();
 	return result;
 }
-DEFINE_JUMP(VTABLE,0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
 #pragma endregion UnitClass__WhatAction
 
 #pragma region InfantryClass__WhatAction
@@ -356,11 +367,11 @@ Action __fastcall InfantryClass__WhatAction(InfantryClass* pThis, void* _, Objec
 
 Action __fastcall InfantryClass__WhatAction_Wrapper(InfantryClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
 {
-	AresScheme::Prefix(pObj);
+	AresScheme::Prefix(pThis, pObj, -1);
 	auto const result = InfantryClass__WhatAction(pThis, _, pObj, ignoreForce);
 	AresScheme::Suffix();
 	return result;
 }
-DEFINE_JUMP(VTABLE,0x7EB0CC, GET_OFFSET(InfantryClass__WhatAction_Wrapper));
+DEFINE_JUMP(VTABLE, 0x7EB0CC, GET_OFFSET(InfantryClass__WhatAction_Wrapper));
 #pragma endregion InfantryClass__WhatAction
 #pragma endregion HealingWeapons

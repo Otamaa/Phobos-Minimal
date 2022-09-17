@@ -9,6 +9,38 @@
 #include <Misc/TriggerMPOwner.h>
 
 
+// PR #746: [QOL] Trigger owner can set as player of multiplayer game map.
+DEFINE_HOOK(0x7272B5, TriggerTypeClass_FillIn_HouseType, 0x6)
+{
+	GET(int, nIndex, EAX);
+
+	// Only if the house wasn't found
+	if (nIndex == -1)
+	{
+		GET(const char*, pString, ECX);
+		nIndex = HouseClass::GetPlayerAtFromString(pString);
+		if (nIndex == -1)
+		{
+			nIndex = atoi(pString);
+
+			if (nIndex == -1)
+				nIndex = 0; // process it like <none>
+		}
+
+		if (HouseClass::IsPlayerAtType(nIndex))
+		{
+			if (auto pHouse = HouseClass::FindByPlayerAt(nIndex))
+				nIndex = pHouse->Type->ArrayIndex;
+		}
+		else
+			nIndex = 0;
+
+		R->EAX(nIndex);
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x7272AE, TriggerTypeClass_LoadFromINI_House, 0x7) //8
 {
 	GET(TriggerTypeClass*, pThis, EBP);

@@ -42,7 +42,7 @@ public:
 		Nullable<WeaponTypeClass*> FeedbackWeapon;
 		Valueable<bool> Laser_IsSingleColor;
 		Valueable<double> Trajectory_Speed;
-
+		Valueable<bool> Abductor;
 #pragma region Otamaa
 		Valueable<int>Xhi;
 		Valueable<int>Xlo;
@@ -86,6 +86,7 @@ public:
 			, FeedbackWeapon {}
 			, Laser_IsSingleColor { false }
 			, Trajectory_Speed { 100.0 }
+			, Abductor { false }
 
 			, Xhi { 0 }
 			, Xlo { 0 }

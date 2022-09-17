@@ -9,17 +9,28 @@ void BuildingExt::ExtData::InitializeConstants()
 	if (!Get() || !Get()->Type)
 		return;
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type)) {
-		if (pTypeExt->DamageFire_Offs.Count > 0)
-			DamageFireAnims.reserve((size_t)pTypeExt->DamageFire_Offs.Count);
+		if (pTypeExt->DamageFire_Offs.Count > 0) {
+			for (int i = 0; i < pTypeExt->DamageFire_Offs.Count; i++)
+				DamageFireAnims.AddItem(nullptr);
+		}
 	}
 #endif
 }
 
 void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(CurrentAirFactory, ptr);
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Building:
+		AnnounceInvalidPointer(CurrentAirFactory, ptr);
+		break;
+	default:
+		return;
+	}
+
 }
 
 void BuildingExt::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)

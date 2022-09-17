@@ -486,10 +486,11 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto pExt = BuildingExt::ExtMap.Find<false>(pThis))
+	if (auto pExt = BuildingExt::ExtMap.Find(pThis))
 	{
-		auto pTypeExt = BuildingTypeExt::ExtMap.Find<false>(pThis->Type);
-		auto pTechTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type);
+		auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		auto pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
 		if (pTypeExt && pTechTypeExt)
 		{
 
@@ -555,32 +556,32 @@ DEFINE_HOOK(0x4F8FE1, Houseclass_AI_Add, 0x5)
 */
 
 
-DEFINE_HOOK(0x55DC99, LoGicClassUpdate_probe, 0x5)
-{
-	return 0x0;
-}
-
-DEFINE_HOOK(0x55B4EB, KamikazeClass_AI_Probe, 0x5)
-{
-   return 0x0;
-}
-
-DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
-	VerticalLaserClass::OnUpdateAll();
-	return 0x0;
-}
-
-DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
-{
-	VerticalLaserClass::OnUpdateAll();
-#ifdef ENABLE_HOMING_MISSILE
-	HomingMissileTargetTracker::Update_All();
-#endif
-	return 0x0;
-}
-
-// in progress: Initializing Tactical display
-DEFINE_HOOK(0x6875F3 , Scenario_Start1, 0x6) {
-
-	return 0;
-}
+//DEFINE_HOOK(0x55DC99, LoGicClassUpdate_probe, 0x5)
+//{
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x55B4EB, KamikazeClass_AI_Probe, 0x5)
+//{
+//   return 0x0;
+//}
+//
+//DEFINE_HOOK(0x55AFB3, LogicClass_Update, 0x6) {
+//	//VerticalLaserClass::OnUpdateAll();
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x55B719, LogicClass_Update_Late, 0x5)
+//{
+//	//VerticalLaserClass::OnUpdateAll();
+//#ifdef ENABLE_HOMING_MISSILE
+//	HomingMissileTargetTracker::Update_All();
+//#endif
+//	return 0x0;
+//}
+//
+//// in progress: Initializing Tactical display
+//DEFINE_HOOK(0x6875F3 , Scenario_Start1, 0x6) {
+//
+//	return 0;
+//}

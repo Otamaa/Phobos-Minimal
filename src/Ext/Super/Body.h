@@ -10,9 +10,7 @@ class SuperExt
 public:
 	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
+	static constexpr size_t ExtOffset = 0x44;
 
 	class ExtData final : public Extension<SuperClass>
 	{
@@ -22,7 +20,7 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 
@@ -33,7 +31,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SuperExt>
+	class ExtContainer final : public Container<SuperExt,true,true,true>
 	{
 	public:
 		ExtContainer();

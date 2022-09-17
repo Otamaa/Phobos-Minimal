@@ -42,15 +42,10 @@ void SuperExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks
-#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
 	SuperExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	SuperExt::ExtMap.FindOrAllocate(pItem);
-#endif
 	return 0;
 }
 
@@ -72,24 +67,26 @@ DEFINE_HOOK(0x6CDFD0, SuperClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CDFC7, SuperClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x6CDFC7, SuperClass_Load_Suffix, 0x4)
 {
 	SuperExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x6CDFEA, SuperClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x6CDFEA, SuperClass_Save_Suffix, 0x3)
 {
 	SuperExt::ExtMap.SaveStatic();
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
 {
 	GET(SuperClass*, pThis, ESI);
-	GET(void*, target, EBP);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8)); ??
-}*/
+	GET(void*, target, EAX);
+	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
 
-#endif
+	if (auto pExt = SuperExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(target, all);
+
+	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
+}

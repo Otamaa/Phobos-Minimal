@@ -48,6 +48,7 @@ void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	Extension<BombClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
+#endif
 
 bool BombExt::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -59,6 +60,7 @@ bool BombExt::SaveGlobals(PhobosStreamWriter& Stm)
 	return Stm << BombExt::BombTemp;
 }
 
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // container
 

@@ -8,6 +8,7 @@
 #include <CCINIClass.h>
 #include <TagClass.h>
 
+class CellClass;
 struct Variable
 {
 	char Name[40];
@@ -111,6 +112,10 @@ public:
 		CellStruct dest;
 		GetWaypointCoords(&dest, idx);
 		return dest;
+	}
+
+	CellClass* GetWaypointCell(int idx) {
+		JMP_THIS(0x68BCE0);
 	}
 
 	int IncrementUniqueID()

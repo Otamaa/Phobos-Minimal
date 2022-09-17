@@ -202,30 +202,28 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 //size
 //#ifdef ENABLE_NEWHOOKS
 //Crash
-//DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact_dummy, 0x5)
+//DEFINE_HOOK(0x444014, AircraftClass_ExitObject_DisableRadioContact, 0x5)
 //{
 //	enum { SkipAllSet = 0x444053, Nothing = 0x0 };
 //
 //	//GET(BuildingClass*, pBuilding, ESI);
 //	GET(AircraftClass*, pProduct, EBP);
 //
-//	if (pProduct)
-//	{
+//	if (pProduct) {
 //		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->Type);
-//		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get())
-//		{
+//		if (pTypeExt && !pProduct->Type->AirportBound && pTypeExt->NoAirportBound_DisableRadioContact.Get()) {
 //			return SkipAllSet;
 //		}
 //	}
 //
 //	return Nothing;
 //}
-//#endif
 
-//DEFINE_HOOK(0x416748, AircraftClass_MI_Move_AirportBound, 0x5)
+//#endif
+//
+//DEFINE_HOOK(0x416748, AircraftClass_MI_Move_MakeSureLZClear, 0x5)
 //{
 //	GET(AircraftClass*, pThis, ESI);
-//
 //	return pThis->Type->AirportBound ? 0x41675D : 0x0;
 //}
 
@@ -311,3 +309,19 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 }
 
 //#endif
+//
+DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
+{
+	enum
+	{
+		ContinueCheck = 0x5F54C4
+		, ResultHalf = 0x5F54B8
+	};
+
+	GET(int, nOldStr, EDX);
+	GET(int, nCurStr, EBP);
+	GET(int, nDamage, ECX);
+
+	const auto curstr = Game::F2I(nCurStr * RulesGlobal->ConditionYellow);
+	return (nOldStr <= curstr || !((nOldStr - nDamage) < curstr)) ? ContinueCheck : ResultHalf;
+}

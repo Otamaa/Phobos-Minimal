@@ -421,7 +421,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #pragma region Otamaa
 	this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
 
-#ifdef REPLACE_BUILDING_ONFIRE
+#ifndef REPLACE_BUILDING_ONFIRE
 	this->DamageFire_Offs.Clear();
 
 	char tempFire_OffsBuffer[32];

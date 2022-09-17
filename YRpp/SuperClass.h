@@ -124,7 +124,8 @@ public:
 	TimerStruct RechargeTimer;
 	PROTECTED_PROPERTY(DWORD, unused_3C);
 	bool BlinkState;
-	PROTECTED_PROPERTY(BYTE, unused_41[7]);
+	PROTECTED_PROPERTY(BYTE, unused_41[3]);
+	DWORD unused_44;
 	LARGE_INTEGER BlinkTimer;
 	int SpecialSoundDuration; // see 0x6CD14F
 	CoordStruct SpecialSoundLocation;

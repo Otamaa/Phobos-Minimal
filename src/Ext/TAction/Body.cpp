@@ -318,7 +318,7 @@ static bool something_716(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 				if (auto pTemp = pTech->TemporalTargetingMe)
 					pTemp->JustLetGo();
 
-				GameDelete(pTech);
+				pTech->UnInit();
 			}
 		}
 	}

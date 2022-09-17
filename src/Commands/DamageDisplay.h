@@ -12,7 +12,7 @@ class DamageDisplayCommandClass : public PhobosCommandClass
 public:
 
 	DamageDisplayCommandClass() : PhobosCommandClass() { }
-	virtual ~DamageDisplayCommandClass() = default;
+	virtual ~DamageDisplayCommandClass() { }
 
 	virtual const char* GetName() const override
 	{

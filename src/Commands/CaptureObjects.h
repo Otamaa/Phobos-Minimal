@@ -11,7 +11,7 @@ class CaptureObjectsCommandClass : public PhobosCommandClass
 public:
 
 	CaptureObjectsCommandClass() : PhobosCommandClass() { IsDeveloper = true; }
-	virtual ~CaptureObjectsCommandClass() = default;
+	virtual ~CaptureObjectsCommandClass() { }
 
 	// CommandClass
 	virtual const char* GetName() const override

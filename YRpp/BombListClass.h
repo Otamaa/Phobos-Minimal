@@ -16,7 +16,7 @@ public:
 	static constexpr reference<BombListClass, 0x87F5D8u> const Instance{};
 
 	// draws all the visible bombs, expires the outdated ones
- 	void Update()
+	void Update()
 		{ JMP_THIS(0x438BF0); }
 
 	// the main one, ivan planting a bomb (creates a BombClass inside)
@@ -48,7 +48,7 @@ public:
 		{ JMP_THIS(0x4391C0); }
 
 	HRESULT Load(CStreamClass* stream)
-	    { JMP_THIS(0x439260); }
+		{ JMP_THIS(0x439260); }
 
 protected:
 	//===========================================================================
