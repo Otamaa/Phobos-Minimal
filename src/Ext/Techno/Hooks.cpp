@@ -108,7 +108,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 	GET(TechnoClass*, pThis, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	//auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	std::pair<bool,CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
 
 	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry) {
@@ -119,7 +119,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 		R->ECX(nResult.second.X);
 		R->EBP(nResult.second.Y);
 		R->EAX(nResult.second.Z);
-		FLHChanged = true;
+		pExt->FlhChanged = true;
 	}
 
 	return 0;
@@ -127,13 +127,13 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 
 DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 {
-	//GET(TechnoClass*, pThis, EBX);
+	GET(TechnoClass*, pThis, EBX);
 	//GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
 
-	//if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
-		if (FLHChanged) {
-			FLHChanged = false;
+		if (pExt->FlhChanged) {
+			pExt->FlhChanged = false;
 			R->EAX(0);
 		}
 	}
@@ -783,6 +783,20 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_54BFF0_UpdateSensors, 0x7)
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
 		pLinkedTo->AddSensorsAt(CellStruct::Empty);
 	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)
+{
+	enum { SkipKillingPassengers = 0x702669 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (!pTypeExt->Explodes_KillPassengers)
+		return SkipKillingPassengers;
 
 	return 0;
 }

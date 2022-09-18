@@ -12,8 +12,8 @@ class CellExt
 public:
 	static constexpr size_t Canary = 0x87688621;
 	using base_type = CellClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+#ifndef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x144;
 #endif
 
 	class ExtData final : public Extension<CellClass>
@@ -22,17 +22,19 @@ public:
 
 		//int NewPowerups;
 		//DynamicVectorClass<FoggedObject*> FoggedObjects;
-
+		//<RadSiteClass*> PlacedRadSite;
 		ExtData(CellClass* OwnerObject) : Extension<CellClass>(OwnerObject)
+			//, PlacedRadSite { }
 			//, NewPowerups {-1}
 			//, FoggedObjects { }
 		{ };
 
 		virtual ~ExtData() = default;
 		void Initialize() { } //Init After INI Read
-		//void InvalidatePointer(void* ptr, bool bRemoved) {
+		void InvalidatePointer(void* ptr, bool bRemoved) {
+			//AnnounceInvalidPointer(PlacedRadSite, ptr);
 			//FoggedObjects wtf ?
-		//}
+		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

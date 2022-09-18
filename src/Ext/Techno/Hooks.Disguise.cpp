@@ -11,7 +11,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 	{
 		//ToDo:
-#ifdef TANK_DISGUISE
+#ifndef TANK_DISGUISE
 		if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
 		{
 			pThis->Disguised = false;
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 //TODO : rework , and desync test
 #define CAN_BLINK_DISGUISE(pTechno) \
 RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::Player):true))
@@ -123,35 +123,35 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 #endif
 
 #pragma region Otamaa
-#ifdef Advanched_DISGUISE
+
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
 #include <TerrainTypeClass.h>
 
-DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
+//DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
+//{
+//	GET(UnitClass*, pTarget, ESI);
+//	GET(UnitClass*, pThis, EDI);
+//
+//	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//
+//	if (pTarget->IsDisguised() || !pTypeExt->TankDisguiseAsTank.Get())
+//		return 0x0;
+//
+//	pThis->Disguise = pTarget->Type;
+//	pThis->DisguisedAsHouse = pTarget->GetOwningHouse();
+//
+//	return 0x746712;
+//}
+
+
+static bool Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat)
 {
-	GET(UnitClass*, pTarget, ESI);
-	GET(UnitClass*, pThis, EDI);
-
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	auto const& nData = pTypeExt->AnotherData;
-
-	if (pTarget->IsDisguised() || !nData.TankDisguiseAsTank.Get())
-		return 0x0;
-
-	pThis->Disguise = pTarget->Type;
-	pThis->DisguisedAsHouse = pTarget->GetOwningHouse();
-
-	return 0x746712;
-}
-
-static bool Allowed(const Otamaa::TTyExt::ExtDataB& pThis, TechnoTypeClass* pThat)
-{
-	if (pThis.DisguiseDisAllowed.empty())
+	if (pThis->DisguiseDisAllowed.empty())
 		return true;
 
-	if (!pThis.DisguiseDisAllowed.Contains(pThat))
+	if (!pThis->DisguiseDisAllowed.Contains(pThat))
 		return true;
 
 	return false;
@@ -166,11 +166,10 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 		return 0x746714;
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	auto const& nData = pExt->AnotherData;
 
 	if (!pTarget->IsDisguised())
 	{
-		if (!nData.TankDisguiseAsTank.Get())
+		if (!pExt->TankDisguiseAsTank.Get())
 		{
 			if (pThis->CanDisguiseAs(pTarget))
 			{
@@ -195,7 +194,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 		{
 			if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
 			{
-				if (Allowed(nData, pUnit->Type))
+				if (Allowed(pExt, pUnit->Type))
 				{
 					pThis->Disguise = pUnit->Type;
 					pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
@@ -209,7 +208,7 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	{
 		if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
 		{
-			if (Allowed(nData, pUnit->Type))
+			if (Allowed(pExt, pUnit->Type))
 			{
 				if (pUnit->Owner)
 				{
@@ -239,27 +238,26 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 
 	return 0x746714;
 }
-
-static void __fastcall UnitClass_DisguiseAI_(UnitClass* pThis, void* _)
+#ifdef Advanched_DISGUISE
+DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 {
+	GET(UnitClass*, pThis, ESI);
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	auto const& nData = pExt->AnotherData;
 
-	if (!nData.TankDisguiseAsTank.Get())
-		pThis->UpdateDisguise();
+	if (!pExt->TankDisguiseAsTank.Get())
+		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
+
+
+	return 0x7364A1;
 }
 
-DEFINE_JUMP(CALL,0x73649C, GET_OFFSET(UnitClass_DisguiseAI_));
-
-
-DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0xB)
+DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
 {
 	GET(UnitClass*, pThis, ESI);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	auto const& nData = pTypeExt->AnotherData;
 
-	if (!nData.TankDisguiseAsTank.Get())
+	if (!pTypeExt->TankDisguiseAsTank.Get())
 		return 0x0;
 
 	R->EAX(pThis->Type);
@@ -267,15 +265,14 @@ DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0xB)
 }
 
 //522700
-DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x5)
+DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
 {
 	GET(InfantryClass*, pThis, EDI);
 	GET(InfantryClass*, pThat, ESI);
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	auto const& nData = pExt->AnotherData;
 
-	return Allowed(nData, pThat->Type) ? 0x0 : 0x522772;
+	return Allowed(pExt, pThat->Type) ? 0x0 : 0x522772;
 }
 #endif
 #pragma endregion

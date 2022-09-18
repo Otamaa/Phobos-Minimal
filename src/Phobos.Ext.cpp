@@ -60,6 +60,9 @@
 #endif
 #pragma endregion
 
+#include <New/Type/BannerTypeClass.h>
+//#include <New/Entity/BannerClass.h>
+
 #include <utility>
 
 // Add more class names as you like
@@ -119,7 +122,9 @@ auto MassActions = MassAction <
 	RadTypeClass,
 	HoverTypeClass,
 	VerticalLaserClass,
-	TriggerMPOwner
+	TriggerMPOwner,
+	// BannerClass,
+	BannerTypeClass
 #ifdef ENABLE_HOMING_MISSILE
 	, HomingMissileTargetTracker
 #endif

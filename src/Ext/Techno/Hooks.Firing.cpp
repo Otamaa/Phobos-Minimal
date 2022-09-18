@@ -74,6 +74,10 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		}
 
 		if (pTechno) {
+			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
+				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner))
+			{ return CannotFire; }
+
 			if (const auto pFoot = generic_cast<FootClass*>(pTechno)){
 
 				if(pFoot->WhatAmI() == AbstractType::Unit){
@@ -84,14 +88,14 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 						return CannotFire;
 				}
 
-				if (pFoot->ChronoLockRemaining > 0)
+				auto pTargetTechnoExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+				if (pTargetTechnoExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
+					pFoot->IsWarpingIn() && pTargetTechnoExt->ChronoDelay_Immune.Get())
 					return CannotFire;
 			}
 
-			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
-				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner)) {
-				return CannotFire;
-			}
+
 		}
 	}
 

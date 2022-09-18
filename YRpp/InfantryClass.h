@@ -30,11 +30,11 @@ public:
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);
 
 	//FootClass
-	//virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);
+	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);
 
 	//InfantryClass
 	virtual bool IsDeployed() const R0;
-	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) R0; //0x51D6F0 `InfantryClass::Do_Action
+	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) JMP_THIS(0x51D6F0); //`InfantryClass::Do_Action
 
 	bool IsDoingDeploy()
 		{ JMP_THIS(0x522510); }

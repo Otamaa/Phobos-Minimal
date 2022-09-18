@@ -71,7 +71,7 @@ namespace DamageFireAnims
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
 				nPixCoord += pThis->GetCenterCoord();
 
-				if (auto const pFireType = pFire[ScenarioGlobal->Random(0, pFire.size() - 1)])
+				if (auto const pFireType = pFire[ScenarioGlobal->Random.RandomFromMax(pFire.size() - 1)])
 				{
 					if (auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord))
 					{
@@ -80,7 +80,7 @@ namespace DamageFireAnims
 						auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
 						pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
 						if (pAnim->Type->End > 0)
-							pAnim->Animation.Value = ScenarioGlobal->Random(0, pAnim->Type->End - 1);
+							pAnim->Animation.Value = ScenarioGlobal->Random.RandomFromMax(pAnim->Type->End - 1);
 
 						pAnim->Owner = pThis->GetOwningHouse();
 						pExt->DamageFireAnims[i] = std::move(pAnim);
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x43FC90, BuildingClass_CreateDamageFireAnims, 0x7)
 
 //DEFINE_JUMP(CALL, 0x43FC92, GET_OFFSET(DamageFireAnims::Construct));
 DEFINE_JUMP(LJMP,0x460388, 0x46048E); // no thankyou , we handle it ourself !
-DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
+//DEFINE_JUMP(LJMP,0x43BA72, 0x43BA7F); //remove memset for buildingFireAnims
 
 #define HANDLEREMOVE_HOOKS(addr ,reg ,name, size ,ret) \
 DEFINE_HOOK(addr , BuildingClass_##name##_DamageFireAnims , size ) { \

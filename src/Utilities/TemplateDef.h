@@ -128,6 +128,42 @@ namespace detail {
 	}
 
 	template <>
+	inline bool read<BannerNumberType>(BannerNumberType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto parsed = BannerNumberType::None;
+			auto str = parser.value();
+			if (IS_SAME_STR_(str, "variable"))
+			{
+				parsed = BannerNumberType::Variable;
+			}
+			else if (IS_SAME_STR_(str, "prefixed"))
+			{
+				parsed = BannerNumberType::Prefixed;
+			}
+			else if (IS_SAME_STR_(str, "suffixed"))
+			{
+				parsed = BannerNumberType::Suffixed;
+			}
+			else if (IS_SAME_STR_(str, "fraction"))
+			{
+				parsed = BannerNumberType::Fraction;
+			}
+			else if (IS_SAME_STR_(str, "none"))
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(),
+					"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
+				return false;
+			}
+			if (parsed != BannerNumberType::None)
+				value = parsed;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	inline bool read<VerticalPosition>(VerticalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))

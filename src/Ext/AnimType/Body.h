@@ -40,6 +40,8 @@ public:
 		Valueable<bool> Damage_DealtByInvoker;
 		Valueable<bool> Damage_ApplyOnce;
 		Valueable<bool> Damage_ConsiderOwnerVeterancy;
+		Valueable<bool> Damage_TargetInvoker;
+
 		Valueable<bool> Warhead_Detonate;
 
 		#pragma region Otamaa
@@ -94,6 +96,7 @@ public:
 			, Damage_DealtByInvoker { false }
 			, Damage_ApplyOnce{ false }
 			, Damage_ConsiderOwnerVeterancy { true }
+			, Damage_TargetInvoker { false }
 			, Warhead_Detonate { false }
 
 			, SplashList {}

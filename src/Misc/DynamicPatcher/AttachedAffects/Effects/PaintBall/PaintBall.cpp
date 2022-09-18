@@ -6,7 +6,7 @@
 void PaintballType::Read(INI_EX& parser, const char* pSection)
 {
 	Nullable<ColorStruct> nBuffColor { };
-	nBuffColor.Read(parser, pSection, "PaintBall.Color");
+	nBuffColor.Read(parser, pSection, "PaintBall.Color"); //RGB 565
 
 	if (!nBuffColor.isset() || nBuffColor.Get() == ColorStruct::Empty)
 		return;

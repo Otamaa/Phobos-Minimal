@@ -679,8 +679,8 @@ public:
 	bool             GeneratingGap; // is currently generating gap
 //	PROTECTED_PROPERTY(BYTE, align26_A_B[2]);
 	int              GapRadius;
-	bool             BeingWarpedOut; // is being warped by CLEG
-	bool             WarpingOut; // phasing in after chrono-jump
+	bool             BeingWarpedOut; // is being warped by CLEG used , for 70C5B0
+	bool             WarpingOut; // phasing in after chrono-jump used , for 70C5C0
 	bool             unknown_bool_272;
 	BYTE             unused_273;
 	TemporalClass*   TemporalImUsing; // CLEG attacking Power Plant : CLEG's this
@@ -688,7 +688,7 @@ public:
 	bool             IsImmobilized; // by chrono aftereffects ,27C
 //	PROTECTED_PROPERTY(BYTE, align27_D_E_F[3]);
 	DWORD            unknown_280;
-	int              ChronoLockRemaining; // countdown after chronosphere warps things around
+	int              ChronoLockRemaining; // 284 countdown after chronosphere warps things around
 	CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
 	AirstrikeClass*  Airstrike; //Boris
 	bool             Berzerk;

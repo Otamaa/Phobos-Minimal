@@ -457,6 +457,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	if (pExt)
 		DriveDataFunctional::AI(pExt);
 #endif
+
 	if (IsMovingNow)
 	{
 		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw

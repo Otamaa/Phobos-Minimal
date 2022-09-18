@@ -399,7 +399,13 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 void ShrapnelsExec(BulletClass* pThis)
 {
 	auto const pType = pThis->Type;
+	auto const pShrapWeapon = pType->ShrapnelWeapon;
+
+	if (!pShrapWeapon)
+		return;
+
 	int nCount = pType->ShrapnelCount;
+
 
 	if (nCount < 0)
 	{
@@ -423,12 +429,10 @@ void ShrapnelsExec(BulletClass* pThis)
 		if (pFirstOccupy->WhatAmI() != AbstractType::Building)
 		{
 			auto& random = ScenarioClass::Instance->Random;
-			auto const pShrapWeapon = pType->ShrapnelWeapon;
 			auto const nRange = (random.RandomRanged(pShrapWeapon->MinimumRange , pShrapWeapon->Range) / 256);
 
 			if (nRange >= 1)
 			{
-				std::vector<CellClass*> pTargets;
 				int nTotal = 0;
 				auto cell = pThis->GetMapCoords();
 
@@ -444,43 +448,36 @@ void ShrapnelsExec(BulletClass* pThis)
 							break;
 						}
 
-						pTargets.push_back(pCell);
-					}
-				}
-
-				//double loop , mabe shoulndt do this ,..
-				for (auto const& pCell : pTargets)
-				{
-					auto const pTarget = pCell->FirstObject;
-					if (pTarget && pTarget != pThis->Owner && pThis->Owner && !pThis->Owner->Owner->IsAlliedWith(pTarget)
-						)
-					{
-						auto pSplitExt = BulletTypeExt::ExtMap.Find(pShrapWeapon->Projectile);
-
-						if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
+						auto const pTarget = pCell->FirstObject;
+						if (pTarget && pTarget != pThis->Owner && pThis->Owner && !pThis->Owner->Owner->IsAlliedWith(pTarget)
+							)
 						{
-							VelocityClass velocity = GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed);
-							pBullet->MoveTo(pThis->Location, velocity);
+							auto pSplitExt = BulletTypeExt::ExtMap.Find(pShrapWeapon->Projectile);
+
+							if (auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
+							{
+								VelocityClass velocity = GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed);
+								pBullet->MoveTo(pThis->Location, velocity);
 #ifdef COMPILE_PORTED_DP_FEATURES
-							auto sourcePos = pThis->Location;
-							auto targetPos = pTarget->GetCoords();
+								auto sourcePos = pThis->Location;
+								auto targetPos = pTarget->GetCoords();
 
-							// Draw bullet effect
-							Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
-							// Draw particle system
-							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
-							// Play report sound
-							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
-							// Draw weapon anim
-							Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+								// Draw bullet effect
+								Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+								// Draw particle system
+								Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
+								// Play report sound
+								Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
+								// Draw weapon anim
+								Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
 #endif
+							}
+
+							//escapes
+							if (++nTotal > nCount)
+								return;
 						}
-
-						//escapes
-						if (++nTotal > nCount)
-							return;
 					}
-
 				}
 
 				// get random coords for last remaining shrapnel if the total still less than ncount

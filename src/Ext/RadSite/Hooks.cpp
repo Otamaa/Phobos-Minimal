@@ -299,6 +299,12 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 			return Continue;
 		}
 
+		auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+
+		if (pFoot->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
+			pFoot->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
+			return Continue;
+
 		const auto CurrentCoord = pFoot->GetCoords();
 
 		// Loop for each different radiation stored in the RadSites container

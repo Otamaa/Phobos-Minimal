@@ -121,15 +121,13 @@ DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x7) //was 5
 {
 	GET(UnitClass* , pThis , ESI);
 
-	auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
-	if(bDriverKilled)
-		return 0x7365ED;
-
 	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
 		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
+		auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
+		auto const nDisableDriverKilled = bDriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled.Get();
 
-		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
+		if ((nDisableEmp || nDisableDeactivated || nDisableDriverKilled ||  TypeExt->FacingRotation_Disable.Get()))
 			return 0x7365ED;
 	}
 

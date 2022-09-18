@@ -167,5 +167,5 @@ public:
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
-    FixedString<32> Name;
+	FixedString<32> Name;
 };

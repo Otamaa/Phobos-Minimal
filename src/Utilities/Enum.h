@@ -263,6 +263,14 @@ enum class KillMethod : int
 	Random = 3
 };
 
+enum class BannerNumberType : int
+{
+	None = 0,
+	Variable = 1,
+	Prefixed = 2,
+	Suffixed = 3,
+	Fraction = 4
+};
 #pragma region Otamaa
 
 enum class AircraftFireMode : int

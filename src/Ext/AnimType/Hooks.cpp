@@ -193,7 +193,8 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
-		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pThis->GetCell(), pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright))
+		AbstractClass* pTarget = pTypeExt->Damage_TargetInvoker.Get() ? static_cast<AbstractClass*>(pInvoker) : pThis->GetCell();
+		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pTarget, pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright))
 		{
 			pBullet->SetWeaponType(pWeapon);
 			pBullet->Limbo();
@@ -210,7 +211,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 		if (pTypeExt->Warhead_Detonate.Get())
-			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult);
+			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult , !pTypeExt->Damage_TargetInvoker.Get());
 		else
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);

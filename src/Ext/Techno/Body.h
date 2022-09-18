@@ -79,8 +79,8 @@ public:
 		bool AircraftOpentoppedInitEd;
 
 		std::vector<int> FireSelf_Count;
-		std::vector<WeaponTypeClass*> FireSelf_Weapon;
-		std::vector<int> FireSelf_ROF;
+		//std::vector<WeaponTypeClass*> FireSelf_Weapon;
+		//std::vector<int> FireSelf_ROF;
 		TimerStruct EngineerCaptureDelay;
 		bool FlhChanged;
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -130,8 +130,8 @@ public:
 			, GattlingDmageSound { false }
 			, AircraftOpentoppedInitEd { false }
 			, FireSelf_Count {}
-			, FireSelf_Weapon {}
-			, FireSelf_ROF {}
+			//, FireSelf_Weapon {}
+			//, FireSelf_ROF {}
 			, EngineerCaptureDelay { }
 			, FlhChanged { false }
 #ifdef COMPILE_PORTED_DP_FEATURES

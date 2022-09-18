@@ -5,6 +5,64 @@
 #include <OverlayTypeClass.h>
 #include <Straws.h>
 #include <Pipes.h>
+#include <IsometricTileTypeClass.h>
+
+#include <Utilities/Macro.h>
+#include <Utilities/Debug.h>
+
+#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
+static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
+{
+	bool available = false;
+	int file_size = 0;
+
+	{
+		CCFileClass file(pTile->FileName);
+		available = file.Exists();
+		file_size = file.GetFileSize();
+	}
+
+	if (!available)
+	{
+		Debug::Log("ISOTILEDEBUG - Isometric Tile %s is missing!\n", pTile->FileName);
+		return 0;
+	}
+
+	if (file_size == 0)
+	{
+		Debug::Log("ISOTILEDEBUG - Isometric Tile %s is a empty file!\n", pTile->FileName);
+		return 0;
+	}
+
+	int read_size = pTile->LoadTile();
+
+	if (pTile->Image == nullptr)
+	{
+		Debug::Log("ISOTILEDEBUG - Failed to load image for Isometric Tile %s!\n", pTile->FileName);
+		return 0;
+	}
+
+	if (read_size != file_size)
+	{
+		Debug::Log("ISOTILEDEBUG - Isometric Tile %s file size %d doesn't match read size!\n", file_size, read_size, pTile->FileName);
+	}
+
+	return read_size;
+}
+
+//544C3F
+DEFINE_JUMP(CALL, 0x544C3F, GET_OFFSET(Isotile_LoadFile_Wrapper));
+//544C97
+DEFINE_JUMP(CALL, 0x544C97, GET_OFFSET(Isotile_LoadFile_Wrapper));
+//544CC9
+DEFINE_JUMP(CALL, 0x544CC9, GET_OFFSET(Isotile_LoadFile_Wrapper));
+//546FCC
+DEFINE_JUMP(CALL, 0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
+//549AF7
+DEFINE_JUMP(CALL, 0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
+//549E67
+DEFINE_JUMP(CALL, 0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
+#endif
 
 DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 {

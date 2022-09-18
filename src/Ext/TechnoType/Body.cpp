@@ -310,7 +310,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
 	this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
 	this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
-
+	this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
 #pragma region Otamaa
 	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
 	this->DiskLaserChargeUp.Read(exINI, pSection, "DiskLaserChargeUp");
@@ -384,8 +384,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->FacingRotation_Disable.Read(exINI, pSection, "FacingRotation.Disabled");
 	this->FacingRotation_DisalbeOnEMP.Read(exINI, pSection, "FacingRotation.DisabledOnEMP");
 	this->FacingRotation_DisalbeOnDeactivated.Read(exINI, pSection, "FacingRotation.DisabledOnDeactivated");
+	this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled");
 
-	this->Draw_MindControlLink.Read(exINI, pSection, "MindControll.DrawLink");
+	this->Draw_MindControlLink.Read(exINI, pSection, "MindControl.DrawLink");
 
 	this->DeathWeapon.Read(exINI, pSection, "%s.DeathWeapon");
 	this->Disable_C4WarheadExp.Read(exINI, pSection, "Crash.DisableC4WarheadExplosion");
@@ -487,7 +488,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
 	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
 	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
-
+	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank");
+	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");
+	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -648,6 +651,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MobileRefinery_DisplayColor)
 		.Process(this->MobileRefinery_Anims)
 		.Process(this->MobileRefinery_AnimMove)
+		.Process(this->Explodes_KillPassengers)
 
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)
@@ -672,7 +676,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->FacingRotation_Disable)
 		.Process(this->FacingRotation_DisalbeOnEMP)
 		.Process(this->FacingRotation_DisalbeOnDeactivated)
-
+		.Process(this->FacingRotation_DisableOnDriverKilled)
 		.Process(this->Is_Cow)
 
 		.Process(this->DontShake)
@@ -784,6 +788,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CommandLine_Attack_Color)
 		.Process(this->CloakMove)
 		.Process(this->PassiveAcquire_AI)
+		.Process(this->TankDisguiseAsTank)
+		.Process(this->DisguiseDisAllowed)
+		.Process(this->ChronoDelay_Immune)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

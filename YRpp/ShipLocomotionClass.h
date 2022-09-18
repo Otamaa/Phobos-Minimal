@@ -37,12 +37,11 @@ public:
 
 	DWORD Ramp1;
 	DWORD Ramp2;
-	RepeatableTimerStruct SlopeTimer;
+	RateTimer SlopeTimer;
 	CoordStruct Destination;
 	CoordStruct HeadToCoord;
-	DWORD movementspeed_4C;
-	DWORD movementspeed_50;
-	DWORD movementspeed_54;
+	int SpeedAccum;
+	double movementspeed_50;
 	DWORD TrackNumber;
 	int TrackIndex;
 	bool IsOnShortTrack;
@@ -51,6 +50,7 @@ public:
 	bool IsDriving;
 	bool IsRocking;
 	bool IsLocked;
-	int dword68;
+	DWORD field_68;
 };
-static_assert(sizeof(ShipLocomotionClass) == 0x6C, "Invalid size.");
+
+static_assert(sizeof(ShipLocomotionClass) == 0x70, "Invalid size.");

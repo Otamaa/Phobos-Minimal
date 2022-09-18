@@ -48,6 +48,12 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
+		auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+		if (pTechno->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
+			pTechno->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
+			return false;
+
 		if (EffectsRequireVerses.Get())
 		{
 			auto nArmor = pTechno->GetTechnoType()->Armor;
@@ -158,12 +164,13 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 	return true;
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage)
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pATarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
 		const CoordStruct& coords = pTarget->GetCoords();
@@ -175,12 +182,14 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 	}
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage)
+
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(nullptr, pOwner,
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
 		pBullet->Limbo();
@@ -293,7 +302,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Steal_Display.Read(exINI, pSection, "StealMoney.Display");
 	this->Steal_Display_Offset.Read(exINI, pSection, "StealMoney.Display.Offset");
 
-	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeahAnim");
+	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeathAnim");
 	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
 	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
 

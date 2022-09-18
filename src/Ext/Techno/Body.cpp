@@ -1004,7 +1004,8 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 
 	// Step 5: apply as an offset to global object coords
 	CoordStruct location = Overrider ? Overrider : pThis->GetCoords();
-	location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
+	//location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
+	location += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
 
 	return location;
 }
@@ -1387,7 +1388,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	case KillMethod::Explode:
 	{
 	Kill:
-		pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, pThis->Owner);
+		pThis->ReceiveDamage(&pThis->GetTechnoType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 	}break;
 	case KillMethod::Vanish:
 	{
@@ -1828,6 +1829,9 @@ void TechnoExt::ExtData::RunFireSelf()
 	if (!pTypeExt)
 		return;
 
+	Iterator<WeaponTypeClass*> FireSelf_Weapon { };
+	Iterator<int> FireSelf_ROF { };
+
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
 		FireSelf_Weapon = pTypeExt->FireSelf_Weapon_RedHeath;
@@ -1849,7 +1853,7 @@ void TechnoExt::ExtData::RunFireSelf()
 		FireSelf_ROF = pTypeExt->FireSelf_ROF;
 	}
 
-	if (FireSelf_Weapon.empty()) return;
+	if (FireSelf_Weapon.empty() || FireSelf_ROF.empty()) return;
 	if (FireSelf_Count.size() < FireSelf_Weapon.size())
 	{
 		int p = int(FireSelf_Count.size());
@@ -1905,8 +1909,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->GattlingDmageSound)
 		.Process(this->AircraftOpentoppedInitEd)
 		.Process(this->FireSelf_Count)
-		.Process(this->FireSelf_Weapon)
-		.Process(this->FireSelf_ROF)
+		//.Process(this->FireSelf_Weapon)
+		//.Process(this->FireSelf_ROF)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
 #ifdef COMPILE_PORTED_DP_FEATURES

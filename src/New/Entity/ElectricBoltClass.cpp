@@ -66,7 +66,7 @@ void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjus
 	StartCoord = start;
 	EndCoord = end;
 	ZAdjust = z_adjust;
-    ElectricBoltManager::ElectricBoltArray.push_back(this);
+	ElectricBoltManager::ElectricBoltArray.push_back(this);
 
 	/**
 	 *  Spawn a spark particle at the destination of the electric bolt.

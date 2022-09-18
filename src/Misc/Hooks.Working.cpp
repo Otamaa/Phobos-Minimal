@@ -38,7 +38,7 @@ DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
 
 			R->EAX(nTeamDecision);
-			return 0x472589;
+			return 0x47258F;
 		}
 	}
 
@@ -221,12 +221,6 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 
 //#endif
 //
-//DEFINE_HOOK(0x416748, AircraftClass_MI_Move_MakeSureLZClear, 0x5)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//	return pThis->Type->AirportBound ? 0x41675D : 0x0;
-//}
-
 //DEFINE_HOOK(0x415302, AircraftClass_MissionUnload_IsDropship, 0x8)
 //{
 //	GET(AircraftClass*, pThis, ESI);
@@ -273,7 +267,6 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 //	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
 //}
 
-//#ifdef ENABLE_NEWHOOKS
 static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType)
 {
 	Iterator<AnimTypeClass*> Iter;
@@ -308,8 +301,6 @@ DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 	return 0x520CA9;
 }
 
-//#endif
-//
 DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
 	enum

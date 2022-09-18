@@ -548,7 +548,7 @@ public:
 	DWORD              unknown_13C;
 
 	CellFlags          Flags;	//Various settings.
-	PROTECTED_PROPERTY(BYTE,     padding_144[4]);
+	PROTECTED_PROPERTY(DWORD,     padding_144);
 };
 
 static_assert(sizeof(CellClass) == 0x148, "Invalid size.");

@@ -59,10 +59,10 @@ public:
 	virtual bool IsSurfaced() R0; // opposed to being submerged
 
  /*
-  	Building returns if it is 1x1 and has UndeploysInto
-  	inf returns 0
-  	unit returns !NonVehicle
-  	Aircraft returns IsOnFloor()
+	Building returns if it is 1x1 and has UndeploysInto
+	inf returns 0
+	unit returns !NonVehicle
+	Aircraft returns IsOnFloor()
 
   users include:
   452656 - is this building click-repairable
@@ -206,7 +206,7 @@ public:
 		{ JMP_THIS(0x5F6560); }
 
 	DirStruct* GetDirectionOverObject(DirStruct* pBuffer, AbstractClass* Target) const
-	    { JMP_THIS(0x5F3DB0); }
+		{ JMP_THIS(0x5F3DB0); }
 
 	DirStruct GetDirectionOverObject(AbstractClass* Target) const
 	{

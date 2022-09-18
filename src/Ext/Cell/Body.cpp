@@ -40,6 +40,7 @@ template <typename T>
 void CellExt::ExtData::Serialize(T& Stm) {
 
 	Stm
+		//.Process(PlacedRadSite)
 		;
 }
 
@@ -77,15 +78,15 @@ CellExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 /* loading this from save causing performance issues for some reason :s*/
 
-#ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x47BDA3, CellClass_CTOR, 0x5)
+//#ifdef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
 {
-	GET(CellClass*, pItem, EAX);
-#ifdef ENABLE_NEWHOOKS
+	GET(CellClass*, pItem, ESI);
+//#ifdef ENABLE_NEWHOOKS
 	CellExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	CellExt::ExtMap.FindOrAllocate(pItem);
-#endif
+//#else
+//	CellExt::ExtMap.FindOrAllocate(pItem);
+//#endif
 	return 0;
 }
 
@@ -116,4 +117,4 @@ DEFINE_HOOK(0x483C79, CellClass_Save_Suffix, 0x6)
 	CellExt::ExtMap.SaveStatic();
 	return 0;
 }
-#endif
+//#endif

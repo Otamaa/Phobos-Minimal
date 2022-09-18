@@ -997,393 +997,83 @@ DEFINE_HOOK(0x7463A8 , UnitClass_Captured_DriverKilled ,0x6)
 	return bDriverKilled ? Failed : Continue;
 }
 
-#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
-static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
+DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
-	bool available = false;
-	int file_size = 0;
+	GET(TechnoClass*, pThis, ESI);
 
-	{
-		CCFileClass file(pTile->FileName);
-		available = file.Exists();
-		file_size = file.GetFileSize();
+	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	R->AL(pThis->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
+		pThis->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()));
+
+	return 0x701AB7;
+}
+
+DEFINE_HOOK(0x73B4F4, UnitClass_DrawAsVXL_FiringAnim, 0x8)
+{
+	R->ECX(R->EBX<UnitTypeClass*>()->TurretVoxel.HVA);
+	R->ESI(0);
+	return 0x73B4FC;
+}
+
+DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(FootClass*, pThis, ESI);
+
+	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
+}
+
+DEFINE_HOOK(0x71B14E, TemporalClass_Fire_ClearTarget, 0x9)
+{
+	GET(TemporalClass*, pThis, ESI);
+
+	auto pTargetTemp = pThis->Target->TemporalImUsing;
+
+	if (pTargetTemp && pTargetTemp->Target)
+		pTargetTemp->LetGo();
+
+	if(pThis->Target->Owner == HouseClass::Player())
+		pThis->Target->Deselect();
+
+	return 0x71B17B;
+}
+
+DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
+{
+	GET(TemporalClass*, pThis, ECX);
+
+	if (auto pTarget = pThis->Target) {
+		pTarget->BeingWarpedOut = 0;
+		pTarget->TemporalTargetingMe = nullptr;
+		pThis->Target = nullptr;
 	}
 
-	if (!available) {
-		Debug::Log("ISOTILEDEBUG - Isometric Tile %s is missing!\n", pTile->FileName);
-		return 0;
+	if (auto pPrevTemp = pThis->PrevTemporal) {
+		if (pThis->NextTemporal == pThis)
+			pThis->NextTemporal = nullptr;
+
+		pPrevTemp->Detach();
 	}
 
-	if (file_size == 0) {
-		Debug::Log("ISOTILEDEBUG - Isometric Tile %s is a empty file!\n", pTile->FileName);
-		return 0;
+	if (auto pNextTemp = pThis->NextTemporal) {
+		if (pNextTemp->PrevTemporal == pThis)
+			pNextTemp->PrevTemporal = nullptr;
+
+		pNextTemp->Detach();
 	}
 
-	int read_size = pTile->LoadTile();
+	pThis->PrevTemporal = nullptr;
+	pThis->NextTemporal = nullptr;
+	pThis->unknown_pointer_38 = nullptr;
+	pThis->SourceSW = nullptr;
 
-	if (pTile->Image == nullptr) {
-		Debug::Log("ISOTILEDEBUG - Failed to load image for Isometric Tile %s!\n", pTile->FileName);
-		return 0;
-	}
+	if (auto pOwner = pThis->Owner)
+		pOwner->EnterIdleMode(false, 1);
 
-	if (read_size != file_size) {
-		Debug::Log("ISOTILEDEBUG - Isometric Tile %s file size %d doesn't match read size!\n", file_size, read_size, pTile->FileName);
-	}
-
-	return read_size;
-}
-
-//544C3F
-DEFINE_JUMP(CALL,0x544C3F, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//544C97
-DEFINE_JUMP(CALL,0x544C97, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//544CC9
-DEFINE_JUMP(CALL,0x544CC9, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//546FCC
-DEFINE_JUMP(CALL,0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//549AF7
-DEFINE_JUMP(CALL,0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//549E67
-DEFINE_JUMP(CALL,0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
-#endif
-
-#ifdef ENABLE_NEWCHECK
-
-DEFINE_HOOK(0x4A23A8, CreditClass_Graphic_Logic_ReplaceCheck, 0x8)
-{
-	auto const pHouse = HouseClass::Player();
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
-		0x4A23B0 : 0x4A24F4;
-}
-
-DEFINE_HOOK(0x4A2614, CreditClass_Graphic_AI_ReplaceCheck, 0x8)
-{
-	auto const pHouse = HouseClass::Player();
-	R->EAX(pHouse);
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
-		0x4A261D : 0x4A267D;
-}
-
-DEFINE_HOOK(0x5094F9, HouseClass_AdjustThreats, 0x6)
-{
-	return R->EBX<HouseClass*>()->IsAlliedWith(R->ESI<HouseClass*>()) ? 0x5095B6 : 0x509532;
-}
-
-DEFINE_HOOK(0x4F9432, HouseClass_Attacked, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4F9474 : 0x4F9478;
-}
-
-DEFINE_HOOK(0x4FBD1C, HouseClass_DoesEnemyBuildingExist, 0x6)
-{
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x4FBD57 : 0x4FBD47;
+	return 0x71AE49;
 
 }
-
-DEFINE_HOOK(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
-{
-	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
-}
-
-DEFINE_HOOK(0x501548, HouseClass_IsAllowedToAlly, 0x6)
-{
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EDI<HouseClass*>()) ? 0x501575 : 0x50157C;
-}
-
-DEFINE_HOOK(0x5015F2, HouseClass_IsAllowedToAlly_2, 0x6)
-{
-	return R->ESI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x501627 : 0x501628;
-
-}
-
-DEFINE_HOOK(0x658393, RadarClass_658330, 0x9)
-{
-	GET(HouseClass*, pHouses, EBX);
-
-	if (pHouses != HouseClass::Observer() && _strcmpi(pHouses->get_ID(), "Observer"))
-		return 0x6583A8;
-
-	R->EDX(1);
-	return 0x65839C;
-}
-
-DEFINE_HOOK(0x658478, RadarClass_658330_2, 0x6)
-{
-	GET(HouseClass*, pHouses, EBX);
-	return (pHouses != HouseClass::Observer() && !_strcmpi(pHouses->get_ID(), "Observer")) ? 0x658480 : 0x65848A;
-}
-
-DEFINE_HOOK(0x657EE3, RadarClass_DiplomacyDialog, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ? 0x657F70 : 0x657EF2;
-}
-
-DEFINE_HOOK(0x4FCD88, HouseClass_FlagToLose, 0x5)
-{
-	auto const pHouse = HouseClass::Player();
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
-		0x4FCDA6 : 0x4FCD97;
-}
-
-DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		? 0x4FC2EF : 0x4FC271;
-}
-
-DEFINE_HOOK(0x4FC343, HouseClass_MPlayerDefeated_2, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-
-	if (pThis != HouseClass::Observer() && _strcmpi(pThis->get_ID(), "Observer"))
-		return 0;
-
-	R->EAX(pThis);
-	return 0x4FC348;
-}
-
-DEFINE_HOOK(0x4FC4DF, HouseClass_MPlayer_Defeated, 0x6)
-{
-	GET(HouseClass*, pThis, EDX);
-	GET(HouseClass*, pThat, EAX);
-
-	return (!pThis->IsAlliedWith(pThat)
-	  || !pThat->IsAlliedWith(pThis)) ? 0x4FC57C : 0x4FC52D;
-}
-
-DEFINE_HOOK(0x4F9CFA, HouseClass_MakeAlly_3, 0x7)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(TechnoClass*, pThat, EAX);
-
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4F9D34 : 0x4F9D40;
-}
-
-DEFINE_HOOK(0x4F9E10, HouseClass_MakeAlly_4, 0x8)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(HouseClass*, pThat, EBP);
-
-	return (!pThis || !pThis->IsAlliedWith(pThat))
-		? 0x4F9EC9 : 0x4F9E49;
-}
-
-DEFINE_HOOK(0x4F9E5A, HouseClass_MakeAlly_5, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(HouseClass*, pThat, EBP);
-	return (!pThis->IsAlliedWith(HouseClass::Player()) || !pThat->IsAlliedWith(HouseClass::Player())) ? 0x4F9EBD : 0x4F9EB1;
-}
-
-DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
-{
-	GET(HouseClass*, pThis, EDI);
-	GET(BuildingClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
-}
-
-DEFINE_HOOK(0x50A23A, HouseClass_Target_Dominator, 0x6)
-{
-	GET(HouseClass*, pThis, EDI);
-	GET(TechnoClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x50A292 : 0x50A278;
-}
-
-DEFINE_HOOK(0x50A04B, HouseClass_Target_GenericMutator, 0x7)
-{
-	GET(HouseClass*, pThis, EBX);
-	GET(TechnoClass*, pThat, ESI);
-
-	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x50A096 : 0x50A087;
-}
-
-DEFINE_HOOK(0x5047F5, HouseClass_UpdateAngetNodes, 0x6)
-{
-	GET(HouseClass*, pThis, EAX);
-	GET(HouseClass*, pThat, EDX);
-
-	return pThis->IsAlliedWith(pThat) ? 0x504826 : 0x504820;
-}
-
-DEFINE_HOOK(0x5C98E5, MultiplayerScore_5C98A0, 0x6)
-{
-	GET(HouseClass*, pHouse, EDI);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x5C9A7E : 0x5C98F1;
-}
-
-DEFINE_HOOK(0x6C6F83, SendStatisticsPacket, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		? 0x6C6F8B : 0x6C6F9D;
-}
-
-DEFINE_HOOK(0x6C7402, SendStatisticsPacket2, 0x8)
-{
-	GET(HouseClass*, pHouse, EAX);
-	GET_STACK(int, nPlayerCount, 0x2C);
-
-	if (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		return 0x6C7414;
-
-	R->EBX(nPlayerCount);
-	return 0x6C740A;
-}
-
-DEFINE_HOOK(0x6A55B7, SidebarClass_InitIO, 0x6)
-{
-	GET(HouseClass*, pHouse, EAX);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A55CF : 0x6A55BF;
-}
-
-DEFINE_HOOK(0x6A5694, SidebarClass_InitIO2, 0x6)
-{
-	GET(HouseClass*, pHouse, ESI);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A569C : 0x6A56AD;
-}
-
-DEFINE_HOOK(0x6A57EE, SidebarClass_InitIO3, 0x6)
-{
-	GET(HouseClass*, pHouse, EAX);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A580E : 0x6A57F6;
-}
-
-DEFINE_HOOK(0x6A6AA6, SidebarClass_Scroll, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	R->EDX(pHouse);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A6AB0 : 0x6A6AC6;
-}
-
-DEFINE_HOOK(0x6A7BA2, SidebarClass_Update, 0x5)
-{
-	GET(HouseClass*, pHouse, EBX);
-	R->Stack(0x14, R->EDX());
-	return  (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A7BAF : 0x6A7BB7;
-}
-
-DEFINE_HOOK(0x6A7BE7, SidebarClass_Update_2, 0x6)
-{
-	GET(HouseClass*, pHouse, EBX);
-
-	if (pHouse != HouseClass::Observer() && _strcmpi(pHouse->get_ID(), "Observer"))
-		return 0x6A7C07;
-
-	R->EAX(R->EDX());
-	return 0x6A7BED;
-}
-
-DEFINE_HOOK(0x6A7CD9, SidebarClass_Update_3, 0x6)
-{
-	GET(HouseClass*, pHouse, EAX);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A7CE3 : 0x6A7CE8;
-}
-
-DEFINE_HOOK(0x6A6B75, SidebarClass_handlestrips0, 0x6)
-{
-	R->Stack(0x10, R->EDX());
-	auto const pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A6B7D : 0x6A6B85;
-}
-
-DEFINE_HOOK(0x6A6BCC, SidebarClass_handlestrips0_2, 0x6)
-{
-	GET(HouseClass*, pHouse, EBX);
-	R->EAX(R->EDX());
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A6BD2 : 0x6A6BEC;
-}
-
-DEFINE_HOOK(0x6A6615, SidebarClass_togglestuff, 0x6)
-{
-	GET(HouseClass*, pHouse, EAX);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A66EA : 0x6A6623;
-}
-
-DEFINE_HOOK(0x6A88D2, StripClass_6A8860, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	if (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		R->ESI(pHouse);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x8A898E, StripClass_6A8920, 0x6)
-{
-	GET(HouseClass*, pHouse, ESI);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A8998 : 0x6A89B2;
-}
-
-DEFINE_HOOK(0x6A8A41, StripClass_6A89E0, 0x6)
-{
-	GET(HouseClass*, pHouse, EBX);
-	R->ECX(R->EDX());
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A8A47 : 0x6A8A4C;;
-}
-
-DEFINE_HOOK(0x6A8AA8, StripClass_6A89E0_2, 0x6)
-{
-	GET(HouseClass*, pHouse, EBX);
-	R->EAX(R->EDX());
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A8AAE : 0x6A8AD2;
-}
-
-DEFINE_HOOK(0x6A95BC, StripClass_DrawIt, 0x5)
-{
-	GET(StripClass*, pThis, ESI);
-
-	auto const pHouse = HouseClass::Player();
-	if (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		R->EAX(pThis->CameoCount);
-
-	return 0x6A95C1;
-}
-
-DEFINE_HOOK(0x6AA04F, StripClass_DrawIt_2, 0x8)
-{
-	GET(HouseClass*, pHouse, EBX);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6AA057 : 0x6AA59B;;
-}
-
-DEFINE_HOOK(0x6A964E, StripClass_DrawIt_3, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6AA05B : 0x6A9654;
-}
-
-DEFINE_HOOK(0x6A8BB4, StripClass_Update, 0x5)
-{
-	GET(HouseClass*, pHouse, EBP);
-
-	R->ESI(2 * R->EAX());
-
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A8BB9 : 0x6A8BCB;
-}
-
-DEFINE_HOOK(0x6A9038, StripClass_Update_2, 0x6)
-{
-	auto const pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A904B : 0x6A9258;
-
-}
-
-DEFINE_HOOK(0x6A9142, StripClass_Update_3, 0x6)
-{
-	GET(HouseClass*, pHouse, ESI);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A914A : 0x6A915B;
-}
-
-DEFINE_HOOK(0x6A91EE, StripClass_Update_4, 0x5)
-{
-	GET(HouseClass*, pHouse, ESI);
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A91F7 : 0x6A9208;
-}
-
-#endif
 
 #ifdef ENABLE_NEWHOOKS
 
@@ -1564,25 +1254,6 @@ DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_OnFire, 0x5)
 //
 //	return DummyBtypeExt::BuildingAdjentBaseOn.empty() || DummyBtypeExt::BuildingAdjentBaseOn.Contains(pBuildingType) ? 0x0 : 0x4A8FFA;
 //}
-
-
-DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
-{
-	GET_STACK(int, nHouseIdx, 0x4);
-
-	const auto pHouse = HouseClass::Array->GetItem(nHouseIdx);
-	if (!pHouse || pHouse != HouseClass::Observer() && _strcmpi(pHouse->get_ID(), "Observer"))
-		return 0;
-
-	R->AL(1);
-	return 0x4870DE;
-}
-
-DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
-{
-	const auto pHouse = HouseClass::Player();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x70DADC : 0x0;
-}
 
 
 DEFINE_HOOK(0x452831 , BuildingClass_Overpowerer_AddUnique, 0x6)
@@ -1907,147 +1578,11 @@ DEFINE_HOOK(0x6F3330, TechnoClass_SelectWeapon, 5)
 //	return 0x6276B9;
 //}
 
-
-#ifdef DetailsPatch
-
-
-struct FakeRulesExt
-{
-	struct ExtData
-	{
-		Valueable<int>  DetailMinFrameRateMedium { 0 };
-		Valueable<bool> DetailLowDisableBullet { false };
-	};
-
-
-private:
-	static std::unique_ptr<ExtData> Data;
-public:
-	static  ExtData* Global() { return Data.get(); }
-
-	static bool DetailsCurrentlyEnabled()
-	{
-		// not only checks for the min frame rate from the rules, but also whether
-		// the low frame rate is actually desired. in that case, don't reduce.
-		auto const current = FPSCounter::CurrentFrameRate();
-		auto const wanted = static_cast<unsigned int>(
-			60 / Math::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
-
-		return current >= wanted || current >= Detail::GetMinFrameRate();
-	}
-
-	static bool DetailsCurrentlyEnabled(int const minDetailLevel)
-	{
-		return GameOptionsClass::Instance->DetailLevel >= minDetailLevel
-			&& DetailsCurrentlyEnabled();
-	}
-
-	static inline bool IsFPSEligible()
-	{
-		auto const wanted = static_cast<unsigned int>(
-			60 / Math::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
-
-		if (FPSCounter::CurrentFrameRate() >= wanted)
-			return false;
-
-		auto nMedDetails = Global()->DetailMinFrameRateMedium.Get();
-		auto const nBuff = RulesGlobal->DetailBufferZoneWidth;
-		static bool nSomeBool = false;
-
-		if (nSomeBool)
-		{
-			if (FPSCounter::CurrentFrameRate() < nMedDetails + nBuff)
-				return 1;
-			nSomeBool = false;
-		}
-		else
-		{
-			if (FPSCounter::CurrentFrameRate() >= nMedDetails)
-				return 0;
-
-			nMedDetails += nBuff;
-
-			nSomeBool = true;
-		}
-
-		return FPSCounter::CurrentFrameRate() < nMedDetails;
-	}
-
-	static inline bool DetailsCurrentlyEnabled_Changed(int const nCurDetailLevel)
-	{
-		if (DetailsCurrentlyEnabled() && nCurDetailLevel > 0)
-			return false;
-
-		if (IsFPSEligible && nCurDetailLevel > 1)
-			return false;
-
-		return true;
-	}
-};
-
-DEFINE_HOOK(0x422FCC, AnimClass_DrawDetail, 0x5)
-{
-	GET(AnimClass*, pThis, ESI);
-	return FakeRulesExt::DetailsCurrentlyEnabled_Changed(pThis->Type->DetailLevel) ? 0x422FEC : 0x4238A3;
-}
-
-DEFINE_HOOK(0x42307D, AnimClass_DrawDetail_Translucency, 0x6)
-{
-	GET(AnimTypeClass*, pType, EAX);
-
-	if (GameOptionsClass::Instance->DetailLevel < pType->TranslucencyDetailLevel)
-		return 0x4230FE;
-
-	if (!FakeRulesExt::IsFPSEligible())
-		return 0x42308D;
-
-	return pType->TranslucencyDetailLevel <= 1 ? 0x42308D :0x4230FE;
-
-}
-
-DEFINE_HOOK(0x4680E2, BulletClass_Detail , 0x6)
-{
-	if (!FakeRulesExt::Global()->DetailLowDisableBullet)
-		return 0;
-
-	if (FakeRulesExt::DetailsCurrentlyEnabled())
-		return 0x468422;
-
-	return !GameOptionsClass::Instance->DetailLevel ? 0x468422 : 0x0;
-}
-
-DEFINE_HOOK(0x53D591 ,  IonBlastClass_Detail , 0x6)
-{
-	if (GameOptionsClass::Instance->GameSpeed < 2)
-		return 0x53D842;
-	return (!FakeRulesExt::IsFPSEligible()) ? 0x53D597 : 0x53D842;
-}
-
-DEFINE_HOOK(0x550268 , LaserDrawClass_Detail, 0x6)
-{
-	if (FakeRulesExt::DetailsCurrentlyEnabled())
-		return 0x5509CB;
-
-	if (!GameOptionsClass::Instance->GameSpeed)
-		return = 0x5509CB;
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x62CFBB, ParticleClass_Detail_Translucency, 0x7)
-{
-	if (MGameOptionsClass::Instance->GameSpeed < 2)
-		return 0x62CFEC;
-
-	return (!FakeRulesExt::IsFPSEligible()) ? 0x62CFC4 : 0x62CFEC;
-}
-#endif
 #ifdef ES_ExpDamageHook
 static void Detonate(TechnoClass* pTarget, HouseClass* pOwner, CoordStruct const& nCoord)
 {
 
 }
-
 
 //TODO , check stack , make this working
 DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)

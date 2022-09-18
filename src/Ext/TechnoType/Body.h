@@ -231,11 +231,14 @@ public:
 		Valueable<ColorStruct> MobileRefinery_DisplayColor;
 		ValueableVector<AnimTypeClass*> MobileRefinery_Anims;
 		Valueable<bool> MobileRefinery_AnimMove;
+		Valueable<bool> Explodes_KillPassengers;
 
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
 		Valueable<bool> FacingRotation_DisalbeOnDeactivated;
+		Valueable<bool> FacingRotation_DisableOnDriverKilled;
+
 		Valueable<bool> Is_Cow;
 		Valueable<bool> DontShake;
 		NullableIdx<VocClass>DiskLaserChargeUp;
@@ -333,7 +336,9 @@ public:
 		Nullable<ColorStruct> CommandLine_Attack_Color;
 		Valueable<bool> CloakMove;
 		Nullable<bool> PassiveAcquire_AI;
-
+		Valueable<bool> TankDisguiseAsTank;
+		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
+		Valueable<bool> ChronoDelay_Immune;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -501,12 +506,14 @@ public:
 			, MobileRefinery_LeftOffset { }
 			, MobileRefinery_Display { true }
 			, MobileRefinery_DisplayColor { { 57,197,187 } }
-
+			, MobileRefinery_Anims { }
+			, MobileRefinery_AnimMove { false }
+			, Explodes_KillPassengers { true }
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }
 			, FacingRotation_DisalbeOnDeactivated { false }
-
+			, FacingRotation_DisableOnDriverKilled { true }
 			, Is_Cow { false }
 
 			, DontShake { true }
@@ -617,6 +624,9 @@ public:
 			, CommandLine_Attack_Color { }
 			, CloakMove { false }
 			, PassiveAcquire_AI { }
+			, TankDisguiseAsTank { false }
+			, DisguiseDisAllowed { }
+			, ChronoDelay_Immune { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
