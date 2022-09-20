@@ -522,7 +522,6 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const pExt = TechnoExt::GetExtData(pThis);
 
-
 	if (!pExt || !pTypeExt)
 		return 0x0;
 

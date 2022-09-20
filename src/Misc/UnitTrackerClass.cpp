@@ -101,7 +101,7 @@ DEFINE_HOOK(0x748FD0, UnitTrackerClass_CTOR, 0x5)
 	return 0x749000;
 }
 
-DEFINE_HOOK(0x749010, UnitTrackerClass_DTOR, 0x5)
+DEFINE_HOOK(0x749010, UnitTrackerClass_DTOR, 0x0)
 {
 	GET(PhobosUnitTrackerClass*, pThis, ECX);
 
@@ -156,7 +156,7 @@ DEFINE_HOOK(0x749020, UnitTrackerClass_IncrementUnitTotal, 0xA)
 	return 0x749031;
 }
 
-DEFINE_HOOK(0x7490C2, UnitTrackerClass_GetAllTotals, 0x5)
+DEFINE_HOOK(0x7490C2, UnitTrackerClass_GetAllTotals, 0x0)
 {
 	GET(PhobosUnitTrackerClass*, pThis, EAX);
 	R->EAX(pThis->GetAllTotals());

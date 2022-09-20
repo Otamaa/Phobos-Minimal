@@ -9,7 +9,19 @@ TeamExt::ExtData* TeamExt::GetExtData(TeamExt::base_type* pThis)
 
 void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(TeamLeader, ptr);
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Aircraft:
+	case AbstractType::Unit:
+	case AbstractType::Infantry:
+	{
+		AnnounceInvalidPointer(TeamLeader, ptr);
+	}
+	break;
+	default:
+		return;
+	}
 }
 
 void TeamExt::ExtData::InitializeConstants() { }
@@ -77,7 +89,7 @@ DEFINE_HOOK(0x6E8DBE, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	TeamExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
 #else
 	TeamExt::ExtMap.FindOrAllocate(pThis);
@@ -117,7 +129,7 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 {
 	GET(TeamClass*, pThis, ECX);

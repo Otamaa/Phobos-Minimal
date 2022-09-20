@@ -23,17 +23,6 @@
 
 #include <Memory.h>
 
-//dont bother to clear type pointer
-//DEFINE_JUMP(LJMP, 0x4251A3, 0x4251B1);
-
-//static void __fastcall _DrawBehindAnim(TechnoClass* pThis, void* _, Point2D* pWhere, RectangleStruct* pBounds)
-//{
-//	if (!pThis->GetTechnoType()->Invisible)
-//		pThis->DrawBehind(pWhere, pBounds);
-//}
-
-//DEFINE_JUMP(CALL,0x6FA2D3, GET_OFFSET(_DrawBehindAnim));
-
 DEFINE_HOOK(0x6FA2C7 , TechnoClass_AI_DrawBehindAnim , 0x8) //was 4
 {
 	GET(TechnoClass* , pThis , ESI);
@@ -60,7 +49,7 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 	const auto nScript = pThis->CurrentScript;
 
 	Debug::Log("Team[%x] script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
-	return 0x6EE7C3;
+	return 0x6EE7D0;
 }
 
 //Lunar limitation
@@ -154,25 +143,6 @@ static	void __fastcall DrawShape_VeinHole
 
 DEFINE_JUMP(CALL,0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
-//static	void __fastcall Replace_VeinholeShapeLoad(TheaterType nTheater)
-//{
-//	//TheaterTypeClass::GetCharExtension(nTheater)
-//	std::string flag { "VEINHOLE." };
-//	flag += Theater::GetTheater(nTheater).Extension;
-//	if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
-//		VeinholeMonsterClass::VeinSHPData = pImage;
-//}
-//
-//DEFINE_JUMP(CALL,0x685136, GET_OFFSET(Replace_VeinholeShapeLoad));
-
-//static void __fastcall DisplayClass_ReadINI_add(TheaterType nTheater)
-//{
-//	SmudgeTypeClass::TheaterInit(nTheater);
-//	Replace_VeinholeShapeLoad(nTheater);
-//}
-//
-//DEFINE_JUMP(CALL,0x4AD0A3, GET_OFFSET(DisplayClass_ReadINI_add));
-
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
 	auto nTheater = ScenarioGlobal->Theater;
@@ -180,12 +150,6 @@ DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 	VeinholeMonsterClass::TheaterInit(nTheater);
 	return 0x4AD0A8;
 }
-
-//static int __fastcall SelectParticle(char* pName) {
-//	return RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pName));
-//}
-//
-//DEFINE_JUMP(CALL,0x74D0DF, GET_OFFSET(SelectParticle));
 
 DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 {
@@ -518,10 +482,8 @@ DEFINE_HOOK(0x4B0523, DriveLocomotionClass_Process_Cargo, 0x5)
 {
 	GET(DriveLocomotionClass*, pLoco, EDI);
 
-	if (auto pFoot = pLoco->LinkedTo)
-	{
-		if (auto pTrans = pFoot->Transporter)
-		{
+	if (auto pFoot = pLoco->LinkedTo) {
+		if (auto pTrans = pFoot->Transporter) {
 			R->EAX(pTrans->GetCell()->SlopeIndex);
 		}
 	}
@@ -620,16 +582,6 @@ DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
 	return Allow ? 0x54DCE8 : 0x54DF13;
 }
 
-//DEFINE_HOOK(0x54C14B, JumpjetLocomotionClass_State3, 0x7)
-//{
-//	GET(FootClass*, pFoot, EDI);
-//
-//	if (pFoot->GetTechnoType()->Sensors)
-//		pFoot->UpdatePosition(2);
-////
-//	return 0;
-//}
-
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
 	enum
@@ -639,10 +591,7 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	};
 
 	GET(TechnoClass*, pThis, ESI);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	return pTypeExt->AllowFire_IroncurtainedTarget.Get(pThis->Owner->PlayerControl) ? BypassCheck : ContinueCheck;
-
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(pThis->Owner->PlayerControl) ? BypassCheck : ContinueCheck;
 }
 
 DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
@@ -943,7 +892,7 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 	return 0x4CA0FF;
 }
 
-// TODO : more stack ?
+// TODO : more ?
 //DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 //{
 //	GET(ObjectClass*, pTarget, ESI);
@@ -971,7 +920,7 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //	Debug::Log("%s\n", R->ESP<char*>());
 //	return R->Origin() + 5;
 //}
-//
+
 //DEFINE_HOOK_AGAIN(0x70FC90, TechnoClass_Deactivate, 0x6)
 //DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 //{
@@ -986,8 +935,7 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //	return 0x0;
 //}
 
-//#include <ExtraHeaders/Ares/TechnoExtData.h>
-//
+#ifdef Ares_3_0_p1
 DEFINE_HOOK(0x7463A8 , UnitClass_Captured_DriverKilled ,0x6)
 {
 	enum { Failed = 0x7463EC, Continue = 0x0 };
@@ -996,6 +944,7 @@ DEFINE_HOOK(0x7463A8 , UnitClass_Captured_DriverKilled ,0x6)
 	auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
 	return bDriverKilled ? Failed : Continue;
 }
+#endif
 
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
@@ -1009,12 +958,14 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 	return 0x701AB7;
 }
 
-DEFINE_HOOK(0x73B4F4, UnitClass_DrawAsVXL_FiringAnim, 0x8)
-{
-	R->ECX(R->EBX<UnitTypeClass*>()->TurretVoxel.HVA);
-	R->ESI(0);
-	return 0x73B4FC;
-}
+//
+//DEFINE_HOOK(0x73B4F4, UnitClass_DrawAsVXL_FiringAnim, 0x8)
+//{
+//	R->ECX(R->EBX<UnitTypeClass*>()->TurretVoxel.HVA);
+//	R->ESI(0);
+//	return 0x73B4FC;
+//}
+//
 
 DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 {
@@ -1073,6 +1024,66 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 	return 0x71AE49;
 
+}
+
+DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(TechnoClass*, pThat, EBX);
+	return pThis && pThat->Owner && pThat->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
+}
+
+DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (R->AL()) {
+		if (pThis->Type->Speed) {
+			return 0x73DE20;
+		} else {
+			pThis->StopMoving();
+			pThis->QueueMission(Mission::Unload, false);
+			pThis->NextMission();
+			return 0x73DE3A;
+		}
+	}
+
+	R->ECX(pThis);
+	return 0x73DDC6;
+}
+
+DEFINE_HOOK(0x7397E4 , UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
+{
+	GET(HouseClass*, pHouse, ECX);
+
+	bool CurPlayer = false;
+	if (SessionGlobal.GameMode != GameMode::Campaign) {
+		CurPlayer = (pHouse->CurrentPlayer);
+	} else {
+		CurPlayer = (pHouse->CurrentPlayer || pHouse->PlayerControl);
+	}
+
+	R->AL(CurPlayer);
+	return 0x7397E9;
+}
+
+DEFINE_HOOK(0x4DA64D , FootClass_Update_IsInPlayField, 0x6)
+{
+	GET(UnitTypeClass*, pType, EAX);
+	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
+}
+
+DEFINE_HOOK(0x51D45B , InfantryClass_Scatter_Process, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->Type->JumpJet && pThis->Type->HoverAttack) {
+		pThis->SetDestination(0, 1);
+	} else {
+		pThis->Locomotor->Process();
+	}
+
+	return 0x51D47B;
 }
 
 #ifdef ENABLE_NEWHOOKS

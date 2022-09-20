@@ -13,46 +13,46 @@ class ParticleTypeExt
 {
 public:
 	static constexpr size_t Canary = 0xEAEEEEEE;
-    using base_type = ParticleTypeClass;
-#ifdef ENABLE_NEWHOOKS
+	using base_type = ParticleTypeClass;
+#ifndef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-    class ExtData final : public Extension<ParticleTypeClass>
-    {
-    public:
+	class ExtData final : public Extension<ParticleTypeClass>
+	{
+	public:
 
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
-        ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
+		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
-        { }
+		{ }
 
-        virtual ~ExtData() = default;
-        void LoadFromINIFile(CCINIClass* pINI);
-        //void InvalidatePointer(void *ptr, bool bRemoved) {}
-        virtual void LoadFromStream(PhobosStreamReader& Stm)override;
-        virtual void SaveToStream(PhobosStreamWriter& Stm)override;
+		virtual ~ExtData() = default;
+		void LoadFromINIFile(CCINIClass* pINI);
+		//void InvalidatePointer(void *ptr, bool bRemoved) {}
+		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
+		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
 		void Initialize() { LaserTrail_Types.reserve(1); }
-    private:
-        template <typename T>
-        void Serialize(T& Stm);
-    };
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
+	};
 
-    class ExtContainer final : public Container<ParticleTypeExt>
-    {
-    public:
-        ExtContainer();
-        ~ExtContainer();
+	class ExtContainer final : public Container<ParticleTypeExt,true,true,true>
+	{
+	public:
+		ExtContainer();
+		~ExtContainer();
 		void InvalidatePointer(void* ptr, bool bRemoved);
-    };
+	};
 
-    static ExtContainer ExtMap;
+	static ExtContainer ExtMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

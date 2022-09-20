@@ -60,7 +60,7 @@ public:
 	int    MinZVelocity;
 	int    ZVelocityRange;
 	double ColorSpeed;
-	TypeList<RGBClass*> ColorList;
+	TypeList<RGBClass*> ColorList; //Was TypeList
 	ColorStruct StartColor1;
 	ColorStruct StartColor2;
 	int    MaxDC;
@@ -86,3 +86,5 @@ public:
 	BehavesLike BehavesLike;
 
 };
+
+static_assert(sizeof(ParticleTypeClass) == 0x318, "Invalid Size ! ");

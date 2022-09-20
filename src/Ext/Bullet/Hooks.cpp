@@ -363,11 +363,16 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 	return 0;
 }
 
+//for fuckoff optimization !
+static __noinline bool IsBulletReallyAlive(const BulletClass* const pThis) {
+	return pThis && pThis->IsAlive;
+}
+
 DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 {
 	enum { SkipGameCode = 0x469091 };
 
-	GET(BulletClass*, pThis, ESI);
+	GET(const BulletClass*, pThis, ESI);
 	GET_STACK(CoordStruct, origCoords, STACK_OFFS(0x3C, 0x30));
 
 	if (pThis->Type->Cluster > 0)
@@ -382,7 +387,9 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 			{
 				pThis->Detonate(coords);
 
-				if (!pThis->IsAlive)
+				// Something is deleting the bullet after this function ,..
+				//
+				if (!IsBulletReallyAlive(pThis))
 					break;
 
 				int distance = ScenarioClass::Instance->Random.RandomRanged(min, max);

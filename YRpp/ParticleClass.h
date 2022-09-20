@@ -76,7 +76,9 @@ public:
 	BYTE   Translucency;
 	BYTE   unknown_130;
 	BYTE   hasremaining; //131
-	PROTECTED_PROPERTY(DWORD, unused_132); //??
+	BYTE   unknown_132;
+	BYTE   unknown_133;
+	PROTECTED_PROPERTY(DWORD, unused_134); //??
 };
 
 static_assert(sizeof(ParticleClass) == 0x138);

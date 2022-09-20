@@ -82,9 +82,13 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 
 				if(pFoot->WhatAmI() == AbstractType::Unit){
 					auto const pUnit = static_cast<UnitClass*>(pTechno);
+					#ifdef Ares_3_0_p1
 					auto const bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
 
 					if (pUnit->DeathFrameCounter > 0 || bDriverKilled && pWeaponExt->Abductor.Get())
+						#else
+					if(pUnit->DeathFrameCounter > 0)
+						#endif
 						return CannotFire;
 				}
 
@@ -322,7 +326,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	if (pCell)
 	{
 		if (pType->NavalTargeting == NavalTargetingType::Naval_none &&
-			(pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+			((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach)) && !pCell->ContainsBridge())
 		{
 			return DisallowFiring;
 		}
@@ -333,7 +337,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 
 		if (pType->LandTargeting == LandTargetingType::Land_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
 			return DisallowFiring;
-		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach))
+		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && ((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pCell->ContainsBridge()))
 			return DisallowFiring;
 	}
 

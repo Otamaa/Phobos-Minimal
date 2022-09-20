@@ -16,8 +16,8 @@ class ParticleExt
 public:
 	static constexpr size_t Canary = 0xAAAABBBB;
 	using base_type = ParticleClass;
-#ifdef ENABLE_NEWHOOKS
-	//static constexpr size_t ExtOffset = sizeof(base_type);
+#ifndef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0x134;
 #endif
 
 	class ExtData final : public Extension<ParticleClass>

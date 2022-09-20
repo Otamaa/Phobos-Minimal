@@ -27,6 +27,7 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 
 	CoordStruct location = pTechno->Location;
 	CoordStruct targetPos = pTarget->GetCoords();
+			    targetPos.Z = Map.GetCellFloorHeight(targetPos);
 
 	int distance = pTypeExt->MyDiveData.Distance;
 	if (distance == 0) {
@@ -36,7 +37,7 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 				distance = pWeaponType->Range * 2;
 	}
 
-	if (location.DistanceFrom(targetPos) < distance && pExt->MyDiveData.CanDive)
+	if (location.DistanceFromI(targetPos) < (distance) && pExt->MyDiveData.CanDive)
 	{
 		int max = targetPos.Z + pTypeExt->MyDiveData.FlightLevel;
 		int z = location.Z - pExt->MyDiveData.Diving();

@@ -470,7 +470,7 @@ bool ShieldClass::ConvertCheck()
 	if (!allowTransfer && !pTechnoTypeExt->ShieldType->Strength)
 	{
 		this->KillAnim();
-		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(NONE_STR);
+		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 		pTechnoExt->Shield = nullptr;
 
 		return true;

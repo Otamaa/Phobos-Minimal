@@ -383,6 +383,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
 	this->Sound.Read(exINI, pSection, "Sound");
 
+	this->Converts.Read(exINI, pSection, "Converts");
+	this->Converts_From.Read(exINI, pSection, "Converts.From");
+	this->Converts_To.Read(exINI, pSection, "Converts.To");
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -531,6 +535,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Launchs)
 		.Process(PermaMC)
 		.Process(Sound)
+		.Process(this->Converts)
+		.Process(this->Converts_From)
+		.Process(this->Converts_To)
 		.Process(StealMoney)
 		.Process(Steal_Display_Houses)
 		.Process(Steal_Display)

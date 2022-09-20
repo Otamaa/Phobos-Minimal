@@ -299,6 +299,12 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	auto pExt = TechnoExt::ExtMap.Find<false> (pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
+	//if(AresData::AresDllHmodule != nullptr) {
+	//	auto pGGI = TechnoTypeClass::Find("GGI");
+
+	//	if(pGGI != pTypeExt->Get())
+	//		AresData::HandleConvert::Exec(pThis, pGGI);
+	//}
 		// Set current shield type if it is not set.
 	if (!pExt->CurrentShieldType || (!pExt->CurrentShieldType->Strength && pTypeExt->ShieldType->Strength))
 		pExt->CurrentShieldType = pTypeExt->ShieldType;

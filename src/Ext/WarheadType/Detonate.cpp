@@ -18,6 +18,26 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <New/Entity/VerticalLaserClass.h>
+#include <Misc/InteractWithAres/Body.h>
+
+void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
+{
+	if (this->Converts_From.size() && this->Converts_To.size())
+	{
+		// explicitly unsigned because the compiler wants it
+		for (unsigned int i = 0; i < this->Converts_From.size(); i++)
+		{
+			// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
+			if (this->Converts_To.size() >= i && this->Converts_From[i] == pTarget->GetTechnoType())
+			{
+				TechnoTypeClass* pResultType = this->Converts_To[i];
+				auto pCurType = pTarget->GetTechnoType();
+				if (pCurType != pResultType)
+					AresData::HandleConvert::Exec(pTarget, pResultType);
+			}
+		}
+	}
+}
 
 void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
 {
@@ -283,6 +303,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->RemoveMindControl ||
 		this->Crit_Chance ||
 		this->Shield_Break ||
+		this->Converts ||
 		this->Shield_Respawn_Duration > 0 ||
 		this->Shield_SelfHealing_Duration > 0 ||
 		this->Shield_AttachTypes.size() > 0 ||
@@ -405,6 +426,11 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	{
 		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
 	}
+
+#ifdef Ares_3_0_p1
+	if (this->Converts && AresData::AresDllHmodule != nullptr)
+		this->ApplyUpgrade(pHouse, pTarget);
+#endif
 }
 
 void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -432,7 +458,7 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			if (shieldIndex >= 0)
 			{
 				ratio = pExt->Shield->GetHealthRatio();
-				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(NONE_STR);
+				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 				pExt->Shield->KillAnim();
 				pExt->Shield = nullptr;
 			}

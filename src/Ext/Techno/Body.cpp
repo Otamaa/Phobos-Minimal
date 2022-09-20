@@ -561,7 +561,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	}
 
 	VeterancyStruct* pVeterancy = &pThis->Veterancy;
-	auto& insigniaFrames = pExt->InsigniaFrames.Get();
+	const auto& insigniaFrames = pExt->InsigniaFrames.Get();
 	int insigniaFrame = insigniaFrames.X;
 
 	if (pVeterancy->IsVeteran())
@@ -583,11 +583,12 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 
 	if (frameIndex != -1 && pShapeFile)
 	{
-		offset.X += 5;
-		offset.Y += pThis->WhatAmI() != AbstractType::Infantry ? 4 : 2;
+		auto const& nOffs = pExt->InsigniaDrawOffset.Get();
+		offset.X += (5 + nOffs.X);
+		offset.Y += (pThis->WhatAmI() != AbstractType::Infantry ? 4 : 2 + nOffs.Y);
 
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2 + nOffs.Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	return;
@@ -1004,8 +1005,8 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 
 	// Step 5: apply as an offset to global object coords
 	CoordStruct location = Overrider ? Overrider : pThis->GetCoords();
-	//location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
-	location += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
+	location += { static_cast<int>(result.X), static_cast<int>(result.Y), static_cast<int>(result.Z) };
+	// += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
 
 	return location;
 }
@@ -1169,6 +1170,7 @@ void TechnoExt::ExtData::EatPassengers()
 		}
 	}
 }*/
+
 
 void TechnoExt::ExtData::EatPassengers()
 {

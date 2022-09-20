@@ -130,6 +130,21 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 		bool HasSplitBehavior();
+		double GetMissileROTVar(const RulesClass* const pRules) const
+		{
+			if (MissileROTVar.isset())
+				return MissileROTVar.Get();
+
+			return pRules->MissileROTVar;
+		}
+
+		double GetMissileSaveAltitude(const RulesClass* const pRules) const
+		{
+			if (MissileSafetyAltitude.isset())
+				return MissileSafetyAltitude.Get();
+
+			return pRules->MissileSafetyAltitude;
+		}
 
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 		BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright) const;

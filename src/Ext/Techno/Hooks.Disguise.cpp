@@ -120,7 +120,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
-#endif
+
 
 #pragma region Otamaa
 
@@ -157,7 +157,85 @@ static bool Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat)
 	return false;
 }
 
-DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
+static void __fastcall UnitClass_DisguiseAs_(UnitClass* pThis, ObjectClass* pTarget)
+{
+	if (!pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
+		return;
+
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pTarget->IsDisguised())
+	{
+		if (!pExt->TankDisguiseAsTank.Get())
+		{
+			if (pThis->CanDisguiseAs(pTarget))
+			{
+				if (const auto pOverlay = specific_cast<OverlayClass*>(pTarget))
+				{
+					pThis->Disguise = pOverlay->Type;
+					pThis->DisguisedAsHouse = nullptr;
+					pThis->Techno_70E280(pTarget);
+					return;
+				}
+
+				if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
+				{
+					pThis->Disguise = pTerrain->Type;
+					pThis->DisguisedAsHouse = nullptr;
+					pThis->Techno_70E280(pTarget);
+					return;
+				}
+			}
+		}
+		else
+		{
+			if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
+			{
+				if (Allowed(pExt, pUnit->Type))
+				{
+					pThis->Disguise = pUnit->Type;
+					pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
+					pThis->Techno_70E280(pTarget);
+					return;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
+		{
+			if (Allowed(pExt, pUnit->Type))
+			{
+				if (pUnit->Owner)
+				{
+					if (pUnit->Owner->IsAlliedWith(pThis->Owner))
+					{
+						pThis->Disguise = pUnit->Type;
+						pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
+						pThis->Techno_70E280(pTarget);
+						return;
+					}
+				}
+
+				pThis->Disguise = pUnit->Disguise;
+				pThis->DisguisedAsHouse = pUnit->DisguisedAsHouse;
+				pThis->Techno_70E280(pTarget);
+				return;
+			}
+		}
+		else
+		{
+			pThis->Disguise = pTarget->GetDisguise(true);
+			pThis->DisguisedAsHouse = pTarget->GetDisguiseHouse(true);
+			pThis->Techno_70E280(pTarget);
+		}
+
+	}
+}
+DEFINE_JUMP(VTABLE, 0x7F60DC, GET_OFFSET(UnitClass_DisguiseAs_));
+
+/*DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pTarget, 0x4);
@@ -237,8 +315,8 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	}
 
 	return 0x746714;
-}
-#ifdef Advanched_DISGUISE
+}*/
+
 DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -264,15 +342,18 @@ DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
 	return 0x746A6C;
 }
 
-//522700
 DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
 {
-	GET(InfantryClass*, pThis, EDI);
-	GET(InfantryClass*, pThat, ESI);
+	GET(TechnoClass*, pThis, EDI);
+	GET(TechnoClass*, pThat, ESI);
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	if (Allowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pThat->GetTechnoType())) {
+		pThis->Techno_70E280(pThat);
+		return 0x522720;
+	}
 
-	return Allowed(pExt, pThat->Type) ? 0x0 : 0x522772;
+	return 0x522772;
 }
-#endif
+
 #pragma endregion
+#endif

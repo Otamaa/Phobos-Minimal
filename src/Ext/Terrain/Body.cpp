@@ -9,13 +9,20 @@ void TerrainExt::ExtData::InitializeConstants() {
 
 void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
 {
-	if(LighSource)
-		AnnounceInvalidPointer(LighSource,ptr);
-
-	if (AttachedAnim)
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Anim:
+	case AbstractType::LightSource:
+	{
+		AnnounceInvalidPointer(LighSource, ptr);
 		AnnounceInvalidPointer(AttachedAnim, ptr);
+	}
+	break;
+	default:
+		return;
+	}
 }
-
 
 void TerrainExt::ExtData::InitializeLightSource()
 {
@@ -159,11 +166,11 @@ TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks
-DEFINE_HOOK_AGAIN(0x71BDD5, TerrainClass_CTOR, 0x6)
+DEFINE_HOOK_AGAIN(0x71BDD5, TerrainClass_CTOR, 0x5)
 DEFINE_HOOK(0x71BFA6, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	TerrainExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
@@ -202,3 +209,19 @@ DEFINE_HOOK(0x71CF44, TerrainClass_Save_Suffix, 0x5)
 	TerrainExt::ExtMap.SaveStatic();
 	return 0;
 }
+
+DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
+{
+	GET(TerrainClass*, pThis, ESI);
+	GET(void*, pObj, EDI);
+	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
+
+
+	if (auto pExt = TerrainExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(pObj, bRemoved);
+
+	return pThis->Type == pObj ? 0x71CFEB : 0x71CFF5;
+}
+
+// Skip D0 CRC here
+DEFINE_JUMP(LJMP, 0x71CFA4, 0x71CFB2);

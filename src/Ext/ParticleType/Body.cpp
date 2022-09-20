@@ -5,12 +5,12 @@ ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	auto pThis = this->Get();
-    const char* pID = this->Get()->ID;
+	const char* pID = this->Get()->ID;
 
 	if (!pINI->GetSection(pID))
 		return;
 
-    INI_EX exINI(pINI);
+	INI_EX exINI(pINI);
 
 	switch (pThis->BehavesLike)
 	{
@@ -41,9 +41,9 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 template <typename T>
 void ParticleTypeExt::ExtData::Serialize(T& Stm)
 {
-    Stm
+	Stm
 		.Process(this->LaserTrail_Types)
-        ;
+		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
@@ -52,14 +52,14 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-    Extension<ParticleTypeClass>::Serialize(Stm);
-    this->Serialize(Stm);
+	Extension<ParticleTypeClass>::Serialize(Stm);
+	this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-    Extension<ParticleTypeClass>::Serialize(Stm);
-    this->Serialize(Stm);
+	Extension<ParticleTypeClass>::Serialize(Stm);
+	this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
@@ -87,10 +87,13 @@ ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 //#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
-    GET(ParticleTypeClass*, pItem, ESI);
-    ParticleTypeExt::ExtMap.FindOrAllocate(pItem);
-
-    return 0;
+	GET(ParticleTypeClass*, pItem, ESI);
+#ifndef ENABLE_NEWHOOKS
+	ParticleTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+#else
+	ParticleTypeExt::ExtMap.FindOrAllocate(pItem);
+#endif
+	return 0;
 }
 
 DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
@@ -104,32 +107,32 @@ DEFINE_HOOK(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 DEFINE_HOOK_AGAIN(0x6457A0, ParticleTypeClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x645660, ParticleTypeClass_SaveLoad_Prefix, 0x5)
 {
-    GET_STACK(ParticleTypeClass*, pItem, 0x4);
-    GET_STACK(IStream*, pStm, 0x8);
+	GET_STACK(ParticleTypeClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
 
-    ParticleTypeExt::ExtMap.PrepareStream(pItem, pStm);
+	ParticleTypeExt::ExtMap.PrepareStream(pItem, pStm);
 
-    return 0;
+	return 0;
 }
 
 DEFINE_HOOK(0x64578C, ParticleTypeClass_Load_Suffix, 0x5)
 {
-    ParticleTypeExt::ExtMap.LoadStatic();
-    return 0;
+	ParticleTypeExt::ExtMap.LoadStatic();
+	return 0;
 }
 
 DEFINE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix, 0x5)
 {
 	ParticleTypeExt::ExtMap.SaveStatic();
-    return 0;
+	return 0;
 }
 
 DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 {
-    GET(ParticleTypeClass*, pItem, ESI);
-    GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
+	GET(ParticleTypeClass*, pItem, ESI);
+	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
 
-    ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI);
-    return 0;
+	ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	return 0;
 }
 //#endif

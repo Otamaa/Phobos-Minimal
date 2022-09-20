@@ -60,6 +60,8 @@
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
+    <ClCompile Include="src\Ext\IonBlast\Body.cpp" />
+    <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
@@ -88,6 +90,7 @@
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
@@ -118,6 +121,7 @@
     <ClCompile Include="src\Ext\WarheadType\Hook.Remover.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
+    <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
@@ -154,6 +158,7 @@
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Hooks.Working.cpp" />
+    <ClCompile Include="src\Misc\InteractWithAres\Body.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -241,6 +246,8 @@
     <ClInclude Include="src\Ext\Cell\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
+    <ClInclude Include="src\Ext\IonBlast\Body.h" />
+    <ClInclude Include="src\Ext\LaserDraw\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
@@ -256,6 +263,7 @@
     <ClInclude Include="src\Ext\Temporal\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
+    <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.h" />
@@ -297,6 +305,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
     <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
+    <ClInclude Include="src\Misc\InteractWithAres\Body.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\TriggerMPOwner.h" />

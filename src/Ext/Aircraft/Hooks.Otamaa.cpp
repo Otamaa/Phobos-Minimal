@@ -223,33 +223,26 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 
 DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 {
-	std::for_each(AircraftClass::Array->begin(), AircraftClass::Array->end(), [](AircraftClass* const pThis)
- {
+	std::for_each(AircraftClass::Array->begin(), AircraftClass::Array->end(), [](AircraftClass* const pThis) {
 
-	 if (pThis)
-	 {
-		 if (pThis->Type->AirportBound)
-		 {
-			 if (auto pCell = pThis->GetCell())
-			 {
-				 if (auto pBuilding = pCell->GetBuilding())
-				 {
-					 if (pBuilding->Type->Helipad)
-					 {
-						 pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
-						 pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
-						 auto nDockCoord = pBuilding->GetDockCoords(pThis);
-						 pThis->SetLocation(nDockCoord);
-						 pThis->DockedTo = pBuilding;
+		 if (pThis) {
+			if (pThis->Type->AirportBound) {
+				if (auto pCell = pThis->GetCell()) {
+					 if (auto pBuilding = pCell->GetBuilding()) {
+						 if (pBuilding->Type->Helipad) {
+							 pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
+							pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
+							auto nDockCoord = pBuilding->GetDockCoords(pThis);
+							pThis->SetLocation(nDockCoord);
+							pThis->DockedTo = pBuilding;
 
-						 if (pThis->GetHeight() > 0)
-							 pThis->Tracker_4134A0();
+							 if (pThis->GetHeight() > 0)
+								pThis->Tracker_4134A0();
+						 }
 					 }
-				 }
-			 }
+				}
+			}
 		 }
-	 }
-
 	});
 
 	return 0x0;
@@ -275,7 +268,7 @@ DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
 	return pThis->Type->AirportBound ? 0x4CD12A : 0x0;
 }
 
-DEFINE_HOOK(0x419CC1 , AircraftClass_Mi_Enter_AiportBound, 0x6)
+DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 	GET(AbstractClass*, pNavCom, EDI);

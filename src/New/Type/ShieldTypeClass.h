@@ -84,7 +84,7 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	static void AddDefaults() {
-		FindOrAllocate(NONE_STR);
+		FindOrAllocate(DEFAULT_STR2);
 	}
 
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);

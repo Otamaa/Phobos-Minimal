@@ -19,7 +19,7 @@ class VoxelAnimTypeExt
 public:
 	static constexpr size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 

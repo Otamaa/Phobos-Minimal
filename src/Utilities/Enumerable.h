@@ -25,7 +25,7 @@ public:
 	{
 		auto result = std::find_if(Array.begin(), Array.end(), [Title](std::unique_ptr<T>& Item)
 			{
-				return CRT::strcmp(Item->Name.data(), Title) == 0;
+				return _strcmpi(Item->Name.data(), Title) == 0;
 			});
 
 		if (result == Array.end())

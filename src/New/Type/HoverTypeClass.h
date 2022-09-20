@@ -66,7 +66,7 @@ public:
 	}
 
 	static void AddDefaults() {
-		FindOrAllocate(NONE_STR);
+		FindOrAllocate(DEFAULT_STR2);
 	}
 
 	static const HoverTypeClass* GetMyHover(int nIdx)

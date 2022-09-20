@@ -128,7 +128,7 @@ DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);

@@ -167,6 +167,11 @@ public:
 
 		Valueable<bool> PermaMC;
 		ValueableIdx<VocClass> Sound;
+
+		Valueable<bool> Converts;
+		ValueableVector<TechnoTypeClass*> Converts_From;
+		ValueableVector<TechnoTypeClass*> Converts_To;
+
 	#ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -300,6 +305,11 @@ public:
 			, Launchs {}
 			, PermaMC { false }
 			, Sound { -1 }
+
+			, Converts { false }
+			, Converts_From {}
+			, Converts_To {}
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -326,6 +336,8 @@ public:
 		void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
 		void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
 		void applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
+
+		void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget);
 
 		void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 		void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);

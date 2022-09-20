@@ -190,6 +190,7 @@ public:
 		Promotable<int> InsigniaFrame;
 		Nullable<bool> Insignia_ShowEnemy;
 		Valueable<Point3D> InsigniaFrames;
+		Valueable<CoordStruct> InsigniaDrawOffset;
 
 		Valueable<Vector2D<double>> InitialStrength_Cloning;
 
@@ -470,6 +471,7 @@ public:
 			, InsigniaFrame { -1 }
 			, Insignia_ShowEnemy {}
 			, InsigniaFrames { { -1, -1, -1 } }
+			, InsigniaDrawOffset { {0 , 0 , 0} }
 			, InitialStrength_Cloning{ { 0.0, 0.0 } }
 			, SHP_SelectBrdSHP{  }
 			, SHP_SelectBrdPAL{ CustomPalette::PaletteMode::Temperate }
@@ -654,6 +656,7 @@ public:
 
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
+		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 		void Initialize();
 		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 

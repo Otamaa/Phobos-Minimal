@@ -141,3 +141,5 @@ public:
 	DECLARE_PROPERTY(TiberiumLogic, SpreadLogic);
 	DECLARE_PROPERTY(TiberiumLogic, GrowthLogic);
 };
+
+static_assert(sizeof(TiberiumClass) == 0x128, "Invalid Size !");

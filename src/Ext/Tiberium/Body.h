@@ -13,8 +13,8 @@ class TiberiumExt
 public:
 	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
+#ifndef ENABLE_NEWHOOKS
+	static constexpr size_t ExtOffset = 0xEC;
 #endif
 
 	class ExtData final : public Extension<TiberiumClass>
@@ -27,6 +27,7 @@ public:
 		Nullable<ColorStruct> MinimapColor;
 		Valueable<bool> EnableLighningFix;
 		Valueable<bool> UseNormalLight;
+		int Replaced_EC;
 
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
@@ -36,6 +37,7 @@ public:
 			, MinimapColor {}
 			, EnableLighningFix { true } //TODO : default to true
 			, UseNormalLight { true }
+			, Replaced_EC { 0 }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -59,7 +61,7 @@ public:
 
 	static TiberiumExt::ExtData* GetExtData(base_type* pThis);
 
-	class ExtContainer final : public Container<TiberiumExt>
+	class ExtContainer final : public Container<TiberiumExt,true , true , true>
 	{
 	public:
 		ExtContainer();

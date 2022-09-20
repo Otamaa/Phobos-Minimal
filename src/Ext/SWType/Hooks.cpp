@@ -18,6 +18,7 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 	return 0;
 }
 #else
+//#include <Misc/InteractWithAres/Body.h>
 
 //Ares hooked from 0x6CC390 and jumped to this offset
 DEFINE_HOOK(0x6CDE40, SuperClass_Launch_finale, 0x3)
@@ -26,9 +27,13 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Launch_finale, 0x3)
 	GET_STACK(CellStruct const* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type))
+	if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type)){
 		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, CellClass::Cell2Coord(*pCell),isPlayer);
 
+		////if (auto pAresSWTypeExt = AresData::ContainerMap_Find::Exec(*reinterpret_cast<DWORD**>(AresData::ContainerMapData::SWTypeContainer), pSuper->Type)) {
+		////	Debug::Log("Found Ares SWTypeExt [%x] ! \n " , pAresSWTypeExt);
+		////}
+	}
 	return 0;
 }
 

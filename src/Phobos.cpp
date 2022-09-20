@@ -18,6 +18,7 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 #include <Misc/Patches.h>
+#include <Misc/InteractWithAres/Body.h>
 
 #include "Phobos.Threads.h"
 //#include "Phobos.Lua.h"
@@ -323,6 +324,10 @@ DEFINE_HOOK(0x6BB9D2, PatcherLoader_Action,0x6)
 }
 #endif
 
+static std::filesystem::path  g_target_executable_path;
+HMODULE AresData::AresDllHmodule = nullptr;
+static std::wstring Ares_dll_Fullpath;
+
 void NAKED _ExeTerminate()
 {
 	// Call WinMain
@@ -346,35 +351,17 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hModule;
-		//PhobosLua::Construct();
-		//g_target_executable_path = get_module_path(nullptr);
-		//Ares_dll_Fullpath = (g_target_executable_path.parent_path() / ARES_DLL).wstring();
-		//Phobos::AresBaseAddress = GetModuleBaseAddress(ARES_DLL_S);
 
-		//if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, Ares_dll_Fullpath.c_str(), &AresDllHmodule))
-		//{
-		//	Phobos::AresModuleExportData = enumerate_module_exports(AresDllHmodule);
-		//	Ares_BynarySize = (SIZE_T)std::filesystem::file_size(get_module_path(AresDllHmodule));
-			//Vinifera_Hooker::StartHooking(AresDllHmodule);
-			//Vinifera_Style::RegisterHooks();
-			//Patch_Call(GetAddr("CellClass_CrateBeingCollected_Armor2", 0x2D), &Ares_RecalculateStats_intercept_Armor);
-			//Patch_Call(GetAddr("CellClass_CrateBeingCollected_Firepower2", 0x2D), &Ares_RecalculateStats_intercept_FP);
-			//Patch_Call(GetAddr("CellClass_CrateBeingCollected_Speed2", 0x47), &Ares_RecalculateStats_intercept_Speed);
-		//}
-
-		//Phobos::init_Crt();
+		if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresData::AresDllHmodule))
+		{
+			Phobos::AresBaseAddress = reinterpret_cast<uint32_t>(AresData::AresDllHmodule);
+			AresData::Init();
+		}
 
 	}
 	break;
-
 	case DLL_PROCESS_DETACH:
-		//FreeConsole();
-		//PhobosLua::Destroy();
-		//MyEcs.quit();
-		//uninstall();
-		//if (AresDllHmodule) {
-		//	Vinifera_Hooker::StopHooking(AresDllHmodule);
-		//}
+		AresData::UnInit();
 		break;
 	}
 
@@ -689,7 +676,7 @@ DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
 	return 0x0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
 	REF_STACK(int, nDataSize, 0x4);
