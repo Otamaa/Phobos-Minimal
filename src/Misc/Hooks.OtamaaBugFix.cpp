@@ -421,19 +421,6 @@ DEFINE_JUMP(LJMP, 0x501640, 0x50174E)
 DEFINE_JUMP(LJMP, 0x6A55BF, 0x6A55C8)
 DEFINE_JUMP(LJMP, 0x6A57F6 , 0x6A57FF)
 
-DEFINE_HOOK(0x4FD635, HouseClass_AI_UpdatePlanOnEnemy_FixDistance, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(HouseClass*, pEnemy, EBX);
-
-	if (pThis->IsAlliedWith(pEnemy))
-		R->EAX(INT_MAX);
-	else
-		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
-
-	return 0x4FD657;
-}
-
 DEFINE_HOOK(0x5D6BE0, MPGameModeClass_StartingPositionsToHouseBaseCells_Debug, 0x7)
 {
 	Debug::Log("House count = %d", HouseClass::Array->Count);
@@ -567,7 +554,7 @@ DEFINE_HOOK(0x702484, TechnoClass_TakeDamage_AnimDebris, 0x6)
 
 DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
-	return R->ESI<TechnoClass*>()->Owner->IsPlayerControl() ? 0x70383C : 0x703828;
+	return R->ESI<TechnoClass*>()->Owner->IsControlledByCurrentPlayer() ? 0x70383C : 0x703828;
 }
 
 DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
@@ -591,7 +578,7 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	};
 
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(pThis->Owner->PlayerControl) ? BypassCheck : ContinueCheck;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(pThis->Owner->IsInPlayerControl) ? BypassCheck : ContinueCheck;
 }
 
 DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
@@ -720,7 +707,7 @@ DEFINE_HOOK(0x4FC585, HouseClass_MPlayerDefeated_3, 0x6)
 	REF_STACK(int, nHuman, 0x18);
 
 	for (auto pHouse : *HouseClass::Array) {
-		nHuman += pHouse->IsPlayerControl() && (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"));
+		nHuman += pHouse->IsControlledByCurrentPlayer() && (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"));
 	}
 
 	return 0;
@@ -803,7 +790,7 @@ DEFINE_HOOK(0x6AB63B, SelectClass_Action_UnableToBuild, 0x6)
 {
 	GET(TechnoTypeClass*, pTech, EAX);
 
-	if (HouseClass::Player()->CanBuild(pTech, 0, 0) == CanBuildResult::Buildable)
+	if (HouseClass::CurrentPlayer()->CanBuild(pTech, 0, 0) == CanBuildResult::Buildable)
 		return 0;
 
 	ClearShit(pTech);
@@ -819,7 +806,7 @@ DEFINE_HOOK(0x6A557A, SidebarClass_Init_EnableSkirmish, 0x5) //changed
 DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 {
 	GET(BuildingTypeClass*, pTech, EBX);
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 
 	const auto pFac = pHouse->GetPrimaryFactory(pTech->WhatAmI(), pTech->Naval, pTech->BuildCat);
 	if (pFac && pFac->Object->GetTechnoType() != pTech)
@@ -835,7 +822,7 @@ DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 //	GET(int, nMoney, EAX);
 //	GET(HouseClass*, pHouse, ESI);
 //
-//	if (!pHouse->IsPlayerControl())
+//	if (!pHouse->IsControlledByCurrentPlayer())
 //	{
 //		nMoney = static_cast<int>(nMoney * 100.0 / RulesGlobal->MultiplayerAICM.GetItem(static_cast<int>(pHouse->AIDifficulty)));
 //	}
@@ -843,20 +830,6 @@ DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 //	R->EAX(nMoney);
 //	return R->Origin() + 6;
 //}
-
-DEFINE_HOOK(0x7091FC , TechnoClass_CanPassiveAquire_AI , 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (!pTypeExt || (pThis->Owner && pThis->Owner->IsPlayerControl()))
-		return 0x0;
-
-	R->CL(pTypeExt->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
-	return 0x709202;
-}
 
 DEFINE_HOOK(0x6FF92F , TechnoClass_FireAt_End, 0x5)
 {
@@ -984,7 +957,7 @@ DEFINE_HOOK(0x71B14E, TemporalClass_Fire_ClearTarget, 0x9)
 	if (pTargetTemp && pTargetTemp->Target)
 		pTargetTemp->LetGo();
 
-	if(pThis->Target->Owner == HouseClass::Player())
+	if(pThis->Target->Owner == HouseClass::CurrentPlayer())
 		pThis->Target->Deselect();
 
 	return 0x71B17B;
@@ -1026,13 +999,6 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 }
 
-DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pThat, EBX);
-	return pThis && pThat->Owner && pThat->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
-}
-
 DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -1060,7 +1026,7 @@ DEFINE_HOOK(0x7397E4 , UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
 	if (SessionGlobal.GameMode != GameMode::Campaign) {
 		CurPlayer = (pHouse->CurrentPlayer);
 	} else {
-		CurPlayer = (pHouse->CurrentPlayer || pHouse->PlayerControl);
+		CurPlayer = (pHouse->CurrentPlayer || pHouse->IsInPlayerControl);
 	}
 
 	R->AL(CurPlayer);
@@ -1073,17 +1039,109 @@ DEFINE_HOOK(0x4DA64D , FootClass_Update_IsInPlayField, 0x6)
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
+//
+//DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	GET(TechnoClass*, pThat, EBX);
+//	return pThis && pThat->Owner && pThat->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
+//}
+//
+
 DEFINE_HOOK(0x51D45B , InfantryClass_Scatter_Process, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
 	if (pThis->Type->JumpJet && pThis->Type->HoverAttack) {
-		pThis->SetDestination(0, 1);
+		pThis->SetDestination(nullptr, 1);
 	} else {
 		pThis->Locomotor->Process();
 	}
 
 	return 0x51D47B;
+}
+
+DEFINE_HOOK(0x4FD635, HouseClass_AI_UpdatePlanOnEnemy_FixDistance, 0x5)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(HouseClass*, pEnemy, EBX);
+
+	if (pThis->IsAlliedWith(pEnemy))
+		R->EAX(INT_MAX);
+	else
+		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
+
+	return 0x4FD657;
+}
+
+DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (!pTypeExt || (pThis->Owner && pThis->Owner->IsControlledByCurrentPlayer()))
+		return 0x0;
+
+	R->CL(pTypeExt->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
+	return 0x709202;
+}
+
+DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
+{
+	if(Phobos::Otamaa::IsAdmin)
+		R->EAX(14);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5B3614, MissionClass_AssignMission_CheckBuilding, 0x6)
+{
+	GET(MissionClass*, pThis, ESI);
+	GET(Mission, nMission, EAX);
+
+	if (pThis->WhatAmI() == AbstractType::Building && nMission == Mission::Hunt)
+		pThis->QueuedMission = Mission::Guard;
+	else
+		pThis->QueuedMission = nMission;
+
+	return 0x5B361A;
+}
+
+//Ares Hook Here !
+//DEFINE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
+//{
+//	GET(WaveClass*, pWave, EDX);
+//
+//	int nWeapon = 0;
+//	if (pWave->Target)
+//		nWeapon = pWave->Owner->SelectWeapon(pWave->Target);
+//
+//	R->EDI(R->EAX());
+//	R->EAX(pWave->Owner->GetWeapon(nWeapon));
+//	return 0x75F39B;
+//}
+
+DEFINE_HOOK(0x6B721F, SpawnManagerClass_Manage_Clear, 0x6)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+	pThis->Target = nullptr;
+	pThis->NewTarget = nullptr;
+	pThis->Status = SpawnManagerStatus::Idle;
+	return 0x0;
+}
+
+DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
+{
+	enum { returnfalse = 0x62A976 ,
+		   continuecheck = 0x0 };
+
+	GET(FootClass*, pVictim, ESI);
+	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+
+	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
+		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : continuecheck;
 }
 
 #ifdef ENABLE_NEWHOOKS

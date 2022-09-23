@@ -11,7 +11,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 	{
 		//ToDo:
-#ifndef TANK_DISGUISE
+#ifdef TANK_DISGUISE
 		if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
 		{
 			pThis->Disguised = false;
@@ -31,10 +31,10 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 	return 0;
 }
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 //TODO : rework , and desync test
 #define CAN_BLINK_DISGUISE(pTechno) \
-RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::Player):true))
+RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsCurrentPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
 
 DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 {
@@ -156,91 +156,92 @@ static bool Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat)
 
 	return false;
 }
+//
+//static void __fastcall UnitClass_DisguiseAs_(UnitClass* pThis, ObjectClass* pTarget)
+//{
+//	if (!pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
+//		return;
+//
+//	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//
+//	if (!pTarget->IsDisguised())
+//	{
+//		if (!pExt->TankDisguiseAsTank.Get())
+//		{
+//			if (pThis->CanDisguiseAs(pTarget))
+//			{
+//				if (const auto pOverlay = specific_cast<OverlayClass*>(pTarget))
+//				{
+//					pThis->Disguise = pOverlay->Type;
+//					pThis->DisguisedAsHouse = nullptr;
+//					pThis->Techno_70E280(pTarget);
+//					return;
+//				}
+//
+//				if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
+//				{
+//					pThis->Disguise = pTerrain->Type;
+//					pThis->DisguisedAsHouse = nullptr;
+//					pThis->Techno_70E280(pTarget);
+//					return;
+//				}
+//			}
+//		}
+//		else
+//		{
+//			if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
+//			{
+//				if (Allowed(pExt, pUnit->Type))
+//				{
+//					pThis->Disguise = pUnit->Type;
+//					pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
+//					pThis->Techno_70E280(pTarget);
+//					return;
+//				}
+//			}
+//		}
+//	}
+//	else
+//	{
+//		if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
+//		{
+//			if (Allowed(pExt, pUnit->Type))
+//			{
+//				if (pUnit->Owner)
+//				{
+//					if (pUnit->Owner->IsAlliedWith(pThis->Owner))
+//					{
+//						pThis->Disguise = pUnit->Type;
+//						pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
+//						pThis->Techno_70E280(pTarget);
+//						return;
+//					}
+//				}
+//
+//				pThis->Disguise = pUnit->Disguise;
+//				pThis->DisguisedAsHouse = pUnit->DisguisedAsHouse;
+//				pThis->Techno_70E280(pTarget);
+//				return;
+//			}
+//		}
+//		else
+//		{
+//			pThis->Disguise = pTarget->GetDisguise(true);
+//			pThis->DisguisedAsHouse = pTarget->GetDisguiseHouse(true);
+//			pThis->Techno_70E280(pTarget);
+//		}
+//
+//	}
+//}
+//DEFINE_JUMP(VTABLE, 0x7F60DC, GET_OFFSET(UnitClass_DisguiseAs_));
 
-static void __fastcall UnitClass_DisguiseAs_(UnitClass* pThis, ObjectClass* pTarget)
-{
-	if (!pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
-		return;
-
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	if (!pTarget->IsDisguised())
-	{
-		if (!pExt->TankDisguiseAsTank.Get())
-		{
-			if (pThis->CanDisguiseAs(pTarget))
-			{
-				if (const auto pOverlay = specific_cast<OverlayClass*>(pTarget))
-				{
-					pThis->Disguise = pOverlay->Type;
-					pThis->DisguisedAsHouse = nullptr;
-					pThis->Techno_70E280(pTarget);
-					return;
-				}
-
-				if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
-				{
-					pThis->Disguise = pTerrain->Type;
-					pThis->DisguisedAsHouse = nullptr;
-					pThis->Techno_70E280(pTarget);
-					return;
-				}
-			}
-		}
-		else
-		{
-			if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
-			{
-				if (Allowed(pExt, pUnit->Type))
-				{
-					pThis->Disguise = pUnit->Type;
-					pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
-					pThis->Techno_70E280(pTarget);
-					return;
-				}
-			}
-		}
-	}
-	else
-	{
-		if (const auto pUnit = specific_cast<UnitClass*>(pTarget))
-		{
-			if (Allowed(pExt, pUnit->Type))
-			{
-				if (pUnit->Owner)
-				{
-					if (pUnit->Owner->IsAlliedWith(pThis->Owner))
-					{
-						pThis->Disguise = pUnit->Type;
-						pThis->DisguisedAsHouse = pUnit->GetOwningHouse();
-						pThis->Techno_70E280(pTarget);
-						return;
-					}
-				}
-
-				pThis->Disguise = pUnit->Disguise;
-				pThis->DisguisedAsHouse = pUnit->DisguisedAsHouse;
-				pThis->Techno_70E280(pTarget);
-				return;
-			}
-		}
-		else
-		{
-			pThis->Disguise = pTarget->GetDisguise(true);
-			pThis->DisguisedAsHouse = pTarget->GetDisguiseHouse(true);
-			pThis->Techno_70E280(pTarget);
-		}
-
-	}
-}
-DEFINE_JUMP(VTABLE, 0x7F60DC, GET_OFFSET(UnitClass_DisguiseAs_));
-
-/*DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
+DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pTarget, 0x4);
 
-	if (!pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
+	//pThis Can become nullptr , wtf ?
+	if (!pThis || !pTarget || pTarget->WhatAmI() == AbstractType::Infantry)
 		return 0x746714;
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
@@ -315,7 +316,7 @@ DEFINE_JUMP(VTABLE, 0x7F60DC, GET_OFFSET(UnitClass_DisguiseAs_));
 	}
 
 	return 0x746714;
-}*/
+}
 
 DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 {

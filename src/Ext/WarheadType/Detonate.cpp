@@ -278,8 +278,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (pHouse) {
 		if (this->BigGap) {
 			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [&](HouseClass* pOtherHouse) {
-				if (pOtherHouse->ControlledByHuman() &&	  // Not AI
-					!pOtherHouse->IsPlayerObserver() &&		  // Not Observer
+				if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
+					!pOtherHouse->IsCurrentPlayerObserver() &&		  // Not Observer
 					!pOtherHouse->Defeated &&			  // Not Defeated
 					pOtherHouse != pHouse &&			  // Not pThisHouse
 					!pHouse->IsAlliedWith(pOtherHouse))   // Not Allied

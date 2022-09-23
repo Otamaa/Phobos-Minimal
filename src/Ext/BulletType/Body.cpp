@@ -139,7 +139,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
 	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
 	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
-	this->PreExplodeRange.Read(exINI, pSection, "PreExplode.Range");
+	this->PreExplodeRange.Read(exINI, pSection, " ");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 	this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
 	this->IsScalable.Read(exINI, pSection, "Scalable");
@@ -281,6 +281,9 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	GET_STACK(CCINIClass*, pINI, 0x90);
 
 	BulletTypeExt::ExtMap.LoadFromINI(pItem,pINI);
+
+	// is this good idea ,..
+	// by setting this properties , this will break some BulletClass functionality ,..
 	pItem->Strength = 0;
 	pItem->Armor = Armor::None;
 

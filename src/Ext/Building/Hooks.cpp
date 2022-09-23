@@ -56,7 +56,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 	if (!pOwner)
 		return 0;
 
-	if (pOwner->IsPlayer() || pOwner->IsNeutral())
+	if (pOwner->IsCurrentPlayer() || pOwner->IsNeutral())
 		return 0;
 
 	if (pBuilding->Type->Factory == AbstractType::AircraftType) {
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 
 			if (auto const pCell = MapClass::Instance->TryGetCellAt(coords)) {
 				if(!pCell->IsFogged() && !pCell->IsShrouded()) {
-					if(pThis->VisualCharacter( 0,HouseClass::Player()) != VisualType::Hidden ) {
+					if(pThis->VisualCharacter( 0,HouseClass::CurrentPlayer()) != VisualType::Hidden ) {
 						FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
 					}
 				}

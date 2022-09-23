@@ -46,7 +46,7 @@ void Stand::CreateAndPutStand(ObjectClass* pObject, HouseClass* pHouse)
 			pStand->UpdatePlacement(PlacementType::Remove);
 			pStand->IsOnMap = false;
 			pStand->NeedsRedraw = true;
-			bool canGuard = pHouse->ControlledByHuman();
+			bool canGuard = pHouse->IsControlledByHuman();
 			if (pStand->WhatAmI() == AbstractType::Building)
 			{
 				isBuilding = true;

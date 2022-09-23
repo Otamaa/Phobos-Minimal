@@ -230,10 +230,10 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 			return 0x0;
 
 		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-			Map.ScreenShakeX = abs(ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+		GeneralUtils::CalculateShakeVal(Map.ScreenShakeX ,ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 
 		if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-			Map.ScreenShakeY = abs(ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+		GeneralUtils::CalculateShakeVal(Map.ScreenShakeY , ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
 	}
 
 	return 0;
@@ -354,7 +354,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 //	if (FootClass* pFoot = abstract_cast<FootClass*>(pThis))
 //	{
 //		if (pFoot->Team != nullptr
-//			|| !pFoot->Owner->ControlledByHuman()
+//			|| !pFoot->Owner->IsControlledByHuman()
 //			|| pTarget->IsStrange()
 //			|| pTarget->WhatAmI() != AbstractType::Building
 //			|| pTarget->GetTurretWeapon() && pTarget->GetTurretWeapon()->WeaponType != nullptr && pTarget->GetThreatValue())

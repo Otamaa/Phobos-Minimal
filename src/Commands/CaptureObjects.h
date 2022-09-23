@@ -49,25 +49,25 @@ public:
 			if (!object || !(object->AbstractFlags & AbstractFlags::Techno))
 				return;
 
-			if (object->GetOwningHouse() == HouseClass::Player())
+			if (object->GetOwningHouse() == HouseClass::CurrentPlayer())
 				return;
 
 			if(TechnoClass* techno = abstract_cast<TechnoClass*>(object))
-				techno->SetOwningHouse(HouseClass::Player());
+				techno->SetOwningHouse(HouseClass::CurrentPlayer());
 
 		});
 
 		if (!Given) {
-			HouseClass::Player()->TransactMoney(10000000);
+			HouseClass::CurrentPlayer()->TransactMoney(10000000);
 			Given = true;
 		}
 
-		if (!HouseClass::Player->Visionary)
+		if (!HouseClass::CurrentPlayer->Visionary)
 		{
-			HouseClass::Player->Visionary = 1;
+			HouseClass::CurrentPlayer->Visionary = 1;
 			MapClass::Instance->CellIteratorReset();
 			for (auto i = MapClass::Instance->CellIteratorNext(); i; i = MapClass::Instance->CellIteratorNext())
-				RadarClass::Instance->MapCell(&i->MapCoords, HouseClass::Player);
+				RadarClass::Instance->MapCell(&i->MapCoords, HouseClass::CurrentPlayer);
 
 			GScreenClass::Instance->MarkNeedsRedraw(1);
 		}

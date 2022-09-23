@@ -480,9 +480,9 @@ void TechnoExt::DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeE
 	Point3D selectbrdFrame = pTypeExt->SelectBrd_Frame.Get(glbSelectbrdFrame);
 
 	auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExt::Global()->SelectBrd_DefaultTranslucentLevel.Get()));
-	auto const canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::Player) :
-		pThis->Owner->IsAlliedWith(HouseClass::Player)
-		|| HouseClass::IsPlayerObserver()
+	auto const canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
+		pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
+		|| HouseClass::IsCurrentPlayerObserver()
 		|| pTypeExt->SelectBrd_ShowEnemy.Get(RulesExt::Global()->SelectBrd_DefaultShowEnemy.Get());
 
 	vOfs = pTypeExt->SelectBrd_DrawOffset.Get(isInfantry ?
@@ -528,7 +528,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	auto pTechnoType = pThis->GetTechnoType();
 	auto pOwner = pThis->Owner;
 
-	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player))
+	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 	{
 		//check the proper type before casting , duh
 		if (auto const pType = type_cast<TechnoTypeClass*>(pThis->Disguise))
@@ -536,7 +536,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 			pTechnoType = pType;
 			pOwner = pThis->DisguisedAsHouse;
 		}
-		else if (!pOwner->IsAlliedWith(HouseClass::Player) && !HouseClass::IsPlayerObserver())
+		else if (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !HouseClass::IsCurrentPlayerObserver())
 		{
 			return;
 		}
@@ -544,8 +544,8 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 
 	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
 
-	bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::Player))
-		|| HouseClass::IsPlayerObserver()
+	bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
+		|| HouseClass::IsCurrentPlayerObserver()
 		|| pExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
 
 	if (!isVisibleToPlayer)
@@ -677,7 +677,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	{
 		if (!pCell->IsFogged() && !pCell->IsShrouded())
 		{
-			if (pThis->VisualCharacter(0, HouseClass::Player()) != VisualType::Hidden)
+			if (pThis->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden)
 			{
 				FlyingStrings::Add(damageStr, coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
 			}
@@ -1549,16 +1549,19 @@ void TechnoExt::ExtData::CheckDeathConditions()
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 {
-	const int healthDeficit = pThis->GetTechnoType()->Strength - pThis->Health;
+	TechnoTypeClass* pType = pThis->GetTechnoType();
+	//auto pTechnoExt = TechnoExt::ExtMap.Find(pThis);
+	//Debug::Log("Applying GainedSelfHeal For [%s][%s] \n ", AbstractClass::GetClassName(pTechnoExt->AbsType.get()), pThis->get_ID());
+	int healthDeficit = pType->Strength - pThis->Health;
 
-	if (pThis->Health && healthDeficit > 0)
+	if (healthDeficit > 0)
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
+		if (auto pExt = TechnoTypeExt::ExtMap.Find<false>(pType))
 		{
-			const bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
-			const bool isOrganic = pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit && pThis->GetTechnoType()->Organic;
-			const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
-			const auto selfHealType = pExt->SelfHealGainType.Get(defaultSelfHealType);
+			bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
+			bool isOrganic = pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit && pType->Organic;
+			auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
+			auto selfHealType = pExt->SelfHealGainType.Get(defaultSelfHealType);
 			bool applyHeal = false;
 			int amount = 0;
 
@@ -1566,7 +1569,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 			{
 			case SelfHealGainType::Infantry:
 			{
-				const int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
+				int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
 					std::clamp(RulesExt::Global()->InfantryGainSelfHealCap.Get(), 1, pThis->Owner->InfantrySelfHeal) :
 					pThis->Owner->InfantrySelfHeal;
 
@@ -1578,7 +1581,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 			break;
 			case SelfHealGainType::Units:
 			{
-				const int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
+				int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
 					std::clamp(RulesExt::Global()->UnitsGainSelfHealCap.Get(), 1, pThis->Owner->UnitsSelfHeal) :
 					pThis->Owner->UnitsSelfHeal;
 
@@ -1597,14 +1600,14 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 				if (amount >= healthDeficit)
 					amount = healthDeficit;
 
-				const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+				bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 
 				pThis->Health += amount;
 
 				if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 					|| pThis->GetHeight() < -10))
 				{
-					if (auto const pBuilding = abstract_cast<BuildingClass*>(pThis))
+					if (auto pBuilding = abstract_cast<BuildingClass*>(pThis))
 					{
 						pBuilding->UpdatePlacement(PlacementType::Redraw);
 						pBuilding->ToggleDamagedAnims(false);
@@ -1612,9 +1615,10 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 					if (pThis->WhatAmI() == AbstractType::Unit || pThis->WhatAmI() == AbstractType::Building)
 					{
-						if (const auto dmgParticle = pThis->DamageParticleSystem)
-							GameDelete<true, false>(dmgParticle);
-						//dmgParticle->UnInit();
+						if (auto dmgParticle = pThis->DamageParticleSystem){
+							dmgParticle->UnInit();
+							pThis->DamageParticleSystem = nullptr;
+						}
 					}
 				}
 			}
@@ -1670,7 +1674,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 		int nBracket = pThis->GetTechnoType()->PixelSelectionBracketDelta;
 		if (auto pFoot = generic_cast<FootClass*>(pThis->Disguise))
-			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player))
+			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 				nBracket = pFoot->GetTechnoType()->PixelSelectionBracketDelta;
 
 		switch (pThis->WhatAmI())
@@ -1893,6 +1897,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	Stm
 		//.Process(this->GenericFuctions)
 		//.Process(this->ID)
+		.Process(this->AbsType)
 		.Process(this->Shield)
 		//.Process(this->BExt)
 		.Process(this->LaserTrails)

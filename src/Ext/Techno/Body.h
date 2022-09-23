@@ -57,6 +57,7 @@ public:
 	public:
 		//EventQueue<base_type> GenericFuctions;
 		//std::string ID;
+		OptionalStruct<AbstractType, true> AbsType;
 		std::unique_ptr<ShieldClass> Shield;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
@@ -111,6 +112,7 @@ public:
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			//, GenericFuctions { }
 			//, ID { }
+			, AbsType {}
 			, Shield {}
 			//, BExt { nullptr }
 			, LaserTrails {}

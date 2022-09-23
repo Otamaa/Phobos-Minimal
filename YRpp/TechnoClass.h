@@ -599,6 +599,14 @@ public:
 		JMP_THIS(0x70E380);
 	}
 
+	bool DoOnLinked() const {
+		JMP_THIS(0x70D7E0);
+	}
+	
+	int GetElevationValue(TechnoClass* const pAgainst) const {
+		JMP_THIS(0x6F70E0);
+	}
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())
@@ -777,8 +785,8 @@ public:
 	DECLARE_PROPERTY(RecoilData, BarrelRecoil);
 	bool             IsTethered; //418
 	bool             RADIO_26_27_419;
-	bool             IsHumanControlled;
-	bool             DiscoveredByPlayer;
+	bool             IsOwnedByCurrentPlayer;
+	bool             DiscoveredByCurrentPlayer;
 	bool             DiscoveredByComputer;
 	bool             unknown_bool_41D;
 	bool             unknown_bool_41E;

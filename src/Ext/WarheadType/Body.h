@@ -11,6 +11,9 @@
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 #endif
+
+typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
+
 class WarheadTypeExt
 {
 public:
@@ -116,6 +119,7 @@ public:
 		Valueable<double> Transact_Experience_Target_Percent;
 		Valueable<bool> Transact_Experience_Target_Percent_CalcFromSource;
 		Valueable<bool> Transact_SpreadAmongTargets;
+		Valueable<bool> Transact_Experience_IgnoreNotTrainable;
 
 		Valueable<int> NotHuman_DeathSequence;
 		Nullable<bool> AllowDamageOnSelf;
@@ -263,6 +267,7 @@ public:
 			, Transact_Experience_Target_Percent { 0.0 }
 			, Transact_Experience_Target_Percent_CalcFromSource { false }
 			, Transact_SpreadAmongTargets { false }
+			, Transact_Experience_IgnoreNotTrainable { true }
 
 			, NotHuman_DeathSequence { -1 }
 			, AllowDamageOnSelf{ }
@@ -343,7 +348,7 @@ public:
 		void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);
 		void TransactOnAllUnits(std::vector<TechnoClass*>& nVec , HouseClass* pHouse, TechnoClass* pOwner);
 		int TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget);
-		std::pair<std::vector<int>, std::vector<int>>  TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets);
+		TransactData TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets);
 		int TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType);
 
 	public:

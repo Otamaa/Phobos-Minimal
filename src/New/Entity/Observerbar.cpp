@@ -9,7 +9,7 @@ class ObserverBar
 	{
 		if (!ShowObserverBar)
 			return;
-		auto const pCurPlayer = HouseClass::Player();
+		auto const pCurPlayer = HouseClass::CurrentPlayer();
 
 		if (pCurPlayer->IsPlayerObserver())
 		{

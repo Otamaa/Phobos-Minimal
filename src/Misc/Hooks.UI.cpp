@@ -71,8 +71,8 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 {
 	if (Phobos::UI::ShowHarvesterCounter)
 	{
-		auto pPlayer = HouseClass::Player();
-		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::Player->SideIndex));
+		auto pPlayer = HouseClass::CurrentPlayer();
+		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));
 		wchar_t counter[0x20];
 		auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
 		auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
@@ -96,12 +96,12 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 
 	if (Phobos::UI::ShowPowerDelta)
 	{
-		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::Player->SideIndex));
+		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));
 		wchar_t counter[0x20];
-		auto delta = HouseClass::Player->PowerOutput - HouseClass::Player->PowerDrain;
+		auto delta = HouseClass::CurrentPlayer->PowerOutput - HouseClass::CurrentPlayer->PowerDrain;
 
-		const double percent = HouseClass::Player->PowerOutput != 0
-			? (double)HouseClass::Player->PowerDrain / (double)HouseClass::Player->PowerOutput : HouseClass::Player->PowerDrain != 0
+		const double percent = HouseClass::CurrentPlayer->PowerOutput != 0
+			? (double)HouseClass::CurrentPlayer->PowerDrain / (double)HouseClass::CurrentPlayer->PowerOutput : HouseClass::CurrentPlayer->PowerDrain != 0
 			? Phobos::UI::PowerDelta_ConditionRed*2.f : Phobos::UI::PowerDelta_ConditionYellow;
 
 		const ColorStruct clrToolTip = percent < Phobos::UI::PowerDelta_ConditionYellow

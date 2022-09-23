@@ -41,7 +41,7 @@ public:
 			MessageListClass::Instance->PrintMessage(
 				pMessage,
 				RulesClass::Instance->MessageDelay,
-				HouseClass::Player->ColorSchemeIndex,
+				HouseClass::CurrentPlayer->ColorSchemeIndex,
 				true
 			);
 		};

@@ -228,7 +228,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 void ShieldClass::ResponseAttack() const
 {
-	if (this->Techno->Owner != HouseClass::Player)
+	if (this->Techno->Owner != HouseClass::CurrentPlayer)
 		return;
 
 	if (this->Techno->WhatAmI() == AbstractType::Building)

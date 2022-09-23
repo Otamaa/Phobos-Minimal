@@ -362,13 +362,16 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_FlyingStrings, 0x7)
 	return 0;
 }
 
+//crash ?
 DEFINE_HOOK(0x6FA793, TechnoClass_AI_SelfHealGain, 0x5)
 {
 	enum { SkipGameSelfHeal = 0x6FA941 };
 
 	GET(TechnoClass*, pThis, ESI);
 
-	TechnoExt::ApplyGainedSelfHeal(pThis);
+	if (pThis && pThis->Health > 0 && pThis->IsAlive && !pThis->InLimbo && !pThis->IsSinking) {
+		TechnoExt::ApplyGainedSelfHeal(pThis);
+	}
 
 	return SkipGameSelfHeal;
 }
@@ -418,7 +421,8 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
 DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
 {
-	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE };
+	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE , ContinueFunc = 0x54BDA1 };
+
 	GET(JumpjetLocomotionClass* const, pLoco, ESI);
 	GET(FootClass* const, pLinkedTo, EDI);
 
@@ -437,11 +441,13 @@ DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
 
 			if (pThis->GetRealFacing().current().value32()  != tgtDir.value32())
 				pLoco->Facing.turn(tgtDir);
+
+			R->EAX(pTarget);
+			return EndFunction;
 		}
 	}
 
-	R->EAX(pTarget);
-	return EndFunction;
+	return ContinueFunc;
 }
 
 //#ifdef DISGUISE_HOOKS
@@ -484,8 +490,8 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	return SkipGameCode;
 }
 
-DEFINE_HOOK_AGAIN(0x6B73BE, SpawnManagerClass_AI_SpawnTimer, 0x6)
-DEFINE_HOOK(0x6B73AD, SpawnManagerClass_AI_SpawnTimer, 0x5)
+DEFINE_HOOK_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
+DEFINE_HOOK(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)
 {
 	GET(SpawnManagerClass* const, pThis, ESI);
 
@@ -671,7 +677,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSlave->GetTechnoType()))
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide) {
-			auto nStr = pSlave->Health;
+			auto nStr = pSlave->Health * 2;
 			pSlave->ReceiveDamage(&nStr, 0, RulesGlobal->C4Warhead, nullptr, true, true, nullptr);
 			return LoopCheck;
 		}
@@ -734,7 +740,7 @@ DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type)) {
-		if (pTypeExt && pThis->IsHumanControlled && !pThis->Type->UndeploysInto)
+		if (pTypeExt && pThis->IsOwnedByCurrentPlayer && !pThis->Type->UndeploysInto)
 			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
 
 		return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
@@ -781,7 +787,7 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_54BFF0_UpdateSensors, 0x7)
 
 	if (pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
-		pLinkedTo->AddSensorsAt(CellStruct::Empty);
+		pLinkedTo->AddSensorsAt(currentCell);
 	}
 
 	return 0;

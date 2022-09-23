@@ -30,6 +30,47 @@ public:
 	static std::vector<CellStruct> AdjacentCellsInRange(unsigned int range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
+	static int GetValue(int a1)
+	{
+		int result = 0;
+
+		if (a1)
+		{
+			while (1)
+			{
+				a1 >>= 1;
+				if (!a1)
+					break;
+				++result;
+			}
+		}
+
+		return result;
+	}
+
+	static void CalculateShakeVal(int& pShakeVal, int nInput)
+	{
+		int v4 = nInput;
+		if (pShakeVal < 0)
+		{
+			v4 = -nInput;
+			if (-nInput >= pShakeVal)
+				return;
+		}
+		else if (nInput <= pShakeVal)
+		{
+			return;
+		}
+
+		int v7 = v4;
+		int v6 = v7;
+
+		if (Random2Global.RandomBool())
+			v6 = -v7;
+
+		pShakeVal = v6;
+	}
+
 	static std::string IntToDigits(int num)
 	{
 		std::string sDigits;
@@ -62,19 +103,19 @@ public:
 	// Weighted random element choice (weight) - roll for one.
 	// Takes a vector of integer type weights, which are then summed to calculate the chances.
 	// Returns chosen index or -1 if nothing is chosen.
-	static inline int ChooseOneWeighted(const double& dice, const std::vector<int>* weights)
+	static inline int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
 	{
 		float sum = 0.0;
 		float sum2 = 0.0;
 
-		std::for_each(weights->begin(), weights->end(), [&sum](auto const weights) { sum += weights; });
+		std::for_each(weights.begin(), weights.end(), [&sum](auto const weights) { sum += weights; });
 
 		//for (size_t i = 0; i < weights->size(); i++)
 		//	sum += (*weights)[i];
 
-		for (size_t i = 0; i < weights->size(); i++)
+		for (size_t i = 0; i < weights.size(); i++)
 		{
-			sum2 += (*weights)[i];
+			sum2 += weights[i];
 			if (dice < (sum2 / sum))
 				return i;
 		}

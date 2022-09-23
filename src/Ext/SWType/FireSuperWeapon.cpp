@@ -72,7 +72,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 		pBuildingExt->LimboID = ID;
 }
 
-void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsPlayer)
+void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsCurrentPlayer)
 {
 	if(!pHouse) {
 		Debug::Log("SW[%x] Trying To execute %s with nullptr HouseOwner ! \n" , pSW , "FireSuperWeapon");
@@ -113,7 +113,7 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 				continue;
 
 			j = rolls > weights ? weights: i;
-			index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, &this->LimboDelivery_RandomWeightsData[j]);
+			index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, this->LimboDelivery_RandomWeightsData[j]);
 
 			// extra weights are bound to automatically fail
 			if (index >= this->LimboDelivery_Types.size())

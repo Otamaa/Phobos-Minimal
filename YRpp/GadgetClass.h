@@ -93,3 +93,40 @@ public:
 	bool Disabled;
 	GadgetFlag Flags;
 };
+static_assert(sizeof(GadgetClass) == 0x24, "Invalid Size ! ");
+
+class NOVTABLE TextLabelClass : public GadgetClass
+{
+	//Destructor
+	virtual ~TextLabelClass() JMP_THIS(0x72A670);
+
+	virtual bool Draw(bool bForced) override JMP_THIS(0x72A4A0);
+
+	void Set_Text(wchar_t *a2) {
+	  this->Text = a2;
+	}
+
+	TextLabelClass(int txt, int x, int y, int color, TextPrintType style) noexcept
+		: TextLabelClass(noinit_t()) { JMP_THIS(0x72A440); }
+
+protected:
+	explicit __forceinline TextLabelClass(noinit_t)  noexcept
+		: GadgetClass(noinit_t())
+	{ }
+
+	//Properties
+public:
+ void* UserData1;
+ void* UserData2;
+  DWORD Style;
+  wchar_t *Text;
+  DWORD Color;
+  DWORD PixWidth;
+  DWORD anim_dword3C;
+  bool SkipDraw;
+  bool Animate;
+  DWORD anim_pos44;
+  DWORD anim_timing48;
+};
+
+static_assert(sizeof(TextLabelClass) == 0x4C , "Invalid Size ! ");

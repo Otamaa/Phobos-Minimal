@@ -79,7 +79,6 @@ DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 	return 0;
 }
 
-
 DEFINE_HOOK(0x521AEC, InfantryClass_Load_Suffix, 0x6)
 {
 	InfantryExt::ExtMap.LoadStatic();

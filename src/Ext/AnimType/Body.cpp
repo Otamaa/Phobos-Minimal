@@ -114,8 +114,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ShouldFogRemove.Read(exINI, pID, "ShouldFogRemove");
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem");
 
-	if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
-		AttachedSystem = nullptr;
+	//if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
+	//	AttachedSystem = nullptr;
 
 #pragma endregion
 }

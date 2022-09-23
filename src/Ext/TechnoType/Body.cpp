@@ -896,7 +896,10 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	GET(TechnoTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x380);
 
-	TechnoTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	if (auto ptr = TechnoTypeExt::ExtMap.Find(pItem)){
+		ptr->LoadFromINI(pINI);
+	}
+
 	return 0;
 }
 

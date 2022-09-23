@@ -254,42 +254,53 @@ namespace Drawing
 	}
 }
 
+struct BufferData
+{
+	int BufferPosition;
+	BSurface* Surface;
+	int BufferHead;
+	int BufferTail;
+	int BufferSize;
+	int MaxValue;
+	int Width;
+	int Height;
+};
+
 //A few preset 16bit colors.
-class ABuffer
+class NOVTABLE ABuffer
 {
 public:
 	static constexpr reference<ABuffer*, 0x87E8A4u> const Instance {};
 
-	ABuffer(RectangleStruct rect)
-	{
-		JMP_THIS(0x410CE0);
-	}
+	ABuffer(RectangleStruct rect) { JMP_THIS(0x410CE0); }
+	~ABuffer() { JMP_THIS(0x410E50); }
 
-	int Unoffset(int pos) const { return BufferOffset - pos; }
-	void Copy_To(BSurface* surface, int x, int y, int w, int h) JMP_THIS(0x410DC0);
-	void Set(unsigned int dst, int size, unsigned value) JMP_THIS(0x410E70);
-	void Pan(int x_speed, int y_speed, unsigned value) JMP_THIS(0x410ED0);
-	bool Fill(unsigned value)  JMP_THIS(0x4112D0);
-	bool Fill(unsigned value, RectangleStruct a2) JMP_THIS(0x411310);
-	void Update(int x, int y, int w, int h) JMP_THIS(0x411330);
-	unsigned int Get_Buffer_Offset(Point2D pos) JMP_THIS(0x4114B0);
-	BSurface* Get_Surface() const { return SurfacePtr; }
-	const RectangleStruct& Get_Area() const { return Area; }
-	unsigned int Get_Buffer_Width() const { return BufferWidth; }
+	int Unoffset(int pos) const { return BufferPosition - pos; }
+	bool BlitTo(Surface* pSurface, int X, int Y, int Offset, int Size) { JMP_THIS(0x410DC0); }
+	void ReleaseSurface() JMP_THIS(0x410E50);
+	void Blitter(unsigned short* Data, int Length, unsigned short Value) { JMP_THIS(0x410E70); }
+	void BlitAt(int X, int Y, COLORREF Color) { JMP_THIS(0x410ED0); }
+	bool Fill(unsigned short Color) { JMP_THIS(0x4112D0); }
+	bool FillRect(unsigned short Color, RectangleStruct Rect) { JMP_THIS(0x411310); }
+	void BlitRect(RectangleStruct Rect) { JMP_THIS(0x411330); }
+	void* GetBuffer(int X, int Y) { JMP_THIS(0x4114B0); }
+	BSurface* GetSurface() const { return Surface; }
+	const RectangleStruct& GetArea() const { return Area; }
+	unsigned int GetBufferWidth() const { return Width; }
 
 public:
 	RectangleStruct Area;
-	unsigned int SurfaceOffset;
-	BSurface* SurfacePtr;
-	unsigned int BufferStart;
-	unsigned int BufferEnd;
-	unsigned int BufferSize;
-	unsigned int BufferOffset;
-	unsigned int BufferWidth;
-	unsigned int BufferHeight;
+	int BufferPosition;
+	BSurface* Surface;
+	int BufferHead;
+	int BufferTail;
+	int BufferSize;
+	int MaxValue;
+	int Width;
+	int Height;
 };
 
-class ZBuffer
+class NOVTABLE ZBuffer
 {
 public:
 
@@ -298,26 +309,27 @@ public:
 	ZBuffer(RectangleStruct rect) JMP_THIS(0x7BC970);;
 	~ZBuffer() JMP_THIS(0x7BCAE0);
 
-	int Unoffset(int pos) const { return BufferOffset - pos; }
-	void Copy_To(BSurface* surface, int x, int y, int w, int h) JMP_THIS(0x7BCA50);
-	void Set(unsigned int dst, int size, unsigned value) JMP_THIS(0x7BCAF0);
-	void Pan(int x_speed, int y_speed, unsigned value) JMP_THIS(0x7BCB50);
-	bool Fill(unsigned value) JMP_THIS(0x7BCF50);
-	bool Fill(unsigned value, RectangleStruct a2) JMP_THIS(0x7BCF90);
-	void Update(int x, int y, int w, int h) JMP_THIS(0x7BCFB0);
-	unsigned int Get_Buffer_Offset(Point2D pos) JMP_THIS(0x7BD130);
-	BSurface* Get_Surface() const { return SurfacePtr; }
-	const RectangleStruct& Get_Area() const { return Area; }
-	unsigned int Get_Buffer_Width() const { return BufferWidth; }
+	int Unoffset(int pos) const { return  BufferPosition - pos; }
+	bool BlitTo(Surface* pSurface, int X, int Y, int Offset, int Size) { JMP_THIS(0x7BCA50); }
+	void ReleaseSurface() { JMP_THIS(0x7BCAE0); }
+	void Blitter(unsigned short* Data, int Length, unsigned short Value) { JMP_THIS(0x7BCAF0); }
+	void BlitAt(int X, int Y, COLORREF Color) { JMP_THIS(0x7BCB50); }
+	bool Fill(unsigned short Color) { JMP_THIS(0x7BCF50); }
+	bool FillRect(unsigned short Color, RectangleStruct Rect) { JMP_THIS(0x7BCF90); }
+	void BlitRect(RectangleStruct Rect) { JMP_THIS(0x7BCFB0); }
+	void* GetBuffer(int X, int Y) { JMP_THIS(0x7BD130); }
+	BSurface* GetSurface() const { return Surface; }
+	const RectangleStruct& GetArea() const { return Area; }
+	unsigned int GetBuffer_Width() const { return Width; }
 
 public:
 	RectangleStruct Area;
-	unsigned int SurfaceOffset;
-	BSurface* SurfacePtr;
-	unsigned int BufferStart;
-	unsigned int BufferEnd;
-	unsigned int BufferSize;
-	unsigned int BufferOffset;
-	unsigned int BufferWidth;
-	unsigned int BufferHeight;
+	int BufferPosition;
+	BSurface* Surface;
+	int BufferHead;
+	int BufferTail;
+	int BufferSize;
+	int MaxValue;
+	int Width;
+	int Height;
 };

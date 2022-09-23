@@ -18,7 +18,7 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 	if (location->GetContainedTiberiumValue() > 0)
 	{
-		if (auto const pTibExt = TiberiumExt::GetExtData(TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex())))
+		if (auto const pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex())))
 		{
 			if (!ScenarioClass::Instance->Random(0, pTibExt->GetTwinkleChance() - 1))
 			{
@@ -356,6 +356,8 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 	return 0x0;
 }
 
+//the anim trying to play `StopSound` altho it has no type ? , wtf
+DEFINE_JUMP(LJMP , 0x4220DE , 0x42211F)
 #ifdef ENABLE_NEWHOOKS
 TODO : retest for desync
 

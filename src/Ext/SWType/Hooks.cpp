@@ -36,8 +36,10 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Launch_finale, 0x3)
 	}
 	return 0;
 }
+#endif
 
 #pragma region Otamaa
+#ifdef SW_TIMER
 //TODO : Better Code ?
 namespace SWTimerTemp {
 	SWTypeExt::ExtData* SuperExt;

@@ -1,6 +1,7 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
+//TODO : retest for desync
 DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 {
 	GET(AnimTypeClass*, pBounceAnim, ECX);
@@ -24,9 +25,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	return 0x4239D3;
 }
 
-// Bruh ,..
-DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));
-
+//TODO : retest for desync
 DEFINE_HOOK(0x423F8A, AnimClass_Spawns_Override, 0x5)
 {
 	GET(const AnimClass* const, pThis, ESI);
@@ -47,3 +46,6 @@ DEFINE_HOOK(0x423F8A, AnimClass_Spawns_Override, 0x5)
 
 	return 0x423FC6;
 }
+
+// Bruh ,..
+DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));

@@ -35,7 +35,7 @@ public:
 			, OreTwinkleChance {}
 			, Ore_TintLevel {}
 			, MinimapColor {}
-			, EnableLighningFix { true } //TODO : default to true
+			, EnableLighningFix { true }
 			, UseNormalLight { true }
 			, Replaced_EC { 0 }
 		{ }

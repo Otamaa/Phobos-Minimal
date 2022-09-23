@@ -31,7 +31,7 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 {
-	if (!pThis || !pThis->IsPlayer()) return 0;
+	if (!pThis || !pThis->IsCurrentPlayer()) return 0;
 
 	int result =
 	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis](TechnoClass* techno)
@@ -48,7 +48,7 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 
 int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 {
-	if (!pThis || !pThis->IsPlayer() || pThis->Defeated) return 0;
+	if (!pThis || !pThis->IsCurrentPlayer() || pThis->Defeated) return 0;
 
 	int result = 0;
 

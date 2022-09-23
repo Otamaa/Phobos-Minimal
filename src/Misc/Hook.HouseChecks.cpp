@@ -2,14 +2,14 @@
 
 DEFINE_HOOK(0x4A23A8, CreditClass_Graphic_Logic_ReplaceCheck, 0x8)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
 		0x4A23B0 : 0x4A24F4;
 }
 
 DEFINE_HOOK(0x4A2614, CreditClass_Graphic_AI_ReplaceCheck, 0x8)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	R->EAX(pHouse);
 	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
 		0x4A261D : 0x4A267D;
@@ -66,20 +66,20 @@ DEFINE_HOOK(0x658478, RadarClass_658330_2, 0x6)
 
 DEFINE_HOOK(0x657EE3, RadarClass_DiplomacyDialog, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ? 0x657F70 : 0x657EF2;
 }
 
 DEFINE_HOOK(0x4FCD88, HouseClass_FlagToLose, 0x5)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
 		0x4FCDA6 : 0x4FCD97;
 }
 
 DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
 		? 0x4FC2EF : 0x4FC271;
 }
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x4F9E5A, HouseClass_MakeAlly_5, 0x5)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(HouseClass*, pThat, EBP);
-	return (!pThis->IsAlliedWith(HouseClass::Player()) || !pThat->IsAlliedWith(HouseClass::Player())) ? 0x4F9EBD : 0x4F9EB1;
+	return (!pThis->IsAlliedWith(HouseClass::CurrentPlayer()) || !pThat->IsAlliedWith(HouseClass::CurrentPlayer())) ? 0x4F9EBD : 0x4F9EB1;
 }
 
 DEFINE_HOOK(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
@@ -168,7 +168,7 @@ DEFINE_HOOK(0x5C98E5, MultiplayerScore_5C98A0, 0x6)
 
 DEFINE_HOOK(0x6C6F83, SendStatisticsPacket, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
 		? 0x6C6F8B : 0x6C6F9D;
 }
@@ -205,7 +205,7 @@ DEFINE_HOOK(0x6A57EE, SidebarClass_InitIO3, 0x6)
 
 DEFINE_HOOK(0x6A6AA6, SidebarClass_Scroll, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	R->EDX(pHouse);
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A6AB0 : 0x6A6AC6;
 }
@@ -237,7 +237,7 @@ DEFINE_HOOK(0x6A7CD9, SidebarClass_Update_3, 0x6)
 DEFINE_HOOK(0x6A6B75, SidebarClass_handlestrips0, 0x6)
 {
 	R->Stack(0x10, R->EDX());
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A6B7D : 0x6A6B85;
 }
 
@@ -256,7 +256,7 @@ DEFINE_HOOK(0x6A6615, SidebarClass_togglestuff, 0x6)
 
 DEFINE_HOOK(0x6A88D2, StripClass_6A8860, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	if (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
 		R->ESI(pHouse);
 
@@ -287,7 +287,7 @@ DEFINE_HOOK(0x6A95BC, StripClass_DrawIt, 0x5)
 {
 	GET(StripClass*, pThis, ESI);
 
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	if (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
 		R->EAX(pThis->CameoCount);
 
@@ -302,7 +302,7 @@ DEFINE_HOOK(0x6AA04F, StripClass_DrawIt_2, 0x8)
 
 DEFINE_HOOK(0x6A964E, StripClass_DrawIt_3, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6AA05B : 0x6A9654;
 }
 
@@ -317,7 +317,7 @@ DEFINE_HOOK(0x6A8BB4, StripClass_Update, 0x5)
 
 DEFINE_HOOK(0x6A9038, StripClass_Update_2, 0x6)
 {
-	auto const pHouse = HouseClass::Player();
+	auto const pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A904B : 0x6A9258;
 
 }
@@ -348,7 +348,7 @@ DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
 
 DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
 {
-	const auto pHouse = HouseClass::Player();
+	const auto pHouse = HouseClass::CurrentPlayer();
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x70DADC : 0x0;
 }
 

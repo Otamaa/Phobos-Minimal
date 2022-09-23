@@ -90,6 +90,19 @@ public:
 	void ScaleZ(float factor) { JMP_THIS(0x5AEB20); }
 	void ShearYZ(float y, float z) { JMP_THIS(0x5AEB50); }
 	void ShearXY(float x, float y) { JMP_THIS(0x5AEBA0); }
+	void Shear_YZ(float y, float z)
+	{
+		this->row[0][0] = y * this->row[0][1] + z * this->row[0][2] + this->row[0][0];
+		this->row[1][0] = y * this->row[1][1] + z * this->row[1][2] + this->row[1][0];
+		this->row[2][0] = y * this->row[2][1] + z * this->row[2][2] + this->row[2][0];
+	}
+
+	void Shear_XY(float x, float y)
+	{
+		this->row[0][2] = x * this->row[0][0] + y * this->row[0][1] + this->row[0][2];
+		this->row[1][2] = x * this->row[1][0] + y * this->row[1][1] + this->row[1][2];
+		this->row[2][2] = x * this->row[2][0] + y * this->row[2][1] + this->row[2][2];
+	}
 	void ShearXZ(float x, float z) { JMP_THIS(0x5AEBF0); }
 	void PreRotateX(float theta) { JMP_THIS(0x5AEC40); }
 	void PreRotateY(float theta) { JMP_THIS(0x5AED50); }

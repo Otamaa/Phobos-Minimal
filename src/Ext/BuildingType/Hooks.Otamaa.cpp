@@ -254,7 +254,7 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);
 
-	if (!pHouse->ControlledByHuman() && !pHouse->IsNeutral()) {
+	if (!pHouse->IsControlledByHuman() && !pHouse->IsNeutral()) {
 		for (auto& nNodes : pHouse->Base.BaseNodes) {
 			auto nIdx = nNodes.BuildingTypeIndex;
 			if (nIdx >= 0) {

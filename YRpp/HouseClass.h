@@ -219,7 +219,7 @@ public:
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<HouseClass*>, 0xA80228u> const Array{};
 
-	static constexpr reference<HouseClass*, 0xA83D4Cu> const Player{};
+	static constexpr reference<HouseClass*, 0xA83D4Cu> const CurrentPlayer{};
 	static constexpr reference<HouseClass*, 0xAC1198u> const Observer{};
 
 	//IConnectionPointContainer
@@ -418,7 +418,7 @@ public:
 		{ JMP_STD(0x502D30); }
 	static HouseClass * __fastcall FindByIndex(int idxHouse) // find house at given index
 		{ JMP_STD(0x510ED0); }                    // 0..15 map to ScenarioClass::HouseIndices, also supports PlayerAtA and up
-		
+
 	static signed int __fastcall FindIndexByName(const char *name)
 		{ JMP_STD(0x50C170); }
 
@@ -509,10 +509,10 @@ public:
 		{ JMP_THIS(0x505360); }
 
 	// whether any human player controls this house
-	bool ControlledByHuman() const { // { JMP_THIS(0x50B730); }
+	bool IsControlledByHuman() const { // { JMP_THIS(0x50B730); }
 		bool result = this->CurrentPlayer;
 		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || this->PlayerControl;
+			result = result || this->IsInPlayerControl;
 		}
 		return result;
 	}
@@ -520,9 +520,9 @@ public:
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer() const { // { JMP_THIS(0x50B6F0); }
 		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
-			return this->IsPlayer();
+			return this->IsCurrentPlayer();
 		}
-		return this->CurrentPlayer || this->PlayerControl;
+		return this->CurrentPlayer || this->IsInPlayerControl;
 	}
 
 	// Target ought to be Object, I imagine, but cell doesn't work then
@@ -761,15 +761,15 @@ public:
 	}
 
 	// whether this house is equal to Player
-	bool IsPlayer() const {
-		return this == Player;
+	bool IsCurrentPlayer() const {
+		return this == CurrentPlayer;
 	}
 
-	bool IsPlayerControl() const //{ JMP_THIS(0x50B730); }
+	bool IsControlledByCurrentPlayer() const //{ JMP_THIS(0x50B730); }
 	{
 		bool result = CurrentPlayer;
 		if (SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || PlayerControl;
+			result = result || IsInPlayerControl;
 		}
 
 		return result;
@@ -781,8 +781,8 @@ public:
 	}
 
 	// whether Player is equal to Observer
-	static bool IsPlayerObserver() {
-		return Player && Player->IsObserver();
+	static bool IsCurrentPlayerObserver() {
+		return CurrentPlayer && CurrentPlayer->IsObserver();
 	}
 
 	int CalculateCostMultipliers()
@@ -909,8 +909,8 @@ public:
 	//}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
-	bool                  CurrentPlayer;		//is controlled by the player at this computer ,IsHuman
-	bool                  PlayerControl;		//a human controls this House
+	bool                  IsHumanPlayer;		//is controlled by the player at this computer ,IsHuman
+	bool                  IsInPlayerControl;		//a human controls this House
 	bool                  Production;		//AI production has begun
 	bool                  AutocreateAllowed;
 	bool			      NodeLogic_1F0;

@@ -57,7 +57,6 @@ void InfantryTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-
 InfantryTypeExt::ExtContainer::ExtContainer() : Container("InfantryTypeClass") { }
 InfantryTypeExt::ExtContainer::~ExtContainer() = default;
 

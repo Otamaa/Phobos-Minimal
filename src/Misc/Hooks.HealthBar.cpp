@@ -230,7 +230,7 @@ namespace DrawHeathData
 		const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
 		bool IsDisguised = false;
 
-		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player) && pDisguise)
+		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer) && pDisguise)
 		{
 			pType = pDisguise;
 			const auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) : nullptr;

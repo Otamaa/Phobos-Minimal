@@ -299,6 +299,9 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	auto pExt = TechnoExt::ExtMap.Find<false> (pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
+	//if (pExt->AbsType.empty() || pExt->AbsType == AbstractType::None)
+	//	pExt->AbsType = pThis->WhatAmI();
+
 	//if(AresData::AresDllHmodule != nullptr) {
 	//	auto pGGI = TechnoTypeClass::Find("GGI");
 
@@ -540,7 +543,7 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 				{
 					if (!pThis->Occupants.Count)
 					{
-						if (pThis->Owner && !pThis->Owner->IsPlayer() && !pThis->Owner->Type->MultiplayPassive)
+						if (pThis->Owner && !pThis->Owner->IsCurrentPlayer() && !pThis->Owner->Type->MultiplayPassive)
 						{
 							auto nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
 

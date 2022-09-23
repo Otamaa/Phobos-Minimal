@@ -43,3 +43,6 @@ public:
 	bool MCVRedeploy;
 	wchar_t MapDescription[45];
 };
+
+typedef GameModeOptionsClass GameOptionsType ;
+static_assert(sizeof(GameModeOptionsClass) == 0x12C, "Invalid Size !");

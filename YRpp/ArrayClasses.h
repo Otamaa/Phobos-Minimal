@@ -4,6 +4,19 @@
 
 #include <algorithm>
 
+struct __declspec(align(4)) DummyDynamicVectorClass
+{
+	void* vftble;
+	void** Vector_Item;
+	int VectorMax;
+	char IsValid;
+	char IsAllocated;
+	char VectorClassPad[2];
+	int ActiveCount;
+	int GrowthStep;
+};
+
+static_assert(sizeof(DummyDynamicVectorClass) == 0x18, "Invalid Size !");
 
 //========================================================================
 //=== VectorClass ========================================================

@@ -61,7 +61,7 @@ void MCVFindBetterPlace(TechnoClass* pThis)
 {
 	if (pThis->WhatAmI() == AbstractType::Unit &&
 	pThis->GetTechnoType()->Category == Category::Support &&
-	!pThis->GetOwningHouse()->ControlledByHuman()
+	!pThis->GetOwningHouse()->IsControlledByHuman()
 		)
 	{// All mcv at the skirmish beginning is hunting
 		const auto pFoot = abstract_cast<UnitClass*>(pThis);

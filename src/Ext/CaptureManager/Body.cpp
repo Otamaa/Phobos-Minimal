@@ -229,7 +229,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 				}
 
 //#ifdef ENABLE_NEWHOOKS
-				if (abstract_cast<FootClass*>(pTarget) && pTarget->Target && pManager->Owner->IsHumanControlled) {
+				if (abstract_cast<FootClass*>(pTarget) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
 					pTarget->SetTarget(nullptr);
 					pTarget->Override_Mission(Mission::Guard, nullptr,nullptr);
 					pTarget->SetDestination(pTarget->GetCell(), true);

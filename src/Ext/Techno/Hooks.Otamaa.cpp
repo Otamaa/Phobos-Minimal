@@ -326,6 +326,20 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 	return 0x6FD0B5;
 }
 */
+
+namespace ShakeScreenHandle {
+
+void ShakeScreen(TechnoClass* pThis ,int nValToCalc , int nRules)
+{
+	if (pThis->IsOnMyView()) {
+		auto nFirst = GeneralUtils::GetValue(nValToCalc);
+		auto nSec = nFirst - GeneralUtils::GetValue(nRules) + 4;
+		GeneralUtils::CalculateShakeVal(GScreen.ScreenShakeX, nSec >> 1);
+		GeneralUtils::CalculateShakeVal(GScreen.ScreenShakeY, nSec);
+	}
+}
+
+}
 //handle everything ourself
 DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 {
@@ -334,15 +348,20 @@ DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 	if (!pBld || !pBld->Type)
 		return 0x441C39; //return 0 causing crash
 
-	auto const cost = pBld->Type->GetActualCost(pBld->Owner);
-	auto const stength = pBld->Type->Strength;
-	auto const ShakeRules = RulesGlobal->ShakeScreen;
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pBld->Type);
+	if(!pExt->DontShake.Get())
+		ShakeScreenHandle::ShakeScreen(pBld , pBld->Type->Strength,RulesGlobal->ShakeScreen);
+/*
+	auto const cost = pBld->Type->GetActualCost(pBld->Owner);
+
+	auto const stength = ;
+	auto const ShakeRules = RulesGlobal->ShakeScreen;
+
 
 	//and can be disabled manually
 	if (pExt
 		&& ShakeRules
-		&& !pExt->DontShake.Get()
+		&&
 		&& cost
 		&& cost > ShakeRules
 		&& stength
@@ -356,7 +375,7 @@ DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 			GScreen.ScreenShakeY = Random2Class::NonCriticalRandomNumber->Random() % strfactor;
 
 	}
-
+*/
 	return 0x441C39; //return 0 causing crash
 }
 
@@ -369,9 +388,15 @@ DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
 	if (!pUnit || !pUnit->Type)
 		return 0x738801;
 
-	GET(int const, UnitStreght, ECX);
-	GET(int const, Rules_Shake, EAX);
+	GET(int, UnitStreght, ECX);
+	GET(int, Rules_Shake, EAX);
 
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+
+	if(!pExt->DontShake.Get())
+		ShakeScreenHandle::ShakeScreen(pUnit , UnitStreght, Rules_Shake);
+
+/*
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
 
 	if (pExt
@@ -392,7 +417,7 @@ DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
 		if (nMin || nMax)
 			GScreen.ScreenShakeY = abs(Random2Class::NonCriticalRandomNumber->RandomRanged(nMin, nMax));
 	}
-
+*/
 	return 0x738801;
 }
 

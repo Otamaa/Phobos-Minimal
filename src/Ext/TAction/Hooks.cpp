@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 
 			pBld->IsReadyToCommence = true;
 
-			if (pThis->Param3 > 1 && SessionClass::Instance->GameMode == GameMode::Campaign && !pHouse->IsPlayerControl())
+			if (pThis->Param3 > 1 && SessionClass::Instance->GameMode == GameMode::Campaign && !pHouse->IsControlledByCurrentPlayer())
 				pBld->ShouldRebuild = true;
 
 			bCreated = true;
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x6E0D60, TActionClass_Text_Trigger, 0x6)
 			pNewOwner = pHouse->FindByCountryIndex(nNewOwner);
 	}
 
-	if (!pNewOwner || HouseClass::Player == pNewOwner)
+	if (!pNewOwner || HouseClass::CurrentPlayer == pNewOwner)
 		return 0;
 
 	R->AL(1);

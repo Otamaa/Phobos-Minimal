@@ -322,11 +322,11 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	GET(ObjectClass*, pObject, ECX);
 
-	if (!HouseClass::IsPlayerObserver()) {
+	if (!HouseClass::IsCurrentPlayerObserver()) {
 		if (auto pFoot = generic_cast<FootClass*>(pObject)) {
 			if (!pObject->IsDisguised()) {
 				if (const auto pOwnerHouse = pFoot->GetOwningHouse()) {
-					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::Player)) {
+					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer)) {
 						if (const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
 							if (!pTechnoTypeExt->EnemyUIName.Get().empty()) {
 								R->EAX(pTechnoTypeExt->EnemyUIName.Get().Text);

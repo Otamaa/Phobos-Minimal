@@ -23,20 +23,25 @@ int AddExpCustom(VeterancyStruct* vstruct, int targetCost, int exp)
 		vstruct->Add(toBeAdded);
 	}
 
+	// Prevent going above elite level of 2.0
+	if (vstruct->IsElite()) {
+		vstruct->SetElite();
+	}
 	return transffered;
 }
 
 int WarheadTypeExt::ExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType)
 {
-	if (!pTechno)
+	if (!pTechno || !pTechnoType)
 		return 0;
 
 	int transferred = 0;
 	switch (valueType)
 	{
 	case TransactValueType::Experience:
-		transferred = AddExpCustom(&pTechno->Veterancy,
-			pTechnoType ? pTechnoType->GetActualCost(pTechno->Owner) : 0, transactValue);
+	{
+		transferred = AddExpCustom(&pTechno->Veterancy,pTechnoType->GetActualCost(pTechno->Owner), transactValue);
+	}
 		break;
 	default:
 		break;
@@ -63,8 +68,9 @@ int WarheadTypeExt::ExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass*
 	return abs(percentValue) > abs(flatValue) ? percentValue : flatValue;
 }
 
-std::pair<std::vector<int>, std::vector<int>> WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
+TransactData WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets)
 {
+	TransactData allVal;
 	std::vector<int> sourceValues;
 	std::vector<int> targetValues;
 
@@ -85,7 +91,7 @@ std::pair<std::vector<int>, std::vector<int>> WarheadTypeExt::ExtData::TransactG
 		if (!pTarget)
 			return DisablepTargetCheck;
 
-		if (!pTarget->GetTechnoType()->Trainable)
+		if (!pTarget->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
 			return false;
 
 		return true;
@@ -109,7 +115,9 @@ std::pair<std::vector<int>, std::vector<int>> WarheadTypeExt::ExtData::TransactG
 
 	targetValues.push_back(targetExp / targets);
 
-	return { sourceValues,targetValues };
+	allVal.push_back({ sourceValues, targetValues, TransactValueType::Experience }) ;
+
+	return allVal;
 }
 
 void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets)
@@ -117,33 +125,44 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 	auto const pTargetType = pTarget ? pTarget->GetTechnoType() : nullptr;
 	auto const pOwnerType = pOwner ? pOwner->GetTechnoType() : nullptr;
 
-	std::pair<std::vector<int> , std::vector<int>> allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
+	TransactData allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
 
-	for (unsigned int i = 0; i < allValues.first.size(); i++) {
-		int sourceValue = allValues.first[i];
-		int targetValue = allValues.second[i];
+	for (const auto& all : allValues)
+	{
+		for (unsigned int i = 0; i < std::get<0>(all).size(); i++)
+		{
+			int sourceValue = std::get<0>(all)[i];
+			int targetValue = std::get<1>(all)[i];
+			auto nTransactType = std::get<2>(all);
 
-		// Transact (A loses B gains)
-		if (sourceValue != 0 && targetValue != 0 && targetValue * sourceValue < 0) {
-			int transactValue = abs(sourceValue) > abs(targetValue) ? abs(targetValue) : abs(sourceValue);
+			// Transact (A loses B gains)
+			if (sourceValue != 0 && targetValue != 0 && targetValue * sourceValue < 0)
+			{
+				int transactValue = abs(sourceValue) > abs(targetValue) ? abs(targetValue) : abs(sourceValue);
 
-			if (sourceValue < 0) {
-				transactValue = TransactOneValue(pOwner, pOwnerType, -transactValue, TransactValueType::Experience);
-				TransactOneValue(pTarget, pTargetType, transactValue, TransactValueType::Experience);
-			} else {
-				transactValue = TransactOneValue(pTarget, pTargetType, -transactValue, TransactValueType::Experience);
-				TransactOneValue(pOwner, pOwnerType, transactValue, TransactValueType::Experience);
+				if (sourceValue < 0)
+				{
+					transactValue = TransactOneValue(pOwner, pOwnerType, -transactValue, nTransactType);
+					TransactOneValue(pTarget, pTargetType, transactValue, nTransactType);
+				}
+				else
+				{
+					transactValue = TransactOneValue(pTarget, pTargetType, -transactValue, nTransactType);
+					TransactOneValue(pOwner, pOwnerType, transactValue, nTransactType);
+				}
+
+				return;
+			}
+			// Out-of-thin-air grants
+			if (sourceValue != 0)
+			{
+				TransactOneValue(pOwner, pOwnerType, sourceValue, nTransactType);
 			}
 
-			return;
-		}
-		// Out-of-thin-air grants
-		if (sourceValue != 0) {
-			TransactOneValue(pOwner, pOwnerType, sourceValue, TransactValueType::Experience);
-		}
-
-		if (targetValue != 0) {
-			TransactOneValue(pTarget, pTargetType, targetValue, TransactValueType::Experience);
+			if (targetValue != 0)
+			{
+				TransactOneValue(pTarget, pTargetType, targetValue, nTransactType);
+			}
 		}
 	}
 }
@@ -153,9 +172,13 @@ void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec
 	//since we are on last chain of the event , we can do these thing
 	const auto NotEligible = [this, pHouse , pOwner](TechnoClass* const pTech)
 	{
-		return !(CanDealDamage(pTech) &&
-		pTech->GetTechnoType()->Trainable &&
-		CanTargetHouse(pHouse, pTech));
+		if (!CanDealDamage(pTech))
+			return true;
+
+		if (!pTech->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
+			return true;
+
+		return CanTargetHouse(pHouse, pTech);
 	};
 
 	const auto [rFirst , rEnd] = std::ranges::remove_if(nVec, NotEligible);

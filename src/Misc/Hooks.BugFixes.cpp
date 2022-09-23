@@ -604,3 +604,40 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
 DEFINE_JUMP(LJMP,0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf
+
+// Fix unit will play crash voice when crashing after attacked by locomotor warhead
+// Author : NetsuNegi
+DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	if (pThis->IsCrashing != pThis->WasCrashingAlready)
+	{
+		if (pThis->IsCrashing)
+		{
+			pThis->Audio7.ShutUp();
+			auto const nCoord = pThis->GetCoords();
+
+			if(!pThis->IsAttackedByLocomotor){
+				const auto pType = pThis->GetTechnoType();
+
+				if (pType->VoiceCrashing != -1 && pThis->Owner->IsControlledByCurrentPlayer())
+					VocClass::PlayAt(pType->VoiceCrashing, nCoord);
+
+				if (pType->CrashingSound != -1)
+					VocClass::PlayAt(pType->CrashingSound, nCoord, &pThis->Audio7);
+
+			} else {
+				VocClass::PlayAt(RulesGlobal->ScoldSound, nCoord, &pThis->Audio7);
+			}
+
+
+		}
+		else if (pThis->__PlayingMovingSound) // done playing
+			pThis->Audio7.ShutUp();
+
+		pThis->WasCrashingAlready = pThis->IsCrashing;
+	}
+
+	return 0x4DADC8;
+}

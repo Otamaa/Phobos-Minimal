@@ -200,14 +200,16 @@ public:
 			if (pFoot->Passengers.NumPassengers > 0)
 			{
 				auto pFirst = pFoot->Passengers.FirstPassenger;
-				if (pFoot->Passengers.NumPassengers == 1) {
+				if (pFoot->Passengers.NumPassengers == 1)
+				{
 					auto pTarget = generic_cast<ObjectClass*>(pFirst->Target);
-					append("Passengers: %s , Mission %s , Target %s ", pFirst->GetTechnoType()->ID , getMissionName((int)pFirst->CurrentMission), pTarget ? pTarget->get_ID() : NONE_STR2);
+					append("Passengers: %s , Mission %s , Target %s ", pFirst->GetTechnoType()->ID, getMissionName((int)pFirst->CurrentMission), pTarget ? pTarget->get_ID() : NONE_STR2);
 				}
 				else
 				{
 					append("Passengers: %s", pFirst->GetTechnoType()->ID);
-					for (NextObject j(pFoot->Passengers.FirstPassenger->NextObject); j && abstract_cast<FootClass*>(*j); ++j) {
+					for (NextObject j(pFoot->Passengers.FirstPassenger->NextObject); j && abstract_cast<FootClass*>(*j); ++j)
+					{
 
 						auto passenger = static_cast<FootClass*>(*j);
 						append(", %s", passenger->GetTechnoType()->ID);
@@ -216,24 +218,47 @@ public:
 				append("\n");
 			}
 
-			auto pTarget = abstract_cast<ObjectClass*>(pFoot->Target);
-			auto pTargetCell = specific_cast<CellClass*>(pFoot->Target);
-			if (pTarget)
+			if (pFoot->CurrentMission == Mission::Attack
+				|| pFoot->CurrentMission == Mission::AttackMove
+				|| pFoot->CurrentMission == Mission::Hunt
+				|| pFoot->CurrentMission == Mission::Sabotage
+				|| pFoot->CurrentMission == Mission::Enter)
 			{
-				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
-			}else
-			if (pTargetCell)
+				auto pTarget = abstract_cast<ObjectClass*>(pFoot->Target);
+				auto pTargetCell = specific_cast<CellClass*>(pFoot->Target);
+				if (pTarget)
+				{
+					append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+				}
+				else
+					if (pTargetCell)
+					{
+						append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
+					}
+			}
+			else if (pFoot->CurrentMission == Mission::Move)
 			{
-				append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
+				auto pDest = abstract_cast<ObjectClass*>(pFoot->Destination);
+				auto pDestCell = specific_cast<CellClass*>(pFoot->Destination);
+				if (pDest)
+				{
+					append("Destination = %s, Distance = %d, Location = (%d, %d)\n", pDest->get_ID(), (pDest->DistanceFrom(pFoot) / 256), pDest->GetMapCoords().X, pDest->GetMapCoords().Y);
+				}
+				else
+					if (pDestCell)
+					{
+						append("Destination = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pDestCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pDestCell->MapCoords.X, pDestCell->MapCoords.Y);
+					}
 			}
 
 			append("Current HP = (%d / %d)", pFoot->Health, pType->Strength);
 
-			if(auto pTechnoExt = TechnoExt::GetExtData(pFoot)){
-			auto pShieldData = pTechnoExt->Shield.get();
+			if (auto pTechnoExt = TechnoExt::GetExtData(pFoot))
+			{
+				auto pShieldData = pTechnoExt->Shield.get();
 
-			if (pTechnoExt->CurrentShieldType && pShieldData)
-				append(", Current Shield HP = (%d / %d)", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+				if (pTechnoExt->CurrentShieldType && pShieldData)
+					append(", Current Shield HP = (%d / %d)", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 			}
 
 			if (pType->Ammo > 0)
@@ -282,18 +307,19 @@ public:
 				append("Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pBuilding) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
 			}
 			else
-			if (pTargetCell)
-			{
-				append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pBuilding->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
-			}
+				if (pTargetCell)
+				{
+					append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pBuilding->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
+				}
 
 			append("Current HP = (%d / %d)\n", pBuilding->Health, pBuilding->Type->Strength);
 
-			if(auto pTechnoExt = TechnoExt::GetExtData(pBuilding)){
-			auto pShieldData = pTechnoExt->Shield.get();
+			if (auto pTechnoExt = TechnoExt::GetExtData(pBuilding))
+			{
+				auto pShieldData = pTechnoExt->Shield.get();
 
-			if (pTechnoExt->CurrentShieldType && pShieldData)
-				append("Current Shield HP = (%d / %d)\n", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+				if (pTechnoExt->CurrentShieldType && pShieldData)
+					append("Current Shield HP = (%d / %d)\n", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 			}
 
 			display();
@@ -323,8 +349,9 @@ public:
 		for (auto pTechno : *TechnoClass::Array)
 		{
 			if (dumped) break;
-			if (pTechno->IsMouseHovering)
+			if (pTechno->IsMouseHovering){
 				dumpInfo(pTechno);
+			}
 		}
 		if (!dumped)
 			if (ObjectClass::CurrentObjects->Count > 0)

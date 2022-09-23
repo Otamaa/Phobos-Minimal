@@ -16,7 +16,7 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 
 		int nBracket = pThis->GetTechnoType()->PixelSelectionBracketDelta;
 		if (auto pFoot = generic_cast<FootClass*>(pThis->Disguise))
-			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::Player))
+			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 				nBracket = pFoot->GetTechnoType()->PixelSelectionBracketDelta;
 
 		switch (pThis->WhatAmI())

@@ -147,7 +147,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 				return 0x4FB804;
 
 			if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
-				return pThis->IsPlayer() ? 0x0 : 0x4FB804;
+				return pThis->IsCurrentPlayer() ? 0x0 : 0x4FB804;
 
 		}
 	}
@@ -161,7 +161,7 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 
 	if (pTech && (pTech->WhatAmI() == AbstractType::Building) &&
 		pTech->GetOwningHouse() &&
-		pTech->GetOwningHouse()->IsPlayer())
+		pTech->GetOwningHouse()->IsCurrentPlayer())
 	{
 		auto nSpeak = reinterpret_cast<const char*>(0x83FA80); //EVA_ConstructionComplete
 		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())) {
@@ -267,6 +267,7 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 //	return pTypeExt->Disable_C4WarheadExp.Get() ? 0x4CD9C0 : 0x0;
 //}
 
+
 static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType)
 {
 	Iterator<AnimTypeClass*> Iter;
@@ -279,7 +280,8 @@ static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType)
 
 	return Iter;
 }
-
+//
+//TODO : retest for desync
 DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
 {
 	GET(InfantryClass* const, pThis, ESI);

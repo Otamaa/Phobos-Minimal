@@ -292,6 +292,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Transact_Experience_Target_Flat.Read(exINI, pSection, "Transact.Experience.Target.Flat");
 	this->Transact_Experience_Target_Percent.Read(exINI, pSection, "Transact.Experience.Target.Percent");
 	this->Transact_Experience_Target_Percent_CalcFromSource.Read(exINI, pSection, "Transact.Experience.Target.Percent.CalcFromSource");
+	this->Transact_Experience_IgnoreNotTrainable.Read(exINI, pSection, "Transact.Experience.IgnoreNotTrainable");
+
 	this->TransactMoney_Display.Read(exINI, pSection, "TransactMoney.Display");
 	this->TransactMoney_Display_Houses.Read(exINI, pSection, "TransactMoney.Display.Houses");
 	this->TransactMoney_Display_AtFirer.Read(exINI, pSection, "TransactMoney.Display.AtFirer");
@@ -492,6 +494,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Transact_Experience_Target_Flat)
 		.Process(this->Transact_Experience_Target_Percent)
 		.Process(this->Transact_Experience_Target_Percent_CalcFromSource)
+		.Process(this->Transact_Experience_IgnoreNotTrainable)
 
 		.Process(this->NotHuman_DeathSequence)
 		.Process(this->AllowDamageOnSelf)

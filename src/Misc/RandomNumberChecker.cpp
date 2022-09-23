@@ -3,7 +3,7 @@
 #include <Ext/House/Body.h>
 
 void RandCheck::Exec() {
-	auto const pCurPlayer = HouseClass::Player();
+	auto const pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (!pCurPlayer || !HouseClass::Array->Count)
 		return;
@@ -13,14 +13,14 @@ void RandCheck::Exec() {
 	if (!pCurHouseExt)
 		return;
 
-	if (pCurPlayer->IsPlayerControl())
+	if (pCurPlayer->IsControlledByCurrentPlayer())
 		pCurHouseExt->RandomNumber = ScenarioClass::Instance->Random.Random();
 
 	std::map<DWORD, int> nCache;
 
 	for (auto const pHouse : *HouseClass::Array)
 	{
-		if (!pHouse->IsPlayerControl())
+		if (!pHouse->IsControlledByCurrentPlayer())
 			continue;
 
 		if (const auto pExt = HouseExt::ExtMap.Find(pHouse)) {

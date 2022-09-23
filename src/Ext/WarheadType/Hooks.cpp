@@ -62,10 +62,10 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		if (ShakeAllow)
 		{
 			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				Map.ScreenShakeX = abs(Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
+				GeneralUtils::CalculateShakeVal(Map.ScreenShakeX ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
 
 			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				Map.ScreenShakeY = abs(Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
+				GeneralUtils::CalculateShakeVal(Map.ScreenShakeY ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
 		}
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;

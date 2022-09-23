@@ -48,6 +48,7 @@ static void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
 		}
 	}
 }
+
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	GET(BulletClass*, pThis, EBP);

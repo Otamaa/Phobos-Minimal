@@ -40,7 +40,7 @@ void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass*
 	if (!coords || !Display || !owner)
 		return;
 
-	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::Player()))
+	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
 	{
 		wchar_t moneyStr[0x20];
 		ColorStruct color = nOverrideColor;
@@ -57,7 +57,7 @@ void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass*
 		BitFont::Instance->GetTextDimension(moneyStr, &width, &height, 120);
 		pixelOffset.X -= (width / 2);
 
-		if (owner->VisualCharacter(0, HouseClass::Player()) != VisualType::Hidden) {
+		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden) {
 			if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
 				coords.Z += 104 * pBuilding->Type->Height;
 			else
