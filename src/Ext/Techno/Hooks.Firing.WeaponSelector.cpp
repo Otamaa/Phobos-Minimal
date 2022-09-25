@@ -160,7 +160,7 @@ DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 
 	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
 	{
-		if (auto const pExt = TechnoExt::GetExtData(pThis))
+		if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
 		{
 			if (pExt->CurrentLaserWeaponIndex.empty())
 				pExt->CurrentLaserWeaponIndex = weaponIndex;

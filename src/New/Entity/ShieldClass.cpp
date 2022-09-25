@@ -49,7 +49,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 
 void ShieldClass::UpdateType()
 {
-	this->Type = TechnoExt::GetExtData(this->Techno)->CurrentShieldType;
+	this->Type = TechnoExt::ExtMap.Find(this->Techno)->CurrentShieldType;
 }
 
 template <typename T>
@@ -93,8 +93,8 @@ bool ShieldClass::Save(PhobosStreamWriter& Stm) const
 // Is used for DeploysInto/UndeploysInto
 void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 {
-	const auto pFromExt = TechnoExt::GetExtData(pFrom);
-	const auto pToExt = TechnoExt::GetExtData(pTo);
+	const auto pFromExt = TechnoExt::ExtMap.Find(pFrom);
+	const auto pToExt = TechnoExt::ExtMap.Find(pTo);
 
 	if (!pToExt || !pFromExt)
 		return;
@@ -461,7 +461,7 @@ bool ShieldClass::ConvertCheck()
 	if (CRT::strcmp(this->TechnoID.data(), newID) == 0)
 		return false;
 
-	const auto pTechnoExt = TechnoExt::GetExtData(this->Techno);
+	const auto pTechnoExt = TechnoExt::ExtMap.Find(this->Techno);
 	const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);

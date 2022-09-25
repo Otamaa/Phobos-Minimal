@@ -36,8 +36,6 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static CaptureExt::ExtData* GetExtData(base_type* pThis);
-
 	class ExtContainer final : public Container<CaptureExt>
 	{
 	public:

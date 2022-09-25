@@ -11,11 +11,6 @@
 
 BulletExt::ExtContainer BulletExt::ExtMap;
 
-BulletExt::ExtData* BulletExt::GetExtData(BulletExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
-}
-
 BulletExt::ExtData::~ExtData()
 {
 	GameDelete<true>(Trajectory);
@@ -159,7 +154,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 				if (replaceType && pWeaponOverride->Projectile != pThis->Type)
 				{
-					auto pNewProjTypeExt = BulletTypeExt::GetExtData(pWeaponOverride->Projectile);
+					auto pNewProjTypeExt = BulletTypeExt::ExtMap.Find(pWeaponOverride->Projectile);
 
 					if (!pNewProjTypeExt)
 					{

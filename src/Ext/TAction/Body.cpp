@@ -940,7 +940,7 @@ DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
 	GET(void*, target, EDX);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = TActionExt::GetExtData(pThis))
+	if (auto pExt = TActionExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;

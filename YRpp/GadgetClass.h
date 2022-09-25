@@ -106,7 +106,7 @@ class NOVTABLE TextLabelClass : public GadgetClass
 	  this->Text = a2;
 	}
 
-	TextLabelClass(int txt, int x, int y, int color, TextPrintType style) noexcept
+	TextLabelClass(int txt, int x, int y, int ColorSchemeIndex, TextPrintType style) noexcept
 		: TextLabelClass(noinit_t()) { JMP_THIS(0x72A440); }
 
 protected:
@@ -120,7 +120,7 @@ public:
  void* UserData2;
   DWORD Style;
   wchar_t *Text;
-  DWORD Color;
+  int ColorSchemeIndex;
   DWORD PixWidth;
   DWORD anim_dword3C;
   bool SkipDraw;

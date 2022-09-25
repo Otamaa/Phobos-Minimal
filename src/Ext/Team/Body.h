@@ -12,7 +12,7 @@ class TeamExt
 public:
 	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
@@ -62,9 +62,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static TeamExt::ExtData* GetExtData(base_type* pThis);
-
-	class ExtContainer final : public Container<TeamExt ,true,true,true>
+	class ExtContainer final : public Container<TeamExt
+#ifdef ENABLE_NEWHOOKS
+	,true,true,true
+#endif
+	>
 	{
 	public:
 		ExtContainer();

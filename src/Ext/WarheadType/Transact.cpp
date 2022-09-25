@@ -32,21 +32,17 @@ int AddExpCustom(VeterancyStruct* vstruct, int targetCost, int exp)
 
 int WarheadTypeExt::ExtData::TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType)
 {
-	if (!pTechno || !pTechnoType)
-		return 0;
+	if (pTechno) {
 
-	int transferred = 0;
-	switch (valueType)
-	{
-	case TransactValueType::Experience:
-	{
-		transferred = AddExpCustom(&pTechno->Veterancy,pTechnoType->GetActualCost(pTechno->Owner), transactValue);
+	switch (valueType) {
+	case TransactValueType::Experience: {
+		return AddExpCustom(&pTechno->Veterancy,
+			pTechnoType ? pTechnoType->GetActualCost(pTechno->Owner) : 0, transactValue);
+		}
+	  }
 	}
-		break;
-	default:
-		break;
-	}
-	return transferred;
+
+	return 0;
 }
 
 int WarheadTypeExt::ExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget)
@@ -79,7 +75,7 @@ TransactData WarheadTypeExt::ExtData::TransactGetSourceAndTarget(TechnoClass* pT
 		if (!pThis)
 			return DisablepThisCheck;
 
-		if (!CanDealDamage(pTarget))
+		if (!CanDealDamage(pTarget , true))
 			return IsFlipped;
 
 		if (!pThis->GetOwningHouse())
@@ -178,7 +174,7 @@ void WarheadTypeExt::ExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec
 		if (!pTech->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
 			return true;
 
-		return CanTargetHouse(pHouse, pTech);
+		return !CanTargetHouse(pHouse, pTech);
 	};
 
 	const auto [rFirst , rEnd] = std::ranges::remove_if(nVec, NotEligible);

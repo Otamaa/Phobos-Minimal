@@ -40,7 +40,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 			const auto occFlags = pCell->OccupationFlags;
 			pTechno->OnBridge = pCell->ContainsBridge();
 			++Unsorted::IKnowWhatImDoing;
-			UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), Direction::E);
+			UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
 			--Unsorted::IKnowWhatImDoing;
 
 			if (UnlimboSuccess)
@@ -154,7 +154,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 	int speed = pWeapon->GetWeaponSpeed(sourcePos, targetPos);
 	bool bright = pWeapon->Bright || pWH->Bright;
 
-	auto pBulletTypeExt = BulletTypeExt::GetExtData(pWeapon->Projectile);
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 	BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pAttacker, damage, pWH, speed, pExt->GetProjectileRange(), bright);

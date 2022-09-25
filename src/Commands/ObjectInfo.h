@@ -253,7 +253,7 @@ public:
 
 			append("Current HP = (%d / %d)", pFoot->Health, pType->Strength);
 
-			if (auto pTechnoExt = TechnoExt::GetExtData(pFoot))
+			if (auto pTechnoExt = TechnoExt::ExtMap.Find(pFoot))
 			{
 				auto pShieldData = pTechnoExt->Shield.get();
 
@@ -314,7 +314,7 @@ public:
 
 			append("Current HP = (%d / %d)\n", pBuilding->Health, pBuilding->Type->Strength);
 
-			if (auto pTechnoExt = TechnoExt::GetExtData(pBuilding))
+			if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
 			{
 				auto pShieldData = pTechnoExt->Shield.get();
 

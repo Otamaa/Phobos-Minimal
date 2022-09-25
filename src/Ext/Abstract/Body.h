@@ -343,7 +343,7 @@ protected:
 		}
 
 		// get the value data
-		extension_type_ptr buffer = T::GetExtData(key);
+		extension_type_ptr buffer = T::ExtMap.Find(key);
 		if (!buffer) {
 			Debug::Log("[SaveKey] Could not find value.\n");
 			return nullptr;
@@ -378,7 +378,7 @@ protected:
 		}
 
 		// get the value data
-		extension_type_ptr buffer = T::GetExtData(key);
+		extension_type_ptr buffer = T::ExtMap.Find(key);
 		if (!buffer) {
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");
 			return nullptr;

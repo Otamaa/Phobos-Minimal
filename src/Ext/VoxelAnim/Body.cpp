@@ -57,7 +57,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif
-	if (auto pTypeExt = VoxelAnimTypeExt::GetExtData(Get()->Type))
+	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(Get()->Type))
 	{
 		ID = Get()->Type->ID;
 		if (pTypeExt->LaserTrail_Types.size() > 0)
@@ -128,7 +128,7 @@ DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);

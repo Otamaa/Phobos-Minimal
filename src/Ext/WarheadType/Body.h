@@ -357,7 +357,7 @@ public:
 		void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords);
 		bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);
 		bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
-		bool CanDealDamage(TechnoClass* pTechno);
+		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false);
 		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 
 		virtual ~ExtData() = default;

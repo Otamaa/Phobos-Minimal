@@ -7,6 +7,7 @@
 #include <VocClass.h>
 
 #include <Ext/Techno/Body.h>
+#include <TranslateFixedPoints.h>
 
 bool GeneralUtils::IsValidString(const char* str)
 {
@@ -105,7 +106,7 @@ const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize
 		if (highest >= 3)
 		{
 			auto offset = 1u << (highest - 3);
-			index = TranslateFixedPoint(16, highest, static_cast<WORD>(pFoot->GetRealFacing().current().value()), offset);
+			index = TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pFoot->GetRealFacing().Current().GetValue<16>()), offset);
 		}
 	}
 

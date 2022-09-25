@@ -160,8 +160,6 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	_declspec(noinline) static BulletTypeExt::ExtData* GetExtData(base_type* pThis);
-
 	class ExtContainer final : public Container<BulletTypeExt
 #ifndef ENABLE_NEWEXT
 , true

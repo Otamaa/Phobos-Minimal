@@ -123,8 +123,8 @@ namespace CalculatePinch
 
 				if (pFirer->HasTurret())
 				{
-					double turretRad = pFirer->GetRealFacing().current().radians() - halfPI;
-					double bodyRad = pFirer->PrimaryFacing.current().radians() - halfPI;
+					double turretRad = pFirer->GetRealFacing().Current().GetRadians() - halfPI;
+					double bodyRad = pFirer->PrimaryFacing.Current().GetRadians() - halfPI;
 					const Matrix3D& matrix3D = Matrix3D { };
 					matrix3D.MakeIdentity();
 					matrix3D.RotateZ((float)turretRad);
@@ -221,7 +221,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(CoordStruct*, pCoord, (0x4));
-	GET_STACK(DirType, faceDir, (0x8));
+	//GET_STACK(DirType, faceDir, (0x8));
 
 	if (auto pExt = TechnoExt::ExtMap.Find<true>(pThis)) {
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {

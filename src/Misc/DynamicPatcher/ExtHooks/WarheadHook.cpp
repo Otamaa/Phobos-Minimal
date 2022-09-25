@@ -72,7 +72,7 @@ bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, Warhe
 
 void AttachEffect(ObjectClass* pVictim, AttachEffectType* aeType, ObjectClass* pAttacker, HouseClass* pAttackingHouse)
 {
-	auto pExt = TechnoExt::GetExtData((TechnoClass*)pVictim);
+	auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pVictim);
 	auto pManager = pExt->AnotherData.MyManager.get();
 
 	if (!pManager)
@@ -107,7 +107,7 @@ void ReceiveDamage_AttachEffect(ObjectClass* pVictim, int* pDamage, int distance
 	ObjectClass* pAttacker, bool ignoreDefenses, bool preventPassengerEscape, HouseClass* pAttackingHouse,
 	WarheadTypeExt::ExtData* whExt, int realDamage)
 {
-	auto pExt = TechnoExt::GetExtData((TechnoClass*)pVictim);
+	auto pExt = TechnoExt::ExtMap.Find((TechnoClass*)pVictim);
 	auto pManager = pExt->AnotherData.MyManager.get();
 
 	if (!pManager)

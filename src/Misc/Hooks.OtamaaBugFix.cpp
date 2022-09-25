@@ -1061,31 +1061,32 @@ DEFINE_HOOK(0x51D45B , InfantryClass_Scatter_Process, 0x6)
 	return 0x51D47B;
 }
 
-DEFINE_HOOK(0x4FD635, HouseClass_AI_UpdatePlanOnEnemy_FixDistance, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(HouseClass*, pEnemy, EBX);
-
-	if (pThis->IsAlliedWith(pEnemy))
-		R->EAX(INT_MAX);
-	else
-		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
-
-	return 0x4FD657;
-}
+//
+//DEFINE_HOOK(0x4FD635, HouseClass_AI_UpdatePlanOnEnemy_FixDistance, 0x5)
+//{
+//	GET(HouseClass*, pThis, ESI);
+//	GET(HouseClass*, pEnemy, EBX);
+//
+//	if (pThis->IsAlliedWith(pEnemy))
+//		R->EAX(INT_MAX);
+//	else
+//		R->EAX(pThis->BaseCenter ? pThis->BaseCenter.X : pThis->BaseSpawnCell.X);
+//
+//	return 0x4FD657;
+//}
 
 DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	if ((pThis->Owner && !pThis->Owner->IsControlledByCurrentPlayer())) {
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		R->CL(pTypeExt->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
+		return 0x709202;
+	}
 
-	if (!pTypeExt || (pThis->Owner && pThis->Owner->IsControlledByCurrentPlayer()))
-		return 0x0;
-
-	R->CL(pTypeExt->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
-	return 0x709202;
+	return 0x0;
 }
 
 DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
@@ -1143,6 +1144,288 @@ DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
 		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : continuecheck;
 }
+
+DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
+{
+	GET(SidebarClass*, pThis, ESI);
+	if (Phobos::Config::TogglePowerInsteadOfRepair)
+		pThis->SetTogglePowerMode(-1);
+	else
+		pThis->SetRepairMode(-1);
+	return 0x6A78FF;
+}
+
+DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
+	return 0x6A7AE7;
+}
+
+DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	return pTypeExt->IsDummy ? 0x70D407 : 0x0;
+}
+
+DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
+{
+	GET(AnimClass*, pMem, EAX);
+	GET(RocketLocomotionClass* const, pThis, ESI);
+	REF_STACK(CellStruct const, nCell, STACK_OFFS(0x60, 0x38));
+	REF_STACK(CoordStruct const, nCoord, STACK_OFFS(0x60, 0x18));
+	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0x60, 0x50));
+
+	GET(int, nDamage, EDI);
+
+	const auto pCell = Map.GetCellAt(nCell);
+	if (auto pAnimType = Map.SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord)) {
+		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
+		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
+	}
+	else {
+		//no constructor called , so it is safe to delete the allocated memory
+		GameDelete<false ,false>(pMem);
+	}
+
+	return 0x66328C;
+}
+
+//DEFINE_HOOK(0x6FCF3E, TechnoClass_SetTarget_CheckAccessory , 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EDI);
+//
+//	if (auto pTargetFoot = generic_cast<FootClass*>(pTarget))
+//	{
+//		auto pExt = TechnoExt::ExtMap.Find(pTargetFoot);
+//		if (pExt->Accesory)
+//				pTarget = pExt->AccesoryOwner;
+//	}
+//
+//	pThis->Target = pTarget;
+//	return 0x6FCF44;
+//}
+
+DEFINE_HOOK(0x70166E, TechnoClass_Captured, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	pThis->UpdatePlacement(PlacementType::Remove);
+	return 0x70167A;
+}
+
+DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
+{
+	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x8, -0x4));
+	R->EDI(pHouse);
+	return 0x6F09D5;
+}
+
+// ToDO : Make Optional
+DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
+{
+	GET(TeamTypeClass*, pThis, ESI);
+	GET(HouseClass*, pHouse, EDI);
+
+	Debug::Log("[%x][%s] Creating a new team named '%s'.\n", pHouse, pHouse ? pHouse->get_ID() : NONE_STR2, pThis->ID);
+	R->EAX(YRMemory::Allocate(sizeof(TeamClass)));
+	return 0x6F0A5A;
+}
+
+// ToDO : Make Optional
+DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) {
+	return 0x44DE3C;
+}
+
+// ToDO : Make Optional
+DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
+{
+	GET(FactoryClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+
+	Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
+	R->ECX(pThis->Object);
+	return 0x4CA021;
+}
+
+// ToDO : Make Optional
+DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
+{
+	GET(BuildingClass*, pThis, EDI);
+	GET(InfantryTypeClass*, pSurvivour, EAX);
+	GET(BuildingTypeClass*, pThisType, EDX);
+
+	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis , pThisType->ID,pSurvivour->ID);
+	return 0x443109;
+}
+
+DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
+{
+	GET(FootClass*, pThis , EDI);
+	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n",pThis,pThis->get_ID());
+	return 0x6E93D6;
+}
+
+DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
+{
+	GET(int, nCellX, EAX);
+	GET(int, nCellY, EDX);
+	GET(TeamClass*, pThis, ESI);
+	GET(TechnoClass*, pTechno, EDI);
+	GET(TeamTypeClass*, pTeamType, ECX);
+	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID():NONE_STR2 , nCellX , nCellY);
+	return 0x6EF9D0;
+}
+
+DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA) {
+	return 0x44961A;
+}
+
+DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA) {
+	return 0x449672;
+}
+
+#pragma region TSL_Test
+struct SHP_AlphaData
+{
+	int Width;
+	BYTE* CurPixel;
+	BYTE* CurData2;
+};
+
+void SetTSLData(DWORD TlsIdx , int nFrame ,SHPReference* pAlplhaFile)
+{
+	auto nFrameBounds = pAlplhaFile->GetFrameBounds(nFrame);
+	auto nPixel = pAlplhaFile->GetPixels(nFrame);
+	SHP_AlphaData nData;
+	nData.Width = pAlplhaFile->Width;
+	nData.CurPixel = &nPixel[nFrameBounds.X + nFrameBounds.Y * pAlplhaFile->Width];
+	TlsSetValue(TlsIdx, &nData);
+}
+
+void GetTSLData_1(DWORD TlsIdx, void* pSomePtr, int nVal_y)
+{
+	if (TlsGetValue(TlsIdx)) {
+		if (pSomePtr) {
+			if (int nX = (*(int*)((char*)pSomePtr + 0x14))) {
+				if (int nY = (*(int*)((char*)pSomePtr + 0x18))) {
+					int nWidth = 0;
+					if (nVal_y > 0)
+						nWidth = nVal_y;
+
+					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY * nWidth;
+				}
+			}
+		}
+	}
+}
+
+void GetTSLData_2(DWORD TlsIdx , int nVala , int nValb)
+{
+	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx)) {
+		if (auto nWidth = pData->Width) {
+			if (auto nData = pData->CurPixel)
+				pData->CurData2 = &nData[nVala * nWidth + nValb];
+		}
+	}
+}
+
+void GetTSLData_3(DWORD TlsIdx, int nVal)
+{
+	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx)) {
+		if (auto nWidth = pData->Width) {
+			if (auto nData2 = pData->CurData2)
+				pData->CurData2 = &nData2[nVal * nWidth];
+		}
+	}
+}
+
+void GetTSLData_4(DWORD TlsIdx, void* pSomePtr)
+{
+	if (TlsGetValue(TlsIdx))
+	{
+		if (pSomePtr)
+		{
+			if (int nX = (*(int*)((char*)pSomePtr + 0x10)))
+			{
+				if (int nY = (*(int*)((char*)pSomePtr + 0x18)))
+				{
+					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY ;
+				}
+			}
+		}
+	}
+}
+
+void GetTSLData_5(DWORD TlsIdx, int nVal)
+{
+	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx))
+	{
+		if (auto nWidth = pData->Width)
+		{
+			if (auto nData2 = pData->CurData2)
+				pData->CurData2 = &nData2[nWidth];
+		}
+	}
+}
+
+void ClearTSLData(DWORD TlsIdx)
+{
+	TlsSetValue(TlsIdx, nullptr);
+}
+
+void InitTSLData(DWORD& TslIdx)
+{
+	TslIdx = TlsAlloc();
+	if (TslIdx == -1)
+		Debug::FatalErrorAndExit("Failed to Allocate TSL Index ! \n");
+}
+#pragma endregion
+
+DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
+{
+	GET_STACK(int, nHouseIdx, 0x4);
+
+	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
+	if (pHouse && (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")))
+	{
+		R->AL(1);
+		return 0x4870DE;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
+{
+	const auto pHouse = HouseClass::CurrentPlayer();
+	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x70DADC : 0x0;
+}
+
+//DEFINE_HOOK(0x73B5B5, UnitClass_DrawVoxel_AttachmentAdjust, 0x6)
+//{
+//	enum { Skip = 0x73B5CE };
+//
+//	GET(UnitClass*, pThis, EBP);
+//	LEA_STACK(VoxelIndexKey *, pKey, STACK_OFFS(0x1C4, 0x1B0));
+//	LEA_STACK(Matrix3D* , pMtx ,STACK_OFFS(0x1C4, 0xC0));
+//	R->EAX(pThis->Locomotor.get()->Draw_Matrix(pMtx,pKey));
+//	return Skip;
+//}
+//
+//DEFINE_HOOK(0x73C864, UnitClass_drawcode_AttachmentAdjust, 0x6)
+//{
+//	enum { Skip = 0x73C87D };
+//
+//	GET(UnitClass*, pThis, EBP);
+//	LEA_STACK(VoxelIndexKey *, pKey, STACK_OFFS(0x128, 0xC8));
+//	LEA_STACK(Matrix3D* , pMtx ,STACK_OFFS(0x128, 0x30));
+//	R->EAX(pThis->Locomotor.get()->Draw_Matrix(pMtx,pKey));
+//	return Skip;
+//}
 
 #ifdef ENABLE_NEWHOOKS
 

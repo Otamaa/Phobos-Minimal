@@ -91,7 +91,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 
 			// get final target coords and cell
 			const CoordStruct crdDest = pExt->AroundTarget.Get(pExt->Splits.Get())
-				? pThis->GetTargetCoords() : pThis->GetCoords();
+				? pThis->GetBulletTargetCoords() : pThis->GetCoords();
 
 			const CellStruct cellDest = CellClass::Coord2Cell(crdDest);
 
@@ -203,7 +203,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 					{
 						pBullet->SetWeaponType(pWeapon);
 						DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 31));
-						auto const radians = dir.radians();
+						auto const radians = dir.GetRadians();
 
 						auto const sin_rad = Math::sin(radians);
 						auto const cos_rad = Math::cos(radians);
@@ -329,7 +329,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 	}
 
 	double const nFirstMag = velocity.MagnitudeXY();
-	double const radians_fromXY = dir_fromXY.radians();
+	double const radians_fromXY = dir_fromXY.GetRadians();
 	double const sin_rad = Math::sin(radians_fromXY);
 	double const cos_rad = Math::cos(radians_fromXY);
 
@@ -340,7 +340,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 	{
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
-		double const radians_foZ = dir_forZ.radians();
+		double const radians_foZ = dir_forZ.GetRadians();
 
 		double const nThirdMag = velocity.MagnitudeXY();
 		if (radians_foZ != 0.0)
@@ -372,7 +372,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
-		double const radians_foZ = dir_forZ.radians();
+		double const radians_foZ = dir_forZ.GetRadians();
 
 		double const nThirdMag = velocity.MagnitudeXY();
 		if (radians_foZ != 0.0)

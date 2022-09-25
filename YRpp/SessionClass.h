@@ -17,13 +17,14 @@ struct GameTypePreferencesStruct
 	int Credits;
 	int UnitCount;
 	bool ShortGame;
-	bool SuperWeapons;
+	bool SessionOptionsClass;
 	bool BuildOffAlly;
 	bool MCVRepacks;
 	bool CratesAppear;
-	DWORD unknown_fields[0x18];
+	Vector3D<int> SlotData[8];
 };
 
+typedef GameTypePreferencesStruct SessionOptionsClass;
 static_assert(sizeof(GameTypePreferencesStruct) == 0x7C, " Invalid Size ! ");
 
 struct PlayerData
@@ -529,16 +530,12 @@ static_assert(sizeof(SerialSettingsType) == 0x6F, " Invalid Size ! ");
 
 #pragma pack(pop)
 
-#pragma pack(push, 4)
-struct IPAddressClass
+class IPXAddressClass
 {
-	char NetworkNumber[4];
-	char NodeAddress[6];
-	BYTE pad[2];
+	unsigned char NetworkNumber[4];
+	unsigned char NodeAddress[6];
 };
-
-static_assert(sizeof(IPAddressClass) == 0xC, " Invalid Size ! ");
-#pragma pack(pop)
+typedef IPXAddressClass IPAddressClass;
 
 struct MPStatsStruct
 {
@@ -552,8 +549,6 @@ struct MPStatsStruct
 	int CommandCoundStalls;
 	IPAddressClass Address;
 };
-
-static_assert(sizeof(MPStatsStruct) == 0x68, " Invalid Size ! ");
 
 struct NatStruct
 {
@@ -616,14 +611,37 @@ public:
 	int Color2;
 	int Side;
 	int Side2;
-	GameTypePreferencesStruct SkirmishPreferences;
-	GameTypePreferencesStruct LANPreferences;
-	GameTypePreferencesStruct WOLPreferences;
-	DWORD MPlayerObiWan;
+	SessionOptionsClass Skirmish;
+	SessionOptionsClass LAN;
+	SessionOptionsClass WOL;
+	DWORD MultiplayerObserver;
 	DWORD unknown_304;
 	bool WOLLimitResolution;
 	int LastNickSlot;
-	PROTECTED_PROPERTY(DWORD, unknown_310[0xE6]);
+	int MPlayerMax;
+	int MPlayerCount;
+	int MaxAhead;
+	int FrameSendRate;
+	int DesiredFrameRate;
+	int ProcessTimer;
+	int ProcessTicks;
+	int ProcessFrames;
+	int MaxMaxAhead;
+	int PrecalcMaxAhead;
+	int PrecalcDesiredFrameRate;
+	MPStatsStruct MPStats[8];
+	bool EnableMultiplayerDebug;
+	bool DrawMPDebugStats;
+	char field_67E;
+	char field_67F;
+	int LoadGame;
+	int SaveGame;
+	char field_688;
+	bool SawCompletion;
+	bool OutOfSync;
+	char field_68B;
+	int GameVersion;
+	DynamicVectorClass<class MultiMission*> MultiMission;
 	char ScenarioFilename[0x202]; // 0x6A8
 	PROTECTED_PROPERTY(BYTE, unknown_8AA[0x1F62]);
 	DynamicVectorClass<NodeNameType*> unknown_vector_280C;

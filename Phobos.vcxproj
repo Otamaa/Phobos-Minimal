@@ -88,7 +88,6 @@
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
-    <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.TunnelSpeed.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
@@ -119,7 +118,6 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Detonate.cpp" />
-    <ClCompile Include="src\Ext\WarheadType\Hook.Remover.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
@@ -145,6 +143,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
@@ -232,7 +231,6 @@
     <ClInclude Include="src\ExtraHeaders\PriorityQueueClass.h" />
     <ClInclude Include="src\ExtraHeaders\QueueClass.h" />
     <ClInclude Include="src\ExtraHeaders\RegionClass.h" />
-    <ClInclude Include="src\ExtraHeaders\VoxelIndex.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.h" />

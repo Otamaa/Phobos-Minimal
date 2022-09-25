@@ -96,7 +96,7 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 				auto nCoord = Linked->GetCoords();
 				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord)){
 					AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, false);
-					if (auto pExt = AnimExt::GetExtData(pAnim))
+					if (auto pExt = AnimExt::ExtMap.Find(pAnim))
 						pExt->Invoker = Linked;
 				}
 			}

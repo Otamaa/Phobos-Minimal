@@ -11,7 +11,7 @@ void StraightBulletFunctional::Put(BulletClass* pBullet)
 		return;
 
 	auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
-	auto pBulletTypeExt = BulletTypeExt::GetExtData(pBullet->Type);
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 	if (!pBulletExt || !pBulletTypeExt)
 		return;

@@ -28,8 +28,8 @@ public:
 		AnimClass* AttachedAnim;
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
-			, LighSource { }
-			, AttachedAnim { }
+			, LighSource { nullptr }
+			, AttachedAnim { nullptr }
 		{ }
 
 		virtual ~ExtData() {

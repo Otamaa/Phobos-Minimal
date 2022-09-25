@@ -391,7 +391,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
 	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
 
-	this->IsHero.Read(exINI, pSection, "Hero");
+	this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
 	this->IsDummy.Read(exINI, pSection, "Dummy");
 
 	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");

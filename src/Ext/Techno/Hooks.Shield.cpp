@@ -27,22 +27,17 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	GET(TechnoClass*, pThis, ECX);
 	LEA_STACK(args_ReceiveDamage*, args, 0x4);
 
-	if (!args->IgnoreDefenses)
-	{
-		if (const auto pExt = TechnoExt::GetExtData(pThis))
-		{
-			if (auto pShieldData = pExt->GetShield())
-			{
-				if (!pShieldData->IsActive())
-					return 0;
+	if (!args->IgnoreDefenses) {
+		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
+			if (!pShieldData->IsActive())
+				return 0;
 
-				pShieldData->OnReceiveDamage(args);
+			pShieldData->OnReceiveDamage(args);
 
-				if (auto const pTag = pThis->AttachedTag)
-					pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
-						CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
+			if (auto const pTag = pThis->AttachedTag)
+				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
+					CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
 
-			}
 		}
 	}
 
@@ -82,11 +77,9 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(int*, Damage, EBX);
 
-	if (const auto pExt = TechnoExt::GetExtData(pThis))
-	{
-		if (pExt->GetShield() && pExt->GetShield()->IsActive())
-			return 0x7019E3;
-	}
+	if(auto const pShield = TechnoExt::ExtMap.Find(pThis)->GetShield())
+	  if (pShield->IsActive())
+		return 0x7019E3;
 
 	//pre fix
 	//return *Damage >= 0 ? 0x7019E3 : 0x7019DD;
@@ -99,29 +92,23 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(WeaponTypeClass*, pWeapon, regWP);\
 GET(TechnoClass*, pTarget, regTech);\
-if (auto pExt = TechnoExt::ExtMap.Find(pTarget)) {\
-	if (auto pShieldData = pExt->Shield.get()) {\
+	if (auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->Shield.get()) {\
 	if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;\
 	if (pShieldData->IsActive()) { R->EAX(pShieldData->GetType()->Armor);\
-		return R->Origin() + 6; } } } return 0;}
+		return R->Origin() + 6; } } return 0;}
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(ObjectClass*, pTarget, ESI);
 
-	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
-	{
-		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
-		{
-			if (auto pShieldData = pExt->Shield.get())
-			{
-				if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;
-				if (pShieldData->IsActive())
-				{
-					R->EAX(pShieldData->GetType()->Armor);
-					return R->Origin() + 6;
-				}
+	if (auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
+		if (auto pShieldData = TechnoExt::ExtMap.Find(pTechno)->Shield.get()) {
+			if (pShieldData->CanBePenetrated(pWeapon->Warhead)) { return 0; }
+
+			if (pShieldData->IsActive()) {
+				R->EAX(pShieldData->GetType()->Armor);
+				return R->Origin() + 6;
 			}
 		}
 	}
@@ -151,15 +138,10 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 {
 	GET(TemporalClass*, pThis, ESI);
 
-	if (auto const pTarget = pThis->Target)
-	{
-		if (const auto pExt = TechnoExt::GetExtData(pTarget))
-		{
-			if (const auto pShieldData = pExt->GetShield())
-			{
-				if (pShieldData->IsAvailable())
-					pShieldData->OnTemporalUpdate(pThis);
-			}
+	if (auto const pTarget = pThis->Target) {
+		if (const auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->GetShield()) {
+			if (pShieldData->IsAvailable())
+				pShieldData->OnTemporalUpdate(pThis);
 		}
 	}
 
@@ -171,11 +153,8 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pExt = TechnoExt::GetExtData(pThis))
-	{
-		if (const auto pShieldData = pExt->GetShield())
+	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
 			pShieldData->OnRemove();
-	}
 
 	return 0;
 }
@@ -198,18 +177,13 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //UnitCla
 double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno, void* _)
 {
 	double result = pTechno->GetHealthPercentage();
-	if (result >= 1.0)
-	{
-		if (const auto pExt = TechnoExt::GetExtData(pTechno))
-		{
-			if (const auto pShieldData = pExt->Shield.get())
-			{
-				if (pShieldData->IsActive())
-				{
-					const auto pWeapon = EvaluateObjectTemp::PickedWeapon;
-					if (!pShieldData->CanBePenetrated(pWeapon ? pWeapon->Warhead : nullptr))
-						result = pExt->Shield->GetHealthRatio();
-				}
+	if (result >= 1.0) {
+		const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+		if (const auto pShieldData = pExt->Shield.get()) {
+			if (pShieldData->IsActive()) {
+				const auto pWeapon = EvaluateObjectTemp::PickedWeapon;
+				if (!pShieldData->CanBePenetrated(pWeapon ? pWeapon->Warhead : nullptr))
+					result = pExt->Shield->GetHealthRatio();
 			}
 		}
 	}
@@ -232,17 +206,17 @@ public:
 			return;
 
 		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj)) {
-			if (const auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
-				if (const auto pShieldData = pExt->Shield.get()) {
-					if (pShieldData->IsActive()) {
+			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
-						const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) :nWeaponIndex);
+			if (const auto pShieldData = pExt->Shield.get()) {
+				if (pShieldData->IsActive()) {
 
-						if (pWeapon && pWeapon->WeaponType &&  !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead)) {
-							if (pExt->Shield->GetHealthRatio() < 1.0) {
-								LinkedObj = pObj;
-								--LinkedObj->Health;
-							}
+					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) :nWeaponIndex);
+
+					if (pWeapon && pWeapon->WeaponType &&  !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead)) {
+						if (pExt->Shield->GetHealthRatio() < 1.0) {
+							LinkedObj = pObj;
+							--LinkedObj->Health;
 						}
 					}
 				}
@@ -263,16 +237,11 @@ public:
 
 static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		if (const auto pShieldData = pExt->Shield.get())
-		{
-			if (pShieldData->IsAvailable())
-			{
-				auto const pShiedType = pShieldData->GetType();
-				if (pShiedType->ThreadPosed.isset())
-					return pShiedType->ThreadPosed.Get();
-			}
+	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->Shield.get()) {
+		if (pShieldData->IsAvailable()) {
+			auto const pShiedType = pShieldData->GetType();
+			if (pShiedType->ThreadPosed.isset())
+				return pShiedType->ThreadPosed.Get();
 		}
 	}
 

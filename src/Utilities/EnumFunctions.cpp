@@ -65,6 +65,45 @@ bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget 
 	return allowed != AffectedTarget::None ? true : false;
 }
 
+bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget const& allowed)
+{
+	if (allowed & AffectedTarget::AllContents)
+	{
+		if (pTechno)
+		{
+			switch (pTechno->WhatAmI())
+			{
+			case AbstractType::Infantry:
+				return (allowed & AffectedTarget::Infantry) != AffectedTarget::None;
+			case AbstractType::Unit:
+			{
+				if(!pTechno->GetTechnoType()->ConsideredAircraft)
+					return (allowed & AffectedTarget::Unit) != AffectedTarget::None;
+
+				return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
+			}
+			case AbstractType::Aircraft:
+					return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
+			case AbstractType::Building:
+			{
+				if ((allowed & AffectedTarget::Building) == AffectedTarget::None)
+					return false;
+
+				const BuildingClass* pBld = static_cast<BuildingClass*>(pTechno);
+
+				if (pBld->Type->InvisibleInGame)
+					return false;
+			}
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+
 bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately)
 {
 	if (!pCell)

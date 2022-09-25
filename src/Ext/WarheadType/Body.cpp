@@ -33,7 +33,7 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 	return true;
 }
 
-bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
+bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass)
 {
 	if (pTechno)
 	{
@@ -68,7 +68,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno)
 		return true;
 	}
 
-	return false;
+	return Bypass;
 }
 
 bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage)
@@ -114,33 +114,28 @@ bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno,
 
 		auto const pType = pTechno->GetTechnoType();
 
-		if (!(pTechno->IsOnMap && pTechno->IsAlive && !pTechno->InLimbo))
+		if (!pTechno->IsOnMap || !pTechno->IsAlive || pTechno->InLimbo || pTechno->IsSinking || pTechno->BeingWarpedOut || pTechno->TemporalTargetingMe || pType->Immune)
 			return false;
 
-		auto const pWhat = pTechno->WhatAmI();
-		const auto pBld = specific_cast<BuildingClass*>(pTechno);
-
-		if(!(pWhat == AbstractType::Aircraft && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
-			|| pWhat == AbstractType::Infantry && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
-			|| pWhat == AbstractType::Unit && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
-			|| (pBld && ((DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None) && !pBld->Type->InvisibleInGame)))
+		if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
 			return false;
 
-		if (pOwner && (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner)))
+		if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 			return false;
 
 		if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
 			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
-			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
-		{
+			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType)) {
 			return false;
 		}
 
 		if (this->DetonateOnAllMapObjects_RequireVerses)
 		{
 			auto nArmor = pType->Armor;
-			if (auto const pExt = TechnoExt::ExtMap.Find(pTechno))
-				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
+			auto const pExt = TechnoExt::ExtMap.Find(pTechno);
+			auto const pShield = pExt->GetShield();
+
+			if (pExt->CurrentShieldType && pShield && pShield->IsActive())
 					nArmor = pExt->CurrentShieldType->Armor;
 
 			if (fabs(GeneralUtils::GetWarheadVersusArmor(this->Get(), nArmor)) == 0.000) {

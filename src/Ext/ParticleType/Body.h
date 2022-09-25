@@ -14,7 +14,7 @@ class ParticleTypeExt
 public:
 	static constexpr size_t Canary = 0xEAEEEEEE;
 	using base_type = ParticleTypeClass;
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
@@ -44,7 +44,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleTypeExt,true,true,true>
+	class ExtContainer final : public Container<ParticleTypeExt
+#ifdef ENABLE_NEWHOOKS
+		,true,true,true
+#endif
+	>
 	{
 	public:
 		ExtContainer();

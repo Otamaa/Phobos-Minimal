@@ -104,12 +104,12 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 					if (!pBuilding && !pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 					{
 						++Unsorted::IKnowWhatImDoing;
-						success = pTechno->Unlimbo(location, resultingFacing);
+						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
 						--Unsorted::IKnowWhatImDoing;
 					}
 					else
 					{
-						success = pTechno->Unlimbo(location, resultingFacing);
+						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
 					}
 
 					if (success)
@@ -125,7 +125,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 						}
 
 						if (pTechno->HasTurret() && pExt->DeathUnitTurretFacing.has_value()){
-							pTechno->SecondaryFacing.set(pExt->DeathUnitTurretFacing.get());
+							pTechno->SecondaryFacing.Set_Desired(pExt->DeathUnitTurretFacing.get());
 						}
 
 						pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);

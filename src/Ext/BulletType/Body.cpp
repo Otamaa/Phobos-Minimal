@@ -13,14 +13,9 @@ BulletTypeExt::ExtData::~ExtData()
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
-	auto const pData = BulletTypeExt::GetExtData(pType);
+	auto const pData = BulletTypeExt::ExtMap.Find(pType);
 	auto const nGravity = pData->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
 	return pType->Floater ? nGravity * 0.5 : nGravity;
-}
-
-BulletTypeExt::ExtData* BulletTypeExt::GetExtData(BulletTypeExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
 }
 
 BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)

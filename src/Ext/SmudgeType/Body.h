@@ -11,7 +11,7 @@ class SmudgeTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
@@ -36,7 +36,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SmudgeTypeExt ,true ,true ,true>
+	class ExtContainer final : public Container<SmudgeTypeExt
+#ifdef ENABLE_NEWHOOKS
+		,true ,true ,true
+#endif
+	>
 	{
 	public:
 		ExtContainer();

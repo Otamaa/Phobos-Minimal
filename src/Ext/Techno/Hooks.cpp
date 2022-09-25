@@ -321,15 +321,19 @@ DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FD446, TechnoClass_FireLaser_IsSingleColor, 0x7)
+DEFINE_HOOK(0x6FD446, TechnoClass_LaserZap_IsSingleColor, 0x7)
 {
 	GET(WeaponTypeClass* const, pWeapon, ECX);
 	GET(LaserDrawClass* const, pLaser, EAX);
 
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
+	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+	{
 		if (!pLaser->IsHouseColor && pWeaponExt->Laser_IsSingleColor)
 			pLaser->IsHouseColor = true;
 	}
+
+	// Fixes drawing thick lasers for non-PrismSupport building-fired lasers.
+	pLaser->IsSupported = pLaser->Thickness > 3;
 
 	return 0;
 }
@@ -439,8 +443,8 @@ DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
 			CoordStruct target = pTarget->GetCoords();
 			DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
 
-			if (pThis->GetRealFacing().current().value32()  != tgtDir.value32())
-				pLoco->Facing.turn(tgtDir);
+			if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
+				pLoco->Facing.Set_Desired(tgtDir);
 
 			R->EAX(pTarget);
 			return EndFunction;

@@ -92,7 +92,7 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 
 	if (pExt && pExt->UseCenterCoordsIfAttached)
 	{
-		pCoords = pObject->GetCenterCoord(pCoords);
+		pCoords = pObject->GetRenderCoords(pCoords);
 		pCoords->X += 128;
 		pCoords->Y += 128;
 	}
@@ -134,7 +134,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
 		return Ret_SkipDamage();
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
 

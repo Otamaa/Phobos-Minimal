@@ -3,11 +3,12 @@
 
 TerrainExt::ExtContainer TerrainExt::ExtMap;
 
-void TerrainExt::ExtData::InitializeConstants() {
+void TerrainExt::ExtData::InitializeConstants()
+{
 
 }
 
-void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
+void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 	switch (abs)
@@ -26,13 +27,14 @@ void TerrainExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved)
 
 void TerrainExt::ExtData::InitializeLightSource()
 {
-	auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
-
-	if (!TypeData->LightIntensity.isset())
-		return;
-
 	if (!this->LighSource)
 	{
+		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
+
+		if (!TypeData->LightIntensity.isset())
+			return;
+
+
 		auto const nVisibility = TypeData->LightVisibility.Get();
 
 		if (!nVisibility)
@@ -43,7 +45,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 		if (auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
-			this->LighSource = std::move(light);
+			this->LighSource = light;
 			this->LighSource->Activate();
 		}
 	}

@@ -55,7 +55,7 @@ void ArtilleryTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, V
 
 	if (pBullet->Type->Inaccurate)
 	{
-		auto const pTypeExt = BulletTypeExt::GetExtData(pBullet->Type);
+		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 		const int ballisticScatter = RulesClass::Instance()->BallisticScatter;
 		const int scatterMax = pTypeExt->BallisticScatter_Max.isset() ? static_cast<int>(pTypeExt->BallisticScatter_Max.Get() * 256.0) : ballisticScatter;

@@ -7,11 +7,6 @@ CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }
 
-CaptureExt::ExtData* CaptureExt::GetExtData(CaptureExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
-}
-
 bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 {
 	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType))
@@ -303,7 +298,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);

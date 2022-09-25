@@ -694,14 +694,14 @@ enum class BehavesLike : int {
 
 
 //ParticleSystemTypeClass->HoldsWhat, almost, but not entirely, unlike eBehavesLike above
-typedef int eHoldsWhat;
-
-#define	hw_Gas		0x0
-#define	hw_Smoke		0x1
-#define	hw_Fire		0x2
-#define	hw_Spark		0x3
-#define	hw_Railgun		0x4
-
+enum class ParticleSystemHoldsWhat : int
+{
+	Gas = 0,
+	Smoke = 1,
+	Fire = 2,
+	Spark = 3,
+	Railgun = 4
+};
 
 enum class BuildCat : unsigned int {
 	DontCare = 0,
@@ -802,18 +802,26 @@ enum class AltCellFlags : unsigned int
 
 MAKE_ENUM_FLAGS(AltCellFlags);
 
-enum FacingType : char
+enum class FacingType : char
 {
-	FACING_N = 0x0,
-	FACING_NE = 0x1,
-	FACING_E = 0x2,
-	FACING_SE = 0x3,
-	FACING_S = 0x4,
-	FACING_SW = 0x5,
-	FACING_W = 0x6,
-	FACING_NW = 0x7,
-	FACING_COUNT = 0x8,
-	FACING_NONE = -1,
+	N = 0,
+	North = N,
+	NE = 1,
+	NorthEast = NE,
+	E = 2,
+	East = E,
+	SE = 3,
+	SouthEast = SE,
+	S = 4,
+	South = S,
+	SW = 5,
+	SouthWest = SW,
+	W = 6,
+	West = W,
+	NW = 7,
+	NorthWest = NW,
+	Count = 8,
+	None = -1,
 };
 
 enum class CloakState : int {
@@ -850,28 +858,6 @@ enum class CanBuildResult : int {
 	Buildable = 1, // can build
 };
 
-class Direction {
-public:
-	typedef unsigned int Value;
-	enum {
-		N = 0x0,
-		North = 0x0,
-		NE = 0x1,
-		NorthEast = 0x1,
-		E = 0x2,
-		East = 0x2,
-		SE = 0x3,
-		SouthEast = 0x3,
-		S = 0x4,
-		South = 0x4,
-		SW = 0x5,
-		SouthWest = 0x5,
-		W = 0x6,
-		West = 0x6,
-		NW = 0x7,
-		NorthWest = 0x7,
-	};
-};
 
 // this is how game's enums are to be defined from now on
 enum class FireError : int {
@@ -896,32 +882,44 @@ enum class HealthState : unsigned int {
 	Green = 2
 };
 
+enum class DirType : unsigned char
+{
+	North = 0,
+	NorthEast = 32,
+	East = 64,
+	SouthEast = 96,
+	South = 128,
+	SouthWest = 160,
+	West = 192,
+	NorthWest = 224,
+};
+MAKE_ENUM_FLAGS(DirType);
 
-typedef int eFoundation;
-
-#define	fnd_1x1		0x0
-#define	fnd_2x1		0x1
-#define	fnd_1x2		0x2
-#define	fnd_2x2		0x3
-#define	fnd_2x3		0x4
-#define	fnd_3x2		0x5
-#define	fnd_3x3		0x6
-#define	fnd_3x5		0x7
-#define	fnd_4x2		0x8
-#define	fnd_3x3Refinery		0x9
-#define	fnd_1x3		0xA
-#define	fnd_3x1		0xB
-#define	fnd_4x3		0xC
-#define	fnd_1x4		0xD
-#define	fnd_1x5		0xE
-#define	fnd_2x6		0xF
-#define	fnd_2x5		0x10
-#define	fnd_5x3		0x11
-#define	fnd_4x4		0x12
-#define	fnd_3x4		0x13
-#define	fnd_6x4		0x14
-#define	fnd_0x0		0x15
-
+enum class Foundation : int
+{
+	_1x1 = 0,
+	_2x1 = 1,
+	_1x2 = 2,
+	_2x2 = 3,
+	_2x3 = 4,
+	_3x2 = 5,
+	_3x3 = 6,
+	_3x5 = 7,
+	_4x2 = 8,
+	_3x3Refinery = 9,
+	_1x3 = 10,
+	_3x1 = 11,
+	_4x3 = 12,
+	_1x4 = 13,
+	_1x5 = 14,
+	_2x6 = 15,
+	_2x5 = 16,
+	_5x3 = 17,
+	_4x4 = 18,
+	_3x4 = 19,
+	_6x4 = 20,
+	_0x0 = 21
+};
 
 enum class GameMode : unsigned int {
 	Campaign = 0x0,
@@ -1111,18 +1109,34 @@ enum class Powerup : unsigned int {
 	Pod = 18
 };
 
-class Prerequisite {
-public:
-	typedef int Value;
-	enum {
-		Proc = -6,
-		Tech = -5,
-		Radar = -4,
-		Barracks = -3,
-		Factory = -2,
-		Power = -1
-	};
+enum class Prerequisite : int
+{
+	Proc = -6,
+	Tech = -5,
+	Radar = -4,
+	Barracks = -3,
+	Factory = -2,
+	Power = -1
 };
+
+typedef enum DirTypes
+{
+	DIR_N = 0,          // 0
+	DIR_NE = 1 << 5,    // 32
+	DIR_E = 2 << 5,     // 64
+	DIR_SE = 3 << 5,    // 96
+	DIR_S = 4 << 5,     // 128
+	DIR_SW = 5 << 5,    // 160
+	DIR_W = 6 << 5,     // 192
+	DIR_NW = 7 << 5,    // 224
+
+	DIR_MIN = 0,
+	DIR_MAX = 255,
+
+	DIR_SW_X1 = DirTypes((5 << 5) - 8),  // 152      // Direction of harvester while unloading.
+	DIR_SW_X2 = DirTypes((5 << 5) - 16), // 144      // Direction of harvester while unloading.
+} DirTypes;
+DEFINE_ENUMERATION_OPERATORS(DirTypes);
 
 enum class PrismChargeState : int {
 	Idle = 0,

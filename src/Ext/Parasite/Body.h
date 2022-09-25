@@ -14,14 +14,14 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-    class ExtData final : public Extension<ParasiteClass>
-    {
-    public:
+	class ExtData final : public Extension<ParasiteClass>
+	{
+	public:
 
 		ExtData(ParasiteClass* OwnerObject) : Extension<ParasiteClass>(OwnerObject)
-        { }
+		{ }
 
-        virtual ~ExtData() override = default;
+		virtual ~ExtData() override = default;
 		//void InvalidatePointer(void* ptr, bool bRemoved) {}
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

@@ -234,7 +234,7 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 			if (!pTypeExt->MobileRefinery_Anims.empty())
 			{
 				AnimTypeClass* pAnimType = nullptr;
-				int facing = pThis->PrimaryFacing.current().value8();
+				int facing = pThis->PrimaryFacing.Current().GetFacing<8>();
 
 				if (facing >= 7)
 					facing = 0;
@@ -298,6 +298,9 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 
 	auto pExt = TechnoExt::ExtMap.Find<false> (pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+
+	//if (pThis->Health  == 0 && !pThis->InLimbo)
+	//	FlyingStrings::AddString(L"Already Dead !", true , pThis ,AffectedHouse::All,pThis->Location,{0,0},{0,0,0});
 
 	//if (pExt->AbsType.empty() || pExt->AbsType == AbstractType::None)
 	//	pExt->AbsType = pThis->WhatAmI();
@@ -478,7 +481,11 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 				if (pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir() && trail->LastLocation.isset())
 					trail->LastLocation.clear();
 
-				trail->Update(TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret));
+				CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret);
+				if (pThis->CloakState == CloakState::Cloaked)
+					trail->LastLocation = trailLoc;
+				else
+					trail->Update(trailLoc);
 			}
 		}
 #ifdef COMPILE_PORTED_DP_FEATURES

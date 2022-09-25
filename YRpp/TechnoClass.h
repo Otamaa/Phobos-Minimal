@@ -10,6 +10,7 @@
 #include <Helpers/Template.h>
 #include <ProgressTimer.h>
 #include <TransitionTimer.h>
+#include <FacingClass.h>
 
 //forward declarations
 class AirstrikeClass;
@@ -227,7 +228,7 @@ public:
 	virtual CellStruct* FindExitCell(CellStruct* Buffer, TechnoClass* pDocker, CellStruct nDefault) const; //
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;
-	virtual FacingStruct* GetRealFacing(FacingStruct* pBuffer) const R0;
+	virtual FacingClass* GetRealFacing(FacingClass* pBuffer) const R0;
 	virtual InfantryTypeClass* GetCrew() const { JMP_THIS(0x707D20); }
 	virtual bool vt_entry_310() const R0;
 	virtual bool CanDeploySlashUnload() const R0;
@@ -302,7 +303,7 @@ public:
 	virtual void Sensed() RX;
 	virtual void Reload() RX;
 	virtual void vt_entry_428() RX;
-	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0;
+	virtual CoordStruct* GetAttackCoords(CoordStruct* pCrd) const R0;
 	virtual bool IsNotWarpingIn() const R0;
 	virtual bool vt_entry_434(DWORD dwUnk) const R0;
 	virtual void DrawActionLines(bool Force, DWORD dwUnk2) RX;
@@ -465,13 +466,13 @@ public:
 	double GetCurrentMissionRate() const;
 
 	//70BCB0
-	CoordStruct* GetTargetCoords(CoordStruct* pBuffer)
+	CoordStruct* GetMovingTargetCoords(CoordStruct* pBuffer)
 	{ JMP_THIS(0x70BCB0); }
 
-	CoordStruct GetTargetCoords()
+	CoordStruct GetAttackCoords()
 	{
 		CoordStruct pBuffer;
-		this->GetTargetCoords(&pBuffer);
+		this->GetAttackCoords(&pBuffer);
 		return pBuffer;
 	}
 
@@ -482,10 +483,10 @@ public:
 		return ret;
 	}
 
-	FacingStruct GetRealFacing() const {
-		FacingStruct ret;
+	FacingClass GetRealFacing() const {
+		FacingClass ret;
 		this->GetRealFacing(&ret);
-		return ret;
+		return FacingClass(ret);
 	}
 
 //	BulletClass* FireAt(AbstractClass* aTarget, int nWhich) const
@@ -602,7 +603,7 @@ public:
 	bool DoOnLinked() const {
 		JMP_THIS(0x70D7E0);
 	}
-	
+
 	int GetElevationValue(TechnoClass* const pAgainst) const {
 		JMP_THIS(0x6F70E0);
 	}
@@ -764,9 +765,9 @@ public:
 
 	DECLARE_PROPERTY(TransitionTimer, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
 
-	DECLARE_PROPERTY(FacingStruct, BarrelFacing);
-	DECLARE_PROPERTY(FacingStruct, PrimaryFacing);
-	DECLARE_PROPERTY(FacingStruct, SecondaryFacing);
+	DECLARE_PROPERTY(FacingClass, BarrelFacing);
+	DECLARE_PROPERTY(FacingClass, PrimaryFacing);
+	DECLARE_PROPERTY(FacingClass, SecondaryFacing);
 	int              CurrentBurstIndex;
 	DECLARE_PROPERTY(TimerStruct, TargetLaserTimer); //FrameTimerClass
 	short            weapon_sound_number_3C8;

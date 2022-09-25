@@ -100,7 +100,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_SyncOwner, 0x7)
 	if (pThis && pPassenger)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto const pExt = TechnoExt::GetExtData(pPassenger);
+		auto const pExt = TechnoExt::ExtMap.Find(pPassenger);
 
 		if (pExt && pTypeExt && pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit)
 			pExt->OriginalPassengerOwner = pPassenger->Owner;

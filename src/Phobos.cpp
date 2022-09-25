@@ -80,6 +80,8 @@ bool Phobos::Config::ForbidParallelAIQueues_Navy = false;
 bool Phobos::Config::ForbidParallelAIQueues_Aircraft = false;
 bool Phobos::Config::ForbidParallelAIQueues_Building = false;
 
+bool Phobos::Config::TogglePowerInsteadOfRepair = false;
+
 std::string Phobos::AppIconPath;
 char Phobos::AppName[0x40] = "";
 
@@ -577,6 +579,10 @@ DEFINE_HOOK(0x5FACDF, OptionsClass_LoadSettings_LoadPhobosSettings, 0x5)
 
 			Phobos::UI::PowerDelta_ConditionRed =
 				pINI_UIMD->ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionRed", Phobos::UI::PowerDelta_ConditionRed);
+
+			Phobos::Config::TogglePowerInsteadOfRepair =
+				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair", false);
+
 		}
 
 		if (pINI_UIMD->ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", true))
@@ -676,7 +682,7 @@ DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
 	return 0x0;
 }
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
 	REF_STACK(int, nDataSize, 0x4);

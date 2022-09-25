@@ -112,8 +112,10 @@ static	void __fastcall _Log_Disable_These(const char* pFormat, ...) {
 		Dummy = true;
 }
 
+// ToDO : Make Optional
 DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_Disable_These));
 DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_Disable_These));
+DEFINE_JUMP(CALL,0x4431D8, GET_OFFSET(_Log_Disable_These)); //Survivor unlimbo OK Log
 //DEFINE_JUMP(CALL,0x69A79D, GET_OFFSET(_Log_Disable_These));
 //DEFINE_JUMP(CALL,0x42CC65, GET_OFFSET(_Log_Disable_These));
 //DEFINE_JUMP(CALL,0x42CBDE, GET_OFFSET(_Log_Disable_These));

@@ -97,7 +97,7 @@ void AttackBeaconFunctional::AI(TechnoExt::ExtData* pExt , TechnoTypeExt::ExtDat
 
 				// recruit one
 				pTarget->SetTarget(pBeacon);
-				if (auto const pTargetExt = TechnoExt::GetExtData(pTarget))
+				if (auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget))
 				{
 					pTargetExt->AnotherData.Recuited = true;
 				}			

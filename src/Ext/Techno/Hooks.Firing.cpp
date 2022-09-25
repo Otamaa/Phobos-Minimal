@@ -74,9 +74,14 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		}
 
 		if (pTechno) {
+
 			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner))
 			{ return CannotFire; }
+
+
+			//if(pTargetTechnoExt->IsDummy.Get())
+			//	return CannotFire;
 
 			if (const auto pFoot = generic_cast<FootClass*>(pTechno)){
 
@@ -335,7 +340,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	{
 		pCell = pTerrain->GetCell();
 
-		if (pType->LandTargeting == LandTargetingType::Land_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
+		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
 			return DisallowFiring;
 		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && ((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pCell->ContainsBridge()))
 			return DisallowFiring;

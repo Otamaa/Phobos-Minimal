@@ -58,8 +58,8 @@ public:
 	{ return LinkedTo->Location; }
 	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) { return Move::OK; }
 	virtual bool __stdcall Is_To_Have_Shadow() { return true; }
-	virtual Matrix3D __stdcall Draw_Matrix(int* facing) { JMP_STD(0x55A730); }
-	virtual Matrix3D __stdcall Shadow_Matrix(int* facing) { JMP_STD(0x55A7D0); }
+	virtual Matrix3D* __stdcall Draw_Matrix(Matrix3D* pMatrix, VoxelIndexKey* key) { JMP_STD(0x55A730); }
+	virtual Matrix3D* __stdcall Shadow_Matrix(Matrix3D* pMatrix, VoxelIndexKey* key) { JMP_STD(0x55A7D0); }
 	virtual Point2D __stdcall Draw_Point()
 	{ return Point2D{ 0,0 }; }
 	virtual Point2D __stdcall Shadow_Point() { JMP_STD(0x55A8C0); }

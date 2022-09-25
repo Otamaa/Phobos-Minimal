@@ -1,9 +1,18 @@
 #pragma once
 #include <FileFormats/VXL.h>
 
-struct VoxelIndex1Key
+struct VoxelCacheStruct
 {
-	VoxelIndex1Key() { *reinterpret_cast<int*>(this) = 0; }
+	short X;
+	short Y;
+	unsigned short Width;
+	unsigned short Height;
+	void* Buffer;
+};
+
+struct MainVoxelIndexKey
+{
+	MainVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
 
 	int Get_Index_ID() const
 	{
@@ -17,17 +26,18 @@ struct VoxelIndex1Key
 
 public:
 	unsigned FrameIndex : 5;
+	unsigned RampType : 5;
 private:
-	unsigned bitfield_5 : 11;
+	unsigned bitfield_10 : 6;
 public:
 	unsigned UseAuxVoxel : 1; // !(!pUnit->Type->NoSpawnAlt || pUnit->SpawnManager->Draw_State())
 private:
 	unsigned bitfield_17 : 15;
 };
 
-struct VoxelIndex2Key
+struct TurretWeaponVoxelIndexKey
 {
-	VoxelIndex2Key() { *reinterpret_cast<int*>(this) = 0; }
+	TurretWeaponVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
 
 	int Get_Index_ID() const
 	{
@@ -49,11 +59,15 @@ public:
 	unsigned TurretWeaponIndex : 8;
 };
 
-using VoxelIndex3Key = int;
-
-struct VoxelIndex4Key
+struct ShadowVoxelIndexKey
 {
-	VoxelIndex4Key() { *reinterpret_cast<int*>(this) = 0; }
+public:
+	unsigned Data : 32;
+};
+
+struct TurretBarrelVoxelIndexKey
+{
+	TurretBarrelVoxelIndexKey() { *reinterpret_cast<int*>(this) = 0; }
 
 	int Get_Index_ID() const
 	{
@@ -76,7 +90,7 @@ private:
 	unsigned bitfield_24 : 8;
 };
 
-struct ReservedIndexKey
+struct ReservedVoxelIndexKey
 {
 private:
 	unsigned bitfield_1 : 10;
@@ -98,11 +112,11 @@ union VoxelIndexKey
 		return Get_Index_ID() != -1;
 	}
 
-	VoxelIndex1Key Index1;
-	VoxelIndex2Key Index2;
-	VoxelIndex3Key Index3;
-	VoxelIndex4Key Index4;
-	ReservedIndexKey ReservedIndex;
+	MainVoxelIndexKey MainVoxel;
+	TurretWeaponVoxelIndexKey TurretWeapon;
+	ShadowVoxelIndexKey Shadow;
+	TurretBarrelVoxelIndexKey TurretBarrel;
+	ReservedVoxelIndexKey Reserved;
 };
 
 static_assert(sizeof(VoxelIndexKey) == sizeof(int));

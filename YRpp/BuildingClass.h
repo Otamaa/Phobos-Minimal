@@ -242,15 +242,16 @@ public:
 		return ret;
 	}
 
-	CoordStruct* GetBuildingCenterCoords___(CoordStruct* nReturn) const
-	{ JMP_THIS(0x447AC0); }
+	// use GetCoords() instead 
+	//CoordStruct* GetBuildingCenterCoords___(CoordStruct* nReturn) const
+	//{ JMP_THIS(0x447AC0); }
 
-	CoordStruct GetCenterCoords___() const
-	{
-		CoordStruct ret;
-		GetBuildingCenterCoords___(&ret);
-		return ret;
-	}
+	//CoordStruct GetCenterCoords___() const
+	//{
+	//	CoordStruct ret;
+	//	GetBuildingCenterCoords___(&ret);
+	//	return ret;
+	//}
 
 	bool BuildingUnderAttack();
 

@@ -160,7 +160,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	auto const Detonate = [pThis, pType, nMult](WeaponTypeClass* pDecided, bool RulesDeathWeapon) {
 		if (pDecided) {
 			auto const pBonus = RulesDeathWeapon ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-			auto const pBulletTypeExt = BulletTypeExt::GetExtData(pDecided->Projectile);
+			auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
 
 			if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright)) {
 				pBullet->SetWeaponType(pDecided);
@@ -447,7 +447,7 @@ DEFINE_HOOK(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 	GET(FootClass* const, pThis, ESI);
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	if (pExt && pExt->Is_Cow.Get())
+	if (pExt->Is_Cow.Get())
 	{
 		pThis->UpdateIdleAction();
 		return pThis->Destination ? Skip : SetMissionRate;
@@ -474,10 +474,8 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 {
 	GET(DiskLaserClass* const, pThis, ESI);
 
-	if (pThis && pThis->Owner)
-	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType()))
-		{
+	if (pThis && pThis->Owner) {
+		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())) {
 			R->ECX(pExt->DiskLaserChargeUp.Get(RulesGlobal->DiskLaserChargeUp));
 			return 0x4A7760;
 		}
@@ -545,7 +543,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	GET(TechnoClass*, pThis, ESI);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pExt = TechnoExt::GetExtData(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (!pExt || !pTypeExt)
 		return 0x0;
@@ -613,7 +611,7 @@ DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 0x5)
 {
 	GET(InfantryClass *, pInf, ESI);
 	GET(BuildingClass *, pBld, EBP);
-	if(TechnoExt::ExtData*  pExt = TechnoExt::GetExtData(pInf))
+	if(TechnoExt::ExtData*  pExt = TechnoExt::ExtMap.Find(pInf))
 		pExt->GarrisonedIn = pBld;
 	return 0;
 }
@@ -621,7 +619,7 @@ DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 0x5)
 DEFINE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(InfantryClass *, pThis, ESI);
-	if(TechnoExt::ExtData* pData = TechnoExt::GetExtData(pThis))
+	if(TechnoExt::ExtData* pData = TechnoExt::ExtMap.Find(pThis))
 		pData->GarrisonedIn = nullptr;
 	return 0;
 }
@@ -629,7 +627,7 @@ DEFINE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
 DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 0x5)
 {
 	GET(InfantryClass *, pThis, EDI);
-	if(TechnoExt::ExtData* pData = TechnoExt::GetExtData(pThis))
+	if(TechnoExt::ExtData* pData = TechnoExt::ExtMap.Find(pThis))
 		pData->GarrisonedIn = nullptr;
 	return 0;
 }*/

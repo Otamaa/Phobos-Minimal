@@ -14,11 +14,6 @@ void AnimExt::ExtData::InitializeConstants()
 	CreateAttachedSystem(pTypeExt);
 }
 
-AnimExt::ExtData* AnimExt::GetExtData(AnimExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
-}
-
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();

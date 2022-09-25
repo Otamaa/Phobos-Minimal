@@ -60,7 +60,7 @@ void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pT
 					CoordStruct sourcePos = pExt->Get()->Location;
 					CoordStruct targetPos = pExt->Get()->Target->GetCoords();
 					DirStruct toDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
-					DirStruct selfDir = pFoot->PrimaryFacing.current();
+					DirStruct selfDir = pFoot->PrimaryFacing.Current();
 					int facing = pTypeExt->MyJJData.Facing;
 					int toIndex = Helpers_DP::Dir2FacingIndex(toDir, facing);
 					int selfIndex = Helpers_DP::Dir2FacingIndex(selfDir, facing);
@@ -111,7 +111,7 @@ DEFINE_HOOK(0x736E40, UnitClass_FiringAI_JumpjetTurning, 0x6)
 			if (!pThis->Locomotor.get()->Is_Moving_Now())
 			{
 				auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-				auto pExt = TechnoExt::GetExtData(pThis);
+				auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 				if (auto pTarget = pThis->Target)
 				{

@@ -2,11 +2,6 @@
 
 VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
 
-VoxelAnimTypeExt::ExtData* VoxelAnimTypeExt::GetExtData(VoxelAnimTypeExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
-}
-
 void VoxelAnimTypeExt::ExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
 }
@@ -96,7 +91,7 @@ VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	VoxelAnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	VoxelAnimTypeExt::ExtMap.FindOrAllocate(pItem);

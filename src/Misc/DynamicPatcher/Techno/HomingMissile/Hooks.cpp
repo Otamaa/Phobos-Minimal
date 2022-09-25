@@ -11,7 +11,7 @@ DEFINE_HOOK(0x6B7A18, SpawnManagerClass_AI_Add_Missile_Target, 0x6)
 
 	if (pRocket->Type->MissileSpawn) {
 		if (const auto pTarget = pManager->Target) {
-			if (const auto pExt = TechnoExt::GetExtData(pRocket)) {
+			if (const auto pExt = TechnoExt::ExtMap.Find(pRocket)) {
 				if (const auto pTracker = pExt->MissileTargetTracker)
 				{
 					pTracker->Target = pTarget;
@@ -31,7 +31,7 @@ DEFINE_HOOK(0x54E42B, KamikazeTrackerClass_Add_Missile_Has_Target, 0x6)
 	GET(TechnoClass*, pRocket, ESI);
 	//GET(AbstractClass*, pTarget, ECX);
 
-	if (const auto pExt = TechnoExt::GetExtData(pRocket)) {
+	if (const auto pExt = TechnoExt::ExtMap.Find(pRocket)) {
 		if (auto const pTracker = pExt->MissileTargetTracker) {
 			pTracker->AI();
 			if(auto const pRedirect = pTracker->AsAbstract()){

@@ -23,7 +23,7 @@ public:
 
 	// if pLabel is given, the message will be {$pLabel}:{$pMessage}
 	// else it will be just {$pMessage}
-	MessageListClass() noexcept { JMP_THIS(0x5D39D0); }
+	explicit MessageListClass() noexcept { JMP_THIS(0x5D39D0); }
 
 	~MessageListClass() noexcept { JMP_THIS(0x5D3A40); }
 
@@ -31,28 +31,27 @@ public:
 		JMP_THIS(0x5D3A60);
 	}
 
-	TextLabelClass* Add_Message(wchar_t* name, int id, wchar_t* txt, int color, TextPrintType style, int timeout, bool single_player)
-	{
+	TextLabelClass* AddMessage(wchar_t* name, int id, wchar_t* txt, int color, TextPrintType style, int timeout, bool single_player) {
 		JMP_THIS(0x5D3BA0);
 	}
 
-	char* Get_Message(int id) { JMP_THIS(0x5D3F60); }
-	TextLabelClass* Get_Label(int id) { JMP_THIS(0x5D3F90); }
-	bool _Concat_Message_MessageListClass(const wchar_t* name, int id, const wchar_t* txt, int timeout) { JMP_THIS(0x5D3FC0); }
-	TextLabelClass* _Add_Edit_MessageListClass(int color, TextPrintType style, char* to, char cursor, int width) { JMP_THIS(0x5D4210); }
+	wchar_t* GetMessage(int id) { JMP_THIS(0x5D3F60); }
+	TextLabelClass* GetLabel(int id) { JMP_THIS(0x5D3F90); }
+	bool ConcatMessage(const wchar_t* name, int id, const wchar_t* txt, int timeout) { JMP_THIS(0x5D3FC0); }
+	TextLabelClass* AddEdit(int color, TextPrintType style, char* to, char cursor, int width) { JMP_THIS(0x5D4210); }
 
-	void Set_Edit_Focus() { JMP_THIS(0x5D41E0); }
-	char Has_Edit_Focus() { JMP_THIS(0x5D41F0); }
-	void Remove_Edit() { JMP_THIS(0x5D4390); }
-	wchar_t* Get_Edit_Buf() { JMP_THIS(0x5D4400); }
-	void Set_Edit_Color(int a2) { JMP_THIS(0x5D4410); }
+	void SetEditFocus() { JMP_THIS(0x5D41E0); }
+	char HasEditFocus() { JMP_THIS(0x5D41F0); }
+	void RemoveEdit() { JMP_THIS(0x5D4390); }
+	wchar_t* GetEditBuffer() { JMP_THIS(0x5D4400); }
+	void SetEditColor(int a2) { JMP_THIS(0x5D4410); }
 	void Manage() { JMP_THIS(0x5D4430); }
-	int Input(int a1, __int16* input, unsigned __int16 wide_input) { JMP_THIS(0x5D4510); }
+	int Input(int& Input, int DefInput = 0) { JMP_THIS(0x5D4510); }
 	void Draw() { JMP_THIS(0x5D49A0); }
-	int Num_Messages() { JMP_THIS(0x5D4AA0); }
-	void Set_Width(int width) { JMP_THIS(0x5D4AD0); }
-	int _Trim_Message_MessageListClass(wchar_t* dest, wchar_t* src, int min_chars, int max_chars, int scandir) { JMP_THIS(0x5D4B20); }
-	void Compute_Y() { JMP_THIS(0x5D4BF0); }
+	int NumMessages() { JMP_THIS(0x5D4AA0); }
+	void SetWidth(int width) { JMP_THIS(0x5D4AD0); }
+	int TrimMessage(wchar_t* dest, wchar_t* src, int min_chars, int max_chars, int scandir) { JMP_THIS(0x5D4B20); }
+	void ComputeY() { JMP_THIS(0x5D4BF0); }
 
 	void PrintMessage(const wchar_t* pLabel, DWORD dwUnk1, const wchar_t* pMessage, int nColorSchemeIndex = ColorScheme::Yellow,
 		DWORD dwUnk2 = 0x4046, int duration = 0x96, bool bSilent = false)

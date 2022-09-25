@@ -94,13 +94,13 @@ public:
 	virtual bool IsControllable() const R0;
 
 	// stupid! return this->GetCoords(pCrd);
-	virtual CoordStruct* GetPosition_0(CoordStruct* pCrd) const R0;
+	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0;
 
 	// gets a building's free dock coordinates for a unit. falls back to this->GetCoords(pCrd);
 	virtual CoordStruct* GetDockCoords(CoordStruct* pCrd, TechnoClass* docker) const R0;
 
 	// stupid! guess what happens again?
-	virtual CoordStruct* GetCenterCoord(CoordStruct* pCrd) const R0; //GetPosition_2
+	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const R0; //GetPosition_2
 	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0;
 	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0;
 	virtual int GetYSort() const R0;
@@ -115,7 +115,7 @@ public:
 	virtual bool Limbo() R0;
 
 	// place the object on the map
-	virtual bool Unlimbo(const CoordStruct& Crd, Direction::Value dFaceDir) R0;
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) R0;
 
 	// cleanup things (lose line trail, deselect, etc). Permanently: destroyed/removed/gone opposed to just going out of sight.
 	virtual void Disappear(bool permanently) RX;
@@ -227,6 +227,12 @@ public:
 		return nBuff;
 	}
 
+	CoordStruct GetRenderCoords() const {
+		CoordStruct ret;
+		this->GetRenderCoords(&ret);
+		return ret;
+	}
+
 	double GetHealthPercentage_() const;
 
 	//game original func
@@ -282,12 +288,12 @@ public:
 		return ret;
 	}
 
-	CoordStruct GetCenterCoord() const
-	{
-		CoordStruct ret;
-		this->GetCenterCoord(&ret);
-		return ret;
-	}
+	//CoordStruct GetCenterCoord() const
+	//{
+	//	CoordStruct ret;
+	//	this->GetCenterCoord(&ret);
+	//	return ret;
+	//}
 
 	CoordStruct GetFLH(int idxWeapon, const CoordStruct& base) const {
 		CoordStruct ret;

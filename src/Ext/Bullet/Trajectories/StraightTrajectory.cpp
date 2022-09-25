@@ -97,7 +97,7 @@ void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 
 		if (pCoords.DistanceFrom(pBullet->Location) <= type->SnapThreshold.Get())
 		{
-			BulletExt::GetExtData(pBullet)->SnappedToTarget = true;
+			BulletExt::ExtMap.Find(pBullet)->SnappedToTarget = true;
 			pBullet->SetLocation(pCoords);
 		}
 	}
@@ -105,7 +105,7 @@ void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 
 void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
 {
-	pSpeed->Z += BulletExt::GetExtData(pBullet)->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
+	pSpeed->Z += BulletExt::ExtMap.Find(pBullet)->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 
 TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)

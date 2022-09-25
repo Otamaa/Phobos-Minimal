@@ -52,14 +52,13 @@ DEFINE_HOOK(0x62A13F, ParasiteClass_AI_WeaponAnim, 0x5)
 	return 0x62A16A;
 }
 
-
 DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 {
 	enum
 	{
 		SkippAll = 0x62A24D,
 		ReceiveDamage = 0x62A0B7,
-		ReceiveDamage_LikeVehicle = 0x62A0D3 // not instant kill the infantry , but give it damage per second
+		ReceiveDamage_LikeVehicle = 0x62A0D3 // not instant kill the infantry , but gave it damage per second
 	};
 
 	GET(ParasiteClass* const, pThis, ESI);
@@ -125,12 +124,16 @@ DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uni
 	return 0;
 }
 
-DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
+
+//
+DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 {
 	enum { Handled = 0x629B9C, Continue = 0x0 };
 
-	GET_STACK(WeaponTypeClass* const, pWeapon, STACK_OFFS(0x70, 0x4C));
-	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x70, 0xC));
+	GET_STACK(WeaponTypeClass* const, pWeapon, STACK_OFFS(0x6C, 0x4C));
+	GET(int, nX, ECX);
+	GET(int, nY, EAX);
+	GET(int, nZ, EDX);
 	GET(ParasiteClass* const, pThis, ESI);
 
 	if (auto const pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead))
@@ -139,9 +142,10 @@ DEFINE_HOOK(0x629B50, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 		{
 			if (auto const pSplashType = AnimType.at(ScenarioClass::Instance->Random.RandomFromMax((AnimType.size() - 1))))
 			{
-				if (auto pAnim = GameCreate<AnimClass>(pSplashType, *pCoord))
+				CoordStruct nCoord { nX , nY , nZ };
+				if (auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord))
 				{
-					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : pThis->GetOwningHouse();
+					auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
 					AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, (pThis->Victim) ? pThis->Victim->GetOwningHouse() : nullptr, pThis->Owner, false);
 					return Handled;
 				}

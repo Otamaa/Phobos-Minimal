@@ -88,7 +88,7 @@ ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	ParticleTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	ParticleTypeExt::ExtMap.FindOrAllocate(pItem);

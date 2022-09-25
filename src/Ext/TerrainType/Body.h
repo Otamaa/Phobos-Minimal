@@ -11,7 +11,7 @@ class TerrainTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
@@ -103,7 +103,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TerrainTypeExt, true , true , true> {
+	class ExtContainer final : public Container<TerrainTypeExt
+#ifdef ENABLE_NEWHOOKS
+		, true , true , true
+#endif
+	> {
 	public:
 		ExtContainer();
 		~ExtContainer();

@@ -13,7 +13,7 @@ struct RadialFireHelper
 	RadialFireHelper(TechnoClass* pTechno, int burst, int splitAngle)
 		: Burst { burst }
 	{
-		DirStruct dir = pTechno->PrimaryFacing.target();
+		DirStruct dir = pTechno->PrimaryFacing.Desired();
 		if (pTechno->HasTurret())
 			dir = pTechno->TurretFacing();
 
@@ -26,7 +26,7 @@ struct RadialFireHelper
 
 	void InitData(DirStruct dir, int splitAngle)
 	{
-		Degrees = Math::rad2deg(dir.radians()) + splitAngle;
+		Degrees = Math::rad2deg(dir.GetRadians()) + splitAngle;
 		Delta = splitAngle / (Burst + 1);
 		DeltaZ = 1.0f / (Burst / 2.0f + 1);
 	}
@@ -44,7 +44,7 @@ struct RadialFireHelper
 		DirStruct targetDir = DirStruct(Math::deg2rad(angle));
 		Matrix3D matrix3D = Matrix3D { };
 		matrix3D.MakeIdentity();
-		matrix3D.RotateZ(static_cast<float>(targetDir.radians()));
+		matrix3D.RotateZ(static_cast<float>(targetDir.GetRadians()));
 		matrix3D.Translate(1, 0, 0);
 		auto offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
 		return { offset.X, -offset.Y, DeltaZ * z };

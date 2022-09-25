@@ -101,7 +101,7 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, 0x2600u, -30, 0))
 				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-					if (auto pExt = AnimExt::GetExtData(pAnim))
+					if (auto pExt = AnimExt::ExtMap.Find(pAnim))
 						pExt->Invoker = pInvoker;
 				}
 			}
@@ -138,7 +138,7 @@ DEFINE_HOOK(0x423CD5, AnimClass_Expired_Extra_OnWater, 0x6)
 		if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, flags, ForceZAdjust))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, false);
-			if (auto pExt = AnimExt::GetExtData(pSplashAnimCreated))
+			if (auto pExt = AnimExt::ExtMap.Find(pSplashAnimCreated))
 				pExt->Invoker = pInvoker;
 		}
 	}
@@ -163,7 +163,7 @@ DEFINE_HOOK(0x423DE7, AnimClass_Expired_Extra_OnLand_DamageArea, 0x6)
 			if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, nCoords, 0, 1, 0x2600u, -30, 0))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-				if (auto pExt = AnimExt::GetExtData(pAnim))
+				if (auto pExt = AnimExt::ExtMap.Find(pAnim))
 					pExt->Invoker = pTechOwner;
 			}
 		}

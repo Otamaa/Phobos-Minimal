@@ -125,7 +125,7 @@ public:
 	{ JMP_STD(0x5B20F0); }
 
 	// helpers
-	CoordStruct GetTargetCoords() const {
+	CoordStruct GetBulletTargetCoords() const {
 		if(this->Target) {
 			return this->Target->GetCoords();
 		} else {

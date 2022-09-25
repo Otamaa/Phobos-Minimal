@@ -334,23 +334,4 @@ DEFINE_HOOK(0x6A91EE, StripClass_Update_4, 0x5)
 	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x6A91F7 : 0x6A9208;
 }
 
-DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
-{
-	GET_STACK(int, nHouseIdx, 0x4);
-
-	const auto pHouse = HouseClass::Array->GetItem(nHouseIdx);
-	if (!pHouse || pHouse != HouseClass::Observer() && _strcmpi(pHouse->get_ID(), "Observer"))
-		return 0;
-
-	R->AL(1);
-	return 0x4870DE;
-}
-
-DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
-{
-	const auto pHouse = HouseClass::CurrentPlayer();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x70DADC : 0x0;
-}
-
-
 #endif

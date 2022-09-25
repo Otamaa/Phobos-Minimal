@@ -2,11 +2,6 @@
 
 TeamExt::ExtContainer TeamExt::ExtMap;
 
-TeamExt::ExtData* TeamExt::GetExtData(TeamExt::base_type* pThis)
-{
-	return ExtMap.Find(pThis);
-}
-
 void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
@@ -89,7 +84,7 @@ DEFINE_HOOK(0x6E8DBE, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	TeamExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
 #else
 	TeamExt::ExtMap.FindOrAllocate(pThis);

@@ -63,6 +63,7 @@ TeamTypeExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 //ToDo : Check Size !
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);
@@ -137,3 +138,4 @@ DEFINE_HOOK(0x6F181B, TeamTypeClass_WriteToINI, 0x8)
 
 	return 0x0;
 }
+#endif

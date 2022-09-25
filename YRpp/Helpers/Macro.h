@@ -29,6 +29,8 @@
 #define STACK_OFFS(cur_offset, wanted_offset) \
 		(cur_offset - wanted_offset)
 
+#define STACK_OFFSET(cur_offset, wanted_offset) \
+		(cur_offset + wanted_offset)
 
 // swizzle shorthand
 #define SWIZZLE(var) \

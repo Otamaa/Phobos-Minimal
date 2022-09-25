@@ -219,7 +219,7 @@ public:
 	{
 		DirStruct dir;
 		unsigned short value = static_cast<short>(Game::F2I((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
-		dir.value(value);
+		dir.SetValue<16>(value);
 		return dir;
 	}
 

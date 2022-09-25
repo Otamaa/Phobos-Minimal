@@ -52,8 +52,6 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static AnimExt::ExtData* GetExtData(base_type* pThis);
-
 	class ExtContainer final : public Container<AnimExt
 //#ifdef ENABLE_NEWEXT
 , true

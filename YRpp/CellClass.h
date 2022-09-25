@@ -232,18 +232,19 @@ public:
 		{ JMP_THIS(0x47B3A0); }
 
 	// used by ambient waves and stuff in leptons
-	CoordStruct* GetCenterCoords(CoordStruct* pOutBuffer) const
-		{ JMP_THIS(0x486840); }
+	// use GetCoords() instead 
+	//CoordStruct* GetCenterCoords(CoordStruct* pOutBuffer) const
+	//	{ JMP_THIS(0x486840); }
 
 	CoordStruct* GetCellCoords(CoordStruct* pOutBuffer) const
 		{ JMP_THIS(0x480A30); }
 
-	CoordStruct GetCenterCoords() const
-	{
-		CoordStruct buffer;
-		GetCenterCoords(&buffer);
-		return buffer;
-	}
+	//CoordStruct GetCenterCoords() const
+	//{
+	//	CoordStruct buffer;
+	//	GetCenterCoords(&buffer);
+	//	return buffer;
+	//}
 
 	void ActivateVeins() const
 		{ JMP_THIS(0x486920); }

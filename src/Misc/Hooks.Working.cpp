@@ -191,8 +191,8 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 
 	if (pThis->Type->JumpJet && !pThis->Target && !pThis->Type->TurretSpins)
 	{
-		pThis->SecondaryFacing.turn(pThis->PrimaryFacing.current());
-		pThis->__IsTurretTurning_49C = pThis->PrimaryFacing.in_motion();
+		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
+		pThis->__IsTurretTurning_49C = pThis->PrimaryFacing.Is_Rotating();
 		return 0x736C09;
 	}
 

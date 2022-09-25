@@ -8,7 +8,9 @@
 class ConvertExt
 {
 public:
+	static constexpr DWORD Canary = 0xAACAACCC;
 	using base_type = ConvertClass;
+	static constexpr size_t ExtOffset = 0x178;
 
 	class ExtData final : public Extension<ConvertClass>
 	{
@@ -24,7 +26,7 @@ public:
 		void InitializeConstants();
 	};
 
-	class ExtContainer final : public Container<ConvertExt>
+	class ExtContainer final : public Container<ConvertExt ,true , true , true >
 	{
 	public:
 		ExtContainer();
@@ -34,6 +36,4 @@ public:
 
 	static ExtContainer ExtMap;
 	static void GetOrSetName(ConvertClass* const pConvert , const std::string_view nName);
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

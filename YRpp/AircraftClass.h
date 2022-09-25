@@ -81,7 +81,7 @@ public:
 		JMP_THIS(0x41B7F0);
 	}
 
-	Direction::Value GetLandDir() const {
+	DirType GetLandDir() const {
 		JMP_THIS(0x417FD0);
 	}
 

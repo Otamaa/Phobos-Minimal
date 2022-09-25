@@ -134,6 +134,7 @@ public:
 		static bool ForbidParallelAIQueues_Aircraft;
 		static bool ForbidParallelAIQueues_Building;
 
+		static bool TogglePowerInsteadOfRepair;
 	};
 
 	class Otamaa

@@ -59,8 +59,6 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static TiberiumExt::ExtData* GetExtData(base_type* pThis);
-
 	class ExtContainer final : public Container<TiberiumExt,true , true , true>
 	{
 	public:

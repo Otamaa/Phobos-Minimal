@@ -6,7 +6,7 @@ void AttachStatus::OnEnable(ObjectClass* pObject, HouseClass* pHouse, TechnoClas
 	Active = true;
 	if (auto pTechno = generic_cast<TechnoClass*>(pObject))
 	{
-		if (auto ext = TechnoExt::GetExtData(pTechno))
+		if (auto ext = TechnoExt::ExtMap.Find(pTechno))
 		{
 			ExtData = ext;
 			ext->RecalculateStatus();

@@ -29,6 +29,10 @@ public:
 
 	struct NodeElement
 	{
+		NodeElement& operator=(const NodeElement& node) { ID = node.ID; Data = node.Data; return *this; }
+		bool operator<(const NodeElement& another) const { return ID < another.ID; }
+		bool operator==(const NodeElement& another) const { return ID == another.ID; }
+
 		TKey ID;
 		TValue Data;
 	};
@@ -52,7 +56,7 @@ private:
 	void SetArchive(NodeElement const* pNode);
 	NodeElement const* SearchForNode(TKey id) const;
 
-	static int __cdecl search_compfunc(void const * ptr, void const * ptr2);
+	//static int __cdecl search_compfunc(void const * ptr, void const * ptr2);
 };
 
 template<typename TKey, typename TValue>
@@ -116,7 +120,7 @@ inline void IndexClass<TKey, TValue>::Sort()
 {
 	if (!IsSorted)
 	{
-		qsort(&this->IndexTable[0], this->IndexCount, sizeof(this->IndexTable[0]), this->search_compfunc);
+		std::sort(&IndexTable[0], &IndexTable[IndexCount]);
 		InvalidateArchive();
 		IsSorted = true;
 	}
@@ -240,19 +244,19 @@ bool IndexClass<TKey, TValue>::RemoveIndex(TKey id)
 	return false;
 }
 
-template<typename TKey, typename TValue>
-int __cdecl IndexClass<TKey, TValue>::search_compfunc(void const* ptr1, void const* ptr2)
-{
-	if (*(int const*)ptr1 == *(int const*)ptr2)
-	{
-		return 0;
-	}
-	if (*(int const*)ptr1 < *(int const*)ptr2)
-	{
-		return -1;
-	}
-	return 1;
-}
+//template<typename TKey, typename TValue>
+//int __cdecl IndexClass<TKey, TValue>::search_compfunc(void const* ptr1, void const* ptr2)
+//{
+//	if (*(int const*)ptr1 == *(int const*)ptr2)
+//	{
+//		return 0;
+//	}
+//	if (*(int const*)ptr1 < *(int const*)ptr2)
+//	{
+//		return -1;
+//	}
+//	return 1;
+//}
 
 template<typename TKey, typename TValue>
 typename IndexClass<TKey, TValue>::NodeElement const* IndexClass<TKey, TValue>::SearchForNode(TKey id) const
@@ -264,8 +268,5 @@ typename IndexClass<TKey, TValue>::NodeElement const* IndexClass<TKey, TValue>::
 
 	NodeElement node;
 	node.ID = id;
-	return(
-			(NodeElement const*)bsearch(&node, &this->IndexTable[0], this->IndexCount,
-			sizeof(this->IndexTable[0]), this->search_compfunc)
-		);
+	return std::lower_bound(&IndexTable[0], &IndexTable[IndexCount], node);
 }

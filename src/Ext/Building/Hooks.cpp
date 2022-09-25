@@ -86,7 +86,7 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 			const auto color = isPositive ? ColorStruct { 0, 255, 0 } : ColorStruct { 255, 0, 0 };
 			wchar_t moneyStr[0x20];
 			swprintf_s(moneyStr, L"%s$%d", isPositive ? L"+" : L"-", std::abs(refundAmount));
-			auto coords = pThis->GetCenterCoord();
+			auto coords = pThis->GetRenderCoords();
 			int width = 0, height = 0;
 			BitFont::Instance->GetTextDimension(moneyStr, &width, &height, 120);
 

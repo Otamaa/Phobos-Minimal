@@ -148,6 +148,10 @@ public:
 		JMP_THIS(0x4CBC40);
 	}
 
+	LPVOID SwapToDroppodLocomotor() const  {
+		JMP_THIS(0x4DB8A0);
+	}
+
 	bool IsTryingToEnterSomething() const { JMP_THIS(0x4E0080); }
 
 	//Constructor

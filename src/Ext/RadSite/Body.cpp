@@ -11,10 +11,6 @@ void RadSiteExt::ExtData::InitializeConstants()
 	this->Type = RadTypeClass::Find("Radiation");
 }
 
-RadSiteExt::ExtData* RadSiteExt::GetExtData(RadSiteExt::base_type const* pTr) {
-	return RadSiteExt::ExtMap.Find(pTr);
-}
-
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(Weapon,ptr);
@@ -56,6 +52,10 @@ void RadSiteExt::ExtData::CreateLight()
 	const auto nLevelDelay = Type->GetLevelDelay();
 	const auto nLightDelay = Type->GetLightDelay();
 	const auto nRadcolor = Type->GetColor();
+
+	//if(Phobos::Otamaa::IsAdmin)
+	//	Debug::Log("RadSite [%s] CreateLight With Color [%d , %d , %d] \n", Type->Name.data(), nRadcolor.R, nRadcolor.G, nRadcolor.B);
+
 	const auto nTintFactor = Type->GetTintFactor();
 
 	const auto nLightFactor = Math::min(pThis->RadLevel * Type->GetLightFactor(), 2000.0);

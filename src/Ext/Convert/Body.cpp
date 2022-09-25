@@ -1,8 +1,8 @@
 #include "Body.h"
 
 #include <Utilities/Debug.h>
+#include <Utilities/Macro.h>
 
-template<> const DWORD Extension<ConvertClass>::Canary = 0xAAAAAACC;
 ConvertExt::ExtContainer ConvertExt::ExtMap;
 
 ConvertExt::ExtContainer::ExtContainer() : Container("ConvertClass") {}
@@ -23,25 +23,12 @@ void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_vi
 	}
 }
 
-bool ConvertExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool ConvertExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
-/*
 DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
 {
 	GET(ConvertClass*, pItem, ESI);
 
 	//Debug::Log("Constructing %p.\n", pItem);
-	ConvertExt::ExtMap.FindOrAllocate(pItem);
+	ConvertExt::ExtMap.JustAllocate(pItem , pItem , "Trying to Allocate from nullptr ! \n");
 
 	return 0;
 }
@@ -55,4 +42,6 @@ DEFINE_HOOK(0x491210, ConvertClass_DTOR, 0xA)
 	ConvertExt::ExtMap.Remove(pItem);
 
 	return 0;
-}*/
+}
+
+DEFINE_JUMP(LJMP , 0x48E955 , 0x48E9E1)

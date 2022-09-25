@@ -63,10 +63,9 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 		pThis->Type = VoxelAnimTypeClass::Find(pThisExt->ID.data());
 	}
 
-	CoordStruct nLocation;
-	pThis->GetCenterCoord(&nLocation);
+	CoordStruct nLocation = pThis->GetCoords();
 
-	auto const pTypeExt = VoxelAnimTypeExt::GetExtData(pThis->Type);
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
 	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
 
@@ -114,7 +113,7 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 	GET(VoxelAnimClass*, pThis, EBX);
 
 	auto nCoords = pThis->GetCoords();
-	auto TypeExt = VoxelAnimTypeExt::GetExtData(pThis->Type);
+	auto TypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
 	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, TypeExt && TypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->OwnerHouse;
 

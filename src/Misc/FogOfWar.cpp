@@ -206,7 +206,7 @@ DEFINE_HOOK(0x486C50, CellClass_ClearFoggedObjects, 0x6)
 {
 	GET(CellClass*, pThis, ECX);
 
-	auto pExt = CellExt::GetExtData(pThis);
+	auto pExt = CellExt::ExtMap.Find(pThis);
 	for (auto const pObject : pExt->FoggedObjects)
 	{
 		if (pObject->CoveredType == FoggedObject::CoveredType::Building)
@@ -225,7 +225,7 @@ DEFINE_HOOK(0x486C50, CellClass_ClearFoggedObjects, 0x6)
 
 				auto pCell = MapClass::Instance->GetCellAt(mapCoord);
 				if (pCell != pThis)
-					CellExt::GetExtData(pCell)->FoggedObjects.Remove(pObject);
+					CellExt::ExtMap.Find(pCell)->FoggedObjects.Remove(pObject);
 			}
 
 		}
@@ -277,7 +277,7 @@ DEFINE_HOOK(0x486A70, CellClass_FogCell, 0x5)
 							{
 								// pTerrain
 								auto pFoggedTer = GameCreate<FoggedObject>(pTerrain);
-								CellExt::GetExtData(pCell)->FoggedObjects.AddItem(pFoggedTer);
+								CellExt::ExtMap.Find(pCell)->FoggedObjects.AddItem(pFoggedTer);
 							}
 							break;
 
@@ -288,12 +288,12 @@ DEFINE_HOOK(0x486A70, CellClass_FogCell, 0x5)
 					if (pCell->OverlayTypeIndex != -1)
 					{
 						auto pFoggedOvl = GameCreate<FoggedObject>(pCell, true);
-						CellExt::GetExtData(pCell)->FoggedObjects.AddItem(pFoggedOvl);
+						CellExt::ExtMap.Find(pCell)->FoggedObjects.AddItem(pFoggedOvl);
 					}
 					if (pCell->SmudgeTypeIndex != -1)
 					{
 						auto pFoggedSmu = GameCreate<FoggedObject>(pCell, false);
-						CellExt::GetExtData(pCell)->FoggedObjects.AddItem(pFoggedSmu);
+						CellExt::ExtMap.Find(pCell)->FoggedObjects.AddItem(pFoggedSmu);
 					}
 				}
 			}
@@ -317,7 +317,7 @@ DEFINE_HOOK(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 
 	pThis->Deselect();
 	auto pFoggedBld = GameCreate<FoggedObject>(pThis, IsVisible);
-	CellExt::GetExtData(pCell)->FoggedObjects.AddItem(pFoggedBld);
+	CellExt::ExtMap.Find(pCell)->FoggedObjects.AddItem(pFoggedBld);
 
 	auto MapCoords = pThis->GetMapCoords();
 
@@ -328,7 +328,7 @@ DEFINE_HOOK(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 		CellStruct currentMapCoord { MapCoords.X + pFoundation->X,MapCoords.Y + pFoundation->Y };
 		auto pCurrentCell = MapClass::Instance->GetCellAt(currentMapCoord);
 		if (pCurrentCell != pCell)
-			CellExt::GetExtData(pCurrentCell)->FoggedObjects.AddItem(pFoggedBld);
+			CellExt::ExtMap.Find(pCurrentCell)->FoggedObjects.AddItem(pFoggedBld);
 	}
 
 	return 0x457C80;
@@ -339,7 +339,7 @@ DEFINE_HOOK(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 DEFINE_HOOK(0x70076E, TechnoClass_GetCursorOverCell_OverFog, 0x5)
 {
 	GET(CellClass*, pCell, EBP);
-	auto const pExt = CellExt::GetExtData(pCell);
+	auto const pExt = CellExt::ExtMap.Find(pCell);
 
 	int nOvlIdx = -1;
 	for (auto const pObject : pExt->FoggedObjects)
@@ -376,7 +376,7 @@ DEFINE_HOOK(0x51F95F, InfantryClass_GetCursorOverCell_OverFog, 0x6)
 		if (!ScenarioClass::Instance->SpecialFlags.FogOfWar || !bFog)
 			break;
 
-		for (const auto pObject : CellExt::GetExtData(pCell)->FoggedObjects)
+		for (const auto pObject : CellExt::ExtMap.Find(pCell)->FoggedObjects)
 		{
 			if (pObject->Visible && pObject->CoveredType == FoggedObject::CoveredType::Building)
 			{

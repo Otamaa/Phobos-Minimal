@@ -19,7 +19,7 @@ class VoxelAnimTypeExt
 public:
 	static constexpr size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
@@ -69,8 +69,6 @@ public:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
-
-	static VoxelAnimTypeExt::ExtData* GetExtData(base_type* pThis);
 
 	class ExtContainer final : public Container<VoxelAnimTypeExt>
 	{

@@ -72,6 +72,40 @@ void FlyingStrings::AddMoneyString(bool Display , int const amount, TechnoClass*
 	}
 }
 
+void FlyingStrings::AddString(const std::wstring& text ,bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
+{
+	if (text.empty() || !coords || !Display || !owner)
+		return;
+
+	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
+	{
+		wchar_t moneyStr[0x250];
+		ColorStruct color = nOverrideColor;
+
+		if (color == ColorStruct::Empty) {
+			color = ColorStruct { 255, 0, 0 };
+		}
+
+		swprintf_s(moneyStr, L"%ls", text.c_str());
+
+		int width = 0, height = 0;
+		BitFont::Instance->GetTextDimension(moneyStr, &width, &height, 120);
+		pixelOffset.X -= (width / 2);
+
+		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
+			coords.Z += 104 * pBuilding->Type->Height;
+		else
+			coords.Z += 256;
+
+		if (auto const pCell = MapClass::Instance->TryGetCellAt(coords))
+		{
+			if (!pCell->IsFogged() && !pCell->IsShrouded())
+			{
+				FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
+			}
+		}
+	}
+}
 void FlyingStrings::UpdateAll()
 {
 	if (Data.empty())
@@ -88,7 +122,7 @@ void FlyingStrings::UpdateAll()
 			if (dataItem.Duration < 70)
 				pos.Y = dataItem.Duration + pos.Y - 70;
 
-			Simple_Text_Print_Wide(&tmp, dataItem.Text.c_str(), DSurface::Temp(), &bound, &pos, dataItem.Color, 0, TextPrintType::Center, 1);
+			Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text.c_str(), DSurface::Temp(), &bound, &pos, dataItem.Color, 0, TextPrintType::Center, 1);
 		}
 
 		if (--dataItem.Duration <= 0) {

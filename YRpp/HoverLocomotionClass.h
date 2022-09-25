@@ -33,7 +33,7 @@ public:
 
 	CoordStruct MovingDestination;
 	CoordStruct CoordHeadTo;
-	FacingStruct Facing;
+	FacingClass Facing;
 	double __Height;
 	double __Accel;
 	double __Boost;

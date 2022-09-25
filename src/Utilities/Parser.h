@@ -238,6 +238,7 @@ inline bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
 		}
 		return true;
 	}
+
 	return false;
 };
 

@@ -29,7 +29,7 @@ public:
 	//ObjectClass
 	virtual ObjectTypeClass* GetType() const R0;
 	virtual bool Limbo() R0;
-	virtual bool Unlimbo(const CoordStruct& Crd, Direction::Value dFaceDir) R0;
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) R0;
 	virtual void Draw(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 
 	//Destructor

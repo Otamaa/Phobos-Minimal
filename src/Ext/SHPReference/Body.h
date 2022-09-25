@@ -9,20 +9,28 @@
 class SHPRefExt
 {
 public:
+	static constexpr DWORD Canary = 0xAB5005BA;
 	using base_type = SHPReference;
+	static constexpr size_t ExtOffset = sizeof(base_type);
 
 	class ExtData final : public Extension<SHPReference>
 	{
 	public:
 
-		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject) {}
+		SHPReference* Alpha;
+		RectangleStruct Data;
+		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject)
+			, Alpha { nullptr }
+			, Data { 0,0,0,0 }
+		{}
 
 		virtual ~ExtData() = default;
 		void InvalidatePointer(void *ptr, bool bRemoved) {}
+		void InitializeConstants();
 
 	};
 
-	class ExtContainer final : public Container<SHPRefExt>
+	class ExtContainer final : public Container<SHPRefExt, true, true, true>
 	{
 	public:
 		ExtContainer();
@@ -32,6 +40,4 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

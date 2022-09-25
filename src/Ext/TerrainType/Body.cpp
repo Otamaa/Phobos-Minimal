@@ -126,7 +126,7 @@ TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 	TerrainTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TerrainTypeExt::ExtMap.FindOrAllocate(pItem);

@@ -228,7 +228,7 @@ public:
 	{
 		if (flh)
 		{
-			double radians = dir.radians();
+			double radians = dir.GetRadians();
 
 			double rF = flh.X;
 			double xF = rF * Math::cos(-radians);
@@ -249,28 +249,39 @@ public:
 
 	static Vector3D<float> GetForwardVector(TechnoClass* pTechno, bool getTurret = false)
 	{
-		FacingStruct facing = getTurret ? pTechno->SecondaryFacing : pTechno->PrimaryFacing;
-		auto nDir = facing.current();
-		return ToVector3D(nDir);
+		if (getTurret)
+		{
+			FacingClass facing { pTechno->SecondaryFacing };
+			auto nDir = facing.Current();
+			return ToVector3D(nDir);
+
+		}
+		else
+		{
+			FacingClass facing { pTechno->PrimaryFacing };
+			auto nDir = facing.Current();
+			return ToVector3D(nDir);
+		}
 	}
 
 	static Vector3D<float> ToVector3D(DirStruct& dir)
 	{
-		double rad = -dir.radians();
+		double rad = -dir.GetRadians();
 		return { static_cast<float>(Math::cos(rad)), static_cast<float>(Math::sin(rad)), 0.0f };
 	}
 
 	static Matrix3D GetMatrix3D(TechnoClass* pTechno)
 	{
 		// Step 1: get body transform matrix
+		Matrix3D matrix3D { };
 
 		if (auto const pFoot = abstract_cast<FootClass*>(pTechno)) {
 			if (auto const pLoco = pFoot->Locomotor.get()) {
-				return pLoco->Draw_Matrix(nullptr);
+				pLoco->Draw_Matrix(&matrix3D ,nullptr);
+				return matrix3D;
 			}
 		}
 
-		Matrix3D matrix3D { };
 		matrix3D.MakeIdentity();
 		return matrix3D;
 	}
@@ -281,24 +292,24 @@ public:
 		{
 			if (pTechno->HasTurret())
 			{
-				DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.next() : pTechno->SecondaryFacing.current();
+				DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.Next() : pTechno->SecondaryFacing.Current();
 
 				if (pTechno->WhatAmI() == AbstractType::Building)
 				{
-					double turretRad = turretDir.radians();
+					double turretRad = turretDir.GetRadians();
 					matrix3D.RotateZ(static_cast<float>(turretRad));
 				}
 				else
 				{
 					matrix3D.RotateZ(-matrix3D.GetZRotation());
-					matrix3D.RotateZ(static_cast<float>(turretDir.radians()));
+					matrix3D.RotateZ(static_cast<float>(turretDir.GetRadians()));
 				}
 			}
 		}
 		else if (nextFrame)
 		{
 			matrix3D.RotateZ(-matrix3D.GetZRotation());
-			matrix3D.RotateZ(static_cast<float>(pTechno->PrimaryFacing.next().radians()));
+			matrix3D.RotateZ(static_cast<float>(pTechno->PrimaryFacing.Next().GetRadians()));
 		}
 		return matrix3D;
 	}
@@ -373,7 +384,7 @@ public:
 			Matrix3D matrix3D {  };
 			matrix3D.MakeIdentity();
 			matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
-			matrix3D.RotateZ(static_cast<float>(dir.radians()));
+			matrix3D.RotateZ(static_cast<float>(dir.GetRadians()));
 			return GetFLHOffset(matrix3D, flh);
 		}
 		return Vector3D<float>::Empty;

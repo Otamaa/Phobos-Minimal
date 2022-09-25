@@ -180,7 +180,7 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 
 		if (pTechno)
 		{
-			const auto pExt = TechnoExt::GetExtData(pTechno);
+			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
 			bImmune_pt2 = (pExt && pExt->Shield.get() && pExt->Shield.get()->IsActive())
 				|| pTechno->TemporalTargetingMe
 				|| (pTechno->ForceShielded && !bIgnoreDefense)

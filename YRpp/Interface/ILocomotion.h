@@ -4,6 +4,7 @@
 #include <GeneralStructures.h>
 #include <CoordStruct.h>
 #include <Matrix3D.h>
+#include <VoxelIndex.h>
 
 DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDAFD1")
 {
@@ -13,8 +14,8 @@ DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDA
 	virtual CoordStruct __stdcall Head_To_Coord() PURE; // Fetches immediate (next cell) destination coordinate.
 	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) PURE; //Determine if specific cell can be entered.
 	virtual bool __stdcall Is_To_Have_Shadow() PURE;	//Should object cast a shadow?
-	virtual Matrix3D __stdcall Draw_Matrix(int* key) PURE; //Fetch voxel draw matrix.
-	virtual Matrix3D __stdcall Shadow_Matrix(int* key) PURE;	//Fetch shadow draw matrix.
+	virtual Matrix3D* __stdcall Draw_Matrix(Matrix3D* pMatrix, VoxelIndexKey * key) PURE; //Fetch voxel draw matrix.
+	virtual Matrix3D* __stdcall Shadow_Matrix(Matrix3D * pMatrix, VoxelIndexKey * key) PURE;	//Fetch shadow draw matrix.
 	virtual Point2D __stdcall Draw_Point() PURE;	//Draw point center location.
 	virtual Point2D __stdcall Shadow_Point() PURE;	//Shadow draw point center location.
 	virtual VisualType __stdcall Visual_Character(VARIANT_BOOL unused) PURE;	//Visual character for drawing.
