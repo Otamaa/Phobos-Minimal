@@ -10,6 +10,8 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 
+#include <Ext/LineTrail/Body.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveData.h>
@@ -340,6 +342,7 @@ public:
 		Valueable<bool> TankDisguiseAsTank;
 		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
 		Valueable<bool> ChronoDelay_Immune;
+		std::vector<LineTrailData> LineTrailData;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -629,6 +632,7 @@ public:
 			, TankDisguiseAsTank { false }
 			, DisguiseDisAllowed { }
 			, ChronoDelay_Immune { false }
+			, LineTrailData { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

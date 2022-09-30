@@ -16,7 +16,9 @@ public:
 	{
 	public:
 
+		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, DeathBodies_UseDieSequenceAsIndex { false }
 		{ }
 
 		virtual ~ExtData() = default;

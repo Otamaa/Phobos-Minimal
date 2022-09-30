@@ -199,7 +199,7 @@ public:
 	AbstractFlags AbstractFlags;	// flags, see AbstractFlags enum in GeneralDefinitions.
 	DWORD unknown_18;
 	LONG RefCount;
-	bool Dirty;		// for IPersistStream.
+	DWORD Dirty;		// for IPersistStream.
 	//PROTECTED_PROPERTY(BYTE, padding_21[0x3]);
 
 private:

@@ -2,7 +2,7 @@
 #include <SmudgeTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Macro.h>
 
@@ -15,12 +15,12 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<SmudgeTypeClass>
+	class ExtData final : public TExtension<SmudgeTypeClass>
 	{
 	public:
 
 		Valueable<bool> Clearable;
-		ExtData(SmudgeTypeClass* OwnerObject) : Extension<SmudgeTypeClass>(OwnerObject)
+		ExtData(SmudgeTypeClass* OwnerObject) : TExtension<SmudgeTypeClass>(OwnerObject)
 			, Clearable { true }
 
 		{ }
@@ -36,7 +36,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SmudgeTypeExt
+	class ExtContainer final : public TExtensionContainer<SmudgeTypeExt
 #ifdef ENABLE_NEWHOOKS
 		,true ,true ,true
 #endif

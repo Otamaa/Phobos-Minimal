@@ -52,13 +52,13 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<ParticleTypeClass>::Serialize(Stm);
+	TExtension<ParticleTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<ParticleTypeClass>::Serialize(Stm);
+	TExtension<ParticleTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -79,7 +79,7 @@ bool ParticleTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ParticleTypeExt::ExtContainer::ExtContainer() : Container("ParticleTypeClass") {}
+ParticleTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("ParticleTypeClass") {}
 ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -88,7 +88,7 @@ ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	ParticleTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	ParticleTypeExt::ExtMap.FindOrAllocate(pItem);

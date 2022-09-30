@@ -36,13 +36,13 @@ void TActionExt::ExtData::Serialize(T& Stm)
 
 void TActionExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TActionClass>::Serialize(Stm);
+	TExtension<TActionClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TActionExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TActionClass>::Serialize(Stm);
+	TExtension<TActionClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -80,7 +80,7 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 // =============================
 // container
 
-TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
+TActionExt::ExtContainer::ExtContainer() : TExtensionContainer("TActionClass") { };
 TActionExt::ExtContainer::~ExtContainer() = default;
 
 static bool something_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
@@ -895,7 +895,7 @@ bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectC
 DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 {
 	GET(TActionClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	TActionExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TActionExt::ExtMap.FindOrAllocate(pItem);
@@ -933,7 +933,6 @@ DEFINE_HOOK(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
 {
 	GET(TActionClass*, pThis, ECX);
@@ -944,4 +943,4 @@ DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
-}*/
+}

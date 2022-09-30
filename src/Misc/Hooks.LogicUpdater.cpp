@@ -137,17 +137,22 @@ void TechnoExt::ExtData::InitFunctionEvents()
 
 void TechnoExt::InitializeItems(TechnoClass* pThis)
 {
+
+	auto pType = pThis->GetTechnoType();
+
+	if (!pType)
+		return;
+
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (!pExt)
 		return;
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (!pTypeExt)
-		return;
+	LineTrailExt::ConstructLineTrails(pThis);
 
-	//pExt->ID = pThis->get_ID();
+	pExt->IsMissisleSpawn = (RulesGlobal->V3Rocket.Type == pType || pType == RulesGlobal->DMisl.Type || pType == RulesGlobal->CMisl.Type || pTypeExt->IsCustomMissile);
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -269,34 +274,34 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 		}
 	}
 }
-	//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	//if (pExt && pTypeExt) {
-	//	if (pExt->ID != pThis->get_ID()) {
-	//		pExt->ID = pThis->get_ID();
-	//	}
-	//}
-	//
-	//if (pThis->TemporalTargetingMe)
-	//{
-	//	if (auto const pCell = pThis->GetCell())
-	//	{
-	//		if (auto const pBld = pCell->GetBuilding())
-	//		{
-	//			if (pBld->Type->BridgeRepairHut)
-	//			{
-	//				pThis->TemporalTargetingMe->Detach();
-	//			}
-	//		}
-	//	}
-	//}
+//if (pExt && pTypeExt) {
+//	if (pExt->ID != pThis->get_ID()) {
+//		pExt->ID = pThis->get_ID();
+//	}
+//}
+//
+//if (pThis->TemporalTargetingMe)
+//{
+//	if (auto const pCell = pThis->GetCell())
+//	{
+//		if (auto const pBld = pCell->GetBuilding())
+//		{
+//			if (pBld->Type->BridgeRepairHut)
+//			{
+//				pThis->TemporalTargetingMe->Detach();
+//			}
+//		}
+//	}
+//}
 
 DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 //DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find<false> (pThis);
+	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
 	//if (pThis->Health  == 0 && !pThis->InLimbo)
@@ -315,7 +320,7 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	if (!pExt->CurrentShieldType || (!pExt->CurrentShieldType->Strength && pTypeExt->ShieldType->Strength))
 		pExt->CurrentShieldType = pTypeExt->ShieldType;
 
-		// Create shield class instance if it does not exist.
+	// Create shield class instance if it does not exist.
 	if (pExt->CurrentShieldType && pExt->CurrentShieldType->Strength && !pExt->Shield)
 	{
 		pExt->Shield = std::make_unique<ShieldClass>(pThis);
@@ -326,7 +331,7 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 		pShieldData->OnUpdate();
 
 	TechnoExt::ApplyInterceptor(pThis);
-//#ifdef ENABLE_NEWHOOKS
+	//#ifdef ENABLE_NEWHOOKS
 	pExt->RunFireSelf();
 	pExt->UpdateMindControlAnim();
 	TechnoExt::ApplyMobileRefinery(pThis);
@@ -340,16 +345,17 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	PassengersFunctional::AI(pThis);
 	SpawnSupportFunctional::AI(pThis);
 #endif
-		pExt->GattlingDamage();
+	pExt->GattlingDamage();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-		pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
-		GiftBoxFunctional::AI(pExt, pTypeExt);
+	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+	GiftBoxFunctional::AI(pExt, pTypeExt);
 
-		if (pExt->PaintBallState) {
-			pExt->PaintBallState->Update(pThis);
-		}
+	if (pExt->PaintBallState)
+	{
+		pExt->PaintBallState->Update(pThis);
+	}
 
 #endif
 
@@ -410,11 +416,11 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 						if (pRocket->MissionState > 2 && pTracker->Coord && (Map.GetCellAt(pTracker->Coord)))
 							pRocket->MovingDestination = pTracker->Coord;
 					}
+				}
+			}
+#endif
+#endif
 		}
-	}
-#endif
-#endif
-}
 	}
 
 	pThis->FootClass::Update();
@@ -443,15 +449,34 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
 	GET(const FootClass*, pThis, ESI);
 
-	if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
-	{
-		//Spawnee trying to chase Aircraft that go out of map until it reset
-		//fix this , so reset immedietely if target is not on map
-		if (pThis->SpawnOwner && (!Map.IsValid(pTargetTech->Location) || pTargetTech->TemporalTargetingMe))
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if(pThis->SpawnOwner && pExt->IsMissisleSpawn){
+
+		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
+		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
+
+		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target)) {
+			//Spawnee trying to chase Aircraft that go out of map until it reset
+			//fix this , so reset immedietely if target is not on map
+			if (!Map.IsValid(pTargetTech->Location)
+				|| pTargetTech->TemporalTargetingMe
+				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack))
+			{
+				if (pThis->SpawnOwner->Target == pThis->Target)
+					pThis->SpawnOwner->SetTarget(nullptr);
+
+				pThis->SpawnOwner->SpawnManager->ResetTarget();
+			}
+
+		}else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
 		{
-			pThis->SpawnOwner->SetTarget(nullptr);
+			if (pThis->SpawnOwner->Target == pThis->Target)
+				pThis->SpawnOwner->SetTarget(nullptr);
+
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
+
 	}
 
 	return pThis->IsLocked() ? 0x4DA677 : 0x4DA643;
@@ -478,11 +503,15 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 		{
 			for (auto const& trail : pExt->LaserTrails)
 			{
+				if (pThis->CloakState == CloakState::Cloaked && !trail->Type->CloakVisible)
+					continue;
+
 				if (pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir() && trail->LastLocation.isset())
 					trail->LastLocation.clear();
 
 				CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret);
-				if (pThis->CloakState == CloakState::Cloaked)
+
+				if (pThis->CloakState == CloakState::Uncloaking && !trail->Type->CloakVisible)
 					trail->LastLocation = trailLoc;
 				else
 					trail->Update(trailLoc);

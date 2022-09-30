@@ -80,13 +80,13 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 void TerrainTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TerrainTypeClass>::Serialize(Stm);
+	TExtension<TerrainTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TerrainTypeClass>::Serialize(Stm);
+	TExtension<TerrainTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -117,7 +117,7 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 
-TerrainTypeExt::ExtContainer::ExtContainer() : Container("TerrainTypeClass") { }
+TerrainTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("TerrainTypeClass") { }
 TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -126,7 +126,7 @@ TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	TerrainTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	TerrainTypeExt::ExtMap.FindOrAllocate(pItem);

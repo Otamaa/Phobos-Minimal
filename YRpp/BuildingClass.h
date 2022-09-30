@@ -53,19 +53,19 @@ public:
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
 
 	//BuildingClass
-	virtual CellStruct* FindExitCell(CellStruct* pCellStruct, DWORD dwUnk, DWORD dwUnk2) const R0;
-	virtual int vt_entry_4D8(ObjectClass* pObj) const R0;
+	virtual CellStruct FindBuildingExitCell(TechnoClass* pDocker, CellStruct nDefault) const RT(CellStruct);
+	virtual int DistanceToDockingCoord(ObjectClass* pObj) const R0;
 	virtual void Place(bool captured) RX;
 	virtual void UpdateConstructionOptions() RX;
-	virtual void DrawFogged(const Point2D& point, const RectangleStruct& rect) RX;
-	virtual CellStruct* vt_entry_4E8(CellStruct* pCellStruct, DWORD dwUnk) const R0;
-	virtual void vt_entry_4EC(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3, DWORD dwUnk4) RX;
+	virtual void Draw(const Point2D& point, const RectangleStruct& rect) RX;
+	virtual DirStruct FireAngleTo(ObjectClass* pObject) const RT(DirStruct);
+	virtual void Destroy(DWORD dwUnused, TechnoClass* pTechno, bool NoSurvivor, CellStruct& cell) RX;
 	virtual bool TogglePrimaryFactory() R0;
 	virtual void SensorArrayActivate(CellStruct cell=CellStruct::Empty) RX;
 	virtual void SensorArrayDeactivate(CellStruct cell=CellStruct::Empty) RX;
 	virtual void DisguiseDetectorActivate(CellStruct cell=CellStruct::Empty) RX;
 	virtual void DisguiseDetectorDeactivate(CellStruct cell=CellStruct::Empty) RX;
-	virtual DWORD vt_entry_504() R0;
+	virtual int AlwaysZero() R0;
 
 	// non-vt
 
@@ -242,7 +242,7 @@ public:
 		return ret;
 	}
 
-	// use GetCoords() instead 
+	// use GetCoords() instead
 	//CoordStruct* GetBuildingCenterCoords___(CoordStruct* nReturn) const
 	//{ JMP_THIS(0x447AC0); }
 

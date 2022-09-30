@@ -92,6 +92,8 @@ public:
 	static HRESULT SaveGameDataAfter(IStream* pStm);
 	static void LoadGameDataAfter(IStream* pStm);
 
+	static bool EnableConsole;
+
 	class UI
 	{
 		NO_CONSTRUCT_CLASS(UI)

@@ -74,6 +74,9 @@ public:
 	static constexpr reference<bool, 0x8A0DEFu> const bAllowDirect3D{};
 	static constexpr reference<bool, 0x8A0DF0u> const bDirect3DIsUseable{};
 
+	static constexpr reference<bool, 0xA8E9A0u> const IsActive{};
+	static constexpr reference<bool, 0xA8ED80u> const IsFocused{};
+	static constexpr reference<int, 0xA8EDA0u> const SpecialDialog{};
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
 	static __int64 F2I64(double val) {
@@ -132,6 +135,9 @@ public:
 
 	static double GetFloaterGravity()
 		{ JMP_STD(0x48ACF0); }
+
+	static void __fastcall KeyboardProcess(DWORD& input)
+		{ JMP_STD(0x55DEE0); }
 
 	static LARGE_INTEGER __fastcall AudioGetTime()
 		{ JMP_STD(0x4093B0); }

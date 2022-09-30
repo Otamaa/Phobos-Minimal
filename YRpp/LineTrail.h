@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+#include <ObjectClass.h>
 
 #include <Helpers/CompileTime.h>
 #include <CoordStruct.h>

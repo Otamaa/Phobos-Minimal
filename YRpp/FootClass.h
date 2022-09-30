@@ -32,7 +32,7 @@ public:
 	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) JMP_THIS(0x4DEAE0);
 
 	//MissionClass
-	//virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
+	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
 
 	//TechnoClass
 	virtual void Destroyed(ObjectClass* Killer) RX;
@@ -243,4 +243,4 @@ public:
 	bool              removed;//6B8
 	PROTECTED_PROPERTY(DWORD,   unused_6BC);	//???
 };
-//static_assert(sizeof(FootClass) == 0x6C0);
+static_assert(sizeof(FootClass) == 0x6C0);

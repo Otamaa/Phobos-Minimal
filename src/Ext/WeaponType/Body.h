@@ -43,6 +43,10 @@ public:
 		Valueable<bool> Laser_IsSingleColor;
 		Valueable<double> Trajectory_Speed;
 		Valueable<bool> Abductor;
+		Nullable<AnimTypeClass*>DelayedFire_Anim;
+		Valueable<int> DelayedFire_Anim_LoopCount;
+		Valueable<bool> DelayedFire_Anim_UseFLH;
+		Valueable<int> DelayedFire_DurationTimer;
 #pragma region Otamaa
 		Valueable<int>Xhi;
 		Valueable<int>Xlo;
@@ -62,6 +66,7 @@ public:
 		Valueable<bool> DestroyTechnoAfterFiring;
 		Valueable<bool> RemoveTechnoAfterFiring;
 		Valueable<AnimTypeClass*> OpentoppedAnim;
+		Nullable<Point2D> DiskLaser_FiringOffset;
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
 		AttachFireData MyAttachFireDatas;
@@ -87,7 +92,10 @@ public:
 			, Laser_IsSingleColor { false }
 			, Trajectory_Speed { 100.0 }
 			, Abductor { false }
-
+			, DelayedFire_Anim { }
+			, DelayedFire_Anim_LoopCount { 1 }
+			, DelayedFire_Anim_UseFLH { true }
+			, DelayedFire_DurationTimer { 0 }
 			, Xhi { 0 }
 			, Xlo { 0 }
 			, Yhi { 0 }
@@ -104,6 +112,7 @@ public:
 			, DestroyTechnoAfterFiring { false }
 			, RemoveTechnoAfterFiring { false }
 			, OpentoppedAnim { nullptr }
+			, DiskLaser_FiringOffset { }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }

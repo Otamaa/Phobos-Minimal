@@ -47,6 +47,7 @@ public:
 
 	//AbstractClass
 	virtual void Update() override JMP_THIS(0x5F3E70);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x5F5230);
 
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) RX;
@@ -136,7 +137,7 @@ public:
 	virtual CellStruct const* GetFoundationData(bool includeBib = false) const R0;
 	virtual void DrawBehind(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 	virtual void DrawExtras(Point2D* pLocation, RectangleStruct* pBounds) const RX; // draws ivan bomb, health bar, talk bubble, etc
-	virtual void Draw(Point2D* pLocation, RectangleStruct* pBounds) const RX;
+	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 	virtual void DrawAgain(const Point2D& location, const RectangleStruct& bounds) const RX; // just forwards the call to Draw
 	virtual void Undiscover() RX; //hidden
 	virtual void See(DWORD dwUnk, DWORD dwUnk2) RX;

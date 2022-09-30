@@ -1,16 +1,11 @@
 #pragma once
-#ifdef DISABLE_DIRECT_Ext
+
 #include <AbstractClass.h>
 
+#include <Utilities/Container.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/Macro.h>
 #include <Utilities/SavegameDef.h>
-
-//#define READ_SAVE(what)\
-//	pStm->Read(&what, sizeof(what), nullptr);
-
-//#define WRITE_SAVE(what)\
-//	pStm->Write(&what, sizeof(what), nullptr);
 
 // All ext classes should derive from this class
 class IExtension
@@ -19,23 +14,6 @@ public:
 
 	IExtension() = default;
 	virtual ~IExtension() = default;
-
-	virtual size_t GetSize() const = 0;
-
-	//these load exacly after AbstracClass::S/L called
-	//suitable to re-set AttachedObject or anything that require early S/L iteration
-	virtual HRESULT Load(IStream* pStm, AbstractClass* pThis) = 0;
-	virtual HRESULT Save(IStream* pStm) = 0;
-
-	//this one used for `Container` later to S/L after everything done
-	//which using `Container` class as core infrastructures
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) = 0;
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) = 0;
-
-	//real name `Detach`
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-
-	virtual void Uninitialize() { };
 
 #define FAIL_CHECK(hr) if(FAILED(hr)) return hr;
 };
@@ -46,16 +24,17 @@ class TExtension : public IExtension
 {
 private:
 	T* AttachedToObject;
+	InitState Initialized;
 
 public:
-	static const DWORD Canary;
-
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject{ OwnerObject }
+		, Initialized { InitState::Blank }
 	{ }
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
+		, Initialized { InitState::Blank }
 	{ }
 
 	TExtension(const TExtension&) = delete;
@@ -63,88 +42,81 @@ public:
 
 	virtual ~TExtension() override = default;
 
-	inline T* const& Get() const {
+	T* const& Get() const {
 		return this->AttachedToObject;
 	}
 
-	inline void SetOwnerObject(T* const& pOwner)
+	void SetOwnerObject(T* const& pOwner)
 	{ AttachedToObject = pOwner; }
 
-	inline void LoadFromINI(CCINIClass* pINI)
+	void LoadFromINI(CCINIClass* pINI)
 	{
-		if (pINI)
-		{
-			this->Initialize();
+		if (!pINI)
+			return;
 
+		switch (this->Initialized)
+		{
+		case InitState::Blank:
+			this->EnsureConstanted();
+			[[fallthrough]];
+		case InitState::Constanted:
+			this->InitializeRuled();
+			this->Initialized = InitState::Ruled;
+			[[fallthrough]];
+		case InitState::Ruled:
+			this->Initialize();
+			this->Initialized = InitState::Inited;
+			[[fallthrough]];
+		case InitState::Inited:
+		case InitState::Completed:
+		{
 			if (pINI == CCINIClass::INI_Rules)
 				this->LoadFromRulesFile(pINI);
+		}
 
-			this->LoadFromINIFile(pINI);
+		this->LoadFromINIFile(pINI);
+		this->Initialized = InitState::Completed;
+		}
+
+	}
+
+	void EnsureConstanted()
+	{
+		if (this->Initialized < InitState::Constanted)
+		{
+			this->InitializeConstants();
+			this->Initialized = InitState::Constanted;
 		}
 	}
 
-	// called after the Extension Constructed
+	//virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { }
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
+
+	template<typename StmType>
+	inline void Serialize(StmType& Stm) { static_assert(true, "Please Implement Specific function for this !"); }
+
+	template<>
+	inline void Serialize(PhobosStreamWriter& Stm)
+	{
+		Stm.Save(this->Initialized);
+	}
+
+	template<>
+	inline void Serialize(PhobosStreamReader& Stm)
+	{
+		Stm.Load(this->Initialized);
+	}
+
+	virtual size_t GetSize() const { return sizeof(*this); }
+
+protected:
+
+	// right after construction. only basic initialization tasks possible;
+	// owner object is only partially constructed! do not use global state!
 	virtual void InitializeConstants() { }
 
-protected:
-
-	// called before the first ini file is read
-	virtual void Initialize() { }
-
-	// for things that only logically work in rules - countries, sides, etc
-	virtual void LoadFromRulesFile(CCINIClass* pINI) {}
-
-	// load any ini file: rules, game mode, scenario or map
-	virtual void LoadFromINIFile(CCINIClass* pINI) {}
-
-	virtual HRESULT Load(IStream* pStm, AbstractClass* pThis) override {
-		SetOwnerObject(static_cast<T*>(pThis));
-
-		return S_OK;
-	}
-
-	virtual HRESULT Save(IStream* pStm) override { return S_OK; }
-};
-
-template<typename T>
-class TExtensionBranch
-{
-public:
-	static const DWORD Canary;
-
-	virtual size_t GetSize() const = 0;
-
-	TExtensionBranch()
-	{ }
-
-	//real name `Detach`
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-	virtual void Uninitialize() = 0;
-
-	virtual ~TExtensionBranch() = default;
-
-	//this one used for `Container` later to S/L after everything done
-	//which using `Container` class as core infrastructures
-	virtual inline void SaveBranchToStream(PhobosStreamWriter& Stm) = 0;
-	virtual inline void LoadBranchFromStream(PhobosStreamReader& Stm) = 0;
-
-	// called after the Extension Constructed
-	virtual void InitializeConstants() = 0;
-
-	inline void LoadFromINI(CCINIClass* pINI)
-	{
-		if (pINI)
-		{
-			this->Initialize();
-
-			if (pINI == CCINIClass::INI_Rules)
-				this->LoadFromRulesFile(pINI);
-
-			this->LoadFromINIFile(pINI);
-		}
-	}
-
-protected:
+	virtual void InitializeRuled() { }
 
 	// called before the first ini file is read
 	virtual void Initialize() { }
@@ -154,13 +126,9 @@ protected:
 
 	// load any ini file: rules, game mode, scenario or map
 	virtual void LoadFromINIFile(CCINIClass* pINI) { }
-
-	//we dont want to load these after techno , but wait until the branch function called
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return true };
-	bool Save(PhobosStreamWriter& Stm) const { return true };
 };
 
-// This class is just a wrapper to replace
+// This class is just a wrapper to replace `Dirty` to pointer
 class ExtensionWrapper
 {
 public:
@@ -169,16 +137,10 @@ public:
 		, ExtensionObject { nullptr }
 	{ }
 
-	~ExtensionWrapper() {
-		this->DestoryExtensionObject();
-	}
+	~ExtensionWrapper() = default;
 
-	size_t GetSize() const {
-
-		if (this->ExtensionObject)
-			return this->ExtensionObject->GetSize();
-
-		return 0;
+	size_t Size() const {
+		return sizeof(ExtensionWrapper);
 	}
 
 	//replace bool Dirty -> Ext*
@@ -186,55 +148,13 @@ public:
 		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
 	}
 
-	inline void DestoryExtensionObject() {
-		GameDelete(this->ExtensionObject);
-		this->ExtensionObject = nullptr;
+	inline static ExtensionWrapper*& GetWrapper(const void* pThis) {
+		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
 	}
 
-	template<typename TExt , typename TObj>
-	inline void CreateExtensionObject(TObj Obj) {
+	HRESULT Load(IStream* pStm, AbstractClass* pThis) const { return S_OK; }
 
-		this->DestoryExtensionObject();
-		this->ExtensionObject = GameCreate<TExt>(Obj);
-
-		//if(!this->ExtensionObject && Obj) {
-		//	this->ExtensionObject = GameCreate<TExt>(Obj);
-		//	this->ExtensionObject->InitializeConstants();
-		//}
-		//else {
-		//	Debug::Log("Failed To Create Extension !\n");
-		//}
-	}
-
-	HRESULT Load(IStream* pStm, AbstractClass* pThis) const
-	{
-		if (auto pExtData = this->ExtensionObject)
-		{
-			HRESULT hr = pStm->Read(pExtData, pExtData->GetSize(), nullptr);
-
-			if (SUCCEEDED(hr))
-				return pExtData->Load(pStm, pThis);
-
-			return hr;
-		}
-
-		return S_OK;
-	}
-
-	HRESULT Save(IStream* pStm) const
-	{
-		if (auto pExtData = this->ExtensionObject)
-		{
-			HRESULT hr = pStm->Write(pExtData, pExtData->GetSize(), nullptr);
-
-			if (SUCCEEDED(hr))
-				return pExtData->Save(pStm);
-
-			return hr;
-		}
-
-		return S_OK;
-	}
+	HRESULT Save(IStream* pStm) const { return S_OK; }
 
 	__declspec(noinline) bool IsDirty() const { //dont inline this , causing crash !
 		return this->FlagDirty;
@@ -293,6 +213,110 @@ public:
 		return this->SavingStream;
 	}
 
+	extension_type_ptr SetIExtension(base_type_ptr key)
+	{
+		auto pWrapper = ExtensionWrapper::GetWrapper(key);
+		if(const auto val = new extension_type(key)) {
+			val->EnsureConstanted();
+			pWrapper->ExtensionObject = val;
+		}
+
+		return (extension_type_ptr)pWrapper->ExtensionObject;
+	}
+
+	extension_type_ptr Allocate(const_base_type_ptr key)
+	{
+		return SetIExtension(key);
+	}
+
+	void RemoveIExtension(const_base_type_ptr key)
+	{
+		auto pWrapper = ExtensionWrapper::GetWrapper(key);
+
+		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject) {
+			delete Item;
+			pWrapper->ExtensionObject = 0;
+		}
+	}
+
+	void Remove(const_base_type_ptr key)
+	{
+		auto pWrapper = ExtensionWrapper::GetWrapper(key);
+
+		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject)
+		{
+			delete Item;
+			pWrapper->ExtensionObject = 0;
+		}
+	}
+
+	template<bool Check = false>
+	extension_type_ptr GetOrSetIExtension(base_type_ptr key)
+	{
+		if (auto pExt = GetIExtension<Check>(key))
+			return pExt;
+
+		return SetIExtension(key);
+	}
+
+	extension_type_ptr FindOrAllocate(const_base_type_ptr key)
+	{
+		return GetOrSetIExtension(key);
+	}
+
+	template<bool Check = false>
+	extension_type_ptr GetIExtension(const_base_type_ptr key)
+	{
+		ExtensionWrapper* pWrapper = nullptr;
+
+		if constexpr (Check) {
+			if (key)
+				pWrapper = ExtensionWrapper::GetWrapper(key);
+			else
+				return nullptr;
+		}else {
+			pWrapper = ExtensionWrapper::GetWrapper(key);
+		}
+
+		return pWrapper ? (extension_type_ptr)pWrapper->ExtensionObject : nullptr;
+	}
+
+	template<bool Check = false>
+	extension_type_ptr Find(const_base_type_ptr key) const
+	{
+		ExtensionWrapper* pWrapper = nullptr;
+		if constexpr (Check)
+		{
+			if (key)
+				pWrapper = ExtensionWrapper::GetWrapper(key);
+			else
+				return nullptr;
+		}
+		else
+		{
+			pWrapper = ExtensionWrapper::GetWrapper(key);
+		}
+
+		return pWrapper ? (extension_type_ptr)pWrapper->ExtensionObject : nullptr;
+	}
+
+	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
+	{
+		if (!key || (!bCond && !nMessage.empty()))
+		{
+			Debug::Log("%s \n", nMessage.data());
+			return;
+		}
+
+		SetIExtension(key);
+	}
+
+	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
+	{
+		if (auto ptr = GetIExtension<true>(key))
+			ptr->LoadFromINI(pINI);
+	}
+
 	void SaveStatic() {
 		if (this->SavingObject && this->SavingStream) {
 			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
@@ -342,8 +366,8 @@ protected:
 			return nullptr;
 		}
 
-		// get the value data
-		extension_type_ptr buffer = T::ExtMap.Find(key);
+		// get the ext data
+		extension_type_ptr buffer = GetIExtension(key);
 		if (!buffer) {
 			Debug::Log("[SaveKey] Could not find value.\n");
 			return nullptr;
@@ -353,7 +377,7 @@ protected:
 		PhobosByteStream saver(buffer->GetSize());
 		PhobosStreamWriter writer(saver);
 
-		writer.Save(extension_type::Canary);
+		writer.Save(T::Canary);
 		//writer.Save(buffer);
 		// save the data
 		buffer->SaveToStream(writer);
@@ -377,8 +401,8 @@ protected:
 			return nullptr;
 		}
 
-		// get the value data
-		extension_type_ptr buffer = T::ExtMap.Find(key);
+		// get the extData
+		extension_type_ptr buffer = GetOrSetIExtension(key);
 		if (!buffer) {
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");
 			return nullptr;
@@ -391,8 +415,7 @@ protected:
 		}
 
 		PhobosStreamReader reader(loader);
-		if (reader.Expect(extension_type::Canary) //&& reader.RegisterChange(buffer)
-			) {
+		if (reader.Expect(T::Canary)) {
 			buffer->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())
 				return buffer;
@@ -406,94 +429,3 @@ private:
 	TExtensionContainer& operator = (const TExtensionContainer&) = delete;
 	TExtensionContainer& operator = (TExtensionContainer&&) = delete;
 };
-
-template<typename T>
-class TExtensionBranchContainer
-{
-private:
-	using base_type = typename T::base_type;
-	using base_type_ptr = base_type*;
-	using const_base_type_ptr = const base_type*;
-	using no_const_base_type_ptr = base_type*;
-
-	base_type_ptr SavingObject;
-	IStream* SavingStream;
-	FixedString<0x100> Name;
-
-public:
-	explicit TExtensionBranchContainer(const char* pName) :
-		SavingObject { nullptr },
-		SavingStream { nullptr },
-		Name { pName }
-	{}
-
-	virtual ~TExtensionBranchContainer() = default;
-
-	inline auto GetName() const
-	{
-		return this->Name.data();
-	}
-
-	void PrepareStream(base_type_ptr key, IStream* pStm)
-	{
-		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
-		this->SavingObject = key;
-		this->SavingStream = pStm;
-	}
-
-	inline IStream* GetStream() const
-	{
-		return this->SavingStream;
-	}
-
-	void SaveStatic()
-	{
-		if (this->SavingObject && this->SavingStream)
-		{
-			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
-			if (!this->Save(this->SavingObject, this->SavingStream))
-				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
-		}
-		else
-		{
-			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
-		}
-
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-	}
-
-	void LoadStatic()
-	{
-		if (this->SavingObject && this->SavingStream)
-		{
-			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
-			if (!this->Load(this->SavingObject, this->SavingStream))
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
-		}
-		else
-		{
-			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
-		}
-
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-	}
-
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-protected:
-
-	// override this method to do type-specific stuff
-	virtual bool Save(base_type_ptr key, IStream* pStm) { return true; }
-
-	// override this method to do type-specific stuff
-	virtual bool Load(base_type_ptr key, IStream* pStm) { return true; }
-
-private:
-	TExtensionBranchContainer(const TExtensionBranchContainer&) = delete;
-	TExtensionBranchContainer& operator = (const TExtensionBranchContainer&) = delete;
-	TExtensionBranchContainer& operator = (TExtensionBranchContainer&&) = delete;
-};
-#endif

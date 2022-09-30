@@ -73,6 +73,9 @@ public:
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 		HouseClass* OriginalPassengerOwner;
+		AnimClass* DelayedFire_Anim;
+		int DelayedFire_Anim_LoopCount;
+		int DelayedFire_DurationTimer;
 	#pragma region Otamaa
 		bool IsDriverKilled;
 		int GattlingDmageDelay;
@@ -97,6 +100,8 @@ public:
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;
 		int CurrentWeaponIdx;
+		bool IsMissisleSpawn;
+		DynamicVectorClass<LineTrail*> TechnoLineTrail;
 #ifdef ENABLE_HOMING_MISSILE
 		HomingMissileTargetTracker* MissileTargetTracker;
 #endif
@@ -127,6 +132,9 @@ public:
 			, DamageNumberOffset {}
 			, CurrentLaserWeaponIndex {}
 			, OriginalPassengerOwner{ nullptr }
+			, DelayedFire_Anim { }
+			, DelayedFire_Anim_LoopCount { 1 }
+			, DelayedFire_DurationTimer { 0 }
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }
@@ -148,6 +156,8 @@ public:
 			, MyGiftBox {}
 			, PaintBallState {}
 			, CurrentWeaponIdx { -1}
+			, IsMissisleSpawn { false }
+			, TechnoLineTrail { }
 #ifdef ENABLE_HOMING_MISSILE
 			, MissileTargetTracker { nullptr }
 #endif

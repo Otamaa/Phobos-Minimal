@@ -10,7 +10,7 @@ AnimExt::ExtContainer AnimExt::ExtMap;
 
 void AnimExt::ExtData::InitializeConstants()
 {
-	auto pTypeExt = AnimTypeExt::ExtMap.Find(Get()->Type);
+	if(auto pTypeExt = AnimTypeExt::ExtMap.Find<true>(Get()->Type))
 	CreateAttachedSystem(pTypeExt);
 }
 

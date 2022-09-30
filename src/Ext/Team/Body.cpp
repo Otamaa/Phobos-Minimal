@@ -48,13 +48,13 @@ void TeamExt::ExtData::Serialize(T& Stm)
 
 void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TeamClass>::Serialize(Stm);
+	TExtension<TeamClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TeamClass>::Serialize(Stm);
+	TExtension<TeamClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -73,7 +73,7 @@ bool TeamExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TeamExt::ExtContainer::ExtContainer() : Container("TeamClass") { }
+TeamExt::ExtContainer::ExtContainer() : TExtensionContainer("TeamClass") { }
 TeamExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -84,7 +84,7 @@ DEFINE_HOOK(0x6E8DBE, TeamClass_CTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	TeamExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
 #else
 	TeamExt::ExtMap.FindOrAllocate(pThis);

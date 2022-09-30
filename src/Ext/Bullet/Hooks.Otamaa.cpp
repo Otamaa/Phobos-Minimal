@@ -121,12 +121,9 @@ static DWORD Do_Airburst(BulletClass* pThis)
 				// fill with technos in range
 				std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno)
 				{
-					if (pTechno->IsInPlayfield && pTechno->IsOnMap && pTechno->Health > 0)
+					if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
 					{
 						if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-							return;
-
-						if (pExt->Splits_TargetingUseVerses.Get() && !pWHExt->CanDealDamage(pTechno))
 							return;
 
 						if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))

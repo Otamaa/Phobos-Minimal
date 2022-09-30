@@ -189,10 +189,10 @@ public:
 	virtual ~TechnoClass() RX;
 
 	//AbstractClass
-	//virtual void Update() override JMP_THIS(0x6F9E50);
+	virtual void Update() override JMP_THIS(0x6F9E50);
 
 	//MissionClass
-	//virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
+	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
 
 	//TechnoClass
 	virtual bool IsUnitFactory() const R0;
@@ -225,7 +225,7 @@ public:
 	virtual ZGradient GetZGradient() const RT(ZGradient);
 	virtual CellStruct* GetSomeCellStruct(CellStruct* buffer) const R0;
 	virtual void SetLastCellStruct(CellStruct Buffer) RX;
-	virtual CellStruct* FindExitCell(CellStruct* Buffer, TechnoClass* pDocker, CellStruct nDefault) const; //
+	virtual CellStruct FindExitCell(TechnoClass* pDocker, CellStruct nDefault) const; //
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;
 	virtual FacingClass* GetRealFacing(FacingClass* pBuffer) const R0;

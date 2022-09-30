@@ -5,6 +5,8 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
+#include <Ext/LineTrail/Body.h>
+
 #include <New/Type/LaserTrailTypeClass.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
@@ -68,6 +70,7 @@ public:
 		Nullable <double> Trajectory_Speed;
 		Nullable<int> Proximity_Range;
 		Valueable<bool> IsScalable;
+		std::vector<LineTrailData> LineTrailData;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -114,6 +117,7 @@ public:
 			, Trajectory_Speed { }
 			, Proximity_Range { }
 			, IsScalable { false }
+			, LineTrailData { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

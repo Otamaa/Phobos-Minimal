@@ -1,5 +1,5 @@
 #include "Body.h"
-#ifdef DISABLE_DIRECT_Ext
+//#ifndef DISABLE_DIRECT_Ext
 #include <Base/Always.h>
 #include <SwizzleManagerClass.h>
 #include <Checksummer.h>
@@ -22,7 +22,7 @@ DEFINE_HOOK(0x4103E0, AbstractClass_GetSizeMax, 0x5)
 	pcbSize->LowPart =
 		pThis->Size() + sizeof(pThis) +
 		sizeof(IExtension*) +
-		ExtensionWrapper::GetWrapper(pThis)->GetSize();
+		ExtensionWrapper::GetWrapper(pThis)->Size();
 
 	R->EAX(S_OK);
 
@@ -38,7 +38,7 @@ DEFINE_HOOK(0x512570, HouseTypeClass_GetSizeMax, 0x5)
 	pcbSize->LowPart =
 		pThis->Size() + sizeof(pThis) +
 		sizeof(IExtension*) +
-		ExtensionWrapper::GetWrapper(pThis)->GetSize();
+		ExtensionWrapper::GetWrapper(pThis)->Size();
 
 	R->EAX(S_OK);
 
@@ -54,12 +54,24 @@ DEFINE_HOOK(0x4101B6, AbstractClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x4105A0, AbsractClass_DTOR, 0x5)
+DEFINE_HOOK(0x4105BD, AbsractClass_SDTOR, 0x7)
+{
+	GET(AbstractClass*, pThis, ESI);
+
+	if (auto pWrapper = ExtensionWrapper::GetWrapper(pThis)){
+		GameDelete<true>(pWrapper);
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x41020B, AbsractClass_DTOR, 0x5)
 {
 	GET(AbstractClass*, pThis, ECX);
 
-	GameDelete(ExtensionWrapper::GetWrapper(pThis));
+	if (auto pWrapper = ExtensionWrapper::GetWrapper(pThis)) {
+		GameDelete<true>(pWrapper);
+	}
 
 	return 0;
 }
@@ -158,4 +170,4 @@ DEFINE_HOOK(0x410380, AbstractClass_Load, 0x5)
 
 	return 0x41038F;
 }
-#endif
+//#endif

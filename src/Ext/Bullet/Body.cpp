@@ -175,6 +175,9 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 					TrailsManager::CleanUp(pExt->Get());
 					TrailsManager::Construct(pExt->Get());
 #endif
+
+					LineTrailExt::DeallocateLineTrail(pThis);
+					LineTrailExt::ConstructLineTrails(pThis);
 				}
 			}
 		}

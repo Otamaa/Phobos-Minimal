@@ -115,7 +115,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
-	if (!pTarget)
+	if (!pTarget || !pAttacker->IsAlive)
 		return nullptr;
 
 	// Fire weapon
@@ -135,7 +135,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 {
 	double fireMult = 1;
 
-	if (pAttacker && pAttacker->IsAlive)
+	if (pAttacker && pAttacker->IsAlive && !pAttacker->IsCrashing && !pAttacker->IsSinking)
 	{
 		// check spawner
 		auto pSpawn = pAttacker->SpawnManager;

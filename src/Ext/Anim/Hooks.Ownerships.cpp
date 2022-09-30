@@ -16,7 +16,7 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 		pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : pHouse);
 	}
 
-	auto nCoord = pThis->GetCenterCoord();
+	auto nCoord = pThis->GetCoords();
 	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
 	{
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, pObject, false);

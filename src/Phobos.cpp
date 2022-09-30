@@ -91,6 +91,8 @@ bool Phobos::Otamaa::DisableCustomRadSite = false;
 TCHAR Phobos::Otamaa::PCName[MAX_COMPUTERNAME_LENGTH + 1];
 bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
+bool Phobos::EnableConsole = false;
+
 #ifdef ENABLE_TLS
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_1;
 DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
@@ -107,6 +109,11 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		if (_stricmp(pArg, "-Icon") == 0)
 		{
 			Phobos::AppIconPath = ppArgs[++i];
+		}
+
+		if (_stricmp(pArg, "-Console") == 0)
+		{
+			Phobos::EnableConsole = true;
 		}
 
 		/*
@@ -225,6 +232,7 @@ void Phobos::ExeRun()
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
 			Phobos::Otamaa::IsAdmin = true;
+			Phobos::EnableConsole = true;
 
 			if (Phobos::DetachFromDebugger())
 			{
@@ -247,13 +255,14 @@ void Phobos::ExeRun()
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
 			}
+		}
+	}
 
-			if (!Console::Create())
-			{
-				MessageBoxW(NULL,
-				L"Failed to allocate the debug console!",
-				L"Debug Console Notice", MB_OK);
-			}
+	if (Phobos::EnableConsole) {
+		if (!Console::Create()) {
+			MessageBoxW(NULL,
+			L"Failed to allocate the debug console!",
+			L"Debug Console Notice", MB_OK);
 		}
 	}
 }
@@ -682,10 +691,10 @@ DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
 	return 0x0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
-	REF_STACK(int, nDataSize, 0x4);
+	REF_STACK(size_t, nDataSize, 0x4);
 	nDataSize += 0x4;
 	return 0x0;
 }

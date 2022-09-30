@@ -55,13 +55,13 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<VoxelAnimTypeClass>::Serialize(Stm);
+	TExtension<VoxelAnimTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<VoxelAnimTypeClass>::Serialize(Stm);
+	TExtension<VoxelAnimTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -82,7 +82,7 @@ bool VoxelAnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-VoxelAnimTypeExt::ExtContainer::ExtContainer() : Container("VoxelVoxelAnimTypeClass") {}
+VoxelAnimTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("VoxelVoxelAnimTypeClass") {}
 VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -91,7 +91,7 @@ VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	VoxelAnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	VoxelAnimTypeExt::ExtMap.FindOrAllocate(pItem);

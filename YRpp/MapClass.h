@@ -509,14 +509,14 @@ public:
 	void BuildingToWall(CellStruct const& cell, HouseClass* pHouse, BuildingTypeClass* pBldType)
 		{ JMP_THIS(0x588750); }
 
-    bool Place_Crate(CellStruct cell, int idxCrate)
-        { JMP_THIS(0x56BEC0); }
+	bool Place_Crate(CellStruct cell, int idxCrate)
+		{ JMP_THIS(0x56BEC0); }
 
-    bool Remove_Crate(CellStruct* where)
-        { JMP_THIS(0x56C020); }
+	bool Remove_Crate(CellStruct* where)
+		{ JMP_THIS(0x56C020); }
 
-    bool Place_Random_Crate()
-        { JMP_THIS(0x56BD40); }
+	bool Place_Random_Crate()
+		{ JMP_THIS(0x56BD40); }
 
 	int Zone_56D230(CellStruct* where,MovementZone nZone ,bool bArgs)
 		{ JMP_THIS(0x56D230); }

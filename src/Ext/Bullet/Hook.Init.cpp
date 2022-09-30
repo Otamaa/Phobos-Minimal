@@ -21,11 +21,14 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 				pExt->InitializeLaserTrails(pTypeExt);
 			}
 		}
+
+		LineTrailExt::ConstructLineTrails(pThis);
 	}
 
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(pThis);
 #endif
+
 	return 0;
 }

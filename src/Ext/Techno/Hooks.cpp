@@ -13,6 +13,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -39,6 +40,9 @@ DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pUnit), true);
 #endif
+	LineTrailExt::DeallocateLineTrail(pUnit);
+	LineTrailExt::ConstructLineTrails(pUnit);
+
 	return 0;
 }
 
@@ -145,7 +149,7 @@ DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 // Author: Otamaa
 DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 {
-	enum { Delete = 0x518619, DoOtherAffects = 0x518515 , IsHuman = 0x5185C8 };
+	enum { Delete = 0x518B98, DoOtherAffects = 0x518515 , IsHuman = 0x5185C8 };
 
 	GET(InfantryClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
@@ -157,11 +161,9 @@ DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 	constexpr auto Die = [](int x) { return x + 10; };
 
 	int resultSequence = Die(1);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
 	R->ECX(pThis);
 
-	if (pTypeExt->NotHuman_RandomDeathSequence.Get())
-		resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
 
 	if (receiveDamageArgs.WH)
 	{
@@ -178,9 +180,17 @@ DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 			}
 			else
 			{
+				auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+				if (pTypeExt->NotHuman_RandomDeathSequence.Get())
+					resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
+
 				int whSequence = pWarheadExt->NotHuman_DeathSequence.Get();
 				if (whSequence > 0)
 					resultSequence = Math::min(Die(whSequence), Die(5));
+
+				if (auto pInfExt = InfantryExt::ExtMap.Find(pThis))
+					pInfExt->IsUsingDeathSequence = true;
+
 			}
 		}
 	}
@@ -744,7 +754,7 @@ DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type)) {
-		if (pTypeExt && pThis->IsOwnedByCurrentPlayer && !pThis->Type->UndeploysInto)
+		if (pTypeExt && pThis->Owner->IsControlledByCurrentPlayer() && !pThis->Type->UndeploysInto)
 			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
 
 		return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;

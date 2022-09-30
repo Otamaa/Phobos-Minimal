@@ -188,8 +188,8 @@ public:
 	TypeList<int> DebrisMaximums;
 	_GUID           Locomotor;
 	DWORD			align_35C;
-	double          voxelscaley; //360
-	double          voxelscalex; //368
+	double          VoxelScaleX; //360
+	double          VoxelScaleY; //368
 	double          Weight;
 	double          PhysicalSize;
 	double          Size;

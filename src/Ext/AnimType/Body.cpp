@@ -22,6 +22,9 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	if (!pINI->GetSection(pID))
 		return;
 
+	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
+	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
+
 	this->Palette.Read(pINI, pID, "CustomPalette");
 	this->CreateUnit.Read(exINI, pID, "CreateUnit", true);
 	this->CreateUnit_Facing.Read(exINI, pID, "CreateUnit.Facing");
@@ -221,6 +224,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(ConcurrentAnim)
 		.Process(ShouldFogRemove)
 		.Process(AttachedSystem)
+		.Process(IsInviso)
 		;
 }
 

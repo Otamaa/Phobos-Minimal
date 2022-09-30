@@ -660,6 +660,9 @@ public:
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
+		if constexpr (HasOffset<T>)
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
@@ -882,8 +885,15 @@ protected:
 			return nullptr;
 		}
 
+		extension_type_ptr buffer = nullptr;
 		// get the value data
-		auto buffer = this->FindOrAllocate(key);
+		if constexpr (HasOffset<T>) {
+			this->JustAllocate(key, true, "");
+			buffer = this->Find(key);
+		}
+		else
+			buffer = this->FindOrAllocate(key);
+
 		if (!buffer)
 		{
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");

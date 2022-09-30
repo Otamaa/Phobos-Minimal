@@ -48,7 +48,7 @@
 #include <Ext/ScriptType/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/Terrain/Body.h>
-#include <Ext/SmudgeType/Body.h>
+//#include <Ext/SmudgeType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
@@ -81,7 +81,7 @@ auto MassActions = MassAction <
 	ArmorTypeClass,
 	TeamTypeExt,
 	TerrainExt,
-	SmudgeTypeExt,
+	//SmudgeTypeExt,
 	TemporalExt,
 	InfantryExt,
 	InfantryTypeExt,
@@ -137,7 +137,6 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
 	GET(bool const, removed, EDX);
 
 	Phobos::PointerGotInvalid(pInvalid, removed);
-
 	return 0;
 }
 

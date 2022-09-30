@@ -17,6 +17,8 @@ template <typename T>
 void InfantryExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(IsUsingDeathSequence)
+		.Process(CurrentDoType)
 		;
 }
 

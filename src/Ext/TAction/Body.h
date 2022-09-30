@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/Template.h>
 
 #include <Helpers/Template.h>
@@ -43,7 +43,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public TExtension<base_type>
 	{
 	public:
 
@@ -54,7 +54,7 @@ public:
 		std::string Parm5;
 		std::string Parm6;
 
-		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
+		ExtData(TActionClass* const OwnerObject) : TExtension<base_type>(OwnerObject)
 		, Value1 { }
 		, Value2 { }
 		, Parm3 { }
@@ -64,7 +64,7 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants() { }
@@ -74,7 +74,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TActionExt>
+	class ExtContainer final : public TExtensionContainer<TActionExt>
 	{
 	public:
 		ExtContainer();

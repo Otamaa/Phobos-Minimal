@@ -175,7 +175,7 @@ public:
 		Valueable<bool> Converts;
 		ValueableVector<TechnoTypeClass*> Converts_From;
 		ValueableVector<TechnoTypeClass*> Converts_To;
-
+		ValueableVector<AnimTypeClass*> DeadBodies;
 	#ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -314,7 +314,7 @@ public:
 			, Converts { false }
 			, Converts_From {}
 			, Converts_To {}
-
+			, DeadBodies {}
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -357,7 +357,7 @@ public:
 		void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords);
 		bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);
 		bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
-		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false);
+		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
 		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 
 		virtual ~ExtData() = default;

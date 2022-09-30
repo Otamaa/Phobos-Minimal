@@ -193,7 +193,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
 	CalculatePinch::Calc(pThis, nWeapon);
 	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
-	SpawnSupportFunctional::OnFire(pThis);
+	SpawnSupportFunctional::OnFire(pThis,pTarget);
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
 		pExt->CurrentWeaponIdx = nWeapon;
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {

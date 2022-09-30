@@ -479,6 +479,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
+
+	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
@@ -487,6 +489,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 	this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
 	this->Trails.Read(exArtINI, pArtSection, true);
+
 #endif
 
 #pragma endregion
@@ -765,6 +768,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->TankDisguiseAsTank)
 		.Process(this->DisguiseDisAllowed)
 		.Process(this->ChronoDelay_Immune)
+		.Process(this->LineTrailData)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 

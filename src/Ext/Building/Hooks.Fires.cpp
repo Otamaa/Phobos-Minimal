@@ -69,7 +69,7 @@ namespace DamageFireAnims
 				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
 				const auto[nPiX ,nPiY] = TacticalGlobal->ApplyOffsetPixel(nFireOffs);
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
-				nPixCoord += pThis->GetCenterCoord();
+				nPixCoord += pThis->GetRenderCoords();
 
 				if (auto const pFireType = pFire[ScenarioGlobal->Random.RandomFromMax(pFire.size() - 1)])
 				{

@@ -75,7 +75,7 @@ public:
 		Valueable<bool> ShouldFogRemove;
 	    #pragma endregion
 		Valueable<ParticleSystemTypeClass*> AttachedSystem;
-
+		bool IsInviso;
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, CreateUnit { }
@@ -126,13 +126,12 @@ public:
 			, ConcurrentAnim { }
 			, ShouldFogRemove { true }
 			, AttachedSystem {}
+			, IsInviso { false }
 		{ }
 
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
 		void InitializeConstants() {
-			auto pObj = Get();
-			SpecialDraw = IS_SAME_STR_(pObj->get_ID(), RING1_NAME);
 			Launchs.reserve(2);
 		}
 

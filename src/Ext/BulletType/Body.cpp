@@ -126,6 +126,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
 	this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride", true);
 
+	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #pragma region Otamaa
 	this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
 	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon" , true);
@@ -186,6 +187,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Proximity_Range)
 		.Process(this->IsScalable)
+		.Process(this->LineTrailData)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);

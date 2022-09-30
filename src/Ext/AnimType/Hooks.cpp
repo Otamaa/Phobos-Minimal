@@ -206,7 +206,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
-			CRT::strcmp(pThis->get_ID(), INVISO_NAME) ? RulesGlobal->FlameDamage2 : RulesGlobal->C4Warhead;
+			pTypeExt->IsInviso ? RulesGlobal->FlameDamage2 : RulesGlobal->C4Warhead;
 
 		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 

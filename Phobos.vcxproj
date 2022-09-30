@@ -27,6 +27,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\Commands.cpp" />
+    <ClCompile Include="src\Commands\FrameStep.cpp" />
+    <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
@@ -60,8 +62,8 @@
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
-    <ClCompile Include="src\Ext\IonBlast\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
+    <ClCompile Include="src\Ext\LineTrail\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
@@ -218,6 +220,7 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\CaptureObjects.h" />
     <ClInclude Include="src\Commands\DamageDisplay.h" />
+    <ClInclude Include="src\Commands\FrameStep.h" />
     <ClInclude Include="src\Commands\NextIdleHarvester.h" />
     <ClInclude Include="src\Commands\NextTeam.h" />
     <ClInclude Include="src\Commands\ObjectInfo.h" />
@@ -231,6 +234,7 @@
     <ClInclude Include="src\ExtraHeaders\PriorityQueueClass.h" />
     <ClInclude Include="src\ExtraHeaders\QueueClass.h" />
     <ClInclude Include="src\ExtraHeaders\RegionClass.h" />
+    <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.h" />
@@ -242,8 +246,8 @@
     <ClInclude Include="src\Ext\Cell\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
-    <ClInclude Include="src\Ext\IonBlast\Body.h" />
     <ClInclude Include="src\Ext\LaserDraw\Body.h" />
+    <ClInclude Include="src\Ext\LineTrail\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />

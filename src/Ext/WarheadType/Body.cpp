@@ -33,7 +33,7 @@ bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass
 	return true;
 }
 
-bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass)
+bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses)
 {
 	if (pTechno)
 	{
@@ -48,21 +48,26 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass)
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
+		if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+			if (pBld->Type->InvisibleInGame)
+				return false;
+
 		auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 
 		if (pTechno->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
 			pTechno->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
 			return false;
 
-		if (EffectsRequireVerses.Get())
-		{
-			auto nArmor = pTechno->GetTechnoType()->Armor;
-			if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
-				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
-					nArmor = pExt->CurrentShieldType->Armor;
+		if (!SkipVerses) {
+			if (EffectsRequireVerses.Get()) {
+				auto nArmor = pTechno->GetTechnoType()->Armor;
+				auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
-			auto nVal = GeneralUtils::GetWarheadVersusArmor(Get(), nArmor);
-			return (fabs(nVal) >= 0.001);
+				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
+						nArmor = pExt->CurrentShieldType->Armor;
+
+				return (fabs(GeneralUtils::GetWarheadVersusArmor(Get(), nArmor)) >= 0.001);
+			}
 		}
 
 		return true;
@@ -110,11 +115,12 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
-	if (pTechno) {
+	if (pTechno)
+	{
 
 		auto const pType = pTechno->GetTechnoType();
 
-		if (!pTechno->IsOnMap || !pTechno->IsAlive || pTechno->InLimbo || pTechno->IsSinking || pTechno->BeingWarpedOut || pTechno->TemporalTargetingMe || pType->Immune)
+		if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
 			return false;
 
 		if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
@@ -125,23 +131,11 @@ bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno,
 
 		if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
 			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
-			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType)) {
+			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
+		{
 			return false;
 		}
 
-		if (this->DetonateOnAllMapObjects_RequireVerses)
-		{
-			auto nArmor = pType->Armor;
-			auto const pExt = TechnoExt::ExtMap.Find(pTechno);
-			auto const pShield = pExt->GetShield();
-
-			if (pExt->CurrentShieldType && pShield && pShield->IsActive())
-					nArmor = pExt->CurrentShieldType->Armor;
-
-			if (fabs(GeneralUtils::GetWarheadVersusArmor(this->Get(), nArmor)) == 0.000) {
-				return false;
-			}
-		}
 
 		return true;
 	}
@@ -383,7 +377,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_From.Read(exINI, pSection, "Converts.From");
 	this->Converts_To.Read(exINI, pSection, "Converts.To");
-
+	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -408,7 +402,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 #pragma endregion
 
-}
+	}
 
 template <typename T>
 void WarheadTypeExt::ExtData::Serialize(T& Stm)
@@ -540,7 +534,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Steal_Display_Houses)
 		.Process(Steal_Display)
 		.Process(Steal_Display_Offset)
-
+		.Process(DeadBodies)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -647,7 +641,7 @@ DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 }
 
 //#ifdef ENABLE_NEWEXT
-DEFINE_JUMP(LJMP, 0x75D798 , 0x75D7AC)
-DEFINE_JUMP(LJMP, 0x75D7B2 , 0x75D7B8)
+DEFINE_JUMP(LJMP, 0x75D798, 0x75D7AC)
+DEFINE_JUMP(LJMP, 0x75D7B2, 0x75D7B8)
 DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
 //

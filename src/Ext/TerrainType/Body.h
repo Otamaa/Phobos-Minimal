@@ -2,7 +2,7 @@
 #include <TerrainTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Macro.h>
 
@@ -15,7 +15,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<TerrainTypeClass>
+	class ExtData final : public TExtension<TerrainTypeClass>
 	{
 	public:
 		CustomPalette CustomPalette;
@@ -43,7 +43,7 @@ public:
 		Valueable<bool> AreaDamage;
 		#pragma endregion
 
-		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
+		ExtData(TerrainTypeClass* OwnerObject) : TExtension<TerrainTypeClass>(OwnerObject)
 			, CustomPalette { CustomPalette::PaletteMode::Temperate }
 			, SpawnsTiberium_Type { 0 }
 			, SpawnsTiberium_Range { 1 }
@@ -103,7 +103,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TerrainTypeExt
+	class ExtContainer final : public TExtensionContainer<TerrainTypeExt
 #ifdef ENABLE_NEWHOOKS
 		, true , true , true
 #endif

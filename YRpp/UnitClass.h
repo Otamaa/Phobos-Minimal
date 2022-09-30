@@ -42,12 +42,14 @@ public:
 
 	//UnitClass
 	// main drawing functions - Draw() calles one of these, they call parent's Draw_A_smth
-	virtual void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, DWORD dwUnk7, DWORD dwUnk8)
+	virtual void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
 		{ JMP_THIS(0x73B470); }
 
-	virtual void DrawAsSHP(Point2D Coords, RectangleStruct BoundingRect, DWORD dwUnk7, DWORD dwUnk8)
+	virtual void DrawAsSHP(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
 		{ JMP_THIS(0x73C5F0); }
 
+	virtual void DrawObject(Surface* pSurface, Point2D Coords, RectangleStruct CacheRect, int Brightness, int Tint)
+		{ JMP_THIS(0x73B140); }
 	// non-virtual
 
 	bool IsDeactivated() const
@@ -106,7 +108,7 @@ public:
 	int FlagHouseIndex; //Carrying the flag of this House
 	bool HasFollowerCar; // yes, this vehicle has a another vehicle (a train's locomotive towing the cars)
 	bool Unloading;
-	bool unknown_bool_6D2;
+	bool IsHarvesting; //6D2
 	bool TerrainPalette;
 	int unknown_int_6D4;
 	int DeathFrameCounter;

@@ -3,7 +3,8 @@
 
 #include <Helpers/Enumerators.h>
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+//#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <Phobos.h>
 
@@ -16,7 +17,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<TeamClass>
+	class ExtData final : public TExtension<TeamClass>
 	{
 	public:
 		int WaitNoTargetAttempts;
@@ -34,7 +35,7 @@ public:
 		int GenericStatus;
 		int FailedCounter;
 
-		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
+		ExtData(TeamClass* OwnerObject) : TExtension<TeamClass>(OwnerObject)
 			, WaitNoTargetAttempts { 0 }
 			, NextSuccessWeightAward { 0 }
 			, IdxSelectedObjectFromAIList { -1 }
@@ -62,7 +63,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TeamExt
+	class ExtContainer final : public TExtensionContainer<TeamExt
 #ifdef ENABLE_NEWHOOKS
 	,true,true,true
 #endif

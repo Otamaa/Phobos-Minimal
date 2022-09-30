@@ -89,13 +89,13 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<VoxelAnimClass>::Serialize(Stm);
+	TExtension<VoxelAnimClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<VoxelAnimClass>::Serialize(Stm);
+	TExtension<VoxelAnimClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -118,7 +118,7 @@ bool VoxelAnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-VoxelAnimExt::ExtContainer::ExtContainer() : Container("VoxelAnimClass") { }
+VoxelAnimExt::ExtContainer::ExtContainer() : TExtensionContainer("VoxelAnimClass") { }
 VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -128,7 +128,7 @@ DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
 DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);
@@ -165,3 +165,13 @@ DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x5)
 	VoxelAnimExt::ExtMap.SaveStatic();
 	return 0;
 }
+
+static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)
+{
+	pThis->ObjectClass::PointerExpired(pTarget, bRemove);
+
+	if (auto pExt = VoxelAnimExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(pTarget, bRemove);
+}
+
+DEFINE_JUMP(VTABLE ,0x7F6340 , GET_OFFSET(VoxelAnimClass_Detach))

@@ -19,6 +19,7 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	if (!pINI->GetSection(pID))
 		return;
 
+	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 }
 // =============================
 // load / save
@@ -27,6 +28,7 @@ template <typename T>
 void InfantryTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->DeathBodies_UseDieSequenceAsIndex)
 		;
 }
 

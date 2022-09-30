@@ -51,6 +51,11 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 
 	this->Abductor.Read(exINI, pSection, "Abductor");
+
+	this->DelayedFire_Anim.Read(exINI, pSection, "DelayedFire.Anim");
+	this->DelayedFire_Anim_LoopCount.Read(exINI, pSection, "DelayedFire.Anim.LoopCount");
+	this->DelayedFire_Anim_UseFLH.Read(exINI, pSection, "DelayedFire.Anim.UseFLH");
+	this->DelayedFire_DurationTimer.Read(exINI, pSection, "DelayedFire.DurationTimer");
 #pragma region Otamaa
 	this->Ylo.Read(exINI, pSection, "ShakeYlo");
 	this->Yhi.Read(exINI, pSection, "ShakeYhi");
@@ -73,6 +78,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DestroyTechnoAfterFiring.Read(exINI, pSection, "DeleteAfterFiring");
 	this->RemoveTechnoAfterFiring.Read(exINI, pSection, "RemoveAfterFiring");
 	this->OpentoppedAnim.Read(exINI, pSection, "OpenToppedAnim", true);
+	this->DiskLaser_FiringOffset.Read(exINI, pSection, "DiskLaser.FiringOffset");
 
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
@@ -110,6 +116,10 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Laser_IsSingleColor)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Abductor)
+		.Process(this->DelayedFire_Anim)
+		.Process(this->DelayedFire_Anim_LoopCount)
+		.Process(this->DelayedFire_Anim_UseFLH)
+		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->Ylo)
 		.Process(this->Xlo)
 		.Process(this->Xhi)
@@ -126,6 +136,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DestroyTechnoAfterFiring)
 		.Process(this->RemoveTechnoAfterFiring)
 		.Process(this->OpentoppedAnim)
+		.Process(this->DiskLaser_FiringOffset)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif

@@ -28,13 +28,13 @@ void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 
 void SmudgeTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<SmudgeTypeClass>::Serialize(Stm);
+	TExtension<SmudgeTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SmudgeTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<SmudgeTypeClass>::Serialize(Stm);
+	TExtension<SmudgeTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -53,16 +53,16 @@ bool SmudgeTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SmudgeTypeExt::ExtContainer::ExtContainer() : Container("SmudgeTypeClass") { }
+SmudgeTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("SmudgeTypeClass") { }
 SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	SmudgeTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	SmudgeTypeExt::ExtMap.FindOrAllocate(pItem);
@@ -81,7 +81,7 @@ DEFINE_HOOK(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 DEFINE_HOOK_AGAIN(0x6B5850, SmudgeTypeClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x6B58B0, SmudgeTypeClass_SaveLoad_Prefix, 0x8)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	GET_STACK(SmudgeTypeClass*, pItem, 0x4);
 	GET_STACK(IStream*, pStm, 0x8);
 	SmudgeTypeExt::ExtMap.PrepareStream(pItem, pStm);
@@ -90,14 +90,14 @@ DEFINE_HOOK(0x6B58B0, SmudgeTypeClass_SaveLoad_Prefix, 0x8)
 
 DEFINE_HOOK(0x6B589F, SmudgeTypeClass_Load_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	SmudgeTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
 DEFINE_HOOK(0x6B58CA, SmudgeTypeClass_Save_Suffix, 0x5)
 {
-	Debug::Log("%s Executed ! \n", __FUNCTION__);
+	//Debug::Log("%s Executed ! \n", __FUNCTION__);
 	SmudgeTypeExt::ExtMap.SaveStatic();
 	return 0;
 }

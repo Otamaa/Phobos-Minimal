@@ -1,7 +1,7 @@
 #pragma once
 #include <VoxelAnimTypeClass.h>
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
@@ -23,7 +23,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<VoxelAnimTypeClass>
+	class ExtData final : public TExtension<VoxelAnimTypeClass>
 	{
 	public:
 
@@ -42,7 +42,7 @@ public:
 #endif
 #pragma endregion
 
-		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
+		ExtData(VoxelAnimTypeClass* OwnerObject) : TExtension<VoxelAnimTypeClass>(OwnerObject)
 			, LaserTrail_Types { }
 			, Warhead_Detonate { false }
 			, SplashList { }
@@ -70,7 +70,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<VoxelAnimTypeExt>
+	class ExtContainer final : public TExtensionContainer<VoxelAnimTypeExt>
 	{
 	public:
 		ExtContainer();

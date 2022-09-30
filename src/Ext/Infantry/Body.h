@@ -16,7 +16,11 @@ public:
 	{
 	public:
 
+		bool IsUsingDeathSequence;
+		int CurrentDoType;
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, IsUsingDeathSequence { false }
+			, CurrentDoType { -1 }
 		{ }
 
 		virtual ~ExtData() = default;

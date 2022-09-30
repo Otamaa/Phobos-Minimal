@@ -641,3 +641,16 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 
 	return 0x4DADC8;
 }
+
+DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
+{
+	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
+	GET(BuildingClass* const, pThis, ESI);
+
+	if (HouseClass::IsCurrentPlayerObserver()
+		|| pThis->Owner && (pThis->Owner->IsControlledByCurrentPlayer()
+		|| pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)))
+		return ContinueDraw;
+	else
+		return DoNotDraw;
+}

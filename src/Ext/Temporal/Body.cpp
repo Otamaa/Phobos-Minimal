@@ -40,11 +40,6 @@ bool TemporalExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container
-
-void TemporalExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
-}
-
 TemporalExt::ExtContainer::ExtContainer() : Container("TemporalClass") { };
 TemporalExt::ExtContainer::~ExtContainer() = default;
 
@@ -87,5 +82,16 @@ DEFINE_HOOK(0x71A714, TemporalClass_Save_Suffix, 0x3)  //was 5
 {
 	TemporalExt::ExtMap.SaveStatic();
 	return 0;
+}
+
+DEFINE_HOOK(0x71AB68, TemporalClass_Detach, 0x5)
+{
+	GET(TemporalClass*, pThis, ESI);
+	GET(void*, target, EAX);
+
+	if (const auto pExt = TemporalExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(target, true);
+
+	return 0x0;
 }
 #endif

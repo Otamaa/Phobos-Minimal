@@ -25,6 +25,7 @@ void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->IgnoreVertical.Read(exINI, section, "IgnoreVertical");
 	this->IsIntense.Read(exINI, section, "IsIntense");
 	this->InitialDelay.Read(exINI, section, "InitialDelay");
+	this->CloakVisible.Read(exINI, section, "CloakVisible");
 }
 
 template <typename T>
@@ -40,6 +41,7 @@ void LaserTrailTypeClass::Serialize(T& Stm)
 		.Process(this->IgnoreVertical)
 		.Process(this->IsIntense)
 		.Process(this->InitialDelay)
+		.Process(this->CloakVisible)
 		;
 }
 

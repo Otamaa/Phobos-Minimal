@@ -11,95 +11,67 @@ void SpawnSupportFunctional::Construct(TechnoClass* pThis)
 {
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto supportWeapon = pTypeExt->MySpawnSupportDatas.SupportWeapon;
+	auto const& pSupportWeapon = pThis->Veterancy.IsElite() ?
+		pTypeExt->MySpawnSupportDatas.EliteSupportWeapon : pTypeExt->MySpawnSupportDatas.SupportWeapon;
 
-	if (supportWeapon.Get()) {
+
+	if (pTypeExt->MySpawnSupportDatas.Enable && pSupportWeapon.Get())
+	{
 		if (!pThis->SpawnManager) {
 			pThis->SpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
 		}
 	}
 }
 
-void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis ,bool InUpdateFunc , bool useROF)
+void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, AbstractClass* pTarget, bool useROF)
 {
-	if (!pThis)
-		return;
+	//auto const pSpawnOwner = pThis->SpawnOwner;
 
-	auto const pSpawnOwner = pThis->SpawnOwner;
+	//if (!pSpawnOwner)
+	//	return;
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
-	if (!pSpawnOwner)
-		return;
-
-	auto const pExt = TechnoExt::ExtMap.Find<false>(pSpawnOwner);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSpawnOwner->GetTechnoType());
-
-	if (!pExt || !pTypeExt)
-		return;
-
-	if (pTypeExt->MySpawnSupportDatas.FireOnce)
+	if (pTypeExt->MySpawnSupportDatas.Enable)
 	{
-		if (!pExt->MySpawnSuport.spawnFireFlag)
-		{
-			pExt->MySpawnSuport.spawnFireOnceDelay.Start(pTypeExt->MySpawnSupportDatas.Delay);
-			pExt->MySpawnSuport.spawnFireFlag = true;
-		}
-		else
-		{
-			if (!pExt->MySpawnSuport.spawnFireOnceDelay.InProgress())
-			{
-				pSpawnOwner->SpawnManager->Target = nullptr;
-				pSpawnOwner->SpawnManager->SetTarget(nullptr);
-			}
-		}
-	}
+		auto const pExt = TechnoExt::ExtMap.Find<false>(pThis);
+		//if (pTypeExt->MySpawnSupportDatas.Always.Get())
+		//	return;
 
-	if (auto pSpawn = pSpawnOwner->SpawnManager)
-	{
-		if (!pSpawn->Target && !pSpawn->NewTarget)
-		{
-			pExt->MySpawnSuport.spawnFireFlag = false;
-		}
-	}
+		//CoordStruct nFLH { 0,0,0 };
 
-	if (pTypeExt->MySpawnSupportDatas.Enable && pTypeExt->MySpawnSupportDatas.SupportWeapon)
-	{
-		if (InUpdateFunc && !pTypeExt->MySpawnSupportDatas.Always.Get())
-			return;
+		//SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
 
-		if (!InUpdateFunc && pTypeExt->MySpawnSupportDatas.Always.Get())
-			return;
+		//if (auto const pTransporter = pThis->Transporter)
+		//{
+		//	if(auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTransporter->GetTechnoType()))
+		//	{
+		//		nFLHData = pTransportExt->MySpawnSupportFLH;
+		//	}
+		//}
 
-		CoordStruct nFLH { 0,0,0 };
-
-		SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
-
-		if (auto const pTransporter = pSpawnOwner->Transporter)
-		{
-			if(auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTransporter->GetTechnoType()))
-			{
-				nFLHData = pTransportExt->MySpawnSupportFLH;
-			}
-		}
-
-		auto const pSupportWeapon = pSpawnOwner->Veterancy.IsElite() ?
+		auto const& pSupportWeapon = pThis->Veterancy.IsElite() ?
 			pTypeExt->MySpawnSupportDatas.EliteSupportWeapon : pTypeExt->MySpawnSupportDatas.SupportWeapon;
 
-		nFLH = pSpawnOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
-
-		if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
-		{
-			nFLH.Y *= pExt->MySpawnSuport.supportFLHMult;
-			pExt->MySpawnSuport.supportFLHMult *= -1;
-		}
-
-		if (useROF && pExt->MySpawnSuport.supportFireROF.InProgress())
+		if ((useROF && pExt->MySpawnSuport.supportFireROF.InProgress()) || !pSupportWeapon.Get())
 			return;
 
-		auto nSourcePos = Helpers_DP::GetFLHAbsoluteCoords(pSpawnOwner, nFLH, true);
-		auto nTargetPos = Helpers_DP::GetFLHAbsoluteCoords(pThis, nFLH, true);
-		VelocityClass nVel = Helpers_DP::GetBulletVelocity(nSourcePos, nTargetPos);
+		//nFLH = pThis->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
 
-		Helpers_DP::FireBulletTo(pSpawnOwner, pThis, pSupportWeapon, nSourcePos, nTargetPos, nVel);
+		//if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+		//{
+		//	nFLH.Y *= pExt->MySpawnSuport.supportFLHMult;
+		//	pExt->MySpawnSuport.supportFLHMult *= -1;
+		//}
+
+		//if(!InUpdateFunc) {
+		//	auto nSourcePos = TechnoExt::GetFLHAbsoluteCoords(pThis, nFLH, true);
+		//	auto nTargetPos = TechnoExt::GetFLHAbsoluteCoords(pThis, nFLH, true);
+		//	VelocityClass nVel = Helpers_DP::GetBulletVelocity(nSourcePos, nTargetPos);
+
+		//	Helpers_DP::FireBulletTo(pSpawnOwner, pThis, pSupportWeapon, nSourcePos, nTargetPos, nVel);
+		//}
+
+		pThis->SpawnManager->SetTarget(pTarget);
 
 		if (useROF)
 			pExt->MySpawnSuport.supportFireROF.Start(pSupportWeapon->ROF);
@@ -107,13 +79,94 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis ,bool I
 	}
 }
 
+DEFINE_HOOK(0x6B743E , SpawnManagerAI_SpawnSupportFLH, 0x8)
+{
+	GET(SpawnManagerClass*, pSpawn, ESI);
+	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
+
+	if (auto pOwner = pSpawn->Owner)
+	{
+		//if ((*pFLH) == CoordStruct::Empty)
+		{
+			auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+
+			if (pTypeExt->MySpawnSupportDatas.Enable)
+			{
+				//CoordStruct nFLH = CoordStruct::Empty;
+
+				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
+				if (auto const pTransporter = pOwner->Transporter)
+				{
+					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTransporter->GetTechnoType()))
+					{
+						nFLHData = pTransportExt->MySpawnSupportFLH;
+					}
+				}
+
+				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
+
+				if (nFLH == CoordStruct::Empty)
+					return 0x0;
+
+				if(auto pSpawnExt = TechnoExt::ExtMap.Find(pOwner)){
+					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+					{
+						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
+						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
+					}
+				}
+
+				R->EAX(&nFLH);
+				return 0x6B7498;
+			}
+		}
+	}
+
+
+	return 0x0;
+}
 void SpawnSupportFunctional::AI(TechnoClass* pThis)
 {
-	SpawnSupportFunctional::FireSupportWeaponToSpawn(pThis,true,true);
+	//auto const pSpawnOwner = pThis->SpawnOwner;
+
+	//if (!pSpawnOwner)
+	//	return;
+
+	//auto const pExt = TechnoExt::ExtMap.Find<false>(pSpawnOwner);
+	//auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSpawnOwner->GetTechnoType());
+
+	//if (!pExt || !pTypeExt)
+	//	return;
+
+	//if (pTypeExt->MySpawnSupportDatas.FireOnce)
+	//{
+	//	if (!pExt->MySpawnSuport.spawnFireFlag)
+	//	{
+	//		pExt->MySpawnSuport.spawnFireOnceDelay.Start(pTypeExt->MySpawnSupportDatas.Delay);
+	//		pExt->MySpawnSuport.spawnFireFlag = true;
+	//	}
+	//	else
+	//	{
+	//		if (!pExt->MySpawnSuport.spawnFireOnceDelay.InProgress())
+	//		{
+	//			pSpawnOwner->SpawnManager->Target = nullptr;
+	//			pSpawnOwner->SpawnManager->SetTarget(nullptr);
+	//		}
+	//	}
+	//}
+
+	//if (auto pSpawn = pSpawnOwner->SpawnManager)
+	//{
+	//	if (!pSpawn->Target && !pSpawn->NewTarget)
+	//	{
+	//		pExt->MySpawnSuport.spawnFireFlag = false;
+	//	}
+	//}
+
 }
 
-void SpawnSupportFunctional::OnFire(TechnoClass* pThis)
+void SpawnSupportFunctional::OnFire(TechnoClass* pThis, AbstractClass* pTarget)
 {
-	SpawnSupportFunctional::FireSupportWeaponToSpawn(pThis);
+	SpawnSupportFunctional::FireSupportWeaponToSpawn(pThis, pTarget,true);
 }
 #endif

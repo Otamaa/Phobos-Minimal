@@ -8,7 +8,7 @@ struct SpawnSupportFunctional
 {
 	static void Construct(TechnoClass* pThis);
 	static void AI(TechnoClass* pThis);
-	static void OnFire(TechnoClass* pThis);
-	static void FireSupportWeaponToSpawn(TechnoClass* pThis,bool InUpdateFunc = false, bool useROF = false);
+	static void OnFire(TechnoClass* pThis, AbstractClass* pTarget);
+	static void FireSupportWeaponToSpawn(TechnoClass* pThis, AbstractClass* pTarget , bool useROF = false);
 };
 #endif

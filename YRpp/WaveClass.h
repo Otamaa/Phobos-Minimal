@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+#include <FacingClass.h>
 #include <ObjectClass.h>
 
 class CellClass;

@@ -86,13 +86,7 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 					return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
 			case AbstractType::Building:
 			{
-				if ((allowed & AffectedTarget::Building) == AffectedTarget::None)
-					return false;
-
-				const BuildingClass* pBld = static_cast<BuildingClass*>(pTechno);
-
-				if (pBld->Type->InvisibleInGame)
-					return false;
+				return ((allowed & AffectedTarget::Building) != AffectedTarget::None);
 			}
 			}
 		}

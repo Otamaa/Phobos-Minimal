@@ -3,8 +3,8 @@
 #include <VoxelAnimClass.h>
 
 #include <Utilities/Container.h>
-//#include <Ext/Abstract/Body.h>
-#include <Utilities/Constructs.h>
+#include <Ext/Abstract/Body.h>
+//#include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
@@ -26,7 +26,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<VoxelAnimClass>
+	class ExtData final : public TExtension<VoxelAnimClass>
 	{
 	public:
 		FixedString<0x32> ID;
@@ -35,7 +35,7 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
-		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
+		ExtData(VoxelAnimClass* OwnerObject) : TExtension<VoxelAnimClass>(OwnerObject)
 			, ID { }
 			, Invoker { nullptr }
 			, LaserTrails { }
@@ -58,7 +58,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<VoxelAnimExt>
+	class ExtContainer final : public TExtensionContainer<VoxelAnimExt>
 	{
 	public:
 		ExtContainer();

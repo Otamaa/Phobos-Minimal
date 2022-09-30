@@ -75,7 +75,7 @@ public:
 	virtual void Update() override JMP_THIS(0x74CE50);
 
 	//ObjectClass
-	virtual void Draw(Point2D* pLocation, RectangleStruct* pBounds) const override JMP_THIS(0x74D490); //114
+	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const override JMP_THIS(0x74D490); //114
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
   ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x74D5D0);
 

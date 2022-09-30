@@ -2,7 +2,7 @@
 #include <ParticleTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <New/Type/LaserTrailTypeClass.h>
 
@@ -18,7 +18,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<ParticleTypeClass>
+	class ExtData final : public TExtension<ParticleTypeClass>
 	{
 	public:
 
@@ -26,7 +26,7 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
-		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
+		ExtData(ParticleTypeClass* OwnerObject) : TExtension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
@@ -44,7 +44,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleTypeExt
+	class ExtContainer final : public TExtensionContainer<ParticleTypeExt
 #ifdef ENABLE_NEWHOOKS
 		,true,true,true
 #endif

@@ -656,6 +656,48 @@ public:
 		return count;
 	}
 
+	static std::map<Point2D, int> MakeTargetPad(const std::vector<int>& weights, int count, int& maxValue)
+	{
+		int weightCount = weights.empty() ? (int)weights.size() : 0;
+		std::map<Point2D, int> targetPad {};
+		maxValue = 0;
+		// 将所有的概率加起来，获得上游指标
+		for (int index = 0; index < count; index++)
+		{
+			Point2D target = Point2D::Empty;
+			target.X = maxValue;
+			int weight = 1;
+			if (weightCount > 0 && index < weightCount)
+			{
+				int w = weights[index];
+				if (w > 0)
+				{
+					weight = w;
+				}
+			}
+			maxValue += weight;
+			target.Y = maxValue;
+			targetPad.emplace(target, index);
+		}
+		return targetPad;
+	}
+
+	static int Hit(const std::map<Point2D, int>& targetPad, int maxValue)
+	{
+		int index = 0;
+		int p = ScenarioGlobal->Random.RandomFromMax(maxValue);
+		for(const auto& target : targetPad)
+		{
+			Point2D tKey = target.first;
+			if (p >= tKey.X && p < tKey.Y)
+			{
+				index = target.second;
+				break;
+			}
+		}
+		return index;
+	}
+
 	static bool Bingo(ValueableVector<double>& chances, int index)
 	{
 		if (chances.empty() || chances.size() < (size_t)(index + 1)) {
@@ -672,6 +714,29 @@ public:
 			return false;
 		}
 		return chance >= 1 || chance >= ScenarioGlobal->Random.RandomDouble();
+	}
+
+	DirStruct Facing(const BulletClass* pBullet)
+	{
+		CoordStruct location = pBullet->GetCoords();
+		return Facing(pBullet ,location);
+	}
+
+	DirStruct Facing(const BulletClass* pBullet, CoordStruct& location)
+	{
+		CoordStruct nVel = { (int)pBullet->Velocity.X , (int)pBullet->Velocity.Y , (int)pBullet->Velocity.Z };
+		CoordStruct forwardLocation = location + nVel;
+		return Point2Dir(location, forwardLocation);
+	}
+
+	CoordStruct GetFLHAbsoluteCoords(const BulletClass* pBullet, const CoordStruct& flh, int flipY = 1)
+	{
+		CoordStruct location = pBullet->GetCoords();
+		DirStruct bulletFacing = Facing(pBullet ,location);
+
+		CoordStruct tempFLH = flh;
+		tempFLH.Y *= flipY;
+		return GetFLHAbsoluteCoords(location, tempFLH, bulletFacing);
 	}
 };
 #endif

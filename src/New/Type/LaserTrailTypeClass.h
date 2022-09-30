@@ -14,6 +14,7 @@ public:
 	Valueable<bool> IgnoreVertical;
 	Valueable<bool> IsIntense;
 	Valueable<int> InitialDelay;
+	Valueable<bool> CloakVisible;
 
 	LaserTrailTypeClass(const char* pTitle = NONE_STR) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
@@ -24,6 +25,7 @@ public:
 		, IgnoreVertical { false }
 		, IsIntense { false }
 		, InitialDelay {0}
+		, CloakVisible { false }
 	{ }
 
 	virtual ~LaserTrailTypeClass() override = default;

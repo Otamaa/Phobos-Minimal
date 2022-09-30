@@ -1134,7 +1134,7 @@ bool DSurface::Put_Pixel_Trans(Point2D& point, ColorStruct& rgb, unsigned opacit
 
 #pragma warning(pop)
 
-CellStruct* TechnoClass::FindExitCell(CellStruct* Buffer, TechnoClass* pDocker, CellStruct nDefault) const
+CellStruct TechnoClass::FindExitCell(TechnoClass* pDocker, CellStruct nDefault) const
 { JMP_THIS(0x70AD50); }
 
 ConvertClass* ConvertClass::CreateFromFile(const char* pal_filename) {
