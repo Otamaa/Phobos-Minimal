@@ -75,7 +75,7 @@ public:
 	};
 
 	class ExtContainer final : public Container<HouseExt
-		,false ,true ,false
+		,true ,true ,true
 	> {
 	public:
 		ExtContainer();

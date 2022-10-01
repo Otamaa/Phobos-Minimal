@@ -2,12 +2,51 @@
 
 #include <Ext/House/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
 
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
+
+int BuildingTypeExt::ExtData::GetSuperWeaponCount() const
+{
+	return 2 + this->SuperWeapons.Count;
+}
+
+int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse) const
+{
+	auto idxSW = this->GetSuperWeaponIndex(index);
+
+	if (auto pSuper = pHouse->Supers.GetItemOrDefault(idxSW))
+	{
+		auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
+		if (!pExt->IsAvailable(pHouse))
+		{
+			return -1;
+		}
+	}
+
+	return idxSW;
+}
+
+int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
+{
+	const auto pThis = this->Get();
+
+	if (index < 2)
+	{
+		return !index ? pThis->SuperWeapon : pThis->SuperWeapon2;
+	}
+	else if (index - 2 < this->SuperWeapons.Count)
+	{
+		return this->SuperWeapons[index - 2]->ArrayIndex;
+	}
+
+	return -1;
+}
+
 void BuildingTypeExt::ExtData::InitializeConstants() {
 
 	AIBuildInsteadPerDiff.reserve(3);
@@ -397,6 +436,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
 	this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
 	this->SpeedBonus.Read(exINI, pSection);
+	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicator.Visibility");
 
 #pragma endregion
 
@@ -519,6 +559,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsJuggernaut)
 		.Process(this->BuildingPlacementGrid_Shape)
 		.Process(this->SpeedBonus)
+		.Process(this->RadialIndicator_Visibility)
 		.Process(this->RubblePalette)
 		;
 }

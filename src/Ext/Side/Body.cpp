@@ -72,13 +72,13 @@ void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<SideClass>::Serialize(Stm);
+	TExtension<SideClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void SideExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<SideClass>::Serialize(Stm);
+	TExtension<SideClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -95,7 +95,7 @@ bool SideExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SideExt::ExtContainer::ExtContainer() : Container("SideClass") {}
+SideExt::ExtContainer::ExtContainer() : TExtensionContainer("SideClass") {}
 SideExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -104,7 +104,7 @@ SideExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
 {
 	GET(SideClass*, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
+#ifndef ENABLE_NEWHOOKS
 	SideExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
 #else
 	SideExt::ExtMap.FindOrAllocate(pItem);
@@ -146,7 +146,9 @@ DEFINE_HOOK(0x6A48FC, SideClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
 {
 	GET_STACK(CCINIClass*, pINI, 0x4);
-	SideExt::ExtMap.LoadAllFromINI(pINI); // bwahaha
+
+	for (auto pSide : *SideClass::Array)
+		SideExt::ExtMap.Find(pSide)->LoadFromINIFile(pINI);
 
 	return 0;
 }

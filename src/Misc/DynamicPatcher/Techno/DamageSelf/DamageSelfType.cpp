@@ -2,40 +2,156 @@
 #include "DamageSelfType.h"
 
 #include <WarheadTypeClass.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/Techno/Body.h>
 
 void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 {
-	Nullable<WarheadTypeClass*> nWHDumMy { };
-	nWHDumMy.Read(parser, pSection, "DamageSelf.Warhead");
+	Valueable<bool> Enabled { false };
+	Enabled.Read(parser, pSection, "DamageSelf");
+	Enable = Enabled.Get();
 
-	if (!nWHDumMy.isset())
-		return;
+	if (Enable)
+	{
+		Valueable<bool> DeactiveWhenCivilian_ { true };
+		DeactiveWhenCivilian_.Read(parser, pSection, "DamageSelf.DeactiveWhenCivilian");
+		DeactiveWhenCivilian = DeactiveWhenCivilian_.Get();
 
-	Warhead = nWHDumMy.Get();
+		Valueable<WarheadTypeClass*> nWHDumMy { RulesGlobal->C4Warhead };
+		nWHDumMy.Read(parser, pSection, "DamageSelf.Warhead");
+		Warhead = nWHDumMy.Get();
 
-	Valueable<int> nIntDummy { Damage };
-	nIntDummy.Read(parser, pSection, "DamageSelf.Damage");
-	Damage = nIntDummy.Get();
+		Valueable<int> nIntDummy { Damage };
+		nIntDummy.Read(parser, pSection, "DamageSelf.Damage");
+		Damage = nIntDummy.Get();
 
-	nIntDummy = ROF;
-	nIntDummy.Read(parser, pSection, "DamageSelf.ROF");
-	ROF = nIntDummy.Get();
+		nIntDummy = ROF;
+		nIntDummy.Read(parser, pSection, "DamageSelf.ROF");
+		ROF = nIntDummy.Get();
 
-	Valueable<bool> nBoolDummy { PlayWarheadAnim };
-	nBoolDummy.Read(parser, pSection, "DamageSelf.WarheadAnim");
-	PlayWarheadAnim = nIntDummy.Get();
+		Valueable<bool> nBoolDummy { PlayWarheadAnim };
+		nBoolDummy.Read(parser, pSection, "DamageSelf.WarheadAnim");
+		PlayWarheadAnim = nIntDummy.Get();
 
-	nBoolDummy = IgnoreArmor;
-	nBoolDummy.Read(parser, pSection, "DamageSelf.IgnoreArmor");
-	IgnoreArmor = nIntDummy.Get();
+		nBoolDummy = IgnoreArmor;
+		nBoolDummy.Read(parser, pSection, "DamageSelf.IgnoreArmor");
+		IgnoreArmor = nIntDummy.Get();
 
-	nBoolDummy = Decloak;
-	nBoolDummy.Read(parser, pSection, "DamageSelf.Decloak");
-	Decloak = nIntDummy.Get();
+		nBoolDummy = Decloak;
+		nBoolDummy.Read(parser, pSection, "DamageSelf.Decloak");
+		Decloak = nIntDummy.Get();
 
-	Valueable<KillMethod> nKillType { Type };
-	nKillType.Read(parser, pSection, "DamageSelf.KillType");
-	Type = nKillType.Get();
-
+		Valueable<KillMethod> nKillType { Type };
+		nKillType.Read(parser, pSection, "DamageSelf.KillType");
+		Type = nKillType.Get();
+	}
 }
 #endif
+
+void DamageSelfState::OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData)
+{
+	if (DData.Enable) {
+		pState = std::make_unique<DamageSelfState>(DData.ROF,DData);
+	}
+}
+
+int DamageSelfState::GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArmor, WarheadTypeClass* pWH)
+{
+	int realDamage = damage;
+	if (!ignoreArmor)
+	{
+		// 计算实际伤害
+		if (realDamage > 0)
+		{
+			realDamage = Map.GetTotalDamage(damage, pWH, pObj->GetType()->Armor, 0);
+		}
+		else
+		{
+			realDamage = -Map.GetTotalDamage(-damage, pWH, pObj->GetType()->Armor, 0);
+		}
+	}
+	return realDamage;
+}
+
+void DamageSelfState::PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeClass* pWH)
+{
+	CoordStruct location = pObj->GetCoords();
+	LandType landType = LandType::Clear;
+
+	if (auto pCell = Map.TryGetCellAt(location)) {
+		landType = pCell->LandType;
+	}
+
+	if (auto pWHAnimType = Map.SelectDamageAnimation(realDamage, pWH, landType, location))
+	{
+		if (auto pWHAnim = GameCreate<AnimClass>(pWHAnimType, location)) {
+			AnimExt::SetAnimOwnerHouseKind(pWHAnim, pObj->GetOwningHouse(), nullptr, false);
+		}
+	}
+}
+
+void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
+{
+	if (CanHitSelf() && Data)
+	{
+		auto pHouse = pTechno->GetOwningHouse();
+
+		// 检查平民
+		if (!Data->DeactiveWhenCivilian || (pHouse && !pHouse->Type->MultiplayPassive))
+		{
+			int realDamage = Data->Damage;
+
+			if (Data->Type == KillMethod::Vanish)
+			{
+				// 静默击杀，需要计算实际伤害
+
+				// 计算实际伤害
+				realDamage = GetRealDamage(pTechno, realDamage, Data->IgnoreArmor, Data->Warhead);
+
+				if (realDamage >= pTechno->Health)
+				{
+					// Logger.Log($"{Game.CurrentFrame} {pTechno}[{pTechno.Ref.Type.Ref.Base.Base.ID}] 收到自伤 {realDamage} 而死，设置了平静的移除");
+					// 本次伤害足够打死目标，移除单位
+					TechnoExt::HandleRemove(pTechno);
+					return;
+				}
+			}
+
+			if (realDamage < 0 || pTechno->CloakState == CloakState::Uncloaked || Data->Decloak)
+			{
+				// 维修或者显形直接炸
+				int nDamage = Data->Damage;
+				pTechno->ReceiveDamage(&nDamage, 0, Data->Warhead, nullptr, Data->IgnoreArmor, pTechno->GetTechnoType()->Crewed, pHouse);
+			}
+			else
+			{
+				// 不显形不能使用ReceiveDamage，改成直接扣血
+				if (Data->Type != KillMethod::Vanish)
+				{
+					// 非静默击杀，实际伤害未计算过
+					realDamage = GetRealDamage(pTechno, realDamage, Data->IgnoreArmor, Data->Warhead);
+				}
+
+				// 扣血
+				if (realDamage >= pTechno->Health)
+				{
+					// 本次伤害足够打死目标
+					pTechno->ReceiveDamage(&realDamage, 0, Data->Warhead, nullptr, true, pTechno->GetTechnoType()->Crewed, pHouse);
+				}
+				else
+				{
+					// 血量可以减到负数不死
+					pTechno->Health -= realDamage;
+				}
+			}
+
+			// 播放弹头动画
+			if (Data->PlayWarheadAnim)
+			{
+				PlayWHAnim(pTechno, realDamage, Data->Warhead);
+			}
+
+			Reset();
+		}
+	}
+}

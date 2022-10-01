@@ -47,6 +47,7 @@ public:
 		Valueable<int> DelayedFire_Anim_LoopCount;
 		Valueable<bool> DelayedFire_Anim_UseFLH;
 		Valueable<int> DelayedFire_DurationTimer;
+		Valueable<bool> Burst_FireWithinSequence;
 #pragma region Otamaa
 		Valueable<int>Xhi;
 		Valueable<int>Xlo;
@@ -96,6 +97,7 @@ public:
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_Anim_UseFLH { true }
 			, DelayedFire_DurationTimer { 0 }
+			, Burst_FireWithinSequence { false }
 			, Xhi { 0 }
 			, Xlo { 0 }
 			, Yhi { 0 }
@@ -133,6 +135,7 @@ public:
 			return this->ProjectileRange.Get();
 		}
 
+		int GetBurstDelay(int burstIndex);
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

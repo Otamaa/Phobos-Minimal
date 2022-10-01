@@ -19,6 +19,7 @@ void InfantryExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(IsUsingDeathSequence)
 		.Process(CurrentDoType)
+		.Process(ForceFullRearmDelay)
 		;
 }
 

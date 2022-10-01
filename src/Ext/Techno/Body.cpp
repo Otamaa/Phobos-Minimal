@@ -1974,6 +1974,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		//.Process(this->FireSelf_ROF)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
+		.Process(this->IsMissisleSpawn)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -1985,8 +1986,9 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->Trails)
 		.Process(this->MyGiftBox)
 		.Process(this->PaintBallState)
+		.Process(this->DamageSelfState)
 		.Process(this->CurrentWeaponIdx)
-		.Process(this->IsMissisleSpawn)
+
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -2081,6 +2083,17 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 			{
 				return weaponIndexTwo;
 			}
+		}
+	}
+
+	const auto pType = pThis->GetTechnoType();
+
+	// Handle special case with NavalTargeting / LandTargeting.
+	if (!pTargetTechno &&
+		(pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary)) {
+		if (targetCell) {
+			if((targetCell->LandType != LandType::Water && targetCell->LandType != LandType::Beach) || targetCell->ContainsBridge())
+				return weaponIndexTwo;
 		}
 	}
 

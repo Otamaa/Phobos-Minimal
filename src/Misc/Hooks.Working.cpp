@@ -352,7 +352,6 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 
 	if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence)
 	{
-
 		auto pWHExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
 		auto const Iter = GetDeathBodies<false>(pThis->Type, pWHExt->DeadBodies);
 
@@ -373,9 +372,9 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 #endif
 
 
-#include "TestTurrent.h"
-
-std::vector<std::pair<ImageDatas, ImageDatas>> TTypeEXt::AdditionalTurrents { };
+//#include "TestTurrent.h"
+//
+//std::vector<std::pair<ImageDatas, ImageDatas>> TTypeEXt::AdditionalTurrents { };
 
 DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
@@ -395,14 +394,19 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 }
 
 #include <JumpjetLocomotionClass.h>
+#include <Ext/Building/Body.h>
 
 static int GetHeight(CellClass* pCell, const Nullable<int>& nOffset)
 {
 	int nHeight = 0;
 	if (auto pBuilding = pCell->GetBuilding())
 	{
+	   auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+
 		CoordStruct vCoords = { 0, 0, 0 };
-		pBuilding->Type->Dimension2(&vCoords);
+		if(!pBldExt->IsInLimboDelivery)
+			pBuilding->Type->Dimension2(&vCoords);
+
 		nHeight = vCoords.Z;
 	}
 	else

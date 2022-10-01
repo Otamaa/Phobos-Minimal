@@ -4,6 +4,7 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/WeaponType/Body.h>
+#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFirefunctional.h>
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
@@ -225,6 +226,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
 
 	if (auto pExt = TechnoExt::ExtMap.Find<true>(pThis)) {
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
+			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
 			GiftBoxFunctional::Init(pExt, pTypeExt);
 			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
 		}

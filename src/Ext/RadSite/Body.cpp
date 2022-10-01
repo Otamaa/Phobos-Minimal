@@ -3,6 +3,7 @@
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
 #include <Utilities/Macro.h>
+#include <Notifications.h>
 
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
@@ -13,8 +14,19 @@ void RadSiteExt::ExtData::InitializeConstants()
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	AnnounceInvalidPointer(Weapon,ptr);
-	AnnounceInvalidPointer(TechOwner, ptr);
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Building:
+	case AbstractType::Aircraft:
+	case AbstractType::Unit:
+	case AbstractType::Infantry:
+	{
+		//AnnounceInvalidPointer(Weapon, ptr);
+		AnnounceInvalidPointer(TechOwner, ptr);
+
+	}
+	}
 }
 
 void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
@@ -187,7 +199,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
 			pRadExt->InitializeConstants();
 #endif
-
+		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 
 	return 0;
@@ -198,6 +210,7 @@ DEFINE_HOOK(0x65B2F4, RadSiteClass_DTOR, 0x5)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ECX);
+		PointerExpiredNotification::NotifyInvalidObject->Remove(pThis);
 		RadSiteExt::ExtMap.Remove(pThis);
 	}
 
@@ -261,3 +274,11 @@ DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
 	return 0x65B4E2;
 }
 #endif
+
+static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+{
+	if (auto pExt = RadSiteExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(pTarget, bRemove);
+}
+
+DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach))

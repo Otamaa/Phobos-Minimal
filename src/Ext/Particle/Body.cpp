@@ -131,3 +131,13 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)
 	return 0;
 }
 //#endif
+
+static void __fastcall ParticleClass_Detach(ParticleClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+{
+	pThis->ObjectClass::PointerExpired(pTarget ,bRemove);
+
+	if (auto pExt = ParticleExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(pTarget, bRemove);
+}
+
+DEFINE_JUMP(VTABLE, 0x7EF97C, GET_OFFSET(ParticleClass_Detach))

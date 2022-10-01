@@ -30,9 +30,16 @@ public:
 	virtual ~RadSiteClass() RX;
 
 	//AbstractClass
+	virtual void Init() override RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
+	virtual HouseClass* GetOwningHouse() const R0;
+	//virtual CoordStruct* GetCoords(CoordStruct* pCrd) const R0; //center coords
+	//virtual CoordStruct* GetDestination(CoordStruct* pCrd, TechnoClass* pDocker = nullptr) const R0; // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
+	//virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__
 	virtual void Update() override JMP_THIS(0x65B800);
+
 	//non-virtual
 public:
 	// Start irradiating an area. Be sure to set the BaseCell, Spread and RadLevel first!

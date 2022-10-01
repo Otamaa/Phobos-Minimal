@@ -2,7 +2,7 @@
 #include <SideClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class SideExt
@@ -14,7 +14,7 @@ public:
 	static constexpr size_t ExtOffset = sizeof(base_type);
 #endif
 
-	class ExtData final : public Extension<SideClass>
+	class ExtData final : public TExtension<SideClass>
 	{
 	public:
 		Valueable<int> ArrayIndex;
@@ -35,7 +35,7 @@ public:
 		Nullable<int> ToolTip_Background_Opacity;
 		Nullable<float> ToolTip_Background_BlurSize;
 
-		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
+		ExtData(SideClass* OwnerObject) : TExtension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
 			, Sidebar_GDIPositions { false }
 			, IngameScore_WinTheme { -2 }
@@ -69,7 +69,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SideExt>
+	class ExtContainer final : public TExtensionContainer<SideExt>
 	{
 	public:
 		ExtContainer();

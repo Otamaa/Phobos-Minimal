@@ -62,7 +62,7 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-#ifndef ENABLE_NEWEXT
+#ifdef ENABLE_NEWEXT
 		bool InvalidateExtDataIgnorable(void* const ptr) const
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();

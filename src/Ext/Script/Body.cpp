@@ -3,6 +3,7 @@
 #include <Utilities/Cast.h>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -2399,6 +2400,14 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 
 	if (!pTargetTypeExt || pTargetTypeExt->IsDummy.Get())
 		return false;
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
+		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery)
+			return false;
+	}
+
+	//if (pTeamLeader && pTeamLeader->GetFireError(pTechno, pTeamLeader->SelectWeapon(pTechno), true) != FireError::OK)
+	//	return false;
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section
 	if (attackAITargetType >= 0 && RulesExt::Global()->AITargetTypesLists.Count > 0) {

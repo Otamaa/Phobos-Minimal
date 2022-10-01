@@ -33,6 +33,7 @@ public:
 
 		DynamicVectorClass<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
+		bool IsInLimboDelivery;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, DeployedTechno { false }
@@ -42,7 +43,7 @@ public:
 			, AccumulatedGrindingRefund { 0 }
 			, DamageFireAnims { }
 			, AutoSellTimer { }
-
+			, IsInLimboDelivery { false }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -53,6 +54,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 		void InitializeConstants();
+		bool HasSuperWeapon(int index, bool withUpgrades) const;
 
 	private:
 		template <typename T>
@@ -97,4 +99,5 @@ public:
 	static bool HasFreeDocks(BuildingClass* pBuilding);
 	static bool CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno);
 	static bool DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno);
+	static CoordStruct GetCenterCoords(BuildingClass* pThis, bool includeBib = false);
 };

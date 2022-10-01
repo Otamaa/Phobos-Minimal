@@ -9,6 +9,7 @@
 #include <SlaveManagerClass.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -88,12 +89,7 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_Rearm_Delay_BurstDelays, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	int burstDelay = -1;
-
-	if (pWeaponExt->Burst_Delays.size() > (size_t)pThis->CurrentBurstIndex)
-		burstDelay = pWeaponExt->Burst_Delays[pThis->CurrentBurstIndex - 1];
-	else if (pWeaponExt->Burst_Delays.size() > 0)
-		burstDelay = pWeaponExt->Burst_Delays[pWeaponExt->Burst_Delays.size() - 1];
+	int burstDelay = pWeaponExt->GetBurstDelay(pThis->CurrentBurstIndex);
 
 	if (burstDelay >= 0)
 	{
@@ -397,6 +393,12 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
+
+	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	//	if(pBldExt->IsInLimboDelivery)
+	//		return SkipGameDrawing;
+	//}
 
 	if (const auto pFoot = generic_cast<FootClass*>(pThis))
 		if (const auto pParasiteFoot = pFoot->ParasiteEatingMe)
@@ -754,7 +756,7 @@ DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Type)) {
-		if (pTypeExt && pThis->Owner->IsControlledByCurrentPlayer() && !pThis->Type->UndeploysInto)
+		if (pTypeExt && pThis->IsOwnedByCurrentPlayer && !pThis->Type->UndeploysInto)
 			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
 
 		return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
@@ -820,3 +822,90 @@ DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
+{
+	enum { ApplyFullRearmDelay = 0x6FD09E };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	// Currently only used with infantry, so a performance saving measure.
+	if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
+		if (const auto pExt = InfantryExt::ExtMap.Find(pInf)) {
+			if (pExt->ForceFullRearmDelay) {
+				pExt->ForceFullRearmDelay = false;
+				pThis->CurrentBurstIndex = 0;
+				return ApplyFullRearmDelay;
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
+{
+	enum { Continue = 0x5209CD, ReturnFromFunction = 0x520AD9 };
+
+	GET(InfantryClass*, pThis, EBP);
+	GET(int, firingFrame, EDX);
+
+	int weaponIndex = pThis->SelectWeapon(pThis->Target);
+	const auto pWeaponstruct = pThis->GetWeapon(weaponIndex);
+
+	if(!pWeaponstruct)
+		return ReturnFromFunction;
+
+	const auto pWeapon = pWeaponstruct->WeaponType;
+
+	if (!pWeapon)
+		return ReturnFromFunction;
+
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	int cumulativeDelay = 0;
+	int projectedDelay = 0;
+
+	// Calculate cumulative burst delay as well cumulative delay after next shot (projected delay).
+	if (pWeaponExt->Burst_FireWithinSequence)
+	{
+		for (int i = 0; i <= pThis->CurrentBurstIndex; i++)
+		{
+			int burstDelay = pWeaponExt->GetBurstDelay(i);
+			int delay = 0;
+
+			if (burstDelay > -1)
+				delay = burstDelay;
+			else
+				delay = ScenarioClass::Instance->Random.RandomRanged(3, 5);
+
+			// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
+			if (i != 0)
+				delay = Math::max(delay, 1);
+
+			cumulativeDelay += delay;
+
+			if (i == pThis->CurrentBurstIndex)
+				projectedDelay = cumulativeDelay + delay;
+		}
+	}
+
+	if (pThis->IsFiring && pThis->Animation.Value == firingFrame + cumulativeDelay)
+	{
+		if (pWeaponExt->Burst_FireWithinSequence)
+		{
+			int frameCount = pThis->Type->Sequence->GetSequence(pThis->SequenceAnim).CountFrames;
+
+			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
+			if (firingFrame + projectedDelay > frameCount)
+			{
+				InfantryExt::ExtMap.Find(pThis)->ForceFullRearmDelay = true;
+			}
+		}
+
+		R->EAX(weaponIndex); // Reuse the weapon index to save some time.
+		return Continue;
+	}
+
+	return ReturnFromFunction;
+}
+

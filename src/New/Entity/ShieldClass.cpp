@@ -331,7 +331,9 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 void ShieldClass::OnUpdate()
 {
 	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	{
 		return;
+	}
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive)
 	{

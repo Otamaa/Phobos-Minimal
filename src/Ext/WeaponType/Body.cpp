@@ -56,6 +56,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DelayedFire_Anim_LoopCount.Read(exINI, pSection, "DelayedFire.Anim.LoopCount");
 	this->DelayedFire_Anim_UseFLH.Read(exINI, pSection, "DelayedFire.Anim.UseFLH");
 	this->DelayedFire_DurationTimer.Read(exINI, pSection, "DelayedFire.DurationTimer");
+	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
 #pragma region Otamaa
 	this->Ylo.Read(exINI, pSection, "ShakeYlo");
 	this->Yhi.Read(exINI, pSection, "ShakeYhi");
@@ -120,6 +121,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_Anim_LoopCount)
 		.Process(this->DelayedFire_Anim_UseFLH)
 		.Process(this->DelayedFire_DurationTimer)
+		.Process(this->Burst_FireWithinSequence)
 		.Process(this->Ylo)
 		.Process(this->Xlo)
 		.Process(this->Xhi)
@@ -146,6 +148,21 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		MyAttachFireDatas.Serialize(Stm);
 #endif
 };
+
+int WeaponTypeExt::ExtData::GetBurstDelay(int burstIndex)
+{
+	int burstDelay = -1;
+
+	if (burstIndex == 0)
+		return 0;
+	else if (this->Burst_Delays.size() > (unsigned)burstIndex)
+		burstDelay = this->Burst_Delays[burstIndex - 1];
+	else if (this->Burst_Delays.size() > 0)
+		burstDelay = this->Burst_Delays[this->Burst_Delays.size() - 1];
+
+	return burstDelay;
+}
+
 void WeaponTypeExt::ExtContainer::InvalidatePointer(void *ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(WeaponTypeExt::Temporal_WP, ptr);

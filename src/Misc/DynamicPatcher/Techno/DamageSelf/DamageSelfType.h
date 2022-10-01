@@ -7,6 +7,8 @@ class DamageSelfType
 {
 public:
 
+	bool Enable;
+	bool DeactiveWhenCivilian;
 	int Damage;
 	int ROF;
 	WarheadTypeClass* Warhead;
@@ -15,7 +17,9 @@ public:
 	bool Decloak;
 	KillMethod Type;
 
-	DamageSelfType() : Damage { 1 }
+	DamageSelfType() : Enable { false }
+		, DeactiveWhenCivilian { true }
+		, Damage { 1 }
 		, ROF { 0 }
 		, Warhead { nullptr }
 		, PlayWarheadAnim { false }
@@ -26,7 +30,9 @@ public:
 
 	virtual ~DamageSelfType() = default;
 
-	DamageSelfType(const DamageSelfType& nData) : Damage { nData.Damage }
+	DamageSelfType(const DamageSelfType& nData) : Enable { nData.Enable }
+		, DeactiveWhenCivilian { nData.DeactiveWhenCivilian }
+		, Damage { nData.Damage }
 		, ROF { nData.ROF }
 		, Warhead { nData.Warhead }
 		, PlayWarheadAnim { nData.PlayWarheadAnim }
@@ -35,7 +41,9 @@ public:
 		, Type { nData.Type }
 	{}
 
-	DamageSelfType(DamageSelfType& nData) : Damage { nData.Damage }
+	DamageSelfType(DamageSelfType& nData) : Enable { nData.Enable }
+		, DeactiveWhenCivilian { nData.DeactiveWhenCivilian }
+		, Damage { nData.Damage }
 		, ROF { nData.ROF }
 		, Warhead { nData.Warhead }
 		, PlayWarheadAnim { nData.PlayWarheadAnim }
@@ -58,6 +66,8 @@ public:
 		Debug::Log("Processing Element From DamageSelfType ! \n");
 
 		return Stm
+			.Process(Enable)
+			.Process(DeactiveWhenCivilian)
 			.Process(Damage)
 			.Process(ROF)
 			.Process(Warhead)
@@ -76,31 +86,7 @@ public:
 
 	virtual ~DamageSelfState() = default;
 
-	virtual void Disable(WarheadTypeClass* pAffector)
-	{
-		if (Token == pAffector)
-		{
-			DelayTimer.Stop();
-		}
-	}
-
-	virtual void Disable(bool bForce)
-	{
-		if ((!Token) || bForce)
-		{
-			DelayTimer.Stop();
-			Token = nullptr;
-			Data.reset();
-		}
-	}
-
-
 	virtual bool IsActive() { return DelayTimer.InProgress(); }
-
-	void Enable(int nDuration, DamageSelfType data, WarheadTypeClass* pAffector)
-	{
-		Enable(nDuration, pAffector, data);
-	}
 
 	void Reset()
 	{
@@ -125,12 +111,26 @@ public:
 
 
 	DamageSelfState() : Hit { }
-		, Token { }
 		, delay { }
 		, Data { }
 		, DelayTimer { }
 	{ }
 
+	DamageSelfState(int Delay , const DamageSelfType& DData) : Hit { false }
+		, delay { Delay }
+		, Data { }
+		, DelayTimer { }
+	{
+		Data = std::make_unique<DamageSelfType>(DData);
+	}
+
+	static void OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData);
+
+	int GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArmor, WarheadTypeClass* pWH);
+
+	void PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeClass* pWH);
+
+	void TechnoClass_Update_DamageSelf(TechnoClass* pTechno);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
@@ -140,7 +140,6 @@ public:
 
 
 	bool Hit;
-	WarheadTypeClass* Token;
 	int delay;
 	std::unique_ptr<DamageSelfType> Data;
 
@@ -154,7 +153,6 @@ public:
 		Debug::Log("Processing Element From DamageSelfState ! \n");
 		return Stm
 			.Process(Hit)
-			.Process(Token)
 			.Process(delay)
 			.Process(Data)
 			.Process(DelayTimer)

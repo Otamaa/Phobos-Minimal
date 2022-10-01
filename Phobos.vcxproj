@@ -133,6 +133,7 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Others\TextHandler.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftDive\AircraftDiveFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutDataFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\DamageSelf\DamageSelfType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\DriveData\DriveDataFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFireData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFirefunctional.cpp" />
@@ -281,6 +282,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutDataFunctional.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutDataRules.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Techno\DamageSelf\DamageSelfType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\DriveData\DriveData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\DriveData\DriveDataFunctional.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFire.h" />

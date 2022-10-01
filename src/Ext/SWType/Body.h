@@ -36,6 +36,18 @@ public:
 		ValueableVector<TechnoTypeClass*> SW_Designators;
 		Valueable<bool> SW_AnyDesignator;
 
+		Valueable<double> SW_RangeMinimum;
+		Valueable<double> SW_RangeMaximum;
+		DWORD SW_RequiredHouses;
+		DWORD SW_ForbiddenHouses;
+		ValueableVector<BuildingTypeClass*> SW_AuxBuildings;
+		ValueableVector<BuildingTypeClass*> SW_NegBuildings;
+
+		Nullable<WarheadTypeClass*> Detonate_Warhead;
+		Nullable<WeaponTypeClass*> Detonate_Weapon;
+		Nullable<int> Detonate_Damage;
+
+
 		#pragma region Otamaa
 		Nullable<SHPStruct*> GClock_Shape;
 		Nullable<int> GClock_Transculency;
@@ -61,6 +73,17 @@ public:
 			, SW_Designators { }
 			, SW_AnyDesignator { false }
 
+			, SW_RangeMinimum { -1.0 }
+			, SW_RangeMaximum { -1.0 }
+			, SW_RequiredHouses { 0xFFFFFFFFu }
+			, SW_ForbiddenHouses { 0u }
+			, SW_AuxBuildings {}
+			, SW_NegBuildings {}
+
+			, Detonate_Warhead {}
+			, Detonate_Weapon {}
+			, Detonate_Damage {}
+
 			, GClock_Shape { }
 			, GClock_Transculency { }
 			, GClock_Palette { }
@@ -78,6 +101,12 @@ public:
 		bool HasDesignator(HouseClass* pOwner, const CellStruct& coords) const;
 		bool IsDesignatorEligible(HouseClass* pOwner, const CellStruct& coords, TechnoClass* pTechno) const;
 
+		bool IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const;
+		bool IsLaunchSite(BuildingClass* pBuilding) const;
+		std::pair<double, double> GetLaunchSiteRange(BuildingClass* pBuilding = nullptr) const;
+		bool IsAvailable(HouseClass* pHouse) const;
+
+		void ApplyDetonation(HouseClass* pHouse, const CoordStruct& coords);
 
 		void LoadFromINIFile(CCINIClass* pINI);
 		virtual ~ExtData() = default;

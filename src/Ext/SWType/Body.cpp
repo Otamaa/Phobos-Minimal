@@ -52,6 +52,17 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SW_Designators.Read(exINI, pSection, "SW.Designators");
 	this->SW_AnyDesignator.Read(exINI, pSection, "SW.AnyDesignator");
 
+	this->SW_RangeMinimum.Read(exINI, pSection, "SW.RangeMinimum");
+	this->SW_RangeMaximum.Read(exINI, pSection, "SW.RangeMaximum");
+	this->SW_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SW.RequiredHouses", this->SW_RequiredHouses);
+	this->SW_ForbiddenHouses = pINI->ReadHouseTypesList(pSection, "SW.ForbiddenHouses", this->SW_ForbiddenHouses);
+	this->SW_AuxBuildings.Read(exINI, pSection, "SW.AuxBuildings");
+	this->SW_NegBuildings.Read(exINI, pSection, "SW.NegBuildings");
+
+	this->Detonate_Warhead.Read(exINI, pSection, "Detonate.Warhead");
+	this->Detonate_Weapon.Read(exINI, pSection, "Detonate.Weapon", true);
+	this->Detonate_Damage.Read(exINI, pSection, "Detonate.Damage");
+
 	#pragma region Otamaa
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
@@ -179,10 +190,18 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_AnyInhibitor)
 		.Process(this->SW_Designators)
 		.Process(this->SW_AnyDesignator)
-
+		.Process(this->SW_RangeMinimum)
+		.Process(this->SW_RangeMaximum)
+		.Process(this->SW_RequiredHouses)
+		.Process(this->SW_ForbiddenHouses)
+		.Process(this->SW_AuxBuildings)
+		.Process(this->SW_NegBuildings)
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
 		.Process(this->GClock_Palette)
+		.Process(this->Detonate_Warhead)
+		.Process(this->Detonate_Weapon)
+		.Process(this->Detonate_Damage)
 		.Process(ChargeTimer)
 		.Process(ChargeTimer_Backwards)
 		;

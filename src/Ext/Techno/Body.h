@@ -16,6 +16,7 @@
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDive.h>
+#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBox.h>
 #include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTarget.h>
@@ -87,6 +88,9 @@ public:
 		//std::vector<int> FireSelf_ROF;
 		TimerStruct EngineerCaptureDelay;
 		bool FlhChanged;
+		DynamicVectorClass<LineTrail*> TechnoLineTrail;
+		bool IsMissisleSpawn;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -99,9 +103,9 @@ public:
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;
+		std::unique_ptr<DamageSelfState> DamageSelfState;
 		int CurrentWeaponIdx;
-		bool IsMissisleSpawn;
-		DynamicVectorClass<LineTrail*> TechnoLineTrail;
+
 #ifdef ENABLE_HOMING_MISSILE
 		HomingMissileTargetTracker* MissileTargetTracker;
 #endif
@@ -142,8 +146,10 @@ public:
 			, FireSelf_Count {}
 			//, FireSelf_Weapon {}
 			//, FireSelf_ROF {}
-			, EngineerCaptureDelay { }
+			, EngineerCaptureDelay {}
 			, FlhChanged { false }
+			, TechnoLineTrail { }
+			, IsMissisleSpawn { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
@@ -151,13 +157,14 @@ public:
 			, IsMissileHoming { false }
 			, SkipVoice { false }
 			, HomingTargetLocation { 0,0,0 }
-			, ExtraWeaponTimers { }
-			, Trails { }
+			, ExtraWeaponTimers {}
+			, Trails {}
 			, MyGiftBox {}
 			, PaintBallState {}
+			, DamageSelfState {}
 			, CurrentWeaponIdx { -1}
-			, IsMissisleSpawn { false }
-			, TechnoLineTrail { }
+
+
 #ifdef ENABLE_HOMING_MISSILE
 			, MissileTargetTracker { nullptr }
 #endif

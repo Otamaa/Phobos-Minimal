@@ -10,23 +10,38 @@
 
 #include "Body.h"
 #include <Ext/AnimType/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 
 DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
+	enum {
+		Draw = 0x0 ,
+		DoNotDraw = 0x6F6AB6
+	};
+
 	GET(TechnoClass*, pThis, ECX);
 
 	if(const auto pUnit = specific_cast<UnitClass*>(pThis))
 		if(pUnit && pUnit->DeathFrameCounter > 0)
-			return 0x6F6AB6;
+			return DoNotDraw;
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+		if (pBldExt->IsInLimboDelivery)
+			return DoNotDraw;
+	}
 
 	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if ((pTypeData && pTypeData->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
-		return 0x6F6AB6;
+		return DoNotDraw;
 
-	return 0;
+
+
+	return Draw;
 }
 
 DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x5) //0

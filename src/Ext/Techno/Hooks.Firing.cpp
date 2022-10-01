@@ -29,12 +29,13 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	enum { CannotFire = 0x6FCB7E };
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if(CeaseFire(pThis))
+	if (CeaseFire(pThis))
 		return CannotFire;
 #endif
 	auto pTechnoExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
+	if (auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
+	{
 		const int nMoney = pWHExt->TransactMoney;
 		if (nMoney != 0 && !pThis->Owner->CanTransactMoney(nMoney))
 			return CannotFire;
@@ -43,58 +44,70 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	//this code is used to remove Techno as auto target consideration , so interceptor can find target faster
 	if (pTechnoExt->Interceptor.Get() &&
 		pTechnoExt->Interceptor_OnlyTargetBullet.Get() &&
-		!specific_cast<BulletClass*>(pTarget)) {
+		!specific_cast<BulletClass*>(pTarget))
+	{
 		return CannotFire;
 	}
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
+	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+	{
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
 		CellClass* targetCell = nullptr;
 
 		// Ignore target cell for airborne technos.
-		if (!pTechno || !pTechno->IsInAir()) {
+		if (!pTechno || !pTechno->IsInAir())
+		{
 			if (const auto pCell = specific_cast<CellClass*>(pTarget))
 				targetCell = pCell;
 			else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
 				targetCell = pObject->GetCell();
 		}
 
-		if (targetCell) {
+		if (targetCell)
+		{
 			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget, true))
 				return CannotFire;
 
-			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex)) {
-				if ((pOverlayType->Wall)) {
+			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex))
+			{
+				if ((pOverlayType->Wall))
+				{
 					if (!pWeapon->IsWallDestroyer() ||
-						!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex))) {
+						!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex)))
+					{
 						return CannotFire;
 					}
 				}
 			}
 		}
 
-		if (pTechno) {
+		if (pTechno)
+		{
 
 			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget) ||
 				!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTechno->Owner))
-			{ return CannotFire; }
+			{
+				return CannotFire;
+			}
 
 
 			//if(pTargetTechnoExt->IsDummy.Get())
 			//	return CannotFire;
 
-			if (const auto pFoot = generic_cast<FootClass*>(pTechno)){
+			if (const auto pFoot = generic_cast<FootClass*>(pTechno))
+			{
 
-				if(pFoot->WhatAmI() == AbstractType::Unit){
+				if (pFoot->WhatAmI() == AbstractType::Unit)
+				{
 					auto const pUnit = static_cast<UnitClass*>(pTechno);
-					#ifdef Ares_3_0_p1
+#ifdef Ares_3_0_p1
 					auto const bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
 
 					if (pUnit->DeathFrameCounter > 0 || bDriverKilled && pWeaponExt->Abductor.Get())
-						#else
-					if(pUnit->DeathFrameCounter > 0)
-						#endif
+#else
+					if (pUnit->DeathFrameCounter > 0)
+#endif
 						return CannotFire;
 				}
 
@@ -120,16 +133,19 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 	GET(TechnoClass* const, pThis, ESI);
 
 	//replacing whole check due to `fild`
-	if (pThis->InOpenToppedTransport) {
+	if (pThis->InOpenToppedTransport)
+	{
 		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
-		if (auto const  pTransport = pThis->Transporter) {
+		if (auto const  pTransport = pThis->Transporter)
+		{
 			float nDamageMult = RulesGlobal->OpenToppedDamageMultiplier;
 
-			if (auto const  pExt = TechnoTypeExt::ExtMap.Find<false>(pTransport->GetTechnoType())) {
+			if (auto const  pExt = TechnoTypeExt::ExtMap.Find<false>(pTransport->GetTechnoType()))
+			{
 				nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(nDamageMult);
 			}
 
-			R->EAX(Game::F2I(nDamage* nDamageMult));
+			R->EAX(Game::F2I(nDamage * nDamageMult));
 			return ApplyDamageMult;
 		}
 	}
@@ -145,8 +161,10 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	GET(CellClass* const, pCell, EAX);
 	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find<false>(pWeaponType)) {
-		if (pExt->AreaFire_Target == AreaFireTarget::Random) {
+	if (auto const pExt = WeaponTypeExt::ExtMap.Find<false>(pWeaponType))
+	{
+		if (pExt->AreaFire_Target == AreaFireTarget::Random)
+		{
 			auto const range = pWeaponType->Range / Unsorted::d_LeptonsPerCell;
 
 			const std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(static_cast<size_t>(range + 0.99));
@@ -159,7 +177,8 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 				CellStruct tgtPos = pCell->MapCoords + adjacentCells[cellIndex];
 				CellClass* tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 
-				if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true)) {
+				if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true))
+				{
 					R->EAX(tgtCell);
 					return Continue;
 				}
@@ -188,8 +207,10 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon)) {
-		if (pWeaponExt->FeedbackWeapon.isset()) {
+	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon))
+	{
+		if (pWeaponExt->FeedbackWeapon.isset())
+		{
 			auto fbWeapon = pWeaponExt->FeedbackWeapon.Get();
 
 			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
@@ -215,7 +236,8 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 
 		if (pSourceTypeExt && pSourceTypeExt->Interceptor.Get())
 		{
-			if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet)) {
+			if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet))
+			{
 				pBulletExt->IsInterceptor = true;
 			}
 
@@ -223,7 +245,8 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 				pBulletExt->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
-			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso) {
+			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
+			{
 				if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead))
 					pWHExt->InterceptBullets(pSource, pWeaponType, pTargetObject->Location);
 			}
@@ -236,10 +259,10 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 			return 0x0;
 
 		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-		GeneralUtils::CalculateShakeVal(Map.ScreenShakeX ,ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+			GeneralUtils::CalculateShakeVal(Map.ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 
 		if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-		GeneralUtils::CalculateShakeVal(Map.ScreenShakeY , ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+			GeneralUtils::CalculateShakeVal(Map.ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
 	}
 
 	return 0;
@@ -324,7 +347,8 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	enum { DisallowFiring = 0x6FC86A };
 
 	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
+	//GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
+	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
 
 	const auto pType = pThis->GetTechnoType();
 	auto pCell = abstract_cast<CellClass*>(pTarget);
@@ -343,6 +367,8 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 
 		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
 			return DisallowFiring;
+		//else if (pType->LandTargeting == LandTargetingType::Land_secondary && nWeaponIdx == 0)
+		//	return DisallowFiring;
 		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && ((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pCell->ContainsBridge()))
 			return DisallowFiring;
 	}
@@ -421,30 +447,65 @@ DEFINE_HOOK(0x6FDD93, TechnoClass_FireAt_DelayedFire, 0x6) // or 0x6FDD99  , 0x6
 	//GET_STACK(FootClass*, pTarget, 0xD4);//8);
 
 	enum { skipDelayedFire = 0, skipFireAt = 0x6FDE03 };
-	// If Weapon countdown haven't finished skip Fire attempt
-	//if (pThis->DiskLaserTimer.GetTimeLeft())
-		//return 0x6FDE03;
 
-	if (!pThis)
+	const auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pWeaponTypeExt->DelayedFire_Anim_LoopCount <= 0 || !pWeaponTypeExt->DelayedFire_Anim.isset())
 		return skipDelayedFire;
 
-	if (auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeaponType))
+	if (pWeaponTypeExt->DelayedFire_DurationTimer.Get() > 0 && pExt->DelayedFire_DurationTimer < 0)
+		pExt->DelayedFire_DurationTimer = pWeaponTypeExt->DelayedFire_DurationTimer.Get();
+
+	AnimTypeClass* pDelayedFireAnimType = pWeaponTypeExt->DelayedFire_Anim.isset() ? pWeaponTypeExt->DelayedFire_Anim.Get() : nullptr;
+	bool hasValidDelayedFireAnimType = pDelayedFireAnimType ? true : false;
+
+	if (!hasValidDelayedFireAnimType)
 	{
-		if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+		pExt->DelayedFire_Anim = nullptr;
+		pExt->DelayedFire_Anim_LoopCount = 0;
+		pExt->DelayedFire_DurationTimer = -1;
+
+		return skipDelayedFire;
+	}
+
+	bool isDelayedFireAnimPlaying = pExt->DelayedFire_Anim ? true : false;
+	bool hasDeployAnimFinished = (isDelayedFireAnimPlaying && (pExt->DelayedFire_Anim->Animation.Value >= pDelayedFireAnimType->End + pDelayedFireAnimType->Start - 1)) ? true : false;
+
+	if (!isDelayedFireAnimPlaying)
+	{
+		// Create the DelayedFire animation & stop the Fire process
+		TechnoTypeClass* pThisType = pThis->GetTechnoType();
+		int weaponIndex = pThis->CurrentWeaponNumber;
+		CoordStruct animLocation = pThis->Location;
+
+		if (pWeaponTypeExt->DelayedFire_Anim_UseFLH)
+			animLocation = TechnoExt::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex).FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
+
+		if (auto pAnim = GameCreate<AnimClass>(pDelayedFireAnimType, animLocation))//pThis->Location))//animLocation))
 		{
-			if (pWeaponTypeExt->DelayedFire_Anim_LoopCount <= 0)
-				return skipDelayedFire;
+			pExt->DelayedFire_Anim = pAnim;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+			pExt->DelayedFire_Anim->SetOwnerObject(pThis);
+			pExt->DelayedFire_Anim_LoopCount++;
+		}
+		else
+		{
+			Debug::Log("ERROR! DelayedFire animation [%s] -> %s can't be created.\n", pThis->GetTechnoType()->ID, pDelayedFireAnimType->ID);
+			pExt->DelayedFire_Anim = nullptr;
+			pExt->DelayedFire_Anim_LoopCount = 0;
+			pExt->DelayedFire_DurationTimer = -1;
 
-			if (!pWeaponTypeExt->DelayedFire_Anim.isset())
-				return skipDelayedFire;
+			return skipDelayedFire;
+		}
+	}
+	else
+	{
+		if (pWeaponTypeExt->DelayedFire_DurationTimer.Get() > 0)
+		{
+			pExt->DelayedFire_DurationTimer--;
 
-			if (pWeaponTypeExt->DelayedFire_DurationTimer.Get() > 0 && pExt->DelayedFire_DurationTimer < 0)
-				pExt->DelayedFire_DurationTimer = pWeaponTypeExt->DelayedFire_DurationTimer.Get();
-
-			AnimTypeClass* pDelayedFireAnimType = pWeaponTypeExt->DelayedFire_Anim.isset() ? pWeaponTypeExt->DelayedFire_Anim.Get() : nullptr;
-			bool hasValidDelayedFireAnimType = pDelayedFireAnimType ? true : false;
-
-			if (!hasValidDelayedFireAnimType)
+			if (pExt->DelayedFire_DurationTimer <= 0)
 			{
 				pExt->DelayedFire_Anim = nullptr;
 				pExt->DelayedFire_Anim_LoopCount = 0;
@@ -452,72 +513,23 @@ DEFINE_HOOK(0x6FDD93, TechnoClass_FireAt_DelayedFire, 0x6) // or 0x6FDD99  , 0x6
 
 				return skipDelayedFire;
 			}
+		}
 
-			bool isDelayedFireAnimPlaying = pExt->DelayedFire_Anim ? true : false;
-			bool hasDeployAnimFinished = (isDelayedFireAnimPlaying && (pExt->DelayedFire_Anim->Animation.Value >= pDelayedFireAnimType->End + pDelayedFireAnimType->Start - 1)) ? true : false;
+		if (hasDeployAnimFinished)
+		{
+			// DelayedFire animation finished but it can repeat more times, if set
+			pExt->DelayedFire_Anim = nullptr;
 
-			if (!isDelayedFireAnimPlaying)
+			if (pExt->DelayedFire_Anim_LoopCount >= pWeaponTypeExt->DelayedFire_Anim_LoopCount && pWeaponTypeExt->DelayedFire_Anim_LoopCount > 0)
 			{
-				// Create the DelayedFire animation & stop the Fire process
-				TechnoTypeClass* pThisType = pThis->GetTechnoType();
-				int weaponIndex = pThis->CurrentWeaponNumber;
-				CoordStruct animLocation = pThis->Location;
+				pExt->DelayedFire_Anim_LoopCount = 0;
+				pExt->DelayedFire_DurationTimer = -1;
 
-				if (pWeaponTypeExt->DelayedFire_Anim_UseFLH)
-					animLocation = TechnoExt::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex).FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
-
-				if (auto pAnim = GameCreate<AnimClass>(pDelayedFireAnimType, animLocation))//pThis->Location))//animLocation))
-				{
-					pExt->DelayedFire_Anim = pAnim;
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
-					pExt->DelayedFire_Anim->SetOwnerObject(pThis);
-					pExt->DelayedFire_Anim_LoopCount++;
-				}
-				else
-				{
-					Debug::Log("ERROR! DelayedFire animation [%s] -> %s can't be created.\n", pThis->GetTechnoType()->ID, pDelayedFireAnimType->ID);
-					pExt->DelayedFire_Anim = nullptr;
-					pExt->DelayedFire_Anim_LoopCount = 0;
-					pExt->DelayedFire_DurationTimer = -1;
-
-					return skipDelayedFire;
-				}
+				return skipDelayedFire;
 			}
-			else
-			{
-				if (pWeaponTypeExt->DelayedFire_DurationTimer.Get() > 0)
-				{
-					pExt->DelayedFire_DurationTimer--;
-
-					if (pExt->DelayedFire_DurationTimer <= 0)
-					{
-						pExt->DelayedFire_Anim = nullptr;
-						pExt->DelayedFire_Anim_LoopCount = 0;
-						pExt->DelayedFire_DurationTimer = -1;
-
-						return skipDelayedFire;
-					}
-				}
-
-				if (hasDeployAnimFinished)
-				{
-					// DelayedFire animation finished but it can repeat more times, if set
-					pExt->DelayedFire_Anim = nullptr;
-
-					if (pExt->DelayedFire_Anim_LoopCount >= pWeaponTypeExt->DelayedFire_Anim_LoopCount && pWeaponTypeExt->DelayedFire_Anim_LoopCount > 0)
-					{
-						pExt->DelayedFire_Anim_LoopCount = 0;
-						pExt->DelayedFire_DurationTimer = -1;
-
-						return skipDelayedFire;
-					}
-				}
-			}
-
-			// No shoot
-			return skipFireAt;
 		}
 	}
 
-	return skipDelayedFire;
+
+	return skipFireAt;
 }

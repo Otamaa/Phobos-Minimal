@@ -2,8 +2,54 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
 #include <Ext/House/Body.h>
+#include <Ext/SWType/Body.h>
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
+
+bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
+{
+	const auto pThis = this->Get();
+	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	const auto count = pExt->GetSuperWeaponCount();
+	for (auto i = 0; i < count; ++i)
+	{
+		const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
+		if (idxSW == index)
+		{
+			return true;
+		}
+	}
+
+	if (withUpgrades)
+	{
+		for (auto const& pUpgrade : pThis->Upgrades)
+		{
+			if (const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgrade))
+			{
+				const auto countUpgrade = pUpgradeExt->GetSuperWeaponCount();
+				for (auto i = 0; i < countUpgrade; ++i)
+				{
+					const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i, pThis->Owner);
+					if (idxSW == index)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeBib)
+{
+	CoordStruct ret = pBuilding->GetCoords();
+	ret.X += pBuilding->Type->GetFoundationWidth() / 2;
+	ret.Y += pBuilding->Type->GetFoundationHeight(includeBib) / 2;
+	return ret;
+}
+
 void BuildingExt::ExtData::InitializeConstants()
 {
 	if (!Get() || !Get()->Type)
@@ -265,6 +311,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->AccumulatedGrindingRefund)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
+		.Process(this->IsInLimboDelivery)
 
 		;
 }

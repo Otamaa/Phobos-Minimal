@@ -14,6 +14,7 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
+#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTargetFunctional.h>
@@ -304,6 +305,11 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
+	//bool IsInLimboDelivery = false;
+	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+	//	IsInLimboDelivery = BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery;
+	//}
+
 	//if (pThis->Health  == 0 && !pThis->InLimbo)
 	//	FlyingStrings::AddString(L"Already Dead !", true , pThis ,AffectedHouse::All,pThis->Location,{0,0},{0,0,0});
 
@@ -352,12 +358,17 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 	GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	if (pExt->PaintBallState)
-	{
-		pExt->PaintBallState->Update(pThis);
-	}
+	//if (!IsInLimboDelivery) {
+		if (pExt->PaintBallState) {
+			pExt->PaintBallState->Update(pThis);
+		}
+	//}
 
+	if (pExt->DamageSelfState) {
+		pExt->DamageSelfState->TechnoClass_Update_DamageSelf(pThis);
+	}
 #endif
+
 
 	return 0;
 }
@@ -461,7 +472,10 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 			//fix this , so reset immedietely if target is not on map
 			if (!Map.IsValid(pTargetTech->Location)
 				|| pTargetTech->TemporalTargetingMe
-				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack))
+#ifdef COMPILE_PORTED_DP_FEATURES
+				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+#endif
+				)
 			{
 				if (pThis->SpawnOwner->Target == pThis->Target)
 					pThis->SpawnOwner->SetTarget(nullptr);
@@ -469,14 +483,16 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 				pThis->SpawnOwner->SpawnManager->ResetTarget();
 			}
 
-		}else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
+		}
+#ifdef COMPILE_PORTED_DP_FEATURES
+		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
 		{
 			if (pThis->SpawnOwner->Target == pThis->Target)
 				pThis->SpawnOwner->SetTarget(nullptr);
 
 			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
-
+#endif
 	}
 
 	return pThis->IsLocked() ? 0x4DA677 : 0x4DA643;

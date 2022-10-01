@@ -15,6 +15,7 @@
 #include <CellClass.h>
 
 #include <Ext/Rules/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/VoxelAnim/Body.h>
@@ -22,6 +23,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/EnumFunctions.h>
 
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
 DEFINE_HOOK(0x423365, Phobos_BugFixes_SHPShadowCheck, 0x8)
@@ -647,10 +649,24 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
 	GET(BuildingClass* const, pThis, ESI);
 
-	if (HouseClass::IsCurrentPlayerObserver()
-		|| pThis->Owner && (pThis->Owner->IsControlledByCurrentPlayer()
-		|| pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)))
+	if(HouseClass::IsCurrentPlayerObserver()) {
 		return ContinueDraw;
-	else
+	}
+
+	if (BuildingExt::ExtMap.Find(pThis)->IsInLimboDelivery) {
 		return DoNotDraw;
+	}
+
+	auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pBldTypeExt->RadialIndicator_Visibility.isset()) {
+		if(EnumFunctions::CanTargetHouse(pBldTypeExt->RadialIndicator_Visibility.Get(), pThis->Owner, HouseClass::CurrentPlayer()))
+			return ContinueDraw;
+	} else {
+		if (pThis->Owner && pThis->Owner == HouseClass::CurrentPlayer())
+			return ContinueDraw;
+
+	}
+
+	return DoNotDraw;
 }

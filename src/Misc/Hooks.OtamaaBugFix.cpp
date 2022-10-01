@@ -3,6 +3,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -28,6 +29,12 @@ DEFINE_HOOK(0x6FA2C7 , TechnoClass_AI_DrawBehindAnim , 0x8) //was 4
 	GET(TechnoClass* , pThis , ESI);
 	GET_STACK(Point2D , nPoint , STACK_OFFS(0x78 ,0x50));
 	GET_STACK(RectangleStruct , nBound , STACK_OFFS(0x78 ,0x50));
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+		if (pBldExt->IsInLimboDelivery)
+			return 0x6FA2D8;
+	}
 
 	if (!pThis->GetTechnoType()->Invisible)
 		pThis->DrawBehind(&nPoint, &nBound);
@@ -831,12 +838,15 @@ DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 //	return R->Origin() + 6;
 //}
 
-DEFINE_HOOK(0x6FF92F , TechnoClass_FireAt_End, 0x5)
+DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	if(const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)){
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pExt->DelayedFire_DurationTimer <= 0) {
 		if (pWeaponExt->RemoveTechnoAfterFiring.Get())
 			TechnoExt::KillSelf(pThis, KillMethod::Vanish);
 		else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
@@ -1081,8 +1091,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	GET(TechnoTypeClass*, pType, EAX);
 
 	if ((pThis->Owner && !pThis->Owner->IsControlledByCurrentPlayer())) {
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-		R->CL(pTypeExt->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
+		R->CL(TechnoTypeExt::ExtMap.Find(pType)->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
 		return 0x709202;
 	}
 
@@ -1166,9 +1175,13 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+			return 0x70D407;
+		}
+	}
 
-	return pTypeExt->IsDummy ? 0x70D407 : 0x0;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->IsDummy ? 0x70D407 : 0x0;
 }
 
 DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
@@ -1229,7 +1242,6 @@ DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 {
 	GET(TeamTypeClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, EDI);
-
 	Debug::Log("[%x][%s] Creating a new team named '%s'.\n", pHouse, pHouse ? pHouse->get_ID() : NONE_STR2, pThis->ID);
 	R->EAX(YRMemory::Allocate(sizeof(TeamClass)));
 	return 0x6F0A5A;
@@ -1245,7 +1257,6 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 {
 	GET(FactoryClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
-
 	Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
 	R->ECX(pThis->Object);
 	return 0x4CA021;
@@ -1257,7 +1268,6 @@ DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
 	GET(BuildingClass*, pThis, EDI);
 	GET(InfantryTypeClass*, pSurvivour, EAX);
 	GET(BuildingTypeClass*, pThisType, EDX);
-
 	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis , pThisType->ID,pSurvivour->ID);
 	return 0x443109;
 }
@@ -1955,3 +1965,54 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 
 
 #endif
+
+
+DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
+{
+	enum
+	{
+		Draw = 0x0,
+		DoNotDraw = 0x6D9159
+	};
+
+	GET(TechnoClass*, pTechno, ESI);
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
+		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+			return DoNotDraw;
+		}
+	}
+
+	return Draw;
+}
+
+DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
+{
+	enum
+	{
+		Draw = 0x0 ,
+		DoNotDraw = 0x6D978F
+	};
+
+	GET(TechnoClass*, pTechno, EBX);
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
+		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+			return DoNotDraw;
+		}
+	}
+
+	return Draw;
+}
+
+DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
+{
+	enum
+	{
+		Draw = 0x0,
+		DoNotDraw = 0x6D9587
+	};
+
+	GET(BuildingClass*, pBuilding, EBX);
+	return BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery ? DoNotDraw : Draw;
+}

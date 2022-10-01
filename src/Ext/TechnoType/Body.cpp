@@ -412,6 +412,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MyJJData.Read(exINI, pSection);
 	this->MyPassangersData.Read(exINI, pSection);
 	this->MySpawnSupportDatas.Read(exINI, pSection);
+	this->DamageSelfData.Read(exINI, pSection);
 #endif
 
 #pragma endregion
@@ -489,7 +490,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
 	this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
 	this->Trails.Read(exArtINI, pArtSection, true);
-
 #endif
 
 #pragma endregion
@@ -793,6 +793,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 	this->MySpawnSupportDatas.Serialize(Stm);
 	this->Trails.Serialize(Stm);
 	this->MyFighterData.Serialize(Stm);
+	this->DamageSelfData.Serialize(Stm);
 #endif
 }
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

@@ -1,5 +1,6 @@
 #pragma once
 #include <BuildingTypeClass.h>
+#include <SuperClass.h>
 #include <SuperWeaponTypeClass.h>
 
 #include <Utilities/BaseClassTemplates.h>
@@ -134,6 +135,9 @@ public:
 		Valueable<bool> PlacementPreview_Remap;
 		CustomPalette PlacementPreview_Palette;
 		Nullable<int> PlacementPreview_TranslucentLevel;
+
+		Nullable<AffectedHouse> RadialIndicator_Visibility;
+
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -211,7 +215,7 @@ public:
 			, PlacementPreview_Remap { true }
 			, PlacementPreview_Palette {}
 			, PlacementPreview_TranslucentLevel {}
-
+			, RadialIndicator_Visibility { }
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}
@@ -265,6 +269,10 @@ public:
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		int GetSuperWeaponCount() const;
+		int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
+		int GetSuperWeaponIndex(int index) const;
 
 	private:
 		template <typename T>

@@ -14,6 +14,7 @@
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
+#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveData.h>
 #include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutData.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxData.h>
@@ -343,6 +344,7 @@ public:
 		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
 		Valueable<bool> ChronoDelay_Immune;
 		std::vector<LineTrailData> LineTrailData;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -363,6 +365,7 @@ public:
 		SpawnSupportData MySpawnSupportDatas;
 		TrailsReader Trails;
 		FighterAreaGuardData MyFighterData;
+		DamageSelfType DamageSelfData;
 #endif
 
 #pragma endregion
@@ -633,6 +636,7 @@ public:
 			, DisguiseDisAllowed { }
 			, ChronoDelay_Immune { false }
 			, LineTrailData { }
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -652,6 +656,7 @@ public:
 			, MySpawnSupportDatas { }
 			, Trails { }
 			, MyFighterData { }
+			, DamageSelfData { }
 #endif
 
 #pragma endregion

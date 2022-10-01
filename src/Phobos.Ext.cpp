@@ -137,6 +137,11 @@ DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
 	GET(bool const, removed, EDX);
 
 	Phobos::PointerGotInvalid(pInvalid, removed);
+
+	//std::for_each(RadSiteClass::Array->begin(), RadSiteClass::Array->end(), [&](RadSiteClass* const pThis) {
+	//	pThis->PointerExpired(pInvalid, removed);
+	//});
+
 	return 0;
 }
 

@@ -18,9 +18,11 @@ public:
 
 		bool IsUsingDeathSequence;
 		int CurrentDoType;
+		bool ForceFullRearmDelay;
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, IsUsingDeathSequence { false }
 			, CurrentDoType { -1 }
+			, ForceFullRearmDelay { false }
 		{ }
 
 		virtual ~ExtData() = default;

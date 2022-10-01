@@ -56,27 +56,12 @@ public:
 
 	static void CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
-	class ExtContainer final : public Container<RadSiteExt,false,true>
+	class ExtContainer final : public Container<RadSiteExt,true,true , true>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		bool InvalidateExtDataIgnorable(void* const ptr) const {
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry: {
-				return false;
-			}
-			}
-			return true;
-		}
-
-		//void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;
