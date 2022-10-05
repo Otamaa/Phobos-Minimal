@@ -27,9 +27,11 @@ public:
 	virtual ~TEventClass() RX;
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
 
+	virtual int GetArrayIndex() const override R0;
 
 	// you are responsible for doing INI::ReadString and strtok'ing it before calling
 	// this func only calls strtok again, doesn't know anything about buffers

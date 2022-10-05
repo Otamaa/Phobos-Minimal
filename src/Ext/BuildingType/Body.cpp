@@ -6,9 +6,10 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Macro.h>
 
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
-const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass{ 0x7FFF };
+const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass { 0x7FFF };
 
 int BuildingTypeExt::ExtData::GetSuperWeaponCount() const
 {
@@ -47,7 +48,8 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 	return -1;
 }
 
-void BuildingTypeExt::ExtData::InitializeConstants() {
+void BuildingTypeExt::ExtData::InitializeConstants()
+{
 
 	AIBuildInsteadPerDiff.reserve(3);
 }
@@ -92,7 +94,8 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 					break;
 				}
 
-				if (pDecidedAnim) {
+				if (pDecidedAnim)
+				{
 					return pDecidedAnim->ArrayIndex;
 				}
 			}
@@ -128,7 +131,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	{
 		if (pBuilding)
 		{
-			for (const auto& [pExt,nCount] : pHouseExt->BuildingCounter)
+			for (const auto& [pExt, nCount] : pHouseExt->BuildingCounter)
 			{
 				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 				{
@@ -196,7 +199,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer ||  pOwner == HouseClass::Observer())
+	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer || pOwner == HouseClass::Observer())
 		return fFactor;
 
 	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
@@ -241,7 +244,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 
 	return fFactor;
 }
-double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat) {
+double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
+{
 	return BuildingTypeExt::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());
 }
 
@@ -390,7 +394,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		if (!nVec.empty())
 		{
 			//remove invalid items to keep memory clean !
-			for (auto const&[nIdx , pAnimType]  : nVec) {
+			for (auto const& [nIdx, pAnimType] : nVec)
+			{
 				if (!pAnimType)
 					nVec.erase(nIdx);
 			}
@@ -437,6 +442,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
 	this->SpeedBonus.Read(exINI, pSection);
 	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicator.Visibility");
+
+	this->EnterBioReactorSound.Read(exINI, pSection, "EnterBioReactorSound");
+	this->LeaveBioReactorSound.Read(exINI, pSection, "LeaveBioReactorSound");
 
 #pragma endregion
 
@@ -561,6 +569,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpeedBonus)
 		.Process(this->RadialIndicator_Visibility)
 		.Process(this->RubblePalette)
+		.Process(this->EnterBioReactorSound)
+		.Process(this->LeaveBioReactorSound)
+		.Process(this->DockPoseDir)
 		;
 }
 

@@ -94,6 +94,8 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MyAttachFireDatas.Read(exINI, pSection);
 	#endif
 #pragma endregion
+
+	this->Ammo.Read(exINI, pSection, "Ammo");
 }
 
 template <typename T>
@@ -142,6 +144,7 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif
+		.Process(this->Ammo)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

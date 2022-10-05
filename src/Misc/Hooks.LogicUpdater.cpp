@@ -195,7 +195,7 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 	if (!TechnoExt::IsAlive(pThis, false, false, false))
 		return;
 
-	if (!abstract_cast<FootClass*>(pThis))
+	if ((pThis->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
@@ -369,6 +369,17 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	}
 #endif
 
+	if (pExt->DelayedFire_Anim && pThis->GetCurrentMission() != Mission::Attack)
+	{
+		pThis->ArmTimer.Start(pThis->ArmTimer.GetTimeLeft() + 5);
+
+		// Reset Delayed fire animation
+		pExt->DelayedFire_Anim = nullptr;
+		pExt->DelayedFire_Anim_LoopCount = 0;
+		pExt->DelayedFire_DurationTimer = -1;
+	}
+
+
 
 	return 0;
 }
@@ -495,7 +506,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 #endif
 	}
 
-	return pThis->IsLocked() ? 0x4DA677 : 0x4DA643;
+	return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
 	//return 0;
 }
 

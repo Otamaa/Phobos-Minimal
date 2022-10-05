@@ -17,15 +17,21 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
 
 	//Destructor
-	virtual ~RadioClass() RX;
+	virtual ~RadioClass() JMP_THIS(0x65AEB0);
 
+	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x65AAC0);
+	//ObjectClass
+	virtual bool Limbo() JMP_THIS(0x65AA80);
+
+	virtual RadioCommand ReceiveCommand(TechnoClass* pSender, RadioCommand command, AbstractClass*& pInOut) JMP_THIS(0x65A820);
 	//RadioClass
 
 	// these are oogly, westwood themselves admitted it, so it's probably even more of a wtf than the rest
-	virtual RadioCommand SendToFirstLink(RadioCommand command) RT(RadioCommand);
-	virtual RadioCommand SendCommand(RadioCommand command, TechnoClass* pRecipient) RT(RadioCommand);
-	virtual RadioCommand SendCommandWithData(RadioCommand command, AbstractClass* &pInOut, TechnoClass* pRecipient) RT(RadioCommand);
-	virtual void SendToEachLink(RadioCommand command) RX;
+	virtual RadioCommand SendToFirstLink(RadioCommand command) JMP_THIS(0x65ACC3);
+	virtual RadioCommand SendCommand(RadioCommand command, TechnoClass* pRecipient) JMP_THIS(0x65AAA0);
+	virtual RadioCommand SendCommandWithData(RadioCommand command, AbstractClass* &pInOut, TechnoClass* pRecipient) JMP_THIS(0x65A970);
+	virtual void SendToEachLink(RadioCommand command) JMP_THIS(0x65ACE0);
 
 	// get specific link
 	TechnoClass* const& GetNthLink(int idx = 0) const {
@@ -76,6 +82,6 @@ protected:
 public:
 
 	RadioCommand LastCommands[3]; // new command updates these
-	VectorClass<TechnoClass*> RadioLinks;	//Docked units etc
+	DECLARE_PROPERTY(VectorClass<TechnoClass*>, RadioLinks);	//Docked units etc
 };
 //static_assert(sizeof(RadioClass) == 0xF0);

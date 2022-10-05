@@ -189,6 +189,10 @@ public:
 		BuildSpeedBonus SpeedBonus;
 
 		CustomPalette RubblePalette;
+
+		NullableIdx<VocClass> EnterBioReactorSound;
+		NullableIdx<VocClass> LeaveBioReactorSound;
+		PhobosMap<int, int > DockPoseDir;
 #pragma endregion
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -257,6 +261,9 @@ public:
 			, BuildingPlacementGrid_Shape { }
 			, SpeedBonus {}
 			, RubblePalette { CustomPalette::PaletteMode::Temperate }
+			, EnterBioReactorSound {}
+			, LeaveBioReactorSound {}
+			, DockPoseDir { }
 		{ }
 
 		virtual ~ExtData() = default;

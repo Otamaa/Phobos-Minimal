@@ -247,23 +247,25 @@ public:
 	virtual HRESULT __stdcall All_To_Hunt() override R0;
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override JMP_STD(0x4F6830);
+	virtual ULONG __stdcall AddRef() override JMP_STD(0x50E340);
+	virtual ULONG __stdcall Release() override JMP_STD(0x50E350);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x5046F0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x503040);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x504080);
 
 	//Destructor
-	virtual ~HouseClass() RX;
+	virtual ~HouseClass() override JMP_THIS(0x50E380);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4FB9B0);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int	Size() const R0;
+	virtual void Update() override JMP_THIS(0x4F8440);
 
 	bool IsAlliedWith(int idxHouse) const
 		{ JMP_THIS(0x4F9A10); }
@@ -330,10 +332,14 @@ public:
 		{ JMP_THIS(0x4F9AF0); }
 
 	// warning: logic pretty much broken
-	void LostPoweredCenter(TechnoTypeClass *pTechnoType)
-		{ JMP_THIS(0x50E0E0); }
-	void GainedPoweredCenter(TechnoTypeClass *pTechnoType)
-		{ JMP_THIS(0x50E1B0); }
+	void GainedPoweredCenter(TechnoTypeClass* pTechnoType)
+	{ JMP_THIS(0x50E010); }
+
+	void LostPoweredCenter(TechnoTypeClass* pTechnoType)
+	{ JMP_THIS(0x50E0E0); }
+
+	void HasPoweredCenter(TechnoTypeClass* pTechnoType) const
+	{ JMP_THIS(0x50E1B0); }
 
 	bool DoInfantrySelfHeal() const
 		{ return this->InfantrySelfHeal > 0; }
@@ -568,6 +574,14 @@ public:
 	// I don't want to talk about these
 	// read the code <_<
 
+	// RegisterGain
+	void AddCounters_OwnedNow(TechnoClass const* const pItem,bool ownerChange)
+	{ JMP_THIS(0x4FF700); }
+
+	// RegisterLoss
+	void SubCounters_OwnedNow(TechnoClass const* const pItem, bool keepTiberium)
+	{ JMP_THIS(0x4FF550); }
+
 	//  Count owned now
 	int CountOwnedNow(TechnoTypeClass const* pItem) const;
 
@@ -587,6 +601,14 @@ public:
 		return this->OwnedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
+	// RegisterGain
+	void AddCounters_OwnedPresent(const TechnoClass* pItem)
+	{ JMP_THIS(0x502A80); }
+
+	// RegisterLoss
+	void SubCounters_OwnedPresent(const TechnoClass* pItem)
+	{ JMP_THIS(0x5025F0); }
+
 	// Count owned and present
 	int CountOwnedAndPresent(TechnoTypeClass const* pItem) const;
 
@@ -605,6 +627,9 @@ public:
 	int CountOwnedAndPresent(UnitTypeClass const* const pItem) const {
 		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
+
+	void AddCounters_OwnedEver(TechnoClass const* const pItem)
+	{ JMP_THIS(0x4FB6B0); }
 
 	// Count owned ever
 	int CountOwnedEver(TechnoTypeClass const* pItem) const;
@@ -709,8 +734,8 @@ public:
 	void DroppedFlag(CellStruct *Where, UnitClass *Who)
 		{ JMP_THIS(0x4FBF60); }
 
-	char PickedUpFlag(UnitClass *Who, DWORD dwUnk)
-		{ JMP_THIS(0x4FC060); }
+	bool PickedUpFlag(UnitClass *pWho, DWORD dwUnk)
+	{ JMP_THIS(0x4FC060); }
 
 	FactoryClass* GetPrimaryFactory(AbstractType absID, bool naval, BuildCat buildCat) const
 		{ JMP_THIS(0x500510); }
@@ -811,6 +836,10 @@ public:
 		}
 
 		return edge;
+	}
+
+	Edge GetCurrentEdge() const {
+		JMP_THIS(0x50DA80);
 	}
 
 	Edge ResolveEdge() const

@@ -15,102 +15,6 @@ bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 	return true;
 }
 
-void __fastcall CaptureExt::Overload_AI(CaptureManagerClass* pThis, void* _)
-{
-	const auto pOwner = pThis->Owner;
-	const auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-
-	if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
-	{
-		pThis->HandleOverload();
-		return;
-	}
-
-	if (pThis->InfiniteMindControl)
-	{
-		if (pThis->OverloadPipState > 0)
-			--pThis->OverloadPipState;
-
-		if (pThis->OverloadDamageDelay <= 0)
-		{
-			auto const OverloadCount = pOwnerTypeExt->Overload_Count.GetElements(RulesGlobal->OverloadCount);
-
-			if (OverloadCount.empty())
-				return;
-
-			int nCurIdx = 0;
-			const int nNodeCount = pThis->ControlNodes.Count;
-
-			/* Vanilla code !
-			int MaxVal = 0;
-			if (nNodeCount > *OverloadCount.begin()) {
-
-				do {
-					if (nCurIdx >= static_cast<int>((OverloadCount.size())) - 1) {
-						break;
-					}
-
-					MaxVal = *(OverloadCount.begin()+1);
-					++nCurIdx;
-				} while (nNodeCount > MaxVal);
-			}
-			*/
-
-			for (int i = 0; i < (int)(OverloadCount.size()); ++i)
-			{
-				if (nNodeCount > OverloadCount[i])
-				{
-					nCurIdx = i + 1;
-				}
-			}
-
-			auto const nOverloadfr = pOwnerTypeExt->Overload_Frames.GetElements(RulesGlobal->OverloadFrames);
-			pThis->OverloadDamageDelay = CaptureExt::FixIdx(nOverloadfr, nCurIdx);
-
-			auto const nOverloadDmg = pOwnerTypeExt->Overload_Damage.GetElements(RulesGlobal->OverloadDamage);
-			auto nDamage = CaptureExt::FixIdx(nOverloadDmg, nCurIdx);
-
-			if (nDamage <= 0)
-			{
-				pThis->OverloadDeathSoundPlayed = false;
-			}
-			else
-			{
-				pThis->OverloadPipState = 10;
-				pOwner->ReceiveDamage(&nDamage, 0, RulesGlobal->C4Warhead, 0, 0, 0, 0);
-
-				if (!pThis->OverloadDeathSoundPlayed)
-				{
-					VocClass::PlayAt(pOwnerTypeExt->Overload_DeathSound.Get(RulesGlobal->MasterMindOverloadDeathSound), pOwner->Location, 0);
-					pThis->OverloadDeathSoundPlayed = true;
-				}
-
-				if (auto const pParticle = pOwnerTypeExt->Overload_ParticleSys.Get(RulesGlobal->DefaultSparkSystem))
-				{
-					for (int i = pOwnerTypeExt->Overload_ParticleSysCount.Get(5); i > 0; --i)
-					{
-						auto const nRandomY = ScenarioGlobal->Random.RandomRanged(-200, 200);
-						auto const nRamdomX = ScenarioGlobal->Random.RandomRanged(-200, 200);
-						CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, pOwner->Location.Z + 100 };
-						GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
-					}
-				}
-
-				if (nCurIdx > 0 && pOwner->IsAlive)
-				{
-					double const nBase = (nCurIdx != 1) ? 0.015 : 0.029999999;
-					double const nCopied_base = (ScenarioGlobal->Random.RandomRanged(0, 100) < 50) ? -nBase : nBase;
-					pOwner->RockingSidewaysPerFrame = static_cast<float>(nCopied_base);
-				}
-			}
-		}
-		else
-		{
-			--pThis->OverloadDamageDelay;
-		}
-	}
-}
-
 bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 {
 	if (pManager->MaxControlNodes == 1)
@@ -202,7 +106,8 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 				pManager->DecideUnitFate(pTarget);
 
-				auto const pBld = specific_cast<BuildingClass*>(pTarget);
+				auto const pWhat = pTarget->WhatAmI();
+				auto const pBld = pWhat == AbstractType::Building ? static_cast<BuildingClass*>(pTarget) : nullptr;
 				auto const pType = pTarget->GetTechnoType();
 				CoordStruct location = pTarget->GetCoords();
 
@@ -224,7 +129,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 				}
 
 //#ifdef ENABLE_NEWHOOKS
-				if (abstract_cast<FootClass*>(pTarget) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
+				if ((pWhat == AbstractType::Unit || pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
 					pTarget->SetTarget(nullptr);
 					pTarget->Override_Mission(Mission::Guard, nullptr,nullptr);
 					pTarget->SetDestination(pTarget->GetCell(), true);

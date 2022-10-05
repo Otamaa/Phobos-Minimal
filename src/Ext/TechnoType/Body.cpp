@@ -93,7 +93,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 	UnitTypeClass* pUnit = nullptr;
 
 	if (pThis->WhatAmI() == AbstractType::UnitType)
-		pUnit = specific_cast<UnitTypeClass*>(pThis);
+		pUnit = static_cast<UnitTypeClass*>(pThis);
 
 	if (this->Harvester_Counted.Get(pThis->Enslaves || pUnit && (pUnit->Harvester || pUnit->Enslaves)))
 		return true;
@@ -267,6 +267,27 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	// Ares 0.2
 	this->RadarJamRadius.Read(exINI, pSection, "RadarJamRadius");
 
+	//TODO : better helper
+	char nAbility[0x200] = { 0 };
+
+	if (exINI.GetINI()->ReadString(pSection, "EliteAbilities", "", nAbility) > 0){
+		std::string nEliteAbilities { nAbility };
+		if (!nEliteAbilities.empty()) {
+			std::size_t nFInd = nEliteAbilities.find("EMPIMMUNE");
+			if (nFInd != std::string::npos)
+				E_ImmuneToEMP = true;
+		}
+	}
+
+	if (exINI.GetINI()->ReadString(pSection, "VeteranAbilities", "", nAbility) > 0) {
+		std::string nVeteranAbilities { nAbility };
+		if (!nVeteranAbilities.empty()) {
+			std::size_t nFInd = nVeteranAbilities.find("EMPIMMUNE");
+			if (nFInd != std::string::npos)
+				V_ImmuneToEMP = true;
+		}
+	}
+
 	// Ares 0.9
 	this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");
 	this->DesignatorRange.Read(exINI, pSection, "DesignatorRange");
@@ -281,6 +302,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->EnemyUIName.Read(exINI, pSection, "EnemyUIName");
 
 	this->ForceWeapon_Naval_Decloaked.Read(exINI, pSection, "ForceWeapon.Naval.Decloaked");
+	this->ForceWeapon_UnderEMP.Read(exINI, pSection, "ForceWeapon.UnderEMP");
+
 	this->Ammo_Shared.Read(exINI, pSection, "Ammo.Shared");
 	this->Ammo_Shared_Group.Read(exINI, pSection, "Ammo.Shared.Group");
 	this->Passengers_SyncOwner.Read(exINI, pSection, "Passengers.SyncOwner");
@@ -597,10 +620,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealGainType)
 		.Process(this->EnemyUIName)
 		.Process(this->ForceWeapon_Naval_Decloaked)
+		.Process(this->ForceWeapon_UnderEMP)
+		.Process(this->ImmuneToEMP)
+		.Process(this->E_ImmuneToEMP)
+		.Process(this->V_ImmuneToEMP)
 		.Process(this->Ammo_Shared)
 		.Process(this->Ammo_Shared_Group)
 		.Process(this->Passengers_SyncOwner)
 		.Process(this->Passengers_SyncOwner_RevertOnExit)
+		.Process(this->Aircraft_DecreaseAmmo)
 		.Process(this->UseDisguiseMovementSpeed)
 		.Process(this->Insignia)
 		.Process(this->InsigniaFrame)
@@ -769,6 +797,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DisguiseDisAllowed)
 		.Process(this->ChronoDelay_Immune)
 		.Process(this->LineTrailData)
+		.Process(this->PoseDir)
+		.Process(this->Firing_IgnoreGravity)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 
@@ -934,6 +964,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
 
 	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
+	this->PoseDir.Read(exINI, pSection, "PoseDir");
+	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
+	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 	this->MyDiveData.Read(exINI, pSection);

@@ -36,6 +36,7 @@ DEFINE_HOOK(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
 DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 {
 	GET(BulletClass*, pBullet, EBX);
+	GET(TechnoClass*, pThis, ESI);
 
 	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
@@ -57,6 +58,17 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 			const auto magnitude = pBullet->Velocity.Magnitude();
 			pBullet->Velocity *= speed / magnitude;
 		}
+	}
+
+	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (!pExt->Aircraft_DecreaseAmmo.Get() && pThis->WhatAmI() == AbstractType::Aircraft)
+	{
+		auto nAmmo = --pThis->Ammo;
+
+		if (nAmmo < 0)
+			nAmmo = 0;
+
+		pThis->Ammo = nAmmo;
 	}
 
 	return 0;

@@ -21,11 +21,22 @@ public:
 	ABSTRACTTYPE_ARRAY(VoxelAnimTypeClass, 0xA8EB28u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x74B7D0);
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x74B810);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x74B8D0);
+
+	//Destructor
+	virtual ~VoxelAnimTypeClass() override JMP_THIS(0x74BA30);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x74B8F0);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int	Size() const R0;
+
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x74B050);
 
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
@@ -33,8 +44,6 @@ public:
 
 	//VoxelAnimTypeClass
 
-	//Destructor
-	virtual ~VoxelAnimTypeClass() RX;
 
 	//Constructor
 	VoxelAnimTypeClass(const char* pID)
@@ -79,6 +88,7 @@ public:
 	ParticleSystemTypeClass* AttachedSystem;
 	bool IsTiberium;
 	PROTECTED_PROPERTY(BYTE, unused_301[3]);
+	PROTECTED_PROPERTY(DWORD, align_304);
 };
 
 static_assert(sizeof(VoxelAnimTypeClass) == 0x308, "Invalid size.");

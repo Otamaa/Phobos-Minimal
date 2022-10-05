@@ -3,7 +3,7 @@
 // an imaginary world where only one quarter is real.
 // obviously, this class needs some serious expansion
 // if it is to be used for serious stuff.
-#include <Matrix3D.h>
+//#include <Matrix3D.h>
 #include <tuple>
 
 class Quaternion
@@ -88,21 +88,21 @@ public:
 		return buffer;
 	}
 
-	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
-	static Quaternion FromMatrix(Matrix3D& Mtx)
-	{
-		Quaternion buffer;
-		FromMatrix(&buffer, &Mtx);
-		return buffer;
-	}
+	//static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
+	//static Quaternion FromMatrix(Matrix3D& Mtx)
+	//{
+	//	Quaternion buffer;
+	//	FromMatrix(&buffer, &Mtx);
+	//	return buffer;
+	//}
 
-	static Matrix3D* __fastcall ToMatrix(Matrix3D* mat, Quaternion* A) { JMP_STD(0x646980); }
-	static Matrix3D ToMatrix(Quaternion& A)
-	{
-		Matrix3D buffer;
-		ToMatrix(&buffer, &A);
-		return buffer;
-	}
+	//static Matrix3D* __fastcall ToMatrix(Matrix3D* mat, Quaternion* A) { JMP_STD(0x646980); }
+	//static Matrix3D ToMatrix(Quaternion& A)
+	//{
+	//	Matrix3D buffer;
+	//	ToMatrix(&buffer, &A);
+	//	return buffer;
+	//}
 
 	Quaternion& operator/=(const float rhs)
 	{

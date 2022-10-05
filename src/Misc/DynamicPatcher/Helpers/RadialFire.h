@@ -26,7 +26,7 @@ struct RadialFireHelper
 
 	void InitData(DirStruct dir, int splitAngle)
 	{
-		Degrees = Math::rad2deg(dir.GetRadians()) + splitAngle;
+		Degrees = Math::rad2deg(dir.GetRadian()) + splitAngle;
 		Delta = splitAngle / (Burst + 1);
 		DeltaZ = 1.0f / (Burst / 2.0f + 1);
 	}
@@ -44,7 +44,7 @@ struct RadialFireHelper
 		DirStruct targetDir = DirStruct(Math::deg2rad(angle));
 		Matrix3D matrix3D = Matrix3D { };
 		matrix3D.MakeIdentity();
-		matrix3D.RotateZ(static_cast<float>(targetDir.GetRadians()));
+		matrix3D.RotateZ(static_cast<float>(targetDir.GetRadian()));
 		matrix3D.Translate(1, 0, 0);
 		auto offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
 		return { offset.X, -offset.Y, DeltaZ * z };

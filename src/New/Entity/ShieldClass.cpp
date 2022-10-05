@@ -20,7 +20,9 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , Timers_SelfHealing_Warhead { }
 , Timers_Respawn { }
 , Timers_Respawn_Warhead { }
-{ }
+, AreAnimsHidden { false }
+{
+}
 
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
 , TechnoID { }
@@ -35,6 +37,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Temporal { false }
 , Available { true }
 , Attached { isAttached }
+, AreAnimsHidden { false }
 , SelfHealing_Warhead { 0.0 }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
@@ -69,6 +72,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Temporal)
 		.Process(this->Available)
 		.Process(this->Attached)
+		.Process(this->AreAnimsHidden)
 		.Process(this->SelfHealing_Warhead)
 		.Process(this->SelfHealing_Rate_Warhead)
 		.Process(this->Respawn_Warhead)
@@ -228,24 +232,22 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 void ShieldClass::ResponseAttack() const
 {
-	if (this->Techno->Owner != HouseClass::CurrentPlayer)
+	if (this->Techno->Owner != HouseClass::CurrentPlayer || this->Techno->GetTechnoType()->Insignificant)
 		return;
 
-	if (this->Techno->WhatAmI() == AbstractType::Building)
+	auto const pWhat = Techno->WhatAmI();
+	if (pWhat == AbstractType::Building)
 	{
-		const auto pBld = abstract_cast<BuildingClass*>(this->Techno);
-		this->Techno->Owner->BuildingUnderAttack(pBld);
+		this->Techno->Owner->BuildingUnderAttack(static_cast<BuildingClass*>(this->Techno));
 	}
-	else if (this->Techno->WhatAmI() == AbstractType::Unit)
+	else if (pWhat == AbstractType::Unit)
 	{
-		const auto pUnit = abstract_cast<UnitClass*>(this->Techno);
+		const auto pUnit = static_cast<UnitClass*>(this->Techno);
 		if (pUnit->Type->Harvester)
 		{
-			const auto pos = pUnit->GetDestination(pUnit);
-
-			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(pos))){
-				const auto EVA_OreMinerUnderAttack = Make_Global<const char*>(0x824784);
-				VoxClass::Play(EVA_OreMinerUnderAttack);
+			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(pUnit->GetDestination(pUnit))))
+			{
+				VoxClass::Play(Eva_OreMinerUnderAttack);
 			}
 		}
 	}
@@ -253,6 +255,9 @@ void ShieldClass::ResponseAttack() const
 
 void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 {
+	if (this->AreAnimsHidden)
+		return;
+
 	auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim.Get(nullptr);
 
 	if (pAnimType)
@@ -362,12 +367,14 @@ void ShieldClass::OnUpdate()
 	this->SelfHealing();
 
 	double ratio = this->Techno->GetHealthPercentage();
+	if (!this->AreAnimsHidden)
+	{
+		if (GeneralUtils::HasHealthRatioThresholdChanged(LastTechnoHealthRatio, ratio))
+			UpdateIdleAnim();
 
-	if (GeneralUtils::HasHealthRatioThresholdChanged(LastTechnoHealthRatio, ratio))
-		UpdateIdleAnim();
-
-	if (!this->Cloak && !this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
-		this->CreateAnim();
+		if (!this->Cloak && !this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
+			this->CreateAnim();
+	}
 }
 
 // The animation is automatically destroyed when the associated unit receives the isCloak statute.
@@ -379,6 +386,21 @@ void ShieldClass::CloakCheck()
 
 	if (this->Cloak)
 		KillAnim();
+}
+
+void ShieldClass::HideAnimations()
+{
+	this->AreAnimsHidden = true;
+}
+
+void ShieldClass::ShowAnimations()
+{
+	this->AreAnimsHidden = false;
+}
+
+bool ShieldClass::AreAnimationsHidden()
+{
+	return this->AreAnimsHidden;
 }
 
 void ShieldClass::OnlineCheck()
@@ -589,14 +611,17 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 
 	this->KillAnim();
 
-	const auto pAnimType = pBreakAnim ? pBreakAnim : this->Type->BreakAnim.Get(nullptr);
-
-	if (pAnimType)
+	if (!this->AreAnimsHidden)
 	{
-		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, this->Techno->Location))
+		const auto pAnimType = pBreakAnim ? pBreakAnim : this->Type->BreakAnim.Get(nullptr);
+
+		if (pAnimType)
 		{
-			pAnim->SetOwnerObject(this->Techno);
-			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
+			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, this->Techno->Location))
+			{
+				pAnim->SetOwnerObject(this->Techno);
+				AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
+			}
 		}
 	}
 
@@ -689,9 +714,10 @@ void ShieldClass::CreateAnim()
 
 void ShieldClass::KillAnim()
 {
-	if (this->IdleAnim) {
+	if (this->IdleAnim)
+	{
 
-		if(this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
+		if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
 			CallDTOR<false>(this->IdleAnim);
 
 		this->IdleAnim = nullptr;

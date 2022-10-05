@@ -116,12 +116,12 @@ public:
 	ABSTRACTTYPE_ARRAY_NOALLOC(AbstractTypeClass, 0xA8E968u);
 
 	//Destructor
-	virtual ~AbstractTypeClass() RX;
+	virtual ~AbstractTypeClass() JMP_THIS(0x410C30);
 
 	//AbstractTypeClass
 	virtual void LoadTheaterSpecificArt(TheaterType th_type) RX;
-	virtual bool LoadFromINI(CCINIClass* pINI) R0;
-	virtual bool SaveToINI(CCINIClass* pINI) R0;
+	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x410A60);
+	virtual bool SaveToINI(CCINIClass* pINI) JMP_THIS(0x410B90);
 
 	const char* get_ID() const {
 		return this->ID;

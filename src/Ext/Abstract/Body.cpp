@@ -3,6 +3,7 @@
 #include <Base/Always.h>
 #include <SwizzleManagerClass.h>
 #include <Checksummer.h>
+#include <ExtraHeaders/WWCRCEngine.h>
 
 DEFINE_HOOK(0x410450, AbstractClass_IsDirty, 0x6)
 {
@@ -78,21 +79,6 @@ DEFINE_HOOK(0x41020B, AbsractClass_DTOR, 0x5)
 
 DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x4)
 {
-	class WWCRCEngine {
-	public:
-		void Add(bool bIn) {
-			JMP_THIS(0x4A1CA0);
-		}
-
-	protected:
-		long CRC;
-		int Index;
-		union
-		{
-			long Composite;
-			char Buffer[sizeof(long)];
-		} StagingBuffer;
-	};
 
 	GET(AbstractClass*, pThis, ESI);
 	GET(WWCRCEngine*, pCheck, EDI);

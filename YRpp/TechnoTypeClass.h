@@ -77,8 +77,11 @@ public:
 	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
 
 	//Destructor
-	virtual ~TechnoTypeClass() RX;
+	virtual ~TechnoTypeClass() override JMP_THIS(0x7179A0);
 
+	//AbstractClass
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x712170);
 	//ObjectTypeClass
 
 	//TechnoTypeClass
@@ -93,12 +96,26 @@ public:
 
 	// non-virtual
 	static TechnoTypeClass* __fastcall GetByTypeAndIndex(AbstractType abs, int index)
-		{ JMP_THIS(0x48DCD0); }
+		{ JMP_STD(0x48DCD0); }
 
+	static int sub_717840()
+		{ JMP_STD(0x717840); }
+	
 	bool HasMultipleTurrets() const
-	{
-		return this->TurretCount > 0;
-	}
+		{ return this->TurretCount > 0; }
+
+	//I don't know what that is
+	void SetTurretWeapon(int index, int unknown) //JMP_THIS(0x717890)
+		{ this->TurretWeapon[index] = unknown; }
+
+	int GetTurretWeapon(int index)
+		{ return this->TurretWeapon[index]; }
+
+	bool sub_712130() const
+		{ JMP_THIS(0x712130); }
+
+	DynamicVectorClass<ColorScheme*>* sub_717820()
+		{ JMP_THIS(0x717820); }
 
 	CoordStruct* GetParticleSysOffset(CoordStruct* pBuffer) const
 		{ JMP_THIS(0x7178C0); }
@@ -460,7 +477,8 @@ public:
 	bool            MissileSpawn;
 	bool            Underwater;
 	bool            BalloonHover;
-	int            SuppressionThreshold;
+	PROTECTED_PROPERTY(BYTE, align_D6B);
+	int             SuppressionThreshold;
 	int             JumpjetTurnRate;
 	int             JumpjetSpeed;
 	float           JumpjetClimb;

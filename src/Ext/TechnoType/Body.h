@@ -150,11 +150,16 @@ public:
 		Nullable<SelfHealGainType> SelfHealGainType;
 
 		Valueable<int> ForceWeapon_Naval_Decloaked;
-
+		Valueable<int> ForceWeapon_UnderEMP;
+		Valueable<bool> ImmuneToEMP;
+		Valueable<bool> E_ImmuneToEMP;
+		Valueable<bool> V_ImmuneToEMP;
 		Valueable<bool> Ammo_Shared;
 		Valueable<int> Ammo_Shared_Group;
 		Valueable<bool> Passengers_SyncOwner;
 		Valueable<bool> Passengers_SyncOwner_RevertOnExit;
+
+		Valueable<bool> Aircraft_DecreaseAmmo;
 
 		struct LaserTrailDataEntry
 		{
@@ -253,7 +258,7 @@ public:
 		Nullable<int> ParadropRadius;
 		Nullable<int> ParadropOverflRadius;
 		Valueable<bool> Paradrop_DropPassangers;
-		Nullable<BYTE> Paradrop_MaxAttempt;
+		Valueable<int> Paradrop_MaxAttempt;
 		Valueable<bool> IsCustomMissile;
 		Valueable<RocketStruct> CustomMissileData;
 		Promotable<bool> CustomMissileRaise;
@@ -344,7 +349,8 @@ public:
 		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
 		Valueable<bool> ChronoDelay_Immune;
 		std::vector<LineTrailData> LineTrailData;
-
+		Nullable<int> PoseDir;
+		Valueable<bool> Firing_IgnoreGravity;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -466,10 +472,15 @@ public:
 			, DeployingAnim_UseUnitDrawer { true }
 			, SelfHealGainType {}
 			, ForceWeapon_Naval_Decloaked { -1 }
+			, ForceWeapon_UnderEMP { -1 }
+			, ImmuneToEMP { false }
+			, E_ImmuneToEMP { false }
+			, V_ImmuneToEMP { false }
 			, Ammo_Shared { false }
 			, Ammo_Shared_Group { -1 }
 			, Passengers_SyncOwner{ false }
 			, Passengers_SyncOwner_RevertOnExit{ true }
+			, Aircraft_DecreaseAmmo { true }
 			, LaserTrailData {}
 			, EnemyUIName {}
 			, UseDisguiseMovementSpeed {}
@@ -538,7 +549,7 @@ public:
 			, ParadropRadius {}
 			, ParadropOverflRadius {}
 			, Paradrop_DropPassangers { true }
-			, Paradrop_MaxAttempt { }
+			, Paradrop_MaxAttempt { 5 }
 
 			, IsCustomMissile { false }
 			, CustomMissileData {}
@@ -636,6 +647,8 @@ public:
 			, DisguiseDisAllowed { }
 			, ChronoDelay_Immune { false }
 			, LineTrailData { }
+			, PoseDir { }
+			, Firing_IgnoreGravity { false }
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }

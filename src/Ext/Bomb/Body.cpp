@@ -12,8 +12,6 @@ HouseClass* __fastcall BombExt::GetOwningHouse(BombClass* pThis, void* _) { retu
 
 DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse)
 {
-	// copy this , dont change it
-	// optimization option will cause crash because it will get nullptr-ed too early than it should , dunno why ,..
 	const auto pBomb = BombExt::BombTemp;
 	const auto OwningHouse = pBomb->GetOwningHouse();
 	const auto nCoord = *pCoord;

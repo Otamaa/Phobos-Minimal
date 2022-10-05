@@ -44,6 +44,7 @@ public:
 	int field_78;
 	int field_7C;
 	int PlayerSide; // !! this is set to campaign -> CD for singleplay
+	PROTECTED_PROPERTY(DWORD, align_84);
 
 protected:
 	ProgressScreenClass(){};

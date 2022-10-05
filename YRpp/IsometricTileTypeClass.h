@@ -100,7 +100,8 @@ public:
 	char FileName[0xE]; // WARNING! Westwood strncpy's 0xE bytes into this buffer without NULL terminating it.
 	bool AllowBurrowing;
 	bool AllowTiberium;
+	PROTECTED_PROPERTY(BYTE, align_305[3]);
 	DWORD TilesLoadedMaybe_; //308
 };
 
-//static_assert(sizeof(IsometricTileTypeClass) == 0x30C);
+static_assert(sizeof(IsometricTileTypeClass) == 0x30C);

@@ -6,6 +6,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
+#include <TunnelLocomotionClass.h>
 
 namespace EvaluateObjectTemp
 {
@@ -170,6 +171,39 @@ DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //UnitCla
 	return 0;
 }
 
+DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
+{
+	GET(ILocomotion*, pThis, ESI);
+
+	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pLoco->LinkedTo);
+
+	if (const auto pShieldData = pExt->GetShield())
+	{
+		pShieldData->HideAnimations();
+		pShieldData->KillAnim();
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
+{
+	GET(ILocomotion*, pThis, ESI);
+
+	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+
+	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
+	{
+		const auto pExt = TechnoExt::ExtMap.Find(pLoco->LinkedTo);
+
+		if (const auto pShieldData = pExt->GetShield())
+			pShieldData->ShowAnimations();
+	}
+
+	return 0;
+}
+
 #pragma region HealingWeapons
 
 #pragma region TechnoClass__Evaluate_Object
@@ -237,7 +271,7 @@ public:
 
 static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 {
-	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->Shield.get()) {
+	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
 		if (pShieldData->IsAvailable()) {
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())

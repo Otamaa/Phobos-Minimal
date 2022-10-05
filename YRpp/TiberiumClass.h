@@ -77,22 +77,28 @@ public:
 	ABSTRACTTYPE_ARRAY(TiberiumClass, 0xB0F4E8u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x721E40);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x721E80);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x7220D0);
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override JMP_STD(0x7220A0);
 
 	//Destructor
-	virtual ~TiberiumClass() RX;
+	virtual ~TiberiumClass() override JMP_THIS(0x723710);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x722140);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
+	virtual int GetArrayIndex() const override { return this->ArrayIndex; }
+
+	//AbstactTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x721A50);
 
 	//TiberiumClass
 
+	void GrowthTiberium() JMP_THIS(0x722440);
 	void RegisterForGrowth(CellStruct* cell)
 		{ JMP_THIS(0x7235A0); }
 

@@ -126,9 +126,9 @@ public:
 
 private:
 	static bool __fastcall IsRecruitableMission(Mission mission) { JMP_STD(0x5B36E0); }
-	MissionControlClass* GetCurrentMissionControl() const { JMP_THIS(0x5B3A00); }
 public:
 
+	MissionControlClass* GetCurrentMissionControl() const { JMP_THIS(0x5B3A00); }
 	void Shorten_Mission_Timer() { UpdateTimer = 0; }
 	bool HasSuspendedMission() const { JMP_THIS(0x5B3A10); }
 	int MissionTime() const { JMP_THIS(0x5B3A20); }

@@ -25,14 +25,19 @@ public:
 	ABSTRACTTYPE_ARRAY(BulletTypeClass, 0xA83C80u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x46C750);
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46C6A0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46C730);
 
 	//Destructor
-	virtual ~BulletTypeClass() RX;
+	virtual ~BulletTypeClass() override JMP_THIS(0x46C890);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x46C820);
+	virtual AbstractType WhatAmI() const override { return AbstractType::BulletType; }
+	virtual int Size() const override { return 0x2F8; }
 
 	//AbstractTypeClass
 	//ObjectTypeClass
@@ -44,8 +49,8 @@ public:
 	}
 
 	void SetScaledSpawnDelay(int delay) {
-		// JMP_THIS(0x46C840);
-		this->ScaledSpawnDelay = delay;
+		 JMP_THIS(0x46C840);
+		//this->ScaledSpawnDelay = delay;
 	}
 
 	BulletClass* __fastcall CreateBullet(
@@ -95,12 +100,14 @@ public:
 	bool Bouncy;
 	bool AnimPalette;
 	bool FirersPalette;
+	PROTECTED_PROPERTY(BYTE, align_2AA[2]);
 	int Cluster;
 	WeaponTypeClass* AirburstWeapon;
 	WeaponTypeClass* ShrapnelWeapon;
 	int ShrapnelCount;
 	int DetonationAltitude;
 	bool Vertical;
+	PROTECTED_PROPERTY(BYTE, align_2C1[3]);
 	DWORD field_2C4;  //unused , can be used to store ExtData
 	double Elasticity;
 	int Acceleration;
@@ -110,7 +117,7 @@ public:
 	int CourseLockDuration;
 	int SpawnDelay;
 	int ScaledSpawnDelay;
-	bool Scalable;
+	DWORD Scalable;
 	int Arm;
 	byte AnimLow;
 	byte AnimHigh;

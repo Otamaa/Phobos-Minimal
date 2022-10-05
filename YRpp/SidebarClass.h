@@ -117,11 +117,28 @@ public:
 	bool AddCameo(AbstractType absType, int idxType)
 		{ JMP_THIS(0x6A6300); }
 
-	virtual void Draw(DWORD dwUnk) override
-		{ JMP_THIS(0x6A6C30); }
+	//virtual void Draw(DWORD dwUnk) override
+	//	{ JMP_THIS(0x6A6C30); }
 
 	//Destructor
-	virtual ~SidebarClass() RX;
+	virtual ~SidebarClass() override JMP_THIS(0x6AC7F0);
+
+	//GScreenClass
+	virtual void One_Time() override JMP_THIS(0x6A5000);
+	virtual void Init_Clear() override JMP_THIS(0x6A5030);
+	virtual void Init_IO() override JMP_THIS(0x6A5310);
+	virtual void Update(const int& keyCode, const Point2D& mouseCoords) override JMP_THIS(0x6A7780);
+	virtual void Draw(DWORD dwUnk) override JMP_THIS(0x6A6C30);
+
+	//DisplayClass
+	virtual HRESULT Load(IStream* pStm) override JMP_THIS(0x6AC5D0);
+	virtual HRESULT Save(IStream* pStm) override JMP_THIS(0x6AC5E0);
+	virtual const wchar_t* GetToolTip(UINT nDlgID) override JMP_THIS(0x6AC210);
+	virtual void CloseWindow() override JMP_THIS(0x6ABD30); //prolly wrong naming
+
+	//RadarClass
+	virtual void DisposeOfArt() override JMP_THIS(0x6A5BF0);
+	virtual void Init_For_House() override JMP_THIS(0x6A5840);
 
 	//SidebarClass
 	virtual bool vt_entry_D8(int nUnknown) R0;
@@ -142,7 +159,8 @@ public:
 
 protected:
 	//Constructor
-	SidebarClass() {}	//don't need this
+	SidebarClass() noexcept	//don't need this
+	{ JMP_THIS(0x6A4E60); }
 
 	//===========================================================================
 	//===== Properties ==========================================================

@@ -20,21 +20,24 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<ParticleClass*>, 0xA83DC8u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x62D930);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x62D7A0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x62D810);
 
 	//Destructor
-	virtual ~ParticleClass() RX;
+	virtual ~ParticleClass() override JMP_THIS(0x62D9A0);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override { return AbstractType::Particle; }
+	virtual int Size() const override { return 0x138; }
 
+	virtual Layer InWhichLayer() const override JMP_THIS(0x62D770);
+	virtual CellStruct const* GetFoundationData(bool includeBib = false) const override JMP_THIS(0x62D710);
+	virtual bool UpdatePlacement(PlacementType value) override JMP_THIS(0x62D6F0);
 	//ParticleClass
-	virtual int vt_entry_1E8() R0;
+	virtual int vt_entry_1E8() JMP_THIS(0x62D830);
 
 	//Constructor
 	ParticleClass(
@@ -56,6 +59,7 @@ public:
 
 	ParticleTypeClass* Type;
 	ColorStruct Color;
+	PROTECTED_PROPERTY(BYTE, align_B3);
 	DWORD  RefCount; //B4
 	CoordStruct  unknown_B8;
 	Vector3D<float> unknown_C4;

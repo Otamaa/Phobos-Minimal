@@ -46,7 +46,7 @@ void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 		Type = nKillType.Get();
 	}
 }
-#endif
+
 
 void DamageSelfState::OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData)
 {
@@ -155,3 +155,4 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 		}
 	}
 }
+#endif

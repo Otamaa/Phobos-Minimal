@@ -117,15 +117,15 @@ namespace CalculatePinch
 
 			auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
-			if (ext && (ext->RockerPitch.Get() > 0.0f))
+			if ((ext->RockerPitch.Get() > 0.0f))
 			{
 				double halfPI = Math::PI / 2;
 				double theta = 0;
 
 				if (pFirer->HasTurret())
 				{
-					double turretRad = pFirer->GetRealFacing().Current().GetRadians() - halfPI;
-					double bodyRad = pFirer->PrimaryFacing.Current().GetRadians() - halfPI;
+					double turretRad = pFirer->GetRealFacing().Current().GetRadian() - halfPI;
+					double bodyRad = pFirer->PrimaryFacing.Current().GetRadian() - halfPI;
 					const Matrix3D& matrix3D = Matrix3D { };
 					matrix3D.MakeIdentity();
 					matrix3D.RotateZ((float)turretRad);
@@ -171,6 +171,31 @@ namespace CalculatePinch
 	}
 }
 
+
+DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_PreFire, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
+	GET_STACK(const int, nWeapon, 0x8);
+	//GET(AbstractClass*, pTarget, EDI);
+
+	CalculatePinch::Calc(pThis, nWeapon);
+	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
+	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
+	SpawnSupportFunctional::OnFire(pThis, pTarget);
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		pExt->CurrentWeaponIdx = nWeapon;
+		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		{
+			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
+			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
+		}
+	}
+
+	return 0x0;
+}
+
 DEFINE_HOOK(0x6FDD61, TechnoClass_Fire_OverrideWeapon, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -182,27 +207,6 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_Fire_OverrideWeapon, 0x5)
 	}
 
 	return 0;
-}
-
-DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_DP, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x4);
-	GET_STACK(const int, nWeapon, 0x8);
-	//GET(AbstractClass*, pTarget, EDI);
-
-	CalculatePinch::Calc(pThis, nWeapon);
-	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
-	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
-	SpawnSupportFunctional::OnFire(pThis,pTarget);
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		pExt->CurrentWeaponIdx = nWeapon;
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
-			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
-		}
-	}
-	return 0x0;
 }
 
 DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8

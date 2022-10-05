@@ -20,18 +20,24 @@ public:
 	static constexpr reference<ParticleSystemClass*, 0xA8ED78u> Instance{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6301A0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x62FF20);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x630090);
 
 	//Destructor
-	virtual ~ParticleSystemClass() RX;
+	virtual ~ParticleSystemClass() override JMP_THIS(0x630230);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x62FE90);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
+	virtual void Update() override JMP_THIS(0x62FD60);
+	
+	//ObjectClass
+	virtual Layer InWhichLayer() const override JMP_THIS(0x62FE80);
+	virtual void UnInit() override JMP_THIS(0x6301E0);
 
 	ParticleClass* SpawnParticle(ParticleTypeClass* pType, CoordStruct* coords)
 		{JMP_THIS(0x62E430);}
@@ -75,6 +81,7 @@ public:
 	int          SpotlightRadius; //defaults to 29
 	bool         TimeToDie;
 	bool         unknown_bool_F9;
+	PROTECTED_PROPERTY(BYTE, align_F10[2]);
 	HouseClass*  OwnerHouse;
 };
 

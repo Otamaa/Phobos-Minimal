@@ -67,7 +67,7 @@ public:
 			HouseClass::CurrentPlayer->Visionary = 1;
 			MapClass::Instance->CellIteratorReset();
 			for (auto i = MapClass::Instance->CellIteratorNext(); i; i = MapClass::Instance->CellIteratorNext())
-				RadarClass::Instance->MapCell(&i->MapCoords, HouseClass::CurrentPlayer);
+				RadarClass::Instance->MapCell(i->MapCoords, HouseClass::CurrentPlayer);
 
 			GScreenClass::Instance->MarkNeedsRedraw(1);
 		}

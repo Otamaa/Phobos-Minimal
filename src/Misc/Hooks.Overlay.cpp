@@ -10,7 +10,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
+#ifdef ENABLE_TOMSOnOVERLAYWRAPPER
 static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
 {
 	bool available = false;

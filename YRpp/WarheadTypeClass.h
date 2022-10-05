@@ -33,20 +33,22 @@ public:
 	ABSTRACTTYPE_ARRAY(WarheadTypeClass, 0x8874C0u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x75E080);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x75E0C0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x75E2C0);
 
 	//Destructor
-	virtual ~WarheadTypeClass() RX;
+	virtual ~WarheadTypeClass() JMP_THIS(0x75E510);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x75E440);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
 
 	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x75D3A0);
 
 	//Constructor
 	WarheadTypeClass(const char* pID)
@@ -78,6 +80,7 @@ public:
 	float   CellInset;
 	float   PercentAtMax;
 	bool    CausesDelayKill;
+	PROTECTED_PROPERTY(BYTE, align_131[3]);
 	int     DelayKillFrames;
 	float   DelayKillAtMax;
 	float   CombatLightSize;
@@ -110,6 +113,7 @@ public:
 	bool    Airstrike;
 	bool    Psychedelic;
 	bool    BombDisarm;
+	PROTECTED_PROPERTY(BYTE, align_16F);
 	int     Paralyzes;
 	bool    Culling;
 	bool    MakesDisguise;

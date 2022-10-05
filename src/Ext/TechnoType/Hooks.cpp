@@ -24,15 +24,15 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if(const auto pUnit = specific_cast<UnitClass*>(pThis))
-		if(pUnit && pUnit->DeathFrameCounter > 0)
+		if(pUnit->DeathFrameCounter > 0)
 			return DoNotDraw;
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-		if (pBldExt->IsInLimboDelivery)
-			return DoNotDraw;
-	}
+	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	//{
+	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	//	if (pBldExt->IsInLimboDelivery)
+	//		return DoNotDraw;
+	//}
 
 	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 

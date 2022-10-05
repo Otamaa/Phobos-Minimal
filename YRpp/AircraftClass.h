@@ -56,6 +56,16 @@ public:
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x41C180);
 	virtual int	Size() const override JMP_THIS(0x41C170);
+	virtual void Update() override JMP_THIS(0x414BB0);
+
+	//MisionClass
+	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x41BB30);
+
+	//TechnoClass
+	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x415EE0);
+
+	//FootClass
+	virtual TechnoClass* FindDockingBayInVector(DynamicVectorClass<TechnoTypeClass*>* pVec, int unusedarg3, bool bForced)  const override JMP_THIS(0x41BBD0);
 
 	//Destructor
 	virtual ~AircraftClass() RX;
@@ -71,18 +81,8 @@ public:
 
 	void Tracker_4134A0() { AircraftTracker_4134A0(this); }
 
-	//overloadable function , using it like this to prevent compiler optimization if needed !
-	void AircraftClass_AI() const JMP_THIS(0x414BB0);
-	TechnoClass* AircraftClass_FindDockingBayInVector(DynamicVectorClass<TechnoTypeClass*>* pVec, int unusedarg3, bool bForced) const JMP_THIS(0x41BBD0);
-	BulletClass* AircraftClass_Fire(AbstractClass* pTarget, int nWeaponIndex) const JMP_THIS(0x415EE0);
-	void AircraftClass_Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) const JMP_THIS(0x41BB30);
-
-	bool IFlyControl_IsStrafe() {
-		JMP_THIS(0x41B7F0);
-	}
-
-	DirType GetLandDir() const {
-		JMP_THIS(0x417FD0);
+	int GetLandDir() const {
+		return RulesClass::Instance->PoseDir;
 	}
 
 	//Constructor

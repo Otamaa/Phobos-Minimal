@@ -164,8 +164,9 @@ namespace DrawHeathData
 
 		{
 			// coord calculation is not really right !
-			if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+			if (bIsBuilding)
 			{
+				auto const pBuilding = static_cast<BuildingClass*>(pThis);
 				auto const pBldType = pBuilding->Type;
 				CoordStruct nDimension { 0,0,0 };
 				auto const nLocTemp = nLocation;

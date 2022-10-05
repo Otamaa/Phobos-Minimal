@@ -1703,3 +1703,182 @@ bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 		&& Savegame::WritePhobosStream(Stm, this->GreenOnFire)
 		&& Savegame::WritePhobosStream(Stm, this->YellowOnFire);
 }
+
+// DamageableVector
+
+template <typename T>
+void __declspec(noinline) DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+{
+	// read the common flag, with the trailing dot being stripped
+	char flagName[0x40];
+	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+
+	if (res > 0 && flagName[res - 1] == '.')
+	{
+		flagName[res - 1] = '\0';
+	}
+
+	this->BaseValue.Read(parser, pSection, flagName);
+
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionYellow");
+	this->ConditionYellow.Read(parser, pSection, flagName);
+
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionRed");
+	this->ConditionRed.Read(parser, pSection, flagName);
+
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "MaxValue");
+	this->MaxValue.Read(parser, pSection, flagName);
+};
+
+template <typename T>
+bool DamageableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return Savegame::ReadPhobosStream(Stm, this->BaseValue, RegisterForChange)
+		&& Savegame::ReadPhobosStream(Stm, this->ConditionYellow, RegisterForChange)
+		&& Savegame::ReadPhobosStream(Stm, this->ConditionRed, RegisterForChange)
+		&& Savegame::ReadPhobosStream(Stm, this->MaxValue, RegisterForChange);
+}
+
+template <typename T>
+bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
+{
+	return Savegame::WritePhobosStream(Stm, this->BaseValue)
+		&& Savegame::WritePhobosStream(Stm, this->ConditionYellow)
+		&& Savegame::WritePhobosStream(Stm, this->ConditionRed)
+		&& Savegame::WritePhobosStream(Stm, this->MaxValue);
+}
+
+// PromotableVector
+
+template <typename T>
+void __declspec(noinline) PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+{
+	// read the common flag, with the trailing dot being stripped
+	char flagName[0x40];
+	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+
+	if (res > 0 && flagName[res - 1] == '.')
+	{
+		flagName[res - 1] = '\0';
+	}
+
+	this->Base.Read(parser, pSection, flagName);
+
+	NullableVector<T> veteran;
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Veteran");
+	veteran.Read(parser, pSection, flagName);
+
+	NullableVector<T> elite;
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Elite");
+	elite.Read(parser, pSection, flagName);
+
+	if (veteran.HasValue())
+	{
+		for (size_t i = 0; i < veteran.size(); i++)
+		{
+			this->Veteran[i] = veteran[i];
+		}
+	}
+
+	if (elite.HasValue())
+	{
+		for (size_t i = 0; i < elite.size(); i++)
+		{
+			this->Elite[i] = elite[i];
+		}
+	}
+}
+
+template <typename T>
+void __declspec(noinline) PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
+{
+	bool numFirst = false;
+	int flagLength = strlen(pFlag);
+
+	for (int i = 1; i < flagLength; i++)
+	{
+		if (pFlag[i - 1] == '%')
+		{
+			if (pFlag[i] == 'd')
+			{
+				numFirst = true;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	char flag[0x40] = { '\0' };
+
+	for (int i = 0;; i++)
+	{
+		Nullable<T> value;
+		int res = 0;
+
+		if (numFirst)
+			res = _snprintf_s(flag, _TRUNCATE, pFlag, i, "");
+		else
+			res = _snprintf_s(flag, _TRUNCATE, pFlag, "", i);
+
+		if (res > 0 && flag[res - 1] == '.')
+			flag[res - 1] = '\0';
+
+		if (flag[0] == '.')
+			strcpy_s(flag, flag + 1);
+
+		value.Read(parser, pSection, flag, allocate);
+
+		if (!value.isset())
+			break;
+
+		this->Base.emplace_back(value.Get());
+	}
+
+	int size = static_cast<int>(this->Base.size());
+
+	for (int i = 0; i < size; i++)
+	{
+		Nullable<T> veteran;
+		Nullable<T> elite;
+
+		if (numFirst)
+			_snprintf_s(flag, _TRUNCATE, pFlag, i, "Veteran");
+		else
+			_snprintf_s(flag, _TRUNCATE, pFlag, "Veteran", i);
+
+		veteran.Read(parser, pSection, flag, allocate);
+
+		if (numFirst)
+			_snprintf_s(flag, _TRUNCATE, pFlag, i, "Elite");
+		else
+			_snprintf_s(flag, _TRUNCATE, pFlag, "Elite", i);
+
+		elite.Read(parser, pSection, flag, allocate);
+
+		if (veteran.isset())
+			this->Veteran.emplace(i, veteran.Get());
+
+		if (elite.isset())
+			this->Elite.emplace(i, elite.Get());
+	}
+}
+
+template <typename T>
+bool PromotableVector<T>::Load(PhobosStreamReader& stm, bool registerForChange)
+{
+	return Savegame::ReadPhobosStream(stm, this->Base, registerForChange)
+		&& Savegame::ReadPhobosStream(stm, this->Veteran, registerForChange)
+		&& Savegame::ReadPhobosStream(stm, this->Elite, registerForChange);
+}
+
+template <typename T>
+bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
+{
+	return Savegame::WritePhobosStream(stm, this->Base)
+		&& Savegame::WritePhobosStream(stm, this->Veteran)
+		&& Savegame::WritePhobosStream(stm, this->Elite);
+}

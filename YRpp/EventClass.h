@@ -4,7 +4,7 @@
 
 #include <TargetClass.h>
 
-enum EventType : char
+enum class EventType : unsigned char
 {
   EMPTY = 0
 , POWERON = 1
@@ -192,6 +192,8 @@ public:
 
 		++OutList->Count;
 		OutList->Tail = (OutList->Tail + 1) & 127;
+
+		return true;
 	}
 
 	// Special
@@ -237,7 +239,7 @@ public:
 	}
 
 	// Production
-	explicit EventClass(int houseIndex, EventType eventType, int rtti_id, int heap_id, BOOL is_naval)
+	explicit EventClass(int houseIndex, EventType eventType, int rtti_id, int heap_id, bool is_naval)
 	{
 		JMP_THIS(0x4C6970);
 	}
@@ -286,6 +288,8 @@ public:
 	EventClass& operator=(const EventClass& another)
 	{
 		memcpy(this, &another, sizeof(*this));
+
+		return *this;
 	}
 
 	EventType Type;

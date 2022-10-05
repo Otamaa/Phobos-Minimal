@@ -26,10 +26,16 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
 
+#include <New/Entity/ShieldObject.h>
+
 DEFINE_HOOK(0x6F42F7, TechnoClass_Init_NewEntities, 0x2)
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExt::InitializeItems(pThis);
+
+	//if (auto pShieldObj = ShieldObject::CreateMe())
+	//	Debug::Log("[%x] Created ! \n", pShieldObj);
+
 	return 0;
 }
 

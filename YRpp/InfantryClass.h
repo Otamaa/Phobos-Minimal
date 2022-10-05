@@ -17,14 +17,18 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<InfantryClass*>, 0xA83DE8u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x523300);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x521960);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x521B00);
 
 	//Destructor
-	virtual ~InfantryClass() RX;
+	virtual ~InfantryClass() override JMP_THIS(0x523350);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x51AA10);
+	virtual AbstractType WhatAmI() const override { return AbstractType::Infantry; }
+	virtual int	Size() const override { return 0x6F0; }
+	virtual void Update() override JMP_THIS(0x51BAB0);
 
 	//TechnoClass
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);

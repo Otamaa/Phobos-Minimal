@@ -1273,7 +1273,7 @@ void ScriptExt::RallyUnitInMap(TeamClass* pTeam, int nArg)
 
 bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType)
 {
-	auto type = pFoot->WhatAmI();
+	const auto type = pFoot->WhatAmI();
 	auto pTechnoType = pFoot->GetTechnoType();
 	TaskForceClass* pTaskforce = pTeam->Type->TaskForce;
 	if (!pTechnoType)
@@ -1348,6 +1348,7 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 		}
 
 		bSucceeded = true;
+
 	}
 
 	auto pScript = pTeam->CurrentScript;
@@ -1851,7 +1852,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 				// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
 				if (pUnitType->WhatAmI() == AbstractType::InfantryType)
 				{
-					auto pTypeInf = abstract_cast<InfantryTypeClass*>(pUnitType);
+					auto pTypeInf = static_cast<InfantryTypeClass*>(pUnitType);
 					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
 					{
 						agentMode = true;
@@ -2001,7 +2002,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 						// Spy case
 						if (pUnitType->WhatAmI() == AbstractType::InfantryType)
 						{
-							auto pInfantryType = abstract_cast<InfantryTypeClass*>(pUnitType);
+							auto pInfantryType = static_cast<InfantryTypeClass*>(pUnitType);
 
 							if (pInfantryType && pInfantryType->Infiltrate && pInfantryType->Agent)
 							{
@@ -2013,7 +2014,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 
 						// Tanya / Commando C4 case
 						if ((pUnitType->WhatAmI() == AbstractType::InfantryType
-							&& (abstract_cast<InfantryTypeClass*>(pUnitType)->C4 || pUnit->HasAbility(AbilityType::C4)))
+							&& (static_cast<InfantryTypeClass*>(pUnitType)->C4 || pUnit->HasAbility(AbilityType::C4)))
 							&& pUnit->GetCurrentMission() != Mission::Sabotage)
 						{
 							pUnit->Mission_Attack();
@@ -2302,9 +2303,8 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass *pTechno, int method, int cal
 
 		if (object != pTechno
 			&& TechnoExt::IsActive(object, false)
-			&& object->Owner != pTechno->Owner
-			&& (!pTechno->Owner->IsAlliedWith(object)
-				|| (pTechno->Owner->IsAlliedWith(object)
+&& (object->Owner != pTechno->Owner || (object->Owner == pTechno->Owner && attackAITargetType == -1 && (method == 39 || method == 40)))
+&& (!pTechno->Owner->IsAlliedWith(object) || (object->Owner == pTechno->Owner && attackAITargetType == -1 && (method == 39 || method == 40)) || (pTechno->Owner->IsAlliedWith(object)
 					&& object->IsMindControlled()
 					&& !pTechno->Owner->IsAlliedWith(object->MindControlledBy))))
 		{
@@ -2406,8 +2406,11 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 			return false;
 	}
 
-	//if (pTeamLeader && pTeamLeader->GetFireError(pTechno, pTeamLeader->SelectWeapon(pTechno), true) != FireError::OK)
-	//	return false;
+	if (pTeamLeader) {
+		auto const nFireError = pTeamLeader->GetFireError(pTechno, pTeamLeader->SelectWeapon(pTechno), false);
+		if(nFireError == FireError::NONE || nFireError == FireError::ILLEGAL || nFireError == FireError::CANT)
+		return false;
+	}
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section
 	if (attackAITargetType >= 0 && RulesExt::Global()->AITargetTypesLists.Count > 0) {
@@ -2445,16 +2448,20 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		// Harvester
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (auto pUnit = specific_cast<UnitClass*>(pTechno)) {
-				return pUnit->Type->Harvester || pUnit->Type->Weeder;
+			auto const pWhat = pTechno->WhatAmI();
+			if (pWhat == AbstractType::Unit) {
+				auto pType = static_cast<UnitClass*>(pTechno)->Type;
+				return pType->Harvester || pType->Weeder;
 			}
 
-			if (auto pBld = specific_cast<BuildingClass*>(pTechno)) {
-				return pBld->SlaveManager && pTechnoType->ResourceGatherer && pBld->Type->Enslaves;
+			if (pWhat == AbstractType::Building) {
+				auto pBldHere = static_cast<BuildingClass*>(pTechno);
+				return pBldHere->SlaveManager && pTechnoType->ResourceGatherer && pBldHere->Type->Enslaves;
 			}
 
-			if (auto pInf = specific_cast<InfantryClass*>(pTechno)) {
-				return pInf->Type->Slaved && pInf->SlaveOwner && pTechnoType->ResourceGatherer;
+			if (pWhat == AbstractType::Infantry) {
+				auto pInfHere = static_cast<InfantryClass*>(pTechno);
+				return pInfHere->Type->Slaved && pInfHere->SlaveOwner && pTechnoType->ResourceGatherer;
 			}
 		}
 		return false;
@@ -2479,7 +2486,8 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				}
 			}
 
-			return pTechno->WhatAmI() == AbstractType::Aircraft || pTechno->WhatAmI() == AbstractType::Unit;
+			return (pTechno->WhatAmI() == AbstractType::Aircraft || pTechno->WhatAmI() == AbstractType::Unit) &&
+				pTechnoType->MovementZone != MovementZone::Amphibious && pTechnoType->MovementZone != MovementZone::AmphibiousDestroyer;
 		}
 		return false;
 	}
@@ -2959,6 +2967,52 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				|| pTypeBuilding->ICBMLauncher
 				|| pTypeBuilding->SensorArray));
 	}
+	case 39:
+		// Occupyable Civilian  Building
+		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+		{
+			auto pBTypeHere = static_cast<BuildingTypeClass*>(pTechnoType);
+
+			if (pBuilding && pBTypeHere->CanBeOccupied && pBuilding->Occupants.Count == 0 && pBuilding->Owner->IsNeutral() && pBTypeHere->CanOccupyFire && pBTypeHere->TechLevel == -1 && pBuilding->GetHealthStatus() != HealthState::Red)
+				return true;
+			if (pBuilding && pBTypeHere->CanBeOccupied && pBuilding->Occupants.Count < pBTypeHere->MaxNumberOccupants && pBuilding->Owner == pTeamLeader->Owner && pBTypeHere->CanOccupyFire)
+				return true;
+		}
+		break;
+	case 40:
+		// Self Building with Grinding=yes
+		if (pTechnoType->WhatAmI() == AbstractType::BuildingType)
+		{
+			if(auto pBuilding = abstract_cast<BuildingClass*>(pTechno)) {
+				if(!pBuilding->Owner->IsNeutral()){
+					auto pBTypeHere = static_cast<BuildingTypeClass*>(pTechnoType);
+					if (pBTypeHere->Grinding && pBuilding->Owner == pTeamLeader->Owner)
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		break;
+
+	case 41:
+		// Building with Spyable=yes
+		if (pTechnoType->WhatAmI() == AbstractType::BuildingType)
+		{
+			if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
+			{
+				auto pBTypeHere = static_cast<BuildingTypeClass*>(pTechnoType);
+				if (!pTechno->Owner->IsNeutral() && pBTypeHere->Spyable)
+				{
+					return true;
+				}
+			}
+		}
+
+		break;
+
+
 	/*
 	case 100:
 		pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
@@ -2981,6 +3035,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				return pTypeExt->IsHero.Get();
 			}
 		}
+		break;
 	}
 	}
 
@@ -3392,7 +3447,8 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass *pTechno, int method, int cal
 			continue;
 		if(TechnoExt::IsActive(object, false)
 			&& (((pickAllies && pTechno->Owner->IsAlliedWith(object))
-			|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object)))))
+				|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object))
+				|| (method == 39 && attackAITargetType == -1))))
 		{
 		// Don't pick underground units
 		if (object->InWhichLayer() == Layer::Underground)

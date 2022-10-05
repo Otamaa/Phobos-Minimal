@@ -3,6 +3,7 @@
 #include <YRPPCore.h>
 #include <GeneralStructures.h>
 #include <Helpers/CompileTime.h>
+#include <Quaternion.h>
 
 class Matrix3D
 {
@@ -20,17 +21,23 @@ public:
 		float m10, float m11, float m12, float m13,
 		float m20, float m21, float m22, float m23)
 	{
-		JMP_THIS(0x5AE630);
+		row[0][0] = m00; row[0][1] = m01; row[0][2] = m02; row[0][3] = m03;
+		row[1][0] = m10; row[1][1] = m11; row[1][2] = m12; row[1][3] = m13;
+		row[2][0] = m20; row[2][1] = m21; row[2][2] = m22; row[2][3] = m23;
+		// JMP_THIS(0x5AE630);
 	}
 
 	// column vector ctor
 	Matrix3D(
-		Vector3D<float> const &X,
-		Vector3D<float> const &Y,
-		Vector3D<float> const &Z,
-		Vector3D<float> const &npos)
+		Vector3D<float> const &x,
+		Vector3D<float> const &y,
+		Vector3D<float> const &z,
+		Vector3D<float> const &pos)
 	{
-		JMP_THIS(0x5AE690);
+		row[0][0] = x.X; row[0][1] = y.X; row[0][2] = z.X; row[0][3] = pos.X;
+		row[1][0] = x.Y; row[1][1] = y.Y; row[1][2] = z.Y; row[1][3] = pos.Y;
+		row[2][0] = x.Z; row[2][1] = y.Z; row[2][2] = z.Z; row[2][3] = pos.Z;
+		// JMP_THIS(0x5AE690);
 	}
 
 	// some other rotation ctor?
@@ -40,29 +47,77 @@ public:
 	Matrix3D(const Vector3D<float>* axis, float angle) { JMP_THIS(0x5AE750); }
 
 	// copy ctor
-	Matrix3D(const Matrix3D& another) { JMP_THIS(0x5AE610); }
+	Matrix3D(const Matrix3D& another) {
+		memcpy(this, &another, sizeof(Matrix3D));
+		// JMP_THIS(0x5AE610);
+	}
+
+	Matrix3D(Matrix3D&& another) = default;
 
 	Vector4D<float> &operator [] (int i) { return Row[i]; }
 	const Vector4D<float> &operator [] (int i) const { return Row[i]; }
 
-	inline Matrix3D &operator = (const Matrix3D &m)
+	//inline Matrix3D &operator = (const Matrix3D &m)
+	//{
+	//	Row[0] = m.Row[0];
+	//	Row[1] = m.Row[1];
+	//	Row[2] = m.Row[2];
+	//	return *this;
+	//}
+
+	Matrix3D& operator=(Matrix3D&& another) = default;
+	Matrix3D &operator=(const Matrix3D& another)
 	{
-		Row[0] = m.Row[0];
-		Row[1] = m.Row[1];
-		Row[2] = m.Row[2];
+		memcpy(this, &another, sizeof(Matrix3D));
 		return *this;
 	}
 
-	Matrix3D &operator*(const Matrix3D &another)
+	Matrix3D &operator*(const Matrix3D &another) const
 	{
-		MatrixMultiply(this, this, &another);
-		return *this;
+		Matrix3D ret;
+		MatrixMultiply(&ret, this, &another);
+		return ret;
 	}
+
 	void operator*=(const Matrix3D& another)
 	{
-		(*this)* another;
+		MatrixMultiply(this, this, &another);
 	}
+
+	Vector3D<float> operator*(const Vector3D<float>& point) const
+	{
+		Vector3D<float> ret;
+		MatrixMultiply(&ret, this, &point);
+		return ret;
+	}
+
 	// Non virtual
+	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_STD(0x5AFC20); }
+
+	static Matrix3D TransposeMatrix(const Matrix3D& mat)
+	{
+		Matrix3D buffer;
+		TransposeMatrix(&buffer, &mat);
+		return buffer;
+	}
+
+	void Transpose()
+	{
+		*this = TransposeMatrix(*this);
+	}
+
+	static Matrix3D* __fastcall FromQuaternion(Matrix3D* mat, const Quaternion* q) { JMP_STD(0x646980); }
+	static Matrix3D FromQuaternion(const Quaternion& q)
+	{
+		Matrix3D buffer;
+		FromQuaternion(&buffer, &q);
+		return buffer;
+	}
+
+	void ApplyQuaternion(const Quaternion& q)
+	{
+		*this = FromQuaternion(q) * *this;
+	}
 
 	inline void Adjust_Translation(const Vector3D<float> &t) { Row[0][3] += t[0]; Row[1][3] += t[1]; Row[2][3] += t[2]; }
 	inline void Adjust_X_Translation(float x) { Row[0][3] += x; }
@@ -136,6 +191,7 @@ public:
 		MatrixMultiply(&buffer, &A, &B);
 		return buffer;
 	}
+
 	static Vector3D<float>* __fastcall MatrixMultiply(Vector3D<float>* ret, const Matrix3D* mat, const Vector3D<float>* vec) { JMP_STD(0x5AFB80); }
 	static Vector3D<float> MatrixMultiply(const Matrix3D& mat, const Vector3D<float>& vec)
 	{
@@ -143,7 +199,6 @@ public:
 		MatrixMultiply(&buffer, &mat, &vec);
 		return buffer;
 	}
-	static Matrix3D *__fastcall sub_5AFC20(Matrix3D *inv, Matrix3D *A) { JMP_STD(0x5AFC20); }
 
 	static Vector3D<float> *Inverse_Rotate_Vector(const Matrix3D &tm, const Vector3D<float> &in)
 	{
@@ -188,6 +243,14 @@ public:
 		out.Z = (tm[2][0] * v->X + tm[2][1] * v->Y + tm[2][2] * v->Z + tm[2][3]);
 
 		return &out;
+	}
+
+	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
+	static Quaternion FromMatrix(Matrix3D& Mtx)
+	{
+		Quaternion buffer;
+		FromMatrix(&buffer, &Mtx);
+		return buffer;
 	}
 
 	static const Matrix3D& RotateX90()

@@ -4,6 +4,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -1009,6 +1010,7 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 
 }
 
+#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -1042,6 +1044,7 @@ DEFINE_HOOK(0x7397E4 , UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
 	R->AL(CurPlayer);
 	return 0x7397E9;
 }
+#endif
 
 DEFINE_HOOK(0x4DA64D , FootClass_Update_IsInPlayField, 0x6)
 {
@@ -2016,3 +2019,102 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 	GET(BuildingClass*, pBuilding, EBX);
 	return BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery ? DoNotDraw : Draw;
 }
+
+DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET_STACK(BulletClass*, pBullet, STACK_OFFSET(0xF0, -0xA4));
+
+	CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
+	CoordStruct dest = pBullet->Target->GetCoords();
+
+	if (pWeapon->IsLaser) {
+		GameCreate<LaserDrawClass>(src, dest, pWeapon->LaserInnerColor, pWeapon->LaserOuterColor, pWeapon->LaserOuterSpread, pWeapon->LaserDuration);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x51A2F1, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
+{
+	GET(TechnoClass*, pThis, EDI);
+
+	if (auto pBld = abstract_cast<BuildingClass*>(pThis)) {
+		CoordStruct coords = pThis->GetCoords();
+
+		if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type)) {
+			VocClass::PlayAt(pExt->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound), coords, 0);
+		}
+
+		return 0x51A30F;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
+{
+	GET(BuildingClass*, pThis, EBP);
+
+	CoordStruct coords = pThis->GetCoords();
+
+	if (const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
+		VocClass::PlayAt(pExt->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound), coords, 0);
+	}
+
+	return 0x44DBDA;
+}
+
+//DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0xB4,0x4));
+//
+//	if (auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget))
+//	{
+//		auto pTargetTExt = TechnoExt::ExtMap.Find(pTechnoTarget);
+//		pTargetTExt->LastAttacker = pThis;
+//	}
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x5F53ED, ObjectClass_ReceiveDamage_DisableComplierOptimization, 0x6)
+{
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+
+	return args->IgnoreDefenses ? 0x5F5416 : 0x5F53F3;
+}
+
+DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
+{
+	enum { CanUse = 0x639DDD, CannotUse = 0x639E03 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit)
+		return CanUse;
+
+	if (auto pAircraft = specific_cast<AircraftClass*>(pThis)) {
+		if (!pAircraft->Type->Spawned)
+			return CanUse;
+	}
+
+	//TODO : Add PerTechnoOverride
+	return CannotUse;
+}
+
+// Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
+// Fixes recursive passenger kills not being accredited
+// to proper techno but to their transports
+DEFINE_PATCH(0x707CF2, 0x55);
+
+//DEFINE_HOOK(0x417FD0, AircraftClass_PoseDIr, 0x5)
+//{
+//	GET(AircraftClass*, pThis, ECX);
+//	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//	R->EAX(pExt->PoseDir.Get(RulesGlobal->PoseDir));
+//	return 0x417FD8;
+//}
+

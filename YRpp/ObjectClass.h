@@ -39,18 +39,55 @@ public:
 	static DynamicVectorClass<ObjectClass*>* const CurrentObjectsR;
 	static constexpr reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics{};
 	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360u> const ObjectsInLayers {};
+
+	//IUnknown
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
+	virtual ULONG __stdcall AddRef() R0;
+	virtual ULONG __stdcall Release() R0;
+
+	//IPersist
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) { return AbstractClass::_Save(this,pStm,fClearDirty); }
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x5F5E80);
+
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) { return S_OK; }
+
+	//IRTTITypeInfo
+	virtual AbstractType __stdcall What_Am_I() const RT(AbstractType);
+	virtual int __stdcall Fetch_ID() const R0;
+	virtual void __stdcall Create_ID() RX;
+
+	//INoticeSink
+	virtual bool __stdcall INoticeSink_Unknown(DWORD dwUnknown) R0;
+
+	//INoticeSource
+	virtual void __stdcall INoticeSource_Unknown() RX;
 
 	//Destructor
-	virtual ~ObjectClass() RX;
+	virtual ~ObjectClass() JMP_THIS(0x5F6DC0);
 
 	//AbstractClass
-	virtual void Update() override JMP_THIS(0x5F3E70);
+	virtual void Init() RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x5F5230);
+	virtual AbstractType WhatAmI() const RT(AbstractType);
+	virtual int Size() const R0;
+	virtual void CalculateChecksum(Checksummer& checksum) const RX;
+	virtual int GetOwningHouseIndex() const  R0;
+	virtual HouseClass* GetOwningHouse() const  R0;
+	virtual int GetArrayIndex() const  R0;
+	virtual bool IsDead() const JMP_THIS(0x5F6690);
+	virtual CoordStruct GetCoords() const  RT(CoordStruct); //center coords
+	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
+	virtual bool IsOnFloor() const  R0;
+	virtual bool IsInAir() const  R0;
+	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__
+
+	virtual void Update() JMP_THIS(0x5F3E70);
 
 	//ObjectClass
-	virtual void AnimPointerExpired(AnimClass* pAnim) RX;
+	virtual void AnimPointerExpired(AnimClass* pAnim) JMP_THIS(0x5F6DA0);
 	virtual bool IsSelectable() const R0;
 	virtual VisualType VisualCharacter(VARIANT_BOOL SpecificOwner, HouseClass * WhoIsAsking) const RT(VisualType);
 	virtual SHPStruct* GetImage() const R0;
@@ -217,6 +254,13 @@ public:
 		return pBuffer;
 	}
 
+	//CoordStruct GetCoords() const
+	//{
+	//	CoordStruct ret;
+	//	this->GetCoords(&ret);
+	//	return ret;
+	//}
+
 	CoordStruct* GetLocationCoords(CoordStruct* pRet) const
 	{    //return this->Location
 		JMP_THIS(0x5F65A0); }
@@ -248,9 +292,6 @@ public:
 
 	bool IsGreenHP() const
 		{ JMP_THIS(0x5F5D90); }
-
-	bool IsDead() const
-		{ JMP_THIS(0x5F6690); }
 
 	bool IsGreenToYellowHP() const;
 
@@ -319,9 +360,9 @@ public:
 	}
 
 //Constructor NEVER CALL IT DIRECTLY
-//	ObjectClass()  noexcept
-//		: ObjectClass(noinit_t())
-//	{ JMP_THIS(0x5F3900); }
+	ObjectClass()  noexcept
+		: ObjectClass(noinit_t())
+	{ JMP_THIS(0x5F3900); }
 
 protected:
 	explicit __forceinline ObjectClass(noinit_t)  noexcept

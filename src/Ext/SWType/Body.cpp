@@ -8,6 +8,7 @@
 
 SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
+bool SWTypeExt::Handled = true;
 SuperClass* SWTypeExt::TempSuper = nullptr;
 
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
@@ -221,12 +222,14 @@ void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
 bool SWTypeExt::LoadGlobals(PhobosStreamReader& Stm) {
 	return Stm
 		.Process(SWTypeExt::TempSuper)
+		.Process(SWTypeExt::Handled)
 		.Success();
 }
 
 bool SWTypeExt::SaveGlobals(PhobosStreamWriter& Stm) {
 	return Stm
 		.Process(SWTypeExt::TempSuper)
+		.Process(SWTypeExt::Handled)
 		.Success();
 }
 

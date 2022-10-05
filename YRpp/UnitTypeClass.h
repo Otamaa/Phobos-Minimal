@@ -13,21 +13,24 @@ public:
 	//Array
 	ABSTRACTTYPE_ARRAY(UnitTypeClass, 0xA83CE0u);
 
+	//static
+	static void* sub_7473E0() JMP_STD(0x7473E0);
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x747F30);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x748010);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x7480B0);
 
 	//Destructor
-	virtual ~UnitTypeClass() RX;
+	virtual ~UnitTypeClass() JMP_THIS(0x748190);
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
 
 	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x747620);
 
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
@@ -91,5 +94,6 @@ public:
 	char WalkFrames;
 	char FiringFrames;
 	char AltImageFile [0x19];
+	PROTECTED_PROPERTY(BYTE, align_E77);
 };
 static_assert(sizeof(UnitTypeClass) == 0xE78,"Invalid size.");

@@ -30,7 +30,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
 	GET(AnimClass*, pAnim, EDI);
 	GET(AnimClass*, pThis, ESI);
 
-	auto nCoord = pThis->GetCenterCoord();
+	auto nCoord = pThis->GetCoords();
 	GameConstruct(pAnim, pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	{
 		if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
@@ -105,7 +105,7 @@ DEFINE_HOOK(0x70272E, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
 	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
 	{
 		auto const pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		if (pExt && pExt->DisableDamageSound.Get())
+		if (pExt->DisableDamageSound.Get())
 		{
 			switch (R->Origin())
 			{

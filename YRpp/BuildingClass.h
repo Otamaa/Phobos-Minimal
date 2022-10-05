@@ -35,15 +35,21 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x459E80);
 
 	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x453E20);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x454190);
+
 	//Destructor
-	virtual ~BuildingClass() RX;
+	virtual ~BuildingClass() override JMP_THIS(0x459F20);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual void Init() override JMP_THIS(0x442C40);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x44E8F0);
+	virtual AbstractType WhatAmI() const override { return AbstractType::Building; }
+	virtual int	Size() const override { return 0x720; }
+	virtual void Update() override JMP_THIS(0x43FB20);
 
 	//ObjectClass
 	//MissionClass

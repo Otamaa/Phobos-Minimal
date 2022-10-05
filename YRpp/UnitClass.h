@@ -20,19 +20,22 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<UnitClass*>, 0x8B4108u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x746DE0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_THIS(0x744470);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_THIS(0x744600);
 
 	//Destructor
-	virtual ~UnitClass() RX;
+	virtual ~UnitClass() override JMP_THIS(0x746E80);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x7446E0);
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
+	virtual void Update() override JMP_THIS(0x7360C0);
 
+	//ObjectClass
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x746CD0);
@@ -61,7 +64,7 @@ public:
 	void UpdateFiring() JMP_THIS(0x736DF0);
 	void UpdateVisceroid() JMP_THIS(0x737180);
 	void UpdateDisguise() JMP_THIS(0x7468C0);
-	void Update() JMP_THIS(0x7360C0);
+	//void Update() JMP_THIS(0x7360C0);
 
 	void Explode() JMP_THIS(0x738680);
 
@@ -85,7 +88,6 @@ public:
 
 	AbstractClass* AssignDestination_7447B0(AbstractClass* pTarget) JMP_THIS(0x7447B0);
 	bool AStarAttempt(const CellStruct& cell1, const CellStruct& cell2) JMP_THIS(0x746000);
-
 
 	//Constructor
 	UnitClass(UnitTypeClass* pType, HouseClass* pOwner) noexcept : UnitClass(noinit_t())

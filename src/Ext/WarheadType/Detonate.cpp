@@ -528,22 +528,11 @@ void WarheadTypeExt::ExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoC
 void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget)
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
-	if (auto const pUnit = specific_cast<UnitClass*>(pTarget))
-	{
-		if (pUnit->IsDisguised())
-		{
-			pUnit->Disguised = false;
+	if (auto const pFoot = generic_cast<FootClass*>(pTarget)) {
+		if (pFoot->IsDisguised()) {
+			pFoot->Disguised = false;
 		}
 	}
-
-	if (auto const pInf = abstract_cast<InfantryClass*>(pTarget))
-	{
-		if (pInf->IsDisguised())
-		{
-			pInf->Disguised = false;
-		}
-	}
-
 }
 
 void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)

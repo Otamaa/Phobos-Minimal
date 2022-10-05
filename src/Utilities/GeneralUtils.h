@@ -30,6 +30,28 @@ public:
 	static std::vector<CellStruct> AdjacentCellsInRange(unsigned int range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
+	static inline bool IsOperator(char c)
+	{
+		return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')';
+	}
+
+	static inline  bool OperatorPriorityGreaterThan(char opa, char opb)
+	{
+		if (opb == '(' || opb == ')')
+			return false;
+
+		if (opa == '(' || opa == ')')
+			return true;
+
+		if (opb == '*' || opb == '/' || opb == '%')
+			return false;
+
+		if (opa == '*' || opa == '/' || opa == '%')
+			return true;
+
+		return false;
+	}
+
 	static int GetValue(int a1)
 	{
 		int result = 0;

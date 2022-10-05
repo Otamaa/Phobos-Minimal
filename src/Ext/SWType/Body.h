@@ -175,5 +175,6 @@ public:
 		return indices;
 	}
 
+	static bool Handled;
 	static SuperClass* TempSuper;
 };

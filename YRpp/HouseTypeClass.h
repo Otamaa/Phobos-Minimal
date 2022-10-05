@@ -20,20 +20,27 @@ public:
 	//Array
 	ABSTRACTTYPE_ARRAY(HouseTypeClass, 0xA83C98u);
 
+	//IUnknown
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x5125A0);
+	virtual ULONG __stdcall AddRef() { return true; }
+	virtual ULONG __stdcall Release() { return true; }
+
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x512640);
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) R0;
 	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
 
 	//Destructor
-	virtual ~HouseTypeClass() RX;
+	virtual ~HouseTypeClass() JMP_THIS(0x512760);
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int	Size() const R0;
 
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x511850);
 	//helpers
 	HouseTypeClass* FindParentCountry() const {
 		return HouseTypeClass::Find(this->ParentCountry);
@@ -53,6 +60,10 @@ public:
 	HouseTypeClass(const char* pID) noexcept
 		: HouseTypeClass(noinit_t())
 	{ JMP_THIS(0x5113F0); }
+
+	HouseTypeClass(IStream* pStm) noexcept
+		: HouseTypeClass(noinit_t())
+	{ JMP_THIS(0x511650); }
 
 protected:
 	explicit __forceinline HouseTypeClass(noinit_t) noexcept

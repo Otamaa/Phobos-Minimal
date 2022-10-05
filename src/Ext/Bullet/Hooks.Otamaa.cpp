@@ -200,7 +200,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 					{
 						pBullet->SetWeaponType(pWeapon);
 						DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 31));
-						auto const radians = dir.GetRadians();
+						auto const radians = dir.GetRadian();
 
 						auto const sin_rad = Math::sin(radians);
 						auto const cos_rad = Math::cos(radians);
@@ -326,7 +326,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 	}
 
 	double const nFirstMag = velocity.MagnitudeXY();
-	double const radians_fromXY = dir_fromXY.GetRadians();
+	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = Math::sin(radians_fromXY);
 	double const cos_rad = Math::cos(radians_fromXY);
 
@@ -337,7 +337,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 	{
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
-		double const radians_foZ = dir_forZ.GetRadians();
+		double const radians_foZ = dir_forZ.GetRadian();
 
 		double const nThirdMag = velocity.MagnitudeXY();
 		if (radians_foZ != 0.0)
@@ -369,7 +369,7 @@ static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, Abstract
 
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
-		double const radians_foZ = dir_forZ.GetRadians();
+		double const radians_foZ = dir_forZ.GetRadian();
 
 		double const nThirdMag = velocity.MagnitudeXY();
 		if (radians_foZ != 0.0)
@@ -722,24 +722,37 @@ DEFINE_HOOK(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
 }
 
 // to fuck off optimization
-static double NOINLINE GetMissileRotVar(const BulletClass* const pThis, const RulesClass* const pRules)
-{
-	const auto pExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	return pExt->GetMissileROTVar(pRules);
-}
+//static double NOINLINE GetMissileRotVar(const BulletClass* const pThis, const RulesClass* const pRules)
+//{
+//	const auto pExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+//	return pExt->GetMissileROTVar(pRules);
+//}
 
 // Optimization fuckup the code again ,..
-#pragma optimize( "", off )
-DEFINE_HOOK(0x466BBC, BulletClass_AI_MissileROTVar, 0x6)
-{
-	GET(BulletClass*, pThis, EBP);
-	GET(RulesClass*, pRules, ECX);
+//#pragma optimize( "", off )
+//DEFINE_HOOK(0x466BBC, BulletClass_AI_MissileROTVar, 0x6)
+//{
+//	GET(BulletClass*, pThis, EBP);
+//	GET(RulesClass*, pRules, ECX);
+//
+//	double dRes = GetMissileRotVar(pThis, pRules);
+//	R->ESI(&dRes);
+//	return 0x466BC2;
+//}
+//#pragma optimize( "", on )
 
-	double dRes = GetMissileRotVar(pThis, pRules);
-	R->ESI(&dRes);
-	return 0x466BC2;
+DEFINE_HOOK(0x466BCB,BulletClass_AI_MissileROTVar, 0x8 )
+{
+	GET(const double* const , pOriginal , ESI);
+	GET(BulletClass*, pThis, EBP);
+	GET(int, nCurFrame, ECX);
+
+	auto nFrame = (nCurFrame + pThis->Fetch_ID()) % 15;
+	double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)->MissileROTVar.Get(*pOriginal);
+
+	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) * 0.06666666666666667 * 6.283185307179586) * nMissileROTVar + nMissileROTVar + 1.0) * static_cast<double>(pThis->Type->ROT));
+	return 0x466C14;
 }
-#pragma optimize( "", on )
 
 DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 {
@@ -748,4 +761,44 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
 	return comparator >= pBulletTypeExt->GetMissileSaveAltitude(RulesGlobal)
 		? 0x466EAD : 0x466EB6;
+}
+
+DEFINE_HOOK(0x46A4ED, BulletClass_Shrapnel_CheckVerses, 0x5)
+{
+	enum { Continue = 0x46A4F3, Skip = 0x46A8EA };
+
+	GET(BulletClass*, pThis, EDI);
+	GET(AbstractClass*, pTarget, EBP);
+
+	WarheadTypeClass* pWH = pThis->Type->ShrapnelWeapon->Warhead;
+
+	if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
+	{
+		auto const pWhat = pTargetObj->What_Am_I();
+		switch (pWhat)
+		{
+		case AbstractType::Aircraft:
+		case AbstractType::Infantry:
+		case AbstractType::Unit:
+		case AbstractType::Building:
+		{
+			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+			if (!pWHExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj),false,false))
+				return Skip;
+		}
+		 break;
+		default:
+		{
+			if (GeneralUtils::GetWarheadVersusArmor(pWH, pTargetObj->GetType()->Armor) == 0.0)
+				return Skip;
+		}
+		 break;
+		}
+
+		if (pThis->Target == pTarget)
+			return Skip;
+	}
+
+
+	return Continue;
 }

@@ -44,18 +44,18 @@ public:
 	static constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x485200);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x4839F0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x483C10);
 
 	//Destructor
-	virtual ~CellClass() RX;
+	virtual ~CellClass() JMP_THIS(0x487E80);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const { return AbstractType::Cell; }
+	virtual int Size() const { return 0x148; }
 
 	//virtual CoordStruct* GetAltCoords(CoordStruct* pCrd) const override JMP_THIS(0x486890); //GetCoords__
 

@@ -53,6 +53,7 @@ constexpr const char* UIMD_ = "uimd.ini";
 
 #define Eva_structureSold reinterpret_cast<const char*>(0x819030)
 #define Eva_UnitSold reinterpret_cast<const char*>(0x822630)
+#define Eva_OreMinerUnderAttack reinterpret_cast<const char*>(0x824784)
 
 
 struct Phobos final

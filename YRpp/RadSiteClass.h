@@ -20,20 +20,20 @@ public:
 	static constexpr reference<DynamicVectorClass<RadSiteClass*>, 0xB04BD0u> const Array{};
 	static constexpr constant_ptr<DynamicVectorClass<RadSiteClass*>, 0xB04BD0u> const Array_Constant{};
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x65B470);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x65B3D0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x65B450);
 
 	//Destructor
-	virtual ~RadSiteClass() RX;
+	virtual ~RadSiteClass() JMP_THIS(0x65BED0);
 
 	//AbstractClass
 	virtual void Init() override RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override { return AbstractType::RadSite; }
+	virtual int Size() const override { return 0x74; }
 	virtual HouseClass* GetOwningHouse() const R0;
 	//virtual CoordStruct* GetCoords(CoordStruct* pCrd) const R0; //center coords
 	//virtual CoordStruct* GetDestination(CoordStruct* pCrd, TechnoClass* pDocker = nullptr) const R0; // where this is moving, or a building's dock for a techno. iow, a rendez-vous point

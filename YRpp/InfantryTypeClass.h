@@ -62,19 +62,21 @@ public:
 	ABSTRACTTYPE_ARRAY(InfantryTypeClass, 0xA8E348u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x524C70);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x524960);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x524B60);
 
 	//Destructor
-	virtual ~InfantryTypeClass() RX;
+	virtual ~InfantryTypeClass() override JMP_THIS(0x524D70);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override { return AbstractType::InfantryType; }
+	virtual int	Size() const { return 0xED0; }
 
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x5240A0);
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
@@ -87,6 +89,10 @@ public:
 	InfantryTypeClass(const char* pID) noexcept
 		: InfantryTypeClass(noinit_t())
 	{ JMP_THIS(0x5236A0); }
+
+	InfantryTypeClass(IStream* pStm) noexcept
+		: InfantryTypeClass(noinit_t())
+	{ JMP_THIS(0x523980); }
 
 protected:
 	explicit __forceinline InfantryTypeClass(noinit_t) noexcept
@@ -117,9 +123,11 @@ public:
 	bool Cyborg;
 	bool NotHuman;
 	bool Ivan; //used for the bomb attack cursor...
+	PROTECTED_PROPERTY(BYTE, align_EAF);
 	int DirectionDistance;
 	bool Occupier;
 	bool Assaulter;
+	PROTECTED_PROPERTY(BYTE, align_EB6[2]);
 	int HarvestRate;
 	bool Fearless;
 	bool Crawls;

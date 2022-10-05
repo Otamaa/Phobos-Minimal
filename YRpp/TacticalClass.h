@@ -24,10 +24,21 @@ public:
 
 	static constexpr reference<TacticalClass*, 0x887324u> const Instance{};
 
+	//IPersist
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6DBCE0);
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x6DBD20);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x6DBE00);
+
 	//Destructor
-	virtual ~TacticalClass() RX;
+	virtual ~TacticalClass() override JMP_THIS(0x6DC470);
 
 	//TacticalClass
+	void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6DA560);
+	AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }
+	int Size() const override { return 0xE18; }
+	virtual void Update() override JMP_THIS(0x6D2540);
 	virtual bool Tactical_draw_line_6DBB60(RectangleStruct* a2, RectangleStruct* a3, int color, bool bool1) R0;
 
 	void SetTacticalPosition(CoordStruct* pCoord)
@@ -138,6 +149,16 @@ public:
 	}
 
 	int GetRamp(CoordStruct* pCoord) const { JMP_THIS(0x6D6AD0); }
+	
+	TacticalClass() noexcept
+		: TacticalClass(noinit_t())
+	{ JMP_THIS(0x6D1C20); }
+
+protected:
+
+	explicit __forceinline TacticalClass(noinit_t) noexcept
+		: AbstractClass(noinit_t())
+	{ }
 
 public:
 

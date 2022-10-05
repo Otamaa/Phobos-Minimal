@@ -65,5 +65,4 @@ public:
 	}
 
 	static bool AllowDrawLink(TechnoTypeClass* pType);
-	static void __fastcall Overload_AI(CaptureManagerClass* pThis, void* _);
 };

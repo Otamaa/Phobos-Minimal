@@ -90,7 +90,8 @@ public:
 		bool FlhChanged;
 		DynamicVectorClass<LineTrail*> TechnoLineTrail;
 		bool IsMissisleSpawn;
-
+		TechnoClass* LastAttacker;
+		int Attempt;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -150,6 +151,8 @@ public:
 			, FlhChanged { false }
 			, TechnoLineTrail { }
 			, IsMissisleSpawn { false }
+			, LastAttacker { nullptr }
+			, Attempt { 5 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }

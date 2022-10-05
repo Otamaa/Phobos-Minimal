@@ -9,10 +9,23 @@ class DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 {
 public:
 	// TODO stub virtuals implementations
+	//IUnknown
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x4AF720);
+	virtual ULONG __stdcall AddRef() JMP_STD(0x4B4CB0);
+	virtual ULONG __stdcall Release() JMP_STD(0x4B4CC0);
+
+	//IPersist
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x4B4830);
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x4AF780);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x4AF800);
 
 	//Destructor
-	virtual ~DriveLocomotionClass() RX;
+	virtual ~DriveLocomotionClass() override JMP_THIS(0x4B4D00);
 
+	//LocomotionClass
+	virtual int Size() override { return 0x70; }
 	//Constructor
 	DriveLocomotionClass()
 		: DriveLocomotionClass(noinit_t())
@@ -49,6 +62,7 @@ public:
 	BYTE IsTurretLockedDown;
 	bool IsRotating;
 	bool IsDriving; 
+	bool IsRocking;
 	bool IsLocked;
 	AbstractClass* Raider;
 	int field_6C;

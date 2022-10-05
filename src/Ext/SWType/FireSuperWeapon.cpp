@@ -74,7 +74,9 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 
 	if (pBuildingExt && ID != -1){
 		pBuildingExt->LimboID = ID;
+#ifdef COMPILE_PORTED_DP_FEATURES
 		pTechnoExt->PaintBallState.release();
+#endif
 		pBuildingExt->IsInLimboDelivery = true;
 	}
 }

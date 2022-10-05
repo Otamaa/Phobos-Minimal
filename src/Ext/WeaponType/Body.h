@@ -75,6 +75,8 @@ public:
 
 #pragma endregion
 
+		Valueable<int> Ammo;
+
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
@@ -119,7 +121,7 @@ public:
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }
 			 #endif
-
+			, Ammo { 0 }
 		{ }
 
 		virtual ~ExtData() = default;

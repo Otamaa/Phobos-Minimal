@@ -703,7 +703,7 @@ void TechnoClass::DetechMyTemporal() const
 			pTemporal->LetGo();
 }
 
-MissionControlClass* TechnoClass::GetCurrentMissionControl() const
+MissionControlClass* TechnoClass::GetMissionControlCurrent() const
 {
 	return this->GetMissionControl(MissionFlags::CurrentMission);
 }

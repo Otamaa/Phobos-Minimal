@@ -22,14 +22,22 @@ public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::ObjectType;
 	ABSTRACTTYPE_ARRAY_NOALLOC(ObjectTypeClass, 0xAC1418u);
+	//static
+	//static int __fastcall FindIndex(const char* pID) JMP_STD(0x5F9990);
+	static void LoadPips() JMP_STD(0x5F76B0);
+	static void sub_5F77F0() JMP_STD(0x5F77F0);
+	static int ReleaseAllVoxelCaches() JMP_STD(0x5F99E0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x5F9720);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x5F9950);
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) JMP_STD(0x5F9970);
 
 	//Destructor
-	virtual ~ObjectTypeClass() RX;
+	virtual ~ObjectTypeClass() JMP_THIS(0x5F9AE0);
+
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x5F92D0);
 
 	//ObjectTypeClass
 	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest, CoordStruct* pSrc) const R0; //Coord_Fixup
@@ -52,14 +60,29 @@ public:
 	static TechnoTypeClass * __fastcall GetTechnoType(AbstractType abstractID, int idx)
 		{ JMP_STD(0x48DCD0); }
 
+	void sub_5F8080()
+		{ JMP_THIS(0x5F8080); }
 
 	void LoadVoxel__() const
 		{ JMP_THIS(0x5F8110); }
+
+	bool LoadTurret(const char* pID, int TurretIndex)
+		{ JMP_THIS(0x5F7A90); }
+
+	bool LoadBARL(const char* pID, int BARLIndex)
+	{ JMP_THIS(0x5F7DB0); }
+
+	bool LoadVehicleImage() //Only UnitType
+		{ JMP_THIS(0x5F8CE0); }
 
 	//Constructor
 	ObjectTypeClass(const char* pID) noexcept
 		: ObjectTypeClass(noinit_t())
 	{ JMP_THIS(0x5F7090); }
+
+	ObjectTypeClass(IStream* pStm) noexcept
+		: ObjectTypeClass(noinit_t())
+	{ JMP_THIS(0x5F7320); }
 
 protected:
 	explicit __forceinline ObjectTypeClass(noinit_t) noexcept

@@ -129,9 +129,9 @@ public:
 	static bool End_Piggyback(YRComPtr<ILocomotion> &pLoco);
 
 	//Constructors
-	LocomotionClass()
-		: LocomotionClass(noinit_t())
-	{ JMP_THIS(0x55A6C0); }
+	explicit LocomotionClass() { JMP_THIS(0x55A6C0); }
+	LocomotionClass(LocomotionClass& another) { JMP_THIS(0x55A6C0); }
+
 protected:
 	explicit __forceinline LocomotionClass(noinit_t)  noexcept
 	{ }

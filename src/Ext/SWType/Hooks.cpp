@@ -22,15 +22,47 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place, 0x5)
 
 //Ares hooked at 0x6CC390 and jumped to 0x6CDE40
 // If a super is not handled by Ares however, we do it at the original entry point
+//
+//DEFINE_HOOK(0x6CC390, SuperClass_Place_NotSkippedByAres, 0x6)
+//{
+//	GET(SuperClass* const, pSuper, ECX);
+//	GET_STACK(CellStruct const* const, pCell, 0x4);
+//	//GET_STACK(bool const, isPlayer, 0x8);
+//
+//	if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type)) {
+//		SWTypeExt::Handled = false;
+//		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, CellClass::Cell2Coord(*pCell), false);
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
+//{
+//	GET(SuperClass* const, pSuper, ECX);
+//	GET_STACK(CellStruct const* const, pCell, 0x4);
+//	//GET_STACK(bool const, isPlayer, 0x8);
+//
+//	if (SWTypeExt::Handled) {
+//		if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type)) {
+//			pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, CellClass::Cell2Coord(*pCell), false);
+//		}
+//
+//		SWTypeExt::Handled = false;
+//	}
+//
+//	return 0;
+//}
+
 DEFINE_HOOK_AGAIN(0x6CC390, SuperClass_Place_FireExt, 0x6)
 DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
 {
 	GET(SuperClass* const, pSuper, ECX);
 	GET_STACK(CellStruct const* const, pCell, 0x4);
-	GET_STACK(bool const, isPlayer, 0x8);
+	//GET_STACK(bool const, isPlayer, 0x8);
 
 	if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type)){
-		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, CellClass::Cell2Coord(*pCell),isPlayer);
+		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, CellClass::Cell2Coord(*pCell),true);
 
 		////if (auto pAresSWTypeExt = AresData::ContainerMap_Find::Exec(*reinterpret_cast<DWORD**>(AresData::ContainerMapData::SWTypeContainer), pSuper->Type)) {
 		////	Debug::Log("Found Ares SWTypeExt [%x] ! \n " , pAresSWTypeExt);

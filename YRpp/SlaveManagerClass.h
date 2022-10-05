@@ -43,18 +43,19 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<SlaveManagerClass*>, 0xB0B5F0u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6B1130);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x6B1170);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x6B1300);
 
 	//Destructor
-	virtual ~SlaveManagerClass() RX;
+	virtual ~SlaveManagerClass() override JMP_THIS(0x6B1390);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override { return AbstractType::SlaveManager; }
+	virtual int Size() const override { return 0x64; }
+	virtual void Update() override JMP_THIS(0x6AF5F0);
 
 	// non-virtual
 	void SetOwner(TechnoClass *NewOwner)

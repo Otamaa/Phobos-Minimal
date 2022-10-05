@@ -137,6 +137,9 @@ public:
 	void Detach(FootClass* candidate) const
 		{ JMP_THIS(0x4734B0);}
 
+	void RemovePassenger(FootClass* pPassenger) const
+		{ JMP_THIS(0x4734B0); }
+
 	PassengersClass() : NumPassengers(0), FirstPassenger(nullptr) {};
 
 	~PassengersClass() { };
@@ -182,17 +185,24 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x70BF50);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x70C250);
 
 	//Destructor
-	virtual ~TechnoClass() RX;
+	virtual ~TechnoClass() override JMP_THIS(0x7106E0);
 
 	//AbstractClass
+	virtual void Init() override { JMP_THIS(0x6F3F40); }
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x7077C0);
+	virtual int GetOwningHouseIndex() const override JMP_THIS(0x6F9DB0);//{ return this->Owner->ArrayIndex; }
+	virtual HouseClass* GetOwningHouse() const override { return this->Owner; }
 	virtual void Update() override JMP_THIS(0x6F9E50);
 
+	//ObjectClass
+	virtual void AnimPointerExpired(AnimClass* pAnim) override JMP_THIS(0x710410);
 	//MissionClass
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
+	virtual bool Mission_Revert() override JMP_THIS(0x7013E0);
 
 	//TechnoClass
 	virtual bool IsUnitFactory() const R0;
@@ -271,15 +281,15 @@ public:
 	virtual void Stun() RX;//DWORD vt_entry_3A0() R0;
 	virtual bool TriggersCellInset(AbstractClass *pTarget) R0;
 	virtual bool IsCloseEnough(AbstractClass *pTarget, int idxWeapon) const R0;
-	virtual bool IsCloseEnoughToAttack(AbstractClass *pTarget) const R0;
+	virtual bool IsCloseEnoughToAttack(AbstractClass *pTarget) const R0; //In_Range
 	virtual bool IsCloseEnoughToAttackCoords(const CoordStruct& Coords) const R0;
 	virtual DWORD vt_entry_3B4(DWORD dwUnk) const R0;
 	virtual void Destroyed(ObjectClass *Killer) = 0;
 	virtual FireError GetFireErrorWithoutRange(AbstractClass *pTarget, int nWeaponIndex) const RT(FireError);
-	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const RT(FireError);
-	virtual CellClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0;
+	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const RT(FireError); //CanFire
+	virtual CellClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0; //Greatest_Threat
 	virtual void SetTarget(AbstractClass *pTarget) RX;
-	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) R0;
+	virtual BulletClass* Fire(AbstractClass* pTarget, int nWeaponIndex) JMP_THIS(0x6FDD50);
 	virtual void Guard() RX; // clears target and destination and puts in guard mission
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) R0;
 	virtual void vt_entry_3D8(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3) RX;
@@ -349,6 +359,24 @@ public:
 	virtual bool vt_entry_4D0() R0;
 
 	//non-virtual
+	bool sub_703B10() const JMP_THIS(0x703B10);
+	int sub_703E70() const JMP_THIS(0x703E70);
+	int sub_704000() const JMP_THIS(0x704000);
+	int sub_704240() const JMP_THIS(0x704240);
+	bool sub_70D8F0() JMP_THIS(0x70D8F0);
+	bool sub_70DCE0() const { return this->CurrentTurretNumber != -1; }
+
+	bool IsDrainSomething()
+		{ return this->DrainTarget != nullptr; }
+
+	int GetCurrentTurretNumber() const
+		{ JMP_THIS(0x70DCF0); }
+
+	bool HasMultipleTurrets() const
+		{ JMP_THIS(0x70DC60); }
+
+	bool IsDeactivated() const
+		{ JMP_THIS(0x70FBD0); }
 
 	// (re-)starts the reload timer
 	void StartReloading()
@@ -462,7 +490,7 @@ public:
 
 	int GetIonCannonValue(AIDifficulty difficulty) const;
 	int GetIonCannonValue(AIDifficulty difficulty, int maxHealth) const;
-	MissionControlClass* GetCurrentMissionControl() const;
+	MissionControlClass* GetMissionControlCurrent() const;
 	double GetCurrentMissionRate() const;
 
 	//70BCB0
@@ -561,9 +589,9 @@ public:
 	//MissionClass
 	void TechnoClass_Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) const JMP_THIS(0x7013A0); //Vt_1F4
 
-	bool IsLocked() const {
-		return *reinterpret_cast<bool*>(reinterpret_cast<DWORD>(this) + 0x3D5);
-	}
+	//bool IsLocked() const {
+	//	return *reinterpret_cast<bool*>(reinterpret_cast<DWORD>(this) + 0x3D5);
+	//}
 
 	bool CanThisCloakByDefault() {
 		return (GetTechnoType()) && (GetTechnoType()->Cloakable || HasAbility(AbilityType::Cloak));
@@ -641,7 +669,7 @@ public:
 	int              TurretAnimFrame;
 	HouseClass*      InitialOwner; // only set in ctor
 	DECLARE_PROPERTY(VeterancyStruct, Veterancy);
-	DWORD			 align_154;  //unused , can be used to store ExtData
+	PROTECTED_PROPERTY(DWORD, align_154);
 	double           ArmorMultiplier;
 	double           FirepowerMultiplier;
 	DECLARE_PROPERTY(TimerStruct, IdleActionTimer); // MOO CDTimerClass
@@ -777,11 +805,13 @@ public:
 	bool             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
 	bool             __ProtectMe_3CF;
 	bool             IsUseless; //3D0
-	bool			 IsTickedOff; //HasBeenAttacked
-	bool			 Cloakable;
-	bool			 IsPrimaryFactory;
-	bool			 Spawned;
-	bool             IsInPlayfield;
+	bool			 IsTickedOff; //HasBeenAttacked //3D1
+	bool			 Cloakable; //3D2
+	bool			 IsPrimaryFactory; //3D3
+	bool			 IsLoaner; // 3D4
+	bool			 IsLocked; // 3D5
+	bool			 Spawned; // 3D6
+	bool             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
 	DECLARE_PROPERTY(RecoilData, BarrelRecoil);
 	bool             IsTethered; //418
@@ -792,7 +822,7 @@ public:
 	bool             unknown_bool_41D;
 	bool             unknown_bool_41E;
 	bool             unknown_bool_41F;
-	char             SightIncrease; // used for LeptonsPerSightIncrease
+	bool             SightIncrease; // used for LeptonsPerSightIncrease
 	bool             RecruitableA; // these two are like Lenny and Carl, weird purpose and never seen separate
 	bool             RecruitableB; // they're usually set on preplaced objects in maps
 	bool             IsRadarTracked;
@@ -806,7 +836,10 @@ public:
 	bool             _Mission_Patrol_430;
 	bool             IsMouseHovering;
 	bool             parasitecontrol_byte432;
+	bool			 byte_433;
 	TeamClass*       OldTeam;
+	//bool			 IsTracked;
+	//bool			 IsTechnician;
 	bool             CountedAsOwnedSpecial; // for absorbers, infantry uses this to manually control OwnedInfantry count
 	bool             Absorbed; // in UnitAbsorb/InfantryAbsorb or smth, lousy memory
 	bool             forceattackforcemovefirendlytarget_bool_43A;
@@ -837,11 +870,13 @@ public:
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4
 	bool             deploy_bool_4F8;
+	BYTE			 pad_4F9[3];
 	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a TimerStruct!
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
 	bool            ShouldLoseTargetNow;
+	BYTE			 pad_50D[3];
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;

@@ -777,14 +777,16 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 
 void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 {
-	if (const auto pCapturer = pThis->MindControlledBy)
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	int Range = pTypeExt->MindControlRangeLimit.Get();
+
+	if (Range <= 0 || pThis->CaptureManager == nullptr)
+		return;
+
+	for (auto node : pThis->CaptureManager->ControlNodes)
 	{
-		const auto pCapturerExt = TechnoTypeExt::ExtMap.Find<false>(pCapturer->GetTechnoType());
-		if (pCapturerExt && pCapturerExt->MindControlRangeLimit.Get() > 0 &&
-			pThis->DistanceFrom(pCapturer) > pCapturerExt->MindControlRangeLimit.Get())
-		{
-			pCapturer->CaptureManager->FreeUnit(pThis);
-		}
+		if (pThis->DistanceFrom(node->Unit) > Range)
+			 pThis->CaptureManager->FreeUnit(node->Unit);
 	}
 }
 
@@ -1850,8 +1852,7 @@ void TechnoExt::ExtData::UpdateMindControlAnim()
 			else if (!pThis->MindControlRingAnim && MindControlRingAnimType &&
 				pThis->CloakState == CloakState::Uncloaked && !pThis->InLimbo && pThis->IsAlive)
 			{
-				auto coords = CoordStruct::Empty;
-				coords = *pThis->GetCoords(&coords);
+				auto coords = pThis->GetCoords();
 				int offset = 0;
 
 				if (const auto pBuilding = specific_cast<BuildingClass*>(pThis))
@@ -1975,6 +1976,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
 		.Process(this->IsMissisleSpawn)
+		.Process(this->LastAttacker)
+		.Process(this->Attempt)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -2025,7 +2028,7 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 #endif
 		AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-
+		AnnounceInvalidPointer(LastAttacker, ptr);
 #ifdef ENABLE_HOMING_MISSILE
 		if (MissileTargetTracker)
 			MissileTargetTracker->InvalidatePointer(ptr, bRemoved);

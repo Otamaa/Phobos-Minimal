@@ -21,25 +21,37 @@ public:
 	//Array
 	ABSTRACTTYPE_ARRAY(AnimTypeClass, 0x8B4150u);
 
+	//static
+	static int __fastcall LoadAllAnimFile(TheaterType theater) JMP_STD(0x427940);
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x428990);
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x428800);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x428970);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x428C10);
+	virtual AbstractType WhatAmI() const override { return AbstractType::AnimType; }
+	virtual int	Size() const override { return 0x378; }
+	virtual int GetArrayIndex() const override { return this->ArrayIndex; }
+
+	//AbstractTypeClass
+	virtual void LoadTheaterSpecificArt(TheaterType th_type) override JMP_THIS(0x427A80);
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x427D00);
 
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* owner) R0; // ! this just returns NULL instead of creating the anim, fucking slackers
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override { return false; } //yes, it return false directly, I agree with the below
+	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }; // ! this just returns NULL instead of creating the anim, fucking slackers
 
 	//AnimTypeClass
-	virtual SHPStruct* LoadAnimImage() R0;
-	virtual void Load2DArt() RX;
+	virtual SHPStruct* LoadAnimImage() JMP_THIS(0x428C30);
+	virtual void Load2DArt() JMP_THIS(0x427B50);
 
 	//Destructor
-	virtual ~AnimTypeClass() RX;
+	virtual ~AnimTypeClass() JMP_THIS(0x428EA0);
 
-	void __UnloadImage() const
+	void FreeLoadedImage() const
 	{ JMP_THIS(0x428DE0); }
 
 	//Constructor
@@ -114,7 +126,7 @@ public:
 	bool IsAnimatedTiberium;
 	bool AltPalette;
 	bool Normalized;
-	PROTECTED_PROPERTY(byte, _pada);
+	PROTECTED_PROPERTY(BYTE, align_363);
 	Layer Layer;
 	bool DoubleThick;
 	bool Flat;

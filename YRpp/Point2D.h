@@ -23,6 +23,7 @@ public:
 
 	Point2D operator+(const Point2D& that) const { return Point2D{X + that.X, Y + that.Y};}
 	Point2D& operator+=(const Point2D& that) { X += that.X; Y += that.Y; return *this; }
+	Point2D& operator+=(int factor) { X += factor; Y += factor; return *this; }
 
 	Point2D operator-(const Point2D& that) const { return Point2D{X - that.X, Y - that.Y};}
 	Point2D& operator-=(const Point2D& that) { X -= that.X; Y -= that.Y; return *this; }

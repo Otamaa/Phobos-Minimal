@@ -101,7 +101,7 @@ public:
 	//BYTE unknown_4D;
 	//BYTE unknown_4E;
 	//BYTE unknown_4F;
-	int NextState;
+	State NextState;
 	FacingClass Facing;
 	BYTE unknown_6C;
 	BYTE unknown_6D;

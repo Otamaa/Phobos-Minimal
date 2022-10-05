@@ -16,27 +16,31 @@ class  DECLSPEC_UUID("703E044A-0FB1-11D2-8172-006008055BB5")
 public:
 	static const AbstractType AbsID = AbstractType::ParticleSystemType;
 	static constexpr reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
+	static BehavesLike __fastcall GetBehave(const char* behaveID) JMP_STD(0x644850);
+	static int __fastcall FindIndexOrAllocate(const char* pID) JMP_STD(0x644630);
 
 	//Array
 	ABSTRACTTYPE_ARRAY(ParticleSystemTypeClass, 0xA83D68u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6447A0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x6447E0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x644830);
 
 	//Destructor
-	virtual ~ParticleSystemTypeClass() RX;
+	virtual ~ParticleSystemTypeClass() override JMP_THIS(0x644960);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override { return AbstractType::ParticleSystemType; }
+	virtual int Size() const override { return 0x310; }
 
+	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6442D0);
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* mcoords, HouseClass* owner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* owner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override { return false; }
+	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }
 
 	//Constructor
 	ParticleSystemTypeClass(const char* pID) noexcept
@@ -56,6 +60,7 @@ public:
 
 	int      HoldsWhat; //ParticleType Array index
 	bool     Spawns;
+	PROTECTED_PROPERTY(BYTE, align_299[3]);
 	int      SpawnFrames;
 	float    Slowdown;
 	int      ParticleCap;
@@ -77,6 +82,7 @@ public:
 	ColorStruct LaserColor;
 	bool     Laser;
 	bool     OneFrameLight;
+	PROTECTED_PROPERTY(BYTE, align_30D[3]);
 };
 
 //static_assert(sizeof(ParticleSystemTypeClass) == 0x310);

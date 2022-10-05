@@ -4,6 +4,7 @@
 #include <Utilities/Enum.h>
 
 #include <Ext/TechnoType/Body.h>
+#include <Ext/BulletType/Body.h>
 
 #pragma region Otamaa
 
@@ -23,22 +24,38 @@ DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 {
 	GET(AircraftClass*, pThis, EDI);
+	//GET_STACK(int, weaponIdx, STACK_OFFSET(0x7C, 0xC));
 
-	if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type))
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThis->Passengers.FirstPassenger)
 	{
-		if (pThis->Passengers.FirstPassenger)
+		if (pTypeExt->Paradrop_DropPassangers.Get())
 		{
-			if (pTypeExt->Paradrop_DropPassangers.Get())
-			{
-				pThis->DropOffParadropCargo();
-				return 0x415EFD;
-			}
+			pThis->DropOffParadropCargo();
+			return 0x415EFD;
 		}
-
-		return 0x415F08;
 	}
 
-	return 0x0;
+	GET_BASE(AbstractClass*, pTarget, 0x8);
+	GET_BASE(int, nWeaponIdx, 0xC);
+
+	auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
+	R->ESI(pBullet);
+	R->Stack(0x10 , pBullet);
+
+	if (!pBullet)
+		return 0x41659E;
+
+	R->EBX(pTarget);
+
+	if (pTypeExt->Firing_IgnoreGravity.Get())
+		return 0x41631F;
+
+	if (!pBullet->Type->ROT)
+		return 0x415F4D;
+
+	return !(pBullet->Type->ROT == 1) ? 0x41631F : 0x4160CF;
 }
 
 DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
@@ -69,36 +86,6 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	}
 
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
-}
-
-DEFINE_HOOK(0x413F98, AircraftClass_Init, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(AircraftTypeClass*, pThisType, EDI);
-
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThisType)) {
-		if(pExt->Paradrop_MaxAttempt.isset())
-			pThis->___paradrop_attempts = pExt->Paradrop_MaxAttempt.Get();
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x7)
-{
-	GET(AircraftClass*, pThis, EDI);
-
-	BYTE nAttempt = 5;
-	if (auto const pType = pThis->Type) {
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType)) {
-			if(pExt->Paradrop_MaxAttempt.isset())
-				nAttempt = pExt->Paradrop_MaxAttempt.Get();
-
-		}
-	}
-
-	pThis->___paradrop_attempts = nAttempt;
-	return 0x415E9A;
 }
 
 DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)

@@ -22,20 +22,21 @@ public:
 	ABSTRACTTYPE_ARRAY(WeaponTypeClass, 0x887568u);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x772C90);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x772CD0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x772EB0);
 
 	//Destructor
-	virtual ~WeaponTypeClass() RX;
+	virtual ~WeaponTypeClass() override JMP_THIS(0x7730F0);
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
 
 	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x772080);
 
 	void CalculateSpeed() const
 		{ JMP_THIS(0x7729F0); }
@@ -57,6 +58,10 @@ public:
 	WeaponTypeClass(const char* pID = nullptr)
 		: WeaponTypeClass(noinit_t())
 	{ JMP_THIS(0x771C70); }
+
+	explicit WeaponTypeClass(IStream* pStm) 
+		: WeaponTypeClass(noinit_t())
+	{ JMP_THIS(0x771F00); }
 
 protected:
 	explicit __forceinline WeaponTypeClass(noinit_t)

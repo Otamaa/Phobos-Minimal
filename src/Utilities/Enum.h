@@ -66,6 +66,21 @@ enum class AirAttackStatus
 	ReturnToBase = 10
 };
 
+enum class AirAttackStatusIDB : int
+{
+	AIR_ATT_VALIDATE_AZ = 0x0,
+	AIR_ATT_PICK_ATTACK_LOCATION = 0x1,
+	AIR_ATT_TAKE_OFF = 0x2,
+	AIR_ATT_FLY_TO_POSITION = 0x3,
+	AIR_ATT_FIRE_AT_TARGET0 = 0x4,
+	AIR_ATT_FIRE_AT_TARGET1 = 0x5,
+	AIR_ATT_FIRE_AT_TARGET2 = 0x6,
+	AIR_ATT_FIRE_AT_TARGET3 = 0x7,
+	AIR_ATT_FIRE_AT_TARGET4 = 0x8,
+	AIR_ATT_FIRE_AT_TARGET5 = 0x9,
+	AIR_ATT_RETURN_TO_BASE = 0xA,
+};
+
 enum class SuperWeaponAITargetingMode {
 	None = 0,
 	Nuke = 1,

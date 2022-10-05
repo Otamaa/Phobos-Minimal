@@ -37,7 +37,7 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	if (const auto pCell = abstract_cast<CellClass*>(pTarget))
+	if (const auto pCell = specific_cast<CellClass*>(pTarget))
 	{
 		if (const auto pPrimaryExt = WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType))
 		{
@@ -56,31 +56,29 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 		ReturnHandled = 0x6F37AF
 	};
 
+	GET(TechnoClass*, pTarget, EBP);
 	GET(TechnoClass*, pTechno, ECX);
 
-	if (pTechno && pTechno->Target)
+	if (pTechno && pTarget)
 	{
-		const auto pTechnoType = pTechno->GetTechnoType();
-		if (!pTechnoType)
-			return 0;
-
-		const auto pTarget = abstract_cast<TechnoClass*>(pTechno->Target);
-		if (!pTarget)
-			return 0;
-
+		const auto pThisTechnoType = pTechno->GetTechnoType();
 		const auto pTargetType = pTarget->GetTechnoType();
-		if (!pTargetType)
+
+		if (!pThisTechnoType || !pTargetType)
 			return 0;
 
-		if (const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType))
-		{
-			if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
-				&& pTargetType->Cloakable && pTargetType->Naval
-				&& pTarget->CloakState == CloakState::Uncloaked)
-			{
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pThisTechnoType);
+
+		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
+			&& pTargetType->Cloakable && pTargetType->Naval
+			&& pTarget->CloakState == CloakState::Uncloaked) {
 				R->EAX(pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
 				return ReturnHandled;
-			}
+		}
+
+		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP()) {
+			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP);
+			return ReturnHandled;
 		}
 	}
 

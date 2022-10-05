@@ -21,10 +21,14 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<FootClass*>, 0x8B3DC0u> const Array {};
 
 	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x4DB3C0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x4DB690);
+
 	//Destructor
-	virtual ~FootClass() RX;
+	virtual ~FootClass() override JMP_THIS(0x4E0170);
 
 	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4D9960);
 	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass

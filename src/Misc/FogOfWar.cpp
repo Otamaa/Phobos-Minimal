@@ -265,7 +265,7 @@ DEFINE_HOOK(0x486A70, CellClass_FogCell, 0x5)
 							break;
 
 						case AbstractType::Building:
-							if (auto pBld = abstract_cast<BuildingClass*>(pObject))
+							if (auto pBld = static_cast<BuildingClass*>(pObject))
 							{
 								if (pBld->IsAllFogged())
 									pBld->FreezeInFog(nullptr, pCell, !pBld->IsStrange() && pBld->Translucency != 15);
@@ -273,7 +273,7 @@ DEFINE_HOOK(0x486A70, CellClass_FogCell, 0x5)
 							break;
 
 						case AbstractType::Terrain:
-							if (auto pTerrain = abstract_cast<TerrainClass*>(pObject))
+							if (auto pTerrain = static_cast<TerrainClass*>(pObject))
 							{
 								// pTerrain
 								auto pFoggedTer = GameCreate<FoggedObject>(pTerrain);
