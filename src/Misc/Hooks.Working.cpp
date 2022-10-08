@@ -44,26 +44,6 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
 	return 0x424322;
 }
 
-
-DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
-{
-	GET(FootClass*, pFoot, EAX);
-
-	if (auto pTeam = pFoot->Team)
-	{
-		if (auto nTeamDecision = pTeam->Type->MindControlDecision)
-		{
-			if (nTeamDecision > 5)
-				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
-
-			R->EAX(nTeamDecision);
-			return 0x47258F;
-		}
-	}
-
-	return 0x4725B0;
-}
-
 #ifdef ENABLE_NEWHOOKS
 //TODO : retest for desync
 DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
@@ -315,35 +295,35 @@ DEFINE_HOOK(0x520BCC, InfantryClass_DoingAI_FetchDoType, 0x6)
 }
 
 //TODO : retest for desync
-DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
-{
-	GET(InfantryClass* const, pThis, ESI);
-
-	auto const Iter = GetDeathBodies(pThis->Type, {});
-	constexpr auto Die = [](int x) { return x - 11; };
-
-	if (!Iter.empty()) {
-		auto pInfTypeExt = InfantryTypeExt::ExtMap.Find(pThis->Type);
-		int nIdx = 0;
-
-		if(pInfTypeExt->DeathBodies_UseDieSequenceAsIndex.Get()){
-			auto pInfExt = InfantryExt::ExtMap.Find(pThis);
-			nIdx = Die(pInfExt->CurrentDoType);
-			if (nIdx > Iter.size())
-				nIdx = Iter.size();
-		} else {
-			nIdx = ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1);
-		}
-
-		if (AnimTypeClass* pSelected = Iter.at(nIdx)) {
-			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-			}
-		}
-	}
-
-	return 0x520CA9;
-}
+//DEFINE_HOOK(0x520BE5, InfantryClass_DoingAI_DeadBodies, 0x6)
+//{
+//	GET(InfantryClass* const, pThis, ESI);
+//
+//	auto const Iter = GetDeathBodies(pThis->Type, {});
+//	constexpr auto Die = [](int x) { return x - 11; };
+//
+//	if (!Iter.empty()) {
+//		int nIdx = 0;
+//
+//		if(InfantryTypeExt::ExtMap.Find(pThis->Type)->DeathBodies_UseDieSequenceAsIndex.Get()){
+//			auto pInfExt = InfantryExt::ExtMap.Find(pThis);
+//			nIdx = Die(pInfExt->CurrentDoType);
+//			if (nIdx > Iter.size())
+//				nIdx = Iter.size();
+//		} else {
+//			nIdx = ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1);
+//		}
+//
+//		if (AnimTypeClass* pSelected = Iter.at(nIdx)) {
+//			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
+//				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+//			}
+//		}
+//	}
+//
+//    pThis->UnInit();
+//	return 0x520E52;
+//}
 
 DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 {
@@ -367,7 +347,8 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 		}
 	}
 
-	return 0x0;
+	pThis->UnInit();
+	return 0x518BA0;
 }
 #endif
 
@@ -376,85 +357,68 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 //
 //std::vector<std::pair<ImageDatas, ImageDatas>> TTypeEXt::AdditionalTurrents { };
 
-DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
-{
-	enum
-	{
-		ContinueCheck = 0x5F54C4
-		, ResultHalf = 0x5F54B8
-	};
-
-	GET(int, nOldStr, EDX);
-	GET(int, nCurStr, EBP);
-	GET(int, nDamage, ECX);
-
-	//TTypeEXt::Read(&CCINIClass::INI_Art);
-	const auto curstr = Game::F2I(nCurStr * RulesGlobal->ConditionYellow);
-	return (nOldStr <= curstr || !((nOldStr - nDamage) < curstr)) ? ContinueCheck : ResultHalf;
-}
-
-#include <JumpjetLocomotionClass.h>
-#include <Ext/Building/Body.h>
-
-static int GetHeight(CellClass* pCell, const Nullable<int>& nOffset)
-{
-	int nHeight = 0;
-	if (auto pBuilding = pCell->GetBuilding())
-	{
-	   auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-
-		CoordStruct vCoords = { 0, 0, 0 };
-		if(!pBldExt->IsInLimboDelivery)
-			pBuilding->Type->Dimension2(&vCoords);
-
-		nHeight = vCoords.Z;
-	}
-	else
-	{
-		if (pCell->FindTechnoNearestTo({ 0,0 }, 0, 0))
-			nHeight = 85;
-	}
-
-	if (nOffset.isset()) {
-		nHeight -= nOffset.Get();
-		if (nHeight < 0)
-			nHeight = 0;
-	}
-
-	int nCellHeight = pCell->GetFloorHeight({ 128,128 });
-	if (pCell->ContainsBridge())
-		nCellHeight += 416;
-
-	return nHeight + nCellHeight;
-}
-
-DEFINE_HOOK(0x54D820, JumpJetLocomotionClass_UpdateHeightAboveObject, 0x6)
-{
-	GET(JumpjetLocomotionClass*, pLoco, ECX);
-
-	auto pOwner = pLoco->LinkedTo;
-	auto pCell = Map.GetCellAt(pOwner->Location);
-	int nHeight = GetHeight(pCell, {});
-
-	if (pLoco->__currentSpeed <= 0.0)
-	{
-		R->EAX(nHeight);
-	}
-	else
-	{
-		auto nFace = pLoco->Facing.Current().GetFacing<8>();
-		auto nAdj = AdjacentCoord[nFace];
-		auto nRes = CoordStruct { pOwner->Location.X + nAdj.X , pOwner->Location.Y + nAdj.Y };
-		auto pCell2 = Map.GetCellAt(nRes);
-		int nHeight2 = GetHeight(pCell2, {});
-		if (nHeight2 <= nHeight)
-			nHeight2 = (nHeight + nHeight2) / 2;
-
-		R->EAX(nHeight2);
-	}
-
-	return 0x54D917;
-}
+//#include <JumpjetLocomotionClass.h>
+//#include <Ext/Building/Body.h>
+//
+//static int GetHeight(CellClass* pCell, const Nullable<int>& nOffset)
+//{
+//	int nHeight = 0;
+//	if (auto pBuilding = pCell->GetBuilding())
+//	{
+//	   auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+//
+//		CoordStruct vCoords = { 0, 0, 0 };
+//		if(!pBldExt->IsInLimboDelivery)
+//			pBuilding->Type->Dimension2(&vCoords);
+//
+//		nHeight = vCoords.Z;
+//	}
+//	else
+//	{
+//		if (pCell->FindTechnoNearestTo({ 0,0 }, 0, 0))
+//			nHeight = 85;
+//	}
+//
+//	if (nOffset.isset()) {
+//		nHeight -= nOffset.Get();
+//		if (nHeight < 0)
+//			nHeight = 0;
+//	}
+//
+//	int nCellHeight = pCell->GetFloorHeight({ 128,128 });
+//	if (pCell->ContainsBridge())
+//		nCellHeight += 416;
+//
+//	return nHeight + nCellHeight;
+//}
+//
+//DEFINE_HOOK(0x54D820, JumpJetLocomotionClass_UpdateHeightAboveObject, 0x6)
+//{
+//	GET(JumpjetLocomotionClass*, pLoco, ECX);
+//
+//	auto pOwner = pLoco->LinkedTo;
+//	auto pCell = Map.GetCellAt(pOwner->Location);
+//	int nHeight = GetHeight(pCell, {});
+//
+//	if (pLoco->__currentSpeed <= 0.0)
+//	{
+//		R->EAX(nHeight);
+//	}
+//	else
+//	{
+//		auto nFace = pLoco->Facing.Current().GetFacing<8>();
+//		auto nAdj = AdjacentCoord[nFace];
+//		auto nRes = CoordStruct { pOwner->Location.X + nAdj.X , pOwner->Location.Y + nAdj.Y };
+//		auto pCell2 = Map.GetCellAt(nRes);
+//		int nHeight2 = GetHeight(pCell2, {});
+//		if (nHeight2 <= nHeight)
+//			nHeight2 = (nHeight + nHeight2) / 2;
+//
+//		R->EAX(nHeight2);
+//	}
+//
+//	return 0x54D917;
+//}
 
 //int __cdecl UnitClass_GetFireError_AIDeployFire(REGISTERS* R)
 //{
@@ -533,66 +497,109 @@ DEFINE_HOOK(0x54D820, JumpJetLocomotionClass_UpdateHeightAboveObject, 0x6)
 //	}
 //	return result;
 //}
-#include <Ext/WeaponType/Body.h>
+//#include <Ext/WeaponType/Body.h>
+//
+//DEFINE_HOOK(0x4A730D , DiskLaserClass_Update_CalculateFacing, 0x6)
+//{
+//	GET(DiskLaserClass*, pThis, ESI);
+//	GET(int, nFace, EDX);
+//
+//	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+//
+//	if (!pExt->DiskLaser_FiringOffset.isset())
+//		return 0x0;
+//
+//	auto nOffset = (pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 3;
+//	pThis->DrawOffset.X = ((((pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 4)
+//					+ (nOffset -1) & (((nFace >> 11) + 1) >> 1)))
+//					% nOffset;
+//
+//	return 0x4A7329;
+//}
+//
+//DEFINE_HOOK(0x4A748E , DiskLaserClass_Update_CalculatePoint, 0x5)
+//{
+//	GET(DiskLaserClass*, pThis, ESI);
+//
+//	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+//
+//	if (!pExt->DiskLaser_FiringOffset.isset())
+//		return 0x0;
+//
+//	auto nOffset = (pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 3;
+//
+//	LEA_STACK(CoordStruct*, pCoord, 0x44);
+//
+//	auto nFLH = pThis->Owner->GetFLH(pCoord, 0, CoordStruct::Empty);
+//
+//	R->Stack(0x38, nFLH->X);
+//	R->Stack(0x3C, nFLH->Y);
+//	R->EBP(nFLH->Z);
+//	R->ECX(pThis->DrawOffset.Y);
+//
+//	R->EBX((pThis->DrawOffset.X + nOffset - pThis->DrawOffset.Y) % nOffset);
+//	R->EDX((nOffset - pThis->DrawOffset.Y + pThis->DrawOffset.X - 1) % nOffset);
+//	R->EAX((pThis->DrawOffset.X + pThis->DrawOffset.Y) % nOffset);
+//	R->EDI((pThis->DrawOffset.Y + pThis->DrawOffset.X + 1) % nOffset);
+//
+//	return 0x4A7507;
+//}
 
-DEFINE_HOOK(0x4A730D , DiskLaserClass_Update_CalculateFacing, 0x6)
+DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
-	GET(DiskLaserClass*, pThis, ESI);
-	GET(int, nFace, EDX);
+	GET(BuildingClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET_STACK(BulletClass*, pBullet, STACK_OFFSET(0xF0, -0xA4));
 
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+	if (pWeapon && pBullet)
+	{
+		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
+		CoordStruct dest = pBullet->Target->GetCoords();
 
-	if (!pExt->DiskLaser_FiringOffset.isset())
-		return 0x0;
+		if (pWeapon->IsLaser)
+		{
+			GameCreate<LaserDrawClass>(src, dest, pWeapon->LaserInnerColor, pWeapon->LaserOuterColor, pWeapon->LaserOuterSpread, pWeapon->LaserDuration);
+		}
+	}
 
-	auto nOffset = (pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 3;
-	pThis->DrawOffset.X = ((((pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 4)
-					+ (nOffset -1) & (((nFace >> 11) + 1) >> 1)))
-					% nOffset;
-
-	return 0x4A7329;
+	return 0;
 }
 
-DEFINE_HOOK(0x4A748E , DiskLaserClass_Update_CalculatePoint, 0x5)
+DEFINE_HOOK(0x51A2F1, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
-	GET(DiskLaserClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, EDI);
 
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis->Weapon);
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		CoordStruct coords = pThis->GetCoords();
+		VocClass::PlayAt(BuildingTypeExt::ExtMap.Find(static_cast<BuildingClass*>(pThis)->Type)->EnterBioReactorSound.Get(RulesGlobal->EnterBioReactorSound), coords, 0);
 
-	if (!pExt->DiskLaser_FiringOffset.isset())
-		return 0x0;
+		return 0x51A30F;
+	}
 
-	auto nOffset = (pExt->DiskLaser_FiringOffset.Get().Y - pExt->DiskLaser_FiringOffset.Get().X) >> 3;
-
-	LEA_STACK(CoordStruct*, pCoord, 0x44);
-
-	auto nFLH = pThis->Owner->GetFLH(pCoord, 0, CoordStruct::Empty);
-
-	R->Stack(0x38, nFLH->X);
-	R->Stack(0x3C, nFLH->Y);
-	R->EBP(nFLH->Z);
-	R->ECX(pThis->DrawOffset.Y);
-
-	R->EBX((pThis->DrawOffset.X + nOffset - pThis->DrawOffset.Y) % nOffset);
-	R->EDX((nOffset - pThis->DrawOffset.Y + pThis->DrawOffset.X - 1) % nOffset);
-	R->EAX((pThis->DrawOffset.X + pThis->DrawOffset.Y) % nOffset);
-	R->EDI((pThis->DrawOffset.Y + pThis->DrawOffset.X + 1) % nOffset);
-
-	return 0x4A7507;
+	return 0;
 }
 
-DEFINE_HOOK(0x73C6F5 ,UnitClass_DrawAsSHP_StandFrame, 0x9)
+DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
-	GET(UnitTypeClass*, pType, ECX);
-	GET(UnitClass*, pThis, EBP);
-	GET(int, nFrame, EBX);
+	GET(BuildingClass*, pThis, EBP);
 
-	auto nStand = pType->StandingFrames;
-	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
-	if (pType->IdleRate > 0)
-		nStandStartFrame += pThis->WalkedFramesSoFar;
+	CoordStruct coords = pThis->GetCoords();
+	VocClass::PlayAt(BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesGlobal->LeaveBioReactorSound), coords, 0);
 
-	R->EBX(nStandStartFrame);
+	return 0x44DBDA;
+}
 
-	return 0x73C725;
+//TODO : Add PerTechnoOverride
+DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
+{
+	enum { CanUse = 0x639DDD, ContinueCheck = 0x639E03 };
+
+	GET(TechnoClass*, pThis, ESI);
+	auto const pWhat = pThis->WhatAmI();
+
+	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Unit || pWhat == AbstractType::Aircraft)
+		return CanUse;
+
+	return ContinueCheck;
 }

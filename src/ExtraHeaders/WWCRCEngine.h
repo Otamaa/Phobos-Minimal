@@ -6,7 +6,7 @@
 class WWCRCEngine
 {
 public:
-	void Add(bool bIn)
+	void Add_Bool(bool bIn)
 	{
 		JMP_THIS(0x4A1CA0);
 	}

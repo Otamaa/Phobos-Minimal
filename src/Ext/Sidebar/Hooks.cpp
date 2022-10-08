@@ -1,6 +1,6 @@
 #include "Body.h"
 
-#include <HouseClass.h>
+#include <Ext/House/Body.h>
 #include <FactoryClass.h>
 #include <FileSystem.h>
 #include <Ext/Side/Body.h>
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A6EB1, SidebarClass_DrawIt_ProducingProgress, 0x6)
 {
-	if (Phobos::UI::ShowProducingProgress && HouseClass::CurrentPlayer() != HouseClass::Observer())
+	if (Phobos::UI::ShowProducingProgress && !HouseExt::IsObserverPlayer())
 	{
 		auto pPlayer = HouseClass::CurrentPlayer();
 		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));

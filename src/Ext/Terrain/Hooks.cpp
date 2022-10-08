@@ -16,7 +16,7 @@
 */
 DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_Add, 0x7)
 {
-	enum {PostMortemReturn = 0x71B994 , CheckNowDead = 0x71B9A7 , SetReturn = 0x71BB79};
+	enum { PostMortemReturn = 0x71B994, CheckNowDead = 0x71B9A7, SetReturn = 0x71BB79 };
 
 	GET(DamageState, nState, EAX);
 	GET(TerrainClass*, pThis, ESI);
@@ -25,14 +25,13 @@ DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_Add, 0x7)
 	R->EAX(nState);
 	R->Stack(0x10, nState);
 
-	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(ReceiveDamageArgs.WH);
-
 	// ignite this terrain object
 	auto nDamage = ReceiveDamageArgs.Damage;
 	if (!pThis->IsBurning && *nDamage > 0 && ReceiveDamageArgs.WH->Sparky)
 	{
+		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(ReceiveDamageArgs.WH);
 		const bool spawn = pWarheadExt->Flammability.isset() ?
-			(ScenarioClass::Instance->Random.PercentChance(abs(pWarheadExt->Flammability.Get()))):true;
+			(ScenarioClass::Instance->Random.PercentChance(abs(pWarheadExt->Flammability.Get()))) : true;
 
 		if (spawn)
 			pThis->Ignite();
@@ -54,15 +53,15 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
 	GET(TerrainClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x3C, -0x4));
 
-	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type))
-	{
-		auto const nCoords = pThis->GetCenterCoord();
-		VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
+	auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+	auto const nCoords = pThis->GetCenterCoord();
+	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 
-		if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
-				AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), ReceiveDamageArgs.Attacker, false);
-			}
+	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr))
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
+		{
+			AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), ReceiveDamageArgs.Attacker, false);
 		}
 	}
 
@@ -94,7 +93,8 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
 
-	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType)) {
+	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType))
+	{
 		pConvert = pTerrainExt->CustomPalette.GetOrDefaultConvert(pConvert);
 	}
 

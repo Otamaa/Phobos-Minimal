@@ -10,7 +10,7 @@
 
 #include <New/Entity/ShieldClass.h>
 
-//Static init
+#ifdef ENABLE_NEWHOOKS
 TEventExt::ExtContainer TEventExt::ExtMap;
 
  void TEventExt::ExtData::InitializeConstants() { }
@@ -35,6 +35,7 @@ void TEventExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	Extension<TEventClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
+#endif
 
 // helper struct
 namespace std {
@@ -173,6 +174,7 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 	return false;
 }
 
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // container
 
@@ -194,7 +196,6 @@ bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container hooks
 
-#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x1E7FB, TEventClass_CTOR, 0x5)
 {
 	GET(TEventClass*, pItem, ESI);

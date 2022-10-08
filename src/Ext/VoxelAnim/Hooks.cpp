@@ -25,7 +25,7 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 
 	auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
 
-	if (pThisExt && !pThisExt->LaserTrails.empty())
+	if (!pThisExt->LaserTrails.empty())
 	{
 		CoordStruct location = pThis->GetCoords();
 		CoordStruct drawnCoords = location;
@@ -57,16 +57,15 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 
 	//overridden instruction
 	R->Stack(0x12, R->AL());
-	const auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
 
 	if (!pThis->Type) {
-		pThis->Type = VoxelAnimTypeClass::Find(pThisExt->ID.data());
+		pThis->Type = VoxelAnimTypeClass::Find(VoxelAnimExt::ExtMap.Find(pThis)->ID.data());
 	}
 
 	CoordStruct nLocation = pThis->GetCoords();
 
 	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
-	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt && pTypeExt->Damage_DealtByOwner.Get());
+	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, pTypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
 
 	GET8(bool, LandIsWater, CL);
@@ -114,7 +113,7 @@ DEFINE_HOOK(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 
 	auto nCoords = pThis->GetCoords();
 	auto TypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
-	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, TypeExt && TypeExt->Damage_DealtByOwner.Get());
+	TechnoClass* pInvoker = VoxelAnimExt::GetTechnoOwner(pThis, TypeExt->Damage_DealtByOwner.Get());
 	auto const pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->OwnerHouse;
 
 	if (auto pAnim = GameCreate<AnimClass>(pThis->Type->BounceAnim, nCoords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {

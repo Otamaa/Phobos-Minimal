@@ -89,14 +89,11 @@ void BuildingExt::StoreTiberium(BuildingClass* pThis, float amount, int idxTiber
 	{
 		if (auto pBuildingType = pThis->Type)
 		{
-			if (auto const pExt = BuildingTypeExt::ExtMap.Find(pBuildingType))
+			if (BuildingTypeExt::ExtMap.Find(pBuildingType)->Refinery_UseStorage)
 			{
-				if (pExt->Refinery_UseStorage)
-				{
-					// Store Tiberium in structures
-					depositableTiberiumAmount = (amount * pTiberium->Value) / pDepositableTiberium->Value;
-					pThis->Owner->GiveTiberium(depositableTiberiumAmount, idxStorageTiberiumType);
-				}
+				// Store Tiberium in structures
+				depositableTiberiumAmount = (amount * pTiberium->Value) / pDepositableTiberium->Value;
+				pThis->Owner->GiveTiberium(depositableTiberiumAmount, idxStorageTiberiumType);
 			}
 		}
 	}
@@ -214,14 +211,12 @@ int BuildingExt::CountOccupiedDocks(BuildingClass* pBuilding)
 {
 	int nOccupiedDocks = 0;
 
-	if (!pBuilding || !pBuilding->Type || pBuilding->WhatAmI() != AbstractType::Building)
+	if (!pBuilding || pBuilding->WhatAmI() != AbstractType::Building || !pBuilding->Type)
 		return 0;
 
-	if (pBuilding->RadioLinks.IsAllocated && pBuilding->RadioLinks.IsInitialized)
-	{
-		for (auto i = 0; i < pBuilding->RadioLinks.Capacity; ++i)
-		{
-			if (auto const pLink = pBuilding->GetNthLink(i))
+	if (pBuilding->RadioLinks.IsAllocated && pBuilding->RadioLinks.IsInitialized) {
+		for (auto i = 0; i < pBuilding->RadioLinks.Capacity; ++i) {
+			if (auto const pLink = pBuilding->RadioLinks[i])
 				if(pLink->WhatAmI() == AbstractType::Aircraft)
 					nOccupiedDocks++;
 		}
@@ -240,18 +235,20 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 	if (!pBuilding->Type->Grinding)
 		return false;
 
-	if (pTechno->WhatAmI() != AbstractType::Infantry && pTechno->WhatAmI() != AbstractType::Unit)
+	auto const pWhat = pTechno->WhatAmI();
+	if (pWhat != AbstractType::Infantry && pWhat != AbstractType::Unit)
 		return false;
 
 	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) &&
-		(pTechno->WhatAmI() == AbstractType::Infantry && !pBuilding->Type->InfantryAbsorb ||
-			pTechno->WhatAmI() == AbstractType::Unit && !pBuilding->Type->UnitAbsorb))
+		(pWhat == AbstractType::Infantry && !pBuilding->Type->InfantryAbsorb ||
+			pWhat == AbstractType::Unit && !pBuilding->Type->UnitAbsorb))
 	{
 		return false;
 	}
 
-	if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
 	{
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
 		if (pBuilding->Owner == pTechno->Owner && !pExt->Grinding_AllowOwner.Get())
 			return false;
 
@@ -270,10 +267,11 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 
 bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
-	if (const auto pExt = BuildingExt::ExtMap.Find(pBuilding))
+	const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
 	{
-		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		if (!pTypeExt || !pTechno)
+		if (!pTechno)
 			return false;
 
 		if (pTypeExt->Grinding_DisplayRefund &&	EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
@@ -312,6 +310,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
 		.Process(this->IsInLimboDelivery)
+		.Process(this->LighningNeedUpdate)
 
 		;
 }

@@ -1,9 +1,9 @@
 #include "Body.h"
 
 #include <Ext/Techno/Body.h>
-
+#ifdef ENABLE_NEWHOOKS
 ParasiteExt::ExtContainer ParasiteExt::ExtMap;
-
+#endif
 void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 #ifdef PARASITE_PIPS
@@ -49,7 +49,7 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 	}
 #endif
 }
-
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // load / save
 template <typename T>
@@ -87,7 +87,7 @@ ParasiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x62937F, ParasiteClass_CTOR, 0x6)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);

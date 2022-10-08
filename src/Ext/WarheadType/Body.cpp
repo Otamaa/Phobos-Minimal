@@ -80,9 +80,9 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 {
 	auto nArmor = pTechno->GetTechnoType()->Armor;
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
-		if (pExt->GetShield() && pExt->GetShield()->IsActive())
-			nArmor = pExt->GetShield()->GetType()->Armor;
+	if (auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield())
+		if (pShield->IsActive())
+			nArmor = pShield->GetType()->Armor;
 
 	if (damageIn > 0)
 		DamageResult = MapClass::GetTotalDamage(damageIn, Get(), nArmor, distanceFromEpicenter);
@@ -117,7 +117,6 @@ bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno,
 {
 	if (pTechno)
 	{
-
 		auto const pType = pTechno->GetTechnoType();
 
 		if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
@@ -156,10 +155,9 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
 	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pATarget, pOwner,
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pATarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
 		const CoordStruct& coords = pTarget->GetCoords();
@@ -175,10 +173,9 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
 	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
 		pBullet->Limbo();
@@ -574,7 +571,6 @@ bool WarheadTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 
 WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
-
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 
 //void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }

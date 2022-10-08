@@ -8,7 +8,6 @@ class AircraftExt
 {
 public:
 	static constexpr size_t Canary = 0x3939618A;
-
 	using base_type = AircraftClass;
 
 	class ExtData final : public TExtension<AircraftClass>

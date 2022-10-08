@@ -17,11 +17,16 @@ public:
 	public:
 
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
+		WeaponStruct CrawlingWeaponDatas[4];
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, DeathBodies_UseDieSequenceAsIndex { false }
+			, CrawlingWeaponDatas { }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData()
+		{
+		};
+
 		void LoadFromINIFile(CCINIClass* pINI);
 		void InvalidatePointer(void* const ptr, bool bRemoved);
 		void InitializeConstants();

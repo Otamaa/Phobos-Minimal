@@ -39,7 +39,7 @@ bool Helpers::Otamaa::LauchSW(SuperWeaponTypeClass* LaunchWhat,
 			{
 				auto const nWhere = Map[Where]->MapCoords;
 				bool const lauch = (WaitForCharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
-				bool const bIsObserver = HouseOwner->IsObserver() || HouseOwner->IsCurrentPlayerObserver();
+				bool const bIsObserver = HouseOwner->IsObserver();
 				bool const MoneyEligible = IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
 				bool const InhibitorEligible = IgnoreInhibitor ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
 				bool const DesignatorEligible = IgnoreDesignator ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);

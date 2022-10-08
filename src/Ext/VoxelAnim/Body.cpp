@@ -10,10 +10,7 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOw
 	if (!DealthByOwner)
 		return nullptr;
 
-	if (auto pExt = VoxelAnimExt::ExtMap.Find(pThis))
-		return pExt->Invoker;
-
-	return nullptr;
+	return VoxelAnimExt::ExtMap.Find(pThis)->Invoker;
 }
 
 void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
@@ -57,7 +54,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif
-	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(Get()->Type))
+	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find<true>(Get()->Type))
 	{
 		ID = Get()->Type->ID;
 		if (pTypeExt->LaserTrail_Types.size() > 0)

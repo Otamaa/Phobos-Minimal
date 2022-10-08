@@ -32,7 +32,9 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					if (pThis->Type->SpawnsTiberium && Map.IsValid(pThis->Location)) {
 						if (auto const pCell = Map[pThis->Location]) {
 							int cellCount = 1;
-							if(auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type)) {
+							auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+
+							{
 								cellCount = pTypeExt->GetCellsPerAnim();
 
 								// Set context for CellClass hooks.
@@ -109,11 +111,15 @@ DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 	GET_STACK(ColorStruct*, arg4, STACK_OFFS(0x14, -0x8));
 
 	if (const auto pTerrain = pThis->GetTerrain(false)) {
-		if (pTerrain->Type->RadarInvisible) {
+		if (pTerrain->Type->RadarInvisible)
+		{
 			R->ESI(pThis);
 			return SkipTerrainColor;
 		}
-		else if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type)) {
+		else
+		{
+			auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
+
 			if (pTerrainExt->MinimapColor.isset())
 			{
 				auto& color = pTerrainExt->MinimapColor.Get();

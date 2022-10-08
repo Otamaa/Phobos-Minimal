@@ -11,76 +11,67 @@ AircraftExt::ExtContainer AircraftExt::ExtMap;
 
 void _fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, DWORD, int nMult)
 {
-	if (auto pType = pThis->GetTechnoType())
+	auto pType = pThis->GetTechnoType();
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	bool PlayDeathWeapon = true;
+
+	if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		if (pTypeExt)
+		if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pThis->GetCell(), pThis,
+			pWeapon))
 		{
-			if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
-			{
-				auto pWeaponExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
-
-				if (BulletClass* pBullet = pWeaponExt->CreateBullet(pThis->GetCell(), pThis,
-					pWeapon))
-				{
-					const CoordStruct& coords = pThis->GetCoords();
-					pBullet->SetWeaponType(pWeapon);
-					pBullet->Limbo();
-					pBullet->SetLocation(coords);
-					pBullet->Explode(true);
-					pBullet->UnInit();
-					goto playDestroyAnim;
-				}
-			}
+			const CoordStruct& coords = pThis->GetCoords();
+			pBullet->SetWeaponType(pWeapon);
+			pBullet->Limbo();
+			pBullet->SetLocation(coords);
+			pBullet->Explode(true);
+			pBullet->UnInit();
+			PlayDeathWeapon = false;
 		}
+	}
 
+	if (PlayDeathWeapon)
 		pThis->FireDeathWeapon(nMult);
 
-	playDestroyAnim:
+	if (pType->DestroyAnim.Size() > 0)
+	{
+		auto const facing = pThis->PrimaryFacing.Current().GetFacing<256>();
+		int idxAnim = 0;
 
-		if (pType->DestroyAnim.Size() > 0)
+		if (pTypeExt && !pTypeExt->DestroyAnim_Random.Get())
 		{
-			auto const facing = pThis->PrimaryFacing.Current().GetFacing<256>();
-			int idxAnim = 0;
-
-			if (pTypeExt && !pTypeExt->DestroyAnim_Random.Get())
+			if (pType->DestroyAnim.Count >= 8)
 			{
-				if (pType->DestroyAnim.Count >= 8)
-				{
-					idxAnim = pType->DestroyAnim.Count;
-					if (pType->DestroyAnim.Count % 2 == 0)
-						idxAnim *= static_cast<int>(facing / 256.0);
-				}
+				idxAnim = pType->DestroyAnim.Count;
+				if (pType->DestroyAnim.Count % 2 == 0)
+					idxAnim *= static_cast<int>(facing / 256.0);
 			}
-			else
-			{
-				if (pType->DestroyAnim.Count > 1)
-					idxAnim = ScenarioClass::Instance->Random.RandomRanged(0, (pType->DestroyAnim.Count - 1));
-			}
+		}
+		else
+		{
+			if (pType->DestroyAnim.Count > 1)
+				idxAnim = ScenarioClass::Instance->Random.RandomRanged(0, (pType->DestroyAnim.Count - 1));
+		}
 
-			if (AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim])
+		if (AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim])
+		{
+			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 			{
-				if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+				auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
+
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
+					pAnimExt->Invoker = pThis;
+
+				if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
+					pAnimExt->DeathUnitFacing = static_cast<short>(facing);
+
+				if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
 				{
-					auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-					auto const pAnimExt = AnimExt::ExtMap.Find(pAnim);
-
-					if (!pAnimTypeExt || !pAnimExt)
-						return;
-
-					if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
-						pAnimExt->Invoker = pThis;
-
-					if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-						pAnimExt->DeathUnitFacing = static_cast<short>(facing);
-
-					if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
+					if (pThis->HasTurret())
 					{
-						if (pThis->HasTurret())
-						{
-							pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
-						}
+						pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
 					}
 				}
 			}
@@ -91,14 +82,21 @@ void _fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, DWORD, int nM
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
 	int weaponIndex = pThis->SelectWeapon(pTarget);
-	auto weaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
-	auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(weaponType);
+	auto pWeaponStruct = pThis->GetWeapon(weaponIndex);
+
+	if (!pWeaponStruct)
+		return;
+
+	auto weaponType = pWeaponStruct->WeaponType;
+
+	if (!weaponType)
+		return;
 
 	if (weaponType->Burst > 0)
 	{
 		for (int i = 0; i < weaponType->Burst; i++)
 		{
-			if (weaponType->Burst < 2 && pWeaponTypeExt->Strafing_SimulateBurst)
+			if (weaponType->Burst < 2 && WeaponTypeExt::ExtMap.Find(weaponType)->Strafing_SimulateBurst)
 				pThis->CurrentBurstIndex = (int)shotNumber;
 
 			pThis->Fire(pTarget, weaponIndex);
@@ -118,13 +116,11 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	if (!weaponType)
 		return;
 
-	auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(weaponType);
-
 	if (weaponType->Burst > 0)
 	{
 		for (int i = 0; i < weaponType->Burst; i++)
 		{
-			if (weaponType->Burst < 2 && pWeaponTypeExt->Strafing_SimulateBurst)
+			if (weaponType->Burst < 2 && WeaponTypeExt::ExtMap.Find(weaponType)->Strafing_SimulateBurst)
 				pThis->CurrentBurstIndex = (int)shotNumber;
 
 			pThis->Fire(pTarget, WeaponIdx);
@@ -134,13 +130,11 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
 {
-	auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
 	if (pWeapon->Burst > 0)
 	{
 		for (int i = 0; i < pWeapon->Burst; i++)
 		{
-			if (pWeapon->Burst < 2 && pWeaponTypeExt->Strafing_SimulateBurst)
+			if (pWeapon->Burst < 2 && WeaponTypeExt::ExtMap.Find(pWeapon)->Strafing_SimulateBurst)
 				pThis->CurrentBurstIndex = (int)shotNumber;
 
 			pThis->Fire(pTarget, WeaponIdx);
@@ -189,6 +183,7 @@ bool AircraftExt::SaveGlobals(PhobosStreamWriter& Stm)
 AircraftExt::ExtContainer::ExtContainer() : TExtensionContainer("AircraftClass") { }
 AircraftExt::ExtContainer::~ExtContainer() = default;
 
+#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x413F6A, AircraftClass_CTOR, 0x7)
 {
 	GET(AircraftClass*, pItem, ESI);
@@ -243,3 +238,4 @@ DEFINE_HOOK(0x41B685, AircraftClass_Detach, 0x6)
 
 	return 0x0;
 }
+#endif

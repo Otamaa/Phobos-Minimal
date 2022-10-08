@@ -176,9 +176,8 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	GET(ILocomotion*, pThis, ESI);
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
-	const auto pExt = TechnoExt::ExtMap.Find(pLoco->LinkedTo);
 
-	if (const auto pShieldData = pExt->GetShield())
+	if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
 	{
 		pShieldData->HideAnimations();
 		pShieldData->KillAnim();
@@ -193,11 +192,8 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 
-	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
-	{
-		const auto pExt = TechnoExt::ExtMap.Find(pLoco->LinkedTo);
-
-		if (const auto pShieldData = pExt->GetShield())
+	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT) {
+		if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->ShowAnimations();
 	}
 
@@ -268,51 +264,6 @@ public:
 	}
 
 };
-
-static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
-{
-	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
-		if (pShieldData->IsAvailable()) {
-			auto const pShiedType = pShieldData->GetType();
-			if (pShiedType->ThreadPosed.isset())
-				return pShiedType->ThreadPosed.Get();
-		}
-	}
-
-	return pType->ThreatPosed;
-}
-
-DEFINE_HOOK(0x708BA3, TechnoClass_ThreatPosed_Shield, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EDI);
-	R->EAX(ReplaceThreadPosed(pThis, pType));
-	return 0x708BA9;
-}
-
-DEFINE_HOOK(0x708B9A, TechnoClass_ThreadPosed_BunkerLinked_Shield, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET(TechnoTypeClass*, pType, EAX);
-	R->EAX(ReplaceThreadPosed(pThis, pType));
-	return 0x708BA0;
-}
-
-DEFINE_HOOK(0x4F6B97, HouseClass_Apparent_Category_Power_Shield, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	R->ECX(ReplaceThreadPosed(pThis, pType));
-	return 0x4F6B9D;
-}
-
-DEFINE_HOOK(0x4F6B27, HouseClass_Category_Power_Shield, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	R->ECX(ReplaceThreadPosed(pThis, pType));
-	return 0x4F6B2D;
-}
 
 #pragma region UnitClass_GetFireError_Heal
 

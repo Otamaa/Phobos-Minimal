@@ -24,11 +24,9 @@ DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
-		if (auto const TypeExt = BuildingTypeExt::ExtMap.Find(Building->Type)) {
-			GET_STACK(int, nDamage, 0x2C);
-			R->EAX(Game::F2I(nDamage * TypeExt->BuildingOccupyDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
-			return ApplyDamageBonus;
-		}
+		GET_STACK(int, nDamage, 0x2C);
+		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
+		return ApplyDamageBonus;
 	}
 
 	return Nothing;
@@ -45,11 +43,9 @@ DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
-		if (auto const TypeExt = BuildingTypeExt::ExtMap.Find(Building->Type)) {
-			GET_STACK(int, nDamage, 0x2C);
-			R->EAX(Game::F2I(nDamage * TypeExt->BuildingBunkerDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
-			return ApplyDamageBonus;
-		}
+		GET_STACK(int, nDamage, 0x2C);
+		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
+		return ApplyDamageBonus;
 	}
 
 	return Nothing;
@@ -67,15 +63,15 @@ DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
-		if (auto const TypeExt = BuildingTypeExt::ExtMap.Find(Building->Type)) {
-			auto const nMult = TypeExt->BuildingOccupyROFMult.Get(RulesGlobal->OccupyROFMultiplier);
-			if (nMult != 0.0f) {
-				GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
-				R->EAX(Game::F2I(((double)nROF) / nMult));
-				return ApplyRofMod;
-			}
-			return SkipRofMod;
+		auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyROFMult.Get(RulesGlobal->OccupyROFMultiplier);
+
+		if (nMult != 0.0f) {
+			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
+			R->EAX(Game::F2I(((double)nROF) / nMult));
+			return ApplyRofMod;
 		}
+
+		return SkipRofMod;
 	}
 
 	return Nothing;
@@ -93,15 +89,14 @@ DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
-		if (auto const TypeExt = BuildingTypeExt::ExtMap.Find(Building->Type)) {
-			auto const nMult = TypeExt->BuildingBunkerROFMult.Get(RulesGlobal->BunkerROFMultiplier);
-			if (nMult != 0.0f) {
-				GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
-				R->EAX(Game::F2I(((double)nROF) / nMult));
-					return ApplyRofMod;
-			}
-				return SkipRofMod;
+			auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerROFMult.Get(RulesGlobal->BunkerROFMultiplier);
+		if (nMult != 0.0f) {
+			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
+			R->EAX(Game::F2I(((double)nROF) / nMult));
+				return ApplyRofMod;
 		}
+
+		return SkipRofMod;
 	}
 
 	return Nothing;

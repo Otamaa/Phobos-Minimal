@@ -104,10 +104,6 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 {
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	auto const pTypeExt = pExt->TypeExt;
-
-	if (!pExt || !pTypeExt)
-		return;
-
 	bool canAffect = false;
 	bool isIntercepted = false;
 
@@ -176,8 +172,8 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 					TrailsManager::Construct(pExt->Get());
 #endif
 
-					LineTrailExt::DeallocateLineTrail(pThis);
-					LineTrailExt::ConstructLineTrails(pThis);
+					//LineTrailExt::DeallocateLineTrail(pThis);
+					//LineTrailExt::ConstructLineTrails(pThis);
 				}
 			}
 		}

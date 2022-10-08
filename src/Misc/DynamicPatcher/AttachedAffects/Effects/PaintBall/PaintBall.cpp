@@ -2,6 +2,7 @@
 #include "PaintBall.h"
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 
 void PaintballType::Read(INI_EX& parser, const char* pSection)
 {
@@ -38,7 +39,8 @@ void PaintballType::Read(INI_EX& parser, const char* pSection)
 void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const PaintballType& data)
 {
 
-	if (!Token) {
+	if (!Token)
+	{
 		if (duration <= -1)
 			return;
 
@@ -48,9 +50,11 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 		return;
 	}
 
-	if (Token == pAffector) {
-		if (!data.Accumulate && IsActive()) {
-			if(!data.Override)
+	if (Token == pAffector)
+	{
+		if (!data.Accumulate && IsActive())
+		{
+			if (!data.Override)
 				return;
 			else
 			{
@@ -58,14 +62,19 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 				timer.Start(duration);
 				return;
 			}
-		} else {
+		}
+		else
+		{
 			auto nTimeLeft = timer.GetTimeLeft() + duration;
-			if (nTimeLeft <= 0) {
+			if (nTimeLeft <= 0)
+			{
 				timer.Stop();
 				Token = nullptr;
 				Data.clear();
 
-			} else {
+			}
+			else
+			{
 				timer.Add(nTimeLeft);
 			}
 		}
@@ -73,11 +82,13 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 		return;
 	}
 
-	if(Token != pAffector) {
+	if (Token != pAffector)
+	{
 		if (duration <= -1)
 			return;
 
-		if(IsActive()) {
+		if (IsActive())
+		{
 			timer.Stop();
 			Token = nullptr;
 			Data.clear();
@@ -90,7 +101,8 @@ void PaintBall::Enable(int duration, WarheadTypeClass* pAffector, const Paintbal
 	}
 }
 
-uintptr_t PaintBall::GetColor() {
+uintptr_t PaintBall::GetColor()
+{
 	// readed as 3Bytes
 	// but this is actually Color16
 	// then need to make it ColorStruct
@@ -100,9 +112,10 @@ uintptr_t PaintBall::GetColor() {
 	return Drawing::RGB2DWORD(nColorAgain);
 }
 
-static inline bool AllowRedraw(TechnoClass* pWho, bool bForce ,bool bIgnoreShroud , bool bIgnoreFog)
+static inline bool AllowRedraw(TechnoClass* pWho, bool bForce, bool bIgnoreShroud, bool bIgnoreFog)
 {
-	if(auto pCell = pWho->GetCell()) {
+	if (auto pCell = pWho->GetCell())
+	{
 
 		if (pCell->IsShrouded() && !bIgnoreShroud)
 			return false;
@@ -127,7 +140,7 @@ void PaintBall::DrawSHP_Paintball(TechnoClass* pTech, REGISTERS* R)
 {
 	auto const& [rePaint, changeColor, changeBright] = NeedPaint();
 
-	if (!rePaint || !AllowRedraw(pTech ,!rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
+	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
 		return;
 
 	if (changeColor)
@@ -148,11 +161,13 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 	if (!rePaint || !AllowRedraw(pTech, !rePaint, Data.get().IgnoreShroud, Data.get().IgnoreFog))
 		return;
 
-	if (changeColor) {
+	if (changeColor)
+	{
 		R->EBP(GetColor());
 	}
 
-	if (changeBright) {
+	if (changeBright)
+	{
 		uintptr_t bright = R->Stack<uintptr_t>(0x38);
 		R->Stack<uintptr_t>(0x38, GetBright(bright));
 	}
@@ -160,14 +175,21 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 
 void PaintBall::Update(TechnoClass* pThis)
 {
-	if(auto pExt = TechnoExt::ExtMap.Find(pThis)){
-		if (pExt->PaintBallState) {
-			if (pExt->PaintBallState->IsActive()) {
-				if (pThis->WhatAmI() == AbstractType::Building)
-					pThis->UpdatePlacement(PlacementType::Redraw);
-			} else {
-				pExt->PaintBallState->Disable(true);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pExt->PaintBallState)
+	{
+		if (pExt->PaintBallState->IsActive())
+		{
+			if (pThis->WhatAmI() == AbstractType::Building)
+			{
+				BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 			}
+
+		}
+		else
+		{
+			pExt->PaintBallState->Disable(true);
 		}
 	}
 }
@@ -213,9 +235,9 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 {
 	GET(UnitClass* const, pOwnerObject, EBP);
 
-	if(auto pExt = TechnoExt::ExtMap.Find(pOwnerObject))
-		if(pExt->PaintBallState.get())
-			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
+	auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+	if (pExt->PaintBallState.get())
+		pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, false);
 
 	return 0;
 }
@@ -224,14 +246,18 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0xC)
 {
 	GET(AnimClass*, pAnim, ESI);
 
-	if (pAnim && pAnim->IsBuildingAnim) {
-		if (auto pCell = pAnim->GetCell()) {
-			if (auto pBuilding = pCell->GetBuilding()) {
-				if(pBuilding->IsAlive && !pBuilding->Type->Invisible){
-					if (auto pExt = TechnoExt::ExtMap.Find(pBuilding)) {
-						if (pExt->PaintBallState){
-							pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
-						}
+	if (pAnim && pAnim->IsBuildingAnim)
+	{
+		if (auto pCell = pAnim->GetCell())
+		{
+			if (auto pBuilding = pCell->GetBuilding())
+			{
+				if (pBuilding->IsAlive && !pBuilding->Type->Invisible)
+				{
+					auto pExt = TechnoExt::ExtMap.Find(pBuilding);
+					if (pExt->PaintBallState)
+					{
+						pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
 					}
 				}
 			}
@@ -241,15 +267,15 @@ DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0xC)
 	return 0;
 }
 
- //case VISUAL_NORMAL
+//case VISUAL_NORMAL
 DEFINE_HOOK(0x7063FF, TechnoClass_DrawSHP_Colour, 0x7)
 {
 	GET(TechnoClass* const, pOwnerObject, ESI);
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pOwnerObject)) {
-		if(pExt->PaintBallState.get())
-			pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
-	}
+	auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+
+	if (pExt->PaintBallState.get())
+		pExt->PaintBallState->DrawSHP_Paintball(pOwnerObject, R);
 
 	return 0;
 }
@@ -258,11 +284,13 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 {
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
-	if (pOwnerObject->WhatAmI() == AbstractType::Building) {
-		if (auto pExt = TechnoExt::ExtMap.Find(pOwnerObject)) {
-			if (pExt->PaintBallState.get())
-				pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
-		}
+	if (pOwnerObject->WhatAmI() == AbstractType::Building)
+	{
+		auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
+
+		if (pExt->PaintBallState.get())
+			pExt->PaintBallState->DrawVXL_Paintball(pOwnerObject, R, true);
+
 	}
 
 	return 0;

@@ -9,22 +9,23 @@ AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
 // =============================
 // load / save
 
+
 void AITriggerTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AITriggerTypeClass>::Serialize(Stm);
+	TExtension<AITriggerTypeClass>::Serialize(Stm);
 	// Nothing yet
 }
 
 void AITriggerTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AITriggerTypeClass>::Serialize(Stm);
+	TExtension<AITriggerTypeClass>::Serialize(Stm);
 	// Nothing yet
 }
 
 // =============================
 // container
 
-AITriggerTypeExt::ExtContainer::ExtContainer() : Container("AITriggerTypeClass") { }
+AITriggerTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("AITriggerTypeClass") { }
 AITriggerTypeExt::ExtContainer::~ExtContainer() = default;
 
 void AITriggerTypeExt::ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition)
@@ -232,17 +233,10 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 	return;
 }
 
-#ifdef ENABLE_NEWHOOKS
-
 DEFINE_HOOK(0x41E471, AITriggerTypeClass_CTOR, 0x7)
 {
 	GET(AITriggerTypeClass*, pThis, ESI);
-
-#ifdef ENABLE_NEWHOOKS
 	AITriggerTypeExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr Type !");
-#else
-	AITriggerTypeExt::ExtMap.FindOrAllocate(pThis);
-#endif
 	return 0x0;
 }
 
@@ -273,4 +267,3 @@ DEFINE_HOOK(0x41E5DA , AITriggerTypeClass_Save_Suffix, 0x5)
 	AITriggerTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
-#endif

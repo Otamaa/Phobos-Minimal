@@ -153,6 +153,7 @@ enum class PhobosScripts : unsigned int
 class ScriptExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
@@ -179,6 +180,11 @@ public:
 		~ExtContainer();
 		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
+	static ExtContainer ExtMap;	
+	
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+#endif
 
 	static void ProcessAction(TeamClass * pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass * pTeam);
@@ -218,11 +224,6 @@ public:
 	template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 	static void VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate);
 	static void RallyUnitInMap(TeamClass* pTeam, int nArg);
-
-	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 
 	static bool IsValidFriendlyTarget(TeamClass* pTeam, int group, TechnoClass* target, bool isSelfNaval, bool isSelfAircraft, bool isFriendly);
 	static bool StopTeamMemberMoving(TeamClass* pTeam);

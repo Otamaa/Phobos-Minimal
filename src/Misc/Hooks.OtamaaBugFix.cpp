@@ -25,15 +25,15 @@
 
 #include <Memory.h>
 
-DEFINE_HOOK(0x6FA2C7 , TechnoClass_AI_DrawBehindAnim , 0x8) //was 4
+DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 {
-	GET(TechnoClass* , pThis , ESI);
-	GET_STACK(Point2D , nPoint , STACK_OFFS(0x78 ,0x50));
-	GET_STACK(RectangleStruct , nBound , STACK_OFFS(0x78 ,0x50));
+	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(Point2D, nPoint, STACK_OFFS(0x78, 0x50));
+	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-		if (pBldExt->IsInLimboDelivery)
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery)
 			return 0x6FA2D8;
 	}
 
@@ -61,10 +61,10 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 }
 
 //Lunar limitation
-DEFINE_JUMP(LJMP,0x546C8B, 0x546CBF);
+DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
 
 static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
-	CoordStruct* pCoord ,
+	CoordStruct* pCoord,
 	int Damage,
 	TechnoClass* Source,
 	WarheadTypeClass* Warhead,
@@ -79,7 +79,7 @@ static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
 	(nCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
 }
 
-DEFINE_JUMP(CALL,0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
+DEFINE_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
 
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
@@ -126,7 +126,7 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 }
 
 static	void __fastcall DrawShape_VeinHole
-(	Surface* Surface,
+(Surface* Surface,
 	ConvertClass* Pal,
 	SHPStruct* SHP,
 	int FrameIndex,
@@ -146,10 +146,10 @@ static	void __fastcall DrawShape_VeinHole
 {
 	bool bUseTheaterPal = true;
 	CC_Draw_Shape(Surface, bUseTheaterPal ? FileSystem::THEATER_PAL() : Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
-	 , TintColor, ZShape, ZShapeFrame,XOffset, YOffset);
+	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
-DEFINE_JUMP(CALL,0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
+DEFINE_JUMP(CALL, 0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
@@ -177,8 +177,8 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
 
 	//Debug::Log("Wave Receive Damage for Victim [%x] ! \n", pVictim);
-	if(const auto pUnit = specific_cast<UnitClass*>(pVictim))
-		if(pUnit->DeathFrameCounter > 0)
+	if (const auto pUnit = specific_cast<UnitClass*>(pVictim))
+		if (pUnit->DeathFrameCounter > 0)
 			return 0x75F432;
 
 	pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
@@ -197,7 +197,8 @@ DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6) {
+DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
+{
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
 }
 
@@ -211,8 +212,9 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 	return pThis ? 0x0 : 0x62A976;
 }
 
-DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5) {
-	GET(const TechnoClass* , pThis , ESI);
+DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
+{
+	GET(const TechnoClass*, pThis, ESI);
 	return pThis->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
 }
 
@@ -227,7 +229,7 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 	{
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->GetOwningHouse() :
-											(pExt && pExt->Owner) ? pExt->Owner : nullptr
+											(pExt->Owner) ? pExt->Owner : nullptr
 								, pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner, false);
 
 	}
@@ -241,14 +243,16 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon)) {
-		if (auto pAnimType = pWeaponExt->Feedback_Anim.Get()) {
-			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCenterCoord()) + pWeaponExt->Feedback_Anim_Offset;
-			if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord)) {
-				AnimExt::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
-				if (pThis->WhatAmI() != AbstractType::Building)
-					pFeedBackAnim->SetOwnerObject(pThis);
-			}
+	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (auto pAnimType = pWeaponExt->Feedback_Anim.Get())
+	{
+		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCenterCoord()) + pWeaponExt->Feedback_Anim_Offset;
+		if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
+		{
+			AnimExt::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
+			if (pThis->WhatAmI() != AbstractType::Building)
+				pFeedBackAnim->SetOwnerObject(pThis);
 		}
 	}
 
@@ -325,30 +329,36 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 	GET(int, nHouseIDx, EAX);
 	GET(CellClass*, pCell, EDI);
 	GET(int, idxOverlay, ECX);
-	GET_STACK(BuildingTypeClass*, PlacingObject, STACK_OFFS(0x18 , -0x8));
+	GET_STACK(BuildingTypeClass*, PlacingObject, STACK_OFFS(0x18, -0x8));
 	GET_STACK(HouseClass*, PlacingOwner, STACK_OFFS(0x18, -0xC));
 
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
 	HouseClass* OverlayOwner = nHouseIDx >= 0 ? HouseClass::Array->Items[nHouseIDx] : nullptr;
 
-	if (PlacingObject) {
+	if (PlacingObject)
+	{
 		bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
 
-		if (ContainsWall && (PlacingObject->Gate || RulesExt::Global()->WallTowers.Contains(PlacingObject))) {
+		if (ContainsWall && (PlacingObject->Gate || RulesExt::Global()->WallTowers.Contains(PlacingObject)))
+		{
 			Status = Adequate;
 		}
 
-		if (OverlayTypeClass* ToOverlay = PlacingObject->ToOverlay)	{
-			if (ToOverlay->ArrayIndex == idxOverlay) {
-				if (pCell->OverlayData >= 0x10)	{
+		if (OverlayTypeClass* ToOverlay = PlacingObject->ToOverlay)
+		{
+			if (ToOverlay->ArrayIndex == idxOverlay)
+			{
+				if (pCell->OverlayData >= 0x10)
+				{
 					Status = Adequate;
 				}
 			}
 		}
 	}
 
-	if (Status == Inadequate) {
+	if (Status == Inadequate)
+	{
 		switch (idxOverlay)
 		{
 		case OVERLAY_GASAND:
@@ -370,8 +380,10 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 		}
 	}
 
-	if (Status == Adequate)	{
-		if (PlacingOwner != OverlayOwner) {
+	if (Status == Adequate)
+	{
+		if (PlacingOwner != OverlayOwner)
+		{
 			Status = Inadequate;
 		}
 	}
@@ -423,11 +435,7 @@ DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 DEFINE_JUMP(LJMP, 0x5E0C24, 0x5E0C4E)
 
 //HouseClass_AllyAIHouses 0x5
-DEFINE_JUMP(LJMP, 0x501640, 0x50174E)
-
-//remove ISHuman check
-DEFINE_JUMP(LJMP, 0x6A55BF, 0x6A55C8)
-DEFINE_JUMP(LJMP, 0x6A57F6 , 0x6A57FF)
+//DEFINE_JUMP(LJMP, 0x501640, 0x50174E)
 
 DEFINE_HOOK(0x5D6BE0, MPGameModeClass_StartingPositionsToHouseBaseCells_Debug, 0x7)
 {
@@ -451,34 +459,90 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 
 DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
 
-static BulletClass* Fuse_Bullet = nullptr;
-DEFINE_HOOK(0x467C2A, BulletClass_AI_Fuse_FetchBullet, 0x5)
-{
-	Fuse_Bullet = R->EBP<BulletClass*>();
-	return 0x0;
-}
 
-DEFINE_HOOK(0x4E1278, FuseClass_BulletProximity, 0x5)
+Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 {
-	GET(int, nRange, EAX);
-	auto const pBullet = Fuse_Bullet;
+	auto& nFuse = pBullet->Data;
+
+	int v3 = nFuse.ArmTimer.StartTime;
+	int v4 = nFuse.ArmTimer.TimeLeft;
+	if (v3 == -1)
+	{
+	LABEL_4:
+		if (v4)
+		{
+			return Fuse::DontIgnite;
+		}
+		goto LABEL_5;
+	}
+	if (Unsorted::CurrentFrame - v3 < v4)
+	{
+		v4 -= Unsorted::CurrentFrame - v3;
+		goto LABEL_4;
+	}
+LABEL_5:
+	int y = newlocation->Y - nFuse.Location.Y;
+	int z = newlocation->Z - nFuse.Location.Z;
+	int proximity = Game::F2I(Math::sqrt(static_cast<double>((newlocation->X - nFuse.Location.X)) * static_cast<double>((newlocation->X - nFuse.Location.X)) + static_cast<double>(y) * static_cast<double>(y) + static_cast<double>(z) * static_cast<double>(z)) / 2);
 
 	int nProx = 32;
-	if (auto pExt = BulletExt::ExtMap.Find(pBullet)) {
-		if (pExt->TypeExt->Proximity_Range.isset())
-			nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
+	auto pExt = BulletExt::ExtMap.Find(pBullet);
+	if (pExt->TypeExt->Proximity_Range.isset())
+		nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
+
+	if (proximity < nProx)
+	{
+		return Fuse::Ignite;
 	}
 
-	Fuse_Bullet = nullptr;
-	return (nProx) <= nRange ? 0x4E1289 : 0x4E127D;
+	if (proximity < 256 && proximity > nFuse.Distance)
+	{
+		return Fuse::Ignite_DistaceFactor;
+	}
+
+	nFuse.Distance = proximity;
+
+	return Fuse::DontIgnite;
 }
+
+DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
+{
+	GET(BulletClass*, pThis, EBP);
+	GET(CoordStruct*, pCoord, EAX);
+
+	R->EAX(FuseCheckup(pThis, pCoord));
+	return 0x467C3A;
+}
+
+//static BulletClass* Fuse_Bullet = nullptr;
+//DEFINE_HOOK(0x467C2A, BulletClass_AI_Fuse_FetchBullet, 0x5)
+//{
+//	Fuse_Bullet = R->EBP<BulletClass*>();
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x4E1278, FuseClass_BulletProximity, 0x5)
+//{
+//	GET(int, nRange, EAX);
+//	auto const pBullet = Fuse_Bullet;
+//
+//	int nProx = 32;
+//	auto pExt = BulletExt::ExtMap.Find(pBullet);
+//	if (pExt->TypeExt->Proximity_Range.isset())
+//		nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
+//
+//	Fuse_Bullet = nullptr;
+//	return (nProx) <= nRange ? 0x4E1289 : 0x4E127D;
+//}
 
 DEFINE_HOOK(0x4B0523, DriveLocomotionClass_Process_Cargo, 0x5)
 {
 	GET(DriveLocomotionClass*, pLoco, EDI);
 
-	if (auto pFoot = pLoco->LinkedTo) {
-		if (auto pTrans = pFoot->Transporter) {
+	if (auto pFoot = pLoco->LinkedTo)
+	{
+		if (auto pTrans = pFoot->Transporter)
+		{
 			R->EAX(pTrans->GetCell()->SlopeIndex);
 		}
 	}
@@ -570,7 +634,8 @@ DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
 	GET(FootClass*, pFoot, ECX);
 
 	bool Allow = false;
-	if (pFoot->GetTechnoType()->TiltCrashJumpjet) {
+	if (pFoot->GetTechnoType()->TiltCrashJumpjet)
+	{
 		Allow = LocomotionClass::End_Piggyback(pFoot->Locomotor);
 	}
 
@@ -618,15 +683,14 @@ DEFINE_HOOK(0x4DC124, FootClass_DrawActionLines_Attack, 0x5)
 {
 	GET(FootClass*, pThis, ESI);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->CommandLine_Attack_Color.isset())
 	{
-		if (pTypeExt->CommandLine_Attack_Color.isset())
-		{
-			if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
-				return 0x4DC1A0;
-			else
-				R->EDI(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
-		}
+		if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
+			return 0x4DC1A0;
+		else
+			R->EDI(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
 	}
 
 	return 0x0;
@@ -636,36 +700,29 @@ DEFINE_HOOK(0x4DC2AB, FootClass_DrawActionLines_Move, 0x5)
 {
 	GET(FootClass*, pThis, ESI);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->CommandLine_Attack_Color.isset())
 	{
-		if (pTypeExt->CommandLine_Attack_Color.isset())
-		{
-			if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
-				return 0x4DC328;
-			else
-				R->EDX(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
-		}
+		if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
+			return 0x4DC328;
+		else
+			R->EDX(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
 	}
 
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove , 0x6)
+DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 {
 	enum
 	{
 		Nothing = 0x0,
 		ReturnFalse = 0x4DBDEB
 	};
+
 	GET(FootClass*, pThis, ESI);
-
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pTypeExt->CloakMove.Get() && !pThis->Locomotor->Is_Moving()) {
-		return ReturnFalse;
-	}
-
-	return Nothing;
+	return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get() && !pThis->Locomotor->Is_Moving()) ? ReturnFalse : Nothing;
 }
 
 DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
@@ -674,11 +731,13 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 
 	bool res = false;
-	if (auto pObject = generic_cast<ObjectClass*>(pTarget)) {
+	if (auto pObject = generic_cast<ObjectClass*>(pTarget))
+	{
 		res = pThis->IsAlliedWith(pObject);
 	}
-	else if (pTarget) {
-		if(auto pHouse = pTarget->GetOwningHouse())
+	else if (pTarget)
+	{
+		if (auto pHouse = pTarget->GetOwningHouse())
 			res = pThis->IsAlliedWith(pHouse);
 	}
 
@@ -710,17 +769,6 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //	return 0x4F9AAB;
 //}
 
-DEFINE_HOOK(0x4FC585, HouseClass_MPlayerDefeated_3, 0x6)
-{
-	REF_STACK(int, nHuman, 0x18);
-
-	for (auto pHouse : *HouseClass::Array) {
-		nHuman += pHouse->IsControlledByCurrentPlayer() && (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"));
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x50CA30, HouseClass_Center_50C920, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -737,7 +785,8 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	GET(InfantryTypeClass*, pThisType, EAX);
 
-	if (pThisType->JumpJet) {
+	if (pThisType->JumpJet)
+	{
 		TechnoExt::PlayAnim(RulesGlobal->InfantryExplode, pThis);
 		return 0x5185F1;
 	}
@@ -745,15 +794,16 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 	return 0x518362;
 }
 //
-DEFINE_HOOK(0x4A9004, MouseClass_CanPlaceHere_SkipSelf, 0x6)
-{
-	if (auto const pHouse = HouseClass::Array->GetItem(R->EAX<int>())) {
-		if (pHouse == R->ECX<HouseClass*>())
-			return 0x4A902C;
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x4A9004, MouseClass_CanPlaceHere_SkipSelf, 0x6)
+//{
+//	if (auto const pHouse = HouseClass::Array->GetItem(R->EAX<int>()))
+//	{
+//		if (pHouse == R->ECX<HouseClass*>())
+//			return 0x4A902C;
+//	}
+//
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 {
@@ -805,12 +855,6 @@ DEFINE_HOOK(0x6AB63B, SelectClass_Action_UnableToBuild, 0x6)
 	return 0x6AB95A;
 }
 
-DEFINE_HOOK(0x6A557A, SidebarClass_Init_EnableSkirmish, 0x5) //changed
-{
-	auto const nMode = SessionClass::Instance->GameMode;
-	return (nMode == GameMode::Skirmish || nMode == GameMode::Internet || nMode == GameMode::LAN) ? 0x6A558D : 0x6A5830;
-}
-
 DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
 {
 	GET(BuildingTypeClass*, pTech, EBX);
@@ -845,9 +889,9 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pExt->DelayedFire_DurationTimer <= 0) {
+	if (TechnoExt::ExtMap.Find(pThis)->DelayedFire_DurationTimer <= 0)
+	{
 		if (pWeaponExt->RemoveTechnoAfterFiring.Get())
 			TechnoExt::KillSelf(pThis, KillMethod::Vanish);
 		else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
@@ -920,7 +964,7 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //}
 
 #ifdef Ares_3_0_p1
-DEFINE_HOOK(0x7463A8 , UnitClass_Captured_DriverKilled ,0x6)
+DEFINE_HOOK(0x7463A8, UnitClass_Captured_DriverKilled, 0x6)
 {
 	enum { Failed = 0x7463EC, Continue = 0x0 };
 	GET(UnitClass*, pThis, EDI);
@@ -968,7 +1012,7 @@ DEFINE_HOOK(0x71B14E, TemporalClass_Fire_ClearTarget, 0x9)
 	if (pTargetTemp && pTargetTemp->Target)
 		pTargetTemp->LetGo();
 
-	if(pThis->Target->Owner == HouseClass::CurrentPlayer())
+	if (pThis->Target->Owner == HouseClass::CurrentPlayer())
 		pThis->Target->Deselect();
 
 	return 0x71B17B;
@@ -978,20 +1022,23 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 {
 	GET(TemporalClass*, pThis, ECX);
 
-	if (auto pTarget = pThis->Target) {
+	if (auto pTarget = pThis->Target)
+	{
 		pTarget->BeingWarpedOut = 0;
 		pTarget->TemporalTargetingMe = nullptr;
 		pThis->Target = nullptr;
 	}
 
-	if (auto pPrevTemp = pThis->PrevTemporal) {
+	if (auto pPrevTemp = pThis->PrevTemporal)
+	{
 		if (pThis->NextTemporal == pThis)
 			pThis->NextTemporal = nullptr;
 
 		pPrevTemp->Detach();
 	}
 
-	if (auto pNextTemp = pThis->NextTemporal) {
+	if (auto pNextTemp = pThis->NextTemporal)
+	{
 		if (pNextTemp->PrevTemporal == pThis)
 			pNextTemp->PrevTemporal = nullptr;
 
@@ -1015,10 +1062,14 @@ DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (R->AL()) {
-		if (pThis->Type->Speed) {
+	if (R->AL())
+	{
+		if (pThis->Type->Speed > 0)
+		{
 			return 0x73DE20;
-		} else {
+		}
+		else
+		{
 			pThis->StopMoving();
 			pThis->QueueMission(Mission::Unload, false);
 			pThis->NextMission();
@@ -1030,23 +1081,26 @@ DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 	return 0x73DDC6;
 }
 
-DEFINE_HOOK(0x7397E4 , UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
-{
-	GET(HouseClass*, pHouse, ECX);
-
-	bool CurPlayer = false;
-	if (SessionGlobal.GameMode != GameMode::Campaign) {
-		CurPlayer = (pHouse->CurrentPlayer);
-	} else {
-		CurPlayer = (pHouse->CurrentPlayer || pHouse->IsInPlayerControl);
-	}
-
-	R->AL(CurPlayer);
-	return 0x7397E9;
-}
+//DEFINE_HOOK(0x7397E4, UnitClass_DeployIntoBuilding_DesyncFix, 0x5)
+//{
+//	GET(HouseClass*, pHouse, ECX);
+//
+//	bool CurPlayer = false;
+//	if (SessionGlobal.GameMode != GameMode::Campaign)
+//	{
+//		CurPlayer = (pHouse->CurrentPlayer);
+//	}
+//	else
+//	{
+//		CurPlayer = (pHouse->CurrentPlayer || pHouse->IsInPlayerControl);
+//	}
+//
+//	R->AL(CurPlayer);
+//	return 0x7397E9;
+//}
 #endif
 
-DEFINE_HOOK(0x4DA64D , FootClass_Update_IsInPlayField, 0x6)
+DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 {
 	GET(UnitTypeClass*, pType, EAX);
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
@@ -1061,13 +1115,16 @@ DEFINE_HOOK(0x4DA64D , FootClass_Update_IsInPlayField, 0x6)
 //}
 //
 
-DEFINE_HOOK(0x51D45B , InfantryClass_Scatter_Process, 0x6)
+DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (pThis->Type->JumpJet && pThis->Type->HoverAttack) {
+	if (pThis->Type->JumpJet && pThis->Type->HoverAttack)
+	{
 		pThis->SetDestination(nullptr, 1);
-	} else {
+	}
+	else
+	{
 		pThis->Locomotor->Process();
 	}
 
@@ -1093,7 +1150,8 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
 
-	if ((pThis->Owner && !pThis->Owner->IsControlledByCurrentPlayer())) {
+	if ((pThis->Owner && !pThis->Owner->IsControlledByCurrentPlayer()))
+	{
 		R->CL(TechnoTypeExt::ExtMap.Find(pType)->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
 		return 0x709202;
 	}
@@ -1103,7 +1161,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 
 DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 {
-	if(Phobos::Otamaa::IsAdmin)
+	if (Phobos::Otamaa::IsAdmin)
 		R->EAX(14);
 
 	return 0x0;
@@ -1147,14 +1205,18 @@ DEFINE_HOOK(0x6B721F, SpawnManagerClass_Manage_Clear, 0x6)
 
 DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 {
-	enum { returnfalse = 0x62A976 ,
-		   continuecheck = 0x0 };
+	enum
+	{
+		returnfalse = 0x62A976,
+		continuecheck = 0x0,
+		continuecheckB = 0x62A933
+	};
 
 	GET(FootClass*, pVictim, ESI);
 	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
 
 	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : continuecheck;
+		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
 DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
@@ -1178,8 +1240,10 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->IsInLimboDelivery)
+		{
 			return 0x70D407;
 		}
 	}
@@ -1198,13 +1262,15 @@ DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
 	GET(int, nDamage, EDI);
 
 	const auto pCell = Map.GetCellAt(nCell);
-	if (auto pAnimType = Map.SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord)) {
+	if (auto pAnimType = Map.SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
+	{
 		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
 		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
 	}
-	else {
+	else
+	{
 		//no constructor called , so it is safe to delete the allocated memory
-		GameDelete<false ,false>(pMem);
+		GameDelete<false, false>(pMem);
 	}
 
 	return 0x66328C;
@@ -1251,7 +1317,8 @@ DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 }
 
 // ToDO : Make Optional
-DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) {
+DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5)
+{
 	return 0x44DE3C;
 }
 
@@ -1271,14 +1338,14 @@ DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
 	GET(BuildingClass*, pThis, EDI);
 	GET(InfantryTypeClass*, pSurvivour, EAX);
 	GET(BuildingTypeClass*, pThisType, EDX);
-	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis , pThisType->ID,pSurvivour->ID);
+	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis, pThisType->ID, pSurvivour->ID);
 	return 0x443109;
 }
 
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
-	GET(FootClass*, pThis , EDI);
-	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n",pThis,pThis->get_ID());
+	GET(FootClass*, pThis, EDI);
+	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
@@ -1289,134 +1356,124 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	GET(TeamClass*, pThis, ESI);
 	GET(TechnoClass*, pTechno, EDI);
 	GET(TeamTypeClass*, pTeamType, ECX);
-	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID():NONE_STR2 , nCellX , nCellY);
+	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
 	return 0x6EF9D0;
 }
 
-DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA) {
+DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA)
+{
 	return 0x44961A;
 }
 
-DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA) {
+DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA)
+{
 	return 0x449672;
 }
 
 #pragma region TSL_Test
-struct SHP_AlphaData
-{
-	int Width;
-	BYTE* CurPixel;
-	BYTE* CurData2;
-};
-
-void SetTSLData(DWORD TlsIdx , int nFrame ,SHPReference* pAlplhaFile)
-{
-	auto nFrameBounds = pAlplhaFile->GetFrameBounds(nFrame);
-	auto nPixel = pAlplhaFile->GetPixels(nFrame);
-	SHP_AlphaData nData;
-	nData.Width = pAlplhaFile->Width;
-	nData.CurPixel = &nPixel[nFrameBounds.X + nFrameBounds.Y * pAlplhaFile->Width];
-	TlsSetValue(TlsIdx, &nData);
-}
-
-void GetTSLData_1(DWORD TlsIdx, void* pSomePtr, int nVal_y)
-{
-	if (TlsGetValue(TlsIdx)) {
-		if (pSomePtr) {
-			if (int nX = (*(int*)((char*)pSomePtr + 0x14))) {
-				if (int nY = (*(int*)((char*)pSomePtr + 0x18))) {
-					int nWidth = 0;
-					if (nVal_y > 0)
-						nWidth = nVal_y;
-
-					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY * nWidth;
-				}
-			}
-		}
-	}
-}
-
-void GetTSLData_2(DWORD TlsIdx , int nVala , int nValb)
-{
-	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx)) {
-		if (auto nWidth = pData->Width) {
-			if (auto nData = pData->CurPixel)
-				pData->CurData2 = &nData[nVala * nWidth + nValb];
-		}
-	}
-}
-
-void GetTSLData_3(DWORD TlsIdx, int nVal)
-{
-	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx)) {
-		if (auto nWidth = pData->Width) {
-			if (auto nData2 = pData->CurData2)
-				pData->CurData2 = &nData2[nVal * nWidth];
-		}
-	}
-}
-
-void GetTSLData_4(DWORD TlsIdx, void* pSomePtr)
-{
-	if (TlsGetValue(TlsIdx))
-	{
-		if (pSomePtr)
-		{
-			if (int nX = (*(int*)((char*)pSomePtr + 0x10)))
-			{
-				if (int nY = (*(int*)((char*)pSomePtr + 0x18)))
-				{
-					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY ;
-				}
-			}
-		}
-	}
-}
-
-void GetTSLData_5(DWORD TlsIdx, int nVal)
-{
-	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx))
-	{
-		if (auto nWidth = pData->Width)
-		{
-			if (auto nData2 = pData->CurData2)
-				pData->CurData2 = &nData2[nWidth];
-		}
-	}
-}
-
-void ClearTSLData(DWORD TlsIdx)
-{
-	TlsSetValue(TlsIdx, nullptr);
-}
-
-void InitTSLData(DWORD& TslIdx)
-{
-	TslIdx = TlsAlloc();
-	if (TslIdx == -1)
-		Debug::FatalErrorAndExit("Failed to Allocate TSL Index ! \n");
-}
+//struct SHP_AlphaData
+//{
+//	int Width;
+//	BYTE* CurPixel;
+//	BYTE* CurData2;
+//};
+//
+//void SetTSLData(DWORD TlsIdx, int nFrame, SHPReference* pAlplhaFile)
+//{
+//	auto nFrameBounds = pAlplhaFile->GetFrameBounds(nFrame);
+//	auto nPixel = pAlplhaFile->GetPixels(nFrame);
+//	SHP_AlphaData nData;
+//	nData.Width = pAlplhaFile->Width;
+//	nData.CurPixel = &nPixel[nFrameBounds.X + nFrameBounds.Y * pAlplhaFile->Width];
+//	TlsSetValue(TlsIdx, &nData);
+//}
+//
+//void GetTSLData_1(DWORD TlsIdx, void* pSomePtr, int nVal_y)
+//{
+//	if (TlsGetValue(TlsIdx))
+//	{
+//		if (pSomePtr)
+//		{
+//			if (int nX = (*(int*)((char*)pSomePtr + 0x14)))
+//			{
+//				if (int nY = (*(int*)((char*)pSomePtr + 0x18)))
+//				{
+//					int nWidth = 0;
+//					if (nVal_y > 0)
+//						nWidth = nVal_y;
+//
+//					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY * nWidth;
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void GetTSLData_2(DWORD TlsIdx, int nVala, int nValb)
+//{
+//	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx))
+//	{
+//		if (auto nWidth = pData->Width)
+//		{
+//			if (auto nData = pData->CurPixel)
+//				pData->CurData2 = &nData[nVala * nWidth + nValb];
+//		}
+//	}
+//}
+//
+//void GetTSLData_3(DWORD TlsIdx, int nVal)
+//{
+//	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx))
+//	{
+//		if (auto nWidth = pData->Width)
+//		{
+//			if (auto nData2 = pData->CurData2)
+//				pData->CurData2 = &nData2[nVal * nWidth];
+//		}
+//	}
+//}
+//
+//void GetTSLData_4(DWORD TlsIdx, void* pSomePtr)
+//{
+//	if (TlsGetValue(TlsIdx))
+//	{
+//		if (pSomePtr)
+//		{
+//			if (int nX = (*(int*)((char*)pSomePtr + 0x10)))
+//			{
+//				if (int nY = (*(int*)((char*)pSomePtr + 0x18)))
+//				{
+//					(*(int*)((char*)pSomePtr + 0x10)) = nX + nY;
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void GetTSLData_5(DWORD TlsIdx, int nVal)
+//{
+//	if (SHP_AlphaData* pData = (SHP_AlphaData*)TlsGetValue(TlsIdx))
+//	{
+//		if (auto nWidth = pData->Width)
+//		{
+//			if (auto nData2 = pData->CurData2)
+//				pData->CurData2 = &nData2[nWidth];
+//		}
+//	}
+//}
+//
+//void ClearTSLData(DWORD TlsIdx)
+//{
+//	TlsSetValue(TlsIdx, nullptr);
+//}
+//
+//void InitTSLData(DWORD& TslIdx)
+//{
+//	TslIdx = TlsAlloc();
+//	if (TslIdx == -1)
+//		Debug::FatalErrorAndExit("Failed to Allocate TSL Index ! \n");
+//}
 #pragma endregion
-
-DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
-{
-	GET_STACK(int, nHouseIdx, 0x4);
-
-	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
-	if (pHouse && (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")))
-	{
-		R->AL(1);
-		return 0x4870DE;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
-{
-	const auto pHouse = HouseClass::CurrentPlayer();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer")) ? 0x70DADC : 0x0;
-}
 
 //DEFINE_HOOK(0x73B5B5, UnitClass_DrawVoxel_AttachmentAdjust, 0x6)
 //{
@@ -1621,9 +1678,10 @@ DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_OnFire, 0x5)
 //}
 
 
-DEFINE_HOOK(0x452831 , BuildingClass_Overpowerer_AddUnique, 0x6)
+DEFINE_HOOK(0x452831, BuildingClass_Overpowerer_AddUnique, 0x6)
 {
-	enum {
+	enum
+	{
 		AddItem = 0x45283C,
 		Skip = 0x45289C
 	};
@@ -1957,7 +2015,8 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 	GET_BASE(HouseClass*, pHouse, 0x14);
 	GET_BASE(const CoordStruct*, pCoords, 0x8);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH)) {
+	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
+	{
 		if (auto pTechnp = generic_cast<TechnoClass*>(pTarget))
 			pWHExt->Detonate(pThis->Owner, pHouse, pThis, *pCoords);
 	}
@@ -1968,6 +2027,43 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 
 
 #endif
+
+DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
+{
+	enum
+	{
+		ContinueCheck = 0x5F54C4
+		, ResultHalf = 0x5F54B8
+	};
+
+	GET(int, nOldStr, EDX);
+	GET(int, nCurStr, EBP);
+	GET(int, nDamage, ECX);
+
+	const auto curstr = Game::F2I(nCurStr * RulesGlobal->ConditionYellow);
+	return (nOldStr <= curstr || !((nOldStr - nDamage) < curstr)) ? ContinueCheck : ResultHalf;
+}
+
+//DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0xB4,0x4));
+//
+//	if (auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget))
+//	{
+//		auto pTargetTExt = TechnoExt::ExtMap.Find(pTechnoTarget);
+//		pTargetTExt->LastAttacker = pThis;
+//	}
+//
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x5F53ED, ObjectClass_ReceiveDamage_DisableComplierOptimization, 0x6)
+//{
+//	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+//
+//	return args->IgnoreDefenses ? 0x5F5416 : 0x5F53F3;
+//}
 
 
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
@@ -1980,8 +2076,10 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 	GET(TechnoClass*, pTechno, ESI);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
-		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+	if (pTechno->WhatAmI() == AbstractType::Building)
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->IsInLimboDelivery)
+		{
 			return DoNotDraw;
 		}
 	}
@@ -1993,14 +2091,16 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 {
 	enum
 	{
-		Draw = 0x0 ,
+		Draw = 0x0,
 		DoNotDraw = 0x6D978F
 	};
 
 	GET(TechnoClass*, pTechno, EBX);
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
-		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery) {
+	if (pTechno->WhatAmI() == AbstractType::Building)
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->IsInLimboDelivery)
+		{
 			return DoNotDraw;
 		}
 	}
@@ -2020,95 +2120,26 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 	return BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery ? DoNotDraw : Draw;
 }
 
-DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
+DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
 {
-	GET(BuildingClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBP);
-	GET_STACK(BulletClass*, pBullet, STACK_OFFSET(0xF0, -0xA4));
+	GET(UnitTypeClass*, pType, ECX);
+	GET(UnitClass*, pThis, EBP);
+	GET(int, nFrame, EBX);
 
-	CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
-	CoordStruct dest = pBullet->Target->GetCoords();
+	auto nStand = pType->StandingFrames;
+	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
+	if (pType->IdleRate > 0)
+		nStandStartFrame += pThis->WalkedFramesSoFar;
 
-	if (pWeapon->IsLaser) {
-		GameCreate<LaserDrawClass>(src, dest, pWeapon->LaserInnerColor, pWeapon->LaserOuterColor, pWeapon->LaserOuterSpread, pWeapon->LaserDuration);
-	}
+	R->EBX(nStandStartFrame);
 
-	return 0;
-}
-
-DEFINE_HOOK(0x51A2F1, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
-{
-	GET(TechnoClass*, pThis, EDI);
-
-	if (auto pBld = abstract_cast<BuildingClass*>(pThis)) {
-		CoordStruct coords = pThis->GetCoords();
-
-		if (const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type)) {
-			VocClass::PlayAt(pExt->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound), coords, 0);
-		}
-
-		return 0x51A30F;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
-{
-	GET(BuildingClass*, pThis, EBP);
-
-	CoordStruct coords = pThis->GetCoords();
-
-	if (const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-		VocClass::PlayAt(pExt->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound), coords, 0);
-	}
-
-	return 0x44DBDA;
-}
-
-//DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ECX);
-//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0xB4,0x4));
-//
-//	if (auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget))
-//	{
-//		auto pTargetTExt = TechnoExt::ExtMap.Find(pTechnoTarget);
-//		pTargetTExt->LastAttacker = pThis;
-//	}
-//
-//	return 0x0;
-//}
-
-DEFINE_HOOK(0x5F53ED, ObjectClass_ReceiveDamage_DisableComplierOptimization, 0x6)
-{
-	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
-
-	return args->IgnoreDefenses ? 0x5F5416 : 0x5F53F3;
-}
-
-DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
-{
-	enum { CanUse = 0x639DDD, CannotUse = 0x639E03 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit)
-		return CanUse;
-
-	if (auto pAircraft = specific_cast<AircraftClass*>(pThis)) {
-		if (!pAircraft->Type->Spawned)
-			return CanUse;
-	}
-
-	//TODO : Add PerTechnoOverride
-	return CannotUse;
+	return 0x73C725;
 }
 
 // Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 // Fixes recursive passenger kills not being accredited
 // to proper techno but to their transports
-DEFINE_PATCH(0x707CF2, 0x55);
+//DEFINE_PATCH(0x707CF2, 0x55);
 
 //DEFINE_HOOK(0x417FD0, AircraftClass_PoseDIr, 0x5)
 //{

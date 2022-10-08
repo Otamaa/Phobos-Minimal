@@ -10,7 +10,7 @@
 bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
 {
 	const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
-	if (pUpgradeExt && EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
+	if (EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
 	{
 		// PowersUpBuilding
 		if (_stricmp(pBuilding->Type->ID, pUpgradeType->PowersUpBuilding) == 0)
@@ -96,13 +96,9 @@ DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
 	GET_STACK(bool const, includeInProduction, 0xC);
 	GET(CanBuildResult const, resultOfAres, EAX);
 
-	if (auto pBuilding = type_cast<BuildingTypeClass const*>(pItem))
-	{
-		if (auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBuilding))
-		{
-			if (pBuildingExt->PowersUp_Buildings.size() > 0 && resultOfAres == CanBuildResult::Buildable)
-				R->EAX(CheckBuildLimit(pThis, pBuilding, includeInProduction));
-		}
+	if (const auto pBuilding = type_cast<BuildingTypeClass const*>(pItem)) {
+		if (BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.size() > 0 && resultOfAres == CanBuildResult::Buildable)
+			R->EAX(CheckBuildLimit(pThis, pBuilding, includeInProduction));
 	}
 
 	return 0;

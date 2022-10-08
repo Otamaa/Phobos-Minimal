@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/House/Body.h>
 #include <InfantryClass.h>
 #include <BulletClass.h>
 #include <HouseClass.h>
@@ -109,8 +110,8 @@ void WarheadTypeExt::ExtData::applyStealMoney(TechnoClass* const Owner, TechnoCl
 
 			if (pBulletOwnerHouse && pBulletTargetHouse)
 			{
-				if ((!pBulletOwnerHouse->IsNeutral() && !pBulletOwnerHouse->IsObserver())
-					&& (!pBulletTargetHouse->IsNeutral() && !pBulletTargetHouse->IsObserver()))
+				if ((!pBulletOwnerHouse->IsNeutral() && !HouseExt::IsObserverPlayer(pBulletOwnerHouse))
+					&& (!pBulletTargetHouse->IsNeutral() && !HouseExt::IsObserverPlayer(pBulletTargetHouse)))
 				{
 					if (pBulletOwnerHouse->CanTransactMoney(nStealAmout) && pBulletTargetHouse->CanTransactMoney(-nStealAmout))
 					{
@@ -143,7 +144,7 @@ void WarheadTypeExt::ExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass
 				auto const pBulletTargetHouse = pBullet->Target->GetOwningHouse();
 				if (pBulletTargetHouse)
 				{
-					if ((!pHouse->IsNeutral() && !pHouse->IsObserver()) && (!pBulletTargetHouse->IsNeutral() && !pBulletTargetHouse->IsObserver()))
+					if ((!pHouse->IsNeutral() && !HouseExt::IsObserverPlayer(pHouse)) && (!pBulletTargetHouse->IsNeutral() && !HouseExt::IsObserverPlayer(pBulletTargetHouse)))
 					{
 						if (Transact_AffectsOwner.Get() && pBulletTargetHouse == pHouse)
 						{
@@ -214,10 +215,8 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	{
 		if (auto const pBullet = specific_cast<BulletClass*>(pOwner->Target))
 		{
-			auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
-
 			// 1/8th of a cell as a margin of error.
-			if (pTypeExt->Interceptable && pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)
+			if (BulletTypeExt::ExtMap.Find(pBullet->Type)->Interceptable && pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)
 				BulletExt::InterceptBullet(pBullet, pOwner, pWeapon);
 		}
 	}
@@ -267,10 +266,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		VocClass::PlayAt(nSound, coords);
 
 	if (pOwner && pBullet) {
-		auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-
-		if (pTypeExt->Interceptor && pBulletExt->IsInterceptor)
+		if (TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType())->Interceptor && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
 			this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
 	}
 
@@ -279,7 +275,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		if (this->BigGap) {
 			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [&](HouseClass* pOtherHouse) {
 				if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
-					!pOtherHouse->IsCurrentPlayerObserver() &&		  // Not Observer
+					!HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
 					!pOtherHouse->Defeated &&			  // Not Defeated
 					pOtherHouse != pHouse &&			  // Not pThisHouse
 					!pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
@@ -320,9 +316,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (isCellSpreadWarhead)
 	{
 		bool ThisbulletWasIntercepted = false;
-		if (pBullet){
-			auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
-			ThisbulletWasIntercepted = pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted;
+		if (pBullet) {
+			ThisbulletWasIntercepted = BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted;
 		}
 		const float cellSpread = Get()->CellSpread;
 

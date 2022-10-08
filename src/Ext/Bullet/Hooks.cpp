@@ -52,13 +52,11 @@ static void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	GET(BulletClass*, pThis, EBP);
+
 	const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
-
-	if (!pBulletExt)
-		return 0;
-
 	bool bChangeOwner = false;
 	auto const pBulletCurOwner = pThis->GetOwningHouse();
+
 	if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pBulletExt->Owner)
 	{
 		bChangeOwner = true;
@@ -176,9 +174,8 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 	GET(BulletClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, ECX);
 
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
 	if (!pHouse)
-		R->ECX(pExt->Owner);
+		R->ECX(BulletExt::ExtMap.Find(pThis)->Owner);
 
 	return 0;
 }
@@ -190,11 +187,8 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
 	enum { DetonateBullet = 0x467F9B };
-
 	GET(BulletClass*, pThis, EBP);
-
-	auto const pExt = BulletExt::ExtMap.Find(pThis);
-	return (pThis->Type->Inviso && pExt->IsInterceptor) ? DetonateBullet : 0x0;
+	return (pThis->Type->Inviso && BulletExt::ExtMap.Find(pThis)->IsInterceptor) ? DetonateBullet : 0x0;
 }
 
 /*

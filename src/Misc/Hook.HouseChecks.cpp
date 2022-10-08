@@ -47,53 +47,6 @@ DEFINE_HOOK(0x5015F2, HouseClass_IsAllowedToAlly_2, 0x6)
 
 }
 
-DEFINE_HOOK(0x658393, RadarClass_658330, 0x9)
-{
-	GET(HouseClass*, pHouses, EBX);
-
-	if (pHouses != HouseClass::Observer() && _strcmpi(pHouses->get_ID(), "Observer"))
-		return 0x6583A8;
-
-	R->EDX(1);
-	return 0x65839C;
-}
-
-DEFINE_HOOK(0x658478, RadarClass_658330_2, 0x6)
-{
-	GET(HouseClass*, pHouses, EBX);
-	return (pHouses != HouseClass::Observer() && !_strcmpi(pHouses->get_ID(), "Observer")) ? 0x658480 : 0x65848A;
-}
-
-DEFINE_HOOK(0x657EE3, RadarClass_DiplomacyDialog, 0x6)
-{
-	auto const pHouse = HouseClass::CurrentPlayer();
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ? 0x657F70 : 0x657EF2;
-}
-
-DEFINE_HOOK(0x4FCD88, HouseClass_FlagToLose, 0x5)
-{
-	auto const pHouse = HouseClass::CurrentPlayer();
-	return pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer") ?
-		0x4FCDA6 : 0x4FCD97;
-}
-
-DEFINE_HOOK(0x4FC262, HouseClass_MPlayerDefeated, 0x6)
-{
-	auto const pHouse = HouseClass::CurrentPlayer();
-	return (pHouse == HouseClass::Observer() || !_strcmpi(pHouse->get_ID(), "Observer"))
-		? 0x4FC2EF : 0x4FC271;
-}
-
-DEFINE_HOOK(0x4FC343, HouseClass_MPlayerDefeated_2, 0x5)
-{
-	GET(HouseClass*, pThis, ESI);
-
-	if (pThis != HouseClass::Observer() && _strcmpi(pThis->get_ID(), "Observer"))
-		return 0;
-
-	R->EAX(pThis);
-	return 0x4FC348;
-}
 
 DEFINE_HOOK(0x4FC4DF, HouseClass_MPlayer_Defeated, 0x6)
 {

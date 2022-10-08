@@ -12,7 +12,7 @@ DEFINE_HOOK(0x4FCD66, HouseClass_WinLose_Theme, 0x5)
 
 	int PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
 	if (auto const pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex)) {
-		if (auto const pData = SideExt::ExtMap.Find(pSide)) {
+		auto const pData = SideExt::ExtMap.Find(pSide); {
 			auto themeIndex = (pThis->IsWinner) ? pData->IngameScore_WinTheme : pData->IngameScore_LoseTheme;
 
 			if (themeIndex >= 0) {

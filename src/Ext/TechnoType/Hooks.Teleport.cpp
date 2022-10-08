@@ -43,7 +43,9 @@ DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x
 
 	TechnoExt::PlayAnim(pExt->WarpIn.Get(RulesGlobal->WarpOut),pLocomotor->LinkedTo);
 
-	if (const auto pTechnoExt = TechnoExt::ExtMap.Find(pLocomotor->LinkedTo)) {
+	const auto pTechnoExt = TechnoExt::ExtMap.Find(pLocomotor->LinkedTo);
+
+	{
 		const auto weaponType = pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.Get(RulesGlobal->ChronoRangeMinimum) ? pExt->WarpInMinRangeWeapon.Get(pExt->WarpInWeapon.isset() ? pExt->WarpInWeapon.Get() : nullptr) :
 			pExt->WarpInWeapon.isset() ? pExt->WarpInWeapon.Get() : nullptr;
 
@@ -142,11 +144,8 @@ DEFINE_HOOK(0x719555, TeleportLocomotionClass_ILocomotion_Process_ChronoRangeMin
 	GET_LOCO(ESI);
 	GET(int, comparator, EDX);
 
-	if(const auto pTechnoExt = TechnoExt::ExtMap.Find(pLocomotor->LinkedTo))
-		pTechnoExt->LastWarpDistance = comparator;
-
+	TechnoExt::ExtMap.Find(pLocomotor->LinkedTo)->LastWarpDistance = comparator;
 	const auto factor = pExt->ChronoRangeMinimum.Get(RulesGlobal->ChronoRangeMinimum);
-
 	return comparator < factor ? 0x71955D : 0x719576;
 }
 

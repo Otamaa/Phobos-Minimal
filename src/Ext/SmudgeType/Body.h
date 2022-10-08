@@ -11,9 +11,6 @@ class SmudgeTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
 	class ExtData final : public TExtension<SmudgeTypeClass>
 	{
@@ -36,15 +33,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SmudgeTypeExt
-#ifdef ENABLE_NEWHOOKS
-		,true ,true ,true
-#endif
-	>
+	class ExtContainer final : public TExtensionContainer<SmudgeTypeExt>
 	{
 	public:
 		ExtContainer();
-		~ExtContainer();
+		~ExtContainer() = default;
 	};
 
 	static ExtContainer ExtMap;

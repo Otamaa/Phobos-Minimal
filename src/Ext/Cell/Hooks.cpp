@@ -39,9 +39,9 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	if (!pTiberium)
 		return 0x47FB86;
 
-	const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+	auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
 
-	if (!pTibExt || !pTibExt->EnableLighningFix.Get()){
+	if (!pTibExt->EnableLighningFix.Get()){
 		R->EBX(pTiberium);
 		return 0x47F882;
 	}

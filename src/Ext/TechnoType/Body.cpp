@@ -27,20 +27,12 @@ void TechnoTypeExt::ExtData::Initialize()
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
 {
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-	{
-		return (pTypeExt->SinkAnim.Get(RulesGlobal->Wake));
-	}
-
-	return RulesGlobal->Wake;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesGlobal->Wake);
 }
 
 double TechnoTypeExt::GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules)
 {
-	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pThis))
-		return pExt->Tunnel_Speed.Get(pRules->TunnelSpeed);
-
-	return pRules->TunnelSpeed;
+	return TechnoTypeExt::ExtMap.Find(pThis)->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
 //void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
@@ -74,8 +66,8 @@ const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
 
 const char* TechnoTypeExt::GetSelectionGroupID(ObjectTypeClass* pType)
 {
-	if (const auto pExt = TechnoTypeExt::ExtMap.Find(type_cast<TechnoTypeClass*>(pType)))
-		return pExt->GetSelectionGroupID();
+	if (auto pTType = type_cast<TechnoTypeClass*>(pType))
+		return TechnoTypeExt::ExtMap.Find(pTType)->GetSelectionGroupID();
 
 	return pType->ID;
 }

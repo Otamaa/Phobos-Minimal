@@ -1,16 +1,16 @@
 #include "Body.h"
 
 #include <BuildingClass.h>
-#ifdef DUMMY_HOOKS
-DEFINE_HOOK(0x6F7288, OccupyWeaponRange_SkipRange, 5)
-{
-	return 0x6F72C8;
-}
+#ifndef DUMMY_HOOKS
+//DEFINE_HOOK(0x6F7288, OccupyWeaponRange_SkipRange, 5)
+//{
+//	return 0x6F72C8;
+//}
 
-DEFINE_HOOK(0x6F9187, OccupyWeaponRange_SearchTarget, 5)
-{
-	return 0x6F91A7;
-}
+//DEFINE_HOOK(0x6F9187, OccupyWeaponRange_SearchTarget, 5)
+//{
+//	return 0x6F91A7;
+//}
 
 DEFINE_HOOK(0x6FF065, OccupyWeaponRange_NextIndex, 5)
 {

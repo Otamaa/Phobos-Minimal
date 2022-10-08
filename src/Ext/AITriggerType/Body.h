@@ -1,7 +1,7 @@
 #pragma once
 
 #include <AITriggerTypeClass.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 
 //this is a 1-based index.
 enum class PhobosAIConditionTypes : int
@@ -20,16 +20,14 @@ class AITriggerTypeExt
 public:
 	using base_type = AITriggerTypeClass;
 	static constexpr size_t Canary = 0x2C2C2C2C;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
-	class ExtData final : public Extension<AITriggerTypeClass>
+	class ExtData final : public TExtension<AITriggerTypeClass>
 	{
 	public:
 
-		ExtData(AITriggerTypeClass* OwnerObject) : Extension<AITriggerTypeClass>(OwnerObject)
-			// Nothing yet
+		//Valueable<HouseTypeClass*> NoneOF; String ?
+		ExtData(AITriggerTypeClass* OwnerObject) : TExtension<AITriggerTypeClass>(OwnerObject)
+			//, NoneOF { }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -38,7 +36,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm);
 	};
 
-	class ExtContainer final : public Container<AITriggerTypeExt>
+	class ExtContainer final : public TExtensionContainer<AITriggerTypeExt>
 	{
 	public:
 		ExtContainer();

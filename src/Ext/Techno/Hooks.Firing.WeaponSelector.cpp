@@ -14,14 +14,14 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 
 	if (pTarget)
 	{
-		if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+		if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet)
 		{
-			if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet)
-			{
-				R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
-				return ReturnHandled;
-			}
+			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
+			return ReturnHandled;
 		}
+
 	}
 
 	// Restore overridden instructions.
@@ -39,11 +39,8 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 
 	if (const auto pCell = specific_cast<CellClass*>(pTarget))
 	{
-		if (const auto pPrimaryExt = WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType))
-		{
-			if (pThis->GetWeapon(1)->WeaponType && !EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget.Get(), true))
-				return Secondary;
-		}
+		if (pThis->GetWeapon(1)->WeaponType && !EnumFunctions::IsCellEligible(pCell, WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType)->CanTarget.Get(), true))
+			return Secondary;
 	}
 
 	return 0;
@@ -71,12 +68,14 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 			&& pTargetType->Cloakable && pTargetType->Naval
-			&& pTarget->CloakState == CloakState::Uncloaked) {
-				R->EAX(pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
-				return ReturnHandled;
+			&& pTarget->CloakState == CloakState::Uncloaked)
+		{
+			R->EAX(pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
+			return ReturnHandled;
 		}
 
-		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP()) {
+		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
+		{
 			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP);
 			return ReturnHandled;
 		}
@@ -114,7 +113,8 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 
 	enum { Primary = 0x6F37AD, Secondary = 0x6F3745, FurtherCheck = 0x6F3754, OriginalCheck = 0x6F36E3 };
 
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
 	{
 		int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
 
@@ -124,22 +124,19 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		if (!pTargetTechno)
 			return Primary;
 
-		if (const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno))
+		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->Shield.get())
 		{
-			if (const auto pShield = pTargetExt->Shield.get())
+			if (pShield->IsActive())
 			{
-				if (pShield->IsActive())
+				if (pThis->GetWeapon(1) && !(pTypeExt->NoSecondaryWeaponFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
 				{
-					if (pThis->GetWeapon(1) && !(pTypeExt->NoSecondaryWeaponFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
-					{
-						if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
-							return Secondary;
-						else
-							return FurtherCheck;
-					}
-
-					return Primary;
+					if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
+						return Secondary;
+					else
+						return FurtherCheck;
 				}
+
+				return Primary;
 			}
 		}
 	}
@@ -158,13 +155,12 @@ DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 
 	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
 	{
-		if (auto const pExt = TechnoExt::ExtMap.Find(pThis))
-		{
-			if (pExt->CurrentLaserWeaponIndex.empty())
-				pExt->CurrentLaserWeaponIndex = weaponIndex;
-			else
-				pExt->CurrentLaserWeaponIndex.clear();
-		}
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+		if (pExt->CurrentLaserWeaponIndex.empty())
+			pExt->CurrentLaserWeaponIndex = weaponIndex;
+		else
+			pExt->CurrentLaserWeaponIndex.clear();
 	}
 
 	return 0;
@@ -207,15 +203,12 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 		auto const pWeaponEven = pThis->GetWeapon(evenWeaponIndex)->WeaponType;
 		bool skipRemainingChecks = false;
 
-		if (const auto pTargetExt = TechnoExt::ExtMap.Find(pTargetTechno))
+		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->Shield.get())
 		{
-			if (const auto pShield = pTargetExt->Shield.get())
+			if (pShield->IsActive() && !pShield->CanBeTargeted(pWeaponOdd))
 			{
-				if (pShield->IsActive() && !pShield->CanBeTargeted(pWeaponOdd))
-				{
-					chosenWeaponIndex = evenWeaponIndex;
-					skipRemainingChecks = true;
-				}
+				chosenWeaponIndex = evenWeaponIndex;
+				skipRemainingChecks = true;
 			}
 		}
 

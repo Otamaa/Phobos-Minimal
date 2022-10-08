@@ -18,22 +18,26 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	GET(UnitClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));
 
-	if(const auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	//{
 		R->ECX(R->ESI());
 		pExt->ReceiveDamage = true;
 		AnimTypeExt::ProcessDestroyAnims(pThis, Receivedamageargs.Attacker);
 		pThis->Destroy();
 		return 0x737F74;
-	}
+	//}
 
-	return 0x0;
+	//return 0x0;
 }
 
 DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (auto const Extension = TechnoExt::ExtMap.Find(pThis)) {
+	auto const Extension = TechnoExt::ExtMap.Find(pThis);
+
+	{
 		if (!Extension->ReceiveDamage) {
 			AnimTypeExt::ProcessDestroyAnims(pThis);
 		}
@@ -41,16 +45,17 @@ DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 		return 0x73887E;
 	}
 
-	return 0x0;
+	//return 0x0;
 }
 
 DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)
+//DEFINE_HOOK(0x4226F0, AnimClass_CTOR_CreateUnit_MarkOccupationBits, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pTypeExt && pTypeExt->CreateUnit.Get())
+	if (pTypeExt->CreateUnit.Get())
 	{
 		auto Location = pThis->GetCoords();
 
@@ -63,13 +68,14 @@ DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)
 	}
 
 	return (pThis->Type->MakeInfantry != -1) ? 0x423BD6 : 0x423C03;
+
 }
 
 DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 
-	if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	{
 		if (const auto unit = pTypeExt->CreateUnit.Get())
 		{
@@ -89,7 +95,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 			if (const auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
 			{
 				bool success = false;
-				if (const auto pExt = AnimExt::ExtMap.Find(pThis))
+				const auto pExt = AnimExt::ExtMap.Find(pThis);
 				{
 					const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->DeathUnitFacing.has_value())
 						? pExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
@@ -160,8 +166,7 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 
 		if(auto pTech = pThis->Owner) {
 			pInvoker =pThis->Owner->GetOwningHouse();
-			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
-				pAnimExt->Invoker = pTech;
+			AnimExt::ExtMap.Find(pAnim)->Invoker = pTech;
 		}
 
 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))

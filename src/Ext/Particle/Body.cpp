@@ -17,7 +17,7 @@ void ParticleExt::ExtData::InitializeConstants()
 #endif
 	const auto pThis = Get();
 
-	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type))
+	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find<true>(pThis->Type))
 	{
 		CoordStruct nFLH = CoordStruct::Empty;
 		const ColorStruct nColor = pThis->GetOwningHouse() ? pThis->GetOwningHouse()->LaserColor : ColorStruct::Empty;
@@ -119,16 +119,22 @@ DEFINE_HOOK(0x62D7A0, ParticleClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x62D803, ParticleClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x62D801, ParticleClass_Load_Suffix, 0x6)
 {
 	ParticleExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x8)
+DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 {
-	ParticleExt::ExtMap.SaveStatic();
-	return 0;
+	GET(HRESULT, nRest, EAX);
+
+	ParticleExt::ExtMap.GetSavingObject()->unknown_130 = true;
+	if (SUCCEEDED(nRest)) {
+		ParticleExt::ExtMap.SaveStatic();
+	}
+
+	return 0x62D82C;
 }
 //#endif
 

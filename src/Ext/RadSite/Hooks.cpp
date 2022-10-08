@@ -37,12 +37,9 @@ DEFINE_HOOK(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 		GET(WeaponTypeClass*, pWeapon, ECX);
 		GET(int, nAmount, EDI);
 
-		if (const auto pExt = BulletExt::ExtMap.Find(pThis))
-		{
-			auto cell = CellClass::Coord2Cell(*pCoords);
-			auto spread = Game::F2I(pWeapon->Warhead->CellSpread);
-			pExt->ApplyRadiationToCell(cell, spread, nAmount);
-		}
+		auto cell = CellClass::Coord2Cell(*pCoords);
+		auto spread = Game::F2I(pWeapon->Warhead->CellSpread);
+		BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(cell, spread, nAmount);
 
 		return Handled;
 	}
@@ -101,8 +98,8 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		}
 		else
 		{
-			if (const auto pExt = BulletExt::ExtMap.Find(pThis))
-				pExt->ApplyRadiationToCell(location, spread, amount);
+
+			BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(location, spread, amount);
 		}
 
 		return Handled;
@@ -153,10 +150,8 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 
 					});
 
-				if (it != RadSiteClass::Array_Constant->end())
-				{
-					auto const pRadExt = RadSiteExt::ExtMap.Find((*it));
-					radLevel = Game::F2I(pRadExt->GetRadLevelAt(currentCoord));
+				if (it != RadSiteClass::Array_Constant->end()) {
+					radLevel = Game::F2I(RadSiteExt::ExtMap.Find((*it))->GetRadLevelAt(currentCoord));
 				}
 
 				weaponRadLevel = pWeapon->RadLevel;
@@ -364,8 +359,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 
 #define GET_RADSITE(reg, value)\
 	GET(RadSiteClass* const, pThis, reg);\
-	auto pExt = RadSiteExt::ExtMap.Find(pThis);\
-	auto output = pExt->Type->## value ##;
+	auto output = RadSiteExt::ExtMap.Find(pThis)->Type->## value ##;
 
 DEFINE_HOOK(0x65B843, RadSiteClass_AI_LevelDelay, 0x6)
 {

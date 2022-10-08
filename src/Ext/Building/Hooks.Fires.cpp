@@ -15,7 +15,9 @@
 namespace DamageFireAnims
 {
 	void HandleRemove(BuildingClass* pThis) {
-		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
+		auto const pExt = BuildingExt::ExtMap.Find(pThis);
+
+		{
 			for (int i = 0; i < pExt->DamageFireAnims.Count; i++)
 			{
 				if (pExt->DamageFireAnims[i]) {
@@ -38,7 +40,9 @@ namespace DamageFireAnims
 	}
 
 	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
-		if (auto const pExt = BuildingExt::ExtMap.Find(pThis)) {
+		auto const pExt = BuildingExt::ExtMap.Find(pThis);
+
+		{
 			for (int i = 0; i < pExt->DamageFireAnims.Count; i++) {
 				if (pExt->DamageFireAnims[i] == ptr) {
 					pExt->DamageFireAnims[i] = nullptr;
@@ -52,9 +56,6 @@ namespace DamageFireAnims
 		auto pType = pThis->Type;
 		auto pExt = BuildingExt::ExtMap.Find(pThis);
 		auto pTypeext = BuildingTypeExt::ExtMap.Find(pType);
-
-		if (!pExt || !pTypeext)
-			return;
 
 		HandleRemove(pExt);
 

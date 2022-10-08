@@ -4,6 +4,7 @@
 
 #include <YRPPGlobal.h>
 
+#ifdef ENABLE_NEWHOOKS
 WaveExt::ExtContainer WaveExt::ExtMap;
 
 #pragma warning(push)
@@ -362,3 +363,4 @@ DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
 	return 0;
 }
 #pragma warning(pop)
+#endif

@@ -1,6 +1,8 @@
 #include "Body.h"
 
+#ifdef ENABLE_NEWHOOKS
 CellExt::ExtContainer CellExt::ExtMap;
+#endif
 
 TiberiumClass* CellExt::GetTiberium(CellClass* pCell)
 {
@@ -34,6 +36,7 @@ int CellExt::GetOverlayIndex(CellClass* pCell)
 	return 0 ;
 }
 
+#ifdef ENABLE_NEWHOOKS
 // ============================ =
 // load / save
 template <typename T>
@@ -78,7 +81,7 @@ CellExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 /* loading this from save causing performance issues for some reason :s*/
 
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x47BDA1, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, ESI);

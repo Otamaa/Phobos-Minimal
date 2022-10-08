@@ -36,9 +36,8 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 	int result =
 	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis](TechnoClass* techno)
 	{
-		if (const auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno->GetTechnoType()))
-			if (pTechnoExt->IsCountedAsHarvester() && techno->Owner == pThis)
-					return TechnoExt::IsHarvesting(techno);
+		if (TechnoTypeExt::ExtMap.Find(techno->GetTechnoType())->IsCountedAsHarvester() && techno->Owner == pThis)
+				return TechnoExt::IsHarvesting(techno);
 
 		return false;
 	});
@@ -54,10 +53,8 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [&result,pThis](TechnoTypeClass* techno)
 	{
-		if (const auto pTechnoExt = TechnoTypeExt::ExtMap.Find(techno))	{
-			if (pTechnoExt->IsCountedAsHarvester())	{
-				result += pThis->CountOwnedAndPresent(techno);
-			}
+		if (TechnoTypeExt::ExtMap.Find(techno)->IsCountedAsHarvester())	{
+			result += pThis->CountOwnedAndPresent(techno);
 		}
 	});
 
@@ -66,8 +63,7 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 int HouseExt::CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const pItem)
 {
-	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
-	return pHouseExt->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
+	return HouseExt::ExtMap.Find(pThis)->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
 }
 
 HouseClass* HouseExt::FindCivilianSide() {
@@ -85,9 +81,6 @@ HouseClass* HouseExt::FindNeutral(){
 void HouseExt::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
 {
 	const auto pHouseExt = HouseExt::ExtMap.Find(pThis);
-
-	if (!pHouseExt)
-		return;
 
 	if (mode < 0 || mode > 2)
 		mode = -1;
@@ -168,6 +161,37 @@ HouseClass* HouseExt::GetSlaveHouse(SlaveReturnTo const& kind, HouseClass* const
 
 	return pKiller;
 }
+
+bool HouseExt::IsObserverPlayer()
+{
+	auto const pCur = HouseClass::CurrentPlayer();
+
+	if (!pCur)
+		return false;
+
+	if (pCur == HouseClass::Observer)
+		return true;
+
+	if (!_strcmpi(pCur->get_ID(), "Observer"))
+		return true;
+
+	return false;
+}
+
+bool HouseExt::IsObserverPlayer(HouseClass* pCur)
+{
+	if (!pCur)
+		return false;
+
+	if (pCur == HouseClass::Observer)
+		return true;
+
+	if (!_strcmpi(pCur->get_ID(), "Observer"))
+		return true;
+
+	return false;
+}
+
 // =============================
 // load / save
 
@@ -190,6 +214,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllRepairEventTriggered)
 		.Process(this->LastBuildingTypeArrayIdx)
 		.Process(this->RepairBaseNodes)
+		.Process(this->IsObserver)
 		;
 }
 
@@ -278,8 +303,8 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
 {
 	GET(HouseClass*, pThis, ECX);
-	GET_STACK(void*, target, STACK_OFFS(0xC, -0x4));
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
+	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
 
 	if (auto pExt = HouseExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(target, all);

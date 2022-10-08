@@ -192,7 +192,7 @@ public:
 
 		NullableIdx<VocClass> EnterBioReactorSound;
 		NullableIdx<VocClass> LeaveBioReactorSound;
-		PhobosMap<int, int > DockPoseDir;
+		std::vector<int> DockPoseDir;
 #pragma endregion
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -312,36 +312,27 @@ public:
 
 	static const DirClass DefaultJuggerFacing;
 
-	template<auto  T>
+	template<bool UpSound>
 	struct BunkerSound
 	{
 		constexpr void operator ()(BuildingClass* pThis) {
-			Handle(pThis, std::bool_constant<T>::type());
-		}
+			//Handle(pThis, std::bool_constant<T>::type());
 
-	private:
-		void Handle(BuildingClass* pThis, std::true_type) noexcept
-		{
-			auto nSound = RulesGlobal->BunkerWallsUpSound;
+			if constexpr (UpSound)
+			{
+				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesGlobal->BunkerWallsUpSound);
 
-			if (const auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-				nSound = TypeExt->BunkerWallsUpSound.Get(nSound);
+				if (nSound != -1)
+					VocClass::PlayAt(nSound, pThis->Location);
 			}
+			else
+			{
+				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesGlobal->BunkerWallsDownSound);
 
-			if (nSound != -1)
-				VocClass::PlayAt(nSound, pThis->Location);
-		}
+				if (nSound != -1)
+					VocClass::PlayAt(nSound, pThis->Location);
 
-		void Handle(BuildingClass* pThis, std::false_type) noexcept
-		{
-			auto nSound = RulesGlobal->BunkerWallsDownSound;
-
-			if (const auto TypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-				nSound = TypeExt->BunkerWallsDownSound.Get(nSound);
 			}
-
-			if (nSound != -1)
-				VocClass::PlayAt(nSound, pThis->Location);
 		}
 	};
 

@@ -32,8 +32,8 @@ void PassengersFunctional::CanFire(TechnoClass* pThis, bool& cease)
 	{
 		if (pTranporter->GetTechnoType()->OpenTopped)
 		{
-			if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType()))
 			{
+				auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType());
 				switch (pTranporter->GetCurrentMission())
 				{
 				case Mission::Attack:

@@ -11,7 +11,7 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 
 		if (pThis->Type)
 		{
-			if (const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type))
+			const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
 			{
 				pExt->TypeExt = pTypeExt;
 				pExt->CurrentStrength = pTypeExt->Health.Get();
@@ -22,7 +22,7 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 			}
 		}
 
-		LineTrailExt::ConstructLineTrails(pThis);
+		//LineTrailExt::ConstructLineTrails(pThis);
 	}
 
 

@@ -13,8 +13,10 @@ bool LineTrailExt::DeallocateLineTrail(TechnoClass* pTech)
 	{
 		if (pTechExt->TechnoLineTrail.Count > 0)
 		{
-			for (auto& pItems : pTechExt->TechnoLineTrail) {
-				if (pItems) {
+			for (auto& pItems : pTechExt->TechnoLineTrail)
+			{
+				if (pItems)
+				{
 					pItems->~LineTrail();
 					pItems = nullptr;
 				}
@@ -33,8 +35,10 @@ bool LineTrailExt::DeallocateLineTrail(BulletClass* pBullet)
 	{
 		if (pBulletExt->BulletTrails.Count > 0)
 		{
-			for (auto& pItems : pBulletExt->BulletTrails) {
-				if (pItems) {
+			for (auto& pItems : pBulletExt->BulletTrails)
+			{
+				if (pItems)
+				{
 					pItems->~LineTrail();
 					pItems = nullptr;
 				}
@@ -50,7 +54,8 @@ bool LineTrailExt::DeallocateLineTrail(ObjectClass* pObject)
 {
 	auto const pWhat = pObject->WhatAmI();
 
-	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit) {
+	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit)
+	{
 		return LineTrailExt::DeallocateLineTrail(static_cast<FootClass*>(pObject));
 	}
 
@@ -66,7 +71,7 @@ void LineTrailExt::DetachLineTrails(ObjectClass* pThis)
 {
 	auto const pWhat = pThis->WhatAmI();
 
-	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit) 
+	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit)
 		LineTrailExt::DeallocateLineTrail(static_cast<FootClass*>(pThis));
 
 	if (pWhat == AbstractType::Bullet)
@@ -86,14 +91,11 @@ void LineTrailExt::ConstructLineTrails(TechnoClass* pTech)
 		auto const pType = pTech->GetTechnoType();
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-		if (pTechExt && pTypeExt)
+		if (!pTypeExt->LineTrailData.empty())
 		{
-			if (!pTypeExt->LineTrailData.empty())
+			for (auto& pTraildata : pTypeExt->LineTrailData)
 			{
-				for (auto& pTraildata : pTypeExt->LineTrailData)
-				{
-					LineTrailExt::Construct(pTechExt->TechnoLineTrail, pTech, pTraildata.LineTrailColor, pTraildata.LineTrailColorDecrement, pTraildata.LineTrailFLH);
-				}
+				LineTrailExt::Construct(pTechExt->TechnoLineTrail, pTech, pTraildata.LineTrailColor, pTraildata.LineTrailColorDecrement, pTraildata.LineTrailFLH);
 			}
 		}
 	}
@@ -106,14 +108,11 @@ void LineTrailExt::ConstructLineTrails(BulletClass* pBullet)
 		auto const pType = pBullet->Type;
 		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
-		if (pBulletExt && pTypeExt)
+		if (!pTypeExt->LineTrailData.empty())
 		{
-			if (!pTypeExt->LineTrailData.empty())
+			for (auto& pTraildata : pTypeExt->LineTrailData)
 			{
-				for (auto& pTraildata : pTypeExt->LineTrailData)
-				{
-					LineTrailExt::Construct(pBulletExt->BulletTrails, pBullet, pTraildata.LineTrailColor, pTraildata.LineTrailColorDecrement, pTraildata.LineTrailFLH);
-				}
+				LineTrailExt::Construct(pBulletExt->BulletTrails, pBullet, pTraildata.LineTrailColor, pTraildata.LineTrailColorDecrement, pTraildata.LineTrailFLH);
 			}
 		}
 	}

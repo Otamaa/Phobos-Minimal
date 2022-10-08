@@ -2,7 +2,7 @@
 
 #include <SessionClass.h>
 #include <MessageListClass.h>
-#include <HouseClass.h>
+#include <Ext/House/Body.h>
 #include <CRT.h>
 #include <SuperWeaponTypeClass.h>
 #include <SuperClass.h>
@@ -714,7 +714,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			for (auto pHouse : *HouseClass::Array)
 			{
 				if (!pHouse->Defeated
-					&& !pHouse->IsObserver()
+					&& ! HouseExt::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
 					housesListIdx.push_back(pHouse->ArrayIndex);
@@ -750,7 +750,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			{
 				if (pHouse->IsControlledByHuman()
 					&& !pHouse->Defeated
-					&& !pHouse->IsObserver())
+					&& ! HouseExt::IsObserverPlayer(pHouse))
 				{
 					housesListIdx.push_back(pHouse->ArrayIndex);
 				}
@@ -895,11 +895,7 @@ bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectC
 DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
 {
 	GET(TActionClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
 	TActionExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	TActionExt::ExtMap.FindOrAllocate(pItem);
-#endif
 	return 0;
 }
 

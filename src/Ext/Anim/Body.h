@@ -137,7 +137,7 @@ public:
 		return pThis->Type ? pThis->Type->Layer : Layer::Air;
 	}
 
-	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis)
+	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
 	{
 		return pThis->Owner;
 	}

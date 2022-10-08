@@ -34,8 +34,8 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 #endif
 	auto pTechnoExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
 	{
+		auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 		const int nMoney = pWHExt->TransactMoney;
 		if (nMoney != 0 && !pThis->Owner->CanTransactMoney(nMoney))
 			return CannotFire;
@@ -49,8 +49,8 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		return CannotFire;
 	}
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon))
 	{
+		auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
 		CellClass* targetCell = nullptr;
@@ -69,15 +69,11 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget, true))
 				return CannotFire;
 
-			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex))
-			{
-				if ((pOverlayType->Wall))
-				{
-					if (!pWeapon->IsWallDestroyer() ||
-						!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex)))
-					{
-						return CannotFire;
-					}
+			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex)) {
+				if (pWeapon->IsWallDestroyer(pOverlayType) &&
+					!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex))
+					) {
+					return CannotFire;
 				}
 			}
 		}
@@ -91,12 +87,12 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 				return CannotFire;
 			}
 
-
 			//if(pTargetTechnoExt->IsDummy.Get())
 			//	return CannotFire;
 
-			if (const auto pFoot = generic_cast<FootClass*>(pTechno))
+			if (pTechno->AbstractFlags & AbstractFlags::Foot)
 			{
+				const auto pFoot = static_cast<FootClass*>(pTechno);
 
 				if (pFoot->WhatAmI() == AbstractType::Unit)
 				{
@@ -117,8 +113,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 					pFoot->IsWarpingIn() && pTargetTechnoExt->ChronoDelay_Immune.Get())
 					return CannotFire;
 			}
-
-
 		}
 	}
 
@@ -133,18 +127,11 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 	GET(TechnoClass* const, pThis, ESI);
 
 	//replacing whole check due to `fild`
-	if (pThis->InOpenToppedTransport)
-	{
+	if (pThis->InOpenToppedTransport) {
 		GET_STACK(int, nDamage, STACK_OFFS(0xB0, 0x84));
-		if (auto const  pTransport = pThis->Transporter)
-		{
-			float nDamageMult = RulesGlobal->OpenToppedDamageMultiplier;
-
-			if (auto const  pExt = TechnoTypeExt::ExtMap.Find<false>(pTransport->GetTechnoType()))
-			{
-				nDamageMult = pExt->OpenTopped_DamageMultiplier.Get(nDamageMult);
-			}
-
+		if (auto const  pTransport = pThis->Transporter) {
+			float nDamageMult = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
+				.Get(RulesGlobal->OpenToppedDamageMultiplier);
 			R->EAX(Game::F2I(nDamage * nDamageMult));
 			return ApplyDamageMult;
 		}
@@ -161,8 +148,8 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 	GET(CellClass* const, pCell, EAX);
 	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
-	if (auto const pExt = WeaponTypeExt::ExtMap.Find<false>(pWeaponType))
 	{
+		auto const pExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
 		if (pExt->AreaFire_Target == AreaFireTarget::Random)
 		{
 			auto const range = pWeaponType->Range / Unsorted::d_LeptonsPerCell;
@@ -207,16 +194,17 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	if (auto pWeaponExt = WeaponTypeExt::ExtMap.Find<false>(pWeapon))
 	{
-		if (pWeaponExt->FeedbackWeapon.isset())
-		{
-			auto fbWeapon = pWeaponExt->FeedbackWeapon.Get();
+		auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
-				return 0;
+		if (pWeaponExt->FeedbackWeapon.isset()) {
+			if(auto fbWeapon = pWeaponExt->FeedbackWeapon.Get()) {
 
-			WeaponTypeExt::DetonateAt(fbWeapon, pThis, pThis);
+				if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
+					return 0;
+
+				WeaponTypeExt::DetonateAt(fbWeapon, pThis, pThis);
+			}
 		}
 	}
 
@@ -234,36 +222,29 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 	{
 		auto const pSourceTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
 
-		if (pSourceTypeExt && pSourceTypeExt->Interceptor.Get())
+		if (pSourceTypeExt->Interceptor.Get())
 		{
-			if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet))
-			{
-				pBulletExt->IsInterceptor = true;
-			}
-
-			if (auto const pBulletExt = BulletExt::ExtMap.Find(pTargetObject))
-				pBulletExt->InterceptedStatus = InterceptedStatus::Targeted;
+			BulletExt::ExtMap.Find(pBullet)->IsInterceptor = true;
+			BulletExt::ExtMap.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
 
 			// If using Inviso projectile, can intercept bullets right after firing.
-			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
-			{
-				if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead))
-					pWHExt->InterceptBullets(pSource, pWeaponType, pTargetObject->Location);
+			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso) {
+				WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead)->InterceptBullets(pSource, pWeaponType, pTargetObject->Location);
 			}
 		}
 	}
 
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponType))
-	{
-		if (pWeaponExt->ShakeLocal.Get() && !pSource->IsOnMyView())
-			return 0x0;
+	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
 
-		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-			GeneralUtils::CalculateShakeVal(Map.ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+	if (pWeaponExt->ShakeLocal.Get() && !pSource->IsOnMyView())
+		return 0x0;
 
-		if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-			GeneralUtils::CalculateShakeVal(Map.ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
-	}
+	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
+		GeneralUtils::CalculateShakeVal(Map.ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+
+	if (pWeaponExt->Yhi || pWeaponExt->Ylo)
+		GeneralUtils::CalculateShakeVal(Map.ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+
 
 	return 0;
 }
@@ -274,13 +255,10 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto const pTransport = pThis->Transporter)
-	{
-		if (auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType()))
-		{
-			if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
-				return DisallowFiring;
-		}
+	if (auto const pTransport = pThis->Transporter) {
+		auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType());
+		if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
+			return DisallowFiring;
 	}
 
 	return 0;
@@ -298,9 +276,6 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	{
 		result = pWeapon->Range;
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-		if (!pTypeExt)
-			return 0x0;
 
 		if (pThis->GetTechnoType()->OpenTopped && !pTypeExt->OpenTopped_IgnoreRangefinding.Get())
 		{
@@ -351,7 +326,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
 
 	const auto pType = pThis->GetTechnoType();
-	auto pCell = abstract_cast<CellClass*>(pTarget);
+	auto pCell = specific_cast<CellClass*>(pTarget);
 
 	if (pCell)
 	{
@@ -361,7 +336,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 			return DisallowFiring;
 		}
 	}
-	else if (const auto pTerrain = abstract_cast<TerrainClass*>(pTarget))
+	else if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
 		pCell = pTerrain->GetCell();
 
@@ -448,7 +423,7 @@ DEFINE_HOOK(0x6FDD93, TechnoClass_FireAt_DelayedFire, 0x6) // or 0x6FDD99  , 0x6
 
 	enum { skipDelayedFire = 0, skipFireAt = 0x6FDE03 };
 
-	const auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
+	auto pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (pWeaponTypeExt->DelayedFire_Anim_LoopCount <= 0 || !pWeaponTypeExt->DelayedFire_Anim.isset())

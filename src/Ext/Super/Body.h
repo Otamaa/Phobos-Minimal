@@ -8,6 +8,8 @@
 class SuperExt
 {
 public:
+
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
 	static constexpr size_t ExtOffset = 0x44;
@@ -43,5 +45,5 @@ public:
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
+#endif
 };

@@ -281,13 +281,16 @@ public:
 
 	void MakeAlly(int iHouse, bool bAnnounce)
 		{ JMP_THIS(0x4F9B50); }
+
 	void MakeAlly(HouseClass* pWho, bool bAnnounce)
 		{ JMP_THIS(0x4F9B70); }
+
 	void MakeEnemy(HouseClass* pWho, bool bAnnounce)
 		{ JMP_THIS(0x4F9F90); }
 
 	void AdjustThreats()
 		{ JMP_THIS(0x509400); }
+
 	void UpdateAngerNodes(int nScoreAdd, HouseClass* pHouse)
 		{ JMP_THIS(0x504790); }
 
@@ -305,15 +308,19 @@ public:
 	// every matching object takes damage and explodes
 	void DestroyAll()
 		{ JMP_THIS(0x4FC6D0); }
+
 	void DestroyAllBuildings()
 		{ JMP_THIS(0x4FC790); }
+
 	void DestroyAllNonBuildingsNonNaval()
 		{ JMP_THIS(0x4FC820); }
+
 	void DestroyAllNonBuildingsNaval()
 		{ JMP_THIS(0x4FC8D0); }
 
 	void RespawnStartingBuildings()
 		{ JMP_THIS(0x50D320); }
+
 	void RespawnStartingForces()
 		{ JMP_THIS(0x50D440); }
 
@@ -348,13 +355,16 @@ public:
 
 	bool DoUnitsSelfHeal() const
 		{ return this->UnitsSelfHeal > 0; }
+
 	int GetUnitSelfHealStep() const
 		{ JMP_THIS(0x50D9F0); }
 
 	void UpdatePower()
 		{ JMP_THIS(0x508C30); }
+
 	void CreatePowerOutage(int duration)
 		{ JMP_THIS(0x50BC90); }
+
 	double GetPowerPercentage() const
 		{ JMP_THIS(0x4FCE30); }
 
@@ -388,14 +398,14 @@ public:
 	void GiveMoney(int amount)
 		{ JMP_THIS(0x4F9950); }
 
-	inline bool CanTransactMoney(int amount) const {
+	bool CanTransactMoney(int amount) const {
 		if (amount > 0)
 			return true;
 		else
 			return this->Available_Money() >= -amount;
 	}
 
-	inline bool  TransactMoney(int amount) {
+	bool TransactMoney(int amount) {
 
 		if(amount > 0) {
 			this->GiveMoney(amount);
@@ -515,21 +525,23 @@ public:
 		{ JMP_THIS(0x505360); }
 
 	// whether any human player controls this house
-	bool IsControlledByHuman() const { // { JMP_THIS(0x50B730); }
-		bool result = this->CurrentPlayer;
-		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || this->IsInPlayerControl;
-		}
-		return result;
-	}
+	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
+	//{
+	//	bool result = this->CurrentPlayer;
+	//	if(SessionClass::Instance->GameMode == GameMode::Campaign) {
+	//		result = result || this->IsInPlayerControl;
+	//	}
+	//	return result;
+	//}
 
 	// whether the human player on this PC can control this house
-	bool ControlledByPlayer() const { // { JMP_THIS(0x50B6F0); }
-		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
-			return this->IsCurrentPlayer();
-		}
-		return this->CurrentPlayer || this->IsInPlayerControl;
-	}
+	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
+	//{
+	//	if(SessionClass::Instance->GameMode != GameMode::Campaign) {
+	//		return this->IsCurrentPlayer();
+	//	}
+	//	return this->CurrentPlayer || this->IsInPlayerControl;
+	//}
 
 	// Target ought to be Object, I imagine, but cell doesn't work then
 	void __fastcall SendSpyPlanes(int AircraftTypeIdx, int AircraftAmount, Mission SetMission, AbstractClass *Target, ObjectClass *Destination)
@@ -790,19 +802,21 @@ public:
 		return this == CurrentPlayer;
 	}
 
-	bool IsControlledByCurrentPlayer() const //{ JMP_THIS(0x50B730); }
-	{
-		bool result = CurrentPlayer;
-		if (SessionClass::Instance->GameMode == GameMode::Campaign) {
-			result = result || IsInPlayerControl;
-		}
+	bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
+	//{
+	//	bool result = CurrentPlayer;
+	//	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
+	//		result = result || IsInPlayerControl;
+	//	}
 
-		return result;
-	}
+	//	return result;
+	//}
 
 	// whether this house is equal to Observer
 	bool IsObserver() const {
-		return this == Observer;
+
+		return (this == Observer || !_strcmpi(get_ID(), "Observer"));
+
 	}
 
 	// whether Player is equal to Observer

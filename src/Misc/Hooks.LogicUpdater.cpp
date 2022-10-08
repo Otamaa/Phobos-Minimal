@@ -151,7 +151,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis)
 
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	LineTrailExt::ConstructLineTrails(pThis);
+	//LineTrailExt::ConstructLineTrails(pThis);
 
 	pExt->IsMissisleSpawn = (RulesGlobal->V3Rocket.Type == pType || pType == RulesGlobal->DMisl.Type || pType == RulesGlobal->CMisl.Type || pTypeExt->IsCustomMissile);
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
@@ -297,6 +297,7 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 //	}
 //}
 
+
 DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 //DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
@@ -304,6 +305,18 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 
 	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		auto pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
+		if (pBldExt->LighningNeedUpdate)
+		{
+			pThis->UpdatePlacement(PlacementType::Redraw);
+			pBldExt->LighningNeedUpdate = false;
+
+		}
+	}
+
 
 	//bool IsInLimboDelivery = false;
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
@@ -359,12 +372,14 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	GiftBoxFunctional::AI(pExt, pTypeExt);
 
 	//if (!IsInLimboDelivery) {
-		if (pExt->PaintBallState) {
-			pExt->PaintBallState->Update(pThis);
-		}
+	if (pExt->PaintBallState)
+	{
+		pExt->PaintBallState->Update(pThis);
+	}
 	//}
 
-	if (pExt->DamageSelfState) {
+	if (pExt->DamageSelfState)
+	{
 		pExt->DamageSelfState->TechnoClass_Update_DamageSelf(pThis);
 	}
 #endif
@@ -439,11 +454,11 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 							pRocket->MovingDestination = pTracker->Coord;
 					}
 				}
-			}
-#endif
-#endif
 		}
+#endif
+#endif
 	}
+}
 
 	pThis->FootClass::Update();
 	return 0x414DA8;
@@ -473,12 +488,14 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if(pThis->SpawnOwner && pExt->IsMissisleSpawn){
+	if (pThis->SpawnOwner && pExt->IsMissisleSpawn)
+	{
 
 		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
 		auto pSpawnTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSpawnTechnoType);
 
-		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target)) {
+		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+		{
 			//Spawnee trying to chase Aircraft that go out of map until it reset
 			//fix this , so reset immedietely if target is not on map
 			if (!Map.IsValid(pTargetTech->Location)
@@ -506,8 +523,8 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 #endif
 	}
 
-	return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
-	//return 0;
+	//return pThis->IsLocked ? 0x4DA677 : 0x4DA643;
+	return 0;
 }
 
 DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)

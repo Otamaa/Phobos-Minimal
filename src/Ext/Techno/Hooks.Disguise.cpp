@@ -8,8 +8,9 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 
 	enum { SetDisguise = 0x5227BF, DefaultDisguise = 0x6F4277 };
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 	{
+		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
 		//ToDo:
 #ifdef TANK_DISGUISE
 		if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
@@ -34,7 +35,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_Defa
 #ifdef ENABLE_NEWHOOKS
 //TODO : rework , and desync test
 #define CAN_BLINK_DISGUISE(pTechno) \
-RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseClass::IsCurrentPlayerObserver() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
+RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseExt::IsObserverPlayer() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
 
 DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 {

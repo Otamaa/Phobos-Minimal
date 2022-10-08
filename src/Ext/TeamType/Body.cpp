@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#ifdef ENABLE_NEWHOOKS
 TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
 void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
@@ -63,7 +64,7 @@ TeamTypeExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 //ToDo : Check Size !
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 {
 	//Debug::Log("%s Executed ! \n", __FUNCTION__);

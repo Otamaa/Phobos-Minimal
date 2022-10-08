@@ -28,9 +28,16 @@ public:
 	//Destructor
 	virtual ~TerrainClass() RX;
 
-	//identification
+	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
+
+	//ObjectClass
+	// remove object from the map
+	virtual bool Limbo() override JMP_THIS(0x71C930);
+
+	// place the object on the map
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x71D000);
 
 	void Placement_DrawIt_71C360(Point2D& nPoint, RectangleStruct& nRect)
 	{ JMP_THIS(0x71C360); }

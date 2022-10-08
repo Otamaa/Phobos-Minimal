@@ -4,6 +4,25 @@
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
+DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
+{
+	GET(FootClass*, pFoot, EAX);
+
+	if (auto pTeam = pFoot->Team)
+	{
+		if (auto nTeamDecision = pTeam->Type->MindControlDecision)
+		{
+			if (nTeamDecision > 5)
+				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
+
+			R->EAX(nTeamDecision);
+			return 0x47258F;
+		}
+	}
+
+	return 0x4725B0;
+}
+
 DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 {
 	GET(CaptureManagerClass*, pThis, EDI);
@@ -33,11 +52,11 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
 	{
 		const auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
-		if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
-		{
-			pThis->HandleOverload();
-			return 0x6FA735;
-		}
+		//if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
+		//{
+		//	pThis->HandleOverload();
+		//	return 0x6FA735;
+		//}
 
 		if (pThis->InfiniteMindControl)
 		{

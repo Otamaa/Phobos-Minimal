@@ -1,6 +1,18 @@
 #include "Body.h"
 
 // Draw Tiled !
+
+DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
+{
+	GET(AnimClass* const, pThis, ESI);
+
+	R->EDX(AnimTypeExt::ExtMap.Find(pThis->Type)->Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL));
+
+	return 0x4236F6;
+}
+
+#ifdef OVERRIDE_SHP_DRAWING
+
 DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 {
 	GET(AnimClass* const, pThis, ESI);
@@ -77,8 +89,6 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 #endif
 	return 0x42371B;
 }
-
-#ifdef OVERRIDE_SHP_DRAWING
 struct DummyStructForDrawing
 {
 	static void Callme(

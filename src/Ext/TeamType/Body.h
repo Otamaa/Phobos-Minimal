@@ -9,11 +9,9 @@
 class TeamTypeExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0xBEE79008;
 	using base_type = TeamTypeClass;
-#ifdef ENABLE_NEWHOOKS_
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
 	class ExtData final : public Extension<TeamTypeClass>
 	{
@@ -51,4 +49,5 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+#endif
 };

@@ -9,7 +9,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-#ifdef SecondMode
+#ifndef SecondMode
 DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 {
 	GET(AircraftClass* const, pThis, ECX);
@@ -25,14 +25,11 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
 	const auto pWeaponStr = pThis->GetWeapon(weaponIndex);
 
-	if (pWeaponStr)
-	{
-		if (pWeaponStr->WeaponType)
-		{
-			if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType))
+	if (pWeaponStr) {
+		if (pWeaponStr->WeaponType) {
 			{
 				int fireCount = pThis->MissionStatus - 4;
-				if (fireCount > 1 && pWeaponExt->Strafing_Shots < fireCount)
+				if (fireCount > 1 && WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount)
 				{
 
 
@@ -74,6 +71,7 @@ DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) /
 
 #undef Hook_AircraftBurstFix
 #endif
+
 DEFINE_HOOK(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);

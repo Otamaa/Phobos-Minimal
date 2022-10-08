@@ -39,9 +39,6 @@ class TActionExt
 public:
 	static constexpr size_t Canary = 0x87154321;
 	using base_type = TActionClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
 	class ExtData final : public TExtension<base_type>
 	{

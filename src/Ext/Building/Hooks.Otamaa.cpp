@@ -49,7 +49,7 @@ DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 
 	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 
-	R->EAX(Game::F2I(pTypeExt && !pTypeExt->Power_DegradeWithHealth.Get()
+	R->EAX(Game::F2I(!pTypeExt->Power_DegradeWithHealth.Get()
 		? (nPowMult) : (nPowMult * pThis->GetHealthPercentage())));
 
 	return 0x44E86F;
@@ -81,13 +81,9 @@ DEFINE_HOOK(0x43F000, BuildingClass_GetStaticImage_Sell, 0x6)
 DEFINE_HOOK_AGAIN(0x6D5EB1, BuildingClass_PlaceCementGrid_Shape, 0x6)
 DEFINE_HOOK(0x47EF52, BuildingClass_PlaceCementGrid_Shape, 0x6)
 {
-	if (auto const pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding))
-	{
-		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
-		{
-			R->EDX(pTypeExt->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
-			return R->Origin() + 0x6;
-		}
+	if (auto const pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)) {
+		R->EDX(BuildingTypeExt::ExtMap.Find(pBuilding->Type)->BuildingPlacementGrid_Shape.Get(FileSystem::PLACE_SHP()));
+		return R->Origin() + 0x6;
 	}
 
 	return 0x0;

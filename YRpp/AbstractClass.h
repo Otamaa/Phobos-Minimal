@@ -100,7 +100,7 @@ public:
 
 	//IRTTITypeInfo
 	virtual AbstractType __stdcall What_Am_I() const RT(AbstractType);
-	virtual int __stdcall Fetch_ID() const R0;
+	virtual int __stdcall Fetch_ID() const JMP_STD(0x410220);
 	virtual void __stdcall Create_ID() RX;
 
 	//INoticeSink

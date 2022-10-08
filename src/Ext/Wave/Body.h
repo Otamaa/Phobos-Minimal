@@ -32,6 +32,7 @@
 class WaveExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0xAAAAAAAC;
 	using base_type = WaveClass;
 
@@ -112,6 +113,7 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+#endif
 };
 
 //class WaveClassFake final : public WaveClass

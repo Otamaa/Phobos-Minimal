@@ -10,10 +10,7 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
 	GET(AnimClass* const, pThis, ECX);
 	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
-
-	if (auto const pThisTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
-		pCoord->X += pThisTypeExt->XDrawOffset;
-
+	pCoord->X += AnimTypeExt::ExtMap.Find(pThis->Type)->XDrawOffset;
 	return 0;
 }
 
@@ -24,10 +21,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 
 	if (pType->HideIfNoOre)
 	{
-		int nThreshold = 0;
-		if (auto const pExt = AnimTypeExt::ExtMap.Find(pType))
-			nThreshold = abs(pExt->HideIfNoOre_Threshold.Get());
-
+		int nThreshold = abs(AnimTypeExt::ExtMap.Find(pType)->HideIfNoOre_Threshold.Get());
 		auto const pCell = pThis->GetCell();
 
 		pThis->Invisible = !pCell || pCell->GetContainedTiberiumValue() <= nThreshold;
@@ -52,7 +46,7 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 	if (pThis->OwnerObject) {
 		const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-		if (!pExt || !pExt->Layer_UseObjectLayer.isset()) {
+		if (!pExt->Layer_UseObjectLayer.isset()) {
 			return RetLayerGround;
 		}
 
@@ -88,9 +82,7 @@ DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
 	GET(ObjectClass*, pObject, EDI);
 	GET(CoordStruct*, pCoords, EAX);
 
-	const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-
-	if (pExt && pExt->UseCenterCoordsIfAttached)
+	if (AnimTypeExt::ExtMap.Find(pThis->Type)->UseCenterCoordsIfAttached)
 	{
 		pCoords = pObject->GetRenderCoords(pCoords);
 		pCoords->X += 128;
@@ -104,8 +96,11 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 {
 	GET(AnimClass*, pThis, ESI);
 
-	if(const auto pExt = AnimExt::ExtMap.Find(pThis)) {
-		if (const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type)) {
+	const auto pExt = AnimExt::ExtMap.Find(pThis);
+	{
+		const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+		{
 			if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 				pExt->DeleteAttachedSystem();
 

@@ -12,10 +12,12 @@
 #include <Ext/ScriptType/Body.h>
 
 #define TECHNO_IS_ALIVE(tech) TechnoExt::IsAlive(tech)
-
+#ifdef ENABLE_NEWHOOKS
 ScriptExt::ExtContainer ScriptExt::ExtMap;
 
 void ScriptExt::ExtData::InitializeConstants() { }
+#endif
+
 ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
 	nIdx += pScript->CurrentMission;
@@ -23,7 +25,7 @@ ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 	if (nIdx > pScript->Type->ActionsCount)
 		nIdx = pScript->Type->ActionsCount;
 
-	if (nIdx < 50) {
+	if (nIdx <= 49) {
 		return pScript->Type->ScriptActions[nIdx];
 	}
 	//else {
@@ -45,7 +47,7 @@ static inline bool IsEmpty(TeamClass* pTeam)
 
 	return nCount <= 0;
 }
-
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // load / save
 
@@ -79,7 +81,7 @@ ScriptExt::ExtContainer::ExtContainer() : Container("ScriptClass") { }
 void ScriptExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 ScriptExt::ExtContainer::~ExtContainer() = default;
-
+#endif
 /*
 #include <SlaveManagerClass.h>
 

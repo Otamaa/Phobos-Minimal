@@ -16,15 +16,16 @@
 
 DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 {
-	enum {
-		Draw = 0x0 ,
+	enum
+	{
+		Draw = 0x0,
 		DoNotDraw = 0x6F6AB6
 	};
 
 	GET(TechnoClass*, pThis, ECX);
 
-	if(const auto pUnit = specific_cast<UnitClass*>(pThis))
-		if(pUnit->DeathFrameCounter > 0)
+	if (const auto pUnit = specific_cast<UnitClass*>(pThis))
+		if (pUnit->DeathFrameCounter > 0)
 			return DoNotDraw;
 
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
@@ -34,9 +35,7 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 	//		return DoNotDraw;
 	//}
 
-	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if ((pTypeData && pTypeData->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
+	if ((TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HealthBar_Hide.Get()) || pThis->TemporalTargetingMe || pThis->IsSinking)
 		return DoNotDraw;
 
 
@@ -49,15 +48,12 @@ DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x5) //0
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
 	GET(TechnoTypeClass*, pType, EDX);
 
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-	{
-		auto const pOffs = ext->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 
-		mtx->Translate(x, y, z);
-	}
+	mtx->Translate(x, y, z);
 
 	return 0x6F3C6D;
 }
@@ -67,15 +63,12 @@ DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xCC, 0x90));
 	GET(TechnoTypeClass*, pType, EBP);
 
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-	{
-		auto const pOffs = ext->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+	float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 
-		mtx->Translate(x, y, z);
-	}
+	mtx->Translate(x, y, z);
 
 	return 0x6F3E85;
 }
@@ -83,13 +76,7 @@ DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 {
 	GET(TechnoTypeClass*, technoType, EAX);
-
-	auto const pTypeData = TechnoTypeExt::ExtMap.Find(technoType);
-
-	if (pTypeData && *pTypeData->TurretOffset.GetEx() == CoordStruct::Empty)
-		return 0x73B78A;
-
-	return 0x73B790;
+	return (*TechnoTypeExt::ExtMap.Find(technoType)->TurretOffset.GetEx()) == CoordStruct::Empty ? 0x73B78A : 0x73B790;
 }
 
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
@@ -98,15 +85,12 @@ DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 	GET(TechnoTypeClass*, pType, EBX);
 
 	double& factor = *reinterpret_cast<double*>(0xB1D008);
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-	{
-		auto const pOffs = ext->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * factor);
-		float y = static_cast<float>(pOffs->Y * factor);
-		float z = static_cast<float>(pOffs->Z * factor);
+	auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * factor);
+	float y = static_cast<float>(pOffs->Y * factor);
+	float z = static_cast<float>(pOffs->Z * factor);
 
-		mtx->Translate(x, y, z);
-	}
+	mtx->Translate(x, y, z);
 
 	return 0x73BA68;
 }
@@ -116,15 +100,12 @@ DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 	LEA_STACK(Matrix3D*, mtx, 0x80);
 	GET(TechnoTypeClass*, pType, EAX);
 
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-	{
-		auto const pOffs = ext->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
 
-		mtx->Translate(x, y, z);
-	}
+	mtx->Translate(x, y, z);
 
 	return 0x73C8B7;
 }
@@ -134,15 +115,12 @@ DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 	LEA_STACK(Matrix3D*, mtx, 0x60);
 	GET(TechnoTypeClass*, pType, EDX);
 
-	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType))
-	{
-		auto const pOffs = ext->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+	float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+	float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
 
-		mtx->Translate(x, y, z);
-	}
+	mtx->Translate(x, y, z);
 
 	return 0x43E0E8;
 }
@@ -151,8 +129,7 @@ DEFINE_HOOK(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
-	if (pTypeExt && pTypeExt->Promote_IncludeSpawns)
+	if (TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())->Promote_IncludeSpawns)
 	{
 		for (const auto i : pThis->SpawnedNodes)
 		{
@@ -178,7 +155,8 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
 
-	if (auto const pData = TechnoTypeExt::ExtMap.Find(pType))
+	auto const pData = TechnoTypeExt::ExtMap.Find(pType);
+
 	{
 		auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
 		auto idxArray = pData->OreGathering_Tiberiums.size() > 0 ? pData->OreGathering_Tiberiums.IndexOf(idxTiberium) : 0;
@@ -191,18 +169,15 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 			if (pAnimType)
 			{
 				pSHP = pAnimType->GetImage();
-				if (auto const pAnimExt = AnimTypeExt::ExtMap.Find(pAnimType))
-				{
-					if (auto const pPalette = pAnimExt->Palette.GetConvert())
-						pDrawer = pPalette;
-				}
+				if (auto const pPalette = AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert())
+					pDrawer = pPalette;
 			}
 
 			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % nFramesPerFacing;
 		}
 	}
 
-	if(idxFrame == -1)
+	if (idxFrame == -1)
 		idxFrame = 15 * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % 15;
 
 	DSurface::Temp->DrawSHP(
@@ -221,11 +196,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
-
-	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-		return pExt->NoManualMove.Get() ? 0x700C62 : 0;
-
-	return 0;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoManualMove.Get() ? 0x700C62 : 0;
 }
 
 DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
@@ -234,13 +205,10 @@ DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
 
 	if (pThis->IsInAir())
 	{
-		if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+		if (!TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->JumpjetAllowLayerDeviation.Get(RulesExt::Global()->JumpjetAllowLayerDeviation.Get()))
 		{
-			if (!pExt->JumpjetAllowLayerDeviation.Get(RulesExt::Global()->JumpjetAllowLayerDeviation.Get()))
-			{
-				R->EDX(INT32_MAX); // Override JumpjetHeight / CruiseHeight check so it always results in 3 / Layer::Air.
-				return 0x54B96B;
-			}
+			R->EDX(INT32_MAX); // Override JumpjetHeight / CruiseHeight check so it always results in 3 / Layer::Air.
+			return 0x54B96B;
 		}
 	}
 
@@ -250,13 +218,9 @@ DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
 DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pTypeExt && pTypeExt->DeployingAnim_KeepUnitVisible.Get() && (pThis->Deploying || pThis->Undeploying))
-		return 0x73CF62;
-
-	return 0;
+	return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
+		(pThis->Deploying || pThis->Undeploying)) ?
+		0x73CF62 : 0;
 }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
@@ -266,15 +230,9 @@ DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	if (!pThis->InAir)
-	{
-		if (pThis->Type->DeployingAnim)
-		{
-			auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-			if (pExt && pExt->DeployingAnim_AllowAnyDirection.Get())
-				return PlayAnim;
-
-			return 0;
+	if (!pThis->InAir) {
+		if (pThis->Type->DeployingAnim) {
+			return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim :0;
 		}
 
 		pThis->Deployed = true;
@@ -291,8 +249,8 @@ DEFINE_HOOK(0x739BA8, UnitClass_DeployUndeploy_DeployAnim, 0x5)
 	GET(UnitClass*, pThis, ESI);
 
 	bool isDeploying = R->Origin() == 0x739BA8;
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
 	{
 		if (auto const pAnim = GameCreate<AnimClass>(pThis->Type->DeployingAnim,
 			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
@@ -337,13 +295,20 @@ DEFINE_HOOK(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	GET(ObjectClass*, pObject, ECX);
 
-	if (!HouseClass::IsCurrentPlayerObserver()) {
-		if (auto pFoot = generic_cast<FootClass*>(pObject)) {
-			if (!pObject->IsDisguised()) {
-				if (const auto pOwnerHouse = pFoot->GetOwningHouse()) {
-					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer)) {
-						if (const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType())) {
-							if (!pTechnoTypeExt->EnemyUIName.Get().empty()) {
+	if (!HouseExt::IsObserverPlayer())
+	{
+		if (auto pFoot = generic_cast<FootClass*>(pObject))
+		{
+			if (!pObject->IsDisguised())
+			{
+				if (const auto pOwnerHouse = pFoot->GetOwningHouse())
+				{
+					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer))
+					{
+						const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+						{
+							if (!pTechnoTypeExt->EnemyUIName.Get().empty())
+							{
 								R->EAX(pTechnoTypeExt->EnemyUIName.Get().Text);
 								return SetUIName;
 							}

@@ -40,7 +40,8 @@ DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 	GET_BASE(AbstractClass*, pTarget, 0x8);
 	GET_BASE(int, nWeaponIdx, 0xC);
 
-	auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
+	const auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
+
 	R->ESI(pBullet);
 	R->Stack(0x10 , pBullet);
 
@@ -65,11 +66,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	int nRadius = RulesGlobal->ParadropRadius;
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-		nRadius = pExt->ParadropOverflRadius.Get(nRadius) ;
-	}
-
+	int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesGlobal->ParadropRadius);
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -80,11 +77,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	int nRadius = RulesGlobal->ParadropRadius;
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-		nRadius = pExt->ParadropRadius.Get(nRadius) ;
-	}
-
+	int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesGlobal->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -93,13 +86,9 @@ DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EAX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-		R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
-		R->ECX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
-		return 0x41654C;
-	}
-
-	return 0x0;
+	R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
+	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
+	return 0x41654C;
 }
 
 DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
@@ -107,26 +96,16 @@ DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, ECX);
 
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-		R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
-		R->EDX(pTypeExt->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
-		return 0x416587;
-	}
-
-	return 0x0;
+	R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
+	R->EDX(TechnoTypeExt::ExtMap.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
+	return 0x416587;
 }
 
-DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6) {
+DEFINE_HOOK(0x4156F1, AircraftClass_Mission_SpyplaneApproach_camerasound, 0x6)
+{
 	GET(RulesClass* const, pRules, EAX);
 	GET(AircraftClass* const, pThis, ESI);
-
-	int nIDx = pRules->SpyPlaneCamera;
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-		if(pTypeExt->SpyplaneCameraSound.isset())
-			nIDx = pTypeExt->SpyplaneCameraSound.Get();
-	}
-
-	R->ECX(nIDx);
+	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Type)->SpyplaneCameraSound.Get(pRules->SpyPlaneCamera));
 	return 0x4156F7;
 }
 
@@ -211,7 +190,6 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 {
 	std::for_each(AircraftClass::Array->begin(), AircraftClass::Array->end(), [](AircraftClass* const pThis) {
-
 		 if (pThis) {
 			if (pThis->Type->AirportBound) {
 				if (auto pCell = pThis->GetCell()) {
@@ -222,7 +200,7 @@ DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 							auto nDockCoord = pBuilding->GetDockCoords(pThis);
 							pThis->SetLocation(nDockCoord);
 							pThis->DockedTo = pBuilding;
-
+							//pThis->SecondaryFacing.Set_Desired(DirStruct { pThis->GetLandDir() });
 							 if (pThis->GetHeight() > 0)
 								pThis->Tracker_4134A0();
 						 }

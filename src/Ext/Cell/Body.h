@@ -10,11 +10,11 @@
 class CellExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x87688621;
 	using base_type = CellClass;
-#ifndef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = 0x144;
-#endif
+
 
 	class ExtData final : public Extension<CellClass>
 	{
@@ -52,10 +52,11 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	// Dont call it without checking Tiberium existence
+#endif
+	// Don t call it without checking Tiberium existence
 	// otherwise crash
 	static TiberiumClass* GetTiberium(CellClass* pCell);
 	static int GetOverlayIndex(CellClass* pCell ,TiberiumClass* pTiberium);

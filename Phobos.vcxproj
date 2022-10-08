@@ -29,7 +29,6 @@
     <ClCompile Include="src\Commands\Commands.cpp" />
     <ClCompile Include="src\Commands\FrameStep.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.ParadropAttemt.cpp" />
@@ -39,7 +38,6 @@
     <ClCompile Include="src\Ext\AnimType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
     <ClCompile Include="src\Ext\Bomb\Body.cpp" />
     <ClCompile Include="src\Ext\Bomb\Hooks.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.cpp" />
@@ -64,9 +62,9 @@
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
+    <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
-    <ClCompile Include="src\Ext\LineTrail\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
@@ -108,6 +106,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
@@ -161,12 +160,12 @@
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Working.cpp" />
     <ClCompile Include="src\Misc\InteractWithAres\Body.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
-    <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\Misc\TriggerMPOwner.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
     <ClCompile Include="src\New\Entity\FlyingStrings.cpp" />
@@ -253,7 +252,6 @@
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
     <ClInclude Include="src\Ext\LaserDraw\Body.h" />
-    <ClInclude Include="src\Ext\LineTrail\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
@@ -663,7 +661,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>

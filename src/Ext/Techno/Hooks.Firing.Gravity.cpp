@@ -60,16 +60,16 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 		}
 	}
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	if (!pExt->Aircraft_DecreaseAmmo.Get() && pThis->WhatAmI() == AbstractType::Aircraft)
-	{
-		auto nAmmo = --pThis->Ammo;
+	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//if (!pExt->Aircraft_DecreaseAmmo.Get() && pThis->WhatAmI() == AbstractType::Aircraft)
+	//{
+	//	auto nAmmo = --pThis->Ammo;
 
-		if (nAmmo < 0)
-			nAmmo = 0;
+	//	if (nAmmo < 0)
+	//		nAmmo = 0;
 
-		pThis->Ammo = nAmmo;
-	}
+	//	pThis->Ammo = nAmmo;
+	//}
 
 	return 0;
 }

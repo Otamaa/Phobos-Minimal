@@ -134,6 +134,9 @@ int Mission_Attack(AircraftClass* pThis)
 		}
 		else
 		{
+			if(!pThis->Ammo)
+				return  1;
+
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 		}
 
@@ -199,8 +202,11 @@ int Mission_Attack(AircraftClass* pThis)
 			}
 			else
 			{
-				const auto v14 = pThis->GetDirectionOverObject(pThis->Target);
-				pThis->SecondaryFacing.Set_Desired(v14);
+				if (pThis->Ammo && pThis->Target) {
+					const auto v14 = pThis->GetDirectionOverObject(pThis->Target);
+					pThis->SecondaryFacing.Set_Desired(v14);
+				}
+
 				if (nDistance >= 16)
 				{
 					return  1;
@@ -264,7 +270,7 @@ int Mission_Attack(AircraftClass* pThis)
 			}
 
 			pThis->__DoingOverfly = 1;
-			pThis->MissionStatus = !(pThis->Ammo < 0) && !(pThis->Ammo == 0) ? 1 : (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
+			pThis->MissionStatus = !(pThis->Ammo < 0) && !(pThis->Ammo == 0) ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 			return pWeapon->ROF;
 		}
 		case FireError::FACING:
@@ -338,8 +344,9 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 				if (!pThis->Ammo)
 				{
-					pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 				}
+
 				pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 			}
@@ -347,11 +354,11 @@ int Mission_Attack(AircraftClass* pThis)
 			{
 				if (!pThis->Ammo)
 				{
-					pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 				}
 				if (!pThis->IsCloseEnoughToAttack(pThis->Target) || pThis->Is_Strafe())
 				{
-					pThis->MissionStatus = 1;
+					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 				else
 				{
@@ -381,7 +388,7 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 				else
 				{
-					pThis->MissionStatus = 1;
+					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 
 				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
@@ -580,7 +587,7 @@ int Mission_Attack(AircraftClass* pThis)
 		{
 			if (pThis->Target)
 			{
-				pThis->MissionStatus = 1;
+				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
 				return 1;
 			}
 		}
@@ -619,13 +626,13 @@ int Mission_Attack(AircraftClass* pThis)
 		return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 	}
 }
-
-DEFINE_HOOK(0x417FE0, Aircraft_MI_Attack, 0x6)
-{
-	GET(AircraftClass*, pThis, ECX);
-	R->EAX(Mission_Attack(pThis));
-	return 0x418D54;
-}
+//
+//DEFINE_HOOK(0x417FE0, Aircraft_MI_Attack, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ECX);
+//	R->EAX(Mission_Attack(pThis));
+//	return 0x418D54;
+//}
 
 #ifdef SecondMode
 //Strafe4

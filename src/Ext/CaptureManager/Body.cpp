@@ -2,11 +2,11 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
-
+#ifdef ENABLE_NEWHOOKS
 CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }
-
+#endif
 bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 {
 	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType))
@@ -20,8 +20,7 @@ bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 	if (pManager->MaxControlNodes == 1)
 		return pManager->CanCapture(pTarget);
 
-	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType());
-	if (pTechnoTypeExt && pTechnoTypeExt->MultiMindControl_ReleaseVictim)
+	if (TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim)
 	{
 		// I hate Ares' completely rewritten things - secsome
 		pManager->MaxControlNodes += 1;
@@ -145,15 +144,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, AnimTypeClass* pControlledAnimType)
 {
-	if (pTechno)
-	{
+	if (pTechno) {
 		const auto pTarget = pTechno->AbsDerivateID & AbstractFlags::Techno ? pTechno : nullptr;
-
-		bool bRemoveFirst = false;
-		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType()))
-			bRemoveFirst = pTechnoTypeExt->MultiMindControl_ReleaseVictim;
-
-		return CaptureExt::CaptureUnit(pManager, pTarget, bRemoveFirst, pControlledAnimType);
+		return CaptureExt::CaptureUnit(pManager, pTarget, TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim, pControlledAnimType);
 	}
 
 	return false;
@@ -164,6 +157,7 @@ void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot)
 	// to be implemented (if needed). - secsome
 }
 
+#ifdef ENABLE_NEWHOOKS
 // =============================
 // load / save
 
@@ -203,7 +197,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 {
 	GET(CaptureManagerClass* const, pItem, ESI);

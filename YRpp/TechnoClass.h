@@ -808,8 +808,8 @@ public:
 	bool			 IsTickedOff; //HasBeenAttacked //3D1
 	bool			 Cloakable; //3D2
 	bool			 IsPrimaryFactory; //3D3
-	bool			 IsLoaner; // 3D4
-	bool			 IsLocked; // 3D5
+	//bool			 IsLoaner; // 3D4
+	//bool			 IsLocked; // 3D5
 	bool			 Spawned; // 3D6
 	bool             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
@@ -836,7 +836,7 @@ public:
 	bool             _Mission_Patrol_430;
 	bool             IsMouseHovering;
 	bool             parasitecontrol_byte432;
-	bool			 byte_433;
+	//bool			 byte_433;
 	TeamClass*       OldTeam;
 	//bool			 IsTracked;
 	//bool			 IsTechnician;
@@ -870,13 +870,13 @@ public:
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4
 	bool             deploy_bool_4F8;
-	BYTE			 pad_4F9[3];
+	//BYTE			 pad_4F9[3];
 	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a TimerStruct!
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
 	bool            ShouldLoseTargetNow;
-	BYTE			 pad_50D[3];
+	//BYTE			 pad_50D[3];
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;

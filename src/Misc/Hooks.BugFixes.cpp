@@ -198,8 +198,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 				{
 					if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
 						&nCoords, pThis->Owner))
-						if(auto pVoxExt = VoxelAnimExt::ExtMap.Find(pVoxAnim))
-							pVoxExt->Invoker = pThis;
+							VoxelAnimExt::ExtMap.Find(pVoxAnim)->Invoker = pThis;
 				}
 
 				if (totalSpawnAmount <= 0)
@@ -451,24 +450,37 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	GET(int, nIntensity, EBP);
 	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
 
+	bool NeedUpdate = false;
 	if (pThis->IsIronCurtained())
 	{
 		if(pThis->ForceShielded != 1)
 			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->IronCurtainColor]);
 		else
 			nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->ForceShieldColor]);
+
+		NeedUpdate = true;
 	}
 
 	if (pThis->Berzerk)
+	{
 		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->BerserkColor]);
+		NeedUpdate = true;
+	}
+
 
 	// Boris
-	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
+	if (pThis->Airstrike && pThis->Airstrike->Target == pThis){
 		nTintColor |= Drawing::RGB2DWORD(RulesGlobal->ColorAdd[RulesGlobal->LaserTargetColor]);
-
+		NeedUpdate = true;
+	}
 	// EMP
-	if (pThis->Deactivated)
+	if (pThis->Deactivated){
 		R->EBP(nIntensity / 2);
+		NeedUpdate = true;
+	}
+
+	if (pThis->WhatAmI() == AbstractType::Building && NeedUpdate)
+		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 
 	return 0;
 }
@@ -649,7 +661,7 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
 	GET(BuildingClass* const, pThis, ESI);
 
-	if(HouseClass::IsCurrentPlayerObserver()) {
+	if(HouseExt::IsObserverPlayer()) {
 		return ContinueDraw;
 	}
 

@@ -273,8 +273,7 @@ void TechnoExt::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
 {
 	if (pFrom->IsIronCurtained() && !pFrom->ForceShielded)
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pFrom->GetTechnoType());
-		if (pTypeExt->IronCurtain_SyncDeploysInto.Get(RulesExt::Global()->IronCurtain_SyncDeploysInto))
+		if (TechnoTypeExt::ExtMap.Find(pFrom->GetTechnoType())->IronCurtain_SyncDeploysInto.Get(RulesExt::Global()->IronCurtain_SyncDeploysInto))
 		{
 			pTo->IronCurtain(pFrom->IronCurtainTimer.GetTimeLeft(), pFrom->Owner, false);
 			pTo->IronTintStage = pFrom->IronTintStage;
@@ -328,7 +327,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 	bool FLHFound = false;
 	CoordStruct FLH = CoordStruct::Empty;
 
-	if (!pThis || weaponIndex < 0 || !pExt)
+	if (!pThis || weaponIndex < 0)
 		return { FLHFound , FLH };
 
 	const auto pInf = specific_cast<InfantryClass*>(pThis);
@@ -371,8 +370,9 @@ std::pair<bool, CoordStruct> TechnoExt::GetInfantryFLH(InfantryClass* pThis, int
 	if (!pThis || weaponIndex < 0)
 		goto Return;
 
-	if (auto pTechnoType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
+
 	{
+		auto pTechnoType = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		Nullable<CoordStruct> pickedFLH;
 
 		if (pThis->IsDeployed())
@@ -477,7 +477,7 @@ void TechnoExt::DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeE
 	auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExt::Global()->SelectBrd_DefaultTranslucentLevel.Get()));
 	auto const canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
 		pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
-		|| HouseClass::IsCurrentPlayerObserver()
+		|| HouseExt::IsObserverPlayer()
 		|| pTypeExt->SelectBrd_ShowEnemy.Get(RulesExt::Global()->SelectBrd_DefaultShowEnemy.Get());
 
 	vOfs = pTypeExt->SelectBrd_DrawOffset.Get(isInfantry ?
@@ -531,7 +531,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 			pTechnoType = pType;
 			pOwner = pThis->DisguisedAsHouse;
 		}
-		else if (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !HouseClass::IsCurrentPlayerObserver())
+		else if (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !HouseExt::IsObserverPlayer())
 		{
 			return;
 		}
@@ -540,7 +540,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
 
 	bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
-		|| HouseClass::IsCurrentPlayerObserver()
+		|| HouseExt::IsObserverPlayer()
 		|| pExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
 
 	if (!isVisibleToPlayer)
@@ -615,10 +615,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 	if (pType->Locomotor == LocomotionClass::CLSIDs::Jumpjet && pThis->IsInAir()
 		&& !pType->TurretSpins)
 	{
-
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget)
+		if (TechnoTypeExt::ExtMap.Find(pType)->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget)
 		   && pFoot->GetCurrentSpeed() == 0)
 		{
 			if (const auto pTarget = pThis->Target)
@@ -643,10 +640,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	if (!pThis || damage == 0)
 		return;
 
-	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
-
-	if (!pExt)
-		return;
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	auto color = isShieldDamage ? damage > 0 ? ColorStruct { 0, 160, 255 } : ColorStruct { 0, 255, 230 } :
 		damage > 0 ? ColorStruct { 255, 0, 0 } : ColorStruct { 0, 255, 0 };
@@ -741,35 +735,28 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	if (pVictim)
+	if (pVictim && pKiller)
 	{
-		const auto pVictimTechnoData = TechnoExt::ExtMap.Find(pVictim);
+		TechnoClass* pObjectKiller = nullptr;
 
-		if (pVictimTechnoData && pKiller)
+		if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
+			pObjectKiller = pKiller->SpawnOwner;
+		else
+			pObjectKiller = pKiller;
+
+		if (pObjectKiller && pObjectKiller->BelongsToATeam())
 		{
-			TechnoClass* pObjectKiller = nullptr;
-
-			if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
-				pObjectKiller = pKiller->SpawnOwner;
-			else
-				pObjectKiller = pKiller;
-
-			if (pObjectKiller && pObjectKiller->BelongsToATeam())
+			const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
+			if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
 			{
-				if (const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller))
-				{
-					if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
-					{
-						auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
-						/*
-						Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
-							pFootKiller->Team->Type->ID, pObjectKiller->get_ID(), pVictim->get_ID());
-						*/
-						pKillerTechnoData->LastKillWasTeamTarget = false;
-						if (pFocus && pFocus == pVictim)
-							pKillerTechnoData->LastKillWasTeamTarget = true;
-					}
-				}
+				auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
+				/*
+				Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
+					pFootKiller->Team->Type->ID, pObjectKiller->get_ID(), pVictim->get_ID());
+				*/
+				pKillerTechnoData->LastKillWasTeamTarget = false;
+				if (pFocus && pFocus == pVictim)
+					pKillerTechnoData->LastKillWasTeamTarget = true;
 			}
 		}
 	}
@@ -777,8 +764,7 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 
 void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 {
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
-	int Range = pTypeExt->MindControlRangeLimit.Get();
+	int Range = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->MindControlRangeLimit.Get();
 
 	if (Range <= 0 || pThis->CaptureManager == nullptr)
 		return;
@@ -786,7 +772,7 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 	for (auto node : pThis->CaptureManager->ControlNodes)
 	{
 		if (pThis->DistanceFrom(node->Unit) > Range)
-			 pThis->CaptureManager->FreeUnit(node->Unit);
+			pThis->CaptureManager->FreeUnit(node->Unit);
 	}
 }
 
@@ -795,12 +781,13 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 	//if (!TechnoExt::IsActive(pThis, true, true, true, true))
 	//	return;
 
-	const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	auto pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
-	if (pExt && pExt->Interceptor.Get() && !pThis->Target &&
+	if (pExt->Interceptor.Get() && !pThis->Target &&
 		!(pThis->WhatAmI() == AbstractType::Aircraft && pThis->GetHeight() <= 0))
 	{
-		if (auto const pTransport = pThis->Transporter) {
+		if (auto const pTransport = pThis->Transporter)
+		{
 			if (pTransport->WhatAmI() == AbstractType::Aircraft)
 				if (!pTransport->IsInAir())
 					return;
@@ -814,16 +801,17 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 			const auto  distance = pBullet->Location.DistanceFrom(pThis->Location);
 
 			if (distance > guardRange || distance < minguardRange || pBullet->InLimbo)
-			   continue;
+				continue;
 
 			int weaponIndex = pThis->SelectWeapon(pBullet);
 			auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
 
-			if(pExt->Interceptor_ConsiderWeaponRange.Get() &&
-				(distance > pWeapon->Range || distance < pWeapon->MinimumRange) )
-					continue;
+			if (pExt->Interceptor_ConsiderWeaponRange.Get() &&
+				(distance > pWeapon->Range || distance < pWeapon->MinimumRange))
+				continue;
 
-			if (const auto pBulletExt = BulletExt::ExtMap.Find<false>(pBullet))
+			const auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+
 			{
 				if (!pBulletExt->TypeExt->Interceptable ||
 					pBulletExt->CurrentStrength <= 0 ||
@@ -862,7 +850,7 @@ void TechnoExt::ApplySpawn_LimitRange(TechnoClass* pThis)
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
-	if (pExt && pExt->Spawn_LimitedRange)
+	if (pExt->Spawn_LimitedRange)
 	{
 		if (auto const pManager = pThis->SpawnManager)
 		{
@@ -925,28 +913,26 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 {
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (!pExt || pThis->WhatAmI() == AbstractType::Building || pThis->GetTechnoType()->Invisible)
+	if (pThis->WhatAmI() == AbstractType::Building || pThis->GetTechnoType()->Invisible)
 		return;
 
 	if (bIsconverted)
 		pExt->LaserTrails.clear();
 
-	if (const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-	{
-		auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+	auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
 
-		if (pExt->LaserTrails.empty())
+	if (pExt->LaserTrails.empty())
+	{
+		for (auto const& entry : TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->LaserTrailData)
 		{
-			for (auto const& entry : pTypeExt->LaserTrailData)
+			if (auto const pLaserType = LaserTrailTypeClass::Array[entry.idxType].get())
 			{
-				if (auto const pLaserType = LaserTrailTypeClass::Array[entry.idxType].get())
-				{
-					pExt->LaserTrails.push_back((std::make_unique<LaserTrailClass>(
-						pLaserType, pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
-				}
+				pExt->LaserTrails.push_back((std::make_unique<LaserTrailClass>(
+					pLaserType, pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
 			}
 		}
 	}
+
 }
 
 void TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
@@ -958,7 +944,8 @@ Matrix3D TechnoExt::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 {
 	Matrix3D Mtx { };
 	// Step 1: get body transform matrix
-	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor) {
+	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor)
+	{
 		((FootClass*)pThis)->Locomotor.get()->Draw_Matrix(&Mtx, pKey);
 		return Mtx;
 	}
@@ -978,20 +965,14 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		if (const auto ext = TechnoTypeExt::ExtMap.Find<false>(pType))
-		{
-			auto const pOffs = ext->TurretOffset.GetEx();
-			float x = static_cast<float>(pOffs->X * 1.0);
-			float y = static_cast<float>(pOffs->Y * 1.0);
-			float z = static_cast<float>(pOffs->Z * 1.0);
-
-			mtx.Translate(x, y, z);
-		}
-
+		auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * 1.0);
+		float y = static_cast<float>(pOffs->Y * 1.0);
+		float z = static_cast<float>(pOffs->Z * 1.0);
+		mtx.Translate(x, y, z);
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		float angle = static_cast<float>(turretRad - bodyRad);
-
 		mtx.RotateZ(angle);
 	}
 
@@ -1176,12 +1157,9 @@ void TechnoExt::ExtData::EatPassengers()
 {
 	auto const pThis = this->Get();
 	if (!TechnoExt::IsActive(pThis, false, false))
-		return;;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
-
-	if (!pTypeExt)
 		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if ((pTypeExt->PassengerDeletion_Rate > 0 || pTypeExt->PassengerDeletion_UseCostAsRate))
 	{
@@ -1318,11 +1296,9 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 {
 	if (pThis->GetTechnoType()->Ammo > 0)
 	{
-		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()))
-		{
-			if (pThis->Ammo <= pExt->NoAmmoAmount && (pExt->NoAmmoWeapon = weaponIndex || pExt->NoAmmoWeapon == -1))
-				return true;
-		}
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		if (pThis->Ammo <= pExt->NoAmmoAmount && (pExt->NoAmmoWeapon = weaponIndex || pExt->NoAmmoWeapon == -1))
+			return true;
 	}
 
 	return false;
@@ -1379,6 +1355,10 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 
 void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill)
 {
+	if (!pThis)
+		return;
+
+	auto const pWhat = pThis->WhatAmI();
 	KillMethod nOpt = deathOption;
 	if (deathOption == KillMethod::Random)
 	{
@@ -1407,8 +1387,10 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	}break;
 	case KillMethod::Sell:
 	{
-		if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+		if (pWhat == AbstractType::Building)
 		{
+			const auto pBld = static_cast<BuildingClass*>(pThis);
+
 			if (pBld->Type->LoadBuildup())
 			{
 				pBld->Sell(true);
@@ -1416,9 +1398,11 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 			}
 
 		}
-		else if (const auto pFoot = generic_cast<FootClass*>(pThis))
+		else if (pThis->AbstractFlags & AbstractFlags::Foot)
 		{
-			if (pFoot->WhatAmI() != AbstractType::Infantry)
+			const auto pFoot = static_cast<FootClass*>(pThis);
+
+			if (pWhat != AbstractType::Infantry)
 			{
 				if (auto const pCell = pFoot->GetCell())
 				{
@@ -1449,10 +1433,6 @@ void TechnoExt::ExtData::CheckDeathConditions()
 		return;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
-
-	if (!pTypeExt)
-		return;
-
 	auto pTypeThis = pTypeExt->Get();
 	const bool peacefulDeath = pTypeExt->Death_Peaceful.Get();
 	const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeExt->Death_Method.Get();
@@ -1556,12 +1536,12 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (healthDeficit > 0)
 	{
-		if (auto pExt = TechnoTypeExt::ExtMap.Find<false>(pType))
 		{
-			bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
-			bool isOrganic = pThis->WhatAmI() == AbstractType::Infantry || pThis->WhatAmI() == AbstractType::Unit && pType->Organic;
+			auto const pWhat = pThis->WhatAmI();
+			bool isBuilding = pWhat == AbstractType::Building;
+			bool isOrganic = pWhat == AbstractType::Infantry || pWhat == AbstractType::Unit && pType->Organic;
 			auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
-			auto selfHealType = pExt->SelfHealGainType.Get(defaultSelfHealType);
+			auto selfHealType = TechnoTypeExt::ExtMap.Find(pType)->SelfHealGainType.Get(defaultSelfHealType);
 			bool applyHeal = false;
 			int amount = 0;
 
@@ -1607,15 +1587,17 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 				if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 					|| pThis->GetHeight() < -10))
 				{
-					if (auto pBuilding = abstract_cast<BuildingClass*>(pThis))
+					if (isBuilding)
 					{
+						auto pBuilding = static_cast<BuildingClass*>(pThis);
 						pBuilding->UpdatePlacement(PlacementType::Redraw);
 						pBuilding->ToggleDamagedAnims(false);
 					}
 
-					if (pThis->WhatAmI() == AbstractType::Unit || pThis->WhatAmI() == AbstractType::Building)
+					if (pWhat == AbstractType::Unit || pWhat == AbstractType::Building)
 					{
-						if (auto dmgParticle = pThis->DamageParticleSystem){
+						if (auto dmgParticle = pThis->DamageParticleSystem)
+						{
 							dmgParticle->UnInit();
 							pThis->DamageParticleSystem = nullptr;
 						}
@@ -1634,29 +1616,29 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	bool isInfantryHeal = false;
 	int selfHealFrames = 0;
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
+	auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+
+	if (pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::None)
+		return;
+
+	auto const pWhat = pThis->WhatAmI();
+	const bool hasInfantrySelfHeal = pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::Infantry;
+	const bool hasUnitSelfHeal = pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::Units;
+	const bool isOrganic = pWhat == AbstractType::Infantry || (pThis->GetTechnoType()->Organic && (pWhat == AbstractType::Unit));
+	//bool isAircraft = pThis->WhatAmI() == AbstractType::Aircraft || (pThis->GetTechnoType()->ConsideredAircraft && pThis->WhatAmI() == AbstractType::Unit);
+
+	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || isOrganic))
 	{
-		if (pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::None)
-			return;
-
-		const bool hasInfantrySelfHeal = pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::Infantry;
-		const bool hasUnitSelfHeal = pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::Units;
-		const bool isOrganic = pThis->WhatAmI() == AbstractType::Infantry || (pThis->GetTechnoType()->Organic && (pThis->WhatAmI() == AbstractType::Unit));
-		//bool isAircraft = pThis->WhatAmI() == AbstractType::Aircraft || (pThis->GetTechnoType()->ConsideredAircraft && pThis->WhatAmI() == AbstractType::Unit);
-
-		if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || isOrganic))
-		{
-			drawPip = true;
-			selfHealFrames = RulesClass::Instance->SelfHealInfantryFrames;
-			isInfantryHeal = true;
-		}
-		else if (pThis->Owner->UnitsSelfHeal > 0
-			&& (hasUnitSelfHeal || (pThis->WhatAmI() == AbstractType::Unit && !isOrganic))
-			)
-		{
-			drawPip = true;
-			selfHealFrames = RulesClass::Instance->SelfHealUnitFrames;
-		}
+		drawPip = true;
+		selfHealFrames = RulesClass::Instance->SelfHealInfantryFrames;
+		isInfantryHeal = true;
+	}
+	else if (pThis->Owner->UnitsSelfHeal > 0
+		&& (hasUnitSelfHeal || (pWhat == AbstractType::Unit && !isOrganic))
+		)
+	{
+		drawPip = true;
+		selfHealFrames = RulesClass::Instance->SelfHealUnitFrames;
 	}
 
 	if (drawPip)
@@ -1677,7 +1659,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 				nBracket = pFoot->GetTechnoType()->PixelSelectionBracketDelta;
 
-		switch (pThis->WhatAmI())
+		switch (pWhat)
 		{
 		case AbstractType::Unit:
 		case AbstractType::Aircraft:
@@ -1731,15 +1713,12 @@ Matrix3D TechnoExt::TransformFLHForTurret(TechnoClass* pThis, const Matrix3D& mt
 	// turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		if (const auto ext = TechnoTypeExt::ExtMap.Find<false>(pType))
-		{
-			auto const pOffs = ext->TurretOffset.GetEx();
-			float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-			float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-			float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
+		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 
-			mtx.Translate(x, y, z);
-		}
+		mtx.Translate(x, y, z);
 
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
@@ -1786,7 +1765,8 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 	{
 		if (pType->OpenTopped && pThis->Passengers.NumPassengers > 0)
 		{
-			if (const auto pExt = TechnoTypeExt::ExtMap.Find<false>(pType))
+			const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
 			{
 				if (pExt->Ammo_Shared && pType->Ammo > 0)
 				{
@@ -1795,11 +1775,10 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 					do
 					{
 						TechnoTypeClass* passengerType = passenger->GetTechnoType();
-						auto pPassengerExt = TechnoTypeExt::ExtMap.Find<false>(passengerType);
 
-						if (pPassengerExt && pPassengerExt->Ammo_Shared.Get())
+						if (TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared.Get())
 						{
-							if (pExt->Ammo_Shared_Group.Get() < 0 || pExt->Ammo_Shared_Group.Get() == pPassengerExt->Ammo_Shared_Group.Get())
+							if (pExt->Ammo_Shared_Group.Get() < 0 || pExt->Ammo_Shared_Group.Get() == TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared_Group.Get())
 							{
 								if (pThis->Ammo > 0 && (passenger->Ammo < passengerType->Ammo))
 								{
@@ -1883,9 +1862,6 @@ void TechnoExt::ExtData::RunFireSelf()
 {
 	const auto pThis = this->Get();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
-
-	if (!pTypeExt)
-		return;
 
 	Iterator<WeaponTypeClass*> FireSelf_Weapon { };
 	Iterator<int> FireSelf_ROF { };
@@ -2067,7 +2043,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 	const auto pWeaponOne = pWeaponStructOne->WeaponType;
 	const auto pWeaponTwo = pWeaponStructTwo->WeaponType;
 
-	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo))
+	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find<true>(pWeaponTwo))
 	{
 		if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
@@ -2075,7 +2051,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 		{
 			return weaponIndexOne;
 		}
-		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne))
+		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find<true>(pWeaponOne))
 		{
 			if (!allowFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
 				return weaponIndexOne;
@@ -2093,9 +2069,11 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 
 	// Handle special case with NavalTargeting / LandTargeting.
 	if (!pTargetTechno &&
-		(pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary)) {
-		if (targetCell) {
-			if((targetCell->LandType != LandType::Water && targetCell->LandType != LandType::Beach) || targetCell->ContainsBridge())
+		(pType->NavalTargeting == NavalTargetingType::Naval_primary || pType->LandTargeting == LandTargetingType::Land_secondary))
+	{
+		if (targetCell)
+		{
+			if ((targetCell->LandType != LandType::Water && targetCell->LandType != LandType::Beach) || targetCell->ContainsBridge())
 				return weaponIndexTwo;
 		}
 	}

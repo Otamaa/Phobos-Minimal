@@ -16,64 +16,51 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 {
 	GET(InfantryClass*, pSlave, EDI);
 
-	if (auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type)) {
-		if (pData->SlaveFreeSound_Enable.Get()) {
-			auto const nSound = pData->SlaveFreeSound.Get(RulesGlobal->SlavesFreeSound);
-			if (nSound != -1) {
-				VocClass::PlayAt(nSound, pSlave->GetCoords());
-			}
+	auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type);
+	if (pData->SlaveFreeSound_Enable.Get())
+	{
+		auto const nSound = pData->SlaveFreeSound.Get(RulesGlobal->SlavesFreeSound);
+		if (nSound != -1)
+		{
+			VocClass::PlayAt(nSound, pSlave->GetCoords());
 		}
-
-		return 0x6B0C65;
 	}
 
-	return 0x0;
+	return 0x6B0C65;
+
 }
 
 
 DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis)) {
-		return (pThis->TickTank || pTypeExt->IsJuggernaut.Get() || pThis->Artillary) ? 0x443C21 : 0x443BB3;
-	}
-
-	return 0x0;
+	return (pThis->TickTank || BuildingTypeExt::ExtMap.Find(pThis)->IsJuggernaut.Get() || pThis->Artillary)
+		? 0x443C21 : 0x443BB3;
 }
 
 DEFINE_HOOK(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis)) {
-		return (pThis->TickTank || pTypeExt->IsJuggernaut.Get() || pThis->Artillary) ? 0x44A951 : 0x44A95E;
-	}
-
-	return 0x0;
+	return (pThis->TickTank || BuildingTypeExt::ExtMap.Find(pThis)->IsJuggernaut.Get() || pThis->Artillary)
+		? 0x44A951 : 0x44A95E;
 }
 
 DEFINE_HOOK(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis)) {
-		R->CL(pThis->TickTank || pTypeExt->IsJuggernaut.Get());
-		return 0x739807;
-	}
-
-	return 0x0;
+	R->CL(pThis->TickTank || BuildingTypeExt::ExtMap.Find(pThis)->IsJuggernaut.Get());
+	return 0x739807;
 }
 
 DEFINE_HOOK(0x6F6D9E, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		if (const auto pTypconsteExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
-			if (pTypconsteExt->IsJuggernaut.Get()) {
-				R->ECX(&BuildingTypeExt::DefaultJuggerFacing);
-			}
+	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->IsJuggernaut.Get())
+		{
+			R->ECX(&BuildingTypeExt::DefaultJuggerFacing);
 		}
 	}
 
@@ -84,53 +71,30 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-		if (pTypeExt->IsJuggernaut.Get()) {
-			R->EDX(&BuildingTypeExt::DefaultJuggerFacing);
-		}
+	if (BuildingTypeExt::ExtMap.Find(pThis->Type)->IsJuggernaut.Get())
+	{
+		R->EDX(&BuildingTypeExt::DefaultJuggerFacing);
 	}
 
 	return 0x0;
 }
+
 //#ifdef ENABLE_NEWHOOKS
-
-//#include <ExtraHeaders/Ares/TechnoExtData.h>
-//#endif
-//static void __fastcall UnitClass_RotationAI_(UnitClass* pThis, void* _)
-//{
-//	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
-//#ifdef ENABLE_NEWHOOKS
-//		//if (pThis->align_154)
-//		//	if (const AresTechnoExtData* pData = reinterpret_cast<const AresTechnoExtData*>(pThis->align_154))
-//		//		if (pData->DiverKilled)
-//		//			return;
-//#endif
-//		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
-//		auto const nDisableDeactivated = pThis->Deactivated && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
-//
-//		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
-//			return;
-//	}
-//
-//	pThis->UpdateRotation();
-//}
-
-//DEFINE_JUMP(CALL,0x7365E8, GET_OFFSET(UnitClass_RotationAI_));
-
-DEFINE_HOOK(0x7365E6 , UnitClass_AI_Rotation_AI_Replace , 0x7) //was 5
+DEFINE_HOOK(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7) //was 5
 {
-	GET(UnitClass* , pThis , ESI);
+	GET(UnitClass*, pThis, ESI);
 
-	if (const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type)) {
+	const auto TypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	{
 		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
 		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 #ifdef Ares_3_0_p1
 		auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
 		auto const nDisableDriverKilled = bDriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled.Get();
 
-		if ((nDisableEmp || nDisableDeactivated || nDisableDriverKilled ||  TypeExt->FacingRotation_Disable.Get()))
+		if ((nDisableEmp || nDisableDeactivated || nDisableDriverKilled || TypeExt->FacingRotation_Disable.Get()))
 #else
-		if ((nDisableEmp || nDisableDeactivated ||  TypeExt->FacingRotation_Disable.Get()))
+		if ((nDisableEmp || nDisableDeactivated || TypeExt->FacingRotation_Disable.Get()))
 #endif
 			return 0x7365ED;
 	}
@@ -144,22 +108,6 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	/*
-		switch (pThis->WhatAmI())
-		{
-		case AbstractType::Unit:
-		case AbstractType::Aircraft:
-		case AbstractType::Terrain:
-		case AbstractType::Overlay:
-		case AbstractType::Infantry:
-		case AbstractType::Building:
-		case AbstractType::VeinholeMonster:
-			break;
-		default:
-			return 0x0;
-			break;
-		}
-	*/
 	GET_STACK(TechnoClass*, pAttacker, STACK_OFFS(0x24, -0x10));
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x24, -0xC));
 	GET_STACK(bool, bIgnoreDefense, STACK_OFFS(0x24, -0x14));
@@ -180,8 +128,8 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 
 		if (pTechno)
 		{
-			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
-			bImmune_pt2 = (pExt && pExt->Shield.get() && pExt->Shield.get()->IsActive())
+			const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
+			bImmune_pt2 = (pShield && pShield->IsActive())
 				|| pTechno->TemporalTargetingMe
 				|| (pTechno->ForceShielded && !bIgnoreDefense)
 				|| pTechno->BeingWarpedOut
@@ -207,10 +155,11 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 
 					if (!pAnimTypeDecided && pArmor->DefaultTo != -1)
 					{
-							//Holy shit !
+						//Holy shit !
 						for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
 							pDefArmor && pDefArmor->DefaultTo != -1;
-							pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
+							pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
+						{
 							pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
 							if (pAnimTypeDecided)
 								break;
@@ -222,7 +171,8 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 						CoordStruct nBuffer { 0, 0 , 0 };
 						if (pTechno)
 						{
-							if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType()))
+							auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
 							{
 								if (!pTechnoTypeExt->HitCoordOffset.empty())
 								{
@@ -234,8 +184,9 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 							}
 
 							auto const nCoord = pThis->GetCenterCoord() + nBuffer;
-							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord)) {
-							  AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), pAttacker, false);
+							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
+							{
+								AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), pAttacker, false);
 							}
 						}
 					}
@@ -253,10 +204,10 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 
 	GET(RocketLocomotionClass*, pThis, ESI);
 	if (const auto pAir = specific_cast<AircraftClass*>(pThis->Owner)) {
-		if (const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type)) {
-			if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir)) {
-				return Handled;
-			}
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
+		if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir))
+		{
+			return Handled;
 		}
 	}
 
@@ -269,11 +220,11 @@ DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile
 
 	GET(AircraftTypeClass*, pType, ECX);
 
-	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType)) {
-		if (pExt->IsCustomMissile.Get()) {
-			R->EAX(&pExt->CustomMissileData);
-			return Handled;
-		}
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	if (pExt->IsCustomMissile.Get())
+	{
+		R->EAX(&pExt->CustomMissileData);
+		return Handled;
 	}
 
 	return Skip;

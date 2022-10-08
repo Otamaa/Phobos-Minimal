@@ -55,7 +55,7 @@ DEFINE_HOOK(0x4101B6, AbstractClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4105BD, AbsractClass_SDTOR, 0x7)
+DEFINE_HOOK(0x4105BD, AbstractClass_SDTOR, 0x7)
 {
 	GET(AbstractClass*, pThis, ESI);
 
@@ -66,7 +66,7 @@ DEFINE_HOOK(0x4105BD, AbsractClass_SDTOR, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x41020B, AbsractClass_DTOR, 0x5)
+DEFINE_HOOK(0x41020B, AbstractClass_DTOR, 0x5)
 {
 	GET(AbstractClass*, pThis, ECX);
 
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x410423, AbstractClass_ComputeCRC, 0x4)
 	GET(AbstractClass*, pThis, ESI);
 	GET(WWCRCEngine*, pCheck, EDI);
 
-	pCheck->Add(ExtensionWrapper::GetWrapper(pThis)->IsDirty());
+	pCheck->Add_Bool(ExtensionWrapper::GetWrapper(pThis)->IsDirty());
 
 	return 0x41042E;
 }

@@ -31,12 +31,11 @@ DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
-		if (pType->MaxNumberOccupants > 10) {
-			GET(int, nFiringIndex, EBX);
-			R->EAX(&pTypeExt->OccupierMuzzleFlashes[nFiringIndex]);
-		}
+	if (pType->MaxNumberOccupants > 10) {
+		GET(int, nFiringIndex, EBX);
+		R->EAX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[nFiringIndex]);
 	}
+
 	return 0;
 }
 
@@ -45,10 +44,8 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
-		if (pType->MaxNumberOccupants > 10) {
-			R->EDX(&pTypeExt->OccupierMuzzleFlashes[pThis->FiringOccupantIndex]);
-		}
+	if (pType->MaxNumberOccupants > 10) {
+		R->EDX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[pThis->FiringOccupantIndex]);
 	}
 
 	return 0;
@@ -59,11 +56,9 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if(const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType)){
-		if (pType->MaxNumberOccupants > 10) {
-			GET(int, nFiringIndex, EDI);
-			R->ECX(&pTypeExt->OccupierMuzzleFlashes[nFiringIndex]);
-		}
+	if (pType->MaxNumberOccupants > 10) {
+		GET(int, nFiringIndex, EDI);
+		R->ECX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[nFiringIndex]);
 	}
 	return 0;
 }
@@ -76,8 +71,7 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 		{
 			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
 
-			if (pTypeExt &&
-				pTypeExt->PlacementPreview_Show.Get(RulesExt::Global()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview)))
+			if (pTypeExt->PlacementPreview_Show.Get(RulesExt::Global()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview)))
 			{
 				CellStruct const nDisplayCell = Make_Global<CellStruct>(0x88095C);
 				CellStruct const nDisplayCell_Offset = Make_Global<CellStruct>(0x880960);

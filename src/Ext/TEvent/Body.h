@@ -54,11 +54,9 @@ enum PhobosTriggerEvent
 class TEventExt
 {
 public:
+#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x91919191;
 	using base_type = TEventClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
 	class ExtData final : public Extension<TEventClass>
 	{
@@ -75,7 +73,7 @@ public:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
-
+#endif
 	static bool Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, ObjectClass* pObject,
 					TimerStruct* pTimer, bool* isPersitant, TechnoClass* pSource, bool& bHandled);
 
@@ -83,7 +81,7 @@ public:
 	static bool VariableCheck(TEventClass* pThis);
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
-
+#ifdef ENABLE_NEWHOOKS
 	class ExtContainer final : public Container<TEventExt>
 	{
 	public:
@@ -94,4 +92,6 @@ public:
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+#endif
+
 };

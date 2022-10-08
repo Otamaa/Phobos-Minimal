@@ -20,9 +20,8 @@
 
 static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const pDefault = HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
-	return pExt->HoverType.Get(pDefault);
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HoverType.Get(pDefault);
 }
 
 DEFINE_HOOK(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)
@@ -95,9 +94,7 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 			{
 				auto nCoord = Linked->GetCoords();
 				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord)){
-					AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, false);
-					if (auto pExt = AnimExt::ExtMap.Find(pAnim))
-						pExt->Invoker = Linked;
+					AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, Linked, false);
 				}
 			}
 		}

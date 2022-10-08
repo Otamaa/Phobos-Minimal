@@ -1,5 +1,6 @@
  #include "Body.h"
 
+#ifdef ENABLE_NEWHOOKS
 TemporalExt::ExtContainer TemporalExt::ExtMap;
 
 // =============================
@@ -45,7 +46,7 @@ TemporalExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK_AGAIN(0x71A4CD, TemporalClass_CTOR, 0x6)
 DEFINE_HOOK(0x71A594, TemporalClass_CTOR, 0x7)
 {

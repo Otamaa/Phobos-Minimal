@@ -22,8 +22,7 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index, HouseClass* p
 
 	if (auto pSuper = pHouse->Supers.GetItemOrDefault(idxSW))
 	{
-		auto pExt = SWTypeExt::ExtMap.Find(pSuper->Type);
-		if (!pExt->IsAvailable(pHouse))
+		if (!SWTypeExt::ExtMap.Find(pSuper->Type)->IsAvailable(pHouse))
 		{
 			return -1;
 		}
@@ -62,7 +61,8 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 		&& (pThis->Occupants.Count > 0)
 		)
 	{
-		if (const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+		const auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
 		{
 			const auto nIndex = HouseTypeClass::Array()->FindItemIndex(pThis->Occupants[0]->Owner->Type);
 			if (nIndex != -1)
@@ -127,7 +127,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	int nAmount = 0;
 	float fFactor = 1.0f;
 
-	if (auto const pHouseExt = HouseExt::ExtMap.Find(pHouse))
+	auto const pHouseExt = HouseExt::ExtMap.Find(pHouse);
 	{
 		if (pBuilding)
 		{
@@ -150,10 +150,10 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || !pWhat->GetTechnoType() || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer)
+	if (!pWhat || !pOwner || !pWhat->GetTechnoType() || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
+	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
@@ -199,10 +199,10 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || pOwner->Observer || pOwner == HouseClass::Observer())
+	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
+	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
@@ -277,11 +277,9 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 			checkUpgrade(pTPowersUp);
 	}
 
-	if (auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBuilding))
-	{
-		for (auto pTPowersUp : pBuildingExt->PowersUp_Buildings)
+
+	for (auto pTPowersUp : BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings)
 			checkUpgrade(pTPowersUp);
-	}
 
 	return isUpgrade ? result : -1;
 }

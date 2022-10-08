@@ -25,12 +25,11 @@ DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
 	if (pThis->WH) {
 		GET_BASE(const CoordStruct*, pCoords, 0x8);
 
-		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
 		auto const pTechno = pThis ? pThis->Owner : nullptr;
-		auto const pHouse = pTechno ? pTechno->Owner : pExt && pExt->Owner ? pExt->Owner :nullptr;
+		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner :nullptr;
 
-		pWHExt->Detonate(pTechno, pHouse, pThis, *pCoords);
+		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
 	}
 
 	DetonationInDamageArea = false;
@@ -125,9 +124,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 DEFINE_HOOK(0x48A5BD, WarheadTypeClass_AnimList_PickRandom, 0x6)
 {
 	GET(WarheadTypeClass* const, pThis, ESI);
-	auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis);
-
-	return pWHExt->AnimList_PickRandom ? 0x48A5C7 : 0;
+	return WarheadTypeExt::ExtMap.Find(pThis)->AnimList_PickRandom ? 0x48A5C7 : 0;
 }
 
 DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
@@ -153,12 +150,6 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 	enum { SkipCheck = 0x489702 };
 
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-
 	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	{
-		if (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get())
-			return SkipCheck;
-	}
-
-	return 0;
+	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
 }

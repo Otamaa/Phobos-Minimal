@@ -137,25 +137,18 @@ PhobosTrajectoryType* PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter
 
 double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
 {
-	Nullable<double> TrajDummy {};
-
-	if (auto const pBulletExt = BulletExt::ExtMap.Find(pBullet))
-		TrajDummy = pBulletExt->TypeExt->Trajectory_Speed;
-
 	double nResult = 100.0;
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType))
-		nResult =  pWeaponExt->Trajectory_Speed.Get();
+	auto nWeaponnResult = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType)->Trajectory_Speed.Get();
 
-	return TrajDummy.Get(nResult);
+	return BulletExt::ExtMap.Find(pBullet)->TypeExt->Trajectory_Speed.Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
 }
 
 double PhobosTrajectory::GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) const
 {
 	double nResult = 100.0;
-	if (auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pBulletExt->Get()->WeaponType))
-		nResult = pWeaponExt->Trajectory_Speed.Get();
+	auto nWeaponnResult = WeaponTypeExt::ExtMap.Find(pBulletExt->Get()->WeaponType)->Trajectory_Speed.Get();
 
-	return pBulletExt->TypeExt->Trajectory_Speed.Get(nResult);
+	return pBulletExt->TypeExt->Trajectory_Speed.Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
 }
 
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)

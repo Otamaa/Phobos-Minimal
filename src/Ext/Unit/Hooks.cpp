@@ -21,15 +21,12 @@ DEFINE_HOOK(0x73E474, UnitClass_Unload_Storage, 0x6)
 	if (!pBuilding || !pBuilding->Owner)
 		return 0;
 
-	if (auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type))
-	{
-		auto storageTiberiumIndex = RulesExt::Global()->Storage_TiberiumIndex;
+	auto storageTiberiumIndex = RulesExt::Global()->Storage_TiberiumIndex;
 
-		if (pTypeExt->Refinery_UseStorage && storageTiberiumIndex >= 0)
-		{
-			BuildingExt::StoreTiberium(pBuilding, amount, idxTiberium, storageTiberiumIndex);
-			amount = 0.0f;
-		}
+	if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Refinery_UseStorage && storageTiberiumIndex >= 0)
+	{
+		BuildingExt::StoreTiberium(pBuilding, amount, idxTiberium, storageTiberiumIndex);
+		amount = 0.0f;
 	}
 
 	return 0;

@@ -11,7 +11,7 @@ AnimExt::ExtContainer AnimExt::ExtMap;
 void AnimExt::ExtData::InitializeConstants()
 {
 	if(auto pTypeExt = AnimTypeExt::ExtMap.Find<true>(Get()->Type))
-	CreateAttachedSystem(pTypeExt);
+		CreateAttachedSystem(pTypeExt);
 }
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
@@ -108,8 +108,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 	{
 		if (!pTypeExt->NoOwner)
 		{
-			if (const auto pExt = AnimExt::ExtMap.Find(pAnim))
-				pExt->Invoker = pTechnoInvoker;
+			AnimExt::ExtMap.Find(pAnim)->Invoker = pTechnoInvoker;
 
 			if (!pTypeExt->CreateUnit.Get())
 			{
@@ -174,7 +173,7 @@ TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis , bool Dealt
 	if (DealthByOwner)
 	{
 		auto const pExt = AnimExt::ExtMap.Find(pThis);
-		if (pExt && pExt->Invoker)
+		if (pExt->Invoker)
 			return pExt->Invoker;
 
 		if (pThis->OwnerObject)
@@ -240,7 +239,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 #ifndef ENABLE_NEWEXT
-	AnimExt::ExtMap.JustAllocate(pItem, pItem->Type, "Creating an animation with null Type !");
+	AnimExt::ExtMap.JustAllocate(pItem, pItem->Fetch_ID() != -2, "Creating an animation with null Type !");
 #else
 	AnimExt::ExtMap.FindOrAllocate(pItem);
 #endif

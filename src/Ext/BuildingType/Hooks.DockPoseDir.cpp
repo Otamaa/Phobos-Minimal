@@ -5,25 +5,25 @@ DEFINE_HOOK(0x464A21, BuildingTypeClass_ReadFromINI_Dock, 0x5)
 	GET(BuildingTypeClass*, pThis, EBP);
 	GET(int, nIDX, ESI);
 
-	if (!pThis->Helipad)
-		return 0x0;
-
-	if (auto pExt = BuildingTypeExt::ExtMap.Find(pThis))
-	{
-		std::string nData = "DockingPoseDir";
-		nData += std::to_string(nIDX);
-		pExt->DockPoseDir[nIDX] = CCINIClass::INI_Art->ReadInteger(pThis->ImageFile, nData.c_str(), 0);
+	if (pThis->Helipad) {
+		char key[0x40] = { '\0' };
+		sprintf_s(key, "DockingPoseDir%d", nIDX);
+		BuildingTypeExt::ExtMap.Find(pThis)->DockPoseDir.emplace_back(CCINIClass::INI_Art->ReadInteger(pThis->ImageFile, key, 0));
 	}
-
 
 	return 0x0;
 }
 
-static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir)
+static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir , int nDefault)
 {
-	const int nIdx = pBld->FindLinkIndex(pAir);
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-	const int nDIr = pExt->DockPoseDir.get_or_default(nIdx, RulesGlobal->PoseDir);
+	int nDIr = nDefault;
+
+	if(pBld) {
+		const int nIdx = pBld->FindLinkIndex(pAir);
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+		if(!pExt->DockPoseDir.empty())
+			nDIr = pExt->DockPoseDir.at(nIdx);
+	}
 
 	DirType nRes = DirType::North;
 	switch (nDIr)
@@ -55,54 +55,120 @@ static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir)
 	return nDirRet;
 }
 
-static DirStruct GetDefaultPoseDir()
-{
-	DirType nRes = DirType::North;
-	switch (RulesGlobal->PoseDir)
-	{
-	case 0:
-		nRes = DirType::North; break;
-	case 1:
-		nRes = DirType::NorthEast; break;
-	case 2:
-		nRes = DirType::East; break;
-	case 3:
-		nRes = DirType::SouthEast; break;
-	case 4:
-		nRes = DirType::South; break;
-	case 5:
-		nRes = DirType::SouthWest; break;
-	case 6:
-		nRes = DirType::West; break;
-	case 7:
-		nRes = DirType::NorthWest; break;
-	default:
-	{
-		DirStruct nDirRet { static_cast<int>(RulesGlobal->PoseDir) * 255 };
-		return nDirRet;
-	}
-	}
-
-	DirStruct nDirRet { nRes };
-	return nDirRet;
-}
-
 DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
-	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir));
+	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
 	return 0x446FB0;
 }
 
-DEFINE_HOOK(0x44404D, BuildingClass_ExitObject_PoseDir_A, 0x6)
+#ifndef checkradio
+DEFINE_HOOK(0x444014, BuildingClass_ExitObject_PoseDir_A, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(AircraftClass*, pAir, ECX);
+
+	pThis->SendCommand(RadioCommand::RequestLink, pAir);
+	pThis->SendCommand(RadioCommand::RequestTether, pAir);
+	pAir->SetLocation(pThis->GetDockCoords(pAir));
+	pAir->DockedTo = pThis;
+	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir, 0));
+	return 0x444053;
+}
+#else
+DEFINE_HOOK(0x444053, BuildingClass_ExitObject_PoseDir_A, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(AircraftClass*, pAir, EBP);
 	pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir));
 	return 0x0;
 }
+#endif
+
+//DEFINE_HOOK(0x4CFCF0, FlyLocomotionClass_InWhichLayer, 0x5)
+//{
+//	GET_STACK(ILocomotion*, pILoco, 0x4);
+//	auto pLoco = static_cast<FlyLocomotionClass*>(pILoco);
+//	auto const pLinked = static_cast<AircraftClass*>(pLoco->Owner);
+//	auto nHeight = pLinked->GetHeight();
+//
+//	if (pLinked->Type->AirportBound &&  nHeight > 0 && pLinked->RadioLinks.IsAllocated) {
+//		if (auto pCell = pLinked->GetCell()) {
+//			if (auto pBld = specific_cast<BuildingClass*>(pLinked->RadioLinks[0])) {
+//				if (pCell->GetBuilding() == pBld && pBld->FindLinkIndex(pLinked) >= 0) {
+//					nHeight -= abs(pBld->Type->DockingOffsets[pBld->FindLinkIndex(pLinked)].Z);
+//				}
+//			}
+//		}
+//	}
+//
+//	R->EAX(nHeight > 0 ? Layer::Top : Layer::Ground);
+//	return 0x4CFD0F;
+//}
+
+//DEFINE_HOOK(0x5F5F40, ObjectClass_GetHeight_Aircraft, 0x5)
+//{
+//	GET(ObjectClass*, pThis, ECX);
+//
+//	int nCurHeight = pThis->Location.Z - Map.GetCellFloorHeight(pThis->Location);
+//
+//	if (pThis->OnBridge)
+//		nCurHeight -= 416;
+//
+//	if (auto pAircraft = specific_cast<AircraftClass*>(pThis)) {
+//		if (pAircraft->Type->AirportBound && nCurHeight > 0 && pAircraft->RadioLinks.IsAllocated) {
+//
+//			auto pCell = pThis->GetCell();
+//			auto pBld = specific_cast<BuildingClass*>(pAircraft->RadioLinks[0]);
+//
+//			if (pBld && pCell && pBld == pCell->GetBuilding()) {
+//				const auto nIDx = pBld->FindLinkIndex(pAircraft);
+//				if (nIDx >= 0)
+//				{
+//					nCurHeight -= abs(pBld->Type->DockingOffsets[nIDx].Z);
+//				}
+//			}
+//		}
+//
+//		Debug::Log("[%s]Plane Height %d \n", pAircraft, nCurHeight);
+//	}
+//
+//	R->EAX(nCurHeight);
+//	return 0x5F5F91;
+//}
+//
+//DEFINE_HOOK(0x4CF922, FlyLocomotionClass_DrawPoint_AddOffset, 0x5)
+//{
+//	GET(ILocomotion*, pThis, EDI);
+//	auto pLoco = static_cast<FlyLocomotionClass*>(pThis);
+//	GET(int, nY, EBP);
+//
+//	if (auto pAircraft = specific_cast<AircraftClass*>(pLoco->LinkedTo))
+//	{
+//		if (pAircraft->Type->AirportBound && pAircraft->RadioLinks.IsAllocated && !pAircraft->GetHeight())
+//		{
+//
+//			auto pCell = pAircraft->GetCell();
+//			auto pBld = specific_cast<BuildingClass*>(pAircraft->RadioLinks[0]);
+//
+//			if (pBld && pCell && pBld == pCell->GetBuilding())
+//			{
+//				const auto nIDx = pBld->FindLinkIndex(pAircraft);
+//				if (nIDx >= 0)
+//				{
+//					nY += abs(pBld->Type->DockingOffsets[nIDx].Z);
+//				}
+//			}
+//		}
+//
+//		Debug::Log("[%s]Plane Height %d \n", pAircraft, nY);
+//	}
+//
+//	R->EBP(nY);
+//	return 0x0;
+//}
 
 // the aircraft doesnt do radio contact to the building when ION Strom Active ?
 // what ?
@@ -114,7 +180,7 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 	if (R->AL())
 	{
 		pAir->DockedTo = pThis;
-		pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir));
+		pAir->SecondaryFacing.Set_Current(GetPoseDir(pThis, pAir,0));
 		return 0x443FE0;
 	}
 
@@ -123,41 +189,28 @@ DEFINE_HOOK(0x443FD8, BuildingClass_ExitObject_PoseDir_B, 0x8)
 
 DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 {
-	//GET(IFlyControl*, pFly, EDI);
-	//GET(AircraftClass*, pThis, ESI);
 	GET_STACK(IFlyControl*, pFly, 0x4);
 	auto const pThis = static_cast<AircraftClass*>(pFly);
 
-
-	int nDir = RulesGlobal->PoseDir;
-	//we can get building from GetRadioContact , but i prefer this way
-	if (auto pBld = specific_cast<BuildingClass*>(pThis->DockedTo))
-	{
-		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-		nDir = (pExt->DockPoseDir.get_or_default(pBld->FindLinkIndex(pThis), RulesGlobal->PoseDir));
-
-	}
-	else if (pThis->HasAnyLink())
-	{
-		auto const pLink = pThis->GetRadioContact();
-		auto const nRAW = static_cast<short>(pLink->PrimaryFacing.Current().Raw);
-
-		//if (pLink->WhatAmI() == AbstractType::Building)
-		//{
-		//	auto pBld = static_cast<BuildingClass*>(pLink);
-		//	const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-		//	nDir = (pExt->DockPoseDir.get_or_default(pBld->FindLinkIndex(pThis), (((((nRAW >> 12) + 1) >> 1) & 7))));
-		//}
-		//else {
-		nDir = (((((nRAW >> 12) + 1) >> 1) & 7));
-		//}
+	if (pThis->RadioLinks.IsAllocated && pThis->HasAnyLink()) {
+		auto const pLink = pThis->RadioLinks[0];
+		if (auto pBld = specific_cast<BuildingClass*>(pLink)) {
+			const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+			if (!pExt->DockPoseDir.empty()) {
+				R->EAX(pExt->DockPoseDir.at(pBld->FindLinkIndex(pThis)));
+				return 0x41B7B4;
+			}
+		} else {
+			R->EAX((((((static_cast<short>(pLink->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7)));
+			return 0x41B7B4;
+		}
 
 	}
 
 	// something override the facing ? , not sure
 	//return 0x41B78D;
 
-	R->EAX(nDir);
+	R->EAX(RulesGlobal->PoseDir);
 	return 0x41B7B4;
 }
 
@@ -358,30 +411,3 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 ////remove xor eax eax
 //DEFINE_JUMP(LJMP, 0x41B753, 0x41B755);
 
-//DEFINE_HOOK(0x5F5F40, ObjectClass_GetHeight_Aircraft, 0x5)
-//{
-//	GET(ObjectClass*, pThis, ECX);
-//
-//	int nCurHeight = pThis->Location.Z - Map.GetCellFloorHeight(pThis->Location);
-//
-//	if (pThis->OnBridge)
-//		nCurHeight -= 416;
-//
-//	if (auto pAircraft = specific_cast<AircraftClass*>(pThis)) {
-//		if(pAircraft->Type->AirportBound && pAircraft->DockedTo) {
-//			if(auto pCell = pThis->GetCell()) {
-//				if(auto pBld = pCell->GetBuilding()) {
-//					if(pAircraft->DockedTo == pBld){
-//					const auto nIDx = pBld->FindLinkIndex(pAircraft);
-//						if (nIDx != -1 && nCurHeight > 0) {
-//							nCurHeight -= abs(pBld->Type->DockingOffsets[nIDx].Z);
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	R->EAX(nCurHeight);
-//	return 0x5F5F91;
-//}

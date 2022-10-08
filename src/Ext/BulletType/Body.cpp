@@ -13,8 +13,7 @@ BulletTypeExt::ExtData::~ExtData()
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
-	auto const pData = BulletTypeExt::ExtMap.Find(pType);
-	auto const nGravity = pData->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
+	auto const nGravity = BulletTypeExt::ExtMap.Find(pType)->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
 	return pType->Floater ? nGravity * 0.5 : nGravity;
 }
 
@@ -43,10 +42,8 @@ bool BulletTypeExt::ExtData::HasSplitBehavior()
 
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
 {
-	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
 	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
-		pWeapon->Speed, pExt->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright))
+		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright))
 	{
 		return pBullet;
 	}

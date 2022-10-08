@@ -232,7 +232,7 @@ void Phobos::ExeRun()
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
 			Phobos::Otamaa::IsAdmin = true;
-			//Phobos::EnableConsole = true;
+			Phobos::EnableConsole = true;
 
 			if (Phobos::DetachFromDebugger())
 			{

@@ -41,6 +41,7 @@ public:
 
 		bool RepairBaseNodes[3];
 
+		bool IsObserver;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -59,6 +60,7 @@ public:
 			, AllRepairEventTriggered { false }
 			, LastBuildingTypeArrayIdx { -1 }
 			, RepairBaseNodes { false,false,false }
+			, IsObserver { false }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -113,4 +115,7 @@ public:
 		return 1;
 	}
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
+
+	static bool IsObserverPlayer();
+	static bool IsObserverPlayer(HouseClass* pCur);
 };

@@ -34,6 +34,7 @@ public:
 		DynamicVectorClass<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
 		bool IsInLimboDelivery;
+		bool LighningNeedUpdate;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, DeployedTechno { false }
@@ -44,6 +45,7 @@ public:
 			, DamageFireAnims { }
 			, AutoSellTimer { }
 			, IsInLimboDelivery { false }
+			, LighningNeedUpdate { false }
 		{ }
 
 		virtual ~ExtData() = default;

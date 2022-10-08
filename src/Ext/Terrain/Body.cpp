@@ -27,7 +27,7 @@ void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 void TerrainExt::ExtData::InitializeLightSource()
 {
-	if (!this->LighSource)
+	if (!this->LighSource && this->Get()->Type)
 	{
 		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
@@ -53,7 +53,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 void TerrainExt::ExtData::InitializeAnim()
 {
-	if (!AttachedAnim)
+	if (!AttachedAnim && this->Get()->Type)
 	{
 		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
@@ -101,10 +101,11 @@ void TerrainExt::ExtData::ClearLightSource()
 
 void TerrainExt::Unlimbo(TerrainClass* pThis)
 {
-	if (!pThis)
+	if (!pThis || !pThis->Type)
 		return;
 
-	if (auto const TerrainExt = TerrainExt::ExtMap.Find(pThis))
+	auto const TerrainExt = TerrainExt::ExtMap.Find(pThis);
+
 	{
 		TerrainExt->InitializeLightSource();
 		TerrainExt->InitializeAnim();
@@ -114,10 +115,11 @@ void TerrainExt::Unlimbo(TerrainClass* pThis)
 
 void TerrainExt::CleanUp(TerrainClass* pThis)
 {
-	if (!pThis)
+	if (!pThis || !pThis->Type)
 		return;
 
-	if (auto const TerrainExt = TerrainExt::ExtMap.Find(pThis))
+	auto const TerrainExt = TerrainExt::ExtMap.Find(pThis);
+
 	{
 		TerrainExt->ClearLightSource();
 		TerrainExt->ClearAnim();
@@ -168,8 +170,10 @@ TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks
-DEFINE_HOOK_AGAIN(0x71BDD5, TerrainClass_CTOR, 0x5)
-DEFINE_HOOK(0x71BFA6, TerrainClass_CTOR, 0x5)
+
+DEFINE_JUMP(LJMP, 0x71BC31, 0x71BC86);
+
+DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 #ifndef ENABLE_NEWHOOKS
@@ -180,13 +184,38 @@ DEFINE_HOOK(0x71BFA6, TerrainClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71B7EB, TerrainClass_DTOR, 0x7)
+DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
+{
+	GET(TerrainClass*, pItem, ESI);
+	GET_STACK(CellStruct*, pCoord, 0x24);
+
+	TerrainExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+
+	auto const nDefaultCell = CellStruct::Empty;
+
+	if (pCoord->X != nDefaultCell.X || pCoord->Y != nDefaultCell.Y) {
+		if (!pItem->Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
+			pItem->ObjectClass::UnInit();
+		}
+	}
+
+	return 0x0;
+}
+
+//Remove Ext later , dont do it to early otherwise some stuffs broke
+DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
 
+	if(Unsorted::WTFMode() || pItem->Type)
+	{
+		pItem->IsAlive = true;
+		pItem->Limbo();
+	}
+
 	TerrainExt::ExtMap.Remove(pItem);
 
-	return 0;
+	return 0x71B845;
 }
 
 DEFINE_HOOK_AGAIN(0x71CDA0, TerrainClass_SaveLoad_Prefix, 0x8)

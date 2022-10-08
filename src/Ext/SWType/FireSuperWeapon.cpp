@@ -72,7 +72,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 	auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 	auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
 
-	if (pBuildingExt && ID != -1){
+	if (ID != -1){
 		pBuildingExt->LimboID = ID;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		pTechnoExt->PaintBallState.release();
@@ -258,8 +258,7 @@ bool SWTypeExt::ExtData::IsLaunchSite(BuildingClass* pBuilding) const
 {
 	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
 	{
-		auto const pExt = BuildingExt::ExtMap.Find(pBuilding);
-		return pExt->HasSuperWeapon(this->Get()->ArrayIndex, true);
+		return BuildingExt::ExtMap.Find(pBuilding)->HasSuperWeapon(this->Get()->ArrayIndex, true);
 	}
 
 	return false;

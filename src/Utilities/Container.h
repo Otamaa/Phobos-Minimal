@@ -601,12 +601,13 @@ private:
 	//ViniferaContainerMap<base_type, extension_type> Items;
 	//VectorMapContainer<base_type, extension_type> Items;
 	ContainerMap<base_type, extension_type> Items;
-
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
 
 public:
+
+
 	explicit Container(const char* pName) :
 		Items {},
 		SavingObject { nullptr },
@@ -634,6 +635,10 @@ public:
 
 	bool empty() const {
 		return this->Items.empty();
+	}
+
+	base_type_ptr GetSavingObject() const {
+		return SavingObject;
 	}
 
 	void PointerGotInvalid(void* ptr, bool bRemoved)
@@ -922,4 +927,270 @@ private:
 	Container(const Container&) = delete;
 	Container& operator = (const Container&) = delete;
 	Container& operator = (Container&&) = delete;
+};
+
+template <typename T, bool NoContainerInvalidatePointer = false, bool NoextDataInvalidatePointer = false>
+class NoMapContainer
+{
+private:
+	using base_type = typename T::base_type;
+	using extension_type = typename T::ExtData;
+	using base_type_ptr = base_type*;
+	using const_base_type_ptr = const base_type*;
+	using extension_type_ptr = extension_type*;
+
+	base_type_ptr SavingObject;
+	IStream* SavingStream;
+	FixedString<0x100> Name;
+
+public:
+
+
+	explicit NoMapContainer(const char* pName) :
+		SavingObject { nullptr },
+		SavingStream { nullptr },
+		Name {}
+	{
+		Name = pName;
+	}
+
+	virtual ~NoMapContainer() = default;
+
+	auto GetName() const
+	{
+		return this->Name.data();
+	}
+
+	base_type_ptr GetSavingObject() const
+	{
+		return SavingObject;
+	}
+
+	void PointerGotInvalid(void* ptr, bool bRemoved)
+	{
+		if constexpr (!NoContainerInvalidatePointer)
+			this->InvalidatePointer(ptr, bRemoved);
+	}
+
+protected:
+
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
+
+public:
+
+	extension_type_ptr Allocate(base_type_ptr key)
+	{
+		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+
+		if (const auto val = new extension_type(key))
+		{
+			val->EnsureConstanted();
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+
+			return val;
+		}
+
+		Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());
+		return nullptr;
+	}
+
+	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
+	{
+		if (!key || (!bCond && !nMessage.empty()))
+		{
+			Debug::Log("%s \n", nMessage.data());
+			return;
+		}
+
+		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+
+		if (const auto val = new extension_type(key))
+		{
+			val->EnsureConstanted();
+
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+		}
+	}
+
+	extension_type_ptr FindOrAllocate(base_type_ptr key)
+	{
+		if (auto const ptr = Find(key))
+			return ptr;
+
+		return Allocate(key);
+	}
+
+	template<bool check = false>
+	extension_type_ptr Find(const_base_type_ptr key) const
+	{
+		if constexpr (check)
+			return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
+		else
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
+	}
+
+	extension_type_ptr operator[] (const_base_type_ptr key) const
+	{
+		return Find(key);
+	}
+
+	void Remove(const_base_type_ptr key)
+	{
+		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
+		{
+				delete Item;
+				(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		}
+	}
+
+	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
+	{
+		if (auto ptr = this->Find<true>(key))
+			ptr->LoadFromINI(pINI);
+	}
+
+	void PrepareStream(base_type_ptr key, IStream* pStm)
+	{
+		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		this->SavingObject = key;
+		this->SavingStream = pStm;
+	}
+
+	IStream* GetStream() const
+	{
+		return this->SavingStream;
+	}
+
+	void SaveStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
+			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
+			if (!this->Save(this->SavingObject, this->SavingStream))
+				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
+		}
+		else
+		{
+			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
+				this->Name.data(), this->SavingObject, this->SavingStream);
+		}
+
+		this->SavingObject = nullptr;
+		this->SavingStream = nullptr;
+	}
+
+	void LoadStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
+			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
+			if (!this->Load(this->SavingObject, this->SavingStream))
+				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
+		}
+		else
+		{
+			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
+				this->Name.data(), this->SavingObject, this->SavingStream);
+		}
+
+		this->SavingObject = nullptr;
+		this->SavingStream = nullptr;
+	}
+
+protected:
+	// override this method to do type-specific stuff
+	virtual bool Save(base_type_ptr key, IStream* pStm)
+	{
+		return this->SaveKey(key, pStm) != nullptr;
+	}
+
+	// override this method to do type-specific stuff
+	virtual bool Load(base_type_ptr key, IStream* pStm)
+	{
+		return this->LoadKey(key, pStm) != nullptr;
+	}
+
+	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm)
+	{
+		// this really shouldn't happen
+		if (!key)
+		{
+			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
+			return nullptr;
+		}
+
+		// get the value data
+		auto buffer = this->Find(key);
+		if (!buffer)
+		{
+			Debug::Log("[SaveKey] Could not find value.\n");
+			return nullptr;
+		}
+
+		// write the current pointer, the size of the block, and the canary
+		PhobosByteStream saver(sizeof(*buffer));
+		PhobosStreamWriter writer(saver);
+
+		writer.Save(T::Canary);
+		writer.Save(buffer);
+
+		// save the data
+		buffer->SaveToStream(writer);
+
+		// save the block
+		if (!saver.WriteBlockToStream(pStm))
+		{
+			Debug::Log("[SaveKey] Failed to save data.\n");
+			return nullptr;
+		}
+
+		Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+
+		return buffer;
+	}
+
+	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm)
+	{
+		// this really shouldn't happen
+		if (!key)
+		{
+			Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+			return nullptr;
+		}
+
+		extension_type_ptr buffer = nullptr;
+		// get the value data
+
+		this->JustAllocate(key, true, "");
+		buffer = this->Find(key);
+		
+		if (!buffer)
+		{
+			Debug::Log("[LoadKey] Could not find or allocate value.\n");
+			return nullptr;
+		}
+
+		PhobosByteStream loader(0);
+		if (!loader.ReadBlockFromStream(pStm))
+		{
+			Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+			return nullptr;
+		}
+
+		PhobosStreamReader reader(loader);
+		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
+		{
+			buffer->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+				return buffer;
+		}
+
+		return nullptr;
+	}
+
+private:
+	NoMapContainer(const NoMapContainer&) = delete;
+	NoMapContainer& operator = (const NoMapContainer&) = delete;
+	NoMapContainer& operator = (NoMapContainer&&) = delete;
 };

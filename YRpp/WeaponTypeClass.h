@@ -5,12 +5,13 @@
 #pragma once
 
 #include <AbstractTypeClass.h>
+#include <OverlayTypeClass.h>
+#include <WarheadTypeClass.h>
 
 //forward declarations
 class AnimTypeClass;
 class BulletTypeClass;
 class ParticleSystemTypeClass;
-class WarheadTypeClass;
 
 class DECLSPEC_UUID("9FD219CA-0F7B-11D2-8172-006008055BB5")
 	NOVTABLE WeaponTypeClass : public AbstractTypeClass
@@ -41,15 +42,28 @@ public:
 	void CalculateSpeed() const
 		{ JMP_THIS(0x7729F0); }
 
-    int GetWeaponSpeed(int range) const
-    { JMP_THIS(0x773070); }
+	int GetWeaponSpeed(int range) const
+	{ JMP_THIS(0x773070); }
 
 	int GetWeaponSpeed(CoordStruct const& sourcePos, CoordStruct const& targetPos) const {
 		return GetWeaponSpeed(sourcePos.DistanceFromI(targetPos));
 	}
 
-	bool IsWallDestroyer() const
-	{ JMP_THIS(0x772AC0); }
+	bool IsWallDestroyer(OverlayTypeClass* pWhat) const
+	{
+		if (Warhead) {
+			if ((Warhead->Wall || Warhead->WallAbsoluteDestroyer) && pWhat->Wall) {
+				if(Warhead->Wood)
+					return pWhat->Armor == Armor::Wood;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool IsWallDestoyer() const { JMP_THIS(0x772AC0); }
 
 	TargetFlags EligibleTarget() const
 	{ JMP_THIS(0x772A90); }
@@ -59,7 +73,7 @@ public:
 		: WeaponTypeClass(noinit_t())
 	{ JMP_THIS(0x771C70); }
 
-	explicit WeaponTypeClass(IStream* pStm) 
+	explicit WeaponTypeClass(IStream* pStm)
 		: WeaponTypeClass(noinit_t())
 	{ JMP_THIS(0x771F00); }
 

@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#ifdef ENABLE_NEWHOOKS
 SuperExt::ExtContainer SuperExt::ExtMap;
 
 // =============================
@@ -42,7 +43,7 @@ void SuperExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 // =============================
 // container hooks
-#ifdef ENABLE_NEWHOOKS
+
 DEFINE_HOOK(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
