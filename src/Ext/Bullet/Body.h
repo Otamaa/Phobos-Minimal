@@ -40,6 +40,7 @@ public:
 		ObjectClass* LastObject;
 		int BounceAmount;
 		DynamicVectorClass<LineTrail*> BulletTrails;
+		OptionalStruct<DirStruct ,true> BulletDir;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
@@ -63,6 +64,7 @@ public:
 			, BounceAmount { 0 }
 			//
 			, BulletTrails { }
+			, BulletDir { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

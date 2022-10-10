@@ -92,6 +92,7 @@ public:
 		bool IsMissisleSpawn;
 		TechnoClass* LastAttacker;
 		int Attempt;
+		OptionalStruct<double , true> ReceiveDamageMultiplier;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -153,6 +154,7 @@ public:
 			, IsMissisleSpawn { false }
 			, LastAttacker { nullptr }
 			, Attempt { 5 }
+			, ReceiveDamageMultiplier { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }
@@ -292,6 +294,6 @@ public:
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void KillSlave(TechnoClass* pThis);
 	static void HandleRemove(TechnoClass* pThis);
-
+	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
 	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
 };

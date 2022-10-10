@@ -106,21 +106,21 @@ DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 DEFINE_HOOK(0x45933D, BuildingClass_BunkerWallUpSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingTypeExt::BunkerSound<true>()(pThis);
+	BuildingTypeExt::BunkerSound<BunkerSoundMode::Up>()(pThis);
 	return 0x459374;
 }
 
 DEFINE_HOOK(0x4595D9, BuildingClass_4595C0_BunkerDownSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, EDI);
-	BuildingTypeExt::BunkerSound<false>()(pThis);
+	BuildingTypeExt::BunkerSound<BunkerSoundMode::Down>()(pThis);
 	return 0x459612;
 }
 
 DEFINE_HOOK(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	BuildingTypeExt::BunkerSound<false>()(pThis);
+	BuildingTypeExt::BunkerSound<BunkerSoundMode::Down>()(pThis);
 	return 0x4594CD;
 }
 #pragma endregion

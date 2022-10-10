@@ -11,7 +11,7 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix)
 	if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get(nullptr))
 		return false;
 
-	LaunchWhat = LaunchWhat_Dummy.Get(nullptr);
+	LaunchWhat = SuperWeaponTypeClass::Array->FindItemIndex(LaunchWhat_Dummy);
 
 	Valueable<bool> bool_Dummy { LaunchWaitcharge };
 	_snprintf(nBuff, sizeof(nBuff), "LaunchSW%d.WaitForCharge", Prefix);

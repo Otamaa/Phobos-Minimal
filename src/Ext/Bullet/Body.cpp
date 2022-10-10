@@ -203,6 +203,7 @@ void BulletExt::ExtData::Serialize(T& Stm)
 		.Process(this->Bouncing)
 		.Process(this->LastObject)
 		.Process(this->BounceAmount)
+		.Process(this->BulletDir)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
 #endif

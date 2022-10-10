@@ -17,6 +17,47 @@ void WarheadTypeExt::ExtData::Initialize()
 	this->Launchs.reserve(2);
 }
 
+//https://github.com/Phobos-developers/Phobos/issues/629
+void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
+{
+	if (!pVictim )
+		return;
+
+	auto const pExt = TechnoExt::ExtMap.Find(pVictim);
+	if (pExt->ReceiveDamageMultiplier.isset()) {
+		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
+		pExt->ReceiveDamageMultiplier.clear();
+	}
+
+	if ((!AffectAlly_Damage_Mod.isset() && !AffectOwner_Damage_Mod.isset() && !AffectEnemies_Damage_Mod.isset()))
+		return;
+
+	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExt::FindCivilianSide();
+	auto const pVictimHouse = pVictim->GetOwningHouse();
+
+	if (pHouse && pVictimHouse)
+	{
+		auto const pWH = Get();
+		const int nDamage = *pArgs->Damage;
+
+		if (pVictimHouse != pHouse)
+		{
+			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies)
+			{
+				*pArgs->Damage = static_cast<int>(nDamage * AffectAlly_Damage_Mod.Get());
+			}
+			else if (AffectsEnemies.Get())
+			{
+				*pArgs->Damage = static_cast<int>(nDamage * AffectEnemies_Damage_Mod.Get());
+			}
+		}
+		else if (AffectsOwner.Get())
+		{
+			*pArgs->Damage = static_cast<int>(nDamage * AffectOwner_Damage_Mod.Get());
+		}
+	}
+}
+
 bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
 {
 	if (pOwnerHouse && pTargetHouse)
@@ -216,6 +257,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Crit_ExtraDamage.Read(exINI, pSection, "Crit.ExtraDamage");
 	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead");
 	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
+	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
 	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
 	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
 	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
@@ -375,6 +417,27 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Converts_From.Read(exINI, pSection, "Converts.From");
 	this->Converts_To.Read(exINI, pSection, "Converts.To");
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
+	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
+	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
+	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
+
+	this->AttachTag.Read(pINI, pSection, "AttachTag");
+	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
+	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
+	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
+
+	this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
+	this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
+	this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
+	this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
+	this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
+	this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
+
+	this->DirectionalArmor_FrontField = Math::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
+	this->DirectionalArmor_FrontField = Math::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
+	this->DirectionalArmor_BackField = Math::min(this->DirectionalArmor_BackField.Get(), 1.0f);
+	this->DirectionalArmor_BackField = Math::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -432,6 +495,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Crit_ExtraDamage)
 		.Process(this->Crit_Warhead)
 		.Process(this->Crit_Affects)
+		.Process(this->Crit_AffectsHouses)
 		.Process(this->Crit_AnimList)
 		.Process(this->Crit_AnimList_PickRandom)
 		.Process(this->Crit_AnimOnAffectedTargets)
@@ -532,6 +596,19 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(Steal_Display)
 		.Process(Steal_Display_Offset)
 		.Process(DeadBodies)
+		.Process(AffectEnemies_Damage_Mod)
+		.Process(AffectOwner_Damage_Mod)
+		.Process(AffectAlly_Damage_Mod)
+		.Process(this->AttachTag)
+		.Process(this->AttachTag_Types)
+		.Process(this->AttachTag_Ignore)
+		.Process(this->AttachTag_Imposed)
+		.Process(this->DirectionalArmor)
+		.Process(this->DirectionalArmor_FrontMultiplier)
+		.Process(this->DirectionalArmor_SideMultiplier)
+		.Process(this->DirectionalArmor_BackMultiplier)
+		.Process(this->DirectionalArmor_FrontField)
+		.Process(this->DirectionalArmor_BackField)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

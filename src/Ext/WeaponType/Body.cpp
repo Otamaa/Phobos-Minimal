@@ -81,6 +81,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->OpentoppedAnim.Read(exINI, pSection, "OpenToppedAnim", true);
 	this->DiskLaser_FiringOffset.Read(exINI, pSection, "DiskLaser.FiringOffset");
 
+	this->Targeting_Health_Percent.Read(exINI, pSection, "Targeting.TargetHealthPercent");
+	this->Targeting_Health_Percent_Below.Read(exINI, pSection, "Targeting.TargetHealthPercentCheckBelowPercent");
+
 	#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
@@ -141,6 +144,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RemoveTechnoAfterFiring)
 		.Process(this->OpentoppedAnim)
 		.Process(this->DiskLaser_FiringOffset)
+		.Process(this->Targeting_Health_Percent)
+		.Process(this->Targeting_Health_Percent_Below)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
 		#endif

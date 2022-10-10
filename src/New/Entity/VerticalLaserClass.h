@@ -2,7 +2,7 @@
 
 #include <CoordStruct.h>
 #include <Utilities/SavegameDef.h>
-#include <Utilities/BaseClassTemplates.h>
+
 
 class WeaponTypeClass;
 class VerticalLaserClass final
@@ -35,5 +35,10 @@ public:
 	bool Load(PhobosStreamReader& stm, bool registerForChange) { return true; }
 	bool Save(PhobosStreamWriter& stm) const { return true; }
 
-	GlobalBaseClassTemplate(VerticalLaserClass)
+	static std::vector<VerticalLaserClass*> Array;
+	static void Clear();
+	static void OnUpdateAll();
+	static void PointerGotInvalid(void* ptr, bool bDetach);
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

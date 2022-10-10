@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/BaseClassTemplates.h>
+
 
 #include <GeneralStructures.h>
 #include <LaserDrawClass.h>

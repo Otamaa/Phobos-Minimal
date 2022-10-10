@@ -21,38 +21,19 @@ static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir , int nDefa
 	if(pBld) {
 		const int nIdx = pBld->FindLinkIndex(pAir);
 		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-		if(!pExt->DockPoseDir.empty())
-			nDIr = pExt->DockPoseDir.at(nIdx);
+		if(!pExt->DockPoseDir.empty() && nIdx != -1)
+			nDIr = abs(pExt->DockPoseDir.at(nIdx));
 	}
 
-	DirType nRes = DirType::North;
-	switch (nDIr)
-	{
-	case 0:
-		nRes = DirType::North; break;
-	case 1:
-		nRes = DirType::NorthEast; break;
-	case 2:
-		nRes = DirType::East; break;
-	case 3:
-		nRes = DirType::SouthEast; break;
-	case 4:
-		nRes = DirType::South; break;
-	case 5:
-		nRes = DirType::SouthWest; break;
-	case 6:
-		nRes = DirType::West; break;
-	case 7:
-		nRes = DirType::NorthWest; break;
-	default:
+	if(nDIr <=  7) {
+		DirStruct nDirRet { static_cast<DirType>(nDIr << 5) };
+		return nDirRet;
+	}
+	else
 	{
 		DirStruct nDirRet { static_cast<int>(nDIr) * 255 };
 		return nDirRet;
 	}
-	}
-
-	DirStruct nDirRet { nRes };
-	return nDirRet;
 }
 
 DEFINE_HOOK(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
@@ -196,8 +177,9 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 		auto const pLink = pThis->RadioLinks[0];
 		if (auto pBld = specific_cast<BuildingClass*>(pLink)) {
 			const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-			if (!pExt->DockPoseDir.empty()) {
-				R->EAX(pExt->DockPoseDir.at(pBld->FindLinkIndex(pThis)));
+			const auto nIdx = pBld->FindLinkIndex(pThis);
+			if (!pExt->DockPoseDir.empty() && nIdx != -1) {
+				R->EAX(abs(pExt->DockPoseDir.at(nIdx)));
 				return 0x41B7B4;
 			}
 		} else {
@@ -213,7 +195,6 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 	R->EAX(RulesGlobal->PoseDir);
 	return 0x41B7B4;
 }
-
 
 //DEFINE_HOOK(0x4CFA07, FlyLocomotionClass_LandingFacing, 0x5)
 //{
@@ -330,7 +311,7 @@ DEFINE_HOOK(0x41B760, IFlyControl_LandDirection, 0x6)
 	//GET(IFlyControl*, pFly, EBX);
 	//auto const pThis = static_cast<AircraftClass*>(pFly);
 
-	//int nLandingAltitude = 0;
+//int nLandingAltitude = 0;
 	//if (auto pBld = specific_cast<BuildingClass*>(pThis->DockedTo)) {
 	//	auto nIDx = pBld->FindLinkIndex(pThis);
 	//	if (nIDx != -1)

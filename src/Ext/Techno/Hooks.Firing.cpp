@@ -28,6 +28,17 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	const auto pWH = pWeapon->Warhead;
 	enum { CannotFire = 0x6FCB7E };
 
+	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
+
+	if (pObjectT && pWeaponExt->Targeting_Health_Percent.isset()) {
+
+		if(!pWeaponExt->Targeting_Health_Percent_Below.Get() && pObjectT->GetHealthPercentage_() <= pWeaponExt->Targeting_Health_Percent.Get())
+			return CannotFire;
+		else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pObjectT->GetHealthPercentage_() >= pWeaponExt->Targeting_Health_Percent.Get())
+			return CannotFire;
+	}
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (CeaseFire(pThis))
 		return CannotFire;
@@ -50,7 +61,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	}
 
 	{
-		auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
 		CellClass* targetCell = nullptr;

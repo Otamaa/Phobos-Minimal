@@ -34,7 +34,7 @@ public:
 	virtual CellStruct* GetFoundationData(bool IncludeBib) const JMP_THIS(0x41CB70);
 
 	//TechnoTypeClass
-	virtual bool vt_entry_A0() { return false; }
+	virtual bool CanUseWaypointMode() const R0;
 	virtual bool CanAttackMove() const { return false; }//JMP_THIS(0x41CB60)
 
 	//Constructor

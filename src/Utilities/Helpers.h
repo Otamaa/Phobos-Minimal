@@ -474,7 +474,7 @@ namespace Helpers {
 	namespace Otamaa
 	{
 		bool LauchSW(
-		SuperWeaponTypeClass* LaunchWhat,
+		int LaunchWhat,
 		HouseClass* pOwner,
 		const CoordStruct Where,
 		bool WaitForCharge,

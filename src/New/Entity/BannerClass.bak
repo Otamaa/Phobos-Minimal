@@ -95,7 +95,7 @@ void BannerClass::Render()
 		break;
 	//case BannerType::VariableFormat:
 		//this->RenderVariable(x, y);
-			//break;
+		break;
 	default:
 		break;
 	}

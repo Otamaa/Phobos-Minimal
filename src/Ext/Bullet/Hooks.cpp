@@ -120,6 +120,9 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 	TrailsManager::AI(pThis);
 #endif
 
+	if (!pThis->Type->Inviso && pBulletExt->BulletDir.has_value())
+		pBulletExt->BulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
+
 	return 0;
 }
 

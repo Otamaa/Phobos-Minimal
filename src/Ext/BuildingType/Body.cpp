@@ -11,9 +11,11 @@
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass { 0x7FFF };
 
+// Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
 int BuildingTypeExt::ExtData::GetSuperWeaponCount() const
 {
-	return 2 + this->SuperWeapons.Count;
+	// The user should only use SuperWeapon and SuperWeapon2 if the attached sw count isn't bigger than 2
+	return 2 + this->SuperWeapons.size();
 }
 
 int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse) const
@@ -39,9 +41,9 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 	{
 		return !index ? pThis->SuperWeapon : pThis->SuperWeapon2;
 	}
-	else if (index - 2 < this->SuperWeapons.Count)
+	else if (index - 2 < (int)this->SuperWeapons.size())
 	{
-		return this->SuperWeapons[index - 2]->ArrayIndex;
+		return this->SuperWeapons[index - 2];
 	}
 
 	return -1;
@@ -317,28 +319,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
 
 	// Ares SuperWeapons tag
-	pINI->ReadString(pSection, "SuperWeapons", "", Phobos::readBuffer);
-	//char* super_weapons_list = Phobos::readBuffer;
-	if (CRT::strlen(Phobos::readBuffer) > 0 && SuperWeaponTypeClass::Array->Count > 0)
-	{
-		//DynamicVectorClass<SuperWeaponTypeClass*> objectsList;
-		char* context = nullptr;
-
-		//pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			SuperWeaponTypeClass* buffer;
-			if (Parser<SuperWeaponTypeClass*>::TryParse(cur, &buffer))
-			{
-				//Debug::Log("DEBUG: [%s]: Parsed SW [%s]\n", pSection, cur);
-				this->SuperWeapons.AddItem(buffer);
-			}
-			else
-			{
-				Debug::Log("DEBUG: [%s]: Error parsing SuperWeapons= [%s]\n", pSection, cur);
-			}
-		}
-	}
+	this->SuperWeapons.Read(exINI, pSection, "SuperWeapons");
 
 	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 

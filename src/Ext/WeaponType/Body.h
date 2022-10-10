@@ -48,6 +48,7 @@ public:
 		Valueable<bool> DelayedFire_Anim_UseFLH;
 		Valueable<int> DelayedFire_DurationTimer;
 		Valueable<bool> Burst_FireWithinSequence;
+
 #pragma region Otamaa
 		Valueable<int>Xhi;
 		Valueable<int>Xlo;
@@ -68,6 +69,10 @@ public:
 		Valueable<bool> RemoveTechnoAfterFiring;
 		Valueable<AnimTypeClass*> OpentoppedAnim;
 		Nullable<Point2D> DiskLaser_FiringOffset;
+
+		Nullable<double> Targeting_Health_Percent;
+		Valueable<bool> Targeting_Health_Percent_Below;
+
 		#ifdef  COMPILE_PORTED_DP_FEATURES
 		Valueable<float> RockerPitch;
 		AttachFireData MyAttachFireDatas;
@@ -117,6 +122,8 @@ public:
 			, RemoveTechnoAfterFiring { false }
 			, OpentoppedAnim { nullptr }
 			, DiskLaser_FiringOffset { }
+			, Targeting_Health_Percent { }
+			, Targeting_Health_Percent_Below { true }
 			 #ifdef COMPILE_PORTED_DP_FEATURES
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }

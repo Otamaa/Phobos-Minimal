@@ -320,6 +320,7 @@ template <typename T>
 void RulesExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)

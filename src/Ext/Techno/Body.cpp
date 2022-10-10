@@ -36,6 +36,150 @@
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
 
+//Droppod able to move Limboed passengers outside
+// if it failed to move , the locomotor is not relesed 
+//Teleport loco cant move limboed passengers , passengers will stuck after ejected with Chrono locomotor still intact
+bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& nID = LocomotionClass::CLSIDs::Droppod)
+{
+	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
+	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK)
+	{
+		Debug::Log("Cell occupied... poof!\n");
+		return false;
+	}
+	else
+	{
+		Debug::Log("Destinating %s @ {%d, %d, %d}\n", Object->get_ID(), XYZ.X, XYZ.Y, XYZ.Z);
+		LocomotionClass::ChangeLocomotorTo(Object, nID);
+		CoordStruct xyz = XYZ;
+		xyz.Z = 0;
+		Object->SetLocation(xyz);
+		Object->SetDestination(MyCell, 1);
+		Object->Locomotor->Move_To(XYZ);
+		Object->PrimaryFacing.Set_Desired(DirStruct());
+		if (!Object->InLimbo)
+		{
+			Object->See(0, 0);
+			return true;
+		}
+
+		Debug::Log("InLimbo... failed?\n");
+		return false;
+	}
+}
+
+//ToDo : Auto regenerate and transferable passengers (Problem : Driver killed and operator stuffs )
+void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce)
+{
+	if (!pTransporter || !pTransporter->Passengers.NumPassengers || !Map.IsWithinUsableArea(nCoord))
+		return;
+
+	//TODO : check if passenger is actually allowed to go outside 
+	auto pPassenger = pTransporter->Passengers.RemoveFirstPassenger();
+	CoordStruct nDest = nCoord;
+
+	//if (bForce)
+	{
+		//TechnoTypeClass* pPassengerType = pPassenger->GetTechnoType();
+		//auto const pPassengerMZone = pPassengerType->MovementZone;
+		//auto const pPassengerSpeedType = pPassengerType->SpeedType;
+
+
+		//auto const pCellFrom = Map.GetCellAt(nCoord);
+		//auto const nZone = Map.Zone_56D230(&pCellFrom->MapCoords, pPassengerMZone, pCellFrom->ContainsBridgeEx());
+
+		//if (!Map[nCoord]->IsClearToMove(pPassengerSpeedType, false, false, nZone, pPassengerMZone, -1, 1))
+		{
+			nDest = Map.GetRandomCoordsNear(nCoord, ScenarioGlobal->Random.RandomFromMax(2000), ScenarioGlobal->Random.RandomFromMax(1));
+		}
+	}
+
+	Map.GetCellAt(nCoord)->ScatterContent(pTransporter->GetCoords(), true, true, false);
+
+	bool Placed = false;
+	if (bForce)
+	{
+		++Unsorted::IKnowWhatImDoing;
+		Placed = pPassenger->Unlimbo(nDest, DirType::North);
+		--Unsorted::IKnowWhatImDoing;
+	}
+	else
+	{
+		Placed = pPassenger->Unlimbo(nDest, DirType::North);
+		//Placed = CreateWithDroppod(pPassenger, nDest , LocomotionClass::CLSIDs::Teleport);
+	}
+
+	//Only remove passengers from the Transporter if it succeeded
+	if (Placed)
+	{
+		pPassenger->OnBridge = Map[nCoord]->ContainsBridgeEx();
+		pPassenger->StopMoving();
+		pPassenger->SetDestination(nullptr, true);
+		pPassenger->SetTarget(nullptr);
+		pPassenger->CurrentTargets.Clear();
+		pPassenger->SetFocus(nullptr);
+		pPassenger->unknown_C4 = 0; // don't ask
+		pPassenger->unknown_5A0 = 0;
+		pPassenger->CurrentGattlingStage = 0;
+		pPassenger->SetCurrentWeaponStage(0);
+		pPassenger->SetLocation(nDest);
+		pPassenger->LiberateMember();
+
+		if (pPassenger->SpawnManager)
+		{
+			pPassenger->SpawnManager->ResetTarget();
+		}
+
+		pPassenger->ClearPlanningTokens(nullptr);
+
+		pPassenger->DiscoveredBy(pTransporter->GetOwningHouse());
+
+		if (auto pFoot = generic_cast<FootClass*>(pTransporter))
+		{
+			if (pTransporter->GetTechnoType()->Gunner)
+			{
+				pFoot->RemoveGunner(pPassenger);
+			}
+
+			if (pTransporter->GetTechnoType()->OpenTopped)
+			{
+				pFoot->ExitedOpenTopped(pPassenger);
+			}
+		}
+		else if (auto pBuilding = specific_cast<BuildingClass*>(pTransporter))
+		{
+			if (pBuilding->Absorber())
+			{
+				pPassenger->Absorbed = false;
+				if (pBuilding->Type->ExtraPowerBonus > 0)
+				{
+					pBuilding->Owner->RecheckPower = true;
+				}
+			}
+		}
+
+		if (nSound != -1)
+		{
+			VocClass::PlayAt(nSound, nDest, nullptr);
+		}
+
+		if (pAnimToPlay)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pAnimToPlay, nDest))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pTransporter->GetOwningHouse(), nullptr, pTransporter, false);
+			}
+		}
+
+		if (pPassenger->CurrentMission != Mission::Guard)
+			pPassenger->Override_Mission(Mission::Area_Guard);
+	}
+	else
+	{
+		pTransporter->AddPassenger(pPassenger);
+	}
+}
+
 int DrawHealthBar_Pip(TechnoClass* pThis, bool isBuilding, const Point3D& Pip)
 {
 	const auto strength = pThis->GetTechnoType()->Strength;
@@ -735,29 +879,26 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	if (pVictim && pKiller)
+	if (!pKiller && !pVictim)
+		return;
+
+	TechnoClass* pObjectKiller = nullptr;
+
+	if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
+		pObjectKiller = pKiller->SpawnOwner;
+	else
+		pObjectKiller = pKiller;
+
+	if (pObjectKiller && pObjectKiller->BelongsToATeam())
 	{
-		TechnoClass* pObjectKiller = nullptr;
-
-		if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
-			pObjectKiller = pKiller->SpawnOwner;
-		else
-			pObjectKiller = pKiller;
-
-		if (pObjectKiller && pObjectKiller->BelongsToATeam())
+		if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
 		{
 			const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
-			if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
-			{
-				auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
-				/*
-				Debug::Log("DEBUG: pObjectKiller -> [%s] [%s] registered a kill of the type [%s]\n",
-					pFootKiller->Team->Type->ID, pObjectKiller->get_ID(), pVictim->get_ID());
-				*/
-				pKillerTechnoData->LastKillWasTeamTarget = false;
-				if (pFocus && pFocus == pVictim)
-					pKillerTechnoData->LastKillWasTeamTarget = true;
-			}
+			auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
+
+			pKillerTechnoData->LastKillWasTeamTarget = false;
+			if (pFocus && pFocus == pVictim)
+				pKillerTechnoData->LastKillWasTeamTarget = true;
 		}
 	}
 }
@@ -766,7 +907,7 @@ void TechnoExt::ApplyMindControlRangeLimit(TechnoClass* pThis)
 {
 	int Range = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->MindControlRangeLimit.Get();
 
-	if (Range <= 0 || pThis->CaptureManager == nullptr)
+	if (!pThis->CaptureManager || Range <= 0)
 		return;
 
 	for (auto node : pThis->CaptureManager->ControlNodes)
@@ -798,7 +939,7 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 		{
 			const auto& guardRange = pExt->Interceptor_GuardRange.Get(pThis);
 			const auto& minguardRange = pExt->Interceptor_MinimumGuardRange.Get(pThis);
-			const auto  distance = pBullet->Location.DistanceFrom(pThis->Location);
+			const auto distance = pBullet->Location.DistanceFrom(pThis->Location);
 
 			if (distance > guardRange || distance < minguardRange || pBullet->InLimbo)
 				continue;
@@ -1238,21 +1379,22 @@ void TechnoExt::ExtData::EatPassengers()
 							}
 						}
 
-						// Handle gunner change.
-						if (pThis->GetTechnoType()->Gunner)
+						// Handle gunner change.							
+						if (auto const pFoot = abstract_cast<FootClass*>(pThis))
 						{
-							if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+							if (pThis->GetTechnoType()->Gunner)
 							{
+
 								pFoot->RemoveGunner(pPassenger);
 
 								if (pThis->Passengers.NumPassengers > 0)
 									pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
 							}
-						}
 
-						if (pThis->GetTechnoType()->OpenTopped)
-						{
-							pThis->ExitedOpenTopped(pPassenger);
+							if (pThis->GetTechnoType()->OpenTopped)
+							{
+								pThis->ExitedOpenTopped(pPassenger);
+							}
 						}
 
 						if (auto pPassangerOwner = pPassenger->GetOwningHouse())
@@ -1261,6 +1403,8 @@ void TechnoExt::ExtData::EatPassengers()
 							{
 								if (pBld->Absorber())
 								{
+									pPassenger->Absorbed = false;
+
 									if (pBld->Type->ExtraPowerBonus > 0)
 									{
 										pBld->Owner->RecheckPower = true;
@@ -1954,6 +2098,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsMissisleSpawn)
 		.Process(this->LastAttacker)
 		.Process(this->Attempt)
+		.Process(ReceiveDamageMultiplier)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)

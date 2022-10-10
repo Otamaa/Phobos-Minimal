@@ -3,7 +3,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
 
-bool Helpers::Otamaa::LauchSW(SuperWeaponTypeClass* LaunchWhat,
+bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 	HouseClass* pOwner,
 	const CoordStruct Where,
 	bool WaitForCharge,
@@ -17,58 +17,48 @@ bool Helpers::Otamaa::LauchSW(SuperWeaponTypeClass* LaunchWhat,
 	bool IgnoreDesignator,
 	bool IgnoreMoney)
 {
-	auto const HouseOwner = !pOwner  || pOwner->Defeated ? HouseExt::FindCivilianSide():pOwner;
+	auto const HouseOwner = !pOwner || pOwner->Defeated ? HouseExt::FindCivilianSide() : pOwner;
 
 	if (HouseOwner)
 	{
-		if (LaunchWhat)
+		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(LaunchWhat))
 		{
-			SuperClass* pSelected = nullptr;
-			for (auto const pSuper : HouseOwner->Supers)
+			auto const pSuper = pSelected;
+			const auto pSWExt = SWTypeExt::ExtMap.Find(pSelected->Type);
+
+			auto const nWhere = Map[Where]->MapCoords;
+			bool const lauch = (WaitForCharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
+			bool const bIsObserver = HouseOwner->IsObserver();
+			bool const MoneyEligible = IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
+			bool const InhibitorEligible = IgnoreInhibitor ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
+			bool const DesignatorEligible = IgnoreDesignator ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);
+
+			if (Grant || Manual)
 			{
-				if (pSuper->Type->ArrayIndex == LaunchWhat->ArrayIndex)
+				if (pSuper->Grant(GrantOneTime, !bIsObserver, GrantOnHold))
 				{
-					pSelected = pSuper;
-					break;
-				}
-			}
-
-			const auto pSWExt = SWTypeExt::ExtMap.Find(LaunchWhat);
-
-			if (auto const pSuper = pSelected)
-			{
-				auto const nWhere = Map[Where]->MapCoords;
-				bool const lauch = (WaitForCharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
-				bool const bIsObserver = HouseOwner->IsObserver();
-				bool const MoneyEligible = IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
-				bool const InhibitorEligible = IgnoreInhibitor ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
-				bool const DesignatorEligible = IgnoreDesignator ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);
-
-				if (Grant || Manual)
-				{
-					if (pSuper->Grant(GrantOneTime, !bIsObserver, GrantOnHold))
+					if (!bIsObserver && (Manual || GrantRepaitSidebar))
 					{
-						if (!bIsObserver && (Manual || GrantRepaitSidebar))
+						if (MouseClass::Instance->AddCameo(AbstractType::Special, LaunchWhat))
 						{
-							if (MouseClass::Instance->AddCameo(AbstractType::Special, LaunchWhat->ArrayIndex))
-								MouseClass::Instance->RepaintSidebar(1);
+							MouseClass::Instance->RepaintSidebar(1);
 						}
 					}
 				}
+			}
 
-				if (!WaitForCharge)
-					pSuper->SetReadiness(true);
+			if (!WaitForCharge)
+				pSuper->SetReadiness(true);
 
-				if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible)
-				{
-					CellStruct nCell { nWhere.X ,nWhere.Y };
-					pSuper->Launch(nCell, !bIsObserver);
+			if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible)
+			{
+				CellStruct nCell { nWhere.X ,nWhere.Y };
+				pSuper->Launch(nCell, !bIsObserver);
 
-					if (ResetChargeAfterLauch)
-						pSuper->Reset();
+				if (ResetChargeAfterLauch)
+					pSuper->Reset();
 
-					return true;
-				}
+				return true;
 			}
 		}
 	}

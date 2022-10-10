@@ -524,6 +524,9 @@ public:
 	bool AllPrerequisitesAvailable(TechnoTypeClass const* pItem, DynamicVectorClass<BuildingTypeClass*> const& vectorBuildings, int vectorLength)
 		{ JMP_THIS(0x505360); }
 
+	UnitTypeClass* PickUnitFromTypeList(const TypeList<UnitTypeClass*>& nList) const
+		{ JMP_THIS(0x505310); }
+
 	// whether any human player controls this house
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
 	//{
@@ -1107,6 +1110,7 @@ public:
 		// Used for: Counting objects ever owned
 		// altered on each object's loss or gain
 		// BuildLimit > 0 validation uses this
+		//	XQuantity on topsonIDB
 	DECLARE_PROPERTY(CounterClass, OwnedBuildingTypes);
 	DECLARE_PROPERTY(CounterClass, OwnedUnitTypes);
 	DECLARE_PROPERTY(CounterClass, OwnedInfantryTypes);

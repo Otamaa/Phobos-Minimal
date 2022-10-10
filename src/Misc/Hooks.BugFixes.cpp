@@ -607,7 +607,14 @@ DEFINE_HOOK(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 	}
 		  break;
 	case 2: {
-		pThis->MissionStatus = 0;
+
+
+		if (pThis->Type->Category == Category::Support && !pThis->IsOwnedByCurrentPlayer){
+			pThis->QueueMission(Mission::Guard, false);
+		} else {
+			pThis->MissionStatus = 0;
+		}
+
 		return SkipToDeploy;
 	}
 	}

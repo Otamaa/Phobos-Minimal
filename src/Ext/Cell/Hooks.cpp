@@ -8,6 +8,7 @@
 
 #include <Ext/Tiberium/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/IsometricTileType/Body.h>
 
 DEFINE_HOOK(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 {
@@ -41,7 +42,8 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 
 	auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
 
-	if (!pTibExt->EnableLighningFix.Get()){
+	if (!pTibExt->EnableLighningFix.Get())
+	{
 		R->EBX(pTiberium);
 		return 0x47F882;
 	}
@@ -49,7 +51,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
 
-	auto nIndex = CellExt::GetOverlayIndex(pThis ,pTiberium);
+	auto nIndex = CellExt::GetOverlayIndex(pThis, pTiberium);
 	const auto pShape = OverlayTypeClass::Array->GetItem(nIndex)->GetImage();
 
 	if (!pShape)
@@ -57,7 +59,7 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 
 	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
 	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Intensity_Terrain);
-	const int nOreTint =  std::clamp(nTint,0, 1000);
+	const int nOreTint = std::clamp(nTint, 0, 1000);
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
 	const auto pPalette = pTibExt->Palette.GetOrDefaultConvert(FileSystem::x_PAL.get());
 
@@ -71,26 +73,116 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	return 0x47FB86;
 }
 
-//DEFINE_HOOK(0x47F62C, CellClass_DrawOverlay_Shadow_Rubble_Palette, 0x6)
+DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
+{
+	GET(CellClass*, pCell, ESI);
+	GET_STACK(SHPStruct*, pImage, STACK_OFFSET(0x28, 0x8));
+	GET_STACK(int, nFrame, STACK_OFFSET(0x28, 0x4));
+	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x28, 0x10));
+	GET_STACK(int, nOffset, STACK_OFFS(0x28, 0x18));
+	GET(RectangleStruct*, pRect, EBX);
+
+	if (!R->AL())
+		return 0x47F637;
+
+	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+
+	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
+	0, -2 - nOffset, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+
+	return 0x47F637;
+}
+
+DEFINE_HOOK(0x47FAF5, CellClass_DrawOverlay_Rubble, 0x8)
+{
+	GET(OverlayTypeClass*, pOvl, ECX);
+	GET(CellClass*, pCell, ESI);
+	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0x24, 0x14));
+	GET_STACK(int, nFrame, STACK_OFFSET(0x24, 0x8));
+	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
+	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));
+	GET(RectangleStruct*, pRect, EBP);
+
+	if (!R->AL())
+		return 0x47FB86;
+
+	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+
+	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4E00),
+	0, (pOvl->DrawFlat != 0 ? 0 : -15) - nOffset - 2, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
+
+	return 0x47FB86;
+}
+
+/*
+*    v3 = this->TileType;
+	if ( v3 >= 0 && v3 < (int)*(&IsometricTileTypes + 4) && !(*(&IsometricTileTypes + 1))[v3]->AllowBurrowing
+*/
+//DEFINE_HOOK(0x487022, CellClass_CanEnterCell_Add, 0x6)
 //{
-//	GET(CellClass* const, pCell, ESI);
+//	enum
+//	{
+//		allowed = 0x487093,
+//		notallowed = 0x4870A1,
+//		continue_check = 0x48702C, 
+//	};
 //
-//	if (auto pBuildingType = pCell->Rubble) {
-//		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-//		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
-//		return 0x47F62C;
+//	GET(IsometricTileTypeClass*, pTile, EDX);
+//
+//	if (!pTile->AllowBurrowing)
+//		return notallowed;
+//	else
+//		return continue_check;
+//}
+
+//DEFINE_HOOK(0x4D9C41, FootClass_CanEnterCell_Restricted, 0x6)
+//{
+//	GET(FootClass*, pFoot, ESI);
+//
+//	if (auto pCell = pFoot->GetCell())
+//	{
+//		if (auto pILoco = pFoot->Locomotor.get())
+//		{
+//			auto const pLocoClass = static_cast<LocomotionClass*>(pILoco);
+//			CLSID nID { };
+//			if (SUCCEEDED(pLocoClass->GetClassID(&nID)))
+//			{
+//				if (nID == LocomotionClass::CLSIDs::Jumpjet)
+//				{
+//					const auto nTile = pCell->IsoTileTypeIndex;
+//					if (nTile >= 0 && nTile < IsometricTileTypeClass::Array->Count
+//					 )
+//					{
+//						if (auto const pIsoTileExt = IsometricTileTypeExt::ExtMap.Find(IsometricTileTypeClass::Array->GetItem((nTile))))
+//						{
+//							if (pIsoTileExt->BlockJumpjet.Get())
+//							{
+//								R->EAX(Move::No);
+//								return 0x4D9C4E;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 //	}
 //
 //	return 0x0;
 //}
-//
-//DEFINE_HOOK(0x47FB77, CellClass_DrawOverlay_Rubble_Palette , 0xA)
+
+// Aircraft pathfinding is shit
+//DEFINE_HOOK(0x4196B0, AircraftClass_CanEnterCell_Restricted, 0x5)
 //{
-//	GET(CellClass* const, pCell, ESI);
+//	GET(AircraftClass*, pThis, ECX);
 //
-//	if (auto pBuildingType = pCell->Rubble) {
-//		auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-//		R->EDX(pBuildingExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert));
+//	if (auto pCell = pThis->GetCell()) {
+//		const auto nTile = pCell->IsoTileTypeIndex;
+//		if (nTile >= 0 && nTile < IsometricTileTypeClass::Array->Count && nTile == 1499) {
+//			R->EAX(Move::No);
+//			return 0x4197A7;
+//		}
 //	}
 //
 //	return 0x0;

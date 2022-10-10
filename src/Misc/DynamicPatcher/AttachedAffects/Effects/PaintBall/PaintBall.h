@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-#include <Utilities/BaseClassTemplates.h>
+
 #include <Utilities/TemplateDef.h>
 
 #include <ColorStruct.h>

@@ -2780,7 +2780,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				auto pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 
-				int nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+				int nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.size();
 
 				IsOK = (pBld->Type->SuperWeapon >= 0
 					|| pBld->Type->SuperWeapon2 >= 0
@@ -2789,7 +2789,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				if (!IsOK && pBld->Upgrades[0])
 				{
 					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[0]);
-					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.size();
 
 					IsOK = (pBld->Upgrades[0]->SuperWeapon >= 0
 						|| pBld->Upgrades[0]->SuperWeapon2 >= 0
@@ -2799,7 +2799,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				if (!IsOK && pBld->Upgrades[1])
 				{
 					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[1]);
-					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.size();
 
 					IsOK = (pBld->Upgrades[1]->SuperWeapon >= 0
 						|| pBld->Upgrades[1]->SuperWeapon2 >= 0
@@ -2809,7 +2809,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				if (!IsOK && pBld->Upgrades[2])
 				{
 					pBuildingExt = BuildingTypeExt::ExtMap.Find(pBld->Upgrades[2]);
-					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.Count;
+					nSuperWeapons = !pBuildingExt ? 0 : pBuildingExt->SuperWeapons.size();
 
 					IsOK = (pBld->Upgrades[2]->SuperWeapon >= 0
 						|| pBld->Upgrades[2]->SuperWeapon2 >= 0

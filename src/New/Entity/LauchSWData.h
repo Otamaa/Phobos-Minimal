@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Utilities/BaseClassTemplates.h>
+
 #include <Utilities/TemplateDef.h>
 
 struct LauchSWData final
 {
-	SuperWeaponTypeClass* LaunchWhat;
+	int LaunchWhat;
 	bool LaunchWaitcharge;
 	bool LaunchResetCharge;
 	bool LaunchGrant;
@@ -19,7 +19,7 @@ struct LauchSWData final
 
 	bool Read(INI_EX& exINI, const char* pID, int Prefix);
 
-	LauchSWData() : LaunchWhat { nullptr }
+	LauchSWData() : LaunchWhat { -1 }
 		, LaunchWaitcharge { false }
 		, LaunchResetCharge { false }
 		, LaunchGrant { false }

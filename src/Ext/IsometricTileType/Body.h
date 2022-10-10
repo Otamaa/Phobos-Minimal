@@ -3,7 +3,7 @@
 #include <IsometricTileClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <ScenarioClass.h>
@@ -12,16 +12,18 @@
 class IsometricTileTypeExt
 {
 public:
+	static constexpr DWORD Canary = 0x91577125;
 	using base_type = IsometricTileTypeClass;
 
-	class ExtData final : public Extension<IsometricTileTypeClass>
+	class ExtData final : public TExtension<IsometricTileTypeClass>
 	{
 	public:
 		Valueable<int> Tileset;
-		ExtData(IsometricTileTypeClass* OwnerObject) : Extension<IsometricTileTypeClass>(OwnerObject)
-			, Tileset{ -1 }
-		{
-		}
+		Valueable<bool> BlockJumpjet;
+		ExtData(IsometricTileTypeClass* OwnerObject) : TExtension<IsometricTileTypeClass>(OwnerObject)
+			, Tileset { -1 }
+			, BlockJumpjet { false }
+		{ }
 
 		virtual ~ExtData() = default;
 
@@ -38,6 +40,8 @@ public:
 	};
 
 	static int CurrentTileset;
+#ifdef IsoTilePalette
+
 	static std::map<std::string, int> PalettesInitHelper;
 	static std::map<int, int> LoadedPalettesLookUp;
 	static std::vector<std::map<TintStruct, LightConvertClass*>> LoadedPalettes;
@@ -45,8 +49,8 @@ public:
 
 	static LightConvertClass* IsometricTileTypeExt::InitDrawer(int nLookUpIdx, int red, int green, int blue);
 	static void LoadPaletteFromName(int nTileset,const std::string_view PaletteName);
-
-	class ExtContainer final : public Container<IsometricTileTypeExt>
+#endif
+	class ExtContainer final : public TExtensionContainer<IsometricTileTypeExt>
 	{
 	public:
 		ExtContainer();

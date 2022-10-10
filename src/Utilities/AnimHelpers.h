@@ -27,10 +27,8 @@ namespace Helper
 			if (splash.size() > 0)
 			{
 				auto nIndexR = (splash.size() - 1);
-				auto nIndex = Random ?
-					ScenarioClass::Instance->Random.RandomRanged(0, nIndexR) : nIndexR;
-
-				return splash.at(nIndex);
+				return splash.at(Random ?
+					ScenarioClass::Instance->Random.RandomFromMax(nIndexR) : nIndexR);
 			}
 
 			return nullptr;
@@ -98,7 +96,7 @@ namespace Helper
 					{
 						if ((size_t)nAmount[nIndex] > 0)
 						{
-							for (size_t k = (size_t)nAmount[nIndex]; k > 0; --k)
+							for (int k = (int)nAmount[nIndex]; k > 0; --k)
 							{
 								if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where))
 								{
@@ -111,14 +109,14 @@ namespace Helper
 
 				if (!bRandom)
 				{
-					for (size_t i = 0; i < nAnims.size(); i++)
+					for (int i = 0; i < (int)nAnims.size(); i++)
 					{
 						nCreateAnim(i);
 					}
 				}
 				else
 				{
-					nCreateAnim(ScenarioGlobal->Random.RandomRanged(0, nAnims.size() - 1));
+					nCreateAnim(ScenarioGlobal->Random.RandomFromMax(nAnims.size() - 1));
 				}
 			}
 		}

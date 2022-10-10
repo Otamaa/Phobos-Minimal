@@ -351,7 +351,7 @@ public:
 	virtual bool vt_entry_4B0() const R0;
 	virtual int vt_entry_4B4() const R0;
 	virtual CoordStruct* vt_entry_4B8(CoordStruct* pCrd) R0;
-	virtual DWORD vt_entry_4BC() R0;
+	virtual bool CanUseWaypoint() const R0;
 	virtual bool CanAttackOnTheMove() const R0;
 	virtual bool vt_entry_4C4() const R0;
 	virtual bool vt_entry_4C8() R0;
@@ -852,8 +852,8 @@ public:
 
 	DECLARE_PROPERTY(AudioController, Audio3);
 
-	DWORD            __IsTurretTurning_49C;
-	DWORD            __IsTurretTurning_4A0;
+	BOOL            __IsTurretTurning_49C; // Turret is moving?
+	BOOL            TurretIsRotating;
 
 	DECLARE_PROPERTY(AudioController, Audio4);
 

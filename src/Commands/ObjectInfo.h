@@ -353,12 +353,26 @@ public:
 				dumpInfo(pTechno);
 			}
 		}
-		if (!dumped)
+
+		if (!dumped) {
 			if (ObjectClass::CurrentObjects->Count > 0)
 			{
 				if (ObjectClass::CurrentObjects->Count != 1)
 					MessageListClass::Instance->PrintMessage(L"This command will only dump one of these selected object", 600, 5, true);
 				dumpInfo(ObjectClass::CurrentObjects->GetItem(ObjectClass::CurrentObjects->Count - 1));
 			}
+			else
+			{
+				if (auto pCell = Map[WWMouseClass::Instance->GetCellUnderCursor()])
+				{
+					const auto nTile = pCell->IsoTileTypeIndex;
+					if (nTile >= 0 && nTile < IsometricTileTypeClass::Array->Count) {
+						auto pTile = IsometricTileTypeClass::Array->GetItem(nTile);
+						append("[%d]TileType At Cell[%d , %d] is %s ", nTile, pCell->MapCoords.X, pCell->MapCoords.Y, pTile->ID);
+						display();
+					}
+				}
+			}
+		}
 	}
 };

@@ -8,6 +8,7 @@
 #include <AnimTypeClass.h>
 #include <AnimClass.h>
 #include <BitFont.h>
+#include <TagTypeClass.h>
 
 #include <Utilities/Helpers.h>
 #include <Ext/Anim/Body.h>
@@ -20,6 +21,68 @@
 
 #include <New/Entity/VerticalLaserClass.h>
 #include <Misc/InteractWithAres/Body.h>
+
+void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget)
+{
+	if (!pBullet || pBullet->IsInAir() != pTarget->IsInAir() || pBullet->GetCell() != pTarget->GetCell() || pTarget->IsIronCurtained())
+		return;
+
+	if (pTarget->WhatAmI() != AbstractType::Unit || pBullet->Type->Vertical)
+		return;
+
+	const auto pTarExt = TechnoExt::ExtMap.Find(pTarget);
+	if (!pTarExt || (pTarExt->Shield && pTarExt->Shield->IsActive()))
+		return;
+
+	//const auto pTarType = pTarget->GetTechnoType();
+	//const auto pTarTypeExt = TechnoTypeExt::ExtMap.Find(pTarType);
+
+	const int tarFacing = pTarget->PrimaryFacing.Current().GetValue<16>();
+	int bulletFacing = BulletExt::ExtMap.Find(pBullet)->BulletDir.get().GetValue<16>();
+
+	const int angle = abs(bulletFacing - tarFacing);
+	auto frontField = 64 * this->DirectionalArmor_FrontField;
+	auto backField = 64 * this->DirectionalArmor_BackField;
+
+	if (angle >= 128 - frontField && angle <= 128 + frontField)//�����ܻ�
+		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_FrontMultiplier.Get();
+	else if ((angle < backField && angle >= 0) || (angle > 192 + backField && angle <= 256))//�����ܻ�
+		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_BackMultiplier.Get();
+	else//�����ܻ�
+		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
+}
+
+void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
+{
+	if (!this->AttachTag)
+		return;
+
+	const auto pType = pTarget->GetTechnoType();
+	bool AllowType = true;
+	bool IgnoreType = false;
+
+	if (!this->AttachTag_Types.empty())
+	{
+		AllowType = this->AttachTag_Types.Contains(pType);
+	}
+
+	if (!this->AttachTag_Types.empty())
+	{
+		IgnoreType = this->AttachTag_Types.Contains(pType);
+	}
+
+	if (!AllowType || IgnoreType)
+		return;
+
+	auto TagID = this->AttachTag.data();
+	auto Imposed = this->AttachTag_Imposed;
+
+	if ((!pTarget->AttachedTag || Imposed))
+	{
+		auto pTagType = TagTypeClass::FindOrAllocate(TagID);
+		pTarget->AttachTrigger(TagClass::GetInstance(pTagType));
+	}
+}
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
@@ -268,6 +331,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (pOwner && pBullet) {
 		if (TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType())->Interceptor && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
 			this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
+
+		//TechnoExt::PutPassengersInCoords(pBullet->Owner, coords, RulesGlobal->WarpIn, RulesGlobal->BunkerWallsUpSound, false);
 	}
 
 
@@ -307,6 +372,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->Transact || ISPermaMC ||
 		this->GattlingStage > 0 ||
 		this->GattlingRateUp != 0 ||
+		this->AttachTag ||
+		this->DirectionalArmor ||
 		this->ReloadAmmo != 0
 #ifdef COMPILE_PORTED_DP_FEATURES
 		|| (this->PaintBallData.Color != ColorStruct::Empty)
@@ -319,6 +386,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		if (pBullet) {
 			ThisbulletWasIntercepted = BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted;
 		}
+
 		const float cellSpread = Get()->CellSpread;
 
 		//if the warhead itself has cellspread
@@ -378,7 +446,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	}
 }
 
-void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, bool BulletFound, bool bulletWasIntercepted)
+void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, BulletClass* pBullet , bool bulletWasIntercepted)
 {
 	if (!this->CanDealDamage(pTarget))
 		return;
@@ -394,7 +462,7 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->RemoveMindControl)
 		this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	if (this->PermaMC && !BulletFound)
+	if (this->PermaMC && !pBullet)
 		this->applyPermaMC(pHouse, pTarget);
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
@@ -426,15 +494,21 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->Converts && AresData::AresDllHmodule != nullptr)
 		this->ApplyUpgrade(pHouse, pTarget);
 #endif
+
+	if (this->AttachTag)
+		this->ApplyAttachTag(pTarget);
+
+	if (this->DirectionalArmor.Get())
+		this->ApplyDirectional(pBullet, pTarget);
 }
 
-void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
-{
-	for (auto pTarget : Helpers::Alex::getCellSpreadItems(coords, cellSpread, true))
-	{
-		this->DetonateOnOneUnit(pHouse, pTarget, pOwner);
-	}
-}
+//void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
+//{
+//	for (auto pTarget : Helpers::Alex::getCellSpreadItems(coords, cellSpread, true))
+//	{
+//		this->DetonateOnOneUnit(pHouse, pTarget, pOwner);
+//	}
+//}
 
 void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
@@ -550,6 +624,9 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 		if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
 			return;
 	}
+
+	if (!EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->GetOwningHouse()))
+		return;
 
 	if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), this->Crit_Affects))
 		return;

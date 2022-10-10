@@ -3,9 +3,11 @@
 #include <ScenarioClass.h>
 //#include <Ext/Convert/Body.h>
 
-template<> const DWORD Extension<IsometricTileTypeClass>::Canary = 0x91577125;
+
 IsometricTileTypeExt::ExtContainer IsometricTileTypeExt::ExtMap;
 int IsometricTileTypeExt::CurrentTileset = -1;
+
+#ifdef IsoTilePalette
 std::map<std::string, int> IsometricTileTypeExt::PalettesInitHelper;
 std::map<int, int> IsometricTileTypeExt::LoadedPalettesLookUp;
 std::vector<std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExt::LoadedPalettes;
@@ -66,7 +68,7 @@ void IsometricTileTypeExt::LoadPaletteFromName(int nTileset, const std::string_v
 	IsometricTileTypeExt::CustomPalettes.push_back(nullptr);
 	IsometricTileTypeExt::CustomPalettes.back().reset(FileSystem::AllocatePalette(PaletteName.data()));
 }
-
+#endif
 // =============================
 // load / save
 
@@ -79,6 +81,7 @@ void IsometricTileTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	if (pINI->GetSection(pSection))
 	{
+#ifdef IsoTilePalette
 		auto const theater = ScenarioClass::Instance->Theater;
 		auto const pExtension = Theater::GetTheater(theater).Extension;
 		char pDefault[] = "iso~~~.pal";
@@ -87,6 +90,9 @@ void IsometricTileTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		pDefault[5] = pExtension[2];
 		pINI->ReadString(pSection, "CustomPalette", pDefault, Phobos::readBuffer);
 		IsometricTileTypeExt::LoadPaletteFromName(this->Tileset, Phobos::readBuffer);
+#endif
+		INI_EX exINI(pINI);
+		this->BlockJumpjet.Read(exINI, pSection, "BlockJumjet");
 	}
 }
 
@@ -95,18 +101,19 @@ void IsometricTileTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Tileset)
+	    .Process(this->BlockJumpjet)
 		;
 }
 
 void IsometricTileTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<IsometricTileTypeClass>::Serialize(Stm);
+	TExtension<IsometricTileTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void IsometricTileTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<IsometricTileTypeClass>::Serialize(Stm);
+	TExtension<IsometricTileTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -114,27 +121,32 @@ bool IsometricTileTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
 		.Process(IsometricTileTypeExt::CurrentTileset)
+#ifdef IsoTilePalette
 		.Process(IsometricTileTypeExt::PalettesInitHelper)
 		.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
 		.Process(IsometricTileTypeExt::LoadedPalettes)
 		.Process(IsometricTileTypeExt::CustomPalettes)
+#endif
 		.Success();
 }
 
 bool IsometricTileTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
+
 		.Process(IsometricTileTypeExt::CurrentTileset)
+#ifdef IsoTilePalette
 		.Process(IsometricTileTypeExt::PalettesInitHelper)
 		.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
 		.Process(IsometricTileTypeExt::LoadedPalettes)
 		.Process(IsometricTileTypeExt::CustomPalettes)
+#endif
 		.Success();
 }
 // =============================
 // container
 
-IsometricTileTypeExt::ExtContainer::ExtContainer() : Container("IsometricTileTypeClass") { }
+IsometricTileTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("IsometricTileTypeClass") { }
 IsometricTileTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -144,7 +156,7 @@ DEFINE_HOOK(0x5449F2, IsometricTileTypeClass_CTOR, 0x5)
 {
 	GET(IsometricTileTypeClass*, pItem, EBP);
 
-	IsometricTileTypeExt::ExtMap.FindOrAllocate(pItem);
+	IsometricTileTypeExt::ExtMap.JustAllocate(pItem , pItem , "Invalid !");
 
 	return 0;
 }

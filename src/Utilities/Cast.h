@@ -19,7 +19,7 @@ struct type_cast_impl
 					|| pWhat == AbstractType::UnitType
 					? static_cast<T>(pAbstract) : nullptr;
 			}
-
+			else
 			if constexpr (Base::AbsTypeBase == AbstractBaseType::ObjectType)
 			{
 				auto const pWhat = pAbstract->WhatAmI();
@@ -37,8 +37,11 @@ struct type_cast_impl
 					|| pWhat == AbstractType::TerrainType
 					|| pWhat == AbstractType::VoxelAnimType
 					? static_cast<T>(pAbstract) : nullptr;
+			} else {
+				return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 			}
-		}else { 
+
+		} else { 
 			return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 		}
 	}

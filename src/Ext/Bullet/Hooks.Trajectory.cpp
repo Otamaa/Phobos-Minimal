@@ -1,5 +1,7 @@
 #include "Trajectories/PhobosTrajectory.h"
 
+#include <Ext/WarheadType/Body.h>
+
 //#ifdef ENABLE_TRAJ_HOOKS
 DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 {
@@ -96,6 +98,10 @@ DEFINE_HOOK(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 
 	if (auto pType = BulletTypeExt::ExtMap.Find(pThis->Type)->TrajectoryType)
 		BulletExt::ExtMap.Find(pThis)->Trajectory = PhobosTrajectory::CreateInstance(pType, pThis, pCoord, pVelocity);
+
+	if (WarheadTypeExt::ExtMap.Find(pThis->WH)->DirectionalArmor) {
+		BulletExt::ExtMap.Find(pThis)->BulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
+	}
 
 	return 0;
 }

@@ -1,6 +1,7 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
+#ifdef CHECK_DESYNC
 //TODO : retest for desync
 DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 {
@@ -21,7 +22,6 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 }
 
 //TODO : retest for desync
-#ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x423F8A, AnimClass_Spawns_Override, 0x7)
 {
 	GET(const AnimClass* const, pThis, ESI);

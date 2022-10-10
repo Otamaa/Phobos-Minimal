@@ -31,8 +31,9 @@ public:
 		return !(*this == another);
 	}
 
-	DirStruct& operator /= (const DirType nFace) {
-		JMP_THIS(0x5B2970);
+	DirStruct& operator /= (const short nFace) {
+		this->Raw /= nFace;
+		return *this;
 	}
 
 	DirStruct& operator += (const DirStruct& rhs) {
@@ -57,12 +58,32 @@ public:
 		return *this;
 	}
 
-	// pThis.Value >= (pDir2.Value - pDir3.Value)
+	//TODO : Check Casting
 	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom)
-		{ JMP_THIS(0x5B2990); }
+		{ return abs(pDirFrom.Raw) >= abs(Raw - pBaseDir.Raw); }
 
+	//TODO : Check Casting
 	bool Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3)
-		{ JMP_THIS(0x5B29C0); }
+	{
+		if (abs(pDir3.Raw) < abs(Raw - pDir2.Raw))
+		{
+			if ((pDir2.Raw - Raw) >= 0)
+			{
+				Raw += Raw + pDir3.Raw;
+			}
+			else
+			{
+				Raw -= pDir3.Raw;
+			}
+
+			return false;
+		}
+		else
+		{
+			Raw = pDir2.Raw;
+			return true;
+		}
+	}
 
 	void SetDir(DirType dir)
 	{

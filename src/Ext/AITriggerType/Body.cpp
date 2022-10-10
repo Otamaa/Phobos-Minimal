@@ -240,7 +240,7 @@ DEFINE_HOOK(0x41E471, AITriggerTypeClass_CTOR, 0x7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x420066, AITriggerTypeClass_DTOR, 0x6)
+DEFINE_HOOK(0x42001F, AITriggerTypeClass_DTOR, 0x7)
 {
 	GET(AITriggerTypeClass*, pThis, ESI);
 	AITriggerTypeExt::ExtMap.Remove(pThis);

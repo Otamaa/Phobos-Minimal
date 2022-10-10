@@ -17,8 +17,7 @@ double Anchor::GetRelativeOffsetVertical() const
 }
 
 Point2D Anchor::OffsetPosition(
-	const Point2D& topLeft,
-	const Point2D& topRight,
+	const Point2D& topLeft, const Point2D& topRight,
 	const Point2D& bottomLeft) const
 {
 	Point2D result { topLeft };

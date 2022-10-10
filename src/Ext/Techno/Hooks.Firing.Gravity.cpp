@@ -36,7 +36,7 @@ DEFINE_HOOK(0x6FECB2, TechnoClass_FireAt_ApplyGravity, 0x6)
 DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 {
 	GET(BulletClass*, pBullet, EBX);
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 
 	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
 

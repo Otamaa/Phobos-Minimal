@@ -35,9 +35,6 @@ public:
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) R0;
 	virtual void Draw(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 
-	//Destructor
-	virtual ~IsometricTileClass() RX;
-
 	//Constructor
 	IsometricTileClass(int idxType, CellStruct const& location) noexcept
 		: IsometricTileClass(noinit_t())

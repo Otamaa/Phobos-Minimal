@@ -205,6 +205,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Detonate_Damage)
 		.Process(ChargeTimer)
 		.Process(ChargeTimer_Backwards)
+
 		;
 
 }

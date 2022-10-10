@@ -188,10 +188,12 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (pThis->Type->JumpJet && !pThis->Target && !pThis->Type->TurretSpins)
+	// I still don't know why jumpjet loco behaves differently for the moment
+	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
+	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
 	{
 		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
-		pThis->__IsTurretTurning_49C = pThis->PrimaryFacing.Is_Rotating();
+		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
 		return 0x736C09;
 	}
 

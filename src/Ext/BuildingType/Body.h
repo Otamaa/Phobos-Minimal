@@ -3,11 +3,16 @@
 #include <SuperClass.h>
 #include <SuperWeaponTypeClass.h>
 
-#include <Utilities/BaseClassTemplates.h>
+
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/DirClass.h>
+
+enum class BunkerSoundMode : int
+{
+	Up, Down
+};
 
 struct BuildSpeedBonus
 {
@@ -108,7 +113,7 @@ public:
 	public:
 		Valueable<AffectedHouse> PowersUp_Owner;
 		ValueableVector<BuildingTypeClass*> PowersUp_Buildings;
-		DynamicVectorClass<SuperWeaponTypeClass*> SuperWeapons;
+		ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons;
 
 		ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings;
 		Nullable<int> PowerPlantEnhancer_Amount;
@@ -312,13 +317,13 @@ public:
 
 	static const DirClass DefaultJuggerFacing;
 
-	template<bool UpSound>
+	template<BunkerSoundMode UpSound>
 	struct BunkerSound
 	{
 		constexpr void operator ()(BuildingClass* pThis) {
 			//Handle(pThis, std::bool_constant<T>::type());
 
-			if constexpr (UpSound)
+			if constexpr (UpSound == BunkerSoundMode::Up)
 			{
 				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesGlobal->BunkerWallsUpSound);
 

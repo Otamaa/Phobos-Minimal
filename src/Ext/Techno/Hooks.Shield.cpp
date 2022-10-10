@@ -28,6 +28,8 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	GET(TechnoClass*, pThis, ECX);
 	LEA_STACK(args_ReceiveDamage*, args, 0x4);
 
+	WarheadTypeExt::ExtMap.Find(args->WH)->ApplyDamageMult(pThis, args);
+
 	if (!args->IgnoreDefenses) {
 		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
 			if (!pShieldData->IsActive())

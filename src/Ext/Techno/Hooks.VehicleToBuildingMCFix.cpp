@@ -38,7 +38,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 	else if (auto MCHouse = pTechnoFrom->MindControlledByHouse)
 	{
 		pTechnoTo->MindControlledByHouse = MCHouse;
-		pTechnoFrom->MindControlledByHouse = NULL;
+		pTechnoFrom->MindControlledByHouse = nullptr;
 	}
 
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
@@ -57,6 +57,9 @@ DEFINE_HOOK(0x739956, UnitClass_Deploy_TransferMindControl, 0x6)
 {
 	GET(UnitClass*, pUnit, EBP);
 	GET(BuildingClass*, pStructure, EBX);
+	
+	if (pUnit->AttachedTag)
+		pStructure->AttachTrigger(pUnit->AttachedTag);
 
 	TechnoExt::TransferMindControlOnDeploy(pUnit, pStructure);
 
@@ -69,6 +72,9 @@ DEFINE_HOOK(0x44A03C, BuildingClass_Mi_Selling_TransferMindControl, 0x6)
 	GET(UnitClass*, pUnit, EBX);
 
 	TechnoExt::TransferMindControlOnDeploy(pStructure, pUnit);
+
+	if (pStructure->AttachedTag)
+		pUnit->AttachTrigger(pStructure->AttachedTag);
 
 	pUnit->QueueMission(Mission::Hunt, true);
 

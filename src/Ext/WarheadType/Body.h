@@ -14,6 +14,7 @@
 
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
+struct args_ReceiveDamage;
 class WarheadTypeExt
 {
 public:
@@ -58,6 +59,7 @@ public:
 		Valueable<int> Crit_ExtraDamage;
 		Nullable<WarheadTypeClass*> Crit_Warhead;
 		Valueable<AffectedTarget> Crit_Affects;
+		Valueable<AffectedHouse> Crit_AffectsHouses;
 		ValueableVector<AnimTypeClass*> Crit_AnimList;
 		Nullable<bool> Crit_AnimList_PickRandom;
 		Valueable<bool> Crit_AnimOnAffectedTargets;
@@ -176,7 +178,24 @@ public:
 		ValueableVector<TechnoTypeClass*> Converts_From;
 		ValueableVector<TechnoTypeClass*> Converts_To;
 		ValueableVector<AnimTypeClass*> DeadBodies;
-	#ifdef COMPILE_PORTED_DP_FEATURES_
+
+		Nullable<double> AffectEnemies_Damage_Mod;
+		Nullable<double> AffectOwner_Damage_Mod;
+		Nullable<double> AffectAlly_Damage_Mod;
+
+		PhobosFixedString<32U> AttachTag;
+		Valueable<bool> AttachTag_Imposed;
+		NullableVector<TechnoTypeClass*> AttachTag_Types;
+		NullableVector<TechnoTypeClass*> AttachTag_Ignore;
+
+		Valueable<bool> DirectionalArmor;
+		Valueable<float> DirectionalArmor_FrontMultiplier;
+		Valueable<float> DirectionalArmor_SideMultiplier;
+		Valueable<float> DirectionalArmor_BackMultiplier;
+		Valueable<float> DirectionalArmor_FrontField;
+		Valueable<float> DirectionalArmor_BackField;
+
+#ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
 	#ifdef COMPILE_PORTED_DP_FEATURES
@@ -216,6 +235,7 @@ public:
 			, Crit_ExtraDamage { 0 }
 			, Crit_Warhead {}
 			, Crit_Affects { AffectedTarget::All }
+			, Crit_AffectsHouses { AffectedHouse::All }
 			, Crit_AnimList {}
 			, Crit_AnimList_PickRandom {}
 			, Crit_AnimOnAffectedTargets { false }
@@ -315,6 +335,21 @@ public:
 			, Converts_From {}
 			, Converts_To {}
 			, DeadBodies {}
+			, AffectEnemies_Damage_Mod {}
+			, AffectOwner_Damage_Mod {}
+			, AffectAlly_Damage_Mod {}
+
+			, AttachTag { nullptr }
+			, AttachTag_Imposed { false }
+			, AttachTag_Types {}
+			, AttachTag_Ignore {}
+
+			, DirectionalArmor { false }
+			, DirectionalArmor_FrontMultiplier { 1.0 }
+			, DirectionalArmor_SideMultiplier { 1.0 }
+			, DirectionalArmor_BackMultiplier { 1.0 }
+			, DirectionalArmor_FrontField { 0.5 }
+			, DirectionalArmor_BackField { 0.5 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -326,7 +361,7 @@ public:
 		{ }
 
 	private:
-		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr , bool BulletFound = false, bool bulletWasIntercepted = false);
+		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr , BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 		void ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget);
 		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
@@ -337,6 +372,9 @@ public:
 		void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp);
 		void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount);
 
+		void ApplyAttachTag(TechnoClass* pTarget);
+		void ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget);
+
 		//Otamaa
 		void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
 		void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
@@ -344,7 +382,7 @@ public:
 
 		void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget);
 
-		void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
+		//void DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner);
 		void TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets);
 		void TransactOnAllUnits(std::vector<TechnoClass*>& nVec , HouseClass* pHouse, TechnoClass* pOwner);
 		int TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwner, int flat, double percent, bool calcFromTarget);
@@ -359,6 +397,7 @@ public:
 		bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
 		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
 		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
+		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
