@@ -8,41 +8,41 @@
 void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 {
 	Valueable<bool> Enabled { false };
-	Enabled.Read(parser, pSection, "DamageSelf");
+	Enabled.Read(parser, pSection, "SelfDamaging");
 	Enable = Enabled.Get();
 
 	if (Enable)
 	{
 		Valueable<bool> DeactiveWhenCivilian_ { true };
-		DeactiveWhenCivilian_.Read(parser, pSection, "DamageSelf.DeactiveWhenCivilian");
+		DeactiveWhenCivilian_.Read(parser, pSection, "SelfDamaging.DeactiveWhenCivilian");
 		DeactiveWhenCivilian = DeactiveWhenCivilian_.Get();
 
 		Valueable<WarheadTypeClass*> nWHDumMy { RulesGlobal->C4Warhead };
-		nWHDumMy.Read(parser, pSection, "DamageSelf.Warhead");
+		nWHDumMy.Read(parser, pSection, "SelfDamaging.Warhead");
 		Warhead = nWHDumMy.Get();
 
 		Valueable<int> nIntDummy { Damage };
-		nIntDummy.Read(parser, pSection, "DamageSelf.Damage");
+		nIntDummy.Read(parser, pSection, "SelfDamaging.Damage");
 		Damage = nIntDummy.Get();
 
 		nIntDummy = ROF;
-		nIntDummy.Read(parser, pSection, "DamageSelf.ROF");
+		nIntDummy.Read(parser, pSection, "SelfDamaging.ROF");
 		ROF = nIntDummy.Get();
 
 		Valueable<bool> nBoolDummy { PlayWarheadAnim };
-		nBoolDummy.Read(parser, pSection, "DamageSelf.WarheadAnim");
+		nBoolDummy.Read(parser, pSection, "SelfDamaging.WarheadAnim");
 		PlayWarheadAnim = nIntDummy.Get();
 
 		nBoolDummy = IgnoreArmor;
-		nBoolDummy.Read(parser, pSection, "DamageSelf.IgnoreArmor");
+		nBoolDummy.Read(parser, pSection, "SelfDamaging.IgnoreArmor");
 		IgnoreArmor = nIntDummy.Get();
 
 		nBoolDummy = Decloak;
-		nBoolDummy.Read(parser, pSection, "DamageSelf.Decloak");
+		nBoolDummy.Read(parser, pSection, "SelfDamaging.Decloak");
 		Decloak = nIntDummy.Get();
 
 		Valueable<KillMethod> nKillType { Type };
-		nKillType.Read(parser, pSection, "DamageSelf.KillType");
+		nKillType.Read(parser, pSection, "SelfDamaging.KillType");
 		Type = nKillType.Get();
 	}
 }

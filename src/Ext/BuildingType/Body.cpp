@@ -319,6 +319,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
 
 	// Ares SuperWeapons tag
+	auto const& pArray =  SuperWeaponTypeClass::Array;
+	if (pArray->IsAllocated && pArray->Count > 0)
 	this->SuperWeapons.Read(exINI, pSection, "SuperWeapons");
 
 	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
@@ -424,6 +426,9 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->EnterBioReactorSound.Read(exINI, pSection, "EnterBioReactorSound");
 	this->LeaveBioReactorSound.Read(exINI, pSection, "LeaveBioReactorSound");
+	this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
+	this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
+	this->SpyEffect_InfiltratorSuperWeapon.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon");
 
 #pragma endregion
 
@@ -547,6 +552,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BuildingPlacementGrid_Shape)
 		.Process(this->SpeedBonus)
 		.Process(this->RadialIndicator_Visibility)
+		.Process(this->SpyEffect_Custom)
+		.Process(this->SpyEffect_VictimSuperWeapon)
+		.Process(this->SpyEffect_InfiltratorSuperWeapon)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)

@@ -29,8 +29,14 @@ public:
 		ValueableVector<int> LimboKill_IDs;
 		Valueable<double> RandomBuffer;
 
-		ValueableVector<ValueableVector<int>> LimboDelivery_RandomWeightsData;
+		ValueableVector<SuperWeaponTypeClass*> SW_Next;
+		Valueable<bool> SW_Next_RealLaunch;
+		Valueable<bool> SW_Next_IgnoreInhibitors;
+		Valueable<bool> SW_Next_IgnoreDesignators;
+		ValueableVector<float> SW_Next_RollChances;
 
+		ValueableVector<ValueableVector<int>> LimboDelivery_RandomWeightsData;
+		ValueableVector<ValueableVector<int>> SW_Next_RandomWeightsData;
 		ValueableVector<TechnoTypeClass*> SW_Inhibitors;
 		Valueable<bool> SW_AnyInhibitor;
 		ValueableVector<TechnoTypeClass*> SW_Designators;
@@ -46,6 +52,7 @@ public:
 		Nullable<WarheadTypeClass*> Detonate_Warhead;
 		Nullable<WeaponTypeClass*> Detonate_Weapon;
 		Nullable<int> Detonate_Damage;
+
 
 
 		#pragma region Otamaa
@@ -66,7 +73,14 @@ public:
 			, LimboKill_Affected { AffectedHouse::Owner }
 			, LimboKill_IDs {}
 			, RandomBuffer { 0.0 }
+			, SW_Next {}
+			, SW_Next_RealLaunch { true }
+			, SW_Next_IgnoreInhibitors { false }
+			, SW_Next_IgnoreDesignators { true }
+			, SW_Next_RollChances {}
+
 			, LimboDelivery_RandomWeightsData {}
+			, SW_Next_RandomWeightsData {}
 
 			, SW_Inhibitors {}
 			, SW_AnyInhibitor { false }
@@ -92,7 +106,7 @@ public:
 		{ }
 
 
-		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsCurrentPlayer);
+		void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CellStruct* const pCell , bool IsCurrentPlayer);
 
 		bool IsInhibitor(HouseClass* pOwner, TechnoClass* pTechno);
 		bool HasInhibitor(HouseClass* pOwner, const CellStruct& Coords);
@@ -106,7 +120,8 @@ public:
 		std::pair<double, double> GetLaunchSiteRange(BuildingClass* pBuilding = nullptr) const;
 		bool IsAvailable(HouseClass* pHouse) const;
 
-		void ApplyDetonation(HouseClass* pHouse, const CoordStruct& coords);
+		void ApplyDetonation(HouseClass* pHouse, const CellStruct& cell);
+		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
 
 		void LoadFromINIFile(CCINIClass* pINI);
 		virtual ~ExtData() = default;
@@ -116,6 +131,9 @@ public:
 
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 	private:
+
+		std::vector<int> WeightedRollsHandler(ValueableVector<float>* chances, ValueableVector<ValueableVector<int>>* weights, size_t size);
+
 		void ApplyLimboDelivery(HouseClass* pHouse);
 		void ApplyLimboKill(HouseClass* pHouse);
 

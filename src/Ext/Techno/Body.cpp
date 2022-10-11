@@ -879,7 +879,7 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
-	if (!pKiller && !pVictim)
+	if (!pKiller || !pVictim)
 		return;
 
 	TechnoClass* pObjectKiller = nullptr;

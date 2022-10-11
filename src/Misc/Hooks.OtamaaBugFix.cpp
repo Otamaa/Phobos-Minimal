@@ -651,7 +651,8 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	};
 
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(pThis->Owner->IsInPlayerControl) ? BypassCheck : ContinueCheck;
+	const bool Allow = RulesExt::Global()->AutoAttackICedTarget.Get() || pThis->Owner->IsInPlayerControl;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(Allow) ? BypassCheck : ContinueCheck;
 }
 
 DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)

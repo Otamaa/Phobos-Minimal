@@ -62,7 +62,7 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
 	//GET_STACK(bool const, isPlayer, 0x8);
 
 	if (auto const pSWExt = SWTypeExt::ExtMap.Find<true>(pSuper->Type)){
-		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, CellClass::Cell2Coord(*pCell),true);
+		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
 
 		////if (auto pAresSWTypeExt = AresData::ContainerMap_Find::Exec(*reinterpret_cast<DWORD**>(AresData::ContainerMapData::SWTypeContainer), pSuper->Type)) {
 		////	Debug::Log("Found Ares SWTypeExt [%x] ! \n " , pAresSWTypeExt);

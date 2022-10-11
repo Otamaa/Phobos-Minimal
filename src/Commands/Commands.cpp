@@ -7,6 +7,7 @@
 #include "ShowHealthPercent.h"
 #include "DamageDisplay.h"
 #include "FrameStep.h"
+#include "ShowBuildingPlacementMark.h"
 
 #define Make(arg)\
 		Make<arg>();
@@ -19,6 +20,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(CaptureObjectsCommandClass);
 	Make(ShowHealthPercentCommandClass);
 	Make(DamageDisplayCommandClass);
+	Make(MarkBuildingCommandClass);
 	MakeCommand<FrameByFrameCommandClass>();
 	MakeCommand<FrameStepCommandClass<1>>(); // Single step in
 	MakeCommand<FrameStepCommandClass<5>>(); // Speed 1

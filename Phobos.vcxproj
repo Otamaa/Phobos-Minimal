@@ -26,8 +26,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\CaptureObjects.cpp" />
     <ClCompile Include="src\Commands\Commands.cpp" />
+    <ClCompile Include="src\Commands\DamageDisplay.cpp" />
     <ClCompile Include="src\Commands\FrameStep.cpp" />
+    <ClCompile Include="src\Commands\NextIdleHarvester.cpp" />
+    <ClCompile Include="src\Commands\QuickSave.cpp" />
+    <ClCompile Include="src\Commands\ShowBuildingPlacementMark.cpp" />
+    <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
@@ -201,6 +207,7 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Misc\Hooks.Savegame.cpp" />
+    <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
@@ -231,6 +238,7 @@
     <ClInclude Include="src\Commands\ObjectInfo.h" />
     <ClInclude Include="src\Commands\Commands.h" />
     <ClInclude Include="src\Commands\QuickSave.h" />
+    <ClInclude Include="src\Commands\ShowBuildingPlacementMark.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
     <ClInclude Include="src\ExtraHeaders\Ares\TechnoExtData.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />

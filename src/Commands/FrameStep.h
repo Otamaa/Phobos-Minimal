@@ -1,16 +1,13 @@
 #pragma once
 
 #include "Commands.h"
-#include <Utilities/GeneralUtils.h>
+#include <Utilities/Debug.h>
 
 class FrameByFrameCommandClass : public PhobosCommandClass
 {
 public:
 	static size_t FrameStepCount;
 	static bool FrameStep;
-
-	//FrameByFrameCommandClass() : PhobosCommandClass() { }
-	//virtual ~FrameByFrameCommandClass() { }
 
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;
@@ -24,8 +21,6 @@ public:
 template<size_t Frame>
 class FrameStepCommandClass : public PhobosCommandClass
 {
-	//FrameStepCommandClass() : PhobosCommandClass() { }
-	//virtual ~FrameStepCommandClass() { }
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;
 	virtual const wchar_t* GetUICategory() const override;
@@ -74,6 +69,7 @@ inline const char* FrameStepCommandClass<Frame>::GetName() const
 
 		constexpr operator char* () noexcept { return buffer; }
 	};
+
 	static to_string_t ret;
 	return ret;
 }

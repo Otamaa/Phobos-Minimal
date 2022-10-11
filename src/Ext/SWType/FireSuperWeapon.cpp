@@ -81,7 +81,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 	}
 }
 
-void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,const CoordStruct& coords , bool IsCurrentPlayer)
+void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
 	if(!pHouse) {
 		Debug::Log("SW[%x] Trying To execute %s with nullptr HouseOwner ! \n" , pSW , "FireSuperWeapon");
@@ -95,7 +95,44 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse,con
 		ApplyLimboKill(pHouse);
 
 	if (this->Detonate_Warhead.isset() || this->Detonate_Weapon.isset())
-		this->ApplyDetonation(pSW->Owner, coords);
+		this->ApplyDetonation(pSW->Owner, *pCell);
+
+	if (this->SW_Next.size() > 0)
+		this->ApplySWNext(pSW, *pCell);
+}
+
+// Universal handler of the rolls-weights system
+std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(ValueableVector<float>* rolls, ValueableVector<ValueableVector<int>>* weights, size_t size)
+{
+	bool rollOnce = false;
+	size_t rollsSize = rolls->size();
+	size_t weightsSize = weights->size();
+	int index;
+	std::vector<int> indices;
+
+	// if no RollChances are supplied, do only one roll
+	if (rollsSize == 0)
+	{
+		rollsSize = 1;
+		rollOnce = true;
+	}
+
+	for (size_t i = 0; i < rollsSize; i++)
+	{
+		this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+		if (!rollOnce && this->RandomBuffer > (*rolls)[i])
+			continue;
+
+		// If there are more rolls than weight lists, use the last weight list
+		size_t j = std::min(weightsSize - 1, i);
+		index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, (*weights)[j]);
+
+		// If modder provides more weights than there are objects and we hit one of these, ignore it
+		// otherwise add
+		if (size_t(index) < size)
+			indices.push_back(index);
+	}
+	return indices;
 }
 
 void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
@@ -103,41 +140,15 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 	// random mode
 	if (this->LimboDelivery_RandomWeightsData.size())
 	{
-		bool rollOnce = false;
 		int id = -1;
-		size_t rolls = this->LimboDelivery_RollChances.size();
-		size_t weights = this->LimboDelivery_RandomWeightsData.size();
-		size_t ids = this->LimboDelivery_IDs.size();
-		size_t index;
-		size_t j;
-
-		// if no RollChances are supplied, do only one roll
-		if (rolls == 0)
+		size_t idsSize = this->LimboDelivery_IDs.size();
+		auto results = this->WeightedRollsHandler(&this->LimboDelivery_RollChances, &this->LimboDelivery_RandomWeightsData, this->LimboDelivery_Types.size());
+		for (size_t result : results)
 		{
-			rolls = 1;
-			rollOnce = true;
-		}
+			if (result < idsSize)
+				id = this->LimboDelivery_IDs[result];
 
-		for (size_t i = 0; i < rolls; i++)
-		{
-			this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-			if (!rollOnce && this->RandomBuffer > this->LimboDelivery_RollChances[i])
-				continue;
-
-			j = rolls > weights ? weights: i;
-			index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, this->LimboDelivery_RandomWeightsData[j]);
-
-			// extra weights are bound to automatically fail
-			if (index >= this->LimboDelivery_Types.size())
-				index = size_t(-1);
-
-			if (index != -1)
-			{
-				if (index < ids)
-					id = this->LimboDelivery_IDs[index];
-
-				LimboDeliver(this->LimboDelivery_Types[index], pHouse, id);
-			}
+			LimboDeliver(this->LimboDelivery_Types[result], pHouse, id);
 		}
 	}
 	// no randomness mode
@@ -208,10 +219,9 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 	}
 }
 
-void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CoordStruct& coords)
+void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& cell)
 {
-	const auto pCell = MapClass::Instance->GetCellAt(coords);
-	const auto cell = pCell->MapCoords;
+	const auto pCell = MapClass::Instance->GetCellAt(cell);
 	BuildingClass* pFirer = nullptr;
 
 	for (auto const& pBld : pHouse->Buildings) {
@@ -224,9 +234,9 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CoordStruct& 
 	const auto pWeapon = this->Detonate_Weapon.isset() ? this->Detonate_Weapon.Get() : nullptr;
 
 	if (pWeapon)
-		WeaponTypeExt::DetonateAt(pWeapon, coords, pFirer, this->Detonate_Damage.Get(pWeapon->Damage));
+		WeaponTypeExt::DetonateAt(pWeapon, pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(pWeapon->Damage));
 	else
-		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), coords, pFirer, this->Detonate_Damage.Get(0));
+		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(0));
 }
 
 bool SWTypeExt::ExtData::IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
@@ -305,4 +315,45 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse) const
 	}
 
 	return true;
+}
+
+// SW.Next proper launching mechanic
+void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, SuperWeaponTypeClass* pLaunchedType, const CellStruct& cell)
+{
+	const auto pSuper = pHouse->Supers.GetItem(SuperWeaponTypeClass::Array->FindItemIndex(pLaunchedType));
+
+	if (!pSuper)
+		return;
+
+	const auto pSuperTypeExt = SWTypeExt::ExtMap.Find(pLaunchedType);
+	if (!pLauncherTypeExt->SW_Next_RealLaunch || (pSuperTypeExt && pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
+	{
+
+		if (pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell)
+			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
+		{
+			// Forcibly fire
+			pSuper->Launch(cell, true);
+			if (pLauncherTypeExt->SW_Next_RealLaunch)
+				pSuper->Reset();
+		}
+
+	}
+}
+
+void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
+{
+	// random mode
+	if (this->SW_Next_RandomWeightsData.size())
+	{
+		auto results = this->WeightedRollsHandler(&this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
+		for (int result : results)
+			Launch(pSW->Owner, this, this->SW_Next[result], cell);
+	}
+	// no randomness mode
+	else
+	{
+		for (const auto pSWType : this->SW_Next)
+			Launch(pSW->Owner, this, pSWType, cell);
+	}
 }

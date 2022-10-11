@@ -143,6 +143,10 @@ public:
 
 		Nullable<AffectedHouse> RadialIndicator_Visibility;
 
+		Valueable<bool> SpyEffect_Custom;
+		Nullable<SuperWeaponTypeClass*> SpyEffect_VictimSuperWeapon;
+		Nullable<SuperWeaponTypeClass*> SpyEffect_InfiltratorSuperWeapon;
+
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -225,6 +229,10 @@ public:
 			, PlacementPreview_Palette {}
 			, PlacementPreview_TranslucentLevel {}
 			, RadialIndicator_Visibility { }
+			, SpyEffect_Custom { false }
+			, SpyEffect_VictimSuperWeapon {}
+			, SpyEffect_InfiltratorSuperWeapon {}
+
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}

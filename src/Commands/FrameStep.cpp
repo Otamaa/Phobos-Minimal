@@ -1,5 +1,6 @@
 #include "FrameStep.h"
 
+#include <Utilities/GeneralUtils.h>
 #include <SessionClass.h>
 #include <TacticalClass.h>
 #include <Utilities/GeneralUtils.h>

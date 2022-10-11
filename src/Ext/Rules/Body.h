@@ -105,6 +105,7 @@ public:
 		int NeutralCountryIndex;
 
 		ValueableVector<BuildingTypeClass*> WallTowers;
+		Valueable<bool> AutoAttackICedTarget;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -181,6 +182,7 @@ public:
 			, NeutralCountryIndex { -1 }
 
 			, WallTowers { }
+			, AutoAttackICedTarget { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif
