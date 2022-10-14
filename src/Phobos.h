@@ -19,7 +19,7 @@ constexpr const char* NULL_STR2 = "<null>";
 constexpr const char* DEFAULT_STR = "default";
 constexpr const char* DEFAULT_STR2 = "<default>";
 constexpr const char* PHOBOS_STR = "Phobos";
-constexpr const char* ADMIN_STR = "Otamaa";
+constexpr const char* ADMIN_STR = "WIN-56N2RLUDAST";
 
 constexpr const char* GLOBALCONTROLS_SECTION = "GlobalControls";
 constexpr const char* SIDEBAR_SECTION_T = "Sidebar";

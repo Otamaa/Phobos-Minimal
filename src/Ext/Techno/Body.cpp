@@ -2058,6 +2058,27 @@ void TechnoExt::ExtData::RunFireSelf()
 	}
 }
 
+void TechnoExt::ExtData::UpdateOnTunnelEnter()
+{
+	if (!this->IsInTunnel)
+	{
+		if (const auto pShieldData = GetShield())
+			pShieldData->SetAnimationVisibility(false);
+
+		for (auto& pLaserTrail : this->LaserTrails)
+		{
+			pLaserTrail->Visible = false;
+			pLaserTrail->LastLocation.clear();
+		}
+
+		#ifdef COMPILE_PORTED_DP_FEATURES
+		TrailsManager::Hide(Get());
+		#endif
+
+		this->IsInTunnel = true;
+	}
+}
+
 // =============================
 // load / save
 
@@ -2086,6 +2107,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_Anim)
 		.Process(this->DelayedFire_Anim_LoopCount)
 		.Process(this->DelayedFire_DurationTimer)
+		.Process(this->IsInTunnel)
 		.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)
 		.Process(this->GattlingDmageSound)

@@ -33,9 +33,11 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 
 	if (pObjectT && pWeaponExt->Targeting_Health_Percent.isset()) {
 
-		if(!pWeaponExt->Targeting_Health_Percent_Below.Get() && pObjectT->GetHealthPercentage_() <= pWeaponExt->Targeting_Health_Percent.Get())
+		auto const pHP = pObjectT->GetHealthPercentage_();
+
+		if(!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
 			return CannotFire;
-		else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pObjectT->GetHealthPercentage_() >= pWeaponExt->Targeting_Health_Percent.Get())
+		else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP >= pWeaponExt->Targeting_Health_Percent.Get())
 			return CannotFire;
 	}
 

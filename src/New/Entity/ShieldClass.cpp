@@ -340,7 +340,7 @@ void ShieldClass::OnUpdate()
 		return;
 	}
 
-	if (this->Techno->Health <= 0 || !this->Techno->IsAlive)
+	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
 		if (auto const pTechnoExt = TechnoExt::TechnoExt::ExtMap.Find<false>(this->Techno))
 		{
@@ -388,19 +388,12 @@ void ShieldClass::CloakCheck()
 		KillAnim();
 }
 
-void ShieldClass::HideAnimations()
+void ShieldClass::SetAnimationVisibility(bool visible)
 {
-	this->AreAnimsHidden = true;
-}
+	if (!this->AreAnimsHidden && !visible)
+		this->KillAnim();
 
-void ShieldClass::ShowAnimations()
-{
-	this->AreAnimsHidden = false;
-}
-
-bool ShieldClass::AreAnimationsHidden()
-{
-	return this->AreAnimsHidden;
+	this->AreAnimsHidden = visible;
 }
 
 void ShieldClass::OnlineCheck()

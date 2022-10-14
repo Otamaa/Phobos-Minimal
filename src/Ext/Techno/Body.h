@@ -77,6 +77,7 @@ public:
 		AnimClass* DelayedFire_Anim;
 		int DelayedFire_Anim_LoopCount;
 		int DelayedFire_DurationTimer;
+		bool IsInTunnel;
 	#pragma region Otamaa
 		bool IsDriverKilled;
 		int GattlingDmageDelay;
@@ -141,6 +142,7 @@ public:
 			, DelayedFire_Anim { }
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_DurationTimer { 0 }
+			, IsInTunnel { false }
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }
@@ -211,7 +213,7 @@ public:
 		void UpdateMindControlAnim();
 		void RunFireSelf();
 		void GattlingDamage();
-
+		void UpdateOnTunnelEnter();
 		void InitFunctionEvents();
 
 	private:

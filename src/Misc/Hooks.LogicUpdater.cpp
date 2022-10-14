@@ -297,6 +297,26 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 //	}
 //}
 
+DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
+{
+	GET(TechnoClass*, pThis, ECX);
+	TechnoExt::ExtMap.Find(pThis)->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
+	return 0x0;
+}
+
+DEFINE_HOOK(0x51BAC7, InfantryClass_AI_Tunnel, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	TechnoExt::ExtMap.Find(pThis)->UpdateOnTunnelEnter();
+	return 0x0;
+}
+
+DEFINE_HOOK(0x7363B5, UnitClass_AI_Tunnel, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	TechnoExt::ExtMap.Find(pThis)->UpdateOnTunnelEnter();
+	return 0x0;
+}
 
 DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 //DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
@@ -309,12 +329,19 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	if (pThis->WhatAmI() == AbstractType::Building)
 	{
 		auto pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
+		auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldExt->Get()->Type);
+
 		if (pBldExt->LighningNeedUpdate)
 		{
 			pThis->UpdatePlacement(PlacementType::Redraw);
 			pBldExt->LighningNeedUpdate = false;
 
 		}
+
+		//if (pBldTypeExt->RubbleIntact && pThis->GetHealthPercentage_() >= RulesGlobal->ConditionRed)
+		//{
+		//	pBldExt->RubbleYell(true);
+		//}
 	}
 
 
@@ -549,6 +576,9 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 			{
 				if (pThis->CloakState == CloakState::Cloaked && !trail->Type->CloakVisible)
 					continue;
+
+				if (!pExt->IsInTunnel)
+					trail->Visible = true;
 
 				if (pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir() && trail->LastLocation.isset())
 					trail->LastLocation.clear();

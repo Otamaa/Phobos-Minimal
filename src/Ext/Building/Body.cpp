@@ -1,11 +1,79 @@
 #include "Body.h"
 #include <Utilities/EnumFunctions.h>
+
 #include <Utilities/Macro.h>
 #include <Ext/House/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Anim/Body.h>
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 
+bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
+{
+	auto CreateBuilding = [](BuildingClass* pBuilding, bool remove,
+		BuildingTypeClass* pNewType, OwnerHouseKind owner, int strength,
+		AnimTypeClass* pAnimType, const char* pTagName) -> bool
+	{
+		if (!pNewType && !remove)
+		{
+			Debug::Log("Warning! Advanced Rubble was supposed to be reconstructed but"
+				" Ares could not obtain its new BuildingType. Check if [%s]Rubble.%s is"
+				" set (correctly).\n", pBuilding->Type->ID, pTagName);
+			return true;
+		}
+
+		pBuilding->Limbo(); // only takes it off the map
+		pBuilding->DestroyNthAnim(BuildingAnimSlot::All);
+		auto pOwner = HouseExt::GetHouseKind(owner, true, pBuilding->Owner);
+
+		if (!remove)
+		{
+			auto pNew = static_cast<BuildingClass*>(pNewType->CreateObject(pOwner));
+
+			if (strength <= -1 && strength >= -100)
+			{
+				// percentage of original health
+				pNew->Health = std::max((-strength * pNew->Type->Strength) / 100, 1);
+			}
+			else if (strength > 0)
+			{
+				pNew->Health = std::min(strength, pNew->Type->Strength);
+			} /* else Health = Strength*/
+
+			// The building is created?
+			if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().Get_Dir()))
+			{
+				Debug::Log("Advanced Rubble: Failed to place normal state on map!\n");
+				GameDelete<true, false>(pNew);
+				return false;
+			}
+		}
+
+		if (pAnimType)
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()))
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+		}
+
+		return true;
+	};
+
+	auto currentBuilding = Get();
+	auto pTypeData = BuildingTypeExt::ExtMap.Find(currentBuilding->Type);
+	if (beingRepaired)
+	{
+		return CreateBuilding(currentBuilding, pTypeData->RubbleIntactRemove,
+			pTypeData->RubbleIntact, pTypeData->RubbleIntactOwner,
+			pTypeData->RubbleIntactStrength, pTypeData->RubbleIntactAnim, "Intact");
+	}
+	else
+	{
+		return CreateBuilding(currentBuilding, pTypeData->RubbleDestroyedRemove,
+			pTypeData->RubbleDestroyed, pTypeData->RubbleDestroyedOwner,
+			pTypeData->RubbleDestroyedStrength, pTypeData->RubbleDestroyedAnim,
+			"Destroyed");
+	}
+}
 
 bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse)
 {

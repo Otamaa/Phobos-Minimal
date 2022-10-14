@@ -123,13 +123,19 @@ DEFINE_HOOK(0x524B60, InfantryTypeClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x524B57, InfantryTypeClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 {
 	InfantryTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x524C59, InfantryTypeClass_Save_Suffix, 0x5)
+//DEFINE_HOOK(0x524B57, InfantryTypeClass_Load_Suffix, 0x7)
+//{
+//	InfantryTypeExt::ExtMap.LoadStatic();
+//	return 0;
+//}
+
+//DEFINE_HOOK_AGAIN(0x524C59, InfantryTypeClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x524C50, InfantryTypeClass_Save_Suffix, 0x5)
 {
 	InfantryTypeExt::ExtMap.SaveStatic();

@@ -1,4 +1,4 @@
-#include "ShowBuildingPlacementMark.h"
+#include "ShowTechnoNames.h"
 
 #include <Drawing.h>
 #include <BitFont.h>
@@ -7,36 +7,36 @@
 #include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
 
-bool MarkBuildingCommandClass::IsActive = false;
+bool ShowTechnoNameCommandClass::IsActive = false;
 
-const char* MarkBuildingCommandClass::GetName() const
+const char* ShowTechnoNameCommandClass::GetName() const
 {
-	return "Capture Selected Object(s)";
+	return "Show Techno Names ";
 }
 
-const wchar_t* MarkBuildingCommandClass::GetUIName() const
+const wchar_t* ShowTechnoNameCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Show Building Placement Mark");
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Show Techno Names ");
 }
 
-const wchar_t* MarkBuildingCommandClass::GetUICategory() const
+const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
 {
 	return GeneralUtils::LoadStringUnlessMissing("TXT_DEVELOPMENT", L"Development");
 }
 
-const wchar_t* MarkBuildingCommandClass::GetUIDescription() const
+const wchar_t* ShowTechnoNameCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Show Building Placement Mark.");
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Show Techno Names .");
 }
 
-void MarkBuildingCommandClass::Execute(WWKey eInput) const
+void ShowTechnoNameCommandClass::Execute(WWKey eInput) const
 {
 	if (this->CheckDebugDeactivated())
 		return;
 	IsActive = !IsActive;
 }
 
-void MarkBuildingCommandClass::AI()
+void ShowTechnoNameCommandClass::AI()
 {
 	if (!IsActive)
 		return;
@@ -45,14 +45,15 @@ void MarkBuildingCommandClass::AI()
 
 	for (auto pTech : *TechnoClass::Array)
 	{
-		if(pTech->Location == CoordStruct::Empty)
+		if(pTech->InLimbo || pTech->Location == CoordStruct::Empty)
+			continue;
+
+
+		if (!pTech->IsOnMyView())
 			continue;
 
 		if (auto pBuilding = specific_cast<BuildingClass*>(pTech))
 		{
-			if (pBuilding->InLimbo)
-				continue;
-
 			auto pExt = BuildingExt::ExtMap.Find(pBuilding);
 
 			if (pExt->IsInLimboDelivery)

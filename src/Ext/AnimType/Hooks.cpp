@@ -97,17 +97,13 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 	GET(AnimClass*, pThis, ESI);
 
 	const auto pExt = AnimExt::ExtMap.Find(pThis);
-	{
-		const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-		{
-			if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-				pExt->DeleteAttachedSystem();
+	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
+			pExt->DeleteAttachedSystem();
 
-			if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
-				pExt->CreateAttachedSystem(pTypeExt);
-		}
-	}
+	if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
+			pExt->CreateAttachedSystem(pTypeExt);
 
 	return 0;
 }

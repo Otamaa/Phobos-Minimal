@@ -39,13 +39,15 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 		Debug::FatalErrorAndExit("Uneable To find Ext for [%x] Radsite ! \n", pRadSite);
 
 	//Adding Owner to RadSite, from bullet
-	if (pWeaponExt) {
+	if (pWeaponExt)
+	{
 		pRadExt->Weapon = pWeaponExt->Get();
 		pRadExt->Type = pWeaponExt->RadType;
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 
-	if(pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner()){
+	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())
+	{
 		pRadExt->TechOwner = pTech;
 	}
 
@@ -134,7 +136,7 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 	const double nMax = static_cast<double>(pThis->SpreadInLeptons);
 	const double nDistance = Map.GetCellAt(cell)->GetCoords()
 		.DistanceFrom(pThis->GetCoords());
-	return (nDistance > nMax || pThis->GetRadLevel() <= 0 ) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
+	return (nDistance > nMax || pThis->GetRadLevel() <= 0) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
 }
 
 // =============================
@@ -251,34 +253,48 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 {
 	GET(RadSiteClass*, pThis, ECX);
-	R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
-	return 0x65B4B3;
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
+		return 0x65B4B3;
+	}
+	return 0x0;
 }
 
 DEFINE_HOOK_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
 DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
 {
 	GET(RadSiteClass*, pThis, ECX);
-	auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
-	R->ESI(nSpread);
-	R->EDX(R->EDX<int>() - nSpread);
-	return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
+		R->ESI(nSpread);
+		R->EDX(R->EDX<int>() - nSpread);
+		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
+	}
+	return 0x0;
 }
 
 DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
 {
 	GET(RadSiteClass*, pThis, ECX);
 	GET_STACK(int, spread, 0x4);
-	RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
-	pThis->SpreadInLeptons = (spread << 8) + 128;
-	return 0x65B4E2;
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
+		pThis->SpreadInLeptons = (spread << 8) + 128;
+		return 0x65B4E2;
+	}
+
+	return 0x0;
 }
 #endif
 
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
-	if (auto pExt = RadSiteExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(pTarget, bRemove);
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+		if (auto pExt = RadSiteExt::ExtMap.Find(pThis))
+			pExt->InvalidatePointer(pTarget, bRemove);
 }
 
 DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach))

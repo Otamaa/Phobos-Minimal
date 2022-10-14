@@ -181,8 +181,7 @@ DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 
 	if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
 	{
-		pShieldData->HideAnimations();
-		pShieldData->KillAnim();
+		pShieldData->SetAnimationVisibility(false);
 	}
 
 	return 0;
@@ -196,7 +195,7 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT) {
 		if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
-			pShieldData->ShowAnimations();
+			pShieldData->SetAnimationVisibility(true);
 	}
 
 	return 0;

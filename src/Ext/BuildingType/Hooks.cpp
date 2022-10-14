@@ -130,3 +130,19 @@ DEFINE_HOOK(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 }
 
 //DEFINE_JUMP(CALL,0x47EFB4, GET_OFFSET(BuildingTypeExt::DrawPlacementGrid));
+
+DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
+{
+	enum { SkipGameCode = 0x6F34BD };
+	GET(BuildingTypeClass*, pThis, ECX);
+	R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
+{
+	enum { SkipGameCode = 0x51EAF8 };
+	GET(BuildingTypeClass*, pThis, EDI);
+	R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+	return SkipGameCode;
+}

@@ -2,7 +2,7 @@
 
 #include "Commands.h"
 
-class MarkBuildingCommandClass : public PhobosCommandClass
+class ShowTechnoNameCommandClass : public PhobosCommandClass
 {
 public:
 	// CommandClass

@@ -59,7 +59,7 @@ namespace DamageFireAnims
 
 		HandleRemove(pExt);
 
-		auto const pFire = pTypeext->DamageFireTypes.GetElements(RulesGlobal->DamageFireTypes);
+		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesGlobal->DamageFireTypes);
 
 		if (!pFire.empty() &&
 			!(pTypeext->DamageFire_Offs.Count == 0)

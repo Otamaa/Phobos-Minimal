@@ -4,11 +4,8 @@
 
 SideExt::ExtContainer SideExt::ExtMap;
 
-void SideExt::ExtData::Initialize()
+void SideExt::ExtData::InitializeConstants()
 {
-	const char* pID = this->Get()->ID;
-
-	this->ArrayIndex = SideClass::FindIndex(pID);
 	this->Sidebar_GDIPositions = this->ArrayIndex == 0; // true = Allied
 };
 
@@ -17,7 +14,8 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection)) {
+	if (!pINI->GetSection(pSection))
+	{
 		return;
 	}
 
@@ -68,7 +66,7 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_BlurSize)
 		;
 }
-void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
+void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
@@ -95,20 +93,27 @@ bool SideExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SideExt::ExtContainer::ExtContainer() : TExtensionContainer("SideClass") {}
+SideExt::ExtContainer::ExtContainer() : TExtensionContainer("SideClass") { }
 SideExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
+DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
 {
 	GET(SideClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
-	SideExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	SideExt::ExtMap.FindOrAllocate(pItem);
-#endif
+	GET(int, nIdx, ECX);
+
+	const auto pWrapper = ExtensionWrapper::GetWrapper(pItem);
+	if (!pWrapper->ExtensionObject) {
+		if (const auto val = new SideExt::ExtData(pItem))
+		{
+			val->ArrayIndex = nIdx;
+			val->EnsureConstanted();
+			pWrapper->ExtensionObject = val;
+		}
+	}
+
 	return 0;
 }
 

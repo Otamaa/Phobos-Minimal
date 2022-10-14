@@ -122,7 +122,7 @@ public:
 		DynamicVectorClass<Point2D> OccupierMuzzleFlashes;
 
 		Valueable<bool> Refinery_UseStorage;
-
+		Nullable<bool> AllowAirstrike;
 		Valueable<bool> Grinding_AllowAllies;
 		Valueable<bool> Grinding_AllowOwner;
 		ValueableVector<TechnoTypeClass*> Grinding_AllowTypes;
@@ -152,6 +152,18 @@ public:
 		NullableVector<AnimTypeClass*> OnFireTypes;
 		NullableVector<int> OnFireIndex;
 		HealthOnFireData HealthOnfire;
+
+		Valueable<BuildingTypeClass*> RubbleIntact; 		//!< What BuildingType to turn into when reconstructed. (This is the normal building, set on rubble.)
+		Valueable<BuildingTypeClass*> RubbleDestroyed;	//!< What BuildingType to turn into when destroyed. (This is the rubble, set on normal buildings.)
+		Valueable<AnimTypeClass*> RubbleDestroyedAnim;
+		Valueable<AnimTypeClass*> RubbleIntactAnim;
+		Valueable<OwnerHouseKind> RubbleDestroyedOwner;
+		Valueable<OwnerHouseKind> RubbleIntactOwner;
+		Valueable<int> RubbleDestroyedStrength;
+		Valueable<int> RubbleIntactStrength;
+		Valueable<bool> RubbleDestroyedRemove;
+		Valueable<bool> RubbleIntactRemove;
+
 		DynamicVectorClass<Point2D> DamageFire_Offs;
 
 		Nullable<double> RepairRate;
@@ -211,6 +223,7 @@ public:
 			, PowerPlantEnhancer_Factor {}
 			, OccupierMuzzleFlashes()
 			, Refinery_UseStorage { false }
+			, AllowAirstrike {}
 			, Grinding_AllowAllies { false }
 			, Grinding_AllowOwner { true }
 			, Grinding_AllowTypes {}
@@ -237,7 +250,16 @@ public:
 			, OnFireTypes {}
 			, OnFireIndex {}
 			, HealthOnfire {}
-
+			,  RubbleIntact(nullptr)
+			,  RubbleDestroyed(nullptr)
+			,  RubbleDestroyedAnim(nullptr)
+			,  RubbleIntactAnim(nullptr)
+			,  RubbleDestroyedOwner(OwnerHouseKind::Default)
+			,  RubbleIntactOwner(OwnerHouseKind::Default)
+			,  RubbleDestroyedStrength(0)
+			,  RubbleIntactStrength(-1)
+			,  RubbleDestroyedRemove(false)
+			,  RubbleIntactRemove(false)
 			, RepairRate {}
 			, RepairStep {}
 

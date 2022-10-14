@@ -87,7 +87,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 	if (pThis->WhatAmI() == AbstractType::UnitType)
 		pUnit = static_cast<UnitTypeClass*>(pThis);
 
-	if (this->Harvester_Counted.Get(pThis->Enslaves || pUnit && (pUnit->Harvester || pUnit->Enslaves)))
+	if (this->Harvester_Counted.Get(pThis->Enslaves || (pUnit && (pUnit->Harvester || pUnit->Enslaves))))
 		return true;
 
 	return false;
@@ -113,11 +113,11 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTag);
 
 			_snprintf_s(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> FLH;
+			Nullable<CoordStruct> FLH { };
 			FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			_snprintf_s(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
-			Nullable<CoordStruct> eliteFLH;
+			Nullable<CoordStruct> eliteFLH { };
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
 			if (FLH.isset() && !eliteFLH.isset())

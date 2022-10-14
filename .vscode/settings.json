@@ -79,5 +79,6 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "random": "cpp"
-    }
+    },
+    "task.allowAutomaticTasks": "on"
 }

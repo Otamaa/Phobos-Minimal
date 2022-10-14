@@ -131,7 +131,7 @@ public:
 	// can the current player control this unit? (owned by him, not paralyzed, not spawned, not warping, not slaved...)
 	virtual bool IsControllable() const R0;
 
-	// stupid! return this->GetCoords(pCrd);
+	// On non-buildings this is same as GetCenterCoord(), on buildings it returns the target coordinate that is affected by TargetCoordOffset.
 	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0;
 
 	// gets a building's free dock coordinates for a unit. falls back to this->GetCoords(pCrd);
@@ -330,12 +330,13 @@ public:
 		return ret;
 	}
 
-	//CoordStruct GetCenterCoord() const
-	//{
-	//	CoordStruct ret;
-	//	this->GetCenterCoord(&ret);
-	//	return ret;
-	//}
+	// On non-buildings this is same as GetCenterCoord(), on buildings it returns the target coordinate that is affected by TargetCoordOffset.
+	CoordStruct GetTargetCoords() const
+	{
+		CoordStruct ret;
+		this->GetTargetCoords(&ret);
+		return ret;
+	}
 
 	CoordStruct GetFLH(int idxWeapon, const CoordStruct& base) const {
 		CoordStruct ret;

@@ -1220,22 +1220,22 @@ DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
-DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
-{
-	GET(SidebarClass*, pThis, ESI);
-	if (Phobos::Config::TogglePowerInsteadOfRepair)
-		pThis->SetTogglePowerMode(-1);
-	else
-		pThis->SetRepairMode(-1);
-	return 0x6A78FF;
-}
-
-DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
-	return 0x6A7AE7;
-}
+//DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
+//{
+//	GET(SidebarClass*, pThis, ESI);
+//	if (Phobos::Config::TogglePowerInsteadOfRepair)
+//		pThis->SetTogglePowerMode(-1);
+//	else
+//		pThis->SetRepairMode(-1);
+//	return 0x6A78FF;
+//}
+//
+//DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
+//{
+//	GET(SidebarClass*, pThis, ESI);
+//	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
+//	return 0x6A7AE7;
+//}
 
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {

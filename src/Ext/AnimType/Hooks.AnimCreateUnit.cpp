@@ -19,16 +19,11 @@ DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	//{
-		R->ECX(R->ESI());
-		pExt->ReceiveDamage = true;
-		AnimTypeExt::ProcessDestroyAnims(pThis, Receivedamageargs.Attacker);
-		pThis->Destroy();
-		return 0x737F74;
-	//}
-
-	//return 0x0;
+	R->ECX(R->ESI());
+	pExt->ReceiveDamage = true;
+	AnimTypeExt::ProcessDestroyAnims(pThis, Receivedamageargs.Attacker);
+	pThis->Destroy();
+	return 0x737F74;
 }
 
 DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
@@ -37,15 +32,11 @@ DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 
 	auto const Extension = TechnoExt::ExtMap.Find(pThis);
 
-	{
-		if (!Extension->ReceiveDamage) {
-			AnimTypeExt::ProcessDestroyAnims(pThis);
-		}
-
-		return 0x73887E;
+	if (!Extension->ReceiveDamage) {
+		AnimTypeExt::ProcessDestroyAnims(pThis);
 	}
 
-	//return 0x0;
+	return 0x73887E;
 }
 
 DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)

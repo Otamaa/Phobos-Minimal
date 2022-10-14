@@ -14,7 +14,7 @@
 #include <IonBlastClass.h>
 #include <VeinholeMonsterClass.h>
 
-#include <Commands/ShowBuildingPlacementMark.h>
+#include <Commands/ShowTechnoNames.h>
 
 DEFINE_HOOK(0x6D466E, TacticalClass_Render_ReplaceEbolt, 0x5)
 {
@@ -36,7 +36,7 @@ DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0x6) //B
 	PrintTextManager::PrintAllText();
 #endif
 	FlyingStrings::UpdateAll();
-	MarkBuildingCommandClass::AI();
+	ShowTechnoNameCommandClass::AI();
 
 	return 0;
 }

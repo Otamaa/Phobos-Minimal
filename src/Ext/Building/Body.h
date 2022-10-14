@@ -57,6 +57,7 @@ public:
 
 		void InitializeConstants();
 		bool HasSuperWeapon(int index, bool withUpgrades) const;
+		bool RubbleYell(bool beingRepaired);
 
 	private:
 		template <typename T>

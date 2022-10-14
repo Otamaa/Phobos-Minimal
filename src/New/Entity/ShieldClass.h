@@ -52,10 +52,7 @@ public:
 	ShieldTypeClass* GetType() const;
 	Armor GetArmor() const;
 	int GetFramesSinceLastBroken() const;
-
-	void HideAnimations();
-	void ShowAnimations();
-	bool AreAnimationsHidden();
+	void SetAnimationVisibility(bool visible);
 
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);

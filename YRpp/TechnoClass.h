@@ -313,6 +313,8 @@ public:
 	virtual void Sensed() RX;
 	virtual void Reload() RX;
 	virtual void vt_entry_428() RX;
+
+	// Returns target's coordinates if on attack mission & have target, otherwise own coordinates.
 	virtual CoordStruct* GetAttackCoords(CoordStruct* pCrd) const R0;
 	virtual bool IsNotWarpingIn() const R0;
 	virtual bool vt_entry_434(DWORD dwUnk) const R0;
@@ -497,6 +499,7 @@ public:
 	CoordStruct* GetMovingTargetCoords(CoordStruct* pBuffer)
 	{ JMP_THIS(0x70BCB0); }
 
+	// Returns target's coordinates if on attack mission & have target, otherwise own coordinates.
 	CoordStruct GetAttackCoords()
 	{
 		CoordStruct pBuffer;

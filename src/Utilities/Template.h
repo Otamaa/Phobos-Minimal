@@ -298,6 +298,9 @@ public:
 	using base_type = std::remove_pointer_t<T>;
 
 	ValueableVector() noexcept = default;
+	ValueableVector(size_t Reserve) noexcept : std::vector<T>() {
+		this->reserve(Reserve);
+	}
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey , bool bAllocate = false);
 

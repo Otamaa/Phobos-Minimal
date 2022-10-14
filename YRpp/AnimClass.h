@@ -58,6 +58,7 @@ public:
 	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int	Size() const R0;
+	virtual HouseClass* GetOwningHouse() const override { return nullptr; }
 
 	//ObjectClass
 	//AnimClass

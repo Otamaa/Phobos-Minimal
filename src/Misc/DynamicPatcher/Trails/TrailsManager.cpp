@@ -14,8 +14,8 @@
 #include <Ext/WeaponType/Body.h>
 
 #pragma region TemplatedStuffs
-template<typename T, typename Ttype, typename Tbase, typename TbaseType>
-static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = false, bool IsTechno = true)
+template<typename T, typename Ttype, typename Tbase, typename TbaseType , bool IsTechno = false>
+static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = false)
 {
 	if (!pClassType)
 		return false;
@@ -43,7 +43,10 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 		{
 			if (pType->Mode != TrailMode::NONE)
 			{
-				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, IsTechno ? pTrails.Onturrents : false));
+				bool OnTurrent = false;
+				if  constexpr (IsTechno) OnTurrent = pTrails.Onturrents;
+
+				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, OnTurrent));
 				auto const& pBackTrail = pExt->Trails.back();
 				pBackTrail->OnLandTypes = pTrails.OnLand;
 				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
@@ -76,10 +79,7 @@ static bool ClearLastLoc(Tbase* pBase)
 template <typename Text, typename Tbase>
 static bool ClearVector(Tbase* pBase)
 {
-	auto const& pExt = Text::ExtMap.Find<false>(pBase);
-
-	if (!pExt)
-		return false;
+	auto const pExt = Text::ExtMap.Find(pBase);
 
 	pExt->Trails.clear();
 
@@ -215,7 +215,7 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted) {
 	if (!pOwner || TrailType::Array.empty())
 		return;
 
-	CheckAndContruct<ParticleExt, ParticleTypeExt>(pOwner, pOwner->Type, false, false);
+	CheckAndContruct<ParticleExt, ParticleTypeExt>(pOwner, pOwner->Type, false);
 }
 #pragma endregion
 
@@ -246,6 +246,9 @@ void TrailsManager::AI(TechnoClass* pOwner)
 				if (pTrails->Type->HideWhenCloak.Get())
 					continue;
 			}
+
+			if (!pExt->IsInTunnel)
+				pTrails->Visible = true;
 
 			if (pTrails->Type->Mode == TrailMode::ANIM)
 			{
@@ -344,123 +347,121 @@ void TrailsManager::AI(ParticleClass* pOwner)
 #pragma endregion
 
 #pragma region Hide
-void TrailsManager::Hide(ObjectClass* pOwner)
+
+template<typename T>
+void TrailsManager::Hide(T* pOwner)
+{
+	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
+}
+template<>
+void TrailsManager::Hide(TechnoClass* pOwner)
 {
 	if (!pOwner || pOwner->WhatAmI() == AbstractType::Building || TrailType::Array.empty())
 		return;
 
-	switch (pOwner->WhatAmI())
-	{
-	case AbstractType::Unit:
-	case AbstractType::Infantry:
-	case AbstractType::Aircraft:
-	{
-		auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
+	auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
 
-		if (!pExt)
-			return;
-
-		if (!pExt->Trails.empty())
+	if (!pExt->Trails.empty())
+	{
+		for (auto const& pTrail : pExt->Trails)
 		{
-			for (auto const& pTrail : pExt->Trails)
-			{
-				pTrail->ClearLastLocation();
-			}
-		}
-
-	}
-	break;
-	case AbstractType::Bullet:
-	{
-		auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);
-
-		if (!pExt)
-			return;
-
-		if (!pExt->Trails.empty())
-		{
-			for (auto const& pTrail : pExt->Trails)
-			{
-				pTrail->ClearLastLocation();
-			}
+			pTrail->Visible = !(((TechnoClass*)pOwner)->InLimbo);
+			pTrail->ClearLastLocation();
 		}
 	}
-	break;
-	case AbstractType::VoxelAnim:
+}
+
+template<>
+void TrailsManager::Hide(BulletClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);;
+
+	if (!pExt->Trails.empty())
 	{
-		auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
-
-		if (!pExt)
-			return;
-
-		if (!pExt->Trails.empty())
+		for (auto const& pTrail : pExt->Trails)
 		{
-			for (auto const& pTrail : pExt->Trails)
-			{
-				pTrail->ClearLastLocation();
-			}
+			pTrail->ClearLastLocation();
 		}
 	}
-	break;
-	case AbstractType::Particle:
+}
+
+template<>
+void TrailsManager::Hide(VoxelAnimClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
+
+	if (!pExt->Trails.empty())
 	{
-		if (!ClearLastLoc<ParticleExt>((ParticleClass*)pOwner))
-			return;
+		for (auto const& pTrail : pExt->Trails)
+		{
+			pTrail->ClearLastLocation();
+		}
 	}
-	break;
-	}
+}
+
+template<>
+void TrailsManager::Hide(ParticleClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	if (!ClearLastLoc<ParticleExt>((ParticleClass*)pOwner))
+		return;
 }
 
 #pragma endregion
 
 #pragma region CleanUp
-void TrailsManager::CleanUp(ObjectClass* pOwner)
+template<typename T>
+void TrailsManager::CleanUp(T* pOwner)
 {
+	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
+}
+
+template<>
+void TrailsManager::CleanUp(TechnoClass* pOwner)
+{ 
 	if (!pOwner || pOwner->WhatAmI() == AbstractType::Building || TrailType::Array.empty())
 		return;
 
-	switch (pOwner->WhatAmI())
-	{
-	case AbstractType::Unit:
-	case AbstractType::Infantry:
-	case AbstractType::Aircraft:
-	{
-		auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
-
-		if (!pExt)
-			return;
-
-		pExt->Trails.clear();
-	}
-	break;
-	case AbstractType::Bullet:
-	{
-		auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);
-
-		if (!pExt)
-			return;
-
-		pExt->Trails.clear();
-	}
-	break;
-	case AbstractType::VoxelAnim:
-	{
-		auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
-
-		if (!pExt)
-			return;
-
-		pExt->Trails.clear();
-	}
-	break;
-	case AbstractType::Particle:
-	{
-		if (!ClearVector<ParticleExt>((ParticleClass*)pOwner))
-			return;
-	}
-	break;
-	}
+	if (!ClearVector<TechnoExt>((TechnoClass*)pOwner))
+		return;
 }
 
+template<>
+void TrailsManager::CleanUp(BulletClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	if (!ClearVector<BulletExt>((BulletClass*)pOwner))
+		return;
+}
+
+template<>
+void TrailsManager::CleanUp(VoxelAnimClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	if (!ClearVector<VoxelAnimExt>((VoxelAnimClass*)pOwner))
+		return;
+}
+
+template<>
+void TrailsManager::CleanUp(ParticleClass* pOwner)
+{
+	if (!pOwner || TrailType::Array.empty())
+		return;
+
+	if (!ClearVector<ParticleExt>((ParticleClass*)pOwner))
+		return;
+}
 #pragma endregion
 #endif

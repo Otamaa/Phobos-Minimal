@@ -694,8 +694,9 @@ public:
 			return;
 		}
 
-		if constexpr (HasOffset<T>)
+		if constexpr (HasOffset<T>) {
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		}
 
 		if (const auto val = new extension_type(key)) {
 			val->EnsureConstanted();

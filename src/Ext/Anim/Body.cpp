@@ -300,7 +300,6 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	//if the type is gone , it is mostly already detached
 	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis)) {
 		pAnimExt->InvalidatePointer(target, all);
 	}
@@ -309,7 +308,6 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
 }
 
-//#ifdef ENABLE_NEWEXT
 DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
 
 DEFINE_HOOK_AGAIN(0x421EF4 , AnimClass_CTOR_setD0, 0x6)
@@ -319,4 +317,3 @@ DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
 	pThis->unknown_D0 = 0;
 	return R->Origin() + 0x6;
 }
-//#endif

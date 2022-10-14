@@ -1,7 +1,7 @@
 #include "Body.h"
 
 // Draw Tiled !
-
+#ifndef UsePhobosOne
 DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
@@ -10,9 +10,7 @@ DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 
 	return 0x4236F6;
 }
-
-#ifdef OVERRIDE_SHP_DRAWING
-
+#else
 DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 {
 	GET(AnimClass* const, pThis, ESI);
@@ -89,6 +87,10 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 #endif
 	return 0x42371B;
 }
+#endif
+
+#ifdef OVERRIDE_SHP_DRAWING
+
 struct DummyStructForDrawing
 {
 	static void Callme(

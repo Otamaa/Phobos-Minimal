@@ -68,8 +68,11 @@ namespace TrailsManager
 	template<typename T>
 	void AI(T* pOwner);
 
-	void Hide(ObjectClass* pOwner);
-	void CleanUp(ObjectClass* pOwner);
+	template<typename T>
+	void Hide(T* pOwner);
+
+	template<typename T>
+	void CleanUp(T* pOwner);
 
 };
 

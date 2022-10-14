@@ -3196,6 +3196,10 @@ void ScriptExt::Mission_Attack_List(TeamClass *pTeam, bool repeatAction, int cal
 void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pickAllies = false, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
+
+	if (!pScript)
+		return;
+
 	int scriptArgument = pScript->GetCurrentAction().Argument; // This is the target type
 	TechnoClass* selectedTarget = nullptr;
 	bool noWaitLoop = false;
@@ -3205,9 +3209,6 @@ void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pick
 	TechnoClass* pFocus = nullptr;
 
 	auto pTeamData = TeamExt::ExtMap.Find(pTeam);
-
-	if (!pScript)
-		return;
 
 	if (!pTeamData)
 	{
@@ -3232,7 +3233,8 @@ void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pick
 	}
 
 	// This team has no units!
-	if (IsEmpty(pTeam) && !pTeamData->TeamLeader)
+	//IsEmpty(pTeam) && 
+	if (!pTeamData->TeamLeader)
 	{
 		if (pTeamData->CloseEnough > 0)
 			pTeamData->CloseEnough = -1;
@@ -3442,16 +3444,32 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass *pTechno, int method, int cal
 		auto object = TechnoClass::Array->GetItem(i);
 		auto objectType = object->GetTechnoType();
 
-		if ( !object || object == pTechno  || !objectType  || !object->Owner)
+		if ( !object || object == pTechno  || !objectType  || !object->Owner || object->InLimbo || object->IsSinking
+			|| !object->IsOnMap
+			)
 			continue;
+
+		auto pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
+		if (pTypeExt->IsDummy)
+			continue;
+
+		if (auto pBld = specific_cast<BuildingClass*>(object))
+		{
+			auto pExt = BuildingExt::ExtMap.Find(pBld);
+
+			if (pExt->IsInLimboDelivery)
+				continue;
+		}
 
 		if (enemyHouse && !enemyHouse->Defeated && enemyHouse != object->Owner)
 			continue;
+
 		if(TechnoExt::IsActive(object, false)
 			&& (((pickAllies && pTechno->Owner->IsAlliedWith(object))
 				|| (!pickAllies && !pTechno->Owner->IsAlliedWith(object))
 				|| (method == 39 && attackAITargetType == -1))))
 		{
+
 		// Don't pick underground units
 		if (object->InWhichLayer() == Layer::Underground)
 			continue;
@@ -4135,6 +4153,11 @@ FootClass* ScriptExt::FindTheTeamLeader(TeamClass* pTeam)
 		if (!pUnit || !pUnit->Owner)
 			continue;
 
+		auto const pType = pUnit->GetTechnoType();
+		auto pExType = TechnoTypeExt::ExtMap.Find(pType);
+		if (pExType->IsDummy)
+			continue;
+		
 		if (pUnit->WhatAmI() == AbstractType::Unit)
 		if (auto pCell = pUnit->GetCell())
 			if (auto pBld = pCell->GetBuilding())

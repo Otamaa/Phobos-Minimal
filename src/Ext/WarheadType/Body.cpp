@@ -79,6 +79,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 	if (pTechno)
 	{
 		if (pTechno->InLimbo
+			|| !pTechno->IsOnMap
 			|| !pTechno->IsAlive
 			|| !pTechno->Health
 			|| pTechno->IsSinking

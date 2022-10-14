@@ -28,21 +28,24 @@ private:
 
 public:
 	TExtension(T* const OwnerObject) : IExtension { }
-		, AttachedToObject{ OwnerObject }
+		, AttachedToObject { OwnerObject }
 		, Initialized { InitState::Blank }
-	{ }
+	{
+	}
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
 		, Initialized { InitState::Blank }
-	{ }
+	{
+	}
 
 	TExtension(const TExtension&) = delete;
 	void operator=(const TExtension&) = delete;
 
 	virtual ~TExtension() override = default;
 
-	T* const& Get() const {
+	T* const& Get() const
+	{
 		return this->AttachedToObject;
 	}
 
@@ -135,20 +138,24 @@ public:
 	ExtensionWrapper() :
 		FlagDirty { FALSE }
 		, ExtensionObject { nullptr }
-	{ }
+	{
+	}
 
 	~ExtensionWrapper() = default;
 
-	size_t Size() const {
+	size_t Size() const
+	{
 		return sizeof(ExtensionWrapper);
 	}
 
 	//replace bool Dirty -> Ext*
-	inline static ExtensionWrapper*& GetWrapper(void* pThis) {
+	inline static ExtensionWrapper*& GetWrapper(void* pThis)
+	{
 		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
 	}
 
-	inline static ExtensionWrapper*& GetWrapper(const void* pThis) {
+	inline static ExtensionWrapper*& GetWrapper(const void* pThis)
+	{
 		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
 	}
 
@@ -156,11 +163,13 @@ public:
 
 	HRESULT Save(IStream* pStm) const { return S_OK; }
 
-	__declspec(noinline) bool IsDirty() const { //dont inline this , causing crash !
+	__declspec(noinline) bool IsDirty() const
+	{ //dont inline this , causing crash !
 		return this->FlagDirty;
 	};
 
-	inline void SetDirtyFlag(bool fDirty) {
+	inline void SetDirtyFlag(bool fDirty)
+	{
 		this->FlagDirty = fDirty;
 	}
 
@@ -191,34 +200,44 @@ public:
 		SavingObject { nullptr },
 		SavingStream { nullptr },
 		Name { pName }
-	{}
+	{
+	}
 
 	virtual ~TExtensionContainer() = default;
 
-	inline auto size() const {
+	inline auto size() const
+	{
 		return sizeof(extension_type);
 	}
 
-	inline auto GetName() const {
+	inline auto GetName() const
+	{
 		return this->Name.data();
 	}
 
-	void PrepareStream(base_type_ptr key, IStream* pStm) {
+	void PrepareStream(base_type_ptr key, IStream* pStm)
+	{
 		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
 
-	inline IStream* GetStream() const {
+	inline IStream* GetStream() const
+	{
 		return this->SavingStream;
 	}
 
 	extension_type_ptr SetIExtension(base_type_ptr key)
 	{
-		auto pWrapper = ExtensionWrapper::GetWrapper(key);
-		if(const auto val = new extension_type(key)) {
-			val->EnsureConstanted();
-			pWrapper->ExtensionObject = val;
+		const auto pWrapper = ExtensionWrapper::GetWrapper(key);
+
+		if (!pWrapper->ExtensionObject)
+		{
+			if (const auto val = new extension_type(key))
+			{
+				val->EnsureConstanted();
+				pWrapper->ExtensionObject = val;
+			}
 		}
 
 		return (extension_type_ptr)pWrapper->ExtensionObject;
@@ -233,7 +252,8 @@ public:
 	{
 		auto pWrapper = ExtensionWrapper::GetWrapper(key);
 
-		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject) {
+		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject)
+		{
 			delete Item;
 			pWrapper->ExtensionObject = 0;
 		}
@@ -269,12 +289,15 @@ public:
 	{
 		ExtensionWrapper* pWrapper = nullptr;
 
-		if constexpr (Check) {
+		if constexpr (Check)
+		{
 			if (key)
 				pWrapper = ExtensionWrapper::GetWrapper(key);
 			else
 				return nullptr;
-		}else {
+		}
+		else
+		{
 			pWrapper = ExtensionWrapper::GetWrapper(key);
 		}
 
@@ -317,12 +340,16 @@ public:
 			ptr->LoadFromINI(pINI);
 	}
 
-	void SaveStatic() {
-		if (this->SavingObject && this->SavingStream) {
+	void SaveStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
 			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
-		} else {
+		}
+		else
+		{
 			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
 				this->Name.data(), this->SavingObject, this->SavingStream);
 		}
@@ -331,12 +358,16 @@ public:
 		this->SavingStream = nullptr;
 	}
 
-	void LoadStatic() {
-		if (this->SavingObject && this->SavingStream) {
+	void LoadStatic()
+	{
+		if (this->SavingObject && this->SavingStream)
+		{
 			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
 			if (!this->Load(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
-		} else {
+		}
+		else
+		{
 			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
 				this->Name.data(), this->SavingObject, this->SavingStream);
 		}
@@ -349,26 +380,31 @@ public:
 protected:
 
 	// override this method to do type-specific stuff
-	virtual bool Save(base_type_ptr key, IStream* pStm) {
+	virtual bool Save(base_type_ptr key, IStream* pStm)
+	{
 		return this->SaveKey(key, pStm) != nullptr;
 	}
 
 	// override this method to do type-specific stuff
-	virtual bool Load(base_type_ptr key, IStream* pStm) {
+	virtual bool Load(base_type_ptr key, IStream* pStm)
+	{
 		return this->LoadKey(key, pStm) != nullptr;
 	}
 
-	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm) {
+	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm)
+	{
 
 		// this really shouldn't happen
-		if (!key) {
+		if (!key)
+		{
 			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
 
 		// get the ext data
 		extension_type_ptr buffer = GetIExtension(key);
-		if (!buffer) {
+		if (!buffer)
+		{
 			Debug::Log("[SaveKey] Could not find value.\n");
 			return nullptr;
 		}
@@ -383,7 +419,8 @@ protected:
 		buffer->SaveToStream(writer);
 
 		// save the block
-		if (!saver.WriteBlockToStream(pStm)) {
+		if (!saver.WriteBlockToStream(pStm))
+		{
 			Debug::Log("[SaveKey] Failed to save data.\n");
 			return nullptr;
 		}
@@ -393,29 +430,34 @@ protected:
 		return buffer;
 	}
 
-	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm) {
+	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm)
+	{
 
 		// this really shouldn't happen
-		if (!key) {
+		if (!key)
+		{
 			Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
 
 		// get the extData
 		extension_type_ptr buffer = GetOrSetIExtension(key);
-		if (!buffer) {
+		if (!buffer)
+		{
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");
 			return nullptr;
 		}
 
 		PhobosByteStream loader(0);
-		if (!loader.ReadBlockFromStream(pStm)) {
+		if (!loader.ReadBlockFromStream(pStm))
+		{
 			Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
 			return nullptr;
 		}
 
 		PhobosStreamReader reader(loader);
-		if (reader.Expect(T::Canary)) {
+		if (reader.Expect(T::Canary))
+		{
 			buffer->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())
 				return buffer;

@@ -160,4 +160,14 @@ public:
 			;
 	}
 };
+
+template <>
+struct Savegame::ObjectFactory<DamageSelfType>
+{
+	std::unique_ptr<DamageSelfType> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<DamageSelfType>();
+	}
+};
+
 #endif

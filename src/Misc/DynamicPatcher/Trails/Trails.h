@@ -22,6 +22,7 @@ public:
 	bool canDraw;
 	bool forceDraw;
 	bool IsOnTurret;
+	bool Visible;
 	DrivingState drivingState;
 	std::vector<LandType> OnLandTypes;
 	std::vector<TileType> OnTileTypes;
@@ -35,6 +36,7 @@ public:
 		, canDraw { !(type->InitialDelay > 0) }
 		, forceDraw { false }
 		, IsOnTurret { onturret }
+		, Visible { true }
 		, drivingState { DrivingState::Moving }
 		, OnLandTypes { }
 		, OnTileTypes { }
@@ -49,6 +51,7 @@ public:
 		, canDraw { false }
 		, forceDraw { false }
 		, IsOnTurret { false }
+		, Visible { true }
 		, drivingState { DrivingState::Stop }
 		, OnLandTypes { }
 		, OnTileTypes { }
@@ -161,7 +164,7 @@ private:
 			}
 			canDraw = DelayTimer.Expired();
 		}
-		return canDraw;
+		return canDraw && Visible;
 	}
 
 	bool CheckVertical(CoordStruct& sourcePos, CoordStruct& targetPos)
