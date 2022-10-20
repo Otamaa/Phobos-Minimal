@@ -44,7 +44,7 @@ public:
 		}
 	}
 
-	VectorClass(const VectorClass &other) {
+	VectorClass(const VectorClass<T>&other) {
 		if(other.Capacity > 0) {
 			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
@@ -55,7 +55,7 @@ public:
 		}
 	}
 
-	VectorClass(VectorClass &&other) noexcept :
+	VectorClass(VectorClass<T>&&other) noexcept :
 		Items(other.Items),
 		Capacity(other.Capacity),
 		IsInitialized(other.IsInitialized),
@@ -68,17 +68,17 @@ public:
 		}
 	}
 
-	VectorClass& operator = (const VectorClass &other) {
-		VectorClass(other).Swap(*this);
+	VectorClass<T>& operator = (const VectorClass<T>&other) {
+		VectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	VectorClass& operator = (VectorClass &&other) noexcept {
-		VectorClass(std::move(other)).Swap(*this);
+	VectorClass<T>& operator = (VectorClass<T>&&other) noexcept {
+		VectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual bool operator == (const VectorClass &other) const {
+	virtual bool operator == (const VectorClass<T>&other) const {
 		if(this->Capacity != other.Capacity) {
 			return false;
 		}
@@ -93,7 +93,7 @@ public:
 		return true;
 	}
 
-	bool operator != (const VectorClass &other) const {
+	bool operator != (const VectorClass<T>&other) const {
 		return !(*this == other);
 	}
 
@@ -115,7 +115,7 @@ public:
 			if(this->Items) {
 				auto n = (capacity < this->Capacity) ? capacity : this->Capacity;
 				for(auto i = 0; i < n; ++i) {
-					pMem[i] = std::move_if_noexcept(this->Items[i]);
+					pMem[i] = std::move(this->Items[i]);
 				}
 
 				if(this->IsAllocated) {
@@ -134,7 +134,7 @@ public:
 	}
 
 	virtual void Clear() {
-		VectorClass(std::move(*this));
+		VectorClass<T>(std::move(*this));
 		this->Items = nullptr;
 		this->Capacity = 0;
 	}
@@ -185,7 +185,7 @@ public:
 		return SetCapacity(capacity, nullptr);
 	}
 
-	void Swap(VectorClass& other) noexcept {
+	void Swap(VectorClass<T>& other) noexcept {
 		using std::swap;
 		swap(this->Items, other.Items);
 		swap(this->Capacity, other.Capacity);
@@ -215,7 +215,7 @@ public:
 		: VectorClass<T>(capacity, pMem)
 	{ }
 
-	DynamicVectorClass(const DynamicVectorClass &other) {
+	DynamicVectorClass(const DynamicVectorClass<T> &other) {
 		if(other.Capacity > 0) {
 			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
@@ -228,18 +228,18 @@ public:
 		}
 	}
 
-	DynamicVectorClass(DynamicVectorClass &&other) noexcept
+	DynamicVectorClass(DynamicVectorClass<T>&&other) noexcept
 		: VectorClass<T>(std::move(other)), Count(other.Count),
 		CapacityIncrement(other.CapacityIncrement)
 	{ }
 
-	DynamicVectorClass& operator = (const DynamicVectorClass &other) {
-		DynamicVectorClass(other).Swap(*this);
+	DynamicVectorClass<T>& operator = (const DynamicVectorClass<T>&other) {
+		DynamicVectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	DynamicVectorClass& operator = (DynamicVectorClass &&other) noexcept {
-		DynamicVectorClass(std::move(other)).Swap(*this);
+	DynamicVectorClass<T>& operator = (DynamicVectorClass<T>&&other) noexcept {
+		DynamicVectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
@@ -288,7 +288,7 @@ public:
 	}
 
 	T* begin() const {
-		return &this->Items[0];
+		return (&this->Items[0]);
 	}
 
 	T* end() const {
@@ -304,15 +304,6 @@ public:
 	}
 
 	bool AddItem(T item) {
-		//if(this->Count >= this->Capacity) {
-			//if(!this->IsAllocated && this->Capacity != 0) {
-			//	return false;
-			//}
-
-		//	if(!IsAllowed()) {
-		//		return false;
-		//	}
-		//}
 		if (this->Count >= this->Capacity)
 		{
 			if (!this->IsAllocated && this->Capacity != 0)
@@ -331,15 +322,36 @@ public:
 			}
 		}
 
-		this->Items[Count++] = std::move(item);
+		this->Items[this->Count++] = std::move(item);
 		return true;
 	}
 
-	//template <class... _Valty>
-	//constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
-	//	AddItem(T{ _Val... });
-	//	return *back();
-	//}
+	bool Insert(int index, const T& object)
+	{
+		if (index < 0 || index > this->Count) {
+			return false;
+		}
+
+		if (this->Count >= this->Capacity) {
+			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0) {
+				if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr)) {
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
+
+		if (index < this->Count) {
+			std::memmove(&(*this)[index + 1], &(*this)[index], (this->Count - index) * sizeof(T));
+		}
+
+		(*this)[index] = std::move(object);
+		++this->Count;
+
+		return true;
+	}
 
 	bool AddUnique(const T &item) {
 		int idx = this->FindItemIndex(item);
@@ -353,7 +365,7 @@ public:
 
 		--this->Count;
 		for(int i = index; i < this->Count; ++i) {
-			this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
+			this->Items[i] = std::move(this->Items[i + 1]);
 		}
 
 		return true;
@@ -361,19 +373,12 @@ public:
 
 	bool Remove(const T &item) {
 #ifdef Causing_Crash
-		auto ArrBegin = Items;
-		auto ArrEnd = &ArrBegin[Count];
+		auto const iter = std::find_if(&Items[0], &Items[Count], [&](auto const& arritem) { return arritem == item; });
 
-		if (ArrBegin != ArrEnd)
+		if (iter != (&Items[Count]))
 		{
-			while (*ArrBegin != item) {
-				if (++ArrBegin == ArrEnd)
-					return false;
-			}
-
-			memmove(ArrBegin, (ArrBegin + 1), ArrEnd - (ArrBegin + 1));
+			memmove(iter, (iter + 1), (&Items[Count]) - (iter + 1));
 			--Count;
-
 			return true;
 		}
 		return false;
@@ -384,7 +389,7 @@ public:
 	}
 
 
-	void Swap(DynamicVectorClass& other) noexcept {
+	void Swap(DynamicVectorClass<T>& other) noexcept {
 		VectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->Count, other.Count);
@@ -399,13 +404,6 @@ public:
 	int GetSizeMax() const {
 		return (sizeof(T) * Count) + 4;
 	}
-
-//private:
-	//bool IsAllowed() {
-	//	return (this->IsAllocated || !this->Capacity)
-	//		&& this->CapacityIncrement > 0
-	//		&& (this->SetCapacity(this->CapacityIncrement + this->Capacity, nullptr));
-	//}
 
 public:
 	int Count{ 0 };
@@ -426,25 +424,25 @@ public:
 		: DynamicVectorClass<T>(capacity, pMem)
 	{ }
 
-	TypeList(const TypeList &other)
+	TypeList(const TypeList<T> &other)
 		: DynamicVectorClass<T>(other), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList(TypeList &&other) noexcept
+	TypeList(TypeList<T>&&other) noexcept
 		: DynamicVectorClass<T>(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList& operator = (const TypeList &other) {
-		TypeList(other).Swap(*this);
+	TypeList<T>& operator = (const TypeList<T>&other) {
+		TypeList<T>(other).Swap(*this);
 		return *this;
 	}
 
-	TypeList& operator = (TypeList &&other) noexcept {
-		TypeList(std::move(other)).Swap(*this);
+	TypeList<T>& operator = (TypeList<T>&&other) noexcept {
+		TypeList<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	void Swap(TypeList& other) noexcept {
+	void Swap(TypeList<T>& other) noexcept {
 		DynamicVectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->unknown_18, other.unknown_18);
@@ -463,11 +461,11 @@ public:
 	constexpr CounterClass() noexcept = default;
 
 	CounterClass(const CounterClass& other)
-		: VectorClass(other), Total(other.Total)
+		: VectorClass<int>(other), Total(other.Total)
 	{ }
 
 	CounterClass(CounterClass &&other) noexcept
-		: VectorClass(std::move(other)), Total(other.Total)
+		: VectorClass<int>(std::move(other)), Total(other.Total)
 	{ }
 
 	CounterClass& operator = (const CounterClass &other) {
@@ -537,7 +535,7 @@ public:
 	}
 
 	void Swap(CounterClass& other) noexcept {
-		VectorClass::Swap(other);
+		VectorClass<int>::Swap(other);
 		using std::swap;
 		swap(this->Total, other.Total);
 	}

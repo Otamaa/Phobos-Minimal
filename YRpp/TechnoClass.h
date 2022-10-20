@@ -340,7 +340,7 @@ public:
 	virtual void vt_entry_47C(DWORD dwUnk) RX;
 	virtual void SetDestination(AbstractClass* pDest, bool bUnk) RX;
 	virtual bool EnterIdleMode(bool Initial, int nUnknown) R0;//virtual bool vt_entry_484(DWORD dwUnk, DWORD dwUnk2) R0;
-	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX;
+	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX; //70AF50
 	virtual void vt_entry_48C(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3, DWORD dwUnk4) RX;
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
 	virtual void RadarTrackingStart() RX;

@@ -78,6 +78,7 @@ public:
 		int DelayedFire_Anim_LoopCount;
 		int DelayedFire_DurationTimer;
 		bool IsInTunnel;
+		CDTimerClass DeployFireTimer;
 	#pragma region Otamaa
 		bool IsDriverKilled;
 		int GattlingDmageDelay;
@@ -143,6 +144,7 @@ public:
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_DurationTimer { 0 }
 			, IsInTunnel { false }
+			, DeployFireTimer {}
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }

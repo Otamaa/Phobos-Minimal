@@ -75,6 +75,50 @@ namespace detail {
 	}
 
 	template <>
+	inline bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read2IntegerAndCount(pSection, pKey, (int*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
+
+	template <>
+	inline bool read<PartialVector2D<double>>(PartialVector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read2DoubleAndCount(pSection, pKey, (double*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
+
+	template <>
+	inline bool read<PartialVector3D<int>>(PartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, (int*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
+
+	template <>
+	inline bool read<PartialVector3D<double>>(PartialVector3D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read3DoubleAndCount(pSection, pKey, (double*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
+
+	template <>
 	inline bool read(ParticleSystemTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))

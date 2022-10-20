@@ -86,7 +86,7 @@ SET_INITIAL_HP(0x442C7B, ECX, BuildingClass_Init_InitialStrength)
 #undef SET_INITIAL_HP
 // Issue #271: Separate burst delay for weapon type
 // Author: Starkku
-DEFINE_HOOK(0x6FD05E, TechnoClass_Rearm_Delay_BurstDelays, 0x7)
+DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
@@ -444,6 +444,35 @@ DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
 
 	return ContinueFunc;
 }
+
+// The ingame behavior looks not better than the previous fix
+//DEFINE_HOOK_AGAIN(0x736FE8, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6)// Turret and FireError == FACING
+//DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6) // FireError == OK
+//{
+//	GET(UnitClass* const, pThis, ESI);
+//	ILocomotion* iloco = pThis->Locomotor.get();
+//	CLSID locoCLSID;
+//	if (SUCCEEDED(static_cast<LocomotionClass*>(iloco)->GetClassID(&locoCLSID)) && locoCLSID == LocomotionClass::CLSIDs::Jumpjet)
+//	{
+//		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//		if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
+//		{
+//			auto const pLoco = static_cast<JumpjetLocomotionClass*>(iloco);
+//			CoordStruct& source = pThis->Location;
+//			CoordStruct target = pThis->Target->GetCoords();
+//			DirStruct const tgtDir = DirStruct { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+//
+//			pLoco->Facing.Set_Desired(tgtDir);
+//
+//			if (R->Origin() == 0x736FE8)
+//			{
+//				pThis->SecondaryFacing.Set_Desired(tgtDir);
+//				return 0x737021;
+//			}
+//		}
+//	}
+//	return 0;
+//}
 
 //#ifdef DISGUISE_HOOKS
 DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)

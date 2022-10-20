@@ -114,10 +114,24 @@ public:
 		return sDigits;
 
 	}
-	static inline const int GetRangedRandomOrSingleValue(Point2D const& range)
+
+	static inline const int GetRangedRandomOrSingleValue(const Point2D& range)
 	{
 		return range.X >= range.Y ?
 			range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
+	}
+
+	const inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
+	{
+		int min = static_cast<int>(range.X * 100);
+		int max = static_cast<int>(range.Y * 100);
+
+		return range.X >= range.Y || range.ValueCount < 2 ? range.X : (ScenarioClass::Instance->Random.RandomRanged(min, max) / 100.0);
+	}
+
+	const inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
+	{
+		return range.X >= range.Y || range.ValueCount < 2 ? range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
 
 	static const double GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType);
@@ -157,6 +171,21 @@ public:
 		}
 
 		return r;
+	}
+
+	template<typename T>
+	static inline T SecsomeFastPow(T x, size_t n)
+	{
+		// Real fast pow calc x^n in O(log(n))
+		T result = 1;
+		T base = x;
+		while (n)
+		{
+			if (n & 1) result *= base;
+			base *= base;
+			n >>= 1;
+		}
+		return result;
 	}
 
 	// Checks if health ratio has changed threshold (Healthy/ConditionYellow/Red).

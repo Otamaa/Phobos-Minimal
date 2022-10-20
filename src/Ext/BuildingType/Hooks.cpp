@@ -31,7 +31,8 @@ DEFINE_HOOK(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if (pType->MaxNumberOccupants > 10) {
+	if (pType->MaxNumberOccupants > 10)
+	{
 		GET(int, nFiringIndex, EBX);
 		R->EAX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[nFiringIndex]);
 	}
@@ -44,7 +45,8 @@ DEFINE_HOOK(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if (pType->MaxNumberOccupants > 10) {
+	if (pType->MaxNumberOccupants > 10)
+	{
 		R->EDX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[pThis->FiringOccupantIndex]);
 	}
 
@@ -56,7 +58,8 @@ DEFINE_HOOK(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 	GET(BuildingClass*, pThis, ESI);
 
 	const auto pType = pThis->Type;
-	if (pType->MaxNumberOccupants > 10) {
+	if (pType->MaxNumberOccupants > 10)
+	{
 		GET(int, nFiringIndex, EDI);
 		R->ECX(&BuildingTypeExt::ExtMap.Find(pType)->OccupierMuzzleFlashes[nFiringIndex]);
 	}
@@ -76,19 +79,26 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 				CellStruct const nDisplayCell = Make_Global<CellStruct>(0x88095C);
 				CellStruct const nDisplayCell_Offset = Make_Global<CellStruct>(0x880960);
 
-				if (auto const pCell = MapClass::Instance->TryGetCellAt(nDisplayCell + nDisplayCell_Offset)) {
+				if (auto const pCell = MapClass::Instance->TryGetCellAt(nDisplayCell + nDisplayCell_Offset))
+				{
 
 					SHPStruct* Selected = nullptr;
 					int nDecidedFrame = 0;
 
-					if (!pTypeExt->PlacementPreview_Shape.isset()) {
-						if (const auto pBuildup = pType->LoadBuildup()) {
+					if (!pTypeExt->PlacementPreview_Shape.isset())
+					{
+						if (const auto pBuildup = pType->LoadBuildup())
+						{
 							nDecidedFrame = ((pBuildup->Frames / 2) - 1);
 							Selected = pBuildup;
-						} else {
+						}
+						else
+						{
 							Selected = pType->GetImage();
 						}
-					} else {
+					}
+					else
+					{
 						Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
 					}
 
@@ -99,7 +109,8 @@ DEFINE_HOOK(0x6D528A, TacticalClass_DrawPlacement_PlacementPreview, 0x6)
 						auto const& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
 						Point2D nPoint { 0,0 };
 
-						if(TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint)) {
+						if (TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint))
+						{
 							nPoint.X += nOffsetX;
 							nPoint.Y += nOffsetY;
 							auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
@@ -135,14 +146,24 @@ DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
 {
 	enum { SkipGameCode = 0x6F34BD };
 	GET(BuildingTypeClass*, pThis, ECX);
-	R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
-	return SkipGameCode;
+
+	if (pThis) {
+		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		return SkipGameCode;
+	}
+
+	return 0x0;
 }
 
 DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
 {
 	enum { SkipGameCode = 0x51EAF8 };
-	GET(BuildingTypeClass*, pThis, EDI);
-	R->EAX(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
-	return SkipGameCode;
+	GET(BuildingTypeClass*, pThis, ESI);
+
+	if (pThis) {
+		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		return SkipGameCode;
+	}
+
+	return 0x0;
 }

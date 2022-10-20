@@ -19,6 +19,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
@@ -688,4 +689,48 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 	}
 
 	return DoNotDraw;
+}
+
+DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
+{
+	enum { DoNotExecute = 0x4C8109 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pUnit = specific_cast<UnitClass*>(pThis);
+
+	// Do not execute deploy command if the vehicle is still reloading from firing its once-firing deploy weapon.
+	if (pUnit && pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
+	{
+		int const deployFireIdx = pThis->GetTechnoType()->DeployFireWeapon;
+		int weaponIndex = deployFireIdx == -1 ? pThis->SelectWeapon(pThis->Target) : deployFireIdx;
+		auto const pWeapons = pThis->GetWeapon(weaponIndex);
+
+		if (!pWeapons || !pWeapons->WeaponType)
+			return DoNotExecute;
+
+		if (pWeapons->WeaponType->FireOnce) {
+			if (TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft())
+				return DoNotExecute;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTFismyIFV, 0x7)
+{
+	GET(FootClass* const, pPayload, EAX);
+	GET(FootClass* const, pTransport, ESI);
+
+	pPayload->SetLocation(pTransport->Location);
+	auto pType = pTransport->GetTechnoType();
+	pPayload->Limbo();
+	if (pType->OpenTopped)
+		pTransport->EnteredOpenTopped(pPayload);
+
+	pPayload->Transporter = pTransport;
+	pTransport->AddPassenger(pPayload);
+
+	return 0x65DF8D;
 }

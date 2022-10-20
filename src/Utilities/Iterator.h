@@ -76,8 +76,15 @@ public:
 		return !this->valid() || !this->count;
 	}
 
-	bool contains(T other) const {
-		return std::find(this->begin(), this->end(), other) != this->end();
+	bool contains(const T& other) const {
+		if constexpr (std::is_pointer<T>())
+		{
+			return std::find_if(this->begin(), this->end(), [&](const auto& item)
+				{
+					return item == other;
+				}) != this->end();
+		}
+		else { return std::find(this->begin(), this->end(), other) != this->end(); }
 	}
 
 	operator bool() const {

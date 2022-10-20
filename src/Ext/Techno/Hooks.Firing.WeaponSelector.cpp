@@ -74,6 +74,20 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 			return ReturnHandled;
 		}
 
+		if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0 &&
+				pTarget->CloakState == CloakState::Cloaked)
+		{
+			R->EAX(pTechnoTypeExt->ForceWeapon_Cloaked);
+			return ReturnHandled;
+		}
+
+		if (pTechnoTypeExt->ForceWeapon_Disguised >= 0 &&
+			   pTarget->IsDisguised())
+		{
+			R->EAX(pTechnoTypeExt->ForceWeapon_Disguised);
+			return ReturnHandled;
+		}
+
 		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
 		{
 			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP);

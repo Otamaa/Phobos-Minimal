@@ -231,6 +231,7 @@ class AresScheme
 {
 	static inline ObjectClass* LinkedObj = nullptr;
 public:
+
 	static void __cdecl Prefix(TechnoClass* pThis, ObjectClass* pObj, int nWeaponIndex)
 	{
 		if (LinkedObj)
@@ -255,6 +256,38 @@ public:
 		}
 	}
 
+	static void __cdecl Prefix(InfantryClass* pThis, ObjectClass* pObj, int nWeaponIndex, bool IsEngiiner)
+	{
+		if (LinkedObj)
+			return;
+
+		if (IsEngiiner && CanApplyEngineerActions(pThis, pObj))
+			return;
+
+		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj))
+		{
+			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+
+			if (const auto pShieldData = pExt->Shield.get())
+			{
+				if (pShieldData->IsActive())
+				{
+
+					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) : nWeaponIndex);
+
+					if (pWeapon && pWeapon->WeaponType && !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead))
+					{
+						if (pExt->Shield->GetHealthRatio() < 1.0)
+						{
+							LinkedObj = pObj;
+							--LinkedObj->Health;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	static void __cdecl Suffix()
 	{
 		if (LinkedObj)
@@ -263,20 +296,29 @@ public:
 			LinkedObj = nullptr;
 		}
 	}
+private:
+	static bool CanApplyEngineerActions(InfantryClass* pThis, ObjectClass* pTarget)
+	{
+		if (pTarget->WhatAmI() == AbstractType::Building)
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTarget);
+			if(HouseClass::CurrentPlayer->IsAlliedWith(pBuilding)){
+				return pBuilding->Type->Repairable;
+			}else { 
+				return pBuilding->Type->Capturable && (!pBuilding->Owner->Type->MultiplayPassive || !pBuilding->Type->CanBeOccupied || pBuilding->IsBeingWarpedOut());
+			}
+		}
 
+		return false;
+	}
 };
 
 #pragma region UnitClass_GetFireError_Heal
 
-FireError __fastcall UnitClass__GetFireError(UnitClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
-{
-	JMP_THIS(0x740FD0);
-}
-
 FireError __fastcall UnitClass__GetFireError_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
 {
 	AresScheme::Prefix(pThis, pObj, nWeaponIndex);
-	auto const result = UnitClass__GetFireError(pThis, _, pObj, nWeaponIndex, ignoreRange);
+	auto const result = pThis->UnitClass::GetFireError(pObj, nWeaponIndex, ignoreRange);
 	AresScheme::Suffix();
 	return result;
 }
@@ -284,30 +326,24 @@ DEFINE_JUMP(VTABLE, 0x7F6030, GET_OFFSET(UnitClass__GetFireError_Wrapper));
 #pragma endregion UnitClass_GetFireError_Heal
 
 #pragma region InfantryClass_GetFireError_Heal
-FireError __fastcall InfantryClass__GetFireError(InfantryClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
-{
-	JMP_THIS(0x51C8B0);
-}
+
 FireError __fastcall InfantryClass__GetFireError_Wrapper(InfantryClass* pThis, void* _, ObjectClass* pObj, int nWeaponIndex, bool ignoreRange)
 {
 	AresScheme::Prefix(pThis, pObj, nWeaponIndex);
-	auto const result = InfantryClass__GetFireError(pThis, _, pObj, nWeaponIndex, ignoreRange);
+	auto const result = pThis->InfantryClass::GetFireError(pObj, nWeaponIndex, ignoreRange);
 	AresScheme::Suffix();
 	return result;
 }
+
 DEFINE_JUMP(VTABLE, 0x7EB418, GET_OFFSET(InfantryClass__GetFireError_Wrapper));
 #pragma endregion InfantryClass_GetFireError_Heal
 
 #pragma region UnitClass__WhatAction
-Action __fastcall UnitClass__WhatAction(UnitClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
-{
-	JMP_THIS(0x73FD50);
-}
 
 Action __fastcall UnitClass__WhatAction_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
 {
 	AresScheme::Prefix(pThis, pObj, -1);
-	auto const result = UnitClass__WhatAction(pThis, _, pObj, ignoreForce);
+	auto const result = pThis->UnitClass::MouseOverObject(pObj, ignoreForce);
 	AresScheme::Suffix();
 	return result;
 }
@@ -315,15 +351,10 @@ DEFINE_JUMP(VTABLE, 0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
 #pragma endregion UnitClass__WhatAction
 
 #pragma region InfantryClass__WhatAction
-Action __fastcall InfantryClass__WhatAction(InfantryClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
-{
-	JMP_THIS(0x51E3B0);
-}
-
 Action __fastcall InfantryClass__WhatAction_Wrapper(InfantryClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
 {
-	AresScheme::Prefix(pThis, pObj, -1);
-	auto const result = InfantryClass__WhatAction(pThis, _, pObj, ignoreForce);
+	AresScheme::Prefix(pThis, pObj, -1,pThis->Type->Engineer);
+	auto const result = pThis->InfantryClass::MouseOverObject(pObj, ignoreForce);
 	AresScheme::Suffix();
 	return result;
 }

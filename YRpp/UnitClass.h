@@ -36,9 +36,12 @@ public:
 	virtual void Update() override JMP_THIS(0x7360C0);
 
 	//ObjectClass
+	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x73FD50);
+
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x746CD0);
+	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x740FD0);
 
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x7414E0);

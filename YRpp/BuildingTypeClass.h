@@ -371,7 +371,9 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_1709[3]);
 	int PsychicDetectionRadius;
 	int BarrelStartPitch;
-	char VoxelBarrelFile [0x1C];
+	char VoxelBarrelFile[16];
+	DWORD field_1724;
+	double double_1728;
 	CoordStruct VoxelBarrelOffsetToPitchPivotPoint;
 	CoordStruct VoxelBarrelOffsetToRotatePivotPoint;
 	CoordStruct VoxelBarrelOffsetToBuildingPivotPoint;
@@ -393,3 +395,4 @@ public:
 	PRIVATE_PROPERTY(DWORD, align_1794);
 
 };
+static_assert(sizeof(BuildingTypeClass) == 0x1798, "Invalid Size !");

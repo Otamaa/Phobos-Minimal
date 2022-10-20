@@ -11,7 +11,7 @@ class SHPRefExt
 public:
 	static constexpr DWORD Canary = 0xAB5005BA;
 	using base_type = SHPReference;
-	static constexpr size_t ExtOffset = sizeof(base_type);
+	static constexpr size_t ExtOffset = 0x20;
 
 	class ExtData final : public Extension<SHPReference>
 	{

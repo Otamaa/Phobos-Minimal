@@ -103,13 +103,7 @@ bool SWTypeExt::ExtData::IsInhibitorEligible(HouseClass* pOwner, const CellStruc
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		// get the inhibitor's center
-		auto center = pTechno->GetCoords();
-		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
-		{
-			center = pBuilding->GetCoords();
-			center.X += pBuilding->Type->GetFoundationWidth() / 2;
-			center.Y += pBuilding->Type->GetFoundationHeight(false) / 2;
-		}
+		auto center = pTechno->GetCenterCoords();
 
 		// has to be closer than the inhibitor range (which defaults to Sight)
 		return Coords.DistanceFrom(CellClass::Coord2Cell(center)) <= pExt->InhibitorRange.Get(pType->Sight);
@@ -147,13 +141,7 @@ bool SWTypeExt::ExtData::IsDesignatorEligible(HouseClass* pOwner, const CellStru
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		// get the designator's center
-		auto center = pTechno->GetCoords();
-		if (auto pBuilding = abstract_cast<BuildingClass*>(pTechno))
-		{
-			center = pBuilding->GetCoords();
-			center.X += pBuilding->Type->GetFoundationWidth() / 2;
-			center.Y += pBuilding->Type->GetFoundationHeight(false) / 2;
-		}
+		auto center = pTechno->GetCenterCoords();
 
 		// has to be closer than the designator range (which defaults to Sight)
 		return coords.DistanceFrom(CellClass::Coord2Cell(center)) <= pExt->DesignatorRange.Get(pType->Sight);

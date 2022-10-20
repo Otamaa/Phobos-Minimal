@@ -42,6 +42,7 @@ public:
 		bool RepairBaseNodes[3];
 
 		bool IsObserver;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -97,7 +98,8 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
+	static int LastHarvesterBalance;
+	static int LastSlaveBalance;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

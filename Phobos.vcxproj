@@ -51,6 +51,7 @@
     <ClCompile Include="src\Ext\BuildingType\Hooks.DockPoseDir.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Upgrade.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.AIFactory.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Fires.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Otamaa.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
@@ -83,6 +85,7 @@
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
     <ClCompile Include="src\Ext\Script\Hooks.cpp" />
+    <ClCompile Include="src\Ext\SHPReference\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.cpp" />
@@ -258,6 +261,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
+    <ClInclude Include="src\Ext\Convert\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
     <ClInclude Include="src\Ext\LaserDraw\Body.h" />
@@ -265,6 +269,7 @@
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
     <ClInclude Include="src\Ext\ScriptType\Body.h" />
+    <ClInclude Include="src\Ext\SHPReference\Body.h" />
     <ClInclude Include="src\Ext\Sidebar\Body.h" />
     <ClInclude Include="src\Ext\Anim\Body.h" />
     <ClInclude Include="src\Ext\SmudgeType\Body.h" />

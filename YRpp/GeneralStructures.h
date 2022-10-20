@@ -112,7 +112,6 @@ public:
 		this->Resume();
 	}
 
-protected:
 	bool IsTicking() const {
 		return this->StartTime != -1;
 	}

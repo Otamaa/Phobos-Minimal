@@ -10,6 +10,7 @@
 #include <ScriptClass.h>
 #include <AITriggerTypeClass.h>
 #include <Helpers/Enumerators.h>
+#include <IsometricTileTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>

@@ -23,13 +23,12 @@ void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_vi
 	}
 }
 
+DEFINE_JUMP(LJMP, 0x48E955 ,0x48E9E1)
+
 DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
 {
 	GET(ConvertClass*, pItem, ESI);
-
-	//Debug::Log("Constructing %p.\n", pItem);
 	ConvertExt::ExtMap.JustAllocate(pItem , pItem , "Trying to Allocate from nullptr ! \n");
-
 	return 0;
 }
 
@@ -37,11 +36,6 @@ DEFINE_HOOK_AGAIN(0x490400, ConvertClass_DTOR, 0xA)
 DEFINE_HOOK(0x491210, ConvertClass_DTOR, 0xA)
 {
 	GET(ConvertClass*, pItem, ECX);
-
-	//Debug::Log("%p Has been removed.\n", pItem);
 	ConvertExt::ExtMap.Remove(pItem);
-
 	return 0;
 }
-
-DEFINE_JUMP(LJMP , 0x48E955 , 0x48E9E1)

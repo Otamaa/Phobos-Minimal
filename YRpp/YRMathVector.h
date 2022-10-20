@@ -1002,3 +1002,25 @@ public:
 
 template <typename T>
 const Vector4D<T> Vector4D<T>::Empty = { T(), T(), T(), T() };
+
+
+template<typename T>
+class PartialVector2D : public Vector2D<T>
+{
+public:
+	size_t ValueCount;
+};
+
+template<typename T>
+class PartialVector3D : public Vector3D<T>
+{
+public:
+	size_t ValueCount;
+};
+
+template<typename T>
+class PartialVector4D : public Vector4D<T>
+{
+public:
+	size_t ValueCount;
+};

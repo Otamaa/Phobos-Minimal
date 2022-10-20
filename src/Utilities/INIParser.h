@@ -123,6 +123,16 @@ public:
 		return false;
 	}
 
+	template <typename T, size_t Count>
+	size_t ReadAndCount(const char* pSection, const char* pKey, T* pBuffer)
+	{
+		if (this->ReadString(pSection, pKey)) {
+			return Parser<T, Count>::Parse(this->value(), pBuffer);
+		}
+
+		return 0;
+	}
+
 	// helpers
 
 	bool ReadBool(const char* pSection, const char* pKey, bool* bBuffer) {
@@ -145,8 +155,18 @@ public:
 		return Read<int, 2>(pSection, pKey, nBuffer);
 	}
 
+	bool Read2IntegerAndCount(const char* pSection, const char* pKey, int* nBuffer)
+	{
+		return ReadAndCount<int, 2>(pSection, pKey, nBuffer);
+	}
+
 	bool Read3Integers(const char* pSection, const char* pKey, int* nBuffer) {
 		return Read<int, 3>(pSection, pKey, nBuffer);
+	}
+
+	size_t Read3IntegerAndCount(const char* pSection, const char* pKey, int* nBuffer)
+	{
+		return ReadAndCount<int, 3>(pSection, pKey, nBuffer);
 	}
 
 	bool Read4Integers(const char* pSection, const char* pKey, int* nBuffer) {
@@ -172,9 +192,19 @@ public:
 		return Read<double, 2>(pSection, pKey, nBuffer);
 	}
 
+	size_t Read2DoubleAndCount(const char* pSection, const char* pKey, double* nBuffer)
+	{
+		return ReadAndCount<double, 2>(pSection, pKey, nBuffer);
+	}
+
 	bool Read3Double(const char *pSection, const char *pKey, double *nBuffer)
 	{
 		return Read<double, 3>(pSection, pKey, nBuffer);
+	}
+
+	size_t Read3DoubleAndCount(const char* pSection, const char* pKey, double* nBuffer)
+	{
+		return ReadAndCount<double, 3>(pSection, pKey, nBuffer);
 	}
 
 	bool ReadFloat(const char *pSection, const char *pKey, float *nBuffer)

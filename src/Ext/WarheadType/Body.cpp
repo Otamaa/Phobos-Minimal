@@ -7,6 +7,7 @@
 #include <Ext/BulletType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -20,11 +21,12 @@ void WarheadTypeExt::ExtData::Initialize()
 //https://github.com/Phobos-developers/Phobos/issues/629
 void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
 {
-	if (!pVictim )
+	if (!pVictim)
 		return;
 
 	auto const pExt = TechnoExt::ExtMap.Find(pVictim);
-	if (pExt->ReceiveDamageMultiplier.isset()) {
+	if (pExt->ReceiveDamageMultiplier.isset())
+	{
 		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
 		pExt->ReceiveDamageMultiplier.clear();
 	}
@@ -100,13 +102,15 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 			pTechno->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
 			return false;
 
-		if (!SkipVerses) {
-			if (EffectsRequireVerses.Get()) {
+		if (!SkipVerses)
+		{
+			if (EffectsRequireVerses.Get())
+			{
 				auto nArmor = pTechno->GetTechnoType()->Armor;
 				auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
 				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
-						nArmor = pExt->CurrentShieldType->Armor;
+					nArmor = pExt->CurrentShieldType->Armor;
 
 				return (fabs(GeneralUtils::GetWarheadVersusArmor(Get(), nArmor)) >= 0.001);
 			}
@@ -157,31 +161,25 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
-	if (pTechno)
+	if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
+		return false;
+
+	auto const pType = pTechno->GetTechnoType();
+
+	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
+		return false;
+
+	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
+		return false;
+
+	if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
+		!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
+		this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
 	{
-		auto const pType = pTechno->GetTechnoType();
-
-		if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
-			return false;
-
-		if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
-			return false;
-
-		if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
-			return false;
-
-		if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
-			!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
-			this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
-		{
-			return false;
-		}
-
-
-		return true;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
@@ -210,7 +208,6 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 		pBullet->UnInit();
 	}
 }
-
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
@@ -463,7 +460,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 #pragma endregion
 
-	}
+}
 
 template <typename T>
 void WarheadTypeExt::ExtData::Serialize(T& Stm)

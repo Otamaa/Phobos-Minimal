@@ -150,6 +150,8 @@ public:
 
 		Valueable<int> ForceWeapon_Naval_Decloaked;
 		Valueable<int> ForceWeapon_UnderEMP;
+		Valueable<int> ForceWeapon_Cloaked;
+		Valueable<int> ForceWeapon_Disguised;
 		Valueable<bool> ImmuneToEMP;
 		Valueable<bool> E_ImmuneToEMP;
 		Valueable<bool> V_ImmuneToEMP;
@@ -350,6 +352,8 @@ public:
 		std::vector<LineTrailData> LineTrailData;
 		Nullable<int> PoseDir;
 		Valueable<bool> Firing_IgnoreGravity;
+
+		Promotable<int> Survivors_PassengerChance;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -472,6 +476,8 @@ public:
 			, SelfHealGainType {}
 			, ForceWeapon_Naval_Decloaked { -1 }
 			, ForceWeapon_UnderEMP { -1 }
+			, ForceWeapon_Cloaked { -1 }
+			, ForceWeapon_Disguised { -1 }
 			, ImmuneToEMP { false }
 			, E_ImmuneToEMP { false }
 			, V_ImmuneToEMP { false }
@@ -648,7 +654,8 @@ public:
 			, LineTrailData { }
 			, PoseDir { }
 			, Firing_IgnoreGravity { false }
-
+			, Survivors_PassengerChance{ -1 }
+			
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

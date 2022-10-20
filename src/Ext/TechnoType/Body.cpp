@@ -153,6 +153,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exArtINI(pArtIni);
 	INI_EX exINI(pINI);
 
+	this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
 	this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
 	this->UIDescription.Read(exINI, pSection, "UIDescription");
 	this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
@@ -295,6 +296,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->ForceWeapon_Naval_Decloaked.Read(exINI, pSection, "ForceWeapon.Naval.Decloaked");
 	this->ForceWeapon_UnderEMP.Read(exINI, pSection, "ForceWeapon.UnderEMP");
+	this->ForceWeapon_Cloaked.Read(exINI, pSection, "ForceWeapon.Cloaked");
+	this->ForceWeapon_Disguised.Read(exINI, pSection, "ForceWeapon.Disguised");
 
 	this->Ammo_Shared.Read(exINI, pSection, "Ammo.Shared");
 	this->Ammo_Shared_Group.Read(exINI, pSection, "Ammo.Shared.Group");
@@ -613,6 +616,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EnemyUIName)
 		.Process(this->ForceWeapon_Naval_Decloaked)
 		.Process(this->ForceWeapon_UnderEMP)
+		.Process(this->ForceWeapon_Cloaked)
+		.Process(this->ForceWeapon_Disguised)
 		.Process(this->ImmuneToEMP)
 		.Process(this->E_ImmuneToEMP)
 		.Process(this->V_ImmuneToEMP)
@@ -791,6 +796,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LineTrailData)
 		.Process(this->PoseDir)
 		.Process(this->Firing_IgnoreGravity)
+		.Process(this->Survivors_PassengerChance)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 
@@ -936,7 +942,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
-
 	this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
 	this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
 
@@ -967,13 +972,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 #endif
 }
 
-DEFINE_HOOK(0x41CD82, AircraftTypeClass_LoadFromINI, 0x7)
+//hook before stuffs got pop-ed to remove crash possibility
+DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
 {
-	GET(AircraftTypeClass*, pItem, ESI);
-	GET(CCINIClass*, pINI, EBX);
+	GET(const AircraftTypeClass* const , pItem, ESI);
+	GET(CCINIClass* const, pINI, EBX);
+
+	R->AL(pINI->ReadBool(pItem->ID, "FlyBack", R->CL()));
 
 	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
 		pExt->LoadFromINIFile_Aircraft(pINI);
 
-	return 0x0;
+	return 0x41CD82;
 }

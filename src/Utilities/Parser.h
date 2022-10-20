@@ -279,3 +279,72 @@ inline bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
 	}
 	return false;
 };
+
+template<typename T>
+class MultiParser
+{
+public:
+	using OutType = T;
+	using BaseType = std::remove_pointer_t<T>;
+
+	static size_t Parse(const char* pValue, OutType* outValue, size_t count)
+	{
+		char buffer[0x80];
+		for (size_t i = 0; i < count; ++i)
+		{
+			// skip the leading spaces
+			while (isspace(static_cast<unsigned char>(*pValue)))
+			{
+				++pValue;
+			}
+
+			// read the next part
+			int n = 0;
+			if (sscanf_s(pValue, "%[^,]%n", buffer, sizeof(buffer), &n) != 1)
+			{
+				return i;
+			}
+
+			// skip all read chars and the comma
+			pValue += n;
+			if (*pValue)
+			{
+				++pValue;
+			}
+
+			// trim the trailing spaces
+			while (n && isspace(static_cast<unsigned char>(buffer[n - 1])))
+			{
+				buffer[n-- - 1] = '\0';
+			}
+
+			// interprete the value
+			if (!Parser<OutType>::TryParse(buffer, &outValue[i]))
+			{
+				return i;
+			}
+		}
+
+		return count;
+	}
+
+	static bool TryParse(const char* pValue, OutType* outValue, size_t count)
+	{
+		OutType buffer[count] = {};
+
+		if (Parse(pValue, buffer) != count)
+		{
+			return false;
+		}
+
+		if (outValue)
+		{
+			for (size_t i = 0; i < count; ++i)
+			{
+				outValue[i] = buffer[i];
+			}
+		}
+
+		return true;
+	}
+};

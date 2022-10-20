@@ -310,7 +310,6 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 	return 0x0;
 }
 
-/*
 DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -318,30 +317,14 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 	int nResult = 0;
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pExt && pExt->ROF_Random.Get())
-	{
-		auto const nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
-		Point2D nBuff { 0, 2 };
-
-		if (nData != nBuff)
-		{
-			if (nData.X || nData.Y)
-			{
-				nBuff.X = abs(nData.X);
-				nBuff.Y = abs(nData.Y);
-
-				if (nBuff.X > nBuff.Y)
-					std::swap(nBuff.X, nBuff.Y);
-			}
-		}
-
-		nResult = (ScenarioGlobal->Random.RandomRanged(nBuff.X, nBuff.Y));
+	if (pExt->ROF_Random.Get()) {
+		auto const& nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
+		nResult = GeneralUtils::GetRangedRandomOrSingleValue(nData);
 	}
 
-	R->EAX((double)nResult);
+	R->EAX(nResult);
 	return 0x6FD0B5;
 }
-*/
 
 namespace ShakeScreenHandle
 {

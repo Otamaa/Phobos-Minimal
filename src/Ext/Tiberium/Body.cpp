@@ -43,6 +43,7 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 		.Process(this->MinimapColor)
 		.Process(this->EnableLighningFix)
 		.Process(this->UseNormalLight)
+		.Process(this->Replaced_EC)
 	;
 }
 

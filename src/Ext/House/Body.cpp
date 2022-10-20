@@ -7,6 +7,8 @@
 
 //Static init
 HouseExt::ExtContainer HouseExt::ExtMap;
+int HouseExt::LastHarvesterBalance = 0;
+int HouseExt::LastSlaveBalance = 0;
 
 void HouseExt::ExtData::InitializeConstants() {
 
@@ -233,12 +235,16 @@ void HouseExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 bool HouseExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
+		.Process(HouseExt::LastHarvesterBalance)
+		.Process(HouseExt::LastSlaveBalance)
 		.Success();
 }
 
 bool HouseExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
+		.Process(HouseExt::LastHarvesterBalance)
+		.Process(HouseExt::LastSlaveBalance)
 		.Success();
 }
 

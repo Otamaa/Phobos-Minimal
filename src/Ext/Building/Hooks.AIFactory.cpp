@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/House/Body.h>
+
 DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);

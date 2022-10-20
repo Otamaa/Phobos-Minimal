@@ -137,6 +137,7 @@ bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrad
 
 	return false;
 }
+
 CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeBib)
 {
 	CoordStruct ret = pBuilding->GetCoords();

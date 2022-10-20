@@ -300,7 +300,29 @@ void TechnoExt::ApplyMobileRefinery(TechnoClass* pThis)
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
-	TechnoExt::ExtMap.Find(pThis)->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
+
+	if (auto pExt = TechnoExt::ExtMap.Find<true>(pThis))
+		pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
+
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		if (auto pBldExt = BuildingExt::ExtMap.Find<true>(static_cast<BuildingClass*>(pThis)))
+		{
+			//auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldExt->Get()->Type);
+
+			if (pBldExt->LighningNeedUpdate)
+			{
+				pThis->UpdatePlacement(PlacementType::Redraw);
+				pBldExt->LighningNeedUpdate = false;
+
+			}
+
+			//if (pBldTypeExt->RubbleIntact && pThis->GetHealthPercentage_() >= RulesGlobal->ConditionRed)
+			//{
+			//	pBldExt->RubbleYell(true);
+			//}
+		}
+	}
 	return 0x0;
 }
 
@@ -319,31 +341,11 @@ DEFINE_HOOK(0x7363B5, UnitClass_AI_Tunnel, 0x6)
 }
 
 DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
-//DEFINE_HOOK(0x6F9E50, TechnoClass_AI_, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
 	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
-
-	if (pThis->WhatAmI() == AbstractType::Building)
-	{
-		auto pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
-		auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldExt->Get()->Type);
-
-		if (pBldExt->LighningNeedUpdate)
-		{
-			pThis->UpdatePlacement(PlacementType::Redraw);
-			pBldExt->LighningNeedUpdate = false;
-
-		}
-
-		//if (pBldTypeExt->RubbleIntact && pThis->GetHealthPercentage_() >= RulesGlobal->ConditionRed)
-		//{
-		//	pBldExt->RubbleYell(true);
-		//}
-	}
-
 
 	//bool IsInLimboDelivery = false;
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
@@ -411,7 +413,7 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	}
 #endif
 
-	if (pExt->DelayedFire_Anim && pThis->GetCurrentMission() != Mission::Attack)
+	if (pExt->DelayedFire_Anim && !pThis->Target && pThis->GetCurrentMission() != Mission::Attack)
 	{
 		pThis->ArmTimer.Start(pThis->ArmTimer.GetTimeLeft() + 5);
 
@@ -489,7 +491,7 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 
 	pThis->FootClass::Update();
 	return 0x414DA8;
-}
+	}
 
 DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 {

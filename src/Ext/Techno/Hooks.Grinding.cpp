@@ -6,6 +6,8 @@
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 {
 	enum { ReturnStatic = 0x43C31A, ReturnNegative = 0x43CB68, ReturnRoger = 0x43CCF2 };
@@ -161,3 +163,47 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 
 	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Continue : 0;
 }
+
+//DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
+//{
+//	GET(HouseClass* const, pHouse, EBX);
+//	HouseExt::LastHarvesterBalance = pHouse->Balance;
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
+//{
+//	GET(HouseClass* const, pHouse, EBX);
+//	GET(BuildingClass* const, pDock, EDI);
+//
+//	int delta = pHouse->Balance - HouseExt::LastHarvesterBalance;
+//	auto pBldExt = BuildingExt::ExtMap.Find(pDock);
+//	auto pTypeExt = BuildingTypeExt::ExtMap.Find(pDock->Type);
+//
+//	FlyingStrings::AddMoneyString(delta, delta, pDock, pTypeExt->Grinding_DisplayRefund_Houses
+//			, pDock->GetRenderCoords(), pTypeExt->Grinding_DisplayRefund_Offset);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
+//{
+//	GET_STACK(BuildingClass* const, slaveMiner, 0x4);
+//	HouseExt::LastSlaveBalance = slaveMiner->Owner->Balance;
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
+//{
+//	GET_STACK(BuildingClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
+//
+//	int delta = slaveMiner->Owner->Balance - HouseExt::LastSlaveBalance;
+//	auto pBldExt = BuildingExt::ExtMap.Find(slaveMiner);
+//	auto pTypeExt = BuildingTypeExt::ExtMap.Find(slaveMiner->Type);
+//
+//	FlyingStrings::AddMoneyString(delta, delta, slaveMiner, pTypeExt->Grinding_DisplayRefund_Houses
+//			, slaveMiner->GetRenderCoords(), pTypeExt->Grinding_DisplayRefund_Offset);
+//
+//
+//	return 0;
+//}

@@ -31,11 +31,9 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 	GET_STACK(Point2D, nPoint, STACK_OFFS(0x78, 0x50));
 	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
 
-	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery)
+	if (pThis->WhatAmI() == AbstractType::Building)
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->IsInLimboDelivery)
 			return 0x6FA2D8;
-	}
 
 	if (!pThis->GetTechnoType()->Invisible)
 		pThis->DrawBehind(&nPoint, &nBound);
@@ -459,8 +457,7 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 
 DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
 
-
-Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
+static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 {
 	auto& nFuse = pBullet->Data;
 
@@ -490,13 +487,11 @@ LABEL_5:
 	if (pExt->TypeExt->Proximity_Range.isset())
 		nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
 
-	if (proximity < nProx)
-	{
+	if (proximity < nProx) {
 		return Fuse::Ignite;
 	}
 
-	if (proximity < 256 && proximity > nFuse.Distance)
-	{
+	if (proximity < 256 && proximity > nFuse.Distance) {
 		return Fuse::Ignite_DistaceFactor;
 	}
 
@@ -629,17 +624,24 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 	return R->ESI<TechnoClass*>()->Owner->IsControlledByCurrentPlayer() ? 0x70383C : 0x703828;
 }
 
-DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
+//DEFINE_HOOK(0x54DCD2, JumpetLocomotionClass_DrawMatrix, 0x8)
+//{
+//	GET(FootClass*, pFoot, ECX);
+//
+//	bool Allow = true;
+//	if (pFoot->GetTechnoType()->TiltCrashJumpjet)
+//	{
+//		Allow = LocomotionClass::End_Piggyback(pFoot->Locomotor);
+//	}
+//
+//	return Allow ? 0x54DCE8 : 0x54DF13;
+//}
+
+DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
 {
-	GET(FootClass*, pFoot, ECX);
-
-	bool Allow = false;
-	if (pFoot->GetTechnoType()->TiltCrashJumpjet)
-	{
-		Allow = LocomotionClass::End_Piggyback(pFoot->Locomotor);
-	}
-
-	return Allow ? 0x54DCE8 : 0x54DF13;
+	GET(ILocomotion*, pILoco , ESI);
+	auto const pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
+	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 }
 
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
@@ -781,6 +783,14 @@ DEFINE_HOOK(0x50CA30, HouseClass_Center_50C920, 0x6)
 	return 0x50CA3C;
 }
 
+//DEFINE_HOOK(0x737E66, UnitClass_TakeDamage_Debug, 0x8)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x48, -0xC));
+//	Debug::Log("[%d] %s Warhead Destroying %s ! \n ", pWH, pWH->ID, pThis->get_ID());
+//	return 0x0;
+//}
+
 DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
@@ -794,6 +804,7 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 
 	return 0x518362;
 }
+
 //
 //DEFINE_HOOK(0x4A9004, MouseClass_CanPlaceHere_SkipSelf, 0x6)
 //{
@@ -1126,7 +1137,8 @@ DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 	}
 	else
 	{
-		pThis->Locomotor->Process();
+		//Interfance already checked above
+		pThis->Locomotor.get()->Process();
 	}
 
 	return 0x51D47B;
@@ -2066,7 +2078,6 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 //	return args->IgnoreDefenses ? 0x5F5416 : 0x5F53F3;
 //}
 
-
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
 	enum
@@ -2121,21 +2132,21 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 	return BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery ? DoNotDraw : Draw;
 }
 
-DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
-{
-	GET(UnitTypeClass*, pType, ECX);
-	GET(UnitClass*, pThis, EBP);
-	GET(int, nFrame, EBX);
-
-	auto nStand = pType->StandingFrames;
-	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
-	if (pType->IdleRate > 0)
-		nStandStartFrame += pThis->WalkedFramesSoFar;
-
-	R->EBX(nStandStartFrame);
-
-	return 0x73C725;
-}
+//DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
+//{
+//	GET(UnitTypeClass*, pType, ECX);
+//	GET(UnitClass*, pThis, EBP);
+//	GET(int, nFrame, EBX);
+//
+//	auto nStand = pType->StandingFrames;
+//	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
+//	if (pType->IdleRate > 0)
+//		nStandStartFrame += pThis->WalkedFramesSoFar;
+//
+//	R->EBX(nStandStartFrame);
+//
+//	return 0x73C725;
+//}
 
 // Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
 // Fixes recursive passenger kills not being accredited
@@ -2150,3 +2161,225 @@ DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
 //	return 0x417FD8;
 //}
 
+CoordStruct GetPutLocation(CoordStruct current, int distance)
+{
+	// this whole thing does not at all account for cells which are completely occupied.
+	auto tmpCoords = CellSpread::GetCell(ScenarioClass::Instance->Random.RandomRanged(0, 7));
+
+	current.X += tmpCoords.X * distance;
+	current.Y += tmpCoords.Y * distance;
+
+	auto tmpCell = MapClass::Instance->GetCellAt(current);
+	auto target = tmpCell->FindInfantrySubposition(current, false, false, false);
+
+	target.Z = current.Z;
+	return target;
+}
+
+bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
+{
+	CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
+
+	if (!pCell)
+	{
+		return false;
+	}
+
+	Survivor->OnBridge = pCell->ContainsBridge();
+
+	int floorZ = pCell->GetCoordsWithBridge().Z;
+	bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
+	if (chuted)
+	{
+		// HouseClass::CreateParadrop does this when building passengers for a paradrop... it might be a wise thing to mimic!
+		Survivor->Limbo();
+
+		if (!Survivor->SpawnParachuted(loc) || pCell->GetBuilding())
+		{
+			return false;
+		}
+	}
+	else
+	{
+		loc.Z = floorZ;
+		if (!Survivor->Unlimbo(loc, static_cast<DirType>(ScenarioGlobal->Random.RandomFromMax(7))))
+		{
+			return false;
+		}
+	}
+
+	Survivor->Transporter = nullptr;
+	Survivor->LastMapCoords = pCell->MapCoords;
+
+	// don't ask, don't tell
+	if (chuted)
+	{
+		bool scat = Survivor->OnBridge;
+		auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
+		if ((occupation & 0x1C) == 0x1C)
+		{
+			pCell->ScatterContent(CoordStruct::Empty, true, true, scat);
+		}
+	}
+	else
+	{
+		Survivor->Scatter(CoordStruct::Empty, true, false);
+		Survivor->QueueMission(Survivor->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
+	}
+
+	Survivor->ShouldEnterOccupiable = false;
+	Survivor->ShouldGarrisonStructure = false;
+
+	if (Select)
+	{
+		Survivor->Select();
+	}
+
+	return true;
+	//! \todo Tag
+}
+
+bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
+{
+	CoordStruct destLoc = GetPutLocation(location, distance);
+	return EjectSurvivor(pEjectee, destLoc, select);
+}
+
+DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
+{
+	GET(UnitTypeClass*, pType, EAX);
+	GET(UnitClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pKiller, 0x54);
+	GET_STACK(bool, select, 0x13);
+	GET_STACK(bool, ignoreDefenses, 0x58);
+	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x44, -0x18));
+
+	if (!ignoreDefenses)
+		return 0x0;
+
+	if (pType->OpenTopped)
+	{
+		pThis->MarkPassengersAsExited();
+	}
+
+	if (!preventPassangersEscape)
+	{
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		auto const location = pThis->Location;
+
+		// passenger escape chances
+		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+
+		// eject or kill all passengers
+		while (pThis->Passengers.GetFirstPassenger())
+		{
+			auto const pPassenger = pThis->RemoveFirstPassenger();
+			bool trySpawn = false;
+			if (passengerChance > 0)
+			{
+				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
+			}
+			else if (passengerChance == -1 && pThis->WhatAmI() == UnitClass::AbsID)
+			{
+				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
+				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
+			}
+			if (trySpawn && EjectRandomly(pPassenger, location, 128, select))
+			{
+				continue;
+			}
+
+			// kill passenger, if not spawned
+			pPassenger->RegisterDestruction(pKiller);
+			pPassenger->UnInit();
+		}
+	}
+
+	return 0x737F97;
+}
+
+DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pKiller, 0x28);
+	GET_STACK(int, ignoreDefenses, 0x20);
+	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x14, -0x18));
+
+	if (!ignoreDefenses)
+		return 0x0;
+
+	if (!preventPassangersEscape)
+	{
+		bool select = pThis->IsSelected && pThis->Owner->ControlledByPlayer();
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		auto const location = pThis->Location;
+
+		// passenger escape chances
+		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+
+		// eject or kill all passengers
+		while (pThis->Passengers.GetFirstPassenger())
+		{
+			auto const pPassenger = pThis->RemoveFirstPassenger();
+			bool trySpawn = false;
+
+			if (passengerChance > 0)
+			{
+				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
+			}
+			else if (passengerChance == -1 && pThis->WhatAmI() == UnitClass::AbsID)
+			{
+				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
+				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
+			}
+			if (trySpawn && EjectRandomly(pPassenger, location, 128, select))
+			{
+				continue;
+			}
+
+			// kill passenger, if not spawned
+			pPassenger->RegisterDestruction(pKiller);
+			pPassenger->UnInit();
+		}
+	}
+
+	return 0x0;
+}
+
+int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
+{
+	GET(AnimClass*, pThis, ESI);
+	GET(AnimTypeClass*, pAnimType, EAX);
+	GET(int, nNumParticles, ECX);
+
+	const auto pType = ParticleTypeClass::Array->Items[pAnimType->SpawnsParticle];
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
+	//should be lepton ?
+	const auto nMin = static_cast<int>(pTypeExt->ParticleRangeMin);
+	const auto nMax = static_cast<int>(pTypeExt->ParticleRangeMax);
+
+	if (nMin || nMax)
+	{
+		const auto nCoord = pThis->GetCoords();
+		const auto v8 = nCoord.Z - Map.GetCellFloorHeight(nCoord);
+		const auto v17 = 6.283185307179586 / nNumParticles;
+		double v16 = 0.0;
+
+		if (nNumParticles > 0)
+		{
+			for(; nNumParticles; --nNumParticles)
+			{
+				auto v13 = abs(ScenarioGlobal->Random.RandomRanged(nMin, nMax));
+				auto v10 = ScenarioGlobal->Random.RandomDouble() * v17 + v16;
+				auto v18 = Math::cos(v10);
+				auto v9 = Math::sin(v10);
+				CoordStruct nCoordB { nCoord.X + static_cast<int>(v13 * v18),nCoord.Y - static_cast<int>(v9 * v13), nCoord.Z };
+				nCoordB.Z = v8 + Map.GetCellFloorHeight(nCoordB);
+				ParticleSystemClass::Instance->SpawnParticle(pType, &nCoordB);
+				v16 += v17;
+			}
+		}
+	}
+
+	return 0x42504D;
+}

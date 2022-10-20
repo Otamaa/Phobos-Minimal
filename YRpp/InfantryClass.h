@@ -30,8 +30,12 @@ public:
 	virtual int	Size() const override { return 0x6F0; }
 	virtual void Update() override JMP_THIS(0x51BAB0);
 
+	//ObjectClass
+	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x51E3B0);
+
 	//TechnoClass
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);
+	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x51C8B0);
 
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);

@@ -32,14 +32,24 @@ DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
 
 	int const deployFireIdx = pThis->GetTechnoType()->DeployFireWeapon;
 	int weaponIndex = deployFireIdx == -1 ? pThis->SelectWeapon(pThis->Target) : deployFireIdx;
+	auto const pWeapon = pThis->GetWeapon(weaponIndex);
+
+	if (!pWeapon || !pWeapon->WeaponType)
+		return 0x73DD3C;
+
 
 	if (pThis->GetFireError(pThis->Target, weaponIndex, true) == FireError::OK)
 	{
 		pThis->Fire(pThis->Target, weaponIndex);
-		auto const pWeapon = pThis->GetWeapon(weaponIndex);
+	
+		const auto pExt = TechnoExt::ExtMap.Find(pThis);
+		pExt->DeployFireTimer.Start(pWeapon->WeaponType->ROF);
 
 		if (pWeapon && pWeapon->WeaponType->FireOnce)
+		{
+			pThis->SetTarget(nullptr);
 			pThis->QueueMission(Mission::Guard, true);
+		}
 	}
 
 	return 0x73DD3C;

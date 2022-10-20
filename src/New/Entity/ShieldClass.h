@@ -16,30 +16,30 @@ public:
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
 	virtual ~ShieldClass() { KillAnim(); };
 
-	virtual void OnInit() { }
-	virtual void OnUnInit() { }
-	virtual void OnDetonate(CoordStruct* location) { }
-	virtual void OnPut(CoordStruct pCoord, short faceDirValue8) { }
-	virtual void OnRemove();
-	virtual void OnReceiveDamage(args_ReceiveDamage* args);
-	virtual void OnFire(AbstractClass* pTarget, int weaponIndex) { }
+	void OnInit() { }
+	void OnUnInit() { }
+	void OnDetonate(CoordStruct* location) { }
+	void OnPut(CoordStruct pCoord, short faceDirValue8) { }
+	void OnRemove();
+	void OnReceiveDamage(args_ReceiveDamage* args);
+	void OnFire(AbstractClass* pTarget, int weaponIndex) { }
 
-	virtual void OnSelect(bool& selectable) { }
-	virtual void OnGuardCommand() { }
-	virtual void OnStopCommand() { }
-	virtual void OnDeploy() { }
+	void OnSelect(bool& selectable) { }
+	void OnGuardCommand() { }
+	void OnStopCommand() { }
+	void OnDeploy() { }
 
 	bool CanBeTargeted(WeaponTypeClass* pWeapon) const;
 	bool CanBePenetrated(WarheadTypeClass* pWarhead) const;
+
+	void OnTemporalUpdate(TemporalClass* pTemporal);
+	void OnUpdate();
 
 	void BreakShield(AnimTypeClass* pBreakAnim = nullptr, WeaponTypeClass* pBreakWeapon = nullptr);
 	void SetRespawn(int duration, double amount, int rate, bool resetTimer);
 	void SetSelfHealing(int duration, double amount, int rate, bool resetTimer);
 
 	void KillAnim();
-
-	virtual void OnTemporalUpdate(TemporalClass* pTemporal);
-	virtual void OnUpdate();
 
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 

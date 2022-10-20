@@ -82,7 +82,7 @@ public:
 	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
 	virtual bool IsOnFloor() const  R0;
 	virtual bool IsInAir() const  R0;
-	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__
+	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const override R0; //GetCoords__
 
 	virtual void Update() JMP_THIS(0x5F3E70);
 
@@ -254,12 +254,12 @@ public:
 		return pBuffer;
 	}
 
-	//CoordStruct GetCoords() const
-	//{
-	//	CoordStruct ret;
-	//	this->GetCoords(&ret);
-	//	return ret;
-	//}
+	CoordStruct GetCenterCoords() const
+	{
+		CoordStruct ret;
+		this->GetCenterCoords(&ret);
+		return ret;
+	}
 
 	CoordStruct* GetLocationCoords(CoordStruct* pRet) const
 	{    //return this->Location
