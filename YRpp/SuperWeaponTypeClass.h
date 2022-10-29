@@ -75,7 +75,8 @@ public:
 	int     SpecialSound;
 	int     StartSound;
 	BuildingTypeClass* AuxBuilding;
-	char SidebarImageFile [0x19];
+	char SidebarImageFile[0x18];
+	PROTECTED_PROPERTY(BYTE, zero_E4);
 	bool    UseChargeDrain;
 	bool    IsPowered;
 	bool    DisableableFromShell;

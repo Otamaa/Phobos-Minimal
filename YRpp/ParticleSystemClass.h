@@ -85,4 +85,4 @@ public:
 	HouseClass*  OwnerHouse;
 };
 
-//static_assert(sizeof(ParticleSystemClass) == 0x100);
+static_assert(sizeof(ParticleSystemClass) == 0x100);

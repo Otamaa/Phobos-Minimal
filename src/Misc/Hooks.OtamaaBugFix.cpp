@@ -32,7 +32,7 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
 
 	if (pThis->WhatAmI() == AbstractType::Building)
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->IsInLimboDelivery)
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
 			return 0x6FA2D8;
 
 	if (!pThis->GetTechnoType()->Invisible)
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
 	const auto nTypeIdx = nRawData >> 16 & 0xFFFF;
 	const auto nScript = pThis->CurrentScript;
 
-	Debug::Log("Team[%x] script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
+	Debug::Log("[%x]Team script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
 	return 0x6EE7D0;
 }
 
@@ -96,7 +96,7 @@ DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
 	GET(RulesClass*, pRules, EAX);
 
 	auto const nRand = pRules->VeinholeShrinkRate > 0 ?
-		ScenarioGlobal->Random(0, pRules->VeinholeShrinkRate / 2) : 0;
+		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeShrinkRate + nRand);
 	return 0x74D37C;
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
 {
 	GET(RulesClass*, pRules, EAX);
 	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioGlobal->Random(0, pRules->VeinholeGrowthRate / 2) : 0;
+		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
 	return 0x74C5E7;
@@ -117,7 +117,7 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 	GET(RulesClass*, pRules, ECX);
 
 	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioGlobal->Random(0, pRules->VeinholeGrowthRate / 2) : 0;
+		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
 	return 0x74D2AA;
@@ -1255,7 +1255,7 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 
 	if (pThis->WhatAmI() == AbstractType::Building)
 	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->IsInLimboDelivery)
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
 		{
 			return 0x70D407;
 		}
@@ -2090,7 +2090,7 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 	if (pTechno->WhatAmI() == AbstractType::Building)
 	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->IsInLimboDelivery)
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
 		{
 			return DoNotDraw;
 		}
@@ -2111,7 +2111,7 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 
 	if (pTechno->WhatAmI() == AbstractType::Building)
 	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->IsInLimboDelivery)
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
 		{
 			return DoNotDraw;
 		}
@@ -2129,7 +2129,7 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 	};
 
 	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery ? DoNotDraw : Draw;
+	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
 }
 
 //DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)

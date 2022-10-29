@@ -110,6 +110,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
@@ -249,6 +250,7 @@
     <ClInclude Include="src\ExtraHeaders\DirClass.h" />
     <ClInclude Include="src\ExtraHeaders\PriorityQueueClass.h" />
     <ClInclude Include="src\ExtraHeaders\QueueClass.h" />
+    <ClInclude Include="src\ExtraHeaders\RefPtr.h" />
     <ClInclude Include="src\ExtraHeaders\RegionClass.h" />
     <ClInclude Include="src\ExtraHeaders\WWCRCEngine.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
@@ -367,6 +369,7 @@
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
     <ClInclude Include="src\Utilities\EventHandler.h" />
     <ClInclude Include="src\Utilities\ExpressionAnalyzer.h" />
+    <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />

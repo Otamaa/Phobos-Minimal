@@ -104,45 +104,6 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 	return idxCurrentBurst <= 0 || idxCurrentBurst > 4 ? 0x6FD084 : 0x6FD067;
 }
 
-DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
-{
-	GET(TechnoClass*, pThis, EBX);
-	GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
-
-	std::pair<bool, CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
-
-	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry)
-	{
-		nResult = TechnoExt::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
-	}
-
-	if (nResult.first)
-	{
-		R->ECX(nResult.second.X);
-		R->EBP(nResult.second.Y);
-		R->EAX(nResult.second.Z);
-		TechnoExt::ExtMap.Find(pThis)->FlhChanged = true;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
-{
-	GET(TechnoClass*, pThis, EBX);
-	//GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
-	{
-		auto pExt = TechnoExt::ExtMap.Find(pThis);
-		if (pExt->FlhChanged)
-		{
-			pExt->FlhChanged = false;
-			R->EAX(0);
-		}
-	}
-
-	return 0;
-}
-
 // Issue #237 NotHuman additional animations support
 // Author: Otamaa
 DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
@@ -376,7 +337,7 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
 	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-	//	if(pBldExt->IsInLimboDelivery)
+	//	if(pBldExt->LimboID != -1)
 	//		return SkipGameDrawing;
 	//}
 

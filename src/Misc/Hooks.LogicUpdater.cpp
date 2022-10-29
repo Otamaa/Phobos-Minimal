@@ -347,9 +347,9 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 
-	//bool IsInLimboDelivery = false;
+	//bool LimboID != -1 = false;
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-	//	IsInLimboDelivery = BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery;
+	//	LimboID != -1 = BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1;
 	//}
 
 	//if (pThis->Health  == 0 && !pThis->InLimbo)
@@ -400,7 +400,7 @@ DEFINE_HOOK(0x6F9E76, TechnoClass_AI_AfterAres, 0x6)
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 	GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	//if (!IsInLimboDelivery) {
+	//if (!LimboID != -1) {
 	if (pExt->PaintBallState)
 	{
 		pExt->PaintBallState->Update(pThis);
@@ -436,7 +436,6 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	{
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
 		{
-
 			if (pThis->Type->OpenTopped && pExt && !pExt->AircraftOpentoppedInitEd)
 			{
 				for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)

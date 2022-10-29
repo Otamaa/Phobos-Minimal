@@ -433,6 +433,19 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DamageSelfData.Read(exINI, pSection);
 #endif
 
+	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+	this->SellSound.Read(exINI, pSection, "SellSound");
+	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
+	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay");
+
+	this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
+	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
+	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
+	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
+	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank");
+	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");
+	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
+
 #pragma endregion
 
 	// Art tags
@@ -471,18 +484,21 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
 	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
-	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
-	this->SellSound.Read(exINI, pSection, "SellSound");
-	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
-	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay");
+	for (size_t i = 0;; i++)
+	{
+		char key[0x39];
+		Nullable<CoordStruct> alternateFLH;
+		sprintf_s(key, "AlternateFLH%u", i);
+		alternateFLH.Read(exArtINI, pArtSection, key);
 
-	this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
-	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
-	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
-	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
-	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank");
-	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");
-	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
+		if (i >= 5U && !alternateFLH.isset())
+			break;
+
+		this->AlternateFLHs.size() < i
+			? this->AlternateFLHs[i] = alternateFLH
+			: this->AlternateFLHs.emplace_back(alternateFLH);
+	}
+
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -674,6 +690,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeployedWeaponBurstFLHs)
 		.Process(this->EliteDeployedWeaponBurstFLHs)
 
+		.Process(this->AlternateFLHs)
 #pragma region Otamaa
 		.Process(this->FacingRotation_Disable)
 		.Process(this->FacingRotation_DisalbeOnEMP)

@@ -69,6 +69,14 @@ public:
 		return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
 	}
 
+	#define ISTILE(tileset, addr) \
+	bool Tile_Is_ ## tileset() const \
+		{ JMP_THIS(addr); }
+
+	ISTILE(Wet, 0x4865D0);
+	ISTILE(Water, 0x485060);
+	ISTILE(DestroyableCliff, 0x486900);
+	#undef ISTILE
 	// get content objects
 	TechnoClass* FindTechnoNearestTo(Point2D const& offsetPixel, bool alt, TechnoClass const* pExcludeThis = nullptr) const
 		{ JMP_THIS(0x47C3D0); }
@@ -352,6 +360,14 @@ public:
 	{
 		CoordStruct buffer =  this->GetCoords();
 		return FixHeight(buffer);
+	}
+
+	CoordStruct GetCoordsWithBridge(CoordStruct* pBuffer)
+	{
+		CoordStruct buffer = this->GetCoords();
+		buffer = FixHeight(buffer);
+		pBuffer = &buffer;
+		return buffer;
 	}
 
 	void MarkForRedraw() const

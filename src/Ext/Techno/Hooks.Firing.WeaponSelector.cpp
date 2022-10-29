@@ -239,9 +239,9 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 
 				if (!pTargetTechno->OnBridge && isOnWater)
 				{
-					int navalTargetWeapon = pThis->SelectNavalTargeting(pTargetTechno);
+					NavalTargetingType navalTargetWeapon = pThis->SelectNavalTargeting(pTargetTechno);
 
-					if (navalTargetWeapon == 2)
+					if (navalTargetWeapon == NavalTargetingType::Underwater_only)
 						chosenWeaponIndex = evenWeaponIndex;
 				}
 				else if ((pTargetTechno->IsInAir() && !pWeaponOdd->Projectile->AA && pWeaponEven->Projectile->AA) ||

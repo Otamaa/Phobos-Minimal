@@ -84,7 +84,7 @@ enum class FileErrorType : int
 //--------------------------------------------------------------------
 //Abstract File class
 //--------------------------------------------------------------------
-class FileClass
+class NOVTABLE FileClass
 {
 public:
 	static const char* const FileErrorToString[];
@@ -146,14 +146,12 @@ protected:
 
 public:
 	bool SkipCDCheck;
-private:
-	BYTE padding_5[3];
 };
 static_assert(sizeof(FileClass) == 0x8, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in the game directory
 //--------------------------------------------------------------------
-class RawFileClass : public FileClass
+class NOVTABLE RawFileClass : public FileClass
 {
 public:
 	//Destructor
@@ -219,14 +217,12 @@ public:
 	WORD Date;
 	WORD Time;
 	bool FileNameAllocated;
-private:
-	BYTE padding_21[3];
 };
 static_assert(sizeof(RawFileClass) == 0x24, "Invalid size.");
 //--------------------------------------------------------------------
 //Files that get buffered in some way?
 //--------------------------------------------------------------------
-class BufferIOFileClass : public RawFileClass
+class NOVTABLE BufferIOFileClass : public RawFileClass
 {
 public:
 	static constexpr int MinimumBufferSize = 1024;
@@ -298,7 +294,7 @@ static_assert(sizeof(BufferIOFileClass) == 0x54, "Invalid size.");
 //--------------------------------------------------------------------
 //Files on a CD?
 //--------------------------------------------------------------------
-class CDFileClass : public BufferIOFileClass
+class NOVTABLE CDFileClass : public BufferIOFileClass
 {
 public:
 	//Destructor
@@ -360,14 +356,12 @@ protected:
 
 public:
 	bool IsDisabled; //54
-protected:
-		BYTE Pad[3];
 };
 static_assert(sizeof(CDFileClass) == 0x58, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in MIXes
 //--------------------------------------------------------------------
-class CCFileClass : public CDFileClass
+class NOVTABLE CCFileClass : public CDFileClass
 {
 public:
 	//Destructor
@@ -444,7 +438,7 @@ static_assert(sizeof(CCFileClass) == 0x6C, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in RAM
 //--------------------------------------------------------------------
-class RAMFileClass : public FileClass
+class NOVTABLE RAMFileClass : public FileClass
 {
 public:
 	virtual ~RAMFileClass() { JMP_THIS(0x65C2A0); }

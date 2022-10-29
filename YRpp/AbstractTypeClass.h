@@ -165,3 +165,4 @@ private:
 	AbstractTypeClass& operator=(const AbstractTypeClass&) = delete;
 };
 //#pragma pack(pop)
+static_assert(sizeof(AbstractTypeClass) == 0x98, "Invalid size.");

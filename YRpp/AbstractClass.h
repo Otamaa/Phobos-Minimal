@@ -41,7 +41,23 @@ struct StorageClass
 	StorageClass operator+=(StorageClass& that) { JMP_THIS(0x6C9740); }
 	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }
 	StorageClass operator-=(StorageClass& that) { JMP_THIS(0x6C97E0); }
-
+	
+	auto begin() {
+	   return std::begin(Tiberium);
+	}
+	
+	auto begin() const {
+	   return std::begin(Tiberium);
+	}
+	
+	auto end() {
+	   return std::end(Tiberium);
+	}
+	
+	auto end() const {
+	   return std::end(Tiberium);
+	}
+	
 	float Tiberium[Size] { 0.0f };
 };
 //---
@@ -126,7 +142,7 @@ public:
 	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
 	virtual bool IsOnFloor() const R0;
 	virtual bool IsInAir() const R0;
-	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__
+	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__ / __Get_Coords__As_Coord
 	virtual void Update() RX;
 
 
@@ -198,7 +214,6 @@ public:
 	DWORD unknown_18;
 	LONG RefCount;
 	DWORD Dirty;		// for IPersistStream.
-	//PROTECTED_PROPERTY(BYTE, padding_21[0x3]);
 
 private:
 	// Copy and assignment not implemented; prevent their use by declaring as private.

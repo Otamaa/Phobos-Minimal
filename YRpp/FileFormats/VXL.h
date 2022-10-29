@@ -11,7 +11,7 @@ struct VoxelSectionTailer;
 class Surface;
 class VoxLib {
 public:
-	bool Initialized;
+	bool LoadFailed;
 	DWORD CountHeaders;
 	DWORD CountTailers;
 	DWORD TotalSize;
@@ -19,17 +19,38 @@ public:
 	VoxelSectionTailer* TailerData;
 	byte * BodyData;
 
-	VoxLib()
-		{ JMP_THIS(0x755CB0); }
+	VoxLib() noexcept
+		: LoadFailed { false }
+	    , CountHeaders { 0 }
+	    , CountTailers { 0 }
+		, TotalSize { 0 }
+		, HeaderData { nullptr }
+		, TailerData { nullptr }
+		, BodyData{ nullptr }
+		{  }
 
-	VoxLib(CCFileClass *Source, bool UseContainedPalette = 0)
-		{ JMP_THIS(0x755CD0); }
+	VoxLib(CCFileClass *Source, bool UseContainedPalette = 0) noexcept
+		: LoadFailed{ false }
+		, CountHeaders{ 0 }
+		, CountTailers{ 0 }
+		, TotalSize{ 0 }
+		, HeaderData{ nullptr }
+		, TailerData{ nullptr }
+		, BodyData{ nullptr }
+	{  
+		if (!this->ReadFile(Source , UseContainedPalette))
+			LoadFailed = true;
+	}
 
-	~VoxLib()
-		{ JMP_THIS(0x755D10); }
+	~VoxLib() noexcept
+	{ 		
+		GameDelete(HeaderData);
+		GameDelete(TailerData);
+		GameDelete(BodyData);
+	}
 
 	// returns 0 on success, non zero on failure
-	signed int ReadFile(CCFileClass *ccFile, bool UseContainedPalette)
+	bool ReadFile(CCFileClass *ccFile, bool UseContainedPalette)
 		{ JMP_THIS(0x755DB0); }
 
 	// return &this->HeaderData[headerIndex];

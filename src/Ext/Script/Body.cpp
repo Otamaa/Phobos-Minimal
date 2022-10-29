@@ -2404,7 +2404,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 		return false;
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTechno)) {
-		if (BuildingExt::ExtMap.Find(pBuilding)->IsInLimboDelivery)
+		if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
 			return false;
 	}
 
@@ -3457,7 +3457,7 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass *pTechno, int method, int cal
 		{
 			auto pExt = BuildingExt::ExtMap.Find(pBld);
 
-			if (pExt->IsInLimboDelivery)
+			if (pExt->LimboID != -1)
 				continue;
 		}
 

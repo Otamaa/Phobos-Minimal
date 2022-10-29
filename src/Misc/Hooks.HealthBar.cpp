@@ -68,7 +68,7 @@ DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	GET(SHPStruct*, pDefaultPip, EAX);
+	GET(SHPReference*, pDefaultPip, EAX);
 
 	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);

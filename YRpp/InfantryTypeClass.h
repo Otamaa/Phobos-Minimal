@@ -49,6 +49,22 @@ struct DoControls
 		return MasterArray[(int)sequence];
 	}
 
+	auto begin() {
+		return std::begin(Sequences);
+	}
+
+	auto end() {
+		return std::end(Sequences);
+	}
+	
+	auto begin() const {
+		return std::begin(Sequences);
+	}
+
+	auto end() const {
+		return std::end(Sequences);
+	}
+	
 	DoInfoStruct Sequences[42];
 };
 

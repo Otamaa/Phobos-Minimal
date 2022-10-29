@@ -109,18 +109,32 @@ DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 	return pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get() ? SkipCheck : 0x0;
 }
 
+DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
+{
+    enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
+	GET(BuildingClass* const, pThis, ESI);
+	if(SessionClass::IsCampaign())
+	{
+		if (!pThis->BeingProduced ||!HouseExt::ExtMap.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
+		return ShouldNotRebuild;
+	}
+
+	return ContinueCheck;
+}
+
+/*
 DEFINE_HOOK(0x4506D4, BuildingClass_UpdateRepair_Campaign, 0x6)
 {
 	enum { GoRepair = 0x4506F5, SkipRepair = 0x450813 };
 	GET(BuildingClass*, pThis, ESI);
 	//GET(HouseClass*, pHouse, ECX);
 
-	if (pThis->BeingProduced && SessionClass::Instance->GameMode == GameMode::Campaign)
+	if (pThis->BeingProduced && SessionClass::IsCampaign())
 		if (HouseExt::ExtMap.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
 			return GoRepair;
 
 	return 0x0;
-}
+}*/
 
 // Note:
 /*

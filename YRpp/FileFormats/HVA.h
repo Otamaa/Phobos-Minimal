@@ -12,12 +12,31 @@ public:
 	int FrameCount;
 	Matrix3D* Matrixes;
 
-	MotLib(CCFileClass* Source) { JMP_THIS(0x5BD570); }
+	MotLib() noexcept
+		: LoadedFailed { false }
+		, LayerCount { 0 }
+		, FrameCount { 0 }
+		, Matrixes { nullptr }
 
-	~MotLib() { JMP_THIS(0x5BD5A0); }
+	{ }
+
+	MotLib(CCFileClass* Source) noexcept 
+		: LoadedFailed { false }
+		, LayerCount { 0 }
+		, FrameCount { 0 }
+		, Matrixes{ nullptr } 
+	{ 
+		if (!this->ReadFile(Source)) {
+			this->LoadedFailed = 1;
+		}	
+	}
+
+	~MotLib() noexcept {
+		GameDelete(Matrixes);
+	}
 
 	// 0 for valid, non 0 for invalid
-	signed int ReadFile(CCFileClass* ccFile) const { JMP_THIS(0x5BD5C0); }
+	bool ReadFile(CCFileClass* ccFile) const { JMP_THIS(0x5BD5C0); }
 	void Scale(float scale) const { JMP_THIS(0x5BD730); }
 	void Clear() const { JMP_THIS(0x5BD7C0); }
 };

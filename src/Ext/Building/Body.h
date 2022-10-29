@@ -33,7 +33,6 @@ public:
 
 		DynamicVectorClass<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
-		bool IsInLimboDelivery;
 		bool LighningNeedUpdate;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
@@ -44,7 +43,6 @@ public:
 			, AccumulatedGrindingRefund { 0 }
 			, DamageFireAnims { }
 			, AutoSellTimer { }
-			, IsInLimboDelivery { false }
 			, LighningNeedUpdate { false }
 		{ }
 

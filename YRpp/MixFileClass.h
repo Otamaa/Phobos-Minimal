@@ -99,7 +99,7 @@ public:
 
 	static constexpr reference<GenericMixFiles, 0x884DF8u> const Generics{};
 
-	static void Bootstrap()
+	static bool Bootstrap()
 		{ JMP_THIS(0x5301A0); }
 
 	virtual ~MixFileClass() RX;

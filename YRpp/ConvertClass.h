@@ -28,8 +28,7 @@ public:
 
 	//ConvertClass() { }
 
-	virtual ~ConvertClass() RX;//JMP_THIS(0x491210);
-	//virtual void UpdateColors(int red, int green, int blue, bool tinted) RX;
+	virtual ~ConvertClass() JMP_THIS(0x491210);
 
 	void Alloc_Blitters() JMP_THIS(0x48EBF0);
 	void Dealloc_Blitters() JMP_THIS(0x490490);
@@ -88,15 +87,14 @@ protected:
 	//===========================================================================
 	//===== Properties ==========================================================
 	//===========================================================================
-
 public:
 	int BytesPerPixel;
 	BlitterCore* Blitters[50];
 	RLEBlitterCore* RLEBlitters[39];
 	int ShadeCount;
-	void* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
-	WORD* BufferMid; // points to the middle of BufferA above, ??
-	void* BufferB; // if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
+	char* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
+	char* BufferMid; // points to the middle of BufferA above, ??
+	char* BufferB; // if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
 	DWORD CurrentZRemap; // set right before drawing
 	DWORD HalfColorMask; // for masking colors right-shifted by 1
 	DWORD QuarterColorMask; // for masking colors right-shifted by 2

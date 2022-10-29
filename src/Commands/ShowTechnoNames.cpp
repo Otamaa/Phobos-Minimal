@@ -56,7 +56,7 @@ void ShowTechnoNameCommandClass::AI()
 		{
 			auto pExt = BuildingExt::ExtMap.Find(pBuilding);
 
-			if (pExt->IsInLimboDelivery)
+			if (pExt->LimboID != -1)
 				continue;
 		}
 

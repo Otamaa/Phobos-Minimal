@@ -10,6 +10,9 @@ public:
 	virtual ~HoverLocomotionClass() RX;
 
 	//HoverLocomotionClass
+	int sub_514F70(bool bArg) const {
+		JMP_THIS(0x514F70);
+	}
 
 	//Constructor
 	HoverLocomotionClass()

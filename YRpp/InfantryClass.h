@@ -84,6 +84,6 @@ public:
 	bool           _WasSelected; //0x6DD
 	DWORD          unknown_6E0;
 	bool           ShouldDeploy;
-	int            _OnLand; //6E8
+	LandType            _OnLand; //6E8
 	PROTECTED_PROPERTY(DWORD, unused_6EC); //??
 };

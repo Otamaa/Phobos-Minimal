@@ -370,7 +370,7 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 //	   auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
 //
 //		CoordStruct vCoords = { 0, 0, 0 };
-//		if(!pBldExt->IsInLimboDelivery)
+//		if(!pBldExt->LimboID != -1)
 //			pBuilding->Type->Dimension2(&vCoords);
 //
 //		nHeight = vCoords.Z;

@@ -291,3 +291,6 @@ EXPORT_FUNC(funcname)
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
+
+#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
+DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

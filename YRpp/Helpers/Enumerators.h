@@ -272,7 +272,7 @@ public:
 		return curspread <= spread;
 	}
 
-	constexpr const CellStruct& operator * () const {
+	const CellStruct& operator * () const {
 		return current;
 	}
 

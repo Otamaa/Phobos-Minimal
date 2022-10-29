@@ -18,6 +18,183 @@ struct __declspec(align(4)) DummyDynamicVectorClass
 
 static_assert(sizeof(DummyDynamicVectorClass) == 0x18, "Invalid Size !");
 
+template<typename T, class V /*= DynamicVectorClass<T>*/>
+class VectorCursor
+{
+public:
+	VectorCursor(V* vector, int pos = 0);
+	VectorCursor(const V* vector, int pos = 0);
+	virtual ~VectorCursor();
+
+	VectorCursor& operator=(const VectorCursor& that);
+
+	bool operator==(const VectorCursor& that) const;
+	bool operator!=(const VectorCursor& that) const;
+
+	T& operator*() { return *Get_Element(); }
+	const T& operator*() const { return *Get_Element(); }
+
+	T* operator->() { return Get_Element(); }
+	const T* operator->() const { return Get_Element(); }
+
+	operator bool() { return Can_Loop(); }
+
+	VectorCursor& operator++() { Next(); return *this; }
+	VectorCursor& operator--() { Prev(); return *this; }
+
+	VectorCursor operator++(int) { VectorCursor tmp; tmp.Next(); return tmp; }
+	VectorCursor operator--(int) { VectorCursor tmp; tmp.Prev(); return tmp; }
+
+protected:
+	T* Get_Element();
+	const T* Get_Element() const;
+
+	const V& Get_Vector() const { return *VectorPtr; }
+	int Get_Position() const { return Position; }
+
+	virtual bool Can_Loop() const;
+
+	virtual void Next() { ++Position; }
+	virtual void Prev() { --Position; }
+
+	bool Next_Match(T* that_elem);
+	bool Next_Match(const T* that_elem);
+	void Next_Valid();
+
+protected:
+	const V* VectorPtr;
+	int Position;
+};
+
+template<typename T, class V>
+VectorCursor<T, V>::VectorCursor(V* vector, int pos) :
+	VectorPtr(vector),
+	Position(pos)
+{
+}
+
+template<typename T, class V>
+VectorCursor<T, V>::VectorCursor(const V* vector, int pos) :
+	VectorPtr(vector),
+	Position(pos)
+{
+}
+
+template<typename T, class V>
+VectorCursor<T, V>::~VectorCursor()
+{
+}
+
+template<typename T, class V>
+VectorCursor<T, V>& VectorCursor<T, V>::operator=(const VectorCursor<T, V>& that)
+{
+	if (this != &that)
+	{
+		VectorPtr = that.VectorPtr;
+		Position = that.Position;
+	}
+	return *this;
+}
+
+template<typename T, class V>
+bool VectorCursor<T, V>::operator==(const VectorCursor<T, V>& that) const
+{
+	return VectorPtr == that.VectorPtr
+		&& Position == that.Position;
+}
+
+template<typename T, class V>
+bool VectorCursor<T, V>::operator!=(const VectorCursor<T, V>& that) const
+{
+	return VectorPtr != that.VectorPtr
+		&& Position != that.Position;
+}
+
+template<typename T, class V>
+T* VectorCursor<T, V>::Get_Element()
+{
+	if (!VectorCursor::Can_Loop())
+	{
+		return nullptr;
+	}
+
+	if (!VectorPtr)
+	{
+		return false;
+	}
+
+	return &const_cast<T&>((*VectorPtr)[Position]);
+}
+
+template<typename T, class V>
+const T* VectorCursor<T, V>::Get_Element() const
+{
+	if (!VectorCursor::Can_Loop())
+	{
+		return nullptr;
+	}
+
+	if (!VectorPtr)
+	{
+		return nullptr;
+	}
+
+	return &(*VectorPtr)[Position];
+}
+
+template<typename T, class V>
+bool VectorCursor<T, V>::Can_Loop() const
+{
+	if (!VectorPtr)
+	{
+		return false;
+	}
+
+	return Position < VectorPtr->Count;
+}
+
+template<typename T, class V>
+bool VectorCursor<T, V>::Next_Match(T* that_elem)
+{
+	while (Can_Loop())
+	{
+		const T* elem = &(*VectorPtr)[Position];
+		if (elem == that_elem)
+		{
+			break;
+		}
+		Next();
+	}
+}
+
+template<typename T, class V>
+bool VectorCursor<T, V>::Next_Match(const T* that_elem)
+{
+	while (Can_Loop())
+	{
+		const T* elem = &(*VectorPtr)[Position];
+		if (elem == that_elem)
+		{
+			break;
+		}
+		Next();
+	}
+}
+
+template<typename T, class V>
+void VectorCursor<T, V>::Next_Valid()
+{
+	while (Can_Loop())
+	{
+		const T* v3 = &(*VectorPtr)[Position];
+		if (v3 != nullptr)
+		{
+			break;
+		}
+		Next();
+	}
+}
+
 //========================================================================
 //=== VectorClass ========================================================
 //========================================================================
@@ -31,60 +208,77 @@ public:
 
 	constexpr VectorClass() noexcept = default;
 
-	explicit VectorClass(int capacity, T* pMem = nullptr) {
-		if(capacity != 0) {
+	explicit VectorClass(int capacity, T* pMem = nullptr)
+	{
+		if (capacity != 0)
+		{
 			this->Capacity = capacity;
 
-			if(pMem) {
+			if (pMem)
+			{
 				this->Items = pMem;
-			} else {
+			}
+			else
+			{
 				this->Items = GameCreateArray<T>(static_cast<size_t>(capacity));
 				this->IsAllocated = true;
 			}
 		}
 	}
 
-	VectorClass(const VectorClass<T>&other) {
-		if(other.Capacity > 0) {
+	VectorClass(const VectorClass<T>& other)
+	{
+		if (other.Capacity > 0)
+		{
 			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
-			for(auto i = 0; i < other.Capacity; ++i) {
+			for (auto i = 0; i < other.Capacity; ++i)
+			{
 				this->Items[i] = other.Items[i];
 			}
 		}
 	}
 
-	VectorClass(VectorClass<T>&&other) noexcept :
+	VectorClass(VectorClass<T>&& other) noexcept :
 		Items(other.Items),
 		Capacity(other.Capacity),
 		IsInitialized(other.IsInitialized),
 		IsAllocated(std::exchange(other.IsAllocated, false))
-	{ }
+	{
+	}
 
-	virtual ~VectorClass() noexcept {
-		if(this->IsAllocated) {
+	virtual ~VectorClass() noexcept
+	{
+		if (this->IsAllocated)
+		{
 			GameDeleteArray(this->Items, static_cast<size_t>(this->Capacity));
 		}
 	}
 
-	VectorClass<T>& operator = (const VectorClass<T>&other) {
+	VectorClass<T>& operator = (const VectorClass<T>& other)
+	{
 		VectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	VectorClass<T>& operator = (VectorClass<T>&&other) noexcept {
+	VectorClass<T>& operator = (VectorClass<T>&& other) noexcept
+	{
 		VectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual bool operator == (const VectorClass<T>&other) const {
-		if(this->Capacity != other.Capacity) {
+	virtual bool operator == (const VectorClass<T>& other) const
+	{
+		if (this->Capacity != other.Capacity)
+		{
 			return false;
 		}
 
-		for(auto i = 0; i < this->Capacity; ++i) {
-			if(this->Items[i] == other.Items[i]) {
+		for (auto i = 0; i < this->Capacity; ++i)
+		{
+			if (this->Items[i] == other.Items[i])
+			{
 				continue; // kapow! don't rewrite this to != unless you know why you're doing it
 			}
 			return false;
@@ -93,32 +287,40 @@ public:
 		return true;
 	}
 
-	bool operator != (const VectorClass<T>&other) const {
+	bool operator != (const VectorClass<T>& other) const
+	{
 		return !(*this == other);
 	}
 
-	virtual bool SetCapacity(int capacity, T* pMem = nullptr) {
-		if(capacity != 0) {
+	virtual bool SetCapacity(int capacity, T* pMem = nullptr)
+	{
+		if (capacity != 0)
+		{
 			this->IsInitialized = false;
 
 			bool bMustAllocate = (pMem == nullptr);
-			if(!pMem) {
+			if (!pMem)
+			{
 				pMem = GameCreateArray<T>(static_cast<size_t>(capacity));
 			}
 
 			this->IsInitialized = true;
 
-			if(!pMem) {
+			if (!pMem)
+			{
 				return false;
 			}
 
-			if(this->Items) {
+			if (this->Items)
+			{
 				auto n = (capacity < this->Capacity) ? capacity : this->Capacity;
-				for(auto i = 0; i < n; ++i) {
+				for (auto i = 0; i < n; ++i)
+				{
 					pMem[i] = std::move(this->Items[i]);
 				}
 
-				if(this->IsAllocated) {
+				if (this->IsAllocated)
+				{
 					GameDeleteArray(this->Items, static_cast<size_t>(this->Capacity));
 					this->Items = nullptr;
 				}
@@ -127,25 +329,32 @@ public:
 			this->IsAllocated = bMustAllocate;
 			this->Items = pMem;
 			this->Capacity = capacity;
-		} else {
+		}
+		else
+		{
 			Clear();
 		}
 		return true;
 	}
 
-	virtual void Clear() {
+	virtual void Clear()
+	{
 		VectorClass<T>(std::move(*this));
 		this->Items = nullptr;
 		this->Capacity = 0;
 	}
 
-	virtual int FindItemIndex(const T& item) const {
-		if(!this->IsInitialized) {
+	virtual int FindItemIndex(const T& item) const
+	{
+		if (!this->IsInitialized)
+		{
 			return 0;
 		}
 
-		for(auto i = 0; i < this->Capacity; ++i) {
-			if(this->Items[i] == item) {
+		for (auto i = 0; i < this->Capacity; ++i)
+		{
+			if (this->Items[i] == item)
+			{
 				return i;
 			}
 		}
@@ -153,39 +362,48 @@ public:
 		return -1;
 	}
 
-	virtual int GetItemIndex(const T* pItem) const final {
-		if(!this->IsInitialized) {
+	virtual int GetItemIndex(const T* pItem) const final
+	{
+		if (!this->IsInitialized)
+		{
 			return 0;
 		}
 
 		return pItem - this->Items;
 	}
 
-	virtual T GetItem(int i) const final {
+	virtual T GetItem(int i) const final
+	{
 		return this->Items[i];
 	}
 
-	T& operator [] (int i) {
+	T& operator [] (int i)
+	{
 		return this->Items[i];
 	}
 
-	const T& operator [] (int i) const {
+	const T& operator [] (int i) const
+	{
 		return this->Items[i];
 	}
 
-	bool Reserve(int capacity) {
-		if(!this->IsInitialized) {
+	bool Reserve(int capacity)
+	{
+		if (!this->IsInitialized)
+		{
 			return false;
 		}
 
-		if(this->Capacity >= capacity) {
+		if (this->Capacity >= capacity)
+		{
 			return true;
 		}
 
 		return SetCapacity(capacity, nullptr);
 	}
 
-	void Swap(VectorClass<T>& other) noexcept {
+	void Swap(VectorClass<T>& other) noexcept
+	{
 		using std::swap;
 		swap(this->Items, other.Items);
 		swap(this->Capacity, other.Capacity);
@@ -195,10 +413,10 @@ public:
 
 	int Length() const { return Capacity; }
 
-	T* Items{ nullptr };
-	int Capacity{ 0 };
-	bool IsInitialized{ true };
-	bool IsAllocated{ false };
+	T* Items { nullptr };
+	int Capacity { 0 };
+	bool IsInitialized { true };
+	bool IsAllocated { false };
 };
 
 //========================================================================
@@ -215,56 +433,69 @@ public:
 		: VectorClass<T>(capacity, pMem)
 	{ }
 
-	DynamicVectorClass(const DynamicVectorClass<T> &other) {
-		if(other.Capacity > 0) {
+	DynamicVectorClass(const DynamicVectorClass<T>& other)
+	{
+		if (other.Capacity > 0)
+		{
 			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
 			this->Count = other.Count;
 			this->CapacityIncrement = other.CapacityIncrement;
-			for(auto i = 0; i < other.Count; ++i) {
+			for (auto i = 0; i < other.Count; ++i)
+			{
 				this->Items[i] = other.Items[i];
 			}
 		}
 	}
 
-	DynamicVectorClass(DynamicVectorClass<T>&&other) noexcept
+	DynamicVectorClass(DynamicVectorClass<T>&& other) noexcept
 		: VectorClass<T>(std::move(other)), Count(other.Count),
 		CapacityIncrement(other.CapacityIncrement)
-	{ }
+	{
+	}
 
-	DynamicVectorClass<T>& operator = (const DynamicVectorClass<T>&other) {
+	DynamicVectorClass<T>& operator = (const DynamicVectorClass<T>& other)
+	{
 		DynamicVectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	DynamicVectorClass<T>& operator = (DynamicVectorClass<T>&&other) noexcept {
+	DynamicVectorClass<T>& operator = (DynamicVectorClass<T>&& other) noexcept
+	{
 		DynamicVectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override {
+	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
+	{
 		bool bRet = VectorClass<T>::SetCapacity(capacity, pMem);
 
-		if(this->Capacity < this->Count) {
+		if (this->Capacity < this->Count)
+		{
 			this->Count = this->Capacity;
 		}
 
 		return bRet;
 	}
 
-	virtual void Clear() override {
+	virtual void Clear() override
+	{
 		VectorClass<T>::Clear();
 		this->Count = 0;
 	}
 
-	virtual int FindItemIndex(const T& item) const override final {
-		if(!this->IsInitialized) {
+	virtual int FindItemIndex(const T& item) const override final
+	{
+		if (!this->IsInitialized)
+		{
 			return 0;
 		}
 
-		for(int i = 0; i < this->Count; i++) {
-			if(this->Items[i] == item) {
+		for (int i = 0; i < this->Count; i++)
+		{
+			if (this->Items[i] == item)
+			{
 				return i;
 			}
 		}
@@ -272,38 +503,72 @@ public:
 		return -1;
 	}
 
-	bool ValidIndex(int index) const {
+	typedef VectorCursor<T, DynamicVectorClass<T>> Iterator;
+	typedef const VectorCursor<T, DynamicVectorClass<T>> ConstIterator;
+
+	Iterator Cursorbegin() { return Iterator(this, 0); }
+	Iterator Cursorend() { return Iterator(this, Count); }
+
+	Iterator Cursorbegin() const { return Iterator(this, 0); }
+	Iterator Cursorend() const { return Iterator(this, Count); }
+
+	Iterator GetItemIter(const T& item)
+	{
+		for (auto IterBegin = this->Cursorbegin(); IterBegin != this->Cursorend(); IterBegin.Next()) {
+			if (*IterBegin == item)
+				return IterBegin;
+		}
+
+		return Iterator(this, Count); //return last
+	}
+
+	ConstIterator Cursorcbegin() { return ConstIterator(this, 0); }
+	ConstIterator Cursorcend() { return ConstIterator(this, Count); }
+
+	ConstIterator Cursorcbegin() const { return ConstIterator(this, 0); }
+	ConstIterator Cursorcend() const { return ConstIterator(this, Count); }
+
+	bool ValidIndex(int index) const
+	{
 		return static_cast<unsigned int>(index) < static_cast<unsigned int>(this->Count);
 	}
 
-	T GetItemOrDefault(int i) const {
+	T GetItemOrDefault(int i) const
+	{
 		return this->GetItemOrDefault(i, T());
 	}
 
-	T GetItemOrDefault(int i, T def) const {
-		if(this->ValidIndex(i)) {
+	T GetItemOrDefault(int i, T def) const
+	{
+		if (this->ValidIndex(i))
+		{
 			return this->Items[i];
 		}
 		return def;
 	}
 
-	T* begin() const {
+	T* begin() const
+	{
 		return (&this->Items[0]);
 	}
 
-	T* end() const {
+	T* end() const
+	{
 		return (&this->Items[this->Count]);
 	}
 
-	T* begin() {
+	T* begin()
+	{
 		return (&this->Items[0]);
 	}
 
-	T* end() {
+	T* end()
+	{
 		return (&this->Items[this->Count]);
 	}
 
-	bool AddItem(T item) {
+	bool AddItem(T item)
+	{
 		if (this->Count >= this->Capacity)
 		{
 			if (!this->IsAllocated && this->Capacity != 0)
@@ -328,22 +593,28 @@ public:
 
 	bool Insert(int index, const T& object)
 	{
-		if (index < 0 || index > this->Count) {
+		if (index < 0 || index > this->Count)
+		{
 			return false;
 		}
 
-		if (this->Count >= this->Capacity) {
-			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0) {
-				if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr)) {
+		if (this->Count >= this->Capacity)
+		{
+			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0)
+			{
+				if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr))
+				{
 					return false;
 				}
 			}
-			else {
+			else
+			{
 				return false;
 			}
 		}
 
-		if (index < this->Count) {
+		if (index < this->Count)
+		{
 			std::memmove(&(*this)[index + 1], &(*this)[index], (this->Count - index) * sizeof(T));
 		}
 
@@ -353,61 +624,56 @@ public:
 		return true;
 	}
 
-	bool AddUnique(const T &item) {
+	bool AddUnique(const T& item)
+	{
 		int idx = this->FindItemIndex(item);
 		return idx < 0 && this->AddItem(item);
 	}
 
-	bool RemoveItem(int index) {
-		if(!this->ValidIndex(index)) {
+	bool RemoveItem(int index)
+	{
+		if (!this->ValidIndex(index))
+		{
 			return false;
 		}
 
 		--this->Count;
-		for(int i = index; i < this->Count; ++i) {
+		for (int i = index; i < this->Count; ++i)
+		{
 			this->Items[i] = std::move(this->Items[i + 1]);
 		}
 
 		return true;
 	}
 
-	bool Remove(const T &item) {
-#ifdef Causing_Crash
-		auto const iter = std::find_if(&Items[0], &Items[Count], [&](auto const& arritem) { return arritem == item; });
-
-		if (iter != (&Items[Count]))
-		{
-			memmove(iter, (iter + 1), (&Items[Count]) - (iter + 1));
-			--Count;
-			return true;
-		}
-		return false;
-#else
+	bool Remove(const T& item)
+	{
 		int idx = this->FindItemIndex(item);
 		return idx >= 0 && this->RemoveItem(idx);
-#endif
 	}
 
-
-	void Swap(DynamicVectorClass<T>& other) noexcept {
+	void Swap(DynamicVectorClass<T>& other) noexcept
+	{
 		VectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->Count, other.Count);
 		swap(this->CapacityIncrement, other.CapacityIncrement);
 	}
 
-	size_t Size() const {
+	size_t Size() const
+	{
 		return static_cast<size_t>(Count);
 	}
 
 	// is this even right ?
-	int GetSizeMax() const {
+	int GetSizeMax() const
+	{
 		return (sizeof(T) * Count) + 4;
 	}
 
 public:
-	int Count{ 0 };
-	int CapacityIncrement{ 10 };
+	int Count { 0 };
+	int CapacityIncrement { 10 };
 };
 
 //========================================================================
@@ -424,31 +690,34 @@ public:
 		: DynamicVectorClass<T>(capacity, pMem)
 	{ }
 
-	TypeList(const TypeList<T> &other)
+	TypeList(const TypeList<T>& other)
 		: DynamicVectorClass<T>(other), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList(TypeList<T>&&other) noexcept
+	TypeList(TypeList<T>&& other) noexcept
 		: DynamicVectorClass<T>(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList<T>& operator = (const TypeList<T>&other) {
+	TypeList<T>& operator = (const TypeList<T>& other)
+	{
 		TypeList<T>(other).Swap(*this);
 		return *this;
 	}
 
-	TypeList<T>& operator = (TypeList<T>&&other) noexcept {
+	TypeList<T>& operator = (TypeList<T>&& other) noexcept
+	{
 		TypeList<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	void Swap(TypeList<T>& other) noexcept {
+	void Swap(TypeList<T>& other) noexcept
+	{
 		DynamicVectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->unknown_18, other.unknown_18);
 	}
 
-	int unknown_18{ 0 };
+	int unknown_18 { 0 };
 };
 
 //========================================================================
@@ -464,40 +733,49 @@ public:
 		: VectorClass<int>(other), Total(other.Total)
 	{ }
 
-	CounterClass(CounterClass &&other) noexcept
+	CounterClass(CounterClass&& other) noexcept
 		: VectorClass<int>(std::move(other)), Total(other.Total)
 	{ }
 
-	CounterClass& operator = (const CounterClass &other) {
+	CounterClass& operator = (const CounterClass& other)
+	{
 		CounterClass(other).Swap(*this);
 		return *this;
 	}
 
-	CounterClass& operator = (CounterClass &&other) noexcept {
+	CounterClass& operator = (CounterClass&& other) noexcept
+	{
 		CounterClass(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual void Clear() override {
-		for(int i = 0; i < this->Capacity; ++i) {
+	virtual void Clear() override
+	{
+		for (int i = 0; i < this->Capacity; ++i)
+		{
 			this->Items[i] = 0;
 		}
 
 		this->Total = 0;
 	}
 
-	int GetTotal() const {
+	int GetTotal() const
+	{
 		return this->Total;
 	}
 
-	bool EnsureItem(int index) {
-		if(index < this->Capacity) {
+	bool EnsureItem(int index)
+	{
+		if (index < this->Capacity)
+		{
 			return true;
 		}
 
 		int count = this->Capacity;
-		if(this->SetCapacity(index + 10, nullptr)) {
-			for(auto i = count; i < this->Capacity; ++i) {
+		if (this->SetCapacity(index + 10, nullptr))
+		{
+			for (auto i = count; i < this->Capacity; ++i)
+			{
 				this->Items[i] = 0;
 			}
 			return true;
@@ -506,41 +784,49 @@ public:
 		return false;
 	}
 
-	int operator[] (int index) const {
+	int operator[] (int index) const
+	{
 		return this->GetItemCount(index);
 	}
 
-	int GetItemCount(int index) {
+	int GetItemCount(int index)
+	{
 		return this->EnsureItem(index) ? this->Items[index] : 0;
 	}
 
-	int GetItemCount(int index) const {
+	int GetItemCount(int index) const
+	{
 		return (index < this->Capacity) ? this->Items[index] : 0;
 	}
 
-	int Increment(int index) {
-		if(this->EnsureItem(index)) {
+	int Increment(int index)
+	{
+		if (this->EnsureItem(index))
+		{
 			++this->Total;
 			return ++this->Items[index];
 		}
 		return 0;
 	}
 
-	int Decrement(int index) {
-		if(this->EnsureItem(index)) {
+	int Decrement(int index)
+	{
+		if (this->EnsureItem(index))
+		{
 			--this->Total;
 			return --this->Items[index];
 		}
 		return 0;
 	}
 
-	void Swap(CounterClass& other) noexcept {
+	void Swap(CounterClass& other) noexcept
+	{
 		VectorClass<int>::Swap(other);
 		using std::swap;
 		swap(this->Total, other.Total);
 	}
 
-	int Total{ 0 };
+	int Total { 0 };
 };
 
 template<typename T, const int size>

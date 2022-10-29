@@ -85,4 +85,4 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_30D[3]);
 };
 
-//static_assert(sizeof(ParticleSystemTypeClass) == 0x310);
+static_assert(sizeof(ParticleSystemTypeClass) == 0x310);

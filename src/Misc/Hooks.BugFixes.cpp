@@ -673,7 +673,7 @@ DEFINE_HOOK(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 		return ContinueDraw;
 	}
 
-	if (BuildingExt::ExtMap.Find(pThis)->IsInLimboDelivery) {
+	if (BuildingExt::ExtMap.Find(pThis)->LimboID != -1) {
 		return DoNotDraw;
 	}
 
@@ -733,4 +733,118 @@ DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTFismyIFV, 0x7)
 	pTransport->AddPassenger(pPayload);
 
 	return 0x65DF8D;
+}
+
+// BibShape checks for BuildingClass::BState which needs to not be 0 (constructing) for bib to draw.
+// It is possible for BState to be 1 early during construction for frame or two which can result in BibShape being drawn during buildup, which somehow depends on length of buildup.
+// Trying to fix this issue at its root is problematic and most of the time causes buildup to play twice, it is simpler to simply fix the BibShape to not draw until the buildup is done - Starkku
+DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
+{
+	enum { DontDrawBib = 0x43D8EE };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	if (!pThis->ActuallyPlacedOnMap)
+		return DontDrawBib;
+
+	return 0;
+}
+
+// Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
+DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250); 
+
+DEFINE_HOOK(0x6FDDCA, TechnoClass_Fire_Suicide, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, pThis->Owner);
+
+	return 0x6FDE03;
+}
+
+// Kill the vxl unit when flipped over
+DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pFlipper = pThis->DirectRockerLinkedUnit;
+	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
+
+	return 0x70BCA4;
+}
+
+DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+{
+	GET(TechnoClass* const, pRadio, EAX);
+
+	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x4425F4;
+}
+
+DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+{
+	GET(TechnoClass* const, pItem, ESI);
+
+	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x50150E;
+}
+
+// Something unfinished for later
+DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+{
+	GET(FootClass* const, pOwner, ECX);
+	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, nullptr);
+	return 0x71880A;
+}
+//718B1E
+
+// Fix railgun target coordinates potentially differing from actual target coords.
+DEFINE_HOOK(0x70C6B0, TechnoClass_Railgun_TargetCoords, 0x5)
+{
+	GET(AbstractClass*, pTarget, EBX);
+	GET(CoordStruct*, pBuffer, ECX);
+
+	auto const pWhat = pTarget->WhatAmI();
+
+	if (pWhat == AbstractType::Building) {
+		auto const pBuilding = static_cast<BuildingClass*>(pTarget);
+		pBuilding->GetTargetCoords(pBuffer);
+	} else if (pWhat == AbstractType::Cell) {
+		auto const pCell = static_cast<CellClass*>(pTarget);
+		CoordStruct nBuffer = pCell->GetCoords();
+		pBuffer = &nBuffer;
+		if (pCell->ContainsBridge()) {
+			pBuffer->Z += CellClass::BridgeHeight;
+		}
+	}
+	else 
+		pTarget->GetCenterCoords(pBuffer);
+
+	R->EAX(pBuffer);
+	return 0x70C6B5;
+}
+
+// Fix techno target coordinates (used for fire angle calculations, target lines etc) to take building target coordinate offsets into accord.
+// This, for an example, fixes a vanilla bug where Destroyer has trouble targeting Naval Yards with its cannon weapon from certain angles.
+DEFINE_HOOK(0x70BCE2, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(CoordStruct*, pBuffer, EAX);
+	auto const pWhat = pThis->WhatAmI();
+
+	if (pWhat == AbstractType::Building) {
+		pThis->GetTargetCoords(pBuffer);
+	} else {
+		pThis->GetCenterCoords(pBuffer);
+	}
+
+	R->EAX(pBuffer);
+	return 0x70BCE6u;
 }

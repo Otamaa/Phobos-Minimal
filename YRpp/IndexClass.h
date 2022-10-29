@@ -48,6 +48,7 @@ public:
 	// ranged for support
 	NodeElement* begin() const { return IndexTable; }
 	NodeElement* end() const { return &IndexTable[IndexCount]; }
+	auto FetchItem(TKey id) const;
 
 private:
 	bool IncreaseTableSize(int nAmount);
@@ -150,6 +151,22 @@ bool IndexClass<TKey, TValue>::IsPresent(TKey id) const
 	}
 
 	return false;
+}
+
+template<typename TKey, typename TValue>
+auto IndexClass<TKey, TValue>::FetchItem(TKey id) const
+{
+	if (!this->IsArchiveSame(id))
+	{
+		if (NodeElement const* nodeptr = const_cast<IndexClass<TKey, TValue>*>(this)->SearchForNode(id)) {
+			const_cast<IndexClass<TKey, TValue>*>(this)->SetArchive(nodeptr);
+			return this->Archive;
+		} 
+
+		return nullptr;
+	}
+
+	return this->Archive;
 }
 
 template<typename TKey, typename TValue>

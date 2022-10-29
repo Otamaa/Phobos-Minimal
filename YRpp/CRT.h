@@ -92,6 +92,9 @@ public:
 
 		static void __cdecl exit_noreturn(size_t reason)
 			{ JMP_STD(0x7CBDDC); }
+		
+		static int __cdecl exit_returnsomething(UINT uExitCode, int a2, int a3)
+			{ JMP_STD(0x7CBE1C); }
 
 		// memory management
 		static void *__cdecl malloc(size_t sz)

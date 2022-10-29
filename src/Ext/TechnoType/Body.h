@@ -225,6 +225,7 @@ public:
 		std::vector<DynamicVectorClass<CoordStruct>> EliteCrouchedWeaponBurstFLHs;
 		std::vector<DynamicVectorClass<CoordStruct>> DeployedWeaponBurstFLHs;
 		std::vector<DynamicVectorClass<CoordStruct>> EliteDeployedWeaponBurstFLHs;
+		std::vector<CoordStruct> AlternateFLHs;
 
 		Nullable<bool> IronCurtain_SyncDeploysInto;
 
@@ -517,6 +518,7 @@ public:
 			, EliteCrouchedWeaponBurstFLHs { }
 			, DeployedWeaponBurstFLHs { }
 			, EliteDeployedWeaponBurstFLHs { }
+			, AlternateFLHs { }
 
 			, IronCurtain_SyncDeploysInto { }
 			, EVA_Sold { }

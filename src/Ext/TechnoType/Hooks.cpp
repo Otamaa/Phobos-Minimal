@@ -32,7 +32,7 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
 	//{
 	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-	//	if (pBldExt->IsInLimboDelivery)
+	//	if (pBldExt->LimboID != -1)
 	//		return DoNotDraw;
 	//}
 

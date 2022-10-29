@@ -43,12 +43,13 @@ public:
 	class INISection : public Node<INISection>
 	{
 		public:
+			using CheckedEntries = IndexClass <unsigned int, INIEntry*>;
 
 			virtual ~INISection() {}
 
 			char* Name;
 			List<INIEntry*> Entries;
-			IndexClass <unsigned int, INIEntry*> EntryIndex;
+			CheckedEntries EntryIndex;
 			INIComment* Comments;
 	};
 	static_assert(sizeof(INISection) == 0x44, "Invalid size.");
@@ -232,14 +233,18 @@ public:
 	int Read ## item(const char* pSection, const char* pKey, int pDefault) \
 		{ JMP_THIS(addr); }
 
+#define INI_READ_DETERMINED(item, addr) \
+	item Read ## item(const char* pSection, const char* pKey, item pDefault) \
+		{ JMP_THIS(addr); }
+
 	// Pip= to idx ( pip strings with index < pDefault are not even scanned! )
 	INI_READ(Pip, 0x4748A0);
 
 	// PipScale= to idx
-	INI_READ(PipScale, 0x474940);
+	INI_READ_DETERMINED(PipScale, 0x474940);
 
 	// Category= to idx
-	INI_READ(Category, 0x4749E0);
+	INI_READ_DETERMINED(Category, 0x4749E0);
 
 	// Color=%s to idx
 	INI_READ(ColorString, 0x474A90);
@@ -248,10 +253,10 @@ public:
 	INI_READ(Foundation, 0x474DA0);
 
 	// MovementZone= to idx
-	INI_READ(MovementZone, 0x474E40);
+	INI_READ_DETERMINED(MovementZone, 0x474E40);
 
 	// SpeedType= to idx
-	INI_READ(SpeedType, 0x476FC0);
+	INI_READ_DETERMINED(SpeedType, 0x476FC0);
 
 	// [SW]Action= to idx
 	INI_READ(SWAction, 0x474EE0);
@@ -265,7 +270,7 @@ public:
 	// Factory= to idx
 	INI_READ(Factory, 0x474FF0);
 
-	INI_READ(BuildCat, 0x475060);
+	INI_READ_DETERMINED(BuildCat, 0x475060);
 
 	// Parses a list of Countries and returns a bitfield, i.e. Owner= or RequiredHouses=
 	INI_READ(HouseTypesList, 0x4750D0);
@@ -275,7 +280,7 @@ public:
 
 	INI_READ(ArmorType, 0x4753F0);
 
-	INI_READ(LandType, 0x4754B0);
+	INI_READ_DETERMINED(LandType, 0x4754B0);
 
 	// supports MP names (<Player @ X>) too, wtf
 	// ALLOCATES if country name is not found
@@ -293,12 +298,12 @@ public:
 
 	INI_READ(Theme, 0x4758F0);
 
-	INI_READ(Edge, 0x475980);
+	INI_READ_DETERMINED(Edge, 0x475980);
 
-	INI_READ(Powerup, 0x4759F0);
+	INI_READ_DETERMINED(Powerup, 0x4759F0);
 
 	// [Anim]Layer= to idx
-	INI_READ(Layer, 0x477050);
+	INI_READ_DETERMINED(Layer, 0x477050);
 
 	INI_READ(VHPScan, 0x477590);
 
@@ -387,9 +392,15 @@ class CCINIClass : public INIClass
 {
 public:
 	//STATIC
+
+
 	static constexpr reference<DWORD, 0xB77E00u> const RulesHash{};
 	static constexpr reference<DWORD, 0xB77E04u> const ArtHash{};
 	static constexpr reference<DWORD, 0xB77E08u> const AIHash{};
+
+	static constexpr reference<DWORD, 0xAC026Cu> const RulesHash_Internet{};
+	static constexpr reference<DWORD, 0xAC0270u> const ArtHash_Internet{};
+	static constexpr reference<DWORD, 0xAC0274u> const AIHash_Internet{};
 
 	// westwood genius shines again
 
@@ -415,10 +426,12 @@ public:
 	static CCINIClass* LoadINIFile(const char* pFileName)
 	{
 		CCINIClass* pINI = GameCreate<CCINIClass>();
-		CCFileClass* pFile = GameCreate<CCFileClass>(pFileName);
+		if(CCFileClass* pFile = GameCreate<CCFileClass>(pFileName)){
 		if (pFile->Exists())
 			pINI->ReadCCFile(pFile);
-		GameDelete(pFile);
+
+			GameDelete<true,false>(pFile);
+		}
 		return pINI;
 	}
 
@@ -426,7 +439,7 @@ public:
 	{
 		if (pINI)
 		{
-			GameDelete(pINI);
+			GameDelete<true,false>(pINI);
 			pINI = nullptr;
 		}
 	}

@@ -21,7 +21,6 @@ struct AITriggerConditionComparator
 };
 #pragma pack(pop)
 
-#pragma pack(push, 4)
 class DECLSPEC_UUID("BA093524-4CF4-11D2-BC26-00104B8FB04D")
 	NOVTABLE AITriggerTypeClass : public AbstractTypeClass
 {
@@ -190,6 +189,5 @@ public:
 	int              TimesCompleted;
 	int              unknown_10C;
 };
-#pragma pack(pop)
 
 static_assert(sizeof(AITriggerTypeClass) == (0x110), "Invalid Size");

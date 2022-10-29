@@ -272,9 +272,10 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 
 bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 {
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	if (!pWeapon)
+		return false;
 
-	if ((pWHExt && CanBePenetrated(pWHExt->Get())) || !this->HP)
+	if ((CanBePenetrated(pWeapon->Warhead)) || !this->HP)
 		return true;
 
 	auto verses = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, this->Type->Armor);

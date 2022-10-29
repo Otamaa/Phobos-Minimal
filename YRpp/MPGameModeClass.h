@@ -219,7 +219,7 @@ public:
 		DynamicVectorClass<CellStruct> *vecCoords, byte *housesSatisfied)
 		{ JMP_THIS(0x5D6890); }
 
-	virtual bool SpawnBaseUnits(HouseClass *House, DWORD dwUnused)
+	virtual bool SpawnBaseUnits(HouseClass *House, DWORD* dwUnused)
 		{ JMP_THIS(0x5D7030); }
 
 	virtual bool GenerateStartingUnits(HouseClass *House, int &AmountToSpend)

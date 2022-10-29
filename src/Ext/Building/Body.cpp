@@ -405,7 +405,6 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->AccumulatedGrindingRefund)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
-		.Process(this->IsInLimboDelivery)
 		.Process(this->LighningNeedUpdate)
 
 		;

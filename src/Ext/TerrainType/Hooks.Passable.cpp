@@ -58,7 +58,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 // Passable TerrainTypes Hook #3 - Count passable TerrainTypes as completely passable.
 DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 {
-	enum { Skip = 0x483DCD, Return = 0x483E25 };
+	enum { SkipToNextObject = 0x483DCD, ReturnFromFunction = 0x483E25, BreakFromLoop = 0x483DDF };
 
 	GET(CellClass*, pThis, EDI);
 	GET(ObjectClass*, pObject, ESI);
@@ -68,11 +68,13 @@ DEFINE_HOOK(0x483D87, CellClass_CheckPassability_PassableTerrain, 0x5)
 		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
 		{
 			pThis->Passability = 0;
-			return Return;
+			return ReturnFromFunction;
 		}
+
+		return BreakFromLoop;
 	}
 
-	return Skip;
+	return SkipToNextObject;
 }
 
 // Passable TerrainTypes Hook #4 - Make passable for vehicles.
