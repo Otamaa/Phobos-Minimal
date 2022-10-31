@@ -2,41 +2,39 @@
 #include "Concepts.h"
 #include <TechnoTypeClass.h>
 
+struct type_cast_data
+{
+	static char BytesData[76];
+};
+
 template<typename T>
 struct type_cast_impl
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
-	inline T operator()(const ObjectTypeClass* pAbstract)
+
+	static bool IsTechnoType(const AbstractType key) noexcept
+	{
+		return ((type_cast_data::BytesData[(int)key] & 4) != 0);
+	}
+
+	static bool IsObjectType(const AbstractType key) noexcept
+	{
+		return ((type_cast_data::BytesData[(int)key] & 2) != 0);
+	}
+
+	inline T operator()(const ObjectTypeClass* pAbstract) noexcept
 	{
 		if constexpr (Base::AbsID == AbstractType::Abstract)
 		{
 			if constexpr (Base::AbsTypeBase == AbstractBaseType::TechnoType)
 			{
-				auto const pWhat = pAbstract->WhatAmI();
-				return pWhat == AbstractType::AircraftType
-					|| pWhat == AbstractType::BuildingType
-					|| pWhat == AbstractType::InfantryType
-					|| pWhat == AbstractType::UnitType
+				return IsTechnoType(pAbstract->WhatAmI())
 					? static_cast<T>(pAbstract) : nullptr;
 			}
 			else
 			if constexpr (Base::AbsTypeBase == AbstractBaseType::ObjectType)
 			{
-				auto const pWhat = pAbstract->WhatAmI();
-				return pWhat == AbstractType::AircraftType
-					|| pWhat == AbstractType::AnimType
-					|| pWhat == AbstractType::BuildingType
-					|| pWhat == AbstractType::BulletType
-					|| pWhat == AbstractType::InfantryType
-					|| pWhat == AbstractType::IsotileType
-					|| pWhat == AbstractType::UnitType
-					|| pWhat == AbstractType::OverlayType
-					|| pWhat == AbstractType::ParticleType
-					|| pWhat == AbstractType::ParticleSystemType
-					|| pWhat == AbstractType::SmudgeType
-					|| pWhat == AbstractType::TerrainType
-					|| pWhat == AbstractType::VoxelAnimType
-					? static_cast<T>(pAbstract) : nullptr;
+				return IsObjectType(pAbstract->WhatAmI()) ? static_cast<T>(pAbstract) : nullptr;
 			} else {
 				return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
 			}

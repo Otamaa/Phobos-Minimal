@@ -87,7 +87,8 @@ public:
 		Valueable<float> ToolTip_Background_BlurSize;
 
 	#pragma region Otamaa
-		NullableIdx<ParticleTypeClass> VeinholeParticle;
+		Nullable<ParticleTypeClass*> VeinholeParticle;
+		Valueable<ParticleTypeClass*> DefaultVeinParticle;
 		PhobosFixedString<0x19> NukeWarheadName;
 		Nullable<bool> Building_PlacementPreview;
 		NullableVector<float> AI_AutoSellHealthRatio;
@@ -167,6 +168,7 @@ public:
 			, ToolTip_Background_BlurSize { 0.f }
 
 			, VeinholeParticle { }
+			, DefaultVeinParticle { nullptr }
 			, NukeWarheadName { }
 			, Building_PlacementPreview { }
 			, AI_AutoSellHealthRatio { }

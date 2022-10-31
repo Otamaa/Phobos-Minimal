@@ -708,12 +708,12 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	{
 		if (auto const pTypeUnit = pFoot->GetTechnoType())
 		{
-			auto const& [rangeX, rangeY] = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())->InitialStrength_Cloning.Get();
+			auto const& ranges = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())->InitialStrength_Cloning.Get();
 
-			if (rangeX || rangeY)
+			if (ranges.X || ranges.Y)
 			{
-				const double percentage = rangeX >= rangeY ? rangeX :
-					static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(rangeX * 100), static_cast<int>(rangeY * 100)) / 100.0);
+				const double percentage = ranges.X >= ranges.Y ? ranges.X :
+					static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(ranges.X * 100), static_cast<int>(ranges.Y * 100)) / 100.0);
 				const int strength = Math::clamp(static_cast<int>(pTypeUnit->Strength * percentage), 1, pTypeUnit->Strength);
 				pFoot->Health = strength;
 				pFoot->EstimatedHealth = strength;

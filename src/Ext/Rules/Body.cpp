@@ -253,7 +253,8 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 #pragma region Otamaa
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
-
+	auto const pGasCloud = reinterpret_cast<const char*>(0x84610C);
+	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(pGasCloud);
 	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall");
 	if (!this->CarryAll_LandAnim)
 		this->CarryAll_LandAnim = AnimTypeClass::Find("CARYLAND");
@@ -264,6 +265,9 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft");
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
+
+	if (pThis->WallTower)
+		this->WallTowers.push_back(pThis->WallTower);
 
 	this->WallTowers.Read(exINI, GENERAL_SECTION, "WallTowers");
 #pragma endregion
@@ -380,6 +384,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_BlurSize)
 
 		.Process(this->VeinholeParticle)
+		.Process(this->DefaultVeinParticle)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
 		.Process(this->AI_AutoSellHealthRatio)

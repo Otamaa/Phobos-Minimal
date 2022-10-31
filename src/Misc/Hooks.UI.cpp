@@ -67,16 +67,22 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	return 0x64203D;
 }
 
-DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
+DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 {
-	if (HouseExt::IsObserverPlayer())
+	auto const pPlayer = HouseClass::CurrentPlayer();
+	if (HouseExt::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
 		return 0x0;
 
+	auto pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
+
+	if (!pSide)
+		return 0x0;
+
+	const auto pSideExt = SideExt::ExtMap.Find(pSide);
+	wchar_t counter[0x20];
+
 	if (Phobos::UI::ShowHarvesterCounter)
-	{
-		auto pPlayer = HouseClass::CurrentPlayer();
-		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));
-		wchar_t counter[0x20];
+	{	
 		auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
 		auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
 		const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
@@ -99,22 +105,30 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_HarvesterCounter, 0x7)
 
 	if (Phobos::UI::ShowPowerDelta)
 	{
-		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));
-		wchar_t counter[0x20];
-		auto delta = HouseClass::CurrentPlayer->PowerOutput - HouseClass::CurrentPlayer->PowerDrain;
+		ColorStruct clrToolTip { };
 
-		const double percent = HouseClass::CurrentPlayer->PowerOutput != 0
-			? (double)HouseClass::CurrentPlayer->PowerDrain / (double)HouseClass::CurrentPlayer->PowerOutput : HouseClass::CurrentPlayer->PowerDrain != 0
-			? Phobos::UI::PowerDelta_ConditionRed*2.f : Phobos::UI::PowerDelta_ConditionYellow;
+		if (pPlayer->PowerBlackoutTimer.InProgress())
+		{
+			clrToolTip = pSideExt->Sidebar_PowerDelta_Grey;
+			swprintf_s(counter, L"%ls", Phobos::UI::PowerBlackoutLabel);
+		}
+		else
+		{
+			int delta = pPlayer->PowerOutput - pPlayer->PowerDrain;
 
-		const ColorStruct clrToolTip = percent < Phobos::UI::PowerDelta_ConditionYellow
-			? pSideExt->Sidebar_PowerDelta_Green : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
-			? pSideExt->Sidebar_PowerDelta_Yellow : pSideExt->Sidebar_PowerDelta_Red;
+			double percent = pPlayer->PowerOutput != 0
+				? (double)pPlayer->PowerDrain / (double)pPlayer->PowerOutput : pPlayer->PowerDrain != 0
+				? Phobos::UI::PowerDelta_ConditionRed * 2.f : Phobos::UI::PowerDelta_ConditionYellow;
+
+			clrToolTip = percent < Phobos::UI::PowerDelta_ConditionYellow
+				? pSideExt->Sidebar_PowerDelta_Green : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
+				? pSideExt->Sidebar_PowerDelta_Yellow : pSideExt->Sidebar_PowerDelta_Red;
+
+			swprintf_s(counter, L"%ls%+d", Phobos::UI::PowerLabel, delta);
+		}
 
 		auto TextFlags = static_cast<TextPrintType>(static_cast<int>(TextPrintType::UseGradPal | TextPrintType::Metal12)
 				| static_cast<int>(pSideExt->Sidebar_PowerDelta_Align.Get()));
-
-		swprintf_s(counter, L"%ls%+d", Phobos::UI::PowerLabel, delta);
 
 		Point2D vPos = {
 			DSurface::Sidebar->Get_Width() / 2 - 70 + pSideExt->Sidebar_PowerDelta_Offset.Get().X,

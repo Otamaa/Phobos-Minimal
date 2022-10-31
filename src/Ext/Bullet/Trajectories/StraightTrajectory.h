@@ -50,15 +50,7 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
-	StraightTrajectoryType* GetTrajectoryType() const
-	{
-		if (!Type) {
-			Debug::FatalErrorAndExit("GetTrajectoryType Failed ! , Missing Pointer ! \n");
-			return nullptr;
-		}
-
-		return reinterpret_cast<StraightTrajectoryType*>(Type);
-	}
+	virtual StraightTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<StraightTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
 
 	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, VelocityClass* pVelocity) override;
 	virtual bool OnAI(BulletClass* pBullet) override;

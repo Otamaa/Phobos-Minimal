@@ -86,6 +86,8 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
+	virtual PhobosTrajectoryType* GetTrajectoryType() const { return const_cast<PhobosTrajectoryType*>(Type); }
+
 	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, VelocityClass* pVelocity) = 0;
 	virtual bool OnAI(BulletClass* pBullet) = 0;
 	virtual void OnAIPreDetonate(BulletClass* pBullet) = 0;

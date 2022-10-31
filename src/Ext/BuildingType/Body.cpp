@@ -424,7 +424,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
 	this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
 	this->SpeedBonus.Read(exINI, pSection);
-	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicator.Visibility");
+	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
 
 	this->EnterBioReactorSound.Read(exINI, pSection, "EnterBioReactorSound");
 	this->LeaveBioReactorSound.Read(exINI, pSection, "LeaveBioReactorSound");

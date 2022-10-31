@@ -157,14 +157,17 @@ DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 	return 0x4AD0A8;
 }
 
+//TODO : test
 DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 {
 	//overriden instructions
 	R->Stack(0x2C, R->EDX());
 	R->Stack(0x30, R->EAX());
-	auto const pDefault = Make_Global<const char*>(0x84610C);
-	R->EAX(RulesExt::Global()->VeinholeParticle.Get(ParticleTypeClass::FindIndex(pDefault)));
-	return 0x74D0E4;
+	LEA_STACK(CoordStruct* , pCoord, 0x28);
+	auto const pRules = RulesExt::Global();
+	auto const pParticle  = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
+	R->EAX(ParticleSystemClass::Instance->SpawnParticle(pParticle, pCoord));
+	return 0x74D100;
 }
 
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
@@ -204,10 +207,12 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 {
 	GET(ParasiteClass*, pThis, EDI);
 
-	if (!pThis)
+	if (!pThis) {
 		Debug::Log("Found Invalid ParasiteClass Pointer ! , Skipping ! \n");
+		return 0x62A976;
+	}
 
-	return pThis ? 0x0 : 0x62A976;
+	return 0x0;
 }
 
 DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)

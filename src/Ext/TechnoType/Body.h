@@ -201,7 +201,7 @@ public:
 		Valueable<Point3D> InsigniaFrames;
 		Valueable<CoordStruct> InsigniaDrawOffset;
 
-		Valueable<Vector2D<double>> InitialStrength_Cloning;
+		Valueable<PartialVector2D<double>> InitialStrength_Cloning;
 
 		Nullable<SHPStruct*> SHP_SelectBrdSHP;
 		CustomPalette SHP_SelectBrdPAL;

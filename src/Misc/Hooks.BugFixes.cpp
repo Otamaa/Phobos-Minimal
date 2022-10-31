@@ -652,8 +652,6 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 			} else {
 				VocClass::PlayAt(RulesGlobal->ScoldSound, nCoord, &pThis->Audio7);
 			}
-
-
 		}
 		else if (pThis->__PlayingMovingSound) // done playing
 			pThis->Audio7.ShutUp();
@@ -718,20 +716,28 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTFismyIFV, 0x7)
+// Bugfix: TAction 7,80,107.
+DEFINE_HOOK(0x65DF81, TeamTypeClass_CreateMembers_WhereTheHellIsIFV, 0x7)
 {
 	GET(FootClass* const, pPayload, EAX);
 	GET(FootClass* const, pTransport, ESI);
+	GET(TeamClass* const, pTeam, EBP);
+
+	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
+
+	for (auto pNext = pPayload; pNext; pNext = abstract_cast<FootClass*>(pNext->NextObject))
+	{
+		if (pNext && pNext != pTransport && pNext->Team == pTeam)
+		{
+			pNext->Transporter = pTransport;
+			if (isTransportOpenTopped)
+				pTransport->EnteredOpenTopped(pNext);
+		}
+	}
 
 	pPayload->SetLocation(pTransport->Location);
-	auto pType = pTransport->GetTechnoType();
-	pPayload->Limbo();
-	if (pType->OpenTopped)
-		pTransport->EnteredOpenTopped(pPayload);
-
-	pPayload->Transporter = pTransport;
-	pTransport->AddPassenger(pPayload);
-
+	pTransport->AddPassenger(pPayload); // ReceiveGunner is done inside FootClass::AddPassenger
+	// Ares' CreateInitialPayload doesn't work here
 	return 0x65DF8D;
 }
 
@@ -743,12 +749,14 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 	enum { DontDrawBib = 0x43D8EE };
 
 	GET(BuildingClass*, pThis, ESI);
-
-	if (!pThis->ActuallyPlacedOnMap)
-		return DontDrawBib;
-
-	return 0;
+	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
 }
+
+//TODO : finish this instead hacky way below 
+//static CoordStruct* UnitClass_GetFLH(UnitClass* pThis , void* , CoordStruct* pBuffer , int nWpIdx , CoordStruct nFrom)
+//{
+//	if(pThis->InOpenToppedTransport && pThis->Transporter &&)
+//}
 
 // Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
 DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250); 
@@ -847,4 +855,12 @@ DEFINE_HOOK(0x70BCE2, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 
 	R->EAX(pBuffer);
 	return 0x70BCE6u;
+}
+
+DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
+{
+	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
+	GET(FootClass* const, pThis, ESI);
+	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
+	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
 }
