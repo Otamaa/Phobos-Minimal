@@ -47,7 +47,7 @@ DEFINE_HOOK(0x70E163, TechnoClass_GetWeapon_EliteCrawlWeapon, 0x5)
 		}
 	}
 
-	R->EAX(&pThis->GetTechnoType()->GetWeapon(nSlot));
+	R->EAX(pThis->GetTechnoType()->GetEliteWeapon(nSlot));
 	return 0x70E190;
 }
 
@@ -67,6 +67,6 @@ DEFINE_HOOK(0x70E17E, TechnoClass_GetWeapon_CrawlWeapon, 0x5)
 		}
 	}
 
-	R->EAX(&pThis->GetTechnoType()->GetWeapon(nSlot));
+	R->EAX(pThis->GetTechnoType()->GetWeapon(nSlot));
 	return 0x70E190;
 }

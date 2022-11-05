@@ -1195,3 +1195,68 @@ private:
 	NoMapContainer& operator = (const NoMapContainer&) = delete;
 	NoMapContainer& operator = (NoMapContainer&&) = delete;
 };
+
+//template<typename T>
+//class ExtensionWrapperGlobal
+//{
+//	static std::unique_ptr<T::ExtData> Data;
+//	static IStream* g_pStm;
+//
+//public:
+//
+//	static void Allocate(T::base_type* pThis)
+//	{
+//		Data = std::make_unique<T::ExtData>(pThis);
+//
+//		if (Data)
+//			Data->EnsureConstanted();
+//	}
+//
+//	static void Remove(T::base_type* pThis)
+//	{
+//		Data.release();
+//	}
+//
+//	static void Clear()
+//	{
+//		Allocate(T::base_type::Instance);
+//	}
+//
+//	static T::ExtData* Global()
+//	{
+//		return Data.get();
+//	}
+//
+//	static SetStream(IStream* pStm)
+//	{
+//		g_pStm = pStm;
+//	}
+//
+//	static void SaveToStream()
+//	{
+//		auto buffer = Data.get();
+//
+//		PhobosByteStream Stm(0);
+//		if (Stm.ReadBlockFromStream(g_pStm))
+//		{
+//			PhobosStreamReader Reader(Stm);
+//
+//			if (Reader.Expect(T::Canary) && Reader.RegisterChange(buffer))
+//				buffer->LoadFromStream(Reader);
+//		}
+//	}
+//
+//	static void LoadFromStream()
+//	{
+//		auto buffer = Data.get();
+//
+//		PhobosByteStream saver(sizeof(*buffer));
+//		PhobosStreamWriter writer(saver);
+//
+//		writer.Expect(T::Canary);
+//		writer.RegisterChange(buffer);
+//
+//		buffer->SaveToStream(writer);
+//		saver.WriteBlockToStream(g_pStm);
+//	}
+//};

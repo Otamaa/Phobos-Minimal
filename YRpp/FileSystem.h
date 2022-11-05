@@ -18,6 +18,14 @@ struct VoxelStruct
 {
 	VoxLib* VXL;
 	MotLib* HVA;
+
+	bool operator == (const VoxelStruct& nWeap) const {
+		return VXL == nWeap.VXL && HVA == nWeap.HVA;
+	}
+
+	bool operator != (const VoxelStruct& nWeap) const {
+		return VXL != nWeap.VXL || HVA != nWeap.HVA;
+	}
 };
 
 class FileSystem

@@ -43,6 +43,7 @@ public:
 
 		bool IsObserver;
 
+		std::vector<SuperClass*> SecondarySWType;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -62,6 +63,7 @@ public:
 			, LastBuildingTypeArrayIdx { -1 }
 			, RepairBaseNodes { false,false,false }
 			, IsObserver { false }
+			, SecondarySWType {  }
 		{ }
 
 		virtual ~ExtData() = default;

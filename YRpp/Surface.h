@@ -35,7 +35,7 @@ public:
 	virtual bool Put_Pixel(Point2D& point, unsigned color) PURE;
 	virtual unsigned Get_Pixel(Point2D& point) PURE;
 	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) PURE;
-	virtual bool Draw_Line(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) PURE;
+	virtual bool Draw_Line_Rect(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) PURE;
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) PURE;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) PURE;
@@ -172,7 +172,7 @@ public:
 	virtual bool Put_Pixel(Point2D& point, unsigned color) override JMP_THIS(0x7BAEB0);
 	virtual unsigned Get_Pixel(Point2D& point) override JMP_THIS(0x7BAE60);
 	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA5E0);
-	virtual bool Draw_Line(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA610);
+	virtual bool Draw_Line_Rect(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA610);
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) override R0;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) override R0;
@@ -486,6 +486,20 @@ public:
 	LPDIRECTDRAWSURFACE Get_DD_Surface() { return VideoSurfacePtr; }
 
 	static DSurface* Create_Primary(DSurface** backbuffer_surface = nullptr) JMP_THIS(0x4BA770);
+
+	static unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
+	{
+		return (unsigned((b >> BlueRight) << BlueLeft)
+			| unsigned((r >> RedRight) << RedLeft)
+			| unsigned((g >> GreenRight) << GreenLeft));
+	}
+
+	static unsigned RGB_To_Pixel(ColorStruct& rgb)
+	{
+		return (unsigned((rgb.R >> BlueRight) << BlueLeft)
+			| unsigned((rgb.G >> RedRight) << RedLeft)
+			| unsigned((rgb.B >> GreenRight) << GreenLeft));
+	}
 
 	static unsigned RGBA_To_Pixel(unsigned r, unsigned g, unsigned b)
 	{

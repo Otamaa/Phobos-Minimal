@@ -894,9 +894,9 @@ static void Fill_Triangle_Bottom(Surface& surface, Point2D& point1, Point2D& poi
 
 bool DSurface::Draw_Triangle(RectangleStruct& rect, Point2D& point1, Point2D& point2, Point2D& point3, unsigned color)
 {
-	Draw_Line(rect, point1, point2, color);
-	Draw_Line(rect, point2, point3, color);
-	Draw_Line(rect, point3, point1, color);
+	Draw_Line_Rect(rect, point1, point2, color);
+	Draw_Line_Rect(rect, point2, point3, color);
+	Draw_Line_Rect(rect, point3, point1, color);
 
 	return true;
 }
@@ -973,10 +973,10 @@ bool DSurface::Fill_Triangle_Trans(RectangleStruct& rect, Point2D& point1, Point
 
 bool DSurface::Draw_Quad(RectangleStruct& rect, Point2D& point1, Point2D& point2, Point2D& point3, Point2D& point4, unsigned color)
 {
-	Draw_Line(rect, point1, point2, color);
-	Draw_Line(rect, point2, point3, color);
-	Draw_Line(rect, point3, point4, color);
-	Draw_Line(rect, point4, point1, color);
+	Draw_Line_Rect(rect, point1, point2, color);
+	Draw_Line_Rect(rect, point2, point3, color);
+	Draw_Line_Rect(rect, point3, point4, color);
+	Draw_Line_Rect(rect, point4, point1, color);
 
 	return true;
 }
@@ -1025,19 +1025,19 @@ void DSurface::Fill_Circle(const Point2D center, unsigned radius, RectangleStruc
 
 		dxy = center + Point2D { pt.X, pt.Y };
 		sxy = center + Point2D { -pt.X, pt.Y };
-		Draw_Line(rect, sxy, dxy, color);
+		Draw_Line_Rect(rect, sxy, dxy, color);
 
 		dxy = center + Point2D { pt.Y, pt.X };
 		sxy = center + Point2D { -pt.Y, pt.X };
-		Draw_Line(rect, sxy, dxy, color);
+		Draw_Line_Rect(rect, sxy, dxy, color);
 
 		dxy = center + Point2D { pt.X, -pt.Y };
 		sxy = center + Point2D { -pt.X, -pt.Y };
-		Draw_Line(rect, sxy, dxy, color);
+		Draw_Line_Rect(rect, sxy, dxy, color);
 
 		dxy = center + Point2D { pt.Y, -pt.X };
 		sxy = center + Point2D { -pt.Y, -pt.X };
-		Draw_Line(rect, sxy, dxy, color);
+		Draw_Line_Rect(rect, sxy, dxy, color);
 
 		/**
 		 *  Check decision and update it, x and y.

@@ -20,11 +20,9 @@ public:
 	//74E8A0 Delete SpreadData
 	void Destruct()
 	{
-		if (Heap)
-		{
-			GameDelete<true>(Heap);
-			Heap = nullptr;
-		}
+
+	    GameDelete<true ,true>(Heap);
+		Heap = nullptr;
 
 		if (Datas)
 		{

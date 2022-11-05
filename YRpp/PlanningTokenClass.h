@@ -32,6 +32,7 @@ class PlanningNodeClass
 public:
 ~PlanningNodeClass() { JMP_THIS(0x633D30); }
  PlanningNodeClass(int nDword18) { JMP_THIS(0x633CC0) ;}
+ PlanningNodeClass(TechnoClass* pOwner) { JMP_THIS(0x638A80);}
 public:
 	DECLARE_PROPERTY(DynamicVectorClass<PlanningMemberClass*>, MemberVector);
 	DWORD dword18;

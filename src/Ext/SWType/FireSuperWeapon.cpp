@@ -77,6 +77,9 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		pTechnoExt->PaintBallState.release();
 #endif
+
+		//remove the building from rendering queue
+		//DisplayClass::GetLayer(Layer::Ground)->Remove(pBuilding);
 	}
 }
 

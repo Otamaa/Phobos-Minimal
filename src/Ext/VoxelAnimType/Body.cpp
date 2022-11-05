@@ -26,7 +26,7 @@ void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ExpireDamage_ConsiderInvokerVet.Read(exINI, pID, "ExpireDamage.ConsiderInvokerVeterancy");
 	this->Weapon.Read(exINI, pID, "Weapon", true);
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.Read(exINI, pID, true);
+	this->Trails.Read(exINI, pID, false);
 #endif
 #pragma endregion
 }

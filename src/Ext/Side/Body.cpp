@@ -106,13 +106,12 @@ DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
 	GET(SideClass*, pItem, ESI);
 	GET(int, nIdx, ECX);
 
-	const auto pWrapper = ExtensionWrapper::GetWrapper(pItem);
-	if (!pWrapper->ExtensionObject) {
+	if (!pItem->unknown_18) {
 		if (const auto val = new SideExt::ExtData(pItem))
 		{
 			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
-			pWrapper->ExtensionObject = val;
+			pItem->unknown_18.reset(val);
 		}
 	}
 

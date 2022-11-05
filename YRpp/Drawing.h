@@ -31,13 +31,13 @@ namespace Drawing
 {
 	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
 	constexpr static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
-	static constexpr reference<ColorStruct, 0xB0FA1C> const TooltipColor {};
-	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
-	static constexpr reference<int, 0x8A0DD8> const RedShiftLeft {};
-	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
-	static constexpr reference<int, 0x8A0DE0> const BlueShiftLeft {};
-	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
-	static constexpr reference<int, 0x8A0DE8> const GreenShiftLeft {};
+	static constexpr reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
+	static constexpr reference<int, 0x8A0DD4u> const RedShiftRight {};
+	static constexpr reference<int, 0x8A0DD8u> const RedShiftLeft {};
+	static constexpr reference<int, 0x8A0DDCu> const BlueShiftRight {};
+	static constexpr reference<int, 0x8A0DE0u> const BlueShiftLeft {};
+	static constexpr reference<int, 0x8A0DE4u> const GreenShiftRight {};
+	static constexpr reference<int, 0x8A0DE8u> const GreenShiftLeft {};
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)

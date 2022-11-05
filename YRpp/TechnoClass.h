@@ -855,8 +855,8 @@ public:
 
 	DECLARE_PROPERTY(AudioController, Audio3);
 
-	BOOL            __IsTurretTurning_49C; // Turret is moving?
-	BOOL            TurretIsRotating;
+	bool            __IsTurretTurning_49C; // Turret is moving?
+	bool            TurretIsRotating;
 
 	DECLARE_PROPERTY(AudioController, Audio4);
 

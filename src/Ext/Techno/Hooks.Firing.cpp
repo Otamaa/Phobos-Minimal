@@ -467,7 +467,7 @@ DEFINE_HOOK(0x6FDD93, TechnoClass_FireAt_DelayedFire, 0x6) // or 0x6FDD99  , 0x6
 		CoordStruct animLocation = pThis->Location;
 
 		if (pWeaponTypeExt->DelayedFire_Anim_UseFLH)
-			animLocation = TechnoExt::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex).FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
+			animLocation = TechnoExt::GetFLHAbsoluteCoords(pThis, pThisType->GetWeapon(weaponIndex)->FLH, pThis->HasTurret());//pThisType->Weapon[weaponIndex].FLH;
 
 		if (auto pAnim = GameCreate<AnimClass>(pDelayedFireAnimType, animLocation))//pThis->Location))//animLocation))
 		{

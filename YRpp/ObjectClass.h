@@ -84,7 +84,7 @@ public:
 	virtual bool IsInAir() const  R0;
 	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const override R0; //GetCoords__
 
-	virtual void Update() JMP_THIS(0x5F3E70);
+	virtual void Update() override JMP_THIS(0x5F3E70);
 
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) JMP_THIS(0x5F6DA0);

@@ -31,6 +31,19 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
 
+DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+{
+	GET(CellClass*, pCell, ESI);
+
+	bool bDraw = false;
+	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
+		bDraw = pTiberium->Value && TiberiumExt::ExtMap.Find(pTiberium)->EnablePixelFXAnim.Get();
+	}
+
+	R->EAX(bDraw);
+	return 0x6D7A4D;
+}
+
 DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 {
 	GET(CellClass*, pThis, ESI);

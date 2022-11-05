@@ -27,7 +27,8 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	//if (!exArtINI.GetINI()->GetSection(pArtSection))
 	//	return;
 
-	this->UseNormalLight.Read(exINI, pSection, pSection, "UseNormalLight");
+	this->UseNormalLight.Read(exINI, pSection, "UseNormalLight");
+	this->EnablePixelFXAnim.Read(exINI, pSection, "EnablePixelFX");
 }
 
 // =============================

@@ -144,8 +144,8 @@ public:
 		Nullable<AffectedHouse> RadialIndicator_Visibility;
 
 		Valueable<bool> SpyEffect_Custom;
-		Nullable<SuperWeaponTypeClass*> SpyEffect_VictimSuperWeapon;
-		Nullable<SuperWeaponTypeClass*> SpyEffect_InfiltratorSuperWeapon;
+		NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon;
+		NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon;
 
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;

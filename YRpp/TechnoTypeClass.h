@@ -56,6 +56,15 @@ struct WeaponStruct
 	int               BarrelThickness;
 	bool              TurretLocked;
 
+	bool operator == (const WeaponStruct& nWeap) const
+		{ return WeaponType == nWeap.WeaponType &&  FLH == nWeap.FLH
+				&& BarrelLength == nWeap.BarrelLength && BarrelThickness == nWeap.BarrelThickness 
+				&& TurretLocked== nWeap.TurretLocked ; }
+	
+	bool operator != (const WeaponStruct& nWeap) const
+	{
+		return !(*this == nWeap);
+	}
 	static bool __cdecl IsValid(WeaponStruct* WpStructe)
 		{ JMP_STD(0x70E240); }
 
@@ -151,23 +160,18 @@ public:
 		{ JMP_THIS(0x712130); }
 
 	// weapon related
-	WeaponStruct& GetWeapon(size_t const index, bool const elite)
-		{ return elite ? this->GetEliteWeapon(index) : this->GetWeapon(index); }
 
-	WeaponStruct const& GetWeapon(size_t const index, bool const elite) const
-		{ return elite ? this->GetEliteWeapon(index) : this->GetWeapon(index); }
-
-	WeaponStruct& GetWeapon(size_t const index)
+	WeaponStruct* GetWeapon(size_t const index)
 		{ JMP_THIS(0x7177C0); }
 
-	WeaponStruct const& GetWeapon(size_t const index) const
-		{ JMP_THIS(0x7177C0); }
-
-	WeaponStruct& GetEliteWeapon(size_t const index)
-		{ JMP_THIS(0x7177E0); }
-
-	WeaponStruct const& GetEliteWeapon(size_t const index) const
+	WeaponStruct* GetEliteWeapon(size_t const index) const
 		{ JMP_THIS(0x7177E0);}
+
+	void SetTurretWeapon(size_t const indexA , size_t const indexWeapon) const 
+		{ JMP_THIS(0x717890); }
+
+	int GetTurretWeapon(size_t const nIndex) const 
+		{ JMP_THIS(0x7178B0);  }
 
 	//Constructor
 	TechnoTypeClass(const char* id, SpeedType speedtype) noexcept
@@ -362,7 +366,7 @@ public:
 	TypeList<AnimTypeClass*> Explosion;
 	TypeList<AnimTypeClass*> DestroyAnim;
 	ParticleSystemTypeClass* NaturalParticleSystem;
-	Point3D NaturalParticleSystemLocation;
+	CoordStruct NaturalParticleSystemLocation;
 	ParticleSystemTypeClass* RefinerySmokeParticleSystem;
 	TypeList<ParticleSystemTypeClass*> DamageParticleSystems;
 	TypeList<ParticleSystemTypeClass*> DestroyParticleSystems;

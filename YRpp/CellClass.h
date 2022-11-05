@@ -31,7 +31,35 @@ class TubeClass;
 class FoggedObjectClass;
 class TagClass;
 class TiberiumClass;
-class PixelFXClass;
+class NOVTABLE PixelFXClass
+{
+public:
+
+	virtual ~PixelFXClass() RX;
+
+	PixelFXClass(int entry) { JMP_THIS(0x631E30); }
+	PixelFXClass() { JMP_THIS(0x631E10); }
+
+	void CalculateColor(int timing) { JMP_THIS(0x631E50); }
+	void SetOffsets(Point2D nLoc) { JMP_THIS(0x631F10); }
+	bool IsToDraw(int timing) { JMP_THIS(0x631EE0); }
+
+private:
+
+	void Init(int entry) { JMP_THIS(0x631D40); }
+
+public:
+	int FinalRGB[3];
+	DWORD BitMask;
+	DWORD BitmaskOffset;
+	int MaxRGB[3];
+	int WorkingRGB[3];
+	int XOffset;
+	int YOffset;
+	int Timing38;
+};
+
+static_assert(sizeof(PixelFXClass) == 0x3C);
 
 class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 	NOVTABLE CellClass : public AbstractClass

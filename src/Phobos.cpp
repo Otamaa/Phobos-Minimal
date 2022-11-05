@@ -233,8 +233,9 @@ void Phobos::ExeRun()
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
 			Phobos::Otamaa::IsAdmin = true;
+#ifdef COMPILE_PORTED_DP_FEATURES
 			Phobos::EnableConsole = true;
-
+#endif
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -364,16 +365,16 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	{
 		Phobos::hInstance = hModule;
 
-		if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresData::AresDllHmodule))
-		{
-			Phobos::AresBaseAddress = reinterpret_cast<uint32_t>(AresData::AresDllHmodule);
-			AresData::Init();
-		}
+		//if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresData::AresDllHmodule))
+		//{
+			//Phobos::AresBaseAddress = reinterpret_cast<uint32_t>(AresData::AresDllHmodule);
+			//AresData::Init();
+		//}
 
 	}
 	break;
 	case DLL_PROCESS_DETACH:
-		AresData::UnInit();
+		//AresData::UnInit();
 		break;
 	}
 
@@ -695,6 +696,7 @@ DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
 	return 0x0;
 }
 
+/*
 #ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 {
@@ -703,7 +705,7 @@ DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
 	return 0x0;
 }
 #endif
-/*
+
 DEFINE_HOOK(0x7D5408, Game_strdup_replace, 0x5)
 {
 	GET_STACK(const char*, In, 0x4);

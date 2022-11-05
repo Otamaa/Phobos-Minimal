@@ -546,9 +546,10 @@ public:
 	}
 
 	bool IsBrideRepairNeeded(CellStruct const& nCell)
-	{
-		JMP_THIS(0x587410);
-	}
+		{ JMP_THIS(0x587410); }
+
+	bool IsLinkedBridgeDestroyed(const CellStruct& cell) const
+		{ JMP_THIS(0x587410); }
 
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)

@@ -2163,10 +2163,7 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	case AbstractType::Aircraft:
 	case AbstractType::Unit:
 	case AbstractType::Infantry:
-	case AbstractType::Anim:
 	{
-		if (auto pShield = this->GetShield())
-			pShield->InvalidatePointer(ptr, bRemoved);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		MyWeaponManager.InvalidatePointer(ptr, bRemoved);
@@ -2328,6 +2325,19 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 		pExt->InvalidatePointer(target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
+}
+
+DEFINE_HOOK(710415, TechnoClass_AnimPointerExpired, 6)
+{
+	GET(AnimClass*, pAnim, EAX);
+	GET(TechnoClass*, pThis, ECX);
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (auto pShield = pExt->GetShield())
+		pShield->InvalidatePointer(pAnim, false);
+
+	return 0x0;
 }
 
 #ifndef ENABLE_NEWEXT

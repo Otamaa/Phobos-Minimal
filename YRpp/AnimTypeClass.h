@@ -74,7 +74,7 @@ public:
 	int MiddleFrameIndex;
 	int MiddleFrameWidth;
 	int MiddleFrameHeight;
-	DWORD Biggest; //was BYTE unknown_2A4;
+	bool Biggest; //was unknown_2A4;
 	double Damage;
 	int Rate;
 	int Start;
@@ -140,7 +140,7 @@ public:
 	bool Reverse;
 	bool Shadow;
 	bool PsiWarning;
-	DWORD ShouldFogRemove; //use the last 3 padding
+	DWORD ShouldFogRemove;
 };
 //#pragma pack(pop)
 static_assert(sizeof(AnimTypeClass) == (0x378), "Invalid size.");

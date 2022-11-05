@@ -761,60 +761,60 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 // Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
 DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250); 
 
-DEFINE_HOOK(0x6FDDCA, TechnoClass_Fire_Suicide, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, pThis->Owner);
-
-	return 0x6FDE03;
-}
-
-// Kill the vxl unit when flipped over
-DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pFlipper = pThis->DirectRockerLinkedUnit;
-	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
-
-	return 0x70BCA4;
-}
-
-DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
-{
-	GET(TechnoClass* const, pRadio, EAX);
-
-	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
-
-	return 0x4425F4;
-}
-
-DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
-{
-	GET(TechnoClass* const, pItem, ESI);
-
-	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
-
-	return 0x50150E;
-}
+//DEFINE_HOOK(0x6FDDCA, TechnoClass_Fire_Suicide, 0xA)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//
+//	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+//		nullptr, true, false, pThis->Owner);
+//
+//	return 0x6FDE03;
+//}
+//
+//// Kill the vxl unit when flipped over
+//DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//
+//	auto const pFlipper = pThis->DirectRockerLinkedUnit;
+//	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+//		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
+//
+//	return 0x70BCA4;
+//}
+//
+//DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+//{
+//	GET(TechnoClass* const, pRadio, EAX);
+//
+//	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
+//		nullptr, true, true, nullptr);
+//
+//	return 0x4425F4;
+//}
+//
+//DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+//{
+//	GET(TechnoClass* const, pItem, ESI);
+//
+//	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
+//		nullptr, true, true, nullptr);
+//
+//	return 0x50150E;
+//}
 
 // Something unfinished for later
-DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
-{
-	GET(FootClass* const, pOwner, ECX);
-	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, nullptr);
-	return 0x71880A;
-}
+//DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+//{
+//	GET(FootClass* const, pOwner, ECX);
+//	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
+//		nullptr, true, false, nullptr);
+//	return 0x71880A;
+//}
 //718B1E
 
 // Fix railgun target coordinates potentially differing from actual target coords.
-DEFINE_HOOK(0x70C6B0, TechnoClass_Railgun_TargetCoords, 0x5)
+DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 {
 	GET(AbstractClass*, pTarget, EBX);
 	GET(CoordStruct*, pBuffer, ECX);
@@ -841,19 +841,18 @@ DEFINE_HOOK(0x70C6B0, TechnoClass_Railgun_TargetCoords, 0x5)
 
 // Fix techno target coordinates (used for fire angle calculations, target lines etc) to take building target coordinate offsets into accord.
 // This, for an example, fixes a vanilla bug where Destroyer has trouble targeting Naval Yards with its cannon weapon from certain angles.
-DEFINE_HOOK(0x70BCE2, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
+DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(CoordStruct*, pBuffer, EAX);
-	auto const pWhat = pThis->WhatAmI();
+	GET(const AbstractClass* const, pTarget, ECX);
+	LEA_STACK(CoordStruct*, nCoord, 0x28);
 
-	if (pWhat == AbstractType::Building) {
-		pThis->GetTargetCoords(pBuffer);
+	if (auto pBuilding = specific_cast<const BuildingClass*>(pTarget)) {
+		pBuilding->GetTargetCoords(nCoord);
 	} else {
-		pThis->GetCenterCoords(pBuffer);
+		pTarget->GetCenterCoords(nCoord);
 	}
 
-	R->EAX(pBuffer);
+	R->EAX(nCoord);
 	return 0x70BCE6u;
 }
 

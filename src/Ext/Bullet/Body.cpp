@@ -9,6 +9,8 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include "Trajectories/PhobosTrajectory.h"
 
+#include <Utilities/Macro.h>
+
 BulletExt::ExtContainer BulletExt::ExtMap;
 
 BulletExt::ExtData::~ExtData()
@@ -302,3 +304,10 @@ DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 
 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
 }
+
+static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
+{
+	pThis->ObjectClass::AnimPointerExpired(pTarget);
+}
+
+DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))

@@ -96,6 +96,10 @@ public:
 	[[noreturn]] static void RaiseError(HRESULT err)
 		{ JMP_STD(0x7DC720); }
 
+	static void ClearScenario() {
+		JMP_STD(0x6851F0);
+	}
+
 	// actually is SessionClass::Callback
 	static void SetProgress(int progress)
 		{ SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }

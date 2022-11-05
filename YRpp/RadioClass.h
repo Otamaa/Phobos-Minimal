@@ -84,4 +84,4 @@ public:
 	RadioCommand LastCommands[3]; // new command updates these
 	DECLARE_PROPERTY(VectorClass<TechnoClass*>, RadioLinks);	//Docked units etc
 };
-//static_assert(sizeof(RadioClass) == 0xF0);
+ static_assert(sizeof(RadioClass) == 0xF0);

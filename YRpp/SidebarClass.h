@@ -92,7 +92,7 @@ public:
 };
 
 typedef StripClass TabDataStruct;
-//static_assert(sizeof(StripClass) == 0xF94);
+static_assert(sizeof(StripClass) == 0xF94);
 
 class NOVTABLE SidebarClass : public PowerClass
 {
@@ -157,6 +157,7 @@ public:
 
 	void Recalc() const { JMP_THIS(0x6A7D20); }
 
+	int Func_6AC430() const { JMP_THIS(0x6AC430); }
 protected:
 	//Constructor
 	SidebarClass() noexcept	//don't need this
@@ -230,4 +231,4 @@ public:
 	DWORD __MouseOver;
 };
 
-//static_assert(sizeof(SelectClass) == 0x38);
+static_assert(sizeof(SelectClass) == 0x38);

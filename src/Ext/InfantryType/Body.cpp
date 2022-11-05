@@ -23,35 +23,35 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 
-	auto const& nPriData = this->Get()->GetWeapon(0);
-	auto const& nPriEliteData = this->Get()->GetEliteWeapon(0);
-	auto const& nSecData = this->Get()->GetWeapon(1);
-	auto const& nSecEliteData = this->Get()->GetEliteWeapon(1);
+	auto const nPriData = this->Get()->GetWeapon(0);
+	auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
+	auto const nSecData = this->Get()->GetWeapon(1);
+	auto const nSecEliteData = this->Get()->GetEliteWeapon(1);
 
 	Valueable<WeaponTypeClass*> pWeaponReader { nullptr };
 	pWeaponReader.Read(exINI, pID, "Primary.CrawlWeapon", true);
 	this->CrawlingWeaponDatas[0].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[0].BarrelLength = nPriData.BarrelLength;
-	this->CrawlingWeaponDatas[0].BarrelThickness = nPriData.BarrelThickness;
-	this->CrawlingWeaponDatas[0].TurretLocked = nPriData.TurretLocked;
+	this->CrawlingWeaponDatas[0].BarrelLength = nPriData->BarrelLength;
+	this->CrawlingWeaponDatas[0].BarrelThickness = nPriData->BarrelThickness;
+	this->CrawlingWeaponDatas[0].TurretLocked = nPriData->TurretLocked;
 
 	pWeaponReader.Read(exINI, pID, "Primary.EliteCrawlWeapon", true);
 	this->CrawlingWeaponDatas[1].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[1].BarrelLength = nPriEliteData.BarrelLength;
-	this->CrawlingWeaponDatas[1].BarrelThickness = nPriEliteData.BarrelThickness;
-	this->CrawlingWeaponDatas[1].TurretLocked = nPriEliteData.TurretLocked;
+	this->CrawlingWeaponDatas[1].BarrelLength = nPriEliteData->BarrelLength;
+	this->CrawlingWeaponDatas[1].BarrelThickness = nPriEliteData->BarrelThickness;
+	this->CrawlingWeaponDatas[1].TurretLocked = nPriEliteData->TurretLocked;
 
 	pWeaponReader.Read(exINI, pID, "Secondary.CrawlWeapon", true);
 	this->CrawlingWeaponDatas[2].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[2].BarrelLength = nSecData.BarrelLength;
-	this->CrawlingWeaponDatas[2].BarrelThickness = nSecData.BarrelThickness;
-	this->CrawlingWeaponDatas[2].TurretLocked = nSecData.TurretLocked;
+	this->CrawlingWeaponDatas[2].BarrelLength = nSecData->BarrelLength;
+	this->CrawlingWeaponDatas[2].BarrelThickness = nSecData->BarrelThickness;
+	this->CrawlingWeaponDatas[2].TurretLocked = nSecData->TurretLocked;
 
 	pWeaponReader.Read(exINI, pID, "Secondary.EliteCrawlWeapon", true);
 	this->CrawlingWeaponDatas[3].WeaponType = pWeaponReader.Get();
-	this->CrawlingWeaponDatas[3].BarrelLength = nSecEliteData.BarrelLength;
-	this->CrawlingWeaponDatas[3].BarrelThickness = nSecEliteData.BarrelThickness;
-	this->CrawlingWeaponDatas[3].TurretLocked = nSecEliteData.TurretLocked;
+	this->CrawlingWeaponDatas[3].BarrelLength = nSecEliteData->BarrelLength;
+	this->CrawlingWeaponDatas[3].BarrelThickness = nSecEliteData->BarrelThickness;
+	this->CrawlingWeaponDatas[3].TurretLocked = nSecEliteData->TurretLocked;
 }
 
 // =============================

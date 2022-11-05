@@ -52,6 +52,10 @@ public:
 	static ColorScheme * __fastcall FindByName(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
 		{ JMP_THIS(0x68C9C0); }
 
+
+	bool IsSame(const ColorScheme* pColor) const { return CRT::strcmpi(ID, pColor->ID) == 0; };
+	bool IsDifferent(const ColorScheme* pColor) const { return CRT::strcmpi(ID, pColor->ID) != 0; };
+
 	//Constructor, Destructor
 	ColorScheme(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount, bool AddToArray)
 		{ JMP_THIS(0x68C710); }

@@ -571,65 +571,74 @@ namespace detail {
 			}
 			return true;
 		}
-		return false;
+return false;
 	}
 
-/*
-	template <>
-	inline bool read<ShapeHandlerEnumerator*>(ShapeHandlerEnumerator*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
+	/*
+		template <>
+		inline bool read<ShapeHandlerEnumerator*>(ShapeHandlerEnumerator*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 		{
-			auto const pValue = parser.value();
+			if (parser.ReadString(pSection, pKey))
+			{
+				auto const pValue = parser.value();
 
-			if (CCINIClass::IsBlank(pValue))
-			{
-				value = nullptr;
-				return false;
-			}
+				if (CCINIClass::IsBlank(pValue))
+				{
+					value = nullptr;
+					return false;
+				}
 
-			if (auto const parsed = ShapeHandlerEnumerator::FindOrAllocate(pValue))
-			{
-				parsed->FetchSHP();
-				value = parsed;
-				return true;
+				if (auto const parsed = ShapeHandlerEnumerator::FindOrAllocate(pValue))
+				{
+					parsed->FetchSHP();
+					value = parsed;
+					return true;
+				}
+				else
+				{
+					Debug::INIParseFailed(pSection, pKey, pValue);
+				}
 			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, pValue);
-			}
+			return false;
 		}
-		return false;
-	}
-*/
+	*/
 
 	template <>
-	inline bool read<MouseCursor>(MouseCursor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate) {
+	inline bool read<MouseCursor>(MouseCursor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
 		auto ret = false;
 
 		// compact way to define the cursor in one go
-		if (parser.ReadString(pSection, pKey)) {
+		if (parser.ReadString(pSection, pKey))
+		{
 			auto const buffer = parser.value();
 			char* context = nullptr;
-			if (auto const pFrame = strtok_s(buffer, Phobos::readDelims, &context)) {
+			if (auto const pFrame = strtok_s(buffer, Phobos::readDelims, &context))
+			{
 				Parser<int>::Parse(pFrame, &value.Frame);
 			}
-			if (auto const pCount = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pCount = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				Parser<int>::Parse(pCount, &value.Count);
 			}
-			if (auto const pInterval = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pInterval = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				Parser<int>::Parse(pInterval, &value.Interval);
 			}
-			if (auto const pFrame = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pFrame = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				Parser<int>::Parse(pFrame, &value.MiniFrame);
 			}
-			if (auto const pCount = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pCount = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				Parser<int>::Parse(pCount, &value.MiniCount);
 			}
-			if (auto const pHotX = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pHotX = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				MouseCursorHotSpotX::Parse(pHotX, &value.HotX);
 			}
-			if (auto const pHotY = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			if (auto const pHotY = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				MouseCursorHotSpotY::Parse(pHotY, &value.HotY);
 			}
 
@@ -653,13 +662,15 @@ namespace detail {
 		ret |= read(value.MiniCount, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.HotSpot", pKey);
-		if (parser.ReadString(pSection, pFlagName)) {
+		if (parser.ReadString(pSection, pFlagName))
+		{
 			auto const pValue = parser.value();
 			char* context = nullptr;
 			auto const pHotX = strtok_s(pValue, ",", &context);
 			MouseCursorHotSpotX::Parse(pHotX, &value.HotX);
 
-			if (auto const pHotY = strtok_s(nullptr, ",", &context)) {
+			if (auto const pHotY = strtok_s(nullptr, ",", &context))
+			{
 				MouseCursorHotSpotY::Parse(pHotY, &value.HotY);
 			}
 
@@ -668,6 +679,26 @@ namespace detail {
 
 		return ret;
 	}
+
+	template<>
+	inline bool read<WeaponStruct>(WeaponStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		auto ret = false;
+
+		char Buffer[0x100];
+		constexpr auto sizebuffer = sizeof(Buffer);
+		ret |= read(value.WeaponType, parser, pSection, pKey, allocate);
+		_snprintf_s(Buffer, sizebuffer, "%s.FLH", pKey);
+		ret |= read(value.FLH, parser, pSection, Buffer);
+		_snprintf_s(Buffer, sizebuffer, "%s.BarrelLength", pKey);
+		ret |= read(value.BarrelLength, parser, pSection, Buffer);
+		_snprintf_s(Buffer, sizebuffer, "%s.BarrelThickness", pKey);
+		ret |= read(value.BarrelThickness, parser, pSection, Buffer);
+		_snprintf_s(Buffer, sizebuffer, "%s.TurretLocked", pKey);
+		ret |= read(value.TurretLocked, parser, pSection, Buffer);
+
+		return ret;
+    }
 
 	template <>
 	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate) {

@@ -818,7 +818,7 @@ public:
 	// whether this house is equal to Observer
 	bool IsObserver() const {
 
-		return (this == Observer || !_strcmpi(get_ID(), "Observer"));
+		return (this == Observer || !CRT::strcmpi(get_ID(), "Observer"));
 
 	}
 

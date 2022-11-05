@@ -124,4 +124,4 @@ public:
 	SlaveManagerStatus State;
 	int LastScanFrame;
 };
-//static_assert(sizeof(SlaveManagerClass) == 0x64);
+static_assert(sizeof(SlaveManagerClass) == 0x64);

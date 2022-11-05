@@ -581,6 +581,21 @@ struct TrapCoords
 
 static_assert(sizeof(TrapCoords) == 0xC, " Invalid Size ! ");
 
+class MultiMission
+{
+public:
+	wchar_t Description[44];
+	char FileName[260];
+	char Digest[32];
+	bool IsOfficial;
+	int MinPlayers;
+	int MaxPlayers;
+	DynamicVectorClass<int> DiskIDs;
+	char field_1A0;
+	DynamicVectorClass<const char*> GameModeStrings;
+};
+
+static_assert(sizeof(MultiMission) == 0x1BC, " Invalid Size ! ");
 #pragma pack(push, 4)
 class SessionClass
 {
@@ -647,7 +662,7 @@ public:
 	bool OutOfSync;
 	char field_68B;
 	int GameVersion;
-	DynamicVectorClass<class MultiMission*> MultiMission;
+	DynamicVectorClass<MultiMission*> MultiMission;
 	char ScenarioFilename[0x202]; // 0x6A8
 	PROTECTED_PROPERTY(BYTE, unknown_8AA[0x1F62]);
 	DynamicVectorClass<NodeNameType*> unknown_vector_280C;

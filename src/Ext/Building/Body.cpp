@@ -82,19 +82,31 @@ bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfilt
 	if (!pTypeExt->SpyEffect_Custom)
 		return false;
 
-	auto pVictimHouse = pBuilding->Owner;
+	const auto pVictimHouse = pBuilding->GetOwningHouse();
 	if (pInfiltratorHouse != pVictimHouse)
 	{
-		if (pTypeExt->SpyEffect_VictimSuperWeapon)
+		const auto launchTheSWHere = [pBuilding](SuperClass* const pSuper, HouseClass* const pHouse)
 		{
-			const auto pSuper = pVictimHouse->Supers.GetItem(SuperWeaponTypeClass::Array->FindItemIndex(pTypeExt->SpyEffect_VictimSuperWeapon));
-			pSuper->Launch(CellClass::Coord2Cell(pBuilding->Location), pVictimHouse->IsControlledByHuman());
+			const int oldstart = pSuper->RechargeTimer.StartTime;
+			const int oldleft = pSuper->RechargeTimer.TimeLeft;
+			pSuper->SetReadiness(true);
+			pSuper->Launch(pBuilding->GetMapCoords(), pHouse->IsCurrentPlayer());
+			pSuper->Reset();
+			pSuper->RechargeTimer.StartTime = oldstart;
+			pSuper->RechargeTimer.TimeLeft = oldleft;
+		};
+
+		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset())
+		{
+			if(const auto pSuper = pVictimHouse->Supers.GetItemOrDefault(pTypeExt->SpyEffect_VictimSuperWeapon)){ 
+				launchTheSWHere(pSuper, pVictimHouse);
+			}
 		}
 
-		if (pTypeExt->SpyEffect_InfiltratorSuperWeapon)
+		if (pTypeExt->SpyEffect_InfiltratorSuperWeapon.isset())
 		{
-			const auto pSuper = pInfiltratorHouse->Supers.GetItem(SuperWeaponTypeClass::Array->FindItemIndex(pTypeExt->SpyEffect_InfiltratorSuperWeapon));
-			pSuper->Launch(CellClass::Coord2Cell(pBuilding->Location), pInfiltratorHouse->IsControlledByHuman());
+			if(const auto pSuper = pInfiltratorHouse->Supers.GetItemOrDefault(pTypeExt->SpyEffect_InfiltratorSuperWeapon))
+				launchTheSWHere(pSuper, pVictimHouse);
 		}
 	}
 

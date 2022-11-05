@@ -22,6 +22,9 @@ public:
 	static constexpr reference<int, 0x880C80u> const Radar_dword1498_z{};
 	static constexpr reference<RectangleStruct, 0x880C84u> const Radar_Rect149C{};
 
+	static constexpr reference <Surface*, 0x880A04u> const RadarEvenSurface{};
+	static constexpr reference <Surface*, 0x880A08u> const RadarEvenSurface_B{};
+
 	//Destructor
 	virtual ~RadarClass() override JMP_THIS(0x6587A0);
 
@@ -49,7 +52,7 @@ public:
 
 	//RadarClass
 	virtual void DisposeOfArt() JMP_THIS(0x652D90);
-	virtual void* vt_entry_CC(void* out_pUnk, Point2D& pPoint) JMP_THIS(0x653760);
+	virtual CellStruct* vt_entry_CC(CellStruct* out_pUnk, Point2D& pPoint) JMP_THIS(0x653760);
 	virtual void vt_entry_D0(DWORD dwUnk) JMP_THIS(0x653F70);
 	virtual void Init_For_House() JMP_THIS(0x652E90);
 

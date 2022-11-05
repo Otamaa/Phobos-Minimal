@@ -53,3 +53,5 @@ public:
 	SHPStruct* AlphaImage;
 	bool IsObjectGone;	//Set if AttachedTo is NULL.
 };
+
+static_assert(sizeof(AlphaShapeClass) == 0x40, "Invalid size.");

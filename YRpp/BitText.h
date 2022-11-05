@@ -21,3 +21,5 @@ public:
 	void DrawText(BitFont* pFont, Surface* pSurface, const wchar_t* pWideString, int X, int Y, int W, int H, char a8, int a9, int nColorAdjust)
 	{ JMP_THIS(0x434CD0); }
 };
+
+static_assert(sizeof(BitText) == 0x4, "Invalid size.");

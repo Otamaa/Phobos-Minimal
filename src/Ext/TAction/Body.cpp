@@ -90,10 +90,13 @@ static bool something_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		return false;
 
 	auto nVal = pThis->Value;
-	if (nVal <= 2) {
+	if (nVal <= 2)
+	{
 		if (nVal < 0)
 			nVal = 0;
-	} else {
+	}
+	else
+	{
 		nVal = 2;
 	}
 
@@ -129,11 +132,14 @@ static bool something_701(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (!pOwner)
 		return false;
 
-	if (pThis->Param3) {
+	if (pThis->Param3)
+	{
 		auto nAmount = pOwner->Available_Money();
 		pOwner->TakeMoney(nAmount);
 		pOwner->GiveMoney(abs(pThis->Value));
-	} else {
+	}
+	else
+	{
 		pOwner->TransactMoney(pThis->Value);
 	}
 
@@ -159,7 +165,8 @@ static bool something_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	CellStruct nBufer { };
 	ScenarioGlobal->GetWaypointCoords(&nBufer, pThis->Waypoint);
 
-	if(const auto pSuper = pOwner->Supers[pSuperType]) {
+	if (const auto pSuper = pOwner->Supers[pSuperType])
+	{
 		pSuper->IsCharged = true;
 		pSuper->Launch(nBufer, pOwner == HouseClass::CurrentPlayer());
 	}
@@ -180,14 +187,14 @@ static bool something_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 
 	switch (abs(pThis->Value))
 	{
-	case 0 :
+	case 0:
 		pOwner->AIMode = AIMode::General;
 		break;
-	case 1 :
-	case 2 :
+	case 1:
+	case 2:
 		pOwner->AIMode = AIMode::LowOnCash;
 		break;
-	case 3 :
+	case 3:
 		pOwner->AIMode = AIMode::BuildBase;
 		break;
 	default:
@@ -204,7 +211,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (!pTrigger)
 		return false;
 
-	auto pAnimType  = AnimTypeClass::Find(pThis->Text);
+	auto pAnimType = AnimTypeClass::Find(pThis->Text);
 
 	if (!pAnimType || !pAnimType->Image)
 		return false;
@@ -237,7 +244,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		{
 			do
 			{
-				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f};
+				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f };
 				Vector3D<float> Vec3Dresult { };
 				Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
 				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
@@ -286,7 +293,8 @@ static bool something_713(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (!pTrigger)
 		return false;
 
-	for (auto pTech : *TechnoClass::Array) {
+	for (auto pTech : *TechnoClass::Array)
+	{
 		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
 		{
 			if (pTech->AttachedTag && pTech->AttachedTag->ContainsTrigger(pTrigger))
@@ -332,8 +340,10 @@ static bool something_717(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (!pTrigger)
 		return false;
 
-	for (auto pTech : *TechnoClass::Array) {
-		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking)) {
+	for (auto pTech : *TechnoClass::Array)
+	{
+		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
+		{
 			GameDelete(pTech);
 		}
 	}
@@ -348,7 +358,7 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	auto v2 = 30 * MapRect.Height;
 	auto vect_X = ScenarioGlobal->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
 	auto vect_Y = (v2 / 2 + ScenarioGlobal->Random.RandomFromMax(v2));
-	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f};
+	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f };
 	Vector3D<float> Vec3Dresult { };
 	Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
 	a1->Z = 0;
@@ -363,7 +373,8 @@ static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	if (pThis->Value <= 0 || !pObject)
 		return false;
 
-	for (int i = 0; i < pThis->Value; ++i) {
+	for (int i = 0; i < pThis->Value; ++i)
+	{
 		auto ncell = pObject->GetMapCoords();
 		LightningStorm::Strike(ncell);
 	}
@@ -665,7 +676,8 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 
 			if (Y < 0)
 				targetLocation.Y = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(0, (short)MapClass::Instance->MapCoordBounds.Bottom);
-		} while (!MapClass::Instance->IsWithinUsableArea(targetLocation, false));
+		}
+		while (!MapClass::Instance->IsWithinUsableArea(targetLocation, false));
 
 		// Only valid House indexes
 		if ((pThis->Param4 >= HouseClass::Array->Count
@@ -714,7 +726,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			for (auto pHouse : *HouseClass::Array)
 			{
 				if (!pHouse->Defeated
-					&& ! HouseExt::IsObserverPlayer(pHouse)
+					&& !HouseExt::IsObserverPlayer(pHouse)
 					&& !pHouse->Type->MultiplayPassive)
 				{
 					housesListIdx.push_back(pHouse->ArrayIndex);
@@ -750,7 +762,7 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			{
 				if (pHouse->IsControlledByHuman()
 					&& !pHouse->Defeated
-					&& ! HouseExt::IsObserverPlayer(pHouse))
+					&& !HouseExt::IsObserverPlayer(pHouse))
 				{
 					housesListIdx.push_back(pHouse->ArrayIndex);
 				}
@@ -772,14 +784,21 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			break;
 		}
 
-		HouseClass* pHouse = HouseClass::Array->GetItem(houseIdx);
-		SuperWeaponTypeClass* pSuperType = SuperWeaponTypeClass::Array->GetItem(swIdx);
-		SuperClass* pSuper = GameCreate<SuperClass>(pSuperType, pHouse);
-
-		if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuperType))
+		if (HouseClass* pHouse = HouseClass::Array->GetItemOrDefault(houseIdx))
 		{
-			pSuper->SetReadiness(true);
-			pSuper->Launch(targetLocation, false);
+			if (SuperClass* pSuper = pHouse->Supers.GetItemOrDefault(swIdx))
+			{
+				if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type))
+				{
+					const int oldstart = pSuper->RechargeTimer.StartTime;
+					const int oldleft = pSuper->RechargeTimer.TimeLeft;
+					pSuper->SetReadiness(true);
+					pSuper->Launch(targetLocation, pHouse->IsCurrentPlayer());
+					pSuper->Reset();
+					pSuper->RechargeTimer.StartTime = oldstart;
+					pSuper->RechargeTimer.TimeLeft = oldleft;
+				}
+			}
 		}
 	}
 

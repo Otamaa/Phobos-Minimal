@@ -4,6 +4,7 @@
 #include <Interface/IGameMap.h>
 #include <Helpers/CompileTime.h>
 
+class SelectClass;
 class NOVTABLE GScreenClass : public IGameMap
 {
 public:
@@ -28,8 +29,8 @@ public:
 	virtual void GetInputAndUpdate(DWORD& outKeyCode, int& outMouseX, int& outMouseY) JMP_THIS(0x4F4BB0);
 	virtual void Update(const int& keyCode, const Point2D& mouseCoords) JMP_THIS(0x4F4BB0);
 	virtual bool vt_entry_2C(DWORD dwUnk) JMP_THIS(0x4F43F0);
-	virtual bool vt_entry_30(DWORD dwUnk) JMP_THIS(0x4F4410);
-	virtual bool vt_entry_34(DWORD dwUnk) JMP_THIS(0x4F4450);
+	virtual bool EnableInput(SelectClass* dwUnk) JMP_THIS(0x4F4410); //30
+	virtual bool DisableInput(SelectClass* dwUnk) JMP_THIS(0x4F4450);
 	virtual void MarkNeedsRedraw(int dwUnk) JMP_THIS(0x4F42F0);
 	virtual void DrawOnTop() JMP_THIS(0x4F4480);
 	virtual void Draw(DWORD dwUnk) { };

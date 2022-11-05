@@ -27,6 +27,7 @@ public:
 		Nullable<ColorStruct> MinimapColor;
 		Valueable<bool> EnableLighningFix;
 		Valueable<bool> UseNormalLight;
+		Valueable<bool> EnablePixelFXAnim;
 		int Replaced_EC;
 
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
@@ -37,6 +38,7 @@ public:
 			, MinimapColor {}
 			, EnableLighningFix { true }
 			, UseNormalLight { true }
+			, EnablePixelFXAnim { true }
 			, Replaced_EC { 0 }
 		{ }
 

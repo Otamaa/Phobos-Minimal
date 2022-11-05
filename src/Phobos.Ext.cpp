@@ -54,6 +54,9 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
+
+#include <Ext/Tactical/Body.h>
+
 //#include <New/Entity/FoggedObject.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
@@ -79,6 +82,7 @@ auto MassActions = MassAction <
 	ScriptTypeExt,
 	SuperExt,
 	ArmorTypeClass,
+	TacticalExt,
 	TeamTypeExt,
 	TerrainExt,
 	//SmudgeTypeExt,

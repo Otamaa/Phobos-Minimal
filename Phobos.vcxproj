@@ -97,6 +97,7 @@
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\FireSuperWeapon.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Tactical\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
@@ -278,6 +279,7 @@
     <ClInclude Include="src\Ext\SmudgeType\Body.h" />
     <ClInclude Include="src\Ext\Super\Body.h" />
     <ClInclude Include="src\Ext\Surface\Body.h" />
+    <ClInclude Include="src\Ext\Tactical\Body.h" />
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
     <ClInclude Include="src\Ext\Team\Body.h" />
@@ -399,6 +401,7 @@
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
+    <ClInclude Include="src\Utilities\UniqueArray.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\GlobalConfig.h" />
     <ClInclude Include="YRpp\YRPPGlobal.h" />

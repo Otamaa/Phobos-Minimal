@@ -76,3 +76,5 @@ public:
 	BOOL ShouldPlayTickingSound; // seems so
 	BombState State; // (mostly) set to 0 on plant, 1 on detonation/removal ?
 };
+
+static_assert(sizeof(BombClass) == 0x5C, "Invalid size.");

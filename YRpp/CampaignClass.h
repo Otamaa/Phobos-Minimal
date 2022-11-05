@@ -12,6 +12,7 @@ public:
 
 	//Array
 	ABSTRACTTYPE_ARRAY(CampaignClass, 0xA83CF8u);
+	
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
 	virtual ULONG __stdcall AddRef() R0;

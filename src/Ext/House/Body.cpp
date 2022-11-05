@@ -11,8 +11,13 @@ int HouseExt::LastHarvesterBalance = 0;
 int HouseExt::LastSlaveBalance = 0;
 
 void HouseExt::ExtData::InitializeConstants() {
-
+	//for (auto pSWType : *SuperWeaponTypeClass::Array())
+	//{
+	//	auto const pSW = GameCreate<SuperClass>(pSWType, this->Get());
+	//	SecondarySWType.push_back(pSW);
+	//}
 }
+
 void HouseExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	const char* pSection = this->Get()->PlainName;
@@ -29,6 +34,7 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
 	AnnounceInvalidPointer(Factory_NavyType, ptr);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr);
+	AnnounceInvalidPointer(SecondarySWType, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -217,6 +223,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->LastBuildingTypeArrayIdx)
 		.Process(this->RepairBaseNodes)
 		.Process(this->IsObserver)
+		.Process(this->SecondarySWType)
 		;
 }
 

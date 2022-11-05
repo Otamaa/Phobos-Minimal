@@ -238,3 +238,5 @@ public:
 	int X, Y, Width, Height;
 
 };
+
+typedef RectangleStruct Rect;

@@ -8,16 +8,6 @@
 #include <Utilities/SavegameDef.h>
 
 // All ext classes should derive from this class
-class IExtension
-{
-public:
-
-	IExtension() = default;
-	virtual ~IExtension() = default;
-
-#define FAIL_CHECK(hr) if(FAILED(hr)) return hr;
-};
-
 // Derivered with attached object
 template<typename T>
 class TExtension : public IExtension
@@ -42,7 +32,7 @@ public:
 	TExtension(const TExtension&) = delete;
 	void operator=(const TExtension&) = delete;
 
-	virtual ~TExtension() override = default;
+	virtual ~TExtension() = default;
 
 	T* const& Get() const
 	{
@@ -130,55 +120,55 @@ protected:
 	// load any ini file: rules, game mode, scenario or map
 	virtual void LoadFromINIFile(CCINIClass* pINI) { }
 };
-
-// This class is just a wrapper to replace `Dirty` to pointer
-class ExtensionWrapper
-{
-public:
-	ExtensionWrapper() :
-		FlagDirty { FALSE }
-		, ExtensionObject { nullptr }
-	{
-	}
-
-	~ExtensionWrapper() = default;
-
-	size_t Size() const
-	{
-		return sizeof(ExtensionWrapper);
-	}
-
-	//replace bool Dirty -> Ext*
-	inline static ExtensionWrapper*& GetWrapper(void* pThis)
-	{
-		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
-	}
-
-	inline static ExtensionWrapper*& GetWrapper(const void* pThis)
-	{
-		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
-	}
-
-	HRESULT Load(IStream* pStm, AbstractClass* pThis) const { return S_OK; }
-
-	HRESULT Save(IStream* pStm) const { return S_OK; }
-
-	__declspec(noinline) bool IsDirty() const
-	{ //dont inline this , causing crash !
-		return this->FlagDirty;
-	};
-
-	inline void SetDirtyFlag(bool fDirty)
-	{
-		this->FlagDirty = fDirty;
-	}
-
-private:
-	bool FlagDirty;
-
-public:
-	IExtension* ExtensionObject;
-};
+//
+//// This class is just a wrapper to replace `Dirty` to pointer
+//class ExtensionWrapper
+//{
+//public:
+//	ExtensionWrapper() :
+//		FlagDirty { FALSE }
+//		, ExtensionObject { nullptr }
+//	{
+//	}
+//
+//	~ExtensionWrapper() = default;
+//
+//	size_t Size() const
+//	{
+//		return sizeof(ExtensionWrapper);
+//	}
+//
+//	//replace bool Dirty -> Ext*
+//	inline static ExtensionWrapper*& GetWrapper(void* pThis)
+//	{
+//		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
+//	}
+//
+//	inline static ExtensionWrapper*& GetWrapper(const void* pThis)
+//	{
+//		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
+//	}
+//
+//	HRESULT Load(IStream* pStm, AbstractClass* pThis) const { return S_OK; }
+//
+//	HRESULT Save(IStream* pStm) const { return S_OK; }
+//
+//	__declspec(noinline) bool IsDirty() const
+//	{ //dont inline this , causing crash !
+//		return this->FlagDirty;
+//	};
+//
+//	inline void SetDirtyFlag(bool fDirty)
+//	{
+//		this->FlagDirty = fDirty;
+//	}
+//
+//private:
+//	bool FlagDirty;
+//
+//public:
+//	IExtension* ExtensionObject;
+//};
 
 template<typename T>
 class TExtensionContainer
@@ -188,8 +178,8 @@ private:
 	using extension_type = typename T::ExtData;
 	using base_type_ptr = base_type*;
 	using const_base_type_ptr = const base_type*;
-	using no_const_base_type_ptr = base_type*;
 	using extension_type_ptr = extension_type*;
+	using const_extension_type_ptr = const extension_type*;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -229,18 +219,16 @@ public:
 
 	extension_type_ptr SetIExtension(base_type_ptr key)
 	{
-		const auto pWrapper = ExtensionWrapper::GetWrapper(key);
-
-		if (!pWrapper->ExtensionObject)
+		if (!key->unknown_18)
 		{
 			if (const auto val = new extension_type(key))
 			{
 				val->EnsureConstanted();
-				pWrapper->ExtensionObject = val;
+				key->unknown_18.reset(val);
 			}
 		}
 
-		return (extension_type_ptr)pWrapper->ExtensionObject;
+		return (extension_type_ptr)key->unknown_18.get();
 	}
 
 	extension_type_ptr Allocate(const_base_type_ptr key)
@@ -248,25 +236,11 @@ public:
 		return SetIExtension(key);
 	}
 
-	void RemoveIExtension(const_base_type_ptr key)
+	void Remove(base_type_ptr key)
 	{
-		auto pWrapper = ExtensionWrapper::GetWrapper(key);
-
-		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject)
+		if (key->unknown_18)
 		{
-			delete Item;
-			pWrapper->ExtensionObject = 0;
-		}
-	}
-
-	void Remove(const_base_type_ptr key)
-	{
-		auto pWrapper = ExtensionWrapper::GetWrapper(key);
-
-		if (auto Item = (extension_type_ptr)pWrapper->ExtensionObject)
-		{
-			delete Item;
-			pWrapper->ExtensionObject = 0;
+			key->unknown_18.release();
 		}
 	}
 
@@ -287,40 +261,25 @@ public:
 	template<bool Check = false>
 	extension_type_ptr GetIExtension(const_base_type_ptr key)
 	{
-		ExtensionWrapper* pWrapper = nullptr;
-
 		if constexpr (Check)
 		{
-			if (key)
-				pWrapper = ExtensionWrapper::GetWrapper(key);
-			else
+			if (!key)
 				return nullptr;
 		}
-		else
-		{
-			pWrapper = ExtensionWrapper::GetWrapper(key);
-		}
 
-		return pWrapper ? (extension_type_ptr)pWrapper->ExtensionObject : nullptr;
+		return (extension_type_ptr)key->unknown_18.get();
 	}
 
 	template<bool Check = false>
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		ExtensionWrapper* pWrapper = nullptr;
 		if constexpr (Check)
 		{
-			if (key)
-				pWrapper = ExtensionWrapper::GetWrapper(key);
-			else
+			if (!key)
 				return nullptr;
 		}
-		else
-		{
-			pWrapper = ExtensionWrapper::GetWrapper(key);
-		}
 
-		return pWrapper ? (extension_type_ptr)pWrapper->ExtensionObject : nullptr;
+		return (extension_type_ptr)key->unknown_18.get();
 	}
 
 	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)

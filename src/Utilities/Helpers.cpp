@@ -21,6 +21,7 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 
 	if (HouseOwner)
 	{
+		//TODO : if not real lauch , use Ext SW array to handle
 		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(LaunchWhat))
 		{
 			auto const pSuper = pSelected;
@@ -52,11 +53,19 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 
 			if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible)
 			{
+				const int oldstart = pSuper->RechargeTimer.StartTime;
+				const int oldleft = pSuper->RechargeTimer.TimeLeft;
+
 				CellStruct nCell { nWhere.X ,nWhere.Y };
 				pSuper->Launch(nCell, !bIsObserver);
 
 				if (ResetChargeAfterLauch)
 					pSuper->Reset();
+				else
+				{
+					pSuper->RechargeTimer.StartTime = oldstart;
+					pSuper->RechargeTimer.TimeLeft = oldleft;
+				}
 
 				return true;
 			}

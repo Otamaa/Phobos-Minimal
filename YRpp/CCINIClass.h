@@ -77,6 +77,7 @@ public:
 
 	int GetKeyCount(const char* pSection) //Get the amount of keys in a section.
 		{ JMP_THIS(0x526960); }
+
 	const char* GetKeyName(const char* pSection, int nKeyIndex) //Get the name of a key number in a section.
 		{ JMP_THIS(0x526CC0); }
 
