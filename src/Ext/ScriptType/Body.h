@@ -2,7 +2,8 @@
 
 #include <ScriptTypeClass.h>
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
+
 #include <Utilities/Constructs.h>
 #include <Utilities/Template.h>
 #include <Utilities/Debug.h>
@@ -12,16 +13,15 @@
 class ScriptTypeExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = ScriptTypeClass;
 
-	class ExtData final : public Extension<ScriptTypeClass>
+	class ExtData final : public TExtension<ScriptTypeClass>
 	{
 	public:
 
 		ValueableVector<ScriptActionNode> PhobosNode;
-		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject)
+		ExtData(ScriptTypeClass* OwnerObject) : TExtension<ScriptTypeClass>(OwnerObject)
 			, PhobosNode { }
 		{ }
 
@@ -31,7 +31,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void LoadFromINIFile(CCINIClass* pINI);
 		void InitializeConstants() {
-			PhobosNode.reserve(50);
+			PhobosNode.reserve(ScriptTypeClass::MaxActions);
 		}
 
 	private:
@@ -39,7 +39,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ScriptTypeExt>
+	class ExtContainer final : public TExtensionContainer<ScriptTypeExt>
 	{
 	public:
 		ExtContainer();
@@ -52,5 +52,4 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-#endif
 };

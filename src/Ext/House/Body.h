@@ -21,9 +21,9 @@ public:
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:
-		std::map<BuildingTypeExt::ExtData*, int> BuildingCounter;
+		PhobosMap<BuildingTypeClass*, int> BuildingCounter;
 		CounterClass OwnedLimboBuildingTypes;
-		std::map<BuildingTypeExt::ExtData*, int> Building_BuildSpeedBonusCounter;
+		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
 		std::vector<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
 		int ForceOnlyTargetHouseEnemyMode;
@@ -41,9 +41,6 @@ public:
 
 		bool RepairBaseNodes[3];
 
-		bool IsObserver;
-
-		std::vector<SuperClass*> SecondarySWType;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -62,8 +59,6 @@ public:
 			, AllRepairEventTriggered { false }
 			, LastBuildingTypeArrayIdx { -1 }
 			, RepairBaseNodes { false,false,false }
-			, IsObserver { false }
-			, SecondarySWType {  }
 		{ }
 
 		virtual ~ExtData() = default;

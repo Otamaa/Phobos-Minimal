@@ -153,15 +153,12 @@ public:
 	BulletTypeClass* Type;
 	TechnoClass* Owner;
 	bool IsInaccurate; //B4
-	PROTECTED_PROPERTY(BYTE, align_B5[3]);
 	BulletData Data;
 	bool Bright;
-	PROTECTED_PROPERTY(BYTE, align_E1[3]);
 	DWORD unknown_E4;
 	VelocityClass Velocity;
 	DWORD unknown_100;
 	bool __CourseLocked;
-	PROTECTED_PROPERTY(BYTE, align_105[3]);
 	int __CourseLockedDuration;
 	AbstractClass* Target;
 	int Speed;
@@ -172,7 +169,6 @@ public:
 	WarheadTypeClass* WH;
 	byte AnimFrame;
 	byte AnimRateCounter;
-	PROTECTED_PROPERTY(BYTE, align_12E[2]);
 	WeaponTypeClass* WeaponType;
 	CoordStruct SourceCoords;
 	CoordStruct TargetCoords;
@@ -180,6 +176,5 @@ public:
 	int DamageMultiplier;
 	AnimClass* NextAnim;
 	bool SpawnNextAnim;
-	PROTECTED_PROPERTY(BYTE, align_159[3]);
 	int Range;
 };

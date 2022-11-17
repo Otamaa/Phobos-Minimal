@@ -3,7 +3,7 @@
 #include <LocomotionClass.h>
 #include <CoordStruct.h>
 
-class __declspec(align(4)) DECLSPEC_UUID("4A582743-9839-11d1-B709-00A024DDAFD1") NOVTABLE
+class ALIGN(4) DECLSPEC_UUID("4A582743-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	TunnelLocomotionClass : public LocomotionClass
 {
 public:

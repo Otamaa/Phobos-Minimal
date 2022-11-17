@@ -173,7 +173,6 @@ public:
 	CellStruct* FoundationData;
 	SHPStruct* Buildup;
 	bool BuildupLoaded;
-	PROTECTED_PROPERTY(BYTE, align_E05[3]);
 	BuildCat BuildCat;
 	CoordStruct HalfDamageSmokeLocation1;
 	CoordStruct HalfDamageSmokeLocation2;
@@ -226,25 +225,19 @@ public:
 	int Upgrades;
 	SHPStruct* DeployingAnim;
 	bool DeployingAnimLoaded;
-	PROTECTED_PROPERTY(BYTE, align_14E9[3]);
 	SHPStruct* UnderDoorAnim;
 	bool UnderDoorAnimLoaded;
-	PROTECTED_PROPERTY(BYTE, align_14F1[3]);
 	SHPStruct* Rubble;
 	bool RubbleLoaded;
-	PROTECTED_PROPERTY(BYTE, align_14F9[3]);
 	SHPStruct* RoofDeployingAnim;
 	bool RoofDeployingAnimLoaded;
-	PROTECTED_PROPERTY(BYTE, align_1501[3]);
 	SHPStruct* UnderRoofDoorAnim;
 	bool UnderRoofDoorAnimLoaded;
-	PROTECTED_PROPERTY(BYTE, align_1509[3]);
 	SHPStruct* DoorAnim;
 	SHPStruct* SpecialZOverlay;
 	int SpecialZOverlayZAdjust;
 	SHPStruct* BibShape;
 	bool BibShapeLoaded;
-	PROTECTED_PROPERTY(BYTE, align_151D[3]);
 	int NormalZAdjust;
 	int AntiAirValue;
 	int AntiArmorValue;
@@ -264,7 +257,6 @@ public:
 	bool EligibileForAllyBuilding;
 	bool EligibleForDelayKill;
 	bool NeedsEngineer;
-	PROTECTED_PROPERTY(BYTE, align_1553);
 	int CaptureEvaEvent;
 	int ProduceCashStartup;
 	int ProduceCashAmount;
@@ -285,10 +277,8 @@ public:
 	bool ClickRepairable;
 	bool CanBeOccupied;
 	bool CanOccupyFire;
-	PROTECTED_PROPERTY(BYTE, align_157D[3]);
 	int MaxNumberOccupants;
 	bool ShowOccupantPips;
-	PROTECTED_PROPERTY(BYTE, align_1585[3]);
 
 	Point2D MuzzleFlash[0xA];
 
@@ -343,7 +333,6 @@ public:
 	bool Helipad;
 	bool OrePurifier;
 	bool FactoryPlant;
-	PROTECTED_PROPERTY(BYTE, align_16CE[2]);
 	float InfantryCostBonus;
 	float UnitsCostBonus;
 	float AircraftCostBonus;
@@ -352,7 +341,6 @@ public:
 	bool GDIBarracks;
 	bool NODBarracks;
 	bool YuriBarracks;
-	PROTECTED_PROPERTY(BYTE, align_16E7[1]);
 	float ChargedAnimTime;
 	int DelayedFireDelay;
 	int SuperWeapon;
@@ -368,7 +356,6 @@ public:
 	bool IsBaseDefense;
 	BYTE CloakRadiusInCells;
 	bool ConcentricRadialIndicator;
-	PROTECTED_PROPERTY(BYTE, align_1709[3]);
 	int PsychicDetectionRadius;
 	int BarrelStartPitch;
 	char VoxelBarrelFile[16];
@@ -389,7 +376,6 @@ public:
 	bool LeaveRubble;
 	bool CrateBeneathIsMoney;
 	char TheaterSpecificID [0x13];
-	PROTECTED_PROPERTY(BYTE, align_176B[3]);
 	int NumberOfDocks;
 	VectorClass<CoordStruct> DockingOffsets;
 	PRIVATE_PROPERTY(DWORD, align_1794);

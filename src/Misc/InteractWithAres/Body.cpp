@@ -22,7 +22,7 @@ void AresData::Init()
 	ContainerMapData::SWTypeContainer = Phobos::AresBaseAddress + ContainerMapData::SWTypeContainerOffSet;
 }
 
-void __stdcall AresData::HandleConvert::Exec(TechnoClass*, TechnoTypeClass*) {
+bool NOINLINE __stdcall AresData::HandleConvert::Exec(TechnoClass*, TechnoTypeClass*) {
 	JMP_STD(HandleConvert::CallableAddress);
 }
 

@@ -75,7 +75,6 @@
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
-    <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
@@ -84,6 +83,7 @@
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
+    <ClCompile Include="src\Ext\ScriptType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Script\Hooks.cpp" />
     <ClCompile Include="src\Ext\SHPReference\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
@@ -116,6 +116,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.JumjetFiring.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
@@ -136,13 +137,11 @@
     <ClCompile Include="src\Ext\WarheadType\Detonate.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
-    <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\ExtHooks\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Helpers\Helpers.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Others\TextHandler.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftDive\AircraftDiveFunctional.cpp" />
@@ -173,7 +172,6 @@
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Hooks.Working.cpp" />
-    <ClCompile Include="src\Misc\InteractWithAres\Body.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -230,7 +228,6 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
-    <ClCompile Include="YRpp\AircraftClass.cpp" />
     <ClCompile Include="YRpp\CStreamClass.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
@@ -246,7 +243,6 @@
     <ClInclude Include="src\Commands\QuickSave.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
-    <ClInclude Include="src\ExtraHeaders\Ares\TechnoExtData.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\ExtraHeaders\DataVectors.h" />
     <ClInclude Include="src\ExtraHeaders\DirClass.h" />
@@ -286,7 +282,6 @@
     <ClInclude Include="src\Ext\Temporal\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
-    <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.h" />
@@ -329,7 +324,6 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
     <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
-    <ClInclude Include="src\Misc\InteractWithAres\Body.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\TriggerMPOwner.h" />
@@ -372,6 +366,8 @@
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
     <ClInclude Include="src\Utilities\EventHandler.h" />
     <ClInclude Include="src\Utilities\ExpressionAnalyzer.h" />
+    <ClInclude Include="src\Utilities\LocomotionCast.h" />
+    <ClInclude Include="src\Utilities\MapPathCellElement.h" />
     <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
@@ -401,7 +397,7 @@
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
-    <ClInclude Include="src\Utilities\UniqueArray.h" />
+    <ClInclude Include="YRpp\GameStrings.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\GlobalConfig.h" />
     <ClInclude Include="YRpp\YRPPGlobal.h" />
@@ -657,7 +653,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;COMPILE_PORTED_DP_FEATURES;ENABLE_PHOBOS_DAMAGEDELAYANIM;ENABLE_PHOBOS_AIRBURST;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>

@@ -863,3 +863,50 @@ DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
 }
+
+template<typename T>
+static bool NOINLINE InvalidateVector(DynamicVectorClass<T>& nVec, T pItem)
+{
+	auto datafirst = std::addressof(nVec.Items[0]);
+	auto dataend = std::addressof(nVec.Items[nVec.Count]);
+
+	if (datafirst != dataend)
+	{
+		while (*datafirst != pItem)
+		{
+			if (datafirst == dataend)
+				return false;
+		}
+
+		std::memmove(datafirst, datafirst + 1, dataend - (datafirst + 1));
+		--nVec.Count;
+		return true;
+	}
+
+	return false;
+}
+
+//DEFINE_HOOK(0x65AAC0, RadioClass_Detach, 0x5)
+//{
+//	GET(RadioClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, pTarget, 0x4);
+//	GET_STACK(bool, bRemoved, 0x8);
+//
+//	pThis->ObjectClass::PointerExpired(pTarget, bRemoved);
+//	auto datafirst = std::addressof(pThis->RadioLinks.Items[0]);
+//	auto dataend = std::addressof(pThis->RadioLinks.Items[pThis->RadioLinks.Capacity]);
+//
+//	if (datafirst != dataend)
+//	{
+//		while (*datafirst != pTarget)
+//		{
+//			if (datafirst == dataend)
+//				break;
+//		}
+//
+//		std::memmove(datafirst, datafirst + 1, dataend - (datafirst + 1));
+//		--pThis->RadioLinks.Capacity;
+//	}
+//
+//	return 0x65AB08;
+//}

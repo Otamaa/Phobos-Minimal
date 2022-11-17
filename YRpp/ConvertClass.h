@@ -81,7 +81,7 @@ public:
 
 protected:
 	explicit __forceinline ConvertClass(noinit_t) {
-		*((unsigned long*)this) = (unsigned long)0x7E5358;
+	//	*((unsigned long*)this) = (unsigned long)0x7E5358;
 	}
 
 	//===========================================================================

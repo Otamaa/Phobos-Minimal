@@ -60,7 +60,6 @@ public:
 
 	int      HoldsWhat; //ParticleType Array index
 	bool     Spawns;
-	PROTECTED_PROPERTY(BYTE, align_299[3]);
 	int      SpawnFrames;
 	float    Slowdown;
 	int      ParticleCap;
@@ -82,7 +81,6 @@ public:
 	ColorStruct LaserColor;
 	bool     Laser;
 	bool     OneFrameLight;
-	PROTECTED_PROPERTY(BYTE, align_30D[3]);
 };
 
 static_assert(sizeof(ParticleSystemTypeClass) == 0x310);

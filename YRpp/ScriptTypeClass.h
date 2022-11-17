@@ -16,8 +16,19 @@ public:
 	void FillIn(char* pTr)
 	 { JMP_THIS(0x723CA0); }
 
-	int Action;
-	int Argument;
+	bool operator==(ScriptActionNode const& rhs) const {
+		//return Action == rhs.Action && Argument == rhs.Argument;
+		return false; // so , umm we dont really care actually ,.. but , eh whatever
+	}
+
+	bool operator!=(ScriptActionNode const& rhs) const {
+		//return !((*this) == rhs);
+		return true; // so , umm we dont really care actually ,.. but , eh whatever
+	}
+
+public:
+	int Action { -1 };
+	int Argument { 0 } ;
 };
 
 //forward declarations
@@ -28,6 +39,7 @@ class DECLSPEC_UUID("42F3A647-0789-11D2-ACA5-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ScriptType;
+	static constexpr int ScriptTypeClass::MaxActions = 50;
 
 	//Array
 	ABSTRACTTYPE_ARRAY(ScriptTypeClass, 0x8B41C8u);
@@ -74,6 +86,19 @@ public:
 	bool     IsGlobal;
 	int      ActionsCount;
 
-//private:
-	ScriptActionNode ScriptActions [50];
+	struct ScriptActionPack{
+
+		ScriptActionNode Data [ScriptTypeClass::MaxActions];
+
+		constexpr auto begin() const { return std::begin(Data); }
+		constexpr auto end() const { return std::end(Data); }
+		constexpr auto begin() { return std::begin(Data); }
+		constexpr auto end() { return std::end(Data); }
+
+		constexpr int size() const { return ScriptTypeClass::MaxActions; }
+		constexpr ScriptActionNode at(int Index) const { return Data[Index]; }
+
+	}ScriptActions;
+
+	static_assert(sizeof(ScriptActionPack) == (sizeof(ScriptActionNode) * ScriptTypeClass::MaxActions), "Invalid Size ! ");
 };

@@ -3,6 +3,7 @@
 
 #include <Phobos.version.h>
 #include <Base/Always.h>
+#include <GameStrings.h>
 
 #include <vector>
 #include <string>
@@ -29,31 +30,31 @@ constexpr const char* ARES_DLL_S = "Ares.dll";
 constexpr const wchar_t* GAMEMD_EXE = L"gamemd.exe";
 constexpr const char* UIMD_ = "uimd.ini";
 
-#define TOOLTIPS_SECTION reinterpret_cast<const char*>(0x833188)
-#define SIDEBAR_SECTION reinterpret_cast<const char*>(0x848AD4)
-#define GENERAL_SECTION reinterpret_cast<const char*>(0x826278)
-#define RADIATION_SECTION reinterpret_cast<const char*>(0x839E80)
-#define AUDIOVISUAL_SECTION reinterpret_cast<const char*>(0x839EA8)
-#define SPECIALWEAPON_SECTION reinterpret_cast<const char*>(0x839EB4)
-#define JUMPJET_SECTION reinterpret_cast<const char*>(0x839D58)
-#define COMBATDAMAGE_SECTION reinterpret_cast<const char*>(0x839E8C)
+#define TOOLTIPS_SECTION GameStrings::ToolTips()
+#define SIDEBAR_SECTION GameStrings::SideBar()
+#define GENERAL_SECTION GameStrings::General()
+#define RADIATION_SECTION GameStrings::Radiation()
+#define AUDIOVISUAL_SECTION GameStrings::AudioVisual()
+#define SPECIALWEAPON_SECTION GameStrings::SpecialWeapons()
+#define JUMPJET_SECTION GameStrings::JumpjetControls()
+#define COMBATDAMAGE_SECTION GameStrings::CombatDamage()
 
-#define FAILEDTOLOADUIMD_MSG reinterpret_cast<const char*>(0x827DAC)
+#define FAILEDTOLOADUIMD_MSG GameStrings::FailedToLoadUIMDMsg()
 
-#define UIMD_FILENAME reinterpret_cast<const char*>(0x827DC8)
-#define RA2MD_FILENAME reinterpret_cast<const char*>(0x826444)
+#define UIMD_FILENAME GameStrings::UIMD_INI()
+#define RA2MD_FILENAME GameStrings::RA2MD_INI()
 
-#define RING1_NAME reinterpret_cast<const char*>(0x8182F0)
-#define INVISO_NAME reinterpret_cast<const char*>(0x8182F8)
+#define RING1_NAME GameStrings::Anim_RING1()
+#define INVISO_NAME GameStrings::Anim_INVISO()
 
 //= "<all>";
-#define ALL_STR reinterpret_cast<const char*>(0x81811C)
+#define ALL_STR GameStrings::AllStr()
 // "<none>";
-#define NONE_STR reinterpret_cast<const char*>(0x817474)
+#define NONE_STR GameStrings::NoneStr()
 
-#define Eva_structureSold reinterpret_cast<const char*>(0x819030)
-#define Eva_UnitSold reinterpret_cast<const char*>(0x822630)
-#define Eva_OreMinerUnderAttack reinterpret_cast<const char*>(0x824784)
+#define Eva_structureSold GameStrings::EVA_StructureSold()
+#define Eva_UnitSold GameStrings::EVA_UnitSold()
+#define Eva_OreMinerUnderAttack GameStrings::EVA_OreMinerUnderAttack()
 
 
 struct Phobos final
@@ -70,7 +71,7 @@ public:
 	static void ExeTerminate();
 
 	//variables
-	static HMODULE hInstance;
+	static HANDLE hInstance;
 
 	static const size_t readLength = 2048;
 	static char readBuffer[readLength];
@@ -149,5 +150,14 @@ public:
 		static TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 		static bool IsAdmin;
 		static bool ShowHealthPercentEnabled;
+	};
+
+	class Defines
+	{
+		NO_CONSTRUCT_CLASS(Defines)
+	public:
+
+		static inline constexpr ColorStruct ShieldPositiveDamageColor = ColorStruct { 0, 160, 255 };
+		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
 	};
 };

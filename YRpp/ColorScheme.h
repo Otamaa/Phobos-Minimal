@@ -40,7 +40,7 @@ public:
 	static int FindIndex(const char* pID, int ShadeCount = 1) {
 		for(int i = 0; i < Array->Count; ++i) {
 			ColorScheme* pItem = Array->GetItem(i);
-			if(!CRT::strcmpi(pItem->ID, pID)) {
+			if(!_strcmpi(pItem->ID, pID)) {
 				if(pItem->ShadeCount == ShadeCount) {
 					return i;
 				}

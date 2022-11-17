@@ -34,24 +34,24 @@ public:
 	}
 
 	//IFlyControl
-	IFACEMETHOD_(LONG, Landing_Altitude()); //
-	IFACEMETHOD_(LONG, Landing_Direction()); //
-	IFACEMETHOD_(BOOL, Is_Loaded()); //
-	IFACEMETHOD_(LONG, Is_Strafe()); //
-	IFACEMETHOD_(LONG, Is_Fighter()); //
-	IFACEMETHOD_(LONG, Is_Locked()); //
+	IFACEMETHOD_(LONG, Landing_Altitude()) JMP_STD(0x41B6A0); //
+	IFACEMETHOD_(LONG, Landing_Direction()) JMP_STD(0x41B760); //
+	IFACEMETHOD_(BOOL, Is_Loaded()) JMP_STD(0x41B7D0); //
+	IFACEMETHOD_(LONG, Is_Strafe()) JMP_STD(0x41B7F0); //
+	IFACEMETHOD_(LONG, Is_Fighter()) JMP_STD(0x41B840); //
+	IFACEMETHOD_(LONG, Is_Locked()) JMP_STD(0x41B860); //
 
 	//IUnknown
-	IFACEMETHOD_(HRESULT,QueryInterface(REFIID iid, LPVOID* ppvObject));
-	IFACEMETHOD_(ULONG,AddRef());
-	IFACEMETHOD_(ULONG,Release());
+	IFACEMETHOD_(HRESULT,QueryInterface(REFIID iid, LPVOID* ppvObject)) JMP_STD(0x414290);
+	IFACEMETHOD_(ULONG,AddRef()) JMP_STD(0x4142F0);
+	IFACEMETHOD_(ULONG,Release()) JMP_STD(0x414300);
 
 	//IPersist
-	IFACEMETHOD_(HRESULT,GetClassID(CLSID* pClassID));
+	IFACEMETHOD_(HRESULT,GetClassID(CLSID* pClassID)) JMP_STD(0x41C190);
 
 	//IPersistStream
-	IFACEMETHOD_(HRESULT,Load(IStream* pStm));
-	IFACEMETHOD_(HRESULT,Save(IStream* pStm, BOOL fClearDirty)) ;
+	IFACEMETHOD_(HRESULT,Load(IStream* pStm)) JMP_STD(0x41B430);
+	IFACEMETHOD_(HRESULT,Save(IStream* pStm, BOOL fClearDirty)) JMP_STD(0x41B5C0);
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x41C180);

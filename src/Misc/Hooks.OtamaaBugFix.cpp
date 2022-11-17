@@ -2048,11 +2048,7 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 
 DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
-	enum
-	{
-		ContinueCheck = 0x5F54C4
-		, ResultHalf = 0x5F54B8
-	};
+	enum { ContinueCheck = 0x5F54C4 , ResultHalf = 0x5F54B8 };
 
 	GET(int, nOldStr, EDX);
 	GET(int, nCurStr, EBP);
@@ -2085,11 +2081,7 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6D9159
-	};
+	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
 
 	GET(TechnoClass*, pTechno, ESI);
 
@@ -2106,11 +2098,7 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 {
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6D978F
-	};
+	enum { Draw = 0x0, DoNotDraw = 0x6D978F };
 
 	GET(TechnoClass*, pTechno, EBX);
 
@@ -2127,11 +2115,7 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 
 DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 {
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6D9587
-	};
+	enum { Draw = 0x0, DoNotDraw = 0x6D9587 };
 
 	GET(BuildingClass*, pBuilding, EBX);
 	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;

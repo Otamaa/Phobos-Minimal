@@ -13,13 +13,12 @@
 //forward declarations
 class TechnoTypeClass;
 class TeamTypeClass;
-#pragma pack(push, 4)
+
 struct AITriggerConditionComparator
 {
 	int ComparatorType;
 	int ComparatorOperand;
 };
-#pragma pack(pop)
 
 class DECLSPEC_UUID("BA093524-4CF4-11D2-BC26-00104B8FB04D")
 	NOVTABLE AITriggerTypeClass : public AbstractTypeClass

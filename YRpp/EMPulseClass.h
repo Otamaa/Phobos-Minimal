@@ -5,7 +5,7 @@
 #pragma once
 
 #include <AbstractClass.h>
-
+class TechnoClass;
 class DECLSPEC_UUID("B825CB22-200E-11D2-9FA9-0060089AD458")
 	NOVTABLE EMPulseClass : public AbstractClass
 {
@@ -26,13 +26,22 @@ public:
 	virtual ~EMPulseClass() override JMP_THIS(0x4C5AC0);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override { return AbstractType::EMPulse; }
-	virtual int Size() const override { return 0x34; }
+	virtual AbstractType WhatAmI() const RT(AbstractType);
+	virtual int Size() const R0;
+	virtual void CalculateChecksum(Checksummer& checksum) const override JMP_THIS(0x4C59A0);
+
+	void SetCoordBitfieldInRange() const { JMP_THIS(0x4C58C0);}
+	void Init(TechnoClass* pInvoker) const { JMP_THIS(0x4C54E0);}
+
+	static void UpdateAll() { JMP_STD(0x4C54A0); }
 
 	//Constructor
 	EMPulseClass(CellStruct dwCrd, int nSpread, int nDuration,
 		TechnoClass* pGenerator) noexcept : EMPulseClass(noinit_t())
 	{ JMP_THIS(0x4C52B0); }
+
+	EMPulseClass() noexcept
+	{ JMP_THIS(0x4C5370); }
 
 protected:
 	explicit __forceinline EMPulseClass(noinit_t) noexcept

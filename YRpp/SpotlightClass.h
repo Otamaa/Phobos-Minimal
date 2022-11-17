@@ -5,7 +5,7 @@
 #include <Helpers/CompileTime.h>
 #include <CoordStruct.h>
 
-class SpotlightClass
+class NOVTABLE SpotlightClass
 {
 public:
 	//Static

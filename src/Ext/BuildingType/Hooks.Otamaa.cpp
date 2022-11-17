@@ -201,7 +201,7 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	if (pThis)
 	{
 		auto nStep = RulesGlobal->RepairStep;
-		if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
+		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis))
 			if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType))
 				nStep = pTypeExt->RepairStep.Get(nStep);
 

@@ -151,7 +151,11 @@ DEFINE_HOOK(0x5198B3, InfantryClass_PerCellProcess_Grinding, 0x5)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EBX);
 
-	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Continue : 0;
+	auto nRefund = pThis->GetRefund();
+	if (pThis->ParasiteEatingMe)
+		nRefund += pThis->ParasiteEatingMe->GetRefund();
+
+	return BuildingExt::DoGrindingExtras(pBuilding, pThis , nRefund) ? Continue : 0;
 }
 
 DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
@@ -161,7 +165,16 @@ DEFINE_HOOK(0x73A1C3, UnitClass_PerCellProcess_Grinding, 0x5)
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pBuilding, EBX);
 
-	return BuildingExt::DoGrindingExtras(pBuilding, pThis) ? Continue : 0;
+	int nRefund = pThis->GetRefund();
+
+	for (NextObject obj(pThis->Passengers.GetFirstPassenger()); obj; ++obj) {
+		nRefund += static_cast<FootClass*>(*obj)->GetRefund();
+	}
+
+	if (pThis->ParasiteEatingMe)
+		nRefund += pThis->ParasiteEatingMe->GetRefund();
+
+	return BuildingExt::DoGrindingExtras(pBuilding, pThis , nRefund) ? Continue : 0;
 }
 
 //DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)

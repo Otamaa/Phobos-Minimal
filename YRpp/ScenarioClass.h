@@ -90,6 +90,15 @@ public:
 	static bool __fastcall SaveGame(const char* FileName, const wchar_t* Description, bool BarGraph = false)
 		{ JMP_STD(0x67CEF0); }
 
+	static bool __fastcall LoadGame(const char* FileName)
+		{ JMP_STD(0x67E440); }
+
+	static bool __fastcall StartScenario(const char* FileName, bool Briefing, int CampaignIndex)
+		{ JMP_STD(0x683AB0); }
+
+	static void __fastcall AssignHouses()
+		{ JMP_STD(0x687F10); }
+
 	//not sure if this correct ?
 	static HRESULT __fastcall SaveAll(IStream*)
 		{ JMP_STD(0x67D300); }
@@ -142,9 +151,8 @@ public:
 	TimerStruct PauseTimer;
 	DWORD unknown_62C;
 	bool IsGamePaused;
-	PROTECTED_PROPERTY(BYTE, align_631);
 	CellStruct Waypoints [702];
-	PROTECTED_PROPERTY(BYTE, align_112A[2]);
+
 	//Map Header
 	int StartX;
 	int StartY;
@@ -155,7 +163,6 @@ public:
 	int HouseIndices [0x10]; // starting position => HouseClass::Array->GetItem(#)
 	CellStruct HouseHomeCells [0x8];
 	bool TeamsPresent;
-	PROTECTED_PROPERTY(BYTE, align_11E1[3]);
 	int NumCoopHumanStartSpots;
 	TimerStruct MissionTimer;
 	wchar_t * MissionTimerTextCSF;
@@ -196,7 +203,6 @@ public:
 	CellStruct View2;
 	CellStruct View3;
 	CellStruct View4;
-	PROTECTED_PROPERTY(BYTE, align_349E[2]);
 	DWORD unknown_34A0;
 	bool FreeRadar; //34A4
 	bool TrainCrate;
@@ -222,7 +228,6 @@ public:
 	bool MultiplayerOnly; //34BC
 	bool IsRandom;
 	bool PickedUpAnyCrate;
-	PROTECTED_PROPERTY(BYTE, align_34BF);
 	TimerStruct unknown_timer_34C0;
 	int CampaignIndex;
 	int StartingDropships;
@@ -264,7 +269,6 @@ public:
 	char OverParMessage [0x1F]; //360D
 	char LSLoadMessage [0x1F]; //362C
 	char LSBrief [0x1F]; //364B
-	PROTECTED_PROPERTY(BYTE, align_366A[2]);
 	int LS640BriefLocX;
 	int LS640BriefLocY;
 	int LS800BriefLocX;

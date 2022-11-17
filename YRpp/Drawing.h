@@ -252,6 +252,10 @@ namespace Drawing
 	{
 		return RGB2DWORD(RGB888_HEX(pHEX));
 	}
+
+	static constexpr ColorStruct ColorRed = { 255,0,0 };
+	static constexpr ColorStruct ColorGreen = { 0,255,0 };
+	static constexpr ColorStruct ColorBlue = { 0,0,255 };
 }
 
 struct BufferData

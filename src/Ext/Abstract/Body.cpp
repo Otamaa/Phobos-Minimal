@@ -14,32 +14,32 @@
 //	return 0x41045E;
 //}
 
-DEFINE_HOOK(0x4103E0, AbstractClass_GetSizeMax, 0x5)
-{
-	GET(AbstractClass*, pThis, ECX);
-	GET_STACK(ULARGE_INTEGER*, pcbSize, 0x4);
-
-	pcbSize->HighPart = 0;
-	pcbSize->LowPart =
-		pThis->Size() + sizeof(pThis);
-
-	R->EAX(S_OK);
-
-	return 0x4103EF;
-}
-
-DEFINE_HOOK(0x512570, HouseTypeClass_GetSizeMax, 0x5)
-{
-	GET(AbstractClass*, pThis, ECX);
-	GET_STACK(ULARGE_INTEGER*, pcbSize, 0x4);
-
-	pcbSize->HighPart = 0;
-	pcbSize->LowPart = pThis->Size() + sizeof(pThis);
-
-	R->EAX(S_OK);
-
-	return 0x51257D;
-}
+//DEFINE_HOOK(0x4103E0, AbstractClass_GetSizeMax, 0x5)
+//{
+//	GET(AbstractClass*, pThis, ECX);
+//	GET_STACK(ULARGE_INTEGER*, pcbSize, 0x4);
+//
+//	pcbSize->HighPart = 0;
+//	pcbSize->LowPart =
+//		pThis->Size() + sizeof(pThis);
+//
+//	R->EAX(S_OK);
+//
+//	return 0x4103EF;
+//}
+//
+//DEFINE_HOOK(0x512570, HouseTypeClass_GetSizeMax, 0x5)
+//{
+//	GET(AbstractClass*, pThis, ECX);
+//	GET_STACK(ULARGE_INTEGER*, pcbSize, 0x4);
+//
+//	pcbSize->HighPart = 0;
+//	pcbSize->LowPart = pThis->Size() + sizeof(pThis);
+//
+//	R->EAX(S_OK);
+//
+//	return 0x51257D;
+//}
 
 //DEFINE_HOOK(0x4101B6, AbstractClass_CTOR, 0x5)
 //{

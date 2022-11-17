@@ -4,27 +4,32 @@
 DEFINE_HOOK_AGAIN(0x522790, TechnoClass_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
 DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_DefaultDisguise
 {
+	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
 	enum { SetDisguise = 0x5227BF, DefaultDisguise = 0x6F4277 };
 
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	if (!pExt)
 	{
-		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		Debug::Log("TypeExt Missing For [%x - %s] Techno ! \n" , pThis,pType->get_ID());
+		pThis->Disguised = false;
 
-		//ToDo:
+		return 0;
+	}
+	//ToDo:
 #ifdef TANK_DISGUISE
-		if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
-		{
-			pThis->Disguised = false;
-			return DefaultDisguise;
-		}
+	if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
+	{
+		pThis->Disguised = false;
+		return DefaultDisguise;
+	}
 #endif
-		if (pExt->DefaultDisguise.isset())
-		{
-			pThis->Disguise = pExt->DefaultDisguise;
-			pThis->Disguised = true;
-			return R->Origin() == 0x522790 ? SetDisguise : DefaultDisguise;
-		}
+	if (pExt->DefaultDisguise.isset())
+	{
+		pThis->Disguise = pExt->DefaultDisguise;
+		pThis->Disguised = true;
+		return R->Origin() == 0x522790 ? SetDisguise : DefaultDisguise;
 	}
 
 	pThis->Disguised = false;
@@ -46,7 +51,7 @@ DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 
 	if (CAN_BLINK_DISGUISE(pThis))
 		return SkipGameCode;
-	else if (accum && (pThis->Owner  ? !pThis->Owner->ControlledByPlayer():false))
+	else if (accum && (pThis->Owner ? !pThis->Owner->ControlledByPlayer() : false))
 		return Return;
 
 	return SkipGameCode;
@@ -96,22 +101,11 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	TechnoTypeClass* pType = nullptr;
-	const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
+	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType<true, true>(pThis);
 	LightConvertClass* pConvert = nullptr;
-	int nColorIdx = -1;
+	int nColorIdx = pOwner->ColorSchemeIndex;
 
-	if (pThis->IsDisguised() && pDisguise) {
-		if (const auto pHouse = pThis->GetDisguiseHouse(true))
-			nColorIdx = pHouse->ColorSchemeIndex;
-
-		pType = pDisguise;
-	} else {
-		nColorIdx = pThis->GetOwningHouse()->ColorSchemeIndex;
-		pType = pThis->GetTechnoType();
-	}
-
-	if (pType && pType->Palette && pType->Palette->Count > 0)
+	if (pType->Palette && pType->Palette->Count > 0)
 		pConvert = pType->Palette->GetItem(nColorIdx)->LightConvert;
 	else
 		pConvert = ColorScheme::Array->GetItem(nColorIdx)->LightConvert;
@@ -121,6 +115,13 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
+DEFINE_HOOK(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(DynamicVectorClass<ColorScheme*>*, pTypePal, EAX);
+
+	return pTypePal && pTypePal->Count > 0 ? 0x705D92 : 0x705D92;
+}
 
 
 #pragma region Otamaa
@@ -349,7 +350,8 @@ DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)
 	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pThat, ESI);
 
-	if (Allowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pThat->GetTechnoType())) {
+	if (Allowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pThat->GetTechnoType()))
+	{
 		pThis->Techno_70E280(pThat);
 		return 0x522720;
 	}

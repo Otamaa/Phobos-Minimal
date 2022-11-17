@@ -20,22 +20,19 @@ void ScriptExt::ExtData::InitializeConstants() { }
 
 ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
-	nIdx += pScript->CurrentMission;
-
-	if (nIdx > pScript->Type->ActionsCount)
-		nIdx = pScript->Type->ActionsCount;
-
-	if (nIdx <= 49) {
-		return pScript->Type->ScriptActions[nIdx];
+	if (nIdx < ScriptTypeClass::MaxActions) {
+		return pScript->Type->ScriptActions.Data[nIdx];
 	}
-	//else {
-		//auto const pTypeExt = ScriptTypeExt::ExtMap.Find(pScript->Type);
-		//if (pTypeExt && !pTypeExt->PhobosNode.empty()) {
-		//	return pTypeExt->PhobosNode[nIdx - 50];
-		//}
-	//}
+	else {
+		auto const nIdxR = nIdx - ScriptTypeClass::MaxActions;
+		auto const pTypeExt = ScriptTypeExt::ExtMap.Find(pScript->Type);
 
-	return pScript->Type->ScriptActions[49];
+		if (!pTypeExt->PhobosNode.empty() && !(nIdxR > (int)pTypeExt->PhobosNode.size()) ) {
+			return pTypeExt->PhobosNode[nIdxR];
+		}
+	}
+
+	return { -1 , 0 };
 }
 
 static inline bool IsEmpty(TeamClass* pTeam)
@@ -1439,7 +1436,9 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 					&& pUnitType->Size <= pTransportType->SizeLimit
 					&& pUnitType->Size <= pTransportType->Passengers - pTransport->Passengers.GetTotalSize())
 				{
-					pUnit->IsTeamLeader = true;
+					if (pTransport->IsInAir())
+						return;
+
 					// All fine
 					if (pUnit->GetCurrentMission() != Mission::Enter)
 					{
@@ -2035,7 +2034,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 		else
 		{
 			// No target was found with the specific criteria.
-			if (!noWaitLoop)
+			if (!noWaitLoop && pTeamData->WaitNoTargetTimer.Completed())
 			{
 				pTeamData->WaitNoTargetCounter = 30;
 				pTeamData->WaitNoTargetTimer.Start(30);
@@ -2044,7 +2043,7 @@ void ScriptExt::Mission_Attack(TeamClass *pTeam, bool repeatAction = true, int c
 			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 
-			if (pTeamData->WaitNoTargetAttempts != 0)
+			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
 			{
 				// No target? let's wait some frames
 				pTeamData->WaitNoTargetCounter = 30;
@@ -3355,7 +3354,7 @@ void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pick
 		{
 			// No target was found with the specific criteria.
 
-			if (!noWaitLoop)
+			if (!noWaitLoop && pTeamData->WaitNoTargetTimer.Completed())
 			{
 				pTeamData->WaitNoTargetCounter = 30;
 				pTeamData->WaitNoTargetTimer.Start(30);
@@ -3364,7 +3363,7 @@ void ScriptExt::Mission_Move(TeamClass *pTeam, int calcThreatMode = 0, bool pick
 			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 
-			if (pTeamData->WaitNoTargetAttempts != 0)
+			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
 			{
 				pTeamData->WaitNoTargetCounter = 30;
 				pTeamData->WaitNoTargetTimer.Start(30); // No target? let's wait some frames
@@ -4217,7 +4216,7 @@ void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 	if (const auto pHouseExt = HouseExt::ExtMap.Find(pTeam->Owner))
 	{
 		if (mode < 0 || mode > 2)
-			mode = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+			mode = ScriptExt::GetSpecificAction(pTeam->CurrentScript , pTeam->CurrentScript->CurrentMission).Argument;
 
 		if (mode < -1 || mode > 2)
 			mode = -1;

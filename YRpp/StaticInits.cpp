@@ -35,6 +35,7 @@ const CoordStruct CoordStruct::Empty = { 0,0,0 };
 const ColorStruct ColorStruct::Empty = { 0,0,0 };
 const Color16Struct Color16Struct::Empty = { 0,0,0 };
 const CellStruct CellStruct::Empty = { 0,0 };
+const CellStruct CellStruct::DefaultUnloadCell = { 3 , 1 };
 const Point2D Point2D::Empty = { 0,0 };
 const Point2DBYTE Point2DBYTE::Empty = { 0u,0u };
 const Point3D Point3D::Empty = { 0,0,0 };

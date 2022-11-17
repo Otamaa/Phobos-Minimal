@@ -15,7 +15,7 @@ class ConvertClass;
 struct SHPStruct;
 class ColorScheme;
 
-class Surface
+class NOVTABLE Surface
 {
 public:
 	Surface() : Width(0), Height(0) { }
@@ -152,7 +152,7 @@ public:
 	int Height;
 };
 
-class XSurface : public Surface
+class NOVTABLE XSurface : public Surface
 {
 public:
 	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { *((unsigned long*)this) = (unsigned long)0x7E2104; }
@@ -211,7 +211,7 @@ public:
 	int BytesPerPixel;
 };
 
-class BSurface : public XSurface
+class NOVTABLE BSurface : public XSurface
 {
 public:
 	static constexpr constant_ptr<BSurface, 0xB2D928> VoxelSurface {};
@@ -341,7 +341,7 @@ static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct
 
 #pragma warning(pop)
 #pragma endregion CommonFunction
-class DSurface : public XSurface
+class NOVTABLE DSurface : public XSurface
 {
 public:
 	static constexpr reference<DSurface*, 0x8872FCu> const Tile{};

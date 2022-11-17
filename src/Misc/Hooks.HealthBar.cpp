@@ -4,6 +4,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Utilities/Helpers.h>
 #include <Utilities/Cast.h>
 
 DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
@@ -88,7 +89,7 @@ DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 
 namespace DrawHeathData
 {
-	void DrawNumber(TechnoClass* const pThis, Point2D* pLocation, RectangleStruct* pBounds)
+	void DrawNumber(const TechnoClass* const pThis, Point2D* pLocation, RectangleStruct* pBounds)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -166,7 +167,7 @@ namespace DrawHeathData
 			// coord calculation is not really right !
 			if (bIsBuilding)
 			{
-				auto const pBuilding = static_cast<BuildingClass*>(pThis);
+				auto const pBuilding = static_cast<const BuildingClass*>(pThis);
 				auto const pBldType = pBuilding->Type;
 				CoordStruct nDimension { 0,0,0 };
 				auto const nLocTemp = nLocation;
@@ -225,23 +226,13 @@ namespace DrawHeathData
 
 	void DrawBar(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		TechnoTypeClass* pType = nullptr;
-		LightConvertClass* pTechConvert = nullptr;
+		auto const&[pType , pOwner]= TechnoExt::Helper::GetDisguiseType<false,true>(pThis);
+		LightConvertClass* pTechConvert = pThis->GetRemapColour();
 		const bool bIsInfantry = pThis->WhatAmI() == AbstractType::Infantry;
-		const auto pDisguise = type_cast<TechnoTypeClass*>(pThis->Disguise);
 		bool IsDisguised = false;
 
-		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer) && pDisguise)
-		{
-			pType = pDisguise;
-			const auto pSchemeColor = pThis->DisguisedAsHouse ? ColorScheme::Array->GetItem(pThis->DisguisedAsHouse->ColorSchemeIndex) : nullptr;
-			pTechConvert = pSchemeColor ? pSchemeColor->LightConvert : nullptr;
+		if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
 			IsDisguised = true;
-		}
-		else
-		{
-			pType = pThis->GetTechnoType();
-			pTechConvert = pThis->GetRemapColour();
 		}
 
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
@@ -295,7 +286,7 @@ namespace DrawHeathData
 		return Math::clamp((int)round(nTime * iLength), 0, iLength);
 	}
 
-	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound , int frame , int empty_frame, int bracket_delta)
+	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int frame, int empty_frame, int bracket_delta)
 	{
 		CoordStruct vCoords = { 0, 0, 0 };
 		pThis->GetTechnoType()->Dimension2(&vCoords);
@@ -309,7 +300,7 @@ namespace DrawHeathData
 
 		Point2D vPos = { 0, 0 };
 
-		const int iTotal = DrawBar_PipAmount(pThis,iLength);
+		const int iTotal = DrawBar_PipAmount(pThis, iLength);
 
 		if (iTotal > 0)
 		{
@@ -376,7 +367,7 @@ namespace DrawHeathData
 				frame, &vPos, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 
-		const auto iTotal = DrawBar_PipAmount(pThis,iLength);
+		const auto iTotal = DrawBar_PipAmount(pThis, iLength);
 
 		for (int i = 0; i < iTotal; ++i)
 		{
@@ -409,7 +400,8 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	if (const auto pShieldData = pExt->Shield.get()) {
+	if (const auto pShieldData = pExt->Shield.get())
+	{
 		if (pShieldData->IsAvailable())
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 	}
@@ -427,8 +419,10 @@ DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	const int iLength = pThis->WhatAmI() == AbstractType::Infantry ? 8 : 17;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	if (const auto pShieldData = pExt->Shield.get()) {
-		if (pShieldData->IsAvailable()) {
+	if (const auto pShieldData = pExt->Shield.get())
+	{
+		if (pShieldData->IsAvailable())
+		{
 
 			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
 		}

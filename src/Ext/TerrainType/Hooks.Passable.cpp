@@ -22,7 +22,7 @@ DEFINE_HOOK(0x568432, MapClass_PlaceDown_0x0TerrainTypes, 0x8)
 }
 
 // Passable TerrainTypes Hook #1 - Do not set occupy bits.
-DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x6)
+DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 {
 	enum { Skip = 0x71C1A0 };
 

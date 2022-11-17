@@ -19,6 +19,7 @@ public:
 			(pAnything == tOther.pAnything);
 	}
 
+
 	bool operator!=(const SwizzlePointerClass& that) const { return unknown_0 != that.unknown_0; }
 	bool operator<(const SwizzlePointerClass& that) const { return unknown_0 < that.unknown_0; }
 	bool operator>(const SwizzlePointerClass& that) const { return unknown_0 > that.unknown_0; }

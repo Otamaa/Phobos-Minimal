@@ -1,7 +1,9 @@
 #pragma once
 
-#include <Windows.h>
+#include <Base/Always.h>
 #include <type_traits>
+#include <YRPPCore.h>
+#include <span>
 
 // defines a compile time pointer to a known memory address
 template <typename T, unsigned int Address>

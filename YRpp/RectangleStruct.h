@@ -239,4 +239,4 @@ public:
 
 };
 
-typedef RectangleStruct Rect;
+//typedef RectangleStruct Rect;

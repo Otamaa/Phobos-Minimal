@@ -88,14 +88,14 @@ int CheckBuildLimit(HouseClass const* const pHouse, BuildingTypeClass const* con
 
 }
 
-DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x5)
+DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
 {
 	GET(HouseClass const* const, pThis, ECX);
 	GET_STACK(TechnoTypeClass const* const, pItem, 0x4);
 	GET_STACK(bool const, includeInProduction, 0xC);
 	GET(CanBuildResult const, resultOfAres, EAX);
 
-	if (const auto pBuilding = type_cast<BuildingTypeClass const*>(pItem)) {
+	if (const auto pBuilding = type_cast<BuildingTypeClass const*,true>(pItem)) {
 		if (BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.size() > 0 && resultOfAres == CanBuildResult::Buildable)
 			R->EAX(CheckBuildLimit(pThis, pBuilding, includeInProduction));
 	}
@@ -103,21 +103,21 @@ DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x5)
 	return 0;
 }
 
-DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction__DisableHook,
-	0x4F8361,
-	0xC2, 0x0C, 0x00, 0x6E, 0x7D
-);
-
-DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook,
-	0x4F7877,
-	0x53, 0x55, 0x8B, 0xE9, 0x56
-);
-
-DEFINE_HOOK(0x4F7877, HouseClass_CanBuild_UpgradesInteraction_WithoutAres, 0x5)
-{
-	Debug::Log("Hook [HouseClass_CanBuild_UpgradesInteraction] Disabled\n");
-	HouseClass_CanBuild_UpgradesInteraction__DisableHook->Apply();
-	HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook->Apply();
-	return 0;
-}
+//DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction__DisableHook,
+//	0x4F8361,
+//	0xC2, 0x0C, 0x00, 0x6E, 0x7D
+//);
+//
+//DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook,
+//	0x4F7877,
+//	0x53, 0x55, 0x8B, 0xE9, 0x56
+//);
+//
+//DEFINE_HOOK(0x4F7877, HouseClass_CanBuild_UpgradesInteraction_WithoutAres, 0x5)
+//{
+//	Debug::Log("Hook [HouseClass_CanBuild_UpgradesInteraction] Disabled\n");
+//	HouseClass_CanBuild_UpgradesInteraction__DisableHook->Apply();
+//	HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook->Apply();
+//	return 0;
+//}
 #pragma endregion

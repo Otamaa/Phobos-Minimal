@@ -71,6 +71,8 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->ChargeTimer.Read(exINI, pSection, "Timer.ChargeMode");
 	this->ChargeTimer_Backwards.Read(exINI, pSection, "Timer.ChargeModeBackwards");
 	#pragma endregion
+
+	this->SW_Priority.Read(exINI, pSection, "SW.Priority");
 }
 // =============================
 // load / save
@@ -193,7 +195,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Detonate_Damage)
 		.Process(ChargeTimer)
 		.Process(ChargeTimer_Backwards)
-
+		.Process(this->SW_Priority)
 		;
 
 }

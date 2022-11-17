@@ -35,6 +35,8 @@ struct HSVClass
 struct Color16Struct;
 struct ColorStruct
 {
+	static inline constexpr int Max = 255;
+
 	static constexpr reference<ColorStruct, 0xA80220> White {};
 	static constexpr reference<int, 0x8A0DD0> RedShiftLeft {};
 	static constexpr reference<int, 0x8A0DD4> RedShiftRight {};
@@ -49,13 +51,20 @@ struct ColorStruct
 		: R(r), G(g), B(b)
 	{ }
 
+	constexpr ColorStruct(int const r, int const g, int const b) noexcept
+		: R(static_cast<BYTE>(std::clamp(r, 0, Max)))
+		, G(static_cast<BYTE>(std::clamp(g, 0, Max)))
+		, B(static_cast<BYTE>(std::clamp(b, 0, Max)))
+	{ }
+
 	ColorStruct(const ColorStruct& c)
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
-	ColorStruct(const int& rgb, bool wordcolor = false)
+	template<bool WordColor = false >
+	ColorStruct(const int& rgb)
 	{
-		if (!wordcolor)
+		if constexpr (!WordColor)
 		{
 			R = GetRValue(rgb);
 			G = GetGValue(rgb);
@@ -122,8 +131,6 @@ struct ColorStruct
 	HSVClass* ConstructHSV(HSVClass* ret) const
 	{ JMP_THIS(0x6613A0); }
 
-	enum { MAX_VALUE = 255 };
-
 	BYTE R, G, B;
 };
 
@@ -131,6 +138,8 @@ typedef ColorStruct RGBClass;
 
 struct BytePalette
 {
+	static inline constexpr int EntryMax = 256;
+
 	BytePalette(const ColorStruct& rgb = ColorStruct(0, 0, 0)) {
 		JMP_THIS(0x626020);
 	}
@@ -176,8 +185,13 @@ struct BytePalette
 		JMP_THIS(0x626200);
 	}
 
+	auto begin() const { return std::begin(Entries); }
+	auto end() const { return std::end(Entries); }
+	auto begin() { return std::begin(Entries); }
+	auto end() { return std::end(Entries); }
+
 public :
-	ColorStruct Entries[256];
+	ColorStruct Entries[EntryMax];
 };
 
 //16bit colors

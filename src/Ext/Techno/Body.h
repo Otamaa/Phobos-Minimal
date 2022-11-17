@@ -293,11 +293,44 @@ public:
 	static void ApplyMobileRefinery(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
+	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void KillSlave(TechnoClass* pThis);
 	static void HandleRemove(TechnoClass* pThis);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
 	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
+
+	struct Helper {
+		template<bool CheckHouse ,bool CheckVisibility>
+		static NOINLINE std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget)
+		{
+
+			HouseClass* pHouseOut = nullptr;
+			TechnoTypeClass* pTypeOut = nullptr;
+			bool bIsVisible = true;
+			if constexpr (CheckVisibility)
+				bIsVisible = pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
+
+			if (pTarget->IsDisguised() && !bIsVisible)
+			{
+				if constexpr (CheckHouse)
+					pHouseOut = pTarget->GetDisguiseHouse(false);
+
+				pTypeOut = type_cast<TechnoTypeClass*, true>(pTarget->GetDisguise(false));
+			}
+			else
+			{
+				if constexpr (CheckHouse)
+					pHouseOut = pTarget->GetOwningHouse();
+
+				pTypeOut = pTarget->GetTechnoType();
+			}
+
+			return { pTypeOut, pHouseOut };
+		}
+
+	};
+
+	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
 };

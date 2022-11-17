@@ -351,14 +351,19 @@ public:
 	{
 		if constexpr (std::is_pointer<T>())
 		{ 
-			return std::distance(this->begin(), std::find_if(this->begin(), this->end(), [&](const auto& item)
+			auto const iter = std::find_if(this->begin(), this->end(), [&](const auto& item)
 				{
 					return item == other;
-				}));
+				});
+			
+			if(iter != this->end())
+				return std::distance(this->begin(), iter);
 		}
 		else
 		{
-			return std::distance(this->begin(), std::find(this->begin(), this->end(), other));
+			auto const iter = std::find(this->begin(), this->end(), other);
+			if (iter != this->end())
+				return std::distance(this->begin(), iter);
 		}
 
 		return -1;

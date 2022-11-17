@@ -94,6 +94,5 @@ public:
 	char WalkFrames;
 	char FiringFrames;
 	char AltImageFile [0x19];
-	PROTECTED_PROPERTY(BYTE, align_E77);
 };
 static_assert(sizeof(UnitTypeClass) == 0xE78,"Invalid size.");

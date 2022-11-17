@@ -73,17 +73,15 @@ DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType, 0x6)
 	if (!Phobos::Config::AllowParallelAIQueues)
 		return 0;
 
-	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pFactory->Owner);
+	if(HouseExt::ExtData* pData = HouseExt::ExtMap.Find<true>(pFactory->Owner)){
 
-	if (!pUnit->Type->Naval)
-	{
-		if (Phobos::Config::ForbidParallelAIQueues_Vehicle)
-			pData->Factory_VehicleType = nullptr;
-	}
-	else
-	{
-		if (Phobos::Config::ForbidParallelAIQueues_Navy)
-			pData->Factory_NavyType = nullptr;
+		if (!pUnit->Type->Naval) {
+			if (Phobos::Config::ForbidParallelAIQueues_Vehicle)
+				pData->Factory_VehicleType = nullptr;
+		} else {
+			if (Phobos::Config::ForbidParallelAIQueues_Navy)
+				pData->Factory_NavyType = nullptr; 
+		}
 	}
 
 	return 0;
@@ -96,7 +94,7 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	if (!Phobos::Config::AllowParallelAIQueues || !pFactory->Owner)
 		return 0;
 
-	HouseClass* pOwner = pFactory->Owner;
+	if(HouseClass* pOwner = pFactory->Owner) {
 	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
 	TechnoClass* pTechno = pFactory->Object;
 
@@ -126,6 +124,7 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 		if (Phobos::Config::ForbidParallelAIQueues_Aircraft)
 			pData->Factory_AircraftType = nullptr;
 		break;
+	}
 	}
 
 	return 0;

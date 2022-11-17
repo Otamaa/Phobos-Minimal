@@ -42,34 +42,39 @@ inline const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExt::ExtData* pData)
 		: nullptr;
 }
 
+static char BuildTimeDatas[0x720]; // Just big enough to hold all types
+
 inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 {
-	static char pTrick[0x6C8]; // Just big enough to hold all types
 	switch (pType->WhatAmI())
 	{
 	case AbstractType::BuildingType:
-		*reinterpret_cast<int*>(pTrick) = 0x7E3EBC; // BuildingClass::`vtable`
-		reinterpret_cast<BuildingClass*>(pTrick)->Type = (BuildingTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7E3EBC; // BuildingClass::`vtable`
+		reinterpret_cast<BuildingClass*>(BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
 	case AbstractType::AircraftType:
-		*reinterpret_cast<int*>(pTrick) = 0x7E22A4; // AircraftClass::`vtable`
-		reinterpret_cast<AircraftClass*>(pTrick)->Type = (AircraftTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7E22A4; // AircraftClass::`vtable`
+		reinterpret_cast<AircraftClass*>(BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
 	case AbstractType::InfantryType:
-		*reinterpret_cast<int*>(pTrick) = 0x7EB058; // InfantryClass::`vtable`
-		reinterpret_cast<InfantryClass*>(pTrick)->Type = (InfantryTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7EB058; // InfantryClass::`vtable`
+		reinterpret_cast<InfantryClass*>(BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
 	case AbstractType::UnitType:
-		*reinterpret_cast<int*>(pTrick) = 0x7F5C70; // UnitClass::`vtable`
-		reinterpret_cast<UnitClass*>(pTrick)->Type = (UnitTypeClass*)pType;
+		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7F5C70; // UnitClass::`vtable`
+		reinterpret_cast<UnitClass*>(BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;
 	}
 
 	// TechnoTypeClass only has 4 final classes :
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
-	// It has to be these four classes, otherwise pType will just be nullptr
-	reinterpret_cast<TechnoClass*>(pTrick)->Owner = HouseClass::CurrentPlayer;
-	int nTimeToBuild = reinterpret_cast<TechnoClass*>(pTrick)->TimeToBuild();
+	// It has to be these four classes, otherwise pType will just be 
+	reinterpret_cast<TechnoClass*>(BuildTimeDatas)->Disguise = nullptr;
+	reinterpret_cast<TechnoClass*>(BuildTimeDatas)->Disguised = false;
+
+	reinterpret_cast<TechnoClass*>(BuildTimeDatas)->Owner = HouseClass::CurrentPlayer;
+	int nTimeToBuild = reinterpret_cast<TechnoClass*>(BuildTimeDatas)->TimeToBuild();
+
 	double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(pType, HouseClass::CurrentPlayer);
 	nTimeToBuild = static_cast<int>(nTimeToBuild * nMult);
 	// 54 frames at least

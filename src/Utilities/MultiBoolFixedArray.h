@@ -3,7 +3,7 @@
 #include "Template.h"
 
 // Use fixed array instead of vectors , to save some size
-template<size_t Amount>
+template<int Amount>
 struct MultiBoolFixedArray
 {
 	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char*, Amount>& nKeysArray)
@@ -25,20 +25,17 @@ struct MultiBoolFixedArray
 		}
 	}
 
-	size_t size() const
-	{
-		return Amount;
-	}
+	constexpr int size() const { return Amount;	}
+	
+	bool at(int Index) const { return Get(Index); }
 
-	bool at(size_t Index) const { return Get(Index); }
-
-	bool Get(size_t Index) const
+	bool Get(int Index) const
 	{
-		Index = std::clamp(Index, (unsigned int)0, Amount);
+		Index = std::clamp(Index, 0, Amount);
 		return Datas[Index];
 	}
 
-	Iterator<bool> GetElements() const noexcept
+	constexpr Iterator<bool> GetElements() const noexcept
 	{
 		return Iterator<bool>(&this->Datas[0], Amount);
 	}

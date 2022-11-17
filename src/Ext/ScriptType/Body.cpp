@@ -1,6 +1,5 @@
 #include "Body.h"
 
-#ifdef ENABLE_NEWHOOKS
 ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
 void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
@@ -26,13 +25,13 @@ void ScriptTypeExt::ExtData::Serialize(T& Stm)
 
 void ScriptTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<ScriptTypeClass>::Serialize(Stm);
+	TExtension<ScriptTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void ScriptTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<ScriptTypeClass>::Serialize(Stm);
+	TExtension<ScriptTypeClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -53,7 +52,7 @@ bool ScriptTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ScriptTypeExt::ExtContainer::ExtContainer() : Container("ScriptTypeClass") { }
+ScriptTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("ScriptTypeClass") { }
 ScriptTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -64,11 +63,8 @@ DEFINE_HOOK_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x691769, ScriptTypeClass_CTOR, 0x6)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
-#ifdef ENABLE_NEWHOOKS
-	ScriptTypeExt::ExtMap.JustAllocate(pThis, pThis, "Trying To Allocate from nullptr !");
-#else
 	ScriptTypeExt::ExtMap.FindOrAllocate(pThis);
-#endif
+
 	return 0;
 }
 
@@ -103,4 +99,3 @@ DEFINE_HOOK(0x691DFA, ScriptTypeClass_Save_Suffix, 0x5)
 	ScriptTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
-#endif

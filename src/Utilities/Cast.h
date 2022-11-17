@@ -22,7 +22,7 @@ struct type_cast_impl
 		return ((type_cast_data::BytesData[(int)key] & 2) != 0);
 	}
 
-	inline T operator()(const ObjectTypeClass* pAbstract) noexcept
+	NOINLINE T operator()(const ObjectTypeClass* pAbstract) noexcept
 	{
 		if constexpr (Base::AbsID == AbstractType::Abstract)
 		{
@@ -53,7 +53,7 @@ inline T type_cast(ObjectTypeClass* pAbstract)
 };
 
 template <typename T, bool Check = true>
-inline T type_cast(const ObjectTypeClass* pAbstract)
+NOINLINE T type_cast(const ObjectTypeClass* pAbstract)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 

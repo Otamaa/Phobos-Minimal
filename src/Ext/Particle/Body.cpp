@@ -126,7 +126,7 @@ DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 {
 	GET(HRESULT, nRest, EAX);
 
-	ParticleExt::ExtMap.GetSavingObject()->unknown_130 = true;
+	ParticleExt::ExtMap.GetSavingObject()->byte130 = true;
 	if (SUCCEEDED(nRest)) {
 		ParticleExt::ExtMap.SaveStatic();
 	}

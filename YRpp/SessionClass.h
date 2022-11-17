@@ -8,6 +8,7 @@
 #include <Helpers/CompileTime.h>
 #include <MessageListClass.h>
 #include <CCFileClass.h>
+#include <WinSock.h>
 
 struct GameTypePreferencesStruct
 {
@@ -27,18 +28,16 @@ struct GameTypePreferencesStruct
 typedef GameTypePreferencesStruct SessionOptionsClass;
 static_assert(sizeof(GameTypePreferencesStruct) == 0x7C, " Invalid Size ! ");
 
-struct PlayerData
-{
-	byte Data[10];
-	PROTECTED_PROPERTY(BYTE, align_A[2])
-};
-
 #pragma pack(push, 1)
 struct NodeNameType
 {
+	static constexpr constant_ptr<DynamicVectorClass<NodeNameType*>,0xA8DA74> const Array{};
+
+public:
+
 	wchar_t Name[20];
-	PlayerData Data;
-	char Serial[23];
+	sockaddr_in Address;
+	char Serial[19];
 	int Country;
 	int InitialCountry;
 	int Color;
@@ -47,7 +46,7 @@ struct NodeNameType
 	int InitialStartPoint;
 	int Team;
 	int InitialTeam;
-	DWORD unknown_int_6B;
+	DWORD SpectatorFlag; // 0xFFFFFFFF if Spectator
 	int HouseIndex;
 	int Time;
 	DWORD unknown_int_77;
@@ -56,6 +55,7 @@ struct NodeNameType
 	BYTE unknown_byte_83;
 	BYTE unknown_byte_84;
 };
+static_assert(sizeof(NodeNameType) == 0x85);
 
 struct GlobalPacketType
 {
@@ -602,15 +602,32 @@ class SessionClass
 public:
 	static constexpr reference<SessionClass, 0xA8B238u> const Instance {};
 
+	static bool IsSkirmish()
+	{
+		return Instance->GameMode == GameMode::Skirmish;
+	}
+
 	static bool IsCampaign()
 	{ return Instance->GameMode == GameMode::Campaign; }
 
 	static bool IsSingleplayer()
 	{
-		return Instance->GameMode == GameMode::Campaign
-			|| Instance->GameMode == GameMode::Skirmish;
+		return IsCampaign() || IsSkirmish();
 	}
-	
+
+	static bool IsMultiplayer()
+	{
+		return Instance->GameMode == GameMode::LAN
+			|| Instance->GameMode == GameMode::Internet;
+	}
+
+	void ReadScenarioDescriptions()
+		{ JMP_THIS(0x699980) }
+
+	bool CreateConnections()
+		{ JMP_THIS(0x697B70) }
+
+public:
 	GameMode GameMode;
 	MPGameModeClass* MPGameMode;
 	DWORD unknown_08;

@@ -52,7 +52,7 @@ bool TacticalExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container hooks
-
+/*
 DEFINE_HOOK(0x6D1E24, TacticalClass_CTOR, 0x5)
 {
 	GET(TacticalClass*, pItem, ESI);
@@ -112,3 +112,4 @@ DEFINE_HOOK(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
 
 	return 0;
 }
+*/

@@ -18,6 +18,21 @@ public:
 	bool operator==(const Point2D& that) const { return X == that.X && Y == that.Y; }
 	bool operator!=(const Point2D& that) const { return X != that.X && Y != that.Y; }
 
+	Point2D& operator++() { 
+		++X; 
+		++Y;
+		return *this;
+	}
+
+	Point2D& operator--() { 
+		--X;
+		--Y;
+		return *this;
+	}
+
+	Point2D operator++(int) { Point2D orig = *this; ++(*this); return orig; }
+	Point2D operator--(int) { Point2D orig = *this; --(*this); return orig; }
+
 	Point2D operator+() const { return Point2D{+X, +Y};}
 	Point2D operator-() const { return Point2D{-X, -Y};}
 

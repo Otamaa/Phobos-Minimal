@@ -139,13 +139,13 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 
 void TerrainExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TerrainClass>::Serialize(Stm);
+	TExtension<TerrainClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TerrainClass>::Serialize(Stm);
+	TExtension<TerrainClass>::Serialize(Stm);
 	this->Serialize(Stm);
 }
 
@@ -166,7 +166,7 @@ bool TerrainExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
+TerrainExt::ExtContainer::ExtContainer() : TExtensionContainer("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks
@@ -176,11 +176,7 @@ DEFINE_JUMP(LJMP, 0x71BC31, 0x71BC86);
 DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
-	TerrainExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
-#endif
 	return 0;
 }
 
@@ -189,7 +185,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	GET(TerrainClass*, pItem, ESI);
 	GET_STACK(CellStruct*, pCoord, 0x24);
 
-	TerrainExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+	TerrainExt::ExtMap.FindOrAllocate(pItem);
 
 	auto const nDefaultCell = CellStruct::Empty;
 
@@ -210,7 +206,8 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 	if(Unsorted::WTFMode() || pItem->Type)
 	{
 		pItem->IsAlive = true;
-		pItem->Limbo();
+		if (!pItem->Limbo())
+			pItem->AnnounceExpiredPointer();
 	}
 
 	TerrainExt::ExtMap.Remove(pItem);
@@ -246,7 +243,6 @@ DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
 	GET(TerrainClass*, pThis, ESI);
 	GET(void*, pObj, EDI);
 	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
-
 
 	if (auto pExt = TerrainExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(pObj, bRemoved);

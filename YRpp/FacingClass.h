@@ -22,14 +22,14 @@ public:
 		DesiredFacing.SetDir(dir);
 	}
 
-	explicit FacingClass(const FacingClass& another) noexcept
+	FacingClass(const FacingClass& another) noexcept
 		: DesiredFacing { another.DesiredFacing }
 		, StartFacing { another.StartFacing }
 		, RotationTimer { another.RotationTimer }
 		, ROT { another.ROT }
 	{ }
 
-	FacingClass& operator=(const FacingClass& another)
+	FacingClass& operator=(const FacingClass& another) noexcept
 	{
 		if (this != &another)
 		{

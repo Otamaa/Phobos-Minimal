@@ -855,12 +855,13 @@ void TActionExt::RecreateLightSources()
 		}
 	 });
 
-	std::for_each(TerrainExt::ExtMap.begin(), TerrainExt::ExtMap.end(), [](auto const& nPair)
+	std::for_each(TerrainClass::Array->begin(), TerrainClass::Array->end(), [](auto const& nPair)
  {
-	 if (nPair.second && !nPair.first->InLimbo)
+	 if (nPair->IsAlive && !nPair->InLimbo)
 	 {
-		 nPair.second->ClearLightSource();
-		 nPair.second->InitializeLightSource();
+		 auto pExt = TerrainExt::ExtMap.Find(nPair);
+		 pExt->ClearLightSource();
+		 pExt->InitializeLightSource();
 	 }
 	});
 

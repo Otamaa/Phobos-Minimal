@@ -7,11 +7,12 @@ class TechnoClass;
 class HouseClass;
 
 // i.e. this struct can be used to read the args to ObjectClass::ReceiveDamage
-struct args_ReceiveDamage {
-	int *Damage;
+struct args_ReceiveDamage
+{
+	int* Damage;
 	int DistanceToEpicenter;
-	WarheadTypeClass *WH;
-	TechnoClass *Attacker;
+	WarheadTypeClass* WH;
+	TechnoClass* Attacker;
 	bool IgnoreDefenses;
 private:
 	bool padding_11[3];
@@ -20,24 +21,27 @@ public:
 private:
 	bool padding_15[3];
 public:
-	HouseClass *SourceHouse;
+	HouseClass* SourceHouse;
 };
 
 
 // this helper class is meant to represent a FPU fcomp or similar instruction result
 // hook it after fnstsw $reg, feed it the $reg, and call the info functions
 // need to know what you're comparing with what, though... oh well, leave it alone then
-class FPUControl {
-	private:
-		int statusWord;
-	public:
-		FPUControl(int fnstsw): statusWord(fnstsw) { };
+struct FPUControl
+{
+private:
+	int statusWord;
+public:
+	FPUControl(int fnstsw) : statusWord(fnstsw) { };
 
-		bool isEqual() {
-			return (this->statusWord & 0x4000) != 0;
-		}
+	bool isEqual()
+	{
+		return (this->statusWord & 0x4000) != 0;
+	}
 
-		bool isLess() {
-			return (this->statusWord & 0x100) != 0;
-		}
+	bool isLess()
+	{
+		return (this->statusWord & 0x100) != 0;
+	}
 };

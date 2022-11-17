@@ -133,8 +133,9 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	{
 		if (pBuilding)
 		{
-			for (const auto& [pExt, nCount] : pHouseExt->BuildingCounter)
+			for (const auto& [pBldType, nCount] : pHouseExt->BuildingCounter)
 			{
+				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
 				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 				{
 					fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
@@ -159,8 +160,9 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
-			for (const auto& [pExt, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
+				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
 				{
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
@@ -208,8 +210,9 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
-			for (const auto& [pExt, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
+				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
 				{
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
@@ -256,6 +259,9 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 	int result = 0;
 	bool isUpgrade = false;
 	auto pPowersUp = pBuilding->PowersUpBuilding;
+
+	if(!pHouse)
+		return 0;
 
 	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
 	{

@@ -94,10 +94,10 @@ void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTar
 			// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
 			if (this->Converts_To.size() >= i && this->Converts_From[i] == pTarget->GetTechnoType())
 			{
-				TechnoTypeClass* pResultType = this->Converts_To[i];
-				auto pCurType = pTarget->GetTechnoType();
-				if (pCurType != pResultType)
-					AresData::HandleConvert::Exec(pTarget, pResultType);
+				//TechnoTypeClass* pResultType = this->Converts_To[i];
+				//auto pCurType = pTarget->GetTechnoType();
+				//if (pCurType != pResultType)
+					//AresData::HandleConvert::Exec(pTarget, pResultType);
 			}
 		}
 	}
@@ -599,7 +599,7 @@ void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, Techn
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
 	if (auto const pFoot = generic_cast<FootClass*>(pTarget)) {
 		if (pFoot->IsDisguised()) {
-			pFoot->Disguised = false;
+			pFoot->ClearDisguise();
 		}
 	}
 }

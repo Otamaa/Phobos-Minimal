@@ -30,20 +30,20 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
-
-DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
-{
-	GET(CellClass*, pCell, ESI);
-
-	bool bDraw = false;
-	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
-		bDraw = pTiberium->Value && TiberiumExt::ExtMap.Find(pTiberium)->EnablePixelFXAnim.Get();
-	}
-
-	R->EAX(bDraw);
-	return 0x6D7A4D;
-}
-
+//
+//DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+//{
+//	GET(CellClass*, pCell, ESI);
+//
+//	bool bDraw = false;
+//	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
+//		bDraw = pTiberium->Value && TiberiumExt::ExtMap.Find(pTiberium)->EnablePixelFXAnim.Get();
+//	}
+//
+//	R->EAX(bDraw);
+//	return 0x6D7A4D;
+//}
+//
 DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 {
 	GET(CellClass*, pThis, ESI);
@@ -86,48 +86,48 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	return 0x47FB86;
 }
 
-DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
-{
-	GET(CellClass*, pCell, ESI);
-	GET_STACK(SHPStruct*, pImage, STACK_OFFSET(0x28, 0x8));
-	GET_STACK(int, nFrame, STACK_OFFSET(0x28, 0x4));
-	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x28, 0x10));
-	GET_STACK(int, nOffset, STACK_OFFS(0x28, 0x18));
-	GET(RectangleStruct*, pRect, EBX);
-
-	if (!R->AL())
-		return 0x47F637;
-
-	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
-
-	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
-	0, -2 - nOffset, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
-
-	return 0x47F637;
-}
-
-DEFINE_HOOK(0x47FAF5, CellClass_DrawOverlay_Rubble, 0x8)
-{
-	GET(OverlayTypeClass*, pOvl, ECX);
-	GET(CellClass*, pCell, ESI);
-	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0x24, 0x14));
-	GET_STACK(int, nFrame, STACK_OFFSET(0x24, 0x8));
-	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
-	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));
-	GET(RectangleStruct*, pRect, EBP);
-
-	if (!R->AL())
-		return 0x47FB86;
-
-	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
-
-	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4E00),
-	0, (pOvl->DrawFlat != 0 ? 0 : -15) - nOffset - 2, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
-
-	return 0x47FB86;
-}
+//DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
+//{
+//	GET(CellClass*, pCell, ESI);
+//	GET_STACK(SHPStruct*, pImage, STACK_OFFSET(0x28, 0x8));
+//	GET_STACK(int, nFrame, STACK_OFFSET(0x28, 0x4));
+//	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x28, 0x10));
+//	GET_STACK(int, nOffset, STACK_OFFS(0x28, 0x18));
+//	GET(RectangleStruct*, pRect, EBX);
+//
+//	if (!R->AL())
+//		return 0x47F637;
+//
+//	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+//	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+//
+//	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
+//	0, -2 - nOffset, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+//
+//	return 0x47F637;
+//}
+//
+//DEFINE_HOOK(0x47FAF5, CellClass_DrawOverlay_Rubble, 0x8)
+//{
+//	GET(OverlayTypeClass*, pOvl, ECX);
+//	GET(CellClass*, pCell, ESI);
+//	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0x24, 0x14));
+//	GET_STACK(int, nFrame, STACK_OFFSET(0x24, 0x8));
+//	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
+//	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));
+//	GET(RectangleStruct*, pRect, EBP);
+//
+//	if (!R->AL())
+//		return 0x47FB86;
+//
+//	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+//	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+//
+//	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4E00),
+//	0, (pOvl->DrawFlat != 0 ? 0 : -15) - nOffset - 2, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
+//
+//	return 0x47FB86;
+//}
 
 /*
 *    v3 = this->TileType;

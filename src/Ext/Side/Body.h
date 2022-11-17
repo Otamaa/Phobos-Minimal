@@ -44,7 +44,7 @@ public:
 			, Sidebar_ProducingProgress_Offset { { 0,0 } }
 			, Sidebar_PowerDelta_Offset { { 0,0 } }
 			, Sidebar_PowerDelta_Green { { 0,255,0 } }
-			, Sidebar_PowerDelta_Grey { { 0x80,0x80,0x80 } }
+			, Sidebar_PowerDelta_Grey { { 128,128,128 } }
 			, Sidebar_PowerDelta_Yellow { { 255,255,0 } }
 			, Sidebar_PowerDelta_Red { { 255,0,0 } }
 			, Sidebar_PowerDelta_Align { TextAlign::Left }

@@ -9,9 +9,15 @@
 
 struct TacticalSelectableStruct
 {
-	TechnoClass* Techno;
-	int X;
-	int Y;
+	TechnoClass* Techno { nullptr };
+	Point2D Point { };
+
+	bool operator==(TacticalSelectableStruct const& rhs) const {
+		return (Point == rhs.Point) && Techno == rhs.Techno;
+	}
+
+	bool operator!=(TacticalSelectableStruct const& rhs) const
+	{ return !((*this) == rhs); }
 };
 
 class DSurface;

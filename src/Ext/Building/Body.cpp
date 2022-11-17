@@ -373,7 +373,7 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 	return true;
 }
 
-bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno)
+bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno , int nRefundAmounts)
 {
 	const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
 	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
@@ -382,9 +382,9 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 		if (!pTechno)
 			return false;
 
-		if (pTypeExt->Grinding_DisplayRefund &&	EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
+		if (nRefundAmounts && pTypeExt->Grinding_DisplayRefund &&	EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
 		{
-			pExt->AccumulatedGrindingRefund += pTechno->GetRefund();
+			pExt->AccumulatedGrindingRefund += nRefundAmounts;
 		}
 
 		if (pTypeExt->Grinding_Weapon.isset()

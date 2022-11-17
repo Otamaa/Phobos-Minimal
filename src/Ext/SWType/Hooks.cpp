@@ -3,7 +3,7 @@
 #include <Ext/Super/Body.h>
 #include <Utilities/Macro.h>
 #include <BitFont.h>
-//#include <format>
+#include <HouseClass.h>
 
 #ifdef ENABLE_NEWHOOKS
 
@@ -161,3 +161,38 @@ namespace Timer
 DEFINE_JUMP(CALL,0x6D4A6B, GET_OFFSET(Timer::DrawTimer));
 #endif
 #pragma endregion
+
+DEFINE_HOOK(0x6CB5D2, SuperClass_Grant_AddToShowTimer, 0x9)
+{
+	GET(SuperClass*, pThis, ESI);
+
+	enum { SkipGameCode = 0x6CB63E };
+
+	if (pThis->Type->ShowTimer && !pThis->Owner->Type->MultiplayPassive)
+	{
+		SuperClass::ShowTimers->AddItem(pThis);
+
+		const auto pTypeExt = SWTypeExt::ExtMap.Find(pThis->Type);
+		int priority = pTypeExt->SW_Priority;
+		int size = SuperClass::ShowTimers->Count;
+
+		for (int i = 0; i < size; i++)
+		{
+			int otherPriority = SWTypeExt::ExtMap.Find(SuperClass::ShowTimers->GetItem(i)->Type)->SW_Priority;
+
+			if (priority > otherPriority)
+			{
+				std::swap(SuperClass::ShowTimers->Items[i], SuperClass::ShowTimers->Items[size - 1]);
+
+				for (int j = i + 1; j < size - 1; j++)
+				{
+					std::swap(SuperClass::ShowTimers->Items[j], SuperClass::ShowTimers->Items[size - 1]);
+				}
+
+				break;
+			}
+		}
+	}
+
+	return SkipGameCode;
+}

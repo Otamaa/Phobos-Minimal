@@ -349,30 +349,30 @@ public:
 		return true;
 	}
 
-	using iterator = container_t::iterator;
-	using const_iterator = container_t::const_iterator;
+	//using iterator = container_t::iterator;
+	//using const_iterator = container_t::const_iterator;
 
-	[[nodiscard]] iterator begin() noexcept
+	[[nodiscard]] auto begin() noexcept
 	{
 		return values.begin();
 	}
 
-	[[nodiscard]] const_iterator begin() const noexcept
+	[[nodiscard]] auto begin() const noexcept
 	{
 		return values.begin();
 	}
 
-	[[nodiscard]] iterator end() noexcept
+	[[nodiscard]] auto end() noexcept
 	{
 		return values.end();
 	}
 
-	[[nodiscard]] const_iterator end() const noexcept
+	[[nodiscard]] auto end() const noexcept
 	{
 		return values.end();
 	}
 
-	typename container_t::const_iterator get_key_iterator(const TKey& key) const {
+	auto get_key_iterator(const TKey& key) const {
 		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
 			return item.first == key;
 		});

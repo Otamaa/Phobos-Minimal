@@ -5,6 +5,9 @@
 #include <Helpers/CompileTime.h>
 
 class SelectClass;
+class DSurface;
+struct RectangleStruct;
+
 class NOVTABLE GScreenClass : public IGameMap
 {
 public:
@@ -41,6 +44,8 @@ public:
 	virtual void UpdateCursorMinimapState(bool miniMap) = 0;
 
 	void Render() { JMP_THIS(0x4F4480); }
+	static void __fastcall DoBlit(bool mouseCaptured, DSurface* surface, RectangleStruct* rect = nullptr)
+		{ JMP_STD(0x4F4780); }
 
 protected:
 	//Constuctor

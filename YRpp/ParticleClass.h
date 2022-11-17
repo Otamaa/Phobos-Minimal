@@ -58,31 +58,33 @@ protected:
 public:
 
 	ParticleTypeClass* Type;
-	ColorStruct Color;
-	PROTECTED_PROPERTY(BYTE, align_B3);
-	DWORD  RefCount; //B4
-	CoordStruct  unknown_B8;
-	Vector3D<float> unknown_C4;
-	double unknown_double_D0;
-	CoordStruct  unknown_D8;
-	float  Velocity;
-	CoordStruct Crd2_E8; //Crd2 in CTOR
-	CoordStruct Crd1_F4; //Crd1 in CTOR
-	CoordStruct unknown_coords_100; //{ 0, 0, 0} in CTOR
-	Vector3D<float> unknown_vector3d_10C;
-	Vector3D<float> unknown_vector3d_118;
-	ParticleSystemClass*   ParticleSystem;
-	WORD   RemainingEC;
-	WORD   RemainingDC;
-	BYTE   StateAIAdvance;
-	BYTE   unknown_12D;
-	BYTE   StartStateAI;
-	BYTE   Translucency;
-	BYTE   unknown_130;
-	BYTE   hasremaining; //131
-	BYTE   unknown_132;
-	BYTE   unknown_133;
-	PROTECTED_PROPERTY(DWORD, unused_134); //??
+	ColorStruct byteB0;
+	int RefCount;
+	double ColorSpeedResult;
+	CoordStruct GasCoord;
+	Vector3D<float> VelocitySmoke;
+	CoordStruct CoordStructD8;
+	float Velocity;
+	CoordStruct gapE8;
+	CoordStruct dwordF4;
+	CoordStruct FireVelocity;
+	Vector3D<float> SparkVelocity;
+	Vector3D<float> vector3_118;
+	ParticleSystemClass* ParticleSystem;
+	short RemainingEC;
+	short RemainingDC;
+	char StateAIAdvance;
+	char CoordChange;
+	char StartStateAI;
+	char Translucency;
+	char byte130;
+	char hasremaining;
+	char field_132;
+	char field_133;
+	char field_134;
+	char field_135;
+	char field_136;
+	char field_137;
 };
 
 static_assert(sizeof(ParticleClass) == 0x138);

@@ -12,15 +12,25 @@ class ParticleTypeClass;
 class VoxelAnimTypeClass;
 
 struct WarheadFlags {
-	bool ForceFire;
-	bool Retaliate;
-	bool PassiveAcquire;
+	bool ForceFire { false };
+	bool Retaliate { false };
+	bool PassiveAcquire { false };
 
-	WarheadFlags(bool FF = true, bool Retal = true, bool Acquire = true) :
+	WarheadFlags(bool FF = true, bool Retal = true, bool Acquire = true) noexcept:
 		ForceFire{ FF }
 	,	Retaliate{ Retal }
 	,	PassiveAcquire{ Acquire }
 	{};
+
+	WarheadFlags() noexcept = default;
+	~WarheadFlags() noexcept = default;
+
+	bool operator==(WarheadFlags const& nThat) const
+	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
+
+	bool operator!=(WarheadFlags const & nThat) const
+	{ return !((*this) == nThat); }
+
 };
 
 class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")
@@ -80,7 +90,6 @@ public:
 	float   CellInset;
 	float   PercentAtMax;
 	bool    CausesDelayKill;
-	PROTECTED_PROPERTY(BYTE, align_131[3]);
 	int     DelayKillFrames;
 	float   DelayKillAtMax;
 	float   CombatLightSize;
@@ -113,7 +122,6 @@ public:
 	bool    Airstrike;
 	bool    Psychedelic;
 	bool    BombDisarm;
-	PROTECTED_PROPERTY(BYTE, align_16F);
 	int     Paralyzes;
 	bool    Culling;
 	bool    MakesDisguise;

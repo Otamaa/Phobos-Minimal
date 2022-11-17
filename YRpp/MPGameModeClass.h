@@ -59,12 +59,17 @@ class MPGameModeClass
 public:
 	//global arrays
 	static DynamicVectorClass<MPGameModeClass*>* GameModes;
+	//static constexpr constant_ptr<DynamicVectorClass<MPGameModeClass*>, 0x00000u> const GameModes{};
 
-	/*
-	static UNINIT_FUNC(0x5D7FD0);
-	static INIT_FUNC(0);
-	*/
-
+	static bool Set(int index)
+	{
+		bool success;
+		_asm {mov ecx, index};
+		CALL(0x5D5F30);
+		MEM_WRITEIMM32(0xA8B23C, eax);
+		_asm {mov success, al};
+		return success;
+	}
 	//Destructor
 	virtual ~MPGameModeClass()
 		{ JMP_THIS(0x5D7F20); }

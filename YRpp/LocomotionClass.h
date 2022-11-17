@@ -79,7 +79,7 @@ public:
 	virtual bool __stdcall Push(DirStruct dir) { return false; }
 	virtual bool __stdcall Shove(DirStruct dir) { return false; }
 	virtual void __stdcall Force_Track(int track, CoordStruct coord) RX;
-	//virtual Layer __stdcall In_Which_Layer() RT(Layer);
+	virtual Layer __stdcall In_Which_Layer() RT(Layer);
 	virtual void __stdcall Force_Immediate_Destination(CoordStruct coord) RX;
 	virtual void __stdcall Force_New_Slope(int ramp) RX;
 	virtual bool __stdcall Is_Moving_Now() { return Is_Moving(); }

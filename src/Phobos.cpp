@@ -32,7 +32,7 @@
 bool Phobos::Config::HideWarning = false;
 #endif
 
-HMODULE Phobos::hInstance = NULL;
+HANDLE Phobos::hInstance = NULL;
 char Phobos::readBuffer[Phobos::readLength];
 wchar_t Phobos::wideBuffer[Phobos::readLength];
 const char Phobos::readDelims[4] = ",";
@@ -112,10 +112,10 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			Phobos::AppIconPath = ppArgs[++i];
 		}
 
-		if (_stricmp(pArg, "-Console") == 0)
-		{
-			Phobos::EnableConsole = true;
-		}
+		//if (_stricmp(pArg, "-Console") == 0)
+		//{
+		//	Phobos::EnableConsole = true;
+		//}
 
 		/*
 		if (!_stricmp(pArg, "-Name"))
@@ -161,11 +161,11 @@ void Phobos::CloseConfig(CCINIClass*& pINI)
 	CCINIClass::UnloadINIFile(pINI);
 }
 
-std::filesystem::path get_module_path(HMODULE module)
-{
-	WCHAR buf[4096];
-	return GetModuleFileNameW(module, buf, ARRAYSIZE(buf)) ? buf : std::filesystem::path();
-}
+//std::filesystem::path get_module_path(HMODULE module)
+//{
+//	WCHAR buf[4096];
+//	return GetModuleFileNameW(module, buf, ARRAYSIZE(buf)) ? buf : std::filesystem::path();
+//}
 
 #pragma warning( push )
 #pragma warning (disable : 4091)
@@ -224,7 +224,7 @@ bool Phobos::DetachFromDebugger()
 void Phobos::ExeRun()
 {
 	Patch::ApplyStatic();
-
+	
 	if (!Phobos::Config::HideWarning)
 	{
 		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
@@ -357,13 +357,13 @@ void NAKED _ExeTerminate()
 }
 DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
+BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-		Phobos::hInstance = hModule;
+		Phobos::hInstance = hInstance;
 
 		//if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresData::AresDllHmodule))
 		//{
@@ -383,93 +383,93 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 // =============================
 #pragma region SyringeHandshake
-SYRINGE_HANDSHAKE(pInfo)
-{
-	//const DWORD YR_SIZE_1000 = 0x496110;
-	const DWORD YR_SIZE_1001 = 0x497110;
-	const DWORD YR_SIZE_1001_UC = 0x497FE0;
-	const DWORD YR_SIZE_NPATCH = 0x5AB000;
-
-	const DWORD YR_TIME_1000 = 0x3B846665;
-	const DWORD YR_TIME_1001 = 0x3BDF544E;
-
-	//const DWORD YR_CRC_1000 = 0xB701D792;
-	const DWORD YR_CRC_1001_CD = 0x098465B3;
-	const DWORD YR_CRC_1001_TFD = 0xEB903080;
-	const DWORD YR_CRC_1001_UC = 0x1B499086;
-
-	if (pInfo)
-	{
-		const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " _STR(BUILD_NUMBER) ".";
-		const char* PatchDetectedMessage = "Found %s. Phobos " _STR(BUILD_NUMBER) " is not compatible with other patches.";
-
-		const char* desc = nullptr;
-		const char* msg = nullptr;
-		bool allowed = false;
-
-		// accept tfd and cd version 1.001
-		if (pInfo->exeTimestamp == YR_TIME_1001)
-		{
-			// don't accept expanded exes
-			switch (pInfo->exeFilesize)
-			{
-			case YR_SIZE_1001:
-			case YR_SIZE_1001_UC:
-
-				// all versions allowed
-				switch (pInfo->exeCRC)
-				{
-				case YR_CRC_1001_CD:
-					desc = "1.001 (CD)";
-					break;
-				case YR_CRC_1001_TFD:
-					desc = "1.001 (TFD)";
-					break;
-				case YR_CRC_1001_UC:
-					desc = "1.001 (UC)";
-					break;
-				default:
-					// no-cd, network port or other changes
-					desc = "1.001 (modified)";
-				}
-				msg = AcceptMsg;
-				allowed = true;
-				break;
-
-			case YR_SIZE_NPATCH:
-				// known patch size
-				desc = "RockPatch or an NPatch-derived patch";
-				msg = PatchDetectedMessage;
-				break;
-			default:
-				// expanded exe, unknown make
-				desc = "an unknown game patch";
-				msg = PatchDetectedMessage;
-			}
-		}
-		else if (pInfo->exeTimestamp == YR_TIME_1000)
-		{
-			// upgrade advice for version 1.000
-			desc = "1.000";
-			msg = "Found Yuri's Revenge 1.000 but Phobos " _STR(BUILD_NUMBER) " requires version 1.001. Please update your copy of Yuri's Revenge first.";
-		}
-		else
-		{
-			// does not even compute...
-			msg = "Unknown executable. Phobos " _STR(BUILD_NUMBER) " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
-		}
-
-		// generate the output message
-		if (pInfo->Message)
-		{
-			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
-		}
-
-		return allowed ? S_OK : S_FALSE;
-	}
-
-	return E_POINTER;
-}
+//SYRINGE_HANDSHAKE(pInfo)
+//{
+//	//const DWORD YR_SIZE_1000 = 0x496110;
+//	const DWORD YR_SIZE_1001 = 0x497110;
+//	const DWORD YR_SIZE_1001_UC = 0x497FE0;
+//	const DWORD YR_SIZE_NPATCH = 0x5AB000;
+//
+//	const DWORD YR_TIME_1000 = 0x3B846665;
+//	const DWORD YR_TIME_1001 = 0x3BDF544E;
+//
+//	//const DWORD YR_CRC_1000 = 0xB701D792;
+//	const DWORD YR_CRC_1001_CD = 0x098465B3;
+//	const DWORD YR_CRC_1001_TFD = 0xEB903080;
+//	const DWORD YR_CRC_1001_UC = 0x1B499086;
+//
+//	if (pInfo)
+//	{
+//		const char* AcceptMsg = "Found Yuri's Revenge %s. Applying Phobos " _STR(BUILD_NUMBER) ".";
+//		const char* PatchDetectedMessage = "Found %s. Phobos " _STR(BUILD_NUMBER) " is not compatible with other patches.";
+//
+//		const char* desc = nullptr;
+//		const char* msg = nullptr;
+//		bool allowed = false;
+//
+//		// accept tfd and cd version 1.001
+//		if (pInfo->exeTimestamp == YR_TIME_1001)
+//		{
+//			// don't accept expanded exes
+//			switch (pInfo->exeFilesize)
+//			{
+//			case YR_SIZE_1001:
+//			case YR_SIZE_1001_UC:
+//
+//				// all versions allowed
+//				switch (pInfo->exeCRC)
+//				{
+//				case YR_CRC_1001_CD:
+//					desc = "1.001 (CD)";
+//					break;
+//				case YR_CRC_1001_TFD:
+//					desc = "1.001 (TFD)";
+//					break;
+//				case YR_CRC_1001_UC:
+//					desc = "1.001 (UC)";
+//					break;
+//				default:
+//					// no-cd, network port or other changes
+//					desc = "1.001 (modified)";
+//				}
+//				msg = AcceptMsg;
+//				allowed = true;
+//				break;
+//
+//			case YR_SIZE_NPATCH:
+//				// known patch size
+//				desc = "RockPatch or an NPatch-derived patch";
+//				msg = PatchDetectedMessage;
+//				break;
+//			default:
+//				// expanded exe, unknown make
+//				desc = "an unknown game patch";
+//				msg = PatchDetectedMessage;
+//			}
+//		}
+//		else if (pInfo->exeTimestamp == YR_TIME_1000)
+//		{
+//			// upgrade advice for version 1.000
+//			desc = "1.000";
+//			msg = "Found Yuri's Revenge 1.000 but Phobos " _STR(BUILD_NUMBER) " requires version 1.001. Please update your copy of Yuri's Revenge first.";
+//		}
+//		else
+//		{
+//			// does not even compute...
+//			msg = "Unknown executable. Phobos " _STR(BUILD_NUMBER) " requires Command & Conquer Yuri's Revenge version 1.001 (gamemd.exe).";
+//		}
+//
+//		// generate the output message
+//		if (pInfo->Message)
+//		{
+//			sprintf_s(pInfo->Message, pInfo->cchMessage, msg, desc);
+//		}
+//
+//		return allowed ? S_OK : S_FALSE;
+//	}
+//
+//	return E_POINTER;
+//}
 #pragma endregion
 
 #pragma region hooks
@@ -673,7 +673,7 @@ DEFINE_JUMP(CALL,0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 {
-	if (!Phobos::Config::HideWarning) {
+    if (!Phobos::Config::HideWarning) {
 		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
 
 		RectangleStruct rect = {
@@ -691,10 +691,10 @@ DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
-{
-	return 0x0;
-}
+//DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
+//{
+//	return 0x0;
+//}
 
 /*
 #ifndef ENABLE_NEWHOOKS

@@ -71,7 +71,7 @@ DEFINE_HOOK(0x513F1B, HoverLocomotionClass_513D20_HoverDampen, 0x6)
 
 DEFINE_HOOK(0x513E14, HoverLocomotionClass_513D20_HoverBob, 0x6)
 {
-	R->ECX(Unsorted::CurrentFrame); //Uhh ...
+	R->ECX(Unsorted::CurrentFrame()); //Uhh ...
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 	auto bob = GetHover(pLoco->Owner)->GetBob();
 	_asm fmul qword ptr[bob];

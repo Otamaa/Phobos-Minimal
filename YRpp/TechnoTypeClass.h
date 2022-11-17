@@ -65,6 +65,7 @@ struct WeaponStruct
 	{
 		return !(*this == nWeap);
 	}
+
 	static bool __cdecl IsValid(WeaponStruct* WpStructe)
 		{ JMP_STD(0x70E240); }
 
@@ -112,13 +113,6 @@ public:
 	
 	bool HasMultipleTurrets() const
 		{ return this->TurretCount > 0; }
-
-	//I don't know what that is
-	void SetTurretWeapon(int index, int unknown) //JMP_THIS(0x717890)
-		{ this->TurretWeapon[index] = unknown; }
-
-	int GetTurretWeapon(int index)
-		{ return this->TurretWeapon[index]; }
 
 	bool sub_712130() const
 		{ JMP_THIS(0x712130); }

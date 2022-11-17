@@ -458,17 +458,14 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	GET(TechnoClass*, pThis, ECX);
 
 	int maxSpeed = 0;
-	auto const pType = pThis->GetTechnoType();
 
-	if (pThis && pType)
-	{
+	if (pThis)
+	{	auto pType = pThis->GetTechnoType();
+
+		if(TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed)
+			pType = TechnoExt::Helper::GetDisguiseType<false,false>(pThis).first;
+
 		maxSpeed = pType->Speed;
-
-		if (TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed && pThis->IsDisguised())
-		{
-			if (auto const pDisguiseType = type_cast<TechnoTypeClass*>(pThis->Disguise))
-				maxSpeed = pDisguiseType->Speed;
-		}
 	}
 
 	R->EAX(maxSpeed);
@@ -594,15 +591,26 @@ DEFINE_JUMP(VTABLE, 0x7EB1AC, GET_OFFSET(InfantryClass_IronCurtain));
 
 DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_ObserverCloak, 0x7)
 {
-	enum { UseShadowyVisual = 0x703A5A };
+	enum {
+		UseShadowyVisual = 0x703A5A, 
+		CheckIsAlliedWith = 0x703A24,
+		UseHiddenVisual = 0x7038AE
+	};
 
 	GET(TechnoClass*, pThis, ESI);
 
-	// Allow observers to always see cloaked objects.
-	if (HouseClass::IsCurrentPlayerObserver() && pThis->CloakState == CloakState::Cloaked)
-		return UseShadowyVisual;
+	auto const pCurPlayer = HouseClass::CurrentPlayer();
 
-	return 0;
+	// Allow observers to always see cloaked objects.
+	if(!pCurPlayer || !pThis->Owner ) {
+		return UseHiddenVisual;
+	}
+
+	if(!pCurPlayer->IsObserver() && !pThis->Owner->IsAlliedWith(pCurPlayer) ) {
+		return UseHiddenVisual;
+	}
+
+	return UseShadowyVisual;
 }
 
 /*
@@ -686,7 +694,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
 		{
-			auto nStr = pSlave->Health * 2;
+			auto nStr = pSlave->Health;
 			pSlave->ReceiveDamage(&nStr, 0, RulesGlobal->C4Warhead, nullptr, true, true, nullptr);
 			return LoopCheck;
 		}

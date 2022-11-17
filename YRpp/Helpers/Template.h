@@ -86,15 +86,27 @@ public:
 	explicit IndexBitfield(DWORD const defVal) noexcept : data(defVal) {};
 
 	bool Contains(const T obj) const {
-		return (this->data & (1u << obj->ArrayIndex)) != 0u;
+		return Contains(obj->ArrayIndex);
+	}
+
+	bool Contains(int index) const {
+		return (this->data & (1u << index)) != 0u;
+	}
+
+	void Add(int index) {
+		this->data |= (1u << index);
 	}
 
 	void Add(const T obj) {
-		this->data |= (1u << obj->ArrayIndex);
+		Add(obj->ArrayIndex);
+	}
+
+	void Remove(int index) {
+		this->data &= ~(1u << index);
 	}
 
 	void Remove(const T obj) {
-		this->data &= ~(1u << obj->ArrayIndex);
+		Remove(obj->ArrayIndex);
 	}
 
 	void Clear() {

@@ -53,6 +53,10 @@ public:
 	//Static
 	static constexpr constant_ptr<TabClass, 0x87F7E8u> const Instance{};
 
+	void Activate(int control = 1)
+		{ JMP_THIS(0x6D04F0); }
+
+public:
 	TabDataClass TabData;
 	TimerStruct unknown_timer_552C;
 	TimerStruct InsufficientFundsBlinkTimer;

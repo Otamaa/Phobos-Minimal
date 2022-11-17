@@ -6,28 +6,23 @@
 class CellStruct
 {
 public:
-	short X;
-	short Y;
+	short X { 0 };
+	short Y { 0 };
 
 	static const CellStruct Empty;
+	static const CellStruct DefaultUnloadCell;
 
-	CellStruct(short nX , short nY) : X { nX } , Y { nY }
+	CellStruct() noexcept = default;
+	CellStruct(short x , short y) noexcept : 
+		X { x } , Y { y }
 	{ }
-
-	CellStruct() : X { 0 }, Y { 0 }
-	{ }
-
-	//auto operator()()
-	//{
-		// returns a tuple to make it work with std::tie
-	//	return std::make_pair(X, Y);
-	//}
 
 	//equality
-	bool operator==(const CellStruct& a) const
+	inline bool operator==(const CellStruct& a) const
 	{
 		return (X == a.X && Y == a.Y);
 	}
+
 	//unequality
 	inline bool operator!=(const CellStruct& a) const
 	{

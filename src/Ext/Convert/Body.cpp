@@ -23,6 +23,7 @@ void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_vi
 	}
 }
 
+/*
 DEFINE_JUMP(LJMP, 0x48E955 ,0x48E9E1)
 
 DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
@@ -38,4 +39,4 @@ DEFINE_HOOK(0x491210, ConvertClass_DTOR, 0xA)
 	GET(ConvertClass*, pItem, ECX);
 	ConvertExt::ExtMap.Remove(pItem);
 	return 0;
-}
+}*/

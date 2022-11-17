@@ -44,8 +44,8 @@ public:
 	{
 		if (selectable.Techno && selectable.Techno->IsAlive)
 		{
-			int nLocalX = selectable.X - pThis->TacticalPos.X;
-			int nLocalY = selectable.Y - pThis->TacticalPos.Y;
+			int nLocalX = selectable.Point.X - pThis->TacticalPos.X;
+			int nLocalY = selectable.Point.Y - pThis->TacticalPos.Y;
 
 			if ((nLocalX >= pRect->Left && nLocalX < pRect->Right + pRect->Left) &&
 				(nLocalY >= pRect->Top && nLocalY < pRect->Bottom + pRect->Top)) {

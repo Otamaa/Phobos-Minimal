@@ -11,7 +11,6 @@ class OverlayTypeClass;
 class ParticleTypeClass;
 class WarheadTypeClass;
 
-//#pragma pack(push, 8)
 class DECLSPEC_UUID("AE8B33DA-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE AnimTypeClass : public ObjectTypeClass
 {
@@ -74,7 +73,7 @@ public:
 	int MiddleFrameIndex;
 	int MiddleFrameWidth;
 	int MiddleFrameHeight;
-	bool Biggest; //was unknown_2A4;
+	DWORD Biggest; //was unknown_2A4;
 	double Damage;
 	int Rate;
 	int Start;
@@ -126,7 +125,6 @@ public:
 	bool IsAnimatedTiberium;
 	bool AltPalette;
 	bool Normalized;
-	PROTECTED_PROPERTY(BYTE, align_363);
 	Layer Layer;
 	bool DoubleThick;
 	bool Flat;

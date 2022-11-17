@@ -100,14 +100,12 @@ public:
 	bool Bouncy;
 	bool AnimPalette;
 	bool FirersPalette;
-	PROTECTED_PROPERTY(BYTE, align_2AA[2]);
 	int Cluster;
 	WeaponTypeClass* AirburstWeapon;
 	WeaponTypeClass* ShrapnelWeapon;
 	int ShrapnelCount;
 	int DetonationAltitude;
 	bool Vertical;
-	PROTECTED_PROPERTY(BYTE, align_2C1[3]);
 	DWORD field_2C4;  //unused , can be used to store ExtData
 	double Elasticity;
 	int Acceleration;

@@ -67,7 +67,6 @@ public:
 	TypeList<RGBClass*> ColorList; //Was TypeList
 	ColorStruct StartColor1;
 	ColorStruct StartColor2;
-	BYTE align_2DA[2];
 	int    MaxDC;
 	int    MaxEC;
 	WarheadTypeClass* Warhead;

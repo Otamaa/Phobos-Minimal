@@ -102,7 +102,7 @@ void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 template <typename T>
 void ScenarioExt::ExtData::Serialize(T& Stm)
 {
-	Debug::Log("Processing ScenarioExt ! /n");
+	Debug::Log("Processing ScenarioExt ! \n");
 	Stm
 		// Extra datas
 		.Process(SessionClass::Instance->Config)

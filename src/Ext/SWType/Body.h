@@ -63,6 +63,8 @@ public:
 		Valueable<bool> ChargeTimer_Backwards;
 		#pragma endregion
 
+		Valueable<int> SW_Priority;
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
 			, UIDescription {}
@@ -103,6 +105,8 @@ public:
 			, GClock_Palette { }
 			, ChargeTimer { false }
 			, ChargeTimer_Backwards { false }
+
+			, SW_Priority { 0 }
 		{ }
 
 

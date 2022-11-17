@@ -155,14 +155,14 @@ DEFINE_HOOK(0x71E240, TerrainTypeClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x71E235, TerrainTypeClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x71E233, TerrainTypeClass_Load_Suffix, 0x6)
 {
 	TerrainTypeExt::ExtMap.LoadStatic();
 
 	return 0;
 }
 
-DEFINE_HOOK(0x71E25A, TerrainTypeClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x71E258, TerrainTypeClass_Save_Suffix, 0x5)
 {
 	TerrainTypeExt::ExtMap.SaveStatic();
 

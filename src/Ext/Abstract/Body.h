@@ -189,8 +189,9 @@ public:
 	explicit TExtensionContainer(const char* pName) :
 		SavingObject { nullptr },
 		SavingStream { nullptr },
-		Name { pName }
+		Name { }
 	{
+		Name = pName;
 	}
 
 	virtual ~TExtensionContainer() = default;
@@ -253,9 +254,10 @@ public:
 		return SetIExtension(key);
 	}
 
-	extension_type_ptr FindOrAllocate(const_base_type_ptr key)
+	template<bool Check = false>
+	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
-		return GetOrSetIExtension(key);
+		return GetOrSetIExtension<Check>(key);
 	}
 
 	template<bool Check = false>
@@ -369,7 +371,7 @@ protected:
 		}
 
 		// write the current pointer, the size of the block, and the canary
-		PhobosByteStream saver(buffer->GetSize());
+		PhobosByteStream saver(sizeof(extension_type));
 		PhobosStreamWriter writer(saver);
 
 		writer.Save(T::Canary);

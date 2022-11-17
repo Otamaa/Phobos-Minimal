@@ -1,6 +1,5 @@
 #include "Body.h"
 
-#ifdef ENABLE_NEWHOOKS_SCIPT
 DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 {
 	GET(ScriptClass*, pThis, ECX);
@@ -10,17 +9,20 @@ DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 	if (nCurIndex > pThis->Type->ActionsCount)
 		nCurIndex = pThis->Type->ActionsCount;
 
-	if (nCurIndex <= 50) {
-		pNode->Action = pThis->Type->ScriptActions[nCurIndex].Action;
-		pNode->Argument = pThis->Type->ScriptActions[nCurIndex].Argument;
+	if (nCurIndex < ScriptTypeClass::MaxActions) {
+		pNode->Action = pThis->Type->ScriptActions.Data[nCurIndex].Action;
+		pNode->Argument = pThis->Type->ScriptActions.Data[nCurIndex].Argument;
 	} else {
 		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pThis->Type);
-		if(pTypeExt && !pTypeExt->PhobosNode.empty()){
-			pNode->Action = pTypeExt->PhobosNode[nCurIndex - 50].Action;
-			pNode->Argument = pTypeExt->PhobosNode[nCurIndex - 50].Argument;
+		auto const nIdx = nCurIndex - ScriptTypeClass::MaxActions;
+		auto const nMax = ScriptTypeClass::MaxActions - 1;
+
+		if (!pTypeExt->PhobosNode.empty() && !(nIdx > (int)pTypeExt->PhobosNode.size())) {
+			pNode->Action = pTypeExt->PhobosNode[nIdx].Action;
+			pNode->Argument = pTypeExt->PhobosNode[nIdx].Argument;
 		} else {
-			pNode->Action = pThis->Type->ScriptActions[50].Action;
-			pNode->Argument = pThis->Type->ScriptActions[50].Argument;
+			pNode->Action = pThis->Type->ScriptActions.Data[nMax].Action;
+			pNode->Argument = pThis->Type->ScriptActions.Data[nMax].Argument;
 		}
 	}
 
@@ -39,18 +41,21 @@ DEFINE_HOOK(0x691566, ScriptClass_GetNextAction_extra, 0xB)
 	if (nCurIndex > pType->ActionsCount)
 		nCurIndex = pType->ActionsCount;
 
-	if (nCurIndex <= 50)
+	if (nCurIndex < ScriptTypeClass::MaxActions)
 	{
-		pNode->Action = pType->ScriptActions[nCurIndex].Action;
-		pNode->Argument = pType->ScriptActions[nCurIndex].Argument;
+		pNode->Action = pType->ScriptActions.Data[nCurIndex].Action;
+		pNode->Argument = pType->ScriptActions.Data[nCurIndex].Argument;
 	} else {
 		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pType);
-		if (pTypeExt && !pTypeExt->PhobosNode.empty()) {
-			pNode->Action = pTypeExt->PhobosNode[nCurIndex - 50].Action;
-			pNode->Argument = pTypeExt->PhobosNode[nCurIndex - 50].Argument;
+		auto const nIdx = nCurIndex - ScriptTypeClass::MaxActions;
+		auto const nMax = ScriptTypeClass::MaxActions - 1;
+
+		if (!pTypeExt->PhobosNode.empty() && !(nIdx > (int)pTypeExt->PhobosNode.size())) {
+			pNode->Action = pTypeExt->PhobosNode[nIdx].Action;
+			pNode->Argument = pTypeExt->PhobosNode[nIdx].Argument;
 		}else {
-			pNode->Action = pType->ScriptActions[50].Action;
-			pNode->Argument = pType->ScriptActions[50].Argument;
+			pNode->Action = pType->ScriptActions.Data[nMax].Action;
+			pNode->Argument = pType->ScriptActions.Data[nMax].Argument;
 		}
 	}
 
@@ -79,8 +84,8 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 			if (pRules->ReadString(pThis->ID, pBuffer, "", Phobos::readBuffer)) {
 				ScriptActionNode nBuffer;
 				nBuffer.FillIn(Phobos::readBuffer);
-				if (i <= 50) {
-					pThis->ScriptActions[i] = std::move(nBuffer);
+				if (i < ScriptTypeClass::MaxActions) {
+					pThis->ScriptActions.Data[i] = std::move(nBuffer);
 				}else{
 					pExt->PhobosNode.push_back(std::move(nBuffer));
 				}
@@ -95,4 +100,3 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 
 	return 0x691953;
 }
-#endif

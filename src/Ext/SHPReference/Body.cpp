@@ -60,6 +60,7 @@ SHPRefExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
+/*
 DEFINE_HOOK(0x69E4F0, SHPReference_CTOR, 0x5)
 {
 	GET(SHPReference*, pItem, ESI);
@@ -74,4 +75,4 @@ DEFINE_HOOK(0x69E509, SHPReference_DTOR, 0x5)
 
 	SHPRefExt::ExtMap.Remove(pItem);
 	return 0;
-}
+}*/

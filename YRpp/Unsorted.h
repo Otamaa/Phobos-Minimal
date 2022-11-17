@@ -18,10 +18,8 @@ struct CoordStruct;
 class CCFileClass;
 class CellClass;
 // things that I can't put into nice meaningful classes
-class Game
+struct Game
 {
-	NO_CONSTRUCT_CLASS(Game)
-public:
 	// the magic checksum for version validation - linked in StaticInits
 	static constexpr reference<DWORD, 0x83D560u> const Savegame_Magic{};
 
@@ -77,14 +75,39 @@ public:
 	static constexpr reference<bool, 0xA8E9A0u> const IsActive{};
 	static constexpr reference<bool, 0xA8ED80u> const IsFocused{};
 	static constexpr reference<int, 0xA8EDA0u> const SpecialDialog{};
+	static constexpr reference<bool, 0xAC48D4> const PCXInitialized{};
+
+	static constexpr reference<int, 0xA8ED94u> const Seed{};
+	static constexpr reference<int, 0x822CF4u> const TechLevel{};
+	static constexpr reference<int, 0xA8B54Cu> const PlayerCount{};
+	static constexpr reference<int, 0xA8B394u> const PlayerColor{};
+	static constexpr reference<bool, 0xAC10C8u> const ObserverMode{};
+	static constexpr reference<char, 0xA8B8E0u> const ScenarioName{};
+
+	static struct Network
+	{
+	public:
+		static constexpr reference<DWORD, 0xB779D4u> const WOLGameID{};
+		static constexpr reference<time_t, 0xB77788u> const PlanetWestwoodStartTime{};
+		static constexpr reference<int, 0xB73814u> const GameStockKeepingUnit{};
+		static constexpr reference<int, 0xA8B24Cu> const ProtocolVersion{};
+		static constexpr reference<int, 0xA8B554u> const FrameSendRate{};
+		static constexpr reference<int, 0x83737Cu> const ReconnectTimeout{};
+		static constexpr reference<int, 0xA8B550u> const MaxAhead{};
+		static constexpr reference<int, 0xA8B568u> const MaxMaxAhead{};
+		static constexpr reference<int, 0xA8DB9Cu> const LatencyFudge{};
+		static constexpr reference<int, 0xA8B558u> const RequestedFPS{};
+
+		static bool Init()
+			{ JMP_STD(0x5DA6C0); }
+	} Network;
+
 	// the game's own rounding function
 	// infamous for true'ing (F2I(-5.00) == -4.00)
 	static __int64 F2I64(double val) {
-#ifdef _MSVC
 		double something = val;
 		__asm { fld something };
 		CALL(0x7C5F00);
-#endif
 	}
 
 	// the game's own rounding function
@@ -145,6 +168,24 @@ public:
 
 	static LARGE_INTEGER __fastcall AudioGetTime()
 		{ JMP_STD(0x4093B0); }
+
+	static void InitRandom()
+		{ JMP_STD(0x52FC20); }
+
+	static bool InitNetwork()
+		{ JMP_STD(0x5DA6C0); }
+
+	static void InitUIStuff()
+	{
+		/* InitCommonDialogStuff() */ CALL(0x600560);
+
+		if (!PCXInitialized)
+		{
+			/* InitUIColorShifts() */ CALL(0x61F190);
+			/* LoadPCXFiles() */      CALL(0x61F210);
+			PCXInitialized  = true;
+		}
+	}
 
 	static AbstractType __fastcall WhichTab(AbstractType Type, int heapId, int a3 = 0)
 	{ JMP_STD(0x6ABC60); }
@@ -209,8 +250,6 @@ public:
 // this fake class contains the IIDs used by the game
 // no comments because the IIDs suck
 class IIDs {
-	NO_CONSTRUCT_CLASS(IIDs)
-public:
 	static constexpr reference<IID const, 0x7F7C90u> const IUnknown{};
 	static constexpr reference<IID const, 0x7F7C80u> const IPersistStream{};
 	static constexpr reference<IID const, 0x7F7C70u> const IPersist{};
@@ -231,9 +270,8 @@ public:
 
 // this class links to functions gamemd imports
 // to avoid having to link to their DLLs ourselves
-class Imports {
-	NO_CONSTRUCT_CLASS(Imports)
-public:
+struct Imports {
+
 	// OleLoadFromStream
 	typedef HRESULT(__stdcall* FP_OleSaveToStream)(LPPERSISTSTREAM pPStm, LPSTREAM pStm);
 	static FP_OleSaveToStream& OleSaveToStream;
@@ -571,12 +609,15 @@ class MovieInfo
 public:
 	// technically, this is a DVC<const char*>
 	// and string management is done manually
-	static constexpr reference<DynamicVectorClass<MovieInfo>, 0xABF390u> const Array{};
+	static constexpr reference<DynamicVectorClass<MovieInfo>, 0xABF390u> const Array {};
 
 	bool operator== (MovieInfo const& rhs) const
 	{
 		return !CRT::strcmpi(this->Name, rhs.Name);
 	}
+
+	bool operator!= (MovieInfo const& rhs) const
+	{ return !((*this) == rhs); }
 
 	explicit MovieInfo(const char* fname)
 		: Name(fname ? CRT::strdup(fname) : nullptr)
@@ -618,8 +659,21 @@ struct GroundType
 	char Build;
 };
 
+struct ColorPacker
+{
+	int _R_SHL;
+	int _R_SHR;
+	int _B_SHL;
+	int _B_SHR;
+	int _G_SHL;
+	int _G_SHR;
+};
+
 namespace Unsorted
 {
+	static constexpr reference<int, 0xA8ED84> CurrentFrame {};
+	static constexpr reference<int, 0x7F4890, 8> DefaultFacingTable {};
+
 	static constexpr reference<GroundType*, 0x89EA40u> GroundTypeData {};
 	// if != 0, EVA_SWxxxActivated is skipped
 	static constexpr reference<int, 0xA8B538> MuteSWLaunches {};
@@ -648,16 +702,6 @@ namespace Unsorted
 	static constexpr reference<bool, 0xB0FE65> TypeSelecting {};
 	static constexpr reference<HWND, 0xB73550u> const Game_hWnd {};
 
-struct ColorPacker
-{
-	int _R_SHL;
-	int _R_SHR;
-	int _B_SHL;
-	int _B_SHR;
-	int _G_SHL;
-	int _G_SHR;
-};
-
 	static constexpr constant_ptr<ColorPacker, 0x8A0DD0> ColorPackData {};
 
 	static constexpr constant_ptr<CellStruct, 0xABD490> CellSpreadTable {};
@@ -667,62 +711,6 @@ struct ColorPacker
 	static constexpr const int except_txt_length = 0xFFFF;
 	static constexpr constant_ptr<char, 0x8A3A08> except_txt_content {};
 
-/*
- * This thing is ridiculous
- * all xxTypeClass::Create functions use it:
-
-  // doing this makes no sense - it's just a wrapper around CTOR, which doesn't call any Mutex'd functions... but who cares
-  InfantryTypeClass *foo = something;
-  ++SomeMutex;
-  InfantryClass *obj = foo->CreateObject();
-  --SomeMutex;
-
-  // XXX do not do this if you aren't sure if the object can exist in this place
-  // - this flag overrides any placement checks so you can put Terror Drones into trees and stuff
-  ++SomeMutex;
-  obj->Unlimbo(blah);
-  --SomeMutex;
-
-  AI base node generation uses it:
-  int level = SomeMutex;
-  SomeMutex = 0;
-  House->GenerateAIBuildList();
-  SomeMutex = level;
-
-  Building destruction uses it:
-  if(!SomeMutex) {
-	Building->ShutdownSensorArray();
-	Building->ShutdownDisguiseSensor();
-  }
-
-  Building placement uses it:
-  if(!SomeMutex) {
-	UnitTypeClass *freebie = Building->Type->FreeUnit;
-	if(freebie) {
-		freebie->CreateObject(blah);
-	}
-  }
-
-  Building state animations use it:
-  if(SomeMutex) {
-	// foreach attached anim
-	// update anim state (normal | damaged | garrisoned) if necessary, play anim
-  }
-
-  building selling uses it:
-  if(blah) {
-	++SomeMutex;
-	this->Type->UndeploysInto->CreateAtMapCoords(blah);
-	--SomeMutex;
-  }
-
-  Robot Control Centers use it:
-  if ( !SomeMutex ) {
-	VoxClass::PlayFromName("EVA_RobotTanksOffline/BackOnline", -1, -1);
-  }
-
-  and so on...
- */
 	// Note: SomeMutex has been renamed to this because it reflects the usage better
 	static constexpr reference<int, 0xA8E7AC> IKnowWhatImDoing {}; // h2ik
 	static constexpr reference<int, 0xA8DAB4> SystemResponseMessages {};

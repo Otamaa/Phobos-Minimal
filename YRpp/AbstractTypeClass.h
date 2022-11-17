@@ -16,13 +16,13 @@ class CCINIClass;
 	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
 	{\
 		for(auto pItem : *Array)\
-			if(!CRT::strcmpi(pItem->ID, pID))\
+			if(!_strcmpi(pItem->ID, pID))\
 				return pItem;\
 		return nullptr;\
 	}\
 	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
 	{\
-		if(!CRT::strcmpi(pID, "<none>") || !CRT::strcmpi(pID, "none")) {\
+		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
 			return nullptr;\
 		}\
 		if(auto pRet = Find(pID)) {\
@@ -33,7 +33,7 @@ class CCINIClass;
 	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
 	{\
 		for(int i = 0; i < Array->Count; ++i)\
-			if(!CRT::strcmpi(Array->Items[i]->ID, pID))\
+			if(!_strcmpi(Array->Items[i]->ID, pID))\
 				return i;\
 		return -1;\
 	}
@@ -45,13 +45,13 @@ class CCINIClass;
 	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
 	{\
 		for(auto pItem : *Array)\
-			if(!CRT::strcmpi(pItem->ID, pID))\
+			if(!_strcmpi(pItem->ID, pID))\
 				return pItem;\
 		return nullptr;\
 	}\
 	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
 	{\
-		if(!CRT::strcmpi(pID, "<none>") || !CRT::strcmpi(pID, "none")) {\
+		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
 			return nullptr;\
 		}\
 		if(auto pRet = Find(pID)) {\
@@ -62,7 +62,7 @@ class CCINIClass;
 	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
 	{\
 		for(int i = 0; i < Array->Count; ++i)\
-			if(!CRT::strcmpi(Array->Items[i]->ID, pID))\
+			if(!_strcmpi(Array->Items[i]->ID, pID))\
 				return i;\
 		return -1;\
 	}
@@ -75,13 +75,13 @@ class CCINIClass;
 	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
 	{\
 		for(auto pItem : *Array)\
-			if(!CRT::strcmpi(pItem->ID, pID))\
+			if(!_strcmpi(pItem->ID, pID))\
 				return pItem;\
 		return nullptr;\
 	}\
 	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
 	{\
-		if(!CRT::strcmpi(pID, "<none>") || !CRT::strcmpi(pID, "none")) {\
+		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
 			return nullptr;\
 		}\
 		if(auto pRet = Find(pID)) {\
@@ -92,7 +92,7 @@ class CCINIClass;
 	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
 	{\
 		for(int i = 0; i < Array->Count; ++i)\
-			if(!CRT::strcmpi(Array->Items[i]->ID, pID))\
+			if(!_strcmpi(Array->Items[i]->ID, pID))\
 				return i;\
 		return -1;\
 	}

@@ -623,7 +623,13 @@ public:
 
 		return true;
 	}
-
+	
+	template <class... _Valty>
+	constexpr decltype(auto) emplace_back(_Valty&&... _Val) {
+		AddItem(T{ _Val... });
+		return *back();
+	}
+	
 	bool AddUnique(const T& item)
 	{
 		int idx = this->FindItemIndex(item);
@@ -640,7 +646,7 @@ public:
 		--this->Count;
 		for (int i = index; i < this->Count; ++i)
 		{
-			this->Items[i] = std::move(this->Items[i + 1]);
+			this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
 		}
 
 		return true;

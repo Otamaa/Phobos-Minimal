@@ -578,7 +578,59 @@ Return:
 	return { FLHFound , FLH };
 }
 
-void TechnoExt::DrawSelectBrd(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool sIsDisguised)
+CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts)
+{
+	if (!pThis || !pPassenger)
+		return CoordStruct::Empty;
+
+	if (maxAttempts < 1)
+		maxAttempts = 1;
+
+	CellClass* pCell = pThis->GetCell();
+	CellStruct placeCoords = CellStruct::Empty;
+	auto pTypePassenger = pPassenger->GetTechnoType();
+	CoordStruct finalLocation = CoordStruct::Empty;
+	//short extraDistanceX = 1;
+	//short extraDistanceY = 1;
+	SpeedType speedType = SpeedType::Track;
+	MovementZone movementZone = MovementZone::Normal;
+
+	if (pTypePassenger->WhatAmI() != AbstractType::AircraftType)
+	{
+		speedType = pTypePassenger->SpeedType;
+		movementZone = pTypePassenger->MovementZone;
+	}
+
+	for (Point2D ExtDistance = { 0,0 }; ExtDistance.X < maxAttempts; ++ExtDistance)
+	{
+		placeCoords = pCell->MapCoords - CellStruct { (short)(ExtDistance.X / 2), (short)(ExtDistance.Y / 2) };
+		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
+		pCell = MapClass::Instance->GetCellAt(placeCoords);
+
+		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
+		break;
+	}
+
+	/*
+	do
+	{
+		placeCoords = pThis->GetCell()->MapCoords - CellStruct { (short)(extraDistanceX / 2), (short)(extraDistanceY / 2) };
+		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, extraDistanceX, extraDistanceY, true, false, false, false, CellStruct::Empty, false, false);
+		pCell = MapClass::Instance->GetCellAt(placeCoords);
+		extraDistanceX += 1;
+		extraDistanceY += 1;
+	}
+	while (extraDistanceX < maxAttempts && (pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) != Move::OK) && pCell->MapCoords != CellStruct::Empty);
+	*/
+
+	pCell = MapClass::Instance->TryGetCellAt(placeCoords);
+	pPassenger->OnBridge = pCell->ContainsBridge();
+	finalLocation = pCell->GetCoordsWithBridge();
+
+	return finalLocation;
+}
+
+void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool sIsDisguised)
 {
 	if (!pTypeExt->UseCustomSelectBrd.Get(RulesExt::Global()->UseSelectBrd.Get(Phobos::Config::EnableSelectBrd)))
 		return;
@@ -664,26 +716,11 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
 	int defaultFrameIndex = -1;
 
-	auto pTechnoType = pThis->GetTechnoType();
-	auto pOwner = pThis->Owner;
-
-	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
-	{
-		//check the proper type before casting , duh
-		if (auto const pType = type_cast<TechnoTypeClass*>(pThis->Disguise))
-		{
-			pTechnoType = pType;
-			pOwner = pThis->DisguisedAsHouse;
-		}
-		else if (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !HouseExt::IsObserverPlayer())
-		{
-			return;
-		}
-	}
+	auto const& [pTechnoType, pOwner] = TechnoExt::Helper::GetDisguiseType<true,true>(pThis);
 
 	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
 
-	bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
+	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
 		|| HouseExt::IsObserverPlayer()
 		|| pExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
 
@@ -785,9 +822,9 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	auto color = isShieldDamage ? damage > 0 ? ColorStruct { 0, 160, 255 } : ColorStruct { 0, 255, 230 } :
-		damage > 0 ? ColorStruct { 255, 0, 0 } : ColorStruct { 0, 255, 0 };
+	
+	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
+		damage > 0 ? Drawing::ColorRed : Drawing::ColorGreen;
 
 	wchar_t damageStr[0x20];
 	swprintf_s(damageStr, L"%d", damage);
@@ -1607,7 +1644,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 						return true;
 				}
 
-				return false;
+		return false;
 			}
 		);
 
@@ -1635,7 +1672,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 						return true;
 				}
 
-				return false;
+		return false;
 			}
 		);
 
@@ -1798,10 +1835,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			isSelfHealFrame = true;
 		}
 
-		int nBracket = pThis->GetTechnoType()->PixelSelectionBracketDelta;
-		if (auto pFoot = generic_cast<FootClass*>(pThis->Disguise))
-			if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
-				nBracket = pFoot->GetTechnoType()->PixelSelectionBracketDelta;
+		int nBracket = TechnoExt::Helper::GetDisguiseType<false,true>(pThis).first->PixelSelectionBracketDelta;
 
 		switch (pWhat)
 		{
@@ -2071,9 +2105,9 @@ void TechnoExt::ExtData::UpdateOnTunnelEnter()
 			pLaserTrail->LastLocation.clear();
 		}
 
-		#ifdef COMPILE_PORTED_DP_FEATURES
+#ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::Hide(Get());
-		#endif
+#endif
 
 		this->IsInTunnel = true;
 	}

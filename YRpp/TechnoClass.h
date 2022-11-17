@@ -140,9 +140,9 @@ public:
 	void RemovePassenger(FootClass* pPassenger) const
 		{ JMP_THIS(0x4734B0); }
 
-	PassengersClass() : NumPassengers(0), FirstPassenger(nullptr) {};
+	PassengersClass() noexcept : NumPassengers(0), FirstPassenger(nullptr) {};
+	~PassengersClass() noexcept = default;
 
-	~PassengersClass() { };
 };
 //static_assert(sizeof(PassengersClass) == 0x8);
 
@@ -517,7 +517,7 @@ public:
 	FacingClass GetRealFacing() const {
 		FacingClass ret;
 		this->GetRealFacing(&ret);
-		return FacingClass(ret);
+		return ret;
 	}
 
 //	BulletClass* FireAt(AbstractClass* aTarget, int nWhich) const

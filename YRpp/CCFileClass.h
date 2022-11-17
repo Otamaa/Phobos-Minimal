@@ -90,7 +90,7 @@ public:
 	static const char* const FileErrorToString[];
 
 	//Destructor
-	virtual	~FileClass() {}
+	virtual	~FileClass() RX;
 	//FileClass
 	virtual const char* GetFileName() const = 0;
 	virtual const char* SetFileName(const char* pFileName) = 0;

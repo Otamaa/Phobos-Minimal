@@ -155,17 +155,17 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
+	auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
 
-	auto const pData = TechnoTypeExt::ExtMap.Find(pType);
-
+	if (idxTiberium != -1)
 	{
-		auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
-		auto idxArray = pData->OreGathering_Tiberiums.size() > 0 ? pData->OreGathering_Tiberiums.IndexOf(idxTiberium) : 0;
+		auto const pData = TechnoTypeExt::ExtMap.Find(pType);
+		const auto idxArray = pData->OreGathering_Tiberiums.IndexOf(idxTiberium);
 
-		if (idxTiberium != -1 && idxArray != -1)
+		if (idxArray != -1)
 		{
-			auto const pAnimType = pData->OreGathering_Anims.size() > 0 ? pData->OreGathering_Anims[idxArray] : nullptr;
-			auto const nFramesPerFacing = pData->OreGathering_FramesPerDir.size() > 0 ? pData->OreGathering_FramesPerDir[idxArray] : 15;
+			auto const pAnimType = !pData->OreGathering_Anims.empty() ? pData->OreGathering_Anims[idxArray] : nullptr;
+			auto const nFramesPerFacing = !pData->OreGathering_FramesPerDir.empty() ? pData->OreGathering_FramesPerDir[idxArray] : 15;
 
 			if (pAnimType)
 			{
@@ -231,9 +231,11 @@ DEFINE_HOOK(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	if (!pThis->InAir) {
-		if (pThis->Type->DeployingAnim) {
-			return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim :0;
+	if (!pThis->InAir)
+	{
+		if (pThis->Type->DeployingAnim)
+		{
+			return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->DeployingAnim_AllowAnyDirection.Get()) ? PlayAnim : 0;
 		}
 
 		pThis->Deployed = true;

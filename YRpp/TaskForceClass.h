@@ -11,8 +11,16 @@ class TechnoTypeClass;
 
 struct TaskForceEntryStruct
 {
-	int Amount;
-	TechnoTypeClass* Type;
+	int Amount { 0 };
+	TechnoTypeClass* Type { nullptr };
+
+	bool operator ==(TaskForceEntryStruct const& rhs) const {
+		return Amount == rhs.Amount && Type == rhs.Type;
+	}
+
+	bool operator!= (TaskForceEntryStruct const& rhs) const {
+		return !((*this) == rhs);
+	}
 };
 
 class DECLSPEC_UUID("61DE341E-0774-11D2-ACA5-006008055BB5")

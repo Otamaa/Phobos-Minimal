@@ -362,7 +362,7 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 }
 
 //for fuckoff optimization !
-static __noinline bool IsBulletReallyAlive(const BulletClass* const pThis) {
+static NOINLINE bool IsBulletReallyAlive(const BulletClass* const pThis) {
 	return pThis && pThis->IsAlive;
 }
 

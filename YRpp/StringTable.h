@@ -90,7 +90,7 @@ public:
 		const char* pFile = __FILE__,
 		int nLine = __LINE__)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, "<none>") && CRT::strcmpi(pLabel, "none"))
+		if (pLabel && strlen(pLabel) && _strcmpi(pLabel, "<none>") && _strcmpi(pLabel, "none"))
 			return LoadString(pLabel, pSpeech, pFile, nLine);
 		else
 			return pDefault;
@@ -103,7 +103,7 @@ public:
 		const char* pFile = __FILE__,
 		int nLine = __LINE__)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, "<none>") && CRT::strcmpi(pLabel, "none"))
+		if (pLabel && strlen(pLabel) && _strcmpi(pLabel, "<none>") && _strcmpi(pLabel, "none"))
 		{
 			auto lpValue = LoadString(pLabel, pSpeech, pFile, nLine);
 			if (wcsncmp(lpValue, L"MISSING:", 8))

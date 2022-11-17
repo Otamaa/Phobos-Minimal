@@ -34,7 +34,6 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
 	AnnounceInvalidPointer(Factory_NavyType, ptr);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr);
-	AnnounceInvalidPointer(SecondarySWType, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -222,8 +221,6 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllRepairEventTriggered)
 		.Process(this->LastBuildingTypeArrayIdx)
 		.Process(this->RepairBaseNodes)
-		.Process(this->IsObserver)
-		.Process(this->SecondarySWType)
 		;
 }
 

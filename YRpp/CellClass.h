@@ -14,23 +14,6 @@ struct TileTypeData
 	DWORD Data;
 };
 
-//forward declarations
-class ObjectClass;
-class TechnoClass;
-class BuildingClass;
-class BuildingTypeClass;
-class BulletTypeClass;
-class UnitClass;
-class InfantryClass;
-class AircraftClass;
-class TerrainClass;
-class LightConvertClass;
-class RadSiteClass;
-class FootClass;
-class TubeClass;
-class FoggedObjectClass;
-class TagClass;
-class TiberiumClass;
 class NOVTABLE PixelFXClass
 {
 public:
@@ -61,6 +44,24 @@ public:
 
 static_assert(sizeof(PixelFXClass) == 0x3C);
 
+//forward declarations
+class ObjectClass;
+class TechnoClass;
+class BuildingClass;
+class BuildingTypeClass;
+class BulletTypeClass;
+class UnitClass;
+class InfantryClass;
+class AircraftClass;
+class TerrainClass;
+class LightConvertClass;
+class RadSiteClass;
+class FootClass;
+class TubeClass;
+class FoggedObjectClass;
+class TagClass;
+class TiberiumClass;
+
 class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 	NOVTABLE CellClass : public AbstractClass
 {
@@ -69,7 +70,7 @@ public:
 
 	// the height of a bridge in leptons
 	static constexpr int BridgeLevels = 4;
-	static constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
+	static constexpr int BridgeHeight = 416;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x485200);
@@ -91,7 +92,8 @@ public:
 	static std::array<const TileTypeData, 21> TileArray;
 
 	//Using typedef resulting on dll address wtf , so this weird code
-	bool TileIs(TileType tileType) const
+	//Don't inline this , it will messup the stacks
+	bool NOINLINE TileIs(TileType tileType) const
 	{
 		const uintptr_t addr = TileArray[(int)tileType].Data;
 		return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
@@ -101,9 +103,27 @@ public:
 	bool Tile_Is_ ## tileset() const \
 		{ JMP_THIS(addr); }
 
-	ISTILE(Wet, 0x4865D0);
+	ISTILE(Tunnel, 0x484AB0);
 	ISTILE(Water, 0x485060);
+	ISTILE(Blank, 0x486380);
+	ISTILE(Ramp, 0x4863A0);
+	ISTILE(Cliff, 0x4863D0);
+	ISTILE(Shore, 0x4865B0);
+	ISTILE(Wet, 0x4865D0);
+	ISTILE(MiscPave, 0x486650);
+	ISTILE(Pave, 0x486670);
+	ISTILE(DirtRoad, 0x486690);
+	ISTILE(PavedRoad, 0x4866D0);
+	ISTILE(PavedRoadEnd, 0x4866F0);
+	ISTILE(PavedRoadSlope, 0x486710);
+	ISTILE(Median, 0x486730);
+	ISTILE(Bridge, 0x486750);
+	ISTILE(WoodBridge, 0x486770);
+	ISTILE(ClearToSandLAT, 0x486790);
+	ISTILE(Green, 0x4867B0);
+	ISTILE(NotWater, 0x4867E0);
 	ISTILE(DestroyableCliff, 0x486900);
+
 	#undef ISTILE
 	// get content objects
 	TechnoClass* FindTechnoNearestTo(Point2D const& offsetPixel, bool alt, TechnoClass const* pExcludeThis = nullptr) const
@@ -551,8 +571,7 @@ public:
 	LandType           LandType;	//What type of floor is this Cell?
 	double             RadLevel;	//The level of radiation on this Cell.
 	RadSiteClass*      RadSite;	//A pointer to the responsible RadSite.
-
-	PixelFXClass*      PixelFX;
+	PixelFXClass*	   PixelFX;
 	int                OccupyHeightsCoveringMe;
 	DWORD              Intensity;
 	WORD               Ambient;

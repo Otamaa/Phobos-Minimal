@@ -500,6 +500,7 @@ public:
 
 	WaypointClass * GetPlanningWaypointAt(CellStruct *coords)
 		{ JMP_THIS(0x5023B0); }
+
 	bool GetPlanningWaypointProperties(WaypointClass *wpt, int &idxPath, BYTE &idxWP)
 		{ JMP_THIS(0x502460); }
 
@@ -818,7 +819,7 @@ public:
 	// whether this house is equal to Observer
 	bool IsObserver() const {
 
-		return (this == Observer || !CRT::strcmpi(get_ID(), "Observer"));
+		return (this == Observer || !_strcmpi(get_ID(), "Observer"));
 
 	}
 
