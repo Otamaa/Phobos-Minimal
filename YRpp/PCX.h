@@ -19,7 +19,7 @@ protected:
 public:
 
 	static constexpr reference<PCX, 0xAC4848u> const Instance{};
-	static constexpr WORD const DefaultTransparentColor = COLOR_PURPLE;
+	static inline constexpr WORD const DefaultTransparentColor = COLOR_PURPLE;
 
 	//Load a PCX file
 	bool LoadFile(const char *pFileName, int flag1 = 2, int flag2 = 0);

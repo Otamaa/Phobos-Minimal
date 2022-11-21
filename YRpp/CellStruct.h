@@ -12,10 +12,6 @@ public:
 	static const CellStruct Empty;
 	static const CellStruct DefaultUnloadCell;
 
-	CellStruct() noexcept = default;
-	CellStruct(short x , short y) noexcept : 
-		X { x } , Y { y }
-	{ }
 
 	//equality
 	inline bool operator==(const CellStruct& a) const
@@ -69,7 +65,7 @@ public:
 	//substraction
 	CellStruct operator-(const CellStruct& a) const
 	{
-		return CellStruct{ (X - a.X), (Y - a.Y) };
+		return { static_cast<short>(X - a.X),  static_cast<short>(Y - a.Y) };
 	}
 	//substraction
 	CellStruct& operator-=(const CellStruct& a)
@@ -82,7 +78,7 @@ public:
 	//addition
 	CellStruct operator+(const CellStruct& a) const
 	{
-		return CellStruct { X + a.X, Y + a.Y };
+		return { static_cast<short>(X + a.X), static_cast<short>(Y + a.Y) };
 	}
 	//addition
 	CellStruct& operator+=(const CellStruct& a)

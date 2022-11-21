@@ -49,20 +49,21 @@ namespace YRMemory {
 	// multiple definitions are allowed.
 
 	// the game's operator new
-	__declspec(naked) inline void* __cdecl Allocate(size_t sz) {
+	inline __declspec(naked) void* __cdecl Allocate(size_t sz) {
 		JMP(0x7C8E17);
 	}
 
 	// C Alloc
-	__declspec(naked) inline void* __cdecl MAllocate(size_t sz) {
+	inline __declspec(naked) void* __cdecl MAllocate(size_t sz) {
 		JMP(0x7C9430);
 	}
+
 	// the game's operator delete
-	__declspec(naked) inline void __cdecl Deallocate(const void* mem) {
+	inline __declspec(naked) void __cdecl Deallocate(const void* mem) {
 		JMP(0x7C8B3D);
 	}
 
-	__declspec(noinline) inline void* AllocateChecked(size_t sz) {
+	inline __declspec(noinline) void* AllocateChecked(size_t sz) {
 		// why they do it like this ,..
 		//if(auto const ptr = YRMemory::Allocate(sz)) {
 		//	return ptr;
@@ -308,12 +309,3 @@ struct DLLDeleter
 		}
 	}
 };
-
-//#define GAME_ALLOC(TT, var, ...) \
-//	var = GameCreate<TT>(__VA_ARGS__);
-//
-//#define GAME_DEALLOC(var) \
-//	GameDelete(var);
-//
-//#define GAME_ALLOC_ARR(TT, Capacity, var) \
-//	var = GameCreateArray<TT>(Capacity);

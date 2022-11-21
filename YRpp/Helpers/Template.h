@@ -117,7 +117,7 @@ public:
 		return this->data;
 	}
 
-	DWORD data{ 0 };
+	DWORD data{ 0u };
 };
 
 #include <Helpers/Cast.h>

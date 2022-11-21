@@ -75,7 +75,7 @@ struct SHPStruct //header
 	short	Frames;
 };
 
-struct Theater_SHPStruct : SHPStruct { };
+struct Theater_SHPStruct : public SHPStruct { };
 
 struct SHPReference : public SHPStruct
 {

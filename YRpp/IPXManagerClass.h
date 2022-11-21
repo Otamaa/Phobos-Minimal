@@ -31,7 +31,7 @@ public:
 	WORD ProductID;
 	WORD Socket;
 	DWORD ConnectionNum;
-	IPXConnClass* Connection[7];
+	ArrayWrapper<IPXConnClass* , 7u> Connection;
 	DWORD NumConnections;
 	IPXGlobalConnClass* __GlobalChannel;
 	IPXGlobalConnClass* __IPXGlobalConn2;

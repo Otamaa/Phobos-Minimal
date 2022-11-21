@@ -25,6 +25,7 @@ class TagClass;
 class TagTypeClass;
 class AbstractTypeClass;
 
+// This is replaced with Event Class
 #pragma pack(push, 8)
 #pragma pack(1)
 struct NetworkEvent {
@@ -68,6 +69,7 @@ struct NetworkEvent {
 	static constexpr constant_ptr<int, 0x8208ECu> const EventLength{};
 };
 
+// This Replaced with TargetClass
 struct NetID {
 	DWORD RTTI_ID;
 	byte WhatAmI;

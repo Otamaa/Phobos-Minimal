@@ -14,6 +14,7 @@ class DECLSPEC_UUID("623C7584-74E7-11D2-B8F5-006008C809ED")
 {
 public:
 	static const AbstractType AbsID = AbstractType::AlphaShape;
+	static constexpr referencemult<char, 0x88A118u, 256, 256> const ShapeArray{};
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<AlphaShapeClass*>, 0x88A0F0u> const Array{};

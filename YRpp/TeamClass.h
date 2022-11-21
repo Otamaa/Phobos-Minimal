@@ -124,7 +124,7 @@ public:
 
 	bool           AchievedGreatSuccess; // executed script action 49, 0
 
-	int CountObjects [6]; // counts of each object specified in the Type
+	ArrayWrapper<int , 6u> CountObjects; // counts of each object specified in the Type
 };
 
-static_assert(sizeof(TeamClass) == 0xA0);
+static_assert(sizeof(TeamClass) == 0xA0 , "Invalid Size !");

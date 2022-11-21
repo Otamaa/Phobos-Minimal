@@ -187,10 +187,8 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
 
-	auto const nDefaultCell = CellStruct::Empty;
-
-	if (pCoord->X != nDefaultCell.X || pCoord->Y != nDefaultCell.Y) {
-		if (!pItem->Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
+	if (*pCoord != CellStruct::Empty) {
+		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 			pItem->ObjectClass::UnInit();
 		}
 	}

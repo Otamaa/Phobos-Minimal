@@ -39,6 +39,12 @@ public:
 	void SetCoordsTarget(const CoordStruct &loc)
 		{ this->TargetLocation = loc; }
 
+	void SetHeight(int nHeight) const
+		{ JMP_THIS(0x659490); }
+
+	void Func(int nA , int nB) const
+		{ JMP_THIS(0x659510); }
+
 	RadBeam(RadBeamType mode)
 		{ JMP_THIS(0x6593F0); }
 	//===========================================================================
@@ -71,9 +77,8 @@ public:
 	DWORD unknown_50;
 	DWORD unknown_54;
 	byte unknown_58;
-	DWORD unknown_5C;
-	DWORD unknown_60;
-	DWORD unknown_64;
+	CoordStruct coord5c;
+
 	double unknown_68;
 	CoordStruct AnotherLocation;
 	DWORD unknown_7C;
@@ -81,14 +86,9 @@ public:
 	DWORD unknown_88;
 	DWORD unknown_8C;
 	CoordStruct AndAnotherLocation;
-	DWORD unknown_9C;
-	DWORD unknown_A0;
-	DWORD unknown_A4;
-	DWORD unknown_A8;
-	DWORD unknown_AC;
-	DWORD unknown_B0;
+  	CoordStruct coord9C;
+  	CoordStruct coordA8;
 	DWORD unknown_B4;
 	double unknown_B8;
-	byte unknown_C0;
-	DWORD unknown_C4;
+	ColorStruct RgbC0;
 };

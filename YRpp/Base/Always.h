@@ -38,6 +38,10 @@
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+typedef unsigned long DWORD;
+
 static_assert(sizeof(char) == 1);
 static_assert(sizeof(float) == 4);
 static_assert(sizeof(int) >= 4);

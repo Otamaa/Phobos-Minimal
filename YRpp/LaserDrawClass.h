@@ -15,6 +15,7 @@ class LaserDrawClass
 {
 public:
 	static constexpr constant_ptr<DynamicVectorClass<LaserDrawClass*>, 0xABC878u> const Array{};
+	static constexpr referencemult<Point2D, 0xABC7F8u, 8, 2> const DrawDatas{};
 
 	//Constructor, Destructor
 	LaserDrawClass(const CoordStruct& source, const CoordStruct& target, const ColorStruct& innerColor,
@@ -66,4 +67,4 @@ public:
 	float EndIntensity;
 };
 
-//static_assert(sizeof(LaserDrawClass) == 0x5C);
+static_assert(sizeof(LaserDrawClass) == 0x5C);

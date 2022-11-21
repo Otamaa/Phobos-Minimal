@@ -46,9 +46,9 @@ public:
 	static HRESULT CreateInstance(const IID& rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID& riid, LPVOID* ppv) {
 		if(dwClsContext & (CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)) {
 			IUnknown* pIUnknown = nullptr;
-			HRESULT hr = CoCreateInstance(rclsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), reinterpret_cast<LPVOID*>(&pIUnknown));
+			HRESULT hr = Imports::CoCreateInstance.get()(rclsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), reinterpret_cast<LPVOID*>(&pIUnknown));
 			if(SUCCEEDED(hr)) {
-				hr = OleRun(pIUnknown);
+				hr = Imports::OleRun.get()(pIUnknown);
 				if(SUCCEEDED(hr)) {
 					hr = pIUnknown->QueryInterface(riid, ppv);
 				}
@@ -56,79 +56,8 @@ public:
 			}
 			return hr;
 		} else {
-			return CoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
+			return Imports::CoCreateInstance.get()(rclsid, pUnkOuter, dwClsContext, riid, ppv);
 		}
 	}
 };
 
-template<typename T>
-class TClassFactory : public IClassFactory
-{
-public:
-	TClassFactory()
-	{
-		this->nRefCount = 0;
-	}
-
-	virtual HRESULT __stdcall QueryInterface(const IID& riid, void** ppvObject) override
-	{
-		if (!ppvObject)
-			return E_POINTER;
-
-		*ppvObject = nullptr;
-
-		if (riid == __uuidof(IUnknown) || riid == __uuidof(IClassFactory))
-			*ppvObject = this;
-
-		if (!ppvObject)
-			return E_NOINTERFACE;
-
-		this->AddRef();
-
-		return S_OK;
-	}
-
-	virtual ULONG __stdcall AddRef() override
-	{
-		return Imports::InterlockedIncrement(&this->nRefCount);
-	}
-
-	virtual ULONG __stdcall Release() override
-	{
-		int nNewRef = Imports::InterlockedIncrement(&this->nRefCount);
-		if (!nNewRef)
-			GameDelete(this);
-		return nNewRef;
-	}
-
-	virtual HRESULT __stdcall CreateInstance(IUnknown* pUnkOuter, const IID& riid, LPVOID* ppvObject) override
-	{
-		if (!ppvObject)
-			return E_INVALIDARG;
-
-		*ppvObject = nullptr;
-		if (pUnkOuter)
-			return CLASS_E_NOAGGREGATION;
-
-		T* pThis = GameCreate<T>();
-		if (!pThis)
-			return E_OUTOFMEMORY;
-
-		HRESULT hr = pThis->QueryInterface(riid, ppvObject);
-
-		if (FAILED(hr))
-			GameDelete(pThis);
-
-		return hr;
-	}
-
-	virtual HRESULT __stdcall LockServer(BOOL fLock) override
-	{
-		this->nRefCount += fLock ? 1 : -1;
-
-		return S_OK;
-	}
-
-private:
-	int nRefCount {0};
-};

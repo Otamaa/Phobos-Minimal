@@ -28,7 +28,7 @@ public:
 
 	bool operator!=(const DirStruct& another) const
 	{
-		return !(*this == another);
+		return Raw != another.Raw;
 	}
 
 	DirStruct& operator /= (const short nFace) {

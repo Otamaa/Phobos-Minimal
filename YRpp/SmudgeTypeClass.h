@@ -70,3 +70,5 @@ public:
 	bool Crater;
 	bool Burn;
 };
+
+static_assert(sizeof(SmudgeTypeClass) == 0x2A4 , "Invalid Size !");

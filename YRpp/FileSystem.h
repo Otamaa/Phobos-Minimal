@@ -31,6 +31,10 @@ struct VoxelStruct
 class FileSystem
 {
 public:
+
+	//These is same with belows , just for confinient
+	static constexpr reference<SHPStruct*, 0xAC1478u , 4u> ShapesAllocated{};
+
 	static constexpr reference<SHPStruct*, 0xAC1478u> PIPBRD_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
@@ -75,9 +79,9 @@ public:
 	{
 		auto pRawData = reinterpret_cast<const ColorStruct*>(LoadFile(pFileName, false));
 
-		BytePalette ColorData;
-		for(int i = 0; i < 0x100; i++)
-		{
+		BytePalette ColorData { };
+
+		for(int i = 0; i < BytePalette::EntriesCount; i++) {
 			ColorData[i].R = static_cast<BYTE>(pRawData[i].R << 2);
 			ColorData[i].G = static_cast<BYTE>(pRawData[i].G << 2);
 			ColorData[i].B = static_cast<BYTE>(pRawData[i].B << 2);

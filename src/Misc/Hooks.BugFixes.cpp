@@ -185,7 +185,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 
 	if (pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
 	{
-		auto nCoords = pThis->GetCenterCoord();
+		auto nCoords = pThis->GetCoords();
 
 		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
 		{
@@ -884,6 +884,14 @@ static bool NOINLINE InvalidateVector(DynamicVectorClass<T>& nVec, T pItem)
 	}
 
 	return false;
+}
+
+DEFINE_HOOK(0x440E99, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x6)
+{
+	enum { DoNotCreateParticle = 0x440F61 };
+	GET(BuildingClass* const, pThis, ESI);
+
+	return pThis->BeingProduced ? 0 : DoNotCreateParticle;
 }
 
 //DEFINE_HOOK(0x65AAC0, RadioClass_Detach, 0x5)

@@ -19,6 +19,7 @@ struct TacticalSelectableStruct
 	bool operator!=(TacticalSelectableStruct const& rhs) const
 	{ return !((*this) == rhs); }
 };
+static_assert(sizeof(TacticalSelectableStruct) == 0xC, "Invalid Size !");
 
 class DSurface;
 class CellClass;
@@ -182,7 +183,7 @@ public:
 	float field_D8;
 	float field_DC;
 	int VisibleCellCount;
-	CellClass * VisibleCells [800];
+	ArrayWrapper<CellClass* , 800u> VisibleCells;
 	Point2D TacticalCoord1;
 	DWORD field_D6C;
 	DWORD field_D70;
@@ -200,3 +201,5 @@ public:
 	DWORD field_E14;
 
 };
+
+static_assert(sizeof(TacticalClass) == 0xE18, "Invalid Size !");

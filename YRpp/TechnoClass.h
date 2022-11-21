@@ -111,7 +111,7 @@ struct VeterancyStruct
 
 	float Veterancy{ 0.0f };
 };
-//static_assert(sizeof(VeterancyStruct) == 0x4);
+static_assert(sizeof(VeterancyStruct) == 0x4);
 
 class PassengersClass
 {
@@ -140,11 +140,11 @@ public:
 	void RemovePassenger(FootClass* pPassenger) const
 		{ JMP_THIS(0x4734B0); }
 
-	PassengersClass() noexcept : NumPassengers(0), FirstPassenger(nullptr) {};
-	~PassengersClass() noexcept = default;
+	//PassengersClass() noexcept : NumPassengers(0), FirstPassenger(nullptr) {};
+	//~PassengersClass() noexcept = default;
 
 };
-//static_assert(sizeof(PassengersClass) == 0x8);
+static_assert(sizeof(PassengersClass) == 0x8);
 
 struct FlashData
 {
@@ -154,6 +154,7 @@ struct FlashData
 	bool Update()
 		{ JMP_THIS(0x4CC770); }
 };
+static_assert(sizeof(FlashData) == 0x8);
 
 struct RecoilData
 {
@@ -180,6 +181,7 @@ struct RecoilData
 class NOVTABLE TechnoClass : public RadioClass
 {
 public:
+
 	static const auto AbsDerivateID = AbstractFlags::Techno;
 
 	static constexpr constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};

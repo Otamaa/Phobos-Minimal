@@ -30,6 +30,8 @@ class WaypointClass;
 class UnitTrackerClass
 {
 public:
+	static inline constexpr int Max = 0x200;
+
 	UnitTrackerClass() JMP_THIS(0x748FD0);
 	~UnitTrackerClass() = default; // JMP_THIS(0x749010);
 	void IncrementUnitCount(int nUnit) JMP_THIS(0x749020);
@@ -41,7 +43,7 @@ public:
 	void ToNetworkFormat() JMP_THIS(0x749100);
 	void ToPCFormat() JMP_THIS(0x749150);
 
-	int UnitTotals[0x200];
+	ArrayWrapper<int, Max> UnitTotals;
 	int UnitCount;
 	BOOL InNetworkFormat;
 };
@@ -202,7 +204,7 @@ struct DropshipStruct
 	BYTE             unknown_C;
 	PROTECTED_PROPERTY(BYTE, align_D[3]);
 	int              Count;
-	TechnoTypeClass* Types[5];
+	ArrayWrapper<TechnoTypeClass*, 5u> Types;
 	int              TotalCost;
 };
 
@@ -233,18 +235,18 @@ public:
 	virtual bool __stdcall Is_Powered() const R0;
 
 	//IHouse
-	virtual long __stdcall ID_Number() const override R0;
+	virtual LONG __stdcall ID_Number() const override R0;
 	virtual BSTR __stdcall Name() const override R0;
 	virtual IApplication* __stdcall Get_Application() override R0;
-	virtual long __stdcall Available_Money() const override R0;
-	virtual long __stdcall Available_Storage() const override R0;
-	virtual long __stdcall Power_Output() const override R0;
-	virtual long __stdcall Power_Drain() const override R0;
-	virtual long __stdcall Category_Quantity(Category category) const override R0;
-	virtual long __stdcall Category_Power(Category category) const override R0;
+	virtual LONG __stdcall Available_Money() const override R0;
+	virtual LONG __stdcall Available_Storage() const override R0;
+	virtual LONG __stdcall Power_Output() const override R0;
+	virtual LONG __stdcall Power_Drain() const override R0;
+	virtual LONG __stdcall Category_Quantity(Category category) const override R0;
+	virtual LONG __stdcall Category_Power(Category category) const override R0;
 	virtual CellStruct __stdcall Base_Center() const override RT(CellStruct);
-	virtual HRESULT __stdcall Fire_Sale() const override R0;
-	virtual HRESULT __stdcall All_To_Hunt() override R0;
+	virtual LONG __stdcall Fire_Sale() const override R0;
+	virtual LONG __stdcall All_To_Hunt() override R0;
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override JMP_STD(0x4F6830);
@@ -443,17 +445,18 @@ public:
 
 	static bool __fastcall IsPlayerAtType(int at)
 	{
-		// JMP_STD(0x510F60);
-		return
-			at == PlayerAtA ||
-			at == PlayerAtB ||
-			at == PlayerAtC ||
-			at == PlayerAtD ||
-			at == PlayerAtE ||
-			at == PlayerAtF ||
-			at == PlayerAtG
-			;
+		 JMP_STD(0x510F60);
+		//return
+		//	at == PlayerAtA ||
+		//	at == PlayerAtB ||
+		//	at == PlayerAtC ||
+		//	at == PlayerAtD ||
+		//	at == PlayerAtE ||
+		//	at == PlayerAtF ||
+		//	at == PlayerAtG
+		//	;
 	}
+	
 	static HouseClass* __fastcall FindByPlayerAt(int at)
 		{ JMP_STD(0x510ED0); }
 
@@ -819,7 +822,7 @@ public:
 	// whether this house is equal to Observer
 	bool IsObserver() const {
 
-		return (this == Observer || !_strcmpi(get_ID(), "Observer"));
+		return (this == Observer || !CRT::strcmpi(get_ID(), "Observer"));
 
 	}
 
@@ -977,7 +980,7 @@ public:
 	int					  TournamentTeamID;
 	bool				  LostConnection;
 	int                   SelectedPathIndex;
-	WaypointPathClass* PlanningPaths [12]; // 12 paths for "planning mode"
+	ArrayWrapper<WaypointPathClass*,12u> PlanningPaths; // 12 paths for "planning mode"
 	char                  Visionary;			//??? exe says so
 	bool                  MapIsClear;
 	bool                  IsTiberiumShort;
@@ -1087,15 +1090,16 @@ public:
 	UnitClass*			  OurFlagCarrier;
 	CellStruct			  OurFlagCoords;
 	//for endgame score screen
-	int					  KilledUnitsOfHouses [20];		// 20 Houses only!
+	ArrayWrapper<int , 20> KilledUnitsOfHouses;		// 20 Houses only!
 	int                   TotalKilledUnits;
-	int					  KilledBuildingsOfHouses [20];	// 20 Houses only!
+	ArrayWrapper<int, 20>	KilledBuildingsOfHouses;	// 20 Houses only!
 	int                   TotalKilledBuildings;
 	int                   WhoLastHurtMe;
 	CellStruct            BaseSpawnCell;
 	CellStruct            BaseCenter; // set by map action 137 and 138
 	int					  Radius;
-	DECLARE_PROPERTY_ARRAY(ZoneInfoStruct, ZoneInfos, 5);
+	//DECLARE_PROPERTY_ARRAY(ZoneInfoStruct, ZoneInfos, 5);
+	ArrayWrapper<ZoneInfoStruct, 5> ZoneInfos;
 	int					  LATime;
 	int					  LAEnemy;
 	int					  ToCapture;
@@ -1152,7 +1156,8 @@ public:
 	int                   RatioTeamInfantry;
 	int                   RatioTeamBuildings;
 	int                   BaseDefenseTeamCount;
-	DECLARE_PROPERTY_ARRAY(DropshipStruct, DropshipData, 3);
+	//DECLARE_PROPERTY_ARRAY(DropshipStruct, DropshipData, 3);
+	ArrayWrapper<DropshipStruct, 3u> DropshipData;
 	int                   CurrentDropshipIndex;
 	byte				  HasCloakingRanges; // don't ask
 	ColorStruct			  Color;
@@ -1182,7 +1187,11 @@ public:
 	char				  UINameString[33]; // this contains the UIName= text from the INI! or
 	wchar_t				  UIName [21]; // this contains the CSF string from UIName= above, or a copy of the country's UIName if not defined. Take note that this is shorter than the country's UIName can be...
 	int                   ColorSchemeIndex;
-	CellStruct			  StartingCell;
+	union
+	{
+		int               StartingPoint;
+		CellStruct        StartingCell;     // Could it really be a CellStruct ? - Saved for backwards compatibility
+	};
 	IndexBitfield<HouseClass*> StartingAllies;
 	DWORD                 unknown_16060;
 	DECLARE_PROPERTY(DynamicVectorClass<IConnectionPoint*>, WaypointPath);

@@ -316,7 +316,7 @@ public:
 				auto n = (capacity < this->Capacity) ? capacity : this->Capacity;
 				for (auto i = 0; i < n; ++i)
 				{
-					pMem[i] = std::move(this->Items[i]);
+					pMem[i] = std::move_if_noexcept(this->Items[i]);
 				}
 
 				if (this->IsAllocated)
@@ -618,7 +618,7 @@ public:
 			std::memmove(&(*this)[index + 1], &(*this)[index], (this->Count - index) * sizeof(T));
 		}
 
-		(*this)[index] = std::move(object);
+		(*this)[index] = std::move_if_noexcept(object);
 		++this->Count;
 
 		return true;
@@ -846,6 +846,16 @@ public:
 	T& operator[](int index) { return ((T*)this)[index]; }
 	const T& operator[](int index) const { return ((T*)this)[index]; }
 
+	T& begin() { return ((T*)this)[0]; }
+	T& end() { return ((T*)this)[size]; }
+
+	const T& begin() const { return ((T*)this)[0]; }
+	const T& end() const { return ((T*)this)[size]; }
+
+	int Size() const {
+		return size;
+	}
+
 protected:
 	char _dummy[size * sizeof(T)];
 };
@@ -860,6 +870,16 @@ public:
 	const ArrayHelper<T, x>* operator&() const { return (ArrayHelper<T, x> *)this; }
 	ArrayHelper<T, x>& operator[](int index) { return _dummy[index]; }
 	const ArrayHelper<T, x>& operator[](int index) const { return _dummy[index]; }
+
+	ArrayHelper<T, x>& begin() { return _dummy[0]; }
+	ArrayHelper<T, x>& end() { return _dummy[y]; }
+
+	const ArrayHelper<T, x>& begin() const  { return _dummy[0]; }
+	const ArrayHelper<T, x>& end() const { return _dummy[y]; }
+
+	int Size() const {
+		return y;
+	}
 
 protected:
 	ArrayHelper<T, x> _dummy[y];

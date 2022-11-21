@@ -262,7 +262,7 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 
 	if (pAnimType)
 	{
-		auto nCoord = this->Techno->GetCenterCoord();
+		auto nCoord = this->Techno->GetCenterCoords();
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);

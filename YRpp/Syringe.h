@@ -287,6 +287,8 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 #define DEFINE_HOOK(hook, funcname, size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
+
+#define D_DEFINE_HOOK(hook, funcname, size) EXPORT_FUNC(funcname)
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \

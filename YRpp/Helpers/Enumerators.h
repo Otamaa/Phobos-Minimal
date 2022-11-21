@@ -258,7 +258,7 @@ class CellSpreadEnumerator
 	bool hadTwo;
 
 public:
-	constexpr static const size_t Max = 0x100u;
+	constexpr inline static const size_t Max = 0x100u;
 
 	CellSpreadEnumerator(size_t spread, size_t start=0u) : current(CellStruct()), spread(spread), curspread(0u), hasTwo(false), hadTwo(false) {
 		if(spread > Max) {

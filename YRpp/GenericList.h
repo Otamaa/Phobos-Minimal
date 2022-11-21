@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <YRPPCore.h>
+#include <Memory.h>
 
 class GenericList;
 class GenericNode

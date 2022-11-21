@@ -829,7 +829,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	wchar_t damageStr[0x20];
 	swprintf_s(damageStr, L"%d", damage);
 	auto coords = CoordStruct::Empty;
-	coords = pThis->GetCenterCoord();
+	coords = pThis->GetCenterCoords();
 
 	int maxOffset = 30;
 	int width = 0, height = 0;

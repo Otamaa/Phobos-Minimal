@@ -15,6 +15,9 @@ public:
 	class CLSIDs
 	{
 	public:
+	#define LOCO_CLSID(_name,_addrs) \
+	static constexpr reference<CLSID const, _addrs> const _name {};
+
 		LOCO_CLSID(Drive, 0x7E9A30u)
 		LOCO_CLSID(Jumpjet, 0x7E9AC0u)
 		LOCO_CLSID(Hover, 0x7E9A40u)
@@ -27,6 +30,7 @@ public:
 		LOCO_CLSID(Mech, 0x7E9AA0u)
 		LOCO_CLSID(Ship, 0x7E9AB0u)
 
+	#undef LOCO_CLSID
 	};
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) { JMP_STD(0x55A9B0); }
@@ -143,11 +147,11 @@ public:
 	FootClass* LinkedTo;
 	bool Powered;
 	bool Dirty;
-	LONG RefCount;
+	int RefCount;
 
 private:
 	LocomotionClass(const LocomotionClass&) = delete;
 	LocomotionClass& operator=(const LocomotionClass&) = delete;
 };
 
-//static_assert(sizeof(LocomotionClass) == 0x18);
+static_assert(sizeof(LocomotionClass) == 0x18);

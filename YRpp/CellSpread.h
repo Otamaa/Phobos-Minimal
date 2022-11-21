@@ -1,23 +1,40 @@
 #pragma once
 
 #include <GeneralStructures.h>
+#include <Unsorted.h>
 
 class CellSpread
 {
 public:
-	static size_t NumCells(unsigned int nSpread) {
-		return reinterpret_cast<size_t*>(0x7ED3D0)[nSpread];
+	static constexpr reference<CellStruct, 0x89F6D8, 8u> const AdjacentCoord {};
+	static constexpr reference<size_t, 0x7ED3D0, 12u> const CellNums {};
+	static constexpr reference<CellStruct, 0xABD490, 369u> const CellOfssets{};
+
+	static size_t NumCells(size_t nSpread) {
+		if (nSpread > CellNums.size()) {
+			return nSpread * 256;
+		}
+		return CellNums[nSpread];
+	}
+
+	static size_t NumCellsFromFloat(float nSpread) {
+		return Game::F2I((nSpread + 0.99));
 	}
 
 	static const CellStruct& GetCell(size_t n) {
-		return reinterpret_cast<const CellStruct*>(0xABD490)[n];
+		if (n > CellOfssets.size()) {
+			return CellStruct::Empty;
+		}
+
+		return CellOfssets[n];
 	}
 
 	static const CellStruct& GetNeighbourOffset(size_t direction) {
-		if(direction > 7) {
+		if(direction > AdjacentCoord.size()) {
 			return CellStruct::Empty;
 		}
-		return reinterpret_cast<const CellStruct*>(0x89F688)[direction];
+
+		return AdjacentCoord[direction];
 	}
 
 	static size_t GetDistance(int dx, int dy) {
@@ -35,5 +52,9 @@ public:
 
 	static size_t GetDistance(const CellStruct &offset) {
 		return GetDistance(offset.X, offset.Y);
+	};
+
+	static size_t GetDistance(const Point2D& offset) {
+		return GetDistance(offset.X / 256, offset.Y / 256);
 	};
 };

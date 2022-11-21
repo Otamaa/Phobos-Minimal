@@ -310,8 +310,8 @@ public:
 	BuildingTypeClass* Type;
 	FactoryClass* Factory;
 	TimerStruct C4Timer;
-	int BState;
-	int QueueBState;
+	BStateType BState;
+	BStateType QueueBState;
 	DWORD OwnerCountryIndex;
 	InfantryClass* C4AppliedBy;
 	DWORD LastStrength; //544
@@ -319,9 +319,8 @@ public:
 	AnimClass* PsiWarnAnim; //pointer
 	TimerStruct PlacementDelay; //550
 
-// see eBuildingAnims above for slot index meanings
-	AnimClass * Anims [0x15];
-	bool AnimStates [0x15]; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
+	ArrayWrapper<AnimClass*, 0x15u> Anims; // see eBuildingAnims above for slot index meanings
+	ArrayWrapper<bool, 0x15u> AnimStates; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
 
 	PROTECTED_PROPERTY(char , align_5C5[3]);
 
@@ -330,7 +329,7 @@ public:
 	bool RequiresDamageFires; // if set, ::Update spawns damage fire anims and zeroes it
 
 	//5E8 - 5F8 ????????
-	BuildingTypeClass * Upgrades [0x3];
+	ArrayWrapper<BuildingTypeClass*, 3u> Upgrades;
 
 	int FiringSWType; // type # of sw being launched
 	DWORD upgrade_5FC;

@@ -11,7 +11,7 @@ enum class FileAccessMode : unsigned int {
 	None = 0,
 	Read = 1,
 	Write = 2,
-	ReadWrite = Read | Write
+	ReadWrite = 3
 };
 
 enum class FileSeekMode : unsigned int {

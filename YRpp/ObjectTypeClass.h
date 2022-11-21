@@ -107,8 +107,8 @@ public:
 	VoxelStruct TurretVoxel; //also used for WO voxels
 	VoxelStruct BarrelVoxel;
 
-	VoxelStruct ChargerTurrets [0x12];
-	VoxelStruct ChargerBarrels [0x12];
+	ArrayWrapper<VoxelStruct ,0x12u> ChargerTurrets;
+	ArrayWrapper<VoxelStruct, 0x12u> ChargerBarrels;
 
 	bool          NoSpawnAlt;
 	PROTECTED_PROPERTY(BYTE, align_1E9[3]);

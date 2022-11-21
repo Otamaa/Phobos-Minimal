@@ -169,7 +169,7 @@ public:
 	static constexpr constant_ptr<MapClass, 0x87F7E8u> const Instance{};
 	static constexpr reference<CellClass, 0xABDC50u> const InvalidCell{};
 	static constexpr reference<LogicClass, 0x87F778u> const Logics{};
-	static constexpr int const MaxCells = 0x40000;
+	static inline constexpr int const MaxCells = 0x40000;
 
 	// this actually points to 5 vectors, one for each layer
 	static constexpr reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers{};
@@ -222,7 +222,7 @@ public:
 		auto pCell = TryGetCellAt(MapCoords);
 
 		if(!pCell) {
-			pCell = &InvalidCell;
+			pCell = CellClass::Instance();
 			pCell->MapCoords = MapCoords;
 		}
 
@@ -279,10 +279,10 @@ public:
 		{ JMP_THIS(0x4AE290); }
 
 	void CellIteratorReset()
-		{ CALL(0x578350); }
+		{ JMP_THIS(0x578350); }
 
 	CellClass* CellIteratorNext()
-		{ CALL(0x578290); }
+		{ JMP_THIS(0x578290); }
 
 // the key damage delivery
 /*! The key damage delivery function.
@@ -319,6 +319,9 @@ public:
 
 	// get the damage a warhead causes to specific armor
 	static int __fastcall GetTotalDamage(int damage, const WarheadTypeClass* pWarhead, Armor armor, int distance)
+		{ JMP_STD(0x489180); }
+
+	static int __fastcall ModifyDamage(int damage, const WarheadTypeClass* pWarhead, Armor armor, int distance)
 		{ JMP_STD(0x489180); }
 
 	static void __fastcall AtomDamage(int OwnedHouse , CellStruct& nCell)
@@ -569,7 +572,7 @@ protected:
 public:
 	DWORD unknown_10;
 	void* unknown_pointer_14;
-	void* MovementZones [13];
+	ArrayWrapper<void*, 13u> MovementZones;
 	DWORD somecount_4C;
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
 	CellLevelPassabilityStruct* LevelAndPassability;
@@ -598,7 +601,7 @@ public:
 	int MaxWidth;
 	int MaxHeight;
 	int MaxNumCells;
-	Crate Crates [0x100];
+	ArrayWrapper<Crate, 0x100u> Crates;
 	BOOL Redraws;
 	DynamicVectorClass<CellStruct> TaggedCells;
 };

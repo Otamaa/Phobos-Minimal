@@ -42,18 +42,15 @@ public:
 	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest, CoordStruct* pSrc) const R0;
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
-	virtual void vt_entry_90(DWORD dwUnk) RX;
+	virtual CellStruct* GetFoundationData(bool IncludeBib) const R0;
 
-private:
 	virtual SHPStruct* GetImage() const R0;
-public:
+
 	//Destructor
 	virtual ~IsometricTileTypeClass() RX;
 
 	int LoadTile() const
 	{ JMP_THIS(0x547020); }
-
-	IsoTileFileStruct* const Get_Tile_Data() const { return (IsoTileFileStruct*)GetImage(); }
 
 	//Constructor
 	IsometricTileTypeClass(int ArrayIndex, int Minus65, int Zero1,

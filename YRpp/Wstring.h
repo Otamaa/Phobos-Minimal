@@ -45,10 +45,11 @@ struct CharTrait
 	{
 		return CRT::strcat(_Destination, _Source);
 	}
-
-	int Compare(const char* _Str1, const char* _Str2 , bool IgnoreCase = false)
+	
+	template<bool IgnoreCase = false>
+	int Compare(const char* _Str1, const char* _Str2)
 	{
-		if(!IgnoreCase)
+		if constexpr (!IgnoreCase)
 		return CRT::strcmp(_Str1, _Str2);
 		else
 		return CRT::strcmpi(_Str1, _Str2);
@@ -63,7 +64,7 @@ private:
 	char Dummy;
 };
 
-__declspec(selectany) int(__cdecl* CharTrait::Format)(char*, const char*, ...) = sprintf;
+__declspec(selectany) int(__cdecl* CharTrait::Format)(char*, const char*, ...) = CRT::sprintf;
 __declspec(selectany) const char* CharTrait::IntegerFormatString = "%d";
 __declspec(selectany) const char* CharTrait::LeadingZeroIntegerFormatString = "%%0%dd";
 __declspec(selectany) char CharTrait::Null = '\0';
@@ -124,7 +125,7 @@ private:
 	char Dummy;
 };
 
-__declspec(selectany) int(__cdecl* WCharTrait::Format)(wchar_t*, const wchar_t*, ...) = swprintf;
+__declspec(selectany) int(__cdecl* WCharTrait::Format)(wchar_t*, const wchar_t*, ...) = CRT::swprintf;
 __declspec(selectany) const wchar_t* WCharTrait::IntegerFormatString = L"%d";
 __declspec(selectany) const wchar_t* WCharTrait::LeadingZeroIntegerFormatString = L"%%0%dd";
 __declspec(selectany) wchar_t WCharTrait::Null = L'\0';

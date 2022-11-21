@@ -77,9 +77,19 @@ class NOVTABLE TechnoTypeClass : public ObjectTypeClass
 public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::TechnoType;
+	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName{};
+	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
+
+	//These is same with belows , just for confinient
+	static constexpr reference<bool, 0xAC1488u , 4u> const ShapesIsAllocated{};
+
+	static constexpr reference<bool, 0xAC1488u> const PIPBRD_SHP_IsAllocated{};
+	static constexpr reference<bool, 0xAC1489u> const PIPS_SHP_IsAllocated{};
+	static constexpr reference<bool, 0xAC148Au> const PIPS2_SHP_IsAllocated{};
+	static constexpr reference<bool, 0xAC148Bu> const TALKBUBL_SHP_IsAllocated{};
 
 	ABSTRACTTYPE_ARRAY_NOALLOC(TechnoTypeClass, 0xA8EB00u);
-	static constexpr auto MaxWeapons = 18;
+	static inline constexpr auto MaxWeapons = 18;
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) R0;
@@ -380,9 +390,9 @@ public:
 	int             WeaponCount;
 	bool            IsChargeTurret;
 	int             TurretWeapon[0x21];
-	WeaponStruct	Weapon[18];
+	WeaponStruct	Weapon[MaxWeapons];
 	bool            ClearAllWeapons;
-	WeaponStruct	EliteWeapon[18];
+	WeaponStruct	EliteWeapon[MaxWeapons];
 	bool            TypeImmune;
 	bool            MoveToShroud;
 	bool            Trainable;

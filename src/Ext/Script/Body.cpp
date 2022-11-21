@@ -21,7 +21,7 @@ void ScriptExt::ExtData::InitializeConstants() { }
 ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
 	if (nIdx < ScriptTypeClass::MaxActions) {
-		return pScript->Type->ScriptActions.Data[nIdx];
+		return pScript->Type->ScriptActions[nIdx];
 	}
 	else {
 		auto const nIdxR = nIdx - ScriptTypeClass::MaxActions;

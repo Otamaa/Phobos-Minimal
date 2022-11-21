@@ -3,7 +3,6 @@
 */
 
 #pragma once
-#include <GlobalConfig.h>
 #include <ObjectTypeClass.h>
 
 //forward declarations

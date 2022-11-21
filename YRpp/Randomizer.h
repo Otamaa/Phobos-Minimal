@@ -83,11 +83,11 @@ public:
 	PROTECTED_PROPERTY(BYTE, padding[3]);
 	int Index1;
 	int Index2;
-	DWORD Table[0xFA];
+	ArrayWrapper<DWORD ,0xFA> Table;
 
 };
 
-//static_assert(sizeof(Random2Class) == 0x3F4);
+static_assert(sizeof(Random2Class) == 0x3F4);
 
 class Random3Class
 {

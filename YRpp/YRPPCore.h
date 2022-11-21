@@ -1,22 +1,19 @@
 #pragma once
 
-typedef unsigned char BYTE;
-typedef unsigned short WORD;
-typedef unsigned long DWORD;
-
-// the most basic globals
-#include <Fundamentals.h>
-
 //Syringe interaction header - also includes <windows.h>
 #include <Syringe.h>
+
+#include <Fundamentals.h>
+
 
 //Assembly macros
 #include <ASMMacros.h>
 
-#include <Memory.h>
-
 #include <wchar.h>
 #include <cstdio>
+
+//control key flags
+typedef DWORD eControlKeyFlags;
 
 //Avoid default CTOR trick
 #define DECLARE_PROPERTY(type,name)\
@@ -69,6 +66,7 @@ virtual void alla(double malla) RX;
 #define NOTHROW __declspec(nothrow)
 #define SELECTANY __declspec(selectany)
 #define NAKED __declspec(naked)
+#define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
 #define ALIGN(val) __declspec(align(val))
 
 #define SAFE_RELEASE(ptr) {if(ptr) delete[] ptr;}
@@ -76,16 +74,15 @@ virtual void alla(double malla) RX;
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 
-#define LOCO_CLSID(_name,_addrs) static constexpr reference<CLSID const, _addrs> const _name {};
 #define DEFINE_CLSID(_addrs) __declspec(uuid(_addrs))
 
-#define COMPILE_TIME_SIZEOF(t) template<int s> struct SIZEOF_ ## t ## _IS; \
-struct foo { \
-int a,b; \
-}; \
+#define COMPILE_TIME_SIZEOF(t) \
+template<int s> struct SIZEOF_ ## t ## _IS; \
+struct foo { int a,b; }; \
 SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 
 #define VTABLE_SET(item, addr) ((int*)item)[0] = addr
+#define VTABLE_SET_AT(item, pos, addr) ((int*)item)[pos] = addr
 #define VTABLE_GET(item) (((int*)item)[0])
 
 struct noinit_t final {};

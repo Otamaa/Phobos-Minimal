@@ -97,3 +97,4 @@ public:
 	TriggerPersistence Persistence;
 	TriggerTypeClass* FirstTrigger;
 };
+static_assert(sizeof(TagTypeClass) == 0xA4 , "Invalid Size !");

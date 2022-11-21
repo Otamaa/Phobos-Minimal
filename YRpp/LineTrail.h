@@ -64,5 +64,5 @@ public:
 	ObjectClass* Owner;
 	int Decrement;
 	int ActiveSlot;
-	LineTrailNode Trails[32];
+	ArrayWrapper<LineTrailNode, 32u> Trails;
 };

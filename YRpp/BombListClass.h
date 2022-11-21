@@ -12,6 +12,12 @@ class CStreamClass;
 //this class contains a vector of BombClass, a vector of bomb-revealing TechnoClass, and some other properties
 class BombListClass
 {
+	BombListClass() noexcept 
+	{ JMP_THIS(0x40B540); }
+
+	~BombListClass() noexcept 
+	{ JMP_THIS(0x40B5C0); }
+
 public:
 	static constexpr reference<BombListClass, 0x87F5D8u> const Instance{};
 
@@ -57,8 +63,8 @@ protected:
 
 public:
 
-	DynamicVectorClass<BombClass *> Bombs;				//all the BombClass instances on the map
-	DynamicVectorClass<TechnoClass *> Detectors;		//all the BombSight'ed objects currently on the map
+	DECLARE_PROPERTY(DynamicVectorClass<BombClass *> ,Bombs);				//all the BombClass instances on the map
+	DECLARE_PROPERTY(DynamicVectorClass<TechnoClass *> ,Detectors);		//all the BombSight'ed objects currently on the map
 	int UpdateDelay; // defaults to 100, some iterators set it to 1
 };
 

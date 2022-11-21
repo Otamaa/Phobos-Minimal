@@ -234,7 +234,7 @@ DEFINE_HOOK(0x706389, TechnoClass_Draw_Object_NormalLight, 0x6) {
 
 	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
 		if ((pBuilding->CurrentMission == Mission::Construction)
-			&& !pBuilding->BState && pBuilding->Type->Buildup ) {
+			&& pBuilding->BState == BStateType::Construction && pBuilding->Type->Buildup ) {
 			auto const pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 			if (pExt && pExt->BuildUp_UseNormalLIght.Get()) {
 				R->EBP(1000);

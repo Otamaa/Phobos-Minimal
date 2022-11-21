@@ -10,8 +10,8 @@ DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 		nCurIndex = pThis->Type->ActionsCount;
 
 	if (nCurIndex < ScriptTypeClass::MaxActions) {
-		pNode->Action = pThis->Type->ScriptActions.Data[nCurIndex].Action;
-		pNode->Argument = pThis->Type->ScriptActions.Data[nCurIndex].Argument;
+		pNode->Action = pThis->Type->ScriptActions[nCurIndex].Action;
+		pNode->Argument = pThis->Type->ScriptActions[nCurIndex].Argument;
 	} else {
 		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pThis->Type);
 		auto const nIdx = nCurIndex - ScriptTypeClass::MaxActions;
@@ -21,8 +21,8 @@ DEFINE_HOOK(0x691518, ScriptClass_GetCurrentAction_extra, 0x7)
 			pNode->Action = pTypeExt->PhobosNode[nIdx].Action;
 			pNode->Argument = pTypeExt->PhobosNode[nIdx].Argument;
 		} else {
-			pNode->Action = pThis->Type->ScriptActions.Data[nMax].Action;
-			pNode->Argument = pThis->Type->ScriptActions.Data[nMax].Argument;
+			pNode->Action = pThis->Type->ScriptActions[nMax].Action;
+			pNode->Argument = pThis->Type->ScriptActions[nMax].Argument;
 		}
 	}
 
@@ -43,8 +43,8 @@ DEFINE_HOOK(0x691566, ScriptClass_GetNextAction_extra, 0xB)
 
 	if (nCurIndex < ScriptTypeClass::MaxActions)
 	{
-		pNode->Action = pType->ScriptActions.Data[nCurIndex].Action;
-		pNode->Argument = pType->ScriptActions.Data[nCurIndex].Argument;
+		pNode->Action = pType->ScriptActions[nCurIndex].Action;
+		pNode->Argument = pType->ScriptActions[nCurIndex].Argument;
 	} else {
 		const auto pTypeExt = ScriptTypeExt::ExtMap.Find(pType);
 		auto const nIdx = nCurIndex - ScriptTypeClass::MaxActions;
@@ -54,8 +54,8 @@ DEFINE_HOOK(0x691566, ScriptClass_GetNextAction_extra, 0xB)
 			pNode->Action = pTypeExt->PhobosNode[nIdx].Action;
 			pNode->Argument = pTypeExt->PhobosNode[nIdx].Argument;
 		}else {
-			pNode->Action = pType->ScriptActions.Data[nMax].Action;
-			pNode->Argument = pType->ScriptActions.Data[nMax].Argument;
+			pNode->Action = pType->ScriptActions[nMax].Action;
+			pNode->Argument = pType->ScriptActions[nMax].Argument;
 		}
 	}
 
@@ -85,9 +85,10 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 				ScriptActionNode nBuffer;
 				nBuffer.FillIn(Phobos::readBuffer);
 				if (i < ScriptTypeClass::MaxActions) {
-					pThis->ScriptActions.Data[i] = std::move(nBuffer);
+					pThis->ScriptActions[i].Action = nBuffer.Action;
+					pThis->ScriptActions[i].Argument = nBuffer.Argument;
 				}else{
-					pExt->PhobosNode.push_back(std::move(nBuffer));
+					pExt->PhobosNode.emplace_back(nBuffer);
 				}
 
 				if (++pThis->ActionsCount >= std::numeric_limits<int>::max())

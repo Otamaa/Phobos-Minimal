@@ -1,9 +1,10 @@
 #pragma once
 
-#include <YRPP.h>
+#include <YRPPCore.h>
+#include <Helpers/CompileTime.h>
 
 class BitFont;
-
+class Surface;
 class BitText
 {
 public:

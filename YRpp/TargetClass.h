@@ -36,63 +36,63 @@ public:
 
 	explicit TargetClass() noexcept : m_ID { 0 }, m_RTTI { 0 } { }
 
-	template<bool UseJump = false >
+	//template<bool UseJump = false >
 	explicit TargetClass(AbstractClass* pItem) noexcept
 	{
-		if constexpr (!UseJump)
+		//if constexpr (!UseJump)
 			JMP_THIS(0x6E6AB0);
-		else
-		{
-			if (pItem)
-			{
-				if (pItem->WhatAmI() == AbstractType::Cell)
-				{
-					const auto pCell = static_cast<CellClass*>(pItem);
-
-					m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
-					m_ID = pCell->MapCoords.X + 1000 * pCell->MapCoords.Y;
-				}
-				else
-				{
-					m_RTTI = static_cast<unsigned char>(AbstractType::Abstract);
-					m_ID = pItem->Fetch_ID();
-				}
-			}
-			else
-			{
-				m_RTTI = 0;
-				m_ID = 0;
-			}
-		}
+		//else
+		//{
+		//	if (pItem)
+		//	{
+		//		if (pItem->WhatAmI() == AbstractType::Cell)
+		//		{
+		//			const auto pCell = static_cast<CellClass*>(pItem);
+		//
+		//			m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
+		//			m_ID = pCell->MapCoords.X + 1000 * pCell->MapCoords.Y;
+		//		}
+		//		else
+		//		{
+		//			m_RTTI = static_cast<unsigned char>(AbstractType::Abstract);
+		//			m_ID = pItem->Fetch_ID();
+		//		}
+		//	}
+		//	else
+		//	{
+		//		m_RTTI = 0;
+		//		m_ID = 0;
+		//	}
+	//	}
 	}
 
-	template<bool UseJump = false >
+	//template<bool UseJump = false >
 	explicit TargetClass(const CellStruct& cell)
 	{
-		if constexpr (!UseJump)
+	//	if constexpr (!UseJump)
 			JMP_THIS(0x6E6B20);
-		else
-		{
-			if (cell == CellStruct::Empty)
-				m_RTTI = 0;
-			else
-			{
-				m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
-				m_ID = cell.X + 1000 * cell.Y;
-			}
-		}
+	//	else
+	//	{
+	//		if (cell == CellStruct::Empty)
+	//			m_RTTI = 0;
+	//		else
+	//		{
+	//			m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
+	//			m_ID = cell.X + 1000 * cell.Y;
+	//		}
+	//	}
 	}
 
-	template<bool UseJump = false >
+	//template<bool UseJump = false >
 	explicit TargetClass(const CoordStruct& coord)
 	{
-		if constexpr (!UseJump)
+	//	if constexpr (!UseJump)
 			JMP_THIS(0x6E6B70);
-		else
-		{
-			m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
-			m_ID = coord.X / 256 + 1000 * (coord.Y / 256);
-		}
+	//	else
+	//	{
+	//		m_RTTI = static_cast<unsigned char>(AbstractType::Cell);
+	//		m_ID = coord.X / 256 + 1000 * (coord.Y / 256);
+	//	}
 	}
 
 	// This one is just used to tell you what the game did.

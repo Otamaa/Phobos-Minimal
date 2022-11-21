@@ -8,12 +8,10 @@
 
 struct ToolTip
 {
-	ToolTip() { JMP_THIS(0x6D1810); }
-
-	unsigned int GadgetID;
-	RectangleStruct Bounds;
-	const char* Text;
-	bool field_18;
+	unsigned int GadgetID {0};
+	RectangleStruct Bounds { };
+	const char* Text { nullptr };
+	bool field_18{false};
 };
 
 struct ToolTipManagerData

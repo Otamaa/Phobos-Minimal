@@ -32,40 +32,22 @@ struct DoInfoStruct
 //static_assert(sizeof(DoInfoStruct) == 0x24);
 //static_assert(sizeof(DoType) == 0x4);
 
-struct DoControls
+struct DoControls final : public ArrayWrapper<DoInfoStruct ,42u>
 {
-	static constexpr reference<DoStruct, 0x7EAF7Cu, 42> const MasterArray { };
+	static inline constexpr int MaxCount = 42;
+	static constexpr reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
 
-	DoInfoStruct& GetSequence(DoType sequence) {
-		return this->Sequences[(int)sequence];
+	DoInfoStruct GetSequence(DoType sequence) const {
+		return this->at((int)sequence);
 	}
 
-	const DoInfoStruct& GetSequence(DoType sequence) const {
-		return this->Sequences[(int)sequence];
+	DoInfoStruct GetSequence(DoType sequence) {
+		return this->at((int)sequence);
 	}
 
-	static DoStruct& GetSequenceData(DoType sequence)
-	{
+	static DoStruct& GetSequenceData(DoType sequence) {
 		return MasterArray[(int)sequence];
 	}
-
-	auto begin() {
-		return std::begin(Sequences);
-	}
-
-	auto end() {
-		return std::end(Sequences);
-	}
-	
-	auto begin() const {
-		return std::begin(Sequences);
-	}
-
-	auto end() const {
-		return std::end(Sequences);
-	}
-	
-	DoInfoStruct Sequences[42];
 };
 
 class DECLSPEC_UUID("AE8B33D8-061C-11D2-ACA4-006008055BB5")
@@ -164,4 +146,4 @@ public:
 	PRIVATE_PROPERTY(DWORD, align_ECC);
 };
 
-//static_assert(sizeof(InfantryTypeClass) == 0xED0);
+static_assert(sizeof(InfantryTypeClass) == 0xED0);

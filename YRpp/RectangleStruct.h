@@ -13,6 +13,7 @@ struct RectangleStruct
 {
 public:
 
+	/*
 	RectangleStruct()
 		: X(0), Y(0), Width(0), Height(0)
 	{ }
@@ -47,7 +48,7 @@ public:
 			Height = that.Height;
 		}
 		return *this;
-	}
+	}*/
 
 	bool operator==(const RectangleStruct &that) const
 	{
@@ -120,9 +121,7 @@ public:
 
 	RectangleStruct Bias_To(const RectangleStruct &rect)
 	{
-		RectangleStruct tmp;
-		tmp = RectangleStruct{ (X, Y), (rect.X + rect.Width, rect.Y), Width, Height };
-		return tmp;
+		return { (X, Y), (rect.X + rect.Width, rect.Y), Width, Height };
 	}
 
 	inline void Reset_Position() { X = 0; Y = 0; }
@@ -142,7 +141,7 @@ public:
 
 	bool Intersects_With(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
 
-	inline RectangleStruct InvalidRect() { return RectangleStruct{0, 0, 0, 0}; }
+	constexpr inline RectangleStruct InvalidRect() { return {0, 0, 0, 0}; }
 
 	bool Is_Overlapping(const RectangleStruct &rect)
 	{
@@ -163,15 +162,15 @@ public:
 		Height += h;
 	}
 
-	inline Point2D Center_Point() const { return Point2D{ X + (Width / 2), Y + (Height / 2) }; }
-	inline Point2D Top_Left() const { return Point2D{ X, Y }; }
-	inline Point2D Top_Right() const { return Point2D{ X + Width, Y }; }
-	inline Point2D Bottom_Left() const { return Point2D{ X, Y + Height }; }
-	inline Point2D Bottom_Right() const { return Point2D{ X + Width, Y + Height }; }
-	inline Point2D Top_Center() const { return Point2D{ (X + Width) / 2, Y }; }
-	inline Point2D Bottom_Center() const { return Point2D{ (X + Width) / 2, Height }; }
-	inline Point2D Left_Center() const { return Point2D{ X, (Y + Height) / 2 }; }
-	inline Point2D Center_Right() const { return Point2D{ Width, (Y + Height) / 2 }; }
+	inline Point2D Center_Point() const { return { X + (Width / 2), Y + (Height / 2) }; }
+	inline Point2D Top_Left() const { return { X, Y }; }
+	inline Point2D Top_Right() const { return { X + Width, Y }; }
+	inline Point2D Bottom_Left() const { return { X, Y + Height }; }
+	inline Point2D Bottom_Right() const { return { X + Width, Y + Height }; }
+	inline Point2D Top_Center() const { return { (X + Width) / 2, Y }; }
+	inline Point2D Bottom_Center() const { return { (X + Width) / 2, Height }; }
+	inline Point2D Left_Center() const { return { X, (Y + Height) / 2 }; }
+	inline Point2D Center_Right() const { return { Width, (Y + Height) / 2 }; }
 
 	int &operator[](int index) { return (&X)[index]; }
 	const int &operator[](int index) const { return (&X)[index]; }

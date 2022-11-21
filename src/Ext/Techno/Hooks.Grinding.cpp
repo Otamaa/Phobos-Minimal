@@ -21,7 +21,7 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 			return ReturnStatic;
 
 		if (pThis->GetCurrentMission() == Mission::Construction || pThis->GetCurrentMission() == Mission::Selling ||
-			pThis->BState == 0 || !pThis->HasPower || pFrom->GetTechnoType()->BalloonHover)
+			pThis->BState == BStateType::Construction || !pThis->HasPower || pFrom->GetTechnoType()->BalloonHover)
 		{
 			return ReturnNegative;
 		}

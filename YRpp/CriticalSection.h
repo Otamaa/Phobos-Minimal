@@ -18,12 +18,25 @@
 class SimpleCriticalSectionClass
 {
 public:
-	SimpleCriticalSectionClass();
-	virtual ~SimpleCriticalSectionClass();
+	SimpleCriticalSectionClass() : Handle() {
+		InitializeCriticalSection(&Handle);
+	}
 
-	void Enter();
-	bool Try_Enter();
-	void Leave();
+	virtual ~SimpleCriticalSectionClass() {
+		DeleteCriticalSection(&Handle);
+	}
+
+	void Enter() {
+		EnterCriticalSection(&Handle);
+	}
+
+	bool Try_Enter() {
+		return TryEnterCriticalSection(&Handle) != FALSE;
+	}
+
+	void Leave() {
+		LeaveCriticalSection(&Handle);
+	}
 
 protected:
 	SimpleCriticalSectionClass &operator=(const SimpleCriticalSectionClass &that) { return *this; }
@@ -68,8 +81,15 @@ private:
 class CriticalSectionClass
 {
 public:
-	CriticalSectionClass();
-	~CriticalSectionClass();
+	CriticalSectionClass() :
+		Handle(),
+		Locked(0)
+	{
+		InitializeCriticalSection(&Handle);
+	}
+	~CriticalSectionClass() {
+		DeleteCriticalSection(&Handle);
+	}
 
 	class LockClass
 	{
@@ -88,8 +108,24 @@ public:
 private:
 	// Lock and unlock are private, you have to create a
 	// CriticalSectionClass::LockClass object to call them instead.
-	void Lock();
-	void Unlock();
+
+	/**
+	*  Performs the lock when entering a critical section of code. Private and is only called from the Lock object.
+	*/
+	void Lock() {
+		EnterCriticalSection(&Handle);
+
+		++Locked;
+	}
+	/**
+	*  Removes the lock when leaving a critical section of code. Private and is only called from the Lock object.
+	*/
+	void Unlock() {
+		LeaveCriticalSection(&Handle);
+
+		--Locked;
+	}
+
 
 	bool Is_Locked() { return Locked > 0; }
 
@@ -130,8 +166,27 @@ public:
 	friend class LockClass;
 
 private:
-	void Thread_Safe_Set_Flag();
-	void Thread_Safe_Clear_Flag();
+
+	/**
+	*  Performs the lock when entering a critical section of code. Private and is only called from the Lock object.
+	*/
+	void Thread_Safe_Set_Flag()
+	{
+		while (Flag.test_and_set(std::memory_order_seq_cst)) {
+
+			/**
+			 *  Yield the thread if no lock acquired.
+			 */
+			Sleep(1);
+		}
+	}
+
+	/**
+	*  Removes the lock when leaving a critical section of code. Private and is only called from the Lock object.
+	*/
+	void Thread_Safe_Clear_Flag() {
+		Flag.clear();
+	}
 
 private:
 	std::atomic_flag Flag;

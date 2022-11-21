@@ -235,7 +235,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 
 			if (auto pDecidedAnim = GetLandingAnim())
 			{
-				auto const nCoord = pTechno->GetCenterCoord();
+				auto const nCoord = pTechno->GetCoords();
 				if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
 				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, pTechno->GetOwningHouse(), nullptr, pTechno, false);
@@ -261,7 +261,7 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 
 		if (auto pDecidedAnim = TechnoTypeExt::ExtMap.Find(pAir->Type)->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get()))
 		{
-			auto const nCoord = pAir->GetCenterCoord();
+			auto const nCoord = pAir->GetCoords();
 			if (auto pAnim = GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
 			{
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pAir->GetOwningHouse(), nullptr, pAir, false);

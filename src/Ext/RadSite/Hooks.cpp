@@ -61,7 +61,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		if (!pThis)
 		{
 			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
-			auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+			auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 					[=](auto const pSite)
 					{
 						auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
@@ -80,7 +80,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 						return true;
 					});
 
-			if (it != RadSiteClass::Array_Constant->end())
+			if (it != RadSiteClass::Array->end())
 			{
 				auto const pRadExt = RadSiteExt::ExtMap.Find((*it));
 				auto nAmount = amount;
@@ -126,7 +126,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 				const auto currentCoord = pThis->GetMapCoords();
 
-				auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+				auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 					[=](auto const pPair)
 					{
 						auto const pRadExt = RadSiteExt::ExtMap.Find(pPair);
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 
 					});
 
-				if (it != RadSiteClass::Array_Constant->end()) {
+				if (it != RadSiteClass::Array->end()) {
 					radLevel = Game::F2I(RadSiteExt::ExtMap.Find((*it))->GetRadLevelAt(currentCoord));
 				}
 
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 				auto nCurrentCoord = Map[nCellStruct]->GetCoords();
 
 				// Loop for each different radiation stored in the RadSites container
-				for (auto pRadSite : *RadSiteClass::Array_Constant)
+				for (auto pRadSite : *RadSiteClass::Array())
 				{
 					auto const pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
 					// Check the distance, if not in range, just skip this one
@@ -303,7 +303,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 		const auto CurrentCoord = pFoot->GetCoords();
 
 		// Loop for each different radiation stored in the RadSites container
-		for (const auto pRadSite : *RadSiteClass::Array_Constant)
+		for (auto pRadSite : *RadSiteClass::Array())
 		{
 			auto const pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
 			// Check the distance, if not in range, just skip this one

@@ -1,5 +1,22 @@
 #include "Body.h"
 
+// Angles = [ Pi/180*int((i*360/16+270)%360) for i in range(0,16)]
+static constexpr double CosLUT[DiskLaserClass::DrawCoords.c_size()]
+{
+	0, 0.37460659341591196, 0.7071067811865474, 0.9205048534524403,
+	1, 0.9271838545667874, 0.7071067811865476, 0.3907311284892737,
+	0, -0.37460659341591207, -0.7071067811865475, -0.9205048534524404,
+	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892738
+};
+
+static constexpr double SinLUT[DiskLaserClass::DrawCoords.c_size()]
+{
+	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892739,
+	0, 0.374606593415912, 0.7071067811865476, 0.9205048534524404,
+	1, 0.9271838545667874, 0.7071067811865476, 0.39073112848927377,
+	0, -0.374606593415912, -0.7071067811865475, -0.9205048534524403
+};
+
 DEFINE_HOOK(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
 {
 	GET(WeaponTypeClass*, pWeapon, EDX);
@@ -7,42 +24,16 @@ DEFINE_HOOK(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
 	auto const pTypeData = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 	if (WeaponTypeExt::nOldCircumference != pTypeData->DiskLaser_Circumference) {
-		int new_Circumference = pTypeData->DiskLaser_Circumference;
+
+		const int new_Circumference = pTypeData->DiskLaser_Circumference;
 		WeaponTypeExt::nOldCircumference = new_Circumference;
 
-		Point2D* DiscLaserCoords = reinterpret_cast<Point2D*>(0x8A0180);
-		DiscLaserCoords[0].X = 0;
-		DiscLaserCoords[0].Y = -1 * new_Circumference;
-		DiscLaserCoords[1].X = (int)(0.3746065934159128 * new_Circumference);
-		DiscLaserCoords[1].Y = (int)(-0.9271838545667871 * new_Circumference);
-		DiscLaserCoords[2].X = (int)(0.707106781186548 * new_Circumference);
-		DiscLaserCoords[2].Y = -1 * DiscLaserCoords[2].X;
-		DiscLaserCoords[3].X = (int)(0.9205048534524406 * new_Circumference);
-		DiscLaserCoords[3].Y = (int)(-0.39073112848927305 * new_Circumference);
-		DiscLaserCoords[4].X = new_Circumference;
-		DiscLaserCoords[4].Y = 0;
-		DiscLaserCoords[5].X = -1 * DiscLaserCoords[1].Y;
-		DiscLaserCoords[5].Y = DiscLaserCoords[1].X;
-		DiscLaserCoords[6].X = DiscLaserCoords[2].X;
-		DiscLaserCoords[6].Y = DiscLaserCoords[2].X;
-		DiscLaserCoords[7].X = -1 * DiscLaserCoords[3].Y;
-		DiscLaserCoords[7].Y = DiscLaserCoords[3].X;
-		DiscLaserCoords[8].X = 0;
-		DiscLaserCoords[8].Y = DiscLaserCoords[4].X;
-		DiscLaserCoords[9].X = -1 * DiscLaserCoords[1].X;
-		DiscLaserCoords[9].Y = DiscLaserCoords[5].X;
-		DiscLaserCoords[10].X = DiscLaserCoords[2].Y;
-		DiscLaserCoords[10].Y = DiscLaserCoords[6].Y;
-		DiscLaserCoords[11].X = -1 * DiscLaserCoords[3].X;
-		DiscLaserCoords[11].Y = DiscLaserCoords[7].X;
-		DiscLaserCoords[12].X = DiscLaserCoords[0].Y;
-		DiscLaserCoords[12].Y = 0;
-		DiscLaserCoords[13].X = DiscLaserCoords[1].Y;
-		DiscLaserCoords[13].Y = DiscLaserCoords[9].X;
-		DiscLaserCoords[14].X = (int)(-0.5735764363510456 * new_Circumference);
-		DiscLaserCoords[14].Y = (int)(-0.8191520442889921 * new_Circumference);
-		DiscLaserCoords[15].Y = (int)(-0.9743700647852354 * new_Circumference);
-		DiscLaserCoords[15].X = (int)(-0.2249510543438644 * new_Circumference);
+		for (size_t i = 0u; i < DiskLaserClass::DrawCoords.c_size(); i++)
+		{
+			DiskLaserClass::DrawCoords[i].X = (int)(new_Circumference * CosLUT[i]);
+			DiskLaserClass::DrawCoords[i].Y = (int)(new_Circumference * SinLUT[i]);
+		}
 	}
+
 	return 0;
 }

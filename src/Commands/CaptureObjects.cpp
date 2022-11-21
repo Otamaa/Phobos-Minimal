@@ -39,7 +39,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!((SessionGlobal.GameMode == GameMode::Campaign) || (SessionGlobal.GameMode == GameMode::Skirmish)))
 		return;
 
-	if (!ObjectClass::CurrentObjects)
+	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
 	std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object)

@@ -42,6 +42,7 @@ FORCEINLINE T* GetLocomotorType(FootClass* pThis)
 
 	//it is already return as JumJetLoco on the top , but we check the CLSID here to make sure
 	//we got real T* pointer instead of something else
-	return (SUCCEEDED(pILoco->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(T)) ?
-		static_cast<T*>(pILoco) : nullptr;
+	return //(SUCCEEDED(pILoco->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(T)) ?
+		(((int*)pILoco)[0] == 0x7ECE34) ? //faster
+			static_cast<T*>(pILoco) : nullptr;
 }

@@ -47,7 +47,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto pRadType = pWeaponExt->RadType;
 
-		auto const it = std::find_if(RadSiteClass::Array_Constant->begin(), RadSiteClass::Array_Constant->end(),
+		auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 			[=](auto const pSite) {
 
 				auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
@@ -69,7 +69,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 				return true;
 			});
 
-		if (it != RadSiteClass::Array_Constant->end()) {
+		if (it != RadSiteClass::Array->end()) {
 			if ((*it)->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
 				RadLevel = pRadType->GetLevelMax() - (*it)->GetRadLevel();
 			}

@@ -35,6 +35,7 @@ class DECLSPEC_UUID("0E272DC9-9C0F-11D1-B709-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Bullet;
+	static inline constexpr VelocityClass EmptyVelocity = { 0.0 , 0.0 , 0.0 };
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<BulletClass*>, 0xA8ED40u> const Array{};

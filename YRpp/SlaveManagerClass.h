@@ -119,8 +119,8 @@ public:
 	int SlaveCount;
 	int RegenRate;
 	int ReloadRate;
-	DynamicVectorClass<SlaveControl*> SlaveNodes;
-	TimerStruct RespawnTimer;
+	DECLARE_PROPERTY(DynamicVectorClass<SlaveControl*> ,SlaveNodes);
+	DECLARE_PROPERTY(TimerStruct, RespawnTimer);
 	SlaveManagerStatus State;
 	int LastScanFrame;
 };

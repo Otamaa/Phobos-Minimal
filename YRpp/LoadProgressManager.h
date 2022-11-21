@@ -11,7 +11,8 @@ class LoadProgressManager
 {
 public:
 	static constexpr reference<LoadProgressManager*, 0xABC9BCu> const Instance{};
-
+	static constexpr reference<LoadProgressManager*, 0xABC9BCu> const LPMgr{};
+	
 	static void DrawText(const wchar_t *pText, int X, int Y, DWORD dwColor);
 
 	LoadProgressManager()

@@ -85,20 +85,6 @@ public:
 	int      ArrayIndex;
 	bool     IsGlobal;
 	int      ActionsCount;
-
-	struct ScriptActionPack{
-
-		ScriptActionNode Data [ScriptTypeClass::MaxActions];
-
-		constexpr auto begin() const { return std::begin(Data); }
-		constexpr auto end() const { return std::end(Data); }
-		constexpr auto begin() { return std::begin(Data); }
-		constexpr auto end() { return std::end(Data); }
-
-		constexpr int size() const { return ScriptTypeClass::MaxActions; }
-		constexpr ScriptActionNode at(int Index) const { return Data[Index]; }
-
-	}ScriptActions;
-
-	static_assert(sizeof(ScriptActionPack) == (sizeof(ScriptActionNode) * ScriptTypeClass::MaxActions), "Invalid Size ! ");
+	ArrayWrapper<ScriptActionNode,ScriptTypeClass::MaxActions> ScriptActions;
 };
+static_assert(sizeof(ScriptTypeClass) == 0x234, "Invalid Size ! ");

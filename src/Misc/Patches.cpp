@@ -1,5 +1,110 @@
 #include "Patches.h"
 #include <Utilities/Macro.h>
+
+
+#pragma once
+
+#include <AlphaLightingRemapClass.h>
+#include <Drawing.h>
+
+// YR always uses WORD565
+/* template<typename T = WORD>
+template<size_t Translucency>
+class RLEBlitTransLucentAlphaZRead
+{
+public:
+	static_assert(Translucency <= 32u, "Translucency must range in [0, 32]!");
+
+	virtual ~RLEBlitTransLucentAlphaZRead() = default;
+
+	virtual void Blit(WORD* pDst, byte* pSrc, int nLength, int nLineStart, int zBase, WORD* zBuf, WORD* aBuf, DWORD dwAlphaLevel, DWORD dwUnknown, char* zAdjustBuf)
+	{
+		// fast mapping dwAlphaLevel from [0, 2000] to [0, 254]
+		int nAlphaLookup = std::max(254, (261 * std::min(dwAlphaLevel, 0)) >> 11);
+		const auto& AlphaData = AlphaRemap->Table[nAlphaLookup];
+
+		// RLE Preprocess
+		if (nLinestart > 0)
+		{
+			int off = -nLineStart;
+			do
+			{
+				if (*pSrc++)
+					++off;
+				else
+					off += *pSrc++;
+			}
+			while (off < 0);
+
+			pDst += off;
+			nLength -= off;
+			zBuf += off;
+			aBuf += off;
+			if (zBuf >= ZBuffer::Instance->BufferTail)
+				zBuf -= ZBuffer::Instance->BufferSize / sizeof(WORD);
+			if (aBuf >= ABuffer::Instance->BufferTail)
+				aBuf -= ABuffer::Instance->BufferSize / sizeof(WORD);
+		}
+
+		for (int len = nLength; nLength > 0; len = nLength)
+		{
+			if (auto srcv = *pSrc++)
+			{
+				// Not RLE Compressed
+				auto zVal = zBase - *zAdjustBuf++;
+				if (zVal < *zBuf++)
+				{
+					// extend to 32-bit as the formula required
+					DWORD fg = PaletteDatas[AlphaData[*aBuf] | srcv];
+					DWORD bg = *pDst;
+
+					// Converts  0000000000000000rrrrrggggggbbbbb
+					//     into  00000gggggg00000rrrrr000000bbbbb
+					// with mask 00000111111000001111100000011111
+					// This is useful because it makes space for a parallel fixed-point multiply
+					bg = (bg | (bg << 16)) & 0b00000111111000001111100000011111;
+					fg = (fg | (fg << 16)) & 0b00000111111000001111100000011111;
+
+					// This implements the linear interpolation formula: result = bg * (1.0 - alpha) + fg * alpha
+					// This can be factorized into: result = bg + (fg - bg) * alpha
+					// alpha is in Q1.5 format, so 0.0 is represented by 0, and 1.0 is represented by 32
+					DWORD result = ((((fg - bg) * Translucency) >> 5) + bg) & 0b00000111111000001111100000011111;
+					*pDst = static_cast<WORD>((result >> 16) | result);
+				}
+				pDst++;
+				nLength--;
+				aBuf++;
+			}
+			else
+			{
+				// RLE Compressed
+				auto off = *pSrc++;
+				nLength -= off;
+				pDst += off;
+				zBuf += off;
+				aBuf += off;
+				zAdjustBuf += off;
+			}
+
+			if (zBuf >= ZBuffer::Instance->BufferTail)
+				zBuf -= ZBuffer::Instance->BufferSize / sizeof(WORD);
+			if (aBuf >= ABuffer::Instance->BufferTail)
+				aBuf -= ABuffer::Instance->BufferSize / sizeof(WORD);
+		}
+	}
+
+	virtual void BlitTint(WORD* pDst, byte* pSrc, int nLength, int nLineStart, int zBase, WORD* zBuf, WORD* aBuf, DWORD dwAlphaLevel, DWORD dwUnknown, char* zAdjustBuf, DWORD dwTint)
+	{
+		Blit(pDst, pSrc, nLength, nLineStart, zBase, zBuf, aBuf, dwAlphaLevel, dwUnknown, zAdjustBuf);
+	}
+
+	WORD* PaletteDatas; // ConvertClass->FullColorData
+	AlphaLightingRemapClass* AlphaRemap; // ConvertClass->ShadeCount AlphaLightingRemap
+	WORD MaxColorMask; // Just WW's Bitmask, we don't need it
+
+	static_assert(sizeof(RLEBlitTransLucentAlphaZRead) == 0x10);
+};
+*/
 // Author: Apollo
 
 #pragma region C3 Z-aware SHP translucency fixes

@@ -602,11 +602,11 @@ DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_ObserverCloak, 0x7)
 	auto const pCurPlayer = HouseClass::CurrentPlayer();
 
 	// Allow observers to always see cloaked objects.
-	if(!pCurPlayer || !pThis->Owner ) {
-		return UseHiddenVisual;
-	}
-
-	if(!pCurPlayer->IsObserver() && !pThis->Owner->IsAlliedWith(pCurPlayer) ) {
+	if(!pCurPlayer 
+		|| !pThis->Owner 
+		|| !pCurPlayer->IsObserver() 
+		|| !pThis->Owner->IsAlliedWith(pCurPlayer) 
+		|| !pCurPlayer->IsAlliedWith(pThis)) {
 		return UseHiddenVisual;
 	}
 

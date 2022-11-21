@@ -18,8 +18,6 @@ public:
 	};
 
 	// constructors
-	BounceClass() = default;
-
 	void Init(CoordStruct& coords, double elasticity, double gravity,
 			double maxVelocity, Vector3D<float>* velocity, double angularVelocity) const
 		{ JMP_THIS(0x4397E0); }

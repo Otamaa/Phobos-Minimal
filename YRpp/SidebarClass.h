@@ -11,35 +11,39 @@ struct SHPStruct;
 // SidebarClass::StripClass::BuildType
 struct BuildType
 {
-	int               ItemIndex{ -1 };
-	AbstractType      ItemType{ AbstractType::None };
-	bool              IsAlt{ false }; // set on buildings that go on tab 2
-	FactoryClass*     CurrentFactory{ nullptr };
-	DWORD             unknown_10{ 0 };
-	ProgressTimer     Progress{}; // 0 to 54, how much of this object is constructed (gclock anim level)
-	int               FlashEndFrame{ 0 };
+	int               ItemIndex { -1 };
+	AbstractType      ItemType { AbstractType::None };
+	bool              IsAlt { false }; // set on buildings that go on tab 2
+	FactoryClass* CurrentFactory { nullptr };
+	DWORD             unknown_10 { 0 };
+	ProgressTimer     Progress {}; // 0 to 54, how much of this object is constructed (gclock anim level)
+	int               FlashEndFrame { 0 };
 
 	BuildType() = default;
 
 	BuildType(int itemIndex, AbstractType itemType) :
 		ItemIndex(itemIndex),
 		ItemType(itemType)
-	{ /*JMP_THIS(0x6AC7C0);*/ }
+	{ /*JMP_THIS(0x6AC7C0);*/
+	}
 
-	bool operator == (const BuildType& rhs) const {
+	bool operator == (const BuildType& rhs) const
+	{
 		return ItemIndex == rhs.ItemIndex && ItemType == rhs.ItemType;
 	}
 
-	bool operator != (const BuildType& rhs) const {
+	bool operator != (const BuildType& rhs) const
+	{
 		return ItemIndex != rhs.ItemIndex || ItemType != rhs.ItemType;
 	}
 
-	bool operator < (const BuildType& rhs) const {
+	bool operator < (const BuildType& rhs) const
+	{
 		return SortsBefore(this->ItemType, this->ItemIndex, rhs.ItemType, rhs.ItemIndex);
 	}
 
 	static bool __stdcall SortsBefore(AbstractType leftType, int leftIndex, AbstractType rightType, int rightIndex)
-		{ JMP_STD(0x6A8420); }
+	{ JMP_STD(0x6A8420); }
 };
 
 typedef BuildType CameoDataStruct;
@@ -88,7 +92,7 @@ public:
 	DWORD             unknown_4C;
 	DWORD             unknown_50;
 	int               CameoCount; // filled cameos
-	BuildType         Cameos[75];
+	ArrayWrapper<BuildType, 75u> Cameos;
 };
 
 typedef StripClass TabDataStruct;
@@ -98,11 +102,12 @@ class NOVTABLE SidebarClass : public PowerClass
 {
 public:
 	//Static
-	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance{};
+	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
 	enum { TooltipLength = 0x42 };
-	static constexpr reference<wchar_t, 0xB07BC4u, 0x42u> const TooltipBuffer{};
+	static constexpr reference<wchar_t, 0xB07BC4u, 0x42u> const TooltipBuffer {};
 
-	void SidebarNeedsRepaint(int mode = 0) {
+	void SidebarNeedsRepaint(int mode = 0)
+	{
 		this->SidebarNeedsRedraw = true;
 		this->SidebarBackgroundNeedsRedraw = true;
 		this->Tabs[this->ActiveTabIndex].AllowedToDraw = true;
@@ -112,10 +117,10 @@ public:
 	}
 
 	void RepaintSidebar(int tab = 0)
-		{ JMP_THIS(0x6A60A0); }
+	{ JMP_THIS(0x6A60A0); }
 
 	bool AddCameo(AbstractType absType, int idxType)
-		{ JMP_THIS(0x6A6300); }
+	{ JMP_THIS(0x6A6300); }
 
 	//virtual void Draw(DWORD dwUnk) override
 	//	{ JMP_THIS(0x6A6C30); }
@@ -147,11 +152,11 @@ public:
 
 	// which tab does the 'th object of that type belong in?
 	static int __fastcall GetObjectTabIdx(AbstractType abs, int idxType, int unused)
-		{ JMP_STD(0x6ABC60); }
+	{ JMP_STD(0x6ABC60); }
 
 	// which tab does the 'th object of that type belong in?
 	static int __fastcall GetObjectTabIdx(AbstractType abs, BuildCat buildCat, bool isNaval)
-		{ JMP_STD(0x6ABCD0); }
+	{ JMP_STD(0x6ABCD0); }
 
 	void ChangeTab(int nStrip) const { JMP_THIS(0x6A7590); }
 
@@ -168,7 +173,8 @@ protected:
 	//===========================================================================
 
 public:
-	StripClass Tabs[0x4];
+
+	ArrayWrapper<StripClass, 4u> Tabs;
 	DWORD unknown_5394;
 	DWORD unknown_5398;
 	int ActiveTabIndex;
@@ -180,17 +186,17 @@ public:
 	bool unknown_bool_53A8;
 
 	//Information for the Diplomacy menu, I believe
-	HouseClass* DiplomacyHouses[0x8];		//8 players max!
-	int DiplomacyKills[0x8];		//total amount of kills per house
-	int DiplomacyOwned[0x8];		//total amount of currently owned unit/buildings per house
-	int DiplomacyPowerDrain[0x8];	//current power drain per house
-	ColorScheme* DiplomacyColors[0x8];		//color scheme per house
-	DWORD unknown_544C[0x8];			//??? per house - unused
-	DWORD unknown_546C[0x8];			//??? per house - unused
-	DWORD unknown_548C[0x8];			//??? per house - unused
-	DWORD unknown_54AC[0x8];			//??? per house - unused
-	DWORD unknown_54CC[0x8];			//??? per house - unused
-	DWORD unknown_54EC[0x8];			//??? per house - unused
+	ArrayWrapper<HouseClass*, 0x8> DiplomacyHouses;		//8 players max!
+	ArrayWrapper<int, 0x8> DiplomacyKills;		//total amount of kills per house
+	ArrayWrapper<int, 0x8> DiplomacyOwned;		//total amount of currently owned unit/buildings per house
+	ArrayWrapper<int, 0x8> DiplomacyPowerDrain;	//current power drain per house
+	ArrayWrapper<ColorScheme*, 0x8> DiplomacyColors;		//color scheme per house
+	ArrayWrapper<DWORD, 0x8>unknown_544C;			//??? per house - unused
+	ArrayWrapper<DWORD, 0x8> unknown_546C;			//??? per house - unused
+	ArrayWrapper<DWORD, 0x8> unknown_548C;			//??? per house - unused
+	ArrayWrapper<DWORD, 0x8> unknown_54AC;			//??? per house - unused
+	ArrayWrapper<DWORD, 0x8> unknown_54CC;			//??? per house - unused
+	ArrayWrapper<DWORD, 0x8>unknown_54EC;			//??? per house - unused
 	BYTE unknown_550C;
 	int DiplomacyNumHouses;			//possibly?
 
@@ -203,6 +209,8 @@ class NOVTABLE SelectClass : public ControlClass
 {
 
 public:
+
+	static constexpr referencemult<SelectClass*, 0xB07E80u, 1, 14> const Buttons {};
 	//Destructor
 	virtual ~SelectClass() RX;
 
@@ -218,12 +226,15 @@ public:
 	//Constructors
 	SelectClass() noexcept
 		: ControlClass(noinit_t())
-	{ JMP_THIS(0x6AACB0);	}
+	{
+		JMP_THIS(0x6AACB0);
+	}
 
 protected:
 	explicit __forceinline SelectClass(noinit_t)  noexcept
 		: ControlClass(noinit_t())
-	{}
+	{
+	}
 
 public:
 	StripClass* Strip;

@@ -80,8 +80,7 @@ protected:
 	//===========================================================================
 
 public:
-
-	RadioCommand LastCommands[3]; // new command updates these
+	ArrayWrapper<RadioCommand, 3u> LastCommandsj;// new command updates these 
 	DECLARE_PROPERTY(VectorClass<TechnoClass*>, RadioLinks);	//Docked units etc
 };
  static_assert(sizeof(RadioClass) == 0xF0);

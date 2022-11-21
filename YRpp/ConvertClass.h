@@ -8,11 +8,12 @@
 #include <ArrayClasses.h>
 #include <Surface.h>
 
-#include <Blitters.h>
-
 #include <FileFormats/SHP.h>
 #include <Helpers/CompileTime.h>
 
+class Blitter;
+class RLEBlitter;
+class RGBClass;
 struct ColorStruct;
 class DSurface;
 
@@ -26,16 +27,14 @@ public:
 
 	 static ConvertClass* CreateFromFile(const char* pal_filename);
 
-	//ConvertClass() { }
-
 	virtual ~ConvertClass() JMP_THIS(0x491210);
 
 	void Alloc_Blitters() JMP_THIS(0x48EBF0);
 	void Dealloc_Blitters() JMP_THIS(0x490490);
 
-	BlitterCore* Select_Blitter(BlitterFlags flags) JMP_THIS(0x490B90);
+	Blitter* Select_Blitter(BlitterFlags flags) JMP_THIS(0x490B90);
 
-	RLEBlitterCore* Select_RLE_Blitter(BlitterFlags  flags) JMP_THIS(0x490E50);
+	RLEBlitter* Select_RLE_Blitter(BlitterFlags  flags) JMP_THIS(0x490E50);
 
 	static void Recalc_Color_Remap_Tables(int a1, int a2, int a3, int a4) JMP_THIS(0x491100);
 
@@ -72,7 +71,7 @@ public:
 
 	ConvertClass(
 	BytePalette const& palette,
-	BytePalette const& palette2, //???
+	BytePalette const& eightbitpalette, //???
 	DSurface* pSurface,
 	size_t shadeCount,
 	bool skipBlitters) : ConvertClass(noinit_t()) {
@@ -89,8 +88,8 @@ protected:
 	//===========================================================================
 public:
 	int BytesPerPixel;
-	BlitterCore* Blitters[50];
-	RLEBlitterCore* RLEBlitters[39];
+	ArrayWrapper<Blitter*, 50u> Blitters;
+	ArrayWrapper<RLEBlitter* , 39u> RLEBlitters;
 	int ShadeCount;
 	char* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
 	char* BufferMid; // points to the middle of BufferA above, ??

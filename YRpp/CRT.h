@@ -2,7 +2,7 @@
 
 #include <Base/Always.h>
 #include <wchar.h>
-
+#include <Helpers/CompileTime.h>
 #include <ASMMacros.h>
 // contains functions that are part of the C runtime library and have been declared ingame
 // just declaring them so we don't need to include our own duplicates
@@ -52,9 +52,25 @@ typedef struct tagHeader* PHEADER;
 class CRT {
 	NO_CONSTRUCT_CLASS(CRT)
 public:
-		// unicode manipulations - "wcs" stands for "wide char string" or wchar_t equivalent of "str"
 
-		static wchar_t * __cdecl wcscpy(wchar_t * Dest, const wchar_t *Src)
+	static constexpr reference<LPCRITICAL_SECTION, 0x87C2A8u> const Critical_Sections{};
+	static constexpr reference<LPCRITICAL_SECTION, 0x87C2ECu> const _87C2EC_Critical_Sections{};
+	static constexpr reference<LPCRITICAL_SECTION, 0x87C2DCu> const _87C2DC_Critical_Sections{};
+	static constexpr reference<LPCRITICAL_SECTION, 0x87C2CCu> const _87C2CC_Critical_Sections{};
+	static constexpr reference<LPCRITICAL_SECTION, 0x87C2ACu> const _87C2AC_Critical_Sections{};
+
+	static constexpr reference<HANDLE, 0xB78B9Cu> const Heap{};
+	static constexpr reference<volatile LONG, 0xB78BA4u> const _unguarded_readlc_active{};
+	
+	// unicode manipulations - "wcs" stands for "wide char string" or wchar_t equivalent of "str"
+		
+		static int __cdecl wcsncmp(const wchar_t *a1, const wchar_t *a2, size_t a3)
+			{ JMP_STD(0x7CB4CC); }
+			
+		static wchar_t* __cdecl wcsstr(const wchar_t*, const wchar_t*)
+			{ JMP_STD(0x7CC682); }
+
+		static wchar_t* __cdecl wcscpy(wchar_t* Dest, const wchar_t* Src)
 			{ JMP_STD(0x7CA489); }
 
 		static wchar_t * __cdecl wcsncpy(wchar_t *Dest, const wchar_t *Source, size_t Count)

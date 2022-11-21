@@ -12,11 +12,6 @@
 */
 //obvious
 
-struct Coordinate
-{
-	int X, Y, Z;
-};
-
 #pragma warning(push)
 #pragma warning(disable : 4244)
 struct CoordStruct
@@ -69,9 +64,7 @@ public:
 
 	CellStruct TocellStruct()
 	{
-		CellStruct nBuffer;
-		ToCellStruct(nBuffer);
-		return nBuffer;
+		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };
 	}
 
 	__forceinline operator bool() const {
@@ -546,4 +539,6 @@ public:
 	{ return (Z + ((y - Y) * ((nThat.Z - Z) / (nThat.Y - Y)))); }
 
 };
+
+typedef CoordStruct Coordinate;
 #pragma warning(pop)

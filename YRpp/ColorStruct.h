@@ -134,18 +134,108 @@ struct ColorStruct
 	BYTE R, G, B;
 };
 
-typedef ColorStruct RGBClass;
+#pragma pack(push, 1)
+class RGBClass
+{
+public:
+	static constexpr reference<RGBClass, 0xA80220> White {};
+	static constexpr reference<int, 0x8A0DD0> const RedShiftLeft {};
+	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
+	static constexpr reference<int, 0x8A0DE0> const GreenShiftLeft {};
+	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
+	static constexpr reference<int, 0x8A0DD8> const BlueShiftLeft {};
+	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
+
+	unsigned char Red;
+	unsigned char Green;
+	unsigned char Blue;
+
+	explicit RGBClass() noexcept
+		: Red { 0 }
+		, Green { 0 }
+		, Blue { 0 }
+	{
+	}
+
+	explicit RGBClass(int r, int g, int b) noexcept
+		: Red { static_cast<unsigned char>(r) }
+		, Green { static_cast<unsigned char>(g) }
+		, Blue { static_cast<unsigned char>(b) }
+	{
+	}
+
+
+	explicit RGBClass(int rgb, bool wordcolor = false) noexcept
+	{
+		if (!wordcolor)
+		{
+			Red = GetRValue(rgb);
+			Green = GetGValue(rgb);
+			Blue = GetBValue(rgb);
+		}
+		else
+		{
+			Red = (unsigned char)((unsigned short)rgb >> RedShiftLeft) << RedShiftRight;
+			Green = (unsigned char)((unsigned short)rgb >> GreenShiftLeft) << GreenShiftRight;
+			Blue = (unsigned char)((unsigned short)rgb >> BlueShiftLeft) << BlueShiftRight;
+		}
+	}
+
+	void Adjust(int ratio, RGBClass const& rgb)
+	{
+		ratio &= 0x00FF;
+
+		int value = (int)rgb.Red - (int)Red;
+		Red = static_cast<unsigned char>((int)Red + (value * ratio) / 256);
+
+		value = (int)rgb.Green - (int)Green;
+		Green = static_cast<unsigned char>((int)Green + (value * ratio) / 256);
+
+		value = (int)rgb.Blue - (int)Blue;
+		Blue = static_cast<unsigned char>((int)Blue + (value * ratio) / 256);
+	}
+
+	int Difference(RGBClass const& rgb) const
+	{
+		int r = (int)Red - (int)rgb.Red;
+		if (r < 0) r = -r;
+
+		int g = (int)Green - (int)rgb.Green;
+		if (g < 0) g = -g;
+
+		int b = (int)Blue - (int)rgb.Blue;
+		if (b < 0) b = -b;
+
+		return(r * r + g * g + b * b);
+	}
+
+	int ToInt()
+	{
+		return
+			(Red >> RedShiftRight << RedShiftLeft) |
+			(Green >> GreenShiftRight << GreenShiftLeft) |
+			(Blue >> BlueShiftRight << BlueShiftLeft);
+	}
+};
+#pragma pack(pop)
 
 struct BytePalette
 {
-	static inline constexpr int EntryMax = 256;
+	static inline constexpr int EntriesCount = 256;
 
-	BytePalette(const ColorStruct& rgb = ColorStruct(0, 0, 0)) {
-		JMP_THIS(0x626020);
+	BytePalette() noexcept : 
+		Entries{} 
+	{}
+
+	BytePalette(const ColorStruct& rgb) :
+		Entries{} {
+		for (int i = 0; i < EntriesCount; ++i)
+			Entries[i] = rgb;
 	}
 
-	BytePalette(const BytePalette& that) {
-		JMP_THIS(0x626070);
+	BytePalette(const BytePalette& that) :
+		Entries{} {
+		std::memcpy(this, &that, sizeof(BytePalette));
 	}
 
 	~BytePalette() = default;
@@ -185,13 +275,13 @@ struct BytePalette
 		JMP_THIS(0x626200);
 	}
 
-	auto begin() const { return std::begin(Entries); }
-	auto end() const { return std::end(Entries); }
-	auto begin() { return std::begin(Entries); }
-	auto end() { return std::end(Entries); }
+	constexpr auto begin() const { return std::begin(Entries); }
+	constexpr auto end() const { return std::end(Entries); }
+	constexpr auto begin() { return std::begin(Entries); }
+	constexpr auto end() { return std::end(Entries); }
 
 public :
-	ColorStruct Entries[EntryMax];
+	ColorStruct Entries[EntriesCount];
 };
 
 //16bit colors

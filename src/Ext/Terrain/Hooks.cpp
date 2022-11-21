@@ -54,7 +54,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
 	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x3C, -0x4));
 
 	auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
-	auto const nCoords = pThis->GetCenterCoord();
+	auto const nCoords = pThis->GetCenterCoords();
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 
 	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr))

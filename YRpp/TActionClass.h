@@ -315,3 +315,5 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_8D[3]);
 	int                Value; // multipurpose
 };
+
+static_assert(sizeof(TActionClass) == 0x94 , "Invalid Size !");

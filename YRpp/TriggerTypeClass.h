@@ -100,7 +100,7 @@ protected:
 
 public:
 	int ArrayIndex;
-	bool Difficulty[3]; // easy = 0, normal = 1, hard = 2
+	ArrayHelper<bool , 3u> Difficulty; // easy = 0, normal = 1, hard = 2
 	bool Enabled;
 	bool MustTransfer; // vehicle thieves must take Tag with it when hijacking
 	PROTECTED_PROPERTY(BYTE, align_A1[3]);

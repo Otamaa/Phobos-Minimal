@@ -27,17 +27,17 @@ struct DirtyAreaStruct
 	};
 };
 
-namespace Drawing
+struct Drawing
 {
 	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
 	constexpr static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
 	static constexpr reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
-	static constexpr reference<int, 0x8A0DD4u> const RedShiftRight {};
-	static constexpr reference<int, 0x8A0DD8u> const RedShiftLeft {};
-	static constexpr reference<int, 0x8A0DDCu> const BlueShiftRight {};
-	static constexpr reference<int, 0x8A0DE0u> const BlueShiftLeft {};
-	static constexpr reference<int, 0x8A0DE4u> const GreenShiftRight {};
-	static constexpr reference<int, 0x8A0DE8u> const GreenShiftLeft {};
+	static inline constexpr int RedShiftLeft = 11;
+	static inline constexpr int RedShiftRight = 3;
+	static inline constexpr int GreenShiftLeft = 5;
+	static inline constexpr int GreenShiftRight = 2;
+	static inline constexpr int BlueShiftLeft = 0;
+	static inline constexpr int BlueShiftRight = 3;
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
@@ -162,7 +162,11 @@ namespace Drawing
 			(green >> GreenShiftRight << GreenShiftLeft) |
 			(blue >> BlueShiftRight << BlueShiftLeft);
 	}
-
+	
+	constexpr static int RGB_To_Int(int red, int green, int blue)
+	{
+		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
+	}
 
 	static int RGB_To_Int(const ColorStruct& Color)
 	{
@@ -256,7 +260,7 @@ namespace Drawing
 	static constexpr ColorStruct ColorRed = { 255,0,0 };
 	static constexpr ColorStruct ColorGreen = { 0,255,0 };
 	static constexpr ColorStruct ColorBlue = { 0,0,255 };
-}
+};
 
 struct BufferData
 {
@@ -288,6 +292,12 @@ public:
 	bool FillRect(unsigned short Color, RectangleStruct Rect) { JMP_THIS(0x411310); }
 	void BlitRect(RectangleStruct Rect) { JMP_THIS(0x411330); }
 	void* GetBuffer(int X, int Y) { JMP_THIS(0x4114B0); }
+	template<typename T>
+	void AdjustPointer(T*& ptr) {
+		if (ptr >= BufferTail)
+			reinterpret_cast<char*&>(ptr) -= BufferSize;
+	}
+	
 	BSurface* GetSurface() const { return Surface; }
 	const RectangleStruct& GetArea() const { return Area; }
 	unsigned int GetBufferWidth() const { return Width; }
@@ -296,8 +306,8 @@ public:
 	RectangleStruct Area;
 	int BufferPosition;
 	BSurface* Surface;
-	int BufferHead;
-	int BufferTail;
+	void* BufferHead;
+	void* BufferTail;
 	int BufferSize;
 	int MaxValue;
 	int Width;
@@ -322,6 +332,12 @@ public:
 	bool FillRect(unsigned short Color, RectangleStruct Rect) { JMP_THIS(0x7BCF90); }
 	void BlitRect(RectangleStruct Rect) { JMP_THIS(0x7BCFB0); }
 	void* GetBuffer(int X, int Y) { JMP_THIS(0x7BD130); }
+	template<typename T>
+	void AdjustPointer(T*& ptr) {
+		if (ptr >= BufferTail)
+			reinterpret_cast<char*&>(ptr) -= BufferSize;
+	}
+	
 	BSurface* GetSurface() const { return Surface; }
 	const RectangleStruct& GetArea() const { return Area; }
 	unsigned int GetBuffer_Width() const { return Width; }
@@ -330,8 +346,8 @@ public:
 	RectangleStruct Area;
 	int BufferPosition;
 	BSurface* Surface;
-	int BufferHead;
-	int BufferTail;
+	void* BufferHead;
+	void* BufferTail;
 	int BufferSize;
 	int MaxValue;
 	int Width;

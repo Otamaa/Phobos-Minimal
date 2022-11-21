@@ -386,14 +386,13 @@ public:
 	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
 	INIComment* LineComments;
 };
-//static_assert(sizeof(INIClass) == 0x40);//64
+static_assert(sizeof(INIClass) == 0x40);//64
 
 //Extended INI class specified for C&C use
 class CCINIClass : public INIClass
 {
 public:
 	//STATIC
-
 
 	static constexpr reference<DWORD, 0xB77E00u> const RulesHash{};
 	static constexpr reference<DWORD, 0xB77E04u> const ArtHash{};

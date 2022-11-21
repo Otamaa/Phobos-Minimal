@@ -7,23 +7,53 @@
 #include <ArrayClasses.h>
 #include <CoordStruct.h>
 #include <Helpers\CompileTime.h>
+#include <IndexClass.h>
+#include <memory>
 
+class CCINIClass;
 
-//Empty class for helper !
-class IExtension {};
+enum class InitState {
+	Blank = 0x0, // CTOR'd
+	Constanted = 0x1, // values that can be set without looking at Rules (i.e. country default loadscreen)
+	Ruled = 0x2, // Rules has been loaded and props set (i.e. country powerplants taken from [General])
+	Inited = 0x3, // values that need the object's state (i.e. is object a secretlab? -> load default boons)
+	Completed = 0x4 // INI has been read and values set
+};
+
+//Extension Interface !
+class IExtension {
+public:
+	InitState Initialized { InitState::Blank };
+
+	IExtension() = default;
+	virtual ~IExtension() = default;
+
+	virtual void InvalidatePointer(void* target, bool all = true) = 0;
+
+	// right after construction. only basic initialization tasks possible;
+	// owner object is only partially constructed! do not use global state!
+	virtual void InitializeConstants() = 0;
+
+	virtual void InitializeRuled() = 0;
+
+	// called before the first ini file is read
+	virtual void Initialize() = 0;
+
+	// for things that only logically work in rules - countries, sides, etc
+	virtual void LoadFromRulesFile(CCINIClass* pINI) = 0;
+
+	// load any ini file: rules, game mode, scenario or map
+	virtual void LoadFromINIFile(CCINIClass* pINI) = 0;
+
+};
 
 //forward declarations
 class TechnoClass;
 class HouseClass;
 class Checksummer;
 
-struct StorageClass
+struct StorageClass final : public ArrayWrapper<float , 4u>
 {
-	static constexpr size_t Size = 4;
-
-	//StorageClass() { JMP_THIS(0x6C95E0) };
-	//~StorageClass() = default;
-
 	float GetAmount(int index) const
 		{ JMP_THIS(0x6C9680); }
 
@@ -46,25 +76,12 @@ struct StorageClass
 	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }
 	StorageClass operator-=(StorageClass& that) { JMP_THIS(0x6C97E0); }
 	
-	auto begin() {
-	   return std::begin(Tiberium);
-	}
-	
-	auto begin() const {
-	   return std::begin(Tiberium);
-	}
-	
-	auto end() {
-	   return std::end(Tiberium);
-	}
-	
-	auto end() const {
-	   return std::end(Tiberium);
-	}
-	
-	float Tiberium[Size] { 0.0f };
 };
+static_assert(sizeof(StorageClass) == 0x10, "Invalid Size !");
 //---
+
+typedef NamedValue<AbstractType> AbsTypeNames;
+static_assert(sizeof(AbsTypeNames) == 0x8, "Invalid Size !");
 
 //#pragma pack(push, 4)
 //The AbstractClass is the base class of all game objects.
@@ -72,22 +89,14 @@ class NOVTABLE AbstractClass : public IPersistStream, public IRTTITypeInfo, publ
 {
 public:
 	//static
+	static constexpr inline size_t TypeCount = 74;
 	static const AbstractType AbsID = AbstractType::Abstract;
+	static constexpr reference<IndexClass<int, int>, 0xB0E840u> const TargetIndex{};
 	static constexpr constant_ptr<DynamicVectorClass<AbstractClass*>, 0xB0F720u> const Array{};
-	static const char* GetClassName(AbstractType abs)
-	{
-		const size_t TypeCount = 74;
-		const auto Types = reinterpret_cast<NamedValue(*)[TypeCount]>(0x816EE0);
+	static constexpr reference<AbsTypeNames, 0x816EE0u, TypeCount> const RTTIToString{};
 
-		for (const auto& Type : *Types)
-		{
-			if (static_cast<AbstractType>(Type.Value) == abs)
-			{
-				return Type.Name;
-			}
-		}
-
-		return nullptr;
+	static const char* GetAbstractClassName(AbstractType abs) {
+		return RTTIToString[static_cast<int>(abs)].Name;
 	}
 
 	static void __fastcall AnnounceExpiredPointer(AbstractClass* pAbstract, bool removed = true)
@@ -96,9 +105,9 @@ public:
 	static void __fastcall RemoveAllInactive() JMP_STD(0x725C70);
 	static int __fastcall GetbuildCat(AbstractType abstractID, int idx) JMP_STD(0x5004E0);
 
-	const char* GetClassName() const
+	const char* GetThisClassName() const
 	{
-		return AbstractClass::GetClassName(this->WhatAmI());
+		return AbstractClass::GetAbstractClassName(this->WhatAmI());
 	}
 
 	//IUnknown
@@ -142,8 +151,8 @@ public:
 	virtual HouseClass* GetOwningHouse() const R0;
 	virtual int GetArrayIndex() const R0;
 	virtual bool IsDead() const R0;
-	virtual CoordStruct GetCoords() const RT(CoordStruct); //center coords
-	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
+	virtual CoordStruct* GetCoords(CoordStruct* pCrd) const R0; //center coords
+	virtual CoordStruct* GetDestination(CoordStruct* pCrd, TechnoClass* pDocker = nullptr) const R0; // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
 	virtual bool IsOnFloor() const R0;
 	virtual bool IsInAir() const R0;
 	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const R0; //GetCoords__ / __Get_Coords__As_Coord
@@ -154,20 +163,22 @@ public:
 		AnnounceExpiredPointer(this, removed);
 	}
 
-	//CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const {
-	//	CoordStruct ret;
-	//	this->GetDestination(&ret, pDocker);
-	//	return ret;
-	//}
+	CoordStruct GetCoords() const {
+		CoordStruct ret;
+		this->GetCoords(&ret);
+		return ret;
+	}
 
+	CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const {
+		CoordStruct ret;
+		this->GetDestination(&ret, pDocker);
+		return ret;
+	}
+	
 	CoordStruct GetCenterCoords() const {
 		CoordStruct ret;
 		this->GetCenterCoords(&ret);
 		return ret;
-	}
-
-	CoordStruct GetCenterCoord() const {
-		return GetCenterCoords();
 	}
 
 	//Operators
@@ -215,7 +226,7 @@ public:
 
 	DWORD UniqueID; // generated by IRTTIInfo::Create_ID through an amazingly simple sequence of return ++ScenarioClass::Instance->UniqueID;
 	AbstractFlags AbstractFlags;	// flags, see AbstractFlags enum in GeneralDefinitions.
-	std::unique_ptr<IExtension> unknown_18;
+	IExtension* unknown_18;
 	LONG RefCount;
 	bool Dirty;		// for IPersistStream.
 	PROTECTED_PROPERTY(BYTE, padding_21[0x3]);

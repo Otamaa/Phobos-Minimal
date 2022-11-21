@@ -48,5 +48,6 @@ public:
 
 	DWORD unknown_04;
 
+protected:
 	CD() RX;
 };

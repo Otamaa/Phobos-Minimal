@@ -48,6 +48,8 @@ public:
 	// ranged for support
 	NodeElement* begin() const { return IndexTable; }
 	NodeElement* end() const { return &IndexTable[IndexCount]; }
+	NodeElement* begin() { return IndexTable; }
+	NodeElement* end() { return &IndexTable[IndexCount]; }
 	auto FetchItem(TKey id) const;
 
 private:

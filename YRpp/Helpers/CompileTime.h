@@ -2,8 +2,8 @@
 
 #include <Base/Always.h>
 #include <type_traits>
-#include <YRPPCore.h>
-#include <span>
+
+struct noinit_t;
 
 // defines a compile time pointer to a known memory address
 template <typename T, unsigned int Address>
@@ -86,12 +86,54 @@ public:
 		return Size;
 	}
 
+	constexpr size_t c_size() const noexcept {
+		return Count;
+	}
+
 	T* begin() const noexcept {
 		return data();
 	}
 
 	T* end() const noexcept {
 		return begin() + Size;
+	}
+};
+
+//TODO : operators
+template <typename T, unsigned int Address, size_t CountX , size_t CountY>
+struct referencemult {
+	using value_type = T[CountX][CountY];
+	constexpr referencemult() noexcept = default;
+	referencemult(referencemult&) = delete;
+private:
+	// mere presence "fixes" C2100: illegal indirection
+	constexpr referencemult(noinit_t) noexcept {}
+public:
+
+	value_type& get() const noexcept {
+		// fixes" C2101: '&' on constant
+		static auto const address = Address;
+		return *reinterpret_cast<value_type*>(address);
+	}
+
+	operator value_type& () const noexcept {
+		return get();
+	}
+
+	value_type& operator()() const noexcept {
+		return get();
+	}
+
+	decltype(auto) operator&() const noexcept {
+		return &get();
+	}
+
+	decltype(auto) operator*() const noexcept {
+		return *get();
+	}
+
+	value_type& data() const noexcept {
+		return get();
 	}
 };
 
@@ -146,6 +188,43 @@ private:
 	}
 
 	auto arrow(std::true_type) const noexcept {
+		return get();
+	}
+};
+
+template <typename T, unsigned int Address>
+struct referencefunc {
+	using value_type = T;
+
+	constexpr referencefunc() noexcept = default;
+	referencefunc(referencefunc&) = delete;
+private:
+	// mere presence "fixes" C2100: illegal indirection
+	constexpr referencefunc(noinit_t) noexcept {}
+public:
+
+	FORCEINLINE value_type& get() const noexcept {
+		return *reinterpret_cast<value_type*>(Address);
+	}
+
+	FORCEINLINE uintptr_t getAddress() {
+		return Address;
+	}
+
+	template <typename T2>
+	FORCEINLINE bool operator=(T2 rhs) const {
+
+		DWORD protection = PAGE_EXECUTE_READWRITE;
+		if(VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE) {
+			*reinterpret_cast<LPVOID*>(Address) = rhs;
+			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection);
+			return true;
+		}
+
+		return false;
+	}
+
+	operator T& () const noexcept {
 		return get();
 	}
 };

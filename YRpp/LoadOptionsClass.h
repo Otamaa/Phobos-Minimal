@@ -56,7 +56,6 @@ public:
 		{ JMP_THIS(0x558740); }
 
 	// virtuals
-
 	virtual ~LoadOptionsClass()
 		{ JMP_THIS(0x55A0D0); }
 

@@ -3,7 +3,6 @@
 */
 
 #pragma once
-#include <GlobalConfig.h>
 #include <ObjectClass.h>
 #include <AnimTypeClass.h>
 #include <BounceClass.h>

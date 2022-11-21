@@ -67,3 +67,5 @@ public:
 	int FinalMovie;
 	wchar_t Description[128];
 };
+
+static_assert(sizeof(CampaignClass) == 0x3A0, "Invalid Size !");

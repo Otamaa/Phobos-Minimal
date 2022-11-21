@@ -12,18 +12,10 @@ class ParticleTypeClass;
 class VoxelAnimTypeClass;
 
 struct WarheadFlags {
-	bool ForceFire { false };
-	bool Retaliate { false };
-	bool PassiveAcquire { false };
+	bool ForceFire;
+	bool Retaliate;
+	bool PassiveAcquire;
 
-	WarheadFlags(bool FF = true, bool Retal = true, bool Acquire = true) noexcept:
-		ForceFire{ FF }
-	,	Retaliate{ Retal }
-	,	PassiveAcquire{ Acquire }
-	{};
-
-	WarheadFlags() noexcept = default;
-	~WarheadFlags() noexcept = default;
 
 	bool operator==(WarheadFlags const& nThat) const
 	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }
@@ -78,7 +70,7 @@ public:
 
 	double  Deform;
 
-	double Verses [0xB];
+	ArrayWrapper<double, 0xB> Verses;
 
 	double  ProneDamage;
 	int     DeformTreshold;
@@ -141,6 +133,6 @@ public:
 
 	int     MaxDebris;
 	int     MinDebris;
-	DWORD unused_1CC;  //unused , can be used to store ExtData
+	PROTECTED_PROPERTY(DWORD, unused_1CC); //???
 };
 static_assert(sizeof(WarheadTypeClass) == 0x1D0, "Invalid size.");

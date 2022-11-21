@@ -9,7 +9,6 @@
 #include <Helpers/CompileTime.h>
 
 #include <ddraw.h>
-#include <Blitters.h>
 
 class ConvertClass;
 struct SHPStruct;
@@ -151,6 +150,7 @@ public:
 	int Width;
 	int Height;
 };
+static_assert(sizeof(Surface) == 0xC, "Invalid Size !");
 
 class NOVTABLE XSurface : public Surface
 {
@@ -210,14 +210,15 @@ public:
 	int LockLevel;
 	int BytesPerPixel;
 };
+static_assert(sizeof(XSurface) == 0x14, "Invalid Size !");
 
 class NOVTABLE BSurface : public XSurface
 {
 public:
 	static constexpr constant_ptr<BSurface, 0xB2D928> VoxelSurface {};
 
-	BSurface() : XSurface(), BufferPtr() { *((unsigned long*)this) = (unsigned long)0x7E2070; }
-	BSurface(int width, int height, int bpp, void* buffer ) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { *((unsigned long*)this) = (unsigned long)0x7E2070; }
+	BSurface() : XSurface(), BufferPtr() { ((int*)this)[0] = 0x7E2070; }
+	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { ((int*)this)[0] = 0x7E2070; }
 	virtual ~BSurface() { JMP_THIS(0x411650); }
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4115F0);
@@ -234,6 +235,7 @@ protected:
 protected:
 	MemoryBuffer BufferPtr;
 };
+static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 
 #pragma warning(push)
 #pragma warning(disable : 4505)
@@ -487,20 +489,6 @@ public:
 
 	static DSurface* Create_Primary(DSurface** backbuffer_surface = nullptr) JMP_THIS(0x4BA770);
 
-	static unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
-	{
-		return (unsigned((b >> BlueRight) << BlueLeft)
-			| unsigned((r >> RedRight) << RedLeft)
-			| unsigned((g >> GreenRight) << GreenLeft));
-	}
-
-	static unsigned RGB_To_Pixel(ColorStruct& rgb)
-	{
-		return (unsigned((rgb.R >> BlueRight) << BlueLeft)
-			| unsigned((rgb.G >> RedRight) << RedLeft)
-			| unsigned((rgb.B >> GreenRight) << GreenLeft));
-	}
-
 	static unsigned RGBA_To_Pixel(unsigned r, unsigned g, unsigned b)
 	{
 		return (unsigned((b >> BlueRight) << BlueLeft)
@@ -513,6 +501,20 @@ public:
 		*red = ((pixel >> RedLeft) << RedRight);
 		*green = ((pixel >> GreenLeft) << GreenRight);
 		*blue = ((pixel >> BlueLeft) << BlueRight);
+	}
+
+	static unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
+	{
+		return (unsigned((b >> BlueRight) << BlueLeft)
+			| unsigned((r >> RedRight) << RedLeft)
+			| unsigned((g >> GreenRight) << GreenLeft));
+	}
+
+	static unsigned RGB_To_Pixel(ColorStruct& rgb)
+	{
+		return (unsigned((rgb.R >> BlueRight) << BlueLeft)
+			| unsigned((rgb.G >> RedRight) << RedLeft)
+			| unsigned((rgb.B >> GreenRight) << GreenLeft));
 	}
 
 	static int Get_RGB_Pixel_Format() { return RGBPixelFormat; }
@@ -533,3 +535,32 @@ public:
 	LPDIRECTDRAWSURFACE VideoSurfacePtr;
 	LPDDSURFACEDESC VideoSurfaceDescription;
 };
+static_assert(sizeof(DSurface) == 0x24, "Invalid Size !");
+struct RGB32
+{
+	char R;
+	char G;
+	char B;
+	char A;
+};
+
+struct GDIBitmapInfo
+{
+	BITMAPINFO BMInfo;
+	RGB32 Palette[256];
+};
+
+class NOVTABLE DCSurface
+{
+	bool Failed;
+	GDIBitmapInfo* __BitmapInfo;
+	int __GDIBitmap;
+	char* __Buffer;
+	int __Width;
+	int __Height;
+	int __GDIBitmapBits2;
+	int __Width2;
+	BSurface* __SurfacePtr;
+};
+
+static_assert(sizeof(DCSurface) == 0x24, "Invalid Size !");

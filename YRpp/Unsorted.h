@@ -34,29 +34,33 @@ struct Game
 	//"01AF9993-3492-11d3-8F6F-0060089C05B1"
 	static constexpr reference<HANDLE, 0xB0BCE8u> const AutoPlayMutex {};
 
-	static constexpr reference<CLSID const, 0x7E9520u> const CLSID_ {};
-	static constexpr reference<CLSID const, 0x7E9540u> const CLSID_CompressStream {};
-	static constexpr reference<CLSID const, 0x7E9720u> const CLSID_WaveClass {};
-	static constexpr reference<CLSID const, 0x7E95E0u> const CLSID_TerrainTypeClass {};
-	static constexpr reference<CLSID const, 0x7E9740u> const CLSID_TerrainClass {};
-	static constexpr reference<CLSID const, 0x7E9570u> const CLSID_SuperWeaponTypeClass {};
-	static constexpr reference<CLSID const, 0x7E9580u> const CLSID_SuperWeaponClass {};
-	static constexpr reference<CLSID const, 0x7E9950u> const CLSID_TacticalMapClass {};
-	static constexpr reference<CLSID const, 0x7E9930u> const CLSID_CellClass {};
-	static constexpr reference<CLSID const, 0x7E9940u> const CLSID_EMPulseClass {};
-	static constexpr reference<CLSID const, 0x7E98F0u> const CLSID_LightSource {};
-	static constexpr reference<CLSID const, 0x7E9910u> const CLSID_SideClass {};
-	static constexpr reference<CLSID const, 0x7E9920u> const CLSID_TiberiumClass {};
-	static constexpr reference<CLSID const, 0x7E9750u> const CLSID_TubeClass {};
-	static constexpr reference<CLSID const, 0x7E9900u> const CLSID_CampaignClass {};
-	static constexpr reference<CLSID const, 0x7E9730u> const CLSID_BuildingLightClass {};
-	static constexpr reference<CLSID const, 0x7E9850u> const CLSID_WaypointPath {};
-	static constexpr reference<CLSID const, 0x7E98D0u> const CLSID_TemporalClass {};
+	#define GAMEMD_CLSID(_addrs ,_name) \
+	static constexpr reference<CLSID const, _addrs> const _name {};
+
+	GAMEMD_CLSID(0x7E9520u, CLSID_);
+	GAMEMD_CLSID(0x7E9540u, CLSID_CompressStream);
+	GAMEMD_CLSID(0x7E9720u, CLSID_WaveClass);
+	GAMEMD_CLSID(0x7E95E0u, CLSID_TerrainTypeClass);
+	GAMEMD_CLSID(0x7E9740u, CLSID_TerrainClass);
+	GAMEMD_CLSID(0x7E9570u, CLSID_SuperWeaponTypeClass);
+	GAMEMD_CLSID(0x7E9580u, CLSID_SuperWeaponClass);
+	GAMEMD_CLSID(0x7E9950u, CLSID_TacticalMapClass);
+	GAMEMD_CLSID(0x7E9930u, CLSID_CellClass);
+	GAMEMD_CLSID(0x7E9940u, CLSID_EMPulseClass);
+	GAMEMD_CLSID(0x7E98F0u, CLSID_LightSource);
+	GAMEMD_CLSID(0x7E9910u, CLSID_SideClass);
+	GAMEMD_CLSID(0x7E9920u, CLSID_TiberiumClass);
+	GAMEMD_CLSID(0x7E9750u, CLSID_TubeClass);
+	GAMEMD_CLSID(0x7E9900u, CLSID_CampaignClass);
+	GAMEMD_CLSID(0x7E9730u, CLSID_BuildingLightClass);
+	GAMEMD_CLSID(0x7E9850u, CLSID_WaypointPath);
+	GAMEMD_CLSID(0x7E98D0u, CLSID_TemporalClass);
 	//etc,..
 
-	static constexpr reference<CLSID const, 0x7F7D50u> const CLSID_IDirectDraw2 {};
-	static constexpr reference<CLSID const, 0x7F8070u> const IID_IDirect3D2 {};
+	GAMEMD_CLSID(0x7F7D50u, CLSID_IDirectDraw2);
+	GAMEMD_CLSID(0x7F8070u, IID_IDirect3D2);
 
+	#undef GAMEMD_CLSID
 	static constexpr reference<Matrix3D, 0xB44318> VoxelDefaultMatrix{};
 	static constexpr reference<Matrix3D, 0xB45188, 21> VoxelRampMatrix{};
 
@@ -87,6 +91,7 @@ struct Game
 	static struct Network
 	{
 	public:
+		static constexpr reference<int, 0xB779C4u> const Tournament{};
 		static constexpr reference<DWORD, 0xB779D4u> const WOLGameID{};
 		static constexpr reference<time_t, 0xB77788u> const PlanetWestwoodStartTime{};
 		static constexpr reference<int, 0xB73814u> const GameStockKeepingUnit{};
@@ -116,8 +121,10 @@ struct Game
 		return static_cast<int>(F2I64(val));
 	}
 
-	[[noreturn]] static void RaiseError(HRESULT err)
-		{ JMP_STD(0x7DC720); }
+	[[noreturn]] static void __stdcall RaiseError(HRESULT err)
+	{
+		JMP_STD(0x7DC720);
+	}
 
 	static void ClearScenario() {
 		JMP_STD(0x6851F0);
@@ -249,7 +256,7 @@ struct Game
 
 // this fake class contains the IIDs used by the game
 // no comments because the IIDs suck
-class IIDs {
+struct IIDs {
 	static constexpr reference<IID const, 0x7F7C90u> const IUnknown{};
 	static constexpr reference<IID const, 0x7F7C80u> const IPersistStream{};
 	static constexpr reference<IID const, 0x7F7C70u> const IPersist{};
@@ -274,342 +281,348 @@ struct Imports {
 
 	// OleLoadFromStream
 	typedef HRESULT(__stdcall* FP_OleSaveToStream)(LPPERSISTSTREAM pPStm, LPSTREAM pStm);
-	static FP_OleSaveToStream& OleSaveToStream;
+	static constexpr referencefunc<FP_OleSaveToStream, 0x7E15F4> const OleSaveToStream{};
 
-	typedef HRESULT (__stdcall * FP_OleLoadFromStream)(LPSTREAM pStm, const IID *const iidInterface, LPVOID *ppvObj);
-	static FP_OleLoadFromStream &OleLoadFromStream;
+	typedef HRESULT(__stdcall* FP_OleLoadFromStream)(LPSTREAM pStm, const IID* const iidInterface, LPVOID* ppvObj);
+	static constexpr referencefunc<FP_OleLoadFromStream, 0x7E15F8> const OleLoadFromStream{};
 
 	typedef HRESULT(__stdcall* FP_CoRegisterClassObject)(const IID& rclsid, LPUNKNOWN pUnk, DWORD dwClsContext, DWORD flags, LPDWORD lpdwRegister);
-	static FP_CoRegisterClassObject& CoRegisterClassObject;
+	static constexpr referencefunc<FP_CoRegisterClassObject, 0x7E15D8> const CoRegisterClassObject{};
 
 	typedef HRESULT(__stdcall* FP_CoRevokeClassObject)(DWORD dwRegister);
-	static FP_CoRevokeClassObject& CoRevokeClassObject;
+	static constexpr referencefunc<FP_CoRevokeClassObject, 0x7E15CC> const CoRevokeClassObject{};
 
-	typedef DWORD (* FP_TimeGetTime)();
-	static FP_TimeGetTime &TimeGetTime;
+	typedef HRESULT(__stdcall* FP_OleCoCreateInstance)(const IID& rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID& riid, LPVOID* ppv);
+	static constexpr referencefunc<FP_OleCoCreateInstance, 0x7E15FC > const CoCreateInstance{};
+
+ 	typedef HRESULT (__stdcall* FP_OleRun)(LPUNKNOWN pUnknown);
+	static constexpr referencefunc<FP_OleRun, 0x7E1600 > const OleRun{};
+
+	typedef DWORD(*FP_TimeGetTime)();
+	static constexpr referencefunc<FP_TimeGetTime, 0x7E1530> const TimeGetTime{};
 
 	/* user32.dll */
-	typedef LRESULT ( __stdcall * FP_DefWindowProcA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	static FP_DefWindowProcA &DefWindowProcA;
+	typedef LRESULT(__stdcall* FP_DefWindowProcA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static constexpr referencefunc<FP_DefWindowProcA, 0x7E1394> const DefWindowProcA{};
 
-	typedef BOOL ( __stdcall * FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
-	static FP_MoveWindow &MoveWindow;
+	typedef BOOL(__stdcall* FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
+	static constexpr referencefunc<FP_MoveWindow, 0x7E1398> const MoveWindow{};
 
-	typedef BOOL ( __stdcall * FP_GetUpdateRect)(HWND hWnd, LPRECT lpRect, BOOL bErase);
-	static FP_GetUpdateRect &GetUpdateRect;
+	typedef BOOL(__stdcall* FP_GetUpdateRect)(HWND hWnd, LPRECT lpRect, BOOL bErase);
+	static constexpr referencefunc<FP_GetUpdateRect, 0x7E139C> const GetUpdateRect{};
 
-	typedef HWND ( * FP_GetFocus)(void);
-	static FP_GetFocus &GetFocus;
+	typedef HWND(*FP_GetFocus)(void);
+	static constexpr referencefunc<FP_GetFocus, 0x7E13A0> const GetFocus{};
 
-	typedef HDC ( __stdcall * FP_GetDC)(HWND hWnd);
-	static FP_GetDC &GetDC;
+	typedef HDC(__stdcall* FP_GetDC)(HWND hWnd);
+	static constexpr referencefunc<FP_GetDC, 0x7E13A4> const GetDC{};
 
-	typedef SHORT ( __stdcall * FP_GetKeyState)(int nVirtKey);
-	static FP_GetKeyState &GetKeyState;
+	typedef SHORT(__stdcall* FP_GetKeyState)(int nVirtKey);
+	static constexpr referencefunc<FP_GetKeyState, 0x7E13A8> const GetKeyState{};
 
-	typedef HWND ( * FP_GetActiveWindow)(void);
-	static FP_GetActiveWindow &GetActiveWindow;
+	typedef HWND(*FP_GetActiveWindow)(void);
+	static constexpr referencefunc<FP_GetActiveWindow, 0x7E13AC> const GetActiveWindow{};
 
-	typedef HWND ( * FP_GetCapture)(void);
-	static FP_GetCapture &GetCapture;
+	typedef HWND(*FP_GetCapture)(void);
+	static constexpr referencefunc<FP_GetCapture, 0x7E13B0> const GetCapture{};
 
-	typedef int ( __stdcall * FP_GetDlgCtrlID)(HWND hWnd);
-	static FP_GetDlgCtrlID &GetDlgCtrlID;
+	typedef int(__stdcall* FP_GetDlgCtrlID)(HWND hWnd);
+	static constexpr referencefunc<FP_GetDlgCtrlID, 0x7E13B4> const GetDlgCtrlID{};
 
-	typedef HWND ( __stdcall * FP_ChildWindowFromPointEx)(HWND, POINT, UINT);
-	static FP_ChildWindowFromPointEx &ChildWindowFromPointEx;
+	typedef HWND(__stdcall* FP_ChildWindowFromPointEx)(HWND, POINT, UINT);
+	static constexpr referencefunc<FP_ChildWindowFromPointEx, 0x7E13B8> const ChildWindowFromPointEx{};
 
-	typedef BOOL ( __stdcall * FP_GetWindowRect)(HWND hWnd, LPRECT lpRect);
-	static FP_GetWindowRect &GetWindowRect;
+	typedef BOOL(__stdcall* FP_GetWindowRect)(HWND hWnd, LPRECT lpRect);
+	static constexpr referencefunc<FP_GetWindowRect, 0x7E13BC> const GetWindowRect{};
 
-	typedef BOOL ( __stdcall * FP_GetCursorPos)(LPPOINT lpPoint);
-	static FP_GetCursorPos &GetCursorPos;
+	typedef BOOL(__stdcall* FP_GetCursorPos)(LPPOINT lpPoint);
+	static constexpr referencefunc<FP_GetCursorPos, 0x7E13C0> const GetCursorPos{};
 
-	typedef BOOL ( __stdcall * FP_CloseWindow)(HWND hWnd);
-	static FP_CloseWindow &CloseWindow;
+	typedef BOOL(__stdcall* FP_CloseWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_CloseWindow, 0x7E13C4> const CloseWindow{};
 
-	typedef BOOL ( __stdcall * FP_EndDialog)(HWND hDlg, int nResult);
-	static FP_EndDialog &EndDialog;
+	typedef BOOL(__stdcall* FP_EndDialog)(HWND hDlg, int nResult);
+	static constexpr referencefunc<FP_EndDialog, 0x7E13C8> const EndDialog{};
 
-	typedef HWND ( __stdcall * FP_SetFocus)(HWND hWnd);
-	static FP_SetFocus &SetFocus;
+	typedef HWND(__stdcall* FP_SetFocus)(HWND hWnd);
+	static constexpr referencefunc<FP_SetFocus, 0x7E13CC> const SetFocus{};
 
-	typedef BOOL ( __stdcall * FP_SetDlgItemTextA)(HWND hDlg, int nIDDlgItem, LPCSTR lpString);
-	static FP_SetDlgItemTextA &SetDlgItemTextA;
+	typedef BOOL(__stdcall* FP_SetDlgItemTextA)(HWND hDlg, int nIDDlgItem, LPCSTR lpString);
+	static constexpr referencefunc<FP_SetDlgItemTextA, 0x7E13D0> const SetDlgItemTextA{};
 
-	typedef int ( __stdcall * FP_DialogBoxParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-	static FP_DialogBoxParamA &DialogBoxParamA;
+	typedef int(__stdcall* FP_DialogBoxParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	static constexpr referencefunc<FP_DialogBoxParamA, 0x7E13D4> const DialogBoxParamA{};
 
-#ifdef _MSVC
-	typedef int ( __stdcall * FP_DialogBoxIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-	static FP_DialogBoxIndirectParamA &DialogBoxIndirectParamA;
-#endif
+	typedef int(__stdcall* FP_DialogBoxIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	static constexpr referencefunc<FP_DialogBoxIndirectParamA, 0x7E13D8> const DialogBoxIndirectParamA{};
 
-	typedef int ( __stdcall * FP_ShowCursor)(BOOL bShow);
-	static FP_ShowCursor &ShowCursor;
+	typedef int(__stdcall* FP_ShowCursor)(BOOL bShow);
+	static constexpr referencefunc<FP_ShowCursor, 0x7E13DC> const ShowCursor{};
 
-	typedef SHORT ( __stdcall * FP_GetAsyncKeyState)(int vKey);
-	static FP_GetAsyncKeyState &GetAsyncKeyState;
+	typedef SHORT(__stdcall* FP_GetAsyncKeyState)(int vKey);
+	static constexpr referencefunc<FP_GetAsyncKeyState, 0x7E13E0> const GetAsyncKeyState{};
 
-	typedef int ( __stdcall * FP_ToAscii)(UINT uVirtKey, UINT uScanCode, PBYTE lpKeyState, LPWORD lpChar, UINT uFlags);
-	static FP_ToAscii &ToAscii;
+	typedef int(__stdcall* FP_ToAscii)(UINT uVirtKey, UINT uScanCode, PBYTE lpKeyState, LPWORD lpChar, UINT uFlags);
+	static constexpr referencefunc<FP_ToAscii, 0x7E13E4> const ToAscii{};
 
-	typedef UINT ( __stdcall * FP_MapVirtualKeyA)(UINT uCode, UINT uMapType);
-	static FP_MapVirtualKeyA &MapVirtualKeyA;
+	typedef UINT(__stdcall* FP_MapVirtualKeyA)(UINT uCode, UINT uMapType);
+	static constexpr referencefunc<FP_MapVirtualKeyA, 0x7E13E8> const MapVirtualKeyA{};
 
-	typedef int ( __stdcall * FP_GetSystemMetrics)(int nIndex);
-	static FP_GetSystemMetrics &GetSystemMetrics;
+	typedef int(__stdcall* FP_GetSystemMetrics)(int nIndex);
+	static constexpr referencefunc<FP_GetSystemMetrics, 0x7E13EC> const GetSystemMetrics{};
 
-	typedef BOOL ( __stdcall * FP_SetWindowPos)(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
-	static FP_SetWindowPos &SetWindowPos;
+	typedef BOOL(__stdcall* FP_SetWindowPos)(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
+	static constexpr referencefunc<FP_SetWindowPos, 0x7E13F0> const SetWindowPos{};
 
-	typedef BOOL ( __stdcall * FP_DestroyWindow)(HWND hWnd);
-	static FP_DestroyWindow &DestroyWindow;
+	typedef BOOL(__stdcall* FP_DestroyWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_DestroyWindow, 0x7E13F4> const DestroyWindow{};
 
-	typedef BOOL ( * FP_ReleaseCapture)(void);
-	static FP_ReleaseCapture &ReleaseCapture;
+	typedef BOOL(*FP_ReleaseCapture)(void);
+	static constexpr referencefunc<FP_ReleaseCapture, 0x7E13F8> const ReleaseCapture{};
 
-	typedef HWND ( __stdcall * FP_SetCapture)(HWND hWnd);
-	static FP_SetCapture &SetCapture;
+	typedef HWND(__stdcall* FP_SetCapture)(HWND hWnd);
+	static constexpr referencefunc<FP_SetCapture, 0x7E13FC> const SetCapture{};
 
-	typedef BOOL ( __stdcall * FP_AdjustWindowRectEx)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
-	static FP_AdjustWindowRectEx &AdjustWindowRectEx;
+	typedef BOOL(__stdcall* FP_AdjustWindowRectEx)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
+	static constexpr referencefunc<FP_AdjustWindowRectEx, 0x7E1400> const AdjustWindowRectEx{};
 
-	typedef HMENU ( __stdcall * FP_GetMenu)(HWND hWnd);
-	static FP_GetMenu &GetMenu;
+	typedef HMENU(__stdcall* FP_GetMenu)(HWND hWnd);
+	static constexpr referencefunc<FP_GetMenu, 0x7E1404> const GetMenu{};
 
-	typedef BOOL ( __stdcall * FP_AdjustWindowRect)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
-	static FP_AdjustWindowRect &AdjustWindowRect;
+	typedef BOOL(__stdcall* FP_AdjustWindowRect)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
+	static constexpr referencefunc<FP_AdjustWindowRect, 0x7E1408> const AdjustWindowRect{};
 
-	typedef DWORD ( __stdcall * FP_GetSysColor)(int nIndex);
-	static FP_GetSysColor &GetSysColor;
+	typedef DWORD(__stdcall* FP_GetSysColor)(int nIndex);
+	static constexpr referencefunc<FP_GetSysColor, 0x7E140C> const GetSysColor{};
 
-	typedef UINT ( __stdcall * FP_IsDlgButtonChecked)(HWND hDlg, int nIDButton);
-	static FP_IsDlgButtonChecked &IsDlgButtonChecked;
+	typedef UINT(__stdcall* FP_IsDlgButtonChecked)(HWND hDlg, int nIDButton);
+	static constexpr referencefunc<FP_IsDlgButtonChecked, 0x7E1410> const IsDlgButtonChecked{};
 
-	typedef BOOL ( __stdcall * FP_CheckDlgButton)(HWND hDlg, int nIDButton, UINT uCheck);
-	static FP_CheckDlgButton &CheckDlgButton;
+	typedef BOOL(__stdcall* FP_CheckDlgButton)(HWND hDlg, int nIDButton, UINT uCheck);
+	static constexpr referencefunc<FP_CheckDlgButton, 0x7E1414 > const CheckDlgButton{};
 
-	typedef DWORD ( __stdcall * FP_WaitForInputIdle)(HANDLE hProcess, DWORD dwMilliseconds);
-	static FP_WaitForInputIdle &WaitForInputIdle;
+	typedef DWORD(__stdcall* FP_WaitForInputIdle)(HANDLE hProcess, DWORD dwMilliseconds);
+	static constexpr referencefunc<FP_WaitForInputIdle, 0x7E1418 > const WaitForInputIdle{};
 
-	typedef HWND ( __stdcall * FP_GetTopWindow)(HWND hWnd);
-	static FP_GetTopWindow &GetTopWindow;
+	typedef HWND(__stdcall* FP_GetTopWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_GetTopWindow, 0x7E141C > const GetTopWindow{};
 
-	typedef HWND ( * FP_GetForegroundWindow)(void);
-	static FP_GetForegroundWindow &GetForegroundWindow;
+	typedef HWND(*FP_GetForegroundWindow)(void);
+	static constexpr referencefunc<FP_GetForegroundWindow, 0x7E1420 > const GetForegroundWindow{};
 
-	typedef HICON ( __stdcall * FP_LoadIconA)(HINSTANCE hInstance, LPCSTR lpIconName);
-	static FP_LoadIconA &LoadIconA;
+	typedef HICON(__stdcall* FP_LoadIconA)(HINSTANCE hInstance, LPCSTR lpIconName);
+	static constexpr referencefunc<FP_LoadIconA, 0x7E1424 > const LoadIconA{};
 
-	typedef HWND ( __stdcall * FP_SetActiveWindow)(HWND hWnd);
-	static FP_SetActiveWindow &SetActiveWindow;
+	typedef HWND(__stdcall* FP_SetActiveWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_SetActiveWindow, 0x7E1428> const SetActiveWindow{};
 
-	typedef BOOL ( __stdcall * FP_RedrawWindow)(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
-	static FP_RedrawWindow &RedrawWindow;
+	typedef BOOL(__stdcall* FP_RedrawWindow)(HWND hWnd, const RECT* lprcUpdate, HRGN hrgnUpdate, UINT flags);
+	static constexpr referencefunc<FP_RedrawWindow, 0x7E142C> const RedrawWindow{};
 
-	typedef DWORD ( __stdcall * FP_GetWindowContextHelpId)(HWND);
-	static FP_GetWindowContextHelpId &GetWindowContextHelpId;
+	typedef DWORD(__stdcall* FP_GetWindowContextHelpId)(HWND);
+	static constexpr referencefunc<FP_GetWindowContextHelpId, 0x7E1430  > const GetWindowContextHelpId{};
 
-	typedef BOOL ( __stdcall * FP_WinHelpA)(HWND hWndMain, LPCSTR lpszHelp, UINT uCommand, DWORD dwData);
-	static FP_WinHelpA &WinHelpA;
+	typedef BOOL(__stdcall* FP_WinHelpA)(HWND hWndMain, LPCSTR lpszHelp, UINT uCommand, DWORD dwData);
+	static constexpr referencefunc<FP_WinHelpA, 0x7E1434> const WinHelpA{};
 
-	typedef HWND ( __stdcall * FP_ChildWindowFromPoint)(HWND hWndParent, POINT Point);
-	static FP_ChildWindowFromPoint &ChildWindowFromPoint;
+	typedef HWND(__stdcall* FP_ChildWindowFromPoint)(HWND hWndParent, POINT Point);
+	static constexpr referencefunc<FP_ChildWindowFromPoint, 0x7E1438 > const ChildWindowFromPoint{};
 
-	typedef HCURSOR ( __stdcall * FP_LoadCursorA)(HINSTANCE hInstance, LPCSTR lpCursorName);
-	static FP_LoadCursorA &LoadCursorA;
+	typedef HCURSOR(__stdcall* FP_LoadCursorA)(HINSTANCE hInstance, LPCSTR lpCursorName);
+	static constexpr referencefunc<FP_LoadCursorA, 0x7E143C > const LoadCursorA{};
 
-	typedef HCURSOR ( __stdcall * FP_SetCursor)(HCURSOR hCursor);
-	static FP_SetCursor &SetCursor;
+	typedef HCURSOR(__stdcall* FP_SetCursor)(HCURSOR hCursor);
+	static constexpr referencefunc<FP_SetCursor, 0x7E1440 > const SetCursor{};
 
-	typedef void ( __stdcall * FP_PostQuitMessage)(int nExitCode);
-	static FP_PostQuitMessage &PostQuitMessage;
+	typedef void(__stdcall* FP_PostQuitMessage)(int nExitCode);
+	static constexpr referencefunc<FP_PostQuitMessage, 0x7E1444 > const PostQuitMessage{};
 
-	typedef HWND ( __stdcall * FP_FindWindowA)(LPCSTR lpClassName, LPCSTR lpWindowName);
-	static FP_FindWindowA &FindWindowA;
+	typedef HWND(__stdcall* FP_FindWindowA)(LPCSTR lpClassName, LPCSTR lpWindowName);
+	static constexpr referencefunc<FP_FindWindowA, 0x7E1448 > const FindWindowA{};
 
-	typedef BOOL ( __stdcall * FP_SetCursorPos)(int X, int Y);
-	static FP_SetCursorPos &SetCursorPos;
+	typedef BOOL(__stdcall* FP_SetCursorPos)(int X, int Y);
+	static constexpr referencefunc<FP_SetCursorPos, 0x7E144C> const SetCursorPos{};
 
-#ifdef _MSVC
-	typedef HWND ( __stdcall * FP_CreateDialogIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-	static FP_CreateDialogIndirectParamA &CreateDialogIndirectParamA;
-#endif
+	typedef HWND(__stdcall* FP_CreateDialogIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	static constexpr referencefunc<FP_CreateDialogIndirectParamA, 0x7E1450> const CreateDialogIndirectParamA{};
 
-	typedef int ( __stdcall * FP_GetKeyNameTextA)(LONG lParam, LPSTR lpString, int nSize);
-	static FP_GetKeyNameTextA &GetKeyNameTextA;
+	typedef int(__stdcall* FP_GetKeyNameTextA)(LONG lParam, LPSTR lpString, int nSize);
+	static constexpr referencefunc<FP_GetKeyNameTextA, 0x7E1454 > const GetKeyNameTextA{};
 
-	typedef BOOL ( __stdcall * FP_ScreenToClient)(HWND hWnd, LPPOINT lpPoint);
-	static FP_ScreenToClient &ScreenToClient;
+	typedef BOOL(__stdcall* FP_ScreenToClient)(HWND hWnd, LPPOINT lpPoint);
+	static constexpr referencefunc<FP_ScreenToClient, 0x7E1458 > const ScreenToClient{};
 
-	typedef BOOL ( __stdcall * FP_LockWindowUpdate)(HWND hWndLock);
-	static FP_LockWindowUpdate &LockWindowUpdate;
+	typedef BOOL(__stdcall* FP_LockWindowUpdate)(HWND hWndLock);
+	static constexpr referencefunc<FP_LockWindowUpdate, 0x7E145C> const LockWindowUpdate{};
 
-	typedef int ( __stdcall * FP_MessageBoxA)(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-	static FP_MessageBoxA &MessageBoxA;
+	typedef int(__stdcall* FP_MessageBoxA)(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
+	static constexpr referencefunc<FP_MessageBoxA, 0x7E1460> const MessageBoxA{};
 
-	typedef int ( __stdcall * FP_ReleaseDC)(HWND hWnd, HDC hDC);
-	static FP_ReleaseDC &ReleaseDC;
+	typedef int(__stdcall* FP_ReleaseDC)(HWND hWnd, HDC hDC);
+	static constexpr referencefunc<FP_ReleaseDC, 0x7E1464> const ReleaseDC{};
 
-	typedef HWND ( __stdcall * FP_WindowFromPoint)(POINT Point);
-	static FP_WindowFromPoint &WindowFromPoint;
+	typedef HWND(__stdcall* FP_WindowFromPoint)(POINT Point);
+	static constexpr referencefunc<FP_WindowFromPoint, 0x7E1468> const WindowFromPoint{};
 
-	typedef BOOL ( __stdcall * FP_UpdateWindow)(HWND hWnd);
-	static FP_UpdateWindow &UpdateWindow;
+	typedef BOOL(__stdcall* FP_UpdateWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_UpdateWindow, 0x7E146C > const UpdateWindow{};
 
-	typedef LONG ( __stdcall * FP_SetWindowLongA)(HWND hWnd, int nIndex, LONG dwNewLong);
-	static FP_SetWindowLongA &SetWindowLongA;
+	typedef LONG(__stdcall* FP_SetWindowLongA)(HWND hWnd, int nIndex, LONG dwNewLong);
+	static constexpr referencefunc<FP_SetWindowLongA, 0x7E1470 > const SetWindowLongA{};
 
-	typedef LONG ( __stdcall * FP_GetWindowLongA)(HWND hWnd, int nIndex);
-	static FP_GetWindowLongA &GetWindowLongA;
+	typedef LONG(__stdcall* FP_GetWindowLongA)(HWND hWnd, int nIndex);
+	static constexpr referencefunc<FP_GetWindowLongA, 0x7E1474> const GetWindowLongA{};
 
-	typedef BOOL ( __stdcall * FP_ValidateRect)(HWND hWnd, const RECT *lpRect);
-	static FP_ValidateRect &ValidateRect;
+	typedef BOOL(__stdcall* FP_ValidateRect)(HWND hWnd, const RECT* lpRect);
+	static constexpr referencefunc<FP_ValidateRect, 0x7E1478 > const ValidateRect{};
 
-	typedef BOOL ( __stdcall * FP_IntersectRect)(LPRECT lprcDst, const RECT *lprcSrc1, const RECT *lprcSrc2);
-	static FP_IntersectRect &IntersectRect;
+	typedef BOOL(__stdcall* FP_IntersectRect)(LPRECT lprcDst, const RECT* lprcSrc1, const RECT* lprcSrc2);
+	static constexpr referencefunc<FP_IntersectRect, 0x7E147C > const IntersectRect{};
 
-	typedef int ( __stdcall * FP_MessageBoxIndirectA)(LPMSGBOXPARAMSA);
-	static FP_MessageBoxIndirectA &MessageBoxIndirectA;
+	typedef int(__stdcall* FP_MessageBoxIndirectA)(LPMSGBOXPARAMSA);
+	static constexpr referencefunc<FP_MessageBoxIndirectA, 0x7E1480 > const MessageBoxIndirectA{};
 
-	typedef BOOL ( __stdcall * FP_PeekMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
-	static FP_PeekMessageA &PeekMessageA;
+	typedef BOOL(__stdcall* FP_PeekMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+	static constexpr referencefunc<FP_PeekMessageA, 0x7E1484> const PeekMessageA{};
 
-	typedef LRESULT ( __stdcall * FP_CallWindowProcA)(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	static FP_CallWindowProcA &CallWindowProcA;
+	typedef LRESULT(__stdcall* FP_CallWindowProcA)(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static constexpr referencefunc<FP_CallWindowProcA, 0x7E1488> const CallWindowProcA{};
 
-	typedef BOOL ( __stdcall * FP_KillTimer)(HWND hWnd, UINT uIDEvent);
-	static FP_KillTimer &KillTimer;
+	typedef BOOL(__stdcall* FP_KillTimer)(HWND hWnd, UINT uIDEvent);
+	static constexpr referencefunc<FP_KillTimer, 0x7E148C> const KillTimer{};
 
-	typedef LONG ( __stdcall * FP_SendDlgItemMessageA)(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
-	static FP_SendDlgItemMessageA &SendDlgItemMessageA;
+	typedef LONG(__stdcall* FP_SendDlgItemMessageA)(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static constexpr referencefunc<FP_SendDlgItemMessageA, 0x7E1490> const SendDlgItemMessageA{};
 
-	typedef UINT ( __stdcall * FP_SetTimer)(HWND hWnd, UINT nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
-	static FP_SetTimer &SetTimer;
+	typedef UINT(__stdcall* FP_SetTimer)(HWND hWnd, UINT nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
+	static constexpr referencefunc<FP_SetTimer, 0x7E1494> const SetTimer{};
 
-	typedef BOOL ( __stdcall * FP_ShowWindow)(HWND hWnd, int nCmdShow);
-	static FP_ShowWindow &ShowWindow;
+	typedef BOOL(__stdcall* FP_ShowWindow)(HWND hWnd, int nCmdShow);
+	static constexpr referencefunc<FP_ShowWindow, 0x7E1498 > const ShowWindow{};
 
-	typedef BOOL ( __stdcall * FP_InvalidateRect)(HWND hWnd, const RECT *lpRect, BOOL bErase);
-	static FP_InvalidateRect &InvalidateRect;
+	typedef BOOL(__stdcall* FP_InvalidateRect)(HWND hWnd, const RECT* lpRect, BOOL bErase);
+	static constexpr referencefunc<FP_InvalidateRect, 0x7E149C > const InvalidateRect{};
 
-	typedef BOOL ( __stdcall * FP_EnableWindow)(HWND hWnd, BOOL bEnable);
-	static FP_EnableWindow &EnableWindow;
+	typedef BOOL(__stdcall* FP_EnableWindow)(HWND hWnd, BOOL bEnable);
+	static constexpr referencefunc<FP_EnableWindow, 0x7E14A0> const EnableWindow{};
 
-	typedef LRESULT ( __stdcall * FP_SendMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	static FP_SendMessageA &SendMessageA;
+	typedef LRESULT(__stdcall* FP_SendMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static constexpr referencefunc<FP_SendMessageA, 0x7E14A4> const SendMessageA{};
 
-	typedef HWND ( __stdcall * FP_GetDlgItem)(HWND hDlg, int nIDDlgItem);
-	static FP_GetDlgItem &GetDlgItem;
+	typedef HWND(__stdcall* FP_GetDlgItem)(HWND hDlg, int nIDDlgItem);
+	static constexpr referencefunc<FP_GetDlgItem, 0x7E14A8 > const GetDlgItem{};
 
-	typedef BOOL ( __stdcall * FP_PostMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	static FP_PostMessageA &PostMessageA;
+	typedef BOOL(__stdcall* FP_PostMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	static constexpr referencefunc<FP_PostMessageA, 0x7E14AC > const PostMessageA{};
 
-	typedef int ( * FP_wsprintfA)(LPSTR, LPCSTR, ...);
-	static FP_wsprintfA &wsprintfA;
+	typedef int (*FP_wsprintfA)(LPSTR, LPCSTR, ...);
+	static constexpr referencefunc<FP_wsprintfA, 0x7E14B0> const wsprintfA{};
 
-	typedef BOOL ( __stdcall * FP_SetRect)(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom);
-	static FP_SetRect &SetRect;
+	typedef BOOL(__stdcall* FP_SetRect)(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom);
+	static constexpr referencefunc<FP_SetRect, 0x7E14B4 > const SetRect{};
 
-	typedef BOOL ( __stdcall * FP_ClientToScreen)(HWND hWnd, LPPOINT lpPoint);
-	static FP_ClientToScreen &ClientToScreen;
+	typedef BOOL(__stdcall* FP_ClientToScreen)(HWND hWnd, LPPOINT lpPoint);
+	static constexpr referencefunc<FP_ClientToScreen, 0x7E14B8> const ClientToScreen{};
 
-	typedef BOOL ( __stdcall * FP_TranslateMessage)(const MSG *lpMsg);
-	static FP_TranslateMessage &TranslateMessage;
+	typedef BOOL(__stdcall* FP_TranslateMessage)(const MSG* lpMsg);
+	static constexpr referencefunc<FP_TranslateMessage, 0x7E14BC> const TranslateMessage{};
 
-	typedef LONG ( __stdcall * FP_DispatchMessageA)(const MSG *lpMsg);
-	static FP_DispatchMessageA &DispatchMessageA;
+	typedef LONG(__stdcall* FP_DispatchMessageA)(const MSG* lpMsg);
+	static constexpr referencefunc<FP_DispatchMessageA, 0x7E14C0> const DispatchMessageA{};
 
-	typedef BOOL ( __stdcall * FP_GetClientRect)(HWND hWnd, LPRECT lpRect);
-	static FP_GetClientRect &GetClientRect;
+	typedef BOOL(__stdcall* FP_GetClientRect)(HWND hWnd, LPRECT lpRect);
+	static constexpr referencefunc<FP_GetClientRect, 0x7E14C4 > const GetClientRect{};
 
-	typedef HWND ( __stdcall * FP_GetWindow)(HWND hWnd, UINT uCmd);
-	static FP_GetWindow &GetWindow;
+	typedef HWND(__stdcall* FP_GetWindow)(HWND hWnd, UINT uCmd);
+	static constexpr referencefunc<FP_GetWindow, 0x7E14C8> const GetWindow{};
 
-	typedef BOOL ( __stdcall * FP_BringWindowToTop)(HWND hWnd);
-	static FP_BringWindowToTop &BringWindowToTop;
+	typedef BOOL(__stdcall* FP_BringWindowToTop)(HWND hWnd);
+	static constexpr referencefunc<FP_BringWindowToTop, 0x7E14CC> const BringWindowToTop{};
 
-	typedef BOOL ( __stdcall * FP_SetForegroundWindow)(HWND hWnd);
-	static FP_SetForegroundWindow &SetForegroundWindow;
+	typedef BOOL(__stdcall* FP_SetForegroundWindow)(HWND hWnd);
+	static constexpr referencefunc<FP_SetForegroundWindow, 0x7E14D0 > const SetForegroundWindow{};
 
-	typedef HWND ( __stdcall * FP_CreateWindowExA)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-	static FP_CreateWindowExA &CreateWindowExA;
+	typedef HWND(__stdcall* FP_CreateWindowExA)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+	static constexpr referencefunc<FP_CreateWindowExA, 0x7E14D4> const CreateWindowExA{};
 
-	typedef ATOM ( __stdcall * FP_RegisterClassA)(const WNDCLASSA *lpWndClass);
-	static FP_RegisterClassA &RegisterClassA;
+	typedef ATOM(__stdcall* FP_RegisterClassA)(const WNDCLASSA* lpWndClass);
+	static constexpr referencefunc<FP_RegisterClassA, 0x7E14D8> const RegisterClassA{};
 
-	typedef int ( __stdcall * FP_GetClassNameA)(HWND hWnd, LPSTR lpClassName, int nMaxCount);
-	static FP_GetClassNameA &GetClassNameA;
+	typedef int(__stdcall* FP_GetClassNameA)(HWND hWnd, LPSTR lpClassName, int nMaxCount);
+	static constexpr referencefunc<FP_GetClassNameA, 0x7E14DC> const GetClassNameA{};
 
-	typedef BOOL ( __stdcall * FP_IsWindowVisible)(HWND hWnd);
-	static FP_IsWindowVisible &IsWindowVisible;
+	typedef BOOL(__stdcall* FP_IsWindowVisible)(HWND hWnd);
+	static constexpr referencefunc<FP_IsWindowVisible, 0x7E14E0> const IsWindowVisible{};
 
-	typedef BOOL ( __stdcall * FP_EnumChildWindows)(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
-	static FP_EnumChildWindows &EnumChildWindows;
+	typedef BOOL(__stdcall* FP_EnumChildWindows)(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
+	static constexpr referencefunc<FP_EnumChildWindows, 0x7E14E4> const EnumChildWindows{};
 
-	typedef BOOL ( __stdcall * FP_IsWindowEnabled)(HWND hWnd);
-	static FP_IsWindowEnabled &IsWindowEnabled;
+	typedef BOOL(__stdcall* FP_IsWindowEnabled)(HWND hWnd);
+	static constexpr referencefunc<FP_IsWindowEnabled, 0x7E14E8> const IsWindowEnabled{};
 
-	typedef HWND ( __stdcall * FP_GetParent)(HWND hWnd);
-	static FP_GetParent &GetParent;
+	typedef HWND(__stdcall* FP_GetParent)(HWND hWnd);
+	static constexpr referencefunc<FP_GetParent, 0x7E14EC > const GetParent{};
 
-	typedef HWND ( __stdcall * FP_GetNextDlgTabItem)(HWND hDlg, HWND hCtl, BOOL bPrevious);
-	static FP_GetNextDlgTabItem &GetNextDlgTabItem;
+	typedef HWND(__stdcall* FP_GetNextDlgTabItem)(HWND hDlg, HWND hCtl, BOOL bPrevious);
+	static constexpr referencefunc<FP_GetNextDlgTabItem, 0x7E14F0 > const GetNextDlgTabItem{};
 
-	typedef BOOL ( __stdcall * FP_IsDialogMessageA)(HWND hDlg, LPMSG lpMsg);
-	static FP_IsDialogMessageA &IsDialogMessageA;
+	typedef BOOL(__stdcall* FP_IsDialogMessageA)(HWND hDlg, LPMSG lpMsg);
+	static constexpr referencefunc<FP_IsDialogMessageA, 0x7E14F4> const IsDialogMessageA{};
 
-	typedef int ( __stdcall * FP_TranslateAcceleratorA)(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
-	static FP_TranslateAcceleratorA &TranslateAcceleratorA;
+	typedef int(__stdcall* FP_TranslateAcceleratorA)(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
+	static constexpr referencefunc<FP_TranslateAcceleratorA, 0x7E14F8> const TranslateAcceleratorA{};
 
-	typedef BOOL ( __stdcall * FP_CharToOemBuffA)(LPCSTR lpszSrc, LPSTR lpszDst, DWORD cchDstLength);
-	static FP_CharToOemBuffA &CharToOemBuffA;
+	typedef BOOL(__stdcall* FP_CharToOemBuffA)(LPCSTR lpszSrc, LPSTR lpszDst, DWORD cchDstLength);
+	static constexpr referencefunc<FP_CharToOemBuffA, 0x7E14FC > const CharToOemBuffA{};
 
-	typedef HDC ( __stdcall * FP_BeginPaint)(HWND hWnd, LPPAINTSTRUCT lpPaint);
-	static FP_BeginPaint &BeginPaint;
+	typedef HDC(__stdcall* FP_BeginPaint)(HWND hWnd, LPPAINTSTRUCT lpPaint);
+	static constexpr referencefunc<FP_BeginPaint, 0x7E1500 > const BeginPaint{};
 
-	typedef BOOL ( __stdcall * FP_EndPaint)(HWND hWnd, const PAINTSTRUCT *lpPaint);
-	static FP_EndPaint &EndPaint;
+	typedef BOOL(__stdcall* FP_EndPaint)(HWND hWnd, const PAINTSTRUCT* lpPaint);
+	static constexpr referencefunc<FP_EndPaint, 0x7E1504 > const EndPaint{};
 
-	typedef HWND ( __stdcall * FP_CreateDialogParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-	static FP_CreateDialogParamA &CreateDialogParamA;
+	typedef HWND(__stdcall* FP_CreateDialogParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	static constexpr referencefunc<FP_CreateDialogParamA, 0x7E1508 > const CreateDialogParamA{};
 
-	typedef int ( __stdcall * FP_GetWindowTextA)(HWND hWnd, LPSTR lpString, int nMaxCount);
-	static FP_GetWindowTextA &GetWindowTextA;
+	typedef int(__stdcall* FP_GetWindowTextA)(HWND hWnd, LPSTR lpString, int nMaxCount);
+	static constexpr referencefunc<FP_GetWindowTextA, 0x7E150C> const GetWindowTextA{};
 
-	typedef BOOL ( __stdcall * FP_RegisterHotKey)(HWND hWnd, int id, UINT fsModifiers, UINT vk);
-	static FP_RegisterHotKey &RegisterHotKey;
+	typedef BOOL(__stdcall* FP_RegisterHotKey)(HWND hWnd, int id, UINT fsModifiers, UINT vk);
+	static constexpr referencefunc<FP_RegisterHotKey, 0x7E1510 > const RegisterHotKey{};
 
 	typedef LONG(__stdcall* FP_InterlockedIncrement)(void* lpAddend);
-	static FP_InterlockedIncrement& InterlockedIncrement;
+	static constexpr referencefunc<FP_InterlockedIncrement, 0x7E11C8> const  InterlockedIncrementFunc{};
 
 	typedef LONG(__stdcall* FP_InterlockedDecrement)(void* lpAddend);
-	static FP_InterlockedDecrement& InterlockedDecrement;
+	static constexpr referencefunc<FP_InterlockedDecrement, 0x7E11CC> const InterlockedDecrementFunc{};
 
 	typedef void(__stdcall* FP_DeleteCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
-	static FP_DeleteCriticalSection& DeleteCriticalSection;
+	static constexpr referencefunc<FP_DeleteCriticalSection, 0x7E11E4> const DeleteCriticalSection{};
 
 	typedef void(__stdcall* FP_EnterCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
-	static FP_EnterCriticalSection& EnterCriticalSection;
+	static constexpr referencefunc<FP_EnterCriticalSection, 0x7E11E8 > const EnterCriticalSection{};
 
 	typedef void(__stdcall* FP_LeaveCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
-	static FP_LeaveCriticalSection& LeaveCriticalSection;
+	static constexpr referencefunc<FP_LeaveCriticalSection, 0x7E11EC> const LeaveCriticalSection{};
 
 	typedef void(__stdcall* FP_InitializeCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
-	static FP_InitializeCriticalSection& InitializeCriticalSection;
+	static constexpr referencefunc<FP_InitializeCriticalSection, 0x7E11F4> const InitializeCriticalSection{};
 
 	typedef void(__stdcall* FP_Sleep)(DWORD dwMilliseconds);
-	static FP_Sleep& Sleep;
+	static constexpr referencefunc<FP_Sleep, 0x7E11F0 > const Sleep{};
 
+	//Kernel32.dll
+	typedef BOOL(__stdcall* FP_FindClose)(HANDLE hFindFile);
+	static constexpr referencefunc<FP_FindClose, 0x7E1300 > const FindClose{};
 };
 
+template<typename Deleter>
 class MovieInfo
 {
 public:
 	// technically, this is a DVC<const char*>
 	// and string management is done manually
-	static constexpr reference<DynamicVectorClass<MovieInfo>, 0xABF390u> const Array {};
+	static constexpr reference<DynamicVectorClass<MovieInfo<GameDeleter>>, 0xABF390u> const Array {};
 
 	bool operator== (MovieInfo const& rhs) const
 	{
@@ -629,7 +642,7 @@ public:
 	~MovieInfo()
 	{
 		if(this->Name) {
-			CRT::free(const_cast<char*>(this->Name));
+			Deleter(const_cast<char*>(this->Name));
 		}
 	}
 
@@ -671,38 +684,44 @@ struct ColorPacker
 
 namespace Unsorted
 {
-	static constexpr reference<int, 0xA8ED84> CurrentFrame {};
-	static constexpr reference<int, 0x7F4890, 8> DefaultFacingTable {};
+	static constexpr reference<const char* const, 0x7E5214u, 11u> const ArmorNameArray{};
+	static constexpr reference<const char* const, 0x7E5240u, 19u> const PowerUpsNameArray{};
 
-	static constexpr reference<GroundType*, 0x89EA40u> GroundTypeData {};
+	static constexpr reference<int, 0xA8ED84u> const CurrentFrame{};
+	static constexpr reference<int, 0xA8B568u> const MaxAhead{};
+	static constexpr reference<int, 0xA8DB9Cu> const NetworkFudge{};
+	static constexpr reference<int, 0xA8B554u> const FrameSendRate{};
+
+	static constexpr reference<GroundType*, 0x89EA40u> GroundTypeData{};
 	// if != 0, EVA_SWxxxActivated is skipped
-	static constexpr reference<int, 0xA8B538> MuteSWLaunches {};
+	static constexpr reference<int, 0xA8B538> MuteSWLaunches{};
 
 	// skip unit selection and move command voices?
-	static constexpr reference<bool, 0x822CF2> MoveFeedback {};
+	static constexpr reference<bool, 0x822CF2> MoveFeedback{};
 
-	static constexpr reference<byte, 0xA8ED6B> ArmageddonMode {};
-	static constexpr reference<byte, 0xA8E9A0> WTFMode {};
-	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360> ObjectsInLayers {};
+	static constexpr reference<bool, 0xA8ED6B> ArmageddonMode{};
+	static constexpr reference<bool, 0xA8E9A0> WTFMode{};
+	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360> ObjectsInLayers{};
 
-// checkbox states, afaik
-	static constexpr reference<byte, 0xA8B258> Bases {};
-	static constexpr reference<byte, 0xA8B260> BridgeDestruction {};
-	static constexpr reference<byte, 0xA8B261> Crates {};
-	static constexpr reference<byte, 0xA8B262> ShortGame {};
-	static constexpr reference<byte, 0xA8B263> SWAllowed {};
-	static constexpr reference<byte, 0xA8B26C> MultiEngineer {};
-	static constexpr reference<byte, 0xA8B31C> AlliesAllowed {};
-	static constexpr reference<byte, 0xA8B31D> HarvesterTruce {};
-	static constexpr reference<byte, 0xA8B31E> CTF {};
-	static constexpr reference<byte, 0xA8B31F> FOW {};
-	static constexpr reference<byte, 0xA8B320> MCVRedeploy {};
+	// checkbox states, afaik
+	static constexpr reference<bool, 0xA8B258> Bases{};
+	static constexpr reference<bool, 0xA8B260> BridgeDestruction{};
+	static constexpr reference<bool, 0xA8B261> Crates{};
+	static constexpr reference<bool, 0xA8B262> ShortGame{};
+	static constexpr reference<bool, 0xA8B263> SWAllowed{};
+	static constexpr reference<bool, 0xA8B26C> MultiEngineer{};
+	static constexpr reference<bool, 0xA8B31C> AlliesAllowed{};
+	static constexpr reference<bool, 0xA8B31D> HarvesterTruce{};
+	static constexpr reference<bool, 0xA8B31E> CTF{};
+	static constexpr reference<bool, 0xA8B31F> FOW{};
+	static constexpr reference<bool, 0xA8B320> MCVRedeploy{};
 
-	static constexpr reference<TacticalSelectableStruct, 0xB0CEC8, 500> TacticalSelectables {};
-	static constexpr reference<bool, 0xB0FE65> TypeSelecting {};
-	static constexpr reference<HWND, 0xB73550u> const Game_hWnd {};
+	static constexpr reference<TacticalSelectableStruct, 0xB0CEC8, 500> TacticalSelectables{};
+	static constexpr reference<bool, 0xB0FE65> TypeSelecting{};
+	static constexpr constant_ptr<HWND, 0xB73550u> const Game_hWnd_ptr{};
 
-	static constexpr constant_ptr<ColorPacker, 0x8A0DD0> ColorPackData {};
+
+	static constexpr constant_ptr<ColorPacker, 0x8A0DD0> ColorPackData{};
 
 	static constexpr constant_ptr<CellStruct, 0xABD490> CellSpreadTable {};
 

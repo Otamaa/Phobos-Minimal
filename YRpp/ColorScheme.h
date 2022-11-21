@@ -70,7 +70,7 @@ public:
 public:
 	int                ArrayIndex; // this is off by one (always one higher than the actual index). that's because consistency and reason suck.
 	BytePalette Colors;
-	char*              ID;
+	const char*       ID;
 	ColorStruct BaseColor;
 	LightConvertClass* LightConvert;	//??? remap - indices #16-#31 are changed to mathefuckikally derived shades of BaseColor, think unittem.pal
 	int   ShadeCount;

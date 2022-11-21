@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <GlobalConfig.h>
 #include <YRPP.h>
 #include <HouseTypeClass.h>
 #include <TeamTypeClass.h>
@@ -183,7 +182,7 @@ public:
 	TechnoTypeClass* ConditionObject;
 	TeamTypeClass*   Team1;
 	TeamTypeClass*   Team2;
-	AITriggerConditionComparator Conditions [4]; // don't ask
+	ArrayWrapper<AITriggerConditionComparator, 4u> Conditions; // don't ask
 	int              TimesExecuted;
 	int              TimesCompleted;
 	int              unknown_10C;

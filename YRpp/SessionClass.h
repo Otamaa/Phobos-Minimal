@@ -667,7 +667,7 @@ public:
 	int MaxMaxAhead;
 	int PrecalcMaxAhead;
 	int PrecalcDesiredFrameRate;
-	MPStatsStruct MPStats[8];
+	ArrayWrapper<MPStatsStruct , 8u> MPStats;
 	bool EnableMultiplayerDebug;
 	bool DrawMPDebugStats;
 	char field_67E;

@@ -27,9 +27,9 @@ struct BuildingAnimFrameStruct
 
 struct FoundationOutlineStruct
 {
-	CellStruct Data[30];
+	ArrayWrapper<CellStruct , 0x1E> Datas;
 };
-//static_assert(sizeof(FoundationOutlineStruct) == 0x78);
+static_assert(sizeof(FoundationOutlineStruct) == 0x78);
 
 class DECLSPEC_UUID("AE8B33DB-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE BuildingTypeClass : public TechnoTypeClass
@@ -218,9 +218,8 @@ public:
 	int MidPoint;
 	int DoorStages;
 
-	BuildingAnimFrameStruct BuildingAnimFrame[6];
-
-	BuildingAnimStruct BuildingAnim[0x15];
+	ArrayWrapper<BuildingAnimFrameStruct , 6u> BuildingAnimFrame;
+	ArrayWrapper<BuildingAnimStruct, 0x15u> BuildingAnim;
 
 	int Upgrades;
 	SHPStruct* DeployingAnim;
@@ -280,16 +279,14 @@ public:
 	int MaxNumberOccupants;
 	bool ShowOccupantPips;
 
-	Point2D MuzzleFlash[0xA];
-
-	Point2D DamageFireOffset[8];
+	ArrayWrapper<Point2D , 0xAu> MuzzleFlash;
+	ArrayWrapper<Point2D ,8u> DamageFireOffset;
 
 	Point2D QueueingCell;
 	int NumberImpassableRows;
 
-	Point2D RemoveOccupy[8];
-
-	Point2D AddOccupy[8];
+	ArrayWrapper<Point2D, 8u>  RemoveOccupy;
+	ArrayWrapper<Point2D, 8u>  AddOccupy;
 
 	bool Radar;
 	bool SpySat;

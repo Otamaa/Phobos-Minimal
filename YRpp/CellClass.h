@@ -69,8 +69,8 @@ public:
 	static const AbstractType AbsID = AbstractType::Cell;
 
 	// the height of a bridge in leptons
-	static constexpr int BridgeLevels = 4;
-	static constexpr int BridgeHeight = 416;
+	static inline constexpr int BridgeLevels = 4;
+	static inline constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x485200);
@@ -89,14 +89,19 @@ public:
 	//virtual CoordStruct* GetAltCoords(CoordStruct* pCrd) const override JMP_THIS(0x486890); //GetCoords__
 
 	// non-virtual
-	static std::array<const TileTypeData, 21> TileArray;
+	static std::array<const DWORD, 21> TileArray;
 
 	//Using typedef resulting on dll address wtf , so this weird code
 	//Don't inline this , it will messup the stacks
 	bool NOINLINE TileIs(TileType tileType) const
 	{
-		const uintptr_t addr = TileArray[(int)tileType].Data;
-		return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
+		if (!(int)tileType)
+			return false;
+
+		const uintptr_t addr = TileArray[(int)tileType];
+		EPILOG_THISCALL;
+		JMP(addr);
+		//return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
 	}
 
 	#define ISTILE(tileset, addr) \

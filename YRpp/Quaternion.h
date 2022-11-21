@@ -10,7 +10,7 @@ class Quaternion
 {
 public:
 	//Constructor
-	Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f) : X(x), Y(y), Z(z), W(w) {}
+	//Quaternion(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 0.0f) : X(x), Y(y), Z(z), W(w) {}
 
 	//auto operator()()
 	//{
@@ -197,7 +197,7 @@ public:
 	Quaternion operator* (float scl)
 	{
 		Quaternion buffer = *this;
-		return Quaternion(scl*buffer[0], scl*buffer[1], scl*buffer[2], scl*buffer[3]);
+		return {scl * buffer[0], scl * buffer[1], scl * buffer[2], scl * buffer[3] };
 	}
 
 	Quaternion operator/ (const Quaternion& b)
@@ -208,18 +208,18 @@ public:
 	Quaternion operator- (const Quaternion& b)
 	{
 		Quaternion a = *this;
-		return Quaternion(a[0] - b[0], a[1] - b[1], a[2] - b[2], a[3] - b[3]);
+		return { a[0] - b[0], a[1] - b[1], a[2] - b[2], a[3] - b[3] };
 	}
 
 	Quaternion operator+ (const Quaternion& b)
 	{
 		Quaternion a = *this;
-		return Quaternion(a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]);
+		return  { a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3] };
 	}
 
 	float & operator[](int i) { JMP_THIS(0x645D00); }
 	const float & operator[](int i) const { JMP_THIS(0x645D10); }
-	Quaternion operator-() const { return Quaternion(-X, -Y, -Z, -W); }
+	Quaternion operator-() const { return { -X, -Y, -Z, -W }; }
 	Quaternion operator+() const { return *this; }
 
 	float Angle(Quaternion B) { double dot = Dot(*this, B); return static_cast<float>(Math::acos(fmin(fabs(dot), 1)) * 2); }

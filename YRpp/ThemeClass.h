@@ -23,8 +23,8 @@ class NOVTABLE ThemeClass
 {
 public:
 
-	static constexpr reference<ThemeClass, 0xA83D10> Instance {};
-	static constexpr reference<bool, 0xA8EC74> ScoresPresent {};
+	static constexpr reference<ThemeClass, 0xA83D10> const Instance {};
+	static constexpr reference<bool, 0xA8EC74> const ScoresPresent {};
 
 	const char* GetID(unsigned int index) const
 		{ JMP_THIS(0x721270) }

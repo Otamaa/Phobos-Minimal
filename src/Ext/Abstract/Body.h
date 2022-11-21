@@ -14,20 +14,20 @@ class TExtension : public IExtension
 {
 private:
 	T* AttachedToObject;
-	InitState Initialized;
+	AbstractType WhatIAm;
 
 public:
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject { OwnerObject }
-		, Initialized { InitState::Blank }
-	{
+	{ 
+		WhatIAm = OwnerObject->WhatAmI();
+		Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(WhatIAm));
 	}
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
-		, Initialized { InitState::Blank }
-	{
-	}
+		, WhatIAm { AbstractType::Abstract }
+	{ }
 
 	TExtension(const TExtension&) = delete;
 	void operator=(const TExtension&) = delete;
@@ -82,9 +82,15 @@ public:
 		}
 	}
 
-	//virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { }
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) {
+		Stm.Process(WhatIAm);
+	}
+
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { 
+		Stm.Process(WhatIAm); 
+	}
 
 	template<typename StmType>
 	inline void Serialize(StmType& Stm) { static_assert(true, "Please Implement Specific function for this !"); }
@@ -225,11 +231,11 @@ public:
 			if (const auto val = new extension_type(key))
 			{
 				val->EnsureConstanted();
-				key->unknown_18.reset(val);
+				key->unknown_18 = (val);
 			}
 		}
 
-		return (extension_type_ptr)key->unknown_18.get();
+		return (extension_type_ptr)key->unknown_18;
 	}
 
 	extension_type_ptr Allocate(const_base_type_ptr key)
@@ -241,7 +247,7 @@ public:
 	{
 		if (key->unknown_18)
 		{
-			key->unknown_18.release();
+			delete key->unknown_18;
 		}
 	}
 
@@ -269,7 +275,7 @@ public:
 				return nullptr;
 		}
 
-		return (extension_type_ptr)key->unknown_18.get();
+		return (extension_type_ptr)key->unknown_18;
 	}
 
 	template<bool Check = false>
@@ -281,7 +287,7 @@ public:
 				return nullptr;
 		}
 
-		return (extension_type_ptr)key->unknown_18.get();
+		return (extension_type_ptr)key->unknown_18;
 	}
 
 	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)

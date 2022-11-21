@@ -107,7 +107,7 @@ protected:
 
 public:
 
-	DynamicVectorClass<ControlNode*> ControlNodes;
+	DECLARE_PROPERTY(DynamicVectorClass<ControlNode*>, ControlNodes);
 	int MaxControlNodes;
 	bool InfiniteMindControl;
 	bool OverloadDeathSoundPlayed; // Has the mind control death sound played already?

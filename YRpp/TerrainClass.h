@@ -33,17 +33,12 @@ public:
 	virtual int Size() const R0;
 
 	//ObjectClass
-	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x71C930);
-
-	// place the object on the map
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x71D000);
+	virtual bool UpdatePlacement(PlacementType value) override { JMP_THIS(0x71BFB0); }
 
-	void Placement_DrawIt_71C360(Point2D& nPoint, RectangleStruct& nRect)
+	void Placement_DrawIt_71C360(const Point2D& nPoint, const RectangleStruct& nRect)
 	{ JMP_THIS(0x71C360); }
-
-	void UpdatePlacement(PlacementType nType) const
-	{ JMP_THIS(0x71BFB0); }
 
 	//Constructor, Destructor
 	TerrainClass(TerrainTypeClass* tt, CellStruct coords) noexcept
@@ -65,8 +60,9 @@ public:
 	TerrainTypeClass* Type;
 	bool IsBurning; // this terrain object has been ignited
 	bool TimeToDie; // finish the animation and uninit
-	PROTECTED_PROPERTY(BYTE, TerrainPad[0x2]);
-	RectangleStruct unknown_rect_D0;
+	int field_D0;
+	int field_D4;
+	Point2D DrawPos;
 
 };
 static_assert(sizeof(TerrainClass) == 0xE0, "Invalid Size!");

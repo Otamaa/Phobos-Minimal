@@ -34,6 +34,10 @@ public:
 		return buffer;
 	}
 
+	void SetOwnerAndWeaponType(TechnoClass* pOwner, int WeaponSlot) {
+		JMP_THIS(0x4C2BD0);
+	}
+
 	static void __fastcall DrawAll()
 	{ JMP_STD(0x4C2830); }
 

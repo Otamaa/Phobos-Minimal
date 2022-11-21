@@ -65,5 +65,6 @@ public:
 	int     Group;
 	int     CountEntries;
 	bool    IsGlobal;
-	TaskForceEntryStruct Entries [0x6];
+	ArrayWrapper<TaskForceEntryStruct , 0x6> Entries;
 };
+static_assert(sizeof(TaskForceClass) == 0xD4, "Invalid Size !");

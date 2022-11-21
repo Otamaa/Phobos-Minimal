@@ -83,7 +83,7 @@ class NOVTABLE MissionClass : public ObjectClass
 {
 public:
 	//Destructor
-	virtual ~MissionClass() { /* ~ObjectClass() */ }
+	virtual ~MissionClass() RX;
 
 	//MissionClass
 	virtual bool QueueMission(Mission mission, bool start_mission) R0; //assign
@@ -124,69 +124,13 @@ public:
 	virtual int Mission_SpyPlaneApproach() R0;
 	virtual int Mission_SpyPlaneOverfly() R0;
 
-private:
 	static bool __fastcall IsRecruitableMission(Mission mission) { JMP_STD(0x5B36E0); }
-public:
 
 	MissionControlClass* GetCurrentMissionControl() const { JMP_THIS(0x5B3A00); }
 	void Shorten_Mission_Timer() { UpdateTimer = 0; }
 	bool HasSuspendedMission() const { JMP_THIS(0x5B3A10); }
 	int MissionTime() const { JMP_THIS(0x5B3A20); }
 	Mission GetMission() const { JMP_THIS(0x5B3040); }
-
-	MissionControlClass* GetMissionControl(MissionFlags nFlag = MissionFlags::CurrentMission) const
-	{
-		switch (nFlag)
-		{
-		case MissionFlags::QueuedMission:
-			return &MissionControlClass::Controls[(int)(this->QueuedMission) + 1];
-			break;
-		case MissionFlags::SuspendedMission:
-			return &MissionControlClass::Controls[(int)(this->SuspendedMission) + 1];
-			break;
-		default:
-			return this->GetCurrentMissionControl();
-			break;
-		}
-	}
-
-	bool IsRecuitable(MissionFlags nFlag = MissionFlags::CurrentMission) const
-	{
-		switch (nFlag)
-		{
-		case MissionFlags::QueuedMission:
-			return MissionClass::IsRecruitableMission(this->QueuedMission);
-			break;
-		case MissionFlags::SuspendedMission:
-			return  MissionClass::IsRecruitableMission(this->SuspendedMission);
-			break;
-		default:
-			return  MissionClass::IsRecruitableMission(this->CurrentMission);
-			break;
-		}
-	}
-
-	Mission FetchMission(MissionFlags nFlag = MissionFlags::CurrentMission) const
-	{
-		switch (nFlag)
-		{
-		case MissionFlags::QueuedMission:
-			return this->QueuedMission;
-			break;
-		case MissionFlags::SuspendedMission:
-			return  this->SuspendedMission;
-			break;
-		default:
-			return this->CurrentMission;
-			break;
-		}
-	}
-
-	const char* ToString(MissionFlags nFlag) const
-	{
-		return GetMissionControl(nFlag)->ToString();
-	}
-
 
 	//Constructor
 	MissionClass() noexcept
@@ -214,4 +158,4 @@ public:
 	DECLARE_PROPERTY(TimerStruct, UpdateTimer);
 };
 
-//static_assert(sizeof(MissionClass) == 0xD4);
+static_assert(sizeof(MissionClass) == 0xD4);

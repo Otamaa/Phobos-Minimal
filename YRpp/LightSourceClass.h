@@ -55,9 +55,9 @@ public:
 		: LightSourceClass(noinit_t())
 	{ JMP_THIS(0x554760); }
 
-	LightSourceClass() noexcept
-		: LightSourceClass(noinit_t())
-	{ JMP_THIS(0x554830); }
+//	LightSourceClass() noexcept
+//		: LightSourceClass(noinit_t())
+//	{ JMP_THIS(0x554830); }
 
 protected:
 	explicit __forceinline LightSourceClass(noinit_t) noexcept

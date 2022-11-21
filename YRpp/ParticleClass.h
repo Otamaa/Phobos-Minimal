@@ -67,8 +67,8 @@ public:
 	float Velocity;
 	CoordStruct gapE8;
 	CoordStruct dwordF4;
-	CoordStruct FireVelocity;
-	Vector3D<float> SparkVelocity;
+	CoordStruct Fire100;
+	Vector3D<float> Spark10C;
 	Vector3D<float> vector3_118;
 	ParticleSystemClass* ParticleSystem;
 	short RemainingEC;

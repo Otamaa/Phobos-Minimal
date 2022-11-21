@@ -1,5 +1,7 @@
 #pragma once
-#include <YRPPCore.h>
+
+#include <ArrayClasses.h>
+#include <Helpers/CompileTime.h>
 
 class AlphaLightingRemapClass
 {
@@ -12,21 +14,22 @@ public:
 	// tables from dark to bright. Each of them just changes the intensity of the source palette.
 	//
 	// If we have a point, whose value in ABuffer is A
-	static AlphaLightingRemapClass* FindOrAllocate(int intensityCount) {
+	static AlphaLightingRemapClass* __stdcall FindOrAllocate(int intensityCount) {
 		JMP_STD(0x420140);
 	}
 
-	static void Release(AlphaLightingRemapClass* pItem) {
+	static void __stdcall Release(AlphaLightingRemapClass* pItem) {
 		JMP_STD(0x420270); }
 
 	AlphaLightingRemapClass(int steps) noexcept
 	{ JMP_THIS(0x4202F0); }
 
+public:
 	union
 	{
 		// Intensity - AlphaValue
 		WORD Table[256][256];
-		WORD Array[65536];
+		WORD DataArray[65536];
 	};
 	int Steps;
 	int RefCount;

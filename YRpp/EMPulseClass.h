@@ -40,8 +40,8 @@ public:
 		TechnoClass* pGenerator) noexcept : EMPulseClass(noinit_t())
 	{ JMP_THIS(0x4C52B0); }
 
-	EMPulseClass() noexcept
-	{ JMP_THIS(0x4C5370); }
+//	EMPulseClass() noexcept : EMPulseClass(noinit_t())
+//	{ JMP_THIS(0x4C5370); }
 
 protected:
 	explicit __forceinline EMPulseClass(noinit_t) noexcept

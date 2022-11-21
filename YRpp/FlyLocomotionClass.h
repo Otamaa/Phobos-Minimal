@@ -79,4 +79,4 @@ public:
 	bool unknown_bool_5F;
 };
 
-//static_assert(sizeof(FlyLocomotionClass) == 0x60);
+static_assert(sizeof(FlyLocomotionClass) == 0x60);

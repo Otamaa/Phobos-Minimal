@@ -26,14 +26,14 @@ public:
 	virtual ~IsometricTileClass() override JMP_THIS(0x543B10);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override { return AbstractType::Isotile; }
-	virtual int Size() const override { return 0xB0; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//ObjectClass
-	virtual ObjectTypeClass* GetType() const R0;
-	virtual bool Limbo() R0;
+	virtual ObjectTypeClass* GetType() const override R0;
+	virtual bool Limbo() override R0;
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) R0;
-	virtual void Draw(Point2D* pLocation, RectangleStruct* pBounds) const RX;
+	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const RX;
 
 	//Constructor
 	IsometricTileClass(int idxType, CellStruct const& location) noexcept

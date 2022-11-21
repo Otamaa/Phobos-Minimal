@@ -474,11 +474,12 @@ struct BasePlanningCellContainer {
 };
 
 // combines number and a string
+template<typename T>
 struct NamedValue {
 	const char* Name;
-	int Value;
+	T Value;
 
-	bool operator == (int value) const {
+	bool operator== (T value) const {
 		return this->Value == value;
 	}
 
@@ -486,7 +487,28 @@ struct NamedValue {
 		return !CRT::strcmpi(this->Name, name);
 	}
 
-	bool operator == (const NamedValue& other) const {
+	bool operator== (const NamedValue<T>& other) const {
 		return this->Value == other.Value && *this == other.Name;
 	}
+
+	bool operator!= (const NamedValue<T>& other) const {
+		return !(*this == other);
+	}
+};
+
+template<typename T , size_t count>
+class ArrayWrapper
+{
+	T Data[count];
+public:
+	constexpr auto begin() const { return std::begin(Data); }
+	constexpr auto end() const { return std::end(Data); }
+	constexpr auto begin() { return std::begin(Data); }
+	constexpr auto end() { return std::end(Data); }
+
+	constexpr int size() const { return count; }
+
+	T at(int Index) const { return Data[Index]; }
+	T& operator[](int nIdx) { return Data[nIdx]; }
+	T operator[](int nIdx) const { return Data[nIdx]; }
 };

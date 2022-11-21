@@ -82,7 +82,7 @@ public:
 	int            ArrayIndex2; //dunno why
 	int            SideIndex;
 	int            ColorSchemeIndex;
-	DWORD			align_C4; //unused , can be used to store ExtData
+	PROTECTED_PROPERTY(DWORD, align_C4); // can be used as EXTData
 
 	//are these unused TS leftovers?
 	double         FirepowerMult;

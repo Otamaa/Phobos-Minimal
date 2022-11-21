@@ -111,7 +111,7 @@ DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
 		{
 			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
-			pItem->unknown_18.reset(val);
+			pItem->unknown_18 = (val);
 		}
 	}
 

@@ -8,7 +8,8 @@
 
 /**
  *  Register a class-object with OLE.
- */
+ 
+
 #define REGISTER_CLASS(_class) \
     { \
         DWORD dwRegister = 0; \
@@ -22,11 +23,11 @@
         } \
        ClassFactories.AddItem(dwRegister); \
     }
-
+*/
 
  /**
   *  Register a class-object with OLE (pre-created factory).
-  */
+  
 #define REGISTER_FACT_CLASS(_class, _fact) \
     { \
         DWORD dwRegister = 0; \
@@ -40,3 +41,4 @@
         } \
         ClassFactories().AddItem(dwRegister); \
     }
+*/

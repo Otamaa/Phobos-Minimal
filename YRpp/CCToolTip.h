@@ -9,10 +9,10 @@ class NOVTABLE CCToolTip : public ToolTipManager
 {
 public:
 	// It's also used in MoneyFormat at 6A934A, not sure what side effect it might leads
-	static constexpr reference<bool, 0x884B8Cu> HideName {};
-	static constexpr reference<bool, 0x884B8F> Bound{};
-	static constexpr reference<CCToolTip*, 0x887368u> Instance {};
-	static constexpr reference<ColorStruct, 0xB0FA1C> ToolTipTextColor{};
+	static constexpr reference<bool, 0x884B8Cu> const HideName {};
+	static constexpr reference<bool, 0x884B8F> const Bound{};
+	static constexpr reference<CCToolTip*, 0x887368u> const Instance {};
+	static constexpr reference<ColorStruct, 0xB0FA1C> const ToolTipTextColor{};
 
 	virtual ~CCToolTip() JMP_THIS(0x7784A0);
 

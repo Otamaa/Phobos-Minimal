@@ -22,22 +22,22 @@ public:
 	/**
 	 *  IUnknown
 	 */
-	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
-	IFACEMETHOD_(ULONG, AddRef)();
-	IFACEMETHOD_(ULONG, Release)();
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) JMP_STD(0x4A04B0);
+	IFACEMETHOD_(ULONG, AddRef)() JMP_STD(0x4A0520);
+	IFACEMETHOD_(ULONG, Release)() JMP_STD(0x4A0540);
 
 	/**
 	 *  IConnectionPoint
 	 */
-	IFACEMETHOD(GetConnectionInterface)(IID* pIID);
-	IFACEMETHOD(GetConnectionPointContainer)(IConnectionPointContainer** ppCPC);
-	IFACEMETHOD(Advise)(IUnknown* pUnkSink, DWORD* pdwCookie);
-	IFACEMETHOD(Unadvise)(DWORD dwCookie);
-	IFACEMETHOD(EnumConnections)(IEnumConnections** ppEnum);
+	IFACEMETHOD(GetConnectionInterface)(IID* pIID) JMP_STD(0x4A05D0);
+	IFACEMETHOD(GetConnectionPointContainer)(IConnectionPointContainer** ppCPC) JMP_STD(0x4A0610);
+	IFACEMETHOD(Advise)(IUnknown* pUnkSink, DWORD* pdwCookie) JMP_STD(0x4A0630);
+	IFACEMETHOD(Unadvise)(DWORD dwCookie) JMP_STD(0x4A0700);
+	IFACEMETHOD(EnumConnections)(IEnumConnections** ppEnum) JMP_STD(0x4A0760);
 
 public:
-	ConnectionPointClass(REFIID riid, IUnknown* a2);
-	~ConnectionPointClass();
+	ConnectionPointClass(REFIID riid, IUnknown* a2)	JMP_THIS(0x4A0870);
+	~ConnectionPointClass()JMP_THIS(0x4A08D0);
 
 private:
 	CLSID field_0;
@@ -53,22 +53,25 @@ public:
 	/**
 	 *  IUnknown
 	 */
-	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
-	IFACEMETHOD_(ULONG, AddRef)();
-	IFACEMETHOD_(ULONG, Release)();
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) JMP_STD(0x49FF80);
+	IFACEMETHOD_(ULONG, AddRef)() JMP_STD(0x49FFF0);
+	IFACEMETHOD_(ULONG, Release)() JMP_STD(0x4A0010);
 
 	/**
 	 *  IEnumConnection
 	 */
-	IFACEMETHOD(Next)(ULONG cConnections, LPCONNECTDATA rgcd, ULONG* pcFetched);
-	IFACEMETHOD(Skip)(ULONG cConnections);
-	IFACEMETHOD(Reset)();
-	IFACEMETHOD(Clone)(IEnumConnections** ppEnum);
+	IFACEMETHOD(Next)(ULONG cConnections, LPCONNECTDATA rgcd, ULONG* pcFetched) JMP_STD(0x4A00B0);
+	IFACEMETHOD(Skip)(ULONG cConnections) JMP_STD(0x4A0160);
+	IFACEMETHOD(Reset)() {
+		this->Current = 0;
+		return 0;
+	}
+	IFACEMETHOD(Clone)(IEnumConnections** ppEnum) JMP_STD(0x4A0190);
 
 public:
-	EnumConnectionsClass(const DynamicVectorClass<CONNECTDATA>& vec);
-	EnumConnectionsClass(const EnumConnectionsClass& that);
-	~EnumConnectionsClass();
+	EnumConnectionsClass(const DynamicVectorClass<CONNECTDATA>& vec)  JMP_THIS(0x4A02B0);
+	EnumConnectionsClass(const EnumConnectionsClass& that) JMP_THIS(0x4A0380);
+	~EnumConnectionsClass() JMP_THIS(0x4A0450);
 
 private:
 	DynamicVectorClass<CONNECTDATA> ConnectData;
@@ -83,22 +86,22 @@ public:
 	/**
 	 *  IUnknown
 	 */
-	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
-	IFACEMETHOD_(ULONG, AddRef)();
-	IFACEMETHOD_(ULONG, Release)();
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) JMP_STD(0x4A0920);
+	IFACEMETHOD_(ULONG, AddRef)() JMP_STD(0x4A0990);
+	IFACEMETHOD_(ULONG, Release)() JMP_STD(0x4A09B0);
 
 	/**
 	 *  IEnumConnectionPoints
 	 */
-	IFACEMETHOD(Next)(ULONG cConnections, LPCONNECTIONPOINT* ppCP, ULONG* pcFetched);
-	IFACEMETHOD(Skip)(ULONG cConnections);
-	IFACEMETHOD(Reset)();
-	IFACEMETHOD(Clone)(IEnumConnectionPoints** ppEnum);
+	IFACEMETHOD(Next)(ULONG cConnections, LPCONNECTIONPOINT* ppCP, ULONG* pcFetched) JMP_STD(0x4A0A50);
+	IFACEMETHOD(Skip)(ULONG cConnections) JMP_STD(0x4A0AF0);
+	IFACEMETHOD(Reset)() JMP_STD(0x4A0B10);
+	IFACEMETHOD(Clone)(IEnumConnectionPoints** ppEnum) JMP_STD(0x4A0B20);
 
 public:
-	EnumConnectionPointsClass();
-	EnumConnectionPointsClass(const DynamicVectorClass<LPCONNECTIONPOINT>& vec);
-	~EnumConnectionPointsClass();
+	EnumConnectionPointsClass()	JMP_THIS(0x4A0CE0);
+	EnumConnectionPointsClass(const DynamicVectorClass<LPCONNECTIONPOINT>& vec)	JMP_THIS(0x4A0C20);
+	~EnumConnectionPointsClass() JMP_THIS(0x4A0DB0);
 
 private:
 	int Current;

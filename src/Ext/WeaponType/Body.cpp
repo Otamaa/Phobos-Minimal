@@ -5,7 +5,7 @@
 
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 WeaponTypeClass* WeaponTypeExt::Temporal_WP = nullptr;
-int WeaponTypeExt::nOldCircumference = 240;
+int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
 
 void WeaponTypeExt::ExtData::Initialize()
 {

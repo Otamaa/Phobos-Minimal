@@ -145,8 +145,6 @@ public:
 
 			return {true , vs};
 		}
-
-		return { false ,  0.0 };
 	}
 
 	// narrow_cast(): a searchable way to do narrowing casts of values

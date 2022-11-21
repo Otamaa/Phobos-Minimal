@@ -101,9 +101,9 @@ public:
 	int SpawnCount;
 	int RegenRate;
 	int ReloadRate;
-	DynamicVectorClass<SpawnNode*> SpawnedNodes;
-	TimerStruct UpdateTimer;
-	TimerStruct SpawnTimer;
+	DECLARE_PROPERTY(DynamicVectorClass<SpawnNode*>, SpawnedNodes);
+	DECLARE_PROPERTY(TimerStruct, UpdateTimer);
+	DECLARE_PROPERTY(TimerStruct, SpawnTimer);
 	AbstractClass* Target; //dest ,suspendedtarget
 	AbstractClass* NewTarget; //target
 	SpawnManagerStatus Status;

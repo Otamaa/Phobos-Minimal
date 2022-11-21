@@ -130,6 +130,15 @@ public:
 	int IncrementUniqueID()
 	{ JMP_THIS(0x68BCB0); }
 
+	static DWORD __fastcall GetRulesUniqueID()
+		{ JMP_STD(0x679D90); }
+
+	static DWORD __fastcall GetArtUniqueID()
+		{ JMP_STD(0x679EC0); }
+
+	static DWORD __fastcall GetAIUniqueID()
+		{ JMP_STD(0x679ED0); }
+
 	//CTOR / DTOR
 protected:
 	ScenarioClass() { THISCALL(0x6832C0); }
@@ -151,7 +160,7 @@ public:
 	TimerStruct PauseTimer;
 	DWORD unknown_62C;
 	bool IsGamePaused;
-	CellStruct Waypoints [702];
+	ArrayWrapper<CellStruct , 702u> Waypoints;
 
 	//Map Header
 	int StartX;
@@ -159,9 +168,9 @@ public:
 	int Width;
 	int Height;
 	int NumberStartingPoints;
-	Point2D StartingPoints [0x8];
-	int HouseIndices [0x10]; // starting position => HouseClass::Array->GetItem(#)
-	CellStruct HouseHomeCells [0x8];
+	ArrayWrapper<Point2D , 0x8u> StartingPoints;
+	ArrayWrapper<int , 0x10u> HouseIndices; // starting position => HouseClass::Array->GetItem(#)
+	ArrayWrapper<CellStruct , 0x8> HouseHomeCells;
 	bool TeamsPresent;
 	int NumCoopHumanStartSpots;
 	TimerStruct MissionTimer;
@@ -196,8 +205,8 @@ public:
 	int CarryOverCap;
 	int Percent;
 
-	Variable GlobalVariables [50];
-	Variable LocalVariables [100];
+	ArrayWrapper<Variable , 50u> GlobalVariables;
+	ArrayWrapper<Variable, 100u> LocalVariables;
 
 	CellStruct View1;
 	CellStruct View2;
@@ -279,4 +288,4 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_373C[4]);
 };
 
-//static_assert(sizeof(ScenarioClass) == 0x3740);
+static_assert(sizeof(ScenarioClass) == 0x3740);

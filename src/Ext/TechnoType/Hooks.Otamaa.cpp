@@ -183,7 +183,7 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_HitAnim, 0x6) // 8
 								}
 							}
 
-							auto const nCoord = pThis->GetCenterCoord() + nBuffer;
+							auto const nCoord = pThis->GetCenterCoords() + nBuffer;
 							if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
 							{
 								AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, pAttacker ? pAttacker->GetOwningHouse() : pAttackerHouse, pThis->GetOwningHouse(), pAttacker, false);

@@ -35,8 +35,7 @@ public:
 	static const auto AbsDerivateID = AbstractFlags::Object;
 
 	//global arrays
-	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
-	static DynamicVectorClass<ObjectClass*>* const CurrentObjectsR;
+	static constexpr reference<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
 	static constexpr reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics{};
 	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360u> const ObjectsInLayers {};
 
@@ -82,7 +81,7 @@ public:
 	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
 	virtual bool IsOnFloor() const  R0;
 	virtual bool IsInAir() const  R0;
-	virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const override R0; //GetCoords__
+	//virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const override R0; //GetCoords__
 
 	virtual void Update() override JMP_THIS(0x5F3E70);
 
@@ -254,12 +253,12 @@ public:
 		return pBuffer;
 	}
 
-	CoordStruct GetCenterCoords() const
-	{
-		CoordStruct ret;
-		this->GetCenterCoords(&ret);
-		return ret;
-	}
+	//CoordStruct GetCenterCoords() const
+	//{
+	//	CoordStruct ret;
+	//	this->GetCenterCoords(&ret);
+	//	return ret;
+	//}
 
 	CoordStruct* GetLocationCoords(CoordStruct* pRet) const
 	{    //return this->Location
