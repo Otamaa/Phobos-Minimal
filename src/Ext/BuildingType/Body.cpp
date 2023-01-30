@@ -465,6 +465,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	if (this->SpyEffect_InfiltratorSuperWeapon.isset())
 		this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
 
+
+	// no code attached
 	this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
 	this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
 	this->RubbleDestroyedAnim.Read(exINI, pSection, "Rubble.Destroyed.Anim");
@@ -475,7 +477,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RubbleIntactStrength.Read(exINI, pSection, "Rubble.Intact.Strength");
 	this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
 	this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
-
+	//
 #pragma endregion
 
 	if (!pArtINI->GetSection(pArtSection))

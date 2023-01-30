@@ -410,9 +410,12 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
+	// Code disabled , require Ares 3.0 ++
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_From.Read(exINI, pSection, "Converts.From");
 	this->Converts_To.Read(exINI, pSection, "Converts.To");
+	//
+
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
 	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");

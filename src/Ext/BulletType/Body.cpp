@@ -128,12 +128,16 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #pragma region Otamaa
+
+	//code disabled , unfinished
 	this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
 	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon" , true);
 	this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
 	this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
 	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
 	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
+	//
+
 	this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
 	this->PreExplodeRange.Read(exINI, pSection, "PreExplodeRange");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");

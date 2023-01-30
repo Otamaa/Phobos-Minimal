@@ -399,7 +399,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->FacingRotation_Disable.Read(exINI, pSection, "FacingRotation.Disabled");
 	this->FacingRotation_DisalbeOnEMP.Read(exINI, pSection, "FacingRotation.DisabledOnEMP");
 	this->FacingRotation_DisalbeOnDeactivated.Read(exINI, pSection, "FacingRotation.DisabledOnDeactivated");
-	this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled");
+	this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled"); // condition disabled , require Ares 3.0 ++
 
 	this->Draw_MindControlLink.Read(exINI, pSection, "MindControl.DrawLink");
 
@@ -457,16 +457,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 	this->SellSound.Read(exINI, pSection, "SellSound");
 	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
-	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay");
+	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay"); // code unfinished
 
 	this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
 	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
 	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
 	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
-	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank");
-	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");
+	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
+	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
+	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType"); //no code 
 
 	this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
 	this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");

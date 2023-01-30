@@ -547,10 +547,12 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 
 DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
-	GET(DriveLocomotionClass*, pLoco, EDI);
+	GET(ILocomotion* const, pILoco, ESI);
 
-	if (auto pFoot = pLoco->LinkedTo) {
-		if (auto pTrans = pFoot->Transporter) {
+	auto const pLoco = static_cast<DriveLocomotionClass* const>(pILoco);
+
+	if (const auto pFoot = pLoco->LinkedTo) {
+		if (const auto pTrans = pFoot->Transporter) {
 			R->EAX(pTrans->GetCell());
 			return 0x4B0516;
 		}

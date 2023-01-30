@@ -68,8 +68,11 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
 	this->GClock_Palette.Read(exINI.GetINI(), pSection, "GClock.Palette");
+
+	// code disabled , unfinished
 	this->ChargeTimer.Read(exINI, pSection, "Timer.ChargeMode");
 	this->ChargeTimer_Backwards.Read(exINI, pSection, "Timer.ChargeModeBackwards");
+	//
 	#pragma endregion
 
 	this->SW_Priority.Read(exINI, pSection, "SW.Priority");
