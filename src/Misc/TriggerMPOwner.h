@@ -4,6 +4,7 @@
 
 #include <Utilities/Savegame.h>
 
+#ifdef E_TriggerMPOwner
 class TriggerMPOwner
 {
 public:
@@ -13,3 +14,4 @@ public:
 
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 };
+#endif

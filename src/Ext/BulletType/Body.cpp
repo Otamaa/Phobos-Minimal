@@ -2,14 +2,11 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
 
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
-BulletTypeExt::ExtData::~ExtData()
-{
-	GameDelete<true>(TrajectoryType);
-}
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
@@ -30,8 +27,9 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 }
 
 void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
-	if (TrajectoryType)
+	if (TrajectoryType) { 
 		TrajectoryType->InvalidatePointer(ptr, bRemoved);
+	}
 }
 
 bool BulletTypeExt::ExtData::HasSplitBehavior()
@@ -83,18 +81,23 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exINI(pINI);
 	INI_EX exArtINI(pArtInI);
 
-	this->Health.Read(exINI, pSection, "Strength");
-	this->Armor.Read(exINI, pSection, "Armor");
+	this->Health.Read(exINI, pSection, GameStrings::Strength());
+	this->Armor.Read(exINI, pSection, GameStrings::Armor());
 	this->Interceptable.Read(exINI, pSection, "Interceptable");
-	this->Gravity.Read(exINI, pSection, "Gravity");
+	this->Gravity.Read(exINI, pSection, GameStrings::Gravity());
 	this->Gravity_HeightFix.Read(exINI, pSection, "Gravity.HeightFix");
 	PhobosTrajectoryType::CreateType(this->TrajectoryType, pINI, pSection, "Trajectory");
 	this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
 	this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
 
+	this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
+	this->SubjectToLand_Detonate.Read(exINI, pSection, "SubjectToLand.Detonate");
+	this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
+	this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
+
 	#pragma region Otamaa
-	this->MissileROTVar.Read(exINI, pSection, "MissileROTVar");
-	this->MissileSafetyAltitude.Read(exINI, pSection, "MissileSafetyAltitude");
+	this->MissileROTVar.Read(exINI, pSection, GameStrings::MissileROTVar());
+	this->MissileSafetyAltitude.Read(exINI, pSection, GameStrings::MissileSafetyAltitude());
 	#pragma endregion
 
 	this->AirburstSpread.Read(exINI, pSection, "AirburstSpread");
@@ -131,11 +134,11 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
 	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
 	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
-	this->Parachute.Read(exArtINI, pArtSection, "Parachute");
-	this->PreExplodeRange.Read(exINI, pSection, " ");
+	this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
+	this->PreExplodeRange.Read(exINI, pSection, "PreExplodeRange");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 	this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
-	this->IsScalable.Read(exINI, pSection, "Scalable");
+	this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
 #endif
@@ -155,6 +158,12 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Gravity_HeightFix)
 		.Process(this->Shrapnel_AffectsGround)
 		.Process(this->Shrapnel_AffectsBuildings)
+
+		.Process(this->SubjectToLand)
+		.Process(this->SubjectToLand_Detonate)
+		.Process(this->SubjectToWater)
+		.Process(this->SubjectToWater_Detonate)
+
 		.Process(this->Cluster_Scatter_Min)
 		.Process(this->Cluster_Scatter_Max)
 		.Process(this->BallisticScatter_Min)
@@ -189,7 +198,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
 #endif
-	this->TrajectoryType = PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
+	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
 
 void BulletTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
@@ -256,19 +265,34 @@ DEFINE_HOOK(0x46C6A0, BulletTypeClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x46C722, BulletTypeClass_Load_Suffix, 0x4)
+// Before : 0x46C722 , 0x4
+// After : 46C70F , 0x6
+DEFINE_HOOK(0x46C70F, BulletTypeClass_Load_Suffix, 0x6)
 {
+	GET(BulletTypeClass*, pThis, ESI);
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ShrapnelWeapon);
 	BulletTypeExt::ExtMap.LoadStatic();
-	return 0;
+
+	return 0x46C720;
 }
 
-DEFINE_HOOK(0x46C74A, BulletTypeClass_Save_Suffix, 0x3)
+// Before : 0x46C74A , 0x3
+// After : 46C744 , 0x6
+DEFINE_HOOK(0x46C744, BulletTypeClass_Save_Suffix, 0x6)
 {
-	BulletTypeExt::ExtMap.SaveStatic();
-	return 0;
+	GET(HRESULT, nRes, EAX);
+
+	if (SUCCEEDED(nRes))
+	{
+		nRes = 0;
+		BulletTypeExt::ExtMap.SaveStatic();
+	}
+
+	return 0x46C74A;
 }
 
-//DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
+DEFINE_HOOK_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 {
 	GET(BulletTypeClass*, pItem, ESI);

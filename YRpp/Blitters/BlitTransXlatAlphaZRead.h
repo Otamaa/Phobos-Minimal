@@ -8,7 +8,7 @@ public:
 	inline explicit BlitTransXlatAlphaZRead(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~BlitTransXlatAlphaZRead() override final = default;

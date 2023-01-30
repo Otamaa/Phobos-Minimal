@@ -5,7 +5,7 @@
 
 #include <MapClass.h>
 
-#define WAYPOINTSNAME reinterpret_cast<const char*>(0x82DB0C)
+#define WAYPOINTSNAME GameStrings::Waypoints()
 
 DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 {
@@ -58,13 +58,15 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 {
 	GET_STACK(INIClass* const, pINI, 0x4);
 
-	for (int i = 0; i < pINI->GetKeyCount(WAYPOINTSNAME); ++i)
+	const char* const pSect = GameStrings::Waypoints();
+	for (int i = 0; i < pINI->GetKeyCount(pSect); ++i)
 	{
-		const auto pName = pINI->GetKeyName(WAYPOINTSNAME, i);
+		const auto pName = pINI->GetKeyName(pSect, i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
 			Debug::Log("[Developer Warning] Failed to parse waypoint %s.\n", pName);
-		int nCoord = pINI->ReadInteger(WAYPOINTSNAME, pName, 0);
+
+		int nCoord = pINI->ReadInteger(pSect, pName, 0);
 
 		CellStruct buffer = CellStruct::Empty;
 
@@ -168,10 +170,10 @@ DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
 	GET(char*, pString, ECX);
 
 	int n = 0;
-	int len = strlen(pString);
+	int len = CRT::strlen(pString);
 	for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
 	{
-		int c = toupper(pString[i]);
+		int c = CRT::toupper(pString[i]);
 		if (c < 'A' || c > 'Z') return 0;
 		n += ((int)c - 64) * j;
 	}

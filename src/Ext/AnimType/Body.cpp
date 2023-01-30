@@ -17,6 +17,10 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	const char* pID = this->Get()->ID;
 
+	if (!pINI) {
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
+	}
+
 	INI_EX exINI(pINI);
 
 	if (!pINI->GetSection(pID))
@@ -35,6 +39,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->CreateUnit_Owner.Read(exINI, pID, "CreateUnit.Owner");
 	this->CreateUnit_RandomFacing.Read(exINI, pID, "CreateUnit.RandomFacing");
 	this->CreateUnit_ConsiderPathfinding.Read(exINI, pID, "CreateUnit.ConsiderPathfinding");
+	this->CreateUnit_SpawnAnim.Read(exINI, pID, "CreateUnit.SpawnAnim");
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
@@ -120,6 +125,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	//if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
 	//	AttachedSystem = nullptr;
 
+	//this->SpawnerDatas.Read(exINI, pID);
 #pragma endregion
 }
 
@@ -185,6 +191,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CreateUnit_Mission)
 		.Process(this->CreateUnit_Owner)
 		.Process(this->CreateUnit_ConsiderPathfinding)
+		.Process(this->CreateUnit_SpawnAnim)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)
@@ -225,6 +232,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(ShouldFogRemove)
 		.Process(AttachedSystem)
 		.Process(IsInviso)
+		//.Process(SpawnerDatas)
 		;
 }
 
@@ -287,7 +295,7 @@ DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
 
 	return 0;
 }
-
+// Before : 
 DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
 {
@@ -295,13 +303,13 @@ DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3) // was 3
+DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3)
 {
 	AnimTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
 
-//DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
+DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 {
 	GET(AnimTypeClass*, pItem, ESI);

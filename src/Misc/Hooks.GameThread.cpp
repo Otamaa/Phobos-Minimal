@@ -20,14 +20,14 @@ int __stdcall Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 		Debug::Log("MouseThread Process Mutex !\n");
 		for (; !lpThreadParameter->SkipProcessing; ++lpThreadParameter->RefCount)
 		{
-			if (WaitForSingleObject(MouseThreadParameter::Mutex(), 10000u) == 258)
+			if (Imports::WaitForSingleObject.get()(MouseThreadParameter::Mutex(), 10000u) == 258)
 				Debug::Log("Warning: Probable deadlock occurred on MouseMutex. %s \n", __FUNCTION__);
 
 			if (WWMouseClass::Thread_Instance())
 				WWMouseClass::Thread_Instance()->Process();
 
-			ReleaseMutex(MouseThreadParameter::Mutex());
-			Sleep(lpThreadParameter->SleepTime);
+			Imports::ReleaseMutex.get()(MouseThreadParameter::Mutex());
+			Imports::Sleep.get()(lpThreadParameter->SleepTime);
 
 		}
 		lpThreadParameter->SkipSleep = 1;
@@ -42,7 +42,7 @@ void __fastcall Phobos_HandleMouseThread()
 	if (!MouseThreadParameter::Mutex())
 	{
 		Debug::Log("MouseThread Creating Mutex !\n");
-		MouseThreadParameter::Mutex = CreateMutexA(NULL, FALSE, NULL);
+		MouseThreadParameter::Mutex = Imports::CreateMutexA.get()(NULL, FALSE, NULL);
 	}
 
 	if (!MouseThreadParameter::ThreadNotActive())
@@ -50,21 +50,22 @@ void __fastcall Phobos_HandleMouseThread()
 		if (MouseThreadParameter::Mutex())
 		{
 			Debug::Log("MouseThread Creating Thread !\n");
-			if (auto const nThread = CreateThread(NULL, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread(), 0, &MouseThreadParameter::ThreadID()))
+			if (auto const nThread = Imports::CreateThread.get()(NULL, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread(), 0, &MouseThreadParameter::ThreadID()))
 			{
 				MouseThreadParameter::Thread_Handle() = nThread;
 				MouseThreadParameter::ThreadNotActive() = true;
-				if (!SetThreadPriority(nThread, 15))
+				if (!Imports::SetThreadPriority.get()(nThread, 15))
 				{
 					char Buffer[1024];
-					FormatMessageA(0x1000u, 0, GetLastError(), 0, Buffer, 0x400u, 0);
+					Imports::FormatMessageA.get()(0x1000u, 0, Imports::GetLastError.get()(), 0, Buffer, 0x400u, 0);
 					Debug::Log("MouseThread Unable to change the priority - %s \n", Buffer);
 					while (!MouseThreadParameter::Thread().SkipSleep)
 					{
-						Sleep(0);
+						Imports::Sleep.get()(0);
 					}
-					WaitForSingleObject(MouseThreadParameter::Thread_Handle(), 5000u);
-					CloseHandle(MouseThreadParameter::Thread_Handle());
+
+					Imports::WaitForSingleObject.get()(MouseThreadParameter::Thread_Handle(), 5000u);
+					Imports::CloseHandle.get()(MouseThreadParameter::Thread_Handle());
 					MouseThreadParameter::ThreadNotActive() = false;
 				}
 			}
@@ -90,8 +91,8 @@ DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 		//set critical section here ?
 	//}
 
-	Imports::TranslateMessage(&pMsg);
-	Imports::DispatchMessageA(&pMsg);
+	Imports::TranslateMessage.get()(&pMsg);
+	Imports::DispatchMessageA.get()(&pMsg);
 
 	return 0x5D4E4D;
 }

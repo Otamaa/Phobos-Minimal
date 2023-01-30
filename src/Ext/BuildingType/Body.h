@@ -7,7 +7,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-#include <ExtraHeaders/DirClass.h>
+#include <DirClass.h>
 
 enum class BunkerSoundMode : int
 {
@@ -132,6 +132,10 @@ public:
 		Valueable<bool> Grinding_DisplayRefund;
 		Valueable<AffectedHouse> Grinding_DisplayRefund_Houses;
 		Valueable<Point2D> Grinding_DisplayRefund_Offset;
+		Valueable<bool> Grinding_PlayDieSound;
+
+		Valueable<bool> Refinery_DisplayDumpedMoneyAmount;
+		Valueable<Point2D> Refinery_DisplayRefund_Offset;
 
 		Nullable<bool> PlacementPreview_Show;
 		Nullable<Theater_SHPStruct*> PlacementPreview_Shape;
@@ -146,6 +150,10 @@ public:
 		Valueable<bool> SpyEffect_Custom;
 		NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon;
 		NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon;
+
+		//#814
+		Valueable<bool> SpyEffect_InfiltratorSW_JustGrant;
+		Valueable<bool> SpyEffect_VictimSW_RealLaunch;
 
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
@@ -164,7 +172,7 @@ public:
 		Valueable<bool> RubbleDestroyedRemove;
 		Valueable<bool> RubbleIntactRemove;
 
-		DynamicVectorClass<Point2D> DamageFire_Offs;
+		ValueableVector<Point2D> DamageFire_Offs;
 
 		Nullable<double> RepairRate;
 		Nullable<int> RepairStep;
@@ -221,7 +229,7 @@ public:
 			, PowerPlantEnhancer_Buildings {}
 			, PowerPlantEnhancer_Amount {}
 			, PowerPlantEnhancer_Factor {}
-			, OccupierMuzzleFlashes()
+			, OccupierMuzzleFlashes { }
 			, Refinery_UseStorage { false }
 			, AllowAirstrike {}
 			, Grinding_AllowAllies { false }
@@ -233,7 +241,10 @@ public:
 			, Grinding_DisplayRefund { false }
 			, Grinding_DisplayRefund_Houses { AffectedHouse::All }
 			, Grinding_DisplayRefund_Offset { { 0,0 } }
+			, Grinding_PlayDieSound { false }
 
+			, Refinery_DisplayDumpedMoneyAmount { false }
+			, Refinery_DisplayRefund_Offset { {0,0} }
 			, PlacementPreview_Show {}
 			, PlacementPreview_Shape {}
 			, PlacementPreview_ShapeFrame {}
@@ -245,6 +256,8 @@ public:
 			, SpyEffect_Custom { false }
 			, SpyEffect_VictimSuperWeapon {}
 			, SpyEffect_InfiltratorSuperWeapon {}
+			, SpyEffect_InfiltratorSW_JustGrant { false }
+			, SpyEffect_VictimSW_RealLaunch { false }
 
 			, DamageFireTypes {}
 			, OnFireTypes {}
@@ -351,7 +364,6 @@ public:
 	struct BunkerSound
 	{
 		constexpr void operator ()(BuildingClass* pThis) {
-			//Handle(pThis, std::bool_constant<T>::type());
 
 			if constexpr (UpSound == BunkerSoundMode::Up)
 			{

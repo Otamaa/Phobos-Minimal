@@ -2,6 +2,7 @@
 #include "TextHandler.h"
 #include "TextManager.h"
 #include "DamageText.h"
+#include <Utilities/TemplateDefB.h>
 
 void PrintTextData::Read(INI_EX& reader, const char* section, const char* title)
 {

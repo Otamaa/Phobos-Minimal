@@ -21,9 +21,36 @@ class NOVTABLE ObjectTypeClass : public AbstractTypeClass
 public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::ObjectType;
-	ABSTRACTTYPE_ARRAY_NOALLOC(ObjectTypeClass, 0xAC1418u);
+	static constexpr constant_ptr<DynamicVectorClass<ObjectTypeClass*>, 0xAC1418u> const Array {};
+
+	static NOINLINE ObjectTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+	
+	static NOINLINE ObjectTypeClass* __fastcall FindOrAllocate(const char* pID)
+	{
+		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+			return nullptr;
+		}
+
+		if (auto pRet = Find(pID)) {
+			return pRet;
+		}
+
+		return GameCreate<ObjectTypeClass>(pID);
+	}
+	
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x5F9990);
+	}
+
 	//static
-	//static int __fastcall FindIndex(const char* pID) JMP_STD(0x5F9990);
 	static void LoadPips() JMP_STD(0x5F76B0);
 	static void sub_5F77F0() JMP_STD(0x5F77F0);
 	static int ReleaseAllVoxelCaches() JMP_STD(0x5F99E0);
@@ -57,7 +84,7 @@ public:
 	static bool __fastcall IsBuildCat5(AbstractType abstractID, int idx)
 		{ JMP_STD(0x5004E0); }
 
-	static TechnoTypeClass * __fastcall GetTechnoType(AbstractType abstractID, int idx)
+	static TechnoTypeClass * __fastcall FetchTechnoType(AbstractType abstractID, int idx)
 		{ JMP_STD(0x48DCD0); }
 
 	void sub_5F8080()

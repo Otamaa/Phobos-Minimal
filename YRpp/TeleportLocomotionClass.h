@@ -8,6 +8,8 @@ class  DECLSPEC_UUID("4A582747-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	TeleportLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
+	static constexpr inline DWORD vtable = 0x7F50CC;
+
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
 	virtual ULONG __stdcall AddRef() R0;

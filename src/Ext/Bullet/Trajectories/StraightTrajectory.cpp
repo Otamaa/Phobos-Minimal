@@ -1,6 +1,7 @@
 #include "StraightTrajectory.h"
 
 #include <Ext/BulletType/Body.h>
+#include <Ext/Bullet/Body.h>
 
 bool StraightTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
@@ -55,7 +56,9 @@ void StraightTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Ve
 	auto type = this->GetTrajectoryType();
 
 	this->DetonationDistance = type->DetonationDistance.Get(Leptons());
-
+	
+	PhobosTrajectory::SetInaccurate(pBullet);
+	
 	if (type->PassThrough.Get())
 	{
 		pBullet->TargetCoords.X = INT_MAX;
@@ -105,15 +108,16 @@ void StraightTrajectory::OnAIPreDetonate(BulletClass* pBullet)
 
 void StraightTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
 {
-	pSpeed->Z += BulletExt::ExtMap.Find(pBullet)->TypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
+	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	pSpeed->Z += pTypeExt->GetAdjustedGravity(); // We don't want to take the gravity into account
 }
 
-TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)
+TrajectoryCheckReturnType StraightTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
 {
-	int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
-	int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
-	int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
-	int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
+	const int bulletX = pBullet->Location.X / Unsorted::LeptonsPerCell;
+	const int bulletY = pBullet->Location.Y / Unsorted::LeptonsPerCell;
+	const int targetX = pBullet->TargetCoords.X / Unsorted::LeptonsPerCell;
+	const int targetY = pBullet->TargetCoords.Y / Unsorted::LeptonsPerCell;
 
 	if (bulletX == targetX && bulletY == targetY && pBullet->GetHeight() < 2 * Unsorted::LevelHeight)
 		return TrajectoryCheckReturnType::Detonate; // Detonate projectile.

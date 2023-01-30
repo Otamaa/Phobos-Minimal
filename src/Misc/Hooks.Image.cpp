@@ -12,7 +12,7 @@
 void ReplaceImageInfantry(InfantryTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, "Image", 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
 	{
 		Debug::Log("[Phobos] Replacing image for %s with %s.\n", pType->ImageFile, nameBuffer);
 		char filename[260];
@@ -24,7 +24,7 @@ void ReplaceImageInfantry(InfantryTypeClass* pType)
 void ReplaceImageUnit(UnitTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, "Image", 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
 	{
 		Debug::Log("[Phobos] Replacing image for %s with %s.\n", pType->ImageFile, nameBuffer);
 		if (pType->Voxel)
@@ -47,7 +47,7 @@ void ReplaceImageUnit(UnitTypeClass* pType)
 void ReplaceImageAircraft(AircraftTypeClass* pType)
 {
 	char nameBuffer[0x19];
-	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, "Image", 0, nameBuffer, 0x19) != 0)
+	if (CCINIClass::INI_Art->ReadString(pType->ImageFile, GameStrings::Image(), 0, nameBuffer, 0x19) != 0)
 	{
 		if (pType->Voxel)
 		{
@@ -78,7 +78,7 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load, 0x5)
 	{
 		R->EDI(R->EDI() - 0xE20);	// 0x524B42 permanently adds 0x520 to the pointer, we want to revert it
 		GET(TechnoTypeClass*, pType, EDI);
-		ReplaceImageInfantry(abstract_cast<InfantryTypeClass*>(pType));
+		ReplaceImageInfantry(static_cast<InfantryTypeClass*>(pType));
 	}
 
 	return 0;
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x74809E, UnitTypeClass_Load, 0x9)
 	if (Phobos::Config::ArtImageSwap)
 	{
 		GET(TechnoTypeClass*, pType, ESI);
-		ReplaceImageUnit(abstract_cast<UnitTypeClass*>(pType));
+		ReplaceImageUnit(static_cast<UnitTypeClass*>(pType));
 	}
 
 	return 0;
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x41CE7E, AircraftTypeClass_Load, 0x6)
 	if (Phobos::Config::ArtImageSwap)
 	{
 		GET(TechnoTypeClass*, pType, ESI);
-		ReplaceImageAircraft(abstract_cast<AircraftTypeClass*>(pType));
+		ReplaceImageAircraft(static_cast<AircraftTypeClass*>(pType));
 	}
 
 	return 0;

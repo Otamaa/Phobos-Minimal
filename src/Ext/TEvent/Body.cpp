@@ -10,7 +10,6 @@
 
 #include <New/Entity/ShieldClass.h>
 
-#ifdef ENABLE_NEWHOOKS
 TEventExt::ExtContainer TEventExt::ExtMap;
 
  void TEventExt::ExtData::InitializeConstants() { }
@@ -26,16 +25,15 @@ void TEventExt::ExtData::Serialize(T& Stm)
 
 void TEventExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TEventClass>::Serialize(Stm);
+	TExtension<TEventClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TEventExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TEventClass>::Serialize(Stm);
+	TExtension<TEventClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
-#endif
 
 // helper struct
 namespace std {
@@ -144,9 +142,10 @@ bool TEventExt::Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, Obje
 template<bool IsGlobal, class _Pr>
 bool TEventExt::VariableCheck(TEventClass* pThis)
 {
-	auto itr = ScenarioExt::Global()->Variables[IsGlobal].find(pThis->Value);
+	auto const& nVar = ScenarioExt::GetVariables(IsGlobal);
+	auto itr = nVar.find(pThis->Value);
 
-	if (itr != ScenarioExt::Global()->Variables[IsGlobal].end())
+	if (itr != nVar.end())
 	{
 		// We uses TechnoName for our operator number
 		int nOpt = atoi(pThis->String);
@@ -159,26 +158,26 @@ bool TEventExt::VariableCheck(TEventClass* pThis)
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 {
-	auto itr = ScenarioExt::Global()->Variables[IsGlobal].find(pThis->Value);
+	auto const& nVar = ScenarioExt::GetVariables(IsGlobal);
+	auto itr = nVar.find(pThis->Value);
 
-	if (itr != ScenarioExt::Global()->Variables[IsGlobal].end())
+	if (itr != nVar.end())
 	{
 		// We uses TechnoName for our src variable index
 		int nSrcVariable = atoi(pThis->String);
-		auto itrsrc = ScenarioExt::Global()->Variables[IsSrcGlobal].find(nSrcVariable);
+		auto itrsrc = nVar.find(nSrcVariable);
 
-		if (itrsrc != ScenarioExt::Global()->Variables[IsSrcGlobal].end())
+		if (itrsrc != nVar.end())
 			return _Pr()(itr->second.Value, itrsrc->second.Value);
 	}
 
 	return false;
 }
 
-#ifdef ENABLE_NEWHOOKS
 // =============================
 // container
 
-TEventExt::ExtContainer::ExtContainer() : Container("TEventClass") { }
+TEventExt::ExtContainer::ExtContainer() : TExtensionContainer("TEventClass") { }
 TEventExt::ExtContainer::~ExtContainer() = default;
 
 bool TEventExt::LoadGlobals(PhobosStreamReader& Stm)
@@ -195,41 +194,74 @@ bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container hooks
+//
 
-DEFINE_HOOK(0x1E7FB, TEventClass_CTOR, 0x5)
-{
-	GET(TEventClass*, pItem, ESI);
-	TEventExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-	return 0;
-}
+//TODO : ReadFrom INI
 
-DEFINE_HOOK(0x71E931, TEventClass_SDDTOR, 0x7)
-{
-	GET(TEventClass*, pItem, ESI);
-	TEventExt::ExtMap.Remove(pItem);
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x71F930, TEventClass_SaveLoad_Prefix, 0x8)
-DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(TEventClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	TEventExt::ExtMap.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x4)
-{
-	TEventExt::ExtMap.LoadStatic();
-	return 0;
-}
-
-DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x3)
-{
-	TEventExt::ExtMap.SaveStatic();
-	return 0;
-}
-#endif
+// Value0 is not instantiated yet !
+// Ares hook at the end of the function
+//DEFINE_HOOK(0x71E752, TEventClass_CTOR, 0x5)
+//{
+//	GET(TEventClass*, pItem, ESI);
+//	TEventExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//	return 0;
+//}
+//
+////DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+//DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
+//{
+//	GET(TEventClass*, pItem, ESI);
+//	TEventExt::ExtMap.Remove(pItem);
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x71F930, TEventClass_SaveLoad_Prefix, 0x8)
+//DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
+//{
+//	GET_STACK(TEventClass*, pItem, 0x4);
+//	GET_STACK(IStream*, pStm, 0x8);
+//
+//	TEventExt::ExtMap.PrepareStream(pItem, pStm);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x71F91B, TEventClass_Load_Suffix, 0x9)
+//{
+//	GET(TEventClass*, pItem, ESI);
+//
+//	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->House);
+//	TEventExt::ExtMap.LoadStatic();
+//	
+//	return 0x71F929;
+//}
+//
+//DEFINE_HOOK(0x71F944, TEventClass_Save_Suffix, 0x6)
+//{
+//	GET(HRESULT, nRest, EAX);
+//
+//	if(SUCCEEDED(nRest)) {
+//		Debug::Log("%s Executed !  HRES : %d \n", __FUNCTION__,nRest);
+//		TEventExt::ExtMap.SaveStatic();
+//		return 0x71F948;
+//	}
+//
+//	return 0x71F94A;
+//}
+//
+//DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)
+//{
+//	GET(TEventClass*, pThis, ECX);
+//	GET(void*, pTarget, EDX);
+//	GET_STACK(bool, bRemoved, 0x8);
+//
+//	if (pThis->TeamType == pTarget)
+//	{
+//		pThis->TeamType = nullptr;
+//	}
+//
+//	if (auto pExt = TEventExt::ExtMap.Find(pThis))
+//		pExt->InvalidatePointer(pTarget, bRemoved);
+//
+//	return 0x71F81D;
+//}

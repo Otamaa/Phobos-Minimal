@@ -133,17 +133,18 @@ struct Leptons {
 	inline double ToDouble() const
 	{ return static_cast<double>(this->value / 256.0); }
 
-	inline int ToCell() const
-	{
-		if (this->value >= (256 / 2))
-		{
-			return (this->value / 256) + 1;
-		}
-		return (this->value / 256);
-	}
+	//These were TS calculatio !
+	//inline int ToCell() const
+	//{
+	//	if (this->value >= (256 / 2))
+	//	{
+	//		return (this->value / 256) + 1;
+	//	}
+	//	return (this->value / 256);
+	//}
 
-	inline int ToPixel()
-	{ return (((int)(signed short)this->value * 48) + (256 / 2) - ((this->value < 0) ? (256 - 1) : 0)) / 256; }
+	//inline int ToPixel()
+	//{ return (((int)(signed short)this->value * 60) + (256 / 2) - ((this->value < 0) ? (256 - 1) : 0)) / 256; }
 
 	int value{ 0 };
 };
@@ -220,7 +221,7 @@ public:
 	void Clear() {
 		if (this->Buffer) {
 			this->Strings.Clear();
-			free(this->Buffer);
+			YRMemory::Deallocate(this->Buffer);
 			this->Buffer = nullptr;
 		}
 	}

@@ -100,31 +100,43 @@ DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 
 	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
 	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+	auto const zAdjust = - 2 - nOffset;
 
 	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
-	0, -2 - nOffset, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 
 	return 0x47F637;
 }
 
-DEFINE_HOOK(0x47FAF5, CellClass_DrawOverlay_Rubble, 0x8)
+DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 {
 	GET(OverlayTypeClass*, pOvl, ECX);
 	GET(CellClass*, pCell, ESI);
-	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0x24, 0x14));
-	GET_STACK(int, nFrame, STACK_OFFSET(0x24, 0x8));
+
+	auto const pRubble = pCell->Rubble;
+	if(!pRubble)
+		return 0x47FB86;
+
+	LEA_STACK(SHPStruct**, pImage, STACK_OFFS(0x24, 0x14));
+	LEA_STACK(int*, pFrame, STACK_OFFSET(0x24, 0x8));
+
+	if (!pRubble->CanLeaveRubble(pImage,pFrame))
+		return 0x47FB86;
+
 	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
 	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));
 	GET(RectangleStruct*, pRect, EBP);
+	GET(int, nVal, EDI);
 
-	if (!R->AL())
-		return 0x47FB86;
+	//if (!R->AL())
+	//	return 0x47FB86;
 
-	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
+	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pRubble);
 	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+	auto const zAdjust = nVal - nOffset - 2;
 
-	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4E00),
-	0, (pOvl->DrawFlat != 0 ? 0 : -15) - nOffset - 2, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
+	DSurface::Temp()->DrawSHP(pPalette, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
+	0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
 
 	return 0x47FB86;
 }

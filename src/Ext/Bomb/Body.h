@@ -1,50 +1,45 @@
 #pragma once
 #include <BombClass.h>
 
-#include <Utilities/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/Abstract/Body.h>
 
 class BombExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
-	static constexpr size_t ExtOffset = sizeof(base_type);
 
-
-	class ExtData final : public Extension<BombClass>
+	class ExtData final : public TExtension<BombClass>
 	{
 	public:
-
-		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject)
+		
+		ExtData(BombClass* OwnerObject) : TExtension<BombClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void InvalidatePointer(void* ptr, bool bRemoved) override { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
-		// void InitializeConstants() override { }
+		void InitializeConstants() override { }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BombExt>
+	class ExtContainer final : public TExtensionContainer<BombExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;
-#endif
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

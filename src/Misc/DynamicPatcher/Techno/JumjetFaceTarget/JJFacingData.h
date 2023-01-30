@@ -6,15 +6,9 @@ class JJFacingData
 {
 public:
 
-	Valueable<bool> Enable;
-	Valueable<int> Facing;
-	Valueable<int> Forward;
-
-	JJFacingData()
-		:Enable { false }
-		, Facing { 8 }
-		, Forward { -2 }
-	{ }
+	Valueable<bool> Enable { false };
+	Valueable<int> Facing { 8 };
+	Valueable<int> Forward { -2 };
 
 	void SetFacing(int facing, int y)
 	{
@@ -22,36 +16,7 @@ public:
 		Forward = -2 * y;
 	}
 
-	~JJFacingData() = default;
-
-	void Read(INI_EX& parser, const char* pSection)
-	{
-		Enable.Read(parser, pSection, "JumpjetFacingToTarget");
-		if (Enable)
-		{
-			Facing.Read(parser, pSection, "JumpjetFacing");
-
-			int nDummyFacing = Facing;
-			if (nDummyFacing >= 8)
-			{
-				int x = nDummyFacing % 8;
-				int y = nDummyFacing / 8;
-				if (x == 0)
-				{
-					 SetFacing(nDummyFacing, y);
-				}
-				else if (x > 4)
-				{
-					SetFacing(8 * (y + 1), y + 1);
-				}
-				else
-				{
-					SetFacing(8 * y, y);
-				}
-			}
-
-		}
-	}
+	void Read(INI_EX& parser, const char* pSection);
 
 	template <typename T>
 	void Serialize(T& Stm)

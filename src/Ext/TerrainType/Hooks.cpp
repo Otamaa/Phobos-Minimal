@@ -11,6 +11,7 @@
 #include <Utilities/Cast.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/Cell/Body.h>
 
 namespace TerrainTypeTemp {
 	TerrainTypeExt::ExtData* pCurrentExt = nullptr;
@@ -60,6 +61,8 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 DEFINE_HOOK(0x483811, CellClass_SpreadTiberium_TiberiumType, 0x8)
 {
+	//GET(CellClass*, pThis, EDI);
+
 	if (const auto pTerrainTypeExt = TerrainTypeTemp::pCurrentExt) {
 		LEA_STACK(int*, pTibType, STACK_OFFS(0x1C, -0x4));
 		*pTibType = pTerrainTypeExt->SpawnsTiberium_Type;
@@ -79,7 +82,8 @@ DEFINE_HOOK(0x48381D, CellClass_SpreadTiberium_CellSpread, 0x6)
 
 		TiberiumClass* pTib = TiberiumClass::Array->GetItem(tibIndex);
 
-		const std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(pTerrainTypeExt->SpawnsTiberium_Range);
+		std::vector<CellStruct> adjacentCells {};
+		GeneralUtils::AdjacentCellsInRange(adjacentCells ,pTerrainTypeExt->SpawnsTiberium_Range);
 		size_t size = adjacentCells.size();
 		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 

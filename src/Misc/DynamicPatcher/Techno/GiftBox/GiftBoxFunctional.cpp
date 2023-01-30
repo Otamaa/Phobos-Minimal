@@ -227,7 +227,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					if (auto const pNewCell = GeneralUtils::GetCell(pCell, location, (size_t)(nData.RandomRange.Get()), nData.EmptyCell))
 						pCell = pNewCell;
 
-				if (auto const pGift = Helpers_DP::CreateAndPutTechno(pTech, pHouse, location, pCell)) {
+				if (auto const pGift = Helpers_DP::CreateAndPutTechno(pTech, pHouse, location, pCell, nData.CheckPathfind)) {
 
 					if (auto pOwnerHouse = pGift->GetOwningHouse())
 					{
@@ -272,8 +272,12 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 							}
 						}
 					}
+					
+					if(pTech->WhatAmI() == AbstractType::BuildingType) {
+						Debug::Log("[%s] Gift box release BuildingType as an gift ,pType [%s] \n", pOwner->get_ID() , pTech->get_ID());
+					}
 				} else {
-					Debug::Log("Gift box release gift failed ,pType [%s]", pTech->get_ID());
+					Debug::Log("Gift box release gift failed ,pType [%s] \ns", pTech->get_ID());
 				}
 			}
 		}

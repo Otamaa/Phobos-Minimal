@@ -39,15 +39,16 @@ DEFINE_HOOK(0x6FF031, TechnoClass_FireAt_ReverseVelocityWhileGravityIsZero, 0xA)
 	//GET(TechnoClass*, pThis, ESI);
 
 	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
+	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 	if (pBulletExt->Trajectory &&
 		pBulletExt->Trajectory->Flag != TrajectoryFlag::Invalid)
 		return 0x0;
 
-	if (pBullet->Type->Arcing && pBulletExt->TypeExt->GetAdjustedGravity() == 0.0)
+	if (pBullet->Type->Arcing && pBulletTypeExt->GetAdjustedGravity() == 0.0)
 	{
 		pBullet->Velocity *= -1;
-		if (pBulletExt->TypeExt->Gravity_HeightFix)
+		if (pBulletTypeExt->Gravity_HeightFix)
 		{
 			const auto speed = pBullet->Velocity.Magnitude();
 

@@ -3,7 +3,7 @@
 
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 #include <Utilities/Macro.h>
 
 class TerrainTypeExt

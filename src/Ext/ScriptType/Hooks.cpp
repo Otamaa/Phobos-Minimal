@@ -63,6 +63,20 @@ DEFINE_HOOK(0x691566, ScriptClass_GetNextAction_extra, 0xB)
 	return 0x69157D;
 }
 
+DEFINE_HOOK(0x691962, ScriptTypeClass_LoadFromINI_WhenReturnFalse, 0xA)
+{
+	GET(ScriptTypeClass*, pThis, ESI);
+	LEA_STACK(char*, pBuffer, STACK_OFFS(0xA0, 0x90));
+	GET(CCINIClass*, pRules, EBP);
+
+	if (auto pExt = ScriptTypeExt::ExtMap.Find(pThis))
+	{
+		pExt->LoadFromINI(pRules);
+	}
+
+	return 0x0;
+}
+
 DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
@@ -72,23 +86,23 @@ DEFINE_HOOK(0x6918CA, ScriptTypeClass_LoadFromINI, 0x5)
 	auto pExt = ScriptTypeExt::ExtMap.Find(pThis);
 
 	pThis->ActionsCount = 0;
-	auto nCount = pRules->GetKeyCount(pThis->ID);
-
-	if (nCount > 0)
-		nCount -= 1; //name
+	const auto nCount = pRules->GetKeyCount(pThis->ID) - 1;
 
 	if (nCount > 0) {
 		for (int i = 0; i < nCount; ++i) {
+
 			CRT::sprintf(pBuffer, "%d", i);
 			CRT::strtrim(pBuffer);
+
 			if (pRules->ReadString(pThis->ID, pBuffer, "", Phobos::readBuffer)) {
-				ScriptActionNode nBuffer;
-				nBuffer.FillIn(Phobos::readBuffer);
+
+				ScriptActionNode nBuffer { Phobos::readBuffer };
+
 				if (i < ScriptTypeClass::MaxActions) {
 					pThis->ScriptActions[i].Action = nBuffer.Action;
 					pThis->ScriptActions[i].Argument = nBuffer.Argument;
 				}else{
-					pExt->PhobosNode.emplace_back(nBuffer);
+					pExt->PhobosNode.push_back(nBuffer);
 				}
 
 				if (++pThis->ActionsCount >= std::numeric_limits<int>::max())

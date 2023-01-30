@@ -27,17 +27,25 @@ struct DirtyAreaStruct
 	};
 };
 
+class Blitter;
 struct Drawing
 {
 	constexpr static reference<DynamicVectorClass<DirtyAreaStruct>, 0xB0CE78> DirtyAreas {};
 	constexpr static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
 	static constexpr reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
-	static inline constexpr int RedShiftLeft = 11;
-	static inline constexpr int RedShiftRight = 3;
-	static inline constexpr int GreenShiftLeft = 5;
-	static inline constexpr int GreenShiftRight = 2;
-	static inline constexpr int BlueShiftLeft = 0;
-	static inline constexpr int BlueShiftRight = 3;
+
+	static constexpr reference<RGBMode, 0x8205D0> ColorMode {};
+	static constexpr reference<int, 0x8A0DD0> const RedShiftLeft {};
+	static constexpr reference<int, 0x8A0DD4> const RedShiftRight {};
+	static constexpr reference<int, 0x8A0DE0> const GreenShiftLeft {};
+	static constexpr reference<int, 0x8A0DE4> const GreenShiftRight {};
+	static constexpr reference<int, 0x8A0DD8> const BlueShiftLeft {};
+	static constexpr reference<int, 0x8A0DDC> const BlueShiftRight {};
+
+	static bool __fastcall DrawSurfaces(Surface* surface1, ConvertClass* convert, Surface* surface2, RectangleStruct* a2, Point2D* point, RectangleStruct* a6, int drawerval, Blitter* a7, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg, int wrap_value)
+	{
+		JMP_STD(0x4AF2A0);
+	}
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, DWORD flags, int nMarginX, int nMarginY)
@@ -163,7 +171,7 @@ struct Drawing
 			(blue >> BlueShiftRight << BlueShiftLeft);
 	}
 	
-	constexpr static int RGB_To_Int(int red, int green, int blue)
+	static int RGB_To_Int(int red, int green, int blue)
 	{
 		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
 	}
@@ -257,9 +265,27 @@ struct Drawing
 		return RGB2DWORD(RGB888_HEX(pHEX));
 	}
 
-	static constexpr ColorStruct ColorRed = { 255,0,0 };
-	static constexpr ColorStruct ColorGreen = { 0,255,0 };
-	static constexpr ColorStruct ColorBlue = { 0,0,255 };
+	static inline constexpr ColorStruct ColorWhite = { 255 , 255 , 255 };
+	static inline constexpr ColorStruct ColorRed = { 255,0,0 };
+	static inline constexpr ColorStruct ColorGreen = { 0,255,0 };
+	static inline constexpr ColorStruct ColorBlue = { 0,0,255 };
+	static inline constexpr ColorStruct ColorGrey = { 128,128,128 };
+	static inline constexpr ColorStruct ColorYellow = { 255,255,0 };
+
+	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
+	{
+		JMP_STD(0x704E40);
+	}
+
+	static bool __stdcall Draw_action_lines_7049C0(CoordStruct nFrom, CoordStruct nTo, DWORD DWORD_clr, bool bDashedLine, bool a10)
+	{
+		JMP_STD(0x7049C0);
+	}
+
+	static bool __stdcall Draw_action_lines_7049C0(int nFrom_x , int nFrom_y , int nFrom_z, int nTo_x , int nTo_y , int nTo_z, DWORD DWORD_clr, bool bDashedLine, bool a10)
+	{
+		JMP_STD(0x7049C0);
+	}
 };
 
 struct BufferData

@@ -8,7 +8,7 @@ static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 		{
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())
-				return pShiedType->ThreadPosed.Get();
+				return pType->ThreatPosed + pShiedType->ThreadPosed.Get();
 		}
 	}
 

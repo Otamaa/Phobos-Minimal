@@ -1,5 +1,6 @@
 #include "BounceTrajectory.h"
 
+#include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 
 #include <WeaponTypeClass.h>
@@ -121,7 +122,7 @@ void BounceTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed,
 // Where additional checks based on bullet reaching its target coordinate can be done.
 // Vanilla code will do additional checks regarding buildings on target coordinate and Vertical projectiles and will detonate the projectile if they pass.
 // Return value determines what is done regards to the game checks: they can be skipped, executed as normal or treated as if the condition is already satisfied.
-TrajectoryCheckReturnType BounceTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct coords)
+TrajectoryCheckReturnType BounceTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
@@ -135,35 +136,35 @@ TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(BulletClass* pBullet
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-DEFINE_HOOK(0x467609, BulletClass_AI_CheckBounce, 0x6)
-{
-	GET(BulletClass*, pThis, EBP);
-
-	const auto pExt = BulletExt::ExtMap.Find(pThis);
-
-	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
-	{
-		auto const pBounce = reinterpret_cast<BounceTrajectory*>(pExt->Trajectory);
-		return pBounce->GetTrajectoryType()->BounceAmount ? 0x467615 : 0x46777A;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x46786C, BulletClass_AI_Before_TechnoCheck, 0x6)
-{
-	GET(BulletClass*, pThis, EBP);
-	GET(int, nHeight, EAX);
-	const auto pExt = BulletExt::ExtMap.Find(pThis);
-
-	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
-	{
-		auto const pBounce = reinterpret_cast<BounceTrajectory*>(pExt->Trajectory);
-		return pBounce->GetTrajectoryType()->BounceAmount || nHeight >= 208 ? 0x467890 : 0x467879;
-	}
-
-	return nHeight >= 208 ? 0x467890 : 0x467879;
-}
+//DEFINE_HOOK(0x467609, BulletClass_AI_CheckBounce, 0x6)
+//{
+//	GET(BulletClass*, pThis, EBP);
+//
+//	const auto pExt = BulletExt::ExtMap.Find(pThis);
+//
+//	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
+//	{
+//		auto const pBounce = reinterpret_cast<BounceTrajectory*>(pExt->Trajectory);
+//		return pBounce->GetTrajectoryType()->BounceAmount ? 0x467615 : 0x46777A;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x46786C, BulletClass_AI_Before_TechnoCheck, 0x6)
+//{
+//	GET(BulletClass*, pThis, EBP);
+//	GET(int, nHeight, EAX);
+//	const auto pExt = BulletExt::ExtMap.Find(pThis);
+//
+//	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Bounce)
+//	{
+//		auto const pBounce = reinterpret_cast<BounceTrajectory*>(pExt->Trajectory);
+//		return pBounce->GetTrajectoryType()->BounceAmount || nHeight >= 208 ? 0x467890 : 0x467879;
+//	}
+//
+//	return nHeight >= 208 ? 0x467890 : 0x467879;
+//}
 
 /*
 DEFINE_HOOK(0x467BDB, BulletClass_AI_BounceOnSomething, 0x6)

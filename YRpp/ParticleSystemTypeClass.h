@@ -16,11 +16,45 @@ class  DECLSPEC_UUID("703E044A-0FB1-11D2-8172-006008055BB5")
 public:
 	static const AbstractType AbsID = AbstractType::ParticleSystemType;
 	static constexpr reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
+	static constexpr reference<const char*, 0x836EE0, 5u> const BehavesString {};
+
 	static BehavesLike __fastcall GetBehave(const char* behaveID) JMP_STD(0x644850);
-	static int __fastcall FindIndexOrAllocate(const char* pID) JMP_STD(0x644630);
+	static const char* GetBehaveName(BehavesLike nBhv) { return BehavesString[(int)nBhv]; }
 
 	//Array
-	ABSTRACTTYPE_ARRAY(ParticleSystemTypeClass, 0xA83D68u);
+	static constexpr constant_ptr<DynamicVectorClass<ParticleSystemTypeClass*>, 0xA83D68u> const Array {};
+
+	static NOINLINE ParticleSystemTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static ParticleSystemTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x644630);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static int __fastcall FindIndexByIdOrAllocate(const char* pID) {
+		JMP_STD(0x644630);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6447A0);

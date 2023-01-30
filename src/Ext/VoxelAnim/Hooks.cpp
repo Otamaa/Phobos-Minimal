@@ -58,9 +58,9 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	//overridden instruction
 	R->Stack(0x12, R->AL());
 
-	if (!pThis->Type) {
-		pThis->Type = VoxelAnimTypeClass::Find(VoxelAnimExt::ExtMap.Find(pThis)->ID.data());
-	}
+	//if (!pThis->Type) {
+	//	pThis->Type = VoxelAnimTypeClass::Find(VoxelAnimExt::ExtMap.Find(pThis)->ID.data());
+	//}
 
 	CoordStruct nLocation = pThis->GetCoords();
 

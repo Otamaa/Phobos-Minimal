@@ -10,8 +10,8 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 
-#ifdef ENABLE_TOMSOnOVERLAYWRAPPER
-static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, void* _)
+#ifndef ENABLE_TOMSOnOVERLAYWRAPPER
+static NOINLINE int Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile)
 {
 	bool available = false;
 	int file_size = 0;
@@ -50,19 +50,145 @@ static int __fastcall Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile, vo
 	return read_size;
 }
 
-//544C3F
-DEFINE_JUMP(CALL, 0x544C3F, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//544C97
-DEFINE_JUMP(CALL, 0x544C97, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//544CC9
-DEFINE_JUMP(CALL, 0x544CC9, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//546FCC
-DEFINE_JUMP(CALL, 0x546FCC, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//549AF7
-DEFINE_JUMP(CALL, 0x549AF7, GET_OFFSET(Isotile_LoadFile_Wrapper));
-//549E67
-DEFINE_JUMP(CALL, 0x549E67, GET_OFFSET(Isotile_LoadFile_Wrapper));
+DEFINE_HOOK_AGAIN(0x549E67, IsotileTypeClass_CheckTile_Replace, 0x5)
+DEFINE_HOOK_AGAIN(0x549AF7, IsotileTypeClass_CheckTile_Replace, 0x5)
+DEFINE_HOOK_AGAIN(0x546FCC, IsotileTypeClass_CheckTile_Replace, 0x5)
+DEFINE_HOOK_AGAIN(0x544CC9, IsotileTypeClass_CheckTile_Replace, 0x5)
+DEFINE_HOOK_AGAIN(0x544C97, IsotileTypeClass_CheckTile_Replace, 0x5)
+DEFINE_HOOK(0x544C3F, IsotileTypeClass_CheckTile_Replace, 0x5)
+{
+	GET(IsometricTileTypeClass*, pThis, ESI);
+	R->EAX(Isotile_LoadFile_Wrapper(pThis));
+	return R->Origin() + 0x5;
+}
 #endif
+
+struct OverlayByteReader
+{
+	OverlayByteReader(CCINIClass* pINI, const char* pSection)
+		: ls { TRUE, 0x2000 }, bs { nullptr, 0 }
+	{
+		pBuffer = YRMemory::Allocate(512000);
+		uuLength = pINI->ReadUUBlock(pSection, pBuffer, 512000);
+		if (this->IsAvailable())
+		{
+			bs.Buffer.Buffer = pBuffer;
+			bs.Buffer.Size = uuLength;
+			bs.Buffer.Allocated = false;
+			ls.Get_From(bs);
+		}
+	}
+
+	~OverlayByteReader()
+	{
+		YRMemory::Deallocate(pBuffer);
+	}
+
+	bool IsAvailable() const { return uuLength > 0; }
+
+	unsigned char Get()
+	{
+		if (IsAvailable())
+		{
+			unsigned char ret;
+			ls.Get(&ret, sizeof(ret));
+			return ret;
+		}
+		return 0;
+	}
+
+	size_t uuLength;
+	void* pBuffer;
+	LCWStraw ls;
+	BufferStraw bs;
+};
+
+struct OverlayReader
+{
+	size_t Get() {
+		unsigned char ret[4];
+
+		ret[0] = ByteReaders[0].Get();
+		ret[1] = ByteReaders[1].Get();
+		ret[2] = ByteReaders[2].Get();
+		ret[3] = ByteReaders[3].Get();
+
+		return ret[0] == 0xFF ? 0xFFFFFFFF : (ret[0] | (ret[1] << 8) | (ret[2] << 16) | (ret[3] << 24));
+	}
+
+	OverlayReader(CCINIClass* pINI)
+		:ByteReaders { {pINI, GameStrings::OverlayPack() }, { pINI,"OverlayPack2" }, { pINI,"OverlayPack3" }, { pINI,"OverlayPack4" }, }
+	{ }
+
+	~OverlayReader() = default;
+
+private:
+	OverlayByteReader ByteReaders[4];
+};
+
+struct OverlayByteWriter
+{
+	OverlayByteWriter(const char* pSection, size_t nBufferLength)
+		: lpSectionName { pSection }, uuLength { 0 }, Buffer { nullptr }, bp { nullptr, 0 }, lp { FALSE,0x2000 } {
+		this->Buffer = YRMemory::Allocate(nBufferLength);
+		bp.Buffer.Buffer = this->Buffer;
+		bp.Buffer.Size = nBufferLength;
+		bp.Buffer.Allocated = false;
+		lp.Put_To(bp);
+	}
+
+	~OverlayByteWriter() {
+		YRMemory::Deallocate(this->Buffer);
+	}
+
+	void Put(unsigned char data) {
+		uuLength += lp.Put(&data, 1);
+	}
+
+	void PutBlock(CCINIClass* pINI) {
+		pINI->Clear(this->lpSectionName, nullptr);
+		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
+	}
+
+	const char* lpSectionName;
+	size_t uuLength;
+	void* Buffer;
+	BufferPipe bp;
+	LCWPipe lp;
+};
+
+struct OverlayWriter
+{
+	OverlayWriter(size_t nLen)
+		: ByteWriters { { GameStrings::OverlayPack(), nLen}, { "OverlayPack2", nLen }, { "OverlayPack3", nLen }, { "OverlayPack4", nLen } }
+	{ }
+
+	~OverlayWriter() = default;
+
+	void Put(int nOverlay)
+	{
+		unsigned char bytes[4];
+		bytes[0] = (nOverlay & 0xFF);
+		bytes[1] = ((nOverlay >> 8) & 0xFF);
+		bytes[2] = ((nOverlay >> 16) & 0xFF);
+		bytes[3] = ((nOverlay >> 24) & 0xFF);
+		ByteWriters[0].Put(bytes[0]);
+		ByteWriters[1].Put(bytes[1]);
+		ByteWriters[2].Put(bytes[2]);
+		ByteWriters[3].Put(bytes[3]);
+	}
+
+	void PutBlock(CCINIClass* pINI)
+	{
+		ByteWriters[0].PutBlock(pINI);
+		ByteWriters[1].PutBlock(pINI);
+		ByteWriters[2].PutBlock(pINI);
+		ByteWriters[3].PutBlock(pINI);
+	}
+
+private:
+	OverlayByteWriter ByteWriters[4];
+};
 
 DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 {
@@ -73,67 +199,6 @@ DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 
 	if (ScenarioClass::NewINIFormat > 1)
 	{
-		struct OverlayReader
-		{
-			struct OverlayByteReader
-			{
-				OverlayByteReader(CCINIClass* pINI, const char* pSection)
-					: ls { TRUE, 0x2000 }, bs { nullptr, 0 }
-				{
-					pBuffer = YRMemory::Allocate(512000);
-					uuLength = pINI->ReadUUBlock(pSection, pBuffer, 512000);
-					if (this->IsAvailable())
-					{
-						bs.Buffer.Buffer = pBuffer;
-						bs.Buffer.Size = uuLength;
-						bs.Buffer.Allocated = false;
-						ls.Get_From(bs);
-					}
-				}
-
-				~OverlayByteReader() {
-					YRMemory::Deallocate(pBuffer);
-				}
-
-				bool IsAvailable() const { return uuLength > 0; }
-
-				unsigned char Get()
-				{
-					if (IsAvailable())
-					{
-						unsigned char ret;
-						ls.Get(&ret, sizeof(ret));
-						return ret;
-					}
-					return 0;
-				}
-
-				size_t uuLength;
-				void* pBuffer;
-				LCWStraw ls;
-				BufferStraw bs;
-			};
-
-			size_t Get()
-			{
-				unsigned char ret[4];
-
-				ret[0] = ByteReaders[0].Get();
-				ret[1] = ByteReaders[1].Get();
-				ret[2] = ByteReaders[2].Get();
-				ret[3] = ByteReaders[3].Get();
-
-				return ret[0] == 0xFF ? 0xFFFFFFFF : (ret[0] | (ret[1] << 8) | (ret[2] << 16) | (ret[3] << 24));
-			}
-
-			OverlayReader(CCINIClass* pINI)
-				:ByteReaders { {pINI,"OverlayPack" }, { pINI,"OverlayPack2" }, { pINI,"OverlayPack3" }, { pINI,"OverlayPack4" }, }
-			{ }
-
-		private:
-			OverlayByteReader ByteReaders[4];
-		};
-
 		OverlayReader reader(pINI);
 
 		for (short i = 0; i < 0x200; ++i)
@@ -163,7 +228,7 @@ DEFINE_HOOK(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 		}
 
 		auto pBuffer = YRMemory::Allocate(256000);
-		size_t uuLength = pINI->ReadUUBlock("OverlayDataPack", pBuffer, 256000);
+		size_t uuLength = pINI->ReadUUBlock(GameStrings::OverlayDataPack(), pBuffer, 256000);
 		if (uuLength > 0)
 		{
 			BufferStraw bs(pBuffer, uuLength);
@@ -197,78 +262,11 @@ DEFINE_HOOK(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 {
 	GET(CCINIClass*, pINI, ECX);
 
-	pINI->Clear("OVERLAY", nullptr);
-
-	struct OverlayWriter
-	{
-		struct OverlayByteWriter
-		{
-
-			OverlayByteWriter(const char* pSection, size_t nBufferLength)
-				: lpSectionName { pSection }, uuLength { 0 }, Buffer { nullptr }, bp { nullptr, 0 }, lp { FALSE,0x2000 }
-			{
-				this->Buffer = YRMemory::Allocate(nBufferLength);
-				bp.Buffer.Buffer = this->Buffer;
-				bp.Buffer.Size = nBufferLength;
-				bp.Buffer.Allocated = false;
-				lp.Put_To(bp);
-			}
-
-			~OverlayByteWriter()
-			{
-				YRMemory::Deallocate(this->Buffer);
-			}
-
-			void Put(unsigned char data)
-			{
-				uuLength += lp.Put(&data, 1);
-			}
-
-			void PutBlock(CCINIClass* pINI)
-			{
-				pINI->Clear(this->lpSectionName, nullptr);
-				pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
-			}
-
-			const char* lpSectionName;
-			size_t uuLength;
-			void* Buffer;
-			BufferPipe bp;
-			LCWPipe lp;
-		};
-
-		OverlayWriter(size_t nLen)
-			: ByteWriters { { "OverlayPack", nLen}, { "OverlayPack2", nLen }, { "OverlayPack3", nLen }, { "OverlayPack4", nLen } }
-		{ }
-
-		void Put(int nOverlay)
-		{
-			unsigned char bytes[4];
-			bytes[0] = (nOverlay & 0xFF);
-			bytes[1] = ((nOverlay >> 8) & 0xFF);
-			bytes[2] = ((nOverlay >> 16) & 0xFF);
-			bytes[3] = ((nOverlay >> 24) & 0xFF);
-			ByteWriters[0].Put(bytes[0]);
-			ByteWriters[1].Put(bytes[1]);
-			ByteWriters[2].Put(bytes[2]);
-			ByteWriters[3].Put(bytes[3]);
-		}
-
-		void PutBlock(CCINIClass* pINI)
-		{
-			ByteWriters[0].PutBlock(pINI);
-			ByteWriters[1].PutBlock(pINI);
-			ByteWriters[2].PutBlock(pINI);
-			ByteWriters[3].PutBlock(pINI);
-		}
-
-	private:
-		OverlayByteWriter ByteWriters[4];
-	};
+	pINI->Clear(GameStrings::OVERLAY(), nullptr);
 
 	size_t len = DSurface::Alternate->Width * DSurface::Alternate->Height;
 	OverlayWriter writer(len);
-	OverlayWriter::OverlayByteWriter datawriter("OverlayDataPack", len);
+	OverlayByteWriter datawriter(GameStrings::OverlayDataPack(), len);
 
 	for (short i = 0; i < 0x200; ++i)
 	{

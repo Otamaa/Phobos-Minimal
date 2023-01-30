@@ -41,15 +41,16 @@
 //	return 0x51257D;
 //}
 
-//DEFINE_HOOK(0x4101B6, AbstractClass_CTOR, 0x5)
+//DEFINE_HOOK(0x410182, AbstractClass_CTOR, 0x6)
 //{
 //	GET(AbstractClass*, pThis, EAX);
 //
-//	ExtensionWrapper::GetWrapper(pThis) = GameCreate<ExtensionWrapper>();
+//	pThis->unknown_18 = nullptr;
+//	pThis->RefCount = R->ECX();
 //
-//	return 0;
+//	return 0x410188;
 //}
-//
+
 //DEFINE_HOOK(0x4105BD, AbstractClass_SDTOR, 0x7)
 //{
 //	GET(AbstractClass*, pThis, ESI);

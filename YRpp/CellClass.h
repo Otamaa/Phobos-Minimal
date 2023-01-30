@@ -72,6 +72,8 @@ public:
 	static inline constexpr int BridgeLevels = 4;
 	static inline constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
+	static constexpr reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x485200);
 
@@ -332,7 +334,8 @@ public:
 
 	// sensors
 	bool Sensors_InclHouse(unsigned int idx) const
-		{ return this->SensorsOfHouses[idx] > 0; }
+		{ JMP_THIS(0x4870D0); }
+		//{ return this->SensorsOfHouses[idx] > 0; }
 
 	void Sensors_AddOfHouse(unsigned int idx)
 		{ ++this->SensorsOfHouses[idx]; }
@@ -374,7 +377,7 @@ public:
 		{ return static_cast<bool>(this->Flags & CellFlags::Bridge); }
 
 	bool ContainsBridgeEx() const
-		{ return this->Flags & CellFlags::Bridge || this->Flags & CellFlags::Bridge_400; }
+		{ return ContainsBridge(); }
 
 	// helper mimicking game's behaviour
 	ObjectClass* GetContent() const

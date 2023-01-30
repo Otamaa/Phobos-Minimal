@@ -29,14 +29,14 @@ public:
 	class ExtData final : public TExtension<VoxelAnimClass>
 	{
 	public:
-		FixedString<0x32> ID;
+		//FixedString<0x32> ID;
 		TechnoClass* Invoker;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
 		ExtData(VoxelAnimClass* OwnerObject) : TExtension<VoxelAnimClass>(OwnerObject)
-			, ID { }
+			//, ID { }
 			, Invoker { nullptr }
 			, LaserTrails { }
 #ifdef COMPILE_PORTED_DP_FEATURES

@@ -2,21 +2,21 @@
 #include <TemporalClass.h>
 
 #include <Utilities/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class TemporalExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
+
 	static constexpr size_t Canary = 0x82229781;
 	using base_type = TemporalClass;
 
-	class ExtData final : public Extension<TemporalClass>
+	class ExtData final : public TExtension<TemporalClass>
 	{
 	public:
 		WeaponTypeClass* Weapon;
-		ExtData(TemporalClass* OwnerObject) : Extension<TemporalClass>(OwnerObject)
+		ExtData(TemporalClass* OwnerObject) : TExtension<TemporalClass>(OwnerObject)
 			, Weapon { nullptr }
 		{ }
 
@@ -33,7 +33,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TemporalExt>
+	class ExtContainer final : public TExtensionContainer<TemporalExt>
 	{
 	public:
 		ExtContainer();
@@ -45,6 +45,5 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
 
 };

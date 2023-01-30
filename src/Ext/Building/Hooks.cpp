@@ -47,7 +47,7 @@ DEFINE_HOOK(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //
 
 	if (BuildingExt::ExtMap.Find(pThis)->DeployedTechno && pThis->LastTarget)
 	{
-		pThis->Target = pThis->LastTarget;
+		pThis->SetTarget(pThis->LastTarget);
 		pThis->QueueMission(Mission::Attack, false);
 	}
 	else
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 			const int refundAmount = pExt->AccumulatedGrindingRefund;
 			const bool isPositive = refundAmount > 0;
-			const auto color = isPositive ? ColorStruct { 0, 255, 0 } : ColorStruct { 255, 0, 0 };
+			const auto color = isPositive ? Drawing::ColorGreen : Drawing::ColorRed;
 			wchar_t moneyStr[0x20];
 			swprintf_s(moneyStr, L"%s$%d", isPositive ? L"+" : L"-", std::abs(refundAmount));
 			auto coords = pThis->GetRenderCoords();
@@ -149,30 +149,62 @@ that we're done with 0x77777777. This way, when we reach the other hook, we chec
 to prevent spy effects from happening twice.
 The value itself doesn't matter, it just needs to be unique enough to not be accidentally produced by the game there.
 */
-#define INFILTRATE_HOOK_MAGIC 0x77777777
-DEFINE_HOOK(0x45759D, BuildingClass_Infiltrate_NoAres, 0x5)
-{
-	GET_STACK(HouseClass*, pInfiltratorHouse, STACK_OFFSET(0x14, -0x4));
-	GET(BuildingClass*, pBuilding, EBP);
+//#define INFILTRATE_HOOK_MAGIC 0x77777777
+//DEFINE_HOOK(0x45759D, BuildingClass_Infiltrate_NoAres, 0x5)
+//{
+//	GET_STACK(HouseClass*, pInfiltratorHouse, STACK_OFFSET(0x14, -0x4));
+//	GET(BuildingClass*, pBuilding, EBP);
+//
+//	BuildingExt::HandleInfiltrate(pBuilding, pInfiltratorHouse);
+//	R->EAX<int>(INFILTRATE_HOOK_MAGIC);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x4575A2, BuildingClass_Infiltrate_AfterAres, 0xE)
+//{
+//	 Check if we've handled it already
+//	if (R->EAX<int>() == INFILTRATE_HOOK_MAGIC)
+//	{
+//		R->EAX<int>(0);
+//		return 0;
+//	}
+//
+//	GET_STACK(HouseClass*, pInfiltratorHouse, -0x4);
+//	GET(BuildingClass*, pBuilding, ECX);
+//
+//	BuildingExt::HandleInfiltrate(pBuilding, pInfiltratorHouse);
+//	return 0;
+//}
 
-	BuildingExt::HandleInfiltrate(pBuilding, pInfiltratorHouse);
-	R->EAX<int>(INFILTRATE_HOOK_MAGIC);
-	return 0;
+DEFINE_HOOK(0x51A002, InfantryClass_PCP_InfitrateBuilding, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EDI);
+
+	auto const pHouse = pThis->Owner;
+	pBuilding->Infiltrate(pHouse);
+
+	if (BuildingExt::HandleInfiltrate(pBuilding, pHouse))
+		Debug::Log("Phobos CustomSpy Affect Return True ! \n");
+
+	return 0x51A010;
 }
 
-DEFINE_HOOK(0x4575A2, BuildingClass_Infiltrate_AfterAres, 0xE)
+//#undef INFILTRATE_HOOK_MAGIC
+
+DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 {
-	// Check if we've handled it already
-	if (R->EAX<int>() == INFILTRATE_HOOK_MAGIC)
+	enum { ReturnFromFunction = 0x465D6A , Continue = 0x0 };
+
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
+
+	if (pExt->ConsideredVehicle.isset() && pExt->ConsideredVehicle.Get())
 	{
-		R->EAX<int>(0);
-		return 0;
+		R->EAX(true);
+		return ReturnFromFunction;
 	}
 
-	GET_STACK(HouseClass*, pInfiltratorHouse, -0x4);
-	GET(BuildingClass*, pBuilding, ECX);
-
-	BuildingExt::HandleInfiltrate(pBuilding, pInfiltratorHouse);
-	return 0;
+	return Continue;
 }
-#undef INFILTRATE_HOOK_MAGIC

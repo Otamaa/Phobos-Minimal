@@ -7,16 +7,17 @@ class DamageSelfType
 {
 public:
 
-	bool Enable;
-	bool DeactiveWhenCivilian;
-	int Damage;
-	int ROF;
-	WarheadTypeClass* Warhead;
-	bool PlayWarheadAnim;
-	bool IgnoreArmor;
-	bool Decloak;
-	KillMethod Type;
+	bool Enable { false };
+	bool DeactiveWhenCivilian { true };
+	int Damage { 1 };
+	int ROF { 0 };
+	WarheadTypeClass* Warhead { nullptr };
+	bool PlayWarheadAnim { false };
+	bool IgnoreArmor { true };
+	bool Decloak { true };
+	KillMethod Type { KillMethod::Explode };
 
+	/*
 	DamageSelfType() : Enable { false }
 		, DeactiveWhenCivilian { true }
 		, Damage { 1 }
@@ -28,7 +29,7 @@ public:
 		, Type { KillMethod::Explode }
 	{}
 
-	virtual ~DamageSelfType() = default;
+	~DamageSelfType() = default;
 
 	DamageSelfType(const DamageSelfType& nData) : Enable { nData.Enable }
 		, DeactiveWhenCivilian { nData.DeactiveWhenCivilian }
@@ -51,6 +52,7 @@ public:
 		, Decloak { nData.Decloak }
 		, Type { nData.Type }
 	{}
+	*/
 
 	void Read(INI_EX& parser, const char* pSection);
 

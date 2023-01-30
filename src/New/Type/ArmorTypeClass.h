@@ -27,8 +27,6 @@ public:
 
 	void EvaluateDefault();
 
-	static const char* const DefaultArmorName[11];
-
 private:
 	template <typename T>
 	void Serialize(T& Stm);

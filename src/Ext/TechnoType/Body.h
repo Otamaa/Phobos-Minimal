@@ -3,7 +3,7 @@
 
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
@@ -47,6 +47,8 @@ public:
 		Nullable<int> InhibitorRange;
 		Nullable<int> DesignatorRange;
 		Valueable<Leptons> MindControlRangeLimit;
+
+		//TODO : make ability for interceptor
 		Valueable<bool> Interceptor;
 		Valueable<AffectedHouse> Interceptor_CanTargetHouses;
 		Promotable<Leptons> Interceptor_GuardRange;
@@ -84,6 +86,8 @@ public:
 		Valueable<bool> PassengerDeletion_DisplaySoylent;
 		Valueable<AffectedHouse> PassengerDeletion_DisplaySoylentToHouses;
 		Valueable<Point2D> PassengerDeletion_DisplaySoylentOffset;
+		Valueable<bool> PassengerDeletion_Experience { false };
+		Valueable<bool> PassengerDeletion_ExperienceFriendlies { false };
 		Valueable<bool> Death_NoAmmo;
 		Valueable<int> Death_Countdown;
 		Valueable<bool> Death_Peaceful;
@@ -140,6 +144,7 @@ public:
 
 		Nullable<bool> JumpjetAllowLayerDeviation;
 		Nullable<bool> JumpjetTurnToTarget;
+		Nullable<bool> JumpjetCrash_Rotate;
 
 		Valueable<bool> DeployingAnim_AllowAnyDirection;
 		Valueable<bool> DeployingAnim_KeepUnitVisible;
@@ -244,6 +249,10 @@ public:
 		Valueable<bool> MobileRefinery_AnimMove;
 		Valueable<bool> Explodes_KillPassengers;
 
+		Nullable<int> DeployFireWeapon;
+		Nullable<WeaponTypeClass*> RevengeWeapon;
+		Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
+
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
@@ -253,7 +262,15 @@ public:
 		Valueable<bool> Is_Cow;
 		Valueable<bool> DontShake;
 		NullableIdx<VocClass>DiskLaserChargeUp;
+
 		Nullable<AnimTypeClass*>DrainAnimationType;
+		Nullable<int> DrainMoneyFrameDelay;
+		Nullable<int> DrainMoneyAmount;
+		Valueable<bool> DrainMoney_Display;
+		Valueable<AffectedHouse> DrainMoney_Display_Houses;
+		Valueable<bool> DrainMoney_Display_AtFirer;
+		Valueable<Point2D> DrainMoney_Display_Offset;
+
 		Nullable<float> TalkBubbleTime;
 		Nullable <int> AttackingAircraftSightRange;
 		NullableIdx<VoxClass>SpyplaneCameraSound;
@@ -355,6 +372,29 @@ public:
 		Valueable<bool> Firing_IgnoreGravity;
 
 		Promotable<int> Survivors_PassengerChance;
+		Nullable<CoordStruct> Spawner_SpawnOffsets;
+		Valueable<bool> Spawner_SpawnOffsets_OverrideWeaponFLH;
+		Nullable<UnitTypeClass*> Unit_AI_AlternateType;
+
+		Nullable<bool> ConsideredNaval;
+		Nullable<bool> ConsideredVehicle;
+
+		// Ares 0.1
+		ValueableVector<int> Prerequisite_RequiredTheaters;
+		ValueableVector<int> Prerequisite;
+		ValueableVector<int> Prerequisite_Negative;
+		Valueable<int> Prerequisite_Lists;
+		std::vector<std::vector<int>> Prerequisite_ListVector;
+
+		Nullable<int> Riparius_FrameIDx;
+		Nullable<int> Cruentus_FrameIDx;
+		Nullable<int> Vinifera_FrameIDx;
+		Nullable<int> Aboreus_FrameIDx;
+
+		Promotable<int> CrushLevel;
+		Promotable<int> CrushableLevel;
+		Promotable<int> DeployCrushableLevel;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -376,6 +416,7 @@ public:
 		TrailsReader Trails;
 		FighterAreaGuardData MyFighterData;
 		DamageSelfType DamageSelfData;
+
 #endif
 
 #pragma endregion
@@ -470,6 +511,7 @@ public:
 			, NoAmmoAmount { 0 }
 			, JumpjetAllowLayerDeviation {}
 			, JumpjetTurnToTarget {}
+			, JumpjetCrash_Rotate {}
 			, DeployingAnim_AllowAnyDirection { false }
 			, DeployingAnim_KeepUnitVisible { false }
 			, DeployingAnim_ReverseForUndeploy { true }
@@ -535,6 +577,11 @@ public:
 			, MobileRefinery_Anims { }
 			, MobileRefinery_AnimMove { false }
 			, Explodes_KillPassengers { true }
+
+			, DeployFireWeapon {}
+			, RevengeWeapon {}
+			, RevengeWeapon_AffectsHouses { AffectedHouse::All }
+
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }
@@ -546,6 +593,12 @@ public:
 
 			, DiskLaserChargeUp {}
 			, DrainAnimationType {}
+			, DrainMoneyFrameDelay {}
+			, DrainMoneyAmount {}
+			, DrainMoney_Display { false }
+			, DrainMoney_Display_Houses { AffectedHouse::All }
+			, DrainMoney_Display_AtFirer { true }
+			, DrainMoney_Display_Offset { { 0,0 } }
 
 			, TalkBubbleTime {}
 
@@ -582,8 +635,6 @@ public:
 			, CrashWeapon_s { nullptr }
 			, CrashWeapon { }
 			, Disable_C4WarheadExp { false }
-
-
 
 			, CrashSpinLevelRate { 1.0 }
 			, CrashSpinVerticalRate { 1.0 }
@@ -657,7 +708,25 @@ public:
 			, PoseDir { }
 			, Firing_IgnoreGravity { false }
 			, Survivors_PassengerChance{ -1 }
-			
+			, Spawner_SpawnOffsets { }
+			, Spawner_SpawnOffsets_OverrideWeaponFLH { false }
+			, Unit_AI_AlternateType {}
+
+			, ConsideredNaval { }
+			, ConsideredVehicle { }
+
+			, Prerequisite { }
+			, Prerequisite_Negative { }
+			, Prerequisite_Lists { 0 }
+
+			, Riparius_FrameIDx { }
+			, Cruentus_FrameIDx { }
+			, Vinifera_FrameIDx { }
+			, Aboreus_FrameIDx { }
+
+			, CrushLevel {}
+			, CrushableLevel {}
+			, DeployCrushableLevel {}
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -678,6 +747,7 @@ public:
 			, Trails { }
 			, MyFighterData { }
 			, DamageSelfData { }
+
 #endif
 
 #pragma endregion
@@ -687,12 +757,16 @@ public:
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
 		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
+		void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
+
 		void Initialize();
 		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		bool IsCountedAsHarvester() const;
+
+		void AdjustCrushProperties();
 
 		// Ares 0.A
 		const char* GetSelectionGroupID() const;
@@ -728,7 +802,7 @@ public:
 	static void GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
-	static double GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules);
+	static double GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

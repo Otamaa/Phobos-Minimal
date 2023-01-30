@@ -2,29 +2,29 @@
 #include <TeamTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Macro.h>
 
 class TeamTypeExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
+
 	static constexpr size_t Canary = 0xBEE79008;
 	using base_type = TeamTypeClass;
 
-	class ExtData final : public Extension<TeamTypeClass>
+	class ExtData final : public TExtension<TeamTypeClass>
 	{
 	public:
 
 		Nullable<int> AI_SafeDIstance;
 		Nullable<int> AI_FriendlyDistance;
-		Valueable<bool> AttackWaypoint_AllowCell;
+		Nullable<bool> AttackWaypoint_AllowCell;
 
-		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
+		ExtData(TeamTypeClass* OwnerObject) : TExtension<TeamTypeClass>(OwnerObject)
 			, AI_SafeDIstance { }
 			, AI_FriendlyDistance { }
-			, AttackWaypoint_AllowCell { true }
+			, AttackWaypoint_AllowCell { }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -38,7 +38,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TeamTypeExt>
+	class ExtContainer final : public TExtensionContainer<TeamTypeExt>
 	{
 	public:
 		ExtContainer();
@@ -49,5 +49,5 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
+
 };

@@ -3,6 +3,7 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/Anim/Body.h>
 
 void PaintballType::Read(INI_EX& parser, const char* pSection)
 {
@@ -107,16 +108,23 @@ uintptr_t PaintBall::GetColor()
 	// but this is actually Color16
 	// then need to make it ColorStruct
 	// then convert it to DWORD
-	Color16Struct nColor16 = { Data.get().Color.R,Data.get().Color.G,Data.get().Color.B };
-	ColorStruct nColorAgain = ColorStruct { nColor16 };
-	return Drawing::RGB2DWORD(nColorAgain);
+	//Color16Struct nColor16 = { Data.get().Color.R,Data.get().Color.G,Data.get().Color.B };
+	//ColorStruct nColorAgain = ColorStruct { nColor16 };
+	//return Drawing::RGB2DWORD(nColorAgain);
+
+	return GeneralUtils::GetColorFromColorAdd(Data.get().Color);
 }
 
 static inline bool AllowRedraw(TechnoClass* pWho, bool bForce, bool bIgnoreShroud, bool bIgnoreFog)
 {
+	if (auto const pBld = specific_cast<BuildingClass*>(pWho))
+	{
+		if (pBld->IsFogged && !bIgnoreFog)
+			return false;
+	}
+
 	if (auto pCell = pWho->GetCell())
 	{
-
 		if (pCell->IsShrouded() && !bIgnoreShroud)
 			return false;
 
@@ -242,24 +250,66 @@ DEFINE_HOOK(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 	return 0;
 }
 
+//#826
+//DEFINE_HOOK(0x0423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	GET(BuildingClass*, pBuilding, EAX);
+//
+//	if (!pBuilding) {		
+//		R->EAX(AnimExt::ExtMap.Find(pThis)->ParentBuilding);
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x423508, AnimClass_Draw_ForceShieldICColor, 0xB)
+//{
+//	enum { SkipGameCode = 0x423525 };
+//	GET(AnimClass*, pThis, ESI);
+//
+//	auto const pBuilding = AnimExt::ExtMap.Find(pThis)->ParentBuilding;
+//
+//	const RulesClass* rules = RulesClass::Instance;
+//
+//	R->ECX(rules);
+//	R->EAX(pBuilding->ForceShielded ? rules->ForceShieldColor : rules->IronCurtainColor);
+//
+//	return SkipGameCode;
+//}
+//
+//DEFINE_HOOK(0x4235D3, AnimClass_Draw_TintColor, 0x6)
+//{
+//	GET(int, tintColor, EBP);
+//	GET(AnimClass*, pThis, ESI);
+//
+//	auto const pBuilding = AnimExt::ExtMap.Find(pThis)->ParentBuilding;
+//
+//	if (!pBuilding)
+//		return 0;
+//
+//	tintColor |= TechnoExt::GetCustomTintColor(pBuilding);
+//
+//	R->EBP(tintColor);
+//
+//	return 0;
+//}
+
 DEFINE_HOOK(0x423630, AnimClass_Draw_It, 0xC)
 {
 	GET(AnimClass*, pAnim, ESI);
 
-	if (pAnim && pAnim->IsBuildingAnim)
+	if (pAnim && pAnim->IsBuildingAnim )
 	{
-		if (auto pCell = pAnim->GetCell())
+		auto const pCell = pAnim->GetCell();
+		auto const pBuilding = pCell->GetBuilding();
+
+		if (pBuilding && pBuilding->IsAlive && !pBuilding->Type->Invisible)
 		{
-			if (auto pBuilding = pCell->GetBuilding())
+			const auto pExt = TechnoExt::ExtMap.Find(pBuilding);
+			if (pExt->PaintBallState)
 			{
-				if (pBuilding->IsAlive && !pBuilding->Type->Invisible)
-				{
-					auto pExt = TechnoExt::ExtMap.Find(pBuilding);
-					if (pExt->PaintBallState)
-					{
-						pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
-					}
-				}
+				pExt->PaintBallState->DrawSHP_Paintball_BuildAnim(pBuilding, R);
 			}
 		}
 	}

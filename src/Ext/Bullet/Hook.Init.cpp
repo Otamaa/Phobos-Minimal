@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/BulletType/Body.h>
+
 // has everything inited except SpawnNextAnim at this point
 DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 {
@@ -9,20 +11,15 @@ DEFINE_HOOK(0x466556, BulletClass_Init_Phobos, 0x6)
 	{
 		pExt->Owner = pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr;
 
-		if (pThis->Type)
+		if (auto const pTypeExt = BulletTypeExt::ExtMap.Find<true>(pThis->Type))
 		{
-			const auto pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-			{
-				pExt->TypeExt = pTypeExt;
-				pExt->CurrentStrength = pTypeExt->Health.Get();
-				if (pTypeExt->LaserTrail_Types.size() > 0)
-					pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+			pExt->CurrentStrength = pTypeExt->Health.Get();
+			if (pTypeExt->LaserTrail_Types.size() > 0)
+				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-				pExt->InitializeLaserTrails(pTypeExt);
-			}
+			pExt->InitializeLaserTrails();
 		}
 
-		//LineTrailExt::ConstructLineTrails(pThis);
 	}
 
 

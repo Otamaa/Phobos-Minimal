@@ -20,9 +20,8 @@ public:
 	{
 	public:
 
-		ValueableVector<ScriptActionNode> PhobosNode;
+		ValueableVector<ScriptActionNode> PhobosNode { };
 		ExtData(ScriptTypeClass* OwnerObject) : TExtension<ScriptTypeClass>(OwnerObject)
-			, PhobosNode { }
 		{ }
 
 		virtual ~ExtData() = default;

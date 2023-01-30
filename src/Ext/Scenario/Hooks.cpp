@@ -11,8 +11,9 @@ DEFINE_HOOK(0x6C924F, ScoreDialog_Handle_ScoreThemeA, 0x5)
 {
 	GET(char*, pTitle, ECX);
 	GET(char*, pMessage, ESI);
-	CSFText& Title = ScenarioExt::Global()->ParTitle;
-	CSFText& Message = ScenarioExt::Global()->ParMessage;
+
+	const CSFText& Title = ScenarioExt::Global()->ParTitle;
+	const CSFText& Message = ScenarioExt::Global()->ParMessage;
 
 	CRT::strcpy(pTitle, Title.Label);
 	CRT::strcpy(pMessage, Message.Label);
@@ -24,7 +25,7 @@ DEFINE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeB, 0x5)
 {
 	REF_STACK(char*, pTheme, 0x0);
 
-	auto& Theme = ScenarioExt::Global()->ScoreCampaignTheme;
+	const auto& Theme = ScenarioExt::Global()->ScoreCampaignTheme;
 
 	if (Theme.isset())
 		CRT::strcpy(pTheme, Theme.Get().data());
@@ -34,8 +35,9 @@ DEFINE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeB, 0x5)
 
 DEFINE_HOOK(0x5AE192, SelectNextMissionScenario, 0x6)
 {
-	if (ScenarioExt::Global()->NextMission.isset())
-		R->EAX(ScenarioExt::Global()->NextMission.Get().data());
+	const auto& NextMission = ScenarioExt::Global()->NextMission;
+	if (NextMission.isset())
+		R->EAX(NextMission.Get().data());
 
 	return 0;
 }

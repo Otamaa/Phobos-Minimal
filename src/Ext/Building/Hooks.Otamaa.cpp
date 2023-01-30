@@ -47,9 +47,7 @@ DEFINE_HOOK(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(int, nPowMult, STACK_OFFS(0xC, 0x4));
 
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-
-	R->EAX(Game::F2I(!pTypeExt->Power_DegradeWithHealth.Get()
+	R->EAX(Game::F2I(!BuildingTypeExt::ExtMap.Find(pThis->Type)->Power_DegradeWithHealth.Get()
 		? (nPowMult) : (nPowMult * pThis->GetHealthPercentage())));
 
 	return 0x44E86F;

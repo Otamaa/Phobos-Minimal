@@ -115,7 +115,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 	if (!nSelectedWeapon.empty())
 	{
-		auto ROF = Helpers_DP::GetROFMult(pThis);
+		const auto ROF = Helpers_DP::GetROFMult(pThis);
 
 		if (nFLH == CoordStruct::Empty)
 			nFLH = pThis->GetWeapon(nWeaponIdx)->FLH;

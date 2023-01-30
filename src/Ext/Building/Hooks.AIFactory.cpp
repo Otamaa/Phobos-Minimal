@@ -124,6 +124,8 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 		if (Phobos::Config::ForbidParallelAIQueues_Aircraft)
 			pData->Factory_AircraftType = nullptr;
 		break;
+	default:
+		break;
 	}
 	}
 
@@ -132,6 +134,8 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 
 DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 {
+	enum { Skip = 0x4503CA };
+
 	GET(BuildingClass*, pBuilding, ESI);
 	HouseClass* pOwner = pBuilding->Owner;
 
@@ -157,46 +161,48 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		case AbstractType::AircraftType:
 			currFactory = pData->Factory_AircraftType;
 			break;
+		default:
+			break;
 		}
 
 		if (!currFactory)
-		{
-			Game::RaiseError(E_POINTER);
-		}
-		else if (!currFactory)
 		{
 			currFactory = pBuilding;
 			return 0;
 		}
 		else if (currFactory != pBuilding)
 		{
-			enum { Skip = 0x4503CA };
-			if (pBuilding->Type->Factory == AbstractType::BuildingType
-				&& Phobos::Config::ForbidParallelAIQueues_Building)
+
+			switch (pBuilding->Type->Factory)
 			{
-				return Skip;
+			case AbstractType::BuildingType:
+			{
+				if(Phobos::Config::ForbidParallelAIQueues_Building)
+					return Skip;
 			}
-			else if (pBuilding->Type->Factory == AbstractType::UnitType
-				&& Phobos::Config::ForbidParallelAIQueues_Vehicle
-				&& !pBuilding->Type->Naval)
+			break;
+			case AbstractType::UnitType:
 			{
-				return Skip;
+				if(Phobos::Config::ForbidParallelAIQueues_Vehicle && !pBuilding->Type->Naval)
+					return Skip;
+				else if (Phobos::Config::ForbidParallelAIQueues_Navy && pBuilding->Type->Naval)
+					return Skip;
 			}
-			else if (pBuilding->Type->Factory == AbstractType::UnitType
-				&& Phobos::Config::ForbidParallelAIQueues_Navy
-				&& pBuilding->Type->Naval)
+			break;
+			case AbstractType::InfantryType:
 			{
-				return Skip;
+				if (Phobos::Config::ForbidParallelAIQueues_Infantry)
+					return Skip;
 			}
-			else if (pBuilding->Type->Factory == AbstractType::InfantryType
-				&& Phobos::Config::ForbidParallelAIQueues_Infantry)
+			break;
+			case AbstractType::AircraftType:
 			{
-				return Skip;
+				if (Phobos::Config::ForbidParallelAIQueues_Aircraft)
+					return Skip;
 			}
-			else if (pBuilding->Type->Factory == AbstractType::AircraftType
-				&& Phobos::Config::ForbidParallelAIQueues_Aircraft)
-			{
-				return Skip;
+			break;
+			default:
+				return 0;
 			}
 		}
 	}

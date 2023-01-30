@@ -52,7 +52,7 @@ class DECLSPEC_UUID("5192D06A-C632-11D2-B90B-006008C809ED")
 public:
 	static const AbstractType AbsID = AbstractType::VeinholeMonster;
 
-	static constexpr reference<bool*, 0xA83DC8u> const IsCurrentPosAffected {};
+	//static constexpr reference<bool*, 0xA83DC8u> const IsCurrentPosAffected {}; //WrongAddress
 	static constexpr reference<SHPStruct*, 0xB1D2ECu> const VeinSHPData {};
 	static constexpr constant_ptr<DynamicVectorClass<VeinholeMonsterClass*>, 0xB1D290u> const Array {};
 

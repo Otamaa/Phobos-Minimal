@@ -1,45 +1,13 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include "ExtraFireData.h"
-namespace ObjectTypeParser
-{
-	template<typename T>
-	void Exec(CCINIClass* pINI, std::vector<DynamicVectorClass<T*>>& nVecDest, const char* pKey, bool bDebug = true)
-	{
-		for (int i = 0; i < pINI->GetKeyCount(pKey); ++i)
-		{
-			DynamicVectorClass<T*> _Buffer;
-			char* context = nullptr;
-			pINI->ReadString(pKey, pINI->GetKeyName(pKey, i), "", Phobos::readBuffer);
-
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-				cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				T* buffer;
-				if (Parser<T*>::TryParse(cur, &buffer))
-				{
-					if (buffer)
-						_Buffer.AddItem(buffer);
-				}
-				else
-				{
-					if (bDebug)
-						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pKey, nVecDest.Count, cur);
-				}
-			}
-
-			nVecDest.push_back(std::move(_Buffer));
-			_Buffer.Clear();
-		}
-	}
-};
 
 void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 {
-	AttachedWeapon.PrimaryWeapons.Read(parserRules, pSection_rules, "ExtraFire.Primary");
-	AttachedWeapon.SecondaryWeapons.Read(parserRules, pSection_rules, "ExtraFire.Secondary");
+	detail::ReadVectorsAlloc(AttachedWeapon.PrimaryWeapons, parserRules, pSection_rules, "ExtraFire.Primary");
+	detail::ReadVectorsAlloc(AttachedWeapon.SecondaryWeapons, parserRules, pSection_rules, "ExtraFire.Secondary");
 
-	AttachedWeapon.ElitePrimaryWeapons.Read(parserRules, pSection_rules, "ExtraFire.ElitePrimary");
-	AttachedWeapon.EliteSecondaryWeapons.Read(parserRules, pSection_rules, "ExtraFire.EliteSecondary");
+	detail::ReadVectorsAlloc(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
+	detail::ReadVectorsAlloc(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
 
 	char nBuff[0x200];
 	std::vector<WeaponTypeClass*> nDummyVec_;
@@ -54,7 +22,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 
 		++nSize;
 		nDummyVec_.clear();
-		detail::parse_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
+		detail::parse_Alloc_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
 		AttachedWeapon.WeaponX.push_back(nDummyVec_);
 	}
 
@@ -71,7 +39,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 			}
 
 			nDummyVec_.clear();
-			detail::parse_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
+			detail::parse_Alloc_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
 			AttachedWeapon.EliteWeaponX.push_back(nDummyVec_);
 		}
 	}

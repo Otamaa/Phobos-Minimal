@@ -191,4 +191,13 @@ void BlittersFix::Apply()
 	Blit50TranslucencyFix2->Apply();
 	Blit75TranslucencyFix->Apply();
 }
+
+DEFINE_DYNAMIC_PATCH(IFlyControl_LandDirection_MovEAX, 0x41B7BE,
+	0x8B, 0xC0 ,  // mov    eax , eax
+	0x90 ) // nop 
+
+void PoseDirOverride::Apply()
+{
+	IFlyControl_LandDirection_MovEAX->Apply();
+}
 #pragma endregion

@@ -18,7 +18,45 @@ public:
 	static const AbstractType AbsID = AbstractType::HouseType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(HouseTypeClass, 0xA83C98u);
+	static constexpr constant_ptr<DynamicVectorClass<HouseTypeClass*>, 0xA83C98u> const Array {};
+
+	static NOINLINE HouseTypeClass* __fastcall Find(const char* pID)
+	{
+		//if(!CRT::strcmpi(pID , GameStrings::RandomStr())) {
+		//	return Array->Items[ScenarioClass::Instance->Random.RandomFromMax(Array->Count-1)];
+		//}
+
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static HouseTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x512680);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if (!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i)
+		{
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID))
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static int __fastcall __fastcall FindIndexByIdAndName(const char* pID) {
+		JMP_STD(0x5117D0);
+	}
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x5125A0);
@@ -47,11 +85,8 @@ public:
 	}
 
 	int FindParentCountryIndex() const {
-		return HouseTypeClass::FindIndexOfName(this->ParentCountry);
+		return HouseTypeClass::FindIndexByIdAndName(this->ParentCountry);
 	}
-
-	static signed int __fastcall FindIndexOfName(const char *name)
-		{ JMP_STD(0x5117D0); }
 
 	static signed int __fastcall FindIndexOfNameShiftToTheRightOnce(const char* pName)
 		{ JMP_STD(0x48DEB0); }

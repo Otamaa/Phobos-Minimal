@@ -23,6 +23,7 @@ struct ToolTipManagerData
 class NOVTABLE ToolTipManager
 {
 public:
+	using ToolTipIndexData = IndexClass<int, ToolTip*>;
 
 	//Destructor
 	virtual ~ToolTipManager() RX;
@@ -73,6 +74,6 @@ public:
 	int ToolTipDelay;
 	int LastToolTipDelay;
 	int ToolTipLifeTime;
-	DynamicVectorClass<ToolTip*> ToolTips;
-	IndexClass<int, ToolTip*> ToolTipIndex;
+	DECLARE_PROPERTY(DynamicVectorClass<ToolTip*> , ToolTips);
+	DECLARE_PROPERTY(ToolTipIndexData, ToolTipIndex);
 };

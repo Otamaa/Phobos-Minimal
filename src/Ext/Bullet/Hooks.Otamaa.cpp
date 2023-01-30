@@ -37,12 +37,7 @@ DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 
 	R->Stack(STACK_OFFS(0xF8, 0xE4), Point2D { pPoint->X + nRect_X , pPoint->Y + nRect_Y });
 	R->EAX(ColorScheme::Array()->Items);
-
-	int nIdx = pThisType->Color;
-	if (pThisType->FirersPalette && (pThis->InheritedColor != -1))
-		nIdx = pThis->InheritedColor;
-
-	R->ECX(nIdx);
+	R->ECX((pThis->InheritedColor != -1) ? pThis->InheritedColor : pThisType->Color);
 
 	return 0x46B1F2;
 }
@@ -246,7 +241,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	GET(WarheadTypeClass*, pWarhead, EAX);
 
 	auto pExt = BulletExt::ExtMap.Find(pThis);
-	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : nullptr);
+	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExt::FindCivilianSide());
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
 
@@ -672,48 +667,48 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 }
 #endif
 
-DEFINE_HOOK(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
-{
-	R->ECX(R->EBP());
-	return 0;
-}
+//DEFINE_HOOK(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
+//{
+//	R->ECX(R->EBP());
+//	return 0;
+//}
 
-DEFINE_HOOK(0x5B271A, BulletClass_ProjectileMotion_Fix2, 0x5)
-{
-	GET_BASE(BulletClass*, pBullet, 0x18);
-	return pBullet->Type->VeryHigh ? 0x5B272D : 0x5B2721;
-}
-
-DEFINE_HOOK(0x5B260B, BulletClass_ProjectileMotion_DescentAngle, 0x7)
-{
-	GET_BASE(BulletClass*, pBullet, 0x18);
-	GET_STACK(int, nData, 0x38);
-
-	return nData <= ((pBullet->Type->VeryHigh ? 6 : 3) << 8)
-		? 0x5B289C : 0x5B2627;
-}
-
-DEFINE_HOOK(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
-{
-	//GET_BASE(BulletClass*, pBullet, 0x18);
-	//R->Stack(0x18, (Math::clamp((0x4000 - 0x2000), 0, 0x4000)));
-	R->Stack<WORD>(0x18, 0x2000);
-	return 0x5B277F;
-}
-
-DEFINE_HOOK(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
-{
-	//(BulletClass*, pBullet, 0x18);
-	GET(int, nLepton, EAX);
-
-	//bool bLockedOnTrajectory = false;
-	//int nCruiseLevel = 5;
-	//if (bLockedOnTrajectory || nLepton >= nCruiseLevel)
-	//	nLepton = nCruiseLevel;
-
-	R->EAX(nLepton >= 5 ? 5 : nLepton);
-	return 0x5B2732;
-}
+//DEFINE_HOOK(0x5B271A, BulletClass_ProjectileMotion_Fix2, 0x5)
+//{
+//	GET_BASE(BulletClass*, pBullet, 0x18);
+//	return pBullet->Type->VeryHigh ? 0x5B272D : 0x5B2721;
+//}
+//
+//DEFINE_HOOK(0x5B260B, BulletClass_ProjectileMotion_DescentAngle, 0x7)
+//{
+//	GET_BASE(BulletClass*, pBullet, 0x18);
+//	GET_STACK(int, nData, 0x38);
+//
+//	return nData <= ((pBullet->Type->VeryHigh ? 6 : 3) << 8)
+//		? 0x5B289C : 0x5B2627;
+//}
+//
+//DEFINE_HOOK(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
+//{
+//	//GET_BASE(BulletClass*, pBullet, 0x18);
+//	//R->Stack(0x18, (Math::clamp((0x4000 - 0x2000), 0, 0x4000)));
+//	R->Stack<WORD>(0x18, 0x2000);
+//	return 0x5B277F;
+//}
+//
+//DEFINE_HOOK(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
+//{
+//	//(BulletClass*, pBullet, 0x18);
+//	GET(int, nLepton, EAX);
+//
+//	//bool bLockedOnTrajectory = false;
+//	//int nCruiseLevel = 5;
+//	//if (bLockedOnTrajectory || nLepton >= nCruiseLevel)
+//	//	nLepton = nCruiseLevel;
+//
+//	R->EAX(nLepton >= 5 ? 5 : nLepton);
+//	return 0x5B2732;
+//}
 
 // to fuck off optimization
 //static double NOINLINE GetMissileRotVar(const BulletClass* const pThis, const RulesClass* const pRules)
@@ -735,16 +730,21 @@ DEFINE_HOOK(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
 //}
 //#pragma optimize( "", on )
 
-DEFINE_HOOK(0x466BCB,BulletClass_AI_MissileROTVar, 0x8 )
+DEFINE_HOOK(0x466BAF,BulletClass_AI_MissileROTVar, 0x6 )
 {
-	GET(const double* const , pOriginal , ESI);
 	GET(BulletClass*, pThis, EBP);
-	GET(int, nCurFrame, ECX);
 
-	auto nFrame = (nCurFrame + pThis->Fetch_ID()) % 15;
-	double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)->MissileROTVar.Get(*pOriginal);
+	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
+	const double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)
+		->MissileROTVar.Get(RulesGlobal->MissileROTVar);
 
-	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) * 0.06666666666666667 * 6.283185307179586) * nMissileROTVar + nMissileROTVar + 1.0) * static_cast<double>(pThis->Type->ROT));
+	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) *
+		0.06666666666666667 *
+		6.283185307179586) * 
+		nMissileROTVar + nMissileROTVar + 1.0) * 
+		static_cast<double>(pThis->Type->ROT)
+	);
+
 	return 0x466C14;
 }
 
@@ -776,14 +776,18 @@ DEFINE_HOOK(0x46A4ED, BulletClass_Shrapnel_CheckVerses, 0x5)
 		case AbstractType::Unit:
 		case AbstractType::Building:
 		{
-			if (!WarheadTypeExt::ExtMap.Find(pWH)->CanDealDamage(static_cast<TechnoClass*>(pTargetObj),false,false))
+			if (!WarheadTypeExt::ExtMap.Find(pWH)->CanDealDamage(static_cast<TechnoClass*>(pTargetObj),false,false)) { 
 				return Skip;
+			}
 		}
 		 break;
 		default:
 		{
-			if (GeneralUtils::GetWarheadVersusArmor(pWH, pTargetObj->GetType()->Armor) == 0.0)
-				return Skip;
+			if(auto pType = pTargetObj->GetType()) { 
+				if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) == 0.0) { 
+					return Skip;
+				}
+			}
 		}
 		 break;
 		}

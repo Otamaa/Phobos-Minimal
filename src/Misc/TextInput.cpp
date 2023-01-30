@@ -1,12 +1,17 @@
+#include <Phobos.h>
 #include <Utilities\Macro.h>
 
 #include <CRT.h>
-// Allow message entry in Skirmish
-// DEFINE_JUMP(LJMP,0x55E484, 0x55E48D);
+#include <Unsorted.h>
 
-wchar_t* IMEBuffer = reinterpret_cast<wchar_t*>(0xB730EC);
+//DEFINE_HOOK(0x55E484, MessageInput_AllowSkirmish, 0x9)
+//{
+//	return Phobos::Otamaa::IsAdmin ? 0x55E48D : 0x0;
+//}
 
-UINT GetCurentCodepage()
+//wchar_t* IMEBuffer = reinterpret_cast<wchar_t*>(0xB730EC);
+
+UINT NOINLINE GetCurentCodepage()
 {
 	char szLCData[6 + 1];
 	WORD lang = LOWORD(GetKeyboardLayout(NULL));
@@ -16,9 +21,9 @@ UINT GetCurentCodepage()
 	return CRT::atoi(szLCData);
 }
 
-wchar_t LocalizeCaracter(char character)
+wchar_t NOINLINE LocalizeCaracter(char character)
 {
-	wchar_t result;
+	wchar_t result {};
 	UINT codepage = GetCurentCodepage();
 	MultiByteToWideChar(codepage, MB_USEGLYPHCHARS, &character, 1, &result, 1);
 	return result;
@@ -26,7 +31,7 @@ wchar_t LocalizeCaracter(char character)
 
 DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
 {
-	if (!IMEBuffer[0])
+	if (!Game::IMEBuffer[0])
 		R->EBX<wchar_t>(LocalizeCaracter(R->EBX<char>()));
 
 	return 0;
@@ -34,22 +39,18 @@ DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
 
 DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 {
-	if (!IMEBuffer[0])
-		R->EDI<wchar_t>(LocalizeCaracter(R->EDI<char>()));
-
+	R->EDI<wchar_t>(LocalizeCaracter(R->EDI<char>()));
 	return 0;
 }
 
+//DEFINE_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));
+
 // It is required to add Imm32.lib to AdditionalDependencies
-//
-//HIMC& IMEContext = *reinterpret_cast<HIMC*>(0xB7355C);
-//wchar_t* IMECompositionString = reinterpret_cast<wchar_t*>(0xB73318);
-//
 //DEFINE_HOOK(0x777F15, IMEUpdateCompositionString, 0x7)
 //{
-//	IMECompositionString[0] = 0;
-//	ImmGetCompositionStringW(IMEContext, GCS_COMPSTR, IMECompositionString, 256);
+//	Game::IMECompositionString[0] = 0;
+//	ImmGetCompositionStringW(Game::IMEContext, GCS_COMPSTR, Game::IMECompositionString, 256);
 //
 //	return 0;
 //}
-//
+

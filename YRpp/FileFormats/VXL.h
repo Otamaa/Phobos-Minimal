@@ -84,18 +84,15 @@ public:
 };
 
 struct TransformVector {
-public:
 	Vector3D<float> XYZ;
 	float Unknown;
 };
 
 struct TransformMatrix {
-public:
 	TransformVector Vectors[3];
 };
 
-struct VoxelDrawStruct
-{
+struct VoxelDrawStruct {
 	VoxLib* lib;
 	int HeaderIndex;
 	int InfoIndex;
@@ -105,8 +102,7 @@ struct VoxelDrawStruct
 	Vector3D<float> vector3array_28[8];
 };
 
-struct VoxelShadowDrawStruct
-{
+struct VoxelShadowDrawStruct {
 	VoxLib* lib;
 	int HeaderIndex;
 	int InfoIndex;
@@ -121,7 +117,6 @@ struct VoxelShadowDrawStruct
 
 // file header
 struct VoxFileHeader {
-public:
 	char filename[16];
 	int PaletteCount;
 	int countHeaders_OrSections1;
@@ -136,16 +131,20 @@ struct VoxelSectionHeader {
 	char unk2;
 };
 
+struct VoxelCalcStruct {
+  RectangleStruct rect;
+  int datalength;
+  int spanmaybe;
+};
+
 // in file
 struct VoxelSectionFileHeader {
-public:
 	char Name[16];
 	VoxelSectionHeader headerData;
 };
 
 // in file
 struct VoxelSectionFileTailer {
-public:
 	int span_start_off;
 	int span_end_off;
 	int span_data_off;
@@ -194,8 +193,10 @@ struct VoxelSectionTailer {
 	char NormalsMode;
 };
 
-struct VoxelPaletteClass
+class VoxelPaletteClass
 {
+public:
+
 	VoxelPaletteClass(char* palette, char* lut) { JMP_THIS(0x758950); }
 	~VoxelPaletteClass() { JMP_THIS(0x7589C0); }
 
@@ -206,6 +207,7 @@ struct VoxelPaletteClass
 	unsigned char Closest_Color(float red, float green, float blue) const { JMP_THIS(0x758E10); }
 	unsigned char Closest_Remap_Color(float red, float green, float blue, bool check_remap) const { JMP_THIS(0x758EA0); }
 
+public:
 	int RemapStart;
 	int RemapEnd;
 	int LUTCount;

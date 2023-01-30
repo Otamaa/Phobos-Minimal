@@ -2,11 +2,11 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
-#ifdef ENABLE_NEWHOOKS
+
 CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }
-#endif
+
 bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 {
 	if (const auto pExt = TechnoTypeExt::ExtMap.Find(pType))
@@ -128,11 +128,11 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 				}
 
 //#ifdef ENABLE_NEWHOOKS
-				if ((pWhat == AbstractType::Unit || pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
-					pTarget->SetTarget(nullptr);
-					pTarget->Override_Mission(Mission::Guard, nullptr,nullptr);
-					pTarget->SetDestination(pTarget->GetCell(), true);
-				}
+				//if ((pWhat == AbstractType::Unit || pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
+				//	pTarget->SetTarget(nullptr);
+				//	pTarget->Override_Mission(Mission::Guard, nullptr,nullptr);
+				//	pTarget->SetDestination(pTarget->GetCell(), true);
+				//}
 //#endif
 				return true;
 			}
@@ -157,7 +157,6 @@ void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot)
 	// to be implemented (if needed). - secsome
 }
 
-#ifdef ENABLE_NEWHOOKS
 // =============================
 // load / save
 
@@ -166,13 +165,13 @@ void CaptureExt::ExtData::Serialize(T& Stm) { }
 
 void CaptureExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<CaptureManagerClass>::Serialize(Stm);
+	TExtension<CaptureManagerClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void CaptureExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<CaptureManagerClass>::Serialize(Stm);
+	TExtension<CaptureManagerClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -190,50 +189,54 @@ bool CaptureExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CaptureExt::ExtContainer::ExtContainer() : Container("CaptureManagerClass") { };
+CaptureExt::ExtContainer::ExtContainer() : TExtensionContainer("CaptureManagerClass") { };
 CaptureExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
 
 
-
-DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
-{
-	GET(CaptureManagerClass* const, pItem, ESI);
-#ifdef ENABLE_NEWHOOKS
-	CaptureExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	CaptureExt::ExtMap.FindOrAllocate(pItem);
-#endif
-	return 0;
-}
-
-DEFINE_HOOK(0x4729EF, CaptureManagerClass_DTOR, 0x7)
-{
-	GET(CaptureManagerClass* const, pItem, ESI);
-	CaptureExt::ExtMap.Remove(pItem);
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x4728E0, CaptureManagerClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x472720, CaptureManagerClass_SaveLoad_Prefix, 0x8)
-{
-	GET_STACK(CaptureManagerClass*, pThis, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	CaptureExt::ExtMap.PrepareStream(pThis, pStm);
-	return 0;
-}
-
-DEFINE_HOOK(0x4728CA, CaptureManagerClass_Load_Suffix, 0x7)
-{
-	CaptureExt::ExtMap.LoadStatic();
-	return 0;
-}
-
-DEFINE_HOOK(0x472958, CaptureManagerClass_Save_Suffix, 0x7)
-{
-	CaptureExt::ExtMap.SaveStatic();
-	return 0;
-}
-#endif
+//DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
+//{
+//	GET(CaptureManagerClass* const, pItem, ESI);
+//
+//	CaptureExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x4729EF, CaptureManagerClass_DTOR, 0x7)
+//{
+//	GET(CaptureManagerClass* const, pItem, ESI);
+//	CaptureExt::ExtMap.Remove(pItem);
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x4728E0, CaptureManagerClass_SaveLoad_Prefix, 0x5)
+//DEFINE_HOOK(0x472720, CaptureManagerClass_SaveLoad_Prefix, 0x8)
+//{
+//	GET_STACK(CaptureManagerClass*, pThis, 0x4);
+//	GET_STACK(IStream*, pStm, 0x8);
+//	CaptureExt::ExtMap.PrepareStream(pThis, pStm);
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x4728CA, CaptureManagerClass_Load_Suffix, 0x7)
+//{
+//	GET(HRESULT, nRes, EAX);
+//
+//	if(SUCCEEDED(nRes))
+//		CaptureExt::ExtMap.LoadStatic();
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x472958, CaptureManagerClass_Save_Suffix, 0x7)
+//{
+//	GET(HRESULT, nRes, EAX);
+//
+//	if (SUCCEEDED(nRes))
+//		CaptureExt::ExtMap.SaveStatic();
+//
+//	return 0;
+//}

@@ -147,7 +147,7 @@ public:
 
 	DECLARE_PROPERTY(StageClass, Animation);
 	AnimTypeClass* Type; //The AnimType.
-	ObjectClass * OwnerObject; // set by AnimClass::SetOwnerObject (0x424B50)
+	ObjectClass* OwnerObject; // set by AnimClass::SetOwnerObject (0x424B50)
 	DWORD unknown_D0;
 	LightConvertClass* LightConvert;	 //Palette?
 	int LightConvertIndex; // assert( (*ColorScheme::Array)[this->LightConvertIndex] == this->LightConvert ;
@@ -155,7 +155,7 @@ public:
 	int TintColor;
 	int ZAdjust;
 	int YSortAdjust; // same as YSortAdjust from Type
-	CoordStruct FlamingGuyCoords; // the destination the anim tries to reach
+	DECLARE_PROPERTY(CoordStruct ,FlamingGuyCoords); // the destination the anim tries to reach
 	int FlamingGuyRetries; // number of failed attemts to reach water. the random destination generator stops if >= 7
 	bool IsBuildingAnim; // whether this anim will invalidate on buildings, and whether it's tintable
 	bool UnderTemporal; // temporal'd building's active anims

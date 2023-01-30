@@ -5,6 +5,7 @@
 #pragma once
 
 #include <CRT.h>
+#include <GameStrings.h>
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
 
@@ -49,9 +50,9 @@ struct CSFString
 	CSFString *PreviousEntry;
 	wchar_t Text[102];
 
-	CSFString() : PreviousEntry(nullptr) {
-		*Text = 0;
-	}
+	//CSFString() : PreviousEntry(nullptr) {
+	//	*Text = 0;
+	//}
 };
 
 struct CSFLanguage
@@ -65,6 +66,7 @@ struct CSFLanguage
 class StringTable
 {
 public:
+
 	static constexpr reference<CSFString*, 0xB1CF88u> const LastLoadedString{};
 	static constexpr reference<int, 0xB1CF58u> const MaxLabelLen{};
 	static constexpr reference<int, 0xB1CF6Cu> const LabelCount{};
@@ -79,18 +81,18 @@ public:
 	static const wchar_t* __fastcall LoadString(
 		const char* pLabel,
 		char* pOutExtraData = nullptr,
-		const char* pSourceCodeFileName = __FILE__,
-		int nSourceCodeFileLine = __LINE__)
+		const char* pSourceCodeFileName = "Dummy",
+		int nSourceCodeFileLine = 0)
 			{ JMP_STD(0x734E60); }
 
 	static const wchar_t* FetchString(
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
-		const char* pFile = __FILE__,
-		int nLine = __LINE__)
+		const char* pFile = "Dummy",
+		int nLine = 0)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, "<none>") && CRT::strcmpi(pLabel, "none"))
+		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, GameStrings::NoneStr()) && CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 			return LoadString(pLabel, pSpeech, pFile, nLine);
 		else
 			return pDefault;
@@ -100,10 +102,10 @@ public:
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
-		const char* pFile = __FILE__,
-		int nLine = __LINE__)
+		const char* pFile = "Dummy",
+		int nLine = 0)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, "<none>") && CRT::strcmpi(pLabel, "none"))
+		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, GameStrings::NoneStr()) && CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 		{
 			auto lpValue = LoadString(pLabel, pSpeech, pFile, nLine);
 			if (CRT::wcsncmp(lpValue, L"MISSING:", 8u))
@@ -115,14 +117,39 @@ public:
 
 	static bool __fastcall LoadFile(const char* pFileName)
 		{ JMP_STD(0x7346A0); }
+
 	static bool __fastcall ReadFile(const char* pFileName)
 		{ JMP_STD(0x734990); }
 
 	static CSFLanguage const* __fastcall GetLanguage(CSFLanguages language)
 		{ JMP_STD(0x734640); }
+
 	static const char* __fastcall GetLanguageName(CSFLanguages language)
 		{ JMP_STD(0x734670); }
 
 	static void Unload()
 		{ JMP_STD(0x734D30); }
+
+	static bool __fastcall IsInitialized()
+		{ JMP_STD(0x734FD0); }
+
+	static int __fastcall Isstrcmd()
+		{ JMP_STD(0x734FC0); }
+
+	static int __fastcall Isjabber()
+		{ JMP_STD(0x734FB0); }
+
+	static void __fastcall Togglestrcmd()
+		{ JMP_STD(0x734F80); }
+
+	static void __fastcall Togglejabber()
+		{ JMP_STD(0x734F50); }
+
+	static bool __fastcall IsEnglish()
+		{ JMP_STD(0x734F20); }
+
+	static signed int __fastcall NeedToBeTranslated(int16* a1)
+		{ JMP_STD(0x734E30); }
 };
+
+typedef StringTable TextManager;

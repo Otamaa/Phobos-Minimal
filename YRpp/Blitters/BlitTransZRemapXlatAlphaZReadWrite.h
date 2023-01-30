@@ -9,7 +9,7 @@ public:
 	{
 		Remap = &remap;
 		PaletteData = data;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~BlitTransZRemapXlatAlphaZReadWrite() override final = default;

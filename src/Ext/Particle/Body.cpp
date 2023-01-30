@@ -124,7 +124,7 @@ DEFINE_HOOK(0x62D801, ParticleClass_Load_Suffix, 0x6)
 
 DEFINE_HOOK(0x62D825, ParticleClass_Save_Suffix, 0x7)
 {
-	GET(HRESULT, nRest, EAX);
+	GET(const HRESULT , nRest, EAX);
 
 	ParticleExt::ExtMap.GetSavingObject()->byte130 = true;
 	if (SUCCEEDED(nRest)) {

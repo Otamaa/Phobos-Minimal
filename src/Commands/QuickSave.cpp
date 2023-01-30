@@ -28,27 +28,21 @@ const wchar_t* QuickSaveCommandClass::GetUIDescription() const
 
 void QuickSaveCommandClass::Execute(WWKey eInput) const
 {
-	auto PrintMessage = [](const wchar_t* pMessage)
-	{
-		MessageListClass::Instance->PrintMessage(
-			pMessage,
-			RulesClass::Instance->MessageDelay,
-			HouseClass::CurrentPlayer->ColorSchemeIndex,
-			true
-		);
-	};
-
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
 		char fName[0x80];
-
 		SYSTEMTIME time;
-		GetLocalTime(&time);
+
+		Imports::GetLocalTime.get()(&time);
 
 		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
 			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-		PrintMessage(StringTable::LoadString("TXT_SAVING_GAME"));
+		MessageListClass::Instance->PrintMessage(
+		StringTable::LoadString(GameStrings::TXT_SAVING_GAME()),
+		RulesClass::Instance->MessageDelay,
+		HouseClass::CurrentPlayer->ColorSchemeIndex,
+		true);
 
 		wchar_t fDescription[0x80] = { 0 };
 		if (SessionClass::Instance->GameMode == GameMode::Campaign)
@@ -59,13 +53,27 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 		wcscat_s(fDescription, L" - ");
 		wcscat_s(fDescription, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved"));
 
-		if (ScenarioClass::SaveGame(fName, fDescription))
-			PrintMessage(StringTable::LoadString("TXT_GAME_WAS_SAVED"));
-		else
-			PrintMessage(StringTable::LoadString("TXT_ERROR_SAVING_GAME"));
+		if (ScenarioClass::SaveGame(fName, fDescription)) {
+			MessageListClass::Instance->PrintMessage(
+			StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED()),
+			RulesClass::Instance->MessageDelay,
+			HouseClass::CurrentPlayer->ColorSchemeIndex,
+			true);
+		}
+		else {
+			MessageListClass::Instance->PrintMessage(
+			StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME()),
+			RulesClass::Instance->MessageDelay,
+			HouseClass::CurrentPlayer->ColorSchemeIndex,
+			true);
+		}
 	}
 	else
 	{
-		PrintMessage(StringTable::LoadString("MSG:NotAvailableInMultiplayer"));
+		MessageListClass::Instance->PrintMessage(
+		StringTable::LoadString("MSG:NotAvailableInMultiplayer"),
+		RulesClass::Instance->MessageDelay,
+		HouseClass::CurrentPlayer->ColorSchemeIndex,
+		true);
 	}
 }

@@ -22,7 +22,25 @@ public:
 	static const AbstractType AbsID = AbstractType::BulletType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(BulletTypeClass, 0xA83C80u);
+	static constexpr constant_ptr<DynamicVectorClass<BulletTypeClass*>, 0xA83C80u> const Array {};
+
+	static NOINLINE BulletTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static BulletTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x46C790);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x46C440);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x46C750);

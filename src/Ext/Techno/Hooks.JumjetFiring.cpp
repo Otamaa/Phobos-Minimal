@@ -8,7 +8,7 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_Ferr_FACING_Jumpjet, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (auto const pLoco = GetLocomotorType<JumpjetLocomotionClass>(pThis))
+	if (auto const pLoco = GetLocomotorType<JumpjetLocomotionClass,false>(pThis))
 	{
 		CoordStruct& source = pThis->Location;
 		CoordStruct target = pThis->Target->GetCoords();

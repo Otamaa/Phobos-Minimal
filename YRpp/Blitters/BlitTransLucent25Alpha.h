@@ -9,7 +9,7 @@ public:
 	{
 		PaletteData = data;
 		Mask = mask;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~BlitTransLucent25Alpha() override final = default;

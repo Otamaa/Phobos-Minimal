@@ -32,15 +32,23 @@ public:
 /*
  * trap! most schemes are duplicated - ShadeCount 1 and ShadeCount 53
 */
-	static ColorScheme* Find(const char* pID, int ShadeCount = 1) {
-		int index = FindIndex(pID, ShadeCount);
-		return Array->GetItemOrDefault(index);
+	static NOINLINE ColorScheme* __fastcall Find(const char* pID, int ShadeCount = 1) {
+
+		for (auto & pItem : *Array) {
+			if (!CRT::strcmpi(pItem->ID, pID)) {
+				if (pItem->ShadeCount == ShadeCount) {
+					return pItem;
+				}
+			}
+		}
+
+		return nullptr;
 	}
 
-	static int FindIndex(const char* pID, int ShadeCount = 1) {
+	static NOINLINE int __fastcall FindIndex(const char* pID, int ShadeCount = 1) {
 		for(int i = 0; i < Array->Count; ++i) {
 			ColorScheme* pItem = Array->GetItem(i);
-			if(!_strcmpi(pItem->ID, pID)) {
+			if(!CRT::strcmpi(pItem->ID, pID)) {
 				if(pItem->ShadeCount == ShadeCount) {
 					return i;
 				}
@@ -49,18 +57,40 @@ public:
 		return -1;
 	}
 
-	static ColorScheme * __fastcall FindByName(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
+	static NOINLINE int __fastcall FindIndexById(const char* pID) {
+
+		if (!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static ColorScheme * __fastcall FindOrAllocate(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
 		{ JMP_THIS(0x68C9C0); }
 
+	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& BaseColor) const
+		{ JMP_THIS(0x68C860); }
 
-	bool IsSame(const ColorScheme* pColor) const { return CRT::strcmpi(ID, pColor->ID) == 0; };
-	bool IsDifferent(const ColorScheme* pColor) const { return CRT::strcmpi(ID, pColor->ID) != 0; };
+	bool IsSame(const ColorScheme* pColor) const 
+		{  JMP_THIS(0x68C960); }
+
+	bool IsDifferent(const ColorScheme* pColor) const 
+		{  JMP_THIS(0x68C990); }
 
 	//Constructor, Destructor
-	ColorScheme(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount, bool AddToArray)
+	ColorScheme(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount, bool AddToArray) noexcept
 		{ JMP_THIS(0x68C710); }
 
-	~ColorScheme()
+	ColorScheme() noexcept
+		{ JMP_THIS(0x68C650); }
+
+	~ColorScheme() noexcept
 		{ JMP_THIS(0x68C8D0); }
 
 	//===========================================================================
@@ -69,9 +99,9 @@ public:
 
 public:
 	int                ArrayIndex; // this is off by one (always one higher than the actual index). that's because consistency and reason suck.
-	BytePalette Colors;
+	DECLARE_PROPERTY(BytePalette , Colors);
 	const char*       ID;
-	ColorStruct BaseColor;
+	DECLARE_PROPERTY(ColorStruct, BaseColor);
 	LightConvertClass* LightConvert;	//??? remap - indices #16-#31 are changed to mathefuckikally derived shades of BaseColor, think unittem.pal
 	int   ShadeCount;
 	PROTECTED_PROPERTY(BYTE,     unknown_314[0x1C]);

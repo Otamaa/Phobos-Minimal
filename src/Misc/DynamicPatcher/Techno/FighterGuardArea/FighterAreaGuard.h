@@ -7,21 +7,11 @@
 
 struct FighterAreaGuard
 {
-	bool isAreaProtecting;
-	CoordStruct areaProtectTo;
-	int currentAreaProtectedIndex;
-	bool isAreaGuardReloading;
-	int areaGuardTargetCheckRof;
-
-	FighterAreaGuard() :
-		isAreaProtecting { false }
-		, areaProtectTo { 0,0,0 }
-		, currentAreaProtectedIndex { 0 }
-		, isAreaGuardReloading { false }
-		, areaGuardTargetCheckRof { 20 }
-	{ }
-
-	~FighterAreaGuard() = default;
+	bool isAreaProtecting { false };
+	CoordStruct areaProtectTo { 0,0,0 };
+	int currentAreaProtectedIndex { 0 };
+	bool isAreaGuardReloading { false };
+	int areaGuardTargetCheckRof { 20 };
 
 	template <typename T>
 	void Serialize(T& Stm)

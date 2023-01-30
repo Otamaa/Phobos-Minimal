@@ -1,7 +1,11 @@
 #pragma once
 
-class BlittersFix
+struct BlittersFix
 {
-public:
+	static void Apply();
+};
+
+struct PoseDirOverride
+{
 	static void Apply();
 };

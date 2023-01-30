@@ -9,12 +9,12 @@
 #include <string>
 #include <Wstring.h>
 
-#define IS_SAME_STR_(a ,b) _strcmpi(a,b) == 0
+#define IS_SAME_STR_(a ,b) CRT::strcmpi(a,b) == 0
 
 class CCINIClass;
 class AbstractClass;
 
-constexpr const char* NONE_STR2 = "none";
+#define NONE_STR2 GameStrings::NoneStrb()
 constexpr const char* NULL_STR = "null";
 constexpr const char* NULL_STR2 = "<null>";
 constexpr const char* DEFAULT_STR = "default";
@@ -159,5 +159,6 @@ public:
 
 		static inline constexpr ColorStruct ShieldPositiveDamageColor = ColorStruct { 0, 160, 255 };
 		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
+
 	};
 };

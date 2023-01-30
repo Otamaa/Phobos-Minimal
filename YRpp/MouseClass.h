@@ -4,7 +4,7 @@
 
 class MouseCursor {
 public:
-	static constexpr size_t DefaultCursorsCount = 86u;
+	static inline constexpr size_t DefaultCursorsCount = 86u;
 	static constexpr reference<MouseCursor, 0x82D028u, DefaultCursorsCount> const DefaultCursors{};
 
 	static MouseCursor& GetDefaultCursor(MouseCursorType cursor)
@@ -88,7 +88,7 @@ class NOVTABLE MouseClass : public ScrollClass
 public:
 	//Static
 	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
-	static constexpr reference<SHPStruct*, 0xABF294u> const ShapeFile{};
+	static constexpr constant_ptr<SHPStruct, 0xABF294u> const ShapeFile{};
 	static constexpr reference<bool, 0xABF2DDu> const ShapeOverride{};
 
 	//Destructor

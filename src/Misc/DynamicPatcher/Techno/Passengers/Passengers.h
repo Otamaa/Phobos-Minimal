@@ -6,27 +6,12 @@ class PassengersData
 {
 public:
 
-	Valueable<bool> PassiveAcquire;
-	Valueable<bool> ForceFire;
-	Valueable<bool> MobileFire;
-	Valueable<bool> SameFire;
+	Valueable<bool> PassiveAcquire { true };
+	Valueable<bool> ForceFire { false };
+	Valueable<bool> MobileFire { true };
+	Valueable<bool> SameFire { true };
 
-	PassengersData()
-		: PassiveAcquire { true }
-		, ForceFire { false }
-		, MobileFire { true }
-		, SameFire { true }
-	{ }
-
-	~PassengersData() = default;
-
-	void Read(INI_EX& parser, const char* pSection, bool Allocate = false)
-	{
-		PassiveAcquire.Read(parser, pSection, "Passengers.PassiveAcquire");
-		ForceFire.Read(parser, pSection, "Passengers.ForceFire");
-		MobileFire.Read(parser, pSection, "Passengers.MobileFire");
-		SameFire.Read(parser, pSection, "Passengers.SameFire");
-	}
+	void Read(INI_EX& parser, const char* pSection, bool Allocate = false);
 
 	template <typename T>
 	void Serialize(T& Stm)

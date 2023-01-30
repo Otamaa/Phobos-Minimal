@@ -1,4 +1,4 @@
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 //TODO : rework , and desync test
 
 #include "Body.h"
@@ -111,4 +111,4 @@ DEFINE_HOOK(0x737D9C, UnitClass_ReceiveDamage_Remove, 0x6)
 
 	return 0x0;
 }
-#endif
+//#endif

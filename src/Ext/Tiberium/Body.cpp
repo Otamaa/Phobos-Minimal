@@ -44,19 +44,19 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 		.Process(this->MinimapColor)
 		.Process(this->EnableLighningFix)
 		.Process(this->UseNormalLight)
-		.Process(this->Replaced_EC)
+		//.Process(this->Replaced_EC)
 	;
 }
 
 void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TiberiumClass>::Serialize(Stm);
+	TExtension<TiberiumClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TiberiumClass>::Serialize(Stm);
+	TExtension<TiberiumClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -72,7 +72,7 @@ bool TiberiumExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-TiberiumExt::ExtContainer::ExtContainer() : Container("TiberiumClass") {}
+TiberiumExt::ExtContainer::ExtContainer() : TExtensionContainer("TiberiumClass") {}
 TiberiumExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -81,11 +81,7 @@ TiberiumExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
 	TiberiumExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	TiberiumExt::ExtMap.FindOrAllocate(pItem);
-#endif
 	return 0;
 }
 
@@ -120,7 +116,7 @@ DEFINE_HOOK(0x72212C, TiberiumClass_Save_Suffix, 0x5)
 }
 
 DEFINE_HOOK_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
-//DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
+DEFINE_HOOK_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 {
 	GET(TiberiumClass*, pItem, ESI);
@@ -132,16 +128,16 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 }
 
 // Replace EC check here
-DEFINE_HOOK(0x5FDD85, OverlayClass_Get_Tiberium_ReplaceEC, 0x6)
-{
-	GET(TiberiumClass*, pThis, EAX);
-	R->EBP(TiberiumExt::ExtMap.Find(pThis)->Replaced_EC);
-	return 0x5FDD8B;
-}
-
-DEFINE_HOOK(0x721CC6, TiberiumClass_ReadINI_ReplaceEC, 0xA)
-{
-	GET(TiberiumClass*, pItem, ESI);
-	TiberiumExt::ExtMap.Find(pItem)->Replaced_EC = 8;
-	return 0x721CD0;
-}
+//DEFINE_HOOK(0x5FDD85, OverlayClass_Get_Tiberium_ReplaceEC, 0x6)
+//{
+//	GET(TiberiumClass*, pThis, EAX);
+//	R->EBP(TiberiumExt::ExtMap.Find(pThis)->Replaced_EC);
+//	return 0x5FDD8B;
+//}
+//
+//DEFINE_HOOK(0x721CC6, TiberiumClass_ReadINI_ReplaceEC, 0xA)
+//{
+//	GET(TiberiumClass*, pItem, ESI);
+//	TiberiumExt::ExtMap.Find(pItem)->Replaced_EC = 8;
+//	return 0x721CD0;
+//}

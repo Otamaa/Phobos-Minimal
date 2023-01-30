@@ -4,40 +4,12 @@
 
 struct FighterAreaGuardData
 {
-	bool AreaGuard;
-	int GuardRange;
-	bool AutoFire;
-	int MaxAmmo;
+	bool AreaGuard { false };
+	int GuardRange { 5 };
+	bool AutoFire { false };
+	int MaxAmmo { 1 };
 
-	FighterAreaGuardData() :
-		AreaGuard { false }
-		, GuardRange { 5 }
-		, AutoFire { false }
-		, MaxAmmo { 1 }
-	{ }
-
-	~FighterAreaGuardData() = default;
-
-	void Read(INI_EX& parser, const char* pSection ,TechnoTypeClass* pType)
-	{
-		Valueable<bool> bFAreaGuard { AreaGuard };
-		bFAreaGuard.Read(parser,pSection, "Fighter.AreaGuard");
-		AreaGuard = bFAreaGuard.Get();
-
-		if (AreaGuard)
-		{
-			Valueable<int> nRange { GuardRange };
-			nRange.Read(parser, pSection, "Fighter.GuardRange");
-			GuardRange = nRange.Get();
-
-			bFAreaGuard = AutoFire;
-			bFAreaGuard.Read(parser, pSection, "Fighter.AutoFire");
-			AutoFire = bFAreaGuard.Get();
-
-			if (pType->Ammo > MaxAmmo)
-				MaxAmmo = pType->Ammo;
-		}
-	}
+	void Read(INI_EX& parser, const char* pSection, TechnoTypeClass* pType);
 
 	template <typename T>
 	void Serialize(T& Stm)

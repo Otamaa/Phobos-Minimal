@@ -1,13 +1,15 @@
 #include "Body.h"
 
-DEFINE_HOOK(0x438764, BombClass_Detonate_fetch, 0x9)
+DEFINE_HOOK(0x438764, BombClass_Detonate_fetch, 0x7)
 {
 	GET(BombClass*, pThis, ESI);
+	GET(ObjectClass*, pTarget, ECX);
 
 	BombExt::BombTemp = pThis;
 
+	pTarget->BombVisible = false;
 	// Also adjust detonation coordinate.
-	CoordStruct coords = pThis->Target->GetCenterCoords();
+	const CoordStruct coords = pTarget->GetCenterCoords();
 
 	R->EDX(&coords);
 	return 0x438771;
@@ -24,12 +26,10 @@ DEFINE_HOOK(0x4387A8, BombClass_Detonate_ExplosionAnimHandled, 0x5)
 
 DEFINE_JUMP(VTABLE,0x7E3D4C,GET_OFFSET(BombExt::GetOwningHouse));
 
-DEFINE_HOOK(0x6F5201, TechnoClass_DrawExtras_IvanBombImage, 0x6)
+DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage, 0x9)
 {
 	GET(TechnoClass*, pThis, EBP);
-
-	auto coords = pThis->GetCenterCoords();
-
-	R->EAX(&coords);
-	return 0;
+	GET(CoordStruct*, pCoordBuffA, ECX);
+	R->EAX(pThis->GetCenterCoords(pCoordBuffA));
+	return 0x6F5201;
 }

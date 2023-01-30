@@ -2,7 +2,8 @@
 #include <WarheadTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+//#include <Utilities/Container.h>
+#include<Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Entity/LauchSWData.h>
@@ -21,10 +22,10 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
 //#ifdef ENABLE_NEWEXT
-	static constexpr size_t ExtOffset = 0x100;
+	//static constexpr size_t ExtOffset = 0x100;
 //#endif
 
-	class ExtData final : public Extension<WarheadTypeClass>
+	class ExtData final : public TExtension<WarheadTypeClass>
 	{
 	public:
 
@@ -143,6 +144,12 @@ public:
 		ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_AffectTypes;
 		ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_IgnoreTypes;
 
+		Nullable<WeaponTypeClass*> RevengeWeapon;
+		Valueable<int> RevengeWeapon_GrantDuration;
+		Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
+		Valueable<bool> RevengeWeapon_Cumulative;
+		Valueable<int> RevengeWeapon_MaxCount;
+
 		bool WasDetonatedOnAllMapObjects;
 
 		#pragma region Otamaa
@@ -195,6 +202,15 @@ public:
 		Valueable<float> DirectionalArmor_FrontField;
 		Valueable<float> DirectionalArmor_BackField;
 
+		Valueable<bool> RecalculateDistanceDamage;
+		Valueable<bool> RecalculateDistanceDamage_IgnoreMaxDamage;
+		Valueable<int> RecalculateDistanceDamage_Add;
+		Valueable<double> RecalculateDistanceDamage_Add_Factor;
+		Valueable<double> RecalculateDistanceDamage_Multiply;
+		Valueable<double> RecalculateDistanceDamage_Multiply_Factor;
+		Valueable<int> RecalculateDistanceDamage_Max;
+		Valueable<int> RecalculateDistanceDamage_Min;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -203,7 +219,7 @@ public:
 		PaintballType PaintBallData;
 	#endif
 		#pragma endregion
-		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
+		ExtData(WarheadTypeClass* OwnerObject) : TExtension<WarheadTypeClass>(OwnerObject)
 			, SpySat { false }
 			, BigGap { false }
 			, TransactMoney { 0 }
@@ -308,6 +324,13 @@ public:
 			, DetonateOnAllMapObjects_AffectHouses { AffectedHouse::All }
 			, DetonateOnAllMapObjects_AffectTypes {}
 			, DetonateOnAllMapObjects_IgnoreTypes {}
+
+			, RevengeWeapon {}
+			, RevengeWeapon_GrantDuration { 0 }
+			, RevengeWeapon_AffectsHouses { AffectedHouse::All }
+			, RevengeWeapon_Cumulative { false }
+			, RevengeWeapon_MaxCount { -1 }
+
 			, WasDetonatedOnAllMapObjects { false }
 
 			, NotHuman_DeathAnim { }
@@ -350,6 +373,15 @@ public:
 			, DirectionalArmor_BackMultiplier { 1.0 }
 			, DirectionalArmor_FrontField { 0.5 }
 			, DirectionalArmor_BackField { 0.5 }
+
+			, RecalculateDistanceDamage { false }
+			, RecalculateDistanceDamage_IgnoreMaxDamage { false }
+			, RecalculateDistanceDamage_Add { 0 }
+			, RecalculateDistanceDamage_Add_Factor { 1.0 }
+			, RecalculateDistanceDamage_Multiply { 1.0 }
+			, RecalculateDistanceDamage_Multiply_Factor { 1.0 }
+			, RecalculateDistanceDamage_Max { INT_MAX }
+			, RecalculateDistanceDamage_Min { -INT_MAX }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -398,6 +430,7 @@ public:
 		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
 		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
+		void ApplyRevengeWeapon(TechnoClass* pTarget);
 
 		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
@@ -412,11 +445,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WarheadTypeExt
-//#ifdef ENABLE_NEWEXT
+	class ExtContainer final : public TExtensionContainer<WarheadTypeExt
+#ifdef AAENABLE_NEWEXT
 		, true
 		, true
-//#endif
+#endif
 	>
 	{
 	public:

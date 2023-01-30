@@ -32,8 +32,6 @@ const wchar_t* NextIdleHarvesterCommandClass::GetUIDescription() const
 
 void NextIdleHarvesterCommandClass::Execute(WWKey eInput) const
 {
-	// Debug::Log("[Phobos] Dummy command runs.\n");
-	// MessageListClass::Instance->PrintMessage(L"[Phobos] Dummy command rums");
 
 	MapClass::Instance->SetTogglePowerMode(0);
 	MapClass::Instance->SetWaypointMode(0, false);

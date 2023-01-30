@@ -49,19 +49,19 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(ExpireDamage_ConsiderInvokerVet)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.Serialize(Stm);
+		this->Trails.Serialize(Stm);
 #endif
 }
 
 void VoxelAnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<VoxelAnimTypeClass>::Serialize(Stm);
+	TExtension<VoxelAnimTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<VoxelAnimTypeClass>::Serialize(Stm);
+	TExtension<VoxelAnimTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -119,13 +119,15 @@ DEFINE_HOOK(0x74B8D0, VoxelAnimTypeClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x74B8C2, VoxelAnimTypeClass_Load_Suffix, 0x7)
+// Before :  DEFINE_HOOK(0x74B8C2, VoxelAnimTypeClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x74B8C0 , VoxelAnimTypeClass_Load_Suffix, 0x6)
 {
 	VoxelAnimTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x74B8EA, VoxelAnimTypeClass_Save_Suffix, 0x5)
+// Before :  DEFINE_HOOK(0x74B8EA, VoxelAnimTypeClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x74B8E8, VoxelAnimTypeClass_Save_Suffix, 0x5)
 {
 	VoxelAnimTypeExt::ExtMap.SaveStatic();
 	return 0;

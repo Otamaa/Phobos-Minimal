@@ -17,55 +17,46 @@ namespace DamageFireAnims
 	void HandleRemove(BuildingClass* pThis) {
 		auto const pExt = BuildingExt::ExtMap.Find(pThis);
 
-		{
-			for (int i = 0; i < pExt->DamageFireAnims.Count; i++)
-			{
-				if (pExt->DamageFireAnims[i]) {
-					pExt->DamageFireAnims[i]->~AnimClass();
-					pExt->DamageFireAnims[i] = nullptr;
-				}
+		for (auto& nFires : pExt->DamageFireAnims) {
+			if (nFires) {
+				nFires->~AnimClass();
+				nFires = nullptr;
 			}
 		}
 	}
 
 	void HandleRemove(BuildingExt::ExtData* pExt) {
-		for (int i = 0; i < pExt->DamageFireAnims.Count; i++)
-		{
-			if (pExt->DamageFireAnims[i])
-			{
-				pExt->DamageFireAnims[i]->~AnimClass();
-				pExt->DamageFireAnims[i] = nullptr;
+		for (auto& nFires : pExt->DamageFireAnims) {
+			if (nFires) {
+				nFires->~AnimClass();
+				nFires = nullptr;
 			}
 		}
 	}
 
 	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
 		auto const pExt = BuildingExt::ExtMap.Find(pThis);
-
-		{
-			for (int i = 0; i < pExt->DamageFireAnims.Count; i++) {
-				if (pExt->DamageFireAnims[i] == ptr) {
-					pExt->DamageFireAnims[i] = nullptr;
-				}
+		for (auto& nFires : pExt->DamageFireAnims) {
+			if (nFires == ptr) {
+				nFires = nullptr;
 			}
 		}
 	}
 
 	void Construct(BuildingClass* pThis)
 	{
-		auto pType = pThis->Type;
-		auto pExt = BuildingExt::ExtMap.Find(pThis);
-		auto pTypeext = BuildingTypeExt::ExtMap.Find(pType);
+		const auto pType = pThis->Type;
+		const auto pExt = BuildingExt::ExtMap.Find(pThis);
+		const auto pTypeext = BuildingTypeExt::ExtMap.Find(pType);
 
 		HandleRemove(pExt);
 
 		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesGlobal->DamageFireTypes);
 
 		if (!pFire.empty() &&
-			!(pTypeext->DamageFire_Offs.Count == 0)
-			)
+			!pTypeext->DamageFire_Offs.empty())
 		{
-			for (int i = 0; i < pTypeext->DamageFire_Offs.Count; ++i)
+			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{
 				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
 				const auto[nPiX ,nPiY] = TacticalGlobal->ApplyOffsetPixel(nFireOffs);

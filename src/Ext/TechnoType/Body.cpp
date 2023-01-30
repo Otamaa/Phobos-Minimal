@@ -6,6 +6,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -16,7 +17,7 @@ double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 
 void TechnoTypeExt::ExtData::Initialize()
 {
-	Is_Cow = CRT::strcmp(Get()->ID, "COW") == 0;
+	Is_Cow = strcmp(Get()->ID, "COW") == 0;
 
 	this->ShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 	OreGathering_Anims.reserve(1);
@@ -30,9 +31,9 @@ AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesGlobal->Wake);
 }
 
-double TechnoTypeExt::GetTunnelSpeed(TechnoTypeClass* pThis, RulesClass* pRules)
+double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 {
-	return TechnoTypeExt::ExtMap.Find(pThis)->Tunnel_Speed.Get(pRules->TunnelSpeed);
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
 //void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
@@ -81,7 +82,11 @@ bool TechnoTypeExt::HasSelectionGroupID(ObjectTypeClass* pType, const std::strin
 
 bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 {
-	auto pThis = this->Get();
+	const auto pThis = this->Get();
+
+	if (!pThis)
+		return false;
+
 	UnitTypeClass* pUnit = nullptr;
 
 	if (pThis->WhatAmI() == AbstractType::UnitType)
@@ -201,14 +206,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->ShieldType.Read(exINI, pSection, "ShieldType", true);
 	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
-	this->WarpOut.Read(exINI, pSection, "WarpOut");
-	this->WarpIn.Read(exINI, pSection, "WarpIn");
-	this->WarpAway.Read(exINI, pSection, "WarpAway");
-	this->ChronoTrigger.Read(exINI, pSection, "ChronoTrigger");
-	this->ChronoDistanceFactor.Read(exINI, pSection, "ChronoDistanceFactor");
-	this->ChronoMinimumDelay.Read(exINI, pSection, "ChronoMinimumDelay");
-	this->ChronoRangeMinimum.Read(exINI, pSection, "ChronoRangeMinimum");
-	this->ChronoDelay.Read(exINI, pSection, "ChronoDelay");
+	this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());
+	this->WarpIn.Read(exINI, pSection, GameStrings::WarpIn());
+	this->WarpAway.Read(exINI, pSection, GameStrings::WarpAway());
+	this->ChronoTrigger.Read(exINI, pSection, GameStrings::ChronoTrigger());
+	this->ChronoDistanceFactor.Read(exINI, pSection, GameStrings::ChronoDistanceFactor());
+	this->ChronoMinimumDelay.Read(exINI, pSection, GameStrings::ChronoMinimumDelay());
+	this->ChronoRangeMinimum.Read(exINI, pSection, GameStrings::ChronoRangeMinimum());
+	this->ChronoDelay.Read(exINI, pSection, GameStrings::ChronoDelay());
 
 	this->WarpInWeapon.Read(exINI, pSection, "WarpInWeapon", true);
 	this->WarpInMinRangeWeapon.Read(exINI, pSection, "WarpInMinRangeWeapon", true);
@@ -234,6 +239,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PassengerDeletion_DisplaySoylent.Read(exINI, pSection, "PassengerDeletion.DisplaySoylent");
 	this->PassengerDeletion_DisplaySoylentToHouses.Read(exINI, pSection, "PassengerDeletion.DisplaySoylentToHouses");
 	this->PassengerDeletion_DisplaySoylentOffset.Read(exINI, pSection, "PassengerDeletion.DisplaySoylentOffset");
+	this->PassengerDeletion_Experience.Read(exINI, pSection, "PassengerDeletion.Experience");
+	this->PassengerDeletion_ExperienceFriendlies.Read(exINI, pSection, "PassengerDeletion.ExperienceFriendlies");
 
 	this->DefaultDisguise.Read(exINI, pSection, "DefaultDisguise");
 
@@ -250,6 +257,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
 	this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
+	this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumjetCrashRotate");
+
 	this->DeployingAnim_AllowAnyDirection.Read(exINI, pSection, "DeployingAnim.AllowAnyDirection");
 	this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
 	this->DeployingAnim_ReverseForUndeploy.Read(exINI, pSection, "DeployingAnim.ReverseForUndeploy");
@@ -263,7 +272,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//TODO : better helper
 	char nAbility[0x200] = { 0 };
 
-	if (exINI.GetINI()->ReadString(pSection, "EliteAbilities", "", nAbility) > 0){
+	if (exINI.GetINI()->ReadString(pSection, GameStrings::EliteAbilities(), "", nAbility) > 0) {
 		std::string nEliteAbilities { nAbility };
 		if (!nEliteAbilities.empty()) {
 			std::size_t nFInd = nEliteAbilities.find("EMPIMMUNE");
@@ -272,7 +281,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 	}
 
-	if (exINI.GetINI()->ReadString(pSection, "VeteranAbilities", "", nAbility) > 0) {
+	if (exINI.GetINI()->ReadString(pSection, GameStrings::VeteranAbilities(), "", nAbility) > 0) {
 		std::string nVeteranAbilities { nAbility };
 		if (!nVeteranAbilities.empty()) {
 			std::size_t nFInd = nVeteranAbilities.find("EMPIMMUNE");
@@ -331,12 +340,24 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
 	this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
 	this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
+
+	this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
+	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
+	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+
 #pragma region Otamaa
 	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
-	this->DiskLaserChargeUp.Read(exINI, pSection, "DiskLaserChargeUp");
-	this->DrainAnimationType.Read(exINI, pSection, "DrainAnimationType");
+	this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
 
-	this->TalkBubbleTime.Read(exINI, pSection, "TalkBubbleTime");
+	this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
+	this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
+	this->DrainMoney_Display.Read(exINI, pSection, "DrainMoney.Display");
+	this->DrainMoney_Display_Houses.Read(exINI, pSection, "DrainMoney.Display.Houses");
+	this->DrainMoney_Display_AtFirer.Read(exINI, pSection, "DrainMoney.Display.AtFirer");
+	this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoney.Display.Offset");
+	this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
+
+	this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
 
 	//pipshape
 	this->HealthBarSHP.Read(exINI, pSection, "HealthBarSHP");
@@ -445,6 +466,18 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank");
 	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");
 	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
+	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
+
+	this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
+	this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
+	this->Vinifera_FrameIDx.Read(exINI, pSection, "Storage2FrameIdx");
+	this->Aboreus_FrameIDx.Read(exINI, pSection, "Storage3FrameIdx");
+
+	this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
+	this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
+	this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
+
+	this->AdjustCrushProperties();
 
 #pragma endregion
 
@@ -499,6 +532,95 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			: this->AlternateFLHs.emplace_back(alternateFLH);
 	}
 
+	this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
+	this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
+
+	// Prerequisite.RequiredTheaters contains a list of theader names
+	const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
+	char* context = nullptr;
+	pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
+
+	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+	{
+		int index = Theater::FindIndex(cur);
+		if (index != -1)
+			Prerequisite_RequiredTheaters.push_back(index);
+	}
+
+	// Prerequisite with Generic Prerequistes support.
+	// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
+	const char* key_prereqs = "Prerequisite";
+	context = nullptr;
+	pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
+
+	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+	{
+		int idx = TechnoTypeClass::FindIndexById(cur);
+		if (idx >= 0)
+		{
+			Prerequisite.push_back(idx);
+		}
+		else
+		{
+			int index = HouseExt::FindGenericPrerequisite(cur);
+			if (index < 0)
+				Prerequisite.push_back(index);
+		}
+	}
+
+	// Prerequisite.Negative with Generic Prerequistes support
+	const char* key_prereqsNegative = "Prerequisite.Negative";
+	context = nullptr;
+	pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
+
+	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+	{
+		int idx = TechnoTypeClass::FindIndexById(cur);
+		if (idx >= 0)
+		{
+			Prerequisite_Negative.push_back(idx);
+		}
+		else
+		{
+			int index = HouseExt::FindGenericPrerequisite(cur);
+			if (index < 0)
+				Prerequisite_Negative.push_back(index);
+		}
+	}
+
+	// Prerequisite.ListX with Generic Prerequistes support
+	this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
+
+	if (Prerequisite_Lists.Get() > 0)
+	{
+		for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
+		{
+			char keySection[32];
+			_snprintf_s(keySection, sizeof(keySection), "Prerequisite.List%d", i);
+
+			std::vector<int> objectsList;
+			char* context2 = nullptr;
+			pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
+
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+			{
+				int idx = TechnoTypeClass::FindIndexById(cur);
+				if (idx >= 0)
+				{
+					objectsList.push_back(idx);
+				}
+				else
+				{
+					int index = HouseExt::FindGenericPrerequisite(cur);
+					if (index < 0)
+						objectsList.push_back(index);
+				}
+			}
+
+			Prerequisite_ListVector.push_back(objectsList);
+		}
+	}
+
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -515,7 +637,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
 
+	this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection,"SpawnOffset");
+	this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
+
 	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
@@ -527,6 +653,67 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 
 #pragma endregion
+}
+
+void TechnoTypeExt::ExtData::AdjustCrushProperties()
+{
+	auto const pThis = Get();
+
+	if (this->CrushLevel.Rookie <= 0)
+	{
+		if (pThis->OmniCrusher)
+			this->CrushLevel.Rookie = 10;
+		else if (pThis->Crusher)
+			this->CrushLevel.Rookie = 5;
+		else
+			this->CrushLevel.Rookie = 0;
+	}
+	if (this->CrushLevel.Veteran <= 0)
+	{
+		if (!pThis->OmniCrusher && pThis->VeteranAbilities.CRUSHER)
+			this->CrushLevel.Veteran = 5;
+		else
+			this->CrushLevel.Veteran = this->CrushLevel.Rookie;
+	}
+	if (this->CrushLevel.Elite <= 0)
+	{
+		if (!pThis->OmniCrusher && pThis->EliteAbilities.CRUSHER)
+			this->CrushLevel.Elite = 5;
+		else
+			this->CrushLevel.Elite = this->CrushLevel.Veteran;
+	}
+	if (!pThis->Crusher && (this->CrushLevel.Rookie > 0 || this->CrushLevel.Veteran > 0 || this->CrushLevel.Elite > 0) &&
+		pThis->WhatAmI() == AbstractType::UnitType)
+		pThis->Crusher = true;
+
+	if (this->CrushableLevel.Rookie <= 0)
+	{
+		if (pThis->OmniCrushResistant)
+			this->CrushableLevel.Rookie = 10;
+		else if (!pThis->Crushable)
+			this->CrushableLevel.Rookie = 5;
+		else
+			this->CrushableLevel.Rookie = 0;
+	}
+	if (this->CrushableLevel.Veteran <= 0)
+		this->CrushableLevel.Veteran = this->CrushableLevel.Rookie;
+	if (this->CrushableLevel.Elite <= 0)
+		this->CrushableLevel.Elite = this->CrushableLevel.Veteran;
+
+	if (const auto pInfType = abstract_cast<InfantryTypeClass*>(pThis))
+	{
+		if (this->DeployCrushableLevel.Rookie <= 0)
+		{
+			if (!pInfType->DeployedCrushable)
+				this->DeployCrushableLevel.Rookie = 5;
+			else
+				this->DeployCrushableLevel.Rookie = this->CrushableLevel.Rookie;
+		}
+		if (this->DeployCrushableLevel.Veteran <= 0)
+			this->DeployCrushableLevel.Veteran = this->DeployCrushableLevel.Rookie;
+		if (this->DeployCrushableLevel.Elite <= 0)
+			this->DeployCrushableLevel.Elite = this->DeployCrushableLevel.Veteran;
+	}
 }
 
 template <typename T>
@@ -612,6 +799,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PassengerDeletion_DisplaySoylent)
 		.Process(this->PassengerDeletion_DisplaySoylentToHouses)
 		.Process(this->PassengerDeletion_DisplaySoylentOffset)
+		.Process(this->PassengerDeletion_Experience)
+		.Process(this->PassengerDeletion_ExperienceFriendlies)
 		.Process(this->OpenTopped_RangeBonus)
 		.Process(this->OpenTopped_DamageMultiplier)
 		.Process(this->OpenTopped_WarpDistance)
@@ -624,6 +813,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NoAmmoAmount)
 		.Process(this->JumpjetAllowLayerDeviation)
 		.Process(this->JumpjetTurnToTarget)
+		.Process(this->JumpjetCrash_Rotate)
 		.Process(this->DeployingAnim_AllowAnyDirection)
 		.Process(this->DeployingAnim_KeepUnitVisible)
 		.Process(this->DeployingAnim_ReverseForUndeploy)
@@ -671,6 +861,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MobileRefinery_AnimMove)
 		.Process(this->Explodes_KillPassengers)
 
+		.Process(this->DeployFireWeapon)
+		.Process(this->RevengeWeapon)
+		.Process(this->RevengeWeapon_AffectsHouses)
+
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)
 
@@ -691,6 +885,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EliteDeployedWeaponBurstFLHs)
 
 		.Process(this->AlternateFLHs)
+		.Process(this->Spawner_SpawnOffsets)
+		.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
 #pragma region Otamaa
 		.Process(this->FacingRotation_Disable)
 		.Process(this->FacingRotation_DisalbeOnEMP)
@@ -701,7 +897,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DontShake)
 
 		.Process(this->DiskLaserChargeUp)
+
 		.Process(this->DrainAnimationType)
+		.Process(this->DrainMoneyFrameDelay)
+		.Process(this->DrainMoneyAmount)
+		.Process(this->DrainMoney_Display)
+		.Process(this->DrainMoney_Display_Houses)
+		.Process(this->DrainMoney_Display_AtFirer)
+		.Process(this->DrainMoney_Display_Offset)
 
 		.Process(this->TalkBubbleTime)
 
@@ -738,8 +941,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrashWeapon)
 		.Process(this->CrashWeapon_s)
 		.Process(this->Disable_C4WarheadExp)
-
-
 
 		.Process(this->CrashSpinLevelRate)
 		.Process(this->CrashSpinVerticalRate)
@@ -814,6 +1015,16 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PoseDir)
 		.Process(this->Firing_IgnoreGravity)
 		.Process(this->Survivors_PassengerChance)
+		.Process(this->Unit_AI_AlternateType)
+
+		.Process(this->Prerequisite_RequiredTheaters)
+		.Process(this->Prerequisite)
+		.Process(this->Prerequisite_Negative)
+		.Process(this->Prerequisite_Lists)
+		.Process(this->Prerequisite_ListVector)
+		.Process(this->ConsideredNaval)
+		.Process(this->ConsideredVehicle)
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->VirtualUnit)
 
@@ -822,6 +1033,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SecondaryCrawlFLH)
 		.Process(this->Elite_SecondaryCrawlFLH)
 		.Process(this->MissileHoming)
+
+		.Process(this->Riparius_FrameIDx)
+		.Process(this->Cruentus_FrameIDx)
+		.Process(this->Vinifera_FrameIDx)
+		.Process(this->Aboreus_FrameIDx)
+
+		.Process(this->CrushLevel)
+		.Process(this->CrushableLevel)
+		.Process(this->DeployCrushableLevel)
 #endif
 
 
@@ -841,6 +1061,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 	this->DamageSelfData.Serialize(Stm);
 #endif
 }
+
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
 	Extension<TechnoTypeClass>::Serialize(Stm);
@@ -940,11 +1161,15 @@ DEFINE_HOOK(0x717094, TechnoTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK_AGAIN(0x716132, TechnoTypeClass_LoadFromINI, 0x5)
+DEFINE_HOOK_AGAIN(0x716132, TechnoTypeClass_LoadFromINI, 0x5) // this should make the techno unusable ? becase the game will return false when it
 DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x380);
+
+	//if (R->Origin() == 0x716132) {
+	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
+	//}
 
 	if (auto ptr = TechnoTypeExt::ExtMap.Find(pItem)){
 		ptr->LoadFromINI(pINI);
@@ -978,14 +1203,26 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
 
 	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
-	this->PoseDir.Read(exINI, pSection, "PoseDir");
+	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
 	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
 	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 	this->MyDiveData.Read(exINI, pSection);
 	this->MyPutData.Read(exINI, pSection);
 	this->MyFighterData.Read(exINI, pSection, pThis);
+#endif
+}
+
+void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
+{
+	auto pThis = Get();
+	const char* pSection = pThis->ID;
+	INI_EX exINI(pINI);
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->MyExtraFireData.ReadRules(exINI, pSection);
 #endif
 }
 
@@ -995,7 +1232,7 @@ DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
 	GET(const AircraftTypeClass* const , pItem, ESI);
 	GET(CCINIClass* const, pINI, EBX);
 
-	R->AL(pINI->ReadBool(pItem->ID, "FlyBack", R->CL()));
+	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
 
 	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
 		pExt->LoadFromINIFile_Aircraft(pINI);

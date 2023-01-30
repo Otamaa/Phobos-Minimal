@@ -17,7 +17,25 @@ public:
 	static const AbstractType AbsID = AbstractType::OverlayType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(OverlayTypeClass, 0xA83D80u);
+	static constexpr constant_ptr<DynamicVectorClass<OverlayTypeClass*>, 0xA83D80u> const Array {};
+
+	static NOINLINE OverlayTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static OverlayTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x5FEC70);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x5FE470);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

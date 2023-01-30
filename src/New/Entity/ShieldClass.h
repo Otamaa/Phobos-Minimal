@@ -95,13 +95,13 @@ private:
 
 	/// Properties ///
 	TechnoClass* Techno;
-	FixedString<0x80> TechnoID;
+	TechnoTypeClass* CurTechnoType;
 	int HP;
 
-		TimerStruct Timers_SelfHealing;
-		TimerStruct Timers_SelfHealing_Warhead;
-		TimerStruct Timers_Respawn;
-		TimerStruct Timers_Respawn_Warhead;
+	TimerStruct Timers_SelfHealing;
+	TimerStruct Timers_SelfHealing_Warhead;
+	TimerStruct Timers_Respawn;
+	TimerStruct Timers_Respawn_Warhead;
 
 	AnimClass* IdleAnim;
 	bool Cloak;

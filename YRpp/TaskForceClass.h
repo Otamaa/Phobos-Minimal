@@ -30,7 +30,35 @@ public:
 	static const AbstractType AbsID = AbstractType::TaskForce;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(TaskForceClass, 0xA8E8D0u);
+	static constexpr constant_ptr<DynamicVectorClass<TaskForceClass*>, 0xA8E8D0u> const Array {};
+
+	template<bool Name = false>
+	static NOINLINE TaskForceClass* Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if constexpr (Name){
+				if (!CRT::strcmpi(pItem->Name, pID))
+					return pItem;
+			}else{
+				if (!CRT::strcmpi(pItem->ID, pID))
+					return pItem;
+			}
+		}
+
+		return nullptr;
+	}
+
+	static TaskForceClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x6E85F0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x6E8180);
+	}
+
+	static int __fastcall FindIndexByName(const char* pID) {
+		JMP_STD(0x6E81D0);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

@@ -4,6 +4,7 @@
 
 class HouseClass;
 class TechnoClass;
+class AircraftTypeClass;
 
 enum class SpawnManagerStatus : unsigned int {
 	Idle = 0, // no target or out of range

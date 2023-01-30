@@ -11,11 +11,13 @@
 #include <AITriggerTypeClass.h>
 #include <Helpers/Enumerators.h>
 #include <IsometricTileTypeClass.h>
+#include <TerrainTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
 #include <Utilities/GeneralUtils.h>
+#include <New/Type/ArmorTypeClass.h>
 
 const char* ObjectInfoCommandClass::GetName() const
 {
@@ -37,6 +39,17 @@ const wchar_t* ObjectInfoCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_OBJECT_INFO_DESC", L"Dump ObjectInfo to log file and display it.");
 }
 
+NOINLINE const char* const getMissionName (int mID)
+{
+	if (mID == -1)
+		return GameStrings::NoneStr();
+
+	if (mID < (int)MissionControlClass::Names.c_size())
+		return MissionControlClass::Names[mID];
+
+	return "INVALID_MISSION";
+}
+
 void ObjectInfoCommandClass::Execute(WWKey eInput) const
 {
 	if (this->CheckDebugDeactivated())
@@ -53,94 +66,19 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		strcat_s(buffer, Phobos::readBuffer);
 	};
 
-	auto getMissionName = [](int mID)
-	{
-		switch (mID)
-		{
-		case -1:
-			return "None";
-		case 0:
-			return "Sleep";
-		case 1:
-			return "Attack";
-		case 2:
-			return "Move";
-		case 3:
-			return "QMove";
-		case 4:
-			return "Retreat";
-		case 5:
-			return "Guard";
-		case 6:
-			return "Sticky";
-		case 7:
-			return "Enter";
-		case 8:
-			return "Capture";
-		case 9:
-			return "Eaten";
-		case 10:
-			return "Harvest";
-		case 11:
-			return "Area_Guard";
-		case 12:
-			return "Return";
-		case 13:
-			return "Stop";
-		case 14:
-			return "Ambush";
-		case 15:
-			return "Hunt";
-		case 16:
-			return "Unload";
-		case 17:
-			return "Sabotage";
-		case 18:
-			return "Construction";
-		case 19:
-			return "Selling";
-		case 20:
-			return "Repair";
-		case 21:
-			return "Rescue";
-		case 22:
-			return "Missile";
-		case 23:
-			return "Harmless";
-		case 24:
-			return "Open";
-		case 25:
-			return "Patrol";
-		case 26:
-			return "ParadropApproach";
-		case 27:
-			return "ParadropOverfly";
-		case 28:
-			return "Wait";
-		case 29:
-			return "AttackMove";
-		case 30:
-			return "SpyplaneApproach";
-		case 31:
-			return "SpyplaneOverfly";
-		default:
-			return "INVALID_MISSION";
-		}
-	};
-
 	auto display = [&buffer]()
 	{
 		memset(Phobos::wideBuffer, 0, sizeof Phobos::wideBuffer);
-		mbstowcs(Phobos::wideBuffer, buffer, strlen(buffer));
+		CRT::mbstowcs(Phobos::wideBuffer, buffer, strlen(buffer));
 		MessageListClass::Instance->PrintMessage(Phobos::wideBuffer, 600, 5, true);
 		Debug::Log("%s\n", buffer);
 		buffer[0] = 0;
 	};
 
-	auto printFoots = [&append, &display, &getMissionName](FootClass* pFoot)
+	auto printFoots = [&append, &display](FootClass* pFoot)
 	{
 		append("[Phobos] Dump ObjectInfo runs.\n");
-		auto pType = pFoot->GetTechnoType();
+		const auto pType = pFoot->GetTechnoType();
 		append("ID = %s, ", pType->ID);
 		append("Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 		append("Location = (%d, %d), ", pFoot->GetMapCoords().X, pFoot->GetMapCoords().Y);
@@ -233,18 +171,27 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 				}
 		}
 
-		append("Current HP = (%d / %d)", pFoot->Health, pType->Strength);
+		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pType->Armor);
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) ", pFoot->Health, pType->Strength , pArmor->Name.data() , (int)pType->Armor, pFoot->Veterancy.Veterancy , RulesGlobal->VeteranCap);
+		
+		if (pType->Ammo > 0)
+			append(" , Ammo = (%d / %d) \n", pFoot->Ammo, pType->Ammo);
+		else
+			append("\n");
 
 		if (auto pTechnoExt = TechnoExt::ExtMap.Find(pFoot))
 		{
 			auto pShieldData = pTechnoExt->Shield.get();
 
 			if (pTechnoExt->CurrentShieldType && pShieldData)
-				append(", Current Shield HP = (%d / %d)", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			{
+				auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
+				append("Current Shield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+
+			}
 		}
 
-		if (pType->Ammo > 0)
-			append(", Ammo = (%d / %d)", pFoot->Ammo, pType->Ammo);
+
 
 		append("\n");
 		display();
@@ -294,14 +241,19 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 				append("Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pBuilding->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
 			}
 
-		append("Current HP = (%d / %d)\n", pBuilding->Health, pBuilding->Type->Strength);
+		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pBuilding->Type->Armor);
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength , pArmor->Name.data() , (int)pBuilding->Type->Armor , pBuilding->Veterancy.Veterancy, RulesGlobal->VeteranCap);
 
 		if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
 		{
 			auto pShieldData = pTechnoExt->Shield.get();
 
 			if (pTechnoExt->CurrentShieldType && pShieldData)
-				append("Current Shield HP = (%d / %d)\n", pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			{
+				auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
+				append("Current Shield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+
+			}
 		}
 
 		display();
@@ -349,13 +301,30 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		{
 			if (auto pCell = Map[WWMouseClass::Instance->GetCellUnderCursor()])
 			{
+
 				const auto nTile = pCell->IsoTileTypeIndex;
 				if (nTile >= 0 && nTile < IsometricTileTypeClass::Array->Count)
 				{
 					auto pTile = IsometricTileTypeClass::Array->GetItem(nTile);
-					append("[%d]TileType At Cell[%d , %d] is %s ", nTile, pCell->MapCoords.X, pCell->MapCoords.Y, pTile->ID);
-					display();
+					append("[%d]TileType At Cell[%d , %d] is %s \n", nTile, pCell->MapCoords.X, pCell->MapCoords.Y, pTile->ID);
 				}
+
+				const auto nOverlay = pCell->OverlayTypeIndex;
+				if (nOverlay >= 0 && nOverlay < OverlayTypeClass::Array->Count)
+				{
+					auto pOverlay = OverlayTypeClass::Array->GetItem(nOverlay);
+					append("[%d]OverlayType is %s ", nOverlay, pOverlay->ID);
+				}
+
+				for (auto pTerrain : *TerrainClass::Array) {
+					if (pTerrain->Type && pTerrain->GetCell() == pCell)
+					{
+						auto const pArmor = ArmorTypeClass::FindFromIndex((int)pTerrain->Type->Armor);
+						append("[%x]TerrainType is %s , Armor = %s (%d) , str = %d / %d \n", pTerrain, pTerrain->get_ID() , pArmor->Name.data() , (int)pTerrain->Type->Armor, pTerrain->Health , pTerrain->Type->Strength);
+					}
+				}
+
+				display();
 			}
 		}
 	}

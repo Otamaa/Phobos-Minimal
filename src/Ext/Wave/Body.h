@@ -18,18 +18,13 @@ public:
 	{
 	public:
 
-		int MyWeapon;
-
 		ExtData(WaveClass* OwnerObject) : TExtension<WaveClass>(OwnerObject)
-			, MyWeapon(0)
 		{ }
 
 		virtual ~ExtData() = default;
 		virtual size_t Size() const { return sizeof(*this); }
-		void InvalidatePointer(void *ptr, bool bRemoved)
-		{
-			AnnounceInvalidPointer(MyWeapon, ptr);
-		}
+		void InvalidatePointer(void* ptr, bool bRemoved) { }
+
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
 		virtual void Initialize() override;

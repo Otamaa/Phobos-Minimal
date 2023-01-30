@@ -12,13 +12,13 @@
 #define VERSION_MAJOR 0
 
 // Indicates major changes and significant additions, like new logics
-#define VERSION_MINOR 2
+#define VERSION_MINOR 5
 
 // Indicates minor changes, like vanilla bugfixes, unhardcodings or hacks
-#define VERSION_REVISION 2
+#define VERSION_REVISION 20
 
 // Indicates Phobos-related bugfixes only
-#define VERSION_PATCH 2
+#define VERSION_PATCH 100
 
 #pragma endregion
 
@@ -44,10 +44,10 @@
 	#define PRODUCT_VERSION "Nightly Build " STR_GIT_COMMIT " @ " STR_GIT_BRANCH
 #else // Regular devbuild metadata
 	#define SAVEGAME_ID ((BUILD_NUMBER << 24) | (BUILD_NUMBER << 12) | (BUILD_NUMBER))
-	#define FILE_DESCRIPTION "Development build of Phobos engine extension"
-	#define FILE_VERSION_STR "Build #" _STR(BUILD_NUMBER)
+	#define FILE_DESCRIPTION "Untested Development build of Phobos engine extension"
+	#define FILE_VERSION_STR "Untested Build #" _STR(BUILD_NUMBER)
 	#define FILE_VERSION 0,0,0,BUILD_NUMBER
-	#define PRODUCT_VERSION "Development Build #" _STR(BUILD_NUMBER)
+	#define PRODUCT_VERSION "Untested Development Build #" _STR(BUILD_NUMBER)
 #endif
 
 #endif // VERSION_H

@@ -26,7 +26,35 @@ public:
 	static const AbstractType AbsID = AbstractType::AITriggerType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(AITriggerTypeClass, 0xA8B200u);
+	static constexpr constant_ptr<DynamicVectorClass<AITriggerTypeClass*>, 0xA8B200u> const Array {};
+
+	static NOINLINE AITriggerTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static AITriggerTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x41FCA0);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
@@ -83,10 +111,10 @@ public:
 		{ JMP_THIS(0x41F230); }
 
 	void FormatForSaving(char * buffer, size_t size) const {
-		const char *Team1Name = "<none>";
-		const char *Team2Name = "<none>";
-		const char *HouseName = "<none>";
-		const char *ConditionName = "<none>";
+		const char *Team1Name = GameStrings::NoneStr();
+		const char *Team2Name = GameStrings::NoneStr();
+		const char *HouseName = GameStrings::NoneStr();
+		const char *ConditionName = GameStrings::NoneStr();
 
 		TeamTypeClass *T = this->Team1;
 		if(T) {

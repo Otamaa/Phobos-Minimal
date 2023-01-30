@@ -10,6 +10,8 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 //DEFINE_HOOK(0x730F1C, ObjectClass_StopCommand, 0x5)
 //{
 //	GET(ObjectClass*, pObject, ESI);
@@ -51,8 +53,10 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 	GET(RulesClass*, pRules, ECX);
 
-	if (pThis && pThis->Type) {
-		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
+	if (pThis && pThis->Type)
+	{
+		if (auto const pStructureExt = BuildingTypeExt::ExtMap.Find(pThis->Type))
+		{
 			R->AL(pStructureExt->PlayerReturnFire.Get(pRules->PlayerReturnFire));
 			return 0x442A30;
 		}
@@ -102,15 +106,16 @@ DEFINE_HOOK(0x70272E, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
 	return Nothing;
 }
 
-
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass*, pProduct, ESI);
 
-	auto nSpeak = reinterpret_cast<const char*>(0x8249A0);
+	auto nSpeak = GameStrings::EVA_UnitReady();
 
-	if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType())) {
-		if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data())) {
+	if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType()))
+	{
+		if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data()))
+		{
 			if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
 			 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
 			 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
@@ -162,9 +167,11 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 		pTech->GetOwningHouse() &&
 		pTech->GetOwningHouse()->IsCurrentPlayer())
 	{
-		auto nSpeak = reinterpret_cast<const char*>(0x83FA80); //EVA_ConstructionComplete
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType())) {
-			if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data())) {
+		auto nSpeak = GameStrings::EVA_ConstructionComplete();
+		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType()))
+		{
+			if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data()))
+			{
 				if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
 				 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
 				 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
@@ -260,7 +267,6 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 //	return 0x41530C;
 //}
 
-
 //DEFINE_HOOK(0x4CD8C9, FlyLocomotionClass_Movement_AI_DisableTSExp, 0x9)
 //{
 //	GET(FootClass*, pFoot, EDX);
@@ -270,17 +276,20 @@ DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
 
 #ifndef ENABLE_NEWHOOKS
 template<bool CheckNotHuman = true>
-static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType , const ValueableVector<AnimTypeClass*>& nOverrider)
+static Iterator<AnimTypeClass*> GetDeathBodies(InfantryTypeClass* pThisType, const ValueableVector<AnimTypeClass*>& nOverrider)
 {
 	if (!nOverrider.empty())
 		return nOverrider;
 
-	if (pThisType->DeadBodies.Count > 0) {
+	if (pThisType->DeadBodies.Count > 0)
+	{
 		return pThisType->DeadBodies;
 	}
 
-	if constexpr(CheckNotHuman){
-		if (!pThisType->NotHuman){
+	if constexpr (CheckNotHuman)
+	{
+		if (!pThisType->NotHuman)
+		{
 			return RulesGlobal->DeadBodies;
 		}
 	}
@@ -353,7 +362,6 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 	return 0x518BA0;
 }
 #endif
-
 
 //#include "TestTurrent.h"
 //
@@ -549,45 +557,55 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
+#ifdef COMPILE_PORTED_DP_FEATURES
+
 	GET(BuildingClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBP);
 	GET_STACK(BulletClass*, pBullet, STACK_OFFSET(0xF0, -0xA4));
+	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
 
 	if (pWeapon && pBullet)
 	{
 		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
-		CoordStruct dest = pBullet->Target->GetCoords();
+		CoordStruct dest = *pCoord;
+		auto const pTarget = pBullet->Target ? pBullet->Target : Map[dest];
 
-		if (pWeapon->IsLaser)
-		{
-			GameCreate<LaserDrawClass>(src, dest, pWeapon->LaserInnerColor, pWeapon->LaserOuterColor, pWeapon->LaserOuterSpread, pWeapon->LaserDuration);
-		}
+
+		// Draw bullet effect
+		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
+		// Draw particle system
+		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
+		// Play report sound
+		Helpers_DP::PlayReportSound(pWeapon, src);
+		// Draw weapon anim
+		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
 	}
-
+#endif
 	return 0;
 }
 
-DEFINE_HOOK(0x51A2F1, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
+DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
-	GET(TechnoClass*, pThis, EDI);
+	GET(BuildingClass*, pBuilding, EDI);
 
-	if (pThis->WhatAmI() == AbstractType::Building)
-	{
-		CoordStruct coords = pThis->GetCoords();
-		VocClass::PlayAt(BuildingTypeExt::ExtMap.Find(static_cast<BuildingClass*>(pThis)->Type)->EnterBioReactorSound.Get(RulesGlobal->EnterBioReactorSound), coords, 0);
-
-		return 0x51A30F;
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)->EnterBioReactorSound.Get(RulesGlobal->EnterBioReactorSound);
+	
+	if (nSound != -1) {
+		VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
 	}
 
-	return 0;
+	return 0x51A30F;
 }
 
 DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	CoordStruct coords = pThis->GetCoords();
-	VocClass::PlayAt(BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesGlobal->LeaveBioReactorSound), coords, 0);
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesGlobal->LeaveBioReactorSound);
+	
+	if(nSound != -1) {
+		VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
+	}
 
 	return 0x44DBDA;
 }
@@ -604,4 +622,239 @@ DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
 		return CanUse;
 
 	return ContinueCheck;
+}
+
+//what ?
+//DEFINE_HOOK(0x5F53DD, ObjectClass_NoRelative, 0x8)
+//{
+//	GET(ObjectClass*, pObject, ESI);
+//	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+//
+//	if (TechnoClass* pThis = abstract_cast<TechnoClass*>(pObject))
+//	{
+//		const TechnoTypeClass* pType = pThis->GetTechnoType();
+//		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//		if (!args->IgnoreDefenses && pTypeExt->AllowMinHealth > 0)
+//		{
+//			R->EBP(pType->Strength);
+//
+//			//Ares Hook 0x5F53E5
+//			return 0x5F53F3;
+//		}
+//	}
+//
+//	R->EAX(pObject->GetType());
+//
+//	return 0x5F53E5;
+//}
+
+DEFINE_HOOK(0x5F53ED, ObjectClass_ReceiveDamage_StackReused, 0x6)
+{
+	enum { DecideResult = 0x5F5416, RecalculateDamage = 0x5F53F3 };
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+	return args->IgnoreDefenses ? DecideResult : RecalculateDamage;
+}
+
+DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
+{
+	enum
+	{
+		Nothing = 0x0,
+		CheckForZeroDamage = 0x5F5456,
+		DecideResult = 0x5F5498,
+		SkipDecdeResult = 0x5F546A
+	};
+
+	GET(ObjectClass*, pObject, ESI);
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+
+	*reinterpret_cast<DWORD*>(&args->IgnoreDefenses) = pObject->GetType()->Strength;
+
+	if (!(pObject->AbstractFlags & AbstractFlags::Techno)) {	
+		return CheckForZeroDamage;
+	}
+
+	return Nothing;
+}
+
+
+DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
+{
+	enum { SkipGameCode = 0x6FA1C5 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pSource = pThis->DrainingMe;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
+	const auto pRules = RulesClass::Instance();
+	const auto nDrainDelay = pTypeExt->DrainMoneyFrameDelay.Get(pRules->DrainMoneyFrameDelay);
+
+	if ((Unsorted::CurrentFrame % nDrainDelay) == 0)
+	{
+		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
+		{
+
+			if (nDrainAmount > 0)
+				nDrainAmount = Math::min(nDrainAmount, (int)pThis->Owner->Available_Money());
+			else
+				nDrainAmount = Math::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
+
+			if (nDrainAmount)
+			{
+				pThis->Owner->TransactMoney(-nDrainAmount);
+				pSource->Owner->TransactMoney(nDrainAmount);
+
+				if (pTypeExt->DrainMoney_Display)
+				{
+					const auto& displayCoords = pTypeExt->DrainMoney_Display_AtFirer ? pSource->Location : pThis->Location;
+					FlyingStrings::AddMoneyString(true, nDrainAmount, pSource,
+						pTypeExt->DrainMoney_Display_Houses, displayCoords,
+						pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+				}
+			}
+		}
+	}
+
+	return SkipGameCode;
+}
+
+bool NOINLINE IsCrusable(ObjectClass* pVictim, TechnoClass* pAttacker)
+{
+	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
+		return false;
+
+	if (pVictim->IsIronCurtained())
+		return false;
+
+	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
+		return false;
+
+	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
+
+	if (!pVictimTechno)
+		return false;
+
+	auto const pWhatVictim = pVictim->WhatAmI();
+	auto const pAttackerType = pAttacker->GetTechnoType();
+	auto const pVictimType = pVictim->GetTechnoType();
+
+	if (pAttackerType->OmniCrusher) {
+		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
+			return false;
+	} else {
+		if (pVictimTechno->Uncrushable || !pVictimType->Crushable)
+			return false;
+	}
+
+	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
+
+	if (pWhatVictim == AbstractType::Infantry)
+	{
+		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
+		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
+			pVictimTechnoTypeExt->DeployCrushableLevel :
+			pVictimTechnoTypeExt->CrushableLevel;
+
+		if (pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) < crushableLevel.Get(pVictimTechno))
+			return false;
+	}
+
+	if (TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pVictim)))
+	{
+		return false;
+	}
+
+	//auto const pExt = TechnoExt::ExtMap.Find(pVictimTechno);
+	//if (auto const pShieldData = pExt->Shield.get()) {
+	//	auto const pWeaponIDx = pAttacker->SelectWeapon(pVictim);
+	//	auto const pWeapon = pAttacker->GetWeapon(pWeaponIDx);
+
+	//	if (pWeapon && pWeapon->WeaponType &&
+	//		pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon->WeaponType)) {
+	//		return false;
+	//	}
+	//}
+
+	return true;
+}
+
+DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
+{
+	enum { SkipGameCode = 0x5F6D90 };
+
+	GET(ObjectClass*, pThis, ECX);
+	GET_STACK(TechnoClass*, pTechno, STACK_OFFSET(0x8, -0x4));
+	R->AL(IsCrusable(pThis, pTechno));
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
+{
+	GET(ObjectClass*, pObject, ESI);
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+
+	if (const TechnoClass* pThis = abstract_cast<TechnoClass*>(pObject))
+	{
+		//const auto pExt = TechnoExt::ExtMap.Find(pThis);
+		const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+		const auto pThisType = pThis->GetTechnoType();
+
+		//this already calculate distance damage from epicenter
+		*args->Damage = MapClass::GetTotalDamage(*args->Damage, args->WH, pThisType->Armor , args->DistanceToEpicenter);
+
+		if (pWHExt->RecalculateDistanceDamage
+			&& args->Attacker 
+			&& !(!pWHExt->RecalculateDistanceDamage_IgnoreMaxDamage && *args->Damage == RulesGlobal->MaxDamage)) {
+
+			const auto range = args->Attacker->DistanceFrom(pObject);
+			const auto add = (pWHExt->RecalculateDistanceDamage_Add) * (range / ((pWHExt->RecalculateDistanceDamage_Add_Factor) * 256));
+			const auto multiply = pow((pWHExt->RecalculateDistanceDamage_Multiply), (range / ((pWHExt->RecalculateDistanceDamage_Multiply_Factor) * 256)));
+
+			*args->Damage += std::clamp((static_cast<int>((*args->Damage + add) * multiply) - *args->Damage), pWHExt->RecalculateDistanceDamage_Min.Get(), pWHExt->RecalculateDistanceDamage_Max.Get());
+
+			if (!pWHExt->RecalculateDistanceDamage_IgnoreMaxDamage)
+				*args->Damage = std::clamp((*args->Damage), 0, RulesGlobal->MaxDamage);
+		}
+
+		return 0x5F5416;
+	}
+
+	return 0;
+}
+
+ //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
+ //Fixes recursive passenger kills not being accredited
+ //to proper techno but to their transports
+DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
+{
+	GET(TechnoClass*, pKiller, EBP);
+	GET(TechnoClass*, pCargo, ESI);
+
+	pCargo->KillCargo(pKiller);
+	return 0x707CFA;
+}
+
+
+// Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
+DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250);
+
+DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
+{
+	GET(FootClass*, pFoot, EAX);
+
+	if (const auto pTeam = pFoot->Team)
+	{
+		if (auto nTeamDecision = pTeam->Type->MindControlDecision)
+		{
+			if (nTeamDecision > 5)
+				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
+
+			R->EAX(nTeamDecision);
+			return 0x47258F;
+		}
+	}
+
+	return 0x4725B0;
 }

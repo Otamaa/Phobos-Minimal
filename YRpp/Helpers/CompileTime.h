@@ -223,8 +223,4 @@ public:
 
 		return false;
 	}
-
-	operator T& () const noexcept {
-		return get();
-	}
 };

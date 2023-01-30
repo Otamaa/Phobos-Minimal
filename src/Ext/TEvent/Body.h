@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/Template.h>
 
 #include <Helpers/Template.h>
@@ -54,18 +54,18 @@ enum PhobosTriggerEvent
 class TEventExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
+
 	static constexpr size_t Canary = 0x91919191;
 	using base_type = TEventClass;
 
-	class ExtData final : public Extension<TEventClass>
+	class ExtData final : public TExtension<TEventClass>
 	{
 	public:
-		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
+		ExtData(TEventClass* const OwnerObject) : TExtension<TEventClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
@@ -73,7 +73,7 @@ public:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
-#endif
+
 	static bool Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, ObjectClass* pObject,
 					TimerStruct* pTimer, bool* isPersitant, TechnoClass* pSource, bool& bHandled);
 
@@ -81,8 +81,8 @@ public:
 	static bool VariableCheck(TEventClass* pThis);
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
-#ifdef ENABLE_NEWHOOKS
-	class ExtContainer final : public Container<TEventExt>
+
+	class ExtContainer final : public TExtensionContainer<TEventExt>
 	{
 	public:
 		ExtContainer();
@@ -92,6 +92,5 @@ public:
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
 
 };

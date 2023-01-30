@@ -283,4 +283,8 @@ public:
 		static int __cdecl tolower(int a1) {
 			JMP_STD(0x7CAFF4);
 		}
+
+		static char *__cdecl  itoa(int a1, char *a2, int a3){
+			JMP_STD(0x7D468C);
+		}
 };

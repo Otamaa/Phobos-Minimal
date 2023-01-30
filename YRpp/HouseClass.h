@@ -219,8 +219,8 @@ public:
 	enum {PlayerAtA = 4475, PlayerAtB, PlayerAtC, PlayerAtD, PlayerAtE, PlayerAtF, PlayerAtG, PlayerAtH};
 
 	//Static
+	static inline constexpr int MaxPlayers = 8;
 	static constexpr constant_ptr<DynamicVectorClass<HouseClass*>, 0xA80228u> const Array{};
-
 	static constexpr reference<HouseClass*, 0xA83D4Cu> const CurrentPlayer{};
 	static constexpr reference<HouseClass*, 0xAC1198u> const Observer{};
 
@@ -446,35 +446,20 @@ public:
 	static bool __fastcall IsPlayerAtType(int at)
 	{
 		 JMP_STD(0x510F60);
-		//return
-		//	at == PlayerAtA ||
-		//	at == PlayerAtB ||
-		//	at == PlayerAtC ||
-		//	at == PlayerAtD ||
-		//	at == PlayerAtE ||
-		//	at == PlayerAtF ||
-		//	at == PlayerAtG
-		//	;
+		//return at >= PlayerAtA && at <= PlayerAtH;
 	}
 	
 	static HouseClass* __fastcall FindByPlayerAt(int at)
 		{ JMP_STD(0x510ED0); }
 
 	// gets the first house of a type with this name
-	static HouseClass* FindByCountryName(const char* name) {
-		auto idx = HouseTypeClass::FindIndexOfName(name);
-		return FindByCountryIndex(idx);
-	}
+	static HouseClass* FindByCountryName(const char* name);
 
 	// gets the first house of a type with name Neutral
-	static HouseClass* FindNeutral() {
-		return FindByCountryName("Neutral");
-	}
+	static HouseClass* FindNeutral();
 
 	// gets the first house of a type with name Special
-	static HouseClass* FindSpecial() {
-		return FindByCountryName("Special");
-	}
+	static HouseClass* FindSpecial();
 
 	// gets the first house of a side with this name
 	static HouseClass* FindBySideIndex(int index) {
@@ -486,16 +471,16 @@ public:
 		return nullptr;
 	}
 
+	int GetSpawnPosition();
+
 	// gets the first house of a type with this name
 	static HouseClass* FindBySideName(const char* name) {
-		auto idx = SideClass::FindIndex(name);
+		auto idx = SideClass::FindIndexById(name);
 		return FindBySideIndex(idx);
 	}
 
 	// gets the first house of a type from the Civilian side
-	static HouseClass* FindCivilianSide() {
-		return FindBySideName("Civilian");
-	}
+	static HouseClass* FindCivilianSide();
 
 	static void __fastcall LoadFromINIList(CCINIClass *pINI)
 		{ JMP_STD(0x5009B0); }
@@ -720,6 +705,9 @@ public:
 
 	int AI_BaseConstructionUpdate()
 		{ JMP_THIS(0x4FE3E0); }
+
+	int AI_VehicleConstructionUpdate()
+		{ JMP_THIS(0x4FEA60); }
 
 	void AI_TryFireSW()
 		{ JMP_THIS(0x5098F0); }

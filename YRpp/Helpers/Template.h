@@ -70,10 +70,14 @@ template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr)
 {
 	static_assert(std::is_pointer<T>::value,"Pointer Required !");
-	const auto nData = std::find_if(elem.begin(), elem.end(), [&](auto const pData) { return reinterpret_cast<T>(ptr) == pData; });
 
-	if (nData != elem.end()) {
-		elem.erase(nData);
+	if (!elem.empty() && ptr != nullptr) {
+		const auto nData = std::find_if(elem.begin(), elem.end(), 
+		[&](auto const pData) { return reinterpret_cast<T>(ptr) == pData; });
+
+		if (nData != elem.end()) {
+			elem.erase(nData);
+		}
 	}
 }
 

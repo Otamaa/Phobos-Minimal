@@ -3,6 +3,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/BulletType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Techno/Body.h>
@@ -151,7 +152,7 @@ DEFINE_JUMP(CALL, 0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
-	auto nTheater = ScenarioGlobal->Theater;
+	auto const nTheater = ScenarioGlobal->Theater;
 	SmudgeTypeClass::TheaterInit(nTheater);
 	VeinholeMonsterClass::TheaterInit(nTheater);
 	return 0x4AD0A8;
@@ -163,9 +164,9 @@ DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 	//overriden instructions
 	R->Stack(0x2C, R->EDX());
 	R->Stack(0x30, R->EAX());
-	LEA_STACK(CoordStruct* , pCoord, 0x28);
+	LEA_STACK(CoordStruct*, pCoord, 0x28);
 	auto const pRules = RulesExt::Global();
-	auto const pParticle  = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
+	auto const pParticle = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
 	R->EAX(ParticleSystemClass::Instance->SpawnParticle(pParticle, pCoord));
 	return 0x74D100;
 }
@@ -207,7 +208,8 @@ DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
 {
 	GET(ParasiteClass*, pThis, EDI);
 
-	if (!pThis) {
+	if (!pThis)
+	{
 		Debug::Log("Found Invalid ParasiteClass Pointer ! , Skipping ! \n");
 		return 0x62A976;
 	}
@@ -242,8 +244,14 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 
 DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 {
+	enum { 
+		CreateMuzzleAnim = 0x6FF39C ,
+		SkipCreateMuzzleAnim = 0x6FF43F
+	};
+
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(AnimTypeClass*, pMuzzleAnimType, EDI);
 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
 	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
@@ -259,7 +267,7 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 		}
 	}
 
-	return R->EDI<AnimTypeClass*>() ? 0x6FF39C : 0x6FF43F;
+	return pMuzzleAnimType ? CreateMuzzleAnim : SkipCreateMuzzleAnim;
 }
 
 DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
@@ -267,8 +275,9 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 	enum
 	{
 		Goto2NdCheck = 0x6FF427,
-		DontSetAnim = 0x6FF43F
-		, Continue = 0x0
+		DontSetAnim = 0x6FF43F,
+		AdjustCoordsForBuilding = 0x6FF3D9,
+		Continue = 0x0
 	};
 
 	GET(TechnoClass* const, pThis, ESI);
@@ -281,7 +290,7 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 
 	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false);
 
-	return pThis->WhatAmI() == AbstractType::Building ? 0x6FF3D9 : Goto2NdCheck;
+	return pThis->WhatAmI() == AbstractType::Building ? AdjustCoordsForBuilding : Goto2NdCheck;
 }
 
 #pragma region WallTower
@@ -337,11 +346,11 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
-	HouseClass* OverlayOwner = nHouseIDx >= 0 ? HouseClass::Array->Items[nHouseIDx] : nullptr;
+	HouseClass* OverlayOwner = HouseClass::Array->GetItemOrDefault(nHouseIDx);
 
 	if (PlacingObject)
 	{
-		bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
+		const bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
 
 		if (ContainsWall && (PlacingObject->Gate || RulesExt::Global()->WallTowers.Contains(PlacingObject)))
 		{
@@ -462,7 +471,7 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 
 DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
 
-static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
+static NOINLINE Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 {
 	auto& nFuse = pBullet->Data;
 
@@ -483,20 +492,21 @@ static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 		goto LABEL_4;
 	}
 LABEL_5:
-	int y = newlocation->Y - nFuse.Location.Y;
-	int z = newlocation->Z - nFuse.Location.Z;
-	int proximity = Game::F2I(Math::sqrt(static_cast<double>((newlocation->X - nFuse.Location.X)) * static_cast<double>((newlocation->X - nFuse.Location.X)) + static_cast<double>(y) * static_cast<double>(y) + static_cast<double>(z) * static_cast<double>(z)) / 2);
+
+	const int proximity = Game::F2I(newlocation->DistanceFrom(nFuse.Location)) / 2;
 
 	int nProx = 32;
-	auto pExt = BulletExt::ExtMap.Find(pBullet);
-	if (pExt->TypeExt->Proximity_Range.isset())
-		nProx = pExt->TypeExt->Proximity_Range.Get() * 256;
+	const auto pExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	if (pExt->Proximity_Range.isset())
+		nProx = pExt->Proximity_Range.Get() * 256;
 
-	if (proximity < nProx) {
+	if (proximity < nProx)
+	{
 		return Fuse::Ignite;
 	}
 
-	if (proximity < 256 && proximity > nFuse.Distance) {
+	if (proximity < 256 && proximity > nFuse.Distance)
+	{
 		return Fuse::Ignite_DistaceFactor;
 	}
 
@@ -535,15 +545,14 @@ DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 //	return (nProx) <= nRange ? 0x4E1289 : 0x4E127D;
 //}
 
-DEFINE_HOOK(0x4B0523, DriveLocomotionClass_Process_Cargo, 0x5)
+DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
 	GET(DriveLocomotionClass*, pLoco, EDI);
 
-	if (auto pFoot = pLoco->LinkedTo)
-	{
-		if (auto pTrans = pFoot->Transporter)
-		{
-			R->EAX(pTrans->GetCell()->SlopeIndex);
+	if (auto pFoot = pLoco->LinkedTo) {
+		if (auto pTrans = pFoot->Transporter) {
+			R->EAX(pTrans->GetCell());
+			return 0x4B0516;
 		}
 	}
 
@@ -622,7 +631,7 @@ DEFINE_HOOK(0x702484, TechnoClass_TakeDamage_AnimDebris, 0x6)
 }
 
 //ObjectClass TakeDamage , 5F559C
-//UnitClass TakeDamage , 4428E4 , 737F0E
+//UnitClass TakeDamage , 737F0E
 
 DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
@@ -644,7 +653,7 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 
 DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
 {
-	GET(ILocomotion*, pILoco , ESI);
+	GET(ILocomotion*, pILoco, ESI);
 	auto const pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
 	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 }
@@ -662,63 +671,87 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(Allow) ? BypassCheck : ContinueCheck;
 }
 
-DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
-{
-	enum
-	{
-		increment = 0x72312F,
-		SetCell = 0x723005
-	};
-
-	GET(const MapSurfaceData*, pSurfaceData, EBX);
-	R->EBX(pSurfaceData);
-	const auto nCell = pSurfaceData->MapCoord;
-
-	if (!Map.IsValidCell(nCell))
-	{
-		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
-		return increment;
-	}
-
-	R->EAX(Map[nCell]);
-	return SetCell;
-}
+//DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
+//{
+//	enum
+//	{
+//		increment = 0x72312F,
+//		SetCell = 0x723005
+//	};
+//
+//	GET(const MapSurfaceData*, pSurfaceData, EBX);
+//	R->EBX(pSurfaceData);
+//	const auto nCell = pSurfaceData->MapCoord;
+//
+//	if (!Map.IsValidCell(nCell))
+//	{
+//		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
+//		return increment;
+//	}
+//
+//	R->EAX(Map[nCell]);
+//	return SetCell;
+//}
 
 //TaskForces_LoadFromINIList_WhySwizzle , 0x5
-DEFINE_JUMP(LJMP, 0x6E8300, 0x6E8315)
+//DEFINE_JUMP(LJMP, 0x6E8300, 0x6E8315)
 
-DEFINE_HOOK(0x4DC124, FootClass_DrawActionLines_Attack, 0x5)
+DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 {
+	enum {
+		Skip = 0x4DC1A0,
+		Continue = 0x0
+	};
+
 	GET(FootClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->CommandLine_Attack_Color.isset())
 	{
-		if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
-			return 0x4DC1A0;
-		else
-			R->EDI(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
+		GET(CoordStruct*, pMovingDestCoord, EAX);
+		GET(int, nFLH_X, EBP);
+		GET(int, nFLH_Y, EBX);
+		GET_STACK(int, nFLH_Z, STACK_OFFS(0x34, 0x10));
+
+		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty) {
+			Drawing::Draw_action_lines_7049C0(nFLH_X,nFLH_Y,nFLH_Z, pMovingDestCoord->X , pMovingDestCoord->Y , pMovingDestCoord->Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color.Get()), false, false);
+		}
+
+		return Skip;
 	}
 
-	return 0x0;
+	return Continue;
 }
 
-DEFINE_HOOK(0x4DC2AB, FootClass_DrawActionLines_Move, 0x5)
+DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 {
+	enum {
+		Skip = 0x4DC328,
+		Continue = 0x0
+	};
+
 	GET(FootClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pTypeExt->CommandLine_Attack_Color.isset())
+	if (pTypeExt->CommandLine_Move_Color.isset())
 	{
-		if (pTypeExt->CommandLine_Attack_Color.Get() == ColorStruct::Empty)
-			return 0x4DC328;
-		else
-			R->EDX(Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color));
+		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34 ,0x24));
+		GET(int, nCoordDest_Adjusted_Z, EDI);
+		GET(int, nLoc_X, EBP);
+		GET(int, nLoc_Y, EBX);
+		GET_STACK(int, nLoc_Z, STACK_OFFS(0x34, 0x10));
+		GET_STACK(bool, barg3, STACK_OFFSET(0x34, 0x8));
+
+		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty) {
+			Drawing::Draw_action_lines_7049C0(nLoc_X,nLoc_Y,nLoc_Z , nCooordDest.X , nCooordDest.Y ,nCoordDest_Adjusted_Z , Drawing::RGB2DWORD(pTypeExt->CommandLine_Move_Color.Get()), barg3, false);
+		}
+
+		return Skip;
 	}
 
-	return 0x0;
+	return Continue;
 }
 
 DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
@@ -733,25 +766,37 @@ DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 	return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get() && !pThis->Locomotor->Is_Moving()) ? ReturnFalse : Nothing;
 }
 
+/*
 DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 
 	bool res = false;
-	if (auto pObject = generic_cast<ObjectClass*>(pTarget))
+	if (pTarget)
 	{
-		res = pThis->IsAlliedWith(pObject);
-	}
-	else if (pTarget)
-	{
-		if (auto pHouse = pTarget->GetOwningHouse())
-			res = pThis->IsAlliedWith(pHouse);
+		auto const pWhat = pTarget->WhatAmI();
+		if ((pTarget->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None)
+		{
+			res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+		}
+		else if (pWhat == AbstractType::House)
+		{
+			switch (pWhat)
+			{
+			case AbstractType::House:
+				res = pThis->IsAlliedWith(static_cast<HouseClass*>(pTarget));
+			break;
+			case AbstractType::Bomb:
+				res = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+			break;
+			}
+		}
 	}
 
 	R->AL(res);
 	return 0x4F9B11;
-}
+}*/
 
 //DEFINE_HOOK(0x4F9A50, HouseClass_IsAlly_HouseClass, 0x6)
 //{
@@ -801,7 +846,7 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	GET(InfantryTypeClass*, pThisType, EAX);
 
-	if (pThisType->JumpJet)
+	if (pThisType->JumpJet && pThisType->Explodes)
 	{
 		TechnoExt::PlayAnim(RulesGlobal->InfantryExplode, pThis);
 		return 0x5185F1;
@@ -995,10 +1040,7 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	R->AL(pThis->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-		pThis->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()));
+	R->AL(pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pThis)));
 
 	return 0x701AB7;
 }
@@ -1231,28 +1273,29 @@ DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 	};
 
 	GET(FootClass*, pVictim, ESI);
-	auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
 
-	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-		pVictim->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
+	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() ||
+	 TechnoExt::IsChronoDelayDamageImmune(pVictim) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
-//DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
-//{
-//	GET(SidebarClass*, pThis, ESI);
-//	if (Phobos::Config::TogglePowerInsteadOfRepair)
-//		pThis->SetTogglePowerMode(-1);
-//	else
-//		pThis->SetRepairMode(-1);
-//	return 0x6A78FF;
-//}
-//
-//DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
-//{
-//	GET(SidebarClass*, pThis, ESI);
-//	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
-//	return 0x6A7AE7;
-//}
+DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
+{
+	GET(SidebarClass*, pThis, ESI);
+
+	if (Phobos::Config::TogglePowerInsteadOfRepair)
+		pThis->SetTogglePowerMode(-1);
+	else
+		pThis->SetRepairMode(-1);
+
+	return 0x6A78FF;
+}
+
+DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
+{
+	GET(SidebarClass*, pThis, ESI);
+	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
+	return 0x6A7AE7;
+}
 
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
@@ -1324,7 +1367,6 @@ DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
 	return 0x6F09D5;
 }
 
-// ToDO : Make Optional
 DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 {
 	GET(TeamTypeClass*, pThis, ESI);
@@ -1334,13 +1376,9 @@ DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 	return 0x6F0A5A;
 }
 
-// ToDO : Make Optional
-DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5)
-{
-	return 0x44DE3C;
-}
+DEFINE_JUMP(LJMP , 0x44DE2F, 0x44DE3C);
+//DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) { return 0x44DE3C; }
 
-// ToDO : Make Optional
 DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -1350,7 +1388,6 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 	return 0x4CA021;
 }
 
-// ToDO : Make Optional
 DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
 {
 	GET(BuildingClass*, pThis, EDI);
@@ -1378,15 +1415,11 @@ DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 	return 0x6EF9D0;
 }
 
-DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA)
-{
-	return 0x44961A;
-}
+DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
+//DEFINE_HOOK(0x4495FF, BuildingClass_ClearFactoryBib_Log1, 0xA) { return 0x44961A; }
 
-DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA)
-{
-	return 0x449672;
-}
+DEFINE_JUMP(LJMP, 0x449657, 0x449672);
+//DEFINE_HOOK(0x449657, BuildingClass_ClearFactoryBib_Log2, 0xA) { return 0x449672; }
 
 #pragma region TSL_Test
 //struct SHP_AlphaData
@@ -2048,7 +2081,7 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 
 DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
-	enum { ContinueCheck = 0x5F54C4 , ResultHalf = 0x5F54B8 };
+	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
 
 	GET(int, nOldStr, EDX);
 	GET(int, nCurStr, EBP);
@@ -2072,11 +2105,56 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 //	return 0x0;
 //}
 
-//DEFINE_HOOK(0x5F53ED, ObjectClass_ReceiveDamage_DisableComplierOptimization, 0x6)
+//DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
 //{
-//	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+//	GET(UnitTypeClass*, pType, ECX);
+//	GET(UnitClass*, pThis, EBP);
+//	GET(int, nFrame, EBX);
 //
-//	return args->IgnoreDefenses ? 0x5F5416 : 0x5F53F3;
+//	auto nStand = pType->StandingFrames;
+//	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
+//	if (pType->IdleRate > 0)
+//		nStandStartFrame += pThis->WalkedFramesSoFar;
+//
+//	R->EBX(nStandStartFrame);
+//
+//	return 0x73C725;
+//}
+
+//DEFINE_HOOK(0x529A14, INIClass_ReadPoint2D_CheckDefault, 0x5)
+//{
+//	GET(Point2D*, pDefault, ECX);
+//
+//	if (!pDefault)
+//		R->EDX(Point2D::Empty);
+//	else
+//		return 0x0;
+//
+//	return 0x529A16;
+//
+//}
+
+////this literally replace everything , omegalul
+//DEFINE_HOOK(0x7353C0, UnitClass_CTOR_ReplaceType, 0x7)
+//{
+//	//GET(UnitClass*, pThis, ECX);
+//	GET_STACK(UnitTypeClass*, pSetType, 0x4);
+//	GET_STACK(HouseClass*, pOwner, 0x8);
+//
+//	UnitTypeClass* pDecided = pSetType;
+//
+//	if (pSetType && pOwner && !pOwner->ControlledByPlayer()) {
+//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pSetType);
+//
+//		if (pTypeExt->Unit_AI_AlternateType.isset()) {
+//			auto const pNewType = pTypeExt->Unit_AI_AlternateType.Get(pSetType);
+//			Debug::Log("Replacing CTORed [%s] House AI Unit [%s] to [%s] ! \n", pOwner->get_ID() , pSetType->ID, pNewType->ID);
+//			pDecided = pNewType;
+//		}
+//	}
+//
+//	R->Stack(0x4, pDecided);
+//	return 0x7353EC;
 //}
 
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
@@ -2121,119 +2199,6 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
 }
 
-//DEFINE_HOOK(0x73C6F5, UnitClass_DrawAsSHP_StandFrame, 0x9)
-//{
-//	GET(UnitTypeClass*, pType, ECX);
-//	GET(UnitClass*, pThis, EBP);
-//	GET(int, nFrame, EBX);
-//
-//	auto nStand = pType->StandingFrames;
-//	auto nStandStartFrame = pType->StartFiringFrame + nStand * nFrame;
-//	if (pType->IdleRate > 0)
-//		nStandStartFrame += pThis->WalkedFramesSoFar;
-//
-//	R->EBX(nStandStartFrame);
-//
-//	return 0x73C725;
-//}
-
-// Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
-// Fixes recursive passenger kills not being accredited
-// to proper techno but to their transports
-//DEFINE_PATCH(0x707CF2, 0x55);
-
-//DEFINE_HOOK(0x417FD0, AircraftClass_PoseDIr, 0x5)
-//{
-//	GET(AircraftClass*, pThis, ECX);
-//	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-//	R->EAX(pExt->PoseDir.Get(RulesGlobal->PoseDir));
-//	return 0x417FD8;
-//}
-
-CoordStruct GetPutLocation(CoordStruct current, int distance)
-{
-	// this whole thing does not at all account for cells which are completely occupied.
-	auto tmpCoords = CellSpread::GetCell(ScenarioClass::Instance->Random.RandomRanged(0, 7));
-
-	current.X += tmpCoords.X * distance;
-	current.Y += tmpCoords.Y * distance;
-
-	auto tmpCell = MapClass::Instance->GetCellAt(current);
-	auto target = tmpCell->FindInfantrySubposition(current, false, false, false);
-
-	target.Z = current.Z;
-	return target;
-}
-
-bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
-{
-	CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
-
-	if (!pCell)
-	{
-		return false;
-	}
-
-	Survivor->OnBridge = pCell->ContainsBridge();
-
-	int floorZ = pCell->GetCoordsWithBridge().Z;
-	bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
-	if (chuted)
-	{
-		// HouseClass::CreateParadrop does this when building passengers for a paradrop... it might be a wise thing to mimic!
-		Survivor->Limbo();
-
-		if (!Survivor->SpawnParachuted(loc) || pCell->GetBuilding())
-		{
-			return false;
-		}
-	}
-	else
-	{
-		loc.Z = floorZ;
-		if (!Survivor->Unlimbo(loc, static_cast<DirType>(ScenarioGlobal->Random.RandomFromMax(7))))
-		{
-			return false;
-		}
-	}
-
-	Survivor->Transporter = nullptr;
-	Survivor->LastMapCoords = pCell->MapCoords;
-
-	// don't ask, don't tell
-	if (chuted)
-	{
-		bool scat = Survivor->OnBridge;
-		auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
-		if ((occupation & 0x1C) == 0x1C)
-		{
-			pCell->ScatterContent(CoordStruct::Empty, true, true, scat);
-		}
-	}
-	else
-	{
-		Survivor->Scatter(CoordStruct::Empty, true, false);
-		Survivor->QueueMission(Survivor->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
-	}
-
-	Survivor->ShouldEnterOccupiable = false;
-	Survivor->ShouldGarrisonStructure = false;
-
-	if (Select)
-	{
-		Survivor->Select();
-	}
-
-	return true;
-	//! \todo Tag
-}
-
-bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
-{
-	CoordStruct destLoc = GetPutLocation(location, distance);
-	return EjectSurvivor(pEjectee, destLoc, select);
-}
-
 DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
 {
 	GET(UnitTypeClass*, pType, EAX);
@@ -2273,14 +2238,14 @@ DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
 				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
-			if (trySpawn && EjectRandomly(pPassenger, location, 128, select))
+			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, select))
 			{
 				continue;
 			}
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			pPassenger->UnInit();
+			TechnoExt::HandleRemove(pPassenger, pKiller);
 		}
 	}
 
@@ -2321,21 +2286,21 @@ DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
 				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
-			if (trySpawn && EjectRandomly(pPassenger, location, 128, select))
+			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, select))
 			{
 				continue;
 			}
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			pPassenger->UnInit();
+			TechnoExt::HandleRemove(pPassenger , pKiller);
 		}
 	}
 
 	return 0x0;
 }
 
-int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
+static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 {
 	GET(AnimClass*, pThis, ESI);
 	GET(AnimTypeClass*, pAnimType, EAX);
@@ -2356,7 +2321,7 @@ int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 
 		if (nNumParticles > 0)
 		{
-			for(; nNumParticles; --nNumParticles)
+			for (; nNumParticles; --nNumParticles)
 			{
 				auto v13 = abs(ScenarioGlobal->Random.RandomRanged(nMin, nMax));
 				auto v10 = ScenarioGlobal->Random.RandomDouble() * v17 + v16;
@@ -2371,4 +2336,405 @@ int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 	}
 
 	return 0x42504D;
+}
+
+DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(CoordStruct*, pCoord, 0x4);
+	GET_STACK(TechnoClass*, pDocker, 0x8);
+
+	auto const pType = pThis->Type;
+	if (pType->Helipad)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+		pCoord->Z = 0;
+	}
+	else if (pType->UnitRepair || pType->Bunker)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+	}
+	else
+	{
+		pThis->GetCoords(pCoord);
+	}
+
+	R->EAX(pCoord);
+	return 0x447F06;
+}
+
+DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney, 0xA)
+{
+	GET(BuildingClass*, pThis, EBP);
+	GET(RulesClass*, pRules, EDX);
+	GET_STACK(int, nAvailMoney, 0x18);
+
+	float mult = pRules->SpyMoneyStealPercent;
+	auto const& nAIMult = RulesExt::Global()->AI_SpyMoneyStealPercent;
+
+	if (!pThis->Owner->ControlledByPlayer() && nAIMult.isset())
+	{
+		mult = nAIMult.Get();
+	}
+
+	R->EAX(Game::F2I(nAvailMoney * mult));
+	return 0x45744A;
+}
+
+DEFINE_JUMP(LJMP, 0x517FF5, 0x518016);
+
+DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(AnimClass*, pAllocatedMem , ESI);
+	GET(LandType const, nLand, EBX);
+
+	auto nLoc = pThis->Location;
+	if (auto const pC4AnimType = MapClass::Instance->SelectDamageAnimation(pThis->Health, RulesGlobal->C4Warhead, nLand, nLoc))
+	{
+		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
+		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr , pThis->GetOwningHouse(), true);
+
+	}
+	else
+	{
+		GameDelete<false, false>(pAllocatedMem);
+	}
+
+	return 0x73AF4C;
+}
+
+void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+{
+	const auto pType = pTechno->GetTechnoType();
+	const auto nMax = pType->GetPipMax();
+
+	if (!nMax)
+		return;
+
+	auto const pWhat = pTechno->WhatAmI();
+	const auto nStorage_0 = pTechno->Tiberium.at(0); //Riparius
+	const auto nStorage_1 = pTechno->Tiberium.at(1); //Cruentus
+	const auto nStorage_2 = pTechno->Tiberium.at(2); //Vinifera
+	const auto nStorage_3 = pTechno->Tiberium.at(3); //Aboreus
+	auto const nStorage = pType->Storage;
+
+	auto amount_Riparious = Game::F2I(nStorage_0 / nStorage * nMax + 0.5);
+	auto amount_Cruentus = Game::F2I(nStorage_1 / nStorage * nMax + 0.5);
+	auto amount_Vinifera = Game::F2I(nStorage_2 / nStorage * nMax + 0.5);
+	auto amount_Aboreus = Game::F2I(nStorage_3 / nStorage * nMax + 0.5);
+
+	//const auto totalaccum = nStorage_3 + nStorage_2 + nStorage_0;
+	//auto amount_a = Game::F2I(totalaccum / pType->Storage * nMax + 0.5);
+	//auto amount_b = Game::F2I(nStorage_1 / pType->Storage * nMax + 0.5);
+
+	Point2D nOffs {};
+	auto const pShape = pWhat == AbstractType::Building ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
+	auto GetFrames = [&]()
+	{
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+		if (amount_Riparious > 0)
+		{
+			--amount_Riparious;
+			return pTypeExt->Riparius_FrameIDx.Get(2);
+		}
+
+		if (amount_Cruentus > 0)
+		{
+			--amount_Cruentus;
+			return pTypeExt->Cruentus_FrameIDx.Get(5);
+		}
+
+		if (amount_Vinifera > 0)
+		{
+			--amount_Vinifera;
+			return pTypeExt->Vinifera_FrameIDx.Get(2);
+		}
+
+		if (amount_Aboreus > 0)
+		{
+			--amount_Aboreus;
+			return pTypeExt->Aboreus_FrameIDx.Get(2);
+		}
+
+		return 0;
+	};
+
+	for (int i = nMax; i; --i)
+	{
+		int nFrame = GetFrames();
+		if (nFrame > pShape->Frames)
+			nFrame = pShape->Frames;
+
+		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+		CC_Draw_Shape(
+			DSurface::Temp(),
+			FileSystem::THEATER_PAL(),
+			pShape,
+			nFrame,
+			&nPointHere,
+			pRect,
+			0x600,
+			0,
+			0,
+			0,
+			1000,
+			0,
+			0,
+			0,
+			0,
+			0);
+
+		nOffs.X += nOffsetX;
+		nOffs.Y += nOffsetY;
+	}
+}
+
+//TODO : dynamic array ?
+//void DrawCargoPips_NotBySize(TechnoClass* pThis, int nMaxPip, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+//{
+//	if (!nMaxPip)
+//		return;
+//
+//	int nTotal_size = pThis->Passengers.GetTotalSize();
+//	int nCur_size = pThis->Passengers.NumPassengers;
+//	auto const pBld = specific_cast<BuildingClass*>(pThis);
+//	auto const pShape = pBld ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
+//	auto nPipState = std::make_unique<int>(sizeof(int) * nMaxPip);
+//	std::memset(nPipState.get(), 0, sizeof(int) * nMaxPip); //zero the array
+//
+//	if (pBld && pBld->Absorber())
+//	{
+//		if (nCur_size > 0)
+//		{
+//			auto pPassengers = pThis->Passengers.GetFirstPassenger();
+//
+//			for (int i = 0; i < nCur_size; ++i)
+//			{
+//
+//				if (!pPassengers)
+//					break;
+//
+//				switch (pPassengers->WhatAmI())
+//				{
+//				case AbstractType::Unit:
+//					nPipState.get()[i] = (int)(static_cast<InfantryClass*>(pPassengers)->Type->Pip);
+//					break;
+//				case AbstractType::Infantry:
+//					nPipState.get()[i] = (int)PipIndex::Red;
+//					break;
+//				default:
+//					nPipState.get()[i] = (int)PipIndex::White;
+//					break;
+//				}
+//
+//				pPassengers = static_cast<FootClass*>(pPassengers->NextObject);
+//			}
+//		}
+//	}
+//	else
+//	{
+//		if (nTotal_size >= nMaxPip)
+//		{
+//			nPipState.reset();
+//			return;
+//		}
+//
+//		auto pPassengers = pThis->Passengers.GetFirstPassenger();
+//
+//		for (int i = 0; i < nCur_size; ++i)
+//		{
+//
+//			if (!pPassengers)
+//				break;
+//
+//			switch (pPassengers->WhatAmI())
+//			{
+//			case AbstractType::Unit:
+//			{
+//				int nSize = Game::F2I(pPassengers->GetTechnoType()->SizeLimit - 1.0);
+//				if (nSize > 0)
+//				{
+//					auto nArr = &nPipState.get()[nTotal_size];
+//					nTotal_size -= nSize;
+//					do
+//					{
+//						*nArr-- = (int)PipIndex::White;
+//					}
+//					while (--nSize);
+//				}
+//				nPipState.get()[nTotal_size] = (int)PipIndex::Blue;
+//			} break;
+//			case AbstractType::Infantry:
+//			{
+//				int nSize = Game::F2I(pPassengers->GetTechnoType()->SizeLimit - 1.0);
+//				if (nSize > 0)
+//				{
+//					auto nArr = &nPipState.get()[nTotal_size];
+//					nTotal_size -= nSize;
+//					do
+//					{
+//						*nArr-- = (int)PipIndex::White;
+//					}
+//					while (--nSize);
+//				}
+//				nPipState.get()[nTotal_size] = (int)(static_cast<InfantryClass*>(pPassengers)->Type->Pip);
+//			}
+//			break;
+//			default:
+//				nPipState.get()[nTotal_size] = (int)PipIndex::Green;
+//				break;
+//			}
+//
+//			pPassengers = static_cast<FootClass*>(pPassengers->NextObject);
+//			--nTotal_size;
+//		}
+//	}
+//
+//	Point2D nOffs {};
+//	Point2D nPointHere {};
+//
+//	if (pThis->GetTechnoType()->Gunner)
+//	{
+//		CC_Draw_Shape(
+//			DSurface::Temp(),
+//			FileSystem::THEATER_PAL(),
+//			pShape,
+//			*nPipState.get(),
+//			nPoints,
+//			pRect,
+//			0x600,
+//			0,
+//			0,
+//			0,
+//			1000,
+//			0,
+//			0,
+//			0,
+//			0,
+//			0);
+//
+//		nOffs.X = 1;
+//		nOffs.Y = 1;
+//		nPointHere.Y = 2 * nOffsetY;
+//		nPointHere.X = 2 * nOffsetX;
+//
+//	}
+//
+//	Point2D nOffsB {};
+//
+//	if (nOffs.X < nMaxPip)
+//	{
+//		int nYOffsHere = nOffsetY * nOffs.Y;
+//		int nXOffsHere = nOffsetX * nOffs.X;
+//		auto nArr = &nPipState.get()[nOffs.Y];
+//		int nMaxPipHere = nMaxPip - nOffs.Y;
+//
+//		do
+//		{
+//			Point2D nPointHereB { nXOffsHere + nPointHere.X + nPoints->X ,nYOffsHere + nPoints->Y + nPointHere.Y };
+//			CC_Draw_Shape(
+//			DSurface::Temp(),
+//			FileSystem::THEATER_PAL(),
+//			pShape,
+//			*nArr,
+//			&nPointHereB,
+//			pRect,
+//			0x600,
+//			0,
+//			0,
+//			0,
+//			1000,
+//			0,
+//			0,
+//			0,
+//			0,
+//			0);
+//			nYOffsHere += nOffsetY;
+//			nXOffsHere += nOffsetX;
+//			nArr++;
+//			--nMaxPipHere;
+//		}
+//		while (!(nMaxPipHere == 1));
+//	}
+//}
+
+void NOINLINE DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+{
+	const auto pType = pTechno->GetTechnoType();
+	const auto nMax = pType->SpawnsNumber;
+
+	if (nMax <= 0)
+		return;
+
+	auto const pWhat = pTechno->WhatAmI();
+	Point2D nOffs {};
+	auto const pShape = pWhat == AbstractType::Building ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
+
+	for (int i = 0; i < nMax; i++)
+	{
+		const auto nSpawnMax = pTechno->SpawnManager->CountDockedSpawns();
+
+		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
+		CC_Draw_Shape(
+			DSurface::Temp(),
+			FileSystem::THEATER_PAL(),
+			pShape,
+			i < nSpawnMax,
+			&nPointHere,
+			pRect,
+			0x600,
+			0,
+			0,
+			0,
+			1000,
+			0,
+			0,
+			0,
+			0,
+			0);
+
+		nOffs.X += nOffsetX;
+		nOffs.Y += nOffsetY;
+	}
+}
+
+DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
+{
+	struct __declspec(align(4)) PipDataStruct
+	{
+		Point2D nPos;
+		int Int;
+		int Number;
+	};
+
+	GET(TechnoClass*, pThis, EBP);
+	GET_STACK(PipDataStruct, pDatas, STACK_OFFS(0x74, 0x24));
+	//GET_STACK(SHPStruct*, pShapes, STACK_OFFS(0x74, 0x68));
+	GET_STACK(RectangleStruct*, pBound, STACK_OFFSET(0x74, 0xC));
+	GET(int, nOffsetY, ESI);
+
+	DrawTiberiumPip(pThis, &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
+	//DrawCargoPips_NotBySize(pThis, pThis->GetTechnoType()->GetPipMax(), &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
+	return 0x70A340;
+}
+
+DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
+{
+	GET_STACK(int, nHouseIdx, 0x4);
+
+	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
+	if (HouseExt::IsObserverPlayer(pHouse))
+	{
+		R->AL(1);
+		return 0x4870DE;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
+{
+	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
 }

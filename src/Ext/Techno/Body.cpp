@@ -25,7 +25,7 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
-
+#include <Utilities/LocomotionCast.h>
 #include <Phobos_ECS.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -238,9 +238,6 @@ void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D&
 
 		const int groupid = (pThis->Group == 9) ? 0 : (pThis->Group + 1);
 
-		wchar_t GroupID[0x20];
-		swprintf_s(GroupID, L"%d", groupid);
-
 		Point2D vGroupPos
 		{
 			vLoc.X - 4,
@@ -249,7 +246,7 @@ void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D&
 
 		rect = DSurface::Temp->Get_Rect_WithoutBottomBar();
 		Point2D nTemp { };
-		Fancy_Text_Print_Wide(&nTemp, GroupID, DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow);
+		Fancy_Text_Print_Wide(&nTemp, L"%d", DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow, groupid);
 	}
 }
 
@@ -290,9 +287,6 @@ void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& Gr
 
 		const int groupid = (pThis->Group == 9) ? 0 : (pThis->Group + 1);
 
-		wchar_t GroupID[0x20];
-		swprintf_s(GroupID, L"%d", groupid);
-
 		rect = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
 		Point2D vGroupPos
@@ -302,7 +296,7 @@ void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& Gr
 		};
 
 		Point2D nTemp { };
-		Fancy_Text_Print_Wide(&nTemp, GroupID, DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow);
+		Fancy_Text_Print_Wide(&nTemp, L"%d", DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow, groupid);
 
 	}
 }
@@ -608,7 +602,7 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 
 		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
-		break;
+			break;
 	}
 
 	/*
@@ -624,8 +618,12 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	*/
 
 	pCell = MapClass::Instance->TryGetCellAt(placeCoords);
-	pPassenger->OnBridge = pCell->ContainsBridge();
-	finalLocation = pCell->GetCoordsWithBridge();
+
+	if (pCell)
+	{
+		pPassenger->OnBridge = pCell->ContainsBridge();
+		finalLocation = pCell->GetCoordsWithBridge();
+	}
 
 	return finalLocation;
 }
@@ -716,9 +714,12 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
 	int defaultFrameIndex = -1;
 
-	auto const& [pTechnoType, pOwner] = TechnoExt::Helper::GetDisguiseType<true,true>(pThis);
+	auto const [pTechnoType, pOwner] = TechnoExt::Helper::GetDisguiseType<true, true>(pThis);
 
-	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
+	if (!pTechnoType)
+		return;
+
+	const TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
 
 	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
 		|| HouseExt::IsObserverPlayer()
@@ -735,6 +736,9 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 		defaultFrameIndex = 0;
 		isCustomInsignia = true;
 	}
+
+	if (!pShapeFile)
+		return;
 
 	VeterancyStruct* pVeterancy = &pThis->Veterancy;
 	const auto& insigniaFrames = pExt->InsigniaFrames.Get();
@@ -793,7 +797,9 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 		return;
 
 	const auto pType = pThis->GetTechnoType();
-	if (pType->Locomotor == LocomotionClass::CLSIDs::Jumpjet && pThis->IsInAir()
+	const auto pLoco = GetLocomotorType<JumpjetLocomotionClass, false>(pFoot);
+
+	if (pLoco && pThis->IsInAir()
 		&& !pType->TurretSpins)
 	{
 		if (TechnoTypeExt::ExtMap.Find(pType)->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget)
@@ -801,8 +807,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 		{
 			if (const auto pTarget = pThis->Target)
 			{
-				const auto pLoco = static_cast<JumpjetLocomotionClass*>(pFoot->Locomotor.get());
-				if (pLoco && !pLoco->Facing.Is_Rotating() && TechnoExt::CheckIfCanFireAt(pThis, pTarget))
+				if (!pLoco->Facing.Is_Rotating() && TechnoExt::CheckIfCanFireAt(pThis, pTarget))
 				{
 					const CoordStruct source = pThis->Location;
 					const CoordStruct target = pTarget->GetCoords();
@@ -822,7 +827,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 		return;
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	
+
 	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
 		damage > 0 ? Drawing::ColorRed : Drawing::ColorGreen;
 
@@ -914,28 +919,90 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 	return pThis->IsAlive && pThis->Health > 0;
 }
 
+#include <Ext/Team/Body.h>
+#include <Ext/Script/Body.h>
+
 void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 {
 	if (!pKiller || !pVictim)
 		return;
 
-	TechnoClass* pObjectKiller = nullptr;
+	//TechnoClass* pObjectKiller = nullptr;
 
-	if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
-		pObjectKiller = pKiller->SpawnOwner;
-	else
-		pObjectKiller = pKiller;
+	//if ((pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner)
+	//	pObjectKiller = pKiller->SpawnOwner;
+	//else
+	//	pObjectKiller = pKiller;
+
+	//if (pObjectKiller && pObjectKiller->BelongsToATeam())
+	//{
+	//	if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
+	//	{
+	//		const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
+	//		auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
+
+	//		pKillerTechnoData->LastKillWasTeamTarget = false;
+	//		if (pFocus && pFocus == pVictim)
+	//			pKillerTechnoData->LastKillWasTeamTarget = true;
+	//	}
+	//}
+
+	//auto const pVictimTechnoData = TechnoExt::ExtMap.Find(pVictim);
+	const TechnoClass* pObjectKiller = (pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner ?
+		pKiller->SpawnOwner : pKiller;
 
 	if (pObjectKiller && pObjectKiller->BelongsToATeam())
 	{
-		if (auto const pFootKiller = abstract_cast<FootClass*>(pObjectKiller))
-		{
-			const auto pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
-			auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
 
+		if (auto const pFootKiller = abstract_cast<const FootClass*>(pObjectKiller))
+		{
+
+			auto const pKillerTechnoData = TechnoExt::ExtMap.Find(pObjectKiller);
+			auto const pFocus = abstract_cast<TechnoClass*>(pFootKiller->Team->Focus);
 			pKillerTechnoData->LastKillWasTeamTarget = false;
-			if (pFocus && pFocus == pVictim)
+
+			if (pFocus && pFocus->GetTechnoType() == pVictim->GetTechnoType())
+			{
 				pKillerTechnoData->LastKillWasTeamTarget = true;
+			}
+
+			// Conditional Jump Script Action stuff
+			if (auto const pKillerTeamData = TeamExt::ExtMap.Find<true>(pFootKiller->Team))
+			{
+				if (pKillerTeamData->ConditionalJump_EnabledKillsCount)
+				{
+					const bool isValidKill = pKillerTeamData->ConditionalJump_Index < 0 ?
+						false : ScriptExt::EvaluateObjectWithMask(pVictim, pKillerTeamData->ConditionalJump_Index, -1, -1, pKiller);;
+
+					if (isValidKill || pKillerTechnoData->LastKillWasTeamTarget)
+						pKillerTeamData->ConditionalJump_Counter++;
+				}
+
+				// Special case for interrupting current action
+				if (pKillerTeamData->AbortActionAfterKilling
+					&& pKillerTechnoData->LastKillWasTeamTarget)
+				{
+					pKillerTeamData->AbortActionAfterKilling = false;
+					const auto pTeam = pFootKiller->Team;
+					auto const nAction = pTeam->CurrentScript->GetCurrentAction();
+					auto const nActionNext = pTeam->CurrentScript->GetNextAction();
+
+					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
+						, pTeam->Type->ID
+						, pTeam->CurrentScript->Type->ID
+						, pTeam->CurrentScript->CurrentMission
+						, nAction.Action
+						, nAction.Argument
+						, pTeam->CurrentScript->CurrentMission + 1
+						, nActionNext.Action
+						, nActionNext.Argument);
+
+					// Jumping to the next line of the script list
+					pTeam->StepCompleted = true;
+
+					return;
+				}
+			}
 		}
 	}
 }
@@ -989,16 +1056,17 @@ void TechnoExt::ApplyInterceptor(TechnoClass* pThis)
 				continue;
 
 			const auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
+			const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 			{
-				if (!pBulletExt->TypeExt->Interceptable ||
+				if (!pBulletTypeExt->Interceptable ||
 					pBulletExt->CurrentStrength <= 0 ||
 					pBulletExt->InterceptedStatus == InterceptedStatus::Targeted)
 					continue;
 
-				if (pBulletExt->TypeExt->Armor.isset())
+				if (pBulletTypeExt->Armor.isset())
 				{
-					double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pBulletExt->TypeExt->Armor);
+					double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pBulletTypeExt->Armor);
 
 					if (!((fabs(versus) >= 0.001)))
 						continue;
@@ -1380,12 +1448,14 @@ void TechnoExt::ExtData::EatPassengers()
 						if (pTypeExt->PassengerDeletion_ReportSound.isset() && pTypeExt->PassengerDeletion_ReportSound != -1)
 							VocClass::PlayAt(pTypeExt->PassengerDeletion_ReportSound, pThis->GetCoords(), nullptr);
 
+						auto const pThisOwner = pThis->GetOwningHouse();
+
 						if (const auto pAnimType = pTypeExt->PassengerDeletion_Anim.Get(nullptr))
 						{
 							if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
 							{
 								pAnim->SetOwnerObject(pThis);
-								AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pPassenger->GetOwningHouse(), pThis, false);
+								AnimExt::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
 							}
 						}
 
@@ -1403,7 +1473,7 @@ void TechnoExt::ExtData::EatPassengers()
 									pPassenger->GetOwningHouse()->IsAlliedWith(pThis))
 									nMoneyToGive = 0;
 
-								if (nMoneyToGive != 0 && pThis->GetOwningHouse() && pThis->GetOwningHouse()->CanTransactMoney(nMoneyToGive))
+								if (nMoneyToGive != 0 && pThisOwner && pThisOwner->CanTransactMoney(nMoneyToGive))
 								{
 									pThis->Owner->TransactMoney(nMoneyToGive);
 
@@ -1421,9 +1491,9 @@ void TechnoExt::ExtData::EatPassengers()
 						{
 							if (pThis->GetTechnoType()->Gunner)
 							{
-
 								pFoot->RemoveGunner(pPassenger);
 
+								//switch to next passengers 
 								if (pThis->Passengers.NumPassengers > 0)
 									pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
 							}
@@ -1453,7 +1523,23 @@ void TechnoExt::ExtData::EatPassengers()
 							{
 								pPassangerOwner->RegisterLoss(pPassenger, false);
 								pPassangerOwner->RemoveTracking(pPassenger);
-								pPassangerOwner->RecheckTechTree = true;
+
+								if (!pPassangerOwner->RecheckTechTree)
+									pPassangerOwner->RecheckTechTree = true;
+							}
+
+							// kill passenger cargo to prevent memleak
+							pPassenger->KillPassengers(pThis);
+
+							if (pTypeExt->PassengerDeletion_Experience.Get())
+							{
+								// ChangeOwnership of the pessanger 
+								// since we cant gain experience from Ally !
+								if (pTypeExt->PassengerDeletion_ExperienceFriendlies.Get())
+									if (pPassangerOwner == pThisOwner || pPassangerOwner->IsAlliedWith(pThisOwner) || pThisOwner->IsAlliedWith(pPassangerOwner))
+										pPassenger->Owner = HouseExt::FindNeutral();
+
+								pPassenger->RegisterDestruction(pThis);
 							}
 						}
 
@@ -1485,9 +1571,10 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 	return false;
 }
 
-void TechnoExt::HandleRemove(TechnoClass* pThis)
+void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource)
 {
-	pThis->KillCargo(pThis);
+	// kill passenger cargo to prevent memleak
+	pThis->KillPassengers(pSource);
 
 	if (const auto pBuilding = specific_cast<BuildingClass*>(pThis))
 	{
@@ -1500,7 +1587,9 @@ void TechnoExt::HandleRemove(TechnoClass* pThis)
 		{
 			pOwner->RegisterLoss(pThis, false);
 			pOwner->RemoveTracking(pThis);
-			pOwner->RecheckTechTree = true;
+
+			if (!pOwner->RecheckTechTree)
+				pOwner->RecheckTechTree = true;
 		}
 	}
 
@@ -1572,7 +1661,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		{
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
-			if (pBld->Type->LoadBuildup())
+			if (pBld->HasBuildup)
 			{
 				pBld->Sell(true);
 				return;
@@ -1607,11 +1696,11 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 }
 
 // Feature: Kill Object Automatically
-void TechnoExt::ExtData::CheckDeathConditions()
+bool TechnoExt::ExtData::CheckDeathConditions()
 {
 	auto const pThis = this->Get();
 	if (!TechnoExt::IsActive(pThis, false, false))
-		return;
+		return false;
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 	auto pTypeThis = pTypeExt->Get();
@@ -1624,7 +1713,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
 			TechnoExt::KillSelf(pThis, nKillMethod);
-			return;
+			return true;
 		}
 	}
 
@@ -1637,12 +1726,12 @@ void TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Nonexist.end(),
 			[pThis, pTypeExt](TechnoTypeClass* const pType)
 			{
-				for (HouseClass* const pHouse : *HouseClass::Array)
-				{
-					if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
-						pHouse->CountOwnedAndPresent(pType))
-						return true;
-				}
+			for (HouseClass* const pHouse : *HouseClass::Array)
+			{
+				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
+					pHouse->CountOwnedAndPresent(pType))
+					return true;
+			}
 
 		return false;
 			}
@@ -1651,7 +1740,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 		if (!exist)
 		{
 			TechnoExt::KillSelf(pThis, nKillMethod);
-			return;
+			return true;
 		}
 
 	}
@@ -1665,12 +1754,12 @@ void TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Exist.end(),
 			[pThis, pTypeExt](TechnoTypeClass* const pType)
 			{
-				for (HouseClass* const pHouse : *HouseClass::Array)
-				{
-					if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
-						pHouse->CountOwnedAndPresent(pType))
-						return true;
-				}
+			for (HouseClass* const pHouse : *HouseClass::Array)
+			{
+				if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
+					pHouse->CountOwnedAndPresent(pType))
+					return true;
+			}
 
 		return false;
 			}
@@ -1679,7 +1768,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 		if (exist)
 		{
 			TechnoExt::KillSelf(pThis, nKillMethod);
-			return;
+			return true;
 		}
 	}
 
@@ -1697,7 +1786,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 				// Countdown ended. Kill the unit
 				Death_Countdown = -1;
 				TechnoExt::KillSelf(pThis, nKillMethod);
-				return;
+				return true;
 			}
 		}
 		else
@@ -1706,6 +1795,7 @@ void TechnoExt::ExtData::CheckDeathConditions()
 		}
 	}
 
+	return false;
 }
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
@@ -1835,7 +1925,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			isSelfHealFrame = true;
 		}
 
-		int nBracket = TechnoExt::Helper::GetDisguiseType<false,true>(pThis).first->PixelSelectionBracketDelta;
+		int nBracket = TechnoExt::Helper::GetDisguiseType<false, true>(pThis).first->PixelSelectionBracketDelta;
 
 		switch (pWhat)
 		{
@@ -2113,6 +2203,40 @@ void TechnoExt::ExtData::UpdateOnTunnelEnter()
 	}
 }
 
+std::pair<WeaponTypeClass*, int> TechnoExt::GetDeployFireWeapon(TechnoClass* pThis, AbstractClass* pTarget)
+{
+	auto const pType = pThis->GetTechnoType();
+	int weaponIndex = pType->DeployFireWeapon;
+
+	if (pThis->WhatAmI() == AbstractType::Unit)
+	{
+		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
+		{
+			// Only apply DeployFireWeapon on vehicles if explicitly set.
+			if (!pTypeExt->DeployFireWeapon.isset())
+			{
+				weaponIndex = 0;
+				if (pThis->GetFireError(pThis->GetCell(), 0, true) != FireError::OK)
+					weaponIndex = 1;
+			}
+		}
+	}
+
+	if (weaponIndex == -1)
+	{
+		weaponIndex = pThis->SelectWeapon(pTarget);
+	}
+	else if (weaponIndex < -1)
+		return { nullptr   , -1 };
+
+	if (auto const pWs = pThis->GetWeapon(weaponIndex))
+	{
+		return { pWs->WeaponType  , weaponIndex };
+	}
+
+	return { nullptr , -1 };
+}
+
 // =============================
 // load / save
 
@@ -2143,6 +2267,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->IsInTunnel)
 		.Process(this->DeployFireTimer)
+		.Process(this->RevengeWeapons)
 		.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)
 		.Process(this->GattlingDmageSound)
@@ -2156,6 +2281,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->LastAttacker)
 		.Process(this->Attempt)
 		.Process(ReceiveDamageMultiplier)
+		.Process(SkipLowDamageCheck)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -2221,12 +2347,16 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 	CellClass* targetCell = nullptr;
 
 	// Ignore target cell for airborne target technos.
-	if (!pTargetTechno || !pTargetTechno->IsInAir())
+	if (pTarget)
 	{
 		if (const auto pCell = abstract_cast<CellClass*>(pTarget))
 			targetCell = pCell;
 		else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
-			targetCell = pObject->GetCell();
+		{
+			// Ignore target cell for technos that are in air.
+			if ((pTargetTechno && !pTargetTechno->IsInAir()) || pObject != pTargetTechno)
+				targetCell = pObject->GetCell();
+		}
 	}
 
 	const auto pWeaponStructOne = pThis->GetWeapon(weaponIndexOne);
@@ -2278,6 +2408,131 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 	}
 
 	return -1;
+}
+
+bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
+{
+	if (pThis->WhatAmI() != AbstractType::Unit)
+		return false;
+
+	auto const pContact = pThis->GetNthLink();
+
+	if (!pContact)
+		return false;
+
+	auto const pCell = pThis->GetCell();
+
+	if (!pCell)
+		return false;
+
+	auto const pBld = pCell->GetBuilding();
+
+	if (!pBld)
+		return false;
+
+	return pBld == pContact && !pBld->Type->Naval && pBld->Type->WeaponsFactory && !pThis->IsInAir();
+}
+
+bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
+{
+	if (!pThis)
+		return false;
+
+	auto const pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+
+	if (!pLoco)
+		return false;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::vtable))
+		return false;
+
+	return (pThis->IsWarpingIn() && pTypeExt->ChronoDelay_Immune.Get());
+}
+
+CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
+{
+	// this whole thing does not at all account for cells which are completely occupied.
+	auto tmpCoords = CellSpread::GetCell(ScenarioClass::Instance->Random.RandomRanged(0, 7));
+
+	current.X += tmpCoords.X * distance;
+	current.Y += tmpCoords.Y * distance;
+
+	auto tmpCell = MapClass::Instance->GetCellAt(current);
+	auto target = tmpCell->FindInfantrySubposition(current, false, false, false);
+
+	target.Z = current.Z;
+	return target;
+}
+
+bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
+{
+	CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
+
+	if (!pCell)
+	{
+		return false;
+	}
+
+	Survivor->OnBridge = pCell->ContainsBridge();
+
+	int floorZ = pCell->GetCoordsWithBridge().Z;
+	bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
+	if (chuted)
+	{
+		// HouseClass::CreateParadrop does this when building passengers for a paradrop... it might be a wise thing to mimic!
+		Survivor->Limbo();
+
+		if (!Survivor->SpawnParachuted(loc) || pCell->GetBuilding())
+		{
+			return false;
+		}
+	}
+	else
+	{
+		loc.Z = floorZ;
+		if (!Survivor->Unlimbo(loc, static_cast<DirType>(ScenarioGlobal->Random.RandomFromMax(7))))
+		{
+			return false;
+		}
+	}
+
+	Survivor->Transporter = nullptr;
+	Survivor->LastMapCoords = pCell->MapCoords;
+
+	// don't ask, don't tell
+	if (chuted)
+	{
+		bool scat = Survivor->OnBridge;
+		auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
+		if ((occupation & 0x1C) == 0x1C)
+		{
+			pCell->ScatterContent(CoordStruct::Empty, true, true, scat);
+		}
+	}
+	else
+	{
+		Survivor->Scatter(CoordStruct::Empty, true, false);
+		Survivor->QueueMission(Survivor->Owner->IsControlledByHuman() ? Mission::Guard : Mission::Hunt, 0);
+	}
+
+	Survivor->ShouldEnterOccupiable = false;
+	Survivor->ShouldGarrisonStructure = false;
+
+	if (Select)
+	{
+		Survivor->Select();
+	}
+
+	return true;
+	//! \todo Tag
+}
+
+bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
+{
+	CoordStruct destLoc = GetPutLocation(location, distance);
+	return EjectSurvivor(pEjectee, destLoc, select);
 }
 
 void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
@@ -2361,7 +2616,7 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
 
-DEFINE_HOOK(710415, TechnoClass_AnimPointerExpired, 6)
+DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 {
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);

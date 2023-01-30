@@ -10,94 +10,6 @@
 //forward declarations
 class CCINIClass;
 
-//Macro for the static Array of every AbstractTypeClass!
-#define ABSTRACTTYPE_ARRAY(class_name, address)	public:\
-	static constexpr constant_ptr<DynamicVectorClass<class_name*>, address> const Array{};\
-	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
-	{\
-		for(auto pItem : *Array)\
-			if(!_strcmpi(pItem->ID, pID))\
-				return pItem;\
-		return nullptr;\
-	}\
-	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
-	{\
-		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
-			return nullptr;\
-		}\
-		if(auto pRet = Find(pID)) {\
-			return pRet;\
-		}\
-		return GameCreate<class_name>(pID);\
-	}\
-	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
-	{\
-		for(int i = 0; i < Array->Count; ++i)\
-			if(!_strcmpi(Array->Items[i]->ID, pID))\
-				return i;\
-		return -1;\
-	}
-//---
-
-//Macro for the static Array of every AbstractTypeClass!
-#define ABSTRACTTYPE_ARRAY_USENEW(class_name, address)	public:\
-	static constexpr constant_ptr<DynamicVectorClass<class_name*>, address> const Array{};\
-	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
-	{\
-		for(auto pItem : *Array)\
-			if(!_strcmpi(pItem->ID, pID))\
-				return pItem;\
-		return nullptr;\
-	}\
-	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
-	{\
-		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
-			return nullptr;\
-		}\
-		if(auto pRet = Find(pID)) {\
-			return pRet;\
-		}\
-		return new class_name(pID);\
-	}\
-	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
-	{\
-		for(int i = 0; i < Array->Count; ++i)\
-			if(!_strcmpi(Array->Items[i]->ID, pID))\
-				return i;\
-		return -1;\
-	}
-//---
-
-#define ABSTRACTTYPE_ARRAY_NOALLOC(class_name, address)	public:\
-	static constexpr constant_ptr<DynamicVectorClass<class_name*>, address> const Array{};\
-	static __declspec(noinline) bool __fastcall IsValidArray()\
-	{ return Array->IsAllocated && Array->Count > 0 ; }\
-	static __declspec(noinline) class_name* __fastcall Find(const char* pID)\
-	{\
-		for(auto pItem : *Array)\
-			if(!_strcmpi(pItem->ID, pID))\
-				return pItem;\
-		return nullptr;\
-	}\
-	static __declspec(noinline) class_name* __fastcall FindOrAllocate(const char* pID)\
-	{\
-		if(!_strcmpi(pID, "<none>") || !_strcmpi(pID, "none")) {\
-			return nullptr;\
-		}\
-		if(auto pRet = Find(pID)) {\
-			return pRet;\
-		}\
-		return nullptr;\
-	}\
-	static __declspec(noinline) int __fastcall FindIndex(const char* pID)\
-	{\
-		for(int i = 0; i < Array->Count; ++i)\
-			if(!_strcmpi(Array->Items[i]->ID, pID))\
-				return i;\
-		return -1;\
-	}
-
-
 enum class AbstractBaseType : int
 {
 	Root = 0,
@@ -113,7 +25,44 @@ public:
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::Root;
 
 	//Static
-	ABSTRACTTYPE_ARRAY_NOALLOC(AbstractTypeClass, 0xA8E968u);
+	static constexpr constant_ptr<DynamicVectorClass<AbstractTypeClass*>, 0xA8E968u> const Array {};
+
+	static NOINLINE AbstractTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){ 
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem; 
+		}
+
+		return nullptr;
+	}
+
+	static NOINLINE AbstractTypeClass* __fastcall FindOrAllocate(const char* pID)
+	{
+		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+			return nullptr; 
+		}
+
+		if (auto pRet = Find(pID)) {
+			return pRet;
+		}
+
+		return GameCreate<AbstractTypeClass>(pID);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//Destructor
 	virtual ~AbstractTypeClass() JMP_THIS(0x410C30);

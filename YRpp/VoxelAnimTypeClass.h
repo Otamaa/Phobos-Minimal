@@ -18,7 +18,29 @@ public:
 	static const AbstractType AbsID = AbstractType::VoxelAnimType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(VoxelAnimTypeClass, 0xA8EB28u);
+	static constexpr constant_ptr<DynamicVectorClass<VoxelAnimTypeClass*>, 0xA8EB28u> const Array {};
+
+	static NOINLINE VoxelAnimTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static VoxelAnimTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x74B960);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x74B640);
+	}
+
+	static const char* const __fastcall GetNameByIndex(int idx) {
+		JMP_STD(0x74B620);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x74B7D0);

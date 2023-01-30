@@ -7,6 +7,7 @@ class  DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 	JumpjetLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
+	static constexpr inline DWORD vtable = 0x7ECE34;
 
 	enum class State : int
 	{
@@ -93,14 +94,14 @@ public:
 	float Wobbles;
 	int Deviation;
 	bool NoWobbles;
-	//BYTE unknown_3D;
-	//BYTE unknown_3E;
-	//BYTE unknown_3F;
+	BYTE unknown_3D;
+	BYTE unknown_3E;
+	BYTE unknown_3F;
 	CoordStruct HeadToCoord;
 	bool IsMoving;
-	//BYTE unknown_4D;
-	//BYTE unknown_4E;
-	//BYTE unknown_4F;
+	BYTE unknown_4D;
+	BYTE unknown_4E;
+	BYTE unknown_4F;
 	State NextState;
 	FacingClass Facing;
 	BYTE unknown_6C;
@@ -116,10 +117,10 @@ public:
 	BYTE unknown_87;
 	double __currentWobble;
 	bool DestinationReached;
-	//BYTE unknown_91;
-	//BYTE unknown_92;
-	//BYTE unknown_93;
-	AbstractClass* Raider;
+	BYTE unknown_91;
+	BYTE unknown_92;
+	BYTE unknown_93;
+	ILocomotion* Piggybackee;
 };
 
 static_assert(sizeof(JumpjetLocomotionClass) == 0x98, "Invalid size.");

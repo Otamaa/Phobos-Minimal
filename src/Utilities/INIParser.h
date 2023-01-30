@@ -173,15 +173,16 @@ public:
 		return Read<int, 4>(pSection, pKey, nBuffer);
 	}
 
-	bool ReadBytes(const char *pSection, const char *pKey, byte *nBuffer) {
-		return Read<byte, 1>(pSection, pKey, nBuffer);
+	bool ReadBytes(const char *pSection, const char *pKey, BYTE*nBuffer) {
+		return Read<BYTE, 1>(pSection, pKey, nBuffer);
 	}
 
-	bool Read2Bytes(const char *pSection, const char *pKey, byte *nBuffer) {
-		return Read<byte, 2>(pSection, pKey, nBuffer);
+	bool Read2Bytes(const char *pSection, const char *pKey, BYTE*nBuffer) {
+		return Read<BYTE, 2>(pSection, pKey, nBuffer);
 	}
-	bool Read3Bytes(const char *pSection, const char *pKey, byte *nBuffer) {
-		return Read<byte, 3>(pSection, pKey, nBuffer);
+
+	bool Read3Bytes(const char *pSection, const char *pKey, BYTE*nBuffer) {
+		return Read<BYTE, 3>(pSection, pKey, nBuffer);
 	}
 
 	bool ReadDouble(const char* pSection, const char* pKey, double* nBuffer) {

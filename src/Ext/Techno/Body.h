@@ -79,6 +79,9 @@ public:
 		int DelayedFire_DurationTimer;
 		bool IsInTunnel;
 		CDTimerClass DeployFireTimer;
+
+		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
+
 	#pragma region Otamaa
 		bool IsDriverKilled;
 		int GattlingDmageDelay;
@@ -95,6 +98,7 @@ public:
 		TechnoClass* LastAttacker;
 		int Attempt;
 		OptionalStruct<double , true> ReceiveDamageMultiplier;
+		bool SkipLowDamageCheck;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		bool aircraftPutOffsetFlag;
 		bool aircraftPutOffset;
@@ -145,6 +149,7 @@ public:
 			, DelayedFire_DurationTimer { 0 }
 			, IsInTunnel { false }
 			, DeployFireTimer {}
+			, RevengeWeapons {}
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
 			, GattlingDmageSound { false }
@@ -209,7 +214,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
 
-		void CheckDeathConditions();
+		bool CheckDeathConditions();
 		int GetEatPassangersTotalTime(TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
 		void EatPassengers();
 		void UpdateMindControlAnim();
@@ -247,6 +252,7 @@ public:
 
 	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false,bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
 	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
+	static bool IsInWarfactory(TechnoClass* pThis);
 
 	static inline bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
 	static inline bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
@@ -268,7 +274,7 @@ public:
 	static void TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo);
 	static double GetDamageMult(TechnoClass* pSouce, bool ForceDisable = false);
 
-	static void InitializeItems(TechnoClass* pThis);
+	static void InitializeItems(TechnoClass* pThis ,TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
@@ -297,34 +303,36 @@ public:
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void KillSlave(TechnoClass* pThis);
-	static void HandleRemove(TechnoClass* pThis);
+	static void HandleRemove(TechnoClass* pThis , TechnoClass* pSource = nullptr);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
 	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
+
+	static std::pair<WeaponTypeClass*, int> GetDeployFireWeapon(TechnoClass* pThis , AbstractClass* pTarget);
+
+	static NOINLINE bool IsChronoDelayDamageImmune(FootClass* pThis);
 
 	struct Helper {
 		template<bool CheckHouse ,bool CheckVisibility>
 		static NOINLINE std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget)
 		{
 
-			HouseClass* pHouseOut = nullptr;
-			TechnoTypeClass* pTypeOut = nullptr;
+			HouseClass* pHouseOut = pTarget->GetOwningHouse();
+			TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
+
 			bool bIsVisible = true;
 			if constexpr (CheckVisibility)
 				bIsVisible = pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
 
-			if (pTarget->IsDisguised() && !bIsVisible)
-			{
-				if constexpr (CheckHouse)
-					pHouseOut = pTarget->GetDisguiseHouse(false);
+			if (pTarget->IsDisguised() && !bIsVisible) {
 
-				pTypeOut = type_cast<TechnoTypeClass*, true>(pTarget->GetDisguise(false));
-			}
-			else
-			{
-				if constexpr (CheckHouse)
-					pHouseOut = pTarget->GetOwningHouse();
+				if constexpr (CheckHouse) {
+					if(const auto pDisguiseHouse = pTarget->GetDisguiseHouse(false))
+						if(pDisguiseHouse->Type)
+							pHouseOut = pDisguiseHouse;
+				}
 
-				pTypeOut = pTarget->GetTechnoType();
+				if(const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->GetDisguise(false)))
+					pTypeOut = pDisguiseType;
 			}
 
 			return { pTypeOut, pHouseOut };
@@ -333,4 +341,7 @@ public:
 	};
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
+	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select);
+	static bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select);
+	static CoordStruct GetPutLocation(CoordStruct current, int distance);
 };

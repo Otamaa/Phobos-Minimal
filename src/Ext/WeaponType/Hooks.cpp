@@ -6,6 +6,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Temporal/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
 DEFINE_HOOK(0x772A0A, WeaponTypeClass_SetSpeed_ApplyGravity, 0x6)

@@ -7,31 +7,37 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 
-AircraftExt::ExtContainer AircraftExt::ExtMap;
+//AircraftExt::ExtContainer AircraftExt::ExtMap;
 
 void _fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, DWORD, int nMult)
 {
 	auto pType = pThis->GetTechnoType();
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	bool PlayDeathWeapon = true;
+	auto const pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
 
-	if (auto const pWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get()))
+	auto PlayCrashWeapon = [pCrashWeapon, pThis]()
 	{
-		if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pWeapon->Projectile)->CreateBullet(pThis->GetCell(), pThis,
-			pWeapon))
+		if (!pCrashWeapon)
+			return false;
+
+		if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pCrashWeapon->Projectile)->CreateBullet(pThis->GetCell(), pThis,
+			pCrashWeapon))
 		{
 			const CoordStruct& coords = pThis->GetCoords();
-			pBullet->SetWeaponType(pWeapon);
+			pBullet->SetWeaponType(pCrashWeapon);
 			pBullet->Limbo();
 			pBullet->SetLocation(coords);
 			pBullet->Explode(true);
 			pBullet->UnInit();
-			PlayDeathWeapon = false;
+			return true;
 		}
-	}
 
-	if (PlayDeathWeapon)
+		return false;
+	};
+
+
+	if (!PlayCrashWeapon())
 		pThis->FireDeathWeapon(nMult);
 
 	if (pType->DestroyAnim.Size() > 0)
@@ -144,44 +150,44 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 // =============================
 // load / save
 
-template <typename T>
-void AircraftExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-
-
-		;
-}
-
-void AircraftExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	TExtension<AircraftClass>::Serialize(Stm);
-	this->Serialize(Stm);
-}
-
-void AircraftExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	TExtension<AircraftClass>::Serialize(Stm);
-	this->Serialize(Stm);
-}
-
-bool AircraftExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool AircraftExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
+//template <typename T>
+//void AircraftExt::ExtData::Serialize(T& Stm)
+//{
+//	Stm
+//
+//
+//		;
+//}
+//
+//void AircraftExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+//{
+//	TExtension<AircraftClass>::LoadFromStream(Stm);
+//	this->Serialize(Stm);
+//}
+//
+//void AircraftExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+//{
+//	TExtension<AircraftClass>::SaveToStream(Stm);
+//	this->Serialize(Stm);
+//}
+//
+//bool AircraftExt::LoadGlobals(PhobosStreamReader& Stm)
+//{
+//	return Stm
+//		.Success();
+//}
+//
+//bool AircraftExt::SaveGlobals(PhobosStreamWriter& Stm)
+//{
+//	return Stm
+//		.Success();
+//}
 
 // =============================
 // container
 
-AircraftExt::ExtContainer::ExtContainer() : TExtensionContainer("AircraftClass") { }
-AircraftExt::ExtContainer::~ExtContainer() = default;
+//AircraftExt::ExtContainer::ExtContainer() : TExtensionContainer("AircraftClass") { }
+//AircraftExt::ExtContainer::~ExtContainer() = default;
 
 #ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x413F6A, AircraftClass_CTOR, 0x7)

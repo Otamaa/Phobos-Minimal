@@ -631,6 +631,55 @@ namespace Savegame
 		}
 	};
 
+	template <>
+	struct Savegame::PhobosStreamObject<std::vector<bool>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::vector<bool>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			size_t Capacity = 0;
+			if (!Stm.Load(Capacity))
+				return false;
+
+			Value.reserve(Capacity);
+
+			size_t Count = 0;
+
+			if (!Stm.Load(Count))
+				return false;
+
+			Value.resize(Count);
+
+			for (auto ix = 0u; ix < Count; ++ix)
+			{
+				bool value = false;
+
+				if (!Savegame::ReadPhobosStream(Stm, value, false))
+					return false;
+
+				Value.emplace_back(value);
+
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<bool>& Value) const
+		{
+			Stm.Save(Value.capacity());
+			Stm.Save(Value.size());
+
+			for (auto ix = 0u; ix < Value.size(); ++ix)
+			{
+				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
 	template <typename _Ty1, typename _Ty2>
 	struct Savegame::PhobosStreamObject<std::pair<_Ty1, _Ty2>>
 	{
@@ -859,7 +908,7 @@ namespace Savegame
 
 			for (auto ix = 0u; ix < Count; ++ix)
 			{
-				T buffer;
+				T buffer = T();
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
 				{
 					return false;

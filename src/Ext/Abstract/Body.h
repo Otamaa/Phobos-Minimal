@@ -7,6 +7,8 @@
 #include <Utilities/Macro.h>
 #include <Utilities/SavegameDef.h>
 
+static constexpr size_t AbstractExtOffset = 0x18;
+
 // All ext classes should derive from this class
 // Derivered with attached object
 template<typename T>
@@ -14,19 +16,19 @@ class TExtension : public IExtension
 {
 private:
 	T* AttachedToObject;
-	AbstractType WhatIAm;
+	//AbstractType WhatIAm;
 
 public:
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject { OwnerObject }
 	{ 
-		WhatIAm = OwnerObject->WhatAmI();
-		Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(WhatIAm));
+		//WhatIAm = OwnerObject->WhatAmI();
+		//Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(WhatIAm));
 	}
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
-		, WhatIAm { AbstractType::Abstract }
+		//, WhatIAm { AbstractType::Abstract }
 	{ }
 
 	TExtension(const TExtension&) = delete;
@@ -82,34 +84,22 @@ public:
 		}
 	}
 
+	// overrideable virtuals !
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) {
-		Stm.Process(WhatIAm);
-	}
-
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { 
-		Stm.Process(WhatIAm); 
-	}
-
-	template<typename StmType>
-	inline void Serialize(StmType& Stm) { static_assert(true, "Please Implement Specific function for this !"); }
-
-	template<>
-	inline void Serialize(PhobosStreamWriter& Stm)
-	{
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
 		Stm.Save(this->Initialized);
+		//Stm.Save(this->WhatIAm);
 	}
 
-	template<>
-	inline void Serialize(PhobosStreamReader& Stm)
-	{
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) {
 		Stm.Load(this->Initialized);
+		//Stm.Load(this->WhatIAm);
 	}
 
-	virtual size_t GetSize() const { return sizeof(*this); }
+	//virtual size_t GetSize() const { return sizeof(*this); }
 
-protected:
+protected:	// overrideable virtuals !
 
 	// right after construction. only basic initialization tasks possible;
 	// owner object is only partially constructed! do not use global state!
@@ -212,6 +202,11 @@ public:
 		return this->Name.data();
 	}
 
+	inline auto GetSavingObject() const
+	{
+		return SavingObject;
+	}
+
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
 		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
@@ -226,16 +221,15 @@ public:
 
 	extension_type_ptr SetIExtension(base_type_ptr key)
 	{
-		if (!key->unknown_18)
+		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+
+		if (const auto val = new extension_type(key))
 		{
-			if (const auto val = new extension_type(key))
-			{
-				val->EnsureConstanted();
-				key->unknown_18 = (val);
-			}
+			val->EnsureConstanted();
+			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
 		}
 
-		return (extension_type_ptr)key->unknown_18;
+		return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
 	extension_type_ptr Allocate(const_base_type_ptr key)
@@ -243,11 +237,12 @@ public:
 		return SetIExtension(key);
 	}
 
-	void Remove(base_type_ptr key)
+	void inline Remove(base_type_ptr key)
 	{
-		if (key->unknown_18)
+		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset)))
 		{
-			delete key->unknown_18;
+			delete Item;
+			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 		}
 	}
 
@@ -267,7 +262,7 @@ public:
 	}
 
 	template<bool Check = false>
-	extension_type_ptr GetIExtension(const_base_type_ptr key)
+	NOINLINE extension_type_ptr GetIExtension(const_base_type_ptr key)
 	{
 		if constexpr (Check)
 		{
@@ -275,11 +270,11 @@ public:
 				return nullptr;
 		}
 
-		return (extension_type_ptr)key->unknown_18;
+		return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
 	template<bool Check = false>
-	extension_type_ptr Find(const_base_type_ptr key) const
+	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
 	{
 		if constexpr (Check)
 		{
@@ -287,7 +282,7 @@ public:
 				return nullptr;
 		}
 
-		return (extension_type_ptr)key->unknown_18;
+		return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
 	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
@@ -344,6 +339,12 @@ public:
 	}
 
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { };
+	virtual void Clear() { }
+
+	void PointerGotInvalid(void* ptr, bool bRemoved) {
+		this->InvalidatePointer(ptr, bRemoved);
+	}
+
 protected:
 
 	// override this method to do type-specific stuff
@@ -381,7 +382,8 @@ protected:
 		PhobosStreamWriter writer(saver);
 
 		writer.Save(T::Canary);
-		//writer.Save(buffer);
+		writer.Save(buffer);
+
 		// save the data
 		buffer->SaveToStream(writer);
 
@@ -408,7 +410,8 @@ protected:
 		}
 
 		// get the extData
-		extension_type_ptr buffer = GetOrSetIExtension(key);
+		extension_type_ptr buffer = SetIExtension(key);
+
 		if (!buffer)
 		{
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");
@@ -423,7 +426,7 @@ protected:
 		}
 
 		PhobosStreamReader reader(loader);
-		if (reader.Expect(T::Canary))
+		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
 		{
 			buffer->LoadFromStream(reader);
 			if (reader.ExpectEndOfBlock())

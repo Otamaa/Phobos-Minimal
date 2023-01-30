@@ -16,7 +16,7 @@ public:
 	explicit DirClass() : Fixed(0) { }
 	explicit DirClass(int raw) { Set_Raw(raw); }
 	explicit DirClass(const DirTypes dir) { Set_Dir(dir); }
-	explicit DirClass(const noinit_t& noinit) { }
+	explicit DirClass(const noinit_t&) { }
 
 	void Set_Dir(DirTypes dir) { Fixed::Set_Raw(unsigned(dir % DIR_MAX) * 256); }
 	DirTypes Get_Dir() const { return (DirTypes)((((Fixed::Get_Raw() / (32768 / 256)) + 1) / 2) & 255); }

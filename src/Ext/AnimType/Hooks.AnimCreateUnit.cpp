@@ -71,7 +71,11 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 		if (const auto unit = pTypeExt->CreateUnit.Get())
 		{
 			HouseClass* decidedOwner = (pThis->Owner)
-				? pThis->Owner : HouseExt::FindCivilianSide();
+				? pThis->Owner :HouseExt::FindCivilianSide();
+		
+
+			//if (!AnimExt::ExtMap.Find(pThis)->OwnerSet)
+			//	decidedOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, nullptr, decidedOwner, nullptr);
 
 			const auto pCell = pThis->GetCell();
 			CoordStruct location = pThis->GetCoords();
@@ -111,6 +115,14 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 
 					if (success)
 					{
+						if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr)) {
+							if (auto const pCreateUnitAnim = GameCreate<AnimClass>(pCreateUnitAnimType, location)) {
+								pCreateUnitAnim->Owner = decidedOwner;
+								if (auto pCreateUnitAnimExt = AnimExt::ExtMap.Find(pCreateUnitAnim))
+									pCreateUnitAnimExt->Invoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+							}
+						}
+
 						//if (const auto pFoot = generic_cast<FootClass*>(pTechno))
 							//if (const auto pLoco = pFoot->Locomotor.get())
 								//pLoco->Process();

@@ -10,6 +10,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
 #include <Ext/RadSite/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -17,7 +18,6 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/TAction/Body.h>
-#include <Ext/Temporal/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -38,18 +38,25 @@
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
-//#include <Ext/SHPReference/Body.h>
+#include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
-//#include <Ext/Convert/Body.h>
+#include <Ext/Convert/Body.h>
+#include <Ext/DiskLaser/Body.h>
 #include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
 #include <Ext/Super/Body.h>
 #include <Ext/ScriptType/Body.h>
+#include <Ext/SpawnManager/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/TEvent/Body.h>
+#include <Ext/Wave/Body.h>
+#include <Ext/Temporal/Body.h>
 #include <Ext/Terrain/Body.h>
-//#include <Ext/SmudgeType/Body.h>
+#include <Ext/SmudgeType/Body.h>
+#include <Ext/OverlayType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/ColorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
@@ -73,9 +80,11 @@ auto MassActions = MassAction <
 #pragma region OtamaaStuffs
 	BombExt,
 	CaptureExt,
-	//SHPRefExt,
+	SHPRefExt,
 	CellExt,
-	//ConvertExt,
+	ColorTypeClass,
+	ConvertExt,
+	DiskLaserExt,
 	ParasiteExt,
 	ParticleExt,
 	ParticleTypeExt,
@@ -84,8 +93,10 @@ auto MassActions = MassAction <
 	ArmorTypeClass,
 	TacticalExt,
 	TeamTypeExt,
+	TEventExt,
 	TerrainExt,
-	//SmudgeTypeExt,
+	SmudgeTypeExt,
+	SpawnManagerExt,
 	TemporalExt,
 	InfantryExt,
 	InfantryTypeExt,
@@ -103,6 +114,7 @@ auto MassActions = MassAction <
 	BulletExt,
 	BulletTypeExt,
 	HouseExt,
+	HouseTypeExt,
 	RadSiteExt,
 	RulesExt,
 	ScenarioExt,
@@ -119,14 +131,18 @@ auto MassActions = MassAction <
 	VoxelAnimTypeExt,
 	WarheadTypeExt,
 	WeaponTypeExt,
+	WaveExt,
+	OverlayTypeExt,
 	// New classes
 	ShieldClass,
 	ShieldTypeClass,
 	LaserTrailTypeClass,
 	RadTypeClass,
 	HoverTypeClass,
-	VerticalLaserClass,
+	//VerticalLaserClass,
+#ifdef E_TriggerMPOwner
 	TriggerMPOwner,
+#endif
 	// BannerClass,
 	BannerTypeClass
 #ifdef ENABLE_HOMING_MISSILE

@@ -11,8 +11,40 @@ public:
 	static const AbstractType AbsID = AbstractType::Campaign;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(CampaignClass, 0xA83CF8u);
-	
+	static constexpr constant_ptr<DynamicVectorClass<CampaignClass*>, 0xA83CF8u> const Array {};
+
+	static NOINLINE CampaignClass* Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	//Was inlined
+	static NOINLINE CampaignClass* FindOrAllocate(const char* pID)
+	{
+		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+			return nullptr;
+		}
+
+		if(auto pRet = Find(pID)) {
+			return pRet;
+		}
+
+		return GameCreate<CampaignClass>(pID);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x46CC90);
+	}
+
+	static void __fastcall CreateFromINIList(CCINIClass *pINI) {
+		JMP_STD(0x46CE10);
+	}
+
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
 	virtual ULONG __stdcall AddRef() R0;
@@ -38,12 +70,15 @@ public:
 	//Destructor
 	virtual ~CampaignClass() RX;
 
-
 	//AbstractClass
 	virtual void Init() override RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
+
+	bool ReadDescription(CCINIClass *pINI) const {
+		JMP_THIS(0x46CCD0);
+	}
 
 	CampaignClass(const char *name) noexcept
 		: CampaignClass(noinit_t())
@@ -53,13 +88,6 @@ protected:
 	explicit __forceinline CampaignClass(noinit_t) noexcept
 		: AbstractTypeClass(noinit_t())
 	{ }
-
-public:
-	static void __fastcall CreateFromINIList(CCINIClass *pINI)
-		{ JMP_STD(0x46CE10); }
-
-	static signed int __fastcall _FindIndex(const char* name)
-		{ JMP_STD(0x46CC90); }
 
 public:
 	int idxCD;

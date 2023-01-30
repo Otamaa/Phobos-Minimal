@@ -136,12 +136,16 @@ DEFINE_HOOK(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 //}
 
 //DEFINE_HOOK_AGAIN(0x524C59, InfantryTypeClass_Save_Suffix, 0x5)
-DEFINE_HOOK(0x524C50, InfantryTypeClass_Save_Suffix, 0x5)
+
+// Before :  0x524C50 , 0x5 
+// After : 0x524C52 , 0x7 
+DEFINE_HOOK(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
 {
 	InfantryTypeExt::ExtMap.SaveStatic();
 	return 0;
 }
 
+DEFINE_HOOK_AGAIN(0x52474E , InfantryTypeClass_LoadFromINI , 0x5)
 DEFINE_HOOK(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);

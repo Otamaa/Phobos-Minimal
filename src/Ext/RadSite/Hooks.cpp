@@ -71,7 +71,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 						if (Map[pSite->BaseCell] != Map[location])
 							return false;
 
-						if (spread != pRadExt->Spread)
+						if (spread != pSite->Spread)
 							return false;
 
 						if (pThis->WeaponType != pRadExt->Weapon)
@@ -137,7 +137,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 						if (Map[pPair->BaseCell] != pThis->GetCell())
 							return false;
 
-						if (Game::F2I(pWeapon->Warhead->CellSpread) != pRadExt->Spread)
+						if (Game::F2I(pWeapon->Warhead->CellSpread) != pPair->Spread)
 							return false;
 
 						if (pWeapon != pRadExt->Weapon)
@@ -294,10 +294,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 			return Continue;
 		}
 
-		auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
-
-		if (pFoot->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-			pFoot->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
+		if (pFoot->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pFoot))
 			return Continue;
 
 		const auto CurrentCoord = pFoot->GetCoords();

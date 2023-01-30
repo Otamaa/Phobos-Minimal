@@ -8,7 +8,7 @@ public:
 	inline explicit BlitPlainXlatAlpha(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~BlitPlainXlatAlpha() override final = default;

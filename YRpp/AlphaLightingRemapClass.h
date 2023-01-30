@@ -8,14 +8,14 @@ class AlphaLightingRemapClass
 public:
 
 	constexpr static reference<DynamicVectorClass<AlphaLightingRemapClass*>, 0x88A080> const Array {};
-
+	constexpr static reference<AlphaLightingRemapClass , 0x87E8A8> const Global {};
 	// Notice:
 	// When a ConvertClass is constructed by the game, it will generate [IntensityCount] color
 	// tables from dark to bright. Each of them just changes the intensity of the source palette.
 	//
 	// If we have a point, whose value in ABuffer is A
-	static AlphaLightingRemapClass* __stdcall FindOrAllocate(int intensityCount) {
-		JMP_STD(0x420140);
+	AlphaLightingRemapClass* FindOrAllocate(int intensityCount) {
+		JMP_THIS(0x420140);
 	}
 
 	static void __stdcall Release(AlphaLightingRemapClass* pItem) {

@@ -32,7 +32,29 @@ public:
 	static const AbstractType AbsID = AbstractType::WarheadType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(WarheadTypeClass, 0x8874C0u);
+	static constexpr constant_ptr<DynamicVectorClass<WarheadTypeClass*>, 0x8874C0u> const Array {};
+
+	static NOINLINE WarheadTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static WarheadTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x75E3B0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x75E4A0);
+	}
+
+	static int __fastcall FindIndexByIdOrAllocate(const char* pID) {
+		JMP_STD(0x40F510);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x75E080);

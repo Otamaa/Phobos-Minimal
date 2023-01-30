@@ -28,16 +28,17 @@
 
 #include <New/Entity/ShieldObject.h>
 
-DEFINE_HOOK(0x6F42F7, TechnoClass_Init_NewEntities, 0x2)
-{
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExt::InitializeItems(pThis);
-
-	//if (auto pShieldObj = ShieldObject::CreateMe())
-	//	Debug::Log("[%x] Created ! \n", pShieldObj);
-
-	return 0;
-}
+//
+//DEFINE_HOOK(0x6F42F7, TechnoClass_Init_NewEntities, 0x2)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//
+//	//if (auto pShieldObj = ShieldObject::CreateMe())
+//	//	Debug::Log("[%x] Created ! \n", pShieldObj);
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
 {
@@ -63,27 +64,43 @@ DEFINE_HOOK(0x702E4E, TechnoClass_Save_Killer_Techno, 0x6)
 	return 0;
 }
 
+static NOINLINE int GetInitialStregth(TechnoTypeClass* pType, int nHP)
+{
+	return TechnoTypeExt::ExtMap.Find(pType)->InitialStrength.Get(nHP);
+}
+
 DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(InfantryClass*, pThis, ESI);
 
-	const auto strength = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->InitialStrength.Get(R->EDX<int>());
+	const auto strength = GetInitialStregth(pThis->Type , pThis->Type->Strength);
 	pThis->Health = strength;
 	pThis->EstimatedHealth = strength;
 
 	return 0;
 }
 
-#define SET_INITIAL_HP(addr , destReg , name)\
-DEFINE_HOOK(addr, name, 0x6) {\
-GET(TechnoClass*, pThis, ESI);\
-R->##destReg##(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->InitialStrength.Get(R->##destReg##<int>())); return 0; }
+DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
+{
+	GET(UnitTypeClass*, pType, EAX);
+	R->EAX(GetInitialStregth(pType, pType->Strength));
+	return 0x7355C0;
+}
 
-SET_INITIAL_HP(0x7355C0, EAX, UnitClass_Init_InitialStrength)
-SET_INITIAL_HP(0x414057, EAX, AircraftClass_Init_InitialStrength)
-SET_INITIAL_HP(0x442C7B, ECX, BuildingClass_Init_InitialStrength)
+DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
+{
+	GET(AircraftTypeClass*, pType, EAX);
+	R->EAX(GetInitialStregth(pType, pType->Strength));
+	return 0x414057;
+}
 
-#undef SET_INITIAL_HP
+DEFINE_HOOK(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EAX);
+	R->ECX(GetInitialStregth(pType, pType->Strength));
+	return 0x442C7B;
+}
+
 // Issue #271: Separate burst delay for weapon type
 // Author: Starkku
 DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
@@ -108,7 +125,7 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 // Author: Otamaa
 DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 {
-	enum { Delete = 0x518B98, DoOtherAffects = 0x518515, IsHuman = 0x5185C8 };
+	enum { Delete = 0x518619, DoOtherAffects = 0x518515, IsHuman = 0x5185C8 };
 
 	GET(InfantryClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
@@ -122,7 +139,6 @@ DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 	int resultSequence = Die(1);
 
 	R->ECX(pThis);
-
 
 	if (receiveDamageArgs.WH)
 	{
@@ -492,7 +508,8 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 {
 	GET(SpawnManagerClass* const, pThis, ESI);
 
-	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching && pThis->CountDockedSpawns() != 0)
+	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching 
+		&& pThis->CountDockedSpawns() != 0)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Owner->GetTechnoType());
 		if (pTypeExt->Spawner_DelayFrames.isset())
@@ -502,6 +519,46 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x6B743E , SpawnManagerClass_AI_SpawnOffsets , 0x6)
+{
+	GET(TechnoClass* , pOwner , ECX);
+	//yes , i include the buffer just in case it used somewhere !
+	LEA_STACK(CoordStruct* , pBuffer ,STACK_OFFS(0x68,0x18));
+	LEA_STACK(CoordStruct* , pBuffer2 ,STACK_OFFS(0x68,0xC));
+
+	auto const pExt= TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+
+	if(pExt->Spawner_SpawnOffsets.isset()) {
+		if(pExt->Spawner_SpawnOffsets_OverrideWeaponFLH) {
+			auto const pRet = pExt->Spawner_SpawnOffsets.GetEx();
+			pBuffer = pRet;
+			pBuffer2 = pRet;
+			R->EAX(pRet);
+		}
+		else
+		{
+			CoordStruct FLH = pExt->Spawner_SpawnOffsets.Get();
+			if ( pOwner->CurrentBurstIndex ) {
+				auto const pRet = pOwner->GetFLH(pBuffer,R->EBP<bool>(),pExt->Get()->SecondSpawnOffset);
+				pRet->X += FLH.X;
+				pRet->Y += FLH.Y;
+				pRet->Z += FLH.Z;
+				R->EAX(pRet);
+			}else{
+				auto const pRet =pOwner->GetFLH(pBuffer2,R->EBP<bool>(),CoordStruct::Empty);
+				pRet->X += FLH.X;
+				pRet->Y += FLH.Y;
+				pRet->Z += FLH.Z;
+				R->EAX(pRet);
+			}
+		}
+
+		return 0x6B7498;
+	}
+
+	return 0x0;
 }
 
 #ifdef IC_AFFECT
@@ -569,13 +626,10 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void* _, int nDur, HouseClass* pSource, bool bIsFC)
 {
 
-	if (pThis->TemporalTargetingMe)
-	{
-		if (auto const pCell = pThis->GetCell())
-		{
-			if (auto const pBld = pCell->GetBuilding())
-			{
-				if (pBld->Type->BridgeRepairHut)
+	if (pThis->TemporalTargetingMe && pThis->Destination) {
+		if (auto const pCell = pThis->GetCell()) {
+			if (auto const pBld = pCell->GetBuilding()) {
+				if (pThis->Destination == pBld && pBld->Type->BridgeRepairHut)
 				{
 					return DamageState::Unaffected;
 				}
@@ -588,29 +642,34 @@ static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, vo
 
 DEFINE_JUMP(VTABLE, 0x7EB1AC, GET_OFFSET(InfantryClass_IronCurtain));
 
+//check this early to skip unnessesary checks below
+//DEFINE_HOOK(0x703981, TechnoClass_VisualCharacter_ObserverCloak, 0x6)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	R->AL(pThis->IsOwnedByCurrentPlayer || HouseExt::IsObserverPlayer());
+////	return 0x703987;
+//}
 
-DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_ObserverCloak, 0x7)
+DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
 {
-	enum {
-		UseShadowyVisual = 0x703A5A, 
-		CheckIsAlliedWith = 0x703A24,
-		UseHiddenVisual = 0x7038AE
-	};
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	enum { UseShadowyVisual = 0x703A5A, CheckMutualAlliance = 0x703A16 };
 
 	// Allow observers to always see cloaked objects.
-	if(!pCurPlayer 
-		|| !pThis->Owner 
-		|| !pCurPlayer->IsObserver() 
-		|| !pThis->Owner->IsAlliedWith(pCurPlayer) 
-		|| !pCurPlayer->IsAlliedWith(pThis)) {
-		return UseHiddenVisual;
-	}
+	// Skip IsCampaign check (confirmed being useless from Mental Omega mappers)
+	if (HouseExt::IsObserverPlayer())
+		return UseShadowyVisual;
 
-	return UseShadowyVisual;
+	return CheckMutualAlliance;
+}
+
+DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
+{
+	enum { UseShadowyVisual = 0x45452D, CheckMutualAlliance = 0x454564 };
+
+	if (HouseExt::IsObserverPlayer())
+		return UseShadowyVisual;
+
+	return CheckMutualAlliance;
 }
 
 /*
@@ -761,7 +820,7 @@ DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 
 	if (pThis->IsOwnedByCurrentPlayer && !pThis->Type->UndeploysInto)
-		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pThis->Type)->EVA_Sold.Get(VoxClass::FindIndex(Eva_structureSold)));
+		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pThis->Type)->EVA_Sold.Get(VoxClass::FindIndexById(Eva_structureSold)));
 
 	return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
 }
@@ -782,7 +841,7 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndex(Eva_UnitSold)));
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndexById(GameStrings::EVA_UnitSold())));
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
 		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesGlobal->SellSound), pThis->Location);
 	}
@@ -899,3 +958,28 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	return ReturnFromFunction;
 }
 
+DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0xC4, 0x10));
+
+	if (pSource)
+	{
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pTypeExt =	TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
+			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
+		{
+			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis);
+		}
+
+		for (auto& weapon : pExt->RevengeWeapons)
+		{
+			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
+				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis);
+		}
+	}
+
+	return 0;
+}

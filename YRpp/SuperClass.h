@@ -101,7 +101,7 @@ public:
 
 	// smooth operator
 	const char* get_ID() const {
-		return Type ? Type->get_ID() : "<none>";
+		return Type ? Type->get_ID() : GameStrings::NoneStr();
 	}
 	//Constructor
 	SuperClass(SuperWeaponTypeClass* pSWType, HouseClass* pOwner) noexcept

@@ -11,15 +11,8 @@ class DriveData
 {
 public:
 
-	DrivingState nState;
-	Mission LastMission;
-
-	DriveData() :
-		nState { DrivingState::Stop }
-		, LastMission { Mission::None }
-	{}
-
-	~DriveData() = default;
+	DrivingState nState { DrivingState::Stop };
+	Mission LastMission { Mission::None };
 
 	template <typename T>
 	void Serialize(T& Stm)

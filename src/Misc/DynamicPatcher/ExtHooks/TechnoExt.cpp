@@ -264,27 +264,55 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 //	return 0x0;
 //}
 
+NOINLINE WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
+{
+	WeaponTypeClass* pBuffer = nullptr;
+
+    if ( which == -1 ) {
+        auto const pType = pThis->GetTechnoType();
+
+        if (pType->TurretCount > 0) {
+			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage)) {
+				pBuffer = pCurWeapon->WeaponType;
+			}
+		} else {
+            if (auto const pPriStruct = pThis->GetWeapon(0)) {
+				pBuffer = pPriStruct->WeaponType;
+			}
+
+            if (auto const pSecStruct = pThis->GetWeapon(1) ) {
+				pBuffer = pSecStruct->WeaponType;
+            }
+        }
+    }
+    else
+    {
+        if (auto const pSelected = pThis->GetWeapon(which) )
+        {
+            pBuffer = pSelected->WeaponType;
+		}
+    }
+
+    return  pBuffer;
+}
 //9
-//DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
-//{
-//	GET(TechnoClass*, pTechno, ESI);
-//	auto nGuarRange = pTechno->GetTechnoType()->GuardRange;
-//
-//	if (auto pPri = pTechno->GetWeapon(0)) {
-//		if (auto pPriW = pPri->WeaponType)
-//			if (pPriW->Range > nGuarRange)
-//				nGuarRange = pPriW->Range;
-//	}
-//
-//	if(auto pSec = pTechno->GetWeapon(1))
-//	{
-//		if (auto pSecW = pSec->WeaponType)
-//			if (pSecW->Range > nGuarRange)
-//				nGuarRange = pSecW->Range;
-//	}
-//
-//
-//	R->EDI(nGuarRange ? nGuarRange : 512);
-//	return 0x6F903E;
-//}
+DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+
+	if (auto pPri = GetWeaponType(pTechno , 0)) {
+		if (pPri->Range > nGuarRange)
+			nGuarRange = pPri->Range;
+	}
+
+	if(auto pSec = GetWeaponType(pTechno ,1)) {
+		if (pSec->Range > nGuarRange)
+			nGuarRange = pSec->Range;
+	}
+
+	R->EDI(nGuarRange);
+	return 0x6F903E;
+}
 #endif

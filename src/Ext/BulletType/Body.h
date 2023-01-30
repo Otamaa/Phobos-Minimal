@@ -11,7 +11,9 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
-class PhobosTrajectoryType;
+
+#include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
+
 class BulletTypeExt
 {
 public:
@@ -40,6 +42,11 @@ public:
 		Nullable<Leptons> BallisticScatter_Max;
 		Valueable<bool> Interceptable_DeleteOnIntercept;
 		Nullable<WeaponTypeClass*> Interceptable_WeaponOverride;
+
+		Nullable<bool> SubjectToLand;
+		Valueable<bool> SubjectToLand_Detonate;
+		Nullable<bool> SubjectToWater;
+		Valueable<bool> SubjectToWater_Detonate;
 
 		#pragma region Otamaa
 		Nullable<AnimTypeClass*> Parachute;
@@ -76,7 +83,7 @@ public:
 #endif
 		#pragma endregion
 
-		PhobosTrajectoryType* TrajectoryType;
+		std::unique_ptr<PhobosTrajectoryType> TrajectoryType;
 		ExtData(BulletTypeClass* OwnerObject) : Extension<BulletTypeClass>(OwnerObject)
 			, Health { 0 }
 			, Armor { -1 }
@@ -92,6 +99,11 @@ public:
 			, BallisticScatter_Max{}
 			, Interceptable_DeleteOnIntercept { false }
 			, Interceptable_WeaponOverride {}
+
+			, SubjectToLand {}
+			, SubjectToLand_Detonate { true }
+			, SubjectToWater {}
+			, SubjectToWater_Detonate { true }
 
 			, Parachute { }
 			, MissileROTVar { }
@@ -121,10 +133,10 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
-			, TrajectoryType { nullptr }
+			, TrajectoryType { }
 		{ }
 
-		virtual ~ExtData();
+		virtual ~ExtData() = default;
 		void LoadFromINIFile(CCINIClass* pINI);
 		void Initialize() { LaserTrail_Types.reserve(1); }
 		void Uninitialize();

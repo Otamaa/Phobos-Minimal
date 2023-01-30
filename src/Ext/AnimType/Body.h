@@ -8,6 +8,7 @@
 #include <Utilities/Template.h>
 
 #include <New/Entity/LauchSWData.h>
+//#include "AnimSpawnerDatas.h"
 
 class AnimTypeExt
 {
@@ -31,6 +32,8 @@ public:
 		Valueable<Mission> CreateUnit_Mission;
 		Valueable<OwnerHouseKind> CreateUnit_Owner;
 		Valueable<bool> CreateUnit_ConsiderPathfinding;
+		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim;
+
 		Valueable<int> XDrawOffset;
 		Valueable<int> HideIfNoOre_Threshold;
 		Nullable<bool> Layer_UseObjectLayer;
@@ -76,6 +79,8 @@ public:
 	    #pragma endregion
 		Valueable<ParticleSystemTypeClass*> AttachedSystem;
 		bool IsInviso;
+
+		//AnimSpawnerDatas SpawnerDatas;
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, CreateUnit { }
@@ -87,6 +92,7 @@ public:
 			, CreateUnit_Mission { Mission::Guard }
 			, CreateUnit_Owner { OwnerHouseKind::Victim }
 			, CreateUnit_ConsiderPathfinding { false }
+			, CreateUnit_SpawnAnim { }
 			, XDrawOffset { 0 }
 			, HideIfNoOre_Threshold { 0 }
 			, Layer_UseObjectLayer {}
@@ -127,6 +133,8 @@ public:
 			, ShouldFogRemove { true }
 			, AttachedSystem {}
 			, IsInviso { false }
+
+			//, SpawnerDatas {}
 		{ }
 
 		virtual ~ExtData() = default;

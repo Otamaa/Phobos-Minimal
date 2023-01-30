@@ -7,7 +7,7 @@
 template <class T, bool CheckInterface = false>
 FORCEINLINE T GetLocomotor(FootClass* pThis)
 {
-	static_assert(std::is_pointer<T>(), "T Required To Be Pointer !");
+	static_assert(std::is_pointer<T>::value, "T Required To Be Pointer !");
 
 	// yikes
 	if constexpr (!std::is_const<T>())
@@ -34,15 +34,15 @@ FORCEINLINE T GetLocomotor(FootClass* pThis)
 
 }
 
-template <class T , bool CheckInterface = false>
-FORCEINLINE T* GetLocomotorType(FootClass* pThis)
+template <class JumpjetLocomotionClass , bool CheckInterface>
+NOINLINE JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
 {
-	CLSID locoCLSID {};
-	const auto pILoco = GetLocomotor<T* , CheckInterface>(pThis);
+	//CLSID locoCLSID {};
+	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);
 
 	//it is already return as JumJetLoco on the top , but we check the CLSID here to make sure
 	//we got real T* pointer instead of something else
 	return //(SUCCEEDED(pILoco->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(T)) ?
-		(((int*)pILoco)[0] == 0x7ECE34) ? //faster
-			static_cast<T*>(pILoco) : nullptr;
+		(((DWORD*)pILoco)[0] == JumpjetLocomotionClass::vtable) ? //faster
+			static_cast<JumpjetLocomotionClass*>(pILoco) : nullptr;
 }

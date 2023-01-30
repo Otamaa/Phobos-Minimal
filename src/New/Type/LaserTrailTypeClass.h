@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDefB.h>
 
 class LaserTrailTypeClass final : public Enumerable<LaserTrailTypeClass>
 {
@@ -18,7 +18,7 @@ public:
 
 	LaserTrailTypeClass(const char* pTitle = NONE_STR) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
-		, Color { { 255, 0, 0 } }
+		, Color { Drawing::ColorRed }
 		, FadeDuration { 64 }
 		, Thickness { 4 }
 		, SegmentLength { 128 }

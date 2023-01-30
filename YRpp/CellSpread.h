@@ -6,8 +6,11 @@
 class CellSpread
 {
 public:
-	static constexpr reference<CellStruct, 0x89F6D8, 8u> const AdjacentCoord {};
-	static constexpr reference<size_t, 0x7ED3D0, 12u> const CellNums {};
+	// between -256 -> 256
+	static constexpr reference<CellStruct, 0x89F6D8, 8u> const AdjacentCoord{};
+	// between -1 -> 1
+	static constexpr reference<CellStruct, 0x89F688, 8u> const AdjacentCell{};
+	static constexpr reference<size_t, 0x7ED3D0, 12u> const CellNums{};
 	static constexpr reference<CellStruct, 0xABD490, 369u> const CellOfssets{};
 
 	static size_t NumCells(size_t nSpread) {

@@ -80,6 +80,7 @@ namespace Math
 	constexpr const double DEG_TO_RAD_ALTERNATE = C_Sharp_Pi / 180;
 	constexpr const double BINARY_ANGLE_MAGIC_ALTERNATE = -(360.0 / (65535 - 1)) * DEG_TO_RAD_ALTERNATE;
 	constexpr const double PI_BYSIXTEEN = Math::Pi / 16;
+
 	MATH_FUNC(sqrt,	 0x4CAC40);
 	MATH_FUNC(sin,	 0x4CACB0);
 	MATH_FUNC(cos,	 0x4CAD00);

@@ -1,8 +1,4 @@
 #include "Body.h"
-//#include <Helpers/RoundingAlgorithms.h>
-#include <Ext/WeaponType/Body.h>
-
-#include <YRPPGlobal.h>
 
 WaveExt::ExtContainer WaveExt::ExtMap;
 
@@ -20,7 +16,6 @@ template <typename T>
 void WaveExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(MyWeapon)
 		;
 }
 
@@ -58,58 +53,65 @@ WaveExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
-DEFINE_HOOK(0x75EA59, WaveClass_CTOR, 0x5)
-{
-	GET(WaveClass*, pItem, ESI);
-
-	WaveExt::ExtMap.JustAllocate(pItem);
-
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
-DEFINE_HOOK(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(WaveClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	WaveExt::ExtMap.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x75F7BA, WaveClass_Load_Suffix, 0x5)
-{
-	WaveExt::ExtMap.LoadStatic();
-	return 0;
-}
-
-DEFINE_HOOK(0x75F82F, WaveClass_Save_Suffix, 0x6)
-{
-	WaveExt::ExtMap.SaveStatic();
-	return 0;
-}
-
-DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
-{
-	GET(WaveClass*, pItem, EDI);
-
-	WaveExt::ExtMap.Remove(pItem);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
-{
-	GET(WaveClass*, pItem, ESI);
-	GET_BASE(void*, pTarget, 0x4);
-	GET_BASE(bool, bRemove, 0x8);
-
-	if (auto pExt = WaveExt::ExtMap.Find(pItem))
-		pExt->InvalidatePointer(pTarget, bRemove);
-
-	return 0;
-}
-#pragma warning(pop)
-
+//
+//DEFINE_HOOK(0x75EA59, WaveClass_CTOR, 0x5)
+//{
+//	GET(WaveClass*, pItem, ESI);
+//
+//	WaveExt::ExtMap.FindOrAllocate(pItem);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
+//DEFINE_HOOK(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
+//{
+//	GET_STACK(WaveClass*, pItem, 0x4);
+//	GET_STACK(IStream*, pStm, 0x8);
+//
+//	WaveExt::ExtMap.PrepareStream(pItem, pStm);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x75F7BA, WaveClass_Load_Suffix, 0x5)
+//{
+//	GET(HRESULT, nRes, EBP);
+//
+//	if(SUCCEEDED(nRes))
+//		WaveExt::ExtMap.LoadStatic();
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x75F82F, WaveClass_Save_Suffix, 0x6)
+//{
+//	GET(HRESULT, nRes, EAX);
+//
+//	if (SUCCEEDED(nRes))
+//		WaveExt::ExtMap.SaveStatic();
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x75ED57 , WaveClass_DTOR, 0x6)
+//DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
+//{
+//	GET(WaveClass*, pItem, EDI);
+//
+//	WaveExt::ExtMap.Remove(pItem);
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
+//{
+//	GET(WaveClass*, pItem, ESI);
+//	GET_BASE(void*, pTarget, 0x4);
+//	GET_BASE(bool, bRemove, 0x8);
+//
+//	if (auto pExt = WaveExt::ExtMap.Find(pItem))
+//		pExt->InvalidatePointer(pTarget, bRemove);
+//
+//	return 0;
+//}

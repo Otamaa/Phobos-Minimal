@@ -7,6 +7,7 @@
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/AnimType/Body.h>
+#include "AnimSpawner.h"
 
 class AnimExt
 {
@@ -25,14 +26,24 @@ public:
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
 		ParticleSystemClass* AttachedSystem;
-
+		bool OwnerSet;
+		//std::unique_ptr<AnimSpawner> SpawnData;
+		
+		// This is a failsafe that is only set if this is a building animation 
+		// and the building is not on same cell as the animation.
+		BuildingClass* ParentBuilding;
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, Something { 0,0,0 }
 			, DeathUnitFacing { }
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
 			, AttachedSystem {}
-		{ }
+			, OwnerSet { false } 
+			//, SpawnData { }
+			, ParentBuilding {}
+		{ 
+			//SpawnData = std::make_unique<AnimSpawner>(OwnerObject);
+		}
 
 		virtual ~ExtData()
 		{
@@ -93,49 +104,27 @@ public:
 	//ToDo :
 	// utilize this ,..
 	// here as dummy atm
-	struct AnimCellUpdater
-	{
-		static std::vector<CellClass*> Marked;
+	//struct AnimCellUpdater
+	//{
+	//	static std::vector<CellClass*> Marked;
 
-		static void Update() { }
+	//	static void Update() { }
 
-		static void Invalidate() { }
+	//	static void Invalidate() { }
 
-		static void Print() {
-			for (auto const& pair : Marked) {
-				auto nCoord = pair->GetCoords();
-				Debug::Log("Cell[%x] at [%d,%d,%d] Has Twinkle Anim ! \n", pair , nCoord.X , nCoord.Y , nCoord.Z);
-			}
-		}
+	//	static void Print() {
+	//		for (auto const& pair : Marked) {
+	//			auto nCoord = pair->GetCoords();
+	//			Debug::Log("Cell[%x] at [%d,%d,%d] Has Twinkle Anim ! \n", pair , nCoord.X , nCoord.Y , nCoord.Z);
+	//		}
+	//	}
 
-		static void Clear() {
-			Marked.clear();
-		}
-	};
+	//	static void Clear() {
+	//		Marked.clear();
+	//	}
+	//};
 
-	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _)
-	{
-		if (pThis->OwnerObject) {
-			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-
-			if (!pExt || !pExt->Layer_UseObjectLayer.isset()) {
-				return Layer::Ground;
-			}
-
-			if (pExt->Layer_UseObjectLayer.Get()) {
-				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
-					if (auto const pLocomotor = pFoot->Locomotor.get())
-						return pLocomotor->In_Which_Layer();
-				}
-				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
-					return pBullet->InWhichLayer();
-
-				return pThis->OwnerObject->ObjectClass::InWhichLayer();
-			}
-		}
-
-		return pThis->Type ? pThis->Type->Layer : Layer::Air;
-	}
+	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
 
 	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _)
 	{

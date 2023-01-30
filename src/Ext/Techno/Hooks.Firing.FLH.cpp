@@ -10,7 +10,7 @@ DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x6)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	weaponIdx = -weaponIdx;
 
-	CoordStruct flh =
+	const CoordStruct& flh =
 		weaponIdx < static_cast<int>(pTypeExt->AlternateFLHs.size())
 		? pTypeExt->AlternateFLHs[weaponIdx]
 		: CoordStruct::Empty;
@@ -29,8 +29,7 @@ DEFINE_HOOK(0x6F3B37, TechnoClass_Transform_6F3AD0_BurstFLH_1, 0x7)
 
 	std::pair<bool, CoordStruct> nResult = TechnoExt::GetBurstFLH(pThis, weaponIndex);
 
-	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry)
-	{
+	if (!nResult.first && pThis->WhatAmI() == AbstractType::Infantry) {
 		nResult = TechnoExt::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
 	}
 

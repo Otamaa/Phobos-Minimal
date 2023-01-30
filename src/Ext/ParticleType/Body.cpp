@@ -52,13 +52,13 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<ParticleTypeClass>::Serialize(Stm);
+	TExtension<ParticleTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<ParticleTypeClass>::Serialize(Stm);
+	TExtension<ParticleTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -127,6 +127,7 @@ DEFINE_HOOK(0x64580A, ParticleTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+DEFINE_HOOK_AGAIN(0x645414 , ParticleTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);

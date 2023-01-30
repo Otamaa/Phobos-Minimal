@@ -1,6 +1,7 @@
 #include <Helpers/Macro.h>
 
 #include "Body.h"
+#include <Ext/Team/Body.h>
 
 #include <MapClass.h>
 

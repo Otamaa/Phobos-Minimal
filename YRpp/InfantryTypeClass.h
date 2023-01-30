@@ -50,6 +50,8 @@ struct DoControls final : public ArrayWrapper<DoInfoStruct ,42u>
 	}
 };
 
+static_assert(sizeof(DoControls) == (42 * sizeof(DoInfoStruct)), "Invalid Size !");
+
 class DECLSPEC_UUID("AE8B33D8-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE InfantryTypeClass : public TechnoTypeClass
 {
@@ -57,7 +59,25 @@ public:
 	static const AbstractType AbsID = AbstractType::InfantryType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(InfantryTypeClass, 0xA8E348u);
+	static constexpr constant_ptr<DynamicVectorClass<InfantryTypeClass*>, 0xA8E348u> const Array {};
+
+	static NOINLINE InfantryTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static InfantryTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x524CB0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x523C90);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x524C70);
@@ -113,9 +133,9 @@ public:
 	int FireProne;
 	int SecondaryFire;
 	int SecondaryProne;
-	TypeList<AnimTypeClass*> DeadBodies;
-	TypeList<AnimTypeClass*> DeathAnims;
-	TypeList<int> VoiceComment;
+	DECLARE_PROPERTY(TypeList<AnimTypeClass*> ,DeadBodies);
+	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, DeathAnims);
+	DECLARE_PROPERTY(TypeList<int>, VoiceComment);
 	int EnterWaterSound;
 	int LeaveWaterSound;
 	bool Cyborg;

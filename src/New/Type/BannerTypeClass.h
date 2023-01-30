@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDefB.h>
 #include <Utilities/Enum.h>
 
 enum class BannerType : int

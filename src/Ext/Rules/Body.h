@@ -5,7 +5,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/Constructs.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDefB.h>
 
 #include <Utilities/Debug.h>
 
@@ -36,14 +36,18 @@ public:
 		Valueable<int> RadApplicationDelay_Building;
 		PhobosFixedString<32u> MissingCameo;
 
-		DynamicVectorClass<DynamicVectorClass<TechnoTypeClass*>> AITargetTypesLists;
-		DynamicVectorClass<DynamicVectorClass<ScriptTypeClass*>> AIScriptsLists;
-		DynamicVectorClass<DynamicVectorClass<std::string>> AIConditionsLists;
+		std::vector<std::vector<TechnoTypeClass*>> AITargetTypesLists;
+		std::vector<std::vector<ScriptTypeClass*>> AIScriptsLists;
+		std::vector<std::vector<std::string>> AIHousesLists;
+		std::vector<std::vector<std::string>> AIConditionsLists;
+		std::vector<std::vector<AITriggerTypeClass*>> AITriggersLists;
 
 		Valueable<double> JumpjetCrash;
 		Valueable<bool> JumpjetNoWobbles;
 		Valueable<bool> JumpjetAllowLayerDeviation;
 		Valueable<bool> JumpjetTurnToTarget;
+		Valueable<bool> JumpjetCrash_Rotate;
+
 		Valueable<int> Storage_TiberiumIndex;
 		Valueable<int> PlacementGrid_TranslucentLevel;
 		Valueable<int> BuildingPlacementPreview_TranslucentLevel;
@@ -70,10 +74,12 @@ public:
 		CustomPalette SHP_SelectBrdPAL_UNIT;
 
 		Nullable<bool> UseSelectBrd;
+
 		Valueable<Point3D> SelectBrd_Frame_Infantry;
 		Valueable<Point2D> SelectBrd_DrawOffset_Infantry;
 		Valueable<Point3D> SelectBrd_Frame_Unit;
 		Valueable<Point2D> SelectBrd_DrawOffset_Unit;
+
 		Valueable<int> SelectBrd_DefaultTranslucentLevel;
 		Valueable<bool> SelectBrd_DefaultShowEnemy;
 
@@ -86,7 +92,21 @@ public:
 		Valueable<int> ToolTip_Background_Opacity;
 		Valueable<float> ToolTip_Background_BlurSize;
 
+		Valueable<bool> Crate_LandOnly;
+
+		std::vector<std::pair<std::string, std::vector<int>>> GenericPrerequisitesData;
+
+		Valueable<bool> NewTeamsSelector;
+		Valueable<bool> NewTeamsSelector_SplitTriggersByCategory;
+		Valueable<bool> NewTeamsSelector_EnableFallback;
+		Valueable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+		Valueable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
+		Valueable<double> NewTeamsSelector_GroundCategoryPercentage;
+		Valueable<double> NewTeamsSelector_NavalCategoryPercentage;
+		Valueable<double> NewTeamsSelector_AirCategoryPercentage;
+
 	#pragma region Otamaa
+
 		Nullable<ParticleTypeClass*> VeinholeParticle;
 		Valueable<ParticleTypeClass*> DefaultVeinParticle;
 		PhobosFixedString<0x19> NukeWarheadName;
@@ -107,6 +127,7 @@ public:
 
 		ValueableVector<BuildingTypeClass*> WallTowers;
 		Valueable<bool> AutoAttackICedTarget;
+		Nullable<float> AI_SpyMoneyStealPercent;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -119,11 +140,14 @@ public:
 			, MissingCameo { "xxicon.shp" }
 			, AITargetTypesLists { }
 			, AIScriptsLists { }
+			, AIHousesLists { }
 			, AIConditionsLists { }
+			, AITriggersLists { }
 			, JumpjetCrash { 5.0 }
 			, JumpjetNoWobbles { false }
 			, JumpjetAllowLayerDeviation { true }
 			, JumpjetTurnToTarget { false }
+			, JumpjetCrash_Rotate { true }
 			, Storage_TiberiumIndex { -1 }
 			, PlacementGrid_TranslucentLevel{ 0 }
 			, BuildingPlacementPreview_TranslucentLevel { 3 }
@@ -166,6 +190,17 @@ public:
 			, ToolTip_Background_Color { {0, 0, 0} }
 			, ToolTip_Background_Opacity { 100 }
 			, ToolTip_Background_BlurSize { 0.f }
+			, Crate_LandOnly { false }
+
+			, GenericPrerequisitesData { }
+			, NewTeamsSelector { false }
+			, NewTeamsSelector_SplitTriggersByCategory { true }
+			, NewTeamsSelector_EnableFallback { false }
+			, NewTeamsSelector_MergeUnclassifiedCategoryWith { -1 }
+			, NewTeamsSelector_UnclassifiedCategoryPercentage { 0.25 }
+			, NewTeamsSelector_GroundCategoryPercentage { 0.25 }
+			, NewTeamsSelector_NavalCategoryPercentage { 0.25 }
+			, NewTeamsSelector_AirCategoryPercentage { 0.25 }
 
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
@@ -185,6 +220,7 @@ public:
 
 			, WallTowers { }
 			, AutoAttackICedTarget { false }
+			, AI_SpyMoneyStealPercent { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif
@@ -244,4 +280,6 @@ public:
 
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
+
+	static void FillDefaultPrerequisites(CCINIClass* pRules);
 };

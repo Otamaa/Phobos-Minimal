@@ -52,11 +52,17 @@ concept HasInitializeRuled = requires(T t) { t.InitializeRuled(); };
 template <class T>
 concept HasInitialize = requires(T t) { t.Initialize(); };
 template <class T>
-concept HasLoadFromRulesFile = requires(T t, CCINIClass* pINI) { t.LoadFromRulesFile(pINI); };
+concept HasLoadFromRulesFile = requires(T t, CCINIClass * pINI) { t.LoadFromRulesFile(pINI); };
 template <class T>
-concept HasLoadFromINIFile = requires(T t, CCINIClass* pINI) { t.LoadFromINIFile(pINI); };
+concept HasLoadFromINIFile = requires(T t, CCINIClass * pINI) { t.LoadFromINIFile(pINI); };
 template <class T>
-concept HasInvalidatePointer = requires(T t, void* ptr, bool removed) { t.InvalidatePointer(ptr,removed); };
+concept HasInvalidatePointer = requires(T t, void* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
+template <class T>
+concept HasAbsID = requires(T) { T::AbsID; };
+template <class T>
+concept HasDeriveredAbsID = requires(T) { T::AbsDerivateID; };
+template <class T>
+concept HasTypeBase = requires(T) { T::AbsTypeBase; };
 
 template <typename T>
 class Extension
@@ -69,7 +75,29 @@ public:
 
 	Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
 		, Initialized { InitState::Blank }
-	{ }
+	{
+		/*
+		if constexpr (std::is_base_of<AbstractClass, T>())
+		{
+			if constexpr (HasAbsID<T>)
+			{
+				if constexpr (T::AbsID != AbstractType::Abstract){ 
+					Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(OwnerObject->WhatAmI()));
+				} else {
+					if constexpr (HasTypeBase<T>) {
+						if constexpr (T::AbsTypeBase == AbstractBaseType::TechnoType)
+							Debug::Log("Alloc Ext For TechnoTypeClass ! \n");
+
+					} else if constexpr (HasDeriveredAbsID<T>) {
+						if constexpr (T::AbsDerivateID == AbstractFlags::Techno) {
+							Debug::Log("Alloc Ext For TechnoClass ! \n");
+						}
+					}
+				}
+			}
+		}
+		*/
+	}
 
 	Extension(const Extension& other) = delete;
 
@@ -78,21 +106,25 @@ public:
 	virtual ~Extension() = default;
 
 	// the object this Extension expands
-	T* const& Get() const {
+	T* const& Get() const
+	{
 		return this->AttachedToObject;
 	}
 
-	void EnsureConstanted() {
-		if (this->Initialized < InitState::Constanted) {
+	void EnsureConstanted()
+	{
+		if (this->Initialized < InitState::Constanted)
+		{
 
 			//if constexpr (HasEnsureConstanted<Extension<T>>)
-				this->InitializeConstants();
+			this->InitializeConstants();
 
 			this->Initialized = InitState::Constanted;
 		}
 	}
 
-	void LoadFromINI(CCINIClass* pINI) {
+	void LoadFromINI(CCINIClass* pINI)
+	{
 		if (!pINI)
 			return;
 
@@ -103,26 +135,26 @@ public:
 			[[fallthrough]];
 		case InitState::Constanted:
 			// if constexpr (HasInitializeRuled<Extension<T>>)
-				this->InitializeRuled();
+			this->InitializeRuled();
 			this->Initialized = InitState::Ruled;
 			[[fallthrough]];
 		case InitState::Ruled:
 			// if constexpr (HasInitialize<Extension<T>>)
-				this->Initialize();
+			this->Initialize();
 			this->Initialized = InitState::Inited;
 			[[fallthrough]];
 		case InitState::Inited:
 		case InitState::Completed:
 
 			// if constexpr (HasLoadFromRulesFile<Extension<T>>)
-			{
-				if (pINI == CCINIClass::INI_Rules)
-					this->LoadFromRulesFile(pINI);
-			}
+		{
+			if (pINI == CCINIClass::INI_Rules)
+				this->LoadFromRulesFile(pINI);
+		}
 
-			// if constexpr (HasLoadFromINIFile<Extension<T>>)
-			this->LoadFromINIFile(pINI);
-			this->Initialized = InitState::Completed;
+		// if constexpr (HasLoadFromINIFile<Extension<T>>)
+		this->LoadFromINIFile(pINI);
+		this->Initialized = InitState::Completed;
 		}
 	}
 
@@ -131,15 +163,17 @@ public:
 	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
 
 	template<typename StmType>
-	inline void Serialize(StmType& Stm) { static_assert(true,"Please Implement Specific function for this !"); }
+	inline void Serialize(StmType& Stm) { static_assert(true, "Please Implement Specific function for this !"); }
 
 	template<>
-	inline void Serialize(PhobosStreamWriter& Stm) {
+	inline void Serialize(PhobosStreamWriter& Stm)
+	{
 		Stm.Save(this->Initialized);
 	}
 
 	template<>
-	inline void Serialize(PhobosStreamReader& Stm) {
+	inline void Serialize(PhobosStreamReader& Stm)
+	{
 		Stm.Load(this->Initialized);
 	}
 
@@ -147,18 +181,18 @@ protected:
 
 	// right after construction. only basic initialization tasks possible;
 	// owner object is only partially constructed! do not use global state!
-	 virtual void InitializeConstants() { }
+	virtual void InitializeConstants() { }
 
-	 virtual void InitializeRuled() { }
+	virtual void InitializeRuled() { }
 
 	// called before the first ini file is read
-	 virtual void Initialize() { }
+	virtual void Initialize() { }
 
 	// for things that only logically work in rules - countries, sides, etc
-	 virtual void LoadFromRulesFile(CCINIClass* pINI) { }
+	virtual void LoadFromRulesFile(CCINIClass* pINI) { }
 
 	// load any ini file: rules, game mode, scenario or map
-	 virtual void LoadFromINIFile(CCINIClass* pINI) { }
+	virtual void LoadFromINIFile(CCINIClass* pINI) { }
 
 };
 
@@ -176,7 +210,7 @@ public:
 #ifdef ROBIN_HOOD_ENABLED
 	using map_type = robin_hood::unordered_map<const_key_ptr, value_ptr>;
 #else
-		using map_type = std::unordered_map<const_key_ptr, value_ptr>;
+	using map_type = std::unordered_map<const_key_ptr, value_ptr>;
 #endif
 	using const_iterator = map_type::const_iterator;
 	using iterator = const_iterator;
@@ -188,7 +222,8 @@ public:
 	ContainerMapBase& operator=(ContainerMapBase const&) = delete;
 	ContainerMapBase& operator=(ContainerMapBase&&) = delete;
 
-	value_ptr find(const_key_ptr key) const {
+	value_ptr find(const_key_ptr key) const
+	{
 		auto const it = this->Items.find(key);
 		if (it != this->Items.end())
 			return it->second;
@@ -196,13 +231,16 @@ public:
 		return nullptr;
 	}
 
-	void insert(const_key_ptr key, value_ptr value) {
+	void insert(const_key_ptr key, value_ptr value)
+	{
 		this->Items.emplace(key, value);
 	}
 
-	value_ptr remove(const_key_ptr key) {
+	value_ptr remove(const_key_ptr key)
+	{
 		auto const it = this->Items.find(key);
-		if (it != this->Items.cend()) {
+		if (it != this->Items.cend())
+		{
 			auto const value = it->second;
 			this->Items.erase(it);
 
@@ -212,20 +250,24 @@ public:
 		return nullptr;
 	}
 
-	void clear() {
+	void clear()
+	{
 		// this leaks all objects inside. this case is logged.
 		this->Items.clear();
 	}
 
-	size_t size() const {
+	size_t size() const
+	{
 		return this->Items.size();
 	}
 
-	const_iterator begin() const {
+	const_iterator begin() const
+	{
 		return this->Items.cbegin();
 	}
 
-	const_iterator end() const {
+	const_iterator end() const
+	{
 		return this->Items.cend();
 	}
 
@@ -342,11 +384,13 @@ public:
 		return static_cast<value_ptr>(this->Items.remove(key));
 	}
 
-	void clear() {
+	void clear()
+	{
 		this->Items.clear();
 	}
 
-	size_t size() const {
+	size_t size() const
+	{
 		return this->Items.size();
 	}
 
@@ -487,7 +531,8 @@ public:
 	/**
 	 *  Finds element with specific key.
 	 */
-	Value* find(const Key* key) const {
+	Value* find(const Key* key) const
+	{
 		const auto it = Items.find(key);
 		if (it != Items.end())
 		{
@@ -500,7 +545,8 @@ public:
 	/**
 	 *  Insert a new element instance into the map.
 	 */
-	Value* insert(const Key* key, Value* value) {
+	Value* insert(const Key* key, Value* value)
+	{
 		Items.insert({ key, value });
 		return value;
 	}
@@ -508,7 +554,8 @@ public:
 	/**
 	 *  Remove and get an element from the map.
 	 */
-	Value* remove(const Key* key) {
+	Value* remove(const Key* key)
+	{
 		const auto it = Items.find(key);
 		if (it != Items.end())
 		{
@@ -523,35 +570,40 @@ public:
 	/**
 	*  Remove an element from the map.
 	*/
-	void erase(const Key* key) {
+	void erase(const Key* key)
+	{
 		Items.erase(key);
 	}
 
 	/**
 	 *  Checks whether the container is empty.
 	 */
-	bool empty() const {
+	bool empty() const
+	{
 		return Items.empty();
 	}
 
 	/**
 	 *  Clears the contents of the map.
 	 */
-	void clear() {
+	void clear()
+	{
 		Items.clear();
 	}
 
 	/**
 	 *  Returns the number of elements in the map.
 	 */
-	size_t size() const {
+	size_t size() const
+	{
 		return Items.size();
 	}
 
 	/**
 	 *  Returns an iterator to the beginning.
 	 */
-	iterator begin() const {
+	iterator begin() const
+	{
 		auto item = Items.begin();
 		return reinterpret_cast<iterator&>(item);
 	}
@@ -559,7 +611,8 @@ public:
 	/**
 	 *  Returns an iterator to the end.
 	 */
-	iterator end() const {
+	iterator end() const
+	{
 		auto item = Items.end();
 		return reinterpret_cast<iterator&>(item);
 	}
@@ -577,9 +630,9 @@ private:
 };
 
 template <class T>
-concept HasInvalidateExtDataIgnorable = requires(T t,void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
+concept HasInvalidateExtDataIgnorable = requires(T t, void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
-template <typename T ,bool NoInsert = false , bool NoContainerInvalidatePointer = false , bool NoextDataInvalidatePointer = false>
+template <typename T, bool NoInsert = false, bool NoContainerInvalidatePointer = false, bool NoextDataInvalidatePointer = false>
 class Container
 {
 private:
@@ -591,7 +644,7 @@ private:
 
 	//ViniferaContainerMap<base_type, extension_type> Items;
 	//VectorMapContainer<base_type, extension_type> Items;
-	ContainerMap<base_type, extension_type> Items;
+	//ContainerMap<base_type, extension_type> Items;
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
@@ -600,35 +653,43 @@ public:
 
 
 	explicit Container(const char* pName) :
-		Items {},
+		//Items {},
 		SavingObject { nullptr },
-		SavingStream {nullptr},
+		SavingStream { nullptr },
 		Name {}
-	{  Name = pName; }
+	{
+		Name = pName;
+	}
 
 	virtual ~Container() = default;
 
-	auto begin() const {
-		return this->Items.begin();
-	}
+	//auto begin() const
+	//{
+	//	return this->Items.begin();
+	//}
 
-	auto end() const {
-		return this->Items.end();
-	}
+	//auto end() const
+	//{
+	//	return this->Items.end();
+	//}
 
-	auto size() const {
-		return this->Items.size();
-	}
+	//auto size() const
+	//{
+	//	return this->Items.size();
+	//}
 
-	auto GetName() const {
+	auto GetName() const
+	{
 		return this->Name.data();
 	}
 
-	bool empty() const {
+	bool empty() const
+	{
 		return this->Items.empty();
 	}
 
-	base_type_ptr GetSavingObject() const {
+	base_type_ptr GetSavingObject() const
+	{
 		return SavingObject;
 	}
 
@@ -637,14 +698,14 @@ public:
 		if constexpr (!NoContainerInvalidatePointer)
 			this->InvalidatePointer(ptr, bRemoved);
 
-		if constexpr (HasInvalidatePointer<extension_type> && !NoInsert && !NoextDataInvalidatePointer)
-		{
-			if (!this->InvalidateExtDataIgnorable(ptr))
-			{
-				for (const auto& i : this->Items)
-					i.second->InvalidatePointer(ptr, bRemoved);
-			}
-		}
+	//	if constexpr (HasInvalidatePointer<extension_type> && !NoInsert && !NoextDataInvalidatePointer)
+	//	{
+	//		if (!this->InvalidateExtDataIgnorable(ptr))
+	//		{
+	//			for (const auto& i : this->Items)
+	//				i.second->InvalidatePointer(ptr, bRemoved);
+	//		}
+	//	}
 	}
 
 protected:
@@ -654,6 +715,8 @@ protected:
 
 public:
 
+	virtual void Clear() {}
+
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
@@ -662,15 +725,19 @@ public:
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
-			if constexpr (HasOffset<T>){
+			if constexpr (HasOffset<T>)
+			{
 				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 			}
 
-			if constexpr (NoInsert) {
+			if constexpr (NoInsert)
+			{
 				return val;
-			} else {
-				return this->Items.insert(key, val);
 			}
+			//else
+			//{
+			//	return this->Items.insert(key, val);
+			//}
 
 		}
 
@@ -678,25 +745,28 @@ public:
 		return nullptr;
 	}
 
-	void JustAllocate(base_type_ptr key, bool bCond ,const std::string_view& nMessage)
+	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
 	{
-		if (!key || (!bCond && !nMessage.empty())){
+		if (!key || (!bCond && !nMessage.empty()))
+		{
 			Debug::Log("%s \n", nMessage.data());
 			return;
 		}
 
-		if constexpr (HasOffset<T>) {
+		if constexpr (HasOffset<T>)
+		{
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		}
 
-		if (const auto val = new extension_type(key)) {
+		if (const auto val = new extension_type(key))
+		{
 			val->EnsureConstanted();
 
 			if constexpr (HasOffset<T>)
 				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 
-			if constexpr (!NoInsert)
-				this->Items.insert(key, val);
+			//if constexpr (!NoInsert)
+			//	this->Items.insert(key, val);
 		}
 	}
 
@@ -711,60 +781,54 @@ public:
 	template<bool check = false>
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		if constexpr (HasOffset<T>) {
+		if constexpr (HasOffset<T>)
+		{
 			if constexpr (check)
 				return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
 			else
 				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 
-		} else {
-			return this->Items.find(key);
 		}
+		//else
+		//{
+		//	return this->Items.find(key);
+		//}
 	}
 
-	extension_type_ptr operator[] (const_base_type_ptr key) const
-	{
-		return Find(key);
-	}
+	//extension_type_ptr operator[] (const_base_type_ptr key) const
+	//{
+	//	return Find(key);
+	//}
 
 	void Remove(const_base_type_ptr key)
 	{
-		if constexpr (!NoInsert){
-			if(auto Item = this->Items.remove(key)) {
-				if constexpr (HasOffset<T>)
-					(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-
-			 delete Item;
-			}
-		}
-		else
+		//if constexpr (!NoInsert)
+		//{
+		//	if (auto Item = this->Items.remove(key))
+		//	{
+		//		if constexpr (HasOffset<T>)
+		//			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		//
+		//		delete Item;
+		//	}
+		//}
+		//else
 		{
-			if(auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset))) {
+			if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
+			{
 				delete Item;
 				(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 			}
 		}
 	}
 
-	void Clear()
-	{
-		if constexpr (!NoInsert)
-		{
-			if (this->Items.size())
-			{
-				Debug::Log("Cleared %u items from %s.\n", this->Items.size(), this->Name.data());
-				this->Items.clear();
-			}
-		}
-	}
-
 	void LoadAllFromINI(CCINIClass* pINI)
 	{
-		if constexpr (!NoInsert)
-		{
-			for (const auto& i : this->Items)
-				i.second->LoadFromINI(pINI);
-		}
+		//if constexpr (!NoInsert)
+		//{
+		//	for (const auto& i : this->Items)
+		//		i.second->LoadFromINI(pINI);
+		//}
 	}
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
@@ -842,7 +906,7 @@ protected:
 			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
-
+		
 		// get the value data
 		auto buffer = this->Find(key);
 		if (!buffer)
@@ -884,7 +948,8 @@ protected:
 
 		extension_type_ptr buffer = nullptr;
 		// get the value data
-		if constexpr (HasOffset<T>) {
+		if constexpr (HasOffset<T>)
+		{
 			this->JustAllocate(key, true, "");
 			buffer = this->Find(key);
 		}
@@ -1031,8 +1096,8 @@ public:
 	{
 		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
 		{
-				delete Item;
-				(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+			delete Item;
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		}
 	}
 
@@ -1156,7 +1221,7 @@ protected:
 
 		this->JustAllocate(key, true, "");
 		buffer = this->Find(key);
-		
+
 		if (!buffer)
 		{
 			Debug::Log("[LoadKey] Could not find or allocate value.\n");

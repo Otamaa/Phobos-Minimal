@@ -9,8 +9,26 @@ public:
 	static const AbstractType AbsID = AbstractType::AircraftType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(AircraftTypeClass, 0xA8B218u);
-	
+	static constexpr constant_ptr<DynamicVectorClass<AircraftTypeClass*>, 0xA8B218u> const Array {};
+
+	static NOINLINE AircraftTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static AircraftTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x41CEF0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x41CAA0);
+	}
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x41CEB0);
 	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x41CE20);

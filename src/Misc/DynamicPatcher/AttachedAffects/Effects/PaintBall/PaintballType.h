@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 #include "../CommonProperties.h"
 
 struct PaintballType

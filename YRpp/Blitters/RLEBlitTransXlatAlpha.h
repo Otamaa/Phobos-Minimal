@@ -8,7 +8,7 @@ public:
 	inline explicit RLEBlitTransXlatAlpha(T* data, int shadecount) noexcept
 	{
 		PaletteData = data;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~RLEBlitTransXlatAlpha() override final = default;

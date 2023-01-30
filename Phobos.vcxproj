@@ -37,11 +37,11 @@
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.ParadropAttemt.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Anim\AnimSpawner.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
@@ -58,23 +58,32 @@
     <ClCompile Include="src\Ext\Bullet\Hook.Init.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Hooks.TargetSnap.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Trajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\BombardTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\BounceTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\MeteorTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\SpiralTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\StraightTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Trajectories\WaveTrajectory.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
+    <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
+    <ClCompile Include="src\Ext\HouseType\Body.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
+    <ClCompile Include="src\Ext\OverlayType\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
+    <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleType\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Body.cpp" />
     <ClCompile Include="src\Ext\Particle\Hooks.cpp" />
@@ -83,7 +92,6 @@
     <ClCompile Include="src\Ext\Scenario\Hooks.Variables.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Waypoints.cpp" />
     <ClCompile Include="src\Ext\ScriptType\Body.cpp" />
-    <ClCompile Include="src\Ext\ScriptType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Script\Hooks.cpp" />
     <ClCompile Include="src\Ext\SHPReference\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Body.cpp" />
@@ -93,6 +101,7 @@
     <ClCompile Include="src\Ext\Side\Hooks.SidebarGDIPositions.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Body.cpp" />
     <ClCompile Include="src\Ext\SmudgeType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\SpawnManager\Body.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\FireSuperWeapon.cpp" />
@@ -109,6 +118,7 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.DeployFireWeapon.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
@@ -134,8 +144,10 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Detonate.cpp" />
+    <ClCompile Include="src\Ext\WarheadType\Hook.Remover.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Transact.cpp" />
+    <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
@@ -143,30 +155,38 @@
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Helpers\Helpers.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Others\TextHandler.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftDive\AircraftDiveData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftDive\AircraftDiveFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutDataFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\AircraftPut\AircraftPutDataRules.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\DamageSelf\DamageSelfType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\DriveData\DriveDataFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFireData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\ExtraFire\ExtraFirefunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuardFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterGuardAreaData.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\GiftBox\GiftBoxData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\GiftBox\GiftBoxFunctional.cpp" />
-    <ClCompile Include="src\Misc\DynamicPatcher\Techno\HomingMissile\Hooks.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\JumjetFaceTarget\JJFacingData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\JumjetFaceTarget\JJFacingToTargetFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\Passengers\Passengers.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\Passengers\PassengersFunctional.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportFunctional.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.FileClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
-    <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LaserDraw.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
+    <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Hooks.OtamaaBugFix.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Overlay.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
@@ -181,9 +201,9 @@
     <ClCompile Include="src\New\Entity\HomingMissileTargetTracker.cpp" />
     <ClCompile Include="src\New\Entity\LauchSWData.cpp" />
     <ClCompile Include="src\New\Entity\ShieldClass.cpp" />
-    <ClCompile Include="src\New\Entity\VerticalLaserClass.cpp" />
     <ClCompile Include="src\New\Type\ArmorTypeClass.cpp" />
     <ClCompile Include="src\New\Type\BannerTypeClass.cpp" />
+    <ClCompile Include="src\New\Type\ColorTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HoverTypeClass.cpp" />
     <ClCompile Include="src\New\Type\RadTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ShieldTypeClass.cpp" />
@@ -243,26 +263,32 @@
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\ExtraHeaders\DataVectors.h" />
-    <ClInclude Include="src\ExtraHeaders\DirClass.h" />
-    <ClInclude Include="src\ExtraHeaders\PriorityQueueClass.h" />
-    <ClInclude Include="src\ExtraHeaders\QueueClass.h" />
-    <ClInclude Include="src\ExtraHeaders\RefPtr.h" />
+    <ClInclude Include="src\ExtraHeaders\DiscreteDistributionClass_s.h" />
+    <ClInclude Include="src\ExtraHeaders\DiscreteSelectionClass_s.h" />
     <ClInclude Include="src\ExtraHeaders\RegionClass.h" />
     <ClInclude Include="src\ExtraHeaders\WWCRCEngine.h" />
     <ClInclude Include="src\Ext\Abstract\Body.h" />
     <ClInclude Include="src\Ext\AITriggerType\Body.h" />
+    <ClInclude Include="src\Ext\Anim\AnimSpawner.h" />
     <ClInclude Include="src\Ext\Bomb\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\BombardTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\BounceTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\MeteorTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\PhobosTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\SpiralTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\StraightTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.h" />
+    <ClInclude Include="src\Ext\Bullet\Trajectories\WaveTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
     <ClInclude Include="src\Ext\Convert\Body.h" />
+    <ClInclude Include="src\Ext\DiskLaser\Body.h" />
+    <ClInclude Include="src\Ext\HouseType\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
     <ClInclude Include="src\Ext\LaserDraw\Body.h" />
+    <ClInclude Include="src\Ext\OverlayType\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />
     <ClInclude Include="src\Ext\Particle\Body.h" />
@@ -271,6 +297,7 @@
     <ClInclude Include="src\Ext\Sidebar\Body.h" />
     <ClInclude Include="src\Ext\Anim\Body.h" />
     <ClInclude Include="src\Ext\SmudgeType\Body.h" />
+    <ClInclude Include="src\Ext\SpawnManager\Body.h" />
     <ClInclude Include="src\Ext\Super\Body.h" />
     <ClInclude Include="src\Ext\Surface\Body.h" />
     <ClInclude Include="src\Ext\Tactical\Body.h" />
@@ -280,6 +307,7 @@
     <ClInclude Include="src\Ext\Temporal\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
+    <ClInclude Include="src\Ext\Wave\Body.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.h" />
@@ -324,15 +352,16 @@
     <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
+    <ClInclude Include="src\Misc\TestTurrent.h" />
     <ClInclude Include="src\Misc\TriggerMPOwner.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
     <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
-    <ClInclude Include="src\New\Entity\VerticalLaserClass.h" />
     <ClInclude Include="src\New\Type\ArmorTypeClass.h" />
     <ClInclude Include="src\New\Type\BannerTypeClass.h" />
+    <ClInclude Include="src\New\Type\ColorTypeClass.h" />
     <ClInclude Include="src\New\Type\HoverTypeClass.h" />
     <ClInclude Include="src\New\Type\RadTypeClass.h" />
     <ClInclude Include="src\New\Type\ShieldTypeClass.h" />
@@ -394,6 +423,7 @@
     <ClInclude Include="src\Utilities\Patch.h" />
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
+    <ClInclude Include="src\Utilities\TemplateDefB.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\YRPPGlobal.h" />
@@ -670,7 +700,7 @@
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

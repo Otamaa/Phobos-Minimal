@@ -16,10 +16,9 @@ public:
 	{
 	public:
 
-		Valueable<bool> Clearable;
-		ExtData(SmudgeTypeClass* OwnerObject) : TExtension<SmudgeTypeClass>(OwnerObject)
-			, Clearable { true }
+		Valueable<bool> Clearable { true };
 
+		ExtData(SmudgeTypeClass* OwnerObject) : TExtension<SmudgeTypeClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() = default;

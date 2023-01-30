@@ -39,11 +39,12 @@ public:
 
 	Valueable<bool> ImmuneToPsychedelic;
 	Nullable<int> ThreadPosed;
-private:
-	Valueable<double> Respawn_Rate__InMinutes;
-	Valueable<double> SelfHealing_Rate__InMinutes;
+	Valueable<bool> ImmuneToCrit;
+
+	Valueable<bool> BreakWeapon_TargetSelf;
 
 public:
+
 	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
 		, Strength { 0 }
 		, InitialStrength {}
@@ -71,9 +72,8 @@ public:
 		, Pips_Building_Empty {}
 		, ImmuneToPsychedelic { false }
 		, ThreadPosed { }
-		, Respawn_Rate__InMinutes { 0.0 }
-		, SelfHealing_Rate__InMinutes { 0.0 }
-
+		, ImmuneToCrit { false }
+		, BreakWeapon_TargetSelf { true }
 
 	{};
 

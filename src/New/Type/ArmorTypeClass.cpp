@@ -7,21 +7,6 @@
 
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
-const char* const ArmorTypeClass::DefaultArmorName[11] =
-{
-	"none",
-	"flak",
-	"plate",
-	"light",
-	"medium",
-	"heavy",
-	"wood",
-	"steel",
-	"concrete",
-	"special_1",
-	"special_2",
-};
-
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
 {
 	return "ArmorTypes";
@@ -29,7 +14,7 @@ const char* Enumerable<ArmorTypeClass>::GetMainSection()
 
 void ArmorTypeClass::AddDefaults()
 {
-	for (auto const& nDefault : DefaultArmorName)
+	for (auto const& nDefault : Unsorted::ArmorNameArray)
 	{
 		FindOrAllocate(nDefault);
 	}
@@ -38,7 +23,7 @@ void ArmorTypeClass::AddDefaults()
 bool ArmorTypeClass::IsDefault(const char* pName)
 {
 
-	for (auto const& nDefault : DefaultArmorName)
+	for (auto const& nDefault : Unsorted::ArmorNameArray)
 	{
 		if (IS_SAME_STR_(pName, nDefault))
 			return true;
@@ -68,7 +53,7 @@ void ArmorTypeClass::EvaluateDefault()
 {
 	if (!IsDefault(Name.data()) && CRT::strlen(DefaultString.data()) && DefaultTo == -1)
 	{
-		DefaultTo = FindIndex(DefaultString);
+		DefaultTo = FindIndexById(DefaultString);
 		DefaultString = "\0";
 	}
 }

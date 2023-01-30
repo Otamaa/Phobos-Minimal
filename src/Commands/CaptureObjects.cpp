@@ -50,7 +50,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (object->GetOwningHouse() == HouseClass::CurrentPlayer())
 		return;
 
-	if (TechnoClass* techno = abstract_cast<TechnoClass*>(object))
+	if (TechnoClass* techno = static_cast<TechnoClass*>(object))
 		techno->SetOwningHouse(HouseClass::CurrentPlayer());
 
 	});

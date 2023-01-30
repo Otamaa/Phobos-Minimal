@@ -3,7 +3,8 @@
 #include <WeaponTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+//#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/RadTypeClass.h>
@@ -19,10 +20,10 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
 //#ifdef ENABLE_NEWEXT
-	static constexpr size_t ExtOffset = 0x118;
+	//static constexpr size_t ExtOffset = 0x118;
 //#endif
 
-	class ExtData final : public Extension<WeaponTypeClass>
+	class ExtData final : public TExtension<WeaponTypeClass>
 	{
 	public:
 
@@ -82,7 +83,7 @@ public:
 
 		Valueable<int> Ammo;
 
-		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
+		ExtData(WeaponTypeClass* OwnerObject) : TExtension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
 			, RadType {}
@@ -150,10 +151,10 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final :public Container<WeaponTypeExt
-//#ifdef ENABLE_NEWEXT
+	class ExtContainer final :public TExtensionContainer<WeaponTypeExt
+#ifdef AAENABLE_NEWEXT
 		, true
-//#endif
+#endif
 	>
 	{
 	public:
@@ -171,8 +172,8 @@ public:
 
 	static int nOldCircumference;
 
-	static void DetonateAt(WeaponTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner);
-	static void DetonateAt(WeaponTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage);
+	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner);
+	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage);
 };

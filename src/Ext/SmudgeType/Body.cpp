@@ -28,13 +28,13 @@ void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 
 void SmudgeTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<SmudgeTypeClass>::Serialize(Stm);
+	TExtension<SmudgeTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SmudgeTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<SmudgeTypeClass>::Serialize(Stm);
+	TExtension<SmudgeTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -81,16 +81,26 @@ DEFINE_HOOK(0x6B58B0, SmudgeTypeClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B589F, SmudgeTypeClass_Load_Suffix, 0x5)
+// Before : DEFINE_HOOK(0x6B589F, SmudgeTypeClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x6B589D , SmudgeTypeClass_Load_Suffix, 0x6)
 {
 	SmudgeTypeExt::ExtMap.LoadStatic();
 	return 0;
 }
 
-DEFINE_HOOK(0x6B58CA, SmudgeTypeClass_Save_Suffix, 0x5)
+// Before : DEFINE_HOOK(0x6B58CA, SmudgeTypeClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x6B58C8, SmudgeTypeClass_Save_Suffix, 0x5)
 {
 	SmudgeTypeExt::ExtMap.SaveStatic();
 	return 0;
+}
+
+DEFINE_HOOK(0x6B57DA, SmudgeTypeClass_LoadFromINI_RetFalse, 0xA)
+{
+	GET(SmudgeTypeClass*, pItem, ESI);
+	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x208, -0x4));
+	SmudgeTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	return 0x0;
 }
 
 DEFINE_HOOK(0x6B57C7, SmudgeTypeClass_LoadFromINI, 0x6)

@@ -20,11 +20,11 @@ public:
 	virtual ~RadioClass() JMP_THIS(0x65AEB0);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x65AAC0);
-	//ObjectClass
-	virtual bool Limbo() JMP_THIS(0x65AA80);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x65AAC0);
 
-	virtual RadioCommand ReceiveCommand(TechnoClass* pSender, RadioCommand command, AbstractClass*& pInOut) JMP_THIS(0x65A820);
+	//ObjectClass
+	virtual bool Limbo() override JMP_THIS(0x65AA80);
+	virtual RadioCommand ReceiveCommand(TechnoClass* pSender, RadioCommand command, AbstractClass*& pInOut) override JMP_THIS(0x65A820);
 
 	//RadioClass
 	// these are oogly, westwood themselves admitted it, so it's probably even more of a wtf than the rest
@@ -34,11 +34,11 @@ public:
 	virtual void SendToEachLink(RadioCommand command) JMP_THIS(0x65ACE0); //__Transmit_Message_To_All
 
 	// get specific link
-	TechnoClass* const& GetNthLink(int idx = 0) const {
+	TechnoClass* const GetNthLink(int idx = 0) const {
 		return this->RadioLinks.IsAllocated ? this->RadioLinks[idx] : nullptr;
 	}
 
-	TechnoClass* const& GetRadioContact(int idx = 0) const {
+	TechnoClass* const GetRadioContact(int idx = 0) const {
 		JMP_THIS(0x65AD30);
 	}
 	// whether any link is pLink

@@ -123,13 +123,12 @@ void WarheadTypeExt::ExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClas
 
 	TransactData allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
 
-	for (const auto& all : allValues)
+	for (const auto& [vecsourceValue, vectargetValue, nTransactType] : allValues)
 	{
-		for (unsigned int i = 0; i < std::get<0>(all).size(); i++)
+		for (unsigned int i = 0; i < vecsourceValue.size(); i++)
 		{
-			int sourceValue = std::get<0>(all)[i];
-			int targetValue = std::get<1>(all)[i];
-			auto nTransactType = std::get<2>(all);
+			const int sourceValue = vecsourceValue[i];
+			const int targetValue = vectargetValue[i];
 
 			// Transact (A loses B gains)
 			if (sourceValue != 0 && targetValue != 0 && targetValue * sourceValue < 0)

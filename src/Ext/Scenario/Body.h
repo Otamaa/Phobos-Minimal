@@ -14,6 +14,7 @@ struct ExtendedVariable
 	int Value;
 };
 
+
 class ScenarioExt
 {
 public:
@@ -24,7 +25,8 @@ public:
 	{
 	public:
 		std::map<int, CellStruct> Waypoints;
-		std::map<int, ExtendedVariable> Variables[2]; // 0 for local, 1 for global
+		std::map<int, ExtendedVariable> Local_Variables; // 0 for local, 1 for global
+		std::map<int, ExtendedVariable> Global_Variables;
 
 		CSFText ParTitle;
 		CSFText ParMessage;
@@ -38,10 +40,12 @@ public:
 		TintStruct CurrentTint_Tiles;
 		TintStruct CurrentTint_Schemes;
 		TintStruct CurrentTint_Hashes;
+		bool AdjustLightingFix;
 
 		ExtData(ScenarioClass* OwnerObject) : Extension<ScenarioClass>(OwnerObject)
 			, Waypoints { }
-			, Variables { }
+			, Local_Variables { }
+			, Global_Variables { }
 
 			, ParTitle { nullptr }
 			, ParMessage { nullptr }
@@ -55,16 +59,19 @@ public:
 			, CurrentTint_Tiles { -1,-1,-1 }
 			, CurrentTint_Schemes { -1,-1,-1 }
 			, CurrentTint_Hashes { -1,-1,-1 }
-
+			, AdjustLightingFix { false }
 		{ }
 
-		void SetVariableToByID(bool bIsGlobal, int nIndex, char bState);
-		void GetVariableStateByID(bool bIsGlobal, int nIndex, char* pOut);
-		void ReadVariables(bool bIsGlobal, CCINIClass* pINI);
+		void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
+		void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
+		void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
 
 		virtual ~ExtData() = default;
 		void Uninitialize() { }
 		void LoadFromINIFile(CCINIClass* pINI);
+	
+		void LoadBasicFromINIFile(CCINIClass* pINI);
+		void FetchVariables(ScenarioClass* pScen);
 		// void InvalidatePointer(void* ptr, bool bRemoved) { }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
@@ -87,7 +94,7 @@ public:
 
 	static void LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
 
-	static ExtData* Global()
+	static NOINLINE ExtData* Global()
 	{
 		return Data.get();
 	}
@@ -101,6 +108,8 @@ public:
 	{
 		//Global()->InvalidatePointer(ptr, removed);
 	}
+
+	static NOINLINE std::map<int, ExtendedVariable>& GetVariables(bool IsGlobal);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -15,6 +15,7 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<InfantryClass*>, 0xA83DE8u> const Array{};
+	static constexpr reference<int, 0x7EB058> const _vtable {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x523300);
@@ -26,8 +27,8 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x51AA10);
-	virtual AbstractType WhatAmI() const override { return AbstractType::Infantry; }
-	virtual int	Size() const override { return 0x6F0; }
+	virtual AbstractType WhatAmI() const RT(AbstractType);
+	virtual int	Size() const R0;
 	virtual void Update() override JMP_THIS(0x51BAB0);
 
 	//ObjectClass
@@ -44,17 +45,11 @@ public:
 	virtual bool IsDeployed() const R0;
 	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) JMP_THIS(0x51D6F0); //`InfantryClass::Do_Action
 
-	bool IsDoingDeploy()
-		{ JMP_THIS(0x522510); }
-
+	bool IsDoingDeploySequence() { JMP_THIS(0x522510); }
 	void UnslaveMe();
 	void RemoveMe_FromGunnerTransport();
-
-	void ForceHarvest() const
-		{ JMP_THIS(0x522D00); }
-
-	bool IsHarvesting() const
-		{ JMP_THIS(0x522FC0); }
+	void ForceHarvest() const { JMP_THIS(0x522D00); }
+	bool IsHarvesting() const { JMP_THIS(0x522FC0); }
 
 	//Constructor
 	InfantryClass(InfantryTypeClass* pType, HouseClass* pOwner) noexcept
@@ -74,7 +69,7 @@ public:
 
 	InfantryTypeClass* Type;
 	DoType SequenceAnim; //which is currently playing
-	TimerStruct unknown_Timer_6C8;
+	DECLARE_PROPERTY(TimerStruct ,unknown_Timer_6C8);
 	DWORD          PanicDurationLeft; // set in ReceiveDamage on panicky units
 	bool           PermanentBerzerk; // set by script action, not cleared anywhere
 	bool           Technician;
@@ -87,3 +82,5 @@ public:
 	LandType            _OnLand; //6E8
 	PROTECTED_PROPERTY(DWORD, unused_6EC); //??
 };
+
+static_assert(sizeof(InfantryClass) == 0x6F0, "Invalid Size !");

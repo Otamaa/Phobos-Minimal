@@ -23,24 +23,24 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
 }
 
 // #issue 88 : shield logic
+// TODO : Emp reset shield
 DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	LEA_STACK(args_ReceiveDamage*, args, 0x4);
 
-	WarheadTypeExt::ExtMap.Find(args->WH)->ApplyDamageMult(pThis, args);
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
-	if (!args->IgnoreDefenses) {
-		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
-			if (!pShieldData->IsActive())
-				return 0;
+	//if (pWHExt->IgnoreDefense)
+	//	args->IgnoreDefenses = true;
 
+	pWHExt->ApplyDamageMult(pThis, args);
+
+	if (!args->IgnoreDefenses)
+	{
+		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
+		{
 			pShieldData->OnReceiveDamage(args);
-
-			if (auto const pTag = pThis->AttachedTag)
-				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pThis,
-					CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
-
 		}
 	}
 
@@ -77,28 +77,48 @@ DEFINE_HOOK(0x5F5399, ObjectClass_ReceiveDamage_Shield, 0xB)
 */
 DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 {
+	enum { Continue = 0x0, SkipLowDamageCheck = 0x7019E3 };
 	GET(TechnoClass*, pThis, ESI);
-	GET(int*, Damage, EBX);
+	GET(int*, pDamage, EBX);
 
-	if(auto const pShield = TechnoExt::ExtMap.Find(pThis)->GetShield())
-	  if (pShield->IsActive())
-		return 0x7019E3;
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-	//pre fix
-	//return *Damage >= 0 ? 0x7019E3 : 0x7019DD;
+	if (pExt->SkipLowDamageCheck) {
+		pExt->SkipLowDamageCheck = false;
+	} else {
 
-	//after fix
-	return *Damage >= 1 ? 0x7019E3 : 0x7019DD;
+		// Restore overridden instructions
+		if (*pDamage < 1)
+			*pDamage = 1;
+	}
+
+	return SkipLowDamageCheck;
+}
+
+bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+{
+	auto const pShieldData = TechnoExt::ExtMap.Find(pTarget)->Shield.get();
+
+	if (!pShieldData)
+		return false;
+
+	if (pShieldData->CanBePenetrated(pWeapon->Warhead)) 
+		{ return false; }
+
+	if (pShieldData->IsActive()) {
+		R->EAX(pShieldData->GetType()->Armor);
+		return true;
+	}
+
+	return false;
 }
 
 #define REPLACE_ARMOR(addr , regWP , regTech , name)\
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(WeaponTypeClass*, pWeapon, regWP);\
 GET(TechnoClass*, pTarget, regTech);\
-	if (auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->Shield.get()) {\
-	if (pShieldData->CanBePenetrated(pWeapon->Warhead)) return 0;\
-	if (pShieldData->IsActive()) { R->EAX(pShieldData->GetType()->Armor);\
-		return R->Origin() + 6; } } return 0;}
+	if (ReplaceArmor(R, pTarget, pWeapon))\
+		{ return R->Origin() + 6; } return 0; }
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 {
@@ -106,14 +126,8 @@ DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 	GET(ObjectClass*, pTarget, ESI);
 
 	if (auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
-		if (auto pShieldData = TechnoExt::ExtMap.Find(pTechno)->Shield.get()) {
-			if (pShieldData->CanBePenetrated(pWeapon->Warhead)) { return 0; }
-
-			if (pShieldData->IsActive()) {
-				R->EAX(pShieldData->GetType()->Armor);
-				return R->Origin() + 6;
-			}
-		}
+		if(ReplaceArmor(R,pTechno,pWeapon))
+			return R->Origin() + 6;
 	}
 
 	return 0;
@@ -141,8 +155,10 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 {
 	GET(TemporalClass*, pThis, ESI);
 
-	if (auto const pTarget = pThis->Target) {
-		if (const auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->GetShield()) {
+	if (auto const pTarget = pThis->Target)
+	{
+		if (const auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->GetShield())
+		{
 			if (pShieldData->IsAvailable())
 				pShieldData->OnTemporalUpdate(pThis);
 		}
@@ -157,7 +173,7 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
-			pShieldData->OnRemove();
+		pShieldData->OnRemove();
 
 	return 0;
 }
@@ -193,7 +209,8 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 
-	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT) {
+	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
+	{
 		if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
 	}
@@ -208,10 +225,13 @@ DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno, void* _)
 {
 	double result = pTechno->GetHealthPercentage();
-	if (result >= 1.0) {
+	if (result >= 1.0)
+	{
 		const auto pExt = TechnoExt::ExtMap.Find(pTechno);
-		if (const auto pShieldData = pExt->Shield.get()) {
-			if (pShieldData->IsActive()) {
+		if (const auto pShieldData = pExt->Shield.get())
+		{
+			if (pShieldData->IsActive())
+			{
 				const auto pWeapon = EvaluateObjectTemp::PickedWeapon;
 				if (!pShieldData->CanBePenetrated(pWeapon ? pWeapon->Warhead : nullptr))
 					result = pExt->Shield->GetHealthRatio();
@@ -237,16 +257,21 @@ public:
 		if (LinkedObj)
 			return;
 
-		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj)) {
+		if (const auto pTechno = abstract_cast<TechnoClass*>(pObj))
+		{
 			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
-			if (const auto pShieldData = pExt->Shield.get()) {
-				if (pShieldData->IsActive()) {
+			if (const auto pShieldData = pExt->Shield.get())
+			{
+				if (pShieldData->IsActive())
+				{
 
-					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) :nWeaponIndex);
+					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) : nWeaponIndex);
 
-					if (pWeapon && pWeapon->WeaponType &&  !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead)) {
-						if (pExt->Shield->GetHealthRatio() < 1.0) {
+					if (pWeapon && pWeapon->WeaponType && !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead))
+					{
+						if (pExt->Shield->GetHealthRatio() < 1.0)
+						{
 							LinkedObj = pObj;
 							--LinkedObj->Health;
 						}
@@ -302,9 +327,12 @@ private:
 		if (pTarget->WhatAmI() == AbstractType::Building)
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pTarget);
-			if(HouseClass::CurrentPlayer->IsAlliedWith(pBuilding)){
+			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))
+			{
 				return pBuilding->Type->Repairable;
-			}else { 
+			}
+			else
+			{
 				return pBuilding->Type->Capturable && (!pBuilding->Owner->Type->MultiplayPassive || !pBuilding->Type->CanBeOccupied || pBuilding->IsBeingWarpedOut());
 			}
 		}
@@ -353,7 +381,7 @@ DEFINE_JUMP(VTABLE, 0x7F5CE4, GET_OFFSET(UnitClass__WhatAction_Wrapper));
 #pragma region InfantryClass__WhatAction
 Action __fastcall InfantryClass__WhatAction_Wrapper(InfantryClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
 {
-	AresScheme::Prefix(pThis, pObj, -1,pThis->Type->Engineer);
+	AresScheme::Prefix(pThis, pObj, -1, pThis->Type->Engineer);
 	auto const result = pThis->InfantryClass::MouseOverObject(pObj, ignoreForce);
 	AresScheme::Suffix();
 	return result;

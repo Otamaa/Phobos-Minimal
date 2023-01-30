@@ -3,7 +3,7 @@
 #include <RadSiteClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/WeaponType/Body.h>
@@ -16,24 +16,24 @@ public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
 #ifndef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0x44;
+	//static constexpr size_t ExtOffset = 0x44;
 #endif
 
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public TExtension<base_type>
 	{
 	public:
 		RadTypeClass* Type;
 		WeaponTypeClass* Weapon;
 		TechnoClass* TechOwner;
 		bool NoOwner;
-		int Spread;
+		//int Spread;
 
-		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+		ExtData(base_type* OwnerObject) : TExtension<base_type>(OwnerObject)
 			, Type { nullptr }
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
 			, NoOwner { true }
-			, Spread { 0 }
+			//, Spread { 0 }
 		{}
 
 		virtual ~ExtData() = default;
@@ -56,7 +56,7 @@ public:
 
 	static void CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
-	class ExtContainer final : public Container<RadSiteExt,true,true , true>
+	class ExtContainer final : public TExtensionContainer<RadSiteExt>
 	{
 	public:
 		ExtContainer();
@@ -66,7 +66,7 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static ExtData* GetExtData(base_type const* pTr);
+	//static ExtData* GetExtData(base_type const* pTr);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

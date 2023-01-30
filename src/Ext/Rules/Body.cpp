@@ -10,6 +10,8 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 
+//#include <Ext/TechnoType/Body.h>
+
 #include <Ext/BuildingType/Body.h>
 
 #include <Utilities/Macro.h>
@@ -43,8 +45,9 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
+	ColorTypeClass::LoadFromINIList_New(pINI, false);
 #ifdef COMPILE_PORTED_DP_FEATURES
-	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), true);
+	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), false);
 #endif
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadTypeClass::LoadFromINIList(pINI);
@@ -107,6 +110,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->MissingCameo.Read(pINI, AUDIOVISUAL_SECTION, "MissingCameo");
 	this->JumpjetAllowLayerDeviation.Read(exINI, JUMPJET_SECTION, "AllowLayerDeviation");
 	this->JumpjetTurnToTarget.Read(exINI, JUMPJET_SECTION, "TurnToTarget");
+	this->JumpjetCrash_Rotate.Read(exINI, JUMPJET_SECTION, "CrashRotate");
+
 	this->PlacementGrid_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "BuildingPlacementGrid.TranslucentLevel");
 	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "BuildingPlacementPreview.DefaultTranslucentLevel");
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
@@ -124,6 +129,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ToolTip_Background_Color.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Color");
 	this->ToolTip_Background_Opacity.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.Opacity");
 	this->ToolTip_Background_BlurSize.Read(exINI, AUDIOVISUAL_SECTION, "ToolTip.Background.BlurSize");
+
+	this->Crate_LandOnly.Read(exINI, GameStrings::CrateRules(), "Crate.LandOnly");
 
 	this->InfantryGainSelfHealCap.Read(exINI, GENERAL_SECTION, "InfantryGainSelfHealCap");
 	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
@@ -143,6 +150,91 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");
 	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
 
+	//TODO : texts
+	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
+	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
+	this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
+	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
+	this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
+	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
+	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
+	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
+
+	// Section Generic Prerequisites
+	FillDefaultPrerequisites(pINI);
+
+}
+
+void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
+{
+
+	auto& nPrepreqNames = RulesExt::Global()->GenericPrerequisitesData;
+
+	if (nPrepreqNames.size() != 0) //everything was initiated
+		return;
+
+	if (pRules != CCINIClass::INI_Rules()) //it is not RulesMD , skip
+		return;
+
+	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName)
+	{
+		pRules->ReadString(GameStrings::General(), pKey, "", Phobos::readBuffer);
+
+		char* context = nullptr;
+		std::vector<int> typelist;
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			const int idx = BuildingTypeClass::FindIndexById(cur);
+			if (idx >= 0)
+				typelist.push_back(idx);
+			else
+				Debug::Log("%s Failed To Find BuildingTypeIndex for %s !  \n", pKey, cur);
+		}
+
+		nPrepreqNames.emplace_back(CatagoryName, typelist);
+		typelist.clear();
+	};
+
+	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER");
+	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY");
+	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS");
+	ReadPreReQs(GameStrings::PrerequisiteRadar(), "RADAR");
+	ReadPreReQs(GameStrings::PrerequisiteTech(), "TECH");
+	ReadPreReQs(GameStrings::PrerequisiteProc(), "PROC");
+
+	// If [GenericPrerequisites] is present will be added after these.
+	// Also the originals can be replaced by new ones
+	auto const pGenPrereq = "GenericPrerequisites";
+	for (int i = 0; i < pRules->GetKeyCount(pGenPrereq); ++i)
+	{
+		char* context = nullptr;
+		auto const pKeyName = pRules->GetKeyName(pGenPrereq, i);
+		pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer);
+		
+		std::vector<int> objectsList;
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			const int idx = BuildingTypeClass::FindIndexById(cur);
+			if (idx >= 0)
+				objectsList.push_back(idx);
+		}
+
+		bool bFound = false;
+		for (auto&[Catagory , Lists] : nPrepreqNames) {
+			if (IS_SAME_STR_(Catagory.c_str(), pKeyName)) {
+				bFound = true; 
+				Lists.clear();
+				Lists = objectsList;
+			}
+		}
+
+		if (!bFound)
+		{
+			// New generic prerequisite
+			nPrepreqNames.emplace_back(pKeyName, objectsList);
+		}
+
+		objectsList.clear();
+	}
 }
 
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
@@ -203,8 +295,8 @@ void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis) { }
 
 namespace ObjectTypeParser
 {
-	template<typename T>
-	void Exec(CCINIClass* pINI, DynamicVectorClass<DynamicVectorClass<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false)
+	template<typename T ,bool Alloc = false>
+	void Exec(CCINIClass* pINI, DynamicVectorClass<DynamicVectorClass<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false , const char* Delims = Phobos::readDelims)
 	{
 		if (!pINI->GetSection(pSection))
 			return;
@@ -215,9 +307,11 @@ namespace ObjectTypeParser
 			char* context = nullptr;
 			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
 
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-				cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+				cur; cur = strtok_s(nullptr, Delims, &context))
 			{
+				cur = CRT::strtrim(cur);
+
 				T* buffer;
 				Parser<T*>::TryParse(cur, &buffer);
 
@@ -229,13 +323,98 @@ namespace ObjectTypeParser
 				}
 				else
 				{
-					if (bDebug)
-						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.Count, cur);
+
+					if constexpr (!Alloc){ 
+						if (bDebug) { 
+							Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.Count, cur);
+						}
+					}
+					else
+					{
+						if (_Buffer.AddItem(GameCreate<T>(cur)))
+							if (bVerbose)
+								Debug::Log("ObjectTypeParser DEBUG: Allocated [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.Count, cur);
+					}
 				}
 			}
 
 			nVecDest.AddItem(_Buffer);
 			_Buffer.Clear();
+		}
+	}
+
+	template<typename T, bool Alloc = false>
+	void Exec(CCINIClass* pINI, std::vector<std::vector<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	{
+		if (!pINI->GetSection(pSection))
+			return;
+		
+		auto const nKeyCount = pINI->GetKeyCount(pSection);
+		nVecDest.reserve(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			std::vector<T*> _Buffer;
+			char* context = nullptr;
+			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
+
+			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+				cur; cur = strtok_s(nullptr, Delims, &context))
+			{
+				cur = CRT::strtrim(cur);
+
+				T* buffer = nullptr;
+				if constexpr (!Alloc)
+					buffer = T::Find(cur);
+				else
+					buffer = T::FindOrAllocate(cur);
+
+				if (buffer)
+				{
+					_Buffer.push_back(buffer);
+					if (bVerbose)
+						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
+				}
+				else
+				{
+					if (bDebug) {
+						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.size(), cur);
+					}
+				}
+			}
+
+			nVecDest.push_back(_Buffer);
+		}
+	}
+
+	void Exec(CCINIClass* pINI, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	{
+		if (!pINI->GetSection(pSection))
+			return;
+
+		auto const nKeyCount = pINI->GetKeyCount(pSection);
+		nVecDest.reserve(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			std::vector<std::string> objectsList;
+
+			char* context = nullptr;
+			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
+
+			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+				cur;
+				cur = strtok_s(nullptr, Delims, &context))
+			{
+				cur = CRT::strtrim(cur);
+
+				objectsList.emplace_back(cur);
+
+				if (bVerbose)
+					Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
+			}
+
+			nVecDest.push_back(objectsList);
 		}
 	}
 };
@@ -247,53 +426,49 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	RulesExt::ExtData* pData = RulesExt::Global();
 
-	if (!pData)
+	if (!pData /*|| pINI != CCINIClass::INI_Rules()*/)
 		return;
 
 	INI_EX exINI(pINI);
+
+	//for (auto pTTYpeArray : *TechnoTypeClass::Array) {
+	//	if (auto pTTYpeExt = TechnoTypeExt::ExtMap.Find(pTTYpeArray))
+	//		pTTYpeExt->LoadFromINIFile_EvaluateSomeVariables(pINI);
+	//}
+
 #pragma region Otamaa
+
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
-	auto const pGasCloud = reinterpret_cast<const char*>(0x84610C);
-	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(pGasCloud);
+
+	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
+
 	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall");
+
 	if (!this->CarryAll_LandAnim)
-		this->CarryAll_LandAnim = AnimTypeClass::Find("CARYLAND");
+		this->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
 
 	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship");
+
 	if (!this->DropShip_LandAnim)
-		this->DropShip_LandAnim = AnimTypeClass::Find("DROPLAND");
+		this->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
 
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft");
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
 
+	this->WallTowers.Read(exINI, GENERAL_SECTION, "WallTowers");
+
 	if (pThis->WallTower)
 		this->WallTowers.push_back(pThis->WallTower);
 
-	this->WallTowers.Read(exINI, GENERAL_SECTION, "WallTowers");
+	this->AI_SpyMoneyStealPercent.Read(exINI, GENERAL_SECTION, "AI.SpyMoneyStealPercent");
+
 #pragma endregion
 
-	const char* const sectionAIConditionsList  = "AIConditionsList";
-
 	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes", true);
-	ObjectTypeParser::Exec(pINI, AIScriptsLists, "AIScriptsList", true);
-
-	// Section AIConditionsList
-	for (int i = 0; i < pINI->GetKeyCount(sectionAIConditionsList); ++i)
-	{
-		DynamicVectorClass<std::string> objectsList;
-
-		char* context = nullptr;
-		pINI->ReadString(sectionAIConditionsList, pINI->GetKeyName(sectionAIConditionsList, i), "", Phobos::readBuffer);
-
-		for (char* cur = strtok_s(Phobos::readBuffer, "/", &context);
-			cur;
-			cur = strtok_s(nullptr, "/", &context)) {
-			objectsList.AddItem(cur);
-		}
-
-		AIConditionsLists.AddItem(objectsList);
-		objectsList.Clear();
-	}
+	ObjectTypeParser::Exec<ScriptTypeClass,true>(pINI, AIScriptsLists, "AIScriptsList", true);
+	ObjectTypeParser::Exec(pINI, AIHousesLists, "AIHousesList", true);
+	ObjectTypeParser::Exec(pINI, AIConditionsLists, "AIConditionsList", true , false , "/");
+	ObjectTypeParser::Exec<AITriggerTypeClass, true>(pINI, AITriggersLists, "AITriggersList", true);
 }
 
 bool RulesExt::DetailsCurrentlyEnabled()
@@ -325,25 +500,34 @@ void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI) { Debu
 template <typename T>
 void RulesExt::ExtData::Serialize(T& Stm)
 {
+	Debug::Log("Processing RulesExt ! \n");
+
 	Stm
 		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
+
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
+
 		.Process(this->RadApplicationDelay_Building)
 		.Process(this->MissingCameo)
+
+		.Process(this->AITargetTypesLists)
+		.Process(this->AIScriptsLists)
+		.Process(this->AIHousesLists)
+		.Process(this->AIConditionsLists)
+		.Process(this->AITriggersLists)
+
 		.Process(this->JumpjetCrash)
 		.Process(this->JumpjetNoWobbles)
 		.Process(this->JumpjetAllowLayerDeviation)
 		.Process(this->JumpjetTurnToTarget)
-		.Process(this->MissingCameo)
-		.Process(this->AITargetTypesLists)
-		.Process(this->AIScriptsLists)
-		.Process(this->AIConditionsLists)
+		.Process(this->JumpjetCrash_Rotate)
+
 		.Process(this->Storage_TiberiumIndex)
 		.Process(this->PlacementGrid_TranslucentLevel)
 		.Process(this->BuildingPlacementPreview_TranslucentLevel)
-		.Process(this->Pips_Shield)
+
 		.Process(this->Pips_Shield_Background_SHP)
 		.Process(this->Pips_Shield_Building)
 		.Process(this->Pips_Shield_Building_Empty)
@@ -354,6 +538,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->Pips_SelfHeal_Infantry_Offset)
 		.Process(this->Pips_SelfHeal_Units_Offset)
 		.Process(this->Pips_SelfHeal_Buildings_Offset)
+
 		.Process(this->InfantryGainSelfHealCap)
 		.Process(this->UnitsGainSelfHealCap)
 		.Process(this->EnemyInsignia)
@@ -363,11 +548,11 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->SHP_SelectBrdPAL_INF)
 		.Process(this->SHP_SelectBrdSHP_UNIT)
 		.Process(this->SHP_SelectBrdPAL_UNIT)
+
 		.Process(this->UseSelectBrd)
 
 		.Process(this->SelectBrd_Frame_Infantry)
 		.Process(this->SelectBrd_DrawOffset_Infantry)
-
 		.Process(this->SelectBrd_Frame_Unit)
 		.Process(this->SelectBrd_DrawOffset_Unit)
 
@@ -383,22 +568,40 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_Opacity)
 		.Process(this->ToolTip_Background_BlurSize)
 
+		.Process(this->Crate_LandOnly)
+
+		.Process(this->GenericPrerequisitesData)
+
+		.Process(this->NewTeamsSelector)
+		.Process(this->NewTeamsSelector_SplitTriggersByCategory)
+		.Process(this->NewTeamsSelector_EnableFallback)
+		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
+		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
+		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
+		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
+		.Process(this->NewTeamsSelector_AirCategoryPercentage)
+
 		.Process(this->VeinholeParticle)
 		.Process(this->DefaultVeinParticle)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
 		.Process(this->AI_AutoSellHealthRatio)
+
 		.Process(this->CarryAll_LandAnim)
 		.Process(this->DropShip_LandAnim)
 		.Process(this->Aircraft_LandAnim)
 		.Process(this->Aircraft_TakeOffAnim)
+
 		.Process(this->DisablePathfindFailureLog)
 		.Process(this->CreateSound_PlayerOnly)
+
 		.Process(this->CivilianSideIndex)
 		.Process(this->SpecialCountryIndex)
 		.Process(this->NeutralCountryIndex)
+
 		.Process(this->WallTowers)
 		.Process(this->AutoAttackICedTarget)
+		.Process(this->AI_SpyMoneyStealPercent)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);
@@ -567,12 +770,12 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 		//pre iterate this important indexes
 		//so we dont need to do lookups with name multiple times
 		//these function only executed when ScenarioClass::ReadScenario return true (AL)
-		if (auto pRulesGlobal = RulesExt::Global()) {
-			pRulesGlobal->CivilianSideIndex = SideClass::FindIndex("Civilian");
+		if (const auto pRulesGlobal = RulesExt::Global()) {
+			pRulesGlobal->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
 			//Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
-			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexOfName("Neutral");
+			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral());
 			//Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
-			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexOfName("Special");
+			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special());
 			//Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
 		}
 	}

@@ -79,7 +79,9 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "random": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     },
     "task.allowAutomaticTasks": "on"
 }

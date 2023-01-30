@@ -1,13 +1,9 @@
 #pragma once
 
-#include <Ext/WeaponType/Body.h> //for weaponTypeExt::ExtData
-#include <Ext/Bullet/Body.h>
+//#include <Ext/Bullet/Body.h>
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-
-
-#include <BulletClass.h>
 
 enum class TrajectoryFlag : int
 {
@@ -15,7 +11,13 @@ enum class TrajectoryFlag : int
 	Straight = 0,
 	Bombard = 1,
 	Artillery = 2,
-	Bounce= 3
+	Bounce= 3 ,
+	Vertical = 4,
+	Meteor = 5,
+	Spiral = 6,
+	Wave = 7,
+
+	Count
 };
 
 enum class TrajectoryCheckReturnType : int
@@ -26,6 +28,8 @@ enum class TrajectoryCheckReturnType : int
 	Detonate = 3
 };
 
+class VelocityClass;
+class BulletClass;
 class PhobosTrajectoryType
 {
 public:
@@ -43,21 +47,18 @@ public:
 	virtual bool Read(CCINIClass* const pINI, const char* pSection);
 
 	virtual ~PhobosTrajectoryType() = default;
-	static void CreateType(PhobosTrajectoryType*& pType, CCINIClass* const pINI, const char* pSection, const char* pKey);
+	static void CreateType(std::unique_ptr<PhobosTrajectoryType>& pType, CCINIClass* const pINI, const char* pSection, const char* pKey);
 
-	static PhobosTrajectoryType* LoadFromStream(PhobosStreamReader& Stm);
-	static void WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectoryType* pType);
-	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectoryType* pType);
-	static PhobosTrajectoryType* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectoryType* pType);
+	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectoryType>& pType);
+	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectoryType>& pType);
 
+protected :
+	static bool UpdateType(std::unique_ptr<PhobosTrajectoryType>& pType , TrajectoryFlag flag);
 };
 
 
 template<typename T>
 concept TrajectoryType = std::is_base_of<PhobosTrajectoryType, T>::value;
-
-//template<typename T>
-//concept Trajectory = std::is_base_of<PhobosTrajectory, T>::value;
 
 class PhobosTrajectory
 {
@@ -78,9 +79,7 @@ public:
 		, DetonationDistance { 0 }
 	{ }
 
-	virtual ~PhobosTrajectory() {
-		Type = nullptr; //TrajectoryType had its own way to destruct , don't do it here !
-	};
+	virtual ~PhobosTrajectory() = default;
 
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
@@ -92,19 +91,20 @@ public:
 	virtual bool OnAI(BulletClass* pBullet) = 0;
 	virtual void OnAIPreDetonate(BulletClass* pBullet) = 0;
 	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet,CoordStruct coords) = 0;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords) = 0;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) = 0;
 
 	double GetTrajectorySpeed(BulletClass* pBullet) const;
-	double GetTrajectorySpeed(BulletExt::ExtData* pBulletExt) const;
 
-	static PhobosTrajectory* CreateInstance(PhobosTrajectoryType* pType, BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
+	static void CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
 
-	static PhobosTrajectory* LoadFromStream(PhobosStreamReader& Stm);
-	static void WriteToStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);
-	static PhobosTrajectory* ProcessFromStream(PhobosStreamReader& Stm, PhobosTrajectory* pTraj);
-	static PhobosTrajectory* ProcessFromStream(PhobosStreamWriter& Stm, PhobosTrajectory* pTraj);
+	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
+	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 
+	static void SetInaccurate(BulletClass* pBullet);
+
+protected:
+	static bool UpdateType(std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType, TrajectoryFlag flag);
 };
 
 /*

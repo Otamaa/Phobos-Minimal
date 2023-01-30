@@ -31,12 +31,20 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Powered.Read(exINI, pSection, "Powered");
 
 	this->Respawn.Read(exINI, pSection, "Respawn");
-	this->Respawn_Rate__InMinutes.Read(exINI, pSection, "Respawn.Rate");
-	this->Respawn_Rate = (int)(this->Respawn_Rate__InMinutes * 900);
+	
+	Nullable<double> Respawn_Rate__InMinutes {};
+	Respawn_Rate__InMinutes.Read(exINI, pSection, "Respawn.Rate");
+
+	if (Respawn_Rate__InMinutes.isset())
+		this->Respawn_Rate = (int)(Respawn_Rate__InMinutes.Get() * 900);
 
 	this->SelfHealing.Read(exINI, pSection, "SelfHealing");
-	this->SelfHealing_Rate__InMinutes.Read(exINI, pSection, "SelfHealing.Rate");
-	this->SelfHealing_Rate = (int)(this->SelfHealing_Rate__InMinutes * 900);
+
+	Nullable<double> SelfHealing_Rate__InMinutes {};
+	SelfHealing_Rate__InMinutes.Read(exINI, pSection, "SelfHealing.Rate");
+
+	if (SelfHealing_Rate__InMinutes.isset())
+	this->SelfHealing_Rate = (int)(SelfHealing_Rate__InMinutes.Get() * 900);
 
 	this->AbsorbOverDamage.Read(exINI, pSection, "AbsorbOverDamage");
 	this->BracketDelta.Read(exINI, pSection, "BracketDelta");
@@ -50,7 +58,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->BreakAnim.Read(exINI, pSection, "BreakAnim");
 	this->HitAnim.Read(exINI, pSection, "HitAnim");
 	this->BreakWeapon.Read(exINI, pSection, "BreakWeapon", true);
-
+	
 	this->AbsorbPercent.Read(exINI, pSection, "AbsorbPercent");
 	this->PassPercent.Read(exINI, pSection, "PassPercent");
 
@@ -63,6 +71,9 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->ImmuneToPsychedelic.Read(exINI, pSection, "ImmuneToPsychedelic");
 	this->ThreadPosed.Read(exINI, pSection, "ThreadPosed");
+	this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
+
+	this->BreakWeapon_TargetSelf.Read(exINI , pSection , "BreakWeapon.TargetSelf");
 }
 
 template <typename T>
@@ -88,14 +99,14 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->AbsorbPercent)
 		.Process(this->PassPercent)
 		.Process(this->AllowTransfer)
-		.Process(this->Respawn_Rate__InMinutes)
-		.Process(this->SelfHealing_Rate__InMinutes)
 		.Process(this->Pips)
 		.Process(this->Pips_Background_SHP)
 		.Process(this->Pips_Building)
 		.Process(this->Pips_Building_Empty)
 		.Process(this->ImmuneToPsychedelic)
 		.Process(this->ThreadPosed)
+		.Process(this->ImmuneToCrit)
+		.Process(this->BreakWeapon_TargetSelf)
 		;
 }
 

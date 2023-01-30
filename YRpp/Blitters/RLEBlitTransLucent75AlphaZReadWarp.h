@@ -9,7 +9,7 @@ public:
 	{
 		PaletteData = data;
 		Mask = mask;
-		AlphaRemapper = AlphaLightingRemapClass::FindOrAllocate(shadecount);
+		AlphaRemapper = AlphaLightingRemapClass::Global->FindOrAllocate(shadecount);
 	}
 
 	virtual ~RLEBlitTransLucent75AlphaZReadWarp() override final = default;

@@ -8,6 +8,8 @@
 #include <BuildingTypeClass.h>
 #include <BuildingLightClass.h>
 #include <ProgressTimer.h>
+#include <GeneralStructures.h>
+
 class FactoryClass;
 class InfantryClass;
 class LightSourceClass;
@@ -33,6 +35,7 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
+	static constexpr reference<int, 0x7E3EBCu> const _vtable{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x459E80);
@@ -93,6 +96,7 @@ public:
 
 	int GetPowerOutput() const
 		{ JMP_THIS(0x44E7B0); }
+
 	int GetPowerDrain() const
 		{ JMP_THIS(0x44E880); }
 
@@ -214,6 +218,7 @@ public:
 		if(this->Type->HasSuperWeapon(index)) {
 			return true;
 		}
+
 		for(auto pType : this->Upgrades) {
 			if(pType && pType->HasSuperWeapon(index)) {
 				return true;
@@ -291,7 +296,12 @@ public:
 	InfantryTypeClass* GetBuildingCrewType() const {//this was virtual , but , wahtever
 		JMP_THIS(0x44EB10);
 	}
-										 //Constructor
+
+	void Infiltrate(HouseClass* ByWho) const {
+		JMP_THIS(0x4571E0);
+	}
+
+	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())
 	{ JMP_THIS(0x43B740); }
@@ -359,12 +369,12 @@ public:
 	AudioController Audio8;
 
 	bool WasOnline; // the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
-	bool ShowRealName;
-	bool BeingProduced;
-	bool ShouldRebuild;
+	bool ShowRealName; // is also NOMINAL under [Structures]
+	bool BeingProduced; // is also AI_REBUILDABLE under [Structures]
+	bool ShouldRebuild;// is also AI_REPAIRABLE under [Structures]
 	bool HasEngineer; // used to pass the NeedsEngineer check
 	TimerStruct CashProductionTimer;
-	bool IsAllowedToSell; //6DC
+	bool IsAllowedToSell; //6DC bool AI_Sellable; AI_SELLABLE under [Structures]
 	bool IsReadyToCommence; //6DD
 	bool NeedsRepairs; // AI handholder for repair logic,
 	bool C4Applied;

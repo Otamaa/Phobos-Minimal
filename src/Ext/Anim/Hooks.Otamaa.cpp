@@ -349,6 +349,7 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 	GET_BASE(CoordStruct*, pCoord, 0xC);
 
 	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	//auto pExt = AnimExt::ExtMap.Find(pThis);
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
 	{
@@ -366,6 +367,10 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 			}
 		}
 	}
+
+	//if (auto const& pSpawns = pExt->SpawnData) {
+	//	pSpawns->OnInit(pCoord);
+	//}
 
 	return 0x0;
 }

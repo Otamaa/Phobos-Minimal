@@ -3,6 +3,7 @@
 #include <CoordStruct.h>
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/TemplateDefB.h>
 
 #include <LaserDrawClass.h>
 #include <RadBeam.h>

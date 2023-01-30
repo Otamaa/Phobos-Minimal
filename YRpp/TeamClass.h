@@ -22,15 +22,19 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<TeamClass*>, 0x8B40E8u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x6EC560);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x6EC450);
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) JMP_STD(0x6EC540);
 
 	//Destructor
-	virtual ~TeamClass() RX;
+	virtual ~TeamClass() JMP_THIS(0x6F0450);
 
+	//AbstractClass
+	virtual AbstractType WhatAmI() const override JMP_THIS(0x6F0430);
+	virtual int Size() const override JMP_THIS(0x6F0440);
+	
 	// fills dest with all types needed to complete this team. each type is
 	// included as often as it is needed.
 	void GetTaskForceMissingMemberTypes(DynamicVectorClass<TechnoTypeClass *>& dest) const { JMP_THIS(0x6EF4D0); }
@@ -66,10 +70,6 @@ public:
 	static void __fastcall Suspend_Teams(int priority, HouseClass* house) { JMP_STD(0x6EC250); }
 	static ThreatType __fastcall ThreatFromQuarry(QuarryType q) { JMP_THIS(0x645BB0); }
 
-	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
-
 	//Constructor
 	TeamClass(TeamTypeClass* pType , HouseClass* pOwner, int investigate_me) noexcept
 		: TeamClass(noinit_t())
@@ -98,9 +98,9 @@ public:
 	int            TotalObjects;
 	int            TotalThreatValue;
 	int            CreationFrame;
-	FootClass *    FirstUnit;
-	TimerStruct	   GuardAreaTimer;
-	TimerStruct	   SuspendTimer;
+	FootClass*    FirstUnit;
+	DECLARE_PROPERTY(TimerStruct ,GuardAreaTimer);
+	DECLARE_PROPERTY(TimerStruct ,SuspendTimer);
 	TagClass*      Tag;
 	bool           IsTransient;
 	bool           NeedsReGrouping; //75

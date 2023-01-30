@@ -74,7 +74,43 @@ public:
 	static const AbstractType AbsID = AbstractType::Tiberium;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(TiberiumClass, 0xB0F4E8u);
+	static constexpr constant_ptr<DynamicVectorClass<TiberiumClass*>, 0xB0F4E8u> const Array {};
+	static NOINLINE TiberiumClass* Find(const char* pID)
+	{
+		for (auto pItem : *Array){ 
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem; 
+		}
+
+		return nullptr;
+	}
+
+	static NOINLINE TiberiumClass* FindOrAllocate(const char* pID)
+	{
+		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+			return nullptr;
+		}
+
+		if (auto pRet = Find(pID)) {
+			return pRet;
+		}
+
+		return GameCreate<TiberiumClass>(pID);
+	}
+
+	static NOINLINE int FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x721E40);

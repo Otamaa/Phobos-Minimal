@@ -2,6 +2,7 @@
 
 #include <Utilities/SavegameDef.h>
 
+#ifdef E_TriggerMPOwner
 std::map<int, int> TriggerMPOwner::TriggerType_Owner;
 
 bool TriggerMPOwner::LoadGlobals(PhobosStreamReader& stm)
@@ -17,3 +18,4 @@ bool TriggerMPOwner::SaveGlobals(PhobosStreamWriter& stm)
 		.Process(TriggerType_Owner)
 		.Success();
 }
+#endif

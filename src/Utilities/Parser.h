@@ -167,7 +167,7 @@ public:
 	*/
 	static bool TryParse(const char* pValue, OutType* outValue) {
 		// non-specialized: read AbstractTypes
-		if (auto pType = BaseType::FindOrAllocate(pValue)) {
+		if (auto pType = BaseType::Find(pValue)) {
 			if (outValue) {
 				*outValue = pType;
 			}

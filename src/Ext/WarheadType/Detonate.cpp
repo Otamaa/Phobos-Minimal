@@ -24,32 +24,32 @@
 
 void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget)
 {
-	if (!pBullet || pBullet->IsInAir() != pTarget->IsInAir() || pBullet->GetCell() != pTarget->GetCell() || pTarget->IsIronCurtained())
-		return;
+	//if (!pBullet || pBullet->IsInAir() != pTarget->IsInAir() || pBullet->GetCell() != pTarget->GetCell() || pTarget->IsIronCurtained())
+	//	return;
 
-	if (pTarget->WhatAmI() != AbstractType::Unit || pBullet->Type->Vertical)
-		return;
+	//if (pTarget->WhatAmI() != AbstractType::Unit || pBullet->Type->Vertical)
+	//	return;
 
-	const auto pTarExt = TechnoExt::ExtMap.Find(pTarget);
-	if (!pTarExt || (pTarExt->Shield && pTarExt->Shield->IsActive()))
-		return;
+	//const auto pTarExt = TechnoExt::ExtMap.Find(pTarget);
+	//if (!pTarExt || (pTarExt->Shield && pTarExt->Shield->IsActive()))
+	//	return;
 
 	//const auto pTarType = pTarget->GetTechnoType();
 	//const auto pTarTypeExt = TechnoTypeExt::ExtMap.Find(pTarType);
 
-	const int tarFacing = pTarget->PrimaryFacing.Current().GetValue<16>();
-	int bulletFacing = BulletExt::ExtMap.Find(pBullet)->BulletDir.get().GetValue<16>();
+	//const int tarFacing = pTarget->PrimaryFacing.Current().GetValue<16>();
+	//int bulletFacing = BulletExt::ExtMap.Find(pBullet)->InitialBulletDir.get().GetValue<16>();
 
-	const int angle = abs(bulletFacing - tarFacing);
-	auto frontField = 64 * this->DirectionalArmor_FrontField;
-	auto backField = 64 * this->DirectionalArmor_BackField;
+	//const int angle = abs(bulletFacing - tarFacing);
+	//auto frontField = 64 * this->DirectionalArmor_FrontField;
+	//auto backField = 64 * this->DirectionalArmor_BackField;
 
-	if (angle >= 128 - frontField && angle <= 128 + frontField)//�����ܻ�
-		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_FrontMultiplier.Get();
-	else if ((angle < backField && angle >= 0) || (angle > 192 + backField && angle <= 256))//�����ܻ�
-		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_BackMultiplier.Get();
-	else//�����ܻ�
-		pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
+	//if (angle >= 128 - frontField && angle <= 128 + frontField)//�����ܻ�
+	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_FrontMultiplier.Get();
+	//else if ((angle < backField && angle >= 0) || (angle > 192 + backField && angle <= 256))//�����ܻ�
+	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_BackMultiplier.Get();
+	//else//�����ܻ�
+	//	pTarExt->ReceiveDamageMultiplier = this->DirectionalArmor_SideMultiplier.Get();
 }
 
 void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
@@ -287,10 +287,12 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	{
 		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet) {
 			if(pTargetBullet){
-				auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
+				const auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
 				if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo) {
+					auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pTargetBullet->Type);
 					// Cells don't know about bullets that may or may not be located on them so it has to be this way.
-					if (pBulletExt->TypeExt->Interceptable && pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+					if (pBulletTypeExt->Interceptable && 
+						pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
 						BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
 				}
 			}
@@ -374,7 +376,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->GattlingRateUp != 0 ||
 		this->AttachTag ||
 		this->DirectionalArmor ||
-		this->ReloadAmmo != 0
+		this->ReloadAmmo != 0 ||
+		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		|| (this->PaintBallData.Color != ColorStruct::Empty)
 #endif
@@ -500,6 +503,9 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	if (this->DirectionalArmor.Get())
 		this->ApplyDirectional(pBullet, pTarget);
+
+	if (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
+		this->ApplyRevengeWeapon(pTarget);
 }
 
 //void WarheadTypeExt::ExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -616,7 +622,15 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 	if (this->Crit_Chance < dice)
 		return;
 
+	if (auto pExt = TechnoExt::ExtMap.Find(pTarget))
+	{
+		const auto pSld = pExt->Shield.get();
+		if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
+			return;
+	}
+
 	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+	
 	{
 		if (pTypeExt->ImmuneToCrit)
 			return;
@@ -728,5 +742,41 @@ void WarheadTypeExt::ExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAm
 	{
 		auto const ammo = pTarget->Ammo + ReloadAmount;
 		pTarget->Ammo = Math::clamp(ammo, 0, pData->Ammo);
+	}
+}
+
+void WarheadTypeExt::ExtData::ApplyRevengeWeapon(TechnoClass* pTarget)
+{
+	auto const maxCount = this->RevengeWeapon_MaxCount;
+	if (!maxCount)
+		return;
+
+	int count = 0;
+
+	if (auto const pExt = TechnoExt::ExtMap.Find(pTarget))
+	{
+		if (!this->RevengeWeapon_Cumulative)
+		{
+
+			for (auto& weapon : pExt->RevengeWeapons)
+			{
+				// If it is same weapon just refresh timer.
+				if (weapon.SourceWarhead && weapon.SourceWarhead == this->Get())
+				{
+					auto const nDur = this->RevengeWeapon_GrantDuration.Get();
+					auto const nTime = weapon.Timer.GetTimeLeft();
+
+					weapon.Timer.Start(Math::max(nDur, nTime));
+					return;
+				}
+
+				count++;
+			}
+		}
+
+		if (maxCount < 0 || count < maxCount)
+		{
+			pExt->RevengeWeapons.emplace_back(this->RevengeWeapon.Get(), this->RevengeWeapon_GrantDuration, this->RevengeWeapon_AffectsHouses, this->Get());
+		}
 	}
 }

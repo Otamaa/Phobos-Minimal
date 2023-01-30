@@ -2,7 +2,7 @@
 
 std::unique_ptr<SidebarExt::ExtData> SidebarExt::Data = nullptr;
 
-SHPStruct* SidebarExt::TabProducingProgress[4];
+ArrayWrapper<SHPStruct*, 4u> SidebarExt::TabProducingProgress;
 void SidebarExt::ExtData::InitializeConstants() { }
 
 void SidebarExt::Allocate(SidebarClass* pThis)

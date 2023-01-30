@@ -66,7 +66,7 @@ struct NetworkEvent {
 	NetworkEvent * FillEvent_SWPlace(int PlayerNumber, NetworkEvents eventKind, int swTypeIdx, CellStruct *loc)
 		{ JMP_THIS(0x4C6B60); }
 
-	static constexpr constant_ptr<int, 0x8208ECu> const EventLength{};
+	static constexpr reference<int, 0x8208ECu , 36u> const EventLength{};
 };
 
 // This Replaced with TargetClass

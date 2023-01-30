@@ -56,7 +56,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 #endif
 	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find<true>(Get()->Type))
 	{
-		ID = Get()->Type->ID;
+		//ID = Get()->Type->ID;
 		if (pTypeExt->LaserTrail_Types.size() > 0)
 			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
@@ -75,7 +75,7 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 	Debug::Log("Processing Element From VoxelAnimExt ! \n");
 
 	 Stm
-		.Process(ID)
+		//.Process(ID)
 		.Process(Invoker)
 		.Process(LaserTrails)
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -86,13 +86,13 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<VoxelAnimClass>::Serialize(Stm);
+	TExtension<VoxelAnimClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<VoxelAnimClass>::Serialize(Stm);
+	TExtension<VoxelAnimClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -151,15 +151,24 @@ DEFINE_HOOK(0x74AA10, VoxelAnimClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x74A9FD, VoxelAnimClass_Load_Suffix, 0x5)
+// Before : DEFINE_HOOK(0x74A9FD, VoxelAnimClass_Load_Suffix, 0x5)
+DEFINE_HOOK(0x74A9EA , VoxelAnimClass_Load_Suffix, 0x6)
 {
+	GET(VoxelAnimClass*, pThis, ESI);
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->OwnerHouse);
 	VoxelAnimExt::ExtMap.LoadStatic();
-	return 0;
+
+	return 0x74A9FB;
 }
 
-DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x5)
+DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x3)
 {
-	VoxelAnimExt::ExtMap.SaveStatic();
+	GET(const HRESULT, nRes, EAX);
+
+	if(SUCCEEDED(nRes))
+		VoxelAnimExt::ExtMap.SaveStatic();
+
 	return 0;
 }
 

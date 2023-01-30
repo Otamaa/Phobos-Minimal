@@ -96,11 +96,15 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 
 DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 {
+	enum { Skip = 0x62A222 , Continue = 0x0 };
 	GET(ParasiteClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EDI);
+	
+	if (pThis->Victim->IsAttackedByLocomotor)
+		return Skip;
 
 	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get()) || pThis->Victim->WhatAmI() == AbstractType::Infantry
-		? 0x62A222 : 0x0;
+		? Skip : Continue;
 }
 //#endif
 

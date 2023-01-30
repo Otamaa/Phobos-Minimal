@@ -13,8 +13,15 @@ public:
 	unsigned int BuildINIEntry(char* pTr)
 	 { JMP_THIS(0x723CE0); }
 
-	void FillIn(char* pTr)
+	ScriptActionNode(const char* pTr) noexcept 
 	 { JMP_THIS(0x723CA0); }
+
+	ScriptActionNode(int Act, int Arg) noexcept :
+		Action { Act }, Argument { Arg }
+	{ }
+
+	ScriptActionNode() noexcept = default;
+	~ScriptActionNode() noexcept = default;
 
 	bool operator==(ScriptActionNode const& rhs) const {
 		//return Action == rhs.Action && Argument == rhs.Argument;
@@ -39,10 +46,33 @@ class DECLSPEC_UUID("42F3A647-0789-11D2-ACA5-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ScriptType;
-	static constexpr int ScriptTypeClass::MaxActions = 50;
+	static inline constexpr int MaxActions = 50;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(ScriptTypeClass, 0x8B41C8u);
+	static constexpr constant_ptr<DynamicVectorClass<ScriptTypeClass*>, 0x8B41C8u> const Array {};
+
+	static NOINLINE ScriptTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static ScriptTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x691C00);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x691BB0);
+	}
+
+	// this compare both ID and ININame ?
+	static int __fastcall FindIndexByIdAndName(const char* pID) {
+		JMP_STD(0x691B40);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x691D50);
@@ -85,6 +115,6 @@ public:
 	int      ArrayIndex;
 	bool     IsGlobal;
 	int      ActionsCount;
-	ArrayWrapper<ScriptActionNode,ScriptTypeClass::MaxActions> ScriptActions;
+	ArrayWrapper<ScriptActionNode,MaxActions> ScriptActions;
 };
 static_assert(sizeof(ScriptTypeClass) == 0x234, "Invalid Size ! ");

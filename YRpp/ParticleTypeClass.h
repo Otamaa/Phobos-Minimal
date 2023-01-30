@@ -18,7 +18,25 @@ public:
 	static const AbstractType AbsID = AbstractType::ParticleType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(ParticleTypeClass, 0xA83D98u);
+	static constexpr constant_ptr<DynamicVectorClass<ParticleTypeClass*>, 0xA83D98u> const Array {};
+
+	static NOINLINE ParticleTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static ParticleTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x645820);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x645430);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x645620);

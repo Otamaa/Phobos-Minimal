@@ -27,8 +27,39 @@ public:
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
-	static std::vector<CellStruct> AdjacentCellsInRange(unsigned int range);
+	static NOINLINE void AdjacentCellsInRange(std::vector<CellStruct>& nCells , size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
+
+	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
+	// Code is pulled straight from game's draw functions that deal with the tint colors.
+	static inline int GetColorFromColorAdd(int colorIndex)
+	{
+		auto const& colorAdd = RulesClass::Instance->ColorAdd;
+		int colorValue = 0;
+
+		if (colorIndex < 0 || colorIndex >= (sizeof(colorAdd) / sizeof(ColorStruct)))
+			return colorValue;
+
+		return GetColorFromColorAdd(colorAdd[colorIndex]);
+	}
+
+	static inline int GetColorFromColorAdd(ColorStruct const& colors)
+	{
+		int colorValue = 0;
+		int red = colors.R;
+		int green = colors.G;
+		int blue = colors.B;
+
+		if (Drawing::ColorMode() == RGBMode::RGB565)
+			colorValue |= blue | (32 * (green | (red << 6)));
+
+		if (Drawing::ColorMode() != RGBMode::RGB655)
+			colorValue |= blue | (((32 * red) | (green >> 1)) << 6);
+
+		colorValue |= blue | (32 * ((32 * red) | (green >> 1)));
+
+		return colorValue;
+	}
 
 	static inline bool IsOperator(char c)
 	{
@@ -93,14 +124,12 @@ public:
 		pShakeVal = v6;
 	}
 
-	static std::string IntToDigits(int num)
+	static NOINLINE void IntToDigits(std::string& sDigits, int num)
 	{
-		std::string sDigits;
-
 		if (num == 0)
 		{
 			sDigits.push_back('0');
-			return sDigits;
+			return;
 		}
 
 		while (num)
@@ -110,9 +139,6 @@ public:
 		}
 
 		std::reverse(sDigits.begin(), sDigits.end());
-
-		return sDigits;
-
 	}
 
 	static inline const int GetRangedRandomOrSingleValue(const Point2D& range)
@@ -229,14 +255,17 @@ public:
 
 	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
 	{
-		CellStruct cell = CellClass::Coord2Cell(InOut);
-		auto const nDummy = GeneralUtils::AdjacentCellsInRange(nSpread);
+		if(!pIn)
+			return nullptr;
 
+		CellStruct cell = CellClass::Coord2Cell(InOut);
+		std::vector<CellStruct> nDummy {};
+		GeneralUtils::AdjacentCellsInRange(nDummy ,nSpread);
 		int const max = (int)nDummy.size();
+
 		for (int i = 0; i < max; i++)
 		{
-			int index = ScenarioGlobal->Random.RandomFromMax(max - 1);
-			CellStruct const offset = nDummy[index];
+			CellStruct const offset = nDummy[ScenarioGlobal->Random.RandomFromMax(max - 1)];
 
 			if (offset == CellStruct::Empty)
 				continue;
@@ -255,6 +284,42 @@ public:
 		return nullptr;
 	}
 
+	static inline ColorStruct HSV2RGB(int h, int s, int v)
+	{
+		float R = 0.0f, G = 0.0f, B = 0.0f;
+		float C = 0, X = 0, Y = 0, Z = 0;
+		float H = (float)(h);
+		float S = (float)(s) / 100.0f;
+		float V = (float)(v) / 100.0f;
+		if (S == 0)
+			R = G = B = V;
+		else
+		{
+			H = H / 60;
+			int i = (int)H;
+			C = H - i;
+
+			X = V * (1 - S);
+			Y = V * (1 - S * C);
+			Z = V * (1 - S * (1 - C));
+
+			switch (i)
+			{
+			case 0: R = V; G = Z; B = X; break;
+			case 1: R = Y; G = V; B = X; break;
+			case 2: R = X; G = V; B = Z; break;
+			case 3: R = X; G = Y; B = V; break;
+			case 4: R = Z; G = X; B = V; break;
+			case 5: R = V; G = X; B = Y; break;
+			}
+		}
+
+		return { (BYTE)(R * 255), (BYTE)(G * 255), (BYTE)(B * 255) };
+	}
+
+
+	static const char* GetLocomotionName(const CLSID& clsid);
+
 #pragma region Otamaa
 	static const int GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize);
 
@@ -268,7 +333,7 @@ public:
 	//Point2Dir
 	static const DirStruct& Desired_Facing(int x1, int y1, int x2, int y2)
 	{
-		DirStruct dir;
+		DirStruct dir {};
 		unsigned short value = static_cast<short>(Game::F2I((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.SetValue<16>(value);
 		return dir;
@@ -288,7 +353,7 @@ public:
 	}
 
 	static const Leptons& PixelToLeptons(int pixel)
-	{ return Leptons((((pixel * 256) + (48 / 2) - ((pixel < 0) ? (48 - 1) : 0)) / 48)); }
+	{ return Leptons((((pixel * 256) + (60 / 2) - ((pixel < 0) ? (60 - 1) : 0)) / 60)); }
 
 	static const Leptons& DistanceToLeptons(int distance)
 	{ return Leptons(distance * 256); }
@@ -327,6 +392,29 @@ public:
 		First retval = f;
 		((retval = std::fmax(retval, t)), ...);
 		return retval;
+	}
+
+	template<bool CriticalRandomNumber = true>
+	static int GetRandomValue(const Point2D point, int defVal)
+	{
+		int min = point.X;
+		int max = point.Y;
+
+		if (min > max)
+		{
+			min = max;
+			max = point.X;
+		}
+
+		if (max > 0)
+		{
+			if constexpr (CriticalRandomNumber)
+				return ScenarioClass::Instance->Random.RandomRanged(min, max);
+			else
+				return Random2Class::NonCriticalRandomNumber->RandomRanged(min, max);
+		}
+
+		return defVal;
 	}
 
 #pragma endregion

@@ -12,20 +12,7 @@ public:
 	Valueable<CoordStruct> SpawnHitFLH;
 	Valueable<CoordStruct> EliteSpawnHitFLH;
 
-	void Read(INI_EX& nParser, const char* pSection)
-	{
-		SpawnSupportFLH.Read(nParser, pSection, "SupportWeaponFLH");
-		EliteSpawnSupportFLH.Read(nParser, pSection, "EliteSupportWeaponFLH");
-
-		if (EliteSpawnSupportFLH.Get() == CoordStruct::Empty)
-			EliteSpawnSupportFLH = SpawnSupportFLH;
-
-		SpawnHitFLH.Read(nParser, pSection, "SupportWeaponHitFLH");
-		EliteSpawnHitFLH.Read(nParser, pSection, "EliteSupportWeaponHitFLH");
-
-		if (EliteSpawnHitFLH.Get() == CoordStruct::Empty)
-			EliteSpawnHitFLH = SpawnHitFLH;
-	}
+	void Read(INI_EX& nParser, const char* pSection);
 
 	template <typename T>
 	void Serialize(T& Stm)
@@ -52,25 +39,7 @@ public:
 	Valueable<bool> FireOnce;
 	Valueable<int> Delay;
 
-	void Read(INI_EX& nParser, const char* pSection)
-	{
-		Enable.Read(nParser, pSection, "SupportSpawns");
-
-		if(Enable)
-		{
-			SupportWeapon.Read(nParser, pSection, "SupportSpawns.Weapon", true);
-			EliteSupportWeapon.Read(nParser, pSection, "SupportSpawns.EliteWeapon", true);
-
-			if (!EliteSupportWeapon)
-				SupportWeapon = EliteSupportWeapon;
-
-			SwitchFLH.Read(nParser, pSection, "SupportSpawns.SwitchFLH");
-			Always.Read(nParser, pSection, "SupportSpawns.AlwaysFire");
-		}
-
-		FireOnce.Read(nParser, pSection, "SpawnFireOnce");
-		Delay.Read(nParser, pSection, "SpawnFireOnceDelay");
-	}
+	void Read(INI_EX& nParser, const char* pSection);
 
 	template <typename T>
 	void Serialize(T& Stm)

@@ -20,13 +20,14 @@ class AITriggerTypeExt
 public:
 	using base_type = AITriggerTypeClass;
 	static constexpr size_t Canary = 0x2C2C2C2C;
+	static constexpr size_t ExtOffset = 0x10C;
 
-	class ExtData final : public TExtension<AITriggerTypeClass>
+	class ExtData final : public Extension<AITriggerTypeClass>
 	{
 	public:
 
 		//Valueable<HouseTypeClass*> NoneOF; String ?
-		ExtData(AITriggerTypeClass* OwnerObject) : TExtension<AITriggerTypeClass>(OwnerObject)
+		ExtData(AITriggerTypeClass* OwnerObject) : Extension<AITriggerTypeClass>(OwnerObject)
 			//, NoneOF { }
 		{ }
 
@@ -36,7 +37,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<AITriggerTypeExt>
+	class ExtContainer final : public Container<AITriggerTypeExt>
 	{
 	public:
 		ExtContainer();

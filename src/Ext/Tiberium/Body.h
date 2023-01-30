@@ -2,8 +2,8 @@
 #include <TiberiumClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
+#include <Ext/Abstract/Body.h>
+#include <Utilities/TemplateDefB.h>
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
@@ -13,11 +13,8 @@ class TiberiumExt
 public:
 	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
-#ifndef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0xEC;
-#endif
 
-	class ExtData final : public Extension<TiberiumClass>
+	class ExtData final : public TExtension<TiberiumClass>
 	{
 	public:
 		CustomPalette Palette;
@@ -28,9 +25,9 @@ public:
 		Valueable<bool> EnableLighningFix;
 		Valueable<bool> UseNormalLight;
 		Valueable<bool> EnablePixelFXAnim;
-		int Replaced_EC;
+		//int Replaced_EC;
 
-		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
+		ExtData(TiberiumClass* OwnerObject) : TExtension<TiberiumClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, OreTwinkle {}
 			, OreTwinkleChance {}
@@ -39,7 +36,7 @@ public:
 			, EnableLighningFix { true }
 			, UseNormalLight { true }
 			, EnablePixelFXAnim { true }
-			, Replaced_EC { 0 }
+			//, Replaced_EC { 0 }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -61,7 +58,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TiberiumExt,true , true , true>
+	class ExtContainer final : public TExtensionContainer<TiberiumExt>
 	{
 	public:
 		ExtContainer();

@@ -9,7 +9,7 @@ RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()
 {
-	this->Type = RadTypeClass::Find("Radiation");
+	this->Type = RadTypeClass::Find(GameStrings::Radiation());
 }
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
@@ -150,19 +150,19 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 		.Process(this->Type)
 		.Process(this->TechOwner)
 		.Process(this->NoOwner)
-		.Process(this->Spread)
+		//.Process(this->Spread)
 		;
 }
 
 void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<RadSiteClass>::Serialize(Stm);
+	TExtension<RadSiteClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<RadSiteClass>::Serialize(Stm);
+	TExtension<RadSiteClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -183,7 +183,7 @@ bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
+RadSiteExt::ExtContainer::ExtContainer() : TExtensionContainer("RadSiteClass") { };
 RadSiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -194,13 +194,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-
-#ifndef ENABLE_NEWHOOKS
 		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
-#else
-		if (auto pRadExt = RadSiteExt::ExtMap.FindOrAllocate(pThis))
-			pRadExt->InitializeConstants();
-#endif
 		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 
@@ -233,23 +227,35 @@ DEFINE_HOOK(0x65B450, RadSiteClass_SaveLoad_Prefix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x65B43F, RadSiteClass_Load_Suffix, 0x7)
+// Before :
+ // DEFINE_HOOK(0x65B43F, RadSiteClass_Load_Suffix, 0x7)
+DEFINE_HOOK(0x65B431 , RadSiteClass_Load_Suffix , 0x9)
 {
+	GET(RadSiteClass*, pThis, ESI);
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->LightSource);
+
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadSiteExt::ExtMap.LoadStatic();
 
-	return 0;
+	//return 0;
+	return 0x65B43F;
 }
 
 DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadSiteExt::ExtMap.SaveStatic();
+	GET(const HRESULT , nRes, EAX);
+
+	if(SUCCEEDED(nRes)) {
+		if (!Phobos::Otamaa::DisableCustomRadSite) {
+			RadSiteExt::ExtMap.SaveStatic();
+		}
+	}
 
 	return 0;
 }
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef AAENABLE_NEWHOOKS
 DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
 {
 	GET(RadSiteClass*, pThis, ECX);

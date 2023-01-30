@@ -7,6 +7,8 @@
 #include <GScreenClass.h>
 #include <EvadeClass.h>
 
+#include <GameStrings.h>
+
 namespace RetryDialogFlag
 {
 	bool IsCalledFromRetryDialog = false;
@@ -24,10 +26,10 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Button2
 		// I prefer to put the loadgame to the center of them - secsome
 		switch (WWMessageBox::Instance().Process(
-			StringTable::LoadString("TXT_TO_REPLAY"),
-			StringTable::LoadString("TXT_OK"),
+			StringTable::LoadString(GameStrings::TXT_TO_REPLAY()),
+			StringTable::LoadString(GameStrings::TXT_OK()),
 			StringTable::LoadString("GUI:LOADGAME"),
-			StringTable::LoadString("TXT_CANCEL")))
+			StringTable::LoadString(GameStrings::TXT_CANCEL())))
 		{
 		case WWMessageBox::Result::Button1:
 			return OK;
@@ -70,17 +72,17 @@ DEFINE_HOOK(0x558F4E, LoadOptionClass_Dialog_CenterListBox, 0x5)
 		GET(HWND, hListBox, EAX);
 		GET(HWND, hDialog, EDI);
 
-		HWND hLoadButton = GetDlgItem(hDialog, 1039);
+		HWND hLoadButton = Imports::GetDlgItem.get()(hDialog, 1039);
 
-		RECT buttonRect;
-		GetWindowRect(hLoadButton, &buttonRect);
+		RECT buttonRect {};
+		Imports::GetWindowRect.get()(hLoadButton, &buttonRect);
 
 		float scaleX = static_cast<float>(buttonRect.right - buttonRect.left) / 108;
 		float scaleY = static_cast<float>(buttonRect.bottom - buttonRect.top) / 22;
 		int X = buttonRect.left - static_cast<int>(346 * scaleX);
 		int Y = buttonRect.top - static_cast<int>(44 * scaleY);
 
-		SetWindowPos(hListBox, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
+		Imports::SetWindowPos.get()(hListBox, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
 	}
 
 	return 0;

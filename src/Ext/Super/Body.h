@@ -2,23 +2,21 @@
 #include <SuperClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class SuperExt
 {
 public:
 
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
-	static constexpr size_t ExtOffset = 0x44;
 
-	class ExtData final : public Extension<SuperClass>
+	class ExtData final : public TExtension<SuperClass>
 	{
 	public:
 
-		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
+		ExtData(SuperClass* OwnerObject) : TExtension<SuperClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() = default;
@@ -33,17 +31,15 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SuperExt,true,true,true>
+	class ExtContainer final : public TExtensionContainer<SuperExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
 };

@@ -18,7 +18,22 @@ class DECLSPEC_UUID("5AF2CE7A-0634-11D2-ACA4-006008055BB5")
 public:
 	static const AbstractType AbsID = AbstractType::IsotileType;
 
-	ABSTRACTTYPE_ARRAY_NOALLOC(IsometricTileTypeClass, 0xA8ED28u);
+	//Array
+	static constexpr constant_ptr<DynamicVectorClass<IsometricTileTypeClass*>, 0xA8ED28u> const Array {};
+
+	static NOINLINE IsometricTileTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x544CE0);
+	}
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const TileDrawers{};

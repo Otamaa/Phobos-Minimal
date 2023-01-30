@@ -6,6 +6,7 @@
 #include <Ext/AnimType/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -71,7 +72,9 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
 DEFINE_HOOK(0x71D09D, TerrainClass_UnLImbo_Light, 0x6)
 {
 	GET(TerrainClass*, pThis, ECX);
-	TerrainExt::Unlimbo(pThis);
+	GET(CoordStruct*, pCoord, EBP);
+
+	TerrainExt::Unlimbo(pThis , pCoord);
 	return 0;
 }
 
@@ -81,27 +84,38 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	GET(TerrainClass*, pThis, EDI);
 
 	if (nLimboed)
+	{
+		//if (auto const CellExt = CellExt::ExtMap.Find<true>(pThis->GetCell()))
+		//{
+		//	auto const iter = std::find_if(CellExt->AttachedTerrain.begin(), CellExt->AttachedTerrain.end(),
+		//		[&](auto const pCellTerrain) { return pCellTerrain == pThis; });
+
+		//	if (iter != CellExt->AttachedTerrain.end())
+		//		CellExt->AttachedTerrain.erase(iter);
+		//}
+
 		TerrainExt::CleanUp(pThis);
+
+	}
 
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
+//#ifdef ENABLE_NEWHOOKS
 //TODO : desync test and use new ext system for better performance
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
 
-	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType))
-	{
+	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType)) {
 		pConvert = pTerrainExt->CustomPalette.GetOrDefaultConvert(pConvert);
 	}
 
 	R->EDX(pConvert);
 	return 0x0;
 }
-#endif
+//#endif
 
 //#ifdef ENABLE_NEWHOOKS
 //TODO : and desync test

@@ -3,7 +3,7 @@
 
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 
 class SideExt
 {
@@ -33,26 +33,33 @@ public:
 		Nullable<int> ToolTip_Background_Opacity;
 		Nullable<float> ToolTip_Background_BlurSize;
 
+		Nullable<SHPStruct*> GClock_Shape;
+		Nullable<int> GClock_Transculency;
+		//CustomPalette GClock_Palette {};
+
 		ExtData(SideClass* OwnerObject) : TExtension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
 			, Sidebar_GDIPositions { false }
 			, IngameScore_WinTheme { -2 }
 			, IngameScore_LoseTheme { -2 }
 			, Sidebar_HarvesterCounter_Offset { { 0,0 } }
-			, Sidebar_HarvesterCounter_Yellow { { 255,255,0 } }
-			, Sidebar_HarvesterCounter_Red { { 255,0,0 } }
+			, Sidebar_HarvesterCounter_Yellow { Drawing::ColorYellow }
+			, Sidebar_HarvesterCounter_Red { Drawing::ColorRed }
 			, Sidebar_ProducingProgress_Offset { { 0,0 } }
 			, Sidebar_PowerDelta_Offset { { 0,0 } }
-			, Sidebar_PowerDelta_Green { { 0,255,0 } }
-			, Sidebar_PowerDelta_Grey { { 128,128,128 } }
-			, Sidebar_PowerDelta_Yellow { { 255,255,0 } }
-			, Sidebar_PowerDelta_Red { { 255,0,0 } }
+			, Sidebar_PowerDelta_Green { Drawing::ColorGreen }
+			, Sidebar_PowerDelta_Grey { Drawing::ColorGrey }
+			, Sidebar_PowerDelta_Yellow { Drawing::ColorYellow }
+			, Sidebar_PowerDelta_Red { Drawing::ColorRed }
 			, Sidebar_PowerDelta_Align { TextAlign::Left }
 
 			, ToolTip_Background_Color { }
 			, ToolTip_Background_Opacity { }
 			, ToolTip_Background_BlurSize { }
 
+			, GClock_Shape { }
+			, GClock_Transculency { }
+			//, GClock_Palette { }
 		{ }
 
 		virtual ~ExtData() = default;

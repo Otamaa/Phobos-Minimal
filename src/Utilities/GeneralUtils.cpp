@@ -11,12 +11,13 @@
 
 bool GeneralUtils::IsValidString(const char* str)
 {
-	return str != nullptr
-		&& CRT::strlen(str) != 0
-		&& !INIClass::IsBlank(str)
-		&& CRT::strcmpi(DEFAULT_STR, str)
-		&& CRT::strcmpi(DEFAULT_STR2, str)
-		;
+	if (str == nullptr || CRT::strlen(str) == 0 || INIClass::IsBlank(str))
+		return false;
+
+	if (IS_SAME_STR_(str , DEFAULT_STR) || IS_SAME_STR_(str, DEFAULT_STR2))
+		return false;
+
+	return true;
 }
 
 void GeneralUtils::IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min, int max)
@@ -50,15 +51,12 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wcha
 	return wcsstr(LoadStringOrDefault(key, defaultValue), L"MISSING:") ? defaultValue : LoadStringOrDefault(key, defaultValue);
 }
 
-std::vector<CellStruct> GeneralUtils::AdjacentCellsInRange(unsigned int range)
+void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, size_t range)
 {
-	std::vector<CellStruct> result {};
-	result.reserve(range);
+	nCells.clear();
 
 	for (CellSpreadEnumerator it(range); it; ++it)
-		result.push_back(*it);
-
-	return result;
+		nCells.push_back(*it);
 }
 
 const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor const ArmorType)
@@ -68,7 +66,7 @@ const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor co
 
 const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 {
-	if (auto pItem = ObjectTypeClass::GetTechnoType(AbstractType::BuildingType, idxBuilding))
+	if (auto pItem = ObjectTypeClass::FetchTechnoType(AbstractType::BuildingType, idxBuilding))
 	{
 		if (pOwner->CanBuild(pItem, true, true) == CanBuildResult::Buildable)
 		{
@@ -95,22 +93,70 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 	return false;
 }
 
+const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
+{
+	if (clsid == LocomotionClass::CLSIDs::Drive())
+	{
+		return "Drive";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Drive())
+	{
+		return "Fly";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Jumpjet())
+	{
+		return "Jumpjet";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Droppod())
+	{
+		return "Droppod";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Tunnel())
+	{
+		return "Tunnel";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Walk())
+	{
+		return "Walk";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Mech())
+	{
+		return "Mech";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Teleport())
+	{
+		return "Teleport";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Rocket())
+	{
+		return "Rocket";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Hover())
+	{
+		return "Hover";
+	}
+	else if (clsid == LocomotionClass::CLSIDs::Ship())
+	{
+		return "Ship";
+	}
+
+	return "<unknown>";
+}
+
 #pragma region Otamaa
 const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize)
 {
-	int index = 0;
-	if (pFoot)
-	{
+	if (pFoot) {
 		auto highest = Conversions::Int2Highest(nVectorSize);
 
 		// 2^highest is the frame count, 3 means 8 frames
 		if (highest >= 3)
 		{
 			auto offset = 1u << (highest - 3);
-			index = TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pFoot->GetRealFacing().Current().GetValue<16>()), offset);
+			return TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pFoot->GetRealFacing().Current().GetValue<16>()), offset);
 		}
 	}
 
-	return index;
+	return 0;
 }
 #pragma endregion

@@ -7,21 +7,21 @@
 
 static	void __fastcall _Log_LocalMix(const char* pFormat, ...)
 {
-	Debug::Log("LOCAL.MIX\n");
+	Debug::Log("%s \n", pFormat);
 }
 
 DEFINE_JUMP(CALL,0x530439, GET_OFFSET(_Log_LocalMix));
 
 static	void __fastcall _Log_CacheMix(const char* pFormat, ...)
 {
-	Debug::Log("CACHE.MIX\n");
+	Debug::Log("%s \n", pFormat);
 }
 
 DEFINE_JUMP(CALL,0x5303B5, GET_OFFSET(_Log_CacheMix));
 
 static void* __cdecl _YR_Allocate_Localmix(size_t size)
 {
-	Debug::Log("LOCALMD.MIX\n");
+	Debug::Log("%s \n" , GameStrings::LOCALMD_MIX());
 	return YRMemory::Allocate(size);
 }
 
@@ -29,21 +29,21 @@ DEFINE_JUMP(CALL,0x5303E8, GET_OFFSET(_YR_Allocate_Localmix));
 
 static	void __fastcall _Log_CacheMdMix(const char* pFormat, ...)
 {
-	Debug::Log("CACHEMD.MIX\n");
+	Debug::Log("%s\n", pFormat);
 }
 
 DEFINE_JUMP(CALL,0x530349,GET_OFFSET(_Log_CacheMdMix));
 
 static	void __fastcall _Log_Ra2Mix(const char* pFormat, ...)
 {
-	Debug::Log("RA2.MIX\n");
+	Debug::Log("%s\n", pFormat);
 }
 
 DEFINE_JUMP(CALL,0x530307, GET_OFFSET(_Log_Ra2Mix));
 
 static void* __cdecl _YR_Allocate_Ra2mix(size_t size)
 {
-	Debug::Log("RA2MD.MIX\n");
+	Debug::Log("%s \n" ,  GameStrings::LOCALMD_MIX());
 	return YRMemory::Allocate(size);
 }
 
@@ -68,6 +68,9 @@ namespace AnnoyingAudioLogSutffs
 
 static	void __fastcall _Log_PathFailere_1(const char* pFormat, ...)
 {
+	if (Phobos::Otamaa::IsAdmin)
+		return;
+
 	if (!RulesExt::Global()->DisablePathfindFailureLog.Get())
 		Debug::Log(pFormat);
 }
@@ -76,6 +79,9 @@ DEFINE_JUMP(CALL,0x42CBDE, GET_OFFSET(_Log_PathFailere_1));
 
 static	void __fastcall _Log_PathFailere_2(const char* pFormat, ...)
 {
+	if (Phobos::Otamaa::IsAdmin)
+		return;
+
 	if (!RulesExt::Global()->DisablePathfindFailureLog.Get())
 		Debug::Log(pFormat);
 }
@@ -116,9 +122,6 @@ static	void __fastcall _Log_Disable_These(const char* pFormat, ...) {
 DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_Disable_These));
 DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_Disable_These));
 DEFINE_JUMP(CALL,0x4431D8, GET_OFFSET(_Log_Disable_These)); //Survivor unlimbo OK Log
-//DEFINE_JUMP(CALL,0x69A79D, GET_OFFSET(_Log_Disable_These));
-//DEFINE_JUMP(CALL,0x42CC65, GET_OFFSET(_Log_Disable_These));
-//DEFINE_JUMP(CALL,0x42CBDE, GET_OFFSET(_Log_Disable_These));
 #endif
 
 /*

@@ -4,6 +4,15 @@
 #include <YRPPCore.h>
 #include "Patch.h"
 
+template<class T, size_t offs>
+struct PointerOffset
+{
+	inline constexpr auto Get()
+	{
+		return reinterpret_cast<T>(((DWORD)this) - offs);
+	}
+};
+
 struct MiscTools
 {
 	static DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)

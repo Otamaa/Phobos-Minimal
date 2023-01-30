@@ -21,13 +21,13 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(ShowHealthPercentCommandClass);
 	Make(DamageDisplayCommandClass);
 	Make(ShowTechnoNameCommandClass);
-	MakeCommand<FrameByFrameCommandClass>();
-	MakeCommand<FrameStepCommandClass<1>>(); // Single step in
-	MakeCommand<FrameStepCommandClass<5>>(); // Speed 1
-	MakeCommand<FrameStepCommandClass<10>>(); // Speed 2
-	MakeCommand<FrameStepCommandClass<15>>(); // Speed 3
-	MakeCommand<FrameStepCommandClass<30>>(); // Speed 4
-	MakeCommand<FrameStepCommandClass<60>>(); // Speed 5
+	Make(FrameByFrameCommandClass);
+	Make(FrameStepCommandClass<1>); // Single step in
+	Make(FrameStepCommandClass<5>); // Speed 1
+	Make(FrameStepCommandClass<10>); // Speed 2
+	Make(FrameStepCommandClass<15>); // Speed 3
+	Make(FrameStepCommandClass<30>); // Speed 4
+	Make(FrameStepCommandClass<60>); // Speed 5
 	return 0;
 }
 

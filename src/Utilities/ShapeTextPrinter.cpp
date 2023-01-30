@@ -1,7 +1,7 @@
 #include "ShapeTextPrinter.h"
 
 const char* ShapeTextPrinter::SignSequence = "/%$,.!?|";
-const int ShapeTextPrinter::SignSequenceLength = strlen(ShapeTextPrinter::SignSequence);
+const int ShapeTextPrinter::SignSequenceLength = CRT::strlen(ShapeTextPrinter::SignSequence);
 
 int ShapeTextPrinter::GetSignIndex(const char sign)
 {
@@ -21,7 +21,7 @@ void ShapeTextPrinter::PrintShape
 	int iTintColor
 )
 {
-	int iLength = strlen(text);
+	int iLength = CRT::strlen(text);
 	std::vector<int> vFrames;
 
 	for (int i = 0; i < iLength; i++)

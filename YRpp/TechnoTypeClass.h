@@ -50,46 +50,89 @@ struct TurretControl
 
 struct WeaponStruct
 {
-	WeaponTypeClass*  WeaponType;
+	WeaponTypeClass* WeaponType;
 	CoordStruct       FLH;
 	int               BarrelLength;
 	int               BarrelThickness;
 	bool              TurretLocked;
 
 	bool operator == (const WeaponStruct& nWeap) const
-		{ return WeaponType == nWeap.WeaponType &&  FLH == nWeap.FLH
-				&& BarrelLength == nWeap.BarrelLength && BarrelThickness == nWeap.BarrelThickness 
-				&& TurretLocked== nWeap.TurretLocked ; }
-	
+	{
+		return WeaponType == nWeap.WeaponType && FLH == nWeap.FLH
+			&& BarrelLength == nWeap.BarrelLength && BarrelThickness == nWeap.BarrelThickness
+			&& TurretLocked == nWeap.TurretLocked;
+	}
+
 	bool operator != (const WeaponStruct& nWeap) const
 	{
 		return !(*this == nWeap);
 	}
 
 	static bool __cdecl IsValid(WeaponStruct* WpStructe)
-		{ JMP_STD(0x70E240); }
+	{ JMP_STD(0x70E240); }
 
 };
-static_assert(sizeof(WeaponStruct) == 0x1C ,"Invalid size.");
+static_assert(sizeof(WeaponStruct) == 0x1C, "Invalid size.");
 
 class NOVTABLE TechnoTypeClass : public ObjectTypeClass
 {
 public:
 
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::TechnoType;
-	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName{};
+	static inline constexpr auto MaxWeapons = 18;
+
+	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
 	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
+	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares 
 
 	//These is same with belows , just for confinient
-	static constexpr reference<bool, 0xAC1488u , 4u> const ShapesIsAllocated{};
+	static constexpr reference<bool, 0xAC1488u, 4u> const ShapesIsAllocated {};
 
-	static constexpr reference<bool, 0xAC1488u> const PIPBRD_SHP_IsAllocated{};
-	static constexpr reference<bool, 0xAC1489u> const PIPS_SHP_IsAllocated{};
-	static constexpr reference<bool, 0xAC148Au> const PIPS2_SHP_IsAllocated{};
-	static constexpr reference<bool, 0xAC148Bu> const TALKBUBL_SHP_IsAllocated{};
+	static constexpr reference<bool, 0xAC1488u> const PIPBRD_SHP_IsAllocated {};
+	static constexpr reference<bool, 0xAC1489u> const PIPS_SHP_IsAllocated {};
+	static constexpr reference<bool, 0xAC148Au> const PIPS2_SHP_IsAllocated {};
+	static constexpr reference<bool, 0xAC148Bu> const TALKBUBL_SHP_IsAllocated {};
 
-	ABSTRACTTYPE_ARRAY_NOALLOC(TechnoTypeClass, 0xA8EB00u);
-	static inline constexpr auto MaxWeapons = 18;
+	static constexpr constant_ptr<DynamicVectorClass<TechnoTypeClass*>, 0xA8EB00u> const Array {};
+
+	static NOINLINE TechnoTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){ 
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem; 
+		}
+
+		return nullptr;
+	}
+
+	/* Require SpeedType to be set !
+	static NOINLINE TechnoTypeClass* FindOrAllocate(const char* pID)
+	{
+		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+			return nullptr; 
+		}
+
+		if (auto pRet = Find(pID)) {
+			return pRet;
+		}
+
+		return GameCreate<TechnoTypeClass>(pID);
+	}
+	*/
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) R0;
@@ -100,6 +143,7 @@ public:
 	virtual ~TechnoTypeClass() override JMP_THIS(0x7179A0);
 
 	//AbstractClass
+	
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x712170);
 	//ObjectTypeClass
@@ -116,22 +160,22 @@ public:
 
 	// non-virtual
 	static TechnoTypeClass* __fastcall GetByTypeAndIndex(AbstractType abs, int index)
-		{ JMP_STD(0x48DCD0); }
+	{ JMP_STD(0x48DCD0); }
 
 	static int sub_717840()
-		{ JMP_STD(0x717840); }
-	
+	{ JMP_STD(0x717840); }
+
 	bool HasMultipleTurrets() const
-		{ return this->TurretCount > 0; }
+	{ return this->TurretCount > 0; }
 
 	bool sub_712130() const
-		{ JMP_THIS(0x712130); }
+	{ JMP_THIS(0x712130); }
 
 	DynamicVectorClass<ColorScheme*>* sub_717820()
-		{ JMP_THIS(0x717820); }
+	{ JMP_THIS(0x717820); }
 
 	CoordStruct* GetParticleSysOffset(CoordStruct* pBuffer) const
-		{ JMP_THIS(0x7178C0); }
+	{ JMP_THIS(0x7178C0); }
 
 	CoordStruct GetParticleSysOffset() const
 	{
@@ -140,52 +184,60 @@ public:
 		return buffer;
 	}
 
-	bool InOwners(DWORD const bitHouseType) const {
+	bool InOwners(DWORD const bitHouseType) const
+	{
 		return 0u != (this->GetOwners() & bitHouseType);
 	}
 
-	bool InRequiredHouses(DWORD const bitHouseType) const {
+	bool InRequiredHouses(DWORD const bitHouseType) const
+	{
 		auto const test = this->RequiredHouses;
-		if(static_cast<int>(test) == -1) {
+		if (static_cast<int>(test) == -1)
+		{
 			return true;
 		}
 		return 0u != (test & bitHouseType);
 	}
 
-	bool InForbiddenHouses(DWORD const bitHouseType) const {
+	bool InForbiddenHouses(DWORD const bitHouseType) const
+	{
 		auto const test = this->ForbiddenHouses;
-		if(static_cast<int>(test) == -1) {
+		if (static_cast<int>(test) == -1)
+		{
 			return false;
 		}
 		return 0u != (test & bitHouseType);
 	}
 
 	bool IsTwoShooter() const
-		{ JMP_THIS(0x712130); }
+	{ JMP_THIS(0x712130); }
 
 	// weapon related
 
 	WeaponStruct* GetWeapon(size_t const index)
-		{ JMP_THIS(0x7177C0); }
+	{ JMP_THIS(0x7177C0); }
 
 	WeaponStruct* GetEliteWeapon(size_t const index) const
-		{ JMP_THIS(0x7177E0);}
+	{ JMP_THIS(0x7177E0); }
 
-	void SetTurretWeapon(size_t const indexA , size_t const indexWeapon) const 
-		{ JMP_THIS(0x717890); }
+	void SetTurretWeapon(size_t const indexA, size_t const indexWeapon) const
+	{ JMP_THIS(0x717890); }
 
-	int GetTurretWeapon(size_t const nIndex) const 
-		{ JMP_THIS(0x7178B0);  }
+	int GetTurretWeapon(size_t const nIndex) const
+	{ JMP_THIS(0x7178B0); }
 
 	//Constructor
 	TechnoTypeClass(const char* id, SpeedType speedtype) noexcept
 		: TechnoTypeClass(noinit_t())
-	{ JMP_THIS(0x710AF0); }
+	{
+		JMP_THIS(0x710AF0);
+	}
 
 protected:
 	explicit __forceinline TechnoTypeClass(noinit_t) noexcept
 		: ObjectTypeClass(noinit_t())
-	{ }
+	{
+	}
 
 	//===========================================================================
 	//===== Properties ==========================================================
@@ -209,8 +261,8 @@ public:
 	double          DeaccelerationFactor; //300
 	double          AccelerationFactor;
 	int             CloakingSpeed;
-	TypeList<VoxelAnimTypeClass*> DebrisTypes;
-	TypeList<int> DebrisMaximums;
+	DECLARE_PROPERTY(TypeList<VoxelAnimTypeClass*> ,DebrisTypes);
+	DECLARE_PROPERTY(TypeList<int> ,DebrisMaximums);
 	_GUID           Locomotor;
 	DWORD			align_35C;
 	double          VoxelScaleX; //360
@@ -237,21 +289,21 @@ public:
 	int             LeptonMindControlOffset;
 	int             PixelSelectionBracketDelta;
 	int             PipWrap;
-	TypeList<BuildingTypeClass*> Dock;
+	DECLARE_PROPERTY(TypeList<BuildingTypeClass*> ,Dock);
 	BuildingTypeClass* DeploysInto;
-	UnitTypeClass*  UndeploysInto;
-	UnitTypeClass*  PowersUnit;
+	UnitTypeClass* UndeploysInto;
+	UnitTypeClass* PowersUnit;
 	bool            PoweredUnit;
-	TypeList<int> VoiceSelect;
-	TypeList<int> VoiceSelectEnslaved;
-	TypeList<int> VoiceSelectDeactivated;
-	TypeList<int> VoiceMove;
-	TypeList<int> VoiceAttack;
-	TypeList<int> VoiceSpecialAttack;
-	TypeList<int> VoiceDie;
-	TypeList<int> VoiceFeedback;
-	TypeList<int> MoveSound;
-	TypeList<int> DieSound;
+	DECLARE_PROPERTY(TypeList<int> ,VoiceSelect);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceSelectEnslaved);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceSelectDeactivated);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceMove);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceAttack);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceSpecialAttack);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceDie);
+	DECLARE_PROPERTY(TypeList<int> ,VoiceFeedback);
+	DECLARE_PROPERTY(TypeList<int> ,MoveSound);
+	DECLARE_PROPERTY(TypeList<int> ,DieSound);
 	int             AuxSound1;
 	int             AuxSound2;
 	int             CreateSound;
@@ -290,7 +342,7 @@ public:
 	int             GuardRange;
 	int             MaxDebris;
 	int             MinDebris;
-	TypeList<AnimTypeClass*> DebrisAnims;
+	DECLARE_PROPERTY(TypeList<AnimTypeClass*> ,DebrisAnims);
 	int             Passengers;
 	bool            OpenTopped;
 	int             Sight;
@@ -316,8 +368,8 @@ public:
 	int             AirstrikeRechargeTime;
 	int             EliteAirstrikeRechargeTime;
 	int             TechLevel;
-	TypeList<int> Prerequisite;
-	TypeList<int> PrerequisiteOverride;
+	DECLARE_PROPERTY(TypeList<int>, Prerequisite);
+	DECLARE_PROPERTY(TypeList<int>, PrerequisiteOverride);
 	int             ThreatPosed;
 	int             Points;
 	int             Speed;
@@ -344,8 +396,8 @@ public:
 	bool            DistributedFire;
 	bool            DamageReducesReadiness;
 	int             ReadinessReductionMultiplier;
-	UnitTypeClass*  UnloadingClass;
-	AnimTypeClass*  DeployingAnim;
+	UnitTypeClass* UnloadingClass;
+	AnimTypeClass* DeployingAnim;
 	bool            AttackFriendlies;
 	bool            AttackCursorOnFriendlies;
 	int             UndeployDelay;
@@ -355,25 +407,25 @@ public:
 	bool            StupidHunt;
 	bool            AllowedToStartInMultiplayer;
 	char            CameoFile[0x19];
-	PROTECTED_PROPERTY(BYTE,  align_6EF);
-	SHPStruct*      Cameo;
+	PROTECTED_PROPERTY(BYTE, align_6EF);
+	SHPStruct* Cameo;
 	bool            CameoAllocated;
 	char            AltCameoFile[0x19];
-	PROTECTED_PROPERTY(BYTE,  align_70E[2]);
-	SHPStruct*      AltCameo;
+	PROTECTED_PROPERTY(BYTE, align_70E[2]);
+	SHPStruct* AltCameo;
 	bool            AltCameoAllocated;
 	int             RotCount;
 	int             ROT;
 	int             TurretOffset;
 	bool            CanBeHidden;
 	int             Points2; //twice
-	TypeList<AnimTypeClass*> Explosion;
-	TypeList<AnimTypeClass*> DestroyAnim;
+	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, Explosion);
+	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, DestroyAnim);
 	ParticleSystemTypeClass* NaturalParticleSystem;
 	CoordStruct NaturalParticleSystemLocation;
 	ParticleSystemTypeClass* RefinerySmokeParticleSystem;
-	TypeList<ParticleSystemTypeClass*> DamageParticleSystems;
-	TypeList<ParticleSystemTypeClass*> DestroyParticleSystems;
+	DECLARE_PROPERTY(TypeList<ParticleSystemTypeClass*>, DamageParticleSystems);
+	DECLARE_PROPERTY(TypeList<ParticleSystemTypeClass*>, DestroyParticleSystems);
 	CoordStruct DamageSmokeOffset;
 	bool            DamSmkOffScrnRel;
 	CoordStruct DestroySmokeOffset;
@@ -432,9 +484,9 @@ public:
 	bool            Teleporter;
 	bool            IsGattling;
 	int             WeaponStages;
-	int WeaponStage [6];
-	int EliteStage [6];
-//	DWORD			Pad_0;
+	int WeaponStage[6];
+	int EliteStage[6];
+	//	DWORD			Pad_0;
 	int             RateUp;
 	int             RateDown;
 	bool            SelfHealing;
@@ -520,7 +572,7 @@ public:
 	int             ZFudgeTunnel;
 	int             ZFudgeBridge;
 	char            PaletteFile[0x20];
-	DynamicVectorClass<ColorScheme*>*           Palette; //no... idea....
+	DynamicVectorClass<ColorScheme*>* Palette; //no... idea....
 	DWORD           align_DF4;
 };
-static_assert(sizeof(TechnoTypeClass) == 0xDF8 ,"Invalid size.");
+static_assert(sizeof(TechnoTypeClass) == 0xDF8, "Invalid size.");

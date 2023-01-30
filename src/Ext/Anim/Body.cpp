@@ -5,7 +5,7 @@
 
 #include <ColorScheme.h>
 
-std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
+//std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
 AnimExt::ExtContainer AnimExt::ExtMap;
 
 void AnimExt::ExtData::InitializeConstants()
@@ -26,6 +26,7 @@ void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 	case AbstractType::ParticleSystem:
 		AnnounceInvalidPointer(Invoker, ptr);
 		AnnounceInvalidPointer(AttachedSystem, ptr);
+		AnnounceInvalidPointer(ParentBuilding, ptr);
 		break;
 	default:
 		return;
@@ -45,6 +46,9 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeathUnitTurretFacing)
 		.Process(this->Invoker)
 		.Process(this->AttachedSystem)
+		.Process(this->OwnerSet)
+		//.Process(this->SpawnData)
+		.Process(this->ParentBuilding)
 		;
 }
 
@@ -87,6 +91,8 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 				if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 				{
 					pAnim->SetHouse(newOwner);
+					//auto offs = offsetof(AnimClass, Type);
+					AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
 
 					if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
 						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
@@ -122,6 +128,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 				if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 				{
 					pAnim->SetHouse(newOwner);
+					AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
 
 					if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
 						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
@@ -153,7 +160,9 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, AnimTypeExt::ExtData
 		{
 			if (auto const newOwner = HouseExt::GetHouseKind(pExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 			{
+
 				pAnim->SetHouse(newOwner);
+				AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
 
 				if (pExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
 					pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
@@ -195,6 +204,34 @@ TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis , bool Dealt
 	}
 
 	return nullptr;
+}
+
+Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
+{
+	if (pThis->OwnerObject)
+	{
+		const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+		if (!pExt || !pExt->Layer_UseObjectLayer.isset())
+		{
+			return Layer::Ground;
+		}
+
+		if (pExt->Layer_UseObjectLayer.Get())
+		{
+			if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject))
+			{
+				if (auto const pLocomotor = pFoot->Locomotor.get())
+					return pLocomotor->In_Which_Layer();
+			}
+			else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+				return pBullet->InWhichLayer();
+
+			return pThis->OwnerObject->ObjectClass::InWhichLayer();
+		}
+	}
+
+	return pThis->Type ? pThis->Type->Layer : Layer::Air;
 }
 
 bool AnimExt::LoadGlobals(PhobosStreamReader& Stm)

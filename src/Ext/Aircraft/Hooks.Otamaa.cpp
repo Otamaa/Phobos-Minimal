@@ -66,7 +66,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesGlobal->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesGlobal->ParadropRadius);
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -77,7 +77,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesGlobal->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesGlobal->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -186,32 +186,6 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 }
 #endif
 
-
-DEFINE_HOOK(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
-{
-	std::for_each(AircraftClass::Array->begin(), AircraftClass::Array->end(), [](AircraftClass* const pThis) {
-		 if (pThis) {
-			if (pThis->Type->AirportBound) {
-				if (auto pCell = pThis->GetCell()) {
-					 if (auto pBuilding = pCell->GetBuilding()) {
-						 if (pBuilding->Type->Helipad) {
-							 pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
-							pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
-							auto nDockCoord = pBuilding->GetDockCoords(pThis);
-							pThis->SetLocation(nDockCoord);
-							pThis->DockedTo = pBuilding;
-							//pThis->SecondaryFacing.Set_Desired(DirStruct { pThis->GetLandDir() });
-							 if (pThis->GetHeight() > 0)
-								pThis->Tracker_4134A0();
-						 }
-					 }
-				}
-			}
-		 }
-	});
-
-	return 0x0;
-}
 
 DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
 {

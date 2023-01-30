@@ -1,10 +1,13 @@
 #include "ShieldClass.h"
 
 #include <Ext/Rules/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/TEvent/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 
@@ -25,7 +28,7 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 }
 
 ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTechno }
-, TechnoID { }
+, CurTechnoType { nullptr }
 , HP { 0 }
 , Timers_SelfHealing { }
 , Timers_SelfHealing_Warhead { }
@@ -47,7 +50,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 {
 	this->UpdateType();
 	SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
-	this->TechnoID = this->Techno->get_ID();
+	this->CurTechnoType = pTechno->GetTechnoType();
 }
 
 void ShieldClass::UpdateType()
@@ -60,7 +63,7 @@ bool ShieldClass::Serialize(T& Stm)
 {
 	return Stm
 		.Process(this->Techno)
-		.Process(this->TechnoID)
+		.Process(this->CurTechnoType)
 		.Process(this->HP)
 		.Process(this->Timers_SelfHealing)
 		.Process(this->Timers_SelfHealing_Warhead)
@@ -107,7 +110,7 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	{
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
 		pToExt->Shield = std::make_unique<ShieldClass>(pTo);
-		pToExt->Shield->TechnoID = pFromExt->Shield->TechnoID;
+		pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
 		pToExt->Shield->Available = pFromExt->Shield->Available;
 		pToExt->Shield->HP = pFromExt->Shield->HP;
 	}
@@ -133,6 +136,8 @@ bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 
 void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 {
+	if (!IsActive())
+		return;
 
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
@@ -224,10 +229,19 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 	// else if (nDamage == 0)
 	nDamageResult = healthDamage;
+	auto pExt = TechnoExt::ExtMap.Find(this->Techno);
 
 	if (nDamageResult >= 0)
+	{
 		*args->Damage = nDamageResult;
 
+		if (auto const pTag = this->Techno->AttachedTag)
+			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, this->Techno,
+				CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
+	}
+
+	if (nDamageResult == 0)
+		pExt->SkipLowDamageCheck = true;
 }
 
 void ShieldClass::ResponseAttack() const
@@ -336,9 +350,16 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 
 void ShieldClass::OnUpdate()
 {
-	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
-	{
+	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter) {
 		return;
+	}
+
+	if (this->Techno->Location == CoordStruct::Empty)
+		return;
+
+	if (this->Techno->WhatAmI() == AbstractType::Building) {
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
+			return;
 	}
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
@@ -376,6 +397,14 @@ void ShieldClass::OnUpdate()
 		if (!this->Cloak && !this->Temporal && this->Online && (this->HP > 0 && this->Techno->Health > 0))
 			this->CreateAnim();
 	}
+
+	if (this->Timers_Respawn_Warhead.Completed())
+		this->Timers_Respawn_Warhead.Stop();
+
+	if (this->Timers_SelfHealing_Warhead.Completed())
+		this->Timers_SelfHealing_Warhead.Stop();
+
+	this->LastTechnoHealthRatio = ratio;
 }
 
 // The animation is automatically destroyed when the associated unit receives the isCloak statute.
@@ -474,9 +503,9 @@ void ShieldClass::TemporalCheck()
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto
 bool ShieldClass::ConvertCheck()
 {
-	const auto newID = this->Techno->get_ID();
+	const auto newID = this->Techno->GetTechnoType();
 
-	if (CRT::strcmp(this->TechnoID.data(), newID) == 0)
+	if (this->CurTechnoType == newID)
 		return false;
 
 	const auto pTechnoExt = TechnoExt::ExtMap.Find(this->Techno);
@@ -531,7 +560,7 @@ bool ShieldClass::ConvertCheck()
 		}
 	}
 
-	this->TechnoID = newID;
+	this->CurTechnoType = newID;
 
 	return false;
 }
@@ -542,7 +571,7 @@ void ShieldClass::SelfHealing()
 	const auto timer = &this->Timers_SelfHealing;
 	const auto timerWH = &this->Timers_SelfHealing_Warhead;
 
-	if (timerWH->Expired() && timer->InProgress())
+	if (timerWH->Completed() && timer->InProgress())
 	{
 		int passedTime = Unsorted::CurrentFrame - timer->StartTime;
 		int timeLeft = pType->SelfHealing_Rate - passedTime;
@@ -619,12 +648,12 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 		}
 	}
 
-	const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr);
-
 	this->LastBreakFrame = Unsorted::CurrentFrame;
 
-	if (pWeaponType)
-		TechnoExt::FireWeaponAtSelf(this->Techno, pWeaponType);
+	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr)) {
+		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
+		WeaponTypeExt::DetonateAt(pWeaponType , pTarget , this->Techno);
+	}
 }
 
 void ShieldClass::RespawnShield()

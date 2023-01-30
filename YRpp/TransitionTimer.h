@@ -5,11 +5,6 @@
 struct TransitionTimer
 {
 public:
-	//Constructor, Destructor
-	TransitionTimer()
-		{ JMP_THIS(0x4A50F0); }
-
-	~TransitionTimer() = default;
 
 	bool AreStates11() // 0x4A5110
 		{ return this->State1 && this->State2; }
@@ -53,3 +48,5 @@ public:
 	bool        State1;
 	bool        State2;
 };
+
+static_assert(sizeof(TransitionTimer) == 0x20, "Invalid Size !");

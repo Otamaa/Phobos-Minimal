@@ -42,7 +42,7 @@ public:
 
 	static constexpr reference<bool, 0x8464ACu> const VoicesEnabled{};
 
-	static VocClass* Find(const char* pName)
+	static NOINLINE VocClass* __fastcall Find(const char* pName)
 	{
 		for(int i = 0; i < Array->Count; ++i) {
 			if(!CRT::strcmpi(Array->Items[i]->Name, pName)) {
@@ -52,7 +52,7 @@ public:
 		return nullptr;
 	}
 
-	static int __fastcall FindIndex(const char *pName)
+	static int __fastcall FindIndexById(const char *pName)
 		{ JMP_STD(0x7514D0); }
 
 	/* Play a sound independant of the position.

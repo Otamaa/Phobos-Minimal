@@ -57,14 +57,28 @@ InfantryExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x517CB0, InfantryClass_CTOR, 0x5)
+//DEFINE_HOOK(0x517B4A, InfantryClass_CTOR, 0xA)
+//{
+//	GET(InfantryClass*, pItem, ESI);
+//	GET(InfantryTypeClass*, pType, EAX);
+//
+//	if(pType) {
+//		InfantryExt::ExtMap.JustAllocate(pItem, pItem, "Failed !");
+//		return 0x517B4E;
+//	}
+//
+//	return 0x517BBD;
+//}
+
+DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 {
 	GET(InfantryClass*, pItem, ESI);
-	InfantryExt::ExtMap.JustAllocate(pItem, pItem->Type, "Failed !");
+
+	InfantryExt::ExtMap.JustAllocate(pItem, pItem, "Failed !");
 	return 0;
 }
 
-DEFINE_HOOK(0x517E89, InfantryClass_DTOR, 0x7)
+DEFINE_HOOK(0x517E7A, InfantryClass_DTOR, 0x5)
 {
 	GET(InfantryClass* const, pItem, ESI);
 	InfantryExt::ExtMap.Remove(pItem);
@@ -82,7 +96,9 @@ DEFINE_HOOK(0x521960, InfantryClass_SaveLoad_Prefix, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x521AEC, InfantryClass_Load_Suffix, 0x6)
+// Before : 0x521AEC , 0x6
+// After : 521AEA , 0x5
+DEFINE_HOOK(0x521AEA, InfantryClass_Load_Suffix, 0x5)
 {
 	InfantryExt::ExtMap.LoadStatic();
 	return 0;
@@ -90,7 +106,11 @@ DEFINE_HOOK(0x521AEC, InfantryClass_Load_Suffix, 0x6)
 
 DEFINE_HOOK(0x521B14, InfantryClass_Save_Suffix, 0x3)
 {
-	InfantryExt::ExtMap.SaveStatic();
+	GET(const HRESULT, nRes, EAX);
+
+	if (SUCCEEDED(nRes))
+		InfantryExt::ExtMap.SaveStatic();
+
 	return 0;
 }
 

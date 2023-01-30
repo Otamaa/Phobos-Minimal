@@ -2,6 +2,7 @@
 
 #include <ScenarioClass.h>
 
+#include <Ext/Bullet/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -65,6 +66,16 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	{
 		const auto pTechno = abstract_cast<TechnoClass*>(pTarget);
 
+		if(pTechno) {
+			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
+
+			if (const auto pShieldData = pExt->Shield.get()) {
+				if (pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon)) {
+					return CannotFire;
+				}
+			}
+		}
+
 		CellClass* targetCell = nullptr;
 
 		// Ignore target cell for airborne technos.
@@ -119,10 +130,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 						return CannotFire;
 				}
 
-				auto pTargetTechnoExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-				if (pTargetTechnoExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-					pFoot->IsWarpingIn() && pTargetTechnoExt->ChronoDelay_Immune.Get())
+				if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 					return CannotFire;
 			}
 		}
@@ -166,7 +174,8 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 		{
 			auto const range = pWeaponType->Range / Unsorted::d_LeptonsPerCell;
 
-			const std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(static_cast<size_t>(range + 0.99));
+			std::vector<CellStruct> adjacentCells;
+			GeneralUtils::AdjacentCellsInRange(adjacentCells ,static_cast<size_t>(range + 0.99));
 			size_t size = adjacentCells.size();
 
 			for (int i = 0; i < (int)size; i++)
@@ -301,16 +310,20 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 
 				if (openTWeaponIndex != -1)
 					tWeaponIndex = openTWeaponIndex;
-				else if (pPassenger->HasTurret())
-					tWeaponIndex = pPassenger->CurrentWeaponNumber;
+				else //if (pPassenger->HasTurret())
+					//tWeaponIndex = pPassenger->CurrentWeaponNumber;
+					tWeaponIndex = pPassenger->SelectWeapon(pThis->Target);
 
-				if (WeaponTypeClass* pTWeapon = pPassenger->GetWeapon(tWeaponIndex)->WeaponType)
+				const auto pTWeapon = pPassenger->GetWeapon(tWeaponIndex);
+
+				if (pTWeapon->WeaponType && pTWeapon->WeaponType->FireInTransport)
 				{
-					if (pTWeapon->Range < smallestRange)
-						smallestRange = pTWeapon->Range;
+					if (pTWeapon->WeaponType->Range < smallestRange) {
+							smallestRange = pTWeapon->WeaponType->Range;
+					}
 				}
 
-				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+				pPassenger = static_cast<FootClass*>(pPassenger->NextObject);
 			}
 
 			if (result > smallestRange)

@@ -11,6 +11,7 @@
 #include <TRect.h>
 #include <CoordStruct.h>
 #include <ColorStruct.h>
+#include <GameStrings.h>
 
 class TechnoTypeClass;
 
@@ -82,6 +83,7 @@ public:
 		{ JMP_THIS(0x526CC0); }
 
 	bool Is_Loaded() const { return !Sections.IsEmpty(); }
+
 	bool Is_Present(const char *pSection, const char *pKey = nullptr)
 	{
 		if (pKey == nullptr)
@@ -104,6 +106,7 @@ public:
 	//Reads an escaped Unicode string. Returns the string's length.
 	int ReadUnicodeString(const char* pSection, const char* pKey, const wchar_t* pDefault, wchar_t* pBuffer, size_t szBufferSize)
 		{ JMP_THIS(0x528F00); }
+
 	//Writes an escaped Unicode string.
 	bool WriteUnicodeString(const char* pSection, const char* pKey, const wchar_t* pString)
 		{ JMP_THIS(0x528E00); }
@@ -141,6 +144,7 @@ public:
 		_asm {fstp dDefault};
 		return dDefault;
 	}
+
 	void GetDouble(const char* pSection, const char* pKey, double& nValue)
 		{ nValue = ReadDouble(pSection, pKey, nValue); }
 
@@ -160,8 +164,10 @@ public:
 		GetDouble(pSection, pKey, buffer);
 		return static_cast<int>(buffer * 900.0);
 	}
+
 	void GetRate(const char* pSection, const char* pKey, int& nValue)
 		{ nValue = ReadRate(pSection, pKey, nValue); }
+
 	bool WriteRate(const char* pSection, const char* pKey, int nValue)
 	{
 		double dValue = nValue / 900.0;
@@ -186,6 +192,7 @@ public:
 
 	void GetPoint2D(const char* pSection, const char* pKey, Point2D& value)
 		{ ReadPoint2D(value, pSection, pKey, value); }
+
 	//Writes two integer values.
 	bool Write2Integers(const char* pSection, const char* pKey, int* pValues)
 		{ JMP_THIS(0x5297E0); }
@@ -205,6 +212,7 @@ public:
 	//Reads three byte values.
 	byte* Read3Bytes(byte* pBuffer, const char* pSection, const char* pKey, byte* pDefault)
 		{ JMP_THIS(0x474B50); }
+
 	//Writes three byte values.
 	bool Write3Bytes(const char* pSection, const char* pKey, byte* pValues)
 		{ JMP_THIS(0x474C20); }
@@ -339,7 +347,7 @@ public:
 		{ JMP_THIS(0x477640); }
 
 
-	TechnoTypeClass* GetTechnoType(const char* pSection, const char* pKey)
+	TechnoTypeClass* ReadTechnoType(const char* pSection, const char* pKey)
 		{ JMP_THIS(0x476EB0); }
 
 	// safer and more convenient overload for string reading
@@ -366,14 +374,13 @@ public:
 	// fsldargh who the fuck decided to pass structures by value here
 	static TypeList<int>* __fastcall GetPrerequisites(TypeList<int>* pBuffer, INIClass* pINI,
 		const char* pSection, const char* pKey, TypeList<int> ndefaults)
-
 			{ JMP_STD(0x4770E0); }
 
 	TypeList<int>* GetTypeList(TypeList<int>* ret , const char* pSection , const char* pKey , TypeList<int> def)
 		{ JMP_THIS(0x475D70); }
 
 	static bool IsBlank(const char *pValue)
-		{ return CRT::strcmpi(pValue, "<none>") == 0  || CRT::strcmpi(pValue, "none") == 0; }
+		{ return CRT::strcmpi(pValue, GameStrings::NoneStr()) == 0  || CRT::strcmpi(pValue, GameStrings::NoneStrb()) == 0; }
 
 	//Properties
 
@@ -388,6 +395,9 @@ public:
 };
 static_assert(sizeof(INIClass) == 0x40);//64
 
+class AircraftTypeClass;
+class InfantryTypeClass;
+class WarheadTypeClass;
 //Extended INI class specified for C&C use
 class CCINIClass : public INIClass
 {
@@ -414,11 +424,10 @@ public:
 	static constexpr reference<CCINIClass, 0x8870C0u> const INI_RA2MD{};
 
 	//non-static
-	CCINIClass() : INIClass(false)
-	{
+	CCINIClass() : INIClass(false) {
 		THISCALL(0x535AA0);
 		Digested = false;
-		*reinterpret_cast<DWORD*>(this) = 0x7E1AF4;
+		VTABLE_SET(this, 0x7E1AF4);
 	}
 
 	virtual ~CCINIClass() RX;
@@ -467,9 +476,16 @@ public:
 	template<class T>
 	bool Put_TypeList(const char* section, const char* entry, const TypeList<T*> value);
 
-
 	DWORD GetCRC()
 		{ JMP_THIS(0x476D80); }
+
+	//Most of them are inlined 
+#define FINDORMAKETYPE(C,addr) C* FindOrMake(const char* pSection, const char* pKey , C* pDefault) { JMP_THIS(addr); }
+
+	FINDORMAKETYPE(AircraftTypeClass, 0x67BD30u)
+	FINDORMAKETYPE(InfantryTypeClass, 0x67BAC0u)
+	FINDORMAKETYPE(WarheadTypeClass , 0x67B500u)
+#undef FINDORMAKETYPE
 
 	//Properties
 

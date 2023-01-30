@@ -8,6 +8,7 @@ DEFINE_HOOK(0x689910, ScenarioClass_SetLocalToByID, 0x5)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(const char, bState, 0x8);
+	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	ScenarioExt::Global()->SetVariableToByID(false, nIndex, bState);
 
@@ -18,6 +19,7 @@ DEFINE_HOOK(0x689A00, ScenarioClass_GetLocalStateByID, 0x6)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(char*, pOut, 0x8);
+	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	ScenarioExt::Global()->GetVariableStateByID(false, nIndex, pOut);
 
@@ -27,6 +29,7 @@ DEFINE_HOOK(0x689A00, ScenarioClass_GetLocalStateByID, 0x6)
 DEFINE_HOOK(0x689B20, ScenarioClass_ReadLocalVariables, 0x6)
 {
 	GET_STACK(CCINIClass*, pINI, 0x4);
+	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	ScenarioExt::Global()->ReadVariables(false, pINI);
 
@@ -37,6 +40,7 @@ DEFINE_HOOK(0x689670, ScenarioClass_SetGlobalToByID, 0x5)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(const char, bState, 0x8);
+	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	ScenarioExt::Global()->SetVariableToByID(true, nIndex, bState);
 
@@ -47,6 +51,7 @@ DEFINE_HOOK(0x689760, ScenarioClass_GetGlobalStateByID, 0x6)
 {
 	GET_STACK(const int, nIndex, 0x4);
 	GET_STACK(char*, pOut, 0x8);
+	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
 	ScenarioExt::Global()->GetVariableStateByID(true, nIndex, pOut);
 
@@ -56,7 +61,7 @@ DEFINE_HOOK(0x689760, ScenarioClass_GetGlobalStateByID, 0x6)
 // Called by MapGeneratorClass
 DEFINE_HOOK(0x689880, ScenarioClass_ReadGlobalVariables, 0x6)
 {
-	GET_STACK(CCINIClass*, pINI, 0x4);
+	GET_STACK(CCINIClass* const, pINI, 0x4);
 
 	ScenarioExt::Global()->ReadVariables(true, pINI);
 
@@ -64,9 +69,11 @@ DEFINE_HOOK(0x689880, ScenarioClass_ReadGlobalVariables, 0x6)
 }
 
 // ScenarioClass_ReadGlobalVariables inlined in Read_Scenario_INI
-DEFINE_HOOK(0x6876C2, ReadScenarioINI_Inlined_ReadGlobalVariables, 0x6)
+DEFINE_HOOK(0x6876CE, ReadScenarioINI_Inlined_ReadGlobalVariables, 0x9)
 {
-	ScenarioExt::Global()->ReadVariables(true, CCINIClass::INI_Rules);
+	GET(CCINIClass* const, pINI, EBP);
+
+	ScenarioExt::Global()->ReadVariables(true, pINI);
 
 	// Stupid inline
 	R->ESI(GameMode::Campaign);

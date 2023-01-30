@@ -1,6 +1,12 @@
 #pragma once
 
 #include <AbstractTypeClass.h>
+#include <Helpers/CompileTime.h>
+
+enum class Presistance
+{
+	Volatile = 0 , SemiPersistant ,Persistent
+};
 
 //forward declarations
 class CCINIClass;
@@ -13,9 +19,40 @@ class DECLSPEC_UUID("C02D1591-0A2A-11D2-ACA7-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::TriggerType;
+	static constexpr reference<const char* , 0x8449F8u , 3u> const PersistentName {};
+	static const char* PersistentNameString(Presistance nPr) { return PersistentName[(int)nPr]; }
+	static Presistance PresistentFromName(const char* const nString) { JMP_STD(0x727190); }
 
 	//Array
-	ABSTRACTTYPE_ARRAY(TriggerTypeClass, 0x8B4178u);
+	static constexpr constant_ptr<DynamicVectorClass<TriggerTypeClass*>, 0x8B4178u> const Array {};
+
+	static NOINLINE TriggerTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static TriggerTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x727AA0);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

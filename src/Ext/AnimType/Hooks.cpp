@@ -76,17 +76,19 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 
 }
 
-DEFINE_HOOK(0x424C49, AnimClass_AttachTo_BuildingCoords, 0x5)
+DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
-	GET(CoordStruct*, pCoords, EAX);
+	LEA_STACK(CoordStruct*, pCoords, STACK_OFFS(0x34,0xC));
 
 	if (AnimTypeExt::ExtMap.Find(pThis->Type)->UseCenterCoordsIfAttached)
 	{
-		pCoords = pObject->GetRenderCoords(pCoords);
+		pObject->GetRenderCoords(pCoords);
 		pCoords->X += 128;
 		pCoords->Y += 128;
+		R->EAX(pCoords);
+		return 0x424C49;
 	}
 
 	return 0;
@@ -109,23 +111,13 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 }
 
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
-// Goes before and replaces Ares animation damage / weapon hook at 0x424538.
-DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
+
+bool NOINLINE DealDamage(AnimClass* pThis)
 {
-	enum { SkipDamage = 0x424663, Continue = 0x42464C };
-
-	GET(AnimClass*, pThis, ESI);
-
-	auto Ret_SkipDamage = [R, pThis]()
-	{
-		R->EAX(pThis->Type);
-		return 0x42465D;
-	};
-
 	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
-		return Ret_SkipDamage();
+		return false;
 
-	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
 
@@ -143,7 +135,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		if (pThis->Animation.Value == max(delay - 1, 1))
 			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
 		else
-			return Ret_SkipDamage();
+			return false;
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
@@ -155,7 +147,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		if (damage >= 1.0)
 			appliedDamage = static_cast<int>(int_round(damage));
 		else
-			return Ret_SkipDamage();
+			return false;
 	}
 	else
 	{
@@ -164,14 +156,14 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		pThis->Accum = damage;
 
 		if (damage < delay)
-			return Ret_SkipDamage();
+			return false;
 
 		// Use Type->Damage as the actually dealt damage.
 		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return Ret_SkipDamage();
+		return false;
 
 	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
 	if (adjustAccum)
@@ -179,7 +171,7 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 	else
 		pThis->Accum = 0.0;
 
-	auto nCoord = pThis->GetCoords();
+	const auto nCoord = pThis->GetCoords();
 	auto const nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
@@ -202,10 +194,26 @@ DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 		if (pTypeExt->Warhead_Detonate.Get())
-			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult , !pTypeExt->Damage_TargetInvoker.Get());
+			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult, !pTypeExt->Damage_TargetInvoker.Get());
 		else
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
+	}
+
+	return true;
+}
+
+// Goes before and replaces Ares animation damage / weapon hook at 0x424538.
+DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
+{
+	enum { SkipDamage = 0x424663, Continue = 0x42464C };
+
+	GET(AnimClass*, pThis, ESI);
+
+	if (!DealDamage(pThis))
+	{
+		R->EAX(pThis->Type);
+		return 0x424663;
 	}
 
 	return Continue;

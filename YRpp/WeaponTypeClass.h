@@ -20,7 +20,25 @@ public:
 	static const AbstractType AbsID = AbstractType::WeaponType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(WeaponTypeClass, 0x887568u);
+	static constexpr constant_ptr<DynamicVectorClass<WeaponTypeClass*>, 0x887568u> const Array {};
+
+	static NOINLINE WeaponTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static WeaponTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x772FA0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x773030);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x772C90);

@@ -15,12 +15,7 @@
 
 DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
 {
-	enum
-	{
-		ApplyDamageBonus = 0x6FE405,
-		Nothing = 0x0
-	};
-
+	enum { ApplyDamageBonus = 0x6FE405, Nothing = 0x0 };
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
@@ -34,12 +29,7 @@ DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
 
 DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
 {
-	enum
-	{
-		ApplyDamageBonus = 0x6FE435,
-		Nothing = 0x0
-	};
-
+	enum { ApplyDamageBonus = 0x6FE435, Nothing = 0x0 };
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
@@ -53,13 +43,7 @@ DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
 
 DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
 {
-	enum
-	{
-		ApplyRofMod = 0x6FD1AB,
-		SkipRofMod = 0x6FD1B1,
-		Nothing = 0x0
-	};
-
+	enum { ApplyRofMod = 0x6FD1AB, SkipRofMod = 0x6FD1B1, Nothing = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
@@ -79,13 +63,7 @@ DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
 
 DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 {
-	enum
-	{
-		ApplyRofMod = 0x6FD1EF,
-		SkipRofMod = 0x6FD1F1,
-		Nothing = 0x0
-	};
-
+	enum { ApplyRofMod = 0x6FD1EF, SkipRofMod = 0x6FD1F1, Nothing = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
@@ -197,13 +175,12 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	GET(TechnoTypeClass*, pThis, ECX);
 
 	int nVal = 1;
+	auto nStep = RulesGlobal->RepairStep;
 
-	if (pThis)
-	{
-		auto nStep = RulesGlobal->RepairStep;
-		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis))
-			if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType))
-				nStep = pTypeExt->RepairStep.Get(nStep);
+	if (pThis) {
+		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis)) { 
+			nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(nStep);
+		}
 
 		nVal = (Math::clamp(((int)((pThis->GetCost() / (pThis->Strength / nStep) * RulesGlobal->RepairPercent))), 1, MAX_VAL(int)));
 	}
@@ -265,6 +242,7 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 	return 0;
 }
 
+/* Crash a lot atm , disabled*/
 #define GET_TIMETO_BUILD(ret)\
 GET(TechnoClass*, pTech, ECX);\
 GET(int, nTime, EDX);\

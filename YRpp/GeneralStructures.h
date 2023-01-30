@@ -501,8 +501,8 @@ class ArrayWrapper
 {
 	T Data[count];
 public:
-	constexpr auto begin() const { return std::begin(Data); }
-	constexpr auto end() const { return std::end(Data); }
+	constexpr auto begin() const { return  std::begin(Data); }
+	constexpr auto end() const { return  std::end(Data); }
 	constexpr auto begin() { return std::begin(Data); }
 	constexpr auto end() { return std::end(Data); }
 

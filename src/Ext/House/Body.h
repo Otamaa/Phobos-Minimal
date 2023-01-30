@@ -1,5 +1,6 @@
 #pragma once
 #include <HouseClass.h>
+#include <TeamClass.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
@@ -41,6 +42,12 @@ public:
 
 		bool RepairBaseNodes[3];
 
+		std::vector<TeamClass*> ActiveTeams;
+
+		//#817
+		int LastBuiltNavalVehicleType;
+		int ProducingNavalUnitTypeIndex;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -59,6 +66,11 @@ public:
 			, AllRepairEventTriggered { false }
 			, LastBuildingTypeArrayIdx { -1 }
 			, RepairBaseNodes { false,false,false }
+
+			, ActiveTeams { }
+
+			, LastBuiltNavalVehicleType { -1 }
+			, ProducingNavalUnitTypeIndex { -1 }
 		{ }
 
 		virtual ~ExtData() = default;
@@ -68,6 +80,8 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
 		void LoadFromINIFile(CCINIClass* pINI);
+
+		void UpdateVehicleProduction();
 
 	private:
 		template <typename T>
@@ -87,6 +101,7 @@ public:
 			switch (abs)
 			{
 			case AbstractType::Building:
+			case AbstractType::Team:
 				return false;
 			default:
 				return true;
@@ -95,6 +110,8 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	static int LastGrindingBlanceUnit;
+	static int LastGrindingBlanceInf;
 	static int LastHarvesterBalance;
 	static int LastSlaveBalance;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
@@ -117,4 +134,43 @@ public:
 
 	static bool IsObserverPlayer();
 	static bool IsObserverPlayer(HouseClass* pCur);
+
+	static bool PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
+	static bool HasGenericPrerequisite(int idx, const Iterator<BuildingTypeClass*>& ownedBuildingTypes);
+	static int FindGenericPrerequisite(const char* id);
+	static int GetHouseIndex(int param, TeamClass* pTeam, TActionClass* pTAction);
+
+	static bool IsDisabledFromShell(
+		HouseClass const* pHouse, BuildingTypeClass const* pItem);
+
+	static size_t FindOwnedIndex(
+	HouseClass const* pHouse, int idxParentCountry,
+	Iterator<TechnoTypeClass const*> items, size_t start = 0);
+
+	static size_t FindBuildableIndex(
+		HouseClass const* pHouse, int idxParentCountry,
+		Iterator<TechnoTypeClass const*> items, size_t start = 0);
+
+	template <typename T>
+	static T* FindOwned(
+		HouseClass const* const pHouse, int const idxParent,
+		Iterator<T*> const items, size_t const start = 0)
+	{
+		auto const index = FindOwnedIndex(pHouse, idxParent, items, start);
+		return index < items.size() ? items[index] : nullptr;
+	}
+
+	template <typename T>
+	static T* FindBuildable(
+		HouseClass const* const pHouse, int const idxParent,
+		Iterator<T*> const items, size_t const start = 0)
+	{
+		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
+		return index < items.size() ? items[index] : nullptr;
+	}
+
+	static std::vector<int> AIProduction_CreationFrames;
+	static std::vector<int> AIProduction_Values;
+	static std::vector<int> AIProduction_BestChoices;
+	static std::vector<int> AIProduction_BestChoicesNaval;
 };

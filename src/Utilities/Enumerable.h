@@ -21,11 +21,11 @@ template <typename T> class Enumerable
 public:
 	static container_t Array;
 
-	static int FindIndex(const char* Title)
+	static int FindIndexById(const char* Title)
 	{
 		auto result = std::find_if(Array.begin(), Array.end(), [Title](std::unique_ptr<T>& Item)
 			{
-				return _strcmpi(Item->Name.data(), Title) == 0;
+				return CRT::strcmpi(Item->Name.data(), Title) == 0;
 			});
 
 		if (result == Array.end())
@@ -36,12 +36,12 @@ public:
 
 	static int FindIndexFromType(T* pType)
 	{
-		return (pType) ? FindIndex(pType->Name.data()) : -1;
+		return (pType) ? FindIndexById(pType->Name.data()) : -1;
 	}
 
 	static T* Find(const char* Title)
 	{
-		int result = FindIndex(Title);
+		int result = FindIndexById(Title);
 		result = result > (int)Array.size() ? (Array.empty() ? -1 : 0) : result;
 		return (result < 0) ? nullptr : Array[static_cast<size_t>(result)].get();
 	}

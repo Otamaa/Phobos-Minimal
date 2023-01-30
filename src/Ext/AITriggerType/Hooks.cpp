@@ -3,7 +3,7 @@
 
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
-#ifdef ENABLE_NEWHOOKS
+
 // TODO
 static bool CheckPrereq(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2)
 {
@@ -33,33 +33,33 @@ DEFINE_HOOK(0x41E8F0, Phobos_AITrigger_Handler, 0x8)
 	GET(HouseClass*, pHouse, EDI);
 
 	// ES Stuffs
-	if(R->Origin() == 0x41E8F0){
-		GET(HouseClass*, pHouse2, EBX);
+	//if(R->Origin() == 0x41E8F0){
+	//	GET(HouseClass*, pHouse2, EBX);
 
-		bool Handled = false;
-		if (pHouse2)
-		{
-			switch (static_cast<PhobosAINewConditionTypes>(pAITriggerType->ConditionType))
-			{
-			case PhobosAINewConditionTypes::CheckPrereq: //it seems to check prereq stuffs
-			{
-				R->AL(CheckPrereq(pAITriggerType,pHouse,pHouse2));
-				Handled = true;
-			}
-				break;
-			case PhobosAINewConditionTypes::CheckBridgeCondition:
-			{
-				R->AL(CheckBridgeCondition(pAITriggerType,pHouse,pHouse2));
-				Handled = true;
-			}
-				break;
-			}
+	//	bool Handled = false;
+	//	if (pHouse2)
+	//	{
+	//		switch (static_cast<PhobosAINewConditionTypes>(pAITriggerType->ConditionType))
+	//		{
+	//		case PhobosAINewConditionTypes::CheckPrereq: //it seems to check prereq stuffs
+	//		{
+	//			R->AL(CheckPrereq(pAITriggerType,pHouse,pHouse2));
+	//			Handled = true;
+	//		}
+	//			break;
+	//		case PhobosAINewConditionTypes::CheckBridgeCondition:
+	//		{
+	//			R->AL(CheckBridgeCondition(pAITriggerType,pHouse,pHouse2));
+	//			Handled = true;
+	//		}
+	//			break;
+	//		}
 
 
-			if(Handled)
-				return 0x41E9C7;
-		}
-	}
+	//		if(Handled)
+	//			return 0x41E9C7;
+	//	}
+	//}
 
 	//get Condition String
 	char ConditionString[68];
@@ -92,5 +92,3 @@ DEFINE_HOOK(0x41E8F0, Phobos_AITrigger_Handler, 0x8)
 
 	return 0;
 }
-
-#endif

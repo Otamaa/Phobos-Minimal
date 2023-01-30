@@ -194,7 +194,10 @@ void VectorCursor<T, V>::Next_Valid()
 		Next();
 	}
 }
-
+enum class ArrayType : int
+{
+	Vector , DynamicVector , TypeList , Counter
+};
 //========================================================================
 //=== VectorClass ========================================================
 //========================================================================
@@ -205,6 +208,8 @@ class VectorClass
 public:
 	// the hidden element count messes with alignment. only applies to align 8, 16, ...
 	static_assert(!needs_vector_delete<T>::value || (__alignof(T) <= 4), "Alignment of T needs to be less than or equal to 4.");
+
+	static const ArrayType Type = ArrayType::Vector;
 
 	constexpr VectorClass() noexcept = default;
 
@@ -428,6 +433,7 @@ class DynamicVectorClass : public VectorClass<T>
 {
 public:
 	constexpr DynamicVectorClass() noexcept = default;
+	static const ArrayType Type = ArrayType::DynamicVector;
 
 	explicit DynamicVectorClass(int capacity, T* pMem = nullptr)
 		: VectorClass<T>(capacity, pMem)
@@ -587,7 +593,7 @@ public:
 			}
 		}
 
-		this->Items[this->Count++] = std::move(item);
+		this->Items[this->Count++] = std::move_if_noexcept(item);
 		return true;
 	}
 
@@ -691,6 +697,7 @@ class TypeList : public DynamicVectorClass<T>
 {
 public:
 	constexpr TypeList() noexcept = default;
+	static const ArrayType Type = ArrayType::TypeList;
 
 	explicit TypeList(int capacity, T* pMem = nullptr)
 		: DynamicVectorClass<T>(capacity, pMem)
@@ -734,6 +741,7 @@ class CounterClass : public VectorClass<int>
 {
 public:
 	constexpr CounterClass() noexcept = default;
+	static const ArrayType Type = ArrayType::Counter;
 
 	CounterClass(const CounterClass& other)
 		: VectorClass<int>(other), Total(other.Total)

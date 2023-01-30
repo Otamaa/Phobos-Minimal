@@ -15,24 +15,7 @@
 //	return 0x0;
 //}
 //
-//DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
-//{
-//	GET_STACK(int, nHouseIdx, 0x4);
-//
-//	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
-//	if (HouseExt::IsObserverPlayer(pHouse))
-//	{
-//		R->AL(1);
-//		return 0x4870DE;
-//	}
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
-//{
-//	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
-//}
+
 //
 // Disabled , it only valid if only singe observer on the game
 //DEFINE_HOOK(0x4FC585, HouseClass_MPlayerDefeated_3, 0x6)

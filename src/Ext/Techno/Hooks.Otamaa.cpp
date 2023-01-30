@@ -291,12 +291,10 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 			return (AnimTypeClass*)nullptr;
 		};
 
-		auto pFirst = pLinked->GetCell() && pLinked->GetCell()->LandType == LandType::Water && !pLinked->GetCell()->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
+		const auto pFirst = pLinked->GetCell() && pLinked->GetCell()->LandType == LandType::Water && !pLinked->GetCell()->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
 			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExt::Global()->Aircraft_LandAnim.Get());
 
-		AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType();
-
-		if (pDecidedType)
+		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
 		{
 			if (auto pAnim = GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
 			{
@@ -307,7 +305,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 		return 0x4CEC5D;
 	}
 
-	return 0x0;
+	//return 0x0;
 }
 
 DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
@@ -479,18 +477,26 @@ DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
-// this init before phobos does !
+// init inside type check 
+// should be no problem here
 
 
 DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	//Debug::Log("Techno [%x] Init ! absType [%s] ! \n", pThis, pThis->GetThisClassName());
 
-	if (!pExt || !pTypeExt)
+	if (!pThis)
 		return 0x0;
+
+	auto pType = pThis->GetTechnoType();
+
+	if (!pType)
+		return 0x0;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (pTypeExt->VirtualUnit.Get())
 		pExt->VirtualUnit = true;
@@ -499,12 +505,13 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	{
 		pThis->UpdatePlacement(PlacementType::Remove);
 		pThis->IsOnMap = false;
-		pThis->GetTechnoType()->DontScore = true;
-		pThis->GetTechnoType()->Selectable = false;
-		pThis->GetTechnoType()->Immune = true;
+		pType->DontScore = true;
+		pType->Selectable = false;
+		pType->Immune = true;
 	}
 
 	AircraftDiveFunctional::Init(pExt, pTypeExt);
+	TechnoExt::InitializeItems(pThis , pType);
 
 	return 0x0;
 }

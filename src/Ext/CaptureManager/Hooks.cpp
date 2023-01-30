@@ -4,25 +4,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 
-DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
-{
-	GET(FootClass*, pFoot, EAX);
-
-	if (auto pTeam = pFoot->Team)
-	{
-		if (auto nTeamDecision = pTeam->Type->MindControlDecision)
-		{
-			if (nTeamDecision > 5)
-				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
-
-			R->EAX(nTeamDecision);
-			return 0x47258F;
-		}
-	}
-
-	return 0x4725B0;
-}
-
 DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 {
 	GET(CaptureManagerClass*, pThis, EDI);
@@ -37,7 +18,7 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 		auto nVictimCoord = pVictim->Location;
 		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;
 		const auto nFLH = pAttacker->GetFLH(-1 - nNodeCount % 5, CoordStruct::Empty);
-		CaptureExt::DrawLinkTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
+		Drawing::DrawLinesTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
 	}
 
 	R->EBP(nNodeCount);
@@ -159,4 +140,35 @@ DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
 	R->AL(CaptureExt::CanCapture(pThis->CaptureManager, pTarget));
 
 	return 0x6FCB40;
+}
+
+DEFINE_HOOK(0x4DBF23, FootClass_ChangeOwner_IAmNowHuman, 0x6)
+{
+	GET(FootClass* const, pThis, ESI);
+	// This is not limited to mind control, could possibly affect many map triggers
+	// This is still not even correct, but let's see how far this can help us
+
+	pThis->ShouldScanForTarget = false;
+	pThis->ShouldEnterAbsorber = false;
+	pThis->ShouldEnterOccupiable = false;
+	pThis->ShouldGarrisonStructure = false;
+	pThis->CurrentTargets.Clear();
+
+	if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
+		return 0;
+
+	switch (pThis->GetCurrentMission())
+	{
+	case Mission::Harvest:
+	case Mission::Sleep:
+	case Mission::Harmless:
+	case Mission::Repair:
+		return 0;
+	}
+
+	pThis->Override_Mission(Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+	pThis->ShouldLoseTargetNow = TRUE;
+	pThis->QueueMission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, true);
+
+	return 0;
 }

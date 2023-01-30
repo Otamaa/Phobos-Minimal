@@ -17,7 +17,25 @@ public:
 	static const AbstractType AbsID = AbstractType::AnimType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(AnimTypeClass, 0x8B4150u);
+	static constexpr constant_ptr<DynamicVectorClass<AnimTypeClass*>, 0x8B4150u> const Array {};
+
+	static NOINLINE AnimTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static AnimTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x428B80);
+	}
+
+	static int __fastcall __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x427CB0);
+	}
 
 	//static
 	static int __fastcall LoadAllAnimFile(TheaterType theater) JMP_STD(0x427940);

@@ -31,7 +31,7 @@ public:
 
 		if (this->ArrayIndex == 0)
 		{
-			return "<none>";
+			return GameStrings::NoneStr();
 		}
 		else
 		{

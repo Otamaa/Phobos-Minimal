@@ -51,7 +51,7 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 			if (!WaitForCharge)
 				pSuper->SetReadiness(true);
 
-			if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible)
+			if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible && !pSuper->IsOnHold)
 			{
 				const int oldstart = pSuper->RechargeTimer.StartTime;
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;

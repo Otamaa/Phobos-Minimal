@@ -9,8 +9,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	char filename[0x20];
 
-	for (int i = 0; i < 4; i++)
-	{
+	for (int i = 0; i < 4; i++) {
 		sprintf_s(filename, "tab%02dpp.shp", i);
 		SidebarExt::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
 	}
@@ -20,12 +19,10 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
-	for (int i = 0; i < 4; i++)
-	{
-		if (SidebarExt::TabProducingProgress[i])
-		{
-			GameDelete<true>(SidebarExt::TabProducingProgress[i]);
-			SidebarExt::TabProducingProgress[i] = nullptr;
+	for (auto& nShps : SidebarExt::TabProducingProgress) {
+		if (nShps) {
+			GameDelete<true>(nShps);
+			nShps = nullptr;
 		}
 	}
 
@@ -39,8 +36,12 @@ DEFINE_HOOK(0x6A6EB1, SidebarClass_DrawIt_ProducingProgress, 0x6)
 
 	if (Phobos::UI::ShowProducingProgress)
 	{
-		auto pPlayer = HouseClass::CurrentPlayer();
-		auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(HouseClass::CurrentPlayer->SideIndex));
+		const auto pPlayer = HouseClass::CurrentPlayer();
+		const auto pSideExt = SideExt::ExtMap.Find(SideClass::Array->GetItem(pPlayer->SideIndex));
+
+		if(!pSideExt)
+			return 0x0;
+
 		int XOffset = pSideExt->Sidebar_GDIPositions ? 29 : 32;
 		int XBase = (pSideExt->Sidebar_GDIPositions ? 26 : 20) + pSideExt->Sidebar_ProducingProgress_Offset.Get().X;
 		int YBase = 197 + pSideExt->Sidebar_ProducingProgress_Offset.Get().Y;

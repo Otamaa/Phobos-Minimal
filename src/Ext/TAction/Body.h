@@ -19,7 +19,14 @@ enum class PhobosTriggerAction : unsigned int
 	AdjustLighting = 505,
 	RunSuperWeaponAtLocation = 506,
 	RunSuperWeaponAtWaypoint = 507,
-
+	
+	//#658
+	RandomTriggerPut = 12000,
+	RandomTriggerRemove = 12001,
+	RandomTriggerEnable = 12002,
+	ScoreCampaignText = 19000,
+	ScoreCampaignTheme = 19001,
+	SetNextMission = 19002 ,
 	//ES
 	Something_700 = 700,
 	Something_701 = 701,
@@ -76,6 +83,9 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		void Clear() override;
+		void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;
@@ -105,6 +115,16 @@ public:
 
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
 
+	ACTION_FUNC(RandomTriggerPut);
+	ACTION_FUNC(RandomTriggerEnable);
+	ACTION_FUNC(RandomTriggerRemove);
+
+	ACTION_FUNC(ScoreCampaignText);
+	ACTION_FUNC(ScoreCampaignTheme);
+	ACTION_FUNC(SetNextMission);
+
+
 #undef ACTION_FUNC
 
+	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
 };

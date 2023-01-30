@@ -14,7 +14,25 @@ public:
 	static const AbstractType AbsID = AbstractType::TerrainType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(TerrainTypeClass, 0xA8E318u);
+	static constexpr constant_ptr<DynamicVectorClass<TerrainTypeClass*>, 0xA8E318u> const Array {};
+
+	static NOINLINE TerrainTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static TerrainTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x71E2A0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x71DD80);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

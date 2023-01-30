@@ -91,6 +91,17 @@ bool ObjectClass::IsFullHP() const
 double ObjectClass::GetHealthPercentage_() const
 { return static_cast<double>(this->Health) / this->GetType()->Strength; }
 
+int HouseClass::GetSpawnPosition()
+{
+	for (int i = 0; i < HouseClass::MaxPlayers; i++)
+	{
+		if (HouseClass::Array->GetItemOrDefault(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
+			return i;
+	}
+
+	return -1;
+}
+
 int HouseClass::CountOwnedNow(const TechnoTypeClass* const pItem) const {
 	switch(pItem->WhatAmI()) {
 	case AbstractType::BuildingType:
@@ -1169,3 +1180,27 @@ const char* const FileClass::FileErrorToString[] =
 		, "Directory not empty. "
 		, "Invalid or incomplete multibyte or wide character. "
 };
+
+HouseClass* HouseClass::FindByCountryName(const char* name)
+{
+	auto idx = HouseTypeClass::FindIndexByIdAndName(name);
+	return FindByCountryIndex(idx);
+}
+
+// gets the first house of a type with name Neutral
+HouseClass* HouseClass::FindNeutral()
+{
+	return FindByCountryName(GameStrings::Neutral());
+}
+
+// gets the first house of a type with name Special
+HouseClass* HouseClass::FindSpecial()
+{
+	return FindByCountryName(GameStrings::Special());
+}
+
+// gets the first house of a type from the Civilian side
+HouseClass* HouseClass::FindCivilianSide()
+{
+	return FindBySideName(GameStrings::Civilian());
+}

@@ -53,12 +53,12 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 		ReturnHandled = 0x6F37AF
 	};
 
+	GET(TechnoTypeClass*, pThisTechnoType, EAX);
 	GET(TechnoClass*, pTarget, EBP);
 	GET(TechnoClass*, pTechno, ECX);
 
 	if (pTechno && pTarget)
 	{
-		const auto pThisTechnoType = pTechno->GetTechnoType();
 		const auto pTargetType = pTarget->GetTechnoType();
 
 		if (!pThisTechnoType || !pTargetType)
@@ -77,20 +77,20 @@ DEFINE_HOOK(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x8)
 		if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0 &&
 				pTarget->CloakState == CloakState::Cloaked)
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_Cloaked);
+			R->EAX(pTechnoTypeExt->ForceWeapon_Cloaked.Get());
 			return ReturnHandled;
 		}
 
 		if (pTechnoTypeExt->ForceWeapon_Disguised >= 0 &&
 			   pTarget->IsDisguised())
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_Disguised);
+			R->EAX(pTechnoTypeExt->ForceWeapon_Disguised.Get());
 			return ReturnHandled;
 		}
 
 		if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
 		{
-			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP);
+			R->EAX(pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
 			return ReturnHandled;
 		}
 	}
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	{
-		int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
+		const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
 
 		if (weaponIndex != -1)
 			return weaponIndex == 1 ? Secondary : Primary;

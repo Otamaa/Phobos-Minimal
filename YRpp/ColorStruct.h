@@ -35,8 +35,8 @@ struct HSVClass
 struct Color16Struct;
 struct ColorStruct
 {
-	static inline constexpr int Max = 255;
-
+	static inline constexpr BYTE Max = 255;
+	
 	static constexpr reference<ColorStruct, 0xA80220> White {};
 	static constexpr reference<int, 0x8A0DD0> RedShiftLeft {};
 	static constexpr reference<int, 0x8A0DD4> RedShiftRight {};
@@ -52,10 +52,12 @@ struct ColorStruct
 	{ }
 
 	constexpr ColorStruct(int const r, int const g, int const b) noexcept
-		: R(static_cast<BYTE>(std::clamp(r, 0, Max)))
-		, G(static_cast<BYTE>(std::clamp(g, 0, Max)))
-		, B(static_cast<BYTE>(std::clamp(b, 0, Max)))
-	{ }
+		: R(0) , G(0) , B(0)
+	{ 
+		R = std::clamp<BYTE>((BYTE)r, (BYTE)0, Max);
+		G = std::clamp<BYTE>((BYTE)g, (BYTE)0, Max);
+		B = std::clamp<BYTE>((BYTE)b, (BYTE)0, Max);
+	}
 
 	ColorStruct(const ColorStruct& c)
 		: R(c.R), G(c.G), B(c.B)

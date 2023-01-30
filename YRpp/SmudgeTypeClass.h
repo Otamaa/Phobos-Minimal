@@ -13,7 +13,25 @@ public:
 	static const AbstractType AbsID = AbstractType::SmudgeType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(SmudgeTypeClass, 0xA8EC18u);
+	static constexpr constant_ptr<DynamicVectorClass<SmudgeTypeClass*>, 0xA8EC18u> const Array {};
+
+	static NOINLINE SmudgeTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static SmudgeTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x6B5910);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x6B5440);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

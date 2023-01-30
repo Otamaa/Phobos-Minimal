@@ -104,7 +104,7 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 		}
 	}
 
-	return AnimTypeClass::FindIndex(pDefault);
+	return AnimTypeClass::FindIndexById(pDefault);
 
 }
 
@@ -153,19 +153,20 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || !pWhat->GetTechnoType() || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
+
+	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
+		return fFactor;
+	
+	auto const pType = pWhat->GetTechnoType();
+	if (!pType)
 		return fFactor;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
-	{
-		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
-		{
-			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
-			{
-				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
-				{
+	if(auto pHouseExt = HouseExt::ExtMap.Find(pOwner)) {
+		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty()) {
+			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
+				if (auto const pExt = BuildingTypeExt::ExtMap.Find<true>(pBldType)) {
 					if (!pExt->SpeedBonus.AffectedType.empty())
-						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat->GetTechnoType()))
+						if (!pExt->SpeedBonus.AffectedType.Contains(pType))
 							continue;
 
 					auto nBonus = 0.000;
@@ -193,8 +194,14 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 					fFactor *= std::pow(nBonus, nCount);
 				}
+				else {
+					Debug::Log("[%s] Error when tyring to get BuildingTypeClassExt Pointer ! \n", __FUNCTION__);
+				}
 			}
 		}
+	}
+	else {	
+		Debug::Log("[%s] Missing HouseClassExt Pointer ! \n" , __FUNCTION__);
 	}
 
 	return fFactor;
@@ -206,14 +213,15 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
 	{
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		{
 			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
-				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+				if (auto const pExt = BuildingTypeExt::ExtMap.Find<true>(pBldType))
 				{
+
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
 							continue;
@@ -243,8 +251,16 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 
 					fFactor *= std::pow(nBonus, nCount);
 				}
+				else
+				{
+					Debug::Log("[%s] Error when tyring to get BuildingTypeClassExt Pointer ! \n", __FUNCTION__);
+				}
 			}
 		}
+	}
+	else
+	{
+		Debug::Log("[%s] Missing HouseClassExt Pointer ! \n", __FUNCTION__);
 	}
 
 	return fFactor;
@@ -325,11 +341,15 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Grinding_DisplayRefund.Read(exINI, pSection, "Grinding.DisplayRefund");
 	this->Grinding_DisplayRefund_Houses.Read(exINI, pSection, "Grinding.DisplayRefund.Houses");
 	this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
+	this->Grinding_PlayDieSound.Read(exINI, pSection, "Grinding.PlayDieSound");
+
+	this->Refinery_DisplayDumpedMoneyAmount.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCost");
+	this->Refinery_DisplayRefund_Offset.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCostOffset");
 
 	// Ares SuperWeapons tag
 	auto const& pArray =  SuperWeaponTypeClass::Array;
 	if (pArray->IsAllocated && pArray->Count > 0)
-	this->SuperWeapons.Read(exINI, pSection, "SuperWeapons");
+		this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
 
 	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 
@@ -403,20 +423,20 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->DamageFireTypes.Read(exINI, pSection, "DamageFireTypes");
 
-	this->RepairRate.Read(exINI, pSection, "RepairRate");
-	this->RepairStep.Read(exINI, pSection, "RepairStep");
+	this->RepairRate.Read(exINI, pSection, GameStrings::RepairRate());
+	this->RepairStep.Read(exINI, pSection, GameStrings::RepairStep());
 
 	this->DisableDamageSound.Read(exINI, pSection, "DisableDamagedSound");
 	this->PlayerReturnFire.Read(exINI, pSection, "PlayerReturnFire");
 
-	this->BuildingOccupyDamageMult.Read(exINI, pSection, "OccupyDamageMultiplier");
-	this->BuildingOccupyROFMult.Read(exINI, pSection, "OccupyROFMultiplier");
+	this->BuildingOccupyDamageMult.Read(exINI, pSection, GameStrings::OccupyDamageMultiplier());
+	this->BuildingOccupyROFMult.Read(exINI, pSection, GameStrings::OccupyROFMultiplier());
 
-	this->BuildingBunkerDamageMult.Read(exINI, pSection, "BunkerDamageMultiplier");
-	this->BuildingBunkerROFMult.Read(exINI, pSection, "BunkerROFMultMultiplier");
+	this->BuildingBunkerDamageMult.Read(exINI, pSection, GameStrings::BunkerDamageMultiplier());
+	this->BuildingBunkerROFMult.Read(exINI, pSection, GameStrings::BunkerROFMultMultiplier());
 
-	this->BunkerWallsUpSound.Read(exINI, pSection, "BunkerWallsUpSound");
-	this->BunkerWallsDownSound.Read(exINI, pSection, "BunkerWallsDownSound");
+	this->BunkerWallsUpSound.Read(exINI, pSection, GameStrings::BunkerWallsUpSound());
+	this->BunkerWallsDownSound.Read(exINI, pSection, GameStrings::BunkerWallsDownSound());
 
 	this->PipShapes01Palette.Read(exINI.GetINI(), pSection, "PipShapes.Palette");
 	this->PipShapes01Remap.Read(exINI, pSection, "PipShapes.Remap");
@@ -432,12 +452,18 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SpeedBonus.Read(exINI, pSection);
 	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
 
-	this->EnterBioReactorSound.Read(exINI, pSection, "EnterBioReactorSound");
-	this->LeaveBioReactorSound.Read(exINI, pSection, "LeaveBioReactorSound");
-	this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
-	this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
-	this->SpyEffect_InfiltratorSuperWeapon.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon");
+	this->EnterBioReactorSound.Read(exINI, pSection, GameStrings::EnterBioReactorSound());
+	this->LeaveBioReactorSound.Read(exINI, pSection, GameStrings::LeaveBioReactorSound());
 
+	this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
+	
+	this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
+	if (this->SpyEffect_VictimSuperWeapon.isset())
+		this->SpyEffect_VictimSW_RealLaunch.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon.RealLaunch");
+
+	this->SpyEffect_InfiltratorSuperWeapon.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon");
+	if (this->SpyEffect_InfiltratorSuperWeapon.isset())
+		this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
 
 	this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
 	this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
@@ -475,19 +501,18 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 
 #ifndef REPLACE_BUILDING_ONFIRE
-	this->DamageFire_Offs.Clear();
-
+	this->DamageFire_Offs.clear();
 	char tempFire_OffsBuffer[32];
 	for (int i = 0;; ++i)
 	{
-		Nullable<Point2D> nFire_offs;
+		Nullable<Point2D> nFire_offs{};
 		_snprintf_s(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
 		nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
 		if (!nFire_offs.isset() || nFire_offs.Get() == Point2D::Empty)
 			break;
 
-		this->DamageFire_Offs.AddItem(nFire_offs.Get());
+		this->DamageFire_Offs.emplace_back(nFire_offs.Get());
 	}
 #endif
 	this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
@@ -514,6 +539,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->OccupierMuzzleFlashes)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->AllowAirstrike)
+
 		.Process(this->Grinding_AllowAllies)
 		.Process(this->Grinding_AllowOwner)
 		.Process(this->Grinding_AllowTypes)
@@ -523,6 +549,11 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Grinding_DisplayRefund)
 		.Process(this->Grinding_DisplayRefund_Houses)
 		.Process(this->Grinding_DisplayRefund_Offset)
+		.Process(this->Grinding_PlayDieSound)
+
+
+		.Process(this->Refinery_DisplayDumpedMoneyAmount)
+		.Process(this->Refinery_DisplayRefund_Offset)
 
 		.Process(this->PlacementPreview_Remap)
 		.Process(this->PlacementPreview_Palette)
@@ -588,6 +619,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_Custom)
 		.Process(this->SpyEffect_VictimSuperWeapon)
 		.Process(this->SpyEffect_InfiltratorSuperWeapon)
+		.Process(this->SpyEffect_InfiltratorSW_JustGrant)
+		.Process(this->SpyEffect_VictimSW_RealLaunch)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)
@@ -676,7 +709,7 @@ DEFINE_HOOK(0x46536A, BuildingTypeClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-//DEFINE_HOOK_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
+DEFINE_HOOK_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 {
 	GET(BuildingTypeClass*, pItem, EBP);

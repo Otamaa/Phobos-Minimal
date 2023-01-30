@@ -9,7 +9,7 @@ int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
 
 void WeaponTypeExt::ExtData::Initialize()
 {
-	this->RadType = RadTypeClass::FindOrAllocate("Radiation");
+	this->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 }
 
 // =============================
@@ -58,10 +58,10 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DelayedFire_DurationTimer.Read(exINI, pSection, "DelayedFire.DurationTimer");
 	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
 #pragma region Otamaa
-	this->Ylo.Read(exINI, pSection, "ShakeYlo");
-	this->Yhi.Read(exINI, pSection, "ShakeYhi");
-	this->Xhi.Read(exINI, pSection, "ShakeXhi");
-	this->Xlo.Read(exINI, pSection, "ShakeXlo");
+	this->Ylo.Read(exINI, pSection, GameStrings::ShakeYlo());
+	this->Yhi.Read(exINI, pSection, GameStrings::ShakeYhi());
+	this->Xhi.Read(exINI, pSection, GameStrings::ShakeXhi());
+	this->Xlo.Read(exINI, pSection, GameStrings::ShakeXlo());
 	this->ShakeLocal.Read(exINI, pSection, "Shake.Local");
 
 	this->OccupantAnims.Read(exINI, pSection, "OccupantAnims");
@@ -178,14 +178,14 @@ void WeaponTypeExt::ExtContainer::InvalidatePointer(void *ptr, bool bRemoved)
 
 void WeaponTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<WeaponTypeClass>::Serialize(Stm);
+	TExtension<WeaponTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 
 }
 
 void WeaponTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<WeaponTypeClass>::Serialize(Stm);
+	TExtension<WeaponTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -205,12 +205,12 @@ bool WeaponTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner)
 {
 	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
 {
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
@@ -252,7 +252,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 // =============================
 // container
 
-WeaponTypeExt::ExtContainer::ExtContainer() : Container("WeaponTypeClass") { }
+WeaponTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("WeaponTypeClass") { }
 WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -261,13 +261,7 @@ WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-
-#ifndef ENABLE_NEWEXT
 	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	WeaponTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
-
 	return 0;
 }
 
@@ -294,14 +288,12 @@ DEFINE_HOOK(0x772CD0, WeaponTypeClass_SaveLoad_Prefix, 0x7)
 DEFINE_HOOK(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
 {
 	WeaponTypeExt::ExtMap.LoadStatic();
-
 	return 0;
 }
 
 DEFINE_HOOK(0x772F8C, WeaponTypeClass_Save, 0x5)
 {
 	WeaponTypeExt::ExtMap.SaveStatic();
-
 	return 0;
 }
 
@@ -317,7 +309,7 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWEXT
+#ifdef AAENABLE_NEWEXT
 DEFINE_JUMP(LJMP , 0x7725D1 , 0x772604)
 DEFINE_JUMP(LJMP , 0x77260A , 0x772610)
 DEFINE_JUMP(LJMP , 0x772E67 , 0x772E78)
@@ -328,4 +320,4 @@ DEFINE_HOOK(0x6FF33D, TechnoClass_FireAT_OpentoppedAnim, 0x6)
 	R->EAX(WeaponTypeExt::ExtMap.Find(pWeapon)->OpentoppedAnim.Get());
 	return 0x6FF343;
 }
-//#endif
+#endif

@@ -25,7 +25,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 	return GetFLHAbsoluteCoords(pTechno, flh, isOnTurret, flipY, turretOffset, nextFrame);
 }
 
-TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell)
+TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell , bool bPathfinding)
 {
 	if (pType)
 	{
@@ -38,10 +38,24 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 		if (pCell)
 		{
 			const auto occFlags = pCell->OccupationFlags;
-			pTechno->OnBridge = pCell->ContainsBridge();
-			++Unsorted::IKnowWhatImDoing;
-			UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
-			--Unsorted::IKnowWhatImDoing;
+
+			if(!bPathfinding) {
+				pTechno->OnBridge = pCell->ContainsBridge();
+				++Unsorted::IKnowWhatImDoing;
+				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
+				--Unsorted::IKnowWhatImDoing;
+			} else {
+
+				if (pType->WhatAmI() == AbstractType::BuildingType) {
+					if (!pCell->CanThisExistHere(pType->SpeedType, static_cast<BuildingTypeClass*>(pType), pHouse)) {
+						location = Map.GetRandomCoordsNear(location, 0, false);
+						pCell = Map[location];
+					}
+				}
+				
+				pTechno->OnBridge = pCell->ContainsBridge();
+				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
+			}
 
 			if (UnlimboSuccess)
 			{
@@ -51,6 +65,8 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 			}
 			else
 			{
+				Debug::Log("Gifbox - Failed To Place Techno [%s] ! \n", pType->ID);
+
 				if (pTechno)
 				{
 					TechnoExt::HandleRemove(pTechno);

@@ -9,6 +9,19 @@ void SideExt::ExtData::InitializeConstants()
 	this->Sidebar_GDIPositions = this->ArrayIndex == 0; // true = Allied
 };
 
+bool SideExt::isNODSidebar()
+{
+	auto const PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
+	if (auto const pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex))
+	{
+		if (auto const pData = SideExt::ExtMap.Find(pSide))
+		{
+			return !pData->Sidebar_GDIPositions;
+		}
+	}
+	return PlayerSideIndex;
+}
+
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	auto pThis = this->Get();
@@ -37,6 +50,10 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ToolTip_Background_Color.Read(exINI, pSection, "ToolTip.Background.Color");
 	this->ToolTip_Background_Opacity.Read(exINI, pSection, "ToolTip.Background.Opacity");
 	this->ToolTip_Background_BlurSize.Read(exINI, pSection, "ToolTip.Background.BlurSize");
+
+	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
+	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
+	//this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
 }
 
 // =============================
@@ -66,19 +83,23 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->ToolTip_Background_Color)
 		.Process(this->ToolTip_Background_Opacity)
 		.Process(this->ToolTip_Background_BlurSize)
+
+		.Process(this->GClock_Shape)
+		.Process(this->GClock_Transculency)
+		//.Process(this->GClock_Palette)
 		;
 }
 void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<SideClass>::Serialize(Stm);
+	TExtension<SideClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SideExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<SideClass>::Serialize(Stm);
+	TExtension<SideClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -101,18 +122,22 @@ SideExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
+
 DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
 {
 	GET(SideClass*, pItem, ESI);
 	GET(int, nIdx, ECX);
 
 	if (!pItem->unknown_18) {
-		if (const auto val = new SideExt::ExtData(pItem))
+		if (auto val = new SideExt::ExtData (pItem))
 		{
 			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
-			pItem->unknown_18 = (val);
+			(*(uintptr_t*)((char*)pItem + AbstractExtOffset)) = (uintptr_t)val;
 		}
+	} else {
+		if (((SideExt::ExtData*)(*(uintptr_t*)((char*)pItem + AbstractExtOffset)))->ArrayIndex != nIdx)
+			((SideExt::ExtData*)(*(uintptr_t*)((char*)pItem + AbstractExtOffset)))->ArrayIndex = nIdx;
 	}
 
 	return 0;
@@ -139,7 +164,8 @@ DEFINE_HOOK(0x6A4780, SideClass_SaveLoad_Prefix, 0x6)
 
 DEFINE_HOOK(0x6A488B, SideClass_Load_Suffix, 0x6)
 {
-	SideExt::ExtMap.LoadStatic();
+   	SideExt::ExtMap.LoadStatic();
+
 	return 0;
 }
 

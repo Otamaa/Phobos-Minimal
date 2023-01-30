@@ -23,7 +23,7 @@ public:
 	//Constructors
 	CCToolTip(HWND hWnd) noexcept
 		: ToolTipManager(hWnd) 
-	{*((unsigned long*)this) = (unsigned long)0x7F74C4; }
+	{ VTABLE_SET(this, 0x7F74C4); }
 
 	//Properties
 public:

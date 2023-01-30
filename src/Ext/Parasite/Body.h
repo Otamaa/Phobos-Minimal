@@ -2,22 +2,20 @@
 #include <ParasiteClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class ParasiteExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x99954321;
 	using base_type = ParasiteClass;
 
-
-	class ExtData final : public Extension<ParasiteClass>
+	class ExtData final : public TExtension<ParasiteClass>
 	{
 	public:
 
-		ExtData(ParasiteClass* OwnerObject) : Extension<ParasiteClass>(OwnerObject)
+		ExtData(ParasiteClass* OwnerObject) : TExtension<ParasiteClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -31,7 +29,7 @@ public:
 	};
 
 
-	class ExtContainer final : public Container<ParasiteExt>
+	class ExtContainer final : public TExtensionContainer<ParasiteExt>
 	{
 	public:
 		ExtContainer();
@@ -42,5 +40,4 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
 };

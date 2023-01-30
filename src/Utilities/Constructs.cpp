@@ -153,7 +153,7 @@ bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* 
 		GeneralUtils::ApplyTheaterSuffixToString(pValue);
 
 		std::string Result = pValue;
-		if (!strstr(pValue, ".shp"))
+		if (!CRT::strstr(pValue, ".shp"))
 			Result += ".shp";
 
 		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))

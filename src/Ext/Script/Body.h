@@ -1,22 +1,11 @@
 #pragma once
 
 #include <ScriptClass.h>
-#include <ScriptTypeClass.h>
-#include <TeamClass.h>
-#include <AITriggerTypeClass.h>
 
-#include <HouseClass.h>
-#include <AircraftClass.h>
-#include <MapClass.h>
-#include <BulletClass.h>
-#include <Helpers/Enumerators.h>
-#include <WarheadTypeClass.h>
-#include <SpawnManagerClass.h>
+#include <Ext/Abstract/Body.h>
 
-#include <Ext/Team/Body.h>
-#include <Utilities/Container.h>
-#include <Phobos.h>
-
+class HouseClass;
+class TeamClass;
 enum class PhobosScripts : unsigned int
 {
 	TimedAreaGuard = 71,
@@ -74,6 +63,45 @@ enum class PhobosScripts : unsigned int
 	SameLineForceJumpCountdown = 126,
 
 	ForceGlobalOnlyTargetHouseEnemy = 150,
+
+	OverrideOnlyTargetHouseEnemy = 14005,
+	SetHouseAngerModifier = 14006,
+	ModifyHateHouseIndex = 14007,
+	ModifyHateHousesList = 14008,
+	ModifyHateHousesList1Random = 14009,
+	SetTheMostHatedHouseMinorNoRandom = 14010,
+	SetTheMostHatedHouseMajorNoRandom = 14011,
+	SetTheMostHatedHouseRandom = 14012,
+	ResetAngerAgainstHouses = 14013,
+	AggroHouse = 14014,
+
+	SetSideIdxForManagingTriggers = 16005,
+	SetHouseIdxForManagingTriggers = 16006,
+	ManageAllAITriggers = 16007,
+	EnableTriggersFromList = 16008,
+	DisableTriggersFromList = 16009,
+	DisableTriggersWithObjects = 16010,
+	EnableTriggersWithObjects = 16011,
+
+	ConditionalJumpResetVariables = 16012,
+	ConditionalJumpManageResetIfJump = 16013,
+	AbortActionAfterSuccessKill = 16014,
+	ConditionalJumpManageKillsCounter = 16015,
+	ConditionalJumpSetCounter = 16016,
+	ConditionalJumpSetComparatorMode = 16017,
+	ConditionalJumpSetComparatorValue = 16018,
+	ConditionalJumpSetIndex = 16019,
+	ConditionalJumpIfFalse = 16020,
+	ConditionalJumpIfTrue = 16021,
+	ConditionalJumpKillEvaluation = 16022,
+	ConditionalJumpCheckCount = 16023,
+	ConditionalJumpCheckAliveHumans = 16024,
+	ConditionalJumpCheckObjects = 16025,
+	ConditionalJumpCheckHumanIsMostHated = 16026,
+
+	JumpBackToPreviousScript = 134,
+
+	RepairDestroyedBridge = 10104,
 
 	// Variables
 	LocalVariableSet = 500,
@@ -153,38 +181,37 @@ enum class PhobosScripts : unsigned int
 class ScriptExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
 	static constexpr size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
-	class ExtData final : public Extension<ScriptClass>
+	class ExtData final : public TExtension<ScriptClass>
 	{
 	public:
 		// Nothing yet
 
-		ExtData(ScriptClass* OwnerObject) : Extension<ScriptClass>(OwnerObject)
+		ExtData(ScriptClass* OwnerObject) : TExtension<ScriptClass>(OwnerObject)
 			// Nothing yet
 		{ }
 
 		virtual ~ExtData() = default;
-		//void InvalidatePointer(void* ptr, bool bRemoved) {}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
 	};
 
-	class ExtContainer final : public Container<ScriptExt> {
+	class ExtContainer final : public TExtensionContainer<ScriptExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
+
 	static ExtContainer ExtMap;	
 	
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
 
 	static void ProcessAction(TeamClass * pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass * pTeam);
@@ -215,7 +242,7 @@ public:
 	static void Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine, int count);
 	static void Stop_ForceJump_Countdown(TeamClass* pTeam);
 
-	static void ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
+	static void NOINLINE ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
 
 	static bool IsExtVariableAction(int action);
 	static void VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg);
@@ -232,8 +259,52 @@ public:
 	static void DistributedLoadOntoTransport(TeamClass* pTeam, int type);
 	static void FollowFriendlyByGroup(TeamClass* pTeam, int group);
 
-	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
+	static NOINLINE ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
+	static void NOINLINE CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewType);
+	static void NOINLINE ClearCurrentScript(TeamClass* pThis);
+	static NOINLINE ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx);
+	static std::pair<bool, bool> CheckWeaponsTargetingCapabilites(WeaponTypeClass* pWeaponPrimary, WeaponTypeClass* pWeaponSecondary, bool agentMode);
+
+	static void ResetAngerAgainstHouses(TeamClass* pTeam);
+	static void SetHouseAngerModifier(TeamClass* pTeam, int modifier);
+	static void ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList);
+	static void ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList);
+	static void ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse);
+	static void SetTheMostHatedHouse(TeamClass* pTeam, int mask, int mode, bool random);
+	static void OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
+	static void AggroHouse(TeamClass* pTeam, int index);
+	static HouseClass* GetTheMostHatedHouse(TeamClass* pTeam, int mask, int mode);
+	static void UpdateEnemyHouseIndex(HouseClass* pHouse);
+
+	static bool ConditionalJump_MakeEvaluation(int comparatorMode, int studiedValue, int comparatorValue);
+	static void ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine);
+	static void ConditionalJumpIfFalse(TeamClass* pTeam, int newScriptLine);
+	static void ConditionalJump_KillEvaluation(TeamClass* pTeam);
+	static void ConditionalJump_ManageKillsCounter(TeamClass* pTeam, int enable);
+	static void ConditionalJump_SetIndex(TeamClass* pTeam, int index);
+	static void ConditionalJump_SetComparatorValue(TeamClass* pTeam, int value);
+	static void ConditionalJump_SetComparatorMode(TeamClass* pTeam, int value);
+	static void ConditionalJump_SetCounter(TeamClass* pTeam, int value);
+	static void SetAbortActionAfterSuccessKill(TeamClass* pTeam, int enable);
+	static void ConditionalJump_ResetVariables(TeamClass* pTeam);
+	static void ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam);
+	static void ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode);
+	static void ConditionalJump_CheckObjects(TeamClass* pTeam);
+	static void ConditionalJump_CheckCount(TeamClass* pTeam, int modifier);
+	static void ConditionalJump_ManageResetIfJump(TeamClass* pTeam, int enable);
+
+	static void JumpBackToPreviousScript(TeamClass* pTeam);
+
+	static void ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType, bool isEnabled);
+	static void ManageAllTriggersFromHouse(TeamClass* pTeam, HouseClass* pHouse, int sideIdx, int houseIdx, bool isEnabled);
+	static void SetSideIdxForManagingTriggers(TeamClass* pTeam, int sideIdx);
+	static void SetHouseIdxForManagingTriggers(TeamClass* pTeam, int houseIdx);
+	static void ManageAITriggers(TeamClass* pTeam, int enabled);
+	static void ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType, bool isEnabled);
+
+	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
+	static bool FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis, TechnoClass* pTarget);
 
 private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);

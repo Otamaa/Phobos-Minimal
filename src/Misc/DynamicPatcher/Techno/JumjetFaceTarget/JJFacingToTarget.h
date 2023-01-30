@@ -5,15 +5,9 @@
 class JJFacingToTarget
 {
 public:
-	bool NeedToTurn;
-	DirStruct ToDir;
-	int Facing;
-
-	JJFacingToTarget()
-		: NeedToTurn { false }, ToDir { } , Facing{ 8 }
-	{ }
-
-	~JJFacingToTarget() = default;
+	bool NeedToTurn { false };
+	DirStruct ToDir { };
+	int Facing { 8 };
 
 	void TurnTo(DirStruct toDir, int facing) {
 		NeedToTurn = true;

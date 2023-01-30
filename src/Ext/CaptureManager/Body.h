@@ -1,8 +1,7 @@
 #pragma once
 #include <CaptureManagerClass.h>
 
-#include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <AnimTypeClass.h>
@@ -12,19 +11,19 @@
 class CaptureExt
 {
 public:
-#ifdef ENABLE_NEWHOOKS
+
 	static constexpr size_t Canary = 0x87654121;
 	using base_type = CaptureManagerClass;
 
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public TExtension<base_type>
 	{
 	public:
 
-		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject)
+		ExtData(CaptureManagerClass* OwnerObject) : TExtension<base_type>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		//void InvalidatePointer(void* ptr, bool bRemoved) { }
+		void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		void InitializeConstants();
@@ -34,7 +33,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<CaptureExt>
+	class ExtContainer final : public TExtensionContainer<CaptureExt>
 	{
 	public:
 		ExtContainer();
@@ -45,7 +44,7 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-#endif
+
 	static bool CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget);
 	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
@@ -53,10 +52,6 @@ public:
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno,
 		AnimTypeClass* pControlledAnimType = RulesClass::Instance->ControlledAnimationType);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot);
-
-	static void __stdcall DrawLinkTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color) {
-		JMP_STD(0x704E40);
-	}
 
 	static int FixIdx(const Iterator<int>& iter, int nInput) {
 		return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];

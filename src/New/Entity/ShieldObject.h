@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 #include <ObjectClass.h>
 #include <TechnoClass.h>
 #include <FootClass.h>
@@ -228,3 +228,4 @@ protected:
 public:
 	TechnoClass* Owner;
 };
+*/

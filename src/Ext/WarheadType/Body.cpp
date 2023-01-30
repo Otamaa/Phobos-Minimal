@@ -92,28 +92,22 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
-		if (auto pBld = specific_cast<BuildingClass*>(pTechno))
+		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 			if (pBld->Type->InvisibleInGame)
 				return false;
 
-		auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-		if (pTechno->IsBeingWarpedOut() || (pTechnoTypeExt->Get()->Locomotor == LocomotionClass::CLSIDs::Teleport &&
-			pTechno->IsWarpingIn() && pTechnoTypeExt->ChronoDelay_Immune.Get()))
+		if (pTechno->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pTechno)))
 			return false;
 
-		if (!SkipVerses)
+		if (!SkipVerses && EffectsRequireVerses.Get())
 		{
-			if (EffectsRequireVerses.Get())
-			{
-				auto nArmor = pTechno->GetTechnoType()->Armor;
-				auto pExt = TechnoExt::ExtMap.Find(pTechno);
+			auto nArmor = pTechno->GetTechnoType()->Armor;
+			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
-				if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
-					nArmor = pExt->CurrentShieldType->Armor;
+			if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
+				nArmor = pExt->CurrentShieldType->Armor;
 
-				return (fabs(GeneralUtils::GetWarheadVersusArmor(Get(), nArmor)) >= 0.001);
-			}
+			return (fabs(GeneralUtils::GetWarheadVersusArmor(Get(), nArmor)) >= 0.001);
 		}
 
 		return true;
@@ -238,10 +232,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exINI(pINI);
 
 	// Miscs
-	this->SpySat.Read(exINI, pSection, "SpySat");
+	this->SpySat.Read(exINI, pSection, GameStrings::SpySat());
 	this->BigGap.Read(exINI, pSection, "BigGap");
 	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
-	this->SplashList.Read(exINI, pSection, "SplashList");
+	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
 	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
@@ -299,7 +293,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
 
 	this->NotHuman_DeathSequence.Read(exINI, pSection, "NotHuman.DeathSequence");
-	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
 
 	// Transact
 	this->Transact.Read(exINI, pSection, "Transact");
@@ -350,6 +343,12 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DetonateOnAllMapObjects_AffectHouses.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectHouses");
 	this->DetonateOnAllMapObjects_AffectTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTypes");
 	this->DetonateOnAllMapObjects_IgnoreTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.IgnoreTypes");
+
+	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
+	this->RevengeWeapon_GrantDuration.Read(exINI, pSection, "RevengeWeapon.GrantDuration");
+	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+	this->RevengeWeapon_Cumulative.Read(exINI, pSection, "RevengeWeapon.Cumulative");
+	this->RevengeWeapon_MaxCount.Read(exINI, pSection, "RevengeWeapon.MaxCount");
 
 #pragma region Otamaa
 
@@ -409,7 +408,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Remover.Read(exINI, pSection, "Remover");
 	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
-	this->Sound.Read(exINI, pSection, "Sound");
+	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_From.Read(exINI, pSection, "Converts.From");
@@ -424,17 +423,26 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
 	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
 
-	this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
-	this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
-	this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
-	this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
-	this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
-	this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
+	//this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
+	//this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
+	//this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
+	//this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
+	//this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
+	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
 
-	this->DirectionalArmor_FrontField = Math::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
-	this->DirectionalArmor_FrontField = Math::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
-	this->DirectionalArmor_BackField = Math::min(this->DirectionalArmor_BackField.Get(), 1.0f);
-	this->DirectionalArmor_BackField = Math::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+	//this->DirectionalArmor_FrontField = Math::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
+	//this->DirectionalArmor_FrontField = Math::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
+	//this->DirectionalArmor_BackField = Math::min(this->DirectionalArmor_BackField.Get(), 1.0f);
+	//this->DirectionalArmor_BackField = Math::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+
+	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
+	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");
+	this->RecalculateDistanceDamage_Add.Read(exINI, pSection, "RecalculateDistanceDamage.Add");
+	this->RecalculateDistanceDamage_Multiply.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply");
+	this->RecalculateDistanceDamage_Add_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Add.Factor");
+	this->RecalculateDistanceDamage_Multiply_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply.Factor");
+	this->RecalculateDistanceDamage_Max.Read(exINI, pSection, "RecalculateDistanceDamage.Max");
+	this->RecalculateDistanceDamage_Min.Read(exINI, pSection, "RecalculateDistanceDamage.Min");
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
@@ -565,6 +573,12 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DetonateOnAllMapObjects_AffectTypes)
 		.Process(this->DetonateOnAllMapObjects_IgnoreTypes)
 
+		.Process(this->RevengeWeapon)
+		.Process(this->RevengeWeapon_GrantDuration)
+		.Process(this->RevengeWeapon_AffectsHouses)
+		.Process(this->RevengeWeapon_Cumulative)
+		.Process(this->RevengeWeapon_MaxCount)
+
 		.Process(this->WasDetonatedOnAllMapObjects)
 
 		.Process(NotHuman_DeathAnim)
@@ -607,6 +621,16 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DirectionalArmor_BackMultiplier)
 		.Process(this->DirectionalArmor_FrontField)
 		.Process(this->DirectionalArmor_BackField)
+
+		.Process(this->RecalculateDistanceDamage)
+		.Process(this->RecalculateDistanceDamage_IgnoreMaxDamage)
+		.Process(this->RecalculateDistanceDamage_Add)
+		.Process(this->RecalculateDistanceDamage_Multiply)
+		.Process(this->RecalculateDistanceDamage_Add_Factor)
+		.Process(this->RecalculateDistanceDamage_Multiply_Factor)
+		.Process(this->RecalculateDistanceDamage_Max)
+		.Process(this->RecalculateDistanceDamage_Min)
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -622,13 +646,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<WarheadTypeClass>::Serialize(Stm);
+	TExtension<WarheadTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void WarheadTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<WarheadTypeClass>::Serialize(Stm);
+	TExtension<WarheadTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -645,7 +669,7 @@ bool WarheadTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
+WarheadTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("WarheadTypeClass") { }
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 
 //void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
@@ -689,14 +713,12 @@ DEFINE_HOOK(0x75E0C0, WarheadTypeClass_SaveLoad_Prefix, 0x8)
 DEFINE_HOOK(0x75E2AE, WarheadTypeClass_Load_Suffix, 0x7)
 {
 	WarheadTypeExt::ExtMap.LoadStatic();
-
 	return 0;
 }
 
 DEFINE_HOOK(0x75E39C, WarheadTypeClass_Save_Suffix, 0x5)
 {
 	WarheadTypeExt::ExtMap.SaveStatic();
-
 	return 0;
 }
 
@@ -712,7 +734,7 @@ DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 }
 
 //#ifdef ENABLE_NEWEXT
-DEFINE_JUMP(LJMP, 0x75D798, 0x75D7AC)
-DEFINE_JUMP(LJMP, 0x75D7B2, 0x75D7B8)
-DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
+//DEFINE_JUMP(LJMP, 0x75D798, 0x75D7AC)
+//DEFINE_JUMP(LJMP, 0x75D7B2, 0x75D7B8)
+//DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
 //

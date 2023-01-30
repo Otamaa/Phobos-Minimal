@@ -95,6 +95,9 @@ public:
 	void SetCursorPos(CellStruct* pRet , CellStruct* pIn ) const
 		{ JMP_THIS(0x4A91B0); }
 
+	bool CanBuildHere(BuildingTypeClass* pBld, int nHouse, CellStruct* cell, CellStruct* tryCell) const
+		{ JMP_THIS(0x4A8EB0); }
+
 protected:
 	//Constructor
 	DisplayClass() noexcept

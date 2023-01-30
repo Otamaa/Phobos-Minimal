@@ -11,12 +11,12 @@ bool ShowTechnoNameCommandClass::IsActive = false;
 
 const char* ShowTechnoNameCommandClass::GetName() const
 {
-	return "Show Techno Names ";
+	return "Show Techno Names";
 }
 
 const wchar_t* ShowTechnoNameCommandClass::GetUIName() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Show Techno Names ");
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD", L"Show Techno Names");
 }
 
 const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
@@ -26,7 +26,7 @@ const wchar_t* ShowTechnoNameCommandClass::GetUICategory() const
 
 const wchar_t* ShowTechnoNameCommandClass::GetUIDescription() const
 {
-	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Show Techno Names .");
+	return GeneralUtils::LoadStringUnlessMissing("TXT_MARKBLD_DESC", L"Show Techno Names.");
 }
 
 void ShowTechnoNameCommandClass::Execute(WWKey eInput) const
@@ -48,21 +48,25 @@ void ShowTechnoNameCommandClass::AI()
 		if(pTech->InLimbo || pTech->Location == CoordStruct::Empty)
 			continue;
 
-
 		if (!pTech->IsOnMyView())
 			continue;
 
-		if (auto pBuilding = specific_cast<BuildingClass*>(pTech))
-		{
-			auto pExt = BuildingExt::ExtMap.Find(pBuilding);
-
-			if (pExt->LimboID != -1)
+		if (auto pCell = pTech->GetCell()) {
+			if (pCell->IsFogged() || pCell->IsShrouded())
 				continue;
 		}
 
+		//if (auto pBuilding = specific_cast<BuildingClass*>(pTech))
+		//{
+		//	auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+
+		//	if (pExt->LimboID != -1)
+		//		continue;
+		//}
+
 		std::wstring pText((size_t)(0x18 + 1), L'#');
 
-		mbstowcs(&pText[0], pTech->get_ID(), 0x18);
+		CRT::mbstowcs(&pText[0], pTech->get_ID(), 0x18);
 		if (pText.empty())
 			continue;
 

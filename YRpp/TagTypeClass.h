@@ -13,7 +13,64 @@ public:
 	static const AbstractType AbsID = AbstractType::TagType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(TagTypeClass, 0xB0E780u);
+	static constexpr constant_ptr<DynamicVectorClass<TagTypeClass*>, 0xB0E780u> const Array {};
+
+	static NOINLINE TagTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static TagTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x6E6310);
+	}
+
+	static NOINLINE int __fastcall FindIndexById(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static NOINLINE int __fastcall FindIndexByName(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			if (!CRT::strcmpi(Array->Items[i]->Name, pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	static NOINLINE int __fastcall FindIndexByIdAndName(const char* pID)
+	{
+		if(!pID)
+			return -1;
+
+		for (int i = 0; i < Array->Count; ++i) {
+			auto const pItem = Array->Items[i];
+			if (!CRT::strcmpi(pItem->ID, pID) && !CRT::strcmpi(pItem->Name , pID)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
@@ -42,7 +99,7 @@ public:
 	static void __fastcall SaveToINIList(CCINIClass* pINI)
 		{ JMP_STD(0x6E5FE0); }
 
-	TagTypeClass* __fastcall FindByNameOrID(char const* pName)
+	static TagTypeClass* __fastcall FindByNameOrID(char const* pName)
 		{ JMP_STD(0x6E5E70); }
 
 	//non-virtual

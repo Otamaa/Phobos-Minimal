@@ -6,36 +6,17 @@ class AircraftDiveData
 {
 public:
 
-	Valueable<bool> Enable;
-	Valueable<int> Distance;
-	Valueable<int> Speed;
-	Valueable<int> Delay;
-	Valueable<int> FlightLevel;
-	Valueable<bool> PullUpAfterFire;
+	Valueable<bool> Enable { false };
+	Valueable<int> Distance { 0 };
+	Valueable<int> Speed { 1 };
+	Valueable<int> Delay { 0 };
+	Valueable<int> FlightLevel { 300 };
+	Valueable<bool> PullUpAfterFire { false };
 
-	AircraftDiveData() :
-		Enable { false }
-		, Distance { 0 }
-		, Speed { 1 }
-		, Delay { 0 }
-		, FlightLevel { 300 }
-		, PullUpAfterFire { false }
-	{ }
-
-	~AircraftDiveData() = default;
-
-	void Read(INI_EX & parser, const char* pSection, bool Allocate = false)
-	{
-		Enable.Read(parser, pSection, "Dive");
-		Distance.Read(parser, pSection, "Dive.Distance");
-		Speed.Read(parser, pSection, "Dive.Speed");
-		Delay.Read(parser, pSection, "Dive.Delay");
-		FlightLevel.Read(parser, pSection, "Dive.FlightLevel");
-		PullUpAfterFire.Read(parser, pSection, "Dive.PullUpAfterFire");
-	}
+	void Read(INI_EX& parser, const char* pSection, bool Allocate = false);
 
 	template <typename T>
-	void Serialize(T & Stm)
+	void Serialize(T& Stm)
 	{
 		Debug::Log("Loading Element From AircraftDiveData ! \n");
 		Stm

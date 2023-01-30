@@ -1,5 +1,7 @@
 #include "Body.h"
+
 #include <Ext/TerrainType/Body.h>
+#include <Ext/Cell/Body.h>
 
 TerrainExt::ExtContainer TerrainExt::ExtMap;
 
@@ -99,12 +101,21 @@ void TerrainExt::ExtData::ClearLightSource()
 	}
 }
 
-void TerrainExt::Unlimbo(TerrainClass* pThis)
+void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis || !pThis->Type)
 		return;
 
 	auto const TerrainExt = TerrainExt::ExtMap.Find(pThis);
+
+	//if (auto const CellExt = CellExt::ExtMap.Find<true>(Map[*pCoord]))
+	//{
+	//	auto const iter = std::find_if(CellExt->AttachedTerrain.begin(), CellExt->AttachedTerrain.end(), 
+	//		[&](auto const pCellTerrain) { return pCellTerrain == pThis; });
+
+	//	if (iter != CellExt->AttachedTerrain.end())
+	//		CellExt->AttachedTerrain.push_back(pThis);
+	//}
 
 	{
 		TerrainExt->InitializeLightSource();
@@ -139,13 +150,13 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 
 void TerrainExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TerrainClass>::Serialize(Stm);
+	TExtension<TerrainClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TerrainClass>::Serialize(Stm);
+	TExtension<TerrainClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

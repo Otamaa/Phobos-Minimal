@@ -24,8 +24,7 @@ struct BuildType
 	BuildType(int itemIndex, AbstractType itemType) :
 		ItemIndex(itemIndex),
 		ItemType(itemType)
-	{ /*JMP_THIS(0x6AC7C0);*/
-	}
+	{ }
 
 	bool operator == (const BuildType& rhs) const
 	{
@@ -42,6 +41,7 @@ struct BuildType
 		return SortsBefore(this->ItemType, this->ItemIndex, rhs.ItemType, rhs.ItemIndex);
 	}
 
+protected:
 	static bool __stdcall SortsBefore(AbstractType leftType, int leftIndex, AbstractType rightType, int rightIndex)
 	{ JMP_STD(0x6A8420); }
 };
@@ -103,6 +103,7 @@ class NOVTABLE SidebarClass : public PowerClass
 public:
 	//Static
 	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
+	static constexpr reference<DWORD, 0xB0B500u> const ObjectHeight {};
 	enum { TooltipLength = 0x42 };
 	static constexpr reference<wchar_t, 0xB07BC4u, 0x42u> const TooltipBuffer {};
 

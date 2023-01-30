@@ -11,7 +11,25 @@ public:
 	static const AbstractType AbsID = AbstractType::UnitType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(UnitTypeClass, 0xA83CE0u);
+	static constexpr constant_ptr<DynamicVectorClass<UnitTypeClass*>, 0xA83CE0u> const Array {};
+
+	static NOINLINE UnitTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static UnitTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x7480D0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x747370);
+	}
 
 	//static
 	static void* sub_7473E0() JMP_STD(0x7473E0);

@@ -68,21 +68,8 @@ public:
 	virtual ~ObjectClass() JMP_THIS(0x5F6DC0);
 
 	//AbstractClass
-	virtual void Init() RX;
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x5F5230);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
-	virtual void CalculateChecksum(Checksummer& checksum) const RX;
-	virtual int GetOwningHouseIndex() const  R0;
-	virtual HouseClass* GetOwningHouse() const  R0;
-	virtual int GetArrayIndex() const  R0;
-	virtual bool IsDead() const JMP_THIS(0x5F6690);
-	virtual CoordStruct GetCoords() const  RT(CoordStruct); //center coords
-	virtual CoordStruct GetDestination(TechnoClass* pDocker = nullptr) const RT(CoordStruct); // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
-	virtual bool IsOnFloor() const  R0;
-	virtual bool IsInAir() const  R0;
-	//virtual CoordStruct* GetCenterCoords(CoordStruct* pCrd) const override R0; //GetCoords__
-
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x5F5230);
+	virtual bool IsDead() const override JMP_THIS(0x5F6690);
 	virtual void Update() override JMP_THIS(0x5F3E70);
 
 	//ObjectClass
@@ -121,6 +108,7 @@ public:
 
 	virtual TechnoTypeClass* GetTechnoType() const R0;
 	virtual ObjectTypeClass* GetType() const R0;
+
 	virtual DWORD GetTypeOwners() const R0; // returns the data for IndexBitfield<HouseTypeClass*>
 	virtual const wchar_t* GetUIName() const R0;
 	virtual bool CanBeRepaired() const R0;

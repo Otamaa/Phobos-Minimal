@@ -80,7 +80,7 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static void Unlimbo(TerrainClass* pThis);
+	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
 	static void CleanUp(TerrainClass* pThis);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -201,12 +201,12 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 }
 
 void SWTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	Extension<SuperWeaponTypeClass>::Serialize(Stm);
+	TExtension<SuperWeaponTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	Extension<SuperWeaponTypeClass>::Serialize(Stm);
+	TExtension<SuperWeaponTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -240,7 +240,7 @@ void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 // =============================
 // container
 
-SWTypeExt::ExtContainer::ExtContainer() : Container("SuperWeaponTypeClass") {}
+SWTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("SuperWeaponTypeClass") {}
 SWTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -249,19 +249,13 @@ SWTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EAX);
-#ifndef ENABLE_NEWHOOKS
 	SWTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	SWTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
-
 	return 0;
 }
 
 DEFINE_HOOK(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 {
 	GET(SuperWeaponTypeClass*, pItem, ECX);
-
 	SWTypeExt::ExtMap.Remove(pItem);
 	return 0;
 }
@@ -299,6 +293,6 @@ DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 	return 0;
 }
 
-#ifndef ENABLE_NEWHOOKS
+#ifdef ENABLE_NEWHOOKS
 DEFINE_JUMP(LJMP, 0x6CE93A, 0x6CE972);
 #endif

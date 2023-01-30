@@ -18,7 +18,7 @@ public:
 
 	static constexpr reference<int, 0xB1D4C8u> const EVAIndex{};
 
-	static VoxClass* Find(const char* pName)
+	static NOINLINE VoxClass* __fastcall Find(const char* pName)
 	{
 		for(int i = 0; i < Array->Count; ++i) {
 			if(!CRT::strcmpi(Array->Items[i]->Name, pName)) {
@@ -28,7 +28,7 @@ public:
 		return nullptr;
 	}
 
-	static int FindIndex(const char* pName)
+	static NOINLINE int __fastcall FindIndexById(const char* pName)
 	{
 		for(int i = 0; i < Array->Count; ++i) {
 			if(!CRT::strcmpi(Array->Items[i]->Name, pName)) {

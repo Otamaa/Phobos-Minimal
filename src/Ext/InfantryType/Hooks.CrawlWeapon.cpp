@@ -39,16 +39,13 @@ DEFINE_HOOK(0x70E163, TechnoClass_GetWeapon_EliteCrawlWeapon, 0x5)
 	{
 		if (auto pCrawlWeaponStruct = GetCrawlWeapon<true>(pInf, nSlot))
 		{
-			if (pCrawlWeaponStruct->WeaponType)
-			{
-				R->EAX(pCrawlWeaponStruct);
-				return 0x70E190;
-			}
+			R->EAX(pCrawlWeaponStruct);
+			return 0x70E175;
 		}
 	}
 
 	R->EAX(pThis->GetTechnoType()->GetEliteWeapon(nSlot));
-	return 0x70E190;
+	return 0x70E175;
 }
 
 DEFINE_HOOK(0x70E17E, TechnoClass_GetWeapon_CrawlWeapon, 0x5)

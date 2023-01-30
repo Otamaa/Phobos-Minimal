@@ -77,36 +77,60 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 
 bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse)
 {
-	BuildingTypeExt::ExtData* pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 	if (!pTypeExt->SpyEffect_Custom)
 		return false;
 
-	const auto pVictimHouse = pBuilding->GetOwningHouse();
+	const auto pVictimHouse = pBuilding->Owner;
+
 	if (pInfiltratorHouse != pVictimHouse)
 	{
-		const auto launchTheSWHere = [pBuilding](SuperClass* const pSuper, HouseClass* const pHouse)
+		// Did you mean for not launching for real or not, Morton?
+		auto launchTheSWHere = [pBuilding](int const idx, HouseClass* const pHouse, bool realLaunch = false)
 		{
-			const int oldstart = pSuper->RechargeTimer.StartTime;
-			const int oldleft = pSuper->RechargeTimer.TimeLeft;
-			pSuper->SetReadiness(true);
-			pSuper->Launch(pBuilding->GetMapCoords(), pHouse->IsCurrentPlayer());
-			pSuper->Reset();
-			pSuper->RechargeTimer.StartTime = oldstart;
-			pSuper->RechargeTimer.TimeLeft = oldleft;
+			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			{
+				if (!realLaunch || (pSuper->Granted && pSuper->IsCharged && !pSuper->IsOnHold))
+				{
+					const int oldstart = pSuper->RechargeTimer.StartTime;
+					const int oldleft = pSuper->RechargeTimer.TimeLeft;
+					pSuper->SetReadiness(true);
+					pSuper->Launch(CellClass::Coord2Cell(pBuilding->GetCenterCoords()), pHouse->IsCurrentPlayer());
+					pSuper->Reset();
+					pSuper->RechargeTimer.StartTime = oldstart;
+					pSuper->RechargeTimer.TimeLeft = oldleft;
+				}
+			}
 		};
 
-		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset())
+		auto justGrantTheSW = [](int const idx, HouseClass* const pHouse)
 		{
-			if(const auto pSuper = pVictimHouse->Supers.GetItemOrDefault(pTypeExt->SpyEffect_VictimSuperWeapon)){ 
-				launchTheSWHere(pSuper, pVictimHouse);
+			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			{
+				if (pSuper->Granted)
+					pSuper->SetCharge(100);
+				else
+				{
+					pSuper->Grant(true, false, false);
+					if (pHouse->IsCurrentPlayer())
+						SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+				}
+				SidebarClass::Instance->RepaintSidebar(1);
 			}
-		}
+		};
+
+		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset() && !pVictimHouse->IsNeutral())
+			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Get(), pVictimHouse, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
+
 
 		if (pTypeExt->SpyEffect_InfiltratorSuperWeapon.isset())
 		{
-			if(const auto pSuper = pInfiltratorHouse->Supers.GetItemOrDefault(pTypeExt->SpyEffect_InfiltratorSuperWeapon))
-				launchTheSWHere(pSuper, pVictimHouse);
+			const int swidx = pTypeExt->SpyEffect_InfiltratorSuperWeapon.Get();
+			if (pTypeExt->SpyEffect_InfiltratorSW_JustGrant.Get())
+				justGrantTheSW(swidx, pInfiltratorHouse);
+			else
+				launchTheSWHere(swidx, pInfiltratorHouse);
 		}
 	}
 
@@ -165,8 +189,8 @@ void BuildingExt::ExtData::InitializeConstants()
 
 #ifndef ENABLE_NEWHOOKS
 	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type)) {
-		if (pTypeExt->DamageFire_Offs.Count > 0) {
-			for (int i = 0; i < pTypeExt->DamageFire_Offs.Count; i++)
+		if (!pTypeExt->DamageFire_Offs.empty()) {
+			for (int i = 0; i < (int)pTypeExt->DamageFire_Offs.size(); i++)
 				DamageFireAnims.AddItem(nullptr);
 		}
 	}
@@ -214,8 +238,8 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!pOwner || pOwner->ProducingAircraftTypeIndex < 0)
 		return;
 
-	auto BuildingExt = BuildingExt::ExtMap[pThis];
-	auto HouseExt = HouseExt::ExtMap[pOwner];
+	auto BuildingExt = BuildingExt::ExtMap.Find(pThis);
+	auto HouseExt = HouseExt::ExtMap.Find(pOwner);
 
 	if (!BuildingExt || !HouseExt)
 		return;
@@ -340,9 +364,6 @@ bool BuildingExt::HasFreeDocks(BuildingClass* pBuilding)
 
 bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
-	if (!pBuilding->Type->Grinding)
-		return false;
-
 	auto const pWhat = pTechno->WhatAmI();
 	if (pWhat != AbstractType::Infantry && pWhat != AbstractType::Unit)
 		return false;

@@ -23,6 +23,8 @@ public:
 	//Static
 	static const AbstractType AbsID = AbstractType::Aircraft;
 	static constexpr constant_ptr<DynamicVectorClass<AircraftClass*>, 0xA8E390u> const Array{};
+	static constexpr reference<int, 0x7E22A4> const _vtable {};
+
 	static void __fastcall Read_INI(CCINIClass& ini) JMP_STD(0x41B110);
 	static void __fastcall Write_INI(CCINIClass& ini) JMP_STD(0x41AF80);
 

@@ -33,6 +33,7 @@
 #pragma once
 
 #include "Iterator.h"
+#include "Enum.h"
 
 #include <MouseClass.h>
 #include <FootClass.h>
@@ -339,7 +340,7 @@ public:
 
 	bool Contains(const T& other) const
 	{
-		if constexpr (std::is_pointer<T>()) {
+		if constexpr (std::is_pointer<T>::value) {
 			return std::find_if(this->begin(), this->end(), [&](const auto& item) {
 				return item == other;
 			}) != this->end();
@@ -349,7 +350,7 @@ public:
 
 	int IndexOf(const T& other) const
 	{
-		if constexpr (std::is_pointer<T>())
+		if constexpr (std::is_pointer<T>::value)
 		{ 
 			auto const iter = std::find_if(this->begin(), this->end(), [&](const auto& item)
 				{
@@ -371,8 +372,14 @@ public:
 
 	void PushbackUnique(const T& other) const
 	{
-		if (Contains(other)) return;
-		else { push_back(other); }
+		if (this->Contains(other)) return;
+		else { this->push_back(other); }
+	}
+
+	void EmpalacebackkUnique(const T& other) const
+	{
+		if (this->Contains(other)) return;
+		else { this->empalace_back(other); }
 	}
 
 	Iterator<T> GetElements() const noexcept
@@ -464,7 +471,8 @@ public:
 	Nullable<T> ConditionYellow {};
 	Nullable<T> ConditionRed {};
 
-	Damageable() = default;
+	Damageable() noexcept = default;
+
 	explicit Damageable(T const& all)
 		noexcept(noexcept(T { all }))
 		: BaseValue { all }
@@ -548,8 +556,6 @@ public:
 	{
 	}
 
-	~HealthOnFireData() noexcept = default;
-
 	inline bool Get(HealthState const& nState) const noexcept
 	{
 		return (nState == HealthState::Green && GreenOnFire)
@@ -596,7 +602,8 @@ public:
 	NullableVector<T> ConditionRed {};
 	NullableVector<T> MaxValue {};
 
-	DamageableVector() = default;
+	DamageableVector() noexcept  = default;
+
 	explicit DamageableVector(ValueableVector<T> const& all)
 		noexcept(noexcept(ValueableVector<T> { all }))
 		: BaseValue { all }
@@ -667,11 +674,11 @@ class PromotableVector
 public:
 	static T Default;
 
-	ValueableVector<T> Base;
-	std::unordered_map<int, T> Veteran;
-	std::unordered_map<int, T> Elite;
+	ValueableVector<T> Base {};
+	std::unordered_map<int, T> Veteran {};
+	std::unordered_map<int, T> Elite {};
 
-	PromotableVector() = default;
+	PromotableVector() noexcept  = default;
 
 	explicit PromotableVector(ValueableVector<T> const& all)
 		noexcept(noexcept(ValueableVector<T> { all }))
@@ -715,3 +722,38 @@ public:
 
 template <typename T>
 T PromotableVector<T>::Default = T();
+
+// Template to use for timed Warhead-applied values.
+template<typename T>
+class TimedWarheadValue
+{
+public:
+	T Value { };
+	CDTimerClass Timer { };
+	AffectedHouse ApplyToHouses  { AffectedHouse::None };
+	WarheadTypeClass* SourceWarhead { };
+
+	TimedWarheadValue() = default;
+
+	TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses, WarheadTypeClass* sourceWarhead) :
+		Value { value }
+		, Timer {}
+		, ApplyToHouses { applyToHouses }
+		, SourceWarhead { sourceWarhead }
+	{
+		Timer.Start(duration);
+	}
+
+	TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
+	{
+		TimedWarheadValue(value, duration, applyToHouses, nullptr);
+	}
+
+	TimedWarheadValue(T const& value, int duration)
+	{
+		TimedWarheadValue(value, duration, AffectedHouse::All, nullptr);
+	}
+
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	inline bool Save(PhobosStreamWriter& Stm) const;
+};

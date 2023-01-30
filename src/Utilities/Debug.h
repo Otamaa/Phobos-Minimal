@@ -92,7 +92,7 @@ private:
 	static void LogWithVArgsUnflushed(const char* pFormat, va_list args);
 #pragma endregion
 
-	static void __cdecl WriteLog(const char* pFormat, ...);
+	//static void __cdecl WriteLog(const char* pFormat, ...);
 };
 
 class Console

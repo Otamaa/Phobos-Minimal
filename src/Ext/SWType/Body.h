@@ -2,7 +2,8 @@
 #include <SuperWeaponTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+//#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class SuperClass;
@@ -12,10 +13,10 @@ public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = SuperWeaponTypeClass;
 #ifndef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = 0xAC;
+	//static constexpr size_t ExtOffset = 0xAC;
 #endif
 
-	class ExtData final : public Extension<SuperWeaponTypeClass>
+	class ExtData final : public TExtension<SuperWeaponTypeClass>
 	{
 	public:
 
@@ -65,7 +66,7 @@ public:
 
 		Valueable<int> SW_Priority;
 
-		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
+		ExtData(SuperWeaponTypeClass* OwnerObject) : TExtension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
 			, UIDescription {}
 			, CameoPriority { 0 }
@@ -145,8 +146,8 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SWTypeExt
-#ifndef ENABLE_NEWHOOKS
+	class ExtContainer final : public TExtensionContainer<SWTypeExt
+#ifdef ENABLE_NEWHOOKS
 		,true,false,true
 #endif
 	>

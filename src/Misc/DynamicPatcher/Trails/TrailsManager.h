@@ -7,21 +7,15 @@
 class ObjectClass;
 struct TrailData
 {
-	int CurrentType;
-	std::vector<LandType> OnLand;
-	std::vector<TileType> OnTileTypes;
-	CoordStruct FLHs;
-	bool Onturrents;
+	int CurrentType { 0 };
+	std::vector<LandType> OnLand {  };
+	std::vector<TileType> OnTileTypes {  };
+	CoordStruct FLHs { 0,0,0 };
+	bool Onturrents { false };
 
-	TrailData() :
-		CurrentType { 0 }
-		, OnLand {  }
-		, OnTileTypes {  }
-		, FLHs { 0,0,0 }
-		, Onturrents { false }
-	{ }
+	TrailData() noexcept = default;
 
-	TrailData(int cur, CoordStruct flh, bool nTur) :
+	TrailData(int cur, CoordStruct flh, bool nTur) noexcept :
 		CurrentType { cur }
 		, OnLand { }
 		, OnTileTypes { }
@@ -29,7 +23,7 @@ struct TrailData
 		, Onturrents { nTur }
 	{ }
 
-	~TrailData() = default;
+	virtual ~TrailData() = default;
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -83,7 +77,7 @@ struct TrailsReader
 
 	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(1); };
 
-	~TrailsReader() = default;
+	virtual ~TrailsReader() = default;
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{

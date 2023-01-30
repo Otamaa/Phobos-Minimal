@@ -19,7 +19,25 @@ public:
 	static const AbstractType AbsID = AbstractType::SuperWeaponType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(SuperWeaponTypeClass, 0xA8E330u);
+	static constexpr constant_ptr<DynamicVectorClass<SuperWeaponTypeClass*>, 0xA8E330u> const Array {};
+
+	static NOINLINE SuperWeaponTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static SuperWeaponTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x6CEEF0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x6CEE60);
+	}
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;

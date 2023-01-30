@@ -38,9 +38,30 @@ public:
 	static const AbstractType AbsID = AbstractType::BuildingType;
 
 	//Array
-	ABSTRACTTYPE_ARRAY(BuildingTypeClass, 0xA83C68u);
+	static constexpr constant_ptr<DynamicVectorClass<BuildingTypeClass*>, 0xA83C68u> const Array {};
+
+	static NOINLINE BuildingTypeClass* __fastcall Find(const char* pID)
+	{
+		for (auto pItem : *Array){
+			if (!CRT::strcmpi(pItem->ID, pID))
+				return pItem;
+		}
+
+		return nullptr;
+	}
+
+	static BuildingTypeClass* __fastcall FindOrAllocate(const char* pID) {
+		JMP_STD(0x4653C0);
+	}
+
+	static int __fastcall FindIndexById(const char* pID) {
+		JMP_STD(0x45E7B0);
+	}
 
 	static constexpr reference<int, 0x89DDB8u> const HeightInLeptons{};
+	static constexpr reference<FoundationOutlineStruct, 0x89D368u, 22u> const FoundationOutlines_A {};
+	static constexpr reference<FoundationOutlineStruct, 0x89C900u, 22u> const FoundationOutlines_B {};
+
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
@@ -71,6 +92,7 @@ public:
 
 	short GetFoundationWidth() const
 		{ JMP_THIS(0x45EC90); }
+
 	short GetFoundationHeight(bool bIncludeBib) const
 		{ JMP_THIS(0x45ECA0); }
 
@@ -117,7 +139,7 @@ public:
 		{ JMP_THIS(0x45FA90); }
 	//
 
-	bool CanLeaveRubble(RectangleStruct* pRect) const
+	bool CanLeaveRubble(SHPStruct** pImage , int* pFrames) const
 		{ JMP_THIS(0x45F160); }
 
 	bool CanLeaveRubble_(RectangleStruct* pRect) const

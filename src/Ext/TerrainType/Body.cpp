@@ -29,7 +29,7 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SpawnsTiberium_GrowthStage.Read(exINI, pSection, "SpawnsTiberium.GrowthStage");
 	this->SpawnsTiberium_CellsPerAnim.Read(exINI, pSection, "SpawnsTiberium.CellsPerAnim");
 
-	this->DestroyAnim.Read(exINI, pSection, "DestroyAnim");
+	this->DestroyAnim.Read(exINI, pSection, GameStrings::DestroyAnim());
 	this->DestroySound.Read(exINI, pSection, "DestroySound");
 
 	this->MinimapColor.Read(exINI, pSection, "MinimapColor");
@@ -38,11 +38,11 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 
 #pragma region Otamaa
-	this->LightVisibility.Read(exINI, pSection, "LightVisibility");
-	this->LightIntensity.Read(exINI, pSection, "LightIntensity");
-	this->LightRedTint.Read(exINI, pSection, "LightRedTint");
-	this->LightGreenTint.Read(exINI, pSection, "LightGreenTint");
-	this->LightBlueTint.Read(exINI, pSection, "LightBlueTint");
+	this->LightVisibility.Read(exINI, pSection, GameStrings::LightVisibility());
+	this->LightIntensity.Read(exINI, pSection, GameStrings::LightIntensity());
+	this->LightRedTint.Read(exINI, pSection, GameStrings::LightRedTint());
+	this->LightGreenTint.Read(exINI, pSection, GameStrings::LightGreenTint());
+	this->LightBlueTint.Read(exINI, pSection, GameStrings::LightBlueTint());
 
 	this->AttachedAnim.Read(exINI, pSection, "AttachedAnims",true);
 	this->Warhead.Read(exINI, pSection, "SpawnsTiberium.ExplodeWarhead");
@@ -80,13 +80,13 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 void TerrainTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TerrainTypeClass>::Serialize(Stm);
+	TExtension<TerrainTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TerrainTypeClass>::Serialize(Stm);
+	TExtension<TerrainTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -165,6 +165,16 @@ DEFINE_HOOK(0x71E233, TerrainTypeClass_Load_Suffix, 0x6)
 DEFINE_HOOK(0x71E258, TerrainTypeClass_Save_Suffix, 0x5)
 {
 	TerrainTypeExt::ExtMap.SaveStatic();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
+{
+	GET(TerrainTypeClass*, pItem, ESI);
+	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x20C, -0x4));
+
+	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 
 	return 0;
 }
