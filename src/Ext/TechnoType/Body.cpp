@@ -1191,7 +1191,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
 	this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
 	this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
+
+	// Disabled , rare but can crash after S/L
 	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
+	//
 
 	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
 	this->CustomMissileData.Read(exINI, pSection, "Missile");

@@ -885,6 +885,8 @@ DEFINE_HOOK(0x440E99, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 
 	return pThis->BeingProduced ? 0 : DoNotCreateParticle;
 }
 
+//https://github.com/Phobos-developers/Phobos/pull/818
+// Todo : Otamaa : Need Test 
 //DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 //{
 //	enum { SpawnCrate = 0x56BE7B, SkipSpawn = 0x56BE91 };

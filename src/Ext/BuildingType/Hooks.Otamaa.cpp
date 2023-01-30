@@ -242,7 +242,6 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 	return 0;
 }
 
-/* Crash a lot atm , disabled*/
 #define GET_TIMETO_BUILD(ret)\
 GET(TechnoClass*, pTech, ECX);\
 GET(int, nTime, EDX);\

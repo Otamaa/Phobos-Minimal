@@ -4,6 +4,8 @@
 #include <TEventClass.h>
 
 // AI Naval queue bugfix hooks
+// https://github.com/Phobos-developers/Phobos/pull/817 
+// Todo :  Otamaa : seems unstable atm ? , need to retest
 
 namespace ExitObjectTemp
 {

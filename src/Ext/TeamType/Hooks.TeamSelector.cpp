@@ -5,6 +5,9 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Rules/Body.h>
 
+// https://github.com/Phobos-developers/Phobos/pull/810
+// Todo : Otamaa : Warning ! , Performance heavy 
+
 enum TeamCategory
 {
 	None = 0, // No category. Should be default value

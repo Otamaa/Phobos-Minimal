@@ -90,10 +90,12 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
 	this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
 
+	// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 	this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
 	this->SubjectToLand_Detonate.Read(exINI, pSection, "SubjectToLand.Detonate");
 	this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
 	this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
+	//
 
 	#pragma region Otamaa
 	this->MissileROTVar.Read(exINI, pSection, GameStrings::MissileROTVar());

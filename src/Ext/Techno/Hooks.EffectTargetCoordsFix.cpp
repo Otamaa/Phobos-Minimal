@@ -72,7 +72,8 @@ DEFINE_HOOK(0x62B8BC, ParticleClass_CTOR_RailgunCoordAdjust, 0x6)
 }
 
 #ifdef PERFORMANCE_HEAVY
-
+// https://github.com/Phobos-developers/Phobos/pull/825
+// Todo :  Otamaa : massive FPS drops !
 namespace FireAtTemp
 {
 	CoordStruct originalTargetCoords;
