@@ -126,6 +126,8 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.JumjetFiring.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
@@ -195,6 +197,7 @@
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
+    <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\Misc\TriggerMPOwner.cpp" />
     <ClCompile Include="src\New\Entity\ElectricBoltClass.cpp" />
     <ClCompile Include="src\New\Entity\FlyingStrings.cpp" />
@@ -352,8 +355,8 @@
     <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
-    <ClInclude Include="src\Misc\TestTurrent.h" />
     <ClInclude Include="src\Misc\TriggerMPOwner.h" />
+    <ClInclude Include="src\New\Entity\DelayFireAnimClass.h" />
     <ClInclude Include="src\New\Entity\ElectricBoltClass.h" />
     <ClInclude Include="src\New\Entity\FlyingStrings.h" />
     <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
@@ -430,6 +433,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Ext\Techno\Hooks.Cloak.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

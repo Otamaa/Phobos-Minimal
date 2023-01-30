@@ -15,7 +15,7 @@
 // Too big to be kept in ApplyLimboDelivery
 void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 {
-	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
+	auto const pOwnerExt = HouseExt::ExtMap.Find<true>(pOwner);
 
 	// BuildLimit check goes before creation
 	if (pType->BuildLimit > 0)
@@ -44,8 +44,7 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 	pOwner->Buildings.AddItem(pBuilding);
 
 	// increment limbo build count
-	if (pOwnerExt)
-		pOwnerExt->OwnedLimboBuildingTypes.Increment(pType->ArrayIndex);
+	pOwnerExt->OwnedLimboBuildingTypes.Increment(pType->ArrayIndex);
 
 	// Different types of building logics
 	if (pType->ConstructionYard)
@@ -69,17 +68,24 @@ void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 	// probably should just port it from Ares 0.A and be done
 
 	// LimboKill init
-	auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
-	auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
 
 	if (ID != -1){
+		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
+		auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
+		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoExt->Type);
+
 		pBuildingExt->LimboID = ID;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		pTechnoExt->PaintBallState.release();
 #endif
+		const bool peacefulDeath = pTechnoTypeExt->Death_Peaceful.Get();
+		const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTechnoTypeExt->Death_Method.Get();
 
-		//remove the building from rendering queue
-		//DisplayClass::GetLayer(Layer::Ground)->Remove(pBuilding);
+		if (nKillMethod != KillMethod::None && pTechnoTypeExt->Death_Countdown > 0)
+		{
+			pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
+			pOwnerExt->AutoDeathObjects.push_back(pBuilding);
+		}
 	}
 }
 

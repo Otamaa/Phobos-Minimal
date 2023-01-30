@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Ext/TechnoType/Body.h>
 
 static inline int ReplaceThreadPosed(TechnoClass* pThis, TechnoTypeClass* pType)
 {

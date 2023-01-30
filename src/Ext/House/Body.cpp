@@ -38,6 +38,7 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_NavyType, ptr);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
+	AnnounceInvalidPointer(AutoDeathObjects, ptr);
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -847,6 +848,24 @@ size_t HouseExt::FindBuildableIndex(
 	return items.size();
 }
 
+void HouseExt::ExtData::UpdateAutoDeathObjects()
+{
+	for (const auto& pThis : this->AutoDeathObjects)
+	{
+		if (pThis->IsInLogic || !pThis->IsAlive)
+			continue;
+
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		const bool peacefulDeath = pTypeExt->Death_Peaceful.Get();
+		const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeExt->Death_Method.Get();
+	
+		if (pTypeExt->Death_Method != KillMethod::None && pExt->Death_Countdown.Completed())
+			TechnoExt::KillSelf(pThis, nKillMethod);
+
+	}
+}
+
 // =============================
 // load / save
 
@@ -872,6 +891,8 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->ActiveTeams)
 		.Process(this->LastBuiltNavalVehicleType)
 		.Process(this->ProducingNavalUnitTypeIndex)
+
+		.Process(this->AutoDeathObjects)
 		;
 }
 

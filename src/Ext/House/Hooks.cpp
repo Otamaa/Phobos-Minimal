@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #include <Ext/Techno/Body.h>
-#include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 {

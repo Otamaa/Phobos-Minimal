@@ -145,7 +145,6 @@ public:
 			return this->ProjectileRange.Get();
 		}
 
-		int GetBurstDelay(int burstIndex);
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -171,6 +170,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static int nOldCircumference;
+
+	static int GetBurstDelay(WeaponTypeClass* pThis , int burstIndex);
 
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage);

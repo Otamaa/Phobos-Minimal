@@ -485,11 +485,6 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	//Debug::Log("Techno [%x] Init ! absType [%s] ! \n", pThis, pThis->GetThisClassName());
-
-	if (!pThis)
-		return 0x0;
-
 	auto pType = pThis->GetTechnoType();
 
 	if (!pType)
@@ -582,5 +577,22 @@ DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 0x5)
 		pData->GarrisonedIn = nullptr;
 	return 0;
 }*/
+
+
+DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
+{
+	GET(TechnoClass*, pVictim, ESI);
+	GET(TechnoClass*, pKiller, EDI);
+	GET(int, cost, EBP);
+
+	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
+	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
+
+	R->EBP(Game::F2I(cost * giveExpMultiple * gainExpMultiple));
+
+	return 0;
+}
 
 #pragma endregion

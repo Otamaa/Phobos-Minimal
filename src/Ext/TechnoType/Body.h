@@ -395,6 +395,9 @@ public:
 		Promotable<int> CrushableLevel;
 		Promotable<int> DeployCrushableLevel;
 
+		Valueable<float> Experience_VictimMultiple;
+		Valueable<float> Experience_KillerMultiple;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -470,7 +473,7 @@ public:
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
 			, Death_Peaceful { false }
-			, Death_Method { KillMethod::Explode }
+			, Death_Method { KillMethod::None }
 			, Death_WithMaster{ false }
 			, AutoDeath_Nonexist {}
 			, AutoDeath_Nonexist_House { AffectedHouse::Owner }
@@ -727,6 +730,9 @@ public:
 			, CrushLevel {}
 			, CrushableLevel {}
 			, DeployCrushableLevel {}
+
+			, Experience_VictimMultiple { 1.0f }
+			, Experience_KillerMultiple { 1.0f }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

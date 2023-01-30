@@ -28,18 +28,6 @@
 
 #include <New/Entity/ShieldObject.h>
 
-//
-//DEFINE_HOOK(0x6F42F7, TechnoClass_Init_NewEntities, 0x2)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//
-//
-//	//if (auto pShieldObj = ShieldObject::CreateMe())
-//	//	Debug::Log("[%x] Created ! \n", pShieldObj);
-//
-//	return 0;
-//}
-
 DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
 {
 	GET(UnitClass*, pUnit, ESI);
@@ -54,7 +42,7 @@ DEFINE_HOOK(0x73DE90, UnitClass_SimpleDeployer_TransferLaserTrails, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x702E4E, TechnoClass_Save_Killer_Techno, 0x6)
+DEFINE_HOOK(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {
 	GET(TechnoClass*, pKiller, EDI);
 	GET(TechnoClass*, pVictim, ECX);
@@ -64,16 +52,11 @@ DEFINE_HOOK(0x702E4E, TechnoClass_Save_Killer_Techno, 0x6)
 	return 0;
 }
 
-static NOINLINE int GetInitialStregth(TechnoTypeClass* pType, int nHP)
-{
-	return TechnoTypeExt::ExtMap.Find(pType)->InitialStrength.Get(nHP);
-}
-
 DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	const auto strength = GetInitialStregth(pThis->Type , pThis->Type->Strength);
+	const auto strength = TechnoExt::GetInitialStrength(pThis->Type , pThis->Type->Strength);
 	pThis->Health = strength;
 	pThis->EstimatedHealth = strength;
 
@@ -83,21 +66,21 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 DEFINE_HOOK(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 {
 	GET(UnitTypeClass*, pType, EAX);
-	R->EAX(GetInitialStregth(pType, pType->Strength));
+	R->EAX(TechnoExt::GetInitialStrength(pType, pType->Strength));
 	return 0x7355C0;
 }
 
 DEFINE_HOOK(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 {
 	GET(AircraftTypeClass*, pType, EAX);
-	R->EAX(GetInitialStregth(pType, pType->Strength));
+	R->EAX(TechnoExt::GetInitialStrength(pType, pType->Strength));
 	return 0x414057;
 }
 
 DEFINE_HOOK(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
 {
 	GET(BuildingTypeClass*, pType, EAX);
-	R->ECX(GetInitialStregth(pType, pType->Strength));
+	R->ECX(TechnoExt::GetInitialStrength(pType, pType->Strength));
 	return 0x442C7B;
 }
 
@@ -108,10 +91,9 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 
-	int burstDelay = WeaponTypeExt::ExtMap.Find(pWeapon)->GetBurstDelay(pThis->CurrentBurstIndex);
+	const int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon ,pThis->CurrentBurstIndex);
 
-	if (burstDelay >= 0)
-	{
+	if (burstDelay >= 0) {
 		R->EAX(burstDelay);
 		return 0x6FD099;
 	}
@@ -206,48 +188,33 @@ DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	{
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-		if (pExt->AutoFire)
-		{
-			if (pExt->AutoFire_TargetSelf)
-				pThis->SetTarget(pThis);
-			else
-				pThis->SetTarget(pThis->GetCell());
+	if (pExt->AutoFire) {
 
-			return 0x7099B8;
-		}
+		if (pExt->AutoFire_TargetSelf)
+			pThis->SetTarget(pThis);
+		else
+			pThis->SetTarget(pThis->GetCell());
+
+		return 0x7099B8;
 	}
 
 	return 0;
-}
-
-DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Decloak, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	if (WarheadTypeExt::ExtMap.Find(pWarhead)->DecloakDamagedTargets.Get())
-		pThis->Uncloak(false);
-
-	return 0x702823;
 }
 
 DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 {
 	GET(TechnoClass*, pTechno, EDI);
 
-	{
-		const auto pTechnoExt = TechnoExt::ExtMap.Find<false>(pTechno);
+	const auto pTechnoExt = TechnoExt::ExtMap.Find<false>(pTechno);
 
-		if (pTechnoExt->LaserTrails.size())
+	if (pTechnoExt->LaserTrails.size())
+	{
+		for (auto const& pLaserTrail : pTechnoExt->LaserTrails)
 		{
-			for (auto const& pLaserTrail : pTechnoExt->LaserTrails)
-			{
-				pLaserTrail->Visible = false;
-				pLaserTrail->LastLocation.clear();
-			}
+			pLaserTrail->Visible = false;
+			pLaserTrail->LastLocation.clear();
 		}
 	}
 
@@ -351,12 +318,6 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
 
-	//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-	//	auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-	//	if(pBldExt->LimboID != -1)
-	//		return SkipGameDrawing;
-	//}
-
 	if (const auto pFoot = generic_cast<FootClass*>(pThis))
 		if (const auto pParasiteFoot = pFoot->ParasiteEatingMe)
 			if (const auto pParasite = pParasiteFoot->ParasiteImUsing)
@@ -367,91 +328,6 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	return SkipGameDrawing;
 }
 
-//DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
-//{
-	//GET_STACK(ILocomotion*, iLoco, 0x4);
-//	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
-//const auto pThis = pLoco->Owner;
-//	const auto pType = pThis->GetTechnoType();
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pType);
-//
-//	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget) &&
-	//	pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
-	//{
-	//	if (const auto pTarget = pThis->Target)
-	//	{
-//			const CoordStruct source = pThis->Location;
-	//		const CoordStruct target = pTarget->GetCoords();
-//			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
-//			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
-	//			pLoco->Facing.turn(tgtDir);
-//		}
-//	}
-//	return 0;
-//}
-
-// Bugfix: Jumpjet turn to target when attacking
-// Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
-DEFINE_HOOK(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
-{
-	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE, ContinueFunc = 0x54BDA1 };
-
-	GET(JumpjetLocomotionClass* const, pLoco, ESI);
-	GET(FootClass* const, pLinkedTo, EDI);
-
-	const auto pTarget = pLinkedTo->Target;
-	if (!pTarget)
-		return ContinueNoTarget;
-
-	if (const auto pThis = abstract_cast<UnitClass*>(pLinkedTo))
-	{
-		if (TechnoTypeExt::ExtMap.Find(pThis->Type)->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-		{
-			CoordStruct& source = pThis->Location;
-			CoordStruct target = pTarget->GetCoords();
-			DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
-
-			if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
-				pLoco->Facing.Set_Desired(tgtDir);
-
-			R->EAX(pTarget);
-			return EndFunction;
-		}
-	}
-
-	return ContinueFunc;
-}
-
-// The ingame behavior looks not better than the previous fix
-//DEFINE_HOOK_AGAIN(0x736FE8, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6)// Turret and FireError == FACING
-//DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6) // FireError == OK
-//{
-//	GET(UnitClass* const, pThis, ESI);
-//	ILocomotion* iloco = pThis->Locomotor.get();
-//	CLSID locoCLSID;
-//	if (SUCCEEDED(static_cast<LocomotionClass*>(iloco)->GetClassID(&locoCLSID)) && locoCLSID == LocomotionClass::CLSIDs::Jumpjet)
-//	{
-//		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-//		if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-//		{
-//			auto const pLoco = static_cast<JumpjetLocomotionClass*>(iloco);
-//			CoordStruct& source = pThis->Location;
-//			CoordStruct target = pThis->Target->GetCoords();
-//			DirStruct const tgtDir = DirStruct { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-//
-//			pLoco->Facing.Set_Desired(tgtDir);
-//
-//			if (R->Origin() == 0x736FE8)
-//			{
-//				pThis->SecondaryFacing.Set_Desired(tgtDir);
-//				return 0x737021;
-//			}
-//		}
-//	}
-//	return 0;
-//}
-
-//#ifdef DISGUISE_HOOKS
 DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 {
 	enum { SkipGameCode = 0x6F5388 };
@@ -465,7 +341,6 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 
 	return SkipGameCode;
 }
-//#endif
 
 DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 {
@@ -508,7 +383,7 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 {
 	GET(SpawnManagerClass* const, pThis, ESI);
 
-	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching 
+	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching
 		&& pThis->CountDockedSpawns() != 0)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Owner->GetTechnoType());
@@ -560,184 +435,6 @@ DEFINE_HOOK(0x6B743E , SpawnManagerClass_AI_SpawnOffsets , 0x6)
 
 	return 0x0;
 }
-
-#ifdef IC_AFFECT
-//https://github.com/Phobos-developers/Phobos/pull/674
-DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
-{
-	GET(BuildingClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, 0x8);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if (pTypeExt->IronCurtain_Affect.isset())
-	{
-		if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::Kill)
-		{
-			R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-			return 0x457CDB;
-		}
-		else if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::NoAffect)
-		{
-			R->EAX(DamageState::Unaffected);
-			return 0x457CDB;
-		}
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
-{
-	GET(FootClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
-	const TechnoTypeClass* pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
-
-	if (pType->Organic || pThis->WhatAmI() == AbstractType::Infantry)
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-		else
-			ironAffect = RulesExt::Global()->IronCurtainToOrganic.Get();
-	}
-	else
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-	}
-
-	if (ironAffect == IronCurtainAffects::Kill)
-	{
-		R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-	}
-	else if (ironAffect == IronCurtainAffects::Affect)
-	{
-		R->ESI(pThis);
-		return 0x4DEB38;
-	}
-
-	R->EAX(DamageState::Unaffected);
-	return 0x4DEBA2;
-}
-#endif
-
-static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void* _, int nDur, HouseClass* pSource, bool bIsFC)
-{
-
-	if (pThis->TemporalTargetingMe && pThis->Destination) {
-		if (auto const pCell = pThis->GetCell()) {
-			if (auto const pBld = pCell->GetBuilding()) {
-				if (pThis->Destination == pBld && pBld->Type->BridgeRepairHut)
-				{
-					return DamageState::Unaffected;
-				}
-			}
-		}
-	}
-
-	return pThis->FootClass::IronCurtain(nDur, pSource, bIsFC);
-}
-
-DEFINE_JUMP(VTABLE, 0x7EB1AC, GET_OFFSET(InfantryClass_IronCurtain));
-
-//check this early to skip unnessesary checks below
-//DEFINE_HOOK(0x703981, TechnoClass_VisualCharacter_ObserverCloak, 0x6)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//	R->AL(pThis->IsOwnedByCurrentPlayer || HouseExt::IsObserverPlayer());
-////	return 0x703987;
-//}
-
-DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
-{
-	enum { UseShadowyVisual = 0x703A5A, CheckMutualAlliance = 0x703A16 };
-
-	// Allow observers to always see cloaked objects.
-	// Skip IsCampaign check (confirmed being useless from Mental Omega mappers)
-	if (HouseExt::IsObserverPlayer())
-		return UseShadowyVisual;
-
-	return CheckMutualAlliance;
-}
-
-DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
-{
-	enum { UseShadowyVisual = 0x45452D, CheckMutualAlliance = 0x454564 };
-
-	if (HouseExt::IsObserverPlayer())
-		return UseShadowyVisual;
-
-	return CheckMutualAlliance;
-}
-
-/*
-DEFINE_HOOK(0x522600, InfantryClass_IronCurtain, 0x6)
-{
-	GET(InfantryClass*, pThis, ECX);
-	GET_STACK(int, nDuration, 0x4);
-	GET_STACK(HouseClass*, pSource, 0x8);
-	GET_STACK(bool, ForceShield, 0xC);
-
-	R->EAX(pThis->FootClass::IronCurtain(nDuration, pSource, ForceShield));
-	return 0x522639;
-}
-
-
-static bool Kill = false;
-
-DEFINE_HOOK(0x457C90, BuildingClass_IronCuratin, 0x6)
-{
-	GET(BuildingClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, 0x8);
-
-	if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-		if (Kill && pThis->IsAlive && pThis->Health > 0 && !pThis->TemporalTargetingMe) {
-			R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-			return 0x457CDB;
-		}
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
-{
-	GET(FootClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, 0x0);
-	TechnoTypeClass* pType = pThis->GetTechnoType();
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
-
-	if (pThis->WhatAmI() != AbstractType::Infantry)
-		pSource = R->Stack<HouseClass*>(0x18);
-
-	if (pType->Organic || pThis->WhatAmI() == AbstractType::Infantry)
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-		else
-			ironAffect = RulesExt::Global()->IronCurtainToOrganic.Get();
-	}
-	else
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-	}
-
-	if (ironAffect == IronCurtainAffects::Kill)
-	{
-		R->EAX(pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-	}
-	else if (ironAffect == IronCurtainAffects::Affect)
-	{
-		R->ESI(pThis);
-		return 0x4DEB38;
-	}
-
-	return 0x4DEBA2;
-}*/
 
 DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 {
@@ -919,7 +616,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	{
 		for (int i = 0; i <= pThis->CurrentBurstIndex; i++)
 		{
-			int burstDelay = pWeaponExt->GetBurstDelay(i);
+			int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon , i);
 			int delay = 0;
 
 			if (burstDelay > -1)

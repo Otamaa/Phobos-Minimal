@@ -1,13 +1,21 @@
 #pragma once
 
+#include <Utilities/SavegameDef.h>
 #include <GeneralStructures.h>
 #include <SpecificStructures.h>
+#include <CoordStruct.h>
+#include <RectangleStruct.h>
+#include <Point2D.h>
 
-#include <Ext/TechnoType/Body.h>
-
+class AbstractClass;
+class ObjectClass;
 class TechnoClass;
+class AnimTypeClass;
 class WarheadTypeClass;
-
+class WeaponTypeClass;
+class TechnoTypeClass;
+class TemporalClass;
+class ShieldTypeClass;
 class ShieldClass final
 {
 public:
@@ -120,5 +128,4 @@ private:
 	double LastTechnoHealthRatio;
 
 	ShieldTypeClass* Type;
-
 };

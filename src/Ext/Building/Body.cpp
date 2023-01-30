@@ -5,8 +5,71 @@
 #include <Ext/House/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
+
+void BuildingExt::ExtData::UpdatePoweredKillSpawns()
+{
+	auto const pThis = this->Get();
+	auto const pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTechTypeExt->Powered_KillSpawns &&
+		pThis->Type->Powered && 
+		!pThis->IsPowerOnline())
+	{
+		if (const auto& pManager = pThis->SpawnManager)
+		{
+			pManager->ResetTarget();
+
+			for (const auto& pItem : pManager->SpawnedNodes)
+			{
+				if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
+				{
+					if (pItem->Unit)
+						pItem->Unit->ReceiveDamage(&pItem->Unit->Health, 0,
+							RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
+				}
+			}
+		}
+	}
+}
+
+void BuildingExt::ExtData::UpdateAutoSellTimer()
+{
+	auto const pThis = this->Get();
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
+	{
+		auto const pRulesExt = RulesExt::Global();
+		auto const nMission = pThis->GetCurrentMission();
+
+		if (pTypeExt->AutoSellTime.isset()) {
+			if (pTypeExt->AutoSellTime.Get() > 0.0f && nMission != Mission::Selling) {
+				if (AutoSellTimer.StartTime == -1 || nMission == Mission::Attack)
+					AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
+				else
+					if (AutoSellTimer.Completed())
+						pThis->Sell(-1);
+			}
+		}
+
+		if (!pRulesExt->AI_AutoSellHealthRatio.empty() &&
+			pRulesExt->AI_AutoSellHealthRatio.size() >= 3 && 
+			(nMission != Mission::Selling))
+		{
+			if (pThis->Owner && !pThis->Occupants.Count) {
+				if (!pThis->Owner->IsCurrentPlayer() && !pThis->Owner->Type->MultiplayPassive) {
+					auto nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
+
+					if (nValue > 0.0f && pThis->GetHealthPercentage() <= nValue)
+						pThis->Sell(-1);
+				}
+			}
+		}
+	}
+}
 
 bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 {
@@ -424,6 +487,7 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 
 	return false;
 }
+
 // =============================
 // load / save
 

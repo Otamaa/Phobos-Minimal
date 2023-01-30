@@ -24,25 +24,10 @@
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 #endif
-/*
-class AltBuildingExt final : public TExtension<BuildingClass>
-{
-public:
-
-	AltBuildingExt(BuildingClass* pOwnerObject) : TExtension<BuildingClass>{ pOwnerObject }
-	{}
-
-	virtual ~AltBuildingExt() = default;
-	virtual size_t GetSize() const { return sizeof(*this); }
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override {}
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override {}
-	virtual void InitializeConstants() override {}
-	virtual void Uninitialize() override {}
-};*/
 
 class BulletClass;
-class TechnoTypeExt::ExtData;
+class TechnoTypeClass;
+class REGISTERS;
 class TechnoExt
 {
 public:
@@ -57,7 +42,7 @@ public:
 	{
 	public:
 		//EventQueue<base_type> GenericFuctions;
-		//std::string ID;
+		TechnoTypeClass* Type;
 		OptionalStruct<AbstractType, true> AbsType;
 		std::unique_ptr<ShieldClass> Shield;
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
@@ -67,12 +52,12 @@ public:
 		int PassengerDeletionCountDown;
 		ShieldTypeClass* CurrentShieldType;
 		int LastWarpDistance;
-		int Death_Countdown;
+		CDTimerClass Death_Countdown;
 		AnimTypeClass* MindControlRingAnimType;
 		OptionalStruct<int, false> DamageNumberOffset;
 		OptionalStruct<int, true> CurrentLaserWeaponIndex;
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
-	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
+		// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 		HouseClass* OriginalPassengerOwner;
 		AnimClass* DelayedFire_Anim;
 		int DelayedFire_Anim_LoopCount;
@@ -89,8 +74,6 @@ public:
 		bool AircraftOpentoppedInitEd;
 
 		std::vector<int> FireSelf_Count;
-		//std::vector<WeaponTypeClass*> FireSelf_Weapon;
-		//std::vector<int> FireSelf_ROF;
 		TimerStruct EngineerCaptureDelay;
 		bool FlhChanged;
 		DynamicVectorClass<LineTrail*> TechnoLineTrail;
@@ -127,11 +110,9 @@ public:
 #endif;
 	#pragma endregion
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
-			//, GenericFuctions { }
-			//, ID { }
+			, Type { nullptr }
 			, AbsType {}
 			, Shield {}
-			//, BExt { nullptr }
 			, LaserTrails {}
 			, ReceiveDamage { false }
 			, LastKillWasTeamTarget { false }
@@ -139,12 +120,12 @@ public:
 			, PassengerDeletionCountDown { -1 }
 			, CurrentShieldType { nullptr }
 			, LastWarpDistance {}
-			, Death_Countdown {-1}
+			, Death_Countdown {}
 			, MindControlRingAnimType { nullptr }
 			, DamageNumberOffset {}
 			, CurrentLaserWeaponIndex {}
 			, OriginalPassengerOwner{ nullptr }
-			, DelayedFire_Anim { }
+			, DelayedFire_Anim { nullptr }
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_DurationTimer { 0 }
 			, IsInTunnel { false }
@@ -155,8 +136,6 @@ public:
 			, GattlingDmageSound { false }
 			, AircraftOpentoppedInitEd { false }
 			, FireSelf_Count {}
-			//, FireSelf_Weapon {}
-			//, FireSelf_ROF {}
 			, EngineerCaptureDelay {}
 			, FlhChanged { false }
 			, TechnoLineTrail { }
@@ -201,6 +180,7 @@ public:
 				HomingMissileTargetTracker::Remove(MissileTargetTracker);
 #endif
 #endif
+			TechnoExt::ResetDelayFireAnim(this->Get());
 		}
 
 		void InvalidatePointer(void* ptr, bool bRemoved);
@@ -215,17 +195,36 @@ public:
 		void InitializeConstants();
 
 		bool CheckDeathConditions();
-		int GetEatPassangersTotalTime(TechnoTypeExt::ExtData const* pData, FootClass const* pPassenger);
-		void EatPassengers();
+		bool UpdateKillSelf_Slave();
+
+		void UpdateEatPassengers();
 		void UpdateMindControlAnim();
-		void RunFireSelf();
-		void GattlingDamage();
+
+		void UpdateGattlingOverloadDamage();
 		void UpdateOnTunnelEnter();
 		void InitFunctionEvents();
+
+		void UpdateShield();
+		void UpdateType(TechnoTypeClass* currentType);
+		void UpdateBuildingLightning();
+		void UpdateInterceptor();
+		void UpdateFireSelf();
+		void UpdateMobileRefinery();
+		void UpdateMCRangeLimit();
+		void UpdateSpawnLimitRange();
+		void UpdateDelayFireAnim();
+		void UpdateRevengeWeapons();
+
+		void UpdateLaserTrails();
+		//
+		void UpdateAircraftOpentopped();
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
+	protected:
+		std::pair<std::vector<WeaponTypeClass*>, std::vector<int>> GetFireSelfData();
+		int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData , FootClass const* pPassenger);
 	};
 
 	class ExtContainer final : public Container<TechnoExt
@@ -287,22 +286,19 @@ public:
 	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
 	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
-
+	static bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
-	static void ApplySpawn_LimitRange(TechnoClass* pThis);
-	static void ApplyInterceptor(TechnoClass* pThis);
-	static void ApplyMindControlRangeLimit(TechnoClass* pThis);
-	static void ApplyMobileRefinery(TechnoClass* pThis);
+
+	static void ResetDelayFireAnim(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
+	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
-	static void KillSlave(TechnoClass* pThis);
 	static void HandleRemove(TechnoClass* pThis , TechnoClass* pSource = nullptr);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
 	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
@@ -310,6 +306,7 @@ public:
 	static std::pair<WeaponTypeClass*, int> GetDeployFireWeapon(TechnoClass* pThis , AbstractClass* pTarget);
 
 	static NOINLINE bool IsChronoDelayDamageImmune(FootClass* pThis);
+	static NOINLINE int GetInitialStrength(TechnoTypeClass* pType, int nHP);
 
 	struct Helper {
 		template<bool CheckHouse ,bool CheckVisibility>

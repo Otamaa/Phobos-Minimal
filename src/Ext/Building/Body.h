@@ -57,6 +57,10 @@ public:
 		bool HasSuperWeapon(int index, bool withUpgrades) const;
 		bool RubbleYell(bool beingRepaired);
 
+
+		void UpdatePoweredKillSpawns();
+		void UpdateAutoSellTimer();
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

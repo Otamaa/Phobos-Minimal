@@ -193,11 +193,11 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 // would likely require making sense of BulletClass::AI and ain't nobody got time for that.
 DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
-	enum { DetonateBullet = 0x467F9B };
+	enum { DetonateBullet = 0x467F9B , Continue = 0x0 };
 	GET(BulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && BulletExt::ExtMap.Find(pThis)->IsInterceptor) ? DetonateBullet : 0x0;
+	return (pThis->Type->Inviso && BulletExt::ExtMap.Find(pThis)->IsInterceptor)
+	? DetonateBullet : Continue;
 }
-
 
 DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
 {

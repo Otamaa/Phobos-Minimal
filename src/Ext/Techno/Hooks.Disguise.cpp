@@ -1,4 +1,6 @@
 #include "Body.h"
+#include <Ext/TechnoType/Body.h>
+
 #include <Utilities/Cast.h>
 
 DEFINE_HOOK_AGAIN(0x522790, TechnoClass_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise

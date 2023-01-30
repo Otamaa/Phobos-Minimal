@@ -1,10 +1,9 @@
 #include "Body.h"
 #include "Trajectories/PhobosTrajectory.h"
 
-#ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
 {
-	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 };
+	enum { NoSnap = 0x468FF4, ForceSnap = 0x468EC7 , Continue = 0x0 };
 
 	GET(BulletClass*, pThis, ESI);
 
@@ -14,20 +13,16 @@ DEFINE_HOOK(0x468E9F, BulletClass_Logics_SnapOnTarget, 0x6) //C
 		return ForceSnap;
 	}
 
-	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight &&
+		!pExt->SnappedToTarget)
 	{
-		if (pExt->Trajectory &&
-			 pExt->Trajectory->Flag == TrajectoryFlag::Straight &&
-			!pExt->SnappedToTarget)
-		{
-			return NoSnap;
-		}
+		return NoSnap;
 	}
 
-	return 0;
+	return Continue;
 }
-#else
-/// TODO : snap checks test
+
 DEFINE_HOOK(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 {
 	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
@@ -76,7 +71,7 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	}
 	else if (pThis->Type->Arcing || pThis->Type->ROT > 0)
 	{
-		return 0;
+		return 0x0;
 	}
 	else
 	{
@@ -88,7 +83,7 @@ DEFINE_HOOK(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 		}
 	}
 
-	return 0;
+	return 0x0;
 }
 
 DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
@@ -111,33 +106,26 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
+	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
 	{
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
-		{
-			return SkipSetCoordinate;
-			//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
-		}
+		return SkipSetCoordinate;
+		//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;
 	}
 
 	return 0;
 }
-#endif
 
-/*
 DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
 {
-	enum { DontExplode = 0x468D73 };
+	enum { DontExplode = 0x468D73 , Contine = 0x0 };
 
 	GET(const BulletClass*, pThis, ESI);
+	auto const pExt = BulletExt::ExtMap.Find(pThis);
 
-	if (auto const pExt = BulletExt::ExtMap.Find(pThis))
-	{
-		if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
-		{
-			// Straight trajectory has its own proximity checks.
-			return DontExplode;
-		}
+	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {
+		// Straight trajectory has its own proximity checks.
+		return DontExplode;
 	}
 
-	return 0;
-}*/
+	return Contine;
+}

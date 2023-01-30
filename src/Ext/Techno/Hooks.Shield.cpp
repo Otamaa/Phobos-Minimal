@@ -47,34 +47,6 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	return 0;
 }
 
-/*
-DEFINE_HOOK(0x5F5399, ObjectClass_ReceiveDamage_Shield, 0xB)
-{
-	GET(ObjectClass*, pThis, ECX);
-	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFS(0x24,-0x4));
-
-	const auto pTechno = generic_cast<TechnoClass*>(pThis);
-
-	if (!args->IgnoreDefenses && pTechno) {
-		if (const auto pExt = TechnoExt::ExtMap.Find(pTechno)) {
-			if (const auto pShieldData = pExt->GetShield())
-			{
-				if (pShieldData->IsActive()){
-
-					pShieldData->OnReceiveDamage(args);
-
-					if(!pShieldData->ReceiveDamageExecuted)
-					if (auto const pTag = pTechno->AttachedTag)
-						pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, pTechno,
-							CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-*/
 DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 {
 	enum { Continue = 0x0, SkipLowDamageCheck = 0x7019E3 };
@@ -95,29 +67,11 @@ DEFINE_HOOK(0x7019D8, TechnoClass_ReceiveDamage_SkipLowDamageCheck, 0x5)
 	return SkipLowDamageCheck;
 }
 
-bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
-{
-	auto const pShieldData = TechnoExt::ExtMap.Find(pTarget)->Shield.get();
-
-	if (!pShieldData)
-		return false;
-
-	if (pShieldData->CanBePenetrated(pWeapon->Warhead)) 
-		{ return false; }
-
-	if (pShieldData->IsActive()) {
-		R->EAX(pShieldData->GetType()->Armor);
-		return true;
-	}
-
-	return false;
-}
-
 #define REPLACE_ARMOR(addr , regWP , regTech , name)\
 DEFINE_HOOK(addr, name, 0x6) {\
 GET(WeaponTypeClass*, pWeapon, regWP);\
 GET(TechnoClass*, pTarget, regTech);\
-	if (ReplaceArmor(R, pTarget, pWeapon))\
+	if (TechnoExt::ReplaceArmor(R, pTarget, pWeapon))\
 		{ return R->Origin() + 6; } return 0; }
 
 DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
@@ -126,7 +80,7 @@ DEFINE_HOOK(0x70CF39, TechnoClass_EvalThreatRating_Shield, 0x6)
 	GET(ObjectClass*, pTarget, ESI);
 
 	if (auto pTechno = generic_cast<TechnoClass*>(pTarget)) {
-		if(ReplaceArmor(R,pTechno,pWeapon))
+		if(TechnoExt::ReplaceArmor(R,pTechno,pWeapon))
 			return R->Origin() + 6;
 	}
 
@@ -139,17 +93,6 @@ REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 
-//DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Shield, 0x5)
-//{
-//	GET(TechnoClass*, pThis, ECX);
-//
-//	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-//
-//
-//
-//	return 0;
-//}
-
 // Ares-hook jmp to this offset
 DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 {
@@ -157,11 +100,15 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 
 	if (auto const pTarget = pThis->Target)
 	{
-		if (const auto pShieldData = TechnoExt::ExtMap.Find(pTarget)->GetShield())
-		{
+		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
+
+		if (const auto pShieldData = pTargetExt->GetShield()) {
 			if (pShieldData->IsAvailable())
 				pShieldData->OnTemporalUpdate(pThis);
 		}
+
+		pTargetExt->UpdateFireSelf();
+		pTargetExt->UpdateRevengeWeapons();
 	}
 
 	// Recovering vanilla instructions that were broken by a hook call

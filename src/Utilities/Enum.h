@@ -272,6 +272,7 @@ enum class SlaveReturnTo : int
 
 enum class KillMethod : int
 {
+	None = -1 ,
 	Explode = 0,     //default death option
 	Vanish = 1,
 	Sell = 2,     // buildings only

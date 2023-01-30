@@ -476,6 +476,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
 	this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
 	this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
+	this->Experience_KillerMultiple.Read(exINI, pSection, "Experience.KillerMultiple");
+	this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
 
 	this->AdjustCrushProperties();
 
@@ -542,6 +544,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 	{
+		cur = CRT::strtrim(cur);
 		int index = Theater::FindIndex(cur);
 		if (index != -1)
 			Prerequisite_RequiredTheaters.push_back(index);
@@ -555,7 +558,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 	{
+		cur = CRT::strtrim(cur);
 		int idx = TechnoTypeClass::FindIndexById(cur);
+
 		if (idx >= 0)
 		{
 			Prerequisite.push_back(idx);
@@ -575,7 +580,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 	{
+		cur = CRT::strtrim(cur);
 		int idx = TechnoTypeClass::FindIndexById(cur);
+
 		if (idx >= 0)
 		{
 			Prerequisite_Negative.push_back(idx);
@@ -604,7 +611,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context2))
 			{
+				cur = CRT::strtrim(cur);
 				int idx = TechnoTypeClass::FindIndexById(cur);
+
 				if (idx >= 0)
 				{
 					objectsList.push_back(idx);
@@ -1042,6 +1051,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CrushLevel)
 		.Process(this->CrushableLevel)
 		.Process(this->DeployCrushableLevel)
+
+		.Process(this->Experience_KillerMultiple)
+		.Process(this->Experience_VictimMultiple)
 #endif
 
 

@@ -157,16 +157,17 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 #endif
 };
 
-int WeaponTypeExt::ExtData::GetBurstDelay(int burstIndex)
+int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis , int burstIndex)
 {
+	auto const pExt = WeaponTypeExt::ExtMap.Find(pThis);
 	int burstDelay = -1;
 
 	if (burstIndex == 0)
 		return 0;
-	else if (this->Burst_Delays.size() > (unsigned)burstIndex)
-		burstDelay = this->Burst_Delays[burstIndex - 1];
-	else if (this->Burst_Delays.size() > 0)
-		burstDelay = this->Burst_Delays[this->Burst_Delays.size() - 1];
+	else if (pExt->Burst_Delays.size() > (unsigned)burstIndex)
+		burstDelay = pExt->Burst_Delays[burstIndex - 1];
+	else if (pExt->Burst_Delays.size() > 0)
+		burstDelay = pExt->Burst_Delays[pExt->Burst_Delays.size() - 1];
 
 	return burstDelay;
 }

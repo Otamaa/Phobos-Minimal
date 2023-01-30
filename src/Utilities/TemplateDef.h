@@ -609,7 +609,7 @@ namespace detail
 			else
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a suicide option, default disabled");
-				value = KillMethod::Explode;
+				value = KillMethod::None;
 			}
 			return true;
 		}

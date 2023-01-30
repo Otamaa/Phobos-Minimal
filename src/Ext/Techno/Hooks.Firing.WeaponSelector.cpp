@@ -2,6 +2,8 @@
 
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/TechnoType/Body.h>
+
 #include <Utilities/EnumFunctions.h>
 
 // Weapon Selection

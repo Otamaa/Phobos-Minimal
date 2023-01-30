@@ -253,7 +253,7 @@ namespace DrawHeathData
 			nPoint.Y = nLocation.Y + nBracketDelta - (bIsInfantry ? 25 : 26);
 
 			DSurface::Temp->DrawSHP(pPalette, pPipsShapeSelected, (bIsInfantry ? 1 : 0), &nPoint, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-			TechnoExt::DrawSelectBrd(pThis, pTypeExt, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
+			TechnoExt::DrawSelectBrd(pThis, pType, bIsInfantry ? 8 : 17, pLocation, pBound, bIsInfantry, IsDisguised);
 		}
 
 		const int nOffsetX = (bIsInfantry ? -5 : -15);

@@ -2,7 +2,9 @@
 
 class CCFileClass;
 #include <GeneralStructures.h>
+#include <RectangleStruct.h>
 #include <ColorStruct.h>
+#include <Memory.h>
 
 struct VoxelDrawStruct;
 struct VoxelShadowDrawStruct;

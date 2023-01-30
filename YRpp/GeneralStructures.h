@@ -106,6 +106,12 @@ public:
 		return !this->IsTicking() || !this->HasTimeLeft();
 	}
 
+	// Sometimes I want to know if the timer has ever started
+	bool HasStarted() const
+	{
+		return this->IsTicking() || this->HasTimeLeft();
+	}
+
 	void Add(int nTime) {
 		this->Pause();
 		this->TimeLeft = nTime;

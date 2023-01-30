@@ -6,8 +6,6 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
-#include <Ext/BuildingType/Body.h>
-
 #include <map>
 
 class HouseExt
@@ -48,6 +46,9 @@ public:
 		int LastBuiltNavalVehicleType;
 		int ProducingNavalUnitTypeIndex;
 
+		//#830
+		std::vector<TechnoClass*> AutoDeathObjects;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, OwnedLimboBuildingTypes {}
@@ -71,6 +72,8 @@ public:
 
 			, LastBuiltNavalVehicleType { -1 }
 			, ProducingNavalUnitTypeIndex { -1 }
+
+			, AutoDeathObjects {}
 		{ }
 
 		virtual ~ExtData() = default;
@@ -82,6 +85,7 @@ public:
 		void LoadFromINIFile(CCINIClass* pINI);
 
 		void UpdateVehicleProduction();
+		void UpdateAutoDeathObjects();
 
 	private:
 		template <typename T>
