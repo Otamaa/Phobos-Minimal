@@ -2967,6 +2967,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass *pTechno, int mask, int attac
 				|| (pBuildingExt && pBuildingExt->IsJuggernaut)
 				|| pTypeBuilding->ICBMLauncher
 				|| pTypeBuilding->SensorArray));
+				auto const pBtypeExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding)
 	}
 	case 39:
 		// Occupyable Civilian  Building
