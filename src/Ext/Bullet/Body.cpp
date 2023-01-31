@@ -182,6 +182,50 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 	}
 }
 
+Fuse BulletExt::FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
+{
+	auto& nFuse = pBullet->Data;
+
+	int v3 = nFuse.ArmTimer.StartTime;
+	int v4 = nFuse.ArmTimer.TimeLeft;
+	if (v3 == -1)
+	{
+	LABEL_4:
+		if (v4)
+		{
+			return Fuse::DontIgnite;
+		}
+		goto LABEL_5;
+	}
+	if (Unsorted::CurrentFrame - v3 < v4)
+	{
+		v4 -= Unsorted::CurrentFrame - v3;
+		goto LABEL_4;
+	}
+LABEL_5:
+
+	const int proximity = Game::F2I(newlocation->DistanceFrom(nFuse.Location)) / 2;
+
+	int nProx = 32;
+	const auto pExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
+	if (pExt->Proximity_Range.isset())
+		nProx = pExt->Proximity_Range.Get() * 256;
+
+	if (proximity < nProx)
+	{
+		return Fuse::Ignite;
+	}
+
+	if (proximity < 256 && proximity > nFuse.Distance)
+	{
+		return Fuse::Ignite_DistaceFactor;
+	}
+
+	nFuse.Distance = proximity;
+
+	return Fuse::DontIgnite;
+}
+
 // =============================
 // load / save
 

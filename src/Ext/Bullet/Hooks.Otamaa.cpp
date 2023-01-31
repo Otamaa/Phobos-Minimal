@@ -299,7 +299,6 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 }
 #pragma endregion
 
-
 //template<bool Reverse =false>
 //static __forceinline VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed)
 //{

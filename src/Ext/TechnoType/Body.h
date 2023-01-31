@@ -80,6 +80,7 @@ public:
 		Valueable<int> PassengerDeletion_Rate;
 		NullableIdx<VocClass> PassengerDeletion_ReportSound;
 		Valueable<bool> PassengerDeletion_Rate_SizeMultiply;
+		Valueable<bool> PassengerDeletion_Rate_AffectedByVeterancy;
 		Valueable<bool> PassengerDeletion_UseCostAsRate;
 		Valueable<double> PassengerDeletion_CostMultiplier;
 		Nullable<AnimTypeClass*> PassengerDeletion_Anim;
@@ -463,6 +464,7 @@ public:
 			, PassengerDeletion_Rate { 0 }
 			, PassengerDeletion_ReportSound {}
 			, PassengerDeletion_Rate_SizeMultiply { true }
+			, PassengerDeletion_Rate_AffectedByVeterancy { false }
 			, PassengerDeletion_UseCostAsRate{ false }
 			, PassengerDeletion_CostMultiplier{ 1.0 }
 			, PassengerDeletion_Anim {}

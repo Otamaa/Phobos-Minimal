@@ -525,7 +525,10 @@ public:
 	bool Place_Random_Crate()
 		{ JMP_THIS(0x56BD40); }
 
-	int Zone_56D230(CellStruct* where,MovementZone nZone ,bool bArgs)
+	ZoneType GetMapZone(CellStruct* where, MovementZone movementZone, bool isBridge)
+		{ JMP_THIS(0x56D230); }
+
+	ZoneType GetMapZone(const CellStruct& MapCoords, MovementZone movementZone, bool isBridge)
 		{ JMP_THIS(0x56D230); }
 
 	int Zone_56DA10(CellStruct* where , int nLessCond ,int nZoneConnectionIndex)

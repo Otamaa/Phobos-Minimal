@@ -107,8 +107,8 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 				pShieldData->OnTemporalUpdate(pThis);
 		}
 
-		pTargetExt->UpdateFireSelf();
-		pTargetExt->UpdateRevengeWeapons();
+		//pTargetExt->UpdateFireSelf();
+		//pTargetExt->UpdateRevengeWeapons();
 	}
 
 	// Recovering vanilla instructions that were broken by a hook call

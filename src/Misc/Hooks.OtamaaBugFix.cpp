@@ -471,56 +471,12 @@ static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis
 
 DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
 
-static NOINLINE Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
-{
-	auto& nFuse = pBullet->Data;
-
-	int v3 = nFuse.ArmTimer.StartTime;
-	int v4 = nFuse.ArmTimer.TimeLeft;
-	if (v3 == -1)
-	{
-	LABEL_4:
-		if (v4)
-		{
-			return Fuse::DontIgnite;
-		}
-		goto LABEL_5;
-	}
-	if (Unsorted::CurrentFrame - v3 < v4)
-	{
-		v4 -= Unsorted::CurrentFrame - v3;
-		goto LABEL_4;
-	}
-LABEL_5:
-
-	const int proximity = Game::F2I(newlocation->DistanceFrom(nFuse.Location)) / 2;
-
-	int nProx = 32;
-	const auto pExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
-	if (pExt->Proximity_Range.isset())
-		nProx = pExt->Proximity_Range.Get() * 256;
-
-	if (proximity < nProx)
-	{
-		return Fuse::Ignite;
-	}
-
-	if (proximity < 256 && proximity > nFuse.Distance)
-	{
-		return Fuse::Ignite_DistaceFactor;
-	}
-
-	nFuse.Distance = proximity;
-
-	return Fuse::DontIgnite;
-}
-
 DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 {
 	GET(BulletClass*, pThis, EBP);
 	GET(CoordStruct*, pCoord, EAX);
 
-	R->EAX(FuseCheckup(pThis, pCoord));
+	R->EAX(BulletExt::FuseCheckup(pThis, pCoord));
 	return 0x467C3A;
 }
 
@@ -1554,21 +1510,18 @@ DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 
 #ifdef Eng_captureDelay
 // TODO : more hooks
+
 DEFINE_HOOK(0x4D69F5, FootClass_ApproachTarget_EngineerCaptureDelay, 0x6)
 {
 	GET(FootClass*, pFoot, EBX);
 
 	if (auto pInf = specific_cast<InfantryClass*>(pFoot))
 	{
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type))
-		{
-			if (auto pExt = TechnoExt::ExtMap.Find(pInf))
-			{
-				if (pExt->EngineerCaptureDelay.InProgress())
-				{
-					return 0x4D6A01;
-				}
-			}
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+		const auto pExt = TechnoExt::ExtMap.Find(pInf);
+
+		if (pExt->EngineerCaptureDelay.InProgress()) {
+			return 0x4D6A01;
 		}
 	}
 
@@ -2414,7 +2367,6 @@ void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleS
 	if (!nMax)
 		return;
 
-	auto const pWhat = pTechno->WhatAmI();
 	const auto nStorage_0 = pTechno->Tiberium.at(0); //Riparius
 	const auto nStorage_1 = pTechno->Tiberium.at(1); //Cruentus
 	const auto nStorage_2 = pTechno->Tiberium.at(2); //Vinifera
@@ -2430,8 +2382,29 @@ void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleS
 	//auto amount_a = Game::F2I(totalaccum / pType->Storage * nMax + 0.5);
 	//auto amount_b = Game::F2I(nStorage_1 / pType->Storage * nMax + 0.5);
 
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
 	Point2D nOffs {};
-	auto const pShape = pWhat == AbstractType::Building ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
+	auto const pBuilding = specific_cast<BuildingClass*>(pTechno);
+	auto const pShape = pBuilding ?
+		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
+
+	ConvertClass* nPal = nullptr;
+
+	if (pBuilding)
+	{
+		auto const pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+		if (pBuildingTypeExt->PipShapes01Remap)
+			nPal = pTechno->GetRemapColour();
+		else
+			nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
+	}
+	else
+	{
+		nPal = FileSystem::THEATER_PAL();
+	}
+
 	auto GetFrames = [&]()
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
@@ -2472,7 +2445,7 @@ void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleS
 		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
 		CC_Draw_Shape(
 			DSurface::Temp(),
-			FileSystem::THEATER_PAL(),
+			nPal,
 			pShape,
 			nFrame,
 			&nPointHere,
@@ -2670,9 +2643,27 @@ void NOINLINE DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleSt
 	if (nMax <= 0)
 		return;
 
-	auto const pWhat = pTechno->WhatAmI();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	Point2D nOffs {};
-	auto const pShape = pWhat == AbstractType::Building ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
+
+	auto const pBuilding = specific_cast<BuildingClass*>(pTechno);
+	auto const pShape = pBuilding ?
+		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
+
+	ConvertClass* nPal = nullptr;
+
+	if(pBuilding){	
+		auto const pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+		if (pBuildingTypeExt->PipShapes01Remap)
+			nPal = pTechno->GetRemapColour();
+		else
+			nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
+	}
+	else
+	{
+		nPal = FileSystem::THEATER_PAL();
+	}
 
 	for (int i = 0; i < nMax; i++)
 	{
@@ -2681,7 +2672,7 @@ void NOINLINE DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleSt
 		Point2D nPointHere { nOffs.X + nPoints->X  , nOffs.Y + nPoints->Y };
 		CC_Draw_Shape(
 			DSurface::Temp(),
-			FileSystem::THEATER_PAL(),
+			nPal,
 			pShape,
 			i < nSpawnMax,
 			&nPointHere,
@@ -2739,4 +2730,80 @@ DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
 DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
 {
 	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
+}
+
+
+//DEFINE_HOOK(0x6FF1FB, TechnoClass_FireAt_Shield, 0x6)
+//{
+//	GET_BASE(AbstractClass*, pTarget, 0x8);
+//	GET_STACK(CoordStruct, nCoord, 0x44);
+//
+//	if (auto const pTechno = abstract_cast<TechnoClass*>(pTarget))
+//	{
+//		auto const pExt = TechnoExt::ExtMap.Find(pTechno);
+//		if (auto const pShield = pExt->GetShield())
+//		{
+//			if (!pShield->IsActive())
+//				return 0x0;
+//
+//			if(auto pHitAnim = pShield->Anim)
+//		}
+//	}
+//	return 0x0;
+//}
+
+
+enum class NewVHPScan : int
+{
+	None = 0 ,
+	Normal = 1 ,
+	Strong = 2,
+	Threat = 3,
+	Health = 4,
+	Damage = 5,
+	Value = 6,
+	Locked = 7,
+	Non_Infantry = 8,
+
+
+	count
+};
+
+std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+{
+   {
+	  {"None" },
+	{ "Normal" },
+	{ "Strong" },
+	{ "Threat" },
+	{ "Health" },
+	{ "Damage" },
+	{ "Value" },
+	{ "Locked" },
+	{ "Non-Infantry" } 
+	}
+};
+
+DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
+{
+	GET(const char* const, cur, ESI);
+
+	int vHp = 0;
+	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
+	{
+		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
+		{
+			vHp = i;
+			break;
+		}
+	}
+
+	R->EAX(vHp);
+	return 0x4775E9;
+}
+
+DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
+{
+	R->EDX(NewVHPScanToString[R->EDI<int>()]);
+	return 0x4775B7;
 }

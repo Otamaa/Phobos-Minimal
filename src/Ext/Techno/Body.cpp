@@ -1238,6 +1238,9 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, FootClass const* pPassenger)
 {
 	auto const pData = TechnoTypeExt::ExtMap.Find(pTransporterData);
+	auto const pThis = this->Get();
+
+	int nRate = 0;
 
 	if (pData->PassengerDeletion_UseCostAsRate.Get())
 	{
@@ -1247,7 +1250,7 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 		if (pData->PassengerDeletion_Rate.Get() > 0)
 			timerLength = std::min(timerLength, pData->PassengerDeletion_Rate.Get());
 
-		return timerLength;
+		nRate = timerLength;
 	}
 	else if (pData->PassengerDeletion_Rate.Get() > 0)
 	{
@@ -1256,10 +1259,20 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 		if (pData->PassengerDeletion_Rate_SizeMultiply.Get() && pPassenger->GetTechnoType()->Size > 1.0)
 			timerLength *= static_cast<int>(pPassenger->GetTechnoType()->Size + 0.5);
 
-		return timerLength;
+		nRate = timerLength;
 	}
 
-	return 0;
+	if (pData->PassengerDeletion_Rate_AffectedByVeterancy
+		&& RulesClass::Instance->VeteranROF != 1.0f) {
+		if (pThis->Veterancy.Veterancy >= 1.0f && pTransporterData->VeteranAbilities.ROF) {
+			nRate = (int)((double)nRate * RulesClass::Instance->VeteranROF);
+			if (pThis->Veterancy.Veterancy >= 2.0f && pTransporterData->EliteAbilities.ROF) {
+				nRate = (int)((double)nRate * RulesClass::Instance->VeteranROF);
+			}
+		}
+	}
+
+	return nRate;
 }
 
 void TechnoExt::ExtData::UpdateEatPassengers()
@@ -1276,9 +1289,12 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 			if (PassengerDeletionCountDown < 0)
 			{
 				// Setting & start countdown. Bigger units needs more time
-				int passengerSize = this->GetEatPassangersTotalTime(Type, pPassenger);
-				PassengerDeletionCountDown = passengerSize;
-				PassengerDeletionTimer.Start(passengerSize);
+				const int passengerSize = this->GetEatPassangersTotalTime(Type, pPassenger);
+
+				if(passengerSize > 0) {
+					PassengerDeletionCountDown = passengerSize;
+					PassengerDeletionTimer.Start(passengerSize);
+				}
 			}
 			else
 			{
@@ -1389,21 +1405,42 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 							}
 
 							// kill passenger cargo to prevent memleak
-							pPassenger->KillPassengers(pThis);
+							//pPassenger->KillPassengers(pThis);
 
-							if (pTypeExt->PassengerDeletion_Experience.Get())
+							//if (pTypeExt->PassengerDeletion_Experience.Get())
+							//{
+							//	// ChangeOwnership of the pessanger 
+							//	// since we cant gain experience from Ally !
+							//	if (pTypeExt->PassengerDeletion_ExperienceFriendlies.Get())
+							//		if (pPassangerOwner == pThisOwner || pPassangerOwner->IsAlliedWith(pThisOwner) || pThisOwner->IsAlliedWith(pPassangerOwner))
+							//			pPassenger->Owner = HouseExt::FindNeutral();
+
+							//	pPassenger->RegisterDestruction(pThis);
+							//}
+
+							// Check if there is experience gain
+							if (pTypeExt->PassengerDeletion_Experience)
 							{
-								// ChangeOwnership of the pessanger 
-								// since we cant gain experience from Ally !
-								if (pTypeExt->PassengerDeletion_ExperienceFriendlies.Get())
-									if (pPassangerOwner == pThisOwner || pPassangerOwner->IsAlliedWith(pThisOwner) || pThisOwner->IsAlliedWith(pPassangerOwner))
-										pPassenger->Owner = HouseExt::FindNeutral();
+								int nExperienceToGain = 0;
+								auto const pPassengerType = pPassenger->GetTechnoType();
 
-								pPassenger->RegisterDestruction(pThis);
+								// Gain experience from "eating" passenger
+								if (pPassengerType && pPassengerType->Cost > 0)
+									nExperienceToGain = pPassengerType->Cost;
+
+								// Is allowed to gain experience for friendly units?
+								if (!pTypeExt->PassengerDeletion_ExperienceFriendlies
+									&& pPassenger->Owner->IsAlliedWith(pThis))
+								{
+									nExperienceToGain = 0;
+								}
+
+								if (nExperienceToGain > 0)
+									pThis->Veterancy.Add(pThis->GetTechnoType()->Cost, nExperienceToGain);
 							}
 						}
 
-						pPassenger->UnInit();
+						TechnoExt::HandleRemove(pPassenger , pThis);
 					}
 
 					PassengerDeletionTimer.Stop();

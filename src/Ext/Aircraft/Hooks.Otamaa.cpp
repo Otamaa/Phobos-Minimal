@@ -207,33 +207,33 @@ DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
 	return pThis->Type->AirportBound ? 0x4CD12A : 0x0;
 }
 
-DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(AbstractClass*, pNavCom, EDI);
-	GET(BuildingClass*, pCellBuilding, EAX);
-
-	if (pNavCom != pCellBuilding)
-	{
-		if (auto pNavBuilding = specific_cast<BuildingClass*>(pNavCom))
-		{
-			pThis->DockedTo = pNavBuilding;
-			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
-			pThis->SendCommand(RadioCommand::RequestLink, pNavBuilding);
-			pThis->SetDestination(pNavBuilding, true);
-			return 0x419CFF;
-		}
-
-		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pCellBuilding) == RadioCommand::AnswerPositive)
-		{
-			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
-			pThis->SendToFirstLink(RadioCommand::RequestUntether);
-			pThis->SendCommand(RadioCommand::RequestLink, pCellBuilding);
-			pThis->SetDestination(pCellBuilding, true);
-		}
-	}
-
-	return 0x419D0B;
-}
+//DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(AbstractClass*, pNavCom, EDI);
+//	GET(BuildingClass*, pCellBuilding, EAX);
+//
+//	if (pNavCom != pCellBuilding)
+//	{
+//		if (auto pNavBuilding = specific_cast<BuildingClass*>(pNavCom))
+//		{
+//			pThis->DockedTo = pNavBuilding;
+//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
+//			pThis->SendCommand(RadioCommand::RequestLink, pNavBuilding);
+//			pThis->SetDestination(pNavBuilding, true);
+//			return 0x419CFF;
+//		}
+//
+//		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pCellBuilding) == RadioCommand::AnswerPositive)
+//		{
+//			pThis->SendToFirstLink(RadioCommand::NotifyUnlink);
+//			pThis->SendToFirstLink(RadioCommand::RequestUntether);
+//			pThis->SendCommand(RadioCommand::RequestLink, pCellBuilding);
+//			pThis->SetDestination(pCellBuilding, true);
+//		}
+//	}
+//
+//	return 0x419D0B;
+//}
 
 #pragma endregion

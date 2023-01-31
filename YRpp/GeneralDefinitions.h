@@ -19,6 +19,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class ZoneType : int
+{
+	None = -1,
+	Core = 0,
+	North = 1,
+	East = 2,
+	South = 3,
+	West = 4
+};
+
 enum class RGBMode : unsigned int
 {
 	RGB555 = 0,
@@ -1647,8 +1657,6 @@ enum class Edge : int {
 	West = 3,
 	Air = 4
 };
-
-typedef Edge ZoneType;
 
 enum class Move : int {
 	OK = 0,
