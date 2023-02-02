@@ -263,7 +263,7 @@ public:
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
 	static void NOINLINE CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewType);
 	static void NOINLINE ClearCurrentScript(TeamClass* pThis);
-	static NOINLINE ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx);
+	static NOINLINE ScriptTypeClass* GetFromAIScriptList(size_t nIdx);
 	static std::pair<bool, bool> CheckWeaponsTargetingCapabilites(WeaponTypeClass* pWeaponPrimary, WeaponTypeClass* pWeaponSecondary, bool agentMode);
 
 	static void ResetAngerAgainstHouses(TeamClass* pTeam);

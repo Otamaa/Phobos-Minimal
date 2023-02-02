@@ -590,19 +590,20 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "sell"))
+			auto const pValue = parser.value();
+			if (IS_SAME_STR_(pValue, "sell"))
 			{
 				value = KillMethod::Sell;
 			}
-			else if (IS_SAME_STR_(parser.value(), "vanish"))
+			else if (IS_SAME_STR_(pValue, "vanish"))
 			{
 				value = KillMethod::Vanish;
 			}
-			else if (IS_SAME_STR_(parser.value(), "kill"))
+			else if (IS_SAME_STR_(pValue, "kill") || IS_SAME_STR_(pValue, "explode"))
 			{
 				value = KillMethod::Explode;
 			}
-			else if (IS_SAME_STR_(parser.value(), "random"))
+			else if (IS_SAME_STR_(pValue, "random"))
 			{
 				value = KillMethod::Random;
 			}
@@ -1854,44 +1855,6 @@ bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 			{
 				return false;
 			}
-		}
-		return true;
-	}
-	return false;
-}
-
-template <>
-bool ValueableVector<bool>::Load(PhobosStreamReader& stm, bool registerForChange)
-{
-	size_t size = 0;
-	if (Savegame::ReadPhobosStream(stm, size, registerForChange))
-	{
-		this->clear();
-
-		for (size_t i = 0; i < size; ++i)
-		{
-			bool value;
-
-			if (!Savegame::ReadPhobosStream(stm, value, false))
-				return false;
-
-			this->emplace_back(value);
-		}
-		return true;
-	}
-	return false;
-}
-
-template <>
-bool ValueableVector<bool>::Save(PhobosStreamWriter& stm) const
-{
-	auto size = this->size();
-	if (Savegame::WritePhobosStream(stm, size))
-	{
-		for (bool item : *this)
-		{
-			if (!Savegame::WritePhobosStream(stm, item))
-				return false;
 		}
 		return true;
 	}

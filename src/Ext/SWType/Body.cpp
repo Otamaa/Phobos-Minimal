@@ -60,7 +60,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SW_AuxBuildings.Read(exINI, pSection, "SW.AuxBuildings");
 	this->SW_NegBuildings.Read(exINI, pSection, "SW.NegBuildings");
 
-	this->Detonate_Warhead.Read(exINI, pSection, "Detonate.Warhead");
+	this->Detonate_Warhead.Read(exINI, pSection, "Detonate.Warhead" , true);
 	this->Detonate_Weapon.Read(exINI, pSection, "Detonate.Weapon", true);
 	this->Detonate_Damage.Read(exINI, pSection, "Detonate.Damage");
 
@@ -196,8 +196,8 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Detonate_Warhead)
 		.Process(this->Detonate_Weapon)
 		.Process(this->Detonate_Damage)
-		.Process(ChargeTimer)
-		.Process(ChargeTimer_Backwards)
+		.Process(this->ChargeTimer)
+		.Process(this->ChargeTimer_Backwards)
 		.Process(this->SW_Priority)
 		;
 

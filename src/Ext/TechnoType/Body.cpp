@@ -190,8 +190,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//TODO : Tag name Change
 	this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
 	this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
-	this->Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
+
+	Nullable<bool> Death_Peaceful;
+	Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
+
 	this->Death_Method.Read(exINI, pSection, "Death.Method");
+
+	if(Death_Peaceful.isset())
+		this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
 
 	this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
 	this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
@@ -227,21 +233,19 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
 	this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
 
-	this->PassengerDeletion_Soylent.Read(exINI, pSection, "PassengerDeletion.Soylent");
-	this->PassengerDeletion_SoylentMultiplier.Read(exINI, pSection, "PassengerDeletion.SoylentMultiplier");
-	this->PassengerDeletion_SoylentFriendlies.Read(exINI, pSection, "PassengerDeletion.SoylentFriendlies");
-	this->PassengerDeletion_ReportSound.Read(exINI, pSection, "PassengerDeletion.ReportSound");
-	this->PassengerDeletion_Rate_SizeMultiply.Read(exINI, pSection, "PassengerDeletion.Rate.SizeMultiply");
-	this->PassengerDeletion_Rate_AffectedByVeterancy.Read(exINI, pSection, "PassengerDeletion.Rate.AffectedByVeterancy");
-	this->PassengerDeletion_Rate.Read(exINI, pSection, "PassengerDeletion.Rate");
-	this->PassengerDeletion_UseCostAsRate.Read(exINI, pSection, "PassengerDeletion.UseCostAsRate");
-	this->PassengerDeletion_CostMultiplier.Read(exINI, pSection, "PassengerDeletion.CostMultiplier");
-	this->PassengerDeletion_Anim.Read(exINI, pSection, "PassengerDeletion.Anim");
-	this->PassengerDeletion_DisplaySoylent.Read(exINI, pSection, "PassengerDeletion.DisplaySoylent");
-	this->PassengerDeletion_DisplaySoylentToHouses.Read(exINI, pSection, "PassengerDeletion.DisplaySoylentToHouses");
-	this->PassengerDeletion_DisplaySoylentOffset.Read(exINI, pSection, "PassengerDeletion.DisplaySoylentOffset");
-	this->PassengerDeletion_Experience.Read(exINI, pSection, "PassengerDeletion.Experience");
-	this->PassengerDeletion_ExperienceFriendlies.Read(exINI, pSection, "PassengerDeletion.ExperienceFriendlies");
+	auto const& [canParse , resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
+
+	if (canParse)
+	{
+		if (!this->PassengerDeletionType)
+			this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->Get());
+
+		this->PassengerDeletionType->LoadFromINI(pINI, pSection);
+	}
+	else if (resetValue)
+	{
+		this->PassengerDeletionType.reset();
+	}
 
 	this->DefaultDisguise.Read(exINI, pSection, "DefaultDisguise");
 
@@ -765,7 +769,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Death_NoAmmo)
 		.Process(this->Death_Countdown)
-		.Process(this->Death_Peaceful)
 		.Process(this->Death_Method)
 		.Process(this->AutoDeath_Nonexist)
 		.Process(this->AutoDeath_Nonexist_House)
@@ -797,21 +800,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DefaultDisguise)
 		.Process(this->WeaponBurstFLHs)
 		.Process(this->EliteWeaponBurstFLHs)
-		.Process(this->PassengerDeletion_Soylent)
-		.Process(this->PassengerDeletion_SoylentMultiplier)
-		.Process(this->PassengerDeletion_SoylentFriendlies)
-		.Process(this->PassengerDeletion_Rate)
-		.Process(this->PassengerDeletion_ReportSound)
-		.Process(this->PassengerDeletion_Rate_SizeMultiply)
-		.Process(this->PassengerDeletion_Rate_AffectedByVeterancy)
-		.Process(this->PassengerDeletion_UseCostAsRate)
-		.Process(this->PassengerDeletion_CostMultiplier)
-		.Process(this->PassengerDeletion_Anim)
-		.Process(this->PassengerDeletion_DisplaySoylent)
-		.Process(this->PassengerDeletion_DisplaySoylentToHouses)
-		.Process(this->PassengerDeletion_DisplaySoylentOffset)
-		.Process(this->PassengerDeletion_Experience)
-		.Process(this->PassengerDeletion_ExperienceFriendlies)
+		.Process(this->PassengerDeletionType)
 		.Process(this->OpenTopped_RangeBonus)
 		.Process(this->OpenTopped_DamageMultiplier)
 		.Process(this->OpenTopped_WarpDistance)
@@ -1045,6 +1034,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Elite_SecondaryCrawlFLH)
 		.Process(this->MissileHoming)
 
+#endif
 		.Process(this->Riparius_FrameIDx)
 		.Process(this->Cruentus_FrameIDx)
 		.Process(this->Vinifera_FrameIDx)
@@ -1056,7 +1046,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Experience_KillerMultiple)
 		.Process(this->Experience_VictimMultiple)
-#endif
 
 
 #pragma endregion

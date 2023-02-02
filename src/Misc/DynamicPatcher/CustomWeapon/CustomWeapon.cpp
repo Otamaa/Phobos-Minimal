@@ -168,31 +168,98 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 	return pAttacker->Transporter ? pAttacker->Transporter: pAttacker;
 }
 
+void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (!simulateBurstQueue.empty())
+	{
+		for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++)
+		{
+			if (simulateBurstQueue[pos].Target == ptr)
+			{
+				Debug::Log("Found Invalid Target from CustomWeaponManager ! , Cleaning Up ! \n");
+				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
+
+			}
+
+			if (simulateBurstQueue[pos].Shooter == ptr)
+			{
+				Debug::Log("Found Shooter Target from CustomWeaponManager ! , Cleaning Up ! \n");
+				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
+			}
+
+		}
+	}
+}
+
+void FireWeaponManager::Clear()
+{
+	//while (!DelayFires.empty()) DelayFires.pop();
+	DelayFires.clear();
+}
+
+void FireWeaponManager::FireWeaponManager_Clear()
+{
+	Clear();
+	CWeaponManager.release();
+}
+
+void FireWeaponManager::Insert(int weaponIndex, AbstractClass* pTarget, int delay, int count)
+{
+	DelayFires.emplace_back(std::move(std::make_unique<DelayFireWeapon>(weaponIndex, pTarget, delay, count)));
+}
+
+void FireWeaponManager::Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay, int count)
+{
+	DelayFires.emplace_back(std::move(std::make_unique<DelayFireWeapon>(pWeapon, pTarget, delay, count)));
+}
+
+bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult , FireBulletToTarget callback)
+{
+	return CWeaponManager->FireCustomWeapon(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos, rofMult, callback);
+}
+
+void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (!DelayFires.empty())
+	{
+		for (size_t pos = 0; pos < DelayFires.size(); pos++)
+		{
+			if (DelayFires.at(pos)->Target == ptr)
+			{
+				Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
+				DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
+			}
+		}
+	}
+
+	CWeaponManager->InvalidatePointer(ptr, bRemoved);
+}
+
 void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 {
 	for (; !DelayFires.empty();)
 	{
-		DelayFireWeapon delayFire = DelayFires[0];
+		auto delayFire = std::move(DelayFires.at(0));
 		DelayFires.erase(DelayFires.begin());
 
-		if (delayFire.TimesUp())
+		if (delayFire->TimesUp())
 		{
-			if (delayFire.FireOwnWeapon)
+			if (delayFire->FireOwnWeapon)
 			{
-				pAttacker->Fire(delayFire.Target, delayFire.WeaponIndex);
+				pAttacker->Fire(delayFire->Target, delayFire->WeaponIndex);
 			}
 			else
 			{
-				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire.Target, delayFire.Weapon, CoordStruct::Empty);
+				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire->Target, delayFire->Weapon, CoordStruct::Empty);
 			}
-			delayFire.ReduceOnce();
+			delayFire->ReduceOnce();
 		}
-		if (delayFire.NotDone())
-		{
-			DelayFires.push_back(std::move(delayFire));
+
+		if (delayFire->NotDone()) {
+			DelayFires.emplace_back(std::move(delayFire));
 		}
 	}
 
-	CWeaponManager.Update(pAttacker);
+	CWeaponManager->Update(pAttacker);
 }
 #endif

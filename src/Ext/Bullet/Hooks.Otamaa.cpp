@@ -2,9 +2,12 @@
 
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/House/Body.h>
+
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
 
@@ -97,7 +100,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 					[&targets](CellClass* const pCell) -> bool
 				{
 					targets.push_back(pCell);
-					return true;
+				return true;
 				});
 
 				// we want as many as we get, not more, not less
@@ -260,7 +263,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 				{
 					if (auto const pVoxelAnimType = pWarhead->DebrisTypes[nCurIdx])
 						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
-								VoxelAnimExt::ExtMap.Find(pVoxAnim)->Invoker = pThis->Owner;
+							VoxelAnimExt::ExtMap.Find(pVoxAnim)->Invoker = pThis->Owner;
 				}
 			}
 
@@ -729,7 +732,7 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //}
 //#pragma optimize( "", on )
 
-DEFINE_HOOK(0x466BAF,BulletClass_AI_MissileROTVar, 0x6 )
+DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 
@@ -739,8 +742,8 @@ DEFINE_HOOK(0x466BAF,BulletClass_AI_MissileROTVar, 0x6 )
 
 	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) *
 		0.06666666666666667 *
-		6.283185307179586) * 
-		nMissileROTVar + nMissileROTVar + 1.0) * 
+		6.283185307179586) *
+		nMissileROTVar + nMissileROTVar + 1.0) *
 		static_cast<double>(pThis->Type->ROT)
 	);
 
@@ -775,20 +778,23 @@ DEFINE_HOOK(0x46A4ED, BulletClass_Shrapnel_CheckVerses, 0x5)
 		case AbstractType::Unit:
 		case AbstractType::Building:
 		{
-			if (!WarheadTypeExt::ExtMap.Find(pWH)->CanDealDamage(static_cast<TechnoClass*>(pTargetObj),false,false)) { 
+			if (!WarheadTypeExt::ExtMap.Find(pWH)->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
+			{
 				return Skip;
 			}
 		}
-		 break;
+		break;
 		default:
 		{
-			if(auto pType = pTargetObj->GetType()) { 
-				if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) == 0.0) { 
+			if (auto pType = pTargetObj->GetType())
+			{
+				if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) == 0.0)
+				{
 					return Skip;
 				}
 			}
 		}
-		 break;
+		break;
 		}
 
 		if (pThis->Target == pTarget)
@@ -808,3 +814,116 @@ DEFINE_HOOK(0x46A4ED, BulletClass_Shrapnel_CheckVerses, 0x5)
 //
 //
 //}
+
+DEFINE_HOOK(0x4409F4, BuildingClass_Put_Additionals, 0x6)
+{
+	GET(BuildingClass*, pUpgrades, ESI);
+	//GET(BuildingClass*, pToUpgrade, EDI);
+
+	if (auto const pOwwner = pUpgrades->Owner)
+	{
+		if (auto const pInfantrySelfHeal = pUpgrades->Type->InfantryGainSelfHeal)
+			pOwwner->InfantrySelfHeal += pInfantrySelfHeal;
+
+		if (auto const pUnitSelfHeal = pUpgrades->Type->UnitsGainSelfHeal)
+			pOwwner->UnitsSelfHeal += pUnitSelfHeal;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		auto const upgrade = pThis->Upgrades[i];
+
+		if (!upgrade)
+			continue;
+
+		if (auto const pTargetHouse = pThis->Owner)
+		{
+			if (auto const pInfantrySelfHeal = upgrade->InfantryGainSelfHeal)
+			{
+				pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
+				if (pTargetHouse->InfantrySelfHeal < 0)
+					pTargetHouse->InfantrySelfHeal = 0;
+			}
+
+			if (auto const pUnitSelfHeal = upgrade->UnitsGainSelfHeal)
+			{
+				pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
+				if (pTargetHouse->UnitsSelfHeal < 0)
+					pTargetHouse->UnitsSelfHeal = 0;
+			}
+		}
+
+		if (upgrade->IsThreatRatingNode)
+		{
+			Debug::Log("Removing Upgrade [%d][%s] With IsTreatRatingNode = true ! \n", i, upgrade->get_ID());
+			R->Stack(0x13, true);
+		}
+	}
+
+	return 0x445AC6;
+}
+
+DEFINE_HOOK(0x44AAD3, BuildingClass_Mi_Selling_Upgrades, 0x9)
+{
+	GET(BuildingTypeClass*, pUpgrades, ECX);
+	GET(BuildingClass*, pThis, EBP);
+
+	if (pUpgrades && pThis->Owner)
+	{
+		if (auto const pInfantrySelfHeal = pUpgrades->InfantryGainSelfHeal)
+		{
+			pThis->Owner->InfantrySelfHeal -= pInfantrySelfHeal;
+			if (pThis->Owner->InfantrySelfHeal < 0)
+				pThis->Owner->InfantrySelfHeal = 0;
+		}
+
+		if (auto const pUnitSelfHeal = pUpgrades->UnitsGainSelfHeal)
+		{
+			pThis->Owner->UnitsSelfHeal -= pUnitSelfHeal;
+			if (pThis->Owner->UnitsSelfHeal < 0)
+				pThis->Owner->UnitsSelfHeal = 0;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pOld, EBX);
+	GET(HouseClass*, pNew, EBP);
+
+	for (auto const& upgrade : pThis->Upgrades)
+	{
+		if (!upgrade)
+			continue;
+
+		if (auto const pInfantrySelfHeal = upgrade->InfantryGainSelfHeal)
+		{
+			pOld->InfantrySelfHeal -= pInfantrySelfHeal;
+			if (pOld->InfantrySelfHeal < 0)
+				pOld->InfantrySelfHeal = 0;
+
+			pNew->InfantrySelfHeal += pInfantrySelfHeal;
+		}
+
+		if (auto const pUnitSelfHeal = upgrade->UnitsGainSelfHeal)
+		{
+			pOld->UnitsSelfHeal -= pUnitSelfHeal;
+			if (pOld->UnitsSelfHeal < 0)
+				pOld->UnitsSelfHeal = 0;
+
+			pNew->InfantrySelfHeal += pUnitSelfHeal;
+		}
+	}
+
+	return 0;
+}

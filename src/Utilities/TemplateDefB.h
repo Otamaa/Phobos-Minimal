@@ -19,11 +19,9 @@ namespace detail
 
 		} else if (!parser.empty()) {
 
-			if (!ColorTypeClass::Array.empty()) {
-				if(auto pColorClass = ColorTypeClass::Find(parser.value())) {
-					value = pColorClass->ToColor();
-					return true;
-				}
+			if(auto pColorClass = ColorTypeClass::Find(parser.value())) {
+				value = pColorClass->ToColor();
+				return true;
 			}
 
 			if (IS_SAME_STR_(parser.value(), GameStrings::Grey()))

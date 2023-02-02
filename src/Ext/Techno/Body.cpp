@@ -1234,41 +1234,52 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 
 	return location;
 }
+double TechnoExt::GetROFMult(TechnoClass const* pTech)
+{
+	auto const pType = pTech->GetTechnoType();
+	bool rofAbility = false;
+	if (pTech->Veterancy.IsElite())
+		rofAbility = pType->VeteranAbilities.ROF || pTech->GetTechnoType()->EliteAbilities.ROF;
+	else if (pTech->Veterancy.IsVeteran())
+		rofAbility = pType->VeteranAbilities.ROF;
+
+	return !rofAbility ? 1.0 :
+		RulesClass::Instance->VeteranROF * ((!pTech->Owner || !pTech->Owner->Type) ?
+			1.0 : pTech->Owner->Type->ROFMult);
+}
 
 int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, FootClass const* pPassenger)
 {
 	auto const pData = TechnoTypeExt::ExtMap.Find(pTransporterData);
 	auto const pThis = this->Get();
+	auto const& pDelType = pData->PassengerDeletionType;
 
 	int nRate = 0;
 
-	if (pData->PassengerDeletion_UseCostAsRate.Get())
+	if (pDelType->UseCostAsRate.Get())
 	{
 		// Use passenger cost as countdown.
-		auto timerLength = static_cast<int>(pPassenger->GetTechnoType()->Cost * pData->PassengerDeletion_CostMultiplier);
+		auto timerLength = static_cast<int>(pPassenger->GetTechnoType()->Cost * pDelType->CostMultiplier);
 
-		if (pData->PassengerDeletion_Rate.Get() > 0)
-			timerLength = std::min(timerLength, pData->PassengerDeletion_Rate.Get());
+		if (pDelType->Rate.Get() > 0)
+			timerLength = std::min(timerLength, pDelType->Rate.Get());
 
 		nRate = timerLength;
 	}
-	else if (pData->PassengerDeletion_Rate.Get() > 0)
+	else
 	{
 		// Use explicit rate optionally multiplied by unit size as countdown.
-		auto timerLength = pData->PassengerDeletion_Rate.Get();
-		if (pData->PassengerDeletion_Rate_SizeMultiply.Get() && pPassenger->GetTechnoType()->Size > 1.0)
+		auto timerLength = pDelType->Rate.Get();
+		if (pDelType->Rate_SizeMultiply.Get() && pPassenger->GetTechnoType()->Size > 1.0)
 			timerLength *= static_cast<int>(pPassenger->GetTechnoType()->Size + 0.5);
 
 		nRate = timerLength;
 	}
 
-	if (pData->PassengerDeletion_Rate_AffectedByVeterancy
-		&& RulesClass::Instance->VeteranROF != 1.0f) {
-		if (pThis->Veterancy.Veterancy >= 1.0f && pTransporterData->VeteranAbilities.ROF) {
-			nRate = (int)((double)nRate * RulesClass::Instance->VeteranROF);
-			if (pThis->Veterancy.Veterancy >= 2.0f && pTransporterData->EliteAbilities.ROF) {
-				nRate = (int)((double)nRate * RulesClass::Instance->VeteranROF);
-			}
+	if (pDelType->Rate_AffectedByVeterancy) {
+		auto const nRof = TechnoExt::GetROFMult(pThis);
+		if (nRof != 1.0) {
+			nRate = static_cast<int>(nRate * nRof);
 		}
 	}
 
@@ -1278,180 +1289,156 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 void TechnoExt::ExtData::UpdateEatPassengers()
 {
 	auto const pThis = this->Get();
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
-	if ((pTypeExt->PassengerDeletion_Rate > 0 || pTypeExt->PassengerDeletion_UseCostAsRate))
+	if (!TechnoExt::IsActive(pThis))
+		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+	if (!pTypeExt || !pTypeExt->PassengerDeletionType)
+		return;
+
+	auto const& pDelType = pTypeExt->PassengerDeletionType;
+
+	if ((pDelType->Rate > 0 || pDelType->UseCostAsRate))
 	{
 		if (pThis->Passengers.NumPassengers > 0)
 		{
-			FootClass* pPassenger = pThis->Passengers.GetFirstPassenger();
+			// Passengers / CargoClass is essentially a stack, last in, first out (LIFO) kind of data structure
+			FootClass* pPassenger = nullptr;          // Passenger to potentially delete
+			FootClass* pPreviousPassenger = nullptr;  // Passenger immediately prior to the deleted one in the stack
+			ObjectClass* pLastPassenger = nullptr;    // Passenger that is last in the stack
+			auto pCurrentPassenger = pThis->Passengers.GetFirstPassenger();
 
-			if (PassengerDeletionCountDown < 0)
+			// Find the first entered passenger that is eligible for deletion.
+			while (pCurrentPassenger)
+			{
+				if (EnumFunctions::CanTargetHouse(pDelType->AllowedHouses, pThis->Owner, pCurrentPassenger->Owner))
+				{
+					pPreviousPassenger = abstract_cast<FootClass*>(pLastPassenger);
+					pPassenger = pCurrentPassenger;
+				}
+
+				pLastPassenger = pCurrentPassenger;
+				pCurrentPassenger = abstract_cast<FootClass*>(pCurrentPassenger->NextObject);
+			}
+
+			if (!pPassenger)
+			{
+				this->PassengerDeletionTimer.Stop();
+				return;
+			}
+
+			if (!this->PassengerDeletionTimer.IsTicking()) // Execute only if timer has been stopped or not started
 			{
 				// Setting & start countdown. Bigger units needs more time
-				const int passengerSize = this->GetEatPassangersTotalTime(Type, pPassenger);
+				int timerLength = this->GetEatPassangersTotalTime(Type, pPassenger);
 
-				if(passengerSize > 0) {
-					PassengerDeletionCountDown = passengerSize;
-					PassengerDeletionTimer.Start(passengerSize);
+				if (timerLength <= 0)
+					return;
+
+				this->PassengerDeletionTimer.Start(timerLength);
+			}
+			else if (this->PassengerDeletionTimer.Completed()) // Execute only if timer has ran out after being started
+			{
+				--pThis->Passengers.NumPassengers;
+
+				if (pLastPassenger)
+					pLastPassenger->NextObject = nullptr;
+
+				if (pPreviousPassenger)
+					pPreviousPassenger->NextObject = pPassenger->NextObject;
+
+				if (pThis->Passengers.NumPassengers <= 0)
+					pThis->Passengers.FirstPassenger = nullptr;
+
+				if (auto const pPassengerType = pPassenger->GetTechnoType())
+				{
+					pPassenger->LiberateMember();
+
+					auto const& nReportSound = pDelType->ReportSound;
+					if (nReportSound.Get(-1) != -1)
+						VocClass::PlayAt(nReportSound.Get(), pThis->Location, nullptr);
+
+					auto const pThisOwner = pThis->GetOwningHouse();
+
+					if (const auto pAnimType = pDelType->Anim.Get(nullptr))
+					{
+						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
+						{
+							pAnim->SetOwnerObject(pThis);
+							AnimExt::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
+						}
+					}
+
+					// Check if there is money refund
+					if (pDelType->Soylent &&
+						EnumFunctions::CanTargetHouse(pDelType->SoylentAllowedHouses, pThis->Owner, pPassenger->Owner))
+					{
+						if (const int nMoneyToGive = (int)(pPassenger->GetTechnoType()->GetRefund(pPassenger->Owner, true) *
+							pDelType->SoylentMultiplier))
+						{
+							pThis->Owner->TransactMoney(nMoneyToGive);
+
+							if (pDelType->DisplaySoylent)
+							{
+								FlyingStrings::AddMoneyString(true, nMoneyToGive, pThis,
+									pDelType->DisplaySoylentToHouses, pThis->Location, pDelType->DisplaySoylentOffset);
+							}
+						}
+					}
+
+					// Handle gunner change.
+					if (pThis->GetTechnoType()->Gunner)
+					{
+						if (auto const pFoot = abstract_cast<FootClass*>(pThis))
+						{
+							pFoot->RemoveGunner(pPassenger);
+
+							if (pThis->Passengers.NumPassengers > 0)
+								pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
+						}
+					}
+
+					if (pThis->GetTechnoType()->OpenTopped)
+					{
+						pThis->ExitedOpenTopped(pPassenger);
+					}
+
+					if (const auto pBld = specific_cast<BuildingClass*>(pThis))
+					{
+						if (pBld->Absorber())
+						{
+							pPassenger->Absorbed = false;
+
+							if (pBld->Type->ExtraPowerBonus > 0)
+							{
+								pBld->Owner->RecheckPower = true;
+							}
+						}
+					}
+
+					auto const pPassengerOwner = pPassenger->Owner;
+
+					if (!pPassengerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
+					{
+						pPassengerOwner->RegisterLoss(pPassenger, false);
+						pPassengerOwner->RemoveTracking(pPassenger);
+
+						if (!pPassengerOwner->RecheckTechTree)
+							pPassengerOwner->RecheckTechTree = true;
+					}
+
+
+					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
+					TechnoExt::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis);
 				}
+
+				this->PassengerDeletionTimer.Stop();
 			}
 			else
 			{
-				if (PassengerDeletionTimer.Completed())
-				{
-					ObjectClass* pLastPassenger = nullptr;
-
-					// Passengers are designed as a FIFO queue but being implemented as a list
-					while (pPassenger->NextObject)
-					{
-						pLastPassenger = pPassenger;
-						pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
-					}
-
-					if (pLastPassenger)
-						pLastPassenger->NextObject = nullptr;
-					else
-						pThis->Passengers.FirstPassenger = nullptr;
-
-					--pThis->Passengers.NumPassengers;
-
-					if (pPassenger)
-					{
-
-						pPassenger->LiberateMember();
-
-						if (pTypeExt->PassengerDeletion_ReportSound.isset() && pTypeExt->PassengerDeletion_ReportSound != -1)
-							VocClass::PlayAt(pTypeExt->PassengerDeletion_ReportSound, pThis->GetCoords(), nullptr);
-
-						auto const pThisOwner = pThis->GetOwningHouse();
-
-						if (const auto pAnimType = pTypeExt->PassengerDeletion_Anim.Get(nullptr))
-						{
-							if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location))
-							{
-								pAnim->SetOwnerObject(pThis);
-								AnimExt::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
-							}
-						}
-
-						if (auto const pPassengerType = pPassenger->GetTechnoType())
-						{
-							// Check if there is money refund
-							if (pTypeExt->PassengerDeletion_Soylent)
-							{
-								int nMoneyToGive = static_cast<int>(pPassengerType->GetRefund(pPassenger->Owner, true) *
-									pTypeExt->PassengerDeletion_SoylentMultiplier.Get());
-
-								// Is allowed the refund of friendly units?
-								if (!pTypeExt->PassengerDeletion_SoylentFriendlies.Get() &&
-									pPassenger->GetOwningHouse() &&
-									pPassenger->GetOwningHouse()->IsAlliedWith(pThis))
-									nMoneyToGive = 0;
-
-								if (nMoneyToGive != 0 && pThisOwner && pThisOwner->CanTransactMoney(nMoneyToGive))
-								{
-									pThis->Owner->TransactMoney(nMoneyToGive);
-
-									if (pTypeExt->PassengerDeletion_DisplaySoylent)
-									{
-										FlyingStrings::AddMoneyString(true, nMoneyToGive, pThis,
-											pTypeExt->PassengerDeletion_DisplaySoylentToHouses.Get(), pThis->GetCoords(), pTypeExt->PassengerDeletion_DisplaySoylentOffset.Get());
-									}
-								}
-							}
-						}
-
-						// Handle gunner change.							
-						if (auto const pFoot = abstract_cast<FootClass*>(pThis))
-						{
-							if (pThis->GetTechnoType()->Gunner)
-							{
-								pFoot->RemoveGunner(pPassenger);
-
-								//switch to next passengers 
-								if (pThis->Passengers.NumPassengers > 0)
-									pFoot->ReceiveGunner(pThis->Passengers.FirstPassenger);
-							}
-
-							if (pThis->GetTechnoType()->OpenTopped)
-							{
-								pThis->ExitedOpenTopped(pPassenger);
-							}
-						}
-
-						if (auto pPassangerOwner = pPassenger->GetOwningHouse())
-						{
-							if (auto pBld = specific_cast<BuildingClass*>(pThis))
-							{
-								if (pBld->Absorber())
-								{
-									pPassenger->Absorbed = false;
-
-									if (pBld->Type->ExtraPowerBonus > 0)
-									{
-										pBld->Owner->RecheckPower = true;
-									}
-								}
-							}
-
-							if (!pPassangerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
-							{
-								pPassangerOwner->RegisterLoss(pPassenger, false);
-								pPassangerOwner->RemoveTracking(pPassenger);
-
-								if (!pPassangerOwner->RecheckTechTree)
-									pPassangerOwner->RecheckTechTree = true;
-							}
-
-							// kill passenger cargo to prevent memleak
-							//pPassenger->KillPassengers(pThis);
-
-							//if (pTypeExt->PassengerDeletion_Experience.Get())
-							//{
-							//	// ChangeOwnership of the pessanger 
-							//	// since we cant gain experience from Ally !
-							//	if (pTypeExt->PassengerDeletion_ExperienceFriendlies.Get())
-							//		if (pPassangerOwner == pThisOwner || pPassangerOwner->IsAlliedWith(pThisOwner) || pThisOwner->IsAlliedWith(pPassangerOwner))
-							//			pPassenger->Owner = HouseExt::FindNeutral();
-
-							//	pPassenger->RegisterDestruction(pThis);
-							//}
-
-							// Check if there is experience gain
-							if (pTypeExt->PassengerDeletion_Experience)
-							{
-								int nExperienceToGain = 0;
-								auto const pPassengerType = pPassenger->GetTechnoType();
-
-								// Gain experience from "eating" passenger
-								if (pPassengerType && pPassengerType->Cost > 0)
-									nExperienceToGain = pPassengerType->Cost;
-
-								// Is allowed to gain experience for friendly units?
-								if (!pTypeExt->PassengerDeletion_ExperienceFriendlies
-									&& pPassenger->Owner->IsAlliedWith(pThis))
-								{
-									nExperienceToGain = 0;
-								}
-
-								if (nExperienceToGain > 0)
-									pThis->Veterancy.Add(pThis->GetTechnoType()->Cost, nExperienceToGain);
-							}
-						}
-
-						TechnoExt::HandleRemove(pPassenger , pThis);
-					}
-
-					PassengerDeletionTimer.Stop();
-					PassengerDeletionCountDown = -1;
-				}
+				this->PassengerDeletionTimer.Stop();
 			}
-		}
-		else
-		{
-			PassengerDeletionTimer.Stop();
-			PassengerDeletionCountDown = -1;
 		}
 	}
 }
@@ -1614,10 +1601,10 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
 	auto pTypeThis = pTypeExt->Get();
-	const bool peacefulDeath = pTypeExt->Death_Peaceful.Get();
-	const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeExt->Death_Method.Get();
 
-	if (nKillMethod == KillMethod::None)
+	const KillMethod nMethod = pTypeExt->Death_Method.Get();
+
+	if (nMethod == KillMethod::None)
 		return false;
 
 	// Death if no ammo
@@ -1625,7 +1612,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	{
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
-			TechnoExt::KillSelf(pThis, nKillMethod);
+			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
 		}
 	}
@@ -1652,7 +1639,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 		if (!exist)
 		{
-			TechnoExt::KillSelf(pThis, nKillMethod);
+			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
 		}
 
@@ -1680,7 +1667,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 		if (exist)
 		{
-			TechnoExt::KillSelf(pThis, nKillMethod);
+			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
 		}
 	}
@@ -1692,12 +1679,12 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		{
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
 			if (pThis->Owner)
-				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.push_back(pThis);
+				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.emplace_back(pThis, nMethod);
 
 		}
 		else if (!pThis->Transporter && Death_Countdown.Completed())
 		{
-			TechnoExt::KillSelf(pThis, nKillMethod);
+			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
 		}
 	}
@@ -2161,20 +2148,21 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	{
 		this->Death_Countdown.Stop();
 
-		auto hExt = HouseExt::ExtMap.Find(pThis->Owner);
-		const auto it = std::find_if(hExt->AutoDeathObjects.begin(), hExt->AutoDeathObjects.end(),
-			[&](auto const pTech) { return pTech == pThis; });
+		if(pThis->Owner){
+			auto hExt = HouseExt::ExtMap.Find(pThis->Owner);
+			const auto it = std::find_if(hExt->AutoDeathObjects.begin(), hExt->AutoDeathObjects.end(),
+				[&](auto const pTech) { return pTech.first == pThis; });
 
-		if (it != hExt->AutoDeathObjects.end())
-			hExt->AutoDeathObjects.erase(it);
+			if (it != hExt->AutoDeathObjects.end())
+				hExt->AutoDeathObjects.erase(it);
+		}
 	}
 
 	// Reset PassengerDeletion Timer - TODO : unchecked
-	if (this->PassengerDeletionTimer.IsTicking() && pTypeExtData->PassengerDeletion_Rate <= 0)
-	{
-		this->PassengerDeletionCountDown = -1;
+	if (this->PassengerDeletionTimer.IsTicking()
+		&& pTypeExtData->PassengerDeletionType
+		&& pTypeExtData->PassengerDeletionType->Rate <= 0)
 		this->PassengerDeletionTimer.Stop();
-	}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis) , true);
@@ -2455,8 +2443,12 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
 	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
-		TechnoExt::KillSelf(pInf, pTypeExt->Death_Method);
+	{
+		KillMethod nMethod = pTypeExt->Death_Method.Get();
 
+		if(nMethod != KillMethod::None)
+			TechnoExt::KillSelf(pInf, nMethod);
+	}
 	return true;
 }
 
@@ -2702,15 +2694,12 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	Debug::Log("Processing Element From TechnoExt ! \n");
 
 	Stm
-		//.Process(this->GenericFuctions)
 		.Process(this->Type)
 		.Process(this->AbsType)
 		.Process(this->Shield)
-		//.Process(this->BExt)
 		.Process(this->LaserTrails)
 		.Process(this->ReceiveDamage)
 		.Process(this->PassengerDeletionTimer)
-		.Process(this->PassengerDeletionCountDown)
 		.Process(this->CurrentShieldType)
 		.Process(this->LastWarpDistance)
 		.Process(this->Death_Countdown)
@@ -2729,8 +2718,6 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->GattlingDmageSound)
 		.Process(this->AircraftOpentoppedInitEd)
 		.Process(this->FireSelf_Count)
-		//.Process(this->FireSelf_Weapon)
-		//.Process(this->FireSelf_ROF)
 		.Process(this->EngineerCaptureDelay)
 		.Process(this->FlhChanged)
 		.Process(this->IsMissisleSpawn)
@@ -2756,10 +2743,10 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->MissileTargetTracker)
 #endif
 #endif;
+		.Process(this->MyWeaponManager)
 		;
 	//should put this inside techo ext , ffs
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
 	this->MyJJData.Serialize(Stm);

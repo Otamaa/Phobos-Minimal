@@ -339,6 +339,7 @@ namespace ShakeScreenHandle
 	}
 
 }
+
 //handle everything ourself
 DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 {
@@ -476,7 +477,7 @@ DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
 #include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-
+#endif
 // init inside type check 
 // should be no problem here
 
@@ -493,6 +494,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
+#ifdef COMPILE_PORTED_DP_FEATURES
 	if (pTypeExt->VirtualUnit.Get())
 		pExt->VirtualUnit = true;
 
@@ -506,6 +508,7 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	}
 
 	AircraftDiveFunctional::Init(pExt, pTypeExt);
+#endif
 	TechnoExt::InitializeItems(pThis , pType);
 
 	return 0x0;
@@ -550,7 +553,6 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 
 	return 0x6F3B37;
 }*/
-#endif
 
 /*
 DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 0x5)

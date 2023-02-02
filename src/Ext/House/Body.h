@@ -21,7 +21,6 @@ public:
 	{
 	public:
 		PhobosMap<BuildingTypeClass*, int> BuildingCounter;
-		CounterClass OwnedLimboBuildingTypes;
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
 		std::vector<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
@@ -47,11 +46,10 @@ public:
 		int ProducingNavalUnitTypeIndex;
 
 		//#830
-		std::vector<TechnoClass*> AutoDeathObjects;
+		std::vector<std::pair<TechnoClass* , KillMethod>> AutoDeathObjects;
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
-			, OwnedLimboBuildingTypes {}
 			, Building_BuildSpeedBonusCounter {}
 			, HouseAirFactory { }
 			, ForceOnlyTargetHouseEnemy { false }
@@ -120,8 +118,6 @@ public:
 	static int LastSlaveBalance;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static int CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const pItem);
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);

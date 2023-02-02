@@ -886,37 +886,36 @@ DEFINE_HOOK(0x440E99, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 
 }
 
 //https://github.com/Phobos-developers/Phobos/pull/818
-// Todo : Otamaa : Need Test 
-//DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
-//{
-//	enum { SpawnCrate = 0x56BE7B, SkipSpawn = 0x56BE91 };
-//	REF_STACK(CellStruct, cell, STACK_OFFSET(0x28, -0x18));
-//
-//	const int XP = 2 * MapClass::Instance->VisibleRect.X - MapClass::Instance->MapRect.Width
-//		+ ScenarioClass::Instance->Random.RandomRanged(0, 2 * MapClass::Instance->VisibleRect.Width);
-//	const int YP = 2 * MapClass::Instance->VisibleRect.Y + MapClass::Instance->MapRect.Width
-//		+ ScenarioClass::Instance->Random.RandomRanged(0, 2 * MapClass::Instance->VisibleRect.Height + 2);
-//	cell = { (short)((XP + YP) / 2),(short)((YP - XP) / 2) };
-//
-//	auto pCell = MapClass::Instance->TryGetCellAt(cell);
-//	if (!pCell)
-//		return SkipSpawn;
-//
-//	if (!MapClass::Instance->IsWithinUsableArea(pCell, true))
-//		return SkipSpawn;
-//
-//	const bool isWater = pCell->LandType == LandType::Water;
-//	if (isWater && RulesExt::Global()->Crate_LandOnly.Get())
-//		return SkipSpawn;
-//
-//	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
-//		isWater ? SpeedType::Float : SpeedType::Track,
-//		-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
-//
-//	R->EAX(&cell);
-//
-//	return SpawnCrate;
-//}
+DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
+{
+	enum { SpawnCrate = 0x56BE7B, SkipSpawn = 0x56BE91 };
+	REF_STACK(CellStruct, cell, STACK_OFFSET(0x28, -0x18));
+
+	const int XP = 2 * MapClass::Instance->VisibleRect.X - MapClass::Instance->MapRect.Width
+		+ ScenarioClass::Instance->Random.RandomRanged(0, 2 * MapClass::Instance->VisibleRect.Width);
+	const int YP = 2 * MapClass::Instance->VisibleRect.Y + MapClass::Instance->MapRect.Width
+		+ ScenarioClass::Instance->Random.RandomRanged(0, 2 * MapClass::Instance->VisibleRect.Height + 2);
+	cell = { (short)((XP + YP) / 2),(short)((YP - XP) / 2) };
+
+	auto pCell = MapClass::Instance->TryGetCellAt(cell);
+	if (!pCell)
+		return SkipSpawn;
+
+	if (!MapClass::Instance->IsWithinUsableArea(pCell, true))
+		return SkipSpawn;
+
+	const bool isWater = pCell->LandType == LandType::Water;
+	if (isWater && RulesExt::Global()->Crate_LandOnly.Get())
+		return SkipSpawn;
+
+	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
+		isWater ? SpeedType::Float : SpeedType::Track,
+		-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+
+	R->EAX(&cell);
+
+	return SpawnCrate;
+}
 
 //DEFINE_HOOK(0x56BDE7, MapClass_PlaceRandomCrate_GenerationMechanism, 0x6)
 //{
@@ -965,9 +964,7 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 
 	GET(BuildingClass* const, pBuilding, ESI);
 
-	auto const pExt = BuildingExt::ExtMap.Find(pBuilding);
-
-	if (pExt->LimboID != -1)
+	if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
 	return 0;

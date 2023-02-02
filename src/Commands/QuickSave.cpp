@@ -31,7 +31,7 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
 		char fName[0x80];
-		SYSTEMTIME time;
+		SYSTEMTIME time {};
 
 		Imports::GetLocalTime.get()(&time);
 

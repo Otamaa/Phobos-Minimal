@@ -669,7 +669,7 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis);
 		}
 
-		for (auto& weapon : pExt->RevengeWeapons)
+		for (const auto& weapon : pExt->RevengeWeapons)
 		{
 			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
 				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis);

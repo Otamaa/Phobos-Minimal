@@ -892,6 +892,10 @@ public:
 
 	void Func_505180() const
 		{ JMP_THIS(0x505180); }
+
+	bool GrandOpening(bool Captured) const
+		{ JMP_THIS(0x445F80); }
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

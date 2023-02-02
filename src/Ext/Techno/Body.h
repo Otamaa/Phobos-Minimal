@@ -49,7 +49,6 @@ public:
 		bool ReceiveDamage;
 		bool LastKillWasTeamTarget;
 		TimerStruct	PassengerDeletionTimer;
-		int PassengerDeletionCountDown;
 		ShieldTypeClass* CurrentShieldType;
 		int LastWarpDistance;
 		CDTimerClass Death_Countdown;
@@ -117,7 +116,6 @@ public:
 			, ReceiveDamage { false }
 			, LastKillWasTeamTarget { false }
 			, PassengerDeletionTimer {}
-			, PassengerDeletionCountDown { -1 }
 			, CurrentShieldType { nullptr }
 			, LastWarpDistance {}
 			, Death_Countdown {}
@@ -168,7 +166,11 @@ public:
 			, MySpawnSuport { }
 			, MyFighterData { }
 #endif;
-		{ }
+		{ 
+			
+			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
+		
+		}
 
 		virtual ~ExtData()
 		{
@@ -285,6 +287,7 @@ public:
 	static bool CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget);
 	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
+	static double GetROFMult(TechnoClass const* pTech);
 	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
 	static bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void UpdateSharedAmmo(TechnoClass* pThis);

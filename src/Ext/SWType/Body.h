@@ -163,40 +163,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-
-	static std::vector<int> WeightedRollsHandler(Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size)
-	{
-		bool rollOnce = false;
-		size_t rollsSize = rolls.size();
-		size_t weightsSize = weights.size();
-		int index;
-		std::vector<int> indices;
-
-		// if no RollChances are supplied, do only one roll
-		if (rollsSize == 0)
-		{
-			rollsSize = 1;
-			rollOnce = true;
-		}
-
-		for (size_t i = 0; i < rollsSize; i++)
-		{
-			RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-			if (!rollOnce && RandomBuffer > rolls[i])
-				continue;
-
-			// If there are more rolls than weight lists, use the last weight list
-			size_t j = std::min(weightsSize - 1, i);
-			index = GeneralUtils::ChooseOneWeighted(RandomBuffer, weights[j]);
-
-			// If modder provides more weights than there are objects and we hit one of these, ignore it
-			// otherwise add
-			if (size_t(index) < size)
-				indices.push_back(index);
-		}
-
-		return indices;
-	}
+	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
+	static std::vector<int> WeightedRollsHandler(Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
 
 	static bool Handled;
 	static SuperClass* TempSuper;

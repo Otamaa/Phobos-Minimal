@@ -880,13 +880,13 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 {
 	const auto strength = this->Type->Strength;
-	const auto pips_Shield = isBuilding ? this->Type->Pips_Building.Get() : this->Type->Pips.Get();
-	const auto pips_Global = isBuilding ? RulesExt::Global()->Pips_Shield_Building.Get() : RulesExt::Global()->Pips_Shield.Get();
+	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
+	const auto& pips_Global = isBuilding ? RulesExt::Global()->Pips_Shield_Building : RulesExt::Global()->Pips_Shield;
 
-	auto shieldPip = pips_Global;
+	auto shieldPip = pips_Global.Get();
 
-	if (pips_Shield.X != -1)
-		shieldPip = pips_Shield;
+	if (pips_Shield.Get().X != -1)
+		shieldPip = pips_Shield.Get();
 
 	if (this->HP > RulesGlobal->ConditionYellow * strength && shieldPip.X != -1)
 		return shieldPip.X;

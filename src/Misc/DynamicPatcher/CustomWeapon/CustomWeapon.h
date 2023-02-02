@@ -11,7 +11,10 @@ class TechnoClass;
 struct CustomWeaponManager
 {
 	//std::queue<SimulateBurst> simulateBurstQueue;
-	std::vector<SimulateBurst> simulateBurstQueue;
+	std::vector<SimulateBurst> simulateBurstQueue {};
+
+	CustomWeaponManager() = default;
+	~CustomWeaponManager() = default;
 
 	void Clear()
 	{
@@ -25,34 +28,19 @@ struct CustomWeaponManager
 	void SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
 	TechnoClass* WhoIsShooter(TechnoClass* pAttacker) const;
 
-	void InvalidatePointer(void* ptr, bool bRemoved)
-	{
-		if (!simulateBurstQueue.empty())
-		{
-			for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++)
-			{
-				if (simulateBurstQueue[pos].Target == ptr)
-				{
-					Debug::Log("Found Invalid Target from CustomWeaponManager ! , Cleaning Up ! \n");
-					simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
+	void InvalidatePointer(void* ptr, bool bRemoved);
 
-				}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
 
-				if (simulateBurstQueue[pos].Shooter == ptr)
-				{
-					Debug::Log("Found Shooter Target from CustomWeaponManager ! , Cleaning Up ! \n");
-					simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
-				}
-
-			}
-		}
-	}
+	bool Save(PhobosStreamWriter& Stm)
+	{ return Serialize(Stm); }
 
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
 		Debug::Log("Loading Element From CustomWeaponManager ! \n");
-		Stm
+		return Stm
 			.Process(simulateBurstQueue)
 			;
 	}
@@ -61,65 +49,35 @@ struct CustomWeaponManager
 struct FireWeaponManager
 {
 	//std::queue<DelayFireWeapon> DelayFires;
-	std::vector<DelayFireWeapon> DelayFires;
+	std::vector<std::unique_ptr<DelayFireWeapon>> DelayFires {};
+	std::unique_ptr<CustomWeaponManager> CWeaponManager {};
 
-	CustomWeaponManager CWeaponManager;
+	FireWeaponManager() = default;
+	~FireWeaponManager() = default;
 
-	void Clear()
-	{
-		//while (!DelayFires.empty()) DelayFires.pop();
-		DelayFires.clear();
-	}
-
-	void Insert(int weaponIndex, AbstractClass* pTarget, int delay = 0, int count = 1)
-	{
-		DelayFires.emplace_back(weaponIndex, pTarget, delay, count);
-	}
-
-	void Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay = 0, int count = 1)
-	{
-		DelayFires.emplace_back(pWeapon, pTarget, delay, count);
-	}
-
-	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1, FireBulletToTarget callback = nullptr)
-	{
-		return CWeaponManager.FireCustomWeapon(pShooter, pAttacker, pTarget, pWeapon, flh, bulletSourcePos, rofMult, callback);
-	}
-
+	void Clear();
+	void Insert(int weaponIndex, AbstractClass* pTarget, int delay = 0, int count = 1);
+	void Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay = 0, int count = 1);
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1, FireBulletToTarget callback = nullptr);
 	void TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker);
+	void FireWeaponManager_Clear();
+	void InvalidatePointer(void* ptr, bool bRemoved);
 
-	void FireWeaponManager_Clear()
-	{
-		Clear();
-		CWeaponManager.Clear();
-	}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
 
-	void InvalidatePointer(void* ptr, bool bRemoved)
-	{
-		if (!DelayFires.empty())
-		{
-			for (size_t pos = 0 ; pos < DelayFires.size(); pos++)
-			{
-				if (DelayFires[pos].Target == ptr)
-				{
-					Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
-					DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
-				}
-			}
-		}
-
-		CWeaponManager.InvalidatePointer(ptr, bRemoved);
-	}
+	bool Save(PhobosStreamWriter& Stm)
+	{ return Serialize(Stm); }
 
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
 		Debug::Log("Loading Element From FireWeaponManager ! \n");
 
-		Stm
+		return Stm
 			.Process(DelayFires)
+			.Process(CWeaponManager)
 			;
-		CWeaponManager.Serialize(Stm);
 	}
 };
 #endif

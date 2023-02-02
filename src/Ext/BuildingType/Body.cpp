@@ -288,7 +288,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 			{
 				for (auto const& pUpgrade : pBld->Upgrades)
 				{
-					if (pUpgrade == pBuilding)
+					if (pUpgrade && pUpgrade == pBuilding)
 						++result;
 				}
 			}

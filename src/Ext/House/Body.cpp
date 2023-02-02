@@ -2,6 +2,7 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Building/Body.h>
 
 #include <ScenarioClass.h>
 
@@ -38,7 +39,15 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_NavyType, ptr);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
-	AnnounceInvalidPointer(AutoDeathObjects, ptr);
+
+	if (!AutoDeathObjects.empty() && ptr != nullptr) {
+		const auto nData = std::find_if(AutoDeathObjects.begin(), AutoDeathObjects.end(), 
+		[&](auto const pData) { return reinterpret_cast<TechnoClass*>(ptr) == pData.first; });
+
+		if (nData != AutoDeathObjects.end()) {
+			AutoDeathObjects.erase(nData);
+		}
+	}
 }
 
 int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
@@ -72,11 +81,6 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 	});
 
 	return result;
-}
-
-int HouseExt::CountOwnedLimbo(HouseClass* pThis, BuildingTypeClass const* const pItem)
-{
-	return HouseExt::ExtMap.Find(pThis)->OwnedLimboBuildingTypes.GetItemCount(pItem->ArrayIndex);
 }
 
 HouseClass* HouseExt::FindCivilianSide()
@@ -850,19 +854,77 @@ size_t HouseExt::FindBuildableIndex(
 
 void HouseExt::ExtData::UpdateAutoDeathObjects()
 {
-	for (const auto& pThis : this->AutoDeathObjects)
+	for (const auto& [pThis , nMethod] : this->AutoDeathObjects)
 	{
-		if (pThis->IsInLogic || !pThis->IsAlive)
+		if (pThis->IsInLogic || !pThis->IsAlive || nMethod == KillMethod::None)
 			continue;
 
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
-		const bool peacefulDeath = pTypeExt->Death_Peaceful.Get();
-		const auto nKillMethod = peacefulDeath ? KillMethod::Vanish : pTypeExt->Death_Method.Get();
-	
-		if (pTypeExt->Death_Method != KillMethod::None && pExt->Death_Countdown.Completed())
-			TechnoExt::KillSelf(pThis, nKillMethod);
+		
+		if(!pExt->Death_Countdown.Completed())
+			continue;
 
+		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
+		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+		{
+			auto const pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+
+			if (pBldExt->LimboID != -1)
+			{
+				auto pTargetHouse = pBuilding->Owner;
+				auto const pType = pBuilding->Type;
+
+				// Mandatory
+				pBuilding->InLimbo = true;
+				pBuilding->IsAlive = false;
+				pBuilding->IsOnMap = false;
+				pTargetHouse->UpdatePower();
+				//pTargetHouse->RecheckTechTree = true;
+				pTargetHouse->RecheckPower = true;
+				pTargetHouse->RecheckRadar = true;
+				pTargetHouse->Buildings.Remove(pBuilding);
+
+				pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
+
+				// Building logics
+				if (pType->ConstructionYard)
+					pTargetHouse->ConYards.Remove(pBuilding);
+
+				if (pType->SecretLab)
+					pTargetHouse->SecretLabs.Remove(pBuilding);
+
+				if (pType->FactoryPlant)
+				{
+					pTargetHouse->FactoryPlants.Remove(pBuilding);
+					pTargetHouse->CalculateCostMultipliers();
+				}
+
+				if (pType->OrePurifier)
+					pTargetHouse->NumOrePurifiers--;
+
+				if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+				{
+					pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
+					if (pTargetHouse->InfantrySelfHeal < 0)
+						pTargetHouse->InfantrySelfHeal = 0;
+				}
+
+				if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+				{
+					pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
+					if (pTargetHouse->UnitsSelfHeal < 0)
+						pTargetHouse->UnitsSelfHeal = 0;
+				}
+
+				// Remove completely
+				TechnoExt::HandleRemove(pBuilding);
+			} else {
+				TechnoExt::KillSelf(pBuilding, nMethod);
+			}
+
+		} else {		
+			TechnoExt::KillSelf(pThis, nMethod);
+		}
 	}
 }
 
@@ -874,7 +936,6 @@ void HouseExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->BuildingCounter)
-		.Process(this->OwnedLimboBuildingTypes)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->HouseAirFactory)
 		.Process(this->ForceOnlyTargetHouseEnemy)

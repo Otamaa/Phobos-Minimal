@@ -2550,7 +2550,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 
 bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass* pTeamLeader = nullptr)
 {
-	if (!pTechno || !pTechno->Owner || (pTeamLeader && !pTeamLeader->Owner))
+	if (!pTechno || !pTechno->Owner ||!pTeamLeader || !pTeamLeader->Owner)
 		return false;
 
 	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();

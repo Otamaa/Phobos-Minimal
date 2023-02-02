@@ -188,6 +188,9 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
 {
+	if (!pThis)
+		return;
+
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
 
@@ -205,8 +208,21 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
+	if (!pThis)
+		return;
+
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
+
+	if(pThis->NukeMaker) {
+		if (!pTarget && pOwner)
+		{
+			pTarget = pOwner;
+		} else if(!pTarget && !pOwner) {
+			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target and Owner is present , atleast one need to be avail ! \n");
+			return;
+		}
+	}
 
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))

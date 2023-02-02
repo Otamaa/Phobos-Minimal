@@ -84,7 +84,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Targeting_Health_Percent.Read(exINI, pSection, "Targeting.TargetHealthPercent");
 	this->Targeting_Health_Percent_Below.Read(exINI, pSection, "Targeting.TargetHealthPercentCheckBelowPercent");
 
-	#ifdef COMPILE_PORTED_DP_FEATURES
+#ifdef COMPILE_PORTED_DP_FEATURES
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
 	if (this->RockerPitch > 0.0f)
@@ -95,7 +95,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 
 	this->MyAttachFireDatas.Read(exINI, pSection);
-	#endif
+#endif
 #pragma endregion
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
@@ -148,16 +148,16 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Targeting_Health_Percent_Below)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->RockerPitch)
-		#endif
+#endif
 		.Process(this->Ammo)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		MyAttachFireDatas.Serialize(Stm);
+	MyAttachFireDatas.Serialize(Stm);
 #endif
 };
 
-int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis , int burstIndex)
+int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 {
 	auto const pExt = WeaponTypeExt::ExtMap.Find(pThis);
 	int burstDelay = -1;
@@ -172,7 +172,7 @@ int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis , int burstIndex)
 	return burstDelay;
 }
 
-void WeaponTypeExt::ExtContainer::InvalidatePointer(void *ptr, bool bRemoved)
+void WeaponTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(WeaponTypeExt::Temporal_WP, ptr);
 }
@@ -213,6 +213,15 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, T
 
 void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
 {
+	if(pThis->Warhead->NukeMaker) {
+		if (!pTarget && pOwner) {
+			pTarget = pOwner;
+		} else if(!pTarget && !pOwner){
+			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target and Owner is present , aleast one need to be avail ! \n");
+			return;
+		}
+	}
+
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
@@ -239,8 +248,8 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(nullptr, pOwner,
-		damage, pThis->Warhead,  pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(Map[coords], pOwner,
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
 	{
 		pBullet->SetWeaponType(pThis);
 		pBullet->Limbo();
@@ -311,9 +320,9 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 }
 
 #ifdef AAENABLE_NEWEXT
-DEFINE_JUMP(LJMP , 0x7725D1 , 0x772604)
-DEFINE_JUMP(LJMP , 0x77260A , 0x772610)
-DEFINE_JUMP(LJMP , 0x772E67 , 0x772E78)
+DEFINE_JUMP(LJMP, 0x7725D1, 0x772604)
+DEFINE_JUMP(LJMP, 0x77260A, 0x772610)
+DEFINE_JUMP(LJMP, 0x772E67, 0x772E78)
 
 DEFINE_HOOK(0x6FF33D, TechnoClass_FireAT_OpentoppedAnim, 0x6)
 {

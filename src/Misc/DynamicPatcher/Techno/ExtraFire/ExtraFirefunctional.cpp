@@ -9,143 +9,142 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 
-void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, int nWeaponIdx)
+static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> NOINLINE GetWeaponAndFLH(TechnoClass* pThis, ExtraFireData nExtraFireData, int nWeaponIdx)
 {
-	// wtf is this , really
-
 	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (!pExt || !pType || !pTarget)
-		return;
-
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (!pTypeExt)
-		return;
-
-	const auto&  nExtraFireData = pTypeExt->MyExtraFireData;
-
-	ExtraFireData::FLHData nSelectedFLH = nExtraFireData.AttachedFLH;
-	std::vector<WeaponTypeClass*> nSelectedWeapon;
 
 	if (auto pTransporter = pThis->Transporter)
 	{
 		if (auto const pTrasTypeExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
 		{
 			const auto& pTransExtraFire = pTrasTypeExt->MyExtraFireData;
-			nSelectedFLH = pTransExtraFire.AttachedFLH;
+			nExtraFireData.AttachedFLH = pTransExtraFire.AttachedFLH;
 		}
 	}
-
-	CoordStruct nFLH = CoordStruct::Empty;
 
 	if (pType->WeaponCount > 0)
 	{
 		if (pThis->Veterancy.IsElite() ?
 			nExtraFireData.AttachedWeapon.EliteWeaponX.empty() :
 			nExtraFireData.AttachedWeapon.WeaponX.empty())
-			return;
+			return { {} , CoordStruct::Empty };
 
 		if ((pThis->Veterancy.IsElite() ?
 			nExtraFireData.AttachedWeapon.EliteWeaponX.size() :
 			nExtraFireData.AttachedWeapon.WeaponX.size())
 			< (size_t)nWeaponIdx)
-			return;
+			return { {} , CoordStruct::Empty };
 
-		nSelectedWeapon = (pThis->Veterancy.IsElite() ?
-			nExtraFireData.AttachedWeapon.EliteWeaponX :
-			nExtraFireData.AttachedWeapon.WeaponX)[(size_t)nWeaponIdx];
+		CoordStruct nFLH {};
 
 		if (!(!pThis->Veterancy.IsElite() ?
-			nSelectedFLH.WeaponXFLH.empty() :
-			nSelectedFLH.EliteWeaponXFLH.empty()))
+			nExtraFireData.AttachedFLH.WeaponXFLH.empty() :
+			nExtraFireData.AttachedFLH.EliteWeaponXFLH.empty()))
 		{
 			if (!((!pThis->Veterancy.IsElite() ?
-				nSelectedFLH.WeaponXFLH.size() :
-				nSelectedFLH.EliteWeaponXFLH.size())
+				nExtraFireData.AttachedFLH.WeaponXFLH.size() :
+				nExtraFireData.AttachedFLH.EliteWeaponXFLH.size())
 				< (size_t)nWeaponIdx))
 			{
 				nFLH = (!pThis->Veterancy.IsElite() ?
-					nSelectedFLH.WeaponXFLH :
-					nSelectedFLH.EliteWeaponXFLH)[(size_t)nWeaponIdx];
+					nExtraFireData.AttachedFLH.WeaponXFLH :
+					nExtraFireData.AttachedFLH.EliteWeaponXFLH).at((size_t)nWeaponIdx);
 			}
 		}
+
+		return { (pThis->Veterancy.IsElite() ?
+			nExtraFireData.AttachedWeapon.EliteWeaponX :
+			nExtraFireData.AttachedWeapon.WeaponX).at((size_t)nWeaponIdx),nFLH };
 	}
 	else
 	{
 		switch (nWeaponIdx)
 		{
 		case 0:
-			{
-				if (pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedWeapon.ElitePrimaryWeapons.empty() :
-					nExtraFireData.AttachedWeapon.PrimaryWeapons.empty()
-					)
-					return;
+		{
+			if (pThis->Veterancy.IsElite() ?
+				nExtraFireData.AttachedWeapon.ElitePrimaryWeapons.empty() :
+				nExtraFireData.AttachedWeapon.PrimaryWeapons.empty()
+				)
+				return { {} , CoordStruct::Empty };
 
-				nSelectedWeapon = (pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedWeapon.ElitePrimaryWeapons :
-					nExtraFireData.AttachedWeapon.PrimaryWeapons);
-
-				nFLH = (pThis->Veterancy.IsElite() ?
-						nSelectedFLH.ElitePrimaryWeaponFLH :
-						nSelectedFLH.PrimaryWeaponFLH);
-
-			}
-			break;
+			return { (pThis->Veterancy.IsElite() ?
+				nExtraFireData.AttachedWeapon.ElitePrimaryWeapons :
+				nExtraFireData.AttachedWeapon.PrimaryWeapons) ,(pThis->Veterancy.IsElite() ?
+					nExtraFireData.AttachedFLH.ElitePrimaryWeaponFLH :
+					nExtraFireData.AttachedFLH.PrimaryWeaponFLH)
+			};
+		}
+		break;
 		case 1:
-			{
-				if (pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedWeapon.EliteSecondaryWeapons.empty() :
-					nExtraFireData.AttachedWeapon.SecondaryWeapons.empty())
-						return;
+		{
+			if (pThis->Veterancy.IsElite() ?
+				nExtraFireData.AttachedWeapon.EliteSecondaryWeapons.empty() :
+				nExtraFireData.AttachedWeapon.SecondaryWeapons.empty())
+				return { {} , CoordStruct::Empty };
 
-				nSelectedWeapon = (pThis->Veterancy.IsElite() ?
-					nExtraFireData.AttachedWeapon.EliteSecondaryWeapons :
-					nExtraFireData.AttachedWeapon.SecondaryWeapons);
-
-				nFLH = (pThis->Veterancy.IsElite() ?
-						nSelectedFLH.EliteSecondaryWeaponFLH :
-						nSelectedFLH.SecondaryWeaponFLH);
-			}
-		    break;
+			return { (pThis->Veterancy.IsElite() ?
+			nExtraFireData.AttachedWeapon.EliteSecondaryWeapons :
+			nExtraFireData.AttachedWeapon.SecondaryWeapons) ,(pThis->Veterancy.IsElite() ?
+				nExtraFireData.AttachedFLH.EliteSecondaryWeaponFLH :
+				nExtraFireData.AttachedFLH.SecondaryWeaponFLH)
+			};
+		}
+		break;
 		}
 	}
 
-	if (!nSelectedWeapon.empty())
+	return { {} , CoordStruct::Empty };
+}
+
+void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, int nWeaponIdx)
+{
+	if (!pTarget)
+		return;
+
+	auto const pType = pThis->GetTechnoType();
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto& nExtraFireData = pTypeExt->MyExtraFireData;
+	auto [nSelectedWeapon, nFLH] = GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx);
+
+	if (nSelectedWeapon.empty())
+		return;
+
+	const auto ROF = TechnoExt::GetROFMult(pThis);
+
+	if (nFLH == CoordStruct::Empty) { 
+		if(auto const pWPStr = pThis->GetWeapon(nWeaponIdx)) { 
+			nFLH = pWPStr->FLH;
+		}
+	}
+
+	for (auto const& pWeapon : nSelectedWeapon)
 	{
-		const auto ROF = Helpers_DP::GetROFMult(pThis);
-
-		if (nFLH == CoordStruct::Empty)
-			nFLH = pThis->GetWeapon(nWeaponIdx)->FLH;
-
-		for (auto const& pWeapon: nSelectedWeapon)
+		bool bFire = true;
+		int nRof = 0;
+		if (auto const pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
 		{
-			bool bFire = true;
-			int nRof = 0;
-			if (auto const pWeaponTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+			const auto& fireData = pWeaponTypeExt->MyAttachFireDatas;
+
+			if (fireData.UseROF)
 			{
-				const auto& fireData = pWeaponTypeExt->MyAttachFireDatas;
+				bFire = false;
+				nRof = (int)(pWeapon->ROF * ROF);
+				auto& nTimer = pExt->ExtraWeaponTimers[pWeapon];
 
-				if (fireData.UseROF)
+				if (nTimer.Expired())
 				{
-					bFire = false;
-					nRof = (int)(pWeapon->ROF * ROF);
-					auto& nTimer = pExt->ExtraWeaponTimers[pWeapon];
-
-					if (nTimer.Expired())
-					{
-						nTimer.Start(nRof);
-						pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, nRof);
-					}
+					nTimer.Start(nRof);
+					pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, nRof);
 				}
 			}
-
-			if (bFire)
-				pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, ROF);
-
 		}
+
+		if (bFire)
+			pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, ROF);
+
 	}
 }
 #endif

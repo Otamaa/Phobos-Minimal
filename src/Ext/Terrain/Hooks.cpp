@@ -134,13 +134,12 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
 	if (!pTerrainTypeExt)
 		return RetOriginalFunct;
 
-	auto const nCoord = pThis->Location;
 	auto const nDamage = pTerrainTypeExt->Damage.Get(100);
 	auto const pWH = pTerrainTypeExt->Warhead.Get(RulesGlobal->C4Warhead);
 
-	if (auto const pAnim = Map.SelectDamageAnimation(nDamage, pWH, Map[nCoord]->LandType, nCoord))
+	if (auto const pAnim = Map.SelectDamageAnimation(nDamage, pWH, Map[pThis->Location]->LandType, pThis->Location))
 	{
-		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0))
+		if (const auto pAnimC = GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0))
 		{
 			AnimExt::SetAnimOwnerHouseKind(pAnimC, nullptr, nullptr, false);
 		}
@@ -148,8 +147,8 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
 
 	if (pTerrainTypeExt->AreaDamage)
 	{
-		Map.DamageArea(nCoord, nDamage, nullptr, pWH, true, nullptr);
-		Map.FlashbangWarheadAt(nDamage, pWH, nCoord);
+		Map.DamageArea(pThis->Location, nDamage, nullptr, pWH, true, nullptr);
+		Map.FlashbangWarheadAt(nDamage, pWH, pThis->Location);
 	}
 
 	return DoCellChailReact;

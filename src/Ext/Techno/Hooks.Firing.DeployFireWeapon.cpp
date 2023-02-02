@@ -41,7 +41,7 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 		{
 			pThis->SetTarget(nullptr);
 			pThis->QueueMission(Mission::Guard, true);
-			const auto missionControl = MissionControlClass::Controls[(int)Mission::Unload];
+			const auto& missionControl = MissionControlClass::Controls[(int)Mission::Unload];
 			int delay = Game::F2I(missionControl.Rate * 900 + ScenarioClass::Instance->Random(0, 2));
 			pExt->DeployFireTimer.Start(Math::min(pWs->WeaponType->ROF, delay));
 		}

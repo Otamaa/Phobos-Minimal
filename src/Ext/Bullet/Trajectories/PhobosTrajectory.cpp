@@ -134,7 +134,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 
 			if (pType->Flag == TrajectoryFlag::Bounce)
 			{
-				Debug::Log("BounceTrajectory is Unfinished ! /n");
+				Debug::Log("BounceTrajectory is Unfinished ! \n");
 				//const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pType.get());
 				//if (!(pBounceType->BounceAmount > 0))
 				//{

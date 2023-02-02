@@ -102,22 +102,23 @@ DWORD TLS_Thread::dwTlsIndex_SHPDRaw_2;
 
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
+	//std::vector<std::string_view> args(ppArgs, std::next(ppArgs, static_cast<std::ptrdiff_t>(nNumArgs)));
+
 	// > 1 because the exe path itself counts as an argument, too!
 	for (int i = 1; i < nNumArgs; i++)
 	{
-		const char* pArg = ppArgs[i];
+		const auto pArg = ppArgs[i];
 
-		if (_stricmp(pArg, "-Icon") == 0)
-		{
+		if (_stricmp(pArg, "-Icon") == 0) {
 			Phobos::AppIconPath = ppArgs[++i];
 		}
 
-		//if (_stricmp(pArg, "-Console") == 0)
-		//{
-		//	Phobos::EnableConsole = true;
-		//}
-
 		/*
+		if (_stricmp(pArg, "-Console") == 0)
+		{
+			Phobos::EnableConsole = true;
+		}
+
 		if (!_stricmp(pArg, "-Name"))
 		{
 			char nBuff[0x800] = "";

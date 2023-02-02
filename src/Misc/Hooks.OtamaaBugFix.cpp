@@ -957,11 +957,6 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //	return 0x0;
 //}
 
-//DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
-//	GET(InfantryClass*, pThis, ECX);
-//	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
-//}
-
 //DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
 //DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)
 //{
@@ -2174,7 +2169,6 @@ DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
 	if (!preventPassangersEscape)
 	{
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-		auto const location = pThis->Location;
 
 		// passenger escape chances
 		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
@@ -2193,7 +2187,7 @@ DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
 				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, select))
+			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, select))
 			{
 				continue;
 			}
@@ -2221,7 +2215,6 @@ DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
 	{
 		bool select = pThis->IsSelected && pThis->Owner->ControlledByPlayer();
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		auto const location = pThis->Location;
 
 		// passenger escape chances
 		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
@@ -2241,7 +2234,7 @@ DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
 				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, select))
+			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, select))
 			{
 				continue;
 			}
@@ -2713,24 +2706,24 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 	return 0x70A340;
 }
 
-DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
-{
-	GET_STACK(int, nHouseIdx, 0x4);
-
-	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
-	if (HouseExt::IsObserverPlayer(pHouse))
-	{
-		R->AL(1);
-		return 0x4870DE;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
-{
-	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
-}
+//DEFINE_HOOK(0x4870D0, CellClass_SensedByHouses_ObserverAlwaysSensed, 0x6)
+//{
+//	GET_STACK(int, nHouseIdx, 0x4);
+//
+//	const auto pHouse = HouseClass::Array->GetItemOrDefault(nHouseIdx);
+//	if (HouseExt::IsObserverPlayer(pHouse))
+//	{
+//		R->AL(1);
+//		return 0x4870DE;
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
+//{
+//	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
+//}
 
 
 //DEFINE_HOOK(0x6FF1FB, TechnoClass_FireAt_Shield, 0x6)
@@ -2784,26 +2777,31 @@ std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 	}
 };
 
-DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
-{
-	GET(const char* const, cur, ESI);
+//DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
+//{
+//	GET(const char* const, cur, ESI);
+//
+//	int vHp = 0;
+//	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
+//	{
+//		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
+//		{
+//			vHp = i;
+//			break;
+//		}
+//	}
+//
+//	R->EAX(vHp);
+//	return 0x4775E9;
+//}
+//
+//DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
+//{
+//	R->EDX(NewVHPScanToString[R->EDI<int>()]);
+//	return 0x4775B7;
+//}
 
-	int vHp = 0;
-	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
-	{
-		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
-		{
-			vHp = i;
-			break;
-		}
-	}
-
-	R->EAX(vHp);
-	return 0x4775E9;
-}
-
-DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
-{
-	R->EDX(NewVHPScanToString[R->EDI<int>()]);
-	return 0x4775B7;
+DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
+	GET(InfantryClass*, pThis, ECX);
+	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
 }

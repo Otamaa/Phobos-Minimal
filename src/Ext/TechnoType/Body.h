@@ -11,6 +11,8 @@
 
 #include <Ext/LineTrail/Body.h>
 
+#include <New/AnonymousType/PassengerDeletionTypeClass.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
 #include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
@@ -74,24 +76,12 @@ public:
 		Valueable<int> CameoPriority;
 		Valueable<bool> NoManualMove;
 		Nullable<int> InitialStrength;
-		Valueable<bool> PassengerDeletion_Soylent;
-		Valueable<double> PassengerDeletion_SoylentMultiplier;
-		Valueable<bool> PassengerDeletion_SoylentFriendlies;
-		Valueable<int> PassengerDeletion_Rate;
-		NullableIdx<VocClass> PassengerDeletion_ReportSound;
-		Valueable<bool> PassengerDeletion_Rate_SizeMultiply;
-		Valueable<bool> PassengerDeletion_Rate_AffectedByVeterancy;
-		Valueable<bool> PassengerDeletion_UseCostAsRate;
-		Valueable<double> PassengerDeletion_CostMultiplier;
-		Nullable<AnimTypeClass*> PassengerDeletion_Anim;
-		Valueable<bool> PassengerDeletion_DisplaySoylent;
-		Valueable<AffectedHouse> PassengerDeletion_DisplaySoylentToHouses;
-		Valueable<Point2D> PassengerDeletion_DisplaySoylentOffset;
-		Valueable<bool> PassengerDeletion_Experience { false };
-		Valueable<bool> PassengerDeletion_ExperienceFriendlies { false };
+
+		std::unique_ptr<PassengerDeletionTypeClass> PassengerDeletionType;
+
+
 		Valueable<bool> Death_NoAmmo;
 		Valueable<int> Death_Countdown;
-		Valueable<bool> Death_Peaceful;
 		Valueable<KillMethod> Death_Method;
 		Valueable<bool> Death_WithMaster;
 
@@ -458,23 +448,9 @@ public:
 			, CameoPriority { 0 }
 			, NoManualMove { false }
 			, InitialStrength {}
-			, PassengerDeletion_Soylent { false }
-			, PassengerDeletion_SoylentMultiplier { 1.0 }
-			, PassengerDeletion_SoylentFriendlies { false }
-			, PassengerDeletion_Rate { 0 }
-			, PassengerDeletion_ReportSound {}
-			, PassengerDeletion_Rate_SizeMultiply { true }
-			, PassengerDeletion_Rate_AffectedByVeterancy { false }
-			, PassengerDeletion_UseCostAsRate{ false }
-			, PassengerDeletion_CostMultiplier{ 1.0 }
-			, PassengerDeletion_Anim {}
-			, PassengerDeletion_DisplaySoylent{ false }
-			, PassengerDeletion_DisplaySoylentToHouses{ AffectedHouse::All }
-			, PassengerDeletion_DisplaySoylentOffset{ { 0, 0 } }
 
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
-			, Death_Peaceful { false }
 			, Death_Method { KillMethod::None }
 			, Death_WithMaster{ false }
 			, AutoDeath_Nonexist {}

@@ -1,6 +1,7 @@
 #include <Ext/Script/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Rules/Body.h>

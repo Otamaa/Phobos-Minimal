@@ -381,7 +381,7 @@ void Console::PatchLog(DWORD dwAddr, void* fakeFunc, DWORD* pdwRealFunc)
 	} *pInst;
 #pragma pack(pop)
 
-	DWORD dwOldFlag;
+	DWORD dwOldFlag {};
 	VirtualProtect((LPVOID)dwAddr, 5, PAGE_EXECUTE_READWRITE, &dwOldFlag);
 
 	pInst = (JMP_STRUCT*)dwAddr;
@@ -391,5 +391,6 @@ void Console::PatchLog(DWORD dwAddr, void* fakeFunc, DWORD* pdwRealFunc)
 
 	pInst->offset = reinterpret_cast<DWORD>(fakeFunc) - dwAddr - 5;
 
-	VirtualProtect((LPVOID)dwAddr, 5, dwOldFlag, NULL);
+	DWORD nwOldFlag {};
+	VirtualProtect((LPVOID)dwAddr, 5, dwOldFlag, &nwOldFlag);
 }

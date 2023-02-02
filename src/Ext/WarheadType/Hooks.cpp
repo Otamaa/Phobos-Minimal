@@ -22,7 +22,7 @@ DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
 {
 	GET(BulletClass* const, pThis, ESI);
 
-	if (pThis->WH) {
+	if (pThis && pThis->WH) {
 		GET_BASE(const CoordStruct*, pCoords, 0x8);
 
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
