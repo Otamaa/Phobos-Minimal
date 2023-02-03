@@ -8,6 +8,7 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Building/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -25,13 +26,17 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 		return;
 
 	auto const pExt = TechnoExt::ExtMap.Find(pVictim);
-	if (pExt->ReceiveDamageMultiplier.isset())
-	{
+
+	if (pExt->ReceiveDamageMultiplier.isset()) {
 		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
 		pExt->ReceiveDamageMultiplier.clear();
 	}
 
-	if ((!AffectAlly_Damage_Mod.isset() && !AffectOwner_Damage_Mod.isset() && !AffectEnemies_Damage_Mod.isset()))
+	auto const& nAllyMod = AffectAlly_Damage_Mod;
+	auto const& nOwnerMod = AffectOwner_Damage_Mod;
+	auto const& nEnemyMod = AffectEnemies_Damage_Mod;
+
+	if ((!nAllyMod.isset() && !nOwnerMod.isset() && !nEnemyMod.isset()))
 		return;
 
 	auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExt::FindCivilianSide();
@@ -44,18 +49,18 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 
 		if (pVictimHouse != pHouse)
 		{
-			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies)
+			if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
 			{
-				*pArgs->Damage = static_cast<int>(nDamage * AffectAlly_Damage_Mod.Get());
+				*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
 			}
-			else if (AffectsEnemies.Get())
+			else if (AffectsEnemies.Get() && nEnemyMod.isset())
 			{
-				*pArgs->Damage = static_cast<int>(nDamage * AffectEnemies_Damage_Mod.Get());
+				*pArgs->Damage = static_cast<int>(nDamage * nEnemyMod.Get());
 			}
 		}
-		else if (AffectsOwner.Get())
+		else if (AffectsOwner.Get() && nOwnerMod.isset())
 		{
-			*pArgs->Damage = static_cast<int>(nDamage * AffectOwner_Damage_Mod.Get());
+			*pArgs->Damage = static_cast<int>(nDamage * nOwnerMod.Get());
 		}
 	}
 }
@@ -92,11 +97,18 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
-		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
-			if (pBld->Type->InvisibleInGame)
+		if (auto const pBld = specific_cast<BuildingClass*>(pTechno)) {
+			auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
+			if (pBld->Type->InvisibleInGame || pBldExt->LimboID != -1)
 				return false;
+		}
 
-		if (pTechno->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pTechno)))
+		if (const auto pFoot = abstract_cast<FootClass*>(pTechno)) {
+			if (TechnoExt::IsChronoDelayDamageImmune(pFoot))
+				return false;
+		}
+
+		if (pTechno->IsBeingWarpedOut())
 			return false;
 
 		if (!SkipVerses && EffectsRequireVerses.Get())
@@ -153,27 +165,27 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 }
 
-bool WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
+FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
 	if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
-		return false;
+		return FullMapDetonateResult::TargetNotDamageable;
 
 	auto const pType = pTechno->GetTechnoType();
 
 	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
-		return false;
+		return FullMapDetonateResult::TargetNotEligible;
 
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
-		return false;
+		return FullMapDetonateResult::TargetHouseNotEligible;
 
-	if ((this->DetonateOnAllMapObjects_AffectTypes.size() > 0 &&
+	if ((!this->DetonateOnAllMapObjects_AffectTypes.empty() &&
 		!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
 		this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
 	{
-		return false;
+		return FullMapDetonateResult::TargetRestricted;
 	}
 
-	return true;
+	return FullMapDetonateResult::TargetValid;
 }
 
 bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pTarget)
@@ -215,11 +227,9 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
 
 	if(pThis->NukeMaker) {
-		if (!pTarget && pOwner)
+		if (!pTarget)
 		{
-			pTarget = pOwner;
-		} else if(!pTarget && !pOwner) {
-			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target and Owner is present , atleast one need to be avail ! \n");
+			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
@@ -487,6 +497,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 #pragma endregion
 
+	this->AttachedEffect.Read(exINI);
+	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
 }
 
 template <typename T>
@@ -650,6 +662,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RecalculateDistanceDamage_Max)
 		.Process(this->RecalculateDistanceDamage_Min)
 
+		.Process(this->AttachedEffect)
+		.Process(this->DetonatesWeapons)
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -661,6 +676,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 #ifdef COMPILE_PORTED_DP_FEATURES
 	PaintBallData.Serialize(Stm);
 #endif
+
 }
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

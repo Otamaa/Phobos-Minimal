@@ -439,6 +439,10 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma region Otamaa
 
+	//Allocate Default bullet
+	if (auto pBullet = BulletTypeClass::FindOrAllocate(DEFAULT_STR2))
+		Debug::Log("Default BulletType Allocated ! \n");
+
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
 
 	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
@@ -506,6 +510,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
+		.Process(Phobos::Config::ShowTechnoNamesIsActive)
 
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)

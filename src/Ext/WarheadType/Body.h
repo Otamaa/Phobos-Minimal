@@ -13,6 +13,8 @@
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 #endif
 
+#include <New/AnonymousType/AresAttachEffectTypeClass.h>
+
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
 struct args_ReceiveDamage;
@@ -211,6 +213,9 @@ public:
 		Valueable<int> RecalculateDistanceDamage_Max;
 		Valueable<int> RecalculateDistanceDamage_Min;
 
+		AresAttachEffectTypeClass AttachedEffect;
+		ValueableVector<WeaponTypeClass*> DetonatesWeapons;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -219,6 +224,7 @@ public:
 		PaintballType PaintBallData;
 	#endif
 		#pragma endregion
+
 		ExtData(WarheadTypeClass* OwnerObject) : TExtension<WarheadTypeClass>(OwnerObject)
 			, SpySat { false }
 			, BigGap { false }
@@ -382,6 +388,10 @@ public:
 			, RecalculateDistanceDamage_Multiply_Factor { 1.0 }
 			, RecalculateDistanceDamage_Max { INT_MAX }
 			, RecalculateDistanceDamage_Min { -INT_MAX }
+
+			, AttachedEffect { OwnerObject }
+			, DetonatesWeapons { }
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -390,6 +400,7 @@ public:
 			, PaintBallDuration { -1 }
 			, PaintBallData { }
 #endif
+
 		{ }
 
 	private:
@@ -428,7 +439,7 @@ public:
 		bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse);
 		bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false);
 		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
-		bool EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
+		FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
 

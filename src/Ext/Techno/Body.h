@@ -108,6 +108,9 @@ public:
 
 #endif;
 	#pragma endregion
+
+		UniqueGamePtr<AnimClass> AttachedAnim;
+
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
 			, AbsType {}
@@ -165,6 +168,7 @@ public:
 			, MyJJData { }
 			, MySpawnSuport { }
 			, MyFighterData { }
+			, AttachedAnim { }
 #endif;
 		{ 
 			

@@ -29,7 +29,7 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
-#include <Phobos_ECS.h>
+#include <Commands/ShowTechnoNames.h>
 
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
@@ -255,4 +255,10 @@ DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
 	GET(HouseClass* const, pThis, ECX);
 	HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
 	return 0;
+}
+
+DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
+{
+
+	return 0x0;
 }

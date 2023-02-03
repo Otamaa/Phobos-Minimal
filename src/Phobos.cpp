@@ -82,6 +82,7 @@ bool Phobos::Config::ForbidParallelAIQueues_Aircraft = false;
 bool Phobos::Config::ForbidParallelAIQueues_Building = false;
 
 bool Phobos::Config::TogglePowerInsteadOfRepair = false;
+bool Phobos::Config::ShowTechnoNamesIsActive = false;
 
 std::string Phobos::AppIconPath;
 char Phobos::AppName[0x40] = "";

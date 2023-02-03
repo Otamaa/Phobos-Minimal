@@ -940,22 +940,6 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 	return 0x4CA0FF;
 }
 
-// TODO : more ?
-//DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
-//{
-//	GET(ObjectClass*, pTarget, ESI);
-//	GET_BASE(const WarheadTypeClass*, pWH, 0xC);
-//	GET_BASE(TechnoClass*, pSource, 0x8);
-//	//GET_BASE(HouseClass*, pHouse, 0x14);
-//
-//	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH)) {
-//		if (auto pTechnp = generic_cast<TechnoClass*>(pTarget)) {
-//			Debug::Log("[%x]=%s MapClass::ExplosionDamage Detonating To [%x]= %s \n", pSource , pSource ? pSource->get_ID() : NONE_STR, pTechnp, pTechnp->get_ID());
-//		}
-//	}
-//
-//	return 0x0;
-//}
 
 //DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
 //DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)

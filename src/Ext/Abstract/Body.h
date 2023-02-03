@@ -16,9 +16,9 @@ class TExtension : public IExtension
 {
 private:
 	T* AttachedToObject;
-	//AbstractType WhatIAm;
 
 public:
+
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject { OwnerObject }
 	{ 
@@ -97,6 +97,7 @@ public:
 		//Stm.Load(this->WhatIAm);
 	}
 
+	static constexpr AbstractType WhatIam = T::AbsID;
 	//virtual size_t GetSize() const { return sizeof(*this); }
 
 protected:	// overrideable virtuals !
@@ -264,6 +265,8 @@ public:
 	template<bool Check = false>
 	NOINLINE extension_type_ptr GetIExtension(const_base_type_ptr key)
 	{
+		static_assert(extension_type::WhatIam == base_type::AbsID);
+
 		if constexpr (Check)
 		{
 			if (!key)
@@ -276,6 +279,8 @@ public:
 	template<bool Check = false>
 	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
 	{
+		static_assert(extension_type::WhatIam == base_type::AbsID);
+
 		if constexpr (Check)
 		{
 			if (!key)

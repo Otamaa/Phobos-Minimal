@@ -34,6 +34,17 @@
 
 #include <Phobos.h>
 
+enum class FullMapDetonateResult : int
+{
+	TargetNotDamageable,
+	TargetNotEligible,
+	TargetHouseNotEligible,
+	TargetRestricted,
+	TargetValid,
+
+	count
+};
+
 enum class TransactValueType : int
 {
 	Experience = 0,

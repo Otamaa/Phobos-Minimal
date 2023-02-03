@@ -76,6 +76,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	#pragma endregion
 
 	this->SW_Priority.Read(exINI, pSection, "SW.Priority");
+	this->SW_Damage.Read(exINI, pSection, "SW.Damage");
 }
 // =============================
 // load / save
@@ -199,6 +200,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ChargeTimer)
 		.Process(this->ChargeTimer_Backwards)
 		.Process(this->SW_Priority)
+		.Process(this->SW_Damage)
 		;
 
 }

@@ -30,14 +30,14 @@ public:
 		ValueableVector<int> LimboKill_IDs;
 		Valueable<double> RandomBuffer;
 
-		ValueableVector<SuperWeaponTypeClass*> SW_Next;
+		ValueableIdxVector<SuperWeaponTypeClass*> SW_Next;
 		Valueable<bool> SW_Next_RealLaunch;
 		Valueable<bool> SW_Next_IgnoreInhibitors;
 		Valueable<bool> SW_Next_IgnoreDesignators;
 		ValueableVector<float> SW_Next_RollChances;
 
-		ValueableVector<ValueableVector<int>> LimboDelivery_RandomWeightsData;
-		ValueableVector<ValueableVector<int>> SW_Next_RandomWeightsData;
+		std::vector<std::vector<int>> LimboDelivery_RandomWeightsData;
+		std::vector<std::vector<int>> SW_Next_RandomWeightsData;
 		ValueableVector<TechnoTypeClass*> SW_Inhibitors;
 		Valueable<bool> SW_AnyInhibitor;
 		ValueableVector<TechnoTypeClass*> SW_Designators;
@@ -65,6 +65,7 @@ public:
 		#pragma endregion
 
 		Valueable<int> SW_Priority;
+		Nullable<int> SW_Damage;
 
 		ExtData(SuperWeaponTypeClass* OwnerObject) : TExtension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
@@ -108,6 +109,7 @@ public:
 			, ChargeTimer_Backwards { false }
 
 			, SW_Priority { 0 }
+			, SW_Damage { }
 		{ }
 
 
@@ -137,7 +139,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 	private:
 
-		std::vector<int> WeightedRollsHandler(ValueableVector<float>* chances, ValueableVector<ValueableVector<int>>* weights, size_t size);
+		std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
 
 		void ApplyLimboDelivery(HouseClass* pHouse);
 		void ApplyLimboKill(HouseClass* pHouse);

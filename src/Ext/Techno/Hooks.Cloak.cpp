@@ -33,6 +33,7 @@ DEFINE_HOOK(0x7038FE, TechnoClass_VisualCharacter_CloakVisibility_B, 0x6)
 	return HouseExt::IsObserverPlayer() ? UseShadowyVisual : Continue
 		;
 }
+
 DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility_A, 0x5)
 {
 	enum { UseShadowyVisual = 0x45452D, CheckMutualAlliance = 0x454564 };
@@ -42,6 +43,7 @@ DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility_A, 0x5)
 
 	return CheckMutualAlliance;
 }
+
 DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Decloak, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);

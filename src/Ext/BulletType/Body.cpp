@@ -21,9 +21,12 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 	if(pBullet) {
 		pType = BulletTypeClass::Find(pBullet);
 	}
+	else {
+		pType = BulletTypeClass::Find(DEFAULT_STR2);
+	}
 
 	//an dummy bullet , huh
-	return pType ? pType : GameCreate<BulletTypeClass>(DEFAULT_STR2);
+	return pType;
 }
 
 void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {

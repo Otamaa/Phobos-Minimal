@@ -214,10 +214,8 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, T
 void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
 {
 	if(pThis->Warhead->NukeMaker) {
-		if (!pTarget && pOwner) {
-			pTarget = pOwner;
-		} else if(!pTarget && !pOwner){
-			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target and Owner is present , aleast one need to be avail ! \n");
+		if (!pTarget) {
+			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}

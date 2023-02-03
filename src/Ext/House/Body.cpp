@@ -41,12 +41,7 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 
 	if (!AutoDeathObjects.empty() && ptr != nullptr) {
-		const auto nData = std::find_if(AutoDeathObjects.begin(), AutoDeathObjects.end(), 
-		[&](auto const pData) { return reinterpret_cast<TechnoClass*>(ptr) == pData.first; });
-
-		if (nData != AutoDeathObjects.end()) {
-			AutoDeathObjects.erase(nData);
-		}
+		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
 	}
 }
 

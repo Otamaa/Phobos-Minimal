@@ -12,6 +12,6 @@ public:
 	virtual const wchar_t* GetUIDescription() const override;
 	virtual void Execute(WWKey eInput) const override;
 
-	static bool IsActive;
 	static void AI();
+	static NOINLINE bool IsActivated();
 };

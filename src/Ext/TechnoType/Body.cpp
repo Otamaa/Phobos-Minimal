@@ -635,6 +635,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 	}
 
+	this->AttachedEffect.Read(exINI);
+
 #pragma region Otamaa
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
@@ -1063,6 +1065,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 	this->MyFighterData.Serialize(Stm);
 	this->DamageSelfData.Serialize(Stm);
 #endif
+
+	Stm.Process(this->AttachedEffect)
+		;
 }
 
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

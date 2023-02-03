@@ -42,7 +42,18 @@ struct CustomWeaponManager
 		Debug::Log("Loading Element From CustomWeaponManager ! \n");
 		return Stm
 			.Process(simulateBurstQueue)
+			.Success()
+			&& Stm.RegisterChange(this);
 			;
+	}
+};
+
+template <>
+struct Savegame::ObjectFactory<CustomWeaponManager>
+{
+	std::unique_ptr<CustomWeaponManager> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<CustomWeaponManager>();
 	}
 };
 

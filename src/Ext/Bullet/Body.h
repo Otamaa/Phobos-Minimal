@@ -42,6 +42,7 @@ public:
 		int BounceAmount;
 		DynamicVectorClass<LineTrail*> BulletTrails;
 		OptionalStruct<DirStruct ,true> InitialBulletDir;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 #endif
@@ -68,11 +69,9 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
-
+			, Trajectory {}
 
 		{ }
-
-
 
 		virtual ~ExtData() = default;
 

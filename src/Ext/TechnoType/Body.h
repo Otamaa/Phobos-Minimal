@@ -26,6 +26,8 @@
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterGuardAreaData.h>
 #endif
 
+#include <New/AnonymousType/AresAttachEffectTypeClass.h>
+
 class Matrix3D;
 
 class TechnoTypeExt
@@ -412,7 +414,7 @@ public:
 		DamageSelfType DamageSelfData;
 
 #endif
-
+		AresAttachEffectTypeClass AttachedEffect;
 #pragma endregion
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -451,7 +453,7 @@ public:
 
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
-			, Death_Method { KillMethod::None }
+			, Death_Method { KillMethod::Explode }
 			, Death_WithMaster{ false }
 			, AutoDeath_Nonexist {}
 			, AutoDeath_Nonexist_House { AffectedHouse::Owner }
@@ -733,7 +735,7 @@ public:
 			, DamageSelfData { }
 
 #endif
-
+			, AttachedEffect { OwnerObject }
 #pragma endregion
 
 		{ }

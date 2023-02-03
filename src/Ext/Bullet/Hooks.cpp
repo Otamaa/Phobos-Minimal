@@ -315,28 +315,78 @@ DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
 	return 0;
 }
 
+static NOINLINE HouseClass* GetHouse(BulletClass* const pThis)
+{
+	if (pThis->Owner) {
+		return pThis->Owner->GetOwningHouse();
+	}
+
+	return BulletExt::ExtMap.Find(pThis)->Owner;
+}
+
+static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings
+{
+ {
+	 { "TargetNotDamageable" } , { "TargetNotEligible" } ,
+	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
+	{ "TargetValid" }
+ }
+};
+
 DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 {
 	enum { ReturnFromFunction = 0x46A2FB };
 
-	GET(BulletClass*, pThis, ESI);
+	GET(BulletClass* const , pThis, ESI);
 
 	if (pThis->WH)
 	{
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+		auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
-			const auto pExt = BulletExt::ExtMap.Find(pThis);
-			const auto pOwner = pThis->Owner ? pThis->Owner->Owner : pExt->Owner;
-			
-			std::for_each(TechnoClass::Array->begin(), 
-				TechnoClass::Array->end(), [pThis, pWHExt, pOwner](TechnoClass* pTechno) {
-				if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner)) {
-					pThis->SetTarget(pTechno);
-					pThis->Detonate(pTechno->GetCoords());
+
+			for (auto const pTechno : *TechnoClass::Array) {
+				if (pWHExt->EligibleForFullMapDetonation(pTechno, GetHouse(pThis)) == FullMapDetonateResult::TargetValid) {
+					pThis->Target = pTechno;
+					pThis->Detonate(pTechno->Location);
 				}
-			});
+			}
+			/*
+			auto tryDetonate = [&](TechnoClass* pTechno)
+			{
+				if (pWHExt->EligibleForFullMapDetonation(pTechno, GetHouse(pThis)) == FullMapDetonateResult::TargetValid) {
+
+					pThis->Target = pTechno;
+					//pThis->SetTarget(pTechno);
+					pThis->Detonate(pTechno->Location);
+				}
+			};
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
+			{
+				for (const auto pTechno : *AircraftClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
+			{
+				for (const auto pTechno : *BuildingClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
+			{
+				for (const auto pTechno : *InfantryClass::Array)
+					tryDetonate(pTechno);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
+			{
+				for (const auto pTechno : *UnitClass::Array)
+					tryDetonate(pTechno);
+			}*/
 
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 

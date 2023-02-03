@@ -46,7 +46,7 @@ public:
 		int ProducingNavalUnitTypeIndex;
 
 		//#830
-		std::vector<std::pair<TechnoClass* , KillMethod>> AutoDeathObjects;
+		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects;
 
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}

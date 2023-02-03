@@ -140,6 +140,7 @@ public:
 		static bool ForbidParallelAIQueues_Building;
 
 		static bool TogglePowerInsteadOfRepair;
+		static bool ShowTechnoNamesIsActive;
 	};
 
 	class Otamaa

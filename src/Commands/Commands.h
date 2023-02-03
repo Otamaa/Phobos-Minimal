@@ -7,6 +7,10 @@
 
 class PhobosCommandClass : public CommandClass
 {
+public:
+
+	static void Clear();
+
 protected:
 	bool CheckDebugDeactivated() const {
 		auto const bAllow = Phobos::Config::DevelopmentCommands || Phobos::Otamaa::IsAdmin;
@@ -21,6 +25,7 @@ protected:
 		}
 		return false;
 	}
+
 };
 
 // will the templates ever stop? :D

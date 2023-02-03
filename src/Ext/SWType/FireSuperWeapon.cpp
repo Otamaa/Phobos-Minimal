@@ -86,7 +86,7 @@ void SWTypeExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int I
 		if (nMethod != KillMethod::None && pTechnoTypeExt->Death_Countdown > 0)
 		{
 			pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
-			pOwnerExt->AutoDeathObjects.emplace_back(pBuilding, nMethod);
+			pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
 		}
 	}
 }
@@ -147,7 +147,7 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 }
 
 // Universal handler of the rolls-weights system
-std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(ValueableVector<float>* rolls, ValueableVector<ValueableVector<int>>* weights, size_t size)
+std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(std::vector<float>* rolls, std::vector<std::vector<int>>* weights, size_t size)
 {
 	bool rollOnce = false;
 	size_t rollsSize = rolls->size();
@@ -297,9 +297,9 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 	}
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get(nullptr))
-		WeaponTypeExt::DetonateAt(pWeapon, pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(pWeapon->Damage));
+		WeaponTypeExt::DetonateAt(pWeapon, pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(pWeapon->Damage)));
 	else
-		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(0));
+		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
 }
 
 bool SWTypeExt::ExtData::IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
@@ -382,14 +382,14 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse) const
 }
 
 // SW.Next proper launching mechanic
-void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, SuperWeaponTypeClass* pLaunchedType, const CellStruct& cell)
+void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell)
 {
-	const auto pSuper = pHouse->Supers.GetItemOrDefault(SuperWeaponTypeClass::Array->FindItemIndex(pLaunchedType));
+	const auto pSuper = pHouse->Supers.GetItemOrDefault(pLaunchedType);
 
 	if (!pSuper)
 		return;
 
-	const auto pSuperTypeExt = SWTypeExt::ExtMap.Find(pLaunchedType);
+	const auto pSuperTypeExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 	if (!pLauncherTypeExt->SW_Next_RealLaunch || (pSuperTypeExt && pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
 	{
 

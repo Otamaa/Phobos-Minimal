@@ -1679,7 +1679,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		{
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
 			if (pThis->Owner)
-				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.emplace_back(pThis, nMethod);
+				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.insert(pThis, nMethod);
 
 		}
 		else if (!pThis->Transporter && Death_Countdown.Completed())
@@ -2149,12 +2149,7 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 		this->Death_Countdown.Stop();
 
 		if(pThis->Owner){
-			auto hExt = HouseExt::ExtMap.Find(pThis->Owner);
-			const auto it = std::find_if(hExt->AutoDeathObjects.begin(), hExt->AutoDeathObjects.end(),
-				[&](auto const pTech) { return pTech.first == pThis; });
-
-			if (it != hExt->AutoDeathObjects.end())
-				hExt->AutoDeathObjects.erase(it);
+			HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
 		}
 	}
 
@@ -2723,8 +2718,9 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->IsMissisleSpawn)
 		.Process(this->LastAttacker)
 		.Process(this->Attempt)
-		.Process(ReceiveDamageMultiplier)
-		.Process(SkipLowDamageCheck)
+		.Process(this->ReceiveDamageMultiplier)
+		.Process(this->SkipLowDamageCheck)
+		.Process(this->AttachedAnim)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -2743,10 +2739,10 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->MissileTargetTracker)
 #endif
 #endif;
-		.Process(this->MyWeaponManager)
 		;
 	//should put this inside techo ext , ffs
 #ifdef COMPILE_PORTED_DP_FEATURES
+	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
 	this->MyJJData.Serialize(Stm);
@@ -2878,6 +2874,11 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 		if (pExt->DelayedFire_Anim == pAnim) {
 			pExt->DelayedFire_Anim = nullptr;
 			pExt->DelayedFire_Anim_LoopCount = -1;
+		}
+
+		if (auto pAAAnim = pExt->AttachedAnim.get()) {
+			if (pAAAnim == pAnim)
+				pExt->AttachedAnim.reset(nullptr);
 		}
 	}
 

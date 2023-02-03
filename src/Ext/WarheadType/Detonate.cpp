@@ -16,6 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/WeaponType/Body.h>
 #include <Utilities/EnumFunctions.h>
 #include <New/Entity/FlyingStrings.h>
 
@@ -329,6 +330,12 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	auto const nSound = Sound.Get();
 	if (nSound != -1)
 		VocClass::PlayAt(nSound, coords);
+
+	if (!pBullet) {
+		for (auto const& pWeapon : this->DetonatesWeapons) {
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner);
+		}
+	}
 
 	if (pOwner && pBullet) {
 		if (TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType())->Interceptor && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)

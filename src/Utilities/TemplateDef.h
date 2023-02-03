@@ -947,7 +947,7 @@ namespace detail
 				{
 					parsed |= AffectedTarget::All;
 				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
+				else if (IS_SAME_STR_(cur, NONE_STR2))
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a super weapon target");
 					return false;
@@ -1014,7 +1014,7 @@ namespace detail
 				{
 					parsed = LandType::Weeds;
 				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
+				else if (IS_SAME_STR_(cur, NONE_STR2))
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a super weapon target");
 					return false;
@@ -1061,7 +1061,7 @@ namespace detail
 				{
 					parsed |= AffectedHouse::All;
 				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
+				else if (IS_SAME_STR_(cur, NONE_STR2))
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a super weapon affected house");
 					return false;

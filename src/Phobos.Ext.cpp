@@ -73,6 +73,8 @@
 #include <New/Type/BannerTypeClass.h>
 //#include <New/Entity/BannerClass.h>
 
+#include <Commands/Commands.h>
+
 #include <utility>
 
 // Add more class names as you like
@@ -179,6 +181,7 @@ void Phobos::Clear()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	ElectricBoltManager::Clear_All();
 #endif
+	PhobosCommandClass::Clear();
 }
 
 void Phobos::PointerGotInvalid(AbstractClass* const pInvalid, bool const removed)

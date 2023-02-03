@@ -12,6 +12,10 @@
 #define Make(arg)\
 		Make<arg>();
 
+void PhobosCommandClass::Clear()
+{
+}
+
 DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 {
 	Make(ObjectInfoCommandClass);

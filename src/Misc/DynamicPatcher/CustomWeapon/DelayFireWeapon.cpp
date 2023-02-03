@@ -36,6 +36,7 @@ bool DelayFireWeapon::Serialize(T& Stm)
 		.Process(Count)
 		.Process(Timer)
 		.Success()
+		&& Stm.RegisterChange(this);
 		;
 }
 
