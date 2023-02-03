@@ -56,9 +56,9 @@ public:
 	virtual int Size() const R0;
 
 	//BulletClass
-	virtual BYTE GetAnimFrame() const R0;
-	virtual void SetTarget(AbstractClass* pTarget) RX;
-	virtual bool MoveTo(const CoordStruct& nwhere, const VelocityClass& velocity) R0;
+	virtual BYTE GetAnimFrame() const JMP_THIS(0x468000);
+	virtual void SetTarget(AbstractClass* pTarget) JMP_THIS(0x46B5A0);
+	virtual bool MoveTo(const CoordStruct& nwhere, const VelocityClass& velocity) JMP_THIS(0x468670);
 
 	// non-virtual
 	// after CoCreateInstance creates a bullet, this configures it
