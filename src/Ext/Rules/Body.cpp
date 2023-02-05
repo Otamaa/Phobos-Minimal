@@ -104,6 +104,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RadHasOwner.Read(exINI, RADIATION_SECTION, "RadHasOwner");
 	this->RadHasInvoker.Read(exINI, RADIATION_SECTION, "RadHasInvoker");
 	this->IronCurtain_SyncDeploysInto.Read(exINI, COMBATDAMAGE_SECTION, "IronCurtain.KeptOnDeploy");
+	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
 
 	this->Pips_Shield.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield");
 	this->Pips_Shield_Buildings.Read(exINI, AUDIOVISUAL_SECTION, "Pips.Shield.Building");
@@ -569,6 +570,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
 		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->ROF_RandomDelay)
 
 		.Process(this->ToolTip_Background_Color)
 		.Process(this->ToolTip_Background_Opacity)

@@ -9,31 +9,19 @@
 
 //AircraftExt::ExtContainer AircraftExt::ExtMap;
 
-void _fastcall AircraftExt::TriggerCrashWeapon(TechnoClass* pThis, DWORD, int nMult)
+void AircraftExt::TriggerCrashWeapon(TechnoClass* pThis , int nMult)
 {
 	auto pType = pThis->GetTechnoType();
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	auto const pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
 
-	auto PlayCrashWeapon = [pCrashWeapon, pThis]()
-	{
+	auto PlayCrashWeapon = [pCrashWeapon, pThis]() {
 		if (!pCrashWeapon)
 			return false;
 
-		if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pCrashWeapon->Projectile)->CreateBullet(pThis->GetCell(), pThis,
-			pCrashWeapon))
-		{
-			const CoordStruct& coords = pThis->GetCoords();
-			pBullet->SetWeaponType(pCrashWeapon);
-			pBullet->Limbo();
-			pBullet->SetLocation(coords);
-			pBullet->Explode(true);
-			pBullet->UnInit();
-			return true;
-		}
-
-		return false;
+		WeaponTypeExt::DetonateAt(pCrashWeapon, pThis->GetCell(), pThis);
+		return true;
 	};
 
 

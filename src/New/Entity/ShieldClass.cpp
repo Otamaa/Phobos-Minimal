@@ -423,7 +423,7 @@ void ShieldClass::SetAnimationVisibility(bool visible)
 	if (!this->AreAnimsHidden && !visible)
 		this->KillAnim();
 
-	this->AreAnimsHidden = visible;
+	this->AreAnimsHidden = !visible;
 }
 
 void ShieldClass::OnlineCheck()

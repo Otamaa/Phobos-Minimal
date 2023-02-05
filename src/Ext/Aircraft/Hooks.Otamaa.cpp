@@ -7,19 +7,14 @@
 #include <Ext/BulletType/Body.h>
 
 #pragma region Otamaa
-
-DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(AircraftExt::TriggerCrashWeapon));
-
-//DEFINE_JUMP(LJMP, 0x4CD7DA , 0x4CD7DB)
-/* wrong stack ?
 DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 {
-	GET(AircraftClass*, pThis, ECX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x6C, 0x18));
-	R->Stack(STACK_OFFS(0x6C, 0x3C), CellClass::Coord2Cell(nCoord));
-	AircraftExt::TriggerCrashWeapon(pThis, 0);
-	return 0x4CD80E;
-}*/
+	GET(AircraftClass*, pLinked, ECX);
+
+	AircraftExt::TriggerCrashWeapon(pLinked, 0);
+	R->EAX(Map[CellClass::Coord2Cell(pLinked->Location)]); //restore overriden instructions
+	return 0x4CD81D;
+}
 
 DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 {
@@ -206,6 +201,170 @@ DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
 	GET(AircraftClass*, pThis, EDI);
 	return pThis->Type->AirportBound ? 0x4CD12A : 0x0;
 }
+//
+//DEFINE_HOOK(0x73C71D, UnitClass_DrawSHP_FacingDir, 0x6)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	GET(int, nFacingOffs, EDX);
+//
+//	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer()))
+//	{
+//		auto const pTargetType = pThis->GetDisguise(true);
+//		if (pTargetType && pTargetType->WhatAmI() == AbstractType::UnitType)
+//		{
+//			auto const pDisguiseUnit = static_cast<UnitTypeClass*>(pTargetType);
+//			int nFacing = pDisguiseUnit->Facings;
+//			int nIdx = Helpers_DP::Dir2FrameIndex(pThis->PrimaryFacing.Current(), nFacing);
+//
+//			if (nFacingOffs == 0)
+//			{
+//				nFacingOffs += nIdx;
+//			}
+//			else
+//			{
+//				auto nWakFrames = pDisguiseUnit->WalkFrames;
+//				nFacingOffs += (nIdx * nWakFrames + pDisguiseUnit->StartWalkFrame);
+//			}
+//
+//			R->EDX(nFacingOffs);
+//		}
+//	}
+//
+//	return 0;
+//}
+//
+//static UnitTypeClass* GetUnitDisguise(TechnoClass* pThis)
+//{
+//	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer())) {
+//		ObjectTypeClass* pDisguiseType = pThis->GetDisguise(true);
+//		if (pDisguiseType && pDisguiseType->WhatAmI() == AbstractType::UnitType) {
+//			return static_cast<UnitTypeClass*>(pDisguiseType);
+//		}
+//	}
+//
+//	return nullptr;
+//}
+//
+//DEFINE_HOOK(0x73C655, UnitClass_DrawSHP_TechnoType, 0x6)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	if (auto pDisguiseType = GetUnitDisguise(pThis)) {
+//		R->ECX(pDisguiseType);
+//		return 0x73C65B;
+//	}
+//	return 0x0;
+//}
+//DEFINE_HOOK(0x73C69D, UnitClass_DrawSHP_TechnoType2, 0x6)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	if (auto pDisguiseType = GetUnitDisguise(pThis)) {
+//		R->ECX(pDisguiseType);
+//		return 0x73C6A3;
+//	}
+//	return 0x0;
+//}
+//DEFINE_HOOK(0x73C702, UnitClass_DrawSHP_TechnoType3, 0x6)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	if (auto pDisguiseType = GetUnitDisguise(pThis)) {
+//		R->ECX(pDisguiseType);
+//		return 0x73C708;
+//	}
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x73C725, UnitClass_DrawSHP_HasTurret, 0x5)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	if (auto pDisguiseType = GetUnitDisguise(pThis)) {
+//		if(!pDisguiseType->Turret)
+//			return 0x73CE0D;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x73B765, UnitClass_DrawVoxel_TurretFacing, 0x5)
+//DEFINE_HOOK_AGAIN(0x73BA78, UnitClass_DrawVoxel_TurretFacing, 0x6)
+//DEFINE_HOOK_AGAIN(0x73BD8B, UnitClass_DrawVoxel_TurretFacing, 0x5)
+//DEFINE_HOOK(0x73BDA3, UnitClass_DrawVoxel_TurretFacing, 0x5)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	
+//	if (!pThis->GetTechnoType()->Turret) {
+//		if (auto pDisguiseType = GetUnitDisguise(pThis)) { 
+//			if (pDisguiseType->Turret) {
+//				GET(DirStruct*, pDir, EAX);
+//				*pDir = (pThis->PrimaryFacing.Current());
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x73B8E3, UnitClass_DrawVoxel_HasChargeTurret , 0x5)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	GET(TechnoTypeClass*, pThisType, EBX);
+//
+//	if (pThisType != pThis->GetTechnoType()) {
+//		return pThisType->TurretCount > 0 && !pThisType->IsGattling ? 0x73B8EC : 0x73B92F;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x73BC28, UnitClass_DrawVoxel_HasChargeTurret2,0x5)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	GET(TechnoTypeClass*, pThisType, EBX);
+//
+//	if (pThisType != pThis->GetTechnoType()) {
+//		if (pThisType->TurretCount > 0 && !pThisType->IsGattling)
+//		{
+//			if (pThis->CurrentTurretNumber < 0)
+//			{
+//				R->Stack<int>(0x1C, 0);
+//				return 0x73BC35;
+//			}
+//		}
+//		else
+//		{
+//			return 0x73BD79;
+//		}
+//	}
+//
+//	return 0;
+//}
+//
+//DEFINE_HOOK(0x73BA63, UnitClass_DrawVoxel_TurretOffset, 0x5)
+//{
+//	GET(TechnoClass*, pThis, EBP);
+//	GET(TechnoTypeClass*, pThisType, EBX);
+//
+//	if (pThisType != pThis->GetTechnoType())
+//	{
+//		if (pThisType->TurretCount > 0 && !pThisType->IsGattling)
+//		{
+//			if (pThis->CurrentTurretNumber < 0)
+//			{
+//				R->Stack<int>(0x1C, 0);
+//				return 0x73BC35;
+//			}
+//			else
+//			{
+//				return 0x73BD79;
+//			}
+//		}
+//	}
+//
+//	return 0x0;
+//}
+//
+//
+////TechnoClass_Draw_VXL_Disguise_Blit_Flags 0x5
+//DEFINE_JUMP(LJMP, 0x706724, 0x706731);
 
 //DEFINE_HOOK(0x419CC1, AircraftClass_Mi_Enter_AiportBound, 0x6)
 //{

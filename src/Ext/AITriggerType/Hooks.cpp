@@ -15,12 +15,9 @@ static bool CheckPrereq(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 
 static bool CheckBridgeCondition(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2) {
 	if (auto const pCiv = HouseClass::FindBySideIndex(RulesExt::Global()->CivilianSideIndex)) {
-		auto const it = std::find_if(pCiv->Buildings.begin(), pCiv->Buildings.end(), [](BuildingClass* const pBld) {
+		return std::any_of(pCiv->Buildings.begin(), pCiv->Buildings.end(), [](BuildingClass* const pBld) {
 			return pBld->Type->BridgeRepairHut && pBld->Type->Repairable && Map.IsBrideRepairNeeded(pBld->GetMapCoords());
 		});
-
-		if(it != pCiv->Buildings.end())
-			return true;
 	}
 
 	return false;

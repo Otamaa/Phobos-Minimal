@@ -40,7 +40,7 @@ public:
 	static constexpr size_t ExtOffset = 0xDF4;
 #endif
 
-	class ExtData final : public Extension<TechnoTypeClass>
+	class ExtData : public Extension<TechnoTypeClass>
 	{
 	public:
 		Valueable<bool> HealthBar_Hide;
@@ -131,6 +131,7 @@ public:
 		Valueable<bool> AutoFire_TargetSelf;
 
 		Valueable<bool> NoSecondaryWeaponFallback;
+		Valueable<bool> NoSecondaryWeaponFallback_AllowAA;
 
 		Valueable<int> NoAmmoWeapon;
 		Valueable<int> NoAmmoAmount;
@@ -391,6 +392,8 @@ public:
 		Valueable<float> Experience_VictimMultiple;
 		Valueable<float> Experience_KillerMultiple;
 
+		Valueable<Leptons> NavalRangeBonus;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -490,6 +493,7 @@ public:
 			, AutoFire { false }
 			, AutoFire_TargetSelf { false }
 			, NoSecondaryWeaponFallback { false }
+			, NoSecondaryWeaponFallback_AllowAA { false }
 			, NoAmmoWeapon { -1 }
 			, NoAmmoAmount { 0 }
 			, JumpjetAllowLayerDeviation {}
@@ -648,7 +652,7 @@ public:
 			, GClock_Transculency { }
 			, GClock_Palette { }
 
-			, ROF_Random { true }
+			, ROF_Random { false }
 			, Rof_RandomMinMax { }
 
 			, Eva_Complete { }
@@ -713,6 +717,9 @@ public:
 
 			, Experience_VictimMultiple { 1.0f }
 			, Experience_KillerMultiple { 1.0f }
+
+			, NavalRangeBonus { }
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

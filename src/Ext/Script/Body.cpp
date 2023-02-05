@@ -2574,8 +2574,8 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	if (attackAITargetType >= 0 && !nAITargetTypes.empty() && attackAITargetType < (int)nAITargetTypes.size())
 	{
 		auto const& nVec = nAITargetTypes.at(attackAITargetType);
-		return std::find_if(nVec.begin(), nVec.end(), [pTechnoType](TechnoTypeClass* pTech)
-			{ return pTech == pTechnoType; }) != nVec.end();
+		return std::any_of(nVec.begin(), nVec.end(), [pTechnoType](TechnoTypeClass* pTech)
+		{ return pTech == pTechnoType; });
 	}
 
 	// mask shoud be replaced with proper enum class
@@ -2702,15 +2702,11 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			auto const& curtargetiter = make_iterator(pTechno->CurrentTargets);
 			if (!curtargetiter.empty())
 			{
-				auto const itif = std::find_if(curtargetiter.begin(), curtargetiter.end(),
-				[pTeamLeader](AbstractClass* pTarget)
- {
-	 auto const pTech = abstract_cast<TechnoClass*>(pTarget);
-				return pTech && pTech->GetOwningHouse() && pTech->GetOwningHouse() == pTeamLeader->Owner;
-
+				return std::any_of(curtargetiter.begin(), curtargetiter.end(),
+				[pTeamLeader](AbstractClass* pTarget) {
+					auto const pTech = abstract_cast<TechnoClass*>(pTarget);
+					return pTech && pTech->GetOwningHouse() && pTech->GetOwningHouse() == pTeamLeader->Owner;
 				});
-
-				return (*itif) && itif != pTechno->CurrentTargets.end();
 			}
 
 			if (!pTechno->Owner->IsNeutral())
@@ -3292,11 +3288,10 @@ void ScriptExt::ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine 
 
 	const auto pTeamType = pTeam->Type;
 
-	auto const Iter = std::find_if(AITriggerTypeClass::Array->begin(), AITriggerTypeClass::Array->end(), [pTeamType](AITriggerTypeClass* const pTrig)
- {
-	 return (pTeamType
-	 && ((pTrig->Team1 && pTrig->Team1 == pTeamType)
-		 || (pTrig->Team2 && pTrig->Team2 == pTeamType)));
+	auto const Iter = 
+		std::find_if(AITriggerTypeClass::Array->begin(), AITriggerTypeClass::Array->end(),
+			[pTeamType](AITriggerTypeClass* const pTrig) {
+		return (pTeamType && ((pTrig->Team1 && pTrig->Team1 == pTeamType) || (pTrig->Team2 && pTrig->Team2 == pTeamType)));
 	});
 
 	if (Iter != AITriggerTypeClass::Array->end())
@@ -3930,9 +3925,8 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 			if (objectFromIter != TechnoClass::Array->end() && (*objectFromIter))
 			{
 				auto const nObjListIter = std::find_if(objectsList.begin(), objectsList.end(),
-					[objectFromIter](TechnoTypeClass* pTech)
- {
-	 return pTech == (*objectFromIter)->GetTechnoType();
+					[objectFromIter](TechnoTypeClass* pTech) {
+						return pTech == (*objectFromIter)->GetTechnoType();
 					});
 
 				validIndexes.push_back(std::distance(objectsList.begin(), nObjListIter));
@@ -4033,7 +4027,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 						return !pickAllies;
 				}
 
-			return false;
+				return false;
 			});
 
 			if ((*objectFromIter) && objectFromIter != TechnoClass::Array->end())

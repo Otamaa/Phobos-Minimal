@@ -259,6 +259,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
 
 	this->NoSecondaryWeaponFallback.Read(exINI, pSection, "NoSecondaryWeaponFallback");
+	this->NoSecondaryWeaponFallback_AllowAA.Read(exINI, pSection, "NoSecondaryWeaponFallback.AllowAA");
 
 	this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
 	this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
@@ -483,6 +484,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
 	this->Experience_KillerMultiple.Read(exINI, pSection, "Experience.KillerMultiple");
 	this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
+	this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
 
 	this->AdjustCrushProperties();
 
@@ -515,6 +517,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
 	}
 
+#pragma region FLHs
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
 	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
@@ -538,10 +541,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			? this->AlternateFLHs[i] = alternateFLH
 			: this->AlternateFLHs.emplace_back(alternateFLH);
 	}
+#pragma endregion FLHs
 
 	this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
 	this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
+#pragma region Prereq
 	// Prerequisite.RequiredTheaters contains a list of theader names
 	const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
 	char* context = nullptr;
@@ -634,10 +639,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			Prerequisite_ListVector.push_back(objectsList);
 		}
 	}
+#pragma endregion Prereq
 
 	this->AttachedEffect.Read(exINI);
 
 #pragma region Otamaa
+
 	char HitCoord_tempBuffer[32];
 	for (size_t i = 0; ; ++i)
 	{
@@ -811,6 +818,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AutoFire)
 		.Process(this->AutoFire_TargetSelf)
 		.Process(this->NoSecondaryWeaponFallback)
+		.Process(this->NoSecondaryWeaponFallback_AllowAA)
 		.Process(this->NoAmmoWeapon)
 		.Process(this->NoAmmoAmount)
 		.Process(this->JumpjetAllowLayerDeviation)
@@ -1048,6 +1056,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->Experience_KillerMultiple)
 		.Process(this->Experience_VictimMultiple)
+		.Process(this->NavalRangeBonus)
 
 
 #pragma endregion

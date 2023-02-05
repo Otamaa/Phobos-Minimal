@@ -9,14 +9,15 @@ class  DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 public:
 	static constexpr inline DWORD vtable = 0x7ECE34;
 
-	enum class State : int
+	enum State
 	{
-		On_ground = 0,
-		Take_off,
-		Hover,
-		Moving,
-		Deploy_to_land,
-		Crash
+		Grounded = 0,
+		Ascending = 1,
+		Hovering = 2,
+		Cruising = 3,
+		Descending = 4,
+		Crashing = 5,
+		Unknown = 6,
 	};
 
 	//IUnknown

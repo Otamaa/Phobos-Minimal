@@ -200,22 +200,6 @@ DEFINE_HOOK(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NoManualMove.Get() ? 0x700C62 : 0;
 }
 
-DEFINE_HOOK(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
-{
-	GET(TechnoClass*, pThis, EAX);
-
-	if (pThis->IsInAir())
-	{
-		if (!TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->JumpjetAllowLayerDeviation.Get(RulesExt::Global()->JumpjetAllowLayerDeviation.Get()))
-		{
-			R->EDX(INT32_MAX); // Override JumpjetHeight / CruiseHeight check so it always results in 3 / Layer::Air.
-			return 0x54B96B;
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_HOOK(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);

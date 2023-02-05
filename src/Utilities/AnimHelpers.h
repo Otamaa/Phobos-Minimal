@@ -26,7 +26,7 @@ namespace Helper
 
 			if (splash.size() > 0)
 			{
-				auto nIndexR = (splash.size() - 1);
+				const auto nIndexR = (splash.size() - 1);
 				return splash.at(Random ?
 					ScenarioClass::Instance->Random.RandomFromMax(nIndexR) : nIndexR);
 			}
@@ -34,24 +34,12 @@ namespace Helper
 			return nullptr;
 		}
 
-		inline std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		inline std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
-			nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
+			if (pWarhead)
+			{
+				nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
 
-			if (pWeapon.isset())
-			{
-				if (BulletClass* pBullet = pWeapon->Projectile->CreateBullet(Map[Where], pInvoker,
-					nDamage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright || pWeapon->Warhead->Bright))
-				{
-					pBullet->SetWeaponType(pWeapon.Get());
-					pBullet->Limbo();
-					pBullet->SetLocation(Where);
-					pBullet->Explode(true);
-					pBullet->UnInit();
-				}
-			}
-			else if (pWarhead)
-			{
 				if (bWarheadDetonate)
 				{
 					WarheadTypeExt::DetonateAt(pWarhead, Where, pInvoker, nDamage);
@@ -60,29 +48,21 @@ namespace Helper
 				{
 					MapClass::DamageArea(Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
-					return  { true , nDamage };
+					return { true, nDamage };
 				}
 			}
 
 			return { false , 0 };
 		}
 
-		inline std::pair<bool, int> Detonate(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+		inline std::pair<bool ,int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
 		{
-			if (pWarhead)
-			{
-				nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
-
-				if (bWarheadDetonate) {
-					WarheadTypeExt::DetonateAt(pWarhead, Where, pInvoker, nDamage);
-				}
-				else {
-					MapClass::DamageArea(Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
-					return { true, nDamage };
-				}
+			if (!pWeapon.isset()) {
+				return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
 			}
 
+			nDamage = static_cast<int>(nDamage * TechnoExt::GetDamageMult(pInvoker, !DamageConsiderVet));
+			WeaponTypeExt::DetonateAt(pWeapon, Where, pInvoker, nDamage);
 			return { false , 0 };
 		}
 

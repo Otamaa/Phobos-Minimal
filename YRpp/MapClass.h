@@ -142,6 +142,9 @@ public:
 
 	void Save(IStream* pStm)
 		{ JMP_THIS(0x551B20); }
+
+	void Sort()
+		{ JMP_THIS(0x551A30); }
 };
 
 class LogicClass : public LayerClass

@@ -68,7 +68,7 @@ static long RawFileClass_Read(RawFileClass* pThis, void* buffer, int length)
 		pThis->Close();
 	}
 
-	return total;
+	return bytesread;
 }
 
 static void Game_Emergency_Exit(int code)

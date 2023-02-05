@@ -117,55 +117,6 @@ protected:	// overrideable virtuals !
 	// load any ini file: rules, game mode, scenario or map
 	virtual void LoadFromINIFile(CCINIClass* pINI) { }
 };
-//
-//// This class is just a wrapper to replace `Dirty` to pointer
-//class ExtensionWrapper
-//{
-//public:
-//	ExtensionWrapper() :
-//		FlagDirty { FALSE }
-//		, ExtensionObject { nullptr }
-//	{
-//	}
-//
-//	~ExtensionWrapper() = default;
-//
-//	size_t Size() const
-//	{
-//		return sizeof(ExtensionWrapper);
-//	}
-//
-//	//replace bool Dirty -> Ext*
-//	inline static ExtensionWrapper*& GetWrapper(void* pThis)
-//	{
-//		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
-//	}
-//
-//	inline static ExtensionWrapper*& GetWrapper(const void* pThis)
-//	{
-//		return *reinterpret_cast<ExtensionWrapper**>((int)pThis + 0x20);
-//	}
-//
-//	HRESULT Load(IStream* pStm, AbstractClass* pThis) const { return S_OK; }
-//
-//	HRESULT Save(IStream* pStm) const { return S_OK; }
-//
-//	__declspec(noinline) bool IsDirty() const
-//	{ //dont inline this , causing crash !
-//		return this->FlagDirty;
-//	};
-//
-//	inline void SetDirtyFlag(bool fDirty)
-//	{
-//		this->FlagDirty = fDirty;
-//	}
-//
-//private:
-//	bool FlagDirty;
-//
-//public:
-//	IExtension* ExtensionObject;
-//};
 
 template<typename T>
 class TExtensionContainer

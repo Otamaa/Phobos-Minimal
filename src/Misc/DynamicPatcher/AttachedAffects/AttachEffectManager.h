@@ -25,7 +25,7 @@ public:
 	int LocationSpace; // 替身火车的车厢间距
 
 	AttachEffectManager() :
-		AttachEffects { 512 }
+		AttachEffects {}
 		, DisableDelayTimers { }
 		, LocationMarks { }
 		, lastLocation { 0,0,0 }

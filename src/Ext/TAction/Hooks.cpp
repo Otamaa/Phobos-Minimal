@@ -77,22 +77,24 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 	return 0x6E42C1;
 }
 
+
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
-DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
-DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
-DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
-{
-	if (ScenarioExt::Global()->AdjustLightingFix)
-		TActionExt::RecreateLightSources();
+//DEFINE_HOOK_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
+//DEFINE_HOOK_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
+//DEFINE_HOOK(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
+//{
+//	if (ScenarioExt::Global()->AdjustLightingFix)
+//		TActionExt::RecreateLightSources();
+//
+//	const TintStruct tint = ScenarioClass::Instance->NormalLighting.Tint;
+//	ScenarioExt::Global()->CurrentTint_Tiles = tint;
+//	ScenarioExt::Global()->CurrentTint_Schemes = tint;
+//	ScenarioExt::Global()->CurrentTint_Hashes = tint;
+//
+//	return 0;
+//}
 
-	const TintStruct tint = ScenarioClass::Instance->NormalLighting.Tint;
-	ScenarioExt::Global()->CurrentTint_Tiles = tint;
-	ScenarioExt::Global()->CurrentTint_Schemes = tint;
-	ScenarioExt::Global()->CurrentTint_Hashes = tint;
-
-	return 0;
-}
 //
 //DEFINE_HOOK(0x6E0D60, TActionClass_Text_Trigger, 0x6)
 //{

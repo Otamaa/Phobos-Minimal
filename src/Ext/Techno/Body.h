@@ -41,7 +41,6 @@ public:
 	class ExtData final : public Extension<TechnoClass>
 	{
 	public:
-		//EventQueue<base_type> GenericFuctions;
 		TechnoTypeClass* Type;
 		OptionalStruct<AbstractType, true> AbsType;
 		std::unique_ptr<ShieldClass> Shield;
@@ -170,10 +169,8 @@ public:
 			, MyFighterData { }
 			, AttachedAnim { }
 #endif;
-		{ 
-			
+		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
-		
 		}
 
 		virtual ~ExtData()
@@ -308,7 +305,7 @@ public:
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
 	static void HandleRemove(TechnoClass* pThis , TechnoClass* pSource = nullptr);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
-	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true);
+	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true , bool allowAAFallback = true);
 
 	static std::pair<WeaponTypeClass*, int> GetDeployFireWeapon(TechnoClass* pThis , AbstractClass* pTarget);
 

@@ -77,12 +77,11 @@ public:
 	}
 
 	bool contains(const T& other) const {
-		if constexpr (std::is_pointer<T>::value)
-		{
-			return std::find_if(this->begin(), this->end(), [&](const auto& item)
-				{
-					return item == other;
-				}) != this->end();
+		if constexpr (std::is_pointer<T>::value) {
+			return std::any_of(this->begin(), this->end(), [&](const auto item)
+			{
+				return item == other;
+			});
 		}
 		else { return std::find(this->begin(), this->end(), other) != this->end(); }
 	}

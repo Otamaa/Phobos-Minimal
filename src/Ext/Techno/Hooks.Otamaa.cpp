@@ -311,14 +311,20 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EDI);
 
 	int nResult = 0;
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt->ROF_Random.Get()) {
 		auto const& nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
-		nResult = GeneralUtils::GetRangedRandomOrSingleValue(nData);
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(nData);
 	}
+
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	auto const& range = pWeaponExt->ROF_RandomDelay.Get(RulesExt::Global()->ROF_RandomDelay);
+	nResult += GeneralUtils::GetRangedRandomOrSingleValue(range);
 
 	R->EAX(nResult);
 	return 0x6FD0B5;

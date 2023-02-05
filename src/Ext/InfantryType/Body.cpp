@@ -21,6 +21,7 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	if (!pINI->GetSection(pID))
 		return;
 
+	this->HideWhenDeployAnimPresent.Read(exINI, pID, "Deploy.HideWhenDeployAnimPresent");
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 
 	auto const nPriData = this->Get()->GetWeapon(0);
@@ -61,6 +62,7 @@ template <typename T>
 void InfantryTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->HideWhenDeployAnimPresent)
 		.Process(this->DeathBodies_UseDieSequenceAsIndex)
 		.Process(this->CrawlingWeaponDatas)
 		;

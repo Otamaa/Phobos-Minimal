@@ -4,11 +4,13 @@
 #include <HouseClass.h>
 
 #include <Utilities/EnumFunctions.h>
+#include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -209,12 +211,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pATarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
-		const CoordStruct& coords = pTarget->GetCoords();
-
-		pBullet->Limbo();
-		pBullet->SetLocation(coords);
-		pBullet->Explode(true);
-		pBullet->UnInit();
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
 	}
 }
 
@@ -237,10 +234,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright))
 	{
-		pBullet->Limbo();
-		pBullet->SetLocation(coords);
-		pBullet->Explode(true);
-		pBullet->UnInit();
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}
 }
 

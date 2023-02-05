@@ -570,7 +570,6 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 		CoordStruct dest = *pCoord;
 		auto const pTarget = pBullet->Target ? pBullet->Target : Map[dest];
 
-
 		// Draw bullet effect
 		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
 		// Draw particle system
@@ -678,7 +677,6 @@ DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
 	return Nothing;
 }
 
-
 DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
 {
 	enum { SkipGameCode = 0x6FA1C5 };
@@ -694,7 +692,6 @@ DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
 	{
 		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
 		{
-
 			if (nDrainAmount > 0)
 				nDrainAmount = Math::min(nDrainAmount, (int)pThis->Owner->Available_Money());
 			else
@@ -835,7 +832,6 @@ DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 	pCargo->KillCargo(pKiller);
 	return 0x707CFA;
 }
-
 
 // Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
 DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250);

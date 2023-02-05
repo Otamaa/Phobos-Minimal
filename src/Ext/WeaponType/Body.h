@@ -49,6 +49,8 @@ public:
 		Valueable<bool> DelayedFire_Anim_UseFLH;
 		Valueable<int> DelayedFire_DurationTimer;
 		Valueable<bool> Burst_FireWithinSequence;
+		Nullable<PartialVector2D<int>> ROF_RandomDelay;
+		Valueable<bool> OmniFire_TurnToTarget;
 
 #pragma region Otamaa
 		Valueable<int>Xhi;
@@ -106,6 +108,8 @@ public:
 			, DelayedFire_Anim_UseFLH { true }
 			, DelayedFire_DurationTimer { 0 }
 			, Burst_FireWithinSequence { false }
+			, ROF_RandomDelay {}
+			, OmniFire_TurnToTarget { false }
 			, Xhi { 0 }
 			, Xlo { 0 }
 			, Yhi { 0 }
@@ -177,4 +181,5 @@ public:
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage);
+	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
 };

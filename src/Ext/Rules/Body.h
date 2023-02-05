@@ -88,6 +88,8 @@ public:
 		Valueable<bool> RadHasInvoker;
 		Valueable<bool> IronCurtain_SyncDeploysInto;
 
+		Valueable<PartialVector2D<int>> ROF_RandomDelay;
+
 		Valueable<ColorStruct> ToolTip_Background_Color;
 		Valueable<int> ToolTip_Background_Opacity;
 		Valueable<float> ToolTip_Background_BlurSize;
@@ -186,6 +188,7 @@ public:
 			, RadHasOwner { false }
 			, RadHasInvoker { false }
 			, IronCurtain_SyncDeploysInto { false }
+			, ROF_RandomDelay { { 0 ,2 } }
 
 			, ToolTip_Background_Color { {0, 0, 0} }
 			, ToolTip_Background_Opacity { 100 }

@@ -15,17 +15,16 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
-
+		Valueable<bool> HideWhenDeployAnimPresent;
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
 		WeaponStruct CrawlingWeaponDatas[4];
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, HideWhenDeployAnimPresent { false }
 			, DeathBodies_UseDieSequenceAsIndex { false }
 			, CrawlingWeaponDatas { }
 		{ }
 
-		virtual ~ExtData()
-		{
-		};
+		virtual ~ExtData() override = default;
 
 		void LoadFromINIFile(CCINIClass* pINI);
 		void InvalidatePointer(void* const ptr, bool bRemoved);

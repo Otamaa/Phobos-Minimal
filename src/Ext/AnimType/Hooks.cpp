@@ -177,21 +177,14 @@ bool NOINLINE DealDamage(AnimClass* pThis)
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
 		AbstractClass* pTarget = pTypeExt->Damage_TargetInvoker.Get() ? static_cast<AbstractClass*>(pInvoker) : pThis->GetCell();
-		if (auto const pBullet = pWeapon->Projectile->CreateBullet(pTarget, pInvoker, nDamageResult, pWeapon->Warhead, 0, pWeapon->Bright || pWeapon->Warhead->Bright))
-		{
-			pBullet->SetWeaponType(pWeapon);
-			pBullet->Limbo();
-			pBullet->SetLocation(nCoord);
-			pBullet->Explode(true);
-			pBullet->UnInit();
-		}
+		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, nDamageResult);
 	}
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesGlobal->FlameDamage2 : RulesGlobal->C4Warhead;
 
-		auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
+		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 		if (pTypeExt->Warhead_Detonate.Get())
 			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult, !pTypeExt->Damage_TargetInvoker.Get());
@@ -206,14 +199,15 @@ bool NOINLINE DealDamage(AnimClass* pThis)
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
 DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
 {
-	enum { SkipDamage = 0x424663, Continue = 0x42464C };
+	enum { SkipDamage = 0x424665, Continue = 0x42464C };
 
 	GET(AnimClass*, pThis, ESI);
 
 	if (!DealDamage(pThis))
 	{
 		R->EAX(pThis->Type);
-		return 0x424663;
+		R->EDI(0);
+		return SkipDamage;
 	}
 
 	return Continue;

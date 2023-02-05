@@ -226,6 +226,17 @@ LABEL_5:
 	return Fuse::DontIgnite;
 }
 
+void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord )
+{
+
+	if (nCoord == CoordStruct::Empty && pTarget)
+		nCoord = pTarget->GetCoords();
+
+	pThis->Limbo();
+	pThis->SetLocation(nCoord);
+	pThis->Explode(true);
+	pThis->UnInit();
+}
 // =============================
 // load / save
 

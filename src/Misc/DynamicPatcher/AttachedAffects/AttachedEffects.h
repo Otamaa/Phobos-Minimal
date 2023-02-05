@@ -10,6 +10,25 @@
 
 #include "AttachEffectType.h"
 
+enum class MyAEType : int
+{
+	None = -1,
+	Anim = 0,
+	Stats = 1,
+	AutoWeapon = 2,
+	BlackHole = 3,
+	DestroySelf = 4,
+	DisableWapon = 5,
+	FireSuper = 6,
+	GiftBox = 7,
+	OverrideWeapon = 8,
+	PaintBall = 9,
+	Stand = 10,
+	Transform = 11 ,
+
+	count
+};
+
 class AttachEffectType;
 class TechnoClass;
 class HouseClass;
@@ -421,40 +440,23 @@ private:
 	TimerStruct initialDelayTimer;
 	bool delayToEnable; // 延迟激活中
 
-	//std::array<UniqueGamePtr<EffectsBase>, 11>effects;
-	std::vector<std::uniquePtr<EffectsBase>> effects;
+	std::array<UniqueGamePtr<EffectsBase>, (size_t)MyAEType::count>effects;
+
 	void RegisterAllEffects()
 	{
 		if (!Type)
 			return;
 
-		/*  enum class MyType : int
-		None = 0,
-		Anim = 1,
-		Stats 2,
-		AutoWeapon 3,
-		BlackHole 4,
-		DestroySelf 5,
-		DisableWapon 6,
-		FireSuper 7,
-		GiftBox 8,
-		OverrideWeapon 9 ,
-		PaintBall 10,
-		Stand 11,
-		Transform 12
-		*/
-
 		if (Type->AnimationTypeData.Enable) {
-			effects[1]=(GameCreate<Animation>(Type->AnimationTypeData));
+			effects[0] = std::make_unique<Animation>(Type->AnimationTypeData);
 		}
 
-		effects[2]=(GameCreate<AttachStatus>(Type->AttachStatusTypeData));
+		effects[1] = std::make_unique<AttachStatus>(Type->AttachStatusTypeData);
 
 		if (GeneralUtils::IsValidString(Type->StandTypeData.Type.data())) {
-			effects[11]=(GameCreate<Stand>(Type->StandTypeData));
+			effects[10] = std::make_unique<Stand>(Type->StandTypeData);
 		}
 
-		//toDo : other base
 	}
 
 	void EnableEffects(ObjectClass* pObject, HouseClass* pHouse, TechnoClass* pAttacker)

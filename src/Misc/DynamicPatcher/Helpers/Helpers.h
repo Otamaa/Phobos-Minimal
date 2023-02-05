@@ -140,6 +140,17 @@ public:
 		return static_cast<int>(std::round(x));
 	}
 
+    static int Dir2FrameIndex(DirStruct& dir, int facing)
+    {
+        int index = Dir2FacingIndex(dir , facing);
+        index = (int)(facing / 8) + index;
+        if (index >= facing) {
+             index -= facing;
+        }
+
+        return index;
+    }
+
 	static double GetROFMult(TechnoClass const * pTech)
 	{
 		bool rofAbility = false;

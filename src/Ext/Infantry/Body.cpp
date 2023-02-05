@@ -78,9 +78,9 @@ DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x517E7A, InfantryClass_DTOR, 0x5)
+DEFINE_HOOK(0x517D90, InfantryClass_DTOR, 0x5)
 {
-	GET(InfantryClass* const, pItem, ESI);
+	GET(InfantryClass* const, pItem, ECX);
 	InfantryExt::ExtMap.Remove(pItem);
 	return 0;
 }

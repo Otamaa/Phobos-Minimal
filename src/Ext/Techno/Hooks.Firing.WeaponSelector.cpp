@@ -14,16 +14,14 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	GET(const TechnoClass*, pThis, ESI);
 	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	if (pTarget)
-	{
+	if (pTarget) {
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pTargetWhat = pTarget->WhatAmI();
 
-		if (pTypeExt->Interceptor.Get() && pTarget->WhatAmI() == AbstractType::Bullet)
-		{
+		if (pTypeExt->Interceptor.Get() && pTargetWhat == AbstractType::Bullet) {
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
-
 	}
 
 	// Restore overridden instructions.
@@ -126,13 +124,22 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
+    //GET_STACK(WeaponTypeClass*, pPrimary,0x14);
+   	//GET_STACK(WeaponTypeClass*, pSecondary ,0x10);
 
-	enum { Primary = 0x6F37AD, Secondary = 0x6F3745, FurtherCheck = 0x6F3754, OriginalCheck = 0x6F36E3 };
+	enum { 
+		Primary = 0x6F37AD, 
+		Secondary = 0x6F3745, 
+		Secondary_b = 0x6F3807,
+		FurtherCheck = 0x6F3754,
+		OriginalCheck = 0x6F36E3 
+	};
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	{
-		const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, !pTypeExt->NoSecondaryWeaponFallback);
+		bool allowFallback = !pTypeExt->NoSecondaryWeaponFallback;
+		bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
+		const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
 
 		if (weaponIndex != -1)
 			return weaponIndex == 1 ? Secondary : Primary;
@@ -144,7 +151,10 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		{
 			if (pShield->IsActive())
 			{
-				if (pThis->GetWeapon(1) && !(pTypeExt->NoSecondaryWeaponFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
+				const auto secondary = pThis->GetWeapon(1)->WeaponType;
+				const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && secondary && secondary->Projectile->AA;
+
+				if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
 				{
 					if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
 						return Secondary;
@@ -155,7 +165,6 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 				return Primary;
 			}
 		}
-	}
 
 	return OriginalCheck;
 

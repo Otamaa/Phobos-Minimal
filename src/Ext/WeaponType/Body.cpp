@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/BulletType/Body.h>
+#include <Ext/Bullet/Body.h>
 #include <Utilities/Macro.h>
 
 WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
@@ -57,6 +58,8 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DelayedFire_Anim_UseFLH.Read(exINI, pSection, "DelayedFire.Anim.UseFLH");
 	this->DelayedFire_DurationTimer.Read(exINI, pSection, "DelayedFire.DurationTimer");
 	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
+	this->ROF_RandomDelay.Read(exINI, pSection, "ROF.RandomDelay");
+	this->OmniFire_TurnToTarget.Read(exINI, pSection, "OmniFire.TurnToTarget");
 #pragma region Otamaa
 	this->Ylo.Read(exINI, pSection, GameStrings::ShakeYlo());
 	this->Yhi.Read(exINI, pSection, GameStrings::ShakeYhi());
@@ -127,6 +130,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_Anim_UseFLH)
 		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->Burst_FireWithinSequence)
+		.Process(this->ROF_RandomDelay)
+		.Process(this->OmniFire_TurnToTarget)
 		.Process(this->Ylo)
 		.Process(this->Xlo)
 		.Process(this->Xhi)
@@ -226,13 +231,8 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, T
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
 	{
-		const CoordStruct& coords = pTarget->GetCoords();
-
 		pBullet->SetWeaponType(pThis);
-		pBullet->Limbo();
-		pBullet->SetLocation(coords);
-		pBullet->Explode(true);
-		pBullet->UnInit();
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
 	}
 }
 
@@ -250,13 +250,31 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
 	{
 		pBullet->SetWeaponType(pThis);
-		pBullet->Limbo();
-		pBullet->SetLocation(coords);
-		pBullet->Explode(true);
-		pBullet->UnInit();
+		BulletExt::DetonateAt(pBullet, nullptr , pOwner , coords);
 	}
 }
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
+{
+	if (pThis->Warhead->NukeMaker)
+	{
+		if (!pTarget)
+		{
+			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			return;
+		}
+	}
 
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
+	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
+
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
+	{
+		pBullet->SetWeaponType(pThis);
+		pBullet->Limbo();
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+	}
+}
 // =============================
 // container
 

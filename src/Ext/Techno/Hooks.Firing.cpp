@@ -21,6 +21,29 @@ static bool CeaseFire(TechnoClass* pThis)
 }
 #endif
 
+DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
+{
+	enum
+	{
+		LandTargetingCheck = 0x6FC86A,
+		SkipLandTargetingCheck = 0x6FC879
+	};
+
+
+	GET(AbstractClass*, pTarget, EBX);
+	GET(TechnoClass*, pThis, ESI);
+
+	CellClass* pCell = specific_cast<CellClass*>(pTarget);
+	if (!pCell)
+		return SkipLandTargetingCheck;
+
+	if (pCell->LandType == LandType::Water && pThis->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
+		return LandTargetingCheck;
+
+	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
+		LandTargetingCheck : SkipLandTargetingCheck;
+}
+
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 {
@@ -85,12 +108,15 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		CellClass* targetCell = nullptr;
 
 		// Ignore target cell for airborne technos.
-		if (!pTechno || !pTechno->IsInAir())
+		if (pTarget)
 		{
 			if (const auto pCell = specific_cast<CellClass*>(pTarget))
 				targetCell = pCell;
-			else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget))
-				targetCell = pObject->GetCell();
+			else if (const auto pObject = abstract_cast<ObjectClass*>(pTarget)){
+				// Ignore target cell for technos that are in air.
+				if ((pTechno && !pTechno->IsInAir()) || pObject != pTechno)
+					targetCell = pObject->GetCell();
+			}
 		}
 
 		if (targetCell)

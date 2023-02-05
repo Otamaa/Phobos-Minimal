@@ -203,6 +203,12 @@ public:
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) override JMP_THIS(0x710410);
 
+	// remove object from the map
+	virtual bool Limbo() override JMP_THIS(0x6F6AC0);
+
+	// place the object on the map
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x6F6CA0);
+
 	//MissionClass
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
 	virtual bool Mission_Revert() override JMP_THIS(0x7013E0);
@@ -215,7 +221,7 @@ public:
 	virtual bool ShouldSelfHealOneStep() const R0;
 	virtual bool IsVoxel() const R0;
 	virtual bool vt_entry_29C() R0;
-	virtual bool ShouldBeCloaked() const R0;
+	virtual bool IsReadyToCloak() const R0; //ShouldBeCloaked
 	virtual bool ShouldNotBeCloaked() const R0;
 	virtual DirStruct* TurretFacing(DirStruct* pBuffer) const R0;
 	virtual bool IsArmed() const R0; // GetWeapon(primary) && GetWeapon(primary)->WeaponType
@@ -656,6 +662,12 @@ public:
 
 	WeaponStruct* GetTurrentWeapon() const //Vtable_GetPrimaryWeapon
 	{ JMP_THIS(0x70E1A0); }
+
+	bool IsThisReadyToCloak() const
+	{ JMP_THIS(0x6FBDC0); }
+
+	bool ThisShouldNotCloak() const
+	{ JMP_THIS(0x6FBC90); }
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

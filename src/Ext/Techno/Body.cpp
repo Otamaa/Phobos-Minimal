@@ -1094,22 +1094,24 @@ void TechnoExt::ExtData::UpdateSpawnLimitRange()
 	int weaponRange = 0;
 	const int weaponRangeExtra = pExt->Spawn_LimitedExtraRange.Get() * 256;
 
-	auto setWeaponRange = [&weaponRange](WeaponTypeClass* pWeaponType) {
+	auto setWeaponRange = [&weaponRange](WeaponTypeClass* pWeaponType)
+	{
 		if (pWeaponType && pWeaponType->Spawner && pWeaponType->Range > weaponRange)
 			weaponRange = pWeaponType->Range;
 	};
 
-	if (Type->IsGattling || pThis->CurrentWeaponNumber >  0) {
-		if(auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber))
+	if (Type->IsGattling || pThis->CurrentWeaponNumber > 0)
+	{
+		if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber))
 			setWeaponRange(pCurWeapon->WeaponType);
 	}
 	else
 	{
 
-		if(auto const pPriWeapon = pThis->GetWeapon(0))
+		if (auto const pPriWeapon = pThis->GetWeapon(0))
 			setWeaponRange(pPriWeapon->WeaponType);
 
-		if(auto const pSecWeapon = pThis->GetWeapon(1))
+		if (auto const pSecWeapon = pThis->GetWeapon(1))
 			setWeaponRange(pSecWeapon->WeaponType);
 	}
 
@@ -1276,9 +1278,11 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 		nRate = timerLength;
 	}
 
-	if (pDelType->Rate_AffectedByVeterancy) {
+	if (pDelType->Rate_AffectedByVeterancy)
+	{
 		auto const nRof = TechnoExt::GetROFMult(pThis);
-		if (nRof != 1.0) {
+		if (nRof != 1.0)
+		{
 			nRate = static_cast<int>(nRate * nRof);
 		}
 	}
@@ -1642,7 +1646,6 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
 		}
-
 	}
 
 	// Death if exist
@@ -1682,7 +1685,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.insert(pThis, nMethod);
 
 		}
-		else if (!pThis->Transporter && Death_Countdown.Completed())
+		else if (Death_Countdown.Completed())
 		{
 			TechnoExt::KillSelf(pThis, nMethod);
 			return true;
@@ -1701,71 +1704,68 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (healthDeficit > 0)
 	{
+		const auto pWhat = pThis->WhatAmI();
+		const bool isBuilding = pWhat == AbstractType::Building;
+		const bool isOrganic = pWhat == AbstractType::Infantry || pWhat == AbstractType::Unit && pType->Organic;
+		const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
+		bool applyHeal = false;
+		int amount = 0;
+
+		switch (TechnoTypeExt::ExtMap.Find(pType)->SelfHealGainType.Get(defaultSelfHealType))
 		{
-			auto const pWhat = pThis->WhatAmI();
-			bool isBuilding = pWhat == AbstractType::Building;
-			bool isOrganic = pWhat == AbstractType::Infantry || pWhat == AbstractType::Unit && pType->Organic;
-			auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
-			auto selfHealType = TechnoTypeExt::ExtMap.Find(pType)->SelfHealGainType.Get(defaultSelfHealType);
-			bool applyHeal = false;
-			int amount = 0;
+		case SelfHealGainType::Infantry:
+		{
+			const int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
+				std::clamp(RulesExt::Global()->InfantryGainSelfHealCap.Get(), 1, pThis->Owner->InfantrySelfHeal) :
+				pThis->Owner->InfantrySelfHeal;
 
-			switch (selfHealType)
+			amount = RulesClass::Instance->SelfHealInfantryAmount * count;
+
+			if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames) && amount)
+				applyHeal = true;
+		}
+		break;
+		case SelfHealGainType::Units:
+		{
+			const int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
+				std::clamp(RulesExt::Global()->UnitsGainSelfHealCap.Get(), 1, pThis->Owner->UnitsSelfHeal) :
+				pThis->Owner->UnitsSelfHeal;
+
+			amount = RulesClass::Instance->SelfHealUnitAmount * count;
+
+			if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames) && amount)
+				applyHeal = true;
+		}
+		break;
+		default:
+			return;
+		}
+
+		if (applyHeal && amount)
+		{
+			if (amount >= healthDeficit)
+				amount = healthDeficit;
+
+			const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+
+			pThis->Health += amount;
+
+			if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+				|| pThis->GetHeight() < -10))
 			{
-			case SelfHealGainType::Infantry:
-			{
-				int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
-					std::clamp(RulesExt::Global()->InfantryGainSelfHealCap.Get(), 1, pThis->Owner->InfantrySelfHeal) :
-					pThis->Owner->InfantrySelfHeal;
-
-				amount = RulesClass::Instance->SelfHealInfantryAmount * count;
-
-				if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames) && amount)
-					applyHeal = true;
-			}
-			break;
-			case SelfHealGainType::Units:
-			{
-				int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
-					std::clamp(RulesExt::Global()->UnitsGainSelfHealCap.Get(), 1, pThis->Owner->UnitsSelfHeal) :
-					pThis->Owner->UnitsSelfHeal;
-
-				amount = RulesClass::Instance->SelfHealUnitAmount * count;
-
-				if (!(Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames) && amount)
-					applyHeal = true;
-			}
-			break;
-			default:
-				return;
-			}
-
-			if (applyHeal && amount)
-			{
-				if (amount >= healthDeficit)
-					amount = healthDeficit;
-
-				bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-
-				pThis->Health += amount;
-
-				if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
-					|| pThis->GetHeight() < -10))
+				if (isBuilding)
 				{
-					if (isBuilding)
-					{
-						auto pBuilding = static_cast<BuildingClass*>(pThis);
-						pBuilding->UpdatePlacement(PlacementType::Redraw);
-						pBuilding->ToggleDamagedAnims(false);
-					}
+					const auto pBuilding = static_cast<BuildingClass*>(pThis);
+					pBuilding->UpdatePlacement(PlacementType::Redraw);
+					pBuilding->ToggleDamagedAnims(false);
+				}
 
-					if (pWhat == AbstractType::Unit || pWhat == AbstractType::Building)
+				if (pWhat == AbstractType::Unit || pWhat == AbstractType::Building)
+				{
+					if (auto& dmgParticle = pThis->DamageParticleSystem)
 					{
-						if (auto dmgParticle = pThis->DamageParticleSystem)
-						{
-							dmgParticle->UnInit();
-							pThis->DamageParticleSystem = nullptr;
-						}
+						dmgParticle->UnInit();
+						dmgParticle = nullptr;
 					}
 				}
 			}
@@ -2148,7 +2148,8 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	{
 		this->Death_Countdown.Stop();
 
-		if(pThis->Owner){
+		if (pThis->Owner)
+		{
 			HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.erase(pThis);
 		}
 	}
@@ -2160,7 +2161,7 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 		this->PassengerDeletionTimer.Stop();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis) , true);
+	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 #endif
 }
 
@@ -2308,13 +2309,16 @@ void TechnoExt::ExtData::UpdateAircraftOpentopped()
 	if (!TechnoExt::IsAlive(pThis, true, true, true))
 		return;
 
-	if (Type->Passengers > 0 && !AircraftOpentoppedInitEd) {
+	if (Type->Passengers > 0 && !AircraftOpentoppedInitEd)
+	{
 
-		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object) {
-			if (auto const pInf = generic_cast<FootClass*>(*object)) {
+		for (NextObject object(pThis->Passengers.GetFirstPassenger()); object; ++object)
+		{
+			if (auto const pInf = generic_cast<FootClass*>(*object))
+			{
 				if (!pInf->Transporter || !pInf->InOpenToppedTransport)
 				{
-					if(Type->OpenTopped)
+					if (Type->OpenTopped)
 						pThis->EnteredOpenTopped(pInf);
 
 					if (Type->Gunner)
@@ -2441,14 +2445,15 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 	{
 		KillMethod nMethod = pTypeExt->Death_Method.Get();
 
-		if(nMethod != KillMethod::None)
+		if (nMethod != KillMethod::None)
 			TechnoExt::KillSelf(pInf, nMethod);
 	}
 	return true;
 }
 
 // Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.
-int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback)
+int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
+ AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback , bool allowAAFallback)
 {
 	CellClass* targetCell = nullptr;
 
@@ -2488,7 +2493,9 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, A
 		}
 		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find<true>(pWeaponOne))
 		{
-			if (!allowFallback && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
+			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
+
+			if (!allowFallback && (!allowAAFallback || !secondaryIsAA) && !TechnoExt::CanFireNoAmmoWeapon(pThis, 1))
 				return weaponIndexOne;
 
 			if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pFirstExt->CanTarget, true)) ||
@@ -2664,7 +2671,8 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pExt->DelayedFire_Anim) {
+	if (pExt->DelayedFire_Anim)
+	{
 		pExt->DelayedFire_Anim->UnInit();
 
 	}
@@ -2870,13 +2878,15 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 	{
 		if (auto pShield = pExt->GetShield())
 			pShield->InvalidatePointer(pAnim, false);
-	
-		if (pExt->DelayedFire_Anim == pAnim) {
+
+		if (pExt->DelayedFire_Anim == pAnim)
+		{
 			pExt->DelayedFire_Anim = nullptr;
 			pExt->DelayedFire_Anim_LoopCount = -1;
 		}
 
-		if (auto pAAAnim = pExt->AttachedAnim.get()) {
+		if (auto pAAAnim = pExt->AttachedAnim.get())
+		{
 			if (pAAAnim == pAnim)
 				pExt->AttachedAnim.reset(nullptr);
 		}

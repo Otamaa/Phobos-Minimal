@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/BulletType/Body.h>
+
 #include <Utilities/Macro.h>
 
 // Ares reimplements the bullet obstacle logic so need to get creative to add any new functionality for that in Phobos.

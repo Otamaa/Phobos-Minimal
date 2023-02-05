@@ -18,12 +18,12 @@ UINT NOINLINE GetCurentCodepage()
 	LCID locale = MAKELCID(lang, SORT_DEFAULT);
 	GetLocaleInfoA(locale, LOCALE_IDEFAULTANSICODEPAGE, szLCData, _countof(szLCData));
 
-	return CRT::atoi(szLCData);
+	return atoi(szLCData);
 }
 
 wchar_t NOINLINE LocalizeCaracter(char character)
 {
-	wchar_t result {};
+	wchar_t result;
 	UINT codepage = GetCurentCodepage();
 	MultiByteToWideChar(codepage, MB_USEGLYPHCHARS, &character, 1, &result, 1);
 	return result;
@@ -39,8 +39,8 @@ DEFINE_HOOK(0x5D46C7, MessageListClass_Input, 0x5)
 
 DEFINE_HOOK(0x61510E, WWUI_NewEditCtrl, 0x7)
 {
-	R->EDI<wchar_t>(LocalizeCaracter(R->EDI<char>()));
-	return 0;
+	R->EDI<wchar_t>(LocalizeCaracter(R->EBX<char>()));
+	return 0x615226;
 }
 
 //DEFINE_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));

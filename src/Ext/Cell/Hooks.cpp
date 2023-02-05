@@ -36,8 +36,15 @@ DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
 	GET(CellClass*, pCell, ESI);
 
 	bool bDraw = false;
+
 	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
-		bDraw = pTiberium->Value && TiberiumExt::ExtMap.Find(pTiberium)->EnablePixelFXAnim.Get();
+
+		const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+
+		if(!pTibExt)
+			Debug::Log("TacticalClass_DrawPixelFX_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
+		else
+			bDraw = pTiberium->Value && pTibExt->EnablePixelFXAnim.Get();
 	}
 
 	R->EAX(bDraw);
@@ -53,10 +60,15 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	if (!pTiberium)
 		return 0x47FB86;
 
-	auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+	const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
 
-	if (!pTibExt->EnableLighningFix.Get())
-	{
+	if (!pTibExt) {
+		Debug::Log("CellClass_DrawOverlay_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
+		R->EBX(pTiberium);
+		return 0x47F882;
+	}
+
+	if (!pTibExt->EnableLighningFix.Get()) {
 		R->EBX(pTiberium);
 		return 0x47F882;
 	}

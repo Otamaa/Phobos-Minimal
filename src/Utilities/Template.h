@@ -341,9 +341,9 @@ public:
 	bool Contains(const T& other) const
 	{
 		if constexpr (std::is_pointer<T>::value) {
-			return std::find_if(this->begin(), this->end(), [&](const auto& item) {
+			return std::any_of(this->begin(), this->end(), [&](const auto& item) {
 				return item == other;
-			}) != this->end();
+			});
 		}
 		else { return std::find(this->begin(), this->end(), other) != this->end(); }
 	}
@@ -353,9 +353,7 @@ public:
 		if constexpr (std::is_pointer<T>::value)
 		{ 
 			auto const iter = std::find_if(this->begin(), this->end(), [&](const auto& item)
-				{
-					return item == other;
-				});
+			{ return item == other; });
 			
 			if(iter != this->end())
 				return std::distance(this->begin(), iter);

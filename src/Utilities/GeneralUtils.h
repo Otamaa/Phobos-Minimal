@@ -147,7 +147,7 @@ public:
 			range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}
 
-	const inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
+	static inline double GetRangedRandomOrSingleValue(const PartialVector2D<double>& range)
 	{
 		int min = static_cast<int>(range.X * 100);
 		int max = static_cast<int>(range.Y * 100);
@@ -155,7 +155,7 @@ public:
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : (ScenarioClass::Instance->Random.RandomRanged(min, max) / 100.0);
 	}
 
-	const inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
+	static inline int GetRangedRandomOrSingleValue(const PartialVector2D<int>& range)
 	{
 		return range.X >= range.Y || range.ValueCount < 2 ? range.X : ScenarioClass::Instance->Random.RandomRanged(range.X, range.Y);
 	}

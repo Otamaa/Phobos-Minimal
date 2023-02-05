@@ -544,19 +544,6 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 	return SkipVoxVocPlay;
 }
 
-DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_54BFF0_UpdateSensors, 0x7)
-{
-	GET(FootClass* const, pLinkedTo, ECX);
-	GET(CellStruct const, currentCell, EAX);
-
-	if (pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell)
-	{
-		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
-		pLinkedTo->AddSensorsAt(currentCell);
-	}
-
-	return 0;
-}
 
 DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)
 {

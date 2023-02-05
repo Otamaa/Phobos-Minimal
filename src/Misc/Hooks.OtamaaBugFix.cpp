@@ -9,6 +9,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -416,11 +417,9 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 	if (nNodeBuilding == -1 || RulesExt::Global()->WallTowers.empty())
 		return 0x4FE696;
 
-	auto const it =
-		std::find_if(RulesExt::Global()->WallTowers.begin(), RulesExt::Global()->WallTowers.end(),
-		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; });
-
-	return (it != RulesExt::Global()->WallTowers.end()) ? 0x4FE656 : 0x4FE696;
+	return std::any_of(RulesExt::Global()->WallTowers.begin(), RulesExt::Global()->WallTowers.end(),
+		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; })
+		 ? 0x4FE656 : 0x4FE696;
 }
 
 DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
@@ -609,13 +608,6 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 //	return Allow ? 0x54DCE8 : 0x54DF13;
 //}
 
-DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
-{
-	GET(ILocomotion*, pILoco, ESI);
-	auto const pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
-	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
-}
-
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
 	enum
@@ -798,21 +790,6 @@ DEFINE_HOOK(0x50CA30, HouseClass_Center_50C920, 0x6)
 //	Debug::Log("[%d] %s Warhead Destroying %s ! \n ", pWH, pWH->ID, pThis->get_ID());
 //	return 0x0;
 //}
-
-DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
-{
-	GET(InfantryClass*, pThis, ESI);
-	GET(InfantryTypeClass*, pThisType, EAX);
-
-	if (pThisType->JumpJet && pThisType->Explodes)
-	{
-		TechnoExt::PlayAnim(RulesGlobal->InfantryExplode, pThis);
-		return 0x5185F1;
-	}
-
-	return 0x518362;
-}
-
 //
 //DEFINE_HOOK(0x4A9004, MouseClass_CanPlaceHere_SkipSelf, 0x6)
 //{
@@ -828,16 +805,6 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 DEFINE_HOOK(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 {
 	return R->ESI<InfantryClass*>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
-}
-
-DEFINE_HOOK(0x54D20F, JumpjetLocomotionClass_MovementAI_Deactivated_Wobble, 0x9)
-{
-	GET(JumpjetLocomotionClass*, pThis, ESI);
-
-	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo))
-		return pUnit->IsDeactivated() ? 0x54D23A : 0x0;
-
-	return 0x0;
 }
 
 static void ClearShit(TechnoTypeClass* a1)
@@ -939,7 +906,6 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 	pProduct->UnInit();
 	return 0x4CA0FF;
 }
-
 
 //DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
 //DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)
@@ -1234,6 +1200,7 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 	return 0x6A7AE7;
 }
 
+//TODO : check for conflict
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -2787,5 +2754,29 @@ std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
 	GET(InfantryClass*, pThis, ECX);
-	return pThis && pThis->DeployAnim ? 0x5192BC : 0;
+
+	enum { SkipWholeFunction = 0x5192BC, Continue = 0x0 };
+
+	if (!pThis)
+		return Continue;
+
+	auto const pTypeExt = InfantryTypeExt::ExtMap.Find(pThis->Type);
+	return pTypeExt->HideWhenDeployAnimPresent.Get() && pThis->DeployAnim 
+		? SkipWholeFunction : Continue;
+}
+
+DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
+{
+	GET(int, nRangeBonus, EDI);
+	GET(TechnoClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, ECX);
+
+	if (auto const pFoot = abstract_cast<FootClass*>(pTarget)) {
+		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		if (pFoot->GetTechnoType()->Naval && pFoot->GetCell()->LandType == LandType::Water)
+			nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
+	}
+	
+	R->EDI(nRangeBonus);
+	return 0x0;
 }

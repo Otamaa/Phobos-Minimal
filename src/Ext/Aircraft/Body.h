@@ -44,6 +44,6 @@ public:
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber);
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber , int WeaponIdx);
 	static void FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon);
-	static void _fastcall TriggerCrashWeapon(TechnoClass* pThis ,DWORD, int nMult);
+	static void TriggerCrashWeapon(TechnoClass* pThis , int nMult);
 };
 

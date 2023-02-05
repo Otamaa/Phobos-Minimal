@@ -303,56 +303,6 @@ DEFINE_HOOK(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
 	return 0x70D787;
 }
 
-// Fix [JumpjetControls] obsolete in RA2/YR
-// Author: Uranusian
-DEFINE_HOOK(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
-{
-	GET(TechnoTypeClass*, pThis, ESI);
-	const auto pRules = RulesClass::Instance();
-	const auto pRulesExt = RulesExt::Global();
-
-	pThis->JumpjetTurnRate = pRules->TurnRate;
-	pThis->JumpjetSpeed = pRules->Speed;
-	pThis->JumpjetClimb = static_cast<float>(pRules->Climb);
-	pThis->JumpjetCrash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpjetHeight = pRules->CruiseHeight;
-	pThis->JumpjetAccel = static_cast<float>(pRules->Acceleration);
-	pThis->JumpjetWobbles = static_cast<float>(pRules->WobblesPerSecond);
-	pThis->JumpjetNoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpjetDeviation = pRules->WobbleDeviation;
-
-	return 0x711601;
-}
-
-// skip vanilla JumpjetControls and make it earlier load
-DEFINE_JUMP(LJMP, 0x668EB5, 0x668EBD); // RulesClass_Process_SkipJumpjetControls
-
-DEFINE_HOOK(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
-{
-	GET(RulesClass*, pThis, ECX);
-	GET(CCINIClass*, pINI, EAX);
-
-	RulesExt::LoadEarlyBeforeColor(pThis, pINI);
-	pThis->Read_JumpjetControls(pINI);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
-{
-	if (const auto pRulesExt = RulesExt::Global())
-	{
-		GET(CCINIClass*, pINI, EDI);
-
-		INI_EX exINI(pINI);
-
-		pRulesExt->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
-		pRulesExt->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
-	}
-
-	return 0;
-}
-
 // Fix the crash of TemporalTargetingMe related "stack dump starts with 0051BB7D"
 // Author: secsome
 DEFINE_HOOK_AGAIN(0x43FCF9, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // BuildingClass
@@ -584,19 +534,6 @@ DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 
 		R->EAX(Game::F2I(currentSpeed));
 		return 0x4CE4BF;
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
-{
-	GET(JumpjetLocomotionClass*, pThis, ESI);
-
-	if (auto const pLinked = pThis->LinkedTo)
-	{
-		const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
-		pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
 	}
 
 	return 0;
@@ -942,20 +879,6 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 //	return SpawnCrate;
 //}
 
-DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
-{
-	GET(JumpjetLocomotionClass*, pLoco, EDI);
-
-	bool bRotate = RulesExt::Global()->JumpjetCrash_Rotate.Get();
-
-	if(auto const pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-		bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
-	}
-
-	return bRotate ? 0 : 0x54CB3E;
-
-}
 
 DEFINE_HOOK_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
@@ -967,6 +890,32 @@ DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 	if (BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1)
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
+	return 0;
+}
+
+DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
+{
+	GET(TechnoClass*, pBld, EDI);
+
+	if (auto pBy = pBld->MindControlledBy)
+		pBy->CaptureManager->FreeUnit(pBld);
+
+	if (auto& pAnim = pBld->MindControlRingAnim)
+	{
+		pAnim->UnInit();
+		pAnim = nullptr;
+	}
+
+	std::exchange(pBld->MindControlledByAUnit, false);
+
+	return 0;
+}
+
+// Enable sorted add for Air/Top layers to fix issues with attached anims etc.
+DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
+{
+	GET(Layer, layer, EDI);
+	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
 	return 0;
 }
 
