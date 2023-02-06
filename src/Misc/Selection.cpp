@@ -1,6 +1,9 @@
 #include "Phobos.h"
-#include "Utilities/Macro.h"
-#include "Ext/TechnoType/Body.h"
+
+#include <Ext/TechnoType/Body.h>
+
+#include <Utilities/Macro.h>
+#include <Utilities/Cast.h>
 
 #include <TacticalClass.h>
 #include <HouseClass.h>
@@ -77,8 +80,8 @@ public:
 			if (Tactical_IsInSelectionRect(pThis, pRect, selected))
 			{
 				const auto pTechno = selected.Techno;
-				auto pTechnoType = pTechno->GetTechnoType();
-				auto TypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+				const auto pTechnoType = pTechno->GetTechnoType();
+				const auto TypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 				if (bPriorityFiltering && TypeExt && TypeExt->LowSelectionPriority)
 					continue;
@@ -89,7 +92,7 @@ public:
 					(*fpCheckCallback)(pTechno);
 				else
 				{
-					const auto pBldType = abstract_cast<BuildingTypeClass*>(pTechnoType);
+					const auto pBldType = type_cast<BuildingTypeClass*>(pTechnoType);
 					const auto pOwner = pTechno->GetOwningHouse();
 
 					if (pOwner && pOwner->ControlledByPlayer() && pTechno->CanBeSelected()
@@ -119,7 +122,7 @@ public:
 
 			LTRBStruct rect { nLeft , nTop, nRight - nLeft + 1, nBottom - nTop + 1 };
 
-			bool bPriorityFiltering = Phobos::Config::PrioritySelectionFiltering && Tactical_IsHighPriorityInRect(pThis, &rect);
+			const bool bPriorityFiltering = Phobos::Config::PrioritySelectionFiltering && Tactical_IsHighPriorityInRect(pThis, &rect);
 			Tactical_SelectFiltered(pThis, &rect, fpCheckCallback, bPriorityFiltering);
 
 			pThis->Band.Left = 0;

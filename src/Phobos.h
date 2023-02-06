@@ -151,6 +151,7 @@ public:
 		static TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 		static bool IsAdmin;
 		static bool ShowHealthPercentEnabled;
+		static bool ExeTerminated;
 	};
 
 	class Defines

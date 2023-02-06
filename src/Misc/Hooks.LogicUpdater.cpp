@@ -43,7 +43,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
-	if (!pExt->Type|| pExt->Type != pType)
+	if (!pExt->Type || pExt->Type != pType)
 		pExt->UpdateType(pType);
 
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
@@ -256,9 +256,9 @@ DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
 	HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
 	return 0;
 }
-
-DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
-{
-
-	return 0x0;
-}
+//
+//DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
+//{
+//
+//	return 0x0;
+//}

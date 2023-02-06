@@ -763,6 +763,7 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 
 DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 {
+	Debug::Log(__FUNCTION__" Called ! \n");
 	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](const BuildingTypeClass* pType) {
 		if(auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
 			pExt->CompleteInitialization();

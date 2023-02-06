@@ -93,6 +93,8 @@ bool Phobos::Otamaa::DisableCustomRadSite = false;
 TCHAR Phobos::Otamaa::PCName[MAX_COMPUTERNAME_LENGTH + 1];
 bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
+bool Phobos::Otamaa::ExeTerminated = true;
+
 bool Phobos::EnableConsole = false;
 
 #ifdef ENABLE_TLS
@@ -225,6 +227,7 @@ bool Phobos::DetachFromDebugger()
 
 void Phobos::ExeRun()
 {
+	Phobos::Otamaa::ExeTerminated = false;
 	Patch::ApplyStatic();
 	PoseDirOverride::Apply();
 
@@ -275,6 +278,7 @@ void Phobos::ExeRun()
 
 void Phobos::ExeTerminate()
 {
+	Phobos::Otamaa::ExeTerminated = true;
 	Console::Release();
 }
 #pragma warning( pop )

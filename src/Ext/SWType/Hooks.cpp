@@ -162,37 +162,100 @@ DEFINE_JUMP(CALL,0x6D4A6B, GET_OFFSET(Timer::DrawTimer));
 #endif
 #pragma endregion
 
-DEFINE_HOOK(0x6CB5D2, SuperClass_Grant_AddToShowTimer, 0x9)
+template<bool Add = false>
+static void NOINLINE SortTimer(SuperClass* const pThis)
 {
-	GET(SuperClass*, pThis, ESI);
+	bool bSucceeded = false;
+	const char* pString {};
 
-	enum { SkipGameCode = 0x6CB63E };
-
-	if (pThis->Type->ShowTimer && !pThis->Owner->Type->MultiplayPassive)
+	if constexpr (Add)
 	{
-		SuperClass::ShowTimers->AddItem(pThis);
-
-		const auto pTypeExt = SWTypeExt::ExtMap.Find(pThis->Type);
-		int priority = pTypeExt->SW_Priority;
-		int size = SuperClass::ShowTimers->Count;
-
-		for (int i = 0; i < size; i++)
-		{
-			int otherPriority = SWTypeExt::ExtMap.Find(SuperClass::ShowTimers->GetItem(i)->Type)->SW_Priority;
-
-			if (priority > otherPriority)
-			{
-				std::swap(SuperClass::ShowTimers->Items[i], SuperClass::ShowTimers->Items[size - 1]);
-
-				for (int j = i + 1; j < size - 1; j++)
-				{
-					std::swap(SuperClass::ShowTimers->Items[j], SuperClass::ShowTimers->Items[size - 1]);
-				}
-
-				break;
-			}
-		}
+		pString = "add";
+		bSucceeded = SuperClass::ShowTimers->AddItem(pThis);
+	} else {
+		pString = "remove";
+		bSucceeded = SuperClass::ShowTimers->Remove(pThis);
 	}
 
-	return SkipGameCode;
+	if (bSucceeded) {
+		if(!Phobos::Otamaa::ExeTerminated){
+			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
+				[](const SuperClass* pRightSuper, const SuperClass* pLeftSuper) {
+					const auto aExt = SWTypeExt::ExtMap.Find(pRightSuper->Type);
+					const auto bExt = SWTypeExt::ExtMap.Find(pLeftSuper->Type);
+					return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+				});
+		}
+	}
+	else
+	{
+		Debug::Log("Failed to %s super[%s] Timer ! \n", pString, pThis->get_ID());
+	}
 }
+
+//DEFINE_HOOK(0x50B172, HouseClass_RemoveSuper_SortTimer, 0x5)
+//{
+//	//GET(HouseClass*, pThis, EBP);
+//	//GET_STACK(int, nSuperIdx, STACK_OFFS(0x20 , 0xC));
+//
+//	if (!Phobos::Otamaa::ExeTerminated) {
+//		std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
+//			[](const SuperClass* pRightSuper, const SuperClass* pLeftSuper) {
+//				const auto aExt = SWTypeExt::ExtMap.Find(pRightSuper->Type);
+//				const auto bExt = SWTypeExt::ExtMap.Find(pLeftSuper->Type);
+//				return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+//			});
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x6CB1AD, SuperClass_DTOR_SortTimer, 0x6)
+//{
+//	GET(SuperClass*, pThis, ESI);
+//	SortTimer(pThis);
+//	return 0x6CB1F6;
+//}
+
+DEFINE_HOOK(0x6CB5EB, SuperClass_Grant_ShowTimer, 0x5)
+{
+	GET(SuperClass*, pThis, ESI);
+	SortTimer<true>(pThis);
+	return 0x6CB63E;
+}
+
+
+//DEFINE_HOOK(0x6CB5D2, SuperClass_Grant_AddToShowTimer, 0x9)
+//{
+//	GET(SuperClass*, pThis, ESI);
+//
+//	enum { SkipGameCode = 0x6CB63E };
+//
+//	if (pThis->Type->ShowTimer && !pThis->Owner->Type->MultiplayPassive)
+//	{
+//		SuperClass::ShowTimers->AddItem(pThis);
+//
+//		const auto pTypeExt = SWTypeExt::ExtMap.Find(pThis->Type);
+//		int priority = pTypeExt->SW_Priority;
+//		int size = SuperClass::ShowTimers->Count;
+//
+//		for (int i = 0; i < size; i++)
+//		{
+//			int otherPriority = SWTypeExt::ExtMap.Find(SuperClass::ShowTimers->GetItem(i)->Type)->SW_Priority;
+//
+//			if (priority > otherPriority)
+//			{
+//				std::swap(SuperClass::ShowTimers->Items[i], SuperClass::ShowTimers->Items[size - 1]);
+//
+//				for (int j = i + 1; j < size - 1; j++)
+//				{
+//					std::swap(SuperClass::ShowTimers->Items[j], SuperClass::ShowTimers->Items[size - 1]);
+//				}
+//
+//				break;
+//			}
+//		}
+//	}
+//
+//	return SkipGameCode;
+//}

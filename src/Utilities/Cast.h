@@ -22,7 +22,7 @@ struct type_cast_impl
 		return ((type_cast_data::BytesData[(int)key] & 2) != 0);
 	}
 
-	NOINLINE T operator()(const ObjectTypeClass* pAbstract) noexcept
+	T operator()(const ObjectTypeClass* pAbstract) noexcept
 	{
 		if constexpr (Base::AbsID == AbstractType::Abstract)
 		{

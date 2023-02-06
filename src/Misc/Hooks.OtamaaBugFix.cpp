@@ -2331,7 +2331,7 @@ void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleS
 	Point2D nOffs {};
 	auto const pBuilding = specific_cast<BuildingClass*>(pTechno);
 	auto const pShape = pBuilding ?
-		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
+		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 
 	ConvertClass* nPal = nullptr;
 

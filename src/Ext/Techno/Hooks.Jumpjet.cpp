@@ -146,7 +146,10 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (!pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-		return 0x0;
+	{
+		R->EAX(pType);
+		return 0x736F7E;
+	}
 	
 	CoordStruct& source = pThis->Location;
 	CoordStruct target = pThis->Target->GetCoords(); // Target checked so it's not null here
@@ -260,12 +263,18 @@ DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 //TODO : Issue #690 #655
 
 // Otamaa
-DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
-{
-	GET(ILocomotion*, pILoco, ESI);
-	auto const pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
-	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
-}
+//DEFINE_HOOK(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
+//{
+//	GET(ILocomotion*, pILoco, ESI);
+//	auto pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
+//
+//	if (YRComPtr<IPiggyback> pPiggy = pLoco->Owner->Locomotor)
+//	{
+//
+//	}
+//
+//	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
+//}
 
 DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 {
