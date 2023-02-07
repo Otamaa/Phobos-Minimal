@@ -170,6 +170,11 @@ public:
 		return this->SavingStream;
 	}
 
+public :
+
+	// using virtual is good way so i can integrate different type of these
+	// not sure what is better approach
+
 	extension_type_ptr SetIExtension(base_type_ptr key)
 	{
 		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
@@ -212,6 +217,7 @@ public:
 		return GetOrSetIExtension<Check>(key);
 	}
 
+	// NOINLINE to prevent compiler optimization
 	template<bool Check = false>
 	NOINLINE extension_type_ptr GetIExtension(const_base_type_ptr key)
 	{
@@ -226,6 +232,7 @@ public:
 		return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
+	// NOINLINE to prevent compiler optimization
 	template<bool Check = false>
 	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
 	{
@@ -250,13 +257,6 @@ public:
 
 		SetIExtension(key);
 	}
-
-	//void LoadAllFromINI(CCINIClass* pINI)
-	//{
-	//	for (const auto Item : base_type::Array) {
-	//		Find(Item)->LoadFromINI(pINI);
-	//	}
-	//}
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{

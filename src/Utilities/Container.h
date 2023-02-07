@@ -225,28 +225,18 @@ protected:
 
 public:
 
+	// using virtual is good way so i can integrate different type of these
+	// not sure what is better approach
+
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		if constexpr (HasOffset<T>)
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
-			if constexpr (HasOffset<T>)
-			{
-				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-			}
-
-			if constexpr (NoInsert)
-			{
-				return val;
-			}
-			//else
-			//{
-			//	return this->Items.insert(key, val);
-			//}
-
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+			return val;
 		}
 
 		Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());
@@ -261,20 +251,12 @@ public:
 			return;
 		}
 
-		if constexpr (HasOffset<T>)
-		{
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-		}
+		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
-
-			if constexpr (HasOffset<T>)
-				(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-
-			//if constexpr (!NoInsert)
-			//	this->Items.insert(key, val);
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 		}
 	}
 
@@ -303,13 +285,6 @@ public:
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		}
 	}
-
-	//void LoadAllFromINI(CCINIClass* pINI)
-	//{
-	//	for (const auto Item : base_type::Array) {
-	//		Find(Item)->LoadFromINI(pINI);
-	//	}
-	//}
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
@@ -422,14 +397,8 @@ protected:
 		}
 
 		extension_type_ptr buffer = nullptr;
-		// get the value data
-		if constexpr (HasOffset<T>)
-		{
-			this->JustAllocate(key, true, "");
-			buffer = this->Find(key);
-		}
-		else
-			buffer = this->FindOrAllocate(key);
+		this->JustAllocate(key, true, "");
+		buffer = this->Find(key);
 
 		if (!buffer)
 		{
