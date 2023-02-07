@@ -193,19 +193,20 @@ public:
 			// Nothing yet
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+
+		virtual void InitializeConstants() override;
 	};
 
 	class ExtContainer final : public TExtensionContainer<ScriptExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;	

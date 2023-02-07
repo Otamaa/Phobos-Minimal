@@ -75,29 +75,7 @@ public:
 
 	Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
 		, Initialized { InitState::Blank }
-	{
-		/*
-		if constexpr (std::is_base_of<AbstractClass, T>())
-		{
-			if constexpr (HasAbsID<T>)
-			{
-				if constexpr (T::AbsID != AbstractType::Abstract){ 
-					Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(OwnerObject->WhatAmI()));
-				} else {
-					if constexpr (HasTypeBase<T>) {
-						if constexpr (T::AbsTypeBase == AbstractBaseType::TechnoType)
-							Debug::Log("Alloc Ext For TechnoTypeClass ! \n");
-
-					} else if constexpr (HasDeriveredAbsID<T>) {
-						if constexpr (T::AbsDerivateID == AbstractFlags::Techno) {
-							Debug::Log("Alloc Ext For TechnoClass ! \n");
-						}
-					}
-				}
-			}
-		}
-		*/
-	}
+	{ }
 
 	Extension(const Extension& other) = delete;
 
@@ -106,25 +84,24 @@ public:
 	virtual ~Extension() = default;
 
 	// the object this Extension expands
-	T* const& Get() const
-	{
+	T* const& Get() const {
 		return this->AttachedToObject;
 	}
 
-	void EnsureConstanted()
-	{
-		if (this->Initialized < InitState::Constanted)
-		{
+	T* const& OwnerObject() const {
+		return this->AttachedToObject;
+	}
 
-			//if constexpr (HasEnsureConstanted<Extension<T>>)
+
+	void EnsureConstanted() {
+		if (this->Initialized < InitState::Constanted) {
 			this->InitializeConstants();
 
 			this->Initialized = InitState::Constanted;
 		}
 	}
 
-	void LoadFromINI(CCINIClass* pINI)
-	{
+	void LoadFromINI(CCINIClass* pINI){
 		if (!pINI)
 			return;
 
@@ -134,48 +111,32 @@ public:
 			this->EnsureConstanted();
 			[[fallthrough]];
 		case InitState::Constanted:
-			// if constexpr (HasInitializeRuled<Extension<T>>)
 			this->InitializeRuled();
 			this->Initialized = InitState::Ruled;
 			[[fallthrough]];
 		case InitState::Ruled:
-			// if constexpr (HasInitialize<Extension<T>>)
 			this->Initialize();
 			this->Initialized = InitState::Inited;
 			[[fallthrough]];
 		case InitState::Inited:
 		case InitState::Completed:
 
-			// if constexpr (HasLoadFromRulesFile<Extension<T>>)
 		{
 			if (pINI == CCINIClass::INI_Rules)
 				this->LoadFromRulesFile(pINI);
 		}
 
-		// if constexpr (HasLoadFromINIFile<Extension<T>>)
 		this->LoadFromINIFile(pINI);
 		this->Initialized = InitState::Completed;
 		}
 	}
 
-	//virtual void InvalidatePointer(void* ptr, bool bRemoved) = 0;
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { }
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { }
+	// must be implemented
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual bool InvalidateIgnorable(void* const ptr) const = 0;
 
-	template<typename StmType>
-	inline void Serialize(StmType& Stm) { static_assert(true, "Please Implement Specific function for this !"); }
-
-	template<>
-	inline void Serialize(PhobosStreamWriter& Stm)
-	{
-		Stm.Save(this->Initialized);
-	}
-
-	template<>
-	inline void Serialize(PhobosStreamReader& Stm)
-	{
-		Stm.Load(this->Initialized);
-	}
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { Stm.Save(this->Initialized); }
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { Stm.Load(this->Initialized); }
 
 protected:
 
@@ -199,440 +160,10 @@ protected:
 template <class T>
 concept HasOffset = requires(T) { T::ExtOffset; };
 
-// a non-virtual base class for a pointer to pointer map.
-// pointers are not owned by this map, so be cautious.
-class ContainerMapBase final
-{
-public:
-	using key_ptr = void*;
-	using const_key_ptr = const void*;
-	using value_ptr = void*;
-#ifdef ROBIN_HOOD_ENABLED
-	using map_type = robin_hood::unordered_map<const_key_ptr, value_ptr>;
-#else
-	using map_type = std::unordered_map<const_key_ptr, value_ptr>;
-#endif
-	using const_iterator = map_type::const_iterator;
-	using iterator = const_iterator;
-
-	ContainerMapBase() = default;
-	ContainerMapBase(ContainerMapBase const&) = delete;
-	~ContainerMapBase() = default;
-
-	ContainerMapBase& operator=(ContainerMapBase const&) = delete;
-	ContainerMapBase& operator=(ContainerMapBase&&) = delete;
-
-	value_ptr find(const_key_ptr key) const
-	{
-		auto const it = this->Items.find(key);
-		if (it != this->Items.end())
-			return it->second;
-
-		return nullptr;
-	}
-
-	void insert(const_key_ptr key, value_ptr value)
-	{
-		this->Items.emplace(key, value);
-	}
-
-	value_ptr remove(const_key_ptr key)
-	{
-		auto const it = this->Items.find(key);
-		if (it != this->Items.cend())
-		{
-			auto const value = it->second;
-			this->Items.erase(it);
-
-			return value;
-		}
-
-		return nullptr;
-	}
-
-	void clear()
-	{
-		// this leaks all objects inside. this case is logged.
-		this->Items.clear();
-	}
-
-	size_t size() const
-	{
-		return this->Items.size();
-	}
-
-	const_iterator begin() const
-	{
-		return this->Items.cbegin();
-	}
-
-	const_iterator end() const
-	{
-		return this->Items.cend();
-	}
-
-private:
-	map_type Items;
-};
-
-/*
-class ContainerVectorBase final
-{
-public:
-	using key_ptr = void*;
-	using const_key_ptr = const void*;
-	using value_ptr = void*;
-	using map_type = std::vector<value_ptr>;
-	using const_iterator = map_type::const_iterator;
-	using iterator = const_iterator;
-
-	ContainerVectorBase() = default;
-	ContainerVectorBase(ContainerVectorBase const&) = delete;
-	~ContainerVectorBase() = default;
-
-	ContainerVectorBase& operator=(ContainerVectorBase const&) = delete;
-	ContainerVectorBase& operator=(ContainerVectorBase&&) = delete;
-
-	value_ptr find(const_key_ptr key) const
-	{
-		auto const it = std::find(this->Items.begin(), this->Items.end(), [&](auto const pKey) {
-			return std::memcmp(pKey,key,sizeof(pKey)) == 0;
-		});
-
-		if (it != this->Items.end())
-			return (*it);
-
-		return nullptr;
-	}
-
-	void insert(const_key_ptr key, value_ptr value)
-	{
-		this->Items.push_back(value);
-	}
-
-	value_ptr remove(const_key_ptr key)
-	{
-		auto const it = std::find(this->Items.begin(), this->Items.end(), [&](auto const pKey) {
-			return std::memcmp(pKey, key, sizeof(pKey)) == 0;
-		});
-
-		if (it != this->Items.cend())
-		{
-			auto const value = (*it);
-			this->Items.erase(it);
-
-			return value;
-		}
-
-		return nullptr;
-	}
-
-	void clear()
-	{
-		// this leaks all objects inside. this case is logged.
-		this->Items.clear();
-	}
-
-	size_t size() const
-	{
-		return this->Items.size();
-	}
-
-	const_iterator begin() const
-	{
-		return this->Items.cbegin();
-	}
-
-	const_iterator end() const
-	{
-		return this->Items.cend();
-	}
-
-private:
-	map_type Items;
-};
-*/
-// looks like a typed map, but is really a thin wrapper around the untyped map
-// pointers are not owned here either, see that each pointer is deleted
-template <typename Key, typename Value>
-class ContainerMap final
-{
-public:
-	using key_ptr = Key*;
-	using const_key_ptr = const Key*;
-	using value_ptr = Value*;
-
-	ContainerMap() = default;
-	ContainerMap(ContainerMap const&) = delete;
-
-	ContainerMap& operator=(ContainerMap const&) = delete;
-	ContainerMap& operator=(ContainerMap&&) = delete;
-
-	value_ptr find(const_key_ptr key) const
-	{
-		return static_cast<value_ptr>(this->Items.find(key));
-	}
-
-	value_ptr insert(const_key_ptr key, value_ptr value)
-	{
-		this->Items.insert(key, value);
-		return value;
-	}
-
-	value_ptr remove(const_key_ptr key)
-	{
-		return static_cast<value_ptr>(this->Items.remove(key));
-	}
-
-	void clear()
-	{
-		this->Items.clear();
-	}
-
-	size_t size() const
-	{
-		return this->Items.size();
-	}
-
-	std::unordered_map<key_ptr, value_ptr>::const_iterator begin() const
-	{
-		auto ret = this->Items.begin();
-		return reinterpret_cast<std::unordered_map<key_ptr, value_ptr>::const_iterator&>(ret);
-	}
-
-	std::unordered_map<key_ptr, value_ptr>::const_iterator end() const
-	{
-		auto ret = this->Items.end();
-		return reinterpret_cast<std::unordered_map<key_ptr, value_ptr>::const_iterator&>(ret);
-	}
-
-private:
-	ContainerMapBase Items;
-};
-
-template<typename Key, typename Value>
-class ViniferaContainerMap final
-{
-public:
-#ifdef ROBIN_HOOD_ENABLED
-	using map_type = robin_hood::unordered_flat_map<const Key*, Value*>;
-#else
-	using map_type = std::unordered_map<const Key*, Value*>;
-#endif
-	using iterator = typename map_type::iterator;
-	using const_iterator = typename map_type::const_iterator;
-
-public:
-	ViniferaContainerMap() : Items() { }
-	~ViniferaContainerMap() { }
-
-	/**
-	 *  Finds element with specific key.
-	 */
-	Value* find(const Key* key) const
-	{
-		const auto it = Items.find(key);
-		if (it != Items.end())
-		{
-			return it->second;
-		}
-		return nullptr;
-	}
-
-	/**
-	 *  Insert a new element instance into the map.
-	 */
-	Value* insert(const Key* key, Value* value)
-	{
-		Items.emplace(key, value);
-		return value;
-	}
-
-	/**
-	 *  Remove an element from the map.
-	 */
-	Value* remove(const Key* key)
-	{
-		const auto it = Items.find(key);
-		if (it != Items.cend())
-		{
-			Value* value = it->second;
-			Items.erase(it);
-			return value;
-		}
-		return nullptr;
-	}
-
-	/**
-	 *  Checks whether the container is empty.
-	 */
-	bool empty() const
-	{
-		return size() == 0;
-	}
-
-	/**
-	 *  Clears the contents of the map.
-	 */
-	void clear()
-	{
-		Items.clear();
-	}
-
-	/**
-	 *  Returns the number of elements in the map.
-	 */
-	size_t size() const
-	{
-		return Items.size();
-	}
-
-	/**
-	 *  Returns an iterator to the beginning.
-	 */
-	iterator begin() const
-	{
-		auto item = Items.begin();
-		return reinterpret_cast<iterator&>(item);
-	}
-
-	/**
-	 *  Returns an iterator to the end.
-	 */
-	iterator end() const
-	{
-		auto item = Items.end();
-		return reinterpret_cast<iterator&>(item);
-	}
-
-private:
-	/**
-	 *  The unordered map of items.
-	 */
-	map_type Items;
-
-private:
-	ViniferaContainerMap(const ViniferaContainerMap&) = delete;
-	ViniferaContainerMap& operator = (const ViniferaContainerMap&) = delete;
-	ViniferaContainerMap& operator = (ViniferaContainerMap&&) = delete;
-};
-
-template<typename Key, typename Value>
-class VectorMapContainer final
-{
-public:
-	using map_type = VectorMap<const Key*, Value*>;
-	using iterator = typename map_type::iterator;
-	using const_iterator = typename map_type::const_iterator;
-
-	VectorMapContainer() : Items() { }
-	~VectorMapContainer() { }
-
-	/**
-	 *  Finds element with specific key.
-	 */
-	Value* find(const Key* key) const
-	{
-		const auto it = Items.find(key);
-		if (it != Items.end())
-		{
-			return it->second;
-		}
-
-		return nullptr;
-	}
-
-	/**
-	 *  Insert a new element instance into the map.
-	 */
-	Value* insert(const Key* key, Value* value)
-	{
-		Items.insert({ key, value });
-		return value;
-	}
-
-	/**
-	 *  Remove and get an element from the map.
-	 */
-	Value* remove(const Key* key)
-	{
-		const auto it = Items.find(key);
-		if (it != Items.end())
-		{
-			Value* value = it->second;
-			Items.erase(it);
-			return value;
-		}
-
-		return nullptr;
-	}
-
-	/**
-	*  Remove an element from the map.
-	*/
-	void erase(const Key* key)
-	{
-		Items.erase(key);
-	}
-
-	/**
-	 *  Checks whether the container is empty.
-	 */
-	bool empty() const
-	{
-		return Items.empty();
-	}
-
-	/**
-	 *  Clears the contents of the map.
-	 */
-	void clear()
-	{
-		Items.clear();
-	}
-
-	/**
-	 *  Returns the number of elements in the map.
-	 */
-	size_t size() const
-	{
-		return Items.size();
-	}
-
-	/**
-	 *  Returns an iterator to the beginning.
-	 */
-	iterator begin() const
-	{
-		auto item = Items.begin();
-		return reinterpret_cast<iterator&>(item);
-	}
-
-	/**
-	 *  Returns an iterator to the end.
-	 */
-	iterator end() const
-	{
-		auto item = Items.end();
-		return reinterpret_cast<iterator&>(item);
-	}
-
-private:
-	/**
-	 *  The map of items.
-	 */
-	map_type Items;
-
-private:
-	VectorMapContainer(const VectorMapContainer&) = delete;
-	VectorMapContainer& operator = (const VectorMapContainer&) = delete;
-	VectorMapContainer& operator = (VectorMapContainer&&) = delete;
-};
-
 template <class T>
 concept HasInvalidateExtDataIgnorable = requires(T t, void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
-template <typename T, bool NoInsert = false, bool NoContainerInvalidatePointer = false, bool NoextDataInvalidatePointer = false>
+template <typename T>
 class Container
 {
 private:
@@ -642,9 +173,6 @@ private:
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
 
-	//ViniferaContainerMap<base_type, extension_type> Items;
-	//VectorMapContainer<base_type, extension_type> Items;
-	//ContainerMap<base_type, extension_type> Items;
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
@@ -653,7 +181,6 @@ public:
 
 
 	explicit Container(const char* pName) :
-		//Items {},
 		SavingObject { nullptr },
 		SavingStream { nullptr },
 		Name {}
@@ -662,21 +189,6 @@ public:
 	}
 
 	virtual ~Container() = default;
-
-	//auto begin() const
-	//{
-	//	return this->Items.begin();
-	//}
-
-	//auto end() const
-	//{
-	//	return this->Items.end();
-	//}
-
-	//auto size() const
-	//{
-	//	return this->Items.size();
-	//}
 
 	auto GetName() const
 	{
@@ -693,20 +205,18 @@ public:
 		return SavingObject;
 	}
 
-	void PointerGotInvalid(void* ptr, bool bRemoved)
+	IStream* GetStream() const
 	{
-		if constexpr (!NoContainerInvalidatePointer)
-			this->InvalidatePointer(ptr, bRemoved);
-
-	//	if constexpr (HasInvalidatePointer<extension_type> && !NoInsert && !NoextDataInvalidatePointer)
-	//	{
-	//		if (!this->InvalidateExtDataIgnorable(ptr))
-	//		{
-	//			for (const auto& i : this->Items)
-	//				i.second->InvalidatePointer(ptr, bRemoved);
-	//		}
-	//	}
+		return this->SavingStream;
 	}
+
+	void PointerGotInvalid(void* ptr, bool bRemoved) {
+		if (!this->InvalidateExtDataIgnorable(ptr)) {
+			this->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual void Clear() { }
 
 protected:
 
@@ -714,8 +224,6 @@ protected:
 	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
 
 public:
-
-	virtual void Clear() {}
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
@@ -781,55 +289,27 @@ public:
 	template<bool check = false>
 	extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		if constexpr (HasOffset<T>)
-		{
-			if constexpr (check)
+		if constexpr (check){
 				return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
-			else
-				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-
+		} else {
+				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)); 
 		}
-		//else
-		//{
-		//	return this->Items.find(key);
-		//}
 	}
-
-	//extension_type_ptr operator[] (const_base_type_ptr key) const
-	//{
-	//	return Find(key);
-	//}
 
 	void Remove(const_base_type_ptr key)
 	{
-		//if constexpr (!NoInsert)
-		//{
-		//	if (auto Item = this->Items.remove(key))
-		//	{
-		//		if constexpr (HasOffset<T>)
-		//			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-		//
-		//		delete Item;
-		//	}
-		//}
-		//else
-		{
-			if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
-			{
-				delete Item;
-				(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-			}
+		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset))) {
+			delete Item;
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		}
 	}
 
-	void LoadAllFromINI(CCINIClass* pINI)
-	{
-		//if constexpr (!NoInsert)
-		//{
-		//	for (const auto& i : this->Items)
-		//		i.second->LoadFromINI(pINI);
-		//}
-	}
+	//void LoadAllFromINI(CCINIClass* pINI)
+	//{
+	//	for (const auto Item : base_type::Array) {
+	//		Find(Item)->LoadFromINI(pINI);
+	//	}
+	//}
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
@@ -842,11 +322,6 @@ public:
 		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
-	}
-
-	IStream* GetStream() const
-	{
-		return this->SavingStream;
 	}
 
 	void SaveStatic()
@@ -985,334 +460,3 @@ private:
 	Container& operator = (const Container&) = delete;
 	Container& operator = (Container&&) = delete;
 };
-
-template <typename T, bool NoContainerInvalidatePointer = false, bool NoextDataInvalidatePointer = false>
-class NoMapContainer
-{
-private:
-	using base_type = typename T::base_type;
-	using extension_type = typename T::ExtData;
-	using base_type_ptr = base_type*;
-	using const_base_type_ptr = const base_type*;
-	using extension_type_ptr = extension_type*;
-
-	base_type_ptr SavingObject;
-	IStream* SavingStream;
-	FixedString<0x100> Name;
-
-public:
-
-
-	explicit NoMapContainer(const char* pName) :
-		SavingObject { nullptr },
-		SavingStream { nullptr },
-		Name {}
-	{
-		Name = pName;
-	}
-
-	virtual ~NoMapContainer() = default;
-
-	auto GetName() const
-	{
-		return this->Name.data();
-	}
-
-	base_type_ptr GetSavingObject() const
-	{
-		return SavingObject;
-	}
-
-	void PointerGotInvalid(void* ptr, bool bRemoved)
-	{
-		if constexpr (!NoContainerInvalidatePointer)
-			this->InvalidatePointer(ptr, bRemoved);
-	}
-
-protected:
-
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
-
-public:
-
-	extension_type_ptr Allocate(base_type_ptr key)
-	{
-		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-
-		if (const auto val = new extension_type(key))
-		{
-			val->EnsureConstanted();
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-
-			return val;
-		}
-
-		Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());
-		return nullptr;
-	}
-
-	void JustAllocate(base_type_ptr key, bool bCond, const std::string_view& nMessage)
-	{
-		if (!key || (!bCond && !nMessage.empty()))
-		{
-			Debug::Log("%s \n", nMessage.data());
-			return;
-		}
-
-		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-
-		if (const auto val = new extension_type(key))
-		{
-			val->EnsureConstanted();
-
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-		}
-	}
-
-	extension_type_ptr FindOrAllocate(base_type_ptr key)
-	{
-		if (auto const ptr = Find(key))
-			return ptr;
-
-		return Allocate(key);
-	}
-
-	template<bool check = false>
-	extension_type_ptr Find(const_base_type_ptr key) const
-	{
-		if constexpr (check)
-			return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
-		else
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-	}
-
-	extension_type_ptr operator[] (const_base_type_ptr key) const
-	{
-		return Find(key);
-	}
-
-	void Remove(const_base_type_ptr key)
-	{
-		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)))
-		{
-			delete Item;
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-		}
-	}
-
-	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
-	{
-		if (auto ptr = this->Find<true>(key))
-			ptr->LoadFromINI(pINI);
-	}
-
-	void PrepareStream(base_type_ptr key, IStream* pStm)
-	{
-		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
-		this->SavingObject = key;
-		this->SavingStream = pStm;
-	}
-
-	IStream* GetStream() const
-	{
-		return this->SavingStream;
-	}
-
-	void SaveStatic()
-	{
-		if (this->SavingObject && this->SavingStream)
-		{
-			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
-			if (!this->Save(this->SavingObject, this->SavingStream))
-				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
-		}
-		else
-		{
-			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
-		}
-
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-	}
-
-	void LoadStatic()
-	{
-		if (this->SavingObject && this->SavingStream)
-		{
-			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
-			if (!this->Load(this->SavingObject, this->SavingStream))
-				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
-		}
-		else
-		{
-			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
-		}
-
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-	}
-
-protected:
-	// override this method to do type-specific stuff
-	virtual bool Save(base_type_ptr key, IStream* pStm)
-	{
-		return this->SaveKey(key, pStm) != nullptr;
-	}
-
-	// override this method to do type-specific stuff
-	virtual bool Load(base_type_ptr key, IStream* pStm)
-	{
-		return this->LoadKey(key, pStm) != nullptr;
-	}
-
-	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm)
-	{
-		// this really shouldn't happen
-		if (!key)
-		{
-			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
-			return nullptr;
-		}
-
-		// get the value data
-		auto buffer = this->Find(key);
-		if (!buffer)
-		{
-			Debug::Log("[SaveKey] Could not find value.\n");
-			return nullptr;
-		}
-
-		// write the current pointer, the size of the block, and the canary
-		PhobosByteStream saver(sizeof(*buffer));
-		PhobosStreamWriter writer(saver);
-
-		writer.Save(T::Canary);
-		writer.Save(buffer);
-
-		// save the data
-		buffer->SaveToStream(writer);
-
-		// save the block
-		if (!saver.WriteBlockToStream(pStm))
-		{
-			Debug::Log("[SaveKey] Failed to save data.\n");
-			return nullptr;
-		}
-
-		Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
-
-		return buffer;
-	}
-
-	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm)
-	{
-		// this really shouldn't happen
-		if (!key)
-		{
-			Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
-			return nullptr;
-		}
-
-		extension_type_ptr buffer = nullptr;
-		// get the value data
-
-		this->JustAllocate(key, true, "");
-		buffer = this->Find(key);
-
-		if (!buffer)
-		{
-			Debug::Log("[LoadKey] Could not find or allocate value.\n");
-			return nullptr;
-		}
-
-		PhobosByteStream loader(0);
-		if (!loader.ReadBlockFromStream(pStm))
-		{
-			Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
-			return nullptr;
-		}
-
-		PhobosStreamReader reader(loader);
-		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
-		{
-			buffer->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-				return buffer;
-		}
-
-		return nullptr;
-	}
-
-private:
-	NoMapContainer(const NoMapContainer&) = delete;
-	NoMapContainer& operator = (const NoMapContainer&) = delete;
-	NoMapContainer& operator = (NoMapContainer&&) = delete;
-};
-
-//template<typename T>
-//class ExtensionWrapperGlobal
-//{
-//	static std::unique_ptr<T::ExtData> Data;
-//	static IStream* g_pStm;
-//
-//public:
-//
-//	static void Allocate(T::base_type* pThis)
-//	{
-//		Data = std::make_unique<T::ExtData>(pThis);
-//
-//		if (Data)
-//			Data->EnsureConstanted();
-//	}
-//
-//	static void Remove(T::base_type* pThis)
-//	{
-//		Data.release();
-//	}
-//
-//	static void Clear()
-//	{
-//		Allocate(T::base_type::Instance);
-//	}
-//
-//	static T::ExtData* Global()
-//	{
-//		return Data.get();
-//	}
-//
-//	static SetStream(IStream* pStm)
-//	{
-//		g_pStm = pStm;
-//	}
-//
-//	static void SaveToStream()
-//	{
-//		auto buffer = Data.get();
-//
-//		PhobosByteStream Stm(0);
-//		if (Stm.ReadBlockFromStream(g_pStm))
-//		{
-//			PhobosStreamReader Reader(Stm);
-//
-//			if (Reader.Expect(T::Canary) && Reader.RegisterChange(buffer))
-//				buffer->LoadFromStream(Reader);
-//		}
-//	}
-//
-//	static void LoadFromStream()
-//	{
-//		auto buffer = Data.get();
-//
-//		PhobosByteStream saver(sizeof(*buffer));
-//		PhobosStreamWriter writer(saver);
-//
-//		writer.Expect(T::Canary);
-//		writer.RegisterChange(buffer);
-//
-//		buffer->SaveToStream(writer);
-//		saver.WriteBlockToStream(g_pStm);
-//	}
-//};

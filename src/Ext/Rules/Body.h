@@ -231,14 +231,14 @@ public:
 
 		virtual ~ExtData() = default;
 		void Uninitialize() { }
-		void LoadFromINIFile(CCINIClass* pINI);
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 		virtual void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 		void InitializeAfterTypeData(RulesClass* pThis);
 
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
-
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -275,7 +275,12 @@ public:
 
 	static void PointerGotInvalid(void* ptr, bool removed)
 	{
-		Global()->InvalidatePointer(ptr, removed);
+		if (auto pGlobal = Global()) {
+			if (pGlobal->InvalidateIgnorable(ptr))
+				return;
+
+			pGlobal->InvalidatePointer(ptr, removed);
+		}
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

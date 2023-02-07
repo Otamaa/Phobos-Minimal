@@ -42,6 +42,18 @@ void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
+bool BombExt::ExtContainer::InvalidateExtDataIgnorable(void* const ptr) const
+{
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Bomb:
+		return false;
+	}
+
+	return true;
+}
+
 void BombExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(BombExt::BombTemp, ptr);

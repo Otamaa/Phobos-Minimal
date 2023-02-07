@@ -164,7 +164,7 @@ void ScenarioExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 	Debug::Log("Loading Scenario Configs ! \n");
 	Stm.Process(SessionClass::Instance->Config);
 
-	Extension<ScenarioClass>::Serialize(Stm);
+	Extension<ScenarioClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -174,7 +174,7 @@ void ScenarioExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	Debug::Log("Saving Scenario Configs ! \n");
 	Stm.Process(SessionClass::Instance->Config);
 
-	Extension<ScenarioClass>::Serialize(Stm);
+	Extension<ScenarioClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

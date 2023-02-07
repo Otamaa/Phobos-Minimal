@@ -51,7 +51,6 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 
 void BuildingTypeExt::ExtData::InitializeConstants()
 {
-
 	AIBuildInsteadPerDiff.reserve(3);
 }
 
@@ -632,13 +631,13 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 
 void BuildingTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BuildingTypeClass>::Serialize(Stm);
+	Extension<BuildingTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BuildingTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BuildingTypeClass>::Serialize(Stm);
+	Extension<BuildingTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

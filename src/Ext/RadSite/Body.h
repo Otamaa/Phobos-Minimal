@@ -36,12 +36,26 @@ public:
 			//, Spread { 0 }
 		{}
 
-		virtual ~ExtData() = default;
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+
+		virtual bool InvalidateIgnorable(void* const ptr) const override { 	
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Building:
+			case AbstractType::Aircraft:
+			case AbstractType::Unit:
+			case AbstractType::Infantry:
+				return false;
+			}
+
+			return true;
+		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 		void Uninitialize() { }
 
 		void CreateLight();
@@ -61,12 +75,9 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-
 	};
 
 	static ExtContainer ExtMap;
-
-	//static ExtData* GetExtData(base_type const* pTr);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

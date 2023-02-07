@@ -44,28 +44,9 @@ public:
 #endif
 		{ }
 
-		virtual ~ExtData() = default;
-		void InvalidatePointer(void* ptr, bool bRemoved);
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		void InitializeConstants();
-		void Uninitialize() {}
-
-		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public TExtensionContainer<VoxelAnimExt>
-	{
-	public:
-		ExtContainer();
-		~ExtContainer();
-
-		bool InvalidateExtDataIgnorable(void* const ptr) const
-		{
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override {
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
@@ -79,7 +60,24 @@ public:
 			return true;
 		}
 
-	    void InvalidatePointer(void* ptr, bool bRemoved);
+
+		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
+		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
+		virtual void InitializeConstants()override;
+
+		void Uninitialize() {}
+		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
+
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
+	};
+
+	class ExtContainer final : public TExtensionContainer<VoxelAnimExt>
+	{
+	public:
+		ExtContainer();
+		~ExtContainer();
 	};
 
 	static ExtContainer ExtMap;

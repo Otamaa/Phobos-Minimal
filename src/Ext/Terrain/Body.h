@@ -24,31 +24,39 @@ public:
 	{
 	public:
 
-		LightSourceClass* LighSource;
-		AnimClass* AttachedAnim;
+		UniqueGamePtr<LightSourceClass> LighSource;
+		UniqueGamePtr<AnimClass> AttachedAnim;
 
 		ExtData(TerrainClass* OwnerObject) : TExtension<TerrainClass>(OwnerObject)
-			, LighSource { nullptr }
-			, AttachedAnim { nullptr }
+			, LighSource { }
+			, AttachedAnim { }
 		{ }
 
-		virtual ~ExtData() {
-			CallDTOR(LighSource);
-			CallDTOR(AttachedAnim);
-		};
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override {
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Anim:
+			case AbstractType::LightSource:
+				return false;
+			}
 
-		void InvalidatePointer(void *ptr, bool bRemoved);
-		void Uninitialize()
-		{
+			return true;
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		void InitializeConstants();
+
+		virtual void InitializeConstants() override;
+
 		void InitializeLightSource();
 		void InitializeAnim();
 		void ClearLightSource();
 		void ClearAnim();
+
+		void Uninitialize() { }
 
 	private:
 		template <typename T>
@@ -61,21 +69,6 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		bool InvalidateExtDataIgnorable(void* const ptr) const
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Anim:
-			case AbstractType::LightSource:
-				return false;
-			default:
-				return true;
-			}
-		}
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

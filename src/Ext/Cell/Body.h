@@ -18,23 +18,26 @@ public:
 	{
 	public:
 
-		std::vector<TerrainClass*> AttachedTerrain;
+		//std::vector<TerrainClass*> AttachedTerrain;
 		//int NewPowerups;
 		//DynamicVectorClass<FoggedObject*> FoggedObjects;
 		//<RadSiteClass*> PlacedRadSite;
 		ExtData(CellClass* OwnerObject) : TExtension<CellClass>(OwnerObject)
-			, AttachedTerrain {  }
+			//, AttachedTerrain {  }
 			//, PlacedRadSite { }
 			//, NewPowerups {-1}
 			//, FoggedObjects { }
 		{ };
 
-		virtual ~ExtData() = default;
-		void Initialize() { } //Init After INI Read
-		void InvalidatePointer(void* ptr, bool bRemoved) {
-			AnnounceInvalidPointer(AttachedTerrain, ptr);
+		virtual ~ExtData() override = default;
+		virtual void Initialize() override { } //Init After INI Read
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
+			//AnnounceInvalidPointer(AttachedTerrain, ptr);
 			//FoggedObjects wtf ?
 		}
+
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

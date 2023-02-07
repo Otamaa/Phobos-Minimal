@@ -270,16 +270,22 @@ void BuildingExt::ExtData::InitializeConstants()
 
 void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
+	if (this->InvalidateIgnorable(ptr))
+		return;
+
+	AnnounceInvalidPointer(CurrentAirFactory, ptr);
+}
+
+bool BuildingExt::ExtData::InvalidateIgnorable(void* const ptr) const
+{
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 	switch (abs)
 	{
 	case AbstractType::Building:
-		AnnounceInvalidPointer(CurrentAirFactory, ptr);
-		break;
-	default:
-		return;
+		return false;
 	}
 
+	return true;
 }
 
 void BuildingExt::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
@@ -522,13 +528,13 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 
 void BuildingExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<BuildingClass>::Serialize(Stm);
+	Extension<BuildingClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BuildingExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<BuildingClass>::Serialize(Stm);
+	Extension<BuildingClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -544,7 +550,6 @@ bool BuildingExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-void BuildingExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 // =============================
 // container
 

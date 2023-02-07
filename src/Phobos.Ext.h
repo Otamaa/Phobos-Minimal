@@ -2,7 +2,7 @@
 
 #include <Utilities/SavegameDef.h>
 
-#pragma region Implementation details
+/*#pragma region Implementation details
 
 // this can be implicitly constructed from int,
 // which can make selecting an overload unattractive,
@@ -192,3 +192,4 @@ private:
 };
 
 #pragma endregion
+*/

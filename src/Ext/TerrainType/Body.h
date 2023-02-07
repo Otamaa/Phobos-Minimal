@@ -11,9 +11,6 @@ class TerrainTypeExt
 public:
 	static constexpr size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
 	class ExtData final : public TExtension<TerrainTypeClass>
 	{
@@ -68,14 +65,16 @@ public:
 
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 
-		void LoadFromINIFile(CCINIClass* pINI);
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 
-		// void InvalidatePointer(void* ptr, bool bRemoved) {}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
 		int GetTiberiumGrowthStage();
 		int GetCellsPerAnim();
 
@@ -103,11 +102,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TerrainTypeExt
-#ifdef ENABLE_NEWHOOKS
-		, true , true , true
-#endif
-	> {
+	class ExtContainer final : public TExtensionContainer<TerrainTypeExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

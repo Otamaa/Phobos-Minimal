@@ -107,7 +107,7 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 	if (!pTerrain)
 		return;
 
-	RectangleStruct rect = RectangleStruct {};
+	RectangleStruct rect {};
 	rect = *pTerrain->GetRenderDimensions(&rect);
 	TacticalClass::Instance->RegisterDirtyArea(rect, false);
 	pTerrain->Disappear(true);

@@ -15,6 +15,9 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOw
 
 void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
+	if (this->InvalidateIgnorable(ptr))
+		return;
+
 	AnnounceInvalidPointer(Invoker, ptr);
 }
 
@@ -94,10 +97,6 @@ void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
 	TExtension<VoxelAnimClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
-}
-
-void VoxelAnimExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
 }
 
 bool VoxelAnimExt::LoadGlobals(PhobosStreamReader& Stm)

@@ -62,12 +62,12 @@ public:
 			//, GClock_Palette { }
 		{ }
 
-		virtual ~ExtData() = default;
-
-		void LoadFromINIFile(CCINIClass* pINI);
-		void Initialize() { }
-		void InitializeConstants();
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		virtual ~ExtData() override = default;
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void Initialize() override { }
+		virtual	void InitializeConstants() override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -81,10 +81,9 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
-
 	};
 
+	static void IniExtData(SideClass* pThis , int nIdx);
 	static ExtContainer ExtMap;
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

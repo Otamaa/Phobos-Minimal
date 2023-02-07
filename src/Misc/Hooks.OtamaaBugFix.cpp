@@ -2676,7 +2676,6 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
 //}
 
-
 //DEFINE_HOOK(0x6FF1FB, TechnoClass_FireAt_Shield, 0x6)
 //{
 //	GET_BASE(AbstractClass*, pTarget, 0x8);
@@ -2695,7 +2694,6 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //	}
 //	return 0x0;
 //}
-
 
 enum class NewVHPScan : int
 {
@@ -2780,3 +2778,32 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 	R->EDI(nRangeBonus);
 	return 0x0;
 }
+
+//DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
+//{
+//	enum { RetFunct = 0x51BF80 , CheckLayer = 0x51BDCF  , CheckMission = 0x51BCC0 };
+//
+//	GET(InfantryClass*, pThis, ESI);
+//
+//	if (!pThis->IsAlive)
+//		return RetFunct;
+//
+//	if (!pThis->InLimbo || pThis->Transporter)
+//		pThis->Reload();
+//
+//	if (pThis->InLimbo)
+//		return CheckLayer;
+//
+//	return CheckMission;
+//}
+//
+//DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+//{
+//	GET(InfantryClass*, pThis, ESI);
+//	const auto pType = pThis->Type;
+//
+//	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
+//		pThis->StartReloading();
+//
+//	return 0;
+//}

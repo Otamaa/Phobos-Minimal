@@ -56,6 +56,24 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	//this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
 }
 
+void SideExt::IniExtData(SideClass* pThis, int nIdx)
+{
+	if (!pThis->unknown_18)
+	{
+		if (auto val = new SideExt::ExtData(pThis))
+		{
+			val->ArrayIndex = nIdx;
+			val->EnsureConstanted();
+			(*(uintptr_t*)((char*)pThis + AbstractExtOffset)) = (uintptr_t)val;
+		}
+	}
+	else
+	{
+		if (((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)))->ArrayIndex != nIdx)
+			((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)))->ArrayIndex = nIdx;
+	}
+}
+
 // =============================
 // load / save
 
@@ -89,7 +107,6 @@ void SideExt::ExtData::Serialize(T& Stm)
 		//.Process(this->GClock_Palette)
 		;
 }
-void SideExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
@@ -127,19 +144,7 @@ DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
 {
 	GET(SideClass*, pItem, ESI);
 	GET(int, nIdx, ECX);
-
-	if (!pItem->unknown_18) {
-		if (auto val = new SideExt::ExtData (pItem))
-		{
-			val->ArrayIndex = nIdx;
-			val->EnsureConstanted();
-			(*(uintptr_t*)((char*)pItem + AbstractExtOffset)) = (uintptr_t)val;
-		}
-	} else {
-		if (((SideExt::ExtData*)(*(uintptr_t*)((char*)pItem + AbstractExtOffset)))->ArrayIndex != nIdx)
-			((SideExt::ExtData*)(*(uintptr_t*)((char*)pItem + AbstractExtOffset)))->ArrayIndex = nIdx;
-	}
-
+	SideExt::IniExtData(pItem, nIdx);
 	return 0;
 }
 

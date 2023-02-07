@@ -25,10 +25,10 @@ public:
 			, ForceFullRearmDelay { false }
 		{ }
 
-		virtual ~ExtData() = default;
-
-		void InvalidatePointer(void* const ptr, bool bRemoved);
-		void InitializeConstants();
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+		virtual void InitializeConstants() override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -37,16 +37,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<InfantryExt
-		, true
-		, true
-		, true
-	>
+	class ExtContainer final : public Container<InfantryExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
 	};
 
 	static ExtContainer ExtMap;

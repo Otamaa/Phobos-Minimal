@@ -21,14 +21,10 @@ public:
 
 	TExtension(T* const OwnerObject) : IExtension { }
 		, AttachedToObject { OwnerObject }
-	{ 
-		//WhatIAm = OwnerObject->WhatAmI();
-		//Debug::Log("Alloc Ext For %s ! \n", AbstractClass::GetAbstractClassName(WhatIAm));
-	}
+	{ }
 
 	TExtension() : IExtension { }
 		, AttachedToObject { nullptr }
-		//, WhatIAm { AbstractType::Abstract }
 	{ }
 
 	TExtension(const TExtension&) = delete;
@@ -37,6 +33,11 @@ public:
 	virtual ~TExtension() = default;
 
 	T* const& Get() const
+	{
+		return this->AttachedToObject;
+	}
+
+	T* const& OwnerObject() const
 	{
 		return this->AttachedToObject;
 	}
@@ -86,19 +87,17 @@ public:
 
 	// overrideable virtuals !
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual bool InvalidateIgnorable(void* const ptr) const = 0;
 
 	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
 		Stm.Save(this->Initialized);
-		//Stm.Save(this->WhatIAm);
 	}
 
 	virtual inline void LoadFromStream(PhobosStreamReader& Stm) {
 		Stm.Load(this->Initialized);
-		//Stm.Load(this->WhatIAm);
 	}
 
 	static constexpr AbstractType WhatIam = T::AbsID;
-	//virtual size_t GetSize() const { return sizeof(*this); }
 
 protected:	// overrideable virtuals !
 
@@ -252,6 +251,13 @@ public:
 		SetIExtension(key);
 	}
 
+	//void LoadAllFromINI(CCINIClass* pINI)
+	//{
+	//	for (const auto Item : base_type::Array) {
+	//		Find(Item)->LoadFromINI(pINI);
+	//	}
+	//}
+
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
 		if (auto ptr = GetIExtension<true>(key))
@@ -294,14 +300,22 @@ public:
 		this->SavingStream = nullptr;
 	}
 
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { };
-	virtual void Clear() { }
-
 	void PointerGotInvalid(void* ptr, bool bRemoved) {
-		this->InvalidatePointer(ptr, bRemoved);
+		if (!this->InvalidateExtDataIgnorable(ptr))
+		{
+			this->InvalidatePointer(ptr, bRemoved);
+		}
 	}
 
+	virtual void Clear() { }
+
 protected:
+
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
+
+public:
+
 
 	// override this method to do type-specific stuff
 	virtual bool Save(base_type_ptr key, IStream* pStm)

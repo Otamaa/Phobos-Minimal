@@ -105,7 +105,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 			pExt->DeleteAttachedSystem();
 
 	if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
-			pExt->CreateAttachedSystem(pTypeExt);
+			pExt->CreateAttachedSystem();
 
 	return 0;
 }

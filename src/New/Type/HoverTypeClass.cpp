@@ -10,9 +10,6 @@ const char* Enumerable<HoverTypeClass>::GetMainSection()
 void HoverTypeClass::LoadFromINI(CCINIClass * pINI)
 {
 	const char* pSection = this->Name;
-	if (strcmp(pSection, DEFAULT_STR2) == 0)
-		return;
-
 	INI_EX exINI(pINI);
 
 	this->HoverHeight.Read(exINI, pSection, "Hover.Height");

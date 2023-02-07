@@ -9,7 +9,6 @@ ConvertExt::ExtContainer::ExtContainer() : Container("ConvertClass") {}
 ConvertExt::ExtContainer::~ExtContainer() = default;
 
 void ConvertExt::ExtData::InitializeConstants() { }
-void ConvertExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
 
 void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_view nName) {
 	if (pConvert) {

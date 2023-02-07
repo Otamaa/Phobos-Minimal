@@ -20,7 +20,7 @@
 
 static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
-	auto const pDefault = HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
+	auto const pDefault = HoverTypeClass::Find(DEFAULT_STR2);
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HoverType.Get(pDefault);
 }
 

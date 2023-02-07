@@ -31,8 +31,6 @@ void WaveExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-void WaveExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
-
 bool WaveExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm

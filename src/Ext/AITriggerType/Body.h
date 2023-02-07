@@ -31,8 +31,13 @@ public:
 			//, NoneOF { }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
+			if (this->InvalidateIgnorable(ptr))
+				return;
+		}
 
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true;  }
 		virtual void LoadFromStream(PhobosStreamReader& Stm);
 		virtual void SaveToStream(PhobosStreamWriter& Stm);
 	};

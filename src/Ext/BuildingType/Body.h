@@ -314,17 +314,16 @@ public:
 			, DockPoseDir { }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 
-		void LoadFromINIFile(CCINIClass* pINI);
-		void InitializeConstants();
-		void CompleteInitialization();
-
-		//virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
-
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void InitializeConstants() override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
+		void CompleteInitialization();
 		int GetSuperWeaponCount() const;
 		int GetSuperWeaponIndex(int index, HouseClass* pHouse) const;
 		int GetSuperWeaponIndex(int index) const;
@@ -334,16 +333,12 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingTypeExt
-#ifndef ENABLE_NEWEXT
-, true
-, true
-#endif
-	>
+	class ExtContainer final : public Container<BuildingTypeExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
+
 		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
 	};
 

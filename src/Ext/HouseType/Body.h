@@ -28,15 +28,14 @@ public:
 			, NewTeamsSelector_AirCategoryPercentage { }
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override;
 		virtual void CompleteInitialization();
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override
-		{
-		}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true;  };
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

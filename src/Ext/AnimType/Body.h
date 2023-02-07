@@ -2,7 +2,6 @@
 
 #include <AnimTypeClass.h>
 
-#include <Utilities/Container.Otamaa.h>
 #include <Utilities/Enum.h>
 #include <Utilities/Container.h>
 #include <Utilities/Template.h>
@@ -13,11 +12,9 @@
 class AnimTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xEEEEEEEE;
 	using base_type = AnimTypeClass;
-//#ifdef ENABLE_NEWEXT
+	static constexpr size_t Canary = 0xEEEEEEEE;
 	static constexpr size_t ExtOffset = 0x374;
-//#endif
 
 	class ExtData final : public Extension<AnimTypeClass>
 	{
@@ -137,31 +134,22 @@ public:
 			//, SpawnerDatas {}
 		{ }
 
-		virtual ~ExtData() = default;
-		void LoadFromINIFile(CCINIClass* pINI);
-		void InitializeConstants() {
+		virtual ~ExtData() override = default;
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void InitializeConstants() override {
 			Launchs.reserve(2);
 		}
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
-		void CleanUp()
-		{
-			SpawnsMultiple_amouts.Clear();
-		}
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<AnimTypeExt
-//#ifdef ENABLE_NEWEXT
-, true
-, true
-//#endif
-	>
+	class ExtContainer final : public Container<AnimTypeExt>
 	{
 	public:
 		ExtContainer();

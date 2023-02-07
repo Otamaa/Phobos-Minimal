@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Ext/AnimType/Body.h>
 
 // Draw Tiled !
 #ifdef UsePhobosOne

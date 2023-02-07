@@ -30,8 +30,29 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
 }
 
+bool HouseExt::ExtData::InvalidateIgnorable(void* const ptr) const
+{
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Team:
+		return false;
+	}
+
+	return true;
+
+}
+
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
+
+	if (this->InvalidateIgnorable(ptr))
+		return;
+
 	AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
 	AnnounceInvalidPointer(Factory_BuildingType, ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
@@ -954,13 +975,13 @@ void HouseExt::ExtData::Serialize(T& Stm)
 
 void HouseExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<HouseClass>::Serialize(Stm);
+	Extension<HouseClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void HouseExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<HouseClass>::Serialize(Stm);
+	Extension<HouseClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

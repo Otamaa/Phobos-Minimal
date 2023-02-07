@@ -5,6 +5,7 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
+class WeaponTypeClass;
 class TemporalExt
 {
 public:
@@ -15,18 +16,18 @@ public:
 	class ExtData final : public TExtension<TemporalClass>
 	{
 	public:
+
 		WeaponTypeClass* Weapon;
 		ExtData(TemporalClass* OwnerObject) : TExtension<TemporalClass>(OwnerObject)
 			, Weapon { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
-
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
-		void InitializeConstants() { }
+		virtual void InitializeConstants() override { }
 
 	private:
 		template <typename T>

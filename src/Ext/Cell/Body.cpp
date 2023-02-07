@@ -40,7 +40,7 @@ template <typename T>
 void CellExt::ExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(AttachedTerrain)
+		//.Process(AttachedTerrain)
 		;
 }
 

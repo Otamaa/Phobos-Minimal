@@ -12,13 +12,13 @@ AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
 
 void AITriggerTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AITriggerTypeClass>::Serialize(Stm);
+	Extension<AITriggerTypeClass>::LoadFromStream(Stm);
 	// Nothing yet
 }
 
 void AITriggerTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AITriggerTypeClass>::Serialize(Stm);
+	Extension<AITriggerTypeClass>::SaveToStream(Stm);
 	// Nothing yet
 }
 

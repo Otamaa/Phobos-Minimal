@@ -770,7 +770,7 @@ DEFINE_HOOK(0x46A4ED, BulletClass_Shrapnel_CheckVerses, 0x5)
 
 	if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
 	{
-		auto const pWhat = pTargetObj->What_Am_I();
+		auto const pWhat = pTargetObj->WhatAmI();
 		switch (pWhat)
 		{
 		case AbstractType::Aircraft:

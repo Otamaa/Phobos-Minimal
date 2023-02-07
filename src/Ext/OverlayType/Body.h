@@ -22,8 +22,9 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		void LoadFromINIFile(CCINIClass* pINI);
-		void InvalidatePointer(void* ptr, bool bRemoved) {}
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		virtual bool InvalidateIgnorable(void* const ptr) const { return true; };
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 	private:

@@ -3,31 +3,34 @@
 
 TeamExt::ExtContainer TeamExt::ExtMap;
 
-void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
-{
+bool TeamExt::ExtData::InvalidateIgnorable(void* const ptr) const {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 	switch (abs)
 	{
 	case AbstractType::Aircraft:
 	case AbstractType::Unit:
 	case AbstractType::Infantry:
-	{
-		AnnounceInvalidPointer(TeamLeader, ptr);
-		AnnounceInvalidPointer(MapPath_StartTechno, ptr);
-		AnnounceInvalidPointer(MapPath_EndTechno, ptr);
-		AnnounceInvalidPointer(MapPath_BridgeRepairHuts, ptr);
-		AnnounceInvalidPointer(MapPath_ValidBridgeRepairHuts, ptr);
-		AnnounceInvalidPointer(MapPath_CheckedBridgeRepairHuts, ptr);
-	}
-	break;
 	case AbstractType::Script:
 	{
-		AnnounceInvalidPointer(PreviousScriptList, ptr);
+		return false;
 	}
-	break;
-	default:
+	}
+	
+	return true;
+}
+
+void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (this->InvalidateIgnorable(ptr))
 		return;
-	}
+
+	AnnounceInvalidPointer(TeamLeader, ptr);
+	AnnounceInvalidPointer(MapPath_StartTechno, ptr);
+	AnnounceInvalidPointer(MapPath_EndTechno, ptr);
+	AnnounceInvalidPointer(MapPath_BridgeRepairHuts, ptr);
+	AnnounceInvalidPointer(MapPath_ValidBridgeRepairHuts, ptr);
+	AnnounceInvalidPointer(MapPath_CheckedBridgeRepairHuts, ptr);
+	AnnounceInvalidPointer(PreviousScriptList, ptr);
 }
 
 void TeamExt::ExtData::InitializeConstants() { }

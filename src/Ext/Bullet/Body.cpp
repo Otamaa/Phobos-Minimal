@@ -14,9 +14,21 @@
 BulletExt::ExtContainer BulletExt::ExtMap;
 TechnoClass* BulletExt::InRangeTempFirer = nullptr;
 
-void BulletExt::ExtData::Uninitialize()
+  
+bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
+	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+	switch (abs)
+	{
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::House:
+		return false;
+	}
 
+	return true;
 
 }
 
@@ -30,6 +42,10 @@ void BulletExt::ExtData::InitializeConstants() {
 }
 
 void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
+
+	if (this->InvalidateIgnorable(ptr))
+		return;
+
 	AnnounceInvalidPointer(Owner , ptr);
 
 	if (Trajectory)

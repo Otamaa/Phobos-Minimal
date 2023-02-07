@@ -74,13 +74,13 @@ public:
 			, AutoDeathObjects {}
 		{ }
 
-		virtual ~ExtData() = default;
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
-		void LoadFromINIFile(CCINIClass* pINI);
+		virtual void InitializeConstants() override;
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 
 		void UpdateVehicleProduction();
 		void UpdateAutoDeathObjects();
@@ -90,25 +90,10 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<HouseExt
-		,true ,true ,true
-	> {
+	class ExtContainer final : public Container<HouseExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		bool InvalidateExtDataIgnorable(void* const ptr) const
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Building:
-			case AbstractType::Team:
-				return false;
-			default:
-				return true;
-			}
-		}
 	};
 
 	static ExtContainer ExtMap;

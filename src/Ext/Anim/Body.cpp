@@ -1,8 +1,11 @@
 #include "Body.h"
 
 #include <Ext/House/Body.h>
+#include <Ext/AnimType/Body.h>
+
 #include <Utilities/Macro.h>
 
+#include <ParticleSystemClass.h>
 #include <ColorScheme.h>
 
 //std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
@@ -10,11 +13,11 @@ AnimExt::ExtContainer AnimExt::ExtMap;
 
 void AnimExt::ExtData::InitializeConstants()
 {
-	if(auto pTypeExt = AnimTypeExt::ExtMap.Find<true>(Get()->Type))
-		CreateAttachedSystem(pTypeExt);
+	CreateAttachedSystem();
 }
 
-void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
+
+bool AnimExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 	switch (abs)
@@ -24,12 +27,24 @@ void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
 	case AbstractType::ParticleSystem:
-		AnnounceInvalidPointer(Invoker, ptr);
-		AnnounceInvalidPointer(AttachedSystem, ptr);
-		AnnounceInvalidPointer(ParentBuilding, ptr);
-		break;
-	default:
+		return false;
+	}
+
+	return true;
+}
+
+void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
+{
+	if (this->InvalidateIgnorable(ptr))
 		return;
+
+	AnnounceInvalidPointer(this->Invoker, ptr);
+	AnnounceInvalidPointer(this->ParentBuilding, ptr);
+
+	if (auto& pSys = this->AttachedSystem)
+	{
+		if (pSys.get() == ptr)
+			pSys.reset(nullptr);
 	}
 
 }
@@ -52,14 +67,15 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void AnimExt::ExtData::CreateAttachedSystem(AnimTypeExt::ExtData* pData)
+void AnimExt::ExtData::CreateAttachedSystem()
 {
 	const auto pThis = this->Get();
+	const auto pData = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pData && pData->AttachedSystem && !this->AttachedSystem)
 	{
 		if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), pThis->Location, pThis->GetCell(), pThis, CoordStruct::Empty, nullptr))
-			this->AttachedSystem = pSystem;
+			this->AttachedSystem.reset(pSystem);
 	}
 }
 
@@ -67,89 +83,17 @@ void AnimExt::ExtData::DeleteAttachedSystem()
 {
 	if (this->AttachedSystem)
 	{
-		CallDTOR<false>(this->AttachedSystem);
-		this->AttachedSystem = nullptr;
+		AttachedSystem.release();
 	}
-
 }
+
 //Modified from Ares
 const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
-	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type))
+	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+	if (!pTypeExt->NoOwner)
 	{
-		if (!pTypeExt->NoOwner)
-		{
-			if (!pTypeExt->CreateUnit.Get())
-			{
-				if (!pAnim->Owner && pInvoker)
-					pAnim->SetHouse(pInvoker);
-
-				return true; //yes return true
-			}
-			else
-			{
-				if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
-				{
-					pAnim->SetHouse(newOwner);
-					//auto offs = offsetof(AnimClass, Type);
-					AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
-
-					if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
-						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-					return true;//yes
-				}
-			}
-		}
-	}
-
-	// no we dont set the owner
-	// this return also will prevent Techno `Invoker` to be set !
-	return false;
-}
-
-const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
-{
-	if (auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type))
-	{
-		if (!pTypeExt->NoOwner)
-		{
-			AnimExt::ExtMap.Find(pAnim)->Invoker = pTechnoInvoker;
-
-			if (!pTypeExt->CreateUnit.Get())
-			{
-				if (!pAnim->Owner && pInvoker)
-					pAnim->SetHouse(pInvoker);
-
-				return true; //yes return true
-			}
-			else
-			{
-				if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
-				{
-					pAnim->SetHouse(newOwner);
-					AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
-
-					if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
-						pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-
-					return true;//yes
-				}
-			}
-		}
-	}
-
-	// no we dont set the owner
-	// this return also will prevent Techno `Invoker` to be set !
-	return false;
-}
-
-//Modified from Ares
-const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, AnimTypeExt::ExtData* pExt, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
-{
-	if (!pExt->NoOwner)
-	{
-		if (!pExt->CreateUnit.Get())
+		if (!pTypeExt->CreateUnit.Get())
 		{
 			if (!pAnim->Owner && pInvoker)
 				pAnim->SetHouse(pInvoker);
@@ -158,13 +102,13 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, AnimTypeExt::ExtData
 		}
 		else
 		{
-			if (auto const newOwner = HouseExt::GetHouseKind(pExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+			if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
 			{
-
 				pAnim->SetHouse(newOwner);
+				//auto offs = offsetof(AnimClass, Type);
 				AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
 
-				if (pExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+				if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
 					pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
 
 				return true;//yes
@@ -177,7 +121,77 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, AnimTypeExt::ExtData
 	return false;
 }
 
-TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis , bool DealthByOwner)
+const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner)
+{
+	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+
+	if (!pTypeExt->NoOwner)
+	{
+		AnimExt::ExtMap.Find(pAnim)->Invoker = pTechnoInvoker;
+
+		if (!pTypeExt->CreateUnit.Get())
+		{
+			if (!pAnim->Owner && pInvoker)
+				pAnim->SetHouse(pInvoker);
+
+			return true; //yes return true
+		}
+		else
+		{
+			if (auto newOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+			{
+				pAnim->SetHouse(newOwner);
+				AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
+
+				if (pTypeExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+					pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+
+				return true;//yes
+			}
+		}
+	}
+
+	// no we dont set the owner
+	// this return also will prevent Techno `Invoker` to be set !
+	return false;
+}
+
+//Modified from Ares
+//const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
+//{
+//	auto const pExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
+//
+//	if (!pExt->NoOwner)
+//	{
+//		if (!pExt->CreateUnit.Get())
+//		{
+//			if (!pAnim->Owner && pInvoker)
+//				pAnim->SetHouse(pInvoker);
+//
+//			return true; //yes return true
+//		}
+//		else
+//		{
+//			if (auto const newOwner = HouseExt::GetHouseKind(pExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
+//			{
+//
+//				pAnim->SetHouse(newOwner);
+//				AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
+//
+//				if (pExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
+//					pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+//
+//				return true;//yes
+//			}
+//		}
+//	}
+//
+//	// no we dont set the owner
+//	// this return also will prevent Techno `Invoker` to be set !
+//	return false;
+//}
+
+TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis, bool DealthByOwner)
 {
 	if (DealthByOwner)
 	{
@@ -252,13 +266,13 @@ bool AnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 void AnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AnimClass>::Serialize(Stm);
+	Extension<AnimClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void AnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AnimClass>::Serialize(Stm);
+	Extension<AnimClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -337,7 +351,8 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis)) {
+	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
+	{
 		pAnimExt->InvalidatePointer(target, all);
 	}
 
@@ -347,7 +362,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 
 DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
 
-DEFINE_HOOK_AGAIN(0x421EF4 , AnimClass_CTOR_setD0, 0x6)
+DEFINE_HOOK_AGAIN(0x421EF4, AnimClass_CTOR_setD0, 0x6)
 DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);

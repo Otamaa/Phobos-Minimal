@@ -8,10 +8,6 @@ void InfantryTypeExt::ExtData::InitializeConstants()
 {
 }
 
-void InfantryTypeExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
-{
-}
-
 void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	const char* pID = this->Get()->ID;
@@ -85,13 +81,13 @@ bool InfantryTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 void InfantryTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<InfantryTypeClass>::Serialize(Stm);
+	Extension<InfantryTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void InfantryTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<InfantryTypeClass>::Serialize(Stm);
+	Extension<InfantryTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

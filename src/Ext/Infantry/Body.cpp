@@ -40,13 +40,13 @@ bool InfantryExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 void InfantryExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<InfantryClass>::Serialize(Stm);
+	Extension<InfantryClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void InfantryExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<InfantryClass>::Serialize(Stm);
+	Extension<InfantryClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

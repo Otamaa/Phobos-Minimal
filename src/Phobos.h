@@ -87,10 +87,6 @@ public:
 	static const wchar_t* VersionDescription;
 
 	static bool DetachFromDebugger();
-	static void Clear();
-	static void PointerGotInvalid(AbstractClass* const pInvalid, bool const removed);
-	static HRESULT SaveGameData(IStream* pStm);
-	static void LoadGameData(IStream* pStm);
 	static HRESULT SaveGameDataAfter(IStream* pStm);
 	static void LoadGameDataAfter(IStream* pStm);
 

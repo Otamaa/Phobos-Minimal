@@ -11,6 +11,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/Bullet/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -169,10 +170,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 			if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
 			{
 				pBullet->SetWeaponType(pDecided);
-				pBullet->Limbo();
-				pBullet->SetLocation(pThis->Location);
-				pBullet->Explode(true);
-				pBullet->UnInit();
+				BulletExt::DetonateAt(pBullet, pThis, pThis, pThis->Location);
 			}
 		}
 

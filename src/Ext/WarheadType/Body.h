@@ -23,9 +23,6 @@ class WarheadTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
-//#ifdef ENABLE_NEWEXT
-	//static constexpr size_t ExtOffset = 0x100;
-//#endif
 
 	class ExtData final : public TExtension<WarheadTypeClass>
 	{
@@ -443,31 +440,24 @@ public:
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
 
-		virtual ~ExtData() = default;
-		void LoadFromINIFile(CCINIClass* pINI);
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		virtual ~ExtData() override  = default;
+		void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		void Initialize();
+		virtual void Initialize() override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
-		virtual size_t Size() const { return sizeof(*this); }
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<WarheadTypeExt
-#ifdef AAENABLE_NEWEXT
-		, true
-		, true
-#endif
-	>
+	class ExtContainer final : public TExtensionContainer<WarheadTypeExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		//void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

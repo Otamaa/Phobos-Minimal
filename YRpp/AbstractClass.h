@@ -28,23 +28,6 @@ public:
 	IExtension() = default;
 	virtual ~IExtension() = default;
 
-	//virtual void InvalidatePointer(void* target, bool all = true) = 0;
-
-	// right after construction. only basic initialization tasks possible;
-	// owner object is only partially constructed! do not use global state!
-	//virtual void InitializeConstants() = 0;
-
-	//virtual void InitializeRuled() = 0;
-
-	// called before the first ini file is read
-	//virtual void Initialize() = 0;
-
-	// for things that only logically work in rules - countries, sides, etc
-	//virtual void LoadFromRulesFile(CCINIClass* pINI) = 0;
-
-	// load any ini file: rules, game mode, scenario or map
-	//virtual void LoadFromINIFile(CCINIClass* pINI) = 0;
-
 	IExtension(const IExtension& other) = delete;
 	void operator=(const IExtension& RHS) = delete;
 };

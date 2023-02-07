@@ -1081,13 +1081,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TechnoTypeClass>::Serialize(Stm);
+	Extension<TechnoTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TechnoTypeClass>::Serialize(Stm);
+	Extension<TechnoTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -1110,8 +1110,6 @@ bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
 		.Process(IsOnTurret)
 		.Success();
 }
-
-//void TechnoTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 bool TechnoTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {

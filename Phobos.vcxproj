@@ -82,7 +82,6 @@
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
-    <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
     <ClCompile Include="src\Ext\OverlayType\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
     <ClCompile Include="src\Ext\Parasite\Hooks.cpp" />
@@ -239,7 +238,6 @@
     <ClCompile Include="src\Ext\VoxelAnimType\Body.cpp" />
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Savegame.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
@@ -298,7 +296,6 @@
     <ClInclude Include="src\Ext\HouseType\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
-    <ClInclude Include="src\Ext\LaserDraw\Body.h" />
     <ClInclude Include="src\Ext\OverlayType\Body.h" />
     <ClInclude Include="src\Ext\Parasite\Body.h" />
     <ClInclude Include="src\Ext\ParticleType\Body.h" />

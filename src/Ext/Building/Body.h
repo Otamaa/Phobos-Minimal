@@ -5,7 +5,6 @@
 #include <FactoryClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.Otamaa.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/Techno/Body.h>
@@ -46,14 +45,13 @@ public:
 			, LighningNeedUpdate { false }
 		{ }
 
-		virtual ~ExtData() = default;
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
-
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		virtual void InitializeConstants() override;
 
-		void InitializeConstants();
 		bool HasSuperWeapon(int index, bool withUpgrades) const;
 		bool RubbleYell(bool beingRepaired);
 
@@ -66,30 +64,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingExt
-#ifndef ENABLE_NEWEXT
-, true
-, true
-#endif
-	>
+	class ExtContainer final : public Container<BuildingExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		bool InvalidateExtDataIgnorable(void* const ptr) const
-		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
-			{
-			case AbstractType::Building:
-				return false;
-			default:
-				return true;
-			}
-		}
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

@@ -51,7 +51,7 @@ void TActionExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 bool TActionExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
-		.Process(RandomTriggerPool,true)
+		.Process(RandomTriggerPool, true)
 		.Success();
 }
 
@@ -64,17 +64,9 @@ bool TActionExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 void TActionExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	for (auto& nMap : RandomTriggerPool)
 	{
-	case AbstractType::Trigger:
-	{
-		for (auto& nMap : RandomTriggerPool)
-		{
-			AnnounceInvalidPointer(nMap.second, ptr);
-		}
-	}
-	break;
+		AnnounceInvalidPointer(nMap.second, ptr);
 	}
 }
 
@@ -423,26 +415,26 @@ bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* p
 		return TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, location);
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint:
 		return TActionExt::RunSuperWeaponAtWaypoint(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_700:
-//		return something_700(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_701:
-//		return something_701(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::LauchSWAtWaypoint:
-//		return something_702(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::AISetMode:
-//		return something_703(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_704:
-//		return something_704(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_705:
-//		return something_705(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::DoFlash:
-//		return something_713(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_716:
-//		return something_716(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::Something_717:
-//		return something_717(pThis, pHouse, pObject, pTrigger, location);
-//	case PhobosTriggerAction::DoLighningStormStrike:
-//		return something_720(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_700:
+		//		return something_700(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_701:
+		//		return something_701(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::LauchSWAtWaypoint:
+		//		return something_702(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::AISetMode:
+		//		return something_703(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_704:
+		//		return something_704(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_705:
+		//		return something_705(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::DoFlash:
+		//		return something_713(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_716:
+		//		return something_716(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::Something_717:
+		//		return something_717(pThis, pHouse, pObject, pTrigger, location);
+		//	case PhobosTriggerAction::DoLighningStormStrike:
+		//		return something_720(pThis, pHouse, pObject, pTrigger, location);
 
 	case PhobosTriggerAction::RandomTriggerPut:
 		return TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, location);
@@ -495,7 +487,7 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	auto const pScen = ScenarioClass::Instance();
 
-	for (auto const&pair : ScenarioExt::Global()->Waypoints)
+	for (auto const& pair : ScenarioExt::Global()->Waypoints)
 		if (pScen->IsDefinedWaypoint(pair.first))
 			waypoints.push_back(pair.first);
 
@@ -644,9 +636,9 @@ bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
 {
-	auto & variables1 = ScenarioExt::GetVariables(pThis->Param5 != 0);
-	auto const&  itr1 = variables1.find(pThis->Value);
-	auto &variables2 = ScenarioExt::GetVariables(pThis->Param6 != 0);
+	auto& variables1 = ScenarioExt::GetVariables(pThis->Param5 != 0);
+	auto const& itr1 = variables1.find(pThis->Value);
+	auto& variables2 = ScenarioExt::GetVariables(pThis->Param6 != 0);
 	auto const& itr2 = variables2.find(pThis->Param4);
 
 	if (itr1 != variables1.end() && itr2 != variables2.end())
@@ -701,7 +693,7 @@ bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHous
 	if (nWaypoint >= 0 && waypoints.find(nWaypoint) != waypoints.end())
 	{
 		auto const& selectedWP = waypoints.at(nWaypoint);
-		if(selectedWP.X && selectedWP.Y)
+		if (selectedWP.X && selectedWP.Y)
 			TActionExt::RunSuperWeaponAt(pThis, selectedWP.X, selectedWP.Y);
 	}
 
@@ -907,7 +899,7 @@ void TActionExt::RecreateLightSources()
  {
 	 if (nPair->IsAlive && !nPair->InLimbo)
 	 {
-		const  auto pExt = TerrainExt::ExtMap.Find(nPair);
+		 const  auto pExt = TerrainExt::ExtMap.Find(nPair);
 		 pExt->ClearLightSource();
 		 pExt->InitializeLightSource();
 	 }
@@ -974,9 +966,10 @@ bool TActionExt::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, Objec
 	const int iPoolID = pThis->Param3;
 	auto& nPool = TActionExt::RandomTriggerPool[iPoolID];
 
-	if(!nPool.empty()){
+	if (!nPool.empty())
+	{
 
-		auto const iter = std::find_if(nPool.begin(), nPool.end(), 
+		auto const iter = std::find_if(nPool.begin(), nPool.end(),
 			[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 		if (iter == nPool.end())
@@ -1011,7 +1004,8 @@ bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, Ob
 	TriggerClass* pTarget = nPool.at(idx);
 	pTarget->Enable();
 
-	if (bTakeOff) {
+	if (bTakeOff)
+	{
 		nPool.erase(nPool.begin() + idx);
 
 		if (nPool.empty())

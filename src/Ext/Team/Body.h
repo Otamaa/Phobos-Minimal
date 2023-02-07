@@ -110,27 +110,24 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TeamExt
-#ifdef ENABLE_NEWHOOKS
-	,true,true,true
-#endif
-	>
+	class ExtContainer final : public TExtensionContainer<TeamExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		bool InvalidateExtDataIgnorable(void* const ptr) const
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
 		{
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
@@ -144,7 +141,7 @@ public:
 			}
 		}
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 	};
 
 	static ExtContainer ExtMap;

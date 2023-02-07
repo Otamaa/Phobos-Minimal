@@ -22,12 +22,13 @@ public:
 		ExtData(TacticalClass* OwnerObject) : Extension<TacticalClass>(OwnerObject)
 		{ }
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override = default;
 		void Uninitialize() { }
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 
 	private:
 		template <typename T>
@@ -55,7 +56,13 @@ public:
 
 	static void PointerGotInvalid(void* ptr, bool removed)
 	{
-		// Global()->InvalidatePointer(ptr, removed);
+		if (auto pGlobal = Global())
+		{
+			if (pGlobal->InvalidateIgnorable(ptr))
+				return;
+
+			pGlobal->InvalidatePointer(ptr, removed);
+		}
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);

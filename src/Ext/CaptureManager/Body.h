@@ -23,10 +23,11 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 
 	private:
 		template <typename T>

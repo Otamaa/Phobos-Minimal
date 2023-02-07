@@ -62,8 +62,6 @@ void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-void ParticleTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
-
 bool ParticleTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm

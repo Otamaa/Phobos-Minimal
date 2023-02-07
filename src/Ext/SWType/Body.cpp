@@ -231,15 +231,7 @@ bool SWTypeExt::SaveGlobals(PhobosStreamWriter& Stm) {
 
 void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
-	{
-	case AbstractType::Super:
-	{
-		AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
-	}
-	break;
-	}
+	AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);	
 };
 
 // =============================

@@ -107,13 +107,13 @@ void IsometricTileTypeExt::ExtData::Serialize(T& Stm)
 
 void IsometricTileTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<IsometricTileTypeClass>::Serialize(Stm);
+	TExtension<IsometricTileTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void IsometricTileTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<IsometricTileTypeClass>::Serialize(Stm);
+	TExtension<IsometricTileTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

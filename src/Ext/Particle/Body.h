@@ -35,11 +35,12 @@ public:
 #endif
 		{ }
 
-		virtual ~ExtData() = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) {}
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 		void Uninitialize();
 
 	private:
@@ -47,7 +48,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleExt ,true ,true ,true>
+	class ExtContainer final : public Container<ParticleExt>
 	{
 	public:
 		ExtContainer();

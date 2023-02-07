@@ -19,11 +19,10 @@ public:
 		ExtData(SuperClass* OwnerObject) : TExtension<SuperClass>(OwnerObject)
 		{ }
 
-		virtual ~ExtData() = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
-
+		virtual ~ExtData() override  = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 	private:
@@ -36,7 +35,6 @@ public:
 	public:
 		ExtContainer();
 		~ExtContainer();
-
 	};
 
 	static ExtContainer ExtMap;

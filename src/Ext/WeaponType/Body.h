@@ -19,9 +19,6 @@ class WeaponTypeExt
 public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
-//#ifdef ENABLE_NEWEXT
-	//static constexpr size_t ExtOffset = 0x118;
-//#endif
 
 	class ExtData final : public TExtension<WeaponTypeClass>
 	{
@@ -136,12 +133,11 @@ public:
 			, Ammo { 0 }
 		{ }
 
-		virtual ~ExtData() = default;
-
-		void LoadFromINIFile(CCINIClass* pINI);
-		void Initialize();
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
-
+		virtual ~ExtData() override  = default;
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void Initialize() override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
@@ -154,16 +150,25 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final :public TExtensionContainer<WeaponTypeExt
-#ifdef AAENABLE_NEWEXT
-		, true
-#endif
-	>
+	class ExtContainer final :public TExtensionContainer<WeaponTypeExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::WeaponType:
+				return false;
+			}
+
+			return true;
+		}
+
 	};
 
 	static ExtContainer ExtMap;

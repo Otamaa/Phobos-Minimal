@@ -136,16 +136,20 @@ public:
 			, TrajectoryType { }
 		{ }
 
-		virtual ~ExtData() = default;
-		void LoadFromINIFile(CCINIClass* pINI);
-		void Initialize() { LaserTrail_Types.reserve(1); }
-		void Uninitialize();
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual ~ExtData() override = default;
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void Initialize() override  { LaserTrail_Types.reserve(1); }
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return false; }
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
+		void Uninitialize();
+
 		bool HasSplitBehavior();
+
 		double GetMissileROTVar(const RulesClass* const pRules) const
 		{
 			if (MissileROTVar.isset())
@@ -176,16 +180,10 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BulletTypeExt
-#ifndef ENABLE_NEWEXT
-, true
-, true
-#endif
-	> {
+	class ExtContainer final : public Container<BulletTypeExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
-	//	void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

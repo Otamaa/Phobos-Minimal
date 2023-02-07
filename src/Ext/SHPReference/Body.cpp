@@ -3,7 +3,6 @@
 //this thing causing S/L bug
 SHPRefExt::ExtContainer SHPRefExt::ExtMap;
 
-void SHPRefExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 void SHPRefExt::ExtData::InitializeConstants()
 {
 	//TODO : WTF ?

@@ -68,10 +68,12 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		void InvalidatePointer(void* ptr, bool bRemoved) { }
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants() { }
+		virtual void InitializeConstants() override { }
 
 	private:
 		template <typename T>
@@ -84,8 +86,19 @@ public:
 		ExtContainer();
 		~ExtContainer();
 
-		void Clear() override;
-		void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual void Clear() override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Trigger:
+				return false;
+			}
+			
+			return true;
+		}
 	};
 
 	static ExtContainer ExtMap;

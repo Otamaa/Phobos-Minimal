@@ -1,5 +1,4 @@
 #include "Body.h"
-//#ifndef DISABLE_DIRECT_Ext
 #include <Base/Always.h>
 #include <SwizzleManagerClass.h>
 #include <Checksummer.h>

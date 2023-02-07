@@ -9,24 +9,16 @@ RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()
 {
-	this->Type = RadTypeClass::Find(GameStrings::Radiation());
+	this->Type = RadTypeClass::Find(RADIATION_SECTION);
 }
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	//auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	//switch (abs)
-	//{
-	//case AbstractType::Building:
-	//case AbstractType::Aircraft:
-	//case AbstractType::Unit:
-	//case AbstractType::Infantry:
-	{
-		//AnnounceInvalidPointer(Weapon, ptr);
-		AnnounceInvalidPointer(TechOwner, ptr);
+	if (InvalidateIgnorable(ptr))
+		return;
 
-	}
-	/*}*/
+	AnnounceInvalidPointer(TechOwner, ptr);
+
 }
 
 void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)

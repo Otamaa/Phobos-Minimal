@@ -618,13 +618,13 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 void RulesExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<RulesClass>::Serialize(Stm);
+	Extension<RulesClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void RulesExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<RulesClass>::Serialize(Stm);
+	Extension<RulesClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

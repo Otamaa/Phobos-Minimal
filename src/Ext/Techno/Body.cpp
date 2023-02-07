@@ -2671,13 +2671,10 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pExt->DelayedFire_Anim)
-	{
-		pExt->DelayedFire_Anim->UnInit();
-
+	if (pExt->DelayedFire_Anim) {
+		pExt->DelayedFire_Anim.release();
 	}
 
-	pExt->DelayedFire_Anim = nullptr;
 	pExt->DelayedFire_Anim_LoopCount = 1;
 
 }
@@ -2760,7 +2757,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 #endif;
 }
 
-void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+bool TechnoExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 	switch (abs)
@@ -2770,7 +2767,17 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	case AbstractType::Aircraft:
 	case AbstractType::Unit:
 	case AbstractType::Infantry:
-	{
+		return false;
+	}
+
+	return true;
+}
+
+void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (this->InvalidateIgnorable(ptr))
+		return;
+
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		MyWeaponManager.InvalidatePointer(ptr, bRemoved);
@@ -2781,22 +2788,17 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		if (MissileTargetTracker)
 			MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
 #endif
-	}
-	break;
-	default:
-		return;
-	}
 }
 
 void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<TechnoClass>::Serialize(Stm);
+	Extension<TechnoClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TechnoExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<TechnoClass>::Serialize(Stm);
+	Extension<TechnoClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -2879,9 +2881,9 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 		if (auto pShield = pExt->GetShield())
 			pShield->InvalidatePointer(pAnim, false);
 
-		if (pExt->DelayedFire_Anim == pAnim)
+		if (pExt->DelayedFire_Anim.get() == pAnim)
 		{
-			pExt->DelayedFire_Anim = nullptr;
+			pExt->DelayedFire_Anim.reset(nullptr);
 			pExt->DelayedFire_Anim_LoopCount = -1;
 		}
 

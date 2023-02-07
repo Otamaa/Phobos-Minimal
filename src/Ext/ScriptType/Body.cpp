@@ -35,8 +35,6 @@ void ScriptTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	this->Serialize(Stm);
 }
 
-void ScriptTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
-
 bool ScriptTypeExt::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm

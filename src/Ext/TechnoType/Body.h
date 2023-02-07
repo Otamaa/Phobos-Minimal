@@ -747,13 +747,15 @@ public:
 
 		{ }
 
-		virtual ~ExtData() = default;
-		void LoadFromINIFile(CCINIClass* pINI);
-		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
+		virtual ~ExtData() override = default;
+		virtual void LoadFromINIFile(CCINIClass* pINI);
+		void LoadFromINIFile_Aircraft(CCINIClass* pINI) ;
 		void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
 
-		void Initialize();
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+		virtual void Initialize() override;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -769,17 +771,11 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TechnoTypeExt
-#ifndef ENABLE_NEWEXT
-, true
-, true
-#endif
-	>
+	class ExtContainer final : public Container<TechnoTypeExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-	//	void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

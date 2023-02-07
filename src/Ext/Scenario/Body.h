@@ -66,13 +66,16 @@ public:
 		void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
 		void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
 
-		virtual ~ExtData() = default;
+		virtual ~ExtData() override  = default;
 		void Uninitialize() { }
-		void LoadFromINIFile(CCINIClass* pINI);
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 	
 		void LoadBasicFromINIFile(CCINIClass* pINI);
 		void FetchVariables(ScenarioClass* pScen);
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
+
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -106,7 +109,13 @@ public:
 
 	static void PointerGotInvalid(void* ptr, bool removed)
 	{
-		//Global()->InvalidatePointer(ptr, removed);
+		if (auto pGlobal = Global())
+		{
+			if (pGlobal->InvalidateIgnorable(ptr))
+				return;
+
+			pGlobal->InvalidatePointer(ptr, removed);
+		}
 	}
 
 	static NOINLINE std::map<int, ExtendedVariable>& GetVariables(bool IsGlobal);

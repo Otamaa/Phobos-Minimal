@@ -31,17 +31,18 @@ public:
 			//Built the new blitters here
 		}
 
-		virtual ~ExtData() = default;
-		void InvalidatePointer(void *ptr, bool bRemoved) {}
-		void InitializeConstants();
+		virtual ~ExtData() override = default;
+		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; };
+
+		virtual void InitializeConstants() override;
 	};
 
-	class ExtContainer final : public Container<ConvertExt ,true , true , true >
+	class ExtContainer final : public Container<ConvertExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-		void InvalidatePointer(void* ptr, bool bRemoved);
 	};
 
 	static ExtContainer ExtMap;

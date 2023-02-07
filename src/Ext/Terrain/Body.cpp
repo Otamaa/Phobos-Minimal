@@ -12,18 +12,17 @@ void TerrainExt::ExtData::InitializeConstants()
 
 void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
-	{
-	case AbstractType::Anim:
-	case AbstractType::LightSource:
-	{
-		AnnounceInvalidPointer(LighSource, ptr);
-		AnnounceInvalidPointer(AttachedAnim, ptr);
-	}
-	break;
-	default:
+	if (this->InvalidateIgnorable(ptr))
 		return;
+
+	if (auto& pLignt = this->LighSource) {
+		if (pLignt.get() == ptr)
+			pLignt.reset(nullptr);
+	}
+
+	if (auto& pAnim = this->AttachedAnim) {
+		if (pAnim.get() == ptr)
+			pAnim.reset(nullptr);
 	}
 }
 
@@ -45,9 +44,9 @@ void TerrainExt::ExtData::InitializeLightSource()
 		auto Tint = TypeData->GetLightTint();
 		auto Coords = this->Get()->GetCoords();
 
-		if (auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
+		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
-			this->LighSource = light;
+			this->LighSource.reset(light);
 			this->LighSource->Activate();
 		}
 	}
@@ -72,10 +71,8 @@ void TerrainExt::ExtData::InitializeAnim()
 		{
 			auto const Coords = this->Get()->GetCoords();
 
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, Coords))
-			{
-				//pAnim->SetOwnerObject(this->Get());
-				AttachedAnim = pAnim;
+			if (const auto pAnim = GameCreate<AnimClass>(pAnimType, Coords)) {
+				AttachedAnim.reset(pAnim);
 			}
 		}
 	}
@@ -83,10 +80,8 @@ void TerrainExt::ExtData::InitializeAnim()
 
 void TerrainExt::ExtData::ClearAnim()
 {
-	if (AttachedAnim)
-	{
-		CallDTOR<false>(AttachedAnim);
-		AttachedAnim = nullptr;
+	if (AttachedAnim) {
+		AttachedAnim.release();
 	}
 }
 
@@ -96,8 +91,7 @@ void TerrainExt::ExtData::ClearLightSource()
 	if (LighSource)
 	{
 		LighSource->Deactivate();
-		CallDTOR<false>(LighSource);
-		LighSource = nullptr;
+		LighSource.release();
 	}
 }
 
@@ -159,8 +153,6 @@ void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 	TExtension<TerrainClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
-
-void TerrainExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 bool TerrainExt::LoadGlobals(PhobosStreamReader& Stm)
 {

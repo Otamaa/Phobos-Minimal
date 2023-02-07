@@ -74,13 +74,12 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override;
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
-		void Uninitialize();
-
+		virtual void InitializeConstants()override ;
+	
 		void ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel);
 		void InitializeLaserTrails();
 
@@ -89,29 +88,27 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<BulletExt
-#ifdef AAENABLE_NEWEXT
-, true
-, true
-#endif
-	> {
+	class ExtContainer final : public TExtensionContainer<BulletExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
-		//virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
-		//{
-		//	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-		//	switch (abs)
-		//	{
-		//	case AbstractType::House:
-		//		return false;
-		//	default:
-		//		return true;
-		//	}
-		//}
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		{
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Building:
+			case AbstractType::Infantry:
+			case AbstractType::Unit:
+			case AbstractType::Aircraft:
+				return false;
+			default:
+				return true;
+			}
+		}
 	};
 
 	static void InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon);

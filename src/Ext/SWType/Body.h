@@ -130,13 +130,13 @@ public:
 		void ApplyDetonation(HouseClass* pHouse, const CellStruct& cell);
 		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
 
-		void LoadFromINIFile(CCINIClass* pINI);
-		virtual ~ExtData() = default;
-		// void InvalidatePointer(void* ptr, bool bRemoved) { }
-
+		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual ~ExtData() override  = default;
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
+		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
 	private:
 
 		std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
@@ -148,17 +148,24 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SWTypeExt
-#ifdef ENABLE_NEWHOOKS
-		,true,false,true
-#endif
-	>
+	class ExtContainer final : public TExtensionContainer<SWTypeExt>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const { 
+			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
+			switch (abs)
+			{
+			case AbstractType::Super:
+				return false;
+			}
+
+			return true;
+		
+		}
 	};
 
 	static ExtContainer ExtMap;

@@ -57,7 +57,7 @@ public:
 		// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 		// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 		HouseClass* OriginalPassengerOwner;
-		AnimClass* DelayedFire_Anim;
+		UniqueGamePtr<AnimClass> DelayedFire_Anim;
 		int DelayedFire_Anim_LoopCount;
 		int DelayedFire_DurationTimer;
 		bool IsInTunnel;
@@ -125,7 +125,7 @@ public:
 			, DamageNumberOffset {}
 			, CurrentLaserWeaponIndex {}
 			, OriginalPassengerOwner{ nullptr }
-			, DelayedFire_Anim { nullptr }
+			, DelayedFire_Anim { }
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_DurationTimer { 0 }
 			, IsInTunnel { false }
@@ -173,29 +173,18 @@ public:
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
 		}
 
-		virtual ~ExtData()
-		{
-#ifdef COMPILE_PORTED_DP_FEATURES
-			ExtraWeaponTimers.clear();
+		virtual ~ExtData() override = default;
 
-#ifdef ENABLE_HOMING_MISSILE
-			if (MissileTargetTracker)
-				HomingMissileTargetTracker::Remove(MissileTargetTracker);
-#endif
-#endif
-			TechnoExt::ResetDelayFireAnim(this->Get());
-		}
-
-		void InvalidatePointer(void* ptr, bool bRemoved);
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
+		virtual bool InvalidateIgnorable(void* const ptr) const override;
 
 		ShieldClass* GetShield() const {
 			return this->Shield.get();
 		}
 
-		//virtual size_t GetSize() const override { return sizeof(*this); }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		void InitializeConstants();
+		virtual void InitializeConstants() override;
 
 		bool CheckDeathConditions();
 		bool UpdateKillSelf_Slave();
@@ -230,12 +219,7 @@ public:
 		int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData , FootClass const* pPassenger);
 	};
 
-	class ExtContainer final : public Container<TechnoExt
-#ifndef ENABLE_NEWEXT
-, true
-, true
-#endif
-	>
+	class ExtContainer final : public Container<TechnoExt>
 
 	{
 	public:

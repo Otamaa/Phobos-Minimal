@@ -160,7 +160,7 @@ const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKill
 				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
 				auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
 
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim,pAnimTypeExt, pInvoker, pThis->Owner,true)) {
+				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner,true)) {
 					pAnimExt->Invoker = pThis;
 				}
 
@@ -238,13 +238,13 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 
 void AnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	Extension<AnimTypeClass>::Serialize(Stm);
+	Extension<AnimTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void AnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Extension<AnimTypeClass>::Serialize(Stm);
+	Extension<AnimTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 

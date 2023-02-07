@@ -78,8 +78,6 @@ bool ScriptExt::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 
 ScriptExt::ExtContainer::ExtContainer() : TExtensionContainer("ScriptClass") { }
-void ScriptExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
-
 ScriptExt::ExtContainer::~ExtContainer() = default;
 
 /*
