@@ -12,12 +12,12 @@ void SpawnManagerExt::ExtData::Serialize(T& Stm) {
 }
 
 void SpawnManagerExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	TExtension<SpawnManagerClass>::LoadFromStream(Stm);
+	Extension<SpawnManagerClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SpawnManagerExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	TExtension<SpawnManagerClass>::SaveToStream(Stm);
+	Extension<SpawnManagerClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -36,7 +36,7 @@ bool SpawnManagerExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SpawnManagerExt::ExtContainer::ExtContainer() : TExtensionContainer("SpawnManagerClass") { };
+SpawnManagerExt::ExtContainer::ExtContainer() : Container("SpawnManagerClass") { };
 SpawnManagerExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

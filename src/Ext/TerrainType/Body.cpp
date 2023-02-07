@@ -80,13 +80,13 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 void TerrainTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TerrainTypeClass>::LoadFromStream(Stm);
+	Extension<TerrainTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TerrainTypeClass>::SaveToStream(Stm);
+	Extension<TerrainTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -117,7 +117,7 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 
-TerrainTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("TerrainTypeClass") { }
+TerrainTypeExt::ExtContainer::ExtContainer() : Container("TerrainTypeClass") { }
 TerrainTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

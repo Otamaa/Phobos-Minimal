@@ -675,13 +675,13 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<WarheadTypeClass>::LoadFromStream(Stm);
+	Extension<WarheadTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void WarheadTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<WarheadTypeClass>::SaveToStream(Stm);
+	Extension<WarheadTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -698,7 +698,7 @@ bool WarheadTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-WarheadTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("WarheadTypeClass") { }
+WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 
 //void WarheadTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }

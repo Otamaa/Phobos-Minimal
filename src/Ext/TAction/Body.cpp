@@ -38,13 +38,13 @@ void TActionExt::ExtData::Serialize(T& Stm)
 
 void TActionExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TActionClass>::LoadFromStream(Stm);
+	Extension<TActionClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TActionExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TActionClass>::SaveToStream(Stm);
+	Extension<TActionClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -78,7 +78,7 @@ void TActionExt::ExtContainer::Clear()
 // =============================
 // container
 
-TActionExt::ExtContainer::ExtContainer() : TExtensionContainer("TActionClass") { };
+TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
 TActionExt::ExtContainer::~ExtContainer() = default;
 
 //==============================

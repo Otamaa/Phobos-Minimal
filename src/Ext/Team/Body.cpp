@@ -433,13 +433,13 @@ void TeamExt::ExtData::Serialize(T& Stm)
 
 void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TeamClass>::LoadFromStream(Stm);
+	Extension<TeamClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TeamClass>::SaveToStream(Stm);
+	Extension<TeamClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -458,7 +458,7 @@ bool TeamExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TeamExt::ExtContainer::ExtContainer() : TExtensionContainer("TeamClass") { }
+TeamExt::ExtContainer::ExtContainer() : Container("TeamClass") { }
 TeamExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
@@ -468,7 +468,7 @@ TeamExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x6E8D05, TeamClass_CTOR, 0x5)
 {
 	GET(TeamClass*, pThis, ESI);
-	TeamExt::ExtMap.SetIExtension(pThis);
+	TeamExt::ExtMap.Allocate(pThis);
 	return 0;
 }
 

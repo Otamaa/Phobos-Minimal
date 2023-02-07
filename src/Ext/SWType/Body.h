@@ -16,7 +16,7 @@ public:
 	//static constexpr size_t ExtOffset = 0xAC;
 #endif
 
-	class ExtData final : public TExtension<SuperWeaponTypeClass>
+	class ExtData final : public Extension<SuperWeaponTypeClass>
 	{
 	public:
 
@@ -67,7 +67,7 @@ public:
 		Valueable<int> SW_Priority;
 		Nullable<int> SW_Damage;
 
-		ExtData(SuperWeaponTypeClass* OwnerObject) : TExtension<SuperWeaponTypeClass>(OwnerObject)
+		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
 			, UIDescription {}
 			, CameoPriority { 0 }
@@ -148,7 +148,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SWTypeExt>
+	class ExtContainer final : public Container<SWTypeExt>
 	{
 	public:
 		ExtContainer();

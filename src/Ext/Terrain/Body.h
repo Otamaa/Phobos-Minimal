@@ -20,14 +20,14 @@ public:
 	static constexpr size_t ExtOffset = 0xD0;
 #endif
 
-	class ExtData final : public TExtension<TerrainClass>
+	class ExtData final : public Extension<TerrainClass>
 	{
 	public:
 
 		UniqueGamePtr<LightSourceClass> LighSource;
 		UniqueGamePtr<AnimClass> AttachedAnim;
 
-		ExtData(TerrainClass* OwnerObject) : TExtension<TerrainClass>(OwnerObject)
+		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
 			, LighSource { }
 			, AttachedAnim { }
 		{ }
@@ -64,7 +64,7 @@ public:
 
 	};
 
-	class ExtContainer final : public TExtensionContainer<TerrainExt>
+	class ExtContainer final : public Container<TerrainExt>
 	{
 	public:
 		ExtContainer();

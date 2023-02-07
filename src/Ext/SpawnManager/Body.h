@@ -11,11 +11,11 @@ public:
 	static constexpr size_t Canary = 0x99954321;
 	using base_type = SpawnManagerClass;
 
-	class ExtData final : public TExtension<SpawnManagerClass>
+	class ExtData final : public Extension<SpawnManagerClass>
 	{
 	public:
 
-		ExtData(SpawnManagerClass* OwnerObject) : TExtension<SpawnManagerClass>(OwnerObject)
+		ExtData(SpawnManagerClass* OwnerObject) : Extension<SpawnManagerClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -31,7 +31,7 @@ public:
 	};
 
 
-	class ExtContainer final : public TExtensionContainer<SpawnManagerExt>
+	class ExtContainer final : public Container<SpawnManagerExt>
 	{
 	public:
 		ExtContainer();

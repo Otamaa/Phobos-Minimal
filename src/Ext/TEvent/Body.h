@@ -58,10 +58,10 @@ public:
 	static constexpr size_t Canary = 0x91919191;
 	using base_type = TEventClass;
 
-	class ExtData final : public TExtension<TEventClass>
+	class ExtData final : public Extension<TEventClass>
 	{
 	public:
-		ExtData(TEventClass* const OwnerObject) : TExtension<TEventClass>(OwnerObject)
+		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -83,7 +83,7 @@ public:
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
 
-	class ExtContainer final : public TExtensionContainer<TEventExt>
+	class ExtContainer final : public Container<TEventExt>
 	{
 	public:
 		ExtContainer();

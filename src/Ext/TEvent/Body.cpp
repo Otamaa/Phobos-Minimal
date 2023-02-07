@@ -25,13 +25,13 @@ void TEventExt::ExtData::Serialize(T& Stm)
 
 void TEventExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TEventClass>::LoadFromStream(Stm);
+	Extension<TEventClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TEventExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TEventClass>::SaveToStream(Stm);
+	Extension<TEventClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -177,7 +177,7 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 // =============================
 // container
 
-TEventExt::ExtContainer::ExtContainer() : TExtensionContainer("TEventClass") { }
+TEventExt::ExtContainer::ExtContainer() : Container("TEventClass") { }
 TEventExt::ExtContainer::~ExtContainer() = default;
 
 bool TEventExt::LoadGlobals(PhobosStreamReader& Stm)

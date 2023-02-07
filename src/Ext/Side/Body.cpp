@@ -110,13 +110,13 @@ void SideExt::ExtData::Serialize(T& Stm)
 
 void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<SideClass>::LoadFromStream(Stm);
+	Extension<SideClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SideExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<SideClass>::SaveToStream(Stm);
+	Extension<SideClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -133,7 +133,7 @@ bool SideExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SideExt::ExtContainer::ExtContainer() : TExtensionContainer("SideClass") { }
+SideExt::ExtContainer::ExtContainer() : Container("SideClass") { }
 SideExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

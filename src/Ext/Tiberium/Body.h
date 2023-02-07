@@ -14,7 +14,7 @@ public:
 	static constexpr size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
 
-	class ExtData final : public TExtension<TiberiumClass>
+	class ExtData final : public Extension<TiberiumClass>
 	{
 	public:
 		CustomPalette Palette;
@@ -27,7 +27,7 @@ public:
 		Valueable<bool> EnablePixelFXAnim;
 		//int Replaced_EC;
 
-		ExtData(TiberiumClass* OwnerObject) : TExtension<TiberiumClass>(OwnerObject)
+		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, OreTwinkle {}
 			, OreTwinkleChance {}
@@ -60,7 +60,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TiberiumExt>
+	class ExtContainer final : public Container<TiberiumExt>
 	{
 	public:
 		ExtContainer();

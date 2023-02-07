@@ -282,13 +282,13 @@ void BulletExt::ExtData::Serialize(T& Stm)
 
 void BulletExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<BulletClass>::LoadFromStream(Stm);
+	Extension<BulletClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BulletExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<BulletClass>::SaveToStream(Stm);
+	Extension<BulletClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -313,7 +313,7 @@ bool BulletExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BulletExt::ExtContainer::ExtContainer() : TExtensionContainer("BulletClass") { }
+BulletExt::ExtContainer::ExtContainer() : Container("BulletClass") { }
 BulletExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

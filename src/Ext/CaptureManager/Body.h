@@ -15,11 +15,11 @@ public:
 	static constexpr size_t Canary = 0x87654121;
 	using base_type = CaptureManagerClass;
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
 
-		ExtData(CaptureManagerClass* OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -34,7 +34,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<CaptureExt>
+	class ExtContainer final : public Container<CaptureExt>
 	{
 	public:
 		ExtContainer();

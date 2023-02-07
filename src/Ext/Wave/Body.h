@@ -14,11 +14,11 @@ public:
 	static constexpr size_t Canary = 0xAAAAAAAC;
 	using base_type = WaveClass;
 
-	class ExtData final : public TExtension<WaveClass>
+	class ExtData final : public Extension<WaveClass>
 	{
 	public:
 
-		ExtData(WaveClass* OwnerObject) : TExtension<WaveClass>(OwnerObject)
+		ExtData(WaveClass* OwnerObject) : Extension<WaveClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -34,7 +34,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<WaveExt>
+	class ExtContainer final : public Container<WaveExt>
 	{
 	public:
 		ExtContainer();

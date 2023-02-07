@@ -32,13 +32,13 @@ void BombExt::ExtData::Serialize(T& Stm) { }
 
 void BombExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<BombClass>::LoadFromStream(Stm);
+	Extension<BombClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<BombClass>::SaveToStream(Stm);
+	Extension<BombClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -74,7 +74,7 @@ bool BombExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-BombExt::ExtContainer::ExtContainer() : TExtensionContainer("BombClass") { };
+BombExt::ExtContainer::ExtContainer() : Container("BombClass") { };
 BombExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

@@ -56,12 +56,12 @@ void ParasiteExt::ExtData::Serialize(T& Stm) {
 }
 
 void ParasiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	TExtension<ParasiteClass>::LoadFromStream(Stm);
+	Extension<ParasiteClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void ParasiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	TExtension<ParasiteClass>::SaveToStream(Stm);
+	Extension<ParasiteClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -80,7 +80,7 @@ bool ParasiteExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ParasiteExt::ExtContainer::ExtContainer() : TExtensionContainer("ParasiteClass") { };
+ParasiteExt::ExtContainer::ExtContainer() : Container("ParasiteClass") { };
 ParasiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

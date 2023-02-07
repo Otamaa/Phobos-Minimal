@@ -13,7 +13,7 @@ public:
 	static constexpr size_t Canary = 0xBEE79008;
 	using base_type = TeamTypeClass;
 
-	class ExtData final : public TExtension<TeamTypeClass>
+	class ExtData final : public Extension<TeamTypeClass>
 	{
 	public:
 
@@ -21,7 +21,7 @@ public:
 		Nullable<int> AI_FriendlyDistance;
 		Nullable<bool> AttackWaypoint_AllowCell;
 
-		ExtData(TeamTypeClass* OwnerObject) : TExtension<TeamTypeClass>(OwnerObject)
+		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
 			, AI_SafeDIstance { }
 			, AI_FriendlyDistance { }
 			, AttackWaypoint_AllowCell { }
@@ -39,7 +39,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TeamTypeExt>
+	class ExtContainer final : public Container<TeamTypeExt>
 	{
 	public:
 		ExtContainer();

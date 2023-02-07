@@ -10,13 +10,13 @@ void DiskLaserExt::ExtData::Serialize(T& Stm) { }
 
 void DiskLaserExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<DiskLaserClass>::LoadFromStream(Stm);
+	Extension<DiskLaserClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void DiskLaserExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<DiskLaserClass>::SaveToStream(Stm);
+	Extension<DiskLaserClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -33,7 +33,7 @@ bool DiskLaserExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-DiskLaserExt::ExtContainer::ExtContainer() : TExtensionContainer("DiskLaserClass") { };
+DiskLaserExt::ExtContainer::ExtContainer() : Container("DiskLaserClass") { };
 DiskLaserExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

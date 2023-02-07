@@ -47,7 +47,7 @@ public:
 	static constexpr size_t Canary = 0x87154321;
 	using base_type = TActionClass;
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
 
@@ -58,7 +58,7 @@ public:
 		std::string Parm5;
 		std::string Parm6;
 
-		ExtData(TActionClass* const OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
 		, Value1 { }
 		, Value2 { }
 		, Parm3 { }
@@ -80,7 +80,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TActionExt>
+	class ExtContainer final : public Container<TActionExt>
 	{
 	public:
 		ExtContainer();

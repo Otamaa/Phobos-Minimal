@@ -9,11 +9,11 @@ public:
 	static constexpr size_t Canary = 0x87659771;
 	using base_type = DiskLaserClass;
 
-	class ExtData final : public TExtension<DiskLaserClass>
+	class ExtData final : public Extension<DiskLaserClass>
 	{
 	public:
-		
-		ExtData(DiskLaserClass* OwnerObject) : TExtension<DiskLaserClass>(OwnerObject)
+
+		ExtData(DiskLaserClass* OwnerObject) : Extension<DiskLaserClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -28,7 +28,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<DiskLaserExt>
+	class ExtContainer final : public Container<DiskLaserExt>
 	{
 	public:
 		ExtContainer();

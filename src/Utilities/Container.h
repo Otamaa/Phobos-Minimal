@@ -172,6 +172,7 @@ private:
 	using base_type_ptr = base_type*;
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
+	using extension_type_ref_ptr = extension_type**;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -223,6 +224,14 @@ protected:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
 
+	void ClearExtAttribute(base_type_ptr key)
+	{
+		if constexpr (HasOffset<T>)
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		else
+			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+	}
+
 public:
 
 	// using virtual is good way so i can integrate different type of these
@@ -230,16 +239,19 @@ public:
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+		ClearExtAttribute(key);
 
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
+			if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+			else
+			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
+
 			return val;
 		}
 
-		Debug::Log("CTOR of %s failed to allocate extension ! WTF!\n", this->Name.data());
 		return nullptr;
 	}
 
@@ -251,38 +263,40 @@ public:
 			return;
 		}
 
-		(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-
-		if (const auto val = new extension_type(key))
-		{
-			val->EnsureConstanted();
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-		}
+		Allocate(key);
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
-		if (auto const ptr = Find(key))
+		// Find Always check for nullptr here
+		if (auto const ptr = Find<true>(key))
 			return ptr;
 
 		return Allocate(key);
 	}
 
 	template<bool check = false>
-	extension_type_ptr Find(const_base_type_ptr key) const
+	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		if constexpr (check){
-				return key ? (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)) : nullptr;
-		} else {
-				return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset)); 
+		if constexpr (check) {
+			if (!key)
+				return nullptr;
 		}
+
+		if constexpr (HasOffset<T>)
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
+
+		else
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
+
 	}
 
-	void Remove(const_base_type_ptr key)
+	void Remove(base_type_ptr key)
 	{
-		if (auto Item = (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset))) {
+		if (auto Item = Find<false>(key)) {
 			delete Item;
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
+
+			ClearExtAttribute(key);
 		}
 	}
 
@@ -396,9 +410,7 @@ protected:
 			return nullptr;
 		}
 
-		extension_type_ptr buffer = nullptr;
-		this->JustAllocate(key, true, "");
-		buffer = this->Find(key);
+		extension_type_ptr buffer = this->Allocate(key);
 
 		if (!buffer)
 		{

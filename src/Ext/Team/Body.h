@@ -13,11 +13,8 @@ class TeamExt
 public:
 	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
-	class ExtData final : public TExtension<TeamClass>
+	class ExtData final : public Extension<TeamClass>
 	{
 	public:
 		int WaitNoTargetAttempts;
@@ -67,7 +64,7 @@ public:
 		std::vector<TechnoClass*> MapPath_ValidBridgeRepairHuts;
 		std::vector<TechnoClass*> MapPath_CheckedBridgeRepairHuts;
 
-		ExtData(TeamClass* OwnerObject) : TExtension<TeamClass>(OwnerObject)
+		ExtData(TeamClass* OwnerObject) : Extension<TeamClass>(OwnerObject)
 			, WaitNoTargetAttempts { 0 }
 			, NextSuccessWeightAward { 0 }
 			, IdxSelectedObjectFromAIList { -1 }
@@ -121,7 +118,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TeamExt>
+	class ExtContainer final : public Container<TeamExt>
 	{
 	public:
 		ExtContainer();

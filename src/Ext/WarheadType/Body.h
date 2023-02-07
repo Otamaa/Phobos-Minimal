@@ -24,7 +24,7 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WarheadTypeClass;
 
-	class ExtData final : public TExtension<WarheadTypeClass>
+	class ExtData final : public Extension<WarheadTypeClass>
 	{
 	public:
 
@@ -222,7 +222,7 @@ public:
 	#endif
 		#pragma endregion
 
-		ExtData(WarheadTypeClass* OwnerObject) : TExtension<WarheadTypeClass>(OwnerObject)
+		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, SpySat { false }
 			, BigGap { false }
 			, TransactMoney { 0 }
@@ -453,7 +453,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<WarheadTypeExt>
+	class ExtContainer final : public Container<WarheadTypeExt>
 	{
 	public:
 		ExtContainer();

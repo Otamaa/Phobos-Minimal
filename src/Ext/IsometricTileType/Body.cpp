@@ -107,13 +107,13 @@ void IsometricTileTypeExt::ExtData::Serialize(T& Stm)
 
 void IsometricTileTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<IsometricTileTypeClass>::LoadFromStream(Stm);
+	Extension<IsometricTileTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void IsometricTileTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<IsometricTileTypeClass>::SaveToStream(Stm);
+	Extension<IsometricTileTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -146,7 +146,7 @@ bool IsometricTileTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-IsometricTileTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("IsometricTileTypeClass") { }
+IsometricTileTypeExt::ExtContainer::ExtContainer() : Container("IsometricTileTypeClass") { }
 IsometricTileTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

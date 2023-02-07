@@ -50,13 +50,13 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 
 void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TiberiumClass>::LoadFromStream(Stm);
+	Extension<TiberiumClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TiberiumClass>::SaveToStream(Stm);
+	Extension<TiberiumClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -72,7 +72,7 @@ bool TiberiumExt::SaveGlobals(PhobosStreamWriter& Stm)
 		.Success();
 }
 
-TiberiumExt::ExtContainer::ExtContainer() : TExtensionContainer("TiberiumClass") {}
+TiberiumExt::ExtContainer::ExtContainer() : Container("TiberiumClass") {}
 TiberiumExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

@@ -20,7 +20,7 @@ public:
 	static constexpr size_t Canary = 0x22222222;
 	using base_type = WeaponTypeClass;
 
-	class ExtData final : public TExtension<WeaponTypeClass>
+	class ExtData final : public Extension<WeaponTypeClass>
 	{
 	public:
 
@@ -82,7 +82,7 @@ public:
 
 		Valueable<int> Ammo;
 
-		ExtData(WeaponTypeClass* OwnerObject) : TExtension<WeaponTypeClass>(OwnerObject)
+		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
 			, RadType {}
@@ -150,7 +150,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final :public TExtensionContainer<WeaponTypeExt>
+	class ExtContainer final :public Container<WeaponTypeExt>
 	{
 	public:
 		ExtContainer();

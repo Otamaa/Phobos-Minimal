@@ -52,13 +52,13 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 
 void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<ParticleTypeClass>::LoadFromStream(Stm);
+	Extension<ParticleTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<ParticleTypeClass>::SaveToStream(Stm);
+	Extension<ParticleTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -77,7 +77,7 @@ bool ParticleTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ParticleTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("ParticleTypeClass") {}
+ParticleTypeExt::ExtContainer::ExtContainer() : Container("ParticleTypeClass") {}
 ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

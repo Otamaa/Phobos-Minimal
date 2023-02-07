@@ -165,13 +165,13 @@ void CaptureExt::ExtData::Serialize(T& Stm) { }
 
 void CaptureExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<CaptureManagerClass>::LoadFromStream(Stm);
+	Extension<CaptureManagerClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void CaptureExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<CaptureManagerClass>::SaveToStream(Stm);
+	Extension<CaptureManagerClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -189,7 +189,7 @@ bool CaptureExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CaptureExt::ExtContainer::ExtContainer() : TExtensionContainer("CaptureManagerClass") { };
+CaptureExt::ExtContainer::ExtContainer() : Container("CaptureManagerClass") { };
 CaptureExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

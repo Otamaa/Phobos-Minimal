@@ -11,7 +11,7 @@ public:
 	using base_type = HouseTypeClass;
 	static constexpr DWORD Canary = 0x1111111A;
 
-	class ExtData final : public TExtension<HouseTypeClass>
+	class ExtData final : public Extension<HouseTypeClass>
 	{
 	public:
 		Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
@@ -20,7 +20,7 @@ public:
 		Nullable<double> NewTeamsSelector_NavalCategoryPercentage;
 		Nullable<double> NewTeamsSelector_AirCategoryPercentage;
 
-		ExtData(HouseTypeClass* OwnerObject) : TExtension<HouseTypeClass>(OwnerObject)
+		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
 			, NewTeamsSelector_MergeUnclassifiedCategoryWith { }
 			, NewTeamsSelector_UnclassifiedCategoryPercentage { }
 			, NewTeamsSelector_GroundCategoryPercentage { }
@@ -45,7 +45,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<HouseTypeExt>
+	class ExtContainer final : public Container<HouseTypeExt>
 	{
 	public:
 		ExtContainer();

@@ -21,13 +21,13 @@ void WaveExt::ExtData::Serialize(T& Stm)
 
 void WaveExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<WaveClass>::LoadFromStream(Stm);
+	Extension<WaveClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void WaveExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<WaveClass>::SaveToStream(Stm);
+	Extension<WaveClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -46,7 +46,7 @@ bool WaveExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-WaveExt::ExtContainer::ExtContainer() : TExtensionContainer("WaveClass") {}
+WaveExt::ExtContainer::ExtContainer() : Container("WaveClass") {}
 WaveExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

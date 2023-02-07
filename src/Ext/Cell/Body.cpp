@@ -46,13 +46,13 @@ void CellExt::ExtData::Serialize(T& Stm) {
 
 void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<CellClass>::LoadFromStream(Stm);
+	Extension<CellClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void CellExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<CellClass>::SaveToStream(Stm);
+	Extension<CellClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -71,7 +71,7 @@ bool CellExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-CellExt::ExtContainer::ExtContainer() : TExtensionContainer("CellClass") { };
+CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
 CellExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

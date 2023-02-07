@@ -19,7 +19,7 @@ public:
 	//static constexpr size_t ExtOffset = 0x44;
 #endif
 
-	class ExtData final : public TExtension<base_type>
+	class ExtData final : public Extension<base_type>
 	{
 	public:
 		RadTypeClass* Type;
@@ -28,7 +28,7 @@ public:
 		bool NoOwner;
 		//int Spread;
 
-		ExtData(base_type* OwnerObject) : TExtension<base_type>(OwnerObject)
+		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, Type { nullptr }
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
@@ -39,7 +39,7 @@ public:
 		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
-		virtual bool InvalidateIgnorable(void* const ptr) const override { 	
+		virtual bool InvalidateIgnorable(void* const ptr) const override { 
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
 			switch (abs)
 			{
@@ -70,7 +70,7 @@ public:
 
 	static void CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
-	class ExtContainer final : public TExtensionContainer<RadSiteExt>
+	class ExtContainer final : public Container<RadSiteExt>
 	{
 	public:
 		ExtContainer();

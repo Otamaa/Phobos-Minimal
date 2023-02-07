@@ -15,12 +15,12 @@ public:
 	static constexpr DWORD Canary = 0x91577125;
 	using base_type = IsometricTileTypeClass;
 
-	class ExtData final : public TExtension<IsometricTileTypeClass>
+	class ExtData final : public Extension<IsometricTileTypeClass>
 	{
 	public:
 		Valueable<int> Tileset;
 		Valueable<bool> BlockJumpjet;
-		ExtData(IsometricTileTypeClass* OwnerObject) : TExtension<IsometricTileTypeClass>(OwnerObject)
+		ExtData(IsometricTileTypeClass* OwnerObject) : Extension<IsometricTileTypeClass>(OwnerObject)
 			, Tileset { -1 }
 			, BlockJumpjet { false }
 		{ }
@@ -48,7 +48,7 @@ public:
 	static LightConvertClass* IsometricTileTypeExt::InitDrawer(int nLookUpIdx, int red, int green, int blue);
 	static void LoadPaletteFromName(int nTileset,const std::string_view PaletteName);
 #endif
-	class ExtContainer final : public TExtensionContainer<IsometricTileTypeExt>
+	class ExtContainer final : public Container<IsometricTileTypeExt>
 	{
 	public:
 		ExtContainer();

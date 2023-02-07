@@ -25,13 +25,13 @@ void ScriptTypeExt::ExtData::Serialize(T& Stm)
 
 void ScriptTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<ScriptTypeClass>::LoadFromStream(Stm);
+	Extension<ScriptTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void ScriptTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<ScriptTypeClass>::SaveToStream(Stm);
+	Extension<ScriptTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -50,7 +50,7 @@ bool ScriptTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ScriptTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("ScriptTypeClass") { }
+ScriptTypeExt::ExtContainer::ExtContainer() : Container("ScriptTypeClass") { }
 ScriptTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

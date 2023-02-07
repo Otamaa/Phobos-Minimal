@@ -89,13 +89,13 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 
 void VoxelAnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<VoxelAnimClass>::LoadFromStream(Stm);
+	Extension<VoxelAnimClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<VoxelAnimClass>::SaveToStream(Stm);
+	Extension<VoxelAnimClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -114,7 +114,7 @@ bool VoxelAnimExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-VoxelAnimExt::ExtContainer::ExtContainer() : TExtensionContainer("VoxelAnimClass") { }
+VoxelAnimExt::ExtContainer::ExtContainer() : Container("VoxelAnimClass") { }
 VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

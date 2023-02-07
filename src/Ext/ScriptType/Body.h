@@ -16,12 +16,12 @@ public:
 	static constexpr size_t Canary = 0x414B4B41;
 	using base_type = ScriptTypeClass;
 
-	class ExtData final : public TExtension<ScriptTypeClass>
+	class ExtData final : public Extension<ScriptTypeClass>
 	{
 	public:
 
 		ValueableVector<ScriptActionNode> PhobosNode;
-		ExtData(ScriptTypeClass* OwnerObject) : TExtension<ScriptTypeClass>(OwnerObject)
+		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject)
 			, PhobosNode {}
 		{ }
 
@@ -40,7 +40,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<ScriptTypeExt>
+	class ExtContainer final : public Container<ScriptTypeExt>
 	{
 	public:
 		ExtContainer();

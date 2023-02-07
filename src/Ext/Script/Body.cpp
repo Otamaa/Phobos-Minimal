@@ -53,13 +53,13 @@ static inline bool IsEmpty(TeamClass* pTeam)
 
 void ScriptExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<ScriptClass>::LoadFromStream(Stm);
+	Extension<ScriptClass>::LoadFromStream(Stm);
 	// Nothing yet
 }
 
 void ScriptExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<ScriptClass>::SaveToStream(Stm);
+	Extension<ScriptClass>::SaveToStream(Stm);
 	// Nothing yet
 }
 
@@ -77,7 +77,7 @@ bool ScriptExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-ScriptExt::ExtContainer::ExtContainer() : TExtensionContainer("ScriptClass") { }
+ScriptExt::ExtContainer::ExtContainer() : Container("ScriptClass") { }
 ScriptExt::ExtContainer::~ExtContainer() = default;
 
 /*

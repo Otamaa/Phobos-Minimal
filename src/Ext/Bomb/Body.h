@@ -9,11 +9,11 @@ public:
 	static constexpr size_t Canary = 0x87659781;
 	using base_type = BombClass;
 
-	class ExtData final : public TExtension<BombClass>
+	class ExtData final : public Extension<BombClass>
 	{
 	public:
-		
-		ExtData(BombClass* OwnerObject) : TExtension<BombClass>(OwnerObject)
+
+		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -28,7 +28,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<BombExt>
+	class ExtContainer final : public Container<BombExt>
 	{
 	public:
 		ExtContainer();

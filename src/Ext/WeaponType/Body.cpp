@@ -184,14 +184,14 @@ void WeaponTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 
 void WeaponTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<WeaponTypeClass>::LoadFromStream(Stm);
+	Extension<WeaponTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 
 }
 
 void WeaponTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<WeaponTypeClass>::SaveToStream(Stm);
+	Extension<WeaponTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -278,7 +278,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 // =============================
 // container
 
-WeaponTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("WeaponTypeClass") { }
+WeaponTypeExt::ExtContainer::ExtContainer() : Container("WeaponTypeClass") { }
 WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

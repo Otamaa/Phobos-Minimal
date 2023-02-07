@@ -12,7 +12,7 @@ public:
 	static constexpr size_t Canary = 0xBEE78007;
 	using base_type = TerrainTypeClass;
 
-	class ExtData final : public TExtension<TerrainTypeClass>
+	class ExtData final : public Extension<TerrainTypeClass>
 	{
 	public:
 		CustomPalette CustomPalette;
@@ -40,7 +40,7 @@ public:
 		Valueable<bool> AreaDamage;
 		#pragma endregion
 
-		ExtData(TerrainTypeClass* OwnerObject) : TExtension<TerrainTypeClass>(OwnerObject)
+		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
 			, CustomPalette { CustomPalette::PaletteMode::Temperate }
 			, SpawnsTiberium_Type { 0 }
 			, SpawnsTiberium_Range { 1 }
@@ -102,7 +102,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TerrainTypeExt> {
+	class ExtContainer final : public Container<TerrainTypeExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

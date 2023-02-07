@@ -50,13 +50,13 @@ void HouseTypeExt::ExtData::Serialize(T& Stm)
 
 void HouseTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<HouseTypeClass>::LoadFromStream(Stm);
+	Extension<HouseTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void HouseTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<HouseTypeClass>::SaveToStream(Stm);
+	Extension<HouseTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -79,7 +79,7 @@ bool HouseTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-HouseTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("HouseTypeClass") { }
+HouseTypeExt::ExtContainer::ExtContainer() : Container("HouseTypeClass") { }
 HouseTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

@@ -28,13 +28,13 @@ void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 
 void SmudgeTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<SmudgeTypeClass>::LoadFromStream(Stm);
+	Extension<SmudgeTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SmudgeTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<SmudgeTypeClass>::SaveToStream(Stm);
+	Extension<SmudgeTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -53,7 +53,7 @@ bool SmudgeTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SmudgeTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("SmudgeTypeClass") { }
+SmudgeTypeExt::ExtContainer::ExtContainer() : Container("SmudgeTypeClass") { }
 
 // =============================
 // container hooks

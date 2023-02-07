@@ -11,7 +11,7 @@ public:
 	static constexpr size_t Canary = 0x05B10501;
 	using base_type = SideClass;
 
-	class ExtData final : public TExtension<SideClass>
+	class ExtData final : public Extension<SideClass>
 	{
 	public:
 		Valueable<int> ArrayIndex;
@@ -37,7 +37,7 @@ public:
 		Nullable<int> GClock_Transculency;
 		//CustomPalette GClock_Palette {};
 
-		ExtData(SideClass* OwnerObject) : TExtension<SideClass>(OwnerObject)
+		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
 			, Sidebar_GDIPositions { false }
 			, IngameScore_WinTheme { -2 }
@@ -76,7 +76,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SideExt>
+	class ExtContainer final : public Container<SideExt>
 	{
 	public:
 		ExtContainer();

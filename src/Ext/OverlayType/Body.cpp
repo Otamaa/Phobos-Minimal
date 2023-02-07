@@ -23,13 +23,13 @@ void OverlayTypeExt::ExtData::Serialize(T& Stm)
 
 void OverlayTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<OverlayTypeClass>::LoadFromStream(Stm);
+	Extension<OverlayTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void OverlayTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<OverlayTypeClass>::SaveToStream(Stm);
+	Extension<OverlayTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -48,7 +48,7 @@ bool OverlayTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-OverlayTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("OverlayTypeClass") { }
+OverlayTypeExt::ExtContainer::ExtContainer() : Container("OverlayTypeClass") { }
 OverlayTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

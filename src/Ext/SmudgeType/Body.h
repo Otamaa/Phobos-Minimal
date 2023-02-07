@@ -12,13 +12,13 @@ public:
 	static constexpr size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
 
-	class ExtData final : public TExtension<SmudgeTypeClass>
+	class ExtData final : public Extension<SmudgeTypeClass>
 	{
 	public:
 
 		Valueable<bool> Clearable;
 
-		ExtData(SmudgeTypeClass* OwnerObject) : TExtension<SmudgeTypeClass>(OwnerObject)
+		ExtData(SmudgeTypeClass* OwnerObject) : Extension<SmudgeTypeClass>(OwnerObject)
 			, Clearable { true }
 		{ }
 
@@ -34,7 +34,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SmudgeTypeExt>
+	class ExtContainer final : public Container<SmudgeTypeExt>
 	{
 	public:
 		ExtContainer();

@@ -14,7 +14,7 @@ public:
 	static constexpr size_t Canary = 0x87688621;
 	using base_type = CellClass;
 
-	class ExtData final : public TExtension<CellClass>
+	class ExtData final : public Extension<CellClass>
 	{
 	public:
 
@@ -22,7 +22,7 @@ public:
 		//int NewPowerups;
 		//DynamicVectorClass<FoggedObject*> FoggedObjects;
 		//<RadSiteClass*> PlacedRadSite;
-		ExtData(CellClass* OwnerObject) : TExtension<CellClass>(OwnerObject)
+		ExtData(CellClass* OwnerObject) : Extension<CellClass>(OwnerObject)
 			//, AttachedTerrain {  }
 			//, PlacedRadSite { }
 			//, NewPowerups {-1}
@@ -47,7 +47,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<CellExt>
+	class ExtContainer final : public Container<CellExt>
 	{
 	public:
 		ExtContainer();

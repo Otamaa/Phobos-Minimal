@@ -24,7 +24,7 @@ public:
 	//static constexpr size_t ExtOffset = 0xE4;
 #endif
 
-	class ExtData final : public TExtension<BulletClass>
+	class ExtData final : public Extension<BulletClass>
 	{
 	public:
 		int CurrentStrength;
@@ -49,7 +49,7 @@ public:
 #pragma region
 		std::unique_ptr<PhobosTrajectory> Trajectory;
 
-		ExtData(BulletClass* OwnerObject) : TExtension<BulletClass>(OwnerObject)
+		ExtData(BulletClass* OwnerObject) : Extension<BulletClass>(OwnerObject)
 			, CurrentStrength { 0 }
 			, IsInterceptor { false }
 			, InterceptedStatus { InterceptedStatus::None }
@@ -88,7 +88,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<BulletExt> {
+	class ExtContainer final : public Container<BulletExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();

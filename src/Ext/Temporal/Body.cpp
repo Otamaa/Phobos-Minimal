@@ -18,13 +18,13 @@ void TemporalExt::ExtData::Serialize(T& Stm) {
 
 void TemporalExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TemporalClass>::LoadFromStream(Stm);
+	Extension<TemporalClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TemporalExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TemporalClass>::SaveToStream(Stm);
+	Extension<TemporalClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -40,7 +40,7 @@ bool TemporalExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container
-TemporalExt::ExtContainer::ExtContainer() : TExtensionContainer("TemporalClass") { };
+TemporalExt::ExtContainer::ExtContainer() : Container("TemporalClass") { };
 TemporalExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

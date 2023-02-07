@@ -148,13 +148,13 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 
 void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<RadSiteClass>::LoadFromStream(Stm);
+	Extension<RadSiteClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<RadSiteClass>::SaveToStream(Stm);
+	Extension<RadSiteClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -175,7 +175,7 @@ bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-RadSiteExt::ExtContainer::ExtContainer() : TExtensionContainer("RadSiteClass") { };
+RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
 RadSiteExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

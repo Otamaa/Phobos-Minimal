@@ -15,7 +15,7 @@ public:
 	static constexpr size_t Canary = 0xEAEEEEEE;
 	using base_type = ParticleTypeClass;
 
-	class ExtData final : public TExtension<ParticleTypeClass>
+	class ExtData final : public Extension<ParticleTypeClass>
 	{
 	public:
 
@@ -23,7 +23,7 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
-		ExtData(ParticleTypeClass* OwnerObject) : TExtension<ParticleTypeClass>(OwnerObject)
+		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
@@ -43,7 +43,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<ParticleTypeExt>
+	class ExtContainer final : public Container<ParticleTypeExt>
 	{
 	public:
 		ExtContainer();

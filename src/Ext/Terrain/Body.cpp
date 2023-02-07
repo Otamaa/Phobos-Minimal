@@ -144,13 +144,13 @@ void TerrainExt::ExtData::Serialize(T& Stm)
 
 void TerrainExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TerrainClass>::LoadFromStream(Stm);
+	Extension<TerrainClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TerrainClass>::SaveToStream(Stm);
+	Extension<TerrainClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -169,7 +169,7 @@ bool TerrainExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TerrainExt::ExtContainer::ExtContainer() : TExtensionContainer("TerrainClass") { }
+TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
 
 // container hooks

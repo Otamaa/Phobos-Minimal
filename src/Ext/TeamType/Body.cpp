@@ -32,13 +32,13 @@ void TeamTypeExt::ExtData::Serialize(T& Stm)
 
 void TeamTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<TeamTypeClass>::LoadFromStream(Stm);
+	Extension<TeamTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void TeamTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<TeamTypeClass>::SaveToStream(Stm);
+	Extension<TeamTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -57,7 +57,7 @@ bool TeamTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-TeamTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("TeamTypeClass") { }
+TeamTypeExt::ExtContainer::ExtContainer() : Container("TeamTypeClass") { }
 TeamTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

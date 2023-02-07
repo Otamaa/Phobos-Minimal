@@ -14,11 +14,11 @@ public:
 	using base_type = OverlayTypeClass;
 	static constexpr size_t Canary = 0x414B4B4A;
 
-	class ExtData final : public TExtension<OverlayTypeClass>
+	class ExtData final : public Extension<OverlayTypeClass>
 	{
 	public:
 
-		ExtData(OverlayTypeClass* OwnerObject) : TExtension<OverlayTypeClass>(OwnerObject)
+		ExtData(OverlayTypeClass* OwnerObject) : Extension<OverlayTypeClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() = default;
@@ -32,7 +32,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<OverlayTypeExt>
+	class ExtContainer final : public Container<OverlayTypeExt>
 	{
 	public:
 		ExtContainer();

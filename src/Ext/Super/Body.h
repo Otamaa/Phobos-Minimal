@@ -12,11 +12,11 @@ public:
 	static constexpr size_t Canary = 0x12311111;
 	using base_type = SuperClass;
 
-	class ExtData final : public TExtension<SuperClass>
+	class ExtData final : public Extension<SuperClass>
 	{
 	public:
 
-		ExtData(SuperClass* OwnerObject) : TExtension<SuperClass>(OwnerObject)
+		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override  = default;
@@ -30,7 +30,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<SuperExt>
+	class ExtContainer final : public Container<SuperExt>
 	{
 	public:
 		ExtContainer();

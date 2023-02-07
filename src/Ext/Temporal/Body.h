@@ -13,12 +13,12 @@ public:
 	static constexpr size_t Canary = 0x82229781;
 	using base_type = TemporalClass;
 
-	class ExtData final : public TExtension<TemporalClass>
+	class ExtData final : public Extension<TemporalClass>
 	{
 	public:
 
 		WeaponTypeClass* Weapon;
-		ExtData(TemporalClass* OwnerObject) : TExtension<TemporalClass>(OwnerObject)
+		ExtData(TemporalClass* OwnerObject) : Extension<TemporalClass>(OwnerObject)
 			, Weapon { nullptr }
 		{ }
 
@@ -34,7 +34,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<TemporalExt>
+	class ExtContainer final : public Container<TemporalExt>
 	{
 	public:
 		ExtContainer();

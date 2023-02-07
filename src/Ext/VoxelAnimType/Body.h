@@ -19,11 +19,8 @@ class VoxelAnimTypeExt
 public:
 	static constexpr size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
-#ifdef ENABLE_NEWHOOKS
-	static constexpr size_t ExtOffset = sizeof(base_type);
-#endif
 
-	class ExtData final : public TExtension<VoxelAnimTypeClass>
+	class ExtData final : public Extension<VoxelAnimTypeClass>
 	{
 	public:
 
@@ -42,7 +39,7 @@ public:
 #endif
 #pragma endregion
 
-		ExtData(VoxelAnimTypeClass* OwnerObject) : TExtension<VoxelAnimTypeClass>(OwnerObject)
+		ExtData(VoxelAnimTypeClass* OwnerObject) : Extension<VoxelAnimTypeClass>(OwnerObject)
 			, LaserTrail_Types { }
 			, Warhead_Detonate { false }
 			, SplashList { }
@@ -72,7 +69,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public TExtensionContainer<VoxelAnimTypeExt>
+	class ExtContainer final : public Container<VoxelAnimTypeExt>
 	{
 	public:
 		ExtContainer();

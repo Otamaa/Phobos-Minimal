@@ -206,12 +206,12 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 }
 
 void SWTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	TExtension<SuperWeaponTypeClass>::LoadFromStream(Stm);
+	Extension<SuperWeaponTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	TExtension<SuperWeaponTypeClass>::SaveToStream(Stm);
+	Extension<SuperWeaponTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -237,7 +237,7 @@ void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
 // =============================
 // container
 
-SWTypeExt::ExtContainer::ExtContainer() : TExtensionContainer("SuperWeaponTypeClass") {}
+SWTypeExt::ExtContainer::ExtContainer() : Container("SuperWeaponTypeClass") {}
 SWTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

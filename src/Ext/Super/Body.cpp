@@ -10,13 +10,13 @@ void SuperExt::ExtData::Serialize(T& Stm) { }
 
 void SuperExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
-	TExtension<SuperClass>::LoadFromStream(Stm);
+	Extension<SuperClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
 void SuperExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
-	TExtension<SuperClass>::SaveToStream(Stm);
+	Extension<SuperClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
@@ -35,7 +35,7 @@ bool SuperExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
-SuperExt::ExtContainer::ExtContainer() : TExtensionContainer("SuperClass") { }
+SuperExt::ExtContainer::ExtContainer() : Container("SuperClass") { }
 SuperExt::ExtContainer::~ExtContainer() = default;
 
 // =============================

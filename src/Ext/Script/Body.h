@@ -184,12 +184,12 @@ public:
 	static constexpr size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
-	class ExtData final : public TExtension<ScriptClass>
+	class ExtData final : public Extension<ScriptClass>
 	{
 	public:
 		// Nothing yet
 
-		ExtData(ScriptClass* OwnerObject) : TExtension<ScriptClass>(OwnerObject)
+		ExtData(ScriptClass* OwnerObject) : Extension<ScriptClass>(OwnerObject)
 			// Nothing yet
 		{ }
 
@@ -203,14 +203,14 @@ public:
 		virtual void InitializeConstants() override;
 	};
 
-	class ExtContainer final : public TExtensionContainer<ScriptExt> {
+	class ExtContainer final : public Container<ScriptExt> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
-	static ExtContainer ExtMap;	
-	
+	static ExtContainer ExtMap;
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

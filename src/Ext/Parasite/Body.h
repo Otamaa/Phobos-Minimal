@@ -11,11 +11,11 @@ public:
 	static constexpr size_t Canary = 0x99954321;
 	using base_type = ParasiteClass;
 
-	class ExtData final : public TExtension<ParasiteClass>
+	class ExtData final : public Extension<ParasiteClass>
 	{
 	public:
 
-		ExtData(ParasiteClass* OwnerObject) : TExtension<ParasiteClass>(OwnerObject)
+		ExtData(ParasiteClass* OwnerObject) : Extension<ParasiteClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -31,7 +31,7 @@ public:
 	};
 
 
-	class ExtContainer final : public TExtensionContainer<ParasiteExt>
+	class ExtContainer final : public Container<ParasiteExt>
 	{
 	public:
 		ExtContainer();

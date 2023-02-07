@@ -9,6 +9,7 @@
 
 static constexpr size_t AbstractExtOffset = 0x18;
 
+#ifdef AAAAA
 // All ext classes should derive from this class
 // Derivered with attached object
 template<typename T>
@@ -411,3 +412,4 @@ private:
 	TExtensionContainer& operator = (const TExtensionContainer&) = delete;
 	TExtensionContainer& operator = (TExtensionContainer&&) = delete;
 };
+#endif
