@@ -18,10 +18,12 @@
 1512    HoverBrake=.03          ; time to decelerate to full stop
 */
 
-static const HoverTypeClass* GetHover(TechnoClass* pThis)
+static NOINLINE const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
-	auto const pDefault = HoverTypeClass::Find(DEFAULT_STR2);
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->HoverType.Get(pDefault);
+	auto const pDefault = HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
+	auto const pTechnoType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	return pTypeExt->HoverType.Get(pDefault);
 }
 
 DEFINE_HOOK(0x513DD6, HoverLocomotionClass_513D20_HoverHeight1, 0x6)

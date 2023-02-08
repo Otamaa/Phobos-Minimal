@@ -9,7 +9,7 @@ RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()
 {
-	this->Type = RadTypeClass::Find(RADIATION_SECTION);
+	this->Type = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
 }
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)

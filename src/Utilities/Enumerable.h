@@ -23,9 +23,9 @@ public:
 
 	static int FindIndexById(const char* Title)
 	{
-		auto result = std::find_if(Array.begin(), Array.end(), [Title](std::unique_ptr<T>& Item)
-			{
-				return CRT::strcmpi(Item->Name.data(), Title) == 0;
+		const auto result = std::find_if(Array.begin(), Array.end(), 
+			[Title](std::unique_ptr<T>& Item) {
+				return _strcmpi(Item->Name.data(), Title) == 0;
 			});
 
 		if (result == Array.end())

@@ -69,7 +69,13 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::ExtData::InitializeConstants()
 {
+	Debug::Log(__FUNCTION__" Called ! \n");
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+		RadTypeClass::AddDefaults();
 
+	ArmorTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
+	HoverTypeClass::AddDefaults();
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
@@ -169,7 +175,6 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 {
-
 	auto& nPrepreqNames = RulesExt::Global()->GenericPrerequisitesData;
 
 	if (nPrepreqNames.size() != 0) //everything was initiated
@@ -269,13 +274,6 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 			}
 		}
 	}
-
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadTypeClass::AddDefaults();
-
-	ArmorTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
-	HoverTypeClass::AddDefaults();
 
 	if(!Phobos::Otamaa::IsAdmin)
 	 Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);

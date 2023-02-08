@@ -15,80 +15,7 @@
 // Too big to be kept in ApplyLimboDelivery
 void SWTypeExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 {
-	auto const pOwnerExt = HouseExt::ExtMap.Find<true>(pOwner);
-
-	// BuildLimit check goes before creation
-	if (pType->BuildLimit > 0)
-	{
-		int sum = pOwner->CountOwnedNow(pType);
-
-		// copy Ares' deployable units x build limit fix
-		if (auto const pUndeploy = pType->UndeploysInto)
-			sum += pOwner->CountOwnedNow(pUndeploy);
-
-		if (sum >= pType->BuildLimit)
-			return;
-	}
-
-	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
-
-	// All of these are mandatory
-	pBuilding->InLimbo = false;
-	pBuilding->IsAlive = true;
-	pBuilding->IsOnMap = true;
-	pOwner->RegisterGain(pBuilding, false);
-	pOwner->UpdatePower();
-	pOwner->RecheckTechTree = true;
-	pOwner->RecheckPower = true;
-	pOwner->RecheckRadar = true;
-	pOwner->Buildings.AddItem(pBuilding);
-	pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
-
-	// Different types of building logics
-	if (pType->ConstructionYard)
-		pOwner->ConYards.AddItem(pBuilding); // why would you do that????
-
-	if (pType->SecretLab)
-		pOwner->SecretLabs.AddItem(pBuilding);
-
-	if (pType->FactoryPlant)
-	{
-		pOwner->FactoryPlants.AddItem(pBuilding);
-		pOwner->CalculateCostMultipliers();
-	}
-
-	if (pType->OrePurifier)
-		pOwner->NumOrePurifiers++;
-
-	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
-
-	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-		pOwner->UnitsSelfHeal += pUnitSelfHeal;
-
-	// BuildingClass::Place is where Ares hooks secret lab expansion
-	// pTechnoBuilding->Place(false);
-	// even with it no bueno yet, plus new issues
-	// probably should just port it from Ares 0.A and be done
-
-	// LimboKill init
-	if (ID != -1)
-	{
-		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
-		auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
-		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoExt->Type);
-
-		pBuildingExt->LimboID = ID;
-#ifdef COMPILE_PORTED_DP_FEATURES
-		pTechnoExt->PaintBallState.release();
-#endif
-		KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
-		if (nMethod != KillMethod::None && pTechnoTypeExt->Death_Countdown > 0)
-		{
-			pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
-			pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
-		}
-	}
+	BuildingExt::LimboDeliver(pType, pOwner, ID);
 }
 
 std::vector<int> SWTypeExt::WeightedRollsHandler(Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size)
@@ -229,54 +156,8 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 			if (pBuildingExt->LimboID <= -1)
 				continue;
 
-			if (this->LimboKill_IDs.Contains(pBuildingExt->LimboID))
-			{
-				auto const pType = pBuilding->Type;
-
-				// Mandatory
-				pBuilding->InLimbo = true;
-				pBuilding->IsAlive = false;
-				pBuilding->IsOnMap = false;
-				pTargetHouse->UpdatePower();
-				//pTargetHouse->RecheckTechTree = true;
-				pTargetHouse->RecheckPower = true;
-				pTargetHouse->RecheckRadar = true;
-				pTargetHouse->Buildings.Remove(pBuilding);
-
-				pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
-
-				// Building logics
-				if (pType->ConstructionYard)
-					pTargetHouse->ConYards.Remove(pBuilding);
-
-				if (pType->SecretLab)
-					pTargetHouse->SecretLabs.Remove(pBuilding);
-
-				if (pType->FactoryPlant)
-				{
-					pTargetHouse->FactoryPlants.Remove(pBuilding);
-					pTargetHouse->CalculateCostMultipliers();
-				}
-
-				if (pType->OrePurifier)
-					pTargetHouse->NumOrePurifiers--;
-
-				if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-				{
-					pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
-					if (pTargetHouse->InfantrySelfHeal < 0)
-						pTargetHouse->InfantrySelfHeal = 0;
-				}
-
-				if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-				{
-					pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
-					if (pTargetHouse->UnitsSelfHeal < 0)
-						pTargetHouse->UnitsSelfHeal = 0;
-				}
-
-				// Remove completely
-				TechnoExt::HandleRemove(pBuilding);
+			if (this->LimboKill_IDs.Contains(pBuildingExt->LimboID)) {
+				BuildingExt::LimboKill(pBuilding);
 			}
 		}
 	}

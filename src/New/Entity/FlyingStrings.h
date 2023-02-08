@@ -19,15 +19,17 @@ private:
 	{
 		CoordStruct Location;
 		Point2D PixelOffset;
-		int Duration;
+		int CreationFrame;
 		COLORREF Color;
+		TextPrintType TextPrintType;
 		std::wstring Text;
 
 	};
 
+	static constexpr int Duration = 75;
 	static std::vector<Item> Data;
 
-	static bool DrawAllowed(CoordStruct const& nCoords);
+	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 
 public:
 	static void Clear();

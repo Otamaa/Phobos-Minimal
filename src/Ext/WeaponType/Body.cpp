@@ -10,7 +10,7 @@ int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
 
 void WeaponTypeExt::ExtData::Initialize()
 {
-	this->RadType = RadTypeClass::Find(RADIATION_SECTION);
+	this->RadType = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
 }
 
 // =============================

@@ -85,4 +85,8 @@ public:
 	static bool DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts);
 	static CoordStruct GetCenterCoords(BuildingClass* pThis, bool includeBib = false);
 	static bool HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse);
+
+	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
+	static void LimboKill(BuildingClass* pBld);
+
 };

@@ -149,6 +149,7 @@ that we're done with 0x77777777. This way, when we reach the other hook, we chec
 to prevent spy effects from happening twice.
 The value itself doesn't matter, it just needs to be unique enough to not be accidentally produced by the game there.
 */
+
 //#define INFILTRATE_HOOK_MAGIC 0x77777777
 //DEFINE_HOOK(0x45759D, BuildingClass_Infiltrate_NoAres, 0x5)
 //{
@@ -175,6 +176,8 @@ The value itself doesn't matter, it just needs to be unique enough to not be acc
 //	BuildingExt::HandleInfiltrate(pBuilding, pInfiltratorHouse);
 //	return 0;
 //}
+//
+//#undef INFILTRATE_HOOK_MAGIC
 
 DEFINE_HOOK(0x51A002, InfantryClass_PCP_InfitrateBuilding, 0x6)
 {
@@ -189,8 +192,6 @@ DEFINE_HOOK(0x51A002, InfantryClass_PCP_InfitrateBuilding, 0x6)
 
 	return 0x51A010;
 }
-
-//#undef INFILTRATE_HOOK_MAGIC
 
 DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 {

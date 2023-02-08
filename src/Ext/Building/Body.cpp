@@ -341,45 +341,37 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	}
 
 	// Obtain a list of air factories for optimizing the comparisons
-	std::for_each(pOwner->Buildings.begin(), pOwner->Buildings.end(), [&](BuildingClass* pBuilding)
- {
-	 if (!pBuilding || !pBuilding->Type)
-	 return;
+	std::for_each(pOwner->Buildings.begin(), pOwner->Buildings.end(), [&](BuildingClass* pBuilding) {
 
-	if (pBuilding->Type->Factory == AbstractType::AircraftType && Phobos::Config::ForbidParallelAIQueues_Aircraft)
-	{
-		if (!currFactory && pBuilding->Factory)
-			currFactory = pBuilding->Factory;
+		 if (!pBuilding || !pBuilding->Type)
+			return;
 
-		const auto It = std::find_if_not(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](const auto pData)
+		if (pBuilding->Type->Factory == AbstractType::AircraftType && Phobos::Config::ForbidParallelAIQueues_Aircraft)
 		{
-		return pData == pBuilding;
-		});
+			if (!currFactory && pBuilding->Factory)
+				currFactory = pBuilding->Factory;
 
-		if (It == std::end(HouseExt->HouseAirFactory))
-			HouseExt->HouseAirFactory.push_back(pBuilding);
-	}
+			if (!std::any_of(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory),
+				[pBuilding](auto const pData) { return pData == pBuilding; })) {
+				HouseExt->HouseAirFactory.push_back(pBuilding);
+			}
+		}
 	});
 
-	if (BuildingExt->CurrentAirFactory)
-	{
-		std::for_each(HouseExt->HouseAirFactory.begin(), HouseExt->HouseAirFactory.end(), [&](BuildingClass* pBuilding)
- {
-	 if (!pBuilding || !pBuilding->Type)
-	 return;
+	if (BuildingExt->CurrentAirFactory) {
+		std::for_each(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](BuildingClass* pBuilding) {
+			 if (!pBuilding || !pBuilding->Type)
+				return;
 
-		if (pBuilding == BuildingExt->CurrentAirFactory)
-		{
-			BuildingExt->CurrentAirFactory->Factory = currFactory;
-			BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
-		}
-		else
-		{
-			pBuilding->IsPrimaryFactory = false;
+			 if (pBuilding == BuildingExt->CurrentAirFactory) {
+				BuildingExt->CurrentAirFactory->Factory = currFactory;
+				BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
+			 } else {
+				pBuilding->IsPrimaryFactory = false;
 
-			if (pBuilding->Factory)
+				if (pBuilding->Factory)
 				pBuilding->Factory->AbandonProduction();
-		}
+			 }
 		});
 
 		return;
@@ -388,31 +380,28 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!currFactory)
 		return;
 
-	std::for_each(HouseExt->HouseAirFactory.begin(), HouseExt->HouseAirFactory.end(), [&](BuildingClass* pBuilding)
- {
-	 if (!pBuilding || !pBuilding->Type)
-	 return;
-
-	int nDocks = pBuilding->Type->NumberOfDocks;
-	int nOccupiedDocks = CountOccupiedDocks(pBuilding);
-
-	if (nOccupiedDocks < nDocks)
-	{
-		if (!newBuilding)
-		{
-			newBuilding = pBuilding;
-			newBuilding->Factory = currFactory;
-			newBuilding->IsPrimaryFactory = true;
-			BuildingExt->CurrentAirFactory = newBuilding;
-
+	std::for_each(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](BuildingClass* pBuilding) {
+		if (!pBuilding || !pBuilding->Type)
 			return;
+
+		int nDocks = pBuilding->Type->NumberOfDocks;
+		int nOccupiedDocks = CountOccupiedDocks(pBuilding);
+
+		if (nOccupiedDocks < nDocks) {
+			if (!newBuilding) {
+				newBuilding = pBuilding;
+				newBuilding->Factory = currFactory;
+				newBuilding->IsPrimaryFactory = true;
+				BuildingExt->CurrentAirFactory = newBuilding;
+
+				return;
+			}
 		}
-	}
 
-	pBuilding->IsPrimaryFactory = false;
+		pBuilding->IsPrimaryFactory = false;
 
-	if (pBuilding->Factory)
-		pBuilding->Factory->AbandonProduction();
+		if (pBuilding->Factory)
+			pBuilding->Factory->AbandonProduction();
 
 	});
 
@@ -505,6 +494,135 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 	}
 
 	return false;
+}
+
+void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
+{
+	auto const pOwnerExt = HouseExt::ExtMap.Find<true>(pOwner);
+
+	// BuildLimit check goes before creation
+	if (pType->BuildLimit > 0)
+	{
+		int sum = pOwner->CountOwnedNow(pType);
+
+		// copy Ares' deployable units x build limit fix
+		if (auto const pUndeploy = pType->UndeploysInto)
+			sum += pOwner->CountOwnedNow(pUndeploy);
+
+		if (sum >= pType->BuildLimit)
+			return;
+	}
+
+	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
+
+	// All of these are mandatory
+	pBuilding->InLimbo = false;
+	pBuilding->IsAlive = true;
+	pBuilding->IsOnMap = true;
+	pOwner->RegisterGain(pBuilding, false);
+	pOwner->UpdatePower();
+	pOwner->RecheckTechTree = true;
+	pOwner->RecheckPower = true;
+	pOwner->RecheckRadar = true;
+	pOwner->Buildings.AddItem(pBuilding);
+	pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
+
+	// Different types of building logics
+	if (pType->ConstructionYard)
+		pOwner->ConYards.AddItem(pBuilding); // why would you do that????
+
+	if (pType->SecretLab)
+		pOwner->SecretLabs.AddItem(pBuilding);
+
+	if (pType->FactoryPlant)
+	{
+		pOwner->FactoryPlants.AddItem(pBuilding);
+		pOwner->CalculateCostMultipliers();
+	}
+
+	if (pType->OrePurifier)
+		pOwner->NumOrePurifiers++;
+
+	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+
+	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+		pOwner->UnitsSelfHeal += pUnitSelfHeal;
+
+	// BuildingClass::Place is where Ares hooks secret lab expansion
+	// pTechnoBuilding->Place(false);
+	// even with it no bueno yet, plus new issues
+	// probably should just port it from Ares 0.A and be done
+
+	// LimboKill init
+	if (ID != -1)
+	{
+		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
+		auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
+		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoExt->Type);
+
+		pBuildingExt->LimboID = ID;
+#ifdef COMPILE_PORTED_DP_FEATURES
+		pTechnoExt->PaintBallState.release();
+#endif
+		KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
+		if (nMethod != KillMethod::None && pTechnoTypeExt->Death_Countdown > 0)
+		{
+			pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
+			pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
+		}
+	}
+}
+
+void BuildingExt::LimboKill(BuildingClass* pBuilding)
+{
+	auto const pType = pBuilding->Type;
+	auto const pTargetHouse = pBuilding->Owner;
+
+	// Mandatory
+	pBuilding->InLimbo = true;
+	pBuilding->IsAlive = false;
+	pBuilding->IsOnMap = false;
+	pTargetHouse->UpdatePower();
+	//pTargetHouse->RecheckTechTree = true;
+	pTargetHouse->RecheckPower = true;
+	pTargetHouse->RecheckRadar = true;
+	pTargetHouse->Buildings.Remove(pBuilding);
+
+	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
+
+	// Building logics
+	if (pType->ConstructionYard)
+		pTargetHouse->ConYards.Remove(pBuilding);
+
+	if (pType->SecretLab)
+		pTargetHouse->SecretLabs.Remove(pBuilding);
+
+	if (pType->FactoryPlant)
+	{
+		pTargetHouse->FactoryPlants.Remove(pBuilding);
+		pTargetHouse->CalculateCostMultipliers();
+	}
+
+	if (pType->OrePurifier)
+		pTargetHouse->NumOrePurifiers--;
+
+	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+	{
+		pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
+		if (pTargetHouse->InfantrySelfHeal < 0)
+			pTargetHouse->InfantrySelfHeal = 0;
+	}
+
+	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+	{
+		pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
+		if (pTargetHouse->UnitsSelfHeal < 0)
+			pTargetHouse->UnitsSelfHeal = 0;
+	}
+
+	// Remove completely
+	TechnoExt::HandleRemove(pBuilding);
 }
 
 // =============================

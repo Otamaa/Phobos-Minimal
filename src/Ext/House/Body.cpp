@@ -885,55 +885,8 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBuilding);
 
-			if (pBldExt->LimboID != -1)
-			{
-				auto pTargetHouse = pBuilding->Owner;
-				auto const pType = pBuilding->Type;
-
-				// Mandatory
-				pBuilding->InLimbo = true;
-				pBuilding->IsAlive = false;
-				pBuilding->IsOnMap = false;
-				pTargetHouse->UpdatePower();
-				//pTargetHouse->RecheckTechTree = true;
-				pTargetHouse->RecheckPower = true;
-				pTargetHouse->RecheckRadar = true;
-				pTargetHouse->Buildings.Remove(pBuilding);
-
-				pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
-
-				// Building logics
-				if (pType->ConstructionYard)
-					pTargetHouse->ConYards.Remove(pBuilding);
-
-				if (pType->SecretLab)
-					pTargetHouse->SecretLabs.Remove(pBuilding);
-
-				if (pType->FactoryPlant)
-				{
-					pTargetHouse->FactoryPlants.Remove(pBuilding);
-					pTargetHouse->CalculateCostMultipliers();
-				}
-
-				if (pType->OrePurifier)
-					pTargetHouse->NumOrePurifiers--;
-
-				if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-				{
-					pTargetHouse->InfantrySelfHeal -= pInfantrySelfHeal;
-					if (pTargetHouse->InfantrySelfHeal < 0)
-						pTargetHouse->InfantrySelfHeal = 0;
-				}
-
-				if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-				{
-					pTargetHouse->UnitsSelfHeal -= pUnitSelfHeal;
-					if (pTargetHouse->UnitsSelfHeal < 0)
-						pTargetHouse->UnitsSelfHeal = 0;
-				}
-
-				// Remove completely
-				TechnoExt::HandleRemove(pBuilding);
+			if (pBldExt->LimboID != -1) {	
+				BuildingExt::LimboKill(pBuilding);
 			} else {
 				TechnoExt::KillSelf(pBuilding, nMethod);
 			}
