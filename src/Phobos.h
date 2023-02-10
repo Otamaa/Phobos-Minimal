@@ -150,6 +150,7 @@ public:
 
 	class Misc
 	{
+		NO_CONSTRUCT_CLASS(Misc)
 	public:
 		static bool CustomGS;
 		static int CustomGS_ChangeInterval[7];
@@ -161,11 +162,13 @@ public:
 	{
 		NO_CONSTRUCT_CLASS(Otamaa)
 	public:
+
 		static bool DisableCustomRadSite;
 		static TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 		static bool IsAdmin;
 		static bool ShowHealthPercentEnabled;
 		static bool ExeTerminated;
+		static bool DoingLoadGame;
 	};
 
 	class Defines

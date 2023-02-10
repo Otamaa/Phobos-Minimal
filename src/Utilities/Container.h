@@ -173,6 +173,7 @@ private:
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
 	using extension_type_ref_ptr = extension_type**;
+	using const_extension_type_ptr = const extension_type*;
 
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
@@ -194,11 +195,6 @@ public:
 	auto GetName() const
 	{
 		return this->Name.data();
-	}
-
-	bool empty() const
-	{
-		return this->Items.empty();
 	}
 
 	base_type_ptr GetSavingObject() const
@@ -232,6 +228,14 @@ protected:
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 	}
 
+	void SetExtAttribute(base_type_ptr key , const_extension_type_ptr val)
+	{
+		if constexpr (HasOffset<T>)
+			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
+		else
+			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
+	}
+
 public:
 
 	// using virtual is good way so i can integrate different type of these
@@ -239,16 +243,15 @@ public:
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		ClearExtAttribute(key);
+		if (Phobos::Otamaa::DoingLoadGame)
+			return nullptr;
+
+		this->ClearExtAttribute(key);
 
 		if (const auto val = new extension_type(key))
 		{
 			val->EnsureConstanted();
-			if constexpr (HasOffset<T>)
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-			else
-			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
-
+			this->SetExtAttribute(key,val);
 			return val;
 		}
 
@@ -272,7 +275,7 @@ public:
 		if (auto const ptr = Find<true>(key))
 			return ptr;
 
-		return Allocate(key);
+		return this->Allocate(key);
 	}
 
 	template<bool check = false>
@@ -296,7 +299,7 @@ public:
 		if (auto Item = Find<false>(key)) {
 			delete Item;
 
-			ClearExtAttribute(key);
+			this->ClearExtAttribute(key);
 		}
 	}
 
@@ -370,9 +373,10 @@ protected:
 			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
-		
+
 		// get the value data
-		auto buffer = this->Find(key);
+		const auto buffer = this->Find(key);
+
 		if (!buffer)
 		{
 			Debug::Log("[SaveKey] Could not find value.\n");
@@ -380,8 +384,8 @@ protected:
 		}
 
 		// write the current pointer, the size of the block, and the canary
-		PhobosByteStream saver(sizeof(*buffer));
-		PhobosStreamWriter writer(saver);
+		PhobosByteStream saver { sizeof(*buffer) };
+		PhobosStreamWriter writer {saver};
 
 		writer.Save(T::Canary);
 		writer.Save(buffer);
@@ -410,22 +414,27 @@ protected:
 			return nullptr;
 		}
 
-		extension_type_ptr buffer = this->Allocate(key);
+		this->ClearExtAttribute(key);
+		extension_type_ptr buffer = new extension_type(key);
+		this->SetExtAttribute(key,buffer);
 
-		if (!buffer)
-		{
-			Debug::Log("[LoadKey] Could not find or allocate value.\n");
-			return nullptr;
+		#ifdef aaaa
+		if (buffer) {
+			Debug::Log("[LoadKey] Found an [%x]Ext For [%s - %x] ! \n" , buffer , Name.data() , key);
+		} else {
+			Debug::Log("[LoadKey] Could not find value For [%s - %x] Allocating !\n", Name.data(), key);
+			buffer = this->Allocate(key);
 		}
+		#endif
 
-		PhobosByteStream loader(0);
+		PhobosByteStream loader { 0 };
 		if (!loader.ReadBlockFromStream(pStm))
 		{
 			Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
 			return nullptr;
 		}
 
-		PhobosStreamReader reader(loader);
+		PhobosStreamReader reader { loader };
 		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
 		{
 			buffer->LoadFromStream(reader);

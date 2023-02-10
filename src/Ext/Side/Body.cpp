@@ -58,6 +58,9 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 void SideExt::IniExtData(SideClass* pThis, int nIdx)
 {
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
+
 	if (!pThis->unknown_18)
 	{
 		if (auto val = new SideExt::ExtData(pThis))

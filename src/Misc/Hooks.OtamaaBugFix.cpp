@@ -2763,21 +2763,21 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
 		? SkipWholeFunction : Continue;
 }
 
-DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
-{
-	GET(int, nRangeBonus, EDI);
-	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, ECX);
-
-	if (auto const pFoot = abstract_cast<FootClass*>(pTarget)) {
-		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if (pFoot->GetTechnoType()->Naval && pFoot->GetCell()->LandType == LandType::Water)
-			nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
-	}
-	
-	R->EDI(nRangeBonus);
-	return 0x0;
-}
+//DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
+//{
+//	GET(int, nRangeBonus, EDI);
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, ECX);
+//
+//	if (auto const pFoot = abstract_cast<FootClass*>(pTarget)) {
+//		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+//		if (pFoot->GetTechnoType()->Naval && pFoot->GetCell()->LandType == LandType::Water)
+//			nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
+//	}
+//	
+//	R->EDI(nRangeBonus);
+//	return 0x0;
+//}
 
 //DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
 //{

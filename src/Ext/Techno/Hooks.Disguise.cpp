@@ -6,37 +6,36 @@
 DEFINE_HOOK_AGAIN(0x522790, TechnoClass_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
 DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_DefaultDisguise
 {
+	enum { InfInit_SetDisguise = 0x5227BF, TechnoInit_SetDisguise = 0x6F4277 };
+
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
-	enum { SetDisguise = 0x5227BF, DefaultDisguise = 0x6F4277 };
+	if(R->Origin() == 0x6F421C && pThis->WhatAmI() != AbstractType::Infantry)
+		return 0x0;
+
+	if (!pType)
+		return 0x0;
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
-	if (!pExt)
-	{
-		Debug::Log("TypeExt Missing For [%x - %s] Techno ! \n" , pThis,pType->get_ID());
-		pThis->Disguised = false;
 
-		return 0;
-	}
 	//ToDo:
 #ifdef TANK_DISGUISE
 	if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
 	{
 		pThis->Disguised = false;
-		return DefaultDisguise;
+		return TechnoInit_SetDisguise;
 	}
 #endif
-	if (pExt->DefaultDisguise.isset())
+
+	if (auto const pDisguise = pExt->DefaultDisguise.Get(nullptr))
 	{
-		pThis->Disguise = pExt->DefaultDisguise;
+		pThis->Disguise = pDisguise;
 		pThis->Disguised = true;
-		return R->Origin() == 0x522790 ? SetDisguise : DefaultDisguise;
+		return R->Origin() == 0x522790 ? InfInit_SetDisguise : TechnoInit_SetDisguise;
 	}
 
-	pThis->Disguised = false;
-
-	return 0;
+	return 0x0;
 }
 
 #ifdef ENABLE_NEWHOOKS

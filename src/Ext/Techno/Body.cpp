@@ -2533,7 +2533,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 {
-	if (pThis->WhatAmI() != AbstractType::Unit)
+	if (pThis->WhatAmI() != AbstractType::Unit || pThis->IsInAir())
 		return false;
 
 	auto const pContact = pThis->GetNthLink();
@@ -2551,7 +2551,7 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 	if (!pBld)
 		return false;
 
-	return pBld == pContact && !pBld->Type->Naval && pBld->Type->WeaponsFactory && !pThis->IsInAir();
+	return pBld == pContact && !pBld->Type->Naval && pBld->Type->WeaponsFactory;
 }
 
 bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)

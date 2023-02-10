@@ -102,6 +102,7 @@ TCHAR Phobos::Otamaa::PCName[MAX_COMPUTERNAME_LENGTH + 1];
 bool Phobos::Otamaa::IsAdmin = false;
 bool Phobos::Otamaa::ShowHealthPercentEnabled = false;
 bool Phobos::Otamaa::ExeTerminated = true;
+bool Phobos::Otamaa::DoingLoadGame = false;
 
 bool Phobos::EnableConsole = false;
 
@@ -375,8 +376,11 @@ void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
 	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto const nPatcher = Patch::GetModuleBaseAddress("PatcherLoader.dll"))
+	if (auto const nPatcher = Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
+		Debug::LogDeferred("[Phobos] This version of phobos is not suppose to be run with DP , Closing the game !\n");
 		exit(0);
+	}
+
 	#endif
 	Patch::ApplyStatic();
 	PoseDirOverride::Apply();

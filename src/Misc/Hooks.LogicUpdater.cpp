@@ -39,7 +39,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		return 0x0;
 
 	auto const pType = pThis->GetTechnoType();
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
@@ -89,12 +89,12 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	PassengersFunctional::AI(pThis);
@@ -103,13 +103,11 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 	GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	if (pExt->PaintBallState)
-	{
+	if (pExt->PaintBallState) {
 		pExt->PaintBallState->Update(pThis);
 	}
 
-	if (pExt->DamageSelfState)
-	{
+	if (pExt->DamageSelfState) {
 		pExt->DamageSelfState->TechnoClass_Update_DamageSelf(pThis);
 	}
 #endif
@@ -121,23 +119,15 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pExt)
-	{
-		pExt->UpdateAircraftOpentopped();
-		if (pTypeExt) {
-
+	pExt->UpdateAircraftOpentopped();
 #ifdef COMPILE_PORTED_DP_FEATURES
-
-			AircraftPutDataFunctional::AI(pExt, pTypeExt);
-			AircraftDiveFunctional::AI(pExt, pTypeExt);
-			FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-
+	AircraftPutDataFunctional::AI(pExt, pTypeExt);
+	AircraftDiveFunctional::AI(pExt, pTypeExt);
+	FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 #endif
-		}
-	}
 
 	pThis->FootClass::Update();
 	return 0x414DA8;
@@ -148,13 +138,10 @@ DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 	GET(UnitClass*, pThis, ESI);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::ExtMap.Find<false>(pThis))
-	{
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType()))
-		{
-			JJFacingFunctional::AI(pExt, pTypeExt);
-		}
-	}
+	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+
+	JJFacingFunctional::AI(pExt, pTypeExt);
 #endif
 	pThis->FootClass::Update();
 
@@ -165,7 +152,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
 	GET(const FootClass*, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (pThis->SpawnOwner && pExt->IsMissisleSpawn)
 	{
@@ -211,21 +198,17 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
 
-	auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (pExt)
-		DriveDataFunctional::AI(pExt);
+	DriveDataFunctional::AI(pExt);
 #endif
 
 	if (IsMovingNow)
 	{
 		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw
 		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-		if (pExt)
-		{
-			pExt->UpdateLaserTrails();
-		}
+		pExt->UpdateLaserTrails();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsManager::AI(static_cast<TechnoClass*>(pThis));
