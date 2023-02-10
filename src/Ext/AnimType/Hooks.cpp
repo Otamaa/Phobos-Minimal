@@ -176,7 +176,7 @@ bool NOINLINE DealDamage(AnimClass* pThis)
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
-		AbstractClass* pTarget = pTypeExt->Damage_TargetInvoker.Get() ? static_cast<AbstractClass*>(pInvoker) : pThis->GetCell();
+		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
 		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, nDamageResult);
 	}
 	else
@@ -187,7 +187,10 @@ bool NOINLINE DealDamage(AnimClass* pThis)
 		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 		if (pTypeExt->Warhead_Detonate.Get())
-			WarheadTypeExt::DetonateAt(pWarhead, nCoord, pInvoker, nDamageResult, !pTypeExt->Damage_TargetInvoker.Get());
+		{
+			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
+			WarheadTypeExt::DetonateAt(pWarhead, pTarget , nCoord, pInvoker, nDamageResult);
+		}
 		else
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
 		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);

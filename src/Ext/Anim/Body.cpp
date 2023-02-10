@@ -16,6 +16,37 @@ void AnimExt::ExtData::InitializeConstants()
 	CreateAttachedSystem();
 }
 
+AbstractClass* AnimExt::GetTarget(const AnimClass* const pThis)
+{
+	auto const pType = pThis->Type;
+	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+
+	switch (pTypeExt->Damage_TargetFlag.Get())
+	{
+	case DamageDelayTargetFlag::Cell:
+		return  pThis->GetCell();
+	case DamageDelayTargetFlag::AttachedObject:
+	{
+		if (pThis->AttachedBullet)
+		{
+			return pThis->AttachedBullet->Owner;
+		}
+		else
+		{
+			if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+				return pBullet->Owner;
+			else
+				return pThis->OwnerObject;
+		}
+	}
+	case DamageDelayTargetFlag::Invoker:
+	{
+		return AnimExt::ExtMap.Find(pThis)->Invoker;
+	}
+	}
+
+	return nullptr;
+}
 
 bool AnimExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {

@@ -262,6 +262,7 @@ public:
 	static void LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI);
+	static void LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI);
 
 	static ExtData* Global()
 	{

@@ -167,7 +167,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
-	
+
 	// Section Generic Prerequisites
 	FillDefaultPrerequisites(pINI);
 
@@ -217,18 +217,21 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 		char* context = nullptr;
 		auto const pKeyName = pRules->GetKeyName(pGenPrereq, i);
 		pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer);
-		
+
 		std::vector<int> objectsList;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
 			const int idx = BuildingTypeClass::FindIndexById(cur);
 			if (idx >= 0)
 				objectsList.push_back(idx);
 		}
 
 		bool bFound = false;
-		for (auto&[Catagory , Lists] : nPrepreqNames) {
-			if (IS_SAME_STR_(Catagory.c_str(), pKeyName)) {
-				bFound = true; 
+		for (auto& [Catagory, Lists] : nPrepreqNames)
+		{
+			if (IS_SAME_STR_(Catagory.c_str(), pKeyName))
+			{
+				bFound = true;
 				Lists.clear();
 				Lists = objectsList;
 			}
@@ -244,59 +247,19 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 	}
 }
 
+void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
+{}
+
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
-{
-	if (!Phobos::Otamaa::IsAdmin)
-	{
-		std::string ModNameTemp;
-		pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
-		ModNameTemp = Phobos::readBuffer;
-
-		if (!ModNameTemp.empty())
-		{
-			std::size_t nFInd = ModNameTemp.find("Rise of the East");
-
-			if (nFInd == std::string::npos)
-				nFInd = ModNameTemp.find("Ion Shock");
-
-			if (nFInd == std::string::npos)
-				nFInd = ModNameTemp.find("New War");
-
-			if (nFInd == std::string::npos)
-				nFInd = ModNameTemp.find("NewWar");
-
-			if (nFInd == std::string::npos)
-			{
-				MessageBoxW(NULL,
-					L"This is not Official Phobos Build.\n\n"
-					L"Please contact original Mod Author for Assistance !.",
-					L"Warning !", MB_OK);
-			}
-		}
-	}
-
-	if(!Phobos::Otamaa::IsAdmin)
-	 Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
-
-	Phobos::Otamaa::DisableCustomRadSite = pINI->ReadBool(PHOBOS_STR, "DisableCustomRadSite", false);
-	Phobos::Config::ArtImageSwap = pINI->ReadBool(GENERAL_SECTION, "ArtImageSwap", false);
-	Phobos::Config::AllowParallelAIQueues = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowParallelAIQueues", false);
-
-	Phobos::Config::ForbidParallelAIQueues_Infantry = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Infantry", Phobos::Config::AllowParallelAIQueues);
-	Phobos::Config::ForbidParallelAIQueues_Vehicle = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Vehicle", Phobos::Config::AllowParallelAIQueues);
-	Phobos::Config::ForbidParallelAIQueues_Navy = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Navy", Phobos::Config::AllowParallelAIQueues);
-	Phobos::Config::ForbidParallelAIQueues_Aircraft = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft", Phobos::Config::AllowParallelAIQueues);
-	Phobos::Config::ForbidParallelAIQueues_Building = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building", Phobos::Config::AllowParallelAIQueues);
-
-}
+{}
 
 // this runs between the before and after type data loading methods for rules ini
 void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis) { }
 
 namespace ObjectTypeParser
 {
-	template<typename T ,bool Alloc = false>
-	void Exec(CCINIClass* pINI, DynamicVectorClass<DynamicVectorClass<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false , const char* Delims = Phobos::readDelims)
+	template<typename T, bool Alloc = false>
+	void Exec(CCINIClass* pINI, DynamicVectorClass<DynamicVectorClass<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
 	{
 		if (!pINI->GetSection(pSection))
 			return;
@@ -324,8 +287,10 @@ namespace ObjectTypeParser
 				else
 				{
 
-					if constexpr (!Alloc){ 
-						if (bDebug) { 
+					if constexpr (!Alloc)
+					{
+						if (bDebug)
+						{
 							Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.Count, cur);
 						}
 					}
@@ -348,7 +313,7 @@ namespace ObjectTypeParser
 	{
 		if (!pINI->GetSection(pSection))
 			return;
-		
+
 		auto const nKeyCount = pINI->GetKeyCount(pSection);
 		nVecDest.reserve(nKeyCount);
 
@@ -377,7 +342,8 @@ namespace ObjectTypeParser
 				}
 				else
 				{
-					if (bDebug) {
+					if (bDebug)
+					{
 						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.size(), cur);
 					}
 				}
@@ -469,9 +435,9 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 #pragma endregion
 
 	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes", true);
-	ObjectTypeParser::Exec<ScriptTypeClass,true>(pINI, AIScriptsLists, "AIScriptsList", true);
+	ObjectTypeParser::Exec<ScriptTypeClass, true>(pINI, AIScriptsLists, "AIScriptsList", true);
 	ObjectTypeParser::Exec(pINI, AIHousesLists, "AIHousesList", true);
-	ObjectTypeParser::Exec(pINI, AIConditionsLists, "AIConditionsList", true , false , "/");
+	ObjectTypeParser::Exec(pINI, AIConditionsLists, "AIConditionsList", true, false, "/");
 	ObjectTypeParser::Exec<AITriggerTypeClass, true>(pINI, AITriggersLists, "AITriggersList", true);
 }
 
@@ -492,10 +458,14 @@ bool RulesExt::DetailsCurrentlyEnabled(int const minDetailLevel)
 		&& DetailsCurrentlyEnabled();
 }
 
-void RulesExt::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n");
+void RulesExt::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
+{
+	Debug::Log(__FUNCTION__" Called ! \n");
 }
 
-void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI) { Debug::Log(__FUNCTION__" Called ! \n");
+void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
+{
+	Debug::Log(__FUNCTION__" Called ! \n");
 }
 
 // =============================
@@ -510,6 +480,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
+		.Process(Phobos::Misc::CustomGS)
 
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
@@ -762,9 +733,10 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 {
 	Debug::Log(__FUNCTION__" Called ! \n");
-	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](const BuildingTypeClass* pType) {
-		if(auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
-			pExt->CompleteInitialization();
+	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](const BuildingTypeClass* pType)
+ {
+	 if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
+	 pExt->CompleteInitialization();
 	});
 
 	return 0;
@@ -777,7 +749,8 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 		//pre iterate this important indexes
 		//so we dont need to do lookups with name multiple times
 		//these function only executed when ScenarioClass::ReadScenario return true (AL)
-		if (const auto pRulesGlobal = RulesExt::Global()) {
+		if (const auto pRulesGlobal = RulesExt::Global())
+		{
 			pRulesGlobal->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
 			//Debug::Log("Finding Civilian Side Index[%d] ! \n" , pRulesGlobal->CivilianSideIndex);
 			pRulesGlobal->NeutralCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral());

@@ -69,13 +69,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 		else
 			coords.Z += 256;
 
-		if (auto const pCell = MapClass::Instance->TryGetCellAt(coords))
-		{
-			if (!pCell->IsFogged() && !pCell->IsShrouded())
-			{
-				FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
-			}
-		}
+		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
 	}
 }
 

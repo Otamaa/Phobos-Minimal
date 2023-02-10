@@ -65,4 +65,37 @@ namespace detail
 		}
 		return false;
 	}
+
+	template <>
+	inline bool read(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{			
+			const auto cur = parser.value();
+
+			if (IS_SAME_STR_(cur, "Cell"))
+			{
+				value = DamageDelayTargetFlag::Cell;
+				return true;
+			}
+			else if (IS_SAME_STR_(cur, "AttachedObject"))
+			{
+				value = DamageDelayTargetFlag::AttachedObject;
+				return true;
+			}
+			else if (IS_SAME_STR_(cur, "Invoker"))
+			{
+				value = DamageDelayTargetFlag::Invoker;
+				return true;
+			}
+			else if (!INIClass::IsBlank(cur))
+			{
+				Debug::INIParseFailed(pSection, pKey, cur, nullptr);
+				return false;
+			}
+
+		}
+
+		return false;
+	}
 }

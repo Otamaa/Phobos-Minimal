@@ -438,15 +438,22 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
 	this->IsDummy.Read(exINI, pSection, "Dummy");
+	
+	{
+	// UpdateCode Disabled 
+	// TODO : what will happen if the vectors for different state have different item count ?
+	// that will trigger crash because of out of bound idx 
+	// so disable these untill i can figure out better codes
 
-	this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
-	this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
-	this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
-	this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
-	this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
-	this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
-	this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
-	this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+		this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
+		this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
+		this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
+		this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
+		this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
+		this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
+		this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
+		this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+	}
 
 	this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
 

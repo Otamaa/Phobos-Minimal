@@ -35,6 +35,9 @@ struct Game
 	//"01AF9993-3492-11d3-8F6F-0060089C05B1"
 	static constexpr reference<HANDLE, 0xB0BCE8u> const AutoPlayMutex {};
 
+	static constexpr reference<CDTimerClass, 0x887348> const FrameTimer {};
+	static constexpr reference<CDTimerClass, 0x887328> const NFTTimer {};
+
 #define GAMEMD_CLSID(_addrs ,_name) \
 	static constexpr reference<CLSID const, _addrs> const _name {};
 

@@ -1010,8 +1010,7 @@ void TechnoExt::ExtData::UpdateMCRangeLimit()
 void TechnoExt::ExtData::UpdateInterceptor()
 {
 	auto const pThis = this->Get();
-
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
 	if (!pTypeExt->Interceptor.Get() || pThis->Target)
 		return;
@@ -2020,25 +2019,25 @@ void TechnoExt::ExtData::UpdateMindControlAnim()
 	}
 }
 
-std::pair<std::vector<WeaponTypeClass*>, std::vector<int>> TechnoExt::ExtData::GetFireSelfData()
+std::pair<std::vector<WeaponTypeClass*>*, std::vector<int>*> TechnoExt::ExtData::GetFireSelfData()
 {
 	const auto pThis = this->Get();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
 	{
-		return  { pTypeExt->FireSelf_Weapon_RedHeath , pTypeExt->FireSelf_ROF_RedHeath };
+		return  { &pTypeExt->FireSelf_Weapon_RedHeath , &pTypeExt->FireSelf_ROF_RedHeath };
 	}
 	else if (pThis->IsYellowHP() && !pTypeExt->FireSelf_Weapon_YellowHeath.empty() && !pTypeExt->FireSelf_ROF_YellowHeath.empty())
 	{
-		return  { pTypeExt->FireSelf_Weapon_YellowHeath , pTypeExt->FireSelf_ROF_YellowHeath };
+		return  { &pTypeExt->FireSelf_Weapon_YellowHeath , &pTypeExt->FireSelf_ROF_YellowHeath };
 	}
 	else if (pThis->IsGreenHP() && !pTypeExt->FireSelf_Weapon_GreenHeath.empty() && !pTypeExt->FireSelf_ROF_GreenHeath.empty())
 	{
-		return  { pTypeExt->FireSelf_Weapon_GreenHeath , pTypeExt->FireSelf_ROF_GreenHeath };
+		return  { &pTypeExt->FireSelf_Weapon_GreenHeath , &pTypeExt->FireSelf_ROF_GreenHeath };
 	}
 
-	return  { pTypeExt->FireSelf_Weapon , pTypeExt->FireSelf_ROF };
+	return  { &pTypeExt->FireSelf_Weapon , &pTypeExt->FireSelf_ROF };
 
 }
 void TechnoExt::ExtData::UpdateFireSelf()
@@ -2047,16 +2046,20 @@ void TechnoExt::ExtData::UpdateFireSelf()
 
 	auto const& [FireSelf_Weapon, FireSelf_ROF] = TechnoExt::ExtData::GetFireSelfData();
 
-	if (FireSelf_Weapon.empty() || FireSelf_ROF.empty()) return;
+	if (!FireSelf_Weapon ||!FireSelf_ROF ||  FireSelf_Weapon->empty() || FireSelf_ROF->empty()) return;
 
-	if (FireSelf_Count.size() < FireSelf_Weapon.size())
+	if (FireSelf_Count.size() < FireSelf_Weapon->size())
 	{
-		int p = int(FireSelf_Count.size());
-		while (FireSelf_Count.size() < FireSelf_Weapon.size())
+		const int p = int(FireSelf_Count.size());
+		while (FireSelf_Count.size() < FireSelf_Weapon->size())
 		{
 			int ROF = 10;
-			if (p >= (int)FireSelf_ROF.size()) ROF = FireSelf_Weapon[p]->ROF;
-			else ROF = FireSelf_ROF[p];
+			
+			if (p >= (int)FireSelf_ROF->size()) 
+				ROF = FireSelf_Weapon->at(p)->ROF;
+			else
+				ROF = FireSelf_ROF->at(p);
+		
 			FireSelf_Count.emplace_back(ROF);
 		}
 	}
@@ -2068,10 +2071,15 @@ void TechnoExt::ExtData::UpdateFireSelf()
 		else
 		{
 			int ROF = 10;
-			if (i >= (int)FireSelf_ROF.size()) ROF = FireSelf_Weapon[i]->ROF;
-			else ROF = FireSelf_ROF[i];
+			
+			if (i >= (int)FireSelf_ROF->size()) 
+				ROF = FireSelf_Weapon->at(i)->ROF;
+			else
+				ROF = FireSelf_ROF->at(i);
+			
 			FireSelf_Count[i] = ROF;
-			WeaponTypeExt::DetonateAt(FireSelf_Weapon[i], pThis, pThis);
+			
+			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis);
 		}
 	}
 }

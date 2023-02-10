@@ -156,6 +156,7 @@
     <ClCompile Include="src\Ext\WeaponType\Hook.EBolt.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
+    <ClCompile Include="src\Misc\AresData.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />
@@ -187,6 +188,7 @@
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameLogFix.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
@@ -196,6 +198,7 @@
     <ClCompile Include="src\Misc\Hooks.OtamaaBugFix.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Hooks.Working.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
@@ -316,6 +319,7 @@
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Ext\Wave\Body.h" />
+    <ClInclude Include="src\Misc\AresData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintballType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.h" />

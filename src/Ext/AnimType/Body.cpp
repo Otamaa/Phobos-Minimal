@@ -51,7 +51,12 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
 	this->Damage_ConsiderOwnerVeterancy.Read(exINI, pID, "Damage.ConsiderOwnerVeterancyBonus");
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
-	this->Damage_TargetInvoker.Read(exINI, pID, "Damage.TargetInvoker");
+	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
+
+	Nullable<bool> Damage_TargetInvoker {};
+	Damage_TargetInvoker.Read(exINI, pID, "Damage.TargetInvoker");
+	if (Damage_TargetInvoker.isset())
+		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 #pragma region Otamaa
 
@@ -201,7 +206,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Damage_DealtByInvoker)
 		.Process(this->Damage_ApplyOnce)
 		.Process(this->Damage_ConsiderOwnerVeterancy)
-		.Process(this->Damage_TargetInvoker)
+		.Process(this->Damage_TargetFlag)
 		.Process(this->Warhead_Detonate)
 
 		.Process(SplashList)

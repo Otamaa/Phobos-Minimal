@@ -54,7 +54,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
 	pExt->UpdateInterceptor();
-	pExt->UpdateFireSelf();
+	//pExt->UpdateFireSelf();
 	pExt->UpdateMobileRefinery();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();

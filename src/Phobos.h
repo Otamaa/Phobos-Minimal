@@ -27,6 +27,8 @@ constexpr const char* SIDEBAR_SECTION_T = "Sidebar";
 
 constexpr const wchar_t* ARES_DLL =  L"Ares.dll";
 constexpr const char* ARES_DLL_S = "Ares.dll";
+constexpr const wchar_t* PHOBOS_DLL = L"Phobos.dll";
+constexpr const char* PHOBOS_DLL_S = "Phobos.dll";
 constexpr const wchar_t* GAMEMD_EXE = L"gamemd.exe";
 constexpr const char* UIMD_ = "uimd.ini";
 
@@ -69,6 +71,7 @@ public:
 
 	static void ExeRun();
 	static void ExeTerminate();
+	static void DrawVersionWarning();
 
 	//variables
 	static HANDLE hInstance;
@@ -78,8 +81,6 @@ public:
 	static wchar_t wideBuffer[readLength];
 	static const char readDelims[4];
 	static const char readDefval[4];
-
-	static uintptr_t AresBaseAddress;
 
 	static std::string AppIconPath;
 	static char AppName[0x40];
@@ -96,6 +97,7 @@ public:
 	{
 		NO_CONSTRUCT_CLASS(UI)
 	public:
+
 		static bool DisableEmptySpawnPositions;
 		static bool ExtendedToolTips;
 		static int MaxToolTipWidth;
@@ -119,6 +121,9 @@ public:
 	{
 		NO_CONSTRUCT_CLASS(Config)
 	public:
+
+		static void Read();
+
 		static bool HideWarning;
 		static bool ToolTipDescriptions;
 		static bool ToolTipBlur;
@@ -137,6 +142,19 @@ public:
 
 		static bool TogglePowerInsteadOfRepair;
 		static bool ShowTechnoNamesIsActive;
+
+		static bool RealTimeTimers;
+		static bool RealTimeTimers_Adaptive;
+		static int CampaignDefaultGameSpeed;
+	};
+
+	class Misc
+	{
+	public:
+		static bool CustomGS;
+		static int CustomGS_ChangeInterval[7];
+		static int CustomGS_ChangeDelay[7];
+		static int CustomGS_DefaultDelay[7];
 	};
 
 	class Otamaa

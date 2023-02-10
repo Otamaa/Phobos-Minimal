@@ -238,6 +238,29 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	}
 }
 
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
+{
+		if (!pThis)
+			return;
+
+	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
+
+	if (pThis->NukeMaker)
+	{
+		if (!pTarget)
+		{
+			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			return;
+		}
+	}
+
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
+		damage, pThis, 0, 0, pThis->Bright))
+	{
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+	}
+}
+
 // =============================
 // load / save
 

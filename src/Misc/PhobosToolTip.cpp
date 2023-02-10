@@ -17,6 +17,8 @@
 #include <CCToolTip.h>
 #include <BitFont.h>
 #include <BitText.h>
+#include <Phobos.h>
+#include <FPSCounter.h>
 
 #include <sstream>
 #include <iomanip>
@@ -112,9 +114,9 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	auto const pData = TechnoTypeExt::ExtMap.Find(pType);
 
 	int nBuildTime = this->GetBuildTime(pType);
-	int nSec = nBuildTime / 15 % 60;
-	int nMin = nBuildTime / 15 / 60 /* % 60*/;
-	// int nHour = pType->RechargeTime / 15 / 60 / 60;
+	int nSec = TickTimeToSeconds(nBuildTime) % 60;
+	int nMin = TickTimeToSeconds(nBuildTime) / 60 /* % 60*/;
+	// int nHour = TickTimeToSeconds(nBuildTime) / 60 / 60;
 
 	int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
 
@@ -141,6 +143,21 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	this->TextBuffer = oss.str();
 }
 
+int PhobosToolTip::TickTimeToSeconds(int tickTime)
+{
+	if (!Phobos::Config::RealTimeTimers)
+		return tickTime / 15;
+
+	if (Phobos::Config::RealTimeTimers_Adaptive
+		|| GameOptionsClass::Instance->GameSpeed == 0
+		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())) // TODO change when custom game speed gets merged
+	{
+		return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
+	}
+
+	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
+}
+
 void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 {
 	auto const pData = SWTypeExt::ExtMap.Find(pType);
@@ -165,9 +182,9 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 		if (!showCost)
 			oss << L"\n";
 
-		int nSec = pType->RechargeTime / 15 % 60;
-		int nMin = pType->RechargeTime / 15 / 60 /* % 60*/;
-		// int nHour = pType->RechargeTime / 15 / 60 / 60;
+		int nSec = TickTimeToSeconds(pType->RechargeTime) % 60;
+		int nMin = TickTimeToSeconds(pType->RechargeTime) / 60 /* % 60*/;
+		// int nHour = TickTimeToSeconds(pType->RechargeTime) / 60 / 60;
 
 		oss << (showCost ? L" " : L"") << Phobos::UI::TimeLabel
 			// << std::setw(2) << std::setfill(L'0') << nHour << L":"

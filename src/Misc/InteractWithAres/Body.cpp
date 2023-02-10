@@ -2,7 +2,7 @@
 
 #include <ASMMacros.h>
 #include <Phobos.h>
-
+/*
 class TechnoClass;
 class TechnoTypeClass;
 class SuperWeaponTypeClass;
@@ -41,3 +41,4 @@ void* __fastcall AresData::ContainerMap_Find::Exec(DWORD* c, SuperWeaponTypeClas
 }
 
 uint32_t const Ares::BaseAddress = reinterpret_cast<uint32_t>(GetModuleHandleW(ARES_DLL));
+*/

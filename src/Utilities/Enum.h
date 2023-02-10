@@ -34,6 +34,13 @@
 
 #include <Phobos.h>
 
+enum class DamageDelayTargetFlag : int
+{
+	Cell = 0,
+	AttachedObject = 1,
+	Invoker = 2
+};
+
 enum class FullMapDetonateResult : int
 {
 	TargetNotDamageable,

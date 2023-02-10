@@ -1,7 +1,7 @@
 #pragma once
 #include <Base/Always.h>
 
-class TechnoClass;
+/*class TechnoClass;
 class TechnoTypeClass;
 class SuperWeaponTypeClass;
 
@@ -141,4 +141,4 @@ private:
 
 public:
 	static constexpr AresStdcall<0x10043CF0, bool, TechnoClass*, TechnoTypeClass*> TypeConversion {};
-};
+};*/

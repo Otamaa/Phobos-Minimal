@@ -71,6 +71,7 @@ public:
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim,TechnoClass* pTechnoInvoker, bool defaultToVictimOwner = true);
 	static TechnoClass* GetTechnoInvoker(const AnimClass* const pThis ,bool DealthByOwner);
+	static AbstractClass* GetTarget(const AnimClass* const pThis);
 	//ToDo :
 	// utilize this ,..
 	// here as dummy atm

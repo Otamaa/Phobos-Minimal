@@ -247,3 +247,172 @@ DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 0x6)
 
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
 }
+
+#ifdef Ares_ExperimentalHooks
+#include "ViniferaStyle_Hooks.h"
+
+DECLARE_PATCH(Ares_RecalculateStats_intercept_Armor)
+{
+	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, edi);
+	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
+	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x88);
+	Debug::Log("Ares_CellClass_CrateBeingCollected_Armor2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
+	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
+	_asm {mov ecx, pTechnoExt}//thiscall !
+	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
+}
+
+DECLARE_PATCH(Ares_RecalculateStats_intercept_FP)
+{
+	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, edi);
+	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
+	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x80);
+	Debug::Log("Ares_CellClass_CrateBeingCollected_FirePower2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
+	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
+	_asm {mov ecx, pTechnoExt}//thiscall !
+	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
+}
+
+DECLARE_PATCH(Ares_RecalculateStats_intercept_Speed)
+{
+	GET_REGISTER_STATIC_TYPE(TechnoClass*, pThis, esi);
+	GET_REGISTER_STATIC_TYPE(DWORD, pTechnoExt, ecx);
+	static double cur = *reinterpret_cast<double*>(pTechnoExt + 0x90);
+	Debug::Log("CellClass_CrateBeingCollected_Speed2 GetCurrentMult for [%s] [%fl] \n", pThis->get_ID(), cur);
+	static uintptr_t Ares_RecalculateStats_intercept_ret = ((Phobos::AresBaseAddress + (uintptr_t)0x46C10));
+	_asm {mov ecx, pTechnoExt}//thiscall !
+	JMP_REG(eax, Ares_RecalculateStats_intercept_ret);
+}
+#endif
+
+
+#ifdef ENABLE_CLR
+DEFINE_HOOK(0x6BB9D2, PatcherLoader_Action, 0x6)
+{
+	if (AllocConsole())
+	{
+		CLR::Init();
+		CLR::Load();
+	}
+	else
+	{
+		MessageBoxW(NULL, TEXT("Alloc console error"), TEXT("Phobos"), MB_OK);
+	}
+
+	return 0x0;
+}
+#endif
+
+
+//static std::filesystem::path  g_target_executable_path;
+//static std::wstring Ares_dll_Fullpath;
+
+#ifdef ENABLE_CRT_HOOKS
+DEFINE_HOOK(0x6BBFCE, _WinMain_InitPhobos_, 0x5)
+{
+	_set_controlfp(_RC_CHOP, _MCW_RC);
+	fesetround(FE_TOWARDZERO);
+	return 0x0;
+}
+#endif
+
+#ifdef ENABLE_DLL_SYNC_FETCHRESOURCE
+DEFINE_HOOK(0x4A3B4B, _YR_Fetch_Resource, 0x9)
+{
+
+	GET(LPCSTR, lpName, ECX);
+	GET(LPCSTR, lpType, EDX);
+
+	HMODULE hModule = Phobos::hInstance;
+	if (HRSRC hResInfo = FindResource(hModule, lpName, lpType))
+	{
+		if (HGLOBAL hResData = LoadResource(hModule, hResInfo))
+		{
+			LockResource(hResData);
+			R->EAX(hResData);
+			return 0x4A3B73; //Resource locked and loaded (omg what a pun), return!
+		}
+	}
+
+	return 0; //Nothing was found, try the game's own resources.
+}
+#endif
+
+//DEFINE_HOOK(0x6BE1C2, _YR_ProgramEnd, 0x6)
+//{
+//	return 0x0;
+//}
+
+/*
+#ifndef ENABLE_NEWHOOKS
+DEFINE_HOOK(0x7C8E17, operator_new_AddExtraSize, 0x6)
+{
+	REF_STACK(size_t, nDataSize, 0x4);
+	nDataSize += 0x4;
+	return 0x0;
+}
+#endif
+
+DEFINE_HOOK(0x7D5408, Game_strdup_replace, 0x5)
+{
+	GET_STACK(const char*, In, 0x4);
+
+	char* str;
+	char* p;
+	int len = 0;
+
+	while (In[len])
+	{
+		len++;
+	}
+
+	str = (char*)CRT::malloc(len + 1);
+	p = str;
+
+	while (*In)
+	{
+		*p++ = *In++;
+	}
+
+	*p = '\0';
+
+	R->EAX(str);
+	return 0x7D542E;
+}
+
+DEFINE_HOOK_AGAIN(0x777D71, WindowName_ApplyCustom, 0x5)
+DEFINE_HOOK(0x777CCA, WindowName_ApplyCustom, 0x5)
+{
+	if (Phobos::AppName && strlen(Phobos::AppName) > 0)
+		R->ESP(Phobos::AppName);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x7D107D, Game_msize_replace, 0x8)
+{
+	GET_STACK(void*, pVoid, 0x4);
+	size_t nSize = 0;
+	CRT::_lock(9);
+	if (CRT::_sbh_find_block(pVoid))
+	{
+		DWORD nPtr = *reinterpret_cast<DWORD*>(pVoid);
+		nSize = (nPtr - 4) - 9;
+		CRT::_unlock(9);
+	}
+	else
+	{
+		CRT::_unlock(9);
+		nSize = HeapSize(CRT_Heap, 0, pVoid);
+	}
+
+	R->EAX(nSize);
+	return 0x7D10C1;
+}
+*/
+
+//std::filesystem::path get_module_path(HMODULE module)
+//{
+//	WCHAR buf[4096];
+//	return GetModuleFileNameW(module, buf, ARRAYSIZE(buf)) ? buf : std::filesystem::path();
+//}
