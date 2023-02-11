@@ -156,7 +156,7 @@ DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < pThis->Upgrades.size(); ++i)
 	{
 		auto const upgrade = pThis->Upgrades[i];
 

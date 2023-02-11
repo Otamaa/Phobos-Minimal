@@ -65,16 +65,19 @@ class PhobosTrajectory
 public:
 
 	TrajectoryFlag Flag { TrajectoryFlag::Invalid };
+	BulletClass* AttachedTo;
 	PhobosTrajectoryType* Type;
 	Leptons DetonationDistance;
 
 	PhobosTrajectory(noinit_t) { }
 	PhobosTrajectory(TrajectoryFlag flag ) : Flag { flag }
+		, AttachedTo { nullptr }
 		, Type { nullptr }
 		, DetonationDistance { 0 }
 	{ }
 
-	PhobosTrajectory(TrajectoryFlag flag , PhobosTrajectoryType* type) : Flag { flag }
+	PhobosTrajectory(TrajectoryFlag flag , BulletClass* pBullet , PhobosTrajectoryType* type) : Flag { flag }
+		, AttachedTo { pBullet }
 		, Type { type }
 		, DetonationDistance { 0 }
 	{ }
@@ -87,24 +90,22 @@ public:
 
 	virtual PhobosTrajectoryType* GetTrajectoryType() const { return const_cast<PhobosTrajectoryType*>(Type); }
 
-	virtual void OnUnlimbo(BulletClass* pBullet , CoordStruct* pCoord, VelocityClass* pVelocity) = 0;
-	virtual bool OnAI(BulletClass* pBullet) = 0;
-	virtual void OnAIPreDetonate(BulletClass* pBullet) = 0;
-	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords) = 0;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet,TechnoClass* pTechno) = 0;
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) = 0;
+	virtual bool OnAI() = 0;
+	virtual void OnAIPreDetonate() = 0;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) = 0;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) = 0;
 
-	double GetTrajectorySpeed(BulletClass* pBullet) const;
+	double GetTrajectorySpeed() const;
+	void SetInaccurate() const;
 
 	static void CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity);
-
 	static void ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj);
 
-	static void SetInaccurate(BulletClass* pBullet);
-
 protected:
-	static bool UpdateType(std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType, TrajectoryFlag flag);
+	static bool UpdateType(BulletClass* pBullet , std::unique_ptr<PhobosTrajectory>& pTraj , PhobosTrajectoryType*  pType);
 };
 
 /*

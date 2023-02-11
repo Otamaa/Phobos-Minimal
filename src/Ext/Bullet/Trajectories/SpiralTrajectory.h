@@ -43,7 +43,7 @@ public:
 		, close { false }
 	{}
 
-	SpiralTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Spiral , pType }
+	SpiralTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Spiral , pBullet , pType }
 		, CenterLocation { CoordStruct::Empty }
 		, DirectionAngel { 0.0 }
 		, CurrentRadius { 0.0 }
@@ -58,10 +58,10 @@ public:
 
 	virtual SpiralTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<SpiralTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
 
-	virtual void OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity) override;
-	virtual bool OnAI(BulletClass* pBullet) override;
-	virtual void OnAIPreDetonate(BulletClass* pBullet) override;
-	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) override;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords) override;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno) override;
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 };

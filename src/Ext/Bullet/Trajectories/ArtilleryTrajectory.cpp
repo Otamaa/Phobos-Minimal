@@ -70,10 +70,10 @@ bool ArtilleryTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void ArtilleryTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	PhobosTrajectory::SetInaccurate(pBullet);
-
+	this->SetInaccurate();
+	auto const pBullet = AttachedTo;
 	this->InitialTargetLocation = pBullet->TargetCoords;
 	this->InitialSourceLocation = pBullet->SourceCoords;
 	this->CenterLocation = pBullet->Location;
@@ -103,14 +103,15 @@ void ArtilleryTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, V
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= (this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude());
+	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude());
 }
 
-void ArtilleryTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
+void ArtilleryTrajectory::OnAIPreDetonate() { }
 
-bool ArtilleryTrajectory::OnAI(BulletClass* pBullet)
+bool ArtilleryTrajectory::OnAI()
 {
-	auto type = this->GetTrajectoryType();
+	auto const type = this->GetTrajectoryType();
+	auto const pBullet = AttachedTo;
 
 	if (type->DistanceToHeight)
 	{
@@ -204,17 +205,18 @@ bool ArtilleryTrajectory::OnAI(BulletClass* pBullet)
 	return false;
 }
 
-void ArtilleryTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void ArtilleryTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
+	auto const pBullet = AttachedTo;
 	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 }
 
-TrajectoryCheckReturnType ArtilleryTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType ArtilleryTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType ArtilleryTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType ArtilleryTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }

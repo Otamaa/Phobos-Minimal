@@ -20,9 +20,6 @@ class BulletExt
 public:
 	static constexpr size_t Canary = 0x2A2A2A2A;
 	using base_type = BulletClass;
-#ifndef ENABLE_NEWEXT
-	//static constexpr size_t ExtOffset = 0xE4;
-#endif
 
 	class ExtData final : public Extension<BulletClass>
 	{

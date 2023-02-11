@@ -34,7 +34,7 @@ public:
 		, Height { 0.0 }
 	{ }
 
-	VerticalTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Vertical , pType }
+	VerticalTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory { TrajectoryFlag::Vertical , pBullet , pType }
 		, IsFalling { false }
 		, Height { 0.0 }
 	{ }
@@ -46,12 +46,12 @@ public:
 
 	virtual VerticalTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<VerticalTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
 
-	virtual void OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity) override;
-	virtual bool OnAI(BulletClass* pBullet) override;
-	virtual void OnAIPreDetonate(BulletClass* pBullet) override;
-	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) override;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords) override;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno) override;
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
 };
 #pragma once

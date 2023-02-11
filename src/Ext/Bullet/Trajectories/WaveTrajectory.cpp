@@ -62,19 +62,21 @@ bool WaveTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void WaveTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void WaveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	PhobosTrajectory::SetInaccurate(pBullet);
+	auto const pBullet = this->AttachedTo;
+	this->SetInaccurate();
 
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 }
 
-bool WaveTrajectory::OnAI(BulletClass* pBullet)
+bool WaveTrajectory::OnAI()
 {
-	auto type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
+	auto const type = this->GetTrajectoryType();
 
 	if (!this->Fallen)
 	{
@@ -123,21 +125,20 @@ bool WaveTrajectory::OnAI(BulletClass* pBullet)
 	return false;
 }
 
-void WaveTrajectory::OnAIPreDetonate(BulletClass* pBullet)
-{
-}
+void WaveTrajectory::OnAIPreDetonate() { }
 
-void WaveTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void WaveTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
+	auto const pBullet = this->AttachedTo;
 	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 }
 
-TrajectoryCheckReturnType WaveTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType WaveTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType WaveTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType WaveTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }

@@ -2750,6 +2750,11 @@ std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 //	return 0x4775B7;
 //}
 
+NOINLINE int* AllocArray()
+{
+	return new int[SuperWeaponTypeClass::Array->Count];
+}
+
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
 	GET(InfantryClass*, pThis, ECX);
 

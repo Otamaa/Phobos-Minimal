@@ -57,9 +57,10 @@ bool MeteorTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void MeteorTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void MeteorTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	auto type = this->GetTrajectoryType();
+	auto const type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
 	int range = static_cast<int>(type->Range.Get() * Unsorted::d_LeptonsPerCell);
 	double angel = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
 	double length = ScenarioClass::Instance()->Random.RandomRanged(-range, range);
@@ -70,7 +71,7 @@ void MeteorTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Velo
 		,pBullet->TargetCoords.Z + static_cast<int>(type->Height)
 	};
 
-	PhobosTrajectory::SetInaccurate(pBullet);
+	this->SetInaccurate();
 
 	pBullet->Limbo();
 	pBullet->Unlimbo(SourceLocation, static_cast<DirType>(0));
@@ -78,32 +79,33 @@ void MeteorTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Velo
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - SourceLocation.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - SourceLocation.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - SourceLocation.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 }
 
-bool MeteorTrajectory::OnAI(BulletClass* pBullet)
+bool MeteorTrajectory::OnAI()
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < this->DetonationDistance)
 		return true;
 
 	return false;
 }
 
-void MeteorTrajectory::OnAIPreDetonate(BulletClass* pBullet)
-{
-}
+void MeteorTrajectory::OnAIPreDetonate() { }
 
-void MeteorTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void MeteorTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
+	auto const pBullet = this->AttachedTo;
 	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
 }
 
-TrajectoryCheckReturnType MeteorTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType MeteorTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType MeteorTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType MeteorTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }

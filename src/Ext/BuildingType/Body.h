@@ -104,9 +104,7 @@ class BuildingTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = BuildingTypeClass;
-#ifndef ENABLE_NEWEXT
 	static constexpr size_t ExtOffset = 0x1794;
-#endif
 
 	class ExtData final : public Extension<BuildingTypeClass>
 	{

@@ -181,7 +181,6 @@ private:
 
 public:
 
-
 	explicit Container(const char* pName) :
 		SavingObject { nullptr },
 		SavingStream { nullptr },
@@ -213,13 +212,6 @@ public:
 		}
 	}
 
-	virtual void Clear() { }
-
-protected:
-
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
-
 	void ClearExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
@@ -228,13 +220,20 @@ protected:
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 	}
 
-	void SetExtAttribute(base_type_ptr key , const_extension_type_ptr val)
+	void SetExtAttribute(base_type_ptr key, const_extension_type_ptr val)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
 	}
+
+	virtual void Clear() { }
+
+protected:
+
+	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
+	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
 
 public:
 
@@ -248,7 +247,7 @@ public:
 
 		this->ClearExtAttribute(key);
 
-		if (const auto val = new extension_type(key))
+		if (extension_type_ptr val = new extension_type(key))
 		{
 			val->EnsureConstanted();
 			this->SetExtAttribute(key,val);
@@ -272,7 +271,7 @@ public:
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
 		// Find Always check for nullptr here
-		if (auto const ptr = Find<true>(key))
+		if (extension_type_ptr const ptr = Find<true>(key))
 			return ptr;
 
 		return this->Allocate(key);
@@ -296,7 +295,7 @@ public:
 
 	void Remove(base_type_ptr key)
 	{
-		if (auto Item = Find<false>(key)) {
+		if (extension_type_ptr Item = Find<false>(key)) {
 			delete Item;
 
 			this->ClearExtAttribute(key);
@@ -305,7 +304,7 @@ public:
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
-		if (auto ptr = this->Find<true>(key))
+		if (extension_type_ptr ptr = this->Find<true>(key))
 			ptr->LoadFromINI(pINI);
 	}
 
@@ -375,7 +374,7 @@ protected:
 		}
 
 		// get the value data
-		const auto buffer = this->Find(key);
+		extension_type_ptr const buffer = this->Find(key);
 
 		if (!buffer)
 		{

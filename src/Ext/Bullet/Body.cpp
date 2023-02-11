@@ -14,7 +14,6 @@
 BulletExt::ExtContainer BulletExt::ExtMap;
 TechnoClass* BulletExt::InRangeTempFirer = nullptr;
 
-  
 bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
 	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();

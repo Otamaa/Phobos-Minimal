@@ -58,23 +58,28 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 void SideExt::IniExtData(SideClass* pThis, int nIdx)
 {
+	#define ExtData_ptr ((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)));
+
 	if (Phobos::Otamaa::DoingLoadGame)
 		return;
 
 	if (!pThis->unknown_18)
 	{
-		if (auto val = new SideExt::ExtData(pThis))
+		if (SideExt::ExtData* val = new SideExt::ExtData(pThis))
 		{
 			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
-			(*(uintptr_t*)((char*)pThis + AbstractExtOffset)) = (uintptr_t)val;
+			SideExt::ExtMap.SetExtAttribute(pThis, val);
 		}
 	}
 	else
 	{
-		if (((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)))->ArrayIndex != nIdx)
-			((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)))->ArrayIndex = nIdx;
+		auto const pExt = ExtData_ptr;
+		if (pExt->ArrayIndex != nIdx)
+			pExt->ArrayIndex = nIdx;
 	}
+
+	#undef ExtData_ptr
 }
 
 // =============================

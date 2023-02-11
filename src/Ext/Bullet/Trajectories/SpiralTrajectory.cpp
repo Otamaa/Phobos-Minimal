@@ -72,10 +72,10 @@ bool SpiralTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void SpiralTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	PhobosTrajectory::SetInaccurate(pBullet);
-
+	auto const pBullet = this->AttachedTo;
+	this->SetInaccurate();
 	this->CenterLocation = pBullet->Location;
 
 	this->DirectionAngel = Math::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), 
@@ -84,11 +84,13 @@ void SpiralTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, Velo
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 }
 
-bool SpiralTrajectory::OnAI(BulletClass* pBullet)
+bool SpiralTrajectory::OnAI()
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (!this->close)
 	{
 		double height = Math::sin(Math::deg2rad(this->CurrentAngel)) * this->CurrentRadius;
@@ -125,13 +127,12 @@ bool SpiralTrajectory::OnAI(BulletClass* pBullet)
 	return false;
 }
 
-void SpiralTrajectory::OnAIPreDetonate(BulletClass* pBullet)
-{
-}
+void SpiralTrajectory::OnAIPreDetonate() { }
 
-void SpiralTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
-	auto type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
+	auto const type = this->GetTrajectoryType();
 	pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type); // We don't want to take the gravity into account
 
 	CoordStruct center = this->CenterLocation;
@@ -165,12 +166,12 @@ void SpiralTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed,
 	}
 }
 
-TrajectoryCheckReturnType SpiralTrajectory::OnAITargetCoordCheck(BulletClass* pBullet , CoordStruct& coords)
+TrajectoryCheckReturnType SpiralTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType SpiralTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType SpiralTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::SkipGameCheck; // Bypass game checks entirely.
 }

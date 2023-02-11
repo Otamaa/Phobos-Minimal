@@ -57,31 +57,33 @@ bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void BombardTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
 	auto const type = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
 	this->Height = type->Height + pBullet->TargetCoords.Z;
-
-	PhobosTrajectory::SetInaccurate(pBullet);
+	this->SetInaccurate();
 
 	if (!type->Anti.Get())
 	{
 		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 		pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-		pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 	}
 	else
 	{
 		pBullet->Velocity.X = 0.0;
 		pBullet->Velocity.Y = 0.0;
 		pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-		pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+		pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 	}
 }
 
-bool BombardTrajectory::OnAI(BulletClass* pBullet)
+bool BombardTrajectory::OnAI()
 {
+	auto const pBullet = this->AttachedTo;
+
 	// Close enough
 	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) <  this->DetonationDistance) // This value maybe adjusted?
 		return true;
@@ -89,10 +91,12 @@ bool BombardTrajectory::OnAI(BulletClass* pBullet)
 	return false;
 }
 
-void BombardTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
+void BombardTrajectory::OnAIPreDetonate() { }
 
-void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void BombardTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (!this->IsFalling)
 	{
 		pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
@@ -109,12 +113,12 @@ void BombardTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed
 
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType BombardTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }

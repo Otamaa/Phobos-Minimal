@@ -16,10 +16,8 @@
 
 DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 {
-	if (!Phobos::AppIconPath.empty())
-	{
-		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());
-		
+	if (!Phobos::AppIconPath.empty()) {
+		Debug::Log("Applying AppIcon from \"%s\"\n", Phobos::AppIconPath.c_str());		
 		R->EAX(LoadImageA(NULL, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
 		return 0x777C4A;
 	}
@@ -74,14 +72,14 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 	if (HouseExt::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
 		return 0x0;
 
-	auto pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
+	auto const pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
 
 	if (!pSide)
 		return 0x0;
 
 	//GET(CreditClass*, pThis, EBP);
 
-	const auto pSideExt = SideExt::ExtMap.Find(pSide);
+	auto const pSideExt = SideExt::ExtMap.Find(pSide);
 
 	if(!pSideExt)
 		return 0x0;
@@ -90,11 +88,11 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 
 	if (Phobos::UI::ShowHarvesterCounter)
 	{	
-		const auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
-		const auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
-		const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
+		auto const nActive = HouseExt::ActiveHarvesterCount(pPlayer);
+		auto const nTotal = HouseExt::TotalHarvesterCount(pPlayer);
+		auto const nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
-		const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
+		ColorStruct const clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
 			? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 			? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 

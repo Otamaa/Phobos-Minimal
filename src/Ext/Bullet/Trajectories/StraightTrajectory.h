@@ -29,21 +29,12 @@ class StraightTrajectory final : public PhobosTrajectory
 {
 public:
 
-	//bool SnapOnTarget;
-	//Leptons SnapThreshold;
-	//bool PassThrough;
 
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
-		//, SnapOnTarget { true }
-		//, SnapThreshold { 0 }
-		//, PassThrough { false }
 	{ }
 
-	StraightTrajectory(PhobosTrajectoryType* pType) : PhobosTrajectory {TrajectoryFlag::Straight , pType }
-		//, SnapOnTarget { true }
-		//, SnapThreshold { 0 }
-		//, PassThrough { false }
-	{}
+	StraightTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : PhobosTrajectory {TrajectoryFlag::Straight , pBullet , pType }
+	{ }
 
 	virtual ~StraightTrajectory() override = default;
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
@@ -52,10 +43,10 @@ public:
 
 	virtual StraightTrajectoryType* GetTrajectoryType() const { return reinterpret_cast<StraightTrajectoryType*>(PhobosTrajectory::GetTrajectoryType()); }
 
-	virtual void OnUnlimbo(BulletClass* pBullet,CoordStruct* pCoord, VelocityClass* pVelocity) override;
-	virtual bool OnAI(BulletClass* pBullet) override;
-	virtual void OnAIPreDetonate(BulletClass* pBullet) override;
-	virtual void OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition) override;
-	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords) override;
-	virtual TrajectoryCheckReturnType OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno) override;
+	virtual void OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity) override;
+	virtual bool OnAI() override;
+	virtual void OnAIPreDetonate() override;
+	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
+	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
+	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 };

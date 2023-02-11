@@ -89,40 +89,35 @@ bool BounceTrajectory::Save(PhobosStreamWriter& Stm) const
 
 // Do some math here to set the initial speed of your proj
 // Also set some needed properties here
-void BounceTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void BounceTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	auto pType = this->GetTrajectoryType();
-
+	auto const pType = this->GetTrajectoryType();
+	auto const pBullet = this->AttachedTo;
+	this->SetInaccurate();
 	this->DetonationDistance = pType->DetonationDistance.Get(Leptons(102));
 	this->BounceLeft = pType->BounceAmount;
 
 	//pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	//pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	//pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= (this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude());
+	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude());
 }
 
 // Some early checks on each game frame here.
 // Return true to detonate the bullet immediately afterwards.
-bool BounceTrajectory::OnAI(BulletClass* pBullet)
-{
-	return false;
-}
+bool BounceTrajectory::OnAI() { return false; }
 
-void BounceTrajectory::OnAIPreDetonate(BulletClass* pBullet) { }
+void BounceTrajectory::OnAIPreDetonate() { }
 
 // Where you update the speed and position
 // pSpeed: The speed of this proj in the next frame
 // pPosition: Current position of the proj, and in the next frame it will be *pSpeed + *pPosition
-void BounceTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
-{
-
-}
+void BounceTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) { }
 
 // Where additional checks based on bullet reaching its target coordinate can be done.
 // Vanilla code will do additional checks regarding buildings on target coordinate and Vertical projectiles and will detonate the projectile if they pass.
 // Return value determines what is done regards to the game checks: they can be skipped, executed as normal or treated as if the condition is already satisfied.
-TrajectoryCheckReturnType BounceTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType BounceTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
@@ -131,7 +126,7 @@ TrajectoryCheckReturnType BounceTrajectory::OnAITargetCoordCheck(BulletClass* pB
 // Vanilla code will do additional trajectory alterations here if there is an enemy techno in the cell.
 // Return value determines what is done regards to the game checks: they can be skipped, executed as normal or treated as if the condition is already satisfied.
 // pTechno: TechnoClass instance in same cell as the bullet.
-TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType BounceTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }

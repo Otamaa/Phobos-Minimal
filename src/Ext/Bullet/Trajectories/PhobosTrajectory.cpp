@@ -183,9 +183,10 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::uniqu
 	}
 }
 
-double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
+double PhobosTrajectory::GetTrajectorySpeed() const
 {
 	double nResult = 100.0;
+	auto const pBullet = this->AttachedTo;
 
 	if (!pBullet->WeaponType)
 		return nResult;
@@ -199,8 +200,9 @@ double PhobosTrajectory::GetTrajectorySpeed(BulletClass* pBullet) const
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return 	Stm
-		.Process(this->Type, true)
-		.Process(this->DetonationDistance, false)
+		.Process(this->AttachedTo)
+		.Process(this->Type)
+		.Process(this->DetonationDistance)
 		.Success()
 		;
 }
@@ -208,46 +210,47 @@ bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 bool PhobosTrajectory::Save(PhobosStreamWriter& Stm) const
 {
 	return 	Stm
-		.Process(this->Type, true)
-		.Process(this->DetonationDistance, false)
+		.Process(this->AttachedTo)
+		.Process(this->Type)
+		.Process(this->DetonationDistance)
 		.Success()
 		;
 }
 
-bool PhobosTrajectory::UpdateType(std::unique_ptr<PhobosTrajectory>& pTraj, PhobosTrajectoryType* pType, TrajectoryFlag flag)
+bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTrajectory>& pTraj, PhobosTrajectoryType* pType)
 {
-	switch (flag)
+	switch (pType->Flag)
 	{
 	case TrajectoryFlag::Straight:
-		pTraj = std::make_unique<StraightTrajectory>(pType);
+		pTraj = std::make_unique<StraightTrajectory>(pBullet , pType);
 		break;
 
 	case TrajectoryFlag::Bombard:
-		pTraj = std::make_unique<BombardTrajectory>(pType);
+		pTraj = std::make_unique<BombardTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Artillery:
-		pTraj = std::make_unique<ArtilleryTrajectory>(pType);
+		pTraj = std::make_unique<ArtilleryTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Bounce:
-		pTraj = std::make_unique<BounceTrajectory>(pType);
+		pTraj = std::make_unique<BounceTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Meteor:
-		pTraj = std::make_unique<MeteorTrajectory>(pType);
+		pTraj = std::make_unique<MeteorTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Spiral:
-		pTraj = std::make_unique<SpiralTrajectory>(pType);
+		pTraj = std::make_unique<SpiralTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Vertical:
-		pTraj = std::make_unique<VerticalTrajectory>(pType);
+		pTraj = std::make_unique<VerticalTrajectory>(pBullet, pType);
 		break;
 
 	case TrajectoryFlag::Wave:
-		pTraj = std::make_unique<WaveTrajectory>(pType);
+		pTraj = std::make_unique<WaveTrajectory>(pBullet, pType);
 		break;
 	default:
 		pTraj.release();
@@ -260,7 +263,6 @@ bool PhobosTrajectory::UpdateType(std::unique_ptr<PhobosTrajectory>& pTraj, Phob
 
 void PhobosTrajectory::CreateInstance(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-
 	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
 	if (!pBulletTypeExt->TrajectoryType)
@@ -268,8 +270,8 @@ void PhobosTrajectory::CreateInstance(BulletClass* pBullet, CoordStruct* pCoord,
 
 	auto const pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
-	if (PhobosTrajectory::UpdateType(pBulletExt->Trajectory, pBulletTypeExt->TrajectoryType.get() , pBulletTypeExt->TrajectoryType->Flag)) {
-		pBulletExt->Trajectory->OnUnlimbo(pBullet, pCoord, pVelocity);
+	if (PhobosTrajectory::UpdateType(pBullet , pBulletExt->Trajectory ,pBulletTypeExt->TrajectoryType.get())) {
+		pBulletExt->Trajectory->OnUnlimbo(pCoord, pVelocity);
 	}
 
 }
@@ -337,8 +339,10 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_pt
 	}
 }
 
-void PhobosTrajectory::SetInaccurate(BulletClass* pBullet)
+void PhobosTrajectory::SetInaccurate() const
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (pBullet->Type->Inaccurate)
 	{
 		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);

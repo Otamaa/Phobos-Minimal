@@ -321,7 +321,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 #ifndef ENABLE_NEWEXT
-	AnimExt::ExtMap.JustAllocate(pItem, pItem->Fetch_ID() != -2, "Creating an animation with null Type !");
+	AnimExt::ExtMap.JustAllocate(pItem, pItem->Fetch_ID() != -2, "Creating an animation with invalid ID !");
 #else
 	AnimExt::ExtMap.FindOrAllocate(pItem);
 #endif
@@ -391,6 +391,7 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
 }
 
+//remove from CRC
 DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
 
 DEFINE_HOOK_AGAIN(0x421EF4, AnimClass_CTOR_setD0, 0x6)

@@ -12,9 +12,6 @@ class SWTypeExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = SuperWeaponTypeClass;
-#ifndef ENABLE_NEWHOOKS
-	//static constexpr size_t ExtOffset = 0xAC;
-#endif
 
 	class ExtData final : public Extension<SuperWeaponTypeClass>
 	{

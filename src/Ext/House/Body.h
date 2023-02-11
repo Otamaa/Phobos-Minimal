@@ -13,9 +13,7 @@ class HouseExt
 public:
 	static constexpr size_t Canary = 0x11111111;
 	using base_type = HouseClass;
-#ifndef ENABLE_NEWHOOKS
 	static constexpr size_t ExtOffset = 0x16098;
-#endif
 
 	class ExtData final : public Extension<HouseClass>
 	{

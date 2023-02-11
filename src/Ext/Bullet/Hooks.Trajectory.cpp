@@ -14,7 +14,7 @@ DEFINE_HOOK(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 	if (!pThis->SpawnNextAnim)
 	{
 		if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
-			return pTraj->OnAI(pThis) ? Detonate : 0x0;
+			return pTraj->OnAI() ? Detonate : 0x0;
 	}
 
 	return 0;
@@ -25,7 +25,7 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 	GET(BulletClass*, pThis, EBP);
 
 	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
-		pTraj->OnAIPreDetonate(pThis);
+		pTraj->OnAIPreDetonate();
 
 	return 0;
 }
@@ -37,7 +37,7 @@ DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
 
 	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
-		pTraj->OnAIVelocity(pThis, pSpeed, pPosition);
+		pTraj->OnAIVelocity(pSpeed, pPosition);
 
 	return 0;
 }
@@ -51,7 +51,7 @@ DEFINE_HOOK(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
 
 	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
 	{
-		switch (pTraj->OnAITargetCoordCheck(pThis, coords))
+		switch (pTraj->OnAITargetCoordCheck(coords))
 		{
 		case TrajectoryCheckReturnType::SkipGameCheck:
 			return SkipCheck;
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
 
 	if (auto& pTraj = BulletExt::ExtMap.Find(pThis)->Trajectory)
 	{
-		switch (pTraj->OnAITechnoCheck(pThis, pTechno))
+		switch (pTraj->OnAITechnoCheck(pTechno))
 		{
 		case TrajectoryCheckReturnType::SkipGameCheck:
 			return SkipCheck;

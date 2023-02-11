@@ -53,32 +53,34 @@ bool VerticalTrajectory::Save(PhobosStreamWriter& Stm) const
 	return true;
 }
 
-void VerticalTrajectory::OnUnlimbo(BulletClass* pBullet, CoordStruct* pCoord, VelocityClass* pVelocity)
+void VerticalTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 {
-	PhobosTrajectory::SetInaccurate(pBullet);
-
+	auto const pBullet = this->AttachedTo;
+	this->SetInaccurate();
 	this->Height = this->GetTrajectoryType()->Height + pBullet->TargetCoords.Z;
 
 	pBullet->Velocity.X = 0;
 	pBullet->Velocity.Y = 0;
 	pBullet->Velocity.Z = static_cast<double>(this->Height - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed(pBullet) / pBullet->Velocity.Magnitude();
+	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Magnitude();
 }
 
-bool VerticalTrajectory::OnAI(BulletClass* pBullet)
+bool VerticalTrajectory::OnAI()
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (pBullet->TargetCoords.DistanceFrom(pBullet->Location) < this->DetonationDistance)
 		return true;
 
 	return false;
 }
 
-void VerticalTrajectory::OnAIPreDetonate(BulletClass* pBullet)
-{
-}
+void VerticalTrajectory::OnAIPreDetonate() { }
 
-void VerticalTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpeed, VelocityClass* pPosition)
+void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition)
 {
+	auto const pBullet = this->AttachedTo;
+
 	if (!this->IsFalling)
 	{
 		pSpeed->Z += BulletTypeExt::GetAdjustedGravity(pBullet->Type);
@@ -115,12 +117,12 @@ void VerticalTrajectory::OnAIVelocity(BulletClass* pBullet, VelocityClass* pSpee
 	}
 }
 
-TrajectoryCheckReturnType VerticalTrajectory::OnAITargetCoordCheck(BulletClass* pBullet, CoordStruct& coords)
+TrajectoryCheckReturnType VerticalTrajectory::OnAITargetCoordCheck(CoordStruct& coords)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
-TrajectoryCheckReturnType VerticalTrajectory::OnAITechnoCheck(BulletClass* pBullet, TechnoClass* pTechno)
+TrajectoryCheckReturnType VerticalTrajectory::OnAITechnoCheck(TechnoClass* pTechno)
 {
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
