@@ -47,7 +47,7 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
 	GET_BASE(const WarheadTypeClass*, pWH, 0x0C);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find<true>(pWH))
+	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
 	{
 		// GET(const int, Damage, EDX);
 		// GET_BASE(const bool, AffectsTiberium, 0x10);

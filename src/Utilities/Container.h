@@ -271,19 +271,16 @@ public:
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
 		// Find Always check for nullptr here
-		if (extension_type_ptr const ptr = Find<true>(key))
+		if (extension_type_ptr const ptr = Find(key))
 			return ptr;
 
 		return this->Allocate(key);
 	}
 
-	template<bool check = false>
 	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
 	{
-		if constexpr (check) {
-			if (!key)
-				return nullptr;
-		}
+		if (!key)
+			return nullptr;
 
 		if constexpr (HasOffset<T>)
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
@@ -295,7 +292,7 @@ public:
 
 	void Remove(base_type_ptr key)
 	{
-		if (extension_type_ptr Item = Find<false>(key)) {
+		if (extension_type_ptr Item = Find(key)) {
 			delete Item;
 
 			this->ClearExtAttribute(key);
@@ -304,7 +301,7 @@ public:
 
 	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
 	{
-		if (extension_type_ptr ptr = this->Find<true>(key))
+		if (extension_type_ptr ptr = this->Find(key))
 			ptr->LoadFromINI(pINI);
 	}
 

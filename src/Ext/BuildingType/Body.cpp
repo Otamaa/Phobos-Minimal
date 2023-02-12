@@ -163,7 +163,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	if(auto pHouseExt = HouseExt::ExtMap.Find(pOwner)) {
 		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty()) {
 			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
-				if (auto const pExt = BuildingTypeExt::ExtMap.Find<true>(pBldType)) {
+				if (auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType)) {
 					if (!pExt->SpeedBonus.AffectedType.empty())
 						if (!pExt->SpeedBonus.AffectedType.Contains(pType))
 							continue;
@@ -218,7 +218,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 		{
 			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 			{
-				if (auto const pExt = BuildingTypeExt::ExtMap.Find<true>(pBldType))
+				if (auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType))
 				{
 
 					if (!pExt->SpeedBonus.AffectedType.empty())

@@ -29,11 +29,11 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 
 	//if (!pSpawnOwner)
 	//	return;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->MySpawnSupportDatas.Enable)
 	{
-		auto const pExt = TechnoExt::ExtMap.Find<false>(pThis);
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 		//if (pTypeExt->MySpawnSupportDatas.Always.Get())
 		//	return;
 
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x6B743E , SpawnManagerAI_SpawnSupportFLH, 0x8)
 				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
 				if (auto const pTransporter = pOwner->Transporter)
 				{
-					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTransporter->GetTechnoType()))
+					if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType()))
 					{
 						nFLHData = pTransportExt->MySpawnSupportFLH;
 					}

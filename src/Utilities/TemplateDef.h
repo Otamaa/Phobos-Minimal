@@ -547,40 +547,45 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), GameStrings::Suicide()))
+			if (IS_SAME_STR_(parser.value(), GameStrings::Suicide()) || IS_SAME_STR_(parser.value(), "kill") || IS_SAME_STR_(parser.value(), "explode"))
 			{
 				value = SlaveReturnTo::Suicide;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), "master"))
 			{
 				value = SlaveReturnTo::Master;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), "killer"))
 			{
 				value = SlaveReturnTo::Killer;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), GameStrings::Neutral()))
 			{
 				value = SlaveReturnTo::Neutral;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), GameStrings::Civilian()))
 			{
 				value = SlaveReturnTo::Civilian;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), GameStrings::Special()))
 			{
 				value = SlaveReturnTo::Special;
+				return true;
 			}
 			else if (IS_SAME_STR_(parser.value(), "random"))
 			{
 				value = SlaveReturnTo::Random;
+				return true;
 			}
 			else
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default killer");
-				value = SlaveReturnTo::Killer;
-			}
-			return true;
+			}		
 		}
 		return false;
 	}
@@ -594,25 +599,27 @@ namespace detail
 			if (IS_SAME_STR_(pValue, "sell"))
 			{
 				value = KillMethod::Sell;
+				return true;
 			}
 			else if (IS_SAME_STR_(pValue, "vanish"))
 			{
 				value = KillMethod::Vanish;
+				return true;
 			}
 			else if (IS_SAME_STR_(pValue, "kill") || IS_SAME_STR_(pValue, "explode"))
 			{
 				value = KillMethod::Explode;
+				return true;
 			}
 			else if (IS_SAME_STR_(pValue, "random"))
 			{
 				value = KillMethod::Random;
+				return true;
 			}
-			else
+			else if(!parser.empty()) //parser not empty but it doesnt match any condition
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a suicide option, default disabled");
-				value = KillMethod::None;
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
 			}
-			return true;
 		}
 		return false;
 	}

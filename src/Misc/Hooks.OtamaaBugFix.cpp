@@ -2784,31 +2784,73 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) {
 //	return 0x0;
 //}
 
-//DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
-//{
-//	enum { RetFunct = 0x51BF80 , CheckLayer = 0x51BDCF  , CheckMission = 0x51BCC0 };
-//
-//	GET(InfantryClass*, pThis, ESI);
-//
-//	if (!pThis->IsAlive)
-//		return RetFunct;
-//
-//	if (!pThis->InLimbo || pThis->Transporter)
-//		pThis->Reload();
-//
-//	if (pThis->InLimbo)
-//		return CheckLayer;
-//
-//	return CheckMission;
-//}
-//
-//DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
-//{
-//	GET(InfantryClass*, pThis, ESI);
-//	const auto pType = pThis->Type;
-//
-//	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
-//		pThis->StartReloading();
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
+{
+	enum { RetFunct = 0x51BF80 , CheckLayer = 0x51BDCF  , CheckMission = 0x51BCC0 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	if (!pThis->IsAlive)
+		return RetFunct;
+
+	if (!pThis->InLimbo || pThis->Transporter)
+		pThis->Reload();
+
+	if (pThis->InLimbo)
+		return CheckLayer;
+
+	return CheckMission;
+}
+
+DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	const auto pType = pThis->Type;
+
+	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
+		pThis->StartReloading();
+
+	return 0;
+}
+
+DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	const auto deploysInto = pThis->Type->DeploysInto;
+	CellStruct mapCoords = pThis->GetMapCoords();
+	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+
+	const short width = deploysInto->GetFoundationWidth();
+	const short height = deploysInto->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+
+	return 0x7394BE;
+}
+
+DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->GetMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}

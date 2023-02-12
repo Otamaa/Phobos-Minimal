@@ -17,7 +17,7 @@ void ParticleExt::ExtData::InitializeConstants()
 #endif
 	const auto pThis = Get();
 
-	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find<true>(pThis->Type))
+	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type))
 	{
 		CoordStruct nFLH = CoordStruct::Empty;
 		const ColorStruct nColor = pThis->GetOwningHouse() ? pThis->GetOwningHouse()->LaserColor : ColorStruct::Empty;

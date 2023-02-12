@@ -66,6 +66,7 @@ void AttachEffect::EnableEffects()
 		effect->Enable(this);
 	}
 }
+
 void AttachEffect::Init()
 {
 

@@ -205,7 +205,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 {
 	GET(TechnoClass*, pTechno, EDI);
 
-	const auto pTechnoExt = TechnoExt::ExtMap.Find<false>(pTechno);
+	const auto pTechnoExt = TechnoExt::ExtMap.Find(pTechno);
 
 	if (pTechnoExt->LaserTrails.size())
 	{
@@ -384,7 +384,7 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching
 		&& pThis->CountDockedSpawns() != 0)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->Owner->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
 		if (pTypeExt->Spawner_DelayFrames.isset())
 		{
 			R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
@@ -444,7 +444,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	GET(TechnoClass*, pKiller, EBX);
 	GET_STACK(HouseClass*, pDefaultRetHouse, STACK_OFFS(0x24, 0x14));
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pSlave->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->GetTechnoType());
 	{
 		if (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)
 		{

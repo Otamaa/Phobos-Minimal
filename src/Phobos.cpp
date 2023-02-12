@@ -495,6 +495,32 @@ bool Phobos::DetachFromDebugger()
 }
 #pragma warning( pop )
 
+#ifdef ENABLE_ENCRYPTION_HOOKS
+//ToDo: Decrypt ?
+BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+{
+	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+}
+
+//ToDo: EncryptHere ?
+BOOL __stdcall CloseHandle_(HANDLE hFile)
+{
+	return CloseHandle(hFile);
+}
+
+//ToDo: EncryptHere ?
+HANDLE __stdcall CreateFileA_(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+//ToDo: Decrypt ?
+HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID* ppvObj)
+{
+	return OleLoadFromStream(pStm, iidInterface, ppvObj);
+}
+#endif
+
 #pragma endregion
 
 #pragma region Unsorted
@@ -521,6 +547,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
+#ifdef ENABLE_ENCRYPTION_HOOKS
+		Imports::ReadFile = ReadFIle_;
+		Imports::CreateFileA = CreateFileA_;
+		Imports::CloseHandle = CloseHandle_;
+		Imports::OleLoadFromStream = OleLoadFromStream_;
+#endif
 	}
 	break;
 	case DLL_PROCESS_DETACH:
@@ -625,40 +657,9 @@ SYRINGE_HANDSHAKE(pInfo)
 
 DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
 
-#ifdef ENABLE_ENCRYPTION_HOOKS
-//ToDo: Decrypt ?
-BOOL __stdcall ReadFIle_(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped) {
-	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
-}
-
-//ToDo: EncryptHere ?
-BOOL __stdcall CloseHandle_(HANDLE hFile) {
-	return CloseHandle(hFile);
-}
-
-//ToDo: EncryptHere ?
-HANDLE __stdcall CreateFileA_(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile){
-	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-}
-
-//ToDo: Decrypt ?
-HRESULT __stdcall OleLoadFromStream_(LPSTREAM pStm, REFIID iidInterface, LPVOID* ppvObj){
-	return OleLoadFromStream(pStm, iidInterface, ppvObj);
-}
-#endif
-
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
-
 	Phobos::ExeRun();
-
-#ifdef ENABLE_ENCRYPTION_HOOKS
-	Imports::ReadFile = ReadFIle_;
-	Imports::CreateFileA = CreateFileA_;
-	Imports::CloseHandle = CloseHandle_;
-	Imports::OleLoadFromStream = OleLoadFromStream_;
-#endif
-
 	return 0;
 }
 
@@ -681,18 +682,6 @@ DEFINE_HOOK(0x5FACDF, OptionsClass_LoadSettings_LoadPhobosSettings, 0x5)
 	Phobos::Config::Read();
 	return 0;
 }
-
-//DEFINE_HOOK(0x55D774, _YR_MainLoop_GameSpeed, 0xA)
-//{ // We overwrite the instructions that force GameSpeed to 2 (GS4)
-//	GameModeOptionsClass::Instance->GameSpeed = Phobos::Config::CampaignDefaultGameSpeed;
-//	return 0x55D77E;
-//}
-//
-//DEFINE_HOOK(0x55D78C, _YR_MainLoop_GameSpeed_B, 0x5)
-//{// when speed control is off.
-//	R->ECX(Phobos::Config::CampaignDefaultGameSpeed);
-//	return 0x55D791;
-//}
 
 #ifdef ENABLE_TLS
 DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 0x5)

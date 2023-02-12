@@ -230,8 +230,23 @@ private:
 	}
 };
 
+
+HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
+{
+	Debug::Log("Finished saving the game\n");
+	return S_OK;
+}
+
+void Phobos::LoadGameDataAfter(IStream* pStm)
+{
+	//clear the loadgame flag 
+	Phobos::Otamaa::DoingLoadGame = false;
+	Debug::Log("Finished loading the game\n");
+}
+
 #pragma endregion
 
+#pragma region TypeReg
 // Add more class names as you like
 using PhobosTypeRegistry =  TypeRegistry <
 #pragma region OtamaaStuffs
@@ -312,15 +327,15 @@ using PhobosTypeRegistry =  TypeRegistry <
 #endif
 	PhobosCommandClass
 >;
+#pragma endregion
 
+#pragma region Hooks
 // Global Pointer Invalidation Hooks
 DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
-
 	PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
-
 	return 0;
 }
 
@@ -354,7 +369,6 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
 	Debug::Log("Saving global Phobos data\n");
 	GET(IStream*, pStm, ESI);
 	PhobosTypeRegistry::SaveGlobals(pStm);
-	Debug::Log("Finished saving the game\n");
 	return 0;
 }
 
@@ -364,24 +378,8 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
 	GET(IStream*, pStm, ESI);
 	Phobos::Otamaa::DoingLoadGame = true;
 	PhobosTypeRegistry::LoadGlobals(pStm);
-	Debug::Log("Finished loading the game\n");
 	return 0;
 }
-
-HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
-{
-	return S_OK;
-}
-
-void Phobos::LoadGameDataAfter(IStream* pStm)
-{
-	//clear the loadgame flag 
-	Phobos::Otamaa::DoingLoadGame = false;
-}
-
-//this one after everything done
-//unfortunately whe need to map the pointer needed ourself
-//https://github.com/Phobos-developers/Phobos/pull/658
 
 //there some classes that need to be re-init after load game done
 //maybe worth taking a look at it at some point -Otamaa
@@ -392,7 +390,6 @@ DEFINE_HOOK(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
 	return 0;
 }
 
-/*
 DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
 {
 	GET_STACK(IStream*, pStm, 0x1C);
@@ -400,4 +397,4 @@ DEFINE_HOOK(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
 	return 0;
 }
 
-*/
+#pragma endregion

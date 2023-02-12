@@ -363,7 +363,7 @@ protected:
 
 public:
 
-	CellStruct		   Cells_24;
+	DWORD              unknown_24;
 	DWORD              unknown_28;
 	int                FallRate; //how fast is it falling down? only works if FallingDown is set below, and actually positive numbers will move the thing UPWARDS
 	ObjectClass*       NextObject;	//Next Object in the same cell or transport. This is a linked list of Objects.

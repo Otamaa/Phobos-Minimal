@@ -20,8 +20,8 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 	if (!pClassType)
 		return false;
 
-	auto const pExt = T::ExtMap.Find<false>(pClass);
-	auto const pTypeExt = Ttype::ExtMap.Find<false>(pClassType);
+	auto const pExt = T::ExtMap.Find(pClass);
+	auto const pTypeExt = Ttype::ExtMap.Find(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return false;
@@ -60,7 +60,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 template<typename Text, typename Tbase>
 static bool ClearLastLoc(Tbase* pBase)
 {
-	auto const& pExt = Text::ExtMap.Find<false>(pBase);
+	auto const& pExt = Text::ExtMap.Find(pBase);
 
 	if (!pExt)
 		return false;
@@ -103,8 +103,8 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 	if (!pClassType || pClassType->Invisible)
 		return;
 
-	auto const pExt = TechnoExt::ExtMap.Find<false>(pOwner);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pClassType);
+	auto const pExt = TechnoExt::ExtMap.Find(pOwner);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -144,8 +144,8 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted) {
 		return;
 
 	auto pClassType = pOwner->Type;
-	auto const pExt = BulletExt::ExtMap.Find<false>(pOwner);
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find<false>(pClassType);
+	auto const pExt = BulletExt::ExtMap.Find(pOwner);
+	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -181,8 +181,8 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 		return;
 
 	auto pClassType = pOwner->Type;
-	auto const pExt = VoxelAnimExt::ExtMap.Find<false>(pOwner);
-	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find<false>(pClassType);
+	auto const pExt = VoxelAnimExt::ExtMap.Find(pOwner);
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pClassType);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -231,7 +231,7 @@ void TrailsManager::AI(TechnoClass* pOwner)
 	if (!pOwner || pOwner->WhatAmI() == AbstractType::Building || TrailType::Array.empty())
 		return;
 
-	auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
+	auto const pExt = TechnoExt::ExtMap.Find((TechnoClass*)pOwner);
 
 	if (!pExt)
 		return;
@@ -273,7 +273,7 @@ void TrailsManager::AI(BulletClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto const pExt = BulletExt::ExtMap.Find<false>(pOwner);
+	auto const pExt = BulletExt::ExtMap.Find(pOwner);
 
 	if (!pExt)
 		return;
@@ -305,8 +305,8 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto  pExt = VoxelAnimExt::ExtMap.Find<false>(pOwner);
-	auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find<false>(pOwner->Type);
+	auto  pExt = VoxelAnimExt::ExtMap.Find(pOwner);
+	auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (!pExt || !pTypeExt)
 		return;
@@ -329,7 +329,7 @@ void TrailsManager::AI(ParticleClass* pOwner)
 	if (!pOwner)
 		return;
 
-	auto const pExt = ParticleExt::ExtMap.Find<false>(pOwner);
+	auto const pExt = ParticleExt::ExtMap.Find(pOwner);
 
 	if (!pExt)
 		return;
@@ -359,7 +359,7 @@ void TrailsManager::Hide(TechnoClass* pOwner)
 	if (!pOwner || pOwner->WhatAmI() == AbstractType::Building || TrailType::Array.empty())
 		return;
 
-	auto const pExt = TechnoExt::ExtMap.Find<false>((TechnoClass*)pOwner);
+	auto const pExt = TechnoExt::ExtMap.Find((TechnoClass*)pOwner);
 
 	if (!pExt->Trails.empty())
 	{
@@ -377,7 +377,7 @@ void TrailsManager::Hide(BulletClass* pOwner)
 	if (!pOwner || TrailType::Array.empty())
 		return;
 
-	auto const pExt = BulletExt::ExtMap.Find<false>((BulletClass*)pOwner);;
+	auto const pExt = BulletExt::ExtMap.Find((BulletClass*)pOwner);;
 
 	if (!pExt->Trails.empty())
 	{
@@ -394,7 +394,7 @@ void TrailsManager::Hide(VoxelAnimClass* pOwner)
 	if (!pOwner || TrailType::Array.empty())
 		return;
 
-	auto const pExt = VoxelAnimExt::ExtMap.Find<false>((VoxelAnimClass*)pOwner);
+	auto const pExt = VoxelAnimExt::ExtMap.Find((VoxelAnimClass*)pOwner);
 
 	if (!pExt->Trails.empty())
 	{

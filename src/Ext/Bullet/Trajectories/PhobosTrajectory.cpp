@@ -192,9 +192,9 @@ double PhobosTrajectory::GetTrajectorySpeed() const
 		return nResult;
 
 	auto const nWeaponnResult = WeaponTypeExt::ExtMap.Find(pBullet->WeaponType)->Trajectory_Speed.Get();
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pBullet->Type);
 
-	return pTypeExt->Trajectory_Speed.Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
+	return BulletTypeExt::ExtMap.Find(pBullet->Type)->Trajectory_Speed.
+			Get(nWeaponnResult == 0.0 ? nResult : nWeaponnResult);
 }
 
 bool PhobosTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)

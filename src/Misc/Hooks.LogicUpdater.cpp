@@ -138,8 +138,8 @@ DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 	GET(UnitClass*, pThis, ESI);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	JJFacingFunctional::AI(pExt, pTypeExt);
 #endif
@@ -198,7 +198,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
 
-	const auto pExt = TechnoExt::ExtMap.Find<false>(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	DriveDataFunctional::AI(pExt);

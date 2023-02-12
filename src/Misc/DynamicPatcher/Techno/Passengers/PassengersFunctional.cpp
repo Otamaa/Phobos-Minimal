@@ -10,7 +10,7 @@ void PassengersFunctional::AI(TechnoClass* pThis)
 	{
 		if (pTranporter->GetTechnoType()->OpenTopped)
 		{
-			if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find<false>(pTranporter->GetTechnoType()))
+			if (auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType()))
 			{
 				if (!pTransportExt->MyPassangersData.PassiveAcquire)
 				{

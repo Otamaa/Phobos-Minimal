@@ -498,7 +498,7 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 
 void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID)
 {
-	auto const pOwnerExt = HouseExt::ExtMap.Find<true>(pOwner);
+	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
 
 	// BuildLimit check goes before creation
 	if (pType->BuildLimit > 0)

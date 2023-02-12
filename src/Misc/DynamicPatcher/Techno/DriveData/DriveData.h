@@ -14,12 +14,31 @@ public:
 	DrivingState nState { DrivingState::Stop };
 	Mission LastMission { Mission::None };
 
-	template <typename T>
-	void Serialize(T& Stm)
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		Stm
+		return Stm
 			.Process(nState)
 			.Process(LastMission)
+			.Success()
+			;
+	}
+
+	inline bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(nState)
+			.Process(LastMission)
+			.Success()
+			;
+	}
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(nState)
+			.Process(LastMission)
+			.Success()
 			;
 	}
 };

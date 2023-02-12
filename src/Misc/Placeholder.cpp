@@ -416,3 +416,16 @@ DEFINE_HOOK(0x7D107D, Game_msize_replace, 0x8)
 //	WCHAR buf[4096];
 //	return GetModuleFileNameW(module, buf, ARRAYSIZE(buf)) ? buf : std::filesystem::path();
 //}
+
+
+//DEFINE_HOOK(0x55D774, _YR_MainLoop_GameSpeed, 0xA)
+//{ // We overwrite the instructions that force GameSpeed to 2 (GS4)
+//	GameModeOptionsClass::Instance->GameSpeed = Phobos::Config::CampaignDefaultGameSpeed;
+//	return 0x55D77E;
+//}
+//
+//DEFINE_HOOK(0x55D78C, _YR_MainLoop_GameSpeed_B, 0x5)
+//{// when speed control is off.
+//	R->ECX(Phobos::Config::CampaignDefaultGameSpeed);
+//	return 0x55D791;
+//}

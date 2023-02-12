@@ -228,7 +228,7 @@ DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
 	GET_STACK(CoordStruct*, pCoord, (0x4));
 	//GET_STACK(DirType, faceDir, (0x8));
 
-	if (auto pExt = TechnoExt::ExtMap.Find<true>(pThis)) {
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
 		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
 			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
 			GiftBoxFunctional::Init(pExt, pTypeExt);
@@ -243,7 +243,7 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find<true>(pThis);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 

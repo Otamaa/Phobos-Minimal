@@ -65,17 +65,76 @@ private :
 
 	void EnableEffects();
 
-public:
-
-	inline bool Load(PhobosStreamReader& stm, bool RegisterForChange)
+	template <typename T>
+	bool Serialize(T& Stm)
 	{
-		return true
-			;
+		return true;
 	}
 
-	inline bool Save(PhobosStreamWriter& stm)
+public:
+
+	void InvalidatePointer(void* ptr, bool bRemoved)
 	{
-		return true
-			;
+		AnnounceInvalidPointer(m_Source, ptr);
+		AnnounceInvalidPointer(m_SourceHouse, ptr);
+	}
+
+	static std::vector<std::unique_ptr<AttachEffect>> Array;
+
+	static void PointerGotInvalid(void* ptr, bool bRemoved)
+	{
+		for (size_t i = 0; i < Array.size(); ++i)
+		{
+			auto& pThis = Array.at(i);
+
+			if (pThis->m_AttachedTo == ptr)
+				Array.erase(Array.begin() + i);
+			else
+				pThis->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		Clear();
+
+		size_t Count = 0;
+		if (!Stm.Load(Count))
+			return false;
+
+
+		for (size_t i = 0; i < Count; ++i)
+		{
+			AttachEffect* oldPtr = nullptr;
+			if (!Stm.Load(oldPtr))
+				return false;
+
+			auto newPtr = std::make_unique<AttachEffect>();
+			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr.get());
+
+			if (!newPtr->Serialize(Stm))
+				break;
+		}
+
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		Stm.Save(Array.size());
+
+		for (const auto& item : Array)
+		{
+			Stm.Save(item.get());
+			if (!item->Serialize(Stm))
+				break;
+		}
+
+		return true;
 	}
 };

@@ -364,7 +364,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		if (auto const pTechnoExt = TechnoExt::TechnoExt::ExtMap.Find<false>(this->Techno))
+		if (auto const pTechnoExt = TechnoExt::TechnoExt::ExtMap.Find(this->Techno))
 		{
 			pTechnoExt->Shield = nullptr;
 			return;

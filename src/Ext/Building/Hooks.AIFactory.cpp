@@ -73,7 +73,7 @@ DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType, 0x6)
 	if (!Phobos::Config::AllowParallelAIQueues)
 		return 0;
 
-	if(HouseExt::ExtData* pData = HouseExt::ExtMap.Find<true>(pFactory->Owner)){
+	if(HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pFactory->Owner)){
 
 		if (!pUnit->Type->Naval) {
 			if (Phobos::Config::ForbidParallelAIQueues_Vehicle)

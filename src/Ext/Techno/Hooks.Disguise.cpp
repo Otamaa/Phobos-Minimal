@@ -3,39 +3,59 @@
 
 #include <Utilities/Cast.h>
 
-DEFINE_HOOK_AGAIN(0x522790, TechnoClass_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
-DEFINE_HOOK(0x6F421C, TechnoClass_DefaultDisguise, 0x6) // TechnoClass_Init_DefaultDisguise
+NOINLINE ObjectTypeClass* SetInfDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType)
 {
-	enum { InfInit_SetDisguise = 0x5227BF, TechnoInit_SetDisguise = 0x6F4277 };
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
+	if (auto pDisguise = pExt->DefaultDisguise.Get(nullptr)) {
+		pThis->Disguised = true;
+		pThis->DisguisedAsHouse = pThis->Owner;
+		return pDisguise;
+	}
+
+	return nullptr;
+}
+
+DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
+{
+	GET(InfantryTypeClass*, pType, EAX);
+	GET(InfantryClass*, pThis, ECX);
+
+	if (auto pDisguiseType = SetInfDisguise(pThis, pType))
+	{
+		pThis->Disguise = pDisguiseType;
+		return 0x5227BF;// EC / D7 / E4
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6F421C, TechnoClass_Init_DefaultDisguise, 0x6)
+{
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
-	if(R->Origin() == 0x6F421C && pThis->WhatAmI() != AbstractType::Infantry)
-		return 0x0;
-
-	if (!pType)
-		return 0x0;
-
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
-
 	//ToDo:
 #ifdef TANK_DISGUISE
-	if ((R->Origin() == 0x6F421C) && pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
 	{
 		pThis->Disguised = false;
 		return TechnoInit_SetDisguise;
 	}
 #endif
 
-	if (auto const pDisguise = pExt->DefaultDisguise.Get(nullptr))
-	{
-		pThis->Disguise = pDisguise;
-		pThis->Disguised = true;
-		return R->Origin() == 0x522790 ? InfInit_SetDisguise : TechnoInit_SetDisguise;
+	if (pThis->WhatAmI() == AbstractType::Infantry ) {
+		if (auto pDisguiseType = SetInfDisguise(pThis, pType)) {
+			//R->EDX(pDisguiseType);
+			//return 0x6F4245;
+			pThis->Disguise = pDisguiseType;
+			return 0x6F424B;
+		}
 	}
 
-	return 0x0;
+	return 0;
 }
 
 #ifdef ENABLE_NEWHOOKS

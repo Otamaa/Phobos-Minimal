@@ -716,17 +716,14 @@ public:
 	DWORD            AirstrikeTintStage; //  ^
 	int              ForceShielded;	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
 	bool             Deactivated; //Robot Tanks without power for instance
-	PROTECTED_PROPERTY(BYTE, align1C_9_A_B[3]);
 	TechnoClass*     DrainTarget; // eg Disk -> PowerPlant, this points to PowerPlant
 	TechnoClass*     DrainingMe;  // eg Disk -> PowerPlant, this points to Disk
 	AnimClass*       DrainAnim;
 	bool             Disguised;
-	PROTECTED_PROPERTY(BYTE, align1D_9_A_B[3]);
 	DWORD            DisguiseCreationFrame;
 	DECLARE_PROPERTY(TimerStruct, InfantryBlinkTimer); // Rules->InfantryBlinkDisguiseTime , detects mirage firing per description
 	DECLARE_PROPERTY(TimerStruct, DisguiseBlinkTimer); // disguise disruption timer
 	bool             UnlimboingInfantry; //1F8
-	PROTECTED_PROPERTY(BYTE, align1F_9_A_B[3]);
 	DECLARE_PROPERTY(TimerStruct, ReloadTimer);//CDTimerClass
 	DECLARE_PROPERTY(Point2D, __RadarPos);
 
@@ -748,13 +745,11 @@ public:
 	DECLARE_PROPERTY(TimerStruct, CloakDelayTimer); // delay before cloaking again
 	float            WarpFactor; // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
 	bool             unknown_bool_250;
-	PROTECTED_PROPERTY(BYTE, align25_1_2_3[3]);
 	CoordStruct      LastSightCoords;
 	int              LastSightRange;
 	int              LastSightHeight;
 	bool             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
 	bool             GeneratingGap; // is currently generating gap
-	PROTECTED_PROPERTY(BYTE, align26_A_B[2]);
 	int              GapRadius;
 	bool             BeingWarpedOut; // is being warped by CLEG used , for 70C5B0
 	bool             WarpingOut; // phasing in after chrono-jump used , for 70C5C0
@@ -763,13 +758,11 @@ public:
 	TemporalClass*   TemporalImUsing; // CLEG attacking Power Plant : CLEG's this
 	TemporalClass*   TemporalTargetingMe; 	// CLEG attacking Power Plant : PowerPlant's this
 	bool             IsImmobilized; // by chrono aftereffects ,27C
-	PROTECTED_PROPERTY(BYTE, align27_D_E_F[3]);
 	DWORD            unknown_280;
 	int              ChronoLockRemaining; // 284 countdown after chronosphere warps things around
 	CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
 	AirstrikeClass*  Airstrike; //Boris
 	bool             Berzerk;
-	PROTECTED_PROPERTY(BYTE, align29_9_A_B[3]);
 	int            	BerzerkDurationLeft;
 	int            	SprayOffsetIndex; // hardcoded array of xyz offsets for sprayattack, 0 - 7, see 6FE0AD
 	bool             Uncrushable; // DeployedCrushable fiddles this, otherwise all 0
@@ -786,7 +779,6 @@ public:
 	CaptureManagerClass* CaptureManager; //for Yuris
 	TechnoClass*     MindControlledBy;
 	bool             MindControlledByAUnit;
-	PROTECTED_PROPERTY(BYTE, align2C_5_6_7[3]);
 	AnimClass*       MindControlRingAnim;
 	HouseClass*      MindControlledByHouse; //used for a TAction
 	SpawnManagerClass* SpawnManager;
@@ -862,7 +854,7 @@ public:
 	bool             unknown_bool_41D;
 	bool             unknown_bool_41E;
 	bool             unknown_bool_41F;
-	bool             SightIncrease; // used for LeptonsPerSightIncrease
+	char             SightIncrease; // used for LeptonsPerSightIncrease
 	bool             RecruitableA; // these two are like Lenny and Carl, weird purpose and never seen separate
 	bool             RecruitableB; // they're usually set on preplaced objects in maps
 	bool             IsRadarTracked;
@@ -892,8 +884,8 @@ public:
 
 	DECLARE_PROPERTY(AudioController, Audio3);
 
-	bool            __IsTurretTurning_49C; // Turret is moving?
-	bool            TurretIsRotating;
+	BOOL            __IsTurretTurning_49C; // Turret is moving?
+	BOOL            TurretIsRotating;
 
 	DECLARE_PROPERTY(AudioController, Audio4);
 
@@ -910,13 +902,12 @@ public:
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4
 	bool             deploy_bool_4F8;
-	BYTE			 pad_4F9[3];
 	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a TimerStruct!
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
 	bool            ShouldLoseTargetNow;
-	BYTE			 pad_50D[3];
+	PROTECTED_PROPERTY(byte, bool_pad[3]);
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;

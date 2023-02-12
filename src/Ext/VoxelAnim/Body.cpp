@@ -57,7 +57,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif
-	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find<true>(Get()->Type))
+	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(Get()->Type))
 	{
 		//ID = Get()->Type->ID;
 		if (pTypeExt->LaserTrail_Types.size() > 0)

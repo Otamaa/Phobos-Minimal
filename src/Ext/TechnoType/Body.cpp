@@ -200,9 +200,13 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
 
 	this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
+	this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.Nonexist.Any");
 	this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
+	this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Nonexist.AllowLimboed");
 	this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
+	this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
 	this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
+	this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
 
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
@@ -788,8 +792,13 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Death_Method)
 		.Process(this->AutoDeath_Nonexist)
 		.Process(this->AutoDeath_Nonexist_House)
+		.Process(this->AutoDeath_Nonexist_Any)
+		.Process(this->AutoDeath_Nonexist_AllowLimboed)
+
 		.Process(this->AutoDeath_Exist)
 		.Process(this->AutoDeath_Exist_House)
+		.Process(this->AutoDeath_Exist_Any)
+		.Process(this->AutoDeath_Exist_AllowLimboed)
 
 		.Process(this->Death_WithMaster)
 		.Process(this->Slaved_ReturnTo)

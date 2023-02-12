@@ -214,7 +214,7 @@ public:
 	int unknown_18;
 	LONG RefCount;
 	bool Dirty;		// for IPersistStream.
-
+	PROTECTED_PROPERTY(BYTE, padding_21[0x3]);
 private:
 	// Copy and assignment not implemented; prevent their use by declaring as private.
 	AbstractClass(const AbstractClass&) = delete;

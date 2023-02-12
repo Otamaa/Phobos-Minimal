@@ -206,6 +206,22 @@ public:
 
 	void Fill_Circle(const Point2D center, unsigned radius, RectangleStruct rect, unsigned color) JMP_THIS(0x7BB920);
 
+	void DrawEllipse(int CenterX, int CenterY, double CellSpread, COLORREF nColor)
+	{
+		RectangleStruct rect = this->Get_Rect_WithoutBottomBar();
+		DrawEllipse(CenterX, CenterY, CellSpread, rect, nColor);
+	}
+
+	void DrawEllipse(int CenterX, int CenterY, double CellSpread, RectangleStruct Rect, COLORREF nColor)
+	{
+		double factor = (CellSpread * 2 + 1) / std::sqrt(8);
+
+		int semiMajor = static_cast<int>(factor * Unsorted::CellWidthInPixels);
+		int semiMinor = static_cast<int>(factor * Unsorted::CellHeightInPixels);
+		const Point2D nPoints { CenterX, CenterY };
+		Draw_Ellipse(nPoints, semiMajor, semiMinor, Rect, nColor);
+	}
+
 public:
 	int LockLevel;
 	int BytesPerPixel;
@@ -375,6 +391,8 @@ public:
 	static constexpr reference<int, 0x8205D0u> const RGBPixelFormat {};
 	static constexpr reference<bool, 0x8A0DEEu> const AllowStretchBlits {};
 	static constexpr reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
+
+	static constexpr reference<bool*, 0x84310C> const PatternData {};
 
 	// Comments from thomassneddon
 	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,

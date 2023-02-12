@@ -89,8 +89,12 @@ public:
 
 		ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist;
 		Valueable<AffectedHouse> AutoDeath_Nonexist_House;
+		Valueable<bool> AutoDeath_Nonexist_Any;
+		Valueable<bool> AutoDeath_Nonexist_AllowLimboed;
 		ValueableVector<TechnoTypeClass*> AutoDeath_Exist;
 		Valueable<AffectedHouse> AutoDeath_Exist_House;
+		Valueable<bool> AutoDeath_Exist_Any;
+		Valueable<bool> AutoDeath_Exist_AllowLimboed;
 
 		Valueable<SlaveReturnTo> Slaved_ReturnTo;
 		Valueable<ShieldTypeClass*> ShieldType;
@@ -460,8 +464,12 @@ public:
 			, Death_WithMaster{ false }
 			, AutoDeath_Nonexist {}
 			, AutoDeath_Nonexist_House { AffectedHouse::Owner }
+			, AutoDeath_Nonexist_Any { false }
+		    , AutoDeath_Nonexist_AllowLimboed { true}
 			, AutoDeath_Exist {}
 			, AutoDeath_Exist_House { AffectedHouse::Owner }
+			, AutoDeath_Exist_Any { false }
+		    , AutoDeath_Exist_AllowLimboed { true}
 
 			, Slaved_ReturnTo { SlaveReturnTo::Killer }
 			, ShieldType { nullptr }

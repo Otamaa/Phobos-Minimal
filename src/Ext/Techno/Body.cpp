@@ -724,7 +724,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (!pTechnoType)
 		return;
 
-	const TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find<false>(pTechnoType);
+	const TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
 		|| HouseExt::IsObserverPlayer()
@@ -947,7 +947,7 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 			}
 
 			// Conditional Jump Script Action stuff
-			if (auto const pKillerTeamData = TeamExt::ExtMap.Find<true>(pFootKiller->Team))
+			if (auto const pKillerTeamData = TeamExt::ExtMap.Find(pFootKiller->Team))
 			{
 				if (pKillerTeamData->ConditionalJump_EnabledKillsCount)
 				{
@@ -1535,6 +1535,8 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		nOpt = static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
 	}
 
+	Debug::Log("TechnoExt::KillObject -  Killing Techno[%x - %s] with Method [%d] ! \n", pThis, pThis->get_ID(), (int)nOpt);
+
 	switch (nOpt)
 	{
 	case KillMethod::Explode:
@@ -1602,7 +1604,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	//if (!TechnoExt::IsActive(pThis, false, false))
 	//	return false;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto pTypeThis = pTypeExt->Get();
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
@@ -1620,29 +1622,34 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		}
 	}
 
+	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo)
+	{
+		const auto existSingleType = [pThis, affectedHouse, allowLimbo](const TechnoTypeClass* pType)
+		{
+			for (HouseClass* pHouse : *HouseClass::Array)
+			{
+				if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse)
+					&& (allowLimbo ? pHouse->CountOwnedNow(pType) > 0 : pHouse->CountOwnedAndPresent(pType) > 0))
+					return true;
+			}
+
+			return false;
+		};
+
+		return any
+			? std::any_of(vTypes.begin(), vTypes.end(), existSingleType)
+			: std::all_of(vTypes.begin(), vTypes.end(), existSingleType);
+	};
+
 	// Death if nonexist
 	if (!pTypeExt->AutoDeath_Nonexist.empty())
 	{
-		bool exist = std::any_of
-		(
-			pTypeExt->AutoDeath_Nonexist.begin(),
-			pTypeExt->AutoDeath_Nonexist.end(),
-			[pThis, pTypeExt](TechnoTypeClass* const pType)
-			{
-				for (HouseClass* const pHouse : *HouseClass::Array)
-				{
-					if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Nonexist_House, pThis->Owner, pHouse) &&
-						pHouse->CountOwnedAndPresent(pType))
-						return true;
-				}
-
-		return false;
-			}
-		);
-
-		if (!exist)
+		if (!existTechnoTypes(pTypeExt->AutoDeath_Nonexist,
+			pTypeExt->AutoDeath_Nonexist_House, 
+			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed))
 		{
 			TechnoExt::KillSelf(pThis, nMethod);
+
 			return true;
 		}
 	}
@@ -1650,26 +1657,13 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	// Death if exist
 	if (!pTypeExt->AutoDeath_Exist.empty())
 	{
-		bool exist = std::any_of
-		(
-			pTypeExt->AutoDeath_Exist.begin(),
-			pTypeExt->AutoDeath_Exist.end(),
-			[pThis, pTypeExt](TechnoTypeClass* const pType)
- {
-	 for (HouseClass* const pHouse : *HouseClass::Array)
-	 {
-		 if (EnumFunctions::CanTargetHouse(pTypeExt->AutoDeath_Exist_House, pThis->Owner, pHouse) &&
-			 pHouse->CountOwnedAndPresent(pType))
-			 return true;
-	 }
-
-		return false;
-			}
-		);
-
-		if (exist)
+		if (existTechnoTypes(pTypeExt->AutoDeath_Exist,
+			pTypeExt->AutoDeath_Exist_House,
+			pTypeExt->AutoDeath_Exist_Any,
+			pTypeExt->AutoDeath_Exist_AllowLimboed))
 		{
 			TechnoExt::KillSelf(pThis, nMethod);
+
 			return true;
 		}
 	}
@@ -1780,7 +1774,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	bool isInfantryHeal = false;
 	int selfHealFrames = 0;
 
-	auto const pExt = TechnoTypeExt::ExtMap.Find<false>(pThis->GetTechnoType());
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 	if (pExt->SelfHealGainType.isset() && pExt->SelfHealGainType.Get() == SelfHealGainType::None)
 		return;
@@ -2372,7 +2366,7 @@ void TechnoExt::ExtData::UpdateLaserTrails()
 void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 {
 	auto const pThis = this->Get();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find<false>(Type);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 	const auto pType = Type;
 
 	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get())
@@ -2491,7 +2485,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 	const auto pWeaponOne = pWeaponStructOne->WeaponType;
 	const auto pWeaponTwo = pWeaponStructTwo->WeaponType;
 
-	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find<true>(pWeaponTwo))
+	if (const auto pSecondExt = WeaponTypeExt::ExtMap.Find(pWeaponTwo))
 	{
 		if ((targetCell && !EnumFunctions::IsCellEligible(targetCell, pSecondExt->CanTarget, true)) ||
 			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
@@ -2499,7 +2493,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 		{
 			return weaponIndexOne;
 		}
-		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find<true>(pWeaponOne))
+		else if (const auto pFirstExt = WeaponTypeExt::ExtMap.Find(pWeaponOne))
 		{
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 
