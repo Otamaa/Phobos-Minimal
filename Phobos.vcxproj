@@ -77,7 +77,6 @@
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
-    <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
