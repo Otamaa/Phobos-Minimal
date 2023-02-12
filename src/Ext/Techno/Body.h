@@ -107,6 +107,7 @@ public:
 	#pragma endregion
 
 		UniqueGamePtr<AnimClass> AttachedAnim;
+		bool KillActionCalled;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -166,6 +167,7 @@ public:
 			, MySpawnSuport { }
 			, MyFighterData { }
 			, AttachedAnim { }
+			, KillActionCalled { false }
 #endif;
 		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();

@@ -576,6 +576,9 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 
 void BuildingExt::LimboKill(BuildingClass* pBuilding)
 {
+	auto const pExt = TechnoExt::ExtMap.Find(pBuilding);
+	pExt->KillActionCalled = true;
+
 	auto const pType = pBuilding->Type;
 	auto const pTargetHouse = pBuilding->Owner;
 
@@ -584,10 +587,16 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	pBuilding->IsAlive = false;
 	pBuilding->IsOnMap = false;
 	pTargetHouse->UpdatePower();
-	//pTargetHouse->RecheckTechTree = true;
+
+	if (!pTargetHouse->RecheckTechTree)
+		pTargetHouse->RecheckTechTree = true;
+
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
 	pTargetHouse->Buildings.Remove(pBuilding);
+
+	pTargetHouse->RegisterLoss(pBuilding, false);
+	pTargetHouse->RemoveTracking(pBuilding);
 
 	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
 

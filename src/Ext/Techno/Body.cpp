@@ -1483,7 +1483,7 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource)
 
 	if (const auto pOwner = pThis->GetOwningHouse())
 	{
-		if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
+		if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant && !pThis->InLimbo)
 		{
 			pOwner->RegisterLoss(pThis, false);
 			pOwner->RemoveTracking(pThis);
@@ -1528,6 +1528,13 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	if (!pThis || deathOption == KillMethod::None)
 		return;
 
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (pExt->KillActionCalled)
+		return;
+	else
+		pExt->KillActionCalled = true;
+
 	auto const pWhat = pThis->WhatAmI();
 	KillMethod nOpt = deathOption;
 	if (deathOption == KillMethod::Random)
@@ -1542,10 +1549,16 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	case KillMethod::Explode:
 	{
 	Kill:
-		pThis->ReceiveDamage(&pThis->GetTechnoType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+		const auto nResult = pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+
+		if (nResult != DamageState::NowDead && nResult != DamageState::PostMortem)
+			goto vanish;
+
+
 	}break;
 	case KillMethod::Vanish:
 	{
+	vanish:
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
 		if (!pThis->InLimbo)
@@ -1563,18 +1576,17 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		{
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
-			if (pBld->HasBuildup)
+			if (pBld->HasBuildup && (pBld->CurrentMission != Mission::Selling || pBld->CurrentMission != Mission::Unload))
 			{
 				pBld->Sell(true);
 				return;
 			}
-
 		}
 		else if (pThis->AbstractFlags & AbstractFlags::Foot)
 		{
 			const auto pFoot = static_cast<FootClass*>(pThis);
 
-			if (pWhat != AbstractType::Infantry)
+			if (pWhat != AbstractType::Infantry && pFoot->CurrentMission != Mission::Unload)
 			{
 				if (auto const pCell = pFoot->GetCell())
 				{
@@ -1611,6 +1623,9 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 	if (nMethod == KillMethod::None)
 		return false;
+
+	if (this->KillActionCalled)
+		return true;
 
 	// Death if no ammo
 	if (pTypeExt->Death_NoAmmo)
@@ -2432,6 +2447,9 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 {
 	auto const pThis = this->Get();
+	
+	if (this->KillActionCalled)
+		return true;
 
 	if (pThis->WhatAmI() != AbstractType::Infantry)
 		return false;
@@ -2450,6 +2468,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 		if (nMethod != KillMethod::None)
 			TechnoExt::KillSelf(pInf, nMethod);
 	}
+
 	return true;
 }
 
@@ -2728,6 +2747,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->ReceiveDamageMultiplier)
 		.Process(this->SkipLowDamageCheck)
 		.Process(this->AttachedAnim)
+		.Process(this->KillActionCalled)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)

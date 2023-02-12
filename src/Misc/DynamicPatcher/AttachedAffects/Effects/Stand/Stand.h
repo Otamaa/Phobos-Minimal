@@ -169,7 +169,7 @@ private:
 				pStand->Limbo();
 				//GameDelete(pStand);
 			} else {
-				auto nDamage = pStand->Health * 2;
+				auto nDamage = pStand->Health;
 				pStand->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, true, pStand->GetTechnoType()->Crewed, nullptr);
 
 			}

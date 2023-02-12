@@ -43,7 +43,7 @@ static void NOINLINE HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool
 		if (isLimbo)
 		{
 			pThis->SetTarget(nullptr);
-			auto damage = pTechno->Health * 2;
+			auto damage = pTechno->Health;
 			pTechno->SetLocation(pThis->GetCoords());
 			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 		}

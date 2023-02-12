@@ -877,7 +877,7 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 		
-		if(!pExt->Death_Countdown.Completed())
+		if(!pExt->Death_Countdown.Completed() || pExt->KillActionCalled)
 			continue;
 
 		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());

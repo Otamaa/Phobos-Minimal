@@ -48,7 +48,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
-	if (pExt->CheckDeathConditions() || pExt->UpdateKillSelf_Slave())
+	if (pExt->UpdateKillSelf_Slave())
+		return 0x0;
+
+	if (pExt->CheckDeathConditions())
 		return 0x0;
 
 	pExt->UpdateBuildingLightning();
