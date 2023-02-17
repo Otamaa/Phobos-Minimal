@@ -70,7 +70,7 @@ public:
 
 	int ArrayIndex;
 	int Foundation;
-	ColorStruct RadarColor;
+	DECLARE_PROPERTY(ColorStruct, RadarColor);
 	PROTECTED_PROPERTY(BYTE, TTypePadA);
 	int AnimationRate;
 	float AnimationProbability;

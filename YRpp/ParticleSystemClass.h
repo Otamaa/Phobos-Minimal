@@ -70,9 +70,9 @@ protected:
 public:
 
 	ParticleSystemTypeClass* Type;
-	CoordStruct  SpawnDistanceToOwner;
-	DynamicVectorClass<ParticleClass*> Particles;
-	CoordStruct TargetCoords;
+	DECLARE_PROPERTY(CoordStruct,  SpawnDistanceToOwner);
+	DECLARE_PROPERTY(DynamicVectorClass<ParticleClass*>, Particles);
+	DECLARE_PROPERTY(CoordStruct, TargetCoords);
 	ObjectClass* Owner;
 	AbstractClass* Target; // CellClass or TechnoClass
 	int          SpawnFrames; //from ParSysTypeClass

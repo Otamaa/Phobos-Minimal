@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/WarheadType/Body.h>
+
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
 #include <Utilities/Macro.h>
@@ -18,10 +20,10 @@ void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 		return;
 
 	AnnounceInvalidPointer(TechOwner, ptr);
-
+	AnnounceInvalidPointer(HouseOwner, ptr);
 }
 
-void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
+void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
 	const auto pRadSite = GameCreate<RadSiteClass>();
@@ -40,10 +42,11 @@ void RadSiteExt::CreateInstance(const CellStruct& location, int spread, int amou
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())
 	{
+		pRadExt->HouseOwner = pTech->GetOwningHouse();
 		pRadExt->TechOwner = pTech;
 	}
 
-	auto nLoc = location;
+	auto nLoc = CellClass::Coord2Cell(nCoord);
 	pRadSite->SetBaseCell(&nLoc);
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
@@ -73,12 +76,7 @@ void RadSiteExt::ExtData::CreateLight()
 	pThis->LevelSteps = nDuration / nLevelDelay;
 	pThis->IntensitySteps = nDuration / nLightDelay;
 	pThis->IntensityDecrement = (int)(nLightFactor) / (nDuration / nLightDelay);
-
-	TintStruct nTintBuffer {};
-	nTintBuffer.Red = static_cast<int>(Math::min(((1000 * nRadcolor.R) / 255) * nTintFactor, 2000.0));
-	nTintBuffer.Green = static_cast<int>(Math::min(((1000 * nRadcolor.G) / 255) * nTintFactor, 2000.0));
-	nTintBuffer.Blue = static_cast<int>(Math::min(((1000 * nRadcolor.B) / 255) * nTintFactor, 2000.0));
-
+	const TintStruct nTintBuffer { nRadcolor ,nTintFactor };
 	pThis->Tint = nTintBuffer;
 
 	if (pThis->LightSource)
@@ -131,6 +129,28 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 	return (nDistance > nMax || pThis->GetRadLevel() <= 0) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
 }
 
+const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
+{
+	const auto pWarhead = this->Type->GetWarhead();
+
+	if (!this->Type->GetWarheadDetonate())
+	{
+		HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
+		if (pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner) == DamageState::NowDead)
+			return false;
+	}
+	else
+	{
+		auto const coords = pTarget->GetCoords();
+		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage);
+
+		if (!pTarget->IsAlive)
+			return false;
+	}
+
+	return true;
+}
+
 // =============================
 // load / save
 
@@ -141,6 +161,7 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weapon)
 		.Process(this->Type)
 		.Process(this->TechOwner)
+		.Process(this->HouseOwner)
 		.Process(this->NoOwner)
 		//.Process(this->Spread)
 		;
@@ -295,4 +316,17 @@ static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, Abstrac
 			pExt->InvalidatePointer(pTarget, bRemove);
 }
 
-DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach))
+DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
+
+static HouseClass* __fastcall RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
+{
+	if (!Phobos::Otamaa::DisableCustomRadSite){ 
+		if (const auto pExt = RadSiteExt::ExtMap.Find(pThis)){
+			return pExt->HouseOwner;
+		}
+	}
+
+	return nullptr;
+}
+
+DEFINE_JUMP(VTABLE, 0x7F084C, GET_OFFSET(RadSiteClass_OwningHouse));

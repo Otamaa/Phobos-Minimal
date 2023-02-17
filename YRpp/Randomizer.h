@@ -35,6 +35,7 @@ class Random2Class
 public:
 	static constexpr reference<Random2Class, 0x886B88u> const NonCriticalRandomNumber{};
 	static constexpr reference<Random2Class, 0x886B88u> const Global{}; // For backward compatibility
+	static constexpr reference<double, 0x7E3570u> const INT_MAX_GAME {};
 
 	Random2Class(DWORD seed = *reinterpret_cast<DWORD*>(0xA8ED94))
 	{ JMP_THIS(0x65C6D0); }
@@ -65,6 +66,12 @@ public:
 
 	double RandomDouble()
 	{ return RandomRanged(1, INT_MAX) / (double)((unsigned int)INT_MAX + 1); }
+
+	double GameRandomDouble() 
+	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }
+
+	double GameRandomDouble_Closest()
+	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME() - 0.5; }
 
 	bool RandomBool()
 	{ return static_cast<bool>(RandomRanged(0, 1)); }

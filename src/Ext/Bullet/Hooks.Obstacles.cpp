@@ -160,15 +160,14 @@ DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 	GET_BASE(AbstractClass* const, pTarget, 0xC);
 	GET(CellClass*, pResult, EAX);
 
-	auto pObstacleCell = pResult;
 	const auto pFirer = BulletExt::InRangeTempFirer;
 
-	if (!pObstacleCell)
-		pObstacleCell = BulletObstacleHelper::FindFirstImpenetrableObstacle(*pSourceCoords, targetCoords, pFirer, pTarget, pFirer->Owner, pWeapon, true);
+	if (!pResult)
+		pResult = BulletObstacleHelper::FindFirstImpenetrableObstacle(*pSourceCoords, targetCoords, pFirer, pTarget, pFirer->Owner, pWeapon, true);
 
 	BulletExt::InRangeTempFirer = nullptr;
 
-	R->EAX(pObstacleCell);
+	R->EAX(pResult);
 	return 0;
 }
 

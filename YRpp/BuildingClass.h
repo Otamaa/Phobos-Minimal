@@ -301,6 +301,10 @@ public:
 		JMP_THIS(0x4571E0);
 	}
 
+	bool Undeployable() const {
+		JMP_THIS(0x449BC0);
+	}
+
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())
@@ -319,7 +323,7 @@ public:
 
 	BuildingTypeClass* Type;
 	FactoryClass* Factory;
-	TimerStruct C4Timer;
+	DECLARE_PROPERTY(TimerStruct, C4Timer);
 	BStateType BState;
 	BStateType QueueBState;
 	DWORD OwnerCountryIndex;
@@ -327,7 +331,7 @@ public:
 	DWORD LastStrength; //544
 	AnimClass* FirestormAnim; //pointer
 	AnimClass* PsiWarnAnim; //pointer
-	TimerStruct PlacementDelay; //550
+	DECLARE_PROPERTY(TimerStruct, PlacementDelay); //550
 
 	ArrayWrapper<AnimClass*, 0x15u> Anims; // see eBuildingAnims above for slot index meanings
 	ArrayWrapper<bool, 0x15u> AnimStates; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
@@ -335,7 +339,7 @@ public:
 	PROTECTED_PROPERTY(char , align_5C5[3]);
 
 	//DWORD DamageFireAnims1; //0x5C8
-	AnimClass* DamageFireAnims[0x8];
+	ArrayWrapper<AnimClass*, 8u> DamageFireAnims;
 	bool RequiresDamageFires; // if set, ::Update spawns damage fire anims and zeroes it
 
 	//5E8 - 5F8 ????????
@@ -344,14 +348,14 @@ public:
 	int FiringSWType; // type # of sw being launched
 	DWORD upgrade_5FC;
 	BuildingLightClass* Spotlight;
-	RepeatableTimerStruct GateTimer;
+	DECLARE_PROPERTY(RepeatableTimerStruct, GateTimer);
 	LightSourceClass * LightSource; // tiled light , LightIntensity > 0
 	DWORD LaserFenceFrame; // 0-7 for active directionals, 8/12 for offline ones, check ntfnce.shp or whatever
 	DWORD FirestormWallFrame; // anim data for firestorm active animations
-	ProgressTimer RepairProgress; // for hospital, armory, unitrepair etc
-	RectangleStruct unknown_rect_63C;
-	CoordStruct unknown_coord_64C;
-	Point2D unknown_point_658;
+	DECLARE_PROPERTY(ProgressTimer, RepairProgress); // for hospital, armory, unitrepair etc
+	DECLARE_PROPERTY(RectangleStruct, unknown_rect_63C);
+	DECLARE_PROPERTY(CoordStruct, unknown_coord_64C);
+	DECLARE_PROPERTY(Point2D, unknown_point_658);
 	bool HasPower;
 	bool IsOverpowered;
 
@@ -361,19 +365,19 @@ public:
 	DWORD SupportingPrisms;
 	bool HasExtraPowerBonus;
 	bool HasExtraPowerDrain;
-	DynamicVectorClass<InfantryClass*> Overpowerers;
-	DynamicVectorClass<InfantryClass*> Occupants;
+	DECLARE_PROPERTY(DynamicVectorClass<InfantryClass*>, Overpowerers);
+	DECLARE_PROPERTY(DynamicVectorClass<InfantryClass*>, Occupants);
 	int FiringOccupantIndex; // which occupant should get XP, which weapon should be fired (see 6FF074)
 
-	AudioController Audio7;
-	AudioController Audio8;
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio7);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio8);
 
 	bool WasOnline; // the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
 	bool ShowRealName; // is also NOMINAL under [Structures]
 	bool BeingProduced; // is also AI_REBUILDABLE under [Structures]
 	bool ShouldRebuild;// is also AI_REPAIRABLE under [Structures]
 	bool HasEngineer; // used to pass the NeedsEngineer check
-	TimerStruct CashProductionTimer;
+	DECLARE_PROPERTY(TimerStruct, CashProductionTimer);
 	bool IsAllowedToSell; //6DC bool AI_Sellable; AI_SELLABLE under [Structures]
 	bool IsReadyToCommence; //6DD
 	bool NeedsRepairs; // AI handholder for repair logic,
@@ -394,13 +398,13 @@ public:
 	char Translucency;
 	DWORD StorageFilledSlots; // the old "silo needed" logic
 	TechnoTypeClass * SecretProduction; // randomly assigned secret lab bonus, used if SecretInfantry, SecretUnit, and SecretBuilding are null
-	ColorStruct ColorAdd;
+	DECLARE_PROPERTY(ColorStruct, ColorAdd);
 	int IsAirstrikeTargetingMe; //6FC
 	short unknown_short_700;
 	BYTE UpgradeLevel; // as defined by Type->UpgradesToLevel=
 	char GateStage;
 	PrismChargeState PrismStage;
-	CoordStruct PrismTargetCoords;
+	DECLARE_PROPERTY(CoordStruct, PrismTargetCoords);
 	DWORD DelayBeforeFiring; //714
 
 	int BunkerState; // used in UpdateBunker and friends 0x718

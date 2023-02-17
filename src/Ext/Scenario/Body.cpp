@@ -266,6 +266,20 @@ DEFINE_HOOK(0x689FC0, ScenarioClass_LoadFromINI_ReadBasic, 0x8)
 	return 0x0;
 }
 
+DEFINE_HOOK(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
+{
+	//GET(ScenarioClass*, pItem, ESI);
+	GET(CCINIClass*, pINI, EDI);
+
+	INI_EX exINI(pINI);
+
+	if (SessionClass::IsCampaign()) {
+		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), "MCVRedeploy", false);
+	}
+
+	return 0x0;
+}
+
 DEFINE_HOOK(0x689E90, ScenarioClass_LoadFromINI_Early, 0x6)
 {
 	GET(ScenarioClass*, pItem, ECX);

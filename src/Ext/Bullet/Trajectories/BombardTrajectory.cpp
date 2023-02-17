@@ -4,22 +4,20 @@
 
 bool BombardTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectoryType::Load(Stm, RegisterForChange);
+	return PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
 	Stm
 		.Process(this->Height, false)
 		.Process(this->Anti, false)
 		;
-	return true;
 }
 
 bool BombardTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectoryType::Save(Stm);
+	return PhobosTrajectoryType::Save(Stm) &&
 	Stm
 		.Process(this->Height)
 		.Process(this->Anti)
 		;
-	return true;
 }
 
 bool BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -36,25 +34,21 @@ bool BombardTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool BombardTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectory::Load(Stm, RegisterForChange);
-
+	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
 	Stm
 		.Process(this->IsFalling, false)
 		.Process(this->Height, false)
 		;
-
-	return true;
 }
 
 bool BombardTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectory::Save(Stm);
+	return PhobosTrajectory::Save(Stm) &&
 	Stm
 		.Process(this->IsFalling, false)
 		.Process(this->Height, false)
 		;
 
-	return true;
 }
 
 void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

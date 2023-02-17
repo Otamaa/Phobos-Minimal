@@ -54,7 +54,7 @@ protected:
 
 public:
 
-	CellStruct BaseCoords;
+	DECLARE_PROPERTY(CellStruct, BaseCoords);
 	int Spread;
 	int CreationTime;	//frame in which this EMP got created
 	int Duration;

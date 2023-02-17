@@ -124,13 +124,13 @@ public:
 	LightSourceClass* LightSource; // the light source attached to this instance
 	DECLARE_PROPERTY(TimerStruct, RadLevelTimer); // used to count down RadLevelDelay
 	DECLARE_PROPERTY(TimerStruct, RadLightTimer); // used to count down RadLightDelay
-	CellStruct        BaseCell; // center cell
+	DECLARE_PROPERTY(CellStruct,        BaseCell); // center cell
 	int               Spread; // range in cells
 	int               SpreadInLeptons; // range in leptons
 	int               RadLevel; // the radiation level,
 	int               LevelSteps; // cell's rad level reduced by (RadLevel/LevelSteps) every time RadLevelTimer elapses
 	int               Intensity; // the intensity at the beginning
-	TintStruct        Tint; // RadColor at the current level
+	DECLARE_PROPERTY(TintStruct,        Tint); // RadColor at the current level
 	int               IntensitySteps; // the number of intensity decreases during the duration
 	int               IntensityDecrement; // Intensity decremented by this every time RadLightDelay elapses
 	int               RadDuration; // as currently set up, the rad site will stay for so many frames

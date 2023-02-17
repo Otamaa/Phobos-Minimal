@@ -5,78 +5,24 @@
 #pragma once
 
 #include <ArrayClasses.h>
-#include <GeneralDefinitions.h>
-#include <Helpers/CompileTime.h>
+#include <CoordStruct.h>
+#include <Audio.h>
 
-enum class Panning : int
-{
-	Left = 0x0000,
-	Rignt = 0x4000,
-	Center = 0x2000
+struct VocAudioStruct {
+  SomeNodes<DWORD> listnode;
+  AudioEventHandleTag eventhandletag;
+  CoordStruct position;
+  int somebool;
+  DWORD pauses;
+  int field_34;
+
+  VocAudioStruct() = delete;
+  ~VocAudioStruct() = delete;
 };
 
-struct CoordStruct;
-struct AudioController;
-struct VocClassHeader {
-	VocClassHeader* Next;
-	VocClassHeader* Prev;
-	DWORD Magic;
-};
-
-struct VolumeStruct	//pretty uncreative name, but it's all I can come up with atm
-{
-	int			Volume;		//Between 0 and 16384, lowest bit is forced to 1, default is 0
-	DWORD		unknown_4;	//uninitialized
-	int			unknown_int_8;	//Volume * 1024, default is unknown_int_1C * 1024
-	int			unknown_int_C;	//default is 1073741
-	int			unknown_int_10;	//default is 1000
-	int			unknown_int_14;	//default is 0
-	DWORD		unknown_18;		//default is ds:87E848h
-	int			unknown_int_1C;	//default is 16384
-};
-
-class VocClass
-{
+class AudioEventClassTag {
 public:
-	static constexpr constant_ptr<DynamicVectorClass<VocClass*>, 0xB1D378u> const Array{};
-
-	static constexpr reference<bool, 0x8464ACu> const VoicesEnabled{};
-
-	static NOINLINE VocClass* __fastcall Find(const char* pName)
-	{
-		for(int i = 0; i < Array->Count; ++i) {
-			if(!CRT::strcmpi(Array->Items[i]->Name, pName)) {
-				return Array->Items[i];
-			}
-		}
-		return nullptr;
-	}
-
-	static int __fastcall FindIndexById(const char *pName)
-		{ JMP_STD(0x7514D0); }
-
-	/* Play a sound independant of the position.
-	   n = Index of VocClass in Array to be played
-	   Volume = 0.0f to 1.0f
-	   Panning = 0x0000 (left) to 0x4000 (right) (0x2000 is center)
-	   */
-	static void __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioController* pCtrl = nullptr)
-		{ JMP_STD(0x750920); }
-
-	/* Play a sound at a certain Position.
-       n = Index of VocClass in Array to be played */
-	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
-		{ JMP_STD(0x7509E0); }
-
-	// calls the one above ^ - probably sanity checks and whatnot
-	static void __fastcall PlayIndexAtPos(int n, const CoordStruct &coords, int a3 = 0)
-		{ JMP_STD(0x750E20); }
-
-	//Properties
-
-public:
-
-	VocClassHeader Header;
+	SomeNodes<DWORD> Header;
 	int SamplesOK;	//0 or 1, determines whether all samples are OK to use
 	SoundControl Control;
 	SoundType Type;
@@ -113,6 +59,53 @@ public:
 	int Decay;
 	DWORD unknown_140;
 	DWORD unknown_144;
+};
+
+
+static_assert(sizeof(AudioEventClassTag) == 0x148 , "Invalid Size !");
+
+class AudioEventTag;
+class VocClass
+{
+public:
+	static constexpr constant_ptr<DynamicVectorClass<VocClass*>, 0xB1D378u> const Array{};
+
+	static constexpr reference<bool, 0x8464ACu> const VoicesEnabled{};
+
+	static NOINLINE VocClass* __fastcall Find(const char* pName)
+	{
+		for(int i = 0; i < Array->Count; ++i) {
+			if(!CRT::strcmpi(Array->Items[i]->EventClassTag->Name, pName)) {
+				return Array->Items[i];
+			}
+		}
+		return nullptr;
+	}
+
+	static int __fastcall FindIndexById(const char *pName)
+		{ JMP_STD(0x7514D0); }
+
+	/* Play a sound independant of the position.
+	   n = Index of VocClass in Array to be played
+	   Volume = 0.0f to 1.0f
+	   Panning = 0x0000 (left) to 0x4000 (right) (0x2000 is center)
+	   */
+	static AudioEventTag* __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioEventHandleTag* pCtrl = nullptr)
+		{ JMP_STD(0x750920); }
+
+	/* Play a sound at a certain Position.
+       n = Index of VocClass in Array to be played */
+	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioEventHandleTag* pCtrl = nullptr)
+		{ JMP_STD(0x7509E0); }
+
+	// calls the one above ^ - probably sanity checks and whatnot
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct &coords, int a3 = 0)
+		{ JMP_STD(0x750E20); }
+
+	//Properties
+
+public:
+	AudioEventClassTag* EventClassTag;
 
 	//constructor and destructor should never be needed
 	VocClass() = delete;

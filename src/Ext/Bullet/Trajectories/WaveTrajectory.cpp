@@ -5,25 +5,21 @@
 
 bool WaveTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectoryType::Load(Stm, false);
-
+	return  PhobosTrajectoryType::Load(Stm, false) &&
 	Stm
 		.Process(this->MaxHeight, false)
 		.Process(this->MinHeight, false)
 		;
 
-	return true;
 }
 
 bool WaveTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectoryType::Save(Stm);
+	return PhobosTrajectoryType::Save(Stm) &&
 	Stm
 		.Process(this->MaxHeight)
 		.Process(this->MinHeight)
 		;
-
-	return true;
 }
 
 
@@ -42,24 +38,18 @@ bool WaveTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool WaveTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectory::Load(Stm, false);
-
+	return PhobosTrajectory::Load(Stm, false) &&
 	Stm
 		.Process(this->Fallen, false)
 		;
-
-	return true;
 }
 
 bool WaveTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectory::Save(Stm);
-
+	return PhobosTrajectory::Save(Stm) &&
 	Stm
 		.Process(this->Fallen)
 		;
-
-	return true;
 }
 
 void WaveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

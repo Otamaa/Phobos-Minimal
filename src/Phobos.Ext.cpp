@@ -311,6 +311,7 @@ using PhobosTypeRegistry =  TypeRegistry <
 	LaserTrailTypeClass,
 	RadTypeClass,
 	HoverTypeClass,
+	ElectricBoltManager,
 	//VerticalLaserClass,
 #ifdef E_TriggerMPOwner
 	TriggerMPOwner,

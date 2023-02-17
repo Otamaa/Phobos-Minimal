@@ -1331,7 +1331,7 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 				return;
 			}
 
-			if (!this->PassengerDeletionTimer.IsTicking()) // Execute only if timer has been stopped or not started
+			if (!this->PassengerDeletionTimer.HasStarted()) // Execute only if timer has been stopped or not started
 			{
 				// Setting & start countdown. Bigger units needs more time
 				int timerLength = this->GetEatPassangersTotalTime(Type, pPassenger);
@@ -1341,7 +1341,8 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 
 				this->PassengerDeletionTimer.Start(timerLength);
 			}
-			else if (this->PassengerDeletionTimer.Completed()) // Execute only if timer has ran out after being started
+
+			if (this->PassengerDeletionTimer.Completed()) // Execute only if timer has ran out after being started
 			{
 				--pThis->Passengers.NumPassengers;
 
@@ -1420,26 +1421,22 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 						}
 					}
 
-					auto const pPassengerOwner = pPassenger->Owner;
+					//auto const pPassengerOwner = pPassenger->Owner;
 
-					if (!pPassengerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
-					{
-						pPassengerOwner->RegisterLoss(pPassenger, false);
-						pPassengerOwner->RemoveTracking(pPassenger);
+					//if (!pPassengerOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant)
+					//{
+					//	pPassengerOwner->RegisterLoss(pPassenger, false);
+					//	pPassengerOwner->RemoveTracking(pPassenger);
 
-						if (!pPassengerOwner->RecheckTechTree)
-							pPassengerOwner->RecheckTechTree = true;
-					}
+					//	if (!pPassengerOwner->RecheckTechTree)
+					//		pPassengerOwner->RecheckTechTree = true;
+					//}
 
 
 					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
 					TechnoExt::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis);
 				}
 
-				this->PassengerDeletionTimer.Stop();
-			}
-			else
-			{
 				this->PassengerDeletionTimer.Stop();
 			}
 		}
@@ -1471,7 +1468,7 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 	return false;
 }
 
-void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource)
+void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove)
 {
 	// kill passenger cargo to prevent memleak
 	pThis->KillPassengers(pSource);
@@ -1481,15 +1478,18 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource)
 		pBuilding->KillOccupants(nullptr);
 	}
 
-	if (const auto pOwner = pThis->GetOwningHouse())
+	if (!SkipTrackingRemove)
 	{
-		if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant && !pThis->InLimbo)
+		if (const auto pOwner = pThis->GetOwningHouse())
 		{
-			pOwner->RegisterLoss(pThis, false);
-			pOwner->RemoveTracking(pThis);
+			if (!pOwner->IsNeutral() && !pThis->GetTechnoType()->Insignificant && !pThis->InLimbo)
+			{
+				pOwner->RegisterLoss(pThis, false);
+				pOwner->RemoveTracking(pThis);
 
-			if (!pOwner->RecheckTechTree)
-				pOwner->RecheckTechTree = true;
+				if (!pOwner->RecheckTechTree)
+					pOwner->RecheckTechTree = true;
+			}
 		}
 	}
 
@@ -1660,7 +1660,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	if (!pTypeExt->AutoDeath_Nonexist.empty())
 	{
 		if (!existTechnoTypes(pTypeExt->AutoDeath_Nonexist,
-			pTypeExt->AutoDeath_Nonexist_House, 
+			pTypeExt->AutoDeath_Nonexist_House,
 			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed))
 		{
 			TechnoExt::KillSelf(pThis, nMethod);
@@ -2055,7 +2055,7 @@ void TechnoExt::ExtData::UpdateFireSelf()
 
 	auto const& [FireSelf_Weapon, FireSelf_ROF] = TechnoExt::ExtData::GetFireSelfData();
 
-	if (!FireSelf_Weapon ||!FireSelf_ROF ||  FireSelf_Weapon->empty() || FireSelf_ROF->empty()) return;
+	if (!FireSelf_Weapon || !FireSelf_ROF || FireSelf_Weapon->empty() || FireSelf_ROF->empty()) return;
 
 	if (FireSelf_Count.size() < FireSelf_Weapon->size())
 	{
@@ -2063,12 +2063,12 @@ void TechnoExt::ExtData::UpdateFireSelf()
 		while (FireSelf_Count.size() < FireSelf_Weapon->size())
 		{
 			int ROF = 10;
-			
-			if (p >= (int)FireSelf_ROF->size()) 
+
+			if (p >= (int)FireSelf_ROF->size())
 				ROF = FireSelf_Weapon->at(p)->ROF;
 			else
 				ROF = FireSelf_ROF->at(p);
-		
+
 			FireSelf_Count.emplace_back(ROF);
 		}
 	}
@@ -2080,14 +2080,14 @@ void TechnoExt::ExtData::UpdateFireSelf()
 		else
 		{
 			int ROF = 10;
-			
-			if (i >= (int)FireSelf_ROF->size()) 
+
+			if (i >= (int)FireSelf_ROF->size())
 				ROF = FireSelf_Weapon->at(i)->ROF;
 			else
 				ROF = FireSelf_ROF->at(i);
-			
+
 			FireSelf_Count[i] = ROF;
-			
+
 			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis);
 		}
 	}
@@ -2447,7 +2447,7 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 {
 	auto const pThis = this->Get();
-	
+
 	if (this->KillActionCalled)
 		return true;
 
@@ -2474,7 +2474,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 
 // Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.
 int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
- AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback , bool allowAAFallback)
+ AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback, bool allowAAFallback)
 {
 	CellClass* targetCell = nullptr;
 
@@ -2692,7 +2692,8 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 {
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pExt->DelayedFire_Anim) {
+	if (pExt->DelayedFire_Anim)
+	{
 		pExt->DelayedFire_Anim.release();
 	}
 
@@ -2802,13 +2803,13 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		MyWeaponManager.InvalidatePointer(ptr, bRemoved);
+	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 #endif
-		AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-		AnnounceInvalidPointer(LastAttacker, ptr);
+	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
+	AnnounceInvalidPointer(LastAttacker, ptr);
 #ifdef ENABLE_HOMING_MISSILE
-		if (MissileTargetTracker)
-			MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
+	if (MissileTargetTracker)
+		MissileTargetTracker->InvalidatePointer(ptr, bRemoved);
 #endif
 }
 

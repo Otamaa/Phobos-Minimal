@@ -489,6 +489,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RecalculateDistanceDamage_Multiply_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply.Factor");
 	this->RecalculateDistanceDamage_Max.Read(exINI, pSection, "RecalculateDistanceDamage.Max");
 	this->RecalculateDistanceDamage_Min.Read(exINI, pSection, "RecalculateDistanceDamage.Min");
+	this->RecalculateDistanceDamage_Display.Read(exINI, pSection, "RecalculateDistanceDamage.Display");
+	this->RecalculateDistanceDamage_Display_AtFirer.Read(exINI, pSection, "RecalculateDistanceDamage.Display.AtFirer");
+	this->RecalculateDistanceDamage_Display_Offset.Read(exINI, pSection, "RecalculateDistanceDamage.Display.Offset");
+	this->RecalculateDistanceDamage_ProcessVerses.Read(exINI, pSection, "RecalculateDistanceDamage.Add.ProcessVerses");
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
@@ -678,6 +682,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RecalculateDistanceDamage_Multiply_Factor)
 		.Process(this->RecalculateDistanceDamage_Max)
 		.Process(this->RecalculateDistanceDamage_Min)
+		.Process(this->RecalculateDistanceDamage_Display)
+		.Process(this->RecalculateDistanceDamage_Display_AtFirer)
+		.Process(this->RecalculateDistanceDamage_Display_Offset)
+		.Process(this->RecalculateDistanceDamage_ProcessVerses)
 
 		.Process(this->AttachedEffect)
 		.Process(this->DetonatesWeapons)

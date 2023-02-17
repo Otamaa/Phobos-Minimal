@@ -46,6 +46,14 @@ public:
 		//#830
 		PhobosMap<TechnoClass* , KillMethod> AutoDeathObjects;
 
+		struct LauchData
+		{
+			int LastFrame;
+			int Count;
+		};
+
+		PhobosMap<int, LauchData> LaunchDatas;
+
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, Building_BuildSpeedBonusCounter {}
@@ -70,6 +78,7 @@ public:
 			, ProducingNavalUnitTypeIndex { -1 }
 
 			, AutoDeathObjects {}
+			, LaunchDatas {}
 		{ }
 
 		virtual ~ExtData() override = default;

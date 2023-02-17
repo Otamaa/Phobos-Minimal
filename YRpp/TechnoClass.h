@@ -745,7 +745,7 @@ public:
 	DECLARE_PROPERTY(TimerStruct, CloakDelayTimer); // delay before cloaking again
 	float            WarpFactor; // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
 	bool             unknown_bool_250;
-	CoordStruct      LastSightCoords;
+	DECLARE_PROPERTY(CoordStruct,      LastSightCoords);
 	int              LastSightRange;
 	int              LastSightHeight;
 	bool             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
@@ -760,7 +760,7 @@ public:
 	bool             IsImmobilized; // by chrono aftereffects ,27C
 	DWORD            unknown_280;
 	int              ChronoLockRemaining; // 284 countdown after chronosphere warps things around
-	CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
+	DECLARE_PROPERTY(CoordStruct,      ChronoDestCoords); // teleport loco and chsphere set this
 	AirstrikeClass*  Airstrike; //Boris
 	bool             Berzerk;
 	int            	BerzerkDurationLeft;
@@ -882,22 +882,22 @@ public:
  // if DistributedFire=yes, this is used to determine which possible targets should be ignored in the latest threat scan
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, AttackedTargets);
 
-	DECLARE_PROPERTY(AudioController, Audio3);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio3);
 
 	BOOL            __IsTurretTurning_49C; // Turret is moving?
 	BOOL            TurretIsRotating;
 
-	DECLARE_PROPERTY(AudioController, Audio4);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio4);
 
 	bool             GattlingAudioPlayed; //4B8
 	DWORD            unknown_4BC;
 
-	DECLARE_PROPERTY(AudioController, Audio5);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio5);
 
 	bool             gattlingsound_4D4;
 	DWORD            unknown_4D8;
 
-	DECLARE_PROPERTY(AudioController, Audio6);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio6);
 
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4

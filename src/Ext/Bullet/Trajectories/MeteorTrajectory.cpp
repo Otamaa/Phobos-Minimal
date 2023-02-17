@@ -5,24 +5,21 @@
 
 bool MeteorTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectoryType::Load(Stm, false);
-
+	return this->PhobosTrajectoryType::Load(Stm, false) &&
 	Stm
 		.Process(this->Height, false)
 		.Process(this->Range, false)
 		;
 
-	return true;
 }
 
 bool MeteorTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
+	return this->PhobosTrajectoryType::Save(Stm) &&
 	Stm
 		.Process(this->Height)
 		.Process(this->Range)
 		;
-	return true;
 }
 
 bool MeteorTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -39,22 +36,12 @@ bool MeteorTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool MeteorTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
-
-	Stm
-		;
-
-	return true;
+	return this->PhobosTrajectory::Load(Stm, false);
 }
 
 bool MeteorTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
-	Stm
-		;
-
-	return true;
+	return this->PhobosTrajectory::Save(Stm);
 }
 
 void MeteorTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

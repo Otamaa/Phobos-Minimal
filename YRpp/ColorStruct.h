@@ -94,6 +94,17 @@ struct ColorStruct
 	bool operator != (ColorStruct const rhs) const
 	{ return !(*this == rhs); }
 
+	__forceinline bool operator!() const
+	{
+		return (*this == ColorStruct::Empty);
+	}
+
+	__forceinline operator bool() const
+	{
+		return !(*this == ColorStruct::Empty);
+	}
+
+
 	explicit operator DWORD() const
 	{
 		DWORD ret = 0;

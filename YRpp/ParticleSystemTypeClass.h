@@ -102,7 +102,7 @@ public:
 	float    SpawnTranslucencyCutoff;
 	BehavesLike BehavesLike;
 	int      Lifetime;
-	Vector3D<float> SpawnDirection;
+	DECLARE_PROPERTY(Vector3D<float>, SpawnDirection);
 	double   ParticlesPerCoord;
 	double   SpiralDeltaPerCoord;
 	double   SpiralRadius;
@@ -112,7 +112,7 @@ public:
 	double   SpawnSparkPercentage;
 	int      SparkSpawnFrames;
 	int      LightSize;
-	ColorStruct LaserColor;
+	DECLARE_PROPERTY(ColorStruct, LaserColor);
 	bool     Laser;
 	bool     OneFrameLight;
 };

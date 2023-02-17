@@ -101,8 +101,6 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	return 0;
 }
 
-//#ifdef ENABLE_NEWHOOKS
-//TODO : desync test and use new ext system for better performance
 DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
@@ -115,10 +113,7 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	R->EDX(pConvert);
 	return 0x0;
 }
-//#endif
 
-//#ifdef ENABLE_NEWHOOKS
-//TODO : and desync test
 DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
 {
 	enum

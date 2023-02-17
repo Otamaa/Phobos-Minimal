@@ -6,12 +6,16 @@ class StraightTrajectoryType final : public PhobosTrajectoryType
 {
 public:
 	Valueable<bool> SnapOnTarget;
-	Valueable<Leptons> SnapThreshold;
+	Nullable<Leptons> SnapThreshold;
+	Valueable<Leptons> SDetonationDistance;
+	Valueable<Leptons> TargetSnapDistance;
 	Valueable<bool> PassThrough;
 
 	StraightTrajectoryType() : PhobosTrajectoryType {TrajectoryFlag::Straight}
 		, SnapOnTarget { true }
 		, SnapThreshold {}
+		, SDetonationDistance { Leptons(102) }
+		, TargetSnapDistance { Leptons(0) }
 		, PassThrough { false }
 	{
 		SnapThreshold = Leptons(Unsorted::LeptonsPerCell);
@@ -28,7 +32,6 @@ public:
 class StraightTrajectory final : public PhobosTrajectory
 {
 public:
-
 
 	StraightTrajectory() : PhobosTrajectory { TrajectoryFlag::Straight }
 	{ }
@@ -49,4 +52,7 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+
+private:
+	int GetVelocityZ();
 };

@@ -792,7 +792,7 @@ DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
 	GET(ObjectClass*, pObject, ESI);
 	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
 
-	if (const TechnoClass* pThis = abstract_cast<TechnoClass*>(pObject))
+	if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject))
 	{
 		//const auto pExt = TechnoExt::ExtMap.Find(pThis);
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
@@ -806,13 +806,23 @@ DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
 			&& !(!pWHExt->RecalculateDistanceDamage_IgnoreMaxDamage && *args->Damage == RulesGlobal->MaxDamage)) {
 
 			const auto range = args->Attacker->DistanceFrom(pObject);
-			const auto add = (pWHExt->RecalculateDistanceDamage_Add) * (range / ((pWHExt->RecalculateDistanceDamage_Add_Factor) * 256));
-			const auto multiply = pow((pWHExt->RecalculateDistanceDamage_Multiply), (range / ((pWHExt->RecalculateDistanceDamage_Multiply_Factor) * 256)));
+			const auto range_factor = range / (pWHExt->RecalculateDistanceDamage_Add_Factor.Get() * 256);
+			const auto add = (pWHExt->RecalculateDistanceDamage_Add.Get() * range_factor);
+
+			const auto multiply = pow((pWHExt->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 			*args->Damage += std::clamp((static_cast<int>((*args->Damage + add) * multiply) - *args->Damage), pWHExt->RecalculateDistanceDamage_Min.Get(), pWHExt->RecalculateDistanceDamage_Max.Get());
 
-			if (!pWHExt->RecalculateDistanceDamage_IgnoreMaxDamage)
-				*args->Damage = std::clamp((*args->Damage), 0, RulesGlobal->MaxDamage);
+			if(pWHExt->RecalculateDistanceDamage_ProcessVerses)
+			*args->Damage *= GeneralUtils::GetWarheadVersusArmor(args->WH, pThisType->Armor);
+
+			if (pWHExt->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
+			{
+				TechnoClass* pOwner = pWHExt->RecalculateDistanceDamage_Display_AtFirer ? args->Attacker : pThis;
+				FlyingStrings::AddMoneyString(true, *args->Damage, pOwner,
+					AffectedHouse::All, pOwner->Location,
+					pWHExt->RecalculateDistanceDamage_Display_Offset, ColorStruct::Empty);
+			}
 		}
 
 		return 0x5F5416;

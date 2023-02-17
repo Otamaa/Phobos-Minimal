@@ -60,7 +60,7 @@ public:
 
 public:
 
-	ColorStruct Color;
+	DECLARE_PROPERTY(ColorStruct, Color);
 	ObjectClass* Owner;
 	int Decrement;
 	int ActiveSlot;

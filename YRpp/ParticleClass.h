@@ -58,18 +58,18 @@ protected:
 public:
 
 	ParticleTypeClass* Type;
-	ColorStruct byteB0;
+	DECLARE_PROPERTY(ColorStruct, byteB0);
 	int RefCount;
 	double ColorSpeedResult;
-	CoordStruct GasCoord;
-	Vector3D<float> VelocitySmoke;
-	CoordStruct CoordStructD8;
+	DECLARE_PROPERTY(CoordStruct, GasCoord);
+	DECLARE_PROPERTY(Vector3D<float>, VelocitySmoke);
+	DECLARE_PROPERTY(CoordStruct, CoordStructD8);
 	float Velocity;
-	CoordStruct gapE8;
-	CoordStruct dwordF4;
-	CoordStruct Fire100;
-	Vector3D<float> Spark10C;
-	Vector3D<float> vector3_118;
+	DECLARE_PROPERTY(CoordStruct, gapE8);
+	DECLARE_PROPERTY(CoordStruct, dwordF4);
+	DECLARE_PROPERTY(CoordStruct, Fire100);
+	DECLARE_PROPERTY(Vector3D<float>, Spark10C);
+	DECLARE_PROPERTY(Vector3D<float>, vector3_118);
 	ParticleSystemClass* ParticleSystem;
 	short RemainingEC;
 	short RemainingDC;

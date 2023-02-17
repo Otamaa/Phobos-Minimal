@@ -143,8 +143,8 @@ public:
 	BytePalette const* UsedPalette2;
 	BYTE* IndexesToIgnore;
 	int RefCount;
-	TintStruct Color1;
-	TintStruct Color2;
+	DECLARE_PROPERTY(TintStruct, Color1);
+	DECLARE_PROPERTY(TintStruct, Color2);
 	bool Tinted;
 	PROTECTED_PROPERTY(BYTE, align_1B1[3]);
 };

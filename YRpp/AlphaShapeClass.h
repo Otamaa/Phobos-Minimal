@@ -50,7 +50,7 @@ protected:
 public:
 
 	ObjectClass* AttachedTo;	//To which object is this AlphaShape attached?
-	RectangleStruct Rect;
+	DECLARE_PROPERTY(RectangleStruct, Rect);
 	SHPStruct* AlphaImage;
 	bool IsObjectGone;	//Set if AttachedTo is NULL.
 };

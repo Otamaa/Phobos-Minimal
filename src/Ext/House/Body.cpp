@@ -923,6 +923,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->ProducingNavalUnitTypeIndex)
 
 		.Process(this->AutoDeathObjects)
+		.Process(this->LaunchDatas)
 		;
 }
 

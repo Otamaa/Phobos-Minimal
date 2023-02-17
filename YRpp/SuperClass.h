@@ -129,10 +129,10 @@ public:
 	DWORD unused_44;
 	LARGE_INTEGER BlinkTimer;
 	int SpecialSoundDuration; // see 0x6CD14F
-	CoordStruct SpecialSoundLocation;
+	DECLARE_PROPERTY(CoordStruct, SpecialSoundLocation);
 	bool CanHold;          // 0x60
 	PROTECTED_PROPERTY(BYTE, unused_61);
-	CellStruct ChronoMapCoords;  // 0x62
+	DECLARE_PROPERTY(CellStruct, ChronoMapCoords);  // 0x62
 	PROTECTED_PROPERTY(BYTE, unused_66[2]);
 	AnimClass* Animation;                // 0x68
 	bool AnimationGotInvalid;

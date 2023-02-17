@@ -78,6 +78,7 @@ public:
 	static const AbstractType AbsID = AbstractType::Abstract;
 	static constexpr reference<IndexClass<int, AbstractClass*>, 0xB0E840u> const TargetIndex{};
 	static constexpr constant_ptr<DynamicVectorClass<AbstractClass*>, 0xB0F720u> const Array{};
+	static constexpr constant_ptr<DynamicVectorClass<AbstractClass*>, 0x00B0F698u> const Array2{};
 	static constexpr reference<AbsTypeNames, 0x816EE0u, TypeCount> const RTTIToString{};
 
 	static const char* GetAbstractClassName(AbstractType abs) {

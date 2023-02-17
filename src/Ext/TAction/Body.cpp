@@ -451,6 +451,12 @@ bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* p
 
 	case PhobosTriggerAction::DrawLaserBetweenWeaypoints:
 		return TActionExt::DrawLaserBetweenWaypoints(pThis, pHouse, pObject, pTrigger, location);
+
+	case PhobosTriggerAction::AllowMCVRedeploy:
+		return TActionExt::AllowMCVRedeploy(pThis, pHouse, pObject, pTrigger, location);
+	case PhobosTriggerAction::ForbidMCVRedeploy:
+		return TActionExt::ForbidMCVRedeploy(pThis, pHouse, pObject, pTrigger, location);
+
 	default:
 		bHandled = false;
 		return true;
@@ -1057,6 +1063,18 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 {
 	ScenarioExt::Global()->NextMission = pThis->Text;
 
+	return true;
+}
+
+bool TActionExt::AllowMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+{
+	GameModeOptionsClass::Instance->MCVRedeploy = true;
+	return true;
+}
+
+bool TActionExt::ForbidMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+{
+	GameModeOptionsClass::Instance->MCVRedeploy = false;
 	return true;
 }
 

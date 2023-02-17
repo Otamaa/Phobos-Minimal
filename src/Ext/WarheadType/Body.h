@@ -209,6 +209,10 @@ public:
 		Valueable<double> RecalculateDistanceDamage_Multiply_Factor;
 		Valueable<int> RecalculateDistanceDamage_Max;
 		Valueable<int> RecalculateDistanceDamage_Min;
+		Valueable<bool> RecalculateDistanceDamage_Display;
+		Valueable<bool> RecalculateDistanceDamage_Display_AtFirer;
+		Valueable<Point2D> RecalculateDistanceDamage_Display_Offset;
+		Valueable<bool> RecalculateDistanceDamage_ProcessVerses;
 
 		AresAttachEffectTypeClass AttachedEffect;
 		ValueableVector<WeaponTypeClass*> DetonatesWeapons;
@@ -385,6 +389,10 @@ public:
 			, RecalculateDistanceDamage_Multiply_Factor { 1.0 }
 			, RecalculateDistanceDamage_Max { INT_MAX }
 			, RecalculateDistanceDamage_Min { -INT_MAX }
+			, RecalculateDistanceDamage_Display { false }
+			, RecalculateDistanceDamage_Display_AtFirer { false }
+			, RecalculateDistanceDamage_Display_Offset { Point2D::Empty }
+			, RecalculateDistanceDamage_ProcessVerses { false }
 
 			, AttachedEffect { OwnerObject }
 			, DetonatesWeapons { }

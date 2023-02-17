@@ -56,13 +56,13 @@ protected:
 
 public:
 
-	ProgressTimer Animation;
+	DECLARE_PROPERTY(ProgressTimer, Animation);
 	TerrainTypeClass* Type;
 	bool IsBurning; // this terrain object has been ignited
 	bool TimeToDie; // finish the animation and uninit
 	int field_D0;
 	int field_D4;
-	Point2D DrawPos;
+	DECLARE_PROPERTY(Point2D, DrawPos);
 
 };
 static_assert(sizeof(TerrainClass) == 0xE0, "Invalid Size!");

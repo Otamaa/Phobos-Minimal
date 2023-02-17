@@ -62,6 +62,6 @@ public:
 	TechnoClass* Target;
 	WeaponTypeClass* Weapon;
 	DWORD LogicState; //30
-	Point2D DrawOffset; //34-38
+	DECLARE_PROPERTY(Point2D, DrawOffset); //34-38
 	int Damage;
 };

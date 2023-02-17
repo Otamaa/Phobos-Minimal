@@ -5,16 +5,14 @@
 
 bool VerticalTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectoryType::Load(Stm, false);
+	return PhobosTrajectoryType::Load(Stm, false) &&
 	Stm.Process(this->Height, false);
-	return true;
 }
 
 bool VerticalTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectoryType::Save(Stm);
+	return PhobosTrajectoryType::Save(Stm) &&
 	Stm.Process(this->Height);
-	return true;
 }
 
 bool VerticalTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -31,26 +29,20 @@ bool VerticalTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool VerticalTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
-
+	return this->PhobosTrajectory::Load(Stm, false) &&
 	Stm
 		.Process(this->IsFalling, false)
 		.Process(this->Height, false)
 		;
-
-	return true;
 }
 
 bool VerticalTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
+	return this->PhobosTrajectory::Save(Stm) &&
 	Stm
 		.Process(this->IsFalling)
 		.Process(this->Height)
 		;
-
-	return true;
 }
 
 void VerticalTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

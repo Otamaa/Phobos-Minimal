@@ -35,18 +35,16 @@ namespace Utils
 
 bool BounceTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectoryType::Load(Stm, RegisterForChange);
-	Stm.Process(this->BounceAmount, false);
-	Stm.Process(this->BounceWeapon, true);
-	return true;
+	return PhobosTrajectoryType::Load(Stm, RegisterForChange) && 
+	Stm.Process(this->BounceAmount, false)
+	   .Process(this->BounceWeapon, true);
 }
 
 bool BounceTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectoryType::Save(Stm);
-	Stm.Process(this->BounceAmount, false);
-	Stm.Process(this->BounceWeapon, true);
-	return true;
+	return PhobosTrajectoryType::Save(Stm) &&
+	Stm.Process(this->BounceAmount, false)
+		.Process(this->BounceWeapon, true);
 }
 
 bool BounceTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -66,25 +64,20 @@ bool BounceTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool BounceTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	PhobosTrajectory::Load(Stm, RegisterForChange);
-
+	return PhobosTrajectory::Load(Stm, RegisterForChange) &&
 	Stm
 		.Process(this->IsBouncing, false)
 		.Process(this->BounceLeft, false)
 		;
-
-	return true;
 }
 
 bool BounceTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	PhobosTrajectory::Save(Stm);
+	return PhobosTrajectory::Save(Stm) &&
 	Stm
 		.Process(this->IsBouncing, false)
 		.Process(this->BounceLeft, false)
 		;
-
-	return true;
 }
 
 // Do some math here to set the initial speed of your proj

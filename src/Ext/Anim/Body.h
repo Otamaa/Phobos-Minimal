@@ -22,7 +22,7 @@ public:
 		OptionalStruct<short , true> DeathUnitFacing;
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
-		UniqueGamePtr<ParticleSystemClass> AttachedSystem;
+		ParticleSystemClass* AttachedSystem;
 		bool OwnerSet;
 		//std::unique_ptr<AnimSpawner> SpawnData;
 		
@@ -34,7 +34,7 @@ public:
 			, DeathUnitFacing { }
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
-			, AttachedSystem {}
+			, AttachedSystem { nullptr }
 			, OwnerSet { false } 
 			//, SpawnData { }
 			, ParentBuilding {}
@@ -42,7 +42,7 @@ public:
 			//SpawnData = std::make_unique<AnimSpawner>(OwnerObject);
 		}
 
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override { DeleteAttachedSystem(); }
 		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override;
 		virtual void InitializeConstants() override;

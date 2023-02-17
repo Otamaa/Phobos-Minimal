@@ -103,8 +103,8 @@ public:
 	int NumParticles;
 	int DetailLevel;
 	int TranslucencyDetailLevel;
-	RandomStruct RandomLoopDelay;
-	RandomStruct RandomRate;
+	DECLARE_PROPERTY(RandomStruct, RandomLoopDelay);
+	DECLARE_PROPERTY(RandomStruct, RandomRate);
 	int Translucency;
 	AnimTypeClass* Spawns;
 	int SpawnCount;

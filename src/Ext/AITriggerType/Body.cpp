@@ -139,7 +139,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 		if (cur[0])
 			essentialRequirementsCount = atoi(cur[0]);
-		else
+		else 
 			Debug::Log("AITriggerTypeExt - CustomizableAICondition : [AIConditionsList]: Error parsing Essential Requirements Count [0] !.\n");
 
 		if (cur[1])

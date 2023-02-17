@@ -22,6 +22,9 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 
 	const auto pParticleExt = ParticleExt::ExtMap.Find(pThis);
 
+	if (!pParticleExt)
+		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
+
 	// TODO: Check this - Morton
 	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
 	// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter

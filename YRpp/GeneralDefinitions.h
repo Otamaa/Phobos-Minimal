@@ -19,6 +19,13 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class Panning : int
+{
+	Left = 0x0000,
+	Rignt = 0x4000,
+	Center = 0x2000
+};
+
 enum class ZoneType : int
 {
 	None = -1,

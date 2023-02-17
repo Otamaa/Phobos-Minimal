@@ -51,7 +51,7 @@ void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 		Trajectory->InvalidatePointer(ptr, bRemoved);
  }
 
-void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel)
+void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)
 {
 	auto pThis = this->Get();
 	auto pWeapon = pThis->GetWeaponType();
@@ -65,7 +65,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 				if (pRadExt->Type != pRadType)
 					return false;
 
-				if (Map[pSite->BaseCell] != Map[Cell])
+				if (Map[pSite->BaseCell] != Map[nCoord])
 					return false;
 
 				if (Spread != pSite->Spread)
@@ -91,7 +91,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CellStruct const& Cell, int Spread
 			return;
 		}
 
-	RadSiteExt::CreateInstance(Cell, Spread, RadLevel, pWeaponExt, pThis->Owner);
+	RadSiteExt::CreateInstance(nCoord, Spread, RadLevel, pWeaponExt, pThis->Owner);
 }
 
 void BulletExt::ExtData::InitializeLaserTrails()

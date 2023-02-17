@@ -19,15 +19,21 @@ DEFINE_HOOK(0x55E160, SyncDelay_Start, 0x6)
 {
 	if (!Phobos::Misc::CustomGS)
 		return 0;
-	if ((Phobos::Misc::CustomGS_ChangeInterval[Game::FrameTimer->TimeLeft] > 0)
-		&& (GameSpeedTemp::counter % Phobos::Misc::CustomGS_ChangeInterval[Game::FrameTimer->TimeLeft] == 0))
+
+	auto& FrameTimer = Game::FrameTimer();
+	auto const& ChangeIntervals = Phobos::Misc::CustomGS_ChangeInterval;
+	auto const& ChangeDelays = Phobos::Misc::CustomGS_ChangeDelay;
+	auto const& DefaultDelays = Phobos::Misc::CustomGS_DefaultDelay;
+
+	if ((ChangeIntervals[FrameTimer.TimeLeft] > 0)
+		&& (GameSpeedTemp::counter % ChangeIntervals[FrameTimer.TimeLeft] == 0))
 	{
-		Game::FrameTimer->TimeLeft = Phobos::Misc::CustomGS_ChangeDelay[Game::FrameTimer->TimeLeft];
+		FrameTimer.TimeLeft = ChangeDelays[FrameTimer.TimeLeft];
 		GameSpeedTemp::counter = 1;
 	}
 	else
 	{
-		Game::FrameTimer->TimeLeft = Phobos::Misc::CustomGS_DefaultDelay[Game::FrameTimer->TimeLeft];
+		FrameTimer.TimeLeft = DefaultDelays[FrameTimer.TimeLeft];
 		GameSpeedTemp::counter++;
 	}
 

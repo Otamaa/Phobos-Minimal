@@ -22,12 +22,14 @@ public:
 		RadTypeClass* Type;
 		WeaponTypeClass* Weapon;
 		TechnoClass* TechOwner;
+		HouseClass* HouseOwner;
 		bool NoOwner;
 
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
 			, Type { nullptr }
 			, Weapon { nullptr }
 			, TechOwner { nullptr }
+			, HouseOwner { nullptr }
 			, NoOwner { true }
 		{}
 
@@ -42,6 +44,7 @@ public:
 			case AbstractType::Aircraft:
 			case AbstractType::Unit:
 			case AbstractType::Infantry:
+			case AbstractType::House:
 				return false;
 			}
 
@@ -57,13 +60,14 @@ public:
 		void Add(int amount);
 		void SetRadLevel(int amount);
 		const double GetRadLevelAt(CellStruct const& cell);
+		const bool ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	static void CreateInstance(const CellStruct& location, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
+	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
 
 	class ExtContainer final : public Container<RadSiteExt>
 	{

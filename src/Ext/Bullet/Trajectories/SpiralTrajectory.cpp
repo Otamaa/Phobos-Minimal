@@ -5,26 +5,22 @@
 
 bool SpiralTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectoryType::Load(Stm, false);
+	return  this->PhobosTrajectoryType::Load(Stm, false) &&
 	Stm
 		.Process(this->MaxRadius, false)
 		.Process(this->Length, false)
 		.Process(this->Angel, false)
 		;
-
-	return true;
 }
 
 bool SpiralTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
+	return this->PhobosTrajectoryType::Save(Stm) &&
 	Stm
 		.Process(this->MaxRadius)
 		.Process(this->Length)
 		.Process(this->Angel)
 		;
-
-	return true;
 }
 
 
@@ -44,8 +40,7 @@ bool SpiralTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool SpiralTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
-
+	return  this->PhobosTrajectory::Load(Stm, false) &&
 	Stm
 		.Process(this->CenterLocation, false)
 		.Process(this->DirectionAngel, false)
@@ -53,14 +48,11 @@ bool SpiralTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->CurrentAngel, false)
 		.Process(this->close, false)
 		;
-
-	return true;
 }
 
 bool SpiralTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
+	return this->PhobosTrajectory::Save(Stm) &&
 	Stm
 		.Process(this->CenterLocation)
 		.Process(this->DirectionAngel)
@@ -68,8 +60,6 @@ bool SpiralTrajectory::Save(PhobosStreamWriter& Stm) const
 		.Process(this->CurrentAngel)
 		.Process(this->close)
 		;
-
-	return true;
 }
 
 void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

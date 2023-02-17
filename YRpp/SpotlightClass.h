@@ -31,7 +31,7 @@ public:
 
 public:
 
-	CoordStruct Coords;
+	DECLARE_PROPERTY(CoordStruct, Coords);
 	int MovementRadius;
 	int Size;
 	SpotlightFlags DisableFlags;

@@ -32,6 +32,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 		}
 	}
 
+
 	return 0;
 }
 

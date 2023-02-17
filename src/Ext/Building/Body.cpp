@@ -631,7 +631,7 @@ void BuildingExt::LimboKill(BuildingClass* pBuilding)
 	}
 
 	// Remove completely
-	TechnoExt::HandleRemove(pBuilding);
+	TechnoExt::HandleRemove(pBuilding , nullptr, true);
 }
 
 // =============================

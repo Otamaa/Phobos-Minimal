@@ -71,13 +71,7 @@ void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 
 	AnnounceInvalidPointer(this->Invoker, ptr);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr);
-
-	if (auto& pSys = this->AttachedSystem)
-	{
-		if (pSys.get() == ptr)
-			pSys.reset(nullptr);
-	}
-
+	AnnounceInvalidPointer(this->AttachedSystem, ptr);
 }
 
 // =============================
@@ -103,10 +97,9 @@ void AnimExt::ExtData::CreateAttachedSystem()
 	const auto pThis = this->Get();
 	const auto pData = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pData && pData->AttachedSystem && !this->AttachedSystem)
-	{
-		if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), pThis->Location, pThis->GetCell(), pThis, CoordStruct::Empty, nullptr))
-			this->AttachedSystem.reset(pSystem);
+	if (pData && pData->AttachedSystem && !this->AttachedSystem) {
+		if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), pThis->Location, pThis->GetCell(), pThis, CoordStruct::Empty, pThis->GetOwningHouse()))
+			this->AttachedSystem = pSystem;
 	}
 }
 
@@ -114,7 +107,9 @@ void AnimExt::ExtData::DeleteAttachedSystem()
 {
 	if (this->AttachedSystem)
 	{
-		AttachedSystem.release();
+		this->AttachedSystem->Owner = nullptr;
+		this->AttachedSystem->UnInit();
+		this->AttachedSystem = nullptr;
 	}
 }
 

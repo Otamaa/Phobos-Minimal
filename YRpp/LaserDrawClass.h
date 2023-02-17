@@ -50,13 +50,13 @@ public:
 	bool IsHouseColor;
 	bool IsSupported; // this changes the values for InnerColor (false: halve, true: double), HouseColor only
 	PROTECTED_PROPERTY(BYTE, align_22[2]);
-	CoordStruct Source;
-	CoordStruct Target;
+	DECLARE_PROPERTY(CoordStruct, Source);
+	DECLARE_PROPERTY(CoordStruct, Target);
 	int ZAdjust;
 	char field_40;
-	ColorStruct InnerColor;
-	ColorStruct OuterColor;
-	ColorStruct OuterSpread;
+	DECLARE_PROPERTY(ColorStruct, InnerColor);
+	DECLARE_PROPERTY(ColorStruct, OuterColor);
+	DECLARE_PROPERTY(ColorStruct, OuterSpread);
 	PROTECTED_PROPERTY(BYTE, align_4A[2]);
 	int Duration;
 	bool Blinks;

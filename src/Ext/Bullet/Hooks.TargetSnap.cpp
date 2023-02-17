@@ -106,7 +106,7 @@ DEFINE_HOOK(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
-	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight)
+	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight && !pExt->SnappedToTarget)
 	{
 		return SkipSetCoordinate;
 		//return !pExt->SnappedToTarget ? SkipInitialChecks : SkipSetCoordinate;

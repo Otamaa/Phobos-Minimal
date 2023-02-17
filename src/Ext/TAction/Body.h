@@ -20,6 +20,10 @@ enum class PhobosTriggerAction : unsigned int
 	RunSuperWeaponAtLocation = 506,
 	RunSuperWeaponAtWaypoint = 507,
 	
+	//#844
+	AllowMCVRedeploy = 510,
+	ForbidMCVRedeploy = 511,
+
 	//#658
 	RandomTriggerPut = 12000,
 	RandomTriggerRemove = 12001,
@@ -136,6 +140,8 @@ public:
 	ACTION_FUNC(ScoreCampaignTheme);
 	ACTION_FUNC(SetNextMission);
 
+	ACTION_FUNC(AllowMCVRedeploy);
+	ACTION_FUNC(ForbidMCVRedeploy);
 
 #undef ACTION_FUNC
 

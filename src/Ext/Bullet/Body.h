@@ -77,7 +77,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual void InitializeConstants()override ;
 	
-		void ApplyRadiationToCell(CellStruct const& Cell, int Spread, int RadLevel);
+		void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
 		void InitializeLaserTrails();
 
 	private:

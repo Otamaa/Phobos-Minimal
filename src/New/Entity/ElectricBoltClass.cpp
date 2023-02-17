@@ -8,7 +8,7 @@
 #include <Unsorted.h>
 #include <RulesClass.h>
 
-std::vector<ElectricBoltClass*> ElectricBoltManager::ElectricBoltArray;
+std::vector<std::unique_ptr<ElectricBoltClass>> ElectricBoltManager::ElectricBoltArray;
 
 void ElectricBoltClass::Clear()
 {
@@ -66,7 +66,6 @@ void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjus
 	StartCoord = start;
 	EndCoord = end;
 	ZAdjust = z_adjust;
-	ElectricBoltManager::ElectricBoltArray.push_back(this);
 
 	/**
 	 *  Spawn a spark particle at the destination of the electric bolt.
@@ -262,11 +261,11 @@ void ElectricBoltClass::Draw_Bolts()
 	}
 }
 
-void ElectricBoltManager::Clear_All()
+void ElectricBoltManager::Clear()
 {
-	for (int i = 0; i < (int)ElectricBoltArray.size(); ++i) {
-		GameDelete<true>(ElectricBoltArray[i]);
-	}
+	//for (int i = 0; i < (int)ElectricBoltArray.size(); ++i) {
+	//	GameDelete<true>(ElectricBoltArray[i]);
+	//}
 
 	ElectricBoltArray.clear();
 }
@@ -277,7 +276,7 @@ void ElectricBoltManager::Draw_All()
 		return;
 
 	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i) {
-		ElectricBoltClass* ebolt = ElectricBoltArray[i];
+		auto const& ebolt = ElectricBoltArray.at(i);
 
 		if (!ebolt) {
 			continue;
@@ -293,7 +292,6 @@ void ElectricBoltManager::Draw_All()
 		 */
 		if (ebolt->Lifetime <= 0) {
 			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
-			GameDelete<true,false>(ebolt);
 		}
 	}
 }

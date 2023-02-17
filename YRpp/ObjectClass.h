@@ -369,8 +369,8 @@ public:
 	ObjectClass*       NextObject;	//Next Object in the same cell or transport. This is a linked list of Objects.
 	TagClass*          AttachedTag; //Should be TagClass , TODO: change when implemented
 	BombClass*         AttachedBomb; //Ivan's little friends.
-	DECLARE_PROPERTY(AudioController, AmbientSoundController); // the "mofo" struct, evil evil stuff
-	DECLARE_PROPERTY(AudioController, CustomSoundController); // the "mofo" struct, evil evil stuff
+	DECLARE_PROPERTY(AudioEventHandleTag, AmbientSoundController); // the "mofo" struct, evil evil stuff
+	DECLARE_PROPERTY(AudioEventHandleTag, CustomSoundController); // the "mofo" struct, evil evil stuff
 	int                CustomSound;
 	bool               BombVisible; // In range of player's bomb seeing units, so should draw it
 	PROTECTED_PROPERTY(BYTE, align_69[0x3]);
@@ -397,7 +397,7 @@ public:
 	bool               IsInLogic; // has this object been added to the logic collection?
 	bool               IsVisible; // was this object in viewport when drawn?
 	PROTECTED_PROPERTY(BYTE, align_99[0x2]);
-	CoordStruct        Location; //Absolute current 3D location (in leptons)
+	DECLARE_PROPERTY(CoordStruct,        Location); //Absolute current 3D location (in leptons)
 	LineTrail*         LineTrailer;
  };
 

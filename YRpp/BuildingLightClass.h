@@ -55,8 +55,8 @@ protected:
 public:
 
 	double Speed;
-	CoordStruct Coord1; //B8
-	CoordStruct Coord2; //C4
+	DECLARE_PROPERTY(CoordStruct, Coord1); //B8
+	DECLARE_PROPERTY(CoordStruct, Coord2); //C4
 	double Acceleration;
 	bool Direction;
 	SpotlightBehaviour BehaviourMode;

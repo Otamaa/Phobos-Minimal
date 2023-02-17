@@ -42,6 +42,7 @@
     <ClCompile Include="src\Ext\AnimType\Hooks.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\AnimSpawner.cpp" />
+    <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
@@ -55,10 +56,12 @@
     <ClCompile Include="src\Ext\Building\Hooks.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Fires.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.SellFixes.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hook.Init.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Obstacles.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Hooks.Shrapnel.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.TargetSnap.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Trajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\ArtilleryTrajectory.cpp" />
@@ -77,6 +80,7 @@
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
+    <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />

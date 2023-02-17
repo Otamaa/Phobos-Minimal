@@ -174,8 +174,8 @@ protected:
 public:
 
 	int             PlanningPathIdx; // which planning path am I following?
-	CellStruct        cell524;
-	CellStruct        cell528;
+	DECLARE_PROPERTY(CellStruct,        cell524);
+	DECLARE_PROPERTY(CellStruct,        cell528);
 	DWORD           unknown_52C;	//unused?
 	DWORD           unknown_530;
 	DWORD           unknown_534;
@@ -183,13 +183,13 @@ public:
 	bool            __PlayingMovingSound; //53C
 	int           __MovingSoundDelay; //540
 
-	DECLARE_PROPERTY(AudioController, Audio7);
+	DECLARE_PROPERTY(AudioEventHandleTag, Audio7);
 
-	CellStruct      CurrentMapCoords;
-	CellStruct      LastMapCoords; // ::UpdatePosition uses this to remove threat from last occupied cell, etc
-	CellStruct      LastJumpjetMapCoords; // which cell was I occupying previously? only for jumpjets
-	CellStruct      CurrentJumpjetMapCoords; // which cell am I occupying? only for jumpjets 564
-	CoordStruct     CurrentMechPos; //unknown_coords_568 5B0832
+	DECLARE_PROPERTY(CellStruct,      CurrentMapCoords);
+	DECLARE_PROPERTY(CellStruct,      LastMapCoords); // ::UpdatePosition uses this to remove threat from last occupied cell, etc
+	DECLARE_PROPERTY(CellStruct,      LastJumpjetMapCoords); // which cell was I occupying previously? only for jumpjets
+	DECLARE_PROPERTY(CellStruct,     CurrentJumpjetMapCoords); // which cell am I occupying? only for jumpjets 564
+	DECLARE_PROPERTY(CoordStruct,     CurrentMechPos); //unknown_coords_568 5B0832
 	PROTECTED_PROPERTY(DWORD,   unused_574);
 	double          SpeedPercentage;
 	double          SpeedMultiplier;
@@ -213,7 +213,7 @@ public:
 	DECLARE_PROPERTY(TimerStruct, SightTimer);
 	DECLARE_PROPERTY(TimerStruct, BlockagePathTimer);
 	DECLARE_PROPERTY(YRComPtr<ILocomotion>, Locomotor);
-	CoordStruct       __HeadTo; //_678
+	DECLARE_PROPERTY(CoordStruct,       __HeadTo); //_678
 	signed char       TubeIndex;	//I'm in this tunnel
 	signed char       CurrentDirectionOnTube;
 	signed char       WaypointIndex; // which waypoint in my planning path am I following?

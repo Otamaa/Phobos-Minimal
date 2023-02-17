@@ -8,9 +8,14 @@ struct TintStruct
 {
 	TintStruct() = default;
 
-	TintStruct(int r, int g, int b) :Red { r }, Green { g }, Blue { b }{}
-
-	int Red, Green, Blue;
+	TintStruct(int r, int g, int b) noexcept : Red { r }, Green { g }, Blue { b }{}
+	TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
+		Red { 0 }, Green { 0 }, Blue { 0 }
+	{
+		Red = static_cast<int>(Math::min(((1000 * nColor.R) / 255) * nTintFactor, 2000.0));
+		Green = static_cast<int>(Math::min(((1000 * nColor.G) / 255) * nTintFactor, 2000.0));
+		Blue = static_cast<int>(Math::min(((1000 * nColor.B) / 255) * nTintFactor, 2000.0));
+	}
 
 	bool operator == (TintStruct const rhs) const
 	{
@@ -32,6 +37,10 @@ struct TintStruct
 			return true;
 		return false;
 	}
+
+public:
+
+	int Red, Green, Blue;
 };
 
 //Random number range

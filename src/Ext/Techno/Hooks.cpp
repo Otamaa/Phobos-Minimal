@@ -509,26 +509,6 @@ DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK_AGAIN(0x449CC1, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
-DEFINE_HOOK(0x44AB22, BuildingClass_Mission_Destruction_EVA_Sold, 0x6)
-{
-	GET(BuildingClass*, pThis, EBP);
-
-	if (pThis->IsOwnedByCurrentPlayer && !pThis->Type->UndeploysInto)
-		VoxClass::PlayIndex(TechnoTypeExt::ExtMap.Find(pThis->Type)->EVA_Sold.Get(VoxClass::FindIndexById(Eva_structureSold)));
-
-	return R->Origin() == 0x44AB22 ? 0x44AB3B : 0x449CEA;
-}
-
-DEFINE_HOOK(0x44A850, BuildingClass_Mission_Deconstruction_Sellsound, 0x6)
-{
-	enum { PlayVocLocally = 0x44A856 };
-	GET(BuildingClass*, pThis, EBP);
-
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Type)->SellSound.Get(RulesGlobal->SellSound));
-	return PlayVocLocally;
-}
-
 DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 {
 	enum { SkipVoxVocPlay = 0x4D9FB5 };

@@ -71,7 +71,7 @@ public:
 	BombType Type; // unused - if so, [General]CanDetonateDeathBomb applies instead of CanDetonateTimeBomb
 	int PlantingFrame;
 	int DetonationFrame;
-	AudioController TickAudioController;
+	DECLARE_PROPERTY(AudioEventHandleTag, TickAudioController);
 	int TickSound;
 	BOOL ShouldPlayTickingSound; // seems so
 	BombState State; // (mostly) set to 0 on plant, 1 on detonation/removal ?

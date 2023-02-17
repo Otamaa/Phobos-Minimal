@@ -65,7 +65,7 @@ public:
 
 	TechnoClass*       Owner;
 	TechnoClass*       Target;
-	TimerStruct LifeTimer;
+	DECLARE_PROPERTY(TimerStruct, LifeTimer);
 	void*              unknown_pointer_38;
 	SuperClass*        SourceSW;
 

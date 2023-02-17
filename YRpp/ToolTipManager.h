@@ -69,7 +69,7 @@ public:
 	ToolTip* CurrentToolTip;
 	HWND hWnd;
 	bool IsActive;
-	Point2D CurrentMousePosition;
+	DECLARE_PROPERTY(Point2D, CurrentMousePosition);
 	ToolTipManagerData CurrentToolTipData;
 	int ToolTipDelay;
 	int LastToolTipDelay;

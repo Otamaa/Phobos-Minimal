@@ -60,6 +60,12 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 		return;
 	}
 
+	auto const pHouseExt = HouseExt::ExtMap.Find(pHouse);
+	auto& nLauchData = pHouseExt->LaunchDatas[pSW->Type->ArrayIndex];
+
+	nLauchData.Count += 1;
+	nLauchData.LastFrame = Unsorted::CurrentFrame;
+
 	if (this->LimboDelivery_Types.size())
 		ApplyLimboDelivery(pHouse);
 

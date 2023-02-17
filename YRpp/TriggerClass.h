@@ -122,7 +122,7 @@ public:
 	HouseClass*			House;
 	bool				Destroyed; // ActionClass::DestroyTrigger called on
 	PROTECTED_PROPERTY(BYTE, align_31[3]);
-	TimerStruct			Timer;
+	DECLARE_PROPERTY(TimerStruct,			Timer);
 	DWORD				OccuredEvents; // bitfield for 32 events max
 	bool				Enabled;
 	PROTECTED_PROPERTY(BYTE, padding_45[3]);
