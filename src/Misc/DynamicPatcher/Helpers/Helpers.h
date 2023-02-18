@@ -140,18 +140,19 @@ public:
 		return static_cast<int>(std::round(x));
 	}
 
-    static int Dir2FrameIndex(DirStruct& dir, int facing)
-    {
-        int index = Dir2FacingIndex(dir , facing);
-        index = (int)(facing / 8) + index;
-        if (index >= facing) {
-             index -= facing;
-        }
+	static int Dir2FrameIndex(DirStruct& dir, int facing)
+	{
+		int index = Dir2FacingIndex(dir, facing);
+		index = (int)(facing / 8) + index;
+		if (index >= facing)
+		{
+			index -= facing;
+		}
 
-        return index;
-    }
+		return index;
+	}
 
-	static double GetROFMult(TechnoClass const * pTech)
+	static double GetROFMult(TechnoClass const* pTech)
 	{
 		bool rofAbility = false;
 		if (pTech->Veterancy.IsElite())
@@ -286,9 +287,11 @@ public:
 		// Step 1: get body transform matrix
 		Matrix3D matrix3D { };
 
-		if (auto const pFoot = abstract_cast<FootClass*>(pTechno)) {
-			if (auto const pLoco = pFoot->Locomotor.get()) {
-				pLoco->Draw_Matrix(&matrix3D ,nullptr);
+		if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
+		{
+			if (auto const pLoco = pFoot->Locomotor.get())
+			{
+				pLoco->Draw_Matrix(&matrix3D, nullptr);
 				return matrix3D;
 			}
 		}
@@ -544,13 +547,14 @@ public:
 		{
 			LaserType laserType = LaserType(false);
 			ColorStruct houseColor = ColorStruct::Empty;
-			if (pWeapon->IsHouseColor && pAttacker)
+
+			if (pWeapon->IsHouseColor && pAttacker && pAttacker->Owner)
 				houseColor = pAttacker->Owner->LaserColor;
 
 			laserType.InnerColor = pWeapon->LaserInnerColor;
 			laserType.OuterColor = pWeapon->LaserOuterColor;
 			laserType.OuterSpread = pWeapon->LaserOuterSpread;
-			laserType.IsHouseColor = pWeapon->IsHouseColor;
+			laserType.IsHouseColor = pWeapon->IsHouseColor; // house color will be 
 			laserType.Duration = pWeapon->LaserDuration;
 			/*
 			WeaponTypeExt ext = WeaponTypeExt.ExtMap.Find(pWeapon);
@@ -575,7 +579,7 @@ public:
 				radBeamType = RadBeamType::Temporal;
 
 			BeamType beamType = BeamType(radBeamType);
-			EffectHelpers::DrawBeam(sourcePos, targetPos, beamType , ColorStruct::Empty);
+			EffectHelpers::DrawBeam(sourcePos, targetPos, beamType, ColorStruct::Empty);
 		}
 
 		//IsElectricBolt
@@ -596,16 +600,13 @@ public:
 	{
 		//ParticleSystem
 		if (auto const psType = pWeapon->AttachedParticleSystem)
-			EffectHelpers::DrawParticle(psType, sourcePos, pTarget, pAttacker, targetPos, nullptr);
+			EffectHelpers::DrawParticle(psType, sourcePos, pTarget, pAttacker, targetPos, pAttacker ? pAttacker->Owner : nullptr);
 	}
 
 	static void PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos)
 	{
 		if (pWeapon->Report.Count > 0) {
-			const int soundIndex = pWeapon->Report.GetItem(ScenarioGlobal->Random.RandomFromMax(pWeapon->Report.Count - 1));
-			if (soundIndex != -1) {
-				VocClass::PlayAt(soundIndex, sourcePos, nullptr);
-			}
+			VocClass::PlayAt(pWeapon->Report.GetItem(ScenarioGlobal->Random.RandomFromMax(pWeapon->Report.Count - 1)), sourcePos, nullptr);
 		}
 	}
 

@@ -199,7 +199,6 @@ static DWORD Do_Airburst(BulletClass* pThis)
 					const auto pSplitExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
 					if (const auto pBullet = pSplitExt->CreateBullet(pTarget, pThis->Owner, pWeapon))
 					{
-						pBullet->SetWeaponType(pWeapon);
 						DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 						auto const radians = dir.GetRadian();
 
