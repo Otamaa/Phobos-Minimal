@@ -29,7 +29,7 @@ public:
 
 	static constexpr constant_ptr<DynamicVectorClass<WaveClass*>, 0xA8EC38u> const Array{};
 	static constexpr reference<bool, 0xB725CCu> const IsLUTs_Calculated{};
-	static constexpr referencemult<short, 0xB4669Cu, 300, 300> const LUT_Pythagoras{};
+	static constexpr reference2D<short, 0xB4669Cu, 300, 300> const LUT_Pythagoras{};
 	static constexpr reference<short, 0xB45E68u, 496u> const MagneticBeamSineTable{};
 	static constexpr reference<short, 0xB46254u, 500u> const SonicBeamSineTable{};
 	static constexpr reference<int, 0xB46648u, 14u> const LUT_Linear1{};

@@ -968,3 +968,25 @@ DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
 //
 //	return 0x65AB08;
 //}
+
+// Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
+DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
+{
+	enum { ContinueChecks = 0x51A9A0, SkipKilling = 0x51A9EB };
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(LandType, landType, EBX);
+
+	if (landType == LandType::Rock)
+		return ContinueChecks;
+
+	if (landType == LandType::Water)
+	{
+		float multiplier = GroundType::Array[static_cast<int>(landType)].Cost[static_cast<int>(pThis->Type->SpeedType)];
+
+		if (multiplier == 0.0)
+			return ContinueChecks;
+	}
+
+	return SkipKilling;
+}

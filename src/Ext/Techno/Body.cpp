@@ -1783,6 +1783,39 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 	return;
 }
 
+void TechnoExt::ApplyDrainMoney(TechnoClass* pThis)
+{
+	const auto pSource = pThis->DrainingMe;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
+	const auto pRules = RulesClass::Instance();
+	const auto nDrainDelay = pTypeExt->DrainMoneyFrameDelay.Get(pRules->DrainMoneyFrameDelay);
+
+	if ((Unsorted::CurrentFrame % nDrainDelay) == 0)
+	{
+		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
+		{
+			if (nDrainAmount > 0)
+				nDrainAmount = Math::min(nDrainAmount, (int)pThis->Owner->Available_Money());
+			else
+				nDrainAmount = Math::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
+
+			if (nDrainAmount)
+			{
+				pThis->Owner->TransactMoney(-nDrainAmount);
+				pSource->Owner->TransactMoney(nDrainAmount);
+
+				if (pTypeExt->DrainMoney_Display)
+				{
+					auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
+					FlyingStrings::AddMoneyString(true, nDrainAmount, pDest,
+						pTypeExt->DrainMoney_Display_Houses, pDest->Location,
+						pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+				}
+			}
+		}
+	}
+}
+
 void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	bool drawPip = false;
@@ -2583,6 +2616,69 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 		return false;
 
 	return (pThis->IsWarpingIn() && pTypeExt->ChronoDelay_Immune.Get());
+}
+
+bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
+{
+	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
+		return false;
+
+	if (pVictim->IsIronCurtained())
+		return false;
+
+	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
+		return false;
+
+	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
+
+	if (!pVictimTechno)
+		return false;
+
+	auto const pWhatVictim = pVictim->WhatAmI();
+	auto const pAttackerType = pAttacker->GetTechnoType();
+	auto const pVictimType = pVictim->GetTechnoType();
+
+	if (pAttackerType->OmniCrusher)
+	{
+		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
+			return false;
+	}
+	else
+	{
+		if (pVictimTechno->Uncrushable || !pVictimType->Crushable)
+			return false;
+	}
+
+	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
+
+	if (pWhatVictim == AbstractType::Infantry)
+	{
+		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
+		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
+			pVictimTechnoTypeExt->DeployCrushableLevel :
+			pVictimTechnoTypeExt->CrushableLevel;
+
+		if (pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) < crushableLevel.Get(pVictimTechno))
+			return false;
+	}
+
+	if (TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pVictim)))
+	{
+		return false;
+	}
+
+	//auto const pExt = TechnoExt::ExtMap.Find(pVictimTechno);
+	//if (auto const pShieldData = pExt->Shield.get()) {
+	//	auto const pWeaponIDx = pAttacker->SelectWeapon(pVictim);
+	//	auto const pWeapon = pAttacker->GetWeapon(pWeaponIDx);
+
+	//	if (pWeapon && pWeapon->WeaponType &&
+	//		pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon->WeaponType)) {
+	//		return false;
+	//	}
+	//}
+
+	return true;
 }
 
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)

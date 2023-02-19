@@ -240,6 +240,8 @@ public:
 	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
 	static bool IsInWarfactory(TechnoClass* pThis);
 
+	static bool IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker);
+
 	static inline bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
 	static inline bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
 	static inline bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
@@ -280,7 +282,7 @@ public:
 	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis);
-
+	static void ApplyDrainMoney(TechnoClass* pThis);
 	static void ResetDelayFireAnim(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);

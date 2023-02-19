@@ -135,8 +135,13 @@ public:
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
 	virtual bool InvalidateIgnorable(void* const ptr) const = 0;
 
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { Stm.Save(this->Initialized); }
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { Stm.Load(this->Initialized); }
+	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
+	  Stm.Save(this->Initialized);
+	}
+
+	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { 
+		Stm.Load(this->Initialized);
+	}
 
 protected:
 

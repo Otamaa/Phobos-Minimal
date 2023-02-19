@@ -11,19 +11,29 @@ class ObjectClass;
 class WarheadTypeClass;
 class WeaponTypeClass;
 
+// Terrain ground type
+struct GroundType
+{
+	ArrayWrapper<float, 8u> Cost; // Terrain speed multipliers.
+	char Build; // Can build on this terrain?
+public:
+
+	static constexpr reference<GroundType, 0x89EA40u, 12u> Array {};
+
+};
+
 struct CrackedIceStruct
 {
 	bool operator==(const CrackedIceStruct& src) const { return false; }
 	bool operator!=(const CrackedIceStruct& src) const { return true; }
 
 	CellStruct Pos;
-	int field_4; // cracking frame?
+	int CrackingAtFrames; // cracking frame?
 };
 
 //Powerup crates
-class Crate
+struct Crate
 {
-public:
 	//Properties
 	TimerStruct CrateTimer;
 	CellStruct Location;
@@ -89,9 +99,8 @@ public:
 };
 
 // helper class with static methods to detect projectile collisions
-class TrajectoryHelper
+struct TrajectoryHelper
 {
-public:
 	// whether the bullet hit a cliff when moving from pBefore to pAfter
 	static bool __fastcall IsCliffHit(
 		CellClass const* pSource, CellClass const* pBefore,

@@ -32,7 +32,7 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 
 DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 {
-	enum { Secondary = 0x6F3745 };
+	enum { Secondary = 0x6F3745, UseWeaponIndex = 0x6F37AF };
 
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
@@ -147,7 +147,7 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		if (!pTargetTechno)
 			return Primary;
 
-		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->Shield.get())
+		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
 		{
 			if (pShield->IsActive())
 			{
@@ -228,7 +228,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 		auto const pWeaponEven = pThis->GetWeapon(evenWeaponIndex)->WeaponType;
 		bool skipRemainingChecks = false;
 
-		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->Shield.get())
+		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
 		{
 			if (pShield->IsActive() && !pShield->CanBeTargeted(pWeaponOdd))
 			{

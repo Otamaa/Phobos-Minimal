@@ -446,6 +446,7 @@ public:
 		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
 		FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
+		void ApplyRecalculateDistanceDamage(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
 
 		virtual ~ExtData() override  = default;

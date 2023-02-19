@@ -10,26 +10,24 @@ class BulletObstacleHelper
 {
 public:
 
-	static CellClass* GetObstacle(CellClass* pSourceCell, CellClass* pTargetCell, CellClass* pCurrentCell, CoordStruct currentCoords, AbstractClass const* const pSource,
-		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, BulletTypeExt::ExtData*& pBulletTypeExt, bool isTargetingCheck = false)
+	static NOINLINE CellClass* GetObstacle(CellClass* pSourceCell, CellClass* pTargetCell, CellClass* pCurrentCell, CoordStruct currentCoords, AbstractClass const* const pSource,
+		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, bool isTargetingCheck = false)
 	{
 		CellClass* pObstacleCell = nullptr;
 
-		if (SubjectToObstacles(pBulletType, pBulletTypeExt))
+		if (SubjectToObstacles(pBulletType))
 		{
-			if (SubjectToTerrain(pCurrentCell, pBulletType, pBulletTypeExt, isTargetingCheck))
+			if (SubjectToTerrain(pCurrentCell, pBulletType, isTargetingCheck))
 				pObstacleCell = pCurrentCell;
 		}
 
 		return pObstacleCell;
 	}
 
-	static CellClass* FindFirstObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
+	static NOINLINE CellClass* FindFirstObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, bool isTargetingCheck = false)
 	{
-		BulletTypeExt::ExtData* pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
-
-		if (SubjectToObstacles(pBulletType, pBulletTypeExt))
+		if (SubjectToObstacles(pBulletType))
 		{
 			auto sourceCell = CellClass::Coord2Cell(pSourceCoords);
 			auto const pSourceCell = MapClass::Instance->GetCellAt(sourceCell);
@@ -45,7 +43,7 @@ public:
 
 			for (size_t i = 0; i < maxDelta + isTargetingCheck; ++i)
 			{
-				if (auto const pCell = GetObstacle(pSourceCell, pTargetCell, pCellCur, crdCur, pSource, pTarget, pOwner, pBulletType, pBulletTypeExt, isTargetingCheck))
+				if (auto const pCell = GetObstacle(pSourceCell, pTargetCell, pCellCur, crdCur, pSource, pTarget, pOwner, pBulletType, isTargetingCheck))
 					return pCell;
 
 				crdCur += step;
@@ -56,24 +54,26 @@ public:
 		return nullptr;
 	}
 
-	static CellClass* FindFirstImpenetrableObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
+	static NOINLINE CellClass* FindFirstImpenetrableObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, WeaponTypeClass* pWeapon, bool isTargetingCheck = false)
 	{
 		// Does not currently need further checks.
 		return FindFirstObstacle(pSourceCoords, pTargetCoords, pSource, pTarget, pOwner, pWeapon->Projectile, isTargetingCheck);
 	}
 
-	static bool SubjectToObstacles(BulletTypeClass* pBulletType, BulletTypeExt::ExtData*& pBulletTypeExt)
+	static NOINLINE bool SubjectToObstacles(BulletTypeClass* pBulletType)
 	{
-		bool subjectToTerrain = pBulletTypeExt->SubjectToLand.isset() || pBulletTypeExt->SubjectToWater.isset();
+		const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
+		const bool subjectToTerrain = pBulletTypeExt->SubjectToLand.isset() || pBulletTypeExt->SubjectToWater.isset();
 
 		return subjectToTerrain ? true : pBulletType->Level;
 	}
 
-	static bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType, BulletTypeExt::ExtData*& pBulletTypeExt, bool isTargetingCheck)
+	static NOINLINE bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType, bool isTargetingCheck)
 	{
-		const bool isCellWater = pCurrentCell->LandType == LandType::Water || pCurrentCell->LandType == LandType::Beach;
+		const bool isCellWater = (pCurrentCell->LandType == LandType::Water || pCurrentCell->LandType == LandType::Beach) && pCurrentCell->ContainsBridge();
 		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;
+		const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
 
 		if (isLevel && !pBulletTypeExt->SubjectToLand.isset() && !pBulletTypeExt->SubjectToWater.isset())
 			return true;
@@ -122,15 +122,13 @@ DEFINE_HOOK(0x468C86, BulletClass_ShouldExplode_Obstacles, 0xA)
 
 	GET(BulletClass*, pThis, ESI);
 
-	BulletTypeExt::ExtData* pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-
-	if (BulletObstacleHelper::SubjectToObstacles(pThis->Type, pBulletTypeExt))
+	if (BulletObstacleHelper::SubjectToObstacles(pThis->Type))
 	{
 		auto const pCellSource = MapClass::Instance->GetCellAt(pThis->SourceCoords);
 		auto const pCellTarget = MapClass::Instance->GetCellAt(pThis->TargetCoords);
 		auto const pCellCurrent = MapClass::Instance->GetCellAt(pThis->LastMapCoords);
 		auto const pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExt::ExtMap.Find(pThis)->Owner;
-		const auto pObstacleCell = BulletObstacleHelper::GetObstacle(pCellSource, pCellTarget, pCellCurrent, pThis->Location, pThis->Owner, pThis->Target, pOwner, pThis->Type, pBulletTypeExt, false);
+		const auto pObstacleCell = BulletObstacleHelper::GetObstacle(pCellSource, pCellTarget, pCellCurrent, pThis->Location, pThis->Owner, pThis->Target, pOwner, pThis->Type, false);
 
 		if (pObstacleCell)
 			return Explode;
@@ -162,7 +160,7 @@ DEFINE_HOOK(0x6F7647, TechnoClass_InRange_Obstacles, 0x5)
 
 	const auto pFirer = BulletExt::InRangeTempFirer;
 
-	if (!pResult)
+	if (!pResult && !pFirer->IsInAir()) // disable it for in air stuffs for now , broke some Aircraft targeting
 		pResult = BulletObstacleHelper::FindFirstImpenetrableObstacle(*pSourceCoords, targetCoords, pFirer, pTarget, pFirer->Owner, pWeapon, true);
 
 	BulletExt::InRangeTempFirer = nullptr;

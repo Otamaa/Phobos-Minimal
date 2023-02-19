@@ -1084,14 +1084,10 @@ DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 	if (pThis->Type->JumpJet && pThis->Type->HoverAttack)
 	{
 		pThis->SetDestination(nullptr, 1);
-	}
-	else
-	{
-		//Interfance already checked above
-		pThis->Locomotor.get()->Process();
+		return 0x51D47B;
 	}
 
-	return 0x51D47B;
+	return 0x0;
 }
 
 //
@@ -2797,7 +2793,6 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 	return 0x0;
 }
 
-
 DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
 {
 	enum { RetFunct = 0x51BF80, CheckLayer = 0x51BDCF, CheckMission = 0x51BCC0 };
@@ -2816,16 +2811,16 @@ DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
 	return CheckMission;
 }
 
-DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
-{
-	GET(InfantryClass*, pThis, ESI);
-	const auto pType = pThis->Type;
-
-	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
-		pThis->StartReloading();
-
-	return 0;
-}
+//DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+//{
+//	GET(InfantryClass*, pThis, ESI);
+//	const auto pType = pThis->Type;
+//
+//	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
+//		pThis->StartReloading();
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {

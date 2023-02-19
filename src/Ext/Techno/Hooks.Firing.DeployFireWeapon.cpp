@@ -21,6 +21,10 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	const auto pCell = pThis->GetCell();
+
+	if(!pCell)
+		return SkipGameCode;
+
 	pThis->SetTarget(pCell);
 	auto const nWeapIdx = pThis->SelectWeapon(pCell);
 	auto const pWs = pThis->GetWeapon(nWeapIdx);

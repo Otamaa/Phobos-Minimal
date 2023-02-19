@@ -13,6 +13,7 @@
 #include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <New/Entity/FlyingStrings.h>
 
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 void WarheadTypeExt::ExtData::Initialize()
@@ -29,7 +30,8 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 
 	auto const pExt = TechnoExt::ExtMap.Find(pVictim);
 
-	if (pExt->ReceiveDamageMultiplier.isset()) {
+	if (pExt->ReceiveDamageMultiplier.isset())
+	{
 		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
 		pExt->ReceiveDamageMultiplier.clear();
 	}
@@ -67,6 +69,37 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 	}
 }
 
+void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
+{
+	if (!this->RecalculateDistanceDamage.Get() || !pArgs->Attacker)
+		return;
+
+	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesGlobal->MaxDamage)
+		return;
+
+	const auto pThisType = pVictim->GetTechnoType();
+	const auto range = pArgs->Attacker->DistanceFrom(pVictim);
+	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
+	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);
+
+	const auto multiply = pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
+
+	*pArgs->Damage += std::clamp((static_cast<int>((*pArgs->Damage + add) * multiply) - *pArgs->Damage),
+		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
+
+	if (this->RecalculateDistanceDamage_ProcessVerses)
+		*pArgs->Damage *= GeneralUtils::GetWarheadVersusArmor(pArgs->WH, pThisType->Armor);
+
+	if (this->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
+	{
+		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictim;
+		FlyingStrings::AddMoneyString(true, *pArgs->Damage, pOwner,
+			AffectedHouse::All, pOwner->Location,
+			this->RecalculateDistanceDamage_Display_Offset, ColorStruct::Empty);
+	}
+
+}
+
 bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
 {
 	if (pOwnerHouse && pTargetHouse)
@@ -99,13 +132,15 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		if (pTechno->GetTechnoType()->Immune)
 			return false;
 
-		if (auto const pBld = specific_cast<BuildingClass*>(pTechno)) {
+		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
+		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
 			if (pBld->Type->InvisibleInGame || pBldExt->LimboID != -1)
 				return false;
 		}
 
-		if (const auto pFoot = abstract_cast<FootClass*>(pTechno)) {
+		if (const auto pFoot = abstract_cast<FootClass*>(pTechno))
+		{
 			if (TechnoExt::IsChronoDelayDamageImmune(pFoot))
 				return false;
 		}
@@ -223,7 +258,8 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
 
-	if(pThis->NukeMaker) {
+	if (pThis->NukeMaker)
+	{
 		if (!pTarget)
 		{
 			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
@@ -240,8 +276,8 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
 {
-		if (!pThis)
-			return;
+	if (!pThis)
+		return;
 
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 

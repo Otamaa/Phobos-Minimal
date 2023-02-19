@@ -1540,6 +1540,13 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 		}
 	}
 
+	if (transports.empty())
+	{
+		// This action finished
+		pTeam->StepCompleted = true;
+		return;
+	}
+
 	// Now load units into transports
 	for (auto const& pTransport : transports)
 	{
@@ -1590,8 +1597,8 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 			return;
 
 	// This action finished
-	if (pTeam->CurrentScript->HasNextMission())
-		++pTeam->CurrentScript->CurrentMission;
+	//if (pTeam->CurrentScript->HasNextMission())
+	//	++pTeam->CurrentScript->CurrentMission;
 
 	pTeam->StepCompleted = true;
 }

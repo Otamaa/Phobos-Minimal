@@ -33,10 +33,9 @@ NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarg
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
 		double const radians_foZ = dir_forZ.GetRadian();
-
 		double const nThirdMag = velocity.MagnitudeXY();
-		if (radians_foZ != 0.0)
-		{
+
+		if (radians_foZ != 0.0) {
 			velocity.X /= Math::cos(radians_foZ);
 			velocity.Y /= Math::cos(radians_foZ);
 		}
@@ -47,8 +46,7 @@ NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarg
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
 
-		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
-		{
+		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0) {
 			velocity.X = 100.0;
 		}
 
@@ -61,14 +59,12 @@ NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarg
 		const double nFullMag = velocity.Magnitude();
 		const double nDevidedBySpeed = nSpeed / nFullMag;
 		velocity *= nDevidedBySpeed;
-
 		double const nSecMag = velocity.MagnitudeXY();
 		DirStruct const dir_forZ(velocity.Z, nSecMag);
 		double const radians_foZ = dir_forZ.GetRadian();
-
 		double const nThirdMag = velocity.MagnitudeXY();
-		if (radians_foZ != 0.0)
-		{
+		
+		if (radians_foZ != 0.0) {
 			velocity.X /= Math::cos(radians_foZ);
 			velocity.Y /= Math::cos(radians_foZ);
 		}
@@ -79,8 +75,7 @@ NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarg
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
 
-		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0)
-		{
+		if (velocity.X == 0.0 && velocity.Y == 0.0 && velocity.Z == 0.0) {
 			velocity.X = 100.0;
 		}
 	}
@@ -239,7 +234,7 @@ NOINLINE void Shrapnel_Exec(BulletClass* pThis)
 
 						if (const auto pBullet = pShrapExt->CreateBullet(pCellTarget, pThis->Owner, pShrapWeapon))
 						{
-							pBullet->MoveTo(pThis->Location, GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed , true));
+							pBullet->MoveTo(pThis->Location, GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed,true));
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 							auto sourcePos = pThis->Location;

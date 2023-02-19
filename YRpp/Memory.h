@@ -286,7 +286,17 @@ static inline void DLLDeleteArray(T* ptr, size_t capacity) {
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
+enum class DeleterType : int
+{
+	DllDeleter = 0,
+	DllDTorCaller,
+	GameDeleter,
+	GameDTORCaller
+};
+
 struct GameDeleter {
+	static constexpr DeleterType DeleterType = DeleterType::GameDeleter;
+
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		GameDelete(ptr);
@@ -294,6 +304,8 @@ struct GameDeleter {
 };
 
 struct GameDTORCaller {
+	static constexpr DeleterType DeleterType = DeleterType::GameDTORCaller;
+
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		CallDTOR(ptr);
@@ -302,10 +314,22 @@ struct GameDTORCaller {
 
 struct DLLDeleter
 {
+	static constexpr DeleterType DeleterType = DeleterType::DllDeleter;
+
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
 		if (ptr) {
 			DLLDelete(ptr);
 		}
+	}
+};
+
+struct DLLDTORCaller
+{
+	static constexpr DeleterType DeleterType = DeleterType::DllDTorCaller;
+
+	template <typename T>
+	void operator ()(T* ptr) noexcept {
+		DLLDelete(ptr);
 	}
 };

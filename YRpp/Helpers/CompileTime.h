@@ -101,13 +101,13 @@ public:
 
 //TODO : operators
 template <typename T, unsigned int Address, size_t CountX , size_t CountY>
-struct referencemult {
+struct reference2D {
 	using value_type = T[CountX][CountY];
-	constexpr referencemult() noexcept = default;
-	referencemult(referencemult&) = delete;
+	constexpr reference2D() noexcept = default;
+	reference2D(reference2D&) = delete;
 private:
 	// mere presence "fixes" C2100: illegal indirection
-	constexpr referencemult(noinit_t) noexcept {}
+	constexpr reference2D(noinit_t) noexcept {}
 public:
 
 	value_type& get() const noexcept {
@@ -171,7 +171,10 @@ public:
 	}
 
 	decltype(auto) operator->() const noexcept {
-		return arrow(std::is_pointer<T>::type());
+		if constexpr (std::is_pointer<T>::type())
+			return get();
+		else
+			return &get();
 	}
 
 	decltype(auto) operator*() const noexcept {
@@ -180,15 +183,6 @@ public:
 
 	decltype(auto) operator[](int index) const noexcept {
 		return get()[index];
-	}
-
-private:
-	auto arrow(std::false_type) const noexcept {
-		return &get();
-	}
-
-	auto arrow(std::true_type) const noexcept {
-		return get();
 	}
 };
 

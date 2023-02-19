@@ -211,7 +211,7 @@ class NOVTABLE SelectClass : public ControlClass
 
 public:
 
-	static constexpr referencemult<SelectClass*, 0xB07E80u, 1, 14> const Buttons {};
+	static constexpr reference2D<SelectClass*, 0xB07E80u, 1, 14> const Buttons {};
 	//Destructor
 	virtual ~SelectClass() RX;
 

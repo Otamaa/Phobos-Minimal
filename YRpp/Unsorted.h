@@ -699,7 +699,9 @@ struct Imports
 	static constexpr referencefunc<FP_GetLocalTime, 0x7E1284> const GetLocalTime {};
 };
 
+//DeleterType is required to identify
 template<typename Deleter>
+requires requires(Deleter) { Deleter::DeleterType; }
 class MovieInfo
 {
 public:
@@ -709,25 +711,39 @@ public:
 
 	bool operator== (MovieInfo const& rhs) const
 	{
-		return !CRT::strcmpi(this->Name, rhs.Name);
+		if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::GameDTORCaller)
+			return !CRT::strcmpi(this->Name, rhs.Name);
+		else
+			return !_strcmpi(this->Name, rhs.Name);
 	}
 
 	bool operator!= (MovieInfo const& rhs) const
 	{ return !((*this) == rhs); }
 
 	explicit MovieInfo(const char* fname)
-		: Name(fname ? CRT::strdup(fname) : nullptr)
+		: Name(nullptr)
 	{
+		if(fname) {
+			if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::GameDTORCaller)
+				Name = CRT::strdup(fname);
+			else
+				Name = _strdup(fname);
+		}
 	}
 
-	MovieInfo() : Name(nullptr)
-	{ }
+	MovieInfo() : Name(nullptr) { }
 
-	~MovieInfo()
-	{
-		if (this->Name)
+	~MovieInfo() {
+
+		if constexpr (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::DllDeleter)
 		{
 			Deleter(const_cast<char*>(this->Name));
+		}
+		else
+		{
+			if (this->Name) {
+				Deleter(const_cast<char*>(this->Name));
+			}
 		}
 	}
 
@@ -752,12 +768,6 @@ struct MovieUnlockableInfo
 	int DiskRequired { 2 };
 };
 
-struct GroundType
-{
-	float Cost[8];
-	char Build;
-};
-
 struct ColorPacker
 {
 	int _R_SHL;
@@ -778,7 +788,6 @@ namespace Unsorted
 	static constexpr reference<int, 0xA8DB9Cu> const NetworkFudge {};
 	static constexpr reference<int, 0xA8B554u> const FrameSendRate {};
 
-	static constexpr reference<GroundType*, 0x89EA40u> GroundTypeData {};
 	// if != 0, EVA_SWxxxActivated is skipped
 	static constexpr reference<int, 0xA8B538> MuteSWLaunches {};
 

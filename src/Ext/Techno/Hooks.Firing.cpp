@@ -21,29 +21,6 @@ static bool CeaseFire(TechnoClass* pThis)
 }
 #endif
 
-DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
-{
-	enum
-	{
-		LandTargetingCheck = 0x6FC86A,
-		SkipLandTargetingCheck = 0x6FC879
-	};
-
-
-	GET(AbstractClass*, pTarget, EBX);
-	GET(TechnoClass*, pThis, ESI);
-
-	CellClass* pCell = specific_cast<CellClass*>(pTarget);
-	if (!pCell)
-		return SkipLandTargetingCheck;
-
-	if (pCell->LandType == LandType::Water && pThis->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
-		return LandTargetingCheck;
-
-	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
-		LandTargetingCheck : SkipLandTargetingCheck;
-}
-
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 {
@@ -124,15 +101,15 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 			if (!EnumFunctions::IsCellEligible(targetCell, pWeaponExt->CanTarget, true))
 				return CannotFire;
 
-			if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex))
-			{
-				if (pWeapon->IsWallDestroyer(pOverlayType) &&
-					!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex))
-					)
-				{
-					return CannotFire;
-				}
-			}
+			//if (const auto pOverlayType = OverlayTypeClass::Array->GetItemOrDefault(targetCell->OverlayTypeIndex))
+			//{
+			//	if (!pWeapon->IsWallDestroyer(pOverlayType) ||
+			//		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, HouseClass::Array->GetItemOrDefault(targetCell->WallOwnerIndex))
+			//		)
+			//	{
+			//		return CannotFire;
+			//	}
+			//}
 		}
 
 		if (pTechno)
@@ -409,4 +386,30 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
+{
+	enum
+	{
+		LandTargetingCheck = 0x6FC857,
+		SkipLandTargetingCheck = 0x6FC879
+	};
+
+
+	GET(AbstractClass*, pTarget, EBX);
+	GET(TechnoClass*, pThis, ESI);
+
+	CellClass* pCell = specific_cast<CellClass*>(pTarget);
+	if (!pCell)
+		return SkipLandTargetingCheck;
+
+	if(pCell->ContainsBridge())
+		return LandTargetingCheck;
+	
+	if (pCell->LandType == LandType::Water && pThis->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
+		return LandTargetingCheck;
+
+	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
+		LandTargetingCheck : SkipLandTargetingCheck;
 }

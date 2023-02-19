@@ -502,6 +502,8 @@ struct NamedValue {
 	}
 };
 
+// latest c++ langue already provide this
+// this one is just a wrapper that i purposfully made so i can add more functionality later if needed
 template<typename T , size_t count>
 class ArrayWrapper
 {
@@ -512,7 +514,7 @@ public:
 	constexpr auto begin() { return std::begin(Data); }
 	constexpr auto end() { return std::end(Data); }
 
-	constexpr int size() const { return count; }
+	constexpr size_t size() const { return count; }
 
 	T at(int Index) const { return Data[Index]; }
 	T& operator[](int nIdx) { return Data[nIdx]; }

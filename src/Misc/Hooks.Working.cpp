@@ -679,101 +679,9 @@ DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
 
 DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
 {
-	enum { SkipGameCode = 0x6FA1C5 };
-
 	GET(TechnoClass*, pThis, ESI);
-
-	const auto pSource = pThis->DrainingMe;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
-	const auto pRules = RulesClass::Instance();
-	const auto nDrainDelay = pTypeExt->DrainMoneyFrameDelay.Get(pRules->DrainMoneyFrameDelay);
-
-	if ((Unsorted::CurrentFrame % nDrainDelay) == 0)
-	{
-		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
-		{
-			if (nDrainAmount > 0)
-				nDrainAmount = Math::min(nDrainAmount, (int)pThis->Owner->Available_Money());
-			else
-				nDrainAmount = Math::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
-
-			if (nDrainAmount)
-			{
-				pThis->Owner->TransactMoney(-nDrainAmount);
-				pSource->Owner->TransactMoney(nDrainAmount);
-
-				if (pTypeExt->DrainMoney_Display)
-				{
-					const auto& displayCoords = pTypeExt->DrainMoney_Display_AtFirer ? pSource->Location : pThis->Location;
-					FlyingStrings::AddMoneyString(true, nDrainAmount, pSource,
-						pTypeExt->DrainMoney_Display_Houses, displayCoords,
-						pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
-				}
-			}
-		}
-	}
-
-	return SkipGameCode;
-}
-
-bool NOINLINE IsCrusable(ObjectClass* pVictim, TechnoClass* pAttacker)
-{
-	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
-		return false;
-
-	if (pVictim->IsIronCurtained())
-		return false;
-
-	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
-		return false;
-
-	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
-
-	if (!pVictimTechno)
-		return false;
-
-	auto const pWhatVictim = pVictim->WhatAmI();
-	auto const pAttackerType = pAttacker->GetTechnoType();
-	auto const pVictimType = pVictim->GetTechnoType();
-
-	if (pAttackerType->OmniCrusher) {
-		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
-			return false;
-	} else {
-		if (pVictimTechno->Uncrushable || !pVictimType->Crushable)
-			return false;
-	}
-
-	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
-
-	if (pWhatVictim == AbstractType::Infantry)
-	{
-		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
-		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
-			pVictimTechnoTypeExt->DeployCrushableLevel :
-			pVictimTechnoTypeExt->CrushableLevel;
-
-		if (pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) < crushableLevel.Get(pVictimTechno))
-			return false;
-	}
-
-	if (TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pVictim)))
-	{
-		return false;
-	}
-
-	//auto const pExt = TechnoExt::ExtMap.Find(pVictimTechno);
-	//if (auto const pShieldData = pExt->Shield.get()) {
-	//	auto const pWeaponIDx = pAttacker->SelectWeapon(pVictim);
-	//	auto const pWeapon = pAttacker->GetWeapon(pWeaponIDx);
-
-	//	if (pWeapon && pWeapon->WeaponType &&
-	//		pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon->WeaponType)) {
-	//		return false;
-	//	}
-	//}
-
-	return true;
+	TechnoExt::ApplyDrainMoney(pThis);
+	return 0x6FA1C5;
 }
 
 DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
@@ -782,7 +690,7 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 
 	GET(ObjectClass*, pThis, ECX);
 	GET_STACK(TechnoClass*, pTechno, STACK_OFFSET(0x8, -0x4));
-	R->AL(IsCrusable(pThis, pTechno));
+	R->AL(TechnoExt::IsCrushable(pThis, pTechno));
 
 	return SkipGameCode;
 }
@@ -792,38 +700,14 @@ DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
 	GET(ObjectClass*, pObject, ESI);
 	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
 
-	if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject))
-	{
+	if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject)) {
 		//const auto pExt = TechnoExt::ExtMap.Find(pThis);
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 		const auto pThisType = pThis->GetTechnoType();
 
 		//this already calculate distance damage from epicenter
 		*args->Damage = MapClass::GetTotalDamage(*args->Damage, args->WH, pThisType->Armor , args->DistanceToEpicenter);
-
-		if (pWHExt->RecalculateDistanceDamage
-			&& args->Attacker 
-			&& !(!pWHExt->RecalculateDistanceDamage_IgnoreMaxDamage && *args->Damage == RulesGlobal->MaxDamage)) {
-
-			const auto range = args->Attacker->DistanceFrom(pObject);
-			const auto range_factor = range / (pWHExt->RecalculateDistanceDamage_Add_Factor.Get() * 256);
-			const auto add = (pWHExt->RecalculateDistanceDamage_Add.Get() * range_factor);
-
-			const auto multiply = pow((pWHExt->RecalculateDistanceDamage_Multiply.Get()), range_factor);
-
-			*args->Damage += std::clamp((static_cast<int>((*args->Damage + add) * multiply) - *args->Damage), pWHExt->RecalculateDistanceDamage_Min.Get(), pWHExt->RecalculateDistanceDamage_Max.Get());
-
-			if(pWHExt->RecalculateDistanceDamage_ProcessVerses)
-			*args->Damage *= GeneralUtils::GetWarheadVersusArmor(args->WH, pThisType->Armor);
-
-			if (pWHExt->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
-			{
-				TechnoClass* pOwner = pWHExt->RecalculateDistanceDamage_Display_AtFirer ? args->Attacker : pThis;
-				FlyingStrings::AddMoneyString(true, *args->Damage, pOwner,
-					AffectedHouse::All, pOwner->Location,
-					pWHExt->RecalculateDistanceDamage_Display_Offset, ColorStruct::Empty);
-			}
-		}
+		pWHExt->ApplyRecalculateDistanceDamage(pThis,args);
 
 		return 0x5F5416;
 	}

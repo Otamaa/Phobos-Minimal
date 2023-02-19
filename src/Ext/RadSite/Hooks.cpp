@@ -179,7 +179,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 		// FYI this are hack to immediately stop the Cloaking
 		// since this function is always failing to decloak and set target when cell is occupied
 		// something is wrong somewhere  # Otamaa
-		pThis->CloakDelayTimer.Start(static_cast<int>(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));
+		pThis->CloakDelayTimer.Start(Game::F2I(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));
 		pTarget = pThis->GetCell();
 	}
 
