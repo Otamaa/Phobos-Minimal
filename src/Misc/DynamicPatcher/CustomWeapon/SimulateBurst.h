@@ -93,7 +93,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Processing Element From SimulateBurst ! \n");
+		//Debug::Log("Processing Element From SimulateBurst ! \n");
 
 		return Stm
 			.Process(WeaponType)

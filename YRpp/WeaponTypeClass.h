@@ -7,6 +7,7 @@
 #include <AbstractTypeClass.h>
 #include <OverlayTypeClass.h>
 #include <WarheadTypeClass.h>
+#include <Leptons.h>
 
 //forward declarations
 class AnimTypeClass;
@@ -113,8 +114,8 @@ public:
 	int Speed;
 	WarheadTypeClass* Warhead;
 	int ROF;
-	int Range; // int(256 * ini value)
-	int MinimumRange; // int(256 * ini value)
+	Leptons Range; // int(256 * ini value)
+	Leptons MinimumRange; // int(256 * ini value)
 	TypeList<int> Report;		//sound indices
 	TypeList<int> DownReport;	//sound indices
 	TypeList<AnimTypeClass*> Anim;

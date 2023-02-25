@@ -13,5 +13,5 @@ public:
 	virtual void Execute(WWKey eInput) const override;
 
 	static void AI();
-	static NOINLINE bool IsActivated();
+	static bool IsActivated();
 };

@@ -27,7 +27,7 @@ public:
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
-	static NOINLINE void AdjacentCellsInRange(std::vector<CellStruct>& nCells , size_t range);
+	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells , size_t range);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
@@ -41,6 +41,19 @@ public:
 			return colorValue;
 
 		return GetColorFromColorAdd(colorAdd[colorIndex]);
+	}
+
+	static inline void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
+	{
+		if (bRandom)
+			Idx = ScenarioGlobal->Random.RandomFromMax(count - 1);
+		else
+		{
+			if (count >= 8)
+			{
+				Idx = count % 2 == 0 ? Idx *= static_cast<int>(facing / 256.0) : count;
+			}
+		}
 	}
 
 	static inline int GetColorFromColorAdd(ColorStruct const& colors)
@@ -124,7 +137,7 @@ public:
 		pShakeVal = v6;
 	}
 
-	static NOINLINE void IntToDigits(std::string& sDigits, int num)
+	static void IntToDigits(std::string& sDigits, int num)
 	{
 		if (num == 0)
 		{

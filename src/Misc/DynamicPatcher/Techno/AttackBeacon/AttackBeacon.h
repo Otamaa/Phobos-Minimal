@@ -38,7 +38,7 @@ struct AttackBeacon
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		Debug::Log("Loading Element From AttackBeacon ! \n");
+		//Debug::Log("Loading Element From AttackBeacon ! \n");
 
 		Stm
 			.Process(Count)

@@ -3,7 +3,7 @@
 
 #include <Utilities/Cast.h>
 
-NOINLINE ObjectTypeClass* SetInfDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType)
+ObjectTypeClass* SetInfDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType)
 {
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType<true, true>(pThis);
+	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
 	LightConvertClass* pConvert = nullptr;
 	int nColorIdx = pOwner->ColorSchemeIndex;
 

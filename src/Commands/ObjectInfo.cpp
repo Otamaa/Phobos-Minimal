@@ -39,7 +39,7 @@ const wchar_t* ObjectInfoCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_OBJECT_INFO_DESC", L"Dump ObjectInfo to log file and display it.");
 }
 
-NOINLINE const char* const getMissionName (int mID)
+const char* const getMissionName (int mID)
 {
 	if (mID == -1)
 		return GameStrings::NoneStr();

@@ -153,6 +153,8 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 	return (pThis->Type->MakeInfantry != -1) ? 0x42493E : 0x424B31;
 }
 
+#include <Ext/Bullet/Body.h>
+
 // this set after ares set their ownership
 DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 {
@@ -168,8 +170,12 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 		HouseClass* pVictim = nullptr;
 
 		if(auto pTech = pThis->Owner) {
-			pInvoker =pThis->Owner->GetOwningHouse();
+			pInvoker = pThis->Owner->GetOwningHouse();
 			AnimExt::ExtMap.Find(pAnim)->Invoker = pTech;
+		}
+		else
+		{
+			pInvoker = BulletExt::ExtMap.Find(pThis)->Owner;
 		}
 
 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))

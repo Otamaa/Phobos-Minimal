@@ -66,34 +66,10 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 		return 0;
 
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
-	{
-		if (pExt->AccumulatedGrindingRefund)
-		{
-			const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-			const int refundAmount = pExt->AccumulatedGrindingRefund;
-			const bool isPositive = refundAmount > 0;
-			const auto color = isPositive ? Drawing::ColorGreen : Drawing::ColorRed;
-			wchar_t moneyStr[0x20];
-			swprintf_s(moneyStr, L"%s$%d", isPositive ? L"+" : L"-", std::abs(refundAmount));
-			auto coords = pThis->GetRenderCoords();
-			int width = 0, height = 0;
-			BitFont::Instance->GetTextDimension(moneyStr, &width, &height, 120);
-
-			Point2D pixelOffset = Point2D::Empty;
-			pixelOffset += pTypeExt->Grinding_DisplayRefund_Offset;
-			pixelOffset.X -= width / 2;
-			coords.Z += 104 * pThis->Type->Height;
-
-			if (auto const pCell = MapClass::Instance->TryGetCellAt(coords)) {
-				if(!pCell->IsFogged() && !pCell->IsShrouded()) {
-					if(pThis->VisualCharacter( 0,HouseClass::CurrentPlayer()) != VisualType::Hidden ) {
-						FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
-					}
-				}
-			}
-
-			pExt->AccumulatedGrindingRefund = 0;
-		}
+	if (pExt->AccumulatedGrindingRefund) {
+		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		FlyingStrings::AddMoneyString(true, pExt->AccumulatedGrindingRefund, pThis, AffectedHouse::All, pThis->GetRenderCoords(), pTypeExt->Grinding_DisplayRefund_Offset);
+		pExt->AccumulatedGrindingRefund = 0;
 	}
 
 	return 0;
@@ -187,8 +163,11 @@ DEFINE_HOOK(0x51A002, InfantryClass_PCP_InfitrateBuilding, 0x6)
 	auto const pHouse = pThis->Owner;
 	pBuilding->Infiltrate(pHouse);
 
-	if (BuildingExt::HandleInfiltrate(pBuilding, pHouse))
-		Debug::Log("Phobos CustomSpy Affect Return True ! \n");
+	//if (
+		BuildingExt::HandleInfiltrate(pBuilding, pHouse)
+	//	)
+		//Debug::Log("Phobos CustomSpy Affect Return True ! \n")
+			;
 
 	return 0x51A010;
 }

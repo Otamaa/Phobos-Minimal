@@ -15,7 +15,9 @@ public:
 	{
 	public:
 
+		CoordStruct LastVictimLocation;
 		ExtData(ParasiteClass* OwnerObject) : Extension<ParasiteClass>(OwnerObject)
+			, LastVictimLocation {}
 		{ }
 
 		virtual ~ExtData() override = default;

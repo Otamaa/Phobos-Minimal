@@ -111,6 +111,7 @@ public:
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
 		Valueable<ParticleTypeClass*> DefaultVeinParticle;
+		Valueable<AnimTypeClass*> DefaultSquidAnim;
 		PhobosFixedString<0x19> NukeWarheadName;
 		Nullable<bool> Building_PlacementPreview;
 		NullableVector<float> AI_AutoSellHealthRatio;
@@ -207,6 +208,7 @@ public:
 
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
+			, DefaultSquidAnim { nullptr }
 			, NukeWarheadName { }
 			, Building_PlacementPreview { }
 			, AI_AutoSellHealthRatio { }

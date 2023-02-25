@@ -40,7 +40,7 @@ NOINLINE JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
 	//CLSID locoCLSID {};
 	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);
 
-	//it is already return as JumJetLoco on the top , but we check the CLSID here to make sure
+	//it is already return as JumpJetLoco on the top , but we check the CLSID here to make sure
 	//we got real T* pointer instead of something else
 	return //(SUCCEEDED(pILoco->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(T)) ?
 		(((DWORD*)pILoco)[0] == JumpjetLocomotionClass::vtable) ? //faster

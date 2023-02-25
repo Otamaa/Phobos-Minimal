@@ -18,7 +18,7 @@
 1512    HoverBrake=.03          ; time to decelerate to full stop
 */
 
-static NOINLINE const HoverTypeClass* GetHover(TechnoClass* pThis)
+static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
 	auto const pDefault = HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
 	auto const pTechnoType = pThis->GetTechnoType();

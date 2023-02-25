@@ -121,22 +121,10 @@ DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x6) //was 8
 {
 	GET(AircraftClass*, pCarryall, ESI);
 
-	if (auto pPassanger = pCarryall->Passengers.GetFirstPassenger())
-	{
-		if (auto pDest = pCarryall->Destination)
-		{
-			auto pDestCell = Map[pDest->GetCoords()];
-			if (pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
-				&& pDestCell->OverlayTypeIndex == -1
-				&& pDestCell->IsValidMapCoords())
-			{
-				pCarryall->SetDestination(pCarryall->Destination, true);
-				return 0x416EE4;
-			}
-		}
-	}
+	AbstractClass* const pDest = AircraftExt::IsValidLandingZone(pCarryall) ?
+		pCarryall->Destination : pCarryall->NewLandingZone(pCarryall->Destination);
 
-	pCarryall->SetDestination(pCarryall->NewLandingZone(pCarryall->Destination), true);
+	pCarryall->SetDestination(pDest, true);
 	return 0x416EE4;
 }
 
@@ -144,22 +132,12 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) //
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	if (auto pPassanger = pThis->Passengers.GetFirstPassenger())
-	{
-		if (auto pDest = pThis->Destination)
-		{
-			auto nCoord = pDest->GetCoords();
-			auto pDestCell = Map[nCoord];
-
-			R->AL(pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
-				&& pDestCell->OverlayTypeIndex == -1
-				&& pDestCell->IsValidMapCoords());
-
-			return 0x41700E;
-		}
+	if (AircraftExt::IsValidLandingZone(pThis)) {
+		R->AL(true);
+	} else {
+		R->AL(pThis->IsLandingZoneClear(pThis->Destination));
 	}
 
-	R->AL(pThis->IsLandingZoneClear(pThis->Destination));
 	return 0x41700E;
 }
 

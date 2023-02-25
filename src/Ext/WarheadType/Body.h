@@ -51,6 +51,7 @@ public:
 		Valueable<bool> RemoveDisguise;
 		Valueable<bool> RemoveMindControl;
 		Valueable<bool> AnimList_PickRandom;
+		Valueable<bool> AnimList_ShowOnZeroDamage;
 		Valueable<bool> DecloakDamagedTargets;
 		Valueable<bool> ShakeIsLocal;
 
@@ -169,9 +170,11 @@ public:
 		Valueable<double> TemporalDetachDamageFactor;
 
 		Valueable<bool> Parasite_DisableRocking;
-		NullableIdx<AnimTypeClass> Parasite_GrappleAnimIndex;
+		Nullable<AnimTypeClass*> Parasite_GrappleAnim;
 		Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys;
 		Nullable<bool> Parasite_TreatInfantryAsVehicle;
+		Nullable<WeaponTypeClass*> Parasite_InvestationWP;
+		Nullable<double> Parasite_Damaging_Chance;
 
 		Nullable<int> Flammability;
 
@@ -216,7 +219,8 @@ public:
 
 		AresAttachEffectTypeClass AttachedEffect;
 		ValueableVector<WeaponTypeClass*> DetonatesWeapons;
-
+		ValueableVector<int> LimboKill_IDs;
+		Valueable<AffectedHouse> LimboKill_Affected;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -250,6 +254,7 @@ public:
 			, RemoveDisguise { false }
 			, RemoveMindControl { false }
 			, AnimList_PickRandom { false }
+			, AnimList_ShowOnZeroDamage { false }
 			, DecloakDamagedTargets { true }
 			, ShakeIsLocal { false }
 
@@ -351,9 +356,11 @@ public:
 			, TemporalExpiredApplyDamage { false }
 			, TemporalDetachDamageFactor { 1.0 }
 			, Parasite_DisableRocking {}
-			, Parasite_GrappleAnimIndex {}
+			, Parasite_GrappleAnim {}
 			, Parasite_ParticleSys {}
 			, Parasite_TreatInfantryAsVehicle { }
+			, Parasite_InvestationWP {}
+			, Parasite_Damaging_Chance {}
 
 			, Flammability {}
 
@@ -396,7 +403,8 @@ public:
 
 			, AttachedEffect { OwnerObject }
 			, DetonatesWeapons { }
-
+			, LimboKill_IDs {}
+			, LimboKill_Affected { AffectedHouse::Owner }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

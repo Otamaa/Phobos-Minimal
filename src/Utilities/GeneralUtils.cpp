@@ -24,7 +24,7 @@ void GeneralUtils::IntValidCheck(int* source, const char* section, const char* t
 {
 	if (*source < min || *source>max)
 	{
-		Debug::Log("[Developer warning][%s]%s=%d is invalid! Reset to %d.\n", section, tag, *source, defaultValue);
+		//Debug::Log("[Developer warning][%s]%s=%d is invalid! Reset to %d.\n", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}
 }
@@ -33,7 +33,7 @@ void GeneralUtils::DoubleValidCheck(double* source, const char* section, const c
 {
 	if (*source < min || *source>max)
 	{
-		Debug::Log("[Developer warning][%s]%s=%f is invalid! Reset to %f.\n", section, tag, *source, defaultValue);
+		//Debug::Log("[Developer warning][%s]%s=%f is invalid! Reset to %f.\n", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}
 }

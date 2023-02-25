@@ -222,7 +222,7 @@ private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Processing Element From UniversalTrail ! \n");
+		//Debug::Log("Processing Element From UniversalTrail ! \n");
 
 		return Stm
 		.Process(Type)

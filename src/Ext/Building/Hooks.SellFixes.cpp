@@ -2,12 +2,12 @@
 #include <Utilities/Macro.h>
 
 // Rewrite 0x449BC0
-bool NOINLINE MCVCanUndeploy(BuildingClass* pThis)
+bool MCVCanUndeploy(BuildingClass* pThis)
 {
 	const auto pType = pThis->Type;
 
 	// Just sell if no UndeploysInto
-	if (!pType->UndeploysInto)
+	if (!pType->UndeploysInto || !pThis->Owner)
 		return false;
 
 	if (pThis->Focus && !pThis->MindControlledBy && pThis->Owner->IsControlledByHuman())
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 	enum { CreateUnit = 0x449D5E, SkipTheEntireShit = 0x44A1E8 };
 	GET(BuildingClass*, pThis, EBP);
 
-	if (pThis->IsOwnedByCurrentPlayer && !pThis->Focus)
+	if (pThis->IsOwnedByCurrentPlayer && (!pThis->Focus || !pThis->Type->UndeploysInto))
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndexById(GameStrings::EVA_StructureSold)));
@@ -45,6 +45,7 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 DEFINE_HOOK(0x44A7CF, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
+	enum { FinishPlaying = 0x44A85B };
 
 	if (!MCVCanUndeploy(pThis))
 	{
@@ -52,7 +53,7 @@ DEFINE_HOOK(0x44A7CF, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
 	}
 
-	return 0x44A85B;
+	return FinishPlaying;
 }
 
 DEFINE_HOOK(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
@@ -68,3 +69,5 @@ DEFINE_HOOK(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
 	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
 	return MCVCanUndeploy(pThis) ? CanDeploySound : SkipShit;
 }
+
+DEFINE_JUMP(LJMP, 0x44AB22 ,0x44AB3B) // Structure Sold EVA played twice

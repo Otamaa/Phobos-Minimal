@@ -163,7 +163,7 @@ DEFINE_JUMP(CALL,0x6D4A6B, GET_OFFSET(Timer::DrawTimer));
 #pragma endregion
 
 template<bool Add = false>
-static void NOINLINE SortTimer(SuperClass* const pThis)
+static void SortTimer(SuperClass* const pThis)
 {
 	bool bSucceeded = false;
 	const char* pString {};

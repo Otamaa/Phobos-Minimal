@@ -352,7 +352,7 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	{	auto pType = pThis->GetTechnoType();
 
 		if(TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed)
-			pType = TechnoExt::Helper::GetDisguiseType<false,false>(pThis).first;
+			pType = TechnoExt::GetDisguiseType(pThis, false, false).first;
 
 		maxSpeed = pType->Speed;
 	}

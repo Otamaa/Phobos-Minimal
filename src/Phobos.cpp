@@ -372,23 +372,8 @@ void Phobos::DrawVersionWarning()
 	}
 }
 
-void Phobos::ExeRun()
+void InitAdminDebugMode()
 {
-	Phobos::Otamaa::ExeTerminated = false;
-	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto const nPatcher = Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
-		MessageBoxW(NULL,
-		L"This version of phobos is not suppose to be run with DP.\n\n"
-		L"Press OK to Closing the game .",
-		L"Notice", MB_OK);
-
-		exit(0);
-	}
-
-	#endif
-	Patch::ApplyStatic();
-	PoseDirOverride::Apply();
-
 	if (!Phobos::Config::HideWarning)
 	{
 		DWORD dwSize = MAX_COMPUTERNAME_LENGTH + 1;
@@ -424,6 +409,10 @@ void Phobos::ExeRun()
 		}
 	}
 
+}
+
+void InitConsole()
+{
 	if (Phobos::EnableConsole)
 	{
 		if (!Console::Create())
@@ -433,7 +422,26 @@ void Phobos::ExeRun()
 			L"Debug Console Notice", MB_OK);
 		}
 	}
+}
 
+void Phobos::ExeRun()
+{
+	Phobos::Otamaa::ExeTerminated = false;
+	#ifdef COMPILE_PORTED_DP_FEATURES
+	if (auto const nPatcher = Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
+		MessageBoxW(NULL,
+		L"This version of phobos is not suppose to be run with DP.\n\n"
+		L"Press OK to Closing the game .",
+		L"Notice", MB_OK);
+
+		exit(0);
+	}
+
+	#endif
+	Patch::ApplyStatic();
+	PoseDirOverride::Apply();
+	InitAdminDebugMode();
+	InitConsole();
 	AresData::Init();
 }
 

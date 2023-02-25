@@ -11,7 +11,7 @@
 
 //wchar_t* IMEBuffer = reinterpret_cast<wchar_t*>(0xB730EC);
 
-UINT NOINLINE GetCurentCodepage()
+UINT GetCurentCodepage()
 {
 	char szLCData[6 + 1];
 	WORD lang = LOWORD(GetKeyboardLayout(NULL));
@@ -21,7 +21,7 @@ UINT NOINLINE GetCurentCodepage()
 	return atoi(szLCData);
 }
 
-wchar_t NOINLINE LocalizeCaracter(char character)
+wchar_t LocalizeCaracter(char character)
 {
 	wchar_t result;
 	UINT codepage = GetCurentCodepage();

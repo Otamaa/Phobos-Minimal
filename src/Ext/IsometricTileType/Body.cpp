@@ -92,7 +92,7 @@ void IsometricTileTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		IsometricTileTypeExt::LoadPaletteFromName(this->Tileset, Phobos::readBuffer);
 #endif
 		INI_EX exINI(pINI);
-		this->BlockJumpjet.Read(exINI, pSection, "BlockJumjet");
+		this->BlockJumpjet.Read(exINI, pSection, "BlockJumpjet");
 	}
 }
 

@@ -63,15 +63,17 @@ void ElectricBoltClass::Draw_It()
 
 void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjust ,ParticleSystemTypeClass* pSys , bool particleSysCoordFlip)
 {
-	StartCoord = start;
-	EndCoord = end;
-	ZAdjust = z_adjust;
-
 	/**
 	 *  Spawn a spark particle at the destination of the electric bolt.
 	 */
-	if(pSys)
-	GameCreate<ParticleSystemClass>(pSys, particleSysCoordFlip ? start : end);
+	if(pSys){
+		auto nLoc = particleSysCoordFlip ? start : end;
+		if(pSys->BehavesLike == BehavesLike::Smoke)
+			nLoc.Z += 100;
+
+		GameCreate<ParticleSystemClass>(pSys, nLoc);
+	}
+
 }
 
 void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)

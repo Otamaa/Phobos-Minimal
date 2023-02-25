@@ -233,7 +233,7 @@ private:
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	Debug::Log("Finished saving the game\n");
+	//Debug::Log("Finished saving the game\n");
 	return S_OK;
 }
 
@@ -241,7 +241,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 {
 	//clear the loadgame flag 
 	Phobos::Otamaa::DoingLoadGame = false;
-	Debug::Log("Finished loading the game\n");
+	//Debug::Log("Finished loading the game\n");
 }
 
 #pragma endregion
@@ -367,7 +367,7 @@ DEFINE_HOOK(0x559F27, LoadOptionsClass_GetFileInfo, 0xA)
 
 DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
 {
-	Debug::Log("Saving global Phobos data\n");
+	//Debug::Log("Saving global Phobos data\n");
 	GET(IStream*, pStm, ESI);
 	PhobosTypeRegistry::SaveGlobals(pStm);
 	return 0;
@@ -375,7 +375,7 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
 
 DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
 {
-	Debug::Log("Loading global Phobos data\n");
+	//Debug::Log("Loading global Phobos data\n");
 	GET(IStream*, pStm, ESI);
 	Phobos::Otamaa::DoingLoadGame = true;
 	PhobosTypeRegistry::LoadGlobals(pStm);

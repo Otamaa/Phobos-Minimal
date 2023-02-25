@@ -226,7 +226,7 @@ namespace DrawHeathData
 
 	void DrawBar(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		auto const&[pType , pOwner]= TechnoExt::Helper::GetDisguiseType<false,true>(pThis);
+		auto const&[pType , pOwner]= TechnoExt::GetDisguiseType(pThis, false, true);
 		LightConvertClass* pTechConvert = pThis->GetRemapColour();
 		const bool bIsInfantry = pThis->WhatAmI() == AbstractType::Infantry;
 		bool IsDisguised = false;

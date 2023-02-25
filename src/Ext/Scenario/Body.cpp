@@ -132,7 +132,7 @@ template <typename T>
 void ScenarioExt::ExtData::Serialize(T& Stm)
 {
 
-	Debug::Log("Processing ScenarioExt ! \n");
+	//Debug::Log("Processing ScenarioExt ! \n");
 	Stm
 
 		.Process(this->Waypoints)
@@ -161,7 +161,7 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 void ScenarioExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 {
 	// Extra datas
-	Debug::Log("Loading Scenario Configs ! \n");
+	//Debug::Log("Loading Scenario Configs ! \n");
 	Stm.Process(SessionClass::Instance->Config);
 
 	Extension<ScenarioClass>::LoadFromStream(Stm);
@@ -171,7 +171,7 @@ void ScenarioExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
 void ScenarioExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
 	// Extra datas
-	Debug::Log("Saving Scenario Configs ! \n");
+	//Debug::Log("Saving Scenario Configs ! \n");
 	Stm.Process(SessionClass::Instance->Config);
 
 	Extension<ScenarioClass>::SaveToStream(Stm);
@@ -251,8 +251,10 @@ DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);
-	if (!saver.WriteBlockToStream(ScenarioExt::g_pStm))
-		Debug::Log("Faild To Write ScenarioExt to the Stream ! ");
+	//if (!
+	saver.WriteBlockToStream(ScenarioExt::g_pStm)
+	//) Debug::Log("Faild To Write ScenarioExt to the Stream ! ")
+		;
 
 	return 0;
 }

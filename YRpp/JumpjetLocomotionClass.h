@@ -60,7 +60,7 @@ public:
 	int GetZCoords() const
 	{ JMP_THIS(0x54D820); }
 
-	CoordStruct* GetJumjetCoords() const
+	CoordStruct* GetJumpjetCoords() const
 	{ JMP_THIS(0x54D6D0); }
 
 	//Constructor

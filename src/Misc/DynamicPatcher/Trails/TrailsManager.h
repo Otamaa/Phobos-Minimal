@@ -27,7 +27,7 @@ struct TrailData
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		Debug::Log("Processing Element From TrailData ! \n");
+		//Debug::Log("Processing Element From TrailData ! \n");
 		return Stm
 			.Process(CurrentType)
 			.Process(OnLand)
@@ -40,7 +40,7 @@ struct TrailData
 
 	inline bool Save(PhobosStreamWriter& Stm) const
 	{
-		Debug::Log("Processing Element From TrailData ! \n");
+		//Debug::Log("Processing Element From TrailData ! \n");
 		return Stm
 			.Process(CurrentType)
 			.Process(OnLand)

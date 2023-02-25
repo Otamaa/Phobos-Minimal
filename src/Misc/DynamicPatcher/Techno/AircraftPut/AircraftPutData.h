@@ -16,7 +16,7 @@ public:
 	template <typename T>
 	void  Serialize(T& Stm)
 	{
-		Debug::Log("Loading Element From AircraftPutData ! \n");
+		//Debug::Log("Loading Element From AircraftPutData ! \n");
 		Stm
 			.Process(PosOffset)
 			.Process(RemoveIfNoDocks)

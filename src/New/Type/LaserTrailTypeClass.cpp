@@ -31,7 +31,7 @@ void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 template <typename T>
 void LaserTrailTypeClass::Serialize(T& Stm)
 {
-	Debug::Log("Processing Element From LaserTrailTypeClass ! \n");
+	//Debug::Log("Processing Element From LaserTrailTypeClass ! \n");
 	Stm
 		.Process(this->IsHouseColor)
 		.Process(this->Color)

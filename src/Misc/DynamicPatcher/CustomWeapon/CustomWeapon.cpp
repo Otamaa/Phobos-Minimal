@@ -176,14 +176,14 @@ void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 		{
 			if (simulateBurstQueue[pos].Target == ptr)
 			{
-				Debug::Log("Found Invalid Target from CustomWeaponManager ! , Cleaning Up ! \n");
+				//Debug::Log("Found Invalid Target from CustomWeaponManager ! , Cleaning Up ! \n");
 				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
 
 			}
 
 			if (simulateBurstQueue[pos].Shooter == ptr)
 			{
-				Debug::Log("Found Shooter Target from CustomWeaponManager ! , Cleaning Up ! \n");
+				//Debug::Log("Found Shooter Target from CustomWeaponManager ! , Cleaning Up ! \n");
 				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
 			}
 
@@ -226,7 +226,7 @@ void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 		{
 			if (DelayFires.at(pos)->Target == ptr)
 			{
-				Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
+				//Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
 				DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
 			}
 		}

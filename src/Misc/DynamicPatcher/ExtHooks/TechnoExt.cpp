@@ -264,7 +264,7 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 //	return 0x0;
 //}
 
-NOINLINE WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
+WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 {
 	WeaponTypeClass* pBuffer = nullptr;
 

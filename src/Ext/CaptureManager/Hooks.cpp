@@ -25,19 +25,11 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 	return 0x472287;
 }
 
-DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
+void UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
-	GET(TechnoClass*, pOwner, ESI);
-
 	if (auto pThis = pOwner->CaptureManager)
 	{
 		const auto pOwnerTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-
-		//if (!pOwnerTypeExt) // we cant find type Ext for this , just return to original function !
-		//{
-		//	pThis->HandleOverload();
-		//	return 0x6FA735;
-		//}
 
 		if (pThis->InfiniteMindControl)
 		{
@@ -49,7 +41,7 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
 				auto const OverloadCount = pOwnerTypeExt->Overload_Count.GetElements(RulesGlobal->OverloadCount);
 
 				if (OverloadCount.empty())
-					return 0x6FA735;
+					return;
 
 				int nCurIdx = 0;
 				const int nNodeCount = pThis->ControlNodes.Count;
@@ -89,8 +81,13 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
 						{
 							auto const nRandomY = ScenarioGlobal->Random.RandomRanged(-200, 200);
 							auto const nRamdomX = ScenarioGlobal->Random.RandomRanged(-200, 200);
-							CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, pOwner->Location.Z + 100 };
-							GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
+							auto nLoc = pOwner->Location;
+
+							if(pParticle->BehavesLike == BehavesLike::Smoke)
+									nLoc.Z += 100;
+
+							CoordStruct nParticleCoord { pOwner->Location.X + nRamdomX, nRandomY + pOwner->Location.Y, nLoc };
+							GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, pOwner->GetCell(), pOwner, CoordStruct::Empty, pOwner->Owner);
 						}
 					}
 
@@ -108,8 +105,17 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_Overload_AI_Replace, 0x6)
 			}
 		}
 	}
+}
 
-	return 0x6FA735;
+DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
+{
+	enum { SelfHeal = 0x6FA751 , ContinueCheck = 0x6FA793 };
+	GET(TechnoClass*, pThis, ESI);
+
+	UpdateMCOverloadDamage(pThis);
+
+	return TechnoExt::IsActive(pThis,true ,true ,false, true ,false) && pThis->ShouldSelfHealOneStep() ?
+		SelfHeal : ContinueCheck;
 }
 
 DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit, 0x7)

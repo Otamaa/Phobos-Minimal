@@ -8,7 +8,7 @@ SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
 // load / save
 template <typename T>
 void SpawnManagerExt::ExtData::Serialize(T& Stm) {
-	Debug::Log("Processing Element From SpawnManagerExt ! \n");
+	//Debug::Log("Processing Element From SpawnManagerExt ! \n");
 }
 
 void SpawnManagerExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {

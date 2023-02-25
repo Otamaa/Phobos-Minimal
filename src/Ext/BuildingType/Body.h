@@ -86,7 +86,7 @@ private:
 	template <typename T>
 	bool Serialize(T& stm)
 	{
-		Debug::Log("Processing Items From BuildSpeedBonus ! \n");
+		//Debug::Log("Processing Items From BuildSpeedBonus ! \n");
 
 		return stm
 			.Process(Enabled)

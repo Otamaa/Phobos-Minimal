@@ -97,7 +97,7 @@ public:
 
 	static void LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
 
-	static NOINLINE ExtData* Global()
+	static ExtData* Global()
 	{
 		return Data.get();
 	}
@@ -118,7 +118,7 @@ public:
 		}
 	}
 
-	static NOINLINE std::map<int, ExtendedVariable>& GetVariables(bool IsGlobal);
+	static std::map<int, ExtendedVariable>& GetVariables(bool IsGlobal);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

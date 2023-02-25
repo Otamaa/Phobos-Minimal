@@ -8,7 +8,7 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #endif
 
-NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed , bool bCalculateSpeedFirst = false)
+VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed , bool bCalculateSpeedFirst = false)
 {
 	VelocityClass velocity { 0.0,0.0,0.0 };
 	//inline get Direction from 2 coords
@@ -82,7 +82,8 @@ NOINLINE VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarg
 
 	return velocity;
 }
-NOINLINE int GetShrapAmount(BulletClass* pThis)
+
+int GetShrapAmount(BulletClass* pThis)
 {
 	if (pThis->Type->ShrapnelCount < 0)
 	{
@@ -100,7 +101,8 @@ NOINLINE int GetShrapAmount(BulletClass* pThis)
 
 	return pThis->Type->ShrapnelCount;
 };
-NOINLINE bool AllowShrapnel(BulletClass* pThis, CellClass* pCell)
+
+bool AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 {
 	auto const pData = BulletTypeExt::ExtMap.Find(pThis->Type);
 
@@ -114,7 +116,8 @@ NOINLINE bool AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 
 	return false;
 }
-NOINLINE bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true)
+
+bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true)
 {
 	if (!pTarget)
 		return false;
@@ -162,7 +165,8 @@ NOINLINE bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget,
 
 	return true;
 }
-NOINLINE void Shrapnel_Exec(BulletClass* pThis)
+
+void Shrapnel_Exec(BulletClass* pThis)
 {
 	auto const pType = pThis->Type;
 	auto const pShrapWeapon = pType->ShrapnelWeapon;
@@ -176,7 +180,7 @@ NOINLINE void Shrapnel_Exec(BulletClass* pThis)
 
 	auto const pBulletCell = pThis->GetCell();
 	if (AllowShrapnel(pThis, pBulletCell)) {
-		auto const nRange = pShrapWeapon->Range / Unsorted::LeptonsPerCell;
+		auto const nRange = pShrapWeapon->Range.ToCell();
 
 		if (nRange >= 1) {
 			int nTotal = 0;

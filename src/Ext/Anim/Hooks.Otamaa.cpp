@@ -271,7 +271,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 					{
 						CoordStruct nDestCoord = CoordStruct::Empty;
 						if (pAnimTypeExt->ParticleChance.isset() ?
-							(ScenarioGlobal->Random(0, 99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
+							(ScenarioGlobal->Random.RandomRanged(0, 99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
 						{
 							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
@@ -280,22 +280,20 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 				}
 			}
 
-			if (!pTypeExt->Launchs.empty())
-			{
-				for (auto const& nLauch : pTypeExt->Launchs)
-				{
+			for (auto const& nLauch : pTypeExt->Launchs) {
+				if(nLauch.LaunchWhat) {
 					Helpers::Otamaa::LauchSW(
-							nLauch.LaunchWhat, pHouse,
-							nCoord, nLauch.LaunchWaitcharge,
-							nLauch.LaunchResetCharge,
-							nLauch.LaunchGrant,
-							nLauch.LaunchGrant_RepaintSidebar,
-							nLauch.LaunchGrant_OneTime,
-							nLauch.LaunchGrant_OnHold,
-							nLauch.LaunchSW_Manual,
-							nLauch.LaunchSW_IgnoreInhibitors,
-							nLauch.LaunchSW_IgnoreDesignators,
-							nLauch.LauchSW_IgnoreMoney
+						nLauch.LaunchWhat, pHouse,
+						nCoord, nLauch.LaunchWaitcharge,
+						nLauch.LaunchResetCharge,
+						nLauch.LaunchGrant,
+						nLauch.LaunchGrant_RepaintSidebar,
+						nLauch.LaunchGrant_OneTime,
+						nLauch.LaunchGrant_OnHold,
+						nLauch.LaunchSW_Manual,
+						nLauch.LaunchSW_IgnoreInhibitors,
+						nLauch.LaunchSW_IgnoreDesignators,
+						nLauch.LauchSW_IgnoreMoney
 					);
 				}
 			}
@@ -312,9 +310,8 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	auto pType = pThis->Type;
-	auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
-
+	const auto pType = pThis->Type;
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
 
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 	{

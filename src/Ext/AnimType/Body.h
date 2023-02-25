@@ -158,7 +158,7 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static const void ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKiller = nullptr);
+	static const void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

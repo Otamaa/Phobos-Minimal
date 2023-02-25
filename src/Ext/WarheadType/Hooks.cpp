@@ -69,28 +69,20 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 
-		if (!pWHExt->Launchs.empty())
-		{
-			for (size_t i = 0; i < pWHExt->Launchs.size(); i++)
-			{
-				Debug::Log("MapClass_DetonateArea_Executed [%s] SW[%d] ! \n", pWH->get_ID() ,i);
-				LauchSWData const Lauch = pWHExt->Launchs[i];
-
-				if (Lauch.LaunchWhat)
-				{
-					Helpers::Otamaa::LauchSW(Lauch.LaunchWhat,
-						pDecidedOwner, *pCoords, Lauch.LaunchWaitcharge,
-						Lauch.LaunchResetCharge,
-						Lauch.LaunchGrant,
-						Lauch.LaunchGrant_RepaintSidebar,
-						Lauch.LaunchGrant_OneTime,
-						Lauch.LaunchGrant_OnHold,
-						Lauch.LaunchSW_Manual,
-						Lauch.LaunchSW_IgnoreInhibitors,
-						Lauch.LaunchSW_IgnoreDesignators,
-						Lauch.LauchSW_IgnoreMoney
-					);
-				}
+		for (auto const& Lauch : pWHExt->Launchs) {
+			if (Lauch.LaunchWhat) {
+				Helpers::Otamaa::LauchSW(Lauch.LaunchWhat,
+					pDecidedOwner, *pCoords, Lauch.LaunchWaitcharge,
+					Lauch.LaunchResetCharge,
+					Lauch.LaunchGrant,
+					Lauch.LaunchGrant_RepaintSidebar,
+					Lauch.LaunchGrant_OneTime,
+					Lauch.LaunchGrant_OnHold,
+					Lauch.LaunchSW_Manual,
+					Lauch.LaunchSW_IgnoreInhibitors,
+					Lauch.LaunchSW_IgnoreDesignators,
+					Lauch.LauchSW_IgnoreMoney
+				);
 			}
 		}
 
@@ -152,4 +144,26 @@ DEFINE_HOOK(0x4896EC, Explosion_Damage_DamageSelf, 0x6)
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 	return (pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get()) ? SkipCheck : 0;
+}
+
+DEFINE_HOOK(0x48A4F3, SelectDamageAnimation_NegativeZeroDamage, 0x6)
+{
+	enum { SkipGameCode = 0x48A507, NoAnim = 0x48A618 };
+
+	GET(int, damage, ECX);
+	GET(WarheadTypeClass* const, warhead, EDX);
+
+	if (!warhead)
+		return NoAnim;
+
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(warhead);
+
+	if (damage == 0 && !pWHExt->AnimList_ShowOnZeroDamage)
+		return NoAnim;
+	else if (damage < 0)
+		damage = -damage;
+
+	R->EDI(damage);
+	R->ESI(warhead);
+	return SkipGameCode;
 }

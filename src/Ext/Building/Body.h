@@ -86,5 +86,5 @@ public:
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void LimboKill(BuildingClass* pBld);
-
+	static void ApplyLimboKill(ValueableVector<int>& LimboIDs,Valueable<AffectedHouse>& Affects , HouseClass* pTargetHouse , HouseClass* pAttackerHouse);
 };

@@ -84,7 +84,7 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 			Debug::Log("[Developer Warning] Invalid waypoint %d!\n", id);
 
 
-		Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
+		//Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
 		ScenarioExt::Global()->Waypoints[id] = buffer;
 	}
 
@@ -216,7 +216,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
 		buffer = ScenarioExt::Global()->Waypoints.at(i);
 		waypoints.AddItem(buffer);
-		Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.Size());
+		//Debug::Log("Multiplayer start waypoint found at cell [%d][%d,%d] , With waypoints Size %d \n",i, buffer.X, buffer.Y , waypoints.Size());
 	}
 
 

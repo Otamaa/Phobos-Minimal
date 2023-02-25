@@ -17,7 +17,7 @@
 ScriptExt::ExtContainer ScriptExt::ExtMap;
 void ScriptExt::ExtData::InitializeConstants() { }
 
-NOINLINE ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
+ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
 	if (nIdx == -1)
 		return { -1 , 0 };
@@ -2408,7 +2408,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		if (const auto nWeaponType = pTechno->GetWeapon(weaponIndex)) { 
 
 
-			const auto weaponType = nWeaponType->WeaponType;
+			auto weaponType = nWeaponType->WeaponType;
 
 			auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
 			int weaponDamage = 0;
@@ -2438,6 +2438,12 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 				if (object->GetType()->Immune)
 					continue;
 			}
+
+			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+			// Check map zone
+			if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
+				continue;
 		}
 
 		// Don't pick underground units
@@ -4141,6 +4147,8 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				continue;
 			}
 
+			auto const pWhat = pUnit->WhatAmI();
+
 			if (!pUnit->Locomotor->Is_Moving_Now())
 				pUnit->SetDestination(pFocus, false);
 
@@ -4151,14 +4159,14 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				{
 					bForceNextAction = false;
 
-					if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo > 0)
+					if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
 						pUnit->QueueMission(Mission::Move, false);
 
 					continue;
 				}
 				else
 				{
-					if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo <= 0)
+					if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
 					{
 						pUnit->QueueMission(Mission::Return, false);
 						pUnit->Mission_Enter();
@@ -4174,7 +4182,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					// Any member in range
 					if (pUnit->DistanceFrom(pUnit->Destination) / 256.0 > closeEnough)
 					{
-						if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo > 0)
+						if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
 							pUnit->QueueMission(Mission::Move, false);
 
 						continue;
@@ -4183,7 +4191,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					{
 						bForceNextAction = true;
 
-						if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo <= 0)
+						if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
 						{
 							pUnit->QueueMission(Mission::Return, false);
 							pUnit->Mission_Enter();
@@ -4199,7 +4207,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					{
 						if (pUnit->DistanceFrom(pUnit->Destination) / 256.0 > closeEnough)
 						{
-							if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo > 0)
+							if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
 								pUnit->QueueMission(Mission::Move, false);
 
 							continue;
@@ -4209,7 +4217,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 							if (pUnit == pLeader)
 								bForceNextAction = true;
 
-							if (pUnit->GetTechnoType()->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo <= 0)
+							if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
 							{
 								pUnit->QueueMission(Mission::Return, false);
 								pUnit->Mission_Enter();
@@ -4561,7 +4569,7 @@ bool ScriptExt::IsExtVariableAction(int action)
 	return eAction >= PhobosScripts::LocalVariableAdd && eAction <= PhobosScripts::GlobalVariableAndByGlobal;
 }
 
-void NOINLINE ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
+void ScriptExt::ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 {
 	if (!pTeam)
 		return;

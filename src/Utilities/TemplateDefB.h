@@ -61,7 +61,7 @@ namespace detail
 				return true;
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color ");
 		}
 		return false;
 	}
@@ -76,17 +76,14 @@ namespace detail
 			if (IS_SAME_STR_(cur, "Cell"))
 			{
 				value = DamageDelayTargetFlag::Cell;
-				return true;
 			}
 			else if (IS_SAME_STR_(cur, "AttachedObject"))
 			{
 				value = DamageDelayTargetFlag::AttachedObject;
-				return true;
 			}
 			else if (IS_SAME_STR_(cur, "Invoker"))
 			{
 				value = DamageDelayTargetFlag::Invoker;
-				return true;
 			}
 			else if (!INIClass::IsBlank(cur))
 			{
@@ -94,6 +91,36 @@ namespace detail
 				return false;
 			}
 
+			return true;
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<TargetZoneScanType>(TargetZoneScanType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "same"))
+			{
+				value = TargetZoneScanType::Same;
+			}
+			else if (IS_SAME_STR_(parser.value(), "any"))
+			{
+				value = TargetZoneScanType::Any;
+			}
+			else if (IS_SAME_STR_(parser.value(), "inrange"))
+			{
+				value = TargetZoneScanType::InRange;
+			}
+			else if (!INIClass::IsBlank(parser.value()))
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
+				return false;
+			}
+
+			return true;
 		}
 
 		return false;

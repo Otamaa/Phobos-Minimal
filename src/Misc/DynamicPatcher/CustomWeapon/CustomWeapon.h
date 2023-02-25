@@ -39,7 +39,7 @@ struct CustomWeaponManager
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Loading Element From CustomWeaponManager ! \n");
+		//Debug::Log("Loading Element From CustomWeaponManager ! \n");
 		return Stm
 			.Process(simulateBurstQueue)
 			.Success()
@@ -83,7 +83,7 @@ struct FireWeaponManager
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		Debug::Log("Loading Element From FireWeaponManager ! \n");
+		//Debug::Log("Loading Element From FireWeaponManager ! \n");
 
 		return Stm
 			.Process(DelayFires)

@@ -39,6 +39,65 @@
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
 
+bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon, std::optional<std::reference_wrapper<const ZoneType>> zone)
+{
+	if (!pThis || !pTarget)
+		return false;
+
+	if (pThis->WhatAmI() == AbstractType::Aircraft)
+		return true;
+
+	const auto pThisType = pThis->GetTechnoType();
+	const MovementZone mZone = pThisType->MovementZone;
+	const ZoneType currentZone = zone ? zone.value() : Map.GetMovementZoneType(pThis->GetMapCoords(), mZone, pThis->IsOnBridge());
+
+	if (currentZone != ZoneType::None)
+	{
+		if (zoneScanType == TargetZoneScanType::Any)
+			return true;
+
+		const ZoneType targetZone = Map.GetMovementZoneType(pTarget->GetMapCoords(), mZone, pTarget->IsOnBridge());
+
+		if (zoneScanType == TargetZoneScanType::Same)
+		{
+			if (currentZone != targetZone)
+				return false;
+		}
+		else
+		{
+			if (!pWeapon)
+			{
+				const int weaponIndex = pThis->SelectWeapon(pTarget);
+
+				if (weaponIndex < 0)
+					return false;
+
+				if (const auto pWpStruct = pThis->GetWeapon(weaponIndex))
+					pWeapon = pWpStruct->WeaponType;
+				else
+					return false;
+			}
+
+			auto const speedType = pThisType->SpeedType;
+			const auto cellStruct = MapClass::Instance->NearByLocation(pTarget->GetMapCoords(),
+				speedType, -1, mZone, false, 1, 1, true,
+				false, false, speedType != SpeedType::Float, CellStruct::Empty, false, false);
+
+			auto const pCell = Map[cellStruct];
+
+			if (!pCell)
+				return false;
+
+			const double distance = pCell->GetCoordsWithBridge().DistanceFrom(pTarget->GetCenterCoords());
+
+			if (distance > pWeapon->Range)
+				return false;
+		}
+	}
+
+	return true;
+}
+
 //Droppod able to move Limboed passengers outside
 // if it failed to move , the locomotor is not relesed 
 //Teleport loco cant move limboed passengers , passengers will stuck after ejected with Chrono locomotor still intact
@@ -711,6 +770,32 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 	}
 }
 
+std::pair<TechnoTypeClass*,HouseClass*> TechnoExt::GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility)
+{
+	HouseClass* pHouseOut = pTarget->GetOwningHouse();
+	TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
+	bool bIsVisible = !CheckVisibility ? false : pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
+
+	if (pTarget->IsDisguised() && !bIsVisible) {
+
+		if (CheckHouse) {
+			if(const auto pDisguiseHouse = pTarget->GetDisguiseHouse(false))
+				if(pDisguiseHouse->Type)
+					pHouseOut = pDisguiseHouse;
+		}
+
+		if (pTarget->Disguise != pTypeOut) {
+			const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->Disguise);
+			if (pDisguiseType){
+				return { pDisguiseType, pHouseOut };
+			}
+		}
+	}
+
+	return { pTypeOut, pHouseOut };
+}
+
+
 // Based on Ares source.
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
@@ -719,7 +804,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
 	int defaultFrameIndex = -1;
 
-	auto const [pTechnoType, pOwner] = TechnoExt::Helper::GetDisguiseType<true, true>(pThis);
+	auto const [pTechnoType, pOwner] = TechnoExt::GetDisguiseType(pThis,true, true);
 
 	if (!pTechnoType)
 		return;
@@ -882,7 +967,7 @@ void TechnoExt::Stop(TechnoClass* pThis, Mission const& eMission)
 
 bool TechnoExt::IsOnLimbo(TechnoClass* pThis, bool bIgnore)
 {
-	return !bIgnore && pThis->InLimbo;
+	return !bIgnore && pThis->InLimbo && !pThis->Transporter;
 }
 
 bool TechnoExt::IsDeactivated(TechnoClass* pThis, bool bIgnore)
@@ -897,11 +982,10 @@ bool TechnoExt::IsUnderEMP(TechnoClass* pThis, bool bIgnore)
 
 bool TechnoExt::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeactivated, bool bIgnoreLimbo, bool bIgnoreIsOnMap, bool bIgnoreAbsorb)
 {
-
 	if (!TechnoExt::IsAlive(pThis, bIgnoreLimbo, bIgnoreIsOnMap, bIgnoreAbsorb))
 		return false;
 
-	if (pThis->BeingWarpedOut || IsUnderEMP(pThis, !bCheckEMP) || IsDeactivated(pThis, !bCheckDeactivated))
+	if (pThis->BeingWarpedOut || pThis->TemporalTargetingMe || IsUnderEMP(pThis, !bCheckEMP) || IsDeactivated(pThis, !bCheckDeactivated))
 		return false;
 
 	return true;
@@ -967,15 +1051,15 @@ void TechnoExt::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 					auto const nAction = pTeam->CurrentScript->GetCurrentAction();
 					auto const nActionNext = pTeam->CurrentScript->GetNextAction();
 
-					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
-						, pTeam->Type->ID
-						, pTeam->CurrentScript->Type->ID
-						, pTeam->CurrentScript->CurrentMission
-						, nAction.Action
-						, nAction.Argument
-						, pTeam->CurrentScript->CurrentMission + 1
-						, nActionNext.Action
-						, nActionNext.Argument);
+//					Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Force next script action after successful kill: %d = %d,%d\n"
+//						, pTeam->Type->ID
+//						, pTeam->CurrentScript->Type->ID
+//						, pTeam->CurrentScript->CurrentMission
+//						, nAction.Action
+//						, nAction.Argument
+//						, pTeam->CurrentScript->CurrentMission + 1
+//						, nActionNext.Action
+//						, nActionNext.Argument);
 
 					// Jumping to the next line of the script list
 					pTeam->StepCompleted = true;
@@ -1179,9 +1263,13 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 }
 
-void TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
+bool TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
 {
+	if (!pWeaponType)
+		return false;
+
 	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis);
+	return true;
 }
 
 Matrix3D TechnoExt::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
@@ -1498,9 +1586,9 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 
 	pThis->RemoveFromTargetingAndTeam();
 
-	for (auto const pBullet : *BulletClass::Array)
-		if (pBullet && pBullet->Target == pThis)
-			pBullet->LoseTarget();
+	//for (auto const pBullet : *BulletClass::Array)
+	//	if (pBullet && pBullet->Target == pThis)
+	//		pBullet->LoseTarget();
 
 	pThis->UnInit();
 
@@ -1542,7 +1630,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		nOpt = static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
 	}
 
-	Debug::Log("TechnoExt::KillObject -  Killing Techno[%x - %s] with Method [%d] ! \n", pThis, pThis->get_ID(), (int)nOpt);
+	//Debug::Log("TechnoExt::KillObject -  Killing Techno[%x - %s] with Method [%d] ! \n", pThis, pThis->get_ID(), (int)nOpt);
 
 	switch (nOpt)
 	{
@@ -1602,7 +1690,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 			}
 		}
 
-		Debug::Log("Techno [%s] can't be sold, killing it instead\n", pThis->get_ID());
+		//Debug::Log("Techno [%s] can't be sold, killing it instead\n", pThis->get_ID());
 		goto Kill;
 
 	}break;
@@ -1860,7 +1948,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			isSelfHealFrame = true;
 		}
 
-		int nBracket = TechnoExt::Helper::GetDisguiseType<false, true>(pThis).first->PixelSelectionBracketDelta;
+		int nBracket = TechnoExt::GetDisguiseType(pThis, false, true).first->PixelSelectionBracketDelta;
 
 		switch (pWhat)
 		{
@@ -2458,8 +2546,13 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 				{
 					auto const nRandomY = ScenarioGlobal->Random(-200, 200);
 					auto const nRamdomX = ScenarioGlobal->Random(-200, 200);
+					auto nLoc = pThis->Location;
+
+					if(pParticle->BehavesLike == BehavesLike::Smoke)
+						nLoc.Z += 100;
+
 					CoordStruct nParticleCoord { pThis->Location.X + nRamdomX, nRandomY + pThis->Location.Y, pThis->Location.Z + 100 };
-					GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, nullptr, nullptr, CoordStruct::Empty, nullptr);
+					GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, pThis->GetCell(), pThis, CoordStruct::Empty, pThis->Owner);
 				}
 			}
 
@@ -2809,7 +2902,7 @@ int TechnoExt::GetInitialStrength(TechnoTypeClass* pType, int nHP)
 template <typename T>
 void TechnoExt::ExtData::Serialize(T& Stm)
 {
-	Debug::Log("Processing Element From TechnoExt ! \n");
+	//Debug::Log("Processing Element From TechnoExt ! \n");
 
 	Stm
 		.Process(this->Type)

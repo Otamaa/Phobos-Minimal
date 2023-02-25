@@ -5,12 +5,19 @@
 
 VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
-TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner)
+TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 {
-	if (!DealthByOwner)
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pTypeExt || !pTypeExt->Damage_DealtByOwner)
 		return nullptr;
 
-	return VoxelAnimExt::ExtMap.Find(pThis)->Invoker;
+	auto const pExt  = VoxelAnimExt::ExtMap.Find(pThis);
+
+	if (!pExt || pExt->GetInitStatus() < InitState::Constanted)
+		return nullptr;
+
+	return pExt->Invoker;
 }
 
 void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
@@ -28,7 +35,7 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 	if (LaserTrails.size())
 		return;
 
-	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(Get(), pTypeExt->Damage_DealtByOwner.Get());
+	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
 	size_t  nTotal = 0;
@@ -75,7 +82,7 @@ void VoxelAnimExt::ExtData::InitializeConstants()
 template <typename T>
 void VoxelAnimExt::ExtData::Serialize(T& Stm)
 {
-	Debug::Log("Processing Element From VoxelAnimExt ! \n");
+	//Debug::Log("Processing Element From VoxelAnimExt ! \n");
 
 	 Stm
 		//.Process(ID)
@@ -120,22 +127,24 @@ VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
-DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
+//DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
+//DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
+
+DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
-#ifndef ENABLE_NEWHOOKS
+
 	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	VoxelAnimExt::ExtMap.FindOrAllocate(pItem);
-#endif
+
 	return 0;
 }
 
 DEFINE_HOOK(0x749B02, VoxelAnimClass_DTOR, 0xA)
 {
 	GET(VoxelAnimClass*, pItem, ECX);
+
 	VoxelAnimExt::ExtMap.Remove(pItem);
+
 	return 0;
 }
 

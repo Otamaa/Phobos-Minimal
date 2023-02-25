@@ -52,7 +52,10 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 // load / save
 template <typename T>
 void ParasiteExt::ExtData::Serialize(T& Stm) {
-	Debug::Log("Processing Element From ParasiteExt ! \n");
+	//Debug::Log("Processing Element From ParasiteExt ! \n");
+	Stm
+		.Process(this->LastVictimLocation)
+		;
 }
 
 void ParasiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {

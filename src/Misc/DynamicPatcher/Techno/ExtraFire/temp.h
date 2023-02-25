@@ -17,7 +17,7 @@ for (int i = 0; i < 2; ++i)
 		_snprintf_s(tempBuffer, sizeof(tempBuffer), "%s.FLH", tempBuffer_fix);
 		buffer_FLH.Read(parserArt, pSection_Art, tempBuffer);
 
-		Debug::Log("Reading ExtraFireData found for T[%s] Tag[%s] ! \n", pTech->get_ID(), tempBuffer_fix);
+		//Debug::Log("Reading ExtraFireData found for T[%s] Tag[%s] ! \n", pTech->get_ID(), tempBuffer_fix);
 
 		_snprintf_s(tempBuffer_fix, sizeof(tempBuffer_fix), "ExtraFire.Elite%s", prefixBuffer);
 
@@ -60,7 +60,7 @@ if (pTech->WeaponCount && (pTech->WeaponCount > 0))
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "%s.FLH", tempBuffer_fix);
 			buffer_FLH.Read(parserArt, pSection_Art, tempBuffer);
 
-			Debug::Log("Reading ExtraFireData found for T[%s] Tag[%s] ! \n", pTech->get_ID(), tempBuffer_fix);
+			//Debug::Log("Reading ExtraFireData found for T[%s] Tag[%s] ! \n", pTech->get_ID(), tempBuffer_fix);
 
 			_snprintf_s(tempBuffer_fix, sizeof(tempBuffer_fix), "ExtraFire.EliteWeapon%d", b + 1);
 

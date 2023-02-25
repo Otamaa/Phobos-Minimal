@@ -268,6 +268,10 @@ public:
 		JMP_STD(0x49F420);
 	}
 
+	static CoordStruct* __fastcall GetRandomCoordsNear(CoordStruct* poutBuffer, const CoordStruct& coords, int distance, bool center) {
+		JMP_STD(0x49F420);
+	}
+
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords
 	static CoordStruct GetRandomCoordsNear(const CoordStruct &coords, int distance, bool center) {
 		CoordStruct outBuffer;
@@ -543,8 +547,20 @@ public:
 	int GetMapZone(const CellStruct& MapCoords, MovementZone movementZone, bool isBridge)
 		{ JMP_THIS(0x56D230); }
 
-	int Zone_56DA10(CellStruct* where , int nLessCond ,int nZoneConnectionIndex)
+	ZoneType GetMovementZoneType(const CellStruct& MapCoords, MovementZone movementZone, bool isBridge) const
+	{ JMP_THIS(0x56D230); }
+
+	ZoneType GetMovementZoneType(CellStruct* where, MovementZone movementZone, bool isBridge) const
+	{ JMP_THIS(0x56D230); }
+
+	int Zone_56DA10(CellStruct* where , int nLessCond ,int nZoneConnectionIndex)  const
 		{ JMP_THIS(0x56DA10); }
+
+	CellStruct* SubZone_5833F0(CellStruct* a1, CellStruct* a2, int a3) const
+		{ JMP_THIS(0x5833F0); }
+
+	CellStruct SubZone_5835D0(CellStruct* a1, CellStruct* a2, int a4) const
+		{ JMP_THIS(0x5835D0); }
 
 	int Index(CellClass* ptr) { return Cells.FindItemIndex(ptr); }
 	int Index(CellClass& ptr) { return Cells.FindItemIndex(&ptr); }

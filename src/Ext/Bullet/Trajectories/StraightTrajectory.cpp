@@ -75,8 +75,6 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	auto const pBullet = this->AttachedTo;
 	this->DetonationDistance = type->DetonationDistance.Get(type->SDetonationDistance.Get());
 	
-	this->SetInaccurate();
-
 	if (type->PassThrough.Get())
 	{
 		pBullet->TargetCoords.X = INT_MAX;
@@ -85,6 +83,8 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	}
 	else
 	{
+		this->SetInaccurate();
+
 		pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 		pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 		pBullet->Velocity.Z = this->GetVelocityZ();

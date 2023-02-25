@@ -3,137 +3,77 @@
 
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 
 //AircraftExt::ExtContainer AircraftExt::ExtMap;
 
-void AircraftExt::TriggerCrashWeapon(TechnoClass* pThis , int nMult)
+void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
-	auto pType = pThis->GetTechnoType();
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const pCrashWeapon = pTypeExt->CrashWeapon.GetOrDefault(pThis, pTypeExt->CrashWeapon_s.Get());
-
-	auto PlayCrashWeapon = [pCrashWeapon, pThis]() {
-		if (!pCrashWeapon)
-			return false;
-
-		WeaponTypeExt::DetonateAt(pCrashWeapon, pThis->GetCell(), pThis);
-		return true;
-	};
-
-
-	if (!PlayCrashWeapon())
+	if (!TechnoExt::FireWeaponAtSelf(pThis, pCrashWeapon))
 		pThis->FireDeathWeapon(nMult);
 
-	if (pType->DestroyAnim.Size() > 0)
-	{
-		auto const facing = pThis->PrimaryFacing.Current().GetFacing<256>();
-		int idxAnim = 0;
-
-		if (pTypeExt && !pTypeExt->DestroyAnim_Random.Get())
-		{
-			if (pType->DestroyAnim.Count >= 8)
-			{
-				idxAnim = pType->DestroyAnim.Count;
-				if (pType->DestroyAnim.Count % 2 == 0)
-					idxAnim *= static_cast<int>(facing / 256.0);
-			}
-		}
-		else
-		{
-			if (pType->DestroyAnim.Count > 1)
-				idxAnim = ScenarioClass::Instance->Random.RandomRanged(0, (pType->DestroyAnim.Count - 1));
-		}
-
-		if (AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim])
-		{
-			if (auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
-			{
-				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-				auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
-
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), pThis->Owner))
-					pAnimExt->Invoker = pThis;
-
-				if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-					pAnimExt->DeathUnitFacing = static_cast<short>(facing);
-
-				if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
-				{
-					if (pThis->HasTurret())
-					{
-						pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
-					}
-				}
-			}
-		}
-	}
+	AnimTypeExt::ProcessDestroyAnims(pThis, nullptr);
 }
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
-	int weaponIndex = pThis->SelectWeapon(pTarget);
-	auto pWeaponStruct = pThis->GetWeapon(weaponIndex);
-
-	if (!pWeaponStruct)
+	if (!pTarget)
 		return;
-
-	auto weaponType = pWeaponStruct->WeaponType;
-
-	if (!weaponType)
-		return;
-
-	if (weaponType->Burst > 0)
-	{
-		for (int i = 0; i < weaponType->Burst; i++)
-		{
-			if (weaponType->Burst < 2 && WeaponTypeExt::ExtMap.Find(weaponType)->Strafing_SimulateBurst)
-				pThis->CurrentBurstIndex = (int)shotNumber;
-
-			pThis->Fire(pTarget, weaponIndex);
-		}
-	}
+	
+	AircraftExt::FireBurst(pThis, pTarget, shotNumber, pThis->SelectWeapon(pTarget));
 }
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx)
 {
-	auto pWeaponStruct = pThis->GetWeapon(WeaponIdx);
+	const auto pWeaponStruct = pThis->GetWeapon(WeaponIdx);
 
 	if (!pWeaponStruct)
 		return;
 
-	auto weaponType = pWeaponStruct->WeaponType;
+	const auto weaponType = pWeaponStruct->WeaponType;
 
 	if (!weaponType)
 		return;
 
-	if (weaponType->Burst > 0)
-	{
-		for (int i = 0; i < weaponType->Burst; i++)
-		{
-			if (weaponType->Burst < 2 && WeaponTypeExt::ExtMap.Find(weaponType)->Strafing_SimulateBurst)
-				pThis->CurrentBurstIndex = (int)shotNumber;
-
-			pThis->Fire(pTarget, WeaponIdx);
-		}
-	}
+	AircraftExt::FireBurst(pThis , pTarget, shotNumber, WeaponIdx, weaponType);
 }
 
 void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
 {
-	if (pWeapon->Burst > 0)
-	{
-		for (int i = 0; i < pWeapon->Burst; i++)
-		{
-			if (pWeapon->Burst < 2 && WeaponTypeExt::ExtMap.Find(pWeapon)->Strafing_SimulateBurst)
-				pThis->CurrentBurstIndex = (int)shotNumber;
+	if (!pWeapon->Burst)
+		return;
 
-			pThis->Fire(pTarget, WeaponIdx);
+	for (int i = 0; i < pWeapon->Burst; i++)
+	{
+		if (pWeapon->Burst < 2 && WeaponTypeExt::ExtMap.Find(pWeapon)->Strafing_SimulateBurst)
+			pThis->CurrentBurstIndex = (int)shotNumber;
+
+		pThis->Fire(pTarget, WeaponIdx);
+	}
+}
+bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
+{
+	if (const auto pPassanger = pThis->Passengers.GetFirstPassenger())
+	{
+		if (const auto pDest = pThis->Destination)
+		{
+			const auto pDestCell = Map[pDest->GetCoords()];
+
+			return pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
+				&& pDestCell->OverlayTypeIndex == -1
+				&& pDestCell->IsValidMapCoords();
 		}
 	}
+
+	return false;
+
 }
 // =============================
 // load / save

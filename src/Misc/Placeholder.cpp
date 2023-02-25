@@ -1,3 +1,70 @@
+
+DEFINE_HOOK(0x469BD6, BulletClass_Logics_MindControlAlternative2, 0x6)
+{
+	GET(BulletClass*, pBullet, ESI);
+	GET(AnimTypeClass*, pAnimType, EBX);
+
+	if (!pBullet->Target)
+		return 0;
+
+	const auto pBulletWH = pBullet->WH;
+	const auto pTarget = generic_cast<TechnoClass*>(pBullet->Target);
+
+	if (pTarget
+		&& pBullet->Owner
+		&& pBulletWH
+		&& pBulletWH->MindControl)
+	{
+		if (const auto pTargetType = pTarget->GetTechnoType())
+		{
+			auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pBulletWH);
+			{
+				const double currentHealthPerc = pTarget->GetHealthPercentage();
+				const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
+
+				const bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
+				const bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
+
+				if (skipMindControl
+					&& healthComparation
+					&& pWarheadExt->MindControl_AlternateDamage.isset()
+					&& pWarheadExt->MindControl_AlternateWarhead.isset())
+				{
+
+					int damage = pWarheadExt->MindControl_AlternateDamage;
+					WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead;
+					const auto pAttacker = pBullet->Owner;
+					const auto pAttackingHouse = pBullet->Owner->Owner;
+					int realDamage = MapClass::GetTotalDamage(damage, pAltWarhead, pTargetType->Armor, 0);
+
+					if (!pWarheadExt->MindControl_CanKill && pTarget->Health <= realDamage)
+					{
+						pTarget->Health += abs(realDamage);
+						realDamage = 1;
+						pTarget->ReceiveDamage(&realDamage, 0, pAltWarhead, pAttacker, true, false, pAttackingHouse);
+						pTarget->Health = 1;
+					}
+					else
+					{
+						pTarget->ReceiveDamage(&damage, 0, pAltWarhead, pAttacker, true, false, pAttackingHouse);
+					}
+
+					pAnimType = nullptr;
+
+					// If the alternative Warhead have AnimList tag declared then use it
+					if (pWarheadExt->MindControl_AlternateWarhead->AnimList.Count > 0)
+					{
+						pAnimType = MapClass::SelectDamageAnimation(damage, pAltWarhead, Map[pTarget->Location]->LandType, pTarget->Location);
+					}
+
+					R->EBX(pAnimType);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
 /*
 DEFINE_HOOK(0x7BAE60 , Surface_GetPixel_CheckParameters, 0x5)
 {

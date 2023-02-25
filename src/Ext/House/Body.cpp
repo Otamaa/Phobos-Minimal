@@ -876,16 +876,16 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			continue;
 
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
-		
+
 		if(!pExt->Death_Countdown.Completed() || pExt->KillActionCalled)
 			continue;
 
-		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
+		//Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
 		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
 		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBuilding);
 
-			if (pBldExt->LimboID != -1) {	
+			if (pBldExt->LimboID != -1) {
 				BuildingExt::LimboKill(pBuilding);
 			} else {
 				TechnoExt::KillSelf(pBuilding, nMethod);

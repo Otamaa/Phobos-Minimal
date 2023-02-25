@@ -114,7 +114,7 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static NOINLINE Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation);
+	static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation);
 
 	static TechnoClass* InRangeTempFirer;
 };

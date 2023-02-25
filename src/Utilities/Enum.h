@@ -34,6 +34,13 @@
 
 #include <Phobos.h>
 
+enum class TargetZoneScanType : int
+{
+	Same = 0,
+	Any = 1,
+	InRange = 2
+};
+
 enum class DamageDelayTargetFlag : int
 {
 	Cell = 0,

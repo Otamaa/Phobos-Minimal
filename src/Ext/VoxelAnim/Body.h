@@ -22,6 +22,7 @@ class VoxelAnimExt
 public:
 	static constexpr size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
+	static constexpr size_t ExtOffset = 0x144;
 
 	class ExtData final : public Extension<VoxelAnimClass>
 	{
@@ -81,6 +82,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis, bool DealthByOwner);
+	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
 
 };

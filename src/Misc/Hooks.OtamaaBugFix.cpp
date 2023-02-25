@@ -1,3 +1,4 @@
+#pragma region Includes
 #include "Hooks.OtamaaBugFix.h"
 
 #include <Ext/Anim/Body.h>
@@ -26,6 +27,7 @@
 #include <ShipLocomotionClass.h>
 
 #include <Memory.h>
+#pragma endregion
 
 DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 {
@@ -43,22 +45,22 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 	return 0x6FA2D8;
 }
 
-DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
-{
-	GET(TeamClass*, pThis, EBP);
-	GET(int, nRawData, EAX);
-
-	const auto nBuildingIdx = nRawData & 0xFFFF;
-
-	if (nBuildingIdx < BuildingTypeClass::Array()->Count)
-		return 0x0;
-
-	const auto nTypeIdx = nRawData >> 16 & 0xFFFF;
-	const auto nScript = pThis->CurrentScript;
-
-	Debug::Log("[%x]Team script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
-	return 0x6EE7D0;
-}
+//DEFINE_HOOK(0x6EE606, TeamClass_TMission_Move_To_Own_Building_index, 0x7)
+//{
+//	GET(TeamClass*, pThis, EBP);
+//	GET(int, nRawData, EAX);
+//
+//	const auto nBuildingIdx = nRawData & 0xFFFF;
+//
+//	if (nBuildingIdx < BuildingTypeClass::Array()->Count)
+//		return 0x0;
+//
+//	const auto nTypeIdx = nRawData >> 16 & 0xFFFF;
+//	const auto nScript = pThis->CurrentScript;
+//
+//	Debug::Log("[%x]Team script [%s]=[%d] , Failed to find type[%d] building at idx[%d] ! \n", pThis, nScript->Type->get_ID(), nScript->CurrentMission, nTypeIdx, nBuildingIdx);
+//	return 0x6EE7D0;
+//}
 
 //Lunar limitation
 DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
@@ -126,22 +128,9 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 }
 
 static	void __fastcall DrawShape_VeinHole
-(Surface* Surface,
-	ConvertClass* Pal,
-	SHPStruct* SHP,
-	int FrameIndex,
-	const Point2D* const Position,
-	const RectangleStruct* const Bounds,
-	BlitterFlags Flags,
-	int Remap,
-	int ZAdjust,
-	ZGradient ZGradientDescIndex,
-	int Brightness,
-	int TintColor,
-	SHPStruct* ZShape,
-	int ZShapeFrame,
-	int XOffset,
-	int YOffset
+(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
+ BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape,
+ int ZShapeFrame, int XOffset, int YOffset
 )
 {
 	bool bUseTheaterPal = true;
@@ -159,7 +148,6 @@ DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 	return 0x4AD0A8;
 }
 
-//TODO : test
 DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 {
 	//overriden instructions
@@ -175,6 +163,7 @@ DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 {
 	GET(TechnoClass*, pTechnoOwner, EAX);
+	GET(CellClass*, pCell, EDI);
 	GET(ObjectClass*, pVictim, ESI);
 	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
@@ -184,7 +173,8 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 		if (pUnit->DeathFrameCounter > 0)
 			return 0x75F432;
 
-	pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
+	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);
+	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
 
 	return 0x75F432;
 }
@@ -205,24 +195,30 @@ DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
 }
 
-DEFINE_HOOK(0x62A933, ParasiteClass_CanInfect_ParasitePointerGone_Check, 0x5)
-{
-	GET(ParasiteClass*, pThis, EDI);
-
-	if (!pThis)
-	{
-		Debug::Log("Found Invalid ParasiteClass Pointer ! , Skipping ! \n");
-		return 0x62A976;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
-{
-	GET(const TechnoClass*, pThis, ESI);
-	return pThis->GetTechnoType()->AttackFriendlies ? 0x6FA472 : 0x0;
-}
+//DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
+//{
+//	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
+//	GET(const TechnoClass*, pThis, ESI);
+//
+//	//if (pThis->GetTechnoType()->AttackFriendlies && pThis->Target)
+//	//{
+//	//	const int nWeapon = pThis->SelectWeapon(pThis->Target);
+//	//	const auto nFireErr = pThis->GetFireError(pThis->Target, nWeapon, false);
+//
+//	//	if (nFireErr == FireError::CANT || nFireErr == FireError::ILLEGAL)
+//	//	{
+//	//		return ClearTarget;
+//	//	}
+//
+//	//	return ExtendChecks;
+//	//}
+//	if(IS_SAME_STR_(pThis->get_ID() , "YUNRU")){
+//		if (pThis->GetTechnoType()->AttackFriendlies)
+//			return ExtendChecks;
+//	}
+//
+//	return ClearTarget;
+//}
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
@@ -255,9 +251,9 @@ DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 	GET(AnimTypeClass*, pMuzzleAnimType, EDI);
 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
-	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	if (auto pAnimType = pWeaponExt->Feedback_Anim.Get())
+	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
 	{
 		const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? nFLH : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
 		if (auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord))
@@ -284,7 +280,7 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(AnimClass*, pAnim, EDI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
-	//GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
+	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
 	if (!pAnim)
 		return DontSetAnim;
@@ -448,20 +444,20 @@ DEFINE_JUMP(LJMP, 0x5E0C24, 0x5E0C4E)
 //HouseClass_AllyAIHouses 0x5
 //DEFINE_JUMP(LJMP, 0x501640, 0x50174E)
 
-DEFINE_HOOK(0x5D6BE0, MPGameModeClass_StartingPositionsToHouseBaseCells_Debug, 0x7)
-{
-	Debug::Log("House count = %d", HouseClass::Array->Count);
-	Debug::Log("\n");
-	for (auto pHouse : *HouseClass::Array)
-	{
-		Debug::Log("House start cell = [%d] { %d, %d }",
-		(DWORD)pHouse,
-		pHouse->StartingCell.X,
-		pHouse->StartingCell.Y);
-		Debug::Log("\n");
-	}
-	return 0;
-}
+//DEFINE_HOOK(0x5D6BE0, MPGameModeClass_StartingPositionsToHouseBaseCells_Debug, 0x7)
+//{
+//	Debug::Log("House count = %d", HouseClass::Array->Count);
+//	Debug::Log("\n");
+//	for (auto pHouse : *HouseClass::Array)
+//	{
+//		Debug::Log("House start cell = [%d] { %d, %d }",
+//		(DWORD)pHouse,
+//		pHouse->StartingCell.X,
+//		pHouse->StartingCell.Y);
+//		Debug::Log("\n");
+//	}
+//	return 0;
+//}
 
 static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis, void*)
 {
@@ -473,7 +469,7 @@ DEFINE_JUMP(VTABLE, 0x7E2908, GET_OFFSET(AircraftTypeClass_CanUseWaypoint));
 DEFINE_HOOK(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 {
 	GET(BulletClass*, pThis, EBP);
-	GET(CoordStruct*, pCoord, EAX);
+	GET(CoordStruct*, pCoord, ECX);
 
 	R->EAX(BulletExt::FuseCheckup(pThis, pCoord));
 	return 0x467C3A;
@@ -610,13 +606,9 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
-	enum
-	{
-		ContinueCheck = 0x6FC23A,
-		BypassCheck = 0x6FC24D
-	};
-
+	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
 	GET(TechnoClass*, pThis, ESI);
+
 	const bool Allow = RulesExt::Global()->AutoAttackICedTarget.Get() || pThis->Owner->IsInPlayerControl;
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(Allow) ? BypassCheck : ContinueCheck;
 }
@@ -706,14 +698,14 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 {
-	enum
-	{
-		Nothing = 0x0,
-		ReturnFalse = 0x4DBDEB
-	};
-
+	enum { Continue = 0x0, ReturnFalse = 0x4DBDEB };
 	GET(FootClass*, pThis, ESI);
-	return (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get() && !pThis->Locomotor->Is_Moving()) ? ReturnFalse : Nothing;
+
+	if(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get() 
+		&& !pThis->Locomotor->Is_Moving())
+		return ReturnFalse;
+
+	return Continue;
 }
 
 /*
@@ -941,11 +933,15 @@ DEFINE_HOOK(0x7463A8, UnitClass_Captured_DriverKilled, 0x6)
 
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
+	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
+
 	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(bool, bIgnore, 0xD8);
 
-	R->AL(pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pThis)));
+	const bool IsCurrentlyDamageImmune = pThis->IsBeingWarpedOut()
+		|| TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pThis));
 
-	return 0x701AB7;
+	return (IsCurrentlyDamageImmune && !bIgnore) ? NullifyDamage : ContinueCheck;
 }
 
 //
@@ -1153,14 +1149,14 @@ DEFINE_HOOK(0x5B3614, MissionClass_AssignMission_CheckBuilding, 0x6)
 //	return 0x75F39B;
 //}
 
-DEFINE_HOOK(0x6B721F, SpawnManagerClass_Manage_Clear, 0x6)
-{
-	GET(SpawnManagerClass*, pThis, ESI);
-	pThis->Target = nullptr;
-	pThis->NewTarget = nullptr;
-	pThis->Status = SpawnManagerStatus::Idle;
-	return 0x0;
-}
+//DEFINE_HOOK(0x6B721F, SpawnManagerClass_Manage_Clear, 0x6)
+//{
+//	GET(SpawnManagerClass*, pThis, ESI);
+//	pThis->Target = nullptr;
+//	pThis->NewTarget = nullptr;
+//	pThis->Status = SpawnManagerStatus::Idle;
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 {
@@ -1199,17 +1195,17 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 //TODO : check for conflict
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
+	enum { Continue = 0x0 , DoNotDrawRadar = 0x70D407 };
+
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis->WhatAmI() == AbstractType::Building)
-	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
-		{
-			return 0x70D407;
+	if (pThis->WhatAmI() == AbstractType::Building) {
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1) {
+			return DoNotDrawRadar;
 		}
 	}
 
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->IsDummy ? 0x70D407 : 0x0;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->IsDummy ? DoNotDrawRadar : Continue;
 }
 
 DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
@@ -1253,12 +1249,12 @@ DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
 //	return 0x6FCF44;
 //}
 
-DEFINE_HOOK(0x70166E, TechnoClass_Captured, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	pThis->UpdatePlacement(PlacementType::Remove);
-	return 0x70167A;
-}
+//DEFINE_HOOK(0x70166E, TechnoClass_Captured, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	pThis->UpdatePlacement(PlacementType::Remove);
+//	return 0x70167A;
+//}
 
 DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
 {
@@ -1980,12 +1976,13 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
 	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
 
-	GET(int, nOldStr, EDX);
-	GET(int, nCurStr, EBP);
+	GET(int, nCurStr, EDX);
+	GET(int, nMaxStr, EBP);
 	GET(int, nDamage, ECX);
 
-	const auto curstr = Game::F2I(nCurStr * RulesGlobal->ConditionYellow);
-	return (nOldStr <= curstr || !((nOldStr - nDamage) < curstr)) ? ContinueCheck : ResultHalf;
+	const auto curstr = Game::F2I(nMaxStr * RulesGlobal->ConditionYellow)
+		;
+	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
 }
 
 //DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
@@ -2276,30 +2273,30 @@ DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney, 0xA)
 	return 0x45744A;
 }
 
-DEFINE_JUMP(LJMP, 0x517FF5, 0x518016);
+//DEFINE_JUMP(LJMP, 0x517FF5, 0x518016);
+//
+//DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
+//{
+//	GET(UnitClass*, pThis, EBP);
+//	GET(AnimClass*, pAllocatedMem , ESI);
+//	GET(LandType const, nLand, EBX);
+//
+//	auto nLoc = pThis->Location;
+//	if (auto const pC4AnimType = MapClass::Instance->SelectDamageAnimation(pThis->Health, RulesGlobal->C4Warhead, nLand, nLoc))
+//	{
+//		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
+//		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr , pThis->GetOwningHouse(), true);
+//
+//	}
+//	else
+//	{
+//		GameDelete<false, false>(pAllocatedMem);
+//	}
+//
+//	return 0x73AF4C;
+//}
 
-DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
-{
-	GET(UnitClass*, pThis, EBP);
-	GET(AnimClass*, pAllocatedMem , ESI);
-	GET(LandType const, nLand, EBX);
-
-	auto nLoc = pThis->Location;
-	if (auto const pC4AnimType = MapClass::Instance->SelectDamageAnimation(pThis->Health, RulesGlobal->C4Warhead, nLand, nLoc))
-	{
-		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
-		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr , pThis->GetOwningHouse(), true);
-
-	}
-	else
-	{
-		GameDelete<false, false>(pAllocatedMem);
-	}
-
-	return 0x73AF4C;
-}
-
-void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	const auto pType = pTechno->GetTechnoType();
 	const auto nMax = pType->GetPipMax();
@@ -2575,7 +2572,7 @@ void NOINLINE DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleS
 //	}
 //}
 
-void NOINLINE DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	const auto pType = pTechno->GetTechnoType();
 	const auto nMax = pType->SpawnsNumber;
@@ -2691,36 +2688,36 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //	return 0x0;
 //}
 
-enum class NewVHPScan : int
-{
-	None = 0 ,
-	Normal = 1 ,
-	Strong = 2,
-	Threat = 3,
-	Health = 4,
-	Damage = 5,
-	Value = 6,
-	Locked = 7,
-	Non_Infantry = 8,
-
-
-	count
-};
-
-std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
-{
-   {
-	  {"None" },
-	{ "Normal" },
-	{ "Strong" },
-	{ "Threat" },
-	{ "Health" },
-	{ "Damage" },
-	{ "Value" },
-	{ "Locked" },
-	{ "Non-Infantry" } 
-	}
-};
+//enum class NewVHPScan : int
+//{
+//	None = 0 ,
+//	Normal = 1 ,
+//	Strong = 2,
+//	Threat = 3,
+//	Health = 4,
+//	Damage = 5,
+//	Value = 6,
+//	Locked = 7,
+//	Non_Infantry = 8,
+//
+//
+//	count
+//};
+//
+//std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+//{
+//   {
+//	  {"None" },
+//	{ "Normal" },
+//	{ "Strong" },
+//	{ "Threat" },
+//	{ "Health" },
+//	{ "Damage" },
+//	{ "Value" },
+//	{ "Locked" },
+//	{ "Non-Infantry" } 
+//	}
+//};
 
 //DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
 //{
@@ -2811,55 +2808,56 @@ DEFINE_HOOK(0x51BCA4, InfantryClass_AI_ReloadInTransporterFix, 0x6)
 	return CheckMission;
 }
 
-//DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	const auto pType = pThis->Type;
+
+	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
+		pThis->StartReloading();
+
+	return 0;
+}
+
+//
+//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 //{
-//	GET(InfantryClass*, pThis, ESI);
-//	const auto pType = pThis->Type;
+//	GET(UnitClass*, pThis, EBP);
+//	const auto deploysInto = pThis->Type->DeploysInto;
+//	CellStruct mapCoords = pThis->GetMapCoords();
+//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
 //
-//	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
-//		pThis->StartReloading();
+//	const short width = deploysInto->GetFoundationWidth();
+//	const short height = deploysInto->GetFoundationHeight(false);
 //
-//	return 0;
+//	if (width > 2)
+//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+//
+//	return 0x7394BE;
 //}
-
-DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-{
-	GET(UnitClass*, pThis, EBP);
-	const auto deploysInto = pThis->Type->DeploysInto;
-	CellStruct mapCoords = pThis->GetMapCoords();
-	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-
-	const short width = deploysInto->GetFoundationWidth();
-	const short height = deploysInto->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-
-	return 0x7394BE;
-}
-
-DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-{
-	GET(BuildingClass*, pThis, EBP);
-	CellStruct mapCoords = pThis->GetMapCoords();
-
-	const short width = pThis->Type->GetFoundationWidth();
-	const short height = pThis->Type->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-	auto coords = (CoordStruct*)&location.Z;
-	coords->X = (mapCoords.X << 8) + 128;
-	coords->Y = (mapCoords.Y << 8) + 128;
-	coords->Z = pThis->Location.Z;
-
-	return 0x449F12;
-}
+//
+//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	CellStruct mapCoords = pThis->GetMapCoords();
+//
+//	const short width = pThis->Type->GetFoundationWidth();
+//	const short height = pThis->Type->GetFoundationHeight(false);
+//
+//	if (width > 2)
+//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+//	auto coords = (CoordStruct*)&location.Z;
+//	coords->X = (mapCoords.X << 8) + 128;
+//	coords->Y = (mapCoords.Y << 8) + 128;
+//	coords->Z = pThis->Location.Z;
+//
+//	return 0x449F12;
+//}

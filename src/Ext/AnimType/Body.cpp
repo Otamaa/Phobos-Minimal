@@ -17,7 +17,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	const char* pID = this->Get()->ID;
 
-	if (!pINI) {
+	if (!pINI)
+	{
 		Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
 	}
 
@@ -134,49 +135,39 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 #pragma endregion
 }
 
-const void AnimTypeExt::ProcessDestroyAnims(UnitClass* pThis, TechnoClass* pKiller)
+const void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
-	if (pThis->Type->DestroyAnim.Count > 0)
+	const auto pType = pThis->GetTechnoType();
+	if (!pType->DestroyAnim.Count)
+		return;
+
+	const auto facing = pThis->PrimaryFacing.Current().GetFacing<256>();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	int idxAnim = 0;
+	GeneralUtils::GetRandomAnimVal(idxAnim, pType->DestroyAnim.Count, facing, pTypeExt->DestroyAnim_Random.Get());
+	AnimTypeClass* pAnimType = pType->DestroyAnim[idxAnim];
+
+	if (!pAnimType)
+		return;
+
+	if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
 	{
-		HouseClass* pInvoker = pKiller ? pKiller->Owner : nullptr;
-		auto facing = pThis->PrimaryFacing.Current().GetFacing<256>();
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
+		auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
+		HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
 
-		int idxAnim = 0;
+		if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, true))
+			pAnimExt->Invoker = pThis;
 
-		if (!pTypeExt->DestroyAnim_Random.Get())
+		if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
+			pAnimExt->DeathUnitFacing = static_cast<short>(facing);
+
+		if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get())
 		{
-			if (pThis->Type->DestroyAnim.Count >= 8)
+			if (pThis->HasTurret())
 			{
-				idxAnim = pThis->Type->DestroyAnim.Count;
-				if (pThis->Type->DestroyAnim.Count % 2 == 0)
-					idxAnim *= static_cast<int>(facing / 256.0);
-			}
-		}
-		else
-		{
-			idxAnim = ScenarioGlobal->Random.RandomFromMax(pThis->Type->DestroyAnim.Count - 1);
-		}
-
-		if (AnimTypeClass* pAnimType = pThis->Type->DestroyAnim[idxAnim])
-		{
-			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
-			{
-				auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
-				auto pAnimExt = AnimExt::ExtMap.Find(pAnim);
-
-				if (AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner,true)) {
-					pAnimExt->Invoker = pThis;
-				}
-
-				if (pAnimTypeExt->CreateUnit_InheritDeathFacings.Get())
-					pAnimExt->DeathUnitFacing = static_cast<short>(facing);
-
-				if (pAnimTypeExt->CreateUnit_InheritTurretFacings.Get()) {
-					if (pThis->HasTurret()) {
-						pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
-					}
-				}
+				pAnimExt->DeathUnitTurretFacing = pThis->SecondaryFacing.Current();
 			}
 		}
 	}
@@ -320,7 +311,7 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 	GET(AnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xBC);
 
-	AnimTypeExt::ExtMap.LoadFromINI(pItem , pINI);
+	AnimTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 	return 0;
 }
 
@@ -340,7 +331,7 @@ DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
 	return 0x4282DC;
 }
 
-DEFINE_JUMP(LJMP,0x4282DC, 0x4282E2);
+DEFINE_JUMP(LJMP, 0x4282DC, 0x4282E2);
 
 DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
 {

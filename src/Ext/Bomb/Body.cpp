@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/Anim/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 BombExt::ExtContainer BombExt::ExtMap;
 BombClass* BombExt::BombTemp = nullptr;
@@ -12,8 +13,10 @@ DamageAreaResult __fastcall BombExt::DamageArea(CoordStruct* pCoord, int Damage,
 	const auto pBomb = BombExt::BombTemp;
 	const auto OwningHouse = pBomb->GetOwningHouse();
 	const auto nCoord = *pCoord;
+
 	const auto nResult = Map.DamageArea(nCoord, Damage, Source, Warhead, Warhead->Tiberium, OwningHouse);
 						 Map.FlashbangWarheadAt(Damage, Warhead, nCoord);
+
 	const auto pCell = Map.GetCellAt(nCoord);
 	if (auto pAnimType = Map.SelectDamageAnimation(Damage, Warhead, pCell ? pCell->LandType : LandType::Clear, nCoord)) {
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false)) {

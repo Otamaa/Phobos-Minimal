@@ -61,6 +61,7 @@
     <ClCompile Include="src\Ext\Bullet\Hooks.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Obstacles.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Bullet\Hooks.Scatter.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Shrapnel.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.TargetSnap.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Trajectory.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Targeting.MapZone.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Temporal\Body.cpp" />
@@ -721,7 +723,7 @@
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

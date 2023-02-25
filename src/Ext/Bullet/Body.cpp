@@ -102,15 +102,15 @@ void BulletExt::ExtData::InitializeLaserTrails()
 		return;
 
 	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	if (!pTypeExt)
+		return;
 
-	if (pTypeExt) {
-		const auto pOwner = pThis->Owner ? pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExt::FindCivilianSide());
+	const auto pOwner = pThis->Owner ? pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExt::FindCivilianSide());
 
-		for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
-			if (auto pLaserType = LaserTrailTypeClass::Array[idxTrail].get()) {
+	for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
+		if (auto pLaserType = LaserTrailTypeClass::Array[idxTrail].get()) {
 				this->LaserTrails.push_back(
 					std::make_unique<LaserTrailClass>(pLaserType, pOwner->LaserColor));
-			}
 		}
 	}
 }
@@ -169,7 +169,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 					if (!pNewProjTypeExt)
 					{
-						Debug::Log("Failed to find BulletTypeExt For [%s] ! \n", pWeaponOverride->Projectile->get_ID());
+						//Debug::Log("Failed to find BulletTypeExt For [%s] ! \n", pWeaponOverride->Projectile->get_ID());
 						return;
 					}
 

@@ -36,7 +36,7 @@ std::vector<int> SWTypeExt::WeightedRollsHandler(Valueable<double>& RandomBuffer
 	for (size_t i = 0; i < rollsSize; i++)
 	{
 		RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && RandomBuffer > rolls[i])
+		if (!rollOnce && RandomBuffer > abs(rolls[i]))
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
@@ -98,7 +98,7 @@ std::vector<int> SWTypeExt::ExtData::WeightedRollsHandler(std::vector<float>* ro
 	for (size_t i = 0; i < rollsSize; i++)
 	{
 		this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && this->RandomBuffer > (*rolls)[i])
+		if (!rollOnce && this->RandomBuffer > abs((*rolls)[i]))
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
@@ -150,56 +150,52 @@ void SWTypeExt::ExtData::ApplyLimboKill(HouseClass* pHouse)
 	if (this->LimboKill_IDs.empty())
 		return;
 
-	for (HouseClass* pTargetHouse : *HouseClass::Array())
-	{
-		if (!EnumFunctions::CanTargetHouse(this->LimboKill_Affected, pHouse, pTargetHouse))
-			continue;
-
-		for (const auto& pBuilding : pTargetHouse->Buildings)
-		{
-			const auto pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
-
-			if (pBuildingExt->LimboID <= -1)
-				continue;
-
-			if (this->LimboKill_IDs.Contains(pBuildingExt->LimboID)) {
-				BuildingExt::LimboKill(pBuilding);
-			}
-		}
+	for (HouseClass* pTargetHouse : *HouseClass::Array()) {
+		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTargetHouse, pHouse);
 	}
 }
 
 void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& cell)
 {
-	const auto pCell = Map[cell];
-	BuildingClass* pFirer = nullptr;
+	if (!this->Detonate_Weapon.isset() && !this->Detonate_Warhead.isset())
+		return;
 
-	for (auto const& pBld : pHouse->Buildings)
+	const auto pCell = Map[cell];
+	BuildingClass* const pFirer = *(std::find_if(pHouse->Buildings.begin(), pHouse->Buildings.end(),
+		[&](BuildingClass* const pBld) { return this->IsLaunchSiteEligible(cell, pBld, false); }));
+
+	CoordStruct nDest  = CoordStruct::Empty;
+	AbstractClass* pTarget = nullptr;
+
+	if (this->Detonate_AtFirer) {
+		if (!pFirer)
+			return;
+
+		pTarget = pFirer;
+		nDest = pFirer->GetCenterCoords();
+	}
+	else
 	{
-		if (this->IsLaunchSiteEligible(cell, pBld, false))
-		{
-			pFirer = pBld;
-			break;
-		}
+		pTarget = pCell;
+		nDest = pCell->GetCoords();
 	}
 
-	if (const auto pWeapon = this->Detonate_Weapon.Get(nullptr))
-		WeaponTypeExt::DetonateAt(pWeapon, pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(pWeapon->Damage)));
+	if (!Map.IsWithinUsableArea(nDest))
+		return;
+
+	if (const auto pWeapon = this->Detonate_Weapon.Get())
+		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(pWeapon->Damage)));
 	else
-		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pCell->GetCoords(), pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
+		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
 }
 
 bool SWTypeExt::ExtData::IsLaunchSiteEligible(const CellStruct& Coords, BuildingClass* pBuilding, bool ignoreRange) const
 {
 	if (!this->IsLaunchSite(pBuilding))
-	{
 		return false;
-	}
 
 	if (ignoreRange)
-	{
 		return true;
-	}
 
 	// get the range for this building
 	const auto& [minRange, maxRange] = this->GetLaunchSiteRange(pBuilding);
@@ -215,7 +211,6 @@ bool SWTypeExt::ExtData::IsLaunchSite(BuildingClass* pBuilding) const
 {
 	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
 	{
-
 		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
 			return false;
 

@@ -87,7 +87,7 @@ public:
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		Debug::Log("Processing Element From EventQueue ! \n");
+		//Debug::Log("Processing Element From EventQueue ! \n");
 
 		if(Stm
 			.Process(curIdx)
@@ -102,7 +102,7 @@ public:
 
 	bool Save(PhobosStreamWriter& Stm) const
 	{
-		Debug::Log("Processing Element From EventQueue ! \n");
+		//Debug::Log("Processing Element From EventQueue ! \n");
 		return
 			Stm
 			.Process(curIdx)

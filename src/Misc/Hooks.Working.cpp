@@ -26,7 +26,6 @@
 //	return 0;
 //}
 
-//TODO : retest for desync
 DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
 {
 	GET(AnimClass*, pAnim, EDI);
@@ -191,22 +190,6 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 	return 0x6A8E34;
 }
 
-DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	// I still don't know why jumpjet loco behaves differently for the moment
-	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
-	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
-	{
-		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
-		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
-		return 0x736C09;
-	}
-
-	return 0;
-}
-
 //size
 //#ifdef ENABLE_NEWHOOKS
 //Crash
@@ -341,7 +324,7 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 	GET(InfantryClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
 
-	if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence)
+	if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet)
 	{
 		auto pWHExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
 		auto const Iter = GetDeathBodies<false>(pThis->Type, pWHExt->DeadBodies);
@@ -677,24 +660,6 @@ DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
 	return Nothing;
 }
 
-DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExt::ApplyDrainMoney(pThis);
-	return 0x6FA1C5;
-}
-
-DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
-{
-	enum { SkipGameCode = 0x5F6D90 };
-
-	GET(ObjectClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pTechno, STACK_OFFSET(0x8, -0x4));
-	R->AL(TechnoExt::IsCrushable(pThis, pTechno));
-
-	return SkipGameCode;
-}
-
 DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
 {
 	GET(ObjectClass*, pObject, ESI);
@@ -713,6 +678,24 @@ DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_HOOK(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	TechnoExt::ApplyDrainMoney(pThis);
+	return 0x6FA1C5;
+}
+
+DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
+{
+	enum { SkipGameCode = 0x5F6D90 };
+
+	GET(ObjectClass*, pThis, ECX);
+	GET_STACK(TechnoClass*, pTechno, STACK_OFFSET(0x8, -0x4));
+	R->AL(TechnoExt::IsCrushable(pThis, pTechno));
+
+	return SkipGameCode;
 }
 
  //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)

@@ -193,9 +193,14 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 
 		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
 		{
-			if (pType->DebrisMaximums.GetItem(currentIndex) > 0)
+			if(currentIndex > pType->DebrisMaximums.Count)
+				break;
+
+			auto const nDebrisMaximum = pType->DebrisMaximums[currentIndex];
+
+			if (nDebrisMaximum > 0)
 			{
-				int amountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % pType->DebrisMaximums.GetItem(currentIndex) + 1;
+				int amountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % nDebrisMaximum + 1;
 				amountToSpawn = Math::LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 				totalSpawnAmount -= amountToSpawn;
 
@@ -203,7 +208,10 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 				{
 					if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
 						&nCoords, pThis->Owner))
-						VoxelAnimExt::ExtMap.Find(pVoxAnim)->Invoker = pThis;
+						{
+							if (auto pExt = VoxelAnimExt::ExtMap.FindOrAllocate(pVoxAnim))
+								pExt->Invoker = pThis;
+						}
 				}
 
 				if (totalSpawnAmount <= 0)
@@ -731,58 +739,61 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 //	if(pThis->InOpenToppedTransport && pThis->Transporter &&)
 //}
 
-//DEFINE_HOOK(0x6FDDCA, TechnoClass_Fire_Suicide, 0xA)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//
-//	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
-//		nullptr, true, false, pThis->Owner);
-//
-//	return 0x6FDE03;
-//}
-//
+DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
+{
+	GET(TechnoClass* const, pThis, ECX);
+	R->ECX(pThis->Health);
+	return R->Origin() + 0x6;
+}
 
-// Kill the vxl unit when flipped over
-//DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//
-//	auto const pFlipper = pThis->DirectRockerLinkedUnit;
-//	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
-//		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
-//
-//	return 0x70BCA4;
-//}
+DEFINE_HOOK(0x6FDDD4, TechnoClass_Fire_Suicide_UseCurrentHP , 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	R->ECX(pThis->Health);
+	return 0x6FDDDA;
+}
 
-//DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
-//{
-//	GET(TechnoClass* const, pRadio, EAX);
-//
-//	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
-//		nullptr, true, true, nullptr);
-//
-//	return 0x4425F4;
-//}
-//
-//DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
-//{
-//	GET(TechnoClass* const, pItem, ESI);
-//
-//	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
-//		nullptr, true, true, nullptr);
-//
-//	return 0x50150E;
-//}
+DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
 
-// Something unfinished for later
-//DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
-//{
-//	GET(FootClass* const, pOwner, ECX);
-//	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
-//		nullptr, true, false, nullptr);
-//	return 0x71880A;
-//}
-//718B1E
+	auto const pFlipper = pThis->DirectRockerLinkedUnit;
+	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
+
+	return 0x70BCA4;
+}
+
+DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+{
+	GET(TechnoClass* const, pRadio, EDI);
+
+	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x4425F4;
+}
+
+DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+{
+	GET(TechnoClass* const, pItem, ESI);
+
+	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x50150E;
+}
+
+DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+{
+	GET(FootClass* const, pOwner, ECX);
+
+	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, nullptr);
+
+	return 0x71880A;
+}
+
 
 DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
@@ -793,7 +804,7 @@ DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 }
 
 //template<typename T>
-//static bool NOINLINE InvalidateVector(DynamicVectorClass<T>& nVec, T pItem)
+//static bool InvalidateVector(DynamicVectorClass<T>& nVec, T pItem)
 //{
 //	auto datafirst = std::addressof(nVec.Items[0]);
 //	auto dataend = std::addressof(nVec.Items[nVec.Count]);
@@ -906,7 +917,7 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 		pAnim = nullptr;
 	}
 
-	std::exchange(pBld->MindControlledByAUnit, false);
+	pBld->MindControlledByAUnit = false;
 
 	return 0;
 }

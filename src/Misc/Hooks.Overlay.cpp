@@ -11,7 +11,7 @@
 #include <Utilities/Debug.h>
 
 #ifndef ENABLE_TOMSOnOVERLAYWRAPPER
-static NOINLINE int Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile)
+static int Isotile_LoadFile_Wrapper(IsometricTileTypeClass* pTile)
 {
 	bool available = false;
 	int file_size = 0;

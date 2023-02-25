@@ -243,7 +243,7 @@ public:
 	static void Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine, int count);
 	static void Stop_ForceJump_Countdown(TeamClass* pTeam);
 
-	static void NOINLINE ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
+	static void ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
 
 	static bool IsExtVariableAction(int action);
 	static void VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg);
@@ -260,11 +260,11 @@ public:
 	static void DistributedLoadOntoTransport(TeamClass* pTeam, int type);
 	static void FollowFriendlyByGroup(TeamClass* pTeam, int group);
 
-	static NOINLINE ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
+	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
-	static void NOINLINE CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewType);
-	static void NOINLINE ClearCurrentScript(TeamClass* pThis);
-	static NOINLINE ScriptTypeClass* GetFromAIScriptList(size_t nIdx);
+	static void CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewType);
+	static void ClearCurrentScript(TeamClass* pThis);
+	static ScriptTypeClass* GetFromAIScriptList(size_t nIdx);
 	static std::pair<bool, bool> CheckWeaponsTargetingCapabilites(WeaponTypeClass* pWeaponPrimary, WeaponTypeClass* pWeaponSecondary, bool agentMode);
 
 	static void ResetAngerAgainstHouses(TeamClass* pTeam);

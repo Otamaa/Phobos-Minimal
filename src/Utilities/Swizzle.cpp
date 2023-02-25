@@ -51,7 +51,7 @@ HRESULT PhobosSwizzle::RegisterChange(void* was, void* is)
 
 void PhobosSwizzle::ConvertNodes() const
 {
-	Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
+	//Debug::Log("PhobosSwizze :: Converting %u nodes.\n", this->Nodes.size());
 	void* lastFind(nullptr);
 	void* lastRes(nullptr);
 	for (auto it = this->Nodes.begin(); it != this->Nodes.end(); ++it)

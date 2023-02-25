@@ -7,7 +7,7 @@ TemporalExt::ExtContainer TemporalExt::ExtMap;
 
 template <typename T>
 void TemporalExt::ExtData::Serialize(T& Stm) {
-	Debug::Log("Processing Element From TemporalExt ! \n");
+	//Debug::Log("Processing Element From TemporalExt ! \n");
 
 	Stm
 		.Process(Weapon)

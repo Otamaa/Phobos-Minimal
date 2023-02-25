@@ -69,7 +69,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::ExtData::InitializeConstants()
 {
-	Debug::Log(__FUNCTION__" Called ! \n");
+	//Debug::Log(__FUNCTION__" Called ! \n");
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadTypeClass::AddDefaults();
 
@@ -405,13 +405,16 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 #pragma region Otamaa
 
 	//Allocate Default bullet
-	if (auto pBullet = BulletTypeClass::FindOrAllocate(DEFAULT_STR2))
-		Debug::Log("Default BulletType Allocated ! \n");
+	//if (
+		BulletTypeClass::FindOrAllocate(DEFAULT_STR2)
+	//	)
+	//	Debug::Log("Default BulletType Allocated ! \n")
+			;
 
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
 
 	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
-
+	this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
 	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall");
 
 	if (!this->CarryAll_LandAnim)
@@ -460,12 +463,12 @@ bool RulesExt::DetailsCurrentlyEnabled(int const minDetailLevel)
 
 void RulesExt::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 {
-	Debug::Log(__FUNCTION__" Called ! \n");
+	//Debug::Log(__FUNCTION__" Called ! \n");
 }
 
 void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
 {
-	Debug::Log(__FUNCTION__" Called ! \n");
+	//Debug::Log(__FUNCTION__" Called ! \n");
 }
 
 // =============================
@@ -474,7 +477,7 @@ void RulesExt::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
 template <typename T>
 void RulesExt::ExtData::Serialize(T& Stm)
 {
-	Debug::Log("Processing RulesExt ! \n");
+	//Debug::Log("Processing RulesExt ! \n");
 
 	Stm
 		.Process(Phobos::Config::ArtImageSwap)
@@ -560,6 +563,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->VeinholeParticle)
 		.Process(this->DefaultVeinParticle)
+		.Process(this->DefaultSquidAnim)
 		.Process(this->NukeWarheadName)
 		.Process(this->Building_PlacementPreview)
 		.Process(this->AI_AutoSellHealthRatio)
@@ -732,7 +736,7 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 
 DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 {
-	Debug::Log(__FUNCTION__" Called ! \n");
+	//Debug::Log(__FUNCTION__" Called ! \n");
 	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](const BuildingTypeClass* pType)
  {
 	 if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))

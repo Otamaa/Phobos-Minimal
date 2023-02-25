@@ -10,7 +10,7 @@ class BulletObstacleHelper
 {
 public:
 
-	static NOINLINE CellClass* GetObstacle(CellClass* pSourceCell, CellClass* pTargetCell, CellClass* pCurrentCell, CoordStruct currentCoords, AbstractClass const* const pSource,
+	static CellClass* GetObstacle(CellClass* pSourceCell, CellClass* pTargetCell, CellClass* pCurrentCell, CoordStruct currentCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, bool isTargetingCheck = false)
 	{
 		CellClass* pObstacleCell = nullptr;
@@ -24,7 +24,7 @@ public:
 		return pObstacleCell;
 	}
 
-	static NOINLINE CellClass* FindFirstObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
+	static CellClass* FindFirstObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, BulletTypeClass* pBulletType, bool isTargetingCheck = false)
 	{
 		if (SubjectToObstacles(pBulletType))
@@ -54,14 +54,14 @@ public:
 		return nullptr;
 	}
 
-	static NOINLINE CellClass* FindFirstImpenetrableObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
+	static CellClass* FindFirstImpenetrableObstacle(CoordStruct const& pSourceCoords, CoordStruct const& pTargetCoords, AbstractClass const* const pSource,
 		AbstractClass const* const pTarget, HouseClass* pOwner, WeaponTypeClass* pWeapon, bool isTargetingCheck = false)
 	{
 		// Does not currently need further checks.
 		return FindFirstObstacle(pSourceCoords, pTargetCoords, pSource, pTarget, pOwner, pWeapon->Projectile, isTargetingCheck);
 	}
 
-	static NOINLINE bool SubjectToObstacles(BulletTypeClass* pBulletType)
+	static bool SubjectToObstacles(BulletTypeClass* pBulletType)
 	{
 		const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pBulletType);
 		const bool subjectToTerrain = pBulletTypeExt->SubjectToLand.isset() || pBulletTypeExt->SubjectToWater.isset();
@@ -69,7 +69,7 @@ public:
 		return subjectToTerrain ? true : pBulletType->Level;
 	}
 
-	static NOINLINE bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType, bool isTargetingCheck)
+	static bool SubjectToTerrain(CellClass* pCurrentCell, BulletTypeClass* pBulletType, bool isTargetingCheck)
 	{
 		const bool isCellWater = (pCurrentCell->LandType == LandType::Water || pCurrentCell->LandType == LandType::Beach) && pCurrentCell->ContainsBridge();
 		const bool isLevel = pBulletType->Level ? pCurrentCell->IsOnFloor() : false;

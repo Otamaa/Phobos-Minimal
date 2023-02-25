@@ -13,6 +13,7 @@
 #include <Utilities/Helpers.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -384,7 +385,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->AttachTag ||
 		this->DirectionalArmor ||
 		this->ReloadAmmo != 0 ||
-		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
+		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0) ||
+		!this->LimboKill_IDs.empty()
 #ifdef COMPILE_PORTED_DP_FEATURES
 		|| (this->PaintBallData.Color != ColorStruct::Empty)
 #endif
@@ -463,6 +465,10 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 
 	if (!this->CanTargetHouse(pHouse, pTarget))
 		return;
+
+	if (!this->LimboKill_IDs.empty()) {
+		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
+	}
 
 	this->ApplyShieldModifiers(pTarget);
 

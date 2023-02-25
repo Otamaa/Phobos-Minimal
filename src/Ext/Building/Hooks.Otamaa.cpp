@@ -135,18 +135,21 @@ DEFINE_HOOK(0x443FF9,BuildingClass_ExitObject_Aircraft,0xA)
 #endif
 */
 
-DEFINE_HOOK(0x4409F4, BuildingClass_Put_Additionals, 0x6)
+DEFINE_HOOK(0x4409F4, BuildingClass_Put_Upgrade_Add, 0x6)
 {
-	GET(BuildingClass*, pUpgrades, ESI);
+	GET(BuildingClass*, pThis, ESI);
 	//GET(BuildingClass*, pToUpgrade, EDI);
 
-	if (auto const pOwwner = pUpgrades->Owner)
+	if (auto const pOwner = pThis->Owner)
 	{
-		if (auto const pInfantrySelfHeal = pUpgrades->Type->InfantryGainSelfHeal)
-			pOwwner->InfantrySelfHeal += pInfantrySelfHeal;
+		if (pOwner->Type->MultiplayPassive)
+			return 0x0;
 
-		if (auto const pUnitSelfHeal = pUpgrades->Type->UnitsGainSelfHeal)
-			pOwwner->UnitsSelfHeal += pUnitSelfHeal;
+		if (auto const pInfantrySelfHeal = pThis->Type->InfantryGainSelfHeal)
+			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+
+		if (auto const pUnitSelfHeal = pThis->Type->UnitsGainSelfHeal)
+			pOwner->UnitsSelfHeal += pUnitSelfHeal;
 	}
 
 	return 0;
@@ -180,22 +183,21 @@ DEFINE_HOOK(0x445A9F, BuildingClass_Remove_Upgrades, 0x8)
 			}
 		}
 
-		if (upgrade->IsThreatRatingNode)
-		{
+		if (upgrade->IsThreatRatingNode) {
 			Debug::Log("Removing Upgrade [%d][%s] With IsTreatRatingNode = true ! \n", i, upgrade->get_ID());
-			R->Stack(0x13, true);
 		}
 	}
 
+	R->Stack(0x13, true);
 	return 0x445AC6;
 }
 
-DEFINE_HOOK(0x44AAD3, BuildingClass_Mi_Selling_Upgrades, 0x9)
+DEFINE_HOOK(0x4516B1, BuildingClass_RemoveUpgrades_Add , 0x7)
 {
-	GET(BuildingTypeClass*, pUpgrades, ECX);
-	GET(BuildingClass*, pThis, EBP);
+	GET(BuildingTypeClass*, pUpgrades, EAX);
+	GET(BuildingClass*, pThis, ESI);
 
-	if (pUpgrades && pThis->Owner)
+	if (pThis->Owner)
 	{
 		if (auto const pInfantrySelfHeal = pUpgrades->InfantryGainSelfHeal)
 		{
@@ -221,6 +223,7 @@ DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 	GET(HouseClass*, pOld, EBX);
 	GET(HouseClass*, pNew, EBP);
 
+	// Somewhat upgrades were removed for AI after ownership chages
 	for (auto const& upgrade : pThis->Upgrades)
 	{
 		if (!upgrade)
@@ -232,7 +235,8 @@ DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 			if (pOld->InfantrySelfHeal < 0)
 				pOld->InfantrySelfHeal = 0;
 
-			pNew->InfantrySelfHeal += pInfantrySelfHeal;
+			if(!pNew->Type->MultiplayPassive)
+				pNew->InfantrySelfHeal += pInfantrySelfHeal;
 		}
 
 		if (auto const pUnitSelfHeal = upgrade->UnitsGainSelfHeal)
@@ -241,7 +245,8 @@ DEFINE_HOOK(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 			if (pOld->UnitsSelfHeal < 0)
 				pOld->UnitsSelfHeal = 0;
 
-			pNew->InfantrySelfHeal += pUnitSelfHeal;
+			if (!pNew->Type->MultiplayPassive)
+				pNew->InfantrySelfHeal += pUnitSelfHeal;
 		}
 	}
 

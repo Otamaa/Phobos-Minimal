@@ -251,6 +251,8 @@ public:
 		Nullable<WeaponTypeClass*> RevengeWeapon;
 		Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
 
+		Valueable<TargetZoneScanType> TargetZoneScanType;
+		Nullable<bool> GrapplingAttack;
 #pragma region Otamaa
 		Valueable<bool> FacingRotation_Disable;
 		Valueable<bool> FacingRotation_DisalbeOnEMP;
@@ -558,7 +560,7 @@ public:
 			, AlternateFLHs { }
 
 			, IronCurtain_SyncDeploysInto { }
-			, EVA_Sold { }
+			, EVA_Sold {}
 			, SellSound{ }
 
 			, MobileRefinery { false }
@@ -576,7 +578,8 @@ public:
 			, DeployFireWeapon {}
 			, RevengeWeapon {}
 			, RevengeWeapon_AffectsHouses { AffectedHouse::All }
-
+			, TargetZoneScanType { TargetZoneScanType::Same }
+			, GrapplingAttack { }
 #pragma region Otamaa
 			, FacingRotation_Disable { false }
 			, FacingRotation_DisalbeOnEMP { false }

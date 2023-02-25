@@ -9,6 +9,25 @@
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 
+void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
+{
+	if (!pAttackerHouse || !pTargetHouse)
+		return;
+
+	if (!EnumFunctions::CanTargetHouse(Affects.Get(), pAttackerHouse, pTargetHouse))
+		return;
+
+	for (const auto& pBuilding : pTargetHouse->Buildings)
+	{
+		const auto pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
+
+		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
+			continue;
+
+		BuildingExt::LimboKill(pBuilding);
+	}
+}
+
 void BuildingExt::ExtData::UpdatePoweredKillSpawns()
 {
 	auto const pThis = this->Get();
@@ -65,9 +84,9 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 			{
 				if (!pThis->Owner->IsCurrentPlayer() && !pThis->Owner->Type->MultiplayPassive)
 				{
-					auto nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
+					const double nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
 
-					if (nValue > 0.0f && pThis->GetHealthPercentage() <= nValue)
+					if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
 						pThis->Sell(-1);
 				}
 			}
@@ -500,6 +519,7 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 {
 	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
 
+
 	// BuildLimit check goes before creation
 	if (pType->BuildLimit > 0)
 	{
@@ -543,11 +563,14 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	if (pType->OrePurifier)
 		pOwner->NumOrePurifiers++;
 
-	if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
-		pOwner->InfantrySelfHeal += pInfantrySelfHeal;
+	if (!pOwner->Type->MultiplayPassive)
+	{
+		if (auto const pInfantrySelfHeal = pType->InfantryGainSelfHeal)
+			pOwner->InfantrySelfHeal += pInfantrySelfHeal;
 
-	if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
-		pOwner->UnitsSelfHeal += pUnitSelfHeal;
+		if (auto const pUnitSelfHeal = pType->UnitsGainSelfHeal)
+			pOwner->UnitsSelfHeal += pUnitSelfHeal;
+	}
 
 	// BuildingClass::Place is where Ares hooks secret lab expansion
 	// pTechnoBuilding->Place(false);

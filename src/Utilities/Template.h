@@ -222,6 +222,13 @@ public:
 		this->HasValue = false;
 	}
 
+	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
+	void Reset(Val ndefault) const
+	{
+		this->Value = std::move(ndefault); // set the value to args
+		this->HasValue = true;
+	}
+
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);

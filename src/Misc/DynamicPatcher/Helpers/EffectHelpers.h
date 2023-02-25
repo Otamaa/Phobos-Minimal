@@ -312,6 +312,9 @@ public:
 			pBolt->LineColor1 = type.Color1.Get();
 			pBolt->LineColor2 = type.Color2.Get();
 			pBolt->LineColor3 = type.Color3.Get();
+			pBolt->ZAdjust = 0;
+			pBolt->StartCoord = (sourcePos);
+			pBolt->EndCoord = (targetPos);
 			pBolt->Create(sourcePos, targetPos, 0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
 		}
 	}
@@ -339,6 +342,9 @@ public:
 
 	static void DrawParticle(ParticleSystemTypeClass* psType, CoordStruct& sourcePos, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct& targetPos, HouseClass* pOwnerHouse)
 	{
+		if(psType->BehavesLike == BehavesLike::Smoke)
+			sourcePos.Z += 100;
+
 		GameCreate<ParticleSystemClass>(psType, sourcePos, pTarget, pOwner, targetPos, pOwnerHouse);
 	}
 

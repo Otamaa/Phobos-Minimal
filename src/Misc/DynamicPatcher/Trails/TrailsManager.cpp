@@ -316,7 +316,7 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 		CoordStruct location = (pOwner)->Bounce.GetCoords();
 
 		for (auto const& pTrails : pExt->Trails) {
-			auto const pTechnoOwner = VoxelAnimExt::GetTechnoOwner(pOwner, pTypeExt->ExplodeOnWater);
+			auto const pTechnoOwner = VoxelAnimExt::GetTechnoOwner(pOwner);
 			auto const pHouseOwner = pTechnoOwner ? pTechnoOwner->GetOwningHouse() : pOwner->GetOwningHouse();
 			pTrails->DrawTrail(pHouseOwner, location, pTrails->FLH);
 		}

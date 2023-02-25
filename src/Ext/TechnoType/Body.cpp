@@ -267,7 +267,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
 	this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
-	this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumjetCrashRotate");
+	this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
 
 	this->DeployingAnim_AllowAnyDirection.Read(exINI, pSection, "DeployingAnim.AllowAnyDirection");
 	this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
@@ -354,6 +354,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
 	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
 	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+	this->TargetZoneScanType.Read(exINI, pSection, "TargetZoneScanType");
+
+	this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");
 
 #pragma region Otamaa
 	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
@@ -890,6 +893,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeployFireWeapon)
 		.Process(this->RevengeWeapon)
 		.Process(this->RevengeWeapon_AffectsHouses)
+		.Process(this->TargetZoneScanType)
+
+		.Process(this->GrapplingAttack)
 
 		.Process(this->PronePrimaryFireFLH)
 		.Process(this->ProneSecondaryFireFLH)

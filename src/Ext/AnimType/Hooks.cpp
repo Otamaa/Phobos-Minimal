@@ -112,7 +112,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
 
-bool NOINLINE DealDamage(AnimClass* pThis)
+bool DealDamage(AnimClass* pThis)
 {
 	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
 		return false;
@@ -200,19 +200,34 @@ bool NOINLINE DealDamage(AnimClass* pThis)
 }
 
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
-DEFINE_HOOK(0x424513, AnimClass_AI_Damage, 0x6)
+DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
 {
-	enum { SkipDamage = 0x424665, Continue = 0x42464C };
+	enum
+	{
+		SkipDamage = 0x424665,
+		CheckIsActive = 0x42464C,
+		SkipDamage2 = 0x42466B,
+		ReturnFinished = 0x424B42
+	
+	};
 
 	GET(AnimClass*, pThis, ESI);
 
-	if (!DealDamage(pThis))
-	{
+	R->EBX(pThis->Animation.Value);
+
+	if (!DealDamage(pThis)) {
 		R->EAX(pThis->Type);
 		R->EDI(0);
-		return SkipDamage;
+		R->ECX(pThis->Type->MiddleFrameIndex);
+		return SkipDamage2;
 	}
 
-	return Continue;
+	if (!pThis->Type)
+	{
+		Debug::Log("AnimClass_AI_Damage Anim[%x] Without Type pointer ! \n", pThis);
+		return ReturnFinished;
+	}
+
+	return CheckIsActive;
 }
 #endif

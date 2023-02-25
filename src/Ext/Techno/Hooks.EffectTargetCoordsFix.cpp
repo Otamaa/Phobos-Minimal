@@ -20,12 +20,15 @@ DEFINE_HOOK(0x70BCDC, TechnoClass_GetTargetCoords_BuildingFix, 0x6)
 		//auto const& nTargetCoord = pBuilding->Type->TargetCoordOffset;
 		//Debug::Log("__FUNCTION__ Building  Target [%s] with TargetCoord %d , %d , %d \n", pBuilding->get_ID(), nTargetCoord.X , nTargetCoord.Y , nTargetCoord.Z);
 		pBuilding->GetTargetCoords(nCoord);
-	} else {
-		pTarget->GetCenterCoords(nCoord);
-	}
 
-	R->EAX(nCoord);
-	return 0x70BCE6u;
+		R->EAX(nCoord);
+		return 0x70BCE6u;
+
+	}// else {
+	//	pTarget->GetCenterCoords(nCoord);
+	//}
+
+	return 0x0;
 }
 
 // Fix railgun target coordinates potentially differing from actual target coords.

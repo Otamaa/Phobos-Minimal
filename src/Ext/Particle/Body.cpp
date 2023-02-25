@@ -50,7 +50,7 @@ void ParticleExt::ExtData::InitializeConstants()
 template <typename T>
 void ParticleExt::ExtData::Serialize(T& Stm)
 {
-	Debug::Log("Processing Element From ParticleExt ! \n");
+	//Debug::Log("Processing Element From ParticleExt ! \n");
 
 	Stm
 		.Process(this->LaserTrails)

@@ -69,7 +69,7 @@ public:
 
 	static void Clear()
 	{
-		Debug::Log("%s Clearing Array Count [%d] ! \n", typeid(T).name(), Array.size());
+		//Debug::Log("%s Clearing Array Count [%d] ! \n", typeid(T).name(), Array.size());
 
 		if (!Array.empty())
 		{
@@ -100,15 +100,15 @@ public:
 			{
 				if (auto const pItem = FindOrAllocate(Phobos::readBuffer))
 				{
-					if (bDebug)
-						Debug::Log("%s Reading[%d] %s \"%s\".\n", typeid(T).name(), i, section, Phobos::readBuffer);
+					//if (bDebug)
+					//	Debug::Log("%s Reading[%d] %s \"%s\".\n", typeid(T).name(), i, section, Phobos::readBuffer);
 
 					pItem->LoadFromINI(pINI);
 				}
 				else
 				{
-					if (bDebug)
-						Debug::Log("%s Error Creating[%d] %s \"%s\"!\n", typeid(T).name(), i, section, Phobos::readBuffer);
+					//if (bDebug)
+						//Debug::Log("%s Error Creating[%d] %s \"%s\"!\n", typeid(T).name(), i, section, Phobos::readBuffer);
 				}
 			}
 		}

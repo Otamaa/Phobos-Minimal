@@ -38,6 +38,7 @@
 #include <StringTable.h>
 #include <Helpers/String.h>
 #include <PCX.h>
+#include <Leptons.h>
 
 #include <algorithm>
 #include <cstring>
@@ -116,37 +117,6 @@ public:
 
 private:
 	SHPStruct* value { nullptr };
-};
-
-struct Leptons {
-	Leptons() = default;
-	//explicit Leptons(int value) noexcept : value(value) {}
-	explicit Leptons(const int value) noexcept : value(value) { }
-	explicit Leptons(double velue) noexcept : value(Game::F2I(velue * 256.0)){}
-
-	operator int() const
-	{ return this->value; }
-
-	inline unsigned long ToLong() const
-	{ return static_cast<std::make_unsigned<long>::type> (this->value); }
-
-	inline double ToDouble() const
-	{ return static_cast<double>(this->value / 256.0); }
-
-	//These were TS calculatio !
-	//inline int ToCell() const
-	//{
-	//	if (this->value >= (256 / 2))
-	//	{
-	//		return (this->value / 256) + 1;
-	//	}
-	//	return (this->value / 256);
-	//}
-
-	//inline int ToPixel()
-	//{ return (((int)(signed short)this->value * 60) + (256 / 2) - ((this->value < 0) ? (256 - 1) : 0)) / 256; }
-
-	int value{ 0 };
 };
 
 class CustomPalette {

@@ -275,7 +275,7 @@ public:
 	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
 	static double GetCurrentSpeedMultiplier(FootClass* pThis);
 	static double GetROFMult(TechnoClass const* pTech);
-	static void FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
+	static bool FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType);
 	static bool ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
@@ -295,40 +295,15 @@ public:
 
 	static std::pair<WeaponTypeClass*, int> GetDeployFireWeapon(TechnoClass* pThis , AbstractClass* pTarget);
 
-	static NOINLINE bool IsChronoDelayDamageImmune(FootClass* pThis);
-	static NOINLINE int GetInitialStrength(TechnoTypeClass* pType, int nHP);
+	static bool IsChronoDelayDamageImmune(FootClass* pThis);
+	static int GetInitialStrength(TechnoTypeClass* pType, int nHP);
 
-	struct Helper {
-		template<bool CheckHouse ,bool CheckVisibility>
-		static NOINLINE std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget)
-		{
-
-			HouseClass* pHouseOut = pTarget->GetOwningHouse();
-			TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
-
-			bool bIsVisible = true;
-			if constexpr (CheckVisibility)
-				bIsVisible = pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
-
-			if (pTarget->IsDisguised() && !bIsVisible) {
-
-				if constexpr (CheckHouse) {
-					if(const auto pDisguiseHouse = pTarget->GetDisguiseHouse(false))
-						if(pDisguiseHouse->Type)
-							pHouseOut = pDisguiseHouse;
-				}
-
-				if(const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->GetDisguise(false)))
-					pTypeOut = pDisguiseType;
-			}
-
-			return { pTypeOut, pHouseOut };
-		}
-
-	};
+	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility);
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
 	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select);
 	static bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select);
 	static CoordStruct GetPutLocation(CoordStruct current, int distance);
+
+	static bool AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
 };

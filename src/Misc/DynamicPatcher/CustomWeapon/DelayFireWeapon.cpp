@@ -19,7 +19,10 @@ bool DelayFireWeapon::NotDone() const
 }
 
 bool DelayFireWeapon::Load(PhobosStreamReader& Stm, bool RegisterForChange)
-{ Debug::Log("Loading Element From DelayFireManager ! \n");  return Serialize(Stm); }
+{
+  //Debug::Log("Loading Element From DelayFireManager ! \n");
+  return Serialize(Stm); 
+}
 
 bool DelayFireWeapon::Save(PhobosStreamWriter& Stm)
 { return Serialize(Stm); }

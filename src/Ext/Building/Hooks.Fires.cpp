@@ -16,10 +16,9 @@ namespace DamageFireAnims
 {
 	void HandleRemove(BuildingClass* pThis) {
 		auto const pExt = BuildingExt::ExtMap.Find(pThis);
-
 		for (auto& nFires : pExt->DamageFireAnims) {
 			if (nFires) {
-				nFires->~AnimClass();
+				nFires->UnInit();
 				nFires = nullptr;
 			}
 		}
@@ -28,7 +27,7 @@ namespace DamageFireAnims
 	void HandleRemove(BuildingExt::ExtData* pExt) {
 		for (auto& nFires : pExt->DamageFireAnims) {
 			if (nFires) {
-				nFires->~AnimClass();
+				nFires->UnInit();
 				nFires = nullptr;
 			}
 		}

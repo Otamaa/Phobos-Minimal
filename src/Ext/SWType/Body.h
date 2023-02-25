@@ -50,7 +50,7 @@ public:
 		Nullable<WarheadTypeClass*> Detonate_Warhead;
 		Nullable<WeaponTypeClass*> Detonate_Weapon;
 		Nullable<int> Detonate_Damage;
-
+		Valueable<bool> Detonate_AtFirer;
 
 
 		#pragma region Otamaa
@@ -98,6 +98,7 @@ public:
 			, Detonate_Warhead {}
 			, Detonate_Weapon {}
 			, Detonate_Damage {}
+			, Detonate_AtFirer { false }
 
 			, GClock_Shape { }
 			, GClock_Transculency { }

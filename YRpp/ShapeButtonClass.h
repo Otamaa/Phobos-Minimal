@@ -43,14 +43,14 @@ public:
 	//Constructors
 	ShapeButtonClass() noexcept
 		:ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DCF0); }
+
 	ShapeButtonClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
 		: ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DD30); }
 
 protected:
 	explicit __forceinline ShapeButtonClass(noinit_t)  noexcept
 		: ToggleClass(noinit_t())
-	{
-	}
+	{ }
 
 	//Properties
 public:
@@ -59,7 +59,7 @@ public:
 	int FlashDelay;
 	int FlashCounter;
 	bool UseFlash; // ReflectButtonState
-	Point2D DrawPosition;
+	DECLARE_PROPERTY(Point2D, DrawPosition);
 	bool UseSidebarSurface;
 	ConvertClass* Drawer;
 	bool IsDrawn;

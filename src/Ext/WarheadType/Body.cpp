@@ -84,11 +84,14 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(TechnoClass* pVicti
 
 	const auto multiply = pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
-	*pArgs->Damage += std::clamp((static_cast<int>((*pArgs->Damage + add) * multiply) - *pArgs->Damage),
+	auto nAddDamage = add * multiply;
+	if (this->RecalculateDistanceDamage_ProcessVerses)
+		nAddDamage *= GeneralUtils::GetWarheadVersusArmor(pArgs->WH, pThisType->Armor);
+
+	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
 		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
 
-	if (this->RecalculateDistanceDamage_ProcessVerses)
-		*pArgs->Damage *= GeneralUtils::GetWarheadVersusArmor(pArgs->WH, pThisType->Armor);
+	*pArgs->Damage += nEligibleAddDamage;
 
 	if (this->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
 	{
@@ -319,6 +322,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
 	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
+	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
 	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
 	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
 
@@ -431,7 +435,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 #pragma region Otamaa
 
-	this->SquidSplash.Read(exINI, pSection, "Squid.SplashAnims");
+	this->SquidSplash.Read(exINI, pSection, "Parasite.SplashAnims");
 	this->TemporalExpiredAnim.Read(exINI, pSection, "Temporal.ExpiredAnim");
 	this->TemporalDetachDamageFactor.Read(exINI, pSection, "Temporal.ExpiredDamageFactor");
 	this->TemporalExpiredApplyDamage.Read(exINI, pSection, "Temporal.ExpiredApplyDamage");
@@ -451,9 +455,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
-	this->Parasite_GrappleAnimIndex.Read(exINI, pSection, "Parasite.GrappleAnim");
+	this->Parasite_GrappleAnim.Read(exINI, pSection, "Parasite.GrappleAnim");
 	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
 	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
+	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
+	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
 	auto ReadHitAnim = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -556,6 +562,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->AttachedEffect.Read(exINI);
 	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
+	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
+	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
+
 }
 
 template <typename T>
@@ -581,6 +590,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RemoveDisguise)
 		.Process(this->RemoveMindControl)
 		.Process(this->AnimList_PickRandom)
+		.Process(this->AnimList_ShowOnZeroDamage)
 		.Process(this->DecloakDamagedTargets)
 		.Process(this->ShakeIsLocal)
 
@@ -680,9 +690,11 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(TemporalExpiredApplyDamage)
 		.Process(TemporalDetachDamageFactor)
 		.Process(Parasite_DisableRocking)
-		.Process(Parasite_GrappleAnimIndex)
+		.Process(Parasite_GrappleAnim)
 		.Process(Parasite_ParticleSys)
 		.Process(Parasite_TreatInfantryAsVehicle)
+		.Process(Parasite_InvestationWP)
+		.Process(Parasite_Damaging_Chance)
 
 		.Process(Flammability)
 		.Process(Launchs)
@@ -725,7 +737,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->AttachedEffect)
 		.Process(this->DetonatesWeapons)
-
+		.Process(this->LimboKill_IDs)
+		.Process(this->LimboKill_Affected)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

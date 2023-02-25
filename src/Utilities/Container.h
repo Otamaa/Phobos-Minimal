@@ -77,6 +77,10 @@ public:
 		, Initialized { InitState::Blank }
 	{ }
 
+	const InitState GetInitStatus() const {
+		return Initialized;
+	}
+
 	Extension(const Extension& other) = delete;
 
 	void operator=(const Extension& RHS) = delete;
@@ -254,8 +258,8 @@ public:
 
 		if (extension_type_ptr val = new extension_type(key))
 		{
-			val->EnsureConstanted();
 			this->SetExtAttribute(key,val);
+			val->EnsureConstanted();
 			return val;
 		}
 
@@ -312,7 +316,7 @@ public:
 
 	void PrepareStream(base_type_ptr key, IStream* pStm)
 	{
-		Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
+		//Debug::Log("[PrepareStream] Next is %p of type '%s'\n", key, this->Name.data());
 		this->SavingObject = key;
 		this->SavingStream = pStm;
 	}
@@ -321,14 +325,14 @@ public:
 	{
 		if (this->SavingObject && this->SavingStream)
 		{
-			Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
+			//Debug::Log("[SaveStatic] Saving object %p as '%s'\n", this->SavingObject, this->Name.data());
 			if (!this->Save(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!\n");
 		}
 		else
 		{
-			Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
+			//Debug::Log("[SaveStatic] Object or Stream not set for '%s': %p, %p\n",
+			//	this->Name.data(), this->SavingObject, this->SavingStream);
 		}
 
 		this->SavingObject = nullptr;
@@ -339,14 +343,14 @@ public:
 	{
 		if (this->SavingObject && this->SavingStream)
 		{
-			Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
+			//Debug::Log("[LoadStatic] Loading object %p as '%s'\n", this->SavingObject, this->Name.data());
 			if (!this->Load(this->SavingObject, this->SavingStream))
 				Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!\n", this->SavingObject, this->Name.data());
 		}
 		else
 		{
-			Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
-				this->Name.data(), this->SavingObject, this->SavingStream);
+			//Debug::Log("[LoadStatic] Object or Stream not set for '%s': %p, %p\n",
+			//	this->Name.data(), this->SavingObject, this->SavingStream);
 		}
 
 		this->SavingObject = nullptr;
@@ -371,7 +375,7 @@ protected:
 		// this really shouldn't happen
 		if (!key)
 		{
-			Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
+			//Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
 
@@ -380,7 +384,7 @@ protected:
 
 		if (!buffer)
 		{
-			Debug::Log("[SaveKey] Could not find value.\n");
+			//Debug::Log("[SaveKey] Could not find value.\n");
 			return nullptr;
 		}
 
@@ -397,11 +401,11 @@ protected:
 		// save the block
 		if (!saver.WriteBlockToStream(pStm))
 		{
-			Debug::Log("[SaveKey] Failed to save data.\n");
+			//Debug::Log("[SaveKey] Failed to save data.\n");
 			return nullptr;
 		}
 
-		Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+		//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
 
 		return buffer;
 	}
@@ -411,7 +415,7 @@ protected:
 		// this really shouldn't happen
 		if (!key)
 		{
-			Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+			//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
 			return nullptr;
 		}
 
@@ -421,9 +425,9 @@ protected:
 
 		#ifdef aaaa
 		if (buffer) {
-			Debug::Log("[LoadKey] Found an [%x]Ext For [%s - %x] ! \n" , buffer , Name.data() , key);
+			//Debug::Log("[LoadKey] Found an [%x]Ext For [%s - %x] ! \n" , buffer , Name.data() , key);
 		} else {
-			Debug::Log("[LoadKey] Could not find value For [%s - %x] Allocating !\n", Name.data(), key);
+			//Debug::Log("[LoadKey] Could not find value For [%s - %x] Allocating !\n", Name.data(), key);
 			buffer = this->Allocate(key);
 		}
 		#endif
@@ -431,7 +435,7 @@ protected:
 		PhobosByteStream loader { 0 };
 		if (!loader.ReadBlockFromStream(pStm))
 		{
-			Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+			//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
 			return nullptr;
 		}
 

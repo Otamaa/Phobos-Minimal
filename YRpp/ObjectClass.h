@@ -344,7 +344,7 @@ public:
 	const char* get_ID() const
 	{
 		auto const pType = this->GetType();
-		return pType ? pType->get_ID() : nullptr;
+		return pType ? pType->get_ID() : GameStrings::NoneStr();
 	}
 
 //Constructor NEVER CALL IT DIRECTLY

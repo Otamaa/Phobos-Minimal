@@ -9,7 +9,7 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 
-static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> NOINLINE GetWeaponAndFLH(TechnoClass* pThis, ExtraFireData nExtraFireData, int nWeaponIdx)
+static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> GetWeaponAndFLH(TechnoClass* pThis, ExtraFireData nExtraFireData, int nWeaponIdx)
 {
 	auto const pType = pThis->GetTechnoType();
 

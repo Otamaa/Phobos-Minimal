@@ -23,13 +23,6 @@
 
 #pragma region Otamaa
 
-DEFINE_HOOK(0x46889D, BulletClass_Unlimbo_FlakScatter_SetTargetCoords, 0x8)
-{
-	GET(BulletClass*, pThis, EBX);
-	pThis->TargetCoords = { R->EAX<int>(),R->EDX<int>(),R->ESI<int>() };
-	return 0x0;
-}
-
 DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 {
 	GET_STACK(BulletClass*, pThis, STACK_OFFS(0xF8, 0xE4));
@@ -249,23 +242,31 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExt::FindCivilianSide());
 	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
 	CoordStruct nCoords { 0,0,0 };
+	auto const& nDebrisMaximums = pWarhead->DebrisMaximums;
+	auto const& nDebrisTypes = pWarhead->DebrisTypes;
 
-	if (pWarhead->DebrisTypes.Count > 0 && pWarhead->DebrisMaximums.Count > 0)
+	if (nDebrisTypes.Count > 0 && nDebrisMaximums.Count > 0)
 	{
 		nCoords = pThis->GetCoords();
-		for (int nCurIdx = 0; nCurIdx < pWarhead->DebrisTypes.Count; ++nCurIdx)
+		for (int nCurIdx = 0; nCurIdx < nDebrisTypes.Count; ++nCurIdx)
 		{
-			if (pWarhead->DebrisMaximums[nCurIdx] > 0)
+			if(nCurIdx > nDebrisMaximums.Count)
+				break;
+
+			auto const nDebrisMaximum = nDebrisMaximums[nCurIdx];
+			if (nDebrisMaximum > 0)
 			{
-				int nAmountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % pWarhead->DebrisMaximums[nCurIdx] + 1;
+				int nAmountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % nDebrisMaximum + 1;
 				nAmountToSpawn = Math::LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
 				nTotalSpawn -= nAmountToSpawn;
 
 				for (; nAmountToSpawn > 0; --nAmountToSpawn)
 				{
-					if (auto const pVoxelAnimType = pWarhead->DebrisTypes[nCurIdx])
-						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner))
-							VoxelAnimExt::ExtMap.Find(pVoxAnim)->Invoker = pThis->Owner;
+					if (auto const pVoxelAnimType = nDebrisTypes[nCurIdx])
+						if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner)) {
+							if (auto pVoxelAnimExt = VoxelAnimExt::ExtMap.Find(pVoxAnim))
+								pVoxelAnimExt->Invoker = pThis->Owner;
+						}
 				}
 			}
 
@@ -277,7 +278,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 		}
 	}
 
-	if (!pWarhead->DebrisTypes.Count && (nTotalSpawn > 0))
+	if (!nDebrisTypes.Count && (nTotalSpawn > 0))
 	{
 		const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 		const auto AnimDebris = pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris);

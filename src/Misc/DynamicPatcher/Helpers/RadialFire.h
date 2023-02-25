@@ -51,7 +51,10 @@ struct RadialFireHelper
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ Debug::Log("Loading Element From RadialFire ! \n");  return Serialize(Stm); }
+	{
+		// Debug::Log("Loading Element From RadialFire ! \n"); 
+	 	return Serialize(Stm);
+	 }
 
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }

@@ -26,6 +26,10 @@ public:
 
 	//LocomotionClass
 	virtual int Size() override { return 0x70; }
+	
+	void Stop_Drive() const JMP_THIS(0x4B0DA0);
+	void Start_Drive(CoordStruct* pWhere) const JMP_THIS(0x4B0DF0);
+
 	//Constructor
 	DriveLocomotionClass()
 		: DriveLocomotionClass(noinit_t())
