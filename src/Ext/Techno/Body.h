@@ -36,7 +36,7 @@ public:
 	//static constexpr size_t ExtOffset = 0x4FC;
 	static constexpr size_t ExtOffset = 0x34C;
 
-	class ExtData final : public Extension<TechnoClass>
+	class ExtData : public Extension<TechnoClass>
 	{
 	public:
 		TechnoTypeClass* Type;
@@ -252,7 +252,7 @@ public:
 	static bool HasAvailableDock(TechnoClass* pThis);
 
 	static Matrix3D GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey = nullptr);
-	static Matrix3D TransformFLHForTurret(TechnoClass* pThis, const Matrix3D& mtx, bool isOnTurret);
+	static void TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret);
 	static Matrix3D GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret);
 	static CoordStruct GetFLHAbsoluteCoordsB(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret);
 	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool turretFLH = false , const CoordStruct& Overrider = CoordStruct::Empty);

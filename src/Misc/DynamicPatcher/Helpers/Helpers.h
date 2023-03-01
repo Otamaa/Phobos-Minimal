@@ -300,7 +300,7 @@ public:
 		return matrix3D;
 	}
 
-	static const Matrix3D& RotateMatrix3D(const Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame)
+	static const void RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame)
 	{
 		if (isOnTurret)
 		{
@@ -325,13 +325,13 @@ public:
 			matrix3D.RotateZ(-matrix3D.GetZRotation());
 			matrix3D.RotateZ(static_cast<float>(pTechno->PrimaryFacing.Next().GetRadian()));
 		}
-		return matrix3D;
 	}
 
-	static Vector3D<float> GetFLHOffset(const Matrix3D& matrix3D, CoordStruct& flh)
+	static Vector3D<float> GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh)
 	{
 		matrix3D.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
-		Vector3D<float> result = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>{0.0f, 0.0f, 0.0f });
+		Vector3D<float> result;
+		Matrix3D::MatrixMultiply(result, &matrix3D, Vector3D<float>::Empty);
 		result.Y *= -1;
 		return result;
 	}
@@ -370,7 +370,7 @@ public:
 
 		if (flh)
 		{
-			const Matrix3D& matrix3D = GetMatrix3D(pTechno);
+			Matrix3D matrix3D = GetMatrix3D(pTechno);
 			matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
 			RotateMatrix3D(matrix3D, pTechno, isOnTurret, nextFrame);
 			tempFLH.Y *= flipY;
@@ -401,6 +401,7 @@ public:
 			matrix3D.RotateZ(static_cast<float>(dir.GetRadian()));
 			return GetFLHOffset(matrix3D, flh);
 		}
+
 		return Vector3D<float>::Empty;
 	}
 
@@ -408,7 +409,7 @@ public:
 	{
 		CoordStruct bulletFLH { 1, 0, 0 };
 		DirStruct bulletDir = Point2Dir(sourcePos, targetPos);
-		Vector3D<float> bulletV = GetFLHAbsoluteOffset(bulletFLH, bulletDir, CoordStruct::Empty);
+		const Vector3D<float> bulletV = GetFLHAbsoluteOffset(bulletFLH, bulletDir, CoordStruct::Empty);
 		return { static_cast<double>(bulletV.X) , static_cast<double>(bulletV.Y) , static_cast<double>(bulletV.Z) };
 	}
 
@@ -417,9 +418,8 @@ public:
 		if (flh)
 		{
 			Vector3D<float> offset = GetFLHAbsoluteOffset(flh, dir, turretOffset);
-			source.X += static_cast<int>(offset.X);
-			source.Y += static_cast<int>(offset.Y);
-			source.Z += static_cast<int>(offset.Z);
+			source += { static_cast<int>(offset.X), static_cast<int>(offset.Y), static_cast<int>(offset.Z) };
+			//source += { std::lround(offset.X), std::lround(offset.Y), std::lround(offset.Z) };
 		}
 
 		return source;
@@ -698,15 +698,15 @@ public:
 	{
 		int index = 0;
 		int p = ScenarioGlobal->Random.RandomFromMax(maxValue);
-		for(const auto& target : targetPad)
-		{
-			Point2D tKey = target.first;
+
+		for(const auto& [tKey, idx] : targetPad) {
 			if (p >= tKey.X && p < tKey.Y)
 			{
-				index = target.second;
+				index = idx;
 				break;
 			}
 		}
+
 		return index;
 	}
 

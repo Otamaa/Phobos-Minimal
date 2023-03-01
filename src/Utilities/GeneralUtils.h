@@ -271,7 +271,7 @@ public:
 		if(!pIn)
 			return nullptr;
 
-		CellStruct cell = CellClass::Coord2Cell(InOut);
+		CellStruct const cell = CellClass::Coord2Cell(InOut);
 		std::vector<CellStruct> nDummy {};
 		GeneralUtils::AdjacentCellsInRange(nDummy ,nSpread);
 		int const max = (int)nDummy.size();
@@ -344,7 +344,7 @@ public:
 
 
 	//Point2Dir
-	static const DirStruct& Desired_Facing(int x1, int y1, int x2, int y2)
+	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir {};
 		unsigned short value = static_cast<short>(Game::F2I((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
@@ -352,23 +352,22 @@ public:
 		return dir;
 	}
 
-	static const DirStruct& Desired_Facing(const Point2D &point1, const Point2D &point2)
+	static const DirStruct Desired_Facing(const Point2D &point1, const Point2D &point2)
 	{
 		return Desired_Facing(point1.X, point1.Y, point2.X, point2.Y);
 	}
 
-	static const DirStruct& Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
+	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
 		auto angle = Math::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
 		auto theta = angle * (180 / Math::Pi);
-
 		return DirStruct(theta);
 	}
 
-	static const Leptons& PixelToLeptons(int pixel)
+	static const Leptons PixelToLeptons(int pixel)
 	{ return Leptons((((pixel * 256) + (60 / 2) - ((pixel < 0) ? (60 - 1) : 0)) / 60)); }
 
-	static const Leptons& DistanceToLeptons(int distance)
+	static const Leptons DistanceToLeptons(int distance)
 	{ return Leptons(distance * 256); }
 
 	//https://noobtuts.com/cpp/compare-float-values

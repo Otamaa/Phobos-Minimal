@@ -2,7 +2,7 @@
 #include <InfantryClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 class InfantryExt
@@ -10,7 +10,7 @@ class InfantryExt
 public:
 	static constexpr size_t Canary = 0xACCAAAAA;
 	using base_type = InfantryClass;
-	static constexpr size_t ExtOffset = 0x6E0;
+	//static constexpr size_t ExtOffset = 0x6E0;
 
 	class ExtData final : public Extension<base_type>
 	{

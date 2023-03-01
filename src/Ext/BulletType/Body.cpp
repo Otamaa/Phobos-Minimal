@@ -116,6 +116,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Splits_Range.Read(exINI, pSection, "Splits.TechnoRange");
 	this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
 	this->Splits_TargetingUseVerses.Read(exINI, pSection ,"Splits.TargetingUseVerses");
+	this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
 
 	if (!pArtInI->GetSection(pArtSection))
 		pArtSection = pSection;
@@ -193,6 +194,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Splits_Range)
 		.Process(this->Splits_RandomCellUseHarcodedRange)
 		.Process(this->Splits_TargetingUseVerses)
+		.Process(this->Splits_FillRemainingClusterWithRandomcells)
 		.Process(this->BounceAmount)
 		.Process(this->BounceHitWeapon)
 		.Process(this->BounceOnTerrain)
@@ -319,19 +321,19 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 }
 
 #ifndef ENABLE_NEWEXT
-DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
-DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
-DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)
-{
-	GET(BulletTypeClass*, pBulletType, EAX);
-	R->CL(BulletTypeExt::ExtMap.Find(pBulletType)->IsScalable.Get());
-	return 0x741433;
-}
-
-DEFINE_HOOK(0x4685EC, BulletClass_Detach_Scalable, 0x6)
-{
-	GET(BulletTypeClass*, pBulletType, ECX);
-	auto pExt = BulletTypeExt::ExtMap.Find(pBulletType);
-	return pExt && pExt->IsScalable.Get() ? 0x4685F4 : 0x46865F;
-}
+//DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
+//DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
+//DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)
+//{
+//	GET(BulletTypeClass*, pBulletType, EAX);
+//	R->CL(BulletTypeExt::ExtMap.Find(pBulletType)->IsScalable.Get());
+//	return 0x741433;
+//}
+//
+//DEFINE_HOOK(0x4685EC, BulletClass_Detach_Scalable, 0x6)
+//{
+//	GET(BulletTypeClass*, pBulletType, ECX);
+//	auto pExt = BulletTypeExt::ExtMap.Find(pBulletType);
+//	return pExt && pExt->IsScalable.Get() ? 0x4685F4 : 0x46865F;
+//}
 #endif

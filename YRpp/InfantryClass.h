@@ -77,8 +77,10 @@ public:
 	bool           Crawling;
 	bool           IsZoneCheat; //0x6DC
 	bool           _WasSelected; //0x6DD
+	PROTECTED_PROPERTY(BYTE, unused_6DE[2]);
 	DWORD          unknown_6E0;
 	bool           ShouldDeploy;
+	PROTECTED_PROPERTY(BYTE, unused_6E5[3]);
 	LandType            _OnLand; //6E8
 	PROTECTED_PROPERTY(DWORD, unused_6EC); //??
 };

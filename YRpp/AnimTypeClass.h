@@ -155,7 +155,7 @@ public:
 	bool Reverse;
 	bool Shadow;
 	bool PsiWarning;
-	DWORD ShouldFogRemove;
+	bool ShouldFogRemove;
 };
 //#pragma pack(pop)
 static_assert(sizeof(AnimTypeClass) == (0x378), "Invalid size.");

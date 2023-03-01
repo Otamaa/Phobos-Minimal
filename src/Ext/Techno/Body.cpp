@@ -1311,8 +1311,8 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Step 4: apply FLH offset
 	mtx.Translate(static_cast<float>(pCoord.X), static_cast<float>(pCoord.Y), static_cast<float>(pCoord.Z));
 
-	Vector3D<float> result = Matrix3D::MatrixMultiply(mtx, Vector3D<float>::Empty);
-
+	Vector3D<float> result {};
+	Matrix3D::MatrixMultiply(result , &mtx, Vector3D<float>::Empty);
 	// Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
 
@@ -1997,7 +1997,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	}
 }
 
-Matrix3D TechnoExt::TransformFLHForTurret(TechnoClass* pThis, const Matrix3D& mtx, bool isOnTurret)
+void TechnoExt::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret)
 {
 	auto const pType = pThis->GetTechnoType();
 
@@ -2017,25 +2017,23 @@ Matrix3D TechnoExt::TransformFLHForTurret(TechnoClass* pThis, const Matrix3D& mt
 
 		mtx.RotateZ(angle);
 	}
-
-	return mtx;
 }
 
 Matrix3D TechnoExt::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
 {
 	Matrix3D nMTX = TechnoExt::GetTransform(abstract_cast<FootClass*>(pThis));
-	Matrix3D mtx = TechnoExt::TransformFLHForTurret(pThis, nMTX, isOnTurret);
+	TechnoExt::TransformFLHForTurret(pThis, nMTX, isOnTurret);
 
 	// apply FLH offset
-	mtx.Translate((float)nCoord.X, (float)nCoord.Y, (float)nCoord.Z);
+	nMTX.Translate((float)nCoord.X, (float)nCoord.Y, (float)nCoord.Z);
 
-	return mtx;
+	return nMTX;
 }
 
 CoordStruct TechnoExt::GetFLHAbsoluteCoordsB(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
 {
 	Vector3D<float> result = Matrix3D::MatrixMultiply(
-		TechnoExt::GetFLHMatrix(pThis, nCoord, isOnTurret), Vector3D<float>::Empty);
+	TechnoExt::GetFLHMatrix(pThis, nCoord, isOnTurret), Vector3D<float>::Empty);
 
 	// Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
@@ -2052,40 +2050,35 @@ void TechnoExt::UpdateSharedAmmo(TechnoClass* pThis)
 	if (!pThis)
 		return;
 
-	if (const auto pType = pThis->GetTechnoType())
-	{
-		if (pType->OpenTopped && pThis->Passengers.NumPassengers > 0)
-		{
-			const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pType = pThis->GetTechnoType();
 
-			{
-				if (pExt->Ammo_Shared && pType->Ammo > 0)
-				{
-					auto passenger = pThis->Passengers.FirstPassenger;
+	if (!pType->OpenTopped || !pThis->Passengers.NumPassengers)
+		return;
 
-					do
-					{
-						TechnoTypeClass* passengerType = passenger->GetTechnoType();
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-						if (TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared.Get())
-						{
-							if (pExt->Ammo_Shared_Group.Get() < 0 || pExt->Ammo_Shared_Group.Get() == TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared_Group.Get())
-							{
-								if (pThis->Ammo > 0 && (passenger->Ammo < passengerType->Ammo))
-								{
-									pThis->Ammo--;
-									passenger->Ammo++;
-								}
-							}
-						}
+	if (!pExt->Ammo_Shared || !pType->Ammo)
+		return;
 
-						passenger = static_cast<FootClass*>(passenger->NextObject);
-					}
-					while (passenger);
+	auto passenger = pThis->Passengers.FirstPassenger;
+
+	do {
+		
+		const TechnoTypeClass* passengerType = passenger->GetTechnoType();
+
+		if (TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared.Get()) {
+			if (pExt->Ammo_Shared_Group.Get() < 0 || 
+				pExt->Ammo_Shared_Group.Get() == TechnoTypeExt::ExtMap.Find(passengerType)->Ammo_Shared_Group.Get()) {
+				if (pThis->Ammo > 0 && (passenger->Ammo < passengerType->Ammo)) {
+					pThis->Ammo--;
+					passenger->Ammo++;
 				}
 			}
 		}
-	}
+
+		passenger = static_cast<FootClass*>(passenger->NextObject);
+
+	}while (passenger);
 }
 
 double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)

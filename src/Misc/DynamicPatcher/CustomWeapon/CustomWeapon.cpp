@@ -130,11 +130,11 @@ void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* 
 {
 	if (burst.FireData.SimulateBurstMode == 3)
 	{
-		SimulateBurst b2 = burst.Clone();
+		SimulateBurst b2 = burst;
 		b2.FlipY *= -1;
 		SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, b2);
 	}
-	// 单发
+	
 	SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, burst);
 
 }
@@ -144,11 +144,11 @@ void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoCla
 	// Pointer<TechnoClass> pShooter = WhoIsShooter(pShooter);
 	CoordStruct sourcePos = Helpers_DP::GetFLHAbsoluteCoords(pShooter, burst.FLH, true, burst.FlipY);
 	CoordStruct targetPos = pTarget->GetCoords();
-	VelocityClass bulletVelocity = VelocityClass { 0.0,0.0,0.0 };
+	VelocityClass bulletVelocity {};
 
 	if (burst.FireData.RadialFire)
 	{
-		RadialFireHelper radialFireHelper = RadialFireHelper(pShooter, burst.Burst, burst.FireData.RadialAngle);
+		RadialFireHelper radialFireHelper { pShooter, burst.Burst, burst.FireData.RadialAngle };
 		bulletVelocity = radialFireHelper.GetBulletVelocity(burst.Index);
 	} else {
 		bulletVelocity = Helpers_DP::GetBulletVelocity(sourcePos, targetPos);
@@ -170,30 +170,17 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 
 void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (!simulateBurstQueue.empty())
-	{
-		for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++)
+	for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++) {
+		auto const& sBData = simulateBurstQueue.at(pos);
+		if (sBData.Target == ptr || sBData.Shooter == ptr)
 		{
-			if (simulateBurstQueue[pos].Target == ptr)
-			{
-				//Debug::Log("Found Invalid Target from CustomWeaponManager ! , Cleaning Up ! \n");
-				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
-
-			}
-
-			if (simulateBurstQueue[pos].Shooter == ptr)
-			{
-				//Debug::Log("Found Shooter Target from CustomWeaponManager ! , Cleaning Up ! \n");
-				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
-			}
-
+			simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
 		}
 	}
 }
 
 void FireWeaponManager::Clear()
 {
-	//while (!DelayFires.empty()) DelayFires.pop();
 	DelayFires.clear();
 }
 
@@ -220,15 +207,12 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 
 void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (!DelayFires.empty())
+	for (size_t pos = 0; pos < DelayFires.size(); pos++)
 	{
-		for (size_t pos = 0; pos < DelayFires.size(); pos++)
+		if (DelayFires.at(pos)->Target == ptr)
 		{
-			if (DelayFires.at(pos)->Target == ptr)
-			{
 				//Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
 				DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
-			}
 		}
 	}
 

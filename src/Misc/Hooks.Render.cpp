@@ -36,9 +36,7 @@ DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0x6) //B
 	PrintTextManager::PrintAllText();
 #endif
 	FlyingStrings::UpdateAll();
-
-	if (ShowTechnoNameCommandClass::IsActivated())
-		ShowTechnoNameCommandClass::AI();
+	ShowTechnoNameCommandClass::AI();
 
 	return 0;
 }

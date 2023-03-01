@@ -59,6 +59,9 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	if (Damage_TargetInvoker.isset())
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
+	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
+
+
 #pragma region Otamaa
 
 	//Launchs
@@ -133,6 +136,25 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	//this->SpawnerDatas.Read(exINI, pID);
 #pragma endregion
+}
+
+OwnerHouseKind AnimTypeExt::SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim)
+{
+	auto pAnimData = AnimTypeExt::ExtMap.Find(pAnim->Type);
+
+	auto newOwner = HouseExt::GetHouseKind(pAnimData->MakeInfantryOwner, true,
+		nullptr, pInvoker, pVictim);
+
+	if (newOwner)
+	{
+		pAnim->Owner = newOwner;
+		if (pAnim->Type->MakeInfantry > -1)
+		{
+			pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
+		}
+	}
+
+	return pAnimData->MakeInfantryOwner;
 }
 
 const void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
@@ -226,6 +248,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(ConcurrentChance)
 		.Process(ConcurrentAnim)
 		.Process(ShouldFogRemove)
+		.Process(this->MakeInfantryOwner)
 		.Process(AttachedSystem)
 		.Process(IsInviso)
 		//.Process(SpawnerDatas)
@@ -323,20 +346,20 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 //	pItem->ShouldFogRemove = 0;
 //	return 0x427731;
 //}
-
-DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
-{
-	GET(AnimTypeClass*, pItem, ESI);
-	pItem->IsAnimatedTiberium = R->AL();
-	return 0x4282DC;
-}
-
-DEFINE_JUMP(LJMP, 0x4282DC, 0x4282E2);
-
-DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
-{
-	GET(AnimTypeClass*, pType, EAX);
-	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
-	return 0x423024;
-}
+//
+//DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
+//{
+//	GET(AnimTypeClass*, pItem, ESI);
+//	pItem->IsAnimatedTiberium = R->AL();
+//	return 0x4282DC;
+//}
+//
+//DEFINE_JUMP(LJMP, 0x4282DC, 0x4282E2);
+//
+//DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
+//{
+//	GET(AnimTypeClass*, pType, EAX);
+//	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
+//	return 0x423024;
+//}
 #endif

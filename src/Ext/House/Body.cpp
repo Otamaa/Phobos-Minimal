@@ -979,7 +979,7 @@ DEFINE_HOOK(0x4F6532, HouseClass_CTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x4F7371, HouseClass_DTOR, 0x6)
+DEFINE_HOOK(0x4F7186, HouseClass_DTOR, 0x8)
 {
 	GET(HouseClass*, pItem, ESI);
 	HouseExt::ExtMap.Remove(pItem);

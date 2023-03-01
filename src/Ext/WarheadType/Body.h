@@ -28,7 +28,7 @@ public:
 	{
 	public:
 
-		Valueable<bool> SpySat;
+		Valueable<int> Reveal;
 		Valueable<bool> BigGap;
 		Valueable<int> TransactMoney;
 		Nullable<int> TransactMoney_Ally;
@@ -124,7 +124,7 @@ public:
 		Valueable<bool> Transact_SpreadAmongTargets;
 		Valueable<bool> Transact_Experience_IgnoreNotTrainable;
 
-		Valueable<int> NotHuman_DeathSequence;
+		Nullable<int> NotHuman_DeathSequence;
 		Nullable<bool> AllowDamageOnSelf;
 		Valueable<bool> Debris_Conventional;
 		Valueable<int> GattlingStage;
@@ -221,6 +221,8 @@ public:
 		ValueableVector<WeaponTypeClass*> DetonatesWeapons;
 		ValueableVector<int> LimboKill_IDs;
 		Valueable<AffectedHouse> LimboKill_Affected;
+
+		Valueable<AnimTypeClass*> InfDeathAnim;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -231,7 +233,7 @@ public:
 		#pragma endregion
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
-			, SpySat { false }
+			, Reveal { 0 }
 			, BigGap { false }
 			, TransactMoney { 0 }
 			, TransactMoney_Ally { }
@@ -317,7 +319,7 @@ public:
 			, Transact_SpreadAmongTargets { false }
 			, Transact_Experience_IgnoreNotTrainable { true }
 
-			, NotHuman_DeathSequence { -1 }
+			, NotHuman_DeathSequence {}
 			, AllowDamageOnSelf{ }
 			, Debris_Conventional{ false }
 			, GattlingStage { 0 }
@@ -405,6 +407,7 @@ public:
 			, DetonatesWeapons { }
 			, LimboKill_IDs {}
 			, LimboKill_Affected { AffectedHouse::Owner }
+			, InfDeathAnim { nullptr }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

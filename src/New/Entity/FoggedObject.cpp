@@ -376,7 +376,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 					}
 					matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.current().get_radian()));
 					matrixbarrel.Translate(vector);
-					Matrix3D::MatrixMultiply(&matrixbarrel, &Matrix3D::VoxelDefaultMatrix, &matrixbarrel);
+					matrixbarrel = Matrix3D::MatrixMultiply(Matrix3D::VoxelDefaultMatrix, matrixbarrel);
 				}
 
 				int facetype = (((((*(unsigned int*)&primaryDir) >> 13) + 1) >> 1) & 3);
@@ -413,7 +413,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				matrixbarrel.RotateZ(static_cast<float>(BuildingData.PrimaryFacing.current().get_radian()));
 				matrixbarrel.RotateY(-static_cast<float>(BuildingData.BarrelFacing.current().get_radian()));
 				matrixbarrel.Translate(vector);
-				Matrix3D::MatrixMultiply(&matrixbarrel, &Matrix3D::VoxelDefaultMatrix, &matrixbarrel);
+				matrixbarrel = Matrix3D::MatrixMultiply(Matrix3D::VoxelDefaultMatrix, matrixbarrel);
 				pVXLDrawer->DrawVoxel(BuildingData.Type->BarrelVoxel, barrelFacing, (short)barrelExtra,
 					BuildingData.Type->VoxelCaches[3], viewRect, turretPoint, matrixbarrel,
 					pCell->Intensity_Normal, 0, 0);

@@ -2,7 +2,7 @@
 #include <BulletTypeClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/LineTrail/Body.h>
@@ -19,7 +19,7 @@ class BulletTypeExt
 public:
 	static constexpr size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
-	static constexpr size_t ExtOffset = 0x2EC;
+	//static constexpr size_t ExtOffset = 0x2EC;
 
 	class ExtData final : public Extension<BulletTypeClass>
 	{
@@ -62,6 +62,8 @@ public:
 		Valueable<double> Splits_Range;
 		Valueable<bool> Splits_RandomCellUseHarcodedRange;
 		Valueable<bool> Splits_TargetingUseVerses;
+		Valueable<bool> Splits_FillRemainingClusterWithRandomcells;
+
 		//
 		Valueable<int> BounceAmount;
 		Valueable<WeaponTypeClass*> BounceHitWeapon;
@@ -115,6 +117,7 @@ public:
 			, Splits_Range { 1280.0 }
 			, Splits_RandomCellUseHarcodedRange { true }
 			, Splits_TargetingUseVerses { true }
+			, Splits_FillRemainingClusterWithRandomcells { true }
 
 			, BounceAmount { 0 }
 			, BounceHitWeapon { nullptr }

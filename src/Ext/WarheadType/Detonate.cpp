@@ -22,7 +22,7 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <New/Entity/VerticalLaserClass.h>
-#include <Misc/InteractWithAres/Body.h>
+#include <Misc/AresData.h>
 
 void WarheadTypeExt::ExtData::ApplyDirectional(BulletClass* pBullet, TechnoClass* pTarget)
 {
@@ -88,18 +88,21 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (this->Converts_From.size() && this->Converts_To.size())
-	{
-		// explicitly unsigned because the compiler wants it
-		for (unsigned int i = 0; i < this->Converts_From.size(); i++)
-		{
-			// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
-			if (this->Converts_To.size() >= i && this->Converts_From[i] == pTarget->GetTechnoType())
-			{
-				//TechnoTypeClass* pResultType = this->Converts_To[i];
-				//auto pCurType = pTarget->GetTechnoType();
-				//if (pCurType != pResultType)
-					//AresData::HandleConvert::Exec(pTarget, pResultType);
+	if (!AresData::CanUseAres || AresData::AresVersionId != 1 || this->Converts_From.empty() || this->Converts_To.empty())
+		return;
+
+	const auto pCurType = pTarget->GetTechnoType();
+
+	// explicitly unsigned because the compiler wants it
+	for (unsigned int i = 0; i < this->Converts_From.size(); i++) {
+		// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
+		if (this->Converts_To.size() >= i && this->Converts_From[i] == pCurType) {
+			auto const pResultType = this->Converts_To.at(i);
+
+			if (pCurType != pResultType)			 {
+				if (!AresData::ConvertTypeTo(pTarget, pResultType))
+					Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
+
 			}
 		}
 	}
@@ -358,7 +361,9 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 			});
 		}
 
-		if (this->SpySat)
+		if (this->Reveal > 0 )
+			MapClass::Instance->RevealArea1(&coords, this->Reveal, pHouse, CellStruct::Empty, 0, 0, 0, 1);
+		else if (this->Reveal < 0)
 			MapClass::Instance->Reveal(pHouse);
 
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
@@ -366,7 +371,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 
 	this->HasCrit = false;
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-	bool ISPermaMC = this->PermaMC && !pBullet;
+	const bool ISPermaMC = this->PermaMC && !pBullet;
 
 	// List all Warheads here that respect CellSpread
 	const bool isCellSpreadWarhead =
@@ -506,10 +511,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
 	}
 
-#ifdef Ares_3_0_p1
 	if (this->Converts && AresData::AresDllHmodule != nullptr)
 		this->ApplyUpgrade(pHouse, pTarget);
-#endif
 
 	if (this->AttachTag)
 		this->ApplyAttachTag(pTarget);
@@ -543,28 +546,26 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			const auto shieldType = pExt->Shield->GetType();
 			shieldIndex = this->Shield_RemoveTypes.IndexOf(shieldType);
 
-			if (shieldIndex >= 0)
-			{
+			if (shieldIndex >= 0) {
 				ratio = pExt->Shield->GetHealthRatio();
 				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-				pExt->Shield->KillAnim();
-				pExt->Shield = nullptr;
+				pExt->Shield.release();
 			}
 		}
 
 		// Attach shield.
-		if (Shield_AttachTypes.size() > 0)
+		if (!Shield_AttachTypes.empty())
 		{
 			ShieldTypeClass* shieldType = nullptr;
 
 			if (this->Shield_ReplaceOnly)
 			{
 				if (shieldIndex >= 0)
-					shieldType = Shield_AttachTypes[Math::min(shieldIndex, (signed)Shield_AttachTypes.size() - 1)];
+					shieldType = Shield_AttachTypes.at(Math::min(shieldIndex, (signed)Shield_AttachTypes.size() - 1));
 			}
 			else
 			{
-				shieldType = Shield_AttachTypes.size() > 0 ? Shield_AttachTypes[0] : nullptr;
+				shieldType = Shield_AttachTypes.at(0);
 			}
 
 			if (shieldType)
@@ -573,7 +574,7 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 					pExt->Shield->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay)))
 				{
 					pExt->CurrentShieldType = shieldType;
-					pExt->Shield = std::make_unique<ShieldClass>(pTarget, true);
+					pExt->Shield = (std::make_unique<ShieldClass>(pTarget, true));
 
 					if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
 					{
@@ -587,9 +588,9 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 		}
 
 		// Apply other modifiers.
-		if (pExt->Shield)
+		if (pExt->GetShield())
 		{
-			if (this->Shield_AffectTypes.size() > 0 && !this->Shield_AffectTypes.Contains(pExt->Shield->GetType()))
+			if (!this->Shield_AffectTypes.empty() && !this->Shield_AffectTypes.Contains(pExt->Shield->GetType()))
 				return;
 
 			if (this->Shield_Break && pExt->Shield->IsActive())
@@ -609,8 +610,8 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (auto pController = pTarget->MindControlledBy)
-		pTarget->MindControlledBy->CaptureManager->FreeUnit(pTarget);
+	if (const auto pController = pTarget->MindControlledBy)
+		pController->CaptureManager->FreeUnit(pTarget);
 }
 
 void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget)
@@ -625,12 +626,8 @@ void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, Techn
 
 void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
-	double dice;
-
-	if (this->Crit_ApplyChancePerTarget)
-		dice = ScenarioClass::Instance->Random.RandomDouble();
-	else
-		dice = this->RandomBuffer;
+	const double dice = this->Crit_ApplyChancePerTarget ? 
+		ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
 
 	if (this->Crit_Chance < dice)
 		return;
@@ -642,15 +639,10 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 			return;
 	}
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
 	
-	{
-		if (pTypeExt->ImmuneToCrit)
-			return;
-
-		if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
-			return;
-	}
+	if (pTypeExt->ImmuneToCrit || pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
+		return;
 
 	if (!EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->GetOwningHouse()))
 		return;
@@ -770,7 +762,6 @@ void WarheadTypeExt::ExtData::ApplyRevengeWeapon(TechnoClass* pTarget)
 	{
 		if (!this->RevengeWeapon_Cumulative)
 		{
-
 			for (auto& weapon : pExt->RevengeWeapons)
 			{
 				// If it is same weapon just refresh timer.

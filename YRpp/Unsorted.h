@@ -287,6 +287,17 @@ struct Game
 		JMP_STD(0x7559B0);
 	}
 
+	// fastcall 48AB90
+	static int __fastcall AdjustRangeWithGravity(int nRange, double Gravity)
+	{
+		JMP_STD(0x48AB90);
+	}
+
+	// fastcall 48A8D0
+	static bool __fastcall func_48A8D0_Legal(bool InRange, int nRange, int x , int y , int z, DirStruct* pDir)
+	{
+		JMP_STD(0x48A8D0);
+	}
 };
 
 // this fake class contains the IIDs used by the game

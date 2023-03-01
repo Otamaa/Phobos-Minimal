@@ -9,7 +9,7 @@
 
 CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& flh, bool isOnTurret, int flipY, bool nextFrame)
 {
-	CoordStruct turretOffset = CoordStruct::Empty;
+	CoordStruct turretOffset {};
 	auto const pType = pTechno->GetTechnoType();
 
 	if (isOnTurret)
@@ -81,10 +81,13 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 
 void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, FireBulletToTarget callback,const CoordStruct& bulletSourcePos, bool radialFire, int splitAngle)
 {
+	if (!pWeapon)
+		return;
+
 	if (!pTarget)
 		return;
 
-	CoordStruct targetPos = CoordStruct::Empty;
+	CoordStruct targetPos {};
 	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
 		targetPos = CellClass::Cell2Coord(pFoot->GetDestinationMapCoords());
 	else
@@ -95,12 +98,12 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 	// radial fire
 	int burst = pWeapon->Burst;
-	RadialFireHelper radialFireHelper = RadialFireHelper(pShooter, burst, splitAngle);
+	RadialFireHelper radialFireHelper { pShooter, burst, splitAngle };
 	int flipY = -1;
 
 	for (int i = 0; i < burst; i++)
 	{
-		VelocityClass bulletVelocity = VelocityClass { 0.0 , 0.0 , 0.0 };
+		VelocityClass bulletVelocity { };
 		if (radialFire) {
 			flipY = (i < burst / 2.0f) ? -1 : 1;
 			bulletVelocity = radialFireHelper.GetBulletVelocity(i);
@@ -132,6 +135,9 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
+	if (!pWeapon)
+		return nullptr;
+
 	if (!pTarget || !pAttacker->IsAlive)
 		return nullptr;
 
@@ -150,6 +156,9 @@ BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTa
 
 BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
 {
+	if (!pWeapon)
+		return nullptr;
+
 	double fireMult = 1;
 
 	if (pAttacker && pAttacker->IsAlive && !pAttacker->IsCrashing && !pAttacker->IsSinking)
@@ -194,7 +203,10 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 }
 
 void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pOwner, AbstractClass* pTarget)
-{
+{ 
+	if (!pWeapon)
+		return;
+
 	// Anim
 	if (pWeapon->Anim.Count > 0)
 	{

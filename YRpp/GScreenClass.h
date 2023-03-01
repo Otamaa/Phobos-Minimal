@@ -7,7 +7,7 @@
 class SelectClass;
 class DSurface;
 struct RectangleStruct;
-
+class GadgetClass;
 class NOVTABLE GScreenClass : public IGameMap
 {
 public:
@@ -31,17 +31,19 @@ public:
 	virtual void Init_IO() JMP_THIS(0x4F42E0);
 	virtual void GetInputAndUpdate(DWORD& outKeyCode, int& outMouseX, int& outMouseY) JMP_THIS(0x4F4BB0);
 	virtual void Update(const int& keyCode, const Point2D& mouseCoords) JMP_THIS(0x4F4BB0);
-	virtual bool vt_entry_2C(DWORD dwUnk) JMP_THIS(0x4F43F0);
-	virtual bool EnableInput(SelectClass* dwUnk) JMP_THIS(0x4F4410); //30
-	virtual bool DisableInput(SelectClass* dwUnk) JMP_THIS(0x4F4450);
+	virtual bool SetButtons(GadgetClass* dwUnk) JMP_THIS(0x4F43F0); //2C
+	//virtual bool EnableInput(GadgetClass* dwUnk) JMP_THIS(0x4F4410); //30
+	//virtual bool DisableInput(GadgetClass* dwUnk) JMP_THIS(0x4F4450); //34
+	virtual bool AddButton(GadgetClass* pGadget) JMP_THIS(0x4F4410); //30
+	virtual bool RemoveButton(GadgetClass* pGadget) JMP_THIS(0x4F4450); //34
 	virtual void MarkNeedsRedraw(int dwUnk) JMP_THIS(0x4F42F0);
 	virtual void DrawOnTop() JMP_THIS(0x4F4480);
-	virtual void Draw(DWORD dwUnk) { };
+	virtual void Draw(DWORD dwUnk) RX;
 	virtual void vt_entry_44() JMP_THIS(0x4F45B0);
-	virtual bool SetCursor(MouseCursorType idxCursor, bool miniMap) = 0;
-	virtual bool UpdateCursor(MouseCursorType idxCursor, bool miniMap) = 0;
-	virtual bool RestoreCursor() = 0;
-	virtual void UpdateCursorMinimapState(bool miniMap) = 0;
+	virtual bool SetCursor(MouseCursorType idxCursor, bool miniMap) R0;
+	virtual bool UpdateCursor(MouseCursorType idxCursor, bool miniMap) R0;
+	virtual bool RestoreCursor() R0;
+	virtual void UpdateCursorMinimapState(bool miniMap) RX;
 
 	void Render() { JMP_THIS(0x4F4480); }
 	static void __fastcall DoBlit(bool mouseCaptured, DSurface* surface, RectangleStruct* rect = nullptr)

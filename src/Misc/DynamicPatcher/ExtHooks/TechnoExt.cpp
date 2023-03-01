@@ -111,11 +111,12 @@ namespace CalculatePinch
 	static void Calc(TechnoClass* pFirer, int nWeaponIdx)
 	{
 		const auto pWeapon = pFirer->GetWeapon(nWeaponIdx);
+
 		{
 			if (!pFirer->IsVoxel())
 				return;
 
-			auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
+			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
 			if ((ext->RockerPitch.Get() > 0.0f))
 			{
@@ -126,7 +127,7 @@ namespace CalculatePinch
 				{
 					double turretRad = pFirer->GetRealFacing().Current().GetRadian() - halfPI;
 					double bodyRad = pFirer->PrimaryFacing.Current().GetRadian() - halfPI;
-					const Matrix3D& matrix3D = Matrix3D { };
+					Matrix3D matrix3D {};
 					matrix3D.MakeIdentity();
 					matrix3D.RotateZ((float)turretRad);
 					matrix3D.RotateZ((float)-bodyRad);

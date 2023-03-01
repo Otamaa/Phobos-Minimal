@@ -41,6 +41,7 @@ bool ShowTechnoNameCommandClass::IsActivated() {
 
 void ShowTechnoNameCommandClass::AI()
 {
+	if(IsActivated())
 	{
 		auto const pCiv = HouseExt::FindCivilianSide();
 

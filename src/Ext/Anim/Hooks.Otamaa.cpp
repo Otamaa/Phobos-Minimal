@@ -192,7 +192,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	{
 		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
-		auto const pOwner = pThis->Owner ? pThis->Owner : pTechOwner ? pTechOwner->GetOwningHouse() : nullptr;
+		auto const pOwner = !pThis->Owner && pTechOwner ? pTechOwner->Owner : pThis->Owner;
 
 		GET8(bool, LandIsWater, BL);
 		GET8(bool, EligibleHeight, AL);
@@ -253,7 +253,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 		{
 			auto pAnimTypeExt = pTypeExt;
 			const auto pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
-			const auto pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
+			const auto pHouse = !pThis->Owner && pObject ?  pObject->Owner : pThis->Owner;
 			const auto nCoord = pThis->GetCoords();
 
 			Helper::Otamaa::SpawnMultiple(
@@ -345,8 +345,10 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 	GET(AnimClass*, pThis, ESI);
 	GET_BASE(CoordStruct*, pCoord, 0xC);
 
-	auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	//auto pExt = AnimExt::ExtMap.Find(pThis);
+	if (!pThis->Type)
+		return 0x0;
+
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
 	{

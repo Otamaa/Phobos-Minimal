@@ -216,7 +216,7 @@ TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis, bool Dealth
 		return nullptr;
 
 	auto const pExt = AnimExt::ExtMap.Find(pThis);
-	if (pExt->Invoker)
+	if (pExt && pExt->Invoker)
 		return pExt->Invoker;
 
 	if (pThis->OwnerObject)

@@ -18,61 +18,105 @@ public:
 	//	return std::make_tuple(X, Y, Z, W);
 	//}
 
-	void Normalize() { JMP_THIS(0x645C70); }
-	//
+	void Normalize() {
+		auto len2 = this->X * this->X + this->Y * this->Y + this->Z * this->Z + this->W * this->W;
+
+		if (0.0 != len2)
+		{
+			this->X = this->X / len2;
+			this->Y = this->Y / len2;
+			this->Z = this->Z / len2;
+			this->W = this->W / len2;
+		}
+	}
+
 	Quaternion Normalized(Quaternion rotation) { return rotation /= Norm(rotation); }
-	float Norm(Quaternion rotation) { return Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
-	static float Dot(Quaternion A, Quaternion B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
-	//
-	void Scale(float amount) { JMP_THIS(0x645CD0); }
-	void Set(float x = 0.0, float y = 0.0, float z = 0.0, float w = 1.0) { JMP_THIS(0x645C50); }
+	float Norm(const Quaternion& rotation) { return Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
+	static float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
+	
+	void Scale(float s)
+	{
+		this->X = s * this->X;
+		this->Y = s * this->Y;
+		this->Z = s * this->Z;
+		this->W = s * this->W;
+	}
+
+	void Set(float x = 0.0, float y = 0.0, float z = 0.0, float w = 1.0)
+	{
+		this->X = x;
+		this->Y = y;
+		this->Z = z;
+		this->W = w;
+	}
 
 	inline void Make_Identity() { Set(); };
 	inline float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
 	inline float Length() const { return Math::sqrt(Length2()); }
 
-	Quaternion* Func_645D60(Quaternion* B) { JMP_THIS(0x645D60); }
+	//idk 
+	Quaternion* Func_645D60(Quaternion* B) const { JMP_THIS(0x645D60); }
 
 	static Quaternion* __fastcall Multiply(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x645ED0); }
-	static Quaternion Multiply(Quaternion& A, Quaternion& B)
+	static Quaternion& Multiply(const Quaternion& that1, const Quaternion& that2)
 	{
-		Quaternion buffer;
-		Multiply(&buffer, &A, &B);
-		return buffer;
+		float that2X = that2.X;
+		float that2Y = that2.Y;
+		float that2Z = that2.Z;
+		float that2W = that2.W;
+		float v14 = that1.Y * that2W;
+		float v15 = that1.Z * that2W;
+		double v4 = that1.W;
+		float v9 = static_cast<float>(v4 * that2X);
+		float v11 = static_cast<float>(that2Y * v4);
+		float v13 = static_cast<float>(that2Z * v4);
+		float v16 = that1.Z * that2.X - that2.Z * that1.X;
+		float v17 = that2.Y * that1.X - that1.Y * that2.X;
+
+		Quaternion x;
+		x.X = that1.Y * that2.Z - that1.Z * that2.Y + v9 + that1.X * that2W;
+		x.Y = v14 + v11 + v16;
+		x.Z = v15 + v13 + v17;
+		x.W = static_cast<float>(v4 * that2.W - (that1.Z * that2.Z + that1.Y * that2.Y + that1.X * that2.X));
+
+		double len2 = x.Z * x.Z + x.Y * x.Y + x.W * x.W + x.X * x.X;// Normalize
+
+		if (0.0 != len2)
+		{
+			x.X = static_cast<float>(x.X / len2);
+			x.Y = static_cast<float>(x.Y / len2);
+			x.Z = static_cast<float>(x.Z / len2);
+			x.W = static_cast<float>(x.W / len2);
+		}
+
+		return x;
 	}
 
 	static Quaternion* __fastcall Func_646040(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x646040); }
-	static Quaternion Func_646040(Quaternion& A, Quaternion& B)
+	static Quaternion& Func_646040(const Quaternion& a, const Quaternion& b)
 	{
-		Quaternion buffer;
-		Func_646040(&buffer, &A, &B);
-		return buffer;
-	}
-
-	static Quaternion* __fastcall Inverse(Quaternion* ret, Quaternion* A) { JMP_STD(0x6460C0); }
-	static Quaternion Inverse(Quaternion& A)
-	{
-		Quaternion buffer;
-		Inverse(&buffer, &A);
-		return buffer;
-
+		Quaternion invertedquat;
+		invertedquat.X = -b.X;
+		invertedquat.Y = -b.Y;
+		invertedquat.Z = -b.Z;
+		invertedquat.W = b.W;
+		return Multiply(a, invertedquat);
 	}
 
 	static Quaternion* __fastcall Conjugate(Quaternion* ret, Quaternion* A) { JMP_STD(0x646110); }
-	static Quaternion Conjugate(Quaternion& A)
-	{
-		Quaternion buffer;
-		Conjugate(&buffer, &A);
-		return buffer;
+	static Quaternion Conjugate(const Quaternion& a) {
+		return { -a.X  ,-a.Y , -a.Z ,a.W };
 	}
 
 	static Quaternion* __fastcall Trackball(Quaternion* ret, float x0, float y0, float x1, float y1, float radius) { JMP_STD(0x646160); }
+	//idk
 	static Quaternion Trackball(float x0, float y0, float x1, float y1, float radius)
 	{
 		Quaternion buffer;
 		Trackball(&buffer, x0, y0, x1, y1, radius);
 		return buffer;
 	}
+
 	static Quaternion* __fastcall Slerp(Quaternion* ret, Quaternion* A, Quaternion* B, float alpha) { JMP_STD(0x646590); }
 	static Quaternion Slerp(Quaternion& A, Quaternion& B, float alpha)
 	{
@@ -80,29 +124,29 @@ public:
 		Slerp(&buffer, &A, &B, alpha);
 		return buffer;
 	}
+
 	static Quaternion* __fastcall FromAxis(Quaternion* ret, Vector3D<float>* vec, float phi) { JMP_STD(0x646480); }
-	static Quaternion FromAxis(Vector3D<float>& vec, float phi)
+	static Quaternion& FromAxis(Vector3D<float>& a, float phi)
 	{
-		Quaternion buffer;
-		FromAxis(&buffer, &vec, phi);
-		return buffer;
+		float y = a.Y;
+		float zz = a.Z;
+		float xx = a.X;
+		float x = a.X;
+		double v7 = Math::sqrt(zz * zz + y * y + x * x);
+		if (v7 != 0.0) {
+			xx = static_cast<float>(x / v7);
+			y = static_cast<float>(y / v7);
+			zz = static_cast<float>(zz / v7);
+		}
+
+		double s = Math::sin(phi * 0.5);
+		Quaternion sX;
+		sX.X = static_cast<float>(xx * s);
+		sX.Y = static_cast<float>(y * s);
+		sX.Z = static_cast<float>(zz * s);	
+		sX.W = static_cast<float>(Math::cos(phi * 0.5));
+		return sX;
 	}
-
-	//static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
-	//static Quaternion FromMatrix(Matrix3D& Mtx)
-	//{
-	//	Quaternion buffer;
-	//	FromMatrix(&buffer, &Mtx);
-	//	return buffer;
-	//}
-
-	//static Matrix3D* __fastcall ToMatrix(Matrix3D* mat, Quaternion* A) { JMP_STD(0x646980); }
-	//static Matrix3D ToMatrix(Quaternion& A)
-	//{
-	//	Matrix3D buffer;
-	//	ToMatrix(&buffer, &A);
-	//	return buffer;
-	//}
 
 	Quaternion& operator/=(const float rhs)
 	{
@@ -202,6 +246,7 @@ public:
 
 	Quaternion operator/ (const Quaternion& b)
 	{
+		auto inv = Inverse(b);
 		return (*this) * Inverse(b);
 	}
 
@@ -217,9 +262,10 @@ public:
 		return  { a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3] };
 	}
 
-	float & operator[](int i) { JMP_THIS(0x645D00); }
+	float& operator[](int i) { JMP_THIS(0x645D00); }
 	const float & operator[](int i) const { JMP_THIS(0x645D10); }
-	Quaternion operator-() const { return { -X, -Y, -Z, -W }; }
+
+	Quaternion operator-() const { return { -X, -Y, -Z, W }; }
 	Quaternion operator+() const { return *this; }
 
 	float Angle(Quaternion B) { double dot = Dot(*this, B); return static_cast<float>(Math::acos(fmin(fabs(dot), 1)) * 2); }
@@ -243,7 +289,7 @@ public:
 		return buffer;
 	}
 
-	Quaternion Inverse(Quaternion rotation) { float n = Norm(rotation); return Conjugate(rotation) /= (n * n); }
+	Quaternion Inverse(const Quaternion& rotation) { float n = Norm(rotation); return Conjugate(rotation) /= (n * n); }
 
 	Quaternion RotateTowards(Quaternion to, float maxRadiansDelta)
 	{
@@ -312,6 +358,7 @@ public:
 		m[15] = 1.0f;
 	};
 
+public:
 	float X;
 	float Y;
 	float Z;

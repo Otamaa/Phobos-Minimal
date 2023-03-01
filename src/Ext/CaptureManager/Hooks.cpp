@@ -109,13 +109,21 @@ void UpdateMCOverloadDamage(TechnoClass* pOwner)
 
 DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 {
-	enum { SelfHeal = 0x6FA751 , ContinueCheck = 0x6FA793 };
+	enum {
+		SelfHeal = 0x6FA743 , //continue ares check here
+		DoNotSelfHeal = 0x6FA941 ,
+		ReturnFunc = 0x6FAFFD ,
+	};
+
 	GET(TechnoClass*, pThis, ESI);
 
 	UpdateMCOverloadDamage(pThis);
 
-	return TechnoExt::IsActive(pThis,true ,true ,false, true ,false) && pThis->ShouldSelfHealOneStep() ?
-		SelfHeal : ContinueCheck;
+	if(!pThis->IsAlive)
+		return ReturnFunc;
+
+	return pThis->InLimbo ?
+		   DoNotSelfHeal : SelfHeal;
 }
 
 DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit, 0x7)

@@ -245,8 +245,8 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 			do
 			{
 				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f };
-				Vector3D<float> Vec3Dresult { };
-				Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
+				Vector3D<float> Vec3Dresult {};
+				Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, vect);
 				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
 				GameCreate<AnimClass>(pAnimType, nCoord);
 				nDimension += nShpWidth_;
@@ -360,7 +360,7 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	auto vect_Y = (v2 / 2 + ScenarioGlobal->Random.RandomFromMax(v2));
 	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f };
 	Vector3D<float> Vec3Dresult { };
-	Matrix3D::MatrixMultiply(&Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, &vect);
+	Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, vect);
 	a1->Z = 0;
 	a1->X = (int)Vec3Dresult.X;
 	a1->Y = (int)Vec3Dresult.Y;

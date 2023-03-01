@@ -78,22 +78,5 @@ void __fastcall Phobos_HandleMouseThread()
 DEFINE_JUMP(CALL,0x6BD849, GET_OFFSET(Phobos_HandleMouseThread));
 
 #ifdef SYNC_DISPATCH_RESOURCE
-DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
-{
-	GET_STACK(tagMSG, pMsg, STACK_OFFS(0x2C, 0x1C));
-	GET_STACK(DWORD, nDW, STACK_OFFS(0x2C, 0x40));
 
-	if ((nDW == 0x10 || nDW == 0x2 || nDW == 0x112) && pMsg.wParam == (WPARAM)0xF060)
-		ExitProcess(1u);
-
-	//if ((nDW == 0x104 || nDW == 0x100) && pMsg.wParam == (WPARAM)0xD && ((pMsg.lParam & 0x20000000) != 0))
-	//{
-		//set critical section here ?
-	//}
-
-	Imports::TranslateMessage.get()(&pMsg);
-	Imports::DispatchMessageA.get()(&pMsg);
-
-	return 0x5D4E4D;
-}
 #endif

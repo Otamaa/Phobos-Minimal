@@ -6,17 +6,13 @@
 template<int Amount>
 struct MultiBoolFixedArray
 {
-	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char*, Amount>& nKeysArray)
-	{
-		if (parser.ReadString(pSection, pKey) > 0)
-		{
+	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char*, Amount>& nKeysArray) {
+		if (parser.ReadString(pSection, pKey) > 0) {
 			char* context = nullptr;
-			for (char* cur = strtok_s(parser.value(), ",", &context); cur; cur = strtok_s(nullptr, ",", &context))
-			{
-				for (int i = 0; i < Amount; ++i)
-				{
-					if (!_strcmpi(cur, nKeysArray[i]))
-					{
+			for (char* cur = strtok_s(parser.value(), ",", &context);
+				cur; cur = strtok_s(nullptr, ",", &context)) {
+				for (int i = 0; i < Amount; ++i) {
+					if (IS_SAME_STR_(cur, nKeysArray[i])) {
 						this->Datas[i] = true;
 						break;
 					}
@@ -42,7 +38,6 @@ struct MultiBoolFixedArray
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-
 		for (int i = 0; i < Amount; ++i)
 		{
 			if (!Savegame::ReadPhobosStream(Stm, this->Datas[i]))
@@ -54,7 +49,6 @@ struct MultiBoolFixedArray
 
 	inline bool Save(PhobosStreamWriter& Stm) const
 	{
-
 		for (auto nData : this->Datas)
 		{
 			if (!Savegame::WritePhobosStream(Stm, nData))

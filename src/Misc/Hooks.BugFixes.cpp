@@ -143,31 +143,6 @@ DEFINE_HOOK(0x737CBB, UnitClass_ReceiveDamage_DeathCounter, 0x6)
 }
 #endif
 
-/*
-DEFINE_HOOK(0x5F53A1, ObjectClass_ReceiveDamage_DeathcCounter, 0x5)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	if (auto pUnit = specific_cast<UnitClass*>(pThis))
-		if (pUnit->DeathFrameCounter > 0)
-			return 0x5F5830;
-
-	return 0x0;
-}*/
-
-/*
-DEFINE_HOOK(0x737DBF, UnitClass_ReceiveDamage_DeathAnim, 0xA)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->MaxDeathCounter > 0)
-		pThis->DeathFrameCounter = 1;
-	else
-		pThis->DeathFrameCounter = 0;
-
-	return 0x737DC9;
-}*/
-
 // Restore DebrisMaximums logic (issue #109)
 // Author: Otamaa
 DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
@@ -485,36 +460,6 @@ DEFINE_HOOK(0x6FA781, TechnoClass_AI_SelfHealing_BuildingGraphics, 0x6)
 	return 0;
 }
 
-//DEFINE_HOOK(0x4CDA78, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x6)
-//{
-//	GET(FlyLocomotionClass*, pThis, ESI);
-//
-//	if (auto const pLinked = pThis->LinkedTo)
-//	{
-//		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-//			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
-//
-//		R->EAX(Game::F2I(currentSpeed));
-//	}
-//
-//	return 0;
-//}
-
-//DEFINE_HOOK(0x4CE4BF, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
-//{
-//	GET(FlyLocomotionClass*, pThis, ECX);
-//
-//	if (auto const pLinked = pThis->LinkedTo)
-//	{
-//		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
-//			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
-//
-//		R->EAX(Game::F2I(currentSpeed));
-//	}
-//
-//	return 0;
-//}
-
 DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
@@ -794,7 +739,6 @@ DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
 	return 0x71880A;
 }
 
-
 DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
 	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
@@ -802,28 +746,6 @@ DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 	// Replace NumPassengers==1 check to allow multipassenger IFV using the fix above
 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
 }
-
-//template<typename T>
-//static bool InvalidateVector(DynamicVectorClass<T>& nVec, T pItem)
-//{
-//	auto datafirst = std::addressof(nVec.Items[0]);
-//	auto dataend = std::addressof(nVec.Items[nVec.Count]);
-//
-//	if (datafirst != dataend)
-//	{
-//		while (*datafirst != pItem)
-//		{
-//			if (datafirst == dataend)
-//				return false;
-//		}
-//
-//		std::memmove(datafirst, datafirst + 1, dataend - (datafirst + 1));
-//		--nVec.Count;
-//		return true;
-//	}
-//
-//	return false;
-//}
 
 DEFINE_HOOK(0x440E99, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x6)
 {
@@ -865,31 +787,6 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 	return SpawnCrate;
 }
 
-//DEFINE_HOOK(0x56BDE7, MapClass_PlaceRandomCrate_GenerationMechanism, 0x6)
-//{
-//	enum { SpawnCrate = 0x56BE7B, SkipSpawn = 0x56BE91 };
-//
-//	GET(CellStruct, candidate, ECX);
-//	REF_STACK(CellStruct, cell, STACK_OFFSET(0x28, -0x18));
-//
-//	if (!MapClass::Instance->IsWithinUsableArea(candidate, true))
-//		return SkipSpawn;
-//
-//	const auto pCell = MapClass::Instance->TryGetCellAt(candidate);
-//
-//	const bool isWater = pCell->LandType == LandType::Water;
-//	if (isWater && RulesExt::Global()->Crate_LandOnly.Get())
-//		return SkipSpawn;
-//
-//	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
-//		isWater ? SpeedType::Float : SpeedType::Track,
-//		-1, MovementZone::Normal, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
-//
-//	R->EAX(&cell);
-//
-//	return SpawnCrate;
-//}
-
 
 DEFINE_HOOK_AGAIN(0x4FD463, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 DEFINE_HOOK(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
@@ -929,56 +826,6 @@ DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
 	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
 	return 0;
 }
-
-//DEFINE_HOOK(0x56BD8B, MapClass_PlaceCrate_InMapFix, 0x5)
-//{
-//	enum { CreateCrate = 0x56BE7B, DontCreate = 0x56BE91 };
-//
-//	const int MapX = MapClass::Instance->MapRect.Width * 60;
-//	const int MapY = MapClass::Instance->MapRect.Height * 30;
-//	const int X = ScenarioClass::Instance->Random.RandomRanged(0, MapX) - MapX / 2;
-//	const int Y = ScenarioClass::Instance->Random.RandomRanged(0, MapY) + MapY / 2;
-//
-//	const auto result = Matrix3D::MatrixMultiply(TacticalClass::Instance->IsoTransformMatrix, { (float)X,(float)Y,0.0f });
-//
-//	if (const auto pCell = MapClass::Instance->TryGetCellAt({ (int)result.X,(int)result.Y,0 }))
-//	{
-//		REF_STACK(CellStruct, cell, STACK_OFFS(0x28, 0x18));
-//
-//		const auto SpeedType = pCell->LandType == LandType::Water ? SpeedType::Float : SpeedType::Track;
-//		cell = MapClass::Instance->NearByLocation(pCell->MapCoords, SpeedType, -1, MovementZone::Normal, false, 1, 1, false,
-//		false, false, true, CellStruct::Empty, false, false);
-//
-//		R->EAX(&cell);
-//		return CreateCrate;
-//	}
-//
-//	return DontCreate;
-//}
-//DEFINE_HOOK(0x65AAC0, RadioClass_Detach, 0x5)
-//{
-//	GET(RadioClass*, pThis, ECX);
-//	GET_STACK(AbstractClass*, pTarget, 0x4);
-//	GET_STACK(bool, bRemoved, 0x8);
-//
-//	pThis->ObjectClass::PointerExpired(pTarget, bRemoved);
-//	auto datafirst = std::addressof(pThis->RadioLinks.Items[0]);
-//	auto dataend = std::addressof(pThis->RadioLinks.Items[pThis->RadioLinks.Capacity]);
-//
-//	if (datafirst != dataend)
-//	{
-//		while (*datafirst != pTarget)
-//		{
-//			if (datafirst == dataend)
-//				break;
-//		}
-//
-//		std::memmove(datafirst, datafirst + 1, dataend - (datafirst + 1));
-//		--pThis->RadioLinks.Capacity;
-//	}
-//
-//	return 0x65AB08;
-//}
 
 // Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
 DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)

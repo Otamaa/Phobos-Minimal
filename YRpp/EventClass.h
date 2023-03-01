@@ -180,12 +180,12 @@ public:
 	static constexpr reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
 	static constexpr reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
-	static bool AddEvent(const EventClass& event)
+	static bool AddEvent(const EventClass& nEvent)
 	{
 		if (OutList->Count >= 128)
 			return false;
 
-		OutList->List[OutList->Tail] = event;
+		OutList->List[OutList->Tail] = nEvent;
 
 		// timeGetTime();
 		//OutList->Timings[OutList->Tail] = ((int(__stdcall*)())0x7E1530)();
@@ -252,7 +252,7 @@ public:
 	}
 
 	// Unknown_Tuple
-	explicit EventClass(int houseIndex, EventType eventType, int unknown_0, int unknown_4, int unknown_c)
+	explicit EventClass(int houseIndex, EventType eventType, int unknown_0, int unknown_4, int* unknown_c)
 	{
 		JMP_THIS(0x4C6A60);
 	}
@@ -288,7 +288,8 @@ public:
 
 	EventClass& operator=(const EventClass& another)
 	{
-		memcpy(this, &another, sizeof(*this));
+		if (this != &another)
+			memcpy(this, &another, sizeof(*this));
 
 		return *this;
 	}

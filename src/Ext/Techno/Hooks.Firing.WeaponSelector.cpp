@@ -39,7 +39,8 @@ DEFINE_HOOK(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 
 	if (const auto pCell = specific_cast<CellClass*>(pTarget))
 	{
-		if (pThis->GetWeapon(1)->WeaponType && !EnumFunctions::IsCellEligible(pCell, WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType)->CanTarget.Get(), true))
+		if (pThis->GetWeapon(1)->WeaponType &&
+		 !EnumFunctions::IsCellEligible(pCell, WeaponTypeExt::ExtMap.Find(pThis->GetWeapon(0)->WeaponType)->CanTarget.Get(), true))
 			return Secondary;
 	}
 

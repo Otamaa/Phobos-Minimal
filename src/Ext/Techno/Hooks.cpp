@@ -9,6 +9,7 @@
 #include <SlaveManagerClass.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -56,7 +57,7 @@ DEFINE_HOOK(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	const auto strength = TechnoExt::GetInitialStrength(pThis->Type , pThis->Type->Strength);
+	const auto strength = TechnoExt::GetInitialStrength(pThis->Type, pThis->Type->Strength);
 	pThis->Health = strength;
 	pThis->EstimatedHealth = strength;
 
@@ -91,9 +92,10 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 
-	const int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon ,pThis->CurrentBurstIndex);
+	const int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon, pThis->CurrentBurstIndex);
 
-	if (burstDelay >= 0) {
+	if (burstDelay >= 0)
+	{
 		R->EAX(burstDelay);
 		return 0x6FD099;
 	}
@@ -107,53 +109,92 @@ DEFINE_HOOK(0x6FD05E, TechnoClass_RearmDelay_BurstDelays, 0x7)
 // Author: Otamaa
 DEFINE_HOOK(0x5184F7, InfantryClass_TakeDamage_NotHuman, 0x6)
 {
-	enum { Delete = 0x518619, DoOtherAffects = 0x518515, IsHuman = 0x5185C8 };
+	enum
+	{
+		Delete = 0x518619,
+		DoOtherAffects = 0x518515,
+		IsHuman = 0x5185C8,
+		CheckAndReturnDamageResultDestroyed = 0x5185F1,
+		PlayInfDeaths = 0x5185CE
+	};
 
 	GET(InfantryClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
+	GET(DWORD, InfDeath, EDI);
+
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
 
 	if (!pThis->Type->NotHuman)
-		return IsHuman;
+	{
+		--InfDeath;
+		R->EDI(InfDeath);
 
-	// Die1-Die5 sequences are offset by 10
-	constexpr auto Die = [](int x) { return x + 10; };
+		bool Handled = false;
 
-	int resultSequence = Die(1);
+		if (pThis->GetHeight() < 10)
+		{
+			if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim)
+			{
+				AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);
+
+				HouseClass* const Invoker = (receiveDamageArgs.Attacker)
+					? receiveDamageArgs.Attacker->Owner
+					: receiveDamageArgs.SourceHouse
+					;
+
+				//these were MakeInf stuffs  , to make sure no behaviour chages
+				AnimExt::ExtMap.Find(Anim)->Invoker = receiveDamageArgs.Attacker;
+				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
+
+				Handled = true;
+			}
+		}
+
+		return (Handled || InfDeath >= 10)
+			? CheckAndReturnDamageResultDestroyed
+			: PlayInfDeaths
+			;
+
+		//return IsHuman;
+	}
 
 	R->ECX(pThis);
 
-	if (receiveDamageArgs.WH)
+	if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
 	{
-		auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
-
+		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
 		{
-			if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
-			{
-				if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
-				{
-					auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
-					AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), receiveDamageArgs.Attacker, true);
-					pAnim->ZAdjust = pThis->GetZAdjustment();
-					return Delete;
-				}
-			}
-			else
-			{
-				if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
-					resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
+			auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), receiveDamageArgs.Attacker, true);
+			pAnim->ZAdjust = pThis->GetZAdjustment();
+		}
+	}
+	else
+	{
+		auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
+		// Die1-Die5 sequences are offset by 10
+		constexpr auto Die = [](int x) { return x + 10; };
 
-				int whSequence = pWarheadExt->NotHuman_DeathSequence.Get();
-				if (whSequence > 0)
-					resultSequence = Math::min(Die(whSequence), Die(5));
+		int resultSequence = Die(1);
 
-				InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;
+		if (!whSequence.isset() 
+			&& TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get()) {
+			resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
+		}
+		else if(whSequence.isset())
+		{
+			resultSequence = Math::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
+		}
+		
+		InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;
 
-			}
+		//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
+		if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true)){
+			return DoOtherAffects;
 		}
 	}
 
-	//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
-	return (!pThis->PlayAnim(static_cast<DoType>(resultSequence), true)) ? Delete : DoOtherAffects;
+	return Delete;
 }
 
 // Customizable OpenTopped Properties
@@ -187,13 +228,14 @@ DEFINE_HOOK(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
 DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 {
 
-	enum { Skip = 0x7099B8, Continue =  0x0};
+	enum { Skip = 0x7099B8, Continue = 0x0 };
 
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pExt->AutoFire) {
+	if (pExt->AutoFire)
+	{
 		pThis->SetTarget(pExt->AutoFire_TargetSelf ? pThis : static_cast<AbstractClass*>(pThis->GetCell()));
 		return Skip;
 	}
@@ -349,9 +391,10 @@ DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	int maxSpeed = 0;
 
 	if (pThis)
-	{	auto pType = pThis->GetTechnoType();
+	{
+		auto pType = pThis->GetTechnoType();
 
-		if(TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed)
+		if (TechnoTypeExt::ExtMap.Find(pType)->UseDisguiseMovementSpeed)
 			pType = TechnoExt::GetDisguiseType(pThis, false, false).first;
 
 		maxSpeed = pType->Speed;
@@ -394,17 +437,19 @@ DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B743E , SpawnManagerClass_AI_SpawnOffsets , 0x6)
+DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 {
-	GET(TechnoClass* , pOwner , ECX);
+	GET(TechnoClass*, pOwner, ECX);
 	//yes , i include the buffer just in case it used somewhere !
-	LEA_STACK(CoordStruct* , pBuffer ,STACK_OFFS(0x68,0x18));
-	LEA_STACK(CoordStruct* , pBuffer2 ,STACK_OFFS(0x68,0xC));
+	LEA_STACK(CoordStruct*, pBuffer, STACK_OFFS(0x68, 0x18));
+	LEA_STACK(CoordStruct*, pBuffer2, STACK_OFFS(0x68, 0xC));
 
-	auto const pExt= TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 
-	if(pExt->Spawner_SpawnOffsets.isset()) {
-		if(pExt->Spawner_SpawnOffsets_OverrideWeaponFLH) {
+	if (pExt->Spawner_SpawnOffsets.isset())
+	{
+		if (pExt->Spawner_SpawnOffsets_OverrideWeaponFLH)
+		{
 			auto const pRet = pExt->Spawner_SpawnOffsets.GetEx();
 			pBuffer = pRet;
 			pBuffer2 = pRet;
@@ -413,14 +458,17 @@ DEFINE_HOOK(0x6B743E , SpawnManagerClass_AI_SpawnOffsets , 0x6)
 		else
 		{
 			CoordStruct FLH = pExt->Spawner_SpawnOffsets.Get();
-			if ( pOwner->CurrentBurstIndex ) {
-				auto const pRet = pOwner->GetFLH(pBuffer,R->EBP<bool>(),pExt->Get()->SecondSpawnOffset);
+			if (pOwner->CurrentBurstIndex)
+			{
+				auto const pRet = pOwner->GetFLH(pBuffer, R->EBP<bool>(), pExt->Get()->SecondSpawnOffset);
 				pRet->X += FLH.X;
 				pRet->Y += FLH.Y;
 				pRet->Z += FLH.Z;
 				R->EAX(pRet);
-			}else{
-				auto const pRet =pOwner->GetFLH(pBuffer2,R->EBP<bool>(),CoordStruct::Empty);
+			}
+			else
+			{
+				auto const pRet = pOwner->GetFLH(pBuffer2, R->EBP<bool>(), CoordStruct::Empty);
 				pRet->X += FLH.X;
 				pRet->Y += FLH.Y;
 				pRet->Z += FLH.Z;
@@ -461,6 +509,7 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	//	return 0x0;
 }
 
+#include <Misc/AresData.h>
 DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 {
 	GET(BuildingClass*, pBuilding, ESI);
@@ -468,6 +517,15 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot)
 	{
+		if (AresData::CanUseAres && AresData::AresVersionId == 1 && pFoot->WhatAmI() == AbstractType::Unit)
+		{
+			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+
+			if (pFootTypeExt->Unit_AI_AlternateType.isset() && pFootTypeExt->Unit_AI_AlternateType.Get() != pFootTypeExt->Get())
+				if (!AresData::ConvertTypeTo(pFoot, pFootTypeExt->Unit_AI_AlternateType))
+					Debug::Log("Unit AI AlternateType Conversion failed ! \n");
+		}
+
 		if (auto const pTypeUnit = pFoot->GetTechnoType())
 		{
 			auto const& ranges = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())->InitialStrength_Cloning.Get();
@@ -581,7 +639,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	{
 		for (int i = 0; i <= pThis->CurrentBurstIndex; i++)
 		{
-			int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon , i);
+			int burstDelay = WeaponTypeExt::GetBurstDelay(pWeapon, i);
 			int delay = 0;
 
 			if (burstDelay > -1)
@@ -628,7 +686,7 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 	if (pSource)
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
-		auto const pTypeExt =	TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
 		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
 			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))

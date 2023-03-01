@@ -181,10 +181,11 @@ void SWTypeExt::ExtData::ApplyDetonation(HouseClass* pHouse, const CellStruct& c
 	}
 
 	if (!Map.IsWithinUsableArea(nDest))
-		return;
+		Debug::Log("SW [%s] Lauch Outside Usable Map Area ! \n", this->Get()->ID);
+	//	return;
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(pWeapon->Damage)));
+		WeaponTypeExt::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage));
 	else
 		WarheadTypeExt::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(this->SW_Damage.Get(0)));
 }
@@ -249,12 +250,14 @@ bool SWTypeExt::ExtData::IsAvailable(HouseClass* pHouse) const
 	};
 
 	const auto& Aux = this->SW_AuxBuildings;
+	// If building Not Exist
 	if (!Aux.empty() && std::none_of(Aux.begin(), Aux.end(), IsBuildingPresent))
 	{
 		return false;
 	}
 
 	const auto& Neg = this->SW_NegBuildings;
+	// If building Exist
 	if (std::any_of(Neg.begin(), Neg.end(), IsBuildingPresent))
 	{
 		return false;

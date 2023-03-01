@@ -314,7 +314,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exINI(pINI);
 
 	// Miscs
-	this->SpySat.Read(exINI, pSection, GameStrings::SpySat());
+	this->Reveal.Read(exINI, pSection, "Reveal");
+
+	Nullable<bool> spySat;
+	spySat.Read(exINI, pSection, GameStrings::SpySat());
+
+	if (spySat.isset() && spySat.Get())
+		this->Reveal = -1;
+
 	this->BigGap.Read(exINI, pSection, "BigGap");
 	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
 	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
@@ -564,14 +571,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
-
+	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
 }
 
 template <typename T>
 void WarheadTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->SpySat)
+		.Process(this->Reveal)
 		.Process(this->BigGap)
 		.Process(this->TransactMoney)
 		.Process(this->TransactMoney_Ally)
@@ -739,6 +746,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DetonatesWeapons)
 		.Process(this->LimboKill_IDs)
 		.Process(this->LimboKill_Affected)
+		.Process(this->InfDeathAnim)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

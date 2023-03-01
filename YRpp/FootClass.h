@@ -79,7 +79,7 @@ public:
 	virtual TechnoClass* FindDockingBay(TechnoTypeClass* pDock, int unusedarg3, bool bForced) const R0;
 	virtual void vt_entry_534(DWORD dwUnk, DWORD dwUnk2) RX;
 	virtual int GetCurrentSpeed() const R0;
-	virtual bool ApproachTarget(bool bSomething) R0;
+	virtual bool ApproachTarget(bool bSomething) R0; //0x53C
 	virtual void vt_entry_540(DWORD dwUnk) RX;
 	virtual void SetSpeedPercentage(double percentage) RX;
 	virtual void vt_entry_548() RX;

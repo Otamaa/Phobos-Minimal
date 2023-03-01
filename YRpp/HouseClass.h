@@ -869,7 +869,7 @@ public:
 	AbstractClass* FindTargetOnCoords(CoordStruct& nCoord)
 		{ JMP_THIS(0x500300); }
 
-	int FactoryCount(AbstractType nWhat, bool bArg3)
+	int FactoryCount(AbstractType nWhat, bool IsNaval)
 		{ JMP_THIS(0x500910); }
 
 	void ForceEnd()

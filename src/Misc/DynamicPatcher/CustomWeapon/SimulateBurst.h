@@ -53,10 +53,17 @@ struct SimulateBurst
 
 	~SimulateBurst() = default;
 
-	SimulateBurst Clone() {
-		SimulateBurst newObj = SimulateBurst(WeaponType, Shooter, Target, FLH, Burst, MinRange, Range, FireData, FlipY,Callback);
-		newObj.Index = Index;
-		return newObj;
+	//SimulateBurst Clone() {
+	//	SimulateBurst newObj = SimulateBurst(WeaponType, Shooter, Target, FLH, Burst, MinRange, Range, FireData, FlipY,Callback);
+	//	newObj.Index = Index;
+	//	return newObj;
+	//}
+
+	SimulateBurst& operator = (const SimulateBurst& other)
+	{
+		memcpy_s(this, sizeof(SimulateBurst), &other, sizeof(SimulateBurst));
+		Timer.Start(FireData.SimulateBurstDelay);
+		return *this;
 	}
 
 	bool CanFire() {

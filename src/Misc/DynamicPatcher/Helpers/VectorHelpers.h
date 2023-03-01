@@ -1,6 +1,7 @@
 #pragma once
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Quaternion.h>
+#include <GeneralStructures.h>
 
 namespace Helpers_DP_Vec
 {
@@ -19,12 +20,12 @@ namespace Helpers_DP_Vec
 		return {value.X / num2, value.Y / num2, value.Z / num2};
 	}
 
-	static Quaternion FromToRotation(Vector3D<float> fromDirection, Vector3D<float> toDirection)
+	static Quaternion FromToRotation(Vector3D<float>& fromDirection, Vector3D<float>& toDirection)
 	{
 		auto from = fromDirection.Normalize();
 		auto to = toDirection.Normalize();
 		auto dot = from.Dot(to);
-		Quaternion ret = Quaternion();
+		Quaternion ret {};
 
 		// same direction
 		if (dot > 0.999999)

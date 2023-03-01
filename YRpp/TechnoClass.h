@@ -218,7 +218,7 @@ public:
 	virtual bool IsCloakable() const R0;
 	virtual bool CanScatter() const R0;
 	virtual bool BelongsToATeam() const R0;
-	virtual bool ShouldSelfHealOneStep() const R0;
+	virtual bool ShouldSelfHealOneStep() const JMP_THIS(0x70BE80); //0x294
 	virtual bool IsVoxel() const R0;
 	virtual bool vt_entry_29C() R0;
 	virtual bool IsReadyToCloak() const R0; //ShouldBeCloaked
@@ -345,7 +345,7 @@ public:
 	virtual DWORD DisguiseAs(AbstractClass* pTarget) R0;
 	virtual void ClearDisguise() RX;
 	virtual bool IsItTimeForIdleActionYet() const R0;
-	virtual bool UpdateIdleAction() R0;
+	virtual bool UpdateIdleAction() JMP_THIS(0x41C040); // Random_Animate , 0x478
 	virtual void vt_entry_47C(DWORD dwUnk) RX;
 	virtual void SetDestination(AbstractClass* pDest, bool bUnk) RX;
 	virtual bool EnterIdleMode(bool Initial, int nUnknown) R0;//virtual bool vt_entry_484(DWORD dwUnk, DWORD dwUnk2) R0;
@@ -668,6 +668,9 @@ public:
 
 	bool ThisShouldNotCloak() const
 	{ JMP_THIS(0x6FBC90); }
+
+	bool CanReachTarget(int WeaponIdx) const
+	{ JMP_THIS(0x70D590); }
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

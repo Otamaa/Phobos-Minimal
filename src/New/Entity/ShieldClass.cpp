@@ -739,9 +739,11 @@ void ShieldClass::KillAnim()
 {
 	if (this->IdleAnim)
 	{
-
-		if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it
-			CallDTOR<false>(this->IdleAnim);
+		if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it 
+		{
+			this->IdleAnim->TimeToDie = true;
+			this->IdleAnim->UnInit();
+		}
 
 		this->IdleAnim = nullptr;
 	}

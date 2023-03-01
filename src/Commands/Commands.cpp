@@ -8,6 +8,7 @@
 #include "DamageDisplay.h"
 #include "FrameStep.h"
 #include "ShowTechnoNames.h"
+#include "SetVeterancy.h"
 
 #define Make(arg)\
 		Make<arg>();
@@ -25,6 +26,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(ShowHealthPercentCommandClass);
 	Make(DamageDisplayCommandClass);
 	Make(ShowTechnoNameCommandClass);
+	Make(SetVeterancyCommandClass);
 	Make(FrameByFrameCommandClass);
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1

@@ -3,7 +3,7 @@
 #include <AnimTypeClass.h>
 
 #include <Utilities/Enum.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/Template.h>
 
 #include <New/Entity/LauchSWData.h>
@@ -14,7 +14,7 @@ class AnimTypeExt
 public:
 	using base_type = AnimTypeClass;
 	static constexpr size_t Canary = 0xEEEEEEEE;
-	static constexpr size_t ExtOffset = 0x374;
+	//static constexpr size_t ExtOffset = 0x374;
 
 	class ExtData final : public Extension<AnimTypeClass>
 	{
@@ -73,6 +73,7 @@ public:
 		Valueable<double> ConcurrentChance;
 		ValueableVector<AnimTypeClass*> ConcurrentAnim;
 		Valueable<bool> ShouldFogRemove;
+		Valueable<OwnerHouseKind> MakeInfantryOwner;
 	    #pragma endregion
 		Valueable<ParticleSystemTypeClass*> AttachedSystem;
 		bool IsInviso;
@@ -128,6 +129,7 @@ public:
 			, ConcurrentChance { 0.0 }
 			, ConcurrentAnim { }
 			, ShouldFogRemove { true }
+			, MakeInfantryOwner { OwnerHouseKind::Invoker }
 			, AttachedSystem {}
 			, IsInviso { false }
 
@@ -161,4 +163,7 @@ public:
 	static const void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static OwnerHouseKind SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim);
+
 };

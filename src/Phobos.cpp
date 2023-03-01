@@ -358,7 +358,7 @@ void Phobos::DrawVersionWarning()
 	{
 		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
 
-		RectangleStruct rect = {
+		RectangleStruct rect {
 			DSurface::Composite->Get_Width() - wanted.Width - 10,
 			0,
 			wanted.Width + 10,
@@ -468,7 +468,7 @@ bool Phobos::DetachFromDebugger()
 		auto const NtClose =
 			(NTSTATUS(__stdcall*)(HANDLE))GetProcAddress(hModule, "NtClose");
 
-		HANDLE hDebug;
+		HANDLE hDebug {};
 		HANDLE hCurrentProcess = GetCurrentProcess();
 		NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
 		if (0 <= status)

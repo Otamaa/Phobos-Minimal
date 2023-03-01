@@ -7,6 +7,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
 
+#include <Ext/Abstract/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Building/Body.h>
@@ -16,7 +17,7 @@ class BuildingExt
 public:
 	static constexpr size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
-	static constexpr size_t ExtOffset = 0x6FC;
+	//static constexpr size_t ExtOffset = 0x6FC;
 
 	class ExtData final : public Extension<BuildingClass>
 	{

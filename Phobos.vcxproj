@@ -32,6 +32,7 @@
     <ClCompile Include="src\Commands\FrameStep.cpp" />
     <ClCompile Include="src\Commands\NextIdleHarvester.cpp" />
     <ClCompile Include="src\Commands\QuickSave.cpp" />
+    <ClCompile Include="src\Commands\SetVeterancy.cpp" />
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
@@ -81,7 +82,6 @@
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
-    <ClCompile Include="src\Ext\House\Hooks.AINavalProduction.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
@@ -200,12 +200,11 @@
     <ClCompile Include="src\Misc\Hooks.LaserDraw.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
-    <ClCompile Include="src\Misc\Hooks.OtamaaBugFix.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Working.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -276,9 +275,12 @@
     <ClInclude Include="src\Commands\ObjectInfo.h" />
     <ClInclude Include="src\Commands\Commands.h" />
     <ClInclude Include="src\Commands\QuickSave.h" />
+    <ClInclude Include="src\Commands\SetVeterancy.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
+    <ClInclude Include="src\ExtraHeaders\AlternateNames.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
+    <ClInclude Include="src\ExtraHeaders\Buffer.h" />
     <ClInclude Include="src\ExtraHeaders\DataVectors.h" />
     <ClInclude Include="src\ExtraHeaders\DiscreteDistributionClass_s.h" />
     <ClInclude Include="src\ExtraHeaders\DiscreteSelectionClass_s.h" />
@@ -333,6 +335,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\DebugUtilities.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\EffectHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\Helpers.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Helpers\RadialFire.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\VectorHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\DamageText.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\TextHandler.h" />
@@ -367,7 +370,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailsManager.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
-    <ClInclude Include="src\Misc\Hooks.OtamaaBugFix.h" />
+    <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\TriggerMPOwner.h" />

@@ -743,20 +743,18 @@ DEFINE_HOOK(0x453E20, BuildingClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x45417E, BuildingClass_Load_Suffix, 0x5)
 {
 	BuildingExt::ExtMap.LoadStatic();
-
 	return 0;
 }
 
 DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 {
 	BuildingExt::ExtMap.SaveStatic();
-
 	return 0;
 }
 
-#ifndef ENABLE_NEWEXT
-DEFINE_JUMP(LJMP, 0x41D9FB, 0x41DA05);
-#endif
+DEFINE_HOOK(0x41D9FB, AirstrikeClass_Setup_Remove, 0xA) {
+	return 0x41DA05;
+}
 
 DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
 {

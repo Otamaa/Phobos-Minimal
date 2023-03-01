@@ -145,7 +145,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 
 int PhobosToolTip::TickTimeToSeconds(int tickTime)
 {
-	if (!Phobos::Config::RealTimeTimers)
+	if(!Phobos::Config::RealTimeTimers)
 		return tickTime / 15;
 
 	if (Phobos::Config::RealTimeTimers_Adaptive

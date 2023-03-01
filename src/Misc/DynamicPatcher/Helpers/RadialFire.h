@@ -6,30 +6,19 @@
 struct RadialFireHelper
 {
 	int Burst;
-	double Degrees = 0;
-	int Delta = 0;
-	float DeltaZ = 0;
+	double Degrees;
+	int Delta;
+	float DeltaZ;
 
 	RadialFireHelper(TechnoClass* pTechno, int burst, int splitAngle)
-		: Burst { burst }
+		: Burst { burst }, Degrees { 0 } , Delta { 0 } , DeltaZ { 0.0f }
 	{
-		DirStruct dir = pTechno->PrimaryFacing.Desired();
-		if (pTechno->HasTurret())
-			dir = pTechno->TurretFacing();
-
-		InitData(dir, splitAngle);
+		InitData(pTechno->HasTurret() ? pTechno->TurretFacing() : pTechno->PrimaryFacing.Desired(), splitAngle);
 	}
 
-	RadialFireHelper(DirStruct dir, int burst, int splitAngle)
-		: Burst { burst }
+	RadialFireHelper(const DirStruct& dir, int burst, int splitAngle)
+		: Burst { burst }, Degrees { 0 }, Delta { 0 }, DeltaZ { 0.0f }
 	{ InitData(dir, splitAngle); }
-
-	void InitData(DirStruct dir, int splitAngle)
-	{
-		Degrees = Math::rad2deg(dir.GetRadian()) + splitAngle;
-		Delta = splitAngle / (Burst + 1);
-		DeltaZ = 1.0f / (Burst / 2.0f + 1);
-	}
 
 	VelocityClass GetBulletVelocity(int index)
 	{
@@ -40,14 +29,16 @@ struct RadialFireHelper
 		else
 			z = abs(index - Burst + 1);
 
-		const double angle = Degrees + Delta * (index + 1);
-		DirStruct targetDir = DirStruct(Math::deg2rad(angle));
-		Matrix3D matrix3D = Matrix3D { };
+		double angle = Degrees + Delta * (index + 1);
+		double radians = angle * (Math::Pi / 180);
+		const DirStruct targetDir = DirStruct(radians);
+		Matrix3D matrix3D { };
 		matrix3D.MakeIdentity();
 		matrix3D.RotateZ(static_cast<float>(targetDir.GetRadian()));
 		matrix3D.Translate(1, 0, 0);
-		auto offset = Matrix3D::MatrixMultiply(matrix3D, Vector3D<float>::Empty);
-		return { offset.X, -offset.Y, DeltaZ * z };
+		Vector3D<float> offset {};
+		Matrix3D::MatrixMultiply(offset ,&matrix3D, Vector3D<float>::Empty);
+		return { static_cast<double>(offset.X), static_cast<double>(-offset.Y), static_cast<double>(DeltaZ * z) };
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -60,6 +51,7 @@ struct RadialFireHelper
 	{ return Serialize(Stm); }
 
 private:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
@@ -70,6 +62,14 @@ private:
 			.Process(DeltaZ)
 			.Success()
 			;
+	}
+
+protected:
+	void InitData(const DirStruct& dir, int splitAngle)
+	{
+		Degrees = dir.GetRadian() * (180.0 / Math::Pi) + splitAngle;
+		Delta = splitAngle / (Burst + 1);
+		DeltaZ = static_cast<float>(1.0 / (Burst / 2.0 + 1));
 	}
 
 };

@@ -28,7 +28,8 @@ const wchar_t* QuickSaveCommandClass::GetUIDescription() const
 
 void QuickSaveCommandClass::Execute(WWKey eInput) const
 {
-	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
+	if (SessionClass::Instance->GameMode == GameMode::Campaign
+		|| SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
 		char fName[0x80];
 		SYSTEMTIME time {};

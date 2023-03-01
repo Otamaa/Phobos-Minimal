@@ -311,9 +311,10 @@ DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
 
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
-	if (!Phobos::Otamaa::DisableCustomRadSite)
+	if (!Phobos::Otamaa::DisableCustomRadSite){ 
 		if (auto pExt = RadSiteExt::ExtMap.Find(pThis))
 			pExt->InvalidatePointer(pTarget, bRemove);
+	}
 }
 
 DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
