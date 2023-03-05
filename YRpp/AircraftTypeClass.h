@@ -73,7 +73,6 @@ public:
 
 	int ArrayIndex;
 	bool Carryall;
-	PROTECTED_PROPERTY(BYTE, align_DFD[3]);
 	AnimTypeClass* Trailer;
 	int SpawnDelay;
 	bool Rotors;
@@ -83,5 +82,4 @@ public:
 	bool FlyBack;
 	bool AirportBound;
 	bool Fighter;
-	PROTECTED_PROPERTY(BYTE, align_E0F);
 };

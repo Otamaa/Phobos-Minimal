@@ -137,7 +137,7 @@ public:
 
 	private:
 
-		std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
+		void WeightedRollsHandler(std::vector<int>& nResult , std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
 
 		void ApplyLimboDelivery(HouseClass* pHouse);
 		void ApplyLimboKill(HouseClass* pHouse);
@@ -171,8 +171,11 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
-	static std::vector<int> WeightedRollsHandler(Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
+	static void WeightedRollsHandler(std::vector<int>& nResult , Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
 
 	static bool Handled;
 	static SuperClass* TempSuper;
+
+private:
+	static void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);
 };

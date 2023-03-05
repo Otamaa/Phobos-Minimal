@@ -31,9 +31,10 @@ public:
 
 	//ObjectClass
 	virtual ObjectTypeClass* GetType() const override R0;
-	virtual bool Limbo() override R0;
-	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) R0;
+	virtual bool Limbo() override JMP_THIS(0x543A40);
+	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x543A10);
 	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const RX;
+	virtual bool UpdatePlacement(PlacementType value) override JMP_THIS(0x543330);
 
 	//Constructor
 	IsometricTileClass(int idxType, CellStruct const& location) noexcept

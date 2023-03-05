@@ -27,7 +27,7 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 			auto const pSuper = pSelected;
 			const auto pSWExt = SWTypeExt::ExtMap.Find(pSelected->Type);
 
-			auto const nWhere = Map[Where]->MapCoords;
+			auto const nWhere = CellClass::Coord2Cell(Where);
 			bool const lauch = (WaitForCharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
 			bool const bIsObserver = HouseOwner->IsObserver();
 			bool const MoneyEligible = IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
@@ -56,8 +56,7 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 				const int oldstart = pSuper->RechargeTimer.StartTime;
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;
 
-				CellStruct nCell { nWhere.X ,nWhere.Y };
-				pSuper->Launch(nCell, !bIsObserver);
+				pSuper->Launch(nWhere, !bIsObserver);
 
 				if (ResetChargeAfterLauch)
 					pSuper->Reset();

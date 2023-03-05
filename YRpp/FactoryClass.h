@@ -115,8 +115,8 @@ protected:
 	//===========================================================================
 
 public:
-	ProgressTimer      Production; // hardcoded to be 54 steps (so cameo clock should be 54 frames)
-	DynamicVectorClass<TechnoTypeClass*> QueuedObjects;
+	DECLARE_PROPERTY(ProgressTimer,      Production); // hardcoded to be 54 steps (so cameo clock should be 54 frames)
+	DECLARE_PROPERTY(DynamicVectorClass<TechnoTypeClass*>, QueuedObjects);
 	TechnoClass*       Object;
 	bool               OnHold; // paused when out of money, restored when funds available
 	bool               IsDifferent;	// changed progress

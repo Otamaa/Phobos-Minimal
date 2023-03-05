@@ -16,21 +16,26 @@ class TerrainExt
 public:
 	static constexpr size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
-	static constexpr size_t ExtOffset = 0xD0;
+	//static constexpr size_t ExtOffset = 0xD0;
 
 	class ExtData final : public Extension<TerrainClass>
 	{
 	public:
 
-		UniqueGamePtr<LightSourceClass> LighSource;
-		UniqueGamePtr<AnimClass> AttachedAnim;
+		LightSourceClass* LighSource;
+		AnimClass* AttachedAnim;
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
-			, LighSource { }
-			, AttachedAnim { }
+			, LighSource { nullptr }
+			, AttachedAnim { nullptr }
 		{ }
 
-		virtual ~ExtData() override = default;
+		virtual ~ExtData() override
+		{
+			ClearLightSource();
+			ClearAnim();
+		}
+
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override {
 			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();

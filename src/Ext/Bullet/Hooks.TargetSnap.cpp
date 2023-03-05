@@ -119,7 +119,7 @@ DEFINE_HOOK(0x468D3F, BulletClass_IsForcedToExplode_AirTarget, 0x8)
 {
 	enum { DontExplode = 0x468D73 , Contine = 0x0 };
 
-	GET(const BulletClass*, pThis, ESI);
+	GET(BulletClass*, pThis, ESI);
 	auto const pExt = BulletExt::ExtMap.Find(pThis);
 
 	if (pExt->Trajectory && pExt->Trajectory->Flag == TrajectoryFlag::Straight) {

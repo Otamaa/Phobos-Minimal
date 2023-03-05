@@ -9,6 +9,7 @@
 #include <BuildingLightClass.h>
 #include <ProgressTimer.h>
 #include <GeneralStructures.h>
+#include <ArrayClasses.h>
 
 class FactoryClass;
 class InfantryClass;
@@ -58,23 +59,23 @@ public:
 	//MissionClass
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
-	virtual void Destroyed(ObjectClass* Killer) RX;
-	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
+	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x44D760);
+	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override JMP_THIS(0x458A80);
 
 	//BuildingClass
-	virtual CellStruct FindBuildingExitCell(TechnoClass* pDocker, CellStruct nDefault) const RT(CellStruct);
-	virtual int DistanceToDockingCoord(ObjectClass* pObj) const R0;
-	virtual void Place(bool captured) RX;
-	virtual void UpdateConstructionOptions() RX;
-	virtual void Draw(const Point2D& point, const RectangleStruct& rect) RX;
-	virtual DirStruct FireAngleTo(ObjectClass* pObject) const RT(DirStruct);
-	virtual void Destroy(DWORD dwUnused, TechnoClass* pTechno, bool NoSurvivor, CellStruct& cell) RX;
-	virtual bool TogglePrimaryFactory() R0;
-	virtual void SensorArrayActivate(CellStruct cell=CellStruct::Empty) RX;
-	virtual void SensorArrayDeactivate(CellStruct cell=CellStruct::Empty) RX;
-	virtual void DisguiseDetectorActivate(CellStruct cell=CellStruct::Empty) RX;
-	virtual void DisguiseDetectorDeactivate(CellStruct cell=CellStruct::Empty) RX;
-	virtual int AlwaysZero() R0;
+	virtual CellStruct FindBuildingExitCell(TechnoClass* pDocker, CellStruct nDefault) const JMP_THIS(0x44EFB0);
+	virtual int DistanceToDockingCoord(ObjectClass* pObj) const JMP_THIS(0x447E00);
+	virtual void Place(bool captured) JMP_THIS(0x445F80);
+	virtual void UpdateConstructionOptions() JMP_THIS(0x4456D0);
+	virtual void Draw(const Point2D& point, const RectangleStruct& rect) JMP_THIS(0x43DA80);
+	virtual DirStruct FireAngleTo(ObjectClass* pObject) const JMP_THIS(0x43ED40);
+	virtual void Destroy(DWORD dwUnused, TechnoClass* pTechno, bool NoSurvivor, CellStruct& cell) JMP_THIS(0x4415F0);
+	virtual bool TogglePrimaryFactory() JMP_THIS(0x448160);
+	virtual void SensorArrayActivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455820);
+	virtual void SensorArrayDeactivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x4556D0);
+	virtual void DisguiseDetectorActivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455A80);
+	virtual void DisguiseDetectorDeactivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455980);
+	virtual int AlwaysZero() JMP_THIS(0x452250);
 
 	// non-vt
 
@@ -333,13 +334,13 @@ public:
 	AnimClass* PsiWarnAnim; //pointer
 	DECLARE_PROPERTY(TimerStruct, PlacementDelay); //550
 
-	ArrayWrapper<AnimClass*, 0x15u> Anims; // see eBuildingAnims above for slot index meanings
-	ArrayWrapper<bool, 0x15u> AnimStates; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
+	AnimClass * Anims [0x15];
+	bool AnimStates [0x15]; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
 
-	PROTECTED_PROPERTY(char , align_5C5[3]);
+	PROTECTED_PROPERTY(BYTE, align_5C5[3]);
 
 	//DWORD DamageFireAnims1; //0x5C8
-	ArrayWrapper<AnimClass*, 8u> DamageFireAnims;
+	AnimClass * DamageFireAnims [0x8];
 	bool RequiresDamageFires; // if set, ::Update spawns damage fire anims and zeroes it
 
 	//5E8 - 5F8 ????????
@@ -408,7 +409,6 @@ public:
 	DWORD DelayBeforeFiring; //714
 
 	int BunkerState; // used in UpdateBunker and friends 0x718
-	char field_71C;  //unused , can be used to store ExtData
 };
 
 static_assert(sizeof(BuildingClass) == 0x720 , "Invalid Size");

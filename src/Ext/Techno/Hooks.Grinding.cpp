@@ -235,7 +235,7 @@ DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
 DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
 {
 	//this is techno class , not building class , wtf
-	GET_STACK(BuildingClass* const, slaveMiner, 0x4);
+	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
 
 	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
 

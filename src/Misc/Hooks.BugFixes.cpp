@@ -175,7 +175,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 
 			if (nDebrisMaximum > 0)
 			{
-				int amountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % nDebrisMaximum + 1;
+				int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
 				amountToSpawn = Math::LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 				totalSpawnAmount -= amountToSpawn;
 
@@ -397,16 +397,16 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	if (pThis->IsIronCurtained())
 	{
 		if (pThis->ForceShielded != 1)
-			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesGlobal->IronCurtainColor);
+			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
 		else
-			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesGlobal->ForceShieldColor);
+			nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
 
 		NeedUpdate = true;
 	}
 
 	if (pThis->Berzerk)
 	{
-		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesGlobal->BerserkColor);
+		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 		NeedUpdate = true;
 	}
 
@@ -414,7 +414,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 	// Boris
 	if (pThis->Airstrike && pThis->Airstrike->Target == pThis)
 	{
-		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesGlobal->LaserTargetColor);
+		nTintColor |= GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		NeedUpdate = true;
 	}
 	// EMP
@@ -598,7 +598,7 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 			}
 			else
 			{
-				VocClass::PlayAt(RulesGlobal->ScoldSound, nCoord, &pThis->Audio7);
+				VocClass::PlayAt(RulesClass::Instance->ScoldSound, nCoord, &pThis->Audio7);
 			}
 		}
 		else if (pThis->__PlayingMovingSound) // done playing
@@ -676,67 +676,6 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 
 	GET(BuildingClass*, pThis, ESI);
 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
-}
-
-//TODO : finish this instead hacky way below 
-//static CoordStruct* UnitClass_GetFLH(UnitClass* pThis , void* , CoordStruct* pBuffer , int nWpIdx , CoordStruct nFrom)
-//{
-//	if(pThis->InOpenToppedTransport && pThis->Transporter &&)
-//}
-
-DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
-{
-	GET(TechnoClass* const, pThis, ECX);
-	R->ECX(pThis->Health);
-	return R->Origin() + 0x6;
-}
-
-DEFINE_HOOK(0x6FDDD4, TechnoClass_Fire_Suicide_UseCurrentHP , 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	R->ECX(pThis->Health);
-	return 0x6FDDDA;
-}
-
-DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pFlipper = pThis->DirectRockerLinkedUnit;
-	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
-
-	return 0x70BCA4;
-}
-
-DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
-{
-	GET(TechnoClass* const, pRadio, EDI);
-
-	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
-
-	return 0x4425F4;
-}
-
-DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
-{
-	GET(TechnoClass* const, pItem, ESI);
-
-	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, true, nullptr);
-
-	return 0x50150E;
-}
-
-DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
-{
-	GET(FootClass* const, pOwner, ECX);
-
-	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
-		nullptr, true, false, nullptr);
-
-	return 0x71880A;
 }
 
 DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
@@ -847,4 +786,59 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 	}
 
 	return SkipKilling;
+}
+
+DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
+{
+	GET(TechnoClass* const, pThis, ECX);
+	R->ECX(pThis->Health);
+	return R->Origin() + 0x6;
+}
+
+DEFINE_HOOK(0x6FDDD4, TechnoClass_Fire_Suicide_UseCurrentHP, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	R->ECX(pThis->Health);
+	return 0x6FDDDA;
+}
+
+DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pFlipper = pThis->DirectRockerLinkedUnit;
+	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
+
+	return 0x70BCA4;
+}
+
+DEFINE_HOOK(0x4425C0, BuildingClass_ReceiveDamage_MaybeKillRadioLinks, 0x6)
+{
+	GET(TechnoClass* const, pRadio, EDI);
+
+	pRadio->ReceiveDamage(&pRadio->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x4425F4;
+}
+
+DEFINE_HOOK(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
+{
+	GET(TechnoClass* const, pItem, ESI);
+
+	pItem->ReceiveDamage(&pItem->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, true, nullptr);
+
+	return 0x50150E;
+}
+
+DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
+{
+	GET(FootClass* const, pOwner, ECX);
+
+	pOwner->ReceiveDamage(&pOwner->Health, 0, RulesClass::Instance->C4Warhead,
+		nullptr, true, false, nullptr);
+
+	return 0x71880A;
 }

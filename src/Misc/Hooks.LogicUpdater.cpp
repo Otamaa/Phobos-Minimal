@@ -48,8 +48,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
-	if (pExt->UpdateKillSelf_Slave())
-		return 0x0;
+	//if (pExt->UpdateKillSelf_Slave())
+	//	return 0x0;
 
 	if (pExt->CheckDeathConditions())
 		return 0x0;
@@ -153,7 +153,7 @@ DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 
 DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
-	GET(const FootClass*, pThis, ESI);
+	GET(FootClass*, pThis, ESI);
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
@@ -167,7 +167,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 		{
 			//Spawnee trying to chase Aircraft that go out of map until it reset
 			//fix this , so reset immedietely if target is not on map
-			if (!Map.IsValid(pTargetTech->Location)
+			if (!MapClass::Instance->IsValid(pTargetTech->Location)
 				|| pTargetTech->TemporalTargetingMe
 #ifdef COMPILE_PORTED_DP_FEATURES
 				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
@@ -236,12 +236,6 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
-{
-	GET(HouseClass* const, pThis, ECX);
-	HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
-	return 0;
-}
 //
 //DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
 //{

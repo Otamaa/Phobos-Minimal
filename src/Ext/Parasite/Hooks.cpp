@@ -43,7 +43,7 @@ DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 	GET(WeaponTypeClass* const, pWeapon, EDI);
 
 	
-	if (auto pParticle = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesGlobal->DefaultSparkSystem))
+	if (auto pParticle = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
 	{
 		auto nLocHere = *pCoord;
 		if(pParticle->BehavesLike == BehavesLike::Smoke)
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 	GET(ParasiteClass* const, pThis, ESI);
 	CoordStruct nCoord { nX , nY , nZ };
 
-	if(!Map[nCoord]->Tile_Is_Water())
+	if(!MapClass::Instance->GetCellAt(nCoord)->Tile_Is_Water())
 		return Handled;
 
 	if (auto const AnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList))

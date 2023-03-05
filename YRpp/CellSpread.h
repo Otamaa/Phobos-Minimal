@@ -24,7 +24,7 @@ public:
 		return Game::F2I((nSpread + 0.99));
 	}
 
-	static const CellStruct& GetCell(size_t n) {
+	static const CellStruct GetCell(size_t n) {
 		if (n > CellOfssets.size()) {
 			return CellStruct::Empty;
 		}
@@ -32,7 +32,7 @@ public:
 		return CellOfssets[n];
 	}
 
-	static const CellStruct& GetNeighbourOffset(size_t direction) {
+	static const CellStruct GetNeighbourOffset(size_t direction) {
 		if(direction > AdjacentCoord.size()) {
 			return CellStruct::Empty;
 		}

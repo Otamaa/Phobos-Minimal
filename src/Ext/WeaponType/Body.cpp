@@ -246,7 +246,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(Map[coords], pOwner,
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(MapClass::Instance->GetCellAt(coords), pOwner,
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
 	{
 		pBullet->SetWeaponType(pThis);
@@ -287,7 +287,7 @@ WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+	WeaponTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

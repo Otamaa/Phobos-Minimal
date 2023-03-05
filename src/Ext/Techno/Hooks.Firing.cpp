@@ -161,7 +161,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 		if (auto const  pTransport = pThis->Transporter)
 		{
 			float nDamageMult = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
-				.Get(RulesGlobal->OpenToppedDamageMultiplier);
+				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
 			R->EAX(Game::F2I(nDamage * nDamageMult));
 			return ApplyDamageMult;
 		}
@@ -176,7 +176,7 @@ DEFINE_HOOK(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 
 	GET(TechnoClass* const, pThis, ESI);
 	GET(CellClass* const, pCell, EAX);
-	GET_STACK(const WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
+	GET_STACK(WeaponTypeClass*, pWeaponType, STACK_OFFS(0xB0, 0x70));
 
 	{
 		auto const pExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
@@ -271,10 +271,10 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Interceptor, 0x6)
 		return 0x0;
 
 	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-		GeneralUtils::CalculateShakeVal(Map.ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 
 	if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-		GeneralUtils::CalculateShakeVal(Map.ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+		GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
 
 
 	return 0;

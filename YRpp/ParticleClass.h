@@ -59,6 +59,7 @@ public:
 
 	ParticleTypeClass* Type;
 	DECLARE_PROPERTY(ColorStruct, byteB0);
+	PROTECTED_PROPERTY(BYTE, align_B3);
 	int RefCount;
 	double ColorSpeedResult;
 	DECLARE_PROPERTY(CoordStruct, GasCoord);
@@ -81,10 +82,8 @@ public:
 	char hasremaining;
 	char field_132;
 	char field_133;
-	char field_134;
-	char field_135;
-	char field_136;
-	char field_137;
+	PROTECTED_PROPERTY(DWORD, align_134);
+
 };
 
 static_assert(sizeof(ParticleClass) == 0x138);

@@ -40,8 +40,8 @@ void LaserTrailClass::FixZLoc(bool forWho)
 {
 	if (forWho && LastLocation.has_value())
 	{
-		auto nLastLoc = LastLocation.get();
-		nLastLoc.Z = Map.GetCellFloorHeight(nLastLoc);
+		CoordStruct nLastLoc = LastLocation.get();
+		nLastLoc.Z = MapClass::Instance->GetCellFloorHeight(nLastLoc);
 		LastLocation = nLastLoc;
 	}
 }

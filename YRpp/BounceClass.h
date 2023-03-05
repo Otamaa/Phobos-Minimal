@@ -18,6 +18,8 @@ public:
 	};
 
 	// constructors
+	BounceClass() = default;
+	~BounceClass() = default;
 	void Init(CoordStruct& coords, double elasticity, double gravity,
 			double maxVelocity, Vector3D<float>* velocity, double angularVelocity) const
 		{ JMP_THIS(0x4397E0); }
@@ -53,10 +55,10 @@ public:
 	double Elasticity{ 0.0 }; // speed multiplier when bouncing off the ground
 	double Gravity{ 0.0 }; // subtracted from the Z coords every frame
 	double MaxVelocity{ 0.0 }; // 0.0 disables check
-	Vector3D<float> Coords; // position with precision
-	Vector3D<float> Velocity; // speed components
-	Quaternion CurrentAngle; // quaternion for drawing
-	Quaternion AngularVelocity; // second quaternion as per-frame delta
+	Vector3D<float> Coords {}; // position with precision
+	Vector3D<float> Velocity {}; // speed components
+	Quaternion CurrentAngle {}; // quaternion for drawing
+	Quaternion AngularVelocity {}; // second quaternion as per-frame delta
 
 private:
 	// copy and assignment not implemented; prevent their use by declaring as private.

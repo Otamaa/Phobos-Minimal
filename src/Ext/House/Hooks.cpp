@@ -17,7 +17,7 @@ DEFINE_HOOK(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 	// as M should be much less than N, this will be a great improvement. - secsome
 	for (const auto& pBld : pThis->Buildings)
 	{
-		if (pBld && !pBld->InLimbo && pBld->IsOnMap)
+		if (pBld && !pBld->InLimbo && pBld->IsOnMap && pBld->HasPower)
 		{
 			auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
@@ -45,4 +45,11 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 	pThis->PowerOutput += BuildingTypeExt::GetEnhancedPower(pBld, pThis);
 
 	return 0x508D07;
+}
+
+DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
+{
+	GET(HouseClass* const, pThis, ECX);
+	HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
+	return 0;
 }

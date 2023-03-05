@@ -21,35 +21,6 @@
 
 #include <Ext/Bullet/Trajectories/StraightTrajectory.h>
 
-static void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
-{
-	if (bDetonate)
-		pThis->Detonate(pThis->GetCoords());
-
-	if (bRemove)
-	{
-		if (!pThis->InLimbo)
-			pThis->Limbo();
-
-		pThis->UnInit();
-
-		const auto pTechno = pThis->Owner;
-		const bool isLimbo =
-			pTechno &&
-			pTechno->InLimbo &&
-			pThis->WeaponType &&
-			pThis->WeaponType->LimboLaunch;
-
-		if (isLimbo)
-		{
-			pThis->SetTarget(nullptr);
-			auto damage = pTechno->Health;
-			pTechno->SetLocation(pThis->GetCoords());
-			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-		}
-	}
-}
-
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
 	GET(BulletClass* const, pThis, EBP);
@@ -82,19 +53,18 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 
 		if (abs(ThisCoord.DistanceFrom(TargetCoords))
 			<= pTypeExt->PreExplodeRange.Get(0) * 256)
-			HandleBulletRemove(pThis, true, true);
+			BulletExt::HandleBulletRemove(pThis, true, true);
 	}
 
 	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted) {
-
-		HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true);
+		BulletExt::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true);
 	}
 
 	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
 	// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
 	if ((!pBulletExt->LaserTrails.empty()))
 	{
-		CoordStruct location = pThis->GetCoords();
+		const CoordStruct& location = pThis->Location;
 		const VelocityClass& velocity = pThis->Velocity;
 
 		// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
@@ -106,7 +76,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 			(int)(location.Z + velocity.Z)
 		};
 
-		for (auto const& trail : pBulletExt->LaserTrails)
+		for (auto& trail : pBulletExt->LaserTrails)
 		{
 			// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
 			// TODO move hack to BulletClass creation
@@ -174,70 +144,10 @@ DEFINE_HOOK(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
 // would likely require making sense of BulletClass::AI and ain't nobody got time for that.
 DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
-	enum { DetonateBullet = 0x467F9B , Continue = 0x0 };
+	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
 	GET(BulletClass*, pThis, EBP);
 	return (pThis->Type->Inviso && BulletExt::ExtMap.Find(pThis)->IsInterceptor)
-	? DetonateBullet : Continue;
-}
-
-static bool ApplyMCAlternative(BulletClass* pThis)
-{
-	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
-
-	if (!pTarget || !pThis->WH->MindControl || !pThis->Owner )
-		return false;
-
-		const auto pTargetType = pTarget->GetTechnoType();
-		auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-		double currentHealthPerc = pTarget->GetHealthPercentage();
-		const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;		
-
-		// If inversed threshold: mind control works until the target health is lower than the threshold percentage.
-		// If not inversed: mind control only works when the target health is lower than the threshold percentage.
-		if (pWarheadExt->MindControl_Threshold < 0.0 || pWarheadExt->MindControl_Threshold > 1.0)
-			pWarheadExt->MindControl_Threshold = flipComparations ? 0.0 : 1.0;
-
-		// Targets health threshold calculations
-		const bool skipMindControl = flipComparations ? (pWarheadExt->MindControl_Threshold > 0.0) : (pWarheadExt->MindControl_Threshold < 1.0);
-		const bool healthComparation = flipComparations ? (currentHealthPerc <= pWarheadExt->MindControl_Threshold) : (currentHealthPerc >= pWarheadExt->MindControl_Threshold);
-
-		if (skipMindControl
-			&& healthComparation
-			&& pWarheadExt->MindControl_AlternateDamage.isset()
-			&& pWarheadExt->MindControl_AlternateWarhead.isset())
-		{
-			// Alternate damage
-			const int altDamage = pWarheadExt->MindControl_AlternateDamage.Get();
-			// Alternate warhead
-			WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Get();
-			// Get the damage the alternate warhead can produce against the target
-			int realDamage = MapClass::GetTotalDamage(altDamage, pAltWarhead, pTargetType->Armor, 0);
-			const int animDamage = realDamage;
-
-			const auto pAttacker = pThis->Owner;
-			const auto pAttackingHouse = pThis->Owner->Owner;
-
-			// Keep the target alive if necessary
-			if (!pWarheadExt->MindControl_CanKill.Get() && realDamage >= pTarget->Health)
-				realDamage = pTarget->Health - 1;
-
-			pTarget->ReceiveDamage(&realDamage, 0, pAltWarhead, pAttacker, true, false, pAttackingHouse);
-
-			// Alternate Warhead's animation from AnimList
-			const auto nLandType = MapClass::Instance()->GetCellAt(pTarget->Location)->LandType;
-
-			if (const auto pAnimType = MapClass::SelectDamageAnimation(animDamage, pAltWarhead, nLandType, pTarget->Location))
-			{
-				if (auto pAnim = GameCreate<AnimClass>(pAnimType, pTarget->Location)){
-					AnimExt::SetAnimOwnerHouseKind(pAnim,pThis->Owner->Owner,pTarget->Owner , pThis->Owner , false);
-				}
-			}
-
-			return true;
-		}
-
-	// Run mind control code
-	return false;
+		? DetonateBullet : Continue;
 }
 
 DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
@@ -246,32 +156,14 @@ DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
 
 	GET(BulletClass*, pBullet, ESI);
 
-	return ApplyMCAlternative(pBullet) ? IgnoreMindControl : ContinueFlow;
+	return BulletExt::ApplyMCAlternative(pBullet) ? IgnoreMindControl : ContinueFlow;
 }
-
-static HouseClass* GetHouse(BulletClass* const pThis)
-{
-	if (pThis->Owner) {
-		return pThis->Owner->GetOwningHouse();
-	}
-
-	return BulletExt::ExtMap.Find(pThis)->Owner;
-}
-
-static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings
-{
- {
-	 { "TargetNotDamageable" } , { "TargetNotEligible" } ,
-	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
-	{ "TargetValid" }
- }
-};
 
 DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 {
 	enum { ReturnFromFunction = 0x46A2FB };
 
-	GET(BulletClass* const , pThis, ESI);
+	GET(BulletClass* const, pThis, ESI);
 
 	if (pThis->WH)
 	{
@@ -281,46 +173,17 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
 
-			for (auto const pTechno : *TechnoClass::Array) {
-				if (pWHExt->EligibleForFullMapDetonation(pTechno, GetHouse(pThis)) == FullMapDetonateResult::TargetValid) {
+			for (auto const pTechno : *TechnoClass::Array)
+			{
+				if (pWHExt->EligibleForFullMapDetonation(pTechno, BulletExt::GetHouse(pThis)) == FullMapDetonateResult::TargetValid)
+				{
 					pThis->Target = pTechno;
 					pThis->Detonate(pTechno->Location);
+
+					if (!BulletExt::IsReallyAlive(pThis))
+						break;
 				}
 			}
-			/*
-			auto tryDetonate = [&](TechnoClass* pTechno)
-			{
-				if (pWHExt->EligibleForFullMapDetonation(pTechno, GetHouse(pThis)) == FullMapDetonateResult::TargetValid) {
-
-					pThis->Target = pTechno;
-					//pThis->SetTarget(pTechno);
-					pThis->Detonate(pTechno->Location);
-				}
-			};
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
-			{
-				for (const auto pTechno : *AircraftClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
-			{
-				for (const auto pTechno : *BuildingClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
-			{
-				for (const auto pTechno : *InfantryClass::Array)
-					tryDetonate(pTechno);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
-			{
-				for (const auto pTechno : *UnitClass::Array)
-					tryDetonate(pTechno);
-			}*/
 
 			pWHExt->WasDetonatedOnAllMapObjects = false;
 

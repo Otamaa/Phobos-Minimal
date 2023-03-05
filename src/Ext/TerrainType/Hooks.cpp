@@ -30,8 +30,8 @@ DEFINE_HOOK(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					pThis->Animation.Value = 0;
 					pThis->Animation.Start(0);
 
-					if (pThis->Type->SpawnsTiberium && Map.IsValid(pThis->Location)) {
-						if (auto const pCell = Map[pThis->Location]) {
+					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location)) {
+						if (auto const pCell = MapClass::Instance->GetCellAt(pThis->Location)) {
 							int cellCount = 1;
 							auto const pTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
 

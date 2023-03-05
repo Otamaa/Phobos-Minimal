@@ -123,21 +123,62 @@ public:
 		return dest;
 	}
 
-	CellClass* GetWaypointCell(int idx) {
-		JMP_THIS(0x68BCE0);
-	}
+	//IDA
+	//static
 
-	int IncrementUniqueID()
-	{ JMP_THIS(0x68BCB0); }
+	static int sub_683EB0() JMP_STD(0x683EB0);
+	static int sub_683FB0() JMP_STD(0x683FB0);
+	static void sub_684060() JMP_STD(0x684060);
+	static int sub_684180() JMP_STD(0x684180);
+	static int sub_684240() JMP_STD(0x684240);
+	static int sub_684290() JMP_STD(0x684290);
+	static int __fastcall sub_6842F0(bool a1) JMP_STD(0x6842F0); //do something with DSurface::WindowBounds
+	static bool __fastcall sub_684620(const char* pUnk) JMP_STD(0x684620);
+	static int sub_684C30() JMP_STD(0x684C30);
+	static int sub_685120() JMP_STD(0x685120);
+	static int sub_6851F0() JMP_STD(0x6851F0);
+	static int sub_685670(int a1, int a2) JMP_STD(0x685670);
+	static int sub_685DC0(int a1) JMP_STD(0x685DC0);
+	static int sub_6863E0() JMP_STD(0x6863E0);
+	static int sub_686570() JMP_STD(0x686570);
+	static bool __fastcall sub_686730(const char* pFilename) JMP_STD(0x686730);
+	static bool __fastcall sub_686B20(CCINIClass* INI, char a2) JMP_STD(0x686B20);
+	static int __fastcall sub_687CE0(const char* pFilename, bool bUnk) JMP_STD(0x687CE0);
+	static void __fastcall sub_688380(DWORD dwUnk) JMP_STD(0x688380);
+	static void __fastcall GenerateUnitsOfMap(bool bUnk) JMP_STD(0x6886B0);
+	static int __fastcall sub_688ED0(int a1, int a2, int a3) JMP_STD(0x688ED0);
 
-	static DWORD __fastcall GetRulesUniqueID()
-		{ JMP_STD(0x679D90); }
+	//other
+	wchar_t* sub_683610() JMP_THIS(0x683610);
+	void SetFilename(const char* pSource) JMP_THIS(0x686700);
+	int sub_686890() JMP_THIS(0x686890);
+	bool Save(IStream* pStm) JMP_THIS(0x689310);
+	bool Load(IStream* pStm) JMP_THIS(0x689470);
+	bool GlobalVarChange(int index, bool value) JMP_THIS(0x689670);
+	//return value is index valid or not
+	bool GetGlobalVarValue(int index, bool& res) JMP_THIS(0x689760);
+	bool ReadGlobalVar(CCINIClass* pINI) JMP_THIS(0x689880);
+	bool LocalVarChange(int index, bool value) JMP_THIS(0x689910);
+	//return value is index valid or not
+	bool GetLocalVarValue(int index, bool& res) JMP_THIS(0x689A00);
+	bool ReadLocalVar(CCINIClass* pINI) JMP_THIS(0x689B20);
+	bool ReadMap(CCINIClass* pINI) JMP_THIS(0x689E90);
+	bool WriteMap(CCINIClass* pINI, bool writeInfo) JMP_THIS(0x68AD70);
+	DWORD sub_68BD00(DWORD dwUnk1, DWORD dwUnk2) JMP_THIS(0x68BD00);
+	CellStruct* sub_68BD60() JMP_THIS(0x68BD60);
+	void ReadWaypoints(CCINIClass* pINI) JMP_THIS(0x68BDC0);
+	void WriteWaypoints(CCINIClass* pINI) JMP_THIS(0x68BE90);
+	void SetWaypoint(int index, int value) JMP_THIS(0x68BF50);
 
-	static DWORD __fastcall GetArtUniqueID()
-		{ JMP_STD(0x679EC0); }
+	int GetHouseIndices(int index) JMP_THIS(0x68C030)
+		
+	CellClass* GetWaypointCell(int idx) JMP_THIS(0x68BCE0);
 
-	static DWORD __fastcall GetAIUniqueID()
-		{ JMP_STD(0x679ED0); }
+	int IncrementUniqueID() { JMP_THIS(0x68BCB0); }
+
+	static DWORD __fastcall GetRulesUniqueID() { JMP_STD(0x679D90); }
+	static DWORD __fastcall GetArtUniqueID() { JMP_STD(0x679EC0); }
+	static DWORD __fastcall GetAIUniqueID() { JMP_STD(0x679ED0); }
 
 	//CTOR / DTOR
 protected:
@@ -153,14 +194,14 @@ public:
 	int HomeCell; //CellStruct?
 	int AltHomeCell; //CellStruct?
 	int UniqueID; //defaults to 1,000,000 - random salt for this game's communications
-	Random2Class Random; //218
+	DECLARE_PROPERTY(Random2Class, Random); //218
 	DWORD Difficulty1;
 	DWORD Difficulty2; // 2 - Difficulty1
-	TimerStruct ElapsedTimer;
-	TimerStruct PauseTimer;
+	DECLARE_PROPERTY(TimerStruct, ElapsedTimer);
+	DECLARE_PROPERTY(TimerStruct, PauseTimer);
 	DWORD unknown_62C;
 	bool IsGamePaused;
-	ArrayWrapper<CellStruct , 702u> Waypoints;
+	CellStruct Waypoints [702];
 
 	//Map Header
 	int StartX;
@@ -168,19 +209,19 @@ public:
 	int Width;
 	int Height;
 	int NumberStartingPoints;
-	ArrayWrapper<Point2D , 0x8u> StartingPoints;
-	ArrayWrapper<int , 0x10u> HouseIndices; // starting position => HouseClass::Array->GetItem(#)
-	ArrayWrapper<CellStruct , 0x8> HouseHomeCells;
+	Point2D StartingPoints [0x8];
+	int HouseIndices [0x10]; // starting position => HouseClass::Array->GetItem(#)
+	CellStruct HouseHomeCells [0x8];
 	bool TeamsPresent;
 	int NumCoopHumanStartSpots;
-	TimerStruct MissionTimer;
+	DECLARE_PROPERTY(TimerStruct, MissionTimer);
 	wchar_t * MissionTimerTextCSF;
 	char MissionTimerText [32];
-	TimerStruct ShroudRegrowTimer;
-	TimerStruct FogTimer;
-	TimerStruct IceTimer;
-	TimerStruct unknown_timer_123c;
-	TimerStruct AmbientTimer;
+	DECLARE_PROPERTY(TimerStruct, ShroudRegrowTimer);
+	DECLARE_PROPERTY(TimerStruct, FogTimer);
+	DECLARE_PROPERTY(TimerStruct, IceTimer);
+	DECLARE_PROPERTY(TimerStruct, unknown_timer_123c);
+	DECLARE_PROPERTY(TimerStruct, AmbientTimer);
 	int TechLevel;
 	TheaterType Theater;
 	char FileName [0x104];
@@ -205,13 +246,13 @@ public:
 	int CarryOverCap;
 	int Percent;
 
-	ArrayWrapper<Variable , 50u> GlobalVariables;
-	ArrayWrapper<Variable, 100u> LocalVariables;
+	Variable GlobalVariables [50];
+	Variable LocalVariables [100];
 
-	CellStruct View1;
-	CellStruct View2;
-	CellStruct View3;
-	CellStruct View4;
+	DECLARE_PROPERTY(CellStruct, View1);
+	DECLARE_PROPERTY(CellStruct, View2);
+	DECLARE_PROPERTY(CellStruct, View3);
+	DECLARE_PROPERTY(CellStruct, View4);
 	DWORD unknown_34A0;
 	bool FreeRadar; //34A4
 	bool TrainCrate;
@@ -237,31 +278,31 @@ public:
 	bool MultiplayerOnly; //34BC
 	bool IsRandom;
 	bool PickedUpAnyCrate;
-	TimerStruct unknown_timer_34C0;
+	DECLARE_PROPERTY(TimerStruct, unknown_timer_34C0);
 	int CampaignIndex;
 	int StartingDropships;
-	TypeList<TechnoTypeClass*> AllowableUnits;
-	TypeList<int> AllowableUnitMaximums;
-	TypeList<int> DropshipUnitCounts;
+	DECLARE_PROPERTY(TypeList<TechnoTypeClass*>, AllowableUnits);
+	DECLARE_PROPERTY(TypeList<int>, AllowableUnitMaximums);
+	DECLARE_PROPERTY(TypeList<int>, DropshipUnitCounts);
 
 	//General Lighting
 	int AmbientOriginal; // set at map creation
 	int AmbientCurrent; // current ambient
 	int AmbientTarget; // target ambient (while changing)
-	LightingStruct NormalLighting;
+	DECLARE_PROPERTY(LightingStruct, NormalLighting);
 
 	//Ion lighting
 	int IonAmbient;
-	LightingStruct IonLighting;
+	DECLARE_PROPERTY(LightingStruct, IonLighting);
 
 	//Nuke flash lighting
 	int NukeAmbient;
-	LightingStruct NukeLighting;
+	DECLARE_PROPERTY(LightingStruct, NukeLighting);
 	int NukeAmbientChangeRate;
 
 	//Dominator lighting
 	int DominatorAmbient;
-	LightingStruct DominatorLighting;
+	DECLARE_PROPERTY(LightingStruct, DominatorLighting);
 	int DominatorAmbientChangeRate;
 
 	DWORD unknown_3598;
@@ -285,7 +326,6 @@ public:
 	char LS640BkgdName [0x40];
 	char LS800BkgdName [0x40];
 	char LS800BkgdPal [0x40];
-	PROTECTED_PROPERTY(BYTE, align_373C[4]);
 };
 
 static_assert(sizeof(ScenarioClass) == 0x3740);

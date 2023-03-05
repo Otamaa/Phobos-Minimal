@@ -67,7 +67,7 @@ DEFINE_HOOK(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
 	if (pWeaponExt->OccupantAnim_UseMultiple.Get())
 	{
 		if (!pWeaponExt->OccupantAnims.empty())
-			pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioGlobal->Random(0, pWeaponExt->OccupantAnims.size() - 1)];
+			pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
 	}
 
 	R->EDI(pDecidedMuzzle);
@@ -196,7 +196,7 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	}
 	else
 	{
-		pWeaponResult = RulesGlobal->DeathWeapon;
+		pWeaponResult = RulesClass::Instance->DeathWeapon;
 		FromRules = true;
 	}
 
@@ -337,8 +337,8 @@ namespace ShakeScreenHandle
 		{
 			auto nFirst = GeneralUtils::GetValue(nValToCalc);
 			auto nSec = nFirst - GeneralUtils::GetValue(nRules) + 4;
-			GeneralUtils::CalculateShakeVal(GScreen.ScreenShakeX, nSec >> 1);
-			GeneralUtils::CalculateShakeVal(GScreen.ScreenShakeY, nSec);
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, nSec >> 1);
+			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, nSec);
 		}
 	}
 
@@ -353,7 +353,7 @@ DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
 		return 0x441C39; //return 0 causing crash
 
 	if (!TechnoTypeExt::ExtMap.Find(pBld->Type)->DontShake.Get())
-		ShakeScreenHandle::ShakeScreen(pBld, pBld->Type->Strength, RulesGlobal->ShakeScreen);
+		ShakeScreenHandle::ShakeScreen(pBld, pBld->Type->Strength, RulesClass::Instance->ShakeScreen);
 
 	return 0x441C39; //return 0 causing crash
 }
@@ -382,12 +382,12 @@ DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioGlobal->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
+	pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
 
-	if (!ScenarioGlobal->Random(0, 1))
+	if (!ScenarioClass::Instance->Random.RandomBool())
 		pThis->RockingSidewaysPerFrame = -pThis->RockingSidewaysPerFrame;
 
-	pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioGlobal->Random.RandomDouble() * 0.1 * pExt->CrashSpinVerticalRate.Get());
+	pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioClass::Instance->Random.RandomDouble() * 0.1 * pExt->CrashSpinVerticalRate.Get());
 
 
 	return 0x4DED4B;
@@ -423,7 +423,7 @@ DEFINE_HOOK(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
 
 	if (pThis && pThis->Owner)
 	{
-		R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesGlobal->DiskLaserChargeUp));
+		R->ECX(TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesClass::Instance->DiskLaserChargeUp));
 		return 0x4A7760;
 	}
 
@@ -437,7 +437,7 @@ DEFINE_HOOK(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 
 	if (Drainer && pVictim)
 	{
-		if (auto const pAnimType = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesGlobal->DrainAnimationType))
+		if (auto const pAnimType = TechnoTypeExt::ExtMap.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
 		{
 			auto const nCoord = Drainer->GetCoords();
 			if (auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))

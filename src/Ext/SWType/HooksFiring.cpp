@@ -63,11 +63,8 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
 
 	if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type)){
 		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
-
-		////if (auto pAresSWTypeExt = AresData::ContainerMap_Find::Exec(*reinterpret_cast<DWORD**>(AresData::ContainerMapData::SWTypeContainer), pSuper->Type)) {
-		////	Debug::Log("Found Ares SWTypeExt [%x] ! \n " , pAresSWTypeExt);
-		////}
 	}
+
 	return 0;
 }
 #endif
@@ -217,12 +214,6 @@ static void SortTimer(SuperClass* const pThis)
 //	return 0x6CB1F6;
 //}
 
-DEFINE_HOOK(0x6CB5EB, SuperClass_Grant_ShowTimer, 0x5)
-{
-	GET(SuperClass*, pThis, ESI);
-	SortTimer<true>(pThis);
-	return 0x6CB63E;
-}
 
 
 //DEFINE_HOOK(0x6CB5D2, SuperClass_Grant_AddToShowTimer, 0x9)

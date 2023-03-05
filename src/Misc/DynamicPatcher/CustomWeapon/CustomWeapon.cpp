@@ -130,7 +130,7 @@ void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* 
 {
 	if (burst.FireData.SimulateBurstMode == 3)
 	{
-		SimulateBurst b2 = burst;
+		SimulateBurst b2 = burst.Clone();
 		b2.FlipY *= -1;
 		SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, b2);
 	}

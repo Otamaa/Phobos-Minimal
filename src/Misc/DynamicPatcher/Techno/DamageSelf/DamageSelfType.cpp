@@ -17,7 +17,7 @@ void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 		DeactiveWhenCivilian_.Read(parser, pSection, "SelfDamaging.DeactiveWhenCivilian");
 		DeactiveWhenCivilian = DeactiveWhenCivilian_.Get();
 
-		Valueable<WarheadTypeClass*> nWHDumMy { RulesGlobal->C4Warhead };
+		Valueable<WarheadTypeClass*> nWHDumMy { RulesClass::Instance->C4Warhead };
 		nWHDumMy.Read(parser, pSection, "SelfDamaging.Warhead");
 		Warhead = nWHDumMy.Get();
 
@@ -63,11 +63,11 @@ int DamageSelfState::GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArm
 		// 计算实际伤害
 		if (realDamage > 0)
 		{
-			realDamage = Map.GetTotalDamage(damage, pWH, pObj->GetType()->Armor, 0);
+			realDamage = MapClass::GetTotalDamage(damage, pWH, pObj->GetType()->Armor, 0);
 		}
 		else
 		{
-			realDamage = -Map.GetTotalDamage(-damage, pWH, pObj->GetType()->Armor, 0);
+			realDamage = -MapClass::GetTotalDamage(-damage, pWH, pObj->GetType()->Armor, 0);
 		}
 	}
 	return realDamage;
@@ -78,11 +78,11 @@ void DamageSelfState::PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeC
 	CoordStruct location = pObj->GetCoords();
 	LandType landType = LandType::Clear;
 
-	if (auto pCell = Map.TryGetCellAt(location)) {
+	if (auto pCell = MapClass::Instance->GetCellAt(location)) {
 		landType = pCell->LandType;
 	}
 
-	if (auto pWHAnimType = Map.SelectDamageAnimation(realDamage, pWH, landType, location))
+	if (auto pWHAnimType = MapClass::SelectDamageAnimation(realDamage, pWH, landType, location))
 	{
 		if (auto pWHAnim = GameCreate<AnimClass>(pWHAnimType, location)) {
 			AnimExt::SetAnimOwnerHouseKind(pWHAnim, pObj->GetOwningHouse(), nullptr, false);

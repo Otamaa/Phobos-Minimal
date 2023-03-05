@@ -599,6 +599,7 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 
 void BuildingExt::LimboKill(BuildingClass* pBuilding)
 {
+	Debug::Log("BuildingExt::LimboKill -  Killing Building[%x - %s] ! \n", pBuilding, pBuilding->get_ID());
 	auto const pExt = TechnoExt::ExtMap.Find(pBuilding);
 	pExt->KillActionCalled = true;
 
@@ -712,11 +713,7 @@ BuildingExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-#ifndef ENABLE_NEWEXT
-	BuildingExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	BuildingExt::ExtMap.FindOrAllocate(pItem);
-#endif
+	BuildingExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 
@@ -752,9 +749,9 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x41D9FB, AirstrikeClass_Setup_Remove, 0xA) {
-	return 0x41DA05;
-}
+//DEFINE_HOOK(0x41D9FB, AirstrikeClass_Setup_Remove, 0xA) {
+//	return 0x41DA05;
+//}
 
 DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
 {

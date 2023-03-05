@@ -71,13 +71,15 @@ int HouseExt::ActiveHarvesterCount(HouseClass* pThis)
 	if (!pThis || !pThis->IsCurrentPlayer()) return 0;
 
 	int result =
-		std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [pThis](TechnoClass* techno)
-		{
-				if (TechnoTypeExt::ExtMap.Find(techno->GetTechnoType())->IsCountedAsHarvester() && techno->Owner == pThis)
-				return TechnoExt::IsHarvesting(techno);
+	std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(),
+	[pThis](TechnoClass* techno)
+	{
+		if (TechnoTypeExt::ExtMap.Find(techno->GetTechnoType())->IsCountedAsHarvester() 
+			&& techno->Owner == pThis)
+			return TechnoExt::IsHarvesting(techno);
 
-	return false;
-		});
+		return false;
+	});
 
 	return result;
 }
@@ -88,10 +90,10 @@ int HouseExt::TotalHarvesterCount(HouseClass* pThis)
 
 	int result = 0;
 
-	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [&result, pThis](TechnoTypeClass* techno)
+	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(),
+	[&result, pThis](TechnoTypeClass* techno)
 	{
-		if (TechnoTypeExt::ExtMap.Find(techno)->IsCountedAsHarvester())
-		{
+		if (TechnoTypeExt::ExtMap.Find(techno)->IsCountedAsHarvester()) {
 			result += pThis->CountOwnedAndPresent(techno);
 		}
 	});
@@ -877,23 +879,20 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
-		if(!pExt->Death_Countdown.Completed() || pExt->KillActionCalled)
+		if(!pExt || !pExt->Death_Countdown.Completed() || pExt->KillActionCalled)
 			continue;
 
-		//Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
-		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
-		{
+		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
+		if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBuilding);
 
-			if (pBldExt->LimboID != -1) {
+			if (pBldExt && pBldExt->LimboID != -1) {
 				BuildingExt::LimboKill(pBuilding);
-			} else {
-				TechnoExt::KillSelf(pBuilding, nMethod);
-			}
-
-		} else {		
-			TechnoExt::KillSelf(pThis, nMethod);
-		}
+				continue;
+			} 
+		}		
+			
+		TechnoExt::KillSelf(pThis, nMethod);
 	}
 }
 
@@ -1026,5 +1025,8 @@ DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
 	if (auto pExt = HouseExt::ExtMap.Find(pThis))
 		pExt->InvalidatePointer(target, all);
 
-	return 0x0;
+	R->ESI(pThis);
+	R->EBX(0);
+	return pThis->ToCapture == target ? 
+		0x4FB9C3 : 0x4FB9C9;
 }

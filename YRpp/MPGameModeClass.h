@@ -63,11 +63,9 @@ public:
 
 	static bool Set(int index)
 	{
-		bool success;
-		_asm {mov ecx, index};
-		CALL(0x5D5F30);
+		THISCALL_EX(index, 0x5D5F30);
 		MEM_WRITEIMM32(0xA8B23C, eax);
-		_asm {mov success, al};
+		VAR8_REG(bool, success, al);
 		return success;
 	}
 	//Destructor

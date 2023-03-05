@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -267,4 +268,56 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 
 	R->EAX(chosenWeaponIndex);
 	return ReturnValue;
+}
+
+
+DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
+{
+	enum { SkipGameCode = 0x6F34BD };
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis)
+	{
+		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		return SkipGameCode;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x51EAF2, TechnoClass_WhatAction_AllowAirstrike, 0x6)
+{
+	enum { SkipGameCode = 0x51EAF8 };
+	GET(BuildingTypeClass*, pThis, ESI);
+
+	if (pThis)
+	{
+		R->AL(BuildingTypeExt::ExtMap.Find(pThis)->AllowAirstrike.Get(pThis->CanC4));
+		return SkipGameCode;
+	}
+
+	return 0x0;
+}
+
+// Basically a hack to make game and Ares pick laser properties from non-Primary weapons.
+DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
+{
+	enum { ReturnResult = 0x70E1C7, Continue = 0x70E1AB };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+		if (!pExt->CurrentLaserWeaponIndex.empty())
+		{
+			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex.get()));
+			return ReturnResult;
+		}
+	}
+
+	// Restore overridden instructions.
+	R->EAX(pThis->GetTechnoType());
+	return Continue;
 }

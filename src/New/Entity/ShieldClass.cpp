@@ -532,7 +532,7 @@ bool ShieldClass::ConvertCheck()
 	// Update shield properties.
 	if (pNewType->Strength && this->Available)
 	{
-		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesGlobal->ConditionYellow;
+		bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 		double healthRatio = this->GetHealthRatio();
 
 		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
@@ -763,7 +763,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 	if (!this->Type || !this->Techno)
 		return nullptr;
 
-	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesGlobal->ConditionYellow;
+	bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 
 	return this->Type->GetIdleAnimType(isDamaged, this->GetHealthRatio());
 }
@@ -830,8 +830,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 
 void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
-	auto nVanillaPip = FileSystem::PIPBRD_SHP();
-	auto pipBoard = this->Type->Pips_Background_SHP.Get(RulesExt::Global()->Pips_Shield_Background_SHP.Get(nVanillaPip));
+	const auto pipBoard = this->Type->Pips_Background_SHP.Get(RulesExt::Global()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 
 	if (!pipBoard)
 		return;
@@ -884,18 +883,14 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 	const auto strength = this->Type->Strength;
 	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
 	const auto& pips_Global = isBuilding ? RulesExt::Global()->Pips_Shield_Building : RulesExt::Global()->Pips_Shield;
+	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
 
-	auto shieldPip = pips_Global.Get();
-
-	if (pips_Shield.Get().X != -1)
-		shieldPip = pips_Shield.Get();
-
-	if (this->HP > RulesGlobal->ConditionYellow * strength && shieldPip.X != -1)
-		return shieldPip.X;
-	else if (this->HP > RulesGlobal->ConditionRed * strength && (shieldPip.Y != -1 || shieldPip.X != -1))
-		return shieldPip.Y == -1 ? shieldPip.X : shieldPip.Y;
-	else if (shieldPip.Z != -1 || shieldPip.X != -1)
-		return shieldPip.Z == -1 ? shieldPip.X : shieldPip.Z;
+	if (this->HP > RulesClass::Instance->ConditionYellow * strength && shieldPip->X != -1)
+		return shieldPip->X;
+	else if (this->HP > RulesClass::Instance->ConditionRed * strength && (shieldPip->Y != -1 || shieldPip->X != -1))
+		return shieldPip->Y == -1 ? shieldPip->X : shieldPip->Y;
+	else if (shieldPip->Z != -1 || shieldPip->X != -1)
+		return shieldPip->Z == -1 ? shieldPip->X : shieldPip->Z;
 
 	return isBuilding ? 5 : 16;
 }
@@ -959,15 +954,15 @@ bool ShieldClass::IsBrokenAndNonRespawning() const
 
 bool ShieldClass::IsGreenSP()
 {
-	return RulesGlobal->ConditionYellow * Type->Strength.Get() < HP;
+	return RulesClass::Instance->ConditionYellow * Type->Strength.Get() < HP;
 }
 
 bool ShieldClass::IsYellowSP()
 {
-	return RulesGlobal->ConditionRed * Type->Strength.Get() < HP && HP <= RulesGlobal->ConditionYellow * Type->Strength.Get();
+	return RulesClass::Instance->ConditionRed * Type->Strength.Get() < HP && HP <= RulesClass::Instance->ConditionYellow * Type->Strength.Get();
 }
 
 bool ShieldClass::IsRedSP()
 {
-	return HP <= RulesGlobal->ConditionRed * Type->Strength.Get();
+	return HP <= RulesClass::Instance->ConditionRed * Type->Strength.Get();
 }

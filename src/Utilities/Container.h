@@ -187,13 +187,13 @@ private:
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
-
+	//std::unordered_map<base_type_ptr, extension_type_ptr> ExtMap;
 public:
 
 	explicit Container(const char* pName) :
 		SavingObject { nullptr },
 		SavingStream { nullptr },
-		Name {}
+		Name {}  //, ExtMap {}
 	{
 		Name = pName;
 	}
@@ -227,17 +227,32 @@ public:
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+		//this->ExtMap.erase(key);
 	}
 
-	void SetExtAttribute(base_type_ptr key, const_extension_type_ptr val)
+	void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
+
+		//this->ExtMap.emplace(key, val);
 	}
 
-	virtual void Clear() { }
+	extension_type_ptr GetExtAttribute(base_type_ptr key) const
+	{
+		if constexpr (HasOffset<T>)
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
+		else
+			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
+		
+		//auto const Iter = this->ExtMap.find(key);
+		//return Iter != this->ExtMap.end() ? (*Iter).second : nullptr;
+	}
+
+	virtual void Clear() { //ExtMap.clear();
+	}
 
 protected:
 
@@ -274,7 +289,7 @@ public:
 			return;
 		}
 
-		Allocate(key);
+		this->Allocate(key);
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
@@ -286,17 +301,12 @@ public:
 		return this->Allocate(key);
 	}
 
-	NOINLINE extension_type_ptr Find(const_base_type_ptr key) const
+	NOINLINE extension_type_ptr Find(base_type_ptr key) const
 	{
 		if (!key)
 			return nullptr;
 
-		if constexpr (HasOffset<T>)
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-
-		else
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
-
+		return this->GetExtAttribute(key);
 	}
 
 	void Remove(base_type_ptr key)
@@ -308,7 +318,7 @@ public:
 		}
 	}
 
-	void LoadFromINI(const_base_type_ptr key, CCINIClass* pINI)
+	void LoadFromINI(base_type_ptr key, CCINIClass* pINI)
 	{
 		if (extension_type_ptr ptr = this->Find(key))
 			ptr->LoadFromINI(pINI);

@@ -34,7 +34,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 		bool UnlimboSuccess = false;
 
 		if (!pCell && location != CoordStruct::Empty)
-			pCell = Map[location];
+			pCell = MapClass::Instance->GetCellAt(location);
 
 		if (pCell)
 		{
@@ -49,8 +49,8 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 
 				if (pType->WhatAmI() == AbstractType::BuildingType) {
 					if (!pCell->CanThisExistHere(pType->SpeedType, static_cast<BuildingTypeClass*>(pType), pHouse)) {
-						location = Map.GetRandomCoordsNear(location, 0, false);
-						pCell = Map[location];
+						location = MapClass::Instance->GetRandomCoordsNear(location, 0, false);
+						pCell = MapClass::Instance->GetCellAt(location);
 					}
 				}
 				
@@ -93,8 +93,8 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 	else
 		targetPos = pTarget->GetCoords();
 
-	if(auto const pCell  = Map[targetPos])
-		targetPos.Z = pCell->GetFloorHeight({0,0});
+	if(auto const pCell  = MapClass::Instance->GetCellAt(targetPos))
+		targetPos.Z = pCell->GetFloorHeight(Point2D::Empty);
 
 	// radial fire
 	int burst = pWeapon->Burst;
@@ -115,7 +115,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 
 		if (!bulletSourcePos)
 		{
-			auto nFLh_ = flh;
+			CoordStruct nFLh_ = flh;
 			sourcePos = GetFLHAbsoluteCoords(pShooter, nFLh_, true, flipY);
 		}
 

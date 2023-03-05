@@ -117,7 +117,7 @@ public:
 		Nullable<int> PowerPlantEnhancer_Amount;
 		Nullable<float> PowerPlantEnhancer_Factor;
 
-		DynamicVectorClass<Point2D> OccupierMuzzleFlashes;
+		std::vector<Point2D> OccupierMuzzleFlashes;
 
 		Valueable<bool> Refinery_UseStorage;
 		Nullable<bool> AllowAirstrike;
@@ -360,14 +360,14 @@ public:
 
 			if constexpr (UpSound == BunkerSoundMode::Up)
 			{
-				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesGlobal->BunkerWallsUpSound);
+				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
 
 				if (nSound != -1)
 					VocClass::PlayAt(nSound, pThis->Location);
 			}
 			else
 			{
-				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesGlobal->BunkerWallsDownSound);
+				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
 
 				if (nSound != -1)
 					VocClass::PlayAt(nSound, pThis->Location);
@@ -376,7 +376,12 @@ public:
 		}
 	};
 
+	static void DisplayPlacementPreview();
+	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis , int nOccupyIdx);
+	static int CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued);
+	static int BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
+
 	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
 	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex,	int Brightness,	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset,	int YOffset);
 };

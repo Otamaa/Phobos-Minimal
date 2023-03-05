@@ -503,7 +503,6 @@ DEFINE_HOOK(0x6EC55A, TeamClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-#ifndef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 {
 	GET(TeamClass*, pThis, ECX);
@@ -515,4 +514,3 @@ DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 
 	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
 }
-#endif

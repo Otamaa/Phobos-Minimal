@@ -90,5 +90,5 @@ public:
 	DECLARE_PROPERTY(CoordStruct, coordA8);
 	DWORD unknown_B4;
 	double unknown_B8;
-	ColorStruct RgbC0;
+	DECLARE_PROPERTY(ColorStruct, RgbC0);
 };

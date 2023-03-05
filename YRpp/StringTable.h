@@ -50,9 +50,9 @@ struct CSFString
 	CSFString *PreviousEntry;
 	wchar_t Text[102];
 
-	//CSFString() : PreviousEntry(nullptr) {
-	//	*Text = 0;
-	//}
+	CSFString() : PreviousEntry(nullptr) {
+		*Text = 0;
+	}
 };
 
 struct CSFLanguage

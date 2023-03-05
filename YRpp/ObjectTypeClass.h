@@ -32,12 +32,11 @@ public:
 
 		return nullptr;
 	}
-	
+
 	static NOINLINE ObjectTypeClass* __fastcall FindOrAllocate(const char* pID)
 	{
-		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
+		if (!pID || CRT::strcmpi(pID, GameStrings::NoneStr()) == 0 || CRT::strcmpi(pID, GameStrings::NoneStrb()) == 0)
 			return nullptr;
-		}
 
 		if (auto pRet = Find(pID)) {
 			return pRet;
@@ -45,7 +44,7 @@ public:
 
 		return GameCreate<ObjectTypeClass>(pID);
 	}
-	
+
 	static int __fastcall FindIndexById(const char* pID) {
 		JMP_STD(0x5F9990);
 	}

@@ -45,7 +45,7 @@ DEFINE_HOOK(0x46A290, BulletClass_Logics_Return, 0x5)
 
 DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 {
-	GET_BASE(const WarheadTypeClass*, pWH, 0x0C);
+	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 
 	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWH))
 	{
@@ -61,28 +61,30 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		if (ShakeAllow)
 		{
 			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(Map.ScreenShakeX ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
 
 			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(Map.ScreenShakeY ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
 		}
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 
-		for (auto const& Lauch : pWHExt->Launchs) {
-			if (Lauch.LaunchWhat) {
-				Helpers::Otamaa::LauchSW(Lauch.LaunchWhat,
-					pDecidedOwner, *pCoords, Lauch.LaunchWaitcharge,
-					Lauch.LaunchResetCharge,
-					Lauch.LaunchGrant,
-					Lauch.LaunchGrant_RepaintSidebar,
-					Lauch.LaunchGrant_OneTime,
-					Lauch.LaunchGrant_OnHold,
-					Lauch.LaunchSW_Manual,
-					Lauch.LaunchSW_IgnoreInhibitors,
-					Lauch.LaunchSW_IgnoreDesignators,
-					Lauch.LauchSW_IgnoreMoney
-				);
+		if(!pWHExt->Launchs.empty())  {
+			for (auto const& Lauch : pWHExt->Launchs) {
+				if (Lauch.LaunchWhat) {
+					Helpers::Otamaa::LauchSW(Lauch.LaunchWhat,
+						pDecidedOwner, *pCoords, Lauch.LaunchWaitcharge,
+						Lauch.LaunchResetCharge,
+						Lauch.LaunchGrant,
+						Lauch.LaunchGrant_RepaintSidebar,
+						Lauch.LaunchGrant_OneTime,
+						Lauch.LaunchGrant_OnHold,
+						Lauch.LaunchSW_Manual,
+						Lauch.LaunchSW_IgnoreInhibitors,
+						Lauch.LaunchSW_IgnoreDesignators,
+						Lauch.LauchSW_IgnoreMoney
+					);
+				}
 			}
 		}
 
@@ -104,7 +106,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 	{
 		GET(int, nDamage, ECX);
 		int idx = pWHExt->SplashList_PickRandom ?
-			ScenarioClass::Instance->Random.RandomRanged(0, pWHExt->SplashList.size() - 1) :
+			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->SplashList.size() - 1) :
 			std::min(pWHExt->SplashList.size() * 35 - 1, (size_t)nDamage) / 35;
 		R->EAX(pWHExt->SplashList[idx]);
 		return 0x48A5AD;

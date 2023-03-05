@@ -11,9 +11,10 @@ enum class FileAccessMode : unsigned int {
 	None = 0,
 	Read = 1,
 	Write = 2,
-	ReadWrite = 3
+	ReadWrite = Read | Write
 };
 
+MAKE_ENUM_FLAGS(FileAccessMode);
 enum class FileSeekMode : unsigned int {
 	Set = 0, // SEEK_SET
 	Current = 1, // SEEK_CUR

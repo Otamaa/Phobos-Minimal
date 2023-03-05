@@ -1094,7 +1094,7 @@ public:
 	ArrayWrapper<ZoneInfoStruct, 5> ZoneInfos;
 	int					  LATime;
 	int					  LAEnemy;
-	int					  ToCapture;
+	AbstractClass*		  ToCapture;
 //	IndexBitfield<HouseTypeClass *> RadarVisibleTo; // these house types(!?!, fuck you WW) can see my radar
 	IndexBitfield<HouseClass *> RadarVisibleTo; // this crap is being rewritten to use house indices instead of house types
 	int                   SiloMoney;

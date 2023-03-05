@@ -140,7 +140,7 @@ public:
 			, Pips_Shield { { -1,-1,-1 } }
 			, Pips_Shield_Buildings { { -1,-1,-1 } }
 			, RadApplicationDelay_Building { 0 }
-			, MissingCameo { "xxicon.shp" }
+			, MissingCameo { GameStrings::XXICON_SHP() }
 			, AITargetTypesLists { }
 			, AIScriptsLists { }
 			, AIHousesLists { }

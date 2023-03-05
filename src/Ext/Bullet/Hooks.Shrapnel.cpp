@@ -232,7 +232,7 @@ void Shrapnel_Exec(BulletClass* pThis)
 					CellStruct nNextCoord = pThis->GetMapCoords();
 					nNextCoord.X += nX;
 					nNextCoord.Y += nY;
-					if (const auto pCellTarget = Map[nNextCoord])
+					if (const auto pCellTarget = MapClass::Instance->GetCellAt(nNextCoord))
 					{
 						const auto pShrapExt = BulletTypeExt::ExtMap.Find(pShrapWeapon->Projectile);
 

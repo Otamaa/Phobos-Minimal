@@ -20,7 +20,7 @@ DEFINE_HOOK(0x6FE3F1, TechnoClass_FireAt_OccupyDamageBonus, 0x9) //B
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
 		GET_STACK(int, nDamage, 0x2C);
-		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
+		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)));
 		return ApplyDamageBonus;
 	}
 
@@ -34,7 +34,7 @@ DEFINE_HOOK(0x6FE421, TechnoClass_FireAt_BunkerDamageBonus, 0x9) //B
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
 		GET_STACK(int, nDamage, 0x2C);
-		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesGlobal->OccupyDamageMultiplier)));
+		R->EAX(Game::F2I(nDamage * BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)));
 		return ApplyDamageBonus;
 	}
 
@@ -47,7 +47,7 @@ DEFINE_HOOK(0x6FD183, TechnoClass_RearmDelay_BuildingOccupyROFMult, 0x6) // C
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis)) {
-		auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyROFMult.Get(RulesGlobal->OccupyROFMultiplier);
+		auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingOccupyROFMult.Get(RulesClass::Instance->OccupyROFMultiplier);
 
 		if (nMult != 0.0f) {
 			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
@@ -67,7 +67,7 @@ DEFINE_HOOK(0x6FD1C7, TechnoClass_RearmDelay_BuildingBunkerROFMult, 0x6) //C
 	GET(TechnoClass*, pThis, ESI);
 
 	if (auto const Building = specific_cast<BuildingClass*>(pThis->BunkerLinkedItem)) {
-			auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerROFMult.Get(RulesGlobal->BunkerROFMultiplier);
+			auto const nMult = BuildingTypeExt::ExtMap.Find(Building->Type)->BuildingBunkerROFMult.Get(RulesClass::Instance->BunkerROFMultiplier);
 		if (nMult != 0.0f) {
 			GET_STACK(int, nROF, STACK_OFFS(0x10, -0x4));
 			R->EAX(Game::F2I(((double)nROF) / nMult));
@@ -131,7 +131,7 @@ DEFINE_HOOK(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 
 	if (pThis && pThis->Type) {
 		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type)) {
-			R->EAX(Game::F2I(pTypeExt->RepairRate.Get(RulesGlobal->RepairRate) * 900.0));
+			R->EAX(Game::F2I(pTypeExt->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
 			return 0x450837;
 		}
 	}
@@ -145,7 +145,7 @@ DEFINE_HOOK(0x70BEF9, TechnoClass_canHealRepair_Building, 0x5) //B
 
 	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
 		if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
-			R->EAX(Game::F2I(pTypeExt->RepairRate.Get(RulesGlobal->RepairRate) * 900.0));
+			R->EAX(Game::F2I(pTypeExt->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
 			return 0x70BF0F;
 		}
 	}
@@ -175,14 +175,14 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	GET(TechnoTypeClass*, pThis, ECX);
 
 	int nVal = 1;
-	auto nStep = RulesGlobal->RepairStep;
+	auto nStep = RulesClass::Instance->RepairStep;
 
 	if (pThis) {
 		if (auto const pBuildingType = type_cast<BuildingTypeClass*,false>(pThis)) { 
 			nStep = BuildingTypeExt::ExtMap.Find(pBuildingType)->RepairStep.Get(nStep);
 		}
 
-		nVal = (Math::clamp(((int)((pThis->GetCost() / (pThis->Strength / nStep) * RulesGlobal->RepairPercent))), 1, MAX_VAL(int)));
+		nVal = (Math::clamp(((int)((pThis->GetCost() / (pThis->Strength / nStep) * RulesClass::Instance->RepairPercent))), 1, MAX_VAL(int)));
 	}
 
 	R->EAX(nVal);

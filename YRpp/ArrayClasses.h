@@ -742,13 +742,14 @@ class CounterClass : public VectorClass<int>
 public:
 	constexpr CounterClass() noexcept = default;
 	static const ArrayType Type = ArrayType::Counter;
+	using VecInt_type = VectorClass<int>;
 
 	CounterClass(const CounterClass& other)
-		: VectorClass<int>(other), Total(other.Total)
+		: VecInt_type(other), Total(other.Total)
 	{ }
 
 	CounterClass(CounterClass&& other) noexcept
-		: VectorClass<int>(std::move(other)), Total(other.Total)
+		: VecInt_type(std::move(other)), Total(other.Total)
 	{ }
 
 	CounterClass& operator = (const CounterClass& other)
@@ -835,11 +836,14 @@ public:
 
 	void Swap(CounterClass& other) noexcept
 	{
-		VectorClass<int>::Swap(other);
+		VecInt_type::Swap(other);
 		using std::swap;
 		swap(this->Total, other.Total);
 	}
 
+	//HRESULT Load(IStream* pStm) { JMP_THIS(0x49FBE0); }
+	//HRESULT Save(IStream* pStm) { JMP_THIS(0x49FB70); }
+public:
 	int Total { 0 };
 };
 

@@ -29,7 +29,7 @@ struct ControlNode
 
 	TechnoClass* Unit;
 	HouseClass* OriginalOwner;
-	DECLARE_PROPERTY(TimerStruct, LinkDrawTimer);
+	TimerStruct LinkDrawTimer;
 };
 
 static_assert(sizeof(ControlNode) == 0x14);

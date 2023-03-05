@@ -134,7 +134,7 @@ DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	VoxelAnimExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+	VoxelAnimExt::ExtMap.Allocate(pItem);
 
 	return 0;
 }

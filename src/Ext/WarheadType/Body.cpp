@@ -74,7 +74,7 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(TechnoClass* pVicti
 	if (!this->RecalculateDistanceDamage.Get() || !pArgs->Attacker)
 		return;
 
-	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesGlobal->MaxDamage)
+	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesClass::Instance->MaxDamage)
 		return;
 
 	const auto pThisType = pVictim->GetTechnoType();
@@ -189,7 +189,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 	{
 		if (EffectsRequireVerses)
 		{
-			if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, Get(), nArmor, 0) == 0.0)
+			if (MapClass::GetTotalDamage(RulesClass::Instance->MaxDamage, Get(), nArmor, 0) == 0.0)
 			{
 				return false;
 			}
@@ -259,7 +259,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coor
 		return;
 
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	AbstractClass* pTarget = !targetCell ? nullptr : Map[coords];
+	AbstractClass* pTarget = !targetCell ? nullptr : MapClass::Instance->GetCellAt(coords);
 
 	if (pThis->NukeMaker)
 	{
@@ -797,13 +797,7 @@ WarheadTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 {
 	GET(WarheadTypeClass*, pItem, EBP);
-
-#ifndef ENABLE_NEWEXT
-	WarheadTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	WarheadTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
-
+	WarheadTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

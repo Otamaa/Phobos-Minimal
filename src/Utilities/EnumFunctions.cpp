@@ -1,5 +1,13 @@
 #include "EnumFunctions.h"
 
+std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
+ {
+	{ "TargetNotDamageable" } , { "TargetNotEligible" } ,
+	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
+	{ "TargetValid" }
+ }
+};
+
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
 	if ((flags & AffectedHouse::All) != AffectedHouse::None)

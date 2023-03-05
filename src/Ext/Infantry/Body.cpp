@@ -74,7 +74,7 @@ DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 {
 	GET(InfantryClass*, pItem, ESI);
 
-	InfantryExt::ExtMap.JustAllocate(pItem, pItem, "Failed !");
+	InfantryExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

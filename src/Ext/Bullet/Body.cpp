@@ -1,11 +1,14 @@
 #include "Body.h"
 
+#include <Ext/Anim/Body.h>
 #include <Ext/RadSite/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/WarheadType/Body.h>
+
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include "Trajectories/PhobosTrajectory.h"
 
@@ -13,6 +16,112 @@
 
 BulletExt::ExtContainer BulletExt::ExtMap;
 TechnoClass* BulletExt::InRangeTempFirer = nullptr;
+
+
+void BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
+{
+	if (bDetonate)
+		pThis->Detonate(pThis->GetCoords());
+
+	if (bRemove)
+	{
+		if (!pThis->InLimbo)
+			pThis->Limbo();
+
+		pThis->UnInit();
+
+		const auto pTechno = pThis->Owner;
+		const bool isLimbo =
+			pTechno &&
+			pTechno->InLimbo &&
+			pThis->WeaponType &&
+			pThis->WeaponType->LimboLaunch;
+
+		if (isLimbo)
+		{
+			pThis->SetTarget(nullptr);
+			auto damage = pTechno->Health;
+			pTechno->SetLocation(pThis->GetCoords());
+			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+		}
+	}
+}
+
+bool BulletExt::ApplyMCAlternative(BulletClass* pThis)
+{
+	const auto pTarget = generic_cast<TechnoClass*>(pThis->Target);
+
+	if (!pTarget || !pThis->WH->MindControl || !pThis->Owner)
+		return false;
+
+	const auto pTargetType = pTarget->GetTechnoType();
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	double currentHealthPerc = pTarget->GetHealthPercentage();
+	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
+	double nTreshold = pWarheadExt->MindControl_Threshold;
+
+	// If inversed threshold: mind control works until the target health is lower than the threshold percentage.
+	// If not inversed: mind control only works when the target health is lower than the threshold percentage.
+	if (nTreshold < 0.0 || nTreshold > 1.0)
+		nTreshold = flipComparations ? 0.0 : 1.0;
+
+	// Targets health threshold calculations
+	const bool skipMindControl = flipComparations ? (nTreshold > 0.0) : (nTreshold < 1.0);
+	const bool healthComparation = flipComparations ? (currentHealthPerc <= nTreshold) : (currentHealthPerc >= nTreshold);
+
+	if (skipMindControl
+		&& healthComparation
+		&& pWarheadExt->MindControl_AlternateDamage.isset()
+		&& pWarheadExt->MindControl_AlternateWarhead.isset())
+	{
+		// Alternate damage
+		const int altDamage = pWarheadExt->MindControl_AlternateDamage.Get();
+		// Alternate warhead
+		WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Get();
+		// Get the damage the alternate warhead can produce against the target
+		int realDamage = MapClass::GetTotalDamage(altDamage, pAltWarhead, pTargetType->Armor, 0);
+		const int animDamage = realDamage;
+
+		const auto pAttacker = pThis->Owner;
+		const auto pAttackingHouse = pThis->Owner->Owner;
+
+		// Keep the target alive if necessary
+		if (!pWarheadExt->MindControl_CanKill.Get() && realDamage >= pTarget->Health)
+			realDamage = pTarget->Health - 1;
+
+		pTarget->ReceiveDamage(&realDamage, 0, pAltWarhead, pAttacker, true, false, pAttackingHouse);
+
+		// Alternate Warhead's animation from AnimList
+		const auto nLandType = MapClass::Instance()->GetCellAt(pTarget->Location)->LandType;
+
+		if (const auto pAnimType = MapClass::SelectDamageAnimation(animDamage, pAltWarhead, nLandType, pTarget->Location))
+		{
+			if (auto pAnim = GameCreate<AnimClass>(pAnimType, pTarget->Location))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner->Owner, pTarget->Owner, pThis->Owner, false);
+			}
+		}
+
+		return true;
+	}
+
+	// Run mind control code
+	return false;
+}
+
+bool BulletExt::IsReallyAlive(BulletClass* pThis)
+{
+	return pThis && pThis->IsAlive;
+}
+
+HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
+{
+	if (pThis->Owner) {
+		return pThis->Owner->GetOwningHouse();
+	}
+
+	return BulletExt::ExtMap.Find(pThis)->Owner;
+}
 
 bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
@@ -65,7 +174,10 @@ void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spr
 				if (pRadExt->Type != pRadType)
 					return false;
 
-				if (Map[pSite->BaseCell] != Map[nCoord])
+				auto const pBaseCell = MapClass::Instance->GetCellAt(pSite->BaseCell);
+				auto const pDestCell = MapClass::Instance->GetCellAt(nCoord);
+
+				if (pBaseCell != pDestCell)
 					return false;
 
 				if (Spread != pSite->Spread)
@@ -321,13 +433,7 @@ BulletExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
-
-#ifndef ENABLE_NEWEXT
-	BulletExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate with nullptr !");
-#else
-	BulletExt::ExtMap.FindOrAllocate(pItem);
-#endif
-
+	BulletExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

@@ -102,11 +102,9 @@ public:
 	bool    AIDefendAgainst;
 	bool    PreClick;
 	bool    PostClick;
-	PROTECTED_PROPERTY(BYTE, zero_EF);
 	int		PreDependent;
 	bool    ShowTimer;
 	bool    ManualControl;
-	PROTECTED_PROPERTY(BYTE, zero_F6[2]);
 	float   Range;
 	int     LineMultiplier;
 

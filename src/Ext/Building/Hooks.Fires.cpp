@@ -50,19 +50,19 @@ namespace DamageFireAnims
 
 		HandleRemove(pExt);
 
-		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesGlobal->DamageFireTypes);
+		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
 
 		if (!pFire.empty() &&
 			!pTypeext->DamageFire_Offs.empty())
 		{
 			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{
-				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
-				const auto[nPiX ,nPiY] = TacticalGlobal->ApplyOffsetPixel(nFireOffs);
+				const auto& nFireOffs = pTypeext->DamageFire_Offs.at(i);
+				const auto[nPiX ,nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
 				nPixCoord += pThis->GetRenderCoords();
 
-				if (auto const pFireType = pFire[ScenarioGlobal->Random.RandomFromMax(pFire.size() - 1)])
+				if (auto const pFireType = pFire[ScenarioClass::Instance->Random.RandomFromMax(pFire.size() - 1)])
 				{
 					if (auto pAnim = GameCreate<AnimClass>(pFireType, nPixCoord))
 					{
@@ -71,7 +71,7 @@ namespace DamageFireAnims
 						auto nAdjust = ((3 * (nFireOffs.Y - 15 * nWidth + (-15) * nBuildingHeight)) >> 1) - 10;
 						pAnim->ZAdjust = nAdjust > 0 ? 0 : nAdjust; //ZAdjust always negative
 						if (pAnim->Type->End > 0)
-							pAnim->Animation.Value = ScenarioGlobal->Random.RandomFromMax(pAnim->Type->End - 1);
+							pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
 						pAnim->Owner = pThis->GetOwningHouse();
 						pExt->DamageFireAnims[i] = std::move(pAnim);

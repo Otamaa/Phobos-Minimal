@@ -109,8 +109,7 @@ public:
 	WarheadTypeClass* Warhead;
 	ParticleSystemTypeClass* AttachedSystem;
 	bool IsTiberium;
-	//PROTECTED_PROPERTY(BYTE, unused_301[3]);
-	//PROTECTED_PROPERTY(DWORD, align_304);
+	PROTECTED_PROPERTY(BYTE, unused_301[3]);
 };
 
 static_assert(sizeof(VoxelAnimTypeClass) == 0x308, "Invalid size.");

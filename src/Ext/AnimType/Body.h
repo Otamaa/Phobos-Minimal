@@ -53,7 +53,7 @@ public:
 
 		ValueableVector<AnimTypeClass*> SpawnsMultiple;
 		Valueable<bool> SpawnsMultiple_Random;
-		DynamicVectorClass<int> SpawnsMultiple_amouts;
+		std::vector<int> SpawnsMultiple_amouts;
 
 		Valueable<double> ParticleRangeMin;
 		Valueable<double> ParticleRangeMax;

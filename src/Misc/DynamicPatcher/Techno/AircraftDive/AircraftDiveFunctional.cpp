@@ -27,7 +27,7 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 
 	CoordStruct location = pTechno->Location;
 	CoordStruct targetPos = pTarget->GetCoords();
-			    targetPos.Z = Map.GetCellFloorHeight(targetPos);
+	targetPos.Z = MapClass::Instance->GetCellFloorHeight(targetPos);
 
 	int distance = pTypeExt->MyDiveData.Distance;
 	if (distance == 0) {

@@ -18,17 +18,15 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 	if (location->GetContainedTiberiumValue() > 0)
 	{
-		if (auto const pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex())))
-		{
-			if (!ScenarioClass::Instance->Random(0, pTibExt->GetTwinkleChance() - 1))
-			{
-				if (auto pAnimtype = pTibExt->GetTwinkleAnim())
+		auto const pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex()));
+		if (!pTibExt)
+			return 0x0;
+
+		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
+			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {
+				if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1))
 				{
-					if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1))
-					{
-						//AnimExt::AnimCellUpdater::Marked.push_back(location);
-						AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
-					}
+					AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
 				}
 			}
 		}
@@ -213,7 +211,7 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 		{
 			if (!pAnimTypeExt->ExplodeOnWater)
 			{
-				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesGlobal->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
+				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesClass::Instance->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
 					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false))
 					{
@@ -271,7 +269,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 					{
 						CoordStruct nDestCoord = CoordStruct::Empty;
 						if (pAnimTypeExt->ParticleChance.isset() ?
-							(ScenarioGlobal->Random.RandomRanged(0, 99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
+							(ScenarioClass::Instance->Random.RandomFromMax(99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
 						{
 							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
@@ -279,22 +277,23 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 					}
 				}
 			}
-
-			for (auto const& nLauch : pTypeExt->Launchs) {
-				if(nLauch.LaunchWhat) {
-					Helpers::Otamaa::LauchSW(
-						nLauch.LaunchWhat, pHouse,
-						nCoord, nLauch.LaunchWaitcharge,
-						nLauch.LaunchResetCharge,
-						nLauch.LaunchGrant,
-						nLauch.LaunchGrant_RepaintSidebar,
-						nLauch.LaunchGrant_OneTime,
-						nLauch.LaunchGrant_OnHold,
-						nLauch.LaunchSW_Manual,
-						nLauch.LaunchSW_IgnoreInhibitors,
-						nLauch.LaunchSW_IgnoreDesignators,
-						nLauch.LauchSW_IgnoreMoney
-					);
+			if (!pTypeExt->Launchs.empty()) {
+				for (auto const& nLauch : pTypeExt->Launchs) {
+					if (nLauch.LaunchWhat) {
+						Helpers::Otamaa::LauchSW(
+							nLauch.LaunchWhat, pHouse,
+							nCoord, nLauch.LaunchWaitcharge,
+							nLauch.LaunchResetCharge,
+							nLauch.LaunchGrant,
+							nLauch.LaunchGrant_RepaintSidebar,
+							nLauch.LaunchGrant_OneTime,
+							nLauch.LaunchGrant_OnHold,
+							nLauch.LaunchSW_Manual,
+							nLauch.LaunchSW_IgnoreInhibitors,
+							nLauch.LaunchSW_IgnoreDesignators,
+							nLauch.LauchSW_IgnoreMoney
+						);
+					}
 				}
 			}
 		}
@@ -316,7 +315,7 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
 	{
 		auto nCoord = pThis->GetCoords();
-		if (!pType->Scorch || (pType->Crater && ScenarioGlobal->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
+		if (!pType->Scorch || (pType->Crater && ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
 		{
 			if (pType->Crater)
 			{
@@ -331,7 +330,7 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 		}
 		else
 		{
-			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioGlobal->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
 			if (bSpawn)
 				SmudgeTypeClass::CreateRandomSmudge(nCoord, nX, nY, false);
 		}
@@ -352,9 +351,9 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 
 	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
 	{
-		if (ScenarioGlobal->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get())
+		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get())
 		{
-			auto const nIdx = ScenarioGlobal->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
+			auto const nIdx = ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
 			if (auto pType = pTypeExt->ConcurrentAnim.at(nIdx))
 			{
 

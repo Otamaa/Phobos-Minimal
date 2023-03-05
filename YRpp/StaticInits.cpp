@@ -40,22 +40,22 @@ const Point2D Point2D::Empty = { 0,0 };
 const Point2DBYTE Point2DBYTE::Empty = { 0u,0u };
 const Point3D Point3D::Empty = { 0,0,0 };
 
-#pragma region GlobalVarDeclaration
-ALIAS(MouseClass, Map, 0x87F7E8)
-ALIAS(GScreenClass, GScreen, 0x87F7E8)
-ALIAS(CellClass, WorkingCellInstance, 0xABDC50)
-ALIAS(RulesClass*,RulesGlobal,0x8871E0)
-ALIAS(ScenarioClass*, ScenarioGlobal ,0xA8B230)
-ALIAS(Random2Class, Random2Global ,0x886B88)
-ALIAS(ParticleSystemClass*, ParticleSystemGlobal ,0xA8ED78)
-ALIAS(GameOptionsClass, GameOptions,0xA8EB60)
-ALIAS(GameModeOptionsClass, GameModeOptions ,0xA8B250)
-ALIAS(TacticalClass*, TacticalGlobal,0x887324)
-ALIAS(MessageListClass, MessageListGlobal,0xA8BC60)
-ALIAS(SessionClass, SessionGlobal,0xA8B238)
-ALIAS(WWMouseClass*, WWMouse,0x887640)
-ALIAS(BombListClass , BombList , 0x87F5D8u)
-#pragma endregion
+//#pragma region GlobalVarDeclaration
+//ALIAS(MouseClass, Map, 0x87F7E8)
+//ALIAS(GScreenClass, GScreen, 0x87F7E8)
+//ALIAS(CellClass, WorkingCellInstance, 0xABDC50)
+//ALIAS(RulesClass*,RulesGlobal,0x8871E0)
+//ALIAS(ScenarioClass*, ScenarioGlobal ,0xA8B230)
+//ALIAS(Random2Class, Random2Global ,0x886B88)
+//ALIAS(ParticleSystemClass*, ParticleSystemGlobal ,0xA8ED78)
+//ALIAS(GameOptionsClass, GameOptions,0xA8EB60)
+//ALIAS(GameModeOptionsClass, GameModeOptions ,0xA8B250)
+//ALIAS(TacticalClass*, TacticalGlobal,0x887324)
+//ALIAS(MessageListClass, MessageListGlobal,0xA8BC60)
+//ALIAS(SessionClass, SessionGlobal,0xA8B238)
+//ALIAS(WWMouseClass*, WWMouse,0x887640)
+//ALIAS(BombListClass , BombList , 0x87F5D8u)
+//#pragma endregion
 
 void SlaveManagerClass::ZeroOutSlaves() {
 	for(const auto& pNode : this->SlaveNodes) {

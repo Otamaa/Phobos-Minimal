@@ -100,7 +100,7 @@ InfantryTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x523970, InfantryTypeClass_CTOR, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
-	InfantryTypeExt::ExtMap.JustAllocate(pItem, pItem, "Failed !");
+	InfantryTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

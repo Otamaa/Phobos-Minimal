@@ -64,7 +64,7 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 	{
 		if (const auto pDest = pThis->Destination)
 		{
-			const auto pDestCell = Map[pDest->GetCoords()];
+			const auto pDestCell = MapClass::Instance->GetCellAt(pDest->GetCoords());
 
 			return pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
 				&& pDestCell->OverlayTypeIndex == -1

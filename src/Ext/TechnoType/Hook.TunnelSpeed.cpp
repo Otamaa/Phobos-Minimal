@@ -5,7 +5,7 @@ DEFINE_HOOK(0x72929D, TunnelLocomotionClass_7291F0_Speed, 0x8) //6
 {
 	GET(TechnoClass*, pLinkedTo, ECX);
 	auto const pType = pLinkedTo->GetTechnoType();
-	R->EAX(Game::F2I(64.0 / pType->ROT / TechnoTypeExt::GetTunnelSpeed(pLinkedTo, RulesGlobal)));
+	R->EAX(Game::F2I(64.0 / pType->ROT / TechnoTypeExt::GetTunnelSpeed(pLinkedTo, RulesClass::Instance)));
 	return 0x7292BF;
 }
 

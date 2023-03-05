@@ -124,8 +124,7 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 {
 	const RadSiteClass* pThis = Get();
 	const double nMax = static_cast<double>(pThis->SpreadInLeptons);
-	const double nDistance = Map.GetCellAt(cell)->GetCoords()
-		.DistanceFrom(pThis->GetCoords());
+	const double nDistance = CellClass::Cell2Coord(cell).DistanceFrom(pThis->GetCoords());
 	return (nDistance > nMax || pThis->GetRadLevel() <= 0) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
 }
 
@@ -207,7 +206,7 @@ DEFINE_HOOK(0x65B28D, RadSiteClass_CTOR, 0x6)
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		GET(RadSiteClass*, pThis, ESI);
-		RadSiteExt::ExtMap.JustAllocate(pThis, pThis->WhatAmI() == AbstractType::RadSite, "Trying To Allocate from unknown pointer !");
+		RadSiteExt::ExtMap.Allocate(pThis);
 		PointerExpiredNotification::NotifyInvalidObject->Add(pThis);
 	}
 

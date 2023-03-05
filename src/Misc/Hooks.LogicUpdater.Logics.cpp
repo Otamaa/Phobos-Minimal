@@ -58,7 +58,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 
 	//LineTrailExt::ConstructLineTrails(pThis);
 
-	pExt->IsMissisleSpawn = (RulesGlobal->V3Rocket.Type == pType || pType == RulesGlobal->DMisl.Type || pType == RulesGlobal->CMisl.Type || pTypeExt->IsCustomMissile);
+	pExt->IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType || pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type || pTypeExt->IsCustomMissile);
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

@@ -32,6 +32,19 @@ public:
 	virtual int Size() const override { return 0x4C; }
 
 	//non-virtual
+	//static
+	static void sub_5549A0()
+		{ JMP_STD(0x5549A0); }
+
+	static void __fastcall UpdateLightConverts(int value)
+		{ JMP_STD(0x554D50); }
+
+	static int Init_Unknown_0xABCA40()
+		{ JMP_STD(0x5546C0); }
+
+	static void __cdecl Uninit_Unknown_0xABCA40()
+		{ JMP_STD(0xABCA40); }
+
 	void Activate(DWORD dwZero = 0)	//Start lighting
 		{ JMP_THIS(0x554A60); }
 
@@ -40,9 +53,6 @@ public:
 
 	void ChangeLevels(int nIntensity, TintStruct Tint, char mode)
 		{ JMP_THIS(0x554AA0); }
-
-	static void __fastcall UpdateLightConverts(int value)
-		{ JMP_STD(0x554D50); }
 
 	//Constructor
 	LightSourceClass(
@@ -71,9 +81,9 @@ protected:
 public:
 
 	int LightIntensity;
-	TintStruct LightTint;
+	DECLARE_PROPERTY(TintStruct, LightTint);
 	int DetailLevel;
-	CoordStruct Location;
+	DECLARE_PROPERTY(CoordStruct, Location);
 	int LightVisibility;
 	bool Activated;
 };

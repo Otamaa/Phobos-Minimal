@@ -36,7 +36,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!Phobos::Otamaa::IsAdmin)
 		return;
 
-	if (!((SessionGlobal.GameMode == GameMode::Campaign) || (SessionGlobal.GameMode == GameMode::Skirmish)))
+	if (!((SessionClass::Instance->GameMode == GameMode::Campaign) || (SessionClass::Instance->GameMode == GameMode::Skirmish)))
 		return;
 
 	if (!ObjectClass::CurrentObjects->Count)

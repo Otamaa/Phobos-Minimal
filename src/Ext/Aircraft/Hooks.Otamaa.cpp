@@ -12,7 +12,7 @@ DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
 	GET(AircraftClass*, pLinked, ECX);
 
 	AircraftExt::TriggerCrashWeapon(pLinked, 0);
-	R->EAX(Map[CellClass::Coord2Cell(pLinked->Location)]); //restore overriden instructions
+	R->EAX(MapClass::Instance->GetCellAt(pLinked->Location)); //restore overriden instructions
 	return 0x4CD81D;
 }
 
@@ -61,7 +61,7 @@ DEFINE_HOOK(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesGlobal->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropOverflRadius.Get(RulesClass::Instance->ParadropRadius);
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
@@ -72,7 +72,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(int, comparator, EAX);
 
-	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesGlobal->ParadropRadius);
+	const int nRadius = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 

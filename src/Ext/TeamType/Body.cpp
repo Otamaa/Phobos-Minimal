@@ -68,7 +68,7 @@ TeamTypeExt::ExtContainer::~ExtContainer() = default;
 //{
 //	GET(TeamTypeClass*, pItem, ESI);
 //
-//	TeamTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//	TeamTypeExt::ExtMap.Allocate(pItem);
 //
 //	return 0;
 //}

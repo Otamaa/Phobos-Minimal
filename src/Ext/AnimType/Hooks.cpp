@@ -182,7 +182,7 @@ bool DealDamage(AnimClass* pThis)
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
-			!pTypeExt->IsInviso ? RulesGlobal->FlameDamage2 : RulesGlobal->C4Warhead;
+			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
 		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
@@ -202,13 +202,11 @@ bool DealDamage(AnimClass* pThis)
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
 DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
 {
-	enum
-	{
+	enum {
 		SkipDamage = 0x424665,
 		CheckIsActive = 0x42464C,
 		SkipDamage2 = 0x42466B,
 		ReturnFinished = 0x424B42
-	
 	};
 
 	GET(AnimClass*, pThis, ESI);
@@ -220,12 +218,6 @@ DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
 		R->EDI(0);
 		R->ECX(pThis->Type->MiddleFrameIndex);
 		return SkipDamage2;
-	}
-
-	if (!pThis->Type)
-	{
-		Debug::Log("AnimClass_AI_Damage Anim[%x] Without Type pointer ! \n", pThis);
-		return ReturnFinished;
 	}
 
 	return CheckIsActive;

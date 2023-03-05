@@ -11,6 +11,115 @@
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass { 0x7FFF };
 
+int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
+{
+	const auto BuildLimit = pItem->BuildLimit;
+
+	if (BuildLimit >= 0)
+		return BuildLimit - BuildingTypeExt::GetUpgradesAmount(const_cast<BuildingTypeClass*>(pItem), const_cast<HouseClass*>(pHouse));
+	else
+		return -BuildLimit - pHouse->CountOwnedEver(pItem);
+}
+
+int  BuildingTypeExt::CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued)
+{
+	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
+
+	const int BuildLimit = pItem->BuildLimit;
+	const int Remaining = BuildingTypeExt::BuildLimitRemaining(pHouse, pItem);
+
+	if (BuildLimit >= 0 && Remaining <= 0)
+		return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem)) ? NotReached : ReachedPermanently;
+
+	return Remaining > 0 ? NotReached : ReachedTemporarily;
+}
+
+Point2D* BuildingTypeExt::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
+{
+	return &BuildingTypeExt::ExtMap.Find(pThis->Type)->OccupierMuzzleFlashes.at(nOccupyIdx);
+}
+
+void BuildingTypeExt::DisplayPlacementPreview()
+{
+	const auto pBuilding = specific_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding);
+
+	if (!pBuilding)
+		return;
+
+	const auto pType = pBuilding->Type;
+	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pType);
+	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExt::Global()->Building_PlacementPreview.Get(Phobos::Config::EnableBuildingPlacementPreview));
+
+	if (!bShow)
+		return;
+
+	const auto pCell = MapClass::Instance->TryGetCellAt(Unsorted::Display_ZoneCell() + Unsorted::Display_ZoneOffset());
+	if (!pCell)
+		return;
+
+	if (!MapClass::Instance->IsWithinUsableArea(pCell->GetCoords()))
+		return;
+
+	SHPStruct* Selected = nullptr;
+	int nDecidedFrame = 0;
+
+	if (!pTypeExt->PlacementPreview_Shape.isset())
+	{
+		if (const auto pBuildup = pType->LoadBuildup())
+		{
+			nDecidedFrame = ((pBuildup->Frames / 2) - 1);
+			Selected = pBuildup;
+		}
+		else
+		{
+			Selected = pType->GetImage();
+		}
+	}
+	else
+	{
+		Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
+	}
+
+	if (!Selected)
+		return;
+
+	const auto& [nOffsetX, nOffsetY, nOffsetZ] = pTypeExt->PlacementPreview_Offset.Get();
+	const auto nHeight = pCell->GetFloorHeight({ 0,0 });
+	Point2D nPoint { 0,0 };
+
+	if (!TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint))
+		return;
+
+	const auto nFrame = Math::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
+	nPoint.X += nOffsetX;
+	nPoint.Y += nOffsetY;
+	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
+	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
+	const auto pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetDrawer() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
+
+	DSurface::Temp()->DrawSHP(pPalette, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+}
+
+bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
+{
+	const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
+	if (EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
+	{
+		// PowersUpBuilding
+		if (_stricmp(pBuilding->Type->ID, pUpgradeType->PowersUpBuilding) == 0)
+			return true;
+
+		// PowersUp.Buildings
+		for (auto& pPowerUpBuilding : pUpgradeExt->PowersUp_Buildings)
+		{
+			if (_stricmp(pBuilding->Type->ID, pPowerUpBuilding->ID) == 0)
+				return true;
+		}
+	}
+
+	return false;
+}
+
 // Assuming SuperWeapon & SuperWeapon2 are used (for the moment)
 int BuildingTypeExt::ExtData::GetSuperWeaponCount() const
 {
@@ -485,8 +594,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	if (pThis->MaxNumberOccupants > 10)
 	{
 		char tempMuzzleBuffer[32];
-		this->OccupierMuzzleFlashes.Clear();
-		this->OccupierMuzzleFlashes.Reserve(pThis->MaxNumberOccupants);
+		this->OccupierMuzzleFlashes.clear();
+		this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
 		for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 		{
@@ -671,11 +780,7 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-#ifndef ENABLE_NEWEXT
-	BuildingTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	BuildingTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+	BuildingTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

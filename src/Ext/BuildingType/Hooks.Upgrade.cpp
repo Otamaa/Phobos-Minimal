@@ -8,26 +8,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <FactoryClass.h>
 
-bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
-{
-	const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgradeType);
-	if (EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
-	{
-		// PowersUpBuilding
-		if (_stricmp(pBuilding->Type->ID, pUpgradeType->PowersUpBuilding) == 0)
-			return true;
-
-		// PowersUp.Buildings
-		for (auto& pPowerUpBuilding : pUpgradeExt->PowersUp_Buildings)
-		{
-			if (_stricmp(pBuilding->Type->ID, pPowerUpBuilding->ID) == 0)
-				return true;
-		}
-	}
-
-	return false;
-}
-
 DEFINE_HOOK(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 {
 	enum { Continue = 0x4526A7, ForbidUpgrade = 0x4526B5 };
@@ -62,62 +42,20 @@ DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 	return ForbidUpgrade;
 }
 
-#pragma region UpgradesInteraction
-
-int BuildLimitRemaining(HouseClass const* const pHouse, BuildingTypeClass const* const pItem)
-{
-	auto const BuildLimit = pItem->BuildLimit;
-
-	if (BuildLimit >= 0)
-		return BuildLimit - BuildingTypeExt::GetUpgradesAmount(const_cast<BuildingTypeClass*>(pItem), const_cast<HouseClass*>(pHouse));
-	else
-		return -BuildLimit - pHouse->CountOwnedEver(pItem);
-}
-
-int CheckBuildLimit(HouseClass const* const pHouse, BuildingTypeClass const* const pItem, bool const includeQueued)
-{
-	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
-
-	int BuildLimit = pItem->BuildLimit;
-	int Remaining = BuildLimitRemaining(pHouse, pItem);
-
-	if (BuildLimit >= 0 && Remaining <= 0)
-		return (includeQueued && FactoryClass::FindByOwnerAndProduct(pHouse, pItem)) ? NotReached : ReachedPermanently;
-
-	return Remaining > 0 ? NotReached : ReachedTemporarily;
-
-}
-
 DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
 {
-	GET(HouseClass const* const, pThis, ECX);
-	GET_STACK(TechnoTypeClass const* const, pItem, 0x4);
-	GET_STACK(bool const, includeInProduction, 0xC);
+	GET(HouseClass* , pThis, ECX);
+	GET_STACK(TechnoTypeClass* , pItem, 0x4);
+	GET_STACK(bool , includeInProduction, 0xC);
 	GET(CanBuildResult const, resultOfAres, EAX);
 
-	if (const auto pBuilding = type_cast<BuildingTypeClass const*,true>(pItem)) {
-		if (BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.size() > 0 && resultOfAres == CanBuildResult::Buildable)
-			R->EAX(CheckBuildLimit(pThis, pBuilding, includeInProduction));
+	if (const auto pBuilding = type_cast<BuildingTypeClass*,true>(pItem)) {
+		if (BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
+			return 0x0;
+
+		if (resultOfAres == CanBuildResult::Buildable)
+			R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
 	}
 
 	return 0;
 }
-
-//DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction__DisableHook,
-//	0x4F8361,
-//	0xC2, 0x0C, 0x00, 0x6E, 0x7D
-//);
-//
-//DEFINE_DYNAMIC_PATCH(HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook,
-//	0x4F7877,
-//	0x53, 0x55, 0x8B, 0xE9, 0x56
-//);
-//
-//DEFINE_HOOK(0x4F7877, HouseClass_CanBuild_UpgradesInteraction_WithoutAres, 0x5)
-//{
-//	Debug::Log("Hook [HouseClass_CanBuild_UpgradesInteraction] Disabled\n");
-//	HouseClass_CanBuild_UpgradesInteraction__DisableHook->Apply();
-//	HouseClass_CanBuild_UpgradesInteraction_WithoutAres__DisableHook->Apply();
-//	return 0;
-//}
-#pragma endregion

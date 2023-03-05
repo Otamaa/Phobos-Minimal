@@ -6,12 +6,12 @@
 
 class RandomClass
 {
-public:
-	RandomClass(unsigned seed = 0)
+protected:
+	explicit RandomClass(unsigned seed) noexcept
 	{
 		JMP_THIS(0x65C630);
 	}
-
+public:
 	operator int() { return operator()(); }
 
 	int operator()()
@@ -36,10 +36,13 @@ public:
 	static constexpr reference<Random2Class, 0x886B88u> const NonCriticalRandomNumber{};
 	static constexpr reference<Random2Class, 0x886B88u> const Global{}; // For backward compatibility
 	static constexpr reference<double, 0x7E3570u> const INT_MAX_GAME {};
+	static constexpr reference<DWORD, 0xA8ED94u> const Seed {};
 
-	Random2Class(DWORD seed = *reinterpret_cast<DWORD*>(0xA8ED94))
+protected:
+	explicit Random2Class(DWORD seed) noexcept
 	{ JMP_THIS(0x65C6D0); }
 
+public:
 	int Random()
 	{ JMP_THIS(0x65C780); }
 
@@ -98,12 +101,13 @@ static_assert(sizeof(Random2Class) == 0x3F4);
 
 class Random3Class
 {
-public:
-	Random3Class(unsigned seed1 = 0, unsigned seed2 = 0)
-	{
+protected:
+
+	explicit Random3Class(unsigned seed1 , unsigned seed2 ) noexcept {
 		JMP_THIS(0x65C890);
 	}
-
+	
+public:
 	operator int() { return operator()(); }
 
 	int operator()()

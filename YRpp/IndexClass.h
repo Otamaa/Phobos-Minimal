@@ -46,10 +46,10 @@ public:
 	NodeElement* Archive;
 
 	// ranged for support
-	NodeElement* begin() const { return IndexTable; }
-	NodeElement* end() const { return &IndexTable[IndexCount]; }
-	NodeElement* begin() { return IndexTable; }
-	NodeElement* end() { return &IndexTable[IndexCount]; }
+	auto begin() const { return &IndexTable[0]; }
+	auto end() const { return &IndexTable[IndexCount]; }
+	auto begin() { return &IndexTable[0]; }
+	auto end() { return &IndexTable[IndexCount]; }
 	auto FetchItem(TKey id) const;
 
 private:
@@ -123,7 +123,7 @@ inline void IndexClass<TKey, TValue>::Sort()
 {
 	if (!IsSorted)
 	{
-		std::sort(&IndexTable[0], &IndexTable[IndexCount]);
+		std::sort(begin(), end());
 		InvalidateArchive();
 		IsSorted = true;
 	}
@@ -287,5 +287,5 @@ typename IndexClass<TKey, TValue>::NodeElement const* IndexClass<TKey, TValue>::
 
 	NodeElement node;
 	node.ID = id;
-	return std::lower_bound(&IndexTable[0], &IndexTable[IndexCount], node);
+	return std::lower_bound(begin(), end(), node);
 }

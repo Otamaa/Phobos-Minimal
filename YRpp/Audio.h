@@ -21,10 +21,26 @@ struct VolumeStruct	//pretty uncreative name, but it's all I can come up with at
 	int			unknown_int_1C;	//default is 16384
 };
 
+struct AudioLevel
+{
+	int flags;
+	unsigned int level;
+	int newLevel;
+	int change;
+	unsigned __int64 duration;
+	unsigned __int64 lastTime;
+	int field_20;
+	int field_24;
+};
+
+static_assert(sizeof(AudioLevel) == 0x28, "Invalid Size!");
+
 struct LockTag {
   int count;
   int dbg_struct_type;
 };
+
+static_assert(sizeof(LockTag) == 0x8, "Invalid Size!");
 
 struct AudioIDXHeader {
 	unsigned int Magic;
@@ -59,6 +75,7 @@ struct AudioIDXEntry { // assert (IDXHeader.version != 1);
 		return CRT::strcmpi(this->Name, rhs.Name) < 0;
 	}
 };
+static_assert(sizeof(AudioIDXEntry) == 0x24, "Invalid Size!");
 
 struct AudioSampleData {
 	AudioSampleData() :
@@ -81,6 +98,8 @@ struct AudioSampleData {
 	unsigned int BlockAlign;
 	unsigned int Flags;
 };
+
+static_assert(sizeof(AudioSampleData) == 0x20, "Invalid Size!");
 
 class AudioIDXData {
 public:
@@ -121,6 +140,7 @@ public:
 	int CurrentSampleSize;
 	DWORD unknown_120;
 };
+static_assert(sizeof(AudioIDXData) == 0x124, "Invalid Size!");
 
 class Audio {
 public:
@@ -144,14 +164,18 @@ struct TauntDataStruct {
 
 typedef AudioSampleData AudioFormatTag ;
 
+static_assert(sizeof(AudioFormatTag) == 0x20, "Invalid Size!");
+
 struct AudioAttribs
 {
-  VolumeStruct VolumeLevel;
-  VolumeStruct PitchLevel;
-  VolumeStruct PanPosition;
+  AudioLevel VolumeLevel;
+  AudioLevel PitchLevel;
+  AudioLevel PanPosition;
   int field_78;
   int field_7C;
 };
+
+static_assert(sizeof(AudioAttribs) == 0x80, "Invalid Size!");
 
 struct AudioSampleTag
 {
@@ -163,11 +187,14 @@ struct AudioSampleTag
   int field_1C;
 };
 
+static_assert(sizeof(AudioSampleTag) == 0x20, "Invalid Size!");
+
 struct MemoryItemTag
 {
   MemoryItemTag* next;
   int dbg_struct_type;
 };
+//static_assert(sizeof(MemoryItemTag) == 0x8, "Invalid Size!");
 
 struct MemoryPoolTag
 {
@@ -177,6 +204,7 @@ struct MemoryPoolTag
   static void* __fastcall MemoryPoolGetItem(MemoryPoolTag* tag)
   { JMP_STD(0x407520); }
 };
+//static_assert(sizeof(MemoryPoolTag) == 0x8, "Invalid Size!");
 
 struct AudioCacheTag
 {
@@ -391,6 +419,8 @@ struct AudioCacheTag
   char field_E7;
 };
 
+static_assert(sizeof(AudioCacheTag) == 0xE8, "Invalid Size!");
+
 struct AudioCacheItem
 {
   SomeNodes<DWORD>listnode;
@@ -402,6 +432,8 @@ struct AudioCacheItem
   AudioFormatTag format;
   int dbg_struct_type;
 };
+
+static_assert(sizeof(AudioCacheItem) == 0x64, "Invalid Size!");
 
 struct AudioEventHandleTag;
 class AudioChannelTag; // Big boi
@@ -434,9 +466,9 @@ public:
   int cacheentry;
   AudioChannelTag* channeltag;
   int field_B4;
-  VolumeStruct volume;
-  VolumeStruct audiolevel2;
-  VolumeStruct pan;
+  AudioLevel volume;
+  AudioLevel audiolevel2;
+  AudioLevel pan;
   char field_130;
   char field_131;
   char field_132;
@@ -466,6 +498,8 @@ public:
   AudioEventHandleTag* eventhandletag;
   int field_27C;
 };
+
+static_assert(sizeof(AudioEventTag) == 0x280, "Invalid Size!");
 
 struct AudioEventHandleTag
 {
@@ -510,3 +544,5 @@ struct AudioEventHandleTag
 protected :
 	~AudioEventHandleTag() = delete;
 };
+
+static_assert(sizeof(AudioEventHandleTag) == 0x14, "Invalid Size!");

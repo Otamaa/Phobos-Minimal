@@ -48,11 +48,11 @@ public:
 		virtual void Initialize() override { } //Init After INI Read
 
 		inline AnimTypeClass* GetTwinkleAnim() const {
-			return this->OreTwinkle.Get(RulesGlobal->OreTwinkle);
+			return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
 		}
 
 		inline int GetTwinkleChance() const {
-			return this->OreTwinkleChance.Get(RulesGlobal->OreTwinkleChance);
+			return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 		}
 
 	private:

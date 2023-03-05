@@ -81,7 +81,7 @@ public:
 
 	//TechnoTypeClass
 	//BuildingTypeClass
-	virtual SHPStruct* LoadBuildup() R0;
+	virtual SHPStruct* LoadBuildup() JMP_THIS(0x465960);
 
 	//non-virtual
 	unsigned int GetDeployFacing_() const
@@ -180,6 +180,10 @@ public:
 		: BuildingTypeClass(noinit_t())
 	{ JMP_THIS(0x45DD90); }
 
+	BuildingTypeClass(IStream* pStm) noexcept
+		: BuildingTypeClass(noinit_t())
+	{ JMP_THIS(0x45E520); }
+
 protected:
 	explicit __forceinline BuildingTypeClass(noinit_t) noexcept
 		: TechnoTypeClass(noinit_t())
@@ -240,8 +244,9 @@ public:
 	int MidPoint;
 	int DoorStages;
 
-	ArrayWrapper<BuildingAnimFrameStruct , 6u> BuildingAnimFrame;
-	ArrayWrapper<BuildingAnimStruct, 0x15u> BuildingAnim;
+	BuildingAnimFrameStruct BuildingAnimFrame[6];
+
+	BuildingAnimStruct BuildingAnim[0x15];
 
 	int Upgrades;
 	SHPStruct* DeployingAnim;
@@ -300,15 +305,16 @@ public:
 	bool CanOccupyFire;
 	int MaxNumberOccupants;
 	bool ShowOccupantPips;
+	Point2D MuzzleFlash[0xA];
 
-	ArrayWrapper<Point2D , 0xAu> MuzzleFlash;
-	ArrayWrapper<Point2D ,8u> DamageFireOffset;
+	Point2D DamageFireOffset[8];
 
 	Point2D QueueingCell;
 	int NumberImpassableRows;
 
-	ArrayWrapper<Point2D, 8u>  RemoveOccupy;
-	ArrayWrapper<Point2D, 8u>  AddOccupy;
+	Point2D RemoveOccupy[8];
+
+	Point2D AddOccupy[8];
 
 	bool Radar;
 	bool SpySat;

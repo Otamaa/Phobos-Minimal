@@ -244,7 +244,7 @@ DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
 
 DEFINE_HOOK(0x41B7B7, IFlyControl_LandDirection_PoseDir, 0x5)
 {
-	R->EAX(abs(RulesGlobal->PoseDir));
+	R->EAX(abs(RulesClass::Instance->PoseDir));
 	return 0x41B7BC;
 }
 

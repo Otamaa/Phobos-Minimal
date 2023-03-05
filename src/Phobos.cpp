@@ -383,8 +383,10 @@ void InitAdminDebugMode()
 		{
 			Phobos::Otamaa::IsAdmin = true;
 #ifdef COMPILE_PORTED_DP_FEATURES
-			Phobos::EnableConsole = true;
+			Phobos::EnableConsole = false;
 #endif
+
+#ifdef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -406,6 +408,7 @@ void InitAdminDebugMode()
 				L"Press OK to continue YR execution.",
 				L"Debugger Notice", MB_OK);
 			}
+#endif
 		}
 	}
 

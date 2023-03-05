@@ -8,13 +8,12 @@ void GiftBoxData::Read(INI_EX& parser, const char* pSection)
 	{
 		Enable = true;
 		auto const nBaseSize = (int)Gifts.size();
-		Nums.Clear();
-		Nums.Reserve(nBaseSize);
-		Nums.Count = nBaseSize;
+		Nums.clear();
+		Nums.resize(nBaseSize);
+
 		auto const pNumKey = "GiftBox.Nums";
 
-		for (auto& nSpawnMult : Nums)
-			nSpawnMult = 1;
+		std::fill(Nums.begin(), Nums.end(), 1);
 
 		if (parser.ReadString(pSection, pNumKey))
 		{

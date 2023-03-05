@@ -46,7 +46,7 @@ public:
 	static inline void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
 	{
 		if (bRandom)
-			Idx = ScenarioGlobal->Random.RandomFromMax(count - 1);
+			Idx = ScenarioClass::Instance->Random.RandomFromMax(count - 1);
 		else
 		{
 			if (count >= 8)
@@ -131,7 +131,7 @@ public:
 		int v7 = v4;
 		int v6 = v7;
 
-		if (Random2Global.RandomBool())
+		if (Random2Class::NonCriticalRandomNumber->RandomBool())
 			v6 = -v7;
 
 		pShakeVal = v6;
@@ -233,16 +233,16 @@ public:
 		if (oldRatio == newRatio)
 			return false;
 
-		if (oldRatio > RulesGlobal->ConditionYellow && newRatio <= RulesGlobal->ConditionYellow)
+		if (oldRatio > RulesClass::Instance->ConditionYellow && newRatio <= RulesClass::Instance->ConditionYellow)
 		{
 			return true;
 		}
-		else if (oldRatio <= RulesGlobal->ConditionYellow && oldRatio > RulesGlobal->ConditionRed &&
-			(newRatio <= RulesGlobal->ConditionRed || newRatio > RulesGlobal->ConditionYellow))
+		else if (oldRatio <= RulesClass::Instance->ConditionYellow && oldRatio > RulesClass::Instance->ConditionRed &&
+			(newRatio <= RulesClass::Instance->ConditionRed || newRatio > RulesClass::Instance->ConditionYellow))
 		{
 			return true;
 		}
-		else if (oldRatio <= RulesGlobal->ConditionRed && newRatio > RulesGlobal->ConditionRed)
+		else if (oldRatio <= RulesClass::Instance->ConditionRed && newRatio > RulesClass::Instance->ConditionRed)
 		{
 			return true;
 		}
@@ -278,7 +278,7 @@ public:
 
 		for (int i = 0; i < max; i++)
 		{
-			CellStruct const offset = nDummy[ScenarioGlobal->Random.RandomFromMax(max - 1)];
+			CellStruct const offset = nDummy[ScenarioClass::Instance->Random.RandomFromMax(max - 1)];
 
 			if (offset == CellStruct::Empty)
 				continue;

@@ -53,8 +53,8 @@ class Valueable
 protected:
 	T Value {};
 public:
-	using value_type = T;
-	using base_type = std::remove_pointer_t<T>;
+	//using value_type = T;
+	//using base_type = std::remove_pointer_t<T>;
 
 	Valueable() = default;
 	explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
@@ -82,19 +82,29 @@ public:
 	//	return this->GetEx();
 	//}
 
-	T operator -> () const
-	{
-		return this->Get();
+	//T operator -> () const
+	//{
+	//	return this->Get();
+	//}
+
+	auto operator->() const noexcept {
+		if constexpr (std::is_pointer<T>::type())
+			return this->Value;
+		else
+			return &this->Value;
 	}
 
-	T* operator & () noexcept
-	{
-		return this->GetEx();
-	}
+	//value_type* operator& () noexcept
+	//{
+	//	return this->GetEx();
+	//}
 
-	bool operator ! () const
+	bool operator!() const
 	{
-		return this->Get() == 0;
+		if constexpr (std::is_pointer<T>::type())
+			return !this->Value;
+		else
+			return  this->Get() == 0;
 	}
 
 	const T& Get() const noexcept
@@ -171,6 +181,7 @@ class Nullable : public Valueable<T>
 protected:
 	bool HasValue { false };
 public:
+
 	Nullable() = default;
 	explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
 	Nullable(Nullable const& other) = default;
@@ -192,7 +203,20 @@ public:
 		return this->HasValue;
 	}
 
-	using Valueable<T>::Get;
+	const T& Get() const noexcept
+	{
+		return this->Value;
+	}
+
+	T* GetEx() noexcept
+	{
+		return &this->Value;
+	}
+
+	const T* GetEx() const noexcept
+	{
+		return &this->Value;
+	}
 
 	T Get(const T& ndefault) const
 	{
@@ -204,9 +228,17 @@ public:
 		return this->HasValue ? this->Get() : ndefault;
 	}
 
-	using Valueable<T>::GetEx;
+	T Get(const Valueable<T>& ndefault) const
+	{
+		return this->HasValue ? this->Get() : ndefault.Get();
+	}
 
-	T* GetEx(T* ndefault) & noexcept
+	const T& GetB(const Valueable<T>& ndefault) const
+	{
+		return this->HasValue ? this->Get() : ndefault.Get();
+	}
+
+	T* GetEx(T* ndefault) noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
 	}
@@ -214,6 +246,16 @@ public:
 	const T* GetEx(const T* ndefault) const noexcept
 	{
 		return this->isset() ? this->GetEx() : ndefault;
+	}
+
+	T* GetEx(Valueable<T>& ndefault) noexcept
+	{
+		return this->isset() ? this->GetEx() : ndefault.GetEx();
+	}
+
+	const T* GetEx(const Valueable<T>& ndefault) const noexcept
+	{
+		return this->isset() ? this->GetEx() : ndefault.GetEx();
 	}
 
 	void Reset()

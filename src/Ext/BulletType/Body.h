@@ -172,7 +172,7 @@ public:
 
 		double GetAdjustedGravity() const
 		{
-			auto const nGravity = this->Gravity.Get(RulesGlobal->Gravity);
+			auto const nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
 			return this->Get()->Floater ? nGravity * 0.5 : nGravity;
 		}
 
@@ -188,6 +188,8 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+	static constexpr std::pair<CompileTimeLeptons, CompileTimeLeptons> DefaultBulletScatter { CompileTimeLeptons(256) , CompileTimeLeptons(512) };
+
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

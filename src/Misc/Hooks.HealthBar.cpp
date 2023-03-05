@@ -174,7 +174,7 @@ namespace DrawHeathData
 				pBldType->Dimension2(&nDimension);
 				CoordStruct nDimension2 { -nDimension.X / 2,nDimension.Y / 2,nDimension.Z / 2 };
 				Point2D nDest {};
-				TacticalGlobal->CoordsToScreen(&nDest, &nDimension2);
+				TacticalClass::Instance->CoordsToScreen(&nDest, &nDimension2);
 
 				XOffset = nDest.X + nLocTemp.X + pTypeExt->Healnumber_Offset.Get().X + 2;
 				YOffset = nDest.Y + nLocTemp.Y + pTypeExt->Healnumber_Offset.Get().Y + pType->PixelSelectionBracketDelta;

@@ -16,7 +16,7 @@ void AnimExt::ExtData::InitializeConstants()
 	CreateAttachedSystem();
 }
 
-AbstractClass* AnimExt::GetTarget(const AnimClass* const pThis)
+AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 {
 	auto const pType = pThis->Type;
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pType);
@@ -210,7 +210,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 //	return false;
 //}
 
-TechnoClass* AnimExt::GetTechnoInvoker(const AnimClass* const pThis, bool DealthByOwner)
+TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 {
 	if (!DealthByOwner)
 		return nullptr;
@@ -306,11 +306,7 @@ AnimExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-#ifndef ENABLE_NEWEXT
-	AnimExt::ExtMap.JustAllocate(pItem, pItem->Fetch_ID() != -2, "Creating an animation with invalid ID !");
-#else
-	AnimExt::ExtMap.FindOrAllocate(pItem);
-#endif
+	AnimExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 
@@ -378,12 +374,12 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 }
 
 //remove from CRC
-DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
-
-DEFINE_HOOK_AGAIN(0x421EF4, AnimClass_CTOR_setD0, 0x6)
-DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	pThis->unknown_D0 = 0;
-	return R->Origin() + 0x6;
-}
+//DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
+//
+//DEFINE_HOOK_AGAIN(0x421EF4, AnimClass_CTOR_setD0, 0x6)
+//DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
+//{
+//	GET(AnimClass*, pThis, ESI);
+//	pThis->unknown_D0 = 0;
+//	return R->Origin() + 0x6;
+//}

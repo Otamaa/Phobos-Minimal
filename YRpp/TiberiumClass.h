@@ -138,7 +138,19 @@ public:
 	void RegisterForGrowth(CellStruct* cell)
 		{ JMP_THIS(0x7235A0); }
 
-	//Static helpers
+	int sub_722AF0(CellStruct& mapcoords) JMP_THIS(0x722AF0);
+	void sub_722F00() JMP_THIS(0x722F00);
+	//static
+	static int InitArray() JMP_STD(0x721676);
+	static void __cdecl UninitArray() JMP_STD(0x721680);
+	static bool __fastcall sub_721D10(CCINIClass* pINI) JMP_STD(0x721D10);
+	static void __stdcall UpdateTiberium() JMP_STD(0x7221B0);
+	static void __stdcall sub_0x722240() JMP_STD(0x722240);
+	static void __stdcall sub_0x722390() JMP_STD(0x722390);
+	static void __fastcall sub_722AB0(CellStruct& mapcoords) JMP_STD(0x722AB0);
+	static void __stdcall sub_722C40() JMP_STD(0x722C40);
+	static void __stdcall sub_722D00() JMP_STD(0x722D00);
+	static void __stdcall sub_722E50() JMP_STD(0x722E50);
 
 	static int FindIndex(int idxOverlayType) {
 		SET_REG32(ecx, idxOverlayType);

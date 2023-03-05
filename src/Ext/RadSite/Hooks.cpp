@@ -67,7 +67,10 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 				if (pRadExt->Type != pDefault)
 					return false;
 
-				if (Map[pSite->BaseCell] != Map[location])
+				auto const pBaseCell = MapClass::Instance->GetCellAt(pSite->BaseCell);
+				auto const pDestCell = MapClass::Instance->GetCellAt(location);
+
+				if (pBaseCell != pDestCell)
 					return false;
 
 				if (spread != pSite->Spread)
@@ -92,12 +95,12 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 				return Handled;
 			}
 
-			const auto pCell = Map[location];
+			const auto pCell = MapClass::Instance->GetCellAt(location);
 			RadSiteExt::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr , nullptr);
 		}
 		else
 		{
-			const auto pCell = Map[location];
+			const auto pCell = MapClass::Instance->GetCellAt(location);
 			BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(pCell->GetCoordsWithBridge(), spread, amount);
 		}
 
@@ -133,7 +136,10 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 						if (pRadExt->Type != pWeaponExt->RadType)
 							return false;
 
-						if (Map[pPair->BaseCell] != pThis->GetCell())
+						auto const pBaseCell = MapClass::Instance->GetCellAt(pPair->BaseCell);
+						auto const pDestCell = pThis->GetCell();
+
+						if (pBaseCell != pDestCell)
 							return false;
 
 						if (Game::F2I(pWeapon->Warhead->CellSpread) != pPair->Spread)
@@ -214,7 +220,7 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 			{
 
 				auto nCellStruct = buildingCoords + *pFoundation;
-				auto nCurrentCoord = Map[nCellStruct]->GetCoords();
+				auto nCurrentCoord = CellClass::Cell2Coord(nCellStruct);
 
 				// Loop for each different radiation stored in the RadSites container
 				for (auto pRadSite : *RadSiteClass::Array())

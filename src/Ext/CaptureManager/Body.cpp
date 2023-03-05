@@ -145,8 +145,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, AnimTypeClass* pControlledAnimType)
 {
 	if (pTechno) {
-		const auto pTarget = pTechno->AbsDerivateID & AbstractFlags::Techno ? pTechno : nullptr;
-		return CaptureExt::CaptureUnit(pManager, pTarget, TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim, pControlledAnimType);
+		return CaptureExt::CaptureUnit(pManager, pTechno, TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim, pControlledAnimType);
 	}
 
 	return false;
@@ -200,7 +199,7 @@ CaptureExt::ExtContainer::~ExtContainer() = default;
 //{
 //	GET(CaptureManagerClass* const, pItem, ESI);
 //
-//	CaptureExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
+//	CaptureExt::ExtMap.Allocate(pItem);
 //
 //	return 0;
 //}

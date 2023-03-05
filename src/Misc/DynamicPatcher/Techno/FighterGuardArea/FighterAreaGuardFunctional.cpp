@@ -186,7 +186,7 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 				}
 
 				pFoot->Locomotor.get()->Move_To(dest);
-				if (auto const pCell = Map[CellClass::Coord2Cell(dest)]) {
+				if (auto const pCell = MapClass::Instance->GetCellAt(dest)) {
 					pExt->Get()->SetDestination(pCell, false);
 				}
 			}

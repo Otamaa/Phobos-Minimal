@@ -28,7 +28,7 @@ void TechnoTypeExt::ExtData::Initialize()
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
 {
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesGlobal->Wake);
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesClass::Instance->Wake);
 }
 
 double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
@@ -99,7 +99,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 }
 
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
-	std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag)
+	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
 {
 	char tempBuffer[32];
 	char tempBufferFLH[48];
@@ -130,8 +130,8 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 			else if (!FLH.isset() && !eliteFLH.isset())
 				break;
 
-			nFLH[i].AddItem(FLH.Get());
-			nEFlh[i].AddItem(eliteFLH.Get());
+			nFLH[i].push_back(FLH.Get());
+			nEFlh[i].push_back(eliteFLH.Get());
 		}
 	}
 };
@@ -427,7 +427,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->CreateSound_Enable.Read(exINI, pSection, "CreateSound.Enable");
 
-	this->Eva_Complete.Read(exINI.GetINI(), pSection, "EVA.Complete");
+	this->Eva_Complete.Read(exINI, pSection, "EVA.Complete");
 	this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
 
 	this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
@@ -1157,11 +1157,7 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* const, pItem, ESI);
-#ifndef ENABLE_NEWEXT
-	TechnoTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	TechnoTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
+	TechnoTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 
@@ -1269,7 +1265,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 //hook before stuffs got pop-ed to remove crash possibility
 DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
 {
-	GET(const AircraftTypeClass* const , pItem, ESI);
+	GET(AircraftTypeClass* , pItem, ESI);
 	GET(CCINIClass* const, pINI, EBX);
 
 	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));

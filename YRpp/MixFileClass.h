@@ -142,6 +142,7 @@ public:
 	const char* FileName;
 	bool Blowfish;
 	bool Encryption;
+	PROTECTED_PROPERTY(BYTE, align_12[2]);
 	int CountFiles;
 	int FileSize;
 	int FileStartOffset;

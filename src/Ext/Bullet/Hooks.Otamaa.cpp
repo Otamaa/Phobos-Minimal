@@ -62,7 +62,7 @@ static DWORD Do_Airburst(BulletClass* pThis)
 		if (pExt->AirburstWeapons.empty())
 			return pType->AirburstWeapon;
 
-		return pExt->AirburstWeapons[ScenarioGlobal->Random.RandomRanged(0, pExt->AirburstWeapons.size() - 1)];
+		return pExt->AirburstWeapons[ScenarioClass::Instance->Random.RandomFromMax(pExt->AirburstWeapons.size() - 1)];
 	};
 
 	if (WeaponTypeClass* pWeapon = GetWeapon())
@@ -260,7 +260,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			auto const nDebrisMaximum = nDebrisMaximums[nCurIdx];
 			if (nDebrisMaximum > 0)
 			{
-				int nAmountToSpawn = abs(int(ScenarioGlobal->Random.Random())) % nDebrisMaximum + 1;
+				int nAmountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
 				nAmountToSpawn = Math::LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
 				nTotalSpawn -= nAmountToSpawn;
 
@@ -507,33 +507,13 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //	return 0x5B2732;
 //}
 
-// to fuck off optimization
-//static double NOINLINE GetMissileRotVar(const BulletClass* const pThis, const RulesClass* const pRules)
-//{
-//	const auto pExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-//	return pExt->GetMissileROTVar(pRules);
-//}
-
-// Optimization fuckup the code again ,..
-//#pragma optimize( "", off )
-//DEFINE_HOOK(0x466BBC, BulletClass_AI_MissileROTVar, 0x6)
-//{
-//	GET(BulletClass*, pThis, EBP);
-//	GET(RulesClass*, pRules, ECX);
-//
-//	double dRes = GetMissileRotVar(pThis, pRules);
-//	R->ESI(&dRes);
-//	return 0x466BC2;
-//}
-//#pragma optimize( "", on )
-
 DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 {
 	GET(BulletClass*, pThis, EBP);
 
 	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
 	const double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)
-		->MissileROTVar.Get(RulesGlobal->MissileROTVar);
+		->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
 	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) *
 		0.06666666666666667 *
@@ -550,6 +530,6 @@ DEFINE_HOOK(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
 	GET(BulletClass*, pThis, EBP);
 	GET(int, comparator, EAX);
 	auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	return comparator >= pBulletTypeExt->GetMissileSaveAltitude(RulesGlobal)
+	return comparator >= pBulletTypeExt->GetMissileSaveAltitude(RulesClass::Instance)
 		? 0x466EAD : 0x466EB6;
 }

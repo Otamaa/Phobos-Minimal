@@ -8,6 +8,7 @@
 #pragma once
 
 #include <Base/Always.h>
+#include <DebugLog.h>
 
 class LimitedRegister {
 protected:
@@ -218,7 +219,10 @@ public:
 //Use this for DLL export functions
 //e.g. EXPORT FunctionName(REGISTERS* R)
 #define EXPORT extern "C" __declspec(dllexport) DWORD __cdecl
+#define EXPORT_DEBUG_DECLARE(name) DWORD __forceinline name(REGISTERS* R);
+#define EXPORT_DEBUG(name) DWORD __forceinline name(REGISTERS* R)
 #define EXPORT_FUNC(name) extern "C" __declspec(dllexport) DWORD __cdecl name (REGISTERS *R)
+
 
 //Handshake definitions
 struct SyringeHandshakeInfo
@@ -283,16 +287,31 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 #define declhook(hook, funcname, size)
 #endif // declhook
 
-// Defines a hook at the specified address with the specified name and saving the specified amount of instruction bytes to be restored if return to the same address is used. In addition to the injgen-declaration, also includes the function opening.
-#define DEFINE_HOOK(hook, funcname, size) \
+#define DEFINE_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
 
-#define D_DEFINE_HOOK(hook, funcname, size) EXPORT_FUNC(funcname)
+/*Defines a hook at the specified address with the specified nameand saving the specified
+amount of instruction bytes to be restored if return to the same address is used.
+In addition to the injgen-declaration, also includes the function opening.*/
+
+
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
 
-#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
-DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+//#define DEFINE_HOOK(hook, funcname, size) \
+//declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
+//EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
+//EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
+//{\
+//GameDebugLog::Log("[Hook] 0x%X [%s]\n",R->Origin(), #funcname);\
+//DWORD ret=funcname##_DEBUG_(R);\
+//GameDebugLog::Log("[Hook] 0x%X [%s] end\n", R->Origin(), #funcname);\
+//return ret;\
+//}\
+//EXPORT_DEBUG(funcname##_DEBUG_)
+//
+//#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
+//declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)

@@ -17,19 +17,19 @@ DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 
 namespace BoltTemp
 {
-	PhobosMap<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
+	std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
 	const WeaponTypeExt::ExtData* pType = nullptr;
 }
 
 DEFINE_HOOK(0x6FD494, TechnoClass_FireEBolt_SetExtMap_AfterAres, 0x7)
 {
-	GET_STACK(const WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
+	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x30, -0x8));
 	GET(EBolt* const, pBolt, EAX);
 
 	if (pWeapon) {
 		auto const pWpTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 		if(pWpTypeExt->Bolt_Disable1 || pWpTypeExt->Bolt_Disable2 || pWpTypeExt->Bolt_Disable3){
-			BoltTemp::boltWeaponTypeExt.insert(pBolt, pWpTypeExt);
+			BoltTemp::boltWeaponTypeExt.emplace(pBolt, pWpTypeExt);
 		}
 	}
 
@@ -49,15 +49,21 @@ DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
 	GET_STACK(EBolt* const, pBolt, 0x40);
 
-	auto const pWeaponLinked = BoltTemp::boltWeaponTypeExt.get_or_default(pBolt);
+	auto const& nMap = BoltTemp::boltWeaponTypeExt;
 
-	if (pWeaponLinked) {
+	if (nMap.contains(pBolt)) {
 
-		if (pWeaponLinked->Bolt_Disable3 || pWeaponLinked->Bolt_Disable2)
-			BoltTemp::pType = pWeaponLinked;
+		auto const pWeaponLinked = nMap.at(pBolt);
 
-		if (pWeaponLinked->Bolt_Disable1)
-			return 0x4C2515;
+		if (pWeaponLinked)
+		{
+
+			if (pWeaponLinked->Bolt_Disable3 || pWeaponLinked->Bolt_Disable2)
+				BoltTemp::pType = pWeaponLinked;
+
+			if (pWeaponLinked->Bolt_Disable1)
+				return 0x4C2515;
+		}
 	}
 
 	return 0;

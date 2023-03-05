@@ -4272,7 +4272,7 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	if (successPercentage > 100)
 		successPercentage = 100;
 
-	if (ScenarioGlobal->Random.PercentChance(successPercentage))
+	if (ScenarioClass::Instance->Random.PercentChance(successPercentage))
 	{
 		Debug::Log("AI Scripts - SkipNextAction: ScripType: [%s] [%s] (line: %d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
 			pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, pTeam->CurrentScript->CurrentMission + 2,

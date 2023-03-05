@@ -301,7 +301,7 @@ DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
 	if (pThisType->JumpJet ) {
 
 		if(pThisType->Explodes)
-			TechnoExt::PlayAnim(RulesGlobal->InfantryExplode, pThis);
+			TechnoExt::PlayAnim(RulesClass::Instance->InfantryExplode, pThis);
 
 		return ContinueCheckForJumpJet;
 	}

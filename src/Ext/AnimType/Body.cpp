@@ -92,15 +92,11 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	if (!this->SpawnsMultiple.empty())
 	{
 		auto const nBaseSize = (int)this->SpawnsMultiple.size();
-		this->SpawnsMultiple_amouts.Clear();
-		this->SpawnsMultiple_amouts.Reserve(nBaseSize);
-		this->SpawnsMultiple_amouts.Count = nBaseSize;
-		auto const pKey = "SpawnsMultiple.Amount";
+		this->SpawnsMultiple_amouts.clear();
+		this->SpawnsMultiple_amouts.resize(nBaseSize);
+		std::fill(this->SpawnsMultiple_amouts.begin(), this->SpawnsMultiple_amouts.end(), 1);
 
-		for (auto& nSpawnMult : this->SpawnsMultiple_amouts)
-			nSpawnMult = 1;
-
-		if (exINI.ReadString(pID, pKey))
+		if (exINI.ReadString(pID, "SpawnsMultiple.Amount"))
 		{
 			int nCount = 0;
 			char* context = nullptr;
@@ -285,13 +281,7 @@ AnimTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
-
-#ifndef ENABLE_NEWEXT
-	AnimTypeExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-#else
-	AnimTypeExt::ExtMap.FindOrAllocate(pItem);
-#endif
-
+	AnimTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

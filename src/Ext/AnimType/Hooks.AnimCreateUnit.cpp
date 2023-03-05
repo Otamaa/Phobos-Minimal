@@ -53,7 +53,7 @@ DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)
 		if (auto pCell = pThis->GetCell())
 			Location = pCell->GetCoordsWithBridge();
 		else
-			Location.Z = Map.GetCellFloorHeight(Location);
+			Location.Z = MapClass::Instance->GetCellFloorHeight(Location);
 
 		pThis->MarkAllOccupationBits(Location);
 	}
@@ -83,7 +83,7 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 			if (pCell)
 				location = pCell->GetCoordsWithBridge();
 			else
-				location.Z = Map.GetCellFloorHeight(location);
+				location.Z = MapClass::Instance->GetCellFloorHeight(location);
 
 			pThis->UnmarkAllOccupationBits(location);
 
@@ -94,13 +94,13 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 				{
 					const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->DeathUnitFacing.has_value())
 						? pExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
-						? ScenarioGlobal->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
+						? ScenarioClass::Instance->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
 
 					if (pCell)
 						pTechno->OnBridge = pCell->ContainsBridge();
 
 					const BuildingClass* pBuilding = pCell ?
-					pCell->GetBuilding() : Map[location]->GetBuilding();
+					pCell->GetBuilding() : MapClass::Instance->GetCellAt(location)->GetBuilding();
 
 					if (!pBuilding && !pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 					{

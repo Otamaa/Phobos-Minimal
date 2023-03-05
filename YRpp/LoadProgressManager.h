@@ -51,3 +51,5 @@ public:
 	DWORD field_5C;
 	Surface * ProgressSurface;
 };
+
+static_assert(sizeof(LoadProgressManager) == 0x64 , "Invalid Size");

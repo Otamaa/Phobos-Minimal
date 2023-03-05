@@ -2,7 +2,7 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
 
 #include "AnimSpawner.h"
@@ -13,7 +13,7 @@ class AnimExt
 public:
 	using base_type = AnimClass;
 	static constexpr size_t Canary = 0xAAAAAAAA;
-	static constexpr size_t ExtOffset = 0xD0;
+	//static constexpr size_t ExtOffset = 0xD0;
 
 	class ExtData final : public Extension<base_type>
 	{
@@ -70,8 +70,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner = true);
 	static const bool SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim,TechnoClass* pTechnoInvoker, bool defaultToVictimOwner = true);
-	static TechnoClass* GetTechnoInvoker(const AnimClass* const pThis ,bool DealthByOwner);
-	static AbstractClass* GetTarget(const AnimClass* const pThis);
+	static TechnoClass* GetTechnoInvoker(AnimClass* pThis ,bool DealthByOwner);
+	static AbstractClass* GetTarget(AnimClass* const);
 	//ToDo :
 	// utilize this ,..
 	// here as dummy atm

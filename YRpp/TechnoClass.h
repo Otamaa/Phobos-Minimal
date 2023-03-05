@@ -221,8 +221,8 @@ public:
 	virtual bool ShouldSelfHealOneStep() const JMP_THIS(0x70BE80); //0x294
 	virtual bool IsVoxel() const R0;
 	virtual bool vt_entry_29C() R0;
-	virtual bool IsReadyToCloak() const R0; //ShouldBeCloaked
-	virtual bool ShouldNotBeCloaked() const R0;
+	virtual bool IsReadyToCloak() const JMP_THIS(0x6FBDC0); //ShouldBeCloaked
+	virtual bool ShouldNotBeCloaked() const JMP_THIS(0x6FBC90);
 	virtual DirStruct* TurretFacing(DirStruct* pBuffer) const R0;
 	virtual bool IsArmed() const R0; // GetWeapon(primary) && GetWeapon(primary)->WeaponType
 	virtual bool vt_entry_2B0() const R0;
@@ -349,23 +349,23 @@ public:
 	virtual void vt_entry_47C(DWORD dwUnk) RX;
 	virtual void SetDestination(AbstractClass* pDest, bool bUnk) RX;
 	virtual bool EnterIdleMode(bool Initial, int nUnknown) R0;//virtual bool vt_entry_484(DWORD dwUnk, DWORD dwUnk2) R0;
-	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX; //70AF50
-	virtual void vt_entry_48C(DWORD dwUnk, DWORD dwUnk2, DWORD dwUnk3, DWORD dwUnk4) RX;
-	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
-	virtual void RadarTrackingStart() RX;
-	virtual void RadarTrackingStop() RX;
-	virtual void RadarTrackingFlash() RX;
-	virtual void RadarTrackingUpdate(bool bUnk) RX;
+	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX; //70AF50 , 0x48C
+	virtual void vt_entry_48C(HouseClass* pHouse, DWORD dwUnk2, bool dwUnk3, HouseClass* pHouseb) RX; //70B1D0
+	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0; //490
+	virtual void RadarTrackingStart() RX; //494
+	virtual void RadarTrackingStop() RX; //498
+	virtual void RadarTrackingFlash() RX; //49C
+	virtual void RadarTrackingUpdate(bool bUnk) RX; //4A0
 	virtual void vt_entry_4A4(DWORD dwUnk) RX;
 	virtual void vt_entry_4A8() RX;
 	virtual bool vt_entry_4AC() const R0;
 	virtual bool vt_entry_4B0() const R0;
 	virtual int vt_entry_4B4() const R0;
-	virtual CoordStruct* vt_entry_4B8(CoordStruct* pCrd) R0;
-	virtual bool CanUseWaypoint() const R0;
-	virtual bool CanAttackOnTheMove() const R0;
+	virtual CoordStruct GetNegativeOneCoords() JMP_THIS(0x70F050); // 0x4B8
+	virtual bool CanUseWaypoint() const R0; // 0x4BC
+	virtual bool CanAttackOnTheMove() const R0; //0x4C0
 	virtual bool vt_entry_4C4() const R0;
-	virtual bool vt_entry_4C8() R0;
+	virtual bool vt_entry_4C8()	R0;
 	virtual void vt_entry_4CC() RX;
 	virtual bool vt_entry_4D0() R0;
 
@@ -663,12 +663,6 @@ public:
 	WeaponStruct* GetTurrentWeapon() const //Vtable_GetPrimaryWeapon
 	{ JMP_THIS(0x70E1A0); }
 
-	bool IsThisReadyToCloak() const
-	{ JMP_THIS(0x6FBDC0); }
-
-	bool ThisShouldNotCloak() const
-	{ JMP_THIS(0x6FBC90); }
-
 	bool CanReachTarget(int WeaponIdx) const
 	{ JMP_THIS(0x70D590); }
 
@@ -909,8 +903,7 @@ public:
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
-	bool            ShouldLoseTargetNow;
-	PROTECTED_PROPERTY(byte, bool_pad[3]);
+	DWORD            ShouldLoseTargetNow;
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;

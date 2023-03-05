@@ -88,8 +88,8 @@ protected:
 	//===========================================================================
 public:
 	int BytesPerPixel;
-	ArrayWrapper<Blitter*, 50u> Blitters;
-	ArrayWrapper<RLEBlitter* , 39u> RLEBlitters;
+	Blitter* Blitters[50];
+	RLEBlitter* RLEBlitters[39];
 	int ShadeCount;
 	char* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
 	char* BufferMid; // points to the middle of BufferA above, ??

@@ -67,6 +67,7 @@ namespace detail
 
 			auto const pValue = parser.value();
 			auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue);
+
 			if (parsed || INIClass::IsBlank(pValue))
 			{
 				value = parsed;
@@ -79,6 +80,72 @@ namespace detail
 		}
 		return false;
 	}
+
+	/*template <>
+	inline bool read<WarheadTypeClass*>(WarheadTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto const pValue = parser.value();
+			auto const parsed = (allocate ? parser.GetINI()->WarheadTypeClass_FindOrMake(pSection, pKey, nullptr) :
+									WarheadTypeClass::Find(pValue));
+
+			if (parsed || INIClass::IsBlank(pValue))
+			{
+				value = parsed;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
+			}
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<AircraftTypeClass*>(AircraftTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto const pValue = parser.value();
+			auto const parsed = (allocate ? parser.GetINI()->AircraftTypeClass_FindOrMake(pSection, pKey, nullptr) :
+									AircraftTypeClass::Find(pValue));
+
+			if (parsed || INIClass::IsBlank(pValue))
+			{
+				value = parsed;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
+			}
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<InfantryTypeClass*>(InfantryTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto const pValue = parser.value();
+			auto const parsed = (allocate ? parser.GetINI()->InfantryTypeClass_FindOrMake(pSection, pKey, nullptr) :
+									InfantryTypeClass::Find(pValue));
+
+			if (parsed || INIClass::IsBlank(pValue))
+			{
+				value = parsed;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
+			}
+		}
+		return false;
+	}*/
 
 	template <>
 	inline bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -501,7 +568,7 @@ namespace detail
 
 				if (flag.find("~") != std::string::npos)
 				{
-					flag.replace(flag.begin() + flag.find("~"), flag.end(), Theater::GetTheater(ScenarioGlobal->Theater).Letter);;
+					flag.replace(flag.begin() + flag.find("~"), flag.end(), Theater::GetTheater(ScenarioClass::Instance->Theater).Letter);
 				}
 
 				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))

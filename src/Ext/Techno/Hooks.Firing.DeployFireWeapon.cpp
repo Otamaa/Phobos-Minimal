@@ -22,7 +22,7 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 
 	const auto pCell = pThis->GetCell();
 
-	if(!pCell)
+	if (!pCell)
 		return SkipGameCode;
 
 	pThis->SetTarget(pCell);
@@ -62,22 +62,18 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 	auto const pUnit = specific_cast<UnitClass*>(pThis);
 
+	if (!pUnit)
+		return 0x0;
+
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
-	if (pUnit && pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
-	{
-		const auto pCell = pThis->GetCell();
-		pThis->SetTarget(pCell);
-		auto const nWeapIdx = pThis->SelectWeapon(pCell);
+	if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer) {
+		auto const nWeapIdx = pThis->SelectWeapon(pThis->GetCell());
 		auto const pWs = pThis->GetWeapon(nWeapIdx);
 
-		if (!pWs->WeaponType)
+		if (!pWs->WeaponType || 
+			(pWs->WeaponType->FireOnce
+			&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft()))
 			return DoNotExecute;
-
-		if (pWs->WeaponType->FireOnce)
-		{
-			if (TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft())
-				return DoNotExecute;
-		}
 	}
 
 	return 0;
@@ -90,24 +86,25 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (pThis->Deployed && pType->DeployFire)
-	{
-		int weaponIndex = pType->DeployFireWeapon;
-		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
-		{
-			// Only apply DeployFireWeapon on vehicles if explicitly set.
-			if (!pTypeExt->DeployFireWeapon.isset())
-			{
-				weaponIndex = 0;
-				if (pThis->GetFireError(pTarget, weaponIndex, true) != FireError::OK)
-					weaponIndex = 1;
-			}
-		}
+	if (pType->DeployFire && !pType->IsSimpleDeployer) {
+		if (pTarget && pTarget->WhatAmI() == AbstractType::Cell) {
 
-		if (weaponIndex != -1)
-		{
-			R->EAX(weaponIndex);
-			return 0x746CFD;
+			int weaponIndex = pType->DeployFireWeapon;
+
+			if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType)) {
+				// Only apply DeployFireWeapon on vehicles if explicitly set.
+				if (!pTypeExt->DeployFireWeapon.isset()) {
+					weaponIndex = 0;
+					if (pThis->GetFireError(pTarget, weaponIndex, true) != FireError::OK)
+						weaponIndex = 1;
+				}
+			}
+
+			if (weaponIndex != -1)
+			{
+				R->EAX(weaponIndex);
+				return 0x746CFD;
+			}
 		}
 	}
 

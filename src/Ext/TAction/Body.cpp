@@ -163,7 +163,7 @@ static bool something_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		return false;
 
 	CellStruct nBufer { };
-	ScenarioGlobal->GetWaypointCoords(&nBufer, pThis->Waypoint);
+	ScenarioClass::Instance->GetWaypointCoords(&nBufer, pThis->Waypoint);
 
 	if (const auto pSuper = pOwner->Supers[pSuperType])
 	{
@@ -246,7 +246,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 			{
 				Vector3D<float> vect { v29 * 1.0f, nDimension * 1.0f  , 0.0f };
 				Vector3D<float> Vec3Dresult {};
-				Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, vect);
+				Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
 				auto nCoord = CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 };
 				GameCreate<AnimClass>(pAnimType, nCoord);
 				nDimension += nShpWidth_;
@@ -273,8 +273,8 @@ static bool something_705(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		return false;
 
 	CellStruct nBufer { };
-	ScenarioGlobal->GetWaypointCoords(&nBufer, pThis->Waypoint);
-	const auto pCell = Map.TryGetCellAt(nBufer);
+	ScenarioClass::Instance->GetWaypointCoords(&nBufer, pThis->Waypoint);
+	const auto pCell = MapClass::Instance->TryGetCellAt(nBufer);
 
 	for (auto pFoot : *FootClass::Array)
 	{
@@ -356,11 +356,11 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	const auto& MapRect = Make_Global<RectangleStruct>(0x87F8DC);
 	auto v1 = 60 * MapRect.Width;
 	auto v2 = 30 * MapRect.Height;
-	auto vect_X = ScenarioGlobal->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
-	auto vect_Y = (v2 / 2 + ScenarioGlobal->Random.RandomFromMax(v2));
+	auto vect_X = ScenarioClass::Instance->Random.RandomFromMax((60 * MapRect.Width) - v1 / 2);
+	auto vect_Y = (v2 / 2 + ScenarioClass::Instance->Random.RandomFromMax(v2));
 	Vector3D<float> vect { (float)vect_X , (float)vect_Y , 0.0f };
 	Vector3D<float> Vec3Dresult { };
-	Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalGlobal->IsoTransformMatrix, vect);
+	Matrix3D::MatrixMultiply(Vec3Dresult, &TacticalClass::Instance->IsoTransformMatrix, vect);
 	a1->Z = 0;
 	a1->X = (int)Vec3Dresult.X;
 	a1->Y = (int)Vec3Dresult.Y;

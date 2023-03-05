@@ -69,8 +69,9 @@ static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> GetWeaponAndFLH(Tec
 				return { {} , CoordStruct::Empty };
 
 			return { (pThis->Veterancy.IsElite() ?
-				nExtraFireData.AttachedWeapon.ElitePrimaryWeapons :
-				nExtraFireData.AttachedWeapon.PrimaryWeapons) ,(pThis->Veterancy.IsElite() ?
+					nExtraFireData.AttachedWeapon.ElitePrimaryWeapons :
+					nExtraFireData.AttachedWeapon.PrimaryWeapons) ,
+					(pThis->Veterancy.IsElite() ?
 					nExtraFireData.AttachedFLH.ElitePrimaryWeaponFLH :
 					nExtraFireData.AttachedFLH.PrimaryWeaponFLH)
 			};

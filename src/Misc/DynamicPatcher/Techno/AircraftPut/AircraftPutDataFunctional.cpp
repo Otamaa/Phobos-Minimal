@@ -17,7 +17,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 	if (!pTechno->Spawned)
 	{
 		auto const pType = pTechno->Type;
-		auto const Iter = make_iterator(RulesGlobal->PadAircraft);
+		auto const Iter = make_iterator(RulesClass::Instance->PadAircraft);
 
 		if (!Iter.empty() && Iter.contains(pType))
 		{

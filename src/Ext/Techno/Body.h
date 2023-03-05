@@ -214,6 +214,7 @@ public:
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
+
 	protected:
 		std::pair<std::vector<WeaponTypeClass*>*, std::vector<int>*> GetFireSelfData();
 		int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData , FootClass const* pPassenger);
@@ -306,4 +307,11 @@ public:
 	static CoordStruct GetPutLocation(CoordStruct current, int distance);
 
 	static bool AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
+
+	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
+	static NOINLINE ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
+
+protected:
+	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
+	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
 };

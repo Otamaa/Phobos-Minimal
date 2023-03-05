@@ -62,7 +62,7 @@ public:
 	virtual SHPStruct* GetImage() const R0;
 
 	//Destructor
-	virtual ~IsometricTileTypeClass() RX;
+	virtual ~IsometricTileTypeClass() override JMP_THIS(0x54A170);
 
 	int LoadTile() const
 	{ JMP_THIS(0x547020); }
@@ -112,7 +112,6 @@ public:
 	char FileName[0xE]; // WARNING! Westwood strncpy's 0xE bytes into this buffer without NULL terminating it.
 	bool AllowBurrowing;
 	bool AllowTiberium;
-	PROTECTED_PROPERTY(BYTE, align_305[3]);
 	DWORD TilesLoadedMaybe_; //308
 };
 

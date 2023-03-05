@@ -66,7 +66,7 @@ namespace Helper
 			return { false , 0 };
 		}
 
-		inline void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, DynamicVectorClass<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
+		inline void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
 		{
 			if (!nAnims.empty())
 			{
@@ -74,9 +74,9 @@ namespace Helper
 				{
 					if (auto const pMultipleSelected = nAnims[nIndex])
 					{
-						if ((size_t)nAmount[nIndex] > 0)
+						if (nAmount.at(nIndex) > 0)
 						{
-							for (int k = (int)nAmount[nIndex]; k > 0; --k)
+							for (int k = nAmount.at(nIndex); k > 0; --k)
 							{
 								if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where))
 								{
@@ -96,7 +96,7 @@ namespace Helper
 				}
 				else
 				{
-					nCreateAnim(ScenarioGlobal->Random.RandomFromMax(nAnims.size() - 1));
+					nCreateAnim(ScenarioClass::Instance->Random.RandomFromMax(nAnims.size() - 1));
 				}
 			}
 		}

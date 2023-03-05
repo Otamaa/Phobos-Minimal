@@ -50,7 +50,7 @@ public:
 
 	WarheadTypeClass* GetWarhead() const
 	{
-		return RadWarhead.Get(RulesGlobal->RadSiteWarhead);
+		return RadWarhead.Get(RulesClass::Instance->RadSiteWarhead);
 	}
 
 	bool GetWarheadDetonate() const
@@ -80,17 +80,17 @@ public:
 
 	ColorStruct GetColor() const
 	{
-		return this->RadSiteColor.Get(RulesGlobal->RadColor);
+		return this->RadSiteColor.Get(RulesClass::Instance->RadColor);
 	}
 
 	int GetDurationMultiple() const
 	{
-		return this->DurationMultiple.Get(RulesGlobal->RadDurationMultiple);
+		return this->DurationMultiple.Get(RulesClass::Instance->RadDurationMultiple);
 	}
 
 	int GetApplicationDelay()  const
 	{
-		return abs(this->ApplicationDelay.Get(RulesGlobal->RadApplicationDelay));
+		return abs(this->ApplicationDelay.Get(RulesClass::Instance->RadApplicationDelay));
 	}
 
 	int GetBuildingApplicationDelay() const
@@ -100,32 +100,32 @@ public:
 
 	int GetLevelMax()  const
 	{
-		return this->LevelMax.Get(RulesGlobal->RadLevelMax);
+		return this->LevelMax.Get(RulesClass::Instance->RadLevelMax);
 	}
 
 	int GetLevelDelay() const
 	{
-		return this->LevelDelay.Get(RulesGlobal->RadLevelDelay);
+		return this->LevelDelay.Get(RulesClass::Instance->RadLevelDelay);
 	}
 
 	int GetLightDelay() const
 	{
-		return this->LightDelay.Get(RulesGlobal->RadLightDelay);
+		return this->LightDelay.Get(RulesClass::Instance->RadLightDelay);
 	}
 
 	double GetLevelFactor() const
 	{
-		return this->LevelFactor.Get(RulesGlobal->RadLevelFactor);
+		return this->LevelFactor.Get(RulesClass::Instance->RadLevelFactor);
 	}
 
 	double GetLightFactor() const
 	{
-		return this->LightFactor.Get(RulesGlobal->RadLightFactor);
+		return this->LightFactor.Get(RulesClass::Instance->RadLightFactor);
 	}
 
 	double GetTintFactor() const
 	{
-		return this->TintFactor.Get(RulesGlobal->RadTintFactor);
+		return this->TintFactor.Get(RulesClass::Instance->RadTintFactor);
 	}
 
 	virtual void LoadFromINI(CCINIClass* pINI) override;

@@ -77,6 +77,9 @@ DEFINE_HOOK(0x62B8BC, ParticleClass_CTOR_RailgunCoordAdjust, 0x6)
 #ifdef PERFORMANCE_HEAVY
 // https://github.com/Phobos-developers/Phobos/pull/825
 // Todo :  Otamaa : massive FPS drops !
+// Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
+// correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
+
 namespace FireAtTemp
 {
 	CoordStruct originalTargetCoords;
@@ -94,7 +97,7 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
 
 	auto coords = pTarget->GetCenterCoords();
 
-	if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
+	if (const auto pBuilding = abstract_cast<BuildingClass*>(pTarget))
 		coords = pBuilding->GetTargetCoords();
 
 	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(*pSourceCoords, coords, pWeapon->Projectile, pThis->Owner);
@@ -102,29 +105,93 @@ DEFINE_HOOK(0x6FF15F, TechnoClass_FireAt_ObstacleCellSet, 0x6)
 	return 0;
 }
 
- //Cut railgun logic off at obstacle coordinates.
-DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+// Apply obstacle logic to fire & spark particle system targets.
+DEFINE_HOOK_AGAIN(0x6FF1D7, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
+DEFINE_HOOK(0x6FF189, TechnoClass_FireAt_SparkFireTargetSet, 0x5)
 {
-	enum { NextCheck = 0x70CA79, Stop = 0x70CAD8 , Continue = 0x0 };
+	if (FireAtTemp::pObstacleCell)
+	{
+		if (R->Origin() == 0x6FF189)
+			R->ECX(FireAtTemp::pObstacleCell);
+		else
+			R->EDX(FireAtTemp::pObstacleCell);
+	}
 
-	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
+	return 0;
+}
 
-	if(FireAtTemp::pObstacleCell) {
-	  const auto pCell = MapClass::Instance->GetCellAt(coords);
+// Fix fire particle target coordinates potentially differing from actual target coords.
+DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
+{
+	enum { SkipGameCode = 0x62FA51, Continue = 0x62FBAF };
 
-	  return (pCell == FireAtTemp::pObstacleCell) ? Stop : NextCheck;
+	GET(ParticleSystemClass*, pThis, ESI);
+	GET(TechnoClass*, pOwner, EBX);
+
+	if (pOwner->PrimaryFacing.IsRotating())
+	{
+		auto coords = pThis->TargetCoords;
+		R->EAX(&coords);
+		return SkipGameCode;
 	}
 
 	return Continue;
 }
 
- //Adjust target coordinates for laser drawing.
+// Fix fire particles being disallowed from going upwards.
+DEFINE_HOOK(0x62D685, ParticleSystemClass_Fire_Coords, 0x5)
+{
+	enum { SkipGameCode = 0x62D6B7 };
+
+	// Game checks if MapClass::GetCellFloorHeight() for currentCoords is larger than for previousCoords and sets the flags on ParticleClass to
+	// remove it if so. Below is an attempt to create a smarter check that allows upwards movement and does not needlessly collide with elevation
+	// but removes particles when colliding with flat ground. It doesn't work perfectly and covering all edge-cases is difficult or impossible so
+	// preference was to disable it. Keeping the code here commented out, however.
+
+	/*
+	GET(ParticleClass*, pThis, ESI);
+	REF_STACK(CoordStruct, currentCoords, STACK_OFFSET(0x24, -0x18));
+	REF_STACK(CoordStruct, previousCoords, STACK_OFFSET(0x24, -0xC));
+	auto const sourceLocation = pThis->ParticleSystem ? pThis->ParticleSystem->Location : CoordStruct { INT_MAX, INT_MAX, INT_MAX };
+	auto const pCell = MapClass::Instance->TryGetCellAt(currentCoords);
+	int cellFloor = MapClass::Instance->GetCellFloorHeight(currentCoords);
+	bool downwardTrajectory = currentCoords.Z < previousCoords.Z;
+	bool isBelowSource = cellFloor < sourceLocation.Z - Unsorted::LevelHeight * 2;
+	bool isRamp = pCell ? pCell->SlopeIndex : false;
+	if (!isRamp && isBelowSource && downwardTrajectory && currentCoords.Z < cellFloor)
+	{
+		pThis->unknown_12D = 1;
+		pThis->unknown_131 = 1;
+	}
+	*/
+
+	return SkipGameCode;
+}
+
+// Cut railgun logic off at obstacle coordinates.
+DEFINE_HOOK(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+{
+	enum { Continue = 0x70CA79, Stop = 0x70CAD8 };
+
+	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
+
+	auto pCell = MapClass::Instance->GetCellAt(coords);
+
+	if (pCell == FireAtTemp::pObstacleCell)
+		return Stop;
+
+	return Continue;
+}
+
+// Adjust target coordinates for laser drawing.
 DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 {
 	GET(CoordStruct*, pTargetCoords, EAX);
 
 	auto coords = *pTargetCoords;
-	if (const auto pObstacleCell = FireAtTemp::pObstacleCell)
+	auto pObstacleCell = FireAtTemp::pObstacleCell;
+
+	if (pObstacleCell)
 		coords = pObstacleCell->GetCoordsWithBridge();
 
 	R->EAX(&coords);
@@ -132,7 +199,7 @@ DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 }
 
 // Adjust target for bolt / beam / wave drawing.
-DEFINE_HOOK(0x6FF57D, TechnoClass_FireAt_TargetSet, 0x6)
+DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
 {
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 	GET(AbstractClass*, pTarget, EDI);
@@ -146,7 +213,6 @@ DEFINE_HOOK(0x6FF57D, TechnoClass_FireAt_TargetSet, 0x6)
 		pTargetCoords->X = coords.X;
 		pTargetCoords->Y = coords.Y;
 		pTargetCoords->Z = coords.Z;
-
 		R->EDI(FireAtTemp::pObstacleCell);
 	}
 
@@ -158,18 +224,19 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_ObstacleCellUnset, 0x6)
 {
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 
-	const auto coords = FireAtTemp::originalTargetCoords;
+	auto coords = FireAtTemp::originalTargetCoords;
 	pTargetCoords->X = coords.X;
 	pTargetCoords->Y = coords.Y;
 	pTargetCoords->Z = coords.Z;
-	const auto target = FireAtTemp::pOriginalTarget;
+	auto target = FireAtTemp::pOriginalTarget;
 
 	FireAtTemp::originalTargetCoords = CoordStruct::Empty;
-	FireAtTemp::pObstacleCell = nullptr;
 	FireAtTemp::pOriginalTarget = nullptr;
+	FireAtTemp::pObstacleCell = nullptr;
 
 	R->EDI(target);
 
 	return 0;
 }
+
 #endif

@@ -90,7 +90,7 @@ public:
 	int MiddleFrameIndex;
 	int MiddleFrameWidth;
 	int MiddleFrameHeight;
-	DWORD Biggest; //was unknown_2A4;
+	BYTE unknown_2A4;
 	double Damage;
 	int Rate;
 	int Start;

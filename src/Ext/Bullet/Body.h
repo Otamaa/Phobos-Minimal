@@ -115,6 +115,10 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation);
+	static HouseClass* GetHouse(BulletClass* const pThis);
+	static bool ApplyMCAlternative(BulletClass* pThis);
+	static NOINLINE void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove);
+	static NOINLINE bool IsReallyAlive(BulletClass* pThis);
 
 	static TechnoClass* InRangeTempFirer;
 };

@@ -213,16 +213,18 @@ public:
 	virtual void CreateEmptyMap(const RectangleStruct& mapRect, bool reuse, char nLevel, bool bUnk2) JMP_THIS(0x565C10);
 	virtual void SetVisibleRect(const RectangleStruct& mapRect) JMP_THIS(0x567230);
 
+	//GetCellAt
 	CellClass* operator[] (const CoordStruct&  cell)
 	{ JMP_THIS(0x565730); }
 
+	//GetCellAt
 	CellClass* operator[] (const CellStruct&  cell)
 	{ JMP_THIS(0x5657A0); }
 
 	//Non-virtual
 	CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
-		return (idx >= 0 && idx < MaxCells) ? Cells[idx] : nullptr;
+		return (idx >= 0 && idx < 0x40000) ? Cells[idx] : nullptr;
 	}
 
 	CellClass* TryGetCellAt(const CoordStruct& Crd) const {

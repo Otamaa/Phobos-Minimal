@@ -9,7 +9,7 @@ public:
 
 	Valueable<bool> Enable { false };
 	ValueableVector<TechnoTypeClass*> Gifts { };
-	DynamicVectorClass<int> Nums { };
+	std::vector<int> Nums { };
 	ValueableVector<int> RandomWeights { };
 	ValueableVector<double> Chances { };
 	Valueable<bool> UseChancesAndWeight { false };

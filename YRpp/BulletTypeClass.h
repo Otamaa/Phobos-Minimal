@@ -133,7 +133,7 @@ public:
 	int CourseLockDuration;
 	int SpawnDelay;
 	int ScaledSpawnDelay;
-	DWORD Scalable;
+	bool Scalable;
 	int Arm;
 	byte AnimLow;
 	byte AnimHigh;

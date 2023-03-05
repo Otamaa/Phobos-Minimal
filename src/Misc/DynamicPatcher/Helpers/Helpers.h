@@ -606,7 +606,7 @@ public:
 	static void PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos)
 	{
 		if (pWeapon->Report.Count > 0) {
-			VocClass::PlayAt(pWeapon->Report.GetItem(ScenarioGlobal->Random.RandomFromMax(pWeapon->Report.Count - 1)), sourcePos, nullptr);
+			VocClass::PlayAt(pWeapon->Report.GetItem(ScenarioClass::Instance->Random.RandomFromMax(pWeapon->Report.Count - 1)), sourcePos, nullptr);
 		}
 	}
 
@@ -697,7 +697,7 @@ public:
 	static int Hit(const std::map<Point2D, int>& targetPad, int maxValue)
 	{
 		int index = 0;
-		int p = ScenarioGlobal->Random.RandomFromMax(maxValue);
+		int p = ScenarioClass::Instance->Random.RandomFromMax(maxValue);
 
 		for(const auto& [tKey, idx] : targetPad) {
 			if (p >= tKey.X && p < tKey.Y)
@@ -710,7 +710,7 @@ public:
 		return index;
 	}
 
-	static bool Bingo(ValueableVector<double>& chances, int index)
+	static bool Bingo(const ValueableVector<double>& chances, int index)
 	{
 		if (chances.empty() || chances.size() < (size_t)(index + 1)) {
 			return true;
@@ -725,7 +725,7 @@ public:
 		{
 			return false;
 		}
-		return chance >= 1 || chance >= ScenarioGlobal->Random.RandomDouble();
+		return chance >= 1 || chance >= ScenarioClass::Instance->Random.RandomDouble();
 	}
 
 	DirStruct Facing(const BulletClass* pBullet)

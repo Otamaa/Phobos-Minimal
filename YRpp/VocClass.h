@@ -20,6 +20,8 @@ struct VocAudioStruct {
   ~VocAudioStruct() = delete;
 };
 
+static_assert(sizeof(VocAudioStruct) == 0x38, "Invalid Size!");
+
 class AudioEventClassTag {
 public:
 	SomeNodes<DWORD> Header;
@@ -60,7 +62,6 @@ public:
 	DWORD unknown_140;
 	DWORD unknown_144;
 };
-
 
 static_assert(sizeof(AudioEventClassTag) == 0x148 , "Invalid Size !");
 
@@ -111,3 +112,5 @@ public:
 	VocClass() = delete;
 	~VocClass() = delete;
 };
+
+static_assert(sizeof(VocClass) == 0x4, "Invalid Size !");

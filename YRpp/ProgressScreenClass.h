@@ -48,3 +48,4 @@ public:
 protected:
 	ProgressScreenClass(){};
 };
+static_asser(sizeof(ProgressScreenClass) == 0x84 , "Invalid Size!");

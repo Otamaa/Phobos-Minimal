@@ -436,8 +436,8 @@ public:
 	{
 		CCINIClass* pINI = GameCreate<CCINIClass>();
 		if(CCFileClass* pFile = GameCreate<CCFileClass>(pFileName)){
-		if (pFile->Exists())
-			pINI->ReadCCFile(pFile);
+			if (pFile->Exists())
+				pINI->ReadCCFile(pFile);
 
 			GameDelete<true,false>(pFile);
 		}
@@ -480,7 +480,7 @@ public:
 		{ JMP_THIS(0x476D80); }
 
 	//Most of them are inlined 
-#define FINDORMAKETYPE(C,addr) C* FindOrMake(const char* pSection, const char* pKey , C* pDefault) { JMP_THIS(addr); }
+#define FINDORMAKETYPE(C,addr) C* ##C##_FindOrMake(const char* pSection, const char* pKey , C* pDefault) { JMP_THIS(addr); }
 
 	FINDORMAKETYPE(AircraftTypeClass, 0x67BD30u)
 	FINDORMAKETYPE(InfantryTypeClass, 0x67BAC0u)

@@ -172,7 +172,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		}
 
 		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pType->Armor);
-		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) ", pFoot->Health, pType->Strength , pArmor->Name.data() , (int)pType->Armor, pFoot->Veterancy.Veterancy , RulesGlobal->VeteranCap);
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) ", pFoot->Health, pType->Strength , pArmor->Name.data() , (int)pType->Armor, pFoot->Veterancy.Veterancy , RulesClass::Instance->VeteranCap);
 		
 		if (pType->Ammo > 0)
 			append(" , Ammo = (%d / %d) \n", pFoot->Ammo, pType->Ammo);
@@ -242,7 +242,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 			}
 
 		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pBuilding->Type->Armor);
-		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength , pArmor->Name.data() , (int)pBuilding->Type->Armor , pBuilding->Veterancy.Veterancy, RulesGlobal->VeteranCap);
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength , pArmor->Name.data() , (int)pBuilding->Type->Armor , pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 		if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
 		{
@@ -299,7 +299,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		}
 		else
 		{
-			if (auto pCell = Map[WWMouseClass::Instance->GetCellUnderCursor()])
+			if (auto pCell = MapClass::Instance->GetCellAt(WWMouseClass::Instance->GetCellUnderCursor()))
 			{
 
 				const auto nTile = pCell->IsoTileTypeIndex;

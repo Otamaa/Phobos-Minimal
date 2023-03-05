@@ -3,25 +3,12 @@
 
 #include <Utilities/Cast.h>
 
-ObjectTypeClass* SetInfDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType)
-{
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (auto pDisguise = pExt->DefaultDisguise.Get(nullptr)) {
-		pThis->Disguised = true;
-		pThis->DisguisedAsHouse = pThis->Owner;
-		return pDisguise;
-	}
-
-	return nullptr;
-}
-
-DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
+DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
 {
 	GET(InfantryTypeClass*, pType, EAX);
 	GET(InfantryClass*, pThis, ECX);
 
-	if (auto pDisguiseType = SetInfDisguise(pThis, pType))
+	if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType))
 	{
 		pThis->Disguise = pDisguiseType;
 		return 0x5227BF;// EC / D7 / E4
@@ -30,7 +17,7 @@ DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_DefaultDisguise, 0x6) // Infantr
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6F421C, TechnoClass_Init_DefaultDisguise, 0x6)
+DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
@@ -47,7 +34,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_DefaultDisguise, 0x6)
 #endif
 
 	if (pThis->WhatAmI() == AbstractType::Infantry ) {
-		if (auto pDisguiseType = SetInfDisguise(pThis, pType)) {
+		if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 			//R->EDX(pDisguiseType);
 			//return 0x6F4245;
 			pThis->Disguise = pDisguiseType;

@@ -50,8 +50,8 @@ public:
 	virtual bool IsLeavingMap() const R0;
 	virtual bool vt_entry_4E0() const R0;
 	virtual bool CanDeployNow() const R0;
-	virtual void AddSensorsAt(CellStruct pCell) RX;
-	virtual void RemoveSensorsAt(CellStruct pCell) RX;
+	virtual void AddSensorsAt(CellStruct npCell) RX;
+	virtual void RemoveSensorsAt(CellStruct nCell) RX;
 	virtual CoordStruct* vt_entry_4F0(CoordStruct* pCrd) R0;
 	virtual void vt_entry_4F4() RX;
 	virtual bool vt_entry_4F8() R0;
@@ -79,7 +79,7 @@ public:
 	virtual TechnoClass* FindDockingBay(TechnoTypeClass* pDock, int unusedarg3, bool bForced) const R0;
 	virtual void vt_entry_534(DWORD dwUnk, DWORD dwUnk2) RX;
 	virtual int GetCurrentSpeed() const R0;
-	virtual bool ApproachTarget(bool bSomething) R0; //0x53C
+	virtual bool ApproachTarget(bool bSomething) JMP_THIS(0x4D5690); //0x53C
 	virtual void vt_entry_540(DWORD dwUnk) RX;
 	virtual void SetSpeedPercentage(double percentage) RX;
 	virtual void vt_entry_548() RX;

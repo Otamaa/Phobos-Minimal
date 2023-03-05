@@ -27,10 +27,8 @@ public:
 
 	static NOINLINE SideClass* __fastcall  FindOrAllocate(const char* pID)
 	{
-		if (!CRT::strcmpi(pID, GameStrings::NoneStr())
-		|| !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
-			return nullptr; 
-		}
+		if (!pID || CRT::strcmpi(pID, GameStrings::NoneStr()) == 0 || CRT::strcmpi(pID, GameStrings::NoneStrb()) == 0)
+			return nullptr;
 
 		if (auto pRet = Find(pID)) {
 			return pRet;

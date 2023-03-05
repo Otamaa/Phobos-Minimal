@@ -23,4 +23,16 @@ struct Leptons
 	int value { 0 };
 };
 
+struct CompileTimeLeptons
+{
+	//explicit constexpr CompileTimeLeptons(int value) noexcept : value(value) { }
+	explicit constexpr CompileTimeLeptons(const int value) noexcept : value(value) { }
+	explicit constexpr CompileTimeLeptons(double velue) noexcept : value(static_cast<int>(velue* Unsorted::d_LeptonsPerCell)) { }
+
+	operator Leptons() const
+	{ return Leptons(this->value); }
+
+	int value { 0 };
+};
+
 static_assert(sizeof(Leptons) == sizeof(int), "Invalid Size !");

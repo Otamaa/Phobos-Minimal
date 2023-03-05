@@ -117,8 +117,8 @@ public:
 		ValueableVector<int> OreGathering_Tiberiums;
 		ValueableVector<int> OreGathering_FramesPerDir;
 
-		std::vector<DynamicVectorClass<CoordStruct>> WeaponBurstFLHs;
-		std::vector<DynamicVectorClass<CoordStruct>> EliteWeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> WeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> EliteWeaponBurstFLHs;
 
 		Valueable<bool> DestroyAnim_Random;
 		Valueable<bool> NotHuman_RandomDeathSequence;
@@ -224,10 +224,10 @@ public:
 		Nullable<CoordStruct> E_DeployedPrimaryFireFLH;
 		Nullable<CoordStruct> E_DeployedSecondaryFireFLH;
 
-		std::vector<DynamicVectorClass<CoordStruct>> CrouchedWeaponBurstFLHs;
-		std::vector<DynamicVectorClass<CoordStruct>> EliteCrouchedWeaponBurstFLHs;
-		std::vector<DynamicVectorClass<CoordStruct>> DeployedWeaponBurstFLHs;
-		std::vector<DynamicVectorClass<CoordStruct>> EliteDeployedWeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> CrouchedWeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> EliteCrouchedWeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> DeployedWeaponBurstFLHs;
+		std::vector<std::vector<CoordStruct>> EliteDeployedWeaponBurstFLHs;
 		std::vector<CoordStruct> AlternateFLHs;
 
 		Nullable<bool> IronCurtain_SyncDeploysInto;
@@ -327,7 +327,7 @@ public:
 		Valueable<bool> ROF_Random;
 		Nullable<Point2D> Rof_RandomMinMax;
 
-		PhobosFixedString<0x32> Eva_Complete;
+		NullableIdx<VoxClass> Eva_Complete;
 		ValueableIdx<VocClass> VoiceCreate;
 		Valueable<bool>CreateSound_Enable;
 
@@ -798,7 +798,7 @@ public:
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
 
-	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<DynamicVectorClass<CoordStruct>>& nFLH, std::vector<DynamicVectorClass<CoordStruct>>& nEFlh, const char* pPrefixTag);
+	static void GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection, std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag);
 	static void GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag);
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);

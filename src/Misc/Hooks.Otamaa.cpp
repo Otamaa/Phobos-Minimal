@@ -77,7 +77,7 @@ static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
 {
 	HouseClass* pHouseOwner = Source ? Source->GetOwningHouse() : nullptr;
 	auto nCoord = *pCoord;
-	return Map.DamageArea
+	return MapClass::DamageArea
 	(nCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
 }
 
@@ -100,7 +100,7 @@ DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
 	GET(RulesClass*, pRules, EAX);
 
 	auto const nRand = pRules->VeinholeShrinkRate > 0 ?
-		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
+		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeShrinkRate + nRand);
 	return 0x74D37C;
@@ -110,7 +110,7 @@ DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
 {
 	GET(RulesClass*, pRules, EAX);
 	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
+		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
 	return 0x74C5E7;
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 	GET(RulesClass*, pRules, ECX);
 
 	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioGlobal->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
+		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
 	return 0x74D2AA;
@@ -142,7 +142,7 @@ DEFINE_JUMP(CALL, 0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
-	auto const nTheater = ScenarioGlobal->Theater;
+	auto const nTheater = ScenarioClass::Instance->Theater;
 	SmudgeTypeClass::TheaterInit(nTheater);
 	VeinholeMonsterClass::TheaterInit(nTheater);
 	return 0x4AD0A8;
@@ -241,8 +241,9 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 
 DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 {
-	enum { 
-		CreateMuzzleAnim = 0x6FF39C ,
+	enum
+	{
+		CreateMuzzleAnim = 0x6FF39C,
 		SkipCreateMuzzleAnim = 0x6FF43F
 	};
 
@@ -329,7 +330,7 @@ DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBX);
-	R->EDX(RulesGlobal);
+	R->EDX(RulesClass::Instance());
 	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x45EF23 : 0x45F00B;
 }
 
@@ -415,7 +416,7 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 
 	return std::any_of(RulesExt::Global()->WallTowers.begin(), RulesExt::Global()->WallTowers.end(),
 		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; })
-		 ? 0x4FE656 : 0x4FE696;
+		? 0x4FE656 : 0x4FE696;
 }
 
 DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
@@ -502,8 +503,10 @@ DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 
 	auto const pLoco = static_cast<DriveLocomotionClass* const>(pILoco);
 
-	if (const auto pFoot = pLoco->LinkedTo) {
-		if (const auto pTrans = pFoot->Transporter) {
+	if (const auto pFoot = pLoco->LinkedTo)
+	{
+		if (const auto pTrans = pFoot->Transporter)
+		{
 			R->EAX(pTrans->GetCell());
 			return 0x4B0516;
 		}
@@ -516,7 +519,7 @@ DEFINE_HOOK(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion*, pLoco, ESI);
 	auto const pDrive = static_cast<DriveLocomotionClass*>(pLoco);
-	TechnoExt::PlayAnim(RulesGlobal->Wake, pDrive->LinkedTo);
+	TechnoExt::PlayAnim(RulesClass::Instance->Wake, pDrive->LinkedTo);
 	return 0x4B0828;
 }
 
@@ -524,7 +527,7 @@ DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion*, pLoco, ESI);
 	auto const pShip = static_cast<ShipLocomotionClass*>(pLoco);
-	TechnoExt::PlayAnim(RulesGlobal->Wake, pShip->LinkedTo);
+	TechnoExt::PlayAnim(RulesClass::Instance->Wake, pShip->LinkedTo);
 	return 0x69FEF0;
 }
 
@@ -561,7 +564,7 @@ DEFINE_HOOK(0x70253F, TechnoClass_TakeDamage_Metallic_AnimDebris, 0x6)
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
 
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
-	GameConstruct(pAnim, RulesGlobal->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	GameConstruct(pAnim, RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 	AnimExt::SetAnimOwnerHouseKind(pAnim, Receivedamageargs.Attacker ? Receivedamageargs.Attacker->GetOwningHouse() : Receivedamageargs.SourceHouse, pThis->GetOwningHouse(), false);
 
 	return 0x70256B;
@@ -640,7 +643,8 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 
 DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 {
-	enum {
+	enum
+	{
 		Skip = 0x4DC1A0,
 		Continue = 0x0
 	};
@@ -656,8 +660,9 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 		GET(int, nFLH_Y, EBX);
 		GET_STACK(int, nFLH_Z, STACK_OFFS(0x34, 0x10));
 
-		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty) {
-			Drawing::Draw_action_lines_7049C0(nFLH_X,nFLH_Y,nFLH_Z, pMovingDestCoord->X , pMovingDestCoord->Y , pMovingDestCoord->Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color.Get()), false, false);
+		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty)
+		{
+			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color.Get()), false, false);
 		}
 
 		return Skip;
@@ -668,7 +673,8 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 {
-	enum {
+	enum
+	{
 		Skip = 0x4DC328,
 		Continue = 0x0
 	};
@@ -679,15 +685,16 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 	if (pTypeExt->CommandLine_Move_Color.isset())
 	{
-		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34 ,0x24));
+		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34, 0x24));
 		GET(int, nCoordDest_Adjusted_Z, EDI);
 		GET(int, nLoc_X, EBP);
 		GET(int, nLoc_Y, EBX);
 		GET_STACK(int, nLoc_Z, STACK_OFFS(0x34, 0x10));
 		GET_STACK(bool, barg3, STACK_OFFSET(0x34, 0x8));
 
-		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty) {
-			Drawing::Draw_action_lines_7049C0(nLoc_X,nLoc_Y,nLoc_Z , nCooordDest.X , nCooordDest.Y ,nCoordDest_Adjusted_Z , Drawing::RGB2DWORD(pTypeExt->CommandLine_Move_Color.Get()), barg3, false);
+		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty)
+		{
+			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Move_Color.Get()), barg3, false);
 		}
 
 		return Skip;
@@ -701,7 +708,7 @@ DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 	enum { Continue = 0x0, ReturnFalse = 0x4DBDEB };
 	GET(FootClass*, pThis, ESI);
 
-	if(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get() 
+	if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get()
 		&& !pThis->Locomotor->Is_Moving())
 		return ReturnFalse;
 
@@ -906,19 +913,19 @@ DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
 //	return R->Origin() + 5;
 //}
 
-//DEFINE_HOOK_AGAIN(0x70FC90, TechnoClass_Deactivate, 0x6)
-//DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ECX);
-//
-//	if (auto pType = pThis->GetTechnoType()) {
-//		if (pType->PoweredUnit && pThis->Owner) {
-//			pThis->Owner->RecheckPower = true;
-//		}
-//	}
-//
-//	return 0x0;
-//}
+DEFINE_HOOK_AGAIN(0x70FC90, TechnoClass_Deactivate, 0x6)
+DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	if (auto pType = pThis->GetTechnoType()) {
+		if (pType->PoweredUnit && pThis->Owner) {
+			pThis->Owner->RecheckPower = true;
+		}
+	}
+
+	return 0x0;
+}
 
 #ifdef Ares_3_0_p1
 DEFINE_HOOK(0x7463A8, UnitClass_Captured_DriverKilled, 0x6)
@@ -1170,7 +1177,7 @@ DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 	GET(FootClass*, pVictim, ESI);
 
 	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() ||
-	 TechnoExt::IsChronoDelayDamageImmune(pVictim) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
+		TechnoExt::IsChronoDelayDamageImmune(pVictim) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
 DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
@@ -1195,12 +1202,14 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 //TODO : check for conflict
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
-	enum { Continue = 0x0 , DoNotDrawRadar = 0x70D407 };
+	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis->WhatAmI() == AbstractType::Building) {
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1) {
+	if (pThis->WhatAmI() == AbstractType::Building)
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
+		{
 			return DoNotDrawRadar;
 		}
 	}
@@ -1218,8 +1227,8 @@ DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
 
 	GET(int, nDamage, EDI);
 
-	const auto pCell = Map.GetCellAt(nCell);
-	if (auto pAnimType = Map.SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
+	const auto pCell = MapClass::Instance->GetCellAt(nCell);
+	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
 	{
 		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
 		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
@@ -1272,7 +1281,7 @@ DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 	return 0x6F0A5A;
 }
 
-DEFINE_JUMP(LJMP , 0x44DE2F, 0x44DE3C);
+DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 //DEFINE_HOOK(0x44DE2F, BuildingClass_MissionUnload_DisableBibLog, 0x5) { return 0x44DE3C; }
 
 DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
@@ -1458,7 +1467,8 @@ DEFINE_HOOK(0x4D69F5, FootClass_ApproachTarget_EngineerCaptureDelay, 0x6)
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
 		const auto pExt = TechnoExt::ExtMap.Find(pInf);
 
-		if (pExt->EngineerCaptureDelay.InProgress()) {
+		if (pExt->EngineerCaptureDelay.InProgress())
+		{
 			return 0x4D6A01;
 		}
 	}
@@ -1980,8 +1990,7 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 	GET(int, nMaxStr, EBP);
 	GET(int, nDamage, ECX);
 
-	const auto curstr = Game::F2I(nMaxStr * RulesGlobal->ConditionYellow)
-		;
+	const auto curstr = Game::F2I(nMaxStr * RulesClass::Instance->ConditionYellow);
 	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
 }
 
@@ -2185,7 +2194,7 @@ DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger , pKiller);
+			TechnoExt::HandleRemove(pPassenger, pKiller);
 		}
 	}
 
@@ -2207,7 +2216,7 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 	if (nMin || nMax)
 	{
 		const auto nCoord = pThis->GetCoords();
-		const auto v8 = nCoord.Z - Map.GetCellFloorHeight(nCoord);
+		const auto v8 = nCoord.Z - MapClass::Instance->GetCellFloorHeight(nCoord);
 		const auto v17 = 6.283185307179586 / nNumParticles;
 		double v16 = 0.0;
 
@@ -2215,12 +2224,12 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 		{
 			for (; nNumParticles; --nNumParticles)
 			{
-				auto v13 = abs(ScenarioGlobal->Random.RandomRanged(nMin, nMax));
-				auto v10 = ScenarioGlobal->Random.RandomDouble() * v17 + v16;
+				auto v13 = abs(ScenarioClass::Instance->Random.RandomRanged(nMin, nMax));
+				auto v10 = ScenarioClass::Instance->Random.RandomDouble() * v17 + v16;
 				auto v18 = Math::cos(v10);
 				auto v9 = Math::sin(v10);
 				CoordStruct nCoordB { nCoord.X + static_cast<int>(v13 * v18),nCoord.Y - static_cast<int>(v9 * v13), nCoord.Z };
-				nCoordB.Z = v8 + Map.GetCellFloorHeight(nCoordB);
+				nCoordB.Z = v8 + MapClass::Instance->GetCellFloorHeight(nCoordB);
 				ParticleSystemClass::Instance->SpawnParticle(pType, &nCoordB);
 				v16 += v17;
 			}
@@ -2274,27 +2283,27 @@ DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney, 0xA)
 }
 
 //DEFINE_JUMP(LJMP, 0x517FF5, 0x518016);
-//
-//DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
-//{
-//	GET(UnitClass*, pThis, EBP);
-//	GET(AnimClass*, pAllocatedMem , ESI);
-//	GET(LandType const, nLand, EBX);
-//
-//	auto nLoc = pThis->Location;
-//	if (auto const pC4AnimType = MapClass::Instance->SelectDamageAnimation(pThis->Health, RulesGlobal->C4Warhead, nLand, nLoc))
-//	{
-//		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
-//		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr , pThis->GetOwningHouse(), true);
-//
-//	}
-//	else
-//	{
-//		GameDelete<false, false>(pAllocatedMem);
-//	}
-//
-//	return 0x73AF4C;
-//}
+
+DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(AnimClass*, pAllocatedMem , ESI);
+	GET(LandType const, nLand, EBX);
+
+	auto nLoc = pThis->Location;
+	if (auto const pC4AnimType = MapClass::SelectDamageAnimation(pThis->Health, RulesClass::Instance->C4Warhead, nLand, nLoc))
+	{
+		GameConstruct(pAllocatedMem, pC4AnimType, nLoc, 0, 1, 0x2600, -15, false);
+		AnimExt::SetAnimOwnerHouseKind(pAllocatedMem, nullptr , pThis->GetOwningHouse(), true);
+
+	}
+	else
+	{
+		GameDelete<false, false>(pAllocatedMem);
+	}
+
+	return 0x73AF4C;
+}
 
 void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
@@ -2589,7 +2598,8 @@ void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRe
 
 	ConvertClass* nPal = nullptr;
 
-	if(pBuilding){	
+	if (pBuilding)
+	{
 		auto const pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 		if (pBuildingTypeExt->PipShapes01Remap)
@@ -2760,7 +2770,7 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //	return 0x6F875F;
 //}
 
-DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7) 
+DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
 	GET(InfantryClass*, pThis, ECX);
 
@@ -2770,7 +2780,7 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 		return Continue;
 
 	auto const pTypeExt = InfantryTypeExt::ExtMap.Find(pThis->Type);
-	return pTypeExt->HideWhenDeployAnimPresent.Get() && pThis->DeployAnim 
+	return pTypeExt->HideWhenDeployAnimPresent.Get() && pThis->DeployAnim
 		? SkipWholeFunction : Continue;
 }
 
@@ -2780,12 +2790,13 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(AbstractClass*, pTarget, ECX);
 
-	if (auto const pFoot = abstract_cast<FootClass*>(pTarget)) {
+	if (auto const pFoot = abstract_cast<FootClass*>(pTarget))
+	{
 		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		if (pFoot->GetTechnoType()->Naval && pFoot->GetCell()->LandType == LandType::Water)
 			nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
 	}
-	
+
 	R->EDI(nRangeBonus);
 	return 0x0;
 }
@@ -2886,13 +2897,12 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	GET(BuildingClass*, pBuilding, EDI);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)->EnterBioReactorSound.Get(RulesGlobal->EnterBioReactorSound);
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
 
 	if (nSound != -1)
-	{
-		VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
-	}
+		return 0x51A30F;
 
+	VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
 	return 0x51A30F;
 }
 
@@ -2900,16 +2910,14 @@ DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesGlobal->LeaveBioReactorSound);
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
 
-	if (nSound != -1)
-	{
-		VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
-	}
+	if (nSound <= -1)
+		return 0x44DBDA;
 
+	VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
 	return 0x44DBDA;
 }
-
 
 DEFINE_HOOK_AGAIN(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
 DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
@@ -2955,26 +2963,22 @@ DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass*, pProduct, ESI);
 
-	auto nSpeak = GameStrings::EVA_UnitReady();
+	auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType());
+	int nIdx = -1;
 
-	if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType()))
+	if (pTechnoTypeExt->Eva_Complete.isset())
 	{
-		if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data()))
-		{
-			if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
-			 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
-			 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
-			{
-				return 0x4FB649;
-			}
-			else
-			{
-				nSpeak = pTechnoTypeExt->Eva_Complete.data();
-			}
-		}
+		nIdx = pTechnoTypeExt->Eva_Complete.Get();
+	}
+	else
+	{
+		nIdx = VoxClass::FindIndexById(GameStrings::EVA_UnitReady());
 	}
 
-	VoxClass::Play(nSpeak);
+	if (nIdx <= -1)
+		return 0x4FB649;
+
+	VoxClass::PlayIndex(nIdx);
 
 	return 0x4FB649;
 }
@@ -3010,30 +3014,29 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 
 	if (pTech && (pTech->WhatAmI() == AbstractType::Building) &&
 		pTech->GetOwningHouse() &&
-		pTech->GetOwningHouse()->IsCurrentPlayer())
+		pTech->GetOwningHouse()->IsControlledByCurrentPlayer())
 	{
-		auto nSpeak = GameStrings::EVA_ConstructionComplete();
-		if (auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType()))
+		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType());
+		int nIdx = -1;
+
+		if (pTechnoTypeExt->Eva_Complete.isset())
 		{
-			if (CRT::strlen(pTechnoTypeExt->Eva_Complete.data()))
-			{
-				if (INIClass::IsBlank(pTechnoTypeExt->Eva_Complete.data()) ||
-				 !CRT::strcmpi(DEFAULT_STR, pTechnoTypeExt->Eva_Complete.data()) ||
-				 !CRT::strcmpi(DEFAULT_STR2, pTechnoTypeExt->Eva_Complete.data()))
-				{
-					return 0x6A8E34;
-				}
-				else
-				{
-					nSpeak = pTechnoTypeExt->Eva_Complete.data();
-				}
-			}
+			nIdx = pTechnoTypeExt->Eva_Complete.Get();
+		}
+		else
+		{
+			nIdx = VoxClass::FindIndexById(GameStrings::EVA_ConstructionComplete());
 		}
 
-		VoxClass::Play(nSpeak);
+
+		if (nIdx <= -1)
+			return 0x6A8E34;
+
+		VoxClass::PlayIndex(nIdx);
+		return 0x6A8E34;
 	}
 
-	return 0x6A8E34;
+	return 0x0;
 }
 
 DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
@@ -3049,7 +3052,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 	{
 		CoordStruct src = pThis->GetFLH(0, pThis->GetRenderCoords());
 		CoordStruct dest = *pCoord;
-		auto const pTarget = pBullet->Target ? pBullet->Target : Map[dest];
+		auto const pTarget = pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(dest);
 
 		// Draw bullet effect
 		Helpers_DP::DrawBulletEffect(pWeapon, src, dest, pThis, pTarget);
@@ -3104,21 +3107,17 @@ DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
 	return ContinueCheck;
 }
 
-DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
+DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 {
 	GET(AnimClass*, pAnim, EDI);
 	GET(AnimClass*, pThis, ESI);
 
 	auto nCoord = pThis->GetCoords();
 	GameConstruct(pAnim, pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	{
-		if (const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type))
-		{
-			TechnoClass* pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
-			HouseClass* pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
-		}
-	}
+	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	TechnoClass* const pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
+	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTech, false);
 
 	return 0x424322;
 }
@@ -3158,49 +3157,48 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6) // was 4
 //static constexpr CoordStruct Data3 {};
 //static constexpr CellStruct Data4 {};
 
-//
-//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-//{
-//	GET(UnitClass*, pThis, EBP);
-//	const auto deploysInto = pThis->Type->DeploysInto;
-//	CellStruct mapCoords = pThis->GetMapCoords();
-//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-//
-//	const short width = deploysInto->GetFoundationWidth();
-//	const short height = deploysInto->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-//
-//	return 0x7394BE;
-//}
-//
-//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-//{
-//	GET(BuildingClass*, pThis, EBP);
-//	CellStruct mapCoords = pThis->GetMapCoords();
-//
-//	const short width = pThis->Type->GetFoundationWidth();
-//	const short height = pThis->Type->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-//	auto coords = (CoordStruct*)&location.Z;
-//	coords->X = (mapCoords.X << 8) + 128;
-//	coords->Y = (mapCoords.Y << 8) + 128;
-//	coords->Z = pThis->Location.Z;
-//
-//	return 0x449F12;
-//}
-//
+DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	const auto deploysInto = pThis->Type->DeploysInto;
+	CellStruct mapCoords = pThis->GetMapCoords();
+	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+
+	const short width = deploysInto->GetFoundationWidth();
+	const short height = deploysInto->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+
+	return 0x7394BE;
+}
+
+DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->GetMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}
+
 //DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{
 //	LEA_STACK(tagMSG*, pMsg, 0x10);

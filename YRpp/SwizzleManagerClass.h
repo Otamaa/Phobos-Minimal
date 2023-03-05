@@ -52,6 +52,9 @@ public:
 	//DTOR
 	virtual ~SwizzleManagerClass() RX;
 
+	void ConvertNodes()
+	{ JMP_THIS(0x6CF350); }
+
 	//CTOR
 	SwizzleManagerClass()
 		: SwizzleManagerClass(noinit_t())

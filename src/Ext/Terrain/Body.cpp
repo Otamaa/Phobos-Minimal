@@ -15,14 +15,12 @@ void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (this->InvalidateIgnorable(ptr))
 		return;
 
-	if (auto& pLignt = this->LighSource) {
-		if (pLignt.get() == ptr)
-			pLignt.reset(nullptr);
+	if (this->LighSource == ptr) {
+		this->LighSource = nullptr;
 	}
 
-	if (auto& pAnim = this->AttachedAnim) {
-		if (pAnim.get() == ptr)
-			pAnim.reset(nullptr);
+	if (this->AttachedAnim == ptr) {
+		this->AttachedAnim = nullptr;
 	}
 }
 
@@ -46,7 +44,7 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
-			this->LighSource.reset(light);
+			this->LighSource = light;
 			this->LighSource->Activate();
 		}
 	}
@@ -65,14 +63,14 @@ void TerrainExt::ExtData::InitializeAnim()
 		if (TypeData->AttachedAnim.size() == 1)
 			pAnimType = TypeData->AttachedAnim.at(0);
 		else
-			pAnimType = TypeData->AttachedAnim.at(ScenarioGlobal->Random(0, TypeData->AttachedAnim.size() - 1));
+			pAnimType = TypeData->AttachedAnim.at(ScenarioClass::Instance->Random.RandomFromMax(TypeData->AttachedAnim.size() - 1));
 
 		if (pAnimType)
 		{
 			auto const Coords = this->Get()->GetCoords();
 
 			if (const auto pAnim = GameCreate<AnimClass>(pAnimType, Coords)) {
-				AttachedAnim.reset(pAnim);
+				AttachedAnim = pAnim;
 			}
 		}
 	}
@@ -81,7 +79,14 @@ void TerrainExt::ExtData::InitializeAnim()
 void TerrainExt::ExtData::ClearAnim()
 {
 	if (AttachedAnim) {
-		AttachedAnim.release();
+
+		if (AttachedAnim->Type)
+		{
+			AttachedAnim->TimeToDie = true;
+			AttachedAnim->UnInit();
+		}
+
+		AttachedAnim = nullptr;;
 	}
 }
 
@@ -90,8 +95,8 @@ void TerrainExt::ExtData::ClearLightSource()
 {
 	if (LighSource)
 	{
-		LighSource->Deactivate();
-		LighSource.release();
+		GameDelete<true, false>(LighSource);
+		LighSource = nullptr;
 	}
 }
 
@@ -179,7 +184,7 @@ DEFINE_JUMP(LJMP, 0x71BC31, 0x71BC86);
 DEFINE_HOOK(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
-	TerrainExt::ExtMap.FindOrAllocate(pItem);
+	TerrainExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 
@@ -191,6 +196,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
 
 	if (*pCoord != CellStruct::Empty) {
+		//vtable may not instantiated 
 		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 			pItem->ObjectClass::UnInit();
 		}
@@ -252,4 +258,4 @@ DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
 }
 
 // Skip D0 CRC here
-DEFINE_JUMP(LJMP, 0x71CFA4, 0x71CFB2);
+//DEFINE_JUMP(LJMP, 0x71CFA4, 0x71CFB2);
