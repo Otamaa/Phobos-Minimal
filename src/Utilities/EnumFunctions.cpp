@@ -1,10 +1,22 @@
 #include "EnumFunctions.h"
 
-std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
+std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
 	{ "TargetNotDamageable" } , { "TargetNotEligible" } ,
 	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
 	{ "TargetValid" }
+ }
+};
+
+std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
+ {
+	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } , { "PSIONICSIMMUNE" }
+ }
+};
+
+std::array<const char* const, 3u> EnumFunctions::Rank_ToStrings {
+ {
+	{ "Elite" } , { "Veteran" } , { "Rookie" }
  }
 };
 

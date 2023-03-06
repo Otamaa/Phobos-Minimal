@@ -15,7 +15,7 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 
 	TechnoExt::UpdateMCOverloadDamage(pThis);
 
-	return Continue;
+	return SelfHeal;
 	/*
 		if(!pThis->IsAlive)
 			return ReturnFunc;

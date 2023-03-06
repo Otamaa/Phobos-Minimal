@@ -12,14 +12,14 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 {
 	enum { ReturnGameCode = 0x6F3341, ReturnHandled = 0x6F3406 };
 
-	GET(const TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
 	if (pTarget) {
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		auto const pTargetWhat = pTarget->WhatAmI();
 
-		if (pTypeExt->Interceptor.Get() && pTargetWhat == AbstractType::Bullet) {
+		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && pTargetWhat == AbstractType::Bullet) {
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
@@ -269,7 +269,6 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 	R->EAX(chosenWeaponIndex);
 	return ReturnValue;
 }
-
 
 DEFINE_HOOK(0x6F34B7, TechnoClass_WhatWeaponShouldIUse_AllowAirstrike, 0x6)
 {

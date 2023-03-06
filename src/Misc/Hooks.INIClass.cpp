@@ -108,7 +108,8 @@ struct INIInheritance
 		char* state = NULL;
 
 
-		for(char* split = strtok_s(inheritSectionsString, Phobos::readDelims, &state); split; 
+		for(char* split = strtok_s(inheritSectionsString, Phobos::readDelims, &state); 
+			split; 
 			split = strtok_s(NULL, Phobos::readDelims, &state))
 		{
 			// if we found anything new (not default), we're done
@@ -150,7 +151,8 @@ struct INIInheritance
 
 		// for each section in csv, search for entry
 		char* state = NULL;
-		for(char* split = strtok_s(inheritSectionsString, Phobos::readDelims, &state);  split; 
+		for(char* split = strtok_s(inheritSectionsString, Phobos::readDelims, &state);  
+			split; 
 			split = strtok_s(NULL, Phobos::readDelims, &state))
 		{
 			// if we found anything new (not default), we're done

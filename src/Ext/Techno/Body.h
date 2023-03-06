@@ -72,7 +72,7 @@ public:
 		std::vector<int> FireSelf_Count;
 		TimerStruct EngineerCaptureDelay;
 		bool FlhChanged;
-		DynamicVectorClass<LineTrail*> TechnoLineTrail;
+		//DynamicVectorClass<LineTrail*> TechnoLineTrail;
 		bool IsMissisleSpawn;
 		TechnoClass* LastAttacker;
 		int Attempt;
@@ -137,7 +137,7 @@ public:
 			, FireSelf_Count {}
 			, EngineerCaptureDelay {}
 			, FlhChanged { false }
-			, TechnoLineTrail { }
+			//, TechnoLineTrail { }
 			, IsMissisleSpawn { false }
 			, LastAttacker { nullptr }
 			, Attempt { 5 }
@@ -210,8 +210,10 @@ public:
 		void UpdateLaserTrails();
 		//
 		void UpdateAircraftOpentopped();
-
-	private:
+		
+		bool NOINLINE IsInterceptor();
+	
+private:
 		template <typename T>
 		void Serialize(T& Stm);
 
@@ -268,7 +270,7 @@ public:
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
 
-	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage);
+	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage , WarheadTypeClass* pWH);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
 	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true);
 	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
@@ -310,7 +312,21 @@ public:
 
 	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
 	static NOINLINE ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
+	static NOINLINE bool IsCritImmune(TechnoClass* pThis);
+	static NOINLINE bool IsPsionicsImmune(TechnoClass* pThis);
 
+	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
+	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
+	static bool TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static bool FireOnceAllowFiring(TechnoClass* pThis, WeaponTypeClass* pWeapon, AbstractClass* pTarget);
+	static bool CheckFundsAllowFiring(TechnoClass* pThis, WarheadTypeClass* pWH);
+	static bool InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget);
+	static bool TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static bool TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
+	static int GetDeployFireWeapon(UnitClass* pThis);
+
+	static AreaFireReturnFlag ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon);
 protected:
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);

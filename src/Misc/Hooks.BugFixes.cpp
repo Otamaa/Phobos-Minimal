@@ -204,21 +204,6 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 	return 0x7023E5;
 }
 
-// issue #112 Make FireOnce=yes work on other TechnoTypes
-// Author: Starkku
-DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pUnit = abstract_cast<UnitClass*>(pThis);
-	if (pUnit && pUnit->CurrentMission == Mission::Unload && pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
-		pUnit->QueueMission(Mission::Guard, true);
-
-	// Restore overridden instructions
-	GET(Mission, eax, EAX);
-	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
-}
-
 // issue #250: Building placement hotkey not responding
 // Author: Uranusian
 DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_HotkeyFix

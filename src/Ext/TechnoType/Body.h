@@ -27,6 +27,7 @@
 #endif
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
+#include <Utilities/MultiBoolFixedArray.h>
 
 class Matrix3D;
 
@@ -52,7 +53,9 @@ public:
 		Nullable<int> DesignatorRange;
 		Valueable<Leptons> MindControlRangeLimit;
 
-		//TODO : make ability for interceptor
+		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities;
+		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities;
+
 		Valueable<bool> Interceptor;
 		Valueable<AffectedHouse> Interceptor_CanTargetHouses;
 		Promotable<Leptons> Interceptor_GuardRange;
@@ -282,12 +285,15 @@ public:
 		Valueable<RocketStruct> CustomMissileData;
 		Promotable<bool> CustomMissileRaise;
 		Valueable<bool> Draw_MindControlLink;
+
 		NullableVector<int> Overload_Count;
 		NullableVector<int> Overload_Damage;
 		NullableVector<int> Overload_Frames;
 		NullableIdx<VocClass> Overload_DeathSound;
 		Nullable<ParticleSystemTypeClass*> Overload_ParticleSys;
 		Nullable<int> Overload_ParticleSysCount;
+		Nullable<WarheadTypeClass*> Overload_Warhead;
+
 		Nullable<AnimTypeClass*> Landing_Anim;
 		Valueable<AnimTypeClass*> Landing_AnimOnWater;
 		Nullable<AnimTypeClass*> TakeOff_Anim;
@@ -344,6 +350,7 @@ public:
 		NullableIdx<VocClass> Gattling_Overload_DeathSound;
 		Nullable<ParticleSystemTypeClass*> Gattling_Overload_ParticleSys;
 		Nullable<int> Gattling_Overload_ParticleSysCount;
+		Nullable<WarheadTypeClass*>  Gattling_Overload_Warhead;
 
 		Valueable<bool> IsHero;
 		Valueable<bool> IsDummy;
@@ -435,6 +442,11 @@ public:
 			, InhibitorRange { }
 			, DesignatorRange { }
 			, MindControlRangeLimit {}
+
+
+			, Phobos_EliteAbilities {}
+			, Phobos_VeteranAbilities {}
+
 			, Interceptor { false }
 			, Interceptor_CanTargetHouses { AffectedHouse::Enemies }
 			, Interceptor_GuardRange {}
@@ -621,6 +633,7 @@ public:
 			, Overload_DeathSound {}
 			, Overload_ParticleSys {}
 			, Overload_ParticleSysCount {}
+			, Overload_Warhead {}
 
 			, Landing_Anim { }
 			, Landing_AnimOnWater { nullptr }
@@ -683,6 +696,8 @@ public:
 			, Gattling_Overload_DeathSound {}
 			, Gattling_Overload_ParticleSys {}
 			, Gattling_Overload_ParticleSysCount {}
+			, Gattling_Overload_Warhead {}
+
 			, IsHero { false }
 			, IsDummy { false }
 			, FireSelf_Weapon {}

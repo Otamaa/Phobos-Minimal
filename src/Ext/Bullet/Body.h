@@ -120,5 +120,12 @@ public:
 	static NOINLINE void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove);
 	static NOINLINE bool IsReallyAlive(BulletClass* pThis);
 
+	static VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst = false);
+	static int GetShrapAmount(BulletClass* pThis);
+	static bool AllowShrapnel(BulletClass* pThis, CellClass* pCell);
+	static bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true);
+	static void ApplyShrapnel(BulletClass* pThis);
+	static DWORD ApplyAirburst(BulletClass* pThis);
+
 	static TechnoClass* InRangeTempFirer;
 };

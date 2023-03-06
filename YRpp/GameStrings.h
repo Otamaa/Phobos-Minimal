@@ -137,6 +137,8 @@ struct GameStrings
 	GAMEMD_STR(PrerequisiteRadar, 0x83CBC8);
 	GAMEMD_STR(PrerequisiteTech, 0x83CBB4);
 	GAMEMD_STR(PrerequisiteProc, 0x83CBA0);
+
+	GAMEMD_STR(MCVRedeploys, 0x83CF68);
 	//..
 
 	// EVA entry names

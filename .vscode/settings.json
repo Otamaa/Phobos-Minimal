@@ -81,7 +81,13 @@
         "random": "cpp",
         "stack": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "cstdarg": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "regex": "cpp"
     },
     "task.allowAutomaticTasks": "on"
 }

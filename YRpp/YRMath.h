@@ -155,8 +155,9 @@ namespace Math
 	template<class T>
 	inline constexpr T min(T a, T b)
 	{
-		if (a < b) return(a);
-		return(b);
+		//if (a < b) return(a);
+		//return(b);
+		return std::min(a,b);
 	}
 
 	template<class T>
@@ -176,8 +177,9 @@ namespace Math
 	template<class T>
 	inline constexpr T max(T a, T b)
 	{
-		if (a > b) return(a);
-		return(b);
+		//if (a > b) return(a);
+		//return(b);
+		return std::max(a,b);
 	}
 
 	// use the sign to select min or max.

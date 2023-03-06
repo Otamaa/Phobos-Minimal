@@ -61,6 +61,8 @@ public:
 	Valueable(Valueable const& other) = default;
 	Valueable(Valueable&& other) = default;
 
+	~Valueable() = default;
+
 	Valueable& operator = (Valueable const& value) = default;
 	Valueable& operator = (Valueable&& value) = default;
 
@@ -161,6 +163,7 @@ public:
 	explicit ValueableIdx(int value) noexcept : Valueable<int>(value) { }
 	ValueableIdx(ValueableIdx const& other) = default;
 	ValueableIdx(ValueableIdx&& other) = default;
+	~ValueableIdx() = default;
 
 	ValueableIdx& operator = (ValueableIdx const& value) = default;
 	ValueableIdx& operator = (ValueableIdx&& value) = default;
@@ -186,6 +189,7 @@ public:
 	explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
 	Nullable(Nullable const& other) = default;
 	Nullable(Nullable&& other) = default;
+	~Nullable() = default;
 
 	Nullable& operator = (Nullable const& value) = default;
 	Nullable& operator = (Nullable&& value) = default;
@@ -286,6 +290,7 @@ public:
 	explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
 	NullableIdx(NullableIdx const& other) = default;
 	NullableIdx(NullableIdx&& other) = default;
+	~NullableIdx() = default;
 
 	NullableIdx& operator = (NullableIdx const& value) = default;
 	NullableIdx& operator = (NullableIdx&& value) = default;
@@ -322,6 +327,7 @@ public:
 
 	Promotable() = default;
 	explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	~Promotable() = default;
 
 	void SetAll(const T& val)
 	{
@@ -385,6 +391,8 @@ public:
 		this->reserve(Reserve);
 	}
 
+	~ValueableVector() = default;
+
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false);
 
 	bool Contains(const T& other) const
@@ -446,7 +454,7 @@ protected:
 	bool hasValue { false };
 public:
 	NullableVector() noexcept = default;
-
+	~NullableVector() = default;
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
 
 	bool HasValue() const noexcept
@@ -538,6 +546,7 @@ public:
 	{
 	}
 
+	~Damageable() = default;
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
 	const T* GetEx(TechnoClass* pTechno) const noexcept
@@ -603,6 +612,7 @@ public:
 	{
 	}
 
+	~HealthOnFireData() = default;
 	inline bool Get(HealthState const& nState) const noexcept
 	{
 		return (nState == HealthState::Green && GreenOnFire)
@@ -675,6 +685,8 @@ public:
 	{
 	}
 
+	~DamageableVector() = default;
+
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
 	const ValueableVector<T>* GetEx(TechnoClass* pTechno) const noexcept
@@ -732,6 +744,8 @@ public:
 		: Base { all }
 	{
 	}
+
+	~PromotableVector() = default;
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
@@ -800,6 +814,8 @@ public:
 	{
 		TimedWarheadValue(value, duration, AffectedHouse::All, nullptr);
 	}
+
+	~TimedWarheadValue() = default;
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	inline bool Save(PhobosStreamWriter& Stm) const;

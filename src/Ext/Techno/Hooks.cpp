@@ -408,15 +408,7 @@ DEFINE_HOOK(0x6FA793, TechnoClass_AI_SelfHealGain, 0x5)
 	enum { SkipGameSelfHeal = 0x6FA941 };
 
 	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis && pThis->Health > 0
-		&& pThis->IsAlive
-		&& !pThis->InLimbo
-		&& !pThis->IsSinking)
-	{
-		TechnoExt::ApplyGainedSelfHeal(pThis);
-	}
-
+	TechnoExt::ApplyGainedSelfHeal(pThis);
 	return SkipGameSelfHeal;
 }
 
@@ -458,14 +450,14 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_FlyingStrings, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(int* const, pDamage, EBX);
+	GET(WarheadTypeClass*, pWH, EBP);
 
 	if (Phobos::Debug_DisplayDamageNumbers && *pDamage)
-		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false);
+		TechnoExt::DisplayDamageNumberString(pThis, *pDamage, false , pWH);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
 	GET(DamageState, damageState, EDI);
-	GET(WarheadTypeClass*, pWH, EBP);
 
 	GiftBoxFunctional::TakeDamage(TechnoExt::ExtMap.Find(pThis), TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pWH, damageState);
 #endif

@@ -15,18 +15,20 @@ DEFINE_HOOK(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) 
 	return pThis->Type->DeployFireWeapon == -1 ? 0x52194E : 0x0;
 }
 
+
 DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 {
 	enum { SkipGameCode = 0x73DD3C };
 	GET(UnitClass*, pThis, ESI);
 
 	const auto pCell = pThis->GetCell();
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (!pCell)
 		return SkipGameCode;
 
 	pThis->SetTarget(pCell);
-	auto const nWeapIdx = pThis->SelectWeapon(pCell);
+	auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pThis);
 	auto const pWs = pThis->GetWeapon(nWeapIdx);
 
 	if (!pWs->WeaponType)
@@ -38,20 +40,17 @@ DEFINE_HOOK(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 	if (pThis->GetFireError(pCell, nWeapIdx, true) == FireError::OK)
 	{
 		pThis->Fire(pThis->Target, nWeapIdx);
-		const auto pExt = TechnoExt::ExtMap.Find(pThis);
-		pExt->DeployFireTimer.Start(pWs->WeaponType->ROF);
 
-		if (pWs->WeaponType->FireOnce)
-		{
+		if (pWs->WeaponType->FireOnce) {
 			pThis->SetTarget(nullptr);
 			pThis->QueueMission(Mission::Guard, true);
 			const auto& missionControl = MissionControlClass::Controls[(int)Mission::Unload];
-			int delay = Game::F2I(missionControl.Rate * 900 + ScenarioClass::Instance->Random(0, 2));
+			const int delay = Game::F2I(missionControl.Rate * 900 + ScenarioClass::Instance->Random.RandomFromMax(2));
 			pExt->DeployFireTimer.Start(Math::min(pWs->WeaponType->ROF, delay));
 		}
 	}
 
-	return 0x73DD3C;
+	return SkipGameCode;
 }
 
 DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
@@ -67,16 +66,41 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
 	if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer) {
-		auto const nWeapIdx = pThis->SelectWeapon(pThis->GetCell());
+
+		if (!pThis->Target)
+			pThis->SetTarget(pThis->GetCell());
+
+		auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pUnit);
 		auto const pWs = pThis->GetWeapon(nWeapIdx);
 
-		if (!pWs->WeaponType || 
-			(pWs->WeaponType->FireOnce
-			&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft()))
+		if (pWs->WeaponType && pWs->WeaponType->FireOnce
+			&& TechnoExt::ExtMap.Find(pThis)->DeployFireTimer.HasTimeLeft())
 			return DoNotExecute;
 	}
 
-	return 0;
+	return 0x0;
+}
+
+// issue #112 Make FireOnce=yes work on other TechnoTypes
+// Author: Starkku
+DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pUnit = abstract_cast<UnitClass*>(pThis);
+	if (pUnit 
+		&& pUnit->CurrentMission == Mission::Unload 
+		&& pUnit->Type->DeployFire 
+		&& !pUnit->Type->IsSimpleDeployer)
+	{
+		pUnit->SetTarget(nullptr);
+		pUnit->QueueMission(Mission::Guard, true);
+	}
+		
+
+	// Restore overridden instructions
+	GET(Mission, eax, EAX);
+	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
 }
 
 DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
@@ -86,28 +110,43 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (pType->DeployFire && !pType->IsSimpleDeployer) {
-		if (pTarget && pTarget->WhatAmI() == AbstractType::Cell) {
+	if (pThis->Deploying && pType->DeployFire) {
+		int weaponIndex = pType->DeployFireWeapon;
 
-			int weaponIndex = pType->DeployFireWeapon;
-
-			if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType)) {
-				// Only apply DeployFireWeapon on vehicles if explicitly set.
-				if (!pTypeExt->DeployFireWeapon.isset()) {
-					weaponIndex = 0;
-					if (pThis->GetFireError(pTarget, weaponIndex, true) != FireError::OK)
-						weaponIndex = 1;
-				}
-			}
-
-			if (weaponIndex != -1)
-			{
-				R->EAX(weaponIndex);
-				return 0x746CFD;
-			}
+		if (weaponIndex != -1)
+		{
+			R->EAX(weaponIndex);
+			return 0x746CFD;
 		}
 	}
 
 	R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
 	return 0x746CFD;
 }
+
+//DEFINE_HOOK(0x6FF923, TechnoClass_Fire_FireOnce, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	pThis->SetTarget(nullptr);
+//	pThis->QueueMission(Mission::Guard, true);
+//
+//	if (auto const pUnit = specific_cast<UnitClass*>(pThis)) {
+//		if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer && pUnit->Deployed)
+//			pUnit->Deployed = false;
+//	}
+//
+//	return 0x6FF92F;
+//}
+
+//DEFINE_HOOK(0x739E4F, UnitClass_Undeploy_FireOnce, 0x7)
+//{
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x74132B, UnitClass_FireError_Result, 0x7)
+//{
+//	GET(FireError, nRes, EAX);
+//	Debug::Log("UnitClass Fire Error Result [%d] ! \n", nRes);
+//	return 0x0;
+//}

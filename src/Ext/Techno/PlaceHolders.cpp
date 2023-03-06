@@ -1,5 +1,265 @@
 #include "Body.h"
 
+//Droppod able to move Limboed passengers outside
+// if it failed to move , the locomotor is not relesed 
+//Teleport loco cant move limboed passengers , passengers will stuck after ejected with Chrono locomotor still intact
+bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& nID = LocomotionClass::CLSIDs::Droppod)
+{
+	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
+	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK)
+	{
+		Debug::Log("Cell occupied... poof!\n");
+		return false;
+	}
+	else
+	{
+		Debug::Log("Destinating %s @ {%d, %d, %d}\n", Object->get_ID(), XYZ.X, XYZ.Y, XYZ.Z);
+		LocomotionClass::ChangeLocomotorTo(Object, nID);
+		CoordStruct xyz = XYZ;
+		xyz.Z = 0;
+		Object->SetLocation(xyz);
+		Object->SetDestination(MyCell, 1);
+		Object->Locomotor->Move_To(XYZ);
+		Object->PrimaryFacing.Set_Desired(DirStruct());
+		if (!Object->InLimbo)
+		{
+			Object->See(0, 0);
+			return true;
+		}
+
+		Debug::Log("InLimbo... failed?\n");
+		return false;
+	}
+}
+
+int DrawHealthBar_Pip(TechnoClass* pThis, bool isBuilding, const Point3D& Pip)
+{
+	const auto strength = pThis->GetTechnoType()->Strength;
+
+	if (pThis->Health > RulesClass::Instance->ConditionYellow * strength && Pip.X != -1)
+		return Pip.X;
+	else if (pThis->Health > RulesClass::Instance->ConditionRed * strength && (Pip.Y != -1 || Pip.X != -1))
+		return Pip.Y == -1 ? Pip.X : Pip.Y;
+	else if (Pip.Z != -1 || Pip.X != -1)
+		return Pip.Z == -1 ? Pip.X : Pip.Z;
+
+	return isBuilding ? 5 : 16;
+}
+
+int DrawHealthBar_PipAmount(TechnoClass* pThis, int iLength)
+{
+	return pThis->Health > 0
+		? Math::clamp(static_cast<int>(round(pThis->GetHealthPercentage() * iLength)), 0, iLength)
+		: 0;
+}
+
+void DrawGroupID_Building(TechnoClass* pThis, Point2D* pLocation, const Point2D& GroupID_Offs)
+{
+	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+
+	CoordStruct vCoords = { 0, 0, 0 };
+	pThis->GetTechnoType()->Dimension2(&vCoords);
+
+	CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
+
+	Point2D vPos = { 0, 0 };
+	TacticalClass::Instance->CoordsToScreen(&vPos, &vCoords2);
+
+	Point2D vLoc = *pLocation;
+	vLoc.X += vPos.X;
+	vLoc.Y += vPos.Y;
+
+	Point2D vOffset = GroupID_Offs;
+
+	vLoc.X += vOffset.X;
+	vLoc.Y += vOffset.Y;
+
+	if (pThis->Group >= 0)
+	{
+		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
+
+		RectangleStruct rect
+		{
+			vLoc.X - 7,
+			vLoc.Y + 26,
+			12,13
+		};
+
+		DSurface::Temp->Fill_Rect(rect, COLOR_BLACK);
+		DSurface::Temp->Draw_Rect(rect, GroupIDColor);
+
+		const int groupid = (pThis->Group == 9) ? 0 : (pThis->Group + 1);
+
+		Point2D vGroupPos
+		{
+			vLoc.X - 4,
+			vLoc.Y + 25
+		};
+
+		rect = DSurface::Temp->Get_Rect_WithoutBottomBar();
+		Point2D nTemp { };
+		Fancy_Text_Print_Wide(&nTemp, L"%d", DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow, groupid);
+	}
+}
+
+void DrawGroupID_Other(TechnoClass* pThis, Point2D* pLocation, const Point2D& GroupID_Offs)
+{
+	auto const pHouse = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExt::FindCivilianSide();
+
+	Point2D vLoc = *pLocation;
+	Point2D vOffset = GroupID_Offs;
+
+	vLoc.X += vOffset.X;
+	vLoc.Y += vOffset.Y;
+
+	if (pThis->Group >= 0)
+	{
+		if (pThis->WhatAmI() == AbstractType::Infantry)
+		{
+			vLoc.X -= 20;
+			vLoc.Y -= 25;
+		}
+		else
+		{
+			vLoc.X -= 30;
+			vLoc.Y -= 23;
+		}
+
+		const COLORREF GroupIDColor = Drawing::RGB2DWORD(pHouse->Color);
+
+		RectangleStruct rect
+		{
+			vLoc.X,
+			vLoc.Y,
+			12,13
+		};
+
+		DSurface::Temp->Fill_Rect(rect, COLOR_BLACK);
+		DSurface::Temp->Draw_Rect(rect, GroupIDColor);
+
+		const int groupid = (pThis->Group == 9) ? 0 : (pThis->Group + 1);
+
+		rect = DSurface::Temp->Get_Rect_WithoutBottomBar();
+
+		Point2D vGroupPos
+		{
+			vLoc.X + 2,
+			vLoc.Y - 1
+		};
+
+		Point2D nTemp { };
+		Fancy_Text_Print_Wide(&nTemp, L"%d", DSurface::Temp(), &rect, &vGroupPos, GroupIDColor, 0, TextPrintType::NoShadow, groupid);
+
+	}
+}
+
+void DrawHealthBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, ConvertClass* PipsPAL, SHPStruct* PipsSHP, const Point3D& pip)
+{
+	if (PipsSHP == nullptr) return;
+	if (PipsPAL == nullptr) return;
+
+	CoordStruct vCoords = { 0, 0, 0 };
+	pThis->GetTechnoType()->Dimension2(&vCoords);
+	Point2D vPos2 = { 0, 0 };
+	CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
+	TacticalClass::Instance->CoordsToScreen(&vPos2, &vCoords2);
+
+	Point2D vLoc = *pLocation;
+	vLoc.Y += 1;
+
+	Point2D vPos = { 0, 0 };
+
+
+	const int iTotal = DrawHealthBar_PipAmount(pThis, iLength);
+	int frame = DrawHealthBar_Pip(pThis, true, pip);
+
+	if (iTotal > 0)
+	{
+		int frameIdx, deltaX, deltaY;
+		for (frameIdx = iTotal, deltaX = 0, deltaY = 0;
+			frameIdx;
+			frameIdx--, deltaX += 4, deltaY -= 2)
+		{
+			vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
+			vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
+
+			DSurface::Composite->DrawSHP(PipsPAL, PipsSHP,
+				frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+	}
+
+	if (iTotal < iLength)
+	{
+		int frameIdx, deltaX, deltaY;
+		for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
+			frameIdx;
+			frameIdx--, deltaX += 4, deltaY -= 2)
+		{
+			vPos.X = vPos2.X + vLoc.X + 4 * iLength + 3 - deltaX;
+			vPos.Y = vPos2.Y + vLoc.Y - 2 * iLength + 4 - deltaY;
+
+			DSurface::Composite->DrawSHP(PipsPAL, PipsSHP,
+				0, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		}
+	}
+
+}
+
+void DrawHealthBar_Other(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, ConvertClass* PipsPAL, SHPStruct* PipSHP, SHPStruct* PipBrdSHP, ConvertClass* PipBrdPAL, const Point3D& pip, const Point2D& DrawOffs, int nXOffset)
+{
+	if (PipSHP == nullptr) return;
+	if (PipsPAL == nullptr) return;
+	if (PipBrdSHP == nullptr) return;
+	if (PipBrdPAL == nullptr) return;
+
+	Point2D vPos = { 0,0 };
+	Point2D vLoc = *pLocation;
+
+	int frame, XOffset, YOffset;
+	YOffset = pThis->GetTechnoType()->PixelSelectionBracketDelta;
+	vLoc.Y -= 5;
+
+	vLoc.X += nXOffset;
+
+	if (iLength == 8)
+	{
+		vPos.X = vLoc.X + 11;
+		vPos.Y = vLoc.Y - 20 + YOffset;
+		frame = 1;
+		XOffset = -5;
+		YOffset -= 19;
+	}
+	else
+	{
+		vPos.X = vLoc.X + 1;
+		vPos.Y = vLoc.Y - 21 + YOffset;
+		frame = 0;
+		XOffset = -15;
+		YOffset -= 20;
+	}
+
+	if (pThis->IsSelected)
+	{
+		DSurface::Temp->DrawSHP(PipBrdPAL, PipBrdSHP, frame, &vPos, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	const int iTotal = DrawHealthBar_PipAmount(pThis, iLength);
+
+	frame = DrawHealthBar_Pip(pThis, false, pip);
+
+	Point2D DrawOffset = DrawOffs ? DrawOffs : Point2D { 2,0 };
+
+	for (int i = 0; i < iTotal; ++i)
+	{
+		vPos.X = vLoc.X + XOffset + DrawOffset.X * i;
+		vPos.Y = vLoc.Y + YOffset + DrawOffset.Y * i;
+
+		DSurface::Temp->DrawSHP(PipsPAL, PipSHP,
+			frame, &vPos, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+}
+
+
 enum CellFailure
 {
 	No = -1145,

@@ -94,12 +94,15 @@ void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTar
 	const auto pCurType = pTarget->GetTechnoType();
 
 	// explicitly unsigned because the compiler wants it
-	for (unsigned int i = 0; i < this->Converts_From.size(); i++) {
+	for (unsigned int i = 0; i < this->Converts_From.size(); i++)
+	{
 		// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
-		if (this->Converts_To.size() >= i && this->Converts_From[i] == pCurType) {
+		if (this->Converts_To.size() >= i && this->Converts_From[i] == pCurType)
+		{
 			auto const pResultType = this->Converts_To.at(i);
 
-			if (pCurType != pResultType)			 {
+			if (pCurType != pResultType)
+			{
 				if (!AresData::ConvertTypeTo(pTarget, pResultType))
 					Debug::Log("WarheadTypeExt::ExtData::ApplyUpgrade Failed to ConvertType ! \n");
 
@@ -110,56 +113,54 @@ void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTar
 
 void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
 {
-	if (Owner)
+	if (!Owner)
+		return;
+
+	const auto pTargetTechno = abstract_cast<TechnoClass*>(Target);
+
+	if (!pTargetTechno || TechnoExt::IsPsionicsImmune(pTargetTechno))
+		return;
+
+	const auto pType = pTargetTechno->GetTechnoType();
+
+	if (auto const pController = pTargetTechno->MindControlledBy) {
+		pController->CaptureManager->FreeUnit(pTargetTechno);
+	}
+
+	auto const pOriginalOwner = pTargetTechno->GetOwningHouse();
+	pTargetTechno->SetOwningHouse(Owner, true);
+	pTargetTechno->MindControlledByAUnit = true;
+	pTargetTechno->QueueMission(Mission::Guard, false);
+	pTargetTechno->OriginallyOwnedByHouse = pOriginalOwner;
+
+	if (auto& pAnim = pTargetTechno->MindControlRingAnim)
 	{
-		if (auto const pTarget = abstract_cast<TechnoClass*>(Target))
+		pAnim->UnInit();
+		pAnim = nullptr;
+	}
+
+	auto const pBld = specific_cast<BuildingClass*>(pTargetTechno);
+
+	CoordStruct location = pTargetTechno->GetCoords();
+
+	if (pBld)
+	{
+		location.Z += pBld->Type->Height * Unsorted::LevelHeight;
+	}
+	else
+	{
+		location.Z += pType->MindControlRingOffset;
+	}
+
+	if (auto const pAnimType = RulesClass::Instance->PermaControlledAnimationType)
+	{
+		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
 		{
-			auto const pType = pTarget->GetTechnoType();
-
-			if (pType && !pType->ImmuneToPsionics)
+			pTargetTechno->MindControlRingAnim = pAnim;
+			pAnim->SetOwnerObject(pTargetTechno);
+			if (pBld)
 			{
-				if (auto const pController = pTarget->MindControlledBy)
-				{
-					pController->CaptureManager->FreeUnit(pTarget);
-				}
-
-				auto const pOriginalOwner = pTarget->GetOwningHouse();
-				pTarget->SetOwningHouse(Owner, true);
-				pTarget->MindControlledByAUnit = true;
-				pTarget->QueueMission(Mission::Guard, false);
-				pTarget->OriginallyOwnedByHouse = pOriginalOwner;
-
-				if (auto& pAnim = pTarget->MindControlRingAnim)
-				{
-					pAnim->UnInit();
-					pAnim = nullptr;
-				}
-
-				auto const pBld = abstract_cast<BuildingClass*>(pTarget);
-
-				CoordStruct location = pTarget->GetCoords();
-
-				if (pBld)
-				{
-					location.Z += pBld->Type->Height * Unsorted::LevelHeight;
-				}
-				else
-				{
-					location.Z += pType->MindControlRingOffset;
-				}
-
-				if (auto const pAnimType = RulesClass::Instance->PermaControlledAnimationType)
-				{
-					if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
-					{
-						pTarget->MindControlRingAnim = pAnim;
-						pAnim->SetOwnerObject(pTarget);
-						if (pBld)
-						{
-							pAnim->ZAdjust = -1024;
-						}
-					}
-				}
+				pAnim->ZAdjust = -1024;
 			}
 		}
 	}
@@ -290,17 +291,20 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	}
 	else
 	{
-		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet) {
-			if(pTargetBullet){
-				const auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
-				if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo) {
-					auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pTargetBullet->Type);
-					// Cells don't know about bullets that may or may not be located on them so it has to be this way.
-					if (pBulletTypeExt->Interceptable && 
-						pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
-						BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
-				}
-			}
+		std::for_each(BulletClass::Array->begin(), BulletClass::Array->end(), [&](BulletClass* pTargetBullet)
+ {
+	 if (pTargetBullet)
+	 {
+		 const auto pBulletExt = BulletExt::ExtMap.Find(pTargetBullet);
+		 if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo)
+		 {
+			 auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pTargetBullet->Type);
+			 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
+			 if (pBulletTypeExt->Interceptable &&
+				 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+				 BulletExt::InterceptBullet(pTargetBullet, pOwner, pWeapon);
+		 }
+	 }
 		});
 	}
 }
@@ -335,33 +339,41 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (nSound != -1)
 		VocClass::PlayAt(nSound, coords);
 
-	if (!pBullet) {
-		for (auto const& pWeapon : this->DetonatesWeapons) {
+	if (!pBullet)
+	{
+		for (auto const& pWeapon : this->DetonatesWeapons)
+		{
 			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner);
 		}
 	}
 
-	if (pOwner && pBullet) {
-		if (TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType())->Interceptor && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
+	if (pOwner && pBullet)
+	{
+		if (TechnoExt::ExtMap.Find(pOwner)->IsInterceptor() && BulletExt::ExtMap.Find(pBullet)->IsInterceptor)
 			this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
 
 		//TechnoExt::PutPassengersInCoords(pBullet->Owner, coords, RulesGlobal->WarpIn, RulesGlobal->BunkerWallsUpSound, false);
 	}
 
 
-	if (pHouse) {
-		if (this->BigGap) {
-			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [&](HouseClass* pOtherHouse) {
-				if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
-					!HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
-					!pOtherHouse->Defeated &&			  // Not Defeated
-					pOtherHouse != pHouse &&			  // Not pThisHouse
-					!pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
-					{ pOtherHouse->ReshroudMap(); }
+	if (pHouse)
+	{
+		if (this->BigGap)
+		{
+			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [&](HouseClass* pOtherHouse)
+ {
+	 if (pOtherHouse->IsControlledByHuman() &&	  // Not AI
+		 !HouseExt::IsObserverPlayer(pOtherHouse) &&		  // Not Observer
+		 !pOtherHouse->Defeated &&			  // Not Defeated
+		 pOtherHouse != pHouse &&			  // Not pThisHouse
+		 !pHouse->IsAlliedWith(pOtherHouse))   // Not Allied
+	 {
+		 pOtherHouse->ReshroudMap();
+	 }
 			});
 		}
 
-		if (this->Reveal > 0 )
+		if (this->Reveal > 0)
 			MapClass::Instance->RevealArea1(&coords, this->Reveal, pHouse, CellStruct::Empty, 0, 0, 0, 1);
 		else if (this->Reveal < 0)
 			MapClass::Instance->Reveal(pHouse);
@@ -400,7 +412,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	if (isCellSpreadWarhead)
 	{
 		bool ThisbulletWasIntercepted = false;
-		if (pBullet) {
+		if (pBullet)
+		{
 			ThisbulletWasIntercepted = BulletExt::ExtMap.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted;
 		}
 
@@ -411,11 +424,13 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		{
 			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
 
-			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget) {
-				this->DetonateOnOneUnit(pHouse, pTarget, pOwner, pBullet, ThisbulletWasIntercepted);
+			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget)
+ {
+	 this->DetonateOnOneUnit(pHouse, pTarget, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 
-			if (this->Transact) {
+			if (this->Transact)
+			{
 				this->TransactOnAllUnits(pTargetv, pHouse, pOwner);
 			}
 
@@ -463,7 +478,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	}
 }
 
-void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, BulletClass* pBullet , bool bulletWasIntercepted)
+void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
 {
 	if (!this->CanDealDamage(pTarget))
 		return;
@@ -471,7 +486,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (!this->CanTargetHouse(pHouse, pTarget))
 		return;
 
-	if (!this->LimboKill_IDs.empty()) {
+	if (!this->LimboKill_IDs.empty())
+	{
 		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}
 
@@ -483,7 +499,7 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->RemoveMindControl)
 		this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	if (this->PermaMC && !pBullet)
+	if (this->Get()->MindControl && this->PermaMC && !pBullet)
 		this->applyPermaMC(pHouse, pTarget);
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
@@ -546,7 +562,8 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			const auto shieldType = pExt->Shield->GetType();
 			shieldIndex = this->Shield_RemoveTypes.IndexOf(shieldType);
 
-			if (shieldIndex >= 0) {
+			if (shieldIndex >= 0)
+			{
 				ratio = pExt->Shield->GetHealthRatio();
 				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 				pExt->Shield.release();
@@ -617,8 +634,10 @@ void WarheadTypeExt::ExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoC
 void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget)
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
-	if (auto const pFoot = generic_cast<FootClass*>(pTarget)) {
-		if (pFoot->IsDisguised()) {
+	if (auto const pFoot = generic_cast<FootClass*>(pTarget))
+	{
+		if (pFoot->IsDisguised())
+		{
 			pFoot->ClearDisguise();
 		}
 	}
@@ -626,7 +645,7 @@ void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, Techn
 
 void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
-	const double dice = this->Crit_ApplyChancePerTarget ? 
+	const double dice = this->Crit_ApplyChancePerTarget ?
 		ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
 
 	if (this->Crit_Chance < dice)
@@ -639,9 +658,10 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 			return;
 	}
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTarget->GetTechnoType());
-	
-	if (pTypeExt->ImmuneToCrit || pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
+	if (TechnoExt::IsCritImmune(pTarget))
+		return;
+
+	if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent)
 		return;
 
 	if (!EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->GetOwningHouse()))
@@ -657,10 +677,11 @@ void WarheadTypeExt::ExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget
 
 	if (this->Crit_AnimOnAffectedTargets && this->Crit_AnimList.size())
 	{
-		int idx = this->Get()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
-			ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
+		const int idx = this->Get()->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
+			ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;
 
-		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location)) {
+		if (auto  pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location))
+		{
 			AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pTarget->GetOwningHouse(), pOwner, false);
 		}
 	}
@@ -693,7 +714,9 @@ void WarheadTypeExt::ExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage
 		else
 		{
 			pTarget->GattlingValue = pTarget->Veterancy.IsElite() ? pData->EliteStage[Stage - 2] : pData->WeaponStage[Stage - 2];
-			pTarget->GattlingAudioPlayed = true;
+			//pTarget->GattlingAudioPlayed = true;
+			pTarget->Audio4.AudioEventHandleStop();
+			pTarget->GattlingAudioPlayed = false;
 		}
 	}
 }

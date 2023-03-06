@@ -34,6 +34,25 @@
 
 #include <Phobos.h>
 
+enum class AreaFireReturnFlag : int
+{
+	Continue ,
+	ContinueAndReturn,
+	DoNotFire ,
+	SkipSetTarget,
+};
+
+enum class PhobosAbilityType : int
+{
+	None = -1,
+	Interceptor = 0,
+	ChronoDelayDamageImmune = 1,
+	CritImmune = 2,
+	PsionicsImmune = 3,
+
+	count
+};
+
 enum class TargetZoneScanType : int
 {
 	Same = 0,

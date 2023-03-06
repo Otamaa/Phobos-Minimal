@@ -83,19 +83,8 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	GET(bool, nLimboed, EAX);
 	GET(TerrainClass*, pThis, EDI);
 
-	if (nLimboed)
-	{
-		//if (auto const CellExt = CellExt::ExtMap.Find<true>(pThis->GetCell()))
-		//{
-		//	auto const iter = std::find_if(CellExt->AttachedTerrain.begin(), CellExt->AttachedTerrain.end(),
-		//		[&](auto const pCellTerrain) { return pCellTerrain == pThis; });
-
-		//	if (iter != CellExt->AttachedTerrain.end())
-		//		CellExt->AttachedTerrain.erase(iter);
-		//}
-
+	if (nLimboed) {
 		TerrainExt::CleanUp(pThis);
-
 	}
 
 	return 0;

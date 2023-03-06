@@ -10,6 +10,7 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
+#include <Utilities/EnumFunctions.h>
 
 TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
@@ -163,6 +164,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->UIDescription.Read(exINI, pSection, "UIDescription");
 	this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
 	this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
+
+	this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
+	this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
+
 	this->Interceptor.Read(exINI, pSection, "Interceptor");
 	this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
 	this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
@@ -405,6 +410,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Overload_DeathSound.Read(exINI, pSection, "Overload.DeathSound");
 	this->Overload_ParticleSys.Read(exINI, pSection, "Overload.ParticleSys");
 	this->Overload_ParticleSysCount.Read(exINI, pSection, "Overload.ParticleSysCount");
+	this->Overload_Warhead.Read(exINI, pSection, "Overload.Warhead", true);
 
 	this->Landing_Anim.Read(exINI, pSection, "Landing.Anim");
 	this->Landing_AnimOnWater.Read(exINI, pSection, "Landing.AnimOnWater");
@@ -442,6 +448,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Gattling_Overload_DeathSound.Read(exINI, pSection, "Gattling.Overload.DeathSound");
 	this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
 	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
+	this->Gattling_Overload_Warhead.Read(exINI, pSection, "Gattling.Overload.Warhead", true);
 
 	this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
 	this->IsDummy.Read(exINI, pSection, "Dummy");
@@ -761,6 +768,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
 		.Process(this->MindControlRangeLimit)
+		.Process(this->Phobos_EliteAbilities)
+		.Process(this->Phobos_VeteranAbilities)
 		.Process(this->Interceptor)
 		.Process(this->Interceptor_CanTargetHouses)
 		.Process(this->Interceptor_GuardRange)
@@ -961,6 +970,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Overload_DeathSound)
 		.Process(this->Overload_ParticleSys)
 		.Process(this->Overload_ParticleSysCount)
+		.Process(this->Overload_Warhead)
 
 		.Process(this->Landing_Anim)
 		.Process(this->Landing_AnimOnWater)
@@ -1023,6 +1033,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Gattling_Overload_DeathSound)
 		.Process(this->Gattling_Overload_ParticleSys)
 		.Process(this->Gattling_Overload_ParticleSysCount)
+		.Process(this->Gattling_Overload_Warhead)
+
 		.Process(this->IsHero)
 		.Process(this->IsDummy)
 

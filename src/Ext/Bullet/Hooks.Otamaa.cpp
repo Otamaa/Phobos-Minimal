@@ -21,8 +21,6 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #endif
 
-#pragma region Otamaa
-
 DEFINE_HOOK(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 {
 	GET_STACK(BulletClass*, pThis, STACK_OFFS(0xF8, 0xE4));
@@ -49,191 +47,12 @@ DEFINE_HOOK(0x5F5A86, ObjectClass_SpawnParachuted_Animation_Bulet, 0x6)
 
 #pragma region Otamaa
 
-static DWORD Do_Airburst(BulletClass* pThis)
-{
-	const auto pType = pThis->Type;
-	const auto pExt = BulletTypeExt::ExtMap.Find(pType);
-
-	if (!pExt->HasSplitBehavior())
-		return 0x46A290;
-
-	auto const GetWeapon = [pExt, pType]()
-	{
-		if (pExt->AirburstWeapons.empty())
-			return pType->AirburstWeapon;
-
-		return pExt->AirburstWeapons[ScenarioClass::Instance->Random.RandomFromMax(pExt->AirburstWeapons.size() - 1)];
-	};
-
-	if (WeaponTypeClass* pWeapon = GetWeapon())
-	{
-		const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
-		TechnoClass* pBulletOwner = pThis->Owner ? pThis->Owner : nullptr;
-		HouseClass* pBulletHouseOwner = pBulletOwner ? pBulletOwner->GetOwningHouse() : (pBulletExt ? pBulletExt->Owner : nullptr);
-
-		auto& random = ScenarioClass::Instance->Random;
-
-		// some defaults
-		int cluster = pType->Cluster;
-
-		// get final target coords and cell
-		const CoordStruct crdDest = pExt->AroundTarget.Get(pExt->Splits.Get())
-			? pThis->GetBulletTargetCoords() : pThis->GetCoords();
-
-		const CellStruct cellDest = CellClass::Coord2Cell(crdDest);
-
-		// create a list of cluster targets
-		std::vector<AbstractClass*> targets;
-		targets.reserve(cluster);
-
-		if (!pExt->Splits.Get())
-		{
-			// default hardcoded YR way: hit each cell around the destination once
-
-			// fill target list with cells around the target
-			CellRangeIterator<CellClass>{}(cellDest, pExt->AirburstSpread.Get(),
-			[&targets](CellClass* const pCell) -> bool {
-				targets.push_back(pCell);
-				return true;
-			});
-
-			// we want as many as we get, not more, not less
-			cluster = (int)targets.size();
-		}
-		else
-		{
-			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-
-			// fill with technos in range
-			std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
-				if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
-				{
-					if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-						return;
-
-					//if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
-					//	return;
-
-					//if (!EnumFunctions::IsTechnoEligible(pTarget, this->Splits_Affects))
-					//	return;
-
-					if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
-					{
-						const auto nLayer = pTechno->InWhichLayer();
-						if (nLayer == Layer::Underground ||
-							nLayer == Layer::None)
-							return;
-
-						const CoordStruct crdTechno = pTechno->GetCoords();
-						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
-							&& ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
-							)
-						{
-							targets.push_back(pTechno);
-						}
-					}
-				}
-			});
-
-			if (pExt->Splits_FillRemainingClusterWithRandomcells)
-			{
-				// fill up the list to cluster count with random cells around destination
-				const int nMinRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->MinimumRange / Unsorted::LeptonsPerCell;
-				const int nMaxRange = pExt->Splits_RandomCellUseHarcodedRange.Get() ? 3 : pWeapon->Range / Unsorted::LeptonsPerCell;
-
-				while ((int)targets.size() < (cluster))
-				{
-					int x = random.RandomRanged(-nMinRange, nMaxRange);
-					int y = random.RandomRanged(-nMinRange, nMaxRange);
-
-					CellStruct cell { static_cast<short>(cellDest.X + x), static_cast<short>(cellDest.Y + y) };
-					targets.push_back(MapClass::Instance->GetCellAt(cell));
-				}
-			}
-			else
-			{
-				cluster = targets.size();
-			}
-		}
-
-		// let it rain warheads
-		for (int i = 0; i < cluster; ++i)
-		{
-			AbstractClass* pTarget = pThis->Target;
-
-			if (!pExt->Splits)
-			{
-				// simple iteration
-				pTarget = targets.at(i);
-
-			}
-			else if (!pTarget || pExt->RetargetAccuracy < random.RandomDouble())
-			{
-				// select another target randomly
-				int index = random.RandomFromMax(targets.size() - 1);
-				pTarget = targets.at(index);
-
-				// firer would hit itself
-				if (pTarget == pThis->Owner)
-				{
-					if (random.RandomDouble() > 0.5)
-					{
-						index = random.RandomFromMax(targets.size() - 1);
-						pTarget = targets.at(index);
-					}
-				}
-
-				// remove this target from the list
-				targets.erase(targets.begin() + index);
-			}
-
-			if (pTarget)
-			{
-#ifdef DEBUG_AIRBURSTSPLITS_TARGETING
-				if (const auto pTechno = generic_cast<TechnoClass*>(pTarget))
-					Debug::Log("Airburst [%s] targeting Target [%s] \n", pWeapon->get_ID(), pTechno->get_ID());
-#endif				
-				if (const auto pBullet = BulletTypeExt::ExtMap
-					.Find(pWeapon->Projectile)->CreateBullet(pTarget, pThis->Owner, pWeapon))
-				{
-					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
-					auto const radians = dir.GetRadian();
-
-					auto const sin_rad = Math::sin(radians);
-					auto const cos_rad = Math::cos(radians);
-					auto const cos_factor = -2.44921270764e-16;
-					auto const flatSpeed = cos_factor * pBullet->Speed;
-
-					pBullet->MoveTo(pThis->Location,
-						{ cos_rad * flatSpeed,sin_rad * flatSpeed, static_cast<double>(-pBullet->Speed) });
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-					auto sourcePos = pThis->Location;
-					auto targetPos = pTarget->GetCoords();
-
-					// Draw bullet effect
-					Helpers_DP::DrawBulletEffect(pWeapon, sourcePos, targetPos, pBulletOwner, pTarget);
-					// Draw particle system
-					Helpers_DP::AttachedParticleSystem(pWeapon, sourcePos, pTarget, pBulletOwner, targetPos);
-					// Play report sound
-					Helpers_DP::PlayReportSound(pWeapon, sourcePos);
-					// Draw weapon anim
-					Helpers_DP::DrawWeaponAnim(pWeapon, sourcePos, targetPos, pBulletOwner, pTarget);
-#endif
-				}
-			}
-		}
-	}
-
-	return 0x46A290;
-}
-
 DEFINE_HOOK(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
 {
 	GET(BulletClass*, pThis, ESI);
 	GET(int, nMaxCount, EAX);
 
-	return (nMaxCount > 0) ? 0x469D1A : Do_Airburst(pThis);
+	return (nMaxCount > 0) ? 0x469D1A : BulletExt::ApplyAirburst(pThis);
 }
 
 DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
@@ -306,7 +125,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 		}
 	}
 
-	return Do_Airburst(pThis);
+	return BulletExt::ApplyAirburst(pThis);
 }
 #pragma endregion
 

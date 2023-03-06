@@ -8,6 +8,7 @@ struct MultiBoolFixedArray
 {
 	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char*, Amount>& nKeysArray) {
 		if (parser.ReadString(pSection, pKey) > 0) {
+			Reset();
 			char* context = nullptr;
 			for (char* cur = strtok_s(parser.value(), ",", &context);
 				cur; cur = strtok_s(nullptr, ",", &context)) {
@@ -23,11 +24,17 @@ struct MultiBoolFixedArray
 
 	constexpr int size() const { return Amount;	}
 	
-	bool at(int Index) const { return Get(Index); }
+	// no index validation 
+	bool at(int Index) const { 	return Datas[Index]; }
 
-	bool Get(int Index) const
-	{
-		Index = std::clamp(Index, 0, Amount);
+	// index validation manually done
+	bool Get(int Index) const {
+
+		if (Index > Amount)
+			Index = Amount;
+		else if (Index < 0)
+			return false;
+			
 		return Datas[Index];
 	}
 
@@ -58,6 +65,10 @@ struct MultiBoolFixedArray
 		return true;
 	}
 
+	void Reset()
+	{
+		std::memset(Datas, 0, sizeof(Datas));
+	}
 protected:
 	bool Datas[Amount] { false };
 };

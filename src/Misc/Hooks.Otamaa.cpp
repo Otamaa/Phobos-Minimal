@@ -2147,7 +2147,7 @@ DEFINE_HOOK(0x737F86, UnitClass_TakeDamage_DoBeforeAres, 0x6)
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller);
+			TechnoExt::HandleRemove(pPassenger, pKiller,true);
 		}
 	}
 
@@ -2194,7 +2194,7 @@ DEFINE_HOOK(0x41668B, AircraftClass_TakeDamage_DoBeforeAres, 0x6)
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller);
+			TechnoExt::HandleRemove(pPassenger, pKiller, true);
 		}
 	}
 
@@ -2331,7 +2331,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	Point2D nOffs {};
-	auto const pBuilding = specific_cast<BuildingClass*>(pTechno);
+	auto const pBuilding = pTechno->WhatAmI() == AbstractType::Building ? static_cast<BuildingClass*>(pTechno) : nullptr;
 	auto const pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 

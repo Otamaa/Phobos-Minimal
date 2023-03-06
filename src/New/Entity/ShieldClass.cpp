@@ -168,7 +168,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	if (Phobos::Debug_DisplayDamageNumbers && shieldDamage != 0)
-		TechnoExt::DisplayDamageNumberString(this->Techno, shieldDamage, true);
+		TechnoExt::DisplayDamageNumberString(this->Techno, shieldDamage, true , args->WH);
 
 	int nDamageResult = 0;
 	{

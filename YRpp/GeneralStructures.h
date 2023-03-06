@@ -56,7 +56,7 @@ public:
 	TimerStruct(int duration) { this->Start(duration); }
 
 	void Start(int duration) {
-		this->StartTime = *reinterpret_cast<int*>(0xA8ED84);
+		this->StartTime = *reinterpret_cast<int*>(0xA8ED84)	;
 		this->TimeLeft = duration;
 	}
 

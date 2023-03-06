@@ -12,7 +12,9 @@ class EnumFunctions final
 	EnumFunctions(EnumFunctions&&) = delete;
 public:
 
-	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;
+	static std::array<const char*, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;
+	static std::array<const char*, (size_t)PhobosAbilityType::count> PhobosAbilityType_ToStrings;
+	static std::array<const char* const, 3u> Rank_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);
@@ -21,4 +23,5 @@ public:
 	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse  const& allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false);
 	static BlitterFlags GetTranslucentLevel(int const& nInt);
 	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);
+	
 };
