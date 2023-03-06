@@ -3218,3 +3218,40 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 //
 //	return 0x5D4E4D;
 //}
+
+//DEFINE_HOOK(0x6AB64F, SidebarClass_ClickedAction_Focus, 0x6)
+//{
+//	GET(TechnoTypeClass*, pItem, EAX);
+//
+//	const HouseClass* pHouse = HouseClass::CurrentPlayer;
+//	if (!pHouse || !pItem)
+//		return 0x0;
+//
+//	const CanBuildResult canBuild = pHouse->CanBuild(pItem, true, false);
+//	
+//	if (canBuild == CanBuildResult::TemporarilyUnbuildable) {
+//		for (auto pTechno : *TechnoClass::Array) {
+//
+//			if (!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+//				continue;
+//			
+//			if (pTechno->Owner == pHouse && pTechno->GetTechnoType() == pItem)
+//			{
+//				CoordStruct coords = pTechno->GetCoords();
+//
+//				if (!coords)
+//					continue;
+//		
+//				TacticalClass::Instance->SetTacticalPosition(&coords);
+//				pTechno->Flash(60);
+//				if (pItem->VoiceSelect.Items)
+//					pTechno->QueueVoice(pItem->VoiceSelect[0]);
+//
+//				MapClass::Instance->MarkNeedsRedraw(1);
+//				break;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}

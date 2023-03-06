@@ -699,7 +699,7 @@ public:
 	int              TurretAnimFrame;
 	HouseClass*      InitialOwner; // only set in ctor
 	DECLARE_PROPERTY(VeterancyStruct, Veterancy);
-	PROTECTED_PROPERTY(DWORD, align_154);
+	DWORD			 align_154;
 	double           ArmorMultiplier;
 	double           FirepowerMultiplier;
 	DECLARE_PROPERTY(TimerStruct, IdleActionTimer); // MOO CDTimerClass

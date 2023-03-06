@@ -52,7 +52,7 @@ bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const&
 			return (allowed & AffectedTarget::Land) != AffectedTarget::None;
 	}
 
-	return allowed != AffectedTarget::None ? true : false;
+	return allowed != AffectedTarget::None;
 }
 
 bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed, bool considerAircraftSeparately)
@@ -82,7 +82,7 @@ bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget 
 		}
 	}
 
-	return allowed != AffectedTarget::None ? true : false;
+	return allowed != AffectedTarget::None;
 }
 
 bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget const& allowed)

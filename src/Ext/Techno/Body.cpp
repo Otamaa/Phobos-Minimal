@@ -27,6 +27,8 @@
 
 #include <JumpjetLocomotionClass.h>
 
+#include <Misc/AresData.h>
+
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -268,13 +270,14 @@ bool TechnoExt::TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWe
 		if (pFoot->WhatAmI() == AbstractType::Unit)
 		{
 			auto const pUnit = static_cast<UnitClass*>(pTarget);
-#ifdef Ares_3_0_p1
-			auto const bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
+			const auto bDriverKilled = AresData::CanUseAres && AresData::AresVersionId == 1 ? (*(bool*)((char*)pUnit->align_154 + 0x9C)) : false;
+			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-			if (pUnit->DeathFrameCounter > 0 || bDriverKilled && pWeaponExt->Abductor.Get())
-#else
+		    if (bDriverKilled && pWeaponExt->Abductor.Get())
+				return false;
+
 			if (pUnit->DeathFrameCounter > 0)
-#endif
+
 				return false;
 		}
 
