@@ -209,63 +209,63 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 		Play : DoNotPlay;
 }
 
-DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
-{
-	GET(HouseClass* const, pHouse, EBX);
-	HouseExt::LastHarvesterBalance = pHouse->Available_Money();
-	return 0;
-}
+//DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
+//{
+//	GET(HouseClass* const, pHouse, EBX);
+//	HouseExt::LastHarvesterBalance = pHouse->Available_Money();
+//	return 0;
+//}
 
-DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
-{
-	GET(HouseClass* const, pHouse, EBX);
-	GET(BuildingClass* const, pDock, EDI);
+//DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
+//{
+//	GET(HouseClass* const, pHouse, EBX);
+//	GET(BuildingClass* const, pDock, EDI);
+//
+//	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pDock->Type);
+//
+//	if(pTypeExt->Refinery_DisplayDumpedMoneyAmount){	
+//		const int delta = pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
+//		FlyingStrings::AddMoneyString(delta, delta, pDock, AffectedHouse::All
+//				, pDock->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
+//	}
+//
+//	return 0;
+//}
 
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pDock->Type);
+//DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
+//{
+//	//this is techno class , not building class , wtf
+//	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
+//
+//	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
+//
+//	if (!pBuilding)
+//		return 0x0;
+//
+//	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
+//	return 0x0;
+//}
 
-	if(pTypeExt->Refinery_DisplayDumpedMoneyAmount){	
-		const int delta = pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
-		FlyingStrings::AddMoneyString(delta, delta, pDock, AffectedHouse::All
-				, pDock->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
-{
-	//this is techno class , not building class , wtf
-	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
-
-	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
-
-	if (!pBuilding)
-		return 0x0;
-
-	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
-	return 0x0;
-}
-
-DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
-{
-	//this is techno class , not building class , wtf
-	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
-
-	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
-
-	if (!pBuilding) {
-		return 0x0;
-	}
-
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-
-	if (pTypeExt->Refinery_DisplayDumpedMoneyAmount)
-	{
-		const int delta = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
-		FlyingStrings::AddMoneyString(delta, delta, slaveMiner, AffectedHouse::All
-				, slaveMiner->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
-
-	}
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
+//{
+//	//this is techno class , not building class , wtf
+//	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
+//
+//	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
+//
+//	if (!pBuilding) {
+//		return 0x0;
+//	}
+//
+//	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+//
+//	if (pTypeExt->Refinery_DisplayDumpedMoneyAmount)
+//	{
+//		const int delta = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
+//		FlyingStrings::AddMoneyString(delta, delta, slaveMiner, AffectedHouse::All
+//				, slaveMiner->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
+//
+//	}
+//
+//	return 0x0;
+//}

@@ -597,13 +597,8 @@ public:
 		return true;
 	}
 
-	bool Insert(int index, const T& object)
-	{
-		if (index < 0 || index > this->Count)
-		{
-			return false;
-		}
-
+protected:
+	bool IsValidArray() {
 		if (this->Count >= this->Capacity)
 		{
 			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0)
@@ -618,13 +613,21 @@ public:
 				return false;
 			}
 		}
+	}
+
+public:
+	bool Insert(int index, const T& object)
+	{
+		if (!this->ValidIndex(index) || !this->IsValidArray()) {
+			return false;
+		}
 
 		if (index < this->Count)
 		{
-			std::memmove(&(*this)[index + 1], &(*this)[index], (this->Count - index) * sizeof(T));
+			std::memmove(&this->Items[index + 1], &this->Items[index], (this->Count - index) * sizeof(T));
 		}
 
-		(*this)[index] = std::move_if_noexcept(object);
+		this->Items[index] = std::move_if_noexcept(object);
 		++this->Count;
 
 		return true;
@@ -642,26 +645,54 @@ public:
 		return idx < 0 && this->AddItem(item);
 	}
 
-	bool RemoveItem(int index)
+	bool RemoveAt(int index)
 	{
-		if (!this->ValidIndex(index))
-		{
+		if (!this->ValidIndex(index)) {
 			return false;
 		}
 
-		--this->Count;
-		for (int i = index; i < this->Count; ++i)
+		auto nBegin = (&this->Items[index]);
+		auto nEnd = (&this->Items[this->Count]);
+
+		if (nBegin != nEnd)
 		{
-			this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
+			auto nNext = std::next(nBegin, 1); //pick next item after target
+			const auto nDistance = nEnd - nNext; // calculate the distance
+			std::memmove(nBegin, nNext, static_cast<size_t>(sizeof(T) * nDistance)); // move all the items from next to current pos
+			--this->Count;//decrease the count
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	bool Remove(const T& item)
 	{
-		int idx = this->FindItemIndex(item);
-		return idx >= 0 && this->RemoveItem(idx);
+		auto nBegin = (&this->Items[0]);
+		auto nEnd = (&this->Items[this->Count]);
+
+		if (nBegin != nEnd)
+		{
+			while (*nBegin != item)
+			{
+				if (++nBegin == nEnd)
+				{
+					return false;
+				}
+			}
+
+			auto nNext = std::next(nBegin, 1); //pick next item after target
+			const auto nDistance = nEnd - nNext; // calculate the distance
+			std::memmove(nBegin, nNext, static_cast<size_t>(sizeof(T) * nDistance)); // move all the items from next to current pos
+			--this->Count;//decrease the count
+			return true;
+		}
+
+		return false;
+	}
+
+	bool FindAndRemove(const T& item) {
+		return this->RemoveItemAt(this->FindItemIndex(item));
 	}
 
 	void Swap(DynamicVectorClass<T>& other) noexcept

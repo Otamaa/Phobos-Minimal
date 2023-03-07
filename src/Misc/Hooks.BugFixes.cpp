@@ -827,3 +827,16 @@ DEFINE_HOOK(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
 
 	return 0x71880A;
 }
+
+// Check WaterBound when setting rally points / undeploying instead of just Naval.
+DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
+{
+	enum { IsNaval = 0x4438BC, NotNaval = 0x4438C9 };
+
+	GET(BuildingTypeClass*, pBuildingType, EAX);
+
+	if (pBuildingType->Naval || pBuildingType->SpeedType == SpeedType::Float)
+		return IsNaval;
+
+	return NotNaval;
+}

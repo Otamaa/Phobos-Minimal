@@ -68,7 +68,7 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				if (pNode)
 					GameDelete(pNode);
 
-				pManager->ControlNodes.RemoveItem(i);
+				pManager->ControlNodes.RemoveAt(i);
 
 				return true;
 			}

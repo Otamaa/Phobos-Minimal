@@ -3107,6 +3107,31 @@ DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
 	return ContinueCheck;
 }
 
+//template<typename T>
+//NOINLINE bool RemoveItem(DynamicVectorClass<T>& nVec, T nItem)
+//{
+//	auto nBegin = (&nVec.Items[0]);
+//	auto nEnd = (&nVec.Items[nVec.Count]);
+//
+//	if (nBegin != nEnd)
+//	{
+//		while (*nBegin != nItem)
+//		{
+//			if (++nBegin == nEnd){
+//				return false;
+//			}
+//		}
+//
+//		auto nNext = std::next(nBegin, 1); //pick next item after target
+//		const auto nDistance = nEnd  - nNext; // calculate the distance
+//		std::memcpy(nBegin, nNext, static_cast<size_t>(sizeof(T) * nDistance)); // move all the items from next to current pos
+//		--nVec.Count;//decrease the count
+//		return true;
+//	}
+//
+//	return false;
+//}
+
 DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 {
 	GET(AnimClass*, pAnim, EDI);
@@ -3157,47 +3182,47 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //static constexpr CoordStruct Data3 {};
 //static constexpr CellStruct Data4 {};
 
-DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-{
-	GET(UnitClass*, pThis, EBP);
-	const auto deploysInto = pThis->Type->DeploysInto;
-	CellStruct mapCoords = pThis->GetMapCoords();
-	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-
-	const short width = deploysInto->GetFoundationWidth();
-	const short height = deploysInto->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-
-	return 0x7394BE;
-}
-
-DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-{
-	GET(BuildingClass*, pThis, EBP);
-	CellStruct mapCoords = pThis->GetMapCoords();
-
-	const short width = pThis->Type->GetFoundationWidth();
-	const short height = pThis->Type->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-	auto coords = (CoordStruct*)&location.Z;
-	coords->X = (mapCoords.X << 8) + 128;
-	coords->Y = (mapCoords.Y << 8) + 128;
-	coords->Z = pThis->Location.Z;
-
-	return 0x449F12;
-}
+//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+//{
+//	GET(UnitClass*, pThis, EBP);
+//	const auto deploysInto = pThis->Type->DeploysInto;
+//	CellStruct mapCoords = pThis->GetMapCoords();
+//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+//
+//	const short width = deploysInto->GetFoundationWidth();
+//	const short height = deploysInto->GetFoundationHeight(false);
+//
+//	if (width > 2)
+//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+//
+//	return 0x7394BE;
+//}
+//
+//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	CellStruct mapCoords = pThis->GetMapCoords();
+//
+//	const short width = pThis->Type->GetFoundationWidth();
+//	const short height = pThis->Type->GetFoundationHeight(false);
+//
+//	if (width > 2)
+//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+//	auto coords = (CoordStruct*)&location.Z;
+//	coords->X = (mapCoords.X << 8) + 128;
+//	coords->Y = (mapCoords.Y << 8) + 128;
+//	coords->Z = pThis->Location.Z;
+//
+//	return 0x449F12;
+//}
 
 //DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{
@@ -3254,4 +3279,62 @@ DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 //	}
 //
 //	return 0;
+//}
+
+void ObjectClass_TakeDamage_NPEXT_EMPulseSparkles(ObjectClass* pTarget)
+{
+	int nLoopCount = ScenarioClass::Instance->Random.RandomFromMax(25);
+	if (auto pSparkel = GameCreate<AnimClass>(RulesClass::Instance->EMPulseSparkles, pTarget->GetCoords(), 0, nLoopCount))
+		pSparkel->SetOwnerObject(pTarget);
+}
+
+enum class KickOutProductionType : int
+{
+	Normal = 0,
+	Droppod , 
+	Paradrop , 
+	Anim ,
+};
+
+enum class FunctionreturnType : int
+{
+	Succeeded = 0,
+	Failed,
+	Nothing,
+};
+
+FunctionreturnType KickoutTechnoType(BuildingClass* pProduction , KickOutProductionType nDecided)
+{
+	bool UnlimboSucceeded = false;
+	switch (nDecided)
+	{
+	case KickOutProductionType::Droppod:
+	{	
+		return UnlimboSucceeded ? FunctionreturnType::Succeeded : FunctionreturnType::Failed;
+	}
+	case KickOutProductionType::Paradrop:
+	{
+		return UnlimboSucceeded ? FunctionreturnType::Succeeded : FunctionreturnType::Failed;
+	}
+	case KickOutProductionType::Anim:
+	{
+		return UnlimboSucceeded ? FunctionreturnType::Succeeded : FunctionreturnType::Failed;
+	}
+	}
+
+	return FunctionreturnType::Nothing;
+}
+
+//DEFINE_HOOK(0x4445FB, BuildingClass_KickOut_FactoryType_NotAWeaponFactory, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	switch(KickoutTechnoType(pThis, KickOutProductionType::Normal))
+//	{
+//	case FunctionreturnType::Nothing:
+//		return 0x0; // nothing
+//	case FunctionreturnType::Succeeded:
+//		return 0x4448CE; // set mission
+//	case FunctionreturnType::Failed : 
+//		return 0x444EDE; // decrease mutex
+//	}
 //}
