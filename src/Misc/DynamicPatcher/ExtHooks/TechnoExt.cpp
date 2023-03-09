@@ -248,7 +248,7 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
 
-//DEFINE_HOOK(0x701DFF, TechnoClass_TakeDamage_AfterObjectClassCall, 0x7) //9
+//DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7) //9
 //{
 //	GET(TechnoClass*, pThis, ESI);
 //	//GET(int*, pRealDamage , EBX);

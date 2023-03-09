@@ -145,10 +145,10 @@ public:
 	// cleanup things (lose line trail, deselect, etc). Permanently: destroyed/removed/gone opposed to just going out of sight.
 	virtual void Disappear(bool permanently) RX;
 
-	virtual void RegisterDestruction(TechnoClass *Destroyer) RX;
+	virtual void RegisterDestruction(TechnoClass *Destroyer) JMP_THIS(0x744720); //E0 
 
 	 // maybe Object instead of Techno? Raises Map Events, grants veterancy, increments house kill counters
-	virtual void RegisterKill(HouseClass *Destroyer) RX; // ++destroyer's kill counters , etc
+	virtual void RegisterKill(HouseClass *Destroyer) RX; // ++destroyer's kill counters , etc E0
 
 	virtual bool SpawnParachuted(const CoordStruct& coords) R0;
 	virtual void DropAsBomb() RX;

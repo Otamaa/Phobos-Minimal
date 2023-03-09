@@ -38,8 +38,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 
 	if (!args->IgnoreDefenses)
 	{
-		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
-		{
+		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
 			pShieldData->OnReceiveDamage(args);
 		}
 	}

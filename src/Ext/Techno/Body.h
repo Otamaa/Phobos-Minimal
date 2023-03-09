@@ -142,6 +142,7 @@ public:
 			, LastAttacker { nullptr }
 			, Attempt { 5 }
 			, ReceiveDamageMultiplier { }
+			, SkipLowDamageCheck { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, aircraftPutOffsetFlag { false }
 			, aircraftPutOffset { false }

@@ -3,6 +3,7 @@
 #include <SessionClass.h>
 #include <HouseClass.h>
 
+#include <Ext/House/Body.h>
 #include <Utilities/GeneralUtils.h>
 
 bool CaptureObjectsCommandClass::Given = false;
@@ -42,16 +43,16 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 	if (!ObjectClass::CurrentObjects->Count)
 		return;
 
-	std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object)
-{
-	if (!object || !(object->AbstractFlags & AbstractFlags::Techno))
-		return;
+	std::for_each(ObjectClass::CurrentObjects->begin(), ObjectClass::CurrentObjects->end(), [](ObjectClass* const object) {
+		if (!object || !(object->AbstractFlags & AbstractFlags::Techno))
+			return;
 
-	if (object->GetOwningHouse() == HouseClass::CurrentPlayer())
-		return;
+		auto const pToOwner = HouseClass::CurrentPlayer();
+		if (object->GetOwningHouse() == pToOwner)
+			return;
 
-	if (TechnoClass* techno = static_cast<TechnoClass*>(object))
-		techno->SetOwningHouse(HouseClass::CurrentPlayer());
+		if (TechnoClass* techno = static_cast<TechnoClass*>(object))
+			techno->SetOwningHouse(pToOwner);
 
 	});
 
@@ -66,7 +67,7 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 		HouseClass::CurrentPlayer->Visionary = 1;
 		MapClass::Instance->CellIteratorReset();
 		for (auto i = MapClass::Instance->CellIteratorNext(); i; i = MapClass::Instance->CellIteratorNext())
-			RadarClass::Instance->MapCell(i->MapCoords, HouseClass::CurrentPlayer);
+			RadarClass::Instance->MapCell(i->MapCoords, HouseClass::CurrentPlayer());
 
 		GScreenClass::Instance->MarkNeedsRedraw(1);
 	}

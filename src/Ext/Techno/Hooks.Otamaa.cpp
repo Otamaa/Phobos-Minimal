@@ -150,57 +150,52 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	return 0x709D11;
 }
 
+void NOINLINE DetonateDeathWeapon(TechnoClass* pThis , TechnoTypeClass* pType ,WeaponTypeClass* pDecided , int nMult,  bool RulesDeath)
+{
+	if (pDecided)
+	{
+		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
+		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
+
+		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
+		{
+			pBullet->SetWeaponType(pDecided);
+			BulletExt::DetonateAt(pBullet, pThis, pThis, pThis->Location);
+		}
+	}
+}
+
 DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (!pThis || !pThis->GetTechnoType())
+	if (!pThis)
+		return 0x0;
+	
+	auto const pType = pThis->GetTechnoType();
+	if (!pType)
 		return 0x0;
 
 	GET_STACK(int, nMult, 0x4);
 
-	auto const pType = pThis->GetTechnoType();
-	auto const Detonate = [pThis, pType, nMult](WeaponTypeClass* pDecided, bool RulesDeathWeapon)
-	{
-		if (pDecided)
-		{
-			auto const pBonus = RulesDeathWeapon ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-			auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
-
-			if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
-			{
-				pBullet->SetWeaponType(pDecided);
-				BulletExt::DetonateAt(pBullet, pThis, pThis, pThis->Location);
-			}
-		}
-
-		return 0x70D796;
-	};
-
-	bool FromRules = false;
-	auto pTechDeathWeapon = pType->DeathWeapon;
-	WeaponTypeClass* pWeaponResult = nullptr;
-
 	// Using Promotable<WeaponTypeClass*>
 	// tags : "%sDeathWeapon (%s replaced with rank level);
-	pTechDeathWeapon = TechnoTypeExt::ExtMap.Find(pType)->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
+	WeaponTypeClass* pWeaponResult = TechnoTypeExt::ExtMap.Find(pType)->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
 
-	const auto pWeaponS = pThis->GetWeapon(0);
+	if (!pWeaponResult) {
+		auto const pPrimary = pThis->GetWeapon(0);
 
-	if (!pTechDeathWeapon && pWeaponS)
-		pTechDeathWeapon = pWeaponS->WeaponType;
+		if (pPrimary && pPrimary->WeaponType) {
+			DetonateDeathWeapon(pThis, pType, pPrimary->WeaponType, nMult, false);
+		} else {
+			DetonateDeathWeapon(pThis, pType, RulesClass::Instance->DeathWeapon, nMult, true);
+		}
 
-	if (pTechDeathWeapon)
-	{
-		pWeaponResult = pTechDeathWeapon;
-	}
-	else
-	{
-		pWeaponResult = RulesClass::Instance->DeathWeapon;
-		FromRules = true;
+	} else {
+		DetonateDeathWeapon(pThis, pType, pWeaponResult, nMult, false);
 	}
 
-	return Detonate(pWeaponResult, FromRules);
+	return 0x70D796;
 }
 
 DEFINE_HOOK_AGAIN(0x4DABAB, ObjectClass_WasFallingDown, 0x6)

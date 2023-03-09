@@ -8,7 +8,7 @@ DEFINE_HOOK(0x6F3AF9, TechnoClass_GetFLH_GetAlternateFLH, 0x6)
 	GET(int, weaponIdx, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	weaponIdx = -weaponIdx;
+	weaponIdx = -weaponIdx - 1;
 
 	const CoordStruct& flh =
 		weaponIdx < static_cast<int>(pTypeExt->AlternateFLHs.size())
@@ -48,14 +48,12 @@ DEFINE_HOOK(0x6F3C88, TechnoClass_Transform_6F3AD0_BurstFLH_2, 0x6)
 {
 	GET(TechnoClass*, pThis, EBX);
 	//GET_STACK(int, weaponIndex, STACK_OFFS(0xD8, -0x8));
-	{
-		auto pExt = TechnoExt::ExtMap.Find(pThis);
-		if (pExt->FlhChanged)
-		{
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+		if (pExt->FlhChanged) {
 			pExt->FlhChanged = false;
 			R->EAX(0);
 		}
-	}
 
 	return 0;
 }

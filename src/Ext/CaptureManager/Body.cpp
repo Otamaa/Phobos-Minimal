@@ -34,27 +34,28 @@ bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 
 bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)
 {
-	if (pTarget)
-	{
-		for (int i = pManager->ControlNodes.Count - 1; i >= 0; --i)
-		{
+	if (pTarget) {
+
+		for (int i = pManager->ControlNodes.Count - 1; i >= 0; --i) {
+
 			const auto pNode = pManager->ControlNodes[i];
-			if (pTarget == pNode->Unit)
-			{
-				if (pTarget->MindControlRingAnim)
-				{
+
+			if (!pNode)
+				continue;
+
+			if (pTarget == pNode->Unit) {
+				if (pTarget->MindControlRingAnim) {
 					pTarget->MindControlRingAnim->UnInit();
 					pTarget->MindControlRingAnim = nullptr;
 				}
 
-				if (!bSilent)
-				{
+				if (!bSilent) {
 					int nSound = pTarget->GetTechnoType()->MindClearedSound;
 
 					if (nSound == -1)
 						nSound = RulesClass::Instance->MindClearedSound;
-					if (nSound != -1)
-						VocClass::PlayIndexAtPos(nSound, pTarget->GetCoords());
+	
+					VocClass::PlayIndexAtPos(nSound, pTarget->GetCoords());
 				}
 
 				// Fix : Player defeated should not get this unit.
@@ -65,11 +66,10 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				pManager->DecideUnitFate(pTarget);
 				pTarget->MindControlledBy = nullptr;
 
-				if (pNode)
-					GameDelete(pNode);
-
-				pManager->ControlNodes.RemoveAt(i);
-
+				if (pManager->ControlNodes.RemoveAt(i)) {
+					GameDelete<false, false>(pNode);
+				}
+		
 				return true;
 			}
 		}

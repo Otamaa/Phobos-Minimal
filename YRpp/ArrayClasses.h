@@ -493,8 +493,7 @@ public:
 
 	virtual int FindItemIndex(const T& item) const override final
 	{
-		if (!this->IsInitialized)
-		{
+		if (!this->IsInitialized) {
 			return 0;
 		}
 
@@ -508,31 +507,6 @@ public:
 
 		return -1;
 	}
-
-	typedef VectorCursor<T, DynamicVectorClass<T>> Iterator;
-	typedef const VectorCursor<T, DynamicVectorClass<T>> ConstIterator;
-
-	Iterator Cursorbegin() { return Iterator(this, 0); }
-	Iterator Cursorend() { return Iterator(this, Count); }
-
-	Iterator Cursorbegin() const { return Iterator(this, 0); }
-	Iterator Cursorend() const { return Iterator(this, Count); }
-
-	Iterator GetItemIter(const T& item)
-	{
-		for (auto IterBegin = this->Cursorbegin(); IterBegin != this->Cursorend(); IterBegin.Next()) {
-			if (*IterBegin == item)
-				return IterBegin;
-		}
-
-		return Iterator(this, Count); //return last
-	}
-
-	ConstIterator Cursorcbegin() { return ConstIterator(this, 0); }
-	ConstIterator Cursorcend() { return ConstIterator(this, Count); }
-
-	ConstIterator Cursorcbegin() const { return ConstIterator(this, 0); }
-	ConstIterator Cursorcend() const { return ConstIterator(this, Count); }
 
 	bool ValidIndex(int index) const
 	{
@@ -575,47 +549,13 @@ public:
 
 	bool AddItem(T item)
 	{
-		if (this->Count >= this->Capacity)
-		{
-			if (!this->IsAllocated && this->Capacity != 0)
-			{
-				return false;
-			}
-
-			if (this->CapacityIncrement <= 0)
-			{
-				return false;
-			}
-
-			if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr))
-			{
-				return false;
-			}
-		}
+		if (!this->IsValidArray())
+			return false;
 
 		this->Items[this->Count++] = std::move_if_noexcept(item);
 		return true;
 	}
 
-protected:
-	bool IsValidArray() {
-		if (this->Count >= this->Capacity)
-		{
-			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0)
-			{
-				if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr))
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-
-public:
 	bool Insert(int index, const T& object)
 	{
 		if (!this->ValidIndex(index) || !this->IsValidArray()) {
@@ -708,15 +648,23 @@ public:
 		return static_cast<size_t>(Count);
 	}
 
-	// is this even right ?
-	int GetSizeMax() const
-	{
-		return (sizeof(T) * Count) + 4;
-	}
-
 public:
 	int Count { 0 };
 	int CapacityIncrement { 10 };
+
+protected:
+
+	bool IsValidArray() {
+		if (this->Count >= this->Capacity) {
+			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0) {
+				return this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr);
+			} else {
+				return false;
+			}
+		}
+
+		return true;
+	}
 };
 
 //========================================================================
