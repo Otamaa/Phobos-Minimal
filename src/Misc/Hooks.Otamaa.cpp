@@ -2881,7 +2881,7 @@ DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_StackReused, 0x6)
 	return args->IgnoreDefenses ? DecideResult : RecalculateDamage;
 }
 
-DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
+DEFINE_HOOK(0x5F5416, ObjectClass_ReceiveDamage_AfterDamageCalculate, 0x6)
 {
 	enum
 	{
@@ -2894,9 +2894,10 @@ DEFINE_HOOK(0x5F5416, ObjectClass_AfterDamageCalculate, 0x6)
 	GET(ObjectClass*, pObject, ESI);
 	//LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
 
-	//*reinterpret_cast<DWORD*>(&args->IgnoreDefenses) = pObject->GetType()->Strength;
-	//const auto pIgnoreDefenses = args->IgnoreDefenses;
-	R->Stack(0x38, pObject->GetType()->Strength);
+	//const auto pIgnoreDefenses = args->IgnoreDefenses; //copy the data before reusing it , since the stack are reused below
+	auto const pTypeStr = pObject->GetType()->Strength;
+	R->EBP(pTypeStr);
+	R->Stack(0x38, pTypeStr);
 	//if (!(pObject->AbstractFlags & AbstractFlags::Techno)) {	
 	//	return CheckForZeroDamage;
 	//}

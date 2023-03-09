@@ -1962,9 +1962,6 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (pThis->Health && healthDeficit > 0)
 	{
-		if (!pThis->Owner->InfantrySelfHeal || !pThis->Owner->UnitsSelfHeal)
-			return;
-
 		const auto pWhat = pThis->WhatAmI();
 		const bool isBuilding = pWhat == AbstractType::Building;
 		const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
@@ -1976,6 +1973,9 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 		{
 		case SelfHealGainType::Infantry:
 		{
+			if (!pThis->Owner->InfantrySelfHeal)
+				return;
+
 			const int count = RulesExt::Global()->InfantryGainSelfHealCap.isset() ?
 				std::clamp(pThis->Owner->InfantrySelfHeal, 1, RulesExt::Global()->InfantryGainSelfHealCap.Get()) :
 				pThis->Owner->InfantrySelfHeal;
@@ -1988,6 +1988,9 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 		break;
 		case SelfHealGainType::Units:
 		{
+			if (!pThis->Owner->UnitsSelfHeal)
+				return;
+
 			const int count = RulesExt::Global()->UnitsGainSelfHealCap.isset() ?
 				std::clamp(pThis->Owner->UnitsSelfHeal, 1, RulesExt::Global()->UnitsGainSelfHealCap.Get()) :
 				pThis->Owner->UnitsSelfHeal;
