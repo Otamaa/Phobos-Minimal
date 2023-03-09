@@ -424,13 +424,11 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		{
 			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
 
-			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget)
- {
-	 this->DetonateOnOneUnit(pHouse, pTarget, pOwner, pBullet, ThisbulletWasIntercepted);
+			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget) {
+				 this->DetonateOnOneUnit(pHouse, pTarget, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 
-			if (this->Transact)
-			{
+			if (this->Transact) {
 				this->TransactOnAllUnits(pTargetv, pHouse, pOwner);
 			}
 

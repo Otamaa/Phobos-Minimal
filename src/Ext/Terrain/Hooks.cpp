@@ -15,7 +15,7 @@
 		- idle anim
 		- Re-Draw function , to show damaged part
 */
-DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_Add, 0x7)
+DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 {
 	enum { PostMortemReturn = 0x71B994, CheckNowDead = 0x71B9A7, SetReturn = 0x71BB79 };
 
@@ -49,7 +49,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_TakeDamage_Add, 0x7)
 
 //this one on Very end of it
 //let everything play first
-DEFINE_HOOK(0x71BB2C, TerrainClass_TakeDamage_NowDead_Add_light, 0x6)
+DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 {
 	GET(TerrainClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x3C, -0x4));
@@ -103,7 +103,7 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x71B9BB, TerraiClass_TakeDamage_IsTiberiumSpawn, 0x5) //A
+DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 {
 	enum
 	{

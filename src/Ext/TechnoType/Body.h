@@ -407,6 +407,7 @@ public:
 
 		Valueable<Leptons> NavalRangeBonus;
 
+		Nullable<bool> AI_LegalTarget;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -745,7 +746,7 @@ public:
 			, Experience_KillerMultiple { 1.0f }
 
 			, NavalRangeBonus { }
-
+			, AI_LegalTarget { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

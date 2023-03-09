@@ -138,7 +138,12 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
 		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
-			if (pBld->Type->InvisibleInGame || pBldExt->LimboID != -1)
+
+			if(this->LimboKill_IDs.empty() && pBldExt->LimboID != -1) {
+				return false;
+			}
+
+			if (pBld->Type->InvisibleInGame)
 				return false;
 		}
 

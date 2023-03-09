@@ -13,7 +13,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
-DEFINE_HOOK(0x737F6D, UnitClass_TakeDamage_Destroy, 0x7)
+DEFINE_HOOK(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
 {
 	GET(UnitClass* const, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));

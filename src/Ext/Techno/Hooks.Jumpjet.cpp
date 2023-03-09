@@ -292,7 +292,7 @@ DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 //	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 //}
 
-DEFINE_HOOK(0x518313, InfantryClass_TakeDamage_JumpjetExplode, 0x6)
+DEFINE_HOOK(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
 {
 	enum { PlayDeadSequence = 0x518362 , ContinueCheckForJumpJet = 0x5185F1  };
 	GET(InfantryClass*, pThis, ESI);

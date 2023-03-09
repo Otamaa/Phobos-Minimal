@@ -14,27 +14,31 @@
 // just un-init it and replace it with nullptr is enough
 namespace DamageFireAnims
 {
-	void HandleRemove(BuildingClass* pThis) {
-		auto const pExt = BuildingExt::ExtMap.Find(pThis);
-		for (auto& nFires : pExt->DamageFireAnims) {
-			if (nFires) {
+	void HandleRemoveAsExt(BuildingExt::ExtData* pExt)
+	{
+		if (!pExt)
+			return;
+
+		for (auto& nFires : pExt->DamageFireAnims)
+		{
+			if (nFires)
+			{
 				nFires->UnInit();
 				nFires = nullptr;
 			}
 		}
 	}
 
-	void HandleRemove(BuildingExt::ExtData* pExt) {
-		for (auto& nFires : pExt->DamageFireAnims) {
-			if (nFires) {
-				nFires->UnInit();
-				nFires = nullptr;
-			}
-		}
+	void HandleRemove(BuildingClass* pThis) {
+		auto pExt = BuildingExt::ExtMap.Find(pThis);
+		HandleRemoveAsExt(pExt);
 	}
 
 	void HandleInvalidPtr(BuildingClass* pThis, void* ptr) {
 		auto const pExt = BuildingExt::ExtMap.Find(pThis);
+		if (!pExt)
+			return;
+
 		for (auto& nFires : pExt->DamageFireAnims) {
 			if (nFires == ptr) {
 				nFires = nullptr;
@@ -48,7 +52,7 @@ namespace DamageFireAnims
 		const auto pExt = BuildingExt::ExtMap.Find(pThis);
 		const auto pTypeext = BuildingTypeExt::ExtMap.Find(pType);
 
-		HandleRemove(pExt);
+		HandleRemoveAsExt(pExt);
 
 		auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
 
@@ -148,12 +152,11 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
-		if (Onfire && pFireType.size() >= 3)
-		{
+		if (Onfire && pFireType.size() >= 3) {
 			for (; (pCell->X != 0x7FFF || pCell->Y != 0x7FFF); ++pCell)
 			{
 				auto const&[nCellX , nCellY] = pThis->GetMapCoords() + *pCell;
-				auto nDestCoord = CoordStruct { (nCellX * 256) + 128,(nCellY * 256) + 128,0 };
+				CoordStruct nDestCoord { (nCellX * 256) + 128,(nCellY * 256) + 128,0 };
 				nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 
 				auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)
@@ -172,19 +175,19 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 					}
 				};
 
-				switch (ScenarioClass::Instance->Random.RandomRanged(0, pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5))
+				switch (ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5))
 				{
 				case 1:
 				case 2:
 				case 3:
 				case 4:
 				case 5:
-					PlayFireAnim(ScenarioClass::Instance->Random(0, pFireType.size() - 1), 0);
+					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size() - 1), 0);
 					break;
 				case 6:
 				case 7:
 				case 8:
-					PlayFireAnim(ScenarioClass::Instance->Random(0, pFireType.size() - 1), 1);
+					PlayFireAnim(ScenarioClass::Instance->Random.RandomFromMax(pFireType.size() - 1), 1);
 					break;
 				case 9:
 					PlayFireAnim();

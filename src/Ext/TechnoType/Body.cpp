@@ -493,7 +493,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
 	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
 	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType"); //no code 
+	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
 
 	this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
 	this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
@@ -506,7 +506,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Experience_KillerMultiple.Read(exINI, pSection, "Experience.KillerMultiple");
 	this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
 	this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
-
+	this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
 	this->AdjustCrushProperties();
 
 #pragma endregion
@@ -559,8 +559,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			break;
 
 		this->AlternateFLHs.size() < i
-			? this->AlternateFLHs[i] = alternateFLH
-			: this->AlternateFLHs.emplace_back(alternateFLH);
+			? this->AlternateFLHs[i] = alternateFLH.Get()
+			: this->AlternateFLHs.emplace_back(alternateFLH.Get());
 	}
 #pragma endregion FLHs
 
@@ -1091,6 +1091,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Experience_KillerMultiple)
 		.Process(this->Experience_VictimMultiple)
 		.Process(this->NavalRangeBonus)
+		.Process(this->AI_LegalTarget)
 
 
 #pragma endregion
