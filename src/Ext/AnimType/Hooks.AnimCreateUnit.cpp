@@ -16,12 +16,12 @@
 DEFINE_HOOK(0x737F6D, UnitClass_ReceiveDamage_Destroy, 0x7)
 {
 	GET(UnitClass* const, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0x44, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x44, -0x4));
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	R->ECX(R->ESI());
 	pExt->ReceiveDamage = true;
-	AnimTypeExt::ProcessDestroyAnims(pThis, Receivedamageargs.Attacker);
+	AnimTypeExt::ProcessDestroyAnims(pThis, args.Attacker);
 	pThis->Destroy();
 	return 0x737F74;
 }

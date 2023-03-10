@@ -282,4 +282,4 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 //
 //	return 0x62A372;
 //}
-#pragma optimize("", on)
+//#pragma optimize("", on)

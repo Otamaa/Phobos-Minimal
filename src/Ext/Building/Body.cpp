@@ -585,6 +585,7 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoExt->Type);
 
 		pBuildingExt->LimboID = ID;
+		pTechnoExt->Shield.release();
 #ifdef COMPILE_PORTED_DP_FEATURES
 		pTechnoExt->PaintBallState.release();
 #endif

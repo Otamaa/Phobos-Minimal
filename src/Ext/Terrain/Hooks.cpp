@@ -21,18 +21,19 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 
 	GET(DamageState, nState, EAX);
 	GET(TerrainClass*, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x3C, -0x4));
+	REF_STACK(args_ReceiveDamage const, args , STACK_OFFS(0x3C, -0x4));
 
 	R->EAX(nState);
 	R->Stack(0x10, nState);
 
 	// ignite this terrain object
-	auto nDamage = ReceiveDamageArgs.Damage;
-	if (!pThis->IsBurning && *nDamage > 0 && ReceiveDamageArgs.WH->Sparky)
+	auto nDamage = args.Damage;
+	if (!pThis->IsBurning && *nDamage > 0 && args.WH->Sparky)
 	{
-		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(ReceiveDamageArgs.WH);
+		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
 		const bool spawn = pWarheadExt->Flammability.isset() ?
-			(ScenarioClass::Instance->Random.PercentChance(abs(pWarheadExt->Flammability.Get()))) : true;
+			(ScenarioClass::Instance->Random.PercentChance(
+			abs(pWarheadExt->Flammability.Get()))) : true;
 
 		if (spawn)
 			pThis->Ignite();
@@ -52,7 +53,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 {
 	GET(TerrainClass*, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x3C, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
 
 	auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
 	auto const nCoords = pThis->GetCenterCoords();
@@ -62,7 +63,8 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	{
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
 		{
-			AnimExt::SetAnimOwnerHouseKind(pAnim, ReceiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), ReceiveDamageArgs.Attacker, false);
+			AnimExt::SetAnimOwnerHouseKind(pAnim, args.SourceHouse,
+				pThis->GetOwningHouse(), args.Attacker, false);
 		}
 	}
 

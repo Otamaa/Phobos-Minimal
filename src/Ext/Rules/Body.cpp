@@ -39,6 +39,14 @@ void RulesExt::Remove(RulesClass* pThis)
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
+		//Debug::Log(__FUNCTION__" Called ! \n");
+	if (!Phobos::Otamaa::DisableCustomRadSite)
+		RadTypeClass::AddDefaults();
+
+	ArmorTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
+	HoverTypeClass::AddDefaults();
+
 	Data->LoadFromINI(pINI);
 }
 
@@ -46,15 +54,17 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
 	ColorTypeClass::LoadFromINIList_New(pINI, false);
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), false);
 #endif
+
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadTypeClass::LoadFromINIList(pINI);
 
 	ShieldTypeClass::LoadFromINIList(pINI);
-	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 	HoverTypeClass::LoadFromINIList(pINI);
+	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 
 	Data->LoadBeforeTypeData(pThis, pINI);
 }
@@ -64,18 +74,12 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (pINI == CCINIClass::INI_Rules)
 		Data->InitializeAfterTypeData(pThis);
 
+
 	Data->LoadAfterTypeData(pThis, pINI);
 }
 
 void RulesExt::ExtData::InitializeConstants()
 {
-	//Debug::Log(__FUNCTION__" Called ! \n");
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadTypeClass::AddDefaults();
-
-	ArmorTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
-	HoverTypeClass::AddDefaults();
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work

@@ -370,32 +370,6 @@ DEFINE_HOOK(0x442A2A, BuildingClass_ReceiveDamage_RotateVsAircraft, 0x6)
 //}
 
 
-
-//what ?
-//DEFINE_HOOK(0x5F53DD, ObjectClass_NoRelative, 0x8)
-//{
-//	GET(ObjectClass*, pObject, ESI);
-//	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
-//
-//	if (TechnoClass* pThis = abstract_cast<TechnoClass*>(pObject))
-//	{
-//		const TechnoTypeClass* pType = pThis->GetTechnoType();
-//		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//		if (!args->IgnoreDefenses && pTypeExt->AllowMinHealth > 0)
-//		{
-//			R->EBP(pType->Strength);
-//
-//			//Ares Hook 0x5F53E5
-//			return 0x5F53F3;
-//		}
-//	}
-//
-//	R->EAX(pObject->GetType());
-//
-//	return 0x5F53E5;
-//}
-
  //Patches TechnoClass::Kill_Cargo/KillPassengers (push ESI -> push EBP)
  //Fixes recursive passenger kills not being accredited
  //to proper techno but to their transports
@@ -407,40 +381,3 @@ DEFINE_HOOK(0x707CF2, TechnoClass_KillCargo_FixKiller, 0x8)
 	pCargo->KillCargo(pKiller);
 	return 0x707CFA;
 }
-
-//DEFINE_HOOK(0x5185C8, InfantryClass_ReceiveDamage_InfDeath, 0x6)
-//{
-//	GET(InfantryClass*, I, ESI);
-//	LEA_STACK(args_ReceiveDamage*, Arguments, 0xD4);
-//	GET(DWORD, InfDeath, EDI);
-//	--InfDeath;
-//	R->EDI(InfDeath);
-//
-//	bool Handled = false;
-//
-//	if (!I->Type->NotHuman)
-//	{
-//		if (I->GetHeight() < 10)
-//		{
-//			WarheadTypeExt::ExtData* pWHData = WarheadTypeExt::ExtMap.Find(Arguments->WH);
-//			if (AnimTypeClass* deathAnim = pWHData->InfDeathAnim)
-//			{
-//				AnimClass* Anim = GameCreate<AnimClass>(deathAnim, I->Location);
-//
-//				HouseClass* const Invoker = (Arguments->Attacker)
-//					? Arguments->Attacker->Owner
-//					: Arguments->SourceHouse
-//					;
-//
-//				AnimExt::SetAnimOwnerHouseKind(Anim, Invoker, I->Owner,false);
-//
-//				Handled = true;
-//			}
-//		}
-//	}
-//
-//	return (Handled || InfDeath >= 10)
-//		? 0x5185F1
-//		: 0x5185CE
-//		;
-//}

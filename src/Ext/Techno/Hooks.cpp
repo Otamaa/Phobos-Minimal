@@ -477,10 +477,10 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	};
 
 	GET(InfantryClass* const, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
 	GET(DWORD, InfDeath, EDI);
 
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
 
 	if (!pThis->Type->NotHuman)
 	{
@@ -495,13 +495,13 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 			{
 				AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);
 
-				HouseClass* const Invoker = (receiveDamageArgs.Attacker)
-					? receiveDamageArgs.Attacker->Owner
-					: receiveDamageArgs.SourceHouse
+				HouseClass* const Invoker = (args.Attacker)
+					? args.Attacker->Owner
+					: args.SourceHouse
 					;
 
 				//these were MakeInf stuffs  , to make sure no behaviour chages
-				AnimExt::ExtMap.Find(Anim)->Invoker = receiveDamageArgs.Attacker;
+				AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
 				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
 
 				Handled = true;
@@ -522,8 +522,8 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	{
 		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
 		{
-			auto pInvoker = receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : nullptr;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), receiveDamageArgs.Attacker, true);
+			auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
 			pAnim->ZAdjust = pThis->GetZAdjustment();
 		}
 	}

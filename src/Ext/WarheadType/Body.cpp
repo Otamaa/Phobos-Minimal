@@ -69,15 +69,20 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 	}
 }
 
-void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(TechnoClass* pVictim, args_ReceiveDamage* pArgs)
+void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs)
 {
+	if ((pVictim->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None)
+		return;
+
+	const auto pVictimTechno = static_cast<TechnoClass*>(pVictim);
+
 	if (!this->RecalculateDistanceDamage.Get() || !pArgs->Attacker)
 		return;
 
 	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesClass::Instance->MaxDamage)
 		return;
 
-	const auto pThisType = pVictim->GetTechnoType();
+	const auto pThisType = pVictimTechno->GetTechnoType();
 	const auto range = pArgs->Attacker->DistanceFrom(pVictim);
 	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
 	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);
@@ -95,12 +100,11 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(TechnoClass* pVicti
 
 	if (this->RecalculateDistanceDamage_Display || Phobos::Debug_DisplayDamageNumbers)
 	{
-		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictim;
+		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictimTechno;
 		FlyingStrings::AddMoneyString(true, *pArgs->Damage, pOwner,
 			AffectedHouse::All, pOwner->Location,
-			this->RecalculateDistanceDamage_Display_Offset, ColorStruct::Empty);
+			this->RecalculateDistanceDamage_Display_Offset, Drawing::ColorYellow);
 	}
-
 }
 
 bool WarheadTypeExt::ExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse)
@@ -243,74 +247,11 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 	return true;
 }
 
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
-{
-	if (!pThis)
-		return;
-
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
-
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pATarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
-	{
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
-	}
-}
-
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
-{
-	if (!pThis)
-		return;
-
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	AbstractClass* pTarget = !targetCell ? nullptr : MapClass::Instance->GetCellAt(coords);
-
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
-
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
-	{
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
-	}
-}
-
-void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
-{
-	if (!pThis)
-		return;
-
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
-
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
-	{
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
-	}
-}
-
-bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
+bool WarheadTypeExt::ExtData::ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
 {
 	auto const pThis = OwnerObject();
 	
-
-	if (!pThis->Culling)
+	if (!pThis->Culling || !pSource)
 		return false;
 
 	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget)) {
@@ -335,7 +276,7 @@ bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pT
 	return  nChance < 0 || ScenarioClass::Instance->Random.RandomFromMax(99) < nChance;
 }
 
-void WarheadTypeExt::ExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
+void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
 {
 	if (!this->RelativeDamage)
 		return;
@@ -673,6 +614,68 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RelativeDamage_Infantry.Read(exINI, pSection, "RelativeDamage.Infantry");
 	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
 	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
+}
+
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
+{
+	if (!pThis)
+		return;
+
+	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
+	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
+
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pATarget, pOwner,
+		damage, pThis, 0, 0, pThis->Bright))
+	{
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
+	}
+}
+
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
+{
+	if (!pThis)
+		return;
+
+	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
+	AbstractClass* pTarget = !targetCell ? nullptr : MapClass::Instance->GetCellAt(coords);
+
+	if (pThis->NukeMaker)
+	{
+		if (!pTarget)
+		{
+			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			return;
+		}
+	}
+
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
+		damage, pThis, 0, 0, pThis->Bright))
+	{
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+	}
+}
+
+void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
+{
+	if (!pThis)
+		return;
+
+	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
+
+	if (pThis->NukeMaker)
+	{
+		if (!pTarget)
+		{
+			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			return;
+		}
+	}
+
+	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
+		damage, pThis, 0, 0, pThis->Bright))
+	{
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
+	}
 }
 
 // =============================

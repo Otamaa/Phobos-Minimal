@@ -77,12 +77,13 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 
 DEFINE_HOOK(0x44224F, BuildingClass_ReceiveDamage_DamageSelf, 0x5)
 {
-	enum { SkipCheck = 0x442268 };
+	enum { SkipCheck = 0x442268 , Continue = 0x0 };
 
-	REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0x9C, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
-	return pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get() ? SkipCheck : 0x0;
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	return pWHExt->AllowDamageOnSelf.isset() && pWHExt->AllowDamageOnSelf.Get() ?
+	SkipCheck : Continue;
 }
 
 DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)

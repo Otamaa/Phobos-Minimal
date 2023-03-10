@@ -477,10 +477,10 @@ public:
 		bool CanDealDamage(TechnoClass* pTechno , bool Bypass = false, bool SkipVerses = false);
 		FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner);
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
-		void ApplyRecalculateDistanceDamage(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
+		void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
-		bool applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
-		void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
+		bool ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
+		void ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 
 		virtual ~ExtData() override  = default;
 		void LoadFromINIFile(CCINIClass* pINI) override;

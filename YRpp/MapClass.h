@@ -5,6 +5,7 @@
 #include <CellClass.h>
 #include <AnimTypeClass.h>
 #include <Interface/IGameMap.h>
+#include <SpecificStructures.h>
 
 class BulletTypeClass;
 class ObjectClass;
@@ -341,6 +342,14 @@ public:
 
 	static int __fastcall ModifyDamage(int damage, const WarheadTypeClass* pWarhead, Armor armor, int distance)
 		{ JMP_STD(0x489180); }
+
+	static void ModifyDamage(args_ReceiveDamage* const args , Armor armor) {
+		*args->Damage = ModifyDamage(*args->Damage, args->WH, armor, args->DistanceToEpicenter);
+	}
+
+	static void GetTotalDamage(args_ReceiveDamage* const args, Armor armor) {
+		*args->Damage = ModifyDamage(*args->Damage, args->WH, armor, args->DistanceToEpicenter);
+	}
 
 	static void __fastcall AtomDamage(int OwnedHouse , CellStruct& nCell)
 		{ JMP_STD(0x4251F0); }

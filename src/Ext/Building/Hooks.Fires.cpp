@@ -144,9 +144,9 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pCell, 0x10);
-	REF_STACK(args_ReceiveDamage const, ReceiveDamageArgs, STACK_OFFS(0x9C, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
-	if (ReceiveDamageArgs.WH->Sparky)
+	if (args.WH->Sparky)
 	{
 		auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 		const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
@@ -167,8 +167,8 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop))
 						{
 							pAnim->SetOwnerObject(pThis);
-							const auto pKiller = ReceiveDamageArgs.Attacker;
-							const auto Invoker = (pKiller) ? pKiller->Owner : ReceiveDamageArgs.SourceHouse;
+							const auto pKiller = args.Attacker;
+							const auto Invoker = (pKiller) ? pKiller->Owner : args.SourceHouse;
 
 							AnimExt::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
 						}

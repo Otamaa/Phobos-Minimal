@@ -27,19 +27,18 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
 DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
-	LEA_STACK(args_ReceiveDamage*, args, 0x4);
+	REF_STACK(args_ReceiveDamage, args, 0x4);
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 
 	//if (pWHExt->IgnoreDefense)
 	//	args->IgnoreDefenses = true;
 
-	pWHExt->ApplyDamageMult(pThis, args);
+	pWHExt->ApplyDamageMult(pThis, &args);
 
-	if (!args->IgnoreDefenses)
-	{
+	if (!args.IgnoreDefenses) {
 		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
-			pShieldData->OnReceiveDamage(args);
+			pShieldData->OnReceiveDamage(&args);
 		}
 	}
 

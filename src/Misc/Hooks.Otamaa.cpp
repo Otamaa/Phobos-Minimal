@@ -10,6 +10,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 
 #include <InfantryClass.h>
@@ -561,11 +562,12 @@ DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
 	GET(AnimClass*, pAnim, EDI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
 	GET(int, nIdx, EAX);
-	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
 
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
 	GameConstruct(pAnim, RulesClass::Instance->MetallicDebris[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, Receivedamageargs.Attacker ? Receivedamageargs.Attacker->GetOwningHouse() : Receivedamageargs.SourceHouse, pThis->GetOwningHouse(), false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
+	pThis->GetOwningHouse(), false);
 
 	return 0x70256B;
 }
@@ -577,11 +579,14 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 	GET(AnimClass*, pAnim, EBX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
 	GET(int, nIdx, EDI);
-	REF_STACK(args_ReceiveDamage const, Receivedamageargs, STACK_OFFS(0xC4, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xC4, -0x4));
 
 	//well , the owner dies , so taking Invoker is not nessesary here ,..
 	GameConstruct(pAnim, pType->DebrisAnims[nIdx], nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, Receivedamageargs.Attacker ? Receivedamageargs.Attacker->GetOwningHouse() : Receivedamageargs.SourceHouse, pThis->GetOwningHouse(), false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim,
+	 args.Attacker ?
+	 args.Attacker->GetOwningHouse() :args.SourceHouse,
+	 pThis->GetOwningHouse(), false);
 
 	return 0x7024AF;
 }
@@ -2874,8 +2879,83 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	return SkipGameCode;
 }
 
-// this happen after Ares hook for RelativeDamage
-DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_StackReused, 0xA)
+#include <New/Type/ArmorTypeClass.h>
+
+void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
+{
+	if (Unsorted::CurrentFrame % 15 != 0)
+		return;
+
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	auto const pTechno = generic_cast<TechnoClass*>(pTarget);
+	auto const pType = pTarget->GetType();
+	auto const bIgnoreDefense = args->IgnoreDefenses;
+	bool bImmune_pt2 = false;
+	bool const bImmune_pt1 =
+		(pTarget->IsIronCurtained() && !bIgnoreDefense) ||
+		(pType->Immune && !bIgnoreDefense) || pTarget->InLimbo
+		;
+
+	if (pTechno) {
+		const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
+		bImmune_pt2 = (pShield && pShield->IsActive())
+			|| pTechno->TemporalTargetingMe
+			|| (pTechno->ForceShielded && !bIgnoreDefense)
+			|| pTechno->BeingWarpedOut
+			|| pTechno->IsSinking
+			;
+
+	}
+
+	if (!bImmune_pt1 && !bImmune_pt2) {
+		auto const nArmor = pType->Armor;
+		auto const pArmor = ArmorTypeClass::Array.at((int)nArmor).get();
+
+		if (pArmor) {
+#ifdef COMPILE_PORTED_DP_FEATURES_
+			TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
+#endif
+
+			if ((!pWarheadExt->ArmorHitAnim.empty())) {
+				AnimTypeClass* pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default((int)nArmor);
+
+				if (!pAnimTypeDecided && pArmor->DefaultTo != -1) {
+					//Holy shit !
+					for (auto pDefArmor = ArmorTypeClass::Array.at(pArmor->DefaultTo).get();
+						pDefArmor && pDefArmor->DefaultTo != -1;
+						pDefArmor = ArmorTypeClass::Array.at(pDefArmor->DefaultTo).get()) {
+						pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
+						if (pAnimTypeDecided)
+							break;
+					}
+				}
+
+				if (pAnimTypeDecided) {
+					CoordStruct nBuffer { 0, 0 , 0 };
+
+					if (pTechno) {
+						auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+						if (!pTechnoTypeExt->HitCoordOffset.empty())
+						{
+							if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
+								nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
+							else
+								nBuffer = pTechnoTypeExt->HitCoordOffset[0];
+						}
+					}
+
+					auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
+					if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord)) {
+						AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
+					}
+				}
+			}
+		}
+	}
+}
+
+DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
 {
 	enum {
 		ContinueChecks = 0x5F5456,
@@ -2885,23 +2965,22 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_StackReused, 0xA)
 	};
 
 	GET(ObjectClass*, pObject, ESI);
-	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+	REF_STACK(args_ReceiveDamage, args, STACK_OFFSET(0x24, 0x4));
 
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
-	const auto bIgnoreDefenses = R->BL();
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const bool bIgnoreDefenses = R->BL();
 
-	pWHExt->applyRelativeDamage(pObject , args);
+	ApplyHitAnim(pObject, &args);
+
+	pWHExt->ApplyRelativeDamage(pObject , &args);
 
 	if(!bIgnoreDefenses) {
-		*args->Damage = MapClass::GetTotalDamage(*args->Damage, args->WH, pObject->GetType()->Armor, args->DistanceToEpicenter);
-
-		if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject)) {			
-			//this already calculate distance damage from epicenter
-			pWHExt->ApplyRecalculateDistanceDamage(pThis, args);
-		}
+		MapClass::GetTotalDamage(&args, pObject->GetType()->Armor);
+		//this already calculate distance damage from epicenter
+		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
 	}
 
-	if (*args->Damage == 0 && pObject->WhatAmI() == AbstractType::Building) {
+	if (*args.Damage == 0 && pObject->WhatAmI() == AbstractType::Building) {
 		auto const pBld = static_cast<BuildingClass*>(pObject);
 
 		if (!pBld->Type->CanC4) {
@@ -2909,20 +2988,20 @@ DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_StackReused, 0xA)
 			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
 			if (!pTypeExt->CanC4_AllowZeroDamage)
-				*args->Damage = 1;
+				*args.Damage = 1;
 		}
 	}
 
-	if (!bIgnoreDefenses && args->Attacker && *args->Damage > 0) {
-		if (pWHExt->applyCulling(args->Attacker, pObject))
-			*args->Damage = pObject->Health;
+	if (!bIgnoreDefenses && args.Attacker && *args.Damage > 0) {
+		if (pWHExt->ApplyCulling(args.Attacker, pObject))
+			*args.Damage = pObject->Health;
 	}
 
-	int nDamage = *args->Damage;
-	auto const pTypeStr = pObject->GetType()->Strength;
+	const int pTypeStr = pObject->GetType()->Strength;
+	const int nDamage = *args.Damage;
 	R->EBP(pTypeStr);
 	R->Stack(0x38, pTypeStr);
-	R->ECX(*args->Damage);
+	R->ECX(nDamage);
 
 	if (!nDamage)
 		return ReturnResultNone;
@@ -2937,7 +3016,7 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 
 	enum { ApplyDamage = 0x629D19, GainExperience = 0x629BF3, SkipGainExperience = 0x629C5D };
 
-	if (!WarheadTypeExt::ExtMap.Find(pWH)->applyCulling(pThis->Owner, pThis->Victim))
+	if (!WarheadTypeExt::ExtMap.Find(pWH)->ApplyCulling(pThis->Owner, pThis->Victim))
 		return ApplyDamage;
 
 	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(pThis->Victim)
@@ -3121,24 +3200,20 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 {
 	GET(InfantryClass*, pThis, ESI);
-	//REF_STACK(args_ReceiveDamage const, receiveDamageArgs, STACK_OFFS(0xD0, -0x4));
+	// REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
 
-	//if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet)
-	//{
-	//	auto pWHExt = WarheadTypeExt::ExtMap.Find(receiveDamageArgs.WH);
-	//	auto const Iter = GetDeathBodies<false>(pThis->Type, pWHExt->DeadBodies);
-
-	//	if (!Iter.empty())
-	//	{
-	//		if (AnimTypeClass* pSelected = Iter.at(ScenarioGlobal->Random.RandomFromMax(Iter.size() - 1)))
-	//		{
-	//			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-	//			{
-	//				AnimExt::SetAnimOwnerHouseKind(pAnim, receiveDamageArgs.Attacker ? receiveDamageArgs.Attacker->GetOwningHouse() : receiveDamageArgs.SourceHouse, pThis->GetOwningHouse(), true);
-	//			}
-	//		}
-	//	}
-	//}
+	// if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet) {
+	// 	auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	// 	if (!pWHExt->DeadBodies.empty()) {
+	// 		if (AnimTypeClass* pSelected = pWHExt->DeadBodies.at(
+	// 			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->DeadBodies.size() - 1)))
+	// 		{
+	// 			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
+	// 				AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->GetOwningHouse(), true);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	pThis->UnInit();
 	return 0x518BA0;
