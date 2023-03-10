@@ -305,8 +305,95 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 	}
 }
 
-// =============================
-// load / save
+bool WarheadTypeExt::ExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
+{
+	auto const pThis = OwnerObject();
+	
+
+	if (!pThis->Culling)
+		return false;
+
+	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget)) {
+		if (TechnoExt::IsCullingImmune(pTargetTechno))
+			return false;
+	}
+
+	const auto nCullingHP = Culling_BelowHP.Get(pSource);
+
+	if (nCullingHP <= 0)
+	{
+		if ((int)pTarget->GetHealthStatus() > -nCullingHP)
+			return false;
+	}
+	else
+	{
+		if (static_cast<int>(pTarget->GetHealthPercentage_() * 100.0) > nCullingHP)
+			return false;
+	}
+
+	const auto nChance = Culling_Chance.Get(pSource);
+	return  nChance < 0 || ScenarioClass::Instance->Random.RandomFromMax(99) < nChance;
+}
+
+void WarheadTypeExt::ExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const
+{
+	if (!this->RelativeDamage)
+		return;
+
+	{
+		auto const pWhat = pTarget->WhatAmI();
+		int nRelativeVal = 0;
+
+		switch (pWhat)
+		{
+		case AbstractType::Unit:
+		{
+			const auto pUnit = static_cast<UnitClass*>(pTarget);
+
+			if (pUnit->Type->ConsideredAircraft)
+				nRelativeVal = RelativeDamage_AirCraft.Get();
+			else if (pUnit->Type->Organic)
+				nRelativeVal = RelativeDamage_Infantry.Get();
+			else
+				nRelativeVal = RelativeDamage_Unit.Get();
+		}
+		break;
+		case AbstractType::Aircraft:
+		{
+			const auto pAir = static_cast<AircraftClass*>(pTarget);
+
+			if (pAir->Type->Organic)
+				nRelativeVal = RelativeDamage_Infantry.Get();
+			else
+				nRelativeVal = RelativeDamage_AirCraft.Get();
+		}
+		break;
+		case AbstractType::Building:
+			nRelativeVal = RelativeDamage_Building.Get();
+			break;
+		case AbstractType::Infantry:
+			nRelativeVal = RelativeDamage_Infantry.Get();
+			break;
+		case AbstractType::Terrain:
+			nRelativeVal = RelativeDamage_Terrain.Get();
+			break;
+		}
+
+		if (nRelativeVal) {
+
+			if (nRelativeVal < 0)
+				nRelativeVal *= pTarget->Health / -100;
+			else
+			if (const auto pType = pTarget->GetType())
+				nRelativeVal *= pType->Strength / 100;
+		}
+
+		if (*pArgs->Damage < 0)
+			nRelativeVal = -nRelativeVal;
+
+		*pArgs->Damage = nRelativeVal;
+	}
+}
 
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
@@ -577,7 +664,19 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
+	this->Culling_BelowHP.Read(exINI, pSection, "Culling.%sBelowHealth");
+	this->Culling_Chance.Read(exINI, pSection, "Culling.%sChance");
+
+	this->RelativeDamage.Read(exINI, pSection, "RelativeDamage");
+	this->RelativeDamage_AirCraft.Read(exINI, pSection, "RelativeDamage.Aircraft");
+	this->RelativeDamage_Unit.Read(exINI, pSection, "RelativeDamage.Vehicles");
+	this->RelativeDamage_Infantry.Read(exINI, pSection, "RelativeDamage.Infantry");
+	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
+	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
 }
+
+// =============================
+// load / save
 
 template <typename T>
 void WarheadTypeExt::ExtData::Serialize(T& Stm)
@@ -752,6 +851,16 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LimboKill_IDs)
 		.Process(this->LimboKill_Affected)
 		.Process(this->InfDeathAnim)
+
+		.Process(this->Culling_BelowHP)
+		.Process(this->Culling_Chance)
+
+		.Process(this->RelativeDamage)
+		.Process(this->RelativeDamage_AirCraft)
+		.Process(this->RelativeDamage_Unit)
+		.Process(this->RelativeDamage_Infantry)
+		.Process(this->RelativeDamage_Building)
+		.Process(this->RelativeDamage_Terrain)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

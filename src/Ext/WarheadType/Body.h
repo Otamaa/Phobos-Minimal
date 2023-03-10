@@ -223,6 +223,17 @@ public:
 		Valueable<AffectedHouse> LimboKill_Affected;
 
 		Valueable<AnimTypeClass*> InfDeathAnim;
+
+		Promotable<int> Culling_BelowHP;
+		Promotable<int> Culling_Chance;
+
+		Valueable<bool> RelativeDamage;
+		Valueable<int> RelativeDamage_AirCraft;
+		Valueable<int> RelativeDamage_Unit;
+		Valueable<int> RelativeDamage_Infantry;
+		Valueable<int> RelativeDamage_Building;
+		Valueable<int> RelativeDamage_Terrain;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -408,6 +419,15 @@ public:
 			, LimboKill_IDs {}
 			, LimboKill_Affected { AffectedHouse::Owner }
 			, InfDeathAnim { nullptr }
+
+			, Culling_BelowHP {}
+			, Culling_Chance {}
+			, RelativeDamage { false }
+			, RelativeDamage_AirCraft { 0 }
+			, RelativeDamage_Unit { 0 }
+			, RelativeDamage_Infantry { 0 }
+			, RelativeDamage_Building { 0 }
+			, RelativeDamage_Terrain { 0 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -459,6 +479,8 @@ public:
 		void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRecalculateDistanceDamage(TechnoClass* pVictim, args_ReceiveDamage* pArgs);
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
+		bool applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
+		void applyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 
 		virtual ~ExtData() override  = default;
 		void LoadFromINIFile(CCINIClass* pINI) override;

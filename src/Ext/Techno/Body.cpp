@@ -43,6 +43,25 @@
 
 TechnoExt::ExtContainer TechnoExt::ExtMap;
 
+bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+
+	if (rank == Rank::Elite)
+	{
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CullingImmune))
+			return true;
+	}
+	if (rank == Rank::Veteran)
+	{
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CullingImmune))
+			return true;
+	}
+
+	return false;
+}
+
 bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());

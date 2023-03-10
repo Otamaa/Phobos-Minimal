@@ -573,6 +573,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	if (this->SpyEffect_InfiltratorSuperWeapon.isset())
 		this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
 
+	this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 
 	// no code attached
 	this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
@@ -730,6 +731,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_VictimSuperWeapon)
 		.Process(this->SpyEffect_InfiltratorSuperWeapon)
 		.Process(this->SpyEffect_InfiltratorSW_JustGrant)
+		.Process(this->CanC4_AllowZeroDamage)
 		.Process(this->SpyEffect_VictimSW_RealLaunch)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)

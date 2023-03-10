@@ -306,6 +306,10 @@ public:
 		JMP_THIS(0x449BC0);
 	}
 
+	void UpdateAnimations() { 
+		JMP_THIS(0x4509D0); 
+	}
+
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

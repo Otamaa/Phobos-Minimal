@@ -2032,17 +2032,17 @@ DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
 
 #endif
 
-//DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
-//{
-//	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
-//
-//	GET(int, nCurStr, EDX);
-//	GET(int, nMaxStr, EBP);
-//	GET(int, nDamage, ECX);
-//
-//	const auto curstr = Game::F2I(nMaxStr * RulesClass::Instance->ConditionYellow);
-//	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
-//}
+DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
+{
+	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
+
+	GET(int, nCurStr, EDX);
+	GET(int, nMaxStr, EBP);
+	GET(int, nDamage, ECX);
+
+	const auto curstr = Game::F2I(nMaxStr * RulesClass::Instance->ConditionYellow);
+	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
+}
 
 //DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
 //{
@@ -2874,56 +2874,74 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x5F53E5, ObjectClass_ReceiveDamage_StackReused, 0x6)
+// this happen after Ares hook for RelativeDamage
+DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_StackReused, 0xA)
 {
-	enum { DecideResult = 0x5F5416, RecalculateDamage = 0x5F53F3 };
-	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
-	return args->IgnoreDefenses ? DecideResult : RecalculateDamage;
-}
-
-DEFINE_HOOK(0x5F5416, ObjectClass_ReceiveDamage_AfterDamageCalculate, 0x6)
-{
-	enum
-	{
-		Nothing = 0x0,
-		CheckForZeroDamage = 0x5F5456,
+	enum {
+		ContinueChecks = 0x5F5456,
 		DecideResult = 0x5F5498,
-		SkipDecdeResult = 0x5F546A
+		SkipDecideResult = 0x5F546A,
+		ReturnResultNone = 0x5F545C,
 	};
 
 	GET(ObjectClass*, pObject, ESI);
-	//LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
 
-	//const auto pIgnoreDefenses = args->IgnoreDefenses; //copy the data before reusing it , since the stack are reused below
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	const auto bIgnoreDefenses = R->BL();
+
+	pWHExt->applyRelativeDamage(pObject , args);
+
+	if(!bIgnoreDefenses) {
+		*args->Damage = MapClass::GetTotalDamage(*args->Damage, args->WH, pObject->GetType()->Armor, args->DistanceToEpicenter);
+
+		if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject)) {			
+			//this already calculate distance damage from epicenter
+			pWHExt->ApplyRecalculateDistanceDamage(pThis, args);
+		}
+	}
+
+	if (*args->Damage == 0 && pObject->WhatAmI() == AbstractType::Building) {
+		auto const pBld = static_cast<BuildingClass*>(pObject);
+
+		if (!pBld->Type->CanC4) {
+
+			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+			if (!pTypeExt->CanC4_AllowZeroDamage)
+				*args->Damage = 1;
+		}
+	}
+
+	if (!bIgnoreDefenses && args->Attacker && *args->Damage > 0) {
+		if (pWHExt->applyCulling(args->Attacker, pObject))
+			*args->Damage = pObject->Health;
+	}
+
+	int nDamage = *args->Damage;
 	auto const pTypeStr = pObject->GetType()->Strength;
 	R->EBP(pTypeStr);
 	R->Stack(0x38, pTypeStr);
-	//if (!(pObject->AbstractFlags & AbstractFlags::Techno)) {	
-	//	return CheckForZeroDamage;
-	//}
+	R->ECX(*args->Damage);
 
-	return Nothing;
+	if (!nDamage)
+		return ReturnResultNone;
+
+	return nDamage > 0 ? DecideResult : SkipDecideResult;
 }
 
-DEFINE_HOOK(0x5F53F3, ObjectClass_ReceiveDamage_RecalculateDamages, 0x6)
+DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 {
-	GET(ObjectClass*, pObject, ESI);
-	LEA_STACK(args_ReceiveDamage*, args, STACK_OFFSET(0x24, 0x4));
+	GET(ParasiteClass*, pThis, ESI);
+	GET(WarheadTypeClass*, pWH, EDI);
 
-	if (TechnoClass* const pThis = abstract_cast<TechnoClass*>(pObject))
-	{
-		//const auto pExt = TechnoExt::ExtMap.Find(pThis);
-		const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
-		const auto pThisType = pThis->GetTechnoType();
+	enum { ApplyDamage = 0x629D19, GainExperience = 0x629BF3, SkipGainExperience = 0x629C5D };
 
-		//this already calculate distance damage from epicenter
-		*args->Damage = MapClass::GetTotalDamage(*args->Damage, args->WH, pThisType->Armor, args->DistanceToEpicenter);
-		pWHExt->ApplyRecalculateDistanceDamage(pThis, args);
+	if (!WarheadTypeExt::ExtMap.Find(pWH)->applyCulling(pThis->Owner, pThis->Victim))
+		return ApplyDamage;
 
-		return 0x5F5416;
-	}
-
-	return 0;
+	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(pThis->Victim)
+		? SkipGainExperience : GainExperience;
 }
 
 DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)

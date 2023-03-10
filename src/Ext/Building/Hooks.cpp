@@ -188,3 +188,4 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 	return Continue;
 }
+

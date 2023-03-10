@@ -49,6 +49,7 @@ enum class PhobosAbilityType : int
 	ChronoDelayDamageImmune = 1,
 	CritImmune = 2,
 	PsionicsImmune = 3,
+	CullingImmune = 4,
 
 	count
 };

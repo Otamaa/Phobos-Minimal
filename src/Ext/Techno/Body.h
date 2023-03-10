@@ -315,6 +315,7 @@ private:
 	static NOINLINE ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
 	static NOINLINE bool IsCritImmune(TechnoClass* pThis);
 	static NOINLINE bool IsPsionicsImmune(TechnoClass* pThis);
+	static NOINLINE bool IsCullingImmune(TechnoClass* pThis);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
