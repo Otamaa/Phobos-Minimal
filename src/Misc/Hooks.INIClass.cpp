@@ -185,16 +185,16 @@ struct INIInheritance
 	}
 };
 
-// INIClass_GetString_DisableAres
-DEFINE_PATCH(0x528A10, 0x83, 0xEC, 0x0C, 0x33, 0xC0);
-// INIClass_GetKeyName_DisableAres
-DEFINE_PATCH(0x526CC0, 0x8B, 0x54, 0x24, 0x04, 0x83, 0xEC, 0x0C);
+// 
+DEFINE_DISABLE_HOOK(0x528A10, INIClass_GetString_DisableAres);
+// 
+DEFINE_DISABLE_HOOK(0x526CC0, INIClass_GetKeyName_DisableAres);
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
-// CCINIClass_ReadCCFile1_DisableAres
-DEFINE_PATCH(0x474200, 0x8B, 0xF1, 0x8D, 0x54, 0x24, 0x0C)
-// CCINIClass_ReadCCFile2_DisableAres
-DEFINE_PATCH(0x474314, 0x81, 0xC4, 0xA8, 0x00, 0x00, 0x00)
+// 
+DEFINE_DISABLE_HOOK(0x474200, CCINIClass_ReadCCFile1_DisableAres)
+// 
+DEFINE_DISABLE_HOOK(0x474314, CCINIClass_ReadCCFile2_DisableAres)
 
 DEFINE_HOOK(0x528A18, INIClass_GetString_SaveEntry, 0x6)
 {

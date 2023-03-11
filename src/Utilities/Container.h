@@ -301,11 +301,8 @@ public:
 		return this->Allocate(key);
 	}
 
-	NOINLINE extension_type_ptr Find(base_type_ptr key) const
+	extension_type_ptr Find(base_type_ptr key) const
 	{
-		if (!key)
-			return nullptr;
-
 		return this->GetExtAttribute(key);
 	}
 

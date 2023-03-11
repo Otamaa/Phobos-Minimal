@@ -239,7 +239,6 @@ struct SyringeHandshakeInfo
 
 #define SYRINGE_HANDSHAKE(pInfo) extern "C" __declspec(dllexport) HRESULT __cdecl SyringeHandshake(SyringeHandshakeInfo* pInfo)
 
-
 #if SYR_VER == 2
 
 #pragma pack(push, 16)
@@ -251,6 +250,14 @@ __declspec(align(16)) struct hookdecl {
 	const char * hookName;
 };
 
+struct alignas(16) overridehookdecl
+{
+	unsigned int hookAddr;
+	unsigned int hookSize;
+	const char* hookNamePtr;
+	const char* overrideModuleName;
+};
+
 __declspec(align(16)) struct hostdecl {
 	unsigned int hostChecksum;
 	const char * hostName;
@@ -259,6 +266,7 @@ __declspec(align(16)) struct hostdecl {
 #pragma pack(pop)
 
 #pragma section(".syhks00", read, write)
+#pragma section(".syhks01", read, write)
 #pragma section(".syexe00", read, write)
 namespace SyringeData {
 	namespace Hooks {
@@ -270,11 +278,25 @@ namespace SyringeData {
 };
 
 #define declhost(exename, checksum) \
-namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename = { checksum, #exename }; }; };
+namespace SyringeData { \
+namespace Hosts { \
+__declspec(allocate(".syexe00")) \
+hostdecl _hst__ ## exename = { checksum, #exename }; \
+}; };
 
 #define declhook(hook, funcname, size) \
-namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; }; };
+namespace SyringeData { \
+namespace Hooks { \
+__declspec(allocate(".syhks00"))\
+hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
+}; };
 
+#define decl_override_hook(hook, funcname, size) \
+namespace SyringeData { \
+namespace Hooks { \
+__declspec(allocate(".syhks01"))\
+overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ares.dll" }; \
+}; };
 #endif // SYR_VER == 2
 
 
@@ -287,10 +309,17 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 #define declhook(hook, funcname, size)
 #endif // declhook
 
+#ifndef decl_override_hook
+#define decl_override_hook(hook, funcname, size)
+#endif // declhook
+
 #define DEFINE_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
 
+#define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
+decl_override_hook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
 /*Defines a hook at the specified address with the specified nameand saving the specified
 amount of instruction bytes to be restored if return to the same address is used.
 In addition to the injgen-declaration, also includes the function opening.*/
@@ -300,6 +329,12 @@ In addition to the injgen-declaration, also includes the function opening.*/
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
+
+#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+decl_override_hook(hook, funcname, size)
+
+#define DEFINE_DISABLE_HOOK(hook,funcname) \
+decl_override_hook(hook, funcname, -1) \
 
 //#define DEFINE_HOOK(hook, funcname, size) \
 //declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) \

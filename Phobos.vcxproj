@@ -119,7 +119,6 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Cloak.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
@@ -159,6 +158,11 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Ext\Infantry\Hooks.cpp" />
+    <ClCompile Include="src\Misc\Ares\Ext\Side\Hooks.cpp" />
+    <ClCompile Include="src\Misc\Ares\Ext\Techno\Hooks.cpp" />
+    <ClCompile Include="src\Misc\Ares\Misc\Hooks.Bugfixes.cpp" />
+    <ClCompile Include="src\Misc\Ares\Misc\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />

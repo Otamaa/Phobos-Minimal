@@ -190,14 +190,14 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 	return Continue;
 }
 
-DEFINE_HOOK(0x6E2368, ActionClass_PlayAnimAt, 0x7)
-{
-	GET(AnimClass*, pAnim, EAX);
-	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x4));
-
-	if (pAnim) {
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pHouse,false);
-	}
-
-	return 0;
-}
+//DEFINE_HOOK(0x6E2368, ActionClass_PlayAnimAt, 0x7)
+//{
+//	GET(AnimClass*, pAnim, EAX);
+//	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x4));
+//
+//	if (pAnim) {
+//		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, pHouse,false);
+//	}
+//
+//	return 0;
+//}

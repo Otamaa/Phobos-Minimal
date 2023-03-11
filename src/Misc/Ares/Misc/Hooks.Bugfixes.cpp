@@ -11,7 +11,7 @@
 
 #include <Ext/TechnoType/Body.h>
 
-DEFINE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
+DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 {
 	GET(AbstractClass*, pThis, ECX);
 	GET(AbstractClass*, pThat, EBX);
@@ -26,7 +26,7 @@ DEFINE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 	return 0x5F6559;
 }
 
-DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 {
 	GET(AbstractClass*, pThis, ECX);
 	auto const nThisCoord = pThis->GetCoords();
@@ -40,7 +40,8 @@ DEFINE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	return 0x5F659B;
 }
 
-DEFINE_JUMP(LJMP, 0x414D36, 0x414D4D)
+DEFINE_OVERRIDE_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir, 0x5)
+{ return 0x414D4D; }
 
 //TODO:
 //DEFINE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
@@ -67,7 +68,7 @@ DEFINE_JUMP(LJMP, 0x414D36, 0x414D4D)
 //}
 
 
-DEFINE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
+DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 {
 	GET(FootClass*, pCargo, ESI);
 
@@ -80,7 +81,7 @@ DEFINE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
+DEFINE_OVERRIDE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 {
 	GET(UnitClass*, pCargo, ESI);
 

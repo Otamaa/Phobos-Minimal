@@ -9,7 +9,7 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-DEFINE_HOOK(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
+DEFINE_OVERRIDE_HOOK(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
 {
 	GET(AircraftClass*, pCarryall, EDI);
 	GET(UnitClass*, pCargo, ESI);

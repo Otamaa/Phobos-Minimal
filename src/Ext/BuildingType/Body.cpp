@@ -505,7 +505,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			if (!nBuffer.isset())
 				continue;
 
-			nVec[i] = nBuffer.Get(nullptr);
+			nVec[i] = nBuffer.Get();
 		}
 
 		if (!nVec.empty())

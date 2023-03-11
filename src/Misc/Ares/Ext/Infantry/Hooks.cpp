@@ -12,7 +12,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 
-DEFINE_HOOK(0x6E232E, ActionClass_PlayAnimAt, 0x5)
+DEFINE_OVERRIDE_HOOK(0x6E232E, ActionClass_PlayAnimAt, 0x5)
 {
 	GET(TActionClass*, pAction, ESI);
 	GET_STACK(HouseClass*, pHouse, 0x1C);

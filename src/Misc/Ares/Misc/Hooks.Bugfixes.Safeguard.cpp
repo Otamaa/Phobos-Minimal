@@ -9,7 +9,7 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-DEFINE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
+DEFINE_OVERRIDE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
 {
 	GET(const char*, ID, EAX);
 

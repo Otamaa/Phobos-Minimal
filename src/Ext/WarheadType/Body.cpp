@@ -512,18 +512,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 				_snprintf_s(tempBuffer, _TRUNCATE, "%s.%s", pBaseKey, pArmor->Name.data());
 				pAnimReaded.Read(exINI, pSection, tempBuffer, bAllocate);
 			}
-			ArmorHitAnim[i] = pAnimReaded.Get(nullptr);
-		}
 
-		//remove invalid items!
-		if (!ArmorHitAnim.empty())
-		{
-			//remove invalid items to keep memory clean !
-			for (auto const& [nArmor, Anim] : ArmorHitAnim)
-			{
-				if (!Anim)
-					ArmorHitAnim.erase(nArmor);
-			}
+			if (!pAnimReaded.isset())
+				continue;
+
+			ArmorHitAnim[i] = pAnimReaded.Get();
 		}
 	};
 
