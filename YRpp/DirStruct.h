@@ -17,6 +17,9 @@ public:
 	explicit DirStruct(int raw) noexcept : Raw { static_cast<unsigned short>(raw) } { }
 	explicit DirStruct(double rad) noexcept { SetRadian<65536>(rad); }
 	explicit DirStruct(const DirType dir) noexcept { SetDir(dir); }
+	explicit DirStruct(size_t bits, const DirType value)
+		: DirStruct(static_cast<unsigned short>(TranslateFixedPointNoconstexpr(bits, 16, static_cast<unsigned short>(value), 0)))
+	{ }
 	explicit DirStruct(const noinit_t&) noexcept { }
 	explicit DirStruct(double Y, double X) : DirStruct() {
 		SetRadian<65536>(Math::atan2(Y, X));

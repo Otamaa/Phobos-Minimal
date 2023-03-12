@@ -184,8 +184,8 @@ DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 {
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
 
-	if (const auto pLinked = pLoco->Owner)
-		if (auto const pCell = pLinked->GetCell())
+	if (const auto pLinked = pLoco->Owner ? pLoco->Owner : pLoco->LinkedTo)
+		if (auto const pCell = MapClass::Instance->GetCellAt(pLinked->GetMapCoords()))
 			pCell->CollectCrate(pLinked);
 
 	return 0;

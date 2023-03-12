@@ -320,6 +320,10 @@ EXPORT_FUNC(funcname)
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
 decl_override_hook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
+
+#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
+DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+
 /*Defines a hook at the specified address with the specified nameand saving the specified
 amount of instruction bytes to be restored if return to the same address is used.
 In addition to the injgen-declaration, also includes the function opening.*/

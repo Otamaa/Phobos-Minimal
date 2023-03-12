@@ -138,7 +138,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	}
 	case AreaFireTarget::Self:
 	{
-		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
+		if (!EnumFunctions::AreCellAndObjectsEligible(MapClass::Instance->GetCellAt(pThis->GetMapCoords()), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
@@ -156,7 +156,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 int TechnoExt::GetDeployFireWeapon(UnitClass* pThis)
 {
 	if (pThis->Type->DeployFireWeapon == -1)
-		return pThis->TechnoClass::SelectWeapon(pThis->Target);
+		return pThis->TechnoClass::SelectWeapon(pThis->Target ? pThis->Target : pThis->GetCell());
 
 	return pThis->Type->DeployFireWeapon;
 }
@@ -178,11 +178,11 @@ std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarge
 		{
 			pTargetTechno = static_cast<TechnoClass*>(pObjTarget);
 			if (!pTargetTechno->IsInAir())	// Ignore target cell for airborne technos.
-				targetCell = pObjTarget->GetCell();
+				targetCell = MapClass::Instance->GetCellAt(pObjTarget->GetMapCoords());
 		}
 		else // non techno target , but still an object
 		{
-			targetCell = pObjTarget->GetCell();
+			targetCell = MapClass::Instance->GetCellAt(pObjTarget->GetMapCoords());
 		}
 	}
 
@@ -1271,7 +1271,7 @@ bool TechnoExt::ExtData::IsInterceptor()
 void TechnoExt::ExtData::UpdateInterceptor()
 {
 	auto const pThis = this->Get();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(this->Type);
 
 	if (!this->IsInterceptor() || pThis->Target)
 		return;
@@ -1856,7 +1856,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 			if (pWhat != AbstractType::Infantry && pFoot->CurrentMission != Mission::Unload)
 			{
-				if (auto const pCell = pFoot->GetCell())
+				if (auto const pCell = MapClass::Instance->GetCellAt(pFoot->GetMapCoords()))
 				{
 					if (auto const pBuilding = pCell->GetBuilding())
 					{
@@ -1884,8 +1884,8 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	if (!pThis->IsAlive)
 		return true;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto pTypeThis = pTypeExt->Get();
+	const auto pTypeThis = this->Type;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(this->Type);
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
 
@@ -2618,7 +2618,8 @@ void TechnoExt::ExtData::UpdateMobileRefinery()
 
 void TechnoExt::ExtData::UpdateRevengeWeapons()
 {
-	//const auto pThis = this->Get();
+	if (this->RevengeWeapons.begin() == this->RevengeWeapons.end())
+		return;
 
 	for (size_t i = 0; i < this->RevengeWeapons.size(); i++)
 	{
@@ -2808,7 +2809,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 		{
 			// Ignore target cell for technos that are in air.
 			if ((pTargetTechno && !pTargetTechno->IsInAir()) || pObject != pTargetTechno)
-				targetCell = pObject->GetCell();
+				targetCell = MapClass::Instance->GetCellAt(pObject->GetMapCoords());
 		}
 	}
 
@@ -2875,7 +2876,7 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 	if (!pContact)
 		return false;
 
-	auto const pCell = pThis->GetCell();
+	auto const pCell = MapClass::Instance->GetCellAt(pThis->GetMapCoords());
 
 	if (!pCell)
 		return false;

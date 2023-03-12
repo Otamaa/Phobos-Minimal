@@ -191,14 +191,14 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 	if ((pType->Turret && !pType->HasTurret) || pType->TurretSpins)
 		return 0;
 
-	if ((pType->DeployFire || pType->DeployFireWeapon == wpIdx) && pThis->CurrentMission == Mission::Unload)
+	if ((pType->DeployFire || TechnoExt::GetDeployFireWeapon(pThis) == wpIdx) && pThis->CurrentMission == Mission::Unload)
 		return 0;
-	
+
 	auto const pWpnStruct = pThis->GetWeapon(wpIdx);
 	if(!pWpnStruct)
 		return 0;
 
-	auto const pWpn = pThis->GetWeapon(wpIdx)->WeaponType;
+	auto const pWpn = pWpnStruct->WeaponType;
 	if (pWpn->OmniFire)
 	{
 		const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWpn);

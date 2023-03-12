@@ -131,6 +131,7 @@ public:
 		ValueableVector<BuildingTypeClass*> WallTowers;
 		Valueable<bool> AutoAttackICedTarget;
 		Nullable<float> AI_SpyMoneyStealPercent;
+		Valueable<int> DoggiePanicMax;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -226,6 +227,7 @@ public:
 			, WallTowers { }
 			, AutoAttackICedTarget { false }
 			, AI_SpyMoneyStealPercent { }
+			, DoggiePanicMax { 300 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

@@ -276,7 +276,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	}
 	else if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
-		pCell = pTerrain->GetCell();
+		pCell = MapClass::Instance->GetCellAt(pTerrain->GetMapCoords());
 
 		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
 			return DisallowFiring;

@@ -97,7 +97,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	PassengersFunctional::AI(pThis);
@@ -123,7 +123,7 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 	GET(AircraftClass*, pThis, ESI);
 
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	pExt->UpdateAircraftOpentopped();
 #ifdef COMPILE_PORTED_DP_FEATURES

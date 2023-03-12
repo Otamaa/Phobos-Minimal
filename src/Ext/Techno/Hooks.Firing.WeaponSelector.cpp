@@ -247,7 +247,7 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 			}
 			else
 			{
-				auto pCell = pTargetTechno->GetCell();
+				const auto pCell = MapClass::Instance->GetCellAt(pTargetTechno->GetMapCoords());
 				bool isOnWater = (pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pTargetTechno->IsInAir();
 
 				if (!pTargetTechno->OnBridge && isOnWater)

@@ -497,8 +497,7 @@ public:
 			return 0;
 		}
 
-		for (int i = 0; i < this->Count; i++)
-		{
+		for (int i = 0; i < this->Count; i++) {
 			if (this->Items[i] == item)
 			{
 				return i;
@@ -520,10 +519,13 @@ public:
 
 	T GetItemOrDefault(int i, T def) const
 	{
-		if (this->ValidIndex(i))
-		{
+		if(i == -1)
+			return def;
+
+		if (this->ValidIndex(i)) {
 			return this->Items[i];
 		}
+
 		return def;
 	}
 
@@ -564,7 +566,9 @@ public:
 
 		if (index < this->Count)
 		{
-			std::memmove(&this->Items[index + 1], &this->Items[index], (this->Count - index) * sizeof(T));
+			auto nDest = &this->Items[index + 1];
+			auto nSource = &this->Items[index];
+			std::memmove(nDest, nSource, (this->Count - index) * sizeof(T));
 		}
 
 		this->Items[index] = std::move_if_noexcept(object);
@@ -591,14 +595,12 @@ public:
 			return false;
 		}
 
-		auto nBegin = (&this->Items[index]);
-		auto nEnd = (&this->Items[this->Count]);
+		const auto nFind = (&this->Items[index]);
+		const auto nEnd = (&this->Items[this->Count]);
 
-		if (nBegin != nEnd)
-		{
-			auto nNext = std::next(nBegin, 1); //pick next item after target
-			const auto nDistance = nEnd - nNext; // calculate the distance
-			std::memmove(nBegin, nNext, static_cast<size_t>(sizeof(T) * nDistance)); // move all the items from next to current pos
+		if (nFind != nEnd) {
+			// move all the items from next to current pos
+			std::memmove(nFind, nFind + 1, (size_t)(sizeof(T) * std::distance(nFind + 1, nEnd)));
 			--this->Count;//decrease the count
 			return true;
 		}
@@ -608,24 +610,15 @@ public:
 
 	bool Remove(const T& item)
 	{
-		auto nBegin = (&this->Items[0]);
-		auto nEnd = (&this->Items[this->Count]);
-
-		if (nBegin != nEnd)
-		{
-			while (*nBegin != item)
-			{
-				if (++nBegin == nEnd)
-				{
-					return false;
-				}
+		const auto  nEnd = (&this->Items[this->Count]);
+		for (auto nFind = (&this->Items[0]);
+			nFind != nEnd; ++nFind) {
+			if ((*nFind) == item) {
+				// move all the items from next to current pos
+				std::memmove(nFind, nFind + 1, (size_t)(sizeof(T) * std::distance(nFind + 1, nEnd)));
+				--this->Count;//decrease the count
+				return true;
 			}
-
-			auto nNext = std::next(nBegin, 1); //pick next item after target
-			const auto nDistance = nEnd - nNext; // calculate the distance
-			std::memmove(nBegin, nNext, static_cast<size_t>(sizeof(T) * nDistance)); // move all the items from next to current pos
-			--this->Count;//decrease the count
-			return true;
 		}
 
 		return false;

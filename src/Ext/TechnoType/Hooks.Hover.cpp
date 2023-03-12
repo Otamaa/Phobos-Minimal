@@ -96,8 +96,9 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 	if (!(Unsorted::CurrentFrame % 10))
 	{
 		const auto Linked = GetOwner(pLoco);
+		auto const pCell = MapClass::Instance->GetCellAt(Linked->GetMapCoords());
 
-		if (!Linked->IsOnBridge() && Linked->GetCell()->LandType == LandType::Water)
+		if (!Linked->IsOnBridge() && pCell->LandType == LandType::Water)
 		{
 			if (const auto pAnimType = GetHover(Linked)->GetAboveWaterAnim())
 			{

@@ -110,7 +110,9 @@ DEFINE_HOOK(0x7098B9, TechnoClass_TargetSomethingNearby_AutoFire, 0x6)
 
 	if (pExt->AutoFire)
 	{
-		pThis->SetTarget(pExt->AutoFire_TargetSelf ? pThis : static_cast<AbstractClass*>(pThis->GetCell()));
+		pThis->SetTarget(pExt->AutoFire_TargetSelf ? pThis :
+		static_cast<AbstractClass*>(MapClass::Instance->GetCellAt(pThis->GetMapCoords())));
+
 		return Skip;
 	}
 

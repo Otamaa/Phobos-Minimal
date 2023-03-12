@@ -306,6 +306,14 @@ public:
 		return this->GetExtAttribute(key);
 	}
 
+	extension_type_ptr TryFind(base_type_ptr key) const
+	{
+		if(!key)
+			return nullptr;
+
+		return this->GetExtAttribute(key);
+	}
+
 	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = Find(key)) {

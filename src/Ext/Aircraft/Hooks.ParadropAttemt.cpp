@@ -10,7 +10,7 @@ DEFINE_HOOK(0x413F98, AircraftClass_Init, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pThisType, EDI);
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pThisType)) {
+	if (auto const pExt = TechnoTypeExt::ExtMap.TryFind(pThisType)) {
 		TechnoExt::ExtMap.Find(pThis)->Attempt = pExt->Paradrop_MaxAttempt.Get();
 		//pThis->___paradrop_attempts = static_cast<BYTE>(pExt->Paradrop_MaxAttempt.Get());
 	}
@@ -24,7 +24,7 @@ DEFINE_HOOK(0x415E93, AircraftClass_DropCargo_ParaLeft, 0x7)
 
 	int nAttempt = 5;
 
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find<true>(pThis->Type)) {
+	if (auto const pExt = TechnoTypeExt::ExtMap.TryFind(pThis->Type)) {
 		nAttempt = pExt->Paradrop_MaxAttempt.Get();
 	}
 
@@ -47,13 +47,13 @@ DEFINE_HOOK(0x41599F, AircraftClass_MI_Paradrop_Attempt_B, 0x6)
 	return TechnoExt::ExtMap.Find(pThis)->Attempt > 0 ? 0x4159B0 : 0x415A11;
 }
 
-DEFINE_HOOK(0x41B657, AircraftClass_CalculateCRC_Add, 0x5)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(WWCRCEngine*, pCRC, EDI);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-		pCRC->Add(pExt->Attempt);
-
-	return 0x0;
-}
+//DEFINE_HOOK(0x41B657, AircraftClass_CalculateCRC_Add, 0x5)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(WWCRCEngine*, pCRC, EDI);
+//
+//	if (auto pExt = TechnoExt::ExtMap.TryFind(pThis))
+//		pCRC->Add(pExt->Attempt);
+//
+//	return 0x0;
+//}

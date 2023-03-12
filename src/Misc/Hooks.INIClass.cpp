@@ -1,6 +1,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
+#include <Utilities/TemplateDef.h>
 #include <CCINIClass.h>
 
 #include <CRT.h>
@@ -8,6 +9,98 @@
 #include <vector>
 #include <set>
 #include <string>
+namespace detail
+{
+	template <>
+	inline bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadString(pSection, pKey))
+			return false;
+
+		// Semantic locomotor aliases
+		if (parser.value()[0] != '{')
+		{
+#define PARSE_IF_IS_LOCO(name)\
+if(IS_SAME_STR_(parser.value() ,#name)){ value = LocomotionClass::CLSIDs::name; return true; }
+
+			PARSE_IF_IS_LOCO(Drive);
+			PARSE_IF_IS_LOCO(Jumpjet);
+			PARSE_IF_IS_LOCO(Hover);
+			PARSE_IF_IS_LOCO(Rocket);
+			PARSE_IF_IS_LOCO(Tunnel);
+			PARSE_IF_IS_LOCO(Walk);
+			PARSE_IF_IS_LOCO(Fly);
+			PARSE_IF_IS_LOCO(Teleport);
+			PARSE_IF_IS_LOCO(Mech);
+			PARSE_IF_IS_LOCO(Ship);
+			PARSE_IF_IS_LOCO(Droppod);
+
+#undef PARSE_IF_IS_LOCO
+
+			return false;
+		}
+
+		CHAR bytestr[128];
+		WCHAR wcharstr[128];
+
+		strncpy(bytestr, parser.value(), 128);
+		bytestr[127] = NULL;
+		CRT::strtrim(bytestr);
+		if (!strlen(bytestr))
+			return false;
+
+		MultiByteToWideChar(0, 1, bytestr, -1, wcharstr, 128);
+		if (CLSIDFromString(wcharstr, &value) < 0)
+			return false;
+
+		return true;
+	}
+}
+template<typename T>
+T ReadTemplate(REGISTERS* R)
+{
+	GET(CCINIClass*, ini, ECX);
+	GET_STACK(char*, section, 0x4);
+	GET_STACK(char*, entry, 0x8);
+	GET_STACK(T, defaultValue, 0xC);
+	INI_EX exINI(ini);
+	T result;
+
+	if (!detail::read<T>(result, exINI, section, entry, false))
+		result = defaultValue;
+	return result;
+}
+
+template<typename T>
+T* ReadTemplatePtr(REGISTERS* R)
+{
+	GET(CCINIClass*, ini, ECX);
+	GET_STACK(T*, result, 0x4);
+	GET_STACK(char*, section, 0x8);
+	GET_STACK(char*, entry, 0xC);
+	GET_STACK(T*, defaultValue, 0x10);
+	INI_EX exINI(ini);
+
+	if (!detail::read<T>(*result, exINI, section, entry, false))
+		*result = *defaultValue;
+	return result;
+}
+
+// for some reason, WW passes the default locomotor by value
+template<>
+CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
+{
+	GET(CCINIClass*, ini, ECX);
+	GET_STACK(CLSID*, result, 0x4);
+	GET_STACK(char*, section, 0x8);
+	GET_STACK(char*, entry, 0xC);
+	GET_STACK(CLSID, defaultValue, 0x10);
+	INI_EX exINI(ini);
+
+	if (!detail::read<CLSID>(*result, exINI, section, entry, false))
+		*result = defaultValue;
+	return result;
+}
 
 DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 {
@@ -200,6 +293,34 @@ DEFINE_HOOK(0x528A18, INIClass_GetString_SaveEntry, 0x6)
 {
 	INIInheritance::PushEntry(R, 0x18);
 	return 0;
+}
+
+DEFINE_HOOK(0x5295F0, INIClass_ReadBool_Overwrite, 0x5)
+{
+	bool value = INIInheritance::ReadTemplate<bool>(R);
+	R->EAX(value);
+	return 0x5297A3;
+}
+
+DEFINE_HOOK(0x5283D0, INIClass_ReadDouble_Overwrite, 0x5)
+{
+	double value = INIInheritance::ReadTemplate<double>(R);
+	_asm { fld value }
+	return 0x52859F;
+}
+
+DEFINE_HOOK(0x529880, INIClass_ReadPoint2D_Overwrite, 0x5)
+{
+	Point2D* value = INIInheritance::ReadTemplatePtr<Point2D>(R);
+	R->EAX(value);
+	return 0x52859F;
+}
+
+DEFINE_HOOK(0x527920, INIClass_ReadGUID_Overwrite, 0x5) // locomotor
+{
+	CLSID* value = INIInheritance::ReadTemplatePtr<CLSID>(R);
+	R->EAX(value);
+	return 0x527B43;
 }
 
 DEFINE_HOOK(0x5276D7, INIClass_GetInt_SaveEntry, 0x6)

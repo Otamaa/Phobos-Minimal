@@ -38,6 +38,7 @@
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.ParadropAttemt.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.cpp" />
@@ -127,7 +128,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
@@ -158,11 +158,15 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
-    <ClCompile Include="src\Misc\Ares\Ext\Infantry\Hooks.cpp" />
-    <ClCompile Include="src\Misc\Ares\Ext\Side\Hooks.cpp" />
-    <ClCompile Include="src\Misc\Ares\Ext\Techno\Hooks.cpp" />
-    <ClCompile Include="src\Misc\Ares\Misc\Hooks.Bugfixes.cpp" />
-    <ClCompile Include="src\Misc\Ares\Misc\Hooks.Bugfixes.Safeguard.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />

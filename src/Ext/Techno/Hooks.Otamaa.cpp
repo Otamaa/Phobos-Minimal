@@ -217,7 +217,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 			auto const GetLandingAnim = [pExt, pTechno]()
 			{
 				auto pDecidedAnim = pExt->Landing_Anim.Get();
-				if (auto const pCell = pTechno->GetCell())
+				if (auto const pCell = MapClass::Instance->GetCellAt(pTechno->GetMapCoords()))
 				{
 					if (!pCell->ContainsBridge() && pCell->LandType == LandType::Water)
 						pDecidedAnim = pExt->Landing_AnimOnWater.Get();
@@ -246,10 +246,11 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 
 	if (const auto pAir = specific_cast<AircraftClass*>(pThis->LinkedTo))
 	{
+		if (pAir->IsInAir())
+			return 0x0;
 
-		if (pAir->IsInAir()
-			|| !pAir->GetCell()
-			|| pAir->GetHeight() > pAir->GetCell()->GetFloorHeight({ 1,1 }))
+		auto const pCell = MapClass::Instance->GetCellAt(pAir->GetMapCoords());
+		if (!pCell || pAir->GetHeight() > pCell->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
 		if (auto pDecidedAnim = TechnoTypeExt::ExtMap.Find(pAir->Type)->TakeOff_Anim.Get(RulesExt::Global()->Aircraft_TakeOffAnim.Get()))
@@ -284,7 +285,8 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 			return (AnimTypeClass*)nullptr;
 		};
 
-		const auto pFirst = pLinked->GetCell() && pLinked->GetCell()->LandType == LandType::Water && !pLinked->GetCell()->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
+		const auto pCell = MapClass::Instance->GetCellAt(pLinked->GetMapCoords());
+		const auto pFirst = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
 			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExt::Global()->Aircraft_LandAnim.Get());
 
 		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
@@ -321,54 +323,6 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 
 	R->EAX(nResult);
 	return 0x6FD0B5;
-}
-
-namespace ShakeScreenHandle
-{
-
-	void ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules)
-	{
-		if (pThis->IsOnMyView())
-		{
-			auto nFirst = GeneralUtils::GetValue(nValToCalc);
-			auto nSec = nFirst - GeneralUtils::GetValue(nRules) + 4;
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, nSec >> 1);
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, nSec);
-		}
-	}
-
-}
-
-//handle everything ourself
-DEFINE_HOOK(0x441C0C, BuildingClass_Destroyed_Shake, 0x6) //5
-{
-	GET(BuildingClass* const, pBld, ESI);
-
-	if (!pBld || !pBld->Type)
-		return 0x441C39; //return 0 causing crash
-
-	if (!TechnoTypeExt::ExtMap.Find(pBld->Type)->DontShake.Get())
-		ShakeScreenHandle::ShakeScreen(pBld, pBld->Type->Strength, RulesClass::Instance->ShakeScreen);
-
-	return 0x441C39; //return 0 causing crash
-}
-
-//7387DD , 5
-//handle everything ourself
-DEFINE_HOOK(0x7387DD, UnitClass_Destroyed_Shake, 0x5)
-{
-	GET(UnitClass* const, pUnit, ESI); //forEXT
-
-	if (!pUnit || !pUnit->Type)
-		return 0x738801;
-
-	GET(int, UnitStreght, ECX);
-	GET(int, Rules_Shake, EAX);
-
-	if (!TechnoTypeExt::ExtMap.Find(pUnit->Type)->DontShake.Get())
-		ShakeScreenHandle::ShakeScreen(pUnit, UnitStreght, Rules_Shake);
-
-	return 0x738801;
 }
 
 DEFINE_HOOK(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A

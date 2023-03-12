@@ -386,7 +386,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = false;
 #endif
 
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -446,6 +446,15 @@ void Phobos::ExeRun()
 	InitAdminDebugMode();
 	InitConsole();
 	AresData::Init();
+
+	if(!AresData::CanUseAres || AresData::AresVersionId != AresData::Version::Ares30p) {
+		MessageBoxW(NULL,
+		L"This version of phobos is only support Ares 3.0p1.\n\n"
+		L"Press OK to Closing the game .",
+		L"Notice", MB_OK);
+
+		exit(0);
+	}
 }
 
 void Phobos::ExeTerminate()

@@ -49,20 +49,8 @@ struct VeterancyStruct
 	}
 
 	void Add(double value) noexcept {
-		auto val = this->Veterancy + value;
-
-		if(val > RulesClass::Instance->VeteranCap) {
-			val = RulesClass::Instance->VeteranCap;
-		}
-
-		this->Veterancy = static_cast<float>(val);
-	}
-
-	void Add_Fix(double value) noexcept
-	{
-		auto nVal = (float)(this->Veterancy + abs(value));
-
-		this->Veterancy = Math::clamp(nVal, 0.0f, 0.2f);
+		float val = (float)(this->Veterancy + value);
+		this->Veterancy = Math::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
 	}
 
 	Rank GetRemainingLevel() const noexcept {
@@ -107,6 +95,28 @@ struct VeterancyStruct
 
 	void SetElite(bool yesReally = true) noexcept {
 		this->Veterancy = yesReally ? 2.0f : 0.0f;
+	}
+
+	void SetRank(Rank rank)
+	{
+		switch (rank)
+		{
+		case Rank::Rookie:
+		{
+			this->Veterancy = 0.0f;
+			break;
+		}
+		case Rank::Veteran:
+		{
+			this->Veterancy = 1.0f;
+			break;
+		}
+		case Rank::Elite:
+		{
+			this->Veterancy = 2.0f;
+			break;
+		}
+		}
 	}
 
 	float Veterancy{ 0.0f };

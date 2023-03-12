@@ -123,7 +123,7 @@ static inline bool AllowRedraw(TechnoClass* pWho, bool bForce, bool bIgnoreShrou
 			return false;
 	}
 
-	if (auto pCell = pWho->GetCell())
+	if (auto pCell = MapClass::Instance->GetCellAt(pWho->GetMapCoords()))
 	{
 		if (pCell->IsShrouded() && !bIgnoreShroud)
 			return false;

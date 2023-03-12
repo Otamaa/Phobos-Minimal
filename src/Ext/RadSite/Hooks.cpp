@@ -137,7 +137,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 							return false;
 
 						auto const pBaseCell = MapClass::Instance->GetCellAt(pPair->BaseCell);
-						auto const pDestCell = pThis->GetCell();
+						auto const pDestCell = MapClass::Instance->GetCellAt(pThis->GetMapCoords());
 
 						if (pBaseCell != pDestCell)
 							return false;
@@ -186,7 +186,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 		// since this function is always failing to decloak and set target when cell is occupied
 		// something is wrong somewhere  # Otamaa
 		pThis->CloakDelayTimer.Start(Game::F2I(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));
-		pTarget = pThis->GetCell();
+		pTarget = MapClass::Instance->GetCellAt(pThis->GetMapCoords());
 	}
 
 	pThis->SetTarget(pTarget); //Here we go
