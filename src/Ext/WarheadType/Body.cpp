@@ -876,6 +876,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RelativeDamage_Infantry)
 		.Process(this->RelativeDamage_Building)
 		.Process(this->RelativeDamage_Terrain)
+		.Process(this->Verses)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
