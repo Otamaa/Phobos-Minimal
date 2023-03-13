@@ -23,6 +23,9 @@ public:
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
+		if (!Title || !strlen(Title))
+			return -1;
+
 		const auto result = std::find_if(Array.begin(), Array.end(),
 		[Title](std::unique_ptr<T>& Item) {
 			return _strcmpi(Item->Name.data(), Title) == 0;
@@ -38,6 +41,9 @@ public:
 
 	static int FindIndexById(const char* Title)
 	{
+		if (!Title || !strlen(Title))
+			return -1;
+
 		const auto result = std::find_if(Array.begin(), Array.end(), 
 			[Title](std::unique_ptr<T>& Item) {
 				return _strcmpi(Item->Name.data(), Title) == 0;
@@ -74,11 +80,13 @@ public:
 
 	static T* FindOrAllocate(const char* Title)
 	{
+		if (!Title || !strlen(Title))
+			return nullptr;
+
 		if (T* find = Find(Title))
 			return find;
-
+		 
 		Array.push_back(std::make_unique<T>(Title));
-
 		return Array.back().get();
 	}
 
@@ -86,17 +94,7 @@ public:
 	{
 		//Debug::Log("%s Clearing Array Count [%d] ! \n", typeid(T).name(), Array.size());
 
-		if (!Array.empty())
-		{
-			for (size_t i = 0; i < Array.size(); ++i)
-			{
-				if (Array[i]) {
-					Array[i].release();
-				}
-			}
-
-			Array.clear();
-		}
+		Array.clear();
 	}
 
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false)

@@ -74,7 +74,7 @@ DEFINE_HOOK(0x72612C, TriggerClass_CTOR_DestoryIfMultiplayerNonexist, 0x7) //8
 
 	if (houseIdxMapper.count(idx))
 	{
-		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper.at(idx));
+		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper[idx]);
 
 		if (pHouse == nullptr)
 			pThis->Destroyed = true;
@@ -93,7 +93,7 @@ DEFINE_HOOK(0x726538, TriggerClass_RaiseEvent_ReplaceHouse, 0x5)
 
 	if (houseIdxMapper.count(idx))
 	{
-		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper.at(idx));
+		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper[idx]);
 		R->EAX(pHouse == nullptr ? HouseExt::FindSpecial() : pHouse);
 	}
 
@@ -109,7 +109,7 @@ DEFINE_HOOK(0x7265F7, TriggerClass_FireActions_ReplaceHouse, 0x6)
 
 	if (houseIdxMapper.count(idx))
 	{
-		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper.at(idx));
+		HouseClass* pHouse = HouseClass::FindByIndex(houseIdxMapper[idx]);
 		R->EAX(pHouse == nullptr ? HouseExt::FindSpecial() : pHouse);
 
 		return 0x726602;

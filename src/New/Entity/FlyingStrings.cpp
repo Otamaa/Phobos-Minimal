@@ -129,7 +129,7 @@ void FlyingStrings::UpdateAll()
 
 	for (int i = static_cast<int>(Data.size() - 1); i >= 0; --i)
 	{
-		auto& dataItem = Data.at(i);
+		auto& dataItem = Data[i];
 
 		if (!dataItem.Text.empty())
 		{

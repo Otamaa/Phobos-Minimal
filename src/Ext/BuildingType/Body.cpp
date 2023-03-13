@@ -36,7 +36,7 @@ int  BuildingTypeExt::CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClas
 
 Point2D* BuildingTypeExt::GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx)
 {
-	return &BuildingTypeExt::ExtMap.Find(pThis->Type)->OccupierMuzzleFlashes.at(nOccupyIdx);
+	return &BuildingTypeExt::ExtMap.Find(pThis->Type)->OccupierMuzzleFlashes[nOccupyIdx];
 }
 
 void BuildingTypeExt::DisplayPlacementPreview()

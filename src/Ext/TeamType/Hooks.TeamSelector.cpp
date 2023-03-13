@@ -383,7 +383,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 9: Like in case 0 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the enemy.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::EnemyOwns(pTrigger, pHouse, targetHouse, false, list);
 
 								if (!isConditionMet)
@@ -396,7 +396,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 10: Like in case 1 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the house.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::HouseOwns(pTrigger, pHouse, false, list);
 
 								if (!isConditionMet)
@@ -409,7 +409,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 11: Like in case 7 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the Civilians.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::NeutralOwns(pTrigger, list);
 
 								if (!isConditionMet)
@@ -422,7 +422,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 12: Like in case 0 & 9 but instead of a specific enemy this checks in all enemies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::EnemyOwns(pTrigger, pHouse, nullptr, false, list);
 
 								if (!isConditionMet)
@@ -435,7 +435,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 13: Like in case 1 & 10 but instead checking the house now checks the allies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::HouseOwns(pTrigger, pHouse, true, list);
 
 								if (!isConditionMet)
@@ -448,7 +448,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 14: Like in case 9 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::EnemyOwnsAll(pTrigger, pHouse, targetHouse, list);
 
 								if (!isConditionMet)
@@ -461,7 +461,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 15: Like in case 10 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::HouseOwnsAll(pTrigger, pHouse, list);
 
 								if (!isConditionMet)
@@ -474,7 +474,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 16: Like in case 11 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[(pTrigger->Conditions[3].ComparatorOperand)];
 								bool isConditionMet = TeamExt::NeutralOwnsAll(pTrigger, list);
 
 								if (!isConditionMet)
@@ -487,7 +487,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 							{
 								// New case 17: Like in case 14 but instead of meet any comparison now is required all. Check all enemies
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								auto const& list = nAIList.at(pTrigger->Conditions[3].ComparatorOperand);
+								auto const& list = nAIList[pTrigger->Conditions[3].ComparatorOperand];
 								bool isConditionMet = TeamExt::EnemyOwnsAll(pTrigger, pHouse, nullptr, list);
 
 								if (!isConditionMet)

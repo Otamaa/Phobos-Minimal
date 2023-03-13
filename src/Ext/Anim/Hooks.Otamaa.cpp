@@ -354,7 +354,7 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get())
 		{
 			auto const nIdx = ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
-			if (auto pType = pTypeExt->ConcurrentAnim.at(nIdx))
+			if (auto pType = pTypeExt->ConcurrentAnim[nIdx])
 			{
 
 				if (pType == pThis->Type)

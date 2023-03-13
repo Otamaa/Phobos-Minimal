@@ -99,7 +99,7 @@ void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTar
 		// Check if the target matches upgrade-from TechnoType and it has something to upgrade-to
 		if (this->Converts_To.size() >= i && this->Converts_From[i] == pCurType)
 		{
-			auto const pResultType = this->Converts_To.at(i);
+			auto const pResultType = this->Converts_To[i];
 
 			if (pCurType != pResultType)
 			{
@@ -576,11 +576,12 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			if (this->Shield_ReplaceOnly)
 			{
 				if (shieldIndex >= 0)
-					shieldType = Shield_AttachTypes.at(Math::min(shieldIndex, (signed)Shield_AttachTypes.size() - 1));
+					shieldType =
+					 Shield_AttachTypes[Math::min(shieldIndex, (signed)Shield_AttachTypes.size() - 1)];
 			}
 			else
 			{
-				shieldType = Shield_AttachTypes.at(0);
+				shieldType = Shield_AttachTypes[0];
 			}
 
 			if (shieldType)

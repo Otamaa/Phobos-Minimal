@@ -4,7 +4,7 @@
 
 bool VersesData::Parse(const char* str)
 {
-	auto const& [bValid, nVerses] = Conversions::Str2ArmorCheck(str, this);
+	auto const& [bValid, nVerses] = Conversions::Str2ArmorCheck(str, &this->Flags);
 
 	if (bValid) {
 		this->Verses = nVerses;
@@ -16,5 +16,8 @@ bool VersesData::Parse(const char* str)
 
 void VersesData::Parse_NoCheck(const char* str)
 {
-	this->Verses = Conversions::Str2Armor(str, this);
+	if (!str || !strlen(str))
+		return;
+
+	this->Verses = Conversions::Str2Armor(str, &this->Flags);
 }

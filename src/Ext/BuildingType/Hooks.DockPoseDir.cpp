@@ -24,7 +24,7 @@ static DirStruct GetPoseDir(BuildingClass* pBld, AircraftClass* pAir, int nDefau
 		const int nIdx = pBld->FindLinkIndex(pAir);
 		const auto pExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 		if (!pExt->DockPoseDir.empty() && nIdx != -1)
-			nDIr = abs(pExt->DockPoseDir.at(nIdx));
+			nDIr = abs(pExt->DockPoseDir[nIdx]);
 	}
 
 	if (nDIr <= 7)
@@ -219,7 +219,7 @@ DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
 		const auto nIdx = pBld->FindLinkIndex(pAircraft);
 
 		if (!pExt->DockPoseDir.empty() && nIdx != -1) {
-			R->EAX(abs(pExt->DockPoseDir.at(nIdx)));
+			R->EAX(abs(pExt->DockPoseDir[nIdx]));
 			return SetFromValue; //we return here , similar to Rules->PoseDir 
 		}
 	}

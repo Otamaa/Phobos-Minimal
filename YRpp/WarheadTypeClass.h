@@ -16,6 +16,19 @@ struct WarheadFlags {
 	bool Retaliate;
 	bool PassiveAcquire;
 
+public:
+
+	WarheadFlags() :  ForceFire { false }
+		, Retaliate { false }
+		, PassiveAcquire { false }
+	{ }
+
+	~WarheadFlags() noexcept = default;
+
+	WarheadFlags(bool ff , bool rt  , bool pa) : ForceFire { ff }
+		, Retaliate { rt }
+		, PassiveAcquire { pa }
+	{ }
 
 	bool operator==(WarheadFlags const& nThat) const
 	{ return ForceFire == nThat.ForceFire && Retaliate == nThat.Retaliate && PassiveAcquire == nThat.PassiveAcquire; }

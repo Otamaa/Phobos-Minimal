@@ -120,6 +120,7 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Cloak.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
@@ -171,6 +172,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\DelayFireWeapon.cpp" />

@@ -805,7 +805,7 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 		if ((int)pickedFLHs->at(weaponIndex).size() > pThis->CurrentBurstIndex)
 		{
 			FLHFound = true;
-			FLH = pickedFLHs->at(weaponIndex).at(pThis->CurrentBurstIndex);
+			FLH = pickedFLHs->at(weaponIndex)[pThis->CurrentBurstIndex];
 		}
 	}
 

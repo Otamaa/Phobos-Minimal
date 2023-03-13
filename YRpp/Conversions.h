@@ -7,46 +7,36 @@
 #include <sstream>
 
 // converters
-class Conversions
+struct Conversions
 {
-public:
 	static double Str2Armor(const char *buf, WarheadFlags *whFlags) {
-		if(!buf) { return 0.0; }
 
-		bool ForceFire = true;
-		bool Retaliate = true;
-		bool PassiveAcquire = true;
-
-		if(CRT::strchr(buf, '%')) {
-
-			if(CRT::strlen(buf) == 2) {
-				switch(*buf) {
-					case '0':
-						ForceFire = false;
-					case '1':
-						Retaliate = false;
-					case '2':
-						PassiveAcquire = false;
-						break;
-				}
-			}
-			whFlags->ForceFire = ForceFire;
-			whFlags->Retaliate = Retaliate;
-			whFlags->PassiveAcquire = PassiveAcquire;
-			return CRT::atoi(buf) * 0.01;
+		double val = 0.0;
+		if(CRT::strchr(buf, '%')) { // convert to double
+			val = CRT::atoi(buf) * 0.01;
 		} else {
-			double vs = CRT::atof(buf);
-			if(LESS_EQUAL(vs, 0.02)) {
+			val = CRT::atof(buf);
+		}
+		
+		const double nValCopy = std::abs(val);
+
+		if (!nValCopy) { //0.0
+			whFlags->ForceFire = false;
+			whFlags->PassiveAcquire = false;
+			whFlags->Retaliate = false;
+		}
+		else {
+
+			if (LESS_EQUAL(nValCopy, 0.02)) {
 				whFlags->PassiveAcquire = false;
 			}
-			if(LESS_EQUAL(vs, 0.01)) {
+
+			if (LESS_EQUAL(nValCopy, 0.01)) {
 				whFlags->Retaliate = false;
 			}
-			if(LESS_EQUAL(vs, 0.00)) {
-				whFlags->ForceFire = false;
-			}
-			return vs;
 		}
+
+		return val;
 	}
 
 	static bool IsValidFloat(const std::string& myString) {
@@ -70,6 +60,9 @@ public:
 
 	static inline bool IsValidArmorValue(const char* buf) {
 
+		if (!strlen(buf))
+			return false;
+
 		if (CRT::strchr(buf, '%')) {
 			return true ;
 		}
@@ -82,69 +75,11 @@ public:
 
 	static inline std::pair<bool, double> Str2ArmorCheck(const char* buf, WarheadFlags* whFlags)
 	{
-		if (!buf || !whFlags) { return { false ,0.0 }; }
-
-		if (CRT::strchr(buf, '%'))
-		{
-			if (CRT::strlen(buf) == 2)
-			{
-				switch (*buf)
-				{
-				case '0':
-				{
-					whFlags->ForceFire = false;
-					whFlags->Retaliate = false;
-					whFlags->PassiveAcquire = false;
-				}
-				break;
-				case '1':
-				{
-					whFlags->ForceFire = true;
-					whFlags->Retaliate = false;
-					whFlags->PassiveAcquire = false;
-				}
-				break;
-				case '2':
-				{
-					whFlags->ForceFire = true;
-					whFlags->Retaliate = true;
-					whFlags->PassiveAcquire = false;
-					break;
-				}
-				}
-			}
-			else
-			{
-
-				whFlags->ForceFire = true;
-				whFlags->Retaliate = true;
-				whFlags->PassiveAcquire = true;
-			}
-
-			return { true , CRT::atoi(buf) * 0.01 };
+		if (!buf || !whFlags || !IsValidArmorValue(buf))  { 
+			return { false ,0.0 }; 
 		}
-		else
-		{
-			const auto& [IsValid, vs] = GetAndCheckDouble(buf);
 
-			if(!IsValid)
-				return { false ,  0.0 };
-
-			if (LESS_EQUAL(vs, 0.02))
-			{
-				whFlags->PassiveAcquire = false;
-			}
-			if (LESS_EQUAL(vs, 0.01))
-			{
-				whFlags->Retaliate = false;
-			}
-			if (LESS_EQUAL(vs, 0.00))
-			{
-				whFlags->ForceFire = false;
-			}
-
-			return {true , vs};
-		}
+		return {true , Str2Armor(buf, whFlags) };
 	}
 
 	// narrow_cast(): a searchable way to do narrowing casts of values

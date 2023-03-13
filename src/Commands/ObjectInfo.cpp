@@ -174,8 +174,8 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 
 		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pType->Armor);
 		auto const nLevel = pFoot->Veterancy.GetRemainingLevel();
-		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength , pArmor->Name.data() , (int)pType->Armor , EnumFunctions::Rank_ToStrings.at((int)nLevel), pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
-		
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength , pArmor->Name.data() , (int)pType->Armor , EnumFunctions::Rank_ToStrings[(int)nLevel], pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+
 		if (pType->Ammo > 0)
 			append(" , Ammo = (%d / %d) \n", pFoot->Ammo, pType->Ammo);
 		else
@@ -245,7 +245,7 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 
 		auto const pArmor = ArmorTypeClass::FindFromIndex((int)pBuilding->Type->Armor);
 		auto const nLevel = pBuilding->Veterancy.GetRemainingLevel();
-		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength , pArmor->Name.data() , (int)pBuilding->Type->Armor , EnumFunctions::Rank_ToStrings.at((int)nLevel), pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+		append("Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength , pArmor->Name.data() , (int)pBuilding->Type->Armor , EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 		if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
 		{

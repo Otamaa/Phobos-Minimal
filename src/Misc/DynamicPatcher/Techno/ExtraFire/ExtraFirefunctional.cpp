@@ -48,13 +48,13 @@ static std::pair<std::vector<WeaponTypeClass*>, CoordStruct> GetWeaponAndFLH(Tec
 			{
 				nFLH = (!pThis->Veterancy.IsElite() ?
 					nExtraFireData.AttachedFLH.WeaponXFLH :
-					nExtraFireData.AttachedFLH.EliteWeaponXFLH).at((size_t)nWeaponIdx);
+					nExtraFireData.AttachedFLH.EliteWeaponXFLH)[nWeaponIdx];
 			}
 		}
 
 		return { (pThis->Veterancy.IsElite() ?
 			nExtraFireData.AttachedWeapon.EliteWeaponX :
-			nExtraFireData.AttachedWeapon.WeaponX).at((size_t)nWeaponIdx),nFLH };
+			nExtraFireData.AttachedWeapon.WeaponX)[nWeaponIdx],nFLH };
 	}
 	else
 	{

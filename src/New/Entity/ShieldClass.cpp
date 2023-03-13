@@ -142,7 +142,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
 	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0 ||
-		this->Techno->IsIronCurtained() || CanBePenetrated(pWHExt->Get()))
+		this->Techno->IsIronCurtained() || CanBePenetrated(args->WH))
 	{
 		return;
 	}

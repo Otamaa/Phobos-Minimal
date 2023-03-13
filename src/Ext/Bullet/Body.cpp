@@ -138,14 +138,14 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 			if (!pExt->Splits)
 			{
 				// simple iteration
-				pTarget = targets.at(i);
+				pTarget = targets[i];
 
 			}
 			else if (!pTarget || pExt->RetargetAccuracy < random.RandomDouble())
 			{
 				// select another target randomly
 				int index = random.RandomFromMax(targets.size() - 1);
-				pTarget = targets.at(index);
+				pTarget = targets[index];
 
 				// firer would hit itself
 				if (pTarget == pThis->Owner)
@@ -153,7 +153,7 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 					if (random.RandomDouble() > 0.5)
 					{
 						index = random.RandomFromMax(targets.size() - 1);
-						pTarget = targets.at(index);
+						pTarget = targets[index];
 					}
 				}
 

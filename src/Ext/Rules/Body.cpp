@@ -39,14 +39,14 @@ void RulesExt::Remove(RulesClass* pThis)
 
 void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 {
-	ArmorTypeClass::LoadFromINIList_New(pINI, true);
-	ColorTypeClass::LoadFromINIList_New(pINI, true);
+	ArmorTypeClass::LoadFromINIList_New(pINI, false);
+	ColorTypeClass::LoadFromINIList_New(pINI, false);
 }
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
-	ArmorTypeClass::LoadFromINIList_New(pINI, true);
-	ColorTypeClass::LoadFromINIList_New(pINI, true);
+	ArmorTypeClass::LoadFromINIList_New(pINI, false);
+	ColorTypeClass::LoadFromINIList_New(pINI, false);
 
 		//Debug::Log(__FUNCTION__" Called ! \n");
 	if (!Phobos::Otamaa::DisableCustomRadSite)

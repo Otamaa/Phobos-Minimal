@@ -2909,7 +2909,7 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 	if (!bImmune_pt1 && !bImmune_pt2) {
 		auto const nArmor = pType->Armor;
-		auto const pArmor = ArmorTypeClass::Array.at((int)nArmor).get();
+		auto const pArmor = ArmorTypeClass::Array[(int)nArmor].get();
 
 		if (pArmor) {
 #ifdef COMPILE_PORTED_DP_FEATURES_
@@ -2921,9 +2921,9 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 				if (!pAnimTypeDecided && pArmor->DefaultTo != -1) {
 					//Holy shit !
-					for (auto pDefArmor = ArmorTypeClass::Array.at(pArmor->DefaultTo).get();
+					for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
 						pDefArmor && pDefArmor->DefaultTo != -1;
-						pDefArmor = ArmorTypeClass::Array.at(pDefArmor->DefaultTo).get()) {
+						pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get()) {
 						pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
 						if (pAnimTypeDecided)
 							break;

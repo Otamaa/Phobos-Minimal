@@ -100,7 +100,7 @@ struct ParticleSystemExt_ExtData
 				}
 				else
 				{
-					Data = &pThis->PreCalculatedParticlesData.at(nHalfCap + nRandCap);
+					Data = &pThis->PreCalculatedParticlesData[nHalfCap + nRandCap];
 				}
 
 				Data->velB = (nVelsC * nVelsMag);

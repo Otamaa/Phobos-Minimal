@@ -116,7 +116,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 	if (!AIConditionsLists.empty() && condition < (int)AIConditionsLists.size())
 	{
-		const auto& thisAICondition = AIConditionsLists.at(condition);
+		const auto& thisAICondition = AIConditionsLists[condition];
 
 		if (thisAICondition.size() < 2)
 		{
@@ -126,7 +126,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		}
 
 		//parse first string
-		auto FirstAIConditionString = thisAICondition.at(0);
+		auto FirstAIConditionString = thisAICondition[0];
 		char* context = nullptr;
 		char* cur[3];
 		cur[0] = strtok_s(FirstAIConditionString.data(), Phobos::readDelims, &context);
@@ -150,7 +150,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		//parse other strings
 		for (int i = 1; i < (int)thisAICondition.size(); i++)
 		{
-			auto AIConditionString = thisAICondition.at(i);
+			auto AIConditionString = thisAICondition[i];
 			int pickMode = -1;
 			int compareMode = -1;
 			int Number = -1;

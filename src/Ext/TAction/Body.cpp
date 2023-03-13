@@ -778,7 +778,8 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			}
 
 			if (housesListIdx.size() > 0)
-				houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+				houseIdx = 
+				housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 			else
 				return true;
 
@@ -813,7 +814,8 @@ bool TActionExt::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 			}
 
 			if (housesListIdx.size() > 0)
-				houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+				houseIdx = 
+				housesListIdx[(ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1))];
 			else
 				return true;
 
@@ -1005,7 +1007,7 @@ bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	const int idx = ScenarioClass::Instance->Random.RandomRanged(0, static_cast<int>(nPool.size()) - 1);
 
-	TriggerClass* pTarget = nPool.at(idx);
+	TriggerClass* pTarget = nPool[idx];
 	pTarget->Enable();
 
 	if (bTakeOff)

@@ -168,9 +168,9 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 		for (const size_t& result : results)
 		{
 			if (result < idsSize)
-				id = this->LimboDelivery_IDs.at(result);
+				id = this->LimboDelivery_IDs[result];
 
-			LimboDeliver(this->LimboDelivery_Types.at(result), pHouse, id);
+			LimboDeliver(this->LimboDelivery_Types[result], pHouse, id);
 		}
 	}
 	// no randomness mode
@@ -182,9 +182,9 @@ void SWTypeExt::ExtData::ApplyLimboDelivery(HouseClass* pHouse)
 		for (size_t i = 0; i < this->LimboDelivery_Types.size(); i++)
 		{
 			if (i < ids)
-				id = this->LimboDelivery_IDs.at(i);
+				id = this->LimboDelivery_IDs[i];
 
-			LimboDeliver(this->LimboDelivery_Types.at(i), pHouse, id);
+			LimboDeliver(this->LimboDelivery_Types[i], pHouse, id);
 		}
 	}
 }
@@ -272,7 +272,7 @@ void SWTypeExt::ExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell)
 		this->WeightedRollsHandler(results, &this->SW_Next_RollChances, &this->SW_Next_RandomWeightsData, this->SW_Next.size());
 		for (const int& result : results)
 		{
-			SWTypeExt::Launch(pSW->Owner, this, this->SW_Next.at(result), cell);
+			SWTypeExt::Launch(pSW->Owner, this, this->SW_Next[result], cell);
 		}
 	}
 	// no randomness mode

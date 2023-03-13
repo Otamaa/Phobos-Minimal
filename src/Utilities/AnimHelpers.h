@@ -27,8 +27,8 @@ namespace Helper
 			if (splash.size() > 0)
 			{
 				const auto nIndexR = (splash.size() - 1);
-				return splash.at(Random ?
-					ScenarioClass::Instance->Random.RandomFromMax(nIndexR) : nIndexR);
+				return splash[Random ?
+					ScenarioClass::Instance->Random.RandomFromMax(nIndexR) : nIndexR];
 			}
 
 			return nullptr;
@@ -74,14 +74,10 @@ namespace Helper
 				{
 					if (auto const pMultipleSelected = nAnims[nIndex])
 					{
-						if (nAmount.at(nIndex) > 0)
+						for (int k = nAmount[nIndex]; k > 0; --k)
 						{
-							for (int k = nAmount.at(nIndex); k > 0; --k)
-							{
-								if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where))
-								{
-									AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, pInvoker, false) ;
-								}
+							if (auto pAnimCreated = GameCreate<AnimClass>(pMultipleSelected, Where)) {
+								AnimExt::SetAnimOwnerHouseKind(pAnimCreated, pOwner, nullptr, pInvoker, false) ;
 							}
 						}
 					}

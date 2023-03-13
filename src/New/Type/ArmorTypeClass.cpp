@@ -40,7 +40,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 		INI_EX exINI(pINI);
 
-		char buffer[0x40];
+		char buffer[0x64];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
 		auto VS = &this->DefaultVerses;
@@ -73,7 +73,6 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 			Debug::Log("Allocating ArmorType with Name[%s] at [%d] \n", pKey, i);
 	}
 
-
 	if (bDebug)
 		Debug::Log("ArmorType Array count currently [%d]\n", ArmorTypeClass::Array.size());
 }
@@ -86,37 +85,52 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 		return;
 	}
 
-	pWHExt->Verses.resize(Array.size());
+	pWHExt->Verses.reserve(Array.size());
 
 	while (pWHExt->Verses.size() < Array.size())
 	{
 		auto& pArmor = Array[pWHExt->Verses.size()];
+		const int nDefaultIdx = pArmor->DefaultTo;
 		pWHExt->Verses.push_back(
-		pArmor->DefaultTo == -1
-			? pArmor->DefaultVerses
-			: pWHExt->Verses[pArmor->DefaultTo]
+			nDefaultIdx == -1
+				? pArmor->DefaultVerses
+				: pWHExt->Verses[nDefaultIdx]
 		);
 	}
 
-	char buffer[0x80];
+	//for (size_t i = Unsorted::ArmorNameArray.size() - 1;
+	//	i < Array.size(); ++i)
+	//{
+	//	auto& nTypeDef = Array[i];
+	//	pWHExt->Verses[i] =
+	//	nTypeDef->DefaultTo == -1 ?
+	//	nTypeDef->DefaultVerses :
+	//	Array[nTypeDef->DefaultTo]->DefaultVerses;
+	//}
+
+	char buffer[0x500];
 	char ret[0x64];
 	const char* section = pWH->get_ID();
 	constexpr const char* const nVersus = "Versus";
 
+	//start it from default armor type amount 
 	for (size_t i = 0; i < Array.size(); ++i) {
+
+		auto nVers = &pWHExt->Verses[i];
+
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s", nVersus, Array[i]->Name.data());
-		if (pINI->ReadString(section, buffer, "", ret)) {
-			pWHExt->Verses[i].Parse_NoCheck(ret);
+		if (pINI->ReadString(section, buffer, Phobos::readDefval, ret)) {
+			nVers->Parse_NoCheck(ret);
 		}
 
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s.ForceFire", nVersus, Array[i]->Name.data());
-		pWHExt->Verses[i].ForceFire = pINI->ReadBool(section, buffer, pWHExt->Verses[i].ForceFire);
+		nVers->Flags.ForceFire = pINI->ReadBool(section, buffer, nVers->Flags.ForceFire);
 
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s.Retaliate", nVersus, Array[i]->Name.data());
-		pWHExt->Verses[i].Retaliate = pINI->ReadBool(section, buffer, pWHExt->Verses[i].Retaliate);
+		nVers->Flags.Retaliate = pINI->ReadBool(section, buffer, nVers->Flags.Retaliate);
 
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, Array[i]->Name.data());
-		pWHExt->Verses[i].PassiveAcquire = pINI->ReadBool(section, buffer, pWHExt->Verses[i].PassiveAcquire);
+		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, buffer, nVers->Flags.PassiveAcquire);
 	}
 }
 

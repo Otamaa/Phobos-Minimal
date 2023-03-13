@@ -125,7 +125,7 @@ bool Prereqs::HouseOwnsGeneric(HouseClass const* const pHouse, int const Index)
 	if (idxPrereq > GenericPrerequisite::Array.size())
 		return false;
 
-	auto const& Prereq = GenericPrerequisite::Array.at(idxPrereq);
+	auto const& Prereq = GenericPrerequisite::Array[idxPrereq];
 
 	for (const auto& index : Prereq->Prereqs)
 	{
@@ -220,7 +220,7 @@ bool Prereqs::ListContainsGeneric(const BTypeIter& List, int const Index)
 	if (idxPrereq > GenericPrerequisite::Array.size())
 		return false;
 	
-	const auto& dvc = GenericPrerequisite::Array.at(idxPrereq)->Prereqs;
+	const auto& dvc = GenericPrerequisite::Array[idxPrereq]->Prereqs;
 
 	for (const auto& index : dvc) {
 		if (Prereqs::ListContainsSpecific(List, index)) {

@@ -61,7 +61,7 @@ namespace DamageFireAnims
 		{
 			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{
-				const auto& nFireOffs = pTypeext->DamageFire_Offs.at(i);
+				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
 				const auto[nPiX ,nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
 				CoordStruct nPixCoord { nPiX, nPiY, 0 };
 				nPixCoord += pThis->GetRenderCoords();
@@ -161,7 +161,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 
 				auto PlayFireAnim = [&](int nLoop = 1, int nFireTypeAt = 2)
 				{
-					if (auto pAnimType = pFireType.at(nFireTypeAt))
+					if (auto pAnimType = pFireType[nFireTypeAt])
 					{
 						nDestCoord = MapClass::GetRandomCoordsNear(nDestCoord, 96, false);
 						if (auto const pAnim = GameCreate<AnimClass>(pAnimType, nDestCoord, 0, nLoop))

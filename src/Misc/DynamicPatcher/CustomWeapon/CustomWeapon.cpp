@@ -171,7 +171,7 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++) {
-		auto const& sBData = simulateBurstQueue.at(pos);
+		auto const& sBData = simulateBurstQueue[pos];
 		if (sBData.Target == ptr || sBData.Shooter == ptr)
 		{
 			simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
@@ -209,7 +209,7 @@ void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {
 	for (size_t pos = 0; pos < DelayFires.size(); pos++)
 	{
-		if (DelayFires.at(pos)->Target == ptr)
+		if (DelayFires[pos]->Target == ptr)
 		{
 				//Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
 				DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
@@ -223,7 +223,7 @@ void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 {
 	for (; !DelayFires.empty();)
 	{
-		auto delayFire = std::move(DelayFires.at(0));
+		auto delayFire = std::move(DelayFires[0]);
 		DelayFires.erase(DelayFires.begin());
 
 		if (delayFire->TimesUp())

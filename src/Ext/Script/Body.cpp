@@ -2585,7 +2585,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	auto const& nAITargetTypes = RulesExt::Global()->AITargetTypesLists;
 	if (attackAITargetType >= 0 && !nAITargetTypes.empty() && attackAITargetType < (int)nAITargetTypes.size())
 	{
-		auto const& nVec = nAITargetTypes.at(attackAITargetType);
+		auto const& nVec = nAITargetTypes[attackAITargetType];
 		return std::any_of(nVec.begin(), nVec.end(), [pTechnoType](TechnoTypeClass* pTech)
 		{ return pTech == pTechnoType; });
 	}
@@ -3400,14 +3400,14 @@ ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx)
 	if (nBaseVec.empty() || nIdx < 0 || nIdx > nBaseVec.size())
 		return nullptr;
 
-	auto const& objectsList = nBaseVec.at(nIdx);
+	auto const& objectsList = nBaseVec[nIdx];
 
 	if (objectsList.empty())
 		return nullptr;
 
 	const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
-	if (ScriptTypeClass* pNewScript = objectsList.at(IdxSelectedObject))
+	if (ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject])
 		return pNewScript;
 
 	return nullptr;
@@ -3906,7 +3906,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 
 	if (attackAITargetType >= 0 && !ObjList.empty() && attackAITargetType < (int)ObjList.size())
 	{
-		auto const& objectsList = ObjList.at(attackAITargetType);
+		auto const& objectsList = ObjList[(attackAITargetType)];
 		auto const& objectsListIter = make_iterator(objectsList);
 
 		if (idxSelectedObject < 0 && !objectsListIter.empty() && !selected)
@@ -3948,7 +3948,7 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 			{
 				idxSelectedObject = validIndexes[(ScenarioClass::Instance->Random.RandomRanged(0, validIndexes.size() - 1))];
 				selected = true;
-				Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList.at(idxSelectedObject)->ID);
+				Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList[(idxSelectedObject)]->ID);
 			}
 		}
 
@@ -4018,7 +4018,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 	if (attackAITargetType >= 0
 		&& !AITypeLists.empty() && attackAITargetType < (int)AITypeLists.size())
 	{
-		auto const& objectsList = RulesExt::Global()->AITargetTypesLists.at(attackAITargetType);
+		auto const& objectsList = RulesExt::Global()->AITargetTypesLists[(attackAITargetType)];
 		auto const objectsListIter = make_iterator(objectsList);
 
 		// Still no random target selected
@@ -4052,7 +4052,7 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 			{
 				idxSelectedObject = validIndexes[(ScenarioClass::Instance->Random.RandomRanged(0, validIndexes.size() - 1))];
 				selected = true;
-				Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList.at(idxSelectedObject)->ID);
+				Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList[(idxSelectedObject)]->ID);
 			}
 		}
 
@@ -4655,7 +4655,7 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 		auto const& nHouseList = RulesExt::Global()->AIHousesLists;
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
-			auto const& objectsList = nHouseList.at(idxHousesList);
+			auto const& objectsList = nHouseList[(idxHousesList)];
 			for (auto const& pHouseType : objectsList)
 			{
 				for (auto& angerNode : pTeam->Owner->AngerNodes)
@@ -4712,12 +4712,12 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
-			auto const& objectsList = nHouseList.at(idxHousesList);
+			auto const& objectsList = nHouseList[(idxHousesList)];
 
 			if (!objectsList.empty())
 			{
-				const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomRanged(0, objectsList.size() - 1);
-				const auto& pHouseType = objectsList.at(IdxSelectedObject);
+				const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
+				const auto& pHouseType = objectsList[IdxSelectedObject];
 
 				for (auto& angerNode : pTeam->Owner->AngerNodes)
 				{
@@ -4810,8 +4810,8 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	{
 		if (!objectsList.empty())
 		{
-			IdxSelectedObject = ScenarioClass::Instance->Random.RandomRanged(0, objectsList.size() - 1);
-			selectedHouse = objectsList.at(IdxSelectedObject);
+			IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
+			selectedHouse = objectsList[(IdxSelectedObject)];
 		}
 	}
 	else
@@ -5971,7 +5971,7 @@ void ScriptExt::ConditionalJump_CheckObjects(TeamClass* pTeam)
 
 	if (!nAITargetType.empty() && index >= 0 && nAITargetType.size() > 0)
 	{
-		auto const& objectsList = nAITargetType.at(index);
+		auto const& objectsList = nAITargetType[(index)];
 
 		if (objectsList.empty())
 			return;
@@ -5990,7 +5990,7 @@ void ScriptExt::ConditionalJump_CheckObjects(TeamClass* pTeam)
 				{
 					for (int i = 0; i < (int)objectsList.size(); i++)
 					{
-						if (objectsList.at(i) == pTechnoType)
+						if (objectsList[i] == pTechnoType)
 						{
 							countValue++;
 							break;
@@ -6232,7 +6232,7 @@ void ScriptExt::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = 
 	if (nAITriggers.empty())
 		return;
 
-	auto const& objectsList = make_iterator(nAITriggers.at(idxAITriggerType));
+	auto const& objectsList = make_iterator(nAITriggers[(idxAITriggerType)]);
 
 	for (auto pTrigger : *AITriggerTypeClass::Array)
 	{
@@ -6360,7 +6360,7 @@ void ScriptExt::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetType 
 	if (nAITriggers.empty())
 		return;
 
-	auto const& objectsList = make_iterator(nAITriggers.at(idxAITargetType));
+	auto const& objectsList = make_iterator(nAITriggers[(idxAITargetType)]);
 
 	if (objectsList.empty())
 		return;
@@ -6579,7 +6579,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			if (MapPath_CheckedBridgeRepairHuts_iter != pTeamData->MapPath_CheckedBridgeRepairHuts.end())
 				continue;
 
-			const auto engineer = static_cast<TechnoClass*>(engineers.at(0));
+			const auto engineer = static_cast<TechnoClass*>(engineers[0]);
 			isReachable = ScriptExt::FindLinkedPath(pTeam, engineer, pTechno);
 
 			// This process didn't end. It will continue in the next game frame
@@ -6627,7 +6627,10 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		if (mode < 0)
 		{
 			// Pick a random bridge
-			selectedTarget = pTeamData->MapPath_ValidBridgeRepairHuts.at(ScenarioClass::Instance->Random.RandomRanged(0, pTeamData->MapPath_ValidBridgeRepairHuts.size() - 1));
+			selectedTarget = 
+			pTeamData->MapPath_ValidBridgeRepairHuts[
+				ScenarioClass::Instance->
+				Random.RandomFromMax(pTeamData->MapPath_ValidBridgeRepairHuts.size() - 1)];
 		}
 		else
 		{
@@ -6636,7 +6639,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 				if (mode > 0)
 				{
 					// Pick the farthest target
-					const int value = engineers.at(0)->DistanceFrom(pHut); // Note: distance is in leptons (*256)
+					const int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
 
 					if (value >= bestVal || bestVal < 0)
 					{
@@ -6647,7 +6650,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 				else
 				{
 					// Pick the closest target
-					const int value = engineers.at(0)->DistanceFrom(pHut); // Note: distance is in leptons (*256)
+					const int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
 
 					if (value < bestVal || bestVal < 0)
 					{
@@ -6796,7 +6799,7 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 		nChecksLeft--;
 
 		// Extract the first element of MapPath_Queue for analyzing it
-		MapPathCellElement element = pTeamData->MapPath_Queue.at(0);
+		MapPathCellElement element = pTeamData->MapPath_Queue[0];
 		pTeamData->MapPath_Queue.erase(pTeamData->MapPath_Queue.begin());
 
 		// Check cells around the selected cell, it only stops if we reach the destination of the queue is empty
@@ -6842,7 +6845,7 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 
 								for (unsigned int k = 0; k < pTeamData->MapPath_Queue.size(); k++)
 								{
-									if (newElement < pTeamData->MapPath_Queue.at(k))
+									if (newElement < pTeamData->MapPath_Queue[k])
 									{
 										pTeamData->MapPath_Queue.insert(index, newElement);
 										inserted = true;

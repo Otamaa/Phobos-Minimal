@@ -177,7 +177,7 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 
 	if (auto const AnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList))
 	{
-		if (auto const pSplashType = AnimType.at(ScenarioClass::Instance->Random.RandomFromMax((AnimType.size() - 1))))
+		if (auto const pSplashType = AnimType[ScenarioClass::Instance->Random.RandomFromMax(AnimType.size() - 1)])
 		{
 
 			if (auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord))

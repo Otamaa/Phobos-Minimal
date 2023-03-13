@@ -423,7 +423,7 @@ bool HouseExt::HasGenericPrerequisite(int idx, const Iterator<BuildingTypeClass*
 	if (RulesExt::Global()->GenericPrerequisitesData.empty())
 		return false;
 
-	auto const& nSelected = RulesExt::Global()->GenericPrerequisitesData.at(abs(idx));
+	auto const& nSelected = RulesExt::Global()->GenericPrerequisitesData[abs(idx)];
 
 	if (nSelected.second.empty())
 		return false;
@@ -572,7 +572,8 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 		}
 
 		if (housesListIdx.size() > 0)
-			houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+			houseIdx = 
+			housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 		else
 			return -1;
 
@@ -604,7 +605,8 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 		}
 
 		if (housesListIdx.size() > 0)
-			houseIdx = housesListIdx.at(ScenarioClass::Instance->Random.RandomRanged(0, housesListIdx.size() - 1));
+			houseIdx =
+			housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 		else
 			return -1;
 

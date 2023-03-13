@@ -84,7 +84,7 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 			{
 				if (!pThis->Owner->IsCurrentPlayer() && !pThis->Owner->Type->MultiplayPassive)
 				{
-					const double nValue = pRulesExt->AI_AutoSellHealthRatio.at(pThis->Owner->GetCorrectAIDifficultyIndex());
+					const double nValue = pRulesExt->AI_AutoSellHealthRatio[pThis->Owner->GetCorrectAIDifficultyIndex()];
 
 					if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
 						pThis->Sell(-1);

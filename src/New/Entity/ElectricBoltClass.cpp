@@ -278,7 +278,7 @@ void ElectricBoltManager::Draw_All()
 		return;
 
 	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i) {
-		auto const& ebolt = ElectricBoltArray.at(i);
+		auto const& ebolt = ElectricBoltArray[i];
 
 		if (!ebolt) {
 			continue;

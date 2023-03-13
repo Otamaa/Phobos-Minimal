@@ -94,7 +94,8 @@ DEFINE_OVERRIDE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
 {
 	GET(ObjectClass*, pTarget, EDI);
 
-	return pTarget->IsFullHP() ? 0x741121 : 0x74113A;
+	return RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage() ? 
+		 0x741121 : 0x74113A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)

@@ -61,9 +61,11 @@ void TerrainExt::ExtData::InitializeAnim()
 
 		AnimTypeClass* pAnimType = nullptr;
 		if (TypeData->AttachedAnim.size() == 1)
-			pAnimType = TypeData->AttachedAnim.at(0);
+			pAnimType = TypeData->AttachedAnim[0];
 		else
-			pAnimType = TypeData->AttachedAnim.at(ScenarioClass::Instance->Random.RandomFromMax(TypeData->AttachedAnim.size() - 1));
+			pAnimType = 
+			TypeData->
+			AttachedAnim[ScenarioClass::Instance->Random.RandomFromMax(TypeData->AttachedAnim.size() - 1)];
 
 		if (pAnimType)
 		{

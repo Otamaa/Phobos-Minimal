@@ -3,16 +3,17 @@
 #include <WarheadTypeClass.h>
 #include <Helpers/Macro.h>
 
-struct VersesData : public WarheadFlags
+struct VersesData
 {
 	double Verses;
-	
-	VersesData() :
-		WarheadFlags { true, true, true } , Verses { 1.0 }
+	WarheadFlags Flags;
+
+	VersesData() : Verses { 1.0 }
+		, Flags { true, true, true } 
 	{ };
 
-	VersesData(double VS, bool FF, bool Retal, bool Acquire) :
-		WarheadFlags { FF, Retal, Acquire } , Verses { VS }
+	VersesData(double VS, bool FF, bool Retal, bool Acquire) : Verses { VS }
+		, Flags { FF, Retal, Acquire }
 	{ };
 
 	~VersesData() noexcept = default;

@@ -440,9 +440,7 @@ public:
 #endif
 
 		{	
-			for (int i = 0; i < 11; ++i) {
-				Verses.push_back({});
-			}
+			Verses.resize(Unsorted::ArmorNameArray.c_size());
 		}
 
 	private:

@@ -354,7 +354,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			cur; 
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			this->Verses[idx].Parse(cur);
+			this->Verses[idx].Parse_NoCheck(cur);
+	
 			++idx;
 			if (idx > 10)
 			{

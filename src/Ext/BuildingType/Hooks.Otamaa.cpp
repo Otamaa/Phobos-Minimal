@@ -231,8 +231,8 @@ DEFINE_HOOK(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 			auto nIdx = nNodes.BuildingTypeIndex;
 			if (nIdx >= 0) {
 				if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(BuildingTypeClass::Array->GetItem(nIdx)))
-					if (!pBldTypeExt->AIBuildInsteadPerDiff.empty() && pBldTypeExt->AIBuildInsteadPerDiff.at(pHouse->GetCorrectAIDifficultyIndex()) != -1)
-						nIdx = pBldTypeExt->AIBuildInsteadPerDiff.at(pHouse->GetCorrectAIDifficultyIndex());
+					if (!pBldTypeExt->AIBuildInsteadPerDiff.empty() && pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()] != -1)
+						nIdx = pBldTypeExt->AIBuildInsteadPerDiff[pHouse->GetCorrectAIDifficultyIndex()];
 
 				nNodes.BuildingTypeIndex = nIdx;
 			}

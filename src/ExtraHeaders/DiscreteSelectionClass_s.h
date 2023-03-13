@@ -54,7 +54,7 @@ public:
 		{
 			if (pOut)
 			{
-				*pOut = this->Items.at(index);
+				*pOut = this->Items[index];
 			}
 			return true;
 		}
