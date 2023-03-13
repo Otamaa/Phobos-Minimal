@@ -132,6 +132,8 @@ public:
 		Valueable<bool> AutoAttackICedTarget;
 		Nullable<float> AI_SpyMoneyStealPercent;
 		Valueable<int> DoggiePanicMax;
+		Valueable<int> HunterSeeker_Damage;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -228,6 +230,7 @@ public:
 			, AutoAttackICedTarget { false }
 			, AI_SpyMoneyStealPercent { }
 			, DoggiePanicMax { 300 }
+			, HunterSeeker_Damage { 1000 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

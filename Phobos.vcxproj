@@ -128,6 +128,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.FLH.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Speed.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
@@ -158,10 +159,13 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Building.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />

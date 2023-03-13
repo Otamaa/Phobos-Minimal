@@ -48,13 +48,13 @@ bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CullingImmune))
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CullingImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CullingImmune))
 			return true;
 	}
-	if (rank == Rank::Veteran)
-	{
+
+	if (rank == Rank::Veteran) {
 		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CullingImmune))
 			return true;
 	}
@@ -65,47 +65,159 @@ bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
-	if (pTypeExt->Get()->ImmuneToPsionics)
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran) {
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsImmune))
+			return true;
+	}
+
+	return pTypeExt->Get()->ImmuneToPsionics;
+}
+
+bool TechnoExt::IsCritImmune(TechnoClass* pThis)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CritImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CritImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran) {
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CritImmune))
+			return true;
+	}
+
+	return pTypeExt->ImmuneToCrit;
+}
+
+bool TechnoExt::ExtData::IsInterceptor()
+{
+	auto const pThis = this->Get();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::Interceptor) 
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::Interceptor))
+			return true;
+	}
+
+	if (rank == Rank::Veteran) {
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::Interceptor))
+			return true;
+	}
+
+	return pTypeExt->Interceptor;
+}
+
+bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
+{
+	if (!pThis)
+		return false;
+
+	auto const pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+
+	if (!pLoco)
+		return false;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::vtable))
+		return false;
+
+	if (!pThis->IsWarpingIn())
+		return false;
+
+	if (pTypeExt->ChronoDelay_Immune.Get())
 		return true;
 
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsImmune))
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
 			return true;
 	}
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsImmune))
+
+	if (rank == Rank::Veteran) {
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
 			return true;
 	}
 
 	return false;
 }
 
-bool TechnoExt::IsCritImmune(TechnoClass* pThis)
+bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 {
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
+		return false;
 
-	if (pTypeExt->ImmuneToCrit.Get())
-		return true;
+	if (pVictim->IsIronCurtained())
+		return false;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
+		return false;
 
-	if (rank == Rank::Elite)
+	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
+
+	if (!pVictimTechno)
+		return false;
+
+	auto const pWhatVictim = pVictim->WhatAmI();
+	auto const pAttackerType = pAttacker->GetTechnoType();
+	auto const pVictimType = pVictim->GetTechnoType();
+
+	if (pAttackerType->OmniCrusher)
 	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CritImmune))
-			return true;
+		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
+			return false;
 	}
-	if (rank == Rank::Veteran)
+	else
 	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CritImmune))
-			return true;
+		if (pVictimTechno->Uncrushable || !pVictimType->Crushable)
+			return false;
 	}
 
-	return false;
+	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
+
+	if (pWhatVictim == AbstractType::Infantry)
+	{
+		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
+		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
+			pVictimTechnoTypeExt->DeployCrushableLevel :
+			pVictimTechnoTypeExt->CrushableLevel;
+
+		if (pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) < crushableLevel.Get(pVictimTechno))
+			return false;
+	}
+
+	if (TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pVictim)))
+	{
+		return false;
+	}
+
+	//auto const pExt = TechnoExt::ExtMap.Find(pVictimTechno);
+	//if (auto const pShieldData = pExt->Shield.get()) {
+	//	auto const pWeaponIDx = pAttacker->SelectWeapon(pVictim);
+	//	auto const pWeapon = pAttacker->GetWeapon(pWeaponIDx);
+
+	//	if (pWeapon && pWeapon->WeaponType &&
+	//		pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon->WeaponType)) {
+	//		return false;
+	//	}
+	//}
+
+	return true;
 }
 
 AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon)
@@ -122,9 +234,8 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 
 		for (int i = 0; i < (int)size; i++)
 		{
-			int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-			unsigned int cellIndex = (i + rand) % size;
-			CellStruct const tgtPos = pTargetCell->MapCoords + adjacentCells[cellIndex];
+			const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
+			CellStruct const tgtPos = pTargetCell->MapCoords + adjacentCells.at((i + rand) % size);
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 
 			if (EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true))
@@ -234,11 +345,16 @@ bool TechnoExt::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget
 bool TechnoExt::FireOnceAllowFiring(TechnoClass* pThis, WeaponTypeClass* pWeapon, AbstractClass* pTarget)
 {
 	const auto pTechnoExt = TechnoExt::ExtMap.Find(pThis);
-	if (pWeapon->FireOnce)
+
+	if (auto pUnit = specific_cast<UnitClass*>(pThis))
 	{
-		if (pTechnoExt->DeployFireTimer.GetTimeLeft() > 0)
+		if (!pUnit->Type->IsSimpleDeployer && !pUnit->Deployed && pTarget)
 		{
-			return false;
+			if (pUnit->Type->DeployFire && pWeapon->FireOnce)
+			{
+				if (pTechnoExt->DeployFireTimer.GetTimeLeft() > 0)
+					return false;
+			}
 		}
 	}
 
@@ -1242,30 +1358,6 @@ void TechnoExt::ExtData::UpdateMCRangeLimit()
 		if (pThis->DistanceFrom(node->Unit) > Range)
 			pCManager->FreeUnit(node->Unit);
 	}
-}
-
-bool TechnoExt::ExtData::IsInterceptor()
-{
-	auto const pThis = this->Get();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
-
-	if (pTypeExt->Interceptor.Get())
-		return true;
-
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::Interceptor))
-			return true;
-	}
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::Interceptor))
-			return true;
-	}
-
-	return false;
 }
 
 void TechnoExt::ExtData::UpdateInterceptor()
@@ -2887,106 +2979,6 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 		return false;
 
 	return pBld == pContact && !pBld->Type->Naval && pBld->Type->WeaponsFactory;
-}
-
-bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
-{
-	if (!pThis)
-		return false;
-
-	auto const pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
-
-	if (!pLoco)
-		return false;
-
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::vtable))
-		return false;
-
-	if (!pThis->IsWarpingIn())
-		return false;
-
-	if (pTypeExt->ChronoDelay_Immune.Get())
-		return true;
-
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
-			return true;
-	}
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
-			return true;
-	}
-
-	return false;
-}
-
-bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
-{
-	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
-		return false;
-
-	if (pVictim->IsIronCurtained())
-		return false;
-
-	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
-		return false;
-
-	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
-
-	if (!pVictimTechno)
-		return false;
-
-	auto const pWhatVictim = pVictim->WhatAmI();
-	auto const pAttackerType = pAttacker->GetTechnoType();
-	auto const pVictimType = pVictim->GetTechnoType();
-
-	if (pAttackerType->OmniCrusher)
-	{
-		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
-			return false;
-	}
-	else
-	{
-		if (pVictimTechno->Uncrushable || !pVictimType->Crushable)
-			return false;
-	}
-
-	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
-
-	if (pWhatVictim == AbstractType::Infantry)
-	{
-		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
-		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
-			pVictimTechnoTypeExt->DeployCrushableLevel :
-			pVictimTechnoTypeExt->CrushableLevel;
-
-		if (pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) < crushableLevel.Get(pVictimTechno))
-			return false;
-	}
-
-	if (TechnoExt::IsChronoDelayDamageImmune(abstract_cast<FootClass*>(pVictim)))
-	{
-		return false;
-	}
-
-	//auto const pExt = TechnoExt::ExtMap.Find(pVictimTechno);
-	//if (auto const pShieldData = pExt->Shield.get()) {
-	//	auto const pWeaponIDx = pAttacker->SelectWeapon(pVictim);
-	//	auto const pWeapon = pAttacker->GetWeapon(pWeaponIDx);
-
-	//	if (pWeapon && pWeapon->WeaponType &&
-	//		pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon->WeaponType)) {
-	//		return false;
-	//	}
-	//}
-
-	return true;
 }
 
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)

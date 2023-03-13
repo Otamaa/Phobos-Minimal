@@ -28,42 +28,42 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
 
-	enum { CannotFire = 0x6FCB7E, Contunue = 0x0 };
+	enum { FireIllegal = 0x6FCB7E, Contunue = 0x0 , FireCant = 0x6FCD29 };
 
 	if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
-		return CannotFire;
+		return FireCant;
 
 	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
 
 	if (!TechnoExt::ObjectHealthAllowFiring(pObjectT, pWeapon))
-		return CannotFire;
+		return FireIllegal;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (CeaseFire(pThis))
-		return CannotFire;
+		return FireIllegal;
 #endif
 
 	if (!TechnoExt::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
-		return CannotFire;
+		return FireIllegal;
 
 	if (!TechnoExt::InterceptorAllowFiring(pThis, pObjectT))
-		return CannotFire;
+		return FireIllegal;
 
 	auto const& [pTargetTechno, targetCell] = TechnoExt::GetTargets(pObjectT, pTarget);
 
 	if (!TechnoExt::CheckCellAllowFiring(targetCell, pWeapon))
-		return CannotFire;
+		return FireIllegal;
 
 	if (pTargetTechno)
 	{
 		if (!TechnoExt::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
-			return CannotFire;
+			return FireIllegal;
 
 		if (!TechnoExt::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
-			return CannotFire;
+			return FireIllegal;
 
 		if (!TechnoExt::TargetFootAllowFiring(pTargetTechno, pWeapon))
-			return CannotFire;
+			return FireIllegal;
 	}
 
 	return Contunue;
@@ -313,3 +313,18 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
 	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
 		LandTargetingCheck : SkipLandTargetingCheck;
 }
+
+//DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_DropPassenger, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EDI);
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	if (pThis->Passengers.FirstPassenger)
+//	{
+//		// TODO : implement this for UnitClass
+//		pThis->DropOffParadropCargo();
+//	}
+//
+//	return 0x0;
+//}

@@ -104,6 +104,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DisablePathfindFailureLog.Read(exINI, GENERAL_SECTION, "DisablePathfindFailureLog");
 	this->CreateSound_PlayerOnly.Read(exINI, AUDIOVISUAL_SECTION, "CreateSound.PlayerOnly");
 	this->DoggiePanicMax.Read(exINI, COMBATDAMAGE_SECTION, "DoggiePanicMax");
+	this->HunterSeeker_Damage.Read(exINI, COMBATDAMAGE_SECTION, "HunterSeekerDamage");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MyPutData.Read(exINI, GENERAL_SECTION);
 #endif
@@ -589,6 +590,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->AutoAttackICedTarget)
 		.Process(this->AI_SpyMoneyStealPercent)
 		.Process(this->DoggiePanicMax)
+		.Process(this->HunterSeeker_Damage)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

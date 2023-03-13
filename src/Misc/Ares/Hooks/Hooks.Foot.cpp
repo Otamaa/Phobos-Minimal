@@ -16,18 +16,23 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x4D5782, FootClass_ApproachTarget_Passive, 0x6)
+DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 {
 	GET(FootClass*, pThis, EBX);
-	R->CL(pThis->ShouldLoseTargetNow || pThis->InOpenToppedTransport);
-	return 0x4D5788;
+	GET_STACK(bool, bSomething, 0x12);
+
+	if (pThis->BunkerLinkedItem || pThis->ShouldLoseTargetNow || pThis->InOpenToppedTransport)
+		R->AL(0);
+
+	return (!bSomething)
+		? 0x4D5796 : 0x4D57EA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 {
 	GET(BuildingClass*, pBld, EAX);
-	GET(TechnoClass*, pDocker, ESI);
 	GET(CoordStruct*, pBuffer, ECX);
+	GET(TechnoClass*, pDocker, ESI);
 	R->EAX(pBld->GetDockCoords(pBuffer, pDocker));
 	return 0x4D9EE7;
 }
@@ -92,10 +97,11 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x4DB37C, FootClass_Remove_Airspace, 0x6, 4DB3A4)
 DEFINE_OVERRIDE_HOOK(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
 {
 	GET(FootClass*, F, ESI);
-	if (F->ParasiteEatingMe)
-	{
+
+	if (F->ParasiteEatingMe) {
 		F->ParasiteEatingMe->SetLocation(F->Location);
 	}
+
 	return 0;
 }
 
@@ -104,13 +110,21 @@ DEFINE_OVERRIDE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 	GET(FootClass* const, pThis, ESI);
 
 	// ensure the target won't get away
-	if (pThis->GetTechnoType()->HunterSeeker)
-	{
-		if (auto const pTarget = abstract_cast<TechnoClass*>(pThis->Target))
-		{
-			auto const pWeapon = pThis->GetWeapon(0)->WeaponType;
-			auto damage = pWeapon->Damage;
-			pTarget->ReceiveDamage(&damage, 0, pWeapon->Warhead, pThis, true, true, nullptr);
+	if (pThis->GetTechnoType()->HunterSeeker) {
+		if (auto const pTarget = abstract_cast<TechnoClass*>(pThis->Target)) {
+
+			const auto pWpS = pThis->GetWeapon(0);
+
+			if(pWpS && pWpS->WeaponType)
+			{
+				auto damage = pWpS->WeaponType->Damage;
+				pTarget->ReceiveDamage(&damage, 0, pWpS->WeaponType->Warhead, pThis, true, true, pThis->Owner);
+			}
+			else
+			{
+				auto damage = RulesExt::Global()->HunterSeeker_Damage.Get();
+				pTarget->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
+			}
 		}
 	}
 
@@ -128,8 +142,8 @@ DEFINE_OVERRIDE_HOOK(0x7101CF, FootClass_ImbueLocomotor, 0x7)
 DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
-	if (pThis->__PlayingMovingSound)
-	{
+
+	if (pThis->__PlayingMovingSound) {
 		return 0x4DAAEE;
 	}
 

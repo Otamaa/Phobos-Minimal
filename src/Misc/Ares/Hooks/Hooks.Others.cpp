@@ -18,6 +18,126 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <Notifications.h>
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
+DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
+{
+	GET(AnimClass*, pThis, ESI);
+	auto pType = pThis->Type;
+
+	CoordStruct crd = pThis->GetCoords();
+
+	auto SpawnAnim = [&crd](AnimTypeClass* pType, int dist)
+	{
+		if (!pType)
+		{
+			return static_cast<AnimClass*>(nullptr);
+		}
+
+		CoordStruct crdAnim = crd;
+		if (dist > 0)
+		{
+			auto crdNear = MapClass::GetRandomCoordsNear(crd, dist, false);
+			crdAnim = MapClass::PickInfantrySublocation(crdNear, true);
+		}
+
+		auto count = ScenarioClass::Instance->Random.RandomRanged(1, 2);
+		return GameCreate<AnimClass>(pType, crdAnim, 0, count, 0x600u, 0, false);
+	};
+
+	if (pType->Flamer)
+	{
+		// always create at least one small fire
+		SpawnAnim(RulesClass::Instance->SmallFire, 64);
+
+		// 50% to create another small fire
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
+		{
+			SpawnAnim(RulesClass::Instance->SmallFire, 160);
+		}
+
+		// 50% chance to create a large fire
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
+		{
+			SpawnAnim(RulesClass::Instance->LargeFire, 112);
+		}
+
+	}
+	else if (pType->Scorch)
+	{
+		// creates a SmallFire anim that is attached to the same object
+		// this anim is attached to.
+		if (pThis->GetHeight() < 10)
+		{
+			switch (pThis->GetCell()->LandType)
+			{
+			case LandType::Water:
+			case LandType::Beach:
+			case LandType::Ice:
+			case LandType::Rock:
+				break;
+			default:
+				if (auto pAnim = SpawnAnim(RulesClass::Instance->SmallFire, 0))
+				{
+					if (pThis->OwnerObject)
+					{
+						pAnim->SetOwnerObject(pThis->OwnerObject);
+					}
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
+{
+	GET(AlphaShapeClass*, pThis, ESI);
+
+	if (pThis->AttachedTo->WhatAmI() == AnimClass::AbsID) {
+		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
+{
+	GET(AlphaShapeClass*, pThis, ESI);
+	PointerExpiredNotification::NotifyInvalidAnim->Remove(pThis);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x75EE2E, WaveClass_Draw_Green, 0x8)
+DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
+{
+	GET(int, Q, EDX);
+	if (Q > 0x15F8F)
+	{
+		Q = 0x15F8F;
+	}
+	R->EDX(Q);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
+{
+	R->EAX(2);
+	return 0x7609E8;
+}
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x760286, WaveClass_Draw_Magnetron3, 0x5, 7602D3)
+
+DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
+{
+	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
+	pVec->Count = 0; //clear count , dont destroy the vector
+	return 0x761110;
+}
+
 DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {
 	GET(HouseClass*, House, EDI);
@@ -627,22 +747,19 @@ DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 	GET(SpawnManagerClass*, pThis, ECX);
 
 	int nCur = 0;
-	for (int i = pThis->SpawnedNodes.Count - 1; i > 0; --i)
-	{
-		if (auto const pNode = pThis->SpawnedNodes.Items[i])
-		{
-			auto const nStatus = pNode->Status;
-			auto const nEligible = (
-				nStatus == SpawnNodeStatus::Idle ||
-				nStatus == SpawnNodeStatus::Dead ||
-				nStatus == SpawnNodeStatus::Reloading) &&
-				pNode->SpawnTimer.StartTime >= 0 &&
-				!pNode->SpawnTimer.TimeLeft;
 
-			if (nEligible)
-			{
-				++nCur;
-			}
+	for (auto const pNode : pThis->SpawnedNodes)
+	{
+		auto const nStatus = pNode->Status;
+		auto const nEligible = (
+			nStatus == SpawnNodeStatus::Idle ||
+			nStatus == SpawnNodeStatus::Dead ||
+			nStatus == SpawnNodeStatus::Reloading) &&
+			pNode->SpawnTimer.StartTime >= 0 &&
+			!pNode->SpawnTimer.TimeLeft;
+
+		if (nEligible) {
+			++nCur;
 		}
 	}
 

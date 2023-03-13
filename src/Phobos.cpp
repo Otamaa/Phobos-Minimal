@@ -15,12 +15,10 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
 
-#include <Misc/InteractWithAres/Body.h>
 #include <Misc/AresData.h>
 #include <Misc/Patches.h>
 
 #include "Phobos.Threads.h"
-//#include "Phobos.Lua.h"
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>

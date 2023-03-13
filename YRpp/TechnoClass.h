@@ -913,7 +913,7 @@ public:
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc
-	DWORD            ShouldLoseTargetNow;
+	bool            ShouldLoseTargetNow;
 	RadBeam*         FiringRadBeam;
 	PlanningTokenClass* PlanningToken;
 	ObjectTypeClass* Disguise;

@@ -40,6 +40,7 @@ DEFINE_OVERRIDE_HOOK(0x504796, HouseClass_AddAnger_MultiplayPassive, 0x6)
 
 	R->ECX(SessionClass::Instance->GameMode != GameMode::Campaign
 		&& pOtherHouse->Type->MultiplayPassive ? 0x0 : pThis->AngerNodes.Count);
+
 	return 0x50479C;
 }
 
@@ -84,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
-	pThis->InfantryType_53D1 = R->EDX<bool>();
+	pThis->InfantryType_53D1 = R->DL();
 	return 0x50080D;
 }
 

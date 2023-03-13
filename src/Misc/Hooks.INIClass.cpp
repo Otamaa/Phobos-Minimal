@@ -56,51 +56,6 @@ if(IS_SAME_STR_(parser.value() ,#name)){ value = LocomotionClass::CLSIDs::name; 
 		return true;
 	}
 }
-template<typename T>
-T ReadTemplate(REGISTERS* R)
-{
-	GET(CCINIClass*, ini, ECX);
-	GET_STACK(char*, section, 0x4);
-	GET_STACK(char*, entry, 0x8);
-	GET_STACK(T, defaultValue, 0xC);
-	INI_EX exINI(ini);
-	T result;
-
-	if (!detail::read<T>(result, exINI, section, entry, false))
-		result = defaultValue;
-	return result;
-}
-
-template<typename T>
-T* ReadTemplatePtr(REGISTERS* R)
-{
-	GET(CCINIClass*, ini, ECX);
-	GET_STACK(T*, result, 0x4);
-	GET_STACK(char*, section, 0x8);
-	GET_STACK(char*, entry, 0xC);
-	GET_STACK(T*, defaultValue, 0x10);
-	INI_EX exINI(ini);
-
-	if (!detail::read<T>(*result, exINI, section, entry, false))
-		*result = *defaultValue;
-	return result;
-}
-
-// for some reason, WW passes the default locomotor by value
-template<>
-CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
-{
-	GET(CCINIClass*, ini, ECX);
-	GET_STACK(CLSID*, result, 0x4);
-	GET_STACK(char*, section, 0x8);
-	GET_STACK(char*, entry, 0xC);
-	GET_STACK(CLSID, defaultValue, 0x10);
-	INI_EX exINI(ini);
-
-	if (!detail::read<CLSID>(*result, exINI, section, entry, false))
-		*result = defaultValue;
-	return result;
-}
 
 DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 {
@@ -175,6 +130,52 @@ struct INIInheritance
 	static inline std::set<std::string> SavedIncludes {};
 	static inline constexpr const char* const InHeritsStr = "$Inherits";
 	static inline CCINIClass* LastINIFile { nullptr};
+
+	template<typename T>
+	static T* ReadTemplatePtr(REGISTERS* R)
+	{
+		GET(CCINIClass*, ini, ECX);
+		GET_STACK(T*, result, 0x4);
+		GET_STACK(char*, section, 0x8);
+		GET_STACK(char*, entry, 0xC);
+		GET_STACK(T*, defaultValue, 0x10);
+		INI_EX exINI(ini);
+
+		if (!detail::read<T>(*result, exINI, section, entry, false))
+			*result = *defaultValue;
+		return result;
+	}
+
+	// for some reason, WW passes the default locomotor by value
+	template<>
+	static CLSID* ReadTemplatePtr<CLSID>(REGISTERS* R)
+	{
+		GET(CCINIClass*, ini, ECX);
+		GET_STACK(CLSID*, result, 0x4);
+		GET_STACK(char*, section, 0x8);
+		GET_STACK(char*, entry, 0xC);
+		GET_STACK(CLSID, defaultValue, 0x10);
+		INI_EX exINI(ini);
+
+		if (!detail::read<CLSID>(*result, exINI, section, entry, false))
+			*result = defaultValue;
+		return result;
+	}
+
+	template<typename T>
+	static T ReadTemplate(REGISTERS* R)
+	{
+		GET(CCINIClass*, ini, ECX);
+		GET_STACK(char*, section, 0x4);
+		GET_STACK(char*, entry, 0x8);
+		GET_STACK(T, defaultValue, 0xC);
+		INI_EX exINI(ini);
+		T result;
+
+		if (!detail::read<T>(result, exINI, section, entry, false))
+			result = defaultValue;
+		return result;
+	}
 
 	static int ReadInt(REGISTERS* R, int address)
 	{

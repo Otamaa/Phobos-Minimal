@@ -18,8 +18,8 @@
 
 //
 // skip old logic's way to determine the cursor
-// Why 7 , ist 5 ?
-DEFINE_OVERRIDE_SKIP_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA, 0x7 ,51E5D9)
+// Was 7
+DEFINE_OVERRIDE_SKIP_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA, 0x5 ,51E5D9)
 
 DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 {

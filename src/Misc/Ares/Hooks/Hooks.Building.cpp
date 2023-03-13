@@ -16,14 +16,14 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <numeric>
 /* #183 - cloakable on Buildings and Aircraft */
 DEFINE_OVERRIDE_HOOK(0x442C75, BuildingClass_Init_Cloakable, 0x6)
 {
 	GET(BuildingClass*, Item, ESI);
 	GET(BuildingTypeClass*, pType, EAX);
 
-	if (pType->Cloakable)
-	{
+	if (pType->Cloakable) {
 		Item->Cloakable = true;
 	}
 
@@ -36,8 +36,7 @@ DEFINE_OVERRIDE_HOOK(0x448D95, BuildingClass_ChangeOwnership_OldSpy2, 0x8)
 	GET(HouseClass*, newOwner, EDI);
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->DisplayProductionTo.Contains(newOwner))
-	{
+	if (pThis->DisplayProductionTo.Contains(newOwner)){
 		pThis->DisplayProductionTo.Remove(newOwner);
 	}
 
@@ -50,11 +49,9 @@ DEFINE_OVERRIDE_HOOK(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 	GET(CellClass*, pCell, ESI);
 
 	// mark detected buildings for redraw
-	if (auto pBld = pCell->GetBuilding())
-	{
+	if (auto pBld = pCell->GetBuilding()) {
 		if (pBld->Owner != HouseClass::CurrentPlayer()
-			&& pBld->VisualCharacter(VARIANT_FALSE, nullptr) != VisualType::Normal)
-		{
+			&& pBld->VisualCharacter(VARIANT_FALSE, nullptr) != VisualType::Normal) {
 			pBld->NeedsRedraw = true;
 		}
 	}
@@ -67,20 +64,22 @@ DEFINE_OVERRIDE_HOOK(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 DEFINE_OVERRIDE_HOOK(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	if (pBld->Type->SensorArray)
-	{
+
+	if (pBld->Type->SensorArray) {
 		pBld->SensorArrayDeactivate();
 	}
+
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x448C3E, BuildingClass_ChangeOwnership_SensorArrayB, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	if (pBld->Type->SensorArray)
-	{
+	
+	if (pBld->Type->SensorArray) {
 		pBld->SensorArrayActivate();
 	}
+
 	return 0;
 }
 
@@ -88,10 +87,11 @@ DEFINE_OVERRIDE_HOOK(0x448C3E, BuildingClass_ChangeOwnership_SensorArrayB, 0x6)
 DEFINE_OVERRIDE_HOOK(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	if (pBld->Type->SensorArray)
-	{
+
+	if (pBld->Type->SensorArray) {
 		pBld->SensorArrayDeactivate();
 	}
+
 	return 0;
 }
 
@@ -101,8 +101,7 @@ DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	auto pType = pThis->Type;
 
-	if (pType->SensorArray)
-	{
+	if (pType->SensorArray) {
 		R->EAX(pType->SensorsSight);
 		return 0x45674B;
 	}
@@ -119,6 +118,7 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 
 	R->EDX(pThis ? pThis->Type->Name : GameStrings::NoneStr());
 	R->EAX(pInf ? pInf->Type->Name : GameStrings::NoneStr());
+
 	return 0x4430FA;
 }
 
@@ -134,22 +134,17 @@ DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(int, AnimState, 0x4);
 
-	if (AnimState == -2)
-	{
-		for (auto& pAnim : pThis->Anims)
-		{
-			if (pAnim)
-			{
+	if (AnimState == -2) {
+		for (auto& pAnim : pThis->Anims) {
+			if (pAnim) {
 				pAnim->UnInit();
 				pAnim = nullptr;
 			}
 		}
-
 	}
 	else
 	{
-		if (auto& pAnim = pThis->Anims[AnimState])
-		{
+		if (auto& pAnim = pThis->Anims[AnimState]) {
 			pAnim->UnInit();
 			pAnim = nullptr;
 		}
@@ -177,15 +172,24 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	double amount = 0.0;
 	if (pType->Storage > 0)
 	{
-		amount = pThis->Tiberium.GetTotalAmount() / pType->Storage;
+		float amounttotal = 0.0f;
+		for (auto const nTib : pThis->Tiberium) {
+			amounttotal += nTib;
+		}
+
+		amount = amounttotal / pType->Storage;
 	}
 	else
 	{
-		amount = pThis->Owner->GetStoragePercentage();
+		float amounttotal = 0.0f;
+		for (auto const nTib : pThis->Owner->OwnedTiberium) {
+			amounttotal += nTib;
+		}
+
+		amount = amounttotal / pThis->Owner->TotalStorage;
 	}
 
-	int ret = Game::F2I(pType->GetPipMax() * amount);
-	R->EAX(ret);
+	R->EAX(static_cast<int>(pType->GetPipMax() * amount));
 	return 0x44D750;
 }
 
@@ -205,7 +209,7 @@ DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 	return 0x444D2C;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6 , 444A53
+DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6 , 444A53)
 
 DEFINE_OVERRIDE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
 {
@@ -219,7 +223,6 @@ DEFINE_OVERRIDE_HOOK(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 {
 	GET(TechnoClass*, pVictim, ECX);
 	GET(TechnoClass*, pKiller, EBP);
-
 	pKiller->RegisterDestruction(pVictim);
 	return 0x4586DF;
 }
@@ -230,7 +233,8 @@ DEFINE_OVERRIDE_HOOK(0x44D4CA, BuildingClass_Mi_Missile_NoReport, 0x9)
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(WeaponTypeClass*, pWeapon, EBP);
 
-	return !pType->IsGattling && pWeapon->Report.Count ? 0x44D4D4 : 0x44D51F;
+	return !pType->IsGattling && pWeapon->Report.Count ?
+		0x44D4D4 : 0x44D51F;
 }
 
 // for yet unestablished reasons a unit might not be present.
@@ -239,7 +243,6 @@ DEFINE_OVERRIDE_HOOK(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
 {
 	//GET(BuildingClass*, pThis, EBP);
 	GET(TechnoClass*, pTrainee, EAX);
-
 	return pTrainee ? 0 : 0x44BB3C;
 }
 

@@ -70,7 +70,7 @@ public:
 	InfantryTypeClass* Type;
 	DoType SequenceAnim; //which is currently playing
 	DECLARE_PROPERTY(TimerStruct ,unknown_Timer_6C8);
-	DWORD          PanicDurationLeft; // set in ReceiveDamage on panicky units
+	int          PanicDurationLeft; // set in ReceiveDamage on panicky units
 	bool           PermanentBerzerk; // set by script action, not cleared anywhere
 	bool           Technician;
 	bool           IsStroked; //0x6DA
