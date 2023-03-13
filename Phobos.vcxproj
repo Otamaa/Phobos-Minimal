@@ -271,6 +271,7 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
+    <ClCompile Include="src\Utilities\VersesData.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
   </ItemGroup>
@@ -455,6 +456,7 @@
     <ClInclude Include="src\Utilities\TemplateDef.h" />
     <ClInclude Include="src\Utilities\TemplateDefB.h" />
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
+    <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\YRPPGlobal.h" />
   </ItemGroup>

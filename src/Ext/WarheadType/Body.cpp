@@ -91,7 +91,7 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 
 	auto nAddDamage = add * multiply;
 	if (this->RecalculateDistanceDamage_ProcessVerses)
-		nAddDamage *= GeneralUtils::GetWarheadVersusArmor(pArgs->WH, pThisType->Armor);
+		nAddDamage *= this->GetVerses(pThisType->Armor).Verses;
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
 		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
@@ -168,7 +168,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 			if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 				nArmor = pExt->CurrentShieldType->Armor;
 
-			return (fabs(GeneralUtils::GetWarheadVersusArmor(Get(), nArmor)) >= 0.001);
+			return (std::abs(this->GetVerses(nArmor).Verses) >= 0.001);
 		}
 
 		return true;
@@ -345,6 +345,25 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		return;
 
 	INI_EX exINI(pINI);
+
+	// writing custom verses parser just because
+	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer)) {
+		int idx = 0;
+		char* context = nullptr;
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
+			cur; 
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			this->Verses[idx].Parse(cur);
+			++idx;
+			if (idx > 10)
+			{
+				break;
+			}
+		}
+	}
+
+	ArmorTypeClass::LoadForWarhead(pINI, pThis);
 
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");

@@ -384,7 +384,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = false;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,

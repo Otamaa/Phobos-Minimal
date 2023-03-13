@@ -791,7 +791,7 @@ struct ColorPacker
 
 namespace Unsorted
 {
-	static constexpr reference<const char* const, 0x7E5214u, 11u> const ArmorNameArray {};
+	static constexpr reference<const char* const, 0x7E5210u, 11u> const ArmorNameArray {};
 	static constexpr reference<const char* const, 0x7E5240u, 19u> const PowerUpsNameArray {};
 
 	static constexpr reference<int, 0xA8ED84u> const CurrentFrame {};

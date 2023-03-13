@@ -239,10 +239,9 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 			}
 		}
 
-		if (!skipRemainingChecks)
-		{
-			if (GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead, pTargetTechno->GetTechnoType()->Armor) == 0.0)
-			{
+		if (!skipRemainingChecks) {
+
+			if (std::abs(WarheadTypeExt::ExtMap.Find(pWeaponOdd->Warhead)->GetVerses(pTargetTechno->GetTechnoType()->Armor).Verses) == 0.0) {
 				chosenWeaponIndex = evenWeaponIndex;
 			}
 			else

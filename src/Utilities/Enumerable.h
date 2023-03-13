@@ -21,6 +21,21 @@ template <typename T> class Enumerable
 public:
 	static container_t Array;
 
+	static int FindOrAllocateIndex(const char* Title)
+	{
+		const auto result = std::find_if(Array.begin(), Array.end(),
+		[Title](std::unique_ptr<T>& Item) {
+			return _strcmpi(Item->Name.data(), Title) == 0;
+		});
+ 
+		if (result == Array.end()) {
+			Array.push_back(std::make_unique<T>(Title));
+			return Array.size() - 1;
+		}
+
+		return std::distance(Array.begin(), result);
+	}
+
 	static int FindIndexById(const char* Title)
 	{
 		const auto result = std::find_if(Array.begin(), Array.end(), 
@@ -96,7 +111,7 @@ public:
 
 		for (int i = 0; i < pINI->GetKeyCount(section); ++i)
 		{
-			if (pINI->ReadString(section, pINI->GetKeyName(section, i), "", Phobos::readBuffer))
+			if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer))
 			{
 				if (auto const pItem = FindOrAllocate(Phobos::readBuffer))
 				{

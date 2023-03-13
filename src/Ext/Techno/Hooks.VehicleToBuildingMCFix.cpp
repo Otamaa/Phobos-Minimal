@@ -50,6 +50,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 
 		*ToAnim = Anim;
 		Anim->SetOwnerObject(pTechnoTo);
+		pTechnoFrom->MindControlRingAnim= nullptr;
 	}
 }
 
@@ -57,7 +58,7 @@ DEFINE_HOOK(0x739956, UnitClass_Deploy_TransferMindControl, 0x6)
 {
 	GET(UnitClass*, pUnit, EBP);
 	GET(BuildingClass*, pStructure, EBX);
-	
+
 	if (pUnit->AttachedTag)
 		pStructure->AttachTrigger(pUnit->AttachedTag);
 

@@ -87,7 +87,8 @@
         "cstdarg": "cpp",
         "fstream": "cpp",
         "future": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "numeric": "cpp"
     },
     "task.allowAutomaticTasks": "on"
 }

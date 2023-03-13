@@ -4480,3 +4480,8 @@ enum class CrateType : unsigned char{
 //
 //	return true;
 //}
+
+DEFINE_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6)
+{
+	return 0x69A937;
+}

@@ -18,7 +18,42 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <New/Type/ArmorTypeClass.h>
+
 #include <Notifications.h>
+
+
+DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
+{
+	GET(CCINIClass *, pINI, ECX);
+	if(ArmorTypeClass::Array.empty()) {
+		ArmorTypeClass::AddDefaults();
+	}
+
+	GET_STACK(const char *, Section, 0x4);
+	GET_STACK(const char *, Key, 0x8);
+	//GET_STACK(int, fallback, 0xC);
+
+	char buf[0x64];
+	pINI->ReadString(Section, Key, Phobos::readDefval, buf);
+	
+	//if(strnlen_s(buf,sizeof(buf)) > 0) {
+		
+		int idx = ArmorTypeClass::FindIndexById(buf);
+
+		if(idx < 0) {
+			idx = 0;
+
+			if(strlen(buf))
+				Debug::INIParseFailed(Section, Key, buf);
+		}
+
+		R->EAX(idx);
+	//}
+
+	return 0x475430;
+}
+
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
 DEFINE_OVERRIDE_HOOK_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
@@ -595,7 +630,7 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x615BD3, Handle_Static_Messages_LoopingMovie, 0x5, 61
 DEFINE_OVERRIDE_SKIP_HOOK(0x78997B, sub_789960_RemoveWOLResolutionCheck, 0x5, 789A58)
 DEFINE_OVERRIDE_SKIP_HOOK(0x4BA61B, DSurface_CTOR_SkipVRAM, 0x6, 4BA623)
 
-DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_Update_Damage, 0x6)
+DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
 	GET(VoxelAnimClass*, pThis, EBX);
 
@@ -798,15 +833,33 @@ DEFINE_OVERRIDE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 	{
 		DoNotDealDamage = 0x423A92,
 		DealDamage = 0x4239F8,
+		GoToNext = 0x423A83,
 	};
 
 	GET(ObjectClass*, pObj, EDI);
 	GET(AnimClass*, pThis, EBP);
 
 	auto const pType = pThis->Type;
-	return !pObj || !pType->Warhead ||
-		pType->DamageRadius < 0 || pType->Damage == 0.0 ?
-		DoNotDealDamage : DealDamage;
+	auto const nRadius = pType->DamageRadius;
+
+	if (!pObj || nRadius < 0 || CLOSE_ENOUGH(pType->Damage, 0.0) || !pType->Warhead)
+		return DoNotDealDamage;
+
+	auto const nCoord = pThis->Bounce.GetCoords();
+	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pType);
+	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
+	auto const nLoc = pObj->Location;
+	auto const nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
+
+	if (nDist < nRadius) {
+		auto nDamage = (int)pType->Damage;
+		pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
+	}
+
+	//return !pObj || !pType->Warhead ||
+	//	pType->DamageRadius < 0 || pType->Damage == 0.0 ?
+	//	DoNotDealDamage : DealDamage;
+	return GoToNext;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)

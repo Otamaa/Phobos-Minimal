@@ -1413,9 +1413,8 @@ void TechnoExt::ExtData::UpdateInterceptor()
 
 		if (pBulletTypeExt->Armor.isset())
 		{
-			double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pBulletTypeExt->Armor);
-
-			if (!((fabs(versus) >= 0.001)))
+			auto const pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+			if (std::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses) < 0.001)
 				continue;
 		}
 

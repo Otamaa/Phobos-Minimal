@@ -14,6 +14,7 @@
 #endif
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
+#include <Utilities/VersesData.h>
 
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
@@ -234,6 +235,7 @@ public:
 		Valueable<int> RelativeDamage_Building;
 		Valueable<int> RelativeDamage_Terrain;
 
+		std::vector<VersesData> Verses;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -437,7 +439,11 @@ public:
 			, PaintBallData { }
 #endif
 
-		{ }
+		{	
+			for (int i = 0; i < 11; ++i) {
+				Verses.push_back({});
+			}
+		}
 
 	private:
 		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr , BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
@@ -481,6 +487,14 @@ public:
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
 		bool ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
 		void ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
+
+		VersesData& GetVerses(Armor armor) {
+			return this->Verses[static_cast<int>(armor)];
+		}
+
+		const VersesData& GetVerses(Armor armor) const {
+			return this->Verses[static_cast<int>(armor)];
+		}
 
 		virtual ~ExtData() override  = default;
 		void LoadFromINIFile(CCINIClass* pINI) override;

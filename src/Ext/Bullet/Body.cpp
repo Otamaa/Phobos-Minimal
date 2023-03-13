@@ -320,7 +320,8 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 	if (!pTarget)
 		return false;
 
-	WarheadTypeClass* pWH = pThis->Type->ShrapnelWeapon->Warhead;
+	const auto pWH = pThis->Type->ShrapnelWeapon->Warhead;
+	const auto pWhExt = WarheadTypeExt::ExtMap.Find(pWH);
 
 	if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
 	{
@@ -332,18 +333,14 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 		case AbstractType::Unit:
 		case AbstractType::Building:
 		{
-			if (!WarheadTypeExt::ExtMap.Find(pWH)->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
-			{
+			if (!pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false)) {
 				return false;
 			}
 		}
 		break;
-		default:
-		{
-			if (auto pType = pTargetObj->GetType())
-			{
-				if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) == 0.0)
-				{
+		default: {
+			if (auto pType = pTargetObj->GetType()) {
+				if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001) {
 					return false;
 				}
 			}
@@ -681,9 +678,9 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 	if (pThisTypeExt->Armor.isset())
 	{
-		double versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pThisTypeExt->Armor);
-
-		if (((fabs(versus) >= 0.001)))
+		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
+		if (((std::abs(versus) >= 0.001)))
 		{
 			canAffect = true;
 			pExt->CurrentStrength -= static_cast<int>(pWeapon->Damage * versus * TechnoExt::GetDamageMult(pSource));

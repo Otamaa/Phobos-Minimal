@@ -37,13 +37,21 @@ void RulesExt::Remove(RulesClass* pThis)
 	Data = nullptr;
 }
 
+void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
+{
+	ArmorTypeClass::LoadFromINIList_New(pINI, true);
+	ColorTypeClass::LoadFromINIList_New(pINI, true);
+}
+
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
+	ArmorTypeClass::LoadFromINIList_New(pINI, true);
+	ColorTypeClass::LoadFromINIList_New(pINI, true);
+
 		//Debug::Log(__FUNCTION__" Called ! \n");
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 		RadTypeClass::AddDefaults();
 
-	ArmorTypeClass::AddDefaults();
 	ShieldTypeClass::AddDefaults();
 	HoverTypeClass::AddDefaults();
 
@@ -52,8 +60,8 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	ArmorTypeClass::LoadFromINIList_New(pINI, false);
-	ColorTypeClass::LoadFromINIList_New(pINI, false);
+	for (auto const& pArmor : ArmorTypeClass::Array)
+	{ pArmor->EvaluateDefault(); }
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), false);
@@ -173,6 +181,9 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
+
+	//Allocate Default bullet
+	GameCreate<BulletTypeClass>(DEFAULT_STR2);
 
 	// Section Generic Prerequisites
 	FillDefaultPrerequisites(pINI);
@@ -410,12 +421,8 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma region Otamaa
 
-	//Allocate Default bullet
-	//if (
-		BulletTypeClass::FindOrAllocate(DEFAULT_STR2)
-	//	)
-	//	Debug::Log("Default BulletType Allocated ! \n")
-			;
+	
+		;
 
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
 
@@ -684,6 +691,11 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
+DEFINE_HOOK(0x52C9C4, GameInit_VeryEarlyRulesInit, 0x6)
+{
+	//RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass::Instance(), CCINIClass::INI_Rules());
+	return 0x52CA37;
+}
 // DEFINE_HOOK(0x52D149, InitRules_PostInit, 0x5)
 // {
 // 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
@@ -706,6 +718,7 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(CCINIClass*, pINI, 0x4);
 
+	// All TypeClass Created but not yet read INI
 	//	RulesClass::Initialized = true;
 	RulesExt::LoadBeforeTypeData(pItem, pINI);
 
