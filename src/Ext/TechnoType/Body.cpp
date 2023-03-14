@@ -507,6 +507,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
 	this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
 	this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
+	this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
 	this->AdjustCrushProperties();
 
 #pragma endregion
@@ -1092,7 +1093,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Experience_VictimMultiple)
 		.Process(this->NavalRangeBonus)
 		.Process(this->AI_LegalTarget)
-
+		.Process(this->DeployFire_UpdateFacing)
 
 #pragma endregion
 		;

@@ -17,6 +17,10 @@ private:
 	constexpr constant_ptr(noinit_t) noexcept {}
 public:
 
+	constexpr DWORD getAddrs() const noexcept {
+		return Address;
+	}
+
 	value_type get() const noexcept {
 		return reinterpret_cast<value_type>(Address);
 	}
@@ -51,6 +55,10 @@ private:
 	// mere presence "fixes" C2100: illegal indirection
 	constexpr reference(noinit_t) noexcept {}
 public:
+
+	constexpr DWORD getAddrs() const noexcept {
+		return Address;
+	}
 
 	value_type& get() const noexcept {
 		// fixes" C2101: '&' on constant
@@ -110,6 +118,10 @@ private:
 	constexpr reference2D(noinit_t) noexcept {}
 public:
 
+	constexpr DWORD getAddrs() const noexcept {
+		return Address;
+	}
+
 	value_type& get() const noexcept {
 		// fixes" C2101: '&' on constant
 		static auto const address = Address;
@@ -148,6 +160,10 @@ private:
 	// mere presence "fixes" C2100: illegal indirection
 	constexpr reference(noinit_t) noexcept {}
 public:
+
+	constexpr DWORD getAddrs() const noexcept {
+		return Address;
+	}
 
 	value_type& get() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);
@@ -196,6 +212,9 @@ private:
 	// mere presence "fixes" C2100: illegal indirection
 	constexpr referencefunc(noinit_t) noexcept {}
 public:
+	constexpr DWORD getAddrs() const noexcept {
+		return Address;
+	}
 
 	FORCEINLINE value_type& get() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);

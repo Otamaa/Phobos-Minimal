@@ -104,10 +104,8 @@ DEFINE_OVERRIDE_HOOK(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 DEFINE_OVERRIDE_HOOK(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
-
-	pThis->DamageParticleSystems = ParticleSystemTypeClass::TypeListArray();
-	pThis->DestroyParticleSystems = ParticleSystemTypeClass::TypeListArray();
-
+	(*(uintptr_t*)((char*)pThis + 0x778)) = ParticleSystemTypeClass::TypeListArray.getAddrs();
+	(*(uintptr_t*)((char*)pThis + 0x794)) = ParticleSystemTypeClass::TypeListArray.getAddrs();
 	return 0x711A00;
 }
 

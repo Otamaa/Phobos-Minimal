@@ -408,6 +408,7 @@ public:
 		Valueable<Leptons> NavalRangeBonus;
 
 		Nullable<bool> AI_LegalTarget;
+		Valueable<bool> DeployFire_UpdateFacing;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 

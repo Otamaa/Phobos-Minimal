@@ -32,10 +32,9 @@ DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
 		return SkipGameCode;
 	}
 
-	auto const nFireErr = pThis->GetFireError(pThis->Target, nWeapIdx, true);
-	if (nFireErr == FireError::OK || nFireErr == FireError::FACING) // Deploy dire weapon does not need Facing check , duh
+	if (pThis->GetFireError(pThis->Target, nWeapIdx, true) == FireError::OK)
 	{
-		pThis->Fire(pThis->Target, nWeapIdx);
+		pThis->Fire(pThis->GetCell(), nWeapIdx);
 
 		// fire error facing will stop techno firing , so force it to target cell instead
 		if (pWs->WeaponType->FireOnce)
@@ -49,14 +48,20 @@ DEFINE_HOOK(0x73DD12, UnitClass_Mission_Unload_DeployFire, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x7413B4, UnitClass_Fire_At_FireOnceNoCheck, 0x6)
+DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
-	GET_STACK(WeaponTypeClass*, pWeapon, 0x20);
 
-	 //ignore Can_fire/FireError check for Deploy Fire Weapon !
-	if (pWeapon->FireOnce && pThis->Type->DeployFire && !pThis->Type->IsSimpleDeployer && !pThis->Deployed) {
-		return 0x7413CA;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThis->Type->DeployFire 
+		&& !pThis->Type->IsSimpleDeployer 
+		&& !pThis->Deployed) {
+		if (!pTypeExt->DeployFire_UpdateFacing) {
+			//R->EAX(FireError::OK); //yes , dont return facing error 
+			//return 0x74132B;
+			return 0x741327;
+		}
 	}
 
 	return 0x0;
@@ -76,7 +81,6 @@ DEFINE_HOOK(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
 	if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
 	{
-
 		auto const nWeapIdx = TechnoExt::GetDeployFireWeapon(pUnit);
 		auto const pWs = pThis->GetWeapon(nWeapIdx);
 
@@ -104,7 +108,6 @@ DEFINE_HOOK(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 		pUnit->QueueMission(Mission::Guard, true);
 	}
 
-
 	// Restore overridden instructions
 	GET(Mission, eax, EAX);
 	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
@@ -131,73 +134,3 @@ DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 	R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
 	return 0x746CFD;
 }
-
-//DEFINE_HOOK(0x41BEA0, ObjectClass_MapCoords_OffsetByFacings, 0x7)
-//{
-//	GET(ObjectClass*, pThis, ECX);
-//	GET_STACK(CellStruct*, pResult, 0x4);
-//
-//	CellStruct nResult = CellClass::Coord2Cell(pThis->Location);
-//	if (pThis->WhatAmI() == AbstractType::Unit)
-//	{
-//		auto const pUnit = static_cast<UnitClass*>(pThis);
-//
-//		if (pUnit->HasTurret() && pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer)
-//		{
-//			nResult += CellSpread::CellOfssets[pUnit->PrimaryFacing.Current().GetValue()];
-//		}
-//	}
-//
-//	*pResult = nResult;
-//	R->EAX(pResult);
-//	return 0x41BEDA;
-//}
-
-//DEFINE_HOOK(0x741229, UnitClass_CanFire_DeployFire, 0x6)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//
-//	if (pThis->Type->DeployToFire && !pThis->Type->IsSimpleDeployer) {
-//		return 0x741314;
-//	}
-//
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x736DF0, UnitClass_FiringAI_DeployFire, 0x5)
-//{
-//	GET(UnitClass*, pThis, ECX);
-//
-//	if (pThis->Type->DeployToFire && !pThis->Type->IsSimpleDeployer) {
-//		return 0x737146;
-//	}
-//
-//	return 0x0;
-//}
-// 
-//DEFINE_HOOK(0x6FF923, TechnoClass_Fire_FireOnce, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//
-//	pThis->SetTarget(nullptr);
-//	pThis->QueueMission(Mission::Guard, true);
-//
-//	if (auto const pUnit = specific_cast<UnitClass*>(pThis)) {
-//		if (pUnit->Type->DeployFire && !pUnit->Type->IsSimpleDeployer && pUnit->Deployed)
-//			pUnit->Deployed = false;
-//	}
-//
-//	return 0x6FF92F;
-//}
-
-//DEFINE_HOOK(0x739E4F, UnitClass_Undeploy_FireOnce, 0x7)
-//{
-//	return 0x0;
-//}
-
-//DEFINE_HOOK(0x74132B, UnitClass_FireError_Result, 0x7)
-//{
-//	GET(FireError, nRes, EAX);
-//	Debug::Log("UnitClass Fire Error Result [%d] ! \n", nRes);
-//	return 0x0;
-//}

@@ -159,8 +159,7 @@ DEFINE_OVERRIDE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 {
 	GET(UnitClass*, U, ESI);
 
-	if (auto Bld = specific_cast<BuildingClass*>(U->BunkerLinkedItem))
-	{
+	if (auto Bld = specific_cast<BuildingClass*>(U->BunkerLinkedItem)) {
 		Bld->ClearBunker();
 	}
 

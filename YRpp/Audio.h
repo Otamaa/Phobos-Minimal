@@ -509,13 +509,13 @@ struct AudioEventHandleTag
 	AudioIDXData** AudioIndex;
 	DWORD f_10;
 
-	AudioEventHandleTag() noexcept :
-		event(nullptr),
-		stamp(0),
-		Voice(nullptr),
-		AudioIndex(&AudioIDXData::Instance()),
-		f_10(0)
-	{  }
+	//AudioEventHandleTag() noexcept :
+	//	event(nullptr),
+	//	stamp(0),
+	//	Voice(nullptr),
+	//	AudioIndex(&AudioIDXData::Instance()),
+	//	f_10(0)
+	//{  }
 
 	void AudioEventHandleDeInit()
 		{ JMP_THIS(0x405C00); }
@@ -541,8 +541,8 @@ struct AudioEventHandleTag
 	AudioEventClassTag* AudioEventHandleGetClass()
 		{ JMP_THIS(0x406170); }
 
-protected :
-	~AudioEventHandleTag() = delete;
+//protected :
+//	~AudioEventHandleTag() = delete;
 };
 
 static_assert(sizeof(AudioEventHandleTag) == 0x14, "Invalid Size!");

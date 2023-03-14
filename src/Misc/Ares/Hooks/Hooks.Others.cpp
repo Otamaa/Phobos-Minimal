@@ -890,27 +890,31 @@ DEFINE_OVERRIDE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 	return nLoopVal < 4 ? 0x6E20E0 : 0x0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6E232E, ActionClass_PlayAnimAt, 0x5)
+DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 {
-	GET(TActionClass*, pAction, ESI);
-	GET_STACK(HouseClass*, pHouse, 0x1C);
-	LEA_STACK(CoordStruct*, pCoords, 0xC);
+	GET(TActionClass*, pThis, ECX);
+	GET_STACK(HouseClass*, pOwner, 0x4);
+	//GET_STACK(TechnoClass*, pInvoker, 0x8);
+	//GET_STACK(TriggerClass*, pTrigger, 0xC);
+	//GET_STACK(CellStruct*, pCell, 0x10);
 
-	AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pAction->Value);
+	auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+	auto nCoord = CellClass::Cell2Coord(nCell);
+	nCoord.Z = MapClass::Instance->GetZPos(&nCoord);
+	auto pCellTarget = MapClass::Instance->GetCellAt(nCell);
+	nCoord = pCellTarget->GetCoordsWithBridge();
 
-	if (!AnimType)
-		return 0x6E2378;
+	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value)) {
 
-	AnimClass* Anim = GameCreate<AnimClass>(AnimType, pCoords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+		AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
 
-	if (AnimType->MakeInfantry > -1)
-	{
-		AnimTypeExt::SetMakeInfOwner(Anim, pHouse, nullptr);
+		if (AnimType->MakeInfantry > -1) {
+			AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
+		}
+
+		AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, pOwner,false);
 	}
 
-	AnimExt::SetAnimOwnerHouseKind(Anim, pHouse, nullptr, false);
-
-	R->EAX<AnimClass*>(Anim);
-
-	return 0x6E2368;
+	R->EAX(1);
+	return 0x6E2387;
 }

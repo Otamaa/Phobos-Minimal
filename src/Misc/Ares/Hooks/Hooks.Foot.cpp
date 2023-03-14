@@ -73,18 +73,15 @@ DEFINE_OVERRIDE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite, 0x6)
 
 	// pass the real remove state, instead of always true. this was unused
 	// in the original game, but now propagates the real value.
-	if (auto pParasiteOwner = pThis->ParasiteEatingMe)
-	{
-		if (pParasiteOwner->Health > 0)
-		{
+	if (auto pParasiteOwner = pThis->ParasiteEatingMe) {
+		if (pParasiteOwner->Health > 0) {
 			pParasiteOwner->ParasiteImUsing->PointerExpired(ptr, remove);
 		}
 	}
 
 	// only unset the parasite owner, if we are removed.
 	// cloaking does not count any more.
-	if (remove && pThis == ptr)
-	{
+	if (remove && pThis == ptr) {
 		pThis->ParasiteEatingMe = nullptr;
 	}
 
@@ -147,8 +144,7 @@ DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 		return 0x4DAAEE;
 	}
 
-	if (pThis->LocomotorSource)
-	{
+	if (pThis->LocomotorSource) {
 		pThis->Audio7.AudioEventHandleEndLooping();
 		return 0x4DAAEE;
 	}

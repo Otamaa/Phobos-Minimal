@@ -16,16 +16,16 @@ class InfantryClass;
 class LightSourceClass;
 class FoggedObjectClass;
 
-enum class BStateType : unsigned int
+enum class BStateType : int
 {
-	Construction = 0x0,
-	Idle = 0x1,
-	Active = 0x2,
-	Full = 0x3,
-	Aux1 = 0x4,
-	Aux2 = 0x5,
-	Count = 0x6,
-	None = 0xFFFFFFFF,
+	None = -1,
+	Construction = 0,
+	Idle = 1,
+	Active = 2,
+	Full = 3,
+	Aux1 = 4,
+	Aux2 = 5,
+	Count = 6
 };
 
 class DECLSPEC_UUID("0E272DC6-9C0F-11D1-B709-00A024DDAFD1")
@@ -75,7 +75,7 @@ public:
 	virtual void SensorArrayDeactivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x4556D0);
 	virtual void DisguiseDetectorActivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455A80);
 	virtual void DisguiseDetectorDeactivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455980);
-	virtual int AlwaysZero() JMP_THIS(0x452250);
+	virtual int Building_Class452250() R0;
 
 	// non-vt
 

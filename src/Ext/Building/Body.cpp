@@ -278,10 +278,8 @@ void BuildingExt::ExtData::InitializeConstants()
 #ifndef ENABLE_NEWHOOKS
 	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type))
 	{
-		if (!pTypeExt->DamageFire_Offs.empty())
-		{
-			for (int i = 0; i < (int)pTypeExt->DamageFire_Offs.size(); i++)
-				DamageFireAnims.AddItem(nullptr);
+		if (!pTypeExt->DamageFire_Offs.empty()) {
+			DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 		}
 	}
 #endif

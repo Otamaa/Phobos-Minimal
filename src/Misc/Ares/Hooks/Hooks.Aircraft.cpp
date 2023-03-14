@@ -16,8 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-DEFINE_OVERRIDE_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir, 0x5)
-{ return 0x414D4D; }
+DEFINE_OVERRIDE_SKIP_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir, 0x5 , 414D4D)
 
 //TODO:
 //DEFINE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)

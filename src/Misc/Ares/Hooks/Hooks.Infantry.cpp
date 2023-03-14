@@ -26,23 +26,17 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 	GET(InfantryClass*, pThis, ESI);
 	GET(int, res, EAX);
 
-	if (res != -1)
-	{
+	if (res != -1) {
 		return 0x51F634;
 	}
 
 	// doggie sit down on tiberium handling
-	if (pThis->Type->Doggie && !pThis->Crawling && !pThis->Target && !pThis->Destination)
-	{
-		if (!pThis->PrimaryFacing.Is_Rotating() && pThis->GetCell()->LandType == LandType::Tiberium)
-		{
-			if (pThis->PrimaryFacing.Current().Get_Dir() == DirType::East)
-			{
+	if (pThis->Type->Doggie && !pThis->Crawling && !pThis->Target && !pThis->Destination) {
+		if (!pThis->PrimaryFacing.Is_Rotating() && pThis->GetCell()->LandType == LandType::Tiberium) {
+			if (pThis->PrimaryFacing.Current().Get_Dir() == DirType::East) {
 				// correct facing, sit down
 				pThis->PlayAnim(DoType::Down);
-			}
-			else
-			{
+			} else {
 				// turn to correct facing
 				DirStruct dir(3, DirType::East);
 				pThis->Locomotor->Do_Turn(dir);
@@ -81,27 +75,21 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 	auto pType = pThis->Type;
 
-	if (!pType->Doggie)
-	{
+	if (!pType->Doggie) {
 		return 0;
 	}
 
 	// if panicking badly, lay down on tiberium
-	if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax)
-	{
-		if (!pThis->Destination && !pThis->Locomotor->Is_Moving())
-		{
-			if (pThis->GetCell()->LandType == LandType::Tiberium)
-			{
+	if (pThis->PanicDurationLeft >= RulesExt::Global()->DoggiePanicMax) {
+		if (!pThis->Destination && !pThis->Locomotor->Is_Moving())		{
+			if (pThis->GetCell()->LandType == LandType::Tiberium) {
 				// is on tiberium. just lay down
 				pThis->PlayAnim(DoType::Down);
-			}
-			else if (!pThis->InLimbo)
-			{
+			} else if (!pThis->InLimbo) {
 				// search tiberium and abort current mission
 				pThis->MoveToTiberium(16, false);
-				if (pThis->Destination)
-				{
+
+				if (pThis->Destination) {
 					pThis->SetTarget(nullptr);
 					pThis->QueueMission(Mission::Move, false);
 					pThis->NextMission();
@@ -110,9 +98,8 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 		}
 	}
 
-	if (!pType->Fearless)
-	{
-		--pThis->PanicDurationLeft;
+	if (!pType->Fearless) {
+	 --pThis->PanicDurationLeft;
 	}
 
 	return 0x52025A;
@@ -169,9 +156,7 @@ DEFINE_OVERRIDE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 	GET(InfantryClass*, I, ESI);
 
 	return (I->Transporter || I->Type->MovementZone != MovementZone::AmphibiousDestroyer)
-		? SkipPlay
-		: Play
-		;
+		? SkipPlay : Play ;
 }
 
 DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
@@ -214,8 +199,7 @@ DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 {
 	GET(InfantryClass*, I, ESI);
 
-	if (I->InLimbo)
-	{
+	if (I->InLimbo) {
 		return 0x51BDCF;
 	}
 
@@ -230,8 +214,7 @@ DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 	GET(InfantryClass*, pThis, EBP);
 	GET_STACK(int, idxWeapon, STACK_OFFS(0x34, 0x24));
 
-	if (pThis->IsCloseEnough(pThis->Target, idxWeapon))
-	{
+	if (pThis->IsCloseEnough(pThis->Target, idxWeapon)) {
 		pThis->Uncloak(false);
 	}
 
@@ -247,13 +230,11 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 {
 	GET(InfantryClass* const, pThis, ECX);
 
-	if (pThis->Type->Teleporter)
-	{
+	if (pThis->Type->Teleporter) {
 		auto const pLoco = static_cast<LocomotionClass*>(
 			pThis->Locomotor.get());
 
-		if ((((DWORD*)pLoco)[0] == TeleportLocomotionClass::vtable))
-		{
+		if ((((DWORD*)pLoco)[0] == TeleportLocomotionClass::vtable)) {
 			auto const pTele = static_cast<TeleportLocomotionClass*>(pLoco);
 			pTele->LastCoords = CoordStruct::Empty;
 		}
@@ -279,8 +260,7 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 	GET_STACK(TechnoClass*, pTarget, 0x4);
 
 	// infantry should really not be able to deploy then EMP'd.
-	if ((pInfantry == pTarget) && pInfantry->Type->Deployer && pInfantry->IsUnderEMP())
-	{
+	if ((pInfantry == pTarget) && pInfantry->Type->Deployer && pInfantry->IsUnderEMP()) {
 		R->EAX(Action::NoDeploy);
 		return 0x51F187;
 	}

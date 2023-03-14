@@ -30,8 +30,8 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 
 	enum { FireIllegal = 0x6FCB7E, Contunue = 0x0 , FireCant = 0x6FCD29 };
 
-	if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
-		return FireCant;
+	//if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
+	//	return FireCant;
 
 	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
 

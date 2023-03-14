@@ -29,7 +29,7 @@ public:
 		BuildingClass* CurrentAirFactory;
 		int AccumulatedGrindingRefund;
 
-		DynamicVectorClass<AnimClass*> DamageFireAnims;
+		std::vector<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
 		bool LighningNeedUpdate;
 

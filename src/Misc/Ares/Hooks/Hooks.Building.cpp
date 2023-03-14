@@ -173,7 +173,7 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	if (pType->Storage > 0)
 	{
 		float amounttotal = 0.0f;
-		for (auto const nTib : pThis->Tiberium) {
+		for (auto const& nTib : pThis->Tiberium) {
 			amounttotal += nTib;
 		}
 
@@ -182,7 +182,7 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	else
 	{
 		float amounttotal = 0.0f;
-		for (auto const nTib : pThis->Owner->OwnedTiberium) {
+		for (auto const& nTib : pThis->Owner->OwnedTiberium) {
 			amounttotal += nTib;
 		}
 
@@ -316,12 +316,10 @@ DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
 	GET(UnitClass*, pFreeUnit, EDI);
 
 	Mission nMissions = Mission::None;
-	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder) && pFreeUnit->Type->ResourceGatherer)
-	{
+	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder) 
+		&& pFreeUnit->Type->ResourceGatherer) {
 		nMissions = Mission::Harvest;
-	}
-	else
-	{
+	} else {
 		nMissions = (pFreeUnit->Owner && !pFreeUnit->Owner->IsControlledByHuman())
 			? Mission::Hunt : Mission::Area_Guard;
 	}

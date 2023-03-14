@@ -152,6 +152,7 @@ public:
 	Mission  SuspendedMission; //B0
 	Mission  QueuedMission;
 	bool     AssignmentState; //B8
+	PROTECTED_PROPERTY(BYTE, Pad[3])
 	int      MissionStatus;
 	int      CurrentMissionStartTime;	//in frames
 	DWORD    unknown_C4;
