@@ -501,6 +501,57 @@ public:
 
 static_assert(sizeof(AudioEventTag) == 0x280, "Invalid Size!");
 
+struct AudioController
+{
+	void* f_0;
+	DWORD f_4;
+	VocClass* Voice;
+	AudioIDXData** AudioIndex;
+	DWORD f_10;
+
+	AudioController() :
+		f_0(nullptr),
+		f_4(0),
+		Voice(nullptr),
+		AudioIndex(&AudioIDXData::Instance),
+		f_10(0)
+	{
+	}
+
+	void AudioEventHandleDeInit()
+	{ JMP_THIS(0x405C00); }
+
+	void AudioEventHandleStop()
+	{ JMP_THIS(0x405D40); }
+
+	void AudioEventHandleEnd()
+	{ JMP_THIS(0x405FD0); }
+
+	void ShutUp()
+	{ JMP_THIS(0x406060); }
+
+	void AudioEventHandleEndLooping()
+	{ JMP_THIS(0x406060); }
+
+	void __fastcall sub_4060F0(int a1, int a2)
+	{ JMP_STD(0x4060F0); }
+
+	void sub_406130()
+	{ JMP_THIS(0x406130); }
+
+	void sub_406170()
+	{ JMP_THIS(0x406170); }
+
+	void __fastcall sub_4061D0(unsigned int arg)
+	{ JMP_STD(0x4061D0); }
+
+	void __fastcall sub_406270(unsigned int arg)
+	{ JMP_THIS(0x406270); }
+
+	void sub_406310()
+	{ JMP_THIS(0x406310); }
+};
+
 struct AudioEventHandleTag
 {
 	AudioEventTag* event;

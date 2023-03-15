@@ -508,6 +508,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
 	this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
 	this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
+	this->Fake_Of.Read(exINI, pSection, "FakeOf");
 	this->AdjustCrushProperties();
 
 #pragma endregion
@@ -1094,7 +1095,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NavalRangeBonus)
 		.Process(this->AI_LegalTarget)
 		.Process(this->DeployFire_UpdateFacing)
-
+		.Process(this->Fake_Of)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

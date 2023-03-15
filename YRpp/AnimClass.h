@@ -186,7 +186,7 @@ public:
 	bool Invisible; // don't draw, but Update state anyway
 	bool PowerOff; // powered animation has no power
 	PROTECTED_PROPERTY(BYTE, unused_19F);
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio3);
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio4);
+	DECLARE_PROPERTY(AudioController, Audio3);
+	DECLARE_PROPERTY(AudioController, Audio4);
 };
 static_assert(sizeof(AnimClass) == (0x1C8), "Invalid size.");

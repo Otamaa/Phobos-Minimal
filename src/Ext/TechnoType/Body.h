@@ -409,6 +409,8 @@ public:
 
 		Nullable<bool> AI_LegalTarget;
 		Valueable<bool> DeployFire_UpdateFacing;
+		Nullable<TechnoTypeClass*> Fake_Of;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -748,6 +750,8 @@ public:
 
 			, NavalRangeBonus { }
 			, AI_LegalTarget { }
+			, DeployFire_UpdateFacing { true }
+			, Fake_Of { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

@@ -91,12 +91,20 @@ public:
 	   Volume = 0.0f to 1.0f
 	   Panning = 0x0000 (left) to 0x4000 (right) (0x2000 is center)
 	   */
-	static AudioEventTag* __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioEventHandleTag* pCtrl = nullptr)
+	//static AudioEventTag* __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioEventHandleTag* pCtrl = nullptr)
+	//	{ JMP_STD(0x750920); }
+
+	/* Play a sound at a certain Position.
+       n = Index of VocClass in Array to be played */
+	//static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioEventHandleTag* pCtrl = nullptr)
+	//	{ JMP_STD(0x7509E0); }
+
+	static DWORD __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioController* pCtrl = nullptr)
 		{ JMP_STD(0x750920); }
 
 	/* Play a sound at a certain Position.
        n = Index of VocClass in Array to be played */
-	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioEventHandleTag* pCtrl = nullptr)
+	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
 		{ JMP_STD(0x7509E0); }
 
 	// calls the one above ^ - probably sanity checks and whatnot

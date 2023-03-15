@@ -793,14 +793,14 @@ bool DSurface::Draw_Triangle(RectangleStruct& rect, Point2D& point1, Point2D& po
  */
 bool DSurface::Fill_Triangle(RectangleStruct& rect, Point2D& point1, Point2D& point2, Point2D& point3, unsigned color)
 {
-	if (!rect.Is_Valid())
+	if (!rect.IsValid())
 	{
 		return false;
 	}
 
 	RectangleStruct r1 = RectangleStruct::Intersect(Get_Rect(), rect, nullptr, nullptr);
 
-	if (!r1.Is_Valid())
+	if (!r1.IsValid())
 	{
 		return false;
 	}

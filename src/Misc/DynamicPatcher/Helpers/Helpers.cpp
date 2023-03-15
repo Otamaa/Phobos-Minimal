@@ -119,7 +119,7 @@ void Helpers_DP::FireWeaponTo(TechnoClass* pShooter, TechnoClass* pAttacker, Abs
 			sourcePos = GetFLHAbsoluteCoords(pShooter, nFLh_, true, flipY);
 		}
 
-		if (!bulletVelocity)
+		if (!bulletVelocity.IsValid())
 		{
 			bulletVelocity = GetBulletVelocity(sourcePos, targetPos);
 		}

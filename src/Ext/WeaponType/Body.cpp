@@ -243,16 +243,14 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 
 void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage)
 {
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
-
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(MapClass::Instance->GetCellAt(coords), pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, nullptr , pOwner , coords);
+	if(!coords) {
+		Debug::Log("WeaponTypeExt::DetonateAt Coords empty ! ");
+		return;
 	}
+
+	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords) , pOwner, damage);
 }
+
 void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
 {
 	if (pThis->Warhead->NukeMaker)
@@ -271,7 +269,6 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
 	{
 		pBullet->SetWeaponType(pThis);
-		pBullet->Limbo();
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}
 }

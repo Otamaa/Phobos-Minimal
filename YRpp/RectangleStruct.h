@@ -131,19 +131,19 @@ public:
 
 	inline int Size() const { return Width * Height; }
 
-	bool Is_Valid() const { return Width > 0 && Height > 0; }
+	bool IsValid() const { return Width > 0 && Height > 0; }
 
-	__forceinline bool Is_Within(const RectangleStruct &rect) const { return (rect.X >= X && rect.X < (X + Width)) && (rect.Width >= Y && rect.Width < (Y + Height)); }
-	__forceinline bool Is_Within(int x, int y) const { return (x >= X && x < (X + Width)) && (y >= Y && y < (Y + Height)); }
-	__forceinline bool Is_Within(const Point2D &point) const { return (point.X >= X && point.X < (X + Width)) && (point.Y >= Y && point.Y < (Y + Height)); }
+	__forceinline bool IsWithin(const RectangleStruct &rect) const { return (rect.X >= X && rect.X < (X + Width)) && (rect.Width >= Y && rect.Width < (Y + Height)); }
+	__forceinline bool IsWithin(int x, int y) const { return (x >= X && x < (X + Width)) && (y >= Y && y < (Y + Height)); }
+	__forceinline bool IsWithin(const Point2D &point) const { return (point.X >= X && point.X < (X + Width)) && (point.Y >= Y && point.Y < (Y + Height)); }
 
-	const RectangleStruct Intersect_With(const RectangleStruct &rectangle, int *x = nullptr, int *y = nullptr) { return Intersect(*this, rectangle, x, y); }
+	const RectangleStruct IntersectWith(const RectangleStruct &rectangle, int *x = nullptr, int *y = nullptr) { return Intersect(*this, rectangle, x, y); }
 
-	bool Intersects_With(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
+	bool IntersectsWith(const RectangleStruct &with) const { return (X > with.Width) || (Width < with.X) || (Y > with.Height) || (Height < with.Y); }
 
 	constexpr inline RectangleStruct InvalidRect() { return {0, 0, 0, 0}; }
 
-	bool Is_Overlapping(const RectangleStruct &rect)
+	bool IsOverlapping(const RectangleStruct &rect)
 	{
 		return X < rect.X + rect.Width
 			&& Y < rect.Y + rect.Height

@@ -13,26 +13,20 @@ public:
 	static const CellStruct DefaultUnloadCell;
 
 
+	inline bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
+	inline bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
+	inline bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
+
 	//equality
-	inline bool operator==(const CellStruct& a) const
-	{
+	inline bool operator==(const CellStruct& a) const {
 		return (X == a.X && Y == a.Y);
 	}
 
-	//unequality
-	inline bool operator!=(const CellStruct& a) const
+	explicit operator DWORD() const
 	{
-		return (X != a.X || Y != a.Y);
-	}
-
-	bool operator!() const
-	{
-		return (*this == CellStruct::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == CellStruct::Empty);
+		DWORD result = 0;
+		std::memcpy(&result, this, sizeof(CellStruct));
+		return result;
 	}
 
 	//magnitude

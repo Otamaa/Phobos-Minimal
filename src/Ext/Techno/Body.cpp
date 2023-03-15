@@ -1520,10 +1520,10 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	{
 		for (auto const& entry : TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->LaserTrailData)
 		{
-			if (auto const pLaserType = LaserTrailTypeClass::Array[entry.idxType].get())
+			if (auto const& pLaserType = LaserTrailTypeClass::Array[entry.idxType])
 			{
 				pExt->LaserTrails.push_back((std::make_unique<LaserTrailClass>(
-					pLaserType, pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
+					pLaserType.get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
 			}
 		}
 	}

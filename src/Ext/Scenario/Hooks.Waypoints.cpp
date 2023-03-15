@@ -49,7 +49,7 @@ DEFINE_HOOK(0x68BD80, ScenarioClass_Is_Waypoint_Valid, 0x5)
 {
 	GET_STACK(int, nWaypoint, 0x4);
 	const auto& waypoints = ScenarioExt::Global()->Waypoints;
-	R->AL(nWaypoint >= 0 && waypoints.contains(nWaypoint) && waypoints.at(nWaypoint));
+	R->AL(nWaypoint >= 0 && waypoints.contains(nWaypoint) && waypoints.at(nWaypoint).IsValid());
 
 	return 0x68BDB3;
 }
@@ -104,7 +104,7 @@ DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 	char buffer[32];
 	for (const auto& [nidx,nCell] : ScenarioExt::Global()->Waypoints)
 	{
-		if (!nCell)
+		if (!nCell.IsValid())
 			continue;
 
 		sprintf_s(buffer, "%d", nidx);

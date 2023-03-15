@@ -13,8 +13,8 @@ DEFINE_HOOK(0x469008, BulletClass_Explode_Cluster, 0x8)
 	{
 		auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
 		{
-			const int min = pTypeExt->Cluster_Scatter_Min.Get(Leptons(256));
-			const int max = pTypeExt->Cluster_Scatter_Max.Get(Leptons(512));
+			const int min = pTypeExt->Cluster_Scatter_Min.Get(BulletTypeExt::DefaultBulletScatterMin);
+			const int max = pTypeExt->Cluster_Scatter_Max.Get(BulletTypeExt::DefaultBulletScatterMax);
 
 			for (int i = 0; i < pThis->Type->Cluster; i++)
 			{

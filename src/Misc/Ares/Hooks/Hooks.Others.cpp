@@ -918,3 +918,115 @@ DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 	R->EAX(1);
 	return 0x6E2387;
 }
+
+DEFINE_OVERRIDE_HOOK(0x731E08 , Select_By_Units_Text_FakeOf, 0x6)
+{
+	int nCost = 0;
+	for (const auto pObj : ObjectClass::CurrentObjects()) {
+
+		if (const auto pTechno = generic_cast<const TechnoClass*>(pObj)) {
+			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+			TechnoTypeClass* pType = pTypeExt->Get();
+			if (pTypeExt->Fake_Of.Get(nullptr))
+				pType = pTypeExt->Fake_Of.Get();
+
+			nCost += pType->GetActualCost(pTechno->Owner);
+		}
+	}
+
+	R->EBX(nCost);
+	return 0x731E4D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
+{
+	GET(ObjectClass*, pThis, ESI);
+	R->EAX(TechnoTypeExt::GetSelectionGroupID(pThis->GetType()));
+	return R->Origin() + 13;
+}
+
+struct WRect {
+	short X, Y, Width, Height;
+};
+
+#pragma optimize("", off )
+void NOINLINE GetOccupyDimension(RectangleStruct& res ,CellStruct* a2) {
+	if (!a2 || *a2 == CellStruct::Empty) {
+		res = { 0,0,0,0 };
+		return;
+	}
+
+	int nYMin_res = -512;
+	int nXmin_res = -512;
+
+	int nYMax_res = 512;
+	int nXmax_res = 512;
+
+	for (auto pCopy = a2; !(*pCopy == CellStruct::Empty); ++pCopy)
+	{
+		nYMin_res = pCopy->Y;
+		nYMax_res = pCopy->Y;
+		if (pCopy->Y >= 512)
+			nYMax_res = 512;
+		if (pCopy->Y <= -512)
+			nYMin_res = -512;
+
+		nXmin_res = pCopy->X;
+		nXmax_res = pCopy->X;
+		if (pCopy->X >= 512)
+			nXmax_res = 512;
+		if (pCopy->X <= -512)
+			nXmin_res = -512;
+	}
+
+	res = { nYMax_res  ,  nXmax_res  , nYMin_res ,  nXmin_res };
+	/*
+	res.X = nYMax_res;
+	res.Y = nXmax_res;
+	res.Width = nYMin_res;
+	res.Height = nXmin_res;
+	*/
+}
+
+//DEFINE_OVERRIDE_HOOK_AGAIN(0x6D5573 , sub_6D5030_CustomFoundation, 0x6)
+//DEFINE_OVERRIDE_HOOK(0x6D50FB ,sub_6D5030_CustomFoundation, 0x5)
+//{
+//	RectangleStruct nDispRect {};
+//	auto pCursorA = Unsorted::CursorSize();
+//	auto pCursorB = Unsorted::CursorSizeSecond();
+//	const bool bOnFB = R->Origin() == 0x6D50FB;
+//	GetOccupyDimension(nDispRect, (!bOnFB ?
+//		pCursorB : pCursorA));
+//
+//	short nX = 0;
+//	if (nDispRect.Width - nDispRect.X >= 0)
+//		nX = (short)nDispRect.Width - (short)nDispRect.X;
+//
+//	short nY = 0;
+//	if (nDispRect.Height - nDispRect.Y >= 0)
+//		nY = (short)nDispRect.Height - (short)nDispRect.Y;
+//
+//	const CellStruct v9res { (nX + 1)  , (nY + 1) };
+//	const CellStruct v10res { (short)nDispRect.X , (short)nDispRect.Y };
+//
+//	//const auto nRet = DisplayClass::Instance->FoundationBoundsSize((!bOnFB ? pCursorB : &pCursorA));
+//	R->Stack(0x14, v10res);
+//	R->Stack(0x18, v9res);
+//	R->EAX(v9res.pack());
+//	R->ESI((short)nDispRect.Y);
+//
+//	return (!bOnFB) ? 0x6D558F : 0x6D5116 ;
+//}
+
+DEFINE_HOOK_AGAIN(0x6D5573 , sub_6D5030_CustomFoundation, 0x6)
+DEFINE_HOOK(0x6D50FB ,sub_6D5030_CustomFoundation, 0x5)
+{	
+	auto pCursorA = Unsorted::CursorSize();
+	auto pCursorB = Unsorted::CursorSizeSecond();
+	const bool bOnFB = R->Origin() == 0x6D50FB;
+
+	Debug::Log("Cursor Data [%x] \n", !bOnFB ? pCursorB : pCursorA);
+	return 0x0;
+}
+#pragma optimize("", on )

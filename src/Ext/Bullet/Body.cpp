@@ -795,11 +795,15 @@ LABEL_5:
 	return Fuse::DontIgnite;
 }
 
-void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord )
+void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord , HouseClass* pBulletOwner)
 {
 
-	if (nCoord == CoordStruct::Empty && pTarget)
+	if (!nCoord && pTarget)
 		nCoord = pTarget->GetCoords();
+
+	if(pBulletOwner && !pTarget) {
+		BulletExt::ExtMap.Find(pThis)->Owner = pBulletOwner;
+	}
 
 	pThis->Limbo();
 	pThis->SetLocation(nCoord);

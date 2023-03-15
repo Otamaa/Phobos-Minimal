@@ -104,7 +104,6 @@ struct ColorStruct
 		return !(*this == ColorStruct::Empty);
 	}
 
-
 	explicit operator DWORD() const
 	{
 		DWORD ret = 0;

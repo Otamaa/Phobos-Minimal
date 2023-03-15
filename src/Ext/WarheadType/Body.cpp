@@ -631,41 +631,25 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)
 {
-	if (!pThis)
-		return;
-
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
-
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pATarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
+	if (targetCell && !pTarget)
 	{
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
+		Debug::Log("WarheadTypeExt::Detonate asking for targetCell but pTarget is nullptr ! \n");
+		return;
 	}
+
+	AbstractClass* pATarget = !targetCell ? static_cast<AbstractClass*>(pTarget) : pTarget->GetCell();
+	WarheadTypeExt::DetonateAt(pThis, pATarget, CoordStruct::Empty, pOwner, damage);
 }
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
-	if (!pThis)
+	if (targetCell && !coords) {
+		Debug::Log("WarheadTypeExt::Detonate asking for targetCell but coords is invalid ! \n");
 		return;
-
-	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
-	AbstractClass* pTarget = !targetCell ? nullptr : MapClass::Instance->GetCellAt(coords);
-
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
-			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
 	}
 
-	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
-	{
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
-	}
+	AbstractClass* pTarget = !targetCell ? nullptr : coords ? MapClass::Instance->GetCellAt(coords) : nullptr;
+	WarheadTypeExt::DetonateAt(pThis, pTarget, coords, pOwner, damage);
 }
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget, const CoordStruct& coords, TechnoClass* pOwner, int damage)
@@ -675,10 +659,8 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 
-	if (pThis->NukeMaker)
-	{
-		if (!pTarget)
-		{
+	if (pThis->NukeMaker) {
+		if (!pTarget) {
 			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}

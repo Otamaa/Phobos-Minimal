@@ -518,9 +518,9 @@ public:
 	bool HasWeed() const
 		{ return LandType == LandType::Weeds; }
 
-	bool operator != (const CellClass & cell) const { return cell.MapCoords != MapCoords; }
-	bool operator == (const CellClass & cell) const { return cell.MapCoords == MapCoords; }
-	bool IsValidMapCoords() const  { return MapCoords; }
+	bool operator != (const CellClass & cell) const { return cell.MapCoords.DifferTo(MapCoords); }
+	bool operator == (const CellClass & cell) const { return cell.MapCoords.SimilarTo(MapCoords); }
+	bool IsValidMapCoords() const  { return MapCoords.IsValid(); }
 	int GetCliffIndex_() const { JMP_THIS(0x487D50); }
 	CellClass* GetBulletObstacleCell(CellClass* cell, CoordStruct coord, BulletTypeClass* bullet, HouseClass* house) const { JMP_THIS(0x4CC360); }
 

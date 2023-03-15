@@ -302,7 +302,7 @@ protected:
 
 		// center or top-right-most cell finishes this
 		// round. move to the start of the next one.
-		if((current == CellStruct::Empty) || (current.X == 1 && current.Y == static_cast<short>(curspread))) {
+		if(current.SimilarTo(CellStruct::Empty) || (current.X == 1 && current.Y == static_cast<short>(curspread))) {
 			reset(curspread + 1);
 			return *this;
 		}
@@ -414,7 +414,7 @@ public:
 
 protected:
 	void next()  {
-		if(current == end) {
+		if(current.SimilarTo(end)) {
 			valid = false;
 
 		// slower path, only taken if necessary

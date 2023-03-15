@@ -64,8 +64,8 @@ public:
 	HouseClass* OwnerHouse;
 	bool TimeToDie; // remove on next update
 	PROTECTED_PROPERTY(BYTE, unused_111[3]);
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio3);
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio4);
+	DECLARE_PROPERTY(AudioController, Audio3);
+	DECLARE_PROPERTY(AudioController, Audio4);
 	bool Invisible; // don't draw, but Update state anyway
 	PROTECTED_PROPERTY(BYTE, unused_13D[3]);
 	int Duration; // counting down to zero

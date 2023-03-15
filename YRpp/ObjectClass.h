@@ -369,8 +369,8 @@ public:
 	ObjectClass*       NextObject;	//Next Object in the same cell or transport. This is a linked list of Objects.
 	TagClass*          AttachedTag; //Should be TagClass , TODO: change when implemented
 	BombClass*         AttachedBomb; //Ivan's little friends.
-	DECLARE_PROPERTY(AudioEventHandleTag, AmbientSoundController); // the "mofo" struct, evil evil stuff
-	DECLARE_PROPERTY(AudioEventHandleTag, CustomSoundController); // the "mofo" struct, evil evil stuff
+	DECLARE_PROPERTY(AudioController, AmbientSoundController); // the "mofo" struct, evil evil stuff
+	DECLARE_PROPERTY(AudioController, CustomSoundController); // the "mofo" struct, evil evil stuff
 	int                CustomSound;
 	bool               BombVisible; // In range of player's bomb seeing units, so should draw it
 	PROTECTED_PROPERTY(BYTE, align_69[0x3]);

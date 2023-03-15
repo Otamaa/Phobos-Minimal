@@ -9,7 +9,7 @@ public:
 	//need to define a == operator so it can be used in array classes
 	bool operator == (const WaypointClass& tWaypoint) const
 	{
-		return (Coords == tWaypoint.Coords && unknown == tWaypoint.unknown);
+		return (Coords.SimilarTo(tWaypoint.Coords) && unknown == tWaypoint.unknown);
 	}
 
 	//Properties

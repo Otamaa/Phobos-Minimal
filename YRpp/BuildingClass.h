@@ -374,8 +374,8 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<InfantryClass*>, Occupants);
 	int FiringOccupantIndex; // which occupant should get XP, which weapon should be fired (see 6FF074)
 
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio7);
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio8);
+	DECLARE_PROPERTY(AudioController, Audio7);
+	DECLARE_PROPERTY(AudioController, Audio8);
 
 	bool WasOnline; // the the last state when Update()ing. if this changed since the last Update(), UpdatePowered is called.
 	bool ShowRealName; // is also NOMINAL under [Structures]

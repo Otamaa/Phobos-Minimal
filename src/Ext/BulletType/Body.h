@@ -188,7 +188,10 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static constexpr std::pair<CompileTimeLeptons, CompileTimeLeptons> DefaultBulletScatter { CompileTimeLeptons(256) , CompileTimeLeptons(512) };
+	//static  std::pair<CompileTimeLeptons, CompileTimeLeptons> DefaultBulletScatter { CompileTimeLeptons(256) , CompileTimeLeptons(512) };
+
+	static const Leptons DefaultBulletScatterMin;
+	static const Leptons DefaultBulletScatterMax;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

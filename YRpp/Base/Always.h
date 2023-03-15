@@ -97,3 +97,19 @@ typedef float  f32;
 typedef double f64;
 static_assert(sizeof(f32) == 4);
 static_assert(sizeof(f64) == 8);
+
+typedef union {
+	struct {
+		uint16_t high;
+		uint16_t low;
+	} pieces;
+	uint32_t all;
+} splitint_t_big;
+
+typedef union {
+	struct {
+		uint16_t low;
+		uint16_t high;
+	} pieces;
+	uint32_t all;
+} splitint_t_little;

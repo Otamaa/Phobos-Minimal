@@ -92,15 +92,7 @@ public:
 		return static_cast<double>(X) * a.X + static_cast<double>(Y) * a.Y;
 	}
 
-	bool operator!() const
-	{
-		return (*this == Vector2D<T>::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == Vector2D<T>::Empty);
-	}
+	inline bool IsValid() const { return *this != (Vector2D<T>::Empty); }
 
 	//magnitude
 	double Magnitude() const
@@ -475,15 +467,7 @@ public:
 			+ static_cast<double>(Z * a.Z);
 	}
 
-	bool operator!() const
-	{
-		return (*this == Vector3D<T>::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == Vector3D<T>::Empty);
-	}
+	inline bool IsValid() const { return *this != (Vector3D<T>::Empty); }
 
 	//magnitude
 	double Magnitude() const
@@ -897,15 +881,7 @@ public:
 		return X * X + Y * Y + Z * Z + W * W;
 	}
 
-	bool operator!() const
-	{
-		return (*this == Vector4D<T>::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == Vector4D<T>::Empty);
-	}
+	inline bool IsValid() const { return *this != (Vector4D<T>::Empty); }
 
 	inline Vector4D& operator=(const Vector4D &v)
 	{

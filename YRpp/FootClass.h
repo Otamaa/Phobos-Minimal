@@ -183,7 +183,7 @@ public:
 	bool            __PlayingMovingSound; //53C
 	int           __MovingSoundDelay; //540
 
-	DECLARE_PROPERTY(AudioEventHandleTag, Audio7);
+	DECLARE_PROPERTY(AudioController, Audio7);
 
 	DECLARE_PROPERTY(CellStruct,      CurrentMapCoords);
 	DECLARE_PROPERTY(CellStruct,      LastMapCoords); // ::UpdatePosition uses this to remove threat from last occupied cell, etc

@@ -85,7 +85,7 @@ DEFINE_OVERRIDE_HOOK(0x5005CC, HouseClass_SetFactoryCreatedManually, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
-	pThis->InfantryType_53D1 = R->DL();
+	pThis->InfantryType_53D1 = (BYTE)R->DL();
 	return 0x50080D;
 }
 

@@ -26,14 +26,13 @@ public:
 	bool operator<(const Point2DBYTE& that) const { return X < that.X || X == that.X && Y < that.Y; }
 	bool operator<=(const Point2DBYTE& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
-	__forceinline bool operator!() const
-	{
-		return (*this == Point2DBYTE::Empty);
-	}
+	inline bool IsValid() const { return *this != (Point2DBYTE::Empty); }
 
-	__forceinline operator bool() const
+	explicit operator DWORD() const
 	{
-		return !(*this == Point2DBYTE::Empty);
+		DWORD result = 0;
+		std::memcpy(&result, this, sizeof(Point2DBYTE));
+		return result;
 	}
 
 public:

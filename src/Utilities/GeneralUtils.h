@@ -280,7 +280,7 @@ public:
 		{
 			CellStruct const offset = nDummy[ScenarioClass::Instance->Random.RandomFromMax(max - 1)];
 
-			if (offset == CellStruct::Empty)
+			if (!offset.IsValid())
 				continue;
 
 			if (const auto pNewCell = MapClass::Instance->TryGetCellAt(cell + offset))

@@ -7,6 +7,8 @@
 #include <Utilities/Macro.h>
 
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
+const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons{ 256 };
+const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons{ 512 };
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {

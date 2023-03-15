@@ -64,8 +64,8 @@ struct ZoneConnectionClass
 
 	//need to define a == operator so it can be used in array classes
 	bool operator==(const ZoneConnectionClass &other) const {
-		return (FromMapCoords == other.FromMapCoords
-			&& ToMapCoords == other.ToMapCoords
+		return (FromMapCoords.SimilarTo(other.FromMapCoords)
+			&& ToMapCoords.SimilarTo(other.ToMapCoords)
 			&& unknown_bool_08 == other.unknown_bool_08
 			&& Cell == other.Cell);
 	}

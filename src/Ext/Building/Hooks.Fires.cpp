@@ -143,7 +143,7 @@ DEFINE_JUMP(LJMP, 0x454154, 0x454170);
 DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
-	GET_STACK(CellStruct*, pCell, 0x10);
+	GET_STACK(CellStruct*, pFoundationArray, 0x10);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x9C, -0x4));
 
 	if (args.WH->Sparky)
@@ -153,9 +153,9 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 		auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
 		if (Onfire && pFireType.size() >= 3) {
-			for (; (pCell->X != 0x7FFF || pCell->Y != 0x7FFF); ++pCell)
+			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
 			{
-				auto const&[nCellX , nCellY] = pThis->GetMapCoords() + *pCell;
+				auto const&[nCellX , nCellY] = pThis->GetMapCoords() + *pFoundationArray;
 				CoordStruct nDestCoord { (nCellX * 256) + 128,(nCellY * 256) + 128,0 };
 				nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 

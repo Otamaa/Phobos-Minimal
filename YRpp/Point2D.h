@@ -72,16 +72,7 @@ public:
 	bool operator<(const Point2D& that) const { return X < that.X || X == that.X && Y < that.Y; }
 	bool operator<=(const Point2D& that) const { return X <= that.X || X == that.X && Y <= that.Y; }
 
-	__forceinline bool operator!() const
-	{
-		return (*this == Point2D::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == Point2D::Empty);
-	}
-
+	inline bool IsValid() const { return *this != (Point2D::Empty); }
 
 	const int DistanceFrom(Point2D const& nThat)
 	{

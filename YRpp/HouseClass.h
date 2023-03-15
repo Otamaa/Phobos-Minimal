@@ -107,7 +107,7 @@ public:
 	{
 		return
 			(BuildingTypeIndex == tBaseNode.BuildingTypeIndex) &&
-			(MapCoords == tBaseNode.MapCoords) &&
+			(MapCoords.SimilarTo(tBaseNode.MapCoords)) &&
 			(Placed == tBaseNode.Placed) &&
 			(Attempts == tBaseNode.Attempts);
 	}
@@ -751,7 +751,7 @@ public:
 		{ JMP_THIS(0x500850); }
 
 	const CellStruct& GetBaseCenter() const {
-		if(this->BaseCenter != CellStruct::Empty) {
+		if(this->BaseCenter.IsValid()) {
 			return this->BaseCenter;
 		} else {
 			return this->BaseSpawnCell;
@@ -943,11 +943,11 @@ public:
 	double                RepairDelay;
 	double                BuildDelay;
 	//struct StaticDataClass {
-		int                   IQLevel;
-		int                   TechLevel;
-		IndexBitfield<HouseClass*> AltAllies; // ask question, receive brain damage
-		int                   StartingCredits;	//not sure how these are used // actual credits = this * 100
-		Edge                  StartingEdge;
+	int                   IQLevel;
+	int                   TechLevel;
+	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, AltAllies); // ask question, receive brain damage
+	int                   StartingCredits;	//not sure how these are used // actual credits = this * 100
+	Edge                  StartingEdge;
 	//}StaticData;
 	DWORD                 AIState_1E4;
 	int                   SideIndex;
@@ -1096,7 +1096,7 @@ public:
 	int					  LAEnemy;
 	AbstractClass*		  ToCapture;
 //	IndexBitfield<HouseTypeClass *> RadarVisibleTo; // these house types(!?!, fuck you WW) can see my radar
-	IndexBitfield<HouseClass *> RadarVisibleTo; // this crap is being rewritten to use house indices instead of house types
+	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, RadarVisibleTo); // this crap is being rewritten to use house indices instead of house types
 	int                   SiloMoney;
 	TargetType			  PreferredTargetType; // Set via map action 35. The preferred object type to attack.
 	CellStruct			  PreferredTargetCell; // Set via map action 135 and 136. Used to override firing location of targettable SWs.
@@ -1162,7 +1162,7 @@ public:
 	Edge                  Edge;
 	CellStruct			  EMPTarget;
 	CellStruct			  NukeTarget;
-	IndexBitfield<HouseClass*> Allies;	//flags, one bit per HouseClass instance
+	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, Allies);	//flags, one bit per HouseClass instance
 	                                        	//-> 32 players possible here
 	DECLARE_PROPERTY(TimerStruct, DamageDelayTimer);
 	DECLARE_PROPERTY(TimerStruct, TeamDelayTimer); // for AI attacks
@@ -1184,7 +1184,7 @@ public:
 		int               StartingPoint;
 		CellStruct        StartingCell;     // Could it really be a CellStruct ? - Saved for backwards compatibility
 	};
-	IndexBitfield<HouseClass*> StartingAllies;
+	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, StartingAllies);
 	DWORD                 unknown_16060;
 	DECLARE_PROPERTY(DynamicVectorClass<IConnectionPoint*>, WaypointPath);
 	DWORD __ConnectionPoints_1607C;

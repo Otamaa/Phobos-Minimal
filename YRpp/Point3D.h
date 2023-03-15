@@ -45,16 +45,7 @@ public:
 	Point3D operator&(int factor) const { return Point3D{X & factor, Y & factor, Z & factor};}
 	Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
 
-	__forceinline bool operator!() const
-	{
-		return (*this == Point3D::Empty);
-	}
-
-	__forceinline operator bool() const
-	{
-		return !(*this == Point3D::Empty);
-	}
-
+	inline bool IsValid() const { return *this != (Point3D::Empty); }
 
 	int X, Y, Z;
 };
