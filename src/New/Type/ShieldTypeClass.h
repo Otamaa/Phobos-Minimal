@@ -77,7 +77,13 @@ public:
 
 	{};
 
-	virtual ~ShieldTypeClass() override = default;
+	virtual ~ShieldTypeClass() override  = default;
+	//{
+	//	if(Pips_Background_SHP.Get(nullptr)) {
+	//		GameDelete(Pips_Background_SHP.Get());
+	//		Pips_Background_SHP.Reset();
+	//	}
+	//};
 
 	virtual void LoadFromINI(CCINIClass* pINI) override;
 	virtual void LoadFromStream(PhobosStreamReader& Stm);

@@ -60,13 +60,27 @@ void ArmorTypeClass::EvaluateDefault() {
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
+	if (!pINI)
+		return;
+	
+	const char* pSection = GetMainSection();
+
+	if (!pINI->GetSection(pSection))
+		return;
+
+	auto const pkeyCount = pINI->GetKeyCount(pSection);
+	Array.reserve(pkeyCount + Unsorted::ArmorNameArray.size());
+
 	ArmorTypeClass::AddDefaults();
 
-	const char* pSection = GetMainSection();
-	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i)
+	for (int i = 0; i < pkeyCount; ++i)
 	{
 		const char* pKey = pINI->GetKeyName(pSection, i);
-		if (auto const pAlloc = FindOrAllocate(pKey))
+
+		if (FindIndexById(pKey) != -1)
+			continue;
+
+		if (auto const pAlloc = Allocate(pKey))
 			pAlloc->LoadFromINI(pINI);
 
 		if (bDebug)

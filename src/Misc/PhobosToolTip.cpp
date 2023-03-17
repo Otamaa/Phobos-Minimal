@@ -148,12 +148,12 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 	if(!Phobos::Config::RealTimeTimers)
 		return tickTime / 15;
 
-	if (Phobos::Config::RealTimeTimers_Adaptive
-		|| GameOptionsClass::Instance->GameSpeed == 0
-		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())) // TODO change when custom game speed gets merged
-	{
-		return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
-	}
+	//if (Phobos::Config::RealTimeTimers_Adaptive
+	//	|| GameOptionsClass::Instance->GameSpeed == 0
+	//	|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())) // TODO change when custom game speed gets merged
+	//{
+	//	return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
+	//}
 
 	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
 }

@@ -33,7 +33,8 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 	enum { CreateUnit = 0x449D5E, SkipTheEntireShit = 0x44A1E8 };
 	GET(BuildingClass*, pThis, EBP);
 
-	if (pThis->IsOwnedByCurrentPlayer && (!pThis->Focus || !pThis->Type->UndeploysInto))
+	if (pThis->IsOwnedByCurrentPlayer && 
+		(!pThis->Focus || !pThis->Type->UndeploysInto))
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndexById(GameStrings::EVA_StructureSold)));

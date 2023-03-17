@@ -24,6 +24,8 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 	GET(VoxelAnimClass* const, pThis, EBX);
 
 	auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
+	if (!pThisExt)
+		return 0x0;
 
 	if (!pThisExt->LaserTrails.empty())
 	{

@@ -61,8 +61,15 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x4)
 	GET_STACK(CellStruct const* const, pCell, 0x4);
 	//GET_STACK(bool const, isPlayer, 0x8);
 
-	if (auto const pSWExt = SWTypeExt::ExtMap.TryFind(pSuper->Type)){
-		pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
+	// preventing corrupted pointer to execute
+	if (!pSuper || !((((DWORD*)pSuper)[0] == SuperClass::vtable)))
+		return 0x0;
+
+	// preventing corrupted pointer to execute
+	if(pSuper->Type && ((((DWORD*)pSuper->Type)[0] == SuperWeaponTypeClass::vtable))){
+		if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type)){
+			pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
+		}
 	}
 
 	return 0;

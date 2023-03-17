@@ -1,6 +1,14 @@
 #pragma once
 #include <Utilities/TemplateDef.h>
 
+struct OffsetData
+{
+	CoordStruct Offset;
+	bool IsOnWorld;
+	int Dir;
+	bool IsOnturret;
+};
+
 struct LocationMark
 {
 	CoordStruct Location;
@@ -11,12 +19,17 @@ struct LocationMark
 		, Direction { Direction }
 	{ }
 
+	LocationMark(DirStruct direction , CoordStruct location) :
+		Location { Location }
+		, Direction { Direction }
+	{ }
+
 	LocationMark() :
 		Location { 0,0,0 }
 		, Direction { }
 	{ }
 
-	__forceinline operator bool() const
+	inline bool IsValid() const
 	{
 		return (Location != CoordStruct::Empty);
 	}

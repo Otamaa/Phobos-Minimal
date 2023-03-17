@@ -120,12 +120,14 @@ public:
 	TechnoClass*       Object;
 	bool               OnHold; // paused when out of money, restored when funds available
 	bool               IsDifferent;	// changed progress
-	PROTECTED_PROPERTY(BYTE, align_5E[2]);
+	//PROTECTED_PROPERTY(BYTE, align_5E[2]);
 	int                Balance; // credits house still owes us for building this
 	int                OriginalBalance;
 	int                SpecialItem; // -1 = none, else Iron Curtain? (was EMPulse in TS)
 	HouseClass*        Owner;
 	bool               IsSuspended; //completed production, before next (or waiting to place)
 	bool               IsManual; // whether the current suspension state was caused by the player
-	PROTECTED_PROPERTY(BYTE, padding_72[2]);
+	//PROTECTED_PROPERTY(BYTE, padding_72[2]);
 };
+
+static_assert(sizeof(FactoryClass) == 0x74, "Invalid size.");

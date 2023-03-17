@@ -1,6 +1,7 @@
 #pragma once
 
 #include <LinkClass.h>
+#include <RectangleStruct.h>
 
 enum class KeyModifier : int
 {
@@ -83,11 +84,7 @@ protected:
 
 	//Properties
 public:
-
-	int X;
-	int Y;
-	int Width;
-	int Height;
+	RectangleStruct Rect;
 	bool NeedsRedraw;
 	bool IsSticky;
 	bool Disabled;

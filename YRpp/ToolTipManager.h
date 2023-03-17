@@ -13,12 +13,14 @@ struct ToolTip
 	const char* Text { nullptr };
 	bool field_18{false};
 };
+static_assert(sizeof(ToolTip) == 0x1C, "Invalid Size !");
 
 struct ToolTipManagerData
 {
 	RectangleStruct Dimension;
 	wchar_t HelpText[0x100];
 };
+static_assert(sizeof(ToolTipManagerData) == 0x210, "Invalid Size !");
 
 class NOVTABLE ToolTipManager
 {
@@ -70,10 +72,12 @@ public:
 	HWND hWnd;
 	bool IsActive;
 	DECLARE_PROPERTY(Point2D, CurrentMousePosition);
-	ToolTipManagerData CurrentToolTipData;
+	DECLARE_PROPERTY(ToolTipManagerData, CurrentToolTipData);
 	int ToolTipDelay;
 	int LastToolTipDelay;
 	int ToolTipLifeTime;
 	DECLARE_PROPERTY(DynamicVectorClass<ToolTip*> , ToolTips);
 	DECLARE_PROPERTY(ToolTipIndexData, ToolTipIndex);
 };
+
+static_assert(sizeof(ToolTipManager) == 0x260, "Invalid Size !");

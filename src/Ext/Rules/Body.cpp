@@ -691,11 +691,11 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x52C9C4, GameInit_VeryEarlyRulesInit, 0x6)
-{
-	//RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass::Instance(), CCINIClass::INI_Rules());
-	return 0x52CA37;
-}
+//DEFINE_HOOK(0x52C9C4, GameInit_VeryEarlyRulesInit, 0x6)
+//{
+//	//RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass::Instance(), CCINIClass::INI_Rules());
+//	return 0x52CA37;
+//}
 // DEFINE_HOOK(0x52D149, InitRules_PostInit, 0x5)
 // {
 // 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());

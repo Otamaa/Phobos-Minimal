@@ -627,19 +627,6 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 	return 0x74A934;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
-	return 0x6A7F9F;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
-{
-	GET(SidebarClass*, pThis, ESI);
-	pThis->Tabs[pThis->ActiveTabIndex].Deactivate();
-	return 0x6A8061;
-}
 
 DEFINE_OVERRIDE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 {
@@ -946,87 +933,7 @@ DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 	return R->Origin() + 13;
 }
 
-struct WRect {
-	short X, Y, Width, Height;
-};
-
-#pragma optimize("", off )
-void NOINLINE GetOccupyDimension(RectangleStruct& res ,CellStruct* a2) {
-	if (!a2 || *a2 == CellStruct::Empty) {
-		res = { 0,0,0,0 };
-		return;
-	}
-
-	int nYMin_res = -512;
-	int nXmin_res = -512;
-
-	int nYMax_res = 512;
-	int nXmax_res = 512;
-
-	for (auto pCopy = a2; !(*pCopy == CellStruct::Empty); ++pCopy)
-	{
-		nYMin_res = pCopy->Y;
-		nYMax_res = pCopy->Y;
-		if (pCopy->Y >= 512)
-			nYMax_res = 512;
-		if (pCopy->Y <= -512)
-			nYMin_res = -512;
-
-		nXmin_res = pCopy->X;
-		nXmax_res = pCopy->X;
-		if (pCopy->X >= 512)
-			nXmax_res = 512;
-		if (pCopy->X <= -512)
-			nXmin_res = -512;
-	}
-
-	res = { nYMax_res  ,  nXmax_res  , nYMin_res ,  nXmin_res };
-	/*
-	res.X = nYMax_res;
-	res.Y = nXmax_res;
-	res.Width = nYMin_res;
-	res.Height = nXmin_res;
-	*/
+DEFINE_OVERRIDE_HOOK(0x7BB445 , XSurface_20, 0x6)
+{
+	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
-
-//DEFINE_OVERRIDE_HOOK_AGAIN(0x6D5573 , sub_6D5030_CustomFoundation, 0x6)
-//DEFINE_OVERRIDE_HOOK(0x6D50FB ,sub_6D5030_CustomFoundation, 0x5)
-//{
-//	RectangleStruct nDispRect {};
-//	auto pCursorA = Unsorted::CursorSize();
-//	auto pCursorB = Unsorted::CursorSizeSecond();
-//	const bool bOnFB = R->Origin() == 0x6D50FB;
-//	GetOccupyDimension(nDispRect, (!bOnFB ?
-//		pCursorB : pCursorA));
-//
-//	short nX = 0;
-//	if (nDispRect.Width - nDispRect.X >= 0)
-//		nX = (short)nDispRect.Width - (short)nDispRect.X;
-//
-//	short nY = 0;
-//	if (nDispRect.Height - nDispRect.Y >= 0)
-//		nY = (short)nDispRect.Height - (short)nDispRect.Y;
-//
-//	const CellStruct v9res { (nX + 1)  , (nY + 1) };
-//	const CellStruct v10res { (short)nDispRect.X , (short)nDispRect.Y };
-//
-//	//const auto nRet = DisplayClass::Instance->FoundationBoundsSize((!bOnFB ? pCursorB : &pCursorA));
-//	R->Stack(0x14, v10res);
-//	R->Stack(0x18, v9res);
-//	R->EAX(v9res.pack());
-//	R->ESI((short)nDispRect.Y);
-//
-//	return (!bOnFB) ? 0x6D558F : 0x6D5116 ;
-//}
-
-DEFINE_HOOK_AGAIN(0x6D5573 , sub_6D5030_CustomFoundation, 0x6)
-DEFINE_HOOK(0x6D50FB ,sub_6D5030_CustomFoundation, 0x5)
-{	
-	auto pCursorA = Unsorted::CursorSize();
-	auto pCursorB = Unsorted::CursorSizeSecond();
-	const bool bOnFB = R->Origin() == 0x6D50FB;
-
-	Debug::Log("Cursor Data [%x] \n", !bOnFB ? pCursorB : pCursorA);
-	return 0x0;
-}
-#pragma optimize("", on )

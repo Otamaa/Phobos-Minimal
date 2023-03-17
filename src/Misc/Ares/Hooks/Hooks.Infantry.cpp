@@ -15,6 +15,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Building/Body.h>
 
 //
 // skip old logic's way to determine the cursor
@@ -174,11 +175,18 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 // do not infiltrate buildings of allies
 DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
 {
+	enum { SkipInfiltrate = 0x51A03E, Infiltrate = 0x51A002 };
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	return (!pThis->Type->Agent || pThis->Owner->IsAlliedWith(pBld))
-		? 0x51A03E : 0x51A002;
+	auto const pHouse = pThis->Owner;
+	if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBld))
+		return SkipInfiltrate;
+
+	pBld->Infiltrate(pHouse);
+	BuildingExt::HandleInfiltrate(pBld, pHouse);
+
+	return SkipInfiltrate;
 }
 
 // #895584: ships not taking damage when repaired in a shipyard. bug

@@ -6,6 +6,813 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <LocomotionClass.h>
+
+#include <DriveLocomotionClass.h>
+#include <ShipLocomotionClass.h>
+#include <WalkLocomotionClass.h>
+#include <MechLocomotionClass.h>
+#include <JumpjetLocomotionClass.h>
+#include <FootClass.h>
+
+VelocityClass Helpers_DP::GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos)
+{
+	CoordStruct bulletFLH { 1, 0, 0 };
+	DirStruct bulletDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
+	const Vector3D<float> bulletV = Helpers_DP::GetFLHAbsoluteOffset(bulletFLH, bulletDir, CoordStruct::Empty);
+	return { static_cast<double>(bulletV.X) , static_cast<double>(bulletV.Y) , static_cast<double>(bulletV.Z) };
+}
+
+CoordStruct Helpers_DP::GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<int> const& targetV, double speed, double dist)
+{
+	if (dist <= 0)
+	{
+		dist = targetV.DistanceFrom(sourceV);
+	}
+
+	// 计算下一个坐标
+	double d = speed / dist;
+	double absX = std::abs(sourceV.X - targetV.X) * d;
+	double x = sourceV.X;
+
+	if (sourceV.X < targetV.X)
+	{
+		// Xa < Xb => Xa < Xc
+		// Xc - Xa = absX
+		x = absX + sourceV.X;
+	}
+	else if (sourceV.X > targetV.X)
+	{
+		// Xa > Xb => Xa > Xc
+		// Xa - Xc = absX
+		x = sourceV.X - absX;
+	}
+
+	double absY = std::abs(sourceV.Y - targetV.Y) * d;
+	double y = sourceV.Y;
+	if (sourceV.Y < targetV.Y)
+	{
+		y = absY + sourceV.Y;
+	}
+	else if (sourceV.Y > targetV.Y)
+	{
+		y = sourceV.Y - absY;
+	}
+	double absZ = std::abs(sourceV.Z - targetV.Z) * d;
+	double z = sourceV.Z;
+	if (sourceV.Z < targetV.Z)
+	{
+		z = absZ + sourceV.Z;
+	}
+	else if (sourceV.Z > targetV.Z)
+	{
+		z = sourceV.Z - absZ;
+	}
+
+	return { (int)x, (int)y, (int)z };
+}
+
+CoordStruct Helpers_DP::GetForwardCoords(CoordStruct sourcePos, CoordStruct targetPos, double speed, double dist)
+{
+	Vector3D<int> source { sourcePos.X  ,sourcePos.Y , sourcePos.Z };
+	Vector3D<int> target { targetPos.X  ,targetPos.Y , targetPos.Z };
+	return Helpers_DP::GetForwardCoords(source, target, speed, dist);
+}
+
+VelocityClass Helpers_DP::GetVelocity(BulletClass* pBullet)
+{
+	return Helpers_DP::GetVelocity(pBullet->SourceCoords, pBullet->TargetCoords, pBullet->Speed);
+}
+
+VelocityClass Helpers_DP::GetVelocity(CoordStruct const& sourcePos, CoordStruct const& targetPos, int speed)
+{
+	VelocityClass velocity { (double)(targetPos.X - sourcePos.X), (double)(targetPos.Y - sourcePos.Y), (double)(targetPos.Z - sourcePos.Z) };
+	velocity *= speed / targetPos.DistanceFrom(sourcePos);
+	return velocity;
+}
+
+VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet)
+{
+	CoordStruct targetPos = pBullet->TargetCoords;
+
+	if (pBullet->Target)
+	{
+		targetPos = pBullet->Target->GetCoords();
+	}
+
+	return Helpers_DP::RecalculateVelocityClass(pBullet, targetPos);
+}
+
+VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& targetPos)
+{
+	return Helpers_DP::RecalculateVelocityClass(pBullet, pBullet->GetCoords(), targetPos);
+}
+
+VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& sourcePos, CoordStruct const& targetPos)
+{
+	VelocityClass velocity { (double)(targetPos.X - sourcePos.X), (double)(targetPos.Y - sourcePos.Y), (double)(targetPos.Z - sourcePos.Z) };
+	velocity *= pBullet->Speed / targetPos.DistanceFrom(sourcePos);
+	pBullet->Velocity = velocity;
+	pBullet->SourceCoords = sourcePos;
+	pBullet->TargetCoords = targetPos;
+	return velocity;
+}
+
+DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
+{
+	// get angle
+	double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	// Magic form tomsons26
+	radians -= Math::deg2rad_Alternate(90);
+	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
+}
+
+Vector3D<float> Helpers_DP::GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
+{
+	if (flh)
+	{
+		Matrix3D matrix3D {  };
+		matrix3D.MakeIdentity();
+		matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
+		matrix3D.RotateZ(static_cast<float>(dir.GetRadian()));
+		return Helpers_DP::GetFLHOffset(matrix3D, flh);
+	}
+
+	return Vector3D<float>::Empty;
+}
+
+VelocityClass Helpers_DP::GetVelocityClass(CoordStruct sourcePos, CoordStruct targetPos)
+{
+	CoordStruct bulletFLH { 1, 0, 0 };
+	DirStruct bulletDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
+	const Vector3D<float> bulletV = Helpers_DP::GetFLHAbsoluteOffset(bulletFLH, bulletDir, CoordStruct::Empty);
+	return { static_cast<double>(bulletV.X) , static_cast<double>(bulletV.Y) , static_cast<double>(bulletV.Z) };
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(CoordStruct source, CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
+{
+	if (flh)
+	{
+		Vector3D<float> offset = Helpers_DP::GetFLHAbsoluteOffset(flh, dir, turretOffset);
+		source += { static_cast<int>(offset.X), static_cast<int>(offset.Y), static_cast<int>(offset.Z) };
+		//source += { std::lround(offset.X), std::lround(offset.Y), std::lround(offset.Z) };
+	}
+
+	return source;
+}
+
+DirStruct Helpers_DP::Facing(BulletClass* pBullet, CoordStruct& location)
+{
+	CoordStruct velocity = CoordStruct { (int)pBullet->Velocity.X, (int)pBullet->Velocity.Y, (int)pBullet->Velocity.Z };
+	CoordStruct forwardLocation = location + velocity;
+	return Helpers_DP::Point2Dir(location, forwardLocation);
+}
+
+DirStruct Helpers_DP::Facing(VoxelAnimClass* pVoxelAnim, CoordStruct& location)
+{
+	auto const& pBounce = pVoxelAnim->Bounce;
+	CoordStruct velocity = CoordStruct { (int)pBounce.Velocity.X, (int)pBounce.Velocity.Y, (int)pBounce.Velocity.Z };
+	CoordStruct forwardLocation = location + velocity;
+	return Helpers_DP::Point2Dir(location, forwardLocation);
+}
+
+DirStruct Helpers_DP::Facing(AnimClass* pAnim, CoordStruct& location)
+{
+	auto const& pBounce = pAnim->Bounce;
+	CoordStruct velocity = CoordStruct { (int)pBounce.Velocity.X, (int)pBounce.Velocity.Y, (int)pBounce.Velocity.Z };
+	CoordStruct forwardLocation = location + velocity;
+	return Helpers_DP::Point2Dir(location, forwardLocation);
+}
+
+DirStruct Helpers_DP::Facing(BulletClass* pBullet)
+{
+	auto nLoc = pBullet->GetCoords();
+	return Helpers_DP::Facing(pBullet, nLoc);
+}
+
+DirStruct Helpers_DP::Facing(VoxelAnimClass* pVoxelAnim)
+{
+	auto nLoc = pVoxelAnim->Bounce.GetCoords();
+	return Helpers_DP::Facing(pVoxelAnim, nLoc);
+}
+
+DirStruct Helpers_DP::Facing(AnimClass* pAnim)
+{
+	auto nLoc = pAnim->Bounce.GetCoords();
+	return Helpers_DP::Facing(pAnim, nLoc);
+}
+
+int Helpers_DP::ColorAdd2RGB565(ColorStruct colorAdd)
+{
+	return ((((colorAdd.R + 4)) / 255) << 5) +
+		((((colorAdd.G + 2)) / 255) << 6) +
+		((((colorAdd.B + 4)) / 255) << 5);
+}
+
+int Helpers_DP::Dir2FacingIndex(DirStruct& dir, int facing)
+{
+	size_t bits = static_cast<size_t>(std::round(std::sqrt(facing)));
+	double face = static_cast<double>(dir.GetValue(bits));
+	auto nDivider = static_cast<int>(bits);
+	auto nDivider_shrOne = (1 << nDivider);
+	double x = (face / nDivider_shrOne) * facing;
+	return static_cast<int>(std::round(x));
+}
+
+int Helpers_DP::Dir2FrameIndex(DirStruct& dir, int facing)
+{
+	int index = Dir2FacingIndex(dir, facing);
+	index = (int)(facing / 8) + index;
+	if (index >= facing)
+	{
+		index -= facing;
+	}
+
+	return index;
+}
+
+double Helpers_DP::GetROFMult(TechnoClass const* pTech)
+{
+	bool rofAbility = false;
+	if (pTech->Veterancy.IsElite())
+		rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF || pTech->GetTechnoType()->EliteAbilities.ROF;
+	else if (pTech->Veterancy.IsVeteran())
+		rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF;
+
+	return !rofAbility ? 1.0 :
+		RulesClass::Instance->VeteranROF * ((!pTech->Owner || !pTech->Owner->Type) ?
+			1.0 : pTech->Owner->Type->ROFMult);
+}
+
+double Helpers_DP::GetDamageMult(TechnoClass* pTechno)
+{
+	if (!pTechno || !pTechno->IsAlive)
+		return 1.0;
+
+	bool firepower = false;
+	if (pTechno->Veterancy.IsElite())
+	{
+		firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER || pTechno->GetTechnoType()->EliteAbilities.FIREPOWER;
+	}
+	else if (pTechno->Veterancy.IsVeteran())
+	{
+		firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER;
+	}
+	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) * pTechno->FirepowerMultiplier * ((!pTechno->Owner || !pTechno->Owner->Type) ? 1.0 : pTechno->Owner->Type->FirepowerMult);
+}
+
+DirStruct Helpers_DP::DirNormalized(int index, int facing)
+{
+	double radians = Math::deg2rad_Alternate((double)(-360 / facing * index));
+	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
+}
+
+CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
+{
+	const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	int y = static_cast<int>(256.0 * Math::tan(angle));
+	int x = static_cast<int>(256.0 / Math::tan(angle));
+
+	CoordStruct offset = CoordStruct::Empty;
+
+	if (y == 0)
+	{
+		offset.Y = 0;
+		if (angle < Math::Pi)
+		{
+			offset.X = 256;
+		}
+		else
+		{
+			offset.X = -256;
+		}
+	}
+	else if (x == 0)
+	{
+		offset.X = 0;
+		if (angle < 0)
+		{
+			offset.Y = -256;
+		}
+		else
+		{
+			offset.Y = 256;
+		}
+	}
+	else
+	{
+		if (std::abs(x) <= 256)
+		{
+			offset.X = x;
+			if (angle > 0)
+			{
+				offset.Y = 256;
+			}
+			else
+			{
+				offset.X = -offset.X;
+				offset.Y = -256;
+			}
+		}
+		else
+		{
+			offset.Y = y;
+			if (std::abs(angle) < 0.5 * Math::Pi)
+			{
+				offset.X = 256;
+			}
+			else
+			{
+				offset.X = -256;
+				offset.Y = -offset.Y;
+			}
+		}
+	}
+
+	return offset;
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(BulletClass* pBullet, CoordStruct& flh, int flipY)
+{
+	CoordStruct location = pBullet->GetCoords();
+	DirStruct bulletFacing = Facing(pBullet, location);
+
+	CoordStruct tempFLH = flh;
+	tempFLH.Y *= flipY;
+	return GetFLHAbsoluteCoords(location, tempFLH, bulletFacing);
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(AnimClass* pAnim, CoordStruct& flh, int flipY)
+{
+	CoordStruct location = pAnim->Bounce.GetCoords();
+	DirStruct bulletFacing = Facing(pAnim, location);
+
+	CoordStruct tempFLH = flh;
+	tempFLH.Y *= flipY;
+	return GetFLHAbsoluteCoords(location, tempFLH, bulletFacing);
+
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(VoxelAnimClass* pVoxelAnim, CoordStruct& flh, int flipY)
+{
+	CoordStruct location = pVoxelAnim->Bounce.GetCoords();
+	DirStruct bulletFacing = Facing(pVoxelAnim, location);
+
+	CoordStruct tempFLH = flh;
+	tempFLH.Y *= flipY;
+	return GetFLHAbsoluteCoords(location, tempFLH, bulletFacing);
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordStruct& flh, bool isOnTurret, int flipY, CoordStruct& turretOffset, bool nextFrame)
+{
+	if (!pTechno)
+		return CoordStruct::Empty;
+
+	auto const nCoord = pTechno->GetCoords();
+	Vector3D<float> res = { static_cast<float>(nCoord.X), static_cast<float>(nCoord.Y), static_cast<float>(nCoord.Z) };
+
+	CoordStruct sourceOffset = turretOffset;
+	CoordStruct tempFLH = flh;
+
+	if (nextFrame && pTechno->WhatAmI() != AbstractType::Building)
+	{
+		if (FootClass* pFoot = (FootClass*)pTechno)
+		{
+			CoordStruct nBuffer { 0,0,0 };
+			int speed = 0;
+			if (pFoot->Locomotor->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
+			{
+				nBuffer.X = speed;
+				sourceOffset += nBuffer;
+			}
+		}
+	}
+	else
+	{
+		if (pTechno->WhatAmI() == AbstractType::Building)
+		{
+			tempFLH.Z += Unsorted::LevelHeight;
+		}
+	}
+
+	if (flh)
+	{
+		Matrix3D matrix3D = GetMatrix3D(pTechno);
+		matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
+		RotateMatrix3D(matrix3D, pTechno, isOnTurret, nextFrame);
+		tempFLH.Y *= flipY;
+		Vector3D<float> offset = GetFLHOffset(matrix3D, tempFLH);
+		// Step 5: offset techno location
+		res += offset;
+	}
+
+	return { static_cast<int>(res.X), static_cast<int>(res.Y), static_cast<int>(res.Z) };
+}
+
+Vector3D<float> Helpers_DP::GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh)
+{
+	matrix3D.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
+	Vector3D<float> result;
+	Matrix3D::MatrixMultiply(result, &matrix3D, Vector3D<float>::Empty);
+	result.Y *= -1;
+	return result;
+}
+
+void Helpers_DP::RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame)
+{
+	if (isOnTurret)
+	{
+		if (pTechno->HasTurret())
+		{
+			DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.Next() : pTechno->SecondaryFacing.Current();
+
+			if (pTechno->WhatAmI() == AbstractType::Building)
+			{
+				double turretRad = turretDir.GetRadian();
+				matrix3D.RotateZ(static_cast<float>(turretRad));
+			}
+			else
+			{
+				matrix3D.RotateZ(-matrix3D.GetZRotation());
+				matrix3D.RotateZ(static_cast<float>(turretDir.GetRadian()));
+			}
+		}
+	}
+	else if (nextFrame)
+	{
+		matrix3D.RotateZ(-matrix3D.GetZRotation());
+		matrix3D.RotateZ(static_cast<float>(pTechno->PrimaryFacing.Next().GetRadian()));
+	}
+}
+
+Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
+{
+	// Step 1: get body transform matrix
+	Matrix3D matrix3D { };
+
+	if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
+	{
+		if (auto const pLoco = pFoot->Locomotor.get())
+		{
+			pLoco->Draw_Matrix(&matrix3D, nullptr);
+			return matrix3D;
+		}
+	}
+
+	matrix3D.MakeIdentity();
+	return matrix3D;
+}
+
+Vector3D<float> Helpers_DP::ToVector3D(DirStruct& dir)
+{
+	double rad = -dir.GetRadian();
+	return { static_cast<float>(Math::cos(rad)), static_cast<float>(Math::sin(rad)), 0.0f };
+}
+
+Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurret)
+{
+	if (getTurret)
+	{
+		FacingClass facing { pTechno->SecondaryFacing };
+		auto nDir = facing.Current();
+		return ToVector3D(nDir);
+
+	}
+	else
+	{
+		FacingClass facing { pTechno->PrimaryFacing };
+		auto nDir = facing.Current();
+		return ToVector3D(nDir);
+	}
+}
+
+CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip)
+{
+	if (flh)
+	{
+		double radians = dir.GetRadian();
+
+		double rF = flh.X;
+		double xF = rF * Math::cos(-radians);
+		double yF = rF * Math::sin(-radians);
+		CoordStruct offsetF = { static_cast<int>(xF),static_cast<int>(yF), 0 };
+
+		double rL = flip ? flh.Y : -flh.Y;
+		double xL = rL * Math::sin(radians);
+		double yL = rL * Math::cos(radians);
+		CoordStruct offsetL = { static_cast<int>(xL), static_cast<int>(yL), 0 };
+
+		CoordStruct nZFLHBuff { 0, 0, flh.Z };
+		return source + offsetF + offsetL + nZFLHBuff;
+	}
+
+	return source;
+}
+
+CoordStruct Helpers_DP::GetFLHAbsoluteCoords(ObjectClass* pObject, CoordStruct& flh, bool isOnTurret, int flipY)
+{
+	if (pObject->AbstractFlags & AbstractFlags::Techno)
+	{
+		return GetFLHAbsoluteCoords(static_cast<TechnoClass*>(pObject), flh, isOnTurret, flipY);
+	}
+	else
+	{
+
+		switch (pObject->WhatAmI())
+		{
+		case AbstractType::Bullet:
+			return GetFLHAbsoluteCoords(static_cast<BulletClass*>(pObject), flh, isOnTurret, flipY);
+		case AbstractType::Anim:
+			return  GetFLHAbsoluteCoords(static_cast<AnimClass*>(pObject), flh, isOnTurret, flipY);
+		case AbstractType::VoxelAnim:
+			return  GetFLHAbsoluteCoords(static_cast<VoxelAnimClass*>(pObject), flh, isOnTurret, flipY);
+		}
+
+	}
+
+	return CoordStruct::Empty;
+}
+
+LocationMark Helpers_DP::GetRelativeLocation(ObjectClass* pOwner, OffsetData data, CoordStruct offset)
+{
+	if (!offset) {
+		offset = data.Offset;
+	}
+
+	if (data.IsOnWorld)
+	{
+		DirStruct targetDir = DirStruct { 0 };
+		CoordStruct targetPos = Helpers_DP::GetFLHAbsoluteCoords(pOwner->Location, offset, targetDir);
+		return { targetDir , targetPos };
+	}
+	else
+	{
+		if (pOwner->AbstractFlags & AbstractFlags::Techno)
+		{
+			auto pTech = static_cast<TechnoClass*>(pOwner);
+			DirStruct targetDir = Helpers_DP::GetDirectionRelative(pTech, data.Dir, data.IsOnturret);
+			CoordStruct targetPos = Helpers_DP::GetFLHAbsoluteCoords(pTech, offset, data.IsOnturret);
+			return { targetDir , targetPos };
+		}
+		else
+		{
+			if (pOwner->WhatAmI() == AbstractType::Bullet)
+			{
+				auto pBullet = static_cast<BulletClass*>(pOwner);
+				// 增加抛射体偏移值取下一帧所在实际位置
+				CoordStruct velocity {(int)pBullet->Velocity.X , (int)pBullet->Velocity.Y , (int)pBullet->Velocity.Z };
+				CoordStruct sourcePos = pOwner->Location + velocity;
+				// 获取面向
+				DirStruct targetDir = Helpers_DP::Point2Dir(sourcePos, pBullet->TargetCoords);
+				CoordStruct targetPos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, offset, targetDir);
+				return { targetDir , targetPos };
+			}
+		}
+	}
+
+	return {};
+}
+
+std::optional<DirStruct> Helpers_DP::GetRelativeDir(ObjectClass* pOwner, int dir, bool isOnTurret, bool isOnWorld)
+{
+	if (!isOnWorld)
+	{
+		// 绑定世界坐标，朝向固定北向
+		return DirStruct {};
+	}
+	else
+	{
+		if (pOwner->AbstractFlags & AbstractFlags::Techno) {
+			return Helpers_DP::GetDirectionRelative(static_cast<TechnoClass*>(pOwner),dir,isOnTurret);
+		}
+
+		switch (pOwner->WhatAmI())
+		{
+		case AbstractType::Anim:
+		{
+			//TODO
+			break;
+		}
+		case AbstractType::VoxelAnim:
+		{
+			//TODO
+			break;
+		}
+		case AbstractType::Bullet:
+		{
+			// 增加抛射体偏移值取下一帧所在实际位置
+			CoordStruct sourcePos = pOwner->Location;
+			auto const pBullet = static_cast<BulletClass*>(pOwner);
+			CoordStruct nvel { (int)pBullet->Velocity.X ,(int)pBullet->Velocity.Y , (int)pBullet->Velocity.Z };
+			sourcePos += nvel;
+			// 获取面向
+			return Helpers_DP::Point2Dir(sourcePos, pBullet->TargetCoords);
+		}
+		}
+	}
+
+	return std::nullopt;
+}
+
+DirStruct Helpers_DP::GetDirectionRelative(TechnoClass* pMaster, int dir, bool isOnTurret)
+{
+	// turn offset
+	DirStruct targetDir = Helpers_DP::DirNormalized(dir, 16);
+
+	if (pMaster->AbstractFlags & AbstractFlags::Foot)
+	{
+		auto const pFoot = static_cast<FootClass*>(pMaster);
+		double targetRad = targetDir.GetRadian();
+		DirStruct sourceDir = pMaster->PrimaryFacing.Current();
+
+		auto const pLoco = pFoot->Locomotor.get();
+		if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::vtable)
+		{
+			sourceDir = static_cast<JumpjetLocomotionClass*>(pLoco)->Facing.Current();
+		}
+
+		if (isOnTurret || pFoot->WhatAmI() == AbstractType::Aircraft)
+		{
+			sourceDir = pMaster->GetRealFacing().Current();
+		}
+
+		double sourceRad = sourceDir.GetRadian();
+
+		float angle = (float)(sourceRad - targetRad);
+		targetDir = Helpers_DP::Radians2Dir(angle);
+	}
+
+	return targetDir;
+}
+
+void Helpers_DP::ForceStopMoving(ILocomotion* loco)
+{
+	loco->Stop_Moving();
+	loco->Mark_All_Occupation_Bits(0);
+
+	switch ((((DWORD*)loco)[0])) // :p - Otamaa
+	{
+	case DriveLocomotionClass::vtable:
+	{
+		auto pLoco = static_cast<DriveLocomotionClass*>(loco);
+		pLoco->Destination = CoordStruct::Empty;
+		pLoco->HeadToCoord = CoordStruct::Empty;
+		pLoco->IsDriving = false;
+		break;
+	}
+	case ShipLocomotionClass::vtable:
+	{
+		auto pLoco = static_cast<ShipLocomotionClass*>(loco);
+		pLoco->Destination = CoordStruct::Empty;
+		pLoco->HeadToCoord = CoordStruct::Empty;
+		pLoco->IsDriving = false;
+		break;
+	}
+	case WalkLocomotionClass::vtable:
+	{
+		auto pLoco = static_cast<WalkLocomotionClass*>(loco);
+		pLoco->MovingDestination = CoordStruct::Empty;
+		pLoco->CoordHeadTo = CoordStruct::Empty;
+		pLoco->IsMoving = false;
+		pLoco->IsReallyMoving = false;
+		break;
+	}
+	case MechLocomotionClass::vtable:
+	{
+		auto pLoco = static_cast<MechLocomotionClass*>(loco);
+		pLoco->MovingDestination = CoordStruct::Empty;
+		pLoco->CoordHeadTo = CoordStruct::Empty;
+		pLoco->IsMoving = false;
+		break;
+	}
+	}
+}
+
+void Helpers_DP::ForceStopMoving(FootClass* pFoot)
+{
+	auto loco = pFoot->Locomotor.get();
+
+	loco->Mark_All_Occupation_Bits(0);
+
+	if (loco->Apparent_Speed() > 0)
+	{
+		pFoot->SetDestination(nullptr ,true);
+		pFoot->Destination = nullptr;
+		Helpers_DP::ForceStopMoving(loco);
+	}
+}
+
+bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromEpicenter, WarheadTypeClass* pWH, int& realDamage, bool effectsRequireDamage)
+{
+	// 计算实际伤害
+	auto const Armor = pTechno->GetTechnoType()->Armor;
+	realDamage = MapClass::Instance->GetTotalDamage(damage,pWH, Armor,distanceFromEpicenter);
+	auto const data = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (damage == 0)
+	{
+		return data->AllowZeroDamage;
+	}
+	else
+	{
+		if (data->EffectsRequireVerses)
+		{
+			if(std::abs(data->GetVerses(Armor).Verses) < 0.001)
+				return false;
+
+			if (effectsRequireDamage || data->EffectsRequireDamage) {
+				return realDamage != 0;
+			}
+		}
+	}
+
+	return true;
+}
+
+CoordStruct Helpers_DP::RandomOffset(int min, int max)
+{
+	double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
+
+	if (r > 0) {
+		double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
+		return { (int)(r * Math::cos(theta)) ,(int)(r * Math::sin(theta)) , 0 };
+	}
+
+	return CoordStruct::Empty;
+}
+
+CoordStruct Helpers_DP::RandomOffset(double maxSpread, double minSpread)
+{
+	int min = (int)((minSpread <= 0 ? 0 : minSpread) * 256);
+	int max = (int)((maxSpread > 0 ? maxSpread : 1) * 256);
+	return Helpers_DP::RandomOffset(min, max);
+}
+
+CoordStruct Helpers_DP::GetInaccurateOffset(float scatterMin, float scatterMax)
+{
+	int min = (int)(scatterMin * 256);
+	int max = scatterMax > 0 ? (int)(scatterMax * 256) : RulesClass::Instance->BallisticScatter;
+	if (min > max)
+	{
+		int temp = min;
+		min = max;
+		max = temp;
+	}
+	
+	return Helpers_DP::RandomOffset(min, max);
+}
+
+VelocityClass Helpers_DP::GetBulletArcingVelocity(const CoordStruct& sourcePos, CoordStruct& targetPos,
+			double speed, int gravity, bool lobber, bool inaccurate, float scatterMin, float scatterMax,
+			int zOffset, ArcingVelocityData& outData)
+{
+	// 不精确
+	if (inaccurate) {
+		targetPos += GetInaccurateOffset(scatterMin, scatterMax);
+	}
+
+	// 不潜地
+	outData.m_TargetCell = MapClass::Instance->TryGetCellAt(targetPos);
+	if (outData.m_TargetCell) {
+		targetPos.Z = outData.m_TargetCell->GetCoordsWithBridge().Z;
+	}
+
+	// 重算抛物线弹道
+	if (gravity == 0) {
+		gravity = RulesClass::Instance->Gravity;
+	}
+
+	CoordStruct tempSourcePos = sourcePos;
+	CoordStruct tempTargetPos = targetPos;
+	int zDiff = tempTargetPos.Z - tempSourcePos.Z + zOffset; // 修正高度差
+	tempTargetPos.Z = 0;
+	tempSourcePos.Z = 0;
+	outData.m_StraightDistance = tempTargetPos.DistanceFrom(tempSourcePos);
+
+	// Logger.Log("位置和目标的水平距离{0}", straightDistance);
+	outData.m_RealSpeed = speed;
+	if (outData.m_StraightDistance == 0.0 || isnan(outData.m_StraightDistance))
+	{
+		// 直上直下
+		return  { 0.0 , 0.0 , (double)gravity };
+	}
+
+	if (outData.m_RealSpeed == 0.0) {
+		outData.m_RealSpeed = Math::sqrt(outData.m_StraightDistance * gravity * 1.2);
+	}
+
+	// 高抛弹道
+	if (lobber) {
+		outData.m_RealSpeed = (int)(outData.m_RealSpeed * 0.5);
+	}
+
+	double vZ = (zDiff * outData.m_RealSpeed) / outData.m_StraightDistance + 0.5 * gravity * outData.m_StraightDistance / outData.m_RealSpeed;
+	VelocityClass v { (double)(tempTargetPos.X - tempSourcePos.X), (double)(tempTargetPos.Y - tempSourcePos.Y), 0.0 };
+	v *= outData.m_RealSpeed / outData.m_StraightDistance;
+	v.Z = vZ;
+	return v;
+}
 
 CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& flh, bool isOnTurret, int flipY, bool nextFrame)
 {

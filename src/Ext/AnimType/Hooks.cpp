@@ -112,92 +112,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
 
-bool DealDamage(AnimClass* pThis)
-{
-	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
-		return false;
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	int delay = pTypeExt->Damage_Delay.Get();
-	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
-
-	int damageMultiplier = 1;
-
-	if (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == AbstractType::Terrain)
-		damageMultiplier = 5;
-
-	bool adjustAccum = false;
-	double damage = 0;
-	int appliedDamage = 0;
-
-	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
-	{
-		if (pThis->Animation.Value == max(delay - 1, 1))
-			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
-		else
-			return false;
-	}
-	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
-	{
-		adjustAccum = true;
-		damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
-		pThis->Accum = damage;
-
-		// Deal damage if it is at least 1, otherwise accumulate it for later.
-		if (damage >= 1.0)
-			appliedDamage = static_cast<int>(int_round(damage));
-		else
-			return false;
-	}
-	else
-	{
-		// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
-		damage = pThis->Accum + 1.0;
-		pThis->Accum = damage;
-
-		if (damage < delay)
-			return false;
-
-		// Use Type->Damage as the actually dealt damage.
-		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
-	}
-
-	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return false;
-
-	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
-	if (adjustAccum)
-		pThis->Accum = damage - appliedDamage;
-	else
-		pThis->Accum = 0.0;
-
-	const auto nCoord = pThis->GetCoords();
-	auto const nDamageResult = static_cast<int>(appliedDamage * TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
-
-	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
-	{
-		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
-		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, nDamageResult);
-	}
-	else
-	{
-		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
-			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
-
-		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
-
-		if (pTypeExt->Warhead_Detonate.Get())
-		{
-			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
-			WarheadTypeExt::DetonateAt(pWarhead, pTarget , nCoord, pInvoker, nDamageResult);
-		}
-		else
-			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
-	}
-
-	return true;
-}
 
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
 DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
@@ -213,7 +128,7 @@ DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
 
 	R->EBX(pThis->Animation.Value);
 
-	if (!DealDamage(pThis)) {
+	if (!AnimExt::DealDamageDelay(pThis)) {
 		R->EAX(pThis->Type);
 		R->EDI(0);
 		R->ECX(pThis->Type->MiddleFrameIndex);

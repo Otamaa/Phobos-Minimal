@@ -52,11 +52,7 @@ DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 	auto const& nMap = BoltTemp::boltWeaponTypeExt;
 
 	if (nMap.contains(pBolt)) {
-
-		auto const pWeaponLinked = nMap.at(pBolt);
-
-		if (pWeaponLinked)
-		{
+		if (auto const pWeaponLinked = nMap.at(pBolt)) {
 
 			if (pWeaponLinked->Bolt_Disable3 || pWeaponLinked->Bolt_Disable2)
 				BoltTemp::pType = pWeaponLinked;

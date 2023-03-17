@@ -3283,47 +3283,47 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //static constexpr CoordStruct Data3 {};
 //static constexpr CellStruct Data4 {};
 
-//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-//{
-//	GET(UnitClass*, pThis, EBP);
-//	const auto deploysInto = pThis->Type->DeploysInto;
-//	CellStruct mapCoords = pThis->GetMapCoords();
-//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-//
-//	const short width = deploysInto->GetFoundationWidth();
-//	const short height = deploysInto->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-//
-//	return 0x7394BE;
-//}
-//
-//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-//{
-//	GET(BuildingClass*, pThis, EBP);
-//	CellStruct mapCoords = pThis->GetMapCoords();
-//
-//	const short width = pThis->Type->GetFoundationWidth();
-//	const short height = pThis->Type->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-//	auto coords = (CoordStruct*)&location.Z;
-//	coords->X = (mapCoords.X << 8) + 128;
-//	coords->Y = (mapCoords.Y << 8) + 128;
-//	coords->Z = pThis->Location.Z;
-//
-//	return 0x449F12;
-//}
+DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	const auto deploysInto = pThis->Type->DeploysInto;
+	CellStruct mapCoords = pThis->GetMapCoords();
+	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+
+	const short width = deploysInto->GetFoundationWidth();
+	const short height = deploysInto->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+
+	return 0x7394BE;
+}
+
+DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->GetMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}
 
 //DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{

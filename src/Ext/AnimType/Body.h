@@ -166,4 +166,6 @@ public:
 
 	static OwnerHouseKind SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim);
 
+	static void CreateUnit_MarkCell(AnimClass* pThis);
+	static void CreateUnit_Spawn(AnimClass* pThis);
 };

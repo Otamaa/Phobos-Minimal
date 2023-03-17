@@ -3,173 +3,52 @@
 #include <TechnoClass.h>
 #include <BulletClass.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/LocationMark.h>
 #include "RadialFire.h"
 #include "EffectHelpers.h"
 //#include <Misc/Otamaa/Delegates.h>
 
 #include <unordered_set>
+
 //typedef Delegate<BulletClass*> FoundBullet;
 //typedef Delegate<TechnoClass*> FoundTechno;
 //typedef Delegate<AircraftClass*> FoundAircraft;
 
 typedef bool(__stdcall* FireBulletToTarget)(int index, int burst, BulletClass* pBullet, AbstractClass* pTarget);
+struct ArcingVelocityData
+{
+	double m_StraightDistance;
+	double m_RealSpeed;
+	CellClass* m_TargetCell;
+};
 
+struct ILocomotion;
+class FootClass;
 struct Helpers_DP
 {
 private:
 	NO_CONSTRUCT_CLASS(Helpers_DP)
 public:
 
+	static void ForceStopMoving(ILocomotion* loco);
+	static void ForceStopMoving(FootClass* pFoot);
+	static bool CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromEpicenter, WarheadTypeClass* pWH, int& realDamage, bool effectsRequireDamage = false);
+	static CoordStruct RandomOffset(double maxSpread, double minSpread = 0);
+	static CoordStruct RandomOffset(int min, int max);
+	static CoordStruct GetInaccurateOffset(float scatterMin, float scatterMax);
+	static VelocityClass GetBulletArcingVelocity(const CoordStruct& sourcePos, CoordStruct& targetPos,
+			double speed, int gravity, bool lobber, bool inaccurate, float scatterMin, float scatterMax,
+			int zOffset , ArcingVelocityData& outData);
 
-	static bool DamageMe(TechnoClass* pThis, int damage, int distanceFromEpicenter, WarheadTypeClass* warheadType, int& realDamage, bool effectsRequireDamage = false)
-	{
-		// 计算实际伤害
-		if (damage > 0)
-		{
-			realDamage = MapClass::GetTotalDamage(damage, warheadType, pThis->GetType()->Armor, distanceFromEpicenter);
-		}
-		else
-		{
-			realDamage = -MapClass::GetTotalDamage(-damage, warheadType, pThis->GetType()->Armor, distanceFromEpicenter);
-		}
-		/*
-		if (true)
-		{
-			if (damage == 0)
-			{
-				return warheadTypeExt.Ares.AllowZeroDamage;
-			}
-			else
-			{
-				if (warheadTypeExt.Ares.EffectsRequireVerses)
-				{
-					// 必须要可以造成伤害
-					if (MapClass.GetTotalDamage(RulesClass.Global().MaxDamage, warheadTypeExt.OwnerObject, OwnerObject.Ref.Base.Type.Ref.Armor, 0) == 0)
-					{
-						// 弹头无法对该类型护甲造成伤害
-						return false;
-					}
-					// 伤害非零，当EffectsRequireDamage=yes时，必须至少造成1点实际伤害
-					if (effectsRequireDamage || warheadTypeExt.Ares.EffectsRequireDamage)
-					{
-						// Logger.Log("{0} 收到伤害 {1}, 弹头 {2}, 爆心距离{3}, 实际伤害{4}", OwnerObject.Ref.Type.Ref.Base.Base.ID, damage, warheadTypeExt.OwnerObject.Ref.Base.ID, distanceFromEpicenter, realDamage);
-						return realDamage != 0;
-					}
-				}
-			}
-		}*/
-		return true;
-	}
+	static CoordStruct OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos);
+	static int ColorAdd2RGB565(ColorStruct colorAdd);
+	static int Dir2FacingIndex(DirStruct& dir, int facing);
+	static int Dir2FrameIndex(DirStruct& dir, int facing);
 
-	static CoordStruct OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
-	{
-		const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
-		int y = static_cast<int>(256.0 * Math::tan(angle));
-		int x = static_cast<int>(256.0 / Math::tan(angle));
-		CoordStruct offset = CoordStruct::Empty;
-		if (y == 0)
-		{
-			offset.Y = 0;
-			if (angle < Math::Pi)
-			{
-				offset.X = 256;
-			}
-			else
-			{
-				offset.X = -256;
-			}
-		}
-		else if (x == 0)
-		{
-			offset.X = 0;
-			if (angle < 0)
-			{
-				offset.Y = -256;
-			}
-			else
-			{
-				offset.Y = 256;
-			}
-		}
-		else
-		{
-			if (abs(x) <= 256)
-			{
-				offset.X = x;
-				if (angle > 0)
-				{
-					offset.Y = 256;
-				}
-				else
-				{
-					offset.X = -offset.X;
-					offset.Y = -256;
-				}
-			}
-			else
-			{
-				offset.Y = y;
-				if (abs(angle) < 0.5 * Math::Pi)
-				{
-					offset.X = 256;
-				}
-				else
-				{
-					offset.X = -256;
-					offset.Y = -offset.Y;
-				}
-			}
-		}
-		return offset;
-	}
+	static double GetROFMult(TechnoClass const* pTech);
+	static double GetDamageMult(TechnoClass* pTechno);
 
-	static int ColorAdd2RGB565(ColorStruct colorAdd)
-	{
-		return ((((colorAdd.R + 4)) / 255) << 5) +
-			((((colorAdd.G + 2)) / 255) << 6) +
-			((((colorAdd.B + 4)) / 255) << 5);
-	}
-
-	static int Dir2FacingIndex(DirStruct& dir, int facing)
-	{
-		size_t bits = static_cast<size_t>(std::round(std::sqrt(facing)));
-		double face = static_cast<double>(dir.GetValue(bits));
-		auto nDivider = static_cast<int>(bits);
-		auto nDivider_shrOne = (1 << nDivider);
-		double x = (face / nDivider_shrOne) * facing;
-		return static_cast<int>(std::round(x));
-	}
-
-	static int Dir2FrameIndex(DirStruct& dir, int facing)
-	{
-		int index = Dir2FacingIndex(dir, facing);
-		index = (int)(facing / 8) + index;
-		if (index >= facing)
-		{
-			index -= facing;
-		}
-
-		return index;
-	}
-
-	static double GetROFMult(TechnoClass const* pTech)
-	{
-		bool rofAbility = false;
-		if (pTech->Veterancy.IsElite())
-			rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF || pTech->GetTechnoType()->EliteAbilities.ROF;
-		else if (pTech->Veterancy.IsVeteran())
-			rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF;
-
-		return !rofAbility ? 1.0 :
-			RulesClass::Instance->VeteranROF * ((!pTech->Owner || !pTech->Owner->Type) ?
-				1.0 : pTech->Owner->Type->ROFMult);
-	}
-
-	static DirStruct DirNormalized(int index, int facing)
-	{
-		double radians = Math::deg2rad_Alternate((-360 / facing * index));
-		return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
-	}
+	static DirStruct DirNormalized(int index, int facing);
 
 	static DirStruct Radians2Dir(double radians)
 	{
@@ -234,285 +113,30 @@ public:
 		return false;
 	}
 
+	static DirStruct Facing(BulletClass* pBullet, CoordStruct& location);
+	static DirStruct Facing(VoxelAnimClass* pVoxelAnim, CoordStruct& location);
+	static DirStruct Facing(AnimClass* pAnim, CoordStruct& location);
+	static DirStruct Facing(BulletClass* pBullet);
+	static DirStruct Facing(VoxelAnimClass* pVoxelAnim);
+	static DirStruct Facing(AnimClass* pAnim);
+
+	static CoordStruct GetFLHAbsoluteCoords(BulletClass* pBullet, CoordStruct& flh, int flipY = 1);
+	static CoordStruct GetFLHAbsoluteCoords(AnimClass* pAnim, CoordStruct& flh, int flipY = 1);
+	static CoordStruct GetFLHAbsoluteCoords(VoxelAnimClass* pVoxelAnim, CoordStruct& flh, int flipY = 1);
 	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& flh, bool isOnTurret = true, int flipY = 1, bool nextFrame = true);
-
-	static CoordStruct GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip = false)
-	{
-		if (flh)
-		{
-			double radians = dir.GetRadian();
-
-			double rF = flh.X;
-			double xF = rF * Math::cos(-radians);
-			double yF = rF * Math::sin(-radians);
-			CoordStruct offsetF = { static_cast<int>(xF),static_cast<int>(yF), 0 };
-
-			double rL = flip ? flh.Y : -flh.Y;
-			double xL = rL * Math::sin(radians);
-			double yL = rL * Math::cos(radians);
-			CoordStruct offsetL = { static_cast<int>(xL), static_cast<int>(yL), 0 };
-
-			CoordStruct nZFLHBuff { 0, 0, flh.Z };
-			return source + offsetF + offsetL + nZFLHBuff;
-		}
-
-		return source;
-	}
-
-	static Vector3D<float> GetForwardVector(TechnoClass* pTechno, bool getTurret = false)
-	{
-		if (getTurret)
-		{
-			FacingClass facing { pTechno->SecondaryFacing };
-			auto nDir = facing.Current();
-			return ToVector3D(nDir);
-
-		}
-		else
-		{
-			FacingClass facing { pTechno->PrimaryFacing };
-			auto nDir = facing.Current();
-			return ToVector3D(nDir);
-		}
-	}
-
-	static Vector3D<float> ToVector3D(DirStruct& dir)
-	{
-		double rad = -dir.GetRadian();
-		return { static_cast<float>(Math::cos(rad)), static_cast<float>(Math::sin(rad)), 0.0f };
-	}
-
-	static Matrix3D GetMatrix3D(TechnoClass* pTechno)
-	{
-		// Step 1: get body transform matrix
-		Matrix3D matrix3D { };
-
-		if (auto const pFoot = abstract_cast<FootClass*>(pTechno))
-		{
-			if (auto const pLoco = pFoot->Locomotor.get())
-			{
-				pLoco->Draw_Matrix(&matrix3D, nullptr);
-				return matrix3D;
-			}
-		}
-
-		matrix3D.MakeIdentity();
-		return matrix3D;
-	}
-
-	static const void RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame)
-	{
-		if (isOnTurret)
-		{
-			if (pTechno->HasTurret())
-			{
-				DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.Next() : pTechno->SecondaryFacing.Current();
-
-				if (pTechno->WhatAmI() == AbstractType::Building)
-				{
-					double turretRad = turretDir.GetRadian();
-					matrix3D.RotateZ(static_cast<float>(turretRad));
-				}
-				else
-				{
-					matrix3D.RotateZ(-matrix3D.GetZRotation());
-					matrix3D.RotateZ(static_cast<float>(turretDir.GetRadian()));
-				}
-			}
-		}
-		else if (nextFrame)
-		{
-			matrix3D.RotateZ(-matrix3D.GetZRotation());
-			matrix3D.RotateZ(static_cast<float>(pTechno->PrimaryFacing.Next().GetRadian()));
-		}
-	}
-
-	static Vector3D<float> GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh)
-	{
-		matrix3D.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
-		Vector3D<float> result;
-		Matrix3D::MatrixMultiply(result, &matrix3D, Vector3D<float>::Empty);
-		result.Y *= -1;
-		return result;
-	}
-
-	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordStruct& flh, bool isOnTurret, int flipY, CoordStruct& turretOffset, bool nextFrame)
-	{
-		if (!pTechno)
-			return CoordStruct::Empty;
-
-		auto const nCoord = pTechno->GetCoords();
-		Vector3D<float> res = { static_cast<float>(nCoord.X), static_cast<float>(nCoord.Y), static_cast<float>(nCoord.Z) };
-
-		CoordStruct sourceOffset = turretOffset;
-		CoordStruct tempFLH = flh;
-
-		if (nextFrame && pTechno->WhatAmI() != AbstractType::Building)
-		{
-			if (FootClass* pFoot = (FootClass*)pTechno)
-			{
-				CoordStruct nBuffer { 0,0,0 };
-				int speed = 0;
-				if (pFoot->Locomotor->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
-				{
-					nBuffer.X = speed;
-					sourceOffset += nBuffer;
-				}
-			}
-		}
-		else
-		{
-			if (pTechno->WhatAmI() == AbstractType::Building)
-			{
-				tempFLH.Z += Unsorted::LevelHeight;
-			}
-		}
-
-		if (flh)
-		{
-			Matrix3D matrix3D = GetMatrix3D(pTechno);
-			matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
-			RotateMatrix3D(matrix3D, pTechno, isOnTurret, nextFrame);
-			tempFLH.Y *= flipY;
-			Vector3D<float> offset = GetFLHOffset(matrix3D, tempFLH);
-			// Step 5: offset techno location
-			res += offset;
-		}
-
-		return { static_cast<int>(res.X), static_cast<int>(res.Y), static_cast<int>(res.Z) };
-	}
-
-	static DirStruct Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
-	{
-		// get angle
-		double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
-		// Magic form tomsons26
-		radians -= Math::deg2rad_Alternate(90);
-		return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
-	}
-
-	static Vector3D<float> GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
-	{
-		if (flh)
-		{
-			Matrix3D matrix3D {  };
-			matrix3D.MakeIdentity();
-			matrix3D.Translate(static_cast<float>(turretOffset.X), static_cast<float>(turretOffset.Y), static_cast<float>(turretOffset.Z));
-			matrix3D.RotateZ(static_cast<float>(dir.GetRadian()));
-			return GetFLHOffset(matrix3D, flh);
-		}
-
-		return Vector3D<float>::Empty;
-	}
-
-	static VelocityClass GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos)
-	{
-		CoordStruct bulletFLH { 1, 0, 0 };
-		DirStruct bulletDir = Point2Dir(sourcePos, targetPos);
-		const Vector3D<float> bulletV = GetFLHAbsoluteOffset(bulletFLH, bulletDir, CoordStruct::Empty);
-		return { static_cast<double>(bulletV.X) , static_cast<double>(bulletV.Y) , static_cast<double>(bulletV.Z) };
-	}
-
-	static CoordStruct GetFLHAbsoluteCoords(CoordStruct source, CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset = CoordStruct::Empty)
-	{
-		if (flh)
-		{
-			Vector3D<float> offset = GetFLHAbsoluteOffset(flh, dir, turretOffset);
-			source += { static_cast<int>(offset.X), static_cast<int>(offset.Y), static_cast<int>(offset.Z) };
-			//source += { std::lround(offset.X), std::lround(offset.Y), std::lround(offset.Z) };
-		}
-
-		return source;
-	}
-
-	/*
-	static void FindBulletTargetHouse(TechnoClass* pTechno, FoundBullet& func, bool allied = true)
-	{
-		func.BindLambda([pTechno, &allied]()
-		{
-			auto bullets = *BulletClass::Array();
-			for (int i = bullets.Count - 1; i >= 0; i--)
-			{
-				auto const pBullet = bullets.GetItem(i);
-				if (IsDeadOrInvisible(pBullet)
-					|| pBullet->Type->Inviso
-					|| !pBullet->Owner || pBullet->Owner->Owner == pTechno->Owner
-					|| (allied && pBullet->Owner->Owner->IsAlliedWith(pTechno->Owner)))
-				{
-					continue;
-				}
-				else
-					return pBullet;
-			}
-
-			return (BulletClass*)nullptr;
-		});
-	}
-
-	static void FindBulletTargetMe(TechnoClass* pTechno, FoundBullet& func, bool allied = true)
-	{
-		FindBulletTargetHouse(pTechno, func, allied);
-		if (auto const pBullet = func.Execute())
-		{
-			func.BindLambda([pBullet, pTechno, &allied]()
-			{
-				if (pBullet->Target == pTechno)
-					return pBullet;
-				else
-					return (BulletClass*)nullptr;
-			});
-		}
-	}
-
-	static void FindTechno(HouseClass* pHouse, FoundTechno& func, bool owner = true, bool allied = false, bool enemies = false, bool civilian = false)
-	{
-		func.BindLambda([pHouse, &owner, &allied, &enemies, &civilian]()
-		{
-			auto technos = *TechnoClass::Array();
-			for (int i = technos.Count - 1; i >= 0; i--)
-			{
-				auto pTechno = technos.GetItem(i);
-				if (IsDeadOrInvisible(pTechno)
-					|| !pTechno->Owner
-					|| (pTechno->Owner == pHouse ? !owner : (pTechno->Owner->IsAlliedWith(pHouse) ? !allied : !enemies)))
-				{
-					continue;
-				}
-				else
-					return pTechno;
-			}
-
-			return (TechnoClass*) nullptr;
-		});
-	}
-
-	static void FindOwnerTechno(HouseClass* pHouse, FoundTechno& func, bool allied = false, bool enemies = false)
-	{
-		FindTechno(pHouse, func, true, allied, enemies);
-		func.Execute();
-	}
-
-	static void FindAircraft(HouseClass* pHouse, FoundAircraft& func, bool owner = true, bool allied = false, bool enemies = false, bool civilian = false)
-	{
-		func.BindLambda([pHouse, &owner, &allied, &enemies, &civilian]()
-		{
-			auto const aircrafts = *AircraftClass::Array();
-			for (int i = aircrafts.Count - 1; i >= 0; i--)
-			{
-				auto pAircraft = aircrafts.GetItem(i);
-				if (IsDeadOrInvisible(pAircraft)
-					|| !pAircraft->Owner
-					|| (pAircraft->Owner == pHouse ? !owner : (pAircraft->Owner->IsAlliedWith(pHouse) ? !allied : !enemies)))
-				{
-					continue;
-				}
-				else
-					return pAircraft;
-			}
-
-			return (AircraftClass*) nullptr;
-		});
-	}*/
+	static CoordStruct GetFLHAbsoluteCoords(ObjectClass* pObject, CoordStruct& flh, bool isOnTurret = true, int flipY = 1);
+	static CoordStruct GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct& dir, bool flip = false);
+	static Vector3D<float> GetForwardVector(TechnoClass* pTechno, bool getTurret = false);
+	static Vector3D<float> ToVector3D(DirStruct& dir);
+	static Matrix3D GetMatrix3D(TechnoClass* pTechno);	
+	static VelocityClass GetBulletVelocity(CoordStruct sourcePos, CoordStruct targetPos);
+	static void RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool isOnTurret, bool nextFrame);
+	static Vector3D<float> GetFLHOffset(Matrix3D& matrix3D, CoordStruct& flh);
+	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordStruct& flh, bool isOnTurret, int flipY, CoordStruct& turretOffset, bool nextFrame);
+	static DirStruct Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos);
+	static Vector3D<float> GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset);
+	static VelocityClass GetVelocityClass(CoordStruct sourcePos, CoordStruct targetPos);
+	static CoordStruct GetFLHAbsoluteCoords(CoordStruct source, CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset = CoordStruct::Empty);
 
 	static void FireWeaponTo(TechnoClass* pShooter,
 		TechnoClass* pAttacker,
@@ -522,23 +146,6 @@ public:
 		FireBulletToTarget callback = nullptr,
 		const CoordStruct& bulletSourcePos = CoordStruct::Empty,
 		bool radialFire = false, int splitAngle = 180);
-
-	static double GetDamageMult(TechnoClass* pTechno)
-	{
-		if (!pTechno || !pTechno->IsAlive)
-			return 1.0;
-
-		bool firepower = false;
-		if (pTechno->Veterancy.IsElite())
-		{
-			firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER || pTechno->GetTechnoType()->EliteAbilities.FIREPOWER;
-		}
-		else if (pTechno->Veterancy.IsVeteran())
-		{
-			firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER;
-		}
-		return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) * pTechno->FirepowerMultiplier * ((!pTechno->Owner || !pTechno->Owner->Type) ? 1.0 : pTechno->Owner->Type->FirepowerMult);
-	}
 
 	static void DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget)
 	{
@@ -611,8 +218,8 @@ public:
 	}
 
 	static void DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos ,TechnoClass* pOwner , AbstractClass* pTarget);
-	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
-	static BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity);
+	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& VelocityClass);
+	static BulletClass* FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& VelocityClass);
 
 	static TechnoClass* CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* pHouse, CoordStruct& location, CellClass* pCell = nullptr , bool bPathfinding = false);
 
@@ -728,27 +335,15 @@ public:
 		return chance >= 1 || chance >= ScenarioClass::Instance->Random.RandomDouble();
 	}
 
-	DirStruct Facing(const BulletClass* pBullet)
-	{
-		CoordStruct location = pBullet->GetCoords();
-		return Facing(pBullet ,location);
-	}
-
-	DirStruct Facing(const BulletClass* pBullet, CoordStruct& location)
-	{
-		CoordStruct nVel = { (int)pBullet->Velocity.X , (int)pBullet->Velocity.Y , (int)pBullet->Velocity.Z };
-		CoordStruct forwardLocation = location + nVel;
-		return Point2Dir(location, forwardLocation);
-	}
-
-	CoordStruct GetFLHAbsoluteCoords(const BulletClass* pBullet, const CoordStruct& flh, int flipY = 1)
-	{
-		CoordStruct location = pBullet->GetCoords();
-		DirStruct bulletFacing = Facing(pBullet ,location);
-
-		CoordStruct tempFLH = flh;
-		tempFLH.Y *= flipY;
-		return GetFLHAbsoluteCoords(location, tempFLH, bulletFacing);
-	}
+	static DirStruct GetDirectionRelative(TechnoClass* pMaster, int dir, bool isOnTurret);
+	static std::optional<DirStruct> GetRelativeDir(ObjectClass* pOwner, int dir = 0, bool isOnTurret = false, bool isOnWorld = false);
+	static LocationMark GetRelativeLocation(ObjectClass* pOwner, OffsetData data, CoordStruct offset = CoordStruct::Empty);
+	static CoordStruct GetForwardCoords(Vector3D<int> const& sourceV, Vector3D<int> const& targetV, double speed, double dist = 0);
+	static CoordStruct GetForwardCoords(CoordStruct sourcePos, CoordStruct targetPos, double speed, double dist = 0);
+	static VelocityClass GetVelocity(BulletClass* pBullet);
+	static VelocityClass GetVelocity(CoordStruct const& sourcePos, CoordStruct const& targetPos, int speed);
+	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet);
+	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& targetPos);
+	static VelocityClass RecalculateVelocityClass(BulletClass* pBullet, CoordStruct const& sourcePos, CoordStruct const& targetPos);
 };
 #endif

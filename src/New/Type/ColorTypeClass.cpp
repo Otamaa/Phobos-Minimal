@@ -26,11 +26,24 @@ void ColorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 void ColorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
+	if (!pINI)
+		return;
+
 	const char* pSection = GetMainSection();
-	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i)
+
+	if (!pINI->GetSection(pSection))
+		return;
+
+	auto const pkeyCount = pINI->GetKeyCount(pSection);
+	Array.reserve(pkeyCount);
+
+	for (int i = 0; i < pkeyCount; ++i)
 	{
 		const char* pKey = pINI->GetKeyName(pSection, i);
-		if (auto const pAlloc = FindOrAllocate(pKey))
+		if (FindIndexById(pKey) != -1)
+			continue;
+
+		if (auto const pAlloc = Allocate(pKey))
 			pAlloc->LoadFromINI(pINI);
 
 		if (bDebug)

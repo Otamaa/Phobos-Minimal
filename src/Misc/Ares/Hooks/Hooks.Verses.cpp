@@ -157,8 +157,7 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);
-	if (ArmorTypeClass::Array.empty())
-	{
+	if (ArmorTypeClass::Array.empty()) {
 		ArmorTypeClass::AddDefaults();
 	}
 
@@ -173,16 +172,26 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 
 	int idx = ArmorTypeClass::FindIndexById(buf);
 
-	if (idx < 0)
-	{
-		idx = 0;
+	if (idx < 0) {
+		bool Failed = true;
+		if (strlen(buf)) { 
+			if(ArmorTypeClass::Allocate(buf)) {
+				Debug::Log("Allocating Armor [%s] ! \n", buf);
+				idx = ArmorTypeClass::Array.size() - 1;
+				Failed = false;
+			}
 
-		if (strlen(buf))
-			Debug::INIParseFailed(Section, Key, buf);
+			if (Failed) {
+				Debug::INIParseFailed(Section, Key, buf);
+			}
+		}
+		else
+		{
+			idx = 0;
+		}
 	}
 
 	R->EAX(idx);
-	//}
 
 	return 0x475430;
 }

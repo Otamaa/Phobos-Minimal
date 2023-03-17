@@ -2,11 +2,17 @@
 
 #include <Ext/House/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
+#include <Utilities/AnimHelpers.h>
 
 #include <ParticleSystemClass.h>
 #include <ColorScheme.h>
+#include <SmudgeTypeClass.h>
 
 //std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
 AnimExt::ExtContainer AnimExt::ExtMap;
@@ -14,6 +20,259 @@ AnimExt::ExtContainer AnimExt::ExtMap;
 void AnimExt::ExtData::InitializeConstants()
 {
 	CreateAttachedSystem();
+}
+void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
+{
+	if (!pThis->Type)
+		return;
+
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty()) {
+		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get()) {
+			auto const nIdx = ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
+
+			if (auto pType = pTypeExt->ConcurrentAnim[nIdx]) {
+
+				if (pType == pThis->Type)
+					return;
+
+				if (auto pAnim = GameCreate<AnimClass>(pType, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+					pAnim->Owner = pThis->GetOwningHouse();
+			}
+		}
+	}
+
+	//if (auto const& pSpawns = pExt->SpawnData) {
+	//	pSpawns->OnInit(pCoord);
+	//}
+}
+
+void AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
+{
+	const auto pType = pThis->Type;
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
+	{
+		auto nCoord = pThis->GetCoords();
+		if (!pType->Scorch || (pType->Crater && ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->CraterChance.Get()))
+		{
+			if (pType->Crater)
+			{
+				if (pTypeExt->CraterDecreaseTiberiumAmount.Get() > 0)
+					pCell->ReduceTiberium(pTypeExt->CraterDecreaseTiberiumAmount.Get());
+
+				if (pType->ForceBigCraters)
+					SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, 300, 300, true);
+				else
+					SmudgeTypeClass::CreateRandomSmudgeFromTypeList(nCoord, nOffs.X, nOffs.Y, false);
+			}
+		}
+		else
+		{
+			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+
+			if (bSpawn)
+				SmudgeTypeClass::CreateRandomSmudge(nCoord, nOffs.X, nOffs.Y, false);
+		}
+	}
+}
+
+void AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
+{
+	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	{
+		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
+		auto const pOwner = !pThis->Owner && pTechOwner ? pTechOwner->Owner : pThis->Owner;
+
+		if (!LandIsWater || EligibleHeight)
+		{
+			Helper::Otamaa::DetonateWarhead(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+
+			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
+			{
+				if (auto pAnim = GameCreate<AnimClass>(pExpireAnim, pThis->Bounce.GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0))
+				{
+					AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, pTechOwner, false);
+				}
+			}
+		}
+		else
+		{
+			if (!pAnimTypeExt->ExplodeOnWater)
+			{
+				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesClass::Instance->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
+				{
+					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false))
+					{
+						AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
+					}
+				}
+			}
+			else
+			{
+				auto const [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(Game::F2I(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				if (bPlayWHAnim)
+				{
+					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->GetCoords()))
+					{
+						if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30))
+						{
+							AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pTechOwner, false);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool AnimExt::DealDamageDelay(AnimClass* pThis)
+{
+	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
+		return false;
+
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	int delay = pTypeExt->Damage_Delay.Get();
+	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
+
+	int damageMultiplier = 1;
+
+	if (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == AbstractType::Terrain)
+		damageMultiplier = 5;
+
+	bool adjustAccum = false;
+	double damage = 0;
+	int appliedDamage = 0;
+
+	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
+	{
+		if (pThis->Animation.Value == max(delay - 1, 1))
+			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
+		else
+			return false;
+	}
+	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
+	{
+		adjustAccum = true;
+		damage = damageMultiplier * pThis->Type->Damage + pThis->Accum;
+		pThis->Accum = damage;
+
+		// Deal damage if it is at least 1, otherwise accumulate it for later.
+		if (damage >= 1.0)
+			appliedDamage = static_cast<int>(int_round(damage));
+		else
+			return false;
+	}
+	else
+	{
+		// Accum here is used as a counter for Damage.Delay, which cannot deal fractional damage.
+		damage = pThis->Accum + 1.0;
+		pThis->Accum = damage;
+
+		if (damage < delay)
+			return false;
+
+		// Use Type->Damage as the actually dealt damage.
+		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
+	}
+
+	if (appliedDamage <= 0 || pThis->IsPlaying)
+		return false;
+
+	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
+	if (adjustAccum)
+		pThis->Accum = damage - appliedDamage;
+	else
+		pThis->Accum = 0.0;
+
+	const auto nCoord = pThis->GetCoords();
+	auto const nDamageResult = static_cast<int>(appliedDamage *
+		TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+
+	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
+	{
+		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
+		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, nDamageResult);
+	}
+	else
+	{
+		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
+			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
+
+		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
+
+		if (pTypeExt->Warhead_Detonate.Get())
+		{
+			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
+			WarheadTypeExt::DetonateAt(pWarhead, pTarget, nCoord, pInvoker, nDamageResult);
+		}
+		else
+			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
+	}
+
+	return true;
+}
+
+void AnimExt::OnMiddle(AnimClass* pThis)
+{
+	const auto pType = pThis->Type;
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+
+	{
+		auto pAnimTypeExt = pTypeExt;
+		const auto pObject = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker.Get());
+		const auto pHouse = !pThis->Owner && pObject ? pObject->Owner : pThis->Owner;
+		const auto nCoord = pThis->GetCoords();
+
+		Helper::Otamaa::SpawnMultiple(
+			pAnimTypeExt->SpawnsMultiple,
+			pAnimTypeExt->SpawnsMultiple_amouts,
+			nCoord, pObject, pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
+
+		if (pType->SpawnsParticle != -1)
+		{
+			const auto pParticleType = ParticleTypeClass::Array.get()->GetItem(pType->SpawnsParticle);
+
+			if (pType->NumParticles > 0 && pParticleType)
+			{
+				for (int i = 0; i < pType->NumParticles; ++i)
+				{
+					CoordStruct nDestCoord = CoordStruct::Empty;
+					if (pAnimTypeExt->ParticleChance.isset() ?
+						(ScenarioClass::Instance->Random.RandomFromMax(99) < abs(pAnimTypeExt->ParticleChance.Get())) : true)
+					{
+						nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), nCoord, i);
+						ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
+					}
+				}
+			}
+		}
+		if (!pTypeExt->Launchs.empty())
+		{
+			for (auto const& nLauch : pTypeExt->Launchs)
+			{
+				if (nLauch.LaunchWhat)
+				{
+					Helpers::Otamaa::LauchSW(
+						nLauch.LaunchWhat, pHouse,
+						nCoord, nLauch.LaunchWaitcharge,
+						nLauch.LaunchResetCharge,
+						nLauch.LaunchGrant,
+						nLauch.LaunchGrant_RepaintSidebar,
+						nLauch.LaunchGrant_OneTime,
+						nLauch.LaunchGrant_OnHold,
+						nLauch.LaunchSW_Manual,
+						nLauch.LaunchSW_IgnoreInhibitors,
+						nLauch.LaunchSW_IgnoreDesignators,
+						nLauch.LauchSW_IgnoreMoney
+					);
+				}
+			}
+		}
+	}
 }
 
 AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
@@ -99,9 +358,9 @@ void AnimExt::ExtData::CreateAttachedSystem()
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
 		return;
-	auto nLoc =  pThis->Location;
+	auto nLoc = pThis->Location;
 
-	if(pData->AttachedSystem->BehavesLike == BehavesLike::Smoke)
+	if (pData->AttachedSystem->BehavesLike == BehavesLike::Smoke)
 		nLoc.Z += 100;
 
 	if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), nLoc, pThis->GetCell(), pThis, CoordStruct::Empty, pThis->GetOwningHouse()))
@@ -247,7 +506,7 @@ Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
 	const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (!pExt || !pExt->Layer_UseObjectLayer.isset())
-			return Layer::Ground;
+		return Layer::Ground;
 
 	if (pExt->Layer_UseObjectLayer.Get())
 	{

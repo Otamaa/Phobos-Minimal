@@ -15,6 +15,7 @@ class DECLSPEC_UUID("D7F754C6-391C-11D2-9B64-00104B972FE8")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Super;
+	static constexpr inline DWORD vtable = 0x7F3FE8;
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83CB8u> const Array{};

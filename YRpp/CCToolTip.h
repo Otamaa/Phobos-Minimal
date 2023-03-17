@@ -30,3 +30,5 @@ public:
 	bool FullRedraw;
 	int Delay;
 };
+
+static_assert(sizeof(CCToolTip) == 0x268, "Invalid Size !");

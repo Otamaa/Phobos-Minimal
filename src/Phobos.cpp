@@ -25,6 +25,63 @@
 #include <winternl.h>
 #include <cfenv>
 
+struct scoped_handle
+{
+	HANDLE handle;
+
+	scoped_handle() :
+
+		handle(INVALID_HANDLE_VALUE)
+	{
+	}
+	scoped_handle(HANDLE handle) :
+		handle(handle) { }
+
+	scoped_handle(scoped_handle&& other) noexcept :
+		handle(other.handle)
+	{
+		other.handle = NULL;
+	}
+
+	~scoped_handle() { if (handle != NULL && handle != INVALID_HANDLE_VALUE) CloseHandle(handle); }
+
+	bool IsValid() const { return (handle != NULL && handle != INVALID_HANDLE_VALUE); }
+
+	operator HANDLE() const { return handle; }
+
+	HANDLE* operator&() { return &handle; }
+	const HANDLE* operator&() const { return &handle; }
+};
+
+struct scoped_library
+{
+	HMODULE handle;
+
+	scoped_library() :
+
+		handle(NULL)
+	{
+	}
+
+	scoped_library(HMODULE handle) :
+		handle(handle) { }
+
+	scoped_library(scoped_library&& other) noexcept :
+		handle(other.handle)
+	{
+		other.handle = NULL;
+	}
+
+	~scoped_library() { if (handle != NULL) FreeLibrary(handle); }
+
+	bool IsValid() const { return handle != NULL; }
+
+	operator HMODULE() const { return handle; }
+
+	HMODULE* operator&() { return &handle; }
+	const HMODULE* operator&() const { return &handle; }
+};
+
 #pragma region DEFINES
 #ifndef IS_RELEASE_VER
 bool Phobos::Config::HideWarning = false;
@@ -380,11 +437,11 @@ void InitAdminDebugMode()
 		if (IS_SAME_STR_(Phobos::Otamaa::PCName, ADMIN_STR))
 		{
 			Phobos::Otamaa::IsAdmin = true;
-#ifdef COMPILE_PORTED_DP_FEATURES
-			Phobos::EnableConsole = false;
+#ifndef COMPILE_PORTED_DP_FEATURES
+			Phobos::EnableConsole = true;
 #endif
 
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -429,7 +486,7 @@ void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
 	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto const nPatcher = Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
+	if (Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
 		MessageBoxW(NULL,
 		L"This version of phobos is not suppose to be run with DP.\n\n"
 		L"Press OK to Closing the game .",
@@ -440,7 +497,7 @@ void Phobos::ExeRun()
 
 	#endif
 	Patch::ApplyStatic();
-	PoseDirOverride::Apply();
+	//PoseDirOverride::Apply();
 	InitAdminDebugMode();
 	InitConsole();
 	AresData::Init();
@@ -468,7 +525,10 @@ void Phobos::ExeTerminate()
 bool Phobos::DetachFromDebugger()
 {
 	HMODULE hModule = LoadLibraryA("ntdll.dll");
+	DWORD ret = false;
+
 	if (hModule != NULL) {
+
 		auto const NtRemoveProcessDebug =
 			(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(hModule, "NtRemoveProcessDebug");
 		auto const NtSetInformationDebugObject =
@@ -481,39 +541,33 @@ bool Phobos::DetachFromDebugger()
 		HANDLE hDebug {};
 		HANDLE hCurrentProcess = GetCurrentProcess();
 		NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
-		if (0 <= status)
-		{
+		if (0 <= status) {
 			ULONG killProcessOnExit = FALSE;
 			status = NtSetInformationDebugObject(
-				hDebug,
-				1,
-				&killProcessOnExit,
-				sizeof(ULONG),
-				NULL
-			);
-			if (0 <= status)
-			{
+				hDebug, 1, &killProcessOnExit, sizeof(ULONG),  NULL );
+
+			if (0 <= status) {
 				const auto pid = Patch::GetDebuggerProcessId(GetProcessId(hCurrentProcess));
 				status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
-				if (0 <= status)
-				{
+				if (0 <= status) {
 					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-					if (INVALID_HANDLE_VALUE != hDbgProcess)
-					{
-						BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
+					if (hDbgProcess != NULL) {
+						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
 						CloseHandle(hDbgProcess);
-						FreeLibrary(hModule);
-						return ret;
 					}
 				}
 			}
+
 			NtClose(hDebug);
 		}
+
+		if(hCurrentProcess !=NULL)
+			CloseHandle(hCurrentProcess);
 
 		FreeLibrary(hModule);
 	}
 
-	return false;
+	return ret;
 }
 #pragma warning( pop )
 
@@ -677,7 +731,11 @@ SYRINGE_HANDSHAKE(pInfo)
 
 #pragma region hooks
 
-DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
+//DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
+DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5) {
+	Phobos::ExeTerminate();
+	return 0x0;
+}
 
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {

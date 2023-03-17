@@ -8,6 +8,8 @@ class DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE DriveLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
+	static constexpr inline DWORD vtable = 0x7E7F7C;
+
 	// TODO stub virtuals implementations
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x4AF720);

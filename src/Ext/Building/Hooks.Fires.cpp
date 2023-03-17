@@ -19,10 +19,8 @@ namespace DamageFireAnims
 		if (!pExt)
 			return;
 
-		for (auto& nFires : pExt->DamageFireAnims)
-		{
-			if (nFires)
-			{
+		for (auto& nFires : pExt->DamageFireAnims) {
+			if (nFires) {
 				nFires->UnInit();
 				nFires = nullptr;
 			}
@@ -59,6 +57,10 @@ namespace DamageFireAnims
 		if (!pFire.empty() &&
 			!pTypeext->DamageFire_Offs.empty())
 		{
+			while (pExt->DamageFireAnims.size() < pTypeext->DamageFire_Offs.size()) {
+				pExt->DamageFireAnims.push_back(nullptr);
+			}
+
 			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{
 				const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
@@ -77,7 +79,7 @@ namespace DamageFireAnims
 						if (pAnim->Type->End > 0)
 							pAnim->Animation.Value = ScenarioClass::Instance->Random.RandomFromMax(pAnim->Type->End - 1);
 
-						pAnim->Owner = pThis->GetOwningHouse();
+						pAnim->Owner = pThis->GetOwningHouse();			
 						pExt->DamageFireAnims[i] = std::move(pAnim);
 					}
 				}

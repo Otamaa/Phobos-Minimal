@@ -78,16 +78,22 @@ public:
 		return Array[static_cast<size_t>(Idx)].get();
 	}
 
-	static T* FindOrAllocate(const char* Title)
+	static T* Allocate(const char* Title)
 	{
 		if (!Title || !strlen(Title))
 			return nullptr;
 
+		Array.push_back(std::make_unique<T>(Title));
+		return Array.back().get();
+	}
+
+	static T* FindOrAllocate(const char* Title)
+	{
+
 		if (T* find = Find(Title))
 			return find;
 		 
-		Array.push_back(std::make_unique<T>(Title));
-		return Array.back().get();
+		return Allocate(Title);
 	}
 
 	static void Clear()
@@ -107,11 +113,16 @@ public:
 		if (!pINI->GetSection(section))
 			return;
 
-		for (int i = 0; i < pINI->GetKeyCount(section); ++i)
-		{
-			if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer))
-			{
-				if (auto const pItem = FindOrAllocate(Phobos::readBuffer))
+		auto const pKeyCount = pINI->GetKeyCount(section);
+		Array.reserve(pKeyCount);
+
+		for (int i = 0; i < pKeyCount; ++i) {
+			if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer)) {
+
+				if (FindIndexById(Phobos::readBuffer) != -1)
+					continue;
+
+				if (auto const pItem = Allocate(Phobos::readBuffer))
 				{
 					//if (bDebug)
 					//	Debug::Log("%s Reading[%d] %s \"%s\".\n", typeid(T).name(), i, section, Phobos::readBuffer);

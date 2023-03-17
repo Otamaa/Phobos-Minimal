@@ -50,11 +50,11 @@ struct TurretControl
 
 struct WeaponStruct
 {
-	WeaponTypeClass* WeaponType;
-	CoordStruct       FLH;
-	int               BarrelLength;
-	int               BarrelThickness;
-	bool              TurretLocked;
+	WeaponTypeClass* WeaponType { nullptr };
+	CoordStruct       FLH { CoordStruct::Empty };
+	int               BarrelLength { 0 };
+	int               BarrelThickness { 0 };
+	bool              TurretLocked { 0 };
 
 	bool operator == (const WeaponStruct& nWeap) const
 	{

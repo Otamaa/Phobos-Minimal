@@ -38,7 +38,6 @@
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.ParadropAttemt.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\AnimType\Hooks.cpp" />
@@ -49,8 +48,8 @@
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
     <ClCompile Include="src\Ext\Bomb\Body.cpp" />
     <ClCompile Include="src\Ext\Bomb\Hooks.cpp" />
+    <ClCompile Include="src\Ext\BuildingType\Hooks.BuildSpeed.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.cpp" />
-    <ClCompile Include="src\Ext\BuildingType\Hooks.DockPoseDir.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Upgrade.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.AIFactory.cpp" />
@@ -58,6 +57,7 @@
     <ClCompile Include="src\Ext\Building\Hooks.Fires.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.SellFixes.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.Upgrades.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hook.Init.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Otamaa.cpp" />
@@ -78,9 +78,11 @@
     <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
+    <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
     <ClCompile Include="src\Ext\HouseType\Body.cpp" />
+    <ClCompile Include="src\Ext\House\Hooks.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Body.cpp" />
     <ClCompile Include="src\Ext\InfantryType\Hooks.CrawlWeapon.cpp" />
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
@@ -108,7 +110,6 @@
     <ClCompile Include="src\Ext\SpawnManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
-    <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
     <ClCompile Include="src\Ext\SWType\HooksFiring.cpp" />
     <ClCompile Include="src\Ext\Tactical\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
@@ -160,13 +161,13 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Building.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
@@ -204,7 +205,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
-    <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
     <ClCompile Include="src\Misc\Hooks.Image.cpp" />
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
@@ -214,7 +214,6 @@
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
@@ -427,6 +426,7 @@
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
     <ClInclude Include="src\Utilities\ExpressionAnalyzer.h" />
+    <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />
     <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
@@ -742,7 +742,7 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
