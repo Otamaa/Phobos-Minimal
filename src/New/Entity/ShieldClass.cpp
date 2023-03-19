@@ -257,9 +257,11 @@ void ShieldClass::ResponseAttack() const
 	else if (pWhat == AbstractType::Unit)
 	{
 		const auto pUnit = static_cast<UnitClass*>(this->Techno);
-		if (pUnit->Type->Harvester)
-		{
-			if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(pUnit->GetDestination(pUnit))))
+
+		if (pUnit->Type->Harvester) {
+			if (RadarEventClass::Create(
+				RadarEventType::HarvesterAttacked,
+				CellClass::Coord2Cell(pUnit->GetDestination(pUnit))))
 			{
 				VoxClass::Play(Eva_OreMinerUnderAttack);
 			}

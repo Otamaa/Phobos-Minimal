@@ -46,6 +46,7 @@ TechnoExt::ExtContainer TechnoExt::ExtMap;
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
 	if (rank == Rank::Elite) {
@@ -62,10 +63,38 @@ bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 	return false;
 }
 
+bool TechnoExt::IsEMPImmune(TechnoClass* pThis)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToEMP)
+		return true;
+
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+
+	if (rank == Rank::Elite)
+	{
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::EmpImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::EmpImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran)
+	{
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::EmpImmune))
+			return true;
+	}
+
+	return false;
+}
+
 bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
+
+	if (pTypeExt->Get()->ImmuneToPsionics)
+		return true;
 
 	if (rank == Rank::Elite) {
 		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsImmune)
@@ -78,12 +107,16 @@ bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 			return true;
 	}
 
-	return pTypeExt->Get()->ImmuneToPsionics;
+	return false;
 }
 
 bool TechnoExt::IsCritImmune(TechnoClass* pThis)
 {
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToCrit)
+		return true;
+
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
 	if (rank == Rank::Elite) {
@@ -97,13 +130,18 @@ bool TechnoExt::IsCritImmune(TechnoClass* pThis)
 			return true;
 	}
 
-	return pTypeExt->ImmuneToCrit;
+	return false;
 }
 
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+
+
+	if (pTypeExt->Interceptor)
+		return true;
+
 	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
 	if (rank == Rank::Elite) {
@@ -117,7 +155,7 @@ bool TechnoExt::ExtData::IsInterceptor()
 			return true;
 	}
 
-	return pTypeExt->Interceptor;
+	return false;
 }
 
 bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
@@ -306,7 +344,7 @@ bool TechnoExt::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass
 
 	if (pTargetObj && pWeaponExt->Targeting_Health_Percent.isset())
 	{
-		auto const pHP = pTargetObj->GetHealthPercentage_();
+		auto const pHP = pTargetObj->GetHealthPercentage();
 
 		if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
 			return false;
@@ -1879,7 +1917,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	}
 }
 
-void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill)
+void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill, AnimTypeClass* pVanishAnim)
 {
 	if (!pThis || deathOption == KillMethod::None)
 		return;
@@ -1920,6 +1958,15 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	vanish:
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
+
+		if (pVanishAnim) {
+			if (auto const pAnim = GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords())) {
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, true);
+			}
+		}
+
+		pThis->Stun();
+
 		if (!pThis->InLimbo)
 			pThis->Limbo();
 
@@ -1979,6 +2026,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(this->Type);
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
+	const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
 
 	if (nMethod == KillMethod::None)
 		return false;
@@ -1991,7 +2039,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 	{
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
-			TechnoExt::KillSelf(pThis, nMethod);
+			TechnoExt::KillSelf(pThis, nMethod , pVanishAnim);
 			return true;
 		}
 	}
@@ -2022,7 +2070,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Nonexist_House,
 			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed))
 		{
-			TechnoExt::KillSelf(pThis, nMethod);
+			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
 
 			return true;
 		}
@@ -2036,7 +2084,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 			pTypeExt->AutoDeath_Exist_Any,
 			pTypeExt->AutoDeath_Exist_AllowLimboed))
 		{
-			TechnoExt::KillSelf(pThis, nMethod);
+			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
 
 			return true;
 		}
@@ -2054,7 +2102,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		}
 		else if (Death_Countdown.Completed())
 		{
-			TechnoExt::KillSelf(pThis, nMethod);
+			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
 			return true;
 		}
 	}
@@ -2877,9 +2925,10 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
 	{
 		KillMethod nMethod = pTypeExt->Death_Method.Get();
+		const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
 
 		if (nMethod != KillMethod::None)
-			TechnoExt::KillSelf(pInf, nMethod);
+			TechnoExt::KillSelf(pInf, nMethod, pVanishAnim);
 	}
 
 	return true;

@@ -239,7 +239,7 @@ DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_Fire_CreateBullet, 0x6)
 
 	// create a new bullet with projectile range
 	const auto ret = pBulletExt->CreateBullet(pTarget, pThis, damage, pWeapon->Warhead,
-		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright);
+		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright,false);
 
 	R->EAX(ret);
 	return 0x6FE562;

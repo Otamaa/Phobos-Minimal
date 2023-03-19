@@ -168,6 +168,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
 	this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
 
+	this->ImmuneToEMP.Read(exINI, pSection, "ImmuneToEMP");
+
 	this->Interceptor.Read(exINI, pSection, "Interceptor");
 	this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
 	this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
@@ -212,6 +214,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
 	this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
 	this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
+	this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
 	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
@@ -263,6 +266,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->OpenTopped_WarpDistance.Read(exINI, pSection, "OpenTopped.WarpDistance");
 	this->OpenTopped_IgnoreRangefinding.Read(exINI, pSection, "OpenTopped.IgnoreRangefinding");
 	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, pSection, "OpenTopped.AllowFiringIfDeactivated");
+	this->OpenTopped_ShareTransportTarget.Read(exINI, pSection, "OpenTopped.ShareTransportTarget");
 
 	this->AutoFire.Read(exINI, pSection, "AutoFire");
 	this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
@@ -283,27 +287,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	// Ares 0.2
 	this->RadarJamRadius.Read(exINI, pSection, "RadarJamRadius");
-
-	//TODO : better helper
-	char nAbility[0x200] = { 0 };
-
-	if (exINI.GetINI()->ReadString(pSection, GameStrings::EliteAbilities(), "", nAbility) > 0) {
-		std::string nEliteAbilities { nAbility };
-		if (!nEliteAbilities.empty()) {
-			std::size_t nFInd = nEliteAbilities.find("EMPIMMUNE");
-			if (nFInd != std::string::npos)
-				E_ImmuneToEMP = true;
-		}
-	}
-
-	if (exINI.GetINI()->ReadString(pSection, GameStrings::VeteranAbilities(), "", nAbility) > 0) {
-		std::string nVeteranAbilities { nAbility };
-		if (!nVeteranAbilities.empty()) {
-			std::size_t nFInd = nVeteranAbilities.find("EMPIMMUNE");
-			if (nFInd != std::string::npos)
-				V_ImmuneToEMP = true;
-		}
-	}
 
 	// Ares 0.9
 	this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");
@@ -813,6 +796,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AutoDeath_Exist_House)
 		.Process(this->AutoDeath_Exist_Any)
 		.Process(this->AutoDeath_Exist_AllowLimboed)
+		.Process(this->AutoDeath_VanishAnimation)
 
 		.Process(this->Death_WithMaster)
 		.Process(this->Slaved_ReturnTo)
@@ -840,11 +824,14 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->WeaponBurstFLHs)
 		.Process(this->EliteWeaponBurstFLHs)
 		.Process(this->PassengerDeletionType)
+
 		.Process(this->OpenTopped_RangeBonus)
 		.Process(this->OpenTopped_DamageMultiplier)
 		.Process(this->OpenTopped_WarpDistance)
 		.Process(this->OpenTopped_IgnoreRangefinding)
 		.Process(this->OpenTopped_AllowFiringIfDeactivated)
+		.Process(this->OpenTopped_ShareTransportTarget)
+
 		.Process(this->AutoFire)
 		.Process(this->AutoFire_TargetSelf)
 		.Process(this->NoSecondaryWeaponFallback)
@@ -865,8 +852,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ForceWeapon_Cloaked)
 		.Process(this->ForceWeapon_Disguised)
 		.Process(this->ImmuneToEMP)
-		.Process(this->E_ImmuneToEMP)
-		.Process(this->V_ImmuneToEMP)
 		.Process(this->Ammo_Shared)
 		.Process(this->Ammo_Shared_Group)
 		.Process(this->Passengers_SyncOwner)

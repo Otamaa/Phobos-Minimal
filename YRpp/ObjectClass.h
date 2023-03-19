@@ -265,7 +265,7 @@ public:
 		return ret;
 	}
 
-	double GetHealthPercentage_() const;
+	//double GetHealthPercentage_() const;
 
 	//game original func
 	double GetHealthPercentage() const

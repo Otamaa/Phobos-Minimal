@@ -283,7 +283,7 @@ DEFINE_HOOK(0x51BB6E, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // InfantryCl
 	if (pThis->TemporalTargetingMe)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
-		if (((int*)pThis->TemporalTargetingMe)[0] == 0x7F5180)
+		if (((int*)pThis->TemporalTargetingMe)[0] == TemporalClass::vtable)
 			pThis->TemporalTargetingMe->Update();
 		else // It should had being warped out, delete this object
 		{
@@ -671,12 +671,22 @@ DEFINE_HOOK(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 	return pThis->Passengers.NumPassengers > 0 ? GunnerReception : EndFuntion;
 }
 
-DEFINE_HOOK(0x440E99, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x6)
+DEFINE_HOOK(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip, 0x5)
 {
 	enum { DoNotCreateParticle = 0x440F61 };
 	GET(BuildingClass* const, pThis, ESI);
+	return BuildingExt::ExtMap.Find(pThis)->IsCreatedFromMapFile ? DoNotCreateParticle : 0;
+}
 
-	return pThis->BeingProduced ? 0 : DoNotCreateParticle;
+// Ares didn't have something like 0x7397E4 in its UnitDelivery code
+DEFINE_HOOK(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
+{
+	GET(BuildingClass* const, pBld, ESI);
+
+	if (auto pExt = BuildingExt::ExtMap.Find(pBld))
+		pExt->IsCreatedFromMapFile = true;
+
+	return 0;
 }
 
 //https://github.com/Phobos-developers/Phobos/pull/818

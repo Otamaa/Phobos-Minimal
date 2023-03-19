@@ -229,6 +229,7 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	GET(BuildingClass*, pThis, ESI);
 
 	if (const auto pExt = BuildingExt::ExtMap.Find(pThis)) {
+		pExt->DisplayIncomeString();
 		pExt->UpdatePoweredKillSpawns();
 		pExt->UpdateAutoSellTimer();
 	}

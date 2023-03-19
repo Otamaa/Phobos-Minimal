@@ -26,17 +26,24 @@ DEFINE_HOOK(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		if (!pThis->Owner->IsAlliedWith(pFrom))
 			return ReturnStatic;
 
-		if (pThis->GetCurrentMission() == Mission::Construction || pThis->GetCurrentMission() == Mission::Selling ||
-			pThis->BState == BStateType::Construction || !pThis->HasPower || pFrom->GetTechnoType()->BalloonHover)
+		auto const pFromTechnoType = pFrom->GetTechnoType();
+		auto const nMission = pThis->GetCurrentMission();
+
+		if (nMission == Mission::Construction 
+			|| nMission == Mission::Selling 
+			|| pThis->BState == BStateType::Construction 
+			|| !pThis->HasPower 
+			|| pFromTechnoType->BalloonHover)
 		{
 			return ReturnNegative;
 		}
 
-		const bool isAmphibious = pFrom->GetTechnoType()->MovementZone == MovementZone::Amphibious || pFrom->GetTechnoType()->MovementZone == MovementZone::AmphibiousCrusher ||
-			pFrom->GetTechnoType()->MovementZone == MovementZone::AmphibiousDestroyer;
+		const bool isAmphibious = pFromTechnoType->MovementZone == MovementZone::Amphibious
+			|| pFromTechnoType->MovementZone == MovementZone::AmphibiousCrusher
+			|| pFromTechnoType->MovementZone == MovementZone::AmphibiousDestroyer;
 
-		if (!isAmphibious && (pThis->GetTechnoType()->Naval && !pFrom->GetTechnoType()->Naval ||
-			!pThis->GetTechnoType()->Naval && pFrom->GetTechnoType()->Naval))
+		if (!isAmphibious && (pThis->Type->Naval && !pFromTechnoType->Naval ||
+			!pThis->Type->Naval && pFromTechnoType->Naval))
 		{
 			return ReturnNegative;
 		}
@@ -53,7 +60,7 @@ DEFINE_HOOK(0x4D4CD3, FootClass_Mission_Eaten_Grinding, 0x6)
 
 	GET(FootClass*, pThis, ESI);
 
-	if (auto const pBuilding = abstract_cast<BuildingClass*>(pThis->Destination))
+	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis->Destination))
 	{
 		if (pBuilding->Type->Grinding && !BuildingExt::CanGrindTechno(pBuilding, pThis))
 		{
@@ -73,10 +80,13 @@ DEFINE_HOOK(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(Action, action, EBP);
 
-	if (auto pBuilding = abstract_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pBuilding->Type->Grinding && pThis->Owner->IsControlledByCurrentPlayer() && !pBuilding->IsBeingWarpedOut() &&
-			pThis->Owner->IsAlliedWith(pTarget) && (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
+		if (pBuilding->Type->Grinding 
+			&& pThis->Owner->IsControlledByCurrentPlayer() 
+			&& !pBuilding->IsBeingWarpedOut() 
+			&& pThis->Owner->IsAlliedWith(pTarget) 
+			&& (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->Grinding_AllowAllies || action == Action::Select))
 		{
 			action = BuildingExt::CanGrindTechno(pBuilding, pThis) ? Action::Repair : Action::NoEnter;
 			R->EBP(action);
@@ -94,7 +104,7 @@ DEFINE_HOOK(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
 	GET(InfantryClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBuilding = abstract_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExt::CanGrindTechno(pBuilding, pThis);
 		R->EBP(canBeGrinded ? Action::Repair : Action::NoGRepair);
@@ -115,10 +125,12 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	if (InputManagerClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
-	if (auto pBuilding = abstract_cast<BuildingClass*>(pTarget))
+	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 	{
-		if (pThis->Owner->IsControlledByCurrentPlayer() && !pBuilding->IsBeingWarpedOut() &&
-			pThis->Owner->IsAlliedWith(pTarget) && (pBuilding->Type->Grinding || action == Action::Select))
+		if (pThis->Owner->IsControlledByCurrentPlayer()
+			&& !pBuilding->IsBeingWarpedOut() 
+			&& pThis->Owner->IsAlliedWith(pTarget) 
+			&& (pBuilding->Type->Grinding || action == Action::Select))
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
 			{
@@ -209,63 +221,56 @@ DEFINE_HOOK(0x739FBC, UnitClass_UpdatePosition_Grinding_SkipDiesound, 0x5)
 		Play : DoNotPlay;
 }
 
-//DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
-//{
-//	GET(HouseClass* const, pHouse, EBX);
-//	HouseExt::LastHarvesterBalance = pHouse->Available_Money();
-//	return 0;
-//}
+// Unload more than once per ore dump if the harvester contains more than 1 tiberium type
+DEFINE_HOOK(0x73E3DB, UnitClass_Mission_Unload_NoteBalanceBefore, 0x6)
+{
+	GET(HouseClass* const, pHouse, EBX); // this is the house of the refinery, not the harvester
+	// GET(BuildingClass* const, pDock, EDI);
 
-//DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
-//{
-//	GET(HouseClass* const, pHouse, EBX);
-//	GET(BuildingClass* const, pDock, EDI);
-//
-//	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pDock->Type);
-//
-//	if(pTypeExt->Refinery_DisplayDumpedMoneyAmount){	
-//		const int delta = pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
-//		FlyingStrings::AddMoneyString(delta, delta, pDock, AffectedHouse::All
-//				, pDock->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
-//	}
-//
-//	return 0;
-//}
+	HouseExt::LastHarvesterBalance = pHouse->Available_Money();// Available_Money takes silos into account
 
-//DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
-//{
-//	//this is techno class , not building class , wtf
-//	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
-//
-//	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
-//
-//	if (!pBuilding)
-//		return 0x0;
-//
-//	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
-//	return 0x0;
-//}
+	return 0;
+}
 
-//DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
-//{
-//	//this is techno class , not building class , wtf
-//	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
-//
-//	const auto pBuilding = specific_cast<BuildingClass* const >(slaveMiner);
-//
-//	if (!pBuilding) {
-//		return 0x0;
-//	}
-//
-//	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-//
-//	if (pTypeExt->Refinery_DisplayDumpedMoneyAmount)
-//	{
-//		const int delta = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
-//		FlyingStrings::AddMoneyString(delta, delta, slaveMiner, AffectedHouse::All
-//				, slaveMiner->GetRenderCoords(), pTypeExt->Refinery_DisplayRefund_Offset);
-//
-//	}
-//
-//	return 0x0;
-//}
+DEFINE_HOOK(0x73E4D0, UnitClass_Mission_Unload_CheckBalanceAfter, 0xA)
+{
+	GET(HouseClass* const, pHouse, EBX);
+	GET(BuildingClass* const, pDock, EDI);
+
+	if(BuildingTypeExt::ExtMap.Find(pDock->Type)->Refinery_DisplayDumpedMoneyAmount){
+		BuildingExt::ExtMap.Find(pDock)->AccumulatedIncome += 
+			pHouse->Available_Money() - HouseExt::LastHarvesterBalance;
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x522D50, InfantryClass_SlaveGiveMoney_RecordBalanceBefore, 0x5)
+{
+	GET_STACK(TechnoClass* const, slaveMiner, 0x4);
+	HouseExt::LastSlaveBalance = slaveMiner->Owner->Available_Money();
+	return 0;
+}
+
+DEFINE_HOOK(0x522E4F, InfantryClass_SlaveGiveMoney_CheckBalanceAfter, 0x6)
+{
+	GET_STACK(TechnoClass* const, slaveMiner, STACK_OFFSET(0x18, 0x4));
+
+	int money = slaveMiner->Owner->Available_Money() - HouseExt::LastSlaveBalance;
+
+	if (auto pBld = specific_cast<BuildingClass*>(slaveMiner)) {
+		if (BuildingTypeExt::ExtMap.Find(pBld->Type)->Refinery_DisplayDumpedMoneyAmount) {
+			BuildingExt::ExtMap.Find(pBld)->AccumulatedIncome += money;
+		}
+	}
+	else if (auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(slaveMiner->GetTechnoType()->DeploysInto))
+	{
+		if (pBldTypeExt->Refinery_DisplayDumpedMoneyAmount.Get())
+		{
+			FlyingStrings::AddMoneyString(money, money, slaveMiner, AffectedHouse::All
+				, slaveMiner->Location, pBldTypeExt->Refinery_DisplayRefund_Offset);
+		}
+	}
+
+	return 0;
+}

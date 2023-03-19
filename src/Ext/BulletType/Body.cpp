@@ -46,7 +46,7 @@ bool BulletTypeExt::ExtData::HasSplitBehavior()
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const
 {
 	if (auto pBullet = this->CreateBullet(pTarget, pOwner, pWeapon->Damage, pWeapon->Warhead,
-		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright))
+		pWeapon->Speed, WeaponTypeExt::ExtMap.Find(pWeapon)->GetProjectileRange(), pWeapon->Bright || pWeapon->Warhead->Bright, true))
 	{
 		pBullet->SetWeaponType(pWeapon);
 		return pBullet;
@@ -56,9 +56,12 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 }
 
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
-	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright) const
+	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright , bool addDamage) const
 {
-	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, static_cast<int>(damage * TechnoExt::GetDamageMult(pOwner)), pWarhead, speed, bright);
+	if (addDamage)
+		damage *= TechnoExt::GetDamageMult(pOwner);
+
+	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
 	if (pBullet) {
 		pBullet->Range = range;

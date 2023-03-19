@@ -10,7 +10,11 @@ DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
 	GET(AnimClass* const, pThis, ECX);
 	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
-	pCoord->X += AnimTypeExt::ExtMap.Find(pThis->Type)->XDrawOffset;
+
+	if(pThis->Type){ 
+		pCoord->X += AnimTypeExt::ExtMap.Find(pThis->Type)->XDrawOffset;
+	}
+
 	return 0;
 }
 
@@ -19,7 +23,7 @@ DEFINE_HOOK(0x423B95, AnimClass_AI_HideIfNoOre_Threshold, 0x6)
 	GET(AnimClass* const, pThis, ESI);
 	GET(AnimTypeClass* const, pType, EDX);
 
-	if (pType->HideIfNoOre)
+	if (pType && pType->HideIfNoOre)
 	{
 		int nThreshold = abs(AnimTypeExt::ExtMap.Find(pType)->HideIfNoOre_Threshold.Get());
 		auto const pCell = pThis->GetCell();
@@ -43,37 +47,37 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 		ReturnSetManualResult = 0x424CD6
 	};
 
-	if (pThis->OwnerObject) {
-		const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	if(pThis->Type) {
+		if (pThis->OwnerObject) {
+			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-		if (!pExt->Layer_UseObjectLayer.isset()) {
-			return RetLayerGround;
-		}
-
-		if (pExt->Layer_UseObjectLayer.Get()) {
-			Layer nRes = Layer::Ground;
-
-			if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
-				if (auto const pLocomotor = pFoot->Locomotor.get())
-					nRes = pLocomotor->In_Which_Layer();
+			if (!pExt->Layer_UseObjectLayer.isset()) {
+				return RetLayerGround;
 			}
-			else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
-				nRes = pBullet->InWhichLayer();
-			else
-				nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
 
-			R->EAX(nRes);
+			if (pExt->Layer_UseObjectLayer.Get()) {
+				Layer nRes = Layer::Ground;
+
+				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
+					if (auto const pLocomotor = pFoot->Locomotor.get())
+						nRes = pLocomotor->In_Which_Layer();
+				}
+				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+					nRes = pBullet->InWhichLayer();
+				else
+					nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
+
+				R->EAX(nRes);
+				return ReturnSetManualResult;
+			}
+
+		} else {
+			R->EAX(pThis->Type->Layer);
 			return ReturnSetManualResult;
 		}
 	}
 
-	if (pThis->Type) {
-		R->EAX(pThis->Type->Layer);
-		return ReturnSetManualResult;
-	} else {
-		return RetLayerAir;
-	}
-
+	return RetLayerAir;
 }
 
 DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
@@ -82,13 +86,15 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 	GET(ObjectClass*, pObject, EDI);
 	LEA_STACK(CoordStruct*, pCoords, STACK_OFFS(0x34,0xC));
 
-	if (AnimTypeExt::ExtMap.Find(pThis->Type)->UseCenterCoordsIfAttached)
-	{
-		pObject->GetRenderCoords(pCoords);
-		pCoords->X += 128;
-		pCoords->Y += 128;
-		R->EAX(pCoords);
-		return 0x424C49;
+	if(pThis->Type) {
+		if (AnimTypeExt::ExtMap.Find(pThis->Type)
+			->UseCenterCoordsIfAttached) {
+			pObject->GetRenderCoords(pCoords);
+			pCoords->X += 128;
+			pCoords->Y += 128;
+			R->EAX(pCoords);
+			return 0x424C49;
+		}
 	}
 
 	return 0;
@@ -111,8 +117,6 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 }
 
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
-
-
 
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
 DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)

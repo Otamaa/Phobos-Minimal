@@ -273,7 +273,7 @@ private:
 
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage , WarheadTypeClass* pWH);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
-	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true);
+	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true, AnimTypeClass* pVanishAnim = nullptr);
 	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);
 	static bool CheckIfCanFireAt(TechnoClass* pThis, AbstractClass* pTarget);
 	static bool CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex);
@@ -316,6 +316,7 @@ private:
 	static NOINLINE bool IsCritImmune(TechnoClass* pThis);
 	static NOINLINE bool IsPsionicsImmune(TechnoClass* pThis);
 	static NOINLINE bool IsCullingImmune(TechnoClass* pThis);
+	static NOINLINE bool IsEMPImmune(TechnoClass* pThis);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);

@@ -10,8 +10,8 @@ struct MultiBoolFixedArray
 		if (parser.ReadString(pSection, pKey) > 0) {
 			Reset();
 			char* context = nullptr;
-			for (char* cur = strtok_s(parser.value(), ",", &context);
-				cur; cur = strtok_s(nullptr, ",", &context)) {
+			for (char* cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur; cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
 				for (int i = 0; i < Amount; ++i) {
 					if (IS_SAME_STR_(cur, nKeysArray[i])) {
 						this->Datas[i] = true;

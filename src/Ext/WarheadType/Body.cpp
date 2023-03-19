@@ -268,7 +268,7 @@ bool WarheadTypeExt::ExtData::ApplyCulling(TechnoClass* pSource, ObjectClass* pT
 	}
 	else
 	{
-		if (static_cast<int>(pTarget->GetHealthPercentage_() * 100.0) > nCullingHP)
+		if (static_cast<int>(pTarget->GetHealthPercentage() * 100.0) > nCullingHP)
 			return false;
 	}
 
@@ -667,7 +667,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 	}
 
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright))
+		damage, pThis, 0, 0, pThis->Bright,true))
 	{
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}

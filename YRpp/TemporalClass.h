@@ -12,6 +12,7 @@ class DECLSPEC_UUID("94112424-E403-11D3-8E6E-005004AAB2FB")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Temporal;
+	static constexpr inline DWORD vtable = 0x7F5180;
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<TemporalClass*>, 0xB0EC60u> const Array{};

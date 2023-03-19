@@ -7,6 +7,8 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 
 void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
@@ -25,6 +27,24 @@ void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<Affec
 			continue;
 
 		BuildingExt::LimboKill(pBuilding);
+	}
+}
+
+void BuildingExt::ExtData::DisplayIncomeString()
+{
+	if (Unsorted::CurrentFrame % 15 == 0) {
+
+		auto const pTypeExt = BuildingTypeExt::ExtMap.Find(this->Get()->Type);
+
+		FlyingStrings::AddMoneyString(
+			this->AccumulatedIncome,
+			this->AccumulatedIncome,
+			this->Get() , AffectedHouse::All ,
+			this->Get()->GetRenderCoords(),
+			pTypeExt->Refinery_DisplayRefund_Offset
+		);
+
+		this->AccumulatedIncome = 0;
 	}
 }
 
@@ -358,38 +378,48 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	}
 
 	// Obtain a list of air factories for optimizing the comparisons
-	std::for_each(pOwner->Buildings.begin(), pOwner->Buildings.end(), [&](BuildingClass* pBuilding) {
+	std::for_each(
+		pOwner->Buildings.begin(),
+		pOwner->Buildings.end(), 
+		[&](BuildingClass* pBuilding) {
 
-		 if (!pBuilding || !pBuilding->Type)
-			return;
-
-		if (pBuilding->Type->Factory == AbstractType::AircraftType && Phobos::Config::ForbidParallelAIQueues_Aircraft)
-		{
-			if (!currFactory && pBuilding->Factory)
-				currFactory = pBuilding->Factory;
-
-			if (!std::any_of(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory),
-				[pBuilding](auto const pData) { return pData == pBuilding; })) {
-				HouseExt->HouseAirFactory.push_back(pBuilding);
-			}
-		}
-	});
-
-	if (BuildingExt->CurrentAirFactory) {
-		std::for_each(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](BuildingClass* pBuilding) {
-			 if (!pBuilding || !pBuilding->Type)
+			if (!pBuilding || !pBuilding->Type)
 				return;
 
-			 if (pBuilding == BuildingExt->CurrentAirFactory) {
-				BuildingExt->CurrentAirFactory->Factory = currFactory;
-				BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
-			 } else {
-				pBuilding->IsPrimaryFactory = false;
+			if (pBuilding->Type->Factory == AbstractType::AircraftType &&
+				Phobos::Config::ForbidParallelAIQueues_Aircraft) {
 
-				if (pBuilding->Factory)
-				pBuilding->Factory->AbandonProduction();
-			 }
+				if (!currFactory && pBuilding->Factory)
+					currFactory = pBuilding->Factory;
+
+				if (!std::any_of(HouseExt->HouseAirFactory.begin(),
+					HouseExt->HouseAirFactory.end(),
+					[pBuilding](auto const pData) 
+					{  return pData == pBuilding; })) {
+					HouseExt->HouseAirFactory.push_back(pBuilding);
+				}
+			}
 		});
+
+	if (BuildingExt->CurrentAirFactory) {
+		std::for_each(
+			HouseExt->HouseAirFactory.begin(),
+			HouseExt->HouseAirFactory.end(),
+			[&](BuildingClass* pBuilding) {
+
+				if (!pBuilding || !pBuilding->Type)
+					return;
+
+				if (pBuilding == BuildingExt->CurrentAirFactory) {
+					BuildingExt->CurrentAirFactory->Factory = currFactory;
+					BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
+				} else {
+					pBuilding->IsPrimaryFactory = false;
+
+					if (pBuilding->Factory)
+						pBuilding->Factory->AbandonProduction();
+				}
+			});
 
 		return;
 	}
@@ -397,30 +427,34 @@ void BuildingExt::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!currFactory)
 		return;
 
-	std::for_each(std::begin(HouseExt->HouseAirFactory), std::end(HouseExt->HouseAirFactory), [&](BuildingClass* pBuilding) {
-		if (!pBuilding || !pBuilding->Type)
-			return;
+	std::for_each(
+		HouseExt->HouseAirFactory.begin(),
+		HouseExt->HouseAirFactory.end(),
+		[&](BuildingClass* pBuilding) {
 
-		int nDocks = pBuilding->Type->NumberOfDocks;
-		int nOccupiedDocks = CountOccupiedDocks(pBuilding);
-
-		if (nOccupiedDocks < nDocks) {
-			if (!newBuilding) {
-				newBuilding = pBuilding;
-				newBuilding->Factory = currFactory;
-				newBuilding->IsPrimaryFactory = true;
-				BuildingExt->CurrentAirFactory = newBuilding;
-
+			if (!pBuilding || !pBuilding->Type)
 				return;
+
+			int nDocks = pBuilding->Type->NumberOfDocks;
+			int nOccupiedDocks = CountOccupiedDocks(pBuilding);
+
+			if (nOccupiedDocks < nDocks) {
+				if (!newBuilding) {
+					newBuilding = pBuilding;
+					newBuilding->Factory = currFactory;
+					newBuilding->IsPrimaryFactory = true;
+					BuildingExt->CurrentAirFactory = newBuilding;
+
+					return;
+				}
 			}
-		}
 
-		pBuilding->IsPrimaryFactory = false;
+			pBuilding->IsPrimaryFactory = false;
 
-		if (pBuilding->Factory)
+			if (pBuilding->Factory)
 			pBuilding->Factory->AbandonProduction();
 
-	});
+		});
 
 	return;
 }
@@ -429,7 +463,7 @@ int BuildingExt::CountOccupiedDocks(BuildingClass* pBuilding)
 {
 	int nOccupiedDocks = 0;
 
-	if (!pBuilding || pBuilding->WhatAmI() != AbstractType::Building || !pBuilding->Type)
+	if (!pBuilding || !pBuilding->Type)
 		return 0;
 
 	if (pBuilding->RadioLinks.IsAllocated && pBuilding->RadioLinks.IsInitialized)
@@ -456,8 +490,8 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 	if (pWhat != AbstractType::Infantry && pWhat != AbstractType::Unit)
 		return false;
 
-	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) &&
-		(pWhat == AbstractType::Infantry && !pBuilding->Type->InfantryAbsorb ||
+	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) 
+		&& (pWhat == AbstractType::Infantry && !pBuilding->Type->InfantryAbsorb ||
 			pWhat == AbstractType::Unit && !pBuilding->Type->UnitAbsorb))
 	{
 		return false;
@@ -472,10 +506,12 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 		if (pBuilding->Owner != pTechno->Owner && pBuilding->Owner->IsAlliedWith(pTechno) && !pExt->Grinding_AllowAllies.Get())
 			return false;
 
-		if (pExt->Grinding_AllowTypes.size() > 0 && !pExt->Grinding_AllowTypes.Contains(pTechno->GetTechnoType()))
+		auto const pTechnoType = pTechno->GetTechnoType();
+
+		if (!pExt->Grinding_AllowTypes.empty() && !pExt->Grinding_AllowTypes.Contains(pTechnoType))
 			return false;
 
-		if (pExt->Grinding_DisallowTypes.size() > 0 && pExt->Grinding_DisallowTypes.Contains(pTechno->GetTechnoType()))
+		if (!pExt->Grinding_DisallowTypes.empty() && pExt->Grinding_DisallowTypes.Contains(pTechnoType))
 			return false;
 	}
 
@@ -491,7 +527,9 @@ bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechn
 		if (!pTechno)
 			return false;
 
-		if (nRefundAmounts && pTypeExt->Grinding_DisplayRefund && EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
+		if (nRefundAmounts 
+			&& pTypeExt->Grinding_DisplayRefund 
+			&& EnumFunctions::CanTargetHouse(pTypeExt->Grinding_DisplayRefund_Houses, pBuilding->Owner, HouseClass::CurrentPlayer))
 		{
 			pExt->AccumulatedGrindingRefund += nRefundAmounts;
 		}
@@ -669,6 +707,8 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->GrindingWeapon_LastFiredFrame)
 		.Process(this->CurrentAirFactory)
 		.Process(this->AccumulatedGrindingRefund)
+		.Process(this->AccumulatedIncome)
+		.Process(this->IsCreatedFromMapFile)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
 		.Process(this->LighningNeedUpdate)

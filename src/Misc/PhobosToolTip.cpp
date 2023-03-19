@@ -7,6 +7,8 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Surface/Body.h>
 
+#include <Utilities/Cast.h>
+
 #include <AircraftClass.h>
 #include <BuildingClass.h>
 #include <UnitClass.h>
@@ -51,23 +53,24 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	// It has to be these four classes, otherwise pType will just be 
 
 	static char BuildTimeDatas[0x720]; // Just big enough to hold all types
+	//std::memset(&BuildTimeDatas, 0, sizeof(BuildTimeDatas));
 
 	switch (pType->WhatAmI())
 	{
 	case AbstractType::BuildingType:
-		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7E3EBC;
+		*reinterpret_cast<int*>(BuildTimeDatas) = BuildingClass::vtable;
 		reinterpret_cast<BuildingClass*>(BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
 	case AbstractType::AircraftType:
-		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7E22A4;
+		*reinterpret_cast<int*>(BuildTimeDatas) = AircraftClass::vtable;
 		reinterpret_cast<AircraftClass*>(BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
 	case AbstractType::InfantryType:
-		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7EB058;
+		*reinterpret_cast<int*>(BuildTimeDatas) = InfantryClass::vtable;
 		reinterpret_cast<InfantryClass*>(BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
 	case AbstractType::UnitType:
-		*reinterpret_cast<int*>(BuildTimeDatas) = 0x7F5C70;
+		*reinterpret_cast<int*>(BuildTimeDatas) = UnitClass::vtable;
 		reinterpret_cast<UnitClass*>(BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;
 	}
@@ -87,7 +90,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 
 inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 {
-	if (auto const pBldType = abstract_cast<BuildingTypeClass*>(pType))
+	if (auto const pBldType = type_cast<BuildingTypeClass*>(pType))
 		return pBldType->PowerBonus - pBldType->PowerDrain;
 
 	return 0;
@@ -150,7 +153,7 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 
 	//if (Phobos::Config::RealTimeTimers_Adaptive
 	//	|| GameOptionsClass::Instance->GameSpeed == 0
-	//	|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())) // TODO change when custom game speed gets merged
+	//	|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()))
 	//{
 	//	return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
 	//}

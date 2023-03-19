@@ -169,7 +169,8 @@ public:
 class EventClass
 {
 public:
-	static constexpr reference<const char*, 0x82091C, 47> const EventNames {};
+	static constexpr reference<const char*, 0x82091C, 18> const EventNames {};
+	static constexpr reference<const char*, 0x82091C, 27> const AddEventNames {};
 
 	static constexpr reference<EventList<0x80>, 0xA802C8> OutList {};
 	// If the event is a MegaMission, then add it to this list

@@ -74,9 +74,9 @@ public:
 	static AbstractClass* GetTarget(AnimClass* const);
 
 	static bool DealDamageDelay(AnimClass* pThis);
-	static void OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight);
-	static void OnMiddle(AnimClass* pThis);
-	static void OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
+	static bool OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight);
+	static bool OnMiddle(AnimClass* pThis);
+	static bool OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
 
 	//ToDo :

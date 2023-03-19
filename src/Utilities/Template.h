@@ -327,6 +327,10 @@ public:
 
 	Promotable() = default;
 	explicit Promotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	explicit Promotable(T const& r, T const& v, T const& e) 
+	noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
+		Rookie(r), Veteran(v), Elite(e) { }
+
 	~Promotable() = default;
 
 	void SetAll(const T& val)

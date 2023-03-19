@@ -3094,21 +3094,12 @@ DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 	GET(TechnoClass*, pProduct, ESI);
 
 	auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType());
-	int nIdx = -1;
 
-	if (pTechnoTypeExt->Eva_Complete.isset())
-	{
-		nIdx = pTechnoTypeExt->Eva_Complete.Get();
+	if (pTechnoTypeExt->Eva_Complete.isset()) {
+		VoxClass::PlayIndex(pTechnoTypeExt->Eva_Complete.Get());
+	} else {
+		VoxClass::Play(GameStrings::EVA_UnitReady());
 	}
-	else
-	{
-		nIdx = VoxClass::FindIndexById(GameStrings::EVA_UnitReady());
-	}
-
-	if (nIdx <= -1)
-		return 0x4FB649;
-
-	VoxClass::PlayIndex(nIdx);
 
 	return 0x4FB649;
 }
@@ -3147,22 +3138,13 @@ DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComple
 		pTech->Owner->ControlledByPlayer())
 	{
 		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech->GetTechnoType());
-		int nIdx = -1;
 
-		if (pTechnoTypeExt->Eva_Complete.isset())
-		{
-			nIdx = pTechnoTypeExt->Eva_Complete.Get();
-		}
-		else
-		{
-			nIdx = VoxClass::FindIndexById(GameStrings::EVA_ConstructionComplete());
+		if (pTechnoTypeExt->Eva_Complete.isset()) {
+			VoxClass::PlayIndex(pTechnoTypeExt->Eva_Complete.Get());
+		} else {
+			VoxClass::Play(GameStrings::EVA_ConstructionComplete());
 		}
 
-
-		if (nIdx <= -1)
-			return 0x6A8E34;
-
-		VoxClass::PlayIndex(nIdx);
 		return 0x6A8E34;
 	}
 

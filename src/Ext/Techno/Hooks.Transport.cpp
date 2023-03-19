@@ -154,3 +154,15 @@ DEFINE_HOOK(0x737F80, TechnoClass_ReceiveDamage_Cargo_SyncOwner, 0x6)
 
 	return 0;
 }
+
+DEFINE_HOOK(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
+{
+	enum { ReturnFromFunction = 0x71057F , Continue = 0x0 };
+
+	GET(TechnoClass* const, pThis, ECX);
+	GET_STACK(AbstractClass* const, pTarget, STACK_OFFSET(0x8, 0x4));
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget 
+		? ReturnFromFunction : Continue;
+}

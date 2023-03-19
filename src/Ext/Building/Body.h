@@ -28,6 +28,8 @@ public:
 		int GrindingWeapon_LastFiredFrame;
 		BuildingClass* CurrentAirFactory;
 		int AccumulatedGrindingRefund;
+		int AccumulatedIncome;
+		bool IsCreatedFromMapFile;
 
 		std::vector<AnimClass*> DamageFireAnims;
 		TimerStruct AutoSellTimer;
@@ -39,6 +41,8 @@ public:
 			, GrindingWeapon_LastFiredFrame { 0 }
 			, CurrentAirFactory { nullptr }
 			, AccumulatedGrindingRefund { 0 }
+			, AccumulatedIncome { 0 }
+		, IsCreatedFromMapFile { false }
 			, DamageFireAnims { }
 			, AutoSellTimer { }
 			, LighningNeedUpdate { false }
@@ -54,7 +58,7 @@ public:
 		bool HasSuperWeapon(int index, bool withUpgrades) const;
 		bool RubbleYell(bool beingRepaired);
 
-
+		void DisplayIncomeString();
 		void UpdatePoweredKillSpawns();
 		void UpdateAutoSellTimer();
 

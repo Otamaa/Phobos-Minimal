@@ -166,7 +166,7 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 
 	auto const pTargetTechno = generic_cast<TechnoClass*>(pThis->Target);
 
-	if (!pTargetTechno || RulesClass::Instance->ConditionGreen <= pTargetTechno->GetHealthPercentage_())
+	if (!pTargetTechno || RulesClass::Instance->ConditionGreen <= pTargetTechno->GetHealthPercentage())
 		pThis->SetTarget(nullptr);
 
 	return 0x52094C;

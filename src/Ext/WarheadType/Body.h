@@ -422,8 +422,8 @@ public:
 			, LimboKill_Affected { AffectedHouse::Owner }
 			, InfDeathAnim { nullptr }
 
-			, Culling_BelowHP {}
-			, Culling_Chance {}
+			, Culling_BelowHP { 0 , -1 , -2 }
+			, Culling_Chance { 100 }
 			, RelativeDamage { false }
 			, RelativeDamage_AirCraft { 0 }
 			, RelativeDamage_Unit { 0 }

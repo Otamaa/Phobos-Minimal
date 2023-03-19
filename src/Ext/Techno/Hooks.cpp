@@ -310,7 +310,13 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndexById(GameStrings::EVA_UnitSold())));
+
+		if(pTypeExt->EVA_Sold.isset()) {
+			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
+		} else {
+			VoxClass::Play(GameStrings::EVA_UnitSold());
+		}
+
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
 		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
 	}

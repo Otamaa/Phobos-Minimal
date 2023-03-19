@@ -58,6 +58,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 		pThis->Fire(pTarget, WeaponIdx);
 	}
 }
+
 bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 {
 	if (const auto pPassanger = pThis->Passengers.GetFirstPassenger())

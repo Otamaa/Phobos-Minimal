@@ -880,6 +880,7 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			continue;
 
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 		if(!pExt || !pExt->Death_Countdown.Completed() || pExt->KillActionCalled)
 			continue;
@@ -894,7 +895,7 @@ void HouseExt::ExtData::UpdateAutoDeathObjects()
 			} 
 		}		
 			
-		TechnoExt::KillSelf(pThis, nMethod);
+		TechnoExt::KillSelf(pThis, nMethod, true , pTypeExt->AutoDeath_VanishAnimation);
 	}
 }
 

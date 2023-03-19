@@ -990,7 +990,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pWeapon->Projectile);
 	auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pAttacker, damage, pWH, speed, pExt->GetProjectileRange(), bright);
+	BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pAttacker, damage, pWH, speed, pExt->GetProjectileRange(), bright, true);
 
 	if (!pBullet)
 		return nullptr;

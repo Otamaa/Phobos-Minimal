@@ -98,6 +98,7 @@ public:
 		Valueable<AffectedHouse> AutoDeath_Exist_House;
 		Valueable<bool> AutoDeath_Exist_Any;
 		Valueable<bool> AutoDeath_Exist_AllowLimboed;
+		Nullable<AnimTypeClass*> AutoDeath_VanishAnimation;
 
 		Valueable<SlaveReturnTo> Slaved_ReturnTo;
 		Valueable<ShieldTypeClass*> ShieldType;
@@ -133,6 +134,7 @@ public:
 		Nullable<int> OpenTopped_WarpDistance;
 		Valueable<bool> OpenTopped_IgnoreRangefinding;
 		Valueable<bool> OpenTopped_AllowFiringIfDeactivated;
+		Valueable<bool> OpenTopped_ShareTransportTarget;
 
 		Valueable<bool> AutoFire;
 		Valueable<bool> AutoFire_TargetSelf;
@@ -159,8 +161,6 @@ public:
 		Valueable<int> ForceWeapon_Cloaked;
 		Valueable<int> ForceWeapon_Disguised;
 		Valueable<bool> ImmuneToEMP;
-		Valueable<bool> E_ImmuneToEMP;
-		Valueable<bool> V_ImmuneToEMP;
 		Valueable<bool> Ammo_Shared;
 		Valueable<int> Ammo_Shared_Group;
 		Valueable<bool> Passengers_SyncOwner;
@@ -488,6 +488,7 @@ public:
 			, AutoDeath_Exist_House { AffectedHouse::Owner }
 			, AutoDeath_Exist_Any { false }
 		    , AutoDeath_Exist_AllowLimboed { true}
+			, AutoDeath_VanishAnimation {}
 
 			, Slaved_ReturnTo { SlaveReturnTo::Killer }
 			, ShieldType { nullptr }
@@ -516,6 +517,8 @@ public:
 			, OpenTopped_WarpDistance {}
 			, OpenTopped_IgnoreRangefinding { false }
 			, OpenTopped_AllowFiringIfDeactivated { true }
+			, OpenTopped_ShareTransportTarget { true }
+
 			, AutoFire { false }
 			, AutoFire_TargetSelf { false }
 			, NoSecondaryWeaponFallback { false }
@@ -535,8 +538,6 @@ public:
 			, ForceWeapon_Cloaked { -1 }
 			, ForceWeapon_Disguised { -1 }
 			, ImmuneToEMP { false }
-			, E_ImmuneToEMP { false }
-			, V_ImmuneToEMP { false }
 			, Ammo_Shared { false }
 			, Ammo_Shared_Group { -1 }
 			, Passengers_SyncOwner{ false }

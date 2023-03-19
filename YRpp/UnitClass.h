@@ -18,7 +18,7 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<UnitClass*>, 0x8B4108u> const Array{};
-	static constexpr reference<int, 0x7F5C70> const _vtable {};
+	static constexpr inline DWORD vtable = 0x7F5C70;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x746DE0);

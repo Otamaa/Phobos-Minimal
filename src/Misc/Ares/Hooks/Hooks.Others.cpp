@@ -23,6 +23,19 @@
 
 #include <Notifications.h>
 
+DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
+{
+	GET(FactoryClass*, pThis, ESI);
+
+	if (pThis->Owner == HouseClass::CurrentPlayer() && pThis->Object)
+	{
+		if (pThis->Object->WhatAmI() == AbstractType::Building)
+			pThis->Object->RemoveSidebarObject();
+	}
+
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
 DEFINE_OVERRIDE_HOOK_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
 DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)

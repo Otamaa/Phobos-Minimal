@@ -157,7 +157,8 @@ void NOINLINE DetonateDeathWeapon(TechnoClass* pThis , TechnoTypeClass* pType ,W
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
 		auto const pBulletTypeExt = BulletTypeExt::ExtMap.Find(pDecided->Projectile);
 
-		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0, pDecided->Bright || pDecided->Warhead->Bright))
+		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed, 0,
+			pDecided->Bright || pDecided->Warhead->Bright, true))
 		{
 			pBullet->SetWeaponType(pDecided);
 			BulletExt::DetonateAt(pBullet, pThis, pThis, pThis->Location);

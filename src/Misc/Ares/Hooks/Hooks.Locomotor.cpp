@@ -68,19 +68,6 @@ DEFINE_OVERRIDE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_Atmosph
 	return RulesClass::Instance->AtmosphereEntry ? 0x0 : 0x4B61D6;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
-{
-	GET(FactoryClass*, pThis, ESI);
-
-	if (pThis->Owner == HouseClass::CurrentPlayer() && pThis->Object)
-	{
-		if (pThis->Object->WhatAmI() == AbstractType::Building)
-			pThis->Object->RemoveSidebarObject();
-	}
-
-	return 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);

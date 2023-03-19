@@ -18,14 +18,16 @@ DEFINE_HOOK(0x685078, Generate_OreTwinkle_Anims, 0x7)
 
 	if (location->GetContainedTiberiumValue() > 0)
 	{
-		auto const pTibExt = TiberiumExt::ExtMap.Find(TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex()));
+		auto const pTibExt = TiberiumExt::ExtMap.Find(
+			TiberiumClass::Array->GetItem(location->GetContainedTiberiumIndex())
+		);
+
 		if (!pTibExt)
 			return 0x0;
 
 		if (!ScenarioClass::Instance->Random.RandomFromMax(pTibExt->GetTwinkleChance() - 1)) {
 			if (auto pAnimtype = pTibExt->GetTwinkleAnim()) {
-				if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1))
-				{
+				if (auto pAnim = GameCreate<AnimClass>(pAnimtype, location->GetCoords(), 1)) {
 					AnimExt::SetAnimOwnerHouseKind(pAnim, nullptr, nullptr, false);
 				}
 			}
@@ -46,9 +48,8 @@ DEFINE_HOOK(0x423CC1, AnimClass_AI_HasExtras_Expired, 0x6)
 	//overriden instruction !
 	R->Stack(STACK_OFFS(0x8C, 0x78), R->AL());
 
-	AnimExt::OnExpired(pThis, LandIsWater, EligibleHeight);
-
-	return SkipGameCode;
+	return AnimExt::OnExpired(pThis, LandIsWater, EligibleHeight) ? 
+		SkipGameCode : 0x0 ;
 }
 
 //crash and corrup ESI pointer around
@@ -56,9 +57,7 @@ DEFINE_HOOK(0x424FE8, AnimClass_Middle_SpawnParticle, 0x6) //was C
 {
 	GET(AnimClass*, pThis, ESI);
 
-	AnimExt::OnMiddle(pThis);
-
-	return 0x42504D;
+	return AnimExt::OnMiddle(pThis) ? 0x42504D : 0x0;
 }
 
 DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
@@ -68,9 +67,8 @@ DEFINE_HOOK(0x42504D, AnimClass_Middle_SpawnCreater, 0xA) //was 4
 	GET(int, nX, EBP);
 	GET_STACK(int, nY, STACK_OFFS(0x30, 0x20));
 
-	AnimExt::OnMiddle_SpawnParticle(pThis, pCell, Point2D{ nX ,nY });
-
-	return 0x42513F;
+	return AnimExt::OnMiddle_SpawnParticle(pThis, pCell, { nX ,nY }) ? 
+		0x42513F : 0x0 ;
 }
 
 DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)

@@ -37,7 +37,12 @@ DEFINE_HOOK(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto,
 		(!pThis->Focus || !pThis->Type->UndeploysInto))
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get(VoxClass::FindIndexById(GameStrings::EVA_StructureSold)));
+
+		if(pTypeExt->EVA_Sold.isset()){
+			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
+		} else {
+			VoxClass::Play(GameStrings::EVA_StructureSold());
+		}
 	}
 
 	return MCVCanUndeploy(pThis) ? CreateUnit : SkipTheEntireShit;

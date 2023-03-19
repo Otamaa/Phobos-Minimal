@@ -7,14 +7,20 @@
 #include <Ext/BulletType/Body.h>
 
 #pragma region Otamaa
-DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
-{
-	GET(AircraftClass*, pLinked, ECX);
-
-	AircraftExt::TriggerCrashWeapon(pLinked, 0);
-	R->EAX(MapClass::Instance->GetCellAt(pLinked->Location)); //restore overriden instructions
-	return 0x4CD81D;
+static void __fastcall TriggerCrashWeapon_Wrapper(AircraftClass* pThis, DWORD, int nMult) {
+	AircraftExt::TriggerCrashWeapon(pThis, nMult);
 }
+
+DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(TriggerCrashWeapon_Wrapper));
+
+//DEFINE_HOOK(0x4CD7D6, FlyLocomotionClass_Movement_AI_TriggerCrashWeapon, 0x5)
+//{
+//	GET(AircraftClass*, pLinked, ECX);
+//
+//	AircraftExt::TriggerCrashWeapon(pLinked, 0);
+//	R->EAX(MapClass::Instance->GetCellAt(pLinked->Location)); //restore overriden instructions
+//	return 0x4CD81D;
+//}
 
 DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
 {

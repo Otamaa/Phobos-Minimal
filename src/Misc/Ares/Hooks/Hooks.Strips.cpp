@@ -46,21 +46,11 @@ DEFINE_OVERRIDE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
 	return 0x6A8061;
 }
 
-// Doest work for some reason 
-// the compiled code producing exacly same result like ares one
-DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
+void NOINLINE Strip3(size_t nCurIdx, int Offset)
 {
-	GET_STACK(size_t, nCurIdx, 0x14);
-	int Offset = 0x3E8;
-
-	for (int i = 0; i < 0xF0; ++i)
-		CCToolTip::Instance->Remove(i + Offset);
-
-	if (nCurIdx < 0)
-		return 0x6AC0A7;
-	
-	auto selects = SelectsDataArr[0][0];
-	for (size_t a = 0; a < nCurIdx; ++a) {
+	auto selects = SelectsDataArr()[0][0];
+	for (size_t a = 0; a < nCurIdx; ++a)
+	{
 
 		ToolTip nToolTip {
 			a + Offset ,
@@ -71,8 +61,22 @@ DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 
 		CCToolTip::Instance->Add(nToolTip);
 		++selects;
-	}	
+	}
+}
 
+// Doest work for some reason 
+// the compiled code producing exacly same result like ares one
+DEFINE_OVERRIDE_HOOK(0x6AC02F, sub_6ABD30_Strip3, 0x8)
+{
+	GET_STACK(size_t, nCurIdx, 0x14);
+	int Offset = 0x3E8;
+
+	for (int i = 0; i < 0xF0; ++i)
+		CCToolTip::Instance->Remove(i + Offset);
+
+	if (nCurIdx > 0)
+		Strip3(nCurIdx, Offset);
+	
 	return 0x6AC0A7;
 }
 

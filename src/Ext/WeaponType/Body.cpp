@@ -229,7 +229,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, T
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, true))
 	{
 		pBullet->SetWeaponType(pThis);
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
@@ -266,7 +266,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright))
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, true))
 	{
 		pBullet->SetWeaponType(pThis);
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);

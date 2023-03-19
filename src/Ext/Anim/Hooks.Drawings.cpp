@@ -26,7 +26,9 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 	GET_STACK(int, nTintColor, STACK_OFFS(0x110, 0xF4));
 	GET_STACK(int, nBrightness, STACK_OFFS(0x110, 0xD8));
 
-	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = AnimTypeExt::ExtMap.TryFind(pThis->Type);
+	if (!pTypeExt)
+		return 0x0;
 
 	if (!pShp)
 		return 0x42371B;

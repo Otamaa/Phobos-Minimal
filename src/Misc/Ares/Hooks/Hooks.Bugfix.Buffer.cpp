@@ -66,7 +66,7 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 	GET(const char*, pSection, EBX);
 	GET(CCINIClass*, pINI, EDI);
 	
-	ParseList<AnimTypeClass*, true>(pThis->Anim, pINI, pSection, GameStrings::Anims());
+	ParseList<AnimTypeClass*, true>(pThis->Anim, pINI, pSection, GameStrings::Anim());
 
 	return 0x77255F;
 }

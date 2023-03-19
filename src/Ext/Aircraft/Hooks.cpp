@@ -17,7 +17,8 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
-		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe || !pExt->Aircraft_DecreaseAmmo.Get())
+		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 
+		|| !pExt->Aircraft_DecreaseAmmo.Get())
 	{
 		return 0;
 	}
@@ -27,17 +28,14 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 
 	if (pWeaponStr) {
 		if (pWeaponStr->WeaponType) {
-			{
-				int fireCount = pThis->MissionStatus - 4;
-				if (fireCount > 1 && WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount)
-				{
-
+			int fireCount = pThis->MissionStatus - 4;
+			if (fireCount > 1 && 
+				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
 
 					if (!pThis->Ammo)
 						pThis->__DoingOverfly = false;
 
 					pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
-				}
 			}
 		}
 	}

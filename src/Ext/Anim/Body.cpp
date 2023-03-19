@@ -21,6 +21,7 @@ void AnimExt::ExtData::InitializeConstants()
 {
 	CreateAttachedSystem();
 }
+
 void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
@@ -48,9 +49,12 @@ void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 	//}
 }
 
-void AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
+bool AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
 {
 	const auto pType = pThis->Type;
+	if (!pType)
+		return false;
+
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
 
 	if (pTypeExt->SpawnCrater.Get(pThis->GetHeight() < 30))
@@ -77,11 +81,17 @@ void AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D
 				SmudgeTypeClass::CreateRandomSmudge(nCoord, nOffs.X, nOffs.Y, false);
 		}
 	}
+
+	return true;
 }
 
-void AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
+bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 {
+	if (!pThis->Type)
+		return false;
+
 	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
 	{
 		TechnoClass* const pTechOwner = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
 		auto const pOwner = !pThis->Owner && pTechOwner ? pTechOwner->Owner : pThis->Owner;
@@ -126,6 +136,8 @@ void AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 			}
 		}
 	}
+
+	return true;
 }
 
 bool AnimExt::DealDamageDelay(AnimClass* pThis)
@@ -216,9 +228,12 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 	return true;
 }
 
-void AnimExt::OnMiddle(AnimClass* pThis)
+bool AnimExt::OnMiddle(AnimClass* pThis)
 {
 	const auto pType = pThis->Type;
+	if (!pType)
+		return false;
+
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pType);
 
 	{
@@ -273,6 +288,8 @@ void AnimExt::OnMiddle(AnimClass* pThis)
 			}
 		}
 	}
+
+	return true;
 }
 
 AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
@@ -380,6 +397,9 @@ void AnimExt::ExtData::DeleteAttachedSystem()
 //Modified from Ares
 const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
 {
+	if (!pAnim->Type)
+		return false;
+
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
 	if (pTypeExt->NoOwner)
 		// no we dont set the owner
