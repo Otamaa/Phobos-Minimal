@@ -68,27 +68,27 @@ public:
 	RadBeamType Type;
 	DWORD unknown_14;
 	double unknown_18;
-	DECLARE_PROPERTY(ColorStruct, Color);
-	DECLARE_PROPERTY(CoordStruct, SourceLocation); //FLH
-	DECLARE_PROPERTY(CoordStruct, TargetLocation);
+	ColorStruct Color;
+	CoordStruct SourceLocation; //FLH
+	CoordStruct TargetLocation;
 	DWORD Period;
 	double Amplitude;
 	double unknown_48;
 	DWORD unknown_50;
 	DWORD unknown_54;
 	byte unknown_58;
-	DECLARE_PROPERTY(CoordStruct, coord5c);
+	CoordStruct coord5c;
 
 	double unknown_68;
-	DECLARE_PROPERTY(CoordStruct, AnotherLocation);
+	CoordStruct AnotherLocation;
 	DWORD unknown_7C;
 	double unknown_80;
 	DWORD unknown_88;
 	DWORD unknown_8C;
-	DECLARE_PROPERTY(CoordStruct, AndAnotherLocation);
-	DECLARE_PROPERTY(CoordStruct, coord9C);
-	DECLARE_PROPERTY(CoordStruct, coordA8);
+	CoordStruct AndAnotherLocation;
+	CoordStruct coord9C;
+	CoordStruct coordA8;
 	DWORD unknown_B4;
 	double unknown_B8;
-	DECLARE_PROPERTY(ColorStruct, RgbC0);
+	ColorStruct RgbC0;
 };

@@ -20,7 +20,7 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_THIS(0x543AB0);
 
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x543990);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x5439F0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override  JMP_STD(0x5439F0);
 
 	//Destructor
 	virtual ~IsometricTileClass() override JMP_THIS(0x543B10);
@@ -33,7 +33,7 @@ public:
 	virtual ObjectTypeClass* GetType() const override R0;
 	virtual bool Limbo() override JMP_THIS(0x543A40);
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x543A10);
-	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const RX;
+	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const override  RX;
 	virtual bool UpdatePlacement(PlacementType value) override JMP_THIS(0x543330);
 
 	//Constructor

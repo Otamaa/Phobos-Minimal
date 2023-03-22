@@ -100,13 +100,13 @@ public:
 	static CoordStruct GetCoordsUnderCursor();
 	static CellStruct GetCellUnderCursor();
 
-	Point2D* GetCoords_NotVirtual(Point2D& buffer)
+	Point2D* GetCoords_(Point2D& buffer)
 	{ JMP_THIS(0x7BA360); }
 
-	Point2D GetCoords_NotVirtual()
+	Point2D GetCoords_()
 	{
 		Point2D nbuffer;
-		GetCoords_NotVirtual(nbuffer);
+		GetCoords_(nbuffer);
 		return nbuffer;
 	}
 

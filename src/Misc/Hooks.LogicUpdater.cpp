@@ -38,6 +38,16 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (!pThis)
 		return 0x0;
 
+	const auto pAddr = (((DWORD*)pThis)[0]);
+	if (pAddr != UnitClass::vtable
+		&& pAddr != AircraftClass::vtable
+		&& pAddr != InfantryClass::vtable
+		&& pAddr != BuildingClass::vtable)
+	{
+		Debug::Log("Phobos_TechnoClass_AI_Called with broken TechnoClass pointer ! returning \n");
+		return 0x0;
+	}
+
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
@@ -57,8 +67,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
 	pExt->UpdateInterceptor();
-	pExt->UpdateFireSelf();
-	pExt->UpdateMobileRefinery();
+	//pExt->UpdateFireSelf();
+	//pExt->UpdateMobileRefinery();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
@@ -204,7 +214,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	DriveDataFunctional::AI(pExt);
+	 DriveDataFunctional::AI(pExt);
 #endif
 
 	if (IsMovingNow)

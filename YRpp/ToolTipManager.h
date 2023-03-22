@@ -71,13 +71,13 @@ public:
 	ToolTip* CurrentToolTip;
 	HWND hWnd;
 	bool IsActive;
-	DECLARE_PROPERTY(Point2D, CurrentMousePosition);
-	DECLARE_PROPERTY(ToolTipManagerData, CurrentToolTipData);
+	Point2D CurrentMousePosition;
+	ToolTipManagerData CurrentToolTipData;
 	int ToolTipDelay;
 	int LastToolTipDelay;
 	int ToolTipLifeTime;
-	DECLARE_PROPERTY(DynamicVectorClass<ToolTip*> , ToolTips);
-	DECLARE_PROPERTY(ToolTipIndexData, ToolTipIndex);
+	DynamicVectorClass<ToolTip*> ToolTips;
+	IndexClass<int, ToolTip*> ToolTipIndex;
 };
 
 static_assert(sizeof(ToolTipManager) == 0x260, "Invalid Size !");

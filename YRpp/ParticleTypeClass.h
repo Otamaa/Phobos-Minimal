@@ -76,15 +76,15 @@ protected:
 
 public:
 
-	DECLARE_PROPERTY(CoordStruct, NextParticleOffset);
+	CoordStruct NextParticleOffset;
 	int    XVelocity;
 	int    YVelocity;
 	int    MinZVelocity;
 	int    ZVelocityRange;
 	double ColorSpeed;
-	DECLARE_PROPERTY(TypeList<RGBClass*>, ColorList); //Was TypeList
-	DECLARE_PROPERTY(ColorStruct, StartColor1);
-	DECLARE_PROPERTY(ColorStruct, StartColor2);
+	TypeList<RGBClass*> ColorList;
+	ColorStruct StartColor1;
+	ColorStruct StartColor2;
 	int    MaxDC;
 	int    MaxEC;
 	WarheadTypeClass* Warhead;

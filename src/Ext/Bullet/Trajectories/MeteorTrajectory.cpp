@@ -53,8 +53,8 @@ void MeteorTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	double length = ScenarioClass::Instance()->Random.RandomRanged(-range, range);
 
 	CoordStruct SourceLocation {
-		pBullet->TargetCoords.X + static_cast<int>(length * Math::cos(angel))
-	    ,pBullet->TargetCoords.Y + static_cast<int>(length * Math::sin(angel))
+		pBullet->TargetCoords.X + static_cast<int>(length * std::cos(angel))
+	    ,pBullet->TargetCoords.Y + static_cast<int>(length * std::sin(angel))
 		,pBullet->TargetCoords.Z + static_cast<int>(type->Height)
 	};
 

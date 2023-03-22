@@ -7,7 +7,7 @@ class GetCDClass
 public:
 	static constexpr reference<GetCDClass, 0xA8E8E8u> const Instance{};
 
-	ArrayWrapper<int, 26u> Drives;
+	int Drives[26];
 	int Count;
 	int unknown_6C;
 };

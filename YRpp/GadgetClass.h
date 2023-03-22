@@ -32,10 +32,10 @@ public:
 	virtual ~GadgetClass() RX;
 
 	//LinkClass
-	virtual GadgetClass* GetNext() R0;
-	virtual GadgetClass* GetPrev() R0;
-	virtual void Zap() RX;
-	virtual GadgetClass* Remove() R0;
+	virtual GadgetClass* GetNext() override R0;
+	virtual GadgetClass* GetPrev() override R0;
+	virtual void Zap() override RX;
+	virtual GadgetClass* Remove() override R0;
 
 	//GadgetClass
 	virtual DWORD Input() R0;

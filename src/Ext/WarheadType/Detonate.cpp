@@ -768,7 +768,7 @@ void WarheadTypeExt::ExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAm
 	if (pData->Ammo > 0)
 	{
 		auto const ammo = pTarget->Ammo + ReloadAmount;
-		pTarget->Ammo = Math::clamp(ammo, 0, pData->Ammo);
+		pTarget->Ammo = std::clamp(ammo, 0, pData->Ammo);
 	}
 }
 

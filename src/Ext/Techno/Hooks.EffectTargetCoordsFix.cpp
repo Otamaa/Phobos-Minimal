@@ -43,18 +43,21 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 	{
 		auto const pBuilding = static_cast<BuildingClass*>(pTarget);
 		pBuilding->GetTargetCoords(pBuffer);
+		break;
 	}
 	case AbstractType::Cell:
 	{
 		auto const pCell = static_cast<CellClass*>(pTarget);
 		pCell->GetCoords(pBuffer);
-		if (pCell->ContainsBridge())
-		{
+		if (pCell->ContainsBridge()) {
 			pBuffer->Z += CellClass::BridgeHeight;
 		}
+
+		break;
 	}
 	default:
 		pTarget->GetCenterCoords(pBuffer);
+		break;
 	}
 
 	R->EAX(pBuffer);
@@ -139,7 +142,7 @@ DEFINE_HOOK(0x62FA20, ParticleSystemClass_FireAI_TargetCoords, 0x6)
 }
 
 // Fix fire particles being disallowed from going upwards.
-DEFINE_HOOK(0x62D685, ParticleSystemClass_Fire_Coords, 0x5)
+DEFINE_HOOK(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 {
 	enum { SkipGameCode = 0x62D6B7 };
 
@@ -199,6 +202,7 @@ DEFINE_HOOK(0x6FD38D, TechnoClass_LaserZap_Obstacles, 0x7)
 }
 
 // Adjust target for bolt / beam / wave drawing.
+// same hook with TechnoClass_FireAt_FeedbackWeapon
 DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
 {
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
@@ -220,7 +224,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_TargetSet, 0x6)
 }
 
 // Restore original target values and unset obstacle cell.
-DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_ObstacleCellUnset, 0x6)
+DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire_ObstacleCellUnset, 0x6)
 {
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 

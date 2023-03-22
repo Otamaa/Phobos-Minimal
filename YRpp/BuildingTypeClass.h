@@ -64,24 +64,24 @@ public:
 
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
 	//Destructor
 	virtual ~BuildingTypeClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//AbstractTypeClass
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) override R0;
 
 	//TechnoTypeClass
 	//BuildingTypeClass
-	virtual SHPStruct* LoadBuildup() JMP_THIS(0x465960);
+	virtual SHPStruct* LoadBuildup() const JMP_THIS(0x465960);
 
 	//non-virtual
 	unsigned int GetDeployFacing_() const

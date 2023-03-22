@@ -13,14 +13,14 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<BuildingLightClass*>, 0x8B4190u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 
 	//Destructor
 	virtual ~BuildingLightClass() RX;
@@ -55,8 +55,8 @@ protected:
 public:
 
 	double Speed;
-	DECLARE_PROPERTY(CoordStruct, Coord1); //B8
-	DECLARE_PROPERTY(CoordStruct, Coord2); //C4
+	CoordStruct field_B8;
+	CoordStruct field_C4;
 	double Acceleration;
 	bool Direction;
 	SpotlightBehaviour BehaviourMode;

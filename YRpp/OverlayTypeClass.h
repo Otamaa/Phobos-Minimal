@@ -38,24 +38,24 @@ public:
 	}
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~OverlayTypeClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//ObjectTypeClass
-	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest,CoordStruct* pSrc) const R0;
+	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest,CoordStruct* pSrc) const override R0;
 
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) override R0;
 
 	//OverlayTypeClass
 	virtual void Draw(Point2D* pClientCoords, RectangleStruct* pClipRect, int nFrame) RX;

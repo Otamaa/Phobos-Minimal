@@ -33,10 +33,9 @@ public:
 	//AbstractClass
 	virtual void Init() override JMP_THIS(0x746810);
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x7446E0);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x7360C0);
-
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x73FD50);
 
@@ -44,10 +43,9 @@ public:
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x746CD0);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x740FD0);
-
+	
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x7414E0);
-
 	//UnitClass
 	// main drawing functions - Draw() calles one of these, they call parent's Draw_A_smth
 	virtual void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)

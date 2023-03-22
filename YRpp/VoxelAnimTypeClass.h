@@ -54,15 +54,15 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x74B8F0);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x74B050);
 
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* owner) R0; // ! this just returns NULL instead of creating the anim, fucking slackers
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* owner) override R0; // ! this just returns NULL instead of creating the anim, fucking slackers
 
 	//VoxelAnimTypeClass
 

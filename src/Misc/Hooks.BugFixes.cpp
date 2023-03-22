@@ -228,17 +228,6 @@ DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
 	return 0x6FF2D1;
 }
 
-DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_BurstOffsetFix_2, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_BASE(int, weaponIndex, 0xC);
-
-	++pThis->CurrentBurstIndex;
-	pThis->CurrentBurstIndex %= pThis->GetWeapon(weaponIndex)->WeaponType->Burst;
-
-	return 0;
-}
-
 // issue #290: Undeploy building into a unit plays EVA_NewRallyPointEstablished
 // Author: secsome
 DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
@@ -790,7 +779,7 @@ DEFINE_HOOK(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP,
 	return R->Origin() + 0x6;
 }
 
-DEFINE_HOOK(0x6FDDD4, TechnoClass_Fire_Suicide_UseCurrentHP, 0x6)
+DEFINE_HOOK(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	R->ECX(pThis->Health);
@@ -849,4 +838,20 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 		return IsNaval;
 
 	return NotNaval;
+}
+
+// BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
+DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
+DEFINE_JUMP(LJMP, 0x447709, 0x447727);
+
+// AG=no projectiles shouldn't fire at land.
+DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
+{
+	enum { RetFireIllegal = 0x6FC86A , Continue = 0x0 };
+
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
+
+	return !pWeapon->Projectile->AG && !pTarget->IsInAir() ?
+		RetFireIllegal : Continue;
 }

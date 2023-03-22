@@ -46,21 +46,21 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x46C750);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46C6A0);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46C730);
+	//virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x46C6A0);
+	//virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x46C730);
 
 	//Destructor
 	virtual ~BulletTypeClass() override JMP_THIS(0x46C890);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x46C820);
+	//virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x46C820);
 	virtual AbstractType WhatAmI() const override { return AbstractType::BulletType; }
 	virtual int Size() const override { return 0x2F8; }
 
 	//AbstractTypeClass
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* owner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* owner) override R0;
 
 	bool Rotates() const {
 		return !this->NoRotate;

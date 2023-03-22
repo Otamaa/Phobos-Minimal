@@ -127,7 +127,17 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x75EE2E, WaveClass_Draw_Green, 0x8)
+DEFINE_OVERRIDE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
+{
+	GET(int, Q, EDX);
+	if (Q > 0x15F8F)
+	{
+		Q = 0x15F8F;
+	}
+	R->EDX(Q);
+	return 0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
 {
 	GET(int, Q, EDX);
@@ -399,6 +409,7 @@ DEFINE_OVERRIDE_HOOK(0x49F7A0, CopyProtection_CheckProtectedData, 0x8)
 	R->AL(1);
 	return 0x49F8A7;
 }
+
 // create enumerator
 DEFINE_OVERRIDE_HOOK(0x4895B8, DamageArea_CellSpread1, 0x6)
 {
@@ -437,7 +448,7 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	index++;
 
 	// advance iterator
-	if (++ * pIter)
+	if (++*pIter)
 	{
 		return 0x4895C0;
 	}
@@ -640,7 +651,6 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 	return 0x74A934;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 {
 	if (R->EAX() == -1)
@@ -749,20 +759,21 @@ DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 	GET(SpawnManagerClass*, pThis, ECX);
 
 	int nCur = 0;
-
-	for (auto const pNode : pThis->SpawnedNodes)
+	for(auto const& pNode : pThis->SpawnedNodes)
 	{
-		auto const nStatus = pNode->Status;
-		auto const nEligible = (
-			nStatus == SpawnNodeStatus::Idle ||
-			nStatus == SpawnNodeStatus::Dead ||
-			nStatus == SpawnNodeStatus::Reloading) &&
-			pNode->SpawnTimer.StartTime >= 0 &&
-			!pNode->SpawnTimer.TimeLeft;
+		const auto  nStatus = pNode->Status;
+		const auto  nEligible =( 
+			nStatus == SpawnNodeStatus::Idle 
+			|| nStatus == SpawnNodeStatus::Dead 
+			|| nStatus == SpawnNodeStatus::Reloading) && 
+			
+			// spawn timer should be updated somewhere ?
+			pNode->SpawnTimer.IsTicking() && !pNode->SpawnTimer.TimeLeft;
 
 		if (nEligible) {
 			++nCur;
 		}
+
 	}
 
 	R->EAX(nCur);

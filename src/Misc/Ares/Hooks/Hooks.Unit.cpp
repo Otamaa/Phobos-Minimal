@@ -27,7 +27,7 @@ DEFINE_OVERRIDE_HOOK(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 	 0x73D28E : 0x73D223;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
+DEFINE_HOOK(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 {
 	GET(UnitClass*, pThis, EDI);
 	GET(UnitTypeClass*, pType, EAX);
@@ -78,12 +78,12 @@ DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto Type = pThis->Type;
-	if (!Type->TurretCount || Type->IsGattling)
-	{
+
+	if (!Type->TurretCount || Type->IsGattling) {
 		return 0x741229;
 	}
-	auto idxW = pThis->SelectWeapon(nullptr);
-	auto W = pThis->GetWeapon(idxW);
+
+	auto W = pThis->GetWeapon(pThis->SelectWeapon(nullptr));
 	return (W->WeaponType && W->WeaponType->Warhead->Temporal)
 		? 0x741210u
 		: 0x741229u

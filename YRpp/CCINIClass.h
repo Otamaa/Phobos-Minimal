@@ -130,7 +130,7 @@ public:
 		{ nValue = ReadInteger(pSection, pKey, nValue); }
 
 	inline void GetIntegerClamp(const char *pSection, const char *pKey, int nMin, int nMax, int& nValue)
-		{nValue = Math::clamp(ReadInteger(pSection, pKey, nValue), nMin, nMax);}
+		{nValue = std::clamp(ReadInteger(pSection, pKey, nValue), nMin, nMax);}
 
 	//Writes an integer value.
 	bool WriteInteger(const char* pSection, const char* pKey, int nValue, bool bHex)
@@ -149,7 +149,7 @@ public:
 		{ nValue = ReadDouble(pSection, pKey, nValue); }
 
 	inline void GetDoubleClamp(const char* pSection, const char* pKey, double nMin, double nMax ,double& nValue)
-		{ nValue = Math::clamp(ReadDouble(pSection, pKey, nValue), nMin, nMax); }
+		{ nValue = std::clamp(ReadDouble(pSection, pKey, nValue), nMin, nMax); }
 
 	//Writes a decimal value.
 	bool WriteDouble(const char* pSection, const char* pKey, double dValue)
@@ -403,7 +403,8 @@ class CCINIClass : public INIClass
 {
 public:
 	//STATIC
-
+	static constexpr inline DWORD vtable = 0x7E1AF4;
+	
 	static constexpr reference<DWORD, 0xB77E00u> const RulesHash{};
 	static constexpr reference<DWORD, 0xB77E04u> const ArtHash{};
 	static constexpr reference<DWORD, 0xB77E08u> const AIHash{};
@@ -427,7 +428,7 @@ public:
 	CCINIClass() : INIClass(false) {
 		THISCALL(0x535AA0);
 		Digested = false;
-		VTABLE_SET(this, 0x7E1AF4);
+		VTABLE_SET(this, vtable);
 	}
 
 	virtual ~CCINIClass() RX;

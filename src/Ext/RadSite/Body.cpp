@@ -67,7 +67,7 @@ void RadSiteExt::ExtData::CreateLight()
 
 	const auto nTintFactor = Type->GetTintFactor();
 
-	const auto nLightFactor = Math::min(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
+	const auto nLightFactor = Math::LessOrEqualTo(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
 	const auto nDuration = pThis->RadDuration;
 
 	pThis->RadLevelTimer.Start(nLevelDelay);
@@ -266,47 +266,47 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 
 	return 0;
 }
-
-#ifdef AAENABLE_NEWHOOKS
-DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
-{
-	GET(RadSiteClass*, pThis, ECX);
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
-		return 0x65B4B3;
-	}
-	return 0x0;
-}
-
-DEFINE_HOOK_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
-DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
-{
-	GET(RadSiteClass*, pThis, ECX);
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
-		R->ESI(nSpread);
-		R->EDX(R->EDX<int>() - nSpread);
-		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
-	}
-	return 0x0;
-}
-
-DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
-{
-	GET(RadSiteClass*, pThis, ECX);
-	GET_STACK(int, spread, 0x4);
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
-		pThis->SpreadInLeptons = (spread << 8) + 128;
-		return 0x65B4E2;
-	}
-
-	return 0x0;
-}
-#endif
+//
+//#ifdef AAENABLE_NEWHOOKS
+//DEFINE_HOOK(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
+//{
+//	GET(RadSiteClass*, pThis, ECX);
+//	if (!Phobos::Otamaa::DisableCustomRadSite)
+//	{
+//		R->EAX(RadSiteExt::ExtMap.Find(pThis)->Spread);
+//		return 0x65B4B3;
+//	}
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
+//DEFINE_HOOK(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
+//{
+//	GET(RadSiteClass*, pThis, ECX);
+//	if (!Phobos::Otamaa::DisableCustomRadSite)
+//	{
+//		auto nSpread = RadSiteExt::ExtMap.Find(pThis)->Spread;
+//		R->ESI(nSpread);
+//		R->EDX(R->EDX<int>() - nSpread);
+//		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
+//	}
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x65B4D4, RadSiteClass_SetSpread, 0x7)
+//{
+//	GET(RadSiteClass*, pThis, ECX);
+//	GET_STACK(int, spread, 0x4);
+//	if (!Phobos::Otamaa::DisableCustomRadSite)
+//	{
+//		RadSiteExt::ExtMap.Find(pThis)->Spread = spread;
+//		pThis->SpreadInLeptons = (spread << 8) + 128;
+//		return 0x65B4E2;
+//	}
+//
+//	return 0x0;
+//}
+//#endif
 
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {

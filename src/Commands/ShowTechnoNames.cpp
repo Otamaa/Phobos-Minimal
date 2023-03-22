@@ -2,6 +2,7 @@
 
 #include <Drawing.h>
 #include <BitFont.h>
+#include <ObjectClass.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>

@@ -30,24 +30,24 @@ public:
 	static constexpr reference<SwizzleManagerClass, 0xB0C110u> const Instance{};
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
 
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	virtual ULONG __stdcall AddRef() override R0;
+	virtual ULONG __stdcall Release() override R0;
 
 	//ISwizzle
-	virtual HRESULT __stdcall Reset() R0;
+	virtual HRESULT __stdcall Reset() override R0;
 
-	virtual HRESULT __stdcall Swizzle(void** pointer) R0;
+	virtual HRESULT __stdcall Swizzle(void** pointer) override R0;
 
-	virtual HRESULT __stdcall Fetch_Swizzle_ID(void* pointer, long* id) const R0;
+	virtual HRESULT __stdcall Fetch_Swizzle_ID(void* pointer, long* id) const override R0;
 
-	virtual HRESULT __stdcall Here_I_Am(long id, void* pointer) R0;
+	virtual HRESULT __stdcall Here_I_Am(long id, void* pointer) override R0;
 
-	virtual HRESULT __stdcall Save_Interface(IStream* stream, IUnknown* pointer) R0;
-	virtual HRESULT __stdcall Load_Interface(IStream* stream, GUID* riid, void** pointer) R0;
+	virtual HRESULT __stdcall Save_Interface(IStream* stream, IUnknown* pointer) override R0;
+	virtual HRESULT __stdcall Load_Interface(IStream* stream, GUID* riid, void** pointer) override R0;
 
-	virtual HRESULT __stdcall Get_Save_Size(int* psize) const R0;
+	virtual HRESULT __stdcall Get_Save_Size(int* psize) const override R0;
 
 	//DTOR
 	virtual ~SwizzleManagerClass() RX;

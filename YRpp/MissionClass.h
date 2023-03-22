@@ -19,26 +19,26 @@ public:
 		JMP_STD(0x5B3910);
 	}
 
-	static Mission __fastcall FindIndex(const char* pName) {
+	static Mission __fastcall FindIndexById(const char* pName) {
 		JMP_STD(0x5B3910);
 	}
 
 	static MissionControlClass* GetMissionControl(Mission nIN) {
-		return &Controls[(int)nIN + 1];
+		if (nIN >= Mission::count) { 
+			return nullptr;
+		}
+
+		return &Controls[(size_t)nIN + 1];
 	}
 
 	const char* ToString() {
 
-		if (this->ArrayIndex == 0)
-		{
+		if (this->MissionType == Mission::None 
+			|| this->MissionType >= Mission::count) {
 			return GameStrings::NoneStr();
 		}
-		else
-		{
-			return Names[(int)this->ArrayIndex];
-		}
 
-		return "<unknown>";
+		return Names[(size_t)this->MissionType];
 	}
 
 	MissionControlClass() 	{
@@ -59,7 +59,7 @@ public:
 
 
 public:
-		int ArrayIndex; //MissionType
+		Mission MissionType;
 		bool NoThreat;
 		bool Zombie;
 		bool Recruitable;
@@ -151,12 +151,11 @@ public:
 	Mission  CurrentMission;
 	Mission  SuspendedMission; //B0
 	Mission  QueuedMission;
-	bool     AssignmentState; //B8
-	PROTECTED_PROPERTY(BYTE, Pad[3])
+	bool     unknown_bool_B8;
 	int      MissionStatus;
 	int      CurrentMissionStartTime;	//in frames
 	DWORD    unknown_C4;
-	DECLARE_PROPERTY(TimerStruct, UpdateTimer);
+	DECLARE_PROPERTY(CDTimerClass, UpdateTimer);
 };
 
 static_assert(sizeof(MissionClass) == 0xD4);

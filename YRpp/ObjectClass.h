@@ -6,28 +6,25 @@
 
 #include <AbstractClass.h>
 #include <Audio.h>
-#include <ObjectTypeClass.h>
-#include <TagClass.h>
-
 #include <Helpers/Template.h>
 
-struct SHPStruct;
-class LightConvertClass;
-
-//forward declarations
-class AnimClass;
-class BombClass;
-class BuildingTypeClass;
-class CellClass;
-class InfantryTypeClass;
-class TechnoClass;
+struct RectangleStruct;
+class ObjectTypeClass;
 class TechnoTypeClass;
 class WarheadTypeClass;
-
+class BuildingTypeClass;
+class InfantryTypeClass;
+struct SHPStruct;
+class LightConvertClass;
+class AnimClass;
+class BuildingClass;
+class BombClass;
+class CellClass;
+class TechnoClass;
 class HouseTypeClass;
-
 class LineTrail;
 struct WeaponStruct;
+class TagClass;
 
 class NOVTABLE ObjectClass : public AbstractClass
 {
@@ -40,29 +37,29 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360u> const ObjectsInLayers {};
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	//virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
+	//virtual ULONG __stdcall AddRef() override R0;
+	//virtual ULONG __stdcall Release() override R0;
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	//virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) { return AbstractClass::_Save(this,pStm,fClearDirty); }
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x5F5E80);
+	//virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override { return AbstractClass::_Save(this,pStm,fClearDirty); }
+	virtual HRESULT __stdcall Load(IStream* pStm)  override JMP_STD(0x5F5E80);
 
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) { return S_OK; }
+	//virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override { return S_OK; }
 
 	//IRTTITypeInfo
-	virtual AbstractType __stdcall What_Am_I() const RT(AbstractType);
-	virtual int __stdcall Fetch_ID() const R0;
-	virtual void __stdcall Create_ID() RX;
+	//virtual AbstractType __stdcall What_Am_I() const override RT(AbstractType);
+	//virtual int __stdcall Fetch_ID() const override R0;
+	//virtual void __stdcall Create_ID() override RX;
 
 	//INoticeSink
-	virtual bool __stdcall INoticeSink_Unknown(DWORD dwUnknown) R0;
+	//virtual bool __stdcall INoticeSink_Unknown(DWORD dwUnknown) override R0;
 
 	//INoticeSource
-	virtual void __stdcall INoticeSource_Unknown() RX;
+	//virtual void __stdcall INoticeSource_Unknown() override RX;
 
 	//Destructor
 	virtual ~ObjectClass() JMP_THIS(0x5F6DC0);
@@ -341,11 +338,7 @@ public:
 		{ JMP_THIS(0x734270); }
 
 	// smooth operator
-	const char* get_ID() const
-	{
-		auto const pType = this->GetType();
-		return pType ? pType->get_ID() : GameStrings::NoneStr();
-	}
+	const char* get_ID() const;
 
 //Constructor NEVER CALL IT DIRECTLY
 	ObjectClass()  noexcept
@@ -397,7 +390,7 @@ public:
 	bool               IsInLogic; // has this object been added to the logic collection?
 	bool               IsVisible; // was this object in viewport when drawn?
 	PROTECTED_PROPERTY(BYTE, align_99[0x2]);
-	DECLARE_PROPERTY(CoordStruct,        Location); //Absolute current 3D location (in leptons)
+	CoordStruct        Location; //Absolute current 3D location (in leptons)
 	LineTrail*         LineTrailer;
  };
 

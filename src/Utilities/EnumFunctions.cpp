@@ -1,5 +1,7 @@
 #include "EnumFunctions.h"
 
+#include <ScenarioClass.h>
+
 std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
 	{ "TargetNotDamageable" } , { "TargetNotEligible" } ,
@@ -173,4 +175,12 @@ TextPrintType EnumFunctions::CastAlignToFlags(HorizontalPosition const& pos)
 		return TextPrintType::Right;
 
 	return (TextPrintType)0x0; // TextPrintType::Left that doesn't exist and is assumed by default
+}
+
+IronCurtainFlag EnumFunctions::GetICFlagResult(IronCurtainFlag const& Input)
+{
+	if (Input == IronCurtainFlag::Random)
+		return (IronCurtainFlag)ScenarioClass::Instance->Random.RandomRanged((int)IronCurtainFlag::Kill, (int)IronCurtainFlag::Ignore);
+
+	return Input;
 }

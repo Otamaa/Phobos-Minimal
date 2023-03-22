@@ -691,6 +691,47 @@ namespace detail
 		return false;
 	}
 
+	template <>
+	inline bool read<IronCurtainFlag>(IronCurtainFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto str = parser.value();
+
+			if (IS_SAME_STR_(str, "invulnerable"))
+			{
+				value = IronCurtainFlag::Invulnerable;
+				return true;
+			}
+			else if (IS_SAME_STR_(str, "ignore"))
+			{
+				value = IronCurtainFlag::Ignore;
+				return true;
+			}
+			else if (IS_SAME_STR_(str, "random"))
+			{
+				value = IronCurtainFlag::Random;
+				return true;
+			}
+			else if (IS_SAME_STR_(str, DEFAULT_STR) || IS_SAME_STR_(str, DEFAULT_STR2))
+			{
+				value = IronCurtainFlag::Default;
+				return true;
+			}
+			else if (IS_SAME_STR_(str, "kill"))
+			{
+				value = IronCurtainFlag::Kill;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, str, "IronCurtainFlag can be either kill, invulnerable, ignore or random");
+			}
+		}
+
+		return false;
+	}
+
 	/*
 		template <>
 		inline bool read<ShapeHandlerEnumerator*>(ShapeHandlerEnumerator*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -939,7 +980,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const mission = MissionControlClass::FindIndex(parser.value());
+			auto const mission = MissionControlClass::FindIndexById(parser.value());
 			if (mission != Mission::None)
 			{
 				value = mission;

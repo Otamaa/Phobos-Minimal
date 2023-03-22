@@ -49,7 +49,7 @@ int DrawHealthBar_Pip(TechnoClass* pThis, bool isBuilding, const Point3D& Pip)
 int DrawHealthBar_PipAmount(TechnoClass* pThis, int iLength)
 {
 	return pThis->Health > 0
-		? Math::clamp(static_cast<int>(round(pThis->GetHealthPercentage() * iLength)), 0, iLength)
+		? std::clamp(static_cast<int>(std::round(pThis->GetHealthPercentage() * iLength)), 0, iLength)
 		: 0;
 }
 

@@ -76,7 +76,7 @@ struct StripClass
 	void Func_6AC740(int nIndex, int nDuration) const { JMP_THIS(0x6AC740); }
 
 public:
-	ProgressTimer     Progress;
+	StageClass        Progress;
 	bool              AllowedToDraw; // prevents redrawing when layouting the list
 	PROTECTED_PROPERTY(BYTE, align_1D[3]);
 	Point2D           Location;
@@ -92,7 +92,7 @@ public:
 	DWORD             unknown_4C;
 	DWORD             unknown_50;
 	int               CameoCount; // filled cameos
-	ArrayWrapper<BuildType, 75u> Cameos;
+	BuildType         Cameos[75];
 };
 
 typedef StripClass TabDataStruct;
@@ -102,10 +102,10 @@ class NOVTABLE SidebarClass : public PowerClass
 {
 public:
 	//Static
+	static inline constexpr size_t TooltipLength = 0x42;
 	static constexpr constant_ptr<SidebarClass, 0x87F7E8u> const Instance {};
 	static constexpr reference<DWORD, 0xB0B500u> const ObjectHeight {};
-	enum { TooltipLength = 0x42 };
-	static constexpr reference<wchar_t, 0xB07BC4u, 0x42u> const TooltipBuffer {};
+	static constexpr reference<wchar_t, 0xB07BC4u, TooltipLength> const TooltipBuffer {};
 
 	void SidebarNeedsRepaint(int mode = 0)
 	{
@@ -175,7 +175,7 @@ protected:
 
 public:
 
-	ArrayWrapper<StripClass, 4u> Tabs;
+	StripClass Tabs[0x4];
 	DWORD unknown_5394;
 	DWORD unknown_5398;
 	int ActiveTabIndex;
@@ -187,17 +187,17 @@ public:
 	bool unknown_bool_53A8;
 
 	//Information for the Diplomacy menu, I believe
-	ArrayWrapper<HouseClass*, 0x8> DiplomacyHouses;		//8 players max!
-	ArrayWrapper<int, 0x8> DiplomacyKills;		//total amount of kills per house
-	ArrayWrapper<int, 0x8> DiplomacyOwned;		//total amount of currently owned unit/buildings per house
-	ArrayWrapper<int, 0x8> DiplomacyPowerDrain;	//current power drain per house
-	ArrayWrapper<ColorScheme*, 0x8> DiplomacyColors;		//color scheme per house
-	ArrayWrapper<DWORD, 0x8>unknown_544C;			//??? per house - unused
-	ArrayWrapper<DWORD, 0x8> unknown_546C;			//??? per house - unused
-	ArrayWrapper<DWORD, 0x8> unknown_548C;			//??? per house - unused
-	ArrayWrapper<DWORD, 0x8> unknown_54AC;			//??? per house - unused
-	ArrayWrapper<DWORD, 0x8> unknown_54CC;			//??? per house - unused
-	ArrayWrapper<DWORD, 0x8>unknown_54EC;			//??? per house - unused
+	HouseClass* DiplomacyHouses[0x8];		//8 players max!
+	int DiplomacyKills[0x8];		//total amount of kills per house
+	int DiplomacyOwned[0x8];		//total amount of currently owned unit/buildings per house
+	int DiplomacyPowerDrain[0x8];	//current power drain per house
+	ColorScheme* DiplomacyColors[0x8];		//color scheme per house
+	DWORD unknown_544C[0x8];			//??? per house - unused
+	DWORD unknown_546C[0x8];			//??? per house - unused
+	DWORD unknown_548C[0x8];			//??? per house - unused
+	DWORD unknown_54AC[0x8];			//??? per house - unused
+	DWORD unknown_54CC[0x8];			//??? per house - unused
+	DWORD unknown_54EC[0x8];			//??? per house - unused
 	BYTE unknown_550C;
 	int DiplomacyNumHouses;			//possibly?
 
@@ -212,11 +212,15 @@ class NOVTABLE SelectClass : public ControlClass
 public:
 
 	static constexpr reference2D<SelectClass*, 0xB07E80u, 1, 14> const Buttons {};
+	static constexpr constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
+	static constexpr constant_ptr<SelectClass, 0xB07E8C> const Buttons_beginPtr {};
+	static constexpr constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
+	
 	//Destructor
 	virtual ~SelectClass() RX;
 
 	//GadgetClass
-	//
+	
 	//ControlClass
 
 	void SetOwner(StripClass* pStrip, int nIdx) const { JMP_THIS(0x6AACE0); }

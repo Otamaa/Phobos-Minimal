@@ -106,7 +106,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 			{
 				pPipFile = pGarrisonPip;
 				nPipFrameIndex = pExt->PipGarrison_FrameIndex.Get();
-				nPipFrameIndex = Math::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
+				nPipFrameIndex = std::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
 				pPalette = pExt->PipGarrison_Palette.GetOrDefaultConvert(pPalette);
 			}
 			else
@@ -449,17 +449,17 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (pTypeExt->VirtualUnit.Get())
-		pExt->VirtualUnit = true;
+	//if (pTypeExt->VirtualUnit.Get())
+	//	pExt->VirtualUnit = true;
 
-	if (pExt->VirtualUnit)
-	{
-		pThis->UpdatePlacement(PlacementType::Remove);
-		pThis->IsOnMap = false;
-		pType->DontScore = true;
-		pType->Selectable = false;
-		pType->Immune = true;
-	}
+	//if (pExt->VirtualUnit)
+	//{
+	//	pThis->UpdatePlacement(PlacementType::Remove);
+	//	pThis->IsOnMap = false;
+	//	pType->DontScore = true;
+	//	pType->Selectable = false;
+	//	pType->Immune = true;
+	//}
 
 	AircraftDiveFunctional::Init(pExt, pTypeExt);
 #endif
@@ -507,33 +507,6 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 
 	return 0x6F3B37;
 }*/
-
-/*
-DEFINE_HOOK(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 0x5)
-{
-	GET(InfantryClass *, pInf, ESI);
-	GET(BuildingClass *, pBld, EBP);
-	if(TechnoExt::ExtData*  pExt = TechnoExt::ExtMap.Find(pInf))
-		pExt->GarrisonedIn = pBld;
-	return 0;
-}
-
-DEFINE_HOOK(0x51DF38, InfantryClass_Remove, 0xA)
-{
-	GET(InfantryClass *, pThis, ESI);
-	if(TechnoExt::ExtData* pData = TechnoExt::ExtMap.Find(pThis))
-		pData->GarrisonedIn = nullptr;
-	return 0;
-}
-
-DEFINE_HOOK(0x51DFFD, InfantryClass_Put, 0x5)
-{
-	GET(InfantryClass *, pThis, EDI);
-	if(TechnoExt::ExtData* pData = TechnoExt::ExtMap.Find(pThis))
-		pData->GarrisonedIn = nullptr;
-	return 0;
-}*/
-
 
 DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
 {

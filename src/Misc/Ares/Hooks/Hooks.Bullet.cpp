@@ -40,7 +40,7 @@ DEFINE_OVERRIDE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
 }
 
 // Overpowerer no longer just infantry
-DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_Fire_Overpower, 0x6)
+DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {
 	GET(TechnoClass*, pT, ECX);
 	switch (pT->WhatAmI())

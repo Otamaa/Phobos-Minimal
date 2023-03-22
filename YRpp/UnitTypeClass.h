@@ -33,26 +33,27 @@ public:
 
 	//static
 	static void* sub_7473E0() JMP_STD(0x7473E0);
+
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x747F30);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x747F30);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x748010);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x7480B0);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x748010);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x7480B0);
 
 	//Destructor
 	virtual ~UnitTypeClass() JMP_THIS(0x748190);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//AbstractTypeClass
-	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x747620);
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x747620);
 
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) override R0;
 
 	//TechnoTypeClass
 	void OneTimeInit() const

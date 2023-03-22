@@ -99,4 +99,18 @@ DEFINE_HOOK(0x4242BA, AnimClass_AI_SetCoord, 0x6)
 	}
 	return 0x0;
 }
+
+DEFINE_HOOK(0x422CC6, AnimClass_DrawIT_SpecialDraw, 0xA)
+{
+	GET(AnimClass* const, pThis, ESI);
+
+	if (auto const pTypeExt = AnimTypeExt::ExtMap.TryFind(pThis->Type))
+	{
+		R->AL(pTypeExt->SpecialDraw.Get());
+		return 0x422CD0;
+	}
+
+	return 0x0;
+}
+
 #endif

@@ -54,7 +54,7 @@ public:
 	DWORD unknown_AC;
 	DWORD unknown_B0;
 
-	ArrayWrapper<int , 0x20> SampleIndex;
+	int SampleIndex [0x20];
 
 	int NumSamples;
 	int Attack;

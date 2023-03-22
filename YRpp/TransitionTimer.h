@@ -43,7 +43,7 @@ public:
 public:
 
 	double      Rate1;
-	TimerStruct ActionTimer;
+	CDTimerClass ActionTimer;
 	DWORD       Rate2;
 	bool        State1;
 	bool        State2;

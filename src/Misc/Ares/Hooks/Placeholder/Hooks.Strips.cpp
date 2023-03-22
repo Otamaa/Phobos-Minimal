@@ -25,13 +25,6 @@
 
 #include <CCToolTip.h>
 
-// IDB says so ,..
-static constexpr reference2D<SelectClass*, 0xB07E80, 0x1u , 0xEu> const SelectsDataArr {};
-
-//Ares used these
-static constexpr constant_ptr<SelectClass, 0xB07E80> const SelectsDatas {};
-static constexpr constant_ptr<SelectClass, 0xB0B300> const SelectsDatas_endPtr {};
-
 DEFINE_OVERRIDE_HOOK(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
 {
 	GET(SidebarClass*, pThis, ESI);
@@ -48,7 +41,7 @@ DEFINE_OVERRIDE_HOOK(0x6A801C, sub_6A7D70_Strip2, 0x6)
 
 void NOINLINE Strip3(size_t nCurIdx, int Offset)
 {
-	auto selects = SelectsDataArr()[0][0];
+	auto selects = SelectClass::Buttons()[0][0];
 	for (size_t a = 0; a < nCurIdx; ++a)
 	{
 
@@ -92,12 +85,12 @@ DEFINE_OVERRIDE_HOOK(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 	const auto pCur = (pPtr + 0x3480);
 	R->ESI(pCur);
 	R->Stack(0x10, pCur);
-	return pCur < SelectsDatas_endPtr.getAddrs() ?
+	return pCur < SelectClass::Buttons_endPtr.getAddrs() ?
 		ContinueLoop : BreakLoop;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6ABF44, sub_6ABD30_Strip1, 0x5)
 {
-	R->ESI<void*>(SelectsDatas());
+	R->ESI(SelectClass::ButtonsPtr());
 	return 0x6ABF49;
 }

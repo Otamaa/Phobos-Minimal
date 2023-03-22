@@ -26,26 +26,25 @@ void PassengersFunctional::AI(TechnoClass* pThis)
 	}
 }
 
-void PassengersFunctional::CanFire(TechnoClass* pThis, bool& cease)
+bool PassengersFunctional::CanFire(TechnoClass* pThis)
 {
 	if (auto const pTranporter = pThis->Transporter)
 	{
-		if (pTranporter->GetTechnoType()->OpenTopped)
-		{
+		auto const pType = pTranporter->GetTechnoType();
+		if (pType->OpenTopped) {
+			auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pType);
+
+			switch (pTranporter->GetCurrentMission())
 			{
-				auto const pTransportExt = TechnoTypeExt::ExtMap.Find(pTranporter->GetTechnoType());
-				switch (pTranporter->GetCurrentMission())
-				{
-				case Mission::Attack:
-					cease = !pTransportExt->MyPassangersData.SameFire;
-					break;
-				case Mission::Move:
-				case Mission::AttackMove:
-					cease = !pTransportExt->MyPassangersData.MobileFire;
-					break;
-				}
+			case Mission::Attack:
+				return !pTransportExt->MyPassangersData.SameFire;
+			case Mission::Move:
+			case Mission::AttackMove:
+				return !pTransportExt->MyPassangersData.MobileFire;
 			}
 		}
 	}
+
+	return false;
 }
 #endif

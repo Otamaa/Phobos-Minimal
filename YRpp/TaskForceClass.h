@@ -61,11 +61,11 @@ public:
 	}
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~TaskForceClass() RX;
@@ -93,6 +93,6 @@ public:
 	int     Group;
 	int     CountEntries;
 	bool    IsGlobal;
-	ArrayWrapper<TaskForceEntryStruct , 0x6> Entries;
+	TaskForceEntryStruct Entries [0x6];
 };
 static_assert(sizeof(TaskForceClass) == 0xD4, "Invalid Size !");

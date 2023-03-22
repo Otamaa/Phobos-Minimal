@@ -308,7 +308,7 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return Math::acos(v);
+		return std::acos(v);
 	}
 
 	CoordStruct Max(const CoordStruct& nThat)
@@ -485,7 +485,7 @@ public:
 	}
 
 	void Rotate_X(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
+	{ Rotate_X(std::sin(angle), std::cos(angle)); }
 
 	void Rotate_X(double s_angle, double c_angle)
 	{
@@ -497,7 +497,7 @@ public:
 	}
 
 	void Rotate_Y(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
+	{ Rotate_X(std::sin(angle), std::cos(angle)); }
 
 	void Rotate_Y(double s_angle, double c_angle)
 	{
@@ -509,7 +509,7 @@ public:
 	}
 
 	void Rotate_Z(double angle)
-	{ Rotate_X(Math::sin(angle), Math::cos(angle)); }
+	{ Rotate_X(std::sin(angle), std::cos(angle)); }
 
 	void Rotate_Z(double s_angle, double c_angle)
 	{

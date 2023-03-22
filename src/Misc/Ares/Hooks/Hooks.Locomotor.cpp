@@ -103,7 +103,7 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 
 			// update the facing
 			auto const crdSource = pObject->GetCoords();
-			auto const value = Math::arctanfoo(crdSource.Y - crd.Y, crd.X - crdSource.X);
+			auto const value = std::atan2(crdSource.Y - crd.Y, crd.X - crdSource.X);
 
 			DirStruct const tmp(value);
 			pObject->PrimaryFacing.Set_Current(tmp);

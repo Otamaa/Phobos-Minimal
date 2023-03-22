@@ -239,8 +239,7 @@ DEFINE_HOOK(0x684CB7, Scen_Waypoint_Call_1, 0x7)
 	GET(int, nWaypoint, EAX);
 
 	CellStruct cell = ScenarioExt::Global()->Waypoints[nWaypoint];
-
-	R->EAX(*(int*)&cell);
+	R->EAX((DWORD)cell);
 	return 0x684CBE;
 }
 
@@ -256,8 +255,7 @@ DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
 	GET(int, nWaypoint, EDI);
 
 	CellStruct cell = ScenarioExt::Global()->Waypoints[nWaypoint];
-
-	R->EDX(*(int*)&cell);
+	R->EAX((DWORD)cell);
 	return 0x68AFEE;
 }
 

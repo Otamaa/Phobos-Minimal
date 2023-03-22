@@ -29,8 +29,8 @@ public:
 	virtual ~TerrainClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//ObjectClass
 	virtual bool Limbo() override JMP_THIS(0x71C930);
@@ -56,13 +56,11 @@ protected:
 
 public:
 
-	DECLARE_PROPERTY(ProgressTimer, Animation);
+	StageClass Animation;
 	TerrainTypeClass* Type;
 	bool IsBurning; // this terrain object has been ignited
 	bool TimeToDie; // finish the animation and uninit
-	int field_D0;
-	int field_D4;
-	DECLARE_PROPERTY(Point2D, DrawPos);
+	RectangleStruct unknown_rect_D0;
 
 };
 static_assert(sizeof(TerrainClass) == 0xE0, "Invalid Size!");

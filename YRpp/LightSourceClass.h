@@ -81,9 +81,9 @@ protected:
 public:
 
 	int LightIntensity;
-	DECLARE_PROPERTY(TintStruct, LightTint);
+	TintStruct LightTint;
 	int DetailLevel;
-	DECLARE_PROPERTY(CoordStruct, Location);
+	CoordStruct Location;
 	int LightVisibility;
 	bool Activated;
 };

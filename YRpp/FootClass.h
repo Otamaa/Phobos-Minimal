@@ -30,17 +30,15 @@ public:
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4D9960);
 	virtual void Update() override JMP_THIS(0x4DA530);
-
+			  
 	//ObjectClass
-
-	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) JMP_THIS(0x4DEAE0);
-
+		  
 	//MissionClass
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
 
 	//TechnoClass
-	virtual void Destroyed(ObjectClass* Killer) RX;
-	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0;
+	virtual void Destroyed(ObjectClass* Killer) override RX;
+	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override R0;
 	virtual bool IsInSameZoneAs(AbstractClass* pTarget) override JMP_THIS(0x4DBA50);
 	virtual bool IsInSameZone(const CoordStruct* nZone) override JMP_THIS(0x4D3810);
 
@@ -174,8 +172,10 @@ protected:
 public:
 
 	int             PlanningPathIdx; // which planning path am I following?
-	DECLARE_PROPERTY(CellStruct,        cell524);
-	DECLARE_PROPERTY(CellStruct,        cell528);
+	short           unknown_short_524;
+	short           unknown_short_526;
+	short           unknown_short_528;
+	short           unknown_short_52A;
 	DWORD           unknown_52C;	//unused?
 	DWORD           unknown_530;
 	DWORD           unknown_534;
@@ -185,11 +185,11 @@ public:
 
 	DECLARE_PROPERTY(AudioController, Audio7);
 
-	DECLARE_PROPERTY(CellStruct,      CurrentMapCoords);
-	DECLARE_PROPERTY(CellStruct,      LastMapCoords); // ::UpdatePosition uses this to remove threat from last occupied cell, etc
-	DECLARE_PROPERTY(CellStruct,      LastJumpjetMapCoords); // which cell was I occupying previously? only for jumpjets
-	DECLARE_PROPERTY(CellStruct,     CurrentJumpjetMapCoords); // which cell am I occupying? only for jumpjets 564
-	DECLARE_PROPERTY(CoordStruct,     CurrentMechPos); //unknown_coords_568 5B0832
+	CellStruct      CurrentMapCoords;
+	CellStruct      LastMapCoords; // ::UpdatePosition uses this to remove threat from last occupied cell, etc
+	CellStruct      LastJumpjetMapCoords; // which cell was I occupying previously? only for jumpjets
+	CellStruct      CurrentJumpjetMapCoords; // which cell am I occupying? only for jumpjets
+	CoordStruct     CurrentMechPos; //unknown_coords_568 5B0832
 	PROTECTED_PROPERTY(DWORD,   unused_574);
 	double          SpeedPercentage;
 	double          SpeedMultiplier;
@@ -213,9 +213,9 @@ public:
 	DECLARE_PROPERTY(TimerStruct, SightTimer);
 	DECLARE_PROPERTY(TimerStruct, BlockagePathTimer);
 	DECLARE_PROPERTY(YRComPtr<ILocomotion>, Locomotor);
-	DECLARE_PROPERTY(CoordStruct,       __HeadTo); //_678
+	CoordStruct       __HeadTo; //_678
 	signed char       TubeIndex;	//I'm in this tunnel
-	signed char       CurrentDirectionOnTube;
+	bool              unknown_bool_685;
 	signed char       WaypointIndex; // which waypoint in my planning path am I following?
 	bool              IsToScatter; //678
 	bool              IsScanLimited; //688

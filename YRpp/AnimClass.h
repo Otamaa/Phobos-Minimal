@@ -53,7 +53,7 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x4253B0);
 
 	//Destructor
-	virtual ~AnimClass() override JMP_THIS(0x426590);
+	virtual ~AnimClass() JMP_THIS(0x426590);
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x425150);
@@ -157,7 +157,7 @@ public:
 	int TintColor;
 	int ZAdjust;
 	int YSortAdjust; // same as YSortAdjust from Type
-	DECLARE_PROPERTY(CoordStruct ,FlamingGuyCoords); // the destination the anim tries to reach
+	DECLARE_PROPERTY(CoordStruct, FlamingGuyCoords); // the destination the anim tries to reach
 	int FlamingGuyRetries; // number of failed attemts to reach water. the random destination generator stops if >= 7
 	bool IsBuildingAnim; // whether this anim will invalidate on buildings, and whether it's tintable
 	bool UnderTemporal; // temporal'd building's active anims

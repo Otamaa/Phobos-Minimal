@@ -19,29 +19,29 @@ public:
 		{ JMP_THIS(0x5AC270); }
 
 	//Loads an SED file
-	virtual bool LoadMission(const char* pFilename) const
+	virtual bool LoadMission(const char* pFilename) const override
 		{ JMP_THIS(0x597A30); }
 
 	//Saves an SED file
-	virtual bool SaveMission(const char* pFilename, const wchar_t* pDescription) const
+	virtual bool SaveMission(const char* pFilename, const wchar_t* pDescription) const override
 		{ JMP_THIS(0x597760); }
 
-	virtual bool DeleteMission(const char* pFilename) const
+	virtual bool DeleteMission(const char* pFilename) const override
 		{ JMP_THIS(0x597D50); }
 
-	virtual bool GetFileEntry(FileEntryClass& FileEntry, const WIN32_FIND_DATAA& pFindData) const
+	virtual bool GetFileEntry(FileEntryClass& FileEntry, const WIN32_FIND_DATAA& pFindData) const override
 		{ JMP_THIS(0x597D60); }
 
-	virtual const wchar_t* GetUIString_Load() const
+	virtual const wchar_t* GetUIString_Load() const override
 		{ JMP_THIS(0x597F80); }
 
-	virtual const wchar_t* GetUIString_Save() const
+	virtual const wchar_t* GetUIString_Save() const override
 		{ JMP_THIS(0x597FA0); }
 
-	virtual const wchar_t* GetUIString_Delete() const
+	virtual const wchar_t* GetUIString_Delete() const override
 		{ JMP_THIS(0x597FC0); }
 
-	virtual const wchar_t* GetUIString_GameSaved() const
+	virtual const wchar_t* GetUIString_GameSaved() const override
 		{ JMP_THIS(0x597FE0); }
 
 	//Properties

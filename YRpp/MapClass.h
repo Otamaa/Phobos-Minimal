@@ -22,6 +22,7 @@ public:
 	static constexpr reference<GroundType, 0x89EA40u, 12u> Array {};
 
 };
+static_assert(sizeof(GroundType) == 0x24, "Invalid Size !");
 
 struct CrackedIceStruct
 {
@@ -39,6 +40,7 @@ struct Crate
 	TimerStruct CrateTimer;
 	CellStruct Location;
 };
+static_assert(sizeof(Crate) == 0x10, "Invalid Size !");
 
 struct CellLevelPassabilityStruct
 {
@@ -70,6 +72,7 @@ struct ZoneConnectionClass
 			&& Cell == other.Cell);
 	}
 };
+static_assert(sizeof(ZoneConnectionClass) == 0x10, "Invalid Size !");
 
 struct SubzoneConnectionStruct
 {
@@ -82,6 +85,7 @@ struct SubzoneConnectionStruct
 			&& unknown_byte_4 == other.unknown_byte_4);
 	}
 };
+static_assert(sizeof(SubzoneConnectionStruct) == 0x8, "Invalid Size !");
 
 struct SubzoneTrackingStruct
 {
@@ -98,6 +102,7 @@ public:
 			&& unknown_dword_20 == other.unknown_dword_20);
 	}
 };
+static_assert(sizeof(SubzoneTrackingStruct) == 0x24, "Invalid Size !");
 
 // helper class with static methods to detect projectile collisions
 struct TrajectoryHelper
@@ -138,7 +143,7 @@ struct TrajectoryHelper
 class LayerClass : public DynamicVectorClass<ObjectClass*>
 {
 public:
-	virtual bool AddObject(ObjectClass* pObject, bool sorted)
+	virtual bool AddObject(ObjectClass* pObject, bool sorted) 
 		{ JMP_THIS(0x5519B0); }
 
 	virtual void RemoveAll()
@@ -156,6 +161,7 @@ public:
 	void Sort()
 		{ JMP_THIS(0x551A30); }
 };
+static_assert(sizeof(LayerClass) == 0x18, "Invalid Size !");
 
 class LogicClass : public LayerClass
 {
@@ -174,6 +180,7 @@ public:
 	void Update()
 		{ JMP_THIS(0x55AFB0); }
 };
+static_assert(sizeof(LogicClass) == 0x18, "Invalid Size !");
 
 class NOVTABLE MapClass : public GScreenClass
 {
@@ -185,7 +192,7 @@ public:
 	static inline constexpr int const MaxCells = 0x40000;
 
 	// this actually points to 5 vectors, one for each layer
-	static constexpr reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers{};
+	static constexpr reference<LayerClass, 0x8A0360u, (size_t)Layer::count> const ObjectsInLayers{};
 
 	static LayerClass* GetLayer(Layer lyr)
 	{
@@ -217,6 +224,13 @@ public:
 	//GetCellAt
 	CellClass* operator[] (const CoordStruct&  cell)
 	{ JMP_THIS(0x565730); }
+
+	CellClass* GetCellAt(CoordStruct* pCoord)
+	{ JMP_THIS(0x565730); }
+
+	//GetCellAt
+	CellClass* GetCellAt(CellStruct* pCellStruct)
+	{ JMP_THIS(0x5657A0); }
 
 	//GetCellAt
 	CellClass* operator[] (const CellStruct&  cell)
@@ -321,6 +335,14 @@ public:
 		HouseClass* SourceHouse)
 			{ JMP_STD(0x489280); }
 
+	static DamageAreaResult __fastcall DamageArea(
+		CoordStruct* pCoords,
+		int Damage,
+		TechnoClass* SourceObject,
+		WarheadTypeClass* WH,
+		bool AffectsTiberium,
+		HouseClass* SourceHouse)
+		{ JMP_STD(0x489280); }
 	/*
 	 * Picks the appropriate anim from WH's AnimList= based on damage dealt and land type (Conventional= )
 	 * so after DamageArea:
@@ -331,10 +353,21 @@ public:
 	static AnimTypeClass * __fastcall SelectDamageAnimation
 		(int Damage, WarheadTypeClass *WH, LandType LandType, const CoordStruct& coords)
 			{ JMP_STD(0x48A4F0); }
+	
+	static AnimTypeClass* __fastcall SelectDamageAnimation
+	(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
+		{ JMP_STD(0x48A4F0); }
 
 	static void __fastcall FlashbangWarheadAt
 		(int Damage, WarheadTypeClass *WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
 			{JMP_STD(0x48A620); }
+
+	static void __fastcall FlashbangWarheadAt
+	(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
+	{
+		auto nCoord = *pCoord;
+		FlashbangWarheadAt(Damage, WH, nCoord, Force, CLDisableFlags);
+	}
 
 	// get the damage a warhead causes to specific armor
 	static int __fastcall GetTotalDamage(int damage, const WarheadTypeClass* pWarhead, Armor armor, int distance)
@@ -614,7 +647,7 @@ protected:
 public:
 	DWORD unknown_10;
 	void* unknown_pointer_14;
-	ArrayWrapper<void*, 13u> MovementZones;
+	void* MovementZones [13];
 	DWORD somecount_4C;
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
 	CellLevelPassabilityStruct* LevelAndPassability;
@@ -643,7 +676,8 @@ public:
 	int MaxWidth;
 	int MaxHeight;
 	int MaxNumCells;
-	ArrayWrapper<Crate, 0x100u> Crates;
+	Crate Crates [0x100];
 	BOOL Redraws;
 	DynamicVectorClass<CellStruct> TaggedCells;
 };
+static_assert(sizeof(MapClass) == 0x1174, "Invalid Size !");

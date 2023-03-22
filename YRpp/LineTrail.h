@@ -60,9 +60,9 @@ public:
 
 public:
 
-	DECLARE_PROPERTY(ColorStruct, Color);
+	ColorStruct Color;
 	ObjectClass* Owner;
 	int Decrement;
 	int ActiveSlot;
-	ArrayWrapper<LineTrailNode, 32u> Trails;
+	LineTrailNode Trails[32];
 };

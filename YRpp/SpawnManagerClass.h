@@ -25,9 +25,9 @@ enum class SpawnNodeStatus : unsigned int {
 
 struct SpawnNode
 {
-	TechnoClass* Unit;
+	TechnoClass* Unit;		//ThisCan be anything Techno that not building ?
 	SpawnNodeStatus Status;
-	TimerStruct SpawnTimer;
+	CDTimerClass SpawnTimer;
 	BOOL IsSpawnMissile;
 };
 
@@ -103,9 +103,11 @@ public:
 	int RegenRate;
 	int ReloadRate;
 	DECLARE_PROPERTY(DynamicVectorClass<SpawnNode*>, SpawnedNodes);
-	DECLARE_PROPERTY(TimerStruct, UpdateTimer);
-	DECLARE_PROPERTY(TimerStruct, SpawnTimer);
+	DECLARE_PROPERTY(CDTimerClass, UpdateTimer);
+	DECLARE_PROPERTY(CDTimerClass, SpawnTimer);
 	AbstractClass* Target; //dest ,suspendedtarget
 	AbstractClass* NewTarget; //target
 	SpawnManagerStatus Status;
 };
+
+static_assert(sizeof(SpawnManagerClass) == 0x74, "Invalid Size !");

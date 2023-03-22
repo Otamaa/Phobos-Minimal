@@ -18,7 +18,8 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 
-		|| !pExt->Aircraft_DecreaseAmmo.Get())
+		//|| !pExt->Aircraft_DecreaseAmmo.Get()
+		)
 	{
 		return 0;
 	}

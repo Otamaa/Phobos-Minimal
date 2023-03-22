@@ -39,6 +39,7 @@ public:
 
 	//static
 	static int __fastcall LoadAllAnimFile(TheaterType theater) JMP_STD(0x427940);
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x428990);
 
@@ -48,8 +49,8 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x428C10);
-	virtual AbstractType WhatAmI() const override { return AbstractType::AnimType; }
-	virtual int	Size() const override { return 0x378; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 	virtual int GetArrayIndex() const override { return this->ArrayIndex; }
 
 	//AbstractTypeClass

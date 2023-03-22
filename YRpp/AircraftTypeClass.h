@@ -38,13 +38,13 @@ public:
 	virtual ~AircraftTypeClass() JMP_THIS(0x41CFE0);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const { return AbstractType::AircraftType; }
-	virtual int	Size() const { return 0xE10; }
+	virtual AbstractType WhatAmI() const override { return AbstractType::AircraftType; }
+	virtual int	Size() const override { return 0xE10; }
 	virtual int GetArrayIndex() const { return this->ArrayIndex; }
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x41CC20);
-	
+
 	//ObjectTypeClass
 	virtual void Dimension2(CoordStruct* pDest) JMP_THIS(0x41CBF0);
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) { return false; }

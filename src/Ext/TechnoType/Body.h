@@ -234,6 +234,8 @@ public:
 		std::vector<CoordStruct> AlternateFLHs;
 
 		Nullable<bool> IronCurtain_SyncDeploysInto;
+		Valueable<IronCurtainFlag> IronCurtain_Effect;
+		Nullable<WarheadTypeClass*> IronCurtain_KillWarhead;
 
 		NullableIdx<VoxClass> EVA_Sold;
 		NullableIdx<VocClass> SellSound;
@@ -281,9 +283,19 @@ public:
 		Nullable<int> ParadropOverflRadius;
 		Valueable<bool> Paradrop_DropPassangers;
 		Valueable<int> Paradrop_MaxAttempt;
+
 		Valueable<bool> IsCustomMissile;
 		Valueable<RocketStruct> CustomMissileData;
+		Valueable<WarheadTypeClass*> CustomMissileWarhead;
+		Valueable<WarheadTypeClass*> CustomMissileEliteWarhead;
+		Valueable<AnimTypeClass*> CustomMissileTakeoffAnim;
+		Valueable<AnimTypeClass*> CustomMissileTrailerAnim;
+		Valueable<int> CustomMissileTrailerSeparation;
+		Valueable<WeaponTypeClass*> CustomMissileWeapon;
+		Valueable<WeaponTypeClass*> CustomMissileEliteWeapon;
 		Promotable<bool> CustomMissileRaise;
+
+
 		Valueable<bool> Draw_MindControlLink;
 
 		NullableVector<int> Overload_Count;
@@ -369,7 +381,7 @@ public:
 
 		Nullable<ColorStruct> CommandLine_Move_Color;
 		Nullable<ColorStruct> CommandLine_Attack_Color;
-		Valueable<bool> CloakMove;
+		Nullable<bool> CloakMove;
 		Nullable<bool> PassiveAcquire_AI;
 		Valueable<bool> TankDisguiseAsTank;
 		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
@@ -577,6 +589,9 @@ public:
 			, AlternateFLHs { }
 
 			, IronCurtain_SyncDeploysInto { }
+			, IronCurtain_Effect { IronCurtainFlag::Default }
+			, IronCurtain_KillWarhead { }
+
 			, EVA_Sold {}
 			, SellSound{ }
 
@@ -628,6 +643,13 @@ public:
 
 			, IsCustomMissile { false }
 			, CustomMissileData {}
+			, CustomMissileWarhead { nullptr }
+			, CustomMissileEliteWarhead { nullptr }
+			, CustomMissileTakeoffAnim { nullptr }
+			, CustomMissileTrailerAnim { nullptr }
+			, CustomMissileTrailerSeparation { 3 }
+			, CustomMissileWeapon { nullptr }
+			, CustomMissileEliteWeapon { nullptr }
 			, CustomMissileRaise { true }
 
 			, Draw_MindControlLink { true }
@@ -717,7 +739,7 @@ public:
 			, EngineerCaptureDelay { 0 }
 			, CommandLine_Move_Color { }
 			, CommandLine_Attack_Color { }
-			, CloakMove { false }
+			, CloakMove { }
 			, PassiveAcquire_AI { }
 			, TankDisguiseAsTank { false }
 			, DisguiseDisAllowed { }

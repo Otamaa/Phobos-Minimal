@@ -20,18 +20,18 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<FactoryClass*>, 0xA83E30u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~FactoryClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//non-virtual
 
@@ -115,19 +115,19 @@ protected:
 	//===========================================================================
 
 public:
-	DECLARE_PROPERTY(ProgressTimer,      Production); // hardcoded to be 54 steps (so cameo clock should be 54 frames)
-	DECLARE_PROPERTY(DynamicVectorClass<TechnoTypeClass*>, QueuedObjects);
+	StageClass      Production; // hardcoded to be 54 steps (so cameo clock should be 54 frames)
+	DynamicVectorClass<TechnoTypeClass*> QueuedObjects;
 	TechnoClass*       Object;
 	bool               OnHold; // paused when out of money, restored when funds available
 	bool               IsDifferent;	// changed progress
-	//PROTECTED_PROPERTY(BYTE, align_5E[2]);
+	PROTECTED_PROPERTY(BYTE, align_5E[2]);
 	int                Balance; // credits house still owes us for building this
 	int                OriginalBalance;
 	int                SpecialItem; // -1 = none, else Iron Curtain? (was EMPulse in TS)
 	HouseClass*        Owner;
 	bool               IsSuspended; //completed production, before next (or waiting to place)
 	bool               IsManual; // whether the current suspension state was caused by the player
-	//PROTECTED_PROPERTY(BYTE, padding_72[2]);
+	PROTECTED_PROPERTY(BYTE, padding_72[2]);
 };
 
 static_assert(sizeof(FactoryClass) == 0x74, "Invalid size.");

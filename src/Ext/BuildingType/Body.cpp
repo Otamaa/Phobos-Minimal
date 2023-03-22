@@ -90,7 +90,7 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	if (!TacticalClass::Instance->CoordsToClient(CellClass::Cell2Coord(pCell->MapCoords, nHeight + nOffsetZ), &nPoint))
 		return;
 
-	const auto nFrame = Math::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
+	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
 	nPoint.X += nOffsetX;
 	nPoint.Y += nOffsetY;
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
@@ -264,53 +264,51 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
-	
+
 	auto const pType = pWhat->GetTechnoType();
 	if (!pType)
 		return fFactor;
 
-	if(auto pHouseExt = HouseExt::ExtMap.Find(pOwner)) {
-		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty()) {
-			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
-				if (auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType)) {
-					if (!pExt->SpeedBonus.AffectedType.empty())
-						if (!pExt->SpeedBonus.AffectedType.Contains(pType))
-							continue;
+	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+	if(pHouseExt->Building_BuildSpeedBonusCounter.empty())
+		return fFactor;
 
-					auto nBonus = 0.000;
-					switch (pWhat->WhatAmI())
-					{
-					case AbstractType::Aircraft:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
-						break;
-					case AbstractType::Building:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Building;
-						break;
-					case AbstractType::Unit:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
-						break;
-					case AbstractType::Infantry:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
-						break;
-					default:
+	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
+
+		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType)) {
+
+			if (!pExt->SpeedBonus.AffectedType.empty()) {
+				if (!pExt->SpeedBonus.AffectedType.Contains(pType)) {
 						continue;
-						break;
-					}
-
-					if (nBonus == 0.000)
-						continue;
-
-					fFactor *= std::pow(nBonus, nCount);
-				}
-				else {
-					Debug::Log("[%s] Error when tyring to get BuildingTypeClassExt Pointer ! \n", __FUNCTION__);
 				}
 			}
+
+			auto nBonus = 0.000;
+			switch (pWhat->WhatAmI())
+			{
+			case AbstractType::AircraftType:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
+				break;
+			case AbstractType::BuildingType:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Building;
+				break;
+			case AbstractType::UnitType:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
+				break;
+			case AbstractType::InfantryType:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
+				break;
+			default:
+				continue;
+				break;
+			}
+
+			if (nBonus == 0.000)
+				continue;
+
+			fFactor *= std::pow(nBonus, nCount);
+			}
 		}
-	}
-	else {	
-		Debug::Log("[%s] Missing HouseClassExt Pointer ! \n" , __FUNCTION__);
-	}
 
 	return fFactor;
 }
@@ -318,58 +316,49 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner)
 {
 	double fFactor = 1.0;
-	if (!pWhat || !pOwner || !pWhat || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
+	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	if (auto pHouseExt = HouseExt::ExtMap.Find(pOwner))
-	{
-		if (!pHouseExt->Building_BuildSpeedBonusCounter.empty())
-		{
-			for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
-			{
-				if (auto const pExt = BuildingTypeExt::ExtMap.Find(pBldType))
-				{
+		auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+		if(pHouseExt->Building_BuildSpeedBonusCounter.empty())
+			return fFactor;
 
-					if (!pExt->SpeedBonus.AffectedType.empty())
-						if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
+		for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
+
+			if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType)) {
+
+				if (!pExt->SpeedBonus.AffectedType.empty()) {
+					if (!pExt->SpeedBonus.AffectedType.Contains(pWhat)) {
 							continue;
-
-					auto nBonus = 0.000;
-					switch (pWhat->WhatAmI())
-					{
-					case AbstractType::AircraftType:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
-						break;
-					case AbstractType::BuildingType:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Building;
-						break;
-					case AbstractType::UnitType:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
-						break;
-					case AbstractType::InfantryType:
-						nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
-						break;
-					default:
-						continue;
-						break;
 					}
-
-					if (nBonus == 0.000)
-						continue;
-
-					fFactor *= std::pow(nBonus, nCount);
 				}
-				else
+
+				auto nBonus = 0.000;
+				switch (pWhat->WhatAmI())
 				{
-					Debug::Log("[%s] Error when tyring to get BuildingTypeClassExt Pointer ! \n", __FUNCTION__);
+				case AbstractType::AircraftType:
+					nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
+					break;
+				case AbstractType::BuildingType:
+					nBonus = pExt->SpeedBonus.SpeedBonus_Building;
+					break;
+				case AbstractType::UnitType:
+					nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
+					break;
+				case AbstractType::InfantryType:
+					nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
+					break;
+				default:
+					continue;
+					break;
 				}
+
+				if (nBonus == 0.000)
+					continue;
+
+				fFactor *= std::pow(nBonus, nCount);
 			}
 		}
-	}
-	else
-	{
-		Debug::Log("[%s] Missing HouseClassExt Pointer ! \n", __FUNCTION__);
-	}
 
 	return fFactor;
 }

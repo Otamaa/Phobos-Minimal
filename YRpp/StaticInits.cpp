@@ -68,6 +68,11 @@ void SlaveManagerClass::ZeroOutSlaves() {
 	}
 }
 
+const char* ObjectClass::get_ID() const
+{
+	auto const pType = this->GetType();
+	return pType ? pType->get_ID() : GameStrings::NoneStr();
+}
 bool ObjectClass::IsOnMyView() const
 {
 	auto const coords = this->GetCoords();
@@ -81,8 +86,7 @@ bool ObjectClass::IsOnMyView() const
 
 bool ObjectClass::IsGreenToYellowHP() const
 {
-	return this->Health / this->GetTechnoType()->Strength
-		>= RulesClass::Instance->ConditionYellow;
+	return this->GetHealthPercentage() >= RulesClass::Instance->ConditionYellow;
 }
 
 bool ObjectClass::IsFullHP() const
@@ -490,7 +494,7 @@ CoordStruct WWMouseClass::GetCoordsUnderCursor()
 {
 	CoordStruct nbuffer { -1,-1,-1 };
 	Point2D nBuffer2D {};
-	WWMouseClass::Instance->GetCoords_NotVirtual(nBuffer2D);
+	WWMouseClass::Instance->GetCoords_(nBuffer2D);
 
 	if (nBuffer2D.X >= 0 && nBuffer2D.Y >= 0)
 	{
@@ -508,7 +512,7 @@ CellStruct WWMouseClass::GetCellUnderCursor()
 {
 	CellStruct nbuffer { -1,-1 };
 	Point2D nBuffer2D {};
-	WWMouseClass::Instance->GetCoords_NotVirtual(nBuffer2D);
+	WWMouseClass::Instance->GetCoords_(nBuffer2D);
 
 	if (nBuffer2D.X >= 0 && nBuffer2D.Y >= 0)
 		TacticalClass::Instance->Coordmap_viewportpos_tocellpos_Click_Cell_Calc(nbuffer, nBuffer2D);
@@ -734,8 +738,8 @@ static void Fill_Triangle_Top(Surface& surface, Point2D& point1, Point2D& point2
 		point2 = point3;
 		point3 = temp;
 	}
-	float a = (point2.X - point1.X) / (point2.Y - point1.Y);
-	float b = (point3.X - point1.X) / (point3.Y - point1.Y);
+	float a = ((point2.X - point1.X) / (point2.Y - point1.Y));
+	float b = ((point3.X - point1.X) / (point3.Y - point1.Y));
 	float left = point1.X;
 	float right = point1.X;
 	for (int idy = point1.Y; idy <= point2.Y; ++idy)
@@ -759,8 +763,8 @@ static void Fill_Triangle_Bottom(Surface& surface, Point2D& point1, Point2D& poi
 		point2 = point1;
 		point1 = temp;
 	}
-	float a = (point3.X - point1.X) / (point3.Y - point1.Y);
-	float b = (point3.X - point2.X) / (point3.Y - point2.Y);
+	float a = ((point3.X - point1.X) / (point3.Y - point1.Y));
+	float b = ((point3.X - point2.X) / (point3.Y - point2.Y));
 	float left = point3.X;
 	float right = point3.X;
 	for (int idy = point3.Y; idy > point2.Y; --idy)

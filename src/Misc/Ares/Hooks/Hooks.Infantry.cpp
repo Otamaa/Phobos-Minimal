@@ -175,7 +175,11 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 // do not infiltrate buildings of allies
 DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
 {
-	enum { SkipInfiltrate = 0x51A03E, Infiltrate = 0x51A002 };
+	enum {
+		SkipInfiltrate = 0x51A03E,
+		Infiltrate_Vanilla = 0x51A002 ,
+		InfiltrateSucceded = 0x51A010,
+	};
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
@@ -186,7 +190,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
 	pBld->Infiltrate(pHouse);
 	BuildingExt::HandleInfiltrate(pBld, pHouse);
 
-	return SkipInfiltrate;
+	return InfiltrateSucceded;
 }
 
 // #895584: ships not taking damage when repaired in a shipyard. bug
@@ -239,10 +243,9 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 	GET(InfantryClass* const, pThis, ECX);
 
 	if (pThis->Type->Teleporter) {
-		auto const pLoco = static_cast<LocomotionClass*>(
-			pThis->Locomotor.get());
+		auto const pLoco = pThis->Locomotor.get();
 
-		if ((((DWORD*)pLoco)[0] == TeleportLocomotionClass::vtable)) {
+		if ((((DWORD*)pLoco)[0] == TeleportLocomotionClass::ILoco_vtable)) {
 			auto const pTele = static_cast<TeleportLocomotionClass*>(pLoco);
 			pTele->LastCoords = CoordStruct::Empty;
 		}

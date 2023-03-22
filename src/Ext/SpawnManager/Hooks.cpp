@@ -3,38 +3,37 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-DEFINE_HOOK_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
-DEFINE_HOOK(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)
-{
-	GET(SpawnManagerClass* const, pThis, ESI);
+// TODO : revisit
+// DEFINE_HOOK_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
+// DEFINE_HOOK(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)
+// {
+// 	GET(SpawnManagerClass* const, pThis, ESI);
 
-	if (pThis->Owner)
-	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+// 	if (pThis->Owner)
+// 	{
+// 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
 
-		if (pTypeExt->Spawner_DelayFrames.isset())
-			R->ECX(pTypeExt->Spawner_DelayFrames.Get());
-	}
+// 		if (pTypeExt->Spawner_DelayFrames.isset())
+// 			R->ECX(pTypeExt->Spawner_DelayFrames.Get());
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
-DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
-{
-	GET(SpawnManagerClass* const, pThis, ESI);
+// TODO : revisit
+// DEFINE_HOOK(0x6B7265, SpawnManagerClass_AI_UpdateTimer, 0x6)
+// {
+// 	GET(SpawnManagerClass* const, pThis, ESI);
 
-	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching
-		&& pThis->CountDockedSpawns() != 0)
-	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
-		if (pTypeExt->Spawner_DelayFrames.isset())
-		{
-			R->EAX(std::min(pTypeExt->Spawner_DelayFrames.Get(), 10));
-		}
-	}
+// 	if (pThis->Owner && pThis->Status == SpawnManagerStatus::Launching
+// 		&& pThis->CountDockedSpawns() != 0)
+// 	{
+// 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+// 		R->EAX(pTypeExt->Spawner_DelayFrames.Get(10));
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6B743E, SpawnManagerClass_AI_SpawnOffsets, 0x6)
 {

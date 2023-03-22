@@ -59,26 +59,27 @@ public:
 	}
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x5125A0);
-	virtual ULONG __stdcall AddRef() { return true; }
-	virtual ULONG __stdcall Release() { return true; }
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override JMP_STD(0x5125A0);
+	virtual ULONG __stdcall AddRef() override { return true; }
+	virtual ULONG __stdcall Release() override { return true; }
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x512640);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override  JMP_STD(0x512640);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override  R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override  R0;
 
 	//Destructor
 	virtual ~HouseTypeClass() JMP_THIS(0x512760);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override  RT(AbstractType);
+	virtual int	Size() const override  R0;
 
 	//AbstractTypeClass
-	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x511850);
+	virtual bool LoadFromINI(CCINIClass* pINI) override  JMP_THIS(0x511850);
+
 	//helpers
 	HouseTypeClass* FindParentCountry() const {
 		return HouseTypeClass::Find(this->ParentCountry);

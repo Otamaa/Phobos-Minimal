@@ -539,6 +539,14 @@ public:
 		return (&this->Items[this->Count]);
 	}
 
+	T* front() const {
+		return begin();
+	}
+
+	T* back() const {
+		return end() - 1;
+	}
+	
 	T* begin()
 	{
 		return (&this->Items[0]);

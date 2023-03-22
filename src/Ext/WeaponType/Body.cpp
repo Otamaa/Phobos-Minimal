@@ -165,16 +165,21 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 {
 	auto const pExt = WeaponTypeExt::ExtMap.Find(pThis);
-	int burstDelay = -1;
 
 	if (burstIndex == 0)
 		return 0;
-	else if (pExt->Burst_Delays.size() > (unsigned)burstIndex)
-		burstDelay = pExt->Burst_Delays[burstIndex - 1];
-	else if (pExt->Burst_Delays.size() > 0)
-		burstDelay = pExt->Burst_Delays[pExt->Burst_Delays.size() - 1];
 
-	return burstDelay;
+	if (!pExt->Burst_Delays.empty())
+	{
+		const size_t nSize = pExt->Burst_Delays.size();
+
+		if (nSize > (unsigned)burstIndex)
+			return pExt->Burst_Delays[burstIndex - 1];
+		else 
+			return pExt->Burst_Delays[nSize - 1];
+	}
+
+	return -1;
 }
 
 void WeaponTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
@@ -280,7 +285,7 @@ WeaponTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
+//
 DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
@@ -291,9 +296,7 @@ DEFINE_HOOK(0x771EE9, WeaponTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
-
 	WeaponTypeExt::ExtMap.Remove(pItem);
-
 	return 0;
 }
 

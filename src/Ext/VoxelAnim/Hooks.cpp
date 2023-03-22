@@ -23,7 +23,7 @@ DEFINE_HOOK(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 {
 	GET(VoxelAnimClass* const, pThis, EBX);
 
-	auto pThisExt = VoxelAnimExt::ExtMap.Find(pThis);
+	const auto pThisExt = VoxelAnimExt::ExtMap.TryFind(pThis);
 	if (!pThisExt)
 		return 0x0;
 
@@ -57,6 +57,11 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 
 	GET(VoxelAnimClass* const, pThis, EBX);
 
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pThis->Type);
+
+	if (!pTypeExt)
+		return 0x0;
+
 	GET8(bool, LandIsWater, CL);
 	GET8(bool, EligibleHeight, AL);
 
@@ -64,7 +69,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	R->Stack(0x12, R->AL());
 
 	TechnoClass* const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
-	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
+	
 	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExt::FindCivilianSide();
 	CoordStruct nLocation = pThis->GetCoords();
 
@@ -81,7 +86,7 @@ DEFINE_HOOK(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 	else {
 		if (!pTypeExt->ExplodeOnWater.Get())
 		{
-			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pTypeExt->SplashList, RulesClass::Instance->Wake, pTypeExt->SplashList_Pickrandom.Get(), pThis->Type->IsMeteor)) {
+			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pTypeExt->SplashList, pTypeExt->WakeAnim, pTypeExt->SplashList_Pickrandom.Get(), pThis->Type->IsMeteor)) {
 				if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false)) {
 					AnimExt::SetAnimOwnerHouseKind(pSplashAnimCreated, pOwner, nullptr, pInvoker, false);
 				}

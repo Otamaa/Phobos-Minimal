@@ -47,20 +47,20 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x75F610);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x760F50);
-
+		
 	//ObjectClass
 	virtual Layer InWhichLayer() const override JMP_THIS(0x75F890); // dont ask me ,.. -Otamaa
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x75F980);
-
+	
 	// place the object on the map
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x75F8B0);
 	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const  override JMP_THIS(0x7F6D08);
-
+	
 	static void Generate_Tables()
 		{ JMP_STD(0x75F020); }
 
@@ -132,42 +132,42 @@ protected:
 public:
 	TechnoClass* Target;
 	WaveType Type;
-	DECLARE_PROPERTY(CoordStruct, LimboCoords);
-	DECLARE_PROPERTY(CoordStruct, Pos0);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_0);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_1);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_2);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_3);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_4);
-	DECLARE_PROPERTY(Point2D, InitialWavePixels_5);
-	DECLARE_PROPERTY(CoordStruct, Pos7);
-	DECLARE_PROPERTY(CoordStruct, Pos8);
-	DECLARE_PROPERTY(CoordStruct, Pos9);
-	DECLARE_PROPERTY(CoordStruct, Pos10);
+	CoordStruct LimboCoords;
+	CoordStruct Pos0;
+	Point2D InitialWavePixels_0;
+	Point2D InitialWavePixels_1;
+	Point2D InitialWavePixels_2;
+	Point2D InitialWavePixels_3;
+	Point2D InitialWavePixels_4;
+	Point2D InitialWavePixels_5;
+	CoordStruct Pos7;
+	CoordStruct Pos8;
+	CoordStruct Pos9;
+	CoordStruct Pos10;
 	bool bool_12C;
 	bool bool_12D;
 	int WaveIntensity;
 	int WaveCount;
 	double MatrixScale1;
 	double MatrixScale2;
-	DECLARE_PROPERTY(SingleArray_WavePoint2D, FirstPointData);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_0);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_1);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_2);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_3);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_4);
-	DECLARE_PROPERTY(Point2D, ActiveWavePixels_5);
-	DECLARE_PROPERTY(Point2D, UnusedWavePixels__0);
-	DECLARE_PROPERTY(Point2D, UnusedWavePixels__1);
-	DECLARE_PROPERTY(Point2D, UnusedWavePixels__2);
-	DECLARE_PROPERTY(Point2D, UnusedWavePixels__3);
-	DECLARE_PROPERTY(MultiDimentionalArray_WavePoint2D, SecondPointData);
+	SingleArray_WavePoint2D FirstPointData;
+	Point2D ActiveWavePixels_0;
+	Point2D ActiveWavePixels_1;
+	Point2D ActiveWavePixels_2;
+	Point2D ActiveWavePixels_3;
+	Point2D ActiveWavePixels_4;
+	Point2D ActiveWavePixels_5;
+	Point2D UnusedWavePixels__0;
+	Point2D UnusedWavePixels__1;
+	Point2D UnusedWavePixels__2;
+	Point2D UnusedWavePixels__3;
+	MultiDimentionalArray_WavePoint2D SecondPointData;
 	int EachFacing[8];
 	FacingType FacingType;
 	int LaserIntensity;
 	TechnoClass* Owner;
-	DECLARE_PROPERTY(FacingClass, Facing);
-	DECLARE_PROPERTY(DynamicVectorClass<CellClass *>, Cells);
+	FacingClass Facing;
+	DynamicVectorClass<CellClass *> Cells;
 	int intensity_tables[14];
 };
 

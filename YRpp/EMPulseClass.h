@@ -26,9 +26,9 @@ public:
 	virtual ~EMPulseClass() override JMP_THIS(0x4C5AC0);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
-	virtual void CalculateChecksum(Checksummer& checksum) const override JMP_THIS(0x4C59A0);
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
+	virtual void ComputeCRC(CRCEngine& checksum) const override JMP_THIS(0x4C59A0);
 
 	void SetCoordBitfieldInRange() const { JMP_THIS(0x4C58C0);}
 	void Init(TechnoClass* pInvoker) const { JMP_THIS(0x4C54E0);}
@@ -54,7 +54,7 @@ protected:
 
 public:
 
-	DECLARE_PROPERTY(CellStruct, BaseCoords);
+	CellStruct BaseCoords;
 	int Spread;
 	int CreationTime;	//frame in which this EMP got created
 	int Duration;

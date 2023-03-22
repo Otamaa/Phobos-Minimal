@@ -42,7 +42,7 @@ public:
 	int Count;
 	PointerHeapClass<MapSurfaceData>* Heap;
 	MapSurfaceData* Datas;
-	TimerStruct Timer;
+	CDTimerClass Timer;
 	bool* States;
 };
 
@@ -60,9 +60,9 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_THIS(0x74F2D0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0; //none
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0; //none
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_THIS(0x74EEE0);
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override R0;
 
 	//Destructor
 	virtual ~VeinholeMonsterClass() JMP_THIS(0x74C9F0);
@@ -174,10 +174,10 @@ public:
 	DamageState DamageState;
 	DWORD ___dwordD0Gas;
 	BYTE ___byteD4timerstate;
-	TimerStruct Timer_1;
+	CDTimerClass Timer_1;
 	int GasTimerStart;
 	DWORD ___dwordE8Gas;
-	TimerStruct Timer_2;
+	CDTimerClass Timer_2;
 	CellStruct MonsterCell;
 	int ShapeFrame;
 	bool SkipDraw;

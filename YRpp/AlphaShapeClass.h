@@ -20,18 +20,18 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<AlphaShapeClass*>, 0x88A0F0u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~AlphaShapeClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 
 	//Constructor
 	AlphaShapeClass(ObjectClass* pObj, int nX, int nY) noexcept
@@ -50,7 +50,7 @@ protected:
 public:
 
 	ObjectClass* AttachedTo;	//To which object is this AlphaShape attached?
-	DECLARE_PROPERTY(RectangleStruct, Rect);
+	RectangleStruct Rect;
 	SHPStruct* AlphaImage;
 	bool IsObjectGone;	//Set if AttachedTo is NULL.
 };

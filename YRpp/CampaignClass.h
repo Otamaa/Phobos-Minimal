@@ -46,26 +46,26 @@ public:
 	}
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
+	virtual ULONG __stdcall AddRef() override R0;
+	virtual ULONG __stdcall Release() override R0;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall IsDirty() R0;
+	virtual HRESULT __stdcall IsDirty() override R0;
 
 	//Pure virtual , Only for inheritance
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override R0;
 
 	//IRTTITypeInfo
-	virtual AbstractType __stdcall What_Am_I() const RT(AbstractType);
-	virtual int __stdcall Fetch_ID() const R0;
-	virtual void __stdcall Create_ID() RX;
+	virtual AbstractType __stdcall What_Am_I() const override RT(AbstractType);
+	virtual int __stdcall Fetch_ID() const override R0;
+	virtual void __stdcall Create_ID() override RX;
 
 	//Destructor
 	virtual ~CampaignClass() RX;

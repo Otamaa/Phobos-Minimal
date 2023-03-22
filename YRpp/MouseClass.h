@@ -34,8 +34,8 @@ public:
 	MouseHotSpotY HotY{ MouseHotSpotY::Middle };
 };
 
-//static_assert(sizeof(MouseCursor) == 0x1C);
-//
+static_assert(sizeof(MouseCursor) == 0x1C);
+
 struct TabDataClass
 {
 	int TargetValue;
@@ -88,6 +88,7 @@ class NOVTABLE MouseClass : public ScrollClass
 public:
 	//Static
 	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
+	static constexpr constant_ptr<MouseClass, 0x87F7E8u> const Global{};
 	static constexpr constant_ptr<SHPStruct, 0xABF294u> const ShapeFile{};
 	static constexpr reference<bool, 0xABF2DDu> const ShapeOverride{};
 

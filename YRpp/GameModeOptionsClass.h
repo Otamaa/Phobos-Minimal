@@ -8,12 +8,11 @@ class StartingSlotClass;
 
 struct AISlotsStruct
 {
-	ArrayWrapper<int , 8u> AIDifficulties;
-	ArrayWrapper<StartingSlotClass*, 8u> StartingSpots;
-	ArrayWrapper<int, 8u> Colours;
-	ArrayWrapper<int, 8u> Starts;
-	ArrayWrapper<int, 8u> Teams;
-	
+	int Difficulties[8];
+	int Countries[8];
+	int Colors[8];
+	int Starts[8];
+	int Allies[8];
 };
 static_assert(sizeof(AISlotsStruct) == 0xA0, "Invalid Size!");
 
@@ -26,17 +25,14 @@ public:
 	int MPModeIndex;
 	int ScenarioIndex;
 	bool Bases;
-	PROTECTED_PROPERTY(BYTE, align_9[3]);
 	int Money;
 	bool BridgeDestruction;
 	bool Crates;
 	bool ShortGame;
 	bool SWAllowed;
 	bool BuildOffAlly;
-	PROTECTED_PROPERTY(BYTE, align_15[3]);
 	int GameSpeed;
 	bool MultiEngineer;
-	PROTECTED_PROPERTY(BYTE, align_1D[3]);
 	int UnitCount;
 	int AIPlayers;
 	int AIDifficulty;
@@ -46,7 +42,6 @@ public:
 	bool CTF;
 	bool FogOfWar;
 	bool MCVRedeploy;
-	PROTECTED_PROPERTY(BYTE, align_D1);
 	wchar_t MapDescription[45];
 };
 

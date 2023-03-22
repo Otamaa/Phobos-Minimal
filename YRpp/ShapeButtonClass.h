@@ -59,7 +59,7 @@ public:
 	int FlashDelay;
 	int FlashCounter;
 	bool UseFlash; // ReflectButtonState
-	DECLARE_PROPERTY(Point2D, DrawPosition);
+	Point2D DrawPosition;
 	bool UseSidebarSurface;
 	ConvertClass* Drawer;
 	bool IsDrawn;

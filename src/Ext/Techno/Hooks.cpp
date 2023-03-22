@@ -293,7 +293,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 			{
 				const double percentage = ranges.X >= ranges.Y ? ranges.X :
 					static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(ranges.X * 100), static_cast<int>(ranges.Y * 100)) / 100.0);
-				const int strength = Math::clamp(static_cast<int>(pTypeUnit->Strength * percentage), 1, pTypeUnit->Strength);
+				const int strength = std::clamp(static_cast<int>(pTypeUnit->Strength * percentage), 1, pTypeUnit->Strength);
 				pFoot->Health = strength;
 				pFoot->EstimatedHealth = strength;
 			}
@@ -382,7 +382,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 
 			// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
 			if (i != 0)
-				delay = Math::max(delay, 1);
+				delay = Math::LessOrEqualTo(delay, 1);
 
 			cumulativeDelay += delay;
 
@@ -550,7 +550,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 		}
 		else if (whSequence.isset())
 		{
-			resultSequence = Math::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
+			resultSequence = std::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
 		}
 
 		InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;

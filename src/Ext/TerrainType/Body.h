@@ -87,7 +87,7 @@ public:
 		TintStruct GetLightTint() const
 		{
 			constexpr auto ToInt = [](double nInput)
-			{ return Math::clamp(((int)(nInput * 1000.0)), -2000, 2000); };
+			{ return std::clamp(((int)(nInput * 1000.0)), -2000, 2000); };
 
 			return TintStruct
 			{

@@ -107,7 +107,7 @@ void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 	if (!pThis || !pThis->Type)
 		return;
 
-	auto const TerrainExt = TerrainExt::ExtMap.Find(pThis);
+	auto const TerrainExt = TerrainExt::ExtMap.FindOrAllocate(pThis);
 
 	//if (auto const CellExt = CellExt::ExtMap.Find<true>(Map[*pCoord]))
 	//{
@@ -130,9 +130,7 @@ void TerrainExt::CleanUp(TerrainClass* pThis)
 	if (!pThis || !pThis->Type)
 		return;
 
-	auto const TerrainExt = TerrainExt::ExtMap.Find(pThis);
-
-	{
+	if(auto const TerrainExt = TerrainExt::ExtMap.TryFind(pThis)) {
 		TerrainExt->ClearLightSource();
 		TerrainExt->ClearAnim();
 	}
@@ -197,7 +195,7 @@ DEFINE_HOOK(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 
 	TerrainExt::ExtMap.FindOrAllocate(pItem);
 
-	if (*pCoord != CellStruct::Empty) {
+	if (pCoord->IsValid()) {
 		//vtable may not instantiated 
 		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 			pItem->ObjectClass::UnInit();

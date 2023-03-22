@@ -19,7 +19,6 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83CB8u> const Array{};
-
 	static constexpr reference<DynamicVectorClass<SuperClass*>, 0xA83D50u> const ShowTimers{};
 
 	//IPersist
@@ -34,8 +33,8 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6CDFF0);
-	virtual AbstractType WhatAmI() const override { return AbstractType::Super; }
-	virtual int Size() const override { return 0x80; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	// non virtual
 	void CreateChronoAnim(CoordStruct coords)
@@ -126,8 +125,7 @@ public:
 	DECLARE_PROPERTY(TimerStruct, RechargeTimer);
 	PROTECTED_PROPERTY(DWORD, unused_3C);
 	bool BlinkState;
-	PROTECTED_PROPERTY(BYTE, unused_41[3]);
-	DWORD unused_44;
+	PROTECTED_PROPERTY(BYTE, unused_41[7]);
 	LARGE_INTEGER BlinkTimer;
 	int SpecialSoundDuration; // see 0x6CD14F
 	DECLARE_PROPERTY(CoordStruct, SpecialSoundLocation);

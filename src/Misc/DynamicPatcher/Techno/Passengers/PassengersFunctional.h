@@ -6,6 +6,6 @@ class TechnoClass;
 struct PassengersFunctional
 {
 	static void AI(TechnoClass* pThis);
-	static void CanFire(TechnoClass* pThis, bool& cease);
+	static bool CanFire(TechnoClass* pThis);
 };
 #endif

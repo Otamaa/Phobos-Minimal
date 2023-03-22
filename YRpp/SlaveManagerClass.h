@@ -26,16 +26,17 @@ enum class SlaveControlStatus : unsigned int {
 	Dead = 6
 };
 
+struct SlaveControl
+{
+	InfantryClass* Slave;
+	SlaveControlStatus State;
+	CDTimerClass RespawnTimer;
+};
+
 class DECLSPEC_UUID("335AAFE4-2DA6-11D5-BE22-00104B62A16C")
 	NOVTABLE SlaveManagerClass : public AbstractClass
 {
 public:
-
-	struct SlaveControl {
-		InfantryClass* Slave;
-		SlaveControlStatus State;
-		TimerStruct RespawnTimer;
-	};
 
 	static const AbstractType AbsID = AbstractType::SlaveManager;
 
@@ -53,8 +54,8 @@ public:
 	virtual ~SlaveManagerClass() override JMP_THIS(0x6B1390);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override { return AbstractType::SlaveManager; }
-	virtual int Size() const override { return 0x64; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x6AF5F0);
 
 	// non-virtual
@@ -119,8 +120,8 @@ public:
 	int SlaveCount;
 	int RegenRate;
 	int ReloadRate;
-	DECLARE_PROPERTY(DynamicVectorClass<SlaveControl*> ,SlaveNodes);
-	DECLARE_PROPERTY(TimerStruct, RespawnTimer);
+	DECLARE_PROPERTY(DynamicVectorClass<SlaveControl*>, SlaveNodes);
+	DECLARE_PROPERTY(CDTimerClass, RespawnTimer);
 	SlaveManagerStatus State;
 	int LastScanFrame;
 };

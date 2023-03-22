@@ -31,8 +31,8 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x62FE90);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual void Update() override JMP_THIS(0x62FD60);
 	
 	//ObjectClass
@@ -70,9 +70,9 @@ protected:
 public:
 
 	ParticleSystemTypeClass* Type;
-	DECLARE_PROPERTY(CoordStruct,  SpawnDistanceToOwner);
-	DECLARE_PROPERTY(DynamicVectorClass<ParticleClass*>, Particles);
-	DECLARE_PROPERTY(CoordStruct, TargetCoords);
+	CoordStruct  SpawnDistanceToOwner;
+	DynamicVectorClass<ParticleClass*> Particles;
+	CoordStruct TargetCoords;
 	ObjectClass* Owner;
 	AbstractClass* Target; // CellClass or TechnoClass
 	int          SpawnFrames; //from ParSysTypeClass
@@ -81,7 +81,6 @@ public:
 	int          SpotlightRadius; //defaults to 29
 	bool         TimeToDie;
 	bool         unknown_bool_F9;
-	PROTECTED_PROPERTY(BYTE, align_F10[2]);
 	HouseClass*  OwnerHouse;
 };
 

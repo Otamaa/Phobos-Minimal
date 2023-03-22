@@ -66,24 +66,6 @@ DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 //Lunar limitation
 DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
 
-static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
-	CoordStruct* pCoord,
-	int Damage,
-	TechnoClass* Source,
-	WarheadTypeClass* Warhead,
-	bool AffectTiberium,
-	HouseClass* SourceHouse
-
-)
-{
-	HouseClass* pHouseOwner = Source ? Source->GetOwningHouse() : nullptr;
-	auto nCoord = *pCoord;
-	return MapClass::DamageArea
-	(nCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
-}
-
-DEFINE_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
-
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
 	GET(VeinholeMonsterClass*, pThis, ESI);
@@ -441,7 +423,7 @@ DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 #pragma endregion
 
 //Get_Join_Responses_DuplicateSerianNumber 0x5
-DEFINE_JUMP(LJMP, 0x5E0C24, 0x5E0C4E)
+//DEFINE_JUMP(LJMP, 0x5E0C24, 0x5E0C4E)
 
 //HouseClass_AllyAIHouses 0x5
 //DEFINE_JUMP(LJMP, 0x501640, 0x50174E)
@@ -624,42 +606,47 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
 	GET(TechnoClass*, pThis, ESI);
 
+	const auto pTypeExt  = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	const bool Allow = RulesExt::Global()->AutoAttackICedTarget.Get() || pThis->Owner->ControlledByPlayer();
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->AllowFire_IroncurtainedTarget.Get(Allow)
+	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
 		? BypassCheck : ContinueCheck;
 }
 
 DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 {
+	enum { DecideResult  = 0x709202  , Continue = 0x0};
+
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
 
-	if ((pThis->Owner && !pThis->Owner->ControlledByPlayer()))
-	{
-		R->CL(TechnoTypeExt::ExtMap.Find(pType)->PassiveAcquire_AI.Get(pType->CanPassiveAquire));
-		return 0x709202;
+	const auto pTypeExt  = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pThis->Owner
+		&& !pThis->Owner->ControlledByPlayer()
+		&& pTypeExt->PassiveAcquire_AI.isset()) {
+		R->CL(pTypeExt->PassiveAcquire_AI.Get());
+		return DecideResult;
 	}
 
-	return 0x0;
+	return Continue;
 }
 
-DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
-{
-	GET(BuildingClass*, pThis, EBP);
-	GET(RulesClass*, pRules, EDX);
-	GET_STACK(int, nAvailMoney, 0x18);
-
-	float mult = pRules->SpyMoneyStealPercent;
-	auto const& nAIMult = RulesExt::Global()->AI_SpyMoneyStealPercent;
-
-	if (pThis->Owner && !pThis->Owner->ControlledByPlayer() && nAIMult.isset())
-	{
-		mult = nAIMult.Get();
-	}
-
-	R->EAX(Game::F2I(nAvailMoney * mult));
-	return 0x45744A;
-}
+//DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	GET(RulesClass*, pRules, EDX);
+//	GET_STACK(int, nAvailMoney, 0x18);
+//
+//	float mult = pRules->SpyMoneyStealPercent;
+//	auto const& nAIMult = RulesExt::Global()->AI_SpyMoneyStealPercent;
+//
+//	if (pThis->Owner && !pThis->Owner->ControlledByPlayer() && nAIMult.isset()) {
+//		mult = nAIMult.Get();
+//	}
+//
+//	R->EAX(Game::F2I(nAvailMoney * mult));
+//	return 0x45744A;
+//}
 
 DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 {
@@ -674,9 +661,13 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	GET(TechnoClass*, pTarget, ESI);
 	GET(TechnoTypeClass*, pTargetType, EBP);
 
-	if (pTarget->Owner && !pTarget->Owner->ControlledByPlayer())
-	{
-		R->AL(TechnoTypeExt::ExtMap.Find(pTargetType)->AI_LegalTarget.Get(pTargetType->LegalTarget));
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+
+	if (pTarget->Owner
+		&& !pTarget->Owner->ControlledByPlayer()
+		&& pTypeExt->AI_LegalTarget.isset()
+		) {
+		R->AL(pTypeExt->AI_LegalTarget.Get());
 		return SetAL;
 	}
 
@@ -720,15 +711,14 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pTypeExt->CommandLine_Attack_Color.isset())
-	{
+	if (pTypeExt->CommandLine_Attack_Color.isset()) {
+
 		GET(CoordStruct*, pMovingDestCoord, EAX);
 		GET(int, nFLH_X, EBP);
 		GET(int, nFLH_Y, EBX);
 		GET_STACK(int, nFLH_Z, STACK_OFFS(0x34, 0x10));
 
-		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty)
-		{
+		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty) {
 			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color.Get()), false, false);
 		}
 
@@ -750,8 +740,8 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pTypeExt->CommandLine_Move_Color.isset())
-	{
+	if (pTypeExt->CommandLine_Move_Color.isset()) {
+
 		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34, 0x24));
 		GET(int, nCoordDest_Adjusted_Z, EDI);
 		GET(int, nLoc_X, EBP);
@@ -759,8 +749,7 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 		GET_STACK(int, nLoc_Z, STACK_OFFS(0x34, 0x10));
 		GET_STACK(bool, barg3, STACK_OFFSET(0x34, 0x8));
 
-		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty)
-		{
+		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty) {
 			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Move_Color.Get()), barg3, false);
 		}
 
@@ -775,9 +764,12 @@ DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 	enum { Continue = 0x0, ReturnFalse = 0x4DBDEB };
 	GET(FootClass*, pThis, ESI);
 
-	if (TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->CloakMove.Get()
-		&& !pThis->Locomotor->Is_Moving())
-		return ReturnFalse;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if(pTypeExt->CloakMove.isset()) {
+		return pTypeExt->CloakMove.Get() && !pThis->Locomotor->Is_Moving() ?
+		ReturnFalse : Continue;
+	}
 
 	return Continue;
 }
@@ -838,16 +830,16 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //	return 0x4F9AAB;
 //}
 
-DEFINE_HOOK(0x50CA30, HouseClass_Center_50C920, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis->BelongsToATeam())
-		return 0x50CAB4;
-
-	R->CL(pThis->GetTechnoType()->DeploysInto->ConstructionYard);
-	return 0x50CA3C;
-}
+//DEFINE_HOOK(0x50CA30, HouseClass_Center_50C920, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (pThis->BelongsToATeam())
+//		return 0x50CAB4;
+//
+//	R->CL(pThis->GetTechnoType()->DeploysInto->ConstructionYard);
+//	return 0x50CA3C;
+//}
 
 //DEFINE_HOOK(0x737E66, UnitClass_ReceiveDamage_Debug, 0x8)
 //{
@@ -897,29 +889,29 @@ static void ClearShit(TechnoTypeClass* a1)
 	MapClass::Instance->MarkNeedsRedraw(1);
 }
 
-DEFINE_HOOK(0x6AB63B, SelectClass_Action_UnableToBuild, 0x6)
-{
-	GET(TechnoTypeClass*, pTech, EAX);
+//DEFINE_HOOK(0x6AB63B, SelectClass_Action_UnableToBuild, 0x6)
+//{
+//	GET(TechnoTypeClass*, pTech, EAX);
+//
+//	if (HouseClass::CurrentPlayer()->CanBuild(pTech, 0, 0) == CanBuildResult::Buildable)
+//		return 0;
+//
+//	ClearShit(pTech);
+//	return 0x6AB95A;
+//}
 
-	if (HouseClass::CurrentPlayer()->CanBuild(pTech, 0, 0) == CanBuildResult::Buildable)
-		return 0;
-
-	ClearShit(pTech);
-	return 0x6AB95A;
-}
-
-DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
-{
-	GET(BuildingTypeClass*, pTech, EBX);
-	auto const pHouse = HouseClass::CurrentPlayer();
-
-	const auto pFac = pHouse->GetPrimaryFactory(pTech->WhatAmI(), pTech->Naval, pTech->BuildCat);
-	if (pFac && pFac->Object->GetTechnoType() != pTech)
-		R->Stack(0x17, 1);
-
-
-	return 0;
-}
+//DEFINE_HOOK(0x6A9791, StripClass_DrawIt_BuildingFix, 0x6)
+//{
+//	GET(BuildingTypeClass*, pTech, EBX);
+//	auto const pHouse = HouseClass::CurrentPlayer();
+//
+//	const auto pFac = pHouse->GetPrimaryFactory(pTech->WhatAmI(), pTech->Naval, pTech->BuildCat);
+//	if (pFac && pFac->Object->GetTechnoType() != pTech)
+//		R->Stack(0x17, 1);
+//
+//
+//	return 0;
+//}
 
 //DEFINE_HOOK_AGAIN(0x6A91E5, SidebarClass_Update_MultiMoney, 0x6)
 //DEFINE_HOOK(0x6A9137, SidebarClass_Update_MultiMoney, 0x6)
@@ -966,12 +958,12 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 //	return 0;
 //}
 
-DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
-{
-	GET(TechnoClass*, pProduct, ECX);
-	pProduct->UnInit();
-	return 0x4CA0FF;
-}
+//DEFINE_HOOK(0x4CA0F8, FactoryClass_AbandonProduction_RemoveProduct, 0x7)
+//{
+//	GET(TechnoClass*, pProduct, ECX);
+//	pProduct->UnInit();
+//	return 0x4CA0FF;
+//}
 
 //DEFINE_HOOK_AGAIN(0x534F4E, ScoreClass_LoadMix, 0x5)
 //DEFINE_HOOK(0x6D97BF , ScoreClass_LoadMix, 0x5)
@@ -985,10 +977,8 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto pType = pThis->GetTechnoType())
-	{
-		if (pType->PoweredUnit && pThis->Owner)
-		{
+	if (auto pType = pThis->GetTechnoType()) {
+		if (pType->PoweredUnit && pThis->Owner) {
 			pThis->Owner->RecheckPower = true;
 		}
 	}
@@ -1037,7 +1027,7 @@ DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
 }
 
-DEFINE_HOOK(0x71B14E, TemporalClass_Fire_ClearTarget, 0x9)
+DEFINE_HOOK(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 {
 	GET(TemporalClass*, pThis, ESI);
 
@@ -1184,18 +1174,18 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x5B3614, MissionClass_AssignMission_CheckBuilding, 0x6)
-{
-	GET(MissionClass*, pThis, ESI);
-	GET(Mission, nMission, EAX);
-
-	if (pThis->WhatAmI() == AbstractType::Building && nMission == Mission::Hunt)
-		pThis->QueuedMission = Mission::Guard;
-	else
-		pThis->QueuedMission = nMission;
-
-	return 0x5B361A;
-}
+//DEFINE_HOOK(0x5B3614, MissionClass_AssignMission_CheckBuilding, 0x6)
+//{
+//	GET(MissionClass*, pThis, ESI);
+//	GET(Mission, nMission, EAX);
+//
+//	if (pThis->WhatAmI() == AbstractType::Building && nMission == Mission::Hunt)
+//		pThis->QueuedMission = Mission::Guard;
+//	else
+//		pThis->QueuedMission = nMission;
+//
+//	return 0x5B361A;
+//}
 
 //Ares Hook Here !
 //DEFINE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
@@ -2049,7 +2039,7 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
 }
 
-//DEFINE_HOOK(0x6FDDC0, TechnoClass_Fire_RememberAttacker, 0x6)
+//DEFINE_HOOK(0x6FDDC0, TechnoClass_FireAt_RememberAttacker, 0x6)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0xB4,0x4));
@@ -2281,8 +2271,8 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 			{
 				auto v13 = abs(ScenarioClass::Instance->Random.RandomRanged(nMin, nMax));
 				auto v10 = ScenarioClass::Instance->Random.RandomDouble() * v17 + v16;
-				auto v18 = Math::cos(v10);
-				auto v9 = Math::sin(v10);
+				auto v18 = std::cos(v10);
+				auto v9 = std::sin(v10);
 				CoordStruct nCoordB { nCoord.X + static_cast<int>(v13 * v18),nCoord.Y - static_cast<int>(v9 * v13), nCoord.Z };
 				nCoordB.Z = v8 + MapClass::Instance->GetCellFloorHeight(nCoordB);
 				ParticleSystemClass::Instance->SpawnParticle(pType, &nCoordB);
@@ -2350,10 +2340,10 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	if (!nMax)
 		return;
 
-	const auto nStorage_0 = pTechno->Tiberium.at(0); //Riparius
-	const auto nStorage_1 = pTechno->Tiberium.at(1); //Cruentus
-	const auto nStorage_2 = pTechno->Tiberium.at(2); //Vinifera
-	const auto nStorage_3 = pTechno->Tiberium.at(3); //Aboreus
+	const auto nStorage_0 = pTechno->Tiberium.Tiberiums[0]; //Riparius
+	const auto nStorage_1 = pTechno->Tiberium.Tiberiums[1]; //Cruentus
+	const auto nStorage_2 = pTechno->Tiberium.Tiberiums[2]; //Vinifera
+	const auto nStorage_3 = pTechno->Tiberium.Tiberiums[3]; //Aboreus
 	auto const nStorage = pType->Storage;
 
 	auto amount_Riparious = Game::F2I(nStorage_0 / nStorage * nMax + 0.5);
@@ -3106,27 +3096,32 @@ DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 
 DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
 {
+	enum {
+		ReturnNoVoiceCreate = 0x4FB804,
+		Continue = 0x0 
+	};
+
 	GET(HouseClass*, pThis, EDI);
 	GET(TechnoTypeClass*, pTech, ESI);
 	GET_STACK(TechnoClass*, pTech_, STACK_OFFS(0x1C, -0x4));
 
-	if (pTech && pTech_)
-	{
-		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech))
-		{
-			if (pTechnoTypeExt->VoiceCreate.Get() != -1)
-				pTech_->QueueVoice(pTechnoTypeExt->VoiceCreate.Get());
+	if (pTech && pTech_) {
+		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech)) {
+
+			auto const nVoiceCreateIdx = pTechnoTypeExt->VoiceCreate.Get();
+			if ( nVoiceCreateIdx != -1)
+				pTech_->QueueVoice(nVoiceCreateIdx);
 
 			if (!pTechnoTypeExt->CreateSound_Enable.Get())
-				return 0x4FB804;
+				return ReturnNoVoiceCreate;
 
 			if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
-				return pThis->IsCurrentPlayer() ? 0x0 : 0x4FB804;
-
+				return pThis->IsControlledByCurrentPlayer() ?
+					Continue : ReturnNoVoiceCreate;
 		}
 	}
 
-	return 0x0;
+	return Continue;
 }
 
 DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComplete, 0x5)
@@ -3248,7 +3243,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //	return CheckMission;
 //}
 
-//DEFINE_HOOK(0x51DF82, InfantryClass_Fire_StartReloading, 0x6)
+//DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 //{
 //	GET(InfantryClass*, pThis, ESI);
 //	const auto pType = pThis->Type;

@@ -50,7 +50,7 @@ struct VeterancyStruct
 
 	void Add(double value) noexcept {
 		float val = (float)(this->Veterancy + value);
-		this->Veterancy = Math::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
+		this->Veterancy = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
 	}
 
 	Rank GetRemainingLevel() const noexcept {
@@ -207,11 +207,12 @@ public:
 	virtual void Init() override { JMP_THIS(0x6F3F40); }
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x7077C0);
 	virtual int GetOwningHouseIndex() const override JMP_THIS(0x6F9DB0);//{ return this->Owner->ArrayIndex; }
-	//virtual HouseClass* GetOwningHouse() const override { return this->Owner; }
+	virtual HouseClass* GetOwningHouse() const override { return this->Owner; }
 	virtual void Update() override JMP_THIS(0x6F9E50);
-
+			  
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) override JMP_THIS(0x710410);
+	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) override JMP_THIS(0x4DEAE0);
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x6F6AC0);
@@ -693,7 +694,7 @@ protected:
 public:
 
 	DECLARE_PROPERTY(FlashData, Flashing);
-	DECLARE_PROPERTY(ProgressTimer, Animation); // how the unit animates
+	DECLARE_PROPERTY(StageClass, Animation); // how the unit animates
 	DECLARE_PROPERTY(PassengersClass, Passengers);
 	TechnoClass*     Transporter; // unit carrying me
 	int              __LastGuardAreaTargetingFrame_120;
@@ -712,14 +713,14 @@ public:
 	DWORD			 align_154;
 	double           ArmorMultiplier;
 	double           FirepowerMultiplier;
-	DECLARE_PROPERTY(TimerStruct, IdleActionTimer); // MOO CDTimerClass
-	DECLARE_PROPERTY(TimerStruct, RadarFlashTimer);  //FrameTimerClass
-	DECLARE_PROPERTY(TimerStruct, TargetingTimer); //Duration = 45 on init!
-	DECLARE_PROPERTY(TimerStruct, IronCurtainTimer);
-	DECLARE_PROPERTY(TimerStruct, IronTintTimer); // how often to alternate the effect color
+	DECLARE_PROPERTY(CDTimerClass, IdleActionTimer); // MOO
+	DECLARE_PROPERTY(CDTimerClass, RadarFlashTimer);
+	DECLARE_PROPERTY(CDTimerClass, TargetingTimer); //Duration = 45 on init!
+	DECLARE_PROPERTY(CDTimerClass, IronCurtainTimer);
+	DECLARE_PROPERTY(CDTimerClass, IronTintTimer); // how often to alternate the effect color
 	int              IronTintStage; // ^
-	DECLARE_PROPERTY(TimerStruct, AirstrikeTimer);
-	DECLARE_PROPERTY(TimerStruct, AirstrikeTintTimer); // tracks alternation of the effect color
+	DECLARE_PROPERTY(CDTimerClass, AirstrikeTimer);
+	DECLARE_PROPERTY(CDTimerClass, AirstrikeTintTimer); // tracks alternation of the effect color
 	DWORD            AirstrikeTintStage; //  ^
 	int              ForceShielded;	//0 or 1, NOT a bool - is this under ForceShield as opposed to IC?
 	bool             Deactivated; //Robot Tanks without power for instance
@@ -728,11 +729,12 @@ public:
 	AnimClass*       DrainAnim;
 	bool             Disguised;
 	DWORD            DisguiseCreationFrame;
-	DECLARE_PROPERTY(TimerStruct, InfantryBlinkTimer); // Rules->InfantryBlinkDisguiseTime , detects mirage firing per description
-	DECLARE_PROPERTY(TimerStruct, DisguiseBlinkTimer); // disguise disruption timer
+	DECLARE_PROPERTY(CDTimerClass, InfantryBlinkTimer); // Rules->InfantryBlinkDisguiseTime , detects mirage firing per description
+	DECLARE_PROPERTY(CDTimerClass, DisguiseBlinkTimer); // disguise disruption timer
 	bool             UnlimboingInfantry; //1F8
-	DECLARE_PROPERTY(TimerStruct, ReloadTimer);//CDTimerClass
-	DECLARE_PROPERTY(Point2D, __RadarPos);
+	DECLARE_PROPERTY(CDTimerClass, ReloadTimer);
+	DWORD            unknown_208;
+	DWORD            unknown_20C;
 
 	// WARNING! this is actually an index of HouseTypeClass es, but it's being changed to fix typical WW bugs.
 	DECLARE_PROPERTY(IndexBitfield<HouseClass *>, DisplayProductionTo); // each bit corresponds to one player on the map, telling us whether that player has (1) or hasn't (0) spied this building, and the game should display what's being produced inside it to that player. The bits are arranged by player ID, i.e. bit 0 refers to house #0 in HouseClass::Array, 1 to 1, etc.; query like ((1 << somePlayer->ArrayIndex) & someFactory->DisplayProductionToHouses) != 0
@@ -748,11 +750,11 @@ public:
 	AbstractClass*   Focus;
 	HouseClass*      Owner;
 	CloakState       CloakState;
-	DECLARE_PROPERTY(ProgressTimer, CloakProgress); //StageClass, phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
-	DECLARE_PROPERTY(TimerStruct, CloakDelayTimer); // delay before cloaking again
+	DECLARE_PROPERTY(StageClass, CloakProgress); // phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
+	DECLARE_PROPERTY(CDTimerClass, CloakDelayTimer); // delay before cloaking again
 	float            WarpFactor; // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
 	bool             unknown_bool_250;
-	DECLARE_PROPERTY(CoordStruct,      LastSightCoords);
+	CoordStruct      LastSightCoords;
 	int              LastSightRange;
 	int              LastSightHeight;
 	bool             GapSuperCharged; // GapGenerator, when SuperGapRadiusInCells != GapRadiusInCells, you can deploy the gap to boost radius
@@ -767,7 +769,7 @@ public:
 	bool             IsImmobilized; // by chrono aftereffects ,27C
 	DWORD            unknown_280;
 	int              ChronoLockRemaining; // 284 countdown after chronosphere warps things around
-	DECLARE_PROPERTY(CoordStruct,      ChronoDestCoords); // teleport loco and chsphere set this
+	CoordStruct      ChronoDestCoords; // teleport loco and chsphere set this
 	AirstrikeClass*  Airstrike; //Boris
 	bool             Berzerk;
 	int            	BerzerkDurationLeft;
@@ -798,8 +800,8 @@ public:
 	TechnoClass*     BunkerLinkedItem;
 
 	float            PitchAngle; // not exactly, and it doesn't affect the drawing, only internal state of a dropship
-	DECLARE_PROPERTY(TimerStruct, ArmTimer); //DiskLaserTimer
-	int              ROF;
+	DECLARE_PROPERTY(CDTimerClass, DiskLaserTimer);
+	int           	 ROF;
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
 
@@ -828,7 +830,7 @@ public:
 	int              HijackerInfantryType; // mutant hijacker
 
 	DECLARE_PROPERTY(StorageClass, Tiberium);
-	PROTECTED_PROPERTY(DWORD , unknown_34C);
+	DWORD            unknown_34C;
 
 	DECLARE_PROPERTY(TransitionTimer, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
 
@@ -836,7 +838,7 @@ public:
 	DECLARE_PROPERTY(FacingClass, PrimaryFacing);
 	DECLARE_PROPERTY(FacingClass, SecondaryFacing);
 	int              CurrentBurstIndex;
-	DECLARE_PROPERTY(TimerStruct, TargetLaserTimer); //FrameTimerClass
+	DECLARE_PROPERTY(CDTimerClass, TargetLaserTimer);
 	short            weapon_sound_number_3C8;
 	WORD             __shipsink_3CA;
 	bool             CountedAsOwned; // is this techno contained in OwningPlayer->Owned... counts?

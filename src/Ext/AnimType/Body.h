@@ -146,6 +146,7 @@ public:
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 
+		void ValidateSpalshAnims();
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

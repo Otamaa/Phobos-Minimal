@@ -72,6 +72,7 @@ public:
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6442D0);
+
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override { return false; }
 	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }
@@ -102,7 +103,7 @@ public:
 	float    SpawnTranslucencyCutoff;
 	BehavesLike BehavesLike;
 	int      Lifetime;
-	DECLARE_PROPERTY(Vector3D<float>, SpawnDirection);
+	Vector3D<float> SpawnDirection;
 	double   ParticlesPerCoord;
 	double   SpiralDeltaPerCoord;
 	double   SpiralRadius;
@@ -112,7 +113,7 @@ public:
 	double   SpawnSparkPercentage;
 	int      SparkSpawnFrames;
 	int      LightSize;
-	DECLARE_PROPERTY(ColorStruct, LaserColor);
+	ColorStruct LaserColor;
 	bool     Laser;
 	bool     OneFrameLight;
 };

@@ -9,28 +9,19 @@ class NOVTABLE DisplayClass : public MapClass
 {
 public:
 	//Static
-	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Instance{};
-	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Global{};
-	
 	//WIP: DisplayClass::TacticalClass goes HERE
+	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Instance {};
+	static constexpr constant_ptr<DisplayClass, 0x87F7E8u> const Global {};
 
 	bool ProcessClickCoords(Point2D *src, CellStruct *XYdst, CoordStruct *XYZdst, ObjectClass **Target, BYTE *a5, BYTE *a6)
 		{ JMP_THIS(0x692300); }
-
-	static LayerClass* GetLayer(Layer lyr)
-	{
-		if(lyr >= Layer::Underground && lyr <= Layer::Top)
-			return reinterpret_cast<LayerClass**>(0x8A0360)[static_cast<int>(lyr)];
-		else
-			return nullptr;
-	}
 
 	// the foundation for placement with green/red
 	void  SetActiveFoundation(const CellStruct& cell)
 	{ JMP_THIS(0x4A8BF0); }
 
 	//Destructor
-	virtual ~DisplayClass() override JMP_THIS(0x4AEBF0);
+	virtual ~DisplayClass() JMP_THIS(0x4AEBF0);
 	
 	//GScreenClass
 	virtual void One_Time() override JMP_THIS(0x4A8850);
@@ -39,6 +30,7 @@ public:
 	virtual void Update(const int& keyCode, const Point2D& mouseCoords) override JMP_THIS(0x4A9700);
 
 	//MapClass
+	
 	//DisplayClass
 	virtual HRESULT Load(IStream* pStm) JMP_THIS(0x4AE6F0);
 	virtual HRESULT Save(IStream* pStm) JMP_THIS(0x4AE720);
@@ -115,7 +107,7 @@ public:
 	bool unknown_1181;
 	CellStruct CurrentFoundationCopy_CenterCell; // this is a copy of the CurrentFoundation data above..
 	CellStruct CurrentFoundationCopy_TopLeftOffset;
-	CellStruct * CurrentFoundationCopy_Data; // (note: limited to 50 [!] cells)
+	CellStruct* CurrentFoundationCopy_Data; // (note: limited to 50 [!] cells)
 	DWORD unknown_1190;
 	DWORD unknown_1194;
 	DWORD unknown_1198;
@@ -140,9 +132,8 @@ public:
 	bool DraggingRectangle; //11CF IsRubberBand
 	bool IsTentative; //11D0
 	bool IsShadowPresen; //11D1
-	DWORD unknown_11D4;
-	DWORD unknown_11D8;
-	DWORD unknown_11DC;
-	DWORD unknown_11E0;
-	PROTECTED_PROPERTY(DWORD, padding_11E4);
+	Point2D Band;
+	Point2D New;
+
 };
+static_assert(sizeof(DisplayClass) == 0x11E4, "Invalid Size !");

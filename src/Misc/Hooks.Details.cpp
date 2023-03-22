@@ -21,7 +21,7 @@ public:
 		// the low frame rate is actually desired. in that case, don't reduce.
 		auto const current = FPSCounter::CurrentFrameRate();
 		auto const wanted = static_cast<unsigned int>(
-			60 / Math::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
+			60 / std::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
 
 		return current >= wanted || current >= Detail::GetMinFrameRate();
 	}
@@ -35,7 +35,7 @@ public:
 	static inline bool IsFPSEligible()
 	{
 		auto const wanted = static_cast<unsigned int>(
-			60 / Math::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
+			60 / std::clamp(GameOptionsClass::Instance->GameSpeed, 1, 6));
 
 		if (FPSCounter::CurrentFrameRate() >= wanted)
 			return false;

@@ -8,7 +8,9 @@ class  DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 {
 public:
 	static constexpr inline DWORD vtable = 0x7ECE34;
-
+	static constexpr inline DWORD ILoco_vtable = 0x7ECD68;
+	static constexpr inline DWORD IPiggy_vtable = 0x7ECD44;
+	
 	enum State
 	{
 		Grounded = 0,
@@ -21,40 +23,40 @@ public:
 	};
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override  R0;
+	virtual ULONG __stdcall AddRef() override  R0;
+	virtual ULONG __stdcall Release() override  R0;
 
 	//IPiggyback
-	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) R0;
-	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) R0;
-	virtual bool __stdcall Is_Ok_To_End() R0;
-	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) R0;
-	virtual bool __stdcall Is_Piggybacking() R0;
+	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override  R0;
+	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override  R0;
+	virtual bool __stdcall Is_Ok_To_End() override  R0;
+	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override  R0;
+	virtual bool __stdcall Is_Piggybacking() override  R0;
 
 	//ILocomotion
-	virtual bool __stdcall Is_Moving() R0;
-	virtual CoordStruct* __stdcall Destination(CoordStruct* pcoord) R0;
-	virtual bool __stdcall Process() R0;
-	virtual void __stdcall Move_To(CoordStruct to) RX;
-	virtual void __stdcall Stop_Moving() RX;
-	virtual void __stdcall Do_Turn(DirStruct coord) RX;
-	virtual Layer __stdcall In_Which_Layer() RT(Layer);
-	virtual void __stdcall Mark_All_Occupation_Bits(int mark) RX;
-	virtual void __stdcall Clear_Coords() RX;
+	virtual bool __stdcall Is_Moving() override  R0;
+	virtual CoordStruct __stdcall Destination() override RT(CoordStruct);
+	virtual bool __stdcall Process() override  R0;
+	virtual void __stdcall Move_To(CoordStruct to) override  RX;
+	virtual void __stdcall Stop_Moving() override  RX;
+	virtual void __stdcall Do_Turn(DirStruct coord) override  RX;
+	virtual Layer __stdcall In_Which_Layer() override  RT(Layer);
+	virtual void __stdcall Mark_All_Occupation_Bits(int mark) override  RX;
+	virtual void __stdcall Clear_Coords() override  RX;
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override  R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override  R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override  R0;
 
 	//Destructor
 	virtual ~JumpjetLocomotionClass() RX;
 
 	//LocomotionClass
-	virtual	int Size() R0;
+	virtual	int Size() override  R0;
 
 	//JumjetLocomotionClass
 	int GetZCoords() const
@@ -72,12 +74,6 @@ protected:
 	explicit __forceinline JumpjetLocomotionClass(noinit_t)
 		: LocomotionClass(noinit_t())
 	{
-		//vtftable
-		//*((unsigned long*)this) = (unsigned long)0x7ECE34;
-		// ILoco
-		//*((unsigned long*)this + 1) = (unsigned long)0x7ECD68;
-		// IPiggy
-		//*((unsigned long*)this + 18) = (unsigned long)0x7ECD44;
 	}
 
 	//===========================================================================

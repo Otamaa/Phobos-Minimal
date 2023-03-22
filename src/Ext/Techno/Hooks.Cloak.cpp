@@ -3,7 +3,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
-#ifdef CHECK_FOR_DESYNC 
 DEFINE_HOOK(0x703A09, TechnoClass_VisualCharacter_CloakVisibility_A, 0x7)
 {
 	enum { UseShadowyVisual = 0x703A5A, CheckMutualAlliance = 0x703A16 };
@@ -44,7 +43,6 @@ DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility_A, 0x5)
 
 	return CheckMutualAlliance;
 }
-#endif
 
 DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Decloak, 0xA)
 {

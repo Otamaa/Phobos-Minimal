@@ -40,26 +40,26 @@ public:
 	static constexpr reference<SHPStruct*, 0xAA1060u, 0x4u> const SlopeZshape {};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) RX;
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
-	virtual void CalculateChecksum(Checksummer& checksum) const RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
+	virtual void ComputeCRC(CRCEngine& checksum) const override RX;
 
 	virtual int GetArrayIndex() const R0;
 
 	//ObjectTypeClass
-	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest, CoordStruct* pSrc) const R0;
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
-	virtual CellStruct* GetFoundationData(bool IncludeBib) const R0;
+	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest, CoordStruct* pSrc) const override  R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override  R0;
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) override  R0;
+	virtual CellStruct* GetFoundationData(bool IncludeBib) const override  R0;
 
-	virtual SHPStruct* GetImage() const R0;
+	virtual SHPStruct* GetImage() const override  R0;
 
 	//Destructor
 	virtual ~IsometricTileTypeClass() override JMP_THIS(0x54A170);

@@ -31,8 +31,8 @@ public:
 	virtual ~VoxelAnimClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 
 	//ObjectClass
 	//VoxelAnimClass

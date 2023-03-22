@@ -24,7 +24,7 @@ public:
 
 		char tempBuffer[32];
 
-		for (size_t i = 0; ; ++i)
+		for (int i = 0; ; ++i)
 		{
 			Nullable<ColorStruct> tempColor;
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LineTrail%dColor", i);

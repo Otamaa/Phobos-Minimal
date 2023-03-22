@@ -114,7 +114,7 @@ public:
 
 	void Add(int nTime) {
 		this->Pause();
-		this->TimeLeft = nTime;
+		this->TimeLeft += nTime;
 		this->Resume();
 	}
 
@@ -126,6 +126,7 @@ public:
 		return this->GetTimeLeft() > 0;
 	}
 };
+static_assert(sizeof(TimerStruct) == 0xC, "Invalid Size !");
 
 typedef TimerStruct CDTimerClass;
 class RepeatableTimerStruct : public TimerStruct
@@ -162,7 +163,7 @@ typedef RepeatableTimerStruct RateTimer;
 //	}
 //
 //	explicit DirStruct(double nVelZ, double nVelDistanceXY) : DirStruct() {
-//		this->radians(Math::atan2(nVelZ, nVelDistanceXY));
+//		this->radians(std::atan2(nVelZ, nVelDistanceXY));
 //	}
 //
 //	DirStruct(size_t bits, value_type value)

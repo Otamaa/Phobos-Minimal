@@ -57,24 +57,27 @@ InfantryExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-//DEFINE_HOOK(0x517B4A, InfantryClass_CTOR, 0xA)
+//DEFINE_HOOK(0x517B44, InfantryClass_CTOR, 0xA)
 //{
 //	GET(InfantryClass*, pItem, ESI);
 //	GET(InfantryTypeClass*, pType, EAX);
+//	GET(void*, ptrs, EBX);
 //
-//	if(pType) {
-//		InfantryExt::ExtMap.JustAllocate(pItem, pItem, "Failed !");
+//	if(pType != ptrs) {
+//		InfantryExt::ExtMap.Allocate(pItem);
 //		return 0x517B4E;
 //	}
 //
 //	return 0x517BBD;
 //}
-
+//
 DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 {
 	GET(InfantryClass*, pItem, ESI);
 
-	InfantryExt::ExtMap.Allocate(pItem);
+	if(pItem->Type)
+		InfantryExt::ExtMap.Allocate(pItem);
+
 	return 0;
 }
 

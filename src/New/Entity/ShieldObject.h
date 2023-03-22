@@ -58,7 +58,7 @@ public:
 
 	virtual AbstractType WhatAmI() const { return static_cast<AbstractType>(74); }
 	virtual int Size() const { return sizeof(*this); }
-	virtual void CalculateChecksum(Checksummer& checksum) const {}
+	virtual void ComputeCRC(CRCEngine& checksum) const {}
 	virtual int GetOwningHouseIndex() const { return 0; }
 	virtual HouseClass* GetOwningHouse() const { return nullptr;}
 	virtual int GetArrayIndex() const { return 0; }

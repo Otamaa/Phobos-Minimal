@@ -128,7 +128,7 @@ namespace DrawHeathData
 				break;
 			}
 
-			int const nFrame_Total = Math::clamp((int)pShpGreen->Frames, 12 + 1, 36 + 1);
+			int const nFrame_Total = std::clamp((int)pShpGreen->Frames, 12 + 1, 36 + 1);
 			nFrameResult = nInputToFrame;
 
 			// blank frames on the end (+1) !
@@ -259,7 +259,7 @@ namespace DrawHeathData
 		const int nOffsetX = (bIsInfantry ? -5 : -15);
 		const int nLength = (bIsInfantry ? 8 : 17);
 		const int nYDelta = nBracketDelta - (bIsInfantry ? 24 : 25);
-		const int nDraw = pThis->IsAlive ? Math::clamp((int)(round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
+		const int nDraw = pThis->IsAlive ? std::clamp((int)(std::round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
 		CoordStruct const nHealthFrame = pTypeExt->HealthBarSHP_HealthFrame.Get();
 		int nHealthFrameResult = nHealthFrame.Y; //Green
 
@@ -283,7 +283,7 @@ namespace DrawHeathData
 		const auto left = static_cast<double>(pThis->IronCurtainTimer.TimeLeft - passed);
 		const auto nTime = (left / pThis->IronCurtainTimer.TimeLeft);
 
-		return Math::clamp((int)round(nTime * iLength), 0, iLength);
+		return std::clamp((int)std::round(nTime * iLength), 0, iLength);
 	}
 
 	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int frame, int empty_frame, int bracket_delta)

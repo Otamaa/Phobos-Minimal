@@ -4,6 +4,8 @@
 
 #include <Utilities/Macro.h>
 
+// This broke aircraft targeting , disable it for now - Otama
+
 // Ares reimplements the bullet obstacle logic so need to get creative to add any new functionality for that in Phobos.
 // Not named PhobosTrajectoryHelper to avoid confusion with actual custom trajectory logic.
 class BulletObstacleHelper

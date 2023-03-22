@@ -411,10 +411,14 @@ void Phobos::DrawVersionWarning()
 {
 	if (!Phobos::Config::HideWarning)
 	{
+		const auto pSurface = DSurface::Composite();
+		if (!pSurface)
+			return;
+
 		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, { 0,0 }, 0, 2, 0);
 
 		RectangleStruct rect {
-			DSurface::Composite->Get_Width() - wanted.Width - 10,
+			pSurface->Get_Width() - wanted.Width - 10,
 			0,
 			wanted.Width + 10,
 			wanted.Height + 10
@@ -422,8 +426,8 @@ void Phobos::DrawVersionWarning()
 
 		Point2D location { rect.X + 5,5 };
 
-		DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-		DSurface::Composite->DSurfaceDrawText(Phobos::VersionDescription, &location, COLOR_RED);
+		pSurface->Fill_Rect(rect, COLOR_BLACK);
+		pSurface->DSurfaceDrawText(Phobos::VersionDescription, &location, COLOR_RED);
 	}
 }
 
@@ -441,7 +445,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -496,7 +500,7 @@ void Phobos::ExeRun()
 	}
 
 	#endif
-	Patch::ApplyStatic();
+	//Patch::ApplyStatic();
 	//PoseDirOverride::Apply();
 	InitAdminDebugMode();
 	InitConsole();
@@ -744,7 +748,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 }
 
 //Disable MousePresent check
-DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
+//DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2);
 
 DEFINE_HOOK(0x52F639, _YR_CmdLineParse, 0x5)
 {

@@ -70,8 +70,8 @@ public:
 
 	FootClass*      Owner;
 	FootClass*      Victim;
-	DECLARE_PROPERTY(TimerStruct,     SuppressionTimer);
-	DECLARE_PROPERTY(TimerStruct,     DamageDeliveryTimer);
+	CDTimerClass    SuppressionTimer;
+	CDTimerClass    DamageDeliveryTimer;
 	AnimClass*      GrappleAnim;
 	ParasiteState   GrappleState;
 	int             GrappleAnimFrame;

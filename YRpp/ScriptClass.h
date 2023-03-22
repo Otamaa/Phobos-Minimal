@@ -15,11 +15,11 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<ScriptClass*>, 0x8872B0u> const Array {};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x6915F0);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6915F0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x691630);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x691690);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x691630);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x691690);
 
 	//Destructor
 	virtual ~ScriptClass() JMP_THIS(0x691460);

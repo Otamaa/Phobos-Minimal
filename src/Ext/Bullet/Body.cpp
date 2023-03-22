@@ -173,8 +173,8 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
 
-					auto const sin_rad = Math::sin(radians);
-					auto const cos_rad = Math::cos(radians);
+					auto const sin_rad = std::sin(radians);
+					auto const cos_rad = std::cos(radians);
 					auto const cos_factor = -2.44921270764e-16;
 					auto const flatSpeed = cos_factor * pBullet->Speed;
 
@@ -216,8 +216,8 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 	double const nFirstMag = velocity.MagnitudeXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
-	double const sin_rad = Math::sin(radians_fromXY);
-	double const cos_rad = Math::cos(radians_fromXY);
+	double const sin_rad = std::sin(radians_fromXY);
+	double const cos_rad = std::cos(radians_fromXY);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -231,12 +231,12 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= Math::cos(radians_foZ);
-			velocity.Y /= Math::cos(radians_foZ);
+			velocity.X /= std::cos(radians_foZ);
+			velocity.Y /= std::cos(radians_foZ);
 		}
 
-		double const nMult_Cos = Math::cos(0.7853262558535721);
-		double const nMult_Sin = Math::sin(0.7853262558535721);
+		double const nMult_Cos = std::cos(0.7853262558535721);
+		double const nMult_Sin = std::sin(0.7853262558535721);
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
@@ -262,12 +262,12 @@ VelocityClass BulletExt::GenerateVelocity(BulletClass* pThis, AbstractClass* pTa
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= Math::cos(radians_foZ);
-			velocity.Y /= Math::cos(radians_foZ);
+			velocity.X /= std::cos(radians_foZ);
+			velocity.Y /= std::cos(radians_foZ);
 		}
 
-		double const nMult_Cos = Math::cos(0.7853262558535721);
-		double const nMult_Sin = Math::sin(0.7853262558535721);
+		double const nMult_Cos = std::cos(0.7853262558535721);
+		double const nMult_Sin = std::sin(0.7853262558535721);
 		velocity.X *= nMult_Cos;
 		velocity.Y *= nMult_Cos;
 		velocity.Z *= nMult_Sin * nThirdMag;
@@ -921,21 +921,21 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
-{
-	GET(BulletClass*, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET(void*, target, EDI);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	if (auto pExt = BulletExt::ExtMap.Find(pThis))
+//		pExt->InvalidatePointer(target, all);
+//
+//	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+//}
 
-	if (auto pExt = BulletExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
-
-	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-}
-
-static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
-{
-	pThis->ObjectClass::AnimPointerExpired(pTarget);
-}
-
-DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))
+//static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
+//{
+//	pThis->ObjectClass::AnimPointerExpired(pTarget);
+//}
+//
+//DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))

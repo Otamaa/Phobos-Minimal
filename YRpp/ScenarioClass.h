@@ -181,9 +181,9 @@ public:
 	static DWORD __fastcall GetAIUniqueID() { JMP_STD(0x679ED0); }
 
 	//CTOR / DTOR
-protected:
+private:
 	ScenarioClass() { THISCALL(0x6832C0); }
-	ScenarioClass(IStream** pStm) JMP_THIS(0x683560);
+	explicit ScenarioClass(IStream** pStm) JMP_THIS(0x683560);
 	~ScenarioClass() { THISCALL(0x667A30); } //what the hell... same as RulesClass::DTOR?
 
 public:
@@ -197,8 +197,8 @@ public:
 	DECLARE_PROPERTY(Random2Class, Random); //218
 	DWORD Difficulty1;
 	DWORD Difficulty2; // 2 - Difficulty1
-	DECLARE_PROPERTY(TimerStruct, ElapsedTimer);
-	DECLARE_PROPERTY(TimerStruct, PauseTimer);
+	CDTimerClass ElapsedTimer;
+	CDTimerClass PauseTimer;
 	DWORD unknown_62C;
 	bool IsGamePaused;
 	CellStruct Waypoints [702];
@@ -214,14 +214,14 @@ public:
 	CellStruct HouseHomeCells [0x8];
 	bool TeamsPresent;
 	int NumCoopHumanStartSpots;
-	DECLARE_PROPERTY(TimerStruct, MissionTimer);
+	CDTimerClass MissionTimer;
 	wchar_t * MissionTimerTextCSF;
 	char MissionTimerText [32];
-	DECLARE_PROPERTY(TimerStruct, ShroudRegrowTimer);
-	DECLARE_PROPERTY(TimerStruct, FogTimer);
-	DECLARE_PROPERTY(TimerStruct, IceTimer);
-	DECLARE_PROPERTY(TimerStruct, unknown_timer_123c);
-	DECLARE_PROPERTY(TimerStruct, AmbientTimer);
+	CDTimerClass ShroudRegrowTimer;
+	CDTimerClass FogTimer;
+	CDTimerClass IceTimer;
+	CDTimerClass unknown_timer_123c;
+	CDTimerClass AmbientTimer;
 	int TechLevel;
 	TheaterType Theater;
 	char FileName [0x104];
@@ -249,10 +249,10 @@ public:
 	Variable GlobalVariables [50];
 	Variable LocalVariables [100];
 
-	DECLARE_PROPERTY(CellStruct, View1);
-	DECLARE_PROPERTY(CellStruct, View2);
-	DECLARE_PROPERTY(CellStruct, View3);
-	DECLARE_PROPERTY(CellStruct, View4);
+	CellStruct View1;
+	CellStruct View2;
+	CellStruct View3;
+	CellStruct View4;
 	DWORD unknown_34A0;
 	bool FreeRadar; //34A4
 	bool TrainCrate;
@@ -278,31 +278,31 @@ public:
 	bool MultiplayerOnly; //34BC
 	bool IsRandom;
 	bool PickedUpAnyCrate;
-	DECLARE_PROPERTY(TimerStruct, unknown_timer_34C0);
+	CDTimerClass unknown_timer_34C0;
 	int CampaignIndex;
 	int StartingDropships;
-	DECLARE_PROPERTY(TypeList<TechnoTypeClass*>, AllowableUnits);
-	DECLARE_PROPERTY(TypeList<int>, AllowableUnitMaximums);
-	DECLARE_PROPERTY(TypeList<int>, DropshipUnitCounts);
+	TypeList<TechnoTypeClass*> AllowableUnits;
+	TypeList<int> AllowableUnitMaximums;
+	TypeList<int> DropshipUnitCounts;
 
 	//General Lighting
 	int AmbientOriginal; // set at map creation
 	int AmbientCurrent; // current ambient
 	int AmbientTarget; // target ambient (while changing)
-	DECLARE_PROPERTY(LightingStruct, NormalLighting);
+	LightingStruct NormalLighting;
 
 	//Ion lighting
 	int IonAmbient;
-	DECLARE_PROPERTY(LightingStruct, IonLighting);
+	LightingStruct IonLighting;
 
 	//Nuke flash lighting
 	int NukeAmbient;
-	DECLARE_PROPERTY(LightingStruct, NukeLighting);
+	LightingStruct NukeLighting;
 	int NukeAmbientChangeRate;
 
 	//Dominator lighting
 	int DominatorAmbient;
-	DECLARE_PROPERTY(LightingStruct, DominatorLighting);
+	LightingStruct DominatorLighting;
 	int DominatorAmbientChangeRate;
 
 	DWORD unknown_3598;

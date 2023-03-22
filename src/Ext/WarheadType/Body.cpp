@@ -571,6 +571,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
 	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
 
+	//TODO :Evaluate this
 	//this->DirectionalArmor_FrontField = Math::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
 	//this->DirectionalArmor_FrontField = Math::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
 	//this->DirectionalArmor_BackField = Math::min(this->DirectionalArmor_BackField.Get(), 1.0f);

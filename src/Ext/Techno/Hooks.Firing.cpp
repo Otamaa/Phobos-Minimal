@@ -10,25 +10,32 @@
 #include <Utilities/EnumFunctions.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <JumpjetLocomotionClass.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-
-NOINLINE bool CeaseFire(TechnoClass* pThis)
-{
-	bool bCeaseFire = false;
-	PassengersFunctional::CanFire(pThis, bCeaseFire);
-	return bCeaseFire;
-}
 #endif
 
 // Pre-Firing Checks
-DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
+DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
 
-	enum { FireIllegal = 0x6FCB7E, Contunue = 0x0 , FireCant = 0x6FCD29 };
+	enum { FireIllegal = 0x6FCB7E, Continue = 0x0 , FireCant = 0x6FCD29 };
+
+	// Ares TechnoClass_GetFireError_OpenToppedGunnerTemporal
+	// gunners and opentopped together do not support temporals, because the gunner
+	// takes away the TemporalImUsing from the infantry, and thus it is missing
+	// when the infantry fires out of the opentopped vehicle
+	if (pWeapon->Warhead->Temporal && pThis->Transporter) {
+		auto const pType = pThis->Transporter->GetTechnoType();
+		if (pType->Gunner && pType->OpenTopped) {
+			if(!pThis->TemporalImUsing)
+				return FireCant;
+		}
+	}
 
 	//if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
 	//	return FireCant;
@@ -39,7 +46,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 		return FireIllegal;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	if (CeaseFire(pThis))
+	if (PassengersFunctional::CanFire(pThis))
 		return FireIllegal;
 #endif
 
@@ -66,7 +73,7 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire, 0x6) //8
 			return FireIllegal;
 	}
 
-	return Contunue;
+	return Continue;
 }
 
 // Weapon Firing
@@ -143,16 +150,32 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 	return 0;
 }
 
-DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire, 0x6)
+DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 {
-	GET(TechnoClass* const, pSource, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET_BASE(AbstractClass* const, pTarget, 0x8);
 	GET(WeaponTypeClass* const, pWeaponType, EBX);
 	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
+	GET_BASE(int, weaponIndex, 0xC);
+
+	//TechnoClass_FireAt_ToggleLaserWeaponIndex
+	if (pThis->WhatAmI() == AbstractType::Building && pWeaponType->IsLaser)
+	{
+		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+
+		if (pExt->CurrentLaserWeaponIndex.empty())
+			pExt->CurrentLaserWeaponIndex = weaponIndex;
+		else
+			pExt->CurrentLaserWeaponIndex.clear();
+	}
+
+	//TechnoClass_FireAt_BurstOffsetFix_2
+	++pThis->CurrentBurstIndex;
+	pThis->CurrentBurstIndex %= pWeaponType->Burst;
 
 	if (auto const pTargetObject = specific_cast<BulletClass* const>(pTarget))
 	{
-		if (TechnoExt::ExtMap.Find(pSource)->IsInterceptor())
+		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor())
 		{
 			BulletExt::ExtMap.Find(pBullet)->IsInterceptor = true;
 			BulletExt::ExtMap.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
@@ -160,14 +183,14 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_PreFire, 0x6)
 			// If using Inviso projectile, can intercept bullets right after firing.
 			if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
 			{
-				WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead)->InterceptBullets(pSource, pWeaponType, pTargetObject->Location);
+				WarheadTypeExt::ExtMap.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
 			}
 		}
 	}
 
 	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeaponType);
 
-	if (pWeaponExt->ShakeLocal.Get() && !pSource->IsOnMyView())
+	if (pWeaponExt->ShakeLocal.Get() && !pThis->IsOnMyView())
 		return 0x0;
 
 	if (pWeaponExt->Xhi || pWeaponExt->Xlo)
@@ -328,3 +351,132 @@ DEFINE_HOOK(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x6)
 //
 //	return 0x0;
 //}
+
+#pragma region JJFixes
+// Bugfix: Jumpjet turn to target when attacking
+// Jumpjets stuck at FireError::FACING because WW didn't use a correct facing
+DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+
+	auto const pType = pThis->Type;
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (!pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
+	{
+		R->EAX(pType);
+		return 0x736F7E;
+	}
+
+	CoordStruct& source = pThis->Location;
+	CoordStruct target = pThis->Target->GetCoords(); // Target checked so it's not null here
+	DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+
+	if (pType->Turret && !pType->HasTurret) // 0x736F92
+	{
+		pThis->SecondaryFacing.Set_Desired(tgtDir);
+	}
+	else // 0x736FB6
+	{
+		const auto pLoco = pThis->Locomotor.get();
+
+		if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::ILoco_vtable)
+		{
+			auto jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
+
+			//wrong destination check and wrong Is_Moving usage for jumpjets, should have used Is_Moving_Now
+			if (jjLoco->NextState != JumpjetLocomotionClass::State::Cruising)
+			{
+				jjLoco->Facing.Set_Desired(tgtDir);
+				pThis->PrimaryFacing.Set_Desired(tgtDir);
+				pThis->SecondaryFacing.Set_Desired(tgtDir);
+			}
+		}
+		else if (!pThis->Destination && !pThis->Locomotor->Is_Moving())
+		{
+			pThis->PrimaryFacing.Set_Desired(tgtDir);
+			pThis->SecondaryFacing.Set_Desired(tgtDir);
+		}
+	}
+
+	return 0x736FB1;
+}
+
+// For compatibility with previous builds
+DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+	GET(int const, wpIdx, EDI);
+	auto pType = pThis->Type;
+
+	if ((pType->Turret && !pType->HasTurret) || pType->TurretSpins)
+		return 0;
+
+	if ((pType->DeployFire || TechnoExt::GetDeployFireWeapon(pThis) == wpIdx) && pThis->CurrentMission == Mission::Unload)
+		return 0;
+
+	auto const pWpnStruct = pThis->GetWeapon(wpIdx);
+	if (!pWpnStruct)
+		return 0;
+
+	auto const pWpn = pWpnStruct->WeaponType;
+	if (pWpn->OmniFire)
+	{
+		const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWpn);
+		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor->Is_Moving_Now())
+		{
+			CoordStruct& source = pThis->Location;
+			CoordStruct target = pThis->Target->GetCoords();
+			DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+
+			if (pThis->GetRealFacing().Current() != tgtDir)
+			{
+				const auto pLoco = pThis->Locomotor.get();
+
+				if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::ILoco_vtable) {
+					JumpjetLocomotionClass*  jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
+					jjLoco->Facing.Set_Desired(tgtDir);
+				}
+				else
+					pThis->PrimaryFacing.Set_Desired(tgtDir);
+			}
+		}
+	}
+
+	return 0;
+}
+
+// Bugfix: Align jumpjet turret's facing with body's
+DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_TemporaryFix, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+	enum { SkipCheckDestination = 0x736BCA, GetDirectionTowardsDestination = 0x736BBB };
+	// When jumpjets arrived at their FootClass::Destination, they seems stuck at the Move mission
+	// and therefore the turret facing was set to DirStruct{atan2(0,0)}==DirType::East at 0x736BBB
+	// that's why they will come back to normal when giving stop command explicitly
+	const auto pType = pThis->Type;
+	// so the best way is to fix the Mission if necessary, but I don't know how to do it
+	// so I skipped jumpjets check temporarily, and in most cases Jumpjet/BallonHover should cover most of it
+	if (!pType->TurretSpins && (pType->JumpJet || pType->BalloonHover))
+		return SkipCheckDestination;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	// I still don't know why jumpjet loco behaves differently for the moment
+	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
+	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
+	{
+		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
+		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
+		return 0x736C09;
+	}
+
+	return 0;
+}
+
+#pragma endregion

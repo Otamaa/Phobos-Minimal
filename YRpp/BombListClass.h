@@ -63,8 +63,8 @@ protected:
 
 public:
 
-	DECLARE_PROPERTY(DynamicVectorClass<BombClass *> ,Bombs);				//all the BombClass instances on the map
-	DECLARE_PROPERTY(DynamicVectorClass<TechnoClass *> ,Detectors);		//all the BombSight'ed objects currently on the map
+	DECLARE_PROPERTY(DynamicVectorClass<BombClass*>, Bombs);				//all the BombClass instances on the map
+	DECLARE_PROPERTY(DynamicVectorClass<TechnoClass*>, Detectors);		//all the BombSight'ed objects currently on the map
 	int UpdateDelay; // defaults to 100, some iterators set it to 1
 };
 

@@ -47,8 +47,9 @@ __forceinline T generic_cast(const AbstractClass* pAbstract) {
 	static_assert(std::is_const<std::remove_pointer_t<T>>::value,
 		"generic_cast: T is required to be const.");
 
-	static_assert(std::is_base_of<ObjectClass, Base>::value,
-		"generic_cast: T is required to be an abstract type derived from ObjectClass.");
+	static_assert(std::is_base_of<ObjectClass, Base>::value 
+		//&& std::is_abstract<Base>::value
+		,"generic_cast: T is required to be an abstract type derived from ObjectClass.");
 
 	return (pAbstract && (pAbstract->AbstractFlags & Base::AbsDerivateID) != AbstractFlags::None)  ? static_cast<T>(pAbstract) : nullptr;
 };

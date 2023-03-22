@@ -62,8 +62,8 @@ public:
 	virtual ~SideClass() override JMP_THIS(0x6A4930);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override { return AbstractType::Side; }
-	virtual int Size() const override { return 0xB4; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//Constructor
 	SideClass(const char* pID) noexcept

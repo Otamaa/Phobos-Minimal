@@ -41,11 +41,13 @@ public:
 	//Destructor
 	virtual ~TacticalClass() override JMP_THIS(0x6DC470);
 
-	//TacticalClass
-	void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6DA560);
-	AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }
-	int Size() const override { return 0xE18; }
+	//AbstractClass
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x6DA560);
+	virtual AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }
+	virtual int Size() const override { return 0xE18; }
 	virtual void Update() override JMP_THIS(0x6D2540);
+
+	//TacticalClass
 	virtual bool Tactical_draw_line_6DBB60(RectangleStruct* a2, RectangleStruct* a3, int color, bool bool1) R0;
 
 	void SetTacticalPosition(CoordStruct* pCoord)
@@ -185,7 +187,7 @@ public:
 	float field_D8;
 	float field_DC;
 	int VisibleCellCount;
-	ArrayWrapper<CellClass* , 800u> VisibleCells;
+	CellClass * VisibleCells [800];
 	Point2D TacticalCoord1;
 	DWORD field_D6C;
 	DWORD field_D70;

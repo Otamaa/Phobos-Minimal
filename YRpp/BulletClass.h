@@ -43,17 +43,17 @@ public:
 	static constexpr reference<DynamicVectorClass<BulletClass*>, 0x89DE18u> const ScalableBullets{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~BulletClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//BulletClass
 	virtual BYTE GetAnimFrame() const JMP_THIS(0x468000);

@@ -61,9 +61,6 @@ constexpr const char* UIMD_ = "uimd.ini";
 
 struct Phobos final
 {
-private:
-	NO_CONSTRUCT_CLASS(Phobos)
-public:
 	static void CmdLineParse(char**, int);
 
 	static CCINIClass* OpenConfig(const char*);
@@ -93,11 +90,8 @@ public:
 
 	static bool EnableConsole;
 
-	class UI
+	struct UI
 	{
-		NO_CONSTRUCT_CLASS(UI)
-	public:
-
 		static bool DisableEmptySpawnPositions;
 		static bool ExtendedToolTips;
 		static int MaxToolTipWidth;
@@ -117,11 +111,8 @@ public:
 		static const wchar_t* PercentLabel;
 	};
 
-	class Config
+	struct Config
 	{
-		NO_CONSTRUCT_CLASS(Config)
-	public:
-
 		static void Read();
 
 		static bool HideWarning;
@@ -148,21 +139,16 @@ public:
 		static int CampaignDefaultGameSpeed;
 	};
 
-	class Misc
+	struct Misc
 	{
-		NO_CONSTRUCT_CLASS(Misc)
-	public:
 		static bool CustomGS;
 		static int CustomGS_ChangeInterval[7];
 		static int CustomGS_ChangeDelay[7];
 		static int CustomGS_DefaultDelay[7];
 	};
 
-	class Otamaa
+	struct Otamaa
 	{
-		NO_CONSTRUCT_CLASS(Otamaa)
-	public:
-
 		static bool DisableCustomRadSite;
 		static TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 		static bool IsAdmin;
@@ -171,11 +157,8 @@ public:
 		static bool DoingLoadGame;
 	};
 
-	class Defines
+	struct Defines
 	{
-		NO_CONSTRUCT_CLASS(Defines)
-	public:
-
 		static inline constexpr ColorStruct ShieldPositiveDamageColor = ColorStruct { 0, 160, 255 };
 		static inline constexpr ColorStruct ShieldNegativeDamageColor = ColorStruct { 0, 255, 230 };
 

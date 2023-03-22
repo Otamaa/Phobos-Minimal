@@ -126,18 +126,18 @@ DEFINE_HOOK(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 
 			if (pTerrainExt->MinimapColor.isset())
 			{
-				auto& color = pTerrainExt->MinimapColor.Get();
+				const auto& color = pTerrainExt->MinimapColor;
+			
+				arg0->R = color->R;
+				arg0->G = color->G;
+				arg0->B = color->B;
 
-				arg0->R = color.R;
-				arg0->G = color.G;
-				arg0->B = color.B;
-
-				arg4->R = color.R;
-				arg4->G = color.G;
-				arg4->B = color.B;
+				arg4->R = color->R;
+				arg4->G = color->G;
+				arg4->B = color->B;
 
 				R->ECX(arg4);
-				R->AL(color.B);
+				R->AL(color->B);
 
 				return ReturnFromFunction;
 			}

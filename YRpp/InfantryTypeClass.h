@@ -90,14 +90,15 @@ public:
 	virtual ~InfantryTypeClass() override JMP_THIS(0x524D70);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override { return AbstractType::InfantryType; }
-	virtual int	Size() const { return 0xED0; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const R0;
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x5240A0);
+
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override  R0;
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) override  R0;
 
 	void ReadSequence() const {
 		JMP_THIS(0x523D00);
@@ -133,19 +134,17 @@ public:
 	int FireProne;
 	int SecondaryFire;
 	int SecondaryProne;
-	DECLARE_PROPERTY(TypeList<AnimTypeClass*> ,DeadBodies);
-	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, DeathAnims);
-	DECLARE_PROPERTY(TypeList<int>, VoiceComment);
+	TypeList<AnimTypeClass*> DeadBodies;
+	TypeList<AnimTypeClass*> DeathAnims;
+	TypeList<int> VoiceComment;
 	int EnterWaterSound;
 	int LeaveWaterSound;
 	bool Cyborg;
 	bool NotHuman;
 	bool Ivan; //used for the bomb attack cursor...
-	PROTECTED_PROPERTY(BYTE, align_EAF);
 	int DirectionDistance;
 	bool Occupier;
 	bool Assaulter;
-	PROTECTED_PROPERTY(BYTE, align_EB6[2]);
 	int HarvestRate;
 	bool Fearless;
 	bool Crawls;

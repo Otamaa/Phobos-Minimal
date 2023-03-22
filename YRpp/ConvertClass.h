@@ -20,12 +20,13 @@ class DSurface;
 class ConvertClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7E5358;
 	static constexpr constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
 
-	 static void __fastcall CreateFromFile(const char* pal_filename, BytePalette*& pPalette, ConvertClass*& pDestination)
+	static void __fastcall CreateFromFile(const char* pal_filename, BytePalette*& pPalette, ConvertClass*& pDestination)
 	  { JMP_STD(0x72ADE0); }
 
-	 static ConvertClass* CreateFromFile(const char* pal_filename);
+	static ConvertClass* CreateFromFile(const char* pal_filename);
 
 	virtual ~ConvertClass() JMP_THIS(0x491210);
 
@@ -104,6 +105,7 @@ static_assert(sizeof(ConvertClass) == 0x188);
 class LightConvertClass : public ConvertClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7ED0A4;
 	//global array
 	static constexpr constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const Array{};
 
@@ -143,8 +145,8 @@ public:
 	BytePalette const* UsedPalette2;
 	BYTE* IndexesToIgnore;
 	int RefCount;
-	DECLARE_PROPERTY(TintStruct, Color1);
-	DECLARE_PROPERTY(TintStruct, Color2);
+	TintStruct Color1;
+	TintStruct Color2;
 	bool Tinted;
 	PROTECTED_PROPERTY(BYTE, align_1B1[3]);
 };

@@ -150,18 +150,18 @@ namespace CalculatePinch
 				double roll = 0.0;
 				if (theta != 0)
 				{
-					if (Math::sin(halfPI - theta) == 0.0)
+					if (std::sin(halfPI - theta) == 0.0)
 					{
 						pitch = 0.0;
 						roll = gamma * lrSide;
 					}
 					else
 					{
-						double l = Math::cos(gamma);
-						double y = l / Math::sin(halfPI - theta);
-						double z = Math::sin(gamma);
-						double lyz = Math::sqrt(std::pow(y, 2) + std::pow(z, 2));
-						pitch = Math::acos(std::abs(y) / lyz) * fbSide;
+						double l = std::cos(gamma);
+						double y = l / std::sin(halfPI - theta);
+						double z = std::sin(gamma);
+						double lyz = std::sqrt(std::pow(y, 2) + std::pow(z, 2));
+						pitch = std::acos(std::abs(y) / lyz) * fbSide;
 						roll = (gamma - std::abs(pitch)) * lrSide;
 					}
 				}
@@ -172,8 +172,7 @@ namespace CalculatePinch
 	}
 }
 
-
-DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_PreFire, 0x6)
+DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -197,7 +196,7 @@ DEFINE_HOOK(0x6FDD50, TechnoClass_Fire_PreFire, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x6FDD61, TechnoClass_Fire_OverrideWeapon, 0x5)
+DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
 	//GET_STACK(AbstractClass*, pTarget, 0x4);

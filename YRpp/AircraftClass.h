@@ -36,28 +36,28 @@ public:
 	}
 
 	//IFlyControl
-	IFACEMETHOD_(LONG, Landing_Altitude()) JMP_STD(0x41B6A0); //
-	IFACEMETHOD_(LONG, Landing_Direction()) JMP_STD(0x41B760); //
-	IFACEMETHOD_(BOOL, Is_Loaded()) JMP_STD(0x41B7D0); //
-	IFACEMETHOD_(LONG, Is_Strafe()) JMP_STD(0x41B7F0); //
-	IFACEMETHOD_(LONG, Is_Fighter()) JMP_STD(0x41B840); //
-	IFACEMETHOD_(LONG, Is_Locked()) JMP_STD(0x41B860); //
+	virtual LONG __stdcall Landing_Altitude() override JMP_STD(0x41B6A0);
+	virtual LONG __stdcall Landing_Direction() override JMP_STD(0x41B760);
+	virtual BOOL __stdcall Is_Loaded() override JMP_STD(0x41B7D0);
+	virtual LONG __stdcall Is_Strafe() override JMP_STD(0x41B7F0);
+	virtual LONG __stdcall Is_Fighter() override JMP_STD(0x41B840);
+	virtual LONG __stdcall Is_Locked() override JMP_STD(0x41B860);
 
 	//IUnknown
-	IFACEMETHOD_(HRESULT,QueryInterface(REFIID iid, LPVOID* ppvObject)) JMP_STD(0x414290);
-	IFACEMETHOD_(ULONG,AddRef()) JMP_STD(0x4142F0);
-	IFACEMETHOD_(ULONG,Release()) JMP_STD(0x414300);
-
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) override JMP_STD(0x414290);
+	virtual ULONG __stdcall AddRef() override JMP_STD(0x4142F0);
+	virtual ULONG __stdcall Release() override JMP_STD(0x414300);
+	
 	//IPersist
-	IFACEMETHOD_(HRESULT,GetClassID(CLSID* pClassID)) JMP_STD(0x41C190);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x41C190);
 
 	//IPersistStream
-	IFACEMETHOD_(HRESULT,Load(IStream* pStm)) JMP_STD(0x41B430);
-	IFACEMETHOD_(HRESULT,Save(IStream* pStm, BOOL fClearDirty)) JMP_STD(0x41B5C0);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_THIS(0x41B430);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_THIS(0x41B5C0);
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const override JMP_THIS(0x41C180);
-	virtual int	Size() const override JMP_THIS(0x41C170);
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 	virtual void Update() override JMP_THIS(0x414BB0);
 
 	//MisionClass
@@ -73,10 +73,10 @@ public:
 	virtual ~AircraftClass() RX;
 
 	//some stuffs here may from FootClass::vtable , which is missing
-	CellClass* GoodLandingZone() const { JMP_THIS(0x41A160); }
-	CellClass* NewLandingZone(AbstractClass* pOldCell) { JMP_THIS(0x418E20); }
-	AbstractClass* GoodTargetLoc(AbstractClass* pTarget) const { JMP_THIS(0x4197C0); }
-	bool CellSeemsOk(CellStruct& nCell, bool bStrich) { JMP_THIS(0x419B00); }
+	CellClass* GoodLandingZone_() const { JMP_THIS(0x41A160); }
+	CellClass* NewLandingZone_(AbstractClass* pOldCell) const { JMP_THIS(0x418E20); }
+	AbstractClass* GoodTargetLoc_(AbstractClass* pTarget) const { JMP_THIS(0x4197C0); }
+	bool CellSeemsOk_(const CellStruct& nCell, bool bStrich) { JMP_THIS(0x419B00); }
 
 	void DropOffCarryAllCargo() const { JMP_THIS(0x416AF0); }
 	void DropOffParadropCargo() const { JMP_THIS(0x415C60); }
@@ -123,7 +123,7 @@ public:
 	bool unknown_bool_6D0;
 	bool unknown_bool_6D1;
 	bool __DoingOverfly;
-	BYTE ___paradrop_attempts; //6D3
+	char unknown_char_6D3;
 	bool carrayall6D4;
 	bool retreating_idle; //6D5
 };

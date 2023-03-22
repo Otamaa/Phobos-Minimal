@@ -55,15 +55,15 @@ public:
 	static int ReleaseAllVoxelCaches() JMP_STD(0x5F99E0);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x5F9720);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x5F9950);
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) JMP_STD(0x5F9970);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x5F9720);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x5F9950);
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override JMP_STD(0x5F9970);
 
 	//Destructor
 	virtual ~ObjectTypeClass() JMP_THIS(0x5F9AE0);
 
 	//AbstractTypeClass
-	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x5F92D0);
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x5F92D0);
 
 	//ObjectTypeClass
 	virtual CoordStruct* vt_entry_6C(CoordStruct* pDest, CoordStruct* pSrc) const R0; //Coord_Fixup
@@ -74,7 +74,7 @@ public:
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) R0;
 	virtual int GetActualCost(HouseClass* pHouse) const R0;
 	virtual int GetBuildSpeed() const R0;
-	virtual ObjectClass* CreateObject(HouseClass* pOwner) { return nullptr; };
+	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
 	virtual CellStruct * GetFoundationData(bool IncludeBib) const R0;
 	virtual BuildingClass* FindFactory(bool allowOccupied, bool requirePower, bool requireCanBuild, HouseClass const* pHouse) const R0;
 	virtual SHPStruct* GetCameo() const R0;
@@ -133,8 +133,8 @@ public:
 	VoxelStruct TurretVoxel; //also used for WO voxels
 	VoxelStruct BarrelVoxel;
 
-	ArrayWrapper<VoxelStruct ,0x12u> ChargerTurrets;
-	ArrayWrapper<VoxelStruct, 0x12u> ChargerBarrels;
+	VoxelStruct ChargerTurrets [0x12];
+	VoxelStruct ChargerBarrels [0x12];
 
 	bool          NoSpawnAlt;
 	PROTECTED_PROPERTY(BYTE, align_1E9[3]);

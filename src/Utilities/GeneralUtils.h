@@ -4,6 +4,7 @@
 #include <CellSpread.h>
 #include <StopWatch.h>
 #include <Theater.h>
+#include <ScenarioClass.h>
 
 #include <Helpers/Iterators.h>
 #include <Helpers/Enumerators.h>
@@ -347,7 +348,7 @@ public:
 	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir {};
-		unsigned short value = static_cast<short>(Game::F2I((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
+		unsigned short value = static_cast<short>(Game::F2I((std::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.SetValue<16>(value);
 		return dir;
 	}
@@ -359,7 +360,7 @@ public:
 
 	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
-		auto angle = Math::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
+		auto angle = std::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
 		auto theta = angle * (180 / Math::Pi);
 		return DirStruct(theta);
 	}

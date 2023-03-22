@@ -307,7 +307,7 @@ DEFINE_HOOK(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 //DEFINE_HOOK(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
 //{
 //	//GET_BASE(BulletClass*, pBullet, 0x18);
-//	//R->Stack(0x18, (Math::clamp((0x4000 - 0x2000), 0, 0x4000)));
+//	//R->Stack(0x18, (std::clamp((0x4000 - 0x2000), 0, 0x4000)));
 //	R->Stack<WORD>(0x18, 0x2000);
 //	return 0x5B277F;
 //}
@@ -334,7 +334,7 @@ DEFINE_HOOK(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	const double nMissileROTVar = BulletTypeExt::ExtMap.Find(pThis->Type)
 		->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
-	R->EAX(Game::F2I(Math::sin(static_cast<double>(nFrame) *
+	R->EAX(Game::F2I(std::sin(static_cast<double>(nFrame) *
 		0.06666666666666667 *
 		6.283185307179586) *
 		nMissileROTVar + nMissileROTVar + 1.0) *

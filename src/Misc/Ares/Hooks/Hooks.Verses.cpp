@@ -173,16 +173,13 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	int idx = ArmorTypeClass::FindIndexById(buf);
 
 	if (idx < 0) {
-		bool Failed = true;
 		if (strlen(buf)) { 
 			if(ArmorTypeClass::Allocate(buf)) {
 				Debug::Log("Allocating Armor [%s] ! \n", buf);
 				idx = ArmorTypeClass::Array.size() - 1;
-				Failed = false;
 			}
-
-			if (Failed) {
-				Debug::INIParseFailed(Section, Key, buf);
+			else {
+			   Debug::INIParseFailed(Section, Key, buf);
 			}
 		}
 		else

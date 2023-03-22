@@ -18,9 +18,9 @@ void ColorTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Colors.Read(exINI, GetMainSection(), pName, false);
 
 	Point3D nColors = this->Colors.Get();
-	nColors.X = Math::clamp(nColors.X, 0, 255);
-	nColors.Y = Math::clamp(nColors.Y, 0, 255);
-	nColors.Z = Math::clamp(nColors.Z, 0, 255);
+	nColors.X = std::clamp(nColors.X, 0, 255);
+	nColors.Y = std::clamp(nColors.Y, 0, 255);
+	nColors.Z = std::clamp(nColors.Z, 0, 255);
 	this->Colors = nColors;
 }
 

@@ -66,7 +66,7 @@ struct FloatVector2
 	}
 
 	double LengthSquared() { return (*this) * (*this); }
-	double Length() { return Math::sqrt(LengthSquared()); }
+	double Length() { return std::sqrt(LengthSquared()); }
 	FloatVector2 Direction() { return (Empty ? (*this) : ((*this) / Length())); }
 
 	float X, Y;
@@ -89,7 +89,7 @@ struct FloatVector3
 	{ return !((*this) == FloatVector3::Empty); }
 
 	double LengthSquared() { return (*this) * (*this); }
-	double Length() { return Math::sqrt(LengthSquared()); }
+	double Length() { return std::sqrt(LengthSquared()); }
 
 	FloatVector3 Direction() { return (*this) ? (*this) : ((*this) / Length()); };
 
@@ -166,7 +166,7 @@ struct FloatVector4
 	{ return !((*this) == FloatVector4::Empty); }
 
 	double LengthSquared() { return (*this) * (*this); }
-	double Length() { return Math::sqrt(LengthSquared()); }
+	double Length() { return std::sqrt(LengthSquared()); }
 	FloatVector4 Direction() { return (*this) ? (*this) : ((*this) / Length()); }
 
 	FloatVector4 operator-()

@@ -9,7 +9,7 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
-#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
@@ -65,19 +65,21 @@ DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
 	GET(BulletClass*, pThis, ESI);
 	GET(AnimClass*, pAnim, EAX);
 
-	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 
-	if (pAnim) {
+	if (pAnim && pAnim->Type) {
 		HouseClass* pInvoker =  nullptr;
 		HouseClass* pVictim = nullptr;
 
 		if(auto pTech = pThis->Owner) {
 			pInvoker = pThis->Owner->GetOwningHouse();
-			AnimExt::ExtMap.Find(pAnim)->Invoker = pTech;
+			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+				pAnimExt->Invoker = pTech;
 		}
 		else
 		{
-			pInvoker = BulletExt::ExtMap.Find(pThis)->Owner;
+			if(auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+			pInvoker = pBulletExt->Owner;
 		}
 
 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))

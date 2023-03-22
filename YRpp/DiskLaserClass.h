@@ -22,18 +22,18 @@ public:
 	static constexpr reference<Point2D, 0x8A0180u, 16u> const DrawCoords {};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~DiskLaserClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//non-virtual
 	void Fire(TechnoClass* pOwner, TechnoClass* pTarget, WeaponTypeClass* pWeapon, int nDamage)
@@ -61,7 +61,8 @@ public:
 	TechnoClass* Owner;
 	TechnoClass* Target;
 	WeaponTypeClass* Weapon;
-	DWORD LogicState; //30
-	DECLARE_PROPERTY(Point2D, DrawOffset); //34-38
+	DWORD unknown_30;
+	DWORD unknown_34;
+	DWORD unknown_38;
 	int Damage;
 };

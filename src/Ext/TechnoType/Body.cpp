@@ -21,6 +21,13 @@ void TechnoTypeExt::ExtData::Initialize()
 	Is_Cow = strcmp(Get()->ID, "COW") == 0;
 
 	this->ShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
+
+	if (Get()->WhatAmI() == AircraftTypeClass::AbsID)
+	{
+		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+	}
+
 	OreGathering_Anims.reserve(1);
 	OreGathering_Tiberiums.reserve(1);
 	OreGathering_FramesPerDir.reserve(1);
@@ -465,6 +472,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #endif
 
 	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+	this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
+	this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
+
 	this->SellSound.Read(exINI, pSection, "SellSound");
 	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
 	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay"); // code unfinished
@@ -683,6 +693,67 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 #pragma endregion
 }
+
+
+void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
+{
+	auto pThis = Get();
+	const char* pSection = pThis->ID;
+	INI_EX exINI(pINI);
+
+	this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
+	this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
+
+	this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");
+	this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
+	this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
+	this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
+
+	// Disabled , rare but can crash after S/L
+	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
+	//
+
+	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
+	this->CustomMissileData.Read(exINI, pSection, "Missile");
+	this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
+	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
+	this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
+	this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
+	this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
+	this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
+	this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
+	this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
+	this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
+
+	this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
+	this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
+	this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon");
+	this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
+
+	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
+	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
+	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
+	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
+	this->MyDiveData.Read(exINI, pSection);
+	this->MyPutData.Read(exINI, pSection);
+	this->MyFighterData.Read(exINI, pSection, pThis);
+#endif
+}
+
+void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
+{
+	auto pThis = Get();
+	const char* pSection = pThis->ID;
+	INI_EX exINI(pINI);
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->MyExtraFireData.ReadRules(exINI, pSection);
+#endif
+}
+
 
 void TechnoTypeExt::ExtData::AdjustCrushProperties()
 {
@@ -903,6 +974,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->E_DeployedSecondaryFireFLH)
 
 		.Process(this->IronCurtain_SyncDeploysInto)
+		.Process(this->IronCurtain_Effect)
+		.Process(this->IronCurtain_KillWarhead)
 
 		.Process(this->SellSound)
 		.Process(this->EVA_Sold)
@@ -946,8 +1019,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Paradrop_MaxAttempt)
 
 		.Process(this->IsCustomMissile)
-		.Process(this->CustomMissileRaise)
 		.Process(this->CustomMissileData)
+		.Process(this->CustomMissileWarhead)
+		.Process(this->CustomMissileEliteWarhead)
+		.Process(this->CustomMissileTakeoffAnim)
+		.Process(this->CustomMissileTrailerAnim)
+		.Process(this->CustomMissileTrailerSeparation)
+		.Process(this->CustomMissileWeapon)
+		.Process(this->CustomMissileEliteWeapon)
+		.Process(this->CustomMissileRaise)
 
 		.Process(this->Draw_MindControlLink)
 
@@ -1209,57 +1289,6 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	}
 
 	return 0;
-}
-
-void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
-{
-	auto pThis = Get();
-	const char* pSection = pThis->ID;
-	INI_EX exINI(pINI);
-
-	this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
-	this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
-
-	this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");
-	this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
-	this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
-	this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
-
-	// Disabled , rare but can crash after S/L
-	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
-	//
-
-	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
-	this->CustomMissileData.Read(exINI, pSection, "Missile");
-	this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
-	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
-	this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
-	this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
-	this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon");
-	this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
-
-	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
-	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
-	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
-	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
-	this->MyDiveData.Read(exINI, pSection);
-	this->MyPutData.Read(exINI, pSection);
-	this->MyFighterData.Read(exINI, pSection, pThis);
-#endif
-}
-
-void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
-{
-	auto pThis = Get();
-	const char* pSection = pThis->ID;
-	INI_EX exINI(pINI);
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->MyExtraFireData.ReadRules(exINI, pSection);
-#endif
 }
 
 //hook before stuffs got pop-ed to remove crash possibility

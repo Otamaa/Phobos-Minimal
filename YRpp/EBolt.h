@@ -53,8 +53,8 @@ public:
 
 public:
 
-	DECLARE_PROPERTY(CoordStruct, Point1);
-	DECLARE_PROPERTY(CoordStruct, Point2);
+	CoordStruct Point1;
+	CoordStruct Point2;
 	int _ZAdjust;	//18,Duration?
 	int Random;	//Random number between 0 and 256
 	TechnoClass* Owner;	//ingame this is a UnitClass but needed to circumvent some issues

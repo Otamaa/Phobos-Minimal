@@ -17,19 +17,19 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<TEventClass*>, 0xB0F1A0u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~TEventClass() RX;
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	virtual int GetArrayIndex() const override R0;
 
@@ -58,7 +58,7 @@ public:
 		int eventKind,
 		HouseClass *pHouse,
 		ObjectClass *Object,
-		TimerStruct *ActivationFrame,
+		CDTimerClass *ActivationFrame,
 		bool *isRepeating) const
 			{ JMP_THIS(0x71E940); }
 

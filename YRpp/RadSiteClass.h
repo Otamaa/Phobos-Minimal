@@ -18,6 +18,7 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<RadSiteClass*>, 0xB04BD0u> const Array{};
+
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x65B470);
 
@@ -31,8 +32,8 @@ public:
 	//AbstractClass
 	virtual void Init() override RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
-	virtual AbstractType WhatAmI() const override { return AbstractType::RadSite; }
-	virtual int Size() const override { return 0x74; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual HouseClass* GetOwningHouse() const R0;
 	//virtual CoordStruct* GetCoords(CoordStruct* pCrd) const R0; //center coords
 	//virtual CoordStruct* GetDestination(CoordStruct* pCrd, TechnoClass* pDocker = nullptr) const R0; // where this is moving, or a building's dock for a techno. iow, a rendez-vous point
@@ -124,13 +125,13 @@ public:
 	LightSourceClass* LightSource; // the light source attached to this instance
 	DECLARE_PROPERTY(TimerStruct, RadLevelTimer); // used to count down RadLevelDelay
 	DECLARE_PROPERTY(TimerStruct, RadLightTimer); // used to count down RadLightDelay
-	DECLARE_PROPERTY(CellStruct,        BaseCell); // center cell
+	CellStruct        BaseCell; // center cell
 	int               Spread; // range in cells
 	int               SpreadInLeptons; // range in leptons
 	int               RadLevel; // the radiation level,
 	int               LevelSteps; // cell's rad level reduced by (RadLevel/LevelSteps) every time RadLevelTimer elapses
 	int               Intensity; // the intensity at the beginning
-	DECLARE_PROPERTY(TintStruct,        Tint); // RadColor at the current level
+	TintStruct        Tint; // RadColor at the current level
 	int               IntensitySteps; // the number of intensity decreases during the duration
 	int               IntensityDecrement; // Intensity decremented by this every time RadLightDelay elapses
 	int               RadDuration; // as currently set up, the rad site will stay for so many frames

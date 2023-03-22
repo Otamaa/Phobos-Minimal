@@ -154,14 +154,14 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return Math::acos(v);
+		return std::acos(v);
 	}
 
 	Vector2D FromPolar(double rad, double theta)
 	{
 		Vector2D v;
-		v.X = rad * Math::cos(theta);
-		v.Y = rad * Math::sin(theta);
+		v.X = rad * std::cos(theta);
+		v.Y = rad * std::sin(theta);
 		return v;
 	}
 
@@ -236,7 +236,7 @@ public:
 
 	void Rotate(double theta)
 	{
-		return Rotate(Math::sin(theta), Math::cos(theta));;
+		return Rotate(std::sin(theta), std::cos(theta));;
 	}
 
 	void Rotate(double s, double c, bool Sin_Cos)
@@ -253,8 +253,8 @@ public:
 	{
 		if (Sin_Cos)
 		{
-			max_s = Math::sin(max_s);
-			max_c = Math::cos(max_c);
+			max_s = std::sin(max_s);
+			max_c = std::cos(max_c);
 		}
 
 		bool return_value = false;
@@ -538,7 +538,7 @@ public:
 		v = fmax(v, -1.0);
 		v = fmin(v, 1.0);
 
-		return Math::acos(v);
+		return std::acos(v);
 	}
 
 	Vector3D Lerp(Vector3D b, double t)
@@ -737,7 +737,7 @@ public:
 
 	void Rotate_X(double angle)
 	{
-		Rotate_X(Math::sin(angle), Math::cos(angle));
+		Rotate_X(std::sin(angle), std::cos(angle));
 	}
 
 
@@ -752,7 +752,7 @@ public:
 
 	void Rotate_Y(double angle)
 	{
-		Rotate_X(Math::sin(angle), Math::cos(angle));
+		Rotate_X(std::sin(angle), std::cos(angle));
 	}
 
 	void Rotate_Y(double s_angle, double c_angle)
@@ -766,7 +766,7 @@ public:
 
 	void Rotate_Z(double angle)
 	{
-		Rotate_X(Math::sin(angle), Math::cos(angle));
+		Rotate_X(std::sin(angle), std::cos(angle));
 	}
 
 	void Rotate_Z(double s_angle, double c_angle)

@@ -36,6 +36,7 @@ public:
 	virtual Layer InWhichLayer() const override JMP_THIS(0x62D770);
 	virtual CellStruct const* GetFoundationData(bool includeBib = false) const override JMP_THIS(0x62D710);
 	virtual bool UpdatePlacement(PlacementType value) override JMP_THIS(0x62D6F0);
+	
 	//ParticleClass
 	virtual int vt_entry_1E8() JMP_THIS(0x62D830);
 

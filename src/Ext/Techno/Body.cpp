@@ -163,14 +163,14 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 	if (!pThis)
 		return false;
 
-	auto const pLoco = static_cast<LocomotionClass*>(pThis->Locomotor.get());
+	auto const pLoco = pThis->Locomotor.get();
 
 	if (!pLoco)
 		return false;
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::vtable))
+	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::ILoco_vtable))
 		return false;
 
 	if (!pThis->IsWarpingIn())
@@ -300,6 +300,21 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	}
 
 	return AreaFireReturnFlag::ContinueAndReturn;
+}
+
+int TechnoExt::GetThreadPosed(TechnoClass* pThis)
+{
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if (const auto pShieldData = pExt->GetShield()) {
+		if (pShieldData->IsAvailable()) {
+			auto const pShiedType = pShieldData->GetType();
+			if (pShiedType->ThreadPosed.isset())
+				return pExt->Type->ThreatPosed + pShiedType->ThreadPosed.Get();
+		}
+	}
+
+	return pExt->Type->ThreatPosed;
 }
 
 int TechnoExt::GetDeployFireWeapon(UnitClass* pThis)
@@ -484,9 +499,12 @@ ObjectTypeClass* TechnoExt::SetInfDefaultDisguise(TechnoClass* const pThis, Tech
 
 void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
+	if (!pOwner->IsAlive)
+		return;
+
 	auto pThis = pOwner->CaptureManager;
 
-	if (!pThis)
+	if (!pThis || !pOwner->IsAlive)
 		return;
 
 	if (!pThis->InfiniteMindControl)
@@ -766,10 +784,8 @@ void TechnoExt::ExtData::InitializeConstants()
 
 void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 {
-	if (pAnim && pInvoker)
-	{
-		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location))
-		{
+	if (pAnim && pInvoker) {
+		if (auto pCreated = GameCreate<AnimClass>(pAnim, pInvoker->Location)) {
 			AnimExt::SetAnimOwnerHouseKind(pCreated, pInvoker->GetOwningHouse(), nullptr, pInvoker, false);
 		}
 	}
@@ -777,22 +793,26 @@ void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 
 double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 {
-	if (!pSouce || ForceDisable || !pSouce->GetTechnoType())
+	if (!pSouce || ForceDisable)
 		return 1.0;
 
+	const auto pType = pSouce->GetTechnoType();
 	bool firepower = false;
-	auto pTechnoType = pSouce->GetTechnoType();
 
-	if (pSouce->Veterancy.IsElite())
-	{
-		firepower = pTechnoType->VeteranAbilities.FIREPOWER || pTechnoType->EliteAbilities.FIREPOWER;
-	}
-	else if (pSouce->Veterancy.IsVeteran())
-	{
-		firepower = pTechnoType->VeteranAbilities.FIREPOWER;
+	if (!pType)
+		return 1.0;
+
+	if (pSouce->Veterancy.IsElite()) {
+		firepower = pType->VeteranAbilities.FIREPOWER || pType->EliteAbilities.FIREPOWER;
+	} else if (pSouce->Veterancy.IsVeteran()) {
+		firepower = pType->VeteranAbilities.FIREPOWER;
 	}
 
-	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) * pSouce->FirepowerMultiplier * ((!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : pSouce->Owner->Type->FirepowerMult);
+	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) 
+		*pSouce->FirepowerMultiplier* 
+		((!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : 
+		pSouce->Owner->Type->FirepowerMult)
+	;
 }
 
 const std::vector<std::vector<CoordStruct>>* TechnoExt::PickFLHs(TechnoClass* pThis)
@@ -1657,7 +1677,7 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 		auto timerLength = static_cast<int>(pPassenger->GetTechnoType()->Cost * pDelType->CostMultiplier);
 
 		if (pDelType->Rate.Get() > 0)
-			timerLength = std::min(timerLength, pDelType->Rate.Get());
+			timerLength = Math::min(timerLength, pDelType->Rate.Get());
 
 		nRate = timerLength;
 	}
@@ -1844,7 +1864,7 @@ void TechnoExt::ExtData::UpdateDelayFireAnim()
 	if (TechnoExt::IsAlive(pThis) && pThis->Target || pThis->GetCurrentMission() == Mission::Attack)
 		return;
 
-	pThis->ArmTimer.Start(pThis->ArmTimer.GetTimeLeft() + 5);
+	pThis->DiskLaserTimer.Start(pThis->DiskLaserTimer.GetTimeLeft() + 5);
 
 	// Reset Delayed fire animation
 	TechnoExt::ResetDelayFireAnim(pThis);
@@ -1919,18 +1939,8 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 
 void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill, AnimTypeClass* pVanishAnim)
 {
-	if (!pThis || deathOption == KillMethod::None)
+	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
-
-	Debug::Log("TechnoExt::KillSelf -  Killing Building[%x - %s] ! \n", pThis, pThis->get_ID());
-
-
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pExt->KillActionCalled)
-		return;
-	else
-		pExt->KillActionCalled = true;
 
 	auto const pWhat = pThis->WhatAmI();
 	KillMethod nOpt = deathOption;
@@ -2030,9 +2040,6 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 	if (nMethod == KillMethod::None)
 		return false;
-
-	if (this->KillActionCalled)
-		return true;
 
 	// Death if no ammo
 	if (pTypeExt->Death_NoAmmo)
@@ -2706,7 +2713,7 @@ void TechnoExt::ExtData::UpdateMobileRefinery()
 		{
 			const int tibValue = TiberiumClass::Array->GetItem(pCell->GetContainedTiberiumIndex())->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
-			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? Math::min(pTypeExt->MobileRefinery_AmountPerCell.Get(), tAmount) : tAmount;
+			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? Math::min(tAmount , pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
 			pCell->ReduceTiberium(amount);
 			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
 
@@ -2831,6 +2838,10 @@ void TechnoExt::ExtData::UpdateLaserTrails()
 void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 {
 	auto const pThis = this->Get();
+
+	if (!pThis->IsAlive)
+		return;
+
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 	const auto pType = Type;
 
@@ -2909,7 +2920,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 {
 	auto const pThis = this->Get();
 
-	if (this->KillActionCalled || !pThis->IsAlive)
+	if (!pThis->IsAlive)
 		return true;
 
 	if (pThis->WhatAmI() != AbstractType::Infantry)
@@ -3286,7 +3297,6 @@ bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // =============================
 // container hooks
-
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
@@ -3343,12 +3353,6 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 	{
 		if (auto pShield = pExt->GetShield())
 			pShield->InvalidatePointer(pAnim, false);
-
-		if (pExt->DelayedFire_Anim.get() == pAnim)
-		{
-			pExt->DelayedFire_Anim.reset(nullptr);
-			pExt->DelayedFire_Anim_LoopCount = -1;
-		}
 	}
 
 	return 0x0;

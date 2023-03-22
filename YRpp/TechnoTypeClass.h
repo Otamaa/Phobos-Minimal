@@ -135,9 +135,9 @@ public:
 	}
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
-	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
+	virtual HRESULT __stdcall GetSizeMax(ULARGE_INTEGER* pcbSize) override R0;
 
 	//Destructor
 	virtual ~TechnoTypeClass() override JMP_THIS(0x7179A0);
@@ -146,10 +146,11 @@ public:
 	
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x712170);
+
 	//ObjectTypeClass
 
 	//TechnoTypeClass
-	virtual bool CanUseWaypointMode() R0;
+	virtual bool CanUseWaypointMode() const R0;
 	virtual bool CanAttackMove() const R0;
 	virtual bool CanCreateHere(const CellStruct& mapCoords, HouseClass* pOwner) const R0;
 	virtual int GetCost() const R0;
@@ -261,8 +262,8 @@ public:
 	double          DeaccelerationFactor; //300
 	double          AccelerationFactor;
 	int             CloakingSpeed;
-	DECLARE_PROPERTY(TypeList<VoxelAnimTypeClass*> ,DebrisTypes);
-	DECLARE_PROPERTY(TypeList<int> ,DebrisMaximums);
+	TypeList<VoxelAnimTypeClass*> DebrisTypes;
+	TypeList<int> DebrisMaximums;
 	_GUID           Locomotor;
 	DWORD			align_35C;
 	double          VoxelScaleX; //360
@@ -272,7 +273,6 @@ public:
 	double          Size;
 	double          SizeLimit;
 	bool            HoverAttack;
-	PROTECTED_PROPERTY(BYTE, align_391[3]);
 	int             VHPScan;
 	int             unknown_int_398;
 	DWORD			align_39C;
@@ -287,26 +287,24 @@ public:
 	int             FireAngle;
 	PipScale        PipScale;
 	bool            PipsDrawForAll;
-	PROTECTED_PROPERTY(BYTE, align_3D9[3]);
 	int             LeptonMindControlOffset;
 	int             PixelSelectionBracketDelta;
 	int             PipWrap;
-	DECLARE_PROPERTY(TypeList<BuildingTypeClass*> ,Dock);
+	TypeList<BuildingTypeClass*> Dock;
 	BuildingTypeClass* DeploysInto;
 	UnitTypeClass* UndeploysInto;
 	UnitTypeClass* PowersUnit;
 	bool            PoweredUnit;
-	PROTECTED_PROPERTY(BYTE, align_411[3]);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceSelect);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceSelectEnslaved);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceSelectDeactivated);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceMove);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceAttack);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceSpecialAttack);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceDie);
-	DECLARE_PROPERTY(TypeList<int> ,VoiceFeedback);
-	DECLARE_PROPERTY(TypeList<int> ,MoveSound);
-	DECLARE_PROPERTY(TypeList<int> ,DieSound);
+	TypeList<int> VoiceSelect;
+	TypeList<int> VoiceSelectEnslaved;
+	TypeList<int> VoiceSelectDeactivated;
+	TypeList<int> VoiceMove;
+	TypeList<int> VoiceAttack;
+	TypeList<int> VoiceSpecialAttack;
+	TypeList<int> VoiceDie;
+	TypeList<int> VoiceFeedback;
+	TypeList<int> MoveSound;
+	TypeList<int> DieSound;
 	int             AuxSound1;
 	int             AuxSound2;
 	int             CreateSound;
@@ -345,10 +343,9 @@ public:
 	int             GuardRange;
 	int             MaxDebris;
 	int             MinDebris;
-	DECLARE_PROPERTY(TypeList<AnimTypeClass*> ,DebrisAnims);
+	TypeList<AnimTypeClass*> DebrisAnims;
 	int             Passengers;
 	bool            OpenTopped;
-	PROTECTED_PROPERTY(BYTE, align_5E5[3]);
 	int             Sight;
 	bool            ResourceGatherer;
 	bool            ResourceDestination;
@@ -372,8 +369,8 @@ public:
 	int             AirstrikeRechargeTime;
 	int             EliteAirstrikeRechargeTime;
 	int             TechLevel;
-	DECLARE_PROPERTY(TypeList<int>, Prerequisite);
-	DECLARE_PROPERTY(TypeList<int>, PrerequisiteOverride);
+	TypeList<int> Prerequisite;
+	TypeList<int> PrerequisiteOverride;
 	int             ThreatPosed;
 	int             Points;
 	int             Speed;
@@ -388,7 +385,6 @@ public:
 	bool            Natural;
 	bool            Unnatural;
 	bool            CloseRange;
-	PROTECTED_PROPERTY(BYTE, align_696[2]);
 	int             Reload;
 	int             EmptyReload;
 	int             ReloadIncrement;
@@ -400,16 +396,13 @@ public:
 	bool            OpportunityFire;
 	bool            DistributedFire;
 	bool            DamageReducesReadiness;
-	PROTECTED_PROPERTY(BYTE, align_6B2[2]);
 	int             ReadinessReductionMultiplier;
 	UnitTypeClass* UnloadingClass;
 	AnimTypeClass* DeployingAnim;
 	bool            AttackFriendlies;
 	bool            AttackCursorOnFriendlies;
-	PROTECTED_PROPERTY(BYTE, align_6C2[2]);
 	int             UndeployDelay;
 	bool            PreventAttackMove;
-	PROTECTED_PROPERTY(BYTE, align_6C9[3]);
 	DWORD           OwnerFlags;
 	int             AIBasePlanningSide;
 	bool            StupidHunt;
@@ -422,23 +415,20 @@ public:
 	PROTECTED_PROPERTY(BYTE, align_70E[2]);
 	SHPStruct* AltCameo;
 	bool            AltCameoAllocated;
-	PROTECTED_PROPERTY(BYTE, align_715[3]);
 	int             RotCount;
 	int             ROT;
 	int             TurretOffset;
 	bool            CanBeHidden;
-	PROTECTED_PROPERTY(BYTE, align_725[3]);
 	int             Points2; //twice
-	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, Explosion);
-	DECLARE_PROPERTY(TypeList<AnimTypeClass*>, DestroyAnim);
+	TypeList<AnimTypeClass*> Explosion;
+	TypeList<AnimTypeClass*> DestroyAnim;
 	ParticleSystemTypeClass* NaturalParticleSystem;
 	CoordStruct NaturalParticleSystemLocation;
 	ParticleSystemTypeClass* RefinerySmokeParticleSystem;
-	DECLARE_PROPERTY(TypeList<ParticleSystemTypeClass*>, DamageParticleSystems);
-	DECLARE_PROPERTY(TypeList<ParticleSystemTypeClass*>, DestroyParticleSystems);
+	TypeList<ParticleSystemTypeClass*> DamageParticleSystems;
+	TypeList<ParticleSystemTypeClass*> DestroyParticleSystems;
 	CoordStruct DamageSmokeOffset;
 	bool            DamSmkOffScrnRel;
-	PROTECTED_PROPERTY(BYTE, align_7BD[3]);
 	CoordStruct DestroySmokeOffset;
 	CoordStruct RefinerySmokeOffsetOne;
 	CoordStruct RefinerySmokeOffsetTwo;
@@ -449,16 +439,12 @@ public:
 	bool            TurretNotExportedOnGround;
 	bool            Gunner;
 	bool            HasTurretTooltips;
-	PROTECTED_PROPERTY(BYTE, align_807);
 	int             TurretCount;
 	int             WeaponCount;
 	bool            IsChargeTurret;
-	PROTECTED_PROPERTY(BYTE, align_811[3]);
-	int             TurretWeapon[MaxWeapons];
-	CoordStruct     AlternativeFLH[5];
+	int             TurretWeapon[0x21];
 	WeaponStruct	Weapon[MaxWeapons];
 	bool            ClearAllWeapons;
-	PROTECTED_PROPERTY(BYTE, align_A91[3]);
 	WeaponStruct	EliteWeapon[MaxWeapons];
 	bool            TypeImmune;
 	bool            MoveToShroud;

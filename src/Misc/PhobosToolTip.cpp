@@ -25,25 +25,28 @@
 #include <sstream>
 #include <iomanip>
 
+#include <Ext/TechnoType/Body.h>
+#include <Ext/SWType/Body.h>
+
 PhobosToolTip PhobosToolTip::Instance;
+
+inline const wchar_t* GetUIDescription(TechnoTypeExt::ExtData* pData)
+{
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+		? pData->UIDescription.Get().Text
+		: nullptr;
+}
+
+inline const wchar_t* GetUIDescription(SWTypeExt::ExtData* pData)
+{
+	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
+		? pData->UIDescription.Get().Text
+		: nullptr;
+}
 
 inline bool PhobosToolTip::IsEnabled() const
 {
 	return Phobos::UI::ExtendedToolTips;
-}
-
-inline const wchar_t* PhobosToolTip::GetUIDescription(TechnoTypeExt::ExtData* pData) const
-{
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
-		? pData->UIDescription.Get().Text
-		: nullptr;
-}
-
-inline const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExt::ExtData* pData) const
-{
-	return Phobos::Config::ToolTipDescriptions && !pData->UIDescription.Get().empty()
-		? pData->UIDescription.Get().Text
-		: nullptr;
 }
 
 inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
@@ -76,14 +79,14 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	}
 
 	const auto pTrick = reinterpret_cast<TechnoClass*>(BuildTimeDatas);
-	pTrick->Disguise = nullptr;
-	pTrick->Disguised = false;
-	pTrick->Owner = HouseClass::CurrentPlayer;
+	pTrick->Owner = HouseClass::CurrentPlayer();
 
 	int nTimeToBuild = pTrick->TimeToBuild();
 
+#ifdef BUILDSPEEDBONUS
 	const double nMult = BuildingTypeExt::GetExternalFactorySpeedBonus(pType, HouseClass::CurrentPlayer);
 	nTimeToBuild = static_cast<int>(nTimeToBuild * nMult);
+#endif
 	// 54 frames at least
 	return nTimeToBuild < 54 ? 54 : nTimeToBuild;
 }
@@ -101,7 +104,7 @@ inline const wchar_t* PhobosToolTip::GetBuffer() const
 	return this->TextBuffer.c_str();
 }
 
-void PhobosToolTip::HelpText(BuildType& cameo)
+void PhobosToolTip::HelpText(const BuildType& cameo)
 {
 	if (cameo.ItemType == AbstractType::Special)
 		this->HelpText(SuperWeaponTypeClass::Array->GetItem(cameo.ItemIndex));
@@ -140,7 +143,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		oss << std::setw(1) << nPower;
 	}
 
-	if (auto pDesc = this->GetUIDescription(pData))
+	if (auto pDesc = GetUIDescription(pData))
 		oss << L"\n" << pDesc;
 
 	this->TextBuffer = oss.str();
@@ -151,12 +154,12 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 	if(!Phobos::Config::RealTimeTimers)
 		return tickTime / 15;
 
-	//if (Phobos::Config::RealTimeTimers_Adaptive
-	//	|| GameOptionsClass::Instance->GameSpeed == 0
-	//	|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()))
-	//{
-	//	return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
-	//}
+	if (Phobos::Config::RealTimeTimers_Adaptive
+		|| GameOptionsClass::Instance->GameSpeed == 0
+		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()))
+	{
+		return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
+	}
 
 	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);
 }
@@ -195,7 +198,7 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 			<< std::setw(2) << std::setfill(L'0') << nSec;
 	}
 
-	if (auto pDesc = this->GetUIDescription(pData))
+	if (auto pDesc = GetUIDescription(pData))
 		oss << L"\n" << pDesc;
 
 	this->TextBuffer = oss.str();

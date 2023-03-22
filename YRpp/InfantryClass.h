@@ -27,20 +27,20 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x51AA10);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override  RT(AbstractType);
+	virtual int	Size() const override  R0;
 	virtual void Update() override JMP_THIS(0x51BAB0);
 
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x51E3B0);
-
+			  
 	//TechnoClass
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x5218E0);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x51C8B0);
-
+	
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x522340);
-
+			  
 	//InfantryClass
 	virtual bool IsDeployed() const R0;
 	virtual bool PlayAnim(DoType index, bool force = false, bool randomStartFrame = false) JMP_THIS(0x51D6F0); //`InfantryClass::Do_Action
@@ -69,7 +69,7 @@ public:
 
 	InfantryTypeClass* Type;
 	DoType SequenceAnim; //which is currently playing
-	DECLARE_PROPERTY(TimerStruct ,unknown_Timer_6C8);
+	CDTimerClass unknown_Timer_6C8;
 	int          PanicDurationLeft; // set in ReceiveDamage on panicky units
 	bool           PermanentBerzerk; // set by script action, not cleared anywhere
 	bool           Technician;
@@ -77,7 +77,6 @@ public:
 	bool           Crawling;
 	bool           IsZoneCheat; //0x6DC
 	bool           _WasSelected; //0x6DD
-	PROTECTED_PROPERTY(BYTE, unused_6DE[2]);
 	DWORD          unknown_6E0;
 	bool           ShouldDeploy;
 	LandType            _OnLand; //6E8

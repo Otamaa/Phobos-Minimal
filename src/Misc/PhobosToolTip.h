@@ -6,9 +6,6 @@
 
 #include <Phobos.h>
 
-#include <Ext/TechnoType/Body.h>
-#include <Ext/SWType/Body.h>
-
 #include <string>
 
 struct StripClass;
@@ -19,8 +16,6 @@ public:
 	static PhobosToolTip Instance;
 
 private:
-	inline const wchar_t* GetUIDescription(TechnoTypeExt::ExtData* pData) const;
-	inline const wchar_t* GetUIDescription(SWTypeExt::ExtData* pData) const;
 	inline int GetBuildTime(TechnoTypeClass* pType) const;
 	inline int GetPower(TechnoTypeClass* pType) const;
 	static int TickTimeToSeconds(int tickTime);
@@ -28,7 +23,7 @@ public:
 	inline bool IsEnabled() const;
 	inline const wchar_t* GetBuffer() const;
 
-	void HelpText(BuildType& cameo);
+	void HelpText(const BuildType& cameo);
 	void HelpText(TechnoTypeClass* pType);
 	void HelpText(SuperWeaponTypeClass* pType);
 

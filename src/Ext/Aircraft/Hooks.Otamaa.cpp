@@ -22,7 +22,7 @@ DEFINE_JUMP(CALL, 0x4CD809, GET_OFFSET(TriggerCrashWeapon_Wrapper));
 //	return 0x4CD81D;
 //}
 
-DEFINE_HOOK(0x415EEE, AircraftClass_DropCargo, 0x6) //was 8
+DEFINE_HOOK(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 {
 	GET(AircraftClass*, pThis, EDI);
 	//GET_STACK(int, weaponIdx, STACK_OFFSET(0x7C, 0xC));
@@ -82,7 +82,7 @@ DEFINE_HOOK(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
 }
 
-DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
+DEFINE_HOOK(0x416545, AircraftClass_FireAt_AttackRangeSight_1, 0x7)
 {
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, EAX);
@@ -92,7 +92,7 @@ DEFINE_HOOK(0x416545, AircraftClass_Fire_AttackRangeSight_1, 0x7)
 	return 0x41654C;
 }
 
-DEFINE_HOOK(0x416580, AircraftClass_Fire_AttackRangeSight_2, 0x7)
+DEFINE_HOOK(0x416580, AircraftClass_FireAt_AttackRangeSight_2, 0x7)
 {
 	GET(AircraftClass*, pThis, EDI);
 	GET(RulesClass*, pRules, ECX);
@@ -128,7 +128,7 @@ DEFINE_HOOK(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x6) //was 8
 	GET(AircraftClass*, pCarryall, ESI);
 
 	AbstractClass* const pDest = AircraftExt::IsValidLandingZone(pCarryall) ?
-		pCarryall->Destination : pCarryall->NewLandingZone(pCarryall->Destination);
+		pCarryall->Destination : pCarryall->NewLandingZone_(pCarryall->Destination);
 
 	pCarryall->SetDestination(pDest, true);
 	return 0x416EE4;

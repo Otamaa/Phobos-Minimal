@@ -7,6 +7,9 @@ VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 {
+	if (!pThis->Type)
+		return nullptr;
+
 	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (!pTypeExt || !pTypeExt->Damage_DealtByOwner)
@@ -16,6 +19,15 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 
 	if (!pExt || pExt->GetInitStatus() < InitState::Constanted)
 		return nullptr;
+
+	const auto pAddr = (((DWORD*)pExt->Invoker)[0]);
+	if (pAddr != UnitClass::vtable
+		&& pAddr != AircraftClass::vtable
+		&& pAddr != InfantryClass::vtable
+		&& pAddr != BuildingClass::vtable)
+	{
+		return nullptr;
+	}
 
 	return pExt->Invoker;
 }

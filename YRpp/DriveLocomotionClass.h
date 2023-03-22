@@ -9,19 +9,20 @@ class DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 {
 public:
 	static constexpr inline DWORD vtable = 0x7E7F7C;
+	static constexpr inline DWORD ILoco_vtable = 0x7E7EB0;
 
 	// TODO stub virtuals implementations
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) JMP_STD(0x4AF720);
-	virtual ULONG __stdcall AddRef() JMP_STD(0x4B4CB0);
-	virtual ULONG __stdcall Release() JMP_STD(0x4B4CC0);
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override JMP_STD(0x4AF720);
+	virtual ULONG __stdcall AddRef() override JMP_STD(0x4B4CB0);
+	virtual ULONG __stdcall Release() override JMP_STD(0x4B4CC0);
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x4B4830);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x4B4830);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x4AF780);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x4AF800);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x4AF780);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x4AF800);
 
 	//Destructor
 	virtual ~DriveLocomotionClass() override JMP_THIS(0x4B4D00);

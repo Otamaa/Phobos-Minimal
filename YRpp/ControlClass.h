@@ -39,3 +39,5 @@ public:
 	int ID;
 	GadgetClass* SendTo; // Peer
 };
+
+static_assert(sizeof(ControlClass) == 0x2C, "Invalid Size !");

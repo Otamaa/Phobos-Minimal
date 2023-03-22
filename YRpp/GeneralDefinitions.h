@@ -1014,7 +1014,9 @@ enum class Layer : int {
 	Surface = 1,
 	Ground = 2,
 	Air = 3,
-	Top = 4
+	Top = 4 ,
+
+	count
 };
 
 enum class PlacementType : int {
@@ -1069,7 +1071,9 @@ enum class Mission : int {
 	Wait = 28,
 	AttackMove = 29,
 	SpyplaneApproach = 30,
-	SpyplaneOverfly = 31
+	SpyplaneOverfly = 31,
+
+	count
 };
 
 enum class MovementZone : int {

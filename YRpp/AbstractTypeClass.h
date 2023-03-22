@@ -107,7 +107,6 @@ public:
 	char UINameLabel [0x20];
 	const wchar_t* UIName; //Full_Name
 	char Name [0x31];
-
 private:
 	// Copy and assignment not implemented; prevent their use by declaring as private.
 	AbstractTypeClass(const AbstractTypeClass&) = delete;

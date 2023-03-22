@@ -6,7 +6,9 @@ SideExt::ExtContainer SideExt::ExtMap;
 
 void SideExt::ExtData::InitializeConstants()
 {
-	this->Sidebar_GDIPositions = this->ArrayIndex == 0; // true = Allied
+	auto const nIdx = SideClass::Array->FindItemIndex(this->Get());
+	this->ArrayIndex = nIdx;
+	this->Sidebar_GDIPositions = nIdx == 0; // true = Allied
 };
 
 bool SideExt::isNODSidebar()
@@ -58,23 +60,20 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 void SideExt::IniExtData(SideClass* pThis, int nIdx)
 {
-	#define ExtData_ptr ((SideExt::ExtData*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset)));
-
 	if (Phobos::Otamaa::DoingLoadGame)
 		return;
 
-	if (!pThis->unknown_18)
-	{
-		if (SideExt::ExtData* val = new SideExt::ExtData(pThis))
-		{
+	auto const pExt = SideExt::ExtMap.TryFind(pThis);
+	if (!pExt) {
+		if (SideExt::ExtData* val = new SideExt::ExtData(pThis)) {
 			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
 			SideExt::ExtMap.SetExtAttribute(pThis, val);
 		}
-	}
-	else
-	{
-		auto const pExt = ExtData_ptr;
+
+	} else {
+
+
 		if (pExt->ArrayIndex != nIdx)
 			pExt->ArrayIndex = nIdx;
 	}
@@ -148,11 +147,11 @@ SideExt::ExtContainer::~ExtContainer() = default;
 // container hooks
 
 
-DEFINE_HOOK(0x6A45F7, SideClass_CTOR, 0x9)
+DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
 {
 	GET(SideClass*, pItem, ESI);
-	GET(int, nIdx, ECX);
-	SideExt::IniExtData(pItem, nIdx);
+	//GET(int, nIdx, ECX);
+	SideExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 

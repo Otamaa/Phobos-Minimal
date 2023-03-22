@@ -13,8 +13,8 @@ class NOVTABLE RadioClass : public MissionClass
 {
 public:
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~RadioClass() JMP_THIS(0x65AEB0);
@@ -80,7 +80,7 @@ protected:
 	//===========================================================================
 
 public:
-	ArrayWrapper<RadioCommand, 3u> LastCommandsj;// new command updates these 
+	RadioCommand LastCommands[3]; // new command updates these
 	DECLARE_PROPERTY(VectorClass<TechnoClass*>, RadioLinks);	//Docked units etc
 };
  static_assert(sizeof(RadioClass) == 0xF0);

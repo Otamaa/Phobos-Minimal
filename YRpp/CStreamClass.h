@@ -19,34 +19,34 @@ public:
 	/**
 	 *  IUnknown
 	 */
-	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) JMP_STD(0x4A2990);
-	IFACEMETHOD_(ULONG, AddRef)() JMP_STD(0x4A2930);
-	IFACEMETHOD_(ULONG, Release)() JMP_STD(0x4A2950);
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) override JMP_STD(0x4A2990);
+	IFACEMETHOD_(ULONG, AddRef)() override JMP_STD(0x4A2930);
+	IFACEMETHOD_(ULONG, Release)() override JMP_STD(0x4A2950);
 
 	/**
 	 *  ISequentialStream
 	 */
-	IFACEMETHOD(Read)(void* pv, ULONG cb, ULONG* pcbRead) JMP_STD(0x4A2B60);
-	IFACEMETHOD(Write)(const void* pv, ULONG cb, ULONG* pcbWritten) JMP_STD(0x4A2CD0);
+	IFACEMETHOD(Read)(void* pv, ULONG cb, ULONG* pcbRead) override JMP_STD(0x4A2B60);
+	IFACEMETHOD(Write)(const void* pv, ULONG cb, ULONG* pcbWritten) override JMP_STD(0x4A2CD0);
 
 	/**
 	 *  IStream
 	 */
-	IFACEMETHOD(Seek)(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER* plibNewPosition) JMP_STD(0x4A2E00);
-	IFACEMETHOD(SetSize)(ULARGE_INTEGER libNewSize) JMP_STD(0x4A2E50);
-	IFACEMETHOD(CopyTo)(IStream* pstm, ULARGE_INTEGER cb, ULARGE_INTEGER* pcbRead, ULARGE_INTEGER* pcbWritten) JMP_STD(0x4A2EA0);
-	IFACEMETHOD(Commit)(DWORD grfCommitFlags) JMP_STD(0x4A2EE0);
-	IFACEMETHOD(Revert)() JMP_STD(0x4A2F10);
-	IFACEMETHOD(LockRegion)(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) JMP_STD(0x4A2F40);
-	IFACEMETHOD(UnlockRegion)(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) JMP_STD(0x4A2F80);
-	IFACEMETHOD(Stat)(STATSTG* pstatstg, DWORD grfStatFlag) JMP_STD(0x4A2FC0);
-	IFACEMETHOD(Clone)(IStream** ppstm) JMP_STD(0x4A2FF0);
+	IFACEMETHOD(Seek)(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER* plibNewPosition) override JMP_STD(0x4A2E00);
+	IFACEMETHOD(SetSize)(ULARGE_INTEGER libNewSize) override JMP_STD(0x4A2E50);
+	IFACEMETHOD(CopyTo)(IStream* pstm, ULARGE_INTEGER cb, ULARGE_INTEGER* pcbRead, ULARGE_INTEGER* pcbWritten) override JMP_STD(0x4A2EA0);
+	IFACEMETHOD(Commit)(DWORD grfCommitFlags) override JMP_STD(0x4A2EE0);
+	IFACEMETHOD(Revert)() override JMP_STD(0x4A2F10);
+	IFACEMETHOD(LockRegion)(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) override JMP_STD(0x4A2F40);
+	IFACEMETHOD(UnlockRegion)(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) override JMP_STD(0x4A2F80);
+	IFACEMETHOD(Stat)(STATSTG* pstatstg, DWORD grfStatFlag) override JMP_STD(0x4A2FC0);
+	IFACEMETHOD(Clone)(IStream** ppstm) override JMP_STD(0x4A2FF0);
 
 	/**
 	 *  ILinkStream
 	 */
-	IFACEMETHOD(Link_Stream)(IUnknown* stream) JMP_STD(0x4A2A20);
-	IFACEMETHOD(Unlink_Stream)(IUnknown** stream) JMP_STD(0x4A2AB0);
+	IFACEMETHOD(Link_Stream)(IUnknown* stream) override JMP_STD(0x4A2A20);
+	IFACEMETHOD(Unlink_Stream)(IUnknown** stream) override JMP_STD(0x4A2AB0);
 
 public:
 	CStreamClass() JMP_THIS(0x4A2820);

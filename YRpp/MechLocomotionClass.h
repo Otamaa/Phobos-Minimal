@@ -6,6 +6,8 @@ class  DECLSPEC_UUID("55D141B8-DB94-11d1-AC98-006008055BB5") NOVTABLE
 {
 public:
 	static constexpr inline DWORD vtable = 0x7EDC38;
+	static constexpr inline DWORD ILoco_vtable = 0x7EDB6C;
+
 	//Destructor
 	virtual ~MechLocomotionClass() RX;
 

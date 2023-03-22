@@ -9,10 +9,8 @@
 
 static JumpjetLocomotionClass* GetLoco(ILocomotion* ILoco)
 {
-	auto const pLoco = static_cast<LocomotionClass*>(ILoco);
-
-	if ((((DWORD*)pLoco)[0] == JumpjetLocomotionClass::vtable))
-		return static_cast<JumpjetLocomotionClass*>(pLoco);
+	if ((((DWORD*)ILoco)[0] == JumpjetLocomotionClass::ILoco_vtable))
+		return static_cast<JumpjetLocomotionClass*>(ILoco);
 
 	return nullptr;
 }
@@ -135,109 +133,6 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 
 }
 
-// Bugfix: Jumpjet turn to target when attacking
-
-// Jumpjets stuck at FireError::FACING because WW didn't use a correct facing
-DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	auto const pType = pThis->Type;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	if (!pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-	{
-		R->EAX(pType);
-		return 0x736F7E;
-	}
-	
-	CoordStruct& source = pThis->Location;
-	CoordStruct target = pThis->Target->GetCoords(); // Target checked so it's not null here
-	DirStruct tgtDir { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-
-	if (pType->Turret && !pType->HasTurret) // 0x736F92
-	{
-		pThis->SecondaryFacing.Set_Desired(tgtDir);
-	}
-	else // 0x736FB6
-	{
-		if (auto jjLoco = GetLoco(pThis->Locomotor.get()))
-		{
-			//wrong destination check and wrong Is_Moving usage for jumpjets, should have used Is_Moving_Now
-			if (jjLoco->NextState != JumpjetLocomotionClass::State::Cruising)
-			{
-				jjLoco->Facing.Set_Desired(tgtDir);
-				pThis->PrimaryFacing.Set_Desired(tgtDir);
-				pThis->SecondaryFacing.Set_Desired(tgtDir);
-			}
-		}
-		else if (!pThis->Destination && !pThis->Locomotor->Is_Moving())
-		{
-			pThis->PrimaryFacing.Set_Desired(tgtDir);
-			pThis->SecondaryFacing.Set_Desired(tgtDir);
-		}
-	}
-
-	return 0x736FB1;
-}
-
-// For compatibility with previous builds
-DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
-{
-	GET(UnitClass* const, pThis, ESI);
-	GET(int const, wpIdx, EDI);
-	auto pType = pThis->Type;
-
-	if ((pType->Turret && !pType->HasTurret) || pType->TurretSpins)
-		return 0;
-
-	if ((pType->DeployFire || TechnoExt::GetDeployFireWeapon(pThis) == wpIdx) && pThis->CurrentMission == Mission::Unload)
-		return 0;
-
-	auto const pWpnStruct = pThis->GetWeapon(wpIdx);
-	if(!pWpnStruct)
-		return 0;
-
-	auto const pWpn = pWpnStruct->WeaponType;
-	if (pWpn->OmniFire)
-	{
-		const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWpn);
-		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor->Is_Moving_Now())
-		{
-			CoordStruct& source = pThis->Location;
-			CoordStruct target = pThis->Target->GetCoords();
-			DirStruct tgtDir { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-
-			if (pThis->GetRealFacing().Current() != tgtDir)
-			{
-				if (auto const pLoco = GetLoco(pThis->Locomotor.get()))
-					pLoco->Facing.Set_Desired(tgtDir);
-				else
-					pThis->PrimaryFacing.Set_Desired(tgtDir);
-			}
-		}
-	}
-
-	return 0;
-}
-
-// Bugfix: Align jumpjet turret's facing with body's
-DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_TemporaryFix, 0x6)
-{
-	GET(UnitClass* const, pThis, ESI);
-	enum { SkipCheckDestination = 0x736BCA, GetDirectionTowardsDestination = 0x736BBB };
-	// When jumpjets arrived at their FootClass::Destination, they seems stuck at the Move mission
-	// and therefore the turret facing was set to DirStruct{atan2(0,0)}==DirType::East at 0x736BBB
-	// that's why they will come back to normal when giving stop command explicitly
-	const auto pType = pThis->Type;
-	// so the best way is to fix the Mission if necessary, but I don't know how to do it
-	// so I skipped jumpjets check temporarily, and in most cases Jumpjet/BallonHover should cover most of it
-	if (!pType->TurretSpins && (pType->JumpJet || pType->BalloonHover))
-		return SkipCheckDestination;
-
-	return 0;
-}
-
 // These are subject to changes if someone wants to properly implement jumpjet tilting
 DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
 {
@@ -249,21 +144,7 @@ DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
 
-	// I still don't know why jumpjet loco behaves differently for the moment
-	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
-	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
-	{
-		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
-		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
-		return 0x736C09;
-	}
-
-	return 0;
-}
 
 /*
 DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
@@ -361,59 +242,6 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 //	return ContinueFunc;
 //}
 
-// Jumpjets stuck at FACING fireerror because WW didn't use a correct facing
-//DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_Ferr_FACING_Jumpjet, 0x6)
-//{
-//	GET(UnitClass* const, pThis, ESI);
-//
-//	if (auto const pLoco = GetLocomotorType<JumpjetLocomotionClass,false>(pThis))
-//	{
-//		CoordStruct& source = pThis->Location;
-//		CoordStruct target = pThis->Target->GetCoords();
-//		DirStruct tgtDir { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-//
-//		if (pLoco->IsMoving && pThis->Type->Turret && !pThis->Type->HasTurret) // 0x736F92
-//			pThis->SecondaryFacing.Set_Desired(tgtDir);
-//		else //0x736FB6: Jumpjets often have destination even if not moving, detailed in the turret issue below
-//		{
-//			pThis->PrimaryFacing.Set_Desired(tgtDir);
-//			pThis->SecondaryFacing.Set_Desired(tgtDir);
-//			pLoco->Facing.Set_Desired(tgtDir);
-//		}
-//
-//		return 0x736FB1;
-//	}
-//
-//	return 0;
-//}
-
-//DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_Ferr_OK_OmniFire_Facing, 0x6)
-//{
-//	GET(UnitClass* const, pThis, ESI);
-//	GET(int const, wpIdx, EDI);
-//
-//	//if (pThis->GetWeapon(wpIdx)->WeaponType->OmniFire)
-//	//{
-//	//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-//	//	if (pTypeExt->OmniFireTurnToTarget.Get())
-//	//	{
-//	//		CoordStruct& source = pThis->Location;
-//	//		CoordStruct target = pThis->Target->GetCoords();
-//	//		DirStruct tgtDir { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-//
-//	//		if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
-//	//		{
-//	//			if (auto const pLoco = GetLocomotor<JumpjetLocomotionClass*>(pThis))
-//	//				pLoco->Facing.Set_Desired(tgtDir);
-//	//			else
-//	//				pThis->PrimaryFacing.Set_Desired(tgtDir);
-//	//		}
-//	//	}
-//	//}
-//
-//	return 0;
-//}
-
 //DEFINE_HOOK(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
 //{
 	//GET_STACK(ILocomotion*, iLoco, 0x4);
@@ -432,35 +260,6 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 //			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
 //			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
 	//			pLoco->Facing.turn(tgtDir);
-//		}
-//	}
-//	return 0;
-//}
-
-// The ingame behavior looks not better than the previous fix
-//DEFINE_HOOK_AGAIN(0x736FE8, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6)// Turret and FireError == FACING
-//DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_736DF0_JumpjetFacing, 0x6) // FireError == OK
-//{
-//	GET(UnitClass* const, pThis, ESI);
-//	ILocomotion* iloco = pThis->Locomotor.get();
-//	CLSID locoCLSID;
-//	if (SUCCEEDED(static_cast<LocomotionClass*>(iloco)->GetClassID(&locoCLSID)) && locoCLSID == LocomotionClass::CLSIDs::Jumpjet)
-//	{
-//		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-//		if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-//		{
-//			auto const pLoco = static_cast<JumpjetLocomotionClass*>(iloco);
-//			CoordStruct& source = pThis->Location;
-//			CoordStruct target = pThis->Target->GetCoords();
-//			DirStruct const tgtDir = DirStruct { Math::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
-//
-//			pLoco->Facing.Set_Desired(tgtDir);
-//
-//			if (R->Origin() == 0x736FE8)
-//			{
-//				pThis->SecondaryFacing.Set_Desired(tgtDir);
-//				return 0x737021;
-//			}
 //		}
 //	}
 //	return 0;

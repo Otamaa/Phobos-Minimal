@@ -152,7 +152,7 @@ void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
 
 					for (int i = 0; i < ARRAY_SIZE(deviation_values); ++i)
 					{
-						deviation_values[i] = static_cast<int>(Math::sin(static_cast<double>(Sim_Random_Pick(0, Unsorted::LeptonsPerCell) * Math::Pi / static_cast<double>(i + 7)) * static_cast<double>(line_deviation)));
+						deviation_values[i] = static_cast<int>(std::sin(static_cast<double>(Sim_Random_Pick(0, Unsorted::LeptonsPerCell) * Math::Pi / static_cast<double>(i + 7)) * static_cast<double>(line_deviation)));
 					}
 
 					for (int i = 0; i < BoltCount; ++i)

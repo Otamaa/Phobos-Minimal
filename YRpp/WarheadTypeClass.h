@@ -70,22 +70,22 @@ public:
 	}
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x75E080);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x75E080);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x75E0C0);
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) JMP_STD(0x75E2C0);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x75E0C0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x75E2C0);
 
 	//Destructor
 	virtual ~WarheadTypeClass() JMP_THIS(0x75E510);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) JMP_THIS(0x75E440);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
+	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x75E440);
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const R0;
 
 	//AbstractTypeClass
-	virtual bool LoadFromINI(CCINIClass* pINI) JMP_THIS(0x75D3A0);
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x75D3A0);
 
 	//Constructor
 	WarheadTypeClass(const char* pID)
@@ -105,7 +105,7 @@ public:
 
 	double  Deform;
 
-	ArrayWrapper<double, 0xB> Verses;
+	double Verses [0xB];
 
 	double  ProneDamage;
 	int     DeformTreshold;

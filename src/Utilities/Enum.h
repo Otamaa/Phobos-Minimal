@@ -34,6 +34,15 @@
 
 #include <Phobos.h>
 
+enum class IronCurtainFlag : int
+{
+	Default = -1,
+	Kill = 0,
+	Invulnerable = 1,
+	Ignore = 2,
+	Random = 3,
+};
+
 enum class AreaFireReturnFlag : int
 {
 	Continue ,

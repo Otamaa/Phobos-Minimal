@@ -39,10 +39,12 @@ public:
 	static constexpr reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
 	static constexpr reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
+	
 	static constexpr reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
 	static constexpr reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};
 	static constexpr reference<SHPStruct*, 0xA8F794u> GRFXTXT_SHP{};
 	static constexpr reference<SHPStruct*, 0xB1CF98u> OREGATH_SHP{};
+	
 	static constexpr reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
 	static constexpr reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
 

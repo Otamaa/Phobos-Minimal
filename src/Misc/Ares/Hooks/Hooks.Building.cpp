@@ -18,7 +18,7 @@
 
 #include <numeric>
 /* #183 - cloakable on Buildings and Aircraft */
-DEFINE_OVERRIDE_HOOK(0x442C75, BuildingClass_Init_Cloakable, 0x6)
+DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 {
 	GET(BuildingClass*, Item, ESI);
 	GET(BuildingTypeClass*, pType, EAX);
@@ -173,7 +173,7 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	if (pType->Storage > 0)
 	{
 		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Tiberium) {
+		for (auto const& nTib : pThis->Tiberium.Tiberiums) {
 			amounttotal += nTib;
 		}
 
@@ -182,7 +182,7 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	else
 	{
 		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Owner->OwnedTiberium) {
+		for (auto const& nTib : pThis->Owner->OwnedTiberium.Tiberiums) {
 			amounttotal += nTib;
 		}
 

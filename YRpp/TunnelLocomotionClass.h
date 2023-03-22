@@ -19,6 +19,9 @@ public:
 		DIGGING_OUT = 0x6,
 		DUG_OUT = 0x7,
 	};
+	
+	static inline constexpr DWORD vtable = 0x7F5AF0;
+	static inline constexpr DWORD ILoco_vtable = 0x7F5A24;
 
 	//Destructor
 	virtual ~TunnelLocomotionClass() RX;

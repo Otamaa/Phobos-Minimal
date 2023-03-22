@@ -8,6 +8,8 @@ class DECLSPEC_UUID("2BEA74E1-7CCA-11d3-BE14-00104B62A16C")
 {
 public:
 	static constexpr inline DWORD vtable = 0x7F2E58;
+	static constexpr inline DWORD ILoco_vtable = 0x7F2D8C;
+
 	// TODO stub virtuals implementations
 
 	//Destructor
@@ -51,7 +53,7 @@ public:
 	bool IsDriving;
 	bool IsRocking;
 	bool IsLocked;
-	DWORD field_68;
+	ILocomotion* Piggybackee;
 };
 
 static_assert(sizeof(ShipLocomotionClass) == 0x70, "Invalid size.");

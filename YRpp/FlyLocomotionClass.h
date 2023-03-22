@@ -9,35 +9,36 @@ class DECLSPEC_UUID("4A582746-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 {
 public:
 	static constexpr inline DWORD vtable = 0x7E8AC0;
-
+	static constexpr inline DWORD ILoco_vtable = 0x7E89F4; // vtable + 4
+	
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;
-	virtual ULONG __stdcall AddRef() R0;
-	virtual ULONG __stdcall Release() R0;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
+	virtual ULONG __stdcall AddRef() override R0;
+	virtual ULONG __stdcall Release() override R0;
 
 	//ILocomotion
-	virtual bool __stdcall Is_Moving() R0;
-	virtual CoordStruct* __stdcall Destination(CoordStruct* pcoord) R0;
-	virtual bool __stdcall Process() R0;
-	virtual void __stdcall Move_To(CoordStruct to) RX;
-	virtual void __stdcall Stop_Moving() RX;
-	virtual void __stdcall Do_Turn(DirStruct coord) RX;
-	virtual Layer __stdcall In_Which_Layer() RT(Layer);
-	virtual void __stdcall Mark_All_Occupation_Bits(int mark) RX;
-	virtual void __stdcall Clear_Coords() RX;
+	virtual bool __stdcall Is_Moving() override R0;
+	virtual CoordStruct __stdcall Destination() override RT(CoordStruct);
+	virtual bool __stdcall Process() override R0;
+	virtual void __stdcall Move_To(CoordStruct to) override RX;
+	virtual void __stdcall Stop_Moving() override RX;
+	virtual void __stdcall Do_Turn(DirStruct coord) override RX;
+	virtual Layer __stdcall In_Which_Layer() override RT(Layer);
+	virtual void __stdcall Mark_All_Occupation_Bits(int mark) override RX;
+	virtual void __stdcall Clear_Coords() override RX;
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~FlyLocomotionClass() RX;
 
 	//LocomotionClass
-	virtual	int Size() R0;
+	virtual	int Size() override R0;
 
 	//FlyLocomotionClass
 

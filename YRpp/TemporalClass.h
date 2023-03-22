@@ -66,7 +66,7 @@ public:
 
 	TechnoClass*       Owner;
 	TechnoClass*       Target;
-	DECLARE_PROPERTY(TimerStruct, LifeTimer);
+	CDTimerClass       LifeTimer;
 	void*              unknown_pointer_38;
 	SuperClass*        SourceSW;
 

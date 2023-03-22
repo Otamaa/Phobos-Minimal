@@ -209,7 +209,7 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 }
 
 #pragma region Otamaa
-
+/*
 namespace GClockTemp
 {
 	SuperWeaponTypeClass* Super;
@@ -288,7 +288,7 @@ static void __fastcall StripClass_Draw_GClockSHP(
 }
 
 DEFINE_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
-
+*/
 //DEFINE_HOOK(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
 //{
 //	GClockTemp::Techno = nullptr;

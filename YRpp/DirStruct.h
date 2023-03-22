@@ -22,7 +22,7 @@ public:
 	{ }
 	explicit DirStruct(const noinit_t&) noexcept { }
 	explicit DirStruct(double Y, double X) : DirStruct() {
-		SetRadian<65536>(Math::atan2(Y, X));
+		SetRadian<65536>(std::atan2(Y, X));
 	}
 
 	bool operator==(const DirStruct& another) const

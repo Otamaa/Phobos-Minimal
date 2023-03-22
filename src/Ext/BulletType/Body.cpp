@@ -59,7 +59,7 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright , bool addDamage) const
 {
 	if (addDamage)
-		damage *= TechnoExt::GetDamageMult(pOwner);
+		damage = (int)(damage * TechnoExt::GetDamageMult(pOwner));
 
 	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
@@ -315,8 +315,8 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 
 	// is this good idea ,..
 	// by setting this properties , this will break some BulletClass functionality ,..
-	pItem->Strength = 0;
-	pItem->Armor = Armor::None;
+	//pItem->Strength = 0;
+	//pItem->Armor = Armor::None;
 
 	return 0;
 }

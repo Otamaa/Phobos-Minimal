@@ -45,8 +45,12 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
-//TODO : rework , and desync test
+DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
+{
+	return HouseClass::IsCurrentPlayerObserver() ?
+	 0x7467FE : 0x0;
+}
+
 #define CAN_BLINK_DISGUISE(pTechno) \
 RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseExt::IsObserverPlayer() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
 
@@ -59,7 +63,7 @@ DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 
 	if (CAN_BLINK_DISGUISE(pThis))
 		return SkipGameCode;
-	else if (accum && (pThis->Owner ? !pThis->Owner->ControlledByPlayer() : false))
+	else if (accum && (pThis->Owner ? !pThis->Owner->IsControlledByHuman() : false))
 		return Return;
 
 	return SkipGameCode;
@@ -111,7 +115,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
 	LightConvertClass* pConvert = nullptr;
-	int nColorIdx = pOwner->ColorSchemeIndex;
+	const int nColorIdx = pOwner ? pOwner->ColorSchemeIndex : 0;
 
 	if (pType->Palette && pType->Palette->Count > 0)
 		pConvert = pType->Palette->GetItem(nColorIdx)->LightConvert;
@@ -123,14 +127,24 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
+DEFINE_HOOK(0x705D82, TechnoClass_GetRemapColor_CheckVector, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(DynamicVectorClass<ColorScheme*>*, pTypePal, EAX);
+	GET(TechnoTypeClass* , pThisType ,EAX);
+	GET(HouseClass*, pOwner, ECX);
 
-	return pTypePal && pTypePal->Count > 0 ? 0x705D92 : 0x705D92;
+	R->EDI(pOwner ? pOwner->ColorSchemeIndex : 0 );
+
+	if(pThisType->Palette && pThisType->Palette->Count > 0) {
+		R->EAX(pThisType->Palette);
+		return 0x705D92;
+	}
+
+	return 0x705DA1;
 }
 
+#ifdef ENABLE_NEWHOOKS
+//TODO : rework , and desync test
 
 #pragma region Otamaa
 

@@ -2,6 +2,7 @@
 
 #include <DisplayClass.h>
 #include <RectangleStruct.h>
+#include <Audio.h>
 
 class Surface;
 class NOVTABLE RadarClass : public DisplayClass
@@ -26,7 +27,7 @@ public:
 	static constexpr reference <Surface*, 0x880A08u> const RadarEvenSurface_B{};
 
 	//Destructor
-	virtual ~RadarClass() override JMP_THIS(0x6587A0);
+	virtual ~RadarClass() JMP_THIS(0x6587A0);
 
 	//GScreenClass
 	virtual void One_Time() override JMP_THIS(0x652CF0);
@@ -57,7 +58,6 @@ public:
 	virtual void Init_For_House() JMP_THIS(0x652E90);
 
 	//Non-virtual
-
 protected:
 	//Constructor
 	RadarClass() noexcept	//don't need this
@@ -68,6 +68,7 @@ protected:
 	//===========================================================================
 
 public:
+	DWORD unknown_11E4;
 	DWORD unknown_11E8;
 	DWORD unknown_11EC;
 	DWORD unknown_11F0;
@@ -104,20 +105,20 @@ public:
 	DWORD unknown_14B8;
 	bool unknown_bool_14BC;
 	bool unknown_bool_14BD;
-	DWORD unknown_14C0;
-	DWORD unknown_14C4;
-	DWORD unknown_14C8;
-	DWORD unknown_14CC;
-	DWORD unknown_14D0;
+	AudioController unknow_audio_14C0;
+	//DWORD unknown_14C0;
+	//DWORD unknown_14C4;
+	//DWORD unknown_14C8;
+	//DWORD unknown_14CC;
+	//DWORD unknown_14D0;
 	int unknown_int_14D4;
 	bool IsAvailableNow;
 	bool unknown_bool_14D9;
 	bool unknown_bool_14DA;
 	RectangleStruct unknown_rect_14DC;
-	DWORD unknown_14EC;
-	DWORD unknown_14F0;
-	DWORD unknown_14F4;
-	DWORD unknown_14F8;
-	DWORD unknown_14FC;
-	TimerStruct unknown_timer_1500;
+	RectangleStruct unknown_rect_14EC;
+	DWORD RadarAnimFrame; //0x14FC
+	CDTimerClass unknown_timer_1500;
 };
+
+static_assert(sizeof(RadarClass) == 0x150C, "Invalid Size !");

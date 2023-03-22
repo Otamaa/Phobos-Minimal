@@ -35,22 +35,22 @@ public:
 	}
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~TerrainTypeClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 
 	//ObjectTypeClass
-	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) R0;
-	virtual ObjectClass* CreateObject(HouseClass* owner) R0;
+	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) override R0;
+	virtual ObjectClass* CreateObject(HouseClass* owner) override R0;
 
 	//Constructor
 	TerrainTypeClass(const char* pID) noexcept
@@ -70,8 +70,7 @@ public:
 
 	int ArrayIndex;
 	int Foundation;
-	DECLARE_PROPERTY(ColorStruct, RadarColor);
-	PROTECTED_PROPERTY(BYTE, TTypePadA);
+	ColorStruct RadarColor;
 	int AnimationRate;
 	float AnimationProbability;
 	int TemperateOccupationBits;
@@ -81,7 +80,6 @@ public:
 	bool IsFlammable;
 	bool IsAnimated;
 	bool IsVeinhole;
-	PROTECTED_PROPERTY(BYTE, TTypePadB[3]);
 	CellStruct* FoundationData;
 };
 

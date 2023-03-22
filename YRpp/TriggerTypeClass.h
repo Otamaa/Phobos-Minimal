@@ -67,7 +67,7 @@ public:
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
-	virtual void CalculateChecksum(Checksummer& checksum) const override RX;
+	virtual void ComputeCRC(CRCEngine& checksum) const override RX;
 
 	//AbstractTypeClass
 	virtual int GetArrayIndex() const override R0;
@@ -137,7 +137,7 @@ protected:
 
 public:
 	int ArrayIndex;
-	ArrayHelper<bool , 3u> Difficulty; // easy = 0, normal = 1, hard = 2
+	bool Difficulty[3]; // easy = 0, normal = 1, hard = 2
 	bool Enabled;
 	bool MustTransfer; // vehicle thieves must take Tag with it when hijacking
 	PROTECTED_PROPERTY(BYTE, align_A1[3]);

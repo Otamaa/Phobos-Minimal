@@ -29,14 +29,15 @@ DEFINE_OVERRIDE_HOOK(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
 	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)
-{
-	GET(BuildingClass*, pBld, ESI);
-
-	// add the EMP check to the limbo check
-	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
-		0x5F7A57 : 0x5F7941;
-}
+// No data found on .inj for this
+//DEFINE_OVERRIDE_HOOK(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)
+//{
+//	GET(BuildingClass*, pBld, ESI);
+//
+//	 //add the EMP check to the limbo check
+//	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
+//		0x5F7A57 : 0x5F7941;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 0x6)
 {
@@ -132,29 +133,6 @@ DEFINE_OVERRIDE_HOOK(0x7077EE, TechnoClass_PointerGotInvalid_ResetMindControl, 0
 	return 0;
 }
 
-// gunners and opentopped together do not support temporals, because the gunner
-// takes away the TemporalImUsing from the infantry, and thus it is missing
-// when the infantry fires out of the opentopped vehicle
-DEFINE_OVERRIDE_HOOK(0x6FC339, TechnoClass_GetFireError_OpenToppedGunnerTemporal, 0x6)
-{
-	enum { Continue = 0x0u, FireCant = 0x6FCD29u };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EDI);
-
-	bool ret = true;
-	if (pWeapon->Warhead->Temporal && pThis->Transporter)
-	{
-		auto const pType = pThis->Transporter->GetTechnoType();
-		if (pType->Gunner && pType->OpenTopped)
-		{
-			ret = (pThis->TemporalImUsing != nullptr);
-		}
-	}
-
-	return ret ? Continue : FireCant;
-}
-
 // #1415844: units in open-topped transports show behind anim
 DEFINE_OVERRIDE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden, 0x8)
 {
@@ -197,13 +175,12 @@ DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_Fire_Facings, 0x6)
+DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	AnimTypeClass* pAnim = nullptr;
-
 	auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
 
 	// 2^highest is the frame count, 3 means 8 frames
@@ -222,7 +199,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_Fire_Facings, 0x6)
 	return 0x6FF31B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_Fire_CreateBullet, 0x6)
+DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);

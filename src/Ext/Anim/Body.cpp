@@ -112,7 +112,7 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 		{
 			if (!pAnimTypeExt->ExplodeOnWater)
 			{
-				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim.Get(RulesClass::Instance->Wake), pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
+				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
 					if (auto const pSplashAnimCreated = GameCreate<AnimClass>(pSplashAnim, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false))
 					{
@@ -317,7 +317,8 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	}
 	case DamageDelayTargetFlag::Invoker:
 	{
-		return AnimExt::ExtMap.Find(pThis)->Invoker;
+		if(auto const pExt = AnimExt::ExtMap.Find(pThis))
+			return pExt->Invoker;
 	}
 	}
 
@@ -433,7 +434,8 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 		// this return also will prevent Techno `Invoker` to be set !
 		return false;
 
-	AnimExt::ExtMap.Find(pAnim)->Invoker = pTechnoInvoker;
+	if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+		pAnimExt->Invoker = pTechnoInvoker;
 
 	if (pTypeExt->CreateUnit.Get())
 	{
@@ -589,29 +591,12 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	return 0;
 }
 
-#ifdef ENABLE_NEWHOOKS
-DEFINE_HOOK(0x426590, AnimClass_SDDTOR, 0x8)
-{
-	GET(AnimClass* const, pItem, ECX);
-	GET_STACK(char, nFlag, 0x4);
-
-	pItem->DestroyPointer();
-	if ((nFlag & 1) != 0)
-		YRMemory::Deallocate(pItem);
-
-	AnimExt::ExtMap.Remove(pItem);
-
-	R->EAX(pItem);
-	return 0x4265AB;
-}
-#else
 DEFINE_HOOK(0x422A59, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
 	AnimExt::ExtMap.Remove(pItem);
 	return 0;
 }
-#endif
 
 DEFINE_HOOK_AGAIN(0x425280, AnimClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x4253B0, AnimClass_SaveLoad_Prefix, 0x5)

@@ -93,14 +93,12 @@ struct Conversions
 	// http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog
 	static inline unsigned int Int2Highest(DWORD v) {
 
-		unsigned int shift = 0;
-
 		// result of log2(v) will go here
-		unsigned int r =     static_cast<DWORD>(v > 0xFFFF) << 4; v >>= r;
-		shift = static_cast<DWORD>(v > 0xFF  ) << 3; v >>= shift; r |= shift;
-		shift = static_cast<DWORD>(v > 0xF   ) << 2; v >>= shift; r |= shift;
-		shift = static_cast<DWORD>(v > 0x3   ) << 1; v >>= shift; r |= shift;
-		                                                          r |= (v >> 1);
+		unsigned int r = static_cast<DWORD>(v > 0xFFFF) << 4; v >>= r;
+		unsigned int shift = static_cast<DWORD>(v > 0xFF  ) << 3; v >>= shift; r |= shift;
+					 shift = static_cast<DWORD>(v > 0xF   ) << 2; v >>= shift; r |= shift;
+					 shift = static_cast<DWORD>(v > 0x3   ) << 1; v >>= shift; r |= shift; 
+					 r |= (v >> 1);
 		return r;
 	}
 

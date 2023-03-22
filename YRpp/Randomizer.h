@@ -90,10 +90,9 @@ public:
 
 public:
 	bool unknownBool_00;
-	PROTECTED_PROPERTY(BYTE, padding[3]);
 	int Index1;
 	int Index2;
-	ArrayWrapper<DWORD ,0xFA> Table;
+	DWORD Table [0xFA];
 
 };
 

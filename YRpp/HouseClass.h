@@ -43,7 +43,7 @@ public:
 	void ToNetworkFormat() JMP_THIS(0x749100);
 	void ToPCFormat() JMP_THIS(0x749150);
 
-	ArrayWrapper<int, Max> UnitTotals;
+	int UnitTotals[Max];
 	int UnitCount;
 	BOOL InNetworkFormat;
 };
@@ -140,7 +140,7 @@ public:
 	//VTable
 	virtual HRESULT __stdcall Load(IStream* pStm) JMP_THIS(0x42EE30);
 	virtual HRESULT __stdcall Save(IStream* pStm) JMP_THIS(0x42F070);
-	virtual void CalculateChecksum(Checksummer& checksum) const JMP_THIS(0x42F180);
+	virtual void ComputeCRC(CRCEngine& checksum) const JMP_THIS(0x42F180);
 
 	//virtual ~BaseClass() { /*???*/ }; // gcc demands a virtual since virtual funcs exist
 
@@ -204,7 +204,7 @@ struct DropshipStruct
 	BYTE             unknown_C;
 	PROTECTED_PROPERTY(BYTE, align_D[3]);
 	int              Count;
-	ArrayWrapper<TechnoTypeClass*, 5u> Types;
+	TechnoTypeClass* Types[5];
 	int              TotalCost;
 };
 
@@ -225,14 +225,14 @@ public:
 	static constexpr reference<HouseClass*, 0xAC1198u> const Observer{};
 
 	//IConnectionPointContainer
-	virtual HRESULT __stdcall EnumConnectionPoints(IEnumConnectionPoints** ppEnum) R0;
-	virtual HRESULT __stdcall FindConnectionPoint(GUID* riid, IConnectionPoint** ppCP) R0;
+	virtual HRESULT __stdcall EnumConnectionPoints(IEnumConnectionPoints** ppEnum) override R0;
+	virtual HRESULT __stdcall FindConnectionPoint(const IID& riid, IConnectionPoint** ppCP) override R0;
 
 	//IPublicHouse
 	virtual long __stdcall Apparent_Category_Quantity(Category category) const override R0;
 	virtual long __stdcall Apparent_Category_Power(Category category) const override R0;
-	virtual CellStruct __stdcall Apparent_Base_Center() const RT(CellStruct);
-	virtual bool __stdcall Is_Powered() const R0;
+	virtual CellStruct __stdcall Apparent_Base_Center() const override RT(CellStruct);
+	virtual bool __stdcall Is_Powered() const override R0;
 
 	//IHouse
 	virtual LONG __stdcall ID_Number() const override R0;
@@ -264,10 +264,10 @@ public:
 	virtual ~HouseClass() override JMP_THIS(0x50E380);
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4FB9B0);
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
-	virtual void Update() override JMP_THIS(0x4F8440);
+	//virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x4FB9B0);
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
+	//virtual void Update() override JMP_THIS(0x4F8440);
 
 	bool IsAlliedWith(int idxHouse) const
 		{ JMP_THIS(0x4F9A10); }
@@ -810,7 +810,8 @@ public:
 	// whether this house is equal to Observer
 	bool IsObserver() const {
 
-		return (this == Observer || !CRT::strcmpi(get_ID(), "Observer"));
+		return (this == Observer //|| !CRT::strcmpi(get_ID(), "Observer")
+			);
 
 	}
 
@@ -945,8 +946,8 @@ public:
 	//struct StaticDataClass {
 	int                   IQLevel;
 	int                   TechLevel;
-	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, AltAllies); // ask question, receive brain damage
-	int                   StartingCredits;	//not sure how these are used // actual credits = this * 100
+	IndexBitfield<HouseClass*> AltAllies;        // ask question, receive brain damage
+	int                   StartingCredits;       // not sure how these are used // actual credits = this * 100
 	Edge                  StartingEdge;
 	//}StaticData;
 	DWORD                 AIState_1E4;
@@ -972,8 +973,8 @@ public:
 	int					  TournamentTeamID;
 	bool				  LostConnection;
 	int                   SelectedPathIndex;
-	ArrayWrapper<WaypointPathClass*,12u> PlanningPaths; // 12 paths for "planning mode"
-	char                  Visionary;			//??? exe says so
+	WaypointPathClass*    PlanningPaths [12];    // 12 paths for "planning mode"
+	char                  Visionary;             //??? exe says so
 	bool                  MapIsClear;
 	bool                  IsTiberiumShort;
 	bool                  HasBeenSpied;
@@ -992,15 +993,15 @@ public:
 	int                   LastBuiltInfantryType;
 	int                   LastBuiltAircraftType;
 	int                   LastBuiltVehicleType;
-	int                   AllowWinBlocks; // some ra1 residue map trigger-fu, should die a painful death
-	DECLARE_PROPERTY(TimerStruct, RepairTimer); // for AI
-	DECLARE_PROPERTY(TimerStruct, AlertTimer);
-	DECLARE_PROPERTY(TimerStruct, BorrowedTime);
-	DECLARE_PROPERTY(TimerStruct, PowerBlackoutTimer);
-	DECLARE_PROPERTY(TimerStruct, RadarBlackoutTimer);
-	bool                  Side2TechInfiltrated; // asswards! whether this player has infiltrated stuff
-	bool                  Side1TechInfiltrated; // which is listed in [AI]->BuildTech
-	bool                  Side0TechInfiltrated; // and has the appropriate AIBasePlanningSide
+	int                   AllowWinBlocks;        // some ra1 residue map trigger-fu, should die a painful death
+	DECLARE_PROPERTY(CDTimerClass, RepairTimer); // for AI
+	DECLARE_PROPERTY(CDTimerClass, AlertTimer);
+	DECLARE_PROPERTY(CDTimerClass, BorrowedTime);
+	DECLARE_PROPERTY(CDTimerClass, PowerBlackoutTimer);
+	DECLARE_PROPERTY(CDTimerClass, RadarBlackoutTimer);
+	bool                  Side2TechInfiltrated;  // asswards! whether this player has infiltrated stuff
+	bool                  Side1TechInfiltrated;  // which is listed in [AI]->BuildTech
+	bool                  Side0TechInfiltrated;  // and has the appropriate AIBasePlanningSide
 	bool                  BarracksInfiltrated;
 	bool                  WarFactoryInfiltrated;
 
@@ -1082,21 +1083,20 @@ public:
 	UnitClass*			  OurFlagCarrier;
 	CellStruct			  OurFlagCoords;
 	//for endgame score screen
-	ArrayWrapper<int , 20> KilledUnitsOfHouses;		// 20 Houses only!
+	int                   KilledUnitsOfHouses [20];     // 20 Houses only!
 	int                   TotalKilledUnits;
-	ArrayWrapper<int, 20>	KilledBuildingsOfHouses;	// 20 Houses only!
+	int                   KilledBuildingsOfHouses [20]; // 20 Houses only!
 	int                   TotalKilledBuildings;
 	int                   WhoLastHurtMe;
 	CellStruct            BaseSpawnCell;
 	CellStruct            BaseCenter; // set by map action 137 and 138
-	int					  Radius;
-	//DECLARE_PROPERTY_ARRAY(ZoneInfoStruct, ZoneInfos, 5);
-	ArrayWrapper<ZoneInfoStruct, 5> ZoneInfos;
-	int					  LATime;
-	int					  LAEnemy;
-	AbstractClass*		  ToCapture;
+	int                   Radius;
+	DECLARE_PROPERTY_ARRAY(ZoneInfoStruct, ZoneInfos, 5);
+	int                   LATime;
+	int                   LAEnemy;
+	void*                   ToCapture;
 //	IndexBitfield<HouseTypeClass *> RadarVisibleTo; // these house types(!?!, fuck you WW) can see my radar
-	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, RadarVisibleTo); // this crap is being rewritten to use house indices instead of house types
+	IndexBitfield<HouseClass *> RadarVisibleTo;  // this crap is being rewritten to use house indices instead of house types
 	int                   SiloMoney;
 	TargetType			  PreferredTargetType; // Set via map action 35. The preferred object type to attack.
 	CellStruct			  PreferredTargetCell; // Set via map action 135 and 136. Used to override firing location of targettable SWs.
@@ -1132,13 +1132,13 @@ public:
 	DECLARE_PROPERTY(CounterClass, FactoryProducedInfantryTypes);
 	DECLARE_PROPERTY(CounterClass, FactoryProducedAircraftTypes);
 
-	DECLARE_PROPERTY(TimerStruct, AttackTimer);
+	DECLARE_PROPERTY(CDTimerClass, AttackTimer);
 	int                   InitialAttackDelay; // both unused
 	int                   EnemyHouseIndex;
 	DECLARE_PROPERTY(DynamicVectorClass<AngerStruct>, AngerNodes); //arghghghgh bugged
 	DECLARE_PROPERTY(DynamicVectorClass<ScoutStruct>, ScoutNodes); // filled with data which is never used, jood gob WW
-	DECLARE_PROPERTY(TimerStruct, AITimer);
-	DECLARE_PROPERTY(TimerStruct, Unknown_Timer_5640);
+	DECLARE_PROPERTY(CDTimerClass, AITimer);
+	DECLARE_PROPERTY(CDTimerClass, Unknown_Timer_5640);
 	int                   ProducingBuildingTypeIndex;
 	int                   ProducingUnitTypeIndex;
 	int                   ProducingInfantryTypeIndex;
@@ -1148,8 +1148,7 @@ public:
 	int                   RatioTeamInfantry;
 	int                   RatioTeamBuildings;
 	int                   BaseDefenseTeamCount;
-	//DECLARE_PROPERTY_ARRAY(DropshipStruct, DropshipData, 3);
-	ArrayWrapper<DropshipStruct, 3u> DropshipData;
+	DECLARE_PROPERTY_ARRAY(DropshipStruct, DropshipData, 3);
 	int                   CurrentDropshipIndex;
 	byte				  HasCloakingRanges; // don't ask
 	ColorStruct			  Color;
@@ -1160,18 +1159,18 @@ public:
 	bool                  SpySatActive;
 	bool                  IsBeingDrained;
 	Edge                  Edge;
-	CellStruct			  EMPTarget;
-	CellStruct			  NukeTarget;
-	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, Allies);	//flags, one bit per HouseClass instance
-	                                        	//-> 32 players possible here
-	DECLARE_PROPERTY(TimerStruct, DamageDelayTimer);
-	DECLARE_PROPERTY(TimerStruct, TeamDelayTimer); // for AI attacks
-	DECLARE_PROPERTY(TimerStruct, TriggerDelayTimer);
-	DECLARE_PROPERTY(TimerStruct, SpeakAttackDelayTimer);
-	DECLARE_PROPERTY(TimerStruct, SpeakPowerDelayTimer);
-	DECLARE_PROPERTY(TimerStruct, SpeakMoneyDelayTimer);
-	DECLARE_PROPERTY(TimerStruct, SpeakMaxedDelayTimer);
-	IAIHouse*		      AIGeneral;
+	CellStruct            EMPTarget;
+	CellStruct            NukeTarget;
+	IndexBitfield<HouseClass*> Allies; // flags, one bit per HouseClass instance
+	                                   //-> 32 players possible here
+	DECLARE_PROPERTY(CDTimerClass, DamageDelayTimer);
+	DECLARE_PROPERTY(CDTimerClass, TeamDelayTimer); // for AI attacks
+	DECLARE_PROPERTY(CDTimerClass, TriggerDelayTimer);
+	DECLARE_PROPERTY(CDTimerClass, SpeakAttackDelayTimer);
+	DECLARE_PROPERTY(CDTimerClass, SpeakPowerDelayTimer);
+	DECLARE_PROPERTY(CDTimerClass, SpeakMoneyDelayTimer);
+	DECLARE_PROPERTY(CDTimerClass, SpeakMaxedDelayTimer);
+	IAIHouse*             AIGeneral;
 
 	unsigned int          ThreatPosedEstimates[130][130]; // BLARGH
 
@@ -1184,7 +1183,7 @@ public:
 		int               StartingPoint;
 		CellStruct        StartingCell;     // Could it really be a CellStruct ? - Saved for backwards compatibility
 	};
-	DECLARE_PROPERTY(IndexBitfield<HouseClass*>, StartingAllies);
+	IndexBitfield<HouseClass*> StartingAllies;
 	DWORD                 unknown_16060;
 	DECLARE_PROPERTY(DynamicVectorClass<IConnectionPoint*>, WaypointPath);
 	DWORD __ConnectionPoints_1607C;

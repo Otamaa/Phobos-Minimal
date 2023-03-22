@@ -93,7 +93,7 @@ public:
 	/**
 	 *  Compute a unique crc value for this instance.
 	 */
-	virtual void Compute_CRC(Checksummer& crc) const { }
+	virtual void Compute_CRC(CRCEngine& crc) const { }
 
 public:
 	/**
@@ -163,7 +163,7 @@ public:
 	virtual int Size_Of() const override { return sizeof(AircraftClassExtension); }
 
 	virtual void Detach(AbstractClass* target, bool all = true) override { }
-	virtual void Compute_CRC(Checksummer& crc) const override { }
+	virtual void Compute_CRC(CRCEngine& crc) const override { }
 
 
 	static AircraftClassExtension* Get_Extension_Pointer(const AircraftClass* abs)

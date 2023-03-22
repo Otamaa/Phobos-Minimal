@@ -86,13 +86,14 @@ public:
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x691E30);
-	virtual AbstractType WhatAmI() const override { return AbstractType::ScriptType; }
-	virtual int Size() const override { return 0x234; }
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int Size() const override R0;
 	virtual int GetArrayIndex() const override { return this->ArrayIndex; }
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6918A0);
 	virtual bool SaveToINI(CCINIClass* pINI) override JMP_THIS(0x6917F0);
+	
 	static bool LoadFromINIList(CCINIClass *pINI, bool IsGlobal)
 		{ JMP_STD(0x691970); }
 
@@ -115,6 +116,6 @@ public:
 	int      ArrayIndex;
 	bool     IsGlobal;
 	int      ActionsCount;
-	ArrayWrapper<ScriptActionNode,MaxActions> ScriptActions;
+	ScriptActionNode ScriptActions [50];
 };
 static_assert(sizeof(ScriptTypeClass) == 0x234, "Invalid Size ! ");

@@ -54,13 +54,13 @@ public:
 
 	TextPrintType TextFlags;
 	void* Tabs; // Not sure what it is
-	DECLARE_PROPERTY(DynamicVectorClass<const char*>, List);
+	DynamicVectorClass<const char*> List;
 	int LineHeight;
 	int LineCount;
 	bool IsScrollActive;
-	DECLARE_PROPERTY(ShapeButtonClass, UpButton);
-	DECLARE_PROPERTY(ShapeButtonClass, DownButton);
-	DECLARE_PROPERTY(SliderClass, Scroller);
+	ShapeButtonClass UpButton;
+	ShapeButtonClass DownButton;
+	SliderClass Scroller;
 	int SelectedIndex;
 	int CurrentTopIndex;
 };

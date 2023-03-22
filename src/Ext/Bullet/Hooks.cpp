@@ -95,7 +95,7 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 #endif
 
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
+	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
 
 	return 0;
 }
@@ -201,8 +201,10 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 	GET(BulletClass*, pThis, ESI);
 
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-	const bool isLand = pThis->GetCell()->LandType != LandType::Water || pThis->GetCell()->ContainsBridge();
-
+	auto const pCell = pThis->GetCell();
+	const bool isLand = !pCell ? true : 
+	pCell->LandType != LandType::Water || pCell->ContainsBridge();
+	
 	if (!isLand && pWHExt->Debris_Conventional.Get())
 		return SkipGameCode;
 

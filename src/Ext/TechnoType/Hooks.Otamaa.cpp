@@ -99,35 +99,3 @@ DEFINE_HOOK(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7) //was 5
 
 	return 0x7365ED;
 }
-
-DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
-{
-	enum { Handled = 0x6624C8, Skip = 0x0 };
-
-	GET(RocketLocomotionClass*, pThis, ESI);
-	if (const auto pAir = specific_cast<AircraftClass*>(pThis->Owner)) {
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
-		if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir))
-		{
-			return Handled;
-		}
-	}
-
-	return Skip;
-}
-
-DEFINE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_CustomMissile, 0x6)
-{
-	enum { Handled = 0x66351B, Skip = 0x0 };
-
-	GET(AircraftTypeClass*, pType, ECX);
-
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
-	if (pExt->IsCustomMissile.Get())
-	{
-		R->EAX(&pExt->CustomMissileData);
-		return Handled;
-	}
-
-	return Skip;
-}

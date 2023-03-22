@@ -227,6 +227,7 @@ public:
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+
 		//this->ExtMap.erase(key);
 	}
 
@@ -251,7 +252,7 @@ public:
 		//return Iter != this->ExtMap.end() ? (*Iter).second : nullptr;
 	}
 
-	virtual void Clear() { //ExtMap.clear();
+	virtual void Clear() { //ExtMap.clear(); 
 	}
 
 protected:
@@ -266,7 +267,7 @@ public:
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
-		if (Phobos::Otamaa::DoingLoadGame)
+		if (!key || Phobos::Otamaa::DoingLoadGame)
 			return nullptr;
 
 		this->ClearExtAttribute(key);
@@ -295,7 +296,7 @@ public:
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
 	{
 		// Find Always check for nullptr here
-		if (extension_type_ptr const ptr = Find(key))
+		if (extension_type_ptr const ptr = TryFind(key))
 			return ptr;
 
 		return this->Allocate(key);
@@ -316,7 +317,7 @@ public:
 
 	void Remove(base_type_ptr key)
 	{
-		if (extension_type_ptr Item = Find(key)) {
+		if (extension_type_ptr Item = TryFind(key)) {
 			delete Item;
 
 			this->ClearExtAttribute(key);
@@ -325,7 +326,7 @@ public:
 
 	void LoadFromINI(base_type_ptr key, CCINIClass* pINI)
 	{
-		if (extension_type_ptr ptr = this->Find(key))
+		if (extension_type_ptr ptr = this->TryFind(key))
 			ptr->LoadFromINI(pINI);
 	}
 

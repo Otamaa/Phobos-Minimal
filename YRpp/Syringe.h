@@ -345,9 +345,9 @@ decl_override_hook(hook, funcname, -1) \
 //EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
 //EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
 //{\
-//GameDebugLog::Log("[Hook] 0x%X [%s]\n",R->Origin(), #funcname);\
+//GameDebugLog::Log("[Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
 //DWORD ret=funcname##_DEBUG_(R);\
-//GameDebugLog::Log("[Hook] 0x%X [%s] end\n", R->Origin(), #funcname);\
+//GameDebugLog::Log("[Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
 //return ret;\
 //}\
 //EXPORT_DEBUG(funcname##_DEBUG_)

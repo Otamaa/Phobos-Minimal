@@ -16,26 +16,26 @@ public:
 	static const AbstractType AbsID = AbstractType::Airstrike;
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) R0;
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
 
 	//Destructor
 	virtual ~AirstrikeClass() RX;
 
 	//AbstractClass
-	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual AbstractType WhatAmI() const override RT(AbstractType);
+	virtual int	Size() const override R0;
 
 	//non-virtual
 	void StartMission(ObjectClass* pTarget) { JMP_THIS(0x41D830); }
-	void Detach(ObjectClass* pTarget) { JMP_THIS(0x41D540); }
-	void SetUp(ObjectClass* pTarget) { JMP_THIS(0x41D860); }
+	void DetachTarget(ObjectClass* pTarget) { JMP_THIS(0x41D540); }
+	void SetUpTarget(ObjectClass* pTarget) { JMP_THIS(0x41D860); }
 	void SetTarget(ObjectClass* pTarget) { JMP_THIS(0x41DA20);}
 	void ResetTarget() { JMP_THIS(0x41DB40); }
-	bool CanStrike(ObjectClass* pTarget) { JMP_THIS(0x41D7E0); }
+	bool CanStrikeTarget(ObjectClass* pTarget) { JMP_THIS(0x41D7E0); }
 
 	//Not sure
 	int AirstrikeClass_41DC60() { JMP_THIS(0x41DC60); }

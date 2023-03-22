@@ -2863,7 +2863,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	case 17:
 	{
 		// Ground Vehicle
-		if (!pTechno->Owner->IsNeutral() && !pTechnoType->Naval && !pTechno->IsInAir())
+		if (!pTechno->Owner->IsNeutral() && !pTechnoType->Naval)
 		{
 			if (auto pBld = specific_cast<BuildingClass*>(pTechno))
 			{
@@ -2874,7 +2874,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 						&& !pBld->Type->BaseNormal);
 			}
 
-			return pTechno->WhatAmI() == AbstractType::Unit;
+			return !pTechno->IsInAir() && pTechno->WhatAmI() == AbstractType::Unit;
 		}
 
 		return false;

@@ -312,11 +312,11 @@ private:
 	static bool AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
 
 	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
-	static NOINLINE ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
-	static NOINLINE bool IsCritImmune(TechnoClass* pThis);
-	static NOINLINE bool IsPsionicsImmune(TechnoClass* pThis);
-	static NOINLINE bool IsCullingImmune(TechnoClass* pThis);
-	static NOINLINE bool IsEMPImmune(TechnoClass* pThis);
+	static ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
+	static bool IsCritImmune(TechnoClass* pThis);
+	static bool IsPsionicsImmune(TechnoClass* pThis);
+	static bool IsCullingImmune(TechnoClass* pThis);
+	static bool IsEMPImmune(TechnoClass* pThis);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
@@ -330,6 +330,7 @@ private:
 	static int GetDeployFireWeapon(UnitClass* pThis);
 
 	static AreaFireReturnFlag ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon);
+	static int GetThreadPosed(TechnoClass* pThis);
 protected:
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);

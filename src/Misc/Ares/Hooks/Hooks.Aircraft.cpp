@@ -215,6 +215,20 @@ DEFINE_OVERRIDE_HOOK(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 	return 0x41433E;
 }
 
+// aim for the cell for flying carriers
+DEFINE_OVERRIDE_HOOK(0xB783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+
+	AbstractClass* pDest = pThis->Owner;
+	if (pThis->Owner->GetHeight() > 0) {
+		pDest = pThis->Owner->GetCell();
+	}
+
+	R->EAX<AbstractClass*>(pDest);
+	return 0;
+}
+
 /* #1354 - Aircraft and empty SovParaDropInf list */
 DEFINE_OVERRIDE_HOOK(0x41D887, AirstrikeClass_Fire, 0x6)
 {

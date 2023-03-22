@@ -8,30 +8,15 @@ namespace Helper
 {
 	namespace Otamaa
 	{
-		inline AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, AnimTypeClass* pWake, bool Random, bool IsMeteor)
-		{
-			TypeList<AnimTypeClass*> defaultSplashAnims;
-
-			if (!IsMeteor)
-			{
-				defaultSplashAnims = TypeList<AnimTypeClass*>();
-				defaultSplashAnims.AddItem(pWake);
-			}
-			else
-			{
-				defaultSplashAnims = RulesClass::Instance->SplashList;
+		inline AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
+		{		
+			if (nSplash.HasValue()) {
+				if (nSplash.size() > 0) {
+					return nSplash[Random ? ScenarioClass::Instance->Random.RandomFromMax((nSplash.size() - 1)) : 0];
+				}
 			}
 
-			auto const splash = nSplash.GetElements(defaultSplashAnims);
-
-			if (splash.size() > 0)
-			{
-				const auto nIndexR = (splash.size() - 1);
-				return splash[Random ?
-					ScenarioClass::Instance->Random.RandomFromMax(nIndexR) : nIndexR];
-			}
-
-			return nullptr;
+			return nWake.isset() && !IsMeteor ? nWake.Get() : RulesClass::Instance->Wake;
 		}
 
 		inline std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)

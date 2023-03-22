@@ -22,11 +22,11 @@ public:
 	static constexpr constant_ptr<DynamicVectorClass<TeamClass*>, 0x8B40E8u> const Array{};
 
 	//IPersist
-	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) JMP_STD(0x6EC560);
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6EC560);
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x6EC450);
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) JMP_STD(0x6EC540);
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x6EC450);
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override JMP_STD(0x6EC540);
 
 	//Destructor
 	virtual ~TeamClass() JMP_THIS(0x6F0450);
@@ -98,9 +98,9 @@ public:
 	int            TotalObjects;
 	int            TotalThreatValue;
 	int            CreationFrame;
-	FootClass*    FirstUnit;
-	DECLARE_PROPERTY(TimerStruct ,GuardAreaTimer);
-	DECLARE_PROPERTY(TimerStruct ,SuspendTimer);
+	FootClass *    FirstUnit;
+	CDTimerClass   GuardAreaTimer;
+	CDTimerClass   SuspendTimer;
 	TagClass*      Tag;
 	bool           IsTransient;
 	bool           NeedsReGrouping; //75
@@ -124,7 +124,7 @@ public:
 
 	bool           AchievedGreatSuccess; // executed script action 49, 0
 
-	ArrayWrapper<int , 6u> CountObjects; // counts of each object specified in the Type
+	int CountObjects [6]; // counts of each object specified in the Type
 };
 
 static_assert(sizeof(TeamClass) == 0xA0 , "Invalid Size !");
