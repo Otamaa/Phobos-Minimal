@@ -1,9 +1,13 @@
 #pragma once
 #include <Windows.h>
 
+#include <YRPPCore.h>
+
 class TechnoClass;
 class TechnoTypeClass;
 class FootClass;
+
+typedef int (__cdecl *CallHook)(REGISTERS* R);
 
 struct AresData
 {
@@ -57,6 +61,8 @@ struct AresData
 	// here be known Ares functions
 	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
 	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
+
+	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 
 	template<int idx, typename Tret, typename... TArgs>
 	struct AresStdcall

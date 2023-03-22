@@ -1319,7 +1319,9 @@ enum class MouseCursorType : unsigned int {
 	AirStrike = 0x52,
 	PsychicDominator = 0x53,
 	PsychicReveal = 0x54,
-	SpyPlane = 0x55
+	SpyPlane = 0x55 ,
+
+	count
 };
 
 enum class RadBeamType : unsigned int {

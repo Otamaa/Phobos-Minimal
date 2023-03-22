@@ -27,7 +27,7 @@ struct SpawnNode
 {
 	TechnoClass* Unit;		//ThisCan be anything Techno that not building ?
 	SpawnNodeStatus Status;
-	CDTimerClass SpawnTimer;
+	CDTimerClass NodeSpawnTimer;
 	BOOL IsSpawnMissile;
 };
 

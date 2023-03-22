@@ -4,8 +4,8 @@
 
 class MouseCursor {
 public:
-	static inline constexpr size_t DefaultCursorsCount = 86u;
-	static constexpr reference<MouseCursor, 0x82D028u, DefaultCursorsCount> const DefaultCursors{};
+	static inline constexpr size_t DefaultCursorsCount = (size_t)MouseCursorType::count;
+	static constexpr reference<MouseCursor, 0x82D028u, (size_t)MouseCursorType::count> const DefaultCursors{};
 
 	static MouseCursor& GetDefaultCursor(MouseCursorType cursor)
 		{ return DefaultCursors[static_cast<int>(cursor)]; }
@@ -24,6 +24,8 @@ public:
 		: Frame(frame), Count(count), Interval(interval), MiniFrame(miniFrame),
 		MiniCount(miniCount), HotX(hotX), HotY(hotY)
 	{ }
+
+	~MouseCursor() noexcept = default;
 
 	int Frame{ 0 };
 	int Count{ 1 };

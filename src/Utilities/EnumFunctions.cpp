@@ -12,7 +12,8 @@ std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::Ful
 
 std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
  {
-	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } , { "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" }
+	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } ,
+	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" }
  }
 };
 
@@ -118,7 +119,6 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 
 	return false;
 }
-
 
 bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately)
 {

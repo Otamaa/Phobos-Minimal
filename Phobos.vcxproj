@@ -173,6 +173,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="src\New\Type\ArmorTypeClass.cpp" />
     <ClCompile Include="src\New\Type\BannerTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ColorTypeClass.cpp" />
+    <ClCompile Include="src\New\Type\CursorTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HoverTypeClass.cpp" />
     <ClCompile Include="src\New\Type\RadTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ShieldTypeClass.cpp" />
@@ -399,6 +401,7 @@
     <ClInclude Include="src\New\Type\ArmorTypeClass.h" />
     <ClInclude Include="src\New\Type\BannerTypeClass.h" />
     <ClInclude Include="src\New\Type\ColorTypeClass.h" />
+    <ClInclude Include="src\New\Type\CursorTypeClass.h" />
     <ClInclude Include="src\New\Type\HoverTypeClass.h" />
     <ClInclude Include="src\New\Type\RadTypeClass.h" />
     <ClInclude Include="src\New\Type\ShieldTypeClass.h" />

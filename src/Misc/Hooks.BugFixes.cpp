@@ -486,7 +486,7 @@ DEFINE_HOOK(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
 
 	for (const auto& nNodes : pManager->SpawnedNodes)
 	{
-		nNodes->SpawnTimer.Start(pManager->RegenRate);
+		nNodes->NodeSpawnTimer.Start(pManager->RegenRate);
 	}
 
 	return 0x710026;

@@ -60,6 +60,8 @@ void ArmorTypeClass::EvaluateDefault() {
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
+	ArmorTypeClass::AddDefaults();
+
 	if (!pINI)
 		return;
 	
@@ -69,26 +71,16 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 		return;
 
 	auto const pkeyCount = pINI->GetKeyCount(pSection);
+	
+	if (!pkeyCount)
+		return;
+
 	Array.reserve(pkeyCount + Unsorted::ArmorNameArray.size());
 
-	ArmorTypeClass::AddDefaults();
-
-	for (int i = 0; i < pkeyCount; ++i)
-	{
-		const char* pKey = pINI->GetKeyName(pSection, i);
-
-		if (FindIndexById(pKey) != -1)
-			continue;
-
-		if (auto const pAlloc = Allocate(pKey))
+	for (int i = 0; i < pkeyCount; ++i) {
+		if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
 			pAlloc->LoadFromINI(pINI);
-
-		if (bDebug)
-			Debug::Log("Allocating ArmorType with Name[%s] at [%d] \n", pKey, i);
 	}
-
-	if (bDebug)
-		Debug::Log("ArmorType Array count currently [%d]\n", ArmorTypeClass::Array.size());
 }
 
 void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
@@ -111,16 +103,6 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 				: pWHExt->Verses[nDefaultIdx]
 		);
 	}
-
-	//for (size_t i = Unsorted::ArmorNameArray.size() - 1;
-	//	i < Array.size(); ++i)
-	//{
-	//	auto& nTypeDef = Array[i];
-	//	pWHExt->Verses[i] =
-	//	nTypeDef->DefaultTo == -1 ?
-	//	nTypeDef->DefaultVerses :
-	//	Array[nTypeDef->DefaultTo]->DefaultVerses;
-	//}
 
 	char buffer[0x500];
 	char ret[0x64];

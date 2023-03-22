@@ -35,24 +35,16 @@ void ColorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 		return;
 
 	auto const pkeyCount = pINI->GetKeyCount(pSection);
+
+	if (!pkeyCount)
+		return;
+
 	Array.reserve(pkeyCount);
 
-	for (int i = 0; i < pkeyCount; ++i)
-	{
-		const char* pKey = pINI->GetKeyName(pSection, i);
-		if (FindIndexById(pKey) != -1)
-			continue;
-
-		if (auto const pAlloc = Allocate(pKey))
+	for (int i = 0; i < pkeyCount; ++i) {
+		if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
 			pAlloc->LoadFromINI(pINI);
-
-		if (bDebug)
-			Debug::Log("Allocating ColorTypeClass with Name[%s] at [%d] \n", pKey, i);
 	}
-
-
-	if (bDebug)
-		Debug::Log("ColorTypeClass Array count currently [%d]\n", Array.size());
 }
 
 template <typename T>

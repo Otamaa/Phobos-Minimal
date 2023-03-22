@@ -114,16 +114,15 @@ public:
 			return;
 
 		auto const pKeyCount = pINI->GetKeyCount(section);
+
+		if (!pKeyCount)
+			return;
+
 		Array.reserve(pKeyCount);
 
 		for (int i = 0; i < pKeyCount; ++i) {
 			if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer)) {
-
-				if (FindIndexById(Phobos::readBuffer) != -1)
-					continue;
-
-				if (auto const pItem = Allocate(Phobos::readBuffer))
-				{
+				if (auto const pItem = FindOrAllocate(Phobos::readBuffer)) {
 					//if (bDebug)
 					//	Debug::Log("%s Reading[%d] %s \"%s\".\n", typeid(T).name(), i, section, Phobos::readBuffer);
 
@@ -180,8 +179,10 @@ public:
 
 	static const char* GetMainSection();
 
-	Enumerable(const char* Title) : Name { }
-	{ Name = Title; }
+	Enumerable(const char* Title)
+	{ 
+		Name = Title;
+	}
 
 	virtual ~Enumerable() = default;
 

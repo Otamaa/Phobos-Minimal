@@ -34,6 +34,20 @@
 
 #include <Phobos.h>
 
+enum class NewMouseCursorType : unsigned int
+{
+	Tote,
+	EngineerDamage,
+	TogglePower,
+	NoTogglePower,
+	InfantryHeal,
+	UnitRepair,
+	TakeVehicle,
+	Sabotage,
+	RepairTrench,
+	count,
+};
+
 enum class IronCurtainFlag : int
 {
 	Default = -1,

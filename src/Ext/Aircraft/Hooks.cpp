@@ -14,7 +14,7 @@ DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
 {
 	GET(AircraftClass* const, pThis, ECX);
 
-	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 

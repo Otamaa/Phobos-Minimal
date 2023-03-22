@@ -9,6 +9,7 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -45,6 +46,7 @@ void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
+	CursorTypeClass::LoadFromINIList_New(pINI, true);
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
 	ColorTypeClass::LoadFromINIList_New(pINI, false);
 

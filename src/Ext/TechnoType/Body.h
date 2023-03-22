@@ -294,7 +294,7 @@ public:
 		Valueable<WeaponTypeClass*> CustomMissileWeapon;
 		Valueable<WeaponTypeClass*> CustomMissileEliteWeapon;
 		Promotable<bool> CustomMissileRaise;
-
+		Nullable<Point2D> CustomMissileOffset;
 
 		Valueable<bool> Draw_MindControlLink;
 
@@ -651,7 +651,7 @@ public:
 			, CustomMissileWeapon { nullptr }
 			, CustomMissileEliteWeapon { nullptr }
 			, CustomMissileRaise { true }
-
+			, CustomMissileOffset { }
 			, Draw_MindControlLink { true }
 
 			, Overload_Count {}

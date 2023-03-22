@@ -129,7 +129,7 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 DEFINE_HOOK(0x705D82, TechnoClass_GetRemapColor_CheckVector, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass* , pThisType ,EAX);
 	GET(HouseClass*, pOwner, ECX);
 

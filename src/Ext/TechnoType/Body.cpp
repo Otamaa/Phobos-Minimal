@@ -717,6 +717,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->CustomMissileData.Read(exINI, pSection, "Missile");
 	this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
 	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
+	this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
 	this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
 	this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
 	this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
@@ -1028,6 +1029,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileWeapon)
 		.Process(this->CustomMissileEliteWeapon)
 		.Process(this->CustomMissileRaise)
+		.Process(this->CustomMissileOffset)
 
 		.Process(this->Draw_MindControlLink)
 

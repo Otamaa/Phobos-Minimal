@@ -85,3 +85,15 @@ void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller
 {
 	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
 }
+
+int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
+{
+	if (AresDllHmodule != NULL) {
+		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "BuildingClass_Infiltrate");
+		if (Data != NULL) {
+			return (Data)(R);
+		}
+	}
+
+	return -1;
+}

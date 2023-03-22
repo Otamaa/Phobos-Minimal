@@ -824,10 +824,10 @@ namespace detail
 		{
 			auto const pValue = parser.value();
 			char* context = nullptr;
-			auto const pHotX = strtok_s(pValue, ",", &context);
+			auto const pHotX = strtok_s(pValue, Phobos::readDelims, &context);
 			MouseCursorHotSpotX::Parse(pHotX, &value.HotX);
 
-			if (auto const pHotY = strtok_s(nullptr, ",", &context))
+			if (auto const pHotY = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				MouseCursorHotSpotY::Parse(pHotY, &value.HotY);
 			}

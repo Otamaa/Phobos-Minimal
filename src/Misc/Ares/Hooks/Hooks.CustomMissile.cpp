@@ -27,22 +27,22 @@
 // 662496
 // 66235D
 
-static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
-	CoordStruct* pCoord,
-	int Damage,
-	TechnoClass* Source,
-	WarheadTypeClass* Warhead,
-	bool AffectTiberium,
-	HouseClass* SourceHouse //nullptr
+//static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
+//	CoordStruct* pCoord,
+//	int Damage,
+//	TechnoClass* Source,
+//	WarheadTypeClass* Warhead,
+//	bool AffectTiberium,
+//	HouseClass* SourceHouse //nullptr
+//
+//)
+//{
+//	HouseClass* pHouseOwner = Source ? Source->Owner : SourceHouse;
+//	return MapClass::DamageArea
+//	(pCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
+//}
 
-)
-{
-	HouseClass* pHouseOwner = Source ? Source->Owner : SourceHouse;
-	return MapClass::DamageArea
-	(pCoord, Damage, Source, Warhead, Warhead->Tiberium, pHouseOwner);
-}
-
-DEFINE_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
+//DEFINE_JUMP(CALL, 0x6632C7, GET_OFFSET(_RocketLocomotionClass_DamageArea));
 
 DEFINE_OVERRIDE_HOOK(0x6622E0, RocketLocomotionClass_ILocomotion_Process_CustomMissile, 6)
 {
@@ -50,9 +50,8 @@ DEFINE_OVERRIDE_HOOK(0x6622E0, RocketLocomotionClass_ILocomotion_Process_CustomM
 
 	auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pExt->IsCustomMissile)
-	{
-		R->EAX(&pExt->CustomMissileData);
+	if (pExt->IsCustomMissile) {
+		R->EAX(pExt->CustomMissileData.GetEx());
 		return 0x66230A;
 	}
 
@@ -160,7 +159,7 @@ DEFINE_OVERRIDE_HOOK(0x66305A, RocketLocomotionClass_Explode_CustomMissile, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x63218, RocketLocomotionClass_Explode_CustomMissile2, 5)
+DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 {
 	GET(RocketLocomotionClass* const, pThis, ESI);
 	REF_STACK(CoordStruct const, coords, STACK_OFFS(0x60, 0x18));
@@ -191,7 +190,22 @@ DEFINE_OVERRIDE_HOOK(0x63218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 		}
 	}
 
-	return 0;
+	GET(int, nDamage, EDI);
+	GET_STACK(WarheadTypeClass*, pWH, STACK_OFFS(0x60, 0x50));
+	LEA_STACK(CellStruct* const, pCellStr, STACK_OFFS(0x60, 0x38));
+	auto const pCell = MapClass::Instance->GetCellAt(pCellStr);
+
+	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWH, pCell->LandType, coords)) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, TacticalClass::AdjustForZ(coords.Z))) {
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
+		}
+	}
+
+	MapClass::FlashbangWarheadAt(nDamage, pWH, coords, false);
+	MapClass::DamageArea(coords, nDamage, pOwner, pWH, pWH->Tiberium, pOwner->Owner);
+
+	return 0x6632CC;
+	//return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMissile, 6)
@@ -199,9 +213,8 @@ DEFINE_OVERRIDE_HOOK(0x6632F2, RocketLocomotionClass_ILocomotion_MoveTo_CustomMi
 	GET(AircraftTypeClass*, pType, EDX);
 	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pExt->IsCustomMissile)
-	{
-		R->EDX(&pExt->CustomMissileData);
+	if (pExt->IsCustomMissile) {
+		R->EDX(pExt->CustomMissileData.GetEx());
 		return 0x66331E;
 	}
 
@@ -213,9 +226,8 @@ DEFINE_OVERRIDE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_Cust
 	GET(AircraftTypeClass*, pType, ECX);
 	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pExt->IsCustomMissile)
-	{
-		R->EAX(&pExt->CustomMissileData);
+	if (pExt->IsCustomMissile) {
+		R->EAX(pExt->CustomMissileData.GetEx());
 		return 0x66351B;
 	}
 
@@ -254,19 +266,20 @@ DEFINE_OVERRIDE_HOOK(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 	return TechnoTypeExt::ExtMap.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
 {
-	GET(SpawnManagerClass*, pSpawnManager, ESI);
-	GET(int, idxSpawn, EDI);
+	//GET(SpawnManagerClass*, pSpawnManager, ESI);
+	//GET(int, idxSpawn, EDI);
 	GET(TechnoTypeClass*, pSpawnType, EDX);
-	auto pExt = TechnoTypeExt::ExtMap.Find(pSpawnType);
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pSpawnType);
 
 	if (pExt->IsCustomMissile) {
 		R->EDX(Unsorted::CurrentFrame());
-		pSpawnManager->SpawnedNodes.Items[idxSpawn]->SpawnTimer
-		.Start(pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames);
-		return 0x6B7B03;
+		//pSpawnManager->SpawnedNodes.Items[idxSpawn]->SpawnTimer.Start();
+		R->ECX(pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames);
+		//return 0x6B7B03;
+		return 0x6B7AB1;
 	}
 
 	return 0;
@@ -278,10 +291,8 @@ DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_PreLauch_CustomMissileTakeoffAnim
 	GET(AircraftClass*, pSpawned, EDI);
 
 	//TODO: AddTag
-	if (pSpawned->Type == RulesClass::Instance->CMisl.Type)
-	{
-		if (AnimTypeClass* pType = TechnoTypeExt::ExtMap.Find(pSpawned->Type)->CustomMissileTakeoffAnim)
-		{
+	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
+		if (AnimTypeClass* pType = TechnoTypeExt::ExtMap.Find(pSpawned->Type)->CustomMissileTakeoffAnim) {
 			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false))
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pSpawned->Owner, nullptr, pSpawned, true);
 		}
@@ -303,7 +314,44 @@ DEFINE_HOOK(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 	//GET(AircraftClass*, pSpawned, EDI);
 	GET(AircraftTypeClass*, pMissile, EAX);
 
-	//TODO : Add tag
-	return pMissile == RulesClass::Instance->CMisl.Type ? OffsetBy28 : GetPrimaryFacing;
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pMissile);
+
+	if (pExt->IsCustomMissile && pExt->CustomMissileOffset.isset()) {
+		R->Stack(0x2C, R->ECX<int>() - pExt->CustomMissileOffset->X);
+		R->Stack(0x30, R->EDX<int>() - pExt->CustomMissileOffset->Y);
+	}
+	else if(pMissile == RulesClass::Instance->CMisl.Type) {
+		return OffsetBy28;
+	}
+
+	return GetPrimaryFacing;
+}
+
+// compiled same but it work differently , wtf ?
+DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
+{
+	GET(SpawnManagerClass*, pThis, ECX);
+
+	int nCur = 0;
+	for (auto const& pNode : pThis->SpawnedNodes)
+	{
+		const auto  nStatus = pNode->Status;
+		const auto  nEligible = 
+			nStatus == SpawnNodeStatus::Idle
+			|| nStatus == SpawnNodeStatus::Reloading
+			|| nStatus == SpawnNodeStatus::Dead
+			&&
+			// spawn timer should be updated somewhere ?
+			pNode->NodeSpawnTimer.StartTime >= 0 && !pNode->NodeSpawnTimer.TimeLeft;
+
+		if (nEligible)
+		{
+			++nCur;
+		}
+
+	}
+
+	R->EAX(nCur);
+	return 0x6B7D73;
 }
 #pragma endregion

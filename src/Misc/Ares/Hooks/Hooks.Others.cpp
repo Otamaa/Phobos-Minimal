@@ -754,32 +754,6 @@ DEFINE_OVERRIDE_HOOK(0x671152, RulesClass_Addition_General_PrismSupportModifier,
 	return 0x67115B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
-{
-	GET(SpawnManagerClass*, pThis, ECX);
-
-	int nCur = 0;
-	for(auto const& pNode : pThis->SpawnedNodes)
-	{
-		const auto  nStatus = pNode->Status;
-		const auto  nEligible =( 
-			nStatus == SpawnNodeStatus::Idle 
-			|| nStatus == SpawnNodeStatus::Dead 
-			|| nStatus == SpawnNodeStatus::Reloading) && 
-			
-			// spawn timer should be updated somewhere ?
-			pNode->SpawnTimer.IsTicking() && !pNode->SpawnTimer.TimeLeft;
-
-		if (nEligible) {
-			++nCur;
-		}
-
-	}
-
-	R->EAX(nCur);
-	return 0x6B7D73;
-}
-
 DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
