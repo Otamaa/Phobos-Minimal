@@ -95,7 +95,7 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	nPoint.Y += nOffsetY;
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
 	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
-	const auto pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetDrawer() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
+	const auto pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetRemapColour() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
 
 	DSurface::Temp()->DrawSHP(pPalette, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 }

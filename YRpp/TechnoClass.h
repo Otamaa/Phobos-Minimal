@@ -213,6 +213,7 @@ public:
 	//ObjectClass
 	virtual void AnimPointerExpired(AnimClass* pAnim) override JMP_THIS(0x710410);
 	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) override JMP_THIS(0x4DEAE0);
+	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);;
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x6F6AC0);
@@ -619,9 +620,6 @@ public:
 	bool CanThisCloakByDefault() {
 		return (GetTechnoType()) && (GetTechnoType()->Cloakable || HasAbility(AbilityType::Cloak));
 	}
-
-	LightConvertClass* GetDrawer() const
-		{ JMP_THIS(0x705D70); }
 
 	bool InRange(CoordStruct& location, AbstractClass* pTarget, WeaponTypeClass* pWeapon) {
 		JMP_THIS(0x6F7220);

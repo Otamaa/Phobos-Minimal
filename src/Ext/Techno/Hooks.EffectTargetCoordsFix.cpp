@@ -56,7 +56,7 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 		break;
 	}
 	default:
-		pTarget->GetCenterCoords(pBuffer);
+		pTarget->GetCoords(pBuffer);
 		break;
 	}
 
@@ -65,16 +65,24 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 }
 
 // Do not adjust map coordinates for railgun particles that are below cell coordinates.
-DEFINE_HOOK(0x62B8BC, ParticleClass_CTOR_RailgunCoordAdjust, 0x6)
+DEFINE_HOOK(0x62B89F, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 {
-	enum { SkipCoordAdjust = 0x62B8CB };
+	enum { SkipCoordAdjust = 0x62B8CB  ,Continue = 0x0};
 
 	GET(ParticleClass*, pThis, ESI);
 
-	if (pThis->ParticleSystem && pThis->ParticleSystem->Type->BehavesLike == BehavesLike::Railgun)
-		return SkipCoordAdjust;
+	const auto pParticleSys = pThis->ParticleSystem;
 
-	return 0;
+	if(pParticleSys
+	&& pParticleSys->Type->BehavesLike == BehavesLike::Railgun){
+		//restore overriden instruction
+		R->Stack(0x10, R->ECX());
+		R->Stack(0x18, R->EDX());
+		R->Stack(0x1C, R->EAX());
+		return SkipCoordAdjust ;
+	}
+
+	return Continue;
 }
 
 #ifdef PERFORMANCE_HEAVY

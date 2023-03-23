@@ -313,44 +313,65 @@ overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ar
 #define decl_override_hook(hook, funcname, size)
 #endif // declhook
 
+#ifndef DEBUG_HOOK
 #define DEFINE_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
-
-#define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
-decl_override_hook(hook, funcname, size) \
-EXPORT_FUNC(funcname)
-
-#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
-DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
-
-/*Defines a hook at the specified address with the specified nameand saving the specified
-amount of instruction bytes to be restored if return to the same address is used.
-In addition to the injgen-declaration, also includes the function opening.*/
-
 
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
 
+#else
+
+#define DEFINE_HOOK(hook, funcname, size) \
+declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
+EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
+EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
+{\
+GameDebugLog::Log("[Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
+DWORD ret=funcname##_DEBUG_(R);\
+GameDebugLog::Log("[Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
+return ret;\
+}\
+EXPORT_DEBUG(funcname##_DEBUG_)
+
+#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
+declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
+
+#endif
+
+#ifndef DEBUG_HOOK_O
+
+#define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
+decl_override_hook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
+
 #define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
 decl_override_hook(hook, funcname, size)
+
+#else
+
+#define DEFINE_OVERRIDE_HOOK(hook, funcname, size) \
+decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
+EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
+EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
+{\
+GameDebugLog::Log("[Override Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
+DWORD ret=funcname##_DEBUG_(R);\
+GameDebugLog::Log("[Override Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
+return ret;\
+}\
+EXPORT_DEBUG(funcname##_DEBUG_)
+
+#define DEFINE_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
+decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size)
+
+#endif
 
 #define DEFINE_DISABLE_HOOK(hook,funcname) \
 decl_override_hook(hook, funcname, -1) \
 
-//#define DEFINE_HOOK(hook, funcname, size) \
-//declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
-//EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
-//EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
-//{\
-//GameDebugLog::Log("[Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
-//DWORD ret=funcname##_DEBUG_(R);\
-//GameDebugLog::Log("[Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
-//return ret;\
-//}\
-//EXPORT_DEBUG(funcname##_DEBUG_)
-//
-//#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
-//declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
+#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
+DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

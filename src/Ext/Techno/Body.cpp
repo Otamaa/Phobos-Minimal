@@ -90,11 +90,13 @@ bool TechnoExt::IsEMPImmune(TechnoClass* pThis)
 
 bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 {
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	auto const pType = pThis->GetTechnoType();
 
-	if (pTypeExt->Get()->ImmuneToPsionics)
+	if (pType->ImmuneToPsionics)
 		return true;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
 
 	if (rank == Rank::Elite) {
 		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsImmune)
@@ -137,7 +139,6 @@ bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
-
 
 	if (pTypeExt->Interceptor)
 		return true;
@@ -189,6 +190,29 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 
 	if (rank == Rank::Veteran) {
 		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
+			return true;
+	}
+
+	return false;
+}
+
+bool TechnoExt::IsRadImmune(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToRadiation)
+		return true;
+
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (rank == Rank::Elite) {
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::RadImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::RadImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran) {
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::RadImmune))
 			return true;
 	}
 
@@ -1677,7 +1701,7 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 		auto timerLength = static_cast<int>(pPassenger->GetTechnoType()->Cost * pDelType->CostMultiplier);
 
 		if (pDelType->Rate.Get() > 0)
-			timerLength = Math::min(timerLength, pDelType->Rate.Get());
+			timerLength = std::min(timerLength, pDelType->Rate.Get());
 
 		nRate = timerLength;
 	}
@@ -2219,9 +2243,9 @@ void TechnoExt::ApplyDrainMoney(TechnoClass* pThis)
 		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
 		{
 			if (nDrainAmount > 0)
-				nDrainAmount = Math::min(nDrainAmount, (int)pThis->Owner->Available_Money());
+				nDrainAmount = std::min(nDrainAmount, (int)pThis->Owner->Available_Money());
 			else
-				nDrainAmount = Math::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
+				nDrainAmount = std::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
 
 			if (nDrainAmount)
 			{
@@ -2713,7 +2737,7 @@ void TechnoExt::ExtData::UpdateMobileRefinery()
 		{
 			const int tibValue = TiberiumClass::Array->GetItem(pCell->GetContainedTiberiumIndex())->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
-			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? Math::min(tAmount , pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
+			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? std::min(tAmount , pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
 			pCell->ReduceTiberium(amount);
 			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
 

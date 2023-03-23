@@ -82,6 +82,7 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _) {
-		 return MapClass::Instance->TryGetCellAt(pThis->BaseCell)->GetCoords();
+		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
+		 return pCell->GetCoordsWithBridge();
 	}
 };

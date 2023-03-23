@@ -13,7 +13,8 @@ std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::Ful
 std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
  {
 	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } ,
-	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" }
+	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
+	{ "RADIMMUNE" }
  }
 };
 

@@ -42,7 +42,6 @@ DEFINE_HOOK(0x62A0D3, ParasiteClass_AI_Particle, 0x5)
 	LEA_STACK(CoordStruct* const, pCoord, STACK_OFFS(0x4C, 0x18));
 	GET(WeaponTypeClass* const, pWeapon, EDI);
 
-	
 	if (auto pParticle = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
 	{
 		auto nLocHere = *pCoord;

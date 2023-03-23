@@ -443,7 +443,10 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 		}
 	}
 
-	return 0;
+	if(pThis->AttachedBomb)
+		pThis->AttachedBomb->Detonate();
+
+	return 0x702684;
 }
 
 DEFINE_HOOK(0x70265F, TechnoClass_ReceiveDamage_Explodes, 0x6)

@@ -172,11 +172,8 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 
 	if (!pThis)
 		return 0x0;
-	
-	auto const pType = pThis->GetTechnoType();
-	if (!pType)
-		return 0x0;
 
+	auto const pType = pThis->GetTechnoType();
 	GET_STACK(int, nMult, 0x4);
 
 	// Using Promotable<WeaponTypeClass*>

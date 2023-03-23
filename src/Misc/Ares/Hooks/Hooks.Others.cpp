@@ -913,7 +913,7 @@ DEFINE_OVERRIDE_HOOK(0x731E08 , Select_By_Units_Text_FakeOf, 0x6)
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 
 			TechnoTypeClass* pType = pTypeExt->Get();
-			if (pTypeExt->Fake_Of.Get(nullptr))
+			if (pTypeExt->Fake_Of.isset())
 				pType = pTypeExt->Fake_Of.Get();
 
 			nCost += pType->GetActualCost(pTechno->Owner);
@@ -934,4 +934,27 @@ DEFINE_OVERRIDE_HOOK(0x6DA665, sub_6DA5C0_GroupAs, 0xA)
 DEFINE_OVERRIDE_HOOK(0x7BB445 , XSurface_20, 0x6)
 {
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	const bool IsRailgun = WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun;
+
+	if ((pWeapon->IsRailgun || IsRailgun) && pThis->WhatAmI() == AbstractType::Aircraft){
+		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! , it may causing desync , skipping ! \n",pThis->get_ID());
+		return 0x6FF274;
+	}
+
+	return IsRailgun ? 0x6FF20F : 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun 
+		? 0x6FF274 : 0x0;
 }

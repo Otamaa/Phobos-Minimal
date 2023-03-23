@@ -382,9 +382,9 @@ DEFINE_HOOK(0x41B7B7, IFlyControl_LandDirection_PoseDir, 0x5)
 //	GET(CoordStruct*, pDockingCoord, EAX);
 //	auto const nLoc = pThis->Location;
 //
-//	auto nDistanceX = Math::clamp(pDockingCoord->X - nLoc.X, -5, 5);
-//	auto nDistanceY = Math::clamp(pDockingCoord->Y - nLoc.Y, -5, 5);
-//	auto nDistanceZ = Math::clamp(pDockingCoord->Z - nLoc.Z, -5, 5);
+//	auto nDistanceX = std::clamp(pDockingCoord->X - nLoc.X, -5, 5);
+//	auto nDistanceY = std::clamp(pDockingCoord->Y - nLoc.Y, -5, 5);
+//	auto nDistanceZ = std::clamp(pDockingCoord->Z - nLoc.Z, -5, 5);
 //
 //	CoordStruct nFinalCoord = { pThis->Location.X + nDistanceX , pThis->Location.Y + nDistanceY, pThis->Location.Z + nDistanceZ };
 //	pThis->SetLocation(nFinalCoord);

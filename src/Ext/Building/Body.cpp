@@ -139,11 +139,11 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 			if (strength <= -1 && strength >= -100)
 			{
 				// percentage of original health
-				pNew->Health = Math::max((-strength * pNew->Type->Strength) / 100, 1);
+				pNew->Health = std::max((-strength * pNew->Type->Strength) / 100, 1);
 			}
 			else if (strength > 0)
 			{
-				pNew->Health = Math::min(strength, pNew->Type->Strength);
+				pNew->Health = std::min(strength, pNew->Type->Strength);
 			} /* else Health = Strength*/
 
 			// The building is created?

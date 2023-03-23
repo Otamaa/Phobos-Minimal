@@ -505,7 +505,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 			{
 				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
 				{
-					auto const delay = Math::max(pExt->CloakSkipTimer.GetTimeLeft(), argument);
+					auto const delay = std::max(pExt->CloakSkipTimer.GetTimeLeft(), argument);
 					pExt->CloakSkipTimer.Start(delay);
 
 					// actually detect this
@@ -525,7 +525,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 			{
 				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
 				{
-					auto const delay = Math::max(pExt->DisableWeaponTimer.GetTimeLeft(), argument);
+					auto const delay = std::max(pExt->DisableWeaponTimer.GetTimeLeft(), argument);
 					pExt->DisableWeaponTimer.Start(delay);
 
 					// actually detect this
@@ -2412,31 +2412,37 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 			auto weaponType = nWeaponType->WeaponType;
 
 			auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
-			int weaponDamage = 0;
-
-			if (weaponType)
-			{
-				auto nArmor = objectType->Armor;
-				if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
-					if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
-						nArmor = pObjectExt->GetShield()->GetType()->Armor;
-
-				weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
-			}
-
+			// int weaponDamage = 0;
+			// if (weaponType)
+			// {
+			// 	weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
+			// }
+			//
 			// If the target can't be damaged then isn't a valid target
-			if (weaponType && weaponDamage <= 0 && !agentMode)
-				continue;
+			//if (weaponType && weaponDamage <= 0 && !agentMode)
+			//	continue;
 
 			if (!agentMode)
 			{
+				if (object->GetType()->Immune)
+					continue;
+
+					if(weaponType) {
+						auto nArmor = objectType->Armor;
+						if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
+							if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
+								nArmor = pObjectExt->GetShield()->GetType()->Armor;
+
+						auto const& nVerses= std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)
+											 ->GetVerses(nArmor).Verses);
+						if(!(nVerses >= 0.001))
+						   continue;
+				}
+
 				if (object->IsInAir() && !unitWeaponsHaveAA)
 					continue;
 
 				if (!object->IsInAir() && !unitWeaponsHaveAG)
-					continue;
-
-				if (object->GetType()->Immune)
 					continue;
 			}
 

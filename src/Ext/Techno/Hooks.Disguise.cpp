@@ -45,26 +45,42 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	return 0;
 }
 
+#ifdef ENABLE_OBESERVER_THRUDISGUISE
 DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 {
 	return HouseClass::IsCurrentPlayerObserver() ?
 	 0x7467FE : 0x0;
 }
 
-#define CAN_BLINK_DISGUISE(pTechno) \
-RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseExt::IsObserverPlayer() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
+bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno)
+{
+	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	if (pCurPlayer && pCurPlayer->IsObserver())
+		return true;
+
+	if(pTechno->Owner){
+		if (RulesExt::Global()->ShowAllyDisguiseBlinking 
+			&& pTechno->Owner->IsAlliedWith(pCurPlayer))
+		return true ;
+	}
+
+	return false;
+}
+
+//#define CAN_BLINK_DISGUISE(pTechno) \
+//RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseExt::IsObserverPlayer() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
 
 DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 {
-	enum { SkipGameCode = 0x70EE6A, Return = 0x70EEEC };
+	enum { SkipGameCode = 0x70EE6A, ReturnTrue = 0x70EEEC };
 
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, accum, EAX);
 
-	if (CAN_BLINK_DISGUISE(pThis))
+	if (CanBlinkDisguise(pThis))
 		return SkipGameCode;
 	else if (accum && (pThis->Owner ? !pThis->Owner->IsControlledByHuman() : false))
-		return Return;
+		return ReturnTrue;
 
 	return SkipGameCode;
 }
@@ -75,7 +91,7 @@ DEFINE_HOOK(0x70EE6A, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise2, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (CAN_BLINK_DISGUISE(pThis))
+	if (CanBlinkDisguise(pThis))
 		return SkipCheck;
 
 	return 0;
@@ -87,7 +103,7 @@ DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_BlinkAllyDisguise, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (CAN_BLINK_DISGUISE(pThis))
+	if (CanBlinkDisguise(pThis))
 		return SkipCheck;
 
 	return 0;
@@ -99,13 +115,12 @@ DEFINE_HOOK(0x70EDAD, TechnoClass_DisguiseBlitFlags_BlinkAllyDisguise, 0x6)
 
 	GET(TechnoClass*, pThis, EDI);
 
-	if (CAN_BLINK_DISGUISE(pThis))
+	if (CanBlinkDisguise(pThis))
 		return SkipCheck;
 
 	return 0;
 }
 #undef CAN_BLINK_DISGUISE
-
 
 DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 {
@@ -127,23 +142,37 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x705D82, TechnoClass_GetRemapColor_CheckVector, 0x6)
-{
-	//GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass* , pThisType ,EAX);
-	GET(HouseClass*, pOwner, ECX);
+// somewhat crash the game when called 
+// maybe already hooked by something else ?
+//DEFINE_HOOK(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
+//{
+//	GET(DynamicVectorClass<ConvertClass*>*, pPal, EAX);
+//	GET(TechnoClass*, pThis, ESI);
+//	
+//	int nColorIdx = 0;
+//	if (!pThis->Owner)
+//		Debug::Log("TechnoClass[%s] GetRemapColor with nullptr Owner ! \n ", pThis->get_ID());
+//	else
+//		nColorIdx = pThis->Owner->ColorSchemeIndex;
+//
+//	R->EDI(nColorIdx);
+//	return pPal && pPal->Count > 0 ? 0x705D92 : 0x705DA1;
+//}
 
-	R->EDI(pOwner ? pOwner->ColorSchemeIndex : 0 );
+//this check not event get tripped
+//DEFINE_HOOK(0x451A8A, BuildingClass_AnimLogic_TerrainRemap, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	GET(LightConvertClass*, pResult, EAX);
+//
+//	if (!pResult)
+//		Debug::Log("Building[%s] , trying to get remap palette but failed ! \n", pThis->get_ID());
+//
+//	return 0x0;
+//}
+#endif
 
-	if(pThisType->Palette && pThisType->Palette->Count > 0) {
-		R->EAX(pThisType->Palette);
-		return 0x705D92;
-	}
-
-	return 0x705DA1;
-}
-
-#ifdef ENABLE_NEWHOOKS
+#ifdef ENABLE_MOREDISGUISEHOOKS
 //TODO : rework , and desync test
 
 #pragma region Otamaa

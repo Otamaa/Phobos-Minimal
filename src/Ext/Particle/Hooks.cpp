@@ -20,7 +20,7 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 {
 	GET(ParticleClass*, pThis, ESI);
 
-	const auto pParticleExt = ParticleExt::ExtMap.Find(pThis);
+	const auto pParticleExt = ParticleExt::ExtMap.TryFind(pThis);
 
 	if (!pParticleExt)
 		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());

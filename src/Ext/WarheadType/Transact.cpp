@@ -11,7 +11,7 @@ int AddExpCustom(VeterancyStruct* vstruct, int targetCost, int exp)
 {
 	double toBeAdded = (double)exp / (targetCost * RulesClass::Instance->VeteranRatio);
 	// Used in experience transfer to get the actual amount substracted
-	int transffered = (int)(Math::min(vstruct->Veterancy, (float)abs(toBeAdded))
+	int transffered = (int)(std::min(vstruct->Veterancy, (float)abs(toBeAdded))
 		* (targetCost * RulesClass::Instance->VeteranRatio));
 
 	// Don't do anything when current exp at 0

@@ -102,7 +102,7 @@ namespace Helper
 
 			if (nMinMax) {
 				auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
-					(abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * Math::min(Increment, 1)),
+					(abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * std::min(Increment, 1)),
 					ScenarioClass::Instance->Random.RandomBool());
 
 				nRandomCoords.Z = MapClass::Instance->GetCellFloorHeight(nRandomCoords);;

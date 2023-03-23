@@ -139,6 +139,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 {
 	if (!pThis->Type)
 		return;
+
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pTypeExt->CreateUnit.Get())
@@ -165,7 +166,6 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		{
 			HouseClass* decidedOwner = (pThis->Owner)
 				? pThis->Owner : HouseExt::FindCivilianSide();
-
 
 			//if (!AnimExt::ExtMap.Find(pThis)->OwnerSet)
 			//	decidedOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, nullptr, decidedOwner, nullptr);
@@ -435,18 +435,18 @@ DEFINE_HOOK(0x428800, AnimTypeClass_SaveLoad_Prefix, 0xA)
 }
 
 // Before : 
-//DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
-//DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
-//{
-//	AnimTypeExt::ExtMap.LoadStatic();
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3)
-//{
-//	AnimTypeExt::ExtMap.SaveStatic();
-//	return 0;
-//}
+DEFINE_HOOK_AGAIN(0x42892C, AnimTypeClass_Load_Suffix, 0x6)
+DEFINE_HOOK(0x428958, AnimTypeClass_Load_Suffix, 0x6)
+{
+	AnimTypeExt::ExtMap.LoadStatic();
+	return 0;
+}
+
+DEFINE_HOOK(0x42898A, AnimTypeClass_Save_Suffix, 0x3)
+{
+	AnimTypeExt::ExtMap.SaveStatic();
+	return 0;
+}
 
 DEFINE_HOOK_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)

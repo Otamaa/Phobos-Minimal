@@ -196,7 +196,7 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	auto const pCell = MapClass::Instance->GetCellAt(pCellStr);
 
 	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWH, pCell->LandType, coords)) {
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, TacticalClass::AdjustForZ(coords.Z))) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15)) {
 			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
 		}
 	}

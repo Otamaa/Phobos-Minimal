@@ -990,7 +990,7 @@ bool DSurface::Put_Pixel_Trans(Point2D& point, ColorStruct& rgb, unsigned opacit
 		return false;
 	}
 
-	opacity = Math::min((int)opacity, 100);
+	opacity = std::min((int)opacity, 100);
 
 	unsigned scale = (opacity * 255) / 100;
 	unsigned short delta = (255 - scale) & 0xFFFF;

@@ -2,7 +2,7 @@
 #include <Ext/AnimType/Body.h>
 
 // Draw Tiled !
-#ifdef UsePhobosOne
+#ifndef UsePhobosOne
 DEFINE_HOOK(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);

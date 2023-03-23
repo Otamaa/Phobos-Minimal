@@ -473,7 +473,7 @@ DEFINE_HOOK(0x73B2A2, UnitClass_DrawObject_DrawerBlitterFix, 0x6)
 	GET(UnitClass* const, pThis, ESI);
 	GET(BlitterFlags, blitterFlags, EDI);
 
-	R->EAX(pThis->GetDrawer()->Select_Blitter(blitterFlags));
+	R->EAX(pThis->GetRemapColour()->Select_Blitter(blitterFlags));
 
 	return SkipGameCode;
 }
@@ -840,18 +840,19 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 	return NotNaval;
 }
 
+// This fix break stuffs , waiting for refactor or change
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
-DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
-DEFINE_JUMP(LJMP, 0x447709, 0x447727);
-
-// AG=no projectiles shouldn't fire at land.
-DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
-{
-	enum { RetFireIllegal = 0x6FC86A , Continue = 0x0 };
-
-	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
-
-	return !pWeapon->Projectile->AG && !pTarget->IsInAir() ?
-		RetFireIllegal : Continue;
-}
+//DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
+//DEFINE_JUMP(LJMP, 0x447709, 0x447727);
+//
+//// AG=no projectiles shouldn't fire at land.
+//DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
+//{
+//	enum { RetFireIllegal = 0x6FC86A , Continue = 0x0 };
+//
+//	GET(WeaponTypeClass*, pWeapon, EDI);
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
+//
+//	return !pWeapon->Projectile->AG && !pTarget->IsInAir() ?
+//		RetFireIllegal : Continue;
+//}

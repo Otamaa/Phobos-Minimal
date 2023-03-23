@@ -445,7 +445,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -500,8 +500,8 @@ void Phobos::ExeRun()
 	}
 
 	#endif
-	//Patch::ApplyStatic();
-	//PoseDirOverride::Apply();
+	Patch::ApplyStatic();
+	PoseDirOverride::Apply();
 	InitAdminDebugMode();
 	InitConsole();
 	AresData::Init();

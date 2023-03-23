@@ -114,7 +114,7 @@ void SWTypeExt::WeightedRollsHandler(std::vector<int>& nResult , Valueable<doubl
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
-		size_t j = Math::min(i,weightsSize - 1);
+		size_t j = std::min(i,weightsSize - 1);
 		index = GeneralUtils::ChooseOneWeighted(RandomBuffer, weights[j]);
 
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
@@ -145,7 +145,7 @@ void SWTypeExt::ExtData::WeightedRollsHandler(std::vector<int>& nResult, std::ve
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
-		size_t j = Math::min(i , weightsSize - 1);
+		size_t j = std::min(i , weightsSize - 1);
 		index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, (*weights)[j]);
 
 		// If modder provides more weights than there are objects and we hit one of these, ignore it

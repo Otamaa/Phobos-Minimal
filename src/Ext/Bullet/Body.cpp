@@ -64,10 +64,9 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 
 			// fill target list with cells around the target
 			CellRangeIterator<CellClass>{}(cellDest, pExt->AirburstSpread.Get(),
-			[&targets](CellClass* const pCell) -> bool
- {
-	 targets.push_back(pCell);
-	 return true;
+			[&targets](CellClass* const pCell) -> bool {
+				 targets.push_back(pCell);
+				 return true;
 			});
 
 			// we want as many as we get, not more, not less
@@ -78,35 +77,31 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 			const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 			// fill with technos in range
-			std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno)
- {
-	 if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))
-	 {
-		 if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
-			 return;
+			std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
+				if (pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get())) {
+					 if ((!pExt->RetargetOwner.Get() && pTechno == pBulletOwner))
+						 return;
 
-		 //if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
-		 //	return;
+					 //if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), pExt->Splits_Affects))
+						 //	return;
+		
+					 //if (!EnumFunctions::IsTechnoEligible(pTarget, this->Splits_Affects))
+						 //	return;
 
-		 //if (!EnumFunctions::IsTechnoEligible(pTarget, this->Splits_Affects))
-		 //	return;
+					 if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno)) {
+							 const auto nLayer = pTechno->InWhichLayer();
 
-		 if (pWHExt->CanTargetHouse(pBulletHouseOwner, pTechno))
-		 {
-			 const auto nLayer = pTechno->InWhichLayer();
-			 if (nLayer == Layer::Underground ||
-				 nLayer == Layer::None)
-				 return;
+						if (nLayer == Layer::Underground || nLayer == Layer::None)
+							 return;
 
-			 const CoordStruct crdTechno = pTechno->GetCoords();
-			 if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
-				 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG) || (pTechno->IsInAir() && pWeapon->Projectile->AA))
-				 )
-			 {
-				 targets.push_back(pTechno);
-			 }
-		 }
-	 }
+						const CoordStruct crdTechno = pTechno->GetCoords();
+						if (crdDest.DistanceFrom(crdTechno) < pExt->Splits_Range.Get()
+						 && ((!pTechno->IsInAir() && pWeapon->Projectile->AG) 
+							 || (pTechno->IsInAir() && pWeapon->Projectile->AA))) {
+							 targets.push_back(pTechno);
+						}
+					 }
+				}
 			});
 
 			if (pExt->Splits_FillRemainingClusterWithRandomcells)

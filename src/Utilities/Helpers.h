@@ -338,7 +338,7 @@ namespace Helpers {
 
 			if (height <= 0) {
 				auto const spread = static_cast<size_t>(
-					Math::max(static_cast<int>(widthOrRange), 0));
+					std::max(static_cast<int>(widthOrRange), 0));
 
 				if (spread > 0) {
 					CellSpreadIterator<T>{}(center, spread, std::forward<Func>(action));

@@ -7,17 +7,14 @@ VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 {
-	if (!pThis->Type)
-		return nullptr;
-
-	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.Find(pThis->Type);
+	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pThis->Type);
 
 	if (!pTypeExt || !pTypeExt->Damage_DealtByOwner)
 		return nullptr;
 
-	auto const pExt  = VoxelAnimExt::ExtMap.Find(pThis);
+	auto const pExt  = VoxelAnimExt::ExtMap.TryFind(pThis);
 
-	if (!pExt || pExt->GetInitStatus() < InitState::Constanted)
+	if (!pExt || pExt->GetInitStatus() < InitState::Constanted || !pExt->Invoker)
 		return nullptr;
 
 	const auto pAddr = (((DWORD*)pExt->Invoker)[0]);

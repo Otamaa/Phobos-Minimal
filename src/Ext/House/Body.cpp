@@ -1015,17 +1015,17 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 	return 0;
 }
 
-//DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
-//{
-//	GET(HouseClass*, pThis, ECX);
-//	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
-//	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
-//
-//	if (auto pExt = HouseExt::ExtMap.Find(pThis))
-//		pExt->InvalidatePointer(target, all);
-//
-//	R->ESI(pThis);
-//	R->EBX(0);
-//	return pThis->ToCapture == target ? 
-//		0x4FB9C3 : 0x4FB9C9;
-//}
+DEFINE_HOOK(0x4FB9B7, HouseClass_Detach, 0xA)
+{
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
+	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
+
+	if (auto pExt = HouseExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(target, all);
+
+	R->ESI(pThis);
+	R->EBX(0);
+	return pThis->ToCapture == target ? 
+		0x4FB9C3 : 0x4FB9C9;
+}

@@ -299,7 +299,6 @@ private:
 
 	static std::pair<WeaponTypeClass*, int> GetDeployFireWeapon(TechnoClass* pThis , AbstractClass* pTarget);
 
-	static bool IsChronoDelayDamageImmune(FootClass* pThis);
 	static int GetInitialStrength(TechnoTypeClass* pType, int nHP);
 
 	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility);
@@ -317,6 +316,8 @@ private:
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);
 	static bool IsEMPImmune(TechnoClass* pThis);
+	static bool IsChronoDelayDamageImmune(FootClass* pThis);
+	static bool IsRadImmune(TechnoClass* pThis);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);

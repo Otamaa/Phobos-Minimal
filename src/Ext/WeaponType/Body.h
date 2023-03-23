@@ -81,6 +81,7 @@ public:
 #pragma endregion
 
 		Valueable<int> Ammo;
+		Valueable<bool> IsDetachedRailgun;
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
@@ -131,6 +132,7 @@ public:
 			, MyAttachFireDatas { }
 			 #endif
 			, Ammo { 0 }
+			, IsDetachedRailgun { false }
 		{ }
 
 		virtual ~ExtData() override  = default;

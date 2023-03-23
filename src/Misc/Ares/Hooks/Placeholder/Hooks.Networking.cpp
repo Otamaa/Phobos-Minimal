@@ -4,6 +4,7 @@
 #include <Helpers/Macro.h>
 #include <Base/Always.h>
 
+// Untested atm , maybe not working
 namespace Fix
 {
 	static constexpr constant_ptr<uint8_t, 0x8208ECu> const EventLengthArr {};

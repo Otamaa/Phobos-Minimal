@@ -46,8 +46,7 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 		pRadExt->TechOwner = pTech;
 	}
 
-	auto nLoc = CellClass::Coord2Cell(nCoord);
-	pRadSite->SetBaseCell(&nLoc);
+	pRadSite->BaseCell = CellClass::Coord2Cell(nCoord);
 	pRadSite->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
@@ -86,7 +85,8 @@ void RadSiteExt::ExtData::CreateLight()
 	}
 	else
 	{
-		if (auto const pLight = GameCreate<LightSourceClass>(pThis->GetCoords(), pThis->SpreadInLeptons, static_cast<int>(nLightFactor), nTintBuffer))
+		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
+		if (auto const pLight = GameCreate<LightSourceClass>(pCell->GetCoordsWithBridge(), pThis->SpreadInLeptons, static_cast<int>(nLightFactor), nTintBuffer))
 		{
 			pThis->LightSource = pLight;
 			pLight->DetailLevel = 0;
@@ -109,14 +109,15 @@ void RadSiteExt::ExtData::Add(int amount)
 	CreateLight();
 }
 
-void RadSiteExt::ExtData::SetRadLevel(int amount)
+void NOINLINE RadSiteExt::ExtData::SetRadLevel(int amount)
 {
 	const auto pThis = Get();
-	amount = Math::min(amount, Type->GetLevelMax());
+	const auto nMax = Type->GetLevelMax();
+	const auto nDecidedamount = std::min(amount, nMax);
 	const int mult = Type->GetDurationMultiple();
-	pThis->RadLevel = amount;
-	pThis->RadDuration = mult * amount;
-	pThis->RadTimeLeft = mult * amount;
+	pThis->RadLevel = nDecidedamount;
+	pThis->RadDuration = mult * nDecidedamount;
+	pThis->RadTimeLeft = mult * nDecidedamount;
 }
 
 // helper function provided by AlexB
@@ -124,7 +125,7 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 {
 	const RadSiteClass* pThis = Get();
 	const double nMax = static_cast<double>(pThis->SpreadInLeptons);
-	const double nDistance = CellClass::Cell2Coord(cell).DistanceFrom(pThis->GetCoords());
+	const double nDistance = cell.DistanceFrom(pThis->BaseCell);
 	return (nDistance > nMax || pThis->GetRadLevel() <= 0) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
 }
 

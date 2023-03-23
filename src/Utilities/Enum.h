@@ -74,6 +74,7 @@ enum class PhobosAbilityType : int
 	PsionicsImmune = 3,
 	CullingImmune = 4,
 	EmpImmune = 5,
+	RadImmune = 6,
 
 	count
 };

@@ -190,24 +190,24 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
 		return SkipInfiltrate;
 
 	pBld->Infiltrate(pHouse);
-	//BuildingExt::HandleInfiltrate(pBld, pHouse);
+	BuildingExt::HandleInfiltrate(pBld, pHouse);
 
 	return InfiltrateSucceded;
 }
 
-DEFINE_OVERRIDE_HOOK(0x4571E0, BuildingClass_Infiltrate_Phobos , 0x5)
-{
-	GET(BuildingClass*, pBld, ECX);
-	GET_STACK(HouseClass*, pHouse, 0x4);
-
-	auto const nResult = AresData::CallAresBuildingClass_Infiltrate(R);
-	BuildingExt::HandleInfiltrate(pBld, pHouse);
-
-	if(nResult != -1)
-		return nResult;
-	else
-		return 0x0;
-}
+//DEFINE_OVERRIDE_HOOK(0x4571E0, BuildingClass_Infiltrate_Phobos , 0x5)
+//{
+//	GET(BuildingClass*, pBld, ECX);
+//	GET_STACK(HouseClass*, pHouse, 0x4);
+//
+//	auto const nResult = AresData::CallAresBuildingClass_Infiltrate(R);
+//	BuildingExt::HandleInfiltrate(pBld, pHouse);
+//
+//	if(nResult != -1)
+//		return nResult;
+//	else
+//		return 0x0;
+//}
 
 // #895584: ships not taking damage when repaired in a shipyard. bug
 // was that the logic that prevented units from being damaged when

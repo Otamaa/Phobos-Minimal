@@ -572,10 +572,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
 
 	//TODO :Evaluate this
-	//this->DirectionalArmor_FrontField = Math::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
-	//this->DirectionalArmor_FrontField = Math::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
-	//this->DirectionalArmor_BackField = Math::min(this->DirectionalArmor_BackField.Get(), 1.0f);
-	//this->DirectionalArmor_BackField = Math::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+	//this->DirectionalArmor_FrontField = std::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
+	//this->DirectionalArmor_FrontField = std::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
+	//this->DirectionalArmor_BackField = std::min(this->DirectionalArmor_BackField.Get(), 1.0f);
+	//this->DirectionalArmor_BackField = std::max(this->DirectionalArmor_BackField.Get(), 0.0f);
 
 	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
 	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");

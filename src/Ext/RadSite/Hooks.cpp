@@ -201,9 +201,11 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 	{
 		GET(BuildingClass* const, pBuilding, ECX);
 
+		if (pBuilding->InLimbo  || 
+			TechnoExt::IsRadImmune(pBuilding))
+			return 0;
+
 		if (pBuilding->IsIronCurtained() ||
-			pBuilding->Type->ImmuneToRadiation ||
-			pBuilding->InLimbo ||
 			pBuilding->BeingWarpedOut ||
 			pBuilding->TemporalTargetingMe ||
 			pBuilding->Type->Immune
@@ -261,38 +263,53 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 
 // skip Frame % RadApplicationDelay
 //DEFINE_JUMP(LJMP,0x4DA554, 0x4DA56E);
-DEFINE_HOOK(0x4DA554, FootClass_AI_SkipForCustomRad, 0x5)
-{
-	return !Phobos::Otamaa::DisableCustomRadSite ? 0x4DA56E : 0x0;
-}
+//DEFINE_HOOK(0x4DA554, FootClass_AI_SkipForCustomRad, 0x5)
+//{
+//	return !Phobos::Otamaa::DisableCustomRadSite ? 0x4DA56E : 0x0;
+//}
 
 // Hook Adjusted to support Ares RadImmune Ability check
-DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
+DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 {
-	enum { CheckOtherState = 0x4DA63B, SkipEverything = 0x4DAF00, Continue = 0x0 };
+	enum { 
+		CheckOtherState = 0x4DA63B, 
+		SkipEverything = 0x4DAF00,
+		Continue = 0x0 ,
+		ProcessRadSiteCheckVanilla = 0x4DA59F,
+	};
+
+	GET(FootClass* const, pThis, ESI);
+
+	if (pThis->InLimbo)
+		return CheckOtherState;
+
+	if (pThis->IsInAir())
+		return CheckOtherState;
+
+	auto const pUnit = specific_cast<UnitClass*>(pThis);
+
+	if (pThis->GetTechnoType()->Immune ||
+		pThis->IsIronCurtained() ||
+		!pThis->IsInPlayfield ||
+		pThis->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0))
+	{
+		return CheckOtherState;
+	}
+
+	if (pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pThis))
+		return CheckOtherState;
+
+	if(TechnoExt::IsRadImmune(pThis))
+		return CheckOtherState ;
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
-		GET(FootClass* const, pFoot, ESI);
-		auto const pUnit = specific_cast<UnitClass*>(pFoot);
-
-		if (pFoot->GetTechnoType()->Immune ||
-			pFoot->IsIronCurtained() ||
-			!pFoot->IsInPlayfield ||
-			pFoot->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0))
-		{
-			return Continue;
-		}
-
-		if (pFoot->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pFoot))
-			return Continue;
-
 		// Loop for each different radiation stored in the RadSites container
 		for (auto pRadSite : *RadSiteClass::Array())
 		{
 			const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
 			// Check the distance, if not in range, just skip this one
-			const double orDistance = pRadSite->GetCoords().DistanceFrom(pFoot->Location);
+			const double orDistance = pRadSite->GetCoords().DistanceFrom(pThis->Location);
 			if (static_cast<int>(orDistance) > pRadSite->SpreadInLeptons)
 				continue;
 
@@ -302,7 +319,7 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 				continue;
 
 			// for more precise dmg calculation
-			const double nRadLevel = pRadExt->GetRadLevelAt(pFoot->GetMapCoords());
+			const double nRadLevel = pRadExt->GetRadLevelAt(pThis->GetMapCoords());
 			if (nRadLevel <= 0.0 || !pType->GetWarhead())
 				continue;
 
@@ -311,17 +328,17 @@ DEFINE_HOOK(0x4DA59F, FootClass_AI_Radiation, 0x6)
 			if (damage == 0)
 				continue;
 
-			if (pFoot->IsAlive && !pFoot->IsSinking && !pFoot->IsCrashing) {
+			if (pThis->IsAlive && !pThis->IsSinking && !pThis->IsCrashing) {
 
-				if (!pRadExt->ApplyRadiationDamage(pFoot,damage, static_cast<int>(orDistance)))
+				if (!pRadExt->ApplyRadiationDamage(pThis,damage, static_cast<int>(orDistance)))
 					return SkipEverything;
 			}
 		}
 
-		return pFoot->IsAlive ? CheckOtherState : SkipEverything;
+		return pThis->IsAlive ? CheckOtherState : SkipEverything;
 	}
 
-	return Continue;
+	return ProcessRadSiteCheckVanilla;
 }
 
 #define GET_RADSITE(reg, value)\

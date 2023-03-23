@@ -614,18 +614,22 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 
 DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 {
-	enum { DecideResult  = 0x709202  , Continue = 0x0};
+	enum { DecideResult  = 0x709202  ,
+		   Continue = 0x0 ,
+		   ContinueCheck = 0x709206,
+		   CantPassiveAcquire = 0x70927D,
+	};
 
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoTypeClass*, pType, EAX);
 
 	const auto pTypeExt  = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pThis->Owner
-		&& !pThis->Owner->ControlledByPlayer()
+	if (pThis->Owner 
+		&& !pThis->Owner->IsControlledByHuman()
 		&& pTypeExt->PassiveAcquire_AI.isset()) {
-		R->CL(pTypeExt->PassiveAcquire_AI.Get());
-		return DecideResult;
+		return pTypeExt->PassiveAcquire_AI.Get() ?
+		 ContinueCheck : CantPassiveAcquire;
 	}
 
 	return Continue;
@@ -3098,27 +3102,23 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 {
 	enum {
 		ReturnNoVoiceCreate = 0x4FB804,
-		Continue = 0x0 
+		Continue = 0x0
 	};
 
 	GET(HouseClass*, pThis, EDI);
-	GET(TechnoTypeClass*, pTech, ESI);
-	GET_STACK(TechnoClass*, pTech_, STACK_OFFS(0x1C, -0x4));
+	GET(TechnoClass*, pTechno, EBP);
 
-	if (pTech && pTech_) {
-		if (auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTech)) {
+	if (pTechno) {
+		const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 
-			auto const nVoiceCreateIdx = pTechnoTypeExt->VoiceCreate.Get();
-			if ( nVoiceCreateIdx != -1)
-				pTech_->QueueVoice(nVoiceCreateIdx);
+		pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
 
-			if (!pTechnoTypeExt->CreateSound_Enable.Get())
-				return ReturnNoVoiceCreate;
+		if (!pTechnoTypeExt->CreateSound_Enable.Get())
+			return ReturnNoVoiceCreate;
 
-			if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
-				return pThis->IsControlledByCurrentPlayer() ?
-					Continue : ReturnNoVoiceCreate;
-		}
+		if (RulesExt::Global()->CreateSound_PlayerOnly.Get())
+			return pThis->IsControlledByCurrentPlayer() ?
+				Continue : ReturnNoVoiceCreate;
 	}
 
 	return Continue;

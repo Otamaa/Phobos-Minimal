@@ -216,7 +216,7 @@ DEFINE_OVERRIDE_HOOK(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 }
 
 // aim for the cell for flying carriers
-DEFINE_OVERRIDE_HOOK(0xB783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
+DEFINE_OVERRIDE_HOOK(0x6B783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
