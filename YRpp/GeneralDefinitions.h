@@ -314,7 +314,9 @@ enum class Action : unsigned int {
 	ForceShield = 69,
 	NoForceShield = 70,
 	Airstrike = 71,
-	PsychicReveal = 72
+	PsychicReveal = 72,
+
+	count
 };
 
 enum class AbilityType : int {
