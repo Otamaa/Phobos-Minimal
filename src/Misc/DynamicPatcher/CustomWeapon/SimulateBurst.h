@@ -17,7 +17,7 @@ struct SimulateBurst
 	int FlipY;
 	int Flag;
 	int Index;
-	TimerStruct Timer;
+	CDTimerClass Timer;
 
 	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range, AttachFireData fireData, int flipY, FireBulletToTarget callback)
 		:WeaponType { pWeaponType }

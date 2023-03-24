@@ -41,6 +41,6 @@ public:
 	HRESULT Load(IStream* pStm)
 		{ JMP_THIS(0x54E7B0); }
 
-	TimerStruct UpdateTimer;
+	CDTimerClass UpdateTimer;
 	DynamicVectorClass<KamikazeControl*> Nodes;
 };

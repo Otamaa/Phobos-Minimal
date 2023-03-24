@@ -3,13 +3,14 @@
 
 #include <Utilities/Cast.h>
 
+static_assert(offsetof(TechnoClass, Disguise) == 0x518, "TechnoClass ClassMember Shifted !");
+
 DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
 {
 	GET(InfantryTypeClass*, pType, EAX);
 	GET(InfantryClass*, pThis, ECX);
 
-	if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType))
-	{
+	if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 		pThis->Disguise = pDisguiseType;
 		return 0x5227BF;// EC / D7 / E4
 	}

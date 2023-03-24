@@ -68,7 +68,7 @@ struct PrintText
 	CoordStruct Location;
 	Point2D Offset;
 	int Duration;
-	TimerStruct LifeTimer;
+	CDTimerClass LifeTimer;
 	PrintTextData Data;
 
 	PrintText(const wchar_t* text, CoordStruct location, Point2D offset, int duration, PrintTextData data) :

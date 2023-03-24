@@ -37,7 +37,7 @@ struct CrackedIceStruct
 struct Crate
 {
 	//Properties
-	TimerStruct CrateTimer;
+	CDTimerClass CrateTimer;
 	CellStruct Location;
 };
 static_assert(sizeof(Crate) == 0x10, "Invalid Size !");

@@ -40,9 +40,9 @@ protected:
 public:
 	bool IsToRedraw; //150C
 	PROTECTED_PROPERTY(BYTE, align_150D[3])
-	TimerStruct _TopBarBlinkDelayTimer; //1510
+	CDTimerClass _TopBarBlinkDelayTimer; //1510
 	DWORD _TopBarBlinkCountdown; //151C
-	TimerStruct _BarUpdateTimer; //1520
+	CDTimerClass _BarUpdateTimer; //1520
 	DWORD _GreenBars;  //152C
 	DWORD _YellowBars; //1530
 	DWORD _RedBars; //1534

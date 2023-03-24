@@ -91,7 +91,7 @@ public:
 	class Elemet
 	{
 	public:
-		TimerStruct Duration;
+		CDTimerClass Duration;
 		std::unique_ptr<ElementTypeClass> Type {};
 
 		Elemet(int dur, const ElementTypeClass& nElement) :

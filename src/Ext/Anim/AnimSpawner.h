@@ -12,8 +12,8 @@
 //	AnimClass* AttachedTo;
 //	std::unique_ptr<AnimSpawnerDatas> m_SpawnDatas;
 //	bool m_alreadyInitEd;
-//	TimerStruct m_initialDelay;
-//	TimerStruct m_delay;
+//	CDTimerClass m_initialDelay;
+//	CDTimerClass m_delay;
 //	int m_spawnCount;
 //
 //public:

@@ -185,7 +185,7 @@ DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 					// Draw particle system
 					Helpers_DP::AttachedParticleSystem(pWeapon, sourcePos, pTarget, pBulletOwner, targetPos);
 					// Play report sound
-					Helpers_DP::PlayReportSound(pWeapon, sourcePos);
+					Helpers_DP::PlayReportSound(pWeapon, sourcePos , pThis->Owner);
 					// Draw weapon anim
 					Helpers_DP::DrawWeaponAnim(pWeapon, sourcePos, targetPos, pBulletOwner, pTarget);
 #endif
@@ -335,7 +335,9 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 		break;
 		default: {
 			if (auto pType = pTargetObj->GetType()) {
-				if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001) {
+				//if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001) 
+				if(GeneralUtils::GetWarheadVersusArmor(pWH , pType->Armor) < 0.001) {
+
 					return false;
 				}
 			}
@@ -400,7 +402,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 			 // Draw particle system
 			 Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
 			 // Play report sound
-			 Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
+			 Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos, pThis->Owner);
 			 // Draw weapon anim
 			 Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
 #endif
@@ -443,7 +445,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 							// Draw particle system
 							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pCellTarget, pThis->Owner, targetPos);
 							// Play report sound
-							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos);
+							Helpers_DP::PlayReportSound(pShrapWeapon, sourcePos , pThis->Owner);
 							// Draw weapon anim
 							Helpers_DP::DrawWeaponAnim(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
 #endif
@@ -599,10 +601,10 @@ void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 
 void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)
 {
-	auto pThis = this->Get();
-	auto pWeapon = pThis->GetWeaponType();
-	auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	auto pRadType = pWeaponExt->RadType;
+	const auto pThis = this->Get();
+	const auto pWeapon = pThis->GetWeaponType();
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pRadType = pWeaponExt->RadType;
 
 		auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 			[=](auto const pSite) {
@@ -611,10 +613,7 @@ void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spr
 				if (pRadExt->Type != pRadType)
 					return false;
 
-				auto const pBaseCell = MapClass::Instance->GetCellAt(pSite->BaseCell);
-				auto const pDestCell = MapClass::Instance->GetCellAt(nCoord);
-
-				if (pBaseCell != pDestCell)
+				if (pSite->BaseCell != CellClass::Coord2Cell(nCoord))
 					return false;
 
 				if (Spread != pSite->Spread)
@@ -630,13 +629,16 @@ void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spr
 			});
 
 		if (it != RadSiteClass::Array->end()) {
-			if ((*it)->GetRadLevel() + RadLevel >= pRadType->GetLevelMax()) {
-				RadLevel = pRadType->GetLevelMax() - (*it)->GetRadLevel();
+
+			const auto nMax = pRadType->GetLevelMax();
+			const auto nCurrent = (*it)->GetCurrentRadLevel();
+
+			if (nCurrent + RadLevel > nMax) {
+				RadLevel = nMax - nCurrent;
 			}
 
-			auto const pRadExt = RadSiteExt::ExtMap.Find((*it));
 			// Handle It
-			pRadExt->Add(RadLevel);
+			RadSiteExt::ExtMap.Find((*it))->Add(RadLevel);
 			return;
 		}
 
@@ -674,7 +676,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 	if (pThisTypeExt->Armor.isset())
 	{
 		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
+		auto const versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pThisTypeExt->Armor);//pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
 		if (((std::abs(versus) >= 0.001)))
 		{
 			canAffect = true;

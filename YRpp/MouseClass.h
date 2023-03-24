@@ -60,8 +60,8 @@ public:
 
 public:
 	TabDataClass TabData;
-	TimerStruct unknown_timer_552C;
-	TimerStruct InsufficientFundsBlinkTimer;
+	CDTimerClass unknown_timer_552C;
+	CDTimerClass InsufficientFundsBlinkTimer;
 	BYTE unknown_byte_5544;
 	bool MissionTimerPinged;
 	BYTE unknown_byte_5546;

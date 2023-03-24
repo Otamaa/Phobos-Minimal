@@ -33,8 +33,8 @@ private:
 	 bool m_active {};
 	 int m_Duration {};
 	 bool m_Isimmortal {};
-	 TimerStruct m_LifeTimer {};
-	 TimerStruct m_InitialDelayTimer {};
+	 CDTimerClass m_LifeTimer {};
+	 CDTimerClass m_InitialDelayTimer {};
 	 bool m_IsdelayToEnable {};
 
 	 std::vector<std::unique_ptr<EffectBase>> m_Effects {};

@@ -10,7 +10,7 @@ struct DelayFireWeapon
 	AbstractClass* Target;
 	int Delay;
 	int Count;
-	TimerStruct Timer;
+	CDTimerClass Timer;
 
 	explicit DelayFireWeapon(int weaponIndex, AbstractClass* ptarget, int delay, int count) noexcept :
 		FireOwnWeapon { true }

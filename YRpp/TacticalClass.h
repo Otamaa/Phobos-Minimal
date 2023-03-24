@@ -198,7 +198,7 @@ public:
 	RectangleStruct ContainingMapCoords;
 	LTRBStruct Band;
 	DWORD MouseFrameIndex;
-	TimerStruct StartTime;
+	CDTimerClass StartTime;
 	int SelectableCount;
 	Matrix3D Unused_Matrix3D; //DB4
 	Matrix3D IsoTransformMatrix; //DE4

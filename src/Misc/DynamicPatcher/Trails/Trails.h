@@ -16,7 +16,7 @@ public:
 
 	TrailType* Type;
 	OptionalStruct<CoordStruct,true> LastLocation;
-	TimerStruct DelayTimer;
+	CDTimerClass DelayTimer;
 	CoordStruct FLH;
 	int initialDelay;
 	bool canDraw;

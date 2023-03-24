@@ -25,6 +25,11 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	//	this->DamagingAnim.Read(exINI, pID, "Fire.DamagingAnim");
 	}
 	break;
+	case BehavesLike::Railgun:
+	{ 
+		this->ReadjustZ.Read(exINI, pID , "ReadjustZCoord");
+		break;
+	}
 	default:
 		break;
 	}
@@ -43,6 +48,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->LaserTrail_Types)
+		.Process(this->ReadjustZ)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

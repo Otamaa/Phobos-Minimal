@@ -627,6 +627,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 
 	if (pThis->Owner 
 		&& !pThis->Owner->IsControlledByHuman()
+		&& !pThis->Owner->IsNeutral()
 		&& pTypeExt->PassiveAcquire_AI.isset()) {
 		return pTypeExt->PassiveAcquire_AI.Get() ?
 		 ContinueCheck : CantPassiveAcquire;
@@ -667,12 +668,11 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 
-	if (pTarget->Owner
-		&& !pTarget->Owner->ControlledByPlayer()
-		&& pTypeExt->AI_LegalTarget.isset()
-		) {
-		R->AL(pTypeExt->AI_LegalTarget.Get());
-		return SetAL;
+	if (pTarget->Owner && pTarget->Owner->IsControlledByHuman())
+		return Continue;
+
+		if(pTypeExt->AI_LegalTarget.isset()) {
+		return pTypeExt->AI_LegalTarget.Get() ? ContinueChecks : ReturnFalse;
 	}
 
 	return Continue;
@@ -3021,12 +3021,13 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
 	GET(BuildingClass*, pBuilding, EDI);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)
+	->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
 
-	if (nSound != -1)
-		return 0x51A30F;
+	if (nSound != -1) {
+		VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
+	}
 
-	VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
 	return 0x51A30F;
 }
 
@@ -3034,12 +3035,13 @@ DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
+	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)
+	->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
 
-	if (nSound <= -1)
-		return 0x44DBDA;
+	if (nSound != -1) {
+		VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
+	}
 
-	VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
 	return 0x44DBDA;
 }
 
@@ -3166,7 +3168,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 		// Draw particle system
 		Helpers_DP::AttachedParticleSystem(pWeapon, src, pTarget, pThis, dest);
 		// Play report sound
-		Helpers_DP::PlayReportSound(pWeapon, src);
+		Helpers_DP::PlayReportSound(pWeapon, src, pThis);
 		// Draw weapon anim
 		Helpers_DP::DrawWeaponAnim(pWeapon, src, dest, pThis, pTarget);
 	}

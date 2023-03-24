@@ -113,8 +113,8 @@ namespace AresTechnoExt
 
 		TechnoClass* OwnerObject { nullptr };
 		bool DriverKilled { false };
-		TimerStruct CloakSkipTimer { };
-		TimerStruct DisableWeaponTimer { };
+		CDTimerClass CloakSkipTimer { };
+		CDTimerClass DisableWeaponTimer { };
 	};
 
 	struct ExtMap
@@ -2433,8 +2433,8 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 							if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
 								nArmor = pObjectExt->GetShield()->GetType()->Armor;
 
-						auto const& nVerses= std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)
-											 ->GetVerses(nArmor).Verses);
+						auto const& nVerses = GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead , nArmor);
+						//std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)->GetVerses(nArmor).Verses);
 						if(!(nVerses >= 0.001))
 						   continue;
 				}

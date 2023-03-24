@@ -63,23 +63,41 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 	R->EAX(pBuffer);
 	return 0x70C6B5;
 }
+#include <Ext/ParticleType/Body.h>
 
 // Do not adjust map coordinates for railgun particles that are below cell coordinates.
-DEFINE_HOOK(0x62B89F, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
+DEFINE_HOOK(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 {
 	enum { SkipCoordAdjust = 0x62B8CB  ,Continue = 0x0};
 
 	GET(ParticleClass*, pThis, ESI);
-
 	const auto pParticleSys = pThis->ParticleSystem;
+	const auto pParticleTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
 
 	if(pParticleSys
 	&& pParticleSys->Type->BehavesLike == BehavesLike::Railgun){
+		GET(CoordStruct*, pCoordBase, EDI);
+		LEA_STACK(CoordStruct* , pCoord, 0x10);
+
 		//restore overriden instruction
-		R->Stack(0x10, R->ECX());
-		R->Stack(0x18, R->EDX());
-		R->Stack(0x1C, R->EAX());
-		return SkipCoordAdjust ;
+		if(!pParticleTypeExt->ReadjustZ) {
+			pCoord->X = pCoordBase->X;
+			pCoord->Y = pCoordBase->Y;
+			pCoord->Z = pCoordBase->Z;
+		}
+		else
+		{
+			pCoord->X = pCoordBase->X;
+			pCoord->Y = pCoordBase->Y;
+
+			auto nZ = MapClass::Instance->GetZPos(pCoordBase);
+			if (pCoordBase->Z <= nZ)
+				pCoord->Z = nZ;
+			else
+				pCoord->Z = pCoordBase->Z;
+		}
+
+		return SkipCoordAdjust;
 	}
 
 	return Continue;

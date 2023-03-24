@@ -32,6 +32,41 @@ DEFINE_OVERRIDE_HOOK(0x75DDCC, Verses_OrigParser, 0x7)
 	return 0x75DE98;
 }
 
+void Debug(int nArmor, VersesData* pData, WarheadTypeClass* pWH)
+{
+	/*
+	if (IS_SAME_STR_(pWH->get_ID(), "TyrantSlamWH"))
+	{
+		auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
+
+		if (IS_SAME_STR_(pArmor->Name.data(), "tbrut_hack"))
+		{
+			Debug::Log("Flag :  FF %d , PA %d , RR %d [%fl] \n",
+				pData->Flags.ForceFire,
+				pData->Flags.PassiveAcquire,
+				pData->Flags.Retaliate,
+				pData->Verses);
+		}
+	}*/
+}
+
+//DEFINE_HOOK(0x6FF349, TechnoClass_FireAt_ReportSound, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	if (IS_SAME_STR_(pThis->get_ID(), "MPLN") && pWeapon->Report.Count)
+//	{
+//		auto nSound = pThis->weapon_sound_randomnumber_3C8;
+//		Debug::Log("MPLN TechnoClass FireAt , ReporSound Result [%d] Idx[%d] count [%d] \n"
+//			, pWeapon->Report[nSound % pWeapon->Report.Count] 
+//			, nSound % pWeapon->Report.Count
+//			, pWeapon->Report.Count);
+//	}
+//
+//	return 0x0;
+//}
+
 DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 {
 	GET(WarheadTypeClass*, pWH, EDI);
@@ -40,6 +75,8 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 
 	auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pExt->Verses[nArmor];
+
+	Debug(nArmor, vsData, pWH);
 
 	R->EAX(static_cast<int>((nDamage * vsData->Verses)));
 	return 0x489249;
@@ -54,6 +91,8 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
+
+	Debug(nArmor, vsData, pWH);
 
 	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
 		? ContinueCheck
@@ -70,6 +109,8 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
+
+	Debug(nArmor, vsData, pWH);
 
 	return vsData->Flags.ForceFire || vsData->Verses != 0.0
 		? ContinueCheck
@@ -89,6 +130,8 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 	auto vsData = &pData->Verses[(int)pThisType->Armor];
 
 	double nMult = 0.0;
+
+	Debug((int)pThisType->Armor, vsData, pWH);
 
 	if (pTarget->Target == pThis)
 		nMult = -(mult * vsData->Verses);
@@ -110,6 +153,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
 
+	Debug(nArmor, vsData, pWH);
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
 	return 0x70CF58;
 }
@@ -148,16 +192,20 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
 
+	Debug(nArmor, vsData, pWH);
 	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
 		? Retaliate
 		: DoNotRetaliate
 		;
 }
 
+#include <Misc/AresData.h>
+
 DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);
-	if (ArmorTypeClass::Array.empty()) {
+	if (ArmorTypeClass::Array.empty())
+	{
 		ArmorTypeClass::AddDefaults();
 	}
 
@@ -165,21 +213,27 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	GET_STACK(const char*, Key, 0x8);
 	//GET_STACK(int, fallback, 0xC);
 
+
+	AresData::CallAresArmorType_FindIndex(R);
+	GET(int, nResult, EAX);
+
 	char buf[0x64];
 	pINI->ReadString(Section, Key, Phobos::readDefval, buf);
 
-	//if(strnlen_s(buf,sizeof(buf)) > 0) {
-
 	int idx = ArmorTypeClass::FindIndexById(buf);
 
-	if (idx < 0) {
-		if (strlen(buf)) { 
-			if(ArmorTypeClass::Allocate(buf)) {
+	if (idx < 0)
+	{
+		if (strlen(buf))
+		{
+			if (ArmorTypeClass::Allocate(buf))
+			{
 				Debug::Log("Allocating Armor [%s] ! \n", buf);
 				idx = ArmorTypeClass::Array.size() - 1;
 			}
-			else {
-			   Debug::INIParseFailed(Section, Key, buf);
+			else
+			{
+				Debug::INIParseFailed(Section, Key, buf);
 			}
 		}
 		else

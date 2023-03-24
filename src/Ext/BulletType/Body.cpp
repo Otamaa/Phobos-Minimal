@@ -104,6 +104,8 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SubjectToLand_Detonate.Read(exINI, pSection, "SubjectToLand.Detonate");
 	this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
 	this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
+	this->AAOnly.Read(exINI, pSection, "AAOnly");
+
 	//
 
 	#pragma region Otamaa
@@ -179,6 +181,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SubjectToLand_Detonate)
 		.Process(this->SubjectToWater)
 		.Process(this->SubjectToWater_Detonate)
+		.Process(this->AAOnly)
 
 		.Process(this->Cluster_Scatter_Min)
 		.Process(this->Cluster_Scatter_Max)

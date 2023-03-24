@@ -363,7 +363,7 @@ public:
 	bool IsRadiated() const
 		{ JMP_THIS(0x487C90); }
 
-	int GetRadLevel() const
+	int GetCurrentRadLevel() const
 		{ JMP_THIS(0x487CB0); }
 
 	void RadLevel_Increase(double amount) const

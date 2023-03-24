@@ -146,7 +146,7 @@ public:
 	std::unique_ptr<DamageSelfType> Data;
 
 private:
-	TimerStruct DelayTimer;
+	CDTimerClass DelayTimer;
 public:
 
 	template <typename T>

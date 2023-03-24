@@ -60,7 +60,7 @@ public:
 	PointerHeapClass<MapSurfaceData>* Heap;
 	bool* States;
 	MapSurfaceData* Datas;
-	TimerStruct Timer;
+	CDTimerClass Timer;
 };
 
 //forward declarations

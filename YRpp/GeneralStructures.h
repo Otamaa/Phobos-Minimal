@@ -44,19 +44,32 @@ struct SWRange {
 	int Height;
 };
 
+template<typename T>
+concept TimerType = std::convertible_to<T, int>&& requires (T t)
+{
+	{ t() }->std::same_as<long>;
+};
+
+struct FrameTimer
+{
+	long operator()()const { return *reinterpret_cast<long*>(0xA8ED84); }
+	operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
+};
+
 //used for timed events, time measured in frames!
-class TimerStruct
+template<TimerType Clock>
+class TimerClass
 {
 public:
 	int StartTime{ -1 };
-	int : 32; // timer
+	Clock CurrentTime; // timer
 	int TimeLeft{ 0 };
 
-	constexpr TimerStruct() = default;
-	TimerStruct(int duration) { this->Start(duration); }
+	constexpr TimerClass() = default;
+	TimerClass(int duration) { this->Start(duration); }
 
 	void Start(int duration) {
-		this->StartTime = *reinterpret_cast<int*>(0xA8ED84)	;
+		this->StartTime = this->CurrentTime;
 		this->TimeLeft = duration;
 	}
 
@@ -74,7 +87,7 @@ public:
 
 	void Resume() {
 		if(!this->IsTicking()) {
-			this->StartTime = *reinterpret_cast<int*>(0xA8ED84);
+			this->StartTime = this->CurrentTime;
 		}
 	}
 
@@ -83,7 +96,7 @@ public:
 			return this->TimeLeft;
 		}
 
-		auto passed = *reinterpret_cast<int*>(0xA8ED84) - this->StartTime;
+		auto passed = this->CurrentTime - this->StartTime;
 		auto left = this->TimeLeft - passed;
 
 		return (left <= 0) ? 0 : left;
@@ -99,6 +112,10 @@ public:
 	// and logically the same as !Expired() (meaning: blocked / delay in progress)
 	bool InProgress() const {
 		return this->IsTicking() && this->HasTimeLeft();
+	}
+
+	bool IsNotActive() const {
+		return this->IsTicking() && !this->TimeLeft;
 	}
 
 	// returns whether a delay is inactive. same as !InProgress().
@@ -126,10 +143,12 @@ public:
 		return this->GetTimeLeft() > 0;
 	}
 };
-static_assert(sizeof(TimerStruct) == 0xC, "Invalid Size !");
 
-typedef TimerStruct CDTimerClass;
-class RepeatableTimerStruct : public TimerStruct
+using CDTimerClass = TimerClass<FrameTimer>;
+static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
+static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
+
+class RepeatableTimerStruct : public CDTimerClass
 {
 public:
 	int Duration{ 0 };
@@ -143,7 +162,7 @@ public:
 	}
 
 	void Restart() {
-		this->TimerStruct::Start(this->Duration);
+		this->CDTimerClass::Start(this->Duration);
 	}
 };
 
@@ -422,7 +441,7 @@ typedef RepeatableTimerStruct RateTimer;
 //
 //	DirStruct Value; // target facing
 //	DirStruct Initial; // rotation started here
-//	TimerStruct Timer; // counts rotation steps
+//	CDTimerClass Timer; // counts rotation steps
 //	DirStruct ROT; // Rate of Turn. INI Value * 256
 //};
 

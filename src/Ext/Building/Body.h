@@ -32,7 +32,7 @@ public:
 		bool IsCreatedFromMapFile;
 
 		std::vector<AnimClass*> DamageFireAnims;
-		TimerStruct AutoSellTimer;
+		CDTimerClass AutoSellTimer;
 		bool LighningNeedUpdate;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)

@@ -10,7 +10,7 @@ public:
 
 	bool IsOpen;
 	int Delay;
-	TimerStruct DelayTimer;
+	CDTimerClass DelayTimer;
 
 	GiftBox(int delay) :
 		IsOpen { false }

@@ -23,11 +23,13 @@ public:
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
+		Valueable<bool> ReadjustZ;
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
+			, ReadjustZ { true }
 		{ }
 
 		virtual ~ExtData() override  = default;

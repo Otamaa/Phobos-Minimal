@@ -207,11 +207,11 @@ public:
 	FootClass*      NextTeamMember;        //next unit in team
 	DWORD           unknown_5DC;
 	int             PathDirections[24]; // list of directions to move in next, like tube directions
-	DECLARE_PROPERTY(TimerStruct, PathDelayTimer); //CDTimerClass
+	DECLARE_PROPERTY(CDTimerClass, PathDelayTimer); //CDTimerClass
 	int             TryTryAgain; //64C
-	DECLARE_PROPERTY(TimerStruct, unknown_timer_650); //BaseAttackTimer  CDTimerClass
-	DECLARE_PROPERTY(TimerStruct, SightTimer);
-	DECLARE_PROPERTY(TimerStruct, BlockagePathTimer);
+	DECLARE_PROPERTY(CDTimerClass, unknown_timer_650); //BaseAttackTimer  CDTimerClass
+	DECLARE_PROPERTY(CDTimerClass, SightTimer);
+	DECLARE_PROPERTY(CDTimerClass, BlockagePathTimer);
 	DECLARE_PROPERTY(YRComPtr<ILocomotion>, Locomotor);
 	CoordStruct       __HeadTo; //_678
 	signed char       TubeIndex;	//I'm in this tunnel
@@ -231,7 +231,7 @@ public:
 	FootClass*        ParasiteEatingMe; // the tdrone/squid that's eating me
 	DWORD             __ParasiteFireBlock_698;
 	ParasiteClass*    ParasiteImUsing;	// my parasitic half, nonzero for, eg, terror drone or squiddy
-	DECLARE_PROPERTY(TimerStruct, ParalysisTimer); // for squid victims
+	DECLARE_PROPERTY(CDTimerClass, ParalysisTimer); // for squid victims
 	bool              unknown_bool_6AC;
 	bool              IsAttackedByLocomotor; //6AD, the unit's locomotor is jammed by a magnetron
 	bool              IsLetGoByLocomotor; //6AE a magnetron attacked this unit and let it go. falling, landing, or sitting on the ground

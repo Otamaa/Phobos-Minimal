@@ -27,6 +27,11 @@ struct Conversions
 		}
 		else {
 
+			//re-evaluate after this
+			whFlags->ForceFire = true;
+			whFlags->PassiveAcquire = true;
+			whFlags->Retaliate = true;
+
 			if (LESS_EQUAL(nValCopy, 0.02)) {
 				whFlags->PassiveAcquire = false;
 			}

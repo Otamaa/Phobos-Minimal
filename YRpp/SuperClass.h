@@ -122,7 +122,7 @@ public:
 	int CustomChargeTime;
 	SuperWeaponTypeClass* Type;
 	HouseClass* Owner;
-	DECLARE_PROPERTY(TimerStruct, RechargeTimer);
+	DECLARE_PROPERTY(CDTimerClass, RechargeTimer);
 	PROTECTED_PROPERTY(DWORD, unused_3C);
 	bool BlinkState;
 	PROTECTED_PROPERTY(BYTE, unused_41[7]);

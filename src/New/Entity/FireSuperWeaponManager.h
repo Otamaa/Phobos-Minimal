@@ -14,9 +14,9 @@ private:
 
 	int count;
 	int initDelay;
-	TimerStruct initDelayTimer;
+	CDTimerClass initDelayTimer;
 	int delay;
-	TimerStruct delayTimer;
+	CDTimerClass delayTimer;
 
 public:
 

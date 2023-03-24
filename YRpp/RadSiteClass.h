@@ -6,6 +6,7 @@
 
 #include <AbstractClass.h>
 #include <GeneralStructures.h>
+#include <Leptons.h>
 
 class LightSourceClass;
 class WeaponTypeClass;
@@ -67,7 +68,7 @@ public:
 		{ JMP_THIS(0x65B530); }
 
 	// Gets the current rad level (corresponds to the RadLevel at BaseCell).
-	int GetRadLevel() const
+	int GetCurrentRadLevel() const
 		{ JMP_THIS(0x65B510); }
 
 	// Gets the rad level applied by this RadSite to a certain cell.
@@ -123,11 +124,11 @@ protected:
 public:
 
 	LightSourceClass* LightSource; // the light source attached to this instance
-	DECLARE_PROPERTY(TimerStruct, RadLevelTimer); // used to count down RadLevelDelay
-	DECLARE_PROPERTY(TimerStruct, RadLightTimer); // used to count down RadLightDelay
+	DECLARE_PROPERTY(CDTimerClass, RadLevelTimer); // used to count down RadLevelDelay
+	DECLARE_PROPERTY(CDTimerClass, RadLightTimer); // used to count down RadLightDelay
 	CellStruct        BaseCell; // center cell
 	int               Spread; // range in cells
-	int               SpreadInLeptons; // range in leptons
+	Leptons           SpreadInLeptons; // range in leptons
 	int               RadLevel; // the radiation level,
 	int               LevelSteps; // cell's rad level reduced by (RadLevel/LevelSteps) every time RadLevelTimer elapses
 	int               Intensity; // the intensity at the beginning

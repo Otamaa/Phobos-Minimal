@@ -24,8 +24,8 @@ public:
 		int Countdown_RegroupAtLeader;
 		int MoveMissionEndMode;
 		int WaitNoTargetCounter;
-		TimerStruct WaitNoTargetTimer;
-		TimerStruct ForceJump_Countdown;
+		CDTimerClass WaitNoTargetTimer;
+		CDTimerClass ForceJump_Countdown;
 		int ForceJump_InitialCountdown;
 		bool ForceJump_RepeatMode;
 		FootClass* TeamLeader;

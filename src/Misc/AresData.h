@@ -63,6 +63,7 @@ struct AresData
 	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
+	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
 
 	template<int idx, typename Tret, typename... TArgs>
 	struct AresStdcall

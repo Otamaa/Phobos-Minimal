@@ -210,12 +210,7 @@ public:
 			EffectHelpers::DrawParticle(psType, sourcePos, pTarget, pAttacker, targetPos, pAttacker ? pAttacker->Owner : nullptr);
 	}
 
-	static void PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos)
-	{
-		if (pWeapon->Report.Count > 0) {
-			VocClass::PlayAt(pWeapon->Report.GetItem(ScenarioClass::Instance->Random.RandomFromMax(pWeapon->Report.Count - 1)), sourcePos, nullptr);
-		}
-	}
+	static void PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, TechnoClass* pTechno = nullptr);
 
 	static void DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos ,TechnoClass* pOwner , AbstractClass* pTarget);
 	static BulletClass* FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& VelocityClass);

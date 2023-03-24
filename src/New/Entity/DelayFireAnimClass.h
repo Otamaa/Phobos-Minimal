@@ -62,7 +62,7 @@
 //	/// Properties ///
 //	TechnoClass* Techno;
 //	TechnoTypeClass* CurTechnoType;
-//	TimerStruct TimerDelay;
+//	CDTimerClass TimerDelay;
 //	AnimClass* IdleAnim;
 //	bool Cloak;
 //	bool Online;

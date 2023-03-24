@@ -97,3 +97,17 @@ int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
 
 	return -1;
 }
+
+int NOINLINE AresData::CallAresArmorType_FindIndex(REGISTERS* R)
+{
+	if (AresDllHmodule != NULL)
+	{
+		CallHook Data = (CallHook)GetProcAddress(AresDllHmodule, "ArmorType_FindIndex");
+		if (Data != NULL)
+		{
+			return (Data)(R);
+		}
+	}
+	
+	return-1;
+}

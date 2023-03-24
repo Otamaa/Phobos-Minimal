@@ -21,7 +21,7 @@ public:
 	OptionalStruct<CoordStruct,true> LastLocation;
 	bool CanDraw;
 	int InitialDelay;
-	TimerStruct InitialDelayTimer;
+	CDTimerClass InitialDelayTimer;
 
 	LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :

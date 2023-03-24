@@ -91,7 +91,9 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 
 	auto nAddDamage = add * multiply;
 	if (this->RecalculateDistanceDamage_ProcessVerses)
-		nAddDamage *= this->GetVerses(pThisType->Armor).Verses;
+		nAddDamage *= GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
+		//this->GetVerses(pThisType->Armor).Verses
+		;
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
 		this->RecalculateDistanceDamage_Min.Get(), this->RecalculateDistanceDamage_Max.Get());
@@ -168,7 +170,10 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 			if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
 				nArmor = pExt->CurrentShieldType->Armor;
 
-			return (std::abs(this->GetVerses(nArmor).Verses) >= 0.001);
+			return (std::abs(
+				GeneralUtils::GetWarheadVersusArmor(this->Get() , nArmor)
+				//this->GetVerses(nArmor).Verses
+				)>= 0.001 );
 		}
 
 		return true;

@@ -18,7 +18,7 @@ struct Proximity
 	bool count;
 	int times;
 	bool safe;
-	TimerStruct safeTimer;
+	CDTimerClass safeTimer;
 
 	Proximity(ProximityData data, TechnoClass* pAttacker, int safeDelay)
 		: Data { data }

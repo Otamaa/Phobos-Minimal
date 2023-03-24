@@ -26,11 +26,10 @@ void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech)
 {
 	// use real ctor
-	const auto pRadSite = GameCreate<RadSiteClass>();
-	auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+	const auto pRadExt = RadSiteExt::ExtMap.TryFind(GameCreate<RadSiteClass>());
 
 	if (!pRadExt)
-		Debug::FatalErrorAndExit("Uneable To find Ext for [%x] Radsite ! \n", pRadSite);
+		Debug::FatalErrorAndExit("Uneable To find Ext for Radsite ! \n");
 
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt)
@@ -46,8 +45,8 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 		pRadExt->TechOwner = pTech;
 	}
 
-	pRadSite->BaseCell = CellClass::Coord2Cell(nCoord);
-	pRadSite->SetSpread(spread);
+	pRadExt->Get()->BaseCell = CellClass::Coord2Cell(nCoord);
+	pRadExt->Get()->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
 
@@ -56,17 +55,17 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 //RadSiteClass Activate , Rewritten
 void RadSiteExt::ExtData::CreateLight()
 {
-	const auto pThis = Get();
-	const auto nLevelDelay = Type->GetLevelDelay();
-	const auto nLightDelay = Type->GetLightDelay();
-	const auto nRadcolor = Type->GetColor();
+	const auto pThis = this->Get();
+	const auto nLevelDelay = this->Type->GetLevelDelay();
+	const auto nLightDelay = this->Type->GetLightDelay();
+	const auto nRadcolor = this->Type->GetColor();
 
 	//if(Phobos::Otamaa::IsAdmin)
 	//	Debug::Log("RadSite [%s] CreateLight With Color [%d , %d , %d] \n", Type->Name.data(), nRadcolor.R, nRadcolor.G, nRadcolor.B);
 
-	const auto nTintFactor = Type->GetTintFactor();
+	const auto nTintFactor = this->Type->GetTintFactor();
 
-	const auto nLightFactor = Math::LessOrEqualTo(pThis->RadLevel * Type->GetLightFactor(), 2000.0);
+	const auto nLightFactor = Math::LessOrEqualTo(pThis->RadLevel * this->Type->GetLightFactor(), 2000.0);
 	const auto nDuration = pThis->RadDuration;
 
 	pThis->RadLevelTimer.Start(nLevelDelay);
@@ -99,22 +98,22 @@ void RadSiteExt::ExtData::CreateLight()
 // Rewrite because of crashing craziness
 void RadSiteExt::ExtData::Add(int amount)
 {
-	const auto pThis = Get();
+	const auto pThis = this->Get();
 	pThis->Deactivate();
 	const auto nInput = ((pThis->RadLevel * pThis->RadTimeLeft) / pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
-	const auto nInput_2 = nInput * Type->GetDurationMultiple();
+	const auto nInput_2 = nInput * this->Type->GetDurationMultiple();
 	pThis->RadDuration = nInput_2;
 	pThis->RadTimeLeft = nInput_2;
-	CreateLight();
+	this->CreateLight();
 }
 
-void NOINLINE RadSiteExt::ExtData::SetRadLevel(int amount)
+void RadSiteExt::ExtData::SetRadLevel(int amount)
 {
-	const auto pThis = Get();
-	const auto nMax = Type->GetLevelMax();
+	const auto pThis = this->Get();
+	const auto nMax = this->Type->GetLevelMax();
 	const auto nDecidedamount = std::min(amount, nMax);
-	const int mult = Type->GetDurationMultiple();
+	const int mult = this->Type->GetDurationMultiple();
 	pThis->RadLevel = nDecidedamount;
 	pThis->RadDuration = mult * nDecidedamount;
 	pThis->RadTimeLeft = mult * nDecidedamount;
@@ -123,10 +122,18 @@ void NOINLINE RadSiteExt::ExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	const RadSiteClass* pThis = Get();
-	const double nMax = static_cast<double>(pThis->SpreadInLeptons);
-	const double nDistance = cell.DistanceFrom(pThis->BaseCell);
-	return (nDistance > nMax || pThis->GetRadLevel() <= 0) ? 0.0 : (nMax - nDistance) / nMax * pThis->GetRadLevel();
+
+	const auto pThis = this->Get();
+	const auto currentLevel = pThis->GetCurrentRadLevel();
+
+	if (currentLevel <= 0)
+		return 0.0;
+
+	const auto nMax = static_cast<double>(pThis->Spread);
+	const auto nDistance = cell.DistanceFrom(pThis->BaseCell);
+
+	return (nDistance > nMax) 
+		? 0.0 : (nMax - nDistance) / nMax * currentLevel;
 }
 
 const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)

@@ -436,8 +436,8 @@ public:
 private:
 	int duration; // 寿命
 	bool immortal; // 永生
-	TimerStruct lifeTimer;
-	TimerStruct initialDelayTimer;
+	CDTimerClass lifeTimer;
+	CDTimerClass initialDelayTimer;
 	bool delayToEnable; // 延迟激活中
 
 	std::array<UniqueGamePtr<EffectsBase>, (size_t)MyAEType::count>effects;

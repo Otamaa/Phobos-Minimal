@@ -45,7 +45,7 @@ public:
 		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 		bool ReceiveDamage;
 		bool LastKillWasTeamTarget;
-		TimerStruct	PassengerDeletionTimer;
+		CDTimerClass	PassengerDeletionTimer;
 		ShieldTypeClass* CurrentShieldType;
 		int LastWarpDistance;
 		CDTimerClass Death_Countdown;
@@ -70,7 +70,7 @@ public:
 		bool AircraftOpentoppedInitEd;
 
 		std::vector<int> FireSelf_Count;
-		TimerStruct EngineerCaptureDelay;
+		CDTimerClass EngineerCaptureDelay;
 		bool FlhChanged;
 		//DynamicVectorClass<LineTrail*> TechnoLineTrail;
 		bool IsMissisleSpawn;
@@ -86,7 +86,7 @@ public:
 		bool SkipVoice;
 
 		CoordStruct HomingTargetLocation;
-		PhobosMap<WeaponTypeClass*, TimerStruct> ExtraWeaponTimers;
+		PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
 		std::vector<std::unique_ptr<UniversalTrail>> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;

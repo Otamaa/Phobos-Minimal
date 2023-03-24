@@ -11,7 +11,7 @@
 struct AttachEffectManager
 {
 	std::vector<std::unique_ptr<AttachedAffects>> AttachEffects; // 所有有效的AE
-	std::map<const char*, TimerStruct> DisableDelayTimers; // 同名AE失效后再赋予的计时器
+	std::map<const char*, CDTimerClass> DisableDelayTimers; // 同名AE失效后再赋予的计时器
 	std::vector<LocationMark> LocationMarks;
 
 

@@ -150,7 +150,7 @@ public:
 	OptionalStruct<PaintballType,true> Data;
 
 private:
-	TimerStruct timer;
+	CDTimerClass timer;
 public:
 
 	template <typename T>

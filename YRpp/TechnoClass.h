@@ -837,7 +837,7 @@ public:
 	DECLARE_PROPERTY(FacingClass, SecondaryFacing);
 	int              CurrentBurstIndex;
 	DECLARE_PROPERTY(CDTimerClass, TargetLaserTimer);
-	short            weapon_sound_number_3C8;
+	short            weapon_sound_randomnumber_3C8;
 	WORD             __shipsink_3CA;
 	bool             CountedAsOwned; // is this techno contained in OwningPlayer->Owned... counts?
 	bool             IsSinking;
@@ -909,7 +909,7 @@ public:
 	int            	QueuedVoiceIndex;
 	int            	__LastVoicePlayed; //4F4
 	bool             deploy_bool_4F8;
-	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a TimerStruct!
+	DWORD            __creationframe_4FC;	//gets initialized with the current Frame, but this is NOT a CDTimerClass!
 	BuildingClass*   LinkedBuilding; // 500 BuildingClass*
 	int            	EMPLockRemaining;
 	int            	ThreatPosed; // calculated to include cargo etc

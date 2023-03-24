@@ -70,7 +70,7 @@ public:
 
 	CoordStruct MovingDestination;
 	RepeatableTimerStruct MissionTimer;
-	TimerStruct TrailerTimer; //timer34
+	CDTimerClass TrailerTimer; //timer34
 	int MissionState;
 	DWORD unknown_44;
 	double CurrentSpeed;

@@ -357,7 +357,7 @@ std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarge
 	//pTarget nullptr check already done above this hook
 	if (pTarget->WhatAmI() == AbstractType::Cell)
 	{
-		targetCell = static_cast<CellClass*>(pTarget);
+		return { nullptr , targetCell = static_cast<CellClass*>(pTarget) };
 	}
 	else if (pObjTarget)
 	{
@@ -1496,7 +1496,9 @@ void TechnoExt::ExtData::UpdateInterceptor()
 		if (pBulletTypeExt->Armor.isset())
 		{
 			auto const pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-			if (std::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses) < 0.001)
+			if (std::abs(//pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
+				GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
+			 < 0.001)
 				continue;
 		}
 

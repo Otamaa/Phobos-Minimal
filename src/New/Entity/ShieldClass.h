@@ -106,10 +106,10 @@ private:
 	TechnoTypeClass* CurTechnoType;
 	int HP;
 
-	TimerStruct Timers_SelfHealing;
-	TimerStruct Timers_SelfHealing_Warhead;
-	TimerStruct Timers_Respawn;
-	TimerStruct Timers_Respawn_Warhead;
+	CDTimerClass Timers_SelfHealing;
+	CDTimerClass Timers_SelfHealing_Warhead;
+	CDTimerClass Timers_Respawn;
+	CDTimerClass Timers_Respawn_Warhead;
 
 	AnimClass* IdleAnim;
 	bool Cloak;

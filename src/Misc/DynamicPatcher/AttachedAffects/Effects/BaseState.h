@@ -100,7 +100,7 @@ public:
 protected:
 	bool active;
 	bool infinite;
-	TimerStruct timer;
+	CDTimerClass timer;
 };
 
 struct StateWrapper //dummy

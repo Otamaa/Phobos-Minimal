@@ -336,13 +336,12 @@ DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 	for (auto const& pNode : pThis->SpawnedNodes)
 	{
 		const auto  nStatus = pNode->Status;
-		const auto  nEligible = 
+		const auto  nEligible =
 			nStatus == SpawnNodeStatus::Idle
 			|| nStatus == SpawnNodeStatus::Reloading
 			|| nStatus == SpawnNodeStatus::Dead
-			&&
 			// spawn timer should be updated somewhere ?
-			pNode->NodeSpawnTimer.StartTime >= 0 && !pNode->NodeSpawnTimer.TimeLeft;
+			&& pNode->NodeSpawnTimer.IsNotActive();
 
 		if (nEligible)
 		{

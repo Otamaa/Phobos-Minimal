@@ -333,20 +333,17 @@ public:
 
 	~Promotable() = default;
 
-	void SetAll(const T& val)
-	{
+	void SetAll(const T& val) {
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
 	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
 
-	const T* GetEx(TechnoClass* pTechno) const noexcept
-	{
+	const T* GetEx(TechnoClass* pTechno) const noexcept {
 		return &this->Get(pTechno);
 	}
 
-	const T& Get(TechnoClass* pTechno) const noexcept
-	{
+	const T& Get(TechnoClass* pTechno) const noexcept {
 		auto const rank = pTechno->Veterancy.GetRemainingLevel();
 		if (rank == Rank::Elite)
 		{
@@ -359,22 +356,10 @@ public:
 		return this->Rookie;
 	}
 
-	const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept
-	{
-		T nRes = this->Rookie;
-		auto const rank = pTechno->Veterancy.GetRemainingLevel();
-		if (rank == Rank::Elite)
-		{
-			nRes = this->Elite;
-		}
-		if (rank == Rank::Veteran)
-		{
-			nRes = this->Veteran;
-		}
-
+	const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
+		auto nRes = Get(pTechno);
 		return nRes ? nRes : nDefault;
 	}
-
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 

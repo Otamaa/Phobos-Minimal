@@ -21,8 +21,8 @@ struct BulletData
 	Fuse BulletStateCheck(CoordStruct const& Destination) const
 	{ JMP_THIS(0x4E11F0); }
 
-	TimerStruct UnknownTimer;
-	TimerStruct ArmTimer;
+	CDTimerClass UnknownTimer;
+	CDTimerClass ArmTimer;
 	CoordStruct Location;
 	int Distance;
 };

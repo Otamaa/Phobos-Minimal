@@ -200,7 +200,7 @@ struct DropshipStruct
 	DropshipStruct() JMP_THIS(0x4B69B0);
 	~DropshipStruct() JMP_THIS(0x4B69D0);
 
-	DECLARE_PROPERTY(TimerStruct, Timer);
+	DECLARE_PROPERTY(CDTimerClass, Timer);
 	BYTE             unknown_C;
 	PROTECTED_PROPERTY(BYTE, align_D[3]);
 	int              Count;

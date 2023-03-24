@@ -7,8 +7,8 @@ class SpawnSupport
 public:
 
 	int supportFLHMult;
-	TimerStruct supportFireROF;
-	TimerStruct spawnFireOnceDelay;
+	CDTimerClass supportFireROF;
+	CDTimerClass spawnFireOnceDelay;
 	bool spawnFireFlag;
 
 	template <typename T>

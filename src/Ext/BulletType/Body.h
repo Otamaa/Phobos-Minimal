@@ -46,6 +46,8 @@ public:
 		Nullable<bool> SubjectToWater;
 		Valueable<bool> SubjectToWater_Detonate;
 
+		Valueable<bool> AAOnly;
+
 		#pragma region Otamaa
 		Nullable<AnimTypeClass*> Parachute;
 		Nullable<double> MissileROTVar;
@@ -104,6 +106,7 @@ public:
 			, SubjectToLand_Detonate { true }
 			, SubjectToWater {}
 			, SubjectToWater_Detonate { true }
+			, AAOnly { false }
 
 			, Parachute { }
 			, MissileROTVar { }

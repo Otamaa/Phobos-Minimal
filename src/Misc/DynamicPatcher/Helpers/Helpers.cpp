@@ -718,7 +718,10 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 	{
 		if (data->EffectsRequireVerses)
 		{
-			if(std::abs(data->GetVerses(Armor).Verses) < 0.001)
+			if(std::abs(
+				//data->GetVerses(Armor).Verses
+				GeneralUtils::GetWarheadVersusArmor(pWH , Armor)
+				) < 0.001)
 				return false;
 
 			if (effectsRequireDamage || data->EffectsRequireDamage) {
@@ -955,10 +958,20 @@ BulletClass* Helpers_DP::FireBulletTo(TechnoClass* pAttacker, AbstractClass* pTa
 	// Draw particle system
 	AttachedParticleSystem(pWeapon, sourcePos, pTarget, pAttacker, targetPos);
 	// Play report sound
-	PlayReportSound(pWeapon, sourcePos);
+	PlayReportSound(pWeapon, sourcePos ,pAttacker);
 	// Draw weapon anim
 	DrawWeaponAnim(pWeapon, sourcePos, targetPos, pAttacker, pTarget);
 	return pBullet;
+}
+
+void Helpers_DP::PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, TechnoClass* pTechno)
+{
+	if (pWeapon->Report.Count > 0)
+	{
+		const int nResult = pTechno ? pTechno->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count
+			: Random2Class::Global->RandomFromMax(pWeapon->Report.Count - 1);
+		VocClass::PlayAt(pWeapon->Report.GetItem(nResult), sourcePos, nullptr);
+	}
 }
 
 BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, VelocityClass& bulletVelocity)
