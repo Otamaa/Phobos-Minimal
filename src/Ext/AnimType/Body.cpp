@@ -42,6 +42,8 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->CreateUnit_RandomFacing.Read(exINI, pID, "CreateUnit.RandomFacing");
 	this->CreateUnit_ConsiderPathfinding.Read(exINI, pID, "CreateUnit.ConsiderPathfinding");
 	this->CreateUnit_SpawnAnim.Read(exINI, pID, "CreateUnit.SpawnAnim");
+	this->CreateUnit_AlwaysSpawnOnGround.Read(exINI, pID, "CreateUnit.AlwaysSpawnOnGround");
+
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
@@ -169,18 +171,31 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 			//if (!AnimExt::ExtMap.Find(pThis)->OwnerSet)
 			//	decidedOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, nullptr, decidedOwner, nullptr);
-
-			const auto pCell = pThis->GetCell();
+			bool allowBridges = unit->SpeedType != SpeedType::Float;
+			auto pCell = pThis->GetCell();
 			CoordStruct location = pThis->GetCoords();
 
-			if (pCell)
+			if (pCell && allowBridges)
 				location = pCell->GetCoordsWithBridge();
-			else
-				location.Z = MapClass::Instance->GetCellFloorHeight(location);
 
 			pThis->UnmarkAllOccupationBits(location);
 
-			if (const auto pTechno = static_cast<TechnoClass*>(unit->CreateObject(decidedOwner)))
+			if (pTypeExt->CreateUnit_ConsiderPathfinding)
+			{
+				auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(location),
+					unit->SpeedType, -1, unit->MovementZone, false, 1, 1, true,
+					false, false, allowBridges, CellStruct::Empty, false, false);
+
+				pCell = MapClass::Instance->TryGetCellAt(nCell);
+
+				if (pCell && allowBridges)
+					location = pCell->GetCoordsWithBridge();
+			}
+
+			int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : pThis->GetCoords().Z;
+			location.Z = std::max(MapClass::Instance->GetCellFloorHeight(location), z);
+
+			if (const auto pTechno = static_cast<UnitClass*>(unit->CreateObject(decidedOwner)))
 			{
 				bool success = false;
 				const auto pExt = AnimExt::ExtMap.Find(pThis);
@@ -238,10 +253,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 					}
 					else
 					{
-						if (pTechno)
-						{
-							TechnoExt::HandleRemove(pTechno);
-						}
+						TechnoExt::HandleRemove(pTechno);
 					}
 				}
 			}
@@ -321,6 +333,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CreateUnit_Owner)
 		.Process(this->CreateUnit_ConsiderPathfinding)
 		.Process(this->CreateUnit_SpawnAnim)
+		.Process(this->CreateUnit_AlwaysSpawnOnGround)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)

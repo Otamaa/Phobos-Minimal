@@ -134,6 +134,10 @@ public:
 		Valueable<int> DoggiePanicMax;
 		Valueable<int> HunterSeeker_Damage;
 
+		Valueable<bool> AutoRepelAI;
+		Valueable<bool> AutoRepelPlayer;
+		Nullable<int> AIFriendlyDistance;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -231,6 +235,9 @@ public:
 			, AI_SpyMoneyStealPercent { }
 			, DoggiePanicMax { 300 }
 			, HunterSeeker_Damage { 1000 }
+			, AutoRepelAI { true }
+			, AutoRepelPlayer { true }
+			, AIFriendlyDistance { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

@@ -36,6 +36,8 @@
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
@@ -172,11 +174,11 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />

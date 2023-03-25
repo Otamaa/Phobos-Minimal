@@ -123,13 +123,13 @@ DEFINE_HOOK(0x527B0A, INIClass_Get_UUID, 0x8)
 }
 
 #ifdef ENABLE_PHOBOS_INHERITANCE
-struct INIInheritance
+namespace INIInheritance
 {
-	static inline std::vector<char*> SavedEntries {};
-	static inline std::vector<char*> SavedSections {};
-	static inline std::set<std::string> SavedIncludes {};
-	static inline constexpr const char* const InHeritsStr = "$Inherits";
-	static inline CCINIClass* LastINIFile { nullptr};
+	std::vector<char*> SavedEntries;
+	std::vector<char*> SavedSections;
+	std::set<std::string> SavedIncludes;
+	constexpr const char* const InHeritsStr = "$Inherits";
+	CCINIClass* LastINIFile  =  nullptr;
 
 	template<typename T>
 	static T* ReadTemplatePtr(REGISTERS* R)
@@ -177,42 +177,20 @@ struct INIInheritance
 		return result;
 	}
 
-	static int ReadInt(REGISTERS* R, int address)
+	template<>
+	static bool ReadTemplate(REGISTERS* R)
 	{
-		const int stackOffset = 0x1C;
-		GET(CCINIClass*, ini, EBX);
-		GET_STACK(int, defaultValue, STACK_OFFSET(stackOffset, 0xC));
+		GET(CCINIClass*, ini, ECX);
+		GET_STACK(char*, section, 0x4);
+		GET_STACK(char*, entry, 0x8);
+		GET_STACK(bool, defaultValue, 0xC);
+		INI_EX exINI(ini);
+		bool result;
 
-		char* entryName = INIInheritance::SavedEntries.back();
-		char* sectionName = INIInheritance::SavedSections.back();
+		if (!detail::read<bool>(result, exINI, section, entry, false))
+			result = defaultValue;
 
-		auto finalize = [R, address](int value)
-		{
-			R->Stack<int>(STACK_OFFSET(stackOffset, 0xC), value);
-			return address;
-		};
-
-		// search for $Inherits entry
-		char inheritSectionsString[0x100];
-		if (ini->ReadString(sectionName, InHeritsStr, NULL, inheritSectionsString, 0x100) == 0)
-			return finalize(defaultValue);
-
-		// for each section in csv, search for entry
-		int buffer = MAXINT;
-		char* state = NULL;
-
-
-		for(char* split = strtok_s(inheritSectionsString, Phobos::readDelims, &state); 
-			split; 
-			split = strtok_s(NULL, Phobos::readDelims, &state))
-		{
-			// if we found anything new (not default), we're done
-			buffer = ini->ReadInteger(split, entryName, MAXINT);
-			if (buffer != MAXINT)
-				break;
-		}
-
-		return finalize(buffer != MAXINT ? buffer : defaultValue);
+		return result;
 	}
 
 	static int ReadString(REGISTERS* R, int address)
@@ -240,7 +218,7 @@ struct INIInheritance
 
 		// search for $Inherits entry
 		char inheritSectionsString[0x100];
-		if (ini->ReadString(sectionName, InHeritsStr, NULL, inheritSectionsString, 0x100) == 0)
+		if (ini->ReadString(sectionName, InHeritsStr, NULL, inheritSectionsString, sizeof(inheritSectionsString)) == 0)
 			return finalize(defaultValue);
 
 		// for each section in csv, search for entry
@@ -296,6 +274,12 @@ DEFINE_HOOK(0x528A18, INIClass_GetString_SaveEntry, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x5276D0, INIClass_ReadInt_Overwrite, 0x5)
+{
+	R->EAX(INIInheritance::ReadTemplate<int>(R));
+	return 0x527838;
+}
+
 DEFINE_HOOK(0x5295F0, INIClass_ReadBool_Overwrite, 0x5)
 {
 	R->EAX(INIInheritance::ReadTemplate<bool>(R));
@@ -327,22 +311,8 @@ DEFINE_HOOK(0x527920, INIClass_ReadGUID_Overwrite, 0x5) // locomotor
 	return 0x527B43;
 }
 
-DEFINE_HOOK(0x5276D7, INIClass_GetInt_SaveEntry, 0x6)
-{
-	INIInheritance::PushEntry(R, 0x14);
-	return 0;
-}
-
 DEFINE_HOOK_AGAIN(0x528BC9, INIClass_GetString_FreeEntry, 0x5)
 DEFINE_HOOK(0x528BBE, INIClass_GetString_FreeEntry, 0x5)
-{
-	INIInheritance::PopEntry();
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x52782F, INIClass_GetInt_FreeEntry, 0x5)
-DEFINE_HOOK_AGAIN(0x5278A9, INIClass_GetInt_FreeEntry, 0x7)
-DEFINE_HOOK(0x527866, INIClass_GetInt_FreeEntry, 0x7)
 {
 	INIInheritance::PopEntry();
 	return 0;
@@ -351,13 +321,6 @@ DEFINE_HOOK(0x527866, INIClass_GetInt_FreeEntry, 0x7)
 DEFINE_HOOK(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0xA)
 {
 	return INIInheritance::ReadString(R, 0x528BB6);
-}
-
-DEFINE_HOOK(0x5278CA, INIClass_GetInt_Inheritance_NoEntry, 0x5)
-{
-	int r = INIInheritance::ReadInt(R, 0);
-	INIInheritance::PopEntry();
-	return r;
 }
 
 DEFINE_HOOK(0x474230, CCINIClass_Load_Inheritance, 0x5)

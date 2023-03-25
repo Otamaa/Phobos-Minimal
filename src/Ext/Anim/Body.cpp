@@ -142,8 +142,11 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 
 bool AnimExt::DealDamageDelay(AnimClass* pThis)
 {
-	if (pThis->Type->Damage <= 0.0 || pThis->HasExtras)
-		return false;
+	if (!pThis->Type)
+		return true; //CheckIsAlive
+
+	//if (pThis->Type->Damage <= 0.0 || !pThis->HasExtras)
+	//	return false;
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
@@ -163,7 +166,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		if (pThis->Animation.Value == max(delay - 1, 1))
 			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
 		else
-			return false;
+			return false; //CheckIsAlive
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
@@ -175,7 +178,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		if (damage >= 1.0)
 			appliedDamage = static_cast<int>(int_round(damage));
 		else
-			return false;
+			return false; //CheckIsAlive
 	}
 	else
 	{
@@ -184,14 +187,14 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		pThis->Accum = damage;
 
 		if (damage < delay)
-			return false;
+			return false; //CheckIsAlive
 
 		// Use Type->Damage as the actually dealt damage.
 		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return false;
+		return false; //CheckIsAlive
 
 	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
 	if (adjustAccum)
@@ -225,7 +228,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
 	}
 
-	return true;
+	return true; //SkipDamageDelay
 }
 
 bool AnimExt::OnMiddle(AnimClass* pThis)

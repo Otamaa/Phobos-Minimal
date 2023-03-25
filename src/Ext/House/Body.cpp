@@ -874,15 +874,24 @@ size_t HouseExt::FindBuildableIndex(
 
 void HouseExt::ExtData::UpdateAutoDeathObjects()
 {
+	if (this->AutoDeathObjects.empty())
+		return;
+
 	for (const auto& [pThis , nMethod] : this->AutoDeathObjects)
 	{
 		if (pThis->IsInLogic || !pThis->IsAlive || nMethod == KillMethod::None)
 			continue;
 
-		auto const pExt = TechnoExt::ExtMap.Find(pThis);
+		auto const pExt = TechnoExt::ExtMap.TryFind(pThis);
+		if (!pExt)
+		{
+			Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno Failed , No Extptr [%x - %s] ! \n", pThis, pThis->get_ID());
+			continue;
+		}
+
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
-		if(!pExt || !pExt->Death_Countdown.Completed())
+		if(!pExt->Death_Countdown.Completed())
 			continue;
 
 		Debug::Log("HouseExt::ExtData::UpdateAutoDeathObject -  Killing Techno[%x - %s] ! \n", pThis, pThis->get_ID());
@@ -926,6 +935,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->AutoDeathObjects)
 		.Process(this->LaunchDatas)
+		.Process(this->CaptureObjectExecuted)
 		;
 }
 

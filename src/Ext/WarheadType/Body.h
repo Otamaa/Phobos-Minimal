@@ -236,6 +236,11 @@ public:
 		Valueable<int> RelativeDamage_Terrain;
 
 		std::vector<VersesData> Verses;
+
+		Nullable<int> Berzerk_dur;
+		Valueable<int> Berzerk_cap;
+		Valueable<bool> Berzerk_dealDamage;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -430,6 +435,12 @@ public:
 			, RelativeDamage_Infantry { 0 }
 			, RelativeDamage_Building { 0 }
 			, RelativeDamage_Terrain { 0 }
+
+			, Verses {}
+			, Berzerk_dur { }
+			, Berzerk_cap { -1 }
+			, Berzerk_dealDamage { false }
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -485,6 +496,7 @@ public:
 		void ApplyRevengeWeapon(TechnoClass* pTarget);
 		bool ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
 		void ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
+		bool GoBerzerkFor(FootClass* pVictim, int* damage);
 
 		VersesData& GetVerses(Armor armor) {
 			return this->Verses[static_cast<int>(armor)];

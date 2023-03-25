@@ -219,6 +219,87 @@ bool TechnoExt::IsRadImmune(TechnoClass* pThis)
 	return false;
 }
 
+bool TechnoExt::IsPsionicsWeaponImmune(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToPsionicWeapons)
+		return true;
+
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (rank == Rank::Elite)
+	{
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran)
+	{
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune))
+			return true;
+	}
+
+	return false;
+}
+
+bool TechnoExt::IsPoisonImmune(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToPoison)
+		return true;
+
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (rank == Rank::Elite)
+	{
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PoisonImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PoisonImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran)
+	{
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PoisonImmune))
+			return true;
+	}
+
+	return false;
+}
+
+bool TechnoExt::IsBerserkImmune(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const rank = pThis->Veterancy.GetRemainingLevel();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->ImmuneToBerserk.Get())
+		return true;
+
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pShield = pExt->GetShield();
+
+	if (pShield && pShield->IsActive() && pExt->CurrentShieldType->ImmuneToPsychedelic)
+		return true;
+
+	if (rank == Rank::Elite)
+	{
+		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::BerzerkImmune)
+			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::BerzerkImmune))
+			return true;
+	}
+
+	if (rank == Rank::Veteran)
+	{
+		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::BerzerkImmune))
+			return true;
+	}
+
+	return false;
+}
+
 bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 {
 	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
@@ -347,6 +428,19 @@ int TechnoExt::GetDeployFireWeapon(UnitClass* pThis)
 		return pThis->TechnoClass::SelectWeapon(pThis->Target ? pThis->Target : pThis->GetCell());
 
 	return pThis->Type->DeployFireWeapon;
+}
+
+void TechnoExt::SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete)
+{
+	auto const pType = pThis->GetTechnoType();
+
+	const Mission nEndMission = !pType->ResourceGatherer ?
+		pThis->IsArmed() ?
+		pThis->Owner && pThis->Owner->IsHumanPlayer ? Mission::Guard : Mission::Hunt
+		: Mission::Sleep
+		: Mission::Harvest;
+
+	pThis->QueueMission(nEndMission, Immediete);
 }
 
 std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget)
@@ -1251,7 +1345,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 					const CoordStruct target = pTarget->GetCoords();
 					const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
 
-					if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
+					if (pThis->GetRealFacing().GetFacing<32>() != tgtDir.GetFacing<32>())
 						pLoco->Facing.Set_Desired(tgtDir);
 				}
 			}
@@ -1496,9 +1590,9 @@ void TechnoExt::ExtData::UpdateInterceptor()
 		if (pBulletTypeExt->Armor.isset())
 		{
 			auto const pWhExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-			if (std::abs(//pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
-				GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
-			 < 0.001)
+			if (std::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
+				//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
+				< 0.001)
 				continue;
 		}
 
@@ -2145,7 +2239,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 {
-	if (!pThis->IsAlive || pThis->InLimbo || pThis->IsSinking)
+	if (!pThis->IsAlive || pThis->InLimbo || pThis->IsSinking || pThis->IsCrashing)
 		return;
 
 	TechnoTypeClass* pType = pThis->GetTechnoType();

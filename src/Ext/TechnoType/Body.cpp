@@ -502,6 +502,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
 	this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
 	this->Fake_Of.Read(exINI, pSection, "FakeOf");
+	this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
+	this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerzerk");
+	this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
 	this->AdjustCrushProperties();
 
 #pragma endregion
@@ -1163,6 +1166,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AI_LegalTarget)
 		.Process(this->DeployFire_UpdateFacing)
 		.Process(this->Fake_Of)
+		.Process(this->CivilianEnemy)
+		.Process(this->ImmuneToBerserk)
+		.Process(this->Berzerk_Modifier)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

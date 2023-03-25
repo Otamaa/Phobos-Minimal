@@ -28,11 +28,14 @@ public:
 
 	inline bool IsValid() const { return *this != (Point2DBYTE::Empty); }
 
-	explicit operator DWORD() const
-	{
+	explicit operator DWORD() const {
 		DWORD result = 0;
 		std::memcpy(&result, this, sizeof(Point2DBYTE));
 		return result;
+	}
+
+	inline DWORD Pack() const noexcept {
+		return (DWORD)(*this);
 	}
 
 public:

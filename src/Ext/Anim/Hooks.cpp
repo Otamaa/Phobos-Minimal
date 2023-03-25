@@ -148,34 +148,34 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
 
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.
-DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
-{
-	enum
-	{
-		SkipDamage = 0x424665,
-		CheckIsActive = 0x42464C,
-		SkipDamage2 = 0x42466B,
-		ReturnFinished = 0x424B42,
-		Continue = 0x0
-	};
-
-	GET(AnimClass*, pThis, ESI);
-
-	if (pThis->Type)
-	{
-		R->EBX(pThis->Animation.Value);
-
-		if (!AnimExt::DealDamageDelay(pThis))
-		{
-			R->EAX(pThis->Type);
-			R->EDI(0);
-			R->ECX(pThis->Type->MiddleFrameIndex);
-			return SkipDamage2;
-		}
-
-		return CheckIsActive;
-	}
-
-	return Continue;
-}
+//DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
+//{
+//	enum
+//	{
+//		SkipDamage = 0x424665,
+//		CheckIsActive = 0x42464C,
+//		SkipDamage2 = 0x42466B,
+//		ReturnFinished = 0x424B42,
+//		Continue = 0x0
+//	};
+//
+//	GET(AnimClass*, pThis, ESI);
+//
+//	if (pThis->Type)
+//	{
+//		R->EBX(pThis->Animation.Value);
+//
+//		if (!AnimExt::DealDamageDelay(pThis))
+//		{
+//			R->EAX(pThis->Type);
+//			R->EDI(0);
+//			R->ECX(pThis->Type->MiddleFrameIndex);
+//			return SkipDamage2;
+//		}
+//
+//		return CheckIsActive;
+//	}
+//
+//	return Continue;
+//}
 #endif

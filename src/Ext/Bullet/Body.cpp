@@ -676,7 +676,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 	if (pThisTypeExt->Armor.isset())
 	{
 		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-		auto const versus = GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pThisTypeExt->Armor);//pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
+		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
 		if (((std::abs(versus) >= 0.001)))
 		{
 			canAffect = true;
@@ -694,27 +694,24 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 		isIntercepted = true;
 	}
 
-	if (canAffect)
-	{
-		bool bKeepIntact = true;
+	if (canAffect) {
+		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
+
 		if (pSource) {
-			auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pSource->GetTechnoType());
-			bKeepIntact = pTechnoTypeExt->Interceptor_KeepIntact.Get();
-			auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride.Get(nullptr));
+
 			pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
 
-			if (pWeaponOverride)
-			{
-				bool replaceType = pTechnoTypeExt->Interceptor_WeaponReplaceProjectile;
-				bool cumulative = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage;
-
+			if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride.Get(nullptr))) {
+				
 				pThis->WeaponType = pWeaponOverride;
-				pThis->Health = cumulative ? pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
+				pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?
+					pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
+
 				pThis->WH = pWeaponOverride->Warhead;
 				pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
 				pThis->Speed = pWeaponOverride->Speed;
 
-				if (replaceType && pWeaponOverride->Projectile != pThis->Type)
+				if (pTechnoTypeExt->Interceptor_WeaponReplaceProjectile && pWeaponOverride->Projectile != pThis->Type)
 				{
 					const auto pNewProjTypeExt = BulletTypeExt::ExtMap.Find(pWeaponOverride->Projectile);
 
@@ -742,35 +739,43 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 			}
 		}
 
-		if (isIntercepted && !bKeepIntact) {
+		if (isIntercepted && !pTechnoTypeExt->Interceptor_KeepIntact.Get()) {
 			pExt->InterceptedStatus = InterceptedStatus::Intercepted;
 		}
 	}
+}
+
+bool TimerIsRunning(CDTimerClass& nTimer)
+{
+	auto nStart = nTimer.StartTime;
+	auto nTimerLeft = nTimer.TimeLeft;
+
+	if (nStart == -1)
+	{
+	CheckTimeLeft:
+		if (nTimerLeft) {
+			return true;
+		}
+
+		return false;
+	}
+	if (Unsorted::CurrentFrame() - nStart < nTimerLeft)
+	{
+		nTimerLeft -= Unsorted::CurrentFrame() - nStart;
+		goto CheckTimeLeft;
+	}
+
+	return false;
 }
 
 Fuse BulletExt::FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 {
 	auto& nFuse = pBullet->Data;
 
-	int v3 = nFuse.ArmTimer.StartTime;
-	int v4 = nFuse.ArmTimer.TimeLeft;
-	if (v3 == -1)
-	{
-	LABEL_4:
-		if (v4)
-		{
-			return Fuse::DontIgnite;
-		}
-		goto LABEL_5;
-	}
-	if (Unsorted::CurrentFrame - v3 < v4)
-	{
-		v4 -= Unsorted::CurrentFrame - v3;
-		goto LABEL_4;
-	}
-LABEL_5:
+	if (TimerIsRunning(nFuse.ArmTimer))
+		return Fuse::DontIgnite;
 
-	const int proximity = Game::F2I(newlocation->DistanceFrom(nFuse.Location)) / 2;
+	const int proximity = (int)(newlocation->DistanceFrom(nFuse.Location)) / 2;
 
 	int nProx = 32;
 	const auto pExt = BulletTypeExt::ExtMap.Find(pBullet->Type);

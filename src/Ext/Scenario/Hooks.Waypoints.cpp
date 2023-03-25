@@ -58,15 +58,14 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 {
 	GET_STACK(INIClass* const, pINI, 0x4);
 
-	const char* const pSect = GameStrings::Waypoints();
-	for (int i = 0; i < pINI->GetKeyCount(pSect); ++i)
+	for (int i = 0; i < pINI->GetKeyCount(WAYPOINTSNAME); ++i)
 	{
-		const auto pName = pINI->GetKeyName(pSect, i);
+		const auto pName = pINI->GetKeyName(WAYPOINTSNAME, i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
 			Debug::Log("[Developer Warning] Failed to parse waypoint %s.\n", pName);
 
-		int nCoord = pINI->ReadInteger(pSect, pName, 0);
+		int nCoord = pINI->ReadInteger(WAYPOINTSNAME, pName, 0);
 
 		CellStruct buffer = CellStruct::Empty;
 
@@ -237,9 +236,7 @@ DEFINE_HOOK(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 DEFINE_HOOK(0x684CB7, Scen_Waypoint_Call_1, 0x7)
 {
 	GET(int, nWaypoint, EAX);
-
-	CellStruct cell = ScenarioExt::Global()->Waypoints[nWaypoint];
-	R->EAX((DWORD)cell);
+	R->EAX(ScenarioExt::Global()->Waypoints[nWaypoint].Pack());
 	return 0x684CBE;
 }
 
@@ -253,9 +250,7 @@ DEFINE_HOOK(0x6855E4, Scen_Waypoint_Call_2, 0x5)
 DEFINE_HOOK(0x68AFE7, Scen_Waypoint_Call_3, 0x7) //5
 {
 	GET(int, nWaypoint, EDI);
-
-	CellStruct cell = ScenarioExt::Global()->Waypoints[nWaypoint];
-	R->EAX((DWORD)cell);
+	R->EAX(ScenarioExt::Global()->Waypoints[nWaypoint].Pack());
 	return 0x68AFEE;
 }
 

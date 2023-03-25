@@ -68,6 +68,7 @@ enum class AreaFireReturnFlag : int
 enum class PhobosAbilityType : int
 {
 	None = -1,
+
 	Interceptor = 0,
 	ChronoDelayDamageImmune = 1,
 	CritImmune = 2,
@@ -75,6 +76,11 @@ enum class PhobosAbilityType : int
 	CullingImmune = 4,
 	EmpImmune = 5,
 	RadImmune = 6,
+	Protected_Driver = 7,
+	Unwarpable = 8,
+	PoisonImmune = 9,
+	PsionicsWeaponImmune = 10,
+	BerzerkImmune = 11,
 
 	count
 };

@@ -30,6 +30,7 @@ public:
 		Valueable<OwnerHouseKind> CreateUnit_Owner;
 		Valueable<bool> CreateUnit_ConsiderPathfinding;
 		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim;
+		Valueable<bool> CreateUnit_AlwaysSpawnOnGround;
 
 		Valueable<int> XDrawOffset;
 		Valueable<int> HideIfNoOre_Threshold;
@@ -91,6 +92,8 @@ public:
 			, CreateUnit_Owner { OwnerHouseKind::Victim }
 			, CreateUnit_ConsiderPathfinding { false }
 			, CreateUnit_SpawnAnim { }
+			, CreateUnit_AlwaysSpawnOnGround { false }
+
 			, XDrawOffset { 0 }
 			, HideIfNoOre_Threshold { 0 }
 			, Layer_UseObjectLayer {}

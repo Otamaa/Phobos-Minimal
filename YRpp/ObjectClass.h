@@ -262,11 +262,10 @@ public:
 		return ret;
 	}
 
-	//double GetHealthPercentage_() const;
+	double GetHealthPercentage_() const;
 
 	//game original func
-	double GetHealthPercentage() const
-		{ JMP_THIS(0x5F5C60); }
+	double GetHealthPercentage() const;
 
 	bool IsRedHP() const
 		{ JMP_THIS(0x5F5CD0); }

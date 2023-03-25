@@ -53,7 +53,7 @@ public:
 		};
 
 		PhobosMap<int, LauchData> LaunchDatas;
-
+		bool CaptureObjectExecuted;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, Building_BuildSpeedBonusCounter {}
@@ -79,6 +79,7 @@ public:
 
 			, AutoDeathObjects {}
 			, LaunchDatas {}
+			, CaptureObjectExecuted { false }
 		{ }
 
 		virtual ~ExtData() override = default;

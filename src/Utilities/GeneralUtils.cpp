@@ -153,7 +153,7 @@ const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize
 		if (highest >= 3)
 		{
 			auto offset = 1u << (highest - 3);
-			return TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pFoot->GetRealFacing().Current().GetValue<16>()), offset);
+			return TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pFoot->GetRealFacing().GetValue<16>()), offset);
 		}
 	}
 

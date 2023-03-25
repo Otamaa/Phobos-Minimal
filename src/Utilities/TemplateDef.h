@@ -332,11 +332,18 @@ namespace detail
 		{
 			value = buffer;
 			return true;
+
+		} else if (!parser.empty()) {
+			bool bufferb;
+			if(!parser.ReadBool(pSection, pKey, &bufferb)) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
+			} else {
+				Debug::Log("Reading [%s] %s as boolean ! \n", pSection, pKey);
+				value = (int)bufferb;
+				return true;
+			}
 		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
-		}
+
 		return false;
 	}
 

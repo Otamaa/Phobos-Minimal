@@ -606,7 +606,13 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x531726, StupidPips1, 5, 53173A)
 DEFINE_OVERRIDE_SKIP_HOOK(0x53173F, StupidPips2, 5, 531749)
 
 // bugfix #187: Westwood idiocy
-DEFINE_OVERRIDE_SKIP_HOOK(0x5F698F, ObjectClass_GetCell, 5, 5F69B2)
+//DEFINE_OVERRIDE_SKIP_HOOK(0x5F698F, ObjectClass_GetCell, 5, 5F69B2)
+DEFINE_HOOK(0x5F6960 , ObjectClass_Getcell , 0xA)
+{
+	GET(ObjectClass* , pThis , ECX);
+	R->EAX(MapClass::Instance->GetCellAt(pThis->Location));
+	return 0x5F69B6;
+}
 
 // skip theme log lines
 DEFINE_OVERRIDE_HOOK_AGAIN(0x720C42, Theme_Stop_NoLog, 0x5) // skip Theme::Stop
@@ -936,27 +942,60 @@ DEFINE_OVERRIDE_HOOK(0x7BB445 , XSurface_20, 0x6)
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+//DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+//	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
+//
+//	if (IsRailgun && pThis->WhatAmI() == AbstractType::Aircraft){
+//		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! , it may causing desync , skipping ! \n",pThis->get_ID());
+//		return 0x6FF274;
+//	}
+//
+//	return pWeaponExt->IsDetachedRailgun 		
+//		? 0x6FF20F : 0x0;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+//{
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun 
+//		? 0x6FF274 : 0x0;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
-
-	if (IsRailgun && pThis->WhatAmI() == AbstractType::Aircraft){
-		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! , it may causing desync , skipping ! \n",pThis->get_ID());
-		return 0x6FF274;
-	}
-
-	return pWeaponExt->IsDetachedRailgun 		
-		? 0x6FF20F : 0x0;
+	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	R->EDX(RulesClass::Instance->AISafeDistance + pTeamM->Argument);
+	return 0x6EF8A7;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
-	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
+	return 0x6EFB6F;
+}
 
-	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun 
-		? 0x6FF274 : 0x0;
+DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
+{
+	GET(OverlayTypeClass*, pThis, EAX);
+	Debug::Log("Overlay %s not really tiberium \n", pThis->ID);
+	return 0x5FDDC1;
+}
+
+DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
+{
+	enum
+	{
+		SkipDamageDelay = 0x42465D ,
+		CheckIsAlive = 0x42464C
+	};
+
+	GET(AnimClass*, pThis, ESI);
+	return AnimExt::DealDamageDelay(pThis) ? SkipDamageDelay : CheckIsAlive;
 }

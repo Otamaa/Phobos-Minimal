@@ -187,8 +187,8 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			{
 
 				residueDamage = int((double)(residueDamage) /
-				GeneralUtils::GetWarheadVersusArmor(args->WH , this->Type->Armor)
-				//pWHExt->GetVerses(this->Type->Armor).Verses
+				//GeneralUtils::GetWarheadVersusArmor(args->WH , this->Type->Armor)
+				pWHExt->GetVerses(this->Type->Armor).Verses
 				); //only absord percentage damage
 
 				this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
@@ -212,8 +212,8 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			{
 				int result = *args->Damage;
 				if (result *
-				//pWHExt->GetVerses(this->Techno->GetTechnoType()->Armor).Verses 
-				 GeneralUtils::GetWarheadVersusArmor(args->WH , this->Techno->GetTechnoType()->Armor)
+				 pWHExt->GetVerses(this->Techno->GetTechnoType()->Armor).Verses
+				 //GeneralUtils::GetWarheadVersusArmor(args->WH , this->Techno->GetTechnoType()->Armor)
 				 > 0)
 					result = 0;
 
@@ -302,8 +302,8 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 
 	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 	return (std::abs(
-		//pWHExt->GetVerses(this->Type->Armor).Verses
-		GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , this->Type->Armor)
+		  pWHExt->GetVerses(this->Type->Armor).Verses
+		//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , this->Type->Armor)
 		) >= 0.001);
 }
 

@@ -259,7 +259,7 @@ public:
 	virtual CellStruct FindExitCell(TechnoClass* pDocker, CellStruct nDefault) const; //
 	virtual CoordStruct * vt_entry_300(CoordStruct * Buffer, DWORD dwUnk2) const R0;
 	virtual DWORD vt_entry_304(DWORD dwUnk, DWORD dwUnk2) const R0;
-	virtual FacingClass* GetRealFacing(FacingClass* pBuffer) const R0;
+	virtual DirStruct* GetRealFacing(DirStruct* pBuffer) const R0;
 	virtual InfantryTypeClass* GetCrew() const { JMP_THIS(0x707D20); }
 	virtual bool vt_entry_310() const R0;
 	virtual bool CanDeploySlashUnload() const R0;
@@ -535,8 +535,8 @@ public:
 		return ret;
 	}
 
-	FacingClass GetRealFacing() const {
-		FacingClass ret;
+	DirStruct GetRealFacing() const {
+		DirStruct ret;
 		this->GetRealFacing(&ret);
 		return ret;
 	}
@@ -674,6 +674,10 @@ public:
 
 	bool CanReachTarget(int WeaponIdx) const
 	{ JMP_THIS(0x70D590); }
+
+	void GoBerzerkFor(int Duration) const {
+		JMP_THIS(0x70F890);
+	}
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept

@@ -92,8 +92,14 @@ bool ObjectClass::IsGreenToYellowHP() const
 bool ObjectClass::IsFullHP() const
 { return this->GetHealthPercentage() >= RulesClass::Instance->ConditionGreen; }
 
-//double ObjectClass::GetHealthPercentage_() const
-//{ return static_cast<double>(this->Health) / this->GetType()->Strength; }
+double ObjectClass::GetHealthPercentage_() const
+{ JMP_THIS(0x5F5C60); }
+
+double ObjectClass::GetHealthPercentage() const
+{
+	return (double)this->Health / (double)this->GetType()->Strength;
+}
+
 
 int HouseClass::GetSpawnPosition()
 {

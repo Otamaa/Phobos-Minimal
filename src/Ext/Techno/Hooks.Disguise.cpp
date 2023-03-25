@@ -46,7 +46,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	return 0;
 }
 
-#ifdef ENABLE_OBESERVER_THRUDISGUISE
+#ifndef ENABLE_OBESERVER_THRUDISGUISE
 DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 {
 	return HouseClass::IsCurrentPlayerObserver() ?

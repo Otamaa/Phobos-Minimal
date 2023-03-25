@@ -9,7 +9,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	char filename[0x20];
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
 		sprintf_s(filename, "tab%02dpp.shp", i);
 		SidebarExt::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
 	}

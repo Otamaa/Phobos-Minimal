@@ -50,6 +50,9 @@ DEFINE_HOOK(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
 DEFINE_HOOK(0x4F8440, HouseClass_Update, 0x5)
 {
 	GET(HouseClass* const, pThis, ECX);
-	HouseExt::ExtMap.Find(pThis)->UpdateAutoDeathObjects();
+	
+	if(auto const pHouseExt = HouseExt::ExtMap.TryFind(pThis))
+		pHouseExt->UpdateAutoDeathObjects();
+	
 	return 0;
 }

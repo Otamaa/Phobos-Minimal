@@ -125,7 +125,7 @@ namespace CalculatePinch
 
 				if (pFirer->HasTurret())
 				{
-					double turretRad = pFirer->GetRealFacing().Current().GetRadian() - halfPI;
+					double turretRad = pFirer->GetRealFacing().GetRadian() - halfPI;
 					double bodyRad = pFirer->PrimaryFacing.Current().GetRadian() - halfPI;
 					Matrix3D matrix3D {};
 					matrix3D.MakeIdentity();

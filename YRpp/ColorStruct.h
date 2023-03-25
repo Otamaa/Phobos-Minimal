@@ -106,9 +106,14 @@ struct ColorStruct
 
 	explicit operator DWORD() const
 	{
+
 		DWORD ret = 0;
 		memcpy(&ret, this, sizeof(ColorStruct));
 		return ret;
+	}
+
+	inline DWORD Pack() const noexcept {
+		return (DWORD)(*this);
 	}
 
 	inline explicit operator WORD() const;

@@ -22,11 +22,12 @@ public:
 		return (X == a.X && Y == a.Y);
 	}
 
-	explicit operator DWORD() const
-	{
-		DWORD result = 0;
-		std::memcpy(&result, this, sizeof(CellStruct));
-		return result;
+	explicit operator DWORD() const {
+		return std::bit_cast<DWORD>(*this);
+	}
+
+	inline DWORD Pack() const noexcept {
+		return (DWORD)(*this);
 	}
 
 	double Magnitude()

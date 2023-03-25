@@ -165,26 +165,25 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 }
 #endif
 
-
-DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
-{
-	GET(AircraftClass*, pThis, ESI);
-	return pThis->Type->AirportBound ? 0x41675D : 0x0;
-}
-
-DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(BuildingClass*, pDest, EAX);
-	R->EDI(pDest);
-	return pThis->Destination == pDest ? 0x4179DD : 0x0;
-}
-
-DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
-{
-	GET(AircraftClass*, pThis, EDI);
-	return pThis->Type->AirportBound ? 0x4CD12A : 0x0;
-}
+//DEFINE_HOOK(0x416748, AircraftClass_AirportBound_SkipValidatingLZ, 0x5)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	return pThis->Type->AirportBound ? 0x41675D : 0x0;
+//}
+//
+//DEFINE_HOOK(0x4179AA, AircraftClass_EnterIdleMode_AlreadiHasDestination, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET(BuildingClass*, pDest, EAX);
+//	R->EDI(pDest);
+//	return pThis->Destination == pDest ? 0x4179DD : 0x0;
+//}
+//
+//DEFINE_HOOK(0x4CD105, FlyLocomotionClass_StopMoving_AirportBound, 0x5)
+//{
+//	GET(AircraftClass*, pThis, EDI);
+//	return pThis->Type->AirportBound ? 0x4CD12A : 0x0;
+//}
 //
 //DEFINE_HOOK(0x73C71D, UnitClass_DrawSHP_FacingDir, 0x6)
 //{

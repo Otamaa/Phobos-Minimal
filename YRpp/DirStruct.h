@@ -108,10 +108,10 @@ public:
 		return this->TranslateFixedPoint<16, Bits>(Raw, offset);
 	}
 
-	unsigned short GetValue(size_t Bits = 16)
+	unsigned short GetValue(size_t Bits = 16 , size_t offset = 0)
 	{
 		if (Bits > 0 && Bits <= 16)
-			return (unsigned short)(TranslateFixedPointNoconstexpr(16, Bits, Raw, 0));
+			return (unsigned short)(TranslateFixedPointNoconstexpr(16, Bits, Raw, offset));
 
 		return 0;
 	}

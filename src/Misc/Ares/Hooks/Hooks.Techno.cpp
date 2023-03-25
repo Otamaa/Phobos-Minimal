@@ -11,7 +11,9 @@
 
 #include <HoverLocomotionClass.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
@@ -77,7 +79,7 @@ DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst, 0x6 ,6FCF61)
+DEFINE_OVERRIDE_SKIP_HOOK(0x6FCF53, TechnoClass_SetTarget_Burst, 0x6, 6FCF61)
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x717855, TechnoTypeClass_UpdatePalette_Reset, 0x6)
 DEFINE_OVERRIDE_HOOK(0x717823, TechnoTypeClass_UpdatePalette_Reset, 0x6)
@@ -183,22 +185,18 @@ DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	AnimTypeClass* pAnim = nullptr;
-	auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+	int nIdx = 0;
 
-	// 2^highest is the frame count, 3 means 8 frames
-	if (highest >= 3)
-	{
-		auto offset = 1u << (highest - 3);
-		auto index = TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pThis->GetRealFacing().Current().GetValue()), offset);
-		pAnim = pWeapon->Anim.GetItemOrDefault(index);
-	}
-	else
-	{
-		pAnim = pWeapon->Anim.GetItemOrDefault(0);
+	if (pWeapon->Anim.Count > 1) { //only execute if the anim count is more than 1
+		const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+
+		// 2^highest is the frame count, 3 means 8 frames
+		if (highest >= 3) {
+			nIdx = pThis->GetRealFacing().GetValue(highest, 1u << (highest - 3));
+		} 
 	}
 
-	R->EDI(pAnim);
+	R->EDI(pWeapon->Anim.GetItemOrDefault(nIdx , nullptr));
 	return 0x6FF31B;
 }
 
@@ -219,8 +217,123 @@ DEFINE_OVERRIDE_HOOK(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 
 	// create a new bullet with projectile range
 	const auto ret = pBulletExt->CreateBullet(pTarget, pThis, damage, pWeapon->Warhead,
-		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright,false);
+		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright, false);
 
 	R->EAX(ret);
 	return 0x6FE562;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x5)
+{
+	GET(TechnoClass*, pThis, EDI);
+	GET(TechnoClass*, pTarget, ESI);
+	GET(TechnoTypeClass*, pTargetType, EBP);
+
+	enum { 
+		Undecided = 0, 
+		ConsiderEnemy = 0x6F8483, 
+		ConsiderCivilian = 0x6F83B1, 
+		Ignore = 0x6F894F
+	};
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pTargetType);
+
+	// always consider this an enemy
+	if (pExt->CivilianEnemy) {
+		return ConsiderEnemy;
+	}
+
+	// if the potential target is attacking an allied object, consider it an enemy
+	// to not allow civilians to overrun a player
+	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
+		const auto pOwner = pThis->Owner;
+		if (pOwner->IsAlliedWith(pTargetTarget)) {
+			const auto pData = RulesExt::Global();
+
+			if (pOwner->IsControlledByHuman() ? 
+				pData->AutoRepelPlayer : pData->AutoRepelAI) {
+				return ConsiderEnemy;
+			}
+		}
+	}
+
+	return Undecided;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
+{
+	GET(TechnoTypeClass* const, pThis, ECX);
+
+	auto const GetMindDamage = [](WeaponTypeClass const* const pWeapon) {
+		return (pWeapon && pWeapon->Warhead->MindControl) ? pWeapon->Damage : 0;
+	};
+
+	auto count = GetMindDamage(pThis->GetWeapon(0)->WeaponType);
+	if (count <= 0) {
+		count = GetMindDamage(pThis->GetWeapon(1)->WeaponType);
+	}
+
+	R->EAX(count);
+	return 0x7162BC;
+}
+
+DEFINE_HOOK(0x6FC40C, TechnoClass_CanFire_PsionicsImmune, 0x6)
+{
+	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
+	GET(TechnoClass*, pTarget, EBP);
+	return TechnoExt::IsPsionicsImmune(pTarget)
+		? FireIllegal : ContinueCheck;
+}
+
+DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
+{
+	enum
+	{
+		RetNullify = 0x701C1C,
+		RetNullifyB = 0x701CC2,
+		RetObjectClassRcvDamage = 0x701DCC,
+		RetUnaffected = 0x701CFC,
+		RetCheckBuilding = 0x701D2E,
+		RetResultLight = 0x701DBA
+	};
+
+	GET(WarheadTypeClass*, pWH, EBP);
+	GET(TechnoClass*, pThis, ESI);
+	LEA_STACK(args_ReceiveDamage*, Arguments, 0xC8);
+
+	if (pWH->Radiation && TechnoExt::IsRadImmune(pThis))
+		return RetNullify;
+
+	if (pWH->PsychicDamage && TechnoExt::IsPsionicsWeaponImmune(pThis))
+		return RetNullify;
+
+	if (pWH->Poison && TechnoExt::IsPoisonImmune(pThis))
+		return RetNullify;
+
+	const auto pSourceHouse = Arguments->Attacker ? Arguments->Attacker->Owner : Arguments->SourceHouse;
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+
+	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
+		return RetNullifyB;
+
+	if (pWH->Psychedelic) {
+
+		//This thing does ally check twice
+		//if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis) && !pWHExt->Berzerk_AffectAlly)
+		//	return RetUnaffected;
+
+		if (TechnoExt::IsPsionicsImmune(pThis) || TechnoExt::IsBerserkImmune(pThis))
+			return RetUnaffected;
+
+		if (pThis->WhatAmI() == AbstractType::Building)
+			return RetUnaffected;
+
+		// there is no building involved
+		// More customizeable berzerk appying - Otamaa
+		// return boolean to decide receive damage after apply berzerk or just retun function result
+		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), Arguments->Damage))
+			return RetResultLight;
+	}
+
+	return RetObjectClassRcvDamage;
 }

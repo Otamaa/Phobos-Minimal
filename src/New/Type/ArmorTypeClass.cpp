@@ -43,16 +43,14 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		char buffer[0x64];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
-		auto VS = &this->DefaultVerses;
-
-		if (!VS->Parse(buffer)) {
+		if (!this->DefaultVerses.Parse(buffer)) {
 			this->DefaultString = buffer;
 		}
 	}
 }
 
 void ArmorTypeClass::EvaluateDefault() {
-	if (!IsDefault(Name.data()) && CRT::strlen(DefaultString.data()) && DefaultTo == -1) {
+	if (!IsDefault(Name.data()) && DefaultTo == -1) {
 		DefaultTo = FindIndexById(DefaultString.data());
 		DefaultString = "\0";
 	}
@@ -109,23 +107,23 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	const char* section = pWH->get_ID();
 	constexpr const char* const nVersus = "Versus";
 
-	//start it from default armor type amount 
 	for (size_t i = 0; i < Array.size(); ++i) {
 
 		auto nVers = &pWHExt->Verses[i];
+		const auto pName = Array[i]->Name.data();
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s", nVersus, Array[i]->Name.data());
+		_snprintf_s(buffer, _TRUNCATE, "%s.%s", nVersus, pName);
 		if (pINI->ReadString(section, buffer, Phobos::readDefval, ret)) {
 			nVers->Parse_NoCheck(ret);
 		}
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.ForceFire", nVersus, Array[i]->Name.data());
+		_snprintf_s(buffer, _TRUNCATE, "%s.%s.ForceFire", nVersus, pName);
 		nVers->Flags.ForceFire = pINI->ReadBool(section, buffer, nVers->Flags.ForceFire);
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.Retaliate", nVersus, Array[i]->Name.data());
+		_snprintf_s(buffer, _TRUNCATE, "%s.%s.Retaliate", nVersus, pName);
 		nVers->Flags.Retaliate = pINI->ReadBool(section, buffer, nVers->Flags.Retaliate);
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, Array[i]->Name.data());
+		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, pName);
 		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, buffer, nVers->Flags.PassiveAcquire);
 	}
 }

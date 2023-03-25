@@ -13,6 +13,8 @@
 #include <Ext/WeaponType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
+
 #include <New/Entity/FlyingStrings.h>
 
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
@@ -91,8 +93,9 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 
 	auto nAddDamage = add * multiply;
 	if (this->RecalculateDistanceDamage_ProcessVerses)
-		nAddDamage *= GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-		//this->GetVerses(pThisType->Armor).Verses
+		nAddDamage *=
+		// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
+		this->GetVerses(pThisType->Armor).Verses
 		;
 
 	auto const nEligibleAddDamage = std::clamp((int)nAddDamage,
@@ -171,8 +174,8 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 				nArmor = pExt->CurrentShieldType->Armor;
 
 			return (std::abs(
-				GeneralUtils::GetWarheadVersusArmor(this->Get() , nArmor)
-				//this->GetVerses(nArmor).Verses
+				//GeneralUtils::GetWarheadVersusArmor(this->Get() , nArmor)
+				this->GetVerses(nArmor).Verses
 				)>= 0.001 );
 		}
 
@@ -339,6 +342,56 @@ void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_Rec
 
 		*pArgs->Damage = nRelativeVal;
 	}
+}
+
+bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
+{
+	int nDur = this->Berzerk_dur.Get(*damage);
+	auto const pType = pVictim->GetTechnoType();
+
+	if (nDur != 0)
+	{
+		if (nDur > 0) {
+			if (auto pData = TechnoTypeExt::ExtMap.Find(pType)) {
+				nDur = static_cast<int>(nDur * pData->Berzerk_Modifier.Get());
+			}
+		}
+
+		//Default way game modify duration
+		nDur = MapClass::GetTotalDamage(nDur, this->OwnerObject(), pType->Armor , 0);
+
+		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
+		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
+
+		//auto const underBrzBefore = (oldValue > 0);
+		//auto const underBrzAfter = (pVictim->Berzerk && pVictim->BerzerkDurationLeft > 0);
+		//auto const newlyUnderBrz = !underBrzBefore && underBrzAfter;
+		if (oldValue == newValue)
+			return this->Berzerk_dealDamage.Get();
+
+		if (oldValue <= 0) {
+			if (newValue > 0) {
+				pVictim->GoBerzerkFor(newValue);
+			}
+		}
+		else {
+
+			if (newValue > 0) {
+				pVictim->GoBerzerkFor(newValue);
+			}
+			else {
+				pVictim->BerzerkDurationLeft = 0;
+				pVictim->Berzerk = false;
+				pVictim->SetTarget(nullptr);
+
+				TechnoExt::SetMissionAfterBerzerk(pVictim);
+			}
+		}
+
+		return this->Berzerk_dealDamage.Get();
+	}
+
+	return false; //default
 }
 
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
@@ -594,6 +647,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RecalculateDistanceDamage_Display_AtFirer.Read(exINI, pSection, "RecalculateDistanceDamage.Display.AtFirer");
 	this->RecalculateDistanceDamage_Display_Offset.Read(exINI, pSection, "RecalculateDistanceDamage.Display.Offset");
 	this->RecalculateDistanceDamage_ProcessVerses.Read(exINI, pSection, "RecalculateDistanceDamage.Add.ProcessVerses");
+
+	this->Berzerk_dur.Read(exINI, pSection, "Berzerk.Duration");
+	this->Berzerk_cap.Read(exINI, pSection, "Berzerk.Cap");
+	this->Berzerk_dealDamage.Read(exINI, pSection, "Berzerk.DealDamage");
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
@@ -866,6 +923,10 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->RelativeDamage_Building)
 		.Process(this->RelativeDamage_Terrain)
 		.Process(this->Verses)
+
+		.Process(this->Berzerk_dur)
+		.Process(this->Berzerk_cap)
+		.Process(this->Berzerk_dealDamage)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

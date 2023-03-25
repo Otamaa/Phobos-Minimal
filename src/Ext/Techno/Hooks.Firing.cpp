@@ -437,9 +437,9 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();
-			DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+			const DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
 
-			if (pThis->GetRealFacing().Current() != tgtDir)
+			if (pThis->GetRealFacing() != tgtDir)
 			{
 				const auto pLoco = pThis->Locomotor.get();
 

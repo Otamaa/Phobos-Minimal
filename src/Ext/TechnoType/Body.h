@@ -317,7 +317,7 @@ public:
 		Valueable<bool> Disable_C4WarheadExp;
 		Valueable<double> CrashSpinLevelRate;
 		Valueable<double> CrashSpinVerticalRate;
-		ValueableIdx<VoxClass> ParasiteExit_Sound;
+		ValueableIdx<VocClass> ParasiteExit_Sound;
 
 		Nullable<SHPStruct*> PipShapes01;
 		Nullable<SHPStruct*> PipShapes02;
@@ -422,7 +422,9 @@ public:
 		Nullable<bool> AI_LegalTarget;
 		Valueable<bool> DeployFire_UpdateFacing;
 		Nullable<TechnoTypeClass*> Fake_Of;
-
+		Valueable<bool> CivilianEnemy;
+		Valueable<bool> ImmuneToBerserk;
+		Valueable<double> Berzerk_Modifier;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -775,6 +777,9 @@ public:
 			, AI_LegalTarget { }
 			, DeployFire_UpdateFacing { true }
 			, Fake_Of { }
+			, CivilianEnemy { false }
+			, ImmuneToBerserk { false }
+			, Berzerk_Modifier { 1.0 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

@@ -319,6 +319,10 @@ private:
 	static bool IsChronoDelayDamageImmune(FootClass* pThis);
 	static bool IsRadImmune(TechnoClass* pThis);
 
+	static bool IsPsionicsWeaponImmune(TechnoClass* pThis);
+	static bool IsPoisonImmune(TechnoClass* pThis);
+	static bool IsBerserkImmune(TechnoClass* pThis);
+
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
 	static bool TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
@@ -329,6 +333,8 @@ private:
 	static bool TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
 	static int GetDeployFireWeapon(UnitClass* pThis);
+
+	static void SetMissionAfterBerzerk(TechnoClass* pThis ,bool Immediete = false);
 
 	static AreaFireReturnFlag ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon);
 	static int GetThreadPosed(TechnoClass* pThis);

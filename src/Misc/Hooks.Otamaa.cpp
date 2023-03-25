@@ -612,29 +612,29 @@ DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 		? BypassCheck : ContinueCheck;
 }
 
-DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
-{
-	enum { DecideResult  = 0x709202  ,
-		   Continue = 0x0 ,
-		   ContinueCheck = 0x709206,
-		   CantPassiveAcquire = 0x70927D,
-	};
+ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+ {
+ 	enum { DecideResult  = 0x709202  ,
+ 		   Continue = 0x0 ,
+ 		   ContinueCheck = 0x709206,
+ 		   CantPassiveAcquire = 0x70927D,
+ 	};
 
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
+ 	GET(TechnoClass*, pThis, ESI);
+ 	GET(TechnoTypeClass*, pType, EAX);
 
-	const auto pTypeExt  = TechnoTypeExt::ExtMap.Find(pType);
+ 	const auto pTypeExt  = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pThis->Owner 
-		&& !pThis->Owner->IsControlledByHuman()
-		&& !pThis->Owner->IsNeutral()
-		&& pTypeExt->PassiveAcquire_AI.isset()) {
-		return pTypeExt->PassiveAcquire_AI.Get() ?
-		 ContinueCheck : CantPassiveAcquire;
-	}
+ 	if (pThis->Owner
+ 		&& !pThis->Owner->IsControlledByHuman()
+ 		&& !pThis->Owner->IsNeutral()
+ 		&& pTypeExt->PassiveAcquire_AI.isset()) {
+ 		return pTypeExt->PassiveAcquire_AI.Get() ?
+ 		 ContinueCheck : CantPassiveAcquire;
+ 	}
 
-	return Continue;
-}
+ 	return Continue;
+ }
 
 //DEFINE_HOOK(0x45743B, BuildingClass_Infiltrated_StoleMoney_AI, 0xA)
 //{
@@ -1134,15 +1134,6 @@ DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
-//
-//DEFINE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//	GET(TechnoClass*, pThat, EBX);
-//	return pThis && pThat->Owner && pThat->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
-//}
-//
-
 DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
@@ -1248,22 +1239,20 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 	return 0x6A7AE7;
 }
 
-//TODO : check for conflict
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
 
 	GET(TechnoClass*, pThis, ESI);
 
-	if (pThis->WhatAmI() == AbstractType::Building)
-	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
-		{
+	if (pThis->WhatAmI() == AbstractType::Building) {
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1) {
 			return DoNotDrawRadar;
 		}
 	}
 
-	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->IsDummy ? DoNotDrawRadar : Continue;
+	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->IsDummy ?
+			DoNotDrawRadar : Continue;
 }
 
 DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
@@ -4464,3 +4453,20 @@ DEFINE_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6)
 {
 	return 0x69A937;
 }
+
+DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	TechnoExt::SetMissionAfterBerzerk(pThis);
+	return 0x6F9F6E;
+}
+//
+//DEFINE_HOOK(0x70F8D8, TechnoClass_GoBerzerkFor_SetMission, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	const Mission nMission = !pThis->IsArmed() ? Mission::Sleep : Mission::Hunt;
+//	pThis->QueueMission(nMission, false);
+//
+//	return 0x70F8E6;
+//}

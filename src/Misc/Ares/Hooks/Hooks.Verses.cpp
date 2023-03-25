@@ -214,8 +214,8 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	//GET_STACK(int, fallback, 0xC);
 
 
-	AresData::CallAresArmorType_FindIndex(R);
-	GET(int, nResult, EAX);
+	//AresData::CallAresArmorType_FindIndex(R);
+	//GET(int, nResult, EAX);
 
 	char buf[0x64];
 	pINI->ReadString(Section, Key, Phobos::readDefval, buf);
@@ -226,20 +226,18 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	{
 		if (strlen(buf))
 		{
-			if (ArmorTypeClass::Allocate(buf))
-			{
-				Debug::Log("Allocating Armor [%s] ! \n", buf);
-				idx = ArmorTypeClass::Array.size() - 1;
-			}
-			else
+			//if (ArmorTypeClass::Allocate(buf))
+			//{
+			//	Debug::Log("Allocating Armor [%s] ! \n", buf);
+			//	idx = ArmorTypeClass::Array.size() - 1;
+			//}
+			//else
 			{
 				Debug::INIParseFailed(Section, Key, buf);
 			}
 		}
-		else
-		{
-			idx = 0;
-		}
+
+		idx = 0;
 	}
 
 	R->EAX(idx);

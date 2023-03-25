@@ -634,7 +634,7 @@ DirStruct Helpers_DP::GetDirectionRelative(TechnoClass* pMaster, int dir, bool i
 
 		if (isOnTurret || pFoot->WhatAmI() == AbstractType::Aircraft)
 		{
-			sourceDir = pMaster->GetRealFacing().Current();
+			sourceDir = pMaster->GetRealFacing();
 		}
 
 		double sourceRad = sourceDir.GetRadian();
@@ -719,8 +719,8 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 		if (data->EffectsRequireVerses)
 		{
 			if(std::abs(
-				//data->GetVerses(Armor).Verses
-				GeneralUtils::GetWarheadVersusArmor(pWH , Armor)
+				data->GetVerses(Armor).Verses
+				//GeneralUtils::GetWarheadVersusArmor(pWH , Armor)
 				) < 0.001)
 				return false;
 
@@ -735,10 +735,10 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 
 CoordStruct Helpers_DP::RandomOffset(int min, int max)
 {
-	double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
+	const double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 
 	if (r > 0) {
-		double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
+		const double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
 		return { (int)(r * std::cos(theta)) ,(int)(r * std::sin(theta)) , 0 };
 	}
 
@@ -747,8 +747,8 @@ CoordStruct Helpers_DP::RandomOffset(int min, int max)
 
 CoordStruct Helpers_DP::RandomOffset(double maxSpread, double minSpread)
 {
-	int min = (int)((minSpread <= 0 ? 0 : minSpread) * 256);
-	int max = (int)((maxSpread > 0 ? maxSpread : 1) * 256);
+	const int min = (int)((minSpread <= 0 ? 0 : minSpread) * 256);
+	const int max = (int)((maxSpread > 0 ? maxSpread : 1) * 256);
 	return Helpers_DP::RandomOffset(min, max);
 }
 

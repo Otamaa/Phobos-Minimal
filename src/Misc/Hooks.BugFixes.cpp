@@ -761,11 +761,9 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 	if (landType == LandType::Rock)
 		return ContinueChecks;
 
-	if (landType == LandType::Water)
-	{
-		float multiplier = GroundType::Array[static_cast<int>(landType)].Cost[static_cast<int>(pThis->Type->SpeedType)];
-
-		if (multiplier == 0.0)
+	if (landType == LandType::Water) {
+		if (GroundType::Array[static_cast<int>(landType)]
+			.Cost[static_cast<int>(pThis->Type->SpeedType)] == 0.0)
 			return ContinueChecks;
 	}
 
