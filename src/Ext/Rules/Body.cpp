@@ -733,12 +733,26 @@ DEFINE_HOOK(0x679A15, RulesData_LoadBeforeTypeData, 0x6)
 	return 0;
 }
 
+#include <Ext/WarheadType/Body.h>
+
 DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 {
 	RulesClass* pItem = RulesClass::Instance();
 	GET(CCINIClass*, pINI, ESI);
 
 	RulesExt::LoadAfterTypeData(pItem, pINI);
+
+	//for (auto const& pUnparsedData : UnParsedThing::UnparsedList)
+	//{
+	//	if (pUnparsedData.empty())
+	//		continue;
+
+	//	Debug::Log("Loading Unparsed WH[%s] from INI Files ! \n" , pUnparsedData.c_str());
+	//	if (auto const pWH = WarheadTypeClass::Find(pUnparsedData.c_str()))
+	//		pWH->LoadFromINI(pINI);
+	//}
+
+	//UnParsedThing::UnparsedList.clear();
 
 	return 0;
 }

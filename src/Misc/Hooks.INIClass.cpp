@@ -18,24 +18,19 @@ namespace detail
 			return false;
 
 		// Semantic locomotor aliases
-		if (parser.value()[0] != '{')
-		{
-#define PARSE_IF_IS_LOCO(name)\
-if(IS_SAME_STR_(parser.value() ,#name)){ value = LocomotionClass::CLSIDs::name; return true; }
+		if (parser.value()[0] != '{') {
 
-			PARSE_IF_IS_LOCO(Drive);
-			PARSE_IF_IS_LOCO(Jumpjet);
-			PARSE_IF_IS_LOCO(Hover);
-			PARSE_IF_IS_LOCO(Rocket);
-			PARSE_IF_IS_LOCO(Tunnel);
-			PARSE_IF_IS_LOCO(Walk);
-			PARSE_IF_IS_LOCO(Fly);
-			PARSE_IF_IS_LOCO(Teleport);
-			PARSE_IF_IS_LOCO(Mech);
-			PARSE_IF_IS_LOCO(Ship);
-			PARSE_IF_IS_LOCO(Droppod);
-
-#undef PARSE_IF_IS_LOCO
+			if (IS_SAME_STR_(parser.value(), "Drive")) { value = LocomotionClass::CLSIDs::Drive; return true; }
+			if (IS_SAME_STR_(parser.value(), "Jumpjet")) { value = LocomotionClass::CLSIDs::Jumpjet; return true; }
+			if (IS_SAME_STR_(parser.value(), "Hover")) { value = LocomotionClass::CLSIDs::Hover; return true; }
+			if (IS_SAME_STR_(parser.value(), "Rocket")) { value = LocomotionClass::CLSIDs::Rocket; return true; }
+			if (IS_SAME_STR_(parser.value(), "Tunnel")) { value = LocomotionClass::CLSIDs::Tunnel; return true; }
+			if (IS_SAME_STR_(parser.value(), "Walk")) { value = LocomotionClass::CLSIDs::Walk; return true; }
+			if (IS_SAME_STR_(parser.value(), "Fly")) { value = LocomotionClass::CLSIDs::Fly; return true; }
+			if (IS_SAME_STR_(parser.value(), "Teleport")) { value = LocomotionClass::CLSIDs::Teleport; return true; }
+			if (IS_SAME_STR_(parser.value(), "Mech")) { value = LocomotionClass::CLSIDs::Mech; return true; }
+			if (IS_SAME_STR_(parser.value(), "Ship")) { value = LocomotionClass::CLSIDs::Ship; return true; }
+			if (IS_SAME_STR_(parser.value(), "Droppod")) { value = LocomotionClass::CLSIDs::Droppod; return true; }
 
 			return false;
 		}
@@ -46,14 +41,12 @@ if(IS_SAME_STR_(parser.value() ,#name)){ value = LocomotionClass::CLSIDs::name; 
 		strncpy(bytestr, parser.value(), 128);
 		bytestr[127] = NULL;
 		CRT::strtrim(bytestr);
+
 		if (!strlen(bytestr))
 			return false;
 
 		MultiByteToWideChar(0, 1, bytestr, -1, wcharstr, 128);
-		if (CLSIDFromString(wcharstr, &value) < 0)
-			return false;
-
-		return true;
+		return SUCCEEDED(CLSIDFromString(wcharstr, &value));
 	}
 }
 

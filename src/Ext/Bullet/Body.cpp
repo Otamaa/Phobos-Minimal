@@ -803,13 +803,13 @@ void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoCla
 	if (!nCoord && pTarget)
 		nCoord = pTarget->GetCoords();
 
-	if(pBulletOwner && !pTarget) {
+	if(pBulletOwner && !pOwner) {
 		BulletExt::ExtMap.Find(pThis)->Owner = pBulletOwner;
 	}
 
 	pThis->Limbo();
 	pThis->SetLocation(nCoord);
-	pThis->Explode(true);
+	pThis->Explode(false);
 	pThis->UnInit();
 }
 // =============================

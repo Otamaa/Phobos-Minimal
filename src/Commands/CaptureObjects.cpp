@@ -31,14 +31,14 @@ const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
 
 void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 {
-	//if (this->CheckDebugDeactivated())
-	//	return;
+	if (this->CheckDebugDeactivated())
+		return;
 
 	if (!Phobos::Otamaa::IsAdmin)
 		return;
 
-	//if (!((SessionClass::Instance->GameMode == GameMode::Campaign) || (SessionClass::Instance->GameMode == GameMode::Skirmish)))
-	//	return;
+	if (!((SessionClass::Instance->GameMode == GameMode::Campaign) || (SessionClass::Instance->GameMode == GameMode::Skirmish)))
+		return;
 
 	if (!ObjectClass::CurrentObjects->Count)
 		return;

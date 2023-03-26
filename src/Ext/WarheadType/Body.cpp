@@ -397,13 +397,25 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 	return false; //default
 }
 
+std::vector<std::string> UnParsedThing::UnparsedList {};
+
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (!pINI->GetSection(pSection)) {
+
+		//auto const Iter = std::find(UnParsedThing::UnparsedList.begin() , UnParsedThing::UnparsedList.end() , pSection);
+		//if (Iter != UnParsedThing::UnparsedList.end()) {
+		//	UnParsedThing::UnparsedList.erase(Iter);
+		//} else {
+		//	UnParsedThing::UnparsedList.push_back(pSection);
+		//}
+
+		ArmorTypeClass::LoadForWarhead(pINI, pThis);
 		return;
+	}
 
 	INI_EX exINI(pINI);
 

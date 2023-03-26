@@ -671,8 +671,9 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	if (pTarget->Owner && pTarget->Owner->IsControlledByHuman())
 		return Continue;
 
-		if(pTypeExt->AI_LegalTarget.isset()) {
-		return pTypeExt->AI_LegalTarget.Get() ? ContinueChecks : ReturnFalse;
+	if(pTypeExt->AI_LegalTarget.isset()) {
+		return pTypeExt->AI_LegalTarget.Get() ?
+			ContinueChecks : ReturnFalse;
 	}
 
 	return Continue;

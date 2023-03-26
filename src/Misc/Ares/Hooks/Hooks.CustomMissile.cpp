@@ -315,7 +315,6 @@ DEFINE_HOOK(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 	return GetPrimaryFacing;
 }
 
-// compiled same but it work differently , wtf ?
 DEFINE_OVERRIDE_HOOK(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ECX);

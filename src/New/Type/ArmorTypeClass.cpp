@@ -111,7 +111,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 		auto nVers = &pWHExt->Verses[i];
 		const auto pName = Array[i]->Name.data();
-
+		
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s", nVersus, pName);
 		if (pINI->ReadString(section, buffer, Phobos::readDefval, ret)) {
 			nVers->Parse_NoCheck(ret);
@@ -125,6 +125,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, pName);
 		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, buffer, nVers->Flags.PassiveAcquire);
+
 	}
 }
 

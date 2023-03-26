@@ -16,6 +16,11 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/VersesData.h>
 
+struct UnParsedThing
+{
+	static std::vector<std::string> UnparsedList;
+};
+
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
 struct args_ReceiveDamage;
