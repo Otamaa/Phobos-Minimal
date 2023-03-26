@@ -216,7 +216,8 @@ void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 		}
 	}
 
-	CWeaponManager->InvalidatePointer(ptr, bRemoved);
+	if(CWeaponManager)
+		CWeaponManager->InvalidatePointer(ptr, bRemoved);
 }
 
 void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)

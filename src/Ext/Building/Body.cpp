@@ -78,38 +78,40 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 {
 	auto const pThis = this->Get();
 	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	auto const nMission = pThis->GetCurrentMission();
 
-	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
-	{
+	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
+		return;
+
+	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1) {
+
 		auto const pRulesExt = RulesExt::Global();
-		auto const nMission = pThis->GetCurrentMission();
 
-		if (pTypeExt->AutoSellTime.isset())
-		{
-			if (pTypeExt->AutoSellTime.Get() > 0.0f && nMission != Mission::Selling)
+		if (pTypeExt->AutoSellTime.isset() && std::abs(pTypeExt->AutoSellTime.Get()) > 0.00f) {
+
+			if (!AutoSellTimer.HasStarted())
+				AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
+			else
 			{
-				if (AutoSellTimer.StartTime == -1 || nMission == Mission::Attack)
-					AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
-				else
-					if (AutoSellTimer.Completed())
-						pThis->Sell(-1);
+				if (AutoSellTimer.Completed())
+				{
+					pThis->Sell(-1);
+				}
 			}
 		}
 
-		if (!pRulesExt->AI_AutoSellHealthRatio.empty() &&
-			pRulesExt->AI_AutoSellHealthRatio.size() >= 3 &&
-			(nMission != Mission::Selling))
+		if (!pRulesExt->AI_AutoSellHealthRatio.empty() && pRulesExt->AI_AutoSellHealthRatio.size() >= 3)
 		{
-			if (pThis->Owner && !pThis->Occupants.Count)
-			{
-				if (!pThis->Owner->IsCurrentPlayer() && !pThis->Owner->Type->MultiplayPassive)
-				{
-					const double nValue = pRulesExt->AI_AutoSellHealthRatio[pThis->Owner->GetCorrectAIDifficultyIndex()];
+			if (!pThis->Owner || pThis->Occupants.Count || pThis->Owner->Type->MultiplayPassive)
+				return;
 
-					if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
-						pThis->Sell(-1);
-				}
-			}
+			if (!pThis->Owner->IsCurrentPlayer())
+				return;
+
+			const double nValue = pRulesExt->AI_AutoSellHealthRatio[pThis->Owner->GetCorrectAIDifficultyIndex()];
+
+			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
+				 pThis->Sell(-1);
 		}
 	}
 }
@@ -262,10 +264,11 @@ bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrad
 	{
 		for (auto const& pUpgrade : pThis->Upgrades)
 		{
-			if (!pUpgrade)
+			const auto pUpgradeExt = BuildingTypeExt::ExtMap.TryFind(pUpgrade);
+
+			if (!pUpgradeExt)
 				continue;
 
-			const auto pUpgradeExt = BuildingTypeExt::ExtMap.Find(pUpgrade);
 			const auto countUpgrade = pUpgradeExt->GetSuperWeaponCount();
 
 			for (auto i = 0; i < countUpgrade; ++i)
@@ -622,14 +625,26 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 
 		pBuildingExt->LimboID = ID;
 		pTechnoExt->Shield.release();
+		pTechnoExt->Trails.clear();
+		pTechnoExt->RevengeWeapons.clear();
+
 #ifdef COMPILE_PORTED_DP_FEATURES
+		pTechnoExt->DamageSelfState.release();
+		pTechnoExt->MyGiftBox.release();
 		pTechnoExt->PaintBallState.release();
+		pTechnoExt->ExtraWeaponTimers.clear();
+		pTechnoExt->MyWeaponManager.Clear();
+		pTechnoExt->MyWeaponManager.CWeaponManager.release();
 #endif
-		KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
-		if (nMethod != KillMethod::None && pTechnoTypeExt->Death_Countdown > 0)
-		{
-			pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
-			pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
+		if(pOwnerExt->AutoDeathObjects.contains(pBuilding)) {
+			KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
+
+			if (nMethod != KillMethod::None 
+				&& pTechnoTypeExt->Death_Countdown > 0 
+				&& !pTechnoExt->Death_Countdown.HasStarted()) {
+				pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
+				pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
+			}
 		}
 	}
 }

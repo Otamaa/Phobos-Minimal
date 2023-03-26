@@ -78,7 +78,10 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	if (pLinkedTo && pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell) {
+	if (pLinkedTo 
+		&& pLinkedTo->IsAlive
+		&& pLinkedTo->GetTechnoType()->SensorsSight 
+		&& pLinkedTo->LastJumpjetMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
 		pLinkedTo->AddSensorsAt(currentCell);
 	}
@@ -108,7 +111,7 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
-		if (TechnoExt::IsReallyTechno(pLinked)) {
+		if (TechnoExt::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 			pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
 		}
@@ -124,7 +127,7 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 	bool bRotate = RulesExt::Global()->JumpjetCrash_Rotate.Get();
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		if (TechnoExt::IsReallyTechno(pOwner)) {
+		if (TechnoExt::IsReallyTechno(pOwner) && pOwner->IsAlive) {
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
 			bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
 		}
@@ -144,8 +147,6 @@ DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
 
 	return 0;
 }
-
-
 
 /*
 DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
@@ -201,7 +202,8 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 
 	GET(JumpjetLocomotionClass* const, pThis, ESI);
 
-	if (pThis->Wobbles <= 0.000f || isnan(pThis->Wobbles)) {
+	//prevent float zero division error
+	if (std::abs(pThis->Wobbles) < 0.001f || isnan(pThis->Wobbles)) {
 		return NoWobble;
 	}
 
@@ -209,7 +211,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 		return NoWobble;
 
 	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){ 
-		if(TechnoExt::IsReallyTechno(pUnit)) { 
+		if(TechnoExt::IsReallyTechno(pUnit) && pUnit->IsAlive) {
 			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
 		}
 	}

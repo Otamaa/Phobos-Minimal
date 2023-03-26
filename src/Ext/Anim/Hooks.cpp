@@ -65,37 +65,35 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 		ReturnSetManualResult = 0x424CD6
 	};
 
-	if (pThis->Type)
-	{
-		if (pThis->OwnerObject)
-		{
+	if (pThis->Type) {
+		if (pThis->OwnerObject) {
+
 			const auto pExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-			if (!pExt->Layer_UseObjectLayer.isset())
-			{
+			if (!pExt->Layer_UseObjectLayer.isset() || !pThis->OwnerObject->IsAlive) {
 				return RetLayerGround;
 			}
 
-			if (pExt->Layer_UseObjectLayer.Get())
-			{
+			if (pExt->Layer_UseObjectLayer.Get()) {
+
 				Layer nRes = Layer::Ground;
 
-				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject))
-				{
+				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
 					if (auto const pLocomotor = pFoot->Locomotor.get())
 						nRes = pLocomotor->In_Which_Layer();
 				}
-				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject))
+				else if (auto const pBullet = specific_cast<BulletClass*>(pThis->OwnerObject)) {
 					nRes = pBullet->InWhichLayer();
-				else
+				}
+				else {
 					nRes = pThis->OwnerObject->ObjectClass::InWhichLayer();
+				}
 
 				R->EAX(nRes);
 				return ReturnSetManualResult;
 			}
 		}
-		else
-		{
+		else {
 			R->EAX(pThis->Type->Layer);
 			return ReturnSetManualResult;
 		}
