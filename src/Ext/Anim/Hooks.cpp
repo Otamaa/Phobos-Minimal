@@ -114,6 +114,10 @@ DEFINE_HOOK(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
 			->UseCenterCoordsIfAttached)
 		{
 			pObject->GetRenderCoords(pCoords);
+
+			//save original coords because centering it broke damage
+			AnimExt::ExtMap.Find(pThis)->BackupCoords = pObject->Location;
+
 			pCoords->X += 128;
 			pCoords->Y += 128;
 			R->EAX(pCoords);

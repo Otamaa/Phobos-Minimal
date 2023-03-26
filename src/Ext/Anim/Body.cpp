@@ -143,11 +143,12 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 bool AnimExt::DealDamageDelay(AnimClass* pThis)
 {
 	if (!pThis->Type)
-		return true; //CheckIsAlive
+		return false; //CheckIsAlive
 
 	//if (pThis->Type->Damage <= 0.0 || !pThis->HasExtras)
 	//	return false;
 
+	auto const pExt = AnimExt::ExtMap.Find(pThis);
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
@@ -163,8 +164,8 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 
 	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
 	{
-		if (pThis->Animation.Value == max(delay - 1, 1))
-			appliedDamage = static_cast<int>(int_round(pThis->Type->Damage)) * damageMultiplier;
+		if (pThis->Animation.Value == std::max(delay - 1, 1))
+			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage)) * damageMultiplier;
 		else
 			return false; //CheckIsAlive
 	}
@@ -176,7 +177,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 
 		// Deal damage if it is at least 1, otherwise accumulate it for later.
 		if (damage >= 1.0)
-			appliedDamage = static_cast<int>(int_round(damage));
+			appliedDamage = static_cast<int>(std::round(damage));
 		else
 			return false; //CheckIsAlive
 	}
@@ -202,7 +203,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 	else
 		pThis->Accum = 0.0;
 
-	const auto nCoord = pThis->GetCoords();
+	const auto nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	auto const nDamageResult = static_cast<int>(appliedDamage *
 		TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
@@ -222,10 +223,12 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		{
 			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
 			WarheadTypeExt::DetonateAt(pWarhead, pTarget, nCoord, pInvoker, nDamageResult);
-		}
-		else
+
+		} else {
+
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-		//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord);
+			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
+		}
 	}
 
 	return true; //SkipDamageDelay
@@ -361,7 +364,7 @@ template <typename T>
 void AnimExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Something)
+		.Process(this->BackupCoords)
 		.Process(this->DeathUnitFacing)
 		.Process(this->DeathUnitTurretFacing)
 		.Process(this->Invoker)
@@ -379,6 +382,7 @@ void AnimExt::ExtData::CreateAttachedSystem()
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
 		return;
+
 	auto nLoc = pThis->Location;
 
 	if (pData->AttachedSystem->BehavesLike == BehavesLike::Smoke)

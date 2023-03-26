@@ -18,7 +18,7 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
-		CoordStruct Something;
+		OptionalStruct<CoordStruct, true> BackupCoords;
 		OptionalStruct<short , true> DeathUnitFacing;
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
@@ -30,7 +30,7 @@ public:
 		// and the building is not on same cell as the animation.
 		BuildingClass* ParentBuilding;
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, Something { 0,0,0 }
+			, BackupCoords {}
 			, DeathUnitFacing { }
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }

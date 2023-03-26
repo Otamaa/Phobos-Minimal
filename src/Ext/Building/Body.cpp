@@ -636,14 +636,14 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		pTechnoExt->MyWeaponManager.Clear();
 		pTechnoExt->MyWeaponManager.CWeaponManager.release();
 #endif
-		if(pOwnerExt->AutoDeathObjects.contains(pBuilding)) {
+		if(!pOwnerExt->AutoDeathObjects.contains(pBuilding)) {
 			KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
 
 			if (nMethod != KillMethod::None 
 				&& pTechnoTypeExt->Death_Countdown > 0 
 				&& !pTechnoExt->Death_Countdown.HasStarted()) {
 				pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
-				pOwnerExt->AutoDeathObjects.insert(pBuilding, nMethod);
+				pOwnerExt->AutoDeathObjects.empalace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}

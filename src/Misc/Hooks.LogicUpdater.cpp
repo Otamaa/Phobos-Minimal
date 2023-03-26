@@ -51,6 +51,23 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
+	if (pThis->Location == CoordStruct::Empty) {
+
+		bool bRemove = !pType->Spawned;
+		if (pThis->WhatAmI() == AbstractType::Building)
+		{
+			auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
+			if (pBldExt->LimboID != -1)
+				bRemove = false;
+		}
+
+		if (bRemove) {
+			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
+			TechnoExt::HandleRemove(pThis);
+			return 0x0;
+		}
+	}
+
 	// Set only if unset or type is changed
 	// Notice that Ares may handle type conversion in the same hook here, which is executed right before this one thankfully
 	if (!pExt->Type || pExt->Type != pType)

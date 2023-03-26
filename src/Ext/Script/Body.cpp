@@ -2399,6 +2399,9 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		if (!TechnoExt::IsActive(object, false) || !object->Owner)
 			continue;
 
+		if(object->Location == CoordStruct::Empty)
+			continue;
+
 		const auto objectType = object->GetTechnoType();
 		if (!objectType)
 			continue;
