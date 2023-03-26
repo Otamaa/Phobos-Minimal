@@ -78,8 +78,7 @@ DEFINE_HOOK(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	if (pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell)
-	{
+	if (pLinkedTo && pLinkedTo->GetTechnoType()->SensorsSight && pLinkedTo->LastJumpjetMapCoords != currentCell) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastJumpjetMapCoords);
 		pLinkedTo->AddSensorsAt(currentCell);
 	}
@@ -108,10 +107,11 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
-	if (auto const pLinked = pThis->LinkedTo)
-	{
-		const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
-		pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
+		if (TechnoExt::IsReallyTechno(pLinked)) {
+			const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
+			pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+		}
 	}
 
 	return 0;
@@ -123,10 +123,11 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 
 	bool bRotate = RulesExt::Global()->JumpjetCrash_Rotate.Get();
 
-	if (auto const pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner)
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
-		bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
+	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
+		if (TechnoExt::IsReallyTechno(pOwner)) {
+			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pOwner->GetTechnoType());
+			bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
+		}
 	}
 
 	return bRotate ? 0 : 0x54CB3E;
@@ -136,9 +137,9 @@ DEFINE_HOOK(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 // These are subject to changes if someone wants to properly implement jumpjet tilting
 DEFINE_HOOK(0x54DCCF, JumpjetLocomotionClass_DrawMatrix_TiltCrashJumpjet, 0x5)
 {
-	GET(ILocomotion*, iloco, ESI);
+	GET(ILocomotion* const, iloco, ESI);
 	//if (static_cast<JumpjetLocomotionClass*>(iloco)->State < JumpjetLocomotionClass::State::Crashing)
-	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
+	if (static_cast<JumpjetLocomotionClass* const>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
 		return 0x54DCE8;
 
 	return 0;
@@ -198,13 +199,20 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 		NoWobble = 0x54D22C
 	};
 
-	GET(JumpjetLocomotionClass*, pThis, ESI);
+	GET(JumpjetLocomotionClass* const, pThis, ESI);
+
+	if (pThis->Wobbles <= 0.000f || isnan(pThis->Wobbles)) {
+		return NoWobble;
+	}
 
 	if (pThis->NoWobbles)
 		return NoWobble;
 
-	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo))
-		return pUnit->IsDeactivated() ? NoWobble : SetWobble;
+	if (const auto pUnit = specific_cast<UnitClass*>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){ 
+		if(TechnoExt::IsReallyTechno(pUnit)) { 
+			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
+		}
+	}
 
 	return SetWobble;
 }

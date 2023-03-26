@@ -373,18 +373,21 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 			if (newValue > 0) {
 				pVictim->GoBerzerkFor(newValue);
 			}
-		}
-		else {
+		} else {
 
 			if (newValue > 0) {
 				pVictim->GoBerzerkFor(newValue);
-			}
-			else {
-				pVictim->BerzerkDurationLeft = 0;
-				pVictim->Berzerk = false;
-				pVictim->SetTarget(nullptr);
+			} else {
 
-				TechnoExt::SetMissionAfterBerzerk(pVictim);
+				auto const nLeft = pVictim->BerzerkDurationLeft - newValue;
+				if (nLeft <= 0) {		
+					pVictim->BerzerkDurationLeft = 0;
+					pVictim->Berzerk = false;
+					pVictim->SetTarget(nullptr);
+					TechnoExt::SetMissionAfterBerzerk(pVictim);
+				} else {
+					pVictim->BerzerkDurationLeft -= nLeft;
+				}
 			}
 		}
 

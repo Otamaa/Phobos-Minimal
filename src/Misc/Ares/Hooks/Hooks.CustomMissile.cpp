@@ -167,25 +167,10 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	auto const pOwner = static_cast<AircraftClass*>(pThis->LinkedTo);
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
-	if (pExt->IsCustomMissile)
-	{
-		auto const& pWeapon = pThis->SpawnerIsElite
-			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon;
-
-		if (pWeapon)
-		{
-			auto const pBullet = pWeapon->Projectile->CreateBullet(
-				pOwner, pOwner, pWeapon->Damage, pWeapon->Warhead, 0,
-				pWeapon->Bright);
-
-			if (pBullet)
-			{
-				pBullet->SetWeaponType(pWeapon);
-				pBullet->Limbo();
-				pBullet->Detonate(coords);
-				pBullet->UnInit();
-			}
-
+	if (pExt->IsCustomMissile) {
+		if (auto const& pWeapon = pThis->SpawnerIsElite
+			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner);
 			return 0x6632CC;
 		}
 	}
@@ -197,7 +182,8 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 
 	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWH, pCell->LandType, coords)) {
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, coords, 0, 1, 0x2600, -15)) {
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, nullptr, pOwner, true);
+			auto const pTargetOwner = pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner->Owner, pTargetOwner, pOwner, true);
 		}
 	}
 
@@ -235,20 +221,22 @@ DEFINE_OVERRIDE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_Cust
 }
 
 // new
+// SpawnerOwner may die when this processed , what shoud it do ?
 DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 {
-	enum { Handled = 0x6624C8, Skip = 0x0 };
+	enum { Handled = 0x6624C8, Continue = 0x0 };
 
-	GET(RocketLocomotionClass*, pThis, ESI);
+	GET(RocketLocomotionClass* const, pThis, ESI);
 
 	if (const auto pAir = specific_cast<AircraftClass*>(pThis->Owner)) {	
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
-		if (pExt->IsCustomMissile.Get() && !pExt->CustomMissileRaise.Get(pAir->SpawnOwner)) {
+		if (pExt->IsCustomMissile.Get() && pAir->SpawnOwner) {
+			if(!pExt->CustomMissileRaise.Get(pAir->SpawnOwner))
 			return Handled;
 		}
 	}
 
-	return Skip;
+	return Continue;
 }
 
 #pragma endregion

@@ -210,15 +210,18 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 					const BuildingClass* pBuilding = pCell ?
 						pCell->GetBuilding() : MapClass::Instance->GetCellAt(location)->GetBuilding();
 
-					if (!pBuilding && !pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+					if (!pBuilding)
 					{
-						++Unsorted::IKnowWhatImDoing;
-						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
-						--Unsorted::IKnowWhatImDoing;
-					}
-					else
-					{
-						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
+						if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+						{
+							++Unsorted::IKnowWhatImDoing;
+							success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
+							--Unsorted::IKnowWhatImDoing;
+						}
+						else
+						{
+							success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
+						}
 					}
 
 					if (success)

@@ -92,7 +92,7 @@ public:
 			, CreateUnit_Owner { OwnerHouseKind::Victim }
 			, CreateUnit_ConsiderPathfinding { false }
 			, CreateUnit_SpawnAnim { }
-			, CreateUnit_AlwaysSpawnOnGround { false }
+			, CreateUnit_AlwaysSpawnOnGround { true }
 
 			, XDrawOffset { 0 }
 			, HideIfNoOre_Threshold { 0 }

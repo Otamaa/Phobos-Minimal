@@ -422,6 +422,20 @@ int TechnoExt::GetThreadPosed(TechnoClass* pThis)
 	return pExt->Type->ThreatPosed;
 }
 
+bool TechnoExt::IsReallyTechno(TechnoClass* pThis)
+{
+	const auto pAddr = (((DWORD*)pThis)[0]);
+	if (pAddr != UnitClass::vtable
+		&& pAddr != AircraftClass::vtable
+		&& pAddr != InfantryClass::vtable
+		&& pAddr != BuildingClass::vtable)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 int TechnoExt::GetDeployFireWeapon(UnitClass* pThis)
 {
 	if (pThis->Type->DeployFireWeapon == -1)

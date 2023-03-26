@@ -338,6 +338,8 @@ private:
 
 	static AreaFireReturnFlag ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon);
 	static int GetThreadPosed(TechnoClass* pThis);
+
+	static bool IsReallyTechno(TechnoClass* pThis);
 protected:
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
