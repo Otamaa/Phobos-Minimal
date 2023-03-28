@@ -108,6 +108,7 @@ public:
 
 		UniqueGamePtr<AnimClass> AttachedAnim;
 		bool KillActionCalled;
+		CDTimerClass ToProtectDelay;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -169,6 +170,7 @@ public:
 			, MyFighterData { }
 			, AttachedAnim { }
 			, KillActionCalled { false }
+			, ToProtectDelay { }
 #endif;
 		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
@@ -322,6 +324,8 @@ private:
 	static bool IsPsionicsWeaponImmune(TechnoClass* pThis);
 	static bool IsPoisonImmune(TechnoClass* pThis);
 	static bool IsBerserkImmune(TechnoClass* pThis);
+
+	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);

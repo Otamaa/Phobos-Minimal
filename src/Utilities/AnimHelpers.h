@@ -16,7 +16,7 @@ namespace Helper
 				}
 			}
 
-			return nWake.isset() && !IsMeteor ? nWake.Get() : RulesClass::Instance->Wake;
+			return !IsMeteor && nWake.isset()  ? nWake.Get() : RulesClass::Instance->Wake;
 		}
 
 		inline std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, const CoordStruct& Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
@@ -84,8 +84,8 @@ namespace Helper
 
 		inline std::tuple<bool ,int , int> CheckMinMax(double nMin, double nMax)
 		{
-			int nMinL = Game::F2I(abs(nMin) * 256.0);
-			int nMaxL = Game::F2I(abs(nMax) * 256.0);
+			int nMinL = (int)(std::abs(nMin) * 256.0);
+			int nMaxL = (int)(std::abs(nMax) * 256.0);
 
 			if (!nMinL && !nMaxL)
 				return {false ,0,0};
@@ -102,7 +102,7 @@ namespace Helper
 
 			if (nMinMax) {
 				auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
-					(abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * std::min(Increment, 1)),
+					(std::abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) * std::min(Increment, 1)),
 					ScenarioClass::Instance->Random.RandomBool());
 
 				nRandomCoords.Z = MapClass::Instance->GetCellFloorHeight(nRandomCoords);;

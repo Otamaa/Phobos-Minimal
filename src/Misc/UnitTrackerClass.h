@@ -10,11 +10,8 @@ class PhobosUnitTrackerClass
 {
 public:
 	PhobosUnitTrackerClass* Initialize();
+
 	void Clear();
-
-	void Save(IStream* pStm);
-	void Load(IStream* pStm);
-
 	void ToPCFormat();
 	void ToNetworkFormat();
 	void DecrementUnitTotal(int nUnit);
@@ -29,10 +26,7 @@ private:
 	static u_long __stdcall htonl(u_long hostlong) JMP_STD(0x7C8962);
 	static u_long __stdcall ntohl(u_long netlong) JMP_STD(0x7C896E);
 
-	int* Array;
-	int ElementCount;
-	bool IsNetworkFormat;
+	std::vector<int> Array;
+	BOOL IsNetworkFormat;
 
-private:
-	char gap[sizeof(UnitTrackerClass) - sizeof(Array) - sizeof(ElementCount) - sizeof(IsNetworkFormat)];
 };

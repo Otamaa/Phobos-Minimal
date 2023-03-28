@@ -147,6 +147,37 @@ DEFINE_HOOK(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) //
 	return 0x41700E;
 }
 
+DEFINE_HOOK(0x4183C3, AircraftClass_CurleyShuffle_A, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->DL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x4183C9;
+}
+
+DEFINE_HOOK(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->AL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418677;
+}
+
+DEFINE_HOOK(0x418733, AircraftClass_CurleyShuffle_C, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->CL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418739;
+}
+
+DEFINE_HOOK(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->DL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418788;
+}
 
 #ifdef TEST_CODE
 DEFINE_HOOK(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)
@@ -377,5 +408,4 @@ DEFINE_HOOK(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x
 //
 //	return 0x419D0B;
 //}
-
 #pragma endregion

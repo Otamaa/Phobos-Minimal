@@ -21,7 +21,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 
 	GET(DamageState, nState, EAX);
 	GET(TerrainClass*, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, args , STACK_OFFS(0x3C, -0x4));
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
 
 	R->EAX(nState);
 	R->Stack(0x10, nState);
@@ -33,7 +33,7 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 		auto pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
 		const bool spawn = pWarheadExt->Flammability.isset() ?
 			(ScenarioClass::Instance->Random.PercentChance(
-			abs(pWarheadExt->Flammability.Get()))) : true;
+				abs(pWarheadExt->Flammability.Get()))) : true;
 
 		if (spawn)
 			pThis->Ignite();
@@ -76,7 +76,7 @@ DEFINE_HOOK(0x71D09D, TerrainClass_UnLImbo_Light, 0x6)
 	GET(TerrainClass*, pThis, ECX);
 	GET(CoordStruct*, pCoord, EBP);
 
-	TerrainExt::Unlimbo(pThis , pCoord);
+	TerrainExt::Unlimbo(pThis, pCoord);
 	return 0;
 }
 
@@ -85,7 +85,8 @@ DEFINE_HOOK(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	GET(bool, nLimboed, EAX);
 	GET(TerrainClass*, pThis, EDI);
 
-	if (nLimboed) {
+	if (nLimboed)
+	{
 		TerrainExt::CleanUp(pThis);
 	}
 
@@ -97,7 +98,8 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
 
-	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType)) {
+	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType))
+	{
 		pConvert = pTerrainExt->CustomPalette.GetOrDefaultConvert(pConvert);
 	}
 
@@ -147,22 +149,20 @@ DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 
 	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
 
-	if (pType->IsLogic)
+	if (!pType->IsLogic)
+		return NoUpdate;
+
+	if (pType->WhatAmI() == AbstractType::TerrainType)
 	{
-		if (pType->WhatAmI() == AbstractType::TerrainType)
+		auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
+		if (pTerrainType->SpawnsTiberium
+			&& pTerrainType->IsFlammable
+			&& pTerrainType->IsAnimated)
 		{
-			auto const pTerrainType = static_cast<TerrainTypeClass* const>(pType);
-			if (pTerrainType->SpawnsTiberium || pTerrainType->IsFlammable || pTerrainType->IsAnimated)
-			{
-				return FurtherCheck;
-			}
-		}
-		else
-		{
-			return FurtherCheck;
+			return NoUpdate;
 		}
 	}
 
-	return NoUpdate;
+	return FurtherCheck;
 }
 //#endif

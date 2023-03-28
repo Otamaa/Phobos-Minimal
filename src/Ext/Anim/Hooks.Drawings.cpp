@@ -33,7 +33,7 @@ DEFINE_HOOK(0x4236A7, AnimClass_Draw_Tiled_CustomPalette, 0x6) //was A
 	if (!pShp)
 		return 0x42371B;
 
-	auto pPal = pTypeExt->Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL());
+	const auto pPal = pTypeExt->Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL());
 	auto Y_Doffs = pThis->Type->YDrawOffset;
 
 	for (; nYadd_Loc >= 0;)

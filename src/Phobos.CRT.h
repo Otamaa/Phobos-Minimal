@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CRT.h>
+#include <string>
 
 class PhobosCRT final
 {
@@ -27,5 +28,23 @@ public:
 	static void wstrCopy(wchar_t(&Dest)[Size], const wchar_t* Source)
 	{
 		wstrCopy(Dest, Source, Size);
+	}
+
+	inline void EraseSubString(std::string& str, const std::string& erase)
+	{
+		size_t pos = str.find(erase);
+		if (pos != std::string::npos)
+		{
+			str.erase(pos, erase.length());
+		}
+	}
+
+	template<typename T>
+	static std::string GetTypeIDName()
+	{
+		std::string str = typeid(T).name();
+		EraseSubString(str, "class ");
+		EraseSubString(str, "struct ");
+		return str;
 	}
 };

@@ -31,6 +31,7 @@ public:
 		Valueable<bool> CreateUnit_ConsiderPathfinding;
 		Nullable<AnimTypeClass*> CreateUnit_SpawnAnim;
 		Valueable<bool> CreateUnit_AlwaysSpawnOnGround;
+		Valueable<bool> CreateUnit_KeepOwnerIfDefeated;
 
 		Valueable<int> XDrawOffset;
 		Valueable<int> HideIfNoOre_Threshold;
@@ -93,6 +94,7 @@ public:
 			, CreateUnit_ConsiderPathfinding { false }
 			, CreateUnit_SpawnAnim { }
 			, CreateUnit_AlwaysSpawnOnGround { true }
+			, CreateUnit_KeepOwnerIfDefeated { true }
 
 			, XDrawOffset { 0 }
 			, HideIfNoOre_Threshold { 0 }

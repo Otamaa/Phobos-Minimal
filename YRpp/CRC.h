@@ -104,7 +104,7 @@ public:
 		JMP_THIS(0x4A1D90);
 	}
 
-	void operator()(const void* buffer, int length)
+	unsigned int operator()(const void* buffer, int length)
 	{
 		JMP_THIS(0x4A1DE0);
 	}

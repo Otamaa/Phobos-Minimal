@@ -156,6 +156,7 @@ DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x760286, WaveClass_Draw_Magnetron3, 0x5, 7602D3)
+DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
 DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 {
@@ -307,8 +308,9 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
 		// find the pip value with the name specified
-		const auto it = std::find(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
-			Phobos::readBuffer);
+		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),[](NamedValue<int>const& Data){
+			return CRT::strcmpi(Data.Name , Phobos::readBuffer) == 0;
+		});
 
 		if (it != TechnoTypeClass::PipsTypeName.end())
 		{
@@ -942,30 +944,30 @@ DEFINE_OVERRIDE_HOOK(0x7BB445 , XSurface_20, 0x6)
 	return R->EAX<void*>() ? 0x0 : 0x7BB90C;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-//	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-//	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
-//
-//	if (IsRailgun && pThis->WhatAmI() == AbstractType::Aircraft){
-//		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! , it may causing desync , skipping ! \n",pThis->get_ID());
-//		return 0x6FF274;
-//	}
-//
-//	return pWeaponExt->IsDetachedRailgun 		
-//		? 0x6FF20F : 0x0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
-//{
-//	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-//	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun 
-//		? 0x6FF274 : 0x0;
-//}
+DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
+
+	if (IsRailgun && pThis->WhatAmI() == AbstractType::Aircraft){
+		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! \n",pThis->get_ID());
+		//return 0x6FF274;
+	}
+
+	return pWeaponExt->IsDetachedRailgun 		
+		? 0x6FF20F : 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
+{
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	return WeaponTypeExt::ExtMap.Find(pWeapon)->IsDetachedRailgun 
+		? 0x6FF274 : 0x0;
+}
 
 DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
@@ -998,4 +1000,153 @@ DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 
 	GET(AnimClass*, pThis, ESI);
 	return AnimExt::DealDamageDelay(pThis) ? SkipDamageDelay : CheckIsAlive;
+}
+
+DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
+{
+	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (!WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
+		return 0x701A98;
+
+	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
+}
+
+DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
+{
+	R->Stack(0xE, R->EAX() > 0);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
+{
+	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->DieSound_Override;
+
+	if (nSound.isset()) {
+
+		auto const nIdx = nSound.Get();
+		if (nIdx >= 0)
+			VocClass::PlayAt(nIdx, pThis->Location);
+
+		return 0x702200;
+	}
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
+{
+	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->VoiceSound_Override;
+
+	if (nSound.isset()) {
+
+		auto const nIdx = nSound.Get();
+		if (nIdx >= 0)
+			VocClass::PlayAt(nIdx, pThis->Location);
+
+		return 0x702200;
+	}
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
+
+	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+
+	// only allow to scatter if not prevented
+	if (!pExt->PreventScatter) {
+		pThis->Scatter(CoordStruct::Empty, true, false);
+	}
+
+	return 0x702D11;
+}
+
+// #1283653: fix for jammed buildings and attackers in open topped transports
+DEFINE_OVERRIDE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)
+{
+	REF_STACK(TechnoClass*, pAttacker, STACK_OFFS(0xC4, -0x10));
+
+	// decide as if the transporter fired at this building
+	if (pAttacker && pAttacker->InOpenToppedTransport && pAttacker->Transporter) {
+		pAttacker = pAttacker->Transporter;
+	}
+
+	R->EDI(pAttacker);
+	return 0x702A3F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x9)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0xC4, -0xC));
+
+	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->ApplySuppressDeathWeapon(pThis)) {
+		pThis->FireDeathWeapon(0);
+	}
+
+	return 0x702672;
+}
+
+DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
+{
+
+	GET(InfantryClass*, I, ESI);
+	const bool IgnoreDefenses = R->BL() != 0;
+
+	if (!I->IsDeployed() || IgnoreDefenses) {
+		return 0;
+	}
+
+	GET(WarheadTypeClass*, pWH, EBP);
+	GET(int*, pDamage, EDI);
+
+	// yes, let's make sure the pointer's safe AFTER we've dereferenced it... Failstwood!
+	if (pWH) {
+		*pDamage = static_cast<int>(*pDamage * WarheadTypeExt::ExtMap.Find(pWH)->DeployedDamage);
+		return 0x517FF9u;
+	}
+
+	return 0x518016u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
+{
+	GET(TechnoTypeClass*, pThis, EDI);
+
+	if (pThis->PaletteFile[0] == 0) {
+		return 0x716DAA;
+	}
+
+	pThis->Palette = nullptr;
+	return 0x716D9D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
+{
+	enum { 
+		DeleteDamageAreaVector = 0x48A4B7,
+		ContinueFunction = 0x4892DD,
+	};
+
+	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+	GET(int, Damage, ESI);
+
+	if (!pWarhead
+		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
+		|| !Damage && !WarheadTypeExt::ExtMap.Find(pWarhead)->AllowZeroDamage)
+		return DeleteDamageAreaVector;
+
+	R->ESI(pWarhead);
+	return ContinueFunction;
 }

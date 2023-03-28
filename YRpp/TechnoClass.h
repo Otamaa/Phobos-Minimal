@@ -679,6 +679,8 @@ public:
 		JMP_THIS(0x70F890);
 	}
 
+	void SpillTiberium(int& value, CellClass* pCenter, Point2D const& nMinMax = { 0 , 2 }) const;
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

@@ -666,7 +666,19 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Berzerk_dur.Read(exINI, pSection, "Berzerk.Duration");
 	this->Berzerk_cap.Read(exINI, pSection, "Berzerk.Cap");
 	this->Berzerk_dealDamage.Read(exINI, pSection, "Berzerk.DealDamage");
+	this->IC_Flash.Read(exINI, pSection, "IronCurtain.Flash");
 
+	this->PreventScatter.Read(exINI, pSection, "PreventScatter");
+
+	this->DieSound_Override.Read(exINI, pSection, "DieSound.Override");
+	this->VoiceSound_Override.Read(exINI, pSection, "VoiceSound.Override");
+
+	this->SuppressDeathWeapon_Vehicles.Read(exINI, pSection, "DeathWeapon.SuppressVehicles");
+	this->SuppressDeathWeapon_Infantry.Read(exINI, pSection, "DeathWeapon.SuppressInfantry");
+	this->SuppressDeathWeapon.Read(exINI, pSection, "DeathWeapon.Suppress");
+	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
+
+	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -942,6 +954,17 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Berzerk_dur)
 		.Process(this->Berzerk_cap)
 		.Process(this->Berzerk_dealDamage)
+		.Process(this->IC_Flash)
+
+		.Process(this->PreventScatter)
+		.Process(this->DieSound_Override)
+		.Process(this->VoiceSound_Override)
+
+		.Process(this->SuppressDeathWeapon_Vehicles)
+		.Process(this->SuppressDeathWeapon_Infantry)
+		.Process(this->SuppressDeathWeapon)
+		.Process(SuppressDeathWeapon_Exclude)
+		.Process(this->DeployedDamage)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -954,6 +977,24 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 	PaintBallData.Serialize(Stm);
 #endif
 
+}
+
+bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
+{
+	auto const abs = pVictim->WhatAmI();
+	auto const pVictimType = pVictim->GetTechnoType();
+
+	if (!SuppressDeathWeapon_Exclude.empty()) {
+		return !SuppressDeathWeapon_Exclude.Contains(pVictimType);
+	}
+
+	if (abs == AbstractType::Unit && SuppressDeathWeapon_Vehicles)
+		return true;
+
+	if (abs == AbstractType::Infantry && SuppressDeathWeapon_Infantry)
+		return true;
+
+	return SuppressDeathWeapon.Contains(pVictimType);
 }
 
 void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

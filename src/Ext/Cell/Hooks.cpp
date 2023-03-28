@@ -31,25 +31,26 @@ DEFINE_HOOK(0x47F641, CellClass_DrawShadow_Tiberium, 0x6)
 	return (TiberiumClass::FindIndex(pThis->OverlayTypeIndex) >= 0) ? SkipDrawing : ContinueDrawing;
 }
 
-DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
-{
-	GET(CellClass*, pCell, ESI);
-
-	bool bDraw = false;
-
-	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
-
-		const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
-
-		if(!pTibExt)
-			Debug::Log("TacticalClass_DrawPixelFX_Tiberium TiberiumExt for [%s] is missing ! \n", pTiberium->ID);
-		else
-			bDraw = pTiberium->Value && pTibExt->EnablePixelFXAnim.Get();
-	}
-
-	R->EAX(bDraw);
-	return 0x6D7A4D;
-}
+//seems causing large FPS drop
+//DEFINE_HOOK(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)
+//{
+//	GET(CellClass*, pCell, ESI);
+//
+//	bool bDraw = false;
+//
+//	if (const auto pTiberium = CellExt::GetTiberium(pCell)) {
+//
+//		const auto pTibExt = TiberiumExt::ExtMap.Find(pTiberium);
+//
+//		if (!pTibExt)
+//			bDraw = pTiberium->Value;
+//		else
+//			bDraw = pTiberium->Value && pTibExt->EnablePixelFXAnim.Get();
+//	}
+//
+//	R->EAX(bDraw);
+//	return 0x6D7A4D;
+//}
 
 DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 {

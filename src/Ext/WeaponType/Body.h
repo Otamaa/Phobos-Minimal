@@ -133,6 +133,7 @@ public:
 			 #endif
 			, Ammo { 0 }
 			, IsDetachedRailgun { false }
+
 		{ }
 
 		virtual ~ExtData() override  = default;

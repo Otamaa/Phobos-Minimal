@@ -234,15 +234,7 @@ int Helpers_DP::Dir2FrameIndex(DirStruct& dir, int facing)
 
 double Helpers_DP::GetROFMult(TechnoClass const* pTech)
 {
-	bool rofAbility = false;
-	if (pTech->Veterancy.IsElite())
-		rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF || pTech->GetTechnoType()->EliteAbilities.ROF;
-	else if (pTech->Veterancy.IsVeteran())
-		rofAbility = pTech->GetTechnoType()->VeteranAbilities.ROF;
-
-	return !rofAbility ? 1.0 :
-		RulesClass::Instance->VeteranROF * ((!pTech->Owner || !pTech->Owner->Type) ?
-			1.0 : pTech->Owner->Type->ROFMult);
+	return TechnoExt::GetROFMult(pTech);
 }
 
 double Helpers_DP::GetDamageMult(TechnoClass* pTechno)
@@ -250,16 +242,7 @@ double Helpers_DP::GetDamageMult(TechnoClass* pTechno)
 	if (!pTechno || !pTechno->IsAlive)
 		return 1.0;
 
-	bool firepower = false;
-	if (pTechno->Veterancy.IsElite())
-	{
-		firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER || pTechno->GetTechnoType()->EliteAbilities.FIREPOWER;
-	}
-	else if (pTechno->Veterancy.IsVeteran())
-	{
-		firepower = pTechno->GetTechnoType()->VeteranAbilities.FIREPOWER;
-	}
-	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) * pTechno->FirepowerMultiplier * ((!pTechno->Owner || !pTechno->Owner->Type) ? 1.0 : pTechno->Owner->Type->FirepowerMult);
+	return TechnoExt::GetDamageMult(pTechno);
 }
 
 DirStruct Helpers_DP::DirNormalized(int index, int facing)

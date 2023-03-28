@@ -246,6 +246,17 @@ public:
 		Valueable<int> Berzerk_cap;
 		Valueable<bool> Berzerk_dealDamage;
 
+		Nullable<bool> IC_Flash;
+		Valueable<bool> PreventScatter;
+		NullableIdx<VocClass> DieSound_Override;
+		NullableIdx<VocClass> VoiceSound_Override;
+
+		Valueable<bool> SuppressDeathWeapon_Vehicles;
+		Valueable<bool> SuppressDeathWeapon_Infantry;
+		ValueableVector<TechnoTypeClass*> SuppressDeathWeapon;
+		ValueableVector<TechnoTypeClass*> SuppressDeathWeapon_Exclude;
+		Valueable<double> DeployedDamage;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 	#endif
@@ -428,7 +439,7 @@ public:
 
 			, AttachedEffect { OwnerObject }
 			, DetonatesWeapons { }
-			, LimboKill_IDs {}
+			, LimboKill_IDs { }
 			, LimboKill_Affected { AffectedHouse::Owner }
 			, InfDeathAnim { nullptr }
 
@@ -441,11 +452,22 @@ public:
 			, RelativeDamage_Building { 0 }
 			, RelativeDamage_Terrain { 0 }
 
-			, Verses {}
+			, Verses { }
 			, Berzerk_dur { }
 			, Berzerk_cap { -1 }
 			, Berzerk_dealDamage { false }
 
+			, IC_Flash { }
+
+			, PreventScatter { false }
+			, DieSound_Override { }
+			, VoiceSound_Override { }
+
+			, SuppressDeathWeapon_Vehicles { false }
+			, SuppressDeathWeapon_Infantry { false }
+			, SuppressDeathWeapon { }
+			, SuppressDeathWeapon_Exclude { }
+			, DeployedDamage { 1.00 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -502,6 +524,7 @@ public:
 		bool ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;
 		void ApplyRelativeDamage(ObjectClass* pTarget, args_ReceiveDamage* pArgs) const;
 		bool GoBerzerkFor(FootClass* pVictim, int* damage);
+		bool ApplySuppressDeathWeapon(TechnoClass* pVictim);
 
 		VersesData& GetVerses(Armor armor) {
 			return this->Verses[static_cast<int>(armor)];

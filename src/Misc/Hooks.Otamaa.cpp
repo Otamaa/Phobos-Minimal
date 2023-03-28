@@ -167,7 +167,7 @@ DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
 
 	if (const auto pLinked = pLoco->Owner ? pLoco->Owner : pLoco->LinkedTo)
-		if (auto const pCell = MapClass::Instance->GetCellAt(pLinked->GetMapCoords()))
+		if (auto const pCell = pLinked->GetCell())
 			pCell->CollectCrate(pLinked);
 
 	return 0;
@@ -679,27 +679,26 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	return Continue;
 }
 
-//DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
-//{
-//	enum
-//	{
-//		increment = 0x72312F,
-//		SetCell = 0x723005
-//	};
-//
-//	GET(const MapSurfaceData*, pSurfaceData, EBX);
-//	R->EBX(pSurfaceData);
-//	const auto nCell = pSurfaceData->MapCoord;
-//
-//	if (!Map.IsValidCell(nCell))
-//	{
-//		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
-//		return increment;
-//	}
-//
-//	R->EAX(Map[nCell]);
-//	return SetCell;
-//}
+DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
+{
+	enum
+	{
+		increment = 0x72312F,
+		SetCell = 0x723005
+	};
+
+	GET(const MapSurfaceData*, pSurfaceData, EBX);
+	R->EBX(pSurfaceData);
+	const auto nCell = pSurfaceData->MapCoord;
+
+	if (!MapClass::Instance->IsValidCell(nCell)) {
+		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
+		return increment;
+	}
+
+	R->EAX(MapClass::Instance->GetCellAt(nCell));
+	return SetCell;
+}
 
 //TaskForces_LoadFromINIList_WhySwizzle , 0x5
 //DEFINE_JUMP(LJMP, 0x6E8300, 0x6E8315)
@@ -1256,30 +1255,30 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 			DoNotDrawRadar : Continue;
 }
 
-DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
-{
-	GET(AnimClass*, pMem, EAX);
-	GET(RocketLocomotionClass* const, pThis, ESI);
-	REF_STACK(CellStruct const, nCell, STACK_OFFS(0x60, 0x38));
-	REF_STACK(CoordStruct const, nCoord, STACK_OFFS(0x60, 0x18));
-	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0x60, 0x50));
-
-	GET(int, nDamage, EDI);
-
-	const auto pCell = MapClass::Instance->GetCellAt(nCell);
-	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
-	{
-		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
-		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
-	}
-	else
-	{
-		//no constructor called , so it is safe to delete the allocated memory
-		GameDelete<false, false>(pMem);
-	}
-
-	return 0x66328C;
-}
+//DEFINE_HOOK(0x663225, RocketLocomotionClass_DetonateOnTarget_Anim, 0x6)
+//{
+//	GET(AnimClass*, pMem, EAX);
+//	GET(RocketLocomotionClass* const, pThis, ESI);
+//	REF_STACK(CellStruct const, nCell, STACK_OFFS(0x60, 0x38));
+//	REF_STACK(CoordStruct const, nCoord, STACK_OFFS(0x60, 0x18));
+//	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0x60, 0x50));
+//
+//	GET(int, nDamage, EDI);
+//
+//	const auto pCell = MapClass::Instance->GetCellAt(nCell);
+//	if (auto pAnimType = MapClass::SelectDamageAnimation(nDamage, pWarhead, pCell ? pCell->LandType : LandType::Clear, nCoord))
+//	{
+//		GameConstruct(pMem, pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false);
+//		AnimExt::SetAnimOwnerHouseKind(pMem, pThis->LinkedTo->GetOwningHouse(), pThis->LinkedTo->Target ? pThis->LinkedTo->Target->GetOwningHouse() : nullptr, nullptr, false);
+//	}
+//	else
+//	{
+//		//no constructor called , so it is safe to delete the allocated memory
+//		GameDelete<false, false>(pMem);
+//	}
+//
+//	return 0x66328C;
+//}
 
 //DEFINE_HOOK(0x6FCF3E, TechnoClass_SetTarget_CheckAccessory , 0x6)
 //{
@@ -2822,7 +2821,6 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 	return 0x0;
 }
 
-
 // Redirect UnitClass::GetFLH to InfantryClass::GetFLH (used to be TechnoClass::GetFLH)
 DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250);
 
@@ -2867,7 +2865,7 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 
 void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 {
-	if (Unsorted::CurrentFrame % 15 != 0)
+	if (Unsorted::CurrentFrame % 15)
 		return;
 
 	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args->WH);
@@ -4471,3 +4469,97 @@ DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 //
 //	return 0x70F8E6;
 //}
+
+// tester says these make team completely stop protecting ToProtect 
+// all of them instead of the skipped one , weird
+// Infantry 
+// continue 0x708239 , skip 0x7083BC
+//DEFINE_HOOK(0x70822B, TechnoClass_ToProtectAttacked_Ignore_Infantry, 0x6)
+//{
+//	GET(InfantryClass*, pInf, ESI);
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pInf->Type);
+//	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy 
+//		? 0x7083BC : 0x0;
+//}
+
+// Unit 0x7086F5 
+// recuit chance
+// 0x708461
+// continue 0x708461 , skip 0x708622
+//DEFINE_HOOK(0x708461, TechnoClass_ToProtectAttacked_Ignore_Unit, 0x6)
+//{
+//	GET(UnitClass*, pUnit, ESI);
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pUnit->Type);
+//	return pTypeExt->IgnoreToProtect || pTypeExt->IsDummy
+//		? 0x708622 : 0x0;
+//}
+
+DEFINE_HOOK(0x6FF4B0, TechnoClass_FireAt_TargetLaser, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto const pExt = TechnoExt::ExtMap.Find(pThis);
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+
+	if (!pTypeExt->TargetLaser_WeaponIdx.empty() 
+		&& !pTypeExt->TargetLaser_WeaponIdx.Contains(pExt->CurrentWeaponIdx)) {
+		return 0x6FF4CC;
+	}
+
+	pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
+	return 0x6FF4CC;
+}
+
+DEFINE_HOOK(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->Type->OrePurifier)
+		++pThis->Owner->NumOrePurifiers;
+
+	return 0x4491F1;
+}
+
+DEFINE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->Type->OrePurifier)
+		--pThis->Owner->NumOrePurifiers;
+
+	return 0x448AC8;
+}
+
+#include <HoverLocomotionClass.h>
+
+DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	bool ret = true;
+	if (const auto pFoot = generic_cast<FootClass*>(pThis)) {
+
+		const auto pType = pFoot->GetTechnoType();
+		if (!pType->Bunkerable || !pType->Turret)
+			ret = false;
+
+		if (!pFoot->IsArmed())
+			ret = false;
+
+		const auto nSpeedType = pType->SpeedType;
+		if (nSpeedType == SpeedType::Hover 
+			|| nSpeedType == SpeedType::Winged 
+			|| nSpeedType == SpeedType::None)
+			ret = false;
+
+		if (pFoot->ParasiteEatingMe)
+			ret = false;
+
+		const auto pLoco = pFoot->Locomotor.get();
+		if((((DWORD*)pLoco)[0] == HoverLocomotionClass::ILoco_vtable))
+			ret = false;
+	}
+
+	R->EAX(ret);
+	return 0x70FBCA;
+}

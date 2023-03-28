@@ -33,6 +33,7 @@
     <ClCompile Include="src\Commands\NextIdleHarvester.cpp" />
     <ClCompile Include="src\Commands\QuickSave.cpp" />
     <ClCompile Include="src\Commands\SetVeterancy.cpp" />
+    <ClCompile Include="src\Commands\ShowTeamLeader.cpp" />
     <ClCompile Include="src\Commands\ShowTechnoNames.cpp" />
     <ClCompile Include="src\Commands\ShowHealthPercent.cpp" />
     <ClCompile Include="src\Ext\Abstract\Body.cpp" />
@@ -293,6 +294,7 @@
     <ClInclude Include="src\Commands\Commands.h" />
     <ClInclude Include="src\Commands\QuickSave.h" />
     <ClInclude Include="src\Commands\SetVeterancy.h" />
+    <ClInclude Include="src\Commands\ShowTeamLeader.h" />
     <ClInclude Include="src\Commands\ShowTechnoNames.h" />
     <ClInclude Include="src\Commands\ShowHealthPercent.h" />
     <ClInclude Include="src\ExtraHeaders\AlternateNames.h" />

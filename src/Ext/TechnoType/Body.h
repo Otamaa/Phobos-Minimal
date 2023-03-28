@@ -425,6 +425,12 @@ public:
 		Valueable<bool> CivilianEnemy;
 		Valueable<bool> ImmuneToBerserk;
 		Valueable<double> Berzerk_Modifier;
+
+		Valueable<bool> IgnoreToProtect;
+		Valueable<int> TargetLaser_Time;
+		ValueableVector<int> TargetLaser_WeaponIdx;
+		
+		Nullable<bool> CurleyShuffle;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -780,6 +786,10 @@ public:
 			, CivilianEnemy { false }
 			, ImmuneToBerserk { false }
 			, Berzerk_Modifier { 1.0 }
+			, IgnoreToProtect { false }
+			, TargetLaser_Time { 15 }
+			, TargetLaser_WeaponIdx { 0 }
+			, CurleyShuffle { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

@@ -9,6 +9,7 @@
 #include "FrameStep.h"
 #include "ShowTechnoNames.h"
 #include "SetVeterancy.h"
+#include "ShowTeamLeader.h"
 
 #define Make(arg)\
 		Make<arg>();
@@ -28,6 +29,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(ShowTechnoNameCommandClass);
 	Make(SetVeterancyCommandClass);
 	Make(FrameByFrameCommandClass);
+	Make(ShowTeamLeaderCommandClass);
 	Make(FrameStepCommandClass<1>); // Single step in
 	Make(FrameStepCommandClass<5>); // Speed 1
 	Make(FrameStepCommandClass<10>); // Speed 2

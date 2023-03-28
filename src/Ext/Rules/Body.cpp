@@ -186,6 +186,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
+	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
+
 	//Allocate Default bullet
 	GameCreate<BulletTypeClass>(DEFAULT_STR2);
 
@@ -577,6 +579,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
 		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
 		.Process(this->NewTeamsSelector_AirCategoryPercentage)
+
+		.Process(this->IC_Flash)
 
 		.Process(this->VeinholeParticle)
 		.Process(this->DefaultVeinParticle)

@@ -339,6 +339,8 @@ public:
 	// smooth operator
 	const char* get_ID() const;
 
+	Point2D GetScreenLocation() const;
+
 //Constructor NEVER CALL IT DIRECTLY
 	ObjectClass()  noexcept
 		: ObjectClass(noinit_t())

@@ -505,6 +505,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
 	this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerzerk");
 	this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
+	this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
+	this->TargetLaser_Time.Read(exINI, pSection, "TargetLaser.Time");
+	this->TargetLaser_WeaponIdx.Read(exINI, pSection, "TargetLaser.WeaponIndexes");
 	this->AdjustCrushProperties();
 
 #pragma endregion
@@ -737,8 +740,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
 	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
 	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
+	//No code
 	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
-
+	this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 	this->MyDiveData.Read(exINI, pSection);
@@ -1169,6 +1173,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CivilianEnemy)
 		.Process(this->ImmuneToBerserk)
 		.Process(this->Berzerk_Modifier)
+		.Process(this->IgnoreToProtect)
+		.Process(this->TargetLaser_Time)
+		.Process(this->TargetLaser_WeaponIdx)
+		.Process(this->CurleyShuffle)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

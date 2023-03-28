@@ -286,6 +286,23 @@ struct Drawing
 	{
 		JMP_STD(0x7049C0);
 	}
+
+	static void DrawSquare(Point2D center, double range, COLORREF nColor)
+	{
+		int semiWidth = static_cast<int>(range * Unsorted::CellWidthInPixels);
+		int semiHeight = static_cast<int>(range * Unsorted::CellHeightInPixels);
+
+		Point2D points[4] = {
+			center + Point2D{ semiWidth, 0 },
+			center + Point2D{ 0, semiHeight },
+			center + Point2D{ -semiWidth, 0 },
+			center + Point2D{ 0, -semiHeight }
+		};
+
+		for (int i = 0; i < 4; i++) {
+			DSurface::Composite->Draw_Line_Rect(DSurface::ViewBounds(), points[i], points[(i + 1) % 4], nColor);
+		}
+	}
 };
 
 struct BufferData

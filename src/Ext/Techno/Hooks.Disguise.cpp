@@ -131,12 +131,13 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 	auto const& [pType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
 	LightConvertClass* pConvert = nullptr;
-	const int nColorIdx = pOwner ? pOwner->ColorSchemeIndex : 0;
 
-	if (pType->Palette && pType->Palette->Count > 0)
-		pConvert = pType->Palette->GetItem(nColorIdx)->LightConvert;
-	else
-		pConvert = ColorScheme::Array->GetItem(nColorIdx)->LightConvert;
+	if(pOwner) {
+		if (pType->Palette && pType->Palette->Count > 0)
+			pConvert = pType->Palette->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+		else
+			pConvert = ColorScheme::Array->GetItem(pOwner->ColorSchemeIndex)->LightConvert;
+	}
 
 	R->EBX(pConvert);
 

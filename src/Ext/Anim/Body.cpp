@@ -227,7 +227,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		} else {
 
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
+			//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
 		}
 	}
 

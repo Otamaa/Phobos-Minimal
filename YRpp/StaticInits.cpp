@@ -70,9 +70,20 @@ void SlaveManagerClass::ZeroOutSlaves() {
 
 const char* ObjectClass::get_ID() const
 {
-	auto const pType = this->GetType();
+	const auto pType = this->GetType();
 	return pType ? pType->get_ID() : GameStrings::NoneStr();
 }
+
+Point2D ObjectClass::GetScreenLocation() const
+{
+	CoordStruct crdAbsolute = this->GetCoords();
+	Point2D  posScreen = { 0,0 };
+	TacticalClass::Instance->CoordsToScreen(&posScreen, &crdAbsolute);
+	posScreen -= TacticalClass::Instance->TacticalPos;
+
+	return posScreen;
+}
+
 bool ObjectClass::IsOnMyView() const
 {
 	auto const coords = this->GetCoords();
@@ -239,9 +250,10 @@ CellStruct FootClass::GetRandomDirection(FootClass* pFoot)
 {
 	CellStruct nRet = CellStruct::Empty;
 
-	if (auto pCell = MapClass::Instance->GetCellAt(pFoot->GetCoords()))
-	{
-		int rnd = ScenarioClass::Instance->Random.RandomRanged(0, 7);
+	if (auto pCell = MapClass::Instance->GetCellAt(pFoot->GetCoords())) {
+
+		const int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
+
 		for (int j = 0; j < 8; ++j)
 		{
 			// get the direction in an overly verbose way
@@ -1213,4 +1225,37 @@ HouseClass* HouseClass::FindSpecial()
 HouseClass* HouseClass::FindCivilianSide()
 {
 	return FindBySideName(GameStrings::Civilian());
+}
+
+constexpr unsigned int Neighbours[]
+= {
+	9, 0, 2, 0, 0,
+	0, 7, 0, 0, 0,
+	1, 0, 0, 0, 4,
+	0, 0, 3, 0, 0,
+	0, 0, 5, 0, 0,
+	0, 6, 0, 0, 0
+};
+
+void TechnoClass::SpillTiberium(int& value, CellClass* pCenter, Point2D const& nMinMax) const
+{
+	if (!pCenter)
+		return;
+
+	for (auto const& neighbour : Neighbours) {
+		// spill random amount
+		const int amount = ScenarioClass::Instance->Random.RandomRanged(nMinMax.X , nMinMax.Y);
+		CellClass* pCell = pCenter->GetNeighbourCell(neighbour);
+		
+		if (!pCell)
+			continue;
+
+		pCell->IncreaseTiberium(0, amount);
+		value -= amount;
+
+		// stop if value is reached
+		if (value <= 0) {
+			break;
+		}
+	}
 }

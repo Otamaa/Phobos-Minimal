@@ -23,20 +23,14 @@ public:
 
 	static int FindOrAllocateIndex(const char* Title)
 	{
-		if (!Title || !strlen(Title))
-			return -1;
+		const auto nResult = FindIndexById(Title);
 
-		const auto result = std::find_if(Array.begin(), Array.end(),
-		[Title](std::unique_ptr<T>& Item) {
-			return _strcmpi(Item->Name.data(), Title) == 0;
-		});
- 
-		if (result == Array.end()) {
-			Array.push_back(std::make_unique<T>(Title));
+		if (nResult < 0) {
+			Array.push_back(std::move(std::make_unique<T>(Title)));
 			return Array.size() - 1;
 		}
 
-		return std::distance(Array.begin(), result);
+		return nResult;
 	}
 
 	static int FindIndexById(const char* Title)
@@ -44,33 +38,41 @@ public:
 		if (!Title || !strlen(Title))
 			return -1;
 
-		const auto result = std::find_if(Array.begin(), Array.end(), 
+		const auto nResult = std::find_if(Array.begin(), Array.end(),
 			[Title](std::unique_ptr<T>& Item) {
 				return _strcmpi(Item->Name.data(), Title) == 0;
 			});
 
-		if (result == Array.end())
+		if (nResult == Array.end())
 			return -1;
 
-		return std::distance(Array.begin(), result);
-	}
-
-	static int FindIndexFromType(T* pType)
-	{
-		return (pType) ? FindIndexById(pType->Name.data()) : -1;
+		return std::distance(Array.begin(), nResult);
 	}
 
 	static T* Find(const char* Title)
 	{
-		int result = FindIndexById(Title);
-		result = result > (int)Array.size() ? (Array.empty() ? -1 : 0) : result;
-		return (result < 0) ? nullptr : Array[static_cast<size_t>(result)].get();
+		const auto nResult = FindIndexById(Title);
+
+		if (nResult < 0)
+			return nullptr;
+
+		return Array[nResult].get();
+	}
+
+	static int FindIndexFromType(T* pType)
+	{
+		const auto result = std::find_if(Array.begin(), Array.end(), 
+			[Title](std::unique_ptr<T>& Item) {
+				return tem.get() == pType;
+			});
+
+		return result == Array.end() ?
+			-1 : std::distance(Array.begin(), result);
 	}
 
 	static T* FindFromIndex(int Idx)
 	{
-		Idx = Idx > (int)Array.size() ? (Array.empty() ? -1 : 0) : Idx;
-		return ((Idx < 0)) ? nullptr : Array[static_cast<size_t>(Idx)].get();
+		return Array[static_cast<size_t>(Idx)].get();
 	}
 
 	static T* FindFromIndexFix(int Idx) {
@@ -83,13 +85,12 @@ public:
 		if (!Title || !strlen(Title))
 			return nullptr;
 
-		Array.push_back(std::make_unique<T>(Title));
+		Array.push_back(std::move(std::make_unique<T>(Title)));
 		return Array.back().get();
 	}
 
 	static T* FindOrAllocate(const char* Title)
 	{
-
 		if (T* find = Find(Title))
 			return find;
 		 
@@ -99,7 +100,6 @@ public:
 	static void Clear()
 	{
 		//Debug::Log("%s Clearing Array Count [%d] ! \n", typeid(T).name(), Array.size());
-
 		Array.clear();
 	}
 
@@ -144,7 +144,8 @@ public:
 		size_t Count = 0;
 		if (!Stm.Load(Count))
 			return false;
-
+		
+		Array.reserve(Count);
 
 		for (size_t i = 0; i < Count; ++i) {
 			void* oldPtr = nullptr;

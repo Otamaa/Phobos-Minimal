@@ -5,6 +5,8 @@ class DECLSPEC_UUID("4A582742-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	HoverLocomotionClass : public LocomotionClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7EADC8;
+	static constexpr inline DWORD ILoco_vtable = 0x7EACFC;
 
 	//Destructor
 	virtual ~HoverLocomotionClass() RX;

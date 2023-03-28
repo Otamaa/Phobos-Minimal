@@ -107,6 +107,7 @@ public:
 		Valueable<double> NewTeamsSelector_NavalCategoryPercentage;
 		Valueable<double> NewTeamsSelector_AirCategoryPercentage;
 
+		Valueable<bool> IC_Flash;
 	#pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -212,6 +213,8 @@ public:
 			, NewTeamsSelector_GroundCategoryPercentage { 0.25 }
 			, NewTeamsSelector_NavalCategoryPercentage { 0.25 }
 			, NewTeamsSelector_AirCategoryPercentage { 0.25 }
+			
+			, IC_Flash { true }
 
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }

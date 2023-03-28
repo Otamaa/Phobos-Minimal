@@ -45,22 +45,7 @@ TechnoExt::ExtContainer TechnoExt::ExtMap;
 
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CullingImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CullingImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CullingImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::CullingImmune);
 }
 
 bool TechnoExt::IsEMPImmune(TechnoClass* pThis)
@@ -70,22 +55,7 @@ bool TechnoExt::IsEMPImmune(TechnoClass* pThis)
 	if (pTypeExt->ImmuneToEMP)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::EmpImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::EmpImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::EmpImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::EmpImmune);
 }
 
 bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
@@ -95,21 +65,7 @@ bool TechnoExt::IsPsionicsImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPsionics)
 		return true;
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::PsionicsImmune);
 }
 
 bool TechnoExt::IsCritImmune(TechnoClass* pThis)
@@ -119,20 +75,7 @@ bool TechnoExt::IsCritImmune(TechnoClass* pThis)
 	if (pTypeExt->ImmuneToCrit)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::CritImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CritImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::CritImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::CritImmune);
 }
 
 bool TechnoExt::ExtData::IsInterceptor()
@@ -143,20 +86,7 @@ bool TechnoExt::ExtData::IsInterceptor()
 	if (pTypeExt->Interceptor)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::Interceptor) 
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::Interceptor))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::Interceptor))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::Interceptor);
 }
 
 bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
@@ -180,20 +110,7 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 	if (pTypeExt->ChronoDelay_Immune.Get())
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::ChronoDelayDamageImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::ChronoDelayDamageImmune);
 }
 
 bool TechnoExt::IsRadImmune(TechnoClass* pThis)
@@ -202,21 +119,7 @@ bool TechnoExt::IsRadImmune(TechnoClass* pThis)
 	if (pType->ImmuneToRadiation)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (rank == Rank::Elite) {
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::RadImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::RadImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran) {
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::RadImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::RadImmune);
 }
 
 bool TechnoExt::IsPsionicsWeaponImmune(TechnoClass* pThis)
@@ -225,23 +128,7 @@ bool TechnoExt::IsPsionicsWeaponImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPsionicWeapons)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PsionicsWeaponImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::PsionicsWeaponImmune);
 }
 
 bool TechnoExt::IsPoisonImmune(TechnoClass* pThis)
@@ -250,29 +137,12 @@ bool TechnoExt::IsPoisonImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPoison)
 		return true;
 
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::PoisonImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PoisonImmune))
-			return true;
-	}
-
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::PoisonImmune))
-			return true;
-	}
-
-	return false;
+	return HasAbility(pThis, PhobosAbilityType::PoisonImmune);
 }
 
 bool TechnoExt::IsBerserkImmune(TechnoClass* pThis)
 {
 	auto const pType = pThis->GetTechnoType();
-	auto const rank = pThis->Veterancy.GetRemainingLevel();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (pTypeExt->ImmuneToBerserk.Get())
@@ -284,17 +154,25 @@ bool TechnoExt::IsBerserkImmune(TechnoClass* pThis)
 	if (pShield && pShield->IsActive() && pExt->CurrentShieldType->ImmuneToPsychedelic)
 		return true;
 
-	if (rank == Rank::Elite)
-	{
-		if (pTypeExt->Phobos_EliteAbilities.at((int)PhobosAbilityType::BerzerkImmune)
-			|| pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::BerzerkImmune))
-			return true;
+	return HasAbility(pThis , PhobosAbilityType::BerzerkImmune);
+}
+
+bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
+{
+	const bool IsVet = pThis->Veterancy.IsVeteran();
+	const bool IsElite = pThis->Veterancy.IsElite();
+
+	if (!IsVet && !IsElite){
+		return false;
 	}
 
-	if (rank == Rank::Veteran)
-	{
-		if (pTypeExt->Phobos_VeteranAbilities.at((int)PhobosAbilityType::BerzerkImmune))
-			return true;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (IsVet) {
+		return pTypeExt->Phobos_VeteranAbilities.at((int)nType);
+	}
+	else if (IsElite) {
+		return  pTypeExt->Phobos_VeteranAbilities.at((int)nType) || pTypeExt->Phobos_EliteAbilities.at((int)nType);
 	}
 
 	return false;
@@ -929,18 +807,13 @@ double TechnoExt::GetDamageMult(TechnoClass* pSouce, bool ForceDisable)
 		return 1.0;
 
 	const auto pType = pSouce->GetTechnoType();
-	bool firepower = false;
 
 	if (!pType)
 		return 1.0;
 
-	if (pSouce->Veterancy.IsElite()) {
-		firepower = pType->VeteranAbilities.FIREPOWER || pType->EliteAbilities.FIREPOWER;
-	} else if (pSouce->Veterancy.IsVeteran()) {
-		firepower = pType->VeteranAbilities.FIREPOWER;
-	}
+	const bool firepower = pSouce->HasAbility(AbilityType::Firepower);
 
-	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat) 
+	return (!firepower ? 1.0 : RulesClass::Instance->VeteranCombat)
 		*pSouce->FirepowerMultiplier* 
 		((!pSouce->Owner || !pSouce->Owner->Type) ? 1.0 : 
 		pSouce->Owner->Type->FirepowerMult)
@@ -1098,8 +971,6 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	CellStruct placeCoords = CellStruct::Empty;
 	auto pTypePassenger = pPassenger->GetTechnoType();
 	CoordStruct finalLocation = CoordStruct::Empty;
-	//short extraDistanceX = 1;
-	//short extraDistanceY = 1;
 	SpeedType speedType = SpeedType::Track;
 	MovementZone movementZone = MovementZone::Normal;
 
@@ -1118,18 +989,6 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
 			break;
 	}
-
-	/*
-	do
-	{
-		placeCoords = pThis->GetCell()->MapCoords - CellStruct { (short)(extraDistanceX / 2), (short)(extraDistanceY / 2) };
-		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, extraDistanceX, extraDistanceY, true, false, false, false, CellStruct::Empty, false, false);
-		pCell = MapClass::Instance->GetCellAt(placeCoords);
-		extraDistanceX += 1;
-		extraDistanceY += 1;
-	}
-	while (extraDistanceX < maxAttempts && (pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) != Move::OK) && pCell->MapCoords != CellStruct::Empty);
-	*/
 
 	pCell = MapClass::Instance->TryGetCellAt(placeCoords);
 
@@ -1785,12 +1644,7 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 
 double TechnoExt::GetROFMult(TechnoClass const* pTech)
 {
-	auto const pType = pTech->GetTechnoType();
-	bool rofAbility = false;
-	if (pTech->Veterancy.IsElite())
-		rofAbility = pType->VeteranAbilities.ROF || pTech->GetTechnoType()->EliteAbilities.ROF;
-	else if (pTech->Veterancy.IsVeteran())
-		rofAbility = pType->VeteranAbilities.ROF;
+	const bool rofAbility = pTech->HasAbility(AbilityType::ROF);
 
 	return !rofAbility ? 1.0 :
 		RulesClass::Instance->VeteranROF * ((!pTech->Owner || !pTech->Owner->Type) ?
@@ -3057,7 +2911,9 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 	if (!pThis->IsAlive)
 		return true;
 
-	if (pThis->WhatAmI() != AbstractType::Infantry)
+	const auto pAddr = (((DWORD*)pThis)[0]);
+
+	if (pAddr != InfantryClass::vtable)
 		return false;
 
 	const auto pInf = static_cast<InfantryClass*>(pThis);
@@ -3067,13 +2923,13 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
-	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() || pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide))
-	{
-		KillMethod nMethod = pTypeExt->Death_Method.Get();
-		const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
+	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() 
+		|| pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)) {
+
+		const KillMethod nMethod = pTypeExt->Death_Method.Get();
 
 		if (nMethod != KillMethod::None)
-			TechnoExt::KillSelf(pInf, nMethod, pVanishAnim);
+			TechnoExt::KillSelf(pInf, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	}
 
 	return true;
@@ -3338,6 +3194,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->SkipLowDamageCheck)
 		.Process(this->AttachedAnim)
 		.Process(this->KillActionCalled)
+		.Process(this->ToProtectDelay)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)

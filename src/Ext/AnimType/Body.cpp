@@ -43,6 +43,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->CreateUnit_ConsiderPathfinding.Read(exINI, pID, "CreateUnit.ConsiderPathfinding");
 	this->CreateUnit_SpawnAnim.Read(exINI, pID, "CreateUnit.SpawnAnim");
 	this->CreateUnit_AlwaysSpawnOnGround.Read(exINI, pID, "CreateUnit.AlwaysSpawnOnGround");
+	this->CreateUnit_KeepOwnerIfDefeated.Read(exINI, pID, "CreateUnit.KeepOwnerIfDefeated");
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
@@ -157,6 +158,15 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 	}
 }
 
+HouseClass* GetOwnerForSpawned(AnimClass* pThis)
+{
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	if(!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
+		return HouseExt::FindCivilianSide();
+
+	return pThis->Owner;
+}
+
 void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 {
 	if (!pThis->Type)
@@ -166,8 +176,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 	if (const auto unit = pTypeExt->CreateUnit.Get())
 	{
-		HouseClass* decidedOwner = (pThis->Owner)
-			? pThis->Owner : HouseExt::FindCivilianSide();
+		HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
 
 		//if (!AnimExt::ExtMap.Find(pThis)->OwnerSet)
 		//	decidedOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, nullptr, decidedOwner, nullptr);
@@ -336,6 +345,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CreateUnit_ConsiderPathfinding)
 		.Process(this->CreateUnit_SpawnAnim)
 		.Process(this->CreateUnit_AlwaysSpawnOnGround)
+		.Process(this->CreateUnit_KeepOwnerIfDefeated)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)

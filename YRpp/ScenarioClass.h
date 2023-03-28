@@ -188,7 +188,10 @@ private:
 
 public:
 	//Properties
-	ScenarioFlags SpecialFlags;
+	union {
+		ScenarioFlags StructEd;
+		DWORD RawFlags;
+	}SpecialFlags;
 	char NextScenario [0x104];
 	char AltNextScenario [0x104];
 	int HomeCell; //CellStruct?

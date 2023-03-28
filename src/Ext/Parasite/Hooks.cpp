@@ -178,7 +178,6 @@ DEFINE_HOOK(0x629B3F, ParasiteClass_SquiddyGrab_DeharcodeSplash, 0x5) // 7
 	{
 		if (auto const pSplashType = AnimType[ScenarioClass::Instance->Random.RandomFromMax(AnimType.size() - 1)])
 		{
-
 			if (auto pAnim = GameCreate<AnimClass>(pSplashType, nCoord))
 			{
 				auto const Invoker = (pThis->Owner) ? pThis->Owner->GetOwningHouse() : nullptr;
@@ -223,7 +222,7 @@ DEFINE_HOOK(0x629E90, FootClass_WakeAnim_OnlyWater, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	return MapClass::Instance->GetCellAt(pThis->GetMapCoords())->Tile_Is_Water() ? 0x0 : 0x629FC6;
+	return pThis->GetCell()->Tile_Is_Water() ? 0x0 : 0x629FC6;
 }
 
 //#include <DriveLocomotionClass.h>
