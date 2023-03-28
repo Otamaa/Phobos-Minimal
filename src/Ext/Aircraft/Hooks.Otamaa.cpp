@@ -158,7 +158,7 @@ DEFINE_HOOK(0x4183C3, AircraftClass_CurleyShuffle_A, 0x6)
 DEFINE_HOOK(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
+	GET(RulesClass*, pRules, EDX);
 	R->AL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x418677;
 }
@@ -166,7 +166,7 @@ DEFINE_HOOK(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
 DEFINE_HOOK(0x418733, AircraftClass_CurleyShuffle_C, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
+	GET(RulesClass*, pRules, EAX);
 	R->CL(TechnoTypeExt::ExtMap.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
 	return 0x418739;
 }

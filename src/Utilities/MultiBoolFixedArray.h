@@ -45,8 +45,9 @@ struct MultiBoolFixedArray
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		for (int i = 0; i < Amount; ++i)
-		{
+		Reset();
+
+		for (int i = 0; i < Amount; ++i) {
 			if (!Savegame::ReadPhobosStream(Stm, this->Datas[i]))
 				return false;
 		}
@@ -56,8 +57,7 @@ struct MultiBoolFixedArray
 
 	inline bool Save(PhobosStreamWriter& Stm) const
 	{
-		for (auto nData : this->Datas)
-		{
+		for (auto nData : this->Datas) {
 			if (!Savegame::WritePhobosStream(Stm, nData))
 				return false;
 		}
@@ -69,6 +69,7 @@ struct MultiBoolFixedArray
 	{
 		std::memset(Datas, 0, sizeof(Datas));
 	}
+
 protected:
 	bool Datas[Amount] { false };
 };
