@@ -398,7 +398,7 @@ DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 		NeedUpdate = true;
 	}
 
-	if (pThis->WhatAmI() == AbstractType::Building && NeedUpdate)
+	if (Is_Building(pThis) && NeedUpdate)
 		BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 
 	return 0;

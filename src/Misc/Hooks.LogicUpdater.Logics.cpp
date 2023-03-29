@@ -64,7 +64,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 #ifdef COMPILE_PORTED_DP_FEATURES
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 #endif
-	if (pThis->WhatAmI() != AbstractType::Building)
+	if (!Is_Building(pThis))
 	{
 		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());

@@ -120,6 +120,10 @@ static	void __fastcall _Log_Disable_These(const char* pFormat, ...) {
 // ToDO : Make Optional
 DEFINE_JUMP(CALL,0x40A55D, GET_OFFSET(_Log_Disable_These));
 DEFINE_JUMP(CALL,0x40A5BC, GET_OFFSET(_Log_Disable_These));
+DEFINE_HOOK(0x40A5B4, AudioDriverStar_AnnoyingBufferLogDisable, 0x6)
+{
+	GET(AudioDriverChannelTag*, pChan, EBX);
+}
 DEFINE_JUMP(CALL,0x4431D8, GET_OFFSET(_Log_Disable_These)); //Survivor unlimbo OK Log
 #endif
 

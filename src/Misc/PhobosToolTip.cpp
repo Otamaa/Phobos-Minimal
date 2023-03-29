@@ -58,21 +58,21 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	static char BuildTimeDatas[0x720]; // Just big enough to hold all types
 	//std::memset(&BuildTimeDatas, 0, sizeof(BuildTimeDatas));
 
-	switch (pType->WhatAmI())
+	switch (GetVtableAddr(pType))
 	{
-	case AbstractType::BuildingType:
+	case BuildingTypeClass::vtable:
 		*reinterpret_cast<int*>(BuildTimeDatas) = BuildingClass::vtable;
 		reinterpret_cast<BuildingClass*>(BuildTimeDatas)->Type = (BuildingTypeClass*)pType;
 		break;
-	case AbstractType::AircraftType:
+	case AircraftTypeClass::vtable:
 		*reinterpret_cast<int*>(BuildTimeDatas) = AircraftClass::vtable;
 		reinterpret_cast<AircraftClass*>(BuildTimeDatas)->Type = (AircraftTypeClass*)pType;
 		break;
-	case AbstractType::InfantryType:
+	case InfantryTypeClass::vtable:
 		*reinterpret_cast<int*>(BuildTimeDatas) = InfantryClass::vtable;
 		reinterpret_cast<InfantryClass*>(BuildTimeDatas)->Type = (InfantryTypeClass*)pType;
 		break;
-	case AbstractType::UnitType:
+	case UnitTypeClass::vtable:
 		*reinterpret_cast<int*>(BuildTimeDatas) = UnitClass::vtable;
 		reinterpret_cast<UnitClass*>(BuildTimeDatas)->Type = (UnitTypeClass*)pType;
 		break;

@@ -46,10 +46,9 @@ void BombExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 
 bool BombExt::ExtContainer::InvalidateExtDataIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch ((((DWORD*)ptr)[0]))
 	{
-	case AbstractType::Bomb:
+	case BombClass::vtable:
 		return false;
 	}
 

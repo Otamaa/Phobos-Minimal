@@ -14,6 +14,7 @@ class DECLSPEC_UUID("6F9C48F0-1207-11D2-8174-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::LightSource;
+	static constexpr inline DWORD vtable = 0x7ED028;
 
 	static constexpr reference<DynamicVectorClass<LightSourceClass*>, 0xABCA10u> const Array {};
 	static constexpr reference<DynamicVectorClass<PendingCellClass*>, 0xABCA40u> const Unknown_0xABCA40 {};

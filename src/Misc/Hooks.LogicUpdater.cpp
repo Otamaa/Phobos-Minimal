@@ -35,18 +35,8 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (!pThis)
+	if (!pThis || !Is_Techno(pThis))
 		return 0x0;
-
-	const auto pAddr = (((DWORD*)pThis)[0]);
-	if (pAddr != UnitClass::vtable
-		&& pAddr != AircraftClass::vtable
-		&& pAddr != InfantryClass::vtable
-		&& pAddr != BuildingClass::vtable)
-	{
-		Debug::Log("Phobos_TechnoClass_AI_Called with broken TechnoClass pointer ! returning \n");
-		return 0x0;
-	}
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
@@ -54,7 +44,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	if (pThis->Location == CoordStruct::Empty) {
 
 		bool bRemove = !pType->Spawned;
-		if (pThis->WhatAmI() == AbstractType::Building)
+		if (Is_Building(pThis))
 		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
 			if (pBldExt->LimboID != -1)

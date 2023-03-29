@@ -440,12 +440,12 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 			//no cellspread but it has bullet
 			if (pBullet && pBullet->Target)
 			{
-				switch (pBullet->Target->WhatAmI())
+				switch (GetVtableAddr(pBullet->Target))
 				{
-				case AbstractType::Building:
-				case AbstractType::Aircraft:
-				case AbstractType::Unit:
-				case AbstractType::Infantry:
+				case BuildingClass::vtable:
+				case AircraftClass::vtable:
+				case UnitClass::vtable:
+				case InfantryClass::vtable:
 				{
 					const auto Eligible = [&](TechnoClass* const pTech)
 					{
@@ -463,7 +463,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 						this->TransactOnOneUnit(Eligible(static_cast<TechnoClass*>(pBullet->Target)), pOwner, 1);
 
 				}break;
-				case AbstractType::Cell:
+				case CellClass::vtable:
 				{
 					if (this->Transact)
 						this->TransactOnOneUnit(nullptr, pOwner, 1);

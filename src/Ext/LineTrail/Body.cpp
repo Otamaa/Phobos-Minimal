@@ -52,15 +52,13 @@ bool LineTrailExt::DeallocateLineTrail(BulletClass* pBullet)
 
 bool LineTrailExt::DeallocateLineTrail(ObjectClass* pObject)
 {
-	auto const pWhat = pObject->WhatAmI();
-
-	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit)
+	switch ((((DWORD*)pObject)[0]))
 	{
+	case InfantryClass::vtable:
+	case AircraftClass::vtable:
+	case UnitClass::vtable:
 		return LineTrailExt::DeallocateLineTrail(static_cast<FootClass*>(pObject));
-	}
-
-	if (pWhat == AbstractType::Bullet)
-	{
+	case BulletClass::vtable:
 		return LineTrailExt::DeallocateLineTrail(static_cast<BulletClass*>(pObject));
 	}
 
@@ -69,13 +67,15 @@ bool LineTrailExt::DeallocateLineTrail(ObjectClass* pObject)
 
 void LineTrailExt::DetachLineTrails(ObjectClass* pThis)
 {
-	auto const pWhat = pThis->WhatAmI();
-
-	if (pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft || pWhat == AbstractType::Unit)
+	switch ((((DWORD*)pThis)[0]))
+	{
+	case InfantryClass::vtable:
+	case AircraftClass::vtable:
+	case UnitClass::vtable:
 		LineTrailExt::DeallocateLineTrail(static_cast<FootClass*>(pThis));
-
-	if (pWhat == AbstractType::Bullet)
-		LineTrailExt::DeallocateLineTrail(static_cast<BulletClass*>(pThis));
+	case BulletClass::vtable:
+			LineTrailExt::DeallocateLineTrail(static_cast<BulletClass*>(pThis));
+	}
 
 	if (pThis->LineTrailer)
 	{

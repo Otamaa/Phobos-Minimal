@@ -98,13 +98,13 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
 	TechnoClass* pTechno = pFactory->Object;
 
-	switch (pTechno->WhatAmI())
+	switch ((((DWORD*)pTechno)[0]))
 	{
-	case AbstractType::Building:
+	case BuildingClass::vtable:
 		if (Phobos::Config::ForbidParallelAIQueues_Building)
 			pData->Factory_BuildingType = nullptr;
 		break;
-	case AbstractType::Unit:
+	case UnitClass::vtable:
 		if (!pTechno->GetTechnoType()->Naval)
 		{
 			if (Phobos::Config::ForbidParallelAIQueues_Vehicle)
@@ -116,15 +116,13 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 				pData->Factory_NavyType = nullptr;
 		}
 		break;
-	case AbstractType::Infantry:
+	case InfantryClass::vtable:
 		if (Phobos::Config::ForbidParallelAIQueues_Infantry)
 			pData->Factory_InfantryType = nullptr;
 		break;
-	case AbstractType::Aircraft:
+	case AircraftClass::vtable:
 		if (Phobos::Config::ForbidParallelAIQueues_Aircraft)
 			pData->Factory_AircraftType = nullptr;
-		break;
-	default:
 		break;
 	}
 	}

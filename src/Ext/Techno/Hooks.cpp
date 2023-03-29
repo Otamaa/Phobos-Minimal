@@ -276,7 +276,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot)
 	{
-		if (AresData::CanUseAres && AresData::AresVersionId == 1 && pFoot->WhatAmI() == AbstractType::Unit)
+		if (AresData::CanUseAres && AresData::AresVersionId == 1 && Is_Unit(pFoot))
 		{
 			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
 

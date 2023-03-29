@@ -105,9 +105,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 				pManager->DecideUnitFate(pTarget);
 
-				auto const pWhat = pTarget->WhatAmI();
-				auto const pBld = pWhat == AbstractType::Building ? static_cast<BuildingClass*>(pTarget) : nullptr;
-				auto const pType = pTarget->GetTechnoType();
+				const auto pWhat = (((DWORD*)pTarget)[0]);
+				const auto pBld = pWhat == BuildingClass::vtable ? static_cast<BuildingClass*>(pTarget) : nullptr;
+				const auto pType = pTarget->GetTechnoType();
 				CoordStruct location = pTarget->GetCoords();
 
 				if (pBld)

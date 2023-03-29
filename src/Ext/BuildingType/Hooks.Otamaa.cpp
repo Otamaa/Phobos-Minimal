@@ -195,16 +195,16 @@ DEFINE_HOOK(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 //DEFINE_JUMP(VTABLE, 0x7F4F88, GET_OFFSET(GetRepairCost));
 //DEFINE_JUMP(VTABLE, 0x7F62C8, GET_OFFSET(GetRepairCost));
 
-DEFINE_HOOK(0x464758, BuildingTypeClass_LoadFromINI_PowerUPZAdjust, 0x8) {
-	GET(int, nIndex, EBX);
-	GET(BuildingTypeClass*, pThis, EBP);
+// DEFINE_HOOK(0x464758, BuildingTypeClass_LoadFromINI_PowerUPZAdjust, 0x8) {
+// 	GET(int, nIndex, EBX);
+// 	GET(BuildingTypeClass*, pThis, EBP);
 
-	char flag[0x800];
-	sprintf_s(flag, "PowerUp%01dZAdjust", nIndex);
-	pThis->BuildingAnim[nIndex].ZAdjust = CCINIClass::INI_Art().ReadInteger(pThis->ImageFile, flag, pThis->BuildingAnim[nIndex].ZAdjust);
+// 	char flag[0x800];
+// 	sprintf_s(flag, "PowerUp%01dZAdjust", nIndex);
+// 	pThis->BuildingAnim[nIndex].ZAdjust = CCINIClass::INI_Art().ReadInteger(pThis->ImageFile, flag, pThis->BuildingAnim[nIndex].ZAdjust);
 
-	return 0;
-}
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x706389, TechnoClass_Draw_Object_NormalLight, 0x6) {
 	GET(TechnoClass*, pThis, ESI);

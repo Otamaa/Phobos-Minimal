@@ -12,6 +12,7 @@ class DECLSPEC_UUID("5AF2CE7B-0634-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::TerrainType;
+	static constexpr inline DWORD vtable = 0x7F5458;
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<TerrainTypeClass*>, 0xA8E318u> const Array {};

@@ -66,17 +66,17 @@ bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget 
 	{
 		if (pTechno)
 		{
-			switch (pTechno->WhatAmI())
+			switch (GetVtableAddr(pTechno))
 			{
-			case AbstractType::Infantry:
+			case InfantryClass::vtable:
 				return (allowed & AffectedTarget::Infantry) != AffectedTarget::None;
-			case AbstractType::Unit:
-			case AbstractType::Aircraft:
+			case UnitClass::vtable:
+			case AircraftClass::vtable:
 				if (!considerAircraftSeparately)
 					return (allowed & AffectedTarget::Unit) != AffectedTarget::None;
 				else
 					return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
-			case AbstractType::Building:
+			case BuildingClass::vtable:
 				return (allowed & AffectedTarget::Building) != AffectedTarget::None;
 			}
 		}
@@ -96,20 +96,20 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 	{
 		if (pTechno)
 		{
-			switch (pTechno->WhatAmI())
+			switch (GetVtableAddr(pTechno))
 			{
-			case AbstractType::Infantry:
+			case InfantryClass::vtable:
 				return (allowed & AffectedTarget::Infantry) != AffectedTarget::None;
-			case AbstractType::Unit:
+			case UnitClass::vtable:
 			{
 				if(!pTechno->GetTechnoType()->ConsideredAircraft)
 					return (allowed & AffectedTarget::Unit) != AffectedTarget::None;
 
 				return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
 			}
-			case AbstractType::Aircraft:
+			case AircraftClass::vtable:
 					return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;
-			case AbstractType::Building:
+			case BuildingClass::vtable:
 			{
 				return ((allowed & AffectedTarget::Building) != AffectedTarget::None);
 			}

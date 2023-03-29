@@ -43,6 +43,7 @@ class DECLSPEC_UUID("A8C54DA4-0F7B-11D2-8172-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::WarheadType;
+	static constexpr inline DWORD vtable = 0x7F73B8;
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<WarheadTypeClass*>, 0x8874C0u> const Array {};

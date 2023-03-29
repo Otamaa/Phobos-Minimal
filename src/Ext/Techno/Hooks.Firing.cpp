@@ -169,7 +169,7 @@ DEFINE_HOOK(0x6FF660, TechnoClass_FireAt_Middle, 0x6)
 	GET_BASE(int, weaponIndex, 0xC);
 
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
-	if (pThis->WhatAmI() == AbstractType::Building && pWeaponType->IsLaser)
+	if (Is_Building(pThis) && pWeaponType->IsLaser)
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
@@ -277,7 +277,7 @@ DEFINE_HOOK(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 		}
 	}
 
-	if (result == 0 && pThis->WhatAmI() == AbstractType::Aircraft && pThisType->OpenTopped)
+	if (result == 0 && Is_Aircraft(pThis) && pThisType->OpenTopped)
 	{
 		result = pThisType->GuardRange;
 		if (result == 0)

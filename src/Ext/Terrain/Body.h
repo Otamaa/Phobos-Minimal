@@ -38,11 +38,10 @@ public:
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override {
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+			switch (GetVtableAddr(ptr))
 			{
-			case AbstractType::Anim:
-			case AbstractType::LightSource:
+			case AnimClass::vtable:
+			case LightSourceClass::vtable:
 				return false;
 			}
 

@@ -194,13 +194,13 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 	if (!pVictimTechno)
 		return false;
 
-	auto const pWhatVictim = pVictim->WhatAmI();
+	auto const pWhatVictim = GetVtableAddr(pVictim);
 	auto const pAttackerType = pAttacker->GetTechnoType();
 	auto const pVictimType = pVictim->GetTechnoType();
 
 	if (pAttackerType->OmniCrusher)
 	{
-		if (pWhatVictim == AbstractType::Building || pVictimType->OmniCrushResistant)
+		if (pWhatVictim == BuildingClass::vtable || pVictimType->OmniCrushResistant)
 			return false;
 	}
 	else
@@ -211,7 +211,7 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 
 	auto const pVictimTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pVictimType);
 
-	if (pWhatVictim == AbstractType::Infantry)
+	if (pWhatVictim == InfantryClass::vtable)
 	{
 		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
 		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
@@ -341,7 +341,7 @@ std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarge
 	CellClass* targetCell = nullptr;
 
 	//pTarget nullptr check already done above this hook
-	if (pTarget->WhatAmI() == AbstractType::Cell)
+	if (Is_Cell(pTarget))
 	{
 		return { nullptr , targetCell = static_cast<CellClass*>(pTarget) };
 	}
@@ -442,7 +442,7 @@ bool TechnoExt::InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget)
 
 	if (pTechnoExt->IsInterceptor() && pTechnoTypeExt->Interceptor_OnlyTargetBullet.Get())
 	{
-		if (!pTarget || pTarget->WhatAmI() != AbstractType::Bullet)
+		if (!pTarget || !Is_Bullet(pTarget))
 		{
 			return false;
 		}
@@ -472,8 +472,8 @@ bool TechnoExt::TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWe
 	{
 		const auto pFoot = static_cast<FootClass*>(pTarget);
 
-		if (pFoot->WhatAmI() == AbstractType::Unit)
-		{
+		if (Is_Unit(pFoot)) {
+
 			auto const pUnit = static_cast<UnitClass*>(pTarget);
 			const auto bDriverKilled = AresData::CanUseAres && AresData::AresVersionId == 1 ? (*(bool*)((char*)pUnit->align_154 + 0x9C)) : false;
 			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
@@ -602,7 +602,7 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, co
 	if (!pThis || !pTarget)
 		return false;
 
-	if (pThis->WhatAmI() == AbstractType::Aircraft)
+	if (Is_Aircraft(pThis))
 		return true;
 
 	const auto pThisType = pThis->GetTechnoType();
@@ -974,7 +974,7 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	SpeedType speedType = SpeedType::Track;
 	MovementZone movementZone = MovementZone::Normal;
 
-	if (pTypePassenger->WhatAmI() != AbstractType::AircraftType)
+	if (!Is_AircraftType(pTypePassenger))
 	{
 		speedType = pTypePassenger->SpeedType;
 		movementZone = pTypePassenger->MovementZone;
@@ -1170,7 +1170,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	{
 		auto const& nOffs = pExt->InsigniaDrawOffset.Get();
 		offset.X += (5 + nOffs.X);
-		offset.Y += (pThis->WhatAmI() != AbstractType::Infantry ? 4 : 2 + nOffs.Y);
+		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + nOffs.Y);
 
 		DSurface::Temp->DrawSHP(
 			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2 + nOffs.Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
@@ -1320,7 +1320,7 @@ bool TechnoExt::IsAlive(TechnoClass* pThis, bool bIgnoreLimbo, bool bIgnoreIsOnM
 	if (pThis->IsCrashing || pThis->IsSinking)
 		return false;
 
-	if (pThis->WhatAmI() == AbstractType::Unit)
+	if (Is_Unit(pThis))
 		return (static_cast<UnitClass*>(pThis)->DeathFrameCounter > 0) ? false : true;
 
 	return pThis->IsAlive && pThis->Health > 0;
@@ -1417,12 +1417,12 @@ void TechnoExt::ExtData::UpdateInterceptor()
 	if (!this->IsInterceptor() || pThis->Target)
 		return;
 
-	if ((pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir()))
+	if ((Is_Aircraft(pThis) && !pThis->IsInAir()))
 		return;
 
 	if (auto const pTransport = pThis->Transporter)
 	{
-		if (pTransport->WhatAmI() == AbstractType::Aircraft)
+		if (Is_Aircraft(pTransport))
 			if (!pTransport->IsInAir())
 				return;
 
@@ -1531,7 +1531,7 @@ bool TechnoExt::IsHarvesting(TechnoClass* pThis)
 	if (slave && slave->State != SlaveManagerStatus::Ready)
 		return true;
 
-	if (pThis->WhatAmI() == AbstractType::Building && pThis->IsPowerOnline())
+	if (Is_Building(pThis) && pThis->IsPowerOnline())
 		return true;
 
 	const auto mission = pThis->GetCurrentMission();
@@ -1559,7 +1559,7 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 {
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-	if (pThis->WhatAmI() == AbstractType::Building || pThis->GetTechnoType()->Invisible)
+	if (Is_Building(pThis) || pThis->GetTechnoType()->Invisible)
 		return;
 
 	if (bIsconverted)
@@ -1930,7 +1930,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
 
-	auto const pWhat = pThis->WhatAmI();
+	auto const pWhat = GetVtableAddr(pThis);
 	KillMethod nOpt = deathOption;
 	if (deathOption == KillMethod::Random)
 	{
@@ -1976,7 +1976,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	}break;
 	case KillMethod::Sell:
 	{
-		if (pWhat == AbstractType::Building)
+		if (pWhat == BuildingClass::vtable)
 		{
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
@@ -1990,7 +1990,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		{
 			const auto pFoot = static_cast<FootClass*>(pThis);
 
-			if (pWhat != AbstractType::Infantry && pFoot->CurrentMission != Mission::Unload)
+			if (pWhat != InfantryClass::vtable && pFoot->CurrentMission != Mission::Unload)
 			{
 				if (auto const pCell = MapClass::Instance->GetCellAt(pFoot->GetMapCoords()))
 				{
@@ -2115,9 +2115,9 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (pThis->Health && healthDeficit > 0)
 	{
-		const auto pWhat = pThis->WhatAmI();
-		const bool isBuilding = pWhat == AbstractType::Building;
-		const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
+		const auto pWhat = GetVtableAddr(pThis);
+		const bool isBuilding = pWhat == BuildingClass::vtable;
+		const bool isOrganic = pWhat == InfantryClass::vtable || (pWhat == UnitClass::vtable && pType->Organic);
 		const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
 		bool applyHeal = false;
 		int amount = 0;
@@ -2180,7 +2180,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 					pBuilding->ToggleDamagedAnims(false);
 				}
 
-				if (pWhat == AbstractType::Unit || pWhat == AbstractType::Building)
+				if (pWhat == UnitClass::vtable || pWhat == BuildingClass::vtable)
 				{
 					if (auto& dmgParticle = pThis->DamageParticleSystem)
 					{
@@ -2240,11 +2240,11 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::None)
 		return;
 
-	auto const pWhat = pThis->WhatAmI();
+	auto const pWhat = GetVtableAddr(pThis);
 	const bool hasInfantrySelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Infantry;
 	const bool hasUnitSelfHeal = nSelfHealType.isset() && nSelfHealType.Get() == SelfHealGainType::Units;
-	const bool isOrganic = pWhat == AbstractType::Infantry || (pThis->GetTechnoType()->Organic && (pWhat == AbstractType::Unit));
-	//bool isAircraft = pThis->WhatAmI() == AbstractType::Aircraft || (pThis->GetTechnoType()->ConsideredAircraft && pThis->WhatAmI() == AbstractType::Unit);
+	const bool isOrganic = pWhat == InfantryClass::vtable 
+	|| (pThis->GetTechnoType()->Organic && (pWhat == UnitClass::vtable));
 
 	if (pThis->Owner->InfantrySelfHeal > 0 && (hasInfantrySelfHeal || isOrganic))
 	{
@@ -2253,7 +2253,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 		isInfantryHeal = true;
 	}
 	else if (pThis->Owner->UnitsSelfHeal > 0
-		&& (hasUnitSelfHeal || (pWhat == AbstractType::Unit && !isOrganic)))
+		&& (hasUnitSelfHeal || (pWhat == UnitClass::vtable && !isOrganic)))
 	{
 		drawPip = true;
 		selfHealFrames = RulesClass::Instance->SelfHealUnitFrames;
@@ -2276,8 +2276,8 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 
 		switch (pWhat)
 		{
-		case AbstractType::Unit:
-		case AbstractType::Aircraft:
+		case UnitClass::vtable:
+		case AircraftClass::vtable:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Units_Offset.Get();
 			pipFrames = RulesExt::Global()->Pips_SelfHeal_Units.Get();
@@ -2285,7 +2285,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			yOffset = offset.Y + nBracket;
 		}
 		break;
-		case AbstractType::Infantry:
+		case InfantryClass::vtable:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Infantry_Offset.Get();
 			pipFrames = RulesExt::Global()->Pips_SelfHeal_Infantry.Get();
@@ -2293,7 +2293,7 @@ void TechnoExt::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rectang
 			yOffset = offset.Y + nBracket;
 		}
 		break;
-		case AbstractType::Building:
+		case BuildingClass::vtable:
 		{
 			const auto pType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
 			int fHeight = pType->GetFoundationHeight(false);
@@ -2414,15 +2414,15 @@ double TechnoExt::GetCurrentSpeedMultiplier(FootClass* pThis)
 {
 	double houseMultiplier = 1.0;
 
-	switch (pThis->WhatAmI())
+	switch (GetVtableAddr(pThis))
 	{
-	case AbstractType::Aircraft:
+	case AircraftClass::vtable:
 		houseMultiplier = pThis->Owner->Type->SpeedAircraftMult;
 		break;
-	case AbstractType::Infantry:
+	case InfantryClass::vtable:
 		houseMultiplier = pThis->Owner->Type->SpeedInfantryMult;
 		break;
-	case AbstractType::Unit:
+	case UnitClass::vtable:
 		houseMultiplier = pThis->Owner->Type->SpeedUnitsMult;
 		break;
 	}
@@ -2563,7 +2563,7 @@ std::pair<WeaponTypeClass*, int> TechnoExt::GetDeployFireWeapon(TechnoClass* pTh
 	auto const pType = pThis->GetTechnoType();
 	int weaponIndex = pType->DeployFireWeapon;
 
-	if (pThis->WhatAmI() == AbstractType::Unit)
+	if (Is_Unit(pThis))
 	{
 		if (auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType))
 		{
@@ -2630,7 +2630,7 @@ void TechnoExt::ExtData::UpdateBuildingLightning()
 {
 	auto const pThis = this->Get();
 
-	if (pThis->WhatAmI() != AbstractType::Building)
+	if (!Is_Building(pThis))
 		return;
 
 	auto pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
@@ -2811,7 +2811,7 @@ void TechnoExt::ExtData::UpdateLaserTrails()
 		if (!IsInTunnel)
 			trail->Visible = true;
 
-		if (pThis->WhatAmI() == AbstractType::Aircraft && !pThis->IsInAir() && trail->LastLocation.isset())
+		if (Is_Aircraft(pThis) && !pThis->IsInAir() && trail->LastLocation.isset())
 			trail->LastLocation.clear();
 
 		CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret);
@@ -2890,7 +2890,7 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 				}
 			}
 
-			if (pThis->WhatAmI() == AbstractType::Unit && pThis->IsAlive && pThis->IsVoxel())
+			if (Is_Unit(pThis) && pThis->IsAlive && pThis->IsVoxel())
 			{
 				double const nBase = ScenarioClass::Instance->Random.RandomBool() ? 0.015 : 0.029999999;
 				double const nCopied_base = (ScenarioClass::Instance->Random.RandomFromMax(100) < 50) ? -nBase : nBase;
@@ -3009,7 +3009,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 
 bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 {
-	if (pThis->WhatAmI() != AbstractType::Unit || pThis->IsInAir())
+	if (!Is_Unit(pThis) || pThis->IsInAir())
 		return false;
 
 	auto const pContact = pThis->GetNthLink();
@@ -3228,14 +3228,13 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 
 bool TechnoExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch (GetVtableAddr(ptr))
 	{
-	case AbstractType::House:
-	case AbstractType::Building:
-	case AbstractType::Aircraft:
-	case AbstractType::Unit:
-	case AbstractType::Infantry:
+	case HouseClass::vtable:
+	case BuildingClass::vtable:
+	case AircraftClass::vtable:
+	case UnitClass::vtable:
+	case InfantryClass::vtable:
 		return false;
 	}
 

@@ -204,10 +204,10 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 	if (!pThis || pThis->IsFallingDown)
 		return 0x0;
 
-	if (pThis->WhatAmI() == AbstractType::Aircraft)
+	if (Is_Aircraft(pThis) || pThis->AbstractFlags & AbstractFlags::Techno)
 		return 0x0;
 
-	if (auto const pTechno = generic_cast<TechnoClass*>(pThis))
+	if (auto const pTechno = static_cast<TechnoClass*>(pThis))
 	{
 		auto const pExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
 

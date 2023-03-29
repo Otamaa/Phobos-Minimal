@@ -190,7 +190,7 @@ DEFINE_OVERRIDE_HOOK(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
 	GET(AircraftClass*, A, EDI);
 	GET(FootClass*, P, ESI);
 
-	if (P->WhatAmI() == AbstractType::Unit)
+	if (Is_Unit(P))
 	{
 		const CoordStruct SrcXYZ = A->GetCoords();
 		LEA_STACK(CoordStruct*, XYZ, 0x20);

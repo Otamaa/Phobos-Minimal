@@ -17,9 +17,8 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 
 	if (pTarget) {
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		auto const pTargetWhat = pTarget->WhatAmI();
 
-		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && pTargetWhat == AbstractType::Bullet) {
+		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && Is_Bullet(pTarget)) {
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
@@ -179,7 +178,7 @@ DEFINE_HOOK(0x6FF4CC, TechnoClass_FireAt_ToggleLaserWeaponIndex, 0x6)
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 	GET_BASE(int, weaponIndex, 0xC);
 
-	if (pThis->WhatAmI() == AbstractType::Building && pWeapon->IsLaser)
+	if (Is_Building(pThis) && pWeapon->IsLaser)
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 
@@ -306,7 +305,7 @@ DEFINE_HOOK(0x70E1A5, TechnoClass_GetTurretWeapon_LaserWeapon, 0x6)
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (pThis->WhatAmI() == AbstractType::Building)
+	if (Is_Building(pThis))
 	{
 		auto const pExt = TechnoExt::ExtMap.Find(pThis);
 

@@ -82,7 +82,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	pThis->DamageDeliveryTimer.Start(pWeapon->ROF);
 	pThis->SuppressionTimer.Start(pWarhead->Paralyzes);
 
-	if (pThis->Victim->WhatAmI() == AbstractType::Infantry 
+	if ((((DWORD*)pThis->Victim)[0]) == InfantryClass::vtable
 		&& !WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_TreatInfantryAsVehicle
 		.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg)) {
 		return ReceiveDamage;
@@ -120,7 +120,8 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 	if (pThis->Victim->IsAttackedByLocomotor)
 		return DealDamage;
 
-	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get()) || pThis->Victim->WhatAmI() == AbstractType::Infantry
+	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get())
+			|| (((DWORD*)pThis->Victim)[0]) == InfantryClass::vtable
 		? DealDamage : Continue;
 }
 

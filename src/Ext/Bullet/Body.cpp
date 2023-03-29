@@ -301,7 +301,7 @@ bool BulletExt::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 
 	if (auto const pObject = pCell->FirstObject)
 	{
-		if (pObject->WhatAmI() != AbstractType::Building || pData->Shrapnel_AffectsBuildings)
+		if ((((DWORD*)pObject)[0]) != BuildingClass::vtable || pData->Shrapnel_AffectsBuildings)
 			return true;
 	}
 	else if (pData->Shrapnel_AffectsGround)
@@ -320,13 +320,12 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 
 	if (const auto pTargetObj = abstract_cast<ObjectClass*>(pTarget))
 	{
-		auto const pWhat = pTargetObj->WhatAmI();
-		switch (pWhat)
+		switch ((((DWORD*)pTargetObj)[0]))
 		{
-		case AbstractType::Aircraft:
-		case AbstractType::Infantry:
-		case AbstractType::Unit:
-		case AbstractType::Building:
+		case AircraftClass::vtable:
+		case InfantryClass::vtable:
+		case UnitClass::vtable:
+		case BuildingClass::vtable:
 		{
 			if (!pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false)) {
 				return false;
@@ -335,7 +334,7 @@ bool BulletExt::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarge
 		break;
 		default: {
 			if (auto pType = pTargetObj->GetType()) {
-				//if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001) 
+				//if (std::abs(pWhExt->GetVerses(pType->Armor).Verses) < 0.001)
 				if(GeneralUtils::GetWarheadVersusArmor(pWH , pType->Armor) < 0.001) {
 
 					return false;
@@ -564,14 +563,13 @@ HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
 
 bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch ((((DWORD*)ptr)[0]))
 	{
-	case AbstractType::Building:
-	case AbstractType::Infantry:
-	case AbstractType::Unit:
-	case AbstractType::Aircraft:
-	case AbstractType::House:
+	case BuildingClass::vtable:
+	case InfantryClass::vtable:
+	case UnitClass::vtable:
+	case AircraftClass::vtable:
+	case HouseClass::vtable:
 		return false;
 	}
 

@@ -3,7 +3,7 @@
 
 void AircraftDiveFunctional::Init(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	// if (pExt->Get()->WhatAmI() != AbstractType::Aircraft)
+	// if (!Is_Aircraft(pExt->Get()))
 	// 	return;
 
 	// if (pTypeExt->MyDiveData.Enable) {
@@ -47,7 +47,7 @@ void AircraftDiveFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData
 
 void AircraftDiveFunctional::OnFire(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt, AbstractClass* pTarget, int nWeaponIDx)
 {
-	// if (pExt->Get()->WhatAmI() != AbstractType::Aircraft)
+	// if (!Is_Aircraft(pExt->Get()))
 	// 	return;
 
 	// if (pTypeExt->MyDiveData.PullUpAfterFire)

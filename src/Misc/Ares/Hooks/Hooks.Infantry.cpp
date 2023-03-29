@@ -68,7 +68,7 @@ DEFINE_OVERRIDE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
 	GET(AbstractClass*, pTarget, EBX);
 
 	// doggie cannot crawl; has to stand up and run
-	bool doggieStandUp = pTarget && pThis->Crawling && pThis->Type->Doggie;
+	const bool doggieStandUp = pTarget && pThis->Crawling && pThis->Type->Doggie;
 
 	return doggieStandUp ? 0x51AC16 : 0;
 }
@@ -129,9 +129,8 @@ DEFINE_OVERRIDE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	auto pCell = pThis->GetCell();
-	auto landType = pCell->LandType;
-	return (landType == LandType::Beach || landType == LandType::Water) &&
+	const auto pCell = pThis->GetCell();
+	return (pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water) &&
 		!pCell->ContainsBridge() ? 0x5201DC : 0x0;
 }
 

@@ -26,7 +26,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 			CaptureExt::FreeUnit(Manager, pTechnoFrom, true);
 			CaptureExt::CaptureUnit(Manager, pTechnoTo, true);
 
-			if (pTechnoTo->WhatAmI() == AbstractType::Building)
+			if (Is_Building(pTechnoTo))
 			{
 				pTechnoTo->QueueMission(Mission::Construction, 0);
 				pTechnoTo->Mission_Construction();

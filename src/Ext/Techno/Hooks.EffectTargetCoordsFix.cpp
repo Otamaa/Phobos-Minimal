@@ -37,15 +37,15 @@ DEFINE_HOOK(0x70C6AF, TechnoClass_Railgun_TargetCoords, 0x6)
 	GET(AbstractClass*, pTarget, EBX);
 	GET(CoordStruct*, pBuffer, ECX);
 
-	switch (pTarget->WhatAmI())
+	switch (GetVtableAddr(pTarget))
 	{
-	case AbstractType::Building:
+	case BuildingClass::vtable:
 	{
 		auto const pBuilding = static_cast<BuildingClass*>(pTarget);
 		pBuilding->GetTargetCoords(pBuffer);
 		break;
 	}
-	case AbstractType::Cell:
+	case CellClass::vtable:
 	{
 		auto const pCell = static_cast<CellClass*>(pTarget);
 		pCell->GetCoords(pBuffer);

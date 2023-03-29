@@ -94,13 +94,12 @@ public:
 
 		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
 		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+			switch ((((DWORD*)ptr)[0]))
 			{
-			case AbstractType::Building:
-			case AbstractType::Infantry:
-			case AbstractType::Unit:
-			case AbstractType::Aircraft:
+			case BuildingClass::vtable:
+			case InfantryClass::vtable:
+			case UnitClass::vtable:
+			case AircraftClass::vtable:
 				return false;
 			default:
 				return true;

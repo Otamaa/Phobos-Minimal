@@ -318,10 +318,9 @@ void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 
 bool BuildingExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch ((((DWORD*)ptr)[0]))
 	{
-	case AbstractType::Building:
+	case BuildingClass::vtable:
 		return false;
 	}
 
@@ -473,9 +472,11 @@ int BuildingExt::CountOccupiedDocks(BuildingClass* pBuilding)
 	{
 		for (auto i = 0; i < pBuilding->RadioLinks.Capacity; ++i)
 		{
-			if (auto const pLink = pBuilding->RadioLinks[i])
-				if (pLink->WhatAmI() == AbstractType::Aircraft)
+			if (auto const pLink = pBuilding->RadioLinks[i]) {
+				if((((DWORD*)pLink)[0]) == AircraftClass::vtable) {
 					nOccupiedDocks++;
+				}
+			}
 		}
 	}
 
@@ -489,13 +490,13 @@ bool BuildingExt::HasFreeDocks(BuildingClass* pBuilding)
 
 bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
-	auto const pWhat = pTechno->WhatAmI();
-	if (pWhat != AbstractType::Infantry && pWhat != AbstractType::Unit)
+	const auto pWhat = (((DWORD*)pTechno)[0]);
+	if (pWhat != InfantryClass::vtable && pWhat != UnitClass::vtable)
 		return false;
 
 	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) 
-		&& (pWhat == AbstractType::Infantry && !pBuilding->Type->InfantryAbsorb ||
-			pWhat == AbstractType::Unit && !pBuilding->Type->UnitAbsorb))
+		&& (pWhat == InfantryClass::vtable && !pBuilding->Type->InfantryAbsorb ||
+			pWhat == UnitClass::vtable && !pBuilding->Type->UnitAbsorb))
 	{
 		return false;
 	}

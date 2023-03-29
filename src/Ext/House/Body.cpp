@@ -32,14 +32,13 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 bool HouseExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch ((((DWORD*)ptr)[0]))
 	{
-	case AbstractType::Building:
-	case AbstractType::Infantry:
-	case AbstractType::Unit:
-	case AbstractType::Aircraft:
-	case AbstractType::Team:
+	case BuildingClass::vtable:
+	case InfantryClass::vtable:
+	case UnitClass::vtable:
+	case AircraftClass::vtable:
+	case TeamClass::vtable:
 		return false;
 	}
 
@@ -709,7 +708,7 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 		for (auto currentMember : taskForceMembers)
 		{
-			if (currentMember->WhatAmI() != UnitTypeClass::AbsID ||
+			if ((((DWORD*)currentMember)[0]) != UnitTypeClass::vtable ||
 				(skipGround && !currentMember->Naval) ||
 				(skipNaval && currentMember->Naval))
 				continue;

@@ -19,6 +19,8 @@ class DECLSPEC_UUID("C02D1591-0A2A-11D2-ACA7-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::TriggerType;
+	static constexpr inline DWORD vtable = 0x7F5904;
+
 	static constexpr reference<const char* , 0x8449F8u , 3u> const PersistentName {};
 	static const char* PersistentNameString(Presistance nPr) { return PersistentName[(int)nPr]; }
 	static Presistance PresistentFromName(const char* const nString) { JMP_STD(0x727190); }

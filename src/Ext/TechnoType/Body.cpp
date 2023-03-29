@@ -22,7 +22,7 @@ void TechnoTypeExt::ExtData::Initialize()
 
 	this->ShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 
-	if (Get()->WhatAmI() == AircraftTypeClass::AbsID)
+	if (Is_AircraftType(Get()))
 	{
 		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
@@ -97,7 +97,7 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 
 	UnitTypeClass* pUnit = nullptr;
 
-	if (pThis->WhatAmI() == AbstractType::UnitType)
+	if (Is_UnitType(pThis))
 		pUnit = static_cast<UnitTypeClass*>(pThis);
 
 	if (this->Harvester_Counted.Get(pThis->Enslaves || (pUnit && (pUnit->Harvester || pUnit->Enslaves))))
@@ -791,7 +791,7 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 			this->CrushLevel.Elite = this->CrushLevel.Veteran;
 	}
 	if (!pThis->Crusher && (this->CrushLevel.Rookie > 0 || this->CrushLevel.Veteran > 0 || this->CrushLevel.Elite > 0) &&
-		pThis->WhatAmI() == AbstractType::UnitType)
+		Is_UnitType(pThis))
 		pThis->Crusher = true;
 
 	if (this->CrushableLevel.Rookie <= 0)

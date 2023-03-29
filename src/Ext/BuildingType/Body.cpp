@@ -284,18 +284,18 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 			}
 
 			auto nBonus = 0.000;
-			switch (pWhat->WhatAmI())
+			switch ((((DWORD*)pWhat)[0]))
 			{
-			case AbstractType::AircraftType:
+			case AircraftTypeClass::vtable:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
 				break;
-			case AbstractType::BuildingType:
+			case BuildingTypeClass::vtable:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Building;
 				break;
-			case AbstractType::UnitType:
+			case UnitTypeClass::vtable:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
 				break;
-			case AbstractType::InfantryType:
+			case InfantryTypeClass::vtable:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
 				break;
 			default:
@@ -334,18 +334,18 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 				}
 
 				auto nBonus = 0.000;
-				switch (pWhat->WhatAmI())
+				switch ((((DWORD*)pWhat)[0]))
 				{
-				case AbstractType::AircraftType:
+				case AircraftTypeClass::vtable:
 					nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
 					break;
-				case AbstractType::BuildingType:
+				case BuildingTypeClass::vtable:
 					nBonus = pExt->SpeedBonus.SpeedBonus_Building;
 					break;
-				case AbstractType::UnitType:
+				case UnitTypeClass::vtable:
 					nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
 					break;
-				case AbstractType::InfantryType:
+				case InfantryTypeClass::vtable:
 					nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
 					break;
 				default:

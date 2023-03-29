@@ -332,13 +332,13 @@ using PhobosTypeRegistry =  TypeRegistry <
 
 #pragma region Hooks
 // Global Pointer Invalidation Hooks
-//DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
-//{
-//	GET(AbstractClass* const, pInvalid, ECX);
-//	GET(bool const, removed, EDX);
-//	PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
-//	return 0;
-//}
+DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
+{
+	GET(AbstractClass* const, pInvalid, ECX);
+	GET(bool const, removed, EDX);
+	PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
+	return 0;
+}
 
 // Clear static data from respective classes
 DEFINE_HOOK(0x685659, Scenario_ClearClasses, 0xA)

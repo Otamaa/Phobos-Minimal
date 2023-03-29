@@ -290,12 +290,12 @@ void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_Rec
 		return;
 
 	{
-		auto const pWhat = pTarget->WhatAmI();
+		auto const pWhat = GetVtableAddr(pTarget);
 		int nRelativeVal = 0;
 
 		switch (pWhat)
 		{
-		case AbstractType::Unit:
+		case UnitClass::vtable:
 		{
 			const auto pUnit = static_cast<UnitClass*>(pTarget);
 
@@ -307,7 +307,7 @@ void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_Rec
 				nRelativeVal = RelativeDamage_Unit.Get();
 		}
 		break;
-		case AbstractType::Aircraft:
+		case AircraftClass::vtable:
 		{
 			const auto pAir = static_cast<AircraftClass*>(pTarget);
 
@@ -317,13 +317,13 @@ void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_Rec
 				nRelativeVal = RelativeDamage_AirCraft.Get();
 		}
 		break;
-		case AbstractType::Building:
+		case BuildingClass::vtable:
 			nRelativeVal = RelativeDamage_Building.Get();
 			break;
-		case AbstractType::Infantry:
+		case InfantryClass::vtable:
 			nRelativeVal = RelativeDamage_Infantry.Get();
 			break;
-		case AbstractType::Terrain:
+		case TerrainClass::vtable:
 			nRelativeVal = RelativeDamage_Terrain.Get();
 			break;
 		}
@@ -981,17 +981,17 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 {
-	auto const abs = pVictim->WhatAmI();
+	auto const abs = GetVtableAddr(pVictim);
 	auto const pVictimType = pVictim->GetTechnoType();
 
 	if (!SuppressDeathWeapon_Exclude.empty()) {
 		return !SuppressDeathWeapon_Exclude.Contains(pVictimType);
 	}
 
-	if (abs == AbstractType::Unit && SuppressDeathWeapon_Vehicles)
+	if (abs == UnitClass::vtable && SuppressDeathWeapon_Vehicles)
 		return true;
 
-	if (abs == AbstractType::Infantry && SuppressDeathWeapon_Infantry)
+	if (abs == InfantryClass::vtable && SuppressDeathWeapon_Infantry)
 		return true;
 
 	return SuppressDeathWeapon.Contains(pVictimType);

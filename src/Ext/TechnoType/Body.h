@@ -417,7 +417,7 @@ public:
 		Valueable<float> Experience_VictimMultiple;
 		Valueable<float> Experience_KillerMultiple;
 
-		Valueable<Leptons> NavalRangeBonus;
+		Nullable<Leptons> NavalRangeBonus;
 
 		Nullable<bool> AI_LegalTarget;
 		Valueable<bool> DeployFire_UpdateFacing;

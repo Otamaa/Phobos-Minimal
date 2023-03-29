@@ -155,7 +155,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 
 	int damageMultiplier = 1;
 
-	if (pThis->OwnerObject && pThis->OwnerObject->WhatAmI() == AbstractType::Terrain)
+	if (pThis->OwnerObject && (((DWORD*)pThis->OwnerObject)[0]) == TerrainClass::vtable)
 		damageMultiplier = 5;
 
 	bool adjustAccum = false;
@@ -333,14 +333,13 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 
 bool AnimExt::ExtData::InvalidateIgnorable(void* const ptr) const
 {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+	switch ((((DWORD*)ptr)[0]))
 	{
-	case AbstractType::Building:
-	case AbstractType::Infantry:
-	case AbstractType::Unit:
-	case AbstractType::Aircraft:
-	case AbstractType::ParticleSystem:
+	case BuildingClass::vtable:
+	case InfantryClass::vtable:
+	case UnitClass::vtable:
+	case AircraftClass::vtable:
+	case ParticleSystemClass::vtable:
 		return false;
 	}
 
@@ -509,14 +508,14 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 
 	if (pThis->OwnerObject)
 	{
-		switch (pThis->OwnerObject->WhatAmI())
+		switch ((((DWORD*)pThis->OwnerObject)[0]))
 		{
-		case AbstractType::Building:
-		case AbstractType::Unit:
-		case AbstractType::Infantry:
-		case AbstractType::Aircraft:
+		case BuildingClass::vtable:
+		case UnitClass::vtable:
+		case InfantryClass::vtable:
+		case AircraftClass::vtable:
 			return static_cast<TechnoClass*>(pThis->OwnerObject);
-		case AbstractType::Bullet:
+		case BulletClass::vtable:
 			return static_cast<BulletClass*>(pThis->OwnerObject)->Owner;
 		}
 	}

@@ -15,6 +15,7 @@ class DECLSPEC_UUID("0E272DCC-9C0F-11D1-B709-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Particle;
+	static constexpr inline DWORD vtable = 0x7EF954;
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<ParticleClass*>, 0xA83DC8u> const Array{};

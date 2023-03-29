@@ -29,7 +29,7 @@ DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 	if (pThis->Owner == HouseClass::CurrentPlayer() && pThis->Object)
 	{
-		if (pThis->Object->WhatAmI() == AbstractType::Building)
+		if (Is_Building(pThis->Object))
 			pThis->Object->RemoveSidebarObject();
 	}
 
@@ -113,7 +113,7 @@ DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 {
 	GET(AlphaShapeClass*, pThis, ESI);
 
-	if (pThis->AttachedTo->WhatAmI() == AnimClass::AbsID) {
+	if (Is_Anim(pThis)) {
 		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
 	}
 
@@ -578,14 +578,14 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 	GET(CoordStruct*, XYZ, EAX);
 
 	auto Owner = Parasite->Owner;
-	auto const pWhat = Owner->WhatAmI();
+	auto const pWhat = GetVtableAddr(Owner);
 
 	bool allowed = false;
-	if (pWhat == AbstractType::Unit)
+	if (pWhat == UnitClass::vtable)
 	{
 		allowed = !Owner->GetTechnoType()->Naval;
 	}
-	else if (pWhat == AbstractType::Infantry)
+	else if (pWhat == InfantryClass::vtable)
 	{
 		allowed = true;
 	}
@@ -598,7 +598,7 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 
 	return 0;
 }
-// 
+//
 DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogNonsense, 5, 6BBE2B)
 
 // bugfix #187: Westwood idiocy
@@ -743,7 +743,7 @@ DEFINE_OVERRIDE_HOOK(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 
 {
 	GET(TechnoClass*, pVictim, EBX);
 
-	if (pVictim->WhatAmI() == AbstractType::Building)
+	if (Is_Building(pVictim))
 	{
 		// 1. add to team and other fates don't really make sense for buildings
 		// 2. BuildingClass::Mission_Hunt() implementation is to do nothing!
@@ -768,9 +768,9 @@ DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 	GET(SpawnNode, nNode, EAX);
 
 	auto const pOwner = pThis->Owner;
-	return (nNode.Status != SpawnNodeStatus::TakeOff ||
-		!pOwner ||
-		pOwner->WhatAmI() == AbstractType::Building)
+	return (nNode.Status != SpawnNodeStatus::TakeOff
+		|| !pOwner
+		|| Is_Building(pOwner))
 		? 0x6B735C : 0x6B72FE;
 }
 
@@ -952,7 +952,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
 
-	if (IsRailgun && pThis->WhatAmI() == AbstractType::Aircraft){
+	if (IsRailgun && Is_Aircraft(pThis)){
 		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! \n",pThis->get_ID());
 		//return 0x6FF274;
 	}
@@ -1149,4 +1149,92 @@ DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
 
 	R->ESI(pWarhead);
 	return ContinueFunction;
+}
+
+#include <Commands/ShowTeamLeader.h>
+
+DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto const pOwner = pThis->SlaveOwner)
+	{
+
+		if (!pOwner->IsSelected || pThis->InLimbo)
+			return 0x0;
+
+		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+	}
+
+	if (auto const pOwner = pThis->SpawnOwner)
+	{
+
+		if (!pOwner->IsSelected || pThis->InLimbo)
+			return 0x0;
+
+		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
+	}
+
+	if (ShowTeamLeaderCommandClass::IsActivated())
+	{
+		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		{
+
+			if (!pFoot->BelongsToATeam())
+				return 0x0;
+
+			if (auto pTeam = pFoot->Team)
+			{
+				if (auto const pTeamLeader = pTeam->FetchLeader())
+				{
+
+					if (pTeamLeader != pFoot)
+						Drawing::DrawLinesTo(pTeamLeader->GetRenderCoords(), pThis->Location, pTeamLeader->Owner->Color);
+				}
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(Point2D*, pLocation, 0x4);
+	GET_STACK(RectangleStruct*, pBound, 0x8);
+
+	auto DrawTheStuff = [&pLocation, &pThis, &pBound](const wchar_t* pFormat)
+	{
+		auto nPoint = *pLocation;
+		//DrawingPart
+		RectangleStruct nTextDimension;
+		Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+		auto nIntersect = Drawing::Intersect(nTextDimension, *pBound);
+		auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
+
+		DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+		DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+		Point2D nRet;
+		Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pBound, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+	};
+
+	if (ShowTeamLeaderCommandClass::IsActivated())
+	{
+		if (auto const pFoot = generic_cast<FootClass*>(pThis))
+		{
+			if (auto pTeam = pFoot->Team)
+			{
+				if (auto const pTeamLeader = pTeam->FetchLeader())
+				{
+					if (pTeamLeader == pThis)
+					{
+						DrawTheStuff(L"Team Leader");
+					}
+				}
+			}
+		}
+	}
+
+	return 0x0;
 }

@@ -9,7 +9,7 @@ void AircraftPutDataFunctional::OnPut(TechnoExt::ExtData* pExt, TechnoTypeExt::E
 	if (!pExt->Get()->Owner)
 		return;
 
-	if (!Helpers::Alex::is_any_of(pExt->Get()->WhatAmI(), AbstractType::Aircraft))
+	if (!Is_Aircraft(pExt->Get()))
 		return;
 
 	auto const pTechno = (AircraftClass*)pExt->Get();

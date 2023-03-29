@@ -214,6 +214,7 @@ class DECLSPEC_UUID("D9D4A910-87C6-11D1-B707-00A024DDAFD1")
 {
 public:
 	static const AbstractType AbsID = AbstractType::House;
+	static constexpr inline DWORD vtable = 0x7EA8A0;
 
 	// <Player @ A> and friends map to these constants
 	enum {PlayerAtA = 4475, PlayerAtB, PlayerAtC, PlayerAtD, PlayerAtE, PlayerAtF, PlayerAtG, PlayerAtH};

@@ -1137,7 +1137,7 @@ beginLoad:
 	{
 		auto pPassengerType = pPassenger->GetTechnoType();
 		// Is legal loadable unit ?
-		if (pPassengerType->WhatAmI() != AbstractType::AircraftType &&
+		if ((((DWORD*)pPassengerType)[0]) != AircraftTypeClass::vtable &&
 			!pPassengerType->ConsideredAircraft &&
 			TECHNO_IS_ALIVE(pPassenger))
 		{
@@ -1399,7 +1399,7 @@ void ScriptExt::RallyUnitInMap(TeamClass* pTeam, int nArg)
 
 bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType)
 {
-	const auto type = pFoot->WhatAmI();
+	const auto type = (((DWORD*)pFoot)[0]);
 	auto pTechnoType = pFoot->GetTechnoType();
 	TaskForceClass* pTaskforce = pTeam->Type->TaskForce;
 	if (!pTechnoType)
@@ -1410,18 +1410,18 @@ bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType
 	case 0: // Anything
 		return true;
 	case 1: // Infantry
-		return type == AbstractType::Infantry;
+		return type == InfantryClass::vtable;
 	case 2: // Vehicles
-		return type == AbstractType::Unit;
+		return type == UnitClass::vtable;
 	case 3: // Air Units
-		return pTechnoType->ConsideredAircraft || type == AbstractType::Aircraft;
+		return pTechnoType->ConsideredAircraft || type == AircraftClass::vtable;
 	case 4: // Naval units
-		return type == AbstractType::Unit && pTechnoType->Naval;
+		return type == UnitClass::vtable && pTechnoType->Naval;
 	case 5: // Ground units
-		return (type == AbstractType::Unit || type == AbstractType::Infantry)
+		return (type == UnitClass::vtable || type == InfantryClass::vtable)
 			&& (!pTechnoType->ConsideredAircraft && !pTechnoType->Naval);
 	case 6: // Dockable fighters
-		return type == AbstractType::Aircraft && static_cast<AircraftClass*>(pFoot)->Type->AirportBound;
+		return type == AircraftClass::vtable && static_cast<AircraftClass*>(pFoot)->Type->AirportBound;
 	case 7: // Same type in taskforce
 		if (pTaskforce)
 		{
@@ -1562,7 +1562,7 @@ void ScriptExt::LoadIntoTransports(TeamClass* pTeam)
 			auto const pTransportType = pTransport->GetTechnoType();
 			auto const pUnitType = pUnit->GetTechnoType();
 			if (pTransport != pUnit
-				&& pUnitType->WhatAmI() != AbstractType::AircraftType
+				&& (((DWORD*)pUnitType)[0]) != AircraftTypeClass::vtable
 				&& !pUnitType->ConsideredAircraft)
 			{
 				if (pUnit->GetTechnoType()->Size > 0
@@ -1619,7 +1619,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 			if (pUnit->GetTechnoType()->Ammo > 0 && pUnit->Ammo < pUnit->GetTechnoType()->Ammo)
 			{
 				// If an aircraft object have AirportBound it must be evaluated
-				if (pUnit->WhatAmI() == AbstractType::Aircraft)
+				if ((((DWORD*)pUnit)[0]) == AircraftClass::vtable)
 				{
 					const auto pAircraft = static_cast<AircraftClass*>(pUnit);
 
@@ -1771,7 +1771,7 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 				}
 
 				// Aircraft case
-				if (pUnit->WhatAmI() == AbstractType::Aircraft && pUnit->Ammo <= 0 && pTypeUnit->Ammo > 0)
+				if (Is_Aircraft(pUnit) && pUnit->Ammo <= 0 && pTypeUnit->Ammo > 0)
 				{
 					auto pAircraft = static_cast<AircraftClass*>(pUnit);
 
@@ -1965,7 +1965,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					if (auto pKillerTeamUnitData = TechnoExt::ExtMap.Find(pTeamUnit))
 						pKillerTeamUnitData->LastKillWasTeamTarget = false;
 
-					if (pTeamUnit->WhatAmI() == AbstractType::Aircraft)
+					if (Is_Aircraft(pTeamUnit))
 					{
 						pTeamUnit->SetTarget(nullptr);
 						pTeamUnit->LastTarget = nullptr;
@@ -1994,9 +1994,9 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 		{
 			if (auto pUnitType = pUnit->GetTechnoType())
 			{
-				if (pUnit->WhatAmI() == AbstractType::Aircraft)
+				if (Is_Aircraft(pUnit))
 				{
-					auto pAir = static_cast<AircraftClass*>(pUnit);
+					const auto pAir = static_cast<AircraftClass*>(pUnit);
 					if (!pAir->IsInAir() && pAir->Type->AirportBound && pAir->Ammo < pAir->Type->Ammo)
 					{
 						bAircraftsWithoutAmmo = true;
@@ -2008,9 +2008,9 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 				pacifistTeam = (!pUnitCW1 && !pUnitCW2);
 
 				// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
-				if (pUnitType->WhatAmI() == AbstractType::InfantryType)
+				if (Is_InfantryType(pUnitType))
 				{
-					auto pTypeInf = static_cast<InfantryTypeClass*>(pUnitType);
+					const auto pTypeInf = static_cast<InfantryTypeClass*>(pUnitType);
 					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
 					{
 						agentMode = true;
@@ -2117,10 +2117,10 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 							continue;
 						}
 
-						auto const nWhat = pUnit->WhatAmI();
+						auto const nWhat = GetVtableAddr(pUnit);
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (nWhat == AbstractType::Aircraft
+						if (nWhat == AircraftClass::vtable
 							&& pUnit->Ammo > 0 && pUnit->GetHeight() <= 0)
 						{
 							pUnit->SetDestination(selectedTarget, false);
@@ -2136,7 +2136,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 						else
 						{
 							// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-							if (nWhat != AbstractType::Aircraft)
+							if (nWhat != AircraftClass::vtable)
 							{
 								pUnit->QueueMission(Mission::Attack, true);
 								pUnit->ObjectClickedAction(Action::Attack, selectedTarget, false);
@@ -2150,7 +2150,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 						}
 
 						// Spy case
-						if (nWhat == AbstractType::Infantry)
+						if (nWhat == InfantryClass::vtable)
 						{
 							const auto pInfantryType = static_cast<InfantryTypeClass*>(pUnitType);
 
@@ -2163,7 +2163,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 						}
 
 						// Tanya / Commando C4 case
-						if ((nWhat == AbstractType::Infantry
+						if ((nWhat == InfantryClass::vtable
 							&& (static_cast<InfantryTypeClass*>(pUnitType)->C4 || pUnit->HasAbility(AbilityType::C4)))
 							&& pUnit->GetCurrentMission() != Mission::Sabotage)
 						{
@@ -2261,7 +2261,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 				if (auto pUnitType = pUnit->GetTechnoType())
 				{
 					// Aircraft case 1
-					if ((pUnitType->WhatAmI() == AbstractType::AircraftType
+					if ((Is_AircraftType(pUnitType)
 						&& static_cast<AircraftTypeClass*>(pUnitType)->AirportBound)
 						&& pUnit->Ammo > 0
 						&& (pUnit->Target != pFocus && !pUnit->InAir))
@@ -2286,7 +2286,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					}
 
 					// Aircraft case 2
-					if (pUnitType->WhatAmI() == AbstractType::AircraftType
+					if (Is_AircraftType(pUnitType)
 						&& pUnit->GetCurrentMission() != Mission::Attack
 						&& pUnit->GetCurrentMission() != Mission::Enter)
 					{
@@ -2335,7 +2335,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					}
 
 					// Tanya / Commando C4 case
-					if ((pUnitType->WhatAmI() == AbstractType::InfantryType
+					if ((Is_InfantryType(pUnitType)
 						&& static_cast<InfantryTypeClass*>(pUnitType)->C4
 						|| pUnit->HasAbility(AbilityType::C4)) && pUnit->GetCurrentMission() != Mission::Sabotage)
 					{
@@ -2346,7 +2346,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					}
 
 					// Other cases
-					if (pUnitType->WhatAmI() != AbstractType::AircraftType)
+					if (GetVtableAddr(pUnitType) != AircraftTypeClass::vtable)
 					{
 						if (pUnit->Target != pFocus)
 							pUnit->SetTarget(pFocus);
@@ -2634,21 +2634,21 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		// Harvester
 		if (!pTechno->Owner->IsNeutral())
 		{
-			switch (pTechno->WhatAmI())
+			switch (GetVtableAddr(pTechno))
 			{
-			case AbstractType::Unit:
+			case UnitClass::vtable:
 			{
 				const auto pType = static_cast<UnitClass*>(pTechno)->Type;
 				return pType->Harvester || pType->Weeder;
 			}
 			break;
-			case AbstractType::Building:
+			case BuildingClass::vtable:
 			{
 				const auto pBldHere = static_cast<BuildingClass*>(pTechno);
 				return pBldHere->SlaveManager && pTechnoType->ResourceGatherer && pBldHere->Type->Enslaves;
 			}
 			break;
-			case AbstractType::Infantry:
+			case InfantryClass::vtable:
 			{
 				const auto pInfHere = static_cast<InfantryClass*>(pTechno);
 				return pInfHere->Type->Slaved && pInfHere->SlaveOwner && pTechnoType->ResourceGatherer;
@@ -2661,7 +2661,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	}
 	case 4:
 		// Infantry
-		return !pTechno->Owner->IsNeutral() && pTechno->WhatAmI() == AbstractType::Infantry;
+		return !pTechno->Owner->IsNeutral() && Is_Infantry(pTechno);
 	case 5:
 	{
 		// Vehicle, Aircraft, Deployed vehicle into structure
@@ -2680,7 +2680,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 				|| pExt->IsJuggernaut);
 			}
 
-			return (pTechno->WhatAmI() == AbstractType::Aircraft || pTechno->WhatAmI() == AbstractType::Unit) &&
+			return (Is_Aircraft(pTechno) || Is_Unit(pTechno)) &&
 				pTechnoType->MovementZone != MovementZone::Amphibious && pTechnoType->MovementZone != MovementZone::AmphibiousDestroyer;
 		}
 		return false;
@@ -2842,7 +2842,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		// Aircraft and Air Unit
 		return (!pTechno->Owner->IsNeutral()
-			&& (pTechnoType->WhatAmI() == AbstractType::AircraftType
+			&& (Is_AircraftType(pTechnoType)
 				|| pTechnoType->JumpJet
 				|| pTechnoType->BalloonHover
 				|| pTechno->IsInAir()));
@@ -2884,7 +2884,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 						&& !pBld->Type->BaseNormal);
 			}
 
-			return !pTechno->IsInAir() && pTechno->WhatAmI() == AbstractType::Unit;
+			return !pTechno->IsInAir() && Is_Unit(pTechno);
 		}
 
 		return false;
@@ -2960,7 +2960,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		// Buildable Tech
 		if (!pTechno->Owner->IsNeutral()
-			&& pTechnoType->WhatAmI() == AbstractType::BuildingType)
+			&& Is_BuildingType(pTechnoType))
 		{
 			auto const& BuildTechIter = make_iterator(RulesClass::Instance->BuildTech);
 			return (!BuildTechIter.empty() && BuildTechIter.contains(static_cast<BuildingTypeClass*>(pTechnoType)));
@@ -3041,7 +3041,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			}
 		}
 
-		if (pTechnoType->WhatAmI() == AbstractType::UnitType)
+		if (Is_UnitType(pTechnoType))
 		{
 			auto const& BaseUnitIter = make_iterator(RulesClass::Instance->BaseUnit);
 			return (!BaseUnitIter.empty() && BaseUnitIter.contains(static_cast<UnitTypeClass*>(pTechnoType)));
@@ -3106,7 +3106,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		// Naval Unit
 		return (!pTechno->Owner->IsNeutral()
-			&& pTechno->WhatAmI() == AbstractType::Unit
+			&& Is_Unit(pTechno)
 			&& (pTechnoType->Naval
 				|| MapClass::Instance->GetCellAt(pTechno->GetMapCoords())->LandType == LandType::Water));
 	}
@@ -3248,7 +3248,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	{
 		if (!pTechno->Owner->IsNeutral())
 		{
-			if (pTechno->WhatAmI() == AbstractType::Infantry)
+			if (Is_Infantry(pTechno))
 			{
 				auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 				return pTypeExt->IsHero.Get();
@@ -3550,7 +3550,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 		{
 			if (auto pUnitType = pUnit->GetTechnoType())
 			{
-				if (pUnitType->WhatAmI() == AbstractType::AircraftType
+				if (Is_AircraftType(pUnitType)
 					&& !pUnit->IsInAir()
 					&& static_cast<AircraftTypeClass*>(pUnitType)->AirportBound
 					&& pUnit->Ammo < pUnitType->Ammo)
@@ -3633,14 +3633,14 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 						}
 
 						pUnit->SetDestination(selectedTarget, false);
-						auto const pWhat = pUnit->WhatAmI();
+						auto const pWhat = GetVtableAddr(pUnit);
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0 && pUnit->GetHeight() <= 0)
+						if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0 && pUnit->GetHeight() <= 0)
 							pUnit->QueueMission(Mission::Move, false);
 
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (pWhat != AbstractType::Aircraft)
+						if (pWhat != AircraftClass::vtable)
 						{
 							pUnit->QueueMission(Mission::Move, false);
 							pUnit->ObjectClickedAction(Action::Move, selectedTarget, false);
@@ -4158,7 +4158,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				continue;
 			}
 
-			auto const pWhat = pUnit->WhatAmI();
+			auto const pWhat = GetVtableAddr(pUnit);
 
 			if (!pUnit->Locomotor->Is_Moving_Now())
 				pUnit->SetDestination(pFocus, false);
@@ -4170,14 +4170,14 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 				{
 					bForceNextAction = false;
 
-					if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
+					if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0)
 						pUnit->QueueMission(Mission::Move, false);
 
 					continue;
 				}
 				else
 				{
-					if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
+					if (pWhat == AircraftClass::vtable && pUnit->Ammo <= 0)
 					{
 						pUnit->QueueMission(Mission::Return, false);
 						pUnit->Mission_Enter();
@@ -4193,7 +4193,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					// Any member in range
 					if (pUnit->DistanceFrom(pUnit->Destination) / 256.0 > closeEnough)
 					{
-						if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
+						if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0)
 							pUnit->QueueMission(Mission::Move, false);
 
 						continue;
@@ -4202,7 +4202,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					{
 						bForceNextAction = true;
 
-						if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
+						if (pWhat == AircraftClass::vtable && pUnit->Ammo <= 0)
 						{
 							pUnit->QueueMission(Mission::Return, false);
 							pUnit->Mission_Enter();
@@ -4218,7 +4218,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 					{
 						if (pUnit->DistanceFrom(pUnit->Destination) / 256.0 > closeEnough)
 						{
-							if (pWhat == AbstractType::Aircraft && pUnit->Ammo > 0)
+							if (pWhat == AircraftClass::vtable && pUnit->Ammo > 0)
 								pUnit->QueueMission(Mission::Move, false);
 
 							continue;
@@ -4228,7 +4228,7 @@ bool ScriptExt::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, Foot
 							if (pUnit == pLeader)
 								bForceNextAction = true;
 
-							if (pWhat == AbstractType::Aircraft && pUnit->Ammo <= 0)
+							if (pWhat == AircraftClass::vtable && pUnit->Ammo <= 0)
 							{
 								pUnit->QueueMission(Mission::Return, false);
 								pUnit->Mission_Enter();
@@ -6495,7 +6495,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	if (pTeam->Focus)
 	{
-		if (pTeam->Focus->WhatAmI() != AbstractType::Building)
+		if (!Is_Building(pTeam->Focus))
 		{
 			pTeam->Focus = nullptr;
 		}
@@ -6528,8 +6528,8 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		if (!TechnoExt::IsActive(pUnit))
 			continue;
 
-		if (pUnit->WhatAmI() == AbstractType::Infantry)
-		{
+		if (Is_Infantry(pUnit)) {
+
 			const auto pInf = static_cast<InfantryClass*>(pUnit);
 
 			if (pInf->IsEngineer())

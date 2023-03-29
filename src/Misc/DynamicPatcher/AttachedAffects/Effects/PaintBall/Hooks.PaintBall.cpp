@@ -97,7 +97,7 @@ DEFINE_HOOK(0x706640, TechnoClass_DrawVXL_Colour, 0x5)
 {
 	GET(TechnoClass* const, pOwnerObject, ECX);
 
-	if (pOwnerObject->WhatAmI() == AbstractType::Building)
+	if (Is_Building(pOwnerObject))
 	{
 		auto pExt = TechnoExt::ExtMap.Find(pOwnerObject);
 

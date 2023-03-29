@@ -217,10 +217,9 @@ namespace Helpers {
 			ret.reserve(set.size());
 
 			std::for_each(set.begin(), set.end(), [&](TechnoClass* pTechno) {
-				auto const abs = pTechno->WhatAmI();
 
 				// ignore buildings that are not visible, like ambient light posts
-				if (abs == AbstractType::Building) {
+				if (Is_Building(pTechno)) {
 					auto const pBuilding = static_cast<const BuildingClass*>(pTechno);
 					if (pBuilding->Type->InvisibleInGame) {
 						return;
@@ -232,7 +231,7 @@ namespace Helpers {
 				auto dist = target.DistanceFrom(coords);
 
 				// reduce the distance for flying aircraft
-				if (abs == AbstractType::Aircraft && pTechno->IsInAir()) {
+				if (Is_Aircraft(pTechno) && pTechno->IsInAir()) {
 					dist *= 0.5;
 				}
 

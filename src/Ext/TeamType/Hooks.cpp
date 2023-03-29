@@ -67,7 +67,7 @@ DEFINE_HOOK(0x6ECA02, TeamClass_Assign_Mission_Target_CellAllowed , 0x8)
 	GET(TeamClass*, pThis, EDI);
 	GET(AbstractClass*, pTarget, ESI);
 
-	if (pTarget && pTarget->WhatAmI() == AbstractType::Cell) {
+	if (pTarget && Is_Cell(pTarget)) {
 		if (auto pExt = TeamTypeExt::ExtMap.Find(pThis->Type)) {
 			if (!pExt->AttackWaypoint_AllowCell.Get()) {
 				pTarget = nullptr;
@@ -84,10 +84,10 @@ DEFINE_HOOK(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 	GET(FootClass*, pFoot, ESI);
 	GET(TeamClass*, pThis, EBP);
 
-	if (pFoot->GetHeight() > 0 && pFoot->WhatAmI() == AbstractType::Unit && pThis->SpawnCell)
+	if (pFoot->GetHeight() > 0 && Is_Unit(pFoot) && pThis->SpawnCell)
 	{
 		auto nCoord = pThis->SpawnCell->GetCoords();
-		nCoord.Z = Map.GetCellFloorHeight(nCoord);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
 		R->EAX(static_cast<int>(pFoot->GetCoords().DistanceFrom(nCoord)));
 	}
 	else
@@ -103,7 +103,9 @@ DEFINE_HOOK(0x6EBE69, TeamClass_MoveToFocus_SetDestination, 0xA)
 	auto const pType = pFoot->GetTechnoType();
 
 	return (pType->BalloonHover
-		|| (pType->WhatAmI() == AbstractType::UnitType && static_cast<UnitTypeClass*>(pType)->JumpJet && static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
+		|| (Is_UnitType(pType)
+			&& static_cast<UnitTypeClass*>(pType)->JumpJet
+			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
 		0x6EBE9C : 0x6EBE82;
 }
 
@@ -114,7 +116,9 @@ DEFINE_HOOK(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 	auto const pType = pFoot->GetTechnoType();
 
 	return (pType->BalloonHover
-		|| (pType->WhatAmI() == AbstractType::UnitType && static_cast<UnitTypeClass*>(pType)->JumpJet && static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
+		|| (Is_UnitType(pType)
+		 	&& static_cast<UnitTypeClass*>(pType)->JumpJet
+			&& static_cast<UnitTypeClass*>(pType)->IsSimpleDeployer)) ?
 
 		0x6EBEEF : 0x6EBEFF;
 }

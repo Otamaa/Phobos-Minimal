@@ -17,7 +17,7 @@ static void HandleTargeting(TechnoClass* pThis, AbstractClass* pTarget)
 		pAirstrike->ResetTarget();
 
 	AbstractClass* pTargetResult = nullptr;
-	if (pThis->WhatAmI() == AbstractType::Aircraft) {
+	if (Is_Aircraft(pThis)) {
 		if (pTarget) {
 			const auto pType = pThis->GetTechnoType();
 			if (pType->Spawned && pType->MissileSpawn) {

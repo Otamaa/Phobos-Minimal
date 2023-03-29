@@ -153,16 +153,14 @@ public:
 		~ExtContainer();
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const { 
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+		virtual bool InvalidateExtDataIgnorable(void* const ptr) const {
+			switch (GetVtableAddr(ptr))
 			{
-			case AbstractType::Super:
+			case SuperClass::vtable:
 				return false;
 			}
 
 			return true;
-		
 		}
 	};
 

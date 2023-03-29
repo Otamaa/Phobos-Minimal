@@ -267,11 +267,6 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 		for (auto pFoot : *FootClass::Array)
 		{
-			//if (pTechno->WhatAmI() == AbstractType::Building)
-			//	continue;
-
-			//FootClass* pFoot = static_cast<FootClass*>(pTechno);
-
 			if (!TechnoExt::IsActive(pFoot))
 				continue;
 
@@ -543,7 +538,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 							if (entry.Amount > 0)
 							{
-								if (entry.Type->WhatAmI() == AbstractType::AircraftType
+								if (Is_AircraftType(entry.Type)
 									|| entry.Type->ConsideredAircraft)
 								{
 									// This unit is from air category

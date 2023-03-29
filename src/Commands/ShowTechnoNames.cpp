@@ -61,8 +61,8 @@ void ShowTechnoNameCommandClass::AI()
 			}
 
 			std::wstring pText((size_t)(0x18 + 1), L'#');
+			mbstowcs(&pText[0], pTech->get_ID(), 0x18);
 
-			CRT::mbstowcs(&pText[0], pTech->get_ID(), 0x18);
 			if (pText.empty())
 				continue;
 

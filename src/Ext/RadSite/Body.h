@@ -37,14 +37,13 @@ public:
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
 		virtual bool InvalidateIgnorable(void* const ptr) const override { 
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+			switch ((((DWORD*)ptr)[0]))
 			{
-			case AbstractType::Building:
-			case AbstractType::Aircraft:
-			case AbstractType::Unit:
-			case AbstractType::Infantry:
-			case AbstractType::House:
+			case BuildingClass::vtable:
+			case AircraftClass::vtable:
+			case UnitClass::vtable:
+			case InfantryClass::vtable:
+			case HouseClass::vtable:
 				return false;
 			}
 

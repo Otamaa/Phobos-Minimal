@@ -2,6 +2,8 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 
+#include <Ext/Building/Body.h>
+
 static constexpr std::array<CoordStruct, 6> areaGuardCoords
 {
 	{
@@ -126,25 +128,43 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 							auto FindOneTechno = [&](HouseClass* pOwner)
 							{
 								TechnoClass* pDummy = nullptr;
-								auto const nArr = TechnoClass::Array();
-								for (int i = nArr->Count - 1; i >= 0; i--)
+								for (const auto pTech : *TechnoClass::Array())
 								{
-									auto pTech = nArr->GetItem(i);
-									if (!pTech ||
-										!pTech->GetOwningHouse() ||
-										pTech->GetOwningHouse()->IsAlliedWith(pOwner) ||
-										pTech->GetOwningHouse() == pOwner ||
-										pTech->GetOwningHouse()->IsNeutral()||
+									if (!pTech
+										|| pTech->InLimbo
+										|| !pTech->IsAlive
+										|| !pTech->Health
+										|| pTech->IsSinking
+										|| pTech->IsCrashing
+										|| pTech->TemporalTargetingMe
+										|| pTech->BeingWarpedOut)
+										continue;
+
+									const auto IsBuilding = !Is_Building(pTech);
+									if (!IsBuilding && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
+										continue;
+									else if (IsBuilding) {
+										auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTech));
+										if (pBldExt->LimboID != -1)
+											continue;
+									}
+
+									const auto pOwnerHouse = pTech->GetOwningHouse();
+									const auto pTechTypeHere = pTech->GetTechnoType();
+
+									if (!pOwnerHouse ||
+										pOwnerHouse->IsAlliedWith(pOwner) ||
+										pOwnerHouse == pOwner ||
+										pOwnerHouse->IsNeutral() ||
 										pTech == pExt->Get() ||
-										Helpers_DP::IsDeadOrInvisibleOrCloaked(pTech) ||
-										pTech->GetTechnoType()->Immune ||
-										pTech->GetTechnoType()->Invisible
+										pTechTypeHere->Immune ||
+										pTechTypeHere->Invisible
 										)
 										continue;
 
 									auto coords = pTech->GetCoords();
 									auto height = pTech->GetHeight();
-									auto type = pTech->WhatAmI();
+									//auto type = pTech->WhatAmI();
 
 									if (pTech->InLimbo)
 										continue;
@@ -153,8 +173,10 @@ void FighterAreaGuardFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::Ext
 									if (pTech->GetHeight() > 10)
 										bounsRange = nDataType.GuardRange;
 
-									auto nDummy = CoordStruct { 0, 0, height };
-									if ((coords - nDummy).DistanceFrom(dest) <= (nDataType.GuardRange * 256 + bounsRange) && type != AbstractType::Building)
+									const auto nDummy = CoordStruct { 0, 0, height };
+									if ((coords - nDummy).DistanceFrom(dest)
+									<= (nDataType.GuardRange * 256 + bounsRange) &&
+										 !IsBuilding)
 									{
 										pDummy = pTech;
 										break;

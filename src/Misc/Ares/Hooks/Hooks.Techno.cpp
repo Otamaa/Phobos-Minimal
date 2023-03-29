@@ -320,7 +320,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		//This thing does ally check twice
 		//if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis) && !pWHExt->Berzerk_AffectAlly)
 		//	return RetUnaffected;
-		if (pThis->WhatAmI() == AbstractType::Building)
+		if (Is_Building(pThis))
 			return RetUnaffected;
 
 		if (TechnoExt::IsPsionicsImmune(pThis) || TechnoExt::IsBerserkImmune(pThis))

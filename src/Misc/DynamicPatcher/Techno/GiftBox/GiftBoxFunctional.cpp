@@ -226,17 +226,15 @@ void GetGifts(const GiftBoxData& nData, std::vector<TechnoTypeClass*>& nOut)
 
 void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 {
-	auto const pHouse = pOwner->GetOwningHouse();
+	const auto pHouse = pOwner->GetOwningHouse();
 	CoordStruct location = pOwner->GetCoords();
 
 	if (auto pCell = MapClass::Instance->TryGetCellAt(location)) {
 		AbstractClass* pDest = nullptr;
 		AbstractClass* pFocus = nullptr;
 
-		if (pOwner->WhatAmI() != AbstractType::Building) {
-			if (auto pFoot = generic_cast<FootClass*>(pOwner))
-				pDest = pFoot->Destination;
-
+		if (!Is_Building(pOwner)) {
+			pDest = static_cast<FootClass*>(pOwner)->Destination;
 			pFocus = pOwner->Focus;
 		}
 
@@ -244,7 +242,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 		GetGifts(nData, nOut);
 
 		for (auto const& pTech : nOut) {
-			if (nData.RandomRange > 0) { 
+			if (nData.RandomRange > 0) {
 				if (auto const pNewCell = GeneralUtils::GetCell(pCell, location, (size_t)(nData.RandomRange.Get()), nData.EmptyCell))
 					pCell = pNewCell;
 			}
@@ -283,16 +281,14 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 				}
 				else
 				{
-					auto const nGiftWhat = pGift->WhatAmI();
-
-					if (nGiftWhat != AbstractType::Building)
+					if (!Is_Building(pGift))
 					{
 						CoordStruct des = pDest ? pDest->GetCoords() : location;
 
 						if (pFocus)
 						{
 							pGift->SetFocus(pFocus);
-							if (nGiftWhat == AbstractType::Unit)
+							if (Is_Unit(pGift))
 							{
 								des = pFocus->GetCoords();
 							}
@@ -306,7 +302,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 					}
 				}
 
-				if (pTech->WhatAmI() == AbstractType::BuildingType)
+				if (Is_BuildingType(pTech))
 				{
 					Debug::Log("[%s] Gift box release BuildingType as an gift ,pType [%s] \n", pOwner->get_ID(), pTech->get_ID());
 				}

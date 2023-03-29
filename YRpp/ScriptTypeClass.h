@@ -46,6 +46,8 @@ class DECLSPEC_UUID("42F3A647-0789-11D2-ACA5-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ScriptType;
+	static constexpr inline DWORD vtable = 0x7F1008;
+
 	static inline constexpr int MaxActions = 50;
 
 	//Array

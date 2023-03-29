@@ -4,18 +4,18 @@
 TeamExt::ExtContainer TeamExt::ExtMap;
 
 bool TeamExt::ExtData::InvalidateIgnorable(void* const ptr) const {
-	auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-	switch (abs)
+
+	switch (GetVtableAddr(ptr))
 	{
-	case AbstractType::Aircraft:
-	case AbstractType::Unit:
-	case AbstractType::Infantry:
-	case AbstractType::Script:
+	case AircraftClass::vtable:
+	case UnitClass::vtable:
+	case InfantryClass::vtable:
+	case ScriptClass::vtable:
 	{
 		return false;
 	}
 	}
-	
+
 	return true;
 }
 

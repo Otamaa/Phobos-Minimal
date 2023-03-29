@@ -67,6 +67,7 @@ class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Cell;
+	static constexpr inline DWORD vtable = 0x7E4EEC;
 
 	// the height of a bridge in leptons
 	static inline constexpr int BridgeLevels = 4;

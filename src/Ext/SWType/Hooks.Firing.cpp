@@ -62,11 +62,11 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x3)
 	//GET_STACK(bool const, isPlayer, 0x8);
 
 	// preventing corrupted pointer to execute
-	if (!pSuper || !((((DWORD*)pSuper)[0] == SuperClass::vtable)))
+	if (!pSuper || !Is_SW(pSuper))
 		return 0x0;
 
 	// preventing corrupted pointer to execute
-	if(pSuper->Type && ((((DWORD*)pSuper->Type)[0] == SuperWeaponTypeClass::vtable))){
+	if(pSuper->Type && !Is_SWType(pSuper->Type)){
 		if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type)){
 			pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
 		}

@@ -13,6 +13,7 @@
 #include <Point3D.h>
 #include <DirStruct.h>
 #include <string.h>
+#include <timeapi.h>
 
 //used for cell coordinates/vectors
 //using FloatVelocity = Vector3D<float>;
@@ -56,13 +57,19 @@ struct FrameTimer
 	operator long() const { return *reinterpret_cast<long*>(0xA8ED84); }
 };
 
+struct SystemTimer
+{
+	long operator()() const { return timeGetTime() >> 4; }
+	operator long() const { return timeGetTime() >> 4; }
+};
+
 //used for timed events, time measured in frames!
 template<TimerType Clock>
 class TimerClass
 {
 public:
 	int StartTime{ -1 };
-	Clock CurrentTime; // timer
+	Clock CurrentTime {}; // timer
 	int TimeLeft{ 0 };
 
 	constexpr TimerClass() = default;
@@ -145,7 +152,10 @@ public:
 };
 
 using CDTimerClass = TimerClass<FrameTimer>;
+using SystemTimerClass = TimerClass<SystemTimer>;
 static_assert(offsetof(CDTimerClass, TimeLeft) == 0x8);
+static_assert(offsetof(SystemTimerClass, TimeLeft) == 0x8);
+static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");
 static_assert(sizeof(CDTimerClass) == 0xC, "Invalid Size !");
 
 class RepeatableTimerStruct : public CDTimerClass

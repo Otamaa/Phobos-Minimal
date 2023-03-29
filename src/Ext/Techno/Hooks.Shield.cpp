@@ -269,7 +269,7 @@ public:
 private:
 	static bool CanApplyEngineerActions(InfantryClass* pThis, ObjectClass* pTarget)
 	{
-		if (pTarget->WhatAmI() == AbstractType::Building)
+		if (Is_Building(pTarget))
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pTarget);
 			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))

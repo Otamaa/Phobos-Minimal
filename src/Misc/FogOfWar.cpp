@@ -47,15 +47,15 @@ DEFINE_HOOK(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
 	if (!ScenarioClass::Instance->SpecialFlags.FogOfWar)
 		return 0x5F4B48;
 
-	switch (pThis->WhatAmI())
+	switch (GetVtableAddr(pThis))
 	{
-	case AbstractType::Anim:
+	case AnimClass::vtable:
 		if (!static_cast<AnimClass*>(pThis)->Type->ShouldFogRemove)
 			return 0x5F4B48;
 		break;
 
-	case AbstractType::Unit:
-	case AbstractType::Cell:
+	case UnitClass::vtable:
+	case CellClass::vtable:
 		break;
 
 	default:

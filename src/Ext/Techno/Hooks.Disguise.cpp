@@ -27,14 +27,14 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 #ifdef TANK_DISGUISE
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pThis->WhatAmI() == AbstractType::Unit && pExt->TankDisguiseAsTank.Get())
+	if (Is_Unit(pThis) && pExt->TankDisguiseAsTank.Get())
 	{
 		pThis->Disguised = false;
 		return TechnoInit_SetDisguise;
 	}
 #endif
 
-	if (pThis->WhatAmI() == AbstractType::Infantry ) {
+	if (Is_Infantry(pThis)) {
 		if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 			//R->EDX(pDisguiseType);
 			//return 0x6F4245;

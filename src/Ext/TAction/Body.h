@@ -93,13 +93,12 @@ public:
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
 		{
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+			switch (GetVtableAddr(ptr))
 			{
-			case AbstractType::Trigger:
+			case TriggerClass::vtable:
 				return false;
 			}
-			
+
 			return true;
 		}
 	};

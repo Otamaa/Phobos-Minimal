@@ -74,28 +74,23 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 	auto const pObject = pThis->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
 
-	if (pType->HunterSeeker)
-	{
-		if (auto const pTarget = pObject->Target)
-		{
+	if (pType->HunterSeeker) {
+		if (auto const pTarget = pObject->Target) {
 
 			// update the target's position, considering units in tunnels
 			auto crd = pTarget->GetCoords();
 
-			auto const abs = pTarget->WhatAmI();
-			if (abs == UnitClass::AbsID || abs == InfantryClass::AbsID)
-			{
+			auto const abs = GetVtableAddr(pTarget);
+			if (abs == UnitClass::vtable || abs == InfantryClass::vtable) {
 				auto const pFoot = static_cast<FootClass*>(pObject);
-				if (pFoot->TubeIndex >= 0)
-				{
+				if (pFoot->TubeIndex >= 0) {
 					crd = pFoot->CurrentMechPos;
 				}
 			}
 
 			auto const height = MapClass::Instance->GetCellFloorHeight(crd);
 
-			if (crd.Z < height)
-			{
+			if (crd.Z < height) {
 				crd.Z = height;
 			}
 
@@ -103,9 +98,8 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 
 			// update the facing
 			auto const crdSource = pObject->GetCoords();
-			auto const value = std::atan2(crdSource.Y - crd.Y, crd.X - crdSource.X);
 
-			DirStruct const tmp(value);
+			DirStruct const tmp(double(crdSource.Y - crd.Y), double(crd.X - crdSource.X));
 			pObject->PrimaryFacing.Set_Current(tmp);
 			pObject->SecondaryFacing.Set_Current(tmp);
 		}
@@ -120,14 +114,12 @@ DEFINE_OVERRIDE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 	auto const pObject = pThis->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
 
-	if (pType->HunterSeeker)
-	{
-		if (!pObject->Target)
-		{
+	if (pType->HunterSeeker) {
+		if (!pObject->Target) {
+
 			pThis->Acquire_Hunter_Seeker_Target();
 
-			if (pObject->Target)
-			{
+			if (pObject->Target) {
 				pThis->IsLanding = false;
 				pThis->FlightLevel = pType->GetFlightLevel();
 
@@ -152,14 +144,13 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 	auto const pObject = pLoco->LinkedTo;
 	auto const pType = pObject->GetTechnoType();
 
-	if (pType->HunterSeeker)
-	{
-		if (!pObject->Target)
-		{
+	if (pType->HunterSeeker) {
+		if (!pObject->Target) {
+
 			pLoco->Acquire_Hunter_Seeker_Target();
 
-			if (pObject->Target)
-			{
+			if (pObject->Target) {
+
 				pLoco->IsLanding = false;
 				pLoco->FlightLevel = pType->GetFlightLevel();
 

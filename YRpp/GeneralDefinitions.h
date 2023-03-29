@@ -1325,6 +1325,7 @@ enum class MouseCursorType : unsigned int {
 
 	count
 };
+MAKE_ENUM_FLAGS(MouseCursorType);
 
 enum class RadBeamType : unsigned int {
 	Temporal = 0,

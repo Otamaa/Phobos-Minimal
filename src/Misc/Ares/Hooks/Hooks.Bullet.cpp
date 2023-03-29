@@ -43,11 +43,11 @@ DEFINE_OVERRIDE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
 DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {
 	GET(TechnoClass*, pT, ECX);
-	switch (pT->WhatAmI())
+	switch (GetVtableAddr(pT))
 	{
-	case AbstractType::Infantry:
-	case AbstractType::Unit:
-	case AbstractType::Building:
+	case InfantryClass::vtable:
+	case UnitClass::vtable:
+	case BuildingClass::vtable:
 		return 0x4693BC;
 	default:
 		return 0x469AA4;

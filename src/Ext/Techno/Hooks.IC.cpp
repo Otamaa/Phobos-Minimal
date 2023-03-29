@@ -38,7 +38,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
 
-	if (pType->Organic || pThis->WhatAmI() == AbstractType::Infantry)
+	if (pType->Organic || Is_Infantry(pThis))
 	{
 		if (pTypeExt->IronCurtain_Affect.isset())
 			ironAffect = pTypeExt->IronCurtain_Affect.Get();
@@ -120,7 +120,7 @@ DEFINE_HOOK(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 	}break;
 	default:
 	{
-		if (!pType->Organic && pThis->WhatAmI() != AbstractType::Infantry)
+		if (!pType->Organic && !Is_Infantry(pThis))
 			return MakeInvunlnerable;
 		else
 			goto Kill;

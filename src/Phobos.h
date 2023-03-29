@@ -9,7 +9,7 @@
 #include <string>
 #include <Wstring.h>
 
-#define IS_SAME_STR_(a ,b) CRT::strcmpi(a,b) == 0
+#define IS_SAME_STR_(a ,b) _strcmpi(a,b) == 0
 
 class CCINIClass;
 class AbstractClass;

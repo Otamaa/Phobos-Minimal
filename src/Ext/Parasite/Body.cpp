@@ -16,17 +16,17 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 
 		nBracket = TechnoExt::GetDisguiseType(pThis).first->PixelSelectionBracketDelta;
 
-		switch (pThis->WhatAmI())
+		switch ((((DWORD*)pThis)[0]))
 		{
-		case AbstractType::Unit:
-		case AbstractType::Aircraft:
+		case UnitClass::vtable:
+		case AircraftClass::vtable:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Units_Offset.Get();
 			xOffset = offset.X;
 			yOffset = offset.Y + nBracket;
 		}
 		break;
-		case AbstractType::Infantry:
+		case InfantryClass::vtable:
 		{
 			const auto& offset = RulesExt::Global()->Pips_SelfHeal_Infantry_Offset.Get();
 			xOffset = offset.X;

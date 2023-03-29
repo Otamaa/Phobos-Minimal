@@ -81,7 +81,7 @@ DEFINE_OVERRIDE_HOOK(0x662512, RocketLocomotionClass_ILocomotion_Process_CustomM
 	GET(ILocomotion*, pThis, ESI);
 
 	auto pLocomotor = static_cast<RocketLocomotionClass*>(pThis);
-	auto pOwner = abstract_cast<AircraftClass*>(pLocomotor->LinkedTo);
+	auto pOwner = static_cast<AircraftClass*>(pLocomotor->LinkedTo);
 	auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
@@ -99,7 +99,7 @@ DEFINE_OVERRIDE_HOOK(0x6627E5, RocketLocomotionClass_ILocomotion_Process_CustomM
 	GET(ILocomotion*, pThis, ESI);
 
 	auto pLocomotor = static_cast<RocketLocomotionClass*>(pThis);
-	auto pOwner = abstract_cast<AircraftClass*>(pLocomotor->LinkedTo);
+	auto pOwner = static_cast<AircraftClass*>(pLocomotor->LinkedTo);
 	auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (AnimTypeClass* pType = pExt->CustomMissileTakeoffAnim) {
@@ -117,7 +117,7 @@ DEFINE_OVERRIDE_HOOK(0x662D85, RocketLocomotionClass_ILocomotion_Process_CustomM
 	GET(ILocomotion*, pThis, ESI);
 
 	auto pLocomotor = static_cast<RocketLocomotionClass*>(pThis);
-	auto pOwner = abstract_cast<AircraftClass*>(pLocomotor->LinkedTo);
+	auto pOwner = static_cast<AircraftClass*>(pLocomotor->LinkedTo);
 	auto pExt = TechnoTypeExt::ExtMap.Find(pOwner->Type);
 
 	if (pLocomotor->TrailerTimer.Expired())
@@ -228,7 +228,7 @@ DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 
 	GET(RocketLocomotionClass* const, pThis, ESI);
 
-	if (const auto pAir = specific_cast<AircraftClass*>(pThis->Owner)) {	
+	if (const auto pAir = static_cast<AircraftClass*>(pThis->Owner)) {
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pAir->Type);
 		if (pExt->IsCustomMissile.Get() && pAir->SpawnOwner) {
 			if(!pExt->CustomMissileRaise.Get(pAir->SpawnOwner))

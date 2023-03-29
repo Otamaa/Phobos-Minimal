@@ -12,6 +12,8 @@ class DECLSPEC_UUID("42F3A646-0789-11D2-ACA5-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Script;
+	static constexpr inline DWORD vtable = 0x7F0F78;
+
 	static constexpr constant_ptr<DynamicVectorClass<ScriptClass*>, 0x8872B0u> const Array {};
 
 	//IPersist

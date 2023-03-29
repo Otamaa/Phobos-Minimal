@@ -45,13 +45,12 @@ public:
 		virtual ~ExtData() override = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override {
-			auto const abs = static_cast<AbstractClass*>(ptr)->WhatAmI();
-			switch (abs)
+			switch (GetVtableAddr(ptr))
 			{
-			case AbstractType::Aircraft:
-			case AbstractType::Building:
-			case AbstractType::Infantry:
-			case AbstractType::Unit:
+			case AircraftClass::vtable:
+			case BuildingClass::vtable:
+			case InfantryClass::vtable:
+			case UnitClass::vtable:
 				return false;
 			}
 

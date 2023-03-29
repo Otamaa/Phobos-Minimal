@@ -134,11 +134,12 @@ DEFINE_HOOK(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
 
 		while (true)
 		{
-			isEligible = pObj->WhatAmI() != AbstractType::Building;
+			isEligible = !Is_Building(pObj);
 
-			if (auto const pTerrain = specific_cast<TerrainClass*>(pObj))
-			{
-				isEligible = TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn;
+			if(Is_Terrain(pObj)) {
+				if (auto const pTerrain = static_cast<TerrainClass*>(pObj)) {
+					isEligible = TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CanBeBuiltOn;
+				}
 			}
 
 			if (!isEligible)
@@ -177,7 +178,7 @@ DEFINE_HOOK(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 	GET(ObjectClass*, pObject, EDI);
 	GET(CellClass*, pCell, EAX);
 
-	if (pObject->WhatAmI() == AbstractType::Building)
+	if (Is_Building(pObject))
 	{
 		if (auto const pTerrain = pCell->GetTerrain(false))
 		{

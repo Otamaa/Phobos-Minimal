@@ -58,7 +58,7 @@ DEFINE_HOOK(0x467BDB, BulletClass_Update_BounceOnSomething, 0x6)
 			}
 
 			pExt->LastObject = pObj;
-			if (pObj->WhatAmI() == AbstractType::Building)
+			if ((((DWORD*)pObj)[0]) == BuildingClass::vtable)
 			{
 				auto pBldCell = pObj->GetCell();
 				auto pBldCoord = pBldCell->GetCoords();

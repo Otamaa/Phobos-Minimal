@@ -8,6 +8,7 @@
 *	SHPStruct is of, because the the member functions work with both.
 */
 
+
 struct SHPReference;
 struct SHPFile;
 
@@ -101,9 +102,11 @@ struct SHPReference : public SHPStruct
 
 struct SHPFrame
 {
-	short		Left;
-	short		Top;
-	short		Width;
+	RectangleStruct GetFrameDimensions() const { return { Left, Top, Width, Height }; }
+
+	short		Left; //X
+	short		Top; //Y
+	short		Width; 
 	short		Height;
 	DWORD		Flags;
 	ColorStruct	Color;
@@ -135,6 +138,32 @@ inline SHPFile* SHPStruct::AsFile() {
 inline const SHPFile* SHPStruct::AsFile() const {
 	return !IsReference() ? static_cast<const SHPFile*>(this) : nullptr;
 }
+
+#pragma pack(4)
+struct ShapeFileStruct
+{
+public:
+	operator void* () const { return (*this); } // This allows the struct to be passed implicitly as a raw pointer.
+
+	SHPFrame* GetFrameData(int index)
+	{
+		return &(&FrameData)[index * sizeof(SHPFrame)];
+	}
+
+	int GetWidth() const { return Header.Width; }
+	int GetHeight() const { return Header.Height; }
+	int GetFrameCount() const { return Header.Frames; }
+
+private:
+	SHPStruct Header;
+
+	/**
+	 *  This is an instance of the first frame in the shape file, use Get_Frame_Data
+	 *  to get the frame information, do not access this directly!
+	 */
+	SHPFrame FrameData;
+};
+#pragma pack()
 
 //=== GLOBAL LINKED LIST OF ALL LOADED SHP FILES
 // defined but not used

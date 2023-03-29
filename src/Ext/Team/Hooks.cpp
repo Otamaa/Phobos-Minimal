@@ -9,15 +9,15 @@ static bool GroupAllowed(const std::string& nFirst, const std::string& nSecond)
 
 	auto nNone = NONE_STR;
 	auto nNone2 = NONE_STR2;
-	if (!_strcmpi(nFirst.c_str(), nNone)
-		|| !_strcmpi(nSecond.c_str(), nNone)
-		|| !_strcmpi(nFirst.c_str(), nNone2)
-		|| !_strcmpi(nSecond.c_str(), nNone2)
+	if (!IS_SAME_STR_(nFirst.c_str(), nNone)
+		|| !IS_SAME_STR_(nSecond.c_str(), nNone)
+		|| !IS_SAME_STR_(nFirst.c_str(), nNone2)
+		|| !IS_SAME_STR_(nSecond.c_str(), nNone2)
 		) {
 		return false;
 	}
 
-	return !_strcmpi(nSecond.c_str(), nSecond.c_str());
+	return !IS_SAME_STR_(nSecond.c_str(), nSecond.c_str());
 }
 
 static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
@@ -26,7 +26,7 @@ static bool GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat)
 		return true;
 
 	 //InfantryClass doesnt support this ,..
-	 if (pThis->WhatAmI() == AbstractType::InfantryType)
+	 if (Is_InfantryType(pThis))
 	 	return false;
 
 	auto pThatTechExt = TechnoTypeExt::ExtMap.Find(pThat);

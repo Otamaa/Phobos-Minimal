@@ -15,6 +15,7 @@ class DECLSPEC_UUID("AE8B33DA-061C-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::AnimType;
+	static constexpr inline DWORD vtable = 0x7E3608;
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<AnimTypeClass*>, 0x8B4150u> const Array {};

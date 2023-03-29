@@ -189,7 +189,7 @@ void PaintBall::Update(TechnoClass* pThis)
 	{
 		if (pExt->PaintBallState->IsActive())
 		{
-			if (pThis->WhatAmI() == AbstractType::Building)
+			if (Is_Building(pThis))
 			{
 				BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
 			}

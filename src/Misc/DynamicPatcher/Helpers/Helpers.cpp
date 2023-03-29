@@ -358,7 +358,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 	CoordStruct sourceOffset = turretOffset;
 	CoordStruct tempFLH = flh;
 
-	if (nextFrame && pTechno->WhatAmI() != AbstractType::Building)
+	if (nextFrame && !Is_Building(pTechno))
 	{
 		if (FootClass* pFoot = (FootClass*)pTechno)
 		{
@@ -373,7 +373,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 	}
 	else
 	{
-		if (pTechno->WhatAmI() == AbstractType::Building)
+		if (Is_Building(pTechno))
 		{
 			tempFLH.Z += Unsorted::LevelHeight;
 		}
@@ -410,7 +410,7 @@ void Helpers_DP::RotateMatrix3D(Matrix3D& matrix3D, TechnoClass* pTechno, bool i
 		{
 			DirStruct turretDir = nextFrame ? pTechno->SecondaryFacing.Next() : pTechno->SecondaryFacing.Current();
 
-			if (pTechno->WhatAmI() == AbstractType::Building)
+			if (Is_Building(pTechno))
 			{
 				double turretRad = turretDir.GetRadian();
 				matrix3D.RotateZ(static_cast<float>(turretRad));
@@ -502,13 +502,13 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(ObjectClass* pObject, CoordStruct& 
 	else
 	{
 
-		switch (pObject->WhatAmI())
+		switch (GetVtableAddr(pObject))
 		{
-		case AbstractType::Bullet:
+		case BulletClass::vtable:
 			return GetFLHAbsoluteCoords(static_cast<BulletClass*>(pObject), flh, isOnTurret, flipY);
-		case AbstractType::Anim:
+		case AnimClass::vtable:
 			return  GetFLHAbsoluteCoords(static_cast<AnimClass*>(pObject), flh, isOnTurret, flipY);
-		case AbstractType::VoxelAnim:
+		case VoxelAnimClass::vtable:
 			return  GetFLHAbsoluteCoords(static_cast<VoxelAnimClass*>(pObject), flh, isOnTurret, flipY);
 		}
 
@@ -540,7 +540,7 @@ LocationMark Helpers_DP::GetRelativeLocation(ObjectClass* pOwner, OffsetData dat
 		}
 		else
 		{
-			if (pOwner->WhatAmI() == AbstractType::Bullet)
+			if (Is_Bullet(pOwner))
 			{
 				auto pBullet = static_cast<BulletClass*>(pOwner);
 				// 增加抛射体偏移值取下一帧所在实际位置
@@ -570,19 +570,19 @@ std::optional<DirStruct> Helpers_DP::GetRelativeDir(ObjectClass* pOwner, int dir
 			return Helpers_DP::GetDirectionRelative(static_cast<TechnoClass*>(pOwner),dir,isOnTurret);
 		}
 
-		switch (pOwner->WhatAmI())
+		switch (GetVtableAddr(pOwner))
 		{
-		case AbstractType::Anim:
-		{
-			//TODO
-			break;
-		}
-		case AbstractType::VoxelAnim:
+		case AnimClass::vtable:
 		{
 			//TODO
 			break;
 		}
-		case AbstractType::Bullet:
+		case VoxelAnimClass::vtable:
+		{
+			//TODO
+			break;
+		}
+		case BulletClass::vtable:
 		{
 			// 增加抛射体偏移值取下一帧所在实际位置
 			CoordStruct sourcePos = pOwner->Location;
@@ -615,7 +615,7 @@ DirStruct Helpers_DP::GetDirectionRelative(TechnoClass* pMaster, int dir, bool i
 			sourceDir = static_cast<JumpjetLocomotionClass*>(pLoco)->Facing.Current();
 		}
 
-		if (isOnTurret || pFoot->WhatAmI() == AbstractType::Aircraft)
+		if (isOnTurret || Is_Aircraft(pFoot))
 		{
 			sourceDir = pMaster->GetRealFacing();
 		}
@@ -840,13 +840,13 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 				--Unsorted::IKnowWhatImDoing;
 			} else {
 
-				if (pType->WhatAmI() == AbstractType::BuildingType) {
+				if (Is_BuildingType(pType)) {
 					if (!pCell->CanThisExistHere(pType->SpeedType, static_cast<BuildingTypeClass*>(pType), pHouse)) {
 						location = MapClass::Instance->GetRandomCoordsNear(location, 0, false);
 						pCell = MapClass::Instance->GetCellAt(location);
 					}
 				}
-				
+
 				pTechno->OnBridge = pCell->ContainsBridge();
 				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
 			}
