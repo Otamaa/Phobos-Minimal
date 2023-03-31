@@ -20,6 +20,7 @@ class Fixed
 	typedef unsigned char data_type;
 
 public:
+	Fixed(const noinit_t&) { }
 	Fixed() {}
 	Fixed(const Fixed & rvalue) { Data.Raw = rvalue.Data.Raw; }
 	Fixed(int numerator, int denominator);

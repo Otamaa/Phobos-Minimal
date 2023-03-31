@@ -3,6 +3,8 @@
 #include <Base/Always.h>
 #include <Memory.h>
 #include <assert.h>
+#include <type_traits>
+#include <utility>
 
 template<typename T>
 class TPriorityQueueClass
@@ -29,12 +31,11 @@ template <typename T>
 TPriorityQueueClass<T>::TPriorityQueueClass(int capacity) :
 	HeapSize(0),
 	Capacity(capacity),
-	Heap(YRMemory::Allocate(sizeof(T*) * (capacity + 1))),
+	Heap((T*)YRMemory::Allocate(sizeof(T*) * (capacity + 1))),
 	field_10(0),
-	field_14(-1),
+	field_14(-1)
 {
-	for (int i = 0; i < capacity; ++i)
-	{ Heap[i] = 0; }
+	memset(Heap, 0, sizeof(T*)* (Capacity + 1));
 }
 
 template <typename T>
@@ -42,15 +43,13 @@ TPriorityQueueClass<T>::~TPriorityQueueClass()
 {
 	Clear();
 	YRMemory::Deallocate(Heap);
+	Capacity = 0;
 }
 
 template <typename T>
 void TPriorityQueueClass<T>::Clear()
 {
-	for (int i = 0; i < HeapSize; ++i)
-	{
-		Heap[i] = 0;
-	}
+	memset(Heap, 0, sizeof(T*) * (Capacity + 1));
 	HeapSize = 0;
 }
 
@@ -100,6 +99,20 @@ private:
 	TPriority Priority;
 };
 
+template<class T, class EqualTo>
+struct has_operator_equal_impl
+{
+	template<class U, class V>
+	static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>());
+	template<typename, typename>
+	static auto test(...) -> std::false_type;
+
+	using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+};
+
+template<class T, class EqualTo = T>
+struct has_operator_equal : has_operator_equal_impl<T, EqualTo>::type { };
+
 template<typename TElement, typename TPriority, bool IsMinHeap = true>
 class PriorityQueueClass final
 {
@@ -113,7 +126,7 @@ class PriorityQueueClass final
 	static_assert(std::is_copy_assignable_v<TPriority>, "TPriority must be copy assignable.");
 	static_assert(std::is_move_assignable_v<TElement>, "TElement must be move assignable.");
 	static_assert(std::is_move_assignable_v<TPriority>, "TPriority must be move assignable.");
-	static_assert(std::has_operator<TElement, TElement, std::equal_to<>>::value, "TElement must be equality comparable with itself.");
+	static_assert(has_operator_equal<TElement>::value, "TElement must be equality comparable with itself.");
 
 public:
 	PriorityQueueClass(int size);

@@ -911,19 +911,6 @@ enum class HealthState : unsigned int {
 	Green = 2
 };
 
-enum class DirType : unsigned char
-{
-	North = 0,
-	NorthEast = 32,
-	East = 64,
-	SouthEast = 96,
-	South = 128,
-	SouthWest = 160,
-	West = 192,
-	NorthWest = 224,
-};
-MAKE_ENUM_FLAGS(DirType);
-
 enum class Foundation : int
 {
 	_1x1 = 0,
@@ -1152,24 +1139,24 @@ enum class Prerequisite : int
 	Power = -1
 };
 
-typedef enum DirTypes
-{
-	DIR_N = 0,          // 0
-	DIR_NE = 1 << 5,    // 32
-	DIR_E = 2 << 5,     // 64
-	DIR_SE = 3 << 5,    // 96
-	DIR_S = 4 << 5,     // 128
-	DIR_SW = 5 << 5,    // 160
-	DIR_W = 6 << 5,     // 192
-	DIR_NW = 7 << 5,    // 224
-
-	DIR_MIN = 0,
-	DIR_MAX = 255,
-
-	DIR_SW_X1 = DirTypes((5 << 5) - 8),  // 152      // Direction of harvester while unloading.
-	DIR_SW_X2 = DirTypes((5 << 5) - 16), // 144      // Direction of harvester while unloading.
-} DirTypes;
-DEFINE_ENUMERATION_OPERATORS(DirTypes);
+//typedef enum DirTypes
+//{
+//	DIR_N = 0,          // 0
+//	DIR_NE = 1 << 5,    // 32
+//	DIR_E = 2 << 5,     // 64
+//	DIR_SE = 3 << 5,    // 96
+//	DIR_S = 4 << 5,     // 128
+//	DIR_SW = 5 << 5,    // 160
+//	DIR_W = 6 << 5,     // 192
+//	DIR_NW = 7 << 5,    // 224
+//
+//	DIR_MIN = 0,
+//	DIR_MAX = 255,
+//
+//	DIR_SW_X1 = DirTypes((5 << 5) - 8),  // 152      // Direction of harvester while unloading.
+//	DIR_SW_X2 = DirTypes((5 << 5) - 16), // 144      // Direction of harvester while unloading.
+//} DirTypes;
+//DEFINE_ENUMERATION_OPERATORS(DirTypes);
 
 enum class PrismChargeState : int {
 	Idle = 0,
@@ -1711,6 +1698,7 @@ enum class WWKey : int {
 	Button = 0x8000,
 };
 MAKE_ENUM_FLAGS(WWKey);
+
 //Westwood custom messages (e.g. for SendMessage)
 #define	WW_SLIDER_GETVALUE			0x400
 

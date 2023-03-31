@@ -53,12 +53,11 @@ DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief,
 	GET(InfantryClass*, pInfantry, ESI);
 	GET(InfantryTypeClass*, pType, EAX);
 
-	if (pType->VehicleThief && pInfantry->Destination)
+	if (pType->VehicleThief 
+		&& pInfantry->Destination 
+		&& (pInfantry->Destination->AbstractFlags & AbstractFlags::Foot) )
 	{
-		if (pInfantry->Destination->AbstractFlags & AbstractFlags::Foot)
-		{
-			return 0x4D9AB9;
-		}
+		return 0x4D9AB9;
 	}
 
 	return 0;

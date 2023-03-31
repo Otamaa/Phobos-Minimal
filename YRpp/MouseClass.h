@@ -66,6 +66,8 @@ public:
 
 	~MouseCursor() noexcept = default;
 
+public:
+
 	int StartFrame { 0 };
 	int FrameCount { 1 };
 	int FrameRate { 1 };
@@ -75,7 +77,27 @@ public:
 	MouseHotSpotY Y { MouseHotSpotY::Middle };
 };
 
-struct MouseCursorDataStruct : public MouseCursor {
+struct MouseCursorDataStruct 
+{
+	MouseCursorDataStruct() = default;
+
+	MouseCursorDataStruct(
+		int frame, int count, int interval, 
+		int miniFrame, int miniCount,  int miniInterval , 
+		MouseHotSpotX hotX, MouseHotSpotY hotY
+	) : OriginalData { frame , count, interval, miniFrame, miniCount, hotX, hotY },
+		SmallFrameRate(miniInterval)
+	{ }
+
+	MouseCursorDataStruct(MouseCursor const& nData , int miniInterval) :
+		OriginalData { nData },
+		SmallFrameRate { miniInterval }
+	{ }
+	
+	~MouseCursorDataStruct() noexcept = default;
+
+public:
+	MouseCursor OriginalData {};
 	int SmallFrameRate { 1 };
 };
 

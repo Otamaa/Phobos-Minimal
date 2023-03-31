@@ -174,6 +174,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="src\ExtraHeaders\AlternateNames.h" />
     <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\ExtraHeaders\Buffer.h" />
+    <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
     <ClInclude Include="src\ExtraHeaders\DataVectors.h" />
     <ClInclude Include="src\ExtraHeaders\DiscreteDistributionClass_s.h" />
     <ClInclude Include="src\ExtraHeaders\DiscreteSelectionClass_s.h" />

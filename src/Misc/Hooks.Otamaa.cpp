@@ -683,27 +683,27 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 	return Continue;
 }
 
-DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
-{
-	enum
-	{
-		increment = 0x72312F,
-		SetCell = 0x723005
-	};
-
-	GET(const MapSurfaceData*, pSurfaceData, EBX);
-	R->EBX(pSurfaceData);
-	const auto nCell = pSurfaceData->MapCoord;
-
-	if (!MapClass::Instance->IsValidCell(nCell))
-	{
-		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
-		return increment;
-	}
-
-	R->EAX(MapClass::Instance->GetCellAt(nCell));
-	return SetCell;
-}
+//DEFINE_HOOK(0x722FFA, TiberiumClass_Grow_CheckMapCoords, 0x6)
+//{
+//	enum
+//	{
+//		increment = 0x72312F,
+//		SetCell = 0x723005
+//	};
+//
+//	GET(const MapSurfaceData*, pSurfaceData, EBX);
+//	R->EBX(pSurfaceData);
+//	const auto nCell = pSurfaceData->MapCoord;
+//
+//	if (!MapClass::Instance->IsValidCell(nCell))
+//	{
+//		Debug::Log("Tiberium Growth With Invalid Cell ,Skipping !\n");
+//		return increment;
+//	}
+//
+//	R->EAX(MapClass::Instance->GetCellAt(nCell));
+//	return SetCell;
+//}
 
 //TaskForces_LoadFromINIList_WhySwizzle , 0x5
 //DEFINE_JUMP(LJMP, 0x6E8300, 0x6E8315)
@@ -4619,3 +4619,13 @@ DEFINE_HOOK(0x40A554, AudioDriverStar_AnnoyingBufferLogDisable_B, 0x6)
 	R->EAX(ptr);
 	return 0x40A56C;
 }
+
+#pragma optimize("", off )
+//DEFINE_HOOK(0x722FC2, TiberiumClass_Grow_Validate, 0x5)
+//{
+//	GET(const TPriorityQueueClass<MapSurfaceData>*, pHeap, ECX);
+//	Debug::Log("__FUNCTION__ , Tiberium Logic with HeapSize(%d) \n" , pHeap->HeapSize);
+//	return 0x0;
+//}
+
+#pragma optimize("", on)

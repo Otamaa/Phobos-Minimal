@@ -110,7 +110,7 @@ DEFINE_OVERRIDE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 	if (highest >= 3 && !pThis->IsDisguised())
 	{
 		auto offset = 1u << (highest - 3);
-		ret = TranslateFixedPointNoconstexpr(16, highest, static_cast<WORD>(pThis->PrimaryFacing.Current().GetValue()), offset);
+		ret = TranslateFixedPoint::Normal(16, highest, static_cast<WORD>(pThis->PrimaryFacing.Current().GetValue()), offset);
 	}
 
 	R->EBX(ret);

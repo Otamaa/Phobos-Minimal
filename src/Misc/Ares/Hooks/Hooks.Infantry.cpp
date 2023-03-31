@@ -16,13 +16,14 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Misc/AresData.h>
 
 //
 // skip old logic's way to determine the cursor
 // Was 7
-DEFINE_OVERRIDE_SKIP_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA, 0x5 ,51E5D9)
+DEFINE_OVERRIDE_SKIP_HOOK(0x51E5BB, InfantryClass_GetActionOnObject_MultiEngineerA, 0x5, 51E5D9)
 
 DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 {
@@ -35,14 +36,16 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 
 	// doggie sit down on tiberium handling
 	if (pThis->Type->Doggie && !pThis->Crawling && !pThis->Target && !pThis->Destination) {
-		if (!pThis->PrimaryFacing.Is_Rotating() && pThis->GetCell()->LandType == LandType::Tiberium) {
-			if (pThis->PrimaryFacing.Current().Get_Dir() == DirType::East) {
+
+		const auto& nPrimaryFacing = pThis->PrimaryFacing;
+
+		if (!nPrimaryFacing.Is_Rotating() && pThis->GetCell()->LandType == LandType::Tiberium) {
+			if (nPrimaryFacing.Current().GetDir() == DirType::East) {
 				// correct facing, sit down
 				pThis->PlayAnim(DoType::Down);
 			} else {
 				// turn to correct facing
-				DirStruct dir(3, DirType::East);
-				pThis->Locomotor->Do_Turn(dir);
+				pThis->Locomotor->Do_Turn({ 3u , DirType::East });
 			}
 		}
 	}

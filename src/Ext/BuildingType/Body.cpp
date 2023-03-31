@@ -9,7 +9,7 @@
 #include <Utilities/Macro.h>
 
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
-const DirClass BuildingTypeExt::DefaultJuggerFacing = DirClass { 0x7FFF };
+const DirStruct BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
 int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
 {

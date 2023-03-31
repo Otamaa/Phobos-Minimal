@@ -66,18 +66,21 @@ DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 	if (pType->Flamer)
 	{
 		// always create at least one small fire
-		SpawnAnim(RulesClass::Instance->SmallFire, 64);
+		if (auto const pAnim1 = SpawnAnim(RulesClass::Instance->SmallFire, 64))
+			AnimExt::SetAnimOwnerHouseKind(pAnim1, pAnim1->Owner, nullptr);
 
 		// 50% to create another small fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
-			SpawnAnim(RulesClass::Instance->SmallFire, 160);
+			if (auto const pAnim2 = SpawnAnim(RulesClass::Instance->SmallFire, 160))
+				AnimExt::SetAnimOwnerHouseKind(pAnim2, pAnim2->Owner, nullptr);
 		}
 
 		// 50% chance to create a large fire
 		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
 		{
-			SpawnAnim(RulesClass::Instance->LargeFire, 112);
+			if (auto const pAnim3 = SpawnAnim(RulesClass::Instance->LargeFire, 112))
+				AnimExt::SetAnimOwnerHouseKind(pAnim3, pAnim3->Owner, nullptr);
 		}
 
 	}

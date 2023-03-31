@@ -149,7 +149,7 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 			} /* else Health = Strength*/
 
 			// The building is created?
-			if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().Get_Dir()))
+			if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().GetDir()))
 			{
 				Debug::Log("Advanced Rubble: Failed to place normal state on map!\n");
 				GameDelete<true, false>(pNew);

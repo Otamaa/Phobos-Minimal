@@ -90,55 +90,6 @@
 51E488 = InfantryClass_GetActionOnObject2, 5
 */
 
-
-//
-//DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors, 5)
-//{
-//	//GET(TechnoClass*, pThis, ECX);
-//	GET_STACK(ObjectClass*, pTarget, 0x4);
-//
-//	MouseCursorTypeClass::Insert(MouseCursorType::Attack, Action::Move, false);
-//	MouseCursorTypeClass::Insert(MouseCursorType::NoMindControl, Action::NoMove, false);
-//
-//	if (pTarget->GetTechnoType())
-//	{
-//		MouseCursorTypeClass::Insert(MouseCursorType::Chronosphere, Action::Repair, false);
-//		MouseCursorTypeClass::Insert(MouseCursorType::GeneticMutator, Action::Enter, false);
-//		MouseCursorTypeClass::Insert(MouseCursorType::NoForceShield, Action::NoEnter, false);
-//	}
-//
-//	return 0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
-//{
-//	//GET(TechnoClass*, pThis, ECX);
-//	MouseCursorTypeClass::Insert(MouseCursorType::Attack, Action::Move, false);
-//	MouseCursorTypeClass::Insert(MouseCursorType::NoMindControl, Action::NoMove, false);
-//	return 0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6)
-//{
-//	//GET(TechnoClass*, pThis, ESI);
-//	MouseCursorTypeClass::Insert(MouseCursorType::Attack, Action::AreaAttack, false);
-//	MouseCursorTypeClass::Insert(MouseCursorType::Attack, Action::Self_Deploy, false);
-//	MouseCursorTypeClass::Insert(MouseCursorType::NoEnter, Action::NoDeploy, false);
-//	return 0;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//	if (pThis->BunkerLinkedItem)
-//	{
-//		MouseCursorTypeClass::Insert(MouseCursorType::Attack, Action::Self_Deploy, false);
-//		return 0x73FFE6;
-//	}
-//
-//	return pThis->unknown_bool_6AC ? 0x7400FA : 0x740115;
-//}
-
 class MouseClassExt final : public MouseClass
 {
 	NOINLINE const MouseCursor* GetCursorData(MouseCursorType nMouse) const
@@ -177,12 +128,13 @@ public:
 		{
 			if (pWeaponS->WeaponType)
 			{
-				return (MouseCursorType)(OutOfRange ?
-					CursorTypeClass::FindIndexById("NoEnter") : //Dummy
-					CursorTypeClass::FindIndexById("Enter")); //Dummy
+				return OutOfRange ?
+					MouseCursorType::NoEnter : MouseCursorType::Enter; //Dummy
 			}
 		}
-		return OutOfRange ? MouseCursorType::AttackOutOfRange : MouseCursorType::Attack;
+
+		return OutOfRange ? 
+		MouseCursorType::AttackOutOfRange : MouseCursorType::Attack;
 	}
 #pragma endregion
 public:
@@ -275,29 +227,208 @@ public:
 	{
 		return GetCursorData(this->MouseCursorIndex)->FrameCount;
 	}
+
+	static MouseCursorType ValidateCursorType(Action nAction)
+	{
+		if (MouseClassExt::CursorIdx.contains(nAction)  
+			&& MouseClassExt::CursorIdx[nAction].first != MouseCursorType::Default) {
+			return MouseClassExt::CursorIdx[nAction].first;
+		}
+
+		switch (nAction)
+		{
+		case Action::Move:
+			return MouseCursorType::Move;
+		case Action::NoMove:
+		case Action::NoIvanBomb:
+			return MouseCursorType::NoMove;
+		case Action::Enter:
+		case Action::Capture:
+		case Action::Repair:
+		case Action::EnterTunnel:
+			return MouseCursorType::Enter;
+		case Action::Self_Deploy:
+		case Action::AreaAttack:
+			return MouseCursorType::Deploy;
+		case Action::Attack:
+			return MouseCursorType::Attack;
+		case Action::Harvest:
+			return MouseCursorType::AttackOutOfRange;
+		case Action::Select:
+		case Action::ToggleSelect:
+		case Action::SelectBeacon:
+			return MouseCursorType::Select;
+		case Action::Eaten:
+			return MouseCursorType::EngineerRepair;
+		case Action::Sell:
+			return MouseCursorType::Sell;
+		case Action::SellUnit:
+			return MouseCursorType::SellUnit;
+		case Action::NoSell:
+			return MouseCursorType::NoSell;
+		case Action::NoRepair:
+		case Action::NoGRepair:
+			return MouseCursorType::NoRepair;
+		case Action::Sabotage:
+		case Action::Demolish:
+			return MouseCursorType::Demolish;
+		case Action::Tote:
+			return MouseCursorType::PsychicReveal | MouseCursorType::Move_NE; // custom 87
+		case Action::Nuke:
+			return MouseCursorType::Nuke;
+		case Action::GuardArea:
+			return MouseCursorType::Protect;
+		case Action::Heal:
+		case Action::PlaceWaypoint:
+		case Action::TibSunBug:
+		case Action::EnterWaypointMode:
+		case Action::FollowWaypoint:
+		case Action::SelectWaypoint:
+		case Action::LoopWaypointPath:
+		case Action::AttackWaypoint:
+		case Action::EnterWaypoint:
+		case Action::PatrolWaypoint:
+			return MouseCursorType::Disallowed;
+		case Action::GRepair:
+			return MouseCursorType::Repair;
+		case Action::NoDeploy:
+			return MouseCursorType::NoDeploy;
+		case Action::NoEnterTunnel:
+		case Action::NoEnter:
+			return MouseCursorType::NoEnter;
+		case Action::TogglePower:
+			return MouseCursorType::NoForceShield | MouseCursorType::Move_NW; // custom 88
+		case Action::NoTogglePower:
+			return MouseCursorType::GeneticMutator | MouseCursorType::Move_NW; // custom 89
+		case Action::IronCurtain:
+			return MouseCursorType::IronCurtain;
+		case Action::LightningStorm:
+			return MouseCursorType::LightningStorm;
+		case Action::ChronoSphere:
+		case Action::ChronoWarp:
+			return MouseCursorType::Chronosphere;
+		case Action::ParaDrop:
+		case Action::AmerParaDrop:
+			return MouseCursorType::ParaDrop;
+		case Action::IvanBomb:
+			return MouseCursorType::IvanBomb;
+		case Action::Detonate:
+		case Action::DetonateAll:
+			return MouseCursorType::Detonate;
+		case Action::DisarmBomb:
+			return MouseCursorType::Disarm;
+		case Action::PlaceBeacon:
+			return MouseCursorType::Beacon;
+		case Action::AttackMoveNav:
+		case Action::AttackMoveTar:
+			return MouseCursorType::AttackOutOfRange2;
+		case Action::PsychicDominator:
+			return MouseCursorType::PsychicDominator;
+		case Action::SpyPlane:
+			return MouseCursorType::SpyPlane;
+		case Action::GeneticConverter:
+			return MouseCursorType::GeneticMutator;
+		case Action::ForceShield:
+			return MouseCursorType::ForceShield;
+		case Action::NoForceShield:
+			return MouseCursorType::NoForceShield;
+		case Action::Airstrike:
+			return MouseCursorType::AirStrike;
+		case Action::PsychicReveal:
+			return MouseCursorType::PsychicReveal;
+		}
+
+		return MouseCursorType::Default;
+	}
+
+	static Action ValidateShroudedAction(Action nAction)
+	{
+		switch (nAction)
+		{
+		case Action::Attack:
+		{
+			return Action::Move;
+		}
+		case Action::NoMove:
+		{
+			auto const& nObjDvc = ObjectClass::CurrentObjects(); //current object with cursor
+			if (nObjDvc.Count)
+			{
+				if (auto T = generic_cast<TechnoClass*>(nObjDvc[0]))
+				{
+					if (T->GetTechnoType()->MoveToShroud)
+					{
+						return Action::Move;
+					}
+				}
+			}
+
+			return Action::NoMove;
+		}
+		break;
+		case Action::Enter:
+		case Action::Self_Deploy:
+		case Action::Harvest:
+		case Action::Select:
+		case Action::ToggleSelect:
+		case Action::Capture:
+		case Action::Repair:
+		case Action::Sabotage:
+		case Action::DontUse2:
+		case Action::DontUse3:
+		case Action::DontUse4:
+		case Action::DontUse5:
+		case Action::DontUse6:
+		case Action::DontUse7:
+		case Action::DontUse8:
+		case Action::Damage:
+		case Action::GRepair:
+		case Action::EnterTunnel:
+		case Action::DragWaypoint:
+		case Action::AreaAttack:
+		case Action::IvanBomb:
+		case Action::NoIvanBomb:
+		case Action::Detonate:
+		case Action::DetonateAll:
+		case Action::DisarmBomb:
+		case Action::SelectNode:
+		case Action::AttackSupport:
+		case Action::Demolish:
+		case Action::Airstrike:
+		{
+			if (MouseClassExt::CursorIdx.contains(nAction)
+				&& !MouseClassExt::CursorIdx[nAction].second)
+				return Action::None;
+			else
+				break;
+		}
+		case Action::Eaten:
+		case Action::NoGRepair:
+		case Action::NoRepair:
+			return Action::NoRepair;
+		case Action::SellUnit:
+		case Action::Sell:
+			return Action::NoSell;
+		case Action::TogglePower:
+			return Action::NoTogglePower;
+		case Action::NoEnterTunnel:
+			return Action::NoEnter;
+		case Action::ChronoWarp:
+			return Action::ChronoSphere;
+		case Action::SelectBeacon:
+			return Action::Select;
+		case Action::AmerParaDrop:
+			return Action::ParaDrop;
+		default:
+			break;
+		}
+
+		return nAction;
+	}
 };
 static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
 std::unordered_map<Action, std::pair<MouseCursorType, bool>> MouseClassExt::CursorIdx;
-
-DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(int, nWeapon, STACK_OFFS(0x1C, 0x8));
-
-	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
-	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, nWeapon, EBP);
-	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
-	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
-	return 0;
-}
 
 DEFINE_HOOK(0x531703, Game_InitBulkData_LoadCursorData, 0x5)
 {
@@ -414,282 +545,129 @@ DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, 0x8)); //0x18
 	GET_STACK(bool, bIsShrouded, 0x28);
 
-	MouseCursorType nType = MouseCursorType::Default;
+	if (bIsShrouded) {
+		nAction = MouseClassExt::ValidateShroudedAction(nAction);
+	}
 
-	auto SetAttackCursorOrRetAction = [&pTarget, &nType](Action& nAction)
-	{
+	if (nAction == Action::Attack) {
+		// WeaponCursor
+		// doesnt work with `Deployed` techno
 		auto const& nObjectVect = ObjectClass::CurrentObjects();
 
-		if (nAction == Action::Attack)
-		{
-			if (pTarget && nObjectVect.Count == 1)
-			{
-				if (!Is_Techno(nObjectVect[0]))
-					return;
-
-				const auto pSelected = static_cast<TechnoClass*>(nObjectVect[0]);
-				const auto nWeaponIdx = pSelected->SelectWeapon(pTarget);
-
-				if (!pSelected->IsCloseEnough(pTarget, nWeaponIdx)) {
-						//if too far from the target
-						nType = MouseClassExt::ByWeapon(pSelected,nWeaponIdx,true);
-				}
-			}
-			else
-			{
-				nType = Action::Harvest;
-			}
-		}
-	};
-
-	//EvakuateFinalAction part 1
-	if (bIsShrouded)
-	{
-		switch (nAction)
-		{
-		case Action::NoMove:
-		{
-			auto const& nObjDvc = ObjectClass::CurrentObjects(); //current object with cursor
-			if (nObjDvc.Count)
-			{
-				if (auto T = generic_cast<TechnoClass*>(nObjDvc[0]))
-				{
-					if (T->GetTechnoType()->MoveToShroud)
-					{
-						nAction = Action::Move;
-						break;
-					}
-				}
+		if (pTarget && nObjectVect.Count == 1 && Is_Techno(nObjectVect[0])) {
+			if (!static_cast<TechnoClass*>(nObjectVect[0])->IsCloseEnoughToAttack(pTarget)) {
+					//if too far from the target
+					MouseClassExt::InsertMappedAction(
+						MouseCursorType::NoEnter
+						, Action::Attack, false);
 			}
 
-			nAction = Action::NoMove;
-		}
-
-		break;
-		case Action::Enter:
-		case Action::Self_Deploy:
-		case Action::Harvest:
-		case Action::Select:
-		case Action::ToggleSelect:
-		case Action::Capture:
-		case Action::Repair:
-		case Action::Sabotage:
-		case Action::DontUse2:
-		case Action::DontUse3:
-		case Action::DontUse4:
-		case Action::DontUse5:
-		case Action::DontUse6:
-		case Action::DontUse7:
-		case Action::DontUse8:
-		case Action::Damage:
-		case Action::GRepair:
-		case Action::EnterTunnel:
-		case Action::DragWaypoint:
-		case Action::AreaAttack:
-		case Action::IvanBomb:
-		case Action::NoIvanBomb:
-		case Action::Detonate:
-		case Action::DetonateAll:
-		case Action::DisarmBomb:
-		case Action::SelectNode:
-		case Action::AttackSupport:
-		case Action::Demolish:
-		case Action::Airstrike:
-			if (MouseClassExt::CursorIdx.contains(nAction) && !MouseClassExt::CursorIdx[nAction].second)
-				nAction = Action::None;
-			break;
-		case Action::Eaten:
-		case Action::NoGRepair:
-		case Action::NoRepair:
-			nAction = Action::NoRepair;
-			break;
-		case Action::SellUnit:
-		case Action::Sell:
-		case Action::NoSell:
-			nAction = Action::NoSell;
-			break;
-		case Action::TogglePower:
-			nAction = Action::NoTogglePower;
-			break;
-		case Action::NoEnterTunnel:
-			nAction = Action::NoEnter;
-			break;
-		case Action::ChronoWarp:
-			nAction = Action::ChronoSphere;
-			break;
-		case Action::SelectBeacon:
-			nAction = Action::Select;
-			break;
-		case Action::ParaDrop:
-		case Action::AmerParaDrop:
-			nAction = Action::ParaDrop;
-			break;
-		default:
-			SetAttackCursorOrRetAction(nAction);
-			break;
-		}
-	}
-	else
-	{
-		SetAttackCursorOrRetAction(nAction);
-	}
-
-	//evaluation part 2
-	if(MouseClassExt::CursorIdx.contains(nAction))
-		nType = MouseClassExt::CursorIdx[nAction].first;
-
-	//Evaluate MouseCursorType part 3
-	//if default cursor is still present 
-	//re-check the cases and set the cursor type
-	if (nType == MouseCursorType::Default)
-	{
-		switch (nAction)
-		{
-		case Action::Move:
-			nType = MouseCursorType::Move;
-			break;
-		case Action::NoMove:
-		case Action::NoIvanBomb:
-			nType = MouseCursorType::NoMove;
-			break;
-		case Action::Enter:
-		case Action::Capture:
-		case Action::Repair:
-		case Action::EnterTunnel:
-			nType = MouseCursorType::Enter;
-			break;
-		case Action::Self_Deploy:
-		case Action::AreaAttack:
-			nType = MouseCursorType::Deploy;
-			break;
-		case Action::Attack:
-			nType = MouseCursorType::Attack;
-			break;
-		case Action::Harvest:
-			nType = MouseCursorType::AttackOutOfRange;
-			break;
-		case Action::Select:
-		case Action::ToggleSelect:
-		case Action::SelectBeacon:
-			nType = MouseCursorType::Select;
-			break;
-		case Action::Eaten:
-			nType = MouseCursorType::EngineerRepair;
-			break;
-		case Action::Sell:
-			nType = MouseCursorType::Sell;
-			break;
-		case Action::SellUnit:
-			nType = MouseCursorType::SellUnit;
-			break;
-		case Action::NoSell:
-			nType = MouseCursorType::NoSell;
-			break;
-		case Action::NoRepair:
-		case Action::NoGRepair:
-			nType = MouseCursorType::NoRepair;
-			break;
-		case Action::Sabotage:
-		case Action::Demolish:
-			nType = MouseCursorType::Demolish;
-			break;
-		case Action::Tote:
-			nType = MouseCursorType::PsychicReveal | MouseCursorType::Move_NE; // custom 87
-			break;
-		case Action::Nuke:
-			nType = MouseCursorType::Nuke;
-			break;
-		case Action::GuardArea:
-			nType = MouseCursorType::Protect;
-			break;
-		case Action::Heal:
-		case Action::PlaceWaypoint:
-		case Action::TibSunBug:
-		case Action::EnterWaypointMode:
-		case Action::FollowWaypoint:
-		case Action::SelectWaypoint:
-		case Action::LoopWaypointPath:
-		case Action::AttackWaypoint:
-		case Action::EnterWaypoint:
-		case Action::PatrolWaypoint:
-			nType = MouseCursorType::Disallowed;
-			break;
-		case Action::GRepair:
-			nType = MouseCursorType::Repair;
-			break;
-		case Action::NoDeploy:
-			nType = MouseCursorType::NoDeploy;
-			break;
-		case Action::NoEnterTunnel:
-		case Action::NoEnter:
-			nType = MouseCursorType::NoEnter;
-			break;
-		case Action::TogglePower:
-			nType = MouseCursorType::NoForceShield | MouseCursorType::Move_NW; // custom 88
-			break;
-		case Action::NoTogglePower:
-			nType = MouseCursorType::GeneticMutator | MouseCursorType::Move_NW; // custom 89
-			break;
-		case Action::IronCurtain:
-			nType = MouseCursorType::IronCurtain;
-			break;
-		case Action::LightningStorm:
-			nType = MouseCursorType::LightningStorm;
-			break;
-		case Action::ChronoSphere:
-		case Action::ChronoWarp:
-			nType = MouseCursorType::Chronosphere;
-			break;
-		case Action::ParaDrop:
-		case Action::AmerParaDrop:
-			nType = MouseCursorType::ParaDrop;
-			break;
-		case Action::IvanBomb:
-			nType = MouseCursorType::IvanBomb;
-			break;
-		case Action::Detonate:
-		case Action::DetonateAll:
-			nType = MouseCursorType::Detonate;
-			break;
-		case Action::DisarmBomb:
-			nType = MouseCursorType::Disarm;
-			break;
-		case Action::PlaceBeacon:
-			nType = MouseCursorType::Beacon;
-			break;
-		case Action::AttackMoveNav:
-		case Action::AttackMoveTar:
-			nType = MouseCursorType::AttackOutOfRange2;
-			break;
-		case Action::PsychicDominator:
-			nType = MouseCursorType::PsychicDominator;
-			break;
-		case Action::SpyPlane:
-			nType = MouseCursorType::SpyPlane;
-			break;
-		case Action::GeneticConverter:
-			nType = MouseCursorType::GeneticMutator;
-			break;
-		case Action::ForceShield:
-			nType = MouseCursorType::ForceShield;
-			break;
-		case Action::NoForceShield:
-			nType = MouseCursorType::NoForceShield;
-			break;
-		case Action::Airstrike:
-			nType = MouseCursorType::AirStrike;
-			break;
-		case Action::PsychicReveal:
-			nType = MouseCursorType::PsychicReveal;
-			break;
-		default:
-			break;
+		} else {
+				nAction = Action::Harvest;
 		}
 	}
 
-	pThis->SetCursor(nType, bMini);
+	pThis->SetCursor(MouseClassExt::ValidateCursorType(nAction), bMini);
 	return 0x4AB78F;
 }
+
+// WeaponCursor
+DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET_STACK(int, nWeapon, STACK_OFFS(0x1C, 0x8));
+
+	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
+	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
+	return 0;
+}
+
+// WeaponCursor
+DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, nWeapon, EBP);
+	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
+	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors, 5)
+{
+	//GET(TechnoClass*, pThis, ECX);
+	GET_STACK(ObjectClass*, pTarget, 0x4);
+
+	// Cursor Move
+	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Move, false);
+
+	// Cursor NoMove
+	MouseClassExt::InsertMappedAction(MouseCursorType::NoMindControl, Action::NoMove, false);
+
+	if (pTarget->GetTechnoType())
+	{
+
+		// Cursor Enter
+		MouseClassExt::InsertMappedAction(MouseCursorType::Chronosphere, Action::Repair, false);
+		MouseClassExt::InsertMappedAction(MouseCursorType::GeneticMutator, Action::Enter, false);
+		//
+
+		// Cursor NoEnter
+		MouseClassExt::InsertMappedAction(MouseCursorType::NoForceShield, Action::NoEnter, false);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
+{
+	//GET(TechnoClass*, pThis, ECX);
+
+	// Cursor Move
+	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Move, false);
+
+	// Cursor NoMove
+	MouseClassExt::InsertMappedAction(MouseCursorType::NoMindControl, Action::NoMove, false);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6)
+{
+	//GET(TechnoClass*, pThis, ESI);
+
+	//Cursor Deploy
+	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::AreaAttack, false);
+	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Self_Deploy, false);
+	//
+
+	//Cursor NoDeploy
+	MouseClassExt::InsertMappedAction(MouseCursorType::NoEnter, Action::NoDeploy, false);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->BunkerLinkedItem) {
+		//Cursor Deploy
+		MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Self_Deploy, false);
+		return 0x73FFE6;
+	}
+
+	return pThis->unknown_bool_6AC ? 0x7400FA : 0x740115;
+}
+
+//// TechnoType
+//ValueableIdx<CursorTypeClass> Cursor_Deploy;
+//ValueableIdx<CursorTypeClass> Cursor_NoDeploy;
+//ValueableIdx<CursorTypeClass> Cursor_Enter;
+//ValueableIdx<CursorTypeClass> Cursor_NoEnter;
+//ValueableIdx<CursorTypeClass> Cursor_Move;
+//ValueableIdx<CursorTypeClass> Cursor_NoMove;
+//
+//// Weapon
+//ValueableIdx<CursorTypeClass> Cursor_Attack;
+//ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange;
 
 #pragma warning( push )
 #pragma warning (disable : 4245)
@@ -708,8 +686,4 @@ DEFINE_DISABLE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp)
 DEFINE_DISABLE_HOOK(0x5BDDC0, MouseClass_Update_Reset)
 DEFINE_DISABLE_HOOK(0x4D7524, FootClass_ActionOnObject_Allow)
 DEFINE_DISABLE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap)
-DEFINE_DISABLE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor)
-DEFINE_DISABLE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker)
-DEFINE_DISABLE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors)
-DEFINE_DISABLE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors)
 #pragma warning( pop )

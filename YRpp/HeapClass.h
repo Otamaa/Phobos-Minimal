@@ -9,9 +9,9 @@ class PointerHeapClass
 public:
 	PointerHeapClass(int capacity)
 	{
+		Count = 0;
 		Capacity = capacity;
 		Datas = (T**)YRMemory::Allocate(sizeof(T*) * (Capacity + 1));
-		Count = 0;
 		LMost = (T*)nullptr;
 		RMost = (T*)0xFFFFFFFF;
 
@@ -27,7 +27,8 @@ public:
 
 	void Clear()
 	{
-		memset(Datas, 0, sizeof(T*) * (Count + 1));
+		std::memset(Datas, 0, sizeof(T*) * (Count + 1));
+		Count = 0;
 	}
 
 	T* Top()
@@ -109,7 +110,7 @@ public:
 private:
 	void ClearAll()
 	{
-		memset(Datas, 0, sizeof(T*) * (Capacity + 1));
+		std::memset(Datas, 0, sizeof(T*) * (Capacity + 1));
 	}
 
 	bool Comp(T* p1, T* p2)

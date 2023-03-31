@@ -179,23 +179,23 @@ namespace detail
 
 		char pFlagName[32];
 		_snprintf_s(pFlagName, 31, "%s.Frame", pKey);
-		ret |= read(value.StartFrame, parser, pSection, pFlagName);
+		ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.Count", pKey);
-		ret |= read(value.FrameCount, parser, pSection, pFlagName);
+		ret |= read(value.OriginalData.FrameCount, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.Interval", pKey);
-		ret |= read(value.FrameRate, parser, pSection, pFlagName);
+		ret |= read(value.OriginalData.FrameRate, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.MiniFrame", pKey);
-		ret |= read(value.SmallFrame, parser, pSection, pFlagName);
+		ret |= read(value.OriginalData.SmallFrame, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.MiniCount", pKey);
-		ret |= read(value.SmallFrameCount, parser, pSection, pFlagName);
+		ret |= read(value.OriginalData.SmallFrameCount, parser, pSection, pFlagName);
 
 		_snprintf_s(pFlagName, 31, "%s.MiniInterval", pKey);
 		if (!read(value.SmallFrameRate, parser, pSection, pFlagName))
-			value.SmallFrame = value.FrameRate;
+			value.SmallFrameRate = value.OriginalData.FrameRate;
 
 		_snprintf_s(pFlagName, 31, "%s.HotSpot", pKey);
 		if (parser.ReadString(pSection, pFlagName))
@@ -203,11 +203,11 @@ namespace detail
 			auto const pValue = parser.value();
 			char* context = nullptr;
 			auto const pHotX = strtok_s(pValue, Phobos::readDelims, &context);
-			MouseCursorHotSpotX::Parse(pHotX, &value.X);
+			MouseCursorHotSpotX::Parse(pHotX, &value.OriginalData.X);
 
 			if (auto const pHotY = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				MouseCursorHotSpotY::Parse(pHotY, &value.Y);
+				MouseCursorHotSpotY::Parse(pHotY, &value.OriginalData.Y);
 			}
 
 			ret = true;

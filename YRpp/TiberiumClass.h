@@ -6,6 +6,7 @@
 #include <ArrayClasses.h>
 #include <AbstractTypeClass.h>
 #include <HeapClass.h>
+#include <PriorityQueueClass.h>
 
 struct MapSurfaceData
 {
@@ -25,7 +26,7 @@ struct MapSurfaceData
 		return Score < another.Score;
 	}
 };
-//static_assert(sizeof(MapSurfaceData) == 0x8);
+static_assert(sizeof(MapSurfaceData) == 0x8);
 
 class TiberiumLogic
 {
@@ -35,7 +36,7 @@ public:
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
 
-		Heap = GameCreate<PointerHeapClass<MapSurfaceData>>(nCount);
+		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
 	}
 
 	void Destruct()
@@ -57,11 +58,12 @@ public:
 	}
 
 	int Count;
-	PointerHeapClass<MapSurfaceData>* Heap;
+	TPriorityQueueClass<MapSurfaceData>* Heap;
 	bool* States;
 	MapSurfaceData* Datas;
 	CDTimerClass Timer;
 };
+//static_assert(sizeof(TiberiumLogic) == 0x14, "Invalid Size !");
 
 //forward declarations
 class AnimTypeClass;

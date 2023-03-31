@@ -836,7 +836,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 			if(!bPathfinding) {
 				pTechno->OnBridge = pCell->ContainsBridge();
 				++Unsorted::IKnowWhatImDoing;
-				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
+				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), DirType::East);
 				--Unsorted::IKnowWhatImDoing;
 			} else {
 
@@ -848,7 +848,7 @@ TechnoClass* Helpers_DP::CreateAndPutTechno(TechnoTypeClass* pType, HouseClass* 
 				}
 
 				pTechno->OnBridge = pCell->ContainsBridge();
-				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), static_cast<DirType>(DirTypes::DIR_E));
+				UnlimboSuccess = pTechno->Unlimbo(pCell->GetCoordsWithBridge(), DirType::East);
 			}
 
 			if (UnlimboSuccess)

@@ -46,8 +46,11 @@ void ShowTechnoNameCommandClass::AI()
 	{
 		auto const pCiv = HouseExt::FindCivilianSide();
 
-		for (auto pTech : *TechnoClass::Array)
+		for (auto pTech : *TechnoClass::Array())
 		{
+			if (!pTech->IsAlive)
+				continue;
+
 			if (pTech->InLimbo || pTech->Location == CoordStruct::Empty)
 				continue;
 

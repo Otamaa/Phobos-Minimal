@@ -4,6 +4,7 @@
 #include <Helpers/Macro.h>
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDef.h>
+#include <ExtraHeaders/CompileTimeDirStruct.h>
 
 class InfantryExt
 {
@@ -48,5 +49,4 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 };

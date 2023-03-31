@@ -7,7 +7,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
-#include <DirClass.h>
+#include <DirStruct.h>
 
 enum class BunkerSoundMode : int
 {
@@ -352,7 +352,7 @@ public:
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 
-	static const DirClass DefaultJuggerFacing;
+	static const DirStruct DefaultJuggerFacing;
 
 	template<BunkerSoundMode UpSound>
 	struct BunkerSound

@@ -300,12 +300,12 @@ public:
 	virtual bool CanDisguiseAs(AbstractClass*pTarget) const R0;
 	virtual bool TargetAndEstimateDamage(DWORD dwUnk, DWORD dwUnk2) R0;
 	virtual void Stun() RX;//DWORD vt_entry_3A0() R0;
-	virtual bool TriggersCellInset(AbstractClass *pTarget) R0;
-	virtual bool IsCloseEnough(AbstractClass *pTarget, int idxWeapon) const R0;
-	virtual bool IsCloseEnoughToAttack(AbstractClass *pTarget) const R0; //In_Range
-	virtual bool IsCloseEnoughToAttackCoords(const CoordStruct& Coords) const R0;
-	virtual DWORD vt_entry_3B4(DWORD dwUnk) const R0;
-	virtual void Destroyed(ObjectClass *Killer) = 0;
+	virtual bool TriggersCellInset(AbstractClass *pTarget) R0; //6F7660
+	virtual bool IsCloseEnough(AbstractClass *pTarget, int idxWeapon) const R0; //6F77B0  InRangeWpIdx
+	virtual bool IsCloseEnoughToAttack(AbstractClass *pTarget) const R0; //6F7780 InRangeWp
+	virtual bool IsCloseEnoughToAttackCoords(const CoordStruct& Coords) const R0; //6F7930 InRangeWp_coords
+	virtual bool IsCloseEnoughToAttackWithNeverUseWeapon(AbstractClass* pTarget) const R0; //6F78D0
+	virtual void Destroyed(ObjectClass *Killer) PURE;
 	virtual FireError GetFireErrorWithoutRange(AbstractClass *pTarget, int nWeaponIndex) const RT(FireError);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const JMP_THIS(0x6FC0B0); //CanFire
 	virtual CellClass* SelectAutoTarget(TargetFlags TargetFlags, int CurrentThreat, bool OnlyTargetHouseEnemy) R0; //Greatest_Threat

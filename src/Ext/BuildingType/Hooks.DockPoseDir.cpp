@@ -225,8 +225,8 @@ DEFINE_HOOK(0x41B780, IFlyControl_LandDirection_InRadioContact , 0x5)
 	}
 
 	//original game code , this can be return 0 , but i prefer doing it this way !
-	auto const pCurFacing = pContact->PrimaryFacing.Current();
-	R->EAX(&pCurFacing.Raw); // this will be depointer later 
+	const auto nRaw = pContact->PrimaryFacing.Current().Raw();
+	R->EAX(&nRaw); // this will be depointer later 
 	return SetFromCurrent;
 }
 

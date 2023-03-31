@@ -118,6 +118,7 @@ const wchar_t* Phobos::UI::PercentLabel;
 bool Phobos::UI::ShowPowerDelta = false;
 double Phobos::UI::PowerDelta_ConditionYellow = 0.75;
 double Phobos::UI::PowerDelta_ConditionRed = 1.0;
+bool Phobos::UI::CenterPauseMenuBackground = false;
 
 bool Phobos::Config::ToolTipDescriptions = true;
 bool Phobos::Config::ToolTipBlur = false;
@@ -320,6 +321,9 @@ void Phobos::Config::Read()
 
 			Phobos::Config::TogglePowerInsteadOfRepair =
 				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair", false);
+
+			Phobos::UI::CenterPauseMenuBackground =
+				pINI_UIMD->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
 		}
 
