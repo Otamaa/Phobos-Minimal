@@ -29,16 +29,6 @@
 
 DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_Ares)
 
-struct WaveColorData
-{
-	Point3D Intent_Color;
-	ColorStruct Color;
-};
-
-static constexpr WaveColorData DefaultLaser { { 0,0,0 } , { 64,0,96 } };
-static constexpr WaveColorData DefaultSonic { { 0,256,256 } , {0,0,0 } };
-static constexpr WaveColorData DefaultMag { { 128,0,1024 } , { 0,0,0 } };
-
 namespace AresCreateWave
 {
 	WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget,
@@ -54,22 +44,6 @@ namespace AresCreateWave
 		return nullptr;
 	}
 
-	void NOINLINE ToColorStruct(WORD const src, ColorStruct& out)
-	{
-		out.R = (BYTE)(src >> Drawing::RedShiftLeft) << Drawing::RedShiftRight;
-		out.G = (BYTE)(src >> Drawing::GreenShiftLeft) << Drawing::GreenShiftRight;
-		out.B = (BYTE)(src >> Drawing::BlueShiftLeft) << Drawing::BlueShiftRight;
-	}
-
-	WORD NOINLINE ToWord(ColorStruct& modified)
-	{
-		return (
-		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |	   
-		   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft |
-		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft
-		   );
-	}
-
 	bool ModifyWaveColor(
 	WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas)
 	{
@@ -77,7 +51,7 @@ namespace AresCreateWave
 			return false;
 
 		ColorStruct modified;
-		ToColorStruct(src, modified);
+		Drawing::WordToColorStruct(src, modified);
 
 		// ugly hack to fix byte wraparound problems
 		auto const upcolor = [=, &modified, &colorDatas]
@@ -94,7 +68,7 @@ namespace AresCreateWave
 		upcolor(&Point3D::Y, &ColorStruct::G);
 		upcolor(&Point3D::Z, &ColorStruct::B);
 
-		dest = ToWord(modified);
+		dest = Drawing::ColorStructToWord(modified);
 
 		return true;
 	}
@@ -112,7 +86,7 @@ namespace AresCreateWave
 			{				
 				return
 				{
-					pWeaponExt->Wave_Intent.Get(DefaultLaser.Intent_Color) ,
+					pWeaponExt->Wave_Intent.Get(WaveClass::DefaultLaser.Intent_Color) ,
 					pWave->Owner->Owner->Color
 
 				};
@@ -123,8 +97,8 @@ namespace AresCreateWave
 				{
 					return
 					{
-						pWeaponExt->Wave_Intent.Get(DefaultMag.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(DefaultMag.Color)
+						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultMag.Intent_Color) ,
+						pWeaponExt->Wave_Color.Get(WaveClass::DefaultMag.Color)
 
 					};
 				}
@@ -132,8 +106,8 @@ namespace AresCreateWave
 				{
 					return
 					{
-						pWeaponExt->Wave_Intent.Get(DefaultSonic.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(DefaultSonic.Color)
+						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultSonic.Intent_Color) ,
+						pWeaponExt->Wave_Color.Get(WaveClass::DefaultSonic.Color)
 
 					};
 				}
@@ -141,8 +115,8 @@ namespace AresCreateWave
 				{
 					return
 					{
-						pWeaponExt->Wave_Intent.Get(DefaultMag.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(DefaultMag.Color)
+						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultLaser.Intent_Color) ,
+						pWeaponExt->Wave_Color.Get(WaveClass::DefaultLaser.Color)
 
 					};
 				}
@@ -150,64 +124,6 @@ namespace AresCreateWave
 		}
 
 		return { Point3D::Empty , ColorStruct::Empty };
-	}
-
-	ColorStruct GetWaveColor(WeaponTypeExt::ExtData* pData)
-	{
-		auto pThis = pData->OwnerObject();
-
-		if (pThis->IsMagBeam)
-		{
-			return pData->Wave_Color.Get(WaveClass::DefaultWaveColorMagBeam);
-		}
-		else if (pThis->IsSonic)
-		{
-			return pData->Wave_Color.Get(WaveClass::DefaultWaveColorSonic);
-		}
-		else
-		{
-			return pData->Wave_Color.Get(WaveClass::DefaultWaveColor);
-		}
-	}
-
-	bool ModifyWaveColor(
-	WORD const src, WORD& dest, int const intensity, WaveClass* const pWave)
-	{
-		auto const pData = WaveExt::ExtMap.Find(pWave);
-
-		if (!pData->Weapon)
-			return false;
-
-		auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pData->Weapon);
-
-		auto const currentColor = (pWeaponExt->Wave_IsHouseColor && pWave->Owner && pWave->Owner->Owner)
-			? pWave->Owner->Owner->Color
-			: GetWaveColor(pWeaponExt);
-
-		if (currentColor == ColorStruct::Empty)
-		{
-			return false;
-		}
-
-		ColorStruct modified;
-		modified.R = static_cast<BYTE>(src >> Drawing::RedShiftLeft << Drawing::RedShiftRight);
-		modified.G = static_cast<BYTE>(src >> Drawing::GreenShiftLeft << Drawing::GreenShiftRight);
-		modified.B = static_cast<BYTE>(src >> Drawing::BlueShiftLeft << Drawing::BlueShiftRight);
-
-		// ugly hack to fix byte wraparound problems
-		auto const upcolor = [=, &modified](BYTE ColorStruct::* member)
-		{
-			auto const component = std::clamp(modified.*member
-				+ (intensity * currentColor.*member) / 256, 0, 255);
-			modified.*member = static_cast<BYTE>(component);
-		};
-
-		upcolor(&ColorStruct::R);
-		upcolor(&ColorStruct::G);
-		upcolor(&ColorStruct::B);
-
-		dest = Drawing::Color16bit(modified);
-		return true;
 	}
 
 	WaveColorData TempColor;
@@ -264,24 +180,21 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 {
 	GET(WaveClass*, pThis, ECX);
 
-	auto pData = WaveExt::ExtMap.Find(pThis);
-	const WeaponTypeClass* Weap = pData->Weapon;
+	const auto pData = WaveExt::ExtMap.Find(pThis);
 
-	if (!Weap)
-	{
-		return 0;
+	if (pData->Weapon) {
+
+		if (pData->Weapon->AmbientDamage) {
+
+			CoordStruct coords;
+			for (auto const& pCell : pThis->Cells)
+			{
+				pThis->DamageArea(*pCell->Get3DCoords3(&coords));
+			}
+		}
 	}
 
 	int Intensity;
-
-	if (Weap->AmbientDamage)
-	{
-		CoordStruct coords;
-		for (auto const& pCell : pThis->Cells)
-		{
-			pThis->DamageArea(*pCell->Get3DCoords3(&coords));
-		}
-	}
 
 	switch (pThis->Type)
 	{
@@ -369,6 +282,14 @@ DEFINE_OVERRIDE_HOOK(0x75F46E, WaveClass_DamageCell_Wall, 6)
 {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	return pWeapon->Warhead->Wall ? 0x0 : 0x75F47C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
+{
+	GET(WaveClass*, pWave, EBP);
+	R->EDI(R->EAX());
+	R->EAX(pWave->Owner->GetWeapon(WaveExt::ExtMap.Find(pWave)->WeaponIdx));
+	return 0x75F39B;
 }
 
 DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)

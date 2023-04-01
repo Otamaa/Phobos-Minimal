@@ -4,6 +4,13 @@
 #include <FacingClass.h>
 #include <ObjectClass.h>
 
+struct WaveColorData
+{
+	Point3D Intent_Color;
+	ColorStruct Color;
+};
+
+
 //thse mostlikely some kind of array / multi dimentional array
 struct SingleArray_WavePoint2D
 {
@@ -35,10 +42,14 @@ public:
 	static constexpr reference<int, 0xB46648u, 14u> const LUT_Linear1{};
 	static constexpr reference<Matrix3D, 0xB45DA8u, 4u> const Matrix{};
 	static constexpr reference<Matrix3D, 0xB45CA0u, 4u> const MagneticMatrix{};
+
 	static constexpr ColorStruct const DefaultWaveColor { 255, 255, 255 }; // placeholder
 	static constexpr ColorStruct const DefaultWaveColorMagBeam { 0xB0, 0, 0xD0 }; // rp2 values
 	static constexpr ColorStruct const DefaultWaveColorSonic { 0, 0, 0 }; // 0,0,0 is a magic value for "no custom handling"
 
+	static constexpr WaveColorData const DefaultLaser { { 0,0,0 } , { 64,0,96 } };
+	static constexpr WaveColorData const DefaultSonic { { 0,256,256 } , {0,0,0 } };
+	static constexpr WaveColorData const DefaultMag { { 128,0,1024 } , { 0,0,0 } };
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x75F7D0);

@@ -99,7 +99,7 @@ public:
 		FireWeaponManager MyWeaponManager;
 		DriveData MyDriveData;
 		AircraftDive MyDiveData;
-		JJFacingToTarget MyJJData;
+		//JJFacingToTarget MyJJData;
 		SpawnSupport MySpawnSuport;
 		FighterAreaGuard MyFighterData;
 
@@ -165,7 +165,7 @@ public:
 			, MyWeaponManager { }
 			, MyDriveData { }
 			, MyDiveData { }
-			, MyJJData { }
+			//, MyJJData { }
 			, MySpawnSuport { }
 			, MyFighterData { }
 			, AttachedAnim { }

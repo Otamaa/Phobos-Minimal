@@ -1175,20 +1175,6 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 //	return 0x5B361A;
 //}
 
-//Ares Hook Here !
-//DEFINE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
-//{
-//	GET(WaveClass*, pWave, EDX);
-//
-//	int nWeapon = 0;
-//	if (pWave->Target)
-//		nWeapon = pWave->Owner->SelectWeapon(pWave->Target);
-//
-//	R->EDI(R->EAX());
-//	R->EAX(pWave->Owner->GetWeapon(nWeapon));
-//	return 0x75F39B;
-//}
-
 //DEFINE_HOOK(0x6B721F, SpawnManagerClass_Manage_Clear, 0x6)
 //{
 //	GET(SpawnManagerClass*, pThis, ESI);

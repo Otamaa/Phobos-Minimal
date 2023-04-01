@@ -137,14 +137,14 @@ DEFINE_HOOK(0x763226, WaveClass_DTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
-{
-	GET(WaveClass*, pItem, ESI);
-	GET_BASE(void*, pTarget, 0x4);
-	GET_BASE(bool, bRemove, 0x8);
-
-	if (auto pExt = WaveExt::ExtMap.Find(pItem))
-		pExt->InvalidatePointer(pTarget, bRemove);
-
-	return 0;
-}
+//DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
+//{
+//	GET(WaveClass*, pItem, ESI);
+//	GET_BASE(void*, pTarget, 0x4);
+//	GET_BASE(bool, bRemove, 0x8);
+//
+//	if (auto pExt = WaveExt::ExtMap.Find(pItem))
+//		pExt->InvalidatePointer(pTarget, bRemove);
+//
+//	return 0;
+//}

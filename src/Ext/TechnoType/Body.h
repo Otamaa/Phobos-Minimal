@@ -445,7 +445,7 @@ public:
 		AircraftDiveData MyDiveData;
 		AircraftPutData MyPutData;
 		GiftBoxData MyGiftBoxData;
-		JJFacingData  MyJJData;
+		//JJFacingData  MyJJData;
 		PassengersData MyPassangersData;
 		SpawnSupportFLHData MySpawnSupportFLH;
 		SpawnSupportData MySpawnSupportDatas;
@@ -803,7 +803,7 @@ public:
 			, MyDiveData { }
 			, MyPutData { }
 			, MyGiftBoxData { }
-			, MyJJData { }
+			//, MyJJData { }
 			, MyPassangersData { }
 			, MySpawnSupportFLH { }
 			, MySpawnSupportDatas { }

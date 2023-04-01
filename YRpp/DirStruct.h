@@ -4,6 +4,7 @@
 #include <TranslateFixedPoints.h>
 #include <bit>
 #include <Fixed.h>
+#include <YRMath.h>
 
 enum class DirType : unsigned char
 {
@@ -28,63 +29,59 @@ MAKE_ENUM_FLAGS(DirType);
 // South -> 0x8000
 // ...
 // Just a very simple BAM
-struct DirStruct : public Fixed
+struct DirStruct
 {
 public:
 
 	DirStruct(const DirStruct& nDir) noexcept :
-		Fixed { nDir.Get_Raw() }
+		Raw { nDir.Raw }
 	{  }
 
-	DirStruct() noexcept :
-		Fixed { 0 }
+	explicit DirStruct() noexcept :
+		Raw { 0 }
 	{ }
 
-	DirStruct(int raw) noexcept :	
-		Fixed { (unsigned short)raw }
+	explicit DirStruct(int raw) noexcept :
+		Raw { (unsigned short)raw }
 	{ }
 
-	DirStruct(double rad) noexcept : Fixed { 0 }
+	explicit DirStruct(double rad) noexcept : Raw { 0 }
 	{ SetRadian<65536>(rad); }
 
-	DirStruct(const DirType dir) noexcept : Fixed { 0 }
+	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
 	
-	DirStruct(size_t bits, const DirType value) noexcept : Fixed { 0 }
-	{
-		SetDir(bits, (unsigned short)(value));
-	}
+	explicit DirStruct(size_t bits, const DirType value) noexcept : Raw { 0 }
+	{ SetDir(bits, (unsigned short)(value)); }
 
-	DirStruct(const noinit_t&) noexcept : Fixed { noinit_t() }
+	explicit DirStruct(const noinit_t&) noexcept
 	{ }
 
-	unsigned short Raw() const { return this->Data.Raw; }
-
-	DirStruct(double Y, double X) noexcept : Fixed { 0 }
+	explicit DirStruct(double Y, double X) noexcept : Raw { 0 }
 	{ SetRadian<65536>(std::atan2(Y, X)); }
 
 	bool operator==(const DirStruct& another) const
 	{
-		return this->Data.Raw == another.Data.Raw;
+		return this->Raw == another.Raw;
 	}
 
 	bool operator!=(const DirStruct& another) const
 	{
-		return this->Data.Raw != another.Data.Raw;
+		return this->Raw != another.Raw;
 	}
 
 	DirStruct& operator /= (const short nFace) {
-		 this->Data.Raw /= nFace;
+		 this->Raw /= nFace;
 		return *this;
 	}
 
 	DirStruct& operator += (const DirStruct& rhs) {
-		this->Data.Raw += rhs.Data.Raw;
+		this->Raw += rhs.Raw;
 		return *this;
 	}
 
 	DirStruct& operator -= (const DirStruct& rhs) {
-		this->Data.Raw -= rhs.Data.Raw;
+		this->Raw -= rhs.Raw;
 		return *this;
 	}
 
@@ -93,7 +90,7 @@ public:
 	}
 
 	DirStruct operator - () const {
-		return DirStruct(-this->Data.Raw);
+		return DirStruct(-this->Raw);
 	}
 
 	DirStruct operator + () const {
@@ -101,40 +98,15 @@ public:
 	}
 
 	//TODO : Check Casting
-	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom)
-		{ return std::abs(pDirFrom.Data.Raw) >= std::abs(this->Data.Raw - pBaseDir.Data.Raw); }
+	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom);
 
 	//TODO : Check Casting
-	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
+	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3);
 
-		if (std::abs(pDir3.Data.Raw) < std::abs(this->Data.Raw - pDir2.Data.Raw)) {
-			if ((pDir2.Data.Raw - this->Data.Raw) >= 0) {
-				this->Data.Raw += this->Data.Raw + pDir3.Data.Raw;
-			} else {
-				this->Data.Raw -= pDir3.Data.Raw;
-			}
-		}
-		else {
-			this->Data.Raw = pDir2.Data.Raw;
-		}
-	}
-
-	void SetDir(DirType dir) {
-		this->Set_Raw((unsigned short)((int)dir * 256));
-	}
-
-	DirType GetDirFixed() const {
-		return (DirType)((((this->Data.Raw / (32768 / 256)) + 1) / 2) & (int)DirType::Max);
-	}
-
-	DirType GetDir() const {
-		return (DirType)(this->Data.Raw / 256);
-	}
-
-	void SetDir(size_t bit, size_t val) {
-		if (bit <= 16u)
-			this->Set_Raw((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val));
-	}
+	void SetDir(DirType dir);
+	DirType GetDirFixed() const;
+	DirType GetDir() const;
+	void SetDir(size_t bit, size_t val);
 	
 	// If you want to divide it into 32 facings, as 32 has 5 bits
 	// then you should type <5> here.
@@ -142,21 +114,15 @@ public:
 	template<size_t Bits>
 	constexpr size_t GetValue(size_t offset = 0) const
 	{
-		return TranslateFixedPoint::TemplatedCompileTime<16, Bits>(this->Data.Raw, offset);
+		return TranslateFixedPoint::TemplatedCompileTime<16, Bits>(this->Raw, offset);
 	}
 
-	unsigned short GetValue(size_t Bits = 16 , size_t offset = 0)
-	{
-		if (Bits <= 16u)
-			return (unsigned short)(TranslateFixedPoint::Normal(16, Bits, this->Data.Raw, offset));
-
-		return 0;
-	}
+	size_t GetValue(size_t Bits = 16, size_t offset = 0);
 
 	template<size_t Bits>
 	constexpr void SetValue(size_t value, size_t offset = 0)
 	{
-		this->Set_Raw((unsigned short)(TranslateFixedPoint::TemplatedCompileTime<Bits, 16>(value, offset)));
+		Raw = ((unsigned short)(TranslateFixedPoint::TemplatedCompileTime<Bits, 16>(value, offset)));
 	}
 
 	template<size_t Count>
@@ -202,6 +168,11 @@ public:
 		size_t value = dir + FacingCount / 4; // RRotate 90 degrees
 		SetValue<Bits>(value & Max);
 	}
+
+	unsigned short Raw;
+
+private:
+	unsigned short Pad;
 };
 
 static_assert(sizeof(DirStruct) == 4, "Invalid Size !");

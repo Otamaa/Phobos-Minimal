@@ -306,6 +306,22 @@ struct Drawing
 			DSurface::Composite->Draw_Line_Rect(DSurface::ViewBounds(), points[i], points[(i + 1) % 4], nColor);
 		}
 	}
+
+	static void WordToColorStruct(WORD const src, ColorStruct& out)
+	{
+		out.R = (BYTE)(src >> Drawing::RedShiftLeft) << Drawing::RedShiftRight;
+		out.G = (BYTE)(src >> Drawing::GreenShiftLeft) << Drawing::GreenShiftRight;
+		out.B = (BYTE)(src >> Drawing::BlueShiftLeft) << Drawing::BlueShiftRight;
+	}
+
+	static WORD ColorStructToWord(ColorStruct& modified)
+	{
+		return (
+		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
+		   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft |
+		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft
+		   );
+	}
 };
 
 struct BufferData

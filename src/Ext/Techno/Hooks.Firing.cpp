@@ -370,17 +370,9 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	GET(UnitClass* const, pThis, ESI);
 
 	auto const pType = pThis->Type;
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	if (!pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget))
-	{
-		R->EAX(pType);
-		return 0x736F7E;
-	}
-
 	CoordStruct& source = pThis->Location;
 	CoordStruct target = pThis->Target->GetCoords(); // Target checked so it's not null here
-	DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+	const DirStruct tgtDir { (double)(source.Y - target.Y), (double)(target.X - source.X) };
 
 	if (pType->Turret && !pType->HasTurret) // 0x736F92
 	{
@@ -437,7 +429,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();
-			const DirStruct tgtDir { std::atan2(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X)) };
+			const DirStruct tgtDir { double(source.Y - target.Y), double(target.X - source.X) };
 
 			if (pThis->GetRealFacing() != tgtDir)
 			{
@@ -472,21 +464,21 @@ DEFINE_HOOK(0x736BA3, UnitClass_UpdateRotation_TurretFacing_TemporaryFix, 0x6)
 
 	return 0;
 }
-
-DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	// I still don't know why jumpjet loco behaves differently for the moment
-	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
-	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
-	{
-		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
-		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
-		return 0x736C09;
-	}
-
-	return 0;
-}
+//
+//DEFINE_HOOK(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	// I still don't know why jumpjet loco behaves differently for the moment
+//	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
+//	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
+//	{
+//		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
+//		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
+//		return 0x736C09;
+//	}
+//
+//	return 0;
+//}
 
 #pragma endregion

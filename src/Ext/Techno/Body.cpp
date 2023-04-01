@@ -3219,7 +3219,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyWeaponManager.Serialize(Stm);
 	this->MyDriveData.Serialize(Stm);
 	this->MyDiveData.Serialize(Stm);
-	this->MyJJData.Serialize(Stm);
+	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
 	this->MyFighterData.Serialize(Stm);
 

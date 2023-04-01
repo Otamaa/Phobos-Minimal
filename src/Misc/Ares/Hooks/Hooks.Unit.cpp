@@ -104,13 +104,13 @@ DEFINE_OVERRIDE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 
 	unsigned int ret = 0;
 
-	auto highest = Conversions::Int2Highest(pThis->Type->Facings);
+	if(pThis->Type->Facings > 0) {
+		auto highest = Conversions::Int2Highest(pThis->Type->Facings);
 
-	// 2^highest is the frame count, 3 means 8 frames
-	if (highest >= 3 && !pThis->IsDisguised())
-	{
-		auto offset = 1u << (highest - 3);
-		ret = TranslateFixedPoint::Normal(16, highest, static_cast<WORD>(pThis->PrimaryFacing.Current().GetValue()), offset);
+		// 2^highest is the frame count, 3 means 8 frames
+		if (highest >= 3 && !pThis->IsDisguised()) {
+			ret = pThis->PrimaryFacing.Current().GetValue(highest, 1u << (highest - 3));
+		}
 	}
 
 	R->EBX(ret);

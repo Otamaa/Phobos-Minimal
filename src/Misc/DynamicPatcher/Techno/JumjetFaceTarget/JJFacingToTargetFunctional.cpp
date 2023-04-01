@@ -6,78 +6,78 @@
 
 void JJFacingFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt)
 {
-	if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget.Get()))
-		return;
+	//if (pTypeExt->JumpjetTurnToTarget.Get(RulesExt::Global()->JumpjetTurnToTarget.Get()))
+	//	return;
 
-	if (auto const pFoot = generic_cast<FootClass*>(pExt->Get()))
-	{
-		if (pTypeExt->MyJJData.Enable
-			&& pFoot->GetTechnoType()->JumpJet
-			&& pFoot->IsInAir()
-		)
-		{
-			if (pExt->MyJJData.NeedToTurn)
-			{
-				if (pFoot->GetCurrentSpeed() == 0)
-				{
-					pExt->MyJJData.Turning();
-					pFoot->StopMoving();
-					CoordStruct location = pFoot->Location;
+	//if (auto const pFoot = generic_cast<FootClass*>(pExt->Get()))
+	//{
+	//	if (pTypeExt->MyJJData.Enable
+	//		&& pFoot->GetTechnoType()->JumpJet
+	//		&& pFoot->IsInAir()
+	//	)
+	//	{
+	//		if (pExt->MyJJData.NeedToTurn)
+	//		{
+	//			if (pFoot->GetCurrentSpeed() == 0)
+	//			{
+	//				pExt->MyJJData.Turning();
+	//				pFoot->StopMoving();
+	//				CoordStruct location = pFoot->Location;
 
-					if (auto const pCell = MapClass::Instance->TryGetCellAt(location))
-					{
-						CoordStruct nForward { pTypeExt->MyJJData.Forward,0,0 };
-						CoordStruct offsetLocation = Helpers_DP::GetFLHAbsoluteCoords(location, nForward, pExt->MyJJData.ToDir);
-						pFoot->SetLocation(offsetLocation);
-						pFoot->SetDestination(pCell, true);
-					}
-				}
-				else
-				{
-					pExt->MyJJData.Cancel();
-				}
-			}
-			else if (auto pTarget = pFoot->Target)
-			{
+	//				if (auto const pCell = MapClass::Instance->TryGetCellAt(location))
+	//				{
+	//					CoordStruct nForward { pTypeExt->MyJJData.Forward,0,0 };
+	//					CoordStruct offsetLocation = Helpers_DP::GetFLHAbsoluteCoords(location, nForward, pExt->MyJJData.ToDir);
+	//					pFoot->SetLocation(offsetLocation);
+	//					pFoot->SetDestination(pCell, true);
+	//				}
+	//			}
+	//			else
+	//			{
+	//				pExt->MyJJData.Cancel();
+	//			}
+	//		}
+	//		else if (auto pTarget = pFoot->Target)
+	//		{
 
-				int nWeapon = pFoot->SelectWeapon(pTarget);
-				bool canFire = false;
-				auto const nFireError = pExt->Get()->GetFireError(pTarget, nWeapon, true);
-				switch (nFireError)
-				{
-				case FireError::ILLEGAL:
-				case FireError::CANT:
-				case FireError::MOVING:
-				case FireError::RANGE:
-					break;
-				default:
-					canFire = pExt->Get()->IsCloseEnough(pTarget, nWeapon);
-					break;
-				}
+	//			int nWeapon = pFoot->SelectWeapon(pTarget);
+	//			bool canFire = false;
+	//			auto const nFireError = pExt->Get()->GetFireError(pTarget, nWeapon, true);
+	//			switch (nFireError)
+	//			{
+	//			case FireError::ILLEGAL:
+	//			case FireError::CANT:
+	//			case FireError::MOVING:
+	//			case FireError::RANGE:
+	//				break;
+	//			default:
+	//				canFire = pExt->Get()->IsCloseEnough(pTarget, nWeapon);
+	//				break;
+	//			}
 
-				if (canFire)
-				{
-					CoordStruct sourcePos = pExt->Get()->Location;
-					CoordStruct targetPos = pExt->Get()->Target->GetCoords();
-					DirStruct toDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
-					DirStruct selfDir = pFoot->PrimaryFacing.Current();
-					int facing = pTypeExt->MyJJData.Facing;
-					int toIndex = Helpers_DP::Dir2FacingIndex(toDir, facing);
-					int selfIndex = Helpers_DP::Dir2FacingIndex(selfDir, facing);
+	//			if (canFire)
+	//			{
+	//				CoordStruct sourcePos = pExt->Get()->Location;
+	//				CoordStruct targetPos = pExt->Get()->Target->GetCoords();
+	//				DirStruct toDir = Helpers_DP::Point2Dir(sourcePos, targetPos);
+	//				DirStruct selfDir = pFoot->PrimaryFacing.Current();
+	//				int facing = pTypeExt->MyJJData.Facing;
+	//				int toIndex = Helpers_DP::Dir2FacingIndex(toDir, facing);
+	//				int selfIndex = Helpers_DP::Dir2FacingIndex(selfDir, facing);
 
-					if (selfIndex != toIndex)
-					{
-						DirStruct targetDir = Helpers_DP::DirNormalized(toIndex, facing);
-						pExt->MyJJData.TurnTo(targetDir, facing);
-					}
-					else
-					{
-						pExt->MyJJData.Cancel();
-					}
-				}
-			}
-		}
-	}
+	//				if (selfIndex != toIndex)
+	//				{
+	//					DirStruct targetDir = Helpers_DP::DirNormalized(toIndex, facing);
+	//					pExt->MyJJData.TurnTo(targetDir, facing);
+	//				}
+	//				else
+	//				{
+	//					pExt->MyJJData.Cancel();
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 /*

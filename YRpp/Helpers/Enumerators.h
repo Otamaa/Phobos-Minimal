@@ -382,8 +382,8 @@ public:
 		auto const difference = end - start;
 
 		offset = {
-			static_cast<short>(Math::sgn(difference.X)),
-			static_cast<short>(Math::sgn(difference.Y))
+			static_cast<short>(Math::signum(difference.X)),
+			static_cast<short>(Math::signum(difference.Y))
 		};
 
 		distance = { (short)(difference.X * offset.X * 2), (short)(difference.Y * offset.Y * 2) };

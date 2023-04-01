@@ -281,6 +281,7 @@
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
+    <ClCompile Include="YRpp\DirStruct.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
   </ItemGroup>

@@ -465,7 +465,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
 	this->MyExtraFireData.ReadRules(exINI, pSection);
 	this->MyGiftBoxData.Read(exINI, pSection);
-	this->MyJJData.Read(exINI, pSection);
+	//this->MyJJData.Read(exINI, pSection);
 	this->MyPassangersData.Read(exINI, pSection);
 	this->MySpawnSupportDatas.Read(exINI, pSection);
 	this->DamageSelfData.Read(exINI, pSection);
@@ -1184,7 +1184,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 	this->MyDiveData.Serialize(Stm);
 	this->MyPutData.Serialize(Stm);
 	this->MyGiftBoxData.Serialize(Stm);
-	this->MyJJData.Serialize(Stm);
+	//this->MyJJData.Serialize(Stm);
 	this->MyPassangersData.Serialize(Stm);
 	this->MySpawnSupportFLH.Serialize(Stm);
 	this->MySpawnSupportDatas.Serialize(Stm);

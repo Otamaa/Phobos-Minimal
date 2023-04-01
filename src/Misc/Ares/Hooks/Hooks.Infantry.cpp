@@ -45,7 +45,7 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 				pThis->PlayAnim(DoType::Down);
 			} else {
 				// turn to correct facing
-				pThis->Locomotor->Do_Turn({ 3u , DirType::East });
+				pThis->Locomotor->Do_Turn(DirStruct{ 3u , DirType::East });
 			}
 		}
 	}
