@@ -54,6 +54,7 @@ public:
 
 		PhobosMap<int, LauchData> LaunchDatas;
 		bool CaptureObjectExecuted;
+		CDTimerClass DiscoverEvaDelay;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, BuildingCounter {}
 			, Building_BuildSpeedBonusCounter {}
@@ -80,6 +81,7 @@ public:
 			, AutoDeathObjects {}
 			, LaunchDatas {}
 			, CaptureObjectExecuted { false }
+			, DiscoverEvaDelay {}
 		{ }
 
 		virtual ~ExtData() override = default;

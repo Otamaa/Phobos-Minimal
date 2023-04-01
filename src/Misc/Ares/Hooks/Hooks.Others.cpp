@@ -130,43 +130,7 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
-{
-	GET(int, Q, EDX);
-	if (Q > 0x15F8F)
-	{
-		Q = 0x15F8F;
-	}
-	R->EDX(Q);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
-{
-	GET(int, Q, EDX);
-	if (Q > 0x15F8F)
-	{
-		Q = 0x15F8F;
-	}
-	R->EDX(Q);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
-{
-	R->EAX(2);
-	return 0x7609E8;
-}
-
-DEFINE_OVERRIDE_SKIP_HOOK(0x760286, WaveClass_Draw_Magnetron3, 0x5, 7602D3)
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
-
-DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
-{
-	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
-	pVec->Count = 0; //clear count , dont destroy the vector
-	return 0x761110;
-}
 
 DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {

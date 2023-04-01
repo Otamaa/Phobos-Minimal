@@ -82,6 +82,14 @@ public:
 
 		Valueable<int> Ammo;
 		Valueable<bool> IsDetachedRailgun;
+		
+		// TS Lasers
+		Valueable<bool> Wave_IsHouseColor;
+		Valueable<bool> Wave_IsLaser;
+		Valueable<bool> Wave_IsBigLaser;
+		Nullable<ColorStruct> Wave_Color;
+		Nullable<Point3D> Wave_Intent;
+		bool   Wave_Reverse[5];
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
@@ -134,6 +142,12 @@ public:
 			, Ammo { 0 }
 			, IsDetachedRailgun { false }
 
+			, Wave_IsHouseColor { false }
+			, Wave_IsLaser { false }
+			, Wave_IsBigLaser { false }
+			, Wave_Color {  }
+			, Wave_Intent { }
+			, Wave_Reverse { false }
 		{ }
 
 		virtual ~ExtData() override  = default;
@@ -143,6 +157,11 @@ public:
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		bool IsWave() const {
+			auto const pThis = this->OwnerObject();
+			return this->Wave_IsLaser || this->Wave_IsBigLaser || pThis->IsSonic || pThis->IsMagBeam;
+		}
 
 		int GetProjectileRange() const {
 			return this->ProjectileRange.Get();

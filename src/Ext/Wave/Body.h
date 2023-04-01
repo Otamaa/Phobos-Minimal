@@ -7,18 +7,27 @@
 #include <Utilities/Debug.h>
 #include <Helpers/Macro.h>
 
+class WeaponTypeClass;
 class WaveExt
 {
 public:
 
-	static constexpr size_t Canary = 0xAAAAAAAC;
+	static constexpr size_t Canary = 0xAABAAAAC;
 	using base_type = WaveClass;
 
 	class ExtData final : public Extension<WaveClass>
 	{
 	public:
 
+		WeaponTypeClass* Weapon;
+		int WeaponIdx;
+		bool ReverseAgainstTarget;
+
 		ExtData(WaveClass* OwnerObject) : Extension<WaveClass>(OwnerObject)
+			, Weapon { nullptr }
+			, WeaponIdx { 0 }
+			, ReverseAgainstTarget { false }
+
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -29,6 +38,7 @@ public:
 		virtual void Initialize() override;
 		
 		void InitWeaponData();
+		void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
 	private:
 		template <typename T>
 		void Serialize(T& Stm);

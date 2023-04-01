@@ -935,6 +935,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->AutoDeathObjects)
 		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
+		.Process(this->DiscoverEvaDelay)
 		;
 }
 

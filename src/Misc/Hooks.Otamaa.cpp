@@ -143,25 +143,6 @@ DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 	return 0x74D100;
 }
 
-DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
-{
-	GET(TechnoClass*, pTechnoOwner, EAX);
-	GET(CellClass*, pCell, EDI);
-	GET(ObjectClass*, pVictim, ESI);
-	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
-
-	//Debug::Log("Wave Receive Damage for Victim [%x] ! \n", pVictim);
-	if (const auto pUnit = specific_cast<UnitClass*>(pVictim))
-		if (pUnit->DeathFrameCounter > 0)
-			return 0x75F432;
-
-	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);
-	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner ? pTechnoOwner->GetOwningHouse() : nullptr);
-
-	return 0x75F432;
-}
-
 DEFINE_HOOK(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
 {
 	GET(TunnelLocomotionClass* const, pLoco, ESI);
@@ -4620,12 +4601,219 @@ DEFINE_HOOK(0x40A554, AudioDriverStar_AnnoyingBufferLogDisable_B, 0x6)
 	return 0x40A56C;
 }
 
-#pragma optimize("", off )
+//#pragma optimize("", off )
 //DEFINE_HOOK(0x722FC2, TiberiumClass_Grow_Validate, 0x5)
 //{
 //	GET(const TPriorityQueueClass<MapSurfaceData>*, pHeap, ECX);
 //	Debug::Log("__FUNCTION__ , Tiberium Logic with HeapSize(%d) \n" , pHeap->HeapSize);
 //	return 0x0;
 //}
+//#pragma optimize("", on)
 
-#pragma optimize("", on)
+struct TechnoExt_Gscript
+{
+	CDTimerClass TargetingDelayTimer {};
+
+
+
+	static TechnoExt_Gscript* Get(TechnoClass* pThis) {
+		return (TechnoExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
+	}
+};
+
+#include <SpotlightClass.h>
+
+struct TechnoTypeExt_Gscript
+{
+	Valueable<bool> TroopCrawler {};
+	Promotable<bool> Promoted_PalaySpotlight { };
+	Promotable<SpotlightFlags> Promoted_PalaySpotlight_bit
+	{	SpotlightFlags::NoGreen | SpotlightFlags::NoRed ,
+		SpotlightFlags::NoRed ,
+		SpotlightFlags::NoGreen | SpotlightFlags::NoBlue
+	};
+
+	Promotable<AnimTypeClass*> Promoted_PlayAnim {};
+
+	ValueableIdx<VoxClass> DiscoverEVA { -1 };
+
+	static TechnoTypeExt_Gscript* Get(TechnoTypeClass* pThis)
+	{
+		return (TechnoTypeExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
+	}
+
+	static void PlayPromoteAffects(TechnoClass* pThis)
+	{
+		auto const pTypeExt = pThis->GetTechnoType();
+		auto const pExt = TechnoTypeExt_Gscript::Get(pTypeExt);
+
+		if (pExt->Promoted_PlayAnim.Get(pThis))
+		{
+			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50))
+			{
+				pSpot->DisableFlags = pExt->Promoted_PalaySpotlight_bit.Get(pThis);
+			}
+		}
+
+
+		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis))
+		{
+			GameCreate<AnimClass>(pAnimType, pThis->Location, 0, 1, 0x600u, 0, 0);
+		}
+
+	}
+
+};
+
+//DEFINE_HOOK_AGAIN(0x736A22,UnitClass_UpdateTurret_ApplyTarget_ClearFlags, 0xA)
+//DEFINE_HOOK(0x736A09, UnitClass_UpdateTurret_ApplyTarget_ClearFlags, 0x5)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	auto const pTechnoExt = TechnoExt_Gscript::Get(pThis);
+//	pTechnoExt->TargetingDelayTimer.Start(ScenarioClass::Instance->Random.RandomRanged(30, 50));
+//	
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x7394C4, UnitClass_TryToDeploy_EmptyToPlace_Crawler, 0x7)
+//{
+//	GET(UnitTypeClass*, pType, EAX);
+//
+//	return TechnoTypeExt_Gscript::Get(pType)->TroopCrawler.Get() ?
+//		0x73958A : 0x0;
+//}
+
+DEFINE_HOOK(0x73F015, UnitClass_Mi_Hunt_MCVFindSpotReworked, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	const auto nMissionStatus = pThis->MissionStatus;
+	if (!nMissionStatus)
+	{
+		if (!pThis->GetHeight())
+		{
+			if (pThis->GotoClearSpot() && pThis->TryToDeploy())
+			{
+				pThis->MissionStatus = 1;
+				return 0x73F059;
+			}
+
+			pThis->Scatter(CoordStruct::Empty, true, false);
+		}
+
+		return 0x73F059;
+	}
+
+	if (nMissionStatus != 1)
+		return 0x73F059;
+
+	if(!pThis->Deploying)
+		pThis->MissionStatus = 0;
+
+	return 0x73F059;
+}
+
+//DEFINE_HOOK(0x6F4974, TechnoClass_UpdateDiscovered_ByPlayer, 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(HouseClass*, pDiscoverer, EDI);
+//
+//	const auto pHouseExt = HouseExt::ExtMap.Find(pDiscoverer);
+//
+//	if (!pHouseExt->DiscoverEvaDelay.IsTicking() || !pHouseExt->DiscoverEvaDelay.GetTimeLeft()){
+//		pHouseExt->DiscoverEvaDelay.Start(200);
+//
+//		if (auto pTypeExt = TechnoTypeExt_Gscript::Get(pThis->GetTechnoType())) {
+//			const auto nIdx = pTypeExt->DiscoverEVA.Get();
+//
+//			if (nIdx != -1)
+//				VoxClass::PlayIndex(nIdx);
+//		}
+//	}
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	return pThis->IsCrashing || pThis->Health < 0 ?
+		0x708FAD : 0x0;
+}
+
+DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
+{
+	return 0x0;
+}
+
+DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	//TODO DamageArgs
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
+{
+	GET(CellClass*, pCell, ESI);
+
+	return pCell->IsFogged() ? 0x6D7BB8 : 0x0;
+}
+
+DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
+{
+	DisplayClass::Instance->FollowAnObject(nullptr);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
+{
+	return 0x0;
+}
+
+DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
+{
+	return 0x0;
+}
+
+// this shit is something fuckup check 
+// it check if not unit then check if itself is not infantry is building 
+// what event shit is this
+//DEFINE_HOOK(0x6FA697, TechnoClass_UpdateTarget_ShouldReTarget , 0x6)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	if (!Is_Unit(pThis))
+//		return 0x0;
+//
+//	bool bConditionMet = false;
+//	switch (pThis->CurrentMission)
+//	{
+//	case Mission::Move:
+//	case Mission::Guard:
+//	case Mission::Harvest:
+//	case Mission::Return:
+//		return 0x6FA6AC;
+//	case Mission::Sabotage:
+//	{
+//		if (!Is_Infantry(pThis))
+//			return 0x6FA6AC;
+//
+//		break;
+//	}
+//	case Mission::Missile:
+//		bConditionMet = !Is_Building(pThis);
+//		break;
+//	}
+//
+//	return bConditionMet ? 0x6FA6AC : 0x6FA6F5;
+//}

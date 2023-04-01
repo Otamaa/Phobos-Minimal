@@ -160,7 +160,10 @@ struct Drawing
 	// Converts an RGB color to a 16bit color value.
 	static WORD Color16bit(const ColorStruct& color)
 	{
-		return static_cast<WORD>((color.B >> 3) | ((color.G >> 2) << 5) | ((color.R >> 3) << 11));
+		return static_cast<WORD>(
+			(color.B >> BlueShiftRight) |
+			((color.G >> 2) << GreenShiftLeft) |
+			((color.R >> RedShiftRight) << 11));
 	}
 
 	static int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)

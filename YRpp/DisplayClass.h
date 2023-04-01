@@ -90,6 +90,9 @@ public:
 	bool CanBuildHere(BuildingTypeClass* pBld, int nHouse, CellStruct* cell, CellStruct* tryCell) const
 		{ JMP_THIS(0x4A8EB0); }
 
+	bool FollowAnObject(ObjectClass* pObject) const
+	{ JMP_THIS(0x4AEB30); }
+
 protected:
 	//Constructor
 	DisplayClass() noexcept

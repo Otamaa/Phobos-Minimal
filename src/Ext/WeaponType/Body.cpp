@@ -103,6 +103,27 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
 	this->IsDetachedRailgun.Read(exINI, pSection, "IsDetachedRailgun");
+
+	this->Wave_IsLaser.Read(exINI, pSection, "Wave.IsLaser");
+	this->Wave_IsBigLaser.Read(exINI, pSection, "Wave.IsBigLaser");
+	this->Wave_IsHouseColor.Read(exINI, pSection, "Wave.IsHouseColor");
+
+	if (this->IsWave() && !this->Wave_IsHouseColor) {
+		this->Wave_Color.Read(exINI, pSection, "Wave.Color");
+		this->Wave_Intent.Read(exINI, pSection, "Wave.Intensity");
+	}
+
+	static constexpr std::array<const char* const, sizeof(this->Wave_Reverse)> WaveReverseAgainst
+	{
+	{   { "Wave.ReverseAgainstVehicles" } , { "Wave.ReverseAgainstAircraft" } ,
+		{ "Wave.ReverseAgainstBuildings" } , { "Wave.ReverseAgainstInfantry" } ,
+		{ "Wave.ReverseAgainstOthers"}
+	}
+	};
+
+	for (int i = 0; i < WaveReverseAgainst.size(); ++i) {
+		this->Wave_Reverse[i] = pINI->ReadBool(pSection, WaveReverseAgainst[i], this->Wave_Reverse[i]);
+	}
 }
 
 template <typename T>
@@ -157,6 +178,13 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 #endif
 		.Process(this->Ammo)
 		.Process(this->IsDetachedRailgun)
+
+		.Process(this->Wave_IsHouseColor)
+		.Process(this->Wave_IsLaser)
+		.Process(this->Wave_IsBigLaser)
+		.Process(this->Wave_Color)
+		.Process(this->Wave_Intent)
+		.Process(this->Wave_Reverse)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

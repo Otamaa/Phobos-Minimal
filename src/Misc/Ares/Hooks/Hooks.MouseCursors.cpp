@@ -18,7 +18,7 @@
 
 #include <New/Type/CursorTypeClass.h>
 
-/*
+/*TODO : handle all of these i suppose
 ; \Enum\CursorTypes.cpp
 5BDC8C = MouseClass_UpdateCursor, 7
 5BDADF = MouseClass_UpdateCursorMinimapState_UseCursor, 0

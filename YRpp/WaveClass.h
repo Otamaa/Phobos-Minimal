@@ -35,6 +35,10 @@ public:
 	static constexpr reference<int, 0xB46648u, 14u> const LUT_Linear1{};
 	static constexpr reference<Matrix3D, 0xB45DA8u, 4u> const Matrix{};
 	static constexpr reference<Matrix3D, 0xB45CA0u, 4u> const MagneticMatrix{};
+	static constexpr ColorStruct const DefaultWaveColor { 255, 255, 255 }; // placeholder
+	static constexpr ColorStruct const DefaultWaveColorMagBeam { 0xB0, 0, 0xD0 }; // rp2 values
+	static constexpr ColorStruct const DefaultWaveColorSonic { 0, 0, 0 }; // 0,0,0 is a magic value for "no custom handling"
+
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) JMP_STD(0x75F7D0);
@@ -150,7 +154,7 @@ public:
 	int WaveCount;
 	double MatrixScale1;
 	double MatrixScale2;
-	SingleArray_WavePoint2D FirstPointData;
+	DECLARE_PROPERTY(SingleArray_WavePoint2D, FirstPointData);
 	Point2D ActiveWavePixels_0;
 	Point2D ActiveWavePixels_1;
 	Point2D ActiveWavePixels_2;
@@ -161,13 +165,13 @@ public:
 	Point2D UnusedWavePixels__1;
 	Point2D UnusedWavePixels__2;
 	Point2D UnusedWavePixels__3;
-	MultiDimentionalArray_WavePoint2D SecondPointData;
+	DECLARE_PROPERTY(MultiDimentionalArray_WavePoint2D, SecondPointData);
 	int EachFacing[8];
 	FacingType FacingType;
 	int LaserIntensity;
 	TechnoClass* Owner;
-	FacingClass Facing;
-	DynamicVectorClass<CellClass *> Cells;
+	DECLARE_PROPERTY(FacingClass, Facing);
+	DECLARE_PROPERTY(DynamicVectorClass<CellClass *>, Cells);
 	int intensity_tables[14];
 };
 
