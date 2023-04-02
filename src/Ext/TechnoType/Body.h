@@ -178,17 +178,19 @@ public:
 			bool Save(PhobosStreamWriter& stm) const;
 
 			// For some Fcking unknown reason `emplace_back` doesnt knowh the default contructor for this
-			LaserTrailDataEntry(int nIdx , const CoordStruct& nFlh , bool OnTur) :
+			LaserTrailDataEntry(int nIdx, const CoordStruct& nFlh, bool OnTur) :
 				idxType { nIdx }
 				, FLH { nFlh }
 				, IsOnTurret { OnTur }
-			{ }
+			{
+			}
 
 			LaserTrailDataEntry() :
 				idxType { -1 }
 				, FLH { 0,0,0 }
 				, IsOnTurret { false }
-			{ }
+			{
+			}
 
 			//virtual ~LaserTrailDataEntry() = default;
 			~LaserTrailDataEntry() = default;
@@ -429,8 +431,33 @@ public:
 		Valueable<bool> IgnoreToProtect;
 		Valueable<int> TargetLaser_Time;
 		ValueableVector<int> TargetLaser_WeaponIdx;
-		
+
 		Nullable<bool> CurleyShuffle;
+
+		Valueable<bool> PassengersGainExperience;
+		Valueable<bool> ExperienceFromPassengers;
+		Valueable<double> PassengerExperienceModifier;
+		Valueable<double> MindControlExperienceSelfModifier;
+		Valueable<double> MindControlExperienceVictimModifier;
+		Valueable<double> SpawnExperienceOwnerModifier;
+		Valueable<double> SpawnExperienceSpawnModifier;
+		Valueable<bool> ExperienceFromAirstrike;
+		Valueable<double> AirstrikeExperienceModifier;
+
+		Valueable<bool> Promote_IncludePassengers;
+		ValueableIdx<VoxClass> Promote_Elite_Eva;
+		ValueableIdx<VoxClass> Promote_Vet_Eva;
+		NullableIdx<VocClass> Promote_Elite_Sound;
+		NullableIdx<VocClass> Promote_Vet_Sound;
+		Nullable<int> Promote_Elite_Flash;
+		Nullable<int> Promote_Vet_Flash;
+
+		Valueable<TechnoTypeClass*> Promote_Vet_Type;
+		Valueable<TechnoTypeClass*> Promote_Elite_Type;
+
+		Valueable<double> Promote_Vet_Exp;
+		Valueable<double> Promote_Elite_Exp;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -487,7 +514,7 @@ public:
 			, Powered_KillSpawns { false }
 			, Spawn_LimitedRange { false }
 			, Spawn_LimitedExtraRange { 0 }
-			, Spawner_DelayFrames{}
+			, Spawner_DelayFrames {}
 			, Harvester_Counted {}
 			, Promote_IncludeSpawns { false }
 			, ImmuneToCrit { false }
@@ -499,15 +526,15 @@ public:
 			, Death_NoAmmo { false }
 			, Death_Countdown { 0 }
 			, Death_Method { KillMethod::Explode }
-			, Death_WithMaster{ false }
+			, Death_WithMaster { false }
 			, AutoDeath_Nonexist {}
 			, AutoDeath_Nonexist_House { AffectedHouse::Owner }
 			, AutoDeath_Nonexist_Any { false }
-		    , AutoDeath_Nonexist_AllowLimboed { true}
+			, AutoDeath_Nonexist_AllowLimboed { true }
 			, AutoDeath_Exist {}
 			, AutoDeath_Exist_House { AffectedHouse::Owner }
 			, AutoDeath_Exist_Any { false }
-		    , AutoDeath_Exist_AllowLimboed { true}
+			, AutoDeath_Exist_AllowLimboed { true }
 			, AutoDeath_VanishAnimation {}
 
 			, Slaved_ReturnTo { SlaveReturnTo::Killer }
@@ -560,8 +587,8 @@ public:
 			, ImmuneToEMP { false }
 			, Ammo_Shared { false }
 			, Ammo_Shared_Group { -1 }
-			, Passengers_SyncOwner{ false }
-			, Passengers_SyncOwner_RevertOnExit{ true }
+			, Passengers_SyncOwner { false }
+			, Passengers_SyncOwner_RevertOnExit { true }
 			, Aircraft_DecreaseAmmo { true }
 			, LaserTrailData {}
 			, EnemyUIName {}
@@ -571,14 +598,14 @@ public:
 			, Insignia_ShowEnemy {}
 			, InsigniaFrames { { -1, -1, -1 } }
 			, InsigniaDrawOffset { {0 , 0 , 0} }
-			, InitialStrength_Cloning{ { 0.0, 0.0 } }
-			, SHP_SelectBrdSHP{  }
-			, SHP_SelectBrdPAL{ CustomPalette::PaletteMode::Temperate }
-			, UseCustomSelectBrd{}
-			, SelectBrd_Frame{ {-1,-1,-1} }
-			, SelectBrd_DrawOffset{}
-			, SelectBrd_TranslucentLevel{}
-			, SelectBrd_ShowEnemy{}
+			, InitialStrength_Cloning { { 0.0, 0.0 } }
+			, SHP_SelectBrdSHP {  }
+			, SHP_SelectBrdPAL { CustomPalette::PaletteMode::Temperate }
+			, UseCustomSelectBrd {}
+			, SelectBrd_Frame { {-1,-1,-1} }
+			, SelectBrd_DrawOffset {}
+			, SelectBrd_TranslucentLevel {}
+			, SelectBrd_ShowEnemy {}
 
 			, PronePrimaryFireFLH { }
 			, ProneSecondaryFireFLH { }
@@ -590,7 +617,7 @@ public:
 			, E_DeployedPrimaryFireFLH { }
 			, E_DeployedSecondaryFireFLH { }
 
-			, CrouchedWeaponBurstFLHs{ }
+			, CrouchedWeaponBurstFLHs { }
 			, EliteCrouchedWeaponBurstFLHs { }
 			, DeployedWeaponBurstFLHs { }
 			, EliteDeployedWeaponBurstFLHs { }
@@ -601,7 +628,7 @@ public:
 			, IronCurtain_KillWarhead { }
 
 			, EVA_Sold {}
-			, SellSound{ }
+			, SellSound { }
 
 			, MobileRefinery { false }
 			, MobileRefinery_TransRate { 30 }
@@ -755,7 +782,7 @@ public:
 			, LineTrailData { }
 			, PoseDir { }
 			, Firing_IgnoreGravity { false }
-			, Survivors_PassengerChance{ -1 }
+			, Survivors_PassengerChance { -1 }
 			, Spawner_SpawnOffsets { }
 			, Spawner_SpawnOffsets_OverrideWeaponFLH { false }
 			, Unit_AI_AlternateType {}
@@ -790,6 +817,30 @@ public:
 			, TargetLaser_Time { 15 }
 			, TargetLaser_WeaponIdx { 0 }
 			, CurleyShuffle { }
+
+			, PassengersGainExperience { false }
+			, ExperienceFromPassengers { true }
+			, PassengerExperienceModifier { 1.0 }
+			, MindControlExperienceSelfModifier { 0.0 }
+			, MindControlExperienceVictimModifier { 1.0 }
+			, SpawnExperienceOwnerModifier { 0.0 }
+			, SpawnExperienceSpawnModifier { 1.0 }
+			, ExperienceFromAirstrike { false }
+			, AirstrikeExperienceModifier { 1.0 }
+
+			, Promote_IncludePassengers { false }
+			, Promote_Elite_Eva { -1 }
+			, Promote_Vet_Eva { -1 }
+			, Promote_Elite_Sound { }
+			, Promote_Vet_Sound { }
+			, Promote_Elite_Flash { }
+			, Promote_Vet_Flash { }
+
+			, Promote_Vet_Type { nullptr }
+			, Promote_Elite_Type { nullptr }
+
+			, Promote_Vet_Exp { 0.0 }
+			, Promote_Elite_Exp { 0.0 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -819,7 +870,7 @@ public:
 
 		virtual ~ExtData() override = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI);
-		void LoadFromINIFile_Aircraft(CCINIClass* pINI) ;
+		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 		void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
 
 		virtual void Initialize() override;

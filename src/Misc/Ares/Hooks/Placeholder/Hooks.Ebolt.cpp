@@ -56,10 +56,10 @@ DEFINE_HOOK(4C1F33, EBolt_Draw_Colors, 7)
 		if (clr1.isset()) { BoltColors.X = Drawing::ColorStructToWord(clr1); }
 
 		auto& clr2 = pData->Bolt_Color2;
-		if (clr2.isset()) { BoltColors.Y = Drawing::Color16bit(clr2); }
+		if (clr2.isset()) { BoltColors.Y = Drawing::ColorStructToWord(clr2); }
 
 		auto& clr3 = pData->Bolt_Color3;
-		if (clr3.isset()) { BoltColors.Z = Drawing::Color16bit(clr3); }
+		if (clr3.isset()) { BoltColors.Z = Drawing::ColorStructToWord(clr3); }
 	}
 
 	return 0x4C1F66;

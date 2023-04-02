@@ -66,7 +66,7 @@ DEFINE_HOOK(0x6CDE40, SuperClass_Place_FireExt, 0x3)
 		return 0x0;
 
 	// preventing corrupted pointer to execute
-	if(pSuper->Type && !Is_SWType(pSuper->Type)){
+	if(pSuper->Type && Is_SWType(pSuper->Type)){
 		if (auto const pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type)){
 			pSWExt->FireSuperWeapon(pSuper,pSuper->Owner, pCell ,true);
 		}

@@ -23,12 +23,13 @@
 
 #include <Notifications.h>
 
-DEFINE_OVERRIDE_HOOK(0x75DDCC, Verses_OrigParser, 0x7)
+DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla , 0x7)
 {
 	// should really be doing something smarter due to westwood's weirdass code, but cannot be bothered atm
 	// will fix if it is reported to actually break things
 	// this breaks 51E33D which stops infantry with verses (heavy=0 & steel=0) from targeting non-infantry at all
 	// (whoever wrote that code must have quite a few gears missing in his head)
+	
 	return 0x75DE98;
 }
 

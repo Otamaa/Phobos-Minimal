@@ -151,6 +151,7 @@ struct GameStrings
 	GAMEMD_STR(EVA_OreMinerUnderAttack, 0x824784u);
 	GAMEMD_STR(EVA_UnitReady, 0x8249A0u);
 	GAMEMD_STR(EVA_ConstructionComplete, 0x83FA80u);
+	GAMEMD_STR(EVA_UnitPromoted, 0x843138u);
 	//...
 
 	// Messages

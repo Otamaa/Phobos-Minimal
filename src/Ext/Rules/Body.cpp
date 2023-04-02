@@ -175,6 +175,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");
 	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
 
+	this->VeteranFlashTimer.Read(exINI, AUDIOVISUAL_SECTION, "VeteranFlashTimer");
+
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
 	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
@@ -581,6 +583,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector_AirCategoryPercentage)
 
 		.Process(this->IC_Flash)
+		.Process(this->VeteranFlashTimer)
 
 		.Process(this->VeinholeParticle)
 		.Process(this->DefaultVeinParticle)

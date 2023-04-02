@@ -439,6 +439,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
 
+	//pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
+	//	this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0);
+
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");
 
@@ -1070,14 +1073,18 @@ DEFINE_HOOK(0x75E39C, WarheadTypeClass_Save_Suffix, 0x5)
 }
 
 DEFINE_HOOK_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
+DEFINE_HOOK(0x75DEA0
+	//0x75DE9A
+	, WarheadTypeClass_LoadFromINI, 0x5)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x150);
 
 	WarheadTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 
-	return 0;
+	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
+	return// R->Origin() == 0x75DE9A ? 0x75DEA0 : 
+		0;
 }
 
 //#ifdef ENABLE_NEWEXT

@@ -108,6 +108,7 @@ public:
 		Valueable<double> NewTeamsSelector_AirCategoryPercentage;
 
 		Valueable<bool> IC_Flash;
+		Valueable<int> VeteranFlashTimer;
 	#pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -215,6 +216,7 @@ public:
 			, NewTeamsSelector_AirCategoryPercentage { 0.25 }
 			
 			, IC_Flash { true }
+			, VeteranFlashTimer { 0 }
 
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }

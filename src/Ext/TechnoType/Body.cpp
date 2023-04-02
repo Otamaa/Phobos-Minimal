@@ -28,6 +28,9 @@ void TechnoTypeExt::ExtData::Initialize()
 		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
 	}
 
+	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+
 	OreGathering_Anims.reserve(1);
 	OreGathering_Tiberiums.reserve(1);
 	OreGathering_FramesPerDir.reserve(1);
@@ -210,7 +213,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->Death_Method.Read(exINI, pSection, "Death.Method");
 
-	if(Death_Peaceful.isset())
+	if (Death_Peaceful.isset())
 		this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
 
 	this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
@@ -252,7 +255,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
 	this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
 
-	auto const& [canParse , resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
+	auto const& [canParse, resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
 
 	if (canParse)
 	{
@@ -442,12 +445,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
 	this->IsDummy.Read(exINI, pSection, "Dummy");
-	
+
 	{
-	// UpdateCode Disabled 
-	// TODO : what will happen if the vectors for different state have different item count ?
-	// that will trigger crash because of out of bound idx 
-	// so disable these untill i can figure out better codes
+		// UpdateCode Disabled 
+		// TODO : what will happen if the vectors for different state have different item count ?
+		// that will trigger crash because of out of bound idx 
+		// so disable these untill i can figure out better codes
 
 		this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
 		this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
@@ -682,7 +685,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
 
-	this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection,"SpawnOffset");
+	this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection, "SpawnOffset");
 	this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
 
 	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
@@ -743,6 +746,29 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	//No code
 	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 	this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
+
+	// #346, #464, #970, #1014
+	this->PassengersGainExperience.Read(exINI, pSection, "Experience.PromotePassengers");
+	this->ExperienceFromPassengers.Read(exINI, pSection, "Experience.FromPassengers");
+	this->PassengerExperienceModifier.Read(exINI, pSection, "Experience.PassengerModifier");
+	this->MindControlExperienceSelfModifier.Read(exINI, pSection, "Experience.MindControlSelfModifier");
+	this->MindControlExperienceVictimModifier.Read(exINI, pSection, "Experience.MindControlVictimModifier");
+	this->SpawnExperienceOwnerModifier.Read(exINI, pSection, "Experience.SpawnOwnerModifier");
+	this->SpawnExperienceSpawnModifier.Read(exINI, pSection, "Experience.SpawnModifier");
+	this->ExperienceFromAirstrike.Read(exINI, pSection, "Experience.FromAirstrike");
+	this->AirstrikeExperienceModifier.Read(exINI, pSection, "Experience.AirstrikeModifier");
+	this->Promote_IncludePassengers.Read(exINI, pSection, "Promote.IncludePassengers");
+	this->Promote_Elite_Eva.Read(exINI, pSection, "EVA.ElitePromoted");
+	this->Promote_Vet_Eva.Read(exINI, pSection, "EVA.VeteranPromoted");
+	this->Promote_Elite_Sound.Read(exINI, pSection, "Promote.EliteFlash");
+	this->Promote_Vet_Sound.Read(exINI, pSection, "Promote.VeteranFlash");
+	this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteSound");
+	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranSound");
+	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
+	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
+	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
+	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 	this->MyDiveData.Read(exINI, pSection);
@@ -1177,6 +1203,28 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->TargetLaser_Time)
 		.Process(this->TargetLaser_WeaponIdx)
 		.Process(this->CurleyShuffle)
+
+		.Process(this->PassengersGainExperience)
+		.Process(this->ExperienceFromPassengers)
+		.Process(this->PassengerExperienceModifier)
+		.Process(this->MindControlExperienceSelfModifier)
+		.Process(this->MindControlExperienceVictimModifier)
+		.Process(this->SpawnExperienceOwnerModifier)
+		.Process(this->SpawnExperienceSpawnModifier)
+		.Process(this->ExperienceFromAirstrike)
+		.Process(this->AirstrikeExperienceModifier)
+		.Process(this->Promote_IncludePassengers)
+		.Process(this->Promote_Elite_Eva)
+		.Process(this->Promote_Vet_Eva)
+		.Process(this->Promote_Elite_Sound)
+		.Process(this->Promote_Vet_Sound)
+		.Process(this->Promote_Elite_Flash)
+		.Process(this->Promote_Vet_Flash)
+
+		.Process(this->Promote_Vet_Type)
+		.Process(this->Promote_Elite_Type)
+		.Process(this->Promote_Vet_Exp)
+		.Process(this->Promote_Elite_Exp)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -1300,7 +1348,8 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
 	//}
 
-	if (auto ptr = TechnoTypeExt::ExtMap.Find(pItem)){
+	if (auto ptr = TechnoTypeExt::ExtMap.Find(pItem))
+	{
 		ptr->LoadFromINI(pINI);
 	}
 
@@ -1310,7 +1359,7 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 //hook before stuffs got pop-ed to remove crash possibility
 DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
 {
-	GET(AircraftTypeClass* , pItem, ESI);
+	GET(AircraftTypeClass*, pItem, ESI);
 	GET(CCINIClass* const, pINI, EBX);
 
 	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));

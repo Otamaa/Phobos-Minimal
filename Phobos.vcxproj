@@ -179,6 +179,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
