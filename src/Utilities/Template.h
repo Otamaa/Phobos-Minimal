@@ -356,6 +356,18 @@ public:
 		return this->Rookie;
 	}
 
+	const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
+		if (pTechno->CurrentRanking == Rank::Elite)
+		{
+			return this->Elite;
+		}
+		if (pTechno->CurrentRanking == Rank::Veteran)
+		{
+			return this->Veteran;
+		}
+		return this->Rookie;
+	}
+
 	const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept {
 		auto nRes = Get(pTechno);
 		return nRes ? nRes : nDefault;

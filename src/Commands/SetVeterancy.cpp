@@ -34,9 +34,12 @@ void SetVeterancyCommandClass::Execute(WWKey eInput) const
 	{
 		const auto pTechn = generic_cast<TechnoClass*>(pObj);
 
-		if (!pTechn || pTechn->Veterancy.IsElite())
+		if (!pTechn)
 			continue;
 
-		pTechn->Veterancy.SetElite();
+		if (pTechn->Veterancy.IsRookie() && !pTechn->Veterancy.IsVeteran() && !pTechn->Veterancy.IsElite())
+		{ pTechn->Veterancy.SetVeteran(); }
+		else if (!pTechn->Veterancy.IsRookie() && pTechn->Veterancy.IsVeteran() && !pTechn->Veterancy.IsElite())
+		{ pTechn->Veterancy.SetElite(); }
 	}
 }

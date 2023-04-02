@@ -1115,6 +1115,9 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass*
 // Based on Ares source.
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
+	if(pThis->CurrentRanking == Rank::Invalid)
+		return;
+
 	Point2D offset = *pLocation;
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
 	int defaultFrameIndex = -1;
@@ -1135,8 +1138,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 
 	bool isCustomInsignia = false;
 
-	if (SHPStruct* pCustomShapeFile = pExt->Insignia.Get(pThis))
-	{
+	if (SHPStruct* pCustomShapeFile = pExt->Insignia.GetFromCurrentRank(pThis)) {
 		pShapeFile = pCustomShapeFile;
 		defaultFrameIndex = 0;
 		isCustomInsignia = true;
@@ -1145,16 +1147,16 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (!pShapeFile)
 		return;
 
-	VeterancyStruct* pVeterancy = &pThis->Veterancy;
+	const VeterancyStruct* pVeterancy = &pThis->Veterancy;
 	const auto& insigniaFrames = pExt->InsigniaFrames.Get();
 	int insigniaFrame = insigniaFrames.X;
 
-	if (pVeterancy->IsVeteran())
+	if (pThis->CurrentRanking == Rank::Veteran)
 	{
 		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
 		insigniaFrame = insigniaFrames.Y;
 	}
-	else if (pVeterancy->IsElite())
+	else if (pThis->CurrentRanking == Rank::Elite)
 	{
 		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
 		insigniaFrame = insigniaFrames.Z;

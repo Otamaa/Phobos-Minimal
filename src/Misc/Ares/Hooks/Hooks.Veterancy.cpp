@@ -194,6 +194,12 @@ struct TechnoExperienceData
 					promoteExp = pTypeExt->Promote_Elite_Exp;
 				}
 
+				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
+				{
+					pExpReceiver->Veterancy.Add(promoteExp);
+					newRank = pExpReceiver->Veterancy.GetRemainingLevel();
+				}
+
 				if (!bSilent && pExpReceiver->Owner->IsControlledByCurrentPlayer())
 				{
 					VocClass::PlayAt(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
@@ -205,13 +211,7 @@ struct TechnoExperienceData
 					pExpReceiver->Flashing.DurationRemaining = flash;
 				}
 
-				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
-				{
-					pExpReceiver->Veterancy.Add(promoteExp);
-					newRank = pExpReceiver->Veterancy.GetRemainingLevel();
-				}
-
-				AresData::RecalculateStat((void*)(*(uintptr_t*)((char*)pExpReceiver + 0x154)));
+				AresData::RecalculateStat(pExpReceiver);
 			}
 
 			pExpReceiver->CurrentRanking = newRank;

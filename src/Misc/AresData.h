@@ -9,6 +9,9 @@ class FootClass;
 
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
+#define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
+#define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var +0x71C))
+
 struct AresData
 {
 	enum FunctionIndices
@@ -63,7 +66,7 @@ struct AresData
 	// here be known Ares functions
 	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
 	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
-	static void RecalculateStat(void* const pThis);
+	static void RecalculateStat(TechnoClass* pTechno);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

@@ -767,7 +767,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
 	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
-	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
+	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience"); 
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");

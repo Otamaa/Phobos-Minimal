@@ -86,9 +86,9 @@ void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller
 	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
 }
 
-void AresData::RecalculateStat(void* const pThis)
+void AresData::RecalculateStat(TechnoClass* pTechno)
 {
-	AresThiscall<RecalculateStatID, void,  void*>()(pThis);
+	AresThiscall<RecalculateStatID, void,  void*>()(GetAresTechnoExt(pTechno));
 }
 
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
