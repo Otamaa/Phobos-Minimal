@@ -15,10 +15,16 @@ public:
 	class ExtData final : public Extension<base_type>
 	{
 	public:
+
+		Nullable<double> C4Delay;
+		Nullable<int> C4ROF;
+
 		Valueable<bool> HideWhenDeployAnimPresent;
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
 		WeaponStruct CrawlingWeaponDatas[4];
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
+			, C4Delay { }
+			, C4ROF { }
 			, HideWhenDeployAnimPresent { false }
 			, DeathBodies_UseDieSequenceAsIndex { false }
 			, CrawlingWeaponDatas { }

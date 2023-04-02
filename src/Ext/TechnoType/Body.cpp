@@ -768,7 +768,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
 	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience"); 
-	this->C4Delay.Read(exINI, pSection, "C4Delay");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
@@ -1226,7 +1225,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Promote_Elite_Type)
 		.Process(this->Promote_Vet_Exp)
 		.Process(this->Promote_Elite_Exp)
-		.Process(this->C4Delay)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

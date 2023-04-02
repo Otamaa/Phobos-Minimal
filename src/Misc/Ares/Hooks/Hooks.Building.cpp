@@ -16,6 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <Misc/AresData.h>
 
@@ -585,29 +586,47 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 {
+	enum {
+		SkipInfiltrate = 0x51A03E,
+		Infiltrate_Vanilla = 0x51A002 ,
+		InfiltrateSucceded = 0x51A010,
+	};
+
 	GET(InfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
 	const auto nResult = AresData::GetInfActionOverObject(pThis , pBuilding);
 
-	if (nResult == Action::Move)
-		return 0x51A002;
+	if (nResult == Action::Move) // this one will Infiltrate instead
+	{
+		auto const pHouse = pThis->Owner;
+		if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
+			return SkipInfiltrate;
+
+		pBuilding->Infiltrate(pHouse);
+		BuildingExt::HandleInfiltrate(pBuilding, pHouse);
+		return InfiltrateSucceded;
+	}
 
 	if (nResult != Action::NoMove)
-		return 0x51A03E;
+		return SkipInfiltrate;
+
+	const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
 		|| pBuilding->GetCurrentMission() == Mission::Selling)
 	{
 		pThis->AbortMotion();
 		pThis->Uncloak(false);
-		pThis->ReloadTimer.Start(pThis->GetROF(1));
-		return 0x51A03Eu;
+		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+		pThis->ReloadTimer.Start(Rof);
+		return SkipInfiltrate;
 	}
 	else if (pBuilding->C4Applied)
 	{
-		pThis->ReloadTimer.Start(pThis->GetROF(1));
-		return 0x51A03Eu;
+		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+		pThis->ReloadTimer.Start(Rof);
+		return SkipInfiltrate;
 	}
 	else
 	{
@@ -616,18 +635,16 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		pBuilding->C4Applied = true;
 		pBuilding->C4AppliedBy = pThis;
 
-		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		auto const delay = pTypeExt->C4Delay.Get(RulesClass::Instance->C4Delay);
+		const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+		const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
+
 		auto duration = (int)(delay * 900);
 
 		// modify good durations only
 		if (duration > 0) {
-
-			if (const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
-				duration = (int)(duration * pData->C4_Modifier);
-				if (duration <= 0)
-					duration = 1;
-			}
+			duration = (int)(duration * pData->C4_Modifier);
+			if (duration <= 0)
+				duration = 1;		
 		}
 
 		pBuilding->Flash(duration / 2);
@@ -638,7 +655,7 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 			pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
 		}
 
-		return 0x51A010u;
+		return InfiltrateSucceded;
 	}
 
 	//	return 0x0;
