@@ -15,6 +15,9 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/BuildingType/Body.h>
+
+#include <Misc/AresData.h>
 
 #include <numeric>
 /* #183 - cloakable on Buildings and Aircraft */
@@ -399,4 +402,244 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 	// add the EMP check to the limbo check
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ? 
 		0x44583E : 0x4456F3;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
+{
+	GET(TechnoClass*, pTechno, EAX);
+
+	if (pTechno->AttachedTag) {
+		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
+	}
+
+	if (pTechno->IsAlive) {
+		if (pTechno->AttachedTag) {
+			//66
+			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
+		}
+	}
+
+	return 0x4368D9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
+{
+	GET(UnitClass*, Vehicle, EBP);
+	GET(BuildingClass*, Grinder, EBX);
+
+	// TODO : bring  ReverseEngineer in later
+	if (AresData::ReverseEngineer(Grinder, Vehicle->Type))
+	{
+		if (Vehicle->Owner->ControlledByPlayer())
+		{
+			VoxClass::Play("EVA_ReverseEngineeredVehicle");
+			VoxClass::Play("EVA_NewTechnologyAcquired");
+		}
+	}
+
+	if (auto const pTag = Grinder->AttachedTag)
+	{
+		pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
+
+		if (auto const pTag2 = Grinder->AttachedTag)
+		{
+			pTag2->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+		}
+	}
+
+	// #368: refund hijackers
+	if (Vehicle->HijackerInfantryType != -1)
+	{
+		if (InfantryTypeClass* Hijacker =
+			InfantryTypeClass::Array->GetItem(Vehicle->HijackerInfantryType))
+		{
+			Grinder->Owner->GiveMoney(Hijacker->GetRefund(Vehicle->Owner, 0));
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
+{
+	GET(InfantryClass*, Infantry, ESI);
+	GET(BuildingClass*, Grinder, EBX);
+
+	// TODO : bring  ReverseEngineer in later
+	if (AresData::ReverseEngineer(Grinder, Infantry->Type))
+	{
+		if (Infantry->Owner->ControlledByPlayer())
+		{
+			VoxClass::Play("EVA_ReverseEngineeredInfantry");
+			VoxClass::Play("EVA_NewTechnologyAcquired");
+		}
+	}
+
+	//Ares 3.0 Added
+	if (auto FirstTag = Grinder->AttachedTag)
+	{
+		//80
+		FirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
+
+		//79
+		if (auto pSecondTag = Grinder->AttachedTag)
+			FirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+	}
+
+	return 0;
+}
+
+// TODO : bring all here , the real code already complete and tested , for now these should do the trick
+// Func arguments is actualli reverse
+/*
+Action GetiInfiltrateActionResult(BuildingClass* pBuilding, InfantryClass* pInf)
+{
+	auto const pInfType = pInf->Type;
+	auto const pBldType = pBuilding->Type;
+
+	if ((pInfType->Thief || pInf->HasAbility(AbilityType::C4)) && pBldType->CanC4)
+		return Action::Self_Deploy;
+
+	const bool IsAgent = pInfType->Agent;
+	if (IsAgent && pBldType->Spyable)
+	{
+		auto pBldOwner = pBuilding->GetOwningHouse();
+		auto pInfOwner = pInf->GetOwningHouse();
+
+		if (!pBldOwner || (pBldOwner != pInfOwner && !pBldOwner->IsAlliedWith(pInfOwner)))
+			return Action::Move;
+	}
+
+	auto const bIsSaboteur = TechnoTypeExt::ExtMap.Find(pInfType)->Saboteur.Get();
+
+	if (bIsSaboteur && BuildingTypeExt::IsSabotagable(pBldType))
+		return Action::NoMove;
+
+	return IsAgent || bIsSaboteur || !pBldType->Capturable ? Action::None : Action::Enter;
+}*/
+
+DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
+{
+	// this is known to be InfantryClass, and Infiltrate is yes
+	GET(InfantryClass* const, pThis, ESI);
+	GET(ObjectClass* const, pObject, EDI);
+
+	bool infiltratable = false;
+	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject)) {
+		infiltratable = AresData::GetInfActionOverObject(pThis, pBldObject) != Action::None;
+	}
+
+	return infiltratable ? 0x700531u : 0x700536u;
+}
+
+/* TODO : require MouseCursorType Set Here
+DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
+{
+	enum
+	{
+		infiltratable = 0x51EEEDu
+		, Notinfiltratable = 0x51F04E
+	};
+
+	GET(InfantryClass*, pThis, EDI);
+	GET(ObjectClass*, pObject, ESI);
+
+	if (auto pBldObject = abstract_cast<BuildingClass*>(pObject))
+	{
+		if (!pThis->Owner->IsAlliedWith(pBldObject))
+		{
+			switch (GetiInfiltrateActionResult(pBldObject, pThis))
+			{
+			case Action::Move:
+				//MouseCursor::SetAction(*(*(pInf[328] + 3620) + 576), 9, 0);
+				break;
+			case Action::NoMove:
+				//MouseCursor::SetAction(93, 9, 0);
+				break;
+			case Action::None:
+				return Notinfiltratable;
+			}
+
+			return infiltratable;
+		}
+	}
+
+	return Notinfiltratable;
+}*/
+
+DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(ObjectClass*, pTarget, EDI);
+
+	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget))
+	{
+		const auto nResult = AresData::GetInfActionOverObject(pThis, pBldObject);
+
+		if (nResult == Action::Move || nResult == Action::NoMove || nResult == Action::Enter)
+			pThis->SetDestination(pTarget, true);
+	}
+
+	return 0x51B33F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
+{
+	GET(InfantryClass* const, pThis, ESI);
+	GET(BuildingClass* const, pBuilding, EDI);
+
+	const auto nResult = AresData::GetInfActionOverObject(pThis , pBuilding);
+
+	if (nResult == Action::Move)
+		return 0x51A002;
+
+	if (nResult != Action::NoMove)
+		return 0x51A03E;
+
+	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
+		|| pBuilding->GetCurrentMission() == Mission::Selling)
+	{
+		pThis->AbortMotion();
+		pThis->Uncloak(false);
+		pThis->ReloadTimer.Start(pThis->GetROF(1));
+		return 0x51A03Eu;
+	}
+	else if (pBuilding->C4Applied)
+	{
+		pThis->ReloadTimer.Start(pThis->GetROF(1));
+		return 0x51A03Eu;
+	}
+	else
+	{
+
+		// sabotage
+		pBuilding->C4Applied = true;
+		pBuilding->C4AppliedBy = pThis;
+
+		auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+		auto const delay = pTypeExt->C4Delay.Get(RulesClass::Instance->C4Delay);
+		auto duration = (int)(delay * 900);
+
+		// modify good durations only
+		if (duration > 0) {
+
+			if (const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type)) {
+				duration = (int)(duration * pData->C4_Modifier);
+				if (duration <= 0)
+					duration = 1;
+			}
+		}
+
+		pBuilding->Flash(duration / 2);
+		pBuilding->C4Timer.Start(duration);
+
+		if (auto const pTag = pBuilding->AttachedTag)
+		{
+			pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
+		}
+
+		return 0x51A010u;
+	}
+
+	//	return 0x0;
 }

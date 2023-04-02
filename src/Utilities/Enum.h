@@ -34,6 +34,38 @@
 
 #include <Phobos.h>
 
+//TODO HelpText
+enum class AresNewTriggerEvents : int
+{
+	UnderEMP = 62,
+	UnderEMP_ByHouse = 63 ,
+	RemoveEMP = 64 ,
+	RemoveEMP_ByHouse = 65 ,
+	EnemyInSpotlightNow = 66,
+	DriverKiller = 67 ,
+	DriverKilled_ByHouse = 68 ,
+	VehicleTaken = 69 ,
+	VehicleTaken_ByHouse = 70 , 
+	Abducted = 71 , 
+	Abducted_ByHouse = 72 ,
+	AbductSomething = 73,
+	AbductSomething_OfHouse = 74,
+	SuperActivated = 75 , 
+	SuperDeactivated = 76 ,
+	SuperNearWaypoint = 77 ,
+	ReverseEngineered = 78 ,
+	ReverseEngineerAnything = 79 ,
+	ReverseEngineerType = 80 ,
+	HouseOwnTechnoType = 81 , 
+	HouseDoesntOwnTechnoType = 82 ,
+	AttackedOrDestroyedByAnybody = 83 , 
+	AttackedOrDestroyedByHouse = 84 , 
+	DestroyedByHouse = 85 ,
+	TechnoTypeDoesntExistMoreThan = 86 ,
+	AllKeepAlivesDestroyed = 87,
+	AllKeppAlivesBuildingDestroyed = 88 ,
+};
+
 enum class NewMouseCursorType : unsigned int
 {
 	Tote,

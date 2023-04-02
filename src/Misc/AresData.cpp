@@ -86,9 +86,24 @@ void AresData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller
 	AresStdcall<SpawnSurvivorsID, void, FootClass*, TechnoClass*, bool, bool>()(pThis, pKiller, ISelect, IgnoreDefenses);
 }
 
-void AresData::RecalculateStat(TechnoClass* pTechno)
+void AresData::RecalculateStat(TechnoClass* const pTechno)
 {
 	AresThiscall<RecalculateStatID, void,  void*>()(GetAresTechnoExt(pTechno));
+}
+
+bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType)
+{
+	return AresStdcall<ReverseEngineerID, bool, BuildingClass* , TechnoTypeClass*>()(pBld , pTechnoType);
+}
+
+Action AresData::GetInfActionOverObject(InfantryClass* const pThis, BuildingClass* const pBld)
+{
+	return AresStdcall<GetInfActionOverObjectID, Action, BuildingClass*, InfantryClass*>()(pBld , pThis);
+}
+
+void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+{
+	AresStdcall<SetMouseCursorActionID, void, size_t, Action, bool>()(CursorIdx , nAction , bShrouded);
 }
 
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)

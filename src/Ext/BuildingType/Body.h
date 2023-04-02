@@ -154,6 +154,8 @@ public:
 		Valueable<bool> SpyEffect_VictimSW_RealLaunch;
 
 		Valueable<bool> CanC4_AllowZeroDamage;
+		Valueable<double> C4_Modifier;
+
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -258,6 +260,7 @@ public:
 			, SpyEffect_InfiltratorSW_JustGrant { false }	
 			, SpyEffect_VictimSW_RealLaunch { false }
 			, CanC4_AllowZeroDamage { false }
+			, C4_Modifier { 1.0 }
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}

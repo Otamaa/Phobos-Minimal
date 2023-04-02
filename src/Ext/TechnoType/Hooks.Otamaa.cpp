@@ -85,7 +85,7 @@ DEFINE_HOOK(0x449B04, TechnoClass_MI_Construct_Facing_Jugger, 0x6)
  		auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP.Get();
  		auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated.Get() && !pThis->EMPLockRemaining;
 
- #ifdef COMPILE_DP_FEATURES
+ #ifdef COMPILE_PORTED_DP_FEATURES
  		auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
  		auto const nDisableDriverKilled = bDriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled.Get();
 

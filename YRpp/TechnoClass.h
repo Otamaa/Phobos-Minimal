@@ -65,6 +65,23 @@ struct VeterancyStruct
 		return Rank::Rookie;
 	}
 
+	Rank AddAndGetRank(double value)noexcept
+	{
+		float val = (float)(this->Veterancy + value);
+		float result = std::clamp(val, 0.0f, (float)RulesClass::Instance->VeteranCap);
+		this->Veterancy = result;
+
+		if (result >= 2.0f) {
+			return Rank::Elite;
+		}
+
+		if (result >= 1.0f) {
+			return Rank::Veteran;
+		}
+
+		return Rank::Rookie;
+	}
+
 	bool IsNegative() const noexcept {
 		return this->Veterancy < 0.0f;
 	}

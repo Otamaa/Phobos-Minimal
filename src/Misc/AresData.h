@@ -2,10 +2,13 @@
 #include <Windows.h>
 
 #include <YRPPCore.h>
+#include <GeneralDefinitions.h>
 
 class TechnoClass;
 class TechnoTypeClass;
 class FootClass;
+class BuildingClass;
+class InfantryClass;
 
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
@@ -19,6 +22,9 @@ struct AresData
 		ConvertTypeToID = 0,
 		SpawnSurvivorsID = 1,
 		RecalculateStatID = 2,
+		ReverseEngineerID = 3,
+		GetInfActionOverObjectID = 4,
+		SetMouseCursorActionID = 5 ,
 	};
 
 	enum Version
@@ -33,7 +39,7 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 3;
+	static constexpr int AresFunctionCount = 6;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 2;
 
@@ -50,6 +56,9 @@ struct AresData
 		0x043650, 0x044130,	// ConvertTypeTo
 		0x0464C0, 0x047030, // TechnoExt::SpawnSurvivors
 		0x0 , 0x046C10, //TechnoExt::RecalculateStat
+		0x0 , 0x013390, // static BuildingExt::ReverseEngineer 
+		0x0 , 0x025DF0,
+		0x0 , 0x058AB0,
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
@@ -66,7 +75,10 @@ struct AresData
 	// here be known Ares functions
 	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);
 	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
-	static void RecalculateStat(TechnoClass* pTechno);
+	static void RecalculateStat(TechnoClass* const pTechno);
+	static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
+	static Action GetInfActionOverObject(InfantryClass* const pThis, BuildingClass* const pBld);
+	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

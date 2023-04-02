@@ -196,8 +196,7 @@ struct TechnoExperienceData
 
 				if (pNewType && AresData::ConvertTypeTo(pExpReceiver, pNewType) && promoteExp != 0.0)
 				{
-					pExpReceiver->Veterancy.Add(promoteExp);
-					newRank = pExpReceiver->Veterancy.GetRemainingLevel();
+					newRank = pExpReceiver->Veterancy.AddAndGetRank(promoteExp);
 				}
 
 				if (!bSilent && pExpReceiver->Owner->IsControlledByCurrentPlayer())

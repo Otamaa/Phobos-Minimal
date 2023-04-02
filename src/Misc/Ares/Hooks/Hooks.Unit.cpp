@@ -63,9 +63,8 @@ DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 
 	if (pThis->IsAlive && pAttacker)
 	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			pTag->RaiseEvent(static_cast<TriggerEvent>(0x55), pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+		if (auto pTag = pThis->AttachedTag) {
+			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
 

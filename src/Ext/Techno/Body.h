@@ -109,6 +109,7 @@ public:
 		UniqueGamePtr<AnimClass> AttachedAnim;
 		bool KillActionCalled;
 		CDTimerClass ToProtectDelay;
+		OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -171,6 +172,7 @@ public:
 			, AttachedAnim { }
 			, KillActionCalled { false }
 			, ToProtectDelay { }
+			, AltOccupation { }
 #endif;
 		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();

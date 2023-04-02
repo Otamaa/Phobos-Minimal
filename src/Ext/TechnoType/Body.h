@@ -457,6 +457,7 @@ public:
 
 		Valueable<double> Promote_Vet_Exp;
 		Valueable<double> Promote_Elite_Exp;
+		Nullable<double> C4Delay;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
@@ -841,6 +842,7 @@ public:
 
 			, Promote_Vet_Exp { 0.0 }
 			, Promote_Elite_Exp { 0.0 }
+			, C4Delay {}
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

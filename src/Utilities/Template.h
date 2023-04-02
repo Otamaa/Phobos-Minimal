@@ -175,6 +175,10 @@ public:
 		return *this;
 	}
 
+	size_t ToUnsigned() const noexcept {
+		return (size_t)this->Value;
+	}
+
 	inline void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 

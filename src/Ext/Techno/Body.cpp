@@ -1147,7 +1147,6 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (!pShapeFile)
 		return;
 
-	const VeterancyStruct* pVeterancy = &pThis->Veterancy;
 	const auto& insigniaFrames = pExt->InsigniaFrames.Get();
 	int insigniaFrame = insigniaFrames.X;
 
@@ -3197,6 +3196,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->AttachedAnim)
 		.Process(this->KillActionCalled)
 		.Process(this->ToProtectDelay)
+		.Process(this->AltOccupation)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)

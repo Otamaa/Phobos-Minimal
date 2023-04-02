@@ -121,7 +121,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 	};
 
-	for (int i = 0; i < WaveReverseAgainst.size(); ++i) {
+	for (size_t i = 0; i < WaveReverseAgainst.size(); ++i) {
 		this->Wave_Reverse[i] = pINI->ReadBool(pSection, WaveReverseAgainst[i], this->Wave_Reverse[i]);
 	}
 }

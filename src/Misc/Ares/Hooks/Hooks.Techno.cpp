@@ -156,7 +156,8 @@ DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 	{
 		if (auto pTag = pThis->AttachedTag)
 		{
-			pTag->RaiseEvent(static_cast<TriggerEvent>(0x55), pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+			// 85 
+			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
 
@@ -172,7 +173,7 @@ DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	{
 		if (auto pTag = pThis->AttachedTag)
 		{
-			pTag->RaiseEvent(static_cast<TriggerEvent>(0x55), pThis, CellStruct::Empty, false, pAttacker);
+			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
 		}
 	}
 
@@ -335,4 +336,37 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	}
 
 	return RetObjectClassRcvDamage;
+}
+
+DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)
+{
+	GET(UnitClass*, pThis, ECX);
+	GET(CoordStruct*, pCrd, ESI);
+
+	enum { obNormal = 1, obAlt = 2 };
+
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + CellClass::BridgeHeight;
+	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
+
+	// also clear the last occupation bit, if set
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	if (!pExt->AltOccupation.empty())
+	{
+		int lastAlt = pExt->AltOccupation ? obAlt : obNormal;
+		alt |= lastAlt;
+		pExt->AltOccupation.clear();
+	}
+
+	if (alt & obAlt)
+	{
+		pCell->AltOccupationFlags &= ~0x20;
+	}
+
+	if (alt & obNormal)
+	{
+		pCell->OccupationFlags &= ~0x20;
+	}
+
+	return 0x74425E;
 }

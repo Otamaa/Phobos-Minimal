@@ -445,11 +445,13 @@ DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 
 	if (pObject->IsAlive)
 	{
-		auto v5 = pObject->AttachedTag;
-		if (!v5 || (v5->RaiseEvent(static_cast<TriggerEvent>(0x54u), pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
+		auto pFirstTag = pObject->AttachedTag;
+				//84
+		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
 		{
-			if (auto v6 = pObject->AttachedTag)
-				v6->RaiseEvent(static_cast<TriggerEvent>(0x53u), pObject, CellStruct::Empty, false, pAttacker);
+			if (auto pSecondTag = pObject->AttachedTag)
+				// 83
+				pSecondTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
 		}
 	}
 
