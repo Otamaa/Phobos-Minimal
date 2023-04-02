@@ -2,6 +2,8 @@
 
 
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 WaveExt::ExtContainer WaveExt::ExtMap;
 
@@ -14,7 +16,6 @@ void  WaveExt::ExtData::InitWeaponData()
 		return;
 
 	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(this->Weapon);
-	auto const pTarget = this->Get()->Target;
 
 	switch (GetVtableAddr(this->Get()->Target))
 	{
@@ -42,6 +43,103 @@ void WaveExt::ExtData::SetWeaponType(WeaponTypeClass* pWeapon, int nIdx)
 	this->WeaponIdx = nIdx;
 }
 
+WaveClass* WaveExt::Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget,
+	WeaponTypeClass* pWeapon, bool FromSourceCoord)
+{
+	if (auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget))
+	{
+		WaveExt::ExtMap.Find(pWave)->SetWeaponType(pWeapon, !FromSourceCoord ? TechnoExt::ExtMap.Find(pOwner)->CurrentWeaponIdx : -1);
+		WaveExt::ExtMap.Find(pWave)->InitWeaponData();
+		WaveExt::ExtMap.Find(pWave)->SourceCoord = nFrom;
+		return pWave;
+	}
+
+	return nullptr;
+}
+
+bool WaveExt::ModifyWaveColor(
+WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas)
+{
+	if (!colorDatas->Color && !colorDatas->Intent_Color.IsValid())
+		return false;
+
+	ColorStruct modified;
+	Drawing::WordToColorStruct(src, modified);
+
+	// ugly hack to fix byte wraparound problems
+	auto const upcolor = [=, &modified, &colorDatas]
+	(int Point3D::* intentmember, BYTE ColorStruct::* member)
+	{
+		auto const component = std::clamp(modified.*member
+			+ ((intensity * colorDatas->Intent_Color.*intentmember * modified.*member) >> 16)
+			+ ((intensity * colorDatas->Color.*member) >> 8), 0, 255);
+
+		modified.*member = static_cast<BYTE>(component);
+	};
+
+	upcolor(&Point3D::X, &ColorStruct::R);
+	upcolor(&Point3D::Y, &ColorStruct::G);
+	upcolor(&Point3D::Z, &ColorStruct::B);
+
+	dest = Drawing::ColorStructToWord(modified);
+
+	return true;
+}
+
+Point3D WaveExt::GetIntent(WeaponTypeClass* pWeapon)
+{
+	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (pWeaponExt->Wave_Intent.isset())
+		return pWeaponExt->Wave_Intent.Get();
+
+	if (pWeapon->IsMagBeam)
+	{
+		return WaveClass::DefaultMag.Intent_Color;
+	}
+	else if (pWeapon->IsSonic)
+	{
+		return WaveClass::DefaultSonic.Intent_Color;
+	}
+
+	return WaveClass::DefaultLaser.Intent_Color;
+}
+
+ColorStruct WaveExt::GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave)
+{
+	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (pWeaponExt->Wave_IsHouseColor && pWave->Owner && pWave->Owner->Owner)
+		return pWave->Owner->Owner->Color;
+
+	if (pWeaponExt->Wave_Color.isset())
+		return pWeaponExt->Wave_Color.Get();
+
+	if (pWeapon->IsMagBeam)
+	{
+		return WaveClass::DefaultMag.Color;
+	}
+	else if (pWeapon->IsSonic)
+	{
+		return WaveClass::DefaultSonic.Color;
+	}
+
+	return WaveClass::DefaultLaser.Color;
+}
+
+WaveColorData WaveExt::GetWaveColor(WaveClass* pWave)
+{
+	const auto pData = WaveExt::ExtMap.Find(pWave);
+
+	if (!pData->Weapon)
+		return { Point3D::Empty , ColorStruct::Empty };
+
+	const Point3D Intent = GetIntent(pData->Weapon);
+	const ColorStruct Color = GetColor(pData->Weapon, pWave);
+
+	return { Intent , Color };
+}
+
 // =============================
 // load / save
 template <typename T>
@@ -51,6 +149,7 @@ void WaveExt::ExtData::Serialize(T& Stm)
 		.Process(this->Weapon)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
+		.Process(this->SourceCoord)
 		;
 }
 

@@ -27,105 +27,8 @@
 #include <Notifications.h>
 #include <algorithm>
 
-DEFINE_DISABLE_HOOK(0x763226, WaveClass_DTOR_Ares)
-
 namespace AresCreateWave
 {
-	WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget,
-		WeaponTypeClass* pWeapon)
-	{
-		if (auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget))
-		{
-			WaveExt::ExtMap.Find(pWave)->SetWeaponType(pWeapon, TechnoExt::ExtMap.Find(pOwner)->CurrentWeaponIdx);
-			WaveExt::ExtMap.Find(pWave)->InitWeaponData();
-			return pWave;
-		}
-
-		return nullptr;
-	}
-
-	bool ModifyWaveColor(
-	WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas)
-	{
-		if (!colorDatas->Color && !colorDatas->Intent_Color.IsValid())
-			return false;
-
-		ColorStruct modified;
-		Drawing::WordToColorStruct(src, modified);
-
-		// ugly hack to fix byte wraparound problems
-		auto const upcolor = [=, &modified, &colorDatas]
-		(int Point3D::* intentmember, BYTE ColorStruct::* member)
-		{
-			auto const component = std::clamp(modified.*member
-				+ ((intensity * colorDatas->Intent_Color.*intentmember * modified.*member) >> 16)
-				+ ((intensity * colorDatas->Color.*member) >> 8), 0, 255);
-
-			modified.*member = static_cast<BYTE>(component);
-		};
-
-		upcolor(&Point3D::X, &ColorStruct::R);
-		upcolor(&Point3D::Y, &ColorStruct::G);
-		upcolor(&Point3D::Z, &ColorStruct::B);
-
-		dest = Drawing::ColorStructToWord(modified);
-
-		return true;
-	}
-
-	WaveColorData GetWaveColor(WaveClass* pWave) {
-
-		auto const pData = WaveExt::ExtMap.Find(pWave);
-
-		if (pData->Weapon)
-		{
-			auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pData->Weapon);
-			const auto pThis = pWeaponExt->OwnerObject();
-
-			if (pWeaponExt->Wave_IsHouseColor && pWave->Owner && pWave->Owner->Owner)
-			{				
-				return
-				{
-					pWeaponExt->Wave_Intent.Get(WaveClass::DefaultLaser.Intent_Color) ,
-					pWave->Owner->Owner->Color
-
-				};
-			}
-			else
-			{
-				if (pThis->IsMagBeam)
-				{
-					return
-					{
-						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultMag.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(WaveClass::DefaultMag.Color)
-
-					};
-				}
-				else if (pThis->IsSonic)
-				{
-					return
-					{
-						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultSonic.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(WaveClass::DefaultSonic.Color)
-
-					};
-				}
-				else
-				{
-					return
-					{
-						pWeaponExt->Wave_Intent.Get(WaveClass::DefaultLaser.Intent_Color) ,
-						pWeaponExt->Wave_Color.Get(WaveClass::DefaultLaser.Color)
-
-					};
-				}
-			}
-		}
-
-		return { Point3D::Empty , ColorStruct::Empty };
-	}
-
 	WaveColorData TempColor;
 }
 
@@ -139,7 +42,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF449, TechnoClass_Fire_SonicWave, 5)
 	REF_STACK(CoordStruct const, crdSrc, 0x44);
 	REF_STACK(CoordStruct const, crdTgt, 0x88);
 
-	pThis->Wave = AresCreateWave::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
+	pThis->Wave = WaveExt::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pTarget, pSource);
 	return 0x6FF48A;
 }
 
@@ -164,14 +67,14 @@ DEFINE_OVERRIDE_HOOK(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
 		nType = pData->Wave_IsBigLaser
 		? WaveType::BigLaser : WaveType::Laser;
 
-	pThis->Wave = AresCreateWave::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
+	pThis->Wave = WaveExt::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
 	return 0x6FF656;
 }
 
 DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);
-	const auto nData = AresCreateWave::GetWaveColor(pThis);
+	const auto nData = WaveExt::GetWaveColor(pThis);
 	std::memcpy(&AresCreateWave::TempColor, &nData, sizeof(WaveColorData));
 	return 0x0;
 }
@@ -182,15 +85,12 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 
 	const auto pData = WaveExt::ExtMap.Find(pThis);
 
-	if (pData->Weapon) {
-
-		if (pData->Weapon->AmbientDamage) {
-
-			CoordStruct coords;
-			for (auto const& pCell : pThis->Cells)
-			{
-				pThis->DamageArea(*pCell->Get3DCoords3(&coords));
-			}
+	if (pData->Weapon && pData->Weapon->AmbientDamage)
+	{
+		CoordStruct coords;
+		for (auto const& pCell : pThis->Cells)
+		{
+			pThis->DamageArea(*pCell->Get3DCoords3(&coords));
 		}
 	}
 
@@ -237,7 +137,7 @@ DEFINE_OVERRIDE_HOOK(0x760BC2, WaveClass_Draw2, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EBP);
 
-	return (AresCreateWave::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExt::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
 		? 0x760CAFu
 		: 0u
 		;
@@ -248,7 +148,7 @@ DEFINE_OVERRIDE_HOOK(0x760DE2, WaveClass_Draw3, 0x9)
 	GET(WaveClass*, Wave, EBX);
 	GET(WORD*, dest, EDI);
 
-	return (AresCreateWave::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
+	return (WaveExt::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &AresCreateWave::TempColor))
 		? 0x760ECBu
 		: 0u
 		;
@@ -260,7 +160,7 @@ DEFINE_OVERRIDE_HOOK(0x75EE57, WaveClass_Draw_Sonic, 0x7)
 	GET(WORD*, src, EDI);
 	GET(DWORD, offset, ECX);
 
-	return (AresCreateWave::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &AresCreateWave::TempColor))
+	return (WaveExt::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &AresCreateWave::TempColor))
 		? 0x75EF1Cu
 		: 0u
 		;
@@ -272,7 +172,7 @@ DEFINE_OVERRIDE_HOOK(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 	GET(WORD*, src, EBX);
 	GET(DWORD, offset, ECX);
 
-	return (AresCreateWave::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &AresCreateWave::TempColor))
+	return (WaveExt::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &AresCreateWave::TempColor))
 		? 0x760285u
 		: 0u
 		;
@@ -288,8 +188,8 @@ DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 {
 	GET(WaveClass*, pWave, EBP);
 	R->EDI(R->EAX());
-	R->EAX(pWave->Owner->GetWeapon(WaveExt::ExtMap.Find(pWave)->WeaponIdx));
-	return 0x75F39B;
+	R->EBX(WaveExt::ExtMap.Find(pWave)->Weapon);
+	return 0x75F39D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)
@@ -310,14 +210,28 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)
 
 	if (Wave->Type == WaveType::Magnetron)
 	{
-		if (!Firer->IsCloseEnough(Target, pData->WeaponIdx))
+		if (pData->WeaponIdx != -1)
 		{
-			return 0x762C40;
+			if (!Firer->IsCloseEnough(Target, pData->WeaponIdx))
+			{
+				return 0x762C40;
+			}
 		}
+		else
+		{
+			auto nFirerCoord = pData->SourceCoord;
+			auto nTargetCoord = Target->GetCoords();
+			const auto nRange = (pData->Weapon ? pData->Weapon->Range : Firer->GetTechnoType()->GuardRange);
+			if (nRange < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
+			{
+				return 0x762C40;
+			}
+		}
+
 	}
 	else
 	{
-		auto nFirerCoord = Firer->GetCoords();
+		auto nFirerCoord = pData->WeaponIdx != -1 ? Firer->GetCoords() : pData->SourceCoord;
 		auto nTargetCoord = Target->GetCoords();
 		const auto nRange = (pData->Weapon ? pData->Weapon->Range : Firer->GetTechnoType()->GuardRange);
 		if (nRange < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / 1.414213562373095))
@@ -329,7 +243,7 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)
 	if (!Wave->bool_12C)
 		return 0x762D57;
 
-	const CoordStruct FLH = Firer->GetFLH(pData->WeaponIdx, CoordStruct::Empty);
+	const CoordStruct FLH = pData->WeaponIdx != -1 ? Firer->GetFLH(pData->WeaponIdx, CoordStruct::Empty) : pData->SourceCoord;
 	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
 
 	if (Wave->Type == WaveType::Magnetron)
@@ -393,9 +307,13 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
 
-	if (const auto pUnit = specific_cast<UnitClass*>(pVictim))
+	if (const auto pUnit = specific_cast<UnitClass*>(pVictim)){ 
 		if (pUnit->DeathFrameCounter > 0)
 			return 0x75F432;
+	}
+
+	if(pTechnoOwner->IsSinking || pTechnoOwner->IsCrashing)
+		return 0x75F432;
 
 	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);
 	return 0x75F432;

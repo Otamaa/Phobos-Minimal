@@ -328,7 +328,7 @@ void TechnoExt::SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete)
 
 	const Mission nEndMission = !pType->ResourceGatherer ?
 		pThis->IsArmed() ?
-		pThis->Owner && pThis->Owner->IsHumanPlayer ? Mission::Guard : Mission::Hunt
+		pThis->Owner && pThis->Owner->IsHumanPlayer ? Mission::Guard : Mission::Area_Guard
 		: Mission::Sleep
 		: Mission::Harvest;
 

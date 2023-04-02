@@ -90,6 +90,10 @@
 51E488 = InfantryClass_GetActionOnObject2, 5
 */
 
+// need to handle more stuffs before finalize this 
+// everything tested working as it should , other than S/L 
+// keep this away untill i finish the major SW stuffs ported 
+
 class MouseClassExt final : public MouseClass
 {
 	NOINLINE const MouseCursor* GetCursorData(MouseCursorType nMouse) const

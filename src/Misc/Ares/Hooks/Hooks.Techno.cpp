@@ -318,8 +318,9 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	if (pWH->Psychedelic) {
 
 		//This thing does ally check twice
-		//if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis) && !pWHExt->Berzerk_AffectAlly)
-		//	return RetUnaffected;
+		if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis))
+			return RetUnaffected;
+
 		if (Is_Building(pThis))
 			return RetUnaffected;
 

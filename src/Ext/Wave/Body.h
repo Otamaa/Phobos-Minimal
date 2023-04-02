@@ -48,20 +48,20 @@ struct SonicBeamDrawingData
 					{
 					default:
 					case SonicBeamSurfacePatternType::CIRCLE:
-						SonicBeamSurfacePatternTable[x][y] = std::sqrt(x * x + y * y);
+						SonicBeamSurfacePatternTable[x][y] = (short)std::sqrt(x * x + y * y);
 						break;
 					case SonicBeamSurfacePatternType::ELLIPSE:
 					{
 						double x_stretch_coeff = 2.0;
 						double y_stretch_coeff = 1.0;
-						SonicBeamSurfacePatternTable[x][y] = std::sqrt((x * 2) / x_stretch_coeff + (y * 2) / y_stretch_coeff);
+						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt((x * 2) / x_stretch_coeff + (y * 2) / y_stretch_coeff));
 						break;
 					}
 					case SonicBeamSurfacePatternType::RHOMBUS:
-						SonicBeamSurfacePatternTable[x][y] = std::sqrt(x + y);
+						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(x + y));
 						break;
 					case SonicBeamSurfacePatternType::SQUARE:
-						SonicBeamSurfacePatternTable[x][y] = std::sqrt(std::max(std::abs(x), std::abs(y)));
+						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(std::max(std::abs(x), std::abs(y))));
 						break;
 					};
 				}
@@ -113,7 +113,7 @@ struct SonicBeamDrawingData
 		*	@authors: CCHyper, tomsons26(additional research by askhati and Morton)
 		*/
 
-	void Draw_Sonic_Beam_Pixel(WaveClass* pThis, int a1, int a2, int a3, unsigned short* buffer ,
+	void Draw_Sonic_Beam_Pixel(WaveClass* pThis, int a1, int a2, int a3, WORD* buffer ,
 		SonicBeamSurfacePatternType SonicBeamSurfacePattern,
 		SonicBeamSinePatternType SonicBeamSinePattern,
 		double SonicBeamSineDuration,
@@ -135,7 +135,7 @@ struct SonicBeamDrawingData
 		/**
 		 *  Calculate the pixel offset position based on the surface pattern.
 		 */
-		int wave_pos = pThis->WaveCount + (unsigned short)SonicBeamSurfacePatternTable[a3][std::abs(a1 - pThis->InitialWavePixels_0.X - a2)];
+		int wave_pos = pThis->WaveCount + (WORD)SonicBeamSurfacePatternTable[a3][std::abs(a1 - pThis->InitialWavePixels_0.X - a2)];
 		int pos = std::abs(SonicBeamSineTable[wave_pos]);
 
 		/**
@@ -156,48 +156,45 @@ struct SonicBeamDrawingData
 		/**
 		 *  Fetch the offset pixel from the buffer.
 		 */
-		unsigned short pixel = buffer[pThis->intensity_tables[pos]];
+		WORD pixel = buffer[pThis->intensity_tables[pos]];
 
 		/**
 		 *  Re-color the buffer pixel.
 		 */
-		int r = 0;
-		int g = 0;
-		int b = 0;
+		ColorStruct result;
 
 		/**
 		 *  Clear beam, not color change.
 		 */
 		if (SonicBeamIsClear)
 		{
-
-			r = (unsigned char)((unsigned char)(pixel >> DSurface::RedLeft) << DSurface::RedRight);
-			g = (unsigned char)((unsigned char)(pixel >> DSurface::GreenLeft) << DSurface::GreenRight);
-			b = (unsigned char)((unsigned char)(pixel >> DSurface::BlueLeft) << DSurface::BlueRight);
-
+			const ColorStruct nPixel = Drawing::WordColor(pixel);
+			result.R = nPixel.R;
+			result.G = nPixel.G;
+			result.B = nPixel.B;
 
 			/**
 			 *  Custom color has been set.
 			 */
 		}
-		else if (SonicBeamColor.R != 0 && SonicBeamColor.G != 0 && SonicBeamColor.B != 0)
+		else if (SonicBeamColor)
 		{
 
 			int color_r = SonicBeamColor.R;
 			int color_g = SonicBeamColor.G;
 			int color_b = SonicBeamColor.B;
-
+			const ColorStruct nPixel = Drawing::WordColor(pixel);
 			/**
 			 *  Calculate the alpha of the beam.
 			 */
-			int alpha = float(intensity) * 1.0;
-			color_r += float((unsigned char)((unsigned char)(pixel >> DSurface::RedLeft) << DSurface::RedRight)) * SonicBeamAlpha;
-			color_g += float((unsigned char)((unsigned char)(pixel >> DSurface::GreenLeft) << DSurface::GreenRight)) * SonicBeamAlpha;
-			color_b += float((unsigned char)((unsigned char)(pixel >> DSurface::BlueLeft) << DSurface::BlueRight)) * SonicBeamAlpha;
+			const int alpha = (int)(float(intensity) * 1.0);
+			color_r += (int)(float(nPixel.R) * SonicBeamAlpha);
+			color_g += (int)(float(nPixel.G) * SonicBeamAlpha);
+			color_b += (int)(float(nPixel.B) * SonicBeamAlpha);
 
-			r = color_r + ((alpha * (unsigned char)((unsigned char)(pixel >> DSurface::RedLeft) << DSurface::RedRight)) / 256);
-			g = color_g + ((alpha * (unsigned char)((unsigned char)(pixel >> DSurface::GreenLeft) << DSurface::GreenRight)) / 256);
-			b = color_b + ((alpha * (unsigned char)((unsigned char)(pixel >> DSurface::BlueLeft) << DSurface::BlueRight)) / 256);
+			result.R = (BYTE)std::clamp(color_r + ((alpha * nPixel.R) / 256), 0 ,255);
+			result.G = (BYTE)std::clamp(color_g + ((alpha * nPixel.G) / 256), 0, 255);
+			result.B = (BYTE)std::clamp(color_b + ((alpha * nPixel.B) / 256), 0, 255);
 
 
 			/**
@@ -206,25 +203,17 @@ struct SonicBeamDrawingData
 		}
 		else
 		{
-
-			r = (unsigned char)((unsigned char)(pixel >> DSurface::RedLeft) << DSurface::RedRight);
-
-			g = ((intensity * (unsigned char)((unsigned char)(pixel >> DSurface::GreenLeft) << DSurface::GreenRight)) / 256)
-				+ (unsigned char)((unsigned char)(pixel >> DSurface::GreenLeft) << DSurface::GreenRight);
-
-			b = ((intensity * (unsigned char)((unsigned char)(pixel >> DSurface::BlueLeft) << DSurface::BlueRight)) / 256)
-				+ (unsigned char)((unsigned char)(pixel >> DSurface::BlueLeft) << DSurface::BlueRight);
-
+			const ColorStruct nPixel = Drawing::WordColor(pixel);
+			result.R = nPixel.R;
+			result.G = (BYTE)std::clamp(((intensity * nPixel.G) / 256) + nPixel.G, 0, 255);
+			result.B = (BYTE)std::clamp(((intensity * nPixel.B) / 256) + nPixel.B, 0, 255);
 		}
 
 		/**
 		 *  Clamp the color within expected ranges and put the new pixel
 		 *  back into the buffer.
 		 */
-		r = std::min<int>(r, 255);
-		g = std::min<int>(g, 255);
-		b = std::min<int>(b, 255);
-		*buffer = DSurface::RGBA_To_Pixel(r, g, b);
+		*buffer = Drawing::ColorStructToWord(result);
 	}
 
 	///  Generated tables based on the custom values.
@@ -251,7 +240,7 @@ public:
 		WeaponTypeClass* Weapon;
 		int WeaponIdx;
 		bool ReverseAgainstTarget;
-
+		CoordStruct SourceCoord;
 		/// vinivera
 		/*
 		bool SonicBeamIsClear;
@@ -268,9 +257,9 @@ public:
 		*/
 		ExtData(WaveClass* OwnerObject) : Extension<WaveClass>(OwnerObject)
 			, Weapon { nullptr }
-			, WeaponIdx { 0 }
+			, WeaponIdx { -1 }
 			, ReverseAgainstTarget { false }
-
+			, SourceCoord { }
 			/*
 			, SonicBeamIsClear { false }
 			, SonicBeamAlpha { 0.5 }
@@ -311,4 +300,11 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon , bool FromSourceCoord = false);
+	static bool ModifyWaveColor(WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas);
+	static Point3D GetIntent(WeaponTypeClass* pWeapon);
+	static ColorStruct GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave);
+	static WaveColorData GetWaveColor(WaveClass* pWave);
+
 };

@@ -398,6 +398,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 			 // Draw bullet effect
 			 // TODO : Ebolt and Laser Colors
 			 Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pTarget);
+
 			 // Draw particle system
 			 Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pTarget, pThis->Owner, targetPos);
 			 // Play report sound
@@ -441,6 +442,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 
 							// Draw bullet effect
 							Helpers_DP::DrawBulletEffect(pShrapWeapon, sourcePos, targetPos, pThis->Owner, pCellTarget);
+							
 							// Draw particle system
 							Helpers_DP::AttachedParticleSystem(pShrapWeapon, sourcePos, pCellTarget, pThis->Owner, targetPos);
 							// Play report sound
