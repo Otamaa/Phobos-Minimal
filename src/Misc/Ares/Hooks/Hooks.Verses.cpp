@@ -23,18 +23,18 @@
 
 #include <Notifications.h>
 
-DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla , 0x7)
+DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 {
 	// should really be doing something smarter due to westwood's weirdass code, but cannot be bothered atm
 	// will fix if it is reported to actually break things
 	// this breaks 51E33D which stops infantry with verses (heavy=0 & steel=0) from targeting non-infantry at all
 	// (whoever wrote that code must have quite a few gears missing in his head)
-	
+
 	return 0x75DE98;
 }
 
-void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH , const char* pAdd)
-{	
+void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd)
+{
 	//if (IS_SAME_STR_(pTarget->get_ID(), "CAOILD"))
 	//{
 	//	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
@@ -93,7 +93,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
 
-	Debug(pTarget , nArmor, vsData, pWH, __FUNCTION__);
+	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
 	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
 		? ContinueCheck
@@ -112,7 +112,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
 
-	Debug(pTarget , nArmor, vsData, pWH, __FUNCTION__);
+	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
 	return vsData->Flags.ForceFire || vsData->Verses != 0.0
 		? ContinueCheck
@@ -156,7 +156,7 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	auto vsData = &pData->Verses[nArmor];
 
-	Debug(pTarget , nArmor, vsData, pWH, __FUNCTION__);
+	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
 	return 0x70CF58;
 }
@@ -213,36 +213,20 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 
 	GET_STACK(const char*, Section, 0x4);
 	GET_STACK(const char*, Key, 0x8);
-	//GET_STACK(int, fallback, 0xC);
+	GET_STACK(int, fallback, 0xC);
 
-
-	//AresData::CallAresArmorType_FindIndex(R);
-	//GET(int, nResult, EAX);
-
+	int nResult = fallback;
 	char buf[0x64];
-	pINI->ReadString(Section, Key, Phobos::readDefval, buf);
+	if (pINI->ReadString(Section, Key, Phobos::readDefval, buf)) {
+		nResult = ArmorTypeClass::FindIndexById(buf);
 
-	int idx = ArmorTypeClass::FindIndexById(buf);
-
-	if (idx < 0)
-	{
-		if (strlen(buf))
-		{
-			//if (ArmorTypeClass::Allocate(buf))
-			//{
-			//	Debug::Log("Allocating Armor [%s] ! \n", buf);
-			//	idx = ArmorTypeClass::Array.size() - 1;
-			//}
-			//else
-			{
-				Debug::INIParseFailed(Section, Key, buf);
-			}
+		if (nResult < 0) {
+			nResult = 0;
+			Debug::INIParseFailed(Section, Key, buf);
 		}
-
-		idx = 0;
 	}
 
-	R->EAX(idx);
+	R->EAX(nResult);
 
 	return 0x475430;
 }

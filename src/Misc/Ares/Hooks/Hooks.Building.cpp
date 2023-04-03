@@ -13,6 +13,8 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -628,35 +630,30 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		pThis->ReloadTimer.Start(Rof);
 		return SkipInfiltrate;
 	}
-	else
+
+	// sabotage
+	pBuilding->C4Applied = true;
+	pBuilding->C4AppliedBy = pThis;
+
+	const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
+
+	auto duration = (int)(delay * 900);
+
+	// modify good durations only
+	if (duration > 0)
 	{
-
-		// sabotage
-		pBuilding->C4Applied = true;
-		pBuilding->C4AppliedBy = pThis;
-
-		const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
-
-		auto duration = (int)(delay * 900);
-
-		// modify good durations only
-		if (duration > 0) {
-			duration = (int)(duration * pData->C4_Modifier);
-			if (duration <= 0)
-				duration = 1;		
-		}
-
-		pBuilding->Flash(duration / 2);
-		pBuilding->C4Timer.Start(duration);
-
-		if (auto const pTag = pBuilding->AttachedTag)
-		{
-			pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
-		}
-
-		return InfiltrateSucceded;
+		duration = (int)(duration * pData->C4_Modifier);
+		if (duration <= 0)
+			duration = 1;
 	}
 
-	//	return 0x0;
+	pBuilding->Flash(duration / 2);
+	pBuilding->C4Timer.Start(duration);
+
+	if (auto const pTag = pBuilding->AttachedTag) {
+		pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
+	}
+
+	return InfiltrateSucceded;
 }

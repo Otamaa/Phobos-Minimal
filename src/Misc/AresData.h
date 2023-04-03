@@ -57,8 +57,8 @@ struct AresData
 		0x0464C0, 0x047030, // TechnoExt::SpawnSurvivors
 		0x0 , 0x046C10, //TechnoExt::RecalculateStat
 		0x0 , 0x013390, // static BuildingExt::ReverseEngineer 
-		0x0 , 0x025DF0,
-		0x0 , 0x058AB0,
+		0x0 , 0x025DF0, // static  GetInfActionOverObject
+		0x0 , 0x058AB0, // static MouseCursor::SetAction
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
@@ -77,7 +77,7 @@ struct AresData
 	static void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses);
 	static void RecalculateStat(TechnoClass* const pTechno);
 	static bool ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const pTechnoType);
-	static Action GetInfActionOverObject(InfantryClass* const pThis, BuildingClass* const pBld);
+	static Action GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld);
 	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);

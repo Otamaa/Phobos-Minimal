@@ -96,9 +96,9 @@ bool AresData::ReverseEngineer(BuildingClass* const pBld, TechnoTypeClass* const
 	return AresStdcall<ReverseEngineerID, bool, BuildingClass* , TechnoTypeClass*>()(pBld , pTechnoType);
 }
 
-Action AresData::GetInfActionOverObject(InfantryClass* const pThis, BuildingClass* const pBld)
+Action AresData::GetInfActionOverObject(InfantryClass* const pInf, BuildingClass* const pBld)
 {
-	return AresStdcall<GetInfActionOverObjectID, Action, BuildingClass*, InfantryClass*>()(pBld , pThis);
+	return AresStdcall<GetInfActionOverObjectID, Action, InfantryClass*  , BuildingClass*>()(pInf, pBld);
 }
 
 void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
