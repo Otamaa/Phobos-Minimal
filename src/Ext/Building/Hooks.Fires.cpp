@@ -157,7 +157,7 @@ DEFINE_HOOK(0x44270B, BuildingClass_ReceiveDamge_OnFire, 0x9)
 		if (Onfire && pFireType.size() >= 3) {
 			for (; (pFoundationArray->X != 0x7FFF || pFoundationArray->Y != 0x7FFF); ++pFoundationArray)
 			{
-				auto const&[nCellX , nCellY] = pThis->GetMapCoords() + *pFoundationArray;
+				auto const&[nCellX , nCellY] = pThis->InlineMapCoords() + *pFoundationArray;
 				CoordStruct nDestCoord { (nCellX * 256) + 128, (nCellY * 256) + 128, 0 };
 				nDestCoord.Z = MapClass::Instance->GetCellFloorHeight(nDestCoord);
 

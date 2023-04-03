@@ -12,7 +12,6 @@ public:
 	static const CellStruct Empty;
 	static const CellStruct DefaultUnloadCell;
 
-
 	inline bool SimilarTo(const CellStruct& a) const {return (X == a.X && Y == a.Y); }
 	inline bool DifferTo(const CellStruct& a)const { return (X != a.X || Y != a.Y); }
 	inline bool IsValid() const { return this->DifferTo(CellStruct::Empty); }
@@ -22,12 +21,8 @@ public:
 		return (X == a.X && Y == a.Y);
 	}
 
-	explicit operator DWORD() const {
-		return std::bit_cast<DWORD>(*this);
-	}
-
 	inline DWORD Pack() const noexcept {
-		return (DWORD)(*this);
+		return std::bit_cast<DWORD>(*this);
 	}
 
 	double Magnitude()

@@ -6,6 +6,21 @@
 #include <Fixed.h>
 #include <YRMath.h>
 
+enum class DirType8 : unsigned char
+{
+	North = 0,
+	NorthEast = 1,
+	East = 2,
+	SouthEast = 3,
+	South = 4,
+	SouthWest = 5,
+	West = 6,
+	NorthWest = 7,
+
+	Min = 0,
+	Max = 8,
+};
+
 enum class DirType : unsigned char
 {
 	North = 0,
@@ -51,6 +66,10 @@ public:
 	explicit DirStruct(const DirType dir) noexcept : Raw { 0 }
 	{ SetDir(dir); }
 	
+	explicit DirStruct(const DirType8 face) noexcept : 
+		Raw { ((unsigned short)((unsigned char)face << 13 )) }
+	{ }
+
 	explicit DirStruct(size_t bits, const DirType value) noexcept : Raw { 0 }
 	{ SetDir(bits, (unsigned short)(value)); }
 

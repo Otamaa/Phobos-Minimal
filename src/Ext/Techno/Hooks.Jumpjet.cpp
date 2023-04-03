@@ -113,7 +113,7 @@ DEFINE_HOOK(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExt::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExt::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = Game::F2I(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
+			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetSpeed * multiplier);
 		}
 	}
 

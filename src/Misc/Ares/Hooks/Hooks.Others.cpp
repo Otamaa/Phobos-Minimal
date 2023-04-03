@@ -1207,3 +1207,17 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 
 	return 0x0;
 }
+
+
+#define GetAresAresWarheadTypeExt(wh) ((void*)wh->unused_1CC)
+
+#define Is_MaliciousWH(wh) (*(bool*)(((char*)wh->unused_1CC) + 0x75))
+
+/*
+ * Fixing issue #722
+ */
+DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
+{
+	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
+	return !Is_MaliciousWH(WH) ? 0x738535u : 0u;
+}

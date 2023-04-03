@@ -101,7 +101,7 @@ DEFINE_HOOK(0x6FE43B, TechnoClass_FireAt_OpenToppedDmgMult, 0x6) //7
 		{
 			float nDamageMult = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
 				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
-			R->EAX(Game::F2I(nDamage * nDamageMult));
+			R->EAX(int(nDamage * nDamageMult));
 			return ApplyDamageMult;
 		}
 	}
@@ -309,7 +309,7 @@ DEFINE_HOOK(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	}
 	else if (const auto pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
-		pCell = MapClass::Instance->GetCellAt(pTerrain->GetMapCoords());
+		pCell = pTerrain->GetCell();
 
 		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
 			return DisallowFiring;

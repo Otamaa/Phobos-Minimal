@@ -192,7 +192,23 @@ DEFINE_OVERRIDE_HOOK(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
 	return 0x75F39D;
 }
 
-DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)
+ /*
+ *	YES , this fuckery is removing WaveClass::WaveAI function call for later , replace it with boolean , 
+	so it can be done after all data set is completed !
+ */
+DEFINE_HOOK(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
+{
+	GET(WaveClass*, Wave, ESI);
+	WaveExt::ExtMap.Find(Wave)->CanDoUpdate = true;
+	return 0x75EBCC;
+}
+
+/*
+	FUCKING WW DOING THESE INSIDE THE CONSTRUCTOR ,.. 
+	that mean some Ext variable not yer executed , and when i try to use the data it wont work
+	need to move those to separate function after data set done ,..
+*/
+DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 {
 	GET(WaveClass*, Wave, ESI);
 
@@ -201,12 +217,12 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_Update_Beam, 0x6)
 
 	const bool eligible = Target && Firer && Wave->WaveIntensity != 19 && Firer->Target == Target;
 
-	if (!eligible)
-	{
+	if (!eligible) {
 		return 0x762C40;
 	}
 
 	const auto pData = WaveExt::ExtMap.Find(Wave);
+	const auto pTechnoExt = TechnoExt::ExtMap.Find(Firer);
 
 	if (Wave->Type == WaveType::Magnetron)
 	{

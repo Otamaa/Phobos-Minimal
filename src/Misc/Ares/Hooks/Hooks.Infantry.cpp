@@ -177,25 +177,25 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 }
 
 // do not infiltrate buildings of allies
-DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
-{
-	enum {
-		SkipInfiltrate = 0x51A03E,
-		Infiltrate_Vanilla = 0x51A002 ,
-		InfiltrateSucceded = 0x51A010,
-	};
-	GET(InfantryClass*, pThis, ESI);
-	GET(BuildingClass*, pBld, EDI);
+// DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
+// {
+// 	enum {
+// 		SkipInfiltrate = 0x51A03E,
+// 		Infiltrate_Vanilla = 0x51A002 ,
+// 		InfiltrateSucceded = 0x51A010,
+// 	};
+// 	GET(InfantryClass*, pThis, ESI);
+// 	GET(BuildingClass*, pBld, EDI);
 
-	auto const pHouse = pThis->Owner;
-	if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBld))
-		return SkipInfiltrate;
+// 	auto const pHouse = pThis->Owner;
+// 	if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBld))
+// 		return SkipInfiltrate;
 
-	pBld->Infiltrate(pHouse);
-	BuildingExt::HandleInfiltrate(pBld, pHouse);
+// 	pBld->Infiltrate(pHouse);
+// 	BuildingExt::HandleInfiltrate(pBld, pHouse);
 
-	return InfiltrateSucceded;
-}
+// 	return InfiltrateSucceded;
+// }
 
 //DEFINE_OVERRIDE_HOOK(0x4571E0, BuildingClass_Infiltrate_Phobos , 0x5)
 //{
@@ -210,16 +210,6 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
 //	else
 //		return 0x0;
 //}
-
-// #895584: ships not taking damage when repaired in a shipyard. bug
-// was that the logic that prevented units from being damaged when
-// exiting a war factory applied here, too. added the Naval check.
-DEFINE_OVERRIDE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 0x6)
-{
-	GET(BuildingTypeClass*, pType, ECX);
-	return (pType->WeaponsFactory && !pType->Naval) ?
-		0x737CEE : 0x737D31;
-}
 
 // actual game code: if(auto B = specific_cast<BuildingClass *>(T)) { if(T->currentAmmo > 1) { return 1; } }
 // if the object being queried doesn't have a weapon (Armory/Hospital), it'll return 1 anyway

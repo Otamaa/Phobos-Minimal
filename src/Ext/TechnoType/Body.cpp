@@ -767,7 +767,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
 	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
-	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience"); 
+	this->Promote_Elite_Exp.Read(exINI, pSection, "DeployDir"); 
+
+	this->DeployDir.Read(exINI, pSection, "Promote.EliteExperience");
+
+	this->PassengersWhitelist.Read(exINI, pSection, "Passengers.Allowed");
+	this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
+
+	this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
@@ -848,6 +855,14 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 		if (this->DeployCrushableLevel.Elite <= 0)
 			this->DeployCrushableLevel.Elite = this->DeployCrushableLevel.Veteran;
 	}
+}
+
+bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger)
+{
+	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis);
+
+	return (pExt->PassengersWhitelist.empty() || pExt->PassengersWhitelist.Contains(pPassanger))
+		&& !pExt->PassengersBlacklist.Contains(pPassanger);
 }
 
 template <typename T>
@@ -1225,6 +1240,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Promote_Elite_Type)
 		.Process(this->Promote_Vet_Exp)
 		.Process(this->Promote_Elite_Exp)
+		.Process(this->DeployDir)
+		.Process(this->PassengersWhitelist)
+		.Process(this->PassengersBlacklist)
+		.Process(this->Passengers_BySize)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

@@ -6,7 +6,7 @@ struct Leptons
 	Leptons() = default;
 	//explicit Leptons(int value) noexcept : value(value) {}
 	explicit Leptons(const int value) noexcept : value(value) { }
-	explicit Leptons(double velue) noexcept : value(Game::F2I(velue * Unsorted::d_LeptonsPerCell)) { }
+	explicit Leptons(double velue) noexcept : value(int(velue * Unsorted::d_LeptonsPerCell)) { }
 
 	operator int() const
 	{ return this->value; }

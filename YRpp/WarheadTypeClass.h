@@ -169,6 +169,6 @@ public:
 
 	int     MaxDebris;
 	int     MinDebris;
-	PROTECTED_PROPERTY(DWORD, unused_1CC); //???
+	DWORD unused_1CC; //Unused
 };
 static_assert(sizeof(WarheadTypeClass) == 0x1D0, "Invalid size.");

@@ -457,7 +457,12 @@ public:
 
 		Valueable<double> Promote_Vet_Exp;
 		Valueable<double> Promote_Elite_Exp;
+		Nullable<DirType8> DeployDir;
 
+		ValueableVector<TechnoTypeClass*> PassengersWhitelist;
+		ValueableVector<TechnoTypeClass*> PassengersBlacklist;
+
+		Valueable<bool> Passengers_BySize;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -841,6 +846,11 @@ public:
 
 			, Promote_Vet_Exp { 0.0 }
 			, Promote_Elite_Exp { 0.0 }
+			, DeployDir { }
+			, PassengersWhitelist { }
+			, PassengersBlacklist { }
+
+			, Passengers_BySize { true }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -913,6 +923,7 @@ public:
 	static bool HasSelectionGroupID(ObjectTypeClass* pType, const std::string& pID);
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
 	static double GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules);
+	static bool PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -15,6 +15,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <Conversions.h>
 
@@ -163,4 +164,137 @@ DEFINE_OVERRIDE_HOOK(0x7440BD, UnitClass_Remove, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	auto const pType = pThis->Type;
+
+	if (pType->DeployingAnim)
+	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		// not sure what is the bitfrom or bitto so it generate this result
+		// yes iam dum , iam sorry - otamaa
+		const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+		const DirType8 nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (DirType8)nRulesDeployDir;
+		const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+
+		if ( nCurrent != (int)nRaw) {
+			if (const auto pLoco = pThis->Locomotor) {
+				if (!pLoco->Is_Moving_Now()) {
+					pLoco->Do_Turn(DirStruct{ nRaw });
+				}
+
+				return 0x739C70;
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
+{
+	GET(UnitClass*, Unit, ESI);
+	TechnoExt::ExtMap.Find(Unit)->MyOriginalTemporal = Unit->TemporalImUsing;
+	Unit->TemporalImUsing = nullptr;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x74653C, UnitClass_RemoveGunner, 0xA)
+{
+	GET(UnitClass*, Unit, EDI);
+	auto pData = TechnoExt::ExtMap.Find(Unit);
+	Unit->TemporalImUsing = pData->MyOriginalTemporal;
+	pData->MyOriginalTemporal = nullptr;
+	return 0x746546;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
+{
+	GET(UnitClass* const, pThis, ESI);
+	GET(TechnoClass const* const, pSender, EDI);
+
+	auto const pType = pThis->GetTechnoType();
+	auto const pSenderType = pSender->GetTechnoType();
+
+	return TechnoTypeExt::PassangersAllowed(pType, pSenderType) ? 0u : 0x73780Fu;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73762B, UnitClass_ReceivedRadioCommand_BySize1, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto pType = pThis->Type;
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pExt->Passengers_BySize.Get())
+		return 0;
+
+	return pThis->Passengers.NumPassengers < pType->Passengers ?
+		0x737677 : 0x73780F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73778F, UnitClass_ReceivedRadioCommand_BySize2, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto pType = pThis->Type;
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pExt->Passengers_BySize.Get())
+		return 0;
+
+	return pThis->Passengers.NumPassengers == pType->Passengers ?
+		0x7377AA : 0x7377C9;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73782F, UnitClass_ReceivedRadioCommand_BySize3, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto pType = pThis->Type;
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pExt->Passengers_BySize.Get())
+		return 0;
+
+	return pThis->Passengers.NumPassengers < pType->Passengers ?
+		0x737877 : 0x73780F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	auto pType = pThis->Type;
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pExt->Passengers_BySize.Get())
+		return 0;
+
+	return pThis->Passengers.NumPassengers < pType->Passengers ?
+		0x7379E8 : 0x737AFC;
+}
+
+
+#define Is_DriverKilled(techno) \
+(*(bool*)((char*)techno->align_154 + 0x9C))
+
+DEFINE_OVERRIDE_HOOK(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
+{
+	// prevent units from getting the enter cursor on transports
+	// with killed drivers.
+	GET(TechnoClass*, pThis, ESI);
+	return Is_DriverKilled(pThis) ? 0x73761Fu : 0u;
+}
+
+// #895584: ships not taking damage when repaired in a shipyard. bug
+// was that the logic that prevented units from being damaged when
+// exiting a war factory applied here, too. added the Naval check.
+DEFINE_OVERRIDE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
+{
+	GET(BuildingTypeClass*, pType, ECX);
+	return (pType->WeaponsFactory && !pType->Naval) ? 0x737CEE : 0x737D31;
 }

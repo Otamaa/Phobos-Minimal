@@ -75,7 +75,7 @@ DEFINE_HOOK(0x773087, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 //
 //					if (pThis->WarpRemaining > 0) {
 //
-//						auto damage = Game::F2I((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
+//						auto damage = int((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
 //							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
 //
 //						if (pTarget->IsAlive && !pTarget->IsSinking && !pTarget->IsCrashing)

@@ -126,7 +126,6 @@ namespace detail
 		return false;
 	}
 
-
 	template <>
 	inline bool read<MouseCursor>(MouseCursor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -214,6 +213,23 @@ namespace detail
 		}
 
 		return ret;
+	}
+
+	template <>
+	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		int nBuffer;
+		if (parser.ReadInteger(pSection, pKey , &nBuffer) && nBuffer >= 0 && nBuffer < 8)
+		{ 
+			value = (DirType8)nBuffer;
+			return true;
+		}
+		else if (!INIClass::IsBlank(parser.value()))
+		{
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 8");
+		}
+
+		return false;
 	}
 
 }

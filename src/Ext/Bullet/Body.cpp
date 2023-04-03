@@ -378,7 +378,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 		{
 			int nTotal = 0;
 
-			CellRangeIterator<CellClass> {}(pThis->GetMapCoords(), nRange,
+			CellRangeIterator<CellClass> {}(pThis->InlineMapCoords(), nRange,
 			[&](CellClass* pCell) -> bool
  {
 	 auto const pTarget = pCell->FirstObject;
@@ -425,7 +425,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 				{
 					const short nX = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
 					const short nY = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
-					CellStruct nNextCoord = pThis->GetMapCoords();
+					CellStruct nNextCoord = pThis->InlineMapCoords();
 					nNextCoord.X += nX;
 					nNextCoord.Y += nY;
 					if (const auto pCellTarget = MapClass::Instance->GetCellAt(nNextCoord))

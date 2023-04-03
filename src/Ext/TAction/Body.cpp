@@ -375,7 +375,7 @@ static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 
 	for (int i = 0; i < pThis->Value; ++i)
 	{
-		auto ncell = pObject->GetMapCoords();
+		auto ncell = pObject->InlineMapCoords();
 		LightningStorm::Strike(ncell);
 	}
 

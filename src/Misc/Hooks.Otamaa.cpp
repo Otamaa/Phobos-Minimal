@@ -633,7 +633,7 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 //		mult = nAIMult.Get();
 //	}
 //
-//	R->EAX(Game::F2I(nAvailMoney * mult));
+//	R->EAX(int(nAvailMoney * mult));
 //	return 0x45744A;
 //}
 
@@ -2009,7 +2009,7 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 	GET(int, nMaxStr, EBP);
 	GET(int, nDamage, ECX);
 
-	const auto curstr = Game::F2I(nMaxStr * RulesClass::Instance->ConditionYellow);
+	const auto curstr = int(nMaxStr * RulesClass::Instance->ConditionYellow);
 	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
 }
 
@@ -2320,14 +2320,14 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	const auto nStorage_3 = pTechno->Tiberium.Tiberiums[3]; //Aboreus
 	auto const nStorage = pType->Storage;
 
-	auto amount_Riparious = Game::F2I(nStorage_0 / nStorage * nMax + 0.5);
-	auto amount_Cruentus = Game::F2I(nStorage_1 / nStorage * nMax + 0.5);
-	auto amount_Vinifera = Game::F2I(nStorage_2 / nStorage * nMax + 0.5);
-	auto amount_Aboreus = Game::F2I(nStorage_3 / nStorage * nMax + 0.5);
+	auto amount_Riparious = int(nStorage_0 / nStorage * nMax + 0.5);
+	auto amount_Cruentus = int(nStorage_1 / nStorage * nMax + 0.5);
+	auto amount_Vinifera = int(nStorage_2 / nStorage * nMax + 0.5);
+	auto amount_Aboreus = int(nStorage_3 / nStorage * nMax + 0.5);
 
 	//const auto totalaccum = nStorage_3 + nStorage_2 + nStorage_0;
-	//auto amount_a = Game::F2I(totalaccum / pType->Storage * nMax + 0.5);
-	//auto amount_b = Game::F2I(nStorage_1 / pType->Storage * nMax + 0.5);
+	//auto amount_a = int(totalaccum / pType->Storage * nMax + 0.5);
+	//auto amount_b = int(nStorage_1 / pType->Storage * nMax + 0.5);
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -2475,7 +2475,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 //			{
 //			case AbstractType::Unit:
 //			{
-//				int nSize = Game::F2I(pPassengers->GetTechnoType()->SizeLimit - 1.0);
+//				int nSize = int(pPassengers->GetTechnoType()->SizeLimit - 1.0);
 //				if (nSize > 0)
 //				{
 //					auto nArr = &nPipState.get()[nTotal_size];
@@ -2490,7 +2490,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 //			} break;
 //			case AbstractType::Infantry:
 //			{
-//				int nSize = Game::F2I(pPassengers->GetTechnoType()->SizeLimit - 1.0);
+//				int nSize = int(pPassengers->GetTechnoType()->SizeLimit - 1.0);
 //				if (nSize > 0)
 //				{
 //					auto nArr = &nPipState.get()[nTotal_size];
@@ -3257,7 +3257,7 @@ DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {
 	GET(UnitClass*, pThis, EBP);
 	const auto deploysInto = pThis->Type->DeploysInto;
-	CellStruct mapCoords = pThis->GetMapCoords();
+	CellStruct mapCoords = pThis->InlineMapCoords();
 	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
 
 	const short width = deploysInto->GetFoundationWidth();
@@ -3276,7 +3276,7 @@ DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
 {
 	GET(BuildingClass*, pThis, EBP);
-	CellStruct mapCoords = pThis->GetMapCoords();
+	CellStruct mapCoords = pThis->InlineMapCoords();
 
 	const short width = pThis->Type->GetFoundationWidth();
 	const short height = pThis->Type->GetFoundationHeight(false);

@@ -327,6 +327,10 @@ public:
 		return ret;
 	}
 
+	CellStruct InlineMapCoords() const {
+		return { short(this->Location.X / 256) , short(this->Location.Y / 256) };
+	}
+
 	bool IsOnMyView() const;
 
 	void AdjustStrength(double nMult) const

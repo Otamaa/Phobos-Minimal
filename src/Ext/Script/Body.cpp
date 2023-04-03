@@ -984,7 +984,7 @@ void ScriptExt::DistributedLoadOntoTransport(TeamClass* pTeam, int nArg)
 	else if (pExt->GenericStatus == R_WAIT_POS)
 	{
 		bool canProceed = true;
-		auto pCell = MapClass::Instance->GetCellAt(pFoot->GetMapCoords());
+		auto pCell = pFoot->GetCell();
 
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
@@ -1063,7 +1063,7 @@ void ScriptExt::DistributedLoadOntoTransport(TeamClass* pTeam, int nArg)
 	// 2: don't stop, manually gather around first member's position
 	else if (nType == T_AVGPOS)
 	{
-		auto pCell = MapClass::Instance->GetCellAt(pFoot->GetMapCoords());
+		auto pCell = pFoot->GetCell();
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
 			auto nCoord = pCell->GetCoords();
@@ -1116,7 +1116,7 @@ beginLoad:
 	// If transport is on building, scatter, and discard this frame
 	for (auto const& pUnit : transports)
 	{
-		auto const pCell = MapClass::Instance->GetCellAt(pUnit->GetMapCoords());
+		auto const pCell = pUnit->GetCell();
 		if (pCell->GetBuilding())
 		{
 			pUnit->Scatter(pCell->GetCoordsWithBridge(), true, false);
@@ -1280,7 +1280,7 @@ void ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
 		{
 			for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 			{
-				double d = pMember->GetMapCoords().DistanceFrom(dest->GetMapCoords());
+				double d = pMember->InlineMapCoords().DistanceFrom(dest->InlineMapCoords());
 				if (d * 256 > RulesClass::Instance->CloseEnough)
 				{
 					if (isSelfAircraft)
@@ -1326,7 +1326,7 @@ void ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
 					return;
 				}
 
-				double distance = pTechno->GetMapCoords().DistanceFromSquared(*teamPosition);
+				double distance = pTechno->InlineMapCoords().DistanceFromSquared(*teamPosition);
 				if (distance < distMin)
 				{
 					target = pTechno;
@@ -1634,7 +1634,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 						{
 							if (auto const pContact = pAircraft->GetNthLink())
 							{
-								if (auto const pCell = MapClass::Instance->GetCellAt(pAircraft->GetMapCoords()))
+								if (auto const pCell = pAircraft->GetCell())
 								{
 									if (auto pBld = pCell->GetBuilding())
 									{
@@ -2104,7 +2104,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					{
 						pUnit->CurrentTargets.Clear();
 						if (pUnitType->Underwater && pUnitType->LandTargeting == LandTargetingType::Land_not_okay
-							&& MapClass::Instance->GetCellAt(selectedTarget->GetMapCoords())->LandType != LandType::Water) // Land not OK for the Naval unit
+							&& selectedTarget->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
 						{
 							// Naval units like Submarines are unable to target ground targets
 							// except if they have anti-ground weapons. Ignore the attack
@@ -2273,7 +2273,7 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 					// Naval units like Submarines are unable to target ground targets except if they have nti-ground weapons. Ignore the attack
 					if (pUnitType->Underwater
 						&& pUnitType->LandTargeting == LandTargetingType::Land_not_okay
-						&& MapClass::Instance->GetCellAt(pFocus->GetMapCoords())->LandType != LandType::Water) // Land not OK for the Naval unit
+						&& pFocus->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
 					{
 						pUnit->CurrentTargets.Clear();
 						pUnit->SetTarget(nullptr);
@@ -2476,7 +2476,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		// Land not OK for the Naval unit
 		if (objectType->Naval
 			&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-			&& MapClass::Instance->GetCellAt(object->GetMapCoords())->LandType != LandType::Water)
+			&& object->GetCell()->LandType != LandType::Water)
 		{
 			continue;
 		}
@@ -2852,7 +2852,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		// Naval Unit & Structure
 		return (!pTechno->Owner->IsNeutral()
 			&& (pTechnoType->Naval
-				|| (MapClass::Instance->GetCellAt(pTechno->GetMapCoords())->LandType == LandType::Water)));
+				|| (pTechno->GetCell()->LandType == LandType::Water)));
 	}
 	case 16:
 	{
@@ -3108,7 +3108,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 		return (!pTechno->Owner->IsNeutral()
 			&& Is_Unit(pTechno)
 			&& (pTechnoType->Naval
-				|| MapClass::Instance->GetCellAt(pTechno->GetMapCoords())->LandType == LandType::Water));
+				|| pTechno->GetCell()->LandType == LandType::Water));
 	}
 	case 32:
 	{
@@ -3237,7 +3237,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			// Useable Repair Hut
 			if (pTypeBuilding)
 			{
-				auto cell = pTechno->GetMapCoords();
+				auto cell = pTechno->InlineMapCoords();
 				if (pTypeBuilding->BridgeRepairHut && pTypeBuilding->Repairable)
 					if (MapClass::Instance->IsBridgeRepairable(&cell))
 						return true;
@@ -3620,7 +3620,7 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 					{
 						pUnit->CurrentTargets.Clear();
 
-						if (pUnitType->Underwater && pUnitType->LandTargeting == LandTargetingType::Land_not_okay && MapClass::Instance->GetCellAt(selectedTarget->GetMapCoords())->LandType != LandType::Water) // Land not OK for the Naval unit
+						if (pUnitType->Underwater && pUnitType->LandTargeting == LandTargetingType::Land_not_okay && selectedTarget->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
 						{
 							// Naval units like Submarines are unable to target ground targets except if they have anti-ground weapons. Ignore the attack
 							pUnit->CurrentTargets.Clear();
@@ -3796,7 +3796,7 @@ TechnoClass* ScriptExt::FindBestObject(TechnoClass* pTechno, int method, int cal
 			// Land not OK for the Naval unit
 			if (objectType->Naval
 				&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-				&& MapClass::Instance->GetCellAt(object->GetMapCoords())->LandType != LandType::Water)
+				&& object->GetCell()->LandType != LandType::Water)
 			{
 				continue;
 			}
@@ -6471,7 +6471,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 		if (isReachable)
 		{
-			const CellStruct cell = pTeamData->MapPath_EndTechno->GetMapCoords();
+			const CellStruct cell = pTeamData->MapPath_EndTechno->InlineMapCoords();
 
 			if (MapClass::Instance->IsLinkedBridgeDestroyed(cell))
 				pTeamData->MapPath_ValidBridgeRepairHuts.push_back(pTeamData->MapPath_EndTechno);
@@ -6509,7 +6509,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			}
 			else
 			{
-				const CellStruct cell = pBuilding->GetMapCoords();
+				const CellStruct cell = pBuilding->InlineMapCoords();
 
 				// If the Bridge was repaired then isn't valid anymore
 				if (!MapClass::Instance->IsLinkedBridgeDestroyed(cell))
@@ -6598,7 +6598,7 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 			if (isReachable)
 			{
-				const CellStruct cell = pTechno->GetMapCoords();
+				const CellStruct cell = pTechno->InlineMapCoords();
 				if (MapClass::Instance->IsLinkedBridgeDestroyed(cell))
 					pTeamData->MapPath_ValidBridgeRepairHuts.push_back(pTechno);
 			}
@@ -6768,8 +6768,8 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 
 		pTeamData->MapPath_Grid = std::vector<std::vector<bool>>(matrixX, std::vector<bool>(matrixY, false));
 
-		startCell = pThis->GetMapCoords();
-		endCell = pTarget->GetMapCoords();
+		startCell = pThis->InlineMapCoords();
+		endCell = pTarget->InlineMapCoords();
 
 		// The first element of this path is the unit's location
 		// Note: distance is in leptons (*256)
@@ -6789,7 +6789,7 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 			return false;
 		}
 
-		endCell = pTarget->GetMapCoords();
+		endCell = pTarget->InlineMapCoords();
 	}
 
 	bool found = false;

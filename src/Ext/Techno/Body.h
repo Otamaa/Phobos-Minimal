@@ -110,6 +110,7 @@ public:
 		bool KillActionCalled;
 		CDTimerClass ToProtectDelay;
 		OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
+		TemporalClass* MyOriginalTemporal;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -173,6 +174,7 @@ public:
 			, KillActionCalled { false }
 			, ToProtectDelay { }
 			, AltOccupation { }
+			, MyOriginalTemporal { nullptr }
 #endif;
 		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();

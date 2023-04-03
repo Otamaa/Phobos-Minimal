@@ -46,7 +46,7 @@ DEFINE_HOOK(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 	const int max = pTypeExt->BallisticScatter_Max.Get(Leptons(RulesClass::Instance->BallisticScatter));
 	const auto range = pThis->WeaponType ? pThis->WeaponType->Range : pThis->Range;
 
-	R->EAX(Game::F2I((nDistance * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)))
+	R->EAX(int((nDistance * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)))
 		/ range);
 
 	return 0x4687EB;

@@ -141,7 +141,7 @@ int Mission_Attack(AircraftClass* pThis)
 			pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_RETURN_TO_BASE;
 		}
 
-		return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 	}
 	case AirAttackStatusIDB::AIR_ATT_FLY_TO_POSITION:
 	{
@@ -349,7 +349,7 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 
 				pThis->MissionStatus = RulesGlobal->CurleyShuffle ? (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
-				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 			}
 			case FireError::FACING:
 			{
@@ -367,16 +367,16 @@ int Mission_Attack(AircraftClass* pThis)
 				}
 				if (!pThis->Is_Strafe())
 				{
-					return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+					return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 				}
 
 				return 45;
 			}
 			case FireError::REARM:
-				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 			case FireError::CLOAKED:
 				pThis->Uncloak(false);
-				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 			default:
 			{
 				if (!pThis->Ammo)
@@ -392,7 +392,7 @@ int Mission_Attack(AircraftClass* pThis)
 					pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 
-				return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+				return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 			}
 			}
 		}
@@ -624,7 +624,7 @@ int Mission_Attack(AircraftClass* pThis)
 		}
 	}
 	default:
-		return Game::F2I(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
+		return int(pThis->GetCurrentMissionControl()->Rate * 900.0) + ScenarioGlobal->Random.RandomFromMax(2);
 	}
 }
 //

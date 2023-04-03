@@ -319,7 +319,7 @@ DEFINE_HOOK(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 	auto pFoggedBld = GameCreate<FoggedObject>(pThis, IsVisible);
 	CellExt::ExtMap.Find(pCell)->FoggedObjects.AddItem(pFoggedBld);
 
-	auto MapCoords = pThis->GetMapCoords();
+	auto MapCoords = pThis->InlineMapCoords();
 
 	for (auto pFoundation = pThis->Type->GetFoundationData(false);
 		pFoundation->X != 0x7FFF || pFoundation->Y != 0x7FFF;

@@ -270,7 +270,7 @@ AreaFireReturnFlag TechnoExt::ApplyAreaFire(TechnoClass* pThis, CellClass*& pTar
 	}
 	case AreaFireTarget::Self:
 	{
-		if (!EnumFunctions::AreCellAndObjectsEligible(MapClass::Instance->GetCellAt(pThis->GetMapCoords()), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
+		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
@@ -352,11 +352,11 @@ std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarge
 		{
 			pTargetTechno = static_cast<TechnoClass*>(pObjTarget);
 			if (!pTargetTechno->IsInAir())	// Ignore target cell for airborne technos.
-				targetCell = MapClass::Instance->GetCellAt(pObjTarget->GetMapCoords());
+				targetCell = pTargetTechno->GetCell();
 		}
 		else // non techno target , but still an object
 		{
-			targetCell = MapClass::Instance->GetCellAt(pObjTarget->GetMapCoords());
+			targetCell = pObjTarget->GetCell();
 		}
 	}
 
@@ -607,14 +607,16 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, co
 
 	const auto pThisType = pThis->GetTechnoType();
 	const MovementZone mZone = pThisType->MovementZone;
-	const ZoneType currentZone = zone ? zone.value() : MapClass::Instance->GetMovementZoneType(pThis->GetMapCoords(), mZone, pThis->IsOnBridge());
+	const ZoneType currentZone = zone ? zone.value() : 
+		MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), mZone, pThis->IsOnBridge());
 
 	if (currentZone != ZoneType::None)
 	{
 		if (zoneScanType == TargetZoneScanType::Any)
 			return true;
 
-		const ZoneType targetZone = MapClass::Instance->GetMovementZoneType(pTarget->GetMapCoords(), mZone, pTarget->IsOnBridge());
+		const ZoneType targetZone = 
+			MapClass::Instance->GetMovementZoneType(pTarget->InlineMapCoords(), mZone, pTarget->IsOnBridge());
 
 		if (zoneScanType == TargetZoneScanType::Same)
 		{
@@ -637,7 +639,7 @@ bool TechnoExt::AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, co
 			}
 
 			auto const speedType = pThisType->SpeedType;
-			const auto cellStruct = MapClass::Instance->NearByLocation(pTarget->GetMapCoords(),
+			const auto cellStruct = MapClass::Instance->NearByLocation(pTarget->InlineMapCoords(),
 				speedType, -1, mZone, false, 1, 1, true,
 				false, false, speedType != SpeedType::Float, CellStruct::Empty, false, false);
 
@@ -1993,7 +1995,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 			if (pWhat != InfantryClass::vtable && pFoot->CurrentMission != Mission::Unload)
 			{
-				if (auto const pCell = MapClass::Instance->GetCellAt(pFoot->GetMapCoords()))
+				if (auto const pCell = pFoot->GetCell())
 				{
 					if (auto const pBuilding = pCell->GetBuilding())
 					{
@@ -2951,7 +2953,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 		{
 			// Ignore target cell for technos that are in air.
 			if ((pTargetTechno && !pTargetTechno->IsInAir()) || pObject != pTargetTechno)
-				targetCell = MapClass::Instance->GetCellAt(pObject->GetMapCoords());
+				targetCell = pObject->GetCell();
 		}
 	}
 
@@ -3018,7 +3020,7 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 	if (!pContact)
 		return false;
 
-	auto const pCell = MapClass::Instance->GetCellAt(pThis->GetMapCoords());
+	auto const pCell = pThis->GetCell();
 
 	if (!pCell)
 		return false;
@@ -3197,6 +3199,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->KillActionCalled)
 		.Process(this->ToProtectDelay)
 		.Process(this->AltOccupation)
+		.Process(this->MyOriginalTemporal)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->aircraftPutOffsetFlag)
 		.Process(this->aircraftPutOffset)
@@ -3210,7 +3213,6 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->PaintBallState)
 		.Process(this->DamageSelfState)
 		.Process(this->CurrentWeaponIdx)
-
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -3237,6 +3239,7 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* const ptr) const
 	case AircraftClass::vtable:
 	case UnitClass::vtable:
 	case InfantryClass::vtable:
+	case TemporalClass::vtable:
 		return false;
 	}
 

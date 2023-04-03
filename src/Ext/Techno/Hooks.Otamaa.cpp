@@ -215,7 +215,7 @@ DEFINE_HOOK(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 			auto const GetLandingAnim = [pExt, pTechno]()
 			{
 				auto pDecidedAnim = pExt->Landing_Anim.Get();
-				if (auto const pCell = MapClass::Instance->GetCellAt(pTechno->GetMapCoords()))
+				if (auto const pCell = pTechno->GetCell())
 				{
 					if (!pCell->ContainsBridge() && pCell->LandType == LandType::Water)
 						pDecidedAnim = pExt->Landing_AnimOnWater.Get();
@@ -247,7 +247,7 @@ DEFINE_HOOK(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 		if (pAir->IsInAir())
 			return 0x0;
 
-		auto const pCell = MapClass::Instance->GetCellAt(pAir->GetMapCoords());
+		auto const pCell = pAir->GetCell();
 		if (!pCell || pAir->GetHeight() > pCell->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
@@ -283,7 +283,7 @@ DEFINE_HOOK(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 			return (AnimTypeClass*)nullptr;
 		};
 
-		const auto pCell = MapClass::Instance->GetCellAt(pLinked->GetMapCoords());
+		const auto pCell = pLinked->GetCell();
 		const auto pFirst = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
 			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExt::Global()->Aircraft_LandAnim.Get());
 
@@ -516,7 +516,7 @@ DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
 	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
 	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
 
-	R->EBP(Game::F2I(cost * giveExpMultiple * gainExpMultiple));
+	R->EBP(int(cost * giveExpMultiple * gainExpMultiple));
 
 	return 0;
 }

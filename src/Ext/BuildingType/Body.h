@@ -156,6 +156,8 @@ public:
 		Valueable<bool> CanC4_AllowZeroDamage;
 		Valueable<double> C4_Modifier;
 
+		Valueable<CellStruct> DockUnload_Cell;
+		Nullable<DirType8> DockUnload_Facing;
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -261,6 +263,8 @@ public:
 			, SpyEffect_VictimSW_RealLaunch { false }
 			, CanC4_AllowZeroDamage { false }
 			, C4_Modifier { 1.0 }
+			, DockUnload_Cell { { 3, 1 } }
+			, DockUnload_Facing {}
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}

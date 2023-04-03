@@ -48,9 +48,15 @@ WaveClass* WaveExt::Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwn
 {
 	if (auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget))
 	{
-		WaveExt::ExtMap.Find(pWave)->SetWeaponType(pWeapon, !FromSourceCoord ? TechnoExt::ExtMap.Find(pOwner)->CurrentWeaponIdx : -1);
-		WaveExt::ExtMap.Find(pWave)->InitWeaponData();
-		WaveExt::ExtMap.Find(pWave)->SourceCoord = nFrom;
+		const auto pExt = WaveExt::ExtMap.Find(pWave);
+		const auto nWeaponIdx = !FromSourceCoord ? TechnoExt::ExtMap.Find(pOwner)->CurrentWeaponIdx : -1;
+		pExt->SetWeaponType(pWeapon, nWeaponIdx);
+		pExt->InitWeaponData();
+		pExt->SourceCoord = nFrom;
+
+		if (pExt->CanDoUpdate)
+			pWave->WaveAI();
+
 		return pWave;
 	}
 
@@ -150,6 +156,7 @@ void WaveExt::ExtData::Serialize(T& Stm)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
 		.Process(this->SourceCoord)
+		.Process(this->CanDoUpdate)
 		;
 }
 

@@ -18,7 +18,7 @@ DEFINE_HOOK(0x415F4D, AircraftClass_FireAt_SpeedModifiers, 0x6)
 		const double currentSpeed = pThis->GetTechnoType()->Speed * pLocomotor->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pThis);
 
-		R->EAX(Game::F2I(currentSpeed));
+		R->EAX(int(currentSpeed));
 		return 0x415F5C;
 	}
 

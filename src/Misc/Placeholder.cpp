@@ -83,7 +83,7 @@
 //		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 //			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 //
-//		R->EAX(Game::F2I(currentSpeed));
+//		R->EAX(int(currentSpeed));
 //	}
 //
 //	return 0;
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x737DBF, UnitClass_ReceiveDamage_DeathAnim, 0xA)
 //		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 //			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 //
-//		R->EAX(Game::F2I(currentSpeed));
+//		R->EAX(int(currentSpeed));
 //	}
 //
 //	return 0;

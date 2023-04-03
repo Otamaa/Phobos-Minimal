@@ -241,6 +241,7 @@ public:
 		int WeaponIdx;
 		bool ReverseAgainstTarget;
 		CoordStruct SourceCoord;
+		bool CanDoUpdate;
 		/// vinivera
 		/*
 		bool SonicBeamIsClear;
@@ -260,6 +261,7 @@ public:
 			, WeaponIdx { -1 }
 			, ReverseAgainstTarget { false }
 			, SourceCoord { }
+			, CanDoUpdate { false }
 			/*
 			, SonicBeamIsClear { false }
 			, SonicBeamAlpha { 0.5 }

@@ -172,3 +172,17 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 	return Funcs::CanEnterTunnel(pTunnelData, pTarget, pThis) ?
 		Entered : FailedToEnter;
 }
+
+DEFINE_OVERRIDE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+
+	const auto pExt = DummyBuildingTypeExt::Get(pBuilding->Type);
+
+	bool canbeDestination = pBuilding->Type->UnitAbsorb;
+
+	if (!canbeDestination)
+		canbeDestination = pExt->TunnelType >= 0;
+
+	return canbeDestination ? 0x741CF5 : 0x741D12;
+}

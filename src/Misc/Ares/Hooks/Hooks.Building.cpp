@@ -29,7 +29,8 @@ DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 	GET(BuildingClass*, Item, ESI);
 	GET(BuildingTypeClass*, pType, EAX);
 
-	if (pType->Cloakable) {
+	if (pType->Cloakable)
+	{
 		Item->Cloakable = true;
 	}
 
@@ -42,7 +43,8 @@ DEFINE_OVERRIDE_HOOK(0x448D95, BuildingClass_ChangeOwnership_OldSpy2, 0x8)
 	GET(HouseClass*, newOwner, EDI);
 	GET(BuildingClass*, pThis, ESI);
 
-	if (pThis->DisplayProductionTo.Contains(newOwner)){
+	if (pThis->DisplayProductionTo.Contains(newOwner))
+	{
 		pThis->DisplayProductionTo.Remove(newOwner);
 	}
 
@@ -55,9 +57,11 @@ DEFINE_OVERRIDE_HOOK(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 	GET(CellClass*, pCell, ESI);
 
 	// mark detected buildings for redraw
-	if (auto pBld = pCell->GetBuilding()) {
+	if (auto pBld = pCell->GetBuilding())
+	{
 		if (pBld->Owner != HouseClass::CurrentPlayer()
-			&& pBld->VisualCharacter(VARIANT_FALSE, nullptr) != VisualType::Normal) {
+			&& pBld->VisualCharacter(VARIANT_FALSE, nullptr) != VisualType::Normal)
+		{
 			pBld->NeedsRedraw = true;
 		}
 	}
@@ -71,7 +75,8 @@ DEFINE_OVERRIDE_HOOK(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
-	if (pBld->Type->SensorArray) {
+	if (pBld->Type->SensorArray)
+	{
 		pBld->SensorArrayDeactivate();
 	}
 
@@ -81,8 +86,9 @@ DEFINE_OVERRIDE_HOOK(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
 DEFINE_OVERRIDE_HOOK(0x448C3E, BuildingClass_ChangeOwnership_SensorArrayB, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
-	
-	if (pBld->Type->SensorArray) {
+
+	if (pBld->Type->SensorArray)
+	{
 		pBld->SensorArrayActivate();
 	}
 
@@ -94,7 +100,8 @@ DEFINE_OVERRIDE_HOOK(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
-	if (pBld->Type->SensorArray) {
+	if (pBld->Type->SensorArray)
+	{
 		pBld->SensorArrayDeactivate();
 	}
 
@@ -107,7 +114,8 @@ DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	auto pType = pThis->Type;
 
-	if (pType->SensorArray) {
+	if (pType->SensorArray)
+	{
 		R->EAX(pType->SensorsSight);
 		return 0x45674B;
 	}
@@ -176,7 +184,8 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	if (pType->Storage > 0)
 	{
 		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Tiberium.Tiberiums) {
+		for (auto const& nTib : pThis->Tiberium.Tiberiums)
+		{
 			amounttotal += nTib;
 		}
 
@@ -185,7 +194,8 @@ DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 	else
 	{
 		float amounttotal = 0.0f;
-		for (auto const& nTib : pThis->Owner->OwnedTiberium.Tiberiums) {
+		for (auto const& nTib : pThis->Owner->OwnedTiberium.Tiberiums)
+		{
 			amounttotal += nTib;
 		}
 
@@ -212,7 +222,7 @@ DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 	return 0x444D2C;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6 , 444A53)
+DEFINE_OVERRIDE_SKIP_HOOK(0x4449DF, BuildingClass_KickOutUnit_PreventClone, 0x6, 444A53)
 
 DEFINE_OVERRIDE_HOOK(0x44266B, BuildingClass_ReceiveDamage_Destroyed, 0x6)
 {
@@ -319,10 +329,13 @@ DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
 	GET(UnitClass*, pFreeUnit, EDI);
 
 	Mission nMissions = Mission::None;
-	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder) 
-		&& pFreeUnit->Type->ResourceGatherer) {
+	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder)
+		&& pFreeUnit->Type->ResourceGatherer)
+	{
 		nMissions = Mission::Harvest;
-	} else {
+	}
+	else
+	{
 		nMissions = (pFreeUnit->Owner && !pFreeUnit->Owner->IsControlledByHuman())
 			? Mission::Hunt : Mission::Area_Guard;
 	}
@@ -357,9 +370,9 @@ DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 	return 0x451A5A;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight, 0x6 , 441196)
-DEFINE_OVERRIDE_SKIP_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB, 0x6 , 451145)
-DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6 ,446580)
+DEFINE_OVERRIDE_SKIP_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight, 0x6, 441196)
+DEFINE_OVERRIDE_SKIP_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB, 0x6, 451145)
+DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6, 446580)
 
 DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
 {
@@ -403,7 +416,7 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 	GET(BuildingClass*, pBld, ECX);
 
 	// add the EMP check to the limbo check
-	return (pBld->InLimbo || pBld->IsUnderEMP()) ? 
+	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
 		0x44583E : 0x4456F3;
 }
 
@@ -411,12 +424,15 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 {
 	GET(TechnoClass*, pTechno, EAX);
 
-	if (pTechno->AttachedTag) {
+	if (pTechno->AttachedTag)
+	{
 		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
 	}
 
-	if (pTechno->IsAlive) {
-		if (pTechno->AttachedTag) {
+	if (pTechno->IsAlive)
+	{
+		if (pTechno->AttachedTag)
+		{
 			//66
 			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
 		}
@@ -528,7 +544,8 @@ DEFINE_OVERRIDE_HOOK(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 	GET(ObjectClass* const, pObject, EDI);
 
 	bool infiltratable = false;
-	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject)) {
+	if (const auto pBldObject = specific_cast<BuildingClass*>(pObject))
+	{
 		infiltratable = AresData::GetInfActionOverObject(pThis, pBldObject) != Action::None;
 	}
 
@@ -588,21 +605,22 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 {
-	enum {
+	enum
+	{
 		SkipInfiltrate = 0x51A03E,
-		Infiltrate_Vanilla = 0x51A002 ,
+		Infiltrate_Vanilla = 0x51A002,
 		InfiltrateSucceded = 0x51A010,
 	};
 
 	GET(InfantryClass* const, pThis, ESI);
 	GET(BuildingClass* const, pBuilding, EDI);
 
-	const auto nResult = AresData::GetInfActionOverObject(pThis , pBuilding);
+	const auto nResult = AresData::GetInfActionOverObject(pThis, pBuilding);
 
 	if (nResult == Action::Move) // this one will Infiltrate instead
 	{
 		auto const pHouse = pThis->Owner;
-		if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
+		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
 		pBuilding->Infiltrate(pHouse);
@@ -651,9 +669,124 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 	pBuilding->Flash(duration / 2);
 	pBuilding->C4Timer.Start(duration);
 
-	if (auto const pTag = pBuilding->AttachedTag) {
+	if (auto const pTag = pBuilding->AttachedTag)
+	{
 		pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
 	}
 
 	return InfiltrateSucceded;
+}
+
+/*	Hook pack for DockUnload , put them onto one hook file for easy diagnostic later on -Otamaa */
+
+namespace Get
+{
+
+	DirStruct UnloadFacing(UnitClass* pThis)
+	{
+		DirStruct nResult;
+		nResult.Raw = 0x4000;
+
+		if (pThis->HasAnyLink())
+		{
+			if (const auto pBld = specific_cast<BuildingClass*>(pThis->RadioLinks.Items[0]))
+			{
+				auto const pBldExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+				if (pBldExt->DockUnload_Facing.isset())
+					nResult.Raw = ((size_t)pBldExt->DockUnload_Facing.Get()) << 11;
+			}
+		}
+
+		return nResult;
+	}
+
+	CellStruct UnloadCell(BuildingClass* pThis)
+	{
+		return BuildingTypeExt::ExtMap.Find(pThis->Type)->DockUnload_Cell;
+	}
+
+	BuildingClass* BuildingUnload(UnitClass* pThis)
+	{
+		if (const auto pBld = specific_cast<BuildingClass*>(pThis->RadioLinks.Items[0]))
+		{
+			const auto pBldCells = pBld->InlineMapCoords();
+			const auto pThisCells = pThis->InlineMapCoords();
+
+			if ((pBldCells + UnloadCell(pBld)) == pThisCells) {
+				return pBld;
+			}
+		}
+
+		return nullptr;
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing, 5)
+{
+	GET(UnitClass*, pUnit, ESI);
+	GET(DirStruct*, nCurrentFacing, EAX);
+
+	auto nDecidedFacing = Get::UnloadFacing(pUnit);
+
+	if (*nCurrentFacing == nDecidedFacing)
+		return 0x73771B;
+
+	pUnit->Locomotor->Do_Turn(nDecidedFacing);
+
+	return 0x73770C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
+{
+	GET(UnitClass*, pUnit, ESI);
+	GET(DirStruct*, nCurrentFacing, EAX);
+
+	auto nDecidedFacing = Get::UnloadFacing(pUnit);
+
+	if (*nCurrentFacing == nDecidedFacing || pUnit->IsRotating)
+		return 0x73DFBD;
+
+	pUnit->Locomotor->Do_Turn(nDecidedFacing);
+
+	return 0x73DFB0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell, 7)
+{
+	GET(CellStruct*, pCell, EAX);
+	GET(BuildingClass*, pThis, ESI);
+
+	auto nBuff = Get::UnloadCell(pThis);
+	R->DX(pCell->X + nBuff.X);
+	R->AX(pCell->Y + nBuff.Y);
+
+	return 0x43CA8D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73E013, UnitClass_Mi_Unload_DockUnloadCell1, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+	R->EAX(Get::BuildingUnload(pThis));
+	return 0x73E05F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73E17F, UnitClass_Mi_Unload_DockUnloadCell2, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+	R->EAX(Get::BuildingUnload(pThis));
+	return 0x73E1CB;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73E2BF, UnitClass_Mi_Unload_DockUnloadCell3, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+	R->EAX(Get::BuildingUnload(pThis));
+	return 0x73E30B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
+{
+	GET(UnitClass*, pThis, EBP);
+	R->EAX(Get::BuildingUnload(pThis));
+	return 0x741C28;
 }

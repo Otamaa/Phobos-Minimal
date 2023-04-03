@@ -443,7 +443,7 @@ DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 
-		R->EAX(Game::F2I(currentSpeed));
+		R->EAX(int(currentSpeed));
 		return 0x4CDA78;
 	}
 
@@ -459,7 +459,7 @@ DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
 
-		R->EAX(Game::F2I(currentSpeed));
+		R->EAX(int(currentSpeed));
 		return 0x4CE4BF;
 	}
 

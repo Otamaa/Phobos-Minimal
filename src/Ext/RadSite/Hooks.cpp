@@ -122,7 +122,7 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 			if (const auto pWeapon = pWeaponStruct->WeaponType)
 			{
 				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-				const auto currentCoord = pThis->GetMapCoords();
+				const auto currentCoord = pThis->InlineMapCoords();
 
 				auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 					[=](auto const pPair)
@@ -217,7 +217,7 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 
 		if (pBuilding->IsAlive && pBuilding->Health > 0)
 		{
-			auto buildingCoords = pBuilding->GetMapCoords();
+			auto buildingCoords = pBuilding->InlineMapCoords();
 			for (auto pFoundation = pBuilding->GetFoundationData(false);
 				*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation) {
 

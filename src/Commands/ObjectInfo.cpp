@@ -76,7 +76,7 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 {
 	Append(buffer,"[Phobos] Dump ObjectInfo runs.\n");
 	const auto pType = pFoot->GetTechnoType();
-	const auto nFootMapCoords = pFoot->GetMapCoords();
+	const auto nFootMapCoords = pFoot->InlineMapCoords();
 	Append(buffer, "ID = %s, ", pType->ID);
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Location = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
@@ -149,7 +149,7 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 			if (pFoot->Target->AbstractFlags & AbstractFlags::Object)
 			{
 				const auto pTarget = static_cast<ObjectClass*>(pFoot->Target);
-				Append(buffer, "Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+				Append(buffer, "Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->InlineMapCoords().X, pTarget->InlineMapCoords().Y);
 			}
 			else if ((((DWORD*)pFoot->Target)[0]) == CellClass::vtable)
 			{
@@ -165,7 +165,8 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 			if (pFoot->Destination->AbstractFlags & AbstractFlags::Object)
 			{
 				const auto pDest = static_cast<ObjectClass*>(pFoot->Destination);
-				Append(buffer, "Destination = %s, Distance = %d, Location = (%d, %d)\n", pDest->get_ID(), (pDest->DistanceFrom(pFoot) / 256), pDest->GetMapCoords().X, pDest->GetMapCoords().Y);
+				const auto pDestLoc = pDest->InlineMapCoords();
+				Append(buffer, "Destination = %s, Distance = %d, Location = (%d, %d)\n", pDest->get_ID(), (pDest->DistanceFrom(pFoot) / 256), pDestLoc.X, pDestLoc.Y);
 			}
 			else if ((((DWORD*)pFoot->Destination)[0]) == CellClass::vtable)
 			{
@@ -204,7 +205,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 {
 	Append(buffer, "[Phobos] Dump ObjectInfo runs.\n");
 	const auto pType = pBuilding->GetTechnoType();
-	const auto nFootMapCoords = pBuilding->GetMapCoords();
+	const auto nFootMapCoords = pBuilding->InlineMapCoords();
 	Append(buffer, "ID = %s, ", pType->ID);
 	Append(buffer,"Owner = %s (%s), ", pBuilding->Owner->get_ID(), pBuilding->Owner->PlainName);
 	Append(buffer,"Location = (%d, %d)\n", nFootMapCoords.X, nFootMapCoords.Y);
@@ -233,7 +234,8 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 		if (pBuilding->Target->AbstractFlags & AbstractFlags::Object)
 		{
 			const auto pTarget = static_cast<ObjectClass*>(pBuilding->Target);
-			Append(buffer,"Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pBuilding) / 256), pTarget->GetMapCoords().X, pTarget->GetMapCoords().Y);
+			const auto pTargetLoc = pTarget->InlineMapCoords();
+			Append(buffer,"Target = %s, Distance = %d, Location = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pBuilding) / 256), pTargetLoc.X, pTargetLoc.Y);
 		}
 		else if ((((DWORD*)pBuilding->Target)[0]) == CellClass::vtable)
 		{

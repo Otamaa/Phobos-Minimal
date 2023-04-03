@@ -155,7 +155,7 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
-	auto idxTiberium = MapClass::Instance->GetCellAt(pThis->GetMapCoords())->GetContainedTiberiumIndex();
+	auto idxTiberium = pThis->GetCell()->GetContainedTiberiumIndex();
 
 	if (idxTiberium != -1)
 	{
