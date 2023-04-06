@@ -9,6 +9,8 @@
 #include <Utilities/TemplateDef.h>
 #include <DirStruct.h>
 
+#include <Ext/TechnoType/Body.h>
+
 enum class BunkerSoundMode : int
 {
 	Up, Down
@@ -109,6 +111,7 @@ public:
 	class ExtData final : public Extension<BuildingTypeClass>
 	{
 	public:
+		TechnoTypeExt::ExtData* Type;
 		Valueable<AffectedHouse> PowersUp_Owner;
 		ValueableVector<BuildingTypeClass*> PowersUp_Buildings;
 		ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons;
@@ -157,7 +160,11 @@ public:
 		Valueable<double> C4_Modifier;
 
 		Valueable<CellStruct> DockUnload_Cell;
-		Nullable<DirType8> DockUnload_Facing;
+		Nullable<DirType32> DockUnload_Facing;
+
+		// solid
+		Valueable<int> Solid_Height;
+		Valueable<int> Solid_Level;
 #pragma region Otamaa
 		NullableVector<AnimTypeClass*> DamageFireTypes;
 		NullableVector<AnimTypeClass*> OnFireTypes;
@@ -227,6 +234,7 @@ public:
 		std::vector<int> DockPoseDir;
 #pragma endregion
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
+			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }
 			, PowersUp_Buildings {}
 			, PowerPlantEnhancer_Buildings {}
@@ -265,6 +273,8 @@ public:
 			, C4_Modifier { 1.0 }
 			, DockUnload_Cell { { 3, 1 } }
 			, DockUnload_Facing {}
+			, Solid_Height { 0 }
+			, Solid_Level { 1 }
 			, DamageFireTypes {}
 			, OnFireTypes {}
 			, OnFireIndex {}

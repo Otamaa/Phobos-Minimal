@@ -279,7 +279,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 
 	GET(FootClass* const, pThis, ESI);
 
-	if (pThis->InLimbo)
+	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || !pThis->IsCrashing)
 		return CheckOtherState;
 
 	if (pThis->IsInAir())

@@ -16,13 +16,11 @@ public:
 	{
 	public:
 
-		PhobosFixedString<0x100> Name;
 		char* m_ColorDatas;
 		Blitter* NewBlitters[17];
 		RLEBlitter* NewRLEBlitters[18];
 
 		ExtData(ConvertClass* OwnerObject) : Extension<ConvertClass>(OwnerObject)
-			, Name { }
 			, m_ColorDatas { nullptr }
 			, NewBlitters {}
 			, NewRLEBlitters {}
@@ -46,5 +44,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static void GetOrSetName(ConvertClass* const pConvert , const std::string_view nName);
 };

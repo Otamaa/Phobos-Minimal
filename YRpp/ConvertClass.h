@@ -91,13 +91,13 @@ public:
 	int BytesPerPixel;
 	Blitter* Blitters[50];
 	RLEBlitter* RLEBlitters[39];
-	int ShadeCount;
-	char* BufferA; // new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
-	char* BufferMid; // points to the middle of BufferA above, ??
-	char* BufferB; // if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
-	DWORD CurrentZRemap; // set right before drawing
-	DWORD HalfColorMask; // for masking colors right-shifted by 1
-	DWORD QuarterColorMask; // for masking colors right-shifted by 2
+	int ShadeCount; //16C
+	char* BufferA; //170, new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
+	char* BufferMid; //174, points to the middle of BufferA above, ??
+	char* BufferB; //178, if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
+	DWORD CurrentZRemap; //17C, set right before drawing
+	DWORD HalfColorMask; //180, for masking colors right-shifted by 1
+	DWORD QuarterColorMask; //184, for masking colors right-shifted by 2
 };
 
 static_assert(sizeof(ConvertClass) == 0x188);

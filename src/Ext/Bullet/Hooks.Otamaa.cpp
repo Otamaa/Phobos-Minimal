@@ -181,7 +181,7 @@ static void  ManipulateLoco(FootClass* pFirer, AbstractClass* pTarget, BulletCla
 			if (pFoot_T->InWhichLayer() != Layer::Ground || pFoot_T->IsAttackedByLocomotor)
 				return;
 
-			pFirer->FootClass_ImbueLocomotor(pFoot_T, pBullet->WH->Locomotor);
+			pFirer->FootClass_ImbueLocomotor(pFoot_T, pBullet->WH->Locomotor.get());
 		}
 	}
 }

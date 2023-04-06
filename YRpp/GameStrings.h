@@ -152,6 +152,7 @@ struct GameStrings
 	GAMEMD_STR(EVA_UnitReady, 0x8249A0u);
 	GAMEMD_STR(EVA_ConstructionComplete, 0x83FA80u);
 	GAMEMD_STR(EVA_UnitPromoted, 0x843138u);
+	GAMEMD_STR(EVA_UnitLost, 0x822620u);
 	//...
 
 	// Messages

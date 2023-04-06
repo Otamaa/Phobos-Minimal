@@ -27,20 +27,12 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
 	}
 
-
-	// TODO: Check this - Morton
-	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
-	// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-
 	if (pParticleExt->LaserTrails.size())
 	{
 		const CoordStruct location = pThis->GetCoords();
 		const CoordStruct drawnCoords = location;
 		for (auto const& trail : pParticleExt->LaserTrails)
 		{
-			// Left this here for now - Morton
-			// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
-			// TODO move hack to BulletClass creation
 			if (!trail->LastLocation.isset())
 				trail->LastLocation = location;
 

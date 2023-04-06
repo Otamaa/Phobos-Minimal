@@ -111,7 +111,6 @@
     <ClCompile Include="src\Ext\Super\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Body.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.ShortTimer.cpp" />
-    <ClCompile Include="src\Ext\SWType\Hooks.Firing.cpp" />
     <ClCompile Include="src\Ext\Tactical\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Body.cpp" />
     <ClCompile Include="src\Ext\TAction\Hooks.cpp" />
@@ -164,6 +163,7 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bomb.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Building.cpp" />
@@ -223,6 +223,7 @@
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
+    <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -282,7 +283,6 @@
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
-    <ClCompile Include="YRpp\DirStruct.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
   </ItemGroup>

@@ -364,7 +364,7 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, const CoordSt
 		{
 			CoordStruct nBuffer { 0,0,0 };
 			int speed = 0;
-			if (pFoot->Locomotor->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
+			if (pFoot->Locomotor.get()->Is_Moving() && (speed = pFoot->GetCurrentSpeed()) > 0)
 			{
 				nBuffer.X = speed;
 				sourceOffset += nBuffer;

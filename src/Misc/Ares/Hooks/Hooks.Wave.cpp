@@ -85,11 +85,9 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 
 	const auto pData = WaveExt::ExtMap.Find(pThis);
 
-	if (pData->Weapon && pData->Weapon->AmbientDamage)
-	{
+	if (pData->Weapon && pData->Weapon->AmbientDamage) {
 		CoordStruct coords;
-		for (auto const& pCell : pThis->Cells)
-		{
+		for (auto const& pCell : pThis->Cells) {
 			pThis->DamageArea(*pCell->Get3DCoords3(&coords));
 		}
 	}
@@ -108,9 +106,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 		if (Intensity < 0)
 		{
 			pThis->UnInit();
-		}
-		else
-		{
+		} else {
 			pThis->ObjectClass::Update();
 		}
 	}
@@ -125,6 +121,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 		{
 			pThis->UnInit();
 		}
+
 		break;
 	}
 	}
@@ -222,7 +219,6 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	}
 
 	const auto pData = WaveExt::ExtMap.Find(Wave);
-	const auto pTechnoExt = TechnoExt::ExtMap.Find(Firer);
 
 	if (Wave->Type == WaveType::Magnetron)
 	{
@@ -278,7 +274,6 @@ DEFINE_OVERRIDE_HOOK(0x762B62, WaveClass_WaveAI , 0x6)
 	return 0x762D57;
 }
 
-
 DEFINE_OVERRIDE_HOOK(0x75EE2E, WaveClass_Draw_Green, 0x8)
 {
 	GET(int, Q, EDX);
@@ -308,6 +303,7 @@ DEFINE_OVERRIDE_HOOK(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x760286, WaveClass_Draw_Magnetron3, 0x5, 7602D3)
+
 DEFINE_OVERRIDE_HOOK(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 {
 	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);

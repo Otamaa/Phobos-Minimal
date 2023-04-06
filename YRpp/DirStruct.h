@@ -21,6 +21,12 @@ enum class DirType8 : unsigned char
 	Max = 8,
 };
 
+enum class DirType32 : unsigned char
+{
+	Min = 0,
+	Max = 32,
+};
+
 enum class DirType : unsigned char
 {
 	North = 0,
@@ -70,6 +76,10 @@ public:
 		Raw { ((unsigned short)((unsigned char)face << 13 )) }
 	{ }
 
+	explicit DirStruct(const DirType32 face) noexcept :
+		Raw { ((unsigned short)((unsigned char)face << 11)) }
+	{}
+
 	explicit DirStruct(size_t bits, const DirType value) noexcept : Raw { 0 }
 	{ SetDir(bits, (unsigned short)(value)); }
 
@@ -116,16 +126,34 @@ public:
 		return *this;
 	}
 
-	//TODO : Check Casting
-	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom);
+	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom) { return std::abs(pDirFrom.Raw) >= std::abs(this->Raw - pBaseDir.Raw); }
 
-	//TODO : Check Casting
-	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3);
+	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3) {
 
-	void SetDir(DirType dir);
-	DirType GetDirFixed() const;
-	DirType GetDir() const;
-	void SetDir(size_t bit, size_t val);
+		if (std::abs(pDir3.Raw) < std::abs(this->Raw - pDir2.Raw))
+		{
+			if ((pDir2.Raw - this->Raw) >= 0)
+			{
+				this->Raw += this->Raw + pDir3.Raw;
+			}
+			else
+			{
+				this->Raw -= pDir3.Raw;
+			}
+		}
+		else
+		{
+			this->Raw = pDir2.Raw;
+		}
+	}
+
+	void SetDir(DirType dir) { Raw = ((unsigned short)((unsigned char)dir * 256)); }
+	DirType GetDirFixed() const { return (DirType)((((this->Raw / (32768 / 256)) + 1) / 2) & (int)DirType::Max); }
+	DirType GetDir() const { return (DirType)(this->Raw / 256); }
+	void SetDir(size_t bit, size_t val) {
+		if (bit <= 16u)
+			Raw = ((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val));
+	}
 	
 	// If you want to divide it into 32 facings, as 32 has 5 bits
 	// then you should type <5> here.
@@ -136,7 +164,12 @@ public:
 		return TranslateFixedPoint::TemplatedCompileTime<16, Bits>(this->Raw, offset);
 	}
 
-	size_t GetValue(size_t Bits = 16, size_t offset = 0);
+	size_t GetValue(size_t Bits = 16, size_t offset = 0) const {
+		if (Bits <= 16u)
+			return TranslateFixedPoint::Normal(16, Bits, this->Raw, offset);
+
+		return 0;
+	}
 
 	template<size_t Bits>
 	constexpr void SetValue(size_t value, size_t offset = 0)

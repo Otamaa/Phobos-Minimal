@@ -521,10 +521,10 @@ struct AudioController
 	void AudioEventHandleDeInit()
 	{ JMP_THIS(0x405C00); }
 
-	void AudioEventHandleStop()
+	void AudioEventHandleStop() // DTOR_1
 	{ JMP_THIS(0x405D40); }
 
-	void AudioEventHandleEnd()
+	void AudioEventHandleEnd() // DTOR_2
 	{ JMP_THIS(0x405FD0); }
 
 	void ShutUp()

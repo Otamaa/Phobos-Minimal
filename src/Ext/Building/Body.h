@@ -10,7 +10,7 @@
 #include <Ext/Abstract/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 class BuildingExt
 {
@@ -22,7 +22,8 @@ public:
 	class ExtData final : public Extension<BuildingClass>
 	{
 	public:
-
+		BuildingTypeExt::ExtData* Type;
+		TechnoExt::ExtData* TechnoExt;
 		bool DeployedTechno;
 		int LimboID;
 		int GrindingWeapon_LastFiredFrame;
@@ -36,6 +37,8 @@ public:
 		bool LighningNeedUpdate;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
+			, Type { nullptr }
+			, TechnoExt { nullptr }
 			, DeployedTechno { false }
 			, LimboID { -1 }
 			, GrindingWeapon_LastFiredFrame { 0 }

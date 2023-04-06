@@ -30,6 +30,7 @@ void TechnoTypeExt::ExtData::Initialize()
 
 	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
 	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 
 	OreGathering_Anims.reserve(1);
 	OreGathering_Tiberiums.reserve(1);
@@ -47,6 +48,23 @@ double TechnoTypeExt::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 	return TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
+VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx)
+{
+	if (nIdx < TechnoTypeClass::MaxWeapons)
+		return &pThis->ChargerBarrels[nIdx];
+
+	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
+		[nIdx - TechnoTypeClass::MaxWeapons];
+}
+
+VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx)
+{
+	if (nIdx < TechnoTypeClass::MaxWeapons)
+		return &pThis->ChargerTurrets[nIdx];
+
+	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
+		[nIdx - TechnoTypeClass::MaxWeapons];
+}
 //void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 //{
 //	auto const pOffs = this->TurretOffset.GetEx();
@@ -767,14 +785,81 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
 	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
-	this->Promote_Elite_Exp.Read(exINI, pSection, "DeployDir"); 
+	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience"); 
 
-	this->DeployDir.Read(exINI, pSection, "Promote.EliteExperience");
+	this->DeployDir.Read(exINI, pSection, "DeployDir" );
 
 	this->PassengersWhitelist.Read(exINI, pSection, "Passengers.Allowed");
 	this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
 
+	this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
+	this->NoManualFire.Read(exINI, pSection, "NoManualFire");
+	this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
+
 	this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
+	this->Crashable.Read(exINI, pSection, "Crashable");
+
+	this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
+
+	this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
+	this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
+	this->Harvester_ScanCorrection.Read(exINI, pSection, "Harvester.ScanCorrection");
+
+	this->Harvester_TooFarDistance.Read(exINI, pSection, "Harvester.TooFarDistance");
+	this->Harvester_KickDelay.Read(exINI, pSection, "Harvester.KickDelay");
+
+	this->TurretRot.Read(exINI, pSection, "TurretROT");
+
+	this->FallRate_Parachute.Read(exINI, pSection, "FallRate.Parachute");
+	this->FallRate_NoParachute.Read(exINI, pSection, "FallRate.NoParachute");
+	this->FallRate_ParachuteMax.Read(exINI, pSection, "FallRate.ParachuteMax");
+	this->FallRate_NoParachuteMax.Read(exINI, pSection, "FallRate.NoParachuteMax");
+
+	// Dont need to be SL ?
+	const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
+	TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+	TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+
+	this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
+
+	this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
+	this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
+	this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
+
+	this->DigInSound.Read(exINI, pSection, "DigInSound");
+	this->DigOutSound.Read(exINI, pSection, "DigOutSound");
+	this->DigInAnim.Read(exINI, pSection, "DigInAnim");
+	this->DigOutAnim.Read(exINI, pSection, "DigOutAnim");
+
+	this->EVA_UnitLost.Read(exINI, pSection, "EVA.Lost");
+
+	this->BuildTime_Speed.Read(exINI, pSection, "BuildTime.Speed");
+	this->BuildTime_Cost.Read(exINI, pSection, "BuildTime.Cost");
+	this->BuildTime_LowPowerPenalty.Read(exINI, pSection, "BuildTime.LowPowerPenalty");
+	this->BuildTime_MinLowPower.Read(exINI, pSection, "BuildTime.MinLowPower");
+	this->BuildTime_MaxLowPower.Read(exINI, pSection, "BuildTime.MaxLowPower");
+	this->BuildTime_MultipleFactory.Read(exINI, pSection, "BuildTime.MultipleFactory");
+
+	this->CloakStages.Read(exINI, pSection, "Cloakable.Stages");
+	this->DamageSparks.Read(exINI, pSection, "DamageSparks");
+
+	this->ParticleSystems_DamageSmoke.Read(exINI, pSection, "DamageSmokeParticleSystems");
+	this->ParticleSystems_DamageSparks.Read(exINI, pSection, "DamageSparksParticleSystems");
+	// issue #896235: cyclic gattling
+	this->GattlingCyclic.Read(exINI, pSection, "Gattling.Cycle");
+	this->CloakSound.Read(exINI, pSection, "CloakSound");
+	this->DecloakSound.Read(exINI, pSection, "DecloakSound");
+	this->VoiceRepair.Read(exINI, pSection, "VoiceIFVRepair");
+	this->ReloadAmount.Read(exINI, pSection, "ReloadAmount");
+	this->EmptyReloadAmount.Read(exINI, pSection, "EmptyReloadAmount");
+	this->TiberiumSpill.Read(exINI, pSection, "TiberiumSpill");
+	this->TiberiumRemains.Read(exINI, pSection, "TiberiumRemains");
+	// sensors
+	this->SensorArray_Warn.Read(exINI, pSection, "SensorArray.Warn");
+
+	this->IronCurtain_Modifier.Read(exINI, pSection, "IronCurtain.Modifier");
+	this->ForceShield_Modifier.Read(exINI, pSection, "ForceShield.Modifier");
+	this->Survivors_PilotCount.Read(exINI, pSection, "Survivor.Pilots");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
@@ -795,6 +880,73 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 #endif
 }
 
+void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4)
+{
+	char buffer[0x60];
+	_snprintf_s(buffer, sizeof(buffer), "%s.VXL", nKey);
+	CCFileClass CCFileV { buffer };
+
+	if (CCFileV.Exists())
+	{
+		MotLib* pLoadedHVA = nullptr;
+		VoxLib* pLoadedVXL = GameCreate<VoxLib>(&CCFileV, false);
+
+		_snprintf_s(buffer, sizeof(buffer), "%s.HVA", nKey);
+		CCFileClass  CCFileH { buffer };
+
+		if (CCFileH.Open(FileAccessMode::Read))
+		{
+			pLoadedHVA = GameCreate<MotLib>(&CCFileH);
+		}
+
+		CCFileH.Close();
+		CCFileH.~CCFileClass();
+		if (!pLoadedHVA || pLoadedVXL->LoadFailed || pLoadedHVA->LoadedFailed)
+		{
+			arg0 = { {nullptr , nullptr} , false };
+
+			GameDelete<true, true>(pLoadedHVA);
+			GameDelete<true, false>(pLoadedVXL);
+		}
+		else
+		{
+			pLoadedHVA->Scale(pLoadedVXL->TailerData[pLoadedVXL->HeaderData->limb_number].HVAMultiplier);
+			arg0 = { {pLoadedVXL , pLoadedHVA }, true };
+		}
+	}
+	else
+	{
+		arg0 = { {nullptr , nullptr} , a4 };
+	}
+
+	CCFileV.Close();
+	CCFileV.~CCFileClass();
+}
+
+void TechnoTypeExt::InitImageData(ImageVector& nVec, size_t size)
+{
+	if (size <= 0)
+		return;
+
+	nVec.resize(size);
+}
+
+void TechnoTypeExt::ClearImageData(ImageVector& nVec, size_t pos)
+{
+	if (nVec.empty())
+		return;
+
+	if (pos >= 0 && pos < nVec.size())
+	{
+		for (auto i = (nVec.begin() + pos); i != nVec.end(); ++i)
+		{
+			GameDelete<true, true>((*i).HVA);
+			(*i).HVA = nullptr;
+			GameDelete<true, true>((*i).VXL);
+			(*i).VXL = nullptr;
+		}
+	}
+}
 
 void TechnoTypeExt::ExtData::AdjustCrushProperties()
 {
@@ -1243,7 +1395,66 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeployDir)
 		.Process(this->PassengersWhitelist)
 		.Process(this->PassengersBlacklist)
+		.Process(this->NoManualUnload)
+		.Process(this->NoManualFire)
+		.Process(this->NoManualEnter)
 		.Process(this->Passengers_BySize)
+		.Process(this->Crashable)
+		.Process(this->Convert_Deploy)
+
+		.Process(this->Harvester_LongScan)
+		.Process(this->Harvester_ShortScan)
+		.Process(this->Harvester_ScanCorrection)
+
+		.Process(this->Harvester_TooFarDistance)
+		.Process(this->Harvester_KickDelay)
+
+		.Process(this->TurretRot)
+
+		.Process(this->WaterImage)
+
+		.Process(this->FallRate_Parachute)
+		.Process(this->FallRate_NoParachute)
+		.Process(this->FallRate_ParachuteMax)
+		.Process(this->FallRate_NoParachuteMax)
+
+		.Process(this->WeaponUINameX)
+		.Process(this->NoShadowSpawnAlt)
+
+		.Process(this->AdditionalWeaponDatas)
+		.Process(this->AdditionalEliteWeaponDatas)
+		.Process(this->AdditionalTurrentWeapon)
+		.Process(this->OmniCrusher_Aggressive)
+		.Process(this->CrushDamage)
+		.Process(this->CrushDamageWarhead)
+		.Process(this->DigInSound)
+		.Process(this->DigOutSound)
+		.Process(this->DigInAnim)
+		.Process(this->DigOutAnim)
+		.Process(this->EVA_UnitLost)
+
+		.Process(this->BuildTime_Speed)
+		.Process(this->BuildTime_Cost)
+		.Process(this->BuildTime_LowPowerPenalty)
+		.Process(this->BuildTime_MinLowPower)
+		.Process(this->BuildTime_MaxLowPower)
+		.Process(this->BuildTime_MultipleFactory)
+		.Process(this->CloakStages)
+		.Process(this->DamageSparks)
+		.Process(this->ParticleSystems_DamageSmoke)
+		.Process(this->ParticleSystems_DamageSparks)
+		.Process(this->GattlingCyclic)
+		.Process(this->CloakSound)
+		.Process(this->DecloakSound)
+		.Process(this->VoiceRepair)
+		.Process(this->ReloadAmount)
+		.Process(this->EmptyReloadAmount)
+		.Process(this->TiberiumSpill)
+		.Process(this->TiberiumRemains)
+		.Process(this->SensorArray_Warn)
+		.Process(this->IronCurtain_Modifier)
+		.Process(this->ForceShield_Modifier)
+		.Process(this->Survivors_PilotCount)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -1327,6 +1538,14 @@ DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 DEFINE_HOOK(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pItem);
+	TechnoTypeExt::ClearImageData(pExt->BarrelImageData);
+	TechnoTypeExt::ClearImageData(pExt->TurretImageData);
+
+	GameDelete<true, true>(pExt->SpawnAltData.VXL);
+	GameDelete<true, true>(pExt->SpawnAltData.HVA);
+
 	TechnoTypeExt::ExtMap.Remove(pItem);
 
 	return 0;

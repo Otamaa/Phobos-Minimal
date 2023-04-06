@@ -102,8 +102,8 @@ DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 			{
 
 				pThis->Stun();
-				if (pThis->Locomotor->Is_Moving_Now())
-					pThis->Locomotor->Stop_Moving();
+				if (pThis->Locomotor.get()->Is_Moving_Now())
+					pThis->Locomotor.get()->Stop_Moving();
 
 				pThis->DeathFrameCounter = 1;
 			}

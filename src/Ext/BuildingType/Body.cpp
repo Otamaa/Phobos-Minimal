@@ -161,6 +161,7 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 void BuildingTypeExt::ExtData::InitializeConstants()
 {
 	AIBuildInsteadPerDiff.reserve(3);
+	Type = TechnoTypeExt::ExtMap.Find(Get());
 }
 
 int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
@@ -567,6 +568,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DockUnload_Cell.Read(exINI, pSection, "DockUnloadCell");
 	this->DockUnload_Facing.Read(exINI, pSection, "DockUnloadFacing");
 
+	// relocated the solid tag from artmd to rulesmd
+	this->Solid_Height.Read(exINI, pSection, "SolidHeight");
+	this->Solid_Level.Read(exINI, pSection, "SolidLevel");
+
 	// no code attached
 	this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
 	this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
@@ -633,6 +638,7 @@ template <typename T>
 void BuildingTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Type)
 		.Process(this->PowersUp_Owner)
 		.Process(this->PowersUp_Buildings)
 		.Process(this->PowerPlantEnhancer_Buildings)
@@ -727,6 +733,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->C4_Modifier)
 		.Process(this->DockUnload_Cell)
 		.Process(this->DockUnload_Facing)
+		.Process(this->Solid_Height)
+		.Process(this->Solid_Level)
 		.Process(this->SpyEffect_VictimSW_RealLaunch)
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)

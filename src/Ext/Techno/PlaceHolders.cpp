@@ -19,7 +19,7 @@ bool CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ, const CLSID& n
 		xyz.Z = 0;
 		Object->SetLocation(xyz);
 		Object->SetDestination(MyCell, 1);
-		Object->Locomotor->Move_To(XYZ);
+		Object->Locomotor.get()->Move_To(XYZ);
 		Object->PrimaryFacing.Set_Desired(DirStruct());
 		if (!Object->InLimbo)
 		{
@@ -358,8 +358,8 @@ void HarvesterLocoFix(TechnoClass* pThis)
 	{
 		const auto pFoot = abstract_cast<UnitClass*>(pThis);
 		if (pFoot && !pThis->IsSelected && pFoot->Type->Harvester &&
-			(pFoot->Type->Locomotor == LocomotionClass::CLSIDs::Tunnel ||
-				pFoot->Type->Locomotor == LocomotionClass::CLSIDs::Jumpjet) &&
+			(pFoot->Type->Locomotor.get() == LocomotionClass::CLSIDs::Tunnel ||
+				pFoot->Type->Locomotor.get() == LocomotionClass::CLSIDs::Jumpjet) &&
 			(pFoot->GetCurrentMission() == Mission::Guard ||
 				pFoot->GetCurrentMission() == Mission::Area_Guard) &&
 			!TechnoExt::IsHarvesting(pThis) && !pFoot->Locomotor->Is_Really_Moving_Now()

@@ -92,7 +92,7 @@ public:
 	void Draw(VoxelDrawStruct* draw_data, Vector3D<float>* pos) const
 		{ JMP_THIS(0x756590); }
 
-	void DrawShadow(VoxelShadowDrawStruct* shadow_draw_data, Vector3D<float>* pos) const
+	void ShadowAlreadyDrawn(VoxelShadowDrawStruct* shadow_draw_data, Vector3D<float>* pos) const
 		{ JMP_THIS(0x756860); }
 
 	void Adjust() const

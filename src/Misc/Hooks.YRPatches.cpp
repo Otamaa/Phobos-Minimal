@@ -176,14 +176,18 @@ DEFINE_HOOK(0x5F58CB, ObjectClass_Mark_SkipThis, 0x7)
 DEFINE_HOOK(0x727B3E, TriggerTypeClass_CalculateCRC_ValidateHouse, 0x6)
 {
 	GET(TriggerTypeClass*, pThis, ESI);
-
 	return pThis->House ? 0x0 : 0x727B55;
 }
 
-DEFINE_HOOK(0x70F831, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x5)
+DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 {
-	GET(CaptureManagerClass*, pManager, ECX);
-	return pManager ? 0x0 : 0x70F837;
+  GET(TechnoClass*  , pThis , ECX);
+ 
+	if(pThis->MindControlledBy && !pThis->MindControlledBy->CaptureManager){
+		return 0x70F837;
+	}
+
+	return 0x70F82A;
 }
 
 DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ValidateHouse, 0x6)

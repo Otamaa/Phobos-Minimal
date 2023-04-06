@@ -111,6 +111,8 @@ public:
 		CDTimerClass ToProtectDelay;
 		OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 		TemporalClass* MyOriginalTemporal;
+		Armor CurrentArmor;
+		bool SupressEVALost;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -160,7 +162,6 @@ public:
 			, DamageSelfState {}
 			, CurrentWeaponIdx { -1}
 
-
 #ifdef ENABLE_HOMING_MISSILE
 			, MissileTargetTracker { nullptr }
 #endif
@@ -175,6 +176,8 @@ public:
 			, ToProtectDelay { }
 			, AltOccupation { }
 			, MyOriginalTemporal { nullptr }
+			, CurrentArmor { Armor::None }
+			, SupressEVALost { false }
 #endif;
 		{ 		
 			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
@@ -248,7 +251,7 @@ private:
 
 	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false,bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
 	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
-	static bool IsInWarfactory(TechnoClass* pThis);
+	static bool IsInWarfactory(TechnoClass* pThis , bool bCheckNaval = false);
 
 	static bool IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker);
 

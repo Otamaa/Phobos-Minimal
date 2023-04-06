@@ -12,9 +12,89 @@ class TechnoTypeClass;
 uintptr_t AresData::PhobosBaseAddress = 0x0;
 uintptr_t AresData::AresBaseAddress = 0x0;
 HMODULE AresData::AresDllHmodule = nullptr;
-int AresData::AresVersionId = AresData::Version::Unknown;
+AresData::Version AresData::AresVersionId = AresData::Version::Unknown;
 bool AresData::CanUseAres = false;
 DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
+
+template<int idx, typename Tret, typename... TArgs>
+struct AresStdcall
+{
+	using fp_type = Tret(__stdcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresStdcall<idx, void, TArgs...>
+{
+	using fp_type = void(__stdcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename... TArgs>
+struct AresCdecl
+{
+	using fp_type = Tret(__cdecl*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresCdecl<idx, void, TArgs...>
+{
+	using fp_type = void(__cdecl*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename... TArgs>
+struct AresFastcall
+{
+	using fp_type = Tret(__fastcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename... TArgs>
+struct AresFastcall<idx, void, TArgs...>
+{
+	using fp_type = void(__fastcall*)(TArgs...);
+	decltype(auto) operator()(TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+	}
+};
+
+template<int idx, typename Tret, typename TThis, typename... TArgs>
+struct AresThiscall
+{
+	using fp_type = Tret(__fastcall*)(TThis, void*, TArgs...);
+	decltype(auto) operator()(TThis pThis, TArgs... args) const
+	{
+		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+	}
+};
+
+template<int idx, typename TThis, typename... TArgs>
+struct AresThiscall<idx, void, TThis, TArgs...>
+{
+	using fp_type = void(__fastcall*)(TThis, void*, TArgs...);
+	void operator()(TThis pThis, TArgs... args) const
+	{
+		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+	}
+};
 
 uintptr_t AresData::GetModuleBaseAddress(const char* modName)
 {
@@ -45,11 +125,6 @@ void AresData::Init()
 	const DWORD TimeDateStamp = *(PEHeaderPtr + 2);
 	switch (TimeDateStamp)
 	{
-	case AresTimestampBytes[Version::Ares30]:
-		AresVersionId = Version::Ares30;
-		CanUseAres = true;
-		Debug::LogDeferred("[Phobos] Detected Ares 3.0.\n");
-		break;
 	case AresTimestampBytes[Version::Ares30p]:
 		AresVersionId = Version::Ares30p;
 		CanUseAres = true;
@@ -104,6 +179,46 @@ Action AresData::GetInfActionOverObject(InfantryClass* const pInf, BuildingClass
 void AresData::SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
 {
 	AresStdcall<SetMouseCursorActionID, void, size_t, Action, bool>()(CursorIdx , nAction , bShrouded);
+}
+
+CanBuildResult AresData::PrereqValidate(HouseClass* const pHouse, TechnoTypeClass* const pItem, bool const buildLimitOnly, bool const includeQueued)
+{
+	return AresStdcall<HouseCanBuildID, CanBuildResult, HouseClass* , TechnoTypeClass*, bool , bool>()(pHouse, pItem , buildLimitOnly , includeQueued);
+}
+
+bool AresData::SW_Activate(SuperClass* pSuper, CellStruct cell, bool isPlayer)
+{
+	return AresStdcall<SWActivateID, bool, SuperClass*, CellStruct, bool>()(pSuper, cell, isPlayer);
+}
+
+void AresData::TechnoExt_ExtData_DepositTiberium(TechnoClass* const pTechno, float const amount, float const bonus, int const idxType)
+{
+	AresThiscall<DepositTiberiumID, void, void* , float , float , int>()(GetAresTechnoExt(pTechno) ,amount , bonus , idxType);
+}
+
+void AresData::HouseExt_ExtData_ApplyAcademy(HouseClass* const pThis, TechnoClass* const pTarget, AbstractType Type)
+{
+	AresThiscall<ApplyAcademyID, void, void*, TechnoClass*, AbstractType>()(GetAresHouseExt(pThis), pTarget, Type);
+}
+
+VoxelStruct* AresData::GetTurretsVoxel(TechnoTypeClass* const pThis, int index)
+{
+	return AresThiscall<GetTurretVXLDataID, VoxelStruct*, void*, int>()(GetAresTechnoTypeExt(pThis), index);
+}
+
+void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo)
+{
+	AresStdcall<TechnoTransferAffectsID, void, TechnoClass*, TechnoClass*>()(pFrom, pTo);
+}
+
+bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
+{
+	return AresThiscall<IsGenericPrerequisiteID, bool, void*>()(GetAresTechnoTypeExt(pThis));
+}
+
+int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
+{
+	return AresThiscall<GetSelfHealAmountID, int, void*>()(GetAresTechnoExt(pTechno));
 }
 
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)

@@ -75,8 +75,8 @@ DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
 	GET(int, nArmor, EDX);
 	GET(int, nDamage, ECX);
 
-	auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
-	auto vsData = &pExt->Verses[nArmor];
+	const auto pExt = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto vsData = &pExt->Verses[nArmor];
 
 	R->EAX(static_cast<int>((nDamage * vsData->Verses)));
 	return 0x489249;
@@ -90,8 +90,8 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
-	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
-	auto vsData = &pData->Verses[nArmor];
+	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto vsData = &pData->Verses[nArmor];
 
 	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
@@ -109,8 +109,8 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, EDI);
 	GET(int, nArmor, EAX);
 
-	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
-	auto vsData = &pData->Verses[nArmor];
+	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto vsData = &pData->Verses[nArmor];
 
 	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
@@ -128,8 +128,8 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 	GET_STACK(double, mult, 0x18);
 	GET(TechnoTypeClass*, pThisType, EBX);
 
-	auto pData = WarheadTypeExt::ExtMap.Find(pTargetWH);
-	auto vsData = &pData->Verses[(int)pThisType->Armor];
+	const auto pData = WarheadTypeExt::ExtMap.Find(pTargetWH);
+	const auto vsData = &pData->Verses[(int)pThisType->Armor];
 
 	double nMult = 0.0;
 
@@ -153,8 +153,8 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	GET_STACK(double, dmult, 0x10);
 	GET_STACK(double, dCoeff, 0x30);
 
-	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
-	auto vsData = &pData->Verses[nArmor];
+	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto vsData = &pData->Verses[nArmor];
 
 	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
@@ -174,13 +174,13 @@ DEFINE_OVERRIDE_HOOK(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
 	GET_STACK(WeaponTypeClass*, pWeapon_A, 0x10);
 	GET_STACK(WeaponTypeClass*, pWeapon_B, 0x14);
 
-	int nArmor = (int)pTarget->GetTechnoType()->Armor;
-	auto vsData_A = &WarheadTypeExt::ExtMap.Find(pWeapon_A->Warhead)->Verses[nArmor];
+	const int nArmor = (int)pTarget->GetTechnoType()->Armor;
+	const auto vsData_A = &WarheadTypeExt::ExtMap.Find(pWeapon_A->Warhead)->Verses[nArmor];
 
 	if (vsData_A->Verses == 0.0)
 		return UsePrimary;
 
-	auto vsData_B = &WarheadTypeExt::ExtMap.Find(pWeapon_B->Warhead)->Verses[nArmor];
+	const auto vsData_B = &WarheadTypeExt::ExtMap.Find(pWeapon_B->Warhead)->Verses[nArmor];
 
 	return vsData_B->Verses != 0.0 ? ContinueCheck : UseSecondary;
 }
@@ -192,8 +192,8 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
-	auto pData = WarheadTypeExt::ExtMap.Find(pWH);
-	auto vsData = &pData->Verses[nArmor];
+	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
+	const auto vsData = &pData->Verses[nArmor];
 
 	return vsData->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
 		? Retaliate
@@ -204,8 +204,8 @@ DEFINE_OVERRIDE_HOOK(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
 DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);
-	if (ArmorTypeClass::Array.empty())
-	{
+
+	if (ArmorTypeClass::Array.empty()) {
 		ArmorTypeClass::AddDefaults();
 	}
 

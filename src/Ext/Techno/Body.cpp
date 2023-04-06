@@ -475,7 +475,7 @@ bool TechnoExt::TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWe
 		if (Is_Unit(pFoot)) {
 
 			auto const pUnit = static_cast<UnitClass*>(pTarget);
-			const auto bDriverKilled = AresData::CanUseAres && AresData::AresVersionId == 1 ? (*(bool*)((char*)pUnit->align_154 + 0x9C)) : false;
+			const auto bDriverKilled = AresData::CanUseAres && AresData::AresVersionId == AresData::Version::Ares30p ? (*(bool*)((char*)pUnit->align_154 + 0x9C)) : false;
 			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 			if (bDriverKilled && pWeaponExt->Abductor.Get())
@@ -3010,7 +3010,7 @@ int TechnoExt::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno,
 	return -1;
 }
 
-bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
+bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 {
 	if (!Is_Unit(pThis) || pThis->IsInAir())
 		return false;
@@ -3030,7 +3030,13 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis)
 	if (!pBld)
 		return false;
 
-	return pBld == pContact && !pBld->Type->Naval && pBld->Type->WeaponsFactory;
+	if (pBld != pContact)
+		return false;
+
+	if (bCheckNaval && !pBld->Type->Naval)
+		return false;
+
+	return pBld->Type->WeaponsFactory;
 }
 
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
@@ -3213,6 +3219,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->PaintBallState)
 		.Process(this->DamageSelfState)
 		.Process(this->CurrentWeaponIdx)
+		.Process(this->CurrentArmor)
+		.Process(this->SupressEVALost)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif

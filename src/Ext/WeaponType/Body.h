@@ -91,6 +91,21 @@ public:
 		Nullable<Point3D> Wave_Intent;
 		bool   Wave_Reverse[5];
 
+		// custom Ivan Bombs
+		Valueable<bool> Ivan_KillsBridges;
+		Valueable<bool> Ivan_Detachable;
+		Nullable<int> Ivan_Damage;
+		Nullable<int> Ivan_Delay;
+		NullableIdx<VocClass> Ivan_TickingSound;
+		NullableIdx<VocClass> Ivan_AttachSound;
+		Nullable<WarheadTypeClass*> Ivan_WH;
+		Nullable<SHPStruct*> Ivan_Image;
+		Nullable<int> Ivan_FlickerRate;
+		Nullable<bool> Ivan_CanDetonateTimeBomb;
+		Nullable<bool> Ivan_CanDetonateDeathBomb;
+		Valueable<bool> Ivan_DetonateOnSell;
+		//
+
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
@@ -148,6 +163,19 @@ public:
 			, Wave_Color {  }
 			, Wave_Intent { }
 			, Wave_Reverse { false }
+
+			, Ivan_KillsBridges { true }
+			, Ivan_Detachable { true }
+			, Ivan_Damage { }
+			, Ivan_Delay { }
+			, Ivan_TickingSound { }
+			, Ivan_AttachSound { }
+			, Ivan_WH { }
+			, Ivan_Image { }
+			, Ivan_FlickerRate { }
+			, Ivan_CanDetonateTimeBomb { }
+			, Ivan_CanDetonateDeathBomb { }
+			, Ivan_DetonateOnSell { false }
 		{ }
 
 		virtual ~ExtData() override  = default;

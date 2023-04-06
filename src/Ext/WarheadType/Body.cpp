@@ -682,6 +682,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
 
 	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
+
+	if (pThis->Temporal) {
+		this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
+	}
+
+	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
+	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
@@ -968,6 +976,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SuppressDeathWeapon)
 		.Process(SuppressDeathWeapon_Exclude)
 		.Process(this->DeployedDamage)
+		.Process(this->Temporal_WarpAway)
+		.Process(this->Supress_LostEva)
+		.Process(this->Temporal_HealthFactor)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

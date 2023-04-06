@@ -48,7 +48,7 @@ namespace DamageFireAnims
 	{
 		const auto pType = pThis->Type;
 		const auto pExt = BuildingExt::ExtMap.Find(pThis);
-		const auto pTypeext = BuildingTypeExt::ExtMap.Find(pType);
+		const auto pTypeext = pExt->Type;
 
 		HandleRemoveAsExt(pExt);
 

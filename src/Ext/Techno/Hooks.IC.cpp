@@ -68,7 +68,7 @@ DEFINE_HOOK(0x4DEAEE, FootClass_IronCurtain, 0x6)
 
 static DamageState __fastcall InfantryClass_IronCurtain(InfantryClass* pThis, void* _, int nDur, HouseClass* pSource, bool bIsFC) {
 
-	if (pThis->TemporalTargetingMe && pThis->Destination) {
+	if (pThis->Type->Engineer && pThis->TemporalTargetingMe && pThis->Destination) {
 		if (auto const pCell = pThis->GetCell()) {
 			if (auto const pBld = pCell->GetBuilding()) {
 				if (pThis->Destination == pBld && pBld->Type->BridgeRepairHut) {

@@ -16,8 +16,6 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
-// TODO : Some hook causing desyncs
-
 DEFINE_OVERRIDE_SKIP_HOOK(0x50928C, HouseClass_Update_Factories_Queues_SkipBrokenDTOR, 0x5, 5092A3)
 
 // reject negative indexes. if the index is the result of the function above, this

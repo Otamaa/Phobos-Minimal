@@ -150,6 +150,70 @@ namespace Funcs
 		Funcs::EnterTunnel(pTunnelData, pTunnel, pEnterer);
 		return true;
 	}
+
+	void DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
+	{
+		if (pTunnelData->empty())
+			return;
+
+		const auto pOwner = pTunnel->Owner;
+		const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(), [pTunnel](BuildingClass* pBld){
+			
+			if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
+			{
+				const auto nCurMission = pBld->CurrentMission;
+				if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
+				{
+					const auto pThatExt = DummyBuildingTypeExt::Get(pBld->Type);
+					const auto pThisExt = DummyBuildingTypeExt::Get(pTunnel->Type);
+					if (pThatExt->TunnelType == pThisExt->TunnelType)
+					{
+						return false;
+					}
+				}
+			}
+
+			return true;
+		});
+
+
+		if (It != pOwner->Buildings.end()) {
+			std::for_each(pTunnelData->begin(), pTunnelData->end(), [=](FootClass* pFoot) { 
+				
+				if (auto pTeam = pFoot->Team)
+					pTeam->RemoveMember(pFoot);
+
+				pFoot->RegisterDestruction(pKiller);
+				pFoot->UnInit();
+			});
+		}
+	}
+}
+
+#include <TemporalClass.h>
+
+DEFINE_OVERRIDE_HOOK(0x442DF2 , BuildingClass_Demolish_Tunnel, 6)
+{
+	GET_STACK(AbstractClass*, pKiller, 0x90);
+	GET(BuildingClass*, pTarget, EDI);
+
+	if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner)) {
+		TechnoClass* pKiller = generic_cast<TechnoClass*>(pKiller);
+		Funcs::DestroyTunnel(pTunnelData, pTarget, pKiller);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
+{
+	GET(TemporalClass* , pThis , ESI);
+	GET(BuildingClass* , pTarget , EBP);
+
+	 if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner))
+		 Funcs::DestroyTunnel(pTunnelData, pTarget, pThis->Owner);
+
+	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
@@ -185,4 +249,18 @@ DEFINE_OVERRIDE_HOOK(0x741CE5, UnitClass_SetDestination_Tunnel, 0x6)
 		canbeDestination = pExt->TunnelType >= 0;
 
 	return canbeDestination ? 0x741CF5 : 0x741D12;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+
+	const auto pExt = DummyBuildingTypeExt::Get(pBuilding->Type);
+
+	bool canbeDestination = pBuilding->Type->UnitAbsorb;
+
+	if (!canbeDestination)
+		canbeDestination = pExt->TunnelType >= 0;
+
+	return canbeDestination ? 0x73F616 : 0x73F628;
 }

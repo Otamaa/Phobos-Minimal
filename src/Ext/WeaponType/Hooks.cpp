@@ -43,50 +43,6 @@ DEFINE_HOOK(0x773087, WeaponTypeClass_GetSpeed_ApplyGravity, 0x6)
 //	return 0;
 //}
 //
-//DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
-//{
-//	GET(TemporalClass* const, pThis, ESI);
-//
-//	if (auto const pTarget = pThis->Target) {
-//		pTarget->UpdatePlacement(PlacementType::Redraw);
-//
-//		auto nTotal = pThis->GetWarpPerStep();
-//		if (nTotal) {
-//			auto pWeapon = TemporalExt::ExtMap.Find(pThis)->Weapon;
-//			if (auto const Warhead = pWeapon->Warhead) {
-//
-//				auto const pTempOwner = pThis->Owner;
-//				auto const peWHext = WarheadTypeExt::ExtMap.Find(Warhead);
-//
-//				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get()) {
-//
-//					auto nCoord = pTarget->GetCenterCoord();
-//
-//					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord)) {
-//						pAnim->ZAdjust = pTarget->GetZAdjustment() - 3;
-//						AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
-//							, pTarget->GetOwningHouse(), pThis->Owner, false) ;
-//					}
-//				}
-//
-//				if (peWHext->TemporalExpiredApplyDamage.Get())
-//				{
-//					auto const pTargetStreght = pTarget->GetTechnoType()->Strength;
-//
-//					if (pThis->WarpRemaining > 0) {
-//
-//						auto damage = int((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
-//							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
-//
-//						if (pTarget->IsAlive && !pTarget->IsSinking && !pTarget->IsCrashing)
-//							pTarget->ReceiveDamage(&damage, pTempOwner->DistanceFrom(pTarget), Warhead, pTempOwner, false, static_cast<bool>(ScenarioClass::Instance->Random(0, 1)), pTempOwner->Owner);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	return 0x71AC5D;
-//}
+
 
 #pragma endregion

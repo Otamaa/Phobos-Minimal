@@ -48,6 +48,10 @@ public:
 
 		Valueable<bool> AAOnly;
 
+		// solid
+		Valueable<bool> SubjectToSolid;
+		Valueable<int> Solid_Level;
+
 		#pragma region Otamaa
 		Nullable<AnimTypeClass*> Parachute;
 		Nullable<double> MissileROTVar;
@@ -80,6 +84,7 @@ public:
 		Nullable<int> Proximity_Range;
 		Valueable<bool> IsScalable;
 		std::vector<LineTrailData> LineTrailData;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -107,7 +112,8 @@ public:
 			, SubjectToWater {}
 			, SubjectToWater_Detonate { true }
 			, AAOnly { false }
-
+			, SubjectToSolid { false }
+			, Solid_Level { 0 }
 			, Parachute { }
 			, MissileROTVar { }
 			, MissileSafetyAltitude { }

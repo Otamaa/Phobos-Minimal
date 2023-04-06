@@ -260,42 +260,48 @@ DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x4405CF : 0x440606;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x4405CF : 0x440606;
 }
 
 DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->EDX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
 }
 
 DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
 {
 	GET(BuildingClass*, pThis, EDI);
 	R->EDX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
 }
 
 DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x445AED : 0x445B81;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x445AED : 0x445B81;
 }
 
 DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	R->ECX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
 }
 
 DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBX);
 	R->EDX(RulesClass::Instance());
-	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x45EF23 : 0x45F00B;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis) ? 0x45EF23 : 0x45F00B;
 }
 
 DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
@@ -309,12 +315,13 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
 	HouseClass* OverlayOwner = HouseClass::Array->GetItemOrDefault(nHouseIDx);
+	const auto& Nvec = RulesExt::Global()->WallTowers;
 
 	if (PlacingObject)
 	{
 		const bool ContainsWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
 
-		if (ContainsWall && (PlacingObject->Gate || RulesExt::Global()->WallTowers.Contains(PlacingObject)))
+		if (ContainsWall && (PlacingObject->Gate || Nvec.Contains(PlacingObject)))
 		{
 			Status = Adequate;
 		}
@@ -337,7 +344,7 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 		{
 		case OVERLAY_GASAND:
 		case OVERLAY_GAWALL:
-			if (RulesExt::Global()->WallTowers.Contains(PlacingObject) ||
+			if (Nvec.Contains(PlacingObject) ||
 					PlacingObject == RulesClass::Instance->GDIGateOne ||
 					PlacingObject == RulesClass::Instance->GDIGateTwo)
 			{
@@ -368,17 +375,19 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 DEFINE_HOOK(0x4FE546, BuildingClass_AI_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
 }
 
 DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 {
 	GET(int, nNodeBuilding, EAX);
+	const auto& Nvec = RulesExt::Global()->WallTowers;
 
-	if (nNodeBuilding == -1 || RulesExt::Global()->WallTowers.empty())
+	if (nNodeBuilding == -1 || Nvec.empty())
 		return 0x4FE696;
 
-	return std::any_of(RulesExt::Global()->WallTowers.begin(), RulesExt::Global()->WallTowers.end(),
+	return std::any_of(Nvec.begin(), Nvec.end(),
 		[&](BuildingTypeClass* const pWallTower) { return pWallTower->ArrayIndex == nNodeBuilding; })
 		? 0x4FE656 : 0x4FE696;
 }
@@ -386,20 +395,23 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x50735C : 0x507306;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis) ? 0x50735C : 0x507306;
 }
 
 DEFINE_HOOK(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
-	return RulesExt::Global()->WallTowers.Contains(pThis) ? 0x50A980 : 0x50AB90;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis) ? 0x50A980 : 0x50AB90;
 }
 
 DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 {
 	GET(BuildingClass*, pThis, EBX);
 	R->EAX(pThis->Type);
-	return RulesExt::Global()->WallTowers.Contains(pThis->Type) ? 0x50A9EA : 0x50AB3D;
+	const auto& Nvec = RulesExt::Global()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x50A9EA : 0x50AB3D;
 }
 #pragma endregion
 
@@ -762,7 +774,7 @@ DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 
 	if (pTypeExt->CloakMove.isset())
 	{
-		return pTypeExt->CloakMove.Get() && !pThis->Locomotor->Is_Moving() ?
+		return pTypeExt->CloakMove.Get() && !pThis->Locomotor.get()->Is_Moving() ?
 			ReturnFalse : Continue;
 	}
 
@@ -2119,105 +2131,6 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 
 	GET(BuildingClass*, pBuilding, EBX);
 	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
-}
-
-DEFINE_HOOK(0x737F86, UnitClass_ReceiveDamage_DoBeforeAres, 0x6)
-{
-	GET(UnitTypeClass*, pType, EAX);
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x54);
-	GET_STACK(bool, select, 0x13);
-	GET_STACK(bool, ignoreDefenses, 0x58);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x44, -0x18));
-
-	if (!ignoreDefenses)
-		return 0x0;
-
-	if (pType->OpenTopped)
-	{
-		pThis->MarkPassengersAsExited();
-	}
-
-	if (!preventPassangersEscape)
-	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		// passenger escape chances
-		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
-
-		// eject or kill all passengers
-		while (pThis->Passengers.GetFirstPassenger())
-		{
-			auto const pPassenger = pThis->RemoveFirstPassenger();
-			bool trySpawn = false;
-			if (passengerChance > 0)
-			{
-				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
-			}
-			else if (passengerChance == -1 && Is_Unit(pThis))
-			{
-				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
-				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
-			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, select))
-			{
-				continue;
-			}
-
-			// kill passenger, if not spawned
-			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller, true);
-		}
-	}
-
-	return 0x737F97;
-}
-
-DEFINE_HOOK(0x41668B, AircraftClass_ReceiveDamage_DoBeforeAres, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x28);
-	GET_STACK(int, ignoreDefenses, 0x20);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x14, -0x18));
-
-	if (!ignoreDefenses)
-		return 0x0;
-
-	if (!preventPassangersEscape)
-	{
-		bool select = pThis->IsSelected && pThis->Owner->ControlledByPlayer();
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-		// passenger escape chances
-		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
-
-		// eject or kill all passengers
-		while (pThis->Passengers.GetFirstPassenger())
-		{
-			auto const pPassenger = pThis->RemoveFirstPassenger();
-			bool trySpawn = false;
-
-			if (passengerChance > 0)
-			{
-				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
-			}
-			else if (passengerChance == -1 && Is_Unit(pThis))
-			{
-				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
-				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
-			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, select))
-			{
-				continue;
-			}
-
-			// kill passenger, if not spawned
-			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller, true);
-		}
-	}
-
-	return 0x0;
 }
 
 static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)

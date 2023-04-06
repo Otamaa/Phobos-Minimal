@@ -98,12 +98,11 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	RulesExt::ExtData* pData = RulesExt::Global();
-
-	if (!pData)
-		return;
-
 	INI_EX exINI(pINI);
+
+	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
+	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
+
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), "SpecialWeapons", "NukeWarhead");
@@ -176,6 +175,14 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SelectBrd_DefaultShowEnemy.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultShowEnemy");
 
 	this->VeteranFlashTimer.Read(exINI, AUDIOVISUAL_SECTION, "VeteranFlashTimer");
+
+	this->Tiberium_DamageEnabled.Read(exINI, GENERAL_SECTION, "TiberiumDamageEnabled");
+	this->Tiberium_HealEnabled.Read(exINI, GENERAL_SECTION, "TiberiumHealEnabled");
+	this->Tiberium_ExplosiveWarhead.Read(exINI, COMBATDAMAGE_SECTION, "TiberiumExplosiveWarhead");
+
+	this->OverlayExplodeThreshold.Read(exINI, GENERAL_SECTION, "OverlayExplodeThreshold");
+	this->AlliedSolidTransparency.Read(exINI, COMBATDAMAGE_SECTION, "AlliedSolidTransparency");
+	this->DecloakSound.Read(exINI, AUDIOVISUAL_SECTION, "DecloakSound");
 
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
@@ -585,6 +592,12 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->IC_Flash)
 		.Process(this->VeteranFlashTimer)
 
+		.Process(this->Tiberium_DamageEnabled)
+		.Process(this->Tiberium_HealEnabled)
+		.Process(this->Tiberium_ExplosiveWarhead)
+		.Process(this->OverlayExplodeThreshold)
+		.Process(this->AlliedSolidTransparency)
+		.Process(this->DecloakSound)
 		.Process(this->VeinholeParticle)
 		.Process(this->DefaultVeinParticle)
 		.Process(this->DefaultSquidAnim)
@@ -612,6 +625,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->AutoRepelAI)
 		.Process(this->AutoRepelPlayer)
 		.Process(this->AIFriendlyDistance)
+
+		.Process(this->StealthSpeakDelay)
+		.Process(this->SubterraneanSpeakDelay)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

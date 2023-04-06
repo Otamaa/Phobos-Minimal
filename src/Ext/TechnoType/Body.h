@@ -13,6 +13,8 @@
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 
+#include <FileSystem.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
 #include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
@@ -29,6 +31,14 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
+struct ImageStatusses {
+	VoxelStruct Images;
+	bool Loaded;
+
+	static void ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4);
+
+};
+
 class Matrix3D;
 
 class TechnoTypeExt
@@ -40,6 +50,10 @@ public:
 	//static constexpr size_t ExtOffset = 0x35C;
 	static constexpr size_t ExtOffset = 0xDF4;
 #endif
+	using ImageVector = std::vector<VoxelStruct>;
+
+	static void InitImageData(ImageVector& nVec, size_t size = 1);
+	static void ClearImageData(ImageVector& nVec, size_t pos = 0);
 
 	class ExtData : public Extension<TechnoTypeClass>
 	{
@@ -462,7 +476,83 @@ public:
 		ValueableVector<TechnoTypeClass*> PassengersWhitelist;
 		ValueableVector<TechnoTypeClass*> PassengersBlacklist;
 
+		Valueable<bool> NoManualUnload;
+		Valueable<bool> NoManualFire;
+		Valueable<bool> NoManualEnter;
+
 		Valueable<bool> Passengers_BySize;
+		Nullable<bool> Crashable;
+
+		Valueable<TechnoTypeClass*> Convert_Deploy;
+
+		Nullable<int> Harvester_LongScan;
+		Nullable<int> Harvester_ShortScan;
+		Nullable<int> Harvester_ScanCorrection;
+		
+		Nullable<int> Harvester_TooFarDistance;
+		Nullable<int> Harvester_KickDelay;
+
+		Nullable<int> TurretRot;
+		Valueable<UnitTypeClass*> WaterImage;
+
+		Valueable<int> FallRate_Parachute;
+		Valueable<int> FallRate_NoParachute;
+		Nullable<int>  FallRate_ParachuteMax;
+		Nullable<int> FallRate_NoParachuteMax;
+
+		ImageVector BarrelImageData;
+		ImageVector TurretImageData;
+		VoxelStruct SpawnAltData;
+
+		ValueableVector<CSFText> WeaponUINameX;
+		Valueable<bool> NoShadowSpawnAlt;
+
+		std::vector<WeaponStruct> AdditionalWeaponDatas {};
+		std::vector<WeaponStruct> AdditionalEliteWeaponDatas {};
+		std::vector<int> AdditionalTurrentWeapon {};
+
+		Valueable<bool> OmniCrusher_Aggressive;
+		Promotable<int> CrushDamage;
+		Nullable<WarheadTypeClass*> CrushDamageWarhead;
+
+		NullableIdx<VocClass> DigInSound;
+		NullableIdx<VocClass> DigOutSound;
+		Nullable<AnimTypeClass*> DigInAnim;
+		Nullable<AnimTypeClass*> DigOutAnim;
+
+		ValueableIdx<VoxClass> EVA_UnitLost;
+
+		//Build stuffs
+		Nullable<double> BuildTime_Speed;
+		Nullable<int> BuildTime_Cost;
+		Nullable<double> BuildTime_LowPowerPenalty;
+		Nullable<double> BuildTime_MinLowPower;
+		Nullable<double> BuildTime_MaxLowPower;
+		Nullable<double> BuildTime_MultipleFactory;
+
+		Nullable<int> CloakStages;
+
+		// particles
+		Nullable<bool> DamageSparks;
+
+		NullableVector<ParticleSystemTypeClass*> ParticleSystems_DamageSmoke;
+		NullableVector<ParticleSystemTypeClass*> ParticleSystems_DamageSparks;
+
+		Valueable<bool> GattlingCyclic;
+		NullableIdx<VocClass> CloakSound;
+		NullableIdx<VocClass> DecloakSound;
+
+		ValueableIdx<VocClass> VoiceRepair;
+		Valueable<int> ReloadAmount;
+		Nullable<int> EmptyReloadAmount;
+		Valueable<bool> TiberiumSpill;
+		Nullable<bool> TiberiumRemains;
+		Valueable<bool> SensorArray_Warn;
+
+		Valueable<double> IronCurtain_Modifier;
+		Valueable<double> ForceShield_Modifier;
+		Valueable<int> Survivors_PilotCount; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -488,6 +578,7 @@ public:
 #endif
 		AresAttachEffectTypeClass AttachedEffect;
 #pragma endregion
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
 			, HealthBar_Hide { false }
@@ -850,7 +941,70 @@ public:
 			, PassengersWhitelist { }
 			, PassengersBlacklist { }
 
+			, NoManualUnload { false }
+			, NoManualFire { false }
+			, NoManualEnter { false }
+
 			, Passengers_BySize { true }
+			, Crashable { }
+
+			, Convert_Deploy { nullptr }
+			, Harvester_LongScan { }
+			, Harvester_ShortScan { }
+			, Harvester_ScanCorrection { }
+
+			, Harvester_TooFarDistance { }
+			, Harvester_KickDelay { }
+			, TurretRot { }
+
+			, WaterImage { nullptr }
+			, FallRate_Parachute { 1 }
+			, FallRate_NoParachute { 1 }
+			, FallRate_ParachuteMax { }
+			, FallRate_NoParachuteMax { }
+
+			, BarrelImageData {}
+			, TurretImageData {}
+			, SpawnAltData { nullptr , nullptr }
+			, WeaponUINameX {}
+			, NoShadowSpawnAlt { false }
+
+			, AdditionalWeaponDatas {}
+			, AdditionalEliteWeaponDatas {}
+			, AdditionalTurrentWeapon {}
+			, OmniCrusher_Aggressive { false }
+			, CrushDamage { }
+			, CrushDamageWarhead { }
+
+			, DigInSound {}
+			, DigOutSound {}
+			, DigInAnim {}
+			, DigOutAnim {}
+			, EVA_UnitLost { -1 }
+			, BuildTime_Speed {}
+			, BuildTime_Cost {}
+			, BuildTime_LowPowerPenalty {}
+			, BuildTime_MinLowPower {}
+			, BuildTime_MaxLowPower {}
+			, BuildTime_MultipleFactory {}
+
+			, CloakStages { }
+			, DamageSparks {  }
+
+			, ParticleSystems_DamageSmoke {  }
+			, ParticleSystems_DamageSparks {  }
+			, GattlingCyclic { false }
+			, CloakSound {  }
+			, DecloakSound {  }
+			, VoiceRepair { -1 }
+			, ReloadAmount { 1 }
+			, EmptyReloadAmount {  }
+			, TiberiumSpill { false }
+			, TiberiumRemains {  }
+			, SensorArray_Warn { true }
+			, IronCurtain_Modifier { 1.0 }
+			, ForceShield_Modifier { 1.0 }
+			, Survivors_PilotCount { -1 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 
@@ -924,6 +1078,8 @@ public:
 	static AnimTypeClass* GetSinkAnim(TechnoClass* pThis);
 	static double GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules);
 	static bool PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger);
+	static VoxelStruct* GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
+	static VoxelStruct* GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

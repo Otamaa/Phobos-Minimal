@@ -158,7 +158,7 @@ public:
 
 		bool WasDetonatedOnAllMapObjects;
 
-		#pragma region Otamaa
+#pragma region Otamaa
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim;
 
 		Valueable<bool> IsNukeWarhead;
@@ -257,14 +257,18 @@ public:
 		ValueableVector<TechnoTypeClass*> SuppressDeathWeapon_Exclude;
 		Valueable<double> DeployedDamage;
 
+		Nullable<AnimTypeClass*> Temporal_WarpAway;
+		Valueable<bool> Supress_LostEva;
+		Valueable<double> Temporal_HealthFactor;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
-	#endif
-	#ifdef COMPILE_PORTED_DP_FEATURES
+#endif
+#ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable<int> PaintBallDuration;
 		PaintballType PaintBallData;
-	#endif
-		#pragma endregion
+#endif
+#pragma endregion
 
 		ExtData(WarheadTypeClass* OwnerObject) : Extension<WarheadTypeClass>(OwnerObject)
 			, Reveal { 0 }
@@ -280,10 +284,10 @@ public:
 			, TransactMoney_Display_AtFirer { false }
 			, TransactMoney_Display_Offset { { 0, 0 } }
 
-			, StealMoney{ 0 }
-			, Steal_Display_Houses{ AffectedHouse::All }
-			, Steal_Display{ false }
-			, Steal_Display_Offset{ { 0, 0 } }
+			, StealMoney { 0 }
+			, Steal_Display_Houses { AffectedHouse::All }
+			, Steal_Display { false }
+			, Steal_Display_Offset { { 0, 0 } }
 
 			, SplashList {}
 			, SplashList_PickRandom { false }
@@ -354,8 +358,8 @@ public:
 			, Transact_Experience_IgnoreNotTrainable { true }
 
 			, NotHuman_DeathSequence {}
-			, AllowDamageOnSelf{ }
-			, Debris_Conventional{ false }
+			, AllowDamageOnSelf { }
+			, Debris_Conventional { false }
 			, GattlingStage { 0 }
 			, GattlingRateUp { 0 }
 			, ReloadAmmo { 0 }
@@ -468,6 +472,9 @@ public:
 			, SuppressDeathWeapon { }
 			, SuppressDeathWeapon_Exclude { }
 			, DeployedDamage { 1.00 }
+			, Temporal_WarpAway {}
+			, Supress_LostEva { false }
+			, Temporal_HealthFactor { 1.0 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

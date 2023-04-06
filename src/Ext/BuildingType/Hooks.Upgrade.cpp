@@ -41,21 +41,3 @@ DEFINE_HOOK(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 
 	return ForbidUpgrade;
 }
-
-DEFINE_HOOK(0x4F8361, HouseClass_CanBuild_UpgradesInteraction, 0x3)
-{
-	GET(HouseClass* , pThis, ECX);
-	GET_STACK(TechnoTypeClass* , pItem, 0x4);
-	GET_STACK(bool , includeInProduction, 0xC);
-	GET(CanBuildResult const, resultOfAres, EAX);
-
-	if (const auto pBuilding = type_cast<BuildingTypeClass*,true>(pItem)) {
-		if (BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
-			return 0x0;
-
-		if (resultOfAres == CanBuildResult::Buildable)
-			R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
-	}
-
-	return 0;
-}

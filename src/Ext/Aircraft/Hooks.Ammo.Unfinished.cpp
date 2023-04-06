@@ -176,7 +176,7 @@ int Mission_Attack(AircraftClass* pThis)
 				return 1;
 			}
 
-			if (!pThis->Locomotor->Is_Moving_Now())
+			if (!pThis->Locomotor.get()->Is_Moving_Now())
 			{
 				pThis->MissionStatus = (int)AirAttackStatusIDB::AIR_ATT_FIRE_AT_TARGET0;
 				return 1;

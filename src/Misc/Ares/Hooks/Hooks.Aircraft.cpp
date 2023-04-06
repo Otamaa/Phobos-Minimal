@@ -8,6 +8,7 @@
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
+#include <Misc/AresData.h>
 
 #include <HoverLocomotionClass.h>
 
@@ -17,30 +18,6 @@
 #include <Ext/VoxelAnim/Body.h>
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x414D36, AircraftClass_Update_DontloseTargetInAir, 0x5 , 414D4D)
-
-//TODO:
-//DEFINE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
-//{
-//	enum
-//	{
-//		RetFailed = 0x416C49,
-//		RetSucceeded = 0x416C5A
-//	};
-//
-//	GET(FootClass*, pCargo, ESI);
-//	GET(CoordStruct*, pCoord, ECX);
-//	GET(AircraftClass*, pThis, EDI);
-//
-//	auto const nFacing = pThis->TurretFacing();
-//	if (!pCargo->Unlimbo(*pCoord, (((nFacing.Raw >> 7) + 1) >> 1)))
-//		return RetFailed;
-//
-//	auto const nRot = pCargo->GetTechnoType()->ROT;
-//	pCargo->PrimaryFacing.Set_ROT(nRot);
-//	auto const pCargoTypeExt = TechnoTypeExt::ExtMap.Find(pCargo->GetTechnoType());
-//	pCargo->SecondaryFacing.Set_ROT(pCargoTypeExt->TurretROT.Get(nRot));
-//	return RetSucceeded;
-//}
 
 DEFINE_OVERRIDE_HOOK(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)
 {
@@ -61,9 +38,9 @@ DEFINE_OVERRIDE_HOOK(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 
 	pCargo->UpdatePosition(2);
 
-	if (pCargo->Deactivated && pCargo->Locomotor->Is_Powered())
+	if (pCargo->Deactivated && pCargo->Locomotor.get()->Is_Powered())
 	{
-		pCargo->Locomotor->Power_Off();
+		pCargo->Locomotor.get()->Power_Off();
 	}
 
 	return 0;
@@ -220,20 +197,16 @@ DEFINE_OVERRIDE_HOOK(0x6B783B, SpawnManagerClass_Update_SpawnHigh, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	AbstractClass* pDest = pThis->Owner;
-	if (pThis->Owner->GetHeight() > 0) {
-		pDest = pThis->Owner->GetCell();
-	}
+	R->EAX(pThis->Owner->GetHeight() > 0 
+		? (AbstractClass*)pThis->Owner->GetCell() : (AbstractClass*)pThis->Owner);
 
-	R->EAX<AbstractClass*>(pDest);
 	return 0;
 }
 
 /* #1354 - Aircraft and empty SovParaDropInf list */
 DEFINE_OVERRIDE_HOOK(0x41D887, AirstrikeClass_Fire, 0x6)
 {
-	if (!RulesClass::Instance->SovParaDropInf.Count)
-	{
+	if (!RulesClass::Instance->SovParaDropInf.Count) {
 		R->ECX(-1);
 		return 0x41D895;
 	}
@@ -253,4 +226,30 @@ DEFINE_OVERRIDE_HOOK(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
 	pCarryall->ReceiveDamage(&Damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
 
 	return 0x416C53;
+}
+
+DEFINE_OVERRIDE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
+{
+	enum
+	{
+		RetFailed = 0x416C49,
+		RetSucceeded = 0x416C5A
+	};
+
+	GET(FootClass*, pCargo, ESI);
+	GET(CoordStruct*, pCoord, ECX);
+	GET(AircraftClass*, pThis, EDI);
+
+	const auto nFacing = pThis->TurretFacing();
+
+	if (!pCargo->Unlimbo(*pCoord, (DirType)(((nFacing.Raw >> 7) + 1) >> 1)))
+		return RetFailed;
+	
+	const auto pCargoType = pCargo->GetTechnoType();
+	const auto pCorgoTypeExt = TechnoTypeExt::ExtMap.Find(pCargoType);
+	const auto nRot = pCargoType->ROT;
+
+	pCargo->PrimaryFacing.Set_ROT(nRot);
+	pCargo->SecondaryFacing.Set_ROT(pCorgoTypeExt->TurretRot.Get(nRot));
+	return RetSucceeded;
 }

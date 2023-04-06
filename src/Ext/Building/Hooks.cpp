@@ -64,8 +64,11 @@ DEFINE_HOOK(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
 
 	auto const pExt = BuildingExt::ExtMap.Find(pThis);
 	if (pExt->AccumulatedGrindingRefund) {
-		const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-		FlyingStrings::AddMoneyString(true, pExt->AccumulatedGrindingRefund, pThis, AffectedHouse::All, pThis->GetRenderCoords(), pTypeExt->Grinding_DisplayRefund_Offset);
+		FlyingStrings::AddMoneyString(true, 
+			pExt->AccumulatedGrindingRefund, 
+			pThis, AffectedHouse::All, 
+			pThis->GetRenderCoords(), 
+			pExt->Type->Grinding_DisplayRefund_Offset);
 		pExt->AccumulatedGrindingRefund = 0;
 	}
 

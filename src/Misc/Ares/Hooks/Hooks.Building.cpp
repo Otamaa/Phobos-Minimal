@@ -627,61 +627,63 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		BuildingExt::HandleInfiltrate(pBuilding, pHouse);
 		return InfiltrateSucceded;
 	}
-
-	if (nResult != Action::NoMove)
-		return SkipInfiltrate;
-
-	const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
-
-	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
-		|| pBuilding->GetCurrentMission() == Mission::Selling)
+	else
+	if (nResult == Action::NoMove)
 	{
-		pThis->AbortMotion();
-		pThis->Uncloak(false);
-		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-		pThis->ReloadTimer.Start(Rof);
-		return SkipInfiltrate;
+		const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
+
+		if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
+			|| pBuilding->GetCurrentMission() == Mission::Selling)
+		{
+			pThis->AbortMotion();
+			pThis->Uncloak(false);
+			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+			pThis->ReloadTimer.Start(Rof);
+			return SkipInfiltrate;
+		}
+		else if (pBuilding->C4Applied)
+		{
+			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+			pThis->ReloadTimer.Start(Rof);
+			return SkipInfiltrate;
+		}
+
+		// sabotage
+		pBuilding->C4Applied = true;
+		pBuilding->C4AppliedBy = pThis;
+
+		const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+		const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
+
+		auto duration = (int)(delay * 900.0);
+
+		// modify good durations only
+		if (duration > 0)
+		{
+			duration = (int)(duration * pData->C4_Modifier);
+			if (duration <= 0)
+				duration = 1;
+		}
+
+		pBuilding->Flash(duration / 2);
+		pBuilding->C4Timer.Start(duration);
+
+		if (auto const pTag = pBuilding->AttachedTag)
+		{
+			pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
+		}
+
+		return InfiltrateSucceded;
 	}
-	else if (pBuilding->C4Applied)
-	{
-		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-		pThis->ReloadTimer.Start(Rof);
-		return SkipInfiltrate;
-	}
 
-	// sabotage
-	pBuilding->C4Applied = true;
-	pBuilding->C4AppliedBy = pThis;
+	return SkipInfiltrate;
 
-	const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
-
-	auto duration = (int)(delay * 900);
-
-	// modify good durations only
-	if (duration > 0)
-	{
-		duration = (int)(duration * pData->C4_Modifier);
-		if (duration <= 0)
-			duration = 1;
-	}
-
-	pBuilding->Flash(duration / 2);
-	pBuilding->C4Timer.Start(duration);
-
-	if (auto const pTag = pBuilding->AttachedTag)
-	{
-		pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
-	}
-
-	return InfiltrateSucceded;
 }
 
 /*	Hook pack for DockUnload , put them onto one hook file for easy diagnostic later on -Otamaa */
 
 namespace Get
 {
-
 	DirStruct UnloadFacing(UnitClass* pThis)
 	{
 		DirStruct nResult;
@@ -712,7 +714,8 @@ namespace Get
 			const auto pBldCells = pBld->InlineMapCoords();
 			const auto pThisCells = pThis->InlineMapCoords();
 
-			if ((pBldCells + UnloadCell(pBld)) == pThisCells) {
+			if ((pBldCells + UnloadCell(pBld)) == pThisCells)
+			{
 				return pBld;
 			}
 		}
@@ -731,7 +734,7 @@ DEFINE_OVERRIDE_HOOK(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing,
 	if (*nCurrentFacing == nDecidedFacing)
 		return 0x73771B;
 
-	pUnit->Locomotor->Do_Turn(nDecidedFacing);
+	pUnit->Locomotor.get()->Do_Turn(nDecidedFacing);
 
 	return 0x73770C;
 }
@@ -746,7 +749,7 @@ DEFINE_OVERRIDE_HOOK(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
 	if (*nCurrentFacing == nDecidedFacing || pUnit->IsRotating)
 		return 0x73DFBD;
 
-	pUnit->Locomotor->Do_Turn(nDecidedFacing);
+	pUnit->Locomotor.get()->Do_Turn(nDecidedFacing);
 
 	return 0x73DFB0;
 }
@@ -789,4 +792,78 @@ DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 	GET(UnitClass*, pThis, EBP);
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x741C28;
+}
+
+#include <Misc/AresData.h>
+#include <Utilities/Cast.h>
+
+DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
+{
+	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
+/* return
+	 1 - cameo shown
+	 0 - cameo not shown
+	-1 - cameo greyed out
+ */
+
+	GET(HouseClass* const, pThis, ECX);
+	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
+	GET_STACK(bool const, buildLimitOnly, 0x8);
+	GET_STACK(bool const, includeInProduction, 0xC);
+
+	const auto nAresREsult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+	
+	if (const auto pBuilding = type_cast<BuildingTypeClass*, true>(pItem)) {
+		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
+		{  if (nAresREsult == CanBuildResult::Buildable) {	
+				R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
+				return 0x4F8361;
+			}
+		}
+	}
+
+	R->EAX(nAresREsult);
+	return 0x4F8361;
+}
+
+#define Is_FirestromWall(techno) \
+(*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
+
+#define Is_Passable(techno) \
+(*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
+
+DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
+{
+	GET(BuildingClass* const, pBld, ESI);
+
+	enum
+	{
+		Impassable = 0x73FCD0, // return Move_No
+		Ignore = 0x73FA87, // check next object
+		NoDecision = 0x73F7D3, // check other
+		CheckFirestormActive = 0x73F7BA // check if the object owner has FirestromActive flag
+	};
+
+	if (Is_Passable(pBld->Type))
+	{
+		return Ignore;
+	}
+
+	if (Is_FirestromWall(pBld->Type)) {
+		return CheckFirestormActive;
+	}
+
+	return NoDecision;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x20, 0x8));
+	const auto pWP = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	if (pWP->Ammo > 0)
+		pThis->StartReloading();
+
+	return 0x741406;
 }

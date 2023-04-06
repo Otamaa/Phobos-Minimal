@@ -109,6 +109,17 @@ public:
 
 		Valueable<bool> IC_Flash;
 		Valueable<int> VeteranFlashTimer;
+
+		Valueable<bool> Tiberium_DamageEnabled;
+		Valueable<bool> Tiberium_HealEnabled;
+		Valueable<WarheadTypeClass*> Tiberium_ExplosiveWarhead;
+
+		Valueable<int> OverlayExplodeThreshold;
+		Valueable<bool> AlliedSolidTransparency;
+		NullableIdx<VocClass> DecloakSound;
+
+		Valueable<double> StealthSpeakDelay;
+		Valueable<double> SubterraneanSpeakDelay;
 	#pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -218,6 +229,14 @@ public:
 			, IC_Flash { true }
 			, VeteranFlashTimer { 0 }
 
+			, Tiberium_DamageEnabled { false }
+			, Tiberium_HealEnabled { false }
+			, Tiberium_ExplosiveWarhead { nullptr }
+			, OverlayExplodeThreshold { 0 }
+			, AlliedSolidTransparency { true }
+			, DecloakSound { }
+			, StealthSpeakDelay { 1.0 }
+			, SubterraneanSpeakDelay { 1.0 }
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
 			, DefaultSquidAnim { nullptr }

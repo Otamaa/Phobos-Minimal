@@ -29,7 +29,79 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	this->UseNormalLight.Read(exINI, pSection, "UseNormalLight");
 	this->EnablePixelFXAnim.Read(exINI, pSection, "EnablePixelFX");
+
+
+	this->Damage.Read(exINI, pSection, "Damage");
+	this->Warhead.Read(exINI, pSection, "Warhead");
+
+	this->Heal_Step.Read(exINI, pSection, "Heal.Step");
+	this->Heal_IStep.Read(exINI, pSection, "Heal.IStep");
+	this->Heal_UStep.Read(exINI, pSection, "Heal.UStep");
+	this->Heal_Delay.Read(exINI, pSection, "Heal.Delay");
+
+	this->ExplosionWarhead.Read(exINI, pSection, "ExplosionWarhead");
+	this->ExplosionDamage.Read(exINI, pSection, "ExplosionDamage");
+
+	this->DebrisChance.Read(exINI, pSection, "Debris.Chance");
 }
+
+double TiberiumExt::ExtData::GetHealDelay() const
+{
+	return this->Heal_Delay.Get(RulesClass::Instance->TiberiumHeal);
+}
+
+int TiberiumExt::ExtData::GetHealStep(TechnoClass* pTechno) const
+{
+	auto pType = pTechno->GetTechnoType();
+	int step = pType->GetRepairStep();
+
+	switch (pType->WhatAmI())
+	{
+	case InfantryTypeClass::AbsID:
+		step = this->Heal_IStep.Get(step);
+		break;
+	case UnitTypeClass::AbsID:
+		step = this->Heal_UStep.Get(step);
+		break;
+	default:
+		step = this->Heal_Step.Get(step);
+		break;
+	}
+
+	return step;
+}
+
+int TiberiumExt::ExtData::GetDamage() const
+{
+	int damage = this->OwnerObject()->Power / 10;
+	if (damage < 1)
+	{
+		damage = 1;
+	}
+
+	return this->Damage.Get(damage);
+}
+
+WarheadTypeClass* TiberiumExt::ExtData::GetWarhead() const
+{
+	return this->Warhead.Get(RulesClass::Instance->C4Warhead);
+}
+
+WarheadTypeClass* TiberiumExt::ExtData::GetExplosionWarhead() const
+{
+	return this->ExplosionWarhead.Get(RulesClass::Instance->C4Warhead);
+}
+
+int TiberiumExt::ExtData::GetExplosionDamage() const
+{
+	return this->ExplosionDamage.Get(RulesClass::Instance->TiberiumExplosionDamage);
+}
+
+int TiberiumExt::ExtData::GetDebrisChance() const
+{
+	return this->DebrisChance;
+}
+
 
 // =============================
 // container
@@ -45,6 +117,15 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 		.Process(this->EnableLighningFix)
 		.Process(this->UseNormalLight)
 		//.Process(this->Replaced_EC)
+		.Process(this->Damage)
+		.Process(this->Warhead)
+		.Process(this->Heal_Step)
+		.Process(this->Heal_IStep)
+		.Process(this->Heal_UStep)
+		.Process(this->Heal_Delay)
+		.Process(this->ExplosionWarhead)
+		.Process(this->ExplosionDamage)
+		.Process(this->DebrisChance)
 	;
 }
 

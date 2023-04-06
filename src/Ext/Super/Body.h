@@ -16,7 +16,11 @@ public:
 	{
 	public:
 
+		bool Temp_IsPlayer;
+		CellStruct Temp_CellStruct;
 		ExtData(SuperClass* OwnerObject) : Extension<SuperClass>(OwnerObject)
+			, Temp_IsPlayer { false }
+			, Temp_CellStruct { }
 		{ }
 
 		virtual ~ExtData() override  = default;

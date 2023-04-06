@@ -164,7 +164,7 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount, 0x8)
+DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 {
 	GET(TechnoClass* const, pThis, ECX);
 
@@ -276,7 +276,7 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot)
 	{
-		if (AresData::CanUseAres && AresData::AresVersionId == 1 && Is_Unit(pFoot))
+		if (AresData::CanUseAres && AresData::AresVersionId == AresData::Version::Ares30p && Is_Unit(pFoot))
 		{
 			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
 

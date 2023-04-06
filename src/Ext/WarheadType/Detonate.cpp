@@ -88,7 +88,7 @@ void WarheadTypeExt::ExtData::ApplyAttachTag(TechnoClass* pTarget)
 
 void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget)
 {
-	if (!AresData::CanUseAres || AresData::AresVersionId != 1 || this->Converts_From.empty() || this->Converts_To.empty())
+	if (!AresData::CanUseAres || this->Converts_From.empty() || this->Converts_To.empty())
 		return;
 
 	const auto pCurType = pTarget->GetTechnoType();

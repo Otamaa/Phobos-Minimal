@@ -34,14 +34,12 @@ void BuildingExt::ExtData::DisplayIncomeString()
 {
 	if (Unsorted::CurrentFrame % 15 == 0) {
 
-		auto const pTypeExt = BuildingTypeExt::ExtMap.Find(this->Get()->Type);
-
 		FlyingStrings::AddMoneyString(
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
 			this->Get() , AffectedHouse::All ,
 			this->Get()->GetRenderCoords(),
-			pTypeExt->Refinery_DisplayRefund_Offset
+			this->Type->Refinery_DisplayRefund_Offset
 		);
 
 		this->AccumulatedIncome = 0;
@@ -51,9 +49,8 @@ void BuildingExt::ExtData::DisplayIncomeString()
 void BuildingExt::ExtData::UpdatePoweredKillSpawns()
 {
 	auto const pThis = this->Get();
-	auto const pTechTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (pTechTypeExt->Powered_KillSpawns &&
+	if (this->Type->Type->Powered_KillSpawns &&
 		pThis->Type->Powered &&
 		!pThis->IsPowerOnline())
 	{
@@ -77,7 +74,6 @@ void BuildingExt::ExtData::UpdatePoweredKillSpawns()
 void BuildingExt::ExtData::UpdateAutoSellTimer()
 {
 	auto const pThis = this->Get();
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 	auto const nMission = pThis->GetCurrentMission();
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
@@ -87,10 +83,10 @@ void BuildingExt::ExtData::UpdateAutoSellTimer()
 
 		auto const pRulesExt = RulesExt::Global();
 
-		if (pTypeExt->AutoSellTime.isset() && std::abs(pTypeExt->AutoSellTime.Get()) > 0.00f) {
+		if (this->Type->AutoSellTime.isset() && std::abs(this->Type->AutoSellTime.Get()) > 0.00f) {
 
 			if (!AutoSellTimer.HasStarted())
-				AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
+				AutoSellTimer.Start(static_cast<int>(this->Type->AutoSellTime.Get() * 900.0));
 			else
 			{
 				if (AutoSellTimer.Completed())
@@ -248,14 +244,11 @@ bool BuildingExt::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfilt
 bool BuildingExt::ExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
 	const auto pThis = this->Get();
-	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto count = this->Type->GetSuperWeaponCount();
 
-	const auto count = pExt->GetSuperWeaponCount();
-	for (auto i = 0; i < count; ++i)
-	{
-		const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
-		if (idxSW == index)
-		{
+	for (auto i = 0; i < count; ++i) {
+		const auto idxSW = this->Type->GetSuperWeaponIndex(i, pThis->Owner);
+		if (idxSW == index) {
 			return true;
 		}
 	}
@@ -298,12 +291,14 @@ void BuildingExt::ExtData::InitializeConstants()
 	if (!Get() || !Get()->Type)
 		return;
 
+	TechnoExt = TechnoExt::ExtMap.Find(Get());
 #ifndef ENABLE_NEWHOOKS
-	if (auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type))
-	{
-		if (!pTypeExt->DamageFire_Offs.empty()) {
-			DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-		}
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type);
+		Type = pTypeExt;
+
+	if (!pTypeExt->DamageFire_Offs.empty()) {
+		DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+		DamageFireAnims.reserve(pTypeExt->DamageFire_Offs.size() + 1);
 	}
 #endif
 }
@@ -468,12 +463,10 @@ int BuildingExt::CountOccupiedDocks(BuildingClass* pBuilding)
 	if (!pBuilding || !pBuilding->Type)
 		return 0;
 
-	if (pBuilding->RadioLinks.IsAllocated && pBuilding->RadioLinks.IsInitialized)
-	{
-		for (auto i = 0; i < pBuilding->RadioLinks.Capacity; ++i)
-		{
+	if (pBuilding->RadioLinks.IsAllocated && pBuilding->RadioLinks.IsInitialized) {
+		for (auto i = 0; i < pBuilding->RadioLinks.Capacity; ++i) {
 			if (auto const pLink = pBuilding->RadioLinks[i]) {
-				if((((DWORD*)pLink)[0]) == AircraftClass::vtable) {
+				if(Is_Aircraft(pLink)) {
 					nOccupiedDocks++;
 				}
 			}
@@ -490,13 +483,12 @@ bool BuildingExt::HasFreeDocks(BuildingClass* pBuilding)
 
 bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 {
-	const auto pWhat = (((DWORD*)pTechno)[0]);
-	if (pWhat != InfantryClass::vtable && pWhat != UnitClass::vtable)
+	if (!Is_Infantry(pTechno) && !Is_Unit(pTechno))
 		return false;
 
 	if ((pBuilding->Type->InfantryAbsorb || pBuilding->Type->UnitAbsorb) 
-		&& (pWhat == InfantryClass::vtable && !pBuilding->Type->InfantryAbsorb ||
-			pWhat == UnitClass::vtable && !pBuilding->Type->UnitAbsorb))
+		&& (Is_Infantry(pTechno) && !pBuilding->Type->InfantryAbsorb ||
+			Is_Unit(pTechno) && !pBuilding->Type->UnitAbsorb))
 	{
 		return false;
 	}
@@ -525,7 +517,7 @@ bool BuildingExt::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTechno)
 bool BuildingExt::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts)
 {
 	const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
-	const auto pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto pTypeExt = pExt->Type;
 
 	{
 		if (!pTechno)
@@ -559,7 +551,6 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 {
 	auto const pOwnerExt = HouseExt::ExtMap.Find(pOwner);
 
-
 	// BuildLimit check goes before creation
 	if (pType->BuildLimit > 0)
 	{
@@ -574,6 +565,10 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	}
 
 	BuildingClass* pBuilding = static_cast<BuildingClass*>(pType->CreateObject(pOwner));
+	if (!pBuilding) {
+		Debug::Log("Fail to Create Limbo Object[%s] ! \n", pType->get_ID());
+		return;
+	}
 
 	// All of these are mandatory
 	pBuilding->InLimbo = false;
@@ -621,29 +616,27 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 	if (ID != -1)
 	{
 		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
-		auto const pTechnoExt = TechnoExt::ExtMap.Find(pBuilding);
-		auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoExt->Type);
 
 		pBuildingExt->LimboID = ID;
-		pTechnoExt->Shield.release();
-		pTechnoExt->Trails.clear();
-		pTechnoExt->RevengeWeapons.clear();
+		pBuildingExt->TechnoExt->Shield.release();
+		pBuildingExt->TechnoExt->Trails.clear();
+		pBuildingExt->TechnoExt->RevengeWeapons.clear();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		pTechnoExt->DamageSelfState.release();
-		pTechnoExt->MyGiftBox.release();
-		pTechnoExt->PaintBallState.release();
-		pTechnoExt->ExtraWeaponTimers.clear();
-		pTechnoExt->MyWeaponManager.Clear();
-		pTechnoExt->MyWeaponManager.CWeaponManager.release();
+		pBuildingExt->TechnoExt->DamageSelfState.release();
+		pBuildingExt->TechnoExt->MyGiftBox.release();
+		pBuildingExt->TechnoExt->PaintBallState.release();
+		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
+		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
+		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.release();
 #endif
 		if(!pOwnerExt->AutoDeathObjects.contains(pBuilding)) {
-			KillMethod nMethod = pTechnoTypeExt->Death_Method.Get();
+			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
 
 			if (nMethod != KillMethod::None 
-				&& pTechnoTypeExt->Death_Countdown > 0 
-				&& !pTechnoExt->Death_Countdown.HasStarted()) {
-				pTechnoExt->Death_Countdown.Start(pTechnoTypeExt->Death_Countdown);
+				&& pBuildingExt->Type->Type->Death_Countdown > 0
+				&& !pBuildingExt->TechnoExt->Death_Countdown.HasStarted()) {
+				pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
 				pOwnerExt->AutoDeathObjects.empalace_unchecked(pBuilding, nMethod);
 			}
 		}
@@ -719,6 +712,9 @@ template <typename T>
 void BuildingExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->OwnerObject()->LightSource)
+		.Process(this->Type)
+		.Process(this->TechnoExt)
 		.Process(this->DeployedTechno)
 		.Process(this->LimboID)
 		.Process(this->GrindingWeapon_LastFiredFrame)

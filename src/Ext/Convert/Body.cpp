@@ -10,24 +10,10 @@ ConvertExt::ExtContainer::~ExtContainer() = default;
 
 void ConvertExt::ExtData::InitializeConstants() { }
 
-void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_view nName) {
-	if (pConvert) {
-		if (auto pConvertExt = ConvertExt::ExtMap.Find(pConvert)) {
-			if (pConvertExt->Name)
-				pConvertExt->Name = nName.data();
-			else
-				if(strcmp(pConvertExt->Name.data(),nName.data()))
-					Debug::Log("Found Duplicate Convert[%x][%s] with same Palette ! \n", pConvert,pConvertExt->Name.data());
-		}
-	}
-}
-
-//DEFINE_JUMP(LJMP, 0x48E955 ,0x48E9E1)
-//
 //DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
 //{
 //	GET(ConvertClass*, pItem, ESI);
-//	ConvertExt::ExtMap.JustAllocate(pItem , pItem , "Trying to Allocate from nullptr ! \n");
+//	ConvertExt::ExtMap.JustAllocate(pItem, pItem, "Trying to Allocate from nullptr ! \n");
 //	return 0;
 //}
 //
@@ -37,4 +23,24 @@ void ConvertExt::GetOrSetName(ConvertClass* const pConvert, const std::string_vi
 //	GET(ConvertClass*, pItem, ECX);
 //	ConvertExt::ExtMap.Remove(pItem);
 //	return 0;
+//}
+//
+//DEFINE_HOOK(0x48E955, ConvertClass_FillColorPointer, 0x6)
+//{
+//	GET(ConvertClass*, pThis, ESI);
+//	GET_STACK(BytePalette*, pData, STACK_OFFS(0x24, 0x4));
+//
+//	auto ptr = GameCreate<char>(ColorStruct::Max);
+//	pThis->BufferB = ptr;
+//	
+//	for (int i = 0; i < ColorStruct::Max; i++)
+//	{
+//		HSVClass nHSVResult;
+//		pData->Entries[(i % ColorStruct::Max) + (i % ColorStruct::Max)].ConstructHSV(&nHSVResult);
+//		nHSVResult.Val = nHSVResult.Val >> 1;
+//		auto nColorArg = nHSVResult.ToColorStruct();
+//		pThis->BufferB[i] = (char)pData->Closest_Color(nColorArg);
+//	}
+//
+//	return 0x48E955;
 //}

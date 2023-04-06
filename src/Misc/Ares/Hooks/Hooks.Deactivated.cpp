@@ -70,3 +70,13 @@ DEFINE_OVERRIDE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
 		: 0
 		;
 }
+
+DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+	if (pThis->Deactivated) {
+		R->EAX(Action::None);
+		return 0x740805;
+	}
+	return 0;
+}

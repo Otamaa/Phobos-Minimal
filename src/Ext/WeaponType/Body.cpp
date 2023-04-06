@@ -124,6 +124,20 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	for (size_t i = 0; i < WaveReverseAgainst.size(); ++i) {
 		this->Wave_Reverse[i] = pINI->ReadBool(pSection, WaveReverseAgainst[i], this->Wave_Reverse[i]);
 	}
+
+	this->Ivan_KillsBridges.Read(exINI, pSection, "IvanBomb.DestroysBridges");
+	this->Ivan_Detachable.Read(exINI, pSection, "IvanBomb.Detachable");
+	this->Ivan_Damage.Read(exINI, pSection, "IvanBomb.Damage");
+	this->Ivan_Delay.Read(exINI, pSection, "IvanBomb.Delay");
+	this->Ivan_FlickerRate.Read(exINI, pSection, "IvanBomb.FlickerRate");
+	this->Ivan_TickingSound.Read(exINI, pSection, "IvanBomb.TickingSound");
+	this->Ivan_AttachSound.Read(exINI, pSection, "IvanBomb.AttachSound");
+	this->Ivan_WH.Read(exINI, pSection, "IvanBomb.Warhead");
+	this->Ivan_Image.Read(exINI, pSection, "IvanBomb.Image");
+	this->Ivan_CanDetonateTimeBomb.Read(exINI, pSection, "IvanBomb.CanDetonateTimeBomb");
+	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
+	this->Ivan_DetonateOnSell.Read(exINI, pSection, "IvanBomb.DetonateOnSell");
+	
 }
 
 template <typename T>
@@ -185,6 +199,19 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Wave_Color)
 		.Process(this->Wave_Intent)
 		.Process(this->Wave_Reverse)
+
+		.Process(this->Ivan_KillsBridges)
+		.Process(this->Ivan_Detachable)
+		.Process(this->Ivan_Damage)
+		.Process(this->Ivan_Delay)
+		.Process(this->Ivan_TickingSound)
+		.Process(this->Ivan_AttachSound)
+		.Process(this->Ivan_WH)
+		.Process(this->Ivan_Image)
+		.Process(this->Ivan_FlickerRate)
+		.Process(this->Ivan_CanDetonateTimeBomb)
+		.Process(this->Ivan_CanDetonateDeathBomb)
+		.Process(this->Ivan_DetonateOnSell)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

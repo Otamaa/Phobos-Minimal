@@ -105,6 +105,8 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
 	this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
 	this->AAOnly.Read(exINI, pSection, "AAOnly");
+	this->SubjectToSolid.Read(exINI, pSection, "SubjectToBuildings");
+	this->Solid_Level.Read(exINI, pSection, "SolidLevel");
 
 	//
 
@@ -182,6 +184,8 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SubjectToWater)
 		.Process(this->SubjectToWater_Detonate)
 		.Process(this->AAOnly)
+		.Process(this->SubjectToSolid)
+		.Process(this->Solid_Level)
 
 		.Process(this->Cluster_Scatter_Min)
 		.Process(this->Cluster_Scatter_Max)

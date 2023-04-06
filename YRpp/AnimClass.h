@@ -121,7 +121,6 @@ public:
 	void DestroyPointer() const { JMP_THIS(0x4228E0); }
 
 	//Constructor
-	// TODO fix
 	AnimClass(AnimTypeClass* pAnimType, const CoordStruct& Location, int LoopDelay = 0,
 		int LoopCount = 1, AnimFlag flags = AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, int ForceZAdjust = 0, bool reverse = false) noexcept
 		: AnimClass(noinit_t())

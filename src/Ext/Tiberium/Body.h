@@ -27,6 +27,19 @@ public:
 		Valueable<bool> EnablePixelFXAnim;
 		//int Replaced_EC;
 
+		Nullable<int> Damage;
+		Nullable<WarheadTypeClass*> Warhead;
+
+		Nullable<int> Heal_Step;
+		Nullable<int> Heal_IStep;
+		Nullable<int> Heal_UStep;
+		Nullable<double> Heal_Delay;
+
+		Nullable<WarheadTypeClass*> ExplosionWarhead;
+		Nullable<int> ExplosionDamage;
+
+		Valueable<int> DebrisChance;
+
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
 			, Palette { CustomPalette::PaletteMode::Temperate }
 			, OreTwinkle {}
@@ -37,6 +50,15 @@ public:
 			, UseNormalLight { true }
 			, EnablePixelFXAnim { true }
 			//, Replaced_EC { 0 }
+			, Damage()
+			, Warhead()
+			, Heal_Step()
+			, Heal_IStep()
+			, Heal_UStep()
+			, Heal_Delay()
+			, ExplosionWarhead()
+			, ExplosionDamage()
+			, DebrisChance(33)
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -54,6 +76,14 @@ public:
 		inline int GetTwinkleChance() const {
 			return this->OreTwinkleChance.Get(RulesClass::Instance->OreTwinkleChance);
 		}
+
+		double GetHealDelay() const;
+		int GetHealStep(TechnoClass* pTechno) const;
+		int GetDamage() const;
+		WarheadTypeClass* GetWarhead() const;
+		WarheadTypeClass* GetExplosionWarhead() const;
+		int GetExplosionDamage() const;
+		int GetDebrisChance() const;
 
 	private:
 		template <typename T>

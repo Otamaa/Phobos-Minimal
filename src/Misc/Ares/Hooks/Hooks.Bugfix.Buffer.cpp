@@ -59,6 +59,58 @@ static NOINLINE void ParseList(DynamicVectorClass<T>& List, CCINIClass* pINI, co
 	}
 };
 
+DEFINE_OVERRIDE_HOOK(0x7274AF, TriggerTypeClass_LoadFromINI_Read_Events, 5)
+{
+	R->Stack(0x0, Phobos::readBuffer);
+	R->Stack(0x4, Phobos::readLength);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7274C8, TriggerTypeClass_LoadFromINI_Strtok_Events, 5)
+{
+	R->ECX(Phobos::readBuffer);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x727529, TriggerTypeClass_LoadFromINI_Read_Actions, 5)
+{
+	R->Stack(0x0, Phobos::readBuffer);
+	R->Stack(0x4, Phobos::readLength);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x727544, TriggerTypeClass_LoadFromINI_Strtok_Actions, 5)
+{
+	R->EDX(Phobos::readBuffer);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4750EC, INIClass_ReadHouseTypesList, 7)
+{
+	R->Stack(0x0, Phobos::readBuffer);
+	R->Stack(0x4, Phobos::readLength);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x475107, INIClass_ReadHouseTypesList_Strtok, 5)
+{
+	R->ECX(Phobos::readBuffer);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x47527C, INIClass_GetAlliesBitfield, 7)
+{
+	R->Stack(0x0, Phobos::readBuffer);
+	R->Stack(0x4, Phobos::readLength);
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x475297, INIClass_GetAlliesBitfield_Strtok, 5)
+{
+	R->ECX(Phobos::readBuffer);
+	return 0;
+}
+
 // == WeaponType ==
 DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 {

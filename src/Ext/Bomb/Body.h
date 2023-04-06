@@ -2,7 +2,9 @@
 #include <BombClass.h>
 
 #include <Ext/Abstract/Body.h>
+#include <Ext/WeaponType/Body.h>
 
+class WeaponTypeClass;
 class BombExt
 {
 public:
@@ -13,7 +15,9 @@ public:
 	{
 	public:
 
+		WeaponTypeExt::ExtData* Weapon;
 		ExtData(BombClass* OwnerObject) : Extension<BombClass>(OwnerObject)
+			, Weapon { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

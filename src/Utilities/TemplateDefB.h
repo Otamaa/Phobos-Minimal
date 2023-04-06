@@ -114,7 +114,7 @@ namespace detail
 			{
 				value = TargetZoneScanType::InRange;
 			}
-			else if (!INIClass::IsBlank(parser.value()))
+			else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
 				return false;
@@ -224,9 +224,26 @@ namespace detail
 			value = (DirType8)nBuffer;
 			return true;
 		}
-		else if (!INIClass::IsBlank(parser.value()))
+		else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 8");
+			Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 8\n", pSection, pKey, parser.value());
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		int nBuffer;
+		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer < 8)
+		{
+			value = (DirType32)nBuffer;
+			return true;
+		}
+		else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
+		{
+			Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 32\n", pSection, pKey, parser.value());
 		}
 
 		return false;
