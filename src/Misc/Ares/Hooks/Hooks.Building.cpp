@@ -867,3 +867,24 @@ DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
 
 	return 0x741406;
 }
+
+// the game specifically hides tiberium building pips. allow them, but
+// take care they don't show up for the original game
+DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
+{
+	GET(TechnoClass*, pThis, EBP);
+
+	bool showTiberium = true;
+	if (Is_Building(pThis))
+	{
+		const auto pBld = static_cast<BuildingClass*>(pThis);
+		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
+		{
+			// show only if this refinery uses storage. otherwise, the original
+			// refineries would show an unused tiberium pip scale
+			showTiberium = TechnoTypeExt::ExtMap.Find(pBld->Type)->Refinery_UseStorage;
+		}
+	}
+
+	return showTiberium ? 0x709B6E : 0x70A980;
+}

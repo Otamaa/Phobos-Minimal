@@ -105,6 +105,8 @@ public:
 		Nullable<bool> Ivan_CanDetonateDeathBomb;
 		Valueable<bool> Ivan_DetonateOnSell;
 		//
+		Nullable<bool> ApplyDamage; // whether Damage should be applied even if IsSonic=yes or UseFireParticles=yes
+
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
@@ -176,6 +178,7 @@ public:
 			, Ivan_CanDetonateTimeBomb { }
 			, Ivan_CanDetonateDeathBomb { }
 			, Ivan_DetonateOnSell { false }
+			, ApplyDamage { }
 		{ }
 
 		virtual ~ExtData() override  = default;

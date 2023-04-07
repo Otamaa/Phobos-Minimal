@@ -7,8 +7,8 @@
 #include <Utilities/Macro.h>
 
 BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
-const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons{ 256 };
-const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons{ 512 };
+const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons { 256 };
+const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons { 512 };
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
@@ -20,10 +20,12 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 {
 	BulletTypeClass* pType = nullptr;
 
-	if(pBullet) {
+	if (pBullet)
+	{
 		pType = BulletTypeClass::Find(pBullet);
 	}
-	else {
+	else
+	{
 		pType = BulletTypeClass::Find(DEFAULT_STR2);
 	}
 
@@ -31,8 +33,10 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 	return pType;
 }
 
-void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
-	if (TrajectoryType) { 
+void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (TrajectoryType)
+	{
 		TrajectoryType->InvalidatePointer(ptr, bRemoved);
 	}
 }
@@ -56,21 +60,23 @@ BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, Techno
 }
 
 BulletClass* BulletTypeExt::ExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
-	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright , bool addDamage) const
+	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const
 {
 	if (addDamage)
 		damage = (int)(damage * TechnoExt::GetDamageMult(pOwner));
 
 	auto pBullet = this->Get()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
-	if (pBullet) {
+	if (pBullet)
+	{
 		pBullet->Range = range;
 	}
 
 	return pBullet;
 }
 
-void  BulletTypeExt::ExtData::Uninitialize() {
+void  BulletTypeExt::ExtData::Uninitialize()
+{
 
 }
 // =============================
@@ -81,73 +87,81 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	auto pThis = this->Get();
 	auto pArtInI = &CCINIClass::INI_Art;
 
-	const char *pSection = pThis->ID;
+	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (!pINI->GetSection(pSection))
-		return;
-
-	INI_EX exINI(pINI);
 	INI_EX exArtINI(pArtInI);
 
-	this->Health.Read(exINI, pSection, GameStrings::Strength());
-	this->Armor.Read(exINI, pSection, GameStrings::Armor());
-	this->Interceptable.Read(exINI, pSection, "Interceptable");
-	this->Gravity.Read(exINI, pSection, GameStrings::Gravity());
-	this->Gravity_HeightFix.Read(exINI, pSection, "Gravity.HeightFix");
-	PhobosTrajectoryType::CreateType(this->TrajectoryType, pINI, pSection, "Trajectory");
-	this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
-	this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
+	if (pINI->GetSection(pSection))
+	{
+		INI_EX exINI(pINI);
 
-	// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
-	this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
-	this->SubjectToLand_Detonate.Read(exINI, pSection, "SubjectToLand.Detonate");
-	this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
-	this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
-	this->AAOnly.Read(exINI, pSection, "AAOnly");
-	this->SubjectToSolid.Read(exINI, pSection, "SubjectToBuildings");
-	this->Solid_Level.Read(exINI, pSection, "SolidLevel");
+		this->Health.Read(exINI, pSection, GameStrings::Strength());
+		this->Armor.Read(exINI, pSection, GameStrings::Armor());
+		this->Interceptable.Read(exINI, pSection, "Interceptable");
+		this->Gravity.Read(exINI, pSection, GameStrings::Gravity());
+		this->Gravity_HeightFix.Read(exINI, pSection, "Gravity.HeightFix");
+		PhobosTrajectoryType::CreateType(this->TrajectoryType, pINI, pSection, "Trajectory");
+		this->Shrapnel_AffectsGround.Read(exINI, pSection, "Shrapnel.AffectsGround");
+		this->Shrapnel_AffectsBuildings.Read(exINI, pSection, "Shrapnel.AffectsBuildings");
 
-	//
+		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
+		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
+		this->SubjectToLand_Detonate.Read(exINI, pSection, "SubjectToLand.Detonate");
+		this->SubjectToWater.Read(exINI, pSection, "SubjectToWater");
+		this->SubjectToWater_Detonate.Read(exINI, pSection, "SubjectToWater.Detonate");
+		this->AAOnly.Read(exINI, pSection, "AAOnly");
+		this->SubjectToSolid.Read(exINI, pSection, "SubjectToBuildings");
+		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
 
-	#pragma region Otamaa
-	this->MissileROTVar.Read(exINI, pSection, GameStrings::MissileROTVar());
-	this->MissileSafetyAltitude.Read(exINI, pSection, GameStrings::MissileSafetyAltitude());
-	#pragma endregion
+		//
+#pragma region Otamaa
+		this->MissileROTVar.Read(exINI, pSection, GameStrings::MissileROTVar());
+		this->MissileSafetyAltitude.Read(exINI, pSection, GameStrings::MissileSafetyAltitude());
+#pragma endregion
 
-	this->AirburstSpread.Read(exINI, pSection, "AirburstSpread");
-	this->RetargetAccuracy.Read(exINI, pSection, "RetargetAccuracy");
-	this->RetargetOwner.Read(exINI, pSection, "RetargetOwner");
-	this->Splits.Read(exINI, pSection, "Splits");
-	this->AroundTarget.Read(exINI, pSection, "AroundTarget");
-	this->AirburstWeapons.Read(exINI, pSection, "AirburstWeapons");
+		this->AirburstSpread.Read(exINI, pSection, "AirburstSpread");
+		this->RetargetAccuracy.Read(exINI, pSection, "RetargetAccuracy");
+		this->RetargetOwner.Read(exINI, pSection, "RetargetOwner");
+		this->Splits.Read(exINI, pSection, "Splits");
+		this->AroundTarget.Read(exINI, pSection, "AroundTarget");
+		this->AirburstWeapons.Read(exINI, pSection, "AirburstWeapons");
 
-	this->Splits_Range.Read(exINI, pSection, "Splits.TechnoRange");
-	this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
-	this->Splits_TargetingUseVerses.Read(exINI, pSection ,"Splits.TargetingUseVerses");
-	this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
+		this->Splits_Range.Read(exINI, pSection, "Splits.TechnoRange");
+		this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
+		this->Splits_TargetingUseVerses.Read(exINI, pSection, "Splits.TargetingUseVerses");
+		this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
+
+		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
+
+		this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
+		this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
+
+		// Ares 0.7
+		this->BallisticScatter_Min.Read(exINI, pSection, "BallisticScatter.Min");
+		this->BallisticScatter_Max.Read(exINI, pSection, "BallisticScatter.Max");
+
+		this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
+		this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride", true);
+
+		this->BallisticScatterMin.Read(exINI, pSection, "BallisticScatter.Min");
+		this->BallisticScatterMax.Read(exINI, pSection, "BallisticScatter.Max");
+
+		this->PreExplodeRange.Read(exINI, pSection, "PreExplodeRange");
+		this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
+		this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
+		this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
+	}
 
 	if (!pArtInI->GetSection(pArtSection))
 		pArtSection = pSection;
-
-	this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
-
-	this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
-	this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
-
-	// Ares 0.7
-	this->BallisticScatter_Min.Read(exINI, pSection, "BallisticScatter.Min");
-	this->BallisticScatter_Max.Read(exINI, pSection, "BallisticScatter.Max");
-
-	this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
-	this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride", true);
 
 	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #pragma region Otamaa
 
 	//code disabled , unfinished
 	this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
-	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon" , true);
+	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon", true);
 	this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
 	this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
 	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
@@ -155,14 +169,10 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//
 
 	this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
-	this->PreExplodeRange.Read(exINI, pSection, "PreExplodeRange");
-	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
-	this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
-	this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exArtINI, pArtSection, false);
 #endif
-	#pragma endregion
+#pragma endregion
 
 }
 
@@ -218,6 +228,8 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Proximity_Range)
 		.Process(this->IsScalable)
 		.Process(this->LineTrailData)
+		.Process(this->BallisticScatterMin)
+		.Process(this->BallisticScatterMax)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);
@@ -318,7 +330,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
 
-	BulletTypeExt::ExtMap.LoadFromINI(pItem,pINI);
+	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI);
 
 	// is this good idea ,..
 	// by setting this properties , this will break some BulletClass functionality ,..

@@ -553,6 +553,12 @@ public:
 		Valueable<double> ForceShield_Modifier;
 		Valueable<int> Survivors_PilotCount; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
 
+		// berserk
+		Nullable<double> BerserkROFMultiplier;
+
+		// refinery and storage related
+		Valueable<bool> Refinery_UseStorage;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 
@@ -1005,6 +1011,9 @@ public:
 			, IronCurtain_Modifier { 1.0 }
 			, ForceShield_Modifier { 1.0 }
 			, Survivors_PilotCount { -1 }
+			// berserk
+			, BerserkROFMultiplier {  }
+			, Refinery_UseStorage { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, VirtualUnit { false }
 

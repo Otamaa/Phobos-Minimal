@@ -860,6 +860,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->IronCurtain_Modifier.Read(exINI, pSection, "IronCurtain.Modifier");
 	this->ForceShield_Modifier.Read(exINI, pSection, "ForceShield.Modifier");
 	this->Survivors_PilotCount.Read(exINI, pSection, "Survivor.Pilots");
+	// berserking options
+	this->BerserkROFMultiplier.Read(exINI, pSection, "Berserk.ROFMultiplier");
+
+	// refinery and storage
+	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
@@ -1455,6 +1460,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->IronCurtain_Modifier)
 		.Process(this->ForceShield_Modifier)
 		.Process(this->Survivors_PilotCount)
+		.Process(this->BerserkROFMultiplier)
+		.Process(this->Refinery_UseStorage)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

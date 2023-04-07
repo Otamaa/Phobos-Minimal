@@ -120,7 +120,7 @@ public:
 
 		Valueable<double> StealthSpeakDelay;
 		Valueable<double> SubterraneanSpeakDelay;
-	#pragma region Otamaa
+#pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
 		Valueable<ParticleTypeClass*> DefaultVeinParticle;
@@ -150,11 +150,12 @@ public:
 		Valueable<bool> AutoRepelAI;
 		Valueable<bool> AutoRepelPlayer;
 		Nullable<int> AIFriendlyDistance;
+		Valueable<double> BerserkROFMultiplier;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
-	#pragma endregion
+#pragma endregion
 
 		ExtData(RulesClass* OwnerObject) : Extension<RulesClass>(OwnerObject)
 			, Pips_Shield { { -1,-1,-1 } }
@@ -172,7 +173,7 @@ public:
 			, JumpjetTurnToTarget { false }
 			, JumpjetCrash_Rotate { true }
 			, Storage_TiberiumIndex { -1 }
-			, PlacementGrid_TranslucentLevel{ 0 }
+			, PlacementGrid_TranslucentLevel { 0 }
 			, BuildingPlacementPreview_TranslucentLevel { 3 }
 			, Pips_Shield_Background_SHP {}
 			, Pips_Shield_Building { { -1,-1,-1 } }
@@ -187,23 +188,23 @@ public:
 
 			, InfantryGainSelfHealCap {}
 			, UnitsGainSelfHealCap {}
-			, EnemyInsignia{ true }
-			, ShowAllyDisguiseBlinking{ false }
+			, EnemyInsignia { true }
+			, ShowAllyDisguiseBlinking { false }
 
 			, SHP_SelectBrdSHP_INF { nullptr }
 			, SHP_SelectBrdPAL_INF { CustomPalette::PaletteMode::Temperate }
 			, SHP_SelectBrdSHP_UNIT { nullptr }
 			, SHP_SelectBrdPAL_UNIT { CustomPalette::PaletteMode::Temperate }
-			, UseSelectBrd{}
+			, UseSelectBrd {}
 
 			, SelectBrd_Frame_Infantry { {0,0,0} }
 			, SelectBrd_DrawOffset_Infantry { {0,0} }
 
 			, SelectBrd_Frame_Unit { {3,3,3} }
-			, SelectBrd_DrawOffset_Unit{ {0,0} }
+			, SelectBrd_DrawOffset_Unit { {0,0} }
 
-			, SelectBrd_DefaultTranslucentLevel{ 0 }
-			, SelectBrd_DefaultShowEnemy{ true }
+			, SelectBrd_DefaultTranslucentLevel { 0 }
+			, SelectBrd_DefaultShowEnemy { true }
 
 			, RadWarhead_Detonate { false }
 			, RadHasOwner { false }
@@ -225,7 +226,7 @@ public:
 			, NewTeamsSelector_GroundCategoryPercentage { 0.25 }
 			, NewTeamsSelector_NavalCategoryPercentage { 0.25 }
 			, NewTeamsSelector_AirCategoryPercentage { 0.25 }
-			
+
 			, IC_Flash { true }
 			, VeteranFlashTimer { 0 }
 
@@ -262,6 +263,7 @@ public:
 			, AutoRepelAI { true }
 			, AutoRepelPlayer { true }
 			, AIFriendlyDistance { }
+			, BerserkROFMultiplier { 0.5 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

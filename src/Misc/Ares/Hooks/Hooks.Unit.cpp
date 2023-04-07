@@ -294,6 +294,13 @@ DEFINE_OVERRIDE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 #define Is_DriverKilled(techno) \
 (*(bool*)((char*)techno->align_154 + 0x9C))
 
+DEFINE_OVERRIDE_HOOK(0xF6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
+{
+	// prevent player from seeing pips on transports with killed drivers.
+	GET(TechnoClass*, pThis, ESI);
+	return Is_DriverKilled(pThis) ? 0x6F6AB6u : 0u;
+}
+
 DEFINE_OVERRIDE_HOOK(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
 {
 	// prevent units with killed drivers from retaliating.
@@ -532,6 +539,52 @@ DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
 	return 0x0;
 }
 
+void DepositTiberium(TechnoClass* pThis ,float const amount, float const bonus, int const idxType) {
+	const auto pHouse = pThis->GetOwningHouse();
+	const auto pTiberium = TiberiumClass::Array->GetItem(idxType);
+	auto value = 0;
+
+	// always put the purified money on the bank account. otherwise ore purifiers
+	// would fill up storage with tiberium that doesn't exist. this is consistent with
+	// the original YR, because old GiveTiberium put it on the bank anyhow, despite its name.
+	if (bonus > 0.0) {
+		value += Game::F2I(bonus * pTiberium->Value * pHouse->Type->IncomeMult);
+	}
+
+	// also add the normal tiberium to the global account?
+	if (amount > 0.0) {
+		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		if (!pExt->Refinery_UseStorage) {
+			value += Game::F2I(amount * pTiberium->Value * pHouse->Type->IncomeMult);
+		}
+		else {
+			pHouse->GiveTiberium(amount, idxType);
+		}
+	}
+
+	// deposit
+	if (value > 0) {
+		pHouse->GiveMoney(value);
+	}
+}
+
+void RefineTiberium(TechnoClass* pThis , float const amount, int const idxType) {
+
+	auto const pHouse = pThis->GetOwningHouse();
+
+	// get the number of applicable purifiers
+	auto purifiers = pHouse->NumOrePurifiers;
+	if (!pHouse->CurrentPlayer && SessionClass::Instance->GameMode != GameMode::Campaign) {
+		purifiers += RulesClass::Instance->AIVirtualPurifiers.GetItem(pHouse->GetAIDifficultyIndex());
+	}
+
+	// bonus amount (in tiberium)
+	auto const purified = purifiers * RulesClass::Instance->PurifierBonus * amount;
+
+	// add the tiberium to the house's credits
+	DepositTiberium(pThis , amount, purified, idxType);
+}
+
 DEFINE_OVERRIDE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage, 0x6)
 {
 	// because a value gets pushed to the stack in an inconvenient
@@ -542,11 +595,32 @@ DEFINE_OVERRIDE_HOOK(0x73E4A2, UnitClass_Mi_Unload_Storage, 0x6)
 	REF_STACK(float, amountRaw, 0x1C);
 	REF_STACK(float, amountPurified, 0x34);
 
-	// TODO : complete port these
-	AresData::TechnoExt_ExtData_DepositTiberium(pBld, amountRaw, amountPurified, idxTiberium);
+	DepositTiberium(pBld , amountRaw , amountPurified, idxTiberium);
+	//AresData::TechnoExt_ExtData_DepositTiberium(pBld, amountRaw, amountPurified, idxTiberium);
 	amountPurified = amountRaw = 0.0f;
 
 	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x522D75, InfantryClass_Slave_UnloadAt_Storage, 6)
+{
+	GET(TechnoClass* const, pBld, EAX);
+	GET(int const, idxTiberium, ESI);
+	GET(StorageClass* const, pTiberium, EBP);
+
+	// replaces the inner loop and stores
+	// one tiberium type at a time
+	auto const amount = pTiberium->GetAmount(idxTiberium);
+	pTiberium->RemoveAmount(amount, idxTiberium);
+
+	if(amount > 0.0) {
+		RefineTiberium(pBld , amount, idxTiberium);
+
+		// register for refinery smoke
+		R->BL(1);
+	}
+
+	return 0x522E38;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)

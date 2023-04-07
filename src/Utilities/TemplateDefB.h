@@ -236,7 +236,7 @@ namespace detail
 	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer < 8)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer < 32)
 		{
 			value = (DirType32)nBuffer;
 			return true;

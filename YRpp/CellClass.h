@@ -96,6 +96,7 @@ public:
 
 	//Using typedef resulting on dll address wtf , so this weird code
 	//Don't inline this , it will messup the stacks
+
 	bool NOINLINE TileIs(TileType tileType) const
 	{
 		if (!(int)tileType)
@@ -104,7 +105,6 @@ public:
 		const uintptr_t addr = TileArray[(int)tileType];
 		EPILOG_THISCALL;
 		JMP(addr);
-		//return reinterpret_cast<bool(*)(const CellClass*)>(addr)(this);
 	}
 
 	#define ISTILE(tileset, addr) \

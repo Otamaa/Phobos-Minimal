@@ -68,6 +68,52 @@ DEFINE_OVERRIDE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
 	return 0x707F08;
 }
 
+// customizable berserk fire rate modification
+DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, ROF, EAX);
+
+	if (pThis->Berzerk) {
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		double multiplier = pExt->BerserkROFMultiplier.Get(RulesExt::Global()->BerserkROFMultiplier);
+		ROF = static_cast<int>(ROF * multiplier);
+	}
+
+	R->EAX(ROF);
+	return 0x6FF29E;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
+{
+	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
+	auto pExt = BulletTypeExt::ExtMap.Find(pProjectile);
+
+	// defaults for FlakScatter && !Inviso
+	int ndefault = RulesClass::Instance->BallisticScatter;
+	int min = pExt->BallisticScatterMin.Get(Leptons(0));
+	int max = pExt->BallisticScatterMax.Get(Leptons(ndefault));
+	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
+
+	R->EAX(scatter);
+	return 0x6FE71C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
+{
+	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
+	auto pExt = BulletTypeExt::ExtMap.Find(pProjectile);
+
+	// defaults for !FlakScatter || Inviso
+	int ndefault = RulesClass::Instance->BallisticScatter;
+	int min = pExt->BallisticScatterMin.Get(Leptons(ndefault / 2));
+	int max = pExt->BallisticScatterMax.Get(Leptons(ndefault));
+	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
+
+	R->EAX(scatter);
+	return 0x6FE821;
+}
+
 DEFINE_OVERRIDE_HOOK(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -369,4 +415,61 @@ DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)
 	}
 
 	return 0x74425E;
+}
+
+int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
+{
+	int count = 1;
+	if (auto const pExt = WeaponTypeExt::ExtMap.TryFind(pWeapon)) {
+		count = pExt->Ammo;
+	}
+
+	while (count-- > 0)
+	{
+		pThis->DecreaseAmmo();
+	}
+
+	return count;
+}
+
+void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
+{
+	if (GetAmmo(pThis, pWeapon) > 0) {
+		if (Is_Building(pThis)) {
+			auto const Ammo = static_cast<BuildingClass*>(pThis)->Type->Ammo;
+
+			if (Ammo > 0 && pThis->Ammo < Ammo)
+				pThis->StartReloading();
+		}
+	}
+}
+
+// remove ammo rounds depending on weapon
+DEFINE_OVERRIDE_HOOK(0x6FF656, TechnoClass_Fire_Ammo, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+
+	DecreaseAmmo(pThis, pWeapon);
+
+	return 0x6FF660;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
+{
+	//GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	// whether conventional damage should be used
+	const bool applyDamage = 
+		WeaponTypeExt::ExtMap.Find(pWeapon)->ApplyDamage.Get(!pWeapon->IsSonic && !pWeapon->UseFireParticles);
+
+	if (!applyDamage)
+	{
+		// clear damage
+		R->EDI(0);
+		return 0x6FE3DFu;
+	}
+
+	return 0x6FE32Fu;
 }

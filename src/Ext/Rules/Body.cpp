@@ -103,6 +103,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
 
+	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
+
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), "SpecialWeapons", "NukeWarhead");
@@ -628,6 +630,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->StealthSpeakDelay)
 		.Process(this->SubterraneanSpeakDelay)
+
+		.Process(this->BerserkROFMultiplier)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

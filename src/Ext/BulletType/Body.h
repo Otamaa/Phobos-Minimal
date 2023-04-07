@@ -85,6 +85,8 @@ public:
 		Valueable<bool> IsScalable;
 		std::vector<LineTrailData> LineTrailData;
 
+		Nullable<Leptons> BallisticScatterMin;
+		Nullable<Leptons> BallisticScatterMax;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -140,6 +142,8 @@ public:
 			, Proximity_Range { }
 			, IsScalable { false }
 			, LineTrailData { }
+			, BallisticScatterMin { }
+			, BallisticScatterMax { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

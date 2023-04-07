@@ -1,4 +1,3 @@
-#include <AbstractClass.h>
 #include <TechnoClass.h>
 #include <FootClass.h>
 #include <UnitClass.h>
@@ -58,7 +57,7 @@ struct DummyHouseExt
 	}
 
 public:
-	std::unordered_map<size_t , std::vector<FootClass*>> Tunnels {};
+	std::unordered_map<size_t, std::vector<FootClass*>> Tunnels {};
 };
 
 struct DummyTechnoTypeExt
@@ -93,9 +92,61 @@ struct DummyTechnoExt
 
 };
 
+struct PipDrawData
+{
+	int PipIdx;
+	int DrawCount;
+	bool IsActive;
+
+	PipDrawData() :PipIdx { 0 }
+		, DrawCount { 1 }
+		, IsActive { false }
+	{
+	}
+
+	PipDrawData(int nIdx, int nDrawCount, bool bIsActive) :PipIdx { nIdx }
+		, DrawCount { nDrawCount }
+		, IsActive { bIsActive }
+	{
+	}
+
+	bool operator==(const PipDrawData& nSec)
+	{
+		return PipIdx == nSec.PipIdx && DrawCount == nSec.DrawCount && IsActive == nSec.IsActive;
+	}
+
+	bool operator !=(const PipDrawData& nSec)
+	{
+		return !(*this == nSec);
+	}
+
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return
+			Stm
+			.Process(PipIdx)
+			.Process(DrawCount)
+			.Process(IsActive)
+			.Success()
+			;
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return
+			Stm
+			.Process(PipIdx)
+			.Process(DrawCount)
+			.Process(IsActive)
+			.Success()
+			;
+	}
+};
+
 namespace Funcs
 {
-	void EnterTunnel(std::vector<FootClass*>* pTunnelData , BuildingClass* pTunnel, FootClass* pFoot)
+	void EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot)
 	{
 		const auto pTunnelTypeExt = DummyBuildingTypeExt::Get(pTunnel->Type);
 
@@ -141,7 +192,101 @@ namespace Funcs
 		const auto pHouseExt = DummyHouseExt::Get(pOwner);
 		return &pHouseExt->Tunnels[pExt->TunnelType];
 	}
-	
+
+
+	Iterator<PipDrawData> PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType)
+	{
+		const int nPassangersTotal = pType->Passengers;
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		static std::vector<PipDrawData> PipData;
+		PipData.clear();
+		PipData.resize(nPassangersTotal);
+
+		const bool building = Is_Building(pThis);
+		auto nSlotLeft = nPassangersTotal;
+		auto pPassenger = pThis->Passengers.GetFirstPassenger();
+
+		if (building)
+		{
+			const auto pBld = static_cast<BuildingClass*>(pThis);
+			const auto pTunnelData = GetTunnel(pBld, pThis->Owner);
+			const bool Absorber = static_cast<BuildingClass*>(pThis)->Absorber();
+
+			if (!pTunnelData)
+			{
+				for (int i = 0; i < pThis->Passengers.NumPassengers; ++i)
+				{
+					if (!pPassenger)
+						break;
+
+					auto nSize = (int)(pPassenger->GetTechnoType()->Size - 1.0);
+					if (nSize <= 0)
+						nSize = 1;
+
+					int nPip = 1;
+					if (Is_Infantry(pPassenger))
+						nPip = (int)(static_cast<InfantryClass*>(pPassenger)->Type->Pip);
+					else if (Is_Unit(pPassenger))
+						nPip = 5;
+
+					int nSizeCount = Absorber ? 1 : nSize;
+					nSlotLeft -= nSizeCount;
+					PipData[i] = { nPip , nSizeCount, true };
+
+					pPassenger = generic_cast<FootClass*>(pPassenger->NextObject);
+				}
+			}
+			else
+			{
+				if (PipData.size() < pTunnelData->size())
+					PipData.resize(pTunnelData->size());
+
+				int nIdx = 0;
+				std::for_each(pTunnelData->begin(), pTunnelData->end(), [&](FootClass* pContent)
+				{
+					int nPip = 1;
+					if (Is_Infantry(pContent))
+						nPip = (int)(static_cast<InfantryClass*>(pContent)->Type->Pip);
+					else if (Is_Unit(pContent))
+						nPip = 4;
+
+					PipData[nIdx] = { nPip , 1, true };
+					++nIdx;
+				});
+
+				return PipData;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < pThis->Passengers.NumPassengers; ++i)
+			{
+				if (!pPassenger)
+					break;
+
+				auto const pWhat = pPassenger->WhatAmI();
+
+				auto nSize = (int)(pPassenger->GetTechnoType()->Size - 1.0);
+				if (nSize <= 0)
+					nSize = 1;
+
+				int nPip = 1;
+				if (pWhat == AbstractType::Infantry)
+					nPip = (int)(static_cast<InfantryClass*>(pPassenger)->Type->Pip);
+				else if (pWhat == AbstractType::Unit)
+					nPip = 5;
+
+				nSlotLeft -= nSize;
+				PipData[i] = { nPip  , pTypeExt->Passengers_BySize.Get() ? nSize : 1 , true };
+				pPassenger = generic_cast<FootClass*>(pPassenger->NextObject);
+			}
+		}
+
+		if (nSlotLeft > 0)
+			PipData[pThis->Passengers.NumPassengers] = { 0 , nSlotLeft , true };
+
+		return PipData;
+	}
 	bool CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer)
 	{
 		if (pEnterer->SendCommand(RadioCommand::QueryCanEnter, pTunnel) != RadioCommand::AnswerPositive)
@@ -157,34 +302,37 @@ namespace Funcs
 			return;
 
 		const auto pOwner = pTunnel->Owner;
-		const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(), [pTunnel](BuildingClass* pBld){
-			
-			if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-			{
-				const auto nCurMission = pBld->CurrentMission;
-				if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
-				{
-					const auto pThatExt = DummyBuildingTypeExt::Get(pBld->Type);
-					const auto pThisExt = DummyBuildingTypeExt::Get(pTunnel->Type);
-					if (pThatExt->TunnelType == pThisExt->TunnelType)
-					{
-						return false;
-					}
-				}
-			}
+		const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(), [pTunnel](BuildingClass* pBld)
+{
 
-			return true;
+	if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
+	{
+		const auto nCurMission = pBld->CurrentMission;
+		if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
+		{
+			const auto pThatExt = DummyBuildingTypeExt::Get(pBld->Type);
+			const auto pThisExt = DummyBuildingTypeExt::Get(pTunnel->Type);
+			if (pThatExt->TunnelType == pThisExt->TunnelType)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
 		});
 
 
-		if (It != pOwner->Buildings.end()) {
-			std::for_each(pTunnelData->begin(), pTunnelData->end(), [=](FootClass* pFoot) { 
-				
-				if (auto pTeam = pFoot->Team)
-					pTeam->RemoveMember(pFoot);
+		if (It != pOwner->Buildings.end())
+		{
+			std::for_each(pTunnelData->begin(), pTunnelData->end(), [=](FootClass* pFoot)
+ {
 
-				pFoot->RegisterDestruction(pKiller);
-				pFoot->UnInit();
+	 if (auto pTeam = pFoot->Team)
+		 pTeam->RemoveMember(pFoot);
+
+	 pFoot->RegisterDestruction(pKiller);
+	 pFoot->UnInit();
 			});
 		}
 	}
@@ -192,14 +340,15 @@ namespace Funcs
 
 #include <TemporalClass.h>
 
-DEFINE_OVERRIDE_HOOK(0x442DF2 , BuildingClass_Demolish_Tunnel, 6)
+DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 {
 	GET_STACK(AbstractClass*, pKiller, 0x90);
 	GET(BuildingClass*, pTarget, EDI);
 
-	if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner)) {
-		TechnoClass* pKiller = generic_cast<TechnoClass*>(pKiller);
-		Funcs::DestroyTunnel(pTunnelData, pTarget, pKiller);
+	if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner))
+	{
+		TechnoClass* pTKiller = generic_cast<TechnoClass*>(pKiller);
+		Funcs::DestroyTunnel(pTunnelData, pTarget, pTKiller);
 	}
 
 	return 0;
@@ -207,11 +356,11 @@ DEFINE_OVERRIDE_HOOK(0x442DF2 , BuildingClass_Demolish_Tunnel, 6)
 
 DEFINE_OVERRIDE_HOOK(0x71A995, TemporalClass_Update_Tunnel, 5)
 {
-	GET(TemporalClass* , pThis , ESI);
-	GET(BuildingClass* , pTarget , EBP);
+	GET(TemporalClass*, pThis, ESI);
+	GET(BuildingClass*, pTarget, EBP);
 
-	 if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner))
-		 Funcs::DestroyTunnel(pTunnelData, pTarget, pThis->Owner);
+	if (const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner))
+		Funcs::DestroyTunnel(pTunnelData, pTarget, pThis->Owner);
 
 	return 0;
 }
@@ -223,10 +372,10 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pTarget, EBX);
 
-	if(pThis->GetCurrentMission() != Mission::Eaten)
-	  return Nothing;
+	if (pThis->GetCurrentMission() != Mission::Eaten)
+		return Nothing;
 
-	if(pThis->Destination != pTarget)
+	if (pThis->Destination != pTarget)
 		return Nothing;
 
 	const auto pTunnelData = Funcs::GetTunnel(pTarget, pTarget->Owner);
@@ -263,4 +412,67 @@ DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 		canbeDestination = pExt->TunnelType >= 0;
 
 	return canbeDestination ? 0x73F616 : 0x73F628;
+}
+
+struct DrawPipDataStruct
+{
+	DWORD Array; int Y; SHPStruct* Shape; int Number;
+};
+
+DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
+{
+	GET(TechnoClass* const, pThis, EBP);
+	GET(TechnoTypeClass*, pType, EAX);
+
+	if (pType->PipScale != PipScale::Passengers)
+		return 0x70A083;
+
+	GET(int, nBracketPosDeltaY, ESI);
+	//GET_STACK(SHPStruct*, pShp, 0x7);
+	GET_STACK(DrawPipDataStruct, nDataBundle, STACK_OFFS(0x74, 0x60));
+	GET_STACK(RectangleStruct*, pRect, STACK_OFFS(0x74, -0xC));
+	GET_STACK(Point2D, nPoint, STACK_OFFS(0x74, 0x24));
+	GET_STACK(int, nBracketPosDeltaX, STACK_OFFS(0x74, 0x1C));
+
+	Point2D nPos = { nPoint.X ,nPoint.Y };
+
+	for (auto const& [idx, drawcount , active] : Funcs::PopulatePassangerPIPData(pThis, pType))
+	{
+		if (!active)
+			continue;
+
+		for (int s = 0; s < drawcount; ++s)
+		{
+			DSurface::Temp->DrawSHP
+			(FileSystem::PALETTE_PAL,
+				nDataBundle.Shape,
+				idx,
+				&nPos,
+				pRect,
+				BlitterFlags(0x600),
+				0,
+				0,
+				ZGradient::Ground,
+				1000,
+				0,
+				0,
+				0,
+				0,
+				0
+			);
+
+			auto nX = nBracketPosDeltaX + nPoint.X;
+			auto nY = nBracketPosDeltaY + nPoint.Y;
+			nPos.X += nBracketPosDeltaX;
+			nPos.Y += nBracketPosDeltaY;
+
+			if (pType->Gunner)
+			{
+				nPos.X += nX + nBracketPosDeltaX;
+				nPos.Y += nY + nBracketPosDeltaY;
+			}
+		}
+	}
+
+	return 0x70A4EC;
 }
