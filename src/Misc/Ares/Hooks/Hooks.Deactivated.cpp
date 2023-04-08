@@ -80,3 +80,15 @@ DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 	}
 	return 0;
 }
+
+DEFINE_OVERRIDE_HOOK(0x5200B3, InfantryClass_UpdatePanic_Deactivated, 6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	if (pThis->Deactivated) {
+		if (pThis->PanicDurationLeft > 0) {
+			--pThis->PanicDurationLeft;
+		}
+		return 0x52025A;
+	}
+	return 0;
+}

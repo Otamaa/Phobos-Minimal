@@ -104,6 +104,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
 
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
+	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
 
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
@@ -632,6 +633,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->SubterraneanSpeakDelay)
 
 		.Process(this->BerserkROFMultiplier)
+		.Process(this->TeamRetaliate)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

@@ -24,7 +24,6 @@ public:
 	HouseClass* SourceHouse;
 };
 
-
 // this helper class is meant to represent a FPU fcomp or similar instruction result
 // hook it after fnstsw $reg, feed it the $reg, and call the info functions
 // need to know what you're comparing with what, though... oh well, leave it alone then

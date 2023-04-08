@@ -35,6 +35,7 @@ public:
 		std::vector<AnimClass*> DamageFireAnims;
 		CDTimerClass AutoSellTimer;
 		bool LighningNeedUpdate;
+		bool TogglePower_HasPower;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, Type { nullptr }
@@ -49,6 +50,7 @@ public:
 			, DamageFireAnims { }
 			, AutoSellTimer { }
 			, LighningNeedUpdate { false }
+			, TogglePower_HasPower { false }
 		{ }
 
 		virtual ~ExtData() override = default;

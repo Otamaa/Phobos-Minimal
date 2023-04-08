@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AbstractClass.h>
+#include <ProgressTimer.h>
 
 //forward declarations
 class SuperClass;
@@ -56,10 +57,11 @@ public:
 	// main brain
 	bool HasOccured(
 		int eventKind,
-		HouseClass *pHouse,
-		ObjectClass *Object,
-		CDTimerClass *ActivationFrame,
-		bool *isRepeating) const
+		HouseClass* pHouse,
+		ObjectClass* Object,
+		CDTimerClass* ActivationFrame,
+		bool* isRepeating ,
+		AbstractClass* source) const
 			{ JMP_THIS(0x71E940); }
 
 	//Constructor
@@ -84,4 +86,14 @@ public:
 	int               Value;
 	char		      String[0x1C];
 	HouseClass*       House;
+};
+
+struct EventArgs
+{
+	int EventType;
+	HouseClass* Owner;
+	ObjectClass* Object;
+	CDTimerClass* ActivationFrame;
+	bool* isRepeating;
+	AbstractClass* Source;
 };

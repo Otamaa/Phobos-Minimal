@@ -18,8 +18,8 @@ public:
 
 	Result Process(
 		const wchar_t* pMsg,
-		const wchar_t* pBtn1 = StringTable::LoadString("TXT_OK"),
-		const wchar_t* pBtn2 = StringTable::LoadString("TXT_CANCEL"),
+		const wchar_t* pBtn1 = StringTable::LoadString(GameStrings::TXT_OK),
+		const wchar_t* pBtn2 = StringTable::LoadString(GameStrings::TXT_CANCEL),
 		const wchar_t* pBtn3 = nullptr,
 		bool bUkn = false
 	)

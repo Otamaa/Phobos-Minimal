@@ -599,6 +599,7 @@ enum class TriggerAction : unsigned int {
 };
 
 enum class TriggerAttachType : int {
+	None = 0x0,
 	Global = 0x1,
 	Object = 0x2,
 	Map = 0x4,

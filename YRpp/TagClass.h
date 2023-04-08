@@ -80,6 +80,10 @@ public:
 		TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
 		bool forceAllOccured = false, AbstractClass* pSource = nullptr)
 	{ JMP_THIS(0x6E53A0); }
+	
+	bool SpringEvent( TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
+	bool forceAllOccured = false, AbstractClass* pSource = nullptr)
+	{ JMP_THIS(0x6E53A0); }
 
 	// whether the tag transfers when the owner is "changed",
 	// like vehicle thief to tank and vice versa

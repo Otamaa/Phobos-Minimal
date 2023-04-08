@@ -832,6 +832,308 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 #define Is_Passable(techno) \
 (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
 
+//// make temporal weapons play nice with power toggle.
+//// previously, power state was set to true unconditionally.
+//DEFINE_OVERRIDE_HOOK(0x452287, BuildingClass_GoOnline_TogglePower, 6)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+//	pExt->TogglePower_HasPower = true;
+//	return 0;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x452393, BuildingClass_GoOffline_TogglePower, 7)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+//	pExt->TogglePower_HasPower = false;
+//	return 0;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x452210, BuildingClass_Enable_TogglePower, 7)
+//{
+//	GET(BuildingClass* const, pThis, ECX);
+//	auto const pExt = BuildingExt::ExtMap.Find(pThis);
+//	pThis->HasPower = pExt->TogglePower_HasPower;
+//	return 0x452217;
+//}
+//
+//// TODO : add more stuffs for spy and migrate some tag from house type
+//bool CameoIsElite(TechnoTypeClass* pType , HouseClass const* const pHouse)
+//{
+//	auto const pCountry = pHouse->Type;
+//
+//	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//	if (!pType->AltCameo && !pExt->AltCameoPCX.Exists())
+//	{
+//		return false;
+//	}
+//
+//	switch (pType->WhatAmI())
+//	{
+//	case AbstractType::InfantryType:
+//		if (pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable)
+//		{
+//			return true;
+//		}
+//		else
+//		{
+//			return pCountry->VeteranInfantry.FindItemIndex(static_cast<InfantryTypeClass*>(pType)) != -1;
+//		}
+//	case AbstractType::UnitType:
+//		if (pHouse->WarFactoryInfiltrated && !pType->Naval && pType->Trainable)
+//		{
+//			return true;
+//		}
+//		else
+//		{
+//			return pCountry->VeteranUnits.FindItemIndex(static_cast<UnitTypeClass*>(pType)) != -1;
+//		}
+//	case AbstractType::AircraftType:
+//		return pCountry->VeteranAircraft.FindItemIndex(static_cast<AircraftTypeClass*>(pType)) != -1;
+//	case AbstractType::BuildingType:
+//		if (auto const pItem = pType->UndeploysInto)
+//		{
+//			return pCountry->VeteranUnits.FindItemIndex(static_cast<UnitTypeClass*>(pItem)) != -1;
+//		}
+//		else
+//		{
+//			auto const pData = HouseTypeExt::ExtMap.Find(pCountry);
+//			return pData->VeteranBuildings.Contains(static_cast<BuildingTypeClass*>(pType));
+//		}
+//	}
+//
+//	return false;
+//}
+//
+//// TODO : draw power or primary text bit higher , to prevent overlap
+//DEFINE_OVERRIDE_HOOK(0x43E7B0, BuildingClass_DrawVisible, 5)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//	GET_STACK(Point2D*, pLocation, 0x4);
+//	GET_STACK(RectangleStruct*, pBounds, 0x8);
+//
+//	auto pType = pThis->Type;
+//	auto pExt = BuildingTypeExt::ExtMap.Find(pType);
+//
+//	// helpers (with support for the new spy effect)
+//	bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer) || HouseClass::Observer();
+//	bool bReveal = pExt->RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+//
+//	// show building or house state
+//	if (pThis->IsSelected && (bAllied || bReveal))
+//	{
+//		Point2D loc = { pLocation->X - 10, pLocation->Y + 10 };
+//		pThis->DrawExtraInfo(loc, pLocation, pBounds);
+//	}
+//
+//	// display production cameo
+//	if (pThis->IsSelected && bReveal)
+//	{
+//		auto pFactory = pThis->Factory;
+//		if (pThis->Owner->ControlledByPlayer())
+//		{
+//			pFactory = pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare);
+//		}
+//
+//		if (pFactory && pFactory->Object)
+//		{
+//			auto pProdType = pFactory->Object->GetTechnoType();
+//			auto pProdExt = TechnoTypeExt::ExtMap.Find(pProdType);
+//
+//			// support for pcx cameos
+//			auto const eliteCameo = pFactory->Object->CameoIsElite(HouseClass::Player)
+//				&& pData->AltCameoPCX.Exists();
+//
+//			const auto& pcxFile = eliteCameo ? pData->AltCameoPCX : pData->CameoPCX;
+//			if (auto pPCX = pProdExt->CameoPCX.GetSurface())
+//			{
+//				const int cameoWidth = 60;
+//				const int cameoHeight = 48;
+//
+//				RectangleStruct cameoBounds = { 0, 0, cameoWidth, cameoHeight };
+//				RectangleStruct destRect = { pLocation->X - cameoWidth / 2, pLocation->Y - cameoHeight / 2, cameoWidth, cameoHeight };
+//				RectangleStruct destClip = Drawing::Intersect(&destRect, pBounds, nullptr, nullptr);
+//
+//				DSurface::Hidden_2->Blit_Alter(pBounds, &destClip, pPCX, &cameoBounds, &cameoBounds, true, true);
+//			}
+//			else
+//			{
+//				// old shp cameos, fixed palette
+//				auto pCameo = pProdType->GetCameo();
+//				auto pConvert = pProdExt->CameoPal.Convert ? pProdExt->CameoPal.GetConvert() : FileSystem::CAMEO_PAL;
+//				DSurface::Hidden_2->DrawSHP(pConvert, pCameo, 0, pLocation, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+//			}
+//		}
+//	}
+//
+//	return 0x43E8F2;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x70AA60, TechnoClass_DrawExtraInfo, 6)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(Point2D*, pPoint, 0x8);
+//	//	GET_STACK(unsigned int , nFrame, 0x4);
+//	GET_STACK(RectangleStruct*, pRect, 0xC);
+//
+//	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
+//	{
+//		auto const pType = pBuilding->Type;
+//		auto const pOwner = pBuilding->Owner;
+//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//		if (!pType || !pOwner)
+//			return 0x70AD4C;
+//
+//		auto DrawTheStuff = [&pPoint, &pOwner, &pRect](const wchar_t* pFormat , int Offset)
+//		{
+//			auto nPoint = *pPoint;
+//			//DrawingPart
+//			RectangleStruct nTextDimension;
+//			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+//			auto nIntersect = Drawing::Intersect(nTextDimension, *pRect);
+//			nIntersect.Height += Offset;
+//			auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
+//
+//			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+//			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+//			Point2D nRet;
+//			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+//		};
+//
+//		bool IsAlly = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);;
+//		bool IsObserver = HouseClass::Observer || HouseClass::IsCurrentPlayerObserver();
+//		bool isFake = pTypeExt->Is_Fake.Get();
+//		bool bReveal = pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+//
+//		if (IsAlly || IsObserver || bReveal)
+//		{
+//			if (isFake)
+//				DrawTheStuff(StringTable::LoadString(GameStrings::TXT_FAKE), 100);
+//
+//			if (pType->PowerBonus > 0)
+//			{
+//				auto pDrainFormat = StringTable::LoadString(GameStrings::TXT_POWER_DRAIN2);
+//				wchar_t pOutDraimFormat[0x80];
+//				auto pDrain = (int)pOwner->Power_Drain();
+//				auto pOutput = (int)pOwner->Power_Output();
+//				swprintf_s(pOutDraimFormat, pDrainFormat, pOutput, pDrain);
+//
+//				DrawTheStuff(pOutDraimFormat , 50);
+//			}
+//
+//			if (pType->Storage > 0)
+//			{
+//				auto pMoneyFormat = StringTable::LoadString(GameStrings::TXT_MONEY_FORMAT_1);
+//				wchar_t pOutMoneyFormat[0x80];
+//				auto nMoney = pOwner->Available_Money();
+//				swprintf_s(pOutMoneyFormat, pMoneyFormat, nMoney);
+//
+//				DrawTheStuff(pOutMoneyFormat , 50);
+//			}
+//
+//			if (pThis->IsPrimaryFactory)
+//				DrawTheStuff(StringTable::LoadString((pType->GetFoundationWidth() != 1) 
+//				? GameStrings::TXT_PRIMARY : GameStrings::TXT_PRI) , 50);
+//		}
+//	}
+//
+//	return 0x70AD4C;
+//}
+//
+//// issue #1324: enemy repair wrench visible when it shouldn't
+//DEFINE_OVERRIDE_HOOK(0x6F525B, TechnoClass_DrawExtras_PowerOff, 5)
+//{
+//	GET(TechnoClass*, pTechno, EBP);
+//	GET_STACK(RectangleStruct*, pRect, 0xA0);
+//
+//	if (auto pBld = abstract_cast<BuildingClass*>(pTechno))
+//	{
+//		auto const pExt = BuildingExt::ExtMap.Find(pBld);
+//
+//		// allies and observers can always see by default
+//		bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
+//			|| HouseClass::IsCurrentPlayerObserver();
+//
+//		bool showRepair = FileSystem::WRENCH_SHP
+//			&& pBld->IsBeingRepaired
+//			// fixes the wrench playing over a temporally challenged building
+//			&& !pBld->IsBeingWarpedOut()
+//			&& !pBld->WarpingOut
+//			// never show to enemies when cloaked, and only if allowed
+//			&& (canSeeRepair || (pBld->CloakState == CloakState::Uncloaked
+//				&& RulesExt::Global()->EnemyWrench));
+//
+//		// display power off marker only for current player's buildings
+//		bool showPower = FileSystem::POWEROFF_SHP
+//			&& !pExt->TogglePower_HasPower
+//			// only for owned buildings, but observers got magic eyes
+//			&& (pBld->Owner->ControlledByPlayer() || HouseClass::IsCurrentPlayerObserver());
+//
+//		// display any?
+//		if (showPower || showRepair)
+//		{
+//			auto cell = pBld->GetMapCoords();
+//
+//			if (!MapClass::Instance->GetCellAt(cell)->IsShrouded())
+//			{
+//				CoordStruct crd = pBld->GetCenterCoords();
+//
+//				Point2D point {};
+//				TacticalClass::Instance->CoordsToClient(&crd, &point);
+//
+//				// offset the markers
+//				Point2D ptRepair = point;
+//				if (showPower)
+//				{
+//					ptRepair.X -= 7;
+//					ptRepair.Y -= 7;
+//				}
+//
+//				Point2D ptPower = point;
+//				if (showRepair)
+//				{
+//					ptPower.X += 18;
+//					ptPower.Y += 18;
+//				}
+//
+//				// animation display speed
+//				// original frame calculation: ((currentframe%speed)*6)/(speed-1)
+//				int speed = GameOptionsClass::Instance->GetAnimSpeed(14) / 4;
+//				if (speed < 2)
+//				{
+//					speed = 2;
+//				}
+//
+//				// draw the markers
+//				if (showRepair)
+//				{
+//					int frame = (FileSystem::WRENCH_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+//					DSurface::Hidden_2->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::WRENCH_SHP,
+//						frame, &ptRepair, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
+//				}
+//
+//				if (showPower)
+//				{
+//					int frame = (FileSystem::POWEROFF_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+//					DSurface::Hidden_2->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::POWEROFF_SHP,
+//						frame, &ptPower, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
+//				}
+//			}
+//		}
+//	}
+//
+//	return 0x6F5347;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x6F64CB, TechnoClass_DrawHealthBar_FirestormWall, 6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	return Is_FirestromWall(pThis->Type) ? 0x6F6832u : 0u;
+}
+
 DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
 	GET(BuildingClass* const, pBld, ESI);

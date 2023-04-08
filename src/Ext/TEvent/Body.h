@@ -49,6 +49,8 @@ enum PhobosTriggerEvent
 	GlobalVariableAndIsTrueGlobalVariable = 535,
 
 	ShieldBroken = 600,
+
+	count
 };
 
 class TEventExt
@@ -75,8 +77,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static bool Execute(TEventClass* pThis, int iEvent, HouseClass* pHouse, ObjectClass* pObject,
-					CDTimerClass* pTimer, bool* isPersitant, TechnoClass* pSource, bool& bHandled);
+	static bool Occured(TEventClass* pThis, EventArgs const& args, bool& bHandled);
 
 	template<bool IsGlobal, typename _Pr>
 	static bool VariableCheck(TEventClass* pThis);

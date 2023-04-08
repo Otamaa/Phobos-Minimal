@@ -185,7 +185,7 @@ DEFINE_HOOK(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 
 DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 {
-	enum { Execute = 0x71F014, Skip = 0x71F163 };
+	enum { Occured = 0x71F014, Skip = 0x71F163 };
 
 	GET(TEventClass* const, pThis, EBP);
 	GET(HouseClass* const, pHouse, EAX);
@@ -196,5 +196,5 @@ DEFINE_HOOK(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
 		return Skip;
 	}
 
-	return Execute;
+	return Occured;
 }

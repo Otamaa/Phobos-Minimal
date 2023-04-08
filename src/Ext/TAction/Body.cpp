@@ -3,7 +3,6 @@
 #include <SessionClass.h>
 #include <MessageListClass.h>
 #include <Ext/House/Body.h>
-#include <CRT.h>
 #include <SuperWeaponTypeClass.h>
 #include <SuperClass.h>
 #include <Ext/SWType/Body.h>
@@ -19,6 +18,7 @@
 
 //Static init
 #include <TagClass.h>
+#include <numeric>
 
 TActionExt::ExtContainer TActionExt::ExtMap;
 std::map<int, std::vector<TriggerClass*>> TActionExt::RandomTriggerPool {};
@@ -84,7 +84,7 @@ TActionExt::ExtContainer::~ExtContainer() = default;
 //==============================
 
 static bool something_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -122,7 +122,7 @@ static bool something_700(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_701(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -147,7 +147,7 @@ static bool something_701(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -175,7 +175,7 @@ static bool something_702(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -206,7 +206,7 @@ static bool something_703(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -262,7 +262,7 @@ static bool something_704(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_705(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -288,7 +288,7 @@ static bool something_705(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_713(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -306,7 +306,7 @@ static bool something_713(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_716(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -335,7 +335,7 @@ static bool something_716(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 }
 
 static bool something_717(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pTrigger)
 		return false;
@@ -368,7 +368,7 @@ CoordStruct* GetSomething(CoordStruct* a1)
 }
 
 static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location)
+	TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (pThis->Value <= 0 || !pObject)
 		return false;
@@ -382,91 +382,108 @@ static bool something_720(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 	return true;
 }
 
-bool TActionExt::Execute(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject,
-	TriggerClass* pTrigger, CellStruct const& location, bool& bHandled)
+bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args , bool& ret)
 {
-	bHandled = true;
-
-	// Vanilla
-	switch (pThis->ActionKind)
-	{
-	case TriggerAction::PlaySoundEffectRandom:
-		return TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, location);
-	default:
-		break;
-	};
+	HouseClass* pHouse = args.pHouse;
+	ObjectClass* pObject = args.pObject;
+	TriggerClass* pTrigger = args.pTrigger;
 
 	// Phobos
 	switch (static_cast<PhobosTriggerAction>(pThis->ActionKind))
 	{
 	case PhobosTriggerAction::SaveGame:
-		return TActionExt::SaveGame(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::SaveGame(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::EditVariable:
-		return TActionExt::EditVariable(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::EditVariable(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::GenerateRandomNumber:
-		return TActionExt::GenerateRandomNumber(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::GenerateRandomNumber(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::PrintVariableValue:
-		return TActionExt::PrintVariableValue(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::PrintVariableValue(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::BinaryOperation:
-		return TActionExt::BinaryOperation(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::BinaryOperation(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::AdjustLighting:
-		return TActionExt::AdjustLighting(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::AdjustLighting(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::RunSuperWeaponAtLocation:
-		return TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint:
-		return TActionExt::RunSuperWeaponAtWaypoint(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::RunSuperWeaponAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
 		//	case PhobosTriggerAction::Something_700:
-		//		return something_700(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_700(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::Something_701:
-		//		return something_701(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_701(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::LauchSWAtWaypoint:
-		//		return something_702(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_702(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::AISetMode:
-		//		return something_703(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_703(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::Something_704:
-		//		return something_704(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_704(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::Something_705:
-		//		return something_705(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_705(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::DoFlash:
-		//		return something_713(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_713(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::Something_716:
-		//		return something_716(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_716(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::Something_717:
-		//		return something_717(pThis, pHouse, pObject, pTrigger, location);
+		//		return something_717(pThis, pHouse, pObject, pTrigger, args.location);
 		//	case PhobosTriggerAction::DoLighningStormStrike:
-		//		return something_720(pThis, pHouse, pObject, pTrigger, location);
-
+		//		return something_720(pThis, pHouse, pObject, pTrigger, args.location);
+		break;
 	case PhobosTriggerAction::RandomTriggerPut:
-		return TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::RandomTriggerEnable:
-		return TActionExt::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::RandomTriggerRemove:
-		return TActionExt::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ScoreCampaignText:
-		return TActionExt::ScoreCampaignText(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::ScoreCampaignText(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ScoreCampaignTheme:
-		return TActionExt::ScoreCampaignTheme(pThis, pHouse, pObject, pTrigger, location);
+		ret = TActionExt::ScoreCampaignTheme(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::SetNextMission:
-		return TActionExt::SetNextMission(pThis, pHouse, pObject, pTrigger, location);
-
+		ret = TActionExt::SetNextMission(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::DrawLaserBetweenWeaypoints:
-		return TActionExt::DrawLaserBetweenWaypoints(pThis, pHouse, pObject, pTrigger, location);
-
+		ret = TActionExt::DrawLaserBetweenWaypoints(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ToggleMCVRedeploy:
-		return TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, location);
-
+		ret = TActionExt::ToggleMCVRedeploy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	default:
-		bHandled = false;
-		return true;
+
+		// Vanilla
+		switch (pThis->ActionKind)
+		{
+		case TriggerAction::PlaySoundEffectRandom:
+		{ 
+			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
+			return true;
+		}
+		};
+
+		ret = false;
+		return false;
 	}
+
+	return true;
 }
 
 //========================================================================================
 
-bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	auto const pExt = TActionExt::ExtMap.Find(pThis);
-	const int duration = CRT::atoi(pExt->Value2.c_str());
+	const int duration = atoi(pExt->Value2.c_str());
 	const ColorStruct innerColor = Drawing::RGB888_HEX(pExt->Parm5.c_str());
 	const ColorStruct outerColor = Drawing::RGB888_HEX(pExt->Parm6.c_str());
 	auto const& pScen = ScenarioClass::Instance;
@@ -484,7 +501,7 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 	return true;
 }
 
-bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	std::vector<int> waypoints;
 	waypoints.reserve(ScenarioExt::Global()->Waypoints.size());
@@ -497,7 +514,7 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	if (!waypoints.empty())
 	{
-		auto const index = pScen->Random.RandomRanged(0, waypoints.size() - 1);
+		auto const index = pScen->Random.RandomFromMax(waypoints.size() - 1);
 		auto const luckyWP = waypoints[index];
 		auto const cell = pScen->GetWaypointCoords(luckyWP);
 		auto const coords = CellClass::Cell2Coord(cell);
@@ -507,7 +524,7 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
@@ -529,7 +546,7 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
 			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-		PrintMessage(StringTable::LoadString("TXT_SAVING_GAME"));
+		PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
 
 		wchar_t fDescription[0x80] = { 0 };
 		wcscpy_s(fDescription, ScenarioClass::Instance->UINameLoaded);
@@ -537,15 +554,15 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		wcscat_s(fDescription, StringTable::LoadString(pThis->Text));
 
 		if (ScenarioClass::Instance->SaveGame(fName, fDescription))
-			PrintMessage(StringTable::LoadString("TXT_GAME_WAS_SAVED"));
+			PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
 		else
-			PrintMessage(StringTable::LoadString("TXT_ERROR_SAVING_GAME"));
+			PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
 	}
 
 	return true;
 }
 
-bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	// Variable Index
 	// holds by pThis->Value
@@ -607,7 +624,7 @@ bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 	return true;
 }
 
-bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	auto& variables = ScenarioExt::GetVariables(pThis->Param5 != 0);
 	auto const& itr = variables.find(pThis->Value);
@@ -624,21 +641,21 @@ bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, O
 	return true;
 }
 
-bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	auto const& variables = ScenarioExt::GetVariables(pThis->Param3 != 0);
 	auto const& itr = variables.find(pThis->Value);
 
 	if (itr != variables.end())
 	{
-		CRT::swprintf(Phobos::wideBuffer, L"%d", itr->second.Value);
+		swprintf(Phobos::wideBuffer, L"%d", itr->second.Value);
 		MessageListClass::Instance->PrintMessage(Phobos::wideBuffer);
 	}
 
 	return true;
 }
 
-bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	auto& variables1 = ScenarioExt::GetVariables(pThis->Param5 != 0);
 	auto const& itr1 = variables1.find(pThis->Value);
@@ -675,7 +692,7 @@ bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, Object
 	return true;
 }
 
-bool TActionExt::RunSuperWeaponAtLocation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::RunSuperWeaponAtLocation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pThis)
 		return true;
@@ -685,7 +702,7 @@ bool TActionExt::RunSuperWeaponAtLocation(TActionClass* pThis, HouseClass* pHous
 	return true;
 }
 
-bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (!pThis)
 		return true;
@@ -913,7 +930,7 @@ void TActionExt::RecreateLightSources()
 
 }
 
-bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (pThis->Param3 != -1)
 		ScenarioClass::Instance->NormalLighting.Tint.Red = pThis->Param3;
@@ -957,7 +974,7 @@ bool TActionExt::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectC
 	return true;
 }
 
-bool TActionExt::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	TriggerTypeClass* pTargetType = pThis->TriggerType;
 
@@ -990,7 +1007,7 @@ bool TActionExt::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, Objec
 	return true;
 }
 
-bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const int iPoolID = pThis->Param3;
 	const bool bTakeOff = pThis->Param4;
@@ -1005,7 +1022,7 @@ bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, Ob
 	if (nPool.empty())
 		return true;
 
-	const int idx = ScenarioClass::Instance->Random.RandomRanged(0, static_cast<int>(nPool.size()) - 1);
+	const int idx = ScenarioClass::Instance->Random.RandomFromMax(static_cast<int>(nPool.size()) - 1);
 
 	TriggerClass* pTarget = nPool[idx];
 	pTarget->Enable();
@@ -1021,7 +1038,7 @@ bool TActionExt::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool TActionExt::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const int iPoolID = pThis->Param3;
 	TriggerTypeClass* pTriggerType = pThis->TriggerType;
@@ -1042,7 +1059,7 @@ bool TActionExt::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool TActionExt::ScoreCampaignText(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::ScoreCampaignText(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (pThis->Param3 == 0)
 		ScenarioExt::Global()->ParMessage = pThis->Text;
@@ -1052,21 +1069,21 @@ bool TActionExt::ScoreCampaignText(TActionClass* pThis, HouseClass* pHouse, Obje
 	return true;
 }
 
-bool TActionExt::ScoreCampaignTheme(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::ScoreCampaignTheme(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	ScenarioExt::Global()->ScoreCampaignTheme = pThis->Text;
 
 	return true;
 }
 
-bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	ScenarioExt::Global()->NextMission = pThis->Text;
 
 	return true;
 }
 
-bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	GameModeOptionsClass::Instance->MCVRedeploy = pThis->Param3 != 0;
 	return true;
@@ -1077,62 +1094,62 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 // container hooks
 //
 //
-//DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//	TActionExt::ExtMap.JustAllocate(pItem, pItem, "Trying To Allocate from nullptr !");
-//	return 0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x6DD1E6 , TActionClass_SDDTOR, 0x7)
-//DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//	TActionExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x6E3E30, TActionClass_SaveLoad_Prefix, 0x8)
-//DEFINE_HOOK(0x6E3DB0, TActionClass_SaveLoad_Prefix, 0x5)
-//{
-//	GET_STACK(TActionClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//
-//	TActionExt::ExtMap.PrepareStream(pItem, pStm);
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x6E3E19, TActionClass_Load_Suffix, 0x9)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//
-//	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->TriggerType);
-//	TActionExt::ExtMap.LoadStatic();
-//
-//	return 0x6E3E27;
-//}
-//
-//DEFINE_HOOK(0x6E3E44, TActionClass_Save_Suffix, 0x6)
-//{
-//	GET(HRESULT const, nRes, EAX);
-//
-//	if(SUCCEEDED(nRes)){
-//		TActionExt::ExtMap.SaveStatic();
-//		return 0x6E3E48;
-//	}
-//
-//	return 0x6E3E4A;
-//}
-//
-//DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
-//{
-//	GET(TActionClass*, pThis, ECX);
-//	GET(void*, target, EDX);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	if (auto pExt = TActionExt::ExtMap.Find(pThis))
-//		pExt->InvalidatePointer(target, all);
-//
-//	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
-//}
+DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
+{
+	GET(TActionClass*, pItem, ESI);
+	TActionExt::ExtMap.Allocate(pItem);
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x6DD1E6 , TActionClass_SDDTOR, 0x7)
+DEFINE_HOOK(0x6E4696, TActionClass_SDDTOR, 0x7)
+{
+	GET(TActionClass*, pItem, ESI);
+	TActionExt::ExtMap.Remove(pItem);
+	return 0;
+}
+
+DEFINE_HOOK_AGAIN(0x6E3E30, TActionClass_SaveLoad_Prefix, 0x8)
+DEFINE_HOOK(0x6E3DB0, TActionClass_SaveLoad_Prefix, 0x5)
+{
+	GET_STACK(TActionClass*, pItem, 0x4);
+	GET_STACK(IStream*, pStm, 0x8);
+
+	TActionExt::ExtMap.PrepareStream(pItem, pStm);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x6E3E19, TActionClass_Load_Suffix, 0x9)
+{
+	GET(TActionClass*, pItem, ESI);
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->TriggerType);
+	TActionExt::ExtMap.LoadStatic();
+
+	return 0x6E3E27;
+}
+
+DEFINE_HOOK(0x6E3E44, TActionClass_Save_Suffix, 0x6)
+{
+	GET(HRESULT const, nRes, EAX);
+
+	if(SUCCEEDED(nRes)){
+		TActionExt::ExtMap.SaveStatic();
+		return 0x6E3E48;
+	}
+
+	return 0x6E3E4A;
+}
+
+DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
+{
+	GET(TActionClass*, pThis, ECX);
+	GET(void*, target, EDX);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	if (auto pExt = TActionExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(target, all);
+
+	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
+}

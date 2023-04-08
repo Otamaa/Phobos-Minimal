@@ -35,6 +35,15 @@
 #include <Phobos.h>
 
 //TODO HelpText
+
+enum class AresNewTriggerAction : int
+{
+	AuxiliaryPower = 146,
+	KillDriversOf = 147,
+	SetEVAVoice = 148,
+	SetGroup = 149
+};
+
 enum class AresNewTriggerEvents : int
 {
 	UnderEMP = 62,

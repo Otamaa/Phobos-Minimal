@@ -108,12 +108,11 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void RecreateLightSources();
-	static bool Execute(TActionClass* pThis, HouseClass* pHouse,
-			ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& bHandled);
+	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
 
 #define ACTION_FUNC(name) \
 	static bool name(TActionClass* pThis, HouseClass* pHouse, \
-		ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+		ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 
 	ACTION_FUNC(PlayAudioAtRandomWP);
 	ACTION_FUNC(SaveGame);

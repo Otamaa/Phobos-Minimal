@@ -473,3 +473,20 @@ DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
 
 	return 0x6FE32Fu;
 }
+
+// health bar for detected submerged units
+DEFINE_OVERRIDE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged, 6)
+{
+	GET(TechnoClass*, pThis, EBP);
+
+	bool drawHealth = pThis->IsSelected;
+	if (!drawHealth)
+	{
+		// sensed submerged units
+		drawHealth = !pThis->IsSurfaced()
+			&& pThis->GetCell()->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
+	}
+
+	R->EAX(drawHealth);
+	return 0x6F538E;
+}

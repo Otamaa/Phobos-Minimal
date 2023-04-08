@@ -151,6 +151,7 @@ public:
 		Valueable<bool> AutoRepelPlayer;
 		Nullable<int> AIFriendlyDistance;
 		Valueable<double> BerserkROFMultiplier;
+		Valueable<bool> TeamRetaliate;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
@@ -264,6 +265,7 @@ public:
 			, AutoRepelPlayer { true }
 			, AIFriendlyDistance { }
 			, BerserkROFMultiplier { 0.5 }
+			, TeamRetaliate { false }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

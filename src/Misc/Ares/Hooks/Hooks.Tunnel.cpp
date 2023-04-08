@@ -13,6 +13,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -33,7 +34,6 @@ public:
 	std::string Name;
 
 public:
-
 
 	static int Find(std::string const& ID)
 	{
@@ -80,7 +80,6 @@ struct DummyBuildingTypeExt
 	ValueableIdx<VocClass> EnterTunnelSound {};
 	ValueableIdx<VocClass> ExitTunnelSound {};
 };
-
 
 struct DummyTechnoExt
 {
@@ -193,15 +192,11 @@ namespace Funcs
 		return &pHouseExt->Tunnels[pExt->TunnelType];
 	}
 
-
 	Iterator<PipDrawData> PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType)
 	{
 		const int nPassangersTotal = pType->Passengers;
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 		static std::vector<PipDrawData> PipData;
-		PipData.clear();
-		PipData.resize(nPassangersTotal);
-
 		const bool building = Is_Building(pThis);
 		auto nSlotLeft = nPassangersTotal;
 		auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -214,18 +209,23 @@ namespace Funcs
 
 			if (!pTunnelData)
 			{
+				PipData.clear();
+				PipData.resize(nPassangersTotal);
+
 				for (int i = 0; i < pThis->Passengers.NumPassengers; ++i)
 				{
 					if (!pPassenger)
 						break;
 
-					auto nSize = (int)(pPassenger->GetTechnoType()->Size - 1.0);
+					const auto pExt = TechnoExt::ExtMap.Find(pPassenger);
+
+					auto nSize = (int)(pExt->Type->Size - 1.0);
 					if (nSize <= 0)
 						nSize = 1;
 
 					int nPip = 1;
 					if (Is_Infantry(pPassenger))
-						nPip = (int)(static_cast<InfantryClass*>(pPassenger)->Type->Pip);
+						nPip = (int)(static_cast<InfantryTypeClass*>(pExt->Type)->Pip);
 					else if (Is_Unit(pPassenger))
 						nPip = 5;
 
@@ -238,8 +238,8 @@ namespace Funcs
 			}
 			else
 			{
-				if (PipData.size() < pTunnelData->size())
-					PipData.resize(pTunnelData->size());
+				PipData.clear();
+				PipData.resize(pTunnelData->size());
 
 				int nIdx = 0;
 				std::for_each(pTunnelData->begin(), pTunnelData->end(), [&](FootClass* pContent)
@@ -259,25 +259,29 @@ namespace Funcs
 		}
 		else
 		{
+			PipData.clear();
+			PipData.resize(nPassangersTotal);
+
 			for (int i = 0; i < pThis->Passengers.NumPassengers; ++i)
 			{
 				if (!pPassenger)
 					break;
 
-				auto const pWhat = pPassenger->WhatAmI();
+				const auto pExt = TechnoExt::ExtMap.Find(pPassenger);
 
-				auto nSize = (int)(pPassenger->GetTechnoType()->Size - 1.0);
+				auto nSize = (int)(pExt->Type->Size - 1.0);
 				if (nSize <= 0)
 					nSize = 1;
 
 				int nPip = 1;
-				if (pWhat == AbstractType::Infantry)
-					nPip = (int)(static_cast<InfantryClass*>(pPassenger)->Type->Pip);
-				else if (pWhat == AbstractType::Unit)
+				if (Is_Infantry(pPassenger))
+					nPip = (int)(static_cast<InfantryTypeClass*>(pExt->Type)->Pip);
+				else if (Is_Unit(pPassenger))
 					nPip = 5;
 
 				nSlotLeft -= nSize;
 				PipData[i] = { nPip  , pTypeExt->Passengers_BySize.Get() ? nSize : 1 , true };
+
 				pPassenger = generic_cast<FootClass*>(pPassenger->NextObject);
 			}
 		}
@@ -287,6 +291,7 @@ namespace Funcs
 
 		return PipData;
 	}
+
 	bool CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer)
 	{
 		if (pEnterer->SendCommand(RadioCommand::QueryCanEnter, pTunnel) != RadioCommand::AnswerPositive)
@@ -436,7 +441,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 
 	Point2D nPos = { nPoint.X ,nPoint.Y };
 
-	for (auto const& [idx, drawcount , active] : Funcs::PopulatePassangerPIPData(pThis, pType))
+	for (auto const& [FrameIdx, drawcount , active] : Funcs::PopulatePassangerPIPData(pThis, pType))
 	{
 		if (!active)
 			continue;
@@ -446,7 +451,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 			DSurface::Temp->DrawSHP
 			(FileSystem::PALETTE_PAL,
 				nDataBundle.Shape,
-				idx,
+				FrameIdx,
 				&nPos,
 				pRect,
 				BlitterFlags(0x600),

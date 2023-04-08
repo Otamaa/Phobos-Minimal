@@ -10,21 +10,22 @@
 
 #include <Utilities/Macro.h>
 
+// we hook on the very first call 
+// ares doing it before the switch statement call
 DEFINE_HOOK(0x71E940, TEventClass_Execute, 0x5)
 {
 	GET(TEventClass*, pThis, ECX);
-	GET_STACK(int, iEvent, 0x4); // now trigger what?
-	GET_STACK(HouseClass*, pHouse, 0x8);
-	GET_STACK(ObjectClass*, pObject, 0xC);
-	GET_STACK(CDTimerClass*, pTimer, 0x10);
-	GET_STACK(bool*, isPersitant, 0x14);
-	GET_STACK(TechnoClass*, pSource, 0x18);
+	REF_STACK(EventArgs const, args, 0x4);
+	enum { return_value = 0x71EA2D , continue_check = 0x0 };
 
-	bool handled;
+	bool result = false;
+	if (TEventExt::Occured(pThis, args, result))
+	{
+		R->AL(result);
+		return return_value;
+	}
 
-	R->AL(TEventExt::Execute(pThis, iEvent, pHouse, pObject, pTimer, isPersitant, pSource, handled));
-
-	return handled ? 0x71EA2D : 0;
+	return continue_check; // will continue ares and vanilla checks
 }
 
 DEFINE_HOOK(0x7271F9, TEventClass_GetFlags, 0x5)

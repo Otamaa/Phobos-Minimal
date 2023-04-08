@@ -559,6 +559,11 @@ public:
 		// refinery and storage related
 		Valueable<bool> Refinery_UseStorage;
 
+		//CustomPalette CameoPal;
+		//Valueable<bool> Is_Fake;
+		//PhobosPCXFile CameoPCX;
+		//PhobosPCXFile AltCameoPCX;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		Valueable <bool> VirtualUnit;
 

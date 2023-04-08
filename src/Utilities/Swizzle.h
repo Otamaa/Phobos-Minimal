@@ -3,16 +3,13 @@
 // Ares has hooked the SwizzleManagerClass,
 // so what we need to do is just call the original functions.
 
-#ifdef DISABLE_ARES_SWIZZLEHOOKS
 #include <unordered_map>
-#endif
 #include <type_traits>
 
 #include <Objidl.h>
 
 class PhobosSwizzle
 {
-#ifdef DISABLE_ARES_SWIZZLEHOOKS
 protected:
 
 	/**
@@ -24,7 +21,7 @@ protected:
 	* data store for RegisterForChange
 	*/
 	std::unordered_multimap<void*, void**> Nodes;
-#endif
+
 public:
 	static PhobosSwizzle Instance;
 
@@ -43,14 +40,13 @@ public:
 	*/
 	HRESULT RegisterChange(void* was, void* is);
 
-#ifdef DISABLE_ARES_SWIZZLEHOOKS
 	/**
 	* this function will rewrite all registered nodes' values
 	*/
 	void ConvertNodes() const;
 
 	void Clear();
-#endif
+
 	template<typename T>
 	void RegisterPointerForChange(T*& ptr)
 	{

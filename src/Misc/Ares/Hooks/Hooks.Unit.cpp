@@ -294,7 +294,32 @@ DEFINE_OVERRIDE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 #define Is_DriverKilled(techno) \
 (*(bool*)((char*)techno->align_154 + 0x9C))
 
-DEFINE_OVERRIDE_HOOK(0xF6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
+#define GetDisableWeaponTimer(techno) \
+(*(CDTimerClass*)((char*)techno->align_154 + 0x50))
+
+DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
+{
+	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
+	GET(TechnoClass*, pThis, ESI);
+	return GetDisableWeaponTimer(pThis).InProgress()
+		? FireRange : ContinueCheck;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
+{
+	// prevent units with killed drivers from scattering when attacked.
+	GET(TechnoClass*, pThis, ESI);
+	return (Is_DriverKilled(pThis) ? 0x6F32C5u : 0u);
+}
+
+DEFINE_OVERRIDE_HOOK(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
+{
+	// prevent units with killed drivers from looking for victims.
+	GET(TechnoClass*, pThis, ESI);
+	return (Is_DriverKilled(pThis) ? 0x70927Du : 0u);
+}
+
+DEFINE_OVERRIDE_HOOK(0x6F6A58, TechnoClass_DrawHealthBar_HidePips_KillDriver, 6)
 {
 	// prevent player from seeing pips on transports with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
@@ -859,7 +884,49 @@ DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 
 	GET(UnitClass const* const, pThis, ESI);
 
 	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualUnload || pThis->BunkerLinkedItem ? 0x700DCEu : 0u;
+	return TechnoTypeExt::ExtMap.Find(pType)->NoManualUnload || pThis->BunkerLinkedItem 
+	? 0x700DCEu : 0u;
+}
+
+// #908369, #1100953: units are still deployable when warping or falling
+DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	CellClass* pCell = pThis->GetCell();
+	CoordStruct crd = pCell->GetCoordsWithBridge();
+
+	// recreate replaced check, and also disallow if unit is still warping or dropping in.
+	return (pThis->IsUnderEMP()
+	|| pThis->IsWarpingIn()
+	|| pThis->IsFallingDown
+	|| Is_DriverKilled(pThis)
+	)
+
+	? 0x700DCE : 0x700E59;
+}
+
+DEFINE_OVERRIDE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
+{
+	// complete rewrite. used by psychic dominator, ai targeting, etc.
+	GET(TechnoClass*, pThis, ECX);
+	BYTE bDisaalow = 0;
+
+	if (pThis && pThis->WhatAmI() != AbstractType::Building
+		&& !pThis->IsIronCurtained() && !pThis->IsInAir()) {
+
+		const auto TechnoExt = TechnoExt::ExtMap.Find(pThis);
+		if (!TechnoExt::IsPsionicsImmune(pThis) && !TechnoExt->Type->BalloonHover) {
+			// KillDriver check
+			if (!Is_DriverKilled(pThis))
+			{
+				bDisaalow = 1;
+			}
+		}
+	}
+
+	R->AL(bDisaalow);
+	return 0x53C4BA;
 }
 
 DEFINE_OVERRIDE_HOOK(0x700536, TechnoClass_GetActionOnObject_NoManualFire, 6)

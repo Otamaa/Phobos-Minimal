@@ -1226,6 +1226,9 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 		}
 	}
 
+	if(pThis->IsTethered)
+		DrawTheStuff(L"IsTethered");
+
 	return 0x0;
 }
 
@@ -1996,6 +1999,432 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 	return 0x70DADC;
 }
 
+DEFINE_OVERRIDE_SKIP_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCliff, 9, 70CB30)
+
+DEFINE_OVERRIDE_HOOK(0x70CBB0 ,TechnoClass_DealParticleDamage_AmbientDamage, 6)
+{
+	GET_STACK(WeaponTypeClass*, pWeapon, 0x14);
+
+	if (!pWeapon->AmbientDamage)
+		return 0x70CC3E;
+
+	R->EDI(pWeapon);
+	R->ESI(0);
+	return (!(R->EAX<int>() <= 0)) ? 0x70CBB9 : 0x70CBF7;
+}
+
+DEFINE_OVERRIDE_HOOK(0x0CBDA, TechnoClass_DealParticleDamage, 6)
+{
+	GET(TechnoClass*, pSource, EDX);
+	R->Stack<HouseClass*>(0xC, pSource->Owner);
+	return 0;
+}
+
+// the fuck , game calling `MapClass[]` multiple times , fixed it 
+DEFINE_OVERRIDE_HOOK(0x6FB5F0 , TechnoClass_DeleteGap_Optimize, 6)
+{
+	GET(CellClass*, pCell, EAX);
+
+	if (!HouseClass::CurrentPlayer->SpySatActive || --pCell->GapsCoveringThisCell > 0)
+		return 0x6FB69E;
+
+	--pCell->ShroudCounter;
+
+	if (pCell->ShroudCounter <= 0)
+		pCell->AltFlags |= AltCellFlags::Clear;
+
+	return 0x6FB69E;
+}
+
+// weapons can take more than one round of ammo
+DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+
+	return (pThis->Ammo < 0 || pThis->Ammo >= WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
+		? 0x6FCA26u : 0x6FCA17u;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
+DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+	// ares change this to read from ext instead
+	// since this one is `char` so it cant store bigger number i assume
+	pThis->GapRadius = pType->GapRadiusInCells;
+	return R->Origin() + 0xD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FB306 , TechnoClass_CreateGap_Optimize, 6)
+{
+	GET(CellClass*, pCell, EAX);
+
+	int nCounter = pCell->ShroudCounter;
+	int nCounter_b = nCounter;
+	if (nCounter >= 0 && nCounter != 1)
+	{
+		nCounter_b = nCounter + 1;
+		pCell->ShroudCounter = nCounter + 1;
+	}
+	++pCell->GapsCoveringThisCell;
+	if (nCounter_b >= 1)
+		pCell->AltFlags &= ((AltCellFlags)4294967271u);
+
+	return 0x6FB3BD;
+}
+
+// #895225: make the AI smarter. this code was missing from YR.
+// it clears the targets and assigns the attacker the team's current focus.
+DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
+{
+	GET(TeamClass*, pThis, ESI);
+	GET(AbstractClass*, pAttacker, EBP);
+
+	// get ot if global option is off
+	if (!RulesExt::Global()->TeamRetaliate)
+	{
+		return 0x6EB47A;
+	}
+
+	auto pFocus = abstract_cast<TechnoClass*>(pThis->Focus);
+	auto pSpawn = pThis->SpawnCell;
+
+	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords()))
+	{
+		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
+		if (!Is_Aircraft(pAttacker))
+		{
+			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker))
+			{
+				if (pAttackerFoot->InLimbo || pAttackerFoot->GetTechnoType()->ConsideredAircraft)
+				{
+					return 0x6EB47A;
+				}
+			}
+
+			pThis->Focus = pAttacker;
+
+			// this is the original code, but commented out because it's responsible for switching
+			// targets when the team is attacked by two or more opponents. Now, the team should pick
+			// the first target, and keep it. -AlexB
+			//for(NextTeamMember i(pThis->FirstUnit); i; ++i) {
+			//	if(i->IsAlive && i->Health && (Unsorted::IKnowWhatImDoing || !i->InLimbo)) {
+			//		if(i->IsTeamLeader || i->WhatAmI() == AircraftClass::AbsID) {
+			//			i->SetTarget(nullptr);
+			//			i->SetDestination(nullptr, true);
+			//		}
+			//	}
+			//}
+		}
+	}
+
+	return 0x6EB47A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw, 5)
+{
+	GET(int, AlphaLightIndex, EBX);
+	auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
+
+	bool shouldDraw = !pAlpha->IsObjectGone;
+
+	if (shouldDraw) {
+		if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+			shouldDraw = pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal &&
+				!pTechno->Disguised;
+		}
+	}
+
+	return shouldDraw ? 0 : 0x421694;
+}
+
+#include <Conversions.h>
+
+DEFINE_OVERRIDE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
+{
+	GET(int, AlphaLightIndex, EBX);
+	GET(RectangleStruct*, buffer, EDX);
+	GET(SHPStruct*, pImage, EDI);
+
+	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
+	unsigned int idx = 0;
+
+	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo))  {
+		if (pImage->Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
+			idx = ((PrimaryFacing.Raw) >> (16 - countFrames));
+		}
+	}
+
+	R->EAX(pImage->GetFrameBounds(*buffer, idx));
+	return 0x421478;
+}
+
+DEFINE_OVERRIDE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
+{
+	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xA4, 0x78));
+	GET(SHPStruct*, pImage, ECX);
+
+	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
+	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
+		if (pImage->Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
+			R->Stack(0x0, ((unsigned short)(PrimaryFacing.Raw) >> (16 - countFrames)));
+		}
+	}
+
+	return 0;
+}
+
+// #1260: reinforcements via actions 7 and 80, and chrono reinforcements
+// via action 107 cause crash if house doesn't exist
+DEFINE_OVERRIDE_HOOK_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
+DEFINE_OVERRIDE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
+{
+	GET(TeamTypeClass*, pThis, ECX);
+	HouseClass* pHouse = pThis->GetHouse();
+
+	// house exists; it's either declared explicitly (not Player@X) or a in campaign mode
+	// (we don't second guess those), or it's still alive in a multiplayer game
+	if (pHouse &&
+		(pThis->Owner || SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Defeated))
+	{
+		return 0;
+	}
+
+	// no.
+	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
+}
+
+std::pair<TriggerAttachType, bool> AresGetFlag(AresNewTriggerAction nAction)
+{
+	switch (nAction)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+	case AresNewTriggerAction::SetEVAVoice:
+		return { TriggerAttachType::None , true };
+	case AresNewTriggerAction::KillDriversOf:
+	case AresNewTriggerAction::SetGroup:
+		return { TriggerAttachType::Object , true };
+	default:
+		return { TriggerAttachType::None , false };
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x6E3EE0, TActionClass_GetFlags, 5)
+{
+	GET(AresNewTriggerAction, nAction, ECX);
+
+	auto const& [SomeFlag, Handled] = AresGetFlag(nAction);
+
+	if (!Handled)
+		return 0;
+
+	R->EAX(SomeFlag);
+	return 0x6E3EFE;
+}
+
+std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction)
+{
+	switch (nAction)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+		return { LogicNeedType::NumberNSuper  , true };
+	case AresNewTriggerAction::KillDriversOf:
+		return { LogicNeedType::None , true };
+	case AresNewTriggerAction::SetEVAVoice:
+	case AresNewTriggerAction::SetGroup:
+		return { LogicNeedType::Number, true };
+	default:
+		return { LogicNeedType::None , false };
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x6E3B60, TActionClass_GetMode, 8)
+{
+	GET(AresNewTriggerAction, nAction, ECX);
+
+	auto const& [SomeFlag, Handled] = GetMode(nAction);
+	if (Handled)
+	{
+		R->EAX(SomeFlag);
+		return 0x6E3C4B;
+	}
+	else
+	{
+		R->EAX(((int)nAction) - 1);
+		return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
+	}
+}
+
+enum class Presistable
+{
+	None = 0,
+	unk_0x100 = 256,
+	unk_0x101 = 257
+};
+
+std::pair<Presistable, bool> GetPresistableFlag(AresNewTriggerEvents nAction)
+{
+	switch (nAction)
+	{
+	case AresNewTriggerEvents::UnderEMP:
+	case AresNewTriggerEvents::UnderEMP_ByHouse:
+	case AresNewTriggerEvents::RemoveEMP:
+	case AresNewTriggerEvents::RemoveEMP_ByHouse:
+	case AresNewTriggerEvents::EnemyInSpotlightNow:
+	case AresNewTriggerEvents::ReverseEngineered:
+	case AresNewTriggerEvents::HouseOwnTechnoType:
+	case AresNewTriggerEvents::HouseDoesntOwnTechnoType:
+	case AresNewTriggerEvents::AttackedOrDestroyedByAnybody:
+	case AresNewTriggerEvents::AttackedOrDestroyedByHouse:
+	case AresNewTriggerEvents::TechnoTypeDoesntExistMoreThan:
+		return { Presistable::unk_0x100  , true };
+	case AresNewTriggerEvents::DriverKiller:
+	case AresNewTriggerEvents::DriverKilled_ByHouse:
+	case AresNewTriggerEvents::VehicleTaken:
+	case AresNewTriggerEvents::VehicleTaken_ByHouse:
+	case AresNewTriggerEvents::Abducted:
+	case AresNewTriggerEvents::Abducted_ByHouse:
+	case AresNewTriggerEvents::AbductSomething:
+	case AresNewTriggerEvents::AbductSomething_OfHouse:
+	case AresNewTriggerEvents::SuperActivated:
+	case AresNewTriggerEvents::SuperDeactivated:
+	case AresNewTriggerEvents::SuperNearWaypoint:
+	case AresNewTriggerEvents::ReverseEngineerAnything:
+	case AresNewTriggerEvents::ReverseEngineerType:
+	case AresNewTriggerEvents::DestroyedByHouse:
+	case AresNewTriggerEvents::AllKeepAlivesDestroyed:
+	case AresNewTriggerEvents::AllKeppAlivesBuildingDestroyed:
+		return { Presistable::unk_0x101  , true };
+	default:
+		return { Presistable::None  , false };
+	}
+
+}
+
+DEFINE_OVERRIDE_HOOK(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
+{
+	GET(TEventClass*, pThis, ECX);
+	auto const& [Flag, Handled] = 
+		GetPresistableFlag((AresNewTriggerEvents)pThis->EventKind);
+	if (!Handled)
+		return 0x0;
+
+	R->EAX(Flag);
+	return 0x71F9DF;
+}
+
+// Resolves a param to a house.
+HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse = nullptr)
+{
+	if (param == 8997)
+	{
+		return pOwnerHouse;
+	}
+
+	if (HouseClass::Index_IsMP(param))
+	{
+		return HouseClass::FindByIndex(param);
+	}
+
+	return HouseClass::FindByCountryIndex(param);
+}
+
+// the general events requiring a house
+DEFINE_OVERRIDE_HOOK(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
+{
+	GET(int const, param, ECX);
+
+	auto const pHouse = ResolveHouseParam(param);
+	R->EAX(pHouse);
+
+	// continue normally if a house was found or this isn't Player@X logic,
+	// otherwise return false directly so events don't fire for non-existing
+	// players.
+	return (pHouse || !HouseClass::Index_IsMP(param)) ? 0x71F071u : 0x71F0D5u;
+}
+
+// validation for Spy as House, the Entered/Overflown Bys and the Crossed V/H Lines
+DEFINE_OVERRIDE_HOOK_AGAIN(0x71ED33, EventClass_HasOccured_PlayerAtX2, 5)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x71F1C9, EventClass_HasOccured_PlayerAtX2, 5)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x71F1ED, EventClass_HasOccured_PlayerAtX2, 5)
+DEFINE_OVERRIDE_HOOK(0x71ED01, EventClass_HasOccured_PlayerAtX2, 5)
+{
+	GET(int const, param, ECX);
+	R->EAX(ResolveHouseParam(param));
+	return R->Origin() + 5;
+}
+
+// param for Attacked by House is the array index
+DEFINE_OVERRIDE_HOOK(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
+{
+	GET(int, param, EAX);
+	GET(HouseClass* const, pHouse, EDX);
+
+	// convert Player @ X to real index
+	if (HouseClass::Index_IsMP(param))
+	{
+		auto const pPlayer = ResolveHouseParam(param);
+		param = pPlayer ? pPlayer->ArrayIndex : -1;
+	}
+
+	return (pHouse->ArrayIndex == param) ? 0x71EE82u : 0x71F163u;
+}
+
+namespace TEventExt_dummy
+{
+	// the function return is deciding if the case is handled or not
+	// the bool result pointer is for the result of the Event itself
+	bool NOINLINE HasOccured(TEventClass* pThis, EventArgs const Args, bool* result)
+	{
+		return false;
+	}
+}
+
+
+//TODO : 
+// before doing this , need to port keep-alive
+//DEFINE_OVERRIDE_HOOK(0x71E949 , TEventClass_HasOccured, 7)
+//{
+//
+//	GET(TEventClass*, pThis, EBP);
+//	GET_BASE(EventArgs const, args, STACK_OFFSET(0x2C,0x4));
+//	enum { return_true = 0x71F1B1, return_false = 0x71F163};
+//	bool result = false;
+//	if (TEventExt_dummy::HasOccured(pThis, args, &result)) {
+//		return result ? return_true : return_false;
+//	}
+//
+//	return 0;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 7)
+{
+	PhobosSwizzle::Instance.ConvertNodes();
+	PhobosSwizzle::Instance.Clear();
+
+	return 0x6CF400;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6CF2C0, SwizzleManagerClass_Here_I_Am, 5)
+{
+	GET_STACK(void*, oldP, 0x8);
+	GET_STACK(void*, newP, 0xC);
+	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterChange(oldP, newP));
+	return 0x6CF316;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6CF240, SwizzleManagerClass_Swizzle, 7)
+{
+	GET_STACK(void**, ptr, 0x8);
+	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterForChange(ptr));
+	return 0x6CF2B3;
+}
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)

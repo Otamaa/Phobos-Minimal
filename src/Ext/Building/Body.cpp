@@ -725,7 +725,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
 		.Process(this->LighningNeedUpdate)
-
+		.Process(this->TogglePower_HasPower)
 		;
 }
 

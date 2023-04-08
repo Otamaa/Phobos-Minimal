@@ -60,7 +60,7 @@ public:
 
 	// main brain, returns whether succeeded (mostly, no consistency in results what so ever)
 	// trigger fires all actions regardless of result of this
-	bool Execute(HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	bool Occured(HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 		{ JMP_THIS(0x6DD8B0); }
 
 	// BIG LIST OF EXECUTE'S SLAVE FUNCTIONS - feel free to use
@@ -71,7 +71,7 @@ public:
 #pragma push_macro("ACTION_FUNC")
 
 #define ACTION_FUNC(name, addr) \
-	bool name(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct const& location) \
+	bool name(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation) \
 		{ JMP_THIS(addr); }
 
 	ACTION_FUNC(LightningStrikeAt, 0x6E0050);
@@ -317,3 +317,11 @@ public:
 };
 
 static_assert(sizeof(TActionClass) == 0x94 , "Invalid Size !");
+
+struct ActionArgs
+{
+	HouseClass* pHouse;
+	ObjectClass* pObject;
+	TriggerClass* pTrigger;
+	CellStruct* plocation;
+};

@@ -30,5 +30,6 @@ public:
 		}
 
 	static eMessageBoxResult Show(const wchar_t* pMessage)
-		{ return Show(pMessage, StringTable::LoadString("TXT_OK"), StringTable::LoadString("TXT_CANCEL")); }
+		{ return Show(pMessage, StringTable::LoadString(GameStrings::TXT_OK)
+					  , StringTable::LoadString(GameStrings::TXT_CANCEL)); }
 };
