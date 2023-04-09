@@ -192,7 +192,7 @@ public:
 	static inline constexpr int const MaxCells = 0x40000;
 
 	// this actually points to 5 vectors, one for each layer
-	static constexpr reference<LayerClass, 0x8A0360u, (size_t)Layer::count> const ObjectsInLayers{};
+	static constexpr reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers{};
 
 	static LayerClass* GetLayer(Layer lyr)
 	{

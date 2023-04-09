@@ -434,7 +434,7 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 		if (pTechno->AttachedTag)
 		{
 			//66
-			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
+			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
 		}
 	}
 
@@ -458,11 +458,11 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 
 	if (auto const pTag = Grinder->AttachedTag)
 	{
-		pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
+		pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
 
 		if (auto const pTag2 = Grinder->AttachedTag)
 		{
-			pTag2->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+			pTag2->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 		}
 	}
 
@@ -498,11 +498,11 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	if (auto FirstTag = Grinder->AttachedTag)
 	{
 		//80
-		FirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
+		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
 
 		//79
 		if (auto pSecondTag = Grinder->AttachedTag)
-			FirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 	}
 
 	return 0;

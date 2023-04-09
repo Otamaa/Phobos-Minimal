@@ -154,7 +154,7 @@ enum class TileType : int
 	ClearToSandLAT,
 	Green,
 	NotWater,
-	DestroyableCliff,
+	DestroyableCliff
 };
 
 enum class AbstractType : unsigned int {
@@ -1004,9 +1004,7 @@ enum class Layer : int {
 	Surface = 1,
 	Ground = 2,
 	Air = 3,
-	Top = 4 ,
-
-	count
+	Top = 4
 };
 
 enum class PlacementType : int {
@@ -1325,7 +1323,19 @@ enum class Rank : int {
 	Invalid = -1,
 	Elite = 0,
 	Veteran = 1,
-	Rookie = 2
+	Rookie = 2,
+};
+
+enum class DefaultColorList : int
+{
+	Grey = 0,
+	Red = 1,
+	Green = 2,
+	Blue = 3,
+	Yellow = 4,
+	White = 5,
+
+	count
 };
 
 enum class DoType : int {

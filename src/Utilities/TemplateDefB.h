@@ -17,46 +17,21 @@ namespace detail
 
 			return true;
 
-		} else if (!parser.empty()) {
+		} else if (!parser.empty() && strlen(parser.value())) {
 
 			if(auto pColorClass = ColorTypeClass::Find(parser.value())) {
 				value = pColorClass->ToColor();
 				return true;
 			}
 
-			if (IS_SAME_STR_(parser.value(), GameStrings::Grey()))
-			{
-				value = Drawing::ColorGrey;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Red()))
-			{
-				value = Drawing::ColorRed;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Green()))
-			{
-				value = Drawing::ColorGreen;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "Blue"))
-			{
-				value = Drawing::ColorBlue;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Yellow()))
-			{
-				value = Drawing::ColorYellow;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "White"))
-			{
-				value = Drawing::ColorWhite;
-				return true;
-			}
+			for (size_t i = 0; i < EnumFunctions::DefaultGameColor_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::DefaultGameColor_ToStrings[i])) {
+					value = Drawing::DefaultColors[i];
+					return true;
+				}
+			}			
 			
-			if (auto const& nResult = ColorScheme::Find(parser.value()))
-			{
+			if (auto const& nResult = ColorScheme::Find(parser.value())) {
 				value = nResult->BaseColor;
 				return true;
 			}
@@ -71,27 +46,16 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{			
-			const auto cur = parser.value();
-
-			if (IS_SAME_STR_(cur, "Cell"))
-			{
-				value = DamageDelayTargetFlag::Cell;
-			}
-			else if (IS_SAME_STR_(cur, "AttachedObject"))
-			{
-				value = DamageDelayTargetFlag::AttachedObject;
-			}
-			else if (IS_SAME_STR_(cur, "Invoker"))
-			{
-				value = DamageDelayTargetFlag::Invoker;
-			}
-			else if (!INIClass::IsBlank(cur))
-			{
-				Debug::INIParseFailed(pSection, pKey, cur, nullptr);
-				return false;
+			for (size_t i = 0; i < EnumFunctions::DamageDelayTargetFlag_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::DamageDelayTargetFlag_ToStrings[i])) {
+					value = (DamageDelayTargetFlag)i;
+					return true;
+				}
 			}
 
-			return true;
+			if (!INIClass::IsBlank(parser.value())) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+			}
 		}
 
 		return false;
@@ -102,25 +66,16 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "same"))
-			{
-				value = TargetZoneScanType::Same;
-			}
-			else if (IS_SAME_STR_(parser.value(), "any"))
-			{
-				value = TargetZoneScanType::Any;
-			}
-			else if (IS_SAME_STR_(parser.value(), "inrange"))
-			{
-				value = TargetZoneScanType::InRange;
-			}
-			else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
-				return false;
+			for (size_t i = 0; i < EnumFunctions::TargetZoneScanType_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::TargetZoneScanType_ToStrings[i])) {
+					value = (TargetZoneScanType)i;
+					return true;
+				}
 			}
 
-			return true;
+			if (!INIClass::IsBlank(parser.value())) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
+			}		
 		}
 
 		return false;
@@ -177,23 +132,12 @@ namespace detail
 		auto ret = false;
 
 		char pFlagName[32];
-		_snprintf_s(pFlagName, 31, "%s.Frame", pKey);
-		ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
+		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i) {
+			_snprintf_s(pFlagName, sizeof(pFlagName), EnumFunctions::MouseCursorData_ToStrings[i], pKey);
+			ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
+		}
 
-		_snprintf_s(pFlagName, 31, "%s.Count", pKey);
-		ret |= read(value.OriginalData.FrameCount, parser, pSection, pFlagName);
-
-		_snprintf_s(pFlagName, 31, "%s.Interval", pKey);
-		ret |= read(value.OriginalData.FrameRate, parser, pSection, pFlagName);
-
-		_snprintf_s(pFlagName, 31, "%s.MiniFrame", pKey);
-		ret |= read(value.OriginalData.SmallFrame, parser, pSection, pFlagName);
-
-		_snprintf_s(pFlagName, 31, "%s.MiniCount", pKey);
-		ret |= read(value.OriginalData.SmallFrameCount, parser, pSection, pFlagName);
-
-		_snprintf_s(pFlagName, 31, "%s.MiniInterval", pKey);
-		if (!read(value.SmallFrameRate, parser, pSection, pFlagName))
+		if (value.SmallFrameRate == -1)
 			value.SmallFrameRate = value.OriginalData.FrameRate;
 
 		_snprintf_s(pFlagName, 31, "%s.HotSpot", pKey);
@@ -224,9 +168,10 @@ namespace detail
 			value = (DirType8)nBuffer;
 			return true;
 		}
-		else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
+		else
 		{
-			Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 8\n", pSection, pKey, parser.value());
+			if(strlen(parser.value()))
+			   Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 8\n", pSection, pKey, parser.value());
 		}
 
 		return false;
@@ -241,9 +186,10 @@ namespace detail
 			value = (DirType32)nBuffer;
 			return true;
 		}
-		else if (strlen(parser.value()) && !INIClass::IsBlank(parser.value()))
+		else
 		{
-			Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 32\n", pSection, pKey, parser.value());
+			if (strlen(parser.value()))
+			    Debug::Log("Failed to parse INI file content: [%s]%s=%s , Expected a facing between 0 and 32\n", pSection, pKey, parser.value());
 		}
 
 		return false;

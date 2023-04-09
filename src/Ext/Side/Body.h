@@ -43,14 +43,14 @@ public:
 			, IngameScore_WinTheme { -2 }
 			, IngameScore_LoseTheme { -2 }
 			, Sidebar_HarvesterCounter_Offset { { 0,0 } }
-			, Sidebar_HarvesterCounter_Yellow { Drawing::ColorYellow }
-			, Sidebar_HarvesterCounter_Red { Drawing::ColorRed }
+			, Sidebar_HarvesterCounter_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] }
+			, Sidebar_HarvesterCounter_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] }
 			, Sidebar_ProducingProgress_Offset { { 0,0 } }
 			, Sidebar_PowerDelta_Offset { { 0,0 } }
-			, Sidebar_PowerDelta_Green { Drawing::ColorGreen }
-			, Sidebar_PowerDelta_Grey { Drawing::ColorGrey }
-			, Sidebar_PowerDelta_Yellow { Drawing::ColorYellow }
-			, Sidebar_PowerDelta_Red { Drawing::ColorRed }
+			, Sidebar_PowerDelta_Green { Drawing::DefaultColors[(int)DefaultColorList::Green] }
+			, Sidebar_PowerDelta_Grey { Drawing::DefaultColors[(int)DefaultColorList::Grey] }
+			, Sidebar_PowerDelta_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] }
+			, Sidebar_PowerDelta_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] }
 			, Sidebar_PowerDelta_Align { TextAlign::Left }
 
 			, ToolTip_Background_Color { }

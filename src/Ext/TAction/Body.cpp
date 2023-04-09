@@ -648,7 +648,7 @@ bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, Obj
 
 	if (itr != variables.end())
 	{
-		swprintf(Phobos::wideBuffer, L"%d", itr->second.Value);
+		swprintf_s(Phobos::wideBuffer, L"%d", itr->second.Value);
 		MessageListClass::Instance->PrintMessage(Phobos::wideBuffer);
 	}
 

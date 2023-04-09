@@ -29,6 +29,9 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
+	if (GetVtableAddr(args.WH) != WarheadTypeClass::vtable)
+		return 0x0;
+
 	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 
 	//if (pWHExt->IgnoreDefense)

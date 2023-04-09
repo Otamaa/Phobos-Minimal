@@ -51,7 +51,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 		if (color == ColorStruct::Empty)
 		{
 			bool isPositive = amount > 0;
-			color = isPositive ? Drawing::ColorGreen : Drawing::ColorRed;
+			color = isPositive ? Drawing::DefaultColors[(int)DefaultColorList::Green] : Drawing::DefaultColors[(int)DefaultColorList::Red];
 			swprintf_s(moneyStr, L"%ls%ls%d", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, std::abs(amount));
 		}
 		else
@@ -85,9 +85,8 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		wchar_t moneyStr[0x250];
 		ColorStruct color = nOverrideColor;
 
-		if (color == ColorStruct::Empty)
-		{
-			color = Drawing::ColorRed;
+		if (color == ColorStruct::Empty) {
+			color = Drawing::DefaultColors[(int)DefaultColorList::Red];
 		}
 
 		swprintf_s(moneyStr, L"%ls", text.c_str());

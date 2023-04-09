@@ -118,7 +118,7 @@ DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 {
 	GET(AlphaShapeClass*, pThis, ESI);
 
-	if (Is_Anim(pThis))
+	if (Is_Anim(pThis->AttachedTo))
 	{
 		PointerExpiredNotification::NotifyInvalidAnim->Add(pThis);
 	}
@@ -451,11 +451,11 @@ DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
 	{
 		auto pFirstTag = pObject->AttachedTag;
 		//84
-		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
+		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
 		{
 			if (auto pSecondTag = pObject->AttachedTag)
 				// 83
-				pSecondTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
+				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
 		}
 	}
 
@@ -505,9 +505,8 @@ DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 	auto const nCount = pThis->Count;
 	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
 	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-	std::sort(nBegin, nEnd, [](ObjectClass* A, ObjectClass* B)
- {
-	 return A && B && A->IsAlive && B->IsAlive && A->GetYSort() < B->GetYSort();
+	std::sort(nBegin, nEnd, [](ObjectClass* A, ObjectClass* B) {
+		return A && B && A->IsAlive && B->IsAlive && A->GetYSort() < B->GetYSort();
 	});
 
 	return 0x551A84;
@@ -574,12 +573,6 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 }
 //
 DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogNonsense, 5, 6BBE2B)
-
-// bugfix #187: Westwood idiocy
-DEFINE_OVERRIDE_SKIP_HOOK(0x531726, StupidPips1, 5, 53173A)
-
-// bugfix #187: Westwood idiocy
-DEFINE_OVERRIDE_SKIP_HOOK(0x53173F, StupidPips2, 5, 531749)
 
 // bugfix #187: Westwood idiocy
 //DEFINE_OVERRIDE_SKIP_HOOK(0x5F698F, ObjectClass_GetCell, 5, 5F69B2)
@@ -690,14 +683,6 @@ DEFINE_OVERRIDE_HOOK(0x47F9A4, CellClass_DrawOverlay_WallRemap, 0x6)
 		R->EDX(HouseClass::Array->GetItem(idx));
 		return 0x47F9AA;
 	}
-	return 0;
-}
-
-// issue #1437: crash when warping out buildings infantry wants to garrison
-DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
-{
-	GET(TechnoClass*, pVictim, ECX);
-	pVictim->IsAlive = false;
 	return 0;
 }
 
@@ -984,130 +969,6 @@ DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 	return AnimExt::DealDamageDelay(pThis) ? SkipDamageDelay : CheckIsAlive;
 }
 
-DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
-{
-	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
-	GET(TechnoClass*, pThis, ESI);
-
-	if (!WarheadTypeExt::ExtMap.Find(pWh)->IC_Flash.Get(RulesExt::Global()->IC_Flash.Get()))
-		return 0x701A98;
-
-	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
-}
-
-DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
-{
-	R->Stack(0xE, R->EAX() > 0);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
-{
-	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->DieSound_Override;
-
-	if (nSound.isset())
-	{
-
-		auto const nIdx = nSound.Get();
-		if (nIdx >= 0)
-			VocClass::PlayAt(nIdx, pThis->Location);
-
-		return 0x702200;
-	}
-
-	return 0x0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
-{
-	GET_STACK(WarheadTypeClass*, pWh, 0xD0);
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const& nSound = WarheadTypeExt::ExtMap.Find(pWh)->VoiceSound_Override;
-
-	if (nSound.isset())
-	{
-
-		auto const nIdx = nSound.Get();
-		if (nIdx >= 0)
-			VocClass::PlayAt(nIdx, pThis->Location);
-
-		return 0x702200;
-	}
-
-	return 0x0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x702CFE, TechnoClass_ReceiveDamage_PreventScatter, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	auto pExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-
-	// only allow to scatter if not prevented
-	if (!pExt->PreventScatter)
-	{
-		pThis->Scatter(CoordStruct::Empty, true, false);
-	}
-
-	return 0x702D11;
-}
-
-// #1283653: fix for jammed buildings and attackers in open topped transports
-DEFINE_OVERRIDE_HOOK(0x702A38, TechnoClass_ReceiveDamage_OpenTopped, 0x7)
-{
-	REF_STACK(TechnoClass*, pAttacker, STACK_OFFS(0xC4, -0x10));
-
-	// decide as if the transporter fired at this building
-	if (pAttacker && pAttacker->InOpenToppedTransport && pAttacker->Transporter)
-	{
-		pAttacker = pAttacker->Transporter;
-	}
-
-	R->EDI(pAttacker);
-	return 0x702A3F;
-}
-
-DEFINE_OVERRIDE_HOOK(0x702669, TechnoClass_ReceiveDamage_SuppressDeathWeapon, 0x9)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(WarheadTypeClass* const, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	if (!WarheadTypeExt::ExtMap.Find(pWarhead)->ApplySuppressDeathWeapon(pThis)) {
-		pThis->FireDeathWeapon(0);
-	}
-
-	return 0x702672;
-}
-
-DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
-{
-
-	GET(InfantryClass*, I, ESI);
-	const bool IgnoreDefenses = R->BL() != 0;
-
-	if (!I->IsDeployed() || IgnoreDefenses)
-	{
-		return 0;
-	}
-
-	GET(WarheadTypeClass*, pWH, EBP);
-	GET(int*, pDamage, EDI);
-
-	// yes, let's make sure the pointer's safe AFTER we've dereferenced it... Failstwood!
-	if (pWH)
-	{
-		*pDamage = static_cast<int>(*pDamage * WarheadTypeExt::ExtMap.Find(pWH)->DeployedDamage);
-		return 0x517FF9u;
-	}
-
-	return 0x518016u;
-}
-
 DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EDI);
@@ -1149,7 +1010,6 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 
 	if (auto const pOwner = pThis->SlaveOwner)
 	{
-
 		if (!pOwner->IsSelected || pThis->InLimbo)
 			return 0x0;
 
@@ -1226,25 +1086,13 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 		}
 	}
 
-	if(pThis->IsTethered)
-		DrawTheStuff(L"IsTethered");
+	//if(pThis->IsTethered)
+	//	DrawTheStuff(L"IsTethered");
 
 	return 0x0;
 }
 
-
 #define GetAresAresWarheadTypeExt(wh) ((void*)wh->unused_1CC)
-
-#define Is_MaliciousWH(wh) (*(bool*)(((char*)wh->unused_1CC) + 0x75))
-
-/*
- * Fixing issue #722
- */
-DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
-{
-	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
-	return !Is_MaliciousWH(WH) ? 0x738535u : 0u;
-}
 
 #include <Misc/AresData.h>
 #include <Ext/SWType/Body.h>
@@ -1374,50 +1222,6 @@ DEFINE_OVERRIDE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 		? CantBurn : Ignite;
 }
 
-// TODO :
-#define Ares_TemporalWeapon(var) (*(bool*)(((char*)GetAresTechnoExt(var)) + 0xA))
-
-// issue 472: deglob WarpAway
-DEFINE_OVERRIDE_HOOK(0x71A900, TemporalClass_Update_WarpAway, 6)
-{
-	GET(TemporalClass*, pThis, ESI);
-	auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;
-	R->EDX<AnimTypeClass*>(WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Global()->WarpAway));
-	return 0x71A906;
-}
-
-// bugfix #379: Temporal friendly kills give veterancy
-// bugfix #1266: Temporal kills gain double experience
-// 
-DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
-{
-	GET(TemporalClass*, pThis, ESI);
-
-	auto pOwner = pThis->Owner;
-	auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;
-	auto pOwnerExt = TechnoExt::ExtMap.Find(pOwner);
-	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-
-	if (pWarheadExt->Supress_LostEva)
-		pOwnerExt->SupressEVALost = true;
-
-	return 0x71A97D;
-}
-
-DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_SuppressUnitLost, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, 0xD0);
-
-	auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	auto pTechExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pWarheadExt->Supress_LostEva.Get())
-		pTechExt->SupressEVALost = true;
-
-	return 0x0;
-}
-
 // complete rewrite
 DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 {
@@ -1472,166 +1276,6 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	return 0;
 }
 
-int GetWarpPerStep(TemporalClass* pThis, int nStep)
-{
-	int nAddStep = 0;
-	int nStepR = 0;
-
-	for (; pThis;)
-	{
-		if (nStep > 50)
-			break;
-
-		++nStep;
-		auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;
-
-		if (auto const pTarget = pThis->Target)
-			nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor , 0);
-		else
-			nStepR = pWeapon->Damage;
-
-		nAddStep += nStepR;
-		pThis->WarpPerStep = nStepR;
-		pThis = pThis->PrevTemporal;
-	}
-
-	return nAddStep;
-}
-
-DEFINE_OVERRIDE_HOOK(0x71AB10, TemporalClass_GetWarpPerStep, 6)
-{
-	GET_STACK(int, nStep, 0x4);
-	GET(TemporalClass*, pThis, ESI);
-	R->EAX(GetWarpPerStep(pThis, nStep));
-	return 0x71AB57;
-}
-
-// bugfix #874 A: Temporal warheads affect Warpable=no units
-// skip freeing captured and destroying spawned units,
-// as it is not clear here if this is warpable at all.
-DEFINE_OVERRIDE_SKIP_HOOK(0x71AF2B, TemporalClass_Fire_UnwarpableA,0xA, 71AF4D)
-
-DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
-{
-	GET(TemporalClass* const, pThis, ESI);
-
-	if (auto const pTarget = pThis->Target) {
-		pTarget->UpdatePlacement(PlacementType::Redraw);
-
-		auto nTotal = pThis->GetWarpPerStep();
-		if (nTotal) {
-			auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;
-
-			if (auto const Warhead = pWeapon->Warhead) {
-
-				auto const pTempOwner = pThis->Owner;
-				auto const peWHext = WarheadTypeExt::ExtMap.Find(Warhead);
-
-				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get()) {
-
-					auto nCoord = pTarget->GetCenterCoords();
-
-					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord)) {
-						pAnim->ZAdjust = pTarget->GetZAdjustment() - 3;
-						AnimExt::SetAnimOwnerHouseKind(pAnim, pTempOwner->GetOwningHouse()
-							, pTarget->GetOwningHouse(), pThis->Owner, false) ;
-					}
-				}
-
-				if (peWHext->TemporalExpiredApplyDamage.Get())
-				{
-					auto const pTargetStreght = pTarget->GetTechnoType()->Strength;
-
-					if (pThis->WarpRemaining > 0) {
-
-						auto damage = int((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
-							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
-
-						if (pTarget->IsAlive && !pTarget->IsSinking && !pTarget->IsCrashing)
-							pTarget->ReceiveDamage(&damage, pTempOwner->DistanceFrom(pTarget), Warhead, pTempOwner, false, static_cast<bool>(ScenarioClass::Instance->Random(0, 1)), pTempOwner->Owner);
-					}
-				}
-			}
-		}
-	}
-
-	return 0x71AC5D;
-}
-
-DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
-{
-	GET(TechnoClass*, pTarget, ECX);
-	GET(TemporalClass*, pThis, ESI);
-	GET(int, nStreght, EAX);
-
-	auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;;
-	const auto pWarhead = pWeapon->Warhead;
-	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
-	const double nCalc = (1.0 - pTarget->Health / pTarget->GetTechnoType()->Strength) * pWarheadExt->Temporal_HealthFactor.Get();
-	const double nCalc_b = (1.0 - nCalc) * (10 * nStreght) + nCalc * 0.0;
-
-	R->EAX(nCalc_b <= 1.0 ? 1 : static_cast<int>(nCalc_b));
-	return 0x71AFB7;
-}
-
-//TODO :
-#define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
-
-bool Warpable(TechnoClass* pTarget)
-{
-	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
-		return false;
-
-	if (TechnoExt::HasAbility(pTarget, PhobosAbilityType::Unwarpable))
-		return false;
-
-	if (Is_Building(pTarget)) {
-
-		if(Ares_AboutToChronoshift(pTarget)){ 
-			return false;
-		}
-	}
-	else if (Is_Unit(pTarget) &&
-		!TechnoExt::IsInWarfactory(pTarget)) { 
-		return false;
-	}
-
-	return true;
-}
-
-DEFINE_OVERRIDE_HOOK(0x71AE50, TemporalClass_CanWarpTarget, 8)
-{
-	GET_STACK(TechnoClass*, pTarget, 0x4);
-	R->EAX(Warpable(pTarget));
-	return 0x71AF19;
-}
-
-DEFINE_OVERRIDE_HOOK(0x71944E, TeleportLocomotionClass_ILocomotion_Process, 6)
-{
-	GET(FootClass*, pObject, ECX);
-	GET(CoordStruct*, XYZ, EDX);
-	*XYZ = pObject->GetCoords();
-	R->EAX<CoordStruct*>(XYZ);
-
-	if (auto pType = pObject->GetTechnoType())
-	{
-		if (const auto pImage = pType->AlphaImage)
-		{
-			Point2D xy;
-			TacticalClass::Instance->CoordsToClient(XYZ, &xy);
-			RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
-			Point2D off = { ScreenArea.X - (pImage->Width / 2), ScreenArea.Y - (pImage->Height / 2) };
-			xy += off;
-			RectangleStruct Dirty =
-			{ xy.X - ScreenArea.X, xy.Y - ScreenArea.Y,
-			  pImage->Width, pImage->Height };
-			TacticalClass::Instance->RegisterDirtyArea(Dirty, true);
-		}
-	}
-
-	return 0x719454;
-}
-
 DEFINE_OVERRIDE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
@@ -1670,7 +1314,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			nSpeed *= nBuildTimeMult;
 		}
 
-		double nPowerSpeedResult = 0.0f;
+		double nPowerSpeedResult = 0.00;
 		{//Power
 
 			const auto nPowerPercentage = pOwner->GetPowerPercentage();
@@ -1694,7 +1338,7 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 		nFinalSpeed = nSpeed / nPowerSpeedResult;
 
 		{//Multiple Factory
-			auto const nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
+			const auto nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
 			if (nFactorySpeed > 0.0)
 			{
 				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1); i > 0; --i)
@@ -2003,7 +1647,7 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCl
 
 DEFINE_OVERRIDE_HOOK(0x70CBB0 ,TechnoClass_DealParticleDamage_AmbientDamage, 6)
 {
-	GET_STACK(WeaponTypeClass*, pWeapon, 0x14);
+	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 
 	if (!pWeapon->AmbientDamage)
 		return 0x70CC3E;
@@ -2046,16 +1690,16 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 		? 0x6FCA26u : 0x6FCA17u;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
-DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	// ares change this to read from ext instead
-	// since this one is `char` so it cant store bigger number i assume
-	pThis->GapRadius = pType->GapRadiusInCells;
-	return R->Origin() + 0xD;
-}
+//DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
+//DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(TechnoTypeClass*, pType, EAX);
+//	// ares change this to read from ext instead
+//	// since this one is `char` so it cant store bigger number i assume
+//	pThis->GapRadius = pType->GapRadiusInCells;
+//	return R->Origin() + 0xD;
+//}
 
 DEFINE_OVERRIDE_HOOK(0x6FB306 , TechnoClass_CreateGap_Optimize, 6)
 {
@@ -2123,63 +1767,6 @@ DEFINE_OVERRIDE_HOOK(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	return 0x6EB47A;
 }
 
-DEFINE_OVERRIDE_HOOK(0x421371, TacticalClass_UpdateAlphasInRectangle_ShouldDraw, 5)
-{
-	GET(int, AlphaLightIndex, EBX);
-	auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
-
-	bool shouldDraw = !pAlpha->IsObjectGone;
-
-	if (shouldDraw) {
-		if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
-			shouldDraw = pTechno->VisualCharacter(VARIANT_TRUE, pTechno->Owner) == VisualType::Normal &&
-				!pTechno->Disguised;
-		}
-	}
-
-	return shouldDraw ? 0 : 0x421694;
-}
-
-#include <Conversions.h>
-
-DEFINE_OVERRIDE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
-{
-	GET(int, AlphaLightIndex, EBX);
-	GET(RectangleStruct*, buffer, EDX);
-	GET(SHPStruct*, pImage, EDI);
-
-	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
-	unsigned int idx = 0;
-
-	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo))  {
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
-			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
-			idx = ((PrimaryFacing.Raw) >> (16 - countFrames));
-		}
-	}
-
-	R->EAX(pImage->GetFrameBounds(*buffer, idx));
-	return 0x421478;
-}
-
-DEFINE_OVERRIDE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
-{
-	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xA4, 0x78));
-	GET(SHPStruct*, pImage, ECX);
-
-	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
-	if (const auto pTechno = abstract_cast<TechnoClass*>(pAlpha->AttachedTo)) {
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
-			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
-			R->Stack(0x0, ((unsigned short)(PrimaryFacing.Raw) >> (16 - countFrames)));
-		}
-	}
-
-	return 0;
-}
-
 // #1260: reinforcements via actions 7 and 80, and chrono reinforcements
 // via action 107 cause crash if house doesn't exist
 DEFINE_OVERRIDE_HOOK_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
@@ -2200,231 +1787,13 @@ DEFINE_OVERRIDE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
 	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
 }
 
-std::pair<TriggerAttachType, bool> AresGetFlag(AresNewTriggerAction nAction)
+DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
 {
-	switch (nAction)
-	{
-	case AresNewTriggerAction::AuxiliaryPower:
-	case AresNewTriggerAction::SetEVAVoice:
-		return { TriggerAttachType::None , true };
-	case AresNewTriggerAction::KillDriversOf:
-	case AresNewTriggerAction::SetGroup:
-		return { TriggerAttachType::Object , true };
-	default:
-		return { TriggerAttachType::None , false };
-	}
+	BuildingTypeClass::InitOneTimeData();
+	UnitTypeClass::InitOneTimeData();
+	return 0x531749;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6E3EE0, TActionClass_GetFlags, 5)
-{
-	GET(AresNewTriggerAction, nAction, ECX);
-
-	auto const& [SomeFlag, Handled] = AresGetFlag(nAction);
-
-	if (!Handled)
-		return 0;
-
-	R->EAX(SomeFlag);
-	return 0x6E3EFE;
-}
-
-std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction)
-{
-	switch (nAction)
-	{
-	case AresNewTriggerAction::AuxiliaryPower:
-		return { LogicNeedType::NumberNSuper  , true };
-	case AresNewTriggerAction::KillDriversOf:
-		return { LogicNeedType::None , true };
-	case AresNewTriggerAction::SetEVAVoice:
-	case AresNewTriggerAction::SetGroup:
-		return { LogicNeedType::Number, true };
-	default:
-		return { LogicNeedType::None , false };
-	}
-}
-
-DEFINE_OVERRIDE_HOOK(0x6E3B60, TActionClass_GetMode, 8)
-{
-	GET(AresNewTriggerAction, nAction, ECX);
-
-	auto const& [SomeFlag, Handled] = GetMode(nAction);
-	if (Handled)
-	{
-		R->EAX(SomeFlag);
-		return 0x6E3C4B;
-	}
-	else
-	{
-		R->EAX(((int)nAction) - 1);
-		return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
-	}
-}
-
-enum class Presistable
-{
-	None = 0,
-	unk_0x100 = 256,
-	unk_0x101 = 257
-};
-
-std::pair<Presistable, bool> GetPresistableFlag(AresNewTriggerEvents nAction)
-{
-	switch (nAction)
-	{
-	case AresNewTriggerEvents::UnderEMP:
-	case AresNewTriggerEvents::UnderEMP_ByHouse:
-	case AresNewTriggerEvents::RemoveEMP:
-	case AresNewTriggerEvents::RemoveEMP_ByHouse:
-	case AresNewTriggerEvents::EnemyInSpotlightNow:
-	case AresNewTriggerEvents::ReverseEngineered:
-	case AresNewTriggerEvents::HouseOwnTechnoType:
-	case AresNewTriggerEvents::HouseDoesntOwnTechnoType:
-	case AresNewTriggerEvents::AttackedOrDestroyedByAnybody:
-	case AresNewTriggerEvents::AttackedOrDestroyedByHouse:
-	case AresNewTriggerEvents::TechnoTypeDoesntExistMoreThan:
-		return { Presistable::unk_0x100  , true };
-	case AresNewTriggerEvents::DriverKiller:
-	case AresNewTriggerEvents::DriverKilled_ByHouse:
-	case AresNewTriggerEvents::VehicleTaken:
-	case AresNewTriggerEvents::VehicleTaken_ByHouse:
-	case AresNewTriggerEvents::Abducted:
-	case AresNewTriggerEvents::Abducted_ByHouse:
-	case AresNewTriggerEvents::AbductSomething:
-	case AresNewTriggerEvents::AbductSomething_OfHouse:
-	case AresNewTriggerEvents::SuperActivated:
-	case AresNewTriggerEvents::SuperDeactivated:
-	case AresNewTriggerEvents::SuperNearWaypoint:
-	case AresNewTriggerEvents::ReverseEngineerAnything:
-	case AresNewTriggerEvents::ReverseEngineerType:
-	case AresNewTriggerEvents::DestroyedByHouse:
-	case AresNewTriggerEvents::AllKeepAlivesDestroyed:
-	case AresNewTriggerEvents::AllKeppAlivesBuildingDestroyed:
-		return { Presistable::unk_0x101  , true };
-	default:
-		return { Presistable::None  , false };
-	}
-
-}
-
-DEFINE_OVERRIDE_HOOK(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
-{
-	GET(TEventClass*, pThis, ECX);
-	auto const& [Flag, Handled] = 
-		GetPresistableFlag((AresNewTriggerEvents)pThis->EventKind);
-	if (!Handled)
-		return 0x0;
-
-	R->EAX(Flag);
-	return 0x71F9DF;
-}
-
-// Resolves a param to a house.
-HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse = nullptr)
-{
-	if (param == 8997)
-	{
-		return pOwnerHouse;
-	}
-
-	if (HouseClass::Index_IsMP(param))
-	{
-		return HouseClass::FindByIndex(param);
-	}
-
-	return HouseClass::FindByCountryIndex(param);
-}
-
-// the general events requiring a house
-DEFINE_OVERRIDE_HOOK(0x71F06C, EventClass_HasOccured_PlayerAtX1, 5)
-{
-	GET(int const, param, ECX);
-
-	auto const pHouse = ResolveHouseParam(param);
-	R->EAX(pHouse);
-
-	// continue normally if a house was found or this isn't Player@X logic,
-	// otherwise return false directly so events don't fire for non-existing
-	// players.
-	return (pHouse || !HouseClass::Index_IsMP(param)) ? 0x71F071u : 0x71F0D5u;
-}
-
-// validation for Spy as House, the Entered/Overflown Bys and the Crossed V/H Lines
-DEFINE_OVERRIDE_HOOK_AGAIN(0x71ED33, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_OVERRIDE_HOOK_AGAIN(0x71F1C9, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_OVERRIDE_HOOK_AGAIN(0x71F1ED, EventClass_HasOccured_PlayerAtX2, 5)
-DEFINE_OVERRIDE_HOOK(0x71ED01, EventClass_HasOccured_PlayerAtX2, 5)
-{
-	GET(int const, param, ECX);
-	R->EAX(ResolveHouseParam(param));
-	return R->Origin() + 5;
-}
-
-// param for Attacked by House is the array index
-DEFINE_OVERRIDE_HOOK(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
-{
-	GET(int, param, EAX);
-	GET(HouseClass* const, pHouse, EDX);
-
-	// convert Player @ X to real index
-	if (HouseClass::Index_IsMP(param))
-	{
-		auto const pPlayer = ResolveHouseParam(param);
-		param = pPlayer ? pPlayer->ArrayIndex : -1;
-	}
-
-	return (pHouse->ArrayIndex == param) ? 0x71EE82u : 0x71F163u;
-}
-
-namespace TEventExt_dummy
-{
-	// the function return is deciding if the case is handled or not
-	// the bool result pointer is for the result of the Event itself
-	bool NOINLINE HasOccured(TEventClass* pThis, EventArgs const Args, bool* result)
-	{
-		return false;
-	}
-}
-
-
-//TODO : 
-// before doing this , need to port keep-alive
-//DEFINE_OVERRIDE_HOOK(0x71E949 , TEventClass_HasOccured, 7)
-//{
-//
-//	GET(TEventClass*, pThis, EBP);
-//	GET_BASE(EventArgs const, args, STACK_OFFSET(0x2C,0x4));
-//	enum { return_true = 0x71F1B1, return_false = 0x71F163};
-//	bool result = false;
-//	if (TEventExt_dummy::HasOccured(pThis, args, &result)) {
-//		return result ? return_true : return_false;
-//	}
-//
-//	return 0;
-//}
-
-DEFINE_OVERRIDE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 7)
-{
-	PhobosSwizzle::Instance.ConvertNodes();
-	PhobosSwizzle::Instance.Clear();
-
-	return 0x6CF400;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6CF2C0, SwizzleManagerClass_Here_I_Am, 5)
-{
-	GET_STACK(void*, oldP, 0x8);
-	GET_STACK(void*, newP, 0xC);
-	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterChange(oldP, newP));
-	return 0x6CF316;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6CF240, SwizzleManagerClass_Swizzle, 7)
-{
-	GET_STACK(void**, ptr, 0x8);
-	R->EAX<HRESULT>(PhobosSwizzle::Instance.RegisterForChange(ptr));
-	return 0x6CF2B3;
-}
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)
@@ -2432,161 +1801,6 @@ DEFINE_OVERRIDE_HOOK(0x6CF240, SwizzleManagerClass_Swizzle, 7)
 //TODO :
 // better port these :s
 // DEFINE_HOOK(6FAF0D, TechnoClass_Update_EMPLock, 6)
-
-// TODO : still not correct !
-//DEFINE_HOOK(718279, TeleportLocomotionClass_MakeRoom, 5)
-//{
-//	GET(CoordStruct*, pCoord, EAX);
-//	GET(TeleportLocomotionClass*, pLoco, EBP);
-//
-//	auto const pLinked = pLoco->LinkedTo;
-//	auto const pLinkedIsInf = pLinked->WhatAmI() == AbstractType::Infantry;
-//	auto const pCell = Map.TryGetCellAt(*pCoord);
-//
-//	R->Stack(0x48, false);
-//	R->EBX(pCell->OverlayTypeIndex);
-//	R->EDI(0);
-//
-//	for (NextObject obj(pCell->GetContent()); obj; ++obj)
-//	{
-//
-//		auto const pObj = (*obj);
-//		auto const bIsObjFoot = pObj->AbstractFlags & AbstractFlags::Foot;
-//		auto const pObjIsInf = pObj->WhatAmI() == AbstractType::Infantry;
-//		auto bIsObjectInvicible = pObj->IsIronCurtained();
-//		auto const pType = pObj->GetTechnoType();
-//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//		if (pType && !pTypeExt->Chronoshift_Crushable)
-//			bIsObjectInvicible = true;
-//
-//		if (!bIsObjectInvicible && pObjIsInf && pLinkedIsInf)
-//		{
-//			auto const bEligible = pLinked->Owner && !pLinked->Owner->IsAlliedWith(pObj);
-//			auto const pAttackerHouse = bEligible ? pLinked->Owner : nullptr;
-//			auto const pAttackerTechno = bEligible ? pLinked : nullptr;
-//
-//			auto nCoord = pObj->GetCoords();
-//			if (nCoord == *pCoord)
-//			{
-//				auto nDamage = pObj->Health;
-//				pObj->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//			}
-//		}
-//		else if (bIsObjectInvicible || !bIsObjFoot)
-//		{
-//			if (bIsObjectInvicible)
-//			{
-//				auto const pObjHouse = pObj->GetOwningHouse();
-//				auto const pAttackerHouse = pObjHouse && !pObjHouse->IsAlliedWith(pObj) ? pObjHouse : nullptr;
-//				auto const pAttackerTechno = reinterpret_cast<TechnoClass*>(pObj);
-//
-//				auto nDamage = pLinked->Health;
-//				pLinked->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//			}
-//			else if (!bIsObjFoot)
-//			{
-//				R->Stack(0x48, true);
-//			}
-//		}
-//		else
-//		{
-//
-//			auto const bEligible = pLinked->Owner && !pLinked->Owner->IsAlliedWith(pObj);
-//			auto const pAttackerHouse = bEligible ? pLinked->Owner : nullptr;
-//			auto const pAttackerTechno = bEligible ? pLinked : nullptr;
-//			auto nDamage = pObj->Health;
-//			pObj->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//		}
-//	}
-//
-//	auto const nFlag300 = CellFlags::Bridge | CellFlags::Unknown_200;
-//	if ((pCell->Flags & nFlag300) == CellFlags::Bridge)
-//		R->Stack(0x48, true);
-//
-//	R->Stack(0x20, pLinked->GetMapCoords());
-//	R->EAX(true);
-//
-//	return 0x7184CE;
-//}
-
-//TODO :
-// This fuckery need more than this 
-// need to port Bulletclass::Detonate stuffs 
-// otherwise it will cause some inconsistency
-//DEFINE_HOOK(71AAAC, TemporalClass_Update_Abductor, 6)
-//{
-//	GET(TemporalClass*, pThis, ESI);
-//
-//	const auto pOwner = pThis->Owner;
-//	const auto pTempExt = TemporalExt::ExtMap.Find(pThis);
-//	const auto pWeapon = pTempExt->GetWeapon();
-//
-//	return (WeaponTypeExt::ExtMap.Find(pWeapon)->conductAbduction(pOwner, pThis->Target))
-//		? 0x71AAD5 : 0x0;
-//}
-
-//TODO :
-// temporal per-slot
-// HAHA AE and Jammer stuffs go brrr
-//DEFINE_HOOK(71A84E, TemporalClass_UpdateA, 5)
-//{
-//	GET(TemporalClass* const, pThis, ESI);
-//
-//	// it's not guaranteed that there is a target
-//	if (auto const pTarget = pThis->Target)
-//	{
-//		auto const pExt = TechnoExt::ExtMap.Find(pTarget);
-//		// Temporal should disable RadarJammers
-//		pExt->RadarJam = nullptr;
-//
-//		//AttachEffect handling under Temporal
-//		if (!pExt->AttachEffects_NeedTo_RecreateAnims)
-//		{
-//			for (auto& Item : pExt->AttachedEffects)
-//			{
-//				if (Item.Type->TemporalHidesAnim)
-//				{
-//					Item.KillAnim();
-//				}
-//			}
-//			pExt->AttachEffects_NeedTo_RecreateAnims = true;
-//		}
-//	}
-//
-//	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-//
-//	R->EAX(pThis->WarpRemaining);
-//	return 0x71A88D;
-//}
-
-// TODO :
-// Prism fuckery 
-//DEFINE_HOOK(71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
-//{
-//	GET(TechnoClass* const, pThis, EDI);
-//
-//	// bugfix #874 B: Temporal warheads affect Warpable=no units
-//	// it has been checked: this is warpable. free captured and destroy spawned units.
-//	if (pThis->SpawnManager)
-//	{
-//		pThis->SpawnManager->KillNodes();
-//	}
-//
-//	if (pThis->CaptureManager)
-//	{
-//		pThis->CaptureManager->FreeAll();
-//	}
-//
-//	// prism forward
-//	if (pThis->WhatAmI() == AbstractType::Building)
-//	{
-//		auto const pData = BuildingExt::ExtMap.Find(reinterpret_cast<BuildingClass*>(pThis));
-//		pData->PrismForwarding.RemoveFromNetwork(true);
-//	}
-//
-//	return 0;
-//}
 
 /* TODO : Addition Weapon shenanegans , need to port whole TechnoClass::Update
 DEFINE_HOOK(717890, TechnoTypeClass_SetWeaponTurretIndex, 8)

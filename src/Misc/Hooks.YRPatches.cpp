@@ -183,11 +183,13 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 {
   GET(TechnoClass*  , pThis , ECX);
  
-	if(pThis->MindControlledBy && !pThis->MindControlledBy->CaptureManager){
-		return 0x70F837;
-	}
+  if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager)
+  {
+	  R->EAX(pThis->MindControlledBy);
+	  return 0x70F82A;
+  }
 
-	return 0x70F82A;
+  return 0x70F837;
 }
 
 DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ValidateHouse, 0x6)

@@ -123,11 +123,11 @@ void ShieldClass::OnRemove() { KillAnim(); }
 
 bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 {
-	if (const auto pThis = abstract_cast<TechnoClass*>(pAttached))
-	{
-		if (const auto pExt = TechnoExt::ExtMap.Find(pThis))
-		{
-			return pExt->Shield->HP <= 0;
+	if (const auto pThis = generic_cast<TechnoClass*>(pAttached)) {
+		const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+		if (auto const pShield = pExt->GetShield()) {
+			return pShield->HP <= 0;
 		}
 	}
 

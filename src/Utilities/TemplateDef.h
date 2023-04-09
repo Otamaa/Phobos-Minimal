@@ -53,8 +53,7 @@
 
 #include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>
-
-//TODO : Replace more strings with game define strings !
+#include <Utilities/EnumFunctions.h>
 
 namespace detail
 {
@@ -80,72 +79,6 @@ namespace detail
 		}
 		return false;
 	}
-
-	/*template <>
-	inline bool read<WarheadTypeClass*>(WarheadTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto const pValue = parser.value();
-			auto const parsed = (allocate ? parser.GetINI()->WarheadTypeClass_FindOrMake(pSection, pKey, nullptr) :
-									WarheadTypeClass::Find(pValue));
-
-			if (parsed || INIClass::IsBlank(pValue))
-			{
-				value = parsed;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
-			}
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<AircraftTypeClass*>(AircraftTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto const pValue = parser.value();
-			auto const parsed = (allocate ? parser.GetINI()->AircraftTypeClass_FindOrMake(pSection, pKey, nullptr) :
-									AircraftTypeClass::Find(pValue));
-
-			if (parsed || INIClass::IsBlank(pValue))
-			{
-				value = parsed;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
-			}
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<InfantryTypeClass*>(InfantryTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto const pValue = parser.value();
-			auto const parsed = (allocate ? parser.GetINI()->InfantryTypeClass_FindOrMake(pSection, pKey, nullptr) :
-									InfantryTypeClass::Find(pValue));
-
-			if (parsed || INIClass::IsBlank(pValue))
-			{
-				value = parsed;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
-			}
-		}
-		return false;
-	}*/
 
 	template <>
 	inline bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -191,7 +124,6 @@ namespace detail
 		return false;
 	}
 
-
 	template <>
 	inline bool read(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -223,24 +155,31 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "left"))
+			size_t result = 0;
+			bool found = false;
+			for (auto const& pString : EnumFunctions::TextAlign_ToStrings)
 			{
-				value = HorizontalPosition::Left;
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
 			}
-			else if (IS_SAME_STR_(parser.value(), "center") || IS_SAME_STR_(parser.value(), "centre"))
+
+			if (!found)
+				goto error;
+
+			switch (result)
 			{
-				value = HorizontalPosition::Center;
-			}
-			else if (IS_SAME_STR_(parser.value(), "right"))
-			{
-				value = HorizontalPosition::Right;
-			}
-			else
-			{
+			case 1: value = HorizontalPosition::Left; return true;
+			case 2: value = HorizontalPosition::Center; return true;
+			case 3: value = HorizontalPosition::Right; return true;
+			default:
+			error:
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
-				return false;
+				break;
 			}
-			return true;
 		}
 		return false;
 	}
@@ -250,33 +189,29 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = BannerNumberType::None;
-			auto str = parser.value();
-			if (IS_SAME_STR_(str, "variable"))
+			size_t result = 0;
+			bool found = false;
+			for (const auto& pString : EnumFunctions::BannerNumberType_ToStrings)
 			{
-				parsed = BannerNumberType::Variable;
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
 			}
-			else if (IS_SAME_STR_(str, "prefixed"))
-			{
-				parsed = BannerNumberType::Prefixed;
-			}
-			else if (IS_SAME_STR_(str, "suffixed"))
-			{
-				parsed = BannerNumberType::Suffixed;
-			}
-			else if (IS_SAME_STR_(str, "fraction"))
-			{
-				parsed = BannerNumberType::Fraction;
-			}
-			else if (IS_SAME_STR_(str, NONE_STR2))
+
+			if (result == 0 || !found)
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(),
-					"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
+				"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
 				return false;
 			}
-			if (parsed != BannerNumberType::None)
-				value = parsed;
-			return true;
+			else
+			{
+				value = BannerNumberType(result);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -286,24 +221,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "top"))
+			for (size_t i = 0; i < EnumFunctions::VerticalPosition_ToStrings.size(); ++i)
 			{
-				value = VerticalPosition::Top;
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::VerticalPosition_ToStrings[i]))
+				{
+					value = VerticalPosition(i);
+					return true;
+				}
 			}
-			else if (IS_SAME_STR_(parser.value(), "center") || IS_SAME_STR_(parser.value(), "centre"))
-			{
-				value = VerticalPosition::Center;
-			}
-			else if (IS_SAME_STR_(parser.value(), "bottom"))
-			{
-				value = VerticalPosition::Bottom;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
-				return false;
-			}
-			return true;
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+
 		}
 		return false;
 	}
@@ -333,15 +261,10 @@ namespace detail
 			value = buffer;
 			return true;
 
-		} else if (!parser.empty()) {
-			bool bufferb;
-			if(!parser.ReadBool(pSection, pKey, &bufferb)) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
-			} else {
-				Debug::Log("Reading [%s] %s as boolean ! \n", pSection, pKey);
-				value = (int)bufferb;
-				return true;
-			}
+		}
+		else if (!parser.empty())
+		{
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
 		}
 
 		return false;
@@ -621,45 +544,36 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), GameStrings::Suicide()) || IS_SAME_STR_(parser.value(), "kill") || IS_SAME_STR_(parser.value(), "explode"))
+			size_t result = 0;
+			bool found = false;
+			for (const auto& pString : EnumFunctions::SlaveReturnTo_ToStrings)
 			{
-				value = SlaveReturnTo::Suicide;
-				return true;
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
 			}
-			else if (IS_SAME_STR_(parser.value(), "master"))
+
+			if (!found)
 			{
-				value = SlaveReturnTo::Master;
-				return true;
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
+				return false;
 			}
-			else if (IS_SAME_STR_(parser.value(), "killer"))
+
+			switch (result)
 			{
-				value = SlaveReturnTo::Killer;
-				return true;
+			case 0: value = SlaveReturnTo::Killer; return true;
+			case 1: value = SlaveReturnTo::Master; return true;
+			case 2: 
+			case 3:
+			case 4: value = SlaveReturnTo::Suicide; return true;
+			case 5: value = SlaveReturnTo::Neutral; return true;
+			case 6: value = SlaveReturnTo::Civilian; return true;
+			case 7: value = SlaveReturnTo::Special; return true;
+			case 8: value = SlaveReturnTo::Random; return true;
 			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Neutral()))
-			{
-				value = SlaveReturnTo::Neutral;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Civilian()))
-			{
-				value = SlaveReturnTo::Civilian;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Special()))
-			{
-				value = SlaveReturnTo::Special;
-				return true;
-			}
-			else if (IS_SAME_STR_(parser.value(), "random"))
-			{
-				value = SlaveReturnTo::Random;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default killer");
-			}		
 		}
 		return false;
 	}
@@ -669,30 +583,33 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const pValue = parser.value();
-			if (IS_SAME_STR_(pValue, "sell"))
+			size_t result = 0;
+			bool found = false;
+			for (const auto& pString : EnumFunctions::KillMethod_ToStrings)
 			{
-				value = KillMethod::Sell;
-				return true;
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
 			}
-			else if (IS_SAME_STR_(pValue, "vanish"))
-			{
-				value = KillMethod::Vanish;
-				return true;
-			}
-			else if (IS_SAME_STR_(pValue, "kill") || IS_SAME_STR_(pValue, "explode"))
-			{
-				value = KillMethod::Explode;
-				return true;
-			}
-			else if (IS_SAME_STR_(pValue, "random"))
-			{
-				value = KillMethod::Random;
-				return true;
-			}
-			else if(!parser.empty()) //parser not empty but it doesnt match any condition
+
+			if (!found)
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
+				return false;
+			}
+
+			switch (result)
+			{
+			case 0: value = KillMethod::None; return true;
+			case 1:
+			case 2: value = KillMethod::Explode; return true;
+			case 3: value = KillMethod::Vanish; return true;
+			case 4: value = KillMethod::Sell; return true;
+			case 5: value = KillMethod::Random; return true;
+
 			}
 		}
 		return false;
@@ -703,70 +620,41 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto str = parser.value();
+			size_t result = 0;
+			bool found = false;
+			for (auto const& pStrings : EnumFunctions::IronCurtainFlag_ToStrings)
+			{
+				if (IS_SAME_STR_(parser.value(), pStrings))
+				{
+					found = true;
+					break;
+				}
+				++result;
+			}
 
-			if (IS_SAME_STR_(str, "invulnerable"))
+			if (!found)
 			{
-				value = IronCurtainFlag::Invulnerable;
-				return true;
+				if (INIClass::IsBlank(parser.value())) {
+					value = IronCurtainFlag::Default;
+					return true;
+				}
+
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
+
 			}
-			else if (IS_SAME_STR_(str, "ignore"))
+
+			switch (result)
 			{
-				value = IronCurtainFlag::Ignore;
-				return true;
-			}
-			else if (IS_SAME_STR_(str, "random"))
-			{
-				value = IronCurtainFlag::Random;
-				return true;
-			}
-			else if (IS_SAME_STR_(str, DEFAULT_STR) || IS_SAME_STR_(str, DEFAULT_STR2))
-			{
-				value = IronCurtainFlag::Default;
-				return true;
-			}
-			else if (IS_SAME_STR_(str, "kill"))
-			{
-				value = IronCurtainFlag::Kill;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, str, "IronCurtainFlag can be either kill, invulnerable, ignore or random");
+			case 0: value = IronCurtainFlag::Default; return true;
+			case 1: value = IronCurtainFlag::Kill; return true;
+			case 2: value = IronCurtainFlag::Invulnerable; return true;
+			case 3: value = IronCurtainFlag::Ignore; return true;
+			case 4: value = IronCurtainFlag::Random; return true;
 			}
 		}
 
 		return false;
 	}
-
-	/*
-		template <>
-		inline bool read<ShapeHandlerEnumerator*>(ShapeHandlerEnumerator*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-		{
-			if (parser.ReadString(pSection, pKey))
-			{
-				auto const pValue = parser.value();
-
-				if (CCINIClass::IsBlank(pValue))
-				{
-					value = nullptr;
-					return false;
-				}
-
-				if (auto const parsed = ShapeHandlerEnumerator::FindOrAllocate(pValue))
-				{
-					parsed->FetchSHP();
-					value = parsed;
-					return true;
-				}
-				else
-				{
-					Debug::INIParseFailed(pSection, pKey, pValue);
-				}
-			}
-			return false;
-		}
-	*/
 
 	template<>
 	inline bool read<WeaponStruct>(WeaponStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
@@ -854,14 +742,9 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			//int nBuffInt;
-			//if(parser.ReadInteger(pSection , pKey , &nBuffInt)) {
-			//	value = Leptons(nBuffInt);
-			//	return true;
-			//} else {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
-			//}
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
 		}
+
 		return false;
 	}
 
@@ -870,44 +753,16 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "default"))
+			for (size_t i = 0; i < EnumFunctions::OwnerHouseKind_ToStrings.size(); ++i)
 			{
-				value = OwnerHouseKind::Default;
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i]))
+				{
+					value = OwnerHouseKind::Default;
+					return true;
+				}
 			}
-			else if (IS_SAME_STR_(parser.value(), "invoker"))
-			{
-				value = OwnerHouseKind::Invoker;
-			}
-			else if (IS_SAME_STR_(parser.value(), "killer"))
-			{
-				value = OwnerHouseKind::Killer;
-			}
-			else if (IS_SAME_STR_(parser.value(), "victim"))
-			{
-				value = OwnerHouseKind::Victim;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Civilian()))
-			{
-				value = OwnerHouseKind::Civilian;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Special()))
-			{
-				value = OwnerHouseKind::Special;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Neutral()))
-			{
-				value = OwnerHouseKind::Neutral;
-			}
-			else if (IS_SAME_STR_(parser.value(), "random"))
-			{
-				value = OwnerHouseKind::Random;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
-				return false;
-			}
-			return true;
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
 		}
 		return false;
 	}
@@ -917,17 +772,10 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const mission = MissionControlClass::FindIndexById(parser.value());
-			if (mission != Mission::None)
-			{
-				value = mission;
-				return true;
-			}
-			else if (!parser.empty())
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Invalid Mission name");
-			}
+			value = MissionControlClass::FindIndexById(parser.value());
+			return true;
 		}
+
 		return false;
 	}
 
@@ -936,27 +784,29 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			static const auto Modes = {
-				GameStrings::NoneStrb(), "nuke", "lightningstorm", "psychicdominator", "paradrop",
-				"geneticmutator", "forceshield", "notarget", "offensive", "stealth",
-				"self", "base", "multimissile", "hunterseeker", "enemybase" };
-
-			auto it = Modes.begin();
-			for (auto i = 0u; i < Modes.size(); ++i)
+			size_t result = 0;
+			bool found = false;
+			for (const auto& pStrings : EnumFunctions::SuperWeaponAITargetingMode_ToStrings)
 			{
-				if (IS_SAME_STR_(parser.value(), *it++))
+				if (IS_SAME_STR_(parser.value(), pStrings))
 				{
-					value = static_cast<SuperWeaponAITargetingMode>(i);
-					return true;
+					found = true;
+					break;
 				}
+				++result;
 			}
 
-			if (CRT::strcmpi(parser.value(), GameStrings::NoneStrb())){
-				value = SuperWeaponAITargetingMode::NoTarget;
-				return true;
+			if (!found)// no match ever found 
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting mode");
+				return false;
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting mode");
+			switch (result)
+			{
+			case 0: value = SuperWeaponAITargetingMode::NoTarget; return true;
+			default : value = static_cast<SuperWeaponAITargetingMode>(result); return true;
+			}
 		}
 		return false;
 	}
@@ -966,52 +816,48 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = AffectedTarget::None;
-
-			auto str = parser.value();
+			value = AffectedTarget::None;
 			char* context = nullptr;
-			for (auto cur = strtok_s(str, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				if (IS_SAME_STR_(cur, "land"))
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
 				{
-					parsed |= AffectedTarget::Land;
+					if (IS_SAME_STR_(cur, pStrings)) {
+						found = true;
+						break;
+					}
+					++result;
 				}
-				else if (IS_SAME_STR_(cur, "water"))
+
+				if (!found) // no match ever found
+					goto error;
+
+				switch (result)
 				{
-					parsed |= AffectedTarget::Water;
-				}
-				else if (IS_SAME_STR_(cur, "empty"))
-				{
-					parsed |= AffectedTarget::NoContent;
-				}
-				else if (IS_SAME_STR_(cur, "infantry"))
-				{
-					parsed |= AffectedTarget::Infantry;
-				}
-				else if (IS_SAME_STR_(cur, "units"))
-				{
-					parsed |= AffectedTarget::Unit;
-				}
-				else if (IS_SAME_STR_(cur, "buildings"))
-				{
-					parsed |= AffectedTarget::Building;
-				}
-				else if (IS_SAME_STR_(cur, "aircraft"))
-				{
-					parsed |= AffectedTarget::Aircraft;
-				}
-				else if (IS_SAME_STR_(cur, "all"))
-				{
-					parsed |= AffectedTarget::All;
-				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
-				{
+				case 1: value |= AffectedTarget::Land; return true;
+				case 2: value |= AffectedTarget::Water; return true;
+				case 3: value |= AffectedTarget::NoContent; return true;
+				case 4: value |= AffectedTarget::Infantry; return true;
+				case 5: value |= AffectedTarget::Unit; return true;
+				case 6: value |= AffectedTarget::Building; return true;
+				case 7: value |= AffectedTarget::Aircraft; return true;
+				case 8: value |= AffectedTarget::All; return true;
+				case 9: value |= AffectedTarget::AllCells; return true;
+				case 10: value |= AffectedTarget::AllTechnos; return true;
+				case 11: value |= AffectedTarget::AllContents; return true;
+				default:
+				error:
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
-					return false;
+					break;
 				}
+
 			}
-			value = parsed;
-			return true;
+
 		}
 		return false;
 	}
@@ -1021,65 +867,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = LandType::Clear;
-
-			auto str = parser.value();
-			char* context = nullptr;
-			for (auto cur = strtok_s(str, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			for (size_t i = 0; i < EnumFunctions::LandType_ToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(cur, "Road"))
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::LandType_ToStrings[i]))
 				{
-					parsed = LandType::Road;
-				}
-				else if (IS_SAME_STR_(cur, "Water"))
-				{
-					parsed = LandType::Water;
-				}
-				else if (IS_SAME_STR_(cur, "Rock"))
-				{
-					parsed = LandType::Rock;
-				}
-				else if (IS_SAME_STR_(cur, "Wall"))
-				{
-					parsed = LandType::Wall;
-				}
-				else if (IS_SAME_STR_(cur, "Tiberium"))
-				{
-					parsed = LandType::Tiberium;
-				}
-				else if (IS_SAME_STR_(cur, "Beach"))
-				{
-					parsed = LandType::Beach;
-				}
-				else if (IS_SAME_STR_(cur, "Rough"))
-				{
-					parsed = LandType::Rough;
-				}
-				else if (IS_SAME_STR_(cur, "Ice"))
-				{
-					parsed = LandType::Ice;
-				}
-				else if (IS_SAME_STR_(cur, "Railroad"))
-				{
-					parsed = LandType::Railroad;
-				}
-				else if (IS_SAME_STR_(cur, "Tunnel"))
-				{
-					parsed = LandType::Tunnel;
-				}
-				else if (IS_SAME_STR_(cur, "Weeds"))
-				{
-					parsed = LandType::Weeds;
-				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
-				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a land type");
-					return false;
+					value = LandType(i);
+					return true;
 				}
 			}
-			value = parsed;
-			return true;
+
+			if (!INIClass::IsBlank(parser.value()) && !allocate)
+				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
 		}
+
 		return false;
 	}
 
@@ -1088,44 +888,37 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = AffectedHouse::None;
-
-			auto str = parser.value();
-			char* context = nullptr;
-			for (auto cur = strtok_s(str, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			size_t result = 0;
+			bool found = false;
+			for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
 			{
-				if (IS_SAME_STR_(cur, "owner") || IS_SAME_STR_(cur, "self"))
+				if (IS_SAME_STR_(parser.value(), pString))
 				{
-					parsed |= AffectedHouse::Owner;
+					found = true;
+					break;
 				}
-				else if (IS_SAME_STR_(cur, "allies") || IS_SAME_STR_(cur, "ally"))
-				{
-					parsed |= AffectedHouse::Allies;
-				}
-				else if (IS_SAME_STR_(cur, "enemies") || IS_SAME_STR_(cur, "enemy"))
-				{
-					parsed |= AffectedHouse::Enemies;
-				}
-				else if (IS_SAME_STR_(cur, "team"))
-				{
-					parsed |= AffectedHouse::Team;
-				}
-				else if (IS_SAME_STR_(cur, "others"))
-				{
-					parsed |= AffectedHouse::NotOwner;
-				}
-				else if (IS_SAME_STR_(cur, "all"))
-				{
-					parsed |= AffectedHouse::All;
-				}
-				else if (CRT::strcmpi(cur, NONE_STR2))
-				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
-					return false;
-				}
+				++result;
 			}
-			value = parsed;
-			return true;
+
+			if (!found)
+				goto error;
+
+			switch (result)
+			{
+			case 1:
+			case 2: value |= AffectedHouse::Owner; return true;
+			case 3:
+			case 4: value |= AffectedHouse::Allies; return true;
+			case 5:
+			case 6: value |= AffectedHouse::Enemies; return true;
+			case 7: value |= AffectedHouse::Team; return true;
+			case 8: value |= AffectedHouse::NotOwner; return true;
+			case 9: value |= AffectedHouse::All; return true;
+			default:
+				error:
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
+				break;
+			}
 		}
 		return false;
 	}
@@ -1135,33 +928,32 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = AttachedAnimFlag::None;
+			size_t result = 0;
+			bool found = false;
+			for (const auto& pString : EnumFunctions::AttachedAnimFlag_ToStrings)
+			{
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
+			}
 
-			auto str = parser.value();
+			if (!found)
+				goto error;
 
-			if (IS_SAME_STR_(str, "hides"))
+			switch (result)
 			{
-				parsed = AttachedAnimFlag::Hides;
-			}
-			else if (IS_SAME_STR_(str, "temporal"))
-			{
-				parsed = AttachedAnimFlag::Temporal;
-			}
-			else if (IS_SAME_STR_(str, "paused"))
-			{
-				parsed = AttachedAnimFlag::Paused;
-			}
-			else if (IS_SAME_STR_(str, "pausedtemporal"))
-			{
-				parsed = AttachedAnimFlag::PausedTemporal;
-			}
-			else if (CRT::strcmpi(str, NONE_STR2))
-			{
+			case 1: value = AttachedAnimFlag::Hides; return true;
+			case 2: value = AttachedAnimFlag::Temporal; return true;
+			case 3:	value = AttachedAnimFlag::Paused; return true;
+			case 4: value = AttachedAnimFlag::PausedTemporal; return true;
+			default:
+				error:
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
-				return false;
+				break;
 			}
-			value = parsed;
-			return true;
 		}
 		return false;
 	}
@@ -1171,24 +963,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), "base"))
+			for (size_t i = 0; i < EnumFunctions::AreaFireTarget_ToStrings.size(); ++i)
 			{
-				value = AreaFireTarget::Base;
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::AreaFireTarget_ToStrings[i]))
+				{
+					value = AreaFireTarget(i);
+					return true;
+				}
 			}
-			else if (IS_SAME_STR_(parser.value(), "self"))
-			{
-				value = AreaFireTarget::Self;
-			}
-			else if (IS_SAME_STR_(parser.value(), "random"))
-			{
-				value = AreaFireTarget::Random;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an area fire target");
-				return false;
-			}
-			return true;
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an area fire target");
+
 		}
 		return false;
 	}
@@ -1198,33 +983,33 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = TextAlign::None;
-			auto str = parser.value();
-			if (IS_SAME_STR_(str, "left"))
+			size_t result = 0;
+			bool found = false;
+			for (auto const& pString : EnumFunctions::TextAlign_ToStrings)
 			{
-				parsed = TextAlign::Left;
+				if (IS_SAME_STR_(parser.value(), pString))
+				{
+					found = true;
+					break;
+				}
+				++result;
 			}
-			else if (IS_SAME_STR_(str, "center"))
+
+			if (!found)
+				goto error;
+
+			switch (result)
 			{
-				parsed = TextAlign::Center;
-			}
-			else if (IS_SAME_STR_(str, "centre"))
-			{
-				parsed = TextAlign::Center;
-			}
-			else if (IS_SAME_STR_(str, "right"))
-			{
-				parsed = TextAlign::Right;
-			}
-			else if (CRT::strcmpi(str, NONE_STR2))
-			{
+			case 1: value = TextAlign::Left; return true;
+			case 2: value = TextAlign::Center; return true;
+			case 3: value = TextAlign::Right; return true;
+			default:
+				error:
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
-				return false;
+				break;
 			}
-			if (parsed != TextAlign::None)
-				value = parsed;
-			return true;
 		}
+
 		return false;
 	}
 
@@ -1233,40 +1018,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			Layer parsed = Layer::None;
-			auto const str = parser.value();
-
-			if (str != nullptr
-				&& CRT::strlen(str) != 0)
+			for (size_t i = 0; i < EnumFunctions::LayerType_ToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(str, "underground"))
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::LayerType_ToStrings[i]))
 				{
-					parsed = Layer::Underground;
-				}
-				else if (IS_SAME_STR_(str, "surface"))
-				{
-					parsed = Layer::Surface;
-				}
-				else if (IS_SAME_STR_(str, "ground"))
-				{
-					parsed = Layer::Ground;
-				}
-				else if (IS_SAME_STR_(str, "air"))
-				{
-					parsed = Layer::Air;
-				}
-				else if (IS_SAME_STR_(str, "top"))
-				{
-					parsed = Layer::Top;
-				}
-				else
-				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
+					value = Layer(i);
+					return true;
 				}
 			}
 
-			value = parsed;
-			return true;
+			if (!INIClass::IsBlank(parser.value()) && !allocate)
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
+
 		}
 
 		return false;
@@ -1277,36 +1040,23 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			AbstractType parsed = AbstractType::None;
-			auto const str = parser.value();
-
-			if (str != nullptr
-				&& CRT::strlen(str) != 0)
+			if (IS_SAME_STR_(parser.value(), GameStrings::NoneStrb()))
 			{
-				if (IS_SAME_STR_(str, "Infantry"))
-				{
-					parsed = AbstractType::Infantry;
-				}
-				else if (IS_SAME_STR_(str, "Unit"))
-				{
-					parsed = AbstractType::Unit;
-				}
-				else if (IS_SAME_STR_(str, "Aircraft"))
-				{
-					parsed = AbstractType::Aircraft;
-				}
-				else if (IS_SAME_STR_(str, "Building"))
-				{
-					parsed = AbstractType::Building;
-				}
-				else
-				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
-				}
-
-				value = parsed;
+				value = AbstractType::None;
 				return true;
 			}
+
+			for (size_t i = 0; i < AbstractClass::RTTIToString.size(); ++i)
+			{
+				if (IS_SAME_STR_(parser.value(), AbstractClass::RTTIToString[i].Name))
+				{
+					value = AbstractType(i);
+					return true;
+				}
+			}
+
+			if (!allocate)
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
 		}
 
 		return false;
@@ -1317,59 +1067,21 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const str = parser.value();
-
-			if (IS_SAME_STR_(str, "Drive") || IS_SAME_STR_(str, "{4A582741-9839-11d1-B709-00A024DDAFD1}"))
+			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i)
 			{
-				value = Locomotors::Drive;
-			}
-			else if (IS_SAME_STR_(str, "Jumpjet") || IS_SAME_STR_(str, "{92612C46-F71F-11d1-AC9F-006008055BB5}"))
-			{
-				value = Locomotors::Jumpjet;
-			}
-			else if (IS_SAME_STR_(str, "Hover") || IS_SAME_STR_(str, "{4A582742-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Hover;
-			}
-			else if (((str, "Rocket") == 0) || IS_SAME_STR_(str, "{B7B49766-E576-11d3-9BD9-00104B972FE8}"))
-			{
-				value = Locomotors::Rocket;
-			}
-			else if (IS_SAME_STR_(str, "Tunnel") || IS_SAME_STR_(str, "{4A582743-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Tunnel;
-			}
-			else if (IS_SAME_STR_(str, "Walk") || IS_SAME_STR_(str, "{4A582744-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Walk;
-			}
-			else if (IS_SAME_STR_(str, "Droppod") || IS_SAME_STR_(str, "{4A582745-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Droppod;
-			}
-			else if (IS_SAME_STR_(str, "Fly") || IS_SAME_STR_(str, "{4A582746-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Fly;
-			}
-			else if (IS_SAME_STR_(str, "Teleport") || IS_SAME_STR_(str, "{4A582747-9839-11d1-B709-00A024DDAFD1}"))
-			{
-				value = Locomotors::Teleport;
-			}
-			else if (IS_SAME_STR_(str, "Mech") || IS_SAME_STR_(str, "{55D141B8-DB94-11d1-AC98-006008055BB5}"))
-			{
-				value = Locomotors::Mech;
-			}
-			else if (IS_SAME_STR_(str, "Ship") || IS_SAME_STR_(str, "{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}"))
-			{
-				value = Locomotors::Ship;
-			}
-			else
-			{
-				return false;
+				const auto& [name, ID] = EnumFunctions::LocomotorPairs_ToStrings[i];
+				if (IS_SAME_STR_(parser.value(), name) || IS_SAME_STR_(parser.value(), ID))
+				{
+					value = Locomotors(i);
+					return true;
+				}
 			}
 
-			return true;
+			if (!INIClass::IsBlank(parser.value()) && !allocate) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+			}
 		}
+
 		return false;
 	}
 
@@ -1378,95 +1090,18 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto parsed = TileType::Unk;
-			auto cur = parser.value();
-
-			if (IS_SAME_STR_(cur, "Tunnel"))
+			for (size_t i = 0; i < EnumFunctions::TileType_ToStrings.size(); ++i)
 			{
-				parsed = TileType::Tunnel;
-			}
-			else if (IS_SAME_STR_(cur, "Water"))
-			{
-				parsed = TileType::Water;
-			}
-			else if (IS_SAME_STR_(cur, "Ramp"))
-			{
-				parsed = TileType::Ramp;
-			}
-			else if (IS_SAME_STR_(cur, "Blank"))
-			{
-				parsed = TileType::Blank;
-			}
-			else if (IS_SAME_STR_(cur, "Shore"))
-			{
-				parsed = TileType::Shore;
-			}
-			else if (IS_SAME_STR_(cur, "Wet"))
-			{
-				parsed = TileType::Wet;
-			}
-			else if (IS_SAME_STR_(cur, "MiscPave"))
-			{
-				parsed = TileType::MiscPave;
-			}
-			else if (IS_SAME_STR_(cur, "Pave"))
-			{
-				parsed = TileType::Pave;
-			}
-			else if (IS_SAME_STR_(cur, "DirtRoad"))
-			{
-				parsed = TileType::DirtRoad;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoad"))
-			{
-				parsed = TileType::PavedRoad;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoadEnd"))
-			{
-				parsed = TileType::PavedRoadEnd;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoadSlope"))
-			{
-				parsed = TileType::PavedRoadSlope;
-			}
-			else if (IS_SAME_STR_(cur, "Median"))
-			{
-				parsed = TileType::Median;
-			}
-			else if (IS_SAME_STR_(cur, "Bridge"))
-			{
-				parsed = TileType::Bridge;
-			}
-			else if (IS_SAME_STR_(cur, "WoodBridge"))
-			{
-				parsed = TileType::WoodBridge;
-			}
-			else if (IS_SAME_STR_(cur, "ClearToSandLAT"))
-			{
-				parsed = TileType::ClearToSandLAT;
-			}
-			else if (IS_SAME_STR_(cur, "Green"))
-			{
-				parsed = TileType::Green;
-			}
-			else if (IS_SAME_STR_(cur, "NotWater"))
-			{
-				parsed = TileType::NotWater;
-			}
-			else if (IS_SAME_STR_(cur, "DestroyableCliff"))
-			{
-				parsed = TileType::DestroyableCliff;
-			}
-			else if (!INIClass::IsBlank(cur) && !bAllocate)
-			{
-				Debug::INIParseFailed(pSection, pKey, cur, nullptr);
-				return false;
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::TileType_ToStrings[i]))
+				{
+					value = TileType(i);
+					return true;
+				}
 			}
 
-			if (parsed != TileType::Unk)
+			if (!INIClass::IsBlank(parser.value()) && !bAllocate)
 			{
-				value = parsed;
-				return true;
+				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
 			}
 		}
 		return false;
@@ -1479,7 +1114,9 @@ namespace detail
 		{
 			value.Clear();
 			char* context = nullptr;
-			for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+			for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				pCur;
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				int buffer = 0;
 				if (Parser<int>::Parse(pCur, &buffer))
@@ -1530,7 +1167,9 @@ namespace detail
 		using base_type = std::remove_pointer_t<T>;
 
 		char* context = nullptr;
-		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			pCur;
+			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			auto buffer = base_type::FindOrAllocate(pCur);
 			bool parseSucceeded = buffer != nullptr;
@@ -1546,57 +1185,13 @@ namespace detail
 	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			auto parsed = LandType::Clear;
-			if (IS_SAME_STR_(cur, "Road"))
-			{
-				parsed = LandType::Road;
-			}
-			else if (IS_SAME_STR_(cur, "Water"))
-			{
-				parsed = LandType::Water;
-			}
-			else if (IS_SAME_STR_(cur, "Rock"))
-			{
-				parsed = LandType::Rock;
-			}
-			else if (IS_SAME_STR_(cur, "Wall"))
-			{
-				parsed = LandType::Wall;
-			}
-			else if (IS_SAME_STR_(cur, "Tiberium"))
-			{
-				parsed = LandType::Tiberium;
-			}
-			else if (IS_SAME_STR_(cur, "Beach"))
-			{
-				parsed = LandType::Beach;
-			}
-			else if (IS_SAME_STR_(cur, "Rough"))
-			{
-				parsed = LandType::Rough;
-			}
-			else if (IS_SAME_STR_(cur, "Ice"))
-			{
-				parsed = LandType::Ice;
-			}
-			else if (IS_SAME_STR_(cur, "Railroad"))
-			{
-				parsed = LandType::Railroad;
-			}
-			else if (IS_SAME_STR_(cur, "Tunnel"))
-			{
-				parsed = LandType::Tunnel;
-			}
-			else if (IS_SAME_STR_(cur, "Weeds"))
-			{
-				parsed = LandType::Weeds;
-			}
-			else if (!INIClass::IsBlank(cur) && !bAllocate)
-				Debug::INIParseFailed(pSection, pKey, cur, nullptr);
-
-			vector.push_back(parsed);
+			LandType buffer;
+			if (read<LandType>(buffer, parser, pSection, pKey, bAllocate))
+				vector.push_back(buffer);
 		}
 	}
 
@@ -1604,90 +1199,14 @@ namespace detail
 	inline void parse_values(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (auto cur = strtok_s(parser.value(),
+			Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			auto parsed = TileType::Unk;
-
-			if (IS_SAME_STR_(cur, "Tunnel"))
-			{
-				parsed = TileType::Tunnel;
-			}
-			else if (IS_SAME_STR_(cur, "Water"))
-			{
-				parsed = TileType::Water;
-			}
-			else if (IS_SAME_STR_(cur, "Ramp"))
-			{
-				parsed = TileType::Ramp;
-			}
-			else if (IS_SAME_STR_(cur, "Blank"))
-			{
-				parsed = TileType::Blank;
-			}
-			else if (IS_SAME_STR_(cur, "Shore"))
-			{
-				parsed = TileType::Shore;
-			}
-			else if (IS_SAME_STR_(cur, "Wet"))
-			{
-				parsed = TileType::Wet;
-			}
-			else if (IS_SAME_STR_(cur, "MiscPave"))
-			{
-				parsed = TileType::MiscPave;
-			}
-			else if (IS_SAME_STR_(cur, "Pave"))
-			{
-				parsed = TileType::Pave;
-			}
-			else if (IS_SAME_STR_(cur, "DirtRoad"))
-			{
-				parsed = TileType::DirtRoad;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoad"))
-			{
-				parsed = TileType::PavedRoad;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoadEnd"))
-			{
-				parsed = TileType::PavedRoadEnd;
-			}
-			else if (IS_SAME_STR_(cur, "PavedRoadSlope"))
-			{
-				parsed = TileType::PavedRoadSlope;
-			}
-			else if (IS_SAME_STR_(cur, "Median"))
-			{
-				parsed = TileType::Median;
-			}
-			else if (IS_SAME_STR_(cur, "Bridge"))
-			{
-				parsed = TileType::Bridge;
-			}
-			else if (IS_SAME_STR_(cur, "WoodBridge"))
-			{
-				parsed = TileType::WoodBridge;
-			}
-			else if (IS_SAME_STR_(cur, "ClearToSandLAT"))
-			{
-				parsed = TileType::ClearToSandLAT;
-			}
-			else if (IS_SAME_STR_(cur, "Green"))
-			{
-				parsed = TileType::Green;
-			}
-			else if (IS_SAME_STR_(cur, "NotWater"))
-			{
-				parsed = TileType::NotWater;
-			}
-			else if (IS_SAME_STR_(cur, "DestroyableCliff"))
-			{
-				parsed = TileType::DestroyableCliff;
-			}
-			else if (!INIClass::IsBlank(cur) && !bAllocate)
-				Debug::INIParseFailed(pSection, pKey, cur, nullptr);
-
-			vector.push_back(parsed);
+			TileType buffer;
+			if (read<TileType>(buffer, parser, pSection, pKey, bAllocate))
+				vector.push_back(buffer);
 		}
 	}
 
@@ -1695,7 +1214,9 @@ namespace detail
 	void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
 	{
 		char* context = nullptr;
-		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			pCur;
+			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			int idx = Lookuper::FindIndexById(pCur);
 			if (idx != -1)
@@ -1819,7 +1340,7 @@ void __declspec(noinline) Promotable<T>::Read(INI_EX& parser, const char* const 
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
 	if (res > 0 && flagName[res - 1] == '.')
 	{
 		flagName[res - 1] = '\0';
@@ -1832,13 +1353,13 @@ void __declspec(noinline) Promotable<T>::Read(INI_EX& parser, const char* const 
 	}
 
 	// read specific flags
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Rookie");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
 	detail::read(this->Rookie, parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Veteran");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 	detail::read(this->Veteran, parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Elite");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 	detail::read(this->Elite, parser, pSection, flagName);
 };
 
@@ -1998,17 +1519,17 @@ void __declspec(noinline) Damageable<T>::Read(INI_EX& parser, const char* const 
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 		flagName[res - 1] = '\0';
 
 	this->BaseValue.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionYellow");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
 	this->ConditionYellow.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionRed");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
 	this->ConditionRed.Read(parser, pSection, flagName);
 };
 
@@ -2082,7 +1603,7 @@ void __declspec(noinline) DamageableVector<T>::Read(INI_EX& parser, const char* 
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 	{
@@ -2091,10 +1612,10 @@ void __declspec(noinline) DamageableVector<T>::Read(INI_EX& parser, const char* 
 
 	this->BaseValue.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionYellow");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
 	this->ConditionYellow.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "ConditionRed");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
 	this->ConditionRed.Read(parser, pSection, flagName);
 
 	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "MaxValue");
@@ -2127,7 +1648,7 @@ void __declspec(noinline) PromotableVector<T>::Read(INI_EX& parser, const char* 
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, "");
+	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 	{
@@ -2137,11 +1658,11 @@ void __declspec(noinline) PromotableVector<T>::Read(INI_EX& parser, const char* 
 	this->Base.Read(parser, pSection, flagName);
 
 	NullableVector<T> veteran;
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Veteran");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 	veteran.Read(parser, pSection, flagName);
 
 	NullableVector<T> elite;
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "Elite");
+	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 	elite.Read(parser, pSection, flagName);
 
 	if (veteran.HasValue())
@@ -2165,7 +1686,7 @@ template <typename T>
 void __declspec(noinline) PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
 {
 	bool numFirst = false;
-	int flagLength = CRT::strlen(pFlag);
+	int flagLength = strlen(pFlag);
 
 	for (int i = 1; i < flagLength; i++)
 	{
@@ -2190,9 +1711,9 @@ void __declspec(noinline) PromotableVector<T>::ReadList(INI_EX& parser, const ch
 		int res = 0;
 
 		if (numFirst)
-			res = _snprintf_s(flag, _TRUNCATE, pFlag, i, "");
+			res = _snprintf_s(flag, _TRUNCATE, pFlag, i, Phobos::readDefval);
 		else
-			res = _snprintf_s(flag, _TRUNCATE, pFlag, "", i);
+			res = _snprintf_s(flag, _TRUNCATE, pFlag, Phobos::readDefval, i);
 
 		if (res > 0 && flag[res - 1] == '.')
 			flag[res - 1] = '\0';
@@ -2216,16 +1737,16 @@ void __declspec(noinline) PromotableVector<T>::ReadList(INI_EX& parser, const ch
 		Nullable<T> elite;
 
 		if (numFirst)
-			_snprintf_s(flag, _TRUNCATE, pFlag, i, "Veteran");
+			_snprintf_s(flag, _TRUNCATE, pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 		else
-			_snprintf_s(flag, _TRUNCATE, pFlag, "Veteran", i);
+			_snprintf_s(flag, _TRUNCATE, pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran], i);
 
 		veteran.Read(parser, pSection, flag, allocate);
 
 		if (numFirst)
-			_snprintf_s(flag, _TRUNCATE, pFlag, i, "Elite");
+			_snprintf_s(flag, _TRUNCATE, pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 		else
-			_snprintf_s(flag, _TRUNCATE, pFlag, "Elite", i);
+			_snprintf_s(flag, _TRUNCATE, pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite], i);
 
 		elite.Read(parser, pSection, flag, allocate);
 

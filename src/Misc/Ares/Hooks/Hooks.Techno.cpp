@@ -203,7 +203,7 @@ DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 		if (auto pTag = pThis->AttachedTag)
 		{
 			// 85 
-			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
 
@@ -219,7 +219,7 @@ DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	{
 		if (auto pTag = pThis->AttachedTag)
 		{
-			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
 		}
 	}
 
@@ -345,7 +345,9 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 
 	GET(WarheadTypeClass*, pWH, EBP);
 	GET(TechnoClass*, pThis, ESI);
-	LEA_STACK(args_ReceiveDamage*, Arguments, 0xC8);
+	GET_STACK(TechnoClass*, pAttacker, 0xD4);
+	GET_STACK(HouseClass*, pAttacker_House, 0xE0);
+	GET(int*, pDamage, EBX);
 
 	if (pWH->Radiation && TechnoExt::IsRadImmune(pThis))
 		return RetNullify;
@@ -356,7 +358,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	if (pWH->Poison && TechnoExt::IsPoisonImmune(pThis))
 		return RetNullify;
 
-	const auto pSourceHouse = Arguments->Attacker ? Arguments->Attacker->Owner : Arguments->SourceHouse;
+	const auto pSourceHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 
 	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
@@ -377,7 +379,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		// there is no building involved
 		// More customizeable berzerk appying - Otamaa
 		// return boolean to decide receive damage after apply berzerk or just retun function result
-		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), Arguments->Damage))
+		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), pDamage))
 			return RetResultLight;
 	}
 

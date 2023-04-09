@@ -98,7 +98,7 @@ struct MouseCursorDataStruct
 
 public:
 	MouseCursor OriginalData {};
-	int SmallFrameRate { 1 };
+	int SmallFrameRate { -1 };
 };
 
 static_assert(sizeof(MouseCursor) == 0x1C);

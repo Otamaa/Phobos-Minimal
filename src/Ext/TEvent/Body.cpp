@@ -52,12 +52,12 @@ namespace std {
 
 bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bReturn)
 {
-	int iEvent = args.EventType;
-	HouseClass* pHouse = args.Owner;
-	ObjectClass* pObject = args.Object;
-	CDTimerClass* pTimer = args.ActivationFrame;
-	bool* isPersitant = args.isRepeating;
-	AbstractClass* pSource = args.Source;
+	//int iEvent = args.EventType;
+	//HouseClass* pHouse = args.Owner;
+	//ObjectClass* pObject = args.Object;
+	//CDTimerClass* pTimer = args.ActivationFrame;
+	//bool* isPersitant = args.isRepeating;
+	//AbstractClass* pSource = args.Source;
 
 	switch (static_cast<PhobosTriggerEvent>(pThis->EventKind))
 	{
@@ -172,7 +172,7 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 		bReturn = TEventExt::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
 		break;
 	case PhobosTriggerEvent::ShieldBroken:
-		bReturn = ShieldClass::TEventIsShieldBroken(pObject);
+		bReturn = ShieldClass::TEventIsShieldBroken(args.Object);
 		break;
 	default:
 		bReturn = false;
@@ -243,15 +243,23 @@ bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
 
 // Value0 is not instantiated yet !
 // Ares hook at the end of the function
-DEFINE_HOOK(0x71E752, TEventClass_CTOR, 0x5)
+//DEFINE_HOOK(0x71E752, TEventClass_CTOR, 0x5)
+//{
+//	GET(TEventClass*, pItem, ESI);
+//	pItem->Value = 0;
+//	TEventExt::ExtMap.Allocate(pItem);
+//	return 0;
+//}
+
+DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 {
 	GET(TEventClass*, pItem, ESI);
-	pItem->Value = 0;
+
 	TEventExt::ExtMap.Allocate(pItem);
 	return 0;
 }
 
-//DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);

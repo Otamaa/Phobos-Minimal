@@ -40,6 +40,16 @@ const Point2D Point2D::Empty = { 0,0 };
 const Point2DBYTE Point2DBYTE::Empty = { 0u,0u };
 const Point3D Point3D::Empty = { 0,0,0 };
 
+std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
+{
+{
+		// gery  , red , green
+		{ 128,128,128 } , { 255,0,0 } , { 0,255,0 } ,
+		// blue , yellow , white
+		{ 0,0,255 } , { 255,255,0 } , { 255 , 255 , 255 }
+}
+};
+
 //#pragma region GlobalVarDeclaration
 //ALIAS(MouseClass, Map, 0x87F7E8)
 //ALIAS(GScreenClass, GScreen, 0x87F7E8)

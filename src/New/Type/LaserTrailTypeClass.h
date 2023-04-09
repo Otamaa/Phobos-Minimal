@@ -18,7 +18,7 @@ public:
 
 	LaserTrailTypeClass(const char* pTitle = NONE_STR) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
-		, Color { Drawing::ColorRed }
+		, Color { Drawing::DefaultColors[(int)DefaultColorList::Red] }
 		, FadeDuration { 64 }
 		, Thickness { 4 }
 		, SegmentLength { 128 }

@@ -6,7 +6,7 @@
 template<int Amount>
 struct MultiBoolFixedArray
 {
-	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char*, Amount>& nKeysArray) {
+	inline void Read(INI_EX& parser, const char* const pSection, const char* const pKey, const std::array<const char* const, Amount>& nKeysArray) {
 		if (parser.ReadString(pSection, pKey) > 0) {
 			Reset();
 			char* context = nullptr;

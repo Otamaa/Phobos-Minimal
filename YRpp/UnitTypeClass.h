@@ -33,7 +33,7 @@ public:
 	}
 
 	//static
-	static void* sub_7473E0() JMP_STD(0x7473E0);
+	static void __fastcall InitOneTimeData() JMP_STD(0x7473E0);
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x747F30);

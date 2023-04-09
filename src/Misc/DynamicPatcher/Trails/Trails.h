@@ -24,8 +24,8 @@ public:
 	bool IsOnTurret;
 	bool Visible;
 	DrivingState drivingState;
-	std::vector<LandType> OnLandTypes;
-	std::vector<TileType> OnTileTypes;
+	Iterator<LandType> OnLandTypes;
+	Iterator<TileType> OnTileTypes;
 
 	UniversalTrail(TrailType* type ,CoordStruct flh, bool onturret) :
 		Type { type }
@@ -193,9 +193,8 @@ private:
 			if (auto pCell = MapClass::Instance->TryGetCellAt(sourcePos))
 			{
 				LandType landType = pCell->LandType;
-				auto const nITer = make_iterator(OnLandTypes);
 
-				if (nITer.contains(landType))
+				if (OnLandTypes.contains(landType))
 				{
 					if (!OnTileTypes.empty()) {
 						return IsOnTile(pCell);

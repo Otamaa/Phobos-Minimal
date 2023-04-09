@@ -47,7 +47,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 				if  constexpr (IsTechno) OnTurrent = pTrails.Onturrents;
 
 				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, OnTurrent));
-				auto const& pBackTrail = pExt->Trails.back();
+				auto& pBackTrail = pExt->Trails.back();
 				pBackTrail->OnLandTypes = pTrails.OnLand;
 				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
@@ -128,7 +128,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 			if (pType->Mode != TrailMode::NONE)
 			{
 				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, pTrails.Onturrents));
-				auto const& pBackTrail = pExt->Trails.back();
+				auto& pBackTrail = pExt->Trails.back();
 				pBackTrail->OnLandTypes = pTrails.OnLand;
 				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
@@ -165,7 +165,7 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted) {
 			if (pType->Mode != TrailMode::NONE)
 			{
 				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType , pTrails.FLHs , false));
-				auto const& pBackTrail = pExt->Trails.back();
+				auto& pBackTrail = pExt->Trails.back();
 				pBackTrail->OnLandTypes = pTrails.OnLand;
 				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}
@@ -203,7 +203,7 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted) {
 			if (pType->Mode != TrailMode::NONE)
 			{
 				pExt->Trails.emplace_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
-				auto const& pBackTrail = pExt->Trails.back();
+				auto& pBackTrail = pExt->Trails.back();
 				pBackTrail->OnLandTypes = pTrails.OnLand;
 				pBackTrail->OnTileTypes = pTrails.OnTileTypes;
 			}

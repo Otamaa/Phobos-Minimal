@@ -175,6 +175,10 @@ public:
 		return Buffer;
 	}
 
+	//Empty :kekw:
+	static void __fastcall InitOneTimeData() {
+		JMP_STD(0x45E750);
+	}
 
 	//Constructor
 	BuildingTypeClass(const char* pID) noexcept

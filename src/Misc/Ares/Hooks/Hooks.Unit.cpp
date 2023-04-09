@@ -71,7 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 	{
 		if (auto pTag = pThis->AttachedTag)
 		{
-			pTag->RaiseEvent((TriggerEvent)AresNewTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
 
@@ -303,6 +303,13 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 	GET(TechnoClass*, pThis, ESI);
 	return GetDisableWeaponTimer(pThis).InProgress()
 		? FireRange : ContinueCheck;
+}
+
+// stop command would still affect units going berzerk
+DEFINE_OVERRIDE_HOOK(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	return pTechno->Berzerk || Is_DriverKilled(pTechno) ? 0x730EF7 : 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
@@ -1706,7 +1713,7 @@ DEFINE_OVERRIDE_HOOK(0x72920C, TunnelLocomotionClass_Turning, 9)
 
 // spawn tiberium when a unit dies. this is a minor part of the
 // tiberium heal feature. the actual healing happens in FootClass_Update.
-DEFINE_HOOK(702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiberium, 6)
+DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiberium, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoTypeClass* pType = pThis->GetTechnoType();

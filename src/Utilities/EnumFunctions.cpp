@@ -2,7 +2,7 @@
 
 #include <ScenarioClass.h>
 
-std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
+std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
 	{ "TargetNotDamageable" } , { "TargetNotEligible" } ,
 	{ "TargetHouseNotEligible" } , { "TargetRestricted" } ,
@@ -10,7 +10,7 @@ std::array<const char*, (size_t)FullMapDetonateResult::count> EnumFunctions::Ful
  }
 };
 
-std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
+std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
  {
 	{ "INTERCEPTOR" } , { "CHRONODELAYIMMUNE" } , { "CRITIMMUNE" } ,
 	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
@@ -23,6 +23,182 @@ std::array<const char* const, 3u> EnumFunctions::Rank_ToStrings {
  {
 	{ "Elite" } , { "Veteran" } , { "Rookie" }
  }
+};
+
+std::array<const char* const, (size_t)TargetZoneScanType::count> EnumFunctions::TargetZoneScanType_ToStrings
+{
+{
+	{ "same" } , { "any" } , { "inrange" }
+}
+};
+
+std::array<const char* const, (size_t)DefaultColorList::count> EnumFunctions::DefaultGameColor_ToStrings
+{
+{
+	{ GameStrings::Grey() } , { GameStrings::Red() } , { GameStrings::Green() } ,
+	{ "Blue" } , {  GameStrings::Yellow() } , { "White" }
+}
+};
+
+std::array<const char* const, (size_t)DamageDelayTargetFlag::count> EnumFunctions::DamageDelayTargetFlag_ToStrings
+{
+{
+	{ "Cell" } , { "AttachedObject" } , { "Invoker" }
+}
+};
+
+std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
+{
+{
+	{ "%s.Frame" } , { "%s.Count" } , { "%s.Interval" } , 
+	{ "%s.MiniFrame" } , { "%s.MiniCount" } , { "%s.MiniInterval" }
+}
+};
+
+std::array<const char* const, 3u> EnumFunctions::HealthCondition_ToStrings
+{
+{
+	{ "ConditionGreen" } , { "ConditionYellow" } , { "ConditionRed" }
+}
+};
+
+std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
+{
+{
+	{ "Unknown" } , { "Tunnel" } , { "Water" } , 
+	{ "Ramp" } , {"Blank"} , {"Shore"} ,
+	{"Wet"} , {"MiscPave"} , {"Pave"} ,
+	{"DirtRoad"} , {"PavedRoad"} , {"PavedRoadEnd"} ,
+	{"PavedRoadSlope"} , {"Median"} , {"Bridge"} , 
+	{"WoodBridge"} , {"ClearToSandLAT"} , {"Green"} ,
+	{"NotWater"} , {"DestroyableCliff"}
+}
+};
+
+std::array<const char* const, 12u> EnumFunctions::LandType_ToStrings
+{
+{
+	{"Clear"} , {"Road"} , {"Water"},  {"Rock"} , { "Wall" } , {"Tiberium"} ,
+	{"Beach"} , {"Rough"} , {"Ice"} , {"Railroad"} , {"Tunnel"} , {"Weeds"}
+}
+};
+
+std::array<std::pair<const char* const, const char* const>, 11u> EnumFunctions::LocomotorPairs_ToStrings
+{
+{
+	{"Drive","{4A582741-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Jumpjet","{92612C46-F71F-11d1-AC9F-006008055BB5}"} ,
+	{"Hover","{4A582742-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Rocket","{B7B49766-E576-11d3-9BD9-00104B972FE8}"} ,
+	{"Tunnel","{4A582743-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Walk","{4A582744-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Droppod","{4A582745-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Fly","{4A582746-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Teleport","{4A582747-9839-11d1-B709-00A024DDAFD1}"} ,
+	{"Mech","{55D141B8-DB94-11d1-AC98-006008055BB5}"} ,
+	{"Ship","{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}"}
+}
+};
+
+std::array<const char* const, 5u> EnumFunctions::LayerType_ToStrings
+{
+{
+	{"underground"} , {"surface"} , {"ground"} , {"air"} , {"top"}
+}
+};
+
+std::array<const char* const, 3u> EnumFunctions::VerticalPosition_ToStrings
+{
+{
+	{ "top" }, { "center" }, { "bottom" }
+}
+};
+
+std::array<const char* const, 5u> EnumFunctions::BannerNumberType_ToStrings
+{
+{
+	{NONE_STR2} , {"variable"} , {"prefixed"} , {"suffixed"} , {"fraction"}
+}
+};
+
+std::array<const char* const, 4u> EnumFunctions::TextAlign_ToStrings
+{
+{
+	{NONE_STR2} , {"left"} , {"center"} , {"right"}
+}
+};
+
+std::array<const char* const, 3u> EnumFunctions::AreaFireTarget_ToStrings
+{
+{ 	
+	{"base"} , {"self"} , {"random"}
+}
+};
+
+std::array<const char* const, 5u>  EnumFunctions::AttachedAnimFlag_ToStrings
+{
+{
+	{NONE_STR2} , {"hides"} , {"temporal"} , {"paused"}, {"pausedtemporal"}
+}
+};
+
+std::array<const char* const, 10u> EnumFunctions::AffectedHouse_ToStrings
+{
+{
+	{NONE_STR2} , {"owner"} , {"self"} , {"allies"} ,
+	{"ally"} , {"enemies"} , {"enemy"} , {"team"} ,
+	{"others"} , {"all"}
+}
+};
+
+std::array<const char* const, 12u> EnumFunctions::AffectedTarget_ToStrings
+{
+{
+	{NONE_STR2} , {"Land"} , {"Water"} ,
+	{"NoContent"} , {"Infantry"} , {"Unit"} ,
+	{"Building"} , {"Aircraft"} , {"All"} ,
+	{"AllCells"} , {"AllTechnos"} , {"AllContents"}
+}
+};
+
+std::array<const char* const, 15u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
+{
+{
+	{NONE_STR2} , {"nuke"}, {"lightningstorm"}, {"psychicdominator"}, {"paradrop"},
+	{"geneticmutator"}, {"forceshield"}, {"notarget"}, {"offensive"}, {"stealth"},
+	{"self"}, {"base"}, {"multimissile"}, {"hunterseeker"}, {"enemybase"}
+}
+};
+
+std::array<const char* const, 8u> EnumFunctions::OwnerHouseKind_ToStrings
+{
+{
+	{"default"} ,  {"invoker"} , {"killer"} , {"victim"} , {GameStrings::Civilian()} ,
+	{GameStrings::Special()} ,  {GameStrings::Neutral()} ,  {"random"}
+}
+};
+
+std::array<const char* const, 5u>  EnumFunctions::IronCurtainFlag_ToStrings
+{
+{
+	{"Default"} , {"Kill"} , {"Invulnerable"} , {"Ignore"} , {"Random"}
+}
+};
+
+std::array<const char* const, 6u> EnumFunctions::KillMethod_ToStrings
+{
+{
+	{"none"} , {"explode"} , {"kill"} , {"vanish"} , {"sell"} , {"random"}
+}
+};
+
+std::array<const char* const, 9u>  EnumFunctions::SlaveReturnTo_ToStrings
+{
+{
+	{"killer"} ,  {"master"} , {"suicide"} , {"explode"} , 
+	{"kill"} , {GameStrings::Neutral()} , {GameStrings::Civilian()} , {GameStrings::Special()} ,
+	{"random"}
+}
 };
 
 bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)

@@ -268,12 +268,8 @@ struct Drawing
 		return RGB2DWORD(RGB888_HEX(pHEX));
 	}
 
-	static inline constexpr ColorStruct ColorWhite = { 255 , 255 , 255 };
-	static inline constexpr ColorStruct ColorRed = { 255,0,0 };
-	static inline constexpr ColorStruct ColorGreen = { 0,255,0 };
-	static inline constexpr ColorStruct ColorBlue = { 0,0,255 };
-	static inline constexpr ColorStruct ColorGrey = { 128,128,128 };
-	static inline constexpr ColorStruct ColorYellow = { 255,255,0 };
+
+	static std::array<ColorStruct, (size_t)DefaultColorList::count> DefaultColors;
 
 	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
 	{

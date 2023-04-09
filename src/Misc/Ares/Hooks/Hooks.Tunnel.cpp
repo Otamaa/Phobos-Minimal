@@ -421,7 +421,10 @@ DEFINE_OVERRIDE_HOOK(0x73F606, UnitClass_IsCellOccupied_Tunnel, 0x6)
 
 struct DrawPipDataStruct
 {
-	DWORD Array; int Y; SHPStruct* Shape; int Number;
+	DWORD Array; //0
+	int Y; // 4
+	SHPStruct* Shape; //8
+	int Number; //c
 };
 
 DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
@@ -433,8 +436,9 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 		return 0x70A083;
 
 	GET(int, nBracketPosDeltaY, ESI);
-	//GET_STACK(SHPStruct*, pShp, 0x7);
-	GET_STACK(DrawPipDataStruct, nDataBundle, STACK_OFFS(0x74, 0x60));
+	//Databunde + 0x8
+	GET_STACK(SHPStruct*, pShp, STACK_OFFS(0x74, 0x60) + 0X8);
+	//GET_STACK(DrawPipDataStruct, nDataBundle, STACK_OFFS(0x74, 0x60) + 0X8);
 	GET_STACK(RectangleStruct*, pRect, STACK_OFFS(0x74, -0xC));
 	GET_STACK(Point2D, nPoint, STACK_OFFS(0x74, 0x24));
 	GET_STACK(int, nBracketPosDeltaX, STACK_OFFS(0x74, 0x1C));
@@ -450,7 +454,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 		{
 			DSurface::Temp->DrawSHP
 			(FileSystem::PALETTE_PAL,
-				nDataBundle.Shape,
+				pShp,
 				FrameIdx,
 				&nPos,
 				pRect,

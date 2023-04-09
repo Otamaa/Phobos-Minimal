@@ -44,7 +44,7 @@ enum class AresNewTriggerAction : int
 	SetGroup = 149
 };
 
-enum class AresNewTriggerEvents : int
+enum class AresTriggerEvents : int
 {
 	UnderEMP = 62,
 	UnderEMP_ByHouse = 63 ,
@@ -130,14 +130,18 @@ enum class TargetZoneScanType : int
 {
 	Same = 0,
 	Any = 1,
-	InRange = 2
+	InRange = 2,
+
+	count
 };
 
 enum class DamageDelayTargetFlag : int
 {
 	Cell = 0,
 	AttachedObject = 1,
-	Invoker = 2
+	Invoker = 2,
+	
+	count
 };
 
 enum class FullMapDetonateResult : int

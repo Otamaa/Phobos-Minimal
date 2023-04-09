@@ -475,7 +475,7 @@ bool TechnoExt::TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWe
 		if (Is_Unit(pFoot)) {
 
 			auto const pUnit = static_cast<UnitClass*>(pTarget);
-			const auto bDriverKilled = AresData::CanUseAres && AresData::AresVersionId == AresData::Version::Ares30p ? (*(bool*)((char*)pUnit->align_154 + 0x9C)) : false;
+			const auto bDriverKilled = (*(bool*)((char*)pUnit->align_154 + 0x9C));
 			const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 			if (bDriverKilled && pWeaponExt->Abductor.Get())
@@ -1240,7 +1240,7 @@ void TechnoExt::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool i
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
-		damage > 0 ? Drawing::ColorRed : Drawing::ColorGreen;
+		damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 
 	wchar_t damageStr[0x20];
 	//std::string nWHName = pWH->get_ID();
@@ -2167,7 +2167,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 				amount = healthDeficit;
 
 			if (Phobos::Debug_DisplayDamageNumbers)
-				FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::ColorWhite, pThis->Location, Point2D::Empty, false, L"");
+				FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
 
 			const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 

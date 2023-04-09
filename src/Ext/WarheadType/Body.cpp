@@ -108,7 +108,7 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictimTechno;
 		FlyingStrings::AddMoneyString(true, *pArgs->Damage, pOwner,
 			AffectedHouse::All, pOwner->Location,
-			this->RecalculateDistanceDamage_Display_Offset, Drawing::ColorYellow);
+			this->RecalculateDistanceDamage_Display_Offset, Drawing::DefaultColors[(int)DefaultColorList::Yellow]);
 	}
 }
 
