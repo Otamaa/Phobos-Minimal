@@ -19,7 +19,7 @@ namespace detail
 
 		} else if (!parser.empty() && strlen(parser.value())) {
 
-			if(auto pColorClass = ColorTypeClass::Find(parser.value())) {
+			if(auto const& pColorClass = ColorTypeClass::Find(parser.value())) {
 				value = pColorClass->ToColor();
 				return true;
 			}
@@ -29,8 +29,8 @@ namespace detail
 					value = Drawing::DefaultColors[i];
 					return true;
 				}
-			}			
-			
+			}
+
 			if (auto const& nResult = ColorScheme::Find(parser.value())) {
 				value = nResult->BaseColor;
 				return true;

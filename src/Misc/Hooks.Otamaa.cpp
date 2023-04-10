@@ -4694,13 +4694,14 @@ DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 	GET(UnitClass*, pThis, EBP);
 	GET(CellClass*, pCell, EDI);
 
-	if (auto pTerrain = pCell->GetTerrain(false))
-	{
-		if (pTerrain->IsAlive)
-		{
+	if (auto pTerrain = pCell->GetTerrain(false)) {
+		if (pTerrain->IsAlive) {
 			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium && !pType->Immune && !TerrainTypeExt::ExtMap.Find(pType)->IsPassable)
-			{
+			if (!pType->SpawnsTiberium && 
+				!pType->Immune && 
+				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable && 
+				pTerrain->Type->Crushable
+				) {
 				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
 				{
@@ -4726,16 +4727,16 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 	GET(CellClass*, pCell, EBX);
 
 	const auto pLinkedTo = pLoco->LinkedTo;
-	if (auto pTerrain = pCell->GetTerrain(false))
-	{
-		if (pTerrain->IsAlive)
-		{
+	if (auto pTerrain = pCell->GetTerrain(false)) {
+		if (pTerrain->IsAlive) {
 			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium && !pType->Immune && !TerrainTypeExt::ExtMap.Find(pType)->IsPassable)
-			{
+			if (!pType->SpawnsTiberium && 
+				!pType->Immune && 
+				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable && 
+				pTerrain->Type->Crushable
+				) {
 				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
-					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
-				{
+					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel) {
 					VocClass::PlayAt(pType->CrushSound, pLinkedTo->Location);
 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
 

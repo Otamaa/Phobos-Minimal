@@ -31,12 +31,12 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 
 bool TheaterTypeClass::IsDefaultTheater()
 {
-	return !_strcmpi(Name.data(), "TEMPERATE")
-		|| !_strcmpi(Name.data(), "SNOW")
-		|| !_strcmpi(Name.data(), "URBAN")
-		|| !_strcmpi(Name.data(), "DESERT")
-		|| !_strcmpi(Name.data(), "NEWURBAN")
-		|| !_strcmpi(Name.data(), "LUNAR");
+	return IS_SAME_STR_(Name.data(), "TEMPERATE")
+		|| IS_SAME_STR_(Name.data(), "SNOW")
+		|| IS_SAME_STR_(Name.data(), "URBAN")
+		|| IS_SAME_STR_(Name.data(), "DESERT")
+		|| IS_SAME_STR_(Name.data(), "NEWURBAN")
+		|| IS_SAME_STR_(Name.data(), "LUNAR");
 }
 
 CCINIClass* TheaterTypeClass::GetConfigINI()

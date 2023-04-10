@@ -1235,7 +1235,7 @@ namespace detail
 // Valueable
 
 template <typename T>
-void __declspec(noinline) Valueable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
+void NOINLINE Valueable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
 	detail::read(this->Value, parser, pSection, pKey, Allocate);
 }
@@ -1256,7 +1256,7 @@ bool Valueable<T>::Save(PhobosStreamWriter& Stm) const
 // ValueableIdx
 
 template <typename Lookuper>
-void __declspec(noinline) ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -1277,7 +1277,7 @@ void __declspec(noinline) ValueableIdx<Lookuper>::Read(INI_EX& parser, const cha
 // Nullable
 
 template <typename T>
-void __declspec(noinline) Nullable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
+void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
 	if (detail::read(this->Value, parser, pSection, pKey, Allocate))
 	{
@@ -1312,7 +1312,7 @@ bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 // NullableIdx
 
 template <typename Lookuper>
-void __declspec(noinline) NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -1334,7 +1334,7 @@ void __declspec(noinline) NullableIdx<Lookuper>::Read(INI_EX& parser, const char
 // Promotable
 
 template <typename T>
-void __declspec(noinline) Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 
 	// read the common flag, with the trailing dot being stripped
@@ -1383,7 +1383,7 @@ bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
 // ValueableVector
 
 template <typename T>
-void __declspec(noinline) ValueableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -1442,13 +1442,13 @@ bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 // NullableVector
 
 template <typename T>
-void __declspec(noinline) NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
 		this->clear();
 
-		auto const non_default = CRT::strcmpi(parser.value(), DEFAULT_STR2) != 0;
+		auto const non_default = !IS_SAME_STR_(parser.value(), DEFAULT_STR2);
 		this->hasValue = non_default;
 
 		if (non_default)
@@ -1483,7 +1483,7 @@ bool NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 // ValueableIdxVector
 
 template <typename Lookuper>
-void __declspec(noinline) ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -1496,13 +1496,13 @@ void __declspec(noinline) ValueableIdxVector<Lookuper>::Read(INI_EX& parser, con
 // NullableIdxVector
 
 template <typename Lookuper>
-void __declspec(noinline) NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void NOINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
 		this->clear();
 
-		auto const non_default = CRT::strcmpi(parser.value(), DEFAULT_STR2) != 0;
+		auto const non_default = !IS_SAME_STR_(parser.value(), DEFAULT_STR2);
 		this->hasValue = non_default;
 
 		if (non_default)
@@ -1514,7 +1514,7 @@ void __declspec(noinline) NullableIdxVector<Lookuper>::Read(INI_EX& parser, cons
 
 // Damageable
 template <typename T>
-void __declspec(noinline) Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
@@ -1549,7 +1549,7 @@ bool Damageable<T>::Save(PhobosStreamWriter& Stm) const
 		&& Savegame::WritePhobosStream(Stm, this->ConditionRed);
 }
 
-bool __declspec(noinline) HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
+bool NOINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (pSection)
 	{
@@ -1598,7 +1598,7 @@ bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 // DamageableVector
 
 template <typename T>
-void __declspec(noinline) DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
@@ -1643,7 +1643,7 @@ bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 // PromotableVector
 
 template <typename T>
-void __declspec(noinline) PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
@@ -1683,7 +1683,7 @@ void __declspec(noinline) PromotableVector<T>::Read(INI_EX& parser, const char* 
 }
 
 template <typename T>
-void __declspec(noinline) PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
+void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
 {
 	bool numFirst = false;
 	int flagLength = strlen(pFlag);

@@ -40,7 +40,7 @@ public:
 
 		const auto nResult = std::find_if(Array.begin(), Array.end(),
 			[Title](std::unique_ptr<T>& Item) {
-				return _strcmpi(Item->Name.data(), Title) == 0;
+				return IS_SAME_STR_(Item->Name.data(), Title);
 			});
 
 		if (nResult == Array.end())
@@ -93,7 +93,7 @@ public:
 	{
 		if (T* find = Find(Title))
 			return find;
-		 
+
 		return Allocate(Title);
 	}
 

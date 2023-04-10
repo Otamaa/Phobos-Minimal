@@ -219,7 +219,7 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 		nResult = ArmorTypeClass::FindIndexById(buf);
 
 		if (nResult < 0) {
-			nResult = 0;
+			nResult = fallback; //always
 			Debug::INIParseFailed(Section, Key, buf);
 		}
 	}
