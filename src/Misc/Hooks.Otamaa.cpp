@@ -2707,9 +2707,10 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 	if (auto const pFoot = abstract_cast<FootClass*>(pTarget))
 	{
 		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset() ) {
+		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
+		{
 			auto const pFootCell = pFoot->GetCell();
-			if( pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
+			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
 				nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
 		}
 	}
@@ -4515,7 +4516,8 @@ struct TechnoExt_Gscript
 
 
 
-	static TechnoExt_Gscript* Get(TechnoClass* pThis) {
+	static TechnoExt_Gscript* Get(TechnoClass* pThis)
+	{
 		return (TechnoExt_Gscript*)(*(uintptr_t*)((char*)pThis + AbstractExtOffset));
 	}
 };
@@ -4527,7 +4529,7 @@ struct TechnoTypeExt_Gscript
 	Valueable<bool> TroopCrawler {};
 	Promotable<bool> Promoted_PalaySpotlight { };
 	Promotable<SpotlightFlags> Promoted_PalaySpotlight_bit
-	{	SpotlightFlags::NoGreen | SpotlightFlags::NoRed ,
+	{ SpotlightFlags::NoGreen | SpotlightFlags::NoRed ,
 		SpotlightFlags::NoRed ,
 		SpotlightFlags::NoGreen | SpotlightFlags::NoBlue
 	};
@@ -4607,7 +4609,7 @@ DEFINE_HOOK(0x73F015, UnitClass_Mi_Hunt_MCVFindSpotReworked, 0x6)
 	if (nMissionStatus != 1)
 		return 0x73F059;
 
-	if(!pThis->Deploying)
+	if (!pThis->Deploying)
 		pThis->MissionStatus = 0;
 
 	return 0x73F059;
@@ -4683,6 +4685,77 @@ DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
 {
 	return 0x0;
 }
+
+#include <Ext/TerrainType/Body.h>
+
+
+DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(CellClass*, pCell, EDI);
+
+	if (auto pTerrain = pCell->GetTerrain(false))
+	{
+		if (pTerrain->IsAlive)
+		{
+			const auto pType = pTerrain->Type;
+			if (!pType->SpawnsTiberium && !pType->Immune && !TerrainTypeExt::ExtMap.Find(pType)->IsPassable)
+			{
+				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
+					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+				{
+					VocClass::PlayAt(pType->CrushSound, pThis->Location);
+					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
+
+					if (pThis->Type->TiltsWhenCrushes)
+						pThis->RockingForwardsPerFrame += 0.02f;
+
+					pThis->iscrusher_6B5 = false;
+				}
+			}
+		}
+	}
+
+	R->EAX(pCell->OverlayTypeIndex);
+	return pCell->OverlayTypeIndex != -1 ? 0x73B00A : 0x73B074;
+}
+
+DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
+{
+	GET(DriveLocomotionClass*, pLoco, EBP);
+	GET(CellClass*, pCell, EBX);
+
+	const auto pLinkedTo = pLoco->LinkedTo;
+	if (auto pTerrain = pCell->GetTerrain(false))
+	{
+		if (pTerrain->IsAlive)
+		{
+			const auto pType = pTerrain->Type;
+			if (!pType->SpawnsTiberium && !pType->Immune && !TerrainTypeExt::ExtMap.Find(pType)->IsPassable)
+			{
+				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
+					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+				{
+					VocClass::PlayAt(pType->CrushSound, pLinkedTo->Location);
+					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
+
+					if (pLinkedTo->GetTechnoType()->TiltsWhenCrushes)
+						pLinkedTo->RockingForwardsPerFrame = -0.05f;
+				}
+			}
+		}
+	}
+
+	R->EAX(pCell->OverlayTypeIndex);
+	return pCell->OverlayTypeIndex != -1 ? 0x4B19A1 : 0x4B1A04;
+}
+
+//DEFINE_HOOK(0x5301AC, Expandmd_Count, 0x9)
+//{
+//	R->EDI(512);
+//
+//	return 0x53028A;
+//}
 
 // this shit is something fuckup check 
 // it check if not unit then check if itself is not infantry is building 

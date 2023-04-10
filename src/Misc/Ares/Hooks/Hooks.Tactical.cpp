@@ -41,11 +41,11 @@ DEFINE_OVERRIDE_HOOK(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
-			idx = ((PrimaryFacing.Raw) >> (16 - countFrames));
+			idx = (PrimaryFacing.Raw >> (16 - countFrames));
 		}
 	}
 
-	R->EAX(pImage->GetFrameBounds(*buffer, idx));
+	R->EAX(pImage->GetFrameBounds_ptr(buffer, idx));
 	return 0x421478;
 }
 
@@ -59,7 +59,7 @@ DEFINE_OVERRIDE_HOOK(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 		if (pImage->Frames > 0) {
 			const int countFrames = Conversions::Int2Highest(pImage->Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
-			R->Stack(0x0, ((unsigned short)(PrimaryFacing.Raw) >> (16 - countFrames)));
+			R->ESP((PrimaryFacing.Raw >> (16 - countFrames)));
 		}
 	}
 

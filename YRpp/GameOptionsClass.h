@@ -11,6 +11,33 @@ public:
 	int GetAnimSpeed(int rate)
 		{ JMP_THIS(0x5FB2E0); }
 
+	//RA2MD.ini
+	void LoadFromINIFile() const
+		{ JMP_THIS(0x5FA620); }
+
+	//RA2MD.ini
+	void SaveToINIFile() const
+		{ JMP_THIS(0x5FAD10); }
+
+	void Set() const
+		{ JMP_THIS(0x5FB160); }
+
+	void Set(bool repeat) const
+		{ JMP_THIS(0x5FA470); }
+
+	void SetScoreVolume(float volume, bool feedback) const
+	 	{ JMP_THIS(0x5FA4A0); }
+
+	void SetShuffle(bool shuffle) const
+		{ JMP_THIS(0x5FA440); }
+
+	void SetSoundVolume(float volume, bool feedback) const
+		{ JMP_THIS(0x5FA510); }
+
+	void SetVoiceVolume(float volume, bool feedback) const
+		{ JMP_THIS(0x5FA590); }
+
+public:
 	int GameSpeed;
 	int Difficulty;
 	int CampDifficulty;
@@ -41,26 +68,21 @@ public:
 	int LastUnlockedSovMovie;
 	int LastUnlockedAllMovie;
 	int NetCard;
-	char NetID[32];
-	int unknown_int_78;
-	int unknown_int_7C;
-	int unknown_int_80;
-	int unknown_int_84;
-	int unknown_int_88;
-	int unknown_int_8C;
-	int unknown_int_90;
-	int unknown_int_94;
+  	char DestNet[64];
 
 	// virtual key constants, each of them doubled
 	// defaulting to VK_MENU, VK_CONTROL and VK_SHIFT
 
-	int KeyForceMove1;
-	int KeyForceMove2;
-	int KeyForceFire1;
-	int KeyForceFire2;
-	int KeyForceSelect1;
-	int KeyForceSelect2;
+	int KeyForceMove1; //98
+	int KeyForceMove2; //9C
+	int KeyForceFire1;  //A0
+	int KeyForceFire2;  //A4
+	int KeyForceSelect1; //A8
+	int KeyForceSelect2; //AC
 
-	int unknown_int_B0;
-	int unknown_int_B4;
+  	int KeyQueueMove1; //B0
+  	int KeyQueueMove2; //B4
+
 };
+static_assert(offsetof(GameOptionsClass, KeyForceMove1) == 0x98 , "Class Member Shifted !");
+typedef GameOptionsClass OptionsClass;

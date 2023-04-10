@@ -235,7 +235,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 				if (success)
 				{
-					if (location.Z > pCell->GetFloorHeight(Point2D::Empty))
+					if (location.Z > (pCell ? pCell : MapClass::Instance->GetCellAt(location))->GetFloorHeight(Point2D::Empty))
 						pTechno->IsFallingDown = true;
 
 					if (const auto pCreateUnitAnimType = pTypeExt->CreateUnit_SpawnAnim.Get(nullptr))
@@ -259,6 +259,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 					{
 						pTechno->SecondaryFacing.Set_Desired(pExt->DeathUnitTurretFacing.get());
 					}
+
 
 					pTechno->QueueMission(pTypeExt->CreateUnit_Mission.Get(), false);
 				}

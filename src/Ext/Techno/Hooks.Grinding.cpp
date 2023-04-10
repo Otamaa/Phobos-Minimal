@@ -1,7 +1,7 @@
 #include "Body.h"
 
 #include <InfantryClass.h>
-#include <InputManagerClass.h>
+#include <WWKeyboardClass.h>
 
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -122,7 +122,7 @@ DEFINE_HOOK(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	GET(TechnoClass*, pTarget, EDI);
 	GET(Action, action, EBX);
 
-	if (InputManagerClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
+	if (WWKeyboardClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
 	if (auto pBuilding = specific_cast<BuildingClass*>(pTarget))

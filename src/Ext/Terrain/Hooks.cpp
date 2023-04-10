@@ -142,6 +142,13 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 	return DoCellChailReact;
 }
 
+DEFINE_HOOK(0x71B943, TerrainClass_ReceiveDamage_WoodDestroyer_Force, 0x6)
+{
+	GET_STACK(bool, IgnoreDefenses, STACK_OFFSET(0x3C, 0x14));
+
+	return IgnoreDefenses ? 0x71B951 : 0x0;
+}
+
 DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 {
 	//GET(ObjectClass*, pThis, ESI);

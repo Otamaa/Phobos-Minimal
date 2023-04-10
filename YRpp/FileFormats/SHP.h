@@ -37,6 +37,9 @@ struct SHPStruct //header
 	RectangleStruct* GetFrameBounds(RectangleStruct &buffer, int idxFrame) const
 		{ JMP_THIS(0x69E7E0); }
 
+	RectangleStruct* GetFrameBounds_ptr(RectangleStruct* pbuffer, int idxFrame) const
+	{ JMP_THIS(0x69E7E0); }
+
 	RectangleStruct GetFrameBounds(int idxFrame) const {
 		RectangleStruct buffer;
 		GetFrameBounds(buffer, idxFrame);

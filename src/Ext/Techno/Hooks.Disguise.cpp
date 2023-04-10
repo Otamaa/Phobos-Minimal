@@ -3,8 +3,6 @@
 
 #include <Utilities/Cast.h>
 
-static_assert(offsetof(TechnoClass, Disguise) == 0x518, "TechnoClass ClassMember Shifted !");
-
 DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0x6) // InfantryClass_SetDisguise_DefaultDisguise
 {
 	GET(InfantryTypeClass*, pType, EAX);

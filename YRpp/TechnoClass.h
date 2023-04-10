@@ -943,4 +943,5 @@ public:
 	HouseClass*      DisguisedAsHouse;
 };
 
+static_assert(offsetof(TechnoClass, Disguise) == 0x518, "ClassMember Shifted !");
 static_assert(sizeof(TechnoClass) == 0x520, "Invalid size.");

@@ -8,9 +8,9 @@ struct ParticleDatas
 {
 	Vector3D<float> vel;
 	Vector3D<float> velB;
-	DWORD A;
+	float A;
 	float B;
-	int C;
+	float C;
 	int MaxEC;
 	BYTE Empty;
 	ColorStruct Colors;

@@ -37,6 +37,8 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->IsPassable.Read(exINI, pSection, "IsPassable");
 	this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 
+	this->CrushableLevel.Read(exINI, pSection, "CrushableLevel");
+
 #pragma region Otamaa
 	this->LightVisibility.Read(exINI, pSection, GameStrings::LightVisibility());
 	this->LightIntensity.Read(exINI, pSection, GameStrings::LightIntensity());
@@ -67,6 +69,11 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpawnsTiberium_CellsPerAnim)
 		.Process(this->DestroyAnim)
 		.Process(this->DestroySound)
+
+		.Process(this->MinimapColor)
+		.Process(this->IsPassable)
+		.Process(this->CanBeBuiltOn)
+		.Process(this->CrushableLevel)
 
 		.Process(this->LightVisibility)
 		.Process(this->LightIntensity)

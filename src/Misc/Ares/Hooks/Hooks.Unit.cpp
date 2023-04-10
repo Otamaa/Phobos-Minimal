@@ -1014,19 +1014,18 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	if (pThis == pThat)
 		return ActionGueardArea;
 
-	if (!pThat || ((pThat->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None))
+	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+	if (!pThatTechno)
 		return NextCheck;
 
-	const bool bKeyPressed_1 = WWKeyboardClass::Instance->IsDown(*reinterpret_cast<int*>(0xA8EBF8));
-	const bool bKeyPressed_2 = WWKeyboardClass::Instance->IsDown(*reinterpret_cast<int*>(0xA8EBFC));
-	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType;
+	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType;
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	const auto pType = pThat->GetTechnoType();
+	const auto pType = pThatTechno->GetTechnoType();
 	const auto& Verses = pWHExt->GetVerses(pType->Armor).Verses;
-	const auto nHP = RulesClass::Instance->ConditionGreen <= pThat->GetHealthPercentage();
 
-	if (nHP || bKeyPressed_1 || bKeyPressed_2 || Verses <= 0.0) {
-		if (const auto pBuilding = specific_cast<BuildingClass*>(pThat)){
+	if (pThatTechno->IsFullHP() || WWKeyboardClass::Instance->IsForceMoveKeyPressed() || Verses <= 0.0) {
+		if (Is_Building(pThatTechno)) {
+			const auto pBuilding = static_cast<BuildingClass*>(pThatTechno);
 			if (pBuilding->Type->Grinding){
 				return NextCheck2;
 			}
@@ -1050,17 +1049,17 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 	if (nAct == Action::GuardArea)
 		return 0x73FE48;
 
-	const bool bKeyPressed_1 = WWKeyboardClass::Instance->IsDown(*reinterpret_cast<int*>(0xA8EBF8));
-	const bool bKeyPressed_2 = WWKeyboardClass::Instance->IsDown(*reinterpret_cast<int*>(0xA8EBFC));
-	const auto nHP = RulesClass::Instance->ConditionGreen <= pThat->GetHealthPercentage();
+	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
 
-	if (bKeyPressed_1 || bKeyPressed_2 || !pThat ||
-		((pThat->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None) ||
-		nHP || !pThat->IsSurfaced()) {
+	if (WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||  
+		!pThatTechno ||
+		pThatTechno->IsFullHP() ||
+		!pThat->IsSurfaced()) {
 		return 0x73FE3B;
 	}
 
-	if (const auto pAir = specific_cast<AircraftClass*>(pThat)) {
+	if (Is_Aircraft(pThat)) {
+		const auto pAir = static_cast<AircraftClass*>(pThat);
 		if (pAir->GetCell()->GetBuilding()) {
 			return 0x73FE3B;
 		}

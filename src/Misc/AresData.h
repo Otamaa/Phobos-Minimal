@@ -20,6 +20,7 @@ typedef int (__cdecl *CallHook)(REGISTERS* R);
 #define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
 #define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
 
+
 struct AresData
 {
 	enum FunctionIndices
@@ -29,15 +30,16 @@ struct AresData
 		RecalculateStatID = 2,
 		ReverseEngineerID = 3,
 		GetInfActionOverObjectID = 4,
-		SetMouseCursorActionID = 5 ,
-		HouseCanBuildID = 6 ,
-		SWActivateID = 7 ,
-		DepositTiberiumID = 8 ,
-		ApplyAcademyID = 9 ,
+		SetMouseCursorActionID = 5,
+		HouseCanBuildID = 6,
+		SWActivateID = 7,
+		DepositTiberiumID = 8,
+		ApplyAcademyID = 9,
 		GetTurretVXLDataID = 10,
 		TechnoTransferAffectsID = 11,
 		IsGenericPrerequisiteID = 12,
 		GetSelfHealAmountID = 13,
+		ExtMapFindID = 14,
 	};
 
 	enum Version
@@ -51,9 +53,11 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 14;
+	static constexpr int AresFunctionCount = 15;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
+	//number of static instance
+	static constexpr int AresStaticInstanceCount = 1;
 
 	// timestamp bytes for each version
 	static constexpr DWORD AresTimestampBytes[AresData::AresVersionCount] =
@@ -61,6 +65,9 @@ struct AresData
 		0x61daa114, // 3.0p
 	};
 
+	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
+		0x0C2B84, //ParticleSystemExt
+	};
 	// offsets of function addresses for each version
 	static constexpr DWORD AresFunctionOffsets[AresData::AresVersionCount * AresData::AresFunctionCount] =
 	{
@@ -78,11 +85,13 @@ struct AresData
 		0x0465F0, // TechnoExt::ExtData::TechnoTransferAffects
 		0x03E950, // TechnoTypeExt::ExtData::IsGenericPrerequisite
 		0x0459F0, // TechnoExt::ExtData::GetSelfHealAmount
+		0x058900, // ExtMap.Find
 
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
 	static DWORD AresFunctionOffsetsFinal[AresData::AresFunctionCount];
+	static DWORD AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 	// numeric id of currently used version, zero-indexed, -1 is unknown or missing
 	static Version AresVersionId;
 	// is Ares detected and version known?
@@ -91,6 +100,86 @@ struct AresData
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static void Init();
 	static void UnInit();
+
+	template<int idx, typename Tret, typename... TArgs>
+	struct AresStdcall
+	{
+		using fp_type = Tret(__stdcall*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename... TArgs>
+	struct AresStdcall<idx, void, TArgs...>
+	{
+		using fp_type = void(__stdcall*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename Tret, typename... TArgs>
+	struct AresCdecl
+	{
+		using fp_type = Tret(__cdecl*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename... TArgs>
+	struct AresCdecl<idx, void, TArgs...>
+	{
+		using fp_type = void(__cdecl*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename Tret, typename... TArgs>
+	struct AresFastcall
+	{
+		using fp_type = Tret(__fastcall*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename... TArgs>
+	struct AresFastcall<idx, void, TArgs...>
+	{
+		using fp_type = void(__fastcall*)(TArgs...);
+		decltype(auto) operator()(TArgs... args) const
+		{
+			reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
+		}
+	};
+
+	template<int idx, typename Tret, typename TThis, typename... TArgs>
+	struct AresThiscall
+	{
+		using fp_type = Tret(__fastcall*)(TThis, void*, TArgs...);
+		decltype(auto) operator()(TThis pThis, TArgs... args) const
+		{
+			return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+		}
+	};
+
+	template<int idx, typename TThis, typename... TArgs>
+	struct AresThiscall<idx, void, TThis, TArgs...>
+	{
+		using fp_type = void(__fastcall*)(TThis, void*, TArgs...);
+		void operator()(TThis pThis, TArgs... args) const
+		{
+			reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
+		}
+	};
 
 	// here be known Ares functions
 	static bool ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo);

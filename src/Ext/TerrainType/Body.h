@@ -26,7 +26,8 @@ public:
 
 		Valueable<bool> IsPassable;
 		Valueable<bool> CanBeBuiltOn;
-
+		
+		Valueable<int> CrushableLevel;
 		#pragma region Otamaa
 		Nullable<int> LightVisibility;
 		Nullable<double> LightIntensity;
@@ -52,6 +53,7 @@ public:
 			, MinimapColor {}
 			, IsPassable { false }
 			, CanBeBuiltOn { false }
+			, CrushableLevel { OwnerObject->Crushable ? 10 : 0 }
 
 			, LightVisibility { 0 }
 			, LightIntensity { }

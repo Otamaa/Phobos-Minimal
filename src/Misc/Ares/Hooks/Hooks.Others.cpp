@@ -278,9 +278,9 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
 		// find the pip value with the name specified
-		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(), [](NamedValue<int>const& Data)
-{
-	return CRT::strcmpi(Data.Name, Phobos::readBuffer) == 0;
+		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(), 
+			[](NamedValue<int>const& Data) {
+			return CRT::strcmpi(Data.Name, Phobos::readBuffer) == 0;
 		});
 
 		if (it != TechnoTypeClass::PipsTypeName.end())
@@ -657,6 +657,9 @@ DEFINE_OVERRIDE_HOOK(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 	}
 	return 0;
 }
+
+// skip the entire method, we handle it ourselves
+DEFINE_OVERRIDE_SKIP_HOOK(0x53AF40, PsyDom_Update, 6, 53B060)
 
 DEFINE_HOOK(0x65EA43, SendReinforcement_Opentopped, 0x6)
 {
@@ -1793,6 +1796,222 @@ DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
 	UnitTypeClass::InitOneTimeData();
 	return 0x531749;
 }
+
+DEFINE_OVERRIDE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
+{
+	GET(BuildingClass*, pBuild, EAX);
+	R->EAX(pBuild->FindFactory(false, true));
+	return 0x535DC2;
+}
+
+DEFINE_OVERRIDE_HOOK(0x535E76, SetDefenseTabCommandClass_Execute_Power, 6)
+{
+	GET(BuildingClass*, pBuild, EAX);
+	R->EAX(pBuild->FindFactory(false, true));
+	return 0x535E82;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
+{
+	GET_STACK(SHPStruct*, pBackground, 0xAC);
+	if (pBackground)
+	{
+		GameDelete<true, false>(pBackground);
+		pBackground = nullptr;
+	}
+
+	LEA_STACK(SHPStruct**, pSwipeAnims, 0x290);
+
+	for (auto i = 0; i < 4; ++i)
+	{
+		if (auto pAnim = pSwipeAnims[i])
+		{
+			GameDelete<true, false>(pAnim);
+		}
+	}
+
+	return 0x4B9445;
+}
+
+/* fixes to reorder the savegame */
+DEFINE_OVERRIDE_HOOK(0x67D315, SaveGame_EarlySaveSides, 5)
+{
+	GET(LPSTREAM, pStm, ESI);
+	return (Game::Save_Sides(pStm, SideClass::Array) >= 0)
+		? 0
+		: 0x67E0B8
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x67E09A, SaveGame_LateSkipSides, 5)
+{
+	GET(int, success, EAX);
+	return success >= 0
+		? 0x67E0C2
+		: 0x67E0B8
+		;
+}
+
+DEFINE_OVERRIDE_HOOK(0x67E74A, LoadGame_EarlyLoadSides, 5)
+{
+	GET(LPSTREAM, pStm, ESI);
+
+	int length = 0;
+	LPVOID out;
+	if (pStm->Read(&length, 4, 0) < 0)
+	{
+		return 0x67F7A3;
+	}
+	for (int i = 0; i < length; ++i)
+	{
+		if ((Imports::OleLoadFromStream.get()(pStm, &IIDs::IUnknown, &out)) < 0)
+		{
+			return 0x67F7A3;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x67F281, LoadGame_LateSkipSides, 7, 67F2BF)
+
+// ==============================
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5A5C6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNE, 9, 5A5CC8)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5A5D6F, MapSeedClass_Generate_PlacePavedRoads_RoadEndSW, 9, 5A5DB8)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5A5F6A, MapSeedClass_Generate_PlacePavedRoads_RoadEndNW, 8, 5A5FF8)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5A6464, MapSeedClass_Generate_PlacePavedRoads_RoadEndSE, 9, 5A64AD)
+
+// ==============================
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x59000E, RMG_FixPavedRoadEnd_Bridges_North, 5, 590087)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x5900F7, RMG_FixPavedRoadEnd_Bridges_South, 5, 59015E)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x58FCC6, RMG_FixPavedRoadEnd_Bridges_West, 5, 58FD2A)
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x58FBDD, RMG_FixPavedRoadEnd_Bridges_East, 5, 58FC55)
+
+DEFINE_OVERRIDE_HOOK(0x58FA51, RMG_PlaceWEBridge, 6)
+{
+	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
+
+	//it's a WE bridge
+	return (pRect->Width > pRect->Height)
+		? 0x58FA73
+		: 0;
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x58FE7B, RMG_PlaceNSBridge, 8)
+{
+	LEA_STACK(const RectangleStruct* const, pRect, 0x14);
+
+	//it's a NS bridge
+	return (pRect->Height > pRect->Width)
+		? 0x58FE91
+		: 0;
+}
+
+// fix for ultra-fast processors overrunning the performance evaluator function
+DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
+{
+	if (!R->EAX()) {
+		R->EAX(1);
+	}
+
+	return 0;
+}
+
+// TiberiumTransmogrify is never initialized explitly, thus do that here
+DEFINE_OVERRIDE_HOOK(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
+{
+	GET(RulesClass*, pThis, ESI);
+	pThis->TiberiumTransmogrify = 0;
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x657CF2, MapClass_MinimapChanged_Lock, 6)
+DEFINE_OVERRIDE_HOOK(0x657D3D, MapClass_MinimapChanged_Lock, 6)
+{
+	RadarClass::RadarEvenSurface->Lock();
+	RadarClass::RadarEvenSurface_B->Lock();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x657D35, MapClass_MinimapChanged_Unlock, 7)
+DEFINE_OVERRIDE_HOOK(0x657D8A, MapClass_MinimapChanged_Unlock, 7)
+{
+	RadarClass::RadarEvenSurface->Unlock();
+	RadarClass::RadarEvenSurface_B->Unlock();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x65731F, RadarClass_UpdateMinimap_Lock, 6)
+{
+	GET(RadarClass*, pRadar, ESI);
+	pRadar->unknown_121C->Lock();
+	pRadar->unknown_1220->Lock();
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x65757C, RadarClass_UpdateMinimap_Unlock, 8)
+{
+	GET(RadarClass*, pRadar, ESI);
+	pRadar->unknown_1220->Unlock();
+	pRadar->unknown_121C->Unlock();
+
+	return R->EAX() ? 0x657584 : 0x6576A5;
+}
+
+#include <WWKeyboardClass.h>
+
+DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
+{
+	WWKeyboardClass::Instance->Clear();
+	WWMouseClass::Instance->ShowCursor();
+	return 0x4B76A0;
+}
+template<size_t idx>
+static void* AresExtMap_Find(void* const key)
+{
+	return AresData::AresThiscall<AresData::FunctionIndices::ExtMapFindID, void*, DWORD , void*>()(AresData::AresStaticInstanceFinal[idx], key);
+}
+
+#include <Ext/ParticleSystem/Body.h>
+
+struct AresParticleExtData
+{
+	ParticleSystemClass* OwnerObject;
+	InitState State;
+	int Type;
+	ParticleTypeClass* HoldType;
+	/*	std::vector<T> usually compiled like these 
+	* struct std_vector_T // size 0xC
+	* {
+	*	 T* first;
+	*	 T* last;
+	*    T* end;
+	* }
+	*/
+	std::vector<ParticleDatas> DataA; //stored state data
+	std::vector<ParticleDatas> DataB; //stored state data (only used on gas)
+};
+//the alloc size doesnt match the class size for some reason ?
+//static_assert(sizeof(AresParticleExtData) == 64);
+
+//DEFINE_HOOK(0x62FD60, ParticleSystemClass_Update, 9)
+//{
+//	GET(ParticleSystemClass*, pThis, ECX);
+//	const auto pThisExt = (AresParticleExtData*)AresExtMap_Find<0>(pThis);
+//	if(!pThisExt->DataA.empty() && !pThisExt->DataB.empty())
+//	Debug::Log("ParticeSystem [%s] With ExtPtr [%x - offs %x] ! \n", pThis->get_ID(), pThisExt);
+//	//return HandleParticleSys(pThis) ? 0x62FE43 : 0;
+//	return 0x0;
+//}
 
 //TODO : 
 // better port these

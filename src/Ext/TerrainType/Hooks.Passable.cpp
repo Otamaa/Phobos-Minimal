@@ -31,6 +31,24 @@ DEFINE_HOOK(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 	return (TerrainTypeExt::ExtMap.Find(pThis->Type)->IsPassable) ? Skip : 0;
 }
 
+#include <Ext/TechnoType/Body.h>
+
+bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain)
+{
+	const auto pType = pThis->GetTechnoType();
+
+	if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
+		return true;
+
+	if(Is_Unit(pThis)){
+		if (TechnoTypeExt::ExtMap.Find(pType)->CrushLevel.Get(pThis) >
+			TerrainTypeExt::ExtMap.Find(pTerrain->Type)->CrushableLevel)
+			  return true;
+	}
+
+	return false ;
+}
+
 // Passable TerrainTypes Hook #2 - Do not display attack cursor unless force-firing.
 DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 {
@@ -45,7 +63,7 @@ DEFINE_HOOK(0x7002E9, TechnoClass_WhatAction_PassableTerrain, 0x5)
 
 	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
-		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable && !isForceFire)
+		if (CanMoveHere(pThis , pTerrain) && !isForceFire)
 		{
 			R->EBP(Action::Move);
 			return ReturnAction;
@@ -82,11 +100,12 @@ DEFINE_HOOK(0x73FB71, UnitClass_CanEnterCell_PassableTerrain, 0x6)
 {
 	enum { ReturnPassable = 0x73FD37, SkipTerrainChecks = 0x73FA7C };
 
+	GET(UnitClass*, pThis, EBX);
 	GET(AbstractClass*, pTarget, ESI);
 
 	if (auto const pTerrain = specific_cast<TerrainClass*>(pTarget))
 	{
-		if (TerrainTypeExt::ExtMap.Find(pTerrain->Type)->IsPassable)
+		if (CanMoveHere(pThis, pTerrain))
 		{
 			if (IS_CELL_OCCUPIED(pTerrain->GetCell()))
 				return SkipTerrainChecks;

@@ -43,11 +43,11 @@ public:
 	}
 
 	short Difference_Raw() const {
-		return static_cast<short>(DesiredFacing.Raw) - static_cast<short>(StartFacing.Raw);
+		return short(DesiredFacing.Raw) - short(StartFacing.Raw);
 	}
 
 	short turn_rate() const {
-		return static_cast<short>(this->ROT.Raw);
+		return short(this->ROT.Raw);
 	}
 
 	bool Set_Desired(const DirStruct& facing)
@@ -82,17 +82,18 @@ public:
 
 	DirStruct Current(int offset = 0) const
 	{
+		auto ret = this->DesiredFacing;
 		if (Is_Rotating()) {
 			short diff = Difference_Raw();
-			short num_steps = static_cast<short>(NumSteps());
+			short num_steps = short(NumSteps());
 
 			if (num_steps > 0) {
 				int steps_left = RotationTimer.GetTimeLeft() - offset;
-				return DirStruct { ((short)DesiredFacing.Raw - steps_left * diff / num_steps) };
+				ret.Raw = unsigned short(((short)ret.Raw - steps_left * diff / num_steps));
 			}
 		}
 
-		return DesiredFacing;
+		return ret;
 	}
 
 	DirStruct Next()
@@ -120,7 +121,7 @@ public:
 	}
 
 	DirStruct Difference() const {
-		return DirStruct{ static_cast<short>(DesiredFacing.Raw) - static_cast<short>(StartFacing.Raw) };
+		return DirStruct{ short(DesiredFacing.Raw) - short(StartFacing.Raw) };
 	}
 
 	void Set_ROT(int rate)

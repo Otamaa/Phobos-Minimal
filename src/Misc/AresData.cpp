@@ -15,86 +15,7 @@ HMODULE AresData::AresDllHmodule = nullptr;
 AresData::Version AresData::AresVersionId = AresData::Version::Unknown;
 bool AresData::CanUseAres = false;
 DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
-
-template<int idx, typename Tret, typename... TArgs>
-struct AresStdcall
-{
-	using fp_type = Tret(__stdcall*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename... TArgs>
-struct AresStdcall<idx, void, TArgs...>
-{
-	using fp_type = void(__stdcall*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename Tret, typename... TArgs>
-struct AresCdecl
-{
-	using fp_type = Tret(__cdecl*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename... TArgs>
-struct AresCdecl<idx, void, TArgs...>
-{
-	using fp_type = void(__cdecl*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename Tret, typename... TArgs>
-struct AresFastcall
-{
-	using fp_type = Tret(__fastcall*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename... TArgs>
-struct AresFastcall<idx, void, TArgs...>
-{
-	using fp_type = void(__fastcall*)(TArgs...);
-	decltype(auto) operator()(TArgs... args) const
-	{
-		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(args...);
-	}
-};
-
-template<int idx, typename Tret, typename TThis, typename... TArgs>
-struct AresThiscall
-{
-	using fp_type = Tret(__fastcall*)(TThis, void*, TArgs...);
-	decltype(auto) operator()(TThis pThis, TArgs... args) const
-	{
-		return reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
-	}
-};
-
-template<int idx, typename TThis, typename... TArgs>
-struct AresThiscall<idx, void, TThis, TArgs...>
-{
-	using fp_type = void(__fastcall*)(TThis, void*, TArgs...);
-	void operator()(TThis pThis, TArgs... args) const
-	{
-		reinterpret_cast<fp_type>(AresData::AresFunctionOffsetsFinal[idx])(pThis, nullptr, args...);
-	}
-};
+DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 
 uintptr_t AresData::GetModuleBaseAddress(const char* modName)
 {
@@ -139,6 +60,9 @@ void AresData::Init()
 	{
 		for (int i = 0; i < AresData::AresFunctionCount; i++)
 			AresData::AresFunctionOffsetsFinal[i] = AresData::AresBaseAddress + AresData::AresFunctionOffsets[i * AresData::AresVersionCount + AresVersionId];
+
+		for (int a = 0; a < AresData::AresStaticInstanceCount; a++)
+			AresData::AresStaticInstanceFinal[a] = AresData::AresBaseAddress + AresData::AresStaticInstanceTable[a];
 	}
 }
 
