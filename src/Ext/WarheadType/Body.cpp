@@ -41,7 +41,7 @@ void WarheadTypeExt::ExtData::InitializeConstants()
 
 void WarheadTypeExt::ExtData::Initialize()
 {
-	this->IsNukeWarhead = !std::strcmp(RulesExt::Global()->NukeWarheadName.data(), this->Get()->get_ID());
+
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -438,6 +438,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
+	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), pSection);
 
 	if (!pINI->GetSection(pSection))
 	{
@@ -640,7 +641,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 		{
 			Nullable<AnimTypeClass*> pAnimReaded;
-			if (const auto pArmor = ArmorTypeClass::Array[i].get())
+			if (const auto pArmor = ArmorTypeClass::Array[i])
 			{
 				_snprintf_s(tempBuffer, _TRUNCATE, "%s.%s", pBaseKey, pArmor->Name.data());
 				pAnimReaded.Read(exINI, pSection, tempBuffer, bAllocate);

@@ -14,6 +14,11 @@
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
 
+//DEFINE_HOOK(0x640E78, LoadingScreen_DisableColorPoints, 0x6)
+//{
+//	return 0x641071;
+//}
+
 DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	if (!Phobos::AppIconPath.empty()) {
@@ -31,16 +36,14 @@ DEFINE_HOOK(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
 	return(Phobos::UI::DisableEmptySpawnPositions || !esi) ? 0x640CE2: 0x640B93;
 }
 
-//DEFINE_HOOK(0x640E78, LoadingScreen_DisableColorPoints, 0x6)
-//{
-//	return 0x641071;
-//}
-
-// Allow size = 0 for map previews
+ //Allow size = 0 for map previews
 DEFINE_HOOK(0x641B41, LoadingScreen_SkipPreview, 0x8)
 {
+	enum { Continue = 0x0 , return_true = 0x641D59 };
+
 	GET(RectangleStruct*, pRect, EAX);
-	return (pRect->Width > 0 && pRect->Height > 0) ? 0: 0x641D4E;
+	return (pRect->Width > 0 && pRect->Height > 0)
+		? Continue : return_true;
 }
 
 DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
@@ -49,6 +52,8 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	GET_STACK(const char*, lpMapFile, 0x4);
 
 	CCFileClass file(lpMapFile);
+	bool bResult = false;
+
 	if (file.Exists() && file.Open(FileAccessMode::Read))
 	{
 		CCINIClass ini;
@@ -58,11 +63,10 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 
 		ScenarioClass::Instance->ReadStartPoints(ini);
 
-		R->EAX(pThis->ReadPreviewPack(ini));
+		bResult = pThis->ReadPreviewPack(ini);
 	}
-	else
-		R->EAX(false);
 
+	R->EAX(bResult);
 	return 0x64203D;
 }
 
@@ -80,10 +84,6 @@ DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 	//GET(CreditClass*, pThis, EBP);
 
 	auto const pSideExt = SideExt::ExtMap.Find(pSide);
-
-	if(!pSideExt)
-		return 0x0;
-
 	wchar_t counter[0x20];
 
 	if (Phobos::UI::ShowHarvesterCounter)

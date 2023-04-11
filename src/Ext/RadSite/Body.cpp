@@ -10,9 +10,7 @@
 RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 void RadSiteExt::ExtData::InitializeConstants()
-{
-	this->Type = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
-}
+{ }
 
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
@@ -35,8 +33,12 @@ void RadSiteExt::CreateInstance(CoordStruct const& nCoord, int spread, int amoun
 	if (pWeaponExt)
 	{
 		pRadExt->Weapon = pWeaponExt->Get();
-		pRadExt->Type = pWeaponExt->RadType;
+		pRadExt->Type = pWeaponExt->RadType.Get(RadTypeClass::Find(RADIATION_SECTION));
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
+	}
+	else
+	{
+		pRadExt->Type = RadTypeClass::Find(RADIATION_SECTION);
 	}
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())

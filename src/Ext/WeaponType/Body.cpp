@@ -10,12 +10,12 @@ int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
 
 void WeaponTypeExt::ExtData::Initialize()
 {
-	this->RadType = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
 }
 
 void WeaponTypeExt::ExtData::InitializeConstants()
 {
 	Burst_Delays.reserve(10);
+	//this->RadType = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
 }
 
 // =============================
@@ -42,7 +42,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
-		this->RadType.Read(exINI, pSection, "RadType", true);
+		this->RadType.Read(exINI, pSection, "RadType");
 		this->Rad_NoOwner.Read(exINI, pSection, "Rad.NoOwner");
 	}
 
@@ -397,16 +397,3 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 
 	return 0;
 }
-
-#ifdef AAENABLE_NEWEXT
-DEFINE_JUMP(LJMP, 0x7725D1, 0x772604)
-DEFINE_JUMP(LJMP, 0x77260A, 0x772610)
-DEFINE_JUMP(LJMP, 0x772E67, 0x772E78)
-
-DEFINE_HOOK(0x6FF33D, TechnoClass_FireAT_OpentoppedAnim, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	R->EAX(WeaponTypeExt::ExtMap.Find(pWeapon)->OpentoppedAnim.Get());
-	return 0x6FF343;
-}
-#endif

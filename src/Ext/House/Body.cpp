@@ -218,9 +218,6 @@ bool HouseExt::IsObserverPlayer()
 	if (pCur == HouseClass::Observer)
 		return true;
 
-	if (IS_SAME_STR_(pCur->get_ID(), "Observer"))
-		return true;
-
 	return false;
 }
 
@@ -230,9 +227,6 @@ bool HouseExt::IsObserverPlayer(HouseClass* pCur)
 		return false;
 
 	if (pCur == HouseClass::Observer())
-		return true;
-
-	if (IS_SAME_STR_(pCur->get_ID(), "Observer"))
 		return true;
 
 	return false;

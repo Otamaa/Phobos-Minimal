@@ -39,16 +39,15 @@ void ColorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pkeyCount)
 		return;
 
-	if (pkeyCount == Array.size()) {
-		for (auto& pData : Array) {
-			pData->LoadFromINI(pINI);
-		}
-	} else {
+	if (pkeyCount > (int)Array.size())
 		Array.reserve(pkeyCount);
-		for (int i = 0; i < pkeyCount; ++i) {
-			if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
-				pAlloc->LoadFromINI(pINI);
-		}
+
+	for (int i = 0; i < pkeyCount; ++i)	{
+		const auto pKeyHere = pINI->GetKeyName(pSection, i);
+		if (auto const pAlloc = Find(pKeyHere))
+			pAlloc->LoadFromINI(pINI);
+		else
+			Allocate(pKeyHere)->LoadFromINI(pINI);
 	}
 }
 

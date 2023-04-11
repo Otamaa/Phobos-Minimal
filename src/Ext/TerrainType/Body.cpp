@@ -196,4 +196,3 @@ DEFINE_HOOK(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
 
 	return 0;
 }
-

@@ -172,14 +172,10 @@ DEFINE_OVERRIDE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb, 6)
 	GET(TechnoClass*, Target, EBP);
 	GET(WarheadTypeClass*, Warhead, EDI);
 
-	if (Warhead->BombDisarm)
-	{
-		if (BombClass* Bomb = Target->AttachedBomb)
-		{
-			if (!BombExt::ExtMap.Find(Bomb)->Weapon->Ivan_Detachable)
-			{
-				return 0x6FCBBE;
-			}
+	if (Warhead->BombDisarm && Target->AttachedBomb) {
+		if (!BombExt::ExtMap.Find(Target->AttachedBomb)
+			->Weapon->Ivan_Detachable) {
+			return 0x6FCBBE;
 		}
 	}
 
@@ -190,7 +186,8 @@ DEFINE_OVERRIDE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb, 6)
 DEFINE_OVERRIDE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 {
 	GET(TechnoClass*, Target, ESI);
-	return !BombExt::ExtMap.Find(Target->AttachedBomb)->Weapon->Ivan_Detachable
+	return !BombExt::ExtMap.Find(Target->AttachedBomb)
+			->Weapon->Ivan_Detachable
 		? 0x51E49E : 0x0;
 }
 
@@ -248,7 +245,8 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 {
 	GET(BulletClass*, pBullet, ESI);
 
-	if (!pBullet->Owner || ((pBullet->Owner->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None))
+	if (!pBullet->Owner || 
+		((pBullet->Owner->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None))
 		return 0x469AA4;
 
 	TechnoClass* pOwner = static_cast<TechnoClass*>(pBullet->Owner);
@@ -304,11 +302,12 @@ DEFINE_OVERRIDE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET_STACK(ObjectClass*, pThat, 0x1C);
-	if (pThis->Deactivated)
-	{
+
+	if (pThis->Deactivated) {
 		R->EAX(Funcs::GetAction(pThis, pThat));
 		return 0x447273;
 	}
+
 	return 0;
 }
 
@@ -316,11 +315,12 @@ DEFINE_OVERRIDE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
-	if (pThis->Deactivated)
-	{
+
+	if (pThis->Deactivated) {
 		R->EAX(Funcs::GetAction(pThis, pThat));
 		return 0x73FD72;
 	}
+
 	return 0;
 }
 
@@ -328,11 +328,12 @@ DEFINE_OVERRIDE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 {
 	GET(InfantryClass*, pThis, EDI);
 	GET_STACK(ObjectClass*, pThat, 0x3C);
-	if (pThis->Deactivated)
-	{
+
+	if (pThis->Deactivated) {
 		R->EAX(Funcs::GetAction(pThis, pThat));
 		return 0x51E458;
 	}
+
 	return 0;
 }
 
@@ -340,11 +341,12 @@ DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 {
 	GET(AircraftClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
-	if (pThis->Deactivated)
-	{
+
+	if (pThis->Deactivated) {
 		R->EAX(Funcs::GetAction(pThis, pThat));
 		return 0x417CDF;
 	}
+
 	return 0;
 }
 
@@ -353,8 +355,7 @@ DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
 
-	if (Funcs::CanDetonate(pThis, pObject))
-	{
+	if (Funcs::CanDetonate(pThis, pObject)) {
 		R->EAX(Action::Detonate);
 		return 0x7005EF;
 	}
@@ -366,10 +367,10 @@ DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 {
 	GET(BuildingClass*, pStructure, ESI);
 
-	if (auto pBomb = pStructure->AttachedBomb)
-	{
-		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+	if(pStructure->AttachedBomb){
+		if (BombExt::ExtMap.Find(pStructure->AttachedBomb)->
+			Weapon->Ivan_DetonateOnSell.Get())
+			pStructure->AttachedBomb->Detonate();
 	}
 
 	return 0;
@@ -379,10 +380,11 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 {
 	GET(BuildingClass*, pStructure, EBP);
 
-	if (auto pBomb = pStructure->AttachedBomb)
+	if (pStructure->AttachedBomb)
 	{
-		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+		if (BombExt::ExtMap.Find(pStructure->AttachedBomb)
+			->Weapon->Ivan_DetonateOnSell.Get())
+			pStructure->AttachedBomb->Detonate();
 	}
 
 	return 0;
@@ -392,10 +394,11 @@ DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
 	GET(FootClass*, pSellee, ESI);
 
-	if (auto pBomb = pSellee->AttachedBomb)
+	if (pSellee->AttachedBomb)
 	{
-		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
-			pBomb->Detonate();
+		if (BombExt::ExtMap.Find(pSellee->AttachedBomb)
+			->Weapon->Ivan_DetonateOnSell.Get())
+			pSellee->AttachedBomb->Detonate();
 	}
 
 	return 0;

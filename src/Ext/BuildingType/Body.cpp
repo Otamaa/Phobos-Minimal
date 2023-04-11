@@ -839,6 +839,7 @@ DEFINE_HOOK(0x46536A, BuildingTypeClass_Save_Suffix, 0x7)
 	return 0;
 }
 
+// fixed the last delay on game loading !
 DEFINE_HOOK_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
 DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 {

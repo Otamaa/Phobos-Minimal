@@ -1635,16 +1635,16 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	return 0;
 }
 
-//hook before stuffs got pop-ed to remove crash possibility
-DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
-{
-	GET(AircraftTypeClass*, pItem, ESI);
-	GET(CCINIClass* const, pINI, EBX);
-
-	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
-
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
-		pExt->LoadFromINIFile_Aircraft(pINI);
-
-	return 0x41CD82;
-}
+////hook before stuffs got pop-ed to remove crash possibility
+//DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
+//{
+//	GET(AircraftTypeClass*, pItem, ESI);
+//	GET(CCINIClass* const, pINI, EBX);
+//
+//	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
+//
+//	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
+//		pExt->LoadFromINIFile_Aircraft(pINI);
+//
+//	return 0x41CD82;
+//}

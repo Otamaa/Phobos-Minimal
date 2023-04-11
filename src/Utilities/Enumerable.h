@@ -16,7 +16,7 @@
 
 template <typename T> class Enumerable
 {
-	typedef std::vector<std::unique_ptr<T>> container_t;
+	typedef std::vector<T*> container_t;
 
 public:
 	static container_t Array;
@@ -25,7 +25,8 @@ public:
 	{
 		const auto nResult = FindIndexById(Title);
 
-		if (nResult < 0) {
+		if (nResult < 0)
+		{
 			AllocateNoCheck(Title);
 			return Array.size() - 1;
 		}
@@ -35,18 +36,17 @@ public:
 
 	static int FindIndexById(const char* Title)
 	{
-		if (!Title || !strlen(Title))
-			return -1;
+		for (auto pos = Array.begin();
+			pos != Array.end();
+			++pos)
+		{
+			if (IS_SAME_STR_((*pos)->Name.data(), Title))
+			{
+				return std::distance(Array.begin(), pos);
+			}
+		}
 
-		const auto nResult = std::find_if(Array.begin(), Array.end(),
-			[Title](const auto& Item) {
-				return IS_SAME_STR_(Item->Name.data(), Title);
-			});
-
-		if (nResult == Array.end())
-			return -1;
-
-		return std::distance(Array.begin(), nResult);
+		return -1;
 	}
 
 	static T* Find(const char* Title)
@@ -56,12 +56,12 @@ public:
 		if (nResult < 0)
 			return nullptr;
 
-		return Array[nResult].get();
+		return Array[nResult];
 	}
 
 	static int FindIndexFromType(T* pType)
 	{
-		if(!pType)
+		if (!pType)
 			return -1;
 
 		return FindIndexById(pType->Name.data());
@@ -69,26 +69,25 @@ public:
 
 	static T* FindFromIndex(int Idx)
 	{
-		return Array[static_cast<size_t>(Idx)].get();
+		return Array[static_cast<size_t>(Idx)];
 	}
 
-	static T* FindFromIndexFix(int Idx) {
-		Idx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
-		return Array[static_cast<size_t>(Idx)].get();
+	static T* FindFromIndexFix(int Idx)
+	{
+		const auto aIdx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
+		return Array[static_cast<size_t>(aIdx)];
 	}
 
 	static T* Allocate(const char* Title)
 	{
-		if (!Title || !strlen(Title))
-			return nullptr;
-
 		AllocateNoCheck(Title);
-		return Array.back().get();
+		return Array.back();
 	}
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		Array.push_back(std::move(std::make_unique<T>(Title)));
+		auto const nNew = new T(Title);
+		Array.push_back(nNew);
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -101,6 +100,9 @@ public:
 
 	static void Clear()
 	{
+		for (auto& data : Array)
+			delete data;
+
 		Array.clear();
 	}
 
@@ -119,20 +121,19 @@ public:
 		if (!pKeyCount)
 			return;
 
-		if (pKeyCount == Array.size()) {
-			for (auto& pData : Array) {
-				pData->LoadFromINI(pINI);
-			}
-		} else {
-
+		if (pKeyCount > (int)Array.size()) {
 			Array.reserve(pKeyCount);
+		}
 
-			for (int i = 0; i < pKeyCount; ++i) {
-				if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer)) {
-					if (auto const pItem = FindOrAllocate(Phobos::readBuffer))
-					{
-						pItem->LoadFromINI(pINI);
-					}
+		for (int i = 0; i < pKeyCount; ++i) {
+			if (pINI->ReadString(section, pINI->GetKeyName(section, i),
+				Phobos::readDefval, Phobos::readBuffer)) {
+
+				if (auto const pFind = Find(Phobos::readBuffer)) {
+					pFind->LoadFromINI(pINI);
+				}
+				else {
+					Allocate(Phobos::readBuffer)->LoadFromINI(pINI);
 				}
 			}
 		}
@@ -148,7 +149,8 @@ public:
 
 		Array.reserve(Count);
 
-		for (size_t i = 0; i < Count; ++i) {
+		for (size_t i = 0; i < Count; ++i)
+		{
 			void* oldPtr = nullptr;
 			decltype(Name) name;
 
@@ -172,7 +174,7 @@ public:
 		for (const auto& item : Array)
 		{
 			// write old pointer and name, then delegate
-			Stm.Save(item.get());
+			Stm.Save(item);
 			Stm.Save(item->Name);
 			item->SaveToStream(Stm);
 		}
@@ -183,7 +185,7 @@ public:
 	static const char* GetMainSection();
 
 	Enumerable(const char* Title)
-	{ 
+	{
 		Name = Title;
 	}
 

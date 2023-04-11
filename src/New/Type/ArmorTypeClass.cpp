@@ -65,28 +65,26 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 
 	if (!pINI)
 		return;
-	
+
 	const char* pSection = GetMainSection();
 
 	if (!pINI->GetSection(pSection))
 		return;
 
 	auto const pkeyCount = pINI->GetKeyCount(pSection);
-	
+
 	if (!pkeyCount)
 		return;
 
-	if (pkeyCount == Array.size()) {
-		for (auto& pData : Array) {
-			pData->LoadFromINI(pINI);
-		}
-	} else {
-	
+	if (pkeyCount > (int)Array.size())
 		Array.reserve(pkeyCount);
-		for (int i = 0; i < pkeyCount; ++i) {
-			if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
-				pAlloc->LoadFromINI(pINI);
-		}
+
+	for (int i = 0; i < pkeyCount; ++i) {
+		const auto pKeyHere = pINI->GetKeyName(pSection, i);
+		if (auto const pAlloc = Find(pKeyHere))
+			pAlloc->LoadFromINI(pINI);
+		else
+			Allocate(pKeyHere)->LoadFromINI(pINI);
 	}
 }
 
@@ -102,7 +100,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 	while (pWHExt->Verses.size() < Array.size())
 	{
-		auto pArmor = Array[pWHExt->Verses.size()].get();
+		auto pArmor = Array[pWHExt->Verses.size()];
 		const int nDefaultIdx = pArmor->DefaultTo;
 		pWHExt->Verses.push_back(
 			nDefaultIdx == -1

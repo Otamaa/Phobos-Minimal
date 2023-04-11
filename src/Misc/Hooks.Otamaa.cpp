@@ -2791,7 +2791,7 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 	if (!bImmune_pt1 && !bImmune_pt2)
 	{
 		auto const nArmor = pType->Armor;
-		auto const pArmor = ArmorTypeClass::Array[(int)nArmor].get();
+		auto const pArmor = ArmorTypeClass::Array[(int)nArmor];
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
@@ -2804,9 +2804,9 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 			if (!pAnimTypeDecided && pArmor->DefaultTo != -1)
 			{
 				//Holy shit !
-				for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
+				for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo];
 					pDefArmor && pDefArmor->DefaultTo != -1;
-					pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
+					pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo])
 				{
 					pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
 					if (pAnimTypeDecided)
@@ -4635,7 +4635,7 @@ DEFINE_HOOK(0x73F015, UnitClass_Mi_Hunt_MCVFindSpotReworked, 0x6)
 
 DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
 {
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 
 	return 0x0;
 }
@@ -4655,7 +4655,7 @@ DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
 
 DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	//TODO DamageArgs
 	return 0x0;
 }

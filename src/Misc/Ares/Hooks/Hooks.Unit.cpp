@@ -1900,7 +1900,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 		idxVoice = pData->VoiceRepair;
 		if (idxVoice < 0)
 		{
-			if (!IS_SAME_STR_(pType->ID, "FV"))
+			if (!(IS_SAME_STR_(pType->ID, "FV")))
 			{
 				idxVoice = RulesClass::Instance->VoiceIFVRepair;
 			}

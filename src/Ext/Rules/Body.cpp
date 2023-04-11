@@ -835,6 +835,12 @@ DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 		pExt->CompleteInitialization();
 	});
 
+	// TODO :
+	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [](TechnoTypeClass* pType) {
+	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+		pExt->Initialize();
+	});
+
 	return 0;
 }
 
