@@ -5,6 +5,11 @@
 
 TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
 
+void TerrainTypeExt::ExtData::InitializeConstants()
+{
+	AttachedAnim.reserve(1);
+}
+
 int TerrainTypeExt::ExtData::GetTiberiumGrowthStage()
 {
 	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_GrowthStage.Get());

@@ -16,6 +16,46 @@ TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
 double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 
+void TechnoTypeExt::ExtData::InitializeConstants()
+{
+	OreGathering_Anims.reserve(1);
+	OreGathering_Tiberiums.reserve(1);
+	OreGathering_FramesPerDir.reserve(1);
+	LaserTrailData.reserve(4);
+	LineTrailData.reserve(4);
+	AutoDeath_Nonexist.reserve(5);
+	AutoDeath_Exist.reserve(5);
+	OreGathering_Anims.reserve(5);
+	OreGathering_Tiberiums.reserve(5);
+	OreGathering_FramesPerDir.reserve(5);
+	AlternateFLHs.reserve(5);
+	MobileRefinery_FrontOffset.reserve(2);
+	MobileRefinery_LeftOffset.reserve(2);
+	MobileRefinery_Anims.reserve(2);
+	Overload_Count.reserve(3);
+	Overload_Damage.reserve(3);
+	Overload_Frames.reserve(3);
+	HitCoordOffset.reserve(3);
+	FireSelf_Weapon.reserve(3);
+	FireSelf_ROF.reserve(3);
+	FireSelf_Weapon_GreenHeath.reserve(3);
+	FireSelf_ROF_GreenHeath.reserve(3);
+	FireSelf_Weapon_YellowHeath.reserve(3);
+	FireSelf_ROF_YellowHeath.reserve(3);
+	FireSelf_Weapon_RedHeath.reserve(3);
+	FireSelf_ROF_RedHeath.reserve(3);
+	DisguiseDisAllowed.reserve(10);
+	Prerequisite_RequiredTheaters.reserve(7);
+	Prerequisite.reserve(10);
+	Prerequisite_Negative.reserve(10);
+	Prerequisite_ListVector.reserve(10);
+	TargetLaser_WeaponIdx.reserve(TechnoTypeClass::MaxWeapons);
+	PassengersWhitelist.reserve(10);
+	PassengersBlacklist.reserve(10);
+	ParticleSystems_DamageSmoke.reserve(4);
+	ParticleSystems_DamageSparks.reserve(4);
+}
+
 void TechnoTypeExt::ExtData::Initialize()
 {
 	Is_Cow = strcmp(Get()->ID, "COW") == 0;
@@ -32,10 +72,6 @@ void TechnoTypeExt::ExtData::Initialize()
 	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
 	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 
-	OreGathering_Anims.reserve(1);
-	OreGathering_Tiberiums.reserve(1);
-	OreGathering_FramesPerDir.reserve(1);
-	LaserTrailData.reserve(4);
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -580,9 +616,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		if (i >= 5U && !alternateFLH.isset())
 			break;
 
-		this->AlternateFLHs.size() < i
-			? this->AlternateFLHs[i] = alternateFLH.Get()
-			: this->AlternateFLHs.emplace_back(alternateFLH.Get());
+		this->AlternateFLHs.emplace_back(alternateFLH.Get());
 	}
 #pragma endregion FLHs
 
@@ -785,9 +819,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
 	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
 	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
-	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience"); 
+	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
 
-	this->DeployDir.Read(exINI, pSection, "DeployDir" );
+	this->DeployDir.Read(exINI, pSection, "DeployDir");
 
 	this->PassengersWhitelist.Read(exINI, pSection, "Passengers.Allowed");
 	this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");

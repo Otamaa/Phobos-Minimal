@@ -2793,51 +2793,48 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 		auto const nArmor = pType->Armor;
 		auto const pArmor = ArmorTypeClass::Array[(int)nArmor].get();
 
-		if (pArmor)
-		{
 #ifdef COMPILE_PORTED_DP_FEATURES_
-			TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
+		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
 #endif
 
-			if ((!pWarheadExt->ArmorHitAnim.empty()))
-			{
-				AnimTypeClass* pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default((int)nArmor);
+		if ((!pWarheadExt->ArmorHitAnim.empty()))
+		{
+			AnimTypeClass* pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default((int)nArmor);
 
-				if (!pAnimTypeDecided && pArmor->DefaultTo != -1)
+			if (!pAnimTypeDecided && pArmor->DefaultTo != -1)
+			{
+				//Holy shit !
+				for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
+					pDefArmor && pDefArmor->DefaultTo != -1;
+					pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
 				{
-					//Holy shit !
-					for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
-						pDefArmor && pDefArmor->DefaultTo != -1;
-						pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
+					pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
+					if (pAnimTypeDecided)
+						break;
+				}
+			}
+
+			if (pAnimTypeDecided)
+			{
+				CoordStruct nBuffer { 0, 0 , 0 };
+
+				if (pTechno)
+				{
+					auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+					if (!pTechnoTypeExt->HitCoordOffset.empty())
 					{
-						pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
-						if (pAnimTypeDecided)
-							break;
+						if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
+							nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
+						else
+							nBuffer = pTechnoTypeExt->HitCoordOffset[0];
 					}
 				}
 
-				if (pAnimTypeDecided)
+				auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
+				if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
 				{
-					CoordStruct nBuffer { 0, 0 , 0 };
-
-					if (pTechno)
-					{
-						auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-						if (!pTechnoTypeExt->HitCoordOffset.empty())
-						{
-							if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
-								nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
-							else
-								nBuffer = pTechnoTypeExt->HitCoordOffset[0];
-						}
-					}
-
-					auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
-					if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
-					{
-						AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
-					}
+					AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
 				}
 			}
 		}
@@ -4694,14 +4691,17 @@ DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 	GET(UnitClass*, pThis, EBP);
 	GET(CellClass*, pCell, EDI);
 
-	if (auto pTerrain = pCell->GetTerrain(false)) {
-		if (pTerrain->IsAlive) {
+	if (auto pTerrain = pCell->GetTerrain(false))
+	{
+		if (pTerrain->IsAlive)
+		{
 			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium && 
-				!pType->Immune && 
-				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable && 
+			if (!pType->SpawnsTiberium &&
+				!pType->Immune &&
+				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
 				pTerrain->Type->Crushable
-				) {
+				)
+			{
 				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
 				{
@@ -4727,16 +4727,20 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 	GET(CellClass*, pCell, EBX);
 
 	const auto pLinkedTo = pLoco->LinkedTo;
-	if (auto pTerrain = pCell->GetTerrain(false)) {
-		if (pTerrain->IsAlive) {
+	if (auto pTerrain = pCell->GetTerrain(false))
+	{
+		if (pTerrain->IsAlive)
+		{
 			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium && 
-				!pType->Immune && 
-				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable && 
+			if (!pType->SpawnsTiberium &&
+				!pType->Immune &&
+				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
 				pTerrain->Type->Crushable
-				) {
+				)
+			{
 				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
-					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel) {
+					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+				{
 					VocClass::PlayAt(pType->CrushSound, pLinkedTo->Location);
 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
 

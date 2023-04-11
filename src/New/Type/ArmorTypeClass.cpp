@@ -16,8 +16,11 @@ const char* Enumerable<ArmorTypeClass>::GetMainSection()
 
 void ArmorTypeClass::AddDefaults()
 {
+	if (!Array.empty())
+		return;
+
 	for (auto const& nDefault : Unsorted::ArmorNameArray) {
-		FindOrAllocate(nDefault);
+		AllocateNoCheck(nDefault);
 	}
 }
 
@@ -58,8 +61,7 @@ void ArmorTypeClass::EvaluateDefault() {
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
-	if(ArmorTypeClass::Array.empty())
-		ArmorTypeClass::AddDefaults();
+	ArmorTypeClass::AddDefaults();
 
 	if (!pINI)
 		return;
@@ -74,11 +76,17 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pkeyCount)
 		return;
 
-	Array.reserve(pkeyCount + Unsorted::ArmorNameArray.size());
-
-	for (int i = 0; i < pkeyCount; ++i) {
-		if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
-			pAlloc->LoadFromINI(pINI);
+	if (pkeyCount == Array.size()) {
+		for (auto& pData : Array) {
+			pData->LoadFromINI(pINI);
+		}
+	} else {
+	
+		Array.reserve(pkeyCount);
+		for (int i = 0; i < pkeyCount; ++i) {
+			if (auto const pAlloc = FindOrAllocate(pINI->GetKeyName(pSection, i)))
+				pAlloc->LoadFromINI(pINI);
+		}
 	}
 }
 
@@ -94,7 +102,7 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 	while (pWHExt->Verses.size() < Array.size())
 	{
-		auto& pArmor = Array[pWHExt->Verses.size()];
+		auto pArmor = Array[pWHExt->Verses.size()].get();
 		const int nDefaultIdx = pArmor->DefaultTo;
 		pWHExt->Verses.push_back(
 			nDefaultIdx == -1

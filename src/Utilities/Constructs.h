@@ -308,6 +308,10 @@ public:
 		values.clear();
 	}
 
+	void reserve(size_t newsize) {
+		values.reserve(newsize);
+	}
+
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		this->clear();
 

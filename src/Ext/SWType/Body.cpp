@@ -15,6 +15,21 @@ SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 bool SWTypeExt::Handled = true;
 SuperClass* SWTypeExt::TempSuper = nullptr;
 
+void SWTypeExt::ExtData::InitializeConstants()
+{
+	LimboDelivery_Types.reserve(5);
+	LimboDelivery_IDs.reserve(5);
+	LimboDelivery_RollChances.reserve(5);
+	LimboKill_IDs.reserve(5);
+	SW_Next.reserve(5);
+	LimboDelivery_RandomWeightsData.reserve(100);
+	SW_Next_RandomWeightsData.reserve(100);
+	SW_Inhibitors.reserve(10);
+	SW_Designators.reserve(10);
+	SW_AuxBuildings.reserve(10);
+	SW_NegBuildings.reserve(10);
+}
+
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();

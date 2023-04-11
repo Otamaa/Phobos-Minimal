@@ -13,6 +13,11 @@ void WeaponTypeExt::ExtData::Initialize()
 	this->RadType = RadTypeClass::FindOrAllocate(RADIATION_SECTION);
 }
 
+void WeaponTypeExt::ExtData::InitializeConstants()
+{
+	Burst_Delays.reserve(10);
+}
+
 // =============================
 // load / save
 

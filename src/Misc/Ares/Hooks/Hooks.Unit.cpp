@@ -1051,7 +1051,7 @@ DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
 
-	if (WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||  
+	if (WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||
 		!pThatTechno ||
 		pThatTechno->IsFullHP() ||
 		!pThat->IsSurfaced()) {
@@ -1900,7 +1900,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 		idxVoice = pData->VoiceRepair;
 		if (idxVoice < 0)
 		{
-			if (!_strcmpi(pType->ID, "FV"))
+			if (!IS_SAME_STR_(pType->ID, "FV"))
 			{
 				idxVoice = RulesClass::Instance->VoiceIFVRepair;
 			}

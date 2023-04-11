@@ -18,10 +18,30 @@
 #include <New/Entity/FlyingStrings.h>
 
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
+void WarheadTypeExt::ExtData::InitializeConstants()
+{
+	this->Launchs.reserve(2);
+	SuppressDeathWeapon.reserve(8);
+	SuppressDeathWeapon_Exclude.reserve(8);
+	LimboKill_IDs.reserve(8);
+	DetonatesWeapons.reserve(8);
+	AttachTag_Types.reserve(8);
+	AttachTag_Ignore.reserve(8);
+	DeadBodies.reserve(8);
+	Converts_To.reserve(8);
+	Converts_From.reserve(8);
+	SquidSplash.reserve(RulesClass::Instance->SplashList.Count);
+	DebrisAnimTypes.reserve(RulesClass::Instance->MetallicDebris.Count);
+	DetonateOnAllMapObjects_IgnoreTypes.reserve(8);
+	DetonateOnAllMapObjects_AffectTypes.reserve(8);
+	Shield_AffectTypes.reserve(8);
+	Shield_AttachTypes.reserve(8);
+	Shield_RemoveTypes.reserve(8);
+}
+
 void WarheadTypeExt::ExtData::Initialize()
 {
 	this->IsNukeWarhead = !std::strcmp(RulesExt::Global()->NukeWarheadName.data(), this->Get()->get_ID());
-	this->Launchs.reserve(2);
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -148,7 +168,8 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		{
 			auto const pBldExt = BuildingExt::ExtMap.Find(pBld);
 
-			if(this->LimboKill_IDs.empty() && pBldExt->LimboID != -1) {
+			if (this->LimboKill_IDs.empty() && pBldExt->LimboID != -1)
+			{
 				return false;
 			}
 
@@ -176,7 +197,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 			return (std::abs(
 				//GeneralUtils::GetWarheadVersusArmor(this->Get() , nArmor)
 				this->GetVerses(nArmor).Verses
-				)>= 0.001 );
+			) >= 0.001);
 		}
 
 		return true;
@@ -258,11 +279,12 @@ bool WarheadTypeExt::ExtData::CanTargetHouse(HouseClass* pHouse, TechnoClass* pT
 bool WarheadTypeExt::ExtData::ApplyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
 {
 	auto const pThis = OwnerObject();
-	
+
 	if (!pThis->Culling || !pSource)
 		return false;
 
-	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget)) {
+	if (auto const pTargetTechno = generic_cast<TechnoClass*>(pTarget))
+	{
 		if (TechnoExt::IsCullingImmune(pTargetTechno))
 			return false;
 	}
@@ -328,13 +350,14 @@ void WarheadTypeExt::ExtData::ApplyRelativeDamage(ObjectClass* pTarget, args_Rec
 			break;
 		}
 
-		if (nRelativeVal) {
+		if (nRelativeVal)
+		{
 
 			if (nRelativeVal < 0)
 				nRelativeVal *= pTarget->Health / -100;
 			else
-			if (const auto pType = pTarget->GetType())
-				nRelativeVal *= pType->Strength / 100;
+				if (const auto pType = pTarget->GetType())
+					nRelativeVal *= pType->Strength / 100;
 		}
 
 		if (*pArgs->Damage < 0)
@@ -351,14 +374,16 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 
 	if (nDur != 0)
 	{
-		if (nDur > 0) {
-			if (auto pData = TechnoTypeExt::ExtMap.Find(pType)) {
+		if (nDur > 0)
+		{
+			if (auto pData = TechnoTypeExt::ExtMap.Find(pType))
+			{
 				nDur = static_cast<int>(nDur * pData->Berzerk_Modifier.Get());
 			}
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->OwnerObject(), pType->Armor , 0);
+		nDur = MapClass::GetTotalDamage(nDur, this->OwnerObject(), pType->Armor, 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
@@ -369,23 +394,33 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 		if (oldValue == newValue)
 			return this->Berzerk_dealDamage.Get();
 
-		if (oldValue <= 0) {
-			if (newValue > 0) {
+		if (oldValue <= 0)
+		{
+			if (newValue > 0)
+			{
 				pVictim->GoBerzerkFor(newValue);
 			}
-		} else {
+		}
+		else
+		{
 
-			if (newValue > 0) {
+			if (newValue > 0)
+			{
 				pVictim->GoBerzerkFor(newValue);
-			} else {
+			}
+			else
+			{
 
 				auto const nLeft = pVictim->BerzerkDurationLeft - newValue;
-				if (nLeft <= 0) {		
+				if (nLeft <= 0)
+				{
 					pVictim->BerzerkDurationLeft = 0;
 					pVictim->Berzerk = false;
 					pVictim->SetTarget(nullptr);
 					TechnoExt::SetMissionAfterBerzerk(pVictim);
-				} else {
+				}
+				else
+				{
 					pVictim->BerzerkDurationLeft -= nLeft;
 				}
 			}
@@ -404,7 +439,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection)) {
+	if (!pINI->GetSection(pSection))
+	{
 
 		//auto const Iter = std::find(UnParsedThing::UnparsedList.begin() , UnParsedThing::UnparsedList.end() , pSection);
 		//if (Iter != UnParsedThing::UnparsedList.end()) {
@@ -420,15 +456,16 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	INI_EX exINI(pINI);
 
 	// writing custom verses parser just because
-	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer)) {
+	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer))
+	{
 		int idx = 0;
 		char* context = nullptr;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
-			cur; 
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			this->Verses[idx].Parse_NoCheck(cur);
-	
+
 			++idx;
 			if (idx > 10)
 			{
@@ -603,7 +640,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 		{
 			Nullable<AnimTypeClass*> pAnimReaded;
-			if (auto pArmor = ArmorTypeClass::Array[i].get())
+			if (const auto pArmor = ArmorTypeClass::Array[i].get())
 			{
 				_snprintf_s(tempBuffer, _TRUNCATE, "%s.%s", pBaseKey, pArmor->Name.data());
 				pAnimReaded.Read(exINI, pSection, tempBuffer, bAllocate);
@@ -683,7 +720,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
 
-	if (pThis->Temporal) {
+	if (pThis->Temporal)
+	{
 		this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
 	}
 
@@ -744,7 +782,8 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, T
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell)
 {
-	if (targetCell && !coords) {
+	if (targetCell && !coords)
+	{
 		Debug::Log("WarheadTypeExt::Detonate asking for targetCell but coords is invalid ! \n");
 		return;
 	}
@@ -760,15 +799,17 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 
 	BulletTypeClass* pType = BulletTypeExt::GetDefaultBulletType();
 
-	if (pThis->NukeMaker) {
-		if (!pTarget) {
+	if (pThis->NukeMaker)
+	{
+		if (!pTarget)
+		{
 			Debug::Log("WarheadTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
 			return;
 		}
 	}
 
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright,true))
+		damage, pThis, 0, 0, pThis->Bright, true))
 	{
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}
@@ -998,7 +1039,8 @@ bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 	auto const abs = GetVtableAddr(pVictim);
 	auto const pVictimType = pVictim->GetTechnoType();
 
-	if (!SuppressDeathWeapon_Exclude.empty()) {
+	if (!SuppressDeathWeapon_Exclude.empty())
+	{
 		return !SuppressDeathWeapon_Exclude.Contains(pVictimType);
 	}
 

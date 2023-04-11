@@ -66,8 +66,8 @@ void SideExt::IniExtData(SideClass* pThis, int nIdx)
 	auto const pExt = SideExt::ExtMap.TryFind(pThis);
 	if (!pExt) {
 		if (SideExt::ExtData* val = new SideExt::ExtData(pThis)) {
-			val->ArrayIndex = nIdx;
 			val->EnsureConstanted();
+			val->ArrayIndex = nIdx;
 			SideExt::ExtMap.SetExtAttribute(pThis, val);
 		}
 

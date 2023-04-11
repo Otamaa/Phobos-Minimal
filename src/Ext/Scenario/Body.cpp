@@ -82,8 +82,8 @@ void ScenarioExt::Allocate(ScenarioClass* pThis)
 {
 	Data = std::make_unique<ScenarioExt::ExtData>(pThis);
 
-	//if (Data)
-	//	Data->EnsureConstanted();
+	if (Data)
+		Data->EnsureConstanted();
 }
 
 void ScenarioExt::Remove(ScenarioClass* pThis)

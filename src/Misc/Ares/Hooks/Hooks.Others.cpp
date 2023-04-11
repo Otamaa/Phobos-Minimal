@@ -2013,6 +2013,148 @@ struct AresParticleExtData
 //	return 0x0;
 //}
 
+#include <Utilities/Helpers.h>
+#include <Ext/ParticleType/Body.h>
+
+std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis)
+{
+	TechnoClass* pAttacker = nullptr;
+	HouseClass* pOwner = nullptr;
+
+	if (auto const pSystem = pThis->ParticleSystem)
+	{
+		if (auto pSystemOwner = pSystem->Owner)
+		{
+			if (((pSystemOwner->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None))
+				pAttacker = static_cast<TechnoClass*>(pSystemOwner);
+			else if (Is_Bullet(pSystemOwner))
+				pAttacker = static_cast<BulletClass*>(pSystemOwner)->Owner;
+		}
+
+		if (pAttacker)
+			pOwner = pAttacker->GetOwningHouse();
+	}
+
+	return { pAttacker , pOwner };
+}
+
+DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
+{
+	GET(ParticleClass*, pThis, EBP);
+	auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pTypeExt->DamageRange.Get() <= 0.0)
+		return 0x0;
+
+	const auto pVec = Helpers::Alex::getCellSpreadItems(pThis->Location, std::ceil(pTypeExt->DamageRange.Get()));
+	const auto& [pAttacker, pOwner] = GetOwnership(pThis);
+
+	for (auto& pItem : pVec)
+	{
+		if (pItem->Health <= 0 || !pItem->IsAlive || pItem->InLimbo)
+			continue;
+
+		if (pItem->IsSinking || pItem->IsCrashing || pItem->TemporalTargetingMe)
+			continue;
+
+		if (!Is_Building(pItem) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pItem)))
+			continue;
+
+		auto nDamge = pThis->Type->Damage;
+		auto nX = abs(pThis->Location.X - pItem->Location.X);
+		auto nY = abs(pThis->Location.Y - pItem->Location.Y);
+		int nDistance = Game::AdjustForZ(nX + nY);
+		pItem->ReceiveDamage(&nDamge, nDistance, pThis->Type->Warhead, pAttacker, false, false, pOwner);
+	}
+
+	return 0x62C313;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
+{
+	GET(ParticleClass*, pThis, EDI);
+
+	auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
+
+	ConvertClass* pConvert = pTypeExt->Palette.GetConvert();
+
+	if (!pConvert)
+		pConvert = FileSystem::ANIM_PAL();
+
+	R->EDX(pConvert);
+
+	return 0x62D01B;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62CDB6, ParticleClass_Update_Fire, 7)
+{
+	GET(ParticleClass*, pParticle, EBP);
+	GET(ObjectClass*, pTarget, EDI);
+	GET(int, nDistance, ECX);
+	GET(int, nDamage, EDX);
+
+	if (pTarget->InLimbo || pTarget->Health <= 0 || !pTarget->IsAlive)
+		return 0x62CE09;
+
+	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
+	{
+		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
+			return 0x62CE09;
+
+		if (!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+			return 0x62CE09;
+	}
+
+	auto const& [pAttacker, pOwner] = GetOwnership(pParticle);
+
+	if (pAttacker == pTarget)
+		return 0x62CE09;
+
+	pTarget->ReceiveDamage(&nDamage, nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
+
+	return 0x62CE09;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
+{
+	GET(ParticleClass*, pParticle, EBP);
+	GET(ObjectClass*, pTarget, ESI);
+	GET(int, nDistance, ECX);
+
+	if (pTarget->InLimbo)
+		return 0x62C309;
+
+	if (auto pTechno = generic_cast<TechnoClass*>(pTarget))
+	{
+		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
+			return 0x62C309;
+
+		if(!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+			return 0x62C309;
+	}
+
+	auto const& [pAttacker, pOwner] = GetOwnership(pParticle);
+	int nDamage = pParticle->Type->Damage;
+	pTarget->ReceiveDamage(&nDamage, nDistance, pParticle->Type->Warhead, pAttacker, false, false, pOwner);
+
+	return 0x62C309;
+}
+
+#define Ares_ParasiteWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xB))
+
+DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
+{
+	GET(TechnoClass*, pOwner, ECX);
+	R->EAX(pOwner->GetWeapon(Ares_ParasiteWeapon(pOwner)));
+	return 0x62A02A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
+{
+	GET(TechnoClass*, pOwner, ECX);
+	R->EAX(pOwner->GetWeapon(Ares_ParasiteWeapon(pOwner)));
+	return 0x62A7BA;
+}
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)

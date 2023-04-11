@@ -45,31 +45,21 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 		return;
 
 	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
-	auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
-
-	size_t  nTotal = 0;
+	auto const pOwner = pThis->OwnerHouse ? 
+		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
 	if(pTypeExt->LaserTrail_Types.size() > 0)
 	LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 	for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 	{
-		if (auto const pLaserType = LaserTrailTypeClass::Array[idxTrail].get())
-		{
-			LaserTrails.emplace_back(std::make_unique<LaserTrailClass>
-				(pLaserType, pOwner->LaserColor));
-			++nTotal;
-		}
+		LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
 	}
-
-	if (nTotal > 0)
-		LaserTrails.resize(nTotal);
-	else
-		LaserTrails.clear();
 }
 
 void VoxelAnimExt::ExtData::InitializeConstants()
 {
+	LaserTrails.reserve(1);
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(1);
 #endif

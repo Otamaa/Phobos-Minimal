@@ -13,10 +13,21 @@
 #include <Ext/TechnoType/Body.h>
 
 AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
+void AnimTypeExt::ExtData::InitializeConstants()
+{
+	SplashList.reserve(RulesClass::Instance->SplashList.Count);
+	SpawnsMultiple.reserve(8);
+	SpawnsMultiple_amouts.reserve(8);
+	ConcurrentAnim.reserve(8);
+	Launchs.reserve(8);
+}
 
 void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	const char* pID = this->Get()->ID;
+
+	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
+	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 
 	if (!pINI)
 	{
@@ -27,9 +38,6 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	if (!pINI->GetSection(pID))
 		return;
-
-	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
-	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 
 	this->Palette.Read(pINI, pID, "CustomPalette");
 	this->CreateUnit.Read(exINI, pID, "CreateUnit", true);
@@ -161,7 +169,7 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 {
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	if(!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
+	if (!pThis->Owner || ((!pTypeExt->CreateUnit_KeepOwnerIfDefeated && pThis->Owner->Defeated)))
 		return HouseExt::FindCivilianSide();
 
 	return pThis->Owner;
@@ -330,6 +338,21 @@ const void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKill
 	}
 }
 
+void AnimTypeExt::ExtData::ValidateSpalshAnims()
+{
+	AnimTypeClass* pWake = nullptr;
+	if (WakeAnim.isset() && this->Get()->IsMeteor)
+		pWake = WakeAnim.Get();
+	else
+		pWake = RulesClass::Instance->Wake;
+
+	//what if the anim type loaded twice ?
+	if (SplashList.empty())
+	{
+		SplashList.push_back(pWake);
+	}
+}
+
 template <typename T>
 void AnimTypeExt::ExtData::Serialize(T& Stm)
 {
@@ -402,21 +425,6 @@ void AnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 {
 	Extension<AnimTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
-}
-
-void AnimTypeExt::ExtData::ValidateSpalshAnims()
-{
-	AnimTypeClass* pWake = nullptr;
-	if (WakeAnim.isset() && this->Get()->IsMeteor)
-		pWake = WakeAnim.Get();
-	else
-		pWake = RulesClass::Instance->Wake;
-
-	//what if the anim type loaded twice ?
-	if (SplashList.empty())
-	{
-		SplashList.push_back(pWake);
-	}
 }
 
 bool AnimTypeExt::LoadGlobals(PhobosStreamReader& Stm)

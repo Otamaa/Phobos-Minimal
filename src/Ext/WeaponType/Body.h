@@ -184,6 +184,7 @@ public:
 		virtual ~ExtData() override  = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void Initialize() override;
+		virtual void InitializeConstants()override;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;

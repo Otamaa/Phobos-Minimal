@@ -8,7 +8,7 @@
 #include <Unsorted.h>
 #include <RulesClass.h>
 
-std::vector<std::unique_ptr<ElectricBoltClass>> ElectricBoltManager::ElectricBoltArray;
+std::vector<ElectricBoltClass> ElectricBoltManager::ElectricBoltArray;
 
 void ElectricBoltClass::Clear()
 {
@@ -278,7 +278,7 @@ void ElectricBoltManager::Draw_All()
 		return;
 
 	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i) {
-		auto const& ebolt = ElectricBoltArray[i];
+		auto ebolt = &ElectricBoltArray[i];
 
 		if (!ebolt) {
 			continue;

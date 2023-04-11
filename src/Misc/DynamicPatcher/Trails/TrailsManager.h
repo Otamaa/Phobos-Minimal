@@ -75,7 +75,7 @@ struct TrailsReader
 {
 	ValueableVector<TrailData> CurrentData;
 
-	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(1); };
+	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(2); };
 
 	virtual ~TrailsReader() = default;
 

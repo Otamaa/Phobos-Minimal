@@ -22,9 +22,9 @@ public:
 	{
 	public:
 
-		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+		std::vector<LaserTrailClass> LaserTrails;
 #ifdef COMPILE_PORTED_DP_FEATURES
-		std::vector<std::unique_ptr<UniversalTrail>> Trails;
+		std::vector<UniversalTrail> Trails;
 #endif
 		ExtData(ParticleClass* OwnerObject) : Extension<ParticleClass>(OwnerObject)
 			,  LaserTrails { }

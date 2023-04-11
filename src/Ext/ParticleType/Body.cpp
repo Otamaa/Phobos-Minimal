@@ -2,6 +2,10 @@
 
 ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 
+void ParticleTypeExt::ExtData::InitializeConstants() {
+	LaserTrail_Types.reserve(2);
+}
+
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	auto pThis = this->Get();
@@ -39,6 +43,9 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exINI, pID, false);
 #endif
+
+	this->Palette.Read(pINI, pID, "CustomPalette");
+	this->DamageRange.Read(exINI, pID, "DamageRange");
 }
 
 // =============================
@@ -49,6 +56,8 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->LaserTrail_Types)
 		.Process(this->ReadjustZ)
+		.Process(this->Palette)
+		.Process(this->DamageRange)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

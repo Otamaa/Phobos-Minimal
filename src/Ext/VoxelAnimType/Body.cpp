@@ -2,8 +2,9 @@
 
 VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
 
-void VoxelAnimTypeExt::ExtData::Initialize(){
+void VoxelAnimTypeExt::ExtData::InitializeConstants(){
 	LaserTrail_Types.reserve(1);
+	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
 void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)

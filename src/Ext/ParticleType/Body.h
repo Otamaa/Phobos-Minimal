@@ -24,12 +24,17 @@ public:
 		TrailsReader Trails;
 #endif
 		Valueable<bool> ReadjustZ;
+		CustomPalette Palette;
+		Valueable<double> DamageRange;
+
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif
 			, ReadjustZ { true }
+			, Palette(CustomPalette::PaletteMode::Temperate)
+			, DamageRange(0.0)
 		{ }
 
 		virtual ~ExtData() override  = default;
@@ -38,7 +43,8 @@ public:
 		virtual bool InvalidateIgnorable(void* const ptr) const { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void Initialize() { LaserTrail_Types.reserve(1); }
+		virtual void Initialize() { }
+		virtual void InitializeConstants() override;
 
 	private:
 		template <typename T>

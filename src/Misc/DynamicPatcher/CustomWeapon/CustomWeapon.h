@@ -18,10 +18,14 @@ struct CustomWeaponManager
 
 	void Clear()
 	{
-		//while (!simulateBurstQueue.empty()) simulateBurstQueue.pop();
 		simulateBurstQueue.clear();
+		simulateBurstQueue.reserve(100);
 	}
 
+	void reserve(size_t newsize)
+	{
+		simulateBurstQueue.reserve(newsize);
+	}
 	void Update(TechnoClass* pAttacker);
 	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult, FireBulletToTarget callback);
 	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
@@ -60,11 +64,16 @@ struct Savegame::ObjectFactory<CustomWeaponManager>
 struct FireWeaponManager
 {
 	//std::queue<DelayFireWeapon> DelayFires;
-	std::vector<std::unique_ptr<DelayFireWeapon>> DelayFires {};
-	std::unique_ptr<CustomWeaponManager> CWeaponManager {};
+	std::vector<DelayFireWeapon> DelayFires {};
+	CustomWeaponManager CWeaponManager {};
 
 	FireWeaponManager() = default;
 	~FireWeaponManager() = default;
+
+	void Init() { 
+		DelayFires.reserve(100);
+		CWeaponManager.reserve(100);
+	}
 
 	void Clear();
 	void Insert(int weaponIndex, AbstractClass* pTarget, int delay = 0, int count = 1);

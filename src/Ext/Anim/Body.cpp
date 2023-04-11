@@ -377,7 +377,7 @@ void AnimExt::ExtData::Serialize(T& Stm)
 void AnimExt::ExtData::CreateAttachedSystem()
 {
 	const auto pThis = this->Get();
-	const auto pData = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pData = AnimTypeExt::ExtMap.TryFind(pThis->Type);
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
 		return;

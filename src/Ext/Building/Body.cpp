@@ -11,6 +11,25 @@
 
 BuildingExt::ExtContainer BuildingExt::ExtMap;
 
+void BuildingExt::ExtData::InitializeConstants()
+{
+	if (!Get() || !Get()->Type)
+		return;
+
+	TechnoExt = TechnoExt::ExtMap.Find(Get());
+#ifndef ENABLE_NEWHOOKS
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type);
+	Type = pTypeExt;
+
+	DamageFireAnims.reserve(8);
+
+	if (!pTypeExt->DamageFire_Offs.empty())
+	{
+		DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+	}
+#endif
+}
+
 void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
 	if (!pAttackerHouse || !pTargetHouse)
@@ -284,23 +303,6 @@ CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeB
 	ret.X += pBuilding->Type->GetFoundationWidth() / 2;
 	ret.Y += pBuilding->Type->GetFoundationHeight(includeBib) / 2;
 	return ret;
-}
-
-void BuildingExt::ExtData::InitializeConstants()
-{
-	if (!Get() || !Get()->Type)
-		return;
-
-	TechnoExt = TechnoExt::ExtMap.Find(Get());
-#ifndef ENABLE_NEWHOOKS
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type);
-		Type = pTypeExt;
-
-	if (!pTypeExt->DamageFire_Offs.empty()) {
-		DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-		DamageFireAnims.reserve(pTypeExt->DamageFire_Offs.size() + 1);
-	}
-#endif
 }
 
 void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
@@ -628,7 +630,7 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		pBuildingExt->TechnoExt->PaintBallState.release();
 		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.release();
+		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
 #endif
 		if(!pOwnerExt->AutoDeathObjects.contains(pBuilding)) {
 			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();

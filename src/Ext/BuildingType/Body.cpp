@@ -11,6 +11,22 @@
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 const DirStruct BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
+void BuildingTypeExt::ExtData::InitializeConstants()
+{
+	AIBuildInsteadPerDiff.reserve(3);
+	PowersUp_Buildings.reserve(3);
+	PowerPlantEnhancer_Buildings.reserve(8);
+	OccupierMuzzleFlashes.reserve(Get()->MaxNumberOccupants);
+	Grinding_AllowTypes.reserve(8);
+	Grinding_DisallowTypes.reserve(8);
+	DamageFireTypes.reserve(8);
+	OnFireTypes.reserve(8);
+	OnFireIndex.reserve(8);
+	DamageFire_Offs.reserve(8);
+	DockPoseDir.reserve(Get()->NumberOfDocks);
+	Type = TechnoTypeExt::ExtMap.Find(Get());
+}
+
 int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
 {
 	const auto BuildLimit = pItem->BuildLimit;
@@ -158,12 +174,6 @@ int BuildingTypeExt::ExtData::GetSuperWeaponIndex(const int index) const
 	return -1;
 }
 
-void BuildingTypeExt::ExtData::InitializeConstants()
-{
-	AIBuildInsteadPerDiff.reserve(3);
-	Type = TechnoTypeExt::ExtMap.Find(Get());
-}
-
 int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault)
 {
 	//pthis check is just in  case
@@ -242,7 +252,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 	{
 		if (pBuilding)
 		{
-			for (const auto& [pBldType, nCount] : pHouseExt->BuildingCounter)
+			for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
 			{
 				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
 				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
@@ -271,16 +281,20 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 		return fFactor;
 
 	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
-	if(pHouseExt->Building_BuildSpeedBonusCounter.empty())
+	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		return fFactor;
 
-	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
+	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+	{
 
-		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType)) {
+		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
+		{
 
-			if (!pExt->SpeedBonus.AffectedType.empty()) {
-				if (!pExt->SpeedBonus.AffectedType.Contains(pType)) {
-						continue;
+			if (!pExt->SpeedBonus.AffectedType.empty())
+			{
+				if (!pExt->SpeedBonus.AffectedType.Contains(pType))
+				{
+					continue;
 				}
 			}
 
@@ -308,8 +322,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 				continue;
 
 			fFactor *= std::pow(nBonus, nCount);
-			}
 		}
+	}
 
 	return fFactor;
 }
@@ -320,46 +334,50 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-		auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
-		if(pHouseExt->Building_BuildSpeedBonusCounter.empty())
-			return fFactor;
+	auto pHouseExt = HouseExt::ExtMap.Find(pOwner);
+	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
+		return fFactor;
 
-		for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter) {
+	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
+	{
 
-			if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType)) {
+		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
+		{
 
-				if (!pExt->SpeedBonus.AffectedType.empty()) {
-					if (!pExt->SpeedBonus.AffectedType.Contains(pWhat)) {
-							continue;
-					}
-				}
-
-				auto nBonus = 0.000;
-				switch ((((DWORD*)pWhat)[0]))
+			if (!pExt->SpeedBonus.AffectedType.empty())
+			{
+				if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
 				{
-				case AircraftTypeClass::vtable:
-					nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
-					break;
-				case BuildingTypeClass::vtable:
-					nBonus = pExt->SpeedBonus.SpeedBonus_Building;
-					break;
-				case UnitTypeClass::vtable:
-					nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
-					break;
-				case InfantryTypeClass::vtable:
-					nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
-					break;
-				default:
 					continue;
-					break;
 				}
-
-				if (nBonus == 0.000)
-					continue;
-
-				fFactor *= std::pow(nBonus, nCount);
 			}
+
+			auto nBonus = 0.000;
+			switch ((((DWORD*)pWhat)[0]))
+			{
+			case AircraftTypeClass::vtable:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
+				break;
+			case BuildingTypeClass::vtable:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Building;
+				break;
+			case UnitTypeClass::vtable:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Unit;
+				break;
+			case InfantryTypeClass::vtable:
+				nBonus = pExt->SpeedBonus.SpeedBonus_Infantry;
+				break;
+			default:
+				continue;
+				break;
+			}
+
+			if (nBonus == 0.000)
+				continue;
+
+			fFactor *= std::pow(nBonus, nCount);
 		}
+	}
 
 	return fFactor;
 }
@@ -374,7 +392,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 	bool isUpgrade = false;
 	auto pPowersUp = pBuilding->PowersUpBuilding;
 
-	if(!pHouse)
+	if (!pHouse)
 		return 0;
 
 	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
@@ -401,7 +419,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 
 
 	for (auto pTPowersUp : BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings)
-			checkUpgrade(pTPowersUp);
+		checkUpgrade(pTPowersUp);
 
 	return isUpgrade ? result : -1;
 }
@@ -413,219 +431,220 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const char* pArtSection = pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
 
-	if (!pINI->GetSection(pSection))
-		return;
-
-	INI_EX exINI(pINI);
-	INI_EX exArtINI(pArtINI);
-
-	this->PowersUp_Owner.Read(exINI, pSection, "PowersUp.Owner");
-	this->PowersUp_Buildings.Read(exINI, pSection, "PowersUp.Buildings");
-	this->PowerPlantEnhancer_Buildings.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
-	this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
-	this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
-
-	if (pThis->PowersUpBuilding[0] == NULL && this->PowersUp_Buildings.size() > 0)
-		strcpy_s(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
-
-	this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
-
-	this->Grinding_AllowAllies.Read(exINI, pSection, "Grinding.AllowAllies");
-	this->Grinding_AllowOwner.Read(exINI, pSection, "Grinding.AllowOwner");
-	this->Grinding_AllowTypes.Read(exINI, pSection, "Grinding.AllowTypes");
-	this->Grinding_DisallowTypes.Read(exINI, pSection, "Grinding.DisallowTypes");
-	this->Grinding_Sound.Read(exINI, pSection, "Grinding.Sound");
-	this->Grinding_Weapon.Read(exINI, pSection, "Grinding.Weapon", true);
-	this->Grinding_DisplayRefund.Read(exINI, pSection, "Grinding.DisplayRefund");
-	this->Grinding_DisplayRefund_Houses.Read(exINI, pSection, "Grinding.DisplayRefund.Houses");
-	this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
-	this->Grinding_PlayDieSound.Read(exINI, pSection, "Grinding.PlayDieSound");
-
-	this->Refinery_DisplayDumpedMoneyAmount.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCost");
-	this->Refinery_DisplayRefund_Offset.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCostOffset");
-
-	// Ares SuperWeapons tag
-	auto const& pArray =  SuperWeaponTypeClass::Array;
-	if (pArray->IsAllocated && pArray->Count > 0)
-		this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
-
-	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
-
-	this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
-
-	if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
+	if (pINI->GetSection(pSection))
 	{
-		auto pValue = Phobos::readBuffer;
-		if (GeneralUtils::IsValidString(pValue))
+		INI_EX exINI(pINI);
+
+		this->PowersUp_Owner.Read(exINI, pSection, "PowersUp.Owner");
+		this->PowersUp_Buildings.Read(exINI, pSection, "PowersUp.Buildings");
+		this->PowerPlantEnhancer_Buildings.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
+		this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
+		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
+
+		if (pThis->PowersUpBuilding[0] == NULL && this->PowersUp_Buildings.size() > 0)
+			strcpy_s(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
+
+		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
+
+		this->Grinding_AllowAllies.Read(exINI, pSection, "Grinding.AllowAllies");
+		this->Grinding_AllowOwner.Read(exINI, pSection, "Grinding.AllowOwner");
+		this->Grinding_AllowTypes.Read(exINI, pSection, "Grinding.AllowTypes");
+		this->Grinding_DisallowTypes.Read(exINI, pSection, "Grinding.DisallowTypes");
+		this->Grinding_Sound.Read(exINI, pSection, "Grinding.Sound");
+		this->Grinding_Weapon.Read(exINI, pSection, "Grinding.Weapon", true);
+		this->Grinding_DisplayRefund.Read(exINI, pSection, "Grinding.DisplayRefund");
+		this->Grinding_DisplayRefund_Houses.Read(exINI, pSection, "Grinding.DisplayRefund.Houses");
+		this->Grinding_DisplayRefund_Offset.Read(exINI, pSection, "Grinding.DisplayRefund.Offset");
+		this->Grinding_PlayDieSound.Read(exINI, pSection, "Grinding.PlayDieSound");
+
+		this->Refinery_DisplayDumpedMoneyAmount.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCost");
+		this->Refinery_DisplayRefund_Offset.Read(exINI, pSection, "Refinery.DisplayDumpedTiberiumCostOffset");
+
+		// Ares SuperWeapons tag
+		auto const& pArray = SuperWeaponTypeClass::Array;
+		if (pArray->IsAllocated && pArray->Count > 0)
+			this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
+
+		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
+
+		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
+
+		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
 		{
-			// we cannot load same SHP file twice it may produce artifact , prevent it !
-			if (CRT::strcmpi(pValue, pSection) || CRT::strcmpi(pValue, pArtSection))
-				this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
-			else
-				Debug::Log("Cannot Load PlacementPreview.Shape for [%s]Art[%s] ! \n", pSection, pArtSection);
-		}
-	}
-
-	this->PlacementPreview_ShapeFrame.Read(exINI, pSection, "PlacementPreview.ShapeFrame");
-	this->PlacementPreview_Offset.Read(exINI, pSection, "PlacementPreview.Offset");
-	this->PlacementPreview_Remap.Read(exINI, pSection, "PlacementPreview.Remap");
-	this->PlacementPreview_Palette.Read(pINI, pSection, "PlacementPreview.Palette");
-	this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
-
-#pragma region Otamaa
-	//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
-
-	auto GetGarrisonAnim = [&exINI, pSection](
-		PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
-	{
-		auto nHouseCount = HouseTypeClass::Array()->Count;
-		char tempBuffer[2048];
-		nVec.clear();
-
-		for (int i = 0; i < nHouseCount; ++i)
-		{
-			Nullable<AnimTypeClass*> nBuffer;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
-
-			if (bParseDebug)
-				Debug::Log("GetGarrisonAnim for [%s]=%s idx[%d] \n", pSection, tempBuffer, i);
-
-			nBuffer.Read(exINI, pSection, tempBuffer, bAllocate);
-
-			if (!nBuffer.isset())
-				continue;
-
-			nVec[i] = nBuffer.Get();
-		}
-
-		if (!nVec.empty())
-		{
-			//remove invalid items to keep memory clean !
-			for (auto const& [nIdx, pAnimType] : nVec)
+			auto pValue = Phobos::readBuffer;
+			if (GeneralUtils::IsValidString(pValue))
 			{
-				if (!pAnimType)
-					nVec.erase(nIdx);
+				// we cannot load same SHP file twice it may produce artifact , prevent it !
+				if (CRT::strcmpi(pValue, pSection) || CRT::strcmpi(pValue, pArtSection))
+					this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
+				else
+					Debug::Log("Cannot Load PlacementPreview.Shape for [%s]Art[%s] ! \n", pSection, pArtSection);
 			}
 		}
-	};
 
-	GetGarrisonAnim(this->GarrisonAnim_idle, "GarrisonAnim.IdleForCountry");
-	GetGarrisonAnim(this->GarrisonAnim_ActiveOne, "GarrisonAnim.ActiveOneForCountry");
-	GetGarrisonAnim(this->GarrisonAnim_ActiveTwo, "GarrisonAnim.ActiveTwoForCountry");
-	GetGarrisonAnim(this->GarrisonAnim_ActiveThree, "GarrisonAnim.ActiveThreeForCountry");
-	GetGarrisonAnim(this->GarrisonAnim_ActiveFour, "GarrisonAnim.ActiveFourForCountry");
-
-	this->AIBuildInsteadPerDiff.Read(exINI, pSection, "AIBuildInstead");
-
-	this->PackupSound_PlayGlobal.Read(exINI, pSection, "PackupSoundPlayGlobal");
-
-	this->DamageFireTypes.Read(exINI, pSection, "DamageFireTypes");
-
-	this->RepairRate.Read(exINI, pSection, GameStrings::RepairRate());
-	this->RepairStep.Read(exINI, pSection, GameStrings::RepairStep());
-
-	this->DisableDamageSound.Read(exINI, pSection, "DisableDamagedSound");
-	this->PlayerReturnFire.Read(exINI, pSection, "PlayerReturnFire");
-
-	this->BuildingOccupyDamageMult.Read(exINI, pSection, GameStrings::OccupyDamageMultiplier());
-	this->BuildingOccupyROFMult.Read(exINI, pSection, GameStrings::OccupyROFMultiplier());
-
-	this->BuildingBunkerDamageMult.Read(exINI, pSection, GameStrings::BunkerDamageMultiplier());
-	this->BuildingBunkerROFMult.Read(exINI, pSection, GameStrings::BunkerROFMultMultiplier());
-
-	this->BunkerWallsUpSound.Read(exINI, pSection, GameStrings::BunkerWallsUpSound());
-	this->BunkerWallsDownSound.Read(exINI, pSection, GameStrings::BunkerWallsDownSound());
-
-	this->PipShapes01Palette.Read(exINI.GetINI(), pSection, "PipShapes.Palette");
-	this->PipShapes01Remap.Read(exINI, pSection, "PipShapes.Remap");
-
-	this->IsJuggernaut.Read(exINI, pSection, "IsJuggernaut");
-
-	this->TurretAnim_LowPower.Read(exINI, pSection, "TurretAnim.LowPower");
-	this->TurretAnim_DamagedLowPower.Read(exINI, pSection, "TurretAnim.DamagedLowPower");
-
-	this->Power_DegradeWithHealth.Read(exINI, pSection, "Power.DegradeWithHealth");
-	this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
-	this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
-	this->SpeedBonus.Read(exINI, pSection);
-	this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
-
-	this->EnterBioReactorSound.Read(exINI, pSection, GameStrings::EnterBioReactorSound());
-	this->LeaveBioReactorSound.Read(exINI, pSection, GameStrings::LeaveBioReactorSound());
-
-	this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
-	
-	this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
-	if (this->SpyEffect_VictimSuperWeapon.isset())
-		this->SpyEffect_VictimSW_RealLaunch.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon.RealLaunch");
-
-	this->SpyEffect_InfiltratorSuperWeapon.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon");
-	if (this->SpyEffect_InfiltratorSuperWeapon.isset())
-		this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
-
-	this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
-	this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
-	this->DockUnload_Cell.Read(exINI, pSection, "DockUnloadCell");
-	this->DockUnload_Facing.Read(exINI, pSection, "DockUnloadFacing");
-
-	// relocated the solid tag from artmd to rulesmd
-	this->Solid_Height.Read(exINI, pSection, "SolidHeight");
-	this->Solid_Level.Read(exINI, pSection, "SolidLevel");
-
-	// no code attached
-	this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
-	this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
-	this->RubbleDestroyedAnim.Read(exINI, pSection, "Rubble.Destroyed.Anim");
-	this->RubbleIntactAnim.Read(exINI, pSection, "Rubble.Intact.Anim");
-	this->RubbleDestroyedOwner.Read(exINI, pSection, "Rubble.Destroyed.Owner");
-	this->RubbleIntactOwner.Read(exINI, pSection, "Rubble.Intact.Owner");
-	this->RubbleDestroyedStrength.Read(exINI, pSection, "Rubble.Destroyed.Strength");
-	this->RubbleIntactStrength.Read(exINI, pSection, "Rubble.Intact.Strength");
-	this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
-	this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
-	//
-#pragma endregion
-
-	if (!pArtINI->GetSection(pArtSection))
-		return;
-
-	if (pThis->MaxNumberOccupants > 10)
-	{
-		char tempMuzzleBuffer[32];
-		this->OccupierMuzzleFlashes.clear();
-		this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
-
-		for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
-		{
-			Nullable<Point2D> nMuzzleLocation;
-			_snprintf_s(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
-			nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
-			this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get(Point2D::Empty);
-		}
-	}
+		this->PlacementPreview_ShapeFrame.Read(exINI, pSection, "PlacementPreview.ShapeFrame");
+		this->PlacementPreview_Offset.Read(exINI, pSection, "PlacementPreview.Offset");
+		this->PlacementPreview_Remap.Read(exINI, pSection, "PlacementPreview.Remap");
+		this->PlacementPreview_Palette.Read(pINI, pSection, "PlacementPreview.Palette");
+		this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
 #pragma region Otamaa
-	this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
+		//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);
+
+		auto GetGarrisonAnim = [&exINI, pSection](
+			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
+		{
+			auto nHouseCount = HouseTypeClass::Array()->Count;
+			char tempBuffer[2048];
+			nVec.clear();
+
+			for (int i = 0; i < nHouseCount; ++i)
+			{
+				Nullable<AnimTypeClass*> nBuffer;
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
+
+				if (bParseDebug)
+					Debug::Log("GetGarrisonAnim for [%s]=%s idx[%d] \n", pSection, tempBuffer, i);
+
+				nBuffer.Read(exINI, pSection, tempBuffer, bAllocate);
+
+				if (!nBuffer.isset())
+					continue;
+
+				nVec[i] = nBuffer.Get();
+			}
+
+			if (!nVec.empty())
+			{
+				//remove invalid items to keep memory clean !
+				for (auto const& [nIdx, pAnimType] : nVec)
+				{
+					if (!pAnimType)
+						nVec.erase(nIdx);
+				}
+			}
+		};
+
+		GetGarrisonAnim(this->GarrisonAnim_idle, "GarrisonAnim.IdleForCountry");
+		GetGarrisonAnim(this->GarrisonAnim_ActiveOne, "GarrisonAnim.ActiveOneForCountry");
+		GetGarrisonAnim(this->GarrisonAnim_ActiveTwo, "GarrisonAnim.ActiveTwoForCountry");
+		GetGarrisonAnim(this->GarrisonAnim_ActiveThree, "GarrisonAnim.ActiveThreeForCountry");
+		GetGarrisonAnim(this->GarrisonAnim_ActiveFour, "GarrisonAnim.ActiveFourForCountry");
+
+		this->AIBuildInsteadPerDiff.Read(exINI, pSection, "AIBuildInstead");
+
+		this->PackupSound_PlayGlobal.Read(exINI, pSection, "PackupSoundPlayGlobal");
+
+		this->DamageFireTypes.Read(exINI, pSection, "DamageFireTypes");
+
+		this->RepairRate.Read(exINI, pSection, GameStrings::RepairRate());
+		this->RepairStep.Read(exINI, pSection, GameStrings::RepairStep());
+
+		this->DisableDamageSound.Read(exINI, pSection, "DisableDamagedSound");
+		this->PlayerReturnFire.Read(exINI, pSection, "PlayerReturnFire");
+
+		this->BuildingOccupyDamageMult.Read(exINI, pSection, GameStrings::OccupyDamageMultiplier());
+		this->BuildingOccupyROFMult.Read(exINI, pSection, GameStrings::OccupyROFMultiplier());
+
+		this->BuildingBunkerDamageMult.Read(exINI, pSection, GameStrings::BunkerDamageMultiplier());
+		this->BuildingBunkerROFMult.Read(exINI, pSection, GameStrings::BunkerROFMultMultiplier());
+
+		this->BunkerWallsUpSound.Read(exINI, pSection, GameStrings::BunkerWallsUpSound());
+		this->BunkerWallsDownSound.Read(exINI, pSection, GameStrings::BunkerWallsDownSound());
+
+		this->PipShapes01Palette.Read(exINI.GetINI(), pSection, "PipShapes.Palette");
+		this->PipShapes01Remap.Read(exINI, pSection, "PipShapes.Remap");
+
+		this->IsJuggernaut.Read(exINI, pSection, "IsJuggernaut");
+
+		this->TurretAnim_LowPower.Read(exINI, pSection, "TurretAnim.LowPower");
+		this->TurretAnim_DamagedLowPower.Read(exINI, pSection, "TurretAnim.DamagedLowPower");
+
+		this->Power_DegradeWithHealth.Read(exINI, pSection, "Power.DegradeWithHealth");
+		this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
+		this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
+		this->SpeedBonus.Read(exINI, pSection);
+		this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
+
+		this->EnterBioReactorSound.Read(exINI, pSection, GameStrings::EnterBioReactorSound());
+		this->LeaveBioReactorSound.Read(exINI, pSection, GameStrings::LeaveBioReactorSound());
+
+		this->SpyEffect_Custom.Read(exINI, pSection, "SpyEffect.Custom");
+		this->SpyEffect_VictimSuperWeapon.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon");
+		if (this->SpyEffect_VictimSuperWeapon.isset())
+			this->SpyEffect_VictimSW_RealLaunch.Read(exINI, pSection, "SpyEffect.VictimSuperWeapon.RealLaunch");
+
+		this->SpyEffect_InfiltratorSuperWeapon.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon");
+		if (this->SpyEffect_InfiltratorSuperWeapon.isset())
+			this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
+
+		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
+		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
+		this->DockUnload_Cell.Read(exINI, pSection, "DockUnloadCell");
+		this->DockUnload_Facing.Read(exINI, pSection, "DockUnloadFacing");
+
+		// relocated the solid tag from artmd to rulesmd
+		this->Solid_Height.Read(exINI, pSection, "SolidHeight");
+		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
+
+		// no code attached
+		this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
+		this->RubbleIntact.Read(exINI, pSection, "Rubble.Intact");
+		this->RubbleDestroyedAnim.Read(exINI, pSection, "Rubble.Destroyed.Anim");
+		this->RubbleIntactAnim.Read(exINI, pSection, "Rubble.Intact.Anim");
+		this->RubbleDestroyedOwner.Read(exINI, pSection, "Rubble.Destroyed.Owner");
+		this->RubbleIntactOwner.Read(exINI, pSection, "Rubble.Intact.Owner");
+		this->RubbleDestroyedStrength.Read(exINI, pSection, "Rubble.Destroyed.Strength");
+		this->RubbleIntactStrength.Read(exINI, pSection, "Rubble.Intact.Strength");
+		this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
+		this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
+		//
+	}
+#pragma endregion
+
+	if (pArtINI->GetSection(pArtSection))
+	{
+		INI_EX exArtINI(pArtINI);
+
+		if (pThis->MaxNumberOccupants > 10)
+		{
+			char tempMuzzleBuffer[32];
+			this->OccupierMuzzleFlashes.clear();
+			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
+
+			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
+			{
+				Nullable<Point2D> nMuzzleLocation;
+				_snprintf_s(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
+				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
+				this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get(Point2D::Empty);
+			}
+		}
+
+#pragma region Otamaa
+		this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
 
 
 #ifndef REPLACE_BUILDING_ONFIRE
-	this->DamageFire_Offs.clear();
-	char tempFire_OffsBuffer[32];
-	for (int i = 0;; ++i)
-	{
-		Nullable<Point2D> nFire_offs{};
-		_snprintf_s(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
-		nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
+		this->DamageFire_Offs.clear();
+		this->DamageFire_Offs.reserve(8u);
+		char tempFire_OffsBuffer[32];
+		for (int i = 0;; ++i)
+		{
+			Nullable<Point2D> nFire_offs {};
+			_snprintf_s(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
+			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
-		if (!nFire_offs.isset() || nFire_offs.Get() == Point2D::Empty)
-			break;
+			if (!nFire_offs.isset() || nFire_offs.Get() == Point2D::Empty)
+				break;
 
-		this->DamageFire_Offs.emplace_back(nFire_offs.Get());
-	}
+			this->DamageFire_Offs.push_back(nFire_offs.Get());
+		}
 #endif
-	this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
-	this->RubblePalette.Read(exArtINI.GetINI(), pArtSection, "Rubble.Palette");
+		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
+		this->RubblePalette.Read(exArtINI.GetINI(), pArtSection, "Rubble.Palette");
 #pragma endregion
+	}
 }
 
 void BuildingTypeExt::ExtData::CompleteInitialization()

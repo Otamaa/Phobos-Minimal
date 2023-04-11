@@ -152,8 +152,8 @@ public:
 
 		virtual ~ExtData() override = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override  { LaserTrail_Types.reserve(1); }
-
+		virtual void Initialize() override  { }
+		virtual void InitializeConstants()override;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return false; }
 

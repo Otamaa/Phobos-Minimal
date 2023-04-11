@@ -33,7 +33,15 @@ void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(PreviousScriptList, ptr);
 }
 
-void TeamExt::ExtData::InitializeConstants() { }
+void TeamExt::ExtData::InitializeConstants() {
+	PreviousScriptList.reserve(10);
+	MapPath_Grid.reserve(100);
+	MapPath_Queue.reserve(100);
+	MapPath_BridgeRepairHuts.reserve(100);
+	MapPath_ValidBridgeRepairHuts.reserve(100);
+	MapPath_CheckedBridgeRepairHuts.reserve(100);
+}
+
 void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
 
 

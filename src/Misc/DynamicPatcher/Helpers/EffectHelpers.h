@@ -307,7 +307,7 @@ public:
 	{
 		ElectricBoltManager::ElectricBoltArray.emplace_back();
 
-		if (auto& pBolt = ElectricBoltManager::ElectricBoltArray.back())
+		if (auto pBolt = &ElectricBoltManager::ElectricBoltArray.back())
 		{
 			pBolt->LineColor1 = type.Color1.Get();
 			pBolt->LineColor2 = type.Color2.Get();

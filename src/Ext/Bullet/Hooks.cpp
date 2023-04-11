@@ -80,13 +80,13 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 		{
 			// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
 			// TODO move hack to BulletClass creation
-			if (!trail->LastLocation.isset())
-				trail->LastLocation = location;
+			if (!trail.LastLocation.isset())
+				trail.LastLocation = location;
 
-			if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
-				trail->CurrentColor = pBulletExt->Owner->LaserColor;
+			if (trail.Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
+				trail.CurrentColor = pBulletExt->Owner->LaserColor;
 
-			trail->Update(drawnCoords);
+			trail.Update(drawnCoords);
 		}
 	}
 

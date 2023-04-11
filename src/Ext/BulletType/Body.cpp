@@ -10,6 +10,13 @@ BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons { 256 };
 const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons { 512 };
 
+void BulletTypeExt::ExtData::InitializeConstants()
+{
+	this->LaserTrail_Types.reserve(2);
+	this->AirburstWeapons.reserve(2);
+	this->LineTrailData.reserve(2);
+}
+
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
 	auto const nGravity = BulletTypeExt::ExtMap.Find(pType)->Gravity.Get(static_cast<double>(RulesClass::Instance->Gravity));
@@ -90,8 +97,6 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	INI_EX exArtINI(pArtInI);
-
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
@@ -132,8 +137,6 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Splits_TargetingUseVerses.Read(exINI, pSection, "Splits.TargetingUseVerses");
 		this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
 
-		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
-
 		this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
 		this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
 
@@ -153,27 +156,28 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
 	}
 
-	if (!pArtInI->GetSection(pArtSection))
-		pArtSection = pSection;
+	if (pArtInI->GetSection(pArtSection)){
+		INI_EX exArtINI(pArtInI);
 
-	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
+		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
+		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #pragma region Otamaa
 
-	//code disabled , unfinished
-	this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
-	this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon", true);
-	this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
-	this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
-	this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
-	this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
-	//
+		//code disabled , unfinished
+		this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
+		this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon", true);
+		this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
+		this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
+		this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
+		this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
+		//
 
-	this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
+		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.Read(exArtINI, pArtSection, false);
+		this->Trails.Read(exArtINI, pArtSection, false);
 #endif
 #pragma endregion
-
+	}
 }
 
 template <typename T>

@@ -4,7 +4,7 @@
 
 HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
 
-void HouseTypeExt::ExtData::Initialize()
+void HouseTypeExt::ExtData::InitializeConstants()
 {
 }
 

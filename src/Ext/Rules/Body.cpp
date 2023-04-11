@@ -24,7 +24,6 @@ std::unique_ptr<RulesExt::ExtData> RulesExt::Data = nullptr;
 void RulesExt::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExt::ExtData>(pThis);
-
 	if (Data)
 		Data->EnsureConstanted();
 }
@@ -37,6 +36,18 @@ void RulesExt::Remove(RulesClass* pThis)
 	Data = nullptr;
 }
 
+void RulesExt::ExtData::InitializeConstants()
+{
+	AITargetTypesLists.reserve(5);
+	AIScriptsLists.reserve(5);
+	AIHousesLists.reserve(5);
+	AIConditionsLists.reserve(5);
+	AITriggersLists.reserve(5);
+	GenericPrerequisitesData.reserve(20);
+	AI_AutoSellHealthRatio.reserve(3);
+	WallTowers.reserve(5);
+}
+
 void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 {
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
@@ -45,14 +56,22 @@ void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
+	//Debug::Log(__FUNCTION__" Reading ArmorType ! \n");
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
+	//Debug::Log(__FUNCTION__" Reading ColorType ! \n");
 	ColorTypeClass::LoadFromINIList_New(pINI, false);
 
 		//Debug::Log(__FUNCTION__" Called ! \n");
 	if (!Phobos::Otamaa::DisableCustomRadSite)
+	{
+		//Debug::Log(__FUNCTION__" AddDefault RadType ! \n");
 		RadTypeClass::AddDefaults();
+	}
 
+	//Debug::Log(__FUNCTION__" AddDefault ShieldType ! \n");
 	ShieldTypeClass::AddDefaults();
+
+	//Debug::Log(__FUNCTION__" AddDefault HoverType ! \n");
 	HoverTypeClass::AddDefaults();
 
 	Data->LoadFromINI(pINI);
@@ -60,8 +79,9 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	for (auto const& pArmor : ArmorTypeClass::Array)
-	{ pArmor->EvaluateDefault(); }
+	for (auto& pArmor : ArmorTypeClass::Array) {
+		pArmor->EvaluateDefault();
+	}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), false);
@@ -86,10 +106,6 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	Data->LoadAfterTypeData(pThis, pINI);
 }
 
-void RulesExt::ExtData::InitializeConstants()
-{
-}
-
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
@@ -98,6 +114,10 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
+	//Allocate Default bullet
+	if(!BulletTypeClass::Find(DEFAULT_STR2))
+	GameCreate<BulletTypeClass>(DEFAULT_STR2);
+
 	INI_EX exINI(pINI);
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
@@ -200,11 +220,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
 
-	//Allocate Default bullet
-	GameCreate<BulletTypeClass>(DEFAULT_STR2);
-
 	// Section Generic Prerequisites
-	FillDefaultPrerequisites(pINI);
+	//FillDefaultPrerequisites(pINI);
 
 }
 
@@ -224,7 +241,9 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 
 		char* context = nullptr;
 		std::vector<int> typelist;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
+			cur; 
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			const int idx = BuildingTypeClass::FindIndexById(cur);
 			if (idx >= 0)
@@ -254,7 +273,9 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 		pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer);
 
 		std::vector<int> objectsList;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
+			cur; 
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			const int idx = BuildingTypeClass::FindIndexById(cur);
 			if (idx >= 0)

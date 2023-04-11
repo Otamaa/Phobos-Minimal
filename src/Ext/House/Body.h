@@ -18,7 +18,7 @@ public:
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:
-		PhobosMap<BuildingTypeClass*, int> BuildingCounter;
+		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
 		std::vector<BuildingClass*> HouseAirFactory;
 		bool ForceOnlyTargetHouseEnemy;
@@ -56,7 +56,7 @@ public:
 		bool CaptureObjectExecuted;
 		CDTimerClass DiscoverEvaDelay;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
-			, BuildingCounter {}
+			, PowerPlantEnhancerBuildings {}
 			, Building_BuildSpeedBonusCounter {}
 			, HouseAirFactory { }
 			, ForceOnlyTargetHouseEnemy { false }

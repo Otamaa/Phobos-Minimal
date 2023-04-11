@@ -28,7 +28,7 @@
 
 struct TunnelTypeClass
 {
-	static std::vector<std::unique_ptr<TunnelTypeClass>> Array;
+	static std::vector<TunnelTypeClass> Array;
 
 public:
 	std::string Name;
@@ -46,7 +46,7 @@ public:
 	}
 };
 
-std::vector<std::unique_ptr<TunnelTypeClass>> TunnelTypeClass::Array {};
+std::vector<<TunnelTypeClass> TunnelTypeClass::Array {};
 
 // to prevent recompile everything when stuffs not really finished 
 struct DummyHouseExt

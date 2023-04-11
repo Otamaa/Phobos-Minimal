@@ -141,7 +141,7 @@ public:
 
 struct ElectricBoltManager
 {
-	static std::vector<std::unique_ptr<ElectricBoltClass>> ElectricBoltArray;
+	static std::vector<ElectricBoltClass> ElectricBoltArray;
 
 	static void Draw_All();
 	static void Clear();

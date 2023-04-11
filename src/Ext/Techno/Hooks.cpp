@@ -127,10 +127,10 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 
 	if (pTechnoExt->LaserTrails.size())
 	{
-		for (auto const& pLaserTrail : pTechnoExt->LaserTrails)
+		for (auto& pLaserTrail : pTechnoExt->LaserTrails)
 		{
-			pLaserTrail->Visible = false;
-			pLaserTrail->LastLocation.clear();
+			pLaserTrail.Visible = false;
+			pLaserTrail.LastLocation.clear();
 		}
 	}
 
@@ -148,13 +148,10 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 
 	if (!pTechnoExt->LaserTrails.empty())
 	{
-		for (auto const& pLaserTrail : pTechnoExt->LaserTrails)
+		for (auto& pLaserTrail : pTechnoExt->LaserTrails)
 		{
-			if (pLaserTrail)
-			{
-				pLaserTrail->LastLocation.clear();
-				pLaserTrail->Visible = true;
-			}
+			pLaserTrail.LastLocation.clear();
+			pLaserTrail.Visible = true;
 		}
 	}
 

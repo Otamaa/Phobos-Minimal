@@ -15,6 +15,12 @@ int HouseExt::LastGrindingBlanceInf = 0;
 
 void HouseExt::ExtData::InitializeConstants()
 {
+	PowerPlantEnhancerBuildings.reserve(50);
+	Building_BuildSpeedBonusCounter.reserve(50);
+	HouseAirFactory.reserve(50);
+	ActiveTeams.reserve(50);
+	AutoDeathObjects.reserve(50);
+	LaunchDatas.reserve(10);
 	//for (auto pSWType : *SuperWeaponTypeClass::Array())
 	//{
 	//	auto const pSW = GameCreate<SuperClass>(pSWType, this->Get());
@@ -914,7 +920,7 @@ template <typename T>
 void HouseExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->BuildingCounter)
+		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->HouseAirFactory)
 		.Process(this->ForceOnlyTargetHouseEnemy)

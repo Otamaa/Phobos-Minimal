@@ -26,7 +26,7 @@ public:
 		const auto nResult = FindIndexById(Title);
 
 		if (nResult < 0) {
-			Array.push_back(std::move(std::make_unique<T>(Title)));
+			AllocateNoCheck(Title);
 			return Array.size() - 1;
 		}
 
@@ -39,7 +39,7 @@ public:
 			return -1;
 
 		const auto nResult = std::find_if(Array.begin(), Array.end(),
-			[Title](std::unique_ptr<T>& Item) {
+			[Title](const auto& Item) {
 				return IS_SAME_STR_(Item->Name.data(), Title);
 			});
 
@@ -61,13 +61,10 @@ public:
 
 	static int FindIndexFromType(T* pType)
 	{
-		const auto result = std::find_if(Array.begin(), Array.end(), 
-			[Title](std::unique_ptr<T>& Item) {
-				return tem.get() == pType;
-			});
+		if(!pType)
+			return -1;
 
-		return result == Array.end() ?
-			-1 : std::distance(Array.begin(), result);
+		return FindIndexById(pType->Name.data());
 	}
 
 	static T* FindFromIndex(int Idx)
@@ -85,8 +82,13 @@ public:
 		if (!Title || !strlen(Title))
 			return nullptr;
 
-		Array.push_back(std::move(std::make_unique<T>(Title)));
+		AllocateNoCheck(Title);
 		return Array.back().get();
+	}
+
+	static void AllocateNoCheck(const char* Title)
+	{
+		Array.push_back(std::move(std::make_unique<T>(Title)));
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -99,7 +101,6 @@ public:
 
 	static void Clear()
 	{
-		//Debug::Log("%s Clearing Array Count [%d] ! \n", typeid(T).name(), Array.size());
 		Array.clear();
 	}
 
@@ -118,20 +119,20 @@ public:
 		if (!pKeyCount)
 			return;
 
-		Array.reserve(pKeyCount);
+		if (pKeyCount == Array.size()) {
+			for (auto& pData : Array) {
+				pData->LoadFromINI(pINI);
+			}
+		} else {
 
-		for (int i = 0; i < pKeyCount; ++i) {
-			if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer)) {
-				if (auto const pItem = FindOrAllocate(Phobos::readBuffer)) {
-					//if (bDebug)
-					//	Debug::Log("%s Reading[%d] %s \"%s\".\n", typeid(T).name(), i, section, Phobos::readBuffer);
+			Array.reserve(pKeyCount);
 
-					pItem->LoadFromINI(pINI);
-				}
-				else
-				{
-					//if (bDebug)
-						//Debug::Log("%s Error Creating[%d] %s \"%s\"!\n", typeid(T).name(), i, section, Phobos::readBuffer);
+			for (int i = 0; i < pKeyCount; ++i) {
+				if (pINI->ReadString(section, pINI->GetKeyName(section, i), Phobos::readDefval, Phobos::readBuffer)) {
+					if (auto const pItem = FindOrAllocate(Phobos::readBuffer))
+					{
+						pItem->LoadFromINI(pINI);
+					}
 				}
 			}
 		}
@@ -144,17 +145,18 @@ public:
 		size_t Count = 0;
 		if (!Stm.Load(Count))
 			return false;
-		
+
 		Array.reserve(Count);
 
 		for (size_t i = 0; i < Count; ++i) {
 			void* oldPtr = nullptr;
 			decltype(Name) name;
 
-			if (!Stm.Load(oldPtr) || !Stm.Load(name))
+			if (!Stm.Load(oldPtr) ||
+				!Stm.Load(name))
 				return false;
 
-			auto newPtr = FindOrAllocate(name);
+			auto newPtr = Allocate(name);
 			PhobosSwizzle::Instance.RegisterChange(oldPtr, newPtr);
 
 			newPtr->LoadFromStream(Stm);

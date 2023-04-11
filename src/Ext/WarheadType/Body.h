@@ -547,6 +547,8 @@ public:
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void Initialize() override;
+		virtual void InitializeConstants()override;
+
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
 
 	private:

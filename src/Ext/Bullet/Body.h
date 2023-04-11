@@ -28,7 +28,7 @@ public:
 		bool IsInterceptor;
 		InterceptedStatus InterceptedStatus;
 		bool Intercepted_Detonate;
-		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+		std::vector<LaserTrailClass> LaserTrails;
 		bool SnappedToTarget;
 #pragma region Otamaa
 		bool BrightCheckDone;
@@ -37,11 +37,11 @@ public:
 		bool Bouncing;
 		ObjectClass* LastObject;
 		int BounceAmount;
-		DynamicVectorClass<LineTrail*> BulletTrails;
+		std::vector<LineTrail*> BulletTrails;
 		OptionalStruct<DirStruct ,true> InitialBulletDir;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		std::vector<std::unique_ptr<UniversalTrail>> Trails;
+		std::vector<UniversalTrail> Trails;
 #endif
 #pragma region
 		std::unique_ptr<PhobosTrajectory> Trajectory;

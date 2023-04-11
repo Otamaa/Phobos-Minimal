@@ -41,7 +41,7 @@ public:
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LineTrail%dColorDecrement", i);
 			tempDecrement.Read(parser, pSection, tempBuffer);
 
-			nVec.push_back({ tempflh, tempColor,tempDecrement });
+			nVec.emplace_back(tempflh.Get(), tempColor.Get(), tempDecrement.Get());
 		}
 	}
 

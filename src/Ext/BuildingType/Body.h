@@ -279,16 +279,16 @@ public:
 			, OnFireTypes {}
 			, OnFireIndex {}
 			, HealthOnfire {}
-			,  RubbleIntact(nullptr)
-			,  RubbleDestroyed(nullptr)
-			,  RubbleDestroyedAnim(nullptr)
-			,  RubbleIntactAnim(nullptr)
-			,  RubbleDestroyedOwner(OwnerHouseKind::Default)
-			,  RubbleIntactOwner(OwnerHouseKind::Default)
-			,  RubbleDestroyedStrength(0)
-			,  RubbleIntactStrength(-1)
-			,  RubbleDestroyedRemove(false)
-			,  RubbleIntactRemove(false)
+			, RubbleIntact(nullptr)
+			, RubbleDestroyed(nullptr)
+			, RubbleDestroyedAnim(nullptr)
+			, RubbleIntactAnim(nullptr)
+			, RubbleDestroyedOwner(OwnerHouseKind::Default)
+			, RubbleIntactOwner(OwnerHouseKind::Default)
+			, RubbleDestroyedStrength(0)
+			, RubbleIntactStrength(-1)
+			, RubbleDestroyedRemove(false)
+			, RubbleIntactRemove(false)
 			, RepairRate {}
 			, RepairStep {}
 

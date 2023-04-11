@@ -42,6 +42,7 @@
     <ClCompile Include="src\Ext\AITriggerType\Body.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.AnimCreateUnit.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
     <ClCompile Include="src\Ext\Bomb\Body.cpp" />

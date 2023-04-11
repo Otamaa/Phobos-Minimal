@@ -791,7 +791,8 @@ void TechnoExt::ExtData::InitializeConstants()
 #ifdef COMPILE_PORTED_DP_FEATURES
 	Trails.reserve(2);
 #endif
-
+	RevengeWeapons.reserve(100);
+	FireSelf_Count.reserve(20);
 }
 
 void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
@@ -1574,11 +1575,8 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	{
 		for (auto const& entry : TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->LaserTrailData)
 		{
-			if (auto const& pLaserType = LaserTrailTypeClass::Array[entry.idxType])
-			{
-				pExt->LaserTrails.push_back((std::make_unique<LaserTrailClass>(
-					pLaserType.get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
-			}
+			pExt->LaserTrails.emplace_back(
+					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
 		}
 	}
 
@@ -2549,8 +2547,8 @@ void TechnoExt::ExtData::UpdateOnTunnelEnter()
 
 		for (auto& pLaserTrail : this->LaserTrails)
 		{
-			pLaserTrail->Visible = false;
-			pLaserTrail->LastLocation.clear();
+			pLaserTrail.Visible = false;
+			pLaserTrail.LastLocation.clear();
 		}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -2806,23 +2804,23 @@ void TechnoExt::ExtData::UpdateLaserTrails()
 	if (LaserTrails.empty())
 		return;
 
-	for (auto const& trail : LaserTrails)
+	for (auto& trail : LaserTrails)
 	{
-		if (pThis->CloakState == CloakState::Cloaked && !trail->Type->CloakVisible)
+		if (pThis->CloakState == CloakState::Cloaked && !trail.Type->CloakVisible)
 			continue;
 
 		if (!IsInTunnel)
-			trail->Visible = true;
+			trail.Visible = true;
 
-		if (Is_Aircraft(pThis) && !pThis->IsInAir() && trail->LastLocation.isset())
-			trail->LastLocation.clear();
+		if (Is_Aircraft(pThis) && !pThis->IsInAir() && trail.LastLocation.isset())
+			trail.LastLocation.clear();
 
-		CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret);
+		CoordStruct trailLoc = TechnoExt::GetFLHAbsoluteCoords(pThis, trail.FLH, trail.IsOnTurret);
 
-		if (pThis->CloakState == CloakState::Uncloaking && !trail->Type->CloakVisible)
-			trail->LastLocation = trailLoc;
+		if (pThis->CloakState == CloakState::Uncloaking && !trail.Type->CloakVisible)
+			trail.LastLocation = trailLoc;
 		else
-			trail->Update(trailLoc);
+			trail.Update(trailLoc);
 	}
 }
 

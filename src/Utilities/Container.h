@@ -96,42 +96,30 @@ public:
 		return this->AttachedToObject;
 	}
 
-
 	void EnsureConstanted() {
 		if (this->Initialized < InitState::Constanted) {
 			this->InitializeConstants();
-
+	
 			this->Initialized = InitState::Constanted;
 		}
 	}
 
-	void LoadFromINI(CCINIClass* pINI){
+	void LoadFromINI(CCINIClass* pINI)
+	{
 		if (!pINI)
 			return;
 
-		switch (this->Initialized)
-		{
-		case InitState::Blank:
-			this->EnsureConstanted();
-			[[fallthrough]];
-		case InitState::Constanted:
-			this->InitializeRuled();
-			this->Initialized = InitState::Ruled;
-			[[fallthrough]];
-		case InitState::Ruled:
-			this->Initialize();
+		if (this->Initialized == InitState::Constanted) { 
 			this->Initialized = InitState::Inited;
-			[[fallthrough]];
-		case InitState::Inited:
-		case InitState::Completed:
+			this->Initialize();
+			this->LoadFromINIFile(pINI);
+			this->Initialized = InitState::Completed;
+		} else {
 
-		{
-			if (pINI == CCINIClass::INI_Rules)
-				this->LoadFromRulesFile(pINI);
-		}
-
-		this->LoadFromINIFile(pINI);
-		this->Initialized = InitState::Completed;
+			if(this->Initialized == InitState::Completed)
+				this->LoadFromINIFile(pINI);
+			else
+				Debug::Log("[%s] LoadFrom INI Called When Initilize not done ! \n", typeid(T).name());
 		}
 	}
 
@@ -274,8 +262,8 @@ public:
 
 		if (extension_type_ptr val = new extension_type(key))
 		{
-			this->SetExtAttribute(key,val);
 			val->EnsureConstanted();
+			this->SetExtAttribute(key,val);
 			return val;
 		}
 

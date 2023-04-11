@@ -21,6 +21,16 @@
 BulletExt::ExtContainer BulletExt::ExtMap;
 TechnoClass* BulletExt::InRangeTempFirer = nullptr;
 
+void BulletExt::ExtData::InitializeConstants()
+{
+	this->BulletTrails.reserve(1);
+	this->LaserTrails.reserve(1);
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->Trails.reserve(1);
+#endif
+	//Type is not initialize here , wtf
+}
+
 DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 {
 	const auto pType = pThis->Type;
@@ -579,15 +589,6 @@ bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 
 }
 
-void BulletExt::ExtData::InitializeConstants() {
-
-	this->LaserTrails.reserve(1);
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.reserve(1);
-#endif
-	//Type is not initialize here , wtf
-}
-
 void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 
 	if (this->InvalidateIgnorable(ptr))
@@ -656,13 +657,11 @@ void BulletExt::ExtData::InitializeLaserTrails()
 	if (!pTypeExt)
 		return;
 
-	const auto pOwner = pThis->Owner ? pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExt::FindCivilianSide());
+	const auto pOwner = pThis->Owner ?
+		pThis->Owner->Owner : (this->Owner ? this->Owner : HouseExt::FindCivilianSide());
 
 	for (auto const& idxTrail: pTypeExt->LaserTrail_Types) {
-		if (auto pLaserType = LaserTrailTypeClass::Array[idxTrail].get()) {
-				this->LaserTrails.push_back(
-					std::make_unique<LaserTrailClass>(pLaserType, pOwner->LaserColor));
-		}
+		this->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
 	}
 }
 

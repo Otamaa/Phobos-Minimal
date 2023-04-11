@@ -31,14 +31,14 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 	{
 		const CoordStruct location = pThis->GetCoords();
 		const CoordStruct drawnCoords = location;
-		for (auto const& trail : pParticleExt->LaserTrails)
+		for (auto& trail : pParticleExt->LaserTrails)
 		{
-			if (!trail->LastLocation.isset())
-				trail->LastLocation = location;
+			if (!trail.LastLocation.isset())
+				trail.LastLocation = location;
 
 			//trail->Update(GetFLHAbsoluteCoords(trail->FLH, drawnCoords));
-			trail->Update(drawnCoords);
-			trail->Visible = pThis->IsOnMyView();
+			trail.Update(drawnCoords);
+			trail.Visible = pThis->IsOnMyView();
 		}
 	}
 #ifdef COMPILE_PORTED_DP_FEATURES

@@ -143,9 +143,7 @@ public:
 
 		virtual ~ExtData() override = default;
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InitializeConstants() override {
-			Launchs.reserve(2);
-		}
+		virtual void InitializeConstants() override;
 
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;

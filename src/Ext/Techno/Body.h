@@ -42,7 +42,7 @@ public:
 		TechnoTypeClass* Type;
 		OptionalStruct<AbstractType, true> AbsType;
 		std::unique_ptr<ShieldClass> Shield;
-		std::vector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+		std::vector<LaserTrailClass> LaserTrails;
 		bool ReceiveDamage;
 		bool LastKillWasTeamTarget;
 		CDTimerClass	PassengerDeletionTimer;
@@ -72,7 +72,7 @@ public:
 		std::vector<int> FireSelf_Count;
 		CDTimerClass EngineerCaptureDelay;
 		bool FlhChanged;
-		//DynamicVectorClass<LineTrail*> TechnoLineTrail;
+		//std::vector<LineTrail*> TechnoLineTrail;
 		bool IsMissisleSpawn;
 		TechnoClass* LastAttacker;
 		int Attempt;
@@ -87,7 +87,7 @@ public:
 
 		CoordStruct HomingTargetLocation;
 		PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
-		std::vector<std::unique_ptr<UniversalTrail>> Trails;
+		std::vector<UniversalTrail> Trails;
 		std::unique_ptr<GiftBox> MyGiftBox;
 		std::unique_ptr<PaintBall> PaintBallState;
 		std::unique_ptr<DamageSelfState> DamageSelfState;
@@ -180,7 +180,7 @@ public:
 			, SupressEVALost { false }
 #endif;
 		{ 		
-			MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
+			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
 		}
 
 		virtual ~ExtData() override = default;

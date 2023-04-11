@@ -26,13 +26,8 @@ void ParticleExt::ExtData::InitializeConstants()
 		{
 			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-			for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
-			{
-				if (auto const pLaserType = LaserTrailTypeClass::Array[idxTrail].get())
-				{
-					LaserTrails.push_back(std::make_unique<LaserTrailClass>(pLaserType, nColor, nFLH));
-
-				}
+			for (auto const& idxTrail : pTypeExt->LaserTrail_Types) {
+				LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH);
 			}
 		}
 	}
