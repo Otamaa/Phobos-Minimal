@@ -19,14 +19,16 @@ void ArmorTypeClass::AddDefaults()
 	if (!Array.empty())
 		return;
 
-	for (auto const& nDefault : Unsorted::ArmorNameArray) {
+	for (auto const& nDefault : Unsorted::ArmorNameArray)
+	{
 		AllocateNoCheck(nDefault);
 	}
 }
 
 bool ArmorTypeClass::IsDefault(const char* pName)
 {
-	for (auto const& nDefault : Unsorted::ArmorNameArray) {
+	for (auto const& nDefault : Unsorted::ArmorNameArray)
+	{
 		if (IS_SAME_STR_(pName, nDefault))
 			return true;
 	}
@@ -39,21 +41,24 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 	const char* pName = this->Name.data();
 
 	//Dont need to load these for default !
-	if (!IsDefault(pName)) {
-
+	if (!IsDefault(pName))
+	{
 		INI_EX exINI(pINI);
 
 		char buffer[0x64];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
-		if (!this->DefaultVerses.Parse(buffer)) {
+		if (!this->DefaultVerses.Parse(buffer))
+		{
 			this->DefaultString = buffer;
 		}
 	}
 }
 
-void ArmorTypeClass::EvaluateDefault() {
-	if (!IsDefault(Name.data()) && DefaultTo == -1) {
+void ArmorTypeClass::EvaluateDefault()
+{
+	if (!IsDefault(Name.data()) && DefaultTo == -1)
+	{
 		DefaultTo = FindIndexById(DefaultString.data());
 		DefaultString = "\0";
 	}
@@ -79,7 +84,8 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (pkeyCount > (int)Array.size())
 		Array.reserve(pkeyCount);
 
-	for (int i = 0; i < pkeyCount; ++i) {
+	for (int i = 0; i < pkeyCount; ++i)
+	{
 		const auto pKeyHere = pINI->GetKeyName(pSection, i);
 		if (auto const pAlloc = Find(pKeyHere))
 			pAlloc->LoadFromINI(pINI);
@@ -96,43 +102,35 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 		return;
 	}
 
-	if(pWHExt->Verses.size() < Array.size())
+	if (pWHExt->Verses.size() < Array.size())
+	{
 		pWHExt->Verses.reserve(Array.size());
 
-	while (pWHExt->Verses.size() < Array.size())
-	{
-		auto pArmor = Array[pWHExt->Verses.size()];
-		const int nDefaultIdx = pArmor->DefaultTo;
-		pWHExt->Verses.push_back(
-			nDefaultIdx == -1
-				? pArmor->DefaultVerses
-				: pWHExt->Verses[nDefaultIdx]
-		);
+		while (pWHExt->Verses.size() < Array.size())
+		{
+			auto pArmor = Array[pWHExt->Verses.size()].get();
+			const int nDefaultIdx = pArmor->DefaultTo;
+			pWHExt->Verses.push_back(
+				nDefaultIdx == -1
+					? pArmor->DefaultVerses
+					: pWHExt->Verses[nDefaultIdx]
+			);
+		}
 	}
 
-	char buffer[0x500];
 	char ret[0x64];
 	const char* section = pWH->get_ID();
-	constexpr const char* const nVersus = "Versus";
 
-	for (size_t i = 0; i < Array.size(); ++i) {
-
+	for (size_t i = 0; i < Array.size(); ++i)
+	{
 		auto nVers = &pWHExt->Verses[i];
-		const auto pName = Array[i]->Name.data();
-		
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s", nVersus, pName);
-		if (pINI->ReadString(section, buffer, Phobos::readDefval, ret)) {
+		if (pINI->ReadString(section, Array[i]->BaseTag.c_str(), Phobos::readDefval, ret)) {
 			nVers->Parse_NoCheck(ret);
 		}
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.ForceFire", nVersus, pName);
-		nVers->Flags.ForceFire = pINI->ReadBool(section, buffer, nVers->Flags.ForceFire);
-
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.Retaliate", nVersus, pName);
-		nVers->Flags.Retaliate = pINI->ReadBool(section, buffer, nVers->Flags.Retaliate);
-
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, pName);
-		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, buffer, nVers->Flags.PassiveAcquire);
+		nVers->Flags.ForceFire = pINI->ReadBool(section, Array[i]->FF_Tag.c_str(), nVers->Flags.ForceFire);
+		nVers->Flags.Retaliate = pINI->ReadBool(section, Array[i]->RT_Tag.c_str(), nVers->Flags.Retaliate);
+		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, Array[i]->PA_Tag.c_str(), nVers->Flags.PassiveAcquire);
 	}
 }
 
@@ -143,6 +141,10 @@ void ArmorTypeClass::Serialize(T& Stm)
 		.Process(this->DefaultTo)
 		.Process(this->DefaultString)
 		.Process(this->DefaultVerses)
+		.Process(this->BaseTag)
+		.Process(this->FF_Tag)
+		.Process(this->RT_Tag)
+		.Process(this->PA_Tag)
 		;
 }
 

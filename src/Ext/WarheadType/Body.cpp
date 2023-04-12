@@ -464,7 +464,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto ret = std::chrono::duration_cast<std::chrono::microseconds>(StartTime_WH - stop);
-	GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pThis,ret.count());
+	GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pSection ,ret.count());
 
 	if (!pINI->GetSection(pSection)) {
 		return;
@@ -753,13 +753,13 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 {
-	const auto pArmor = ArmorTypeClass::Array[Armor];
+	const auto pArmor = ArmorTypeClass::Array[Armor].get();
 
 	if (!this->ArmorHitAnim[Armor] && pArmor->DefaultTo != -1)
 	{
-		for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo];
+		for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
 			pDefArmor && pDefArmor->DefaultTo != -1;
-			pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo])
+			pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
 		{
 			if (auto const pDecided = this->ArmorHitAnim[pDefArmor->DefaultTo])
 				return pDecided;

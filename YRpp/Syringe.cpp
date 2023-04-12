@@ -1,5 +1,6 @@
 #include "Syringe.h"
 
+#ifdef aaa
 std::chrono::steady_clock::time_point DebugData::StartTime;
 
 void DebugData::Start(DWORD origin, const char* funcName, int size)
@@ -29,3 +30,4 @@ void DebugData::EndO(DWORD origin, const char* funcName, int size)
 	GameDebugLog::Log("[Override Hook] 0x%X [%s - %d] end %d ms\n", origin, funcName, size, ret.count());
 	//GameDebugLog::Log("[Override Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);
 }
+#endif

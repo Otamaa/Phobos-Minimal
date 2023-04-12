@@ -351,7 +351,7 @@ overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ar
 #define decl_override_hook(hook, funcname, size)
 #endif // declhook
 
-#ifdef DEBUG_HOOK
+#ifndef DEBUG_HOOK
 #define DEFINE_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
@@ -389,7 +389,7 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #endif
 
-#ifdef DEBUG_HOOK_O
+#ifndef DEBUG_HOOK_O
 
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
 decl_override_hook(hook, funcname, size) \

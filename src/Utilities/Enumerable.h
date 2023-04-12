@@ -16,7 +16,7 @@
 
 template <typename T> class Enumerable
 {
-	typedef std::vector<T*> container_t;
+	typedef std::vector<std::unique_ptr<T>> container_t;
 
 public:
 	static container_t Array;
@@ -56,7 +56,7 @@ public:
 		if (nResult < 0)
 			return nullptr;
 
-		return Array[nResult];
+		return Array[nResult].get();
 	}
 
 	static int FindIndexFromType(T* pType)
@@ -69,25 +69,24 @@ public:
 
 	static T* FindFromIndex(int Idx)
 	{
-		return Array[static_cast<size_t>(Idx)];
+		return Array[static_cast<size_t>(Idx)].get();
 	}
 
 	static T* FindFromIndexFix(int Idx)
 	{
 		const auto aIdx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
-		return Array[static_cast<size_t>(aIdx)];
+		return Array[static_cast<size_t>(aIdx)].get();
 	}
 
 	static T* Allocate(const char* Title)
 	{
 		AllocateNoCheck(Title);
-		return Array.back();
+		return Array.back().get();
 	}
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		auto const nNew = new T(Title);
-		Array.push_back(nNew);
+		Array.push_back(std::move(std::make_unique<T>(Title)));
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -100,9 +99,6 @@ public:
 
 	static void Clear()
 	{
-		for (auto& data : Array)
-			delete data;
-
 		Array.clear();
 	}
 
@@ -174,7 +170,7 @@ public:
 		for (const auto& item : Array)
 		{
 			// write old pointer and name, then delegate
-			Stm.Save(item);
+			Stm.Save(item.get());
 			Stm.Save(item->Name);
 			item->SaveToStream(Stm);
 		}

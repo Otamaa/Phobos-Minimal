@@ -39,7 +39,7 @@ static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = 
 
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 		if (pType->Mode != TrailMode::NONE)
 		{
 			bool OnTurrent = false;
@@ -120,7 +120,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
@@ -158,7 +158,7 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
@@ -196,7 +196,7 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted)
 
 	for (auto const& pTrails : pTypeExt->Trails.CurrentData)
 	{
-		const auto pType = TrailType::Array[pTrails.CurrentType];
+		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 
 		if (pType->Mode != TrailMode::NONE)
 		{
