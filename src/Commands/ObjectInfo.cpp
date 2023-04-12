@@ -98,13 +98,13 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 			{
 				found = true;
 				auto pTriggerType = AITriggerTypeClass::Array->GetItem(i);
-				Append(buffer,"Trigger ID = %s, weights [Current, Min, Max]: %f, %f, %f", pTriggerType->ID, pTriggerType->Weight_Current, pTriggerType->Weight_Minimum, pTriggerType->Weight_Maximum);
+				Append(buffer,"TriggerID = %s, weights [Current, Min, Max]: %f, %f, %f", pTriggerType->ID, pTriggerType->Weight_Current, pTriggerType->Weight_Minimum, pTriggerType->Weight_Maximum);
 			}
 		}
 
 		Display(buffer);
 
-		Append(buffer, "Team ID = %s, Script ID = %s, Taskforce ID = %s",
+		Append(buffer, "TeamID = %s, ScriptID = %s, TaskforceID = %s",
 			pTeam->Type->ID, pTeam->CurrentScript->Type->get_ID(), pTeam->Type->TaskForce->ID);
 
 		Display(buffer);
@@ -142,7 +142,8 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 		|| pFoot->CurrentMission == Mission::AttackMove
 		|| pFoot->CurrentMission == Mission::Hunt
 		|| pFoot->CurrentMission == Mission::Sabotage
-		|| pFoot->CurrentMission == Mission::Enter) {
+		|| pFoot->CurrentMission == Mission::Enter	
+		) {
 
 		if (pFoot->Target)
 		{
@@ -153,12 +154,12 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 			}
 			else if ((((DWORD*)pFoot->Target)[0]) == CellClass::vtable)
 			{
-					const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
-					Append(buffer, "Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
+				const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
+				Append(buffer, "Target = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
 			}
 		}
 	}
-	else if (pFoot->CurrentMission == Mission::Move)
+	else if (pFoot->CurrentMission == Mission::Move || pFoot->CurrentMission == Mission::Capture)
 	{
 		if (pFoot->Destination)
 		{
@@ -170,15 +171,15 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 			}
 			else if ((((DWORD*)pFoot->Destination)[0]) == CellClass::vtable)
 			{
-					const auto pDestCell = static_cast<CellClass*>(pFoot->Destination);
-					Append(buffer, "Destination = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pDestCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pDestCell->MapCoords.X, pDestCell->MapCoords.Y);
+				const auto pDestCell = static_cast<CellClass*>(pFoot->Destination);
+				Append(buffer, "Destination = Cell, Distance = %d, Location = (%d, %d)\n", static_cast<int>(pDestCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pDestCell->MapCoords.X, pDestCell->MapCoords.Y);
 			}
 		}
 	}
 
 	const auto pArmor = ArmorTypeClass::FindFromIndex((int)pType->Armor);
 	const auto nLevel = pFoot->Veterancy.GetRemainingLevel();
-	Append(buffer, "Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength, pArmor->Name.data(), (int)pType->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+	Append(buffer, "CurHP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) ", pFoot->Health, pType->Strength, pArmor->Name.data(), (int)pType->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pFoot->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 	if (pType->Ammo > 0)
 		Append(buffer, " , Ammo = (%d / %d) \n", pFoot->Ammo, pType->Ammo);
@@ -192,7 +193,7 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
 			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
-			Append(buffer, "Current Shield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			Append(buffer, "CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 		}
 	}
 
@@ -246,7 +247,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 
 	auto const pArmor = ArmorTypeClass::FindFromIndex((int)pBuilding->Type->Armor);
 	auto const nLevel = pBuilding->Veterancy.GetRemainingLevel();
-	Append(buffer,"Current HP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength, pArmor->Name.data(), (int)pBuilding->Type->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
+	Append(buffer,"CurHP = (%d / %d) , Armor = %s (%d) , Experience = %s ( %fl / %fl ) \n", pBuilding->Health, pBuilding->Type->Strength, pArmor->Name.data(), (int)pBuilding->Type->Armor, EnumFunctions::Rank_ToStrings[(int)nLevel], pBuilding->Veterancy.Veterancy, RulesClass::Instance->VeteranCap);
 
 	if (auto pTechnoExt = TechnoExt::ExtMap.Find(pBuilding))
 	{
@@ -255,7 +256,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
 			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
-			Append(buffer,"Current Shield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			Append(buffer,"CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 
 		}
 	}

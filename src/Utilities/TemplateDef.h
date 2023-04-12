@@ -474,7 +474,7 @@ namespace detail
 			}
 			else
 			{
-				Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
+				Debug::Log("[Phobos] Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
 			}
 		}
 		return false;
