@@ -10,75 +10,92 @@
 #include <Base/Always.h>
 #include <DebugLog.h>
 
-class LimitedRegister {
+class LimitedRegister
+{
 protected:
 	DWORD data;
 
-	WORD* wordData() {
+	WORD* wordData()
+	{
 		return reinterpret_cast<WORD*>(&this->data);
 	}
 
-	BYTE* byteData() {
+	BYTE* byteData()
+	{
 		return reinterpret_cast<BYTE*>(&this->data);
 	}
 
 public:
-	WORD Get16() {
+	WORD Get16()
+	{
 		return *this->wordData();
 	}
 
 	template<typename T>
-	inline T Get() {
+	inline T Get()
+	{
 		return *reinterpret_cast<T*>(&this->data);
 	}
 
 	template<typename T>
-	inline void Set(T value) {
+	inline void Set(T value)
+	{
 		this->data = DWORD(value);
 	}
 
-	void Set16(WORD value) {
+	void Set16(WORD value)
+	{
 		*this->wordData() = value;
 	}
 };
 
-class ExtendedRegister : public LimitedRegister {
+class ExtendedRegister : public LimitedRegister
+{
 public:
-	BYTE Get8Hi() {
+	BYTE Get8Hi()
+	{
 		return this->byteData()[1];
 	}
 
-	BYTE Get8Lo() {
+	BYTE Get8Lo()
+	{
 		return this->byteData()[0];
 	}
 
-	void Set8Hi(BYTE value) {
+	void Set8Hi(BYTE value)
+	{
 		this->byteData()[1] = value;
 	}
 
-	void Set8Lo(BYTE value) {
+	void Set8Lo(BYTE value)
+	{
 		this->byteData()[0] = value;
 	}
 };
 
-class StackRegister : public ExtendedRegister {
+class StackRegister : public ExtendedRegister
+{
 public:
 	template<typename T>
-	inline T* lea(int byteOffset) {
+	inline T* lea(int byteOffset)
+	{
 		return reinterpret_cast<T*>(static_cast<DWORD>(this->data + static_cast<DWORD>(byteOffset)));
 	}
 
-	inline DWORD lea(int byteOffset) {
+	inline DWORD lea(int byteOffset)
+	{
 		return static_cast<DWORD>(this->data + static_cast<DWORD>(byteOffset));
 	}
 
 	template<typename T>
-	inline T At(int byteOffset) {
+	inline T At(int byteOffset)
+	{
 		return *reinterpret_cast<T*>(this->data + static_cast<DWORD>(byteOffset));
 	}
 
 	template<typename T>
-	inline void At(int byteOffset, T value) {
+	inline void At(int byteOffset, T value)
+	{
 		*reinterpret_cast<T*>(this->data + static_cast<DWORD>(byteOffset)) = value;
 	}
 };
@@ -129,15 +146,18 @@ private:
 	ExtendedRegister _EAX;
 
 public:
-	DWORD Origin() {
+	DWORD Origin()
+	{
 		return this->origin;
 	}
 
-	DWORD EFLAGS() {
+	DWORD EFLAGS()
+	{
 		return this->flags;
 	}
 
-	void EFLAGS(DWORD value) {
+	void EFLAGS(DWORD value)
+	{
 		this->flags = value;
 	}
 
@@ -156,62 +176,75 @@ public:
 	REG_SHORTCUTS_XHL(D);
 
 	template<typename T>
-	inline T lea_Stack(int offset) {
+	inline T lea_Stack(int offset)
+	{
 		return reinterpret_cast<T>(this->_ESP.lea(offset));
 	}
 
 	template<>
-	inline DWORD lea_Stack(int offset) {
+	inline DWORD lea_Stack(int offset)
+	{
 		return this->_ESP.lea(offset);
 	}
 
 	template<>
-	inline int lea_Stack(int offset) {
+	inline int lea_Stack(int offset)
+	{
 		return static_cast<int>(this->_ESP.lea(offset));
 	}
 
 	template<typename T>
-	inline T& ref_Stack(int offset) {
+	inline T& ref_Stack(int offset)
+	{
 		return *this->lea_Stack<T*>(offset);
 	}
 
 	template<typename T>
-	inline T Stack(int offset) {
+	inline T Stack(int offset)
+	{
 		return this->_ESP.At<T>(offset);
 	}
 
-	DWORD Stack32(int offset) {
+	DWORD Stack32(int offset)
+	{
 		return this->_ESP.At<DWORD>(offset);
 	}
 
-	WORD Stack16(int offset) {
+	WORD Stack16(int offset)
+	{
 		return this->_ESP.At<WORD>(offset);
 	}
 
-	BYTE Stack8(int offset) {
+	BYTE Stack8(int offset)
+	{
 		return this->_ESP.At<BYTE>(offset);
 	}
 
 	template<typename T>
-	inline T Base(int offset) {
+	inline T Base(int offset)
+	{
 		return this->_EBP.At<T>(offset);
 	}
 
 	template<typename T>
-	inline void Stack(int offset, T value) {
+	inline void Stack(int offset, T value)
+	{
 		this->_ESP.At(offset, value);
 	}
 
-	void Stack16(int offset, WORD value) {
+	void Stack16(int offset, WORD value)
+	{
 		this->_ESP.At(offset, value);
 	}
 
-	void Stack8(int offset, BYTE value) {
+	void Stack8(int offset, BYTE value)
+	{
 		this->_ESP.At(offset, value);
 	}
 
 	template<typename T>
-	inline void Base(int offset, T value) {
+	inline void Base(int offset, T value)
+	{
 		this->_EBP.At(offset, value);
 	}
 };
@@ -244,10 +277,11 @@ struct SyringeHandshakeInfo
 #pragma pack(push, 16)
 #pragma warning(push)
 #pragma warning( disable : 4324)
-__declspec(align(16)) struct hookdecl {
+__declspec(align(16)) struct hookdecl
+{
 	unsigned int hookAddr;
 	unsigned int hookSize;
-	const char * hookName;
+	const char* hookName;
 };
 
 struct alignas(16) overridehookdecl
@@ -258,9 +292,10 @@ struct alignas(16) overridehookdecl
 	const char* overrideModuleName;
 };
 
-__declspec(align(16)) struct hostdecl {
+__declspec(align(16)) struct hostdecl
+{
 	unsigned int hostChecksum;
-	const char * hostName;
+	const char* hostName;
 };
 #pragma warning(pop)
 #pragma pack(pop)
@@ -268,11 +303,14 @@ __declspec(align(16)) struct hostdecl {
 #pragma section(".syhks00", read, write)
 #pragma section(".syhks01", read, write)
 #pragma section(".syexe00", read, write)
-namespace SyringeData {
-	namespace Hooks {
+namespace SyringeData
+{
+	namespace Hooks
+	{
 
 	};
-	namespace Hosts {
+	namespace Hosts
+	{
 
 	};
 };
@@ -313,7 +351,7 @@ overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ar
 #define decl_override_hook(hook, funcname, size)
 #endif // declhook
 
-#ifndef DEBUG_HOOK
+#ifdef DEBUG_HOOK
 #define DEFINE_HOOK(hook,funcname,size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
@@ -324,15 +362,24 @@ EXPORT_FUNC(funcname)
 declhook(hook, funcname, size)
 
 #else
+#include <chrono>
+struct DebugData
+{
+	static std::chrono::steady_clock::time_point StartTime;
+	static void Start(DWORD origin, const char* funcName, int size);
+	static void End(DWORD origin, const char* funcName, int size);
+	static void StartO(DWORD origin, const char* funcName, int size);
+	static void EndO(DWORD origin, const char* funcName, int size);
+};
 
 #define DEFINE_HOOK(hook, funcname, size) \
 declhook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
 EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
 EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
 {\
-GameDebugLog::Log("[Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
+DebugData::Start(R->Origin(), #funcname , size);\
 DWORD ret=funcname##_DEBUG_(R);\
-GameDebugLog::Log("[Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
+DebugData::End(R->Origin(), #funcname, size);\
 return ret;\
 }\
 EXPORT_DEBUG(funcname##_DEBUG_)
@@ -342,7 +389,7 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
 #endif
 
-#ifndef DEBUG_HOOK_O
+#ifdef DEBUG_HOOK_O
 
 #define DEFINE_OVERRIDE_HOOK(hook,funcname,size) \
 decl_override_hook(hook, funcname, size) \
@@ -358,9 +405,9 @@ decl_override_hook(hook, funcname##_DEBUG_HOOK__LOG_, size) \
 EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
 EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
 {\
-GameDebugLog::Log("[Override Hook] 0x%X [%s - %d]\n",R->Origin(), #funcname , size);\
+DebugData::StartO(R->Origin(), #funcname , size);\
 DWORD ret=funcname##_DEBUG_(R);\
-GameDebugLog::Log("[Override Hook] 0x%X [%s - %d] end\n", R->Origin(), #funcname, size);\
+DebugData::EndO(R->Origin(), #funcname, size);\
 return ret;\
 }\
 EXPORT_DEBUG(funcname##_DEBUG_)

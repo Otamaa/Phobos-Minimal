@@ -58,19 +58,6 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 
 void TechnoTypeExt::ExtData::Initialize()
 {
-	Is_Cow = strcmp(Get()->ID, "COW") == 0;
-
-	this->ShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-
-	if (Is_AircraftType(Get()))
-	{
-		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
-		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
-	}
-
-	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 
 }
 
@@ -213,546 +200,555 @@ void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<C
 void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
+
+	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
+
+	if (Is_AircraftType(Get()))
+	{
+		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+	}
+
+	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
+
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
+	Is_Cow = IS_SAME_STR_N(pSection, "COW");
 
-	if (!pINI->GetSection(pSection))
-		return;
-
-	INI_EX exArtINI(pArtIni);
-	INI_EX exINI(pINI);
-
-	this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
-	this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
-	this->UIDescription.Read(exINI, pSection, "UIDescription");
-	this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
-	this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
-
-	this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
-	this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
-
-	this->ImmuneToEMP.Read(exINI, pSection, "ImmuneToEMP");
-
-	this->Interceptor.Read(exINI, pSection, "Interceptor");
-	this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
-	this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
-	this->Interceptor_MinimumGuardRange.Read(exINI, pSection, "Interceptor.%sMinimumGuardRange");
-	this->Interceptor_Weapon.Read(exINI, pSection, "Interceptor.Weapon");
-	this->Interceptor_DeleteOnIntercept.Read(exINI, pSection, "Interceptor.DeleteOnIntercept");
-	this->Interceptor_WeaponOverride.Read(exINI, pSection, "Interceptor.WeaponOverride");
-	this->Interceptor_WeaponReplaceProjectile.Read(exINI, pSection, "Interceptor.WeaponReplaceProjectile");
-	this->Interceptor_WeaponCumulativeDamage.Read(exINI, pSection, "Interceptor.WeaponCumulativeDamage");
-	this->Interceptor_KeepIntact.Read(exINI, pSection, "Interceptor.KeepIntact");
-	this->Interceptor_ConsiderWeaponRange.Read(exINI, pSection, "Interceptor.ConsiderWaponRange");
-	this->Interceptor_OnlyTargetBullet.Read(exINI, pSection, "Interceptor.OnlyTargetBullet");
-
-	this->Powered_KillSpawns.Read(exINI, pSection, "Powered.KillSpawns");
-	this->Spawn_LimitedRange.Read(exINI, pSection, "Spawner.LimitRange");
-	this->Spawn_LimitedExtraRange.Read(exINI, pSection, "Spawner.ExtraLimitRange");
-	this->Spawner_DelayFrames.Read(exINI, pSection, "Spawner.DelayFrames");
-	this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
-	this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
-	this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
-	this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");
-	this->NoManualMove.Read(exINI, pSection, "NoManualMove");
-	this->InitialStrength.Read(exINI, pSection, "InitialStrength");
-
-	//TODO : Tag name Change
-	this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
-	this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
-
-	Nullable<bool> Death_Peaceful;
-	Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
-
-	this->Death_Method.Read(exINI, pSection, "Death.Method");
-
-	if (Death_Peaceful.isset())
-		this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
-
-	this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
-	this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.Nonexist.Any");
-	this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
-	this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Nonexist.AllowLimboed");
-	this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
-	this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
-	this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
-	this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
-	this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
-
-	this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
-	this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
-
-	//
-
-	this->ShieldType.Read(exINI, pSection, "ShieldType", true);
-	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
-
-	this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());
-	this->WarpIn.Read(exINI, pSection, GameStrings::WarpIn());
-	this->WarpAway.Read(exINI, pSection, GameStrings::WarpAway());
-	this->ChronoTrigger.Read(exINI, pSection, GameStrings::ChronoTrigger());
-	this->ChronoDistanceFactor.Read(exINI, pSection, GameStrings::ChronoDistanceFactor());
-	this->ChronoMinimumDelay.Read(exINI, pSection, GameStrings::ChronoMinimumDelay());
-	this->ChronoRangeMinimum.Read(exINI, pSection, GameStrings::ChronoRangeMinimum());
-	this->ChronoDelay.Read(exINI, pSection, GameStrings::ChronoDelay());
-
-	this->WarpInWeapon.Read(exINI, pSection, "WarpInWeapon", true);
-	this->WarpInMinRangeWeapon.Read(exINI, pSection, "WarpInMinRangeWeapon", true);
-	this->WarpOutWeapon.Read(exINI, pSection, "WarpOutWeapon", true);
-	this->WarpInWeapon_UseDistanceAsDamage.Read(exINI, pSection, "WarpInWeapon.UseDistanceAsDamage");
-
-	this->OreGathering_Anims.Read(exINI, pSection, "OreGathering.Anims");
-	this->OreGathering_Tiberiums.Read(exINI, pSection, "OreGathering.Tiberiums");
-	this->OreGathering_FramesPerDir.Read(exINI, pSection, "OreGathering.FramesPerDir");
-
-	this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
-	this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
-
-	auto const& [canParse, resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
-
-	if (canParse)
+	if (pINI->GetSection(pSection))
 	{
-		if (!this->PassengerDeletionType)
-			this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->Get());
+		INI_EX exINI(pINI);
 
-		this->PassengerDeletionType->LoadFromINI(pINI, pSection);
-	}
-	else if (resetValue)
-	{
-		this->PassengerDeletionType.reset();
-	}
+		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
+		this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
+		this->UIDescription.Read(exINI, pSection, "UIDescription");
+		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
+		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
 
-	this->DefaultDisguise.Read(exINI, pSection, "DefaultDisguise");
+		this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
+		this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
 
-	this->OpenTopped_RangeBonus.Read(exINI, pSection, "OpenTopped.RangeBonus");
-	this->OpenTopped_DamageMultiplier.Read(exINI, pSection, "OpenTopped.DamageMultiplier");
-	this->OpenTopped_WarpDistance.Read(exINI, pSection, "OpenTopped.WarpDistance");
-	this->OpenTopped_IgnoreRangefinding.Read(exINI, pSection, "OpenTopped.IgnoreRangefinding");
-	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, pSection, "OpenTopped.AllowFiringIfDeactivated");
-	this->OpenTopped_ShareTransportTarget.Read(exINI, pSection, "OpenTopped.ShareTransportTarget");
+		this->ImmuneToEMP.Read(exINI, pSection, "ImmuneToEMP");
 
-	this->AutoFire.Read(exINI, pSection, "AutoFire");
-	this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
+		this->Interceptor.Read(exINI, pSection, "Interceptor");
+		this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
+		this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
+		this->Interceptor_MinimumGuardRange.Read(exINI, pSection, "Interceptor.%sMinimumGuardRange");
+		this->Interceptor_Weapon.Read(exINI, pSection, "Interceptor.Weapon");
+		this->Interceptor_DeleteOnIntercept.Read(exINI, pSection, "Interceptor.DeleteOnIntercept");
+		this->Interceptor_WeaponOverride.Read(exINI, pSection, "Interceptor.WeaponOverride");
+		this->Interceptor_WeaponReplaceProjectile.Read(exINI, pSection, "Interceptor.WeaponReplaceProjectile");
+		this->Interceptor_WeaponCumulativeDamage.Read(exINI, pSection, "Interceptor.WeaponCumulativeDamage");
+		this->Interceptor_KeepIntact.Read(exINI, pSection, "Interceptor.KeepIntact");
+		this->Interceptor_ConsiderWeaponRange.Read(exINI, pSection, "Interceptor.ConsiderWaponRange");
+		this->Interceptor_OnlyTargetBullet.Read(exINI, pSection, "Interceptor.OnlyTargetBullet");
 
-	this->NoSecondaryWeaponFallback.Read(exINI, pSection, "NoSecondaryWeaponFallback");
-	this->NoSecondaryWeaponFallback_AllowAA.Read(exINI, pSection, "NoSecondaryWeaponFallback.AllowAA");
+		this->Powered_KillSpawns.Read(exINI, pSection, "Powered.KillSpawns");
+		this->Spawn_LimitedRange.Read(exINI, pSection, "Spawner.LimitRange");
+		this->Spawn_LimitedExtraRange.Read(exINI, pSection, "Spawner.ExtraLimitRange");
+		this->Spawner_DelayFrames.Read(exINI, pSection, "Spawner.DelayFrames");
+		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
+		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
+		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
+		this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");
+		this->NoManualMove.Read(exINI, pSection, "NoManualMove");
+		this->InitialStrength.Read(exINI, pSection, "InitialStrength");
 
-	this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
-	this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
-	this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
+		//TODO : Tag name Change
+		this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
+		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
 
-	this->DeployingAnim_AllowAnyDirection.Read(exINI, pSection, "DeployingAnim.AllowAnyDirection");
-	this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
-	this->DeployingAnim_ReverseForUndeploy.Read(exINI, pSection, "DeployingAnim.ReverseForUndeploy");
-	this->DeployingAnim_UseUnitDrawer.Read(exINI, pSection, "DeployingAnim.UseUnitDrawer");
+		Nullable<bool> Death_Peaceful;
+		Death_Peaceful.Read(exINI, pSection, "Death.Peaceful");
 
-	this->SelfHealGainType.Read(exINI, pSection, "SelfHealGainType");
+		this->Death_Method.Read(exINI, pSection, "Death.Method");
 
-	// Ares 0.2
-	this->RadarJamRadius.Read(exINI, pSection, "RadarJamRadius");
+		if (Death_Peaceful.isset())
+			this->Death_Method = Death_Peaceful.Get() ? KillMethod::Vanish : KillMethod::Explode;
 
-	// Ares 0.9
-	this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");
-	this->DesignatorRange.Read(exINI, pSection, "DesignatorRange");
+		this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
+		this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.Nonexist.Any");
+		this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
+		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Nonexist.AllowLimboed");
+		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
+		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
+		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
+		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
+		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
-	// Ares 0.A
-	this->GroupAs.Read(pINI, pSection, "GroupAs");
+		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
+		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 
-	// Ares 0.C
-	this->NoAmmoWeapon.Read(exINI, pSection, "NoAmmoWeapon");
-	this->NoAmmoAmount.Read(exINI, pSection, "NoAmmoAmount");
+		//
 
-	this->EnemyUIName.Read(exINI, pSection, "EnemyUIName");
+		this->ShieldType.Read(exINI, pSection, "ShieldType", true);
+		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
-	this->ForceWeapon_Naval_Decloaked.Read(exINI, pSection, "ForceWeapon.Naval.Decloaked");
-	this->ForceWeapon_UnderEMP.Read(exINI, pSection, "ForceWeapon.UnderEMP");
-	this->ForceWeapon_Cloaked.Read(exINI, pSection, "ForceWeapon.Cloaked");
-	this->ForceWeapon_Disguised.Read(exINI, pSection, "ForceWeapon.Disguised");
+		this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());
+		this->WarpIn.Read(exINI, pSection, GameStrings::WarpIn());
+		this->WarpAway.Read(exINI, pSection, GameStrings::WarpAway());
+		this->ChronoTrigger.Read(exINI, pSection, GameStrings::ChronoTrigger());
+		this->ChronoDistanceFactor.Read(exINI, pSection, GameStrings::ChronoDistanceFactor());
+		this->ChronoMinimumDelay.Read(exINI, pSection, GameStrings::ChronoMinimumDelay());
+		this->ChronoRangeMinimum.Read(exINI, pSection, GameStrings::ChronoRangeMinimum());
+		this->ChronoDelay.Read(exINI, pSection, GameStrings::ChronoDelay());
 
-	this->Ammo_Shared.Read(exINI, pSection, "Ammo.Shared");
-	this->Ammo_Shared_Group.Read(exINI, pSection, "Ammo.Shared.Group");
-	this->Passengers_SyncOwner.Read(exINI, pSection, "Passengers.SyncOwner");
-	this->Passengers_SyncOwner_RevertOnExit.Read(exINI, pSection, "Passengers.SyncOwner.RevertOnExit");
+		this->WarpInWeapon.Read(exINI, pSection, "WarpInWeapon", true);
+		this->WarpInMinRangeWeapon.Read(exINI, pSection, "WarpInMinRangeWeapon", true);
+		this->WarpOutWeapon.Read(exINI, pSection, "WarpOutWeapon", true);
+		this->WarpInWeapon_UseDistanceAsDamage.Read(exINI, pSection, "WarpInWeapon.UseDistanceAsDamage");
 
-	this->UseDisguiseMovementSpeed.Read(exINI, pSection, "UseDisguiseMovementSpeed");
-	this->Insignia.Read(exINI, pSection, "Insignia.%s");
-	this->InsigniaFrame.Read(exINI, pSection, "InsigniaFrame.%s");
-	this->Insignia_ShowEnemy.Read(exINI, pSection, "Insignia.ShowEnemy");
-	this->InsigniaFrames.Read(exINI, pSection, "InsigniaFrames");
-	this->InsigniaDrawOffset.Read(exINI, pSection, "Insignia.DrawOffset");
-	this->InitialStrength_Cloning.Read(exINI, pSection, "InitialStrength.Cloning");
+		this->OreGathering_Anims.Read(exINI, pSection, "OreGathering.Anims");
+		this->OreGathering_Tiberiums.Read(exINI, pSection, "OreGathering.Tiberiums");
+		this->OreGathering_FramesPerDir.Read(exINI, pSection, "OreGathering.FramesPerDir");
 
-	this->SHP_SelectBrdSHP.Read(exINI, pSection, "SelectBrd.SHP");
-	this->SHP_SelectBrdPAL.Read(pINI, pSection, "SelectBrd.PAL");
-	this->UseCustomSelectBrd.Read(exINI, pSection, "UseCustomSelectBrd");
-	this->SelectBrd_Frame.Read(exINI, pSection, "SelectBrd.Frame");
-	this->SelectBrd_DrawOffset.Read(exINI, pSection, "SelectBrd.DrawOffset");
-	this->SelectBrd_TranslucentLevel.Read(exINI, pSection, "SelectBrd.TranslucentLevel");
-	this->SelectBrd_ShowEnemy.Read(exINI, pSection, "SelectBrd.ShowEnemy");
+		this->DestroyAnim_Random.Read(exINI, pSection, "DestroyAnim.Random");
+		this->NotHuman_RandomDeathSequence.Read(exINI, pSection, "NotHuman.RandomDeathSequence");
 
-	this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
-	this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransRate");
-	this->MobileRefinery_CashMultiplier.Read(exINI, pSection, "MobileRefinery.CashMultiplier");
-	this->MobileRefinery_AmountPerCell.Read(exINI, pSection, "MobileRefinery.AmountPerCell");
-	this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
-	this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
-	this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
-	this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
-	this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
-	this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
-	this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
+		auto const& [canParse, resetValue] = PassengerDeletionTypeClass::CanParse(exINI, pSection);
 
-	this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
-	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
-	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
-	this->TargetZoneScanType.Read(exINI, pSection, "TargetZoneScanType");
+		if (canParse)
+		{
+			if (!this->PassengerDeletionType)
+				this->PassengerDeletionType = std::make_unique<PassengerDeletionTypeClass>(this->Get());
 
-	this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");
+			this->PassengerDeletionType->LoadFromINI(pINI, pSection);
+		}
+		else if (resetValue)
+		{
+			this->PassengerDeletionType.reset();
+		}
+
+		this->DefaultDisguise.Read(exINI, pSection, "DefaultDisguise");
+
+		this->OpenTopped_RangeBonus.Read(exINI, pSection, "OpenTopped.RangeBonus");
+		this->OpenTopped_DamageMultiplier.Read(exINI, pSection, "OpenTopped.DamageMultiplier");
+		this->OpenTopped_WarpDistance.Read(exINI, pSection, "OpenTopped.WarpDistance");
+		this->OpenTopped_IgnoreRangefinding.Read(exINI, pSection, "OpenTopped.IgnoreRangefinding");
+		this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, pSection, "OpenTopped.AllowFiringIfDeactivated");
+		this->OpenTopped_ShareTransportTarget.Read(exINI, pSection, "OpenTopped.ShareTransportTarget");
+
+		this->AutoFire.Read(exINI, pSection, "AutoFire");
+		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
+
+		this->NoSecondaryWeaponFallback.Read(exINI, pSection, "NoSecondaryWeaponFallback");
+		this->NoSecondaryWeaponFallback_AllowAA.Read(exINI, pSection, "NoSecondaryWeaponFallback.AllowAA");
+
+		this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
+		this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
+		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
+
+		this->DeployingAnim_AllowAnyDirection.Read(exINI, pSection, "DeployingAnim.AllowAnyDirection");
+		this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
+		this->DeployingAnim_ReverseForUndeploy.Read(exINI, pSection, "DeployingAnim.ReverseForUndeploy");
+		this->DeployingAnim_UseUnitDrawer.Read(exINI, pSection, "DeployingAnim.UseUnitDrawer");
+
+		this->SelfHealGainType.Read(exINI, pSection, "SelfHealGainType");
+
+		// Ares 0.2
+		this->RadarJamRadius.Read(exINI, pSection, "RadarJamRadius");
+
+		// Ares 0.9
+		this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");
+		this->DesignatorRange.Read(exINI, pSection, "DesignatorRange");
+
+		// Ares 0.A
+		this->GroupAs.Read(pINI, pSection, "GroupAs");
+
+		// Ares 0.C
+		this->NoAmmoWeapon.Read(exINI, pSection, "NoAmmoWeapon");
+		this->NoAmmoAmount.Read(exINI, pSection, "NoAmmoAmount");
+
+		this->EnemyUIName.Read(exINI, pSection, "EnemyUIName");
+
+		this->ForceWeapon_Naval_Decloaked.Read(exINI, pSection, "ForceWeapon.Naval.Decloaked");
+		this->ForceWeapon_UnderEMP.Read(exINI, pSection, "ForceWeapon.UnderEMP");
+		this->ForceWeapon_Cloaked.Read(exINI, pSection, "ForceWeapon.Cloaked");
+		this->ForceWeapon_Disguised.Read(exINI, pSection, "ForceWeapon.Disguised");
+
+		this->Ammo_Shared.Read(exINI, pSection, "Ammo.Shared");
+		this->Ammo_Shared_Group.Read(exINI, pSection, "Ammo.Shared.Group");
+		this->Passengers_SyncOwner.Read(exINI, pSection, "Passengers.SyncOwner");
+		this->Passengers_SyncOwner_RevertOnExit.Read(exINI, pSection, "Passengers.SyncOwner.RevertOnExit");
+
+		this->UseDisguiseMovementSpeed.Read(exINI, pSection, "UseDisguiseMovementSpeed");
+		this->Insignia.Read(exINI, pSection, "Insignia.%s");
+		this->InsigniaFrame.Read(exINI, pSection, "InsigniaFrame.%s");
+		this->Insignia_ShowEnemy.Read(exINI, pSection, "Insignia.ShowEnemy");
+		this->InsigniaFrames.Read(exINI, pSection, "InsigniaFrames");
+		this->InsigniaDrawOffset.Read(exINI, pSection, "Insignia.DrawOffset");
+		this->InitialStrength_Cloning.Read(exINI, pSection, "InitialStrength.Cloning");
+
+		this->SHP_SelectBrdSHP.Read(exINI, pSection, "SelectBrd.SHP");
+		this->SHP_SelectBrdPAL.Read(pINI, pSection, "SelectBrd.PAL");
+		this->UseCustomSelectBrd.Read(exINI, pSection, "UseCustomSelectBrd");
+		this->SelectBrd_Frame.Read(exINI, pSection, "SelectBrd.Frame");
+		this->SelectBrd_DrawOffset.Read(exINI, pSection, "SelectBrd.DrawOffset");
+		this->SelectBrd_TranslucentLevel.Read(exINI, pSection, "SelectBrd.TranslucentLevel");
+		this->SelectBrd_ShowEnemy.Read(exINI, pSection, "SelectBrd.ShowEnemy");
+
+		this->MobileRefinery.Read(exINI, pSection, "MobileRefinery");
+		this->MobileRefinery_TransRate.Read(exINI, pSection, "MobileRefinery.TransRate");
+		this->MobileRefinery_CashMultiplier.Read(exINI, pSection, "MobileRefinery.CashMultiplier");
+		this->MobileRefinery_AmountPerCell.Read(exINI, pSection, "MobileRefinery.AmountPerCell");
+		this->MobileRefinery_FrontOffset.Read(exINI, pSection, "MobileRefinery.FrontOffset");
+		this->MobileRefinery_LeftOffset.Read(exINI, pSection, "MobileRefinery.LeftOffset");
+		this->MobileRefinery_Display.Read(exINI, pSection, "MobileRefinery.Display");
+		this->MobileRefinery_DisplayColor.Read(exINI, pSection, "MobileRefinery.DisplayColor");
+		this->MobileRefinery_Anims.Read(exINI, pSection, "MobileRefinery.Anims");
+		this->MobileRefinery_AnimMove.Read(exINI, pSection, "MobileRefinery.AnimMove");
+		this->Explodes_KillPassengers.Read(exINI, pSection, "Explodes.KillPassengers");
+
+		this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
+		this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
+		this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+		this->TargetZoneScanType.Read(exINI, pSection, "TargetZoneScanType");
+
+		this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");
 
 #pragma region Otamaa
-	this->DontShake.Read(exINI, pSection, "DontShakeScreen");
-	this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
+		this->DontShake.Read(exINI, pSection, "DontShakeScreen");
+		this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
 
-	this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
-	this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
-	this->DrainMoney_Display.Read(exINI, pSection, "DrainMoney.Display");
-	this->DrainMoney_Display_Houses.Read(exINI, pSection, "DrainMoney.Display.Houses");
-	this->DrainMoney_Display_AtFirer.Read(exINI, pSection, "DrainMoney.Display.AtFirer");
-	this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoney.Display.Offset");
-	this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
+		this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
+		this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
+		this->DrainMoney_Display.Read(exINI, pSection, "DrainMoney.Display");
+		this->DrainMoney_Display_Houses.Read(exINI, pSection, "DrainMoney.Display.Houses");
+		this->DrainMoney_Display_AtFirer.Read(exINI, pSection, "DrainMoney.Display.AtFirer");
+		this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoney.Display.Offset");
+		this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
 
-	this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
+		this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
 
-	//pipshape
-	this->HealthBarSHP.Read(exINI, pSection, "HealthBarSHP");
+		//pipshape
+		this->HealthBarSHP.Read(exINI, pSection, "HealthBarSHP");
 
-	//pipbar
-	this->HealthBarSHP_Selected.Read(exINI, pSection, "HealthBarSHP.Selected");
-	this->HealthBarSHPBracketOffset.Read(exINI, pSection, "HealthBarSHP.BracketOffset");
-	this->HealthBarSHP_HealthFrame.Read(exINI, pSection, "HealthBarSHP.HealthFrame");
-	this->HealthBarSHP_Palette.Read(pINI, pSection, "HealthBarSHP.Palette");
-	this->HealthBarSHP_PointOffset.Read(exINI, pSection, "HealthBarSHP.Point2DOffset");
-	this->HealthbarRemap.Read(exINI, pSection, "HealthBarSHP.Remap");
+		//pipbar
+		this->HealthBarSHP_Selected.Read(exINI, pSection, "HealthBarSHP.Selected");
+		this->HealthBarSHPBracketOffset.Read(exINI, pSection, "HealthBarSHP.BracketOffset");
+		this->HealthBarSHP_HealthFrame.Read(exINI, pSection, "HealthBarSHP.HealthFrame");
+		this->HealthBarSHP_Palette.Read(pINI, pSection, "HealthBarSHP.Palette");
+		this->HealthBarSHP_PointOffset.Read(exINI, pSection, "HealthBarSHP.Point2DOffset");
+		this->HealthbarRemap.Read(exINI, pSection, "HealthBarSHP.Remap");
 
-	this->PipShapes02.Read(exINI, pSection, "PipShapes.Foot");
-	this->PipGarrison.Read(exINI, pSection, "PipShapes.Garrison");
-	this->PipGarrison_FrameIndex.Read(exINI, pSection, "PipShapes.GarrisonFrameIndex");
-	this->PipGarrison_Palette.Read(pINI, pSection, "PipShapes.GarrisonPalette");
-	this->PipShapes01.Read(exINI, pSection, "PipShapes.Building");
+		this->PipShapes02.Read(exINI, pSection, "PipShapes.Foot");
+		this->PipGarrison.Read(exINI, pSection, "PipShapes.Garrison");
+		this->PipGarrison_FrameIndex.Read(exINI, pSection, "PipShapes.GarrisonFrameIndex");
+		this->PipGarrison_Palette.Read(pINI, pSection, "PipShapes.GarrisonPalette");
+		this->PipShapes01.Read(exINI, pSection, "PipShapes.Building");
 
-	this->Is_Cow.Read(exINI, pSection, "IsCow");
+		this->Is_Cow.Read(exINI, pSection, "IsCow");
 
-	this->HealthNumber_SHP.Read(exINI, pSection, "HealthNumber.Shape");
-	this->HealthNumber_Show.Read(exINI, pSection, "HealthNumber.Show");
-	this->HealthNumber_Percent.Read(exINI, pSection, "HealthNumber.Percent");
-	this->Healnumber_Offset.Read(exINI, pSection, "HealthNumber.Offset");
-	this->Healnumber_Decrement.Read(exINI, pSection, "HealthNumber.Decrement");
+		this->HealthNumber_SHP.Read(exINI, pSection, "HealthNumber.Shape");
+		this->HealthNumber_Show.Read(exINI, pSection, "HealthNumber.Show");
+		this->HealthNumber_Percent.Read(exINI, pSection, "HealthNumber.Percent");
+		this->Healnumber_Offset.Read(exINI, pSection, "HealthNumber.Offset");
+		this->Healnumber_Decrement.Read(exINI, pSection, "HealthNumber.Decrement");
 
-	this->ParasiteExit_Sound.Read(exINI, pSection, "Parasite.ExitSound");
+		this->ParasiteExit_Sound.Read(exINI, pSection, "Parasite.ExitSound");
 
-	this->Overload_Count.Read(exINI, pSection, "Overload.Count");
-	this->Overload_Damage.Read(exINI, pSection, "Overload.Damage");
-	this->Overload_Frames.Read(exINI, pSection, "Overload.Frames");
-	this->Overload_DeathSound.Read(exINI, pSection, "Overload.DeathSound");
-	this->Overload_ParticleSys.Read(exINI, pSection, "Overload.ParticleSys");
-	this->Overload_ParticleSysCount.Read(exINI, pSection, "Overload.ParticleSysCount");
-	this->Overload_Warhead.Read(exINI, pSection, "Overload.Warhead", true);
+		this->Overload_Count.Read(exINI, pSection, "Overload.Count");
+		this->Overload_Damage.Read(exINI, pSection, "Overload.Damage");
+		this->Overload_Frames.Read(exINI, pSection, "Overload.Frames");
+		this->Overload_DeathSound.Read(exINI, pSection, "Overload.DeathSound");
+		this->Overload_ParticleSys.Read(exINI, pSection, "Overload.ParticleSys");
+		this->Overload_ParticleSysCount.Read(exINI, pSection, "Overload.ParticleSysCount");
+		this->Overload_Warhead.Read(exINI, pSection, "Overload.Warhead", true);
 
-	this->Landing_Anim.Read(exINI, pSection, "Landing.Anim");
-	this->Landing_AnimOnWater.Read(exINI, pSection, "Landing.AnimOnWater");
+		this->Landing_Anim.Read(exINI, pSection, "Landing.Anim");
+		this->Landing_AnimOnWater.Read(exINI, pSection, "Landing.AnimOnWater");
 
-	this->FacingRotation_Disable.Read(exINI, pSection, "FacingRotation.Disabled");
-	this->FacingRotation_DisalbeOnEMP.Read(exINI, pSection, "FacingRotation.DisabledOnEMP");
-	this->FacingRotation_DisalbeOnDeactivated.Read(exINI, pSection, "FacingRotation.DisabledOnDeactivated");
-	this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled"); // condition disabled , require Ares 3.0 ++
+		this->FacingRotation_Disable.Read(exINI, pSection, "FacingRotation.Disabled");
+		this->FacingRotation_DisalbeOnEMP.Read(exINI, pSection, "FacingRotation.DisabledOnEMP");
+		this->FacingRotation_DisalbeOnDeactivated.Read(exINI, pSection, "FacingRotation.DisabledOnDeactivated");
+		this->FacingRotation_DisableOnDriverKilled.Read(exINI, pSection, "FacingRotation.DisabledOnDriverKilled"); // condition disabled , require Ares 3.0 ++
 
-	this->Draw_MindControlLink.Read(exINI, pSection, "MindControl.DrawLink");
+		this->Draw_MindControlLink.Read(exINI, pSection, "MindControl.DrawLink");
 
-	this->DeathWeapon.Read(exINI, pSection, "%s.DeathWeapon");
-	this->Disable_C4WarheadExp.Read(exINI, pSection, "Crash.DisableC4WarheadExplosion");
-	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
-	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
-	this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
+		this->DeathWeapon.Read(exINI, pSection, "%s.DeathWeapon");
+		this->Disable_C4WarheadExp.Read(exINI, pSection, "Crash.DisableC4WarheadExplosion");
+		this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
+		this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
+		this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
 
-	this->ROF_Random.Read(exINI, pSection, "ROF.AddRandom");
-	this->Rof_RandomMinMax.Read(exINI, pSection, "ROF.RandomMinMax");
+		this->ROF_Random.Read(exINI, pSection, "ROF.AddRandom");
+		this->Rof_RandomMinMax.Read(exINI, pSection, "ROF.RandomMinMax");
 
-	this->CreateSound_Enable.Read(exINI, pSection, "CreateSound.Enable");
+		this->CreateSound_Enable.Read(exINI, pSection, "CreateSound.Enable");
 
-	this->Eva_Complete.Read(exINI, pSection, "EVA.Complete");
-	this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
+		this->Eva_Complete.Read(exINI, pSection, "EVA.Complete");
+		this->VoiceCreate.Read(exINI, pSection, "VoiceCreate");
 
-	this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
-	this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
-	this->SinkAnim.Read(exINI, pSection, "Sink.Anim");
-	this->Tunnel_Speed.Read(exINI, pSection, "TunnelSpeed");
-	this->HoverType.Read(exINI, pSection, "HoverType");
+		this->SlaveFreeSound_Enable.Read(exINI, pSection, "SlaveFreeSound.Enable");
+		this->SlaveFreeSound.Read(exINI, pSection, "SlaveFreeSound");
+		this->SinkAnim.Read(exINI, pSection, "Sink.Anim");
+		this->Tunnel_Speed.Read(exINI, pSection, "TunnelSpeed");
+		this->HoverType.Read(exINI, pSection, "HoverType");
 
-	this->Gattling_Overload.Read(exINI, pSection, "Gattling.Overload");
-	this->Gattling_Overload_Damage.Read(exINI, pSection, "Gattling.Overload.Damage");
-	this->Gattling_Overload_Frames.Read(exINI, pSection, "Gattling.Overload.Frames");
-	this->Gattling_Overload_DeathSound.Read(exINI, pSection, "Gattling.Overload.DeathSound");
-	this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
-	this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
-	this->Gattling_Overload_Warhead.Read(exINI, pSection, "Gattling.Overload.Warhead", true);
+		this->Gattling_Overload.Read(exINI, pSection, "Gattling.Overload");
+		this->Gattling_Overload_Damage.Read(exINI, pSection, "Gattling.Overload.Damage");
+		this->Gattling_Overload_Frames.Read(exINI, pSection, "Gattling.Overload.Frames");
+		this->Gattling_Overload_DeathSound.Read(exINI, pSection, "Gattling.Overload.DeathSound");
+		this->Gattling_Overload_ParticleSys.Read(exINI, pSection, "Gattling.Overload.ParticleSys");
+		this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
+		this->Gattling_Overload_Warhead.Read(exINI, pSection, "Gattling.Overload.Warhead", true);
 
-	this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
-	this->IsDummy.Read(exINI, pSection, "Dummy");
+		this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
+		this->IsDummy.Read(exINI, pSection, "Dummy");
 
-	{
-		// UpdateCode Disabled 
-		// TODO : what will happen if the vectors for different state have different item count ?
-		// that will trigger crash because of out of bound idx 
-		// so disable these untill i can figure out better codes
+		{
+			// UpdateCode Disabled 
+			// TODO : what will happen if the vectors for different state have different item count ?
+			// that will trigger crash because of out of bound idx 
+			// so disable these untill i can figure out better codes
 
-		this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
-		this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
-		this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
-		this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
-		this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
-		this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
-		this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
-		this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
-	}
+			this->FireSelf_Weapon.Read(exINI, pSection, "FireSelf.Weapon");
+			this->FireSelf_ROF.Read(exINI, pSection, "FireSelf.ROF");
+			this->FireSelf_Weapon_GreenHeath.Read(exINI, pSection, "FireSelf.Weapon.GreenHealth");
+			this->FireSelf_ROF_GreenHeath.Read(exINI, pSection, "FireSelf.ROF.GreenHealth");
+			this->FireSelf_Weapon_YellowHeath.Read(exINI, pSection, "FireSelf.Weapon.YellowHealth");
+			this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
+			this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
+			this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+		}
 
-	this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
+		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
-	this->MyExtraFireData.ReadRules(exINI, pSection);
-	this->MyGiftBoxData.Read(exINI, pSection);
-	//this->MyJJData.Read(exINI, pSection);
-	this->MyPassangersData.Read(exINI, pSection);
-	this->MySpawnSupportDatas.Read(exINI, pSection);
-	this->DamageSelfData.Read(exINI, pSection);
+		this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
+		this->MyExtraFireData.ReadRules(exINI, pSection);
+		this->MyGiftBoxData.Read(exINI, pSection);
+		//this->MyJJData.Read(exINI, pSection);
+		this->MyPassangersData.Read(exINI, pSection);
+		this->MySpawnSupportDatas.Read(exINI, pSection);
+		this->DamageSelfData.Read(exINI, pSection);
 #endif
 
-	this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
-	this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
-	this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
+		this->IronCurtain_SyncDeploysInto.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
+		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
+		this->IronCurtain_KillWarhead.Read(exINI, pSection, "IronCurtain.KillWarhead", true);
 
-	this->SellSound.Read(exINI, pSection, "SellSound");
-	this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
-	this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay"); // code unfinished
+		this->SellSound.Read(exINI, pSection, "SellSound");
+		this->EVA_Sold.Read(exINI, pSection, "EVA.Sold");
+		this->EngineerCaptureDelay.Read(exINI, pSection, "Engineer.CaptureDelay"); // code unfinished
 
-	this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
-	this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
-	this->CloakMove.Read(exINI, pSection, "Cloak.Move");
-	this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
-	this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
-	this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
-	this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
-	this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
+		this->CommandLine_Move_Color.Read(exINI, pSection, "ActionLine.Move.Color");
+		this->CommandLine_Attack_Color.Read(exINI, pSection, "ActionLine.Attack.Color");
+		this->CloakMove.Read(exINI, pSection, "Cloak.Move");
+		this->PassiveAcquire_AI.Read(exINI, pSection, "CanPassiveAquire.AI");
+		this->TankDisguiseAsTank.Read(exINI, pSection, "Disguise.AsTank"); // code disabled , crash
+		this->DisguiseDisAllowed.Read(exINI, pSection, "Disguise.Allowed");  // code disabled , crash
+		this->ChronoDelay_Immune.Read(exINI, pSection, "ChronoDelay.Immune");
+		this->Unit_AI_AlternateType.Read(exINI, pSection, "AIAlternateType");
 
-	this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
-	this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
-	this->Vinifera_FrameIDx.Read(exINI, pSection, "Storage2FrameIdx");
-	this->Aboreus_FrameIDx.Read(exINI, pSection, "Storage3FrameIdx");
+		this->Riparius_FrameIDx.Read(exINI, pSection, "Storage0FrameIdx");
+		this->Cruentus_FrameIDx.Read(exINI, pSection, "Storage1FrameIdx");
+		this->Vinifera_FrameIDx.Read(exINI, pSection, "Storage2FrameIdx");
+		this->Aboreus_FrameIDx.Read(exINI, pSection, "Storage3FrameIdx");
 
-	this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
-	this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
-	this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
-	this->Experience_KillerMultiple.Read(exINI, pSection, "Experience.KillerMultiple");
-	this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
-	this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
-	this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
-	this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
-	this->Fake_Of.Read(exINI, pSection, "FakeOf");
-	this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
-	this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerzerk");
-	this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
-	this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
-	this->TargetLaser_Time.Read(exINI, pSection, "TargetLaser.Time");
-	this->TargetLaser_WeaponIdx.Read(exINI, pSection, "TargetLaser.WeaponIndexes");
-	this->AdjustCrushProperties();
+		this->CrushLevel.Read(exINI, pSection, "%sCrushLevel");
+		this->CrushableLevel.Read(exINI, pSection, "%sCrushableLevel");
+		this->DeployCrushableLevel.Read(exINI, pSection, "%sDeployCrushableLevel");
+		this->Experience_KillerMultiple.Read(exINI, pSection, "Experience.KillerMultiple");
+		this->Experience_VictimMultiple.Read(exINI, pSection, "Experience.VictimMultiple");
+		this->NavalRangeBonus.Read(exINI, pSection, "NavalRangeBonus");
+		this->AI_LegalTarget.Read(exINI, pSection, "AI.LegalTarget");
+		this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
+		this->Fake_Of.Read(exINI, pSection, "FakeOf");
+		this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
+		this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerzerk");
+		this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
+		this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
+		this->TargetLaser_Time.Read(exINI, pSection, "TargetLaser.Time");
+		this->TargetLaser_WeaponIdx.Read(exINI, pSection, "TargetLaser.WeaponIndexes");
+		this->AdjustCrushProperties();
 
-#pragma endregion
-
-	// Art tags
-	if (!pArtIni->GetSection(pArtSection))
-		return;
-
-	this->TurretOffset.Read(exArtINI, pArtSection, "TurretOffset");
-
-	char tempBuffer[32];
-	for (size_t i = 0; ; ++i)
-	{
-		NullableIdx<LaserTrailTypeClass> trail;
-		_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
-		trail.Read(exArtINI, pArtSection, tempBuffer);
-
-		if (!trail.isset())
-			break;
-
-		Valueable<CoordStruct> flh;
-		_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
-		flh.Read(exArtINI, pArtSection, tempBuffer);
-
-		Valueable<bool> isOnTurret;
-		_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
-		isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
-
-		this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
-	}
-
-#pragma region FLHs
-	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
-	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
-	TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
-
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
-
-	for (size_t i = 0;; i++)
-	{
-		char key[0x39];
-		Nullable<CoordStruct> alternateFLH;
-		sprintf_s(key, "AlternateFLH%u", i);
-		alternateFLH.Read(exArtINI, pArtSection, key);
-
-		if (i >= 5U && !alternateFLH.isset())
-			break;
-
-		this->AlternateFLHs.emplace_back(alternateFLH.Get());
-	}
-#pragma endregion FLHs
-
-	this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
-	this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
+		this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
+		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
 #pragma region Prereq
-	// Prerequisite.RequiredTheaters contains a list of theader names
-	const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
-	char* context = nullptr;
-	pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
+		// Prerequisite.RequiredTheaters contains a list of theader names
+		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
+		char* context = nullptr;
+		pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
 
-	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-	{
-		cur = CRT::strtrim(cur);
-		int index = Theater::FindIndex(cur);
-		if (index != -1)
-			Prerequisite_RequiredTheaters.push_back(index);
-	}
-
-	// Prerequisite with Generic Prerequistes support.
-	// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
-	const char* key_prereqs = "Prerequisite";
-	context = nullptr;
-	pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
-
-	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-	{
-		cur = CRT::strtrim(cur);
-		int idx = TechnoTypeClass::FindIndexById(cur);
-
-		if (idx >= 0)
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			Prerequisite.push_back(idx);
+			cur = CRT::strtrim(cur);
+			int index = Theater::FindIndex(cur);
+			if (index != -1)
+				Prerequisite_RequiredTheaters.push_back(index);
 		}
-		else
+
+		// Prerequisite with Generic Prerequistes support.
+		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
+		const char* key_prereqs = "Prerequisite";
+		context = nullptr;
+		pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
+
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			int index = HouseExt::FindGenericPrerequisite(cur);
-			if (index < 0)
-				Prerequisite.push_back(index);
-		}
-	}
+			cur = CRT::strtrim(cur);
+			int idx = TechnoTypeClass::FindIndexById(cur);
 
-	// Prerequisite.Negative with Generic Prerequistes support
-	const char* key_prereqsNegative = "Prerequisite.Negative";
-	context = nullptr;
-	pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
-
-	for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-	{
-		cur = CRT::strtrim(cur);
-		int idx = TechnoTypeClass::FindIndexById(cur);
-
-		if (idx >= 0)
-		{
-			Prerequisite_Negative.push_back(idx);
-		}
-		else
-		{
-			int index = HouseExt::FindGenericPrerequisite(cur);
-			if (index < 0)
-				Prerequisite_Negative.push_back(index);
-		}
-	}
-
-	// Prerequisite.ListX with Generic Prerequistes support
-	this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
-
-	if (Prerequisite_Lists.Get() > 0)
-	{
-		for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
-		{
-			char keySection[32];
-			_snprintf_s(keySection, sizeof(keySection), "Prerequisite.List%d", i);
-
-			std::vector<int> objectsList;
-			char* context2 = nullptr;
-			pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
-
-			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+			if (idx >= 0)
 			{
-				cur = CRT::strtrim(cur);
-				int idx = TechnoTypeClass::FindIndexById(cur);
-
-				if (idx >= 0)
-				{
-					objectsList.push_back(idx);
-				}
-				else
-				{
-					int index = HouseExt::FindGenericPrerequisite(cur);
-					if (index < 0)
-						objectsList.push_back(index);
-				}
+				Prerequisite.push_back(idx);
 			}
-
-			Prerequisite_ListVector.push_back(objectsList);
+			else
+			{
+				int index = HouseExt::FindGenericPrerequisite(cur);
+				if (index < 0)
+					Prerequisite.push_back(index);
+			}
 		}
-	}
+
+		// Prerequisite.Negative with Generic Prerequistes support
+		const char* key_prereqsNegative = "Prerequisite.Negative";
+		context = nullptr;
+		pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
+
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			cur = CRT::strtrim(cur);
+			int idx = TechnoTypeClass::FindIndexById(cur);
+
+			if (idx >= 0)
+			{
+				Prerequisite_Negative.push_back(idx);
+			}
+			else
+			{
+				int index = HouseExt::FindGenericPrerequisite(cur);
+				if (index < 0)
+					Prerequisite_Negative.push_back(index);
+			}
+		}
+
+		// Prerequisite.ListX with Generic Prerequistes support
+		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
+
+		if (Prerequisite_Lists.Get() > 0)
+		{
+			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
+			{
+				char keySection[32];
+				_snprintf_s(keySection, sizeof(keySection), "Prerequisite.List%d", i);
+
+				std::vector<int> objectsList;
+				char* context2 = nullptr;
+				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
+
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+				{
+					cur = CRT::strtrim(cur);
+					int idx = TechnoTypeClass::FindIndexById(cur);
+
+					if (idx >= 0)
+					{
+						objectsList.push_back(idx);
+					}
+					else
+					{
+						int index = HouseExt::FindGenericPrerequisite(cur);
+						if (index < 0)
+							objectsList.push_back(index);
+					}
+				}
+
+				Prerequisite_ListVector.push_back(objectsList);
+			}
+		}
 #pragma endregion Prereq
 
-	this->AttachedEffect.Read(exINI);
+		this->AttachedEffect.Read(exINI);
 
-#pragma region Otamaa
-
-	char HitCoord_tempBuffer[32];
-	for (size_t i = 0; ; ++i)
-	{
-		Nullable<CoordStruct> nHitBuff;
-		_snprintf_s(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
-		nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
-
-		if (!nHitBuff.isset() || !nHitBuff.Get())
-			break;
-
-		this->HitCoordOffset.push_back(nHitBuff.Get());
 	}
 
-	this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
+	// Art tags
+	if (pArtIni->GetSection(pArtSection))
+	{
+		INI_EX exArtINI(pArtIni);
 
-	this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection, "SpawnOffset");
-	this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
+		this->TurretOffset.Read(exArtINI, pArtSection, "TurretOffset");
 
-	LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
+		char tempBuffer[32];
+		for (size_t i = 0; ; ++i)
+		{
+			NullableIdx<LaserTrailTypeClass> trail;
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
+			trail.Read(exArtINI, pArtSection, tempBuffer);
+
+			if (!trail.isset())
+				break;
+
+			Valueable<CoordStruct> flh;
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
+			flh.Read(exArtINI, pArtSection, tempBuffer);
+
+			Valueable<bool> isOnTurret;
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
+			isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
+
+			this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
+		}
+
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
+
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
+
+		for (size_t i = 0;; i++)
+		{
+			char key[0x39];
+			Nullable<CoordStruct> alternateFLH;
+			sprintf_s(key, "AlternateFLH%u", i);
+			alternateFLH.Read(exArtINI, pArtSection, key);
+
+			if (i >= 5U && !alternateFLH.isset())
+				break;
+
+			this->AlternateFLHs.emplace_back(alternateFLH.Get());
+		}
+
+		char HitCoord_tempBuffer[32];
+		for (size_t i = 0; ; ++i)
+		{
+			Nullable<CoordStruct> nHitBuff;
+			_snprintf_s(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
+			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
+
+			if (!nHitBuff.isset() || !nHitBuff.Get())
+				break;
+
+			this->HitCoordOffset.push_back(nHitBuff.Get());
+		}
+
+		this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
+
+		this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection, "SpawnOffset");
+		this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
+
+		LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
-	TechnoTypeExt::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
 
-	this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
-	this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
-	this->Trails.Read(exArtINI, pArtSection, true);
+		this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
+		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
+		this->Trails.Read(exArtINI, pArtSection, true);
 #endif
+	}
 
-#pragma endregion
 }
 
 

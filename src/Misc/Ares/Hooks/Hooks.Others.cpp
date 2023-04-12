@@ -1790,12 +1790,19 @@ DEFINE_OVERRIDE_HOOK(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
 	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
 }
 
-DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
-{
-	BuildingTypeClass::InitOneTimeData();
-	UnitTypeClass::InitOneTimeData();
-	return 0x531749;
-}
+// bugfix #187: Westwood idiocy
+DEFINE_OVERRIDE_SKIP_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix1, 5, 53173A)
+
+// bugfix #187: Westwood idiocy
+DEFINE_OVERRIDE_SKIP_HOOK(0x53173F, Game_BulkDataInit_MultipleDataInitFix2, 5, 531749)
+
+//this hook taking a lot of time , i guess because of UnitTypeClass::InitOneTimeData thing
+// DEFINE_OVERRIDE_HOOK(0x531726, Game_BulkDataInit_MultipleDataInitFix, 5)
+// {
+// 	BuildingTypeClass::InitOneTimeData();
+// 	UnitTypeClass::InitOneTimeData();
+// 	return 0x531749;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x535DB6, SetStructureTabCommandClass_Execute_Power, 6)
 {

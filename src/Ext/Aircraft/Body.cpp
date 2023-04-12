@@ -59,6 +59,8 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	}
 }
 
+#include <Ext/TerrainType/Body.h>
+
 bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 {
 	if (const auto pPassanger = pThis->Passengers.GetFirstPassenger())
@@ -67,9 +69,27 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 		{
 			const auto pDestCell = MapClass::Instance->GetCellAt(pDest->GetCoords());
 
+			//if (const auto pTerrain = pDestCell->GetTerrain(false)) {
+			//	const auto pExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
+
+			//	if (pExt->IsPassable)
+			//		return true;
+
+			//	if (Is_Unit(pPassanger))
+			//	{
+			//		if (pTerrain->Type->Crushable)
+			//		{
+			//			if (TechnoTypeExt::ExtMap.Find(pPassanger->GetTechnoType())
+			//				->CrushLevel.Get(pPassanger) > pExt->CrushableLevel)
+			//			{
+			//				return true;
+			//			}
+			//		}
+			//	}
+			//}
+
 			return pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
-				&& pDestCell->OverlayTypeIndex == -1
-				&& pDestCell->IsValidMapCoords();
+				&& pDestCell->OverlayTypeIndex == -1;
 		}
 	}
 

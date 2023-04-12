@@ -309,6 +309,7 @@ void WarheadTypeExt::ExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeCl
 	}
 }
 
+
 void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords)
 {
 	//if (pBullet && pBullet->WeaponType && (pBullet->WeaponType->IsLaser) && pOwner) {

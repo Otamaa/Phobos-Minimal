@@ -2790,31 +2790,14 @@ void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 	if (!bImmune_pt1 && !bImmune_pt2)
 	{
-		auto const nArmor = pType->Armor;
-		auto const pArmor = ArmorTypeClass::Array[(int)nArmor];
+		const int nArmor = (int)pType->Armor;
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
 #endif
 
-		if ((!pWarheadExt->ArmorHitAnim.empty()))
 		{
-			AnimTypeClass* pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default((int)nArmor);
-
-			if (!pAnimTypeDecided && pArmor->DefaultTo != -1)
-			{
-				//Holy shit !
-				for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo];
-					pDefArmor && pDefArmor->DefaultTo != -1;
-					pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo])
-				{
-					pAnimTypeDecided = pWarheadExt->ArmorHitAnim.get_or_default(pDefArmor->DefaultTo);
-					if (pAnimTypeDecided)
-						break;
-				}
-			}
-
-			if (pAnimTypeDecided)
+			if (const auto pAnimTypeDecided = pWarheadExt->GetArmorHitAnim(nArmor))
 			{
 				CoordStruct nBuffer { 0, 0 , 0 };
 
@@ -4455,7 +4438,6 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	bool ret = true;
 	if (const auto pFoot = generic_cast<FootClass*>(pThis))
 	{
-
 		const auto pType = pFoot->GetTechnoType();
 		if (!pType->Bunkerable || !pType->Turret)
 			ret = false;
@@ -4754,13 +4736,6 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 	R->EAX(pCell->OverlayTypeIndex);
 	return pCell->OverlayTypeIndex != -1 ? 0x4B19A1 : 0x4B1A04;
 }
-
-//DEFINE_HOOK(0x5301AC, Expandmd_Count, 0x9)
-//{
-//	R->EDI(512);
-//
-//	return 0x53028A;
-//}
 
 // this shit is something fuckup check 
 // it check if not unit then check if itself is not infantry is building 

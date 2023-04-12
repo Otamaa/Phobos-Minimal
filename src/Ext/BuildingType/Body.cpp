@@ -381,6 +381,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 
 	return fFactor;
 }
+
 double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
 {
 	return BuildingTypeExt::GetExternalFactorySpeedBonus(pWhat, pWhat->GetOwningHouse());

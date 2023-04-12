@@ -34,11 +34,10 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
 	}
 
-	INI_EX exINI(pINI);
-
 	if (!pINI->GetSection(pID))
 		return;
 
+	INI_EX exINI(pINI);
 	this->Palette.Read(pINI, pID, "CustomPalette");
 	this->CreateUnit.Read(exINI, pID, "CreateUnit");
 	this->CreateUnit_Facing.Read(exINI, pID, "CreateUnit.Facing");
@@ -72,7 +71,6 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
-
 
 #pragma region Otamaa
 

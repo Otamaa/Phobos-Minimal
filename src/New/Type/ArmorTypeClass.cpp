@@ -96,7 +96,8 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 		return;
 	}
 
-	pWHExt->Verses.reserve(Array.size());
+	if(pWHExt->Verses.size() < Array.size())
+		pWHExt->Verses.reserve(Array.size());
 
 	while (pWHExt->Verses.size() < Array.size())
 	{
@@ -132,7 +133,6 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", nVersus, pName);
 		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, buffer, nVers->Flags.PassiveAcquire);
-
 	}
 }
 

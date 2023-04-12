@@ -20,7 +20,7 @@
 WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 void WarheadTypeExt::ExtData::InitializeConstants()
 {
-	this->Launchs.reserve(2);
+	Launchs.reserve(2);
 	SuppressDeathWeapon.reserve(8);
 	SuppressDeathWeapon_Exclude.reserve(8);
 	LimboKill_IDs.reserve(8);
@@ -434,28 +434,13 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 
 std::vector<std::string> UnParsedThing::UnparsedList {};
 
+std::chrono::steady_clock::time_point StartTime_WH;
 void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), pSection);
-
-	if (!pINI->GetSection(pSection))
-	{
-
-		//auto const Iter = std::find(UnParsedThing::UnparsedList.begin() , UnParsedThing::UnparsedList.end() , pSection);
-		//if (Iter != UnParsedThing::UnparsedList.end()) {
-		//	UnParsedThing::UnparsedList.erase(Iter);
-		//} else {
-		//	UnParsedThing::UnparsedList.push_back(pSection);
-		//}
-
-		ArmorTypeClass::LoadForWarhead(pINI, pThis);
-		return;
-	}
-
-	INI_EX exINI(pINI);
-
+	StartTime_WH = std::chrono::high_resolution_clock::now();
 	// writing custom verses parser just because
 	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer))
 	{
@@ -476,6 +461,16 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto ret = std::chrono::duration_cast<std::chrono::microseconds>(StartTime_WH - stop);
+	GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pThis,ret.count());
+
+	if (!pINI->GetSection(pSection)) {
+		return;
+	}
+
+	INI_EX exINI(pINI);
 
 	//pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
 	//	this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0);
@@ -616,16 +611,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->DebrisAnimTypes.Read(exINI, pSection, "DebrisAnims");
 	this->Flammability.Read(exINI, pSection, "FlameChance");
 
-	if (this->Launchs.empty())
+	this->Launchs.clear();
+	for (size_t i = 0; ; ++i)
 	{
-		for (size_t i = 0; ; ++i)
-		{
-			LauchSWData nData;
-			if (!nData.Read(exINI, pSection, i))
-				break;
+		LauchSWData nData;
+		if (!nData.Read(exINI, pSection, i))
+			break;
 
-			this->Launchs.push_back((nData));
-		}
+		this->Launchs.push_back((nData));
 	}
 
 	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
@@ -635,26 +628,20 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
-	auto ReadHitAnim = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
+	if (ArmorHitAnim.size() < ArmorTypeClass::Array.size())
+		ArmorHitAnim.resize(ArmorTypeClass::Array.size());
+
+	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 	{
-		char tempBuffer[2048];
-		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
-		{
-			Nullable<AnimTypeClass*> pAnimReaded;
-			if (const auto pArmor = ArmorTypeClass::Array[i])
-			{
-				_snprintf_s(tempBuffer, _TRUNCATE, "%s.%s", pBaseKey, pArmor->Name.data());
-				pAnimReaded.Read(exINI, pSection, tempBuffer, bAllocate);
-			}
+		Nullable<AnimTypeClass*> pAnimReaded;
+		_snprintf_s(Phobos::readBuffer, _TRUNCATE, "%s.%s", "HitAnim", ArmorTypeClass::Array[i]->Name.data());
+		pAnimReaded.Read(exINI, pSection, Phobos::readBuffer, true);
 
-			if (!pAnimReaded.isset())
-				continue;
+		if (!pAnimReaded.isset())
+			continue;
 
-			ArmorHitAnim[i] = pAnimReaded.Get();
-		}
-	};
-
-	ReadHitAnim("HitAnim");
+		ArmorHitAnim[i] = pAnimReaded.Get();
+	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
 	this->Remover.Read(exINI, pSection, "Remover");
@@ -720,12 +707,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
 
 	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
-
-	if (pThis->Temporal)
-	{
-		this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
-	}
-
+	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
 	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
 	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
 
@@ -749,7 +731,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
-	PaintBallData.Read(exINI, pSection);
+	this->PaintBallData.Read(exINI, pSection);
 #endif
 #pragma endregion
 
@@ -767,6 +749,24 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RelativeDamage_Infantry.Read(exINI, pSection, "RelativeDamage.Infantry");
 	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
 	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
+}
+
+AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
+{
+	const auto pArmor = ArmorTypeClass::Array[Armor];
+
+	if (!this->ArmorHitAnim[Armor] && pArmor->DefaultTo != -1)
+	{
+		for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo];
+			pDefArmor && pDefArmor->DefaultTo != -1;
+			pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo])
+		{
+			if (auto const pDecided = this->ArmorHitAnim[pDefArmor->DefaultTo])
+				return pDecided;
+		}
+	}
+
+	return this->ArmorHitAnim[Armor];
 }
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)

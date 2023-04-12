@@ -830,16 +830,16 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
 {
 	//Debug::Log(__FUNCTION__" Called ! \n");
-	std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](BuildingTypeClass* pType) {
-		if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
-		pExt->CompleteInitialization();
-	});
+	// std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](BuildingTypeClass* pType) {
+	// 	if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
+	// 	pExt->CompleteInitialization();
+	// });
 
 	// TODO :
-	std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [](TechnoTypeClass* pType) {
-	if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
-		pExt->Initialize();
-	});
+	//std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [](TechnoTypeClass* pType) {
+	//if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
+	//	pExt->Initialize();
+	//});
 
 	return 0;
 }

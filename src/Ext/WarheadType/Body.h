@@ -166,7 +166,7 @@ public:
 		Valueable<bool> Remover;
 		Valueable<AnimTypeClass*> Remover_Anim;
 
-		PhobosMap<int, AnimTypeClass*> ArmorHitAnim;
+		ValueableVector<AnimTypeClass*> ArmorHitAnim;
 
 		NullableVector<AnimTypeClass*> DebrisAnimTypes;
 		NullableVector<AnimTypeClass*> SquidSplash;
@@ -486,6 +486,7 @@ public:
 
 		{	
 			Verses.resize(Unsorted::ArmorNameArray.c_size());
+			ArmorHitAnim.resize(Unsorted::ArmorNameArray.c_size());
 		}
 
 	private:
@@ -550,6 +551,8 @@ public:
 		virtual void InitializeConstants()override;
 
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		AnimTypeClass* GetArmorHitAnim(int Armor);
 
 	private:
 		template <typename T>
