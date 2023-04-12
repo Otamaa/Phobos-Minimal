@@ -3147,47 +3147,47 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //static constexpr CoordStruct Data3 {};
 //static constexpr CellStruct Data4 {};
 
-DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-{
-	GET(UnitClass*, pThis, EBP);
-	const auto deploysInto = pThis->Type->DeploysInto;
-	CellStruct mapCoords = pThis->InlineMapCoords();
-	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-
-	const short width = deploysInto->GetFoundationWidth();
-	const short height = deploysInto->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-
-	return 0x7394BE;
-}
-
-DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-{
-	GET(BuildingClass*, pThis, EBP);
-	CellStruct mapCoords = pThis->InlineMapCoords();
-
-	const short width = pThis->Type->GetFoundationWidth();
-	const short height = pThis->Type->GetFoundationHeight(false);
-
-	if (width > 2)
-		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-	if (height > 2)
-		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-
-	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-	auto coords = (CoordStruct*)&location.Z;
-	coords->X = (mapCoords.X << 8) + 128;
-	coords->Y = (mapCoords.Y << 8) + 128;
-	coords->Z = pThis->Location.Z;
-
-	return 0x449F12;
-}
+//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+//{
+//	GET(UnitClass*, pThis, EBP);
+//	const auto deploysInto = pThis->Type->DeploysInto;
+//	CellStruct mapCoords = pThis->InlineMapCoords();
+//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+//
+//	const short width = deploysInto->GetFoundationWidth();
+//	const short height = deploysInto->GetFoundationHeight(false);
+//
+//	if (width > 2)
+//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+//
+//	return 0x7394BE;
+//}
+//
+//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+//{
+//	GET(BuildingClass*, pThis, EBP);
+//	CellStruct mapCoords = pThis->InlineMapCoords();
+//
+//	const short width = pThis->Type->GetFoundationWidth();
+//	const short height = pThis->Type->GetFoundationHeight(false);
+//
+//	if (width > 2)
+//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+//	if (height > 2)
+//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+//
+//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+//	auto coords = (CoordStruct*)&location.Z;
+//	coords->X = (mapCoords.X << 8) + 128;
+//	coords->Y = (mapCoords.Y << 8) + 128;
+//	coords->Z = pThis->Location.Z;
+//
+//	return 0x449F12;
+//}
 
 //DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{
@@ -4564,35 +4564,35 @@ struct TechnoTypeExt_Gscript
 //		0x73958A : 0x0;
 //}
 
-DEFINE_HOOK(0x73F015, UnitClass_Mi_Hunt_MCVFindSpotReworked, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	const auto nMissionStatus = pThis->MissionStatus;
-	if (!nMissionStatus)
-	{
-		if (!pThis->GetHeight())
-		{
-			if (pThis->GotoClearSpot() && pThis->TryToDeploy())
-			{
-				pThis->MissionStatus = 1;
-				return 0x73F059;
-			}
-
-			pThis->Scatter(CoordStruct::Empty, true, false);
-		}
-
-		return 0x73F059;
-	}
-
-	if (nMissionStatus != 1)
-		return 0x73F059;
-
-	if (!pThis->Deploying)
-		pThis->MissionStatus = 0;
-
-	return 0x73F059;
-}
+//DEFINE_HOOK(0x73F015, UnitClass_Mi_Hunt_MCVFindSpotReworked, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const auto nMissionStatus = pThis->MissionStatus;
+//	if (!nMissionStatus)
+//	{
+//		if (!pThis->GetHeight())
+//		{
+//			if (pThis->GotoClearSpot() && pThis->TryToDeploy())
+//			{
+//				pThis->MissionStatus = 1;
+//				return 0x73F059;
+//			}
+//
+//			pThis->Scatter(CoordStruct::Empty, true, false);
+//		}
+//
+//		return 0x73F059;
+//	}
+//
+//	if (nMissionStatus != 1)
+//		return 0x73F059;
+//
+//	if (!pThis->Deploying)
+//		pThis->MissionStatus = 0;
+//
+//	return 0x73F059;
+//}
 
 //DEFINE_HOOK(0x6F4974, TechnoClass_UpdateDiscovered_ByPlayer, 0x6)
 //{
@@ -4769,3 +4769,9 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 //
 //	return bConditionMet ? 0x6FA6AC : 0x6FA6F5;
 //}
+
+void PlayReloadEffects(TechnoClass* pThis , int report , int sound)
+{
+	VocClass::PlayIndexAtPos(report, pThis->Location);
+	VocClass::PlayIndexAtPos(sound, pThis->Location);
+}

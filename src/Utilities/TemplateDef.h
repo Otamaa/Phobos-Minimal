@@ -177,7 +177,7 @@ namespace detail
 			case 3: value = HorizontalPosition::Right; return true;
 			default:
 			error:
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Horizontal Position can be either Left, Center/Centre or Right");
 				break;
 			}
 		}
@@ -204,7 +204,7 @@ namespace detail
 			if (result == 0 || !found)
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(),
-				"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
+				"[Phobos] Content.VariableFormat can be either none, prefixed, suffixed or fraction");
 				return false;
 			}
 			else
@@ -230,7 +230,7 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Vertical Position can be either Top, Center/Centre or Bottom");
 
 		}
 		return false;
@@ -247,7 +247,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid boolean value [1, true, yes, 0, false, no]");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid boolean value [1, true, yes, 0, false, no]");
 		}
 		return false;
 	}
@@ -264,7 +264,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
 		}
 
 		return false;
@@ -309,12 +309,12 @@ namespace detail
 			}
 			else
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number between 0 and 255 inclusive.");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number between 0 and 255 inclusive.");
 			}
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
 		}
 		return false;
 	}
@@ -330,7 +330,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
 		}
 		return false;
 	}
@@ -346,7 +346,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
 		}
 		return false;
 	}
@@ -425,7 +425,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 BYTE Value");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid 3 BYTE Value");
 		}
 		return false;
 	}
@@ -531,7 +531,7 @@ namespace detail
 			}
 			else
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a self heal gain type");
 				return false;
 			}
 			return true;
@@ -558,7 +558,7 @@ namespace detail
 
 			if (!found)
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a free-slave option, default to killer");
 				return false;
 			}
 
@@ -597,7 +597,7 @@ namespace detail
 
 			if (!found)
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a kill method, default disabled");
 				return false;
 			}
 
@@ -639,7 +639,7 @@ namespace detail
 					return true;
 				}
 
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] IronCurtainFlag can be either kill, invulnerable, ignore or random");
 
 			}
 
@@ -742,7 +742,7 @@ namespace detail
 		}
 		else if (!parser.empty())
 		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
 		}
 
 		return false;
@@ -762,7 +762,7 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a owner house kind");
 		}
 		return false;
 	}
@@ -798,7 +798,7 @@ namespace detail
 
 			if (!found)// no match ever found 
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting mode");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a targeting mode");
 				return false;
 			}
 
@@ -816,7 +816,6 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			value = AffectedTarget::None;
 			char* context = nullptr;
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
@@ -839,25 +838,28 @@ namespace detail
 
 				switch (result)
 				{
-				case 1: value |= AffectedTarget::Land; return true;
-				case 2: value |= AffectedTarget::Water; return true;
-				case 3: value |= AffectedTarget::NoContent; return true;
-				case 4: value |= AffectedTarget::Infantry; return true;
-				case 5: value |= AffectedTarget::Unit; return true;
-				case 6: value |= AffectedTarget::Building; return true;
-				case 7: value |= AffectedTarget::Aircraft; return true;
-				case 8: value |= AffectedTarget::All; return true;
-				case 9: value |= AffectedTarget::AllCells; return true;
-				case 10: value |= AffectedTarget::AllTechnos; return true;
-				case 11: value |= AffectedTarget::AllContents; return true;
+				case 0: value |= AffectedTarget::None; break;
+				case 1: value |= AffectedTarget::Land; break;
+				case 2: value |= AffectedTarget::Water; break;
+				case 14:
+				case 3: value |= AffectedTarget::NoContent; break;
+				case 4: value |= AffectedTarget::Infantry; break;
+				case 5: 
+				case 6: value |= AffectedTarget::Unit; break;
+				case 7: 
+				case 8: value |= AffectedTarget::Building; break;
+				case 9: value |= AffectedTarget::Aircraft; break;
+				case 10: value |= AffectedTarget::All; break;
+				case 11: value |= AffectedTarget::AllCells; break;
+				case 12: value |= AffectedTarget::AllTechnos; break;
+				case 13: value |= AffectedTarget::AllContents; break;
 				default:
 				error:
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected target");
 					break;
 				}
 
 			}
-
 		}
 		return false;
 	}
@@ -888,36 +890,43 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
+			char* context = nullptr;
+			for (auto pCur = strtok_s(parser.value(), 
+				Phobos::readDelims, &context); 
+				pCur; 
+				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
-				if (IS_SAME_STR_(parser.value(), pString))
+				size_t result = 0;
+				bool found = false;
+				for (auto const& pString : EnumFunctions::AffectedHouse_ToStrings)
 				{
-					found = true;
+					if (IS_SAME_STR_(pCur, pString))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+					goto error;
+
+				switch (result)
+				{
+				case 1:
+				case 2: value |= AffectedHouse::Owner; break;
+				case 3:
+				case 4: value |= AffectedHouse::Allies; break;
+				case 5:
+				case 6: value |= AffectedHouse::Enemies; break;
+				case 7: value |= AffectedHouse::Team; break;
+				case 8: value |= AffectedHouse::NotOwner; break;
+				case 9: value |= AffectedHouse::All; break;
+				default:
+				error:
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected house");
 					break;
 				}
-				++result;
-			}
-
-			if (!found)
-				goto error;
-
-			switch (result)
-			{
-			case 1:
-			case 2: value |= AffectedHouse::Owner; return true;
-			case 3:
-			case 4: value |= AffectedHouse::Allies; return true;
-			case 5:
-			case 6: value |= AffectedHouse::Enemies; return true;
-			case 7: value |= AffectedHouse::Team; return true;
-			case 8: value |= AffectedHouse::NotOwner; return true;
-			case 9: value |= AffectedHouse::All; return true;
-			default:
-				error:
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
-				break;
 			}
 		}
 		return false;
@@ -951,7 +960,7 @@ namespace detail
 			case 4: value = AttachedAnimFlag::PausedTemporal; return true;
 			default:
 				error:
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a AttachedAnimFlag");
 				break;
 			}
 		}
@@ -972,7 +981,7 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an area fire target");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected an area fire target");
 
 		}
 		return false;
@@ -1005,7 +1014,7 @@ namespace detail
 			case 3: value = TextAlign::Right; return true;
 			default:
 				error:
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Text Alignment can be either Left, Center/Centre or Right");
 				break;
 			}
 		}
@@ -1028,7 +1037,7 @@ namespace detail
 			}
 
 			if (!INIClass::IsBlank(parser.value()) && !allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expect a Valid Layer !");
 
 		}
 
@@ -1056,7 +1065,7 @@ namespace detail
 			}
 
 			if (!allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expect a Valid AbstractType !");
 		}
 
 		return false;
@@ -1137,7 +1146,9 @@ namespace detail
 	void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
 		char* context = nullptr;
-		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			pCur; 
+			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			auto buffer = T();
 			if (Parser<T>::Parse(pCur, &buffer))

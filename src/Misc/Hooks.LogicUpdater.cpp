@@ -158,10 +158,10 @@ DEFINE_HOOK(0x736479, UnitClass_AI_FootClass_AI, 0x7)
 	GET(UnitClass*, pThis, ESI);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	//const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	JJFacingFunctional::AI(pExt, pTypeExt);
+	//JJFacingFunctional::AI(pExt, pTypeExt);
 #endif
 	pThis->FootClass::Update();
 

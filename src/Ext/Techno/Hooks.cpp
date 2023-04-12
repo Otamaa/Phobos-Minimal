@@ -161,6 +161,23 @@ DEFINE_HOOK(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	return 0;
 }
 
+DEFINE_HOOK(0x4DBF13, FootClass_SetOwningHouse, 0x6)
+{
+	GET(FootClass* const, pThis, ESI);
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
+	for (auto& trail : pExt->LaserTrails) {
+		if (trail.Type->IsHouseColor)
+			trail.CurrentColor = (pThis->Owner ? pThis->Owner : HouseExt::FindCivilianSide())
+			->LaserColor;
+	}
+
+	//if (pThis->Owner->IsHumanPlayer)
+	//	TechnoExt::ChangeOwnerMissionFix(pThis);
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6FB086, TechnoClass_Reload_ReloadAmount_UpdateSharedAmmo, 0x8)
 {
 	GET(TechnoClass* const, pThis, ECX);

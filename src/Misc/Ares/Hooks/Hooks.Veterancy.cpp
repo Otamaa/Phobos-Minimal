@@ -87,12 +87,18 @@ struct TechnoExperienceData
 		return false;
 	}
 
-	static void AddExperience(TechnoClass* pExtReceiver, int victimCost, double factor)
+	static void AddExperience(TechnoClass* pExtReceiver, TechnoClass* pVictim , int victimCost, double factor)
 	{
-		const auto TechnoCost = pExtReceiver->GetTechnoType()->GetActualCost(pExtReceiver->Owner);
-		const auto WeightedVictimCost = static_cast<int>(victimCost * factor);
-		if (TechnoCost > 0 && WeightedVictimCost > 0)
-		{
+		const auto pExpReceiverType = pExtReceiver->GetTechnoType();
+		const auto pVinctimType = pVictim->GetTechnoType();
+		const auto TechnoCost = pExpReceiverType->GetActualCost(pExtReceiver->Owner);
+		const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVinctimType);
+		const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pExpReceiverType);
+
+		const auto WeightedVictimCost = static_cast<int>(victimCost * factor *
+			pKillerTypeExt->Experience_KillerMultiple * pVictimTypeExt->Experience_VictimMultiple);
+
+		if (TechnoCost > 0 && WeightedVictimCost > 0) {
 			pExtReceiver->Veterancy.Add(TechnoCost, WeightedVictimCost);
 		}
 	}
@@ -113,7 +119,7 @@ struct TechnoExperienceData
 				if (pTController->Trainable)
 				{
 					// the mind controller gets its own factor
-					AddExperience(pController, victimCost, d_factor * pTControllerData->MindControlExperienceSelfModifier);
+					AddExperience(pController, pVictim, victimCost, d_factor * pTControllerData->MindControlExperienceSelfModifier);
 				}
 
 				// modify the cost of the victim.
@@ -217,11 +223,10 @@ struct TechnoExperienceData
 		}
 	}
 
-	static void UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoClass* pKiller, TechnoClass* pVictim, int VictimCost, double& d_factor, bool promoteImmediately)
+	static void UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoClass* pKiller, TechnoClass* pVictim, int VictimCost, double& d_factor, bool promoteImmediately) 
 	{
 		if (pExpReceiver)
 		{
-
 			// no way to get experience by proxy by an enemy unit. you cannot
 			// promote your mind-controller by capturing friendly units.
 			if (pExpReceiver->Owner->IsAlliedWith(pKiller))
@@ -236,12 +241,12 @@ struct TechnoExperienceData
 				MCControllerGainExperince(pExpReceiver, pVictim, d_factor, VictimCost);
 
 				// default. promote the unit this function selected.
-				AddExperience(pExpReceiver, VictimCost, d_factor);
+				AddExperience(pExpReceiver, pVictim, VictimCost, d_factor);
 
 				// if there is a spawn, let it get its share.
 				if (pSpawn)
 				{
-					AddExperience(pSpawn, VictimCost, d_factor * SpawnFactor);
+					AddExperience(pSpawn, pVictim, VictimCost, d_factor * SpawnFactor);
 				}
 
 				// gunners need to be promoted manually, or they won't only get

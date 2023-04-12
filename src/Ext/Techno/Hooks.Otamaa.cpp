@@ -505,20 +505,20 @@ DEFINE_HOOK(0x6F3B2E, TechnoClass_Transform_FLH, 0x6)
 	return 0x6F3B37;
 }*/
 
-DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
-{
-	GET(TechnoClass*, pVictim, ESI);
-	GET(TechnoClass*, pKiller, EDI);
-	GET(int, cost, EBP);
+// DEFINE_HOOK(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
+// {
+// 	GET(TechnoClass*, pVictim, ESI);
+// 	GET(TechnoClass*, pKiller, EDI);
+// 	GET(int, cost, EBP);
 
-	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
-	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
-	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
-	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
+// 	const auto pVictimTypeExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+// 	const auto pKillerTypeExt = TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType());
+// 	const double giveExpMultiple = pVictimTypeExt->Experience_VictimMultiple.Get();
+// 	const double gainExpMultiple = pKillerTypeExt->Experience_KillerMultiple.Get();
 
-	R->EBP(int(cost * giveExpMultiple * gainExpMultiple));
+// 	R->EBP(int(cost * giveExpMultiple * gainExpMultiple));
 
-	return 0;
-}
+// 	return 0;
+// }
 
 #pragma endregion

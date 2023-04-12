@@ -151,13 +151,14 @@ std::array<const char* const, 10u> EnumFunctions::AffectedHouse_ToStrings
 }
 };
 
-std::array<const char* const, 12u> EnumFunctions::AffectedTarget_ToStrings
+std::array<const char* const, 15u> EnumFunctions::AffectedTarget_ToStrings
 {
 {
 	{NONE_STR2} , {"Land"} , {"Water"} ,
-	{"NoContent"} , {"Infantry"} , {"Unit"} ,
-	{"Building"} , {"Aircraft"} , {"All"} ,
-	{"AllCells"} , {"AllTechnos"} , {"AllContents"}
+	{"NoContent"} , {"Infantry"} ,
+	{"Unit"} , {"Units"} ,
+	{"Building"} , {"Buildings"} , {"Aircraft"} , {"All"} ,
+	{"AllCells"} , {"AllTechnos"} , {"AllContents"} ,  {"Empty"}
 }
 };
 

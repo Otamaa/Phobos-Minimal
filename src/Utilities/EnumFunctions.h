@@ -28,7 +28,7 @@ public:
 	static std::array<const char* const, 3u> AreaFireTarget_ToStrings;
 	static std::array<const char* const, 5u> AttachedAnimFlag_ToStrings;
 	static std::array<const char* const, 10u> AffectedHouse_ToStrings;
-	static std::array<const char* const, 12u> AffectedTarget_ToStrings;
+	static std::array<const char* const, 15u> AffectedTarget_ToStrings;
 	static std::array<const char* const, 15u> SuperWeaponAITargetingMode_ToStrings;
 	static std::array<const char* const, 8u> OwnerHouseKind_ToStrings;
 	static std::array<const char* const, 5u> IronCurtainFlag_ToStrings;

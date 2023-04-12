@@ -440,7 +440,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), pSection);
-	StartTime_WH = std::chrono::high_resolution_clock::now();
+	//StartTime_WH = std::chrono::high_resolution_clock::now();
 	// writing custom verses parser just because
 	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer))
 	{
@@ -462,9 +462,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
 
-	auto stop = std::chrono::high_resolution_clock::now();
-	auto ret = std::chrono::duration_cast<std::chrono::microseconds>(StartTime_WH - stop);
-	GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pSection ,ret.count());
+	//auto stop = std::chrono::high_resolution_clock::now();
+	//auto ret = std::chrono::duration_cast<std::chrono::microseconds>(StartTime_WH - stop);
+	//GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pSection ,ret.count());
 
 	if (!pINI->GetSection(pSection)) {
 		return;
@@ -472,8 +472,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	INI_EX exINI(pINI);
 
-	//pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
-	//	this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0);
+	pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
+		this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0);
 
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");

@@ -9,33 +9,30 @@
 
 DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
-	//GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, ECX);
-	GET(TechnoTypeClass*, pThisType, EAX);
 
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThisType)->PipShapes01.Get(pPipShape01));
+	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes01.Get(pPipShape01));
 
 	return 0;
 }
 
 DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 {
-	//GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, EAX);
-	GET(TechnoTypeClass*, pThisType, EAX);
 
-	R->EAX(TechnoTypeExt::ExtMap.Find(pThisType)->PipShapes01.Get(pPipShape01));
+	R->EAX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes01.Get(pPipShape01));
 
 	return 0;
 }
 
 DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 {
-	//GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass*, pThis, EBP);
 	GET(SHPStruct*, pPipShape02, EBX);
-	GET(TechnoTypeClass*, pThisType, EAX);
 
-	R->EBX(TechnoTypeExt::ExtMap.Find(pThisType)->PipShapes02.Get(pPipShape02));
+	R->EBX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes02.Get(pPipShape02));
 
 	return 0;
 }

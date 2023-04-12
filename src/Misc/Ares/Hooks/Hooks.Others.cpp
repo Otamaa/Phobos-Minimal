@@ -2162,6 +2162,7 @@ DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 	R->EAX(pOwner->GetWeapon(Ares_ParasiteWeapon(pOwner)));
 	return 0x62A7BA;
 }
+
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)

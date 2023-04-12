@@ -51,8 +51,8 @@ void Debug::LogWithVArgs(const char* pFormat, va_list args)
 void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
 {
 	const char* LogMessage = (Message == nullptr)
-		? "Failed to parse INI file content: [%s]%s=%s\n"
-		: "Failed to parse INI file content: [%s]%s=%s (%s)\n"
+		? "[Phobos] Failed to parse INI file content: [%s]%s=%s\n"
+		: "[Phobos] Failed to parse INI file content: [%s]%s=%s (%s)\n"
 		;
 
 	Debug::Log(LogMessage, section, flag, value, Message);
