@@ -16,12 +16,9 @@ const char* Enumerable<ArmorTypeClass>::GetMainSection()
 
 void ArmorTypeClass::AddDefaults()
 {
-	if (!Array.empty())
-		return;
-
 	for (auto const& nDefault : Unsorted::ArmorNameArray)
 	{
-		AllocateNoCheck(nDefault);
+		FindOrAllocate(nDefault);
 	}
 }
 

@@ -54,19 +54,23 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	pExt->Type = pType;
 
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	pExt->CurrentShieldType = pTypeExt->ShieldType;
+	//if(IS_SAME_STR_(pType->ID , "YHARV"))
+	//	Debug::Log("Inited YHARD with shield [%s] ! \n" , pTypeExt->ShieldType);
 
 	//LineTrailExt::ConstructLineTrails(pThis);
 
-	pExt->IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType || pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type || pTypeExt->IsCustomMissile);
-	pExt->CurrentShieldType = pTypeExt->ShieldType;
+	pExt->IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
+	 pExt->Type == RulesClass::Instance->DMisl.Type || pExt->Type == RulesClass::Instance->CMisl.Type
+	 || pTypeExt->IsCustomMissile);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	pExt->PaintBallState = std::make_unique<PaintBall>();
 #endif
 	if (!Is_Building(pThis))
 	{
-		if (pTypeExt->LaserTrailData.size() > 0 && !pThis->GetTechnoType()->Invisible)
+		if (pTypeExt->LaserTrailData.size() > 0 && !pExt->Type->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 		TechnoExt::InitializeLaserTrail(pThis, false);

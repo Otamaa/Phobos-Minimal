@@ -29,10 +29,10 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
 	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 
-	if (!pINI)
-	{
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
-	}
+	//if (!pINI)
+	//{
+	//	Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
+	//}
 
 	if (!pINI->GetSection(pID))
 		return;

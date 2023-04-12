@@ -90,10 +90,7 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	static void AddDefaults() {
-		if (Array.empty())
-		{
-			Allocate(DEFAULT_STR2);
-		}
+		FindOrAllocate(DEFAULT_STR2);
 	}
 
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);

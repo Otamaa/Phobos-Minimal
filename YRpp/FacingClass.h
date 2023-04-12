@@ -63,6 +63,7 @@ public:
 
 		return true;
 	}
+
 	bool Set_Current(const DirStruct& facing)
 	{
 		bool ret = Current() != facing;

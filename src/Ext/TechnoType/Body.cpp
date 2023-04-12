@@ -54,6 +54,18 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 	PassengersBlacklist.reserve(10);
 	ParticleSystems_DamageSmoke.reserve(4);
 	ParticleSystems_DamageSparks.reserve(4);
+
+	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
+
+	if (Is_AircraftType(Get()))
+	{
+		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+	}
+
+	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 }
 
 void TechnoTypeExt::ExtData::Initialize()
@@ -201,18 +213,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
 
-	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
-
-	if (Is_AircraftType(Get()))
-	{
-		this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
-		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
-	}
-
-	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
-
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
@@ -284,7 +284,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		//
 
-		this->ShieldType.Read(exINI, pSection, "ShieldType", true);
+		this->ShieldType.Read(exINI, pSection, "ShieldType");
+
+		if (!IS_SAME_STR_(this->ShieldType->Name.data(),DEFAULT_STR2))
+			Debug::Log("TType[%s] with Shield Type [%s] ! \n", pSection, this->ShieldType->Name.data());
+
 		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
 		this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());

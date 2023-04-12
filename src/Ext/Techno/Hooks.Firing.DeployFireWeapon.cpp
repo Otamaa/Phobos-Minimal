@@ -60,7 +60,7 @@ DEFINE_HOOK(0x741288, UnitClass_CanFire_DeployFire, 0x6)
 		if (!pTypeExt->DeployFire_UpdateFacing) {
 			//R->EAX(FireError::OK); //yes , dont return facing error 
 			//return 0x74132B;
-			return 0x741327;
+			return 0x741327; //fireOK
 		}
 	}
 

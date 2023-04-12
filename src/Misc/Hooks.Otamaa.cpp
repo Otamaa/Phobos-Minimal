@@ -4667,7 +4667,6 @@ DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
 
 #include <Ext/TerrainType/Body.h>
 
-
 DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
@@ -4703,6 +4702,9 @@ DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 	return pCell->OverlayTypeIndex != -1 ? 0x73B00A : 0x73B074;
 }
 
+// 5B1020 , for mechLoco
+// 5B1404 , for mechLoco
+// 6A1025 , for shipLoco
 DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 {
 	GET(DriveLocomotionClass*, pLoco, EBP);
@@ -4775,3 +4777,162 @@ void PlayReloadEffects(TechnoClass* pThis , int report , int sound)
 	VocClass::PlayIndexAtPos(report, pThis->Location);
 	VocClass::PlayIndexAtPos(sound, pThis->Location);
 }
+
+DEFINE_HOOK(0x437C29 , sub_437A10_Lock_Bound_Fix, 7)
+{
+	GET_STACK(int, nX_comp, 0x30);
+	GET_STACK(int, nY_comp, 0x58);
+	GET(Surface*, pSurface, ECX);
+	GET(int, nX, EAX);
+	GET(int, nY, EDX);
+
+	if (nX >= nX_comp || nX < 0)
+		nX = 0;
+	if (nY >= nY_comp || nY < 0)
+		nY = 0;
+
+	R->EAX(pSurface->Lock(nX , nY));
+	return 0x437C30;
+}
+
+DEFINE_HOOK(0x73B02D, UnitClass_UpdatePos_CrushMovementZone, 0x6)
+{
+	GET(MovementZone, nZone, EAX);
+
+	return nZone == MovementZone::CrusherAll || nZone == MovementZone::Subterrannean ?
+		0x73B036 : 0x73B074;
+}
+
+//DEFINE_HOOK(0x73AFE3 , UnitClass_UpdatePosition_Crush, 6)
+//{
+//	GET(UnitClass*, pUnit, EBP);
+//	GET(CellClass*, pCell, EDI);
+//
+//	const auto pType = pUnit->Type;
+//	const auto nMovementZone = pType->MovementZone;
+//
+//	if (pType->Crusher || pUnit->HasAbility(AbilityType::Crusher))
+//	{
+//		if (auto pTerrain = pCell->GetTerrain(false))
+//		{
+//			if (pTerrain->IsAlive)
+//			{
+//				const auto pTType = pTerrain->Type;
+//				if (!pTType->SpawnsTiberium &&
+//					!pTType->Immune &&
+//					!TerrainTypeExt::ExtMap.Find(pTType)->IsPassable &&
+//					pTType->Crushable
+//					)
+//				{
+//					if (TechnoTypeExt::ExtMap.Find(pType)->CrushLevel.Get(pUnit) >
+//						TerrainTypeExt::ExtMap.Find(pTType)->CrushableLevel)
+//					{
+//						VocClass::PlayAt(pType->CrushSound, pUnit->Location);
+//						pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pUnit, true, true, pUnit->Owner);
+//
+//						if (pType->TiltsWhenCrushes)
+//							pUnit->RockingForwardsPerFrame += 0.02f;
+//
+//						pUnit->iscrusher_6B5 = false;
+//					}
+//				}
+//			}
+//		}
+//
+//		if (pCell->OverlayTypeIndex != -1)
+//		{
+//			const auto pOverlayType = OverlayTypeClass::Array->GetItem(pCell->OverlayTypeIndex);
+//			if (pOverlayType->Crushable
+//			  || pOverlayType->Wall
+//			  && (nMovementZone == MovementZone::CrusherAll) || nMovementZone == MovementZone::Subterrannean)
+//			{
+//				VocClass::PlayIndexAtPos(pOverlayType->CrushSound, pUnit->Location, 0);
+//				pCell->ReduceWall();
+//				pUnit->iscrusher_6B5 = 0;
+//				pUnit->RockingForwardsPerFrame += 0.02f;
+//			}
+//		}
+//	}
+//
+//	return 0x73B074;
+//}
+
+// the techno seems dont like it 
+// something missing
+bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct* Dir)
+{
+	if (!Dir && !pTarget)
+		return true;
+
+	auto nPriFacing = (short)pThis->PrimaryFacing.Current().Raw;
+	auto nUnsigned_RawFacing = Dir ? (short)Dir->Raw : (short)pThis->GetDirectionOverObject(pTarget).Raw;
+
+	int v8 = (((nPriFacing >> 7) + 1) >> 1);
+	int v9 = (((nUnsigned_RawFacing >> 7) + 1) >> 1);
+
+	if (abs(v8 - v9) <= nMax)
+		return true;
+
+	short v10 = (v9 <= 127) ? v9 : (v9 - 256);
+	short v12 = (v8 <= 127) ? v8 : (v8 - 256);
+
+	if (abs(v12 - v10) > nMax)
+		return false;
+
+	return true;
+}
+
+//DEFINE_HOOK(0x741229, UnitClass_GetFireError_Facing, 6)
+//{
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//	GET(UnitClass*, pThis, ESI);
+//	GET_STACK(AbstractClass*, pTarget, 0x20);
+//
+//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+//
+//	if (pThis->Type->DeployFire
+//		&& !pThis->Type->IsSimpleDeployer
+//		&& !pThis->Deployed)
+//	{
+//		if (!pTypeExt->DeployFire_UpdateFacing)
+//		{
+//			//R->EAX(FireError::OK); //yes , dont return facing error 
+//			//return 0x74132B;
+//			return 0x741327; //fireOK
+//		}
+//	}
+//
+//	if (pWeapon->OmniFire)
+//		return 0x741314;
+//
+//	if (!pThis->IsFiring && pThis->IsRotating && !pWeapon->Projectile->ROT)
+//		return 0x74124D;
+//
+//	const auto pType = pThis->Type;
+//
+//	if (IsAllowToTurn(pThis, pTarget , 10 , nullptr))
+//		return 0x74125C;
+//
+//	//0x7412F1 FireError::Facing
+//
+//	return pType->Turret ? 0x74101E : 0x74124D;
+//}
+//
+//DEFINE_HOOK(0x7369F2, UnitClass_UpdateFacing_TurretLimit, 8)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	GET_STACK(DirStruct, nDir, 0x8);
+//
+//	if (IsAllowToTurn(pThis, nullptr, 10, &nDir))
+//		return 0x0;
+//
+//	if (!pThis->IsRotating)
+//	{
+//		pThis->IsRotating = true;
+//		pThis->PrimaryFacing.Set_Desired(nDir);
+//	}
+//
+//	pThis->SecondaryFacing.Set_Desired(nDir);
+//
+//	return 0x736A8E;
+//}

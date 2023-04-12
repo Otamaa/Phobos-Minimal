@@ -14,10 +14,7 @@ const char* Enumerable<RadTypeClass>::GetMainSection()
 
 void RadTypeClass::AddDefaults()
 {
-	if (Array.empty())
-	{
-		Allocate(RADIATION_SECTION);
-	}
+	FindOrAllocate(RADIATION_SECTION);
 }
 
 void RadTypeClass::LoadFromINI(CCINIClass* pINI)
