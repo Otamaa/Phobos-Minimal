@@ -17,6 +17,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Terrain/Body.h>
 
@@ -1350,6 +1351,8 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 				}
 			}
 		}
+
+		nFinalSpeed *= BuildingTypeExt::GetExternalFactorySpeedBonus(pThis);
 	}
 
 	{ //Exception

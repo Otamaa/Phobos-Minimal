@@ -152,6 +152,7 @@ public:
 		Nullable<int> AIFriendlyDistance;
 		Valueable<double> BerserkROFMultiplier;
 		Valueable<bool> TeamRetaliate;
+		Valueable<double> AI_CostMult;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
@@ -266,6 +267,7 @@ public:
 			, AIFriendlyDistance { }
 			, BerserkROFMultiplier { 0.5 }
 			, TeamRetaliate { false }
+			, AI_CostMult { 1.0 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

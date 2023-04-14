@@ -31,7 +31,7 @@ struct SHPStruct //header
 		{ JMP_THIS(0x69E100); }
 
 	// resolves to the actual file data, and loads it if necessary
-	SHPFile* GetInsigniaDatas()
+	SHPFile* GetData()
 		{ JMP_THIS(0x69E580); }
 
 	RectangleStruct* GetFrameBounds(RectangleStruct &buffer, int idxFrame) const

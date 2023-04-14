@@ -904,6 +904,12 @@ public:
 	bool GrandOpening(bool Captured) const
 		{ JMP_THIS(0x445F80); }
 
+	double GetHouseTypeCostMult(TechnoTypeClass* pType) const
+		{ JMP_THIS(0x50BDF0); }
+
+	double GetHouseCostMult(TechnoTypeClass* pType) const
+		{ JMP_THIS(0x50BEB0); }
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

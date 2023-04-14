@@ -3148,47 +3148,47 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //static constexpr CoordStruct Data3 {};
 //static constexpr CellStruct Data4 {};
 
-//DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
-//{
-//	GET(UnitClass*, pThis, EBP);
-//	const auto deploysInto = pThis->Type->DeploysInto;
-//	CellStruct mapCoords = pThis->InlineMapCoords();
-//	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
-//
-//	const short width = deploysInto->GetFoundationWidth();
-//	const short height = deploysInto->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
-//
-//	return 0x7394BE;
-//}
-//
-//DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
-//{
-//	GET(BuildingClass*, pThis, EBP);
-//	CellStruct mapCoords = pThis->InlineMapCoords();
-//
-//	const short width = pThis->Type->GetFoundationWidth();
-//	const short height = pThis->Type->GetFoundationHeight(false);
-//
-//	if (width > 2)
-//		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
-//	if (height > 2)
-//		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
-//
-//	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
-//	auto coords = (CoordStruct*)&location.Z;
-//	coords->X = (mapCoords.X << 8) + 128;
-//	coords->Y = (mapCoords.Y << 8) + 128;
-//	coords->Z = pThis->Location.Z;
-//
-//	return 0x449F12;
-//}
+DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
+{
+	GET(UnitClass*, pThis, EBP);
+	const auto deploysInto = pThis->Type->DeploysInto;
+	CellStruct mapCoords = pThis->InlineMapCoords();
+	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+
+	const short width = deploysInto->GetFoundationWidth();
+	const short height = deploysInto->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X -= static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+
+	return 0x7394BE;
+}
+
+DEFINE_HOOK(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->InlineMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}
 
 //DEFINE_HOOK(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{
@@ -5217,3 +5217,35 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 //	}
 //	return 0x70BE29;
 //}
+
+// UnitClass_Unload_NoManualEject , 0x0 false , 0x73DCD3 true , Typeptr Eax
+//  , 0x0 false , 0x7400F0 true , Typeptr Eax
+
+DEFINE_HOOK(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+	return TechnoTypeExt::ExtMap.Find(pType)->NoManualEject.Get() ? 0x73DCD3 : 0x0;
+}
+
+DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+	return TechnoTypeExt::ExtMap.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
+}
+
+//DEFINE_HOOK(0x7818D4, UnitClass_CrushCell_CrushAnim, 0x6)
+//{
+//	GET(FootClass*, pVictim, ESI);
+//
+//	if()
+//}
+
+DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
+{
+	GET(HouseClass*, pHouse, EDI);
+	GET(TechnoTypeClass*, pType, ESI);
+
+	double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
+	R->EAX(pHouse->GetHouseTypeCostMult(pType) * mult);
+	return 0x711F17;
+}

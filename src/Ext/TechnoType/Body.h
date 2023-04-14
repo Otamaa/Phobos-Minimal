@@ -479,6 +479,7 @@ public:
 		Valueable<bool> NoManualUnload;
 		Valueable<bool> NoManualFire;
 		Valueable<bool> NoManualEnter;
+		Valueable<bool> NoManualEject;
 
 		Valueable<bool> Passengers_BySize;
 		Nullable<bool> Crashable;
@@ -968,6 +969,7 @@ public:
 			, NoManualUnload { false }
 			, NoManualFire { false }
 			, NoManualEnter { false }
+			, NoManualEject { false }
 
 			, Passengers_BySize { true }
 			, Crashable { }

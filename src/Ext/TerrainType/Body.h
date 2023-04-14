@@ -41,6 +41,8 @@ public:
 		Valueable<bool> AreaDamage;
 		#pragma endregion
 
+		Valueable<int> Bounty;
+
 		ExtData(TerrainTypeClass* OwnerObject) : Extension<TerrainTypeClass>(OwnerObject)
 			, CustomPalette { CustomPalette::PaletteMode::Temperate }
 			, SpawnsTiberium_Type { 0 }
@@ -64,6 +66,7 @@ public:
 			, Warhead { }
 			, Damage { }
 			, AreaDamage { false }
+			, Bounty { 0 }
 
 		{ }
 

@@ -1398,11 +1398,8 @@ DEFINE_OVERRIDE_HOOK(0x73B90E, UnitClass_DrawVXL_Barrels1, 7)
 	GET(int, nIdx, EAX);
 
 	R->Stack(0x2C, R->ESI());
-	auto const pData = TechnoTypeExt::GetBarrelsVoxelData(pUnit, nIdx);
-	if (!pData->VXL || !pData->HVA)
-		return 0x73B94A;
-
-	return 0x73B928;
+	const auto pData = TechnoTypeExt::GetBarrelsVoxelData(pUnit, nIdx);
+	return (!pData->VXL || !pData->HVA) ? 0x73B94A : 0x73B928;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73BCCD, UnitClass_DrawVXL_Barrels2, 7)
@@ -1596,9 +1593,8 @@ DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
 
 	if (auto const pTechno = abstract_cast<TechnoClass*>(pVictim))
 	{
-		auto pExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
-
-		auto const pWarhead = pExt->CrushDamageWarhead.Get(
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pVictim->GetTechnoType());
+		const auto pWarhead = pExt->CrushDamageWarhead.Get(
 			RulesClass::Instance->C4Warhead);
 
 		auto damage = pExt->CrushDamage.Get(pTechno);

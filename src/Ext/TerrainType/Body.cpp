@@ -58,6 +58,8 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->CustomPalette.Read(exINI.GetINI(), pSection, "CustomPalette");
 #pragma endregion
+
+	this->Bounty.Read(exINI, pSection, "Bounty");
 }
 
 // =============================
@@ -86,6 +88,7 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LightGreenTint)
 		.Process(this->LightBlueTint)
 		.Process(this->AttachedAnim)
+		.Process(this->Bounty)
 		;
 
 }

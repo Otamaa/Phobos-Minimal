@@ -48,6 +48,8 @@ DEFINE_HOOK(0x71B98B, TerrainClass_ReceiveDamage_Add, 0x7)
 	return SetReturn;
 }
 
+#include <New/Entity/FlyingStrings.h>
+
 //this one on Very end of it
 //let everything play first
 DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
@@ -58,13 +60,19 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
 	auto const nCoords = pThis->GetCenterCoords();
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
+	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr))
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords))
-		{
+	if (auto const pAnimType = pTerrainExt->DestroyAnim.Get(nullptr)) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoords)) {
 			AnimExt::SetAnimOwnerHouseKind(pAnim, args.SourceHouse,
 				pThis->GetOwningHouse(), args.Attacker, false);
+		}
+	}
+
+	if (auto const nBounty = pTerrainExt->Bounty.Get()) {
+		if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty)) {
+			pAttackerHoue->TransactMoney(nBounty);
+			FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
 		}
 	}
 

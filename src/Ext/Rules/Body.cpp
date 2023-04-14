@@ -125,6 +125,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
+	this->AI_CostMult.Read(exINI, GENERAL_SECTION , "AICostMult");
 
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
@@ -655,6 +656,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
+		.Process(this->AI_CostMult)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

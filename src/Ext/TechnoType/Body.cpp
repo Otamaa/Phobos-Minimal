@@ -88,6 +88,9 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, si
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerBarrels[nIdx];
 
+	if(nIdx >TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
+		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than BarrelData ! \n", pThis->ID);
+
 	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
 		[nIdx - TechnoTypeClass::MaxWeapons];
 }
@@ -96,6 +99,9 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 {
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerTurrets[nIdx];
+
+	if(nIdx >TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
+		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than TurretData ! \n", pThis->ID);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
 		[nIdx - TechnoTypeClass::MaxWeapons];
@@ -735,6 +741,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
 		this->NoManualFire.Read(exINI, pSection, "NoManualFire");
 		this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
+		this->NoManualEject.Read(exINI, pSection, "NoManualEject");
 
 		this->Crashable.Read(exINI, pSection, "Crashable");
 
@@ -946,9 +953,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 
 void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 {
-	auto pThis = Get();
-	const char* pSection = pThis->ID;
-	INI_EX exINI(pINI);
+	//auto pThis = Get();
+	//const char* pSection = pThis->ID;
+	//INI_EX exINI(pINI);
 
 }
 
@@ -1470,6 +1477,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->NoManualUnload)
 		.Process(this->NoManualFire)
 		.Process(this->NoManualEnter)
+		.Process(this->NoManualEject)
 		.Process(this->Passengers_BySize)
 		.Process(this->Crashable)
 		.Process(this->Convert_Deploy)
@@ -1680,15 +1688,15 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 }
 
 ////hook before stuffs got pop-ed to remove crash possibility
-//DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
-//{
-//	GET(AircraftTypeClass*, pItem, ESI);
-//	GET(CCINIClass* const, pINI, EBX);
-//
-//	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
-//
-//	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
-//		pExt->LoadFromINIFile_Aircraft(pINI);
-//
-//	return 0x41CD82;
-//}
+DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
+{
+	GET(AircraftTypeClass*, pItem, ESI);
+	GET(CCINIClass* const, pINI, EBX);
+
+	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
+
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
+		pExt->LoadFromINIFile_Aircraft(pINI);
+
+	return 0x41CD82;
+}
