@@ -123,11 +123,13 @@ ColorStruct WaveExt::GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave)
 
 	if (pWeapon->IsMagBeam)
 	{
-		return WaveClass::DefaultMag.Color;
+		return WaveClass::DefaultWaveColorMagBeam //WaveClass::DefaultMag.Color
+			;
 	}
 	else if (pWeapon->IsSonic)
 	{
-		return WaveClass::DefaultSonic.Color;
+		return  WaveClass::DefaultWaveColorSonic//WaveClass::DefaultSonic.Color
+			;
 	}
 
 	return WaveClass::DefaultLaser.Color;

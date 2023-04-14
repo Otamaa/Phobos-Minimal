@@ -472,8 +472,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	INI_EX exINI(pINI);
 
+	//this will break targeting , so use it with caution !
 	pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
-		this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0);
+		//this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0
+		false
+	);
 
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");

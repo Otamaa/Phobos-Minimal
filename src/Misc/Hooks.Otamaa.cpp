@@ -160,30 +160,30 @@ DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 }
 
 // TODO : this breaking deploy fire thing
-//DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
-//{
-//	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
-//	GET(const TechnoClass*, pThis, ESI);
-//
-//	//if (pThis->GetTechnoType()->AttackFriendlies && pThis->Target)
-//	//{
-//	//	const int nWeapon = pThis->SelectWeapon(pThis->Target);
-//	//	const auto nFireErr = pThis->GetFireError(pThis->Target, nWeapon, false);
-//
-//	//	if (nFireErr == FireError::CANT || nFireErr == FireError::ILLEGAL)
-//	//	{
-//	//		return ClearTarget;
-//	//	}
-//
-//	//	return ExtendChecks;
-//	//}
-//	if(IS_SAME_STR_(pThis->get_ID() , "YUNRU")){
-//		if (pThis->GetTechnoType()->AttackFriendlies)
-//			return ExtendChecks;
-//	}
-//
-//	return ClearTarget;
-//}
+DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
+{
+	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
+	GET(const TechnoClass*, pThis, ESI);
+
+	//if (pThis->GetTechnoType()->AttackFriendlies && pThis->Target)
+	//{
+	//	const int nWeapon = pThis->SelectWeapon(pThis->Target);
+	//	const auto nFireErr = pThis->GetFireError(pThis->Target, nWeapon, false);
+
+	//	if (nFireErr == FireError::CANT || nFireErr == FireError::ILLEGAL)
+	//	{
+	//		return ClearTarget;
+	//	}
+
+	//	return ExtendChecks;
+	//}
+	const auto pType = pThis->GetTechnoType();
+	if (pType->AttackFriendlies && !pType->DeployFire) {
+		return ExtendChecks;
+	}
+
+	return ClearTarget;
+}
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
@@ -5021,46 +5021,47 @@ DEFINE_OVERRIDE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 6)
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
 }
 
-DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	GET(WeaponTypeClass*, pWeapon, EBP);
+// DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(TechnoTypeClass*, pType, EAX);
+// 	GET(WeaponTypeClass*, pWeapon, EBP);
 
-	if (!pType->AttackFriendlies)
-		return 0x70039B;
+// 	if (!pType->AttackFriendlies)
+// 		return 0x70039B;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
-		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-		if (pWeapons && pWeapon == pWeapons->WeaponType) {
-			return 0x7003BB;
-		}
-	}
+// 	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
+// 		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+// 		if (!pWeapons || pWeapon != pWeapons->WeaponType) {
+// 			return 0x70039B;
+// 		}
+// 	}
 
-	return 0x70039B;
-}
+// 	return 0x7003BB;
+// }
 
-//EvalObject
-DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
-{
-	GET_STACK(int , nWeapon, 0x14);
-	GET(TechnoClass*, pThis, EDI);
+// //EvalObject
+// DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
+// {
+// 	enum { AllowAttack = 0x6F7FE9 , ContinueCheck = 0x6F7F0C };
+// 	GET_STACK(int , nWeapon, 0x14);
+// 	GET(TechnoClass*, pThis, EDI);
 
-	const auto pType = pThis->GetTechnoType();
+// 	const auto pType = pThis->GetTechnoType();
 
-	if (!pType->AttackFriendlies)
-		return 0x6F7F0C;
+// 	if (!pType->AttackFriendlies)
+// 		return ContinueCheck;
 
-	bool Allow = true;
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+// 	bool Allow = true;
+// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
+// 	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+// 		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
 
-	return Allow ? 0x6F7FE9 : 0x6F7F0C;
-}
+// 	return Allow ? AllowAttack : ContinueCheck;
+// }
 
 DEFINE_HOOK(0x70A3E5 ,TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {

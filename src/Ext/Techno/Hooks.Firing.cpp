@@ -224,6 +224,11 @@ DEFINE_HOOK(0x6FC587, TechnoClass_CanFire_OpenTopped, 0x6)
 		auto const  pExt = TechnoTypeExt::ExtMap.Find(pTransport->GetTechnoType());
 		if (pTransport->Deactivated && !pExt->OpenTopped_AllowFiringIfDeactivated)
 			return DisallowFiring;
+
+		//if(IS_SAME_STR_("LYNXBUFF" , pThis->get_ID()))
+		// if(pTransport->IsBeingWarpedOut()){
+		 //	return DisallowFiring;
+		//}
 	}
 
 	return 0;

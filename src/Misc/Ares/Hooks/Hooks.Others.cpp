@@ -1103,22 +1103,26 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 #include <Ext/Super/Body.h>
 #include <Ext/Techno/Body.h>
 
+SuperClass* TempData;
 DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 {
 	GET(SuperClass* const, pSuper, ECX);
 	GET_STACK(CellStruct* const, pCell, 0x4);
 	GET_STACK(bool const, isPlayer, 0x8);
 
-	Debug::Log("[LAUNCH] %s Handled \n", pSuper->Type->ID);
 	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
 	pSuperExt->Temp_IsPlayer = isPlayer;
 	pSuperExt->Temp_CellStruct = *pCell;
 
+
 	if (AresData::SW_Activate(pSuper, *pCell, isPlayer))
 	{
+		Debug::Log("[LAUNCH] %s Handled \n", pSuper->Type->ID);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
+	} else {
+		TempData = pSuper;
 	}
 
 	return 0x0;
@@ -1135,13 +1139,12 @@ DEFINE_HOOK_AGAIN(0x6CD52A, SuperClass_Launch_NotHandled, 0xA)
 DEFINE_HOOK_AGAIN(0x6CDCE3, SuperClass_Launch_NotHandled, 0xA)
 DEFINE_HOOK(0x6CDE36, SuperClass_Launch_NotHandled, 0xA)
 {
-	GET(SuperClass*, pSuper, ESI);
-
-	if (Is_SW(pSuper)) {
+	if (const auto pSuper = TempData) {
 		Debug::Log("[LAUNCH] %s Normal at [0x%x] \n", pSuper->Type->ID, R->Origin());
 		const auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, &pSuperExt->Temp_CellStruct, pSuperExt->Temp_IsPlayer);
+		TempData = nullptr;
 	}
 	else
 	{
@@ -1841,6 +1844,7 @@ DEFINE_OVERRIDE_HOOK(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 
 		if (auto pAnim = pSwipeAnims[i])
 		{
 			GameDelete<true, false>(pAnim);
+			pSwipeAnims[i] = nullptr;
 		}
 	}
 

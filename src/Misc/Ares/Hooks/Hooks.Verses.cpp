@@ -35,20 +35,17 @@ DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 
 void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd)
 {
-	//if (IS_SAME_STR_(pTarget->get_ID(), "CAOILD"))
+	//if (IS_SAME_STR_(pTarget->get_ID(), "LTNKUP"))
 	//{
-	//	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
+	//	//auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
 
-	//	if (IS_SAME_STR_(pArmor->Name.data(), "oild"))
-	//	{
-	//		Debug::Log("[%s] WH[%s] against oild Flag :  FF %d , PA %d , RR %d [%fl] \n",
+	//	Debug::Log("[%s] WH[%s] against oild Flag :  FF %d , PA %d , RR %d [%fl] \n",
 	//			pAdd,
 	//			pWH->get_ID(),
 	//			pData->Flags.ForceFire,
 	//			pData->Flags.PassiveAcquire,
 	//			pData->Flags.Retaliate,
 	//			pData->Verses);
-	//	}
 	//}
 }
 

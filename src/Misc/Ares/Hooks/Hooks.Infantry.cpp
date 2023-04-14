@@ -176,41 +176,6 @@ DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 	return 0x52094C;
 }
 
-// do not infiltrate buildings of allies
-// DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_PreInfiltrate, 0x6)
-// {
-// 	enum {
-// 		SkipInfiltrate = 0x51A03E,
-// 		Infiltrate_Vanilla = 0x51A002 ,
-// 		InfiltrateSucceded = 0x51A010,
-// 	};
-// 	GET(InfantryClass*, pThis, ESI);
-// 	GET(BuildingClass*, pBld, EDI);
-
-// 	auto const pHouse = pThis->Owner;
-// 	if(!pThis->Type->Agent || pHouse->IsAlliedWith(pBld))
-// 		return SkipInfiltrate;
-
-// 	pBld->Infiltrate(pHouse);
-// 	BuildingExt::HandleInfiltrate(pBld, pHouse);
-
-// 	return InfiltrateSucceded;
-// }
-
-//DEFINE_OVERRIDE_HOOK(0x4571E0, BuildingClass_Infiltrate_Phobos , 0x5)
-//{
-//	GET(BuildingClass*, pBld, ECX);
-//	GET_STACK(HouseClass*, pHouse, 0x4);
-//
-//	auto const nResult = AresData::CallAresBuildingClass_Infiltrate(R);
-//	BuildingExt::HandleInfiltrate(pBld, pHouse);
-//
-//	if(nResult != -1)
-//		return nResult;
-//	else
-//		return 0x0;
-//}
-
 // actual game code: if(auto B = specific_cast<BuildingClass *>(T)) { if(T->currentAmmo > 1) { return 1; } }
 // if the object being queried doesn't have a weapon (Armory/Hospital), it'll return 1 anyway
 DEFINE_OVERRIDE_SKIP_HOOK(0x6FCFA4, TechnoClass_GetROF_BuildingHack, 0x5, 6FCFC1)

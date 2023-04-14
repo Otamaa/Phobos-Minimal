@@ -88,7 +88,7 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, si
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerBarrels[nIdx];
 
-	if(nIdx >TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
+	if((nIdx - TechnoTypeClass::MaxWeapons) >TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
 		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than BarrelData ! \n", pThis->ID);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
@@ -100,7 +100,7 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerTurrets[nIdx];
 
-	if(nIdx >TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
+	if((nIdx - TechnoTypeClass::MaxWeapons) >TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
 		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than TurretData ! \n", pThis->ID);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
@@ -724,12 +724,17 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Promote_IncludePassengers.Read(exINI, pSection, "Promote.IncludePassengers");
 		this->Promote_Elite_Eva.Read(exINI, pSection, "EVA.ElitePromoted");
 		this->Promote_Vet_Eva.Read(exINI, pSection, "EVA.VeteranPromoted");
-		this->Promote_Elite_Sound.Read(exINI, pSection, "Promote.EliteFlash");
-		this->Promote_Vet_Sound.Read(exINI, pSection, "Promote.VeteranFlash");
-		this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteSound");
-		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranSound");
-		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
+
+			
+		this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteFlash");
+		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranFlash");
+
+		this->Promote_Elite_Sound.Read(exINI, pSection, "Promote.EliteSound");
+		this->Promote_Vet_Sound.Read(exINI, pSection, "Promote.VeteranSound");
+
+		this->Promote_Vet_Type.Read(exINI, pSection, "Promote.VeteranType");
 		this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
+
 		this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
 		this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
 
@@ -1679,9 +1684,8 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
 	//}
 
-	if (auto ptr = TechnoTypeExt::ExtMap.Find(pItem))
-	{
-		ptr->LoadFromINI(pINI);
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem)) {
+		pExt->LoadFromINI(pINI);
 	}
 
 	return 0;

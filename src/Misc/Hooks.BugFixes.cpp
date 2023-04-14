@@ -849,6 +849,7 @@ FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 }
 
 DEFINE_JUMP(VTABLE, 0x7ECDF4, GET_OFFSET(JumpjetLocomotionClass_Can_Fire))
+
 // This fix break stuffs , waiting for refactor or change
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 //DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
