@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Debug DPFeatures
 /Unstable DPFeatures
+*.rar
