@@ -159,13 +159,15 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 		nMission = pTypeExt->MakeInfantry_Mission;		
 	}
 
+	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->get_ID(), MissionClass::MissionToString(nMission));
 	pInf->QueueMission(nMission, false);
 	return 0x424AFE;
 }
 
+//the stack is change , so i need to replace everything if i want just use normal hook
 //replace the vtable call
 void __fastcall Dummy(DWORD t, DWORD , Mission m, bool e){ }
-DEFINE_JUMP(CALL, 0x424B04, GET_OFFSET(Dummy));
+DEFINE_JUMP(CALL6, 0x424B04, GET_OFFSET(Dummy));
 
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
 

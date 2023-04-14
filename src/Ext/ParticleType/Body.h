@@ -26,6 +26,7 @@ public:
 		Valueable<bool> ReadjustZ;
 		CustomPalette Palette;
 		Valueable<double> DamageRange;
+		Valueable<bool> DeleteWhenReachWater;
 
 		ExtData(ParticleTypeClass* OwnerObject) : Extension<ParticleTypeClass>(OwnerObject)
 			, LaserTrail_Types()
@@ -33,8 +34,9 @@ public:
 			, Trails { }
 #endif
 			, ReadjustZ { true }
-			, Palette(CustomPalette::PaletteMode::Temperate)
-			, DamageRange(0.0)
+			, Palette { CustomPalette::PaletteMode::Temperate }
+			, DamageRange { 0.0 }
+			, DeleteWhenReachWater { false }
 		{ }
 
 		virtual ~ExtData() override  = default;

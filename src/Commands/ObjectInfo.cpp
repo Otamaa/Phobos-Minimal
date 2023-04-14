@@ -40,17 +40,6 @@ const wchar_t* ObjectInfoCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_DUMP_OBJECT_INFO_DESC", L"Dump ObjectInfo to log file and display it.");
 }
 
-const char* const getMissionName(int mID)
-{
-	if (mID == -1)
-		return GameStrings::NoneStr();
-
-	if (mID < (int)MissionControlClass::Names.c_size())
-		return MissionControlClass::Names[mID];
-
-	return "INVALID_MISSION";
-}
-
 template<typename T>
 void Append(T& buffer, const char* pFormat, ...)
 {
@@ -80,7 +69,7 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 	Append(buffer, "ID = %s, ", pType->ID);
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Location = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
-	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, getMissionName((int)pFoot->CurrentMission));
+	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
 	Append(buffer, "Group = %d, RecruitA = %d, RecruitB = %d\n", pFoot->Group, (int)pFoot->RecruitableA, (int)pFoot->RecruitableB);
 
 	if (pFoot->BelongsToATeam()) {
@@ -122,7 +111,7 @@ void PrintFoots(T& buffer ,FootClass* pFoot)
 		if (pFoot->Passengers.NumPassengers == 1)
 		{
 			const auto pTarget = static_cast<ObjectClass*>(pFirst->Target);
-			Append(buffer, "Passengers: %s , Mission %s , Target %s ", pFirst->GetTechnoType()->ID, getMissionName((int)pFirst->CurrentMission), pTarget ? pTarget->get_ID() : NONE_STR2);
+			Append(buffer, "Passengers: %s , Mission %s , Target %s ", pFirst->GetTechnoType()->ID,  MissionClass::MissionToString(pFirst->CurrentMission), pTarget ? pTarget->get_ID() : NONE_STR2);
 		}
 		else
 		{

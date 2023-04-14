@@ -57,11 +57,9 @@ bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return true;
 
-	return EnumFunctions::CanTargetHouse(RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
+	return EnumFunctions::CanTargetHouse(
+		RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 }
-
-//#define CAN_BLINK_DISGUISE(pTechno) \
-//RulesExt::Global()->ShowAllyDisguiseBlinking && (HouseExt::IsObserverPlayer() || (pTechno->Owner ? pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer):true))
 
 DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
 {

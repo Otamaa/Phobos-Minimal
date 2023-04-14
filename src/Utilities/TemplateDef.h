@@ -758,7 +758,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			value = MissionControlClass::FindIndexById(parser.value());
+			value = MissionClass::GetMissionById(parser.value());
 			return true;
 		}
 

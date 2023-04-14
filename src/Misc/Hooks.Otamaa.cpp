@@ -5118,6 +5118,41 @@ DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 	return pTypeExt->CrushRange.GetOrDefault(pThis, pRules->Crush) <= range ?
 		ContinueCheck : DoNotCrush;
 }
+#include <Ext/ParticleType/Body.h>
+
+DEFINE_HOOK(0x62BD69 , ParticleClass_ProcessGasBehaviour_NoWind, 6)
+{
+	GET(ParticleClass*, pThis, EBP);
+
+	return pThis->Type->WindEffect == -1 
+		? 0x62C200 : 0x0;
+}
+
+DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
+{
+	GET(ParticleClass*, pThis, EBP);
+	GET(ParticleTypeClass*, pType, EDI);
+
+	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pType);
+
+	if (pType->WindEffect == -1) {
+		const auto pCell = pThis->GetCell();
+		if (pCell->ContainsBridge() || (pCell->LandType != LandType::Beach && pCell->LandType != LandType::Water))
+			return 0;
+	} else {
+
+		if (!pTypeExt->DeleteWhenReachWater)
+			return 0;
+
+		const auto pCell = pThis->GetCell();
+		if (pCell->ContainsBridge() || (pCell->LandType != LandType::Beach && pCell->LandType != LandType::Water))
+			return 0;
+	}
+
+	pThis->hasremaining = 1;
+	pThis->UnInit();
+	return 0x62C394;
+}
 
 // idk , the ext stuffs is set somewhere ?
 //DEFINE_HOOK(0x7009D4 , TechnoClass_GetActionOnCell_Wall, 6)

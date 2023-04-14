@@ -82,7 +82,7 @@ DEFINE_HOOK(0x62A074, ParasiteClass_AI_DamagingAction, 0x6)
 	pThis->DamageDeliveryTimer.Start(pWeapon->ROF);
 	pThis->SuppressionTimer.Start(pWarhead->Paralyzes);
 
-	if ((((DWORD*)pThis->Victim)[0]) == InfantryClass::vtable
+	if (Is_Infantry(pThis->Victim)
 		&& !WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_TreatInfantryAsVehicle
 		.Get(static_cast<InfantryClass*>(pThis->Victim)->Type->Cyborg)) {
 		return ReceiveDamage;
@@ -121,7 +121,7 @@ DEFINE_HOOK(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
 		return DealDamage;
 
 	return (WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Parasite_DisableRocking.Get())
-			|| (((DWORD*)pThis->Victim)[0]) == InfantryClass::vtable
+			|| Is_Infantry(pThis->Victim)
 		? DealDamage : Continue;
 }
 
@@ -135,7 +135,8 @@ DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
 	auto const pWarheadTypeExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
 	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() >= abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
+		&& ScenarioClass::Instance->Random.RandomDouble() >= 
+		abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
 		) {
 		return SkipDamaging;
 	}
@@ -155,7 +156,8 @@ DEFINE_HOOK(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Uni
 
 	if (auto const pParasiteOwner = pParasite->Owner) {
 		auto nCoord = pParasiteOwner->GetCoords();
-		VoxClass::PlayAtPos(TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType())->ParasiteExit_Sound.Get(), &nCoord);
+		VoxClass::PlayAtPos(TechnoTypeExt::ExtMap.Find(pParasiteOwner->GetTechnoType())
+			->ParasiteExit_Sound.Get(), &nCoord);
 	}
 
 	return 0;

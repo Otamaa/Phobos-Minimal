@@ -8,70 +8,6 @@
 
 class CCINIClass;
 
-class MissionControlClass
-{
-public:
-	static constexpr reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
-	static constexpr reference<const char*, 0x816CACu, 31> const Names {};
-
-
-	static Mission __fastcall Find(const char* pName) {
-		JMP_STD(0x5B3910);
-	}
-
-	static Mission __fastcall FindIndexById(const char* pName) {
-		JMP_STD(0x5B3910);
-	}
-
-	static MissionControlClass* GetMissionControl(Mission nIN) {
-		if (nIN >= Mission::count) { 
-			return nullptr;
-		}
-
-		return &Controls[(size_t)nIN + 1];
-	}
-
-	const char* ToString() {
-
-		if (this->MissionType == Mission::None 
-			|| this->MissionType >= Mission::count) {
-			return GameStrings::NoneStr();
-		}
-
-		return Names[(size_t)this->MissionType];
-	}
-
-	MissionControlClass() 	{
-		JMP_THIS(0x5B3700);
-	}
-
-	int NormalDelay() const {
-		return static_cast<int>(TICKS_PER_MINUTE * Rate);
-	}
-
-	int AADelay() const {
-		return static_cast<int>(TICKS_PER_MINUTE * AARate);
-	}
-
-	void LoadFromINI(CCINIClass* pINI) {
-		JMP_THIS(0x5B3760);
-	}
-
-
-public:
-		Mission MissionType;
-		bool NoThreat;
-		bool Zombie;
-		bool Recruitable;
-		bool Paralyzed;
-		bool Retaliate;
-		bool Scatter;
-		double Rate; //default 0.016
-		double AARate; //default 0.016
-};
-
-//static_assert(sizeof(MissionControlClass) == 0x20);
-
 enum class MissionFlags : int
 {
 	CurrentMission = 0,
@@ -79,9 +15,19 @@ enum class MissionFlags : int
 	QueuedMission
 };
 
+class MissionControlClass;
 class NOVTABLE MissionClass : public ObjectClass
 {
 public:
+
+	static Mission __fastcall GetMissionById(const char* pName) {
+		JMP_STD(0x5B3910);
+	}
+
+	static const char* __fastcall MissionToString(Mission nMission) {
+		JMP_STD(0x5B3950);
+	}
+
 	//Destructor
 	virtual ~MissionClass() RX;
 
@@ -159,3 +105,52 @@ public:
 };
 
 static_assert(sizeof(MissionClass) == 0xD4);
+
+class MissionControlClass
+{
+public:
+	static constexpr reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
+	static constexpr reference<const char*, 0x816CACu, 31> const Names {};
+
+	static MissionControlClass* GetMissionControl(Mission nIN) {
+		if (nIN >= Mission::count) {
+			return nullptr;
+		}
+
+		return &Controls[(size_t)nIN + 1];
+	}
+
+	const char* MissionTypeToString() {
+		return MissionClass::MissionToString(this->MissionType);
+	}
+
+	MissionControlClass() {
+		JMP_THIS(0x5B3700);
+	}
+
+	int NormalDelay() const {
+		return static_cast<int>(TICKS_PER_MINUTE * Rate);
+	}
+
+	int AADelay() const {
+		return static_cast<int>(TICKS_PER_MINUTE * AARate);
+	}
+
+	void LoadFromINI(CCINIClass* pINI) {
+		JMP_THIS(0x5B3760);
+	}
+
+
+public:
+	Mission MissionType;
+	bool NoThreat;
+	bool Zombie;
+	bool Recruitable;
+	bool Paralyzed;
+	bool Retaliate;
+	bool Scatter;
+	double Rate; //default 0.016
+	double AARate; //default 0.016
+};
+
+static_assert(sizeof(MissionControlClass) == 0x20);

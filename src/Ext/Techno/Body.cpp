@@ -178,6 +178,8 @@ bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
 	return false;
 }
 
+#include <Ext/TerrainType/Body.h>
+
 bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 {
 	if (!pVictim || !pAttacker || pVictim->IsBeingWarpedOut())
@@ -189,13 +191,28 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 	if (pAttacker->Owner && pAttacker->Owner->IsAlliedWith(pVictim))
 		return false;
 
+	auto const pAttackerType = pAttacker->GetTechnoType();
 	auto const pVictimTechno = abstract_cast<TechnoClass*>(pVictim);
+	auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
 
 	if (!pVictimTechno)
+	{
+		if(auto const pTerrain = static_cast<TerrainClass*>(pVictim))
+		{
+			if(pTerrain->Type->Immune || pTerrain->Type->SpawnsTiberium || !pTerrain->Type->Crushable)
+				return false;
+
+			const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
+			if(pTerrainExt->IsPassable)
+				return false;
+
+			return pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) > pTerrainExt->CrushableLevel;
+		}
+
 		return false;
+	}
 
 	auto const pWhatVictim = GetVtableAddr(pVictim);
-	auto const pAttackerType = pAttacker->GetTechnoType();
 	auto const pVictimType = pVictim->GetTechnoType();
 
 	if (pAttackerType->OmniCrusher)
@@ -213,7 +230,6 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 
 	if (pWhatVictim == InfantryClass::vtable)
 	{
-		auto const pAttackerTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pAttackerType);
 		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
 			pVictimTechnoTypeExt->DeployCrushableLevel :
 			pVictimTechnoTypeExt->CrushableLevel;

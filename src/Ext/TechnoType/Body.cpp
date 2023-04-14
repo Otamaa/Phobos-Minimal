@@ -950,9 +950,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->MyExtraFireData.ReadRules(exINI, pSection);
-#endif
 }
 
 void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4)

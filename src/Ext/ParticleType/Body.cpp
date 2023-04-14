@@ -20,7 +20,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	{
 	case BehavesLike::Smoke:
 	{
-	//	this->DeleteWhenReachWater.Read(exINI, pID, "Smoke.DeleteWhenReachWater");
+		this->DeleteWhenReachWater.Read(exINI, pID, "Smoke.DeleteWhenReachWater");
 	}
 	break;
 	case BehavesLike::Fire:
@@ -58,6 +58,7 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ReadjustZ)
 		.Process(this->Palette)
 		.Process(this->DamageRange)
+		.Process(this->DeleteWhenReachWater)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

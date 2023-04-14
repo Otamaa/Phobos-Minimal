@@ -498,19 +498,19 @@ DEFINE_OVERRIDE_HOOK(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	return Draw_Maybe;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
-//{
-//	GET(LayerClass*, pThis, ECX);
-//
-//	auto const nCount = pThis->Count;
-//	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
-//	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-//	std::sort(nBegin, nEnd, [](ObjectClass* A, ObjectClass* B) {
-//		return A && B && A->IsAlive && B->IsAlive && A->GetYSort() < B->GetYSort();
-//	});
-//
-//	return 0x551A84;
-//}
+DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
+{
+	GET(LayerClass*, pThis, ECX);
+
+	auto const nCount = pThis->Count;
+	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
+	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
+	std::sort(nBegin, nEnd,[](const ObjectClass* A, const ObjectClass* B) {
+		return A->GetYSort() < B->GetYSort();
+	});
+
+	return 0x551A84;
+}
 
 DEFINE_OVERRIDE_HOOK(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 {
