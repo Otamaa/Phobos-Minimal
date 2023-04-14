@@ -180,6 +180,12 @@ public:
 			+ static_cast<double>(Z) * Z;
 	}
 
+	double MagnitudeSquaredXY() const
+	{
+		return static_cast<double>(X) * X
+			+ static_cast<double>(Y) * Y;
+	}
+
 	int Length() const {
 		JMP_THIS(0x41C380);
 	}
@@ -189,6 +195,12 @@ public:
 
 	inline int DistanceFromI(const CoordStruct& nThat) const
 	{ return static_cast<int>((*this - nThat).Magnitude()); }
+
+	double DistanceFromXY(const CoordStruct& nThat) const
+	{ return (*this - nThat).MagnitudeSquaredXY(); }
+
+	inline int DistanceFromIXY(const CoordStruct& nThat) const
+	{ return static_cast<int>((*this - nThat).MagnitudeSquaredXY()); }
 
 	static const  CoordStruct Empty;
 

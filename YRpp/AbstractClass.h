@@ -96,7 +96,7 @@ struct StorageClass final
 	StorageClass operator+=(StorageClass& that) { JMP_THIS(0x6C9740); }
 	StorageClass operator-(StorageClass& that) const { JMP_THIS(0x6C9780); }
 	StorageClass operator-=(StorageClass& that) { JMP_THIS(0x6C97E0); }
-	
+
 	float Tiberiums[4];
 };
 static_assert(sizeof(StorageClass) == 0x10, "Invalid Size !");
@@ -197,7 +197,7 @@ public:
 		this->GetDestination(&ret, pDocker);
 		return ret;
 	}
-	
+
 	CoordStruct GetCenterCoords() const {
 		CoordStruct ret;
 		this->GetCenterCoords(&ret);

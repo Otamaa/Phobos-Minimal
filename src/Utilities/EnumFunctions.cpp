@@ -189,7 +189,7 @@ std::array<const char* const, 5u>  EnumFunctions::IronCurtainFlag_ToStrings
 std::array<const char* const, 6u> EnumFunctions::KillMethod_ToStrings
 {
 {
-	{"none"} , {"explode"} , {"kill"} , {"vanish"} , {"sell"} , {"random"}
+	{NONE_STR2} , {"explode"} , {"kill"} , {"vanish"} , {"sell"} , {"random"}
 }
 };
 

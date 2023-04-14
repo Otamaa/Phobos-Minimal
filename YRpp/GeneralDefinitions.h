@@ -854,6 +854,28 @@ enum class FacingType : char
 	None = -1,
 };
 
+enum class FacingTypeI : int
+{
+	N = 0,
+	North = N,
+	NE = 1,
+	NorthEast = NE,
+	E = 2,
+	East = E,
+	SE = 3,
+	SouthEast = SE,
+	S = 4,
+	South = S,
+	SW = 5,
+	SouthWest = SW,
+	W = 6,
+	West = W,
+	NW = 7,
+	NorthWest = NW,
+	Count = 8,
+	None = -1,
+};
+
 enum class CloakState : int {
 	Uncloaked = 0,
 	Cloaking = 1,

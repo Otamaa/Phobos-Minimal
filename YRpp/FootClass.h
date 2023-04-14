@@ -206,7 +206,7 @@ public:
 	TeamClass*      Team;
 	FootClass*      NextTeamMember;        //next unit in team
 	DWORD           unknown_5DC;
-	int             PathDirections[24]; // list of directions to move in next, like tube directions
+	FacingTypeI      PathDirections[24]; // list of directions to move in next, like tube directions
 	DECLARE_PROPERTY(CDTimerClass, PathDelayTimer); //CDTimerClass
 	int             TryTryAgain; //64C
 	DECLARE_PROPERTY(CDTimerClass, unknown_timer_650); //BaseAttackTimer  CDTimerClass
