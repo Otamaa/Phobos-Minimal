@@ -39,14 +39,14 @@ struct AEFireSuperData
 		const char* pTag = IsElite ? "Elite" : "";
 		char nBuffer[0x100];
 
-		_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Types");
+		IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Types");
 		Supers.Read(parser, pSection, nBuffer, true);
 
 		if (!Supers.empty())
 		{
 			Enabled = true;
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "LaunchCount");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "LaunchCount");
 			LaunchCount.Read(parser, pSection, nBuffer);
 
 			if (LaunchCount <= 0) {
@@ -54,13 +54,13 @@ struct AEFireSuperData
 				return;
 			}
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Chances");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Chances");
 			Chances.Read(parser, pSection, nBuffer);
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "InitDelay");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "InitDelay");
 			InitDelay.Read(parser, pSection, nBuffer);
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RandomInitDelay");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RandomInitDelay");
 			RandomInitDelay.Read(parser, pSection, nBuffer);
 
 			if (RandomInitDelay.isset() && (abs(RandomInitDelay.Get().X) > 0 || abs(RandomInitDelay.Get().Y) > 0))
@@ -74,10 +74,10 @@ struct AEFireSuperData
 				RandomInitDelay = Point2D(InitialMinDelay, InitialMaxDelay);
 			}
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "InitDelay");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "InitDelay");
 			InitDelay.Read(parser, pSection, nBuffer);
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RandomDelay");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RandomDelay");
 			RandomDelay.Read(parser, pSection, nBuffer);
 
 			if (RandomDelay.isset() && (abs(RandomDelay.Get().X) > 0 || abs(RandomDelay.Get().Y) > 0))
@@ -91,13 +91,13 @@ struct AEFireSuperData
 				RandomDelay = Point2D(InitialMinDelay, InitialMaxDelay);
 			}
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RealLaunch");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "RealLaunch");
 			RealLaunch.Read(parser, pSection, nBuffer);
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Weapon");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "Weapon");
 			WeaponIndex.Read(parser, pSection, nBuffer);
 
-			_snprintf(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "ToTarget");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "FireSuperWeapon.%s%s", pTag, "ToTarget");
 			ToTarget.Read(parser, pSection, nBuffer);
 		}
 	}

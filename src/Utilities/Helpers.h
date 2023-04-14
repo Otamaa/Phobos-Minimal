@@ -39,6 +39,7 @@
 #include <CellSpread.h>
 #include <Helpers/Iterators.h>
 #include <Helpers/Enumerators.h>
+#include <New/Entity/LauchSWData.h>
 
 #include <set>
 #include <functional>
@@ -473,19 +474,9 @@ namespace Helpers {
 	namespace Otamaa
 	{
 		bool LauchSW(
-		int LaunchWhat,
+		const LauchSWData& nData,
 		HouseClass* pOwner,
-		const CoordStruct Where,
-		bool WaitForCharge,
-		bool ResetChargeAfterLauch,
-		bool Grant,
-		bool GrantRepaitSidebar,
-		bool GrantOneTime,
-		bool GrantOnHold,
-		bool Manual,
-		bool IgnoreInhibitor,
-		bool IgnoreDesignator,
-		bool IgnoreMoney
+		const CoordStruct Where
 		);
 	}
 };

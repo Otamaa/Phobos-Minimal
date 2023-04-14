@@ -50,7 +50,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	for (size_t i = 0; ; ++i)
 	{
 		ValueableVector<int> weights;
-		_snprintf_s(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
+		IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LimboDelivery.RandomWeights%d", i);
 		weights.Read(exINI, pSection, tempBuffer);
 
 		if (!weights.size())

@@ -7,32 +7,32 @@
 void PrintTextData::Read(INI_EX& reader, const char* section, const char* title)
 {
 	char nBuff[0x100];
-	_snprintf(nBuff, sizeof(nBuff), "%sOffset", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sOffset", title);
 	Valueable<Point2D> Offs { Offset };
 	Offs.Read(reader, section, nBuff);
 	Offset = Offs.Get();
 
 	Offs = ShadowOffset ;
-	_snprintf(nBuff, sizeof(nBuff), "%sShadowOffset", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sShadowOffset", title);
 	Offs.Read(reader, section, nBuff);
 	ShadowOffset = Offs.Get();
 
-	_snprintf(nBuff, sizeof(nBuff), "%sColor", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sColor", title);
 	Valueable<ColorStruct> Col { Color };
 	Col.Read(reader, section, nBuff);
 	Color = Col.Get();
 
 	Col = ShadowColor;
-	_snprintf(nBuff, sizeof(nBuff), "%sShadowColor", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sShadowColor", title);
 	Col.Read(reader, section, nBuff);
 	ShadowColor = Col.Get();
 
 	Valueable<bool> bUseShp{ UseSHP };
-	_snprintf(nBuff, sizeof(nBuff), "%sUseSHP", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sUseSHP", title);
 	bUseShp.Read(reader, section, nBuff);
 	UseSHP = bUseShp.Get();
 
-	_snprintf(nBuff, sizeof(nBuff), "%sSHP", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sSHP", title);
 
 	if (reader.ReadString(section, nBuff))
 	{
@@ -47,12 +47,12 @@ void PrintTextData::Read(INI_EX& reader, const char* section, const char* title)
 	}
 
 	Valueable<int> nInt { ZeroFrameIndex };
-	_snprintf(nBuff, sizeof(nBuff), "%sZeroFrameIndex", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sZeroFrameIndex", title);
 	nInt.Read(reader, section, nBuff);
 	ZeroFrameIndex = nInt.Get();
 
 	Valueable<Point2D> nPoint { ImageSize };
-	_snprintf(nBuff, sizeof(nBuff), "%sImageSize", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sImageSize", title);
 	nPoint.Read(reader, section, nBuff);
 	ImageSize = nPoint.Get();
 }
@@ -66,11 +66,11 @@ void DamageTextData::Read(INI_EX& reader, const char* section, const char* title
 	PrintTextData::Read(reader, section, title);
 
 	Valueable<bool> bUseShp { Hidden };
-	_snprintf(nBuff, sizeof(nBuff), "%sHidden", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sHidden", title);
 	bUseShp.Read(reader, section, nBuff);
 	Hidden = bUseShp.Get();
 
-	_snprintf(nBuff, sizeof(nBuff), "%sXOffset", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sXOffset", title);
 	Nullable<Point2D> Offs {  };
 	Offs.Read(reader, section, nBuff);
 	if (Offs.isset())
@@ -85,7 +85,7 @@ void DamageTextData::Read(INI_EX& reader, const char* section, const char* title
 		XOffset = offset;
 	}
 
-	_snprintf(nBuff, sizeof(nBuff), "%sYOffset", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sYOffset", title);
 	Offs.Read(reader, section, nBuff);
 	if (Offs.isset())
 	{
@@ -100,12 +100,12 @@ void DamageTextData::Read(INI_EX& reader, const char* section, const char* title
 	}
 
 	Valueable<int> nInt { RollSpeed };
-	_snprintf(nBuff, sizeof(nBuff), "%sRollSpeed", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sRollSpeed", title);
 	nInt.Read(reader, section, nBuff);
 	RollSpeed = nInt.Get();
 
 	nInt = Duration;
-	_snprintf(nBuff, sizeof(nBuff), "%sDuration", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sDuration", title);
 	nInt.Read(reader, section, nBuff);
 	Duration = nInt.Get();
 }
@@ -114,16 +114,16 @@ void DamageTextTypeData::Read(INI_EX& reader, const char* section, const char* t
 {
 	char nBuff[0x100];
 	Valueable<bool> nHidden { Hidden };
-	_snprintf(nBuff, sizeof(nBuff), "%sHidden", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sHidden", title);
 	nHidden.Read(reader, section, nBuff);
 	Hidden = nHidden.Get();
 
 	//Damage.Read(reader, section, title);
 	//Repair.Read(reader, section, title);
 
-	_snprintf(nBuff, sizeof(nBuff), "%sDamage.", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sDamage.", title);
 	Damage.Read(reader, section, nBuff);
-	_snprintf(nBuff, sizeof(nBuff), "%sRepair.", title);
+	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "%sRepair.", title);
 	Repair.Read(reader, section, nBuff);
 
 }

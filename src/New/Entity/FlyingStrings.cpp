@@ -72,6 +72,40 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 	}
 }
 
+void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
+{
+	if (!coords || !Display || !owner)
+		return;
+
+	if (EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer()))
+	{
+		wchar_t moneyStr[0x20];
+		ColorStruct color = nOverrideColor;
+
+		if (color == ColorStruct::Empty)
+		{
+			bool isPositive = amount > 0;
+			color = isPositive ? Drawing::DefaultColors[(int)DefaultColorList::Green] : Drawing::DefaultColors[(int)DefaultColorList::Red];
+			swprintf_s(moneyStr, L"%ls%ls%d", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, std::abs(amount));
+		}
+		else
+		{
+			swprintf_s(moneyStr, L"%ls%ls%d", L"+", Phobos::UI::CostLabel, std::abs(amount));
+		}
+
+		Dimensions nDim {};
+		BitFont::Instance->GetTextDimension(moneyStr, &nDim.Width, &nDim.Height, 120);
+		pixelOffset.X -= (nDim.Width / 2);
+
+		if (const auto pBuilding = specific_cast<BuildingClass*>(owner))
+			coords.Z += 104 * pBuilding->Type->Height;
+		else
+			coords.Z += 256;
+
+		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
+	}
+}
+
 void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
 {
 	if (text.empty() || !coords || !Display || !owner)

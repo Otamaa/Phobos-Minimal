@@ -3,6 +3,7 @@
 #include <ArrayClasses.h>
 #include <GeneralDefinitions.h>
 #include <Helpers\CompileTime.h>
+#include <Leptons.h>
 
 //forward declarations
 class AbstractClass;
@@ -855,7 +856,7 @@ public:
 	int				 Stray;
 	int				 RelaxedStray;
 	int				 GuardModeStray;
-	int				 Crush;
+	Leptons			 Crush;
 	int				 CrateRadius;
 	int				 HomingScatter;
 	int				 BallisticScatter;

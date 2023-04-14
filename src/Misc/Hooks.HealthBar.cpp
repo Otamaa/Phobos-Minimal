@@ -150,12 +150,12 @@ namespace DrawHeathData
 			return nFrameResult;
 		};
 
-		char nBuffer[256];
+		char nBuffer[0x100];
 
 		if (!pTypeExt->HealthNumber_Percent.Get())
-			_snprintf_s(nBuffer, _TRUNCATE, "%d/%d", pThis->Health, pThis->GetTechnoType()->Strength);
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "%d/%d", pThis->Health, pThis->GetTechnoType()->Strength);
 		else
-			_snprintf_s(nBuffer, _TRUNCATE, "%d%s", (int)(pThis->GetHealthPercentage() * 100.0), "%");
+			IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer), "%d%s", (int)(pThis->GetHealthPercentage() * 100.0), "%");
 
 		auto const bIsBuilding = Is_Building(pThis);
 

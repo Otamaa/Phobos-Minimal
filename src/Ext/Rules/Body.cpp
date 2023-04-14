@@ -183,7 +183,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitsGainSelfHealCap.Read(exINI, GENERAL_SECTION, "UnitsGainSelfHealCap");
 
 	this->EnemyInsignia.Read(exINI, GENERAL_SECTION, "EnemyInsignia");
-	this->ShowAllyDisguiseBlinking.Read(exINI, GENERAL_SECTION, "ShowAllyDisguiseBlinking");
+	this->DisguiseBlinkingVisibility.Read(exINI, GENERAL_SECTION, "DisguiseBlinkingVisibility");
 
 	this->UseSelectBrd.Read(exINI, AUDIOVISUAL_SECTION, "UseSelectBrd");
 	this->SHP_SelectBrdSHP_INF.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.SHP.Infantry");
@@ -573,7 +573,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->InfantryGainSelfHealCap)
 		.Process(this->UnitsGainSelfHealCap)
 		.Process(this->EnemyInsignia)
-		.Process(this->ShowAllyDisguiseBlinking)
+		.Process(this->DisguiseBlinkingVisibility)
 
 		.Process(this->SHP_SelectBrdSHP_INF)
 		.Process(this->SHP_SelectBrdPAL_INF)

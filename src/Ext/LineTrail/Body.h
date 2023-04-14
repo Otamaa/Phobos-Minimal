@@ -27,18 +27,18 @@ public:
 		for (int i = 0; ; ++i)
 		{
 			Nullable<ColorStruct> tempColor;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LineTrail%dColor", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColor", i);
 			tempColor.Read(parser, pSection, tempBuffer);
 
 			if (!tempColor.isset() || tempColor.Get() == ColorStruct{ 0,0,0 })
 				break;
 
 			Valueable<CoordStruct> tempflh;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LineTrail%dFLH", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dFLH", i);
 			tempflh.Read(parser, pSection, tempBuffer);
 
 			Valueable<int> tempDecrement;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LineTrail%dColorDecrement", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LineTrail%dColorDecrement", i);
 			tempDecrement.Read(parser, pSection, tempBuffer);
 
 			nVec.emplace_back(tempflh.Get(), tempColor.Get(), tempDecrement.Get());

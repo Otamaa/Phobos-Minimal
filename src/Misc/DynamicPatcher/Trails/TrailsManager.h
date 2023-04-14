@@ -81,7 +81,7 @@ struct TrailsReader
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{
-		char tempBuffer[32];
+		char tempBuffer[0x40];
 
 		if (TrailType::Array.empty())
 			return;
@@ -90,28 +90,28 @@ struct TrailsReader
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx <TrailType> trail;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.Type", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.Type", i);
 			trail.Read(nParser, pSection, tempBuffer);
 
 			if (!trail.isset() || trail == -1)
 				break;
 
 			Valueable<CoordStruct> flh;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.FLH", i);
 			flh.Read(nParser, pSection, tempBuffer);
 
 			Nullable<bool> isOnTurret {};
 			if (IsForTechno) {
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.IsOnTurret", i);
 				isOnTurret.Read(nParser, pSection, tempBuffer);
 			}
 
 			ValueableVector<LandType> land;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnLands", i);
 			land.Read(nParser, pSection, tempBuffer);
 
 			ValueableVector<TileType> nTiles;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Trail%d.OnTiles", i);
 			nTiles.Read(nParser, pSection, tempBuffer);
 
 			CurrentData.emplace_back(trail.Get(),flh.Get(),isOnTurret.Get(false));

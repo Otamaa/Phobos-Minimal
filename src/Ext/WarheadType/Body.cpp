@@ -633,9 +633,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 	{
+		char flag[0x40];
 		Nullable<AnimTypeClass*> pAnimReaded;
-		_snprintf_s(Phobos::readBuffer, _TRUNCATE, "%s.%s", "HitAnim", ArmorTypeClass::Array[i]->Name.data());
-		pAnimReaded.Read(exINI, pSection, Phobos::readBuffer, true);
+		IMPL_SNPRNINTF(flag, sizeof(flag), "%s.%s", "HitAnim", ArmorTypeClass::Array[i]->Name.data());
+		pAnimReaded.Read(exINI, pSection, flag, true);
 
 		if (!pAnimReaded.isset())
 			continue;
@@ -714,14 +715,11 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
 	{
-		char tempBuffer[2048];
-		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
-		{
-			if (auto pArmor = ArmorTypeClass::Array[i].get())
-			{
-				_snprintf_s(tempBuffer, _TRUNCATE, "%s.%s.", pBaseKey, pArmor->Name.data());
-				DamageTextPerArmor[i].Read(exINI, pSection, tempBuffer);
-			}
+		char tempBuffer[0x80];
+		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i) {
+			const auto pArmor = ArmorTypeClass::Array[i].get();
+			IMPL_SNPRNINTF(tempBuffer, sizeof(flag), "%s.%s.", pBaseKey, pArmor->Name.data());
+			DamageTextPerArmor[i].Read(exINI, pSection, tempBuffer);
 		}
 	};
 

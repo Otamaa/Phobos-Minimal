@@ -496,13 +496,13 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 		{
 			auto nHouseCount = HouseTypeClass::Array()->Count;
-			char tempBuffer[2048];
+			char tempBuffer[0x500];
 			nVec.clear();
 
 			for (int i = 0; i < nHouseCount; ++i)
 			{
 				Nullable<AnimTypeClass*> nBuffer;
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
 
 				if (bParseDebug)
 					Debug::Log("GetGarrisonAnim for [%s]=%s idx[%d] \n", pSection, tempBuffer, i);
@@ -616,7 +616,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
 				Nullable<Point2D> nMuzzleLocation;
-				_snprintf_s(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
+				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
 				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
 				this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get(Point2D::Empty);
 			}
@@ -633,7 +633,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		for (int i = 0;; ++i)
 		{
 			Nullable<Point2D> nFire_offs {};
-			_snprintf_s(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
+			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
 			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
 			if (!nFire_offs.isset() || nFire_offs.Get() == Point2D::Empty)

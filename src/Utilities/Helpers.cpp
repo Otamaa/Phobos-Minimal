@@ -3,44 +3,35 @@
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
 
-bool Helpers::Otamaa::LauchSW(int LaunchWhat,
-	HouseClass* pOwner,
-	const CoordStruct Where,
-	bool WaitForCharge,
-	bool ResetChargeAfterLauch,
-	bool Grant,
-	bool GrantRepaitSidebar,
-	bool GrantOneTime,
-	bool GrantOnHold,
-	bool Manual,
-	bool IgnoreInhibitor,
-	bool IgnoreDesignator,
-	bool IgnoreMoney)
+#include <New/Entity/FlyingStrings.h>
+
+bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
+	HouseClass* pOwner, const CoordStruct Where)
 {
 	auto const HouseOwner = !pOwner || pOwner->Defeated ? HouseExt::FindCivilianSide() : pOwner;
 
 	if (HouseOwner)
 	{
 		//TODO : if not real lauch , use Ext SW array to handle
-		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(LaunchWhat))
+		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(nData.LaunchWhat))
 		{
 			auto const pSuper = pSelected;
 			const auto pSWExt = SWTypeExt::ExtMap.Find(pSelected->Type);
 
 			auto const nWhere = CellClass::Coord2Cell(Where);
-			bool const lauch = (WaitForCharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
+			bool const lauch = (nData.LaunchWaitcharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
 			bool const bIsObserver = HouseOwner->IsObserver();
-			bool const MoneyEligible = IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
-			bool const InhibitorEligible = IgnoreInhibitor ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
-			bool const DesignatorEligible = IgnoreDesignator ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);
+			bool const MoneyEligible = nData.LauchSW_IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
+			bool const InhibitorEligible = nData.LaunchSW_IgnoreInhibitors ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
+			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);
 
-			if (Grant || Manual)
+			if (nData.LaunchGrant || nData.LaunchSW_Manual)
 			{
-				if (pSuper->Grant(GrantOneTime, !bIsObserver, GrantOnHold))
+				if (pSuper->Grant(nData.LaunchGrant_OneTime, !bIsObserver, nData.LaunchGrant_OnHold))
 				{
-					if (!bIsObserver && (Manual || GrantRepaitSidebar))
+					if (!bIsObserver && (nData.LaunchSW_Manual || nData.LaunchGrant_RepaintSidebar))
 					{
-						if (MouseClass::Instance->AddCameo(AbstractType::Special, LaunchWhat))
+						if (MouseClass::Instance->AddCameo(AbstractType::Special, nData.LaunchWhat))
 						{
 							MouseClass::Instance->RepaintSidebar(1);
 						}
@@ -48,17 +39,25 @@ bool Helpers::Otamaa::LauchSW(int LaunchWhat,
 				}
 			}
 
-			if (!WaitForCharge)
+			if (!nData.LaunchWaitcharge)
 				pSuper->SetReadiness(true);
 
-			if (!Manual && lauch && MoneyEligible && InhibitorEligible && DesignatorEligible && !pSuper->IsOnHold)
+			if (!nData.LaunchSW_Manual &&
+				lauch &&
+				MoneyEligible &&
+				InhibitorEligible &&
+				DesignatorEligible &&
+				!pSuper->IsOnHold)
 			{
 				const int oldstart = pSuper->RechargeTimer.StartTime;
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;
+				FlyingStrings::AddMoneyString(nData.LaunchSW_DisplayMoney && pSWExt->Money_Amount != 0 ,
+					pSWExt->Money_Amount, HouseOwner, 
+					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset);
 
 				pSuper->Launch(nWhere, !bIsObserver);
 
-				if (ResetChargeAfterLauch)
+				if (nData.LaunchResetCharge)
 					pSuper->Reset();
 				else
 				{

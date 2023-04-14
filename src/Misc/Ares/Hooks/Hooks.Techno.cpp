@@ -436,12 +436,47 @@ int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 
 void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	if (GetAmmo(pThis, pWeapon) > 0) {
-		if (Is_Building(pThis)) {
+	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if(pType->Ammo > 0 || pType->InitialAmmo > 0)
+	{
+		if(const auto nWeaponAmmo = pWeaponExt->Ammo)
+		{
+			if(!Is_Aircraft(pThis))
+			{
+				auto nCur = pThis->Ammo - nWeaponAmmo;
+
+        		if ( nCur < 0 )
+         			 nCur = 0;
+
+       			 pThis->Ammo = nCur;
+
+        		auto v8 = pType->Ammo;
+
+        		if ( nCur > v8 ) {
+        			pThis->Ammo = v8;
+          			nCur = v8;
+        		}
+
+				const auto pCurWeapon = pThis->GetWeapon(pTypeExt->NoAmmoWeapon);
+				if (pTypeExt->NoAmmoEffectAnim && nCur <= pTypeExt->NoAmmoAmount && pCurWeapon->WeaponType != pWeapon)
+        		{
+					if(auto pAnim = GameCreate<AnimClass>(pTypeExt->NoAmmoEffectAnim.Get() , pThis->Location))
+					{
+						pAnim->SetOwnerObject(pThis);
+						pAnim->SetHouse(pThis->Owner);
+					}
+       			 }
+			}
+
+			if (Is_Building(pThis)) {
 			auto const Ammo = static_cast<BuildingClass*>(pThis)->Type->Ammo;
 
 			if (Ammo > 0 && pThis->Ammo < Ammo)
 				pThis->StartReloading();
+			}
 		}
 	}
 }

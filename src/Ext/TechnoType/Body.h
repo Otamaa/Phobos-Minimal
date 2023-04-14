@@ -514,6 +514,7 @@ public:
 		Valueable<bool> OmniCrusher_Aggressive;
 		Promotable<int> CrushDamage;
 		Nullable<WarheadTypeClass*> CrushDamageWarhead;
+		NullablePromotable<Leptons> CrushRange;
 
 		NullableIdx<VocClass> DigInSound;
 		NullableIdx<VocClass> DigOutSound;
@@ -589,6 +590,18 @@ public:
 #endif
 		AresAttachEffectTypeClass AttachedEffect;
 #pragma endregion
+
+		Valueable<AnimTypeClass*> NoAmmoEffectAnim;
+		Valueable<int> AttackFriendlies_WeaponIdx;
+		Nullable<WORD> PipScaleIndex;
+
+		Nullable<SHPStruct*> AmmoPip;
+		Valueable<Point2D> AmmoPip_Offset;
+		CustomPalette AmmoPip_Palette;
+
+		std::vector<Promotable<SHPStruct*>> Insignia_Weapon;
+		std::vector<Promotable<int>> InsigniaFrame_Weapon;
+		std::vector<Point3D> InsigniaFrames_Weapon;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -986,6 +999,7 @@ public:
 			, OmniCrusher_Aggressive { false }
 			, CrushDamage { }
 			, CrushDamageWarhead { }
+			, CrushRange { }
 
 			, DigInSound {}
 			, DigOutSound {}
@@ -1043,7 +1057,16 @@ public:
 #endif
 			, AttachedEffect { OwnerObject }
 #pragma endregion
+			, NoAmmoEffectAnim { nullptr }
+			, AttackFriendlies_WeaponIdx { -1 }
+			, PipScaleIndex { }
+			, AmmoPip { }
+			, AmmoPip_Offset { }
+			, AmmoPip_Palette { CustomPalette::PaletteMode::Default }
 
+			, Insignia_Weapon {}
+			, InsigniaFrame_Weapon {}
+			, InsigniaFrames_Weapon {}
 		{ }
 
 		virtual ~ExtData() override = default;

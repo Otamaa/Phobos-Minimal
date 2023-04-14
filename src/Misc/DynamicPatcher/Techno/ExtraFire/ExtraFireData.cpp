@@ -15,7 +15,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 
 	for (int a = 0; a < INT_MAX; a++)
 	{
-		_snprintf(nBuff, sizeof(nBuff), "ExtraFire.Weapon%d", a + 1);
+		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "ExtraFire.Weapon%d", a + 1);
 
 		if (!parserRules.ReadString(pSection_rules, nBuff))
 			break;
@@ -30,7 +30,7 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 	{
 		for (int b = 0; b < nSize; b++)
 		{
-			_snprintf(nBuff, sizeof(nBuff), "ExtraFire.EliteWeapon%d", b + 1);
+			IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "ExtraFire.EliteWeapon%d", b + 1);
 
 			if (!parserRules.ReadString(pSection_rules, nBuff))
 			{
@@ -72,7 +72,7 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 	{
 		Nullable<CoordStruct> nBuffRead_;
 
-		_snprintf(nBuffArt, sizeof(nBuffArt), "ExtraFire.Weapon%dFLH", i + 1);
+		IMPL_SNPRNINTF(nBuffArt, sizeof(nBuffArt), "ExtraFire.Weapon%dFLH", i + 1);
 		nBuffRead_.Read(parserArt, pSection_Art, nBuffArt);
 
 		if (!nBuffRead_.isset())
@@ -87,7 +87,7 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 		for (int i = 0; i < nSize; i++)
 		{
 			Nullable<CoordStruct> nBuffReadE_;
-			_snprintf(nBuffArt, sizeof(nBuffArt), "ExtraFire.EliteWeapon%dFLH", i + 1);
+			IMPL_SNPRNINTF(nBuffArt, sizeof(nBuffArt), "ExtraFire.EliteWeapon%dFLH", i + 1);
 			nBuffReadE_.Read(parserArt, pSection_Art, nBuffArt);
 			AttachedFLH.EliteWeaponXFLH.push_back(nBuffReadE_.Get(AttachedFLH.WeaponXFLH[i]));
 		}

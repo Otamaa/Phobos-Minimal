@@ -37,6 +37,12 @@
 #include <Phobos.h>
 #include <CCINIClass.h>
 
+#include <ExtraHeaders/nanoprintf.h>
+#ifndef NANOPRINTF_IMPLEMENTATION
+#define IMPL_SNPRNINTF _snprintf_s
+#else
+#define IMPL_SNPRNINTF npf_snprintf
+#endif
 class INI_EX {
 	CCINIClass* IniFile;
 

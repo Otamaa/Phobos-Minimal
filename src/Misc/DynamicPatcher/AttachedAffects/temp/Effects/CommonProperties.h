@@ -24,7 +24,7 @@ struct CommonProperties
 	void Read(INI_EX& parser, const char* pSection, const char* pTag)
 	{
 		char Buffer[0x90];
-		_snprintf_s(Buffer, sizeof(Buffer), "%sAffectWho", pTag);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sAffectWho", pTag);
 		if (parser.ReadString(pSection, Buffer))
 		{
 			if(IS_SAME_STR_("All", parser.value()))
@@ -35,7 +35,7 @@ struct CommonProperties
 				Who = AffectWho::STAND;
 		}
 
-		_snprintf_s(Buffer, sizeof(Buffer), "%sDeactiveWhenCivilian", pTag);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sDeactiveWhenCivilian", pTag);
 		DeactiveWhenCivilian.Read(parser, pSection, Buffer);
 	}
 

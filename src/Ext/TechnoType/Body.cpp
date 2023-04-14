@@ -177,15 +177,15 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 	{
 		for (int j = 0; j < INT_MAX; j++)
 		{
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "%sWeapon%d", pPrefixTag, i + 1);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sWeapon%d", pPrefixTag, i + 1);
 			auto prefix = parseMultiWeapons ? tempBuffer : i > 0 ? "%sSecondaryFire" : "%sPrimaryFire";
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTag);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), prefix, pPrefixTag);
 
-			_snprintf_s(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
+			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "%sFLH.Burst%d", tempBuffer, j);
 			Nullable<CoordStruct> FLH { };
 			FLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
-			_snprintf_s(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
+			IMPL_SNPRNINTF(tempBufferFLH, sizeof(tempBufferFLH), "Elite%sFLH.Burst%d", tempBuffer, j);
 			Nullable<CoordStruct> eliteFLH { };
 			eliteFLH.Read(exArtINI, pArtSection, tempBufferFLH);
 
@@ -203,9 +203,9 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
 	char tempBuffer[32];
-	_snprintf_s(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
+	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
 	nFlh.Read(exArtINI, pArtSection, tempBuffer);
-	_snprintf_s(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
+	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
 	nEFlh.Read(exArtINI, pArtSection, tempBuffer);
 }
 
@@ -221,7 +221,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
-
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
 		this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
@@ -639,14 +638,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		{
 			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
 			{
-				char keySection[32];
-				_snprintf_s(keySection, sizeof(keySection), "Prerequisite.List%d", i);
+				char keySection[0x100];
+				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", i);
 
 				std::vector<int> objectsList;
 				char* context2 = nullptr;
 				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
 
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); 
+					cur; 
+					cur = strtok_s(nullptr, Phobos::readDelims, &context2))
 				{
 					cur = CRT::strtrim(cur);
 					int idx = TechnoTypeClass::FindIndexById(cur);
@@ -668,9 +669,145 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 #pragma endregion Prereq
 
+		char tempBuffer[0x100];
+
+		if (pThis->Gunner)
+		{
+			const int weaponCount = pThis->WeaponCount;
+			this->Insignia_Weapon.resize(weaponCount);
+			this->InsigniaFrame_Weapon.resize(weaponCount);
+			this->InsigniaFrames_Weapon.resize(weaponCount);
+
+			for (int i = 0; i < weaponCount; i++)
+			{
+				Promotable<SHPStruct*> insignia { nullptr };
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Weapon%d.%s", i + 1, "%s");
+				insignia.Read(exINI, pSection, tempBuffer);
+				this->Insignia_Weapon[i] = insignia;
+
+				Promotable<int> frame = Promotable<int>(-1);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Weapon%d.%s", i + 1, "%s");
+				frame.Read(exINI, pSection, tempBuffer);
+				this->InsigniaFrame_Weapon[i] = frame;
+
+				Valueable<Point3D> frames { {-1, -1, -1} };
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Weapon%d", i + 1);
+				frames.Read(exINI, pSection, tempBuffer);
+				this->InsigniaFrames_Weapon[i] = frames;
+			}
+		}
+
 		this->AttachedEffect.Read(exINI);
+		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmomEffectAnim", true);
+		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
+		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
+		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
+		this->AmmoPip_Offset.Read(exINI, pSection, "AmmoPipOffset");
+		this->AmmoPip_Palette.Read(exINI.GetINI(), pSection, "AmmoPipPalette");
+
+		// #346, #464, #970, #1014
+		this->PassengersGainExperience.Read(exINI, pSection, "Experience.PromotePassengers");
+		this->ExperienceFromPassengers.Read(exINI, pSection, "Experience.FromPassengers");
+		this->PassengerExperienceModifier.Read(exINI, pSection, "Experience.PassengerModifier");
+		this->MindControlExperienceSelfModifier.Read(exINI, pSection, "Experience.MindControlSelfModifier");
+		this->MindControlExperienceVictimModifier.Read(exINI, pSection, "Experience.MindControlVictimModifier");
+		this->SpawnExperienceOwnerModifier.Read(exINI, pSection, "Experience.SpawnOwnerModifier");
+		this->SpawnExperienceSpawnModifier.Read(exINI, pSection, "Experience.SpawnModifier");
+		this->ExperienceFromAirstrike.Read(exINI, pSection, "Experience.FromAirstrike");
+		this->AirstrikeExperienceModifier.Read(exINI, pSection, "Experience.AirstrikeModifier");
+		this->Promote_IncludePassengers.Read(exINI, pSection, "Promote.IncludePassengers");
+		this->Promote_Elite_Eva.Read(exINI, pSection, "EVA.ElitePromoted");
+		this->Promote_Vet_Eva.Read(exINI, pSection, "EVA.VeteranPromoted");
+		this->Promote_Elite_Sound.Read(exINI, pSection, "Promote.EliteFlash");
+		this->Promote_Vet_Sound.Read(exINI, pSection, "Promote.VeteranFlash");
+		this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteSound");
+		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranSound");
+		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
+		this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
+		this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
+		this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
+
+		this->DeployDir.Read(exINI, pSection, "DeployDir");
+
+		this->PassengersWhitelist.Read(exINI, pSection, "Passengers.Allowed");
+		this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
+
+		this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
+		this->NoManualFire.Read(exINI, pSection, "NoManualFire");
+		this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
+
+		this->Crashable.Read(exINI, pSection, "Crashable");
+
+		this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
+		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
+		this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
+		this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
+		this->Harvester_ScanCorrection.Read(exINI, pSection, "Harvester.ScanCorrection");
+
+		this->Harvester_TooFarDistance.Read(exINI, pSection, "Harvester.TooFarDistance");
+		this->Harvester_KickDelay.Read(exINI, pSection, "Harvester.KickDelay");
+
+		this->TurretRot.Read(exINI, pSection, "TurretROT");
+
+		this->FallRate_Parachute.Read(exINI, pSection, "FallRate.Parachute");
+		this->FallRate_NoParachute.Read(exINI, pSection, "FallRate.NoParachute");
+		this->FallRate_ParachuteMax.Read(exINI, pSection, "FallRate.ParachuteMax");
+		this->FallRate_NoParachuteMax.Read(exINI, pSection, "FallRate.NoParachuteMax");
+
+		// Dont need to be SL ?
+		const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
+		TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+		TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+
+		this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
+
+		this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
+		this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
+		this->CrushRange.Read(exINI, pSection, "CrushRange.%s");
+		this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
+
+		this->DigInSound.Read(exINI, pSection, "DigInSound");
+		this->DigOutSound.Read(exINI, pSection, "DigOutSound");
+		this->DigInAnim.Read(exINI, pSection, "DigInAnim");
+		this->DigOutAnim.Read(exINI, pSection, "DigOutAnim");
+
+		this->EVA_UnitLost.Read(exINI, pSection, "EVA.Lost");
+
+		this->BuildTime_Speed.Read(exINI, pSection, "BuildTime.Speed");
+		this->BuildTime_Cost.Read(exINI, pSection, "BuildTime.Cost");
+		this->BuildTime_LowPowerPenalty.Read(exINI, pSection, "BuildTime.LowPowerPenalty");
+		this->BuildTime_MinLowPower.Read(exINI, pSection, "BuildTime.MinLowPower");
+		this->BuildTime_MaxLowPower.Read(exINI, pSection, "BuildTime.MaxLowPower");
+		this->BuildTime_MultipleFactory.Read(exINI, pSection, "BuildTime.MultipleFactory");
+
+		this->CloakStages.Read(exINI, pSection, "Cloakable.Stages");
+		this->DamageSparks.Read(exINI, pSection, "DamageSparks");
+
+		this->ParticleSystems_DamageSmoke.Read(exINI, pSection, "DamageSmokeParticleSystems");
+		this->ParticleSystems_DamageSparks.Read(exINI, pSection, "DamageSparksParticleSystems");
+		// issue #896235: cyclic gattling
+		this->GattlingCyclic.Read(exINI, pSection, "Gattling.Cycle");
+		this->CloakSound.Read(exINI, pSection, "CloakSound");
+		this->DecloakSound.Read(exINI, pSection, "DecloakSound");
+		this->VoiceRepair.Read(exINI, pSection, "VoiceIFVRepair");
+		this->ReloadAmount.Read(exINI, pSection, "ReloadAmount");
+		this->EmptyReloadAmount.Read(exINI, pSection, "EmptyReloadAmount");
+		this->TiberiumSpill.Read(exINI, pSection, "TiberiumSpill");
+		this->TiberiumRemains.Read(exINI, pSection, "TiberiumRemains");
+		// sensors
+		this->SensorArray_Warn.Read(exINI, pSection, "SensorArray.Warn");
+
+		this->IronCurtain_Modifier.Read(exINI, pSection, "IronCurtain.Modifier");
+		this->ForceShield_Modifier.Read(exINI, pSection, "ForceShield.Modifier");
+		this->Survivors_PilotCount.Read(exINI, pSection, "Survivor.Pilots");
+		// berserking options
+		this->BerserkROFMultiplier.Read(exINI, pSection, "Berserk.ROFMultiplier");
+
+		// refinery and storage
+		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 
 	}
+
 
 	// Art tags
 	if (pArtIni->GetSection(pArtSection))
@@ -679,22 +816,22 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		this->TurretOffset.Read(exArtINI, pArtSection, "TurretOffset");
 
-		char tempBuffer[32];
+		char tempBuffer[0x20];
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx<LaserTrailTypeClass> trail;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.Type", i);
 			trail.Read(exArtINI, pArtSection, tempBuffer);
 
 			if (!trail.isset())
 				break;
 
 			Valueable<CoordStruct> flh;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.FLH", i);
 			flh.Read(exArtINI, pArtSection, tempBuffer);
 
 			Valueable<bool> isOnTurret;
-			_snprintf_s(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
+			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "LaserTrail%d.IsOnTurret", i);
 			isOnTurret.Read(exArtINI, pArtSection, tempBuffer);
 
 			this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
@@ -722,11 +859,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			this->AlternateFLHs.emplace_back(alternateFLH.Get());
 		}
 
-		char HitCoord_tempBuffer[32];
+		char HitCoord_tempBuffer[0x20];
 		for (size_t i = 0; ; ++i)
 		{
 			Nullable<CoordStruct> nHitBuff;
-			_snprintf_s(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
+			IMPL_SNPRNINTF(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
 			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
 
 			if (!nHitBuff.isset() || !nHitBuff.Get())
@@ -754,7 +891,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 }
-
 
 void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 {
@@ -795,110 +931,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
 	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
 	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
-	//No code
-	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 	this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
 
-	// #346, #464, #970, #1014
-	this->PassengersGainExperience.Read(exINI, pSection, "Experience.PromotePassengers");
-	this->ExperienceFromPassengers.Read(exINI, pSection, "Experience.FromPassengers");
-	this->PassengerExperienceModifier.Read(exINI, pSection, "Experience.PassengerModifier");
-	this->MindControlExperienceSelfModifier.Read(exINI, pSection, "Experience.MindControlSelfModifier");
-	this->MindControlExperienceVictimModifier.Read(exINI, pSection, "Experience.MindControlVictimModifier");
-	this->SpawnExperienceOwnerModifier.Read(exINI, pSection, "Experience.SpawnOwnerModifier");
-	this->SpawnExperienceSpawnModifier.Read(exINI, pSection, "Experience.SpawnModifier");
-	this->ExperienceFromAirstrike.Read(exINI, pSection, "Experience.FromAirstrike");
-	this->AirstrikeExperienceModifier.Read(exINI, pSection, "Experience.AirstrikeModifier");
-	this->Promote_IncludePassengers.Read(exINI, pSection, "Promote.IncludePassengers");
-	this->Promote_Elite_Eva.Read(exINI, pSection, "EVA.ElitePromoted");
-	this->Promote_Vet_Eva.Read(exINI, pSection, "EVA.VeteranPromoted");
-	this->Promote_Elite_Sound.Read(exINI, pSection, "Promote.EliteFlash");
-	this->Promote_Vet_Sound.Read(exINI, pSection, "Promote.VeteranFlash");
-	this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteSound");
-	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranSound");
-	this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranType");
-	this->Promote_Elite_Type.Read(exINI, pSection, "Promote.EliteType");
-	this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
-	this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
-
-	this->DeployDir.Read(exINI, pSection, "DeployDir");
-
-	this->PassengersWhitelist.Read(exINI, pSection, "Passengers.Allowed");
-	this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
-
-	this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
-	this->NoManualFire.Read(exINI, pSection, "NoManualFire");
-	this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
-
-	this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
-	this->Crashable.Read(exINI, pSection, "Crashable");
-
-	this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
-
-	this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
-	this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");
-	this->Harvester_ScanCorrection.Read(exINI, pSection, "Harvester.ScanCorrection");
-
-	this->Harvester_TooFarDistance.Read(exINI, pSection, "Harvester.TooFarDistance");
-	this->Harvester_KickDelay.Read(exINI, pSection, "Harvester.KickDelay");
-
-	this->TurretRot.Read(exINI, pSection, "TurretROT");
-
-	this->FallRate_Parachute.Read(exINI, pSection, "FallRate.Parachute");
-	this->FallRate_NoParachute.Read(exINI, pSection, "FallRate.NoParachute");
-	this->FallRate_ParachuteMax.Read(exINI, pSection, "FallRate.ParachuteMax");
-	this->FallRate_NoParachuteMax.Read(exINI, pSection, "FallRate.NoParachuteMax");
-
-	// Dont need to be SL ?
-	const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
-	TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
-	TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
-
-	this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
-
-	this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
-	this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
-	this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
-
-	this->DigInSound.Read(exINI, pSection, "DigInSound");
-	this->DigOutSound.Read(exINI, pSection, "DigOutSound");
-	this->DigInAnim.Read(exINI, pSection, "DigInAnim");
-	this->DigOutAnim.Read(exINI, pSection, "DigOutAnim");
-
-	this->EVA_UnitLost.Read(exINI, pSection, "EVA.Lost");
-
-	this->BuildTime_Speed.Read(exINI, pSection, "BuildTime.Speed");
-	this->BuildTime_Cost.Read(exINI, pSection, "BuildTime.Cost");
-	this->BuildTime_LowPowerPenalty.Read(exINI, pSection, "BuildTime.LowPowerPenalty");
-	this->BuildTime_MinLowPower.Read(exINI, pSection, "BuildTime.MinLowPower");
-	this->BuildTime_MaxLowPower.Read(exINI, pSection, "BuildTime.MaxLowPower");
-	this->BuildTime_MultipleFactory.Read(exINI, pSection, "BuildTime.MultipleFactory");
-
-	this->CloakStages.Read(exINI, pSection, "Cloakable.Stages");
-	this->DamageSparks.Read(exINI, pSection, "DamageSparks");
-
-	this->ParticleSystems_DamageSmoke.Read(exINI, pSection, "DamageSmokeParticleSystems");
-	this->ParticleSystems_DamageSparks.Read(exINI, pSection, "DamageSparksParticleSystems");
-	// issue #896235: cyclic gattling
-	this->GattlingCyclic.Read(exINI, pSection, "Gattling.Cycle");
-	this->CloakSound.Read(exINI, pSection, "CloakSound");
-	this->DecloakSound.Read(exINI, pSection, "DecloakSound");
-	this->VoiceRepair.Read(exINI, pSection, "VoiceIFVRepair");
-	this->ReloadAmount.Read(exINI, pSection, "ReloadAmount");
-	this->EmptyReloadAmount.Read(exINI, pSection, "EmptyReloadAmount");
-	this->TiberiumSpill.Read(exINI, pSection, "TiberiumSpill");
-	this->TiberiumRemains.Read(exINI, pSection, "TiberiumRemains");
-	// sensors
-	this->SensorArray_Warn.Read(exINI, pSection, "SensorArray.Warn");
-
-	this->IronCurtain_Modifier.Read(exINI, pSection, "IronCurtain.Modifier");
-	this->ForceShield_Modifier.Read(exINI, pSection, "ForceShield.Modifier");
-	this->Survivors_PilotCount.Read(exINI, pSection, "Survivor.Pilots");
-	// berserking options
-	this->BerserkROFMultiplier.Read(exINI, pSection, "Berserk.ROFMultiplier");
-
-	// refinery and storage
-	this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
+	//No code
+	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
@@ -922,7 +958,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4)
 {
 	char buffer[0x60];
-	_snprintf_s(buffer, sizeof(buffer), "%s.VXL", nKey);
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
 	CCFileClass CCFileV { buffer };
 
 	if (CCFileV.Exists())
@@ -930,7 +966,7 @@ void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, boo
 		MotLib* pLoadedHVA = nullptr;
 		VoxLib* pLoadedVXL = GameCreate<VoxLib>(&CCFileV, false);
 
-		_snprintf_s(buffer, sizeof(buffer), "%s.HVA", nKey);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.HVA", nKey);
 		CCFileClass  CCFileH { buffer };
 
 		if (CCFileH.Open(FileAccessMode::Read))
@@ -1466,6 +1502,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->OmniCrusher_Aggressive)
 		.Process(this->CrushDamage)
 		.Process(this->CrushDamageWarhead)
+		.Process(this->CrushRange)
 		.Process(this->DigInSound)
 		.Process(this->DigOutSound)
 		.Process(this->DigInAnim)
@@ -1513,7 +1550,17 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 #endif
 
 	Stm.Process(this->AttachedEffect)
-		;
+	   .Process(this->NoAmmoEffectAnim)
+	   .Process(this->AttackFriendlies_WeaponIdx)
+	   .Process(this->PipScaleIndex)
+	   .Process(this->AmmoPip)
+	   .Process(this->AmmoPip_Offset)
+	   .Process(this->AmmoPip_Palette)
+
+		.Process(this->Insignia_Weapon)
+		.Process(this->InsigniaFrame_Weapon)
+		.Process(this->InsigniaFrames_Weapon)
+	;
 }
 
 void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)

@@ -17,6 +17,10 @@ struct LauchSWData final
 	bool LaunchSW_IgnoreDesignators;
 	bool LauchSW_IgnoreMoney;
 
+	bool LaunchSW_DisplayMoney;
+	AffectedHouse LaunchSW_DisplayMoney_Houses;
+	Point2D LaunchSW_DisplayMoney_Offset;
+
 	bool Read(INI_EX& exINI, const char* pID, int Prefix);
 
 	LauchSWData() : LaunchWhat { -1 }
@@ -30,6 +34,10 @@ struct LauchSWData final
 		, LaunchSW_IgnoreInhibitors { false }
 		, LaunchSW_IgnoreDesignators { true }
 		, LauchSW_IgnoreMoney { false }
+
+		, LaunchSW_DisplayMoney { false }
+		, LaunchSW_DisplayMoney_Houses { AffectedHouse::All }
+		, LaunchSW_DisplayMoney_Offset {  0 , 0  }
 	{ }
 
 	virtual ~LauchSWData() = default;

@@ -43,6 +43,7 @@ public:
 		Valueable<bool> Damage_ApplyOnce;
 		Valueable<bool> Damage_ConsiderOwnerVeterancy;
 		Valueable<DamageDelayTargetFlag> Damage_TargetFlag;
+		Nullable<Mission> MakeInfantry_Mission;
 
 		Valueable<bool> Warhead_Detonate;
 

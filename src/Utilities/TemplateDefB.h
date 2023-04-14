@@ -131,16 +131,16 @@ namespace detail
 	{
 		auto ret = false;
 
-		char pFlagName[32];
+		char pFlagName[0x40];
 		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i) {
-			_snprintf_s(pFlagName, sizeof(pFlagName), EnumFunctions::MouseCursorData_ToStrings[i], pKey);
+			IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), EnumFunctions::MouseCursorData_ToStrings[i], pKey);
 			ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
 		}
 
 		if (value.SmallFrameRate == -1)
 			value.SmallFrameRate = value.OriginalData.FrameRate;
 
-		_snprintf_s(pFlagName, 31, "%s.HotSpot", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.HotSpot", pKey);
 		if (parser.ReadString(pSection, pFlagName))
 		{
 			auto const pValue = parser.value();
@@ -164,7 +164,7 @@ namespace detail
 	{
 		int nBuffer = -1;
 		if (parser.ReadInteger(pSection, pKey , &nBuffer) && nBuffer >= 0 && nBuffer < 8)
-		{ 
+		{
 			value = (DirType8)nBuffer;
 			return true;
 		}

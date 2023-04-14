@@ -444,25 +444,6 @@ DEFINE_HOOK(0x5206F9, InfantryClass_UpdateFiringState_AIDeploy, 0x8)
 	return Ret;
 }
 
-// Aircraft Decloak to fire ?
-DEFINE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(const WeaponTypeClass*, pWeapon, EBX);
-
-	auto const pTransporter = pThis->Transporter;
-
-	if (pTransporter && (pTransporter->CloakState != CloakState::Uncloaked))
-		return 0x6FCA4F;
-
-	if (!static_cast<int>(pThis->CloakState))
-		return 7326302;
-
-	if (!pWeapon->DecloakToFire && pThis->WhatAmI() != AbstractType::Aircraft)
-		return 0x6FCA4F;
-
-	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
-}
 
 #ifdef Ares_ExperimentalHooks
 #include "ViniferaStyle_Hooks.h"

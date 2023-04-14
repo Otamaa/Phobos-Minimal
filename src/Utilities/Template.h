@@ -50,9 +50,10 @@ class INI_EX;
 template<typename T>
 class Valueable
 {
-protected:
-	T Value {};
 public:
+
+	T Value {};
+
 	//using value_type = T;
 	//using base_type = std::remove_pointer_t<T>;
 
@@ -347,6 +348,21 @@ public:
 		return &this->Get(pTechno);
 	}
 
+	const T& GetFromSpecificRank(Rank rank)const noexcept
+	{
+		if (rank == Rank::Elite)
+		{
+			return this->Elite;
+		}
+
+		if (rank == Rank::Veteran)
+		{
+			return this->Veteran;
+		}
+
+		return this->Rookie;
+	}
+
 	const T& Get(TechnoClass* pTechno) const noexcept {
 		auto const rank = pTechno->Veterancy.GetRemainingLevel();
 		if (rank == Rank::Elite)
@@ -381,7 +397,6 @@ public:
 
 	inline bool Save(PhobosStreamWriter& Stm) const;
 };
-
 
 template<class T>
 class ValueableVector : public std::vector<T>
@@ -824,6 +839,84 @@ public:
 	}
 
 	~TimedWarheadValue() = default;
+
+	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	inline bool Save(PhobosStreamWriter& Stm) const;
+};
+
+
+template<typename T>
+class NullablePromotable
+{
+public:
+	Nullable<T> Rookie {};
+	Nullable<T> Veteran {};
+	Nullable<T> Elite {};
+
+	NullablePromotable() = default;
+	explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	explicit NullablePromotable(T const& r, T const& v, T const& e)
+		noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
+		Rookie(r), Veteran(v), Elite(e)
+	{
+	}
+
+	~NullablePromotable() = default;
+
+	void SetAll(const T& val)
+	{
+		this->Elite = this->Veteran = this->Rookie = val;
+	}
+
+	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+
+	const Nullable<T>* GetFromSpecificRank(Rank rank)const noexcept
+	{
+		if (rank == Rank::Elite)
+		{
+			return &this->Elite;
+		}
+
+		if (rank == Rank::Veteran)
+		{
+			return &this->Veteran;
+		}
+
+		return &this->Rookie;
+	}
+
+	const Nullable<T>* Get(TechnoClass* pTechno) const noexcept
+	{
+		auto const rank = pTechno->Veterancy.GetRemainingLevel();
+		if (rank == Rank::Elite)
+		{
+			return &this->Elite;
+		}
+		if (rank == Rank::Veteran)
+		{
+			return &this->Veteran;
+		}
+		return &this->Rookie;
+	}
+
+	const Nullable<T>* GetFromCurrentRank(TechnoClass* pTechno) const noexcept
+	{
+		if (pTechno->CurrentRanking == Rank::Elite)
+		{
+			return &this->Elite;
+		}
+		if (pTechno->CurrentRanking == Rank::Veteran)
+		{
+			return &this->Veteran;
+		}
+		return &this->Rookie;
+	}
+
+	const T& GetOrDefault(TechnoClass* pTechno, const T& nDefault) const noexcept
+	{
+		const auto nRes = Get(pTechno);
+		return nRes->isset() ? nRes->Get() : nDefault;
+	}
 
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	inline bool Save(PhobosStreamWriter& Stm) const;

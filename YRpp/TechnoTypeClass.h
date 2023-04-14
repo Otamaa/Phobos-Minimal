@@ -97,7 +97,7 @@ public:
 
 	static NOINLINE TechnoTypeClass* __fastcall Find(const char* pID)
 	{
-		for (auto pItem : *Array){
+		for (auto pItem : *TechnoTypeClass::Array){
 			if (!CRT::strcmpi(pItem->ID, pID))
 				return pItem;
 		}
@@ -125,8 +125,8 @@ public:
 		if(!pID)
 			return -1;
 
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+		for (int i = 0; i < TechnoTypeClass::Array->Count; ++i) {
+			if (!CRT::strcmpi(TechnoTypeClass::Array->Items[i]->ID, pID)) {
 				return i;
 			}
 		}

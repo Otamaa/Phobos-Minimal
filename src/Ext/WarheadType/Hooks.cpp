@@ -70,20 +70,9 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 
 		if(!pWHExt->Launchs.empty())  {
-			for (auto const& Lauch : pWHExt->Launchs) {
+			for (const auto& Lauch : pWHExt->Launchs) {
 				if (Lauch.LaunchWhat) {
-					Helpers::Otamaa::LauchSW(Lauch.LaunchWhat,
-						pDecidedOwner, *pCoords, Lauch.LaunchWaitcharge,
-						Lauch.LaunchResetCharge,
-						Lauch.LaunchGrant,
-						Lauch.LaunchGrant_RepaintSidebar,
-						Lauch.LaunchGrant_OneTime,
-						Lauch.LaunchGrant_OnHold,
-						Lauch.LaunchSW_Manual,
-						Lauch.LaunchSW_IgnoreInhibitors,
-						Lauch.LaunchSW_IgnoreDesignators,
-						Lauch.LauchSW_IgnoreMoney
-					);
+					Helpers::Otamaa::LauchSW(Lauch,pDecidedOwner, *pCoords);
 				}
 			}
 		}

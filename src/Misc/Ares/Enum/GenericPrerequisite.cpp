@@ -29,12 +29,12 @@ void GenericPrerequisite::LoadFromINI(CCINIClass* pINI)
 	_strlwr_s(name);
 	name[0] &= ~0x20; // LOL HACK to uppercase a letter
 
-	_snprintf_s(generalbuf, _TRUNCATE, "Prerequisite%s", name);
+	IMPL_SNPRNINTF(generalbuf, sizeof(generalbuf), "Prerequisite%s", name);
 	Prereqs::Parse(pINI, "General", generalbuf, this->Prereqs);
 
 	Prereqs::Parse(pINI, section, this->Name, this->Prereqs);
 
-	_snprintf_s(generalbuf, _TRUNCATE, "Prerequisite%sAlternate", name);
+	IMPL_SNPRNINTF(generalbuf, sizeof(generalbuf), "Prerequisite%sAlternate", name);
 	Prereqs::ParseAlternate(pINI, "General", generalbuf, this->Alternates);
 }
 

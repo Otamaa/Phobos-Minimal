@@ -57,13 +57,7 @@ bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return true;
 
-	if(pTechno->Owner){
-		if (RulesExt::Global()->ShowAllyDisguiseBlinking 
-			&& pTechno->Owner->IsAlliedWith(pCurPlayer))
-		return true ;
-	}
-
-	return false;
+	return EnumFunctions::CanTargetHouse(RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 }
 
 //#define CAN_BLINK_DISGUISE(pTechno) \

@@ -1531,15 +1531,6 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 	return 0x732C97;
 }
 
-// UNTESTED!!
-// bugfix #388: Units firing from inside a transport do not obey DecloakToFire
-DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetWeaponState_Insidetransport, 6)
-{
-	GET(TechnoClass*, Techno, ESI);
-	return (Techno->Transporter && Techno->Transporter->CloakState != CloakState::Uncloaked)
-		? 0x6FCA4F : 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -1689,8 +1680,21 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 
-	return (pThis->Ammo < 0 || pThis->Ammo >= WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
-		? 0x6FCA26u : 0x6FCA17u;
+	const auto nAmmo= pThis->Ammo;
+	if(nAmmo < 0)
+		return 0x6FCA26u;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
+
+	if(pTypeExt->NoAmmoWeapon > -1)
+	{
+		if((nAmmo - WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo) >0)
+			return 0x6FCA26;
+
+	}
+
+	return (!IsDisabled || !nAmmo) ? 0x6FCA17u : 0x6FCA26u;
 }
 
 //DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)

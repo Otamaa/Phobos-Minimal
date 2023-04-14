@@ -661,7 +661,6 @@ DEFINE_OVERRIDE_HOOK(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	// TODO : complete port these
 	if (pThis->Deployed
 		&& pTypeExt->Convert_Deploy
 		&& AresData::ConvertTypeTo(pThis, pTypeExt->Convert_Deploy))
@@ -862,7 +861,7 @@ DEFINE_OVERRIDE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
 		pSpace = L" ";
 	}
 
-	_snwprintf_s(pThis->ToolTipText, _TRUNCATE, L"%s%s%s", pGunnerName, pSpace, pName);
+	_snwprintf_s(pThis->ToolTipText, sizeof(pThis->ToolTipText), L"%s%s%s", pGunnerName, pSpace, pName);
 
 	R->EAX(pThis->ToolTipText);
 	return 0x746C76;
@@ -1212,7 +1211,7 @@ struct TurrentDummy
 		for (int i = 0; ; ++i)
 		{
 			auto pKey = !i ? "%sBARL" : "%sBARL%d";
-			_snprintf_s(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+			IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 			auto& nArr = i >= TechnoTypeClass::MaxWeapons ?
 				pTypeExt->BarrelImageData[i - TechnoTypeClass::MaxWeapons] : pThis->ChargerBarrels[i];
@@ -1266,7 +1265,7 @@ struct TurrentDummy
 		for (int i = 0; ; ++i)
 		{
 			auto pKey = !i ? "%sTUR" : "%sTUR%d";
-			_snprintf_s(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
+			IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile, i);
 
 			auto& nArr = i >= TechnoTypeClass::MaxWeapons ? pTypeExt->TurretImageData[i - TechnoTypeClass::MaxWeapons] : pThis->ChargerTurrets[i];
 
@@ -1325,7 +1324,7 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 
 		char Buffer[0x40];
 		auto pKey = "%sWO";
-		_snprintf_s(Buffer, sizeof(Buffer), pKey, pThis->ImageFile);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), pKey, pThis->ImageFile);
 		ImageStatusses nPairStatus {};
 		ImageStatusses::ReadVoxel(nPairStatus, Buffer, 1);
 
@@ -1871,10 +1870,10 @@ DEFINE_OVERRIDE_HOOK(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pExt->NoAmmoAmount < 0 || pThis->Ammo > pExt->NoAmmoAmount)
+	if (pExt->NoAmmoWeapon < 0 || pThis->Ammo > pExt->NoAmmoAmount)
 		return 0x0;
 
-	R->EAX(pExt->NoAmmoAmount);
+	R->EAX(pExt->NoAmmoWeapon);
 	return 0x6F3406;
 }
 
@@ -2005,14 +2004,14 @@ static constexpr std::array<const char* const, 17> SubName { {
 //			for (int i = 0; i < pItem->WeaponCount; ++i)
 //			{
 //				Valueable<CSFText> nDummy { };
-//				_snprintf_s(Buffer, sizeof(Buffer), "WeaponUIName%d", i + 1);
+//				IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "WeaponUIName%d", i + 1);
 //				nDummy.Read(exINI, pSection, Buffer);
 //				pExt->WeaponUINameX.push_back(nDummy.Get());
 //			}
 //
 //			for (int b = 0; b < pItem->TurretCount; ++b)
 //			{
-//				_snprintf_s(Buffer, sizeof(Buffer), "WeaponTurretIndex%d", b + 1);
+//				IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "WeaponTurretIndex%d", b + 1);
 //				Nullable<int> nReader {};
 //				nReader.Read(exINI, pSection, Buffer);
 //
@@ -2029,9 +2028,9 @@ static constexpr std::array<const char* const, 17> SubName { {
 //
 //				for (auto const& nData : SubName)
 //				{
-//					_snprintf_s(Buffer, sizeof(Buffer), "%sTurretIndex", nData);
+//					IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sTurretIndex", nData);
 //					auto nTurIdx = pINI->ReadInteger(pSection, Buffer, 0);
-//					_snprintf_s(BufferB, sizeof(BufferB), "%sTurretWeapon", nData);
+//					IMPL_SNPRNINTF(BufferB, sizeof(BufferB), "%sTurretWeapon", nData);
 //					auto nTurWeaponIdx = pINI->ReadInteger(pSection, BufferB, 0);
 //					//Debug::Log("%s Setting [%s = %d ] and [%s = %d ] !\n", pSection, Buffer, nTurIdx, BufferB, nTurWeaponIdx);
 //					pItem->SetTurretWeapon(nTurIdx, nTurWeaponIdx);

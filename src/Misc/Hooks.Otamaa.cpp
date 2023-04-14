@@ -159,6 +159,7 @@ DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
 }
 
+// TODO : this breaking deploy fire thing
 //DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
 //{
 //	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
@@ -4795,13 +4796,13 @@ DEFINE_HOOK(0x437C29 , sub_437A10_Lock_Bound_Fix, 7)
 	return 0x437C30;
 }
 
-DEFINE_HOOK(0x73B02D, UnitClass_UpdatePos_CrushMovementZone, 0x6)
-{
-	GET(MovementZone, nZone, EAX);
-
-	return nZone == MovementZone::CrusherAll || nZone == MovementZone::Subterrannean ?
-		0x73B036 : 0x73B074;
-}
+//DEFINE_HOOK(0x73B02D, UnitClass_UpdatePos_CrushMovementZone, 0x6)
+//{
+//	GET(MovementZone, nZone, EAX);
+//
+//	return nZone == MovementZone::CrusherAll || nZone == MovementZone::Subterrannean ?
+//		0x73B036 : 0x73B074;
+//}
 
 //DEFINE_HOOK(0x73AFE3 , UnitClass_UpdatePosition_Crush, 6)
 //{
@@ -4857,7 +4858,7 @@ DEFINE_HOOK(0x73B02D, UnitClass_UpdatePos_CrushMovementZone, 0x6)
 //	return 0x73B074;
 //}
 
-// the techno seems dont like it 
+// the unit seems dont like it 
 // something missing
 bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct* Dir)
 {
@@ -4873,8 +4874,8 @@ bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct
 	if (abs(v8 - v9) <= nMax)
 		return true;
 
-	short v10 = (v9 <= 127) ? v9 : (v9 - 256);
-	short v12 = (v8 <= 127) ? v8 : (v8 - 256);
+	short v10 = short((v9 <= 127) ? v9 : (v9 - 256));
+	short v12 = short((v8 <= 127) ? v8 : (v8 - 256));
 
 	if (abs(v12 - v10) > nMax)
 		return false;
@@ -4935,4 +4936,249 @@ bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct
 //	pThis->SecondaryFacing.Set_Desired(nDir);
 //
 //	return 0x736A8E;
+//}
+
+DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Passengers.NumPassengers < pThis->NonPassengerCount)
+	{
+		pThis->QueueMission(Mission::Guard, false);
+		pThis->NextMission();
+		pThis->unknown_bool_B8 = true;
+	}
+
+	return 0x0;
+}
+
+//DEFINE_HOOK(0x73DDC0 , UnitClass_Mi_Unload_DeployIntoPlaceAnywhere, 6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	if (R->AL())
+//	{
+//		if(pThis->Type->Speed)
+//			return 0x73DE20;
+//		else
+//		{
+//			pThis->StopMoving();
+//			pThis->QueueMission(Mission::Unload, false);
+//			pThis->NextMission();
+//			return 0x73DE3A;
+//		}
+//	}
+//
+//	R->ECX(pThis);
+//	return 0x73DDC6;
+//}
+
+//DEFINE_HOOK(0x714522, TechnoTypeClass_LoadFromINI_RequiredHouses, 9)
+//{
+//	GET(CCINIClass*, pCCINI, ESI);
+//	GET(TechnoTypeClass*, pThis, ESI);
+//	GET(const char*, pSection, EBX);
+//
+//	if (pCCINI->ReadString(pSection, (const char*)0x843BB4, Phobos::readDefval, Phobos::readBuffer)) {
+//		if (INIClass::IsBlank(Phobos::readBuffer)) {
+//			pThis->RequiredHouses = -1;
+//			return 0x71453C;
+//		}
+//
+//		char* context = nullptr;
+//
+//		int i = 0;
+//		for (auto cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+//			cur;
+//			cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+//			pThis->RequiredHouses |= HouseTypeClass::FindIndexOfNameShiftToTheRightOnce(cur);
+//			Debug::Log("TechnoType[%s] Reading Owner BitField of %s \n", pSection, cur);
+//			++i;
+//		}
+//
+//		Debug::Log("TechnoType[%s] Have %d Owner Bitfield! \n", pSection , i);
+//	}
+//
+//	return 0x71453C;
+//}
+
+DEFINE_OVERRIDE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	const auto pTransporter = pThis->Transporter;
+
+	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
+		return 0x6FCA4F;
+
+	if (pThis->CloakState == CloakState::Uncloaked)
+		return 0x6FCA5E;
+
+	if (!pWeapon->DecloakToFire && Is_Aircraft(pThis))
+		return 0x6FCA4F;
+
+	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
+}
+
+DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(WeaponTypeClass*, pWeapon, EBP);
+
+	if (!pType->AttackFriendlies)
+		return 0x70039B;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
+		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+		if (pWeapons && pWeapon == pWeapons->WeaponType) {
+			return 0x7003BB;
+		}
+	}
+
+	return 0x70039B;
+}
+
+//EvalObject
+DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
+{
+	GET_STACK(int , nWeapon, 0x14);
+	GET(TechnoClass*, pThis, EDI);
+
+	const auto pType = pThis->GetTechnoType();
+
+	if (!pType->AttackFriendlies)
+		return 0x6F7F0C;
+
+	bool Allow = true;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
+
+	return Allow ? 0x6F7FE9 : 0x6F7F0C;
+}
+
+DEFINE_HOOK(0x70A3E5 ,TechnoClass_DrawPipScale_Ammo_Idx, 7)
+{
+	GET(TechnoClass*, pThis, EBP);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	R->ESP(pTypeExt->PipScaleIndex.Get(13));
+	return 0x0;
+}
+
+DEFINE_HOOK(0x70A35D , TechnoClass_DrawPipScale_Ammo, 5)
+{
+	GET(TechnoClass*, pThis, EBP);
+	GET_STACK(RectangleStruct*, pRect, 0x80);
+	GET_STACK(int, nX, 0x50);
+	GET_STACK(int, nY, 0x54);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if (pTypeExt->AmmoPip.isset())
+	{
+		const auto pSHApe = pTypeExt->AmmoPip;
+		const int nFrame = int((1.0 - (pThis->Ammo / pTypeExt->Get()->Ammo)) * pSHApe->Frames);
+		Point2D offs { nX, nY };
+		offs += pTypeExt->AmmoPip_Offset.Get();
+
+		DSurface::Temp->DrawSHP(pTypeExt->AmmoPip_Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL), pSHApe,
+			nFrame, &offs, pRect, (BlitterFlags)0x600u, 0, 0, 1000, 0, 0, nullptr, 0, 0, 0);
+
+		return 0x70A4EC;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
+{
+	enum { Crush = 0x741599, ContinueCheck = 0x741562 };
+	GET(UnitClass*, pThis, ESI);
+	GET(int, range, EAX);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	
+	return pTypeExt->CrushRange.GetOrDefault(pThis, RulesClass::Instance->Crush) >= range ?
+		Crush : ContinueCheck;
+}
+
+DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
+{
+	enum { DoNotCrush = 0x743A39, ContinueCheck = 0x7439B9 };
+	GET(UnitClass*, pThis, ESI);
+	GET(int, range, EAX);
+	GET(RulesClass*, pRules, ECX);
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	return pTypeExt->CrushRange.GetOrDefault(pThis, pRules->Crush) <= range ?
+		ContinueCheck : DoNotCrush;
+}
+
+// idk , the ext stuffs is set somewhere ?
+//DEFINE_HOOK(0x7009D4 , TechnoClass_GetActionOnCell_Wall, 6)
+//{
+//	GET(OverlayTypeClass*, pOvl, EDX);
+//	GET(WarheadTypeClass*, pWeapon, EDI);
+//	int result; // eax
+//
+//	return !pOvl->Immune || pWeapon->Wall 
+//		? 0x7009F3 : 0x7009DE;
+//}
+
+//DEFINE_HOOK(70BD34 , TechnoClass_EstimateCannonCoords, 6)
+//{
+//	// [COLLAPSED LOCAL DECLARATIONS. PRESS KEYPAD CTRL-"+" TO EXPAND]
+//
+//	v1 = R;
+//	v2 = R->_EBX.data;
+//	v3 = v2->t.r.m.o.a.vftable->t.r.m.o.Class_Of(v2);
+//	v14 = v2->Locomotion;
+//	v4 = v3->JumpJet == 0;
+//	v5 = *v14;
+//	if (v4)
+//		v6 = (v5->Is_Moving)(v14);
+//	else
+//		v6 = (v5->Is_Moving_Now)(v14);
+//	if (v6)
+//	{
+//		v7 = v1->_ESI.data;
+//		pStack = v1->_ESP.data;
+//		Debug::Log(
+//		  "\nTechnoClass_EstimateCannonCoords : Adjusted_X = %d, Adjusted_Y = %d\n",
+//		  *(pStack + 0x34),
+//		  *(pStack + 0x38));
+//		v19 = v2->t.r.m.o.a.vftable->Get_Movement_Speed(v2);
+//		v8 = ObjectClass::Distance(v7, v2);
+//		v9 = &v7->vftable->t;
+//		R = v8;
+//		v10 = (v9->Get_Primary_Weapon(v7))->WeaponType;
+//		if (v10)
+//		{
+//			v11 = WeaponTypeClass::Get_Speed(v10, R);
+//			Debug::Log(
+//			  "TechnoClass_EstimateCannonCoords : BulletSpeed = %d ,  TargetSpeed = %d , TargetDistance = %d\n",
+//			  v11,
+//			  v19,
+//			  R);
+//			v18 = R / (v11 * 0.9) * v19;
+//			v16 = (*FacingClass::Current(&v2->t.PrimaryFacing, &R) - 0x3FFF) * -0.00009587672516830327;
+//			v12 = (FastMath::Sin)(LODWORD(v16), HIDWORD(v16));
+//			*(pStack + 0x38) -= MEMORY[0x7C5F00](v12* v18);
+//			v15 = (FastMath::Cos)(LODWORD(v16), HIDWORD(v16)) * v18;
+//			*(pStack + 0x34) += MEMORY[0x7C5F00](v15);
+//			Debug::Log(
+//			  "TechnoClass_EstimateCannonCoords : shift = %d ,  direction = %lf , Adjusted_X = %d, Adjusted_Y = %d\n",
+//			  LODWORD(v18),
+//			  COERCE_LONG_DOUBLE(__PAIR64__(LODWORD(v16), HIDWORD(v18))),
+//			  HIDWORD(v16),
+//			  *(pStack + 0x34));
+//			v1->_EBP.data = *(pStack + 0x38);
+//		}
+//	}
+//	return 0x70BE29;
 //}

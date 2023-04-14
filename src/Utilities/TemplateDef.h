@@ -55,8 +55,13 @@
 #include <Helpers/Enumerators.h>
 #include <Utilities/EnumFunctions.h>
 
+#include <array>
+#include <iostream>
+#include <string_view>
+
 namespace detail
 {
+
 	template <typename T>
 	inline bool read(T& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -566,7 +571,7 @@ namespace detail
 			{
 			case 0: value = SlaveReturnTo::Killer; return true;
 			case 1: value = SlaveReturnTo::Master; return true;
-			case 2: 
+			case 2:
 			case 3:
 			case 4: value = SlaveReturnTo::Suicide; return true;
 			case 5: value = SlaveReturnTo::Neutral; return true;
@@ -634,7 +639,8 @@ namespace detail
 
 			if (!found)
 			{
-				if (INIClass::IsBlank(parser.value())) {
+				if (INIClass::IsBlank(parser.value()))
+				{
 					value = IronCurtainFlag::Default;
 					return true;
 				}
@@ -656,49 +662,29 @@ namespace detail
 		return false;
 	}
 
-	template<>
-	inline bool read<WeaponStruct>(WeaponStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		auto ret = false;
-
-		char Buffer[0x100];
-		constexpr auto sizebuffer = sizeof(Buffer);
-		ret |= read(value.WeaponType, parser, pSection, pKey, allocate);
-		_snprintf_s(Buffer, sizebuffer, "%s.FLH", pKey);
-		ret |= read(value.FLH, parser, pSection, Buffer);
-		_snprintf_s(Buffer, sizebuffer, "%s.BarrelLength", pKey);
-		ret |= read(value.BarrelLength, parser, pSection, Buffer);
-		_snprintf_s(Buffer, sizebuffer, "%s.BarrelThickness", pKey);
-		ret |= read(value.BarrelThickness, parser, pSection, Buffer);
-		_snprintf_s(Buffer, sizebuffer, "%s.TurretLocked", pKey);
-		ret |= read(value.TurretLocked, parser, pSection, Buffer);
-
-		return ret;
-	}
-
 	template <>
 	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		auto ret = false;
 
 		char pFlagName[0x40];
-		_snprintf_s(pFlagName, 0x3F, "%s.PauseFrames", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PauseFrames", pKey);
 		ret |= read(value.PauseFrames, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.TiltFrames", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TiltFrames", pKey);
 		ret |= read(value.TiltFrames, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.PitchInitial", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchInitial", pKey);
 		ret |= read(value.PitchInitial, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.PitchFinal", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchFinal", pKey);
 		ret |= read(value.PitchFinal, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.TurnRate", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TurnRate", pKey);
 		ret |= read(value.TurnRate, parser, pSection, pFlagName);
 
 		// sic! integer read like a float.
-		_snprintf_s(pFlagName, 0x3F, "%s.RaiseRate", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.RaiseRate", pKey);
 		float buffer;
 		if (read(buffer, parser, pSection, pFlagName))
 		{
@@ -706,25 +692,25 @@ namespace detail
 			ret = true;
 		}
 
-		_snprintf_s(pFlagName, 0x3F, "%s.Acceleration", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Acceleration", pKey);
 		ret |= read(value.Acceleration, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.Altitude", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Altitude", pKey);
 		ret |= read(value.Altitude, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.Damage", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Damage", pKey);
 		ret |= read(value.Damage, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.EliteDamage", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.EliteDamage", pKey);
 		ret |= read(value.EliteDamage, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.BodyLength", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.BodyLength", pKey);
 		ret |= read(value.BodyLength, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.LazyCurve", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.LazyCurve", pKey);
 		ret |= read(value.LazyCurve, parser, pSection, pFlagName);
 
-		_snprintf_s(pFlagName, 0x3F, "%s.Type", pKey);
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Type", pKey);
 		ret |= read(value.Type, parser, pSection, pFlagName);
 
 		return ret;
@@ -805,7 +791,7 @@ namespace detail
 			switch (result)
 			{
 			case 0: value = SuperWeaponAITargetingMode::NoTarget; return true;
-			default : value = static_cast<SuperWeaponAITargetingMode>(result); return true;
+			default: value = static_cast<SuperWeaponAITargetingMode>(result); return true;
 			}
 		}
 		return false;
@@ -826,7 +812,8 @@ namespace detail
 				bool found = false;
 				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
 				{
-					if (IS_SAME_STR_(cur, pStrings)) {
+					if (IS_SAME_STR_(cur, pStrings))
+					{
 						found = true;
 						break;
 					}
@@ -844,9 +831,9 @@ namespace detail
 				case 14:
 				case 3: value |= AffectedTarget::NoContent; break;
 				case 4: value |= AffectedTarget::Infantry; break;
-				case 5: 
+				case 5:
 				case 6: value |= AffectedTarget::Unit; break;
-				case 7: 
+				case 7:
 				case 8: value |= AffectedTarget::Building; break;
 				case 9: value |= AffectedTarget::Aircraft; break;
 				case 10: value |= AffectedTarget::All; break;
@@ -891,9 +878,9 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			char* context = nullptr;
-			for (auto pCur = strtok_s(parser.value(), 
-				Phobos::readDelims, &context); 
-				pCur; 
+			for (auto pCur = strtok_s(parser.value(),
+				Phobos::readDelims, &context);
+				pCur;
 				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				size_t result = 0;
@@ -959,7 +946,7 @@ namespace detail
 			case 3:	value = AttachedAnimFlag::Paused; return true;
 			case 4: value = AttachedAnimFlag::PausedTemporal; return true;
 			default:
-				error:
+			error:
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a AttachedAnimFlag");
 				break;
 			}
@@ -1013,7 +1000,7 @@ namespace detail
 			case 2: value = TextAlign::Center; return true;
 			case 3: value = TextAlign::Right; return true;
 			default:
-				error:
+			error:
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Text Alignment can be either Left, Center/Centre or Right");
 				break;
 			}
@@ -1086,7 +1073,8 @@ namespace detail
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()) && !allocate) {
+			if (!INIClass::IsBlank(parser.value()) && !allocate)
+			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
 			}
 		}
@@ -1147,7 +1135,7 @@ namespace detail
 	{
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			pCur; 
+			pCur;
 			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			auto buffer = T();
@@ -1341,7 +1329,6 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 	}
 }
 
-
 // Promotable
 
 template <typename T>
@@ -1351,7 +1338,7 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
+	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 	if (res > 0 && flagName[res - 1] == '.')
 	{
 		flagName[res - 1] = '\0';
@@ -1364,13 +1351,13 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 	}
 
 	// read specific flags
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
 	detail::read(this->Rookie, parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 	detail::read(this->Veteran, parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 	detail::read(this->Elite, parser, pSection, flagName);
 };
 
@@ -1384,6 +1371,54 @@ bool Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 template <typename T>
 bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
+{
+	return Savegame::WritePhobosStream(Stm, this->Rookie)
+		&& Savegame::WritePhobosStream(Stm, this->Veteran)
+		&& Savegame::WritePhobosStream(Stm, this->Elite);
+}
+
+
+// NullablePromotable
+
+template <typename T>
+void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+{
+
+	// read the common flag, with the trailing dot being stripped
+	char flagName[0x100];
+	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
+	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
+	if (res > 0 && flagName[res - 1] == '.')
+	{
+		flagName[res - 1] = '\0';
+	}
+
+	T placeholder {};
+	if (detail::read(placeholder, parser, pSection, flagName)) {
+		this->SetAll(placeholder);
+	}
+
+	// read specific flags
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	this->Rookie.Read(parser, pSection, flagName);
+
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	this->Veteran.Read(parser, pSection, flagName);
+
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	this->Elite.Read(parser, pSection, flagName);
+};
+
+template <typename T>
+bool NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return Savegame::ReadPhobosStream(Stm, this->Rookie, RegisterForChange)
+		&& Savegame::ReadPhobosStream(Stm, this->Veteran, RegisterForChange)
+		&& Savegame::ReadPhobosStream(Stm, this->Elite, RegisterForChange);
+}
+
+template <typename T>
+bool NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Savegame::WritePhobosStream(Stm, this->Rookie)
 		&& Savegame::WritePhobosStream(Stm, this->Veteran)
@@ -1530,17 +1565,17 @@ void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, co
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
+	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 		flagName[res - 1] = '\0';
 
 	this->BaseValue.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
 	this->ConditionYellow.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
 	this->ConditionRed.Read(parser, pSection, flagName);
 };
 
@@ -1614,7 +1649,7 @@ void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSecti
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
+	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 	{
@@ -1623,13 +1658,13 @@ void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSecti
 
 	this->BaseValue.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
 	this->ConditionYellow.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
 	this->ConditionRed.Read(parser, pSection, flagName);
 
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, "MaxValue");
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "MaxValue");
 	this->MaxValue.Read(parser, pSection, flagName);
 };
 
@@ -1659,7 +1694,7 @@ void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSecti
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x40];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = _snprintf_s(flagName, _TRUNCATE, pSingleFormat, Phobos::readDefval);
+	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
 	if (res > 0 && flagName[res - 1] == '.')
 	{
@@ -1669,11 +1704,11 @@ void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSecti
 	this->Base.Read(parser, pSection, flagName);
 
 	NullableVector<T> veteran;
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 	veteran.Read(parser, pSection, flagName);
 
 	NullableVector<T> elite;
-	_snprintf_s(flagName, _TRUNCATE, pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 	elite.Read(parser, pSection, flagName);
 
 	if (veteran.HasValue())
@@ -1722,9 +1757,9 @@ void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection
 		int res = 0;
 
 		if (numFirst)
-			res = _snprintf_s(flag, _TRUNCATE, pFlag, i, Phobos::readDefval);
+			res = IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, Phobos::readDefval);
 		else
-			res = _snprintf_s(flag, _TRUNCATE, pFlag, Phobos::readDefval, i);
+			res = IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, Phobos::readDefval, i);
 
 		if (res > 0 && flag[res - 1] == '.')
 			flag[res - 1] = '\0';
@@ -1748,16 +1783,16 @@ void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection
 		Nullable<T> elite;
 
 		if (numFirst)
-			_snprintf_s(flag, _TRUNCATE, pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
 		else
-			_snprintf_s(flag, _TRUNCATE, pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran], i);
+			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran], i);
 
 		veteran.Read(parser, pSection, flag, allocate);
 
 		if (numFirst)
-			_snprintf_s(flag, _TRUNCATE, pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
 		else
-			_snprintf_s(flag, _TRUNCATE, pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite], i);
+			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite], i);
 
 		elite.Read(parser, pSection, flag, allocate);
 

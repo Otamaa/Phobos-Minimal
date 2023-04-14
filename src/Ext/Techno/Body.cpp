@@ -1115,6 +1115,64 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass*
 	return { pTypeOut, pHouseOut };
 }
 
+std::tuple<CoordStruct* , SHPStruct* , int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt)
+{
+	bool isCustomInsignia = false;
+	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
+	int frameIndex = pTypeExt->InsigniaFrame.GetFromCurrentRank(pThis);
+	Point3D* insigniaFrames = pTypeExt->InsigniaFrames.GetEx();
+	CoordStruct* drawOffs = pTypeExt->InsigniaDrawOffset.GetEx();
+	int DefaultFrameIdx = -1;
+
+	if (SHPStruct* pShapeFileHere = pTypeExt->Insignia.GetFromCurrentRank(pThis))
+	{
+		pShapeFile = pShapeFileHere;
+		isCustomInsignia = true;
+		DefaultFrameIdx = 0;
+	}
+
+	if (pTypeExt->OwnerObject()->Gunner)
+	{
+		const int weaponIndex = pThis->CurrentWeaponNumber;
+
+		if (auto const pCustomShapeFile = pTypeExt->Insignia_Weapon[weaponIndex].GetFromCurrentRank(pThis)) {
+			pShapeFile = pCustomShapeFile;
+			isCustomInsignia = true;
+			DefaultFrameIdx = 0;
+		}
+
+		const int frame = pTypeExt->InsigniaFrame_Weapon[weaponIndex].GetFromCurrentRank(pThis);
+
+		if (frame != -1)
+			frameIndex = frame;
+
+		const auto frames = &pTypeExt->InsigniaFrames_Weapon[weaponIndex];
+
+		if (frames->X != -1 && frames->Y != -1 && frames->Z != -1)
+			insigniaFrames = frames;
+	}
+
+	int nRankPerFrames = insigniaFrames->X;
+	switch (pThis->CurrentRanking)
+	{
+	case Rank::Elite:
+		DefaultFrameIdx = !isCustomInsignia ? 15 : DefaultFrameIdx;
+		nRankPerFrames = insigniaFrames->Z;
+		break;
+	case Rank::Veteran:
+		DefaultFrameIdx = !isCustomInsignia ? 14 : DefaultFrameIdx;
+		nRankPerFrames = insigniaFrames->Y;
+		break;
+	default:
+		break;
+	}
+
+	const int FrameCalc = (frameIndex == -1 ? nRankPerFrames : frameIndex);
+	const int frameIndexRet = FrameCalc == -1 ? DefaultFrameIdx : FrameCalc;
+
+	return { drawOffs, pShapeFile  , frameIndexRet };
+}
+
 // Based on Ares source.
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
@@ -1122,15 +1180,12 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 		return;
 
 	Point2D offset = *pLocation;
-	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
-	int defaultFrameIndex = -1;
-
 	auto const [pTechnoType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
 
 	if (!pTechnoType)
 		return;
 
-	const TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
 		|| HouseExt::IsObserverPlayer()
@@ -1139,45 +1194,16 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 	if (!isVisibleToPlayer)
 		return;
 
-	bool isCustomInsignia = false;
+	auto const&[drawOffs, pShapeFile, frameIndex] = 
+				GetInsigniaDatas(pThis, pExt);
 
-	if (SHPStruct* pCustomShapeFile = pExt->Insignia.GetFromCurrentRank(pThis)) {
-		pShapeFile = pCustomShapeFile;
-		defaultFrameIndex = 0;
-		isCustomInsignia = true;
-	}
-
-	if (!pShapeFile)
-		return;
-
-	const auto& insigniaFrames = pExt->InsigniaFrames.Get();
-	int insigniaFrame = insigniaFrames.X;
-
-	if (pThis->CurrentRanking == Rank::Veteran)
+	if (frameIndex != -1 &&  pShapeFile)
 	{
-		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
-		insigniaFrame = insigniaFrames.Y;
-	}
-	else if (pThis->CurrentRanking == Rank::Elite)
-	{
-		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
-		insigniaFrame = insigniaFrames.Z;
-	}
-
-	int frameIndex = pExt->InsigniaFrame.Get(pThis);
-	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
-
-	if (frameIndex == -1)
-		frameIndex = defaultFrameIndex;
-
-	if (frameIndex != -1 && pShapeFile)
-	{
-		auto const& nOffs = pExt->InsigniaDrawOffset.Get();
-		offset.X += (5 + nOffs.X);
-		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + nOffs.Y);
+		offset.X += (5 + drawOffs->X);
+		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + drawOffs->Y);
 
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2 + nOffs.Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2 + drawOffs->Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	return;
@@ -1864,7 +1890,7 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 	if (pThis->GetTechnoType()->Ammo > 0)
 	{
 		const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-		if (pThis->Ammo <= pExt->NoAmmoAmount && (pExt->NoAmmoWeapon = weaponIndex || pExt->NoAmmoWeapon == -1))
+		if (pThis->Ammo <= pExt->NoAmmoAmount && (pExt->NoAmmoWeapon == weaponIndex || pExt->NoAmmoWeapon == -1))
 			return true;
 	}
 

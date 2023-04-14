@@ -271,25 +271,11 @@ bool AnimExt::OnMiddle(AnimClass* pThis)
 				}
 			}
 		}
-		if (!pTypeExt->Launchs.empty())
-		{
-			for (auto const& nLauch : pTypeExt->Launchs)
-			{
-				if (nLauch.LaunchWhat)
-				{
-					Helpers::Otamaa::LauchSW(
-						nLauch.LaunchWhat, pHouse,
-						nCoord, nLauch.LaunchWaitcharge,
-						nLauch.LaunchResetCharge,
-						nLauch.LaunchGrant,
-						nLauch.LaunchGrant_RepaintSidebar,
-						nLauch.LaunchGrant_OneTime,
-						nLauch.LaunchGrant_OnHold,
-						nLauch.LaunchSW_Manual,
-						nLauch.LaunchSW_IgnoreInhibitors,
-						nLauch.LaunchSW_IgnoreDesignators,
-						nLauch.LauchSW_IgnoreMoney
-					);
+
+		if (!pTypeExt->Launchs.empty()) {
+			for (const auto& nLauch : pTypeExt->Launchs) {
+				if (nLauch.LaunchWhat) {
+					Helpers::Otamaa::LauchSW(nLauch , pHouse, nCoord);
 				}
 			}
 		}

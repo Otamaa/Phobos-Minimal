@@ -23,6 +23,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/TriggerType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -316,6 +317,7 @@ using PhobosTypeRegistry =  TypeRegistry <
 #ifdef E_TriggerMPOwner
 	TriggerMPOwner,
 #endif
+	TriggerTypeExt,
 	// BannerClass,
 	BannerTypeClass,
 #ifdef ENABLE_HOMING_MISSILE

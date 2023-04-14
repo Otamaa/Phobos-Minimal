@@ -26,18 +26,18 @@ public:
 		, RT_Tag {}
 		, PA_Tag {}
 	{ 
-		char buffer[0x500];
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s", "Versus", pTitle);
+		char buffer[0x100];
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s", "Versus", pTitle);
 		BaseTag = buffer;
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.ForceFire", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.ForceFire", "Versus", pTitle);
 		FF_Tag = buffer;
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.Retaliate", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.Retaliate", "Versus", pTitle);
 		RT_Tag = buffer;
 
-		_snprintf_s(buffer, _TRUNCATE, "%s.%s.PassiveAcquire", "Versus", pTitle);
-		PA_Tag = buffer;	
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.PassiveAcquire", "Versus", pTitle);
+		PA_Tag = buffer;
 	}
 
 	virtual ~ArmorTypeClass() override = default;

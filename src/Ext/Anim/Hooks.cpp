@@ -147,6 +147,26 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 	return 0x0;
 }
 
+DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+	GET(InfantryClass*, pInf, EDI);
+
+	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+
+	Mission nMission = Mission::Hunt;
+	if (pTypeExt->MakeInfantry_Mission.isset()) {
+		nMission = pTypeExt->MakeInfantry_Mission;		
+	}
+
+	pInf->QueueMission(nMission, false);
+	return 0x424AFE;
+}
+
+//replace the vtable call
+void __fastcall Dummy(DWORD t, DWORD , Mission m, bool e){ }
+DEFINE_JUMP(CALL, 0x424B04, GET_OFFSET(Dummy));
+
 #ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
 
 // Goes before and replaces Ares animation damage / weapon hook at 0x424538.

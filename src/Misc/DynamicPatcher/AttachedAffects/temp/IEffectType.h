@@ -21,13 +21,13 @@ struct EffectType
 	void ReadCommonType(INI_EX& reader, const char* section, const char* title)
 	{
 		char Buffer[0x90];
-		_snprintf_s(Buffer, sizeof(Buffer), "%sEnabled", title);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sEnabled", title);
 		Enable.Read(reader, section, Buffer);
 
-		_snprintf_s(Buffer, sizeof(Buffer), "%sAffectWho", title);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sAffectWho", title);
 		if (reader.ReadString(section, Buffer))
 		{
-			switch (CRT::toupper(static_cast<unsigned char>(*reader.value())))
+			switch (toupper(static_cast<unsigned char>(*reader.value())))
 			{
 			case 'A':
 				Affectwho = AffectWho::ALL;
@@ -41,7 +41,7 @@ struct EffectType
 			}
 		}
 
-		_snprintf_s(Buffer, sizeof(Buffer), "%sDeactiveWhenCivilian", title);
+		IMPL_SNPRNINTF(Buffer, sizeof(Buffer), "%sDeactiveWhenCivilian", title);
 		DeactiveWhenCivilian.Read(reader, section, Buffer);
 	}
 };

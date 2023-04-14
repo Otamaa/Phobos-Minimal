@@ -8,6 +8,7 @@
 #include <Utilities/EnumFunctions.h>
 
 // Weapon Selection
+// TODO : check
 DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 {
 	enum { ReturnGameCode = 0x6F3341, ReturnHandled = 0x6F3406 };
@@ -22,6 +23,12 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
+
+		//if (pTypeExt->Get()->AttackFriendlies && pTypeExt->AttackFriendlies_WeaponIdx != -1)
+		//{
+		//	R->EAX(pTypeExt->Interceptor_Weapon);
+		//	return ReturnHandled;
+		//}
 	}
 
 	// Restore overridden instructions.

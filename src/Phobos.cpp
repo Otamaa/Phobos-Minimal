@@ -385,17 +385,17 @@ void Phobos::Config::Read()
 			char tempBuffer[26];
 			for (size_t i = 0; i <= 6; ++i)
 			{
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);
 				int temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 0 && temp <= 6)
 					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
 
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.DefaultDelay", 6 - i);
 				temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
 
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeInterval", 6 - i);
 				temp = pINI->ReadInteger(GENERAL_SECTION, tempBuffer, -1);
 				if (temp >= 1)
 					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
@@ -449,7 +449,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
