@@ -11,25 +11,28 @@
 struct LevitateCharacteristics
 {
 
-	double Drag;
-	double Vel_Max_Happy;
-	double Vel_Max_WhenFollow;
-	double Vel_Max_WhenPissedOff;
-	double Accel;
-	double Accel_Prob;
-	int Accel_Dur;
-	double Initial_Boost;
-	int BlockCount_Max;
-	std::vector<int> Propulsion_Sounds;
-	double Intentional_Deacceleration;
-	double Intentional_DriftVelocity;
-	double ProximityDistance;
+	double Drag; // rate that jellyfish slows down
+	// max velocity that jellyfish can move again when...
+	double Vel_Max_Happy; //   ...just puttering around
+	double Vel_Max_WhenFollow; //	...going someplace in particular
+	double Vel_Max_WhenPissedOff; //	...tracking down some mofo
+	double Accel; // How much a puff accelerates
+	double Accel_Prob; // Chance happy jellyfish will "puff"
+	int Accel_Dur; // How long a puff accelerates the jellyfish
+	double Initial_Boost; // How much of an initial speed boost does jellyfish get when puffing
+	//BounceVelocity = 3.5 // How fast does jellyfish bounce away after hitting a wall.Don't screw with this
+	//CollisionWaitDuration = 15 //How long does jellyfish wait before puffing after hitting a wall ?
+	int BlockCount_Max; // How many times will jellyfish block against a wall before giving up on destination?
+	std::vector<int> Propulsion_Sounds; //Sound effect when puffing
+	double Intentional_Deacceleration; //How fast does it deaccelerate when it wants to? (When going to waypoint or target)
+	double Intentional_DriftVelocity; //How fast does it move when it is near its target?
+	double ProximityDistance; //How close before special deacceleration & drift logic take over?
 
 	LevitateCharacteristics() :
 		Drag { 0.05 }
 		, Vel_Max_Happy { 4.0 }
 		, Vel_Max_WhenFollow { 5.0 }
-		, Vel_Max_WhenPissedOff { 6.5 }
+		, Vel_Max_WhenPissedOff { 10.5 }
 		, Accel { 0.5 }
 		, Accel_Prob { 0.01 }
 		, Accel_Dur { 20 }
@@ -44,9 +47,9 @@ struct LevitateCharacteristics
 
 _COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));
 
-class DECLSPEC_UUID("3DC0B295-6546-11D3-80B0-00902792494C")
-	NOVTABLE LevitateLocomotionClass : public LocomotionClass 
-	//, public IPiggyback
+class DECLSPEC_UUID("3DC0B295-6546-11D3-80B0-00902792494C") 
+	LevitateLocomotionClass : public LocomotionClass 
+	, public IPiggyback
 {
 public:
 
@@ -105,18 +108,15 @@ public:
 
 	virtual HRESULT __stdcall Link_To_Object(void* pointer) override { 
 		HRESULT hr = LocomotionClass::Link_To_Object(pointer);
-
-		if (SUCCEEDED(hr))
-		{
-			GameDebugLog::Log("LevitateLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
-		}
-
+		//if (SUCCEEDED(hr)) {
+		//	GameDebugLog::Log("LevitateLocomotionClass - Sucessfully linked to \"%s\"\n", Owner->get_ID());
+		//}
 		return hr;
 	
 	}
 	virtual bool __stdcall Is_Moving() override { return RefCount != 0; };
-	virtual CoordStruct __stdcall Destination() override { return LocomotionClass::Destination(); }
-	virtual CoordStruct __stdcall Head_To_Coord() override { return LocomotionClass::Head_To_Coord(); }
+	virtual CoordStruct __stdcall Destination() override { return CoordStruct::Empty; }
+	virtual CoordStruct __stdcall Head_To_Coord() override { return LinkedTo->GetCenterCoords(); }
 	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override { return LinkedTo->IsCellOccupied(MapClass::Instance->GetCellAt(cell), -1, -1, nullptr, false); }
 	virtual bool __stdcall Is_To_Have_Shadow() override { return LocomotionClass::Is_To_Have_Shadow(); }
 	virtual Matrix3D* __stdcall Draw_Matrix(Matrix3D* pMatrix, VoxelIndexKey* key) override { return LocomotionClass::Draw_Matrix(pMatrix , key); }
@@ -142,7 +142,7 @@ public:
 	virtual Layer __stdcall In_Which_Layer()override { return Layer::Ground; }
 	virtual void __stdcall Force_Immediate_Destination(CoordStruct coord) override { }
 	virtual void __stdcall Force_New_Slope(int ramp) override { }
-	virtual bool __stdcall Is_Moving_Now() override { return Is_Moving(); }
+	virtual bool __stdcall Is_Moving_Now() override { return RefCount != 0; }
 	virtual int __stdcall Apparent_Speed() override { return LinkedTo->GetCurrentSpeed(); }
 	virtual int __stdcall Drawing_Code() override { return 0; }
 	virtual FireError __stdcall Can_Fire() override { return FireError::OK; }
@@ -178,11 +178,11 @@ public:
 	virtual int __stdcall Get_Speed_Accum() override { return LocomotionClass::Get_Speed_Accum(); }
 
 	//IPiggy
-	//virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override { return S_OK; };	//Piggybacks a locomotor onto this one.
-	//virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override { return S_OK; };//End piggyback process and restore locomotor interface pointer.
-	//virtual bool __stdcall Is_Ok_To_End() override { return true; };	//Is it ok to end the piggyback process?
-	//virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { return S_OK; };	//Fetches piggybacked locomotor class ID.
-	//virtual bool __stdcall Is_Piggybacking() override { return true; };	//Is it currently piggy backing another locomotor?
+	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override { return S_OK; };	//Piggybacks a locomotor onto this one.
+	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override { return S_OK; };//End piggyback process and restore locomotor interface pointer.
+	virtual bool __stdcall Is_Ok_To_End() override { return true; };	//Is it ok to end the piggyback process?
+	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { return S_OK; };	//Fetches piggybacked locomotor class ID.
+	virtual bool __stdcall Is_Piggybacking() override { return true; };	//Is it currently piggy backing another locomotor?
 
 	void ProcessHovering();
 	void DoPhase1();
@@ -201,7 +201,6 @@ public:
 	void DirtoSomething(double dValue);
 	void ProcessSomething();
 	bool IsAdjentCellEligible(CoordStruct nArgsCoord);
-
 
 	LevitateLocomotionClass() : LocomotionClass {}
 		, Characteristic {}
