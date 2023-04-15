@@ -587,8 +587,6 @@ bool LevitateLocomotionClass::IsTargetValid()
 
 void LevitateLocomotionClass::ProcessSomething()
 {
-	GameDebugLog::Log(__FUNCTION__" Called !  \n");
-
 	const auto v39 = this->CurrentVelocity - this->CurrentSpeed;
 	if (v39 > 0.0)
 	{

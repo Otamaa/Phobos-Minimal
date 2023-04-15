@@ -6,6 +6,8 @@
 #include <DebugLog.h>
 #include <MapClass.h>
 
+#include <Interface/IPiggyback.h>
+
 struct LevitateCharacteristics
 {
 
@@ -40,8 +42,11 @@ struct LevitateCharacteristics
 	{}
 };
 
+_COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));
+
 class DECLSPEC_UUID("3DC0B295-6546-11D3-80B0-00902792494C")
-	NOVTABLE LevitateLocomotionClass : public LocomotionClass
+	NOVTABLE LevitateLocomotionClass : public LocomotionClass 
+	//, public IPiggyback
 {
 public:
 
@@ -171,6 +176,13 @@ public:
 	virtual int __stdcall Get_Track_Number() override { return LocomotionClass::Get_Track_Number(); }
 	virtual int __stdcall Get_Track_Index() override { return LocomotionClass::Get_Track_Index(); }
 	virtual int __stdcall Get_Speed_Accum() override { return LocomotionClass::Get_Speed_Accum(); }
+
+	//IPiggy
+	//virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override { return S_OK; };	//Piggybacks a locomotor onto this one.
+	//virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override { return S_OK; };//End piggyback process and restore locomotor interface pointer.
+	//virtual bool __stdcall Is_Ok_To_End() override { return true; };	//Is it ok to end the piggyback process?
+	//virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { return S_OK; };	//Fetches piggybacked locomotor class ID.
+	//virtual bool __stdcall Is_Piggybacking() override { return true; };	//Is it currently piggy backing another locomotor?
 
 	void ProcessHovering();
 	void DoPhase1();

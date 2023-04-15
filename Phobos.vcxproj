@@ -233,6 +233,7 @@
     <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\Misc\Locomotion.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.h" />
     <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
+    <ClInclude Include="src\Misc\Locomotions.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\New\AnonymousType\AresAttachEffectTypeClass.h" />
