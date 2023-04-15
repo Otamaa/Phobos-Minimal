@@ -156,7 +156,7 @@ public:
 			, RockerPitch { 0.0f }
 			, MyAttachFireDatas { }
 			 #endif
-			, Ammo { 0 }
+			, Ammo { 1 }
 			, IsDetachedRailgun { false }
 
 			, Wave_IsHouseColor { false }

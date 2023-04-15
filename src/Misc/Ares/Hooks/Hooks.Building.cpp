@@ -1158,17 +1158,6 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 	return NoDecision;
 }
 
-DEFINE_OVERRIDE_HOOK(0x7413FF, UnitClass_Fire_Ammo, 7)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x20, 0x8));
-	const auto pWP = WeaponTypeExt::ExtMap.Find(pWeapon);
-
-	if (pWP->Ammo > 0)
-		pThis->StartReloading();
-
-	return 0x741406;
-}
 
 // the game specifically hides tiberium building pips. allow them, but
 // take care they don't show up for the original game

@@ -660,11 +660,17 @@ int npf_ftoa_rev(char* buf, float f, char case_adj, int* out_frac_chars)
 		return -3;
 	}
 
-	//uint64_t int_part, frac_part;
+#ifdef NANOPRINTF_USE_PRECISE_FLOATINGPOINT_PARSER
 	uint32_t int_part, frac_part;
+#else
+	uint64_t int_part, frac_part;
+#endif
 	int frac_base10_neg_exp;
+#ifdef NANOPRINTF_USE_PRECISE_FLOATINGPOINT_PARSER
 	if (npf_fsplit_abs2(f, &int_part, &frac_part, &frac_base10_neg_exp) == 0)
-	//if (npf_fsplit_abs(f, &int_part, &frac_part, &frac_base10_neg_exp) == 0)
+#else
+	if (npf_fsplit_abs(f, &int_part, &frac_part, &frac_base10_neg_exp) == 0)
+#endif
 	{
 		for (int i = 0; i < 3; ++i) { *buf++ = (char)("ROO"[i] + case_adj); }
 		return -3;

@@ -563,16 +563,15 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 			{
 				const auto pType = pThis->GetTechnoType();
 
-				if (pType->VoiceCrashing != -1 && pThis->Owner->IsControlledByCurrentPlayer())
-					VocClass::PlayAt(pType->VoiceCrashing, nCoord);
+				if (pThis->Owner->IsControlledByCurrentPlayer())
+					VocClass::PlayIndexAtPos(pType->VoiceCrashing, nCoord);
 
-				if (pType->CrashingSound != -1)
-					VocClass::PlayAt(pType->CrashingSound, nCoord, &pThis->Audio7);
+					VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->Audio7);
 
 			}
 			else
 			{
-				VocClass::PlayAt(RulesClass::Instance->ScoldSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(RulesClass::Instance->ScoldSound, nCoord, &pThis->Audio7);
 			}
 		}
 		else if (pThis->__PlayingMovingSound) // done playing

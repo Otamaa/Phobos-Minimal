@@ -1637,7 +1637,7 @@ namespace AresHadleTunnelLocoStuffs
 		const auto pRules = RulesClass::Instance();
 		const auto nSound =  (DugIN ? pExt->DigInSound : pExt->DigOutSound).Get(pRules->DigSound);
 
-		VocClass::PlayAt(nSound, pOwner->Location);
+		VocClass::PlayIndexAtPos(nSound, pOwner->Location);
 
 		if (PlayAnim) {
 			if (const auto pAnimType = (DugIN ? pExt->DigInAnim : pExt->DigOutAnim).Get(pRules->Dig)) {
@@ -1855,24 +1855,6 @@ DEFINE_OVERRIDE_HOOK(0x441B30, BuildingClass_Destroy_Refinery, 6)
 	return 0x441C0C;
 }
 
-
-DEFINE_OVERRIDE_HOOK(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	const auto pType = pThis->GetTechnoType();
-
-	if (pType->Ammo < 0)
-		return 0x0;
-
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	if (pExt->NoAmmoWeapon < 0 || pThis->Ammo > pExt->NoAmmoAmount)
-		return 0x0;
-
-	R->EAX(pExt->NoAmmoWeapon);
-	return 0x6F3406;
-}
-
 // select the most appropriate firing voice and also account
 // for undefined flags, so you actually won't lose functionality
 // when a unit becomes elite.
@@ -1949,27 +1931,6 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 
 	return 0x7091C5;
 }
-
-// variable amounts of rounds to reload
-DEFINE_OVERRIDE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	int amount = pExt->ReloadAmount;
-	if (!pThis->Ammo)
-	{
-		amount = pExt->EmptyReloadAmount.Get(amount);
-	}
-
-	// clamping to support negative values
-	auto const ammo = pThis->Ammo + amount;
-	pThis->Ammo = std::clamp(ammo, 0, pType->Ammo);
-
-	return 0x6FB061;
-}
-
 
 static constexpr std::array<const char* const, 17> SubName { {
 	"Normal", "Repair" ,"MachineGun", "Flak" , "Pistol" , "Sniper" , "Shock",

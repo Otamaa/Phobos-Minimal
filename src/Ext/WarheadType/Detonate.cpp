@@ -336,9 +336,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	//	}
 	//}
 
-	auto const nSound = Sound.Get();
-	if (nSound != -1)
-		VocClass::PlayAt(nSound, coords);
+	VocClass::PlayIndexAtPos(Sound, coords);
 
 	if (!pBullet)
 	{

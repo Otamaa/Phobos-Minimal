@@ -56,7 +56,7 @@ DEFINE_HOOK(0x44A7CF, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 	if (!MCVCanUndeploy(pThis))
 	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
+		VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
 	}
 
 	return FinishPlaying;

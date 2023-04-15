@@ -46,10 +46,7 @@ DEFINE_OVERRIDE_HOOK(0x7021F5, TechnoClass_ReceiveDamage_OverrideDieSound, 0x6)
 
 	if (nSound.isset())
 	{
-		auto const nIdx = nSound.Get();
-		if (nIdx >= 0)
-			VocClass::PlayAt(nIdx, pThis->Location);
-
+		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
 	}
 
@@ -65,10 +62,7 @@ DEFINE_OVERRIDE_HOOK(0x702185, TechnoClass_ReceiveDamage_OverrideVoiceDie, 0x6)
 
 	if (nSound.isset())
 	{
-		auto const nIdx = nSound.Get();
-		if (nIdx >= 0)
-			VocClass::PlayAt(nIdx, pThis->Location);
-
+		VocClass::PlayIndexAtPos(nSound, pThis->Location);
 		return 0x702200;
 	}
 

@@ -332,7 +332,7 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 		}
 
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-		VocClass::PlayAt(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
+		VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
 	}
 
 	return SkipVoxVocPlay;

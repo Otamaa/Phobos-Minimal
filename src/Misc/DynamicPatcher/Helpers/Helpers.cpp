@@ -953,7 +953,7 @@ void Helpers_DP::PlayReportSound(WeaponTypeClass* pWeapon, CoordStruct& sourcePo
 	{
 		const int nResult = pTechno ? pTechno->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count
 			: Random2Class::Global->RandomFromMax(pWeapon->Report.Count - 1);
-		VocClass::PlayAt(pWeapon->Report.GetItem(nResult), sourcePos, nullptr);
+		VocClass::PlayIndexAtPos(pWeapon->Report.GetItem(nResult), sourcePos, nullptr);
 	}
 }
 

@@ -18,13 +18,9 @@ DEFINE_HOOK(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 
 	auto const pData = TechnoTypeExt::ExtMap.Find(pSlave->Type);
 	auto const nSound = pData->SlaveFreeSound.Get(RulesClass::Instance->SlavesFreeSound);
-
-	if (nSound != -1) {
-		VocClass::PlayAt(nSound, pSlave->Location);
-	}
+	VocClass::PlayIndexAtPos(nSound, pSlave->Location);
 
 	return 0x6B0C65;
-
 }
 
 DEFINE_HOOK(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8

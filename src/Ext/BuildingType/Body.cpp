@@ -467,16 +467,12 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			this->SuperWeapons.Read(exINI, pSection, GameStrings::SuperWeapons());
 
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
-
 		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
 
-		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
-		{
-			auto pValue = Phobos::readBuffer;
-			if (GeneralUtils::IsValidString(pValue))
-			{
+		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer)) {
+			if (GeneralUtils::IsValidString(Phobos::readBuffer)) {
 				// we cannot load same SHP file twice it may produce artifact , prevent it !
-				if (CRT::strcmpi(pValue, pSection) || CRT::strcmpi(pValue, pArtSection))
+				if (CRT::strcmpi(Phobos::readBuffer, pSection) || CRT::strcmpi(Phobos::readBuffer, pArtSection))
 					this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
 				else
 					Debug::Log("Cannot Load PlacementPreview.Shape for [%s]Art[%s] ! \n", pSection, pArtSection);
@@ -498,7 +494,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			auto nHouseCount = HouseTypeClass::Array()->Count;
 			char tempBuffer[0x500];
 			nVec.clear();
-
+			
 			for (int i = 0; i < nHouseCount; ++i)
 			{
 				Nullable<AnimTypeClass*> nBuffer;
@@ -611,24 +607,26 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		{
 			char tempMuzzleBuffer[32];
 			this->OccupierMuzzleFlashes.clear();
-			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
+			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants, Point2D::Empty);
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
 				Nullable<Point2D> nMuzzleLocation;
 				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
 				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
-				this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get(Point2D::Empty);
+
+				if(nMuzzleLocation.isset())
+					this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get();
 			}
 		}
 
 #pragma region Otamaa
 		this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
 
-
 #ifndef REPLACE_BUILDING_ONFIRE
 		this->DamageFire_Offs.clear();
 		this->DamageFire_Offs.reserve(8u);
+
 		char tempFire_OffsBuffer[32];
 		for (int i = 0;; ++i)
 		{
@@ -636,7 +634,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
 			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
-			if (!nFire_offs.isset() || nFire_offs.Get() == Point2D::Empty)
+			if (!nFire_offs.isset())
 				break;
 
 			this->DamageFire_Offs.push_back(nFire_offs.Get());

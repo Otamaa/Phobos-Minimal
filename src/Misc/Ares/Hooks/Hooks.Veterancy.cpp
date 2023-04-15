@@ -207,7 +207,7 @@ struct TechnoExperienceData
 
 				if (!bSilent && pExpReceiver->Owner->IsControlledByCurrentPlayer())
 				{
-					VocClass::PlayAt(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
+					VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
 					VoxClass::PlayIndex(eva);
 				}
 

@@ -866,5 +866,5 @@ bool __stdcall LevitateLocomotionClass::Process()
 	}
 
 	this->ProcessHovering(); //Done
-	return this->AddRef();
+	return this->Is_Moving(); //?
 }

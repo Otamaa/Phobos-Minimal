@@ -1025,7 +1025,7 @@ public:
 			, DecloakSound {  }
 			, VoiceRepair { -1 }
 			, ReloadAmount { 1 }
-			, EmptyReloadAmount {  }
+			, EmptyReloadAmount { }
 			, TiberiumSpill { false }
 			, TiberiumRemains {  }
 			, SensorArray_Warn { true }

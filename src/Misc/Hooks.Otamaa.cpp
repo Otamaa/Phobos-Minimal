@@ -2905,10 +2905,7 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)
 		->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
 
-	if (nSound != -1)
-	{
-		VocClass::PlayAt(nSound, pBuilding->GetCoords(), 0);
-	}
+	VocClass::PlayIndexAtPos(nSound, pBuilding->GetCoords(), 0);
 
 	return 0x51A30F;
 }
@@ -2920,53 +2917,26 @@ DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)
 		->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
 
-	if (nSound != -1)
-	{
-		VocClass::PlayAt(nSound, pThis->GetCoords(), 0);
-	}
+	VocClass::PlayIndexAtPos(nSound, pThis->GetCoords(), 0);
 
 	return 0x44DBDA;
 }
 
-DEFINE_HOOK_AGAIN(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
-DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
-DEFINE_HOOK(0x70272E, BuildingClass_ReceiveDamage_DisableDamageSound, 0x8)
+DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
+DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
 {
-	enum
-	{
-		BuildingClass_ReceiveDamage_DamageSound = 0x4426DB,
-		BuildingClass_ReceiveDamage_DamageSound_Handled_ret = 0x44270B,
-
-		TechnoClass_ReceiveDamage_Building_DamageSound_01 = 0x702777,
-		TechnoClass_ReceiveDamage_Building_DamageSound_01_Handled_ret = 0x7027AE,
-
-		TechnoClass_ReceiveDamage_Building_DamageSound_02 = 0x70272E,
-		TechnoClass_ReceiveDamage_Building_DamageSound_02_Handled_ret = 0x702765,
-
-		Nothing = 0x0
-	};
-
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
-	{
-		auto const pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		if (pExt->DisableDamageSound.Get())
-		{
-			switch (R->Origin())
-			{
-			case BuildingClass_ReceiveDamage_DamageSound:
-				return BuildingClass_ReceiveDamage_DamageSound_Handled_ret;
-			case TechnoClass_ReceiveDamage_Building_DamageSound_01:
-				return TechnoClass_ReceiveDamage_Building_DamageSound_01_Handled_ret;
-			case TechnoClass_ReceiveDamage_Building_DamageSound_02:
-				return TechnoClass_ReceiveDamage_Building_DamageSound_02_Handled_ret;
-			}
+	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->DisableDamageSound.Get()) {
+			return R->Origin() + 0x6;
 		}
 	}
 
-	return Nothing;
+	return 0x0;
 }
+
+DEFINE_JUMP(LJMP, 0x702765, 0x7027AE); // this just an duplicate
 
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
@@ -3131,6 +3101,7 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //	return CheckMission;
 //}
 
+//broke inf reloading
 //DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 //{
 //	GET(InfantryClass*, pThis, ESI);
@@ -4687,7 +4658,7 @@ DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
 				{
-					VocClass::PlayAt(pType->CrushSound, pThis->Location);
+					VocClass::PlayIndexAtPos(pType->CrushSound, pThis->Location);
 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
 
 					if (pThis->Type->TiltsWhenCrushes)
@@ -4726,7 +4697,7 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
 				{
-					VocClass::PlayAt(pType->CrushSound, pLinkedTo->Location);
+					VocClass::PlayIndexAtPos(pType->CrushSound, pLinkedTo->Location);
 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
 
 					if (pLinkedTo->GetTechnoType()->TiltsWhenCrushes)
@@ -5021,47 +4992,47 @@ DEFINE_OVERRIDE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 6)
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
 }
 
-// DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-// 	GET(TechnoTypeClass*, pType, EAX);
-// 	GET(WeaponTypeClass*, pWeapon, EBP);
+DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(WeaponTypeClass*, pWeapon, EBP);
 
-// 	if (!pType->AttackFriendlies)
-// 		return 0x70039B;
+	if (!pType->AttackFriendlies)
+		return 0x70039B;
 
-// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-// 	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
-// 		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-// 		if (!pWeapons || pWeapon != pWeapons->WeaponType) {
-// 			return 0x70039B;
-// 		}
-// 	}
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
+		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+		if (!pWeapons || pWeapon != pWeapons->WeaponType) {
+			return 0x70039B;
+		}
+	}
 
-// 	return 0x7003BB;
-// }
+	return 0x7003BB;
+}
 
 // //EvalObject
-// DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
-// {
-// 	enum { AllowAttack = 0x6F7FE9 , ContinueCheck = 0x6F7F0C };
-// 	GET_STACK(int , nWeapon, 0x14);
-// 	GET(TechnoClass*, pThis, EDI);
+DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
+{
+	enum { AllowAttack = 0x6F7FE9 , ContinueCheck = 0x6F7F0C };
+	GET_STACK(int , nWeapon, 0x14);
+	GET(TechnoClass*, pThis, EDI);
 
-// 	const auto pType = pThis->GetTechnoType();
+	const auto pType = pThis->GetTechnoType();
 
-// 	if (!pType->AttackFriendlies)
-// 		return ContinueCheck;
+	if (!pType->AttackFriendlies)
+		return ContinueCheck;
 
-// 	bool Allow = true;
-// 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	bool Allow = true;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-// 	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-// 		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+		Allow = pTypeExt->AttackFriendlies_WeaponIdx == nWeapon;
 
-// 	return Allow ? AllowAttack : ContinueCheck;
-// }
+	return Allow ? AllowAttack : ContinueCheck;
+}
 
 DEFINE_HOOK(0x70A3E5 ,TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {
@@ -5102,7 +5073,7 @@ DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 	GET(int, range, EAX);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	
+
 	return pTypeExt->CrushRange.GetOrDefault(pThis, RulesClass::Instance->Crush) >= range ?
 		Crush : ContinueCheck;
 }
@@ -5241,12 +5212,20 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 //	if()
 //}
 
-DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
-{
-	GET(HouseClass*, pHouse, EDI);
-	GET(TechnoTypeClass*, pType, ESI);
+ //DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
+ //{
+ //	GET(HouseClass*, pHouse, EDI);
+ //	GET(TechnoTypeClass*, pType, ESI);
 
-	double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
-	R->EAX(pHouse->GetHouseTypeCostMult(pType) * mult);
-	return 0x711F17;
-}
+ //	const double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
+ //	R->Stack(float(pHouse->GetHouseTypeCostMult(pType) * mult) ,0xC);
+ //	return 0x711F17;
+ //}
+
+ double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
+ {
+	 const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
+	 return pThis->GetHouseTypeCostMult(pType) * mult;
+ }
+
+ DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));

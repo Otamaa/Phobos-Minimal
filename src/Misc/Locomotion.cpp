@@ -30,11 +30,11 @@ const char* REG_CLASS()
 	return buffs;
 }
 
-DEFINE_HOOK(0x6BC4AE, WinMain_CoRegisterClassObjects_Locomotions, 0x7)
-{
-	Debug::Log("Registering new com objects...\n");
-	Debug::Log("Registering LevitateLocomotionClass\n");
-	Debug::Log(REG_CLASS<LevitateLocomotionClass>());
-	Debug::Log("Registering done !\n");
-	return 0;
-}
+//DEFINE_HOOK(0x6BC4AE, WinMain_CoRegisterClassObjects_Locomotions, 0x7)
+//{
+//	Debug::Log("Registering new com objects...\n");
+//	Debug::Log("Registering LevitateLocomotionClass\n");
+//	Debug::Log(REG_CLASS<LevitateLocomotionClass>());
+//	Debug::Log("Registering done !\n");
+//	return 0;
+//}

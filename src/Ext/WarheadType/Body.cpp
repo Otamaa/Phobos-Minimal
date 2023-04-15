@@ -37,11 +37,328 @@ void WarheadTypeExt::ExtData::InitializeConstants()
 	Shield_AffectTypes.reserve(8);
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
+	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
 }
 
 void WarheadTypeExt::ExtData::Initialize()
 {
 
+}
+
+void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+{
+	auto pThis = this->Get();
+	const char* pSection = pThis->ID;
+
+	ArmorTypeClass::LoadForWarhead(pINI, pThis);
+
+	if (!pINI->GetSection(pSection)) {
+		return;
+	}
+
+	INI_EX exINI(pINI);
+
+	// writing custom verses parser just because
+	if (exINI.ReadString(pSection, GameStrings::Verses()))
+	{
+		int idx = 0;
+		char* context = nullptr;
+		for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			this->Verses[idx].Parse_NoCheck(cur);
+
+			if (++idx > 10) {
+				break;
+			}
+		}
+	}
+
+	//this will break targeting , so use it with caution !
+	exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
+
+	// Miscs
+	this->Reveal.Read(exINI, pSection, "Reveal");
+
+	Nullable<bool> spySat;
+	spySat.Read(exINI, pSection, GameStrings::SpySat());
+
+	if (spySat.isset() && spySat.Get())
+		this->Reveal = -1;
+
+	this->BigGap.Read(exINI, pSection, "BigGap");
+	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
+	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
+	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
+	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
+	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
+	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
+	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
+	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
+	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
+
+	// Crits
+	this->Crit_Chance.Read(exINI, pSection, "Crit.Chance");
+	this->Crit_ApplyChancePerTarget.Read(exINI, pSection, "Crit.ApplyChancePerTarget");
+	this->Crit_ExtraDamage.Read(exINI, pSection, "Crit.ExtraDamage");
+	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead");
+	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
+	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
+	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
+	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
+	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
+	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
+	this->Crit_SuppressOnIntercept.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
+
+	this->MindControl_Anim.Read(exINI, pSection, "MindControl.Anim");
+
+	// Ares tags
+	// http://ares-developers.github.io/Ares-docs/new/warheads/general.html
+	this->AffectsEnemies.Read(exINI, pSection, "AffectsEnemies");
+	this->AffectsOwner.Read(exINI, pSection, "AffectsOwner");
+	this->EffectsRequireDamage.Read(exINI, pSection, "EffectsRequireDamage");
+	this->EffectsRequireVerses.Read(exINI, pSection, "EffectsRequireVerses");
+	this->AllowZeroDamage.Read(exINI, pSection, "AllowZeroDamage");
+
+	// Shields
+	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
+	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
+	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
+	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
+	this->Shield_BreakWeapon.Read(exINI, pSection, "Shield.BreakWeapon", true);
+	this->Shield_AbsorbPercent.Read(exINI, pSection, "Shield.AbsorbPercent");
+	this->Shield_PassPercent.Read(exINI, pSection, "Shield.PassPercent");
+	this->Shield_Respawn_Duration.Read(exINI, pSection, "Shield.Respawn.Duration");
+	this->Shield_Respawn_Amount.Read(exINI, pSection, "Shield.Respawn.Amount");
+	this->Shield_Respawn_Rate_InMinutes.Read(exINI, pSection, "Shield.Respawn.Rate");
+	this->Shield_Respawn_Rate = (int)(this->Shield_Respawn_Rate_InMinutes * 900);
+	this->Shield_Respawn_ResetTimer.Read(exINI, pSection, "Shield.Respawn.RestartTimer");
+	this->Shield_SelfHealing_Duration.Read(exINI, pSection, "Shield.SelfHealing.Duration");
+	this->Shield_SelfHealing_Amount.Read(exINI, pSection, "Shield.SelfHealing.Amount");
+	this->Shield_SelfHealing_Rate_InMinutes.Read(exINI, pSection, "Shield.SelfHealing.Rate");
+	this->Shield_SelfHealing_Rate = (int)(this->Shield_SelfHealing_Rate_InMinutes * 900);
+	this->Shield_SelfHealing_ResetTimer.Read(exINI, pSection, "Shield.SelfHealing.RestartTimer");
+	this->Shield_AttachTypes.Read(exINI, pSection, "Shield.AttachTypes");
+	this->Shield_RemoveTypes.Read(exINI, pSection, "Shield.RemoveTypes");
+	this->Shield_ReplaceOnly.Read(exINI, pSection, "Shield.ReplaceOnly");
+	this->Shield_ReplaceNonRespawning.Read(exINI, pSection, "Shield.ReplaceNonRespawning");
+	this->Shield_InheritStateOnReplace.Read(exINI, pSection, "Shield.InheritStateOnReplace");
+	this->Shield_MinimumReplaceDelay.Read(exINI, pSection, "Shield.MinimumReplaceDelay");
+	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
+
+	this->NotHuman_DeathSequence.Read(exINI, pSection, "NotHuman.DeathSequence");
+
+	// Transact
+	this->Transact.Read(exINI, pSection, "Transact");
+
+	this->TransactMoney_Ally.Read(exINI, pSection, "TransactMoney.Ally");
+	this->TransactMoney_Enemy.Read(exINI, pSection, "TransactMoney.Enemy");
+	this->Transact_AffectsEnemies.Read(exINI, pSection, "TransactMoney.AffectsEnemies");
+	this->Transact_AffectsAlly.Read(exINI, pSection, "TransactMoney.AffectsAlly");
+	this->Transact_AffectsOwner.Read(exINI, pSection, "TransactMoney.AffectsOwner");
+
+	this->Transact_SpreadAmongTargets.Read(exINI, pSection, "Transact.SpreadAmongTargets");
+	this->Transact_Experience_Value.Read(exINI, pSection, "Transact.Experience.Value");
+	this->Transact_Experience_Source_Flat.Read(exINI, pSection, "Transact.Experience.Source.Flat");
+	this->Transact_Experience_Source_Percent.Read(exINI, pSection, "Transact.Experience.Source.Percent");
+	this->Transact_Experience_Source_Percent_CalcFromTarget.Read(exINI, pSection, "Transact.Experience.Source.Percent.CalcFromTarget");
+	this->Transact_Experience_Target_Flat.Read(exINI, pSection, "Transact.Experience.Target.Flat");
+	this->Transact_Experience_Target_Percent.Read(exINI, pSection, "Transact.Experience.Target.Percent");
+	this->Transact_Experience_Target_Percent_CalcFromSource.Read(exINI, pSection, "Transact.Experience.Target.Percent.CalcFromSource");
+	this->Transact_Experience_IgnoreNotTrainable.Read(exINI, pSection, "Transact.Experience.IgnoreNotTrainable");
+
+	this->TransactMoney_Display.Read(exINI, pSection, "TransactMoney.Display");
+	this->TransactMoney_Display_Houses.Read(exINI, pSection, "TransactMoney.Display.Houses");
+	this->TransactMoney_Display_AtFirer.Read(exINI, pSection, "TransactMoney.Display.AtFirer");
+	this->TransactMoney_Display_Offset.Read(exINI, pSection, "TransactMoney.Display.Offset");
+
+	this->StealMoney.Read(exINI, pSection, "StealMoney.Amount");
+	this->Steal_Display_Houses.Read(exINI, pSection, "StealMoney.Display.Houses");
+	this->Steal_Display.Read(exINI, pSection, "StealMoney.Display");
+	this->Steal_Display_Offset.Read(exINI, pSection, "StealMoney.Display.Offset");
+
+	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeathAnim");
+	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
+	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
+
+	this->GattlingStage.Read(exINI, pSection, "TargetGattlingStage");
+	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
+	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
+
+	this->MindControl_Threshold.Read(exINI, pSection, "MindControl.Threshold");
+	this->MindControl_Threshold_Inverse.Read(exINI, pSection, "MindControl.Threshold.Inverse");
+	this->MindControl_AlternateDamage.Read(exINI, pSection, "MindControl.AlternateDamage");
+	this->MindControl_AlternateWarhead.Read(exINI, pSection, "MindControl.AlternateWarhead", true);
+	this->MindControl_CanKill.Read(exINI, pSection, "MindControl.CanKill");
+
+	this->DetonateOnAllMapObjects.Read(exINI, pSection, "DetonateOnAllMapObjects");
+	this->DetonateOnAllMapObjects_RequireVerses.Read(exINI, pSection, "DetonateOnAllMapObjects.RequireVerses");
+	this->DetonateOnAllMapObjects_AffectTargets.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTargets");
+	this->DetonateOnAllMapObjects_AffectHouses.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectHouses");
+	this->DetonateOnAllMapObjects_AffectTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTypes");
+	this->DetonateOnAllMapObjects_IgnoreTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.IgnoreTypes");
+
+	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
+	this->RevengeWeapon_GrantDuration.Read(exINI, pSection, "RevengeWeapon.GrantDuration");
+	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+	this->RevengeWeapon_Cumulative.Read(exINI, pSection, "RevengeWeapon.Cumulative");
+	this->RevengeWeapon_MaxCount.Read(exINI, pSection, "RevengeWeapon.MaxCount");
+
+#pragma region Otamaa
+
+	this->SquidSplash.Read(exINI, pSection, "Parasite.SplashAnims");
+	this->TemporalExpiredAnim.Read(exINI, pSection, "Temporal.ExpiredAnim");
+	this->TemporalDetachDamageFactor.Read(exINI, pSection, "Temporal.ExpiredDamageFactor");
+	this->TemporalExpiredApplyDamage.Read(exINI, pSection, "Temporal.ExpiredApplyDamage");
+	this->DebrisAnimTypes.Read(exINI, pSection, "DebrisAnims");
+	this->Flammability.Read(exINI, pSection, "FlameChance");
+
+	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
+	this->Parasite_GrappleAnim.Read(exINI, pSection, "Parasite.GrappleAnim");
+	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
+	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
+	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
+	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
+
+	if (ArmorHitAnim.size() < ArmorTypeClass::Array.size())
+		ArmorHitAnim.resize(ArmorTypeClass::Array.size());
+
+	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
+	{
+		char flag[0x40];
+		Nullable<AnimTypeClass*> pAnimReaded;
+		IMPL_SNPRNINTF(flag, sizeof(flag), "HitAnim.%s", ArmorTypeClass::Array[i]->Name.data());
+		pAnimReaded.Read(exINI, pSection, flag, true);
+
+		if (!pAnimReaded.isset())
+			continue;
+
+		ArmorHitAnim[i] = pAnimReaded.Get();
+	}
+
+	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
+	this->Remover.Read(exINI, pSection, "Remover");
+	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
+	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
+	this->Sound.Read(exINI, pSection, GameStrings::Sound());
+
+	// Code disabled , require Ares 3.0 ++
+	this->Converts.Read(exINI, pSection, "Converts");
+	this->Converts_From.Read(exINI, pSection, "Converts.From");
+	this->Converts_To.Read(exINI, pSection, "Converts.To");
+	//
+
+	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
+	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
+	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
+	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
+
+	this->AttachTag.Read(pINI, pSection, "AttachTag");
+	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
+	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
+	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
+
+	//this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
+	//this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
+	//this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
+	//this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
+	//this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
+	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
+
+	//TODO :Evaluate this
+	//this->DirectionalArmor_FrontField = std::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
+	//this->DirectionalArmor_FrontField = std::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
+	//this->DirectionalArmor_BackField = std::min(this->DirectionalArmor_BackField.Get(), 1.0f);
+	//this->DirectionalArmor_BackField = std::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+
+	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
+	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");
+	this->RecalculateDistanceDamage_Add.Read(exINI, pSection, "RecalculateDistanceDamage.Add");
+	this->RecalculateDistanceDamage_Multiply.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply");
+	this->RecalculateDistanceDamage_Add_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Add.Factor");
+	this->RecalculateDistanceDamage_Multiply_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply.Factor");
+	this->RecalculateDistanceDamage_Max.Read(exINI, pSection, "RecalculateDistanceDamage.Max");
+	this->RecalculateDistanceDamage_Min.Read(exINI, pSection, "RecalculateDistanceDamage.Min");
+	this->RecalculateDistanceDamage_Display.Read(exINI, pSection, "RecalculateDistanceDamage.Display");
+	this->RecalculateDistanceDamage_Display_AtFirer.Read(exINI, pSection, "RecalculateDistanceDamage.Display.AtFirer");
+	this->RecalculateDistanceDamage_Display_Offset.Read(exINI, pSection, "RecalculateDistanceDamage.Display.Offset");
+	this->RecalculateDistanceDamage_ProcessVerses.Read(exINI, pSection, "RecalculateDistanceDamage.Add.ProcessVerses");
+
+	this->Berzerk_dur.Read(exINI, pSection, "Berzerk.Duration");
+	this->Berzerk_cap.Read(exINI, pSection, "Berzerk.Cap");
+	this->Berzerk_dealDamage.Read(exINI, pSection, "Berzerk.DealDamage");
+	this->IC_Flash.Read(exINI, pSection, "IronCurtain.Flash");
+
+	this->PreventScatter.Read(exINI, pSection, "PreventScatter");
+
+	this->DieSound_Override.Read(exINI, pSection, "DieSound.Override");
+	this->VoiceSound_Override.Read(exINI, pSection, "VoiceSound.Override");
+
+	this->SuppressDeathWeapon_Vehicles.Read(exINI, pSection, "DeathWeapon.SuppressVehicles");
+	this->SuppressDeathWeapon_Infantry.Read(exINI, pSection, "DeathWeapon.SuppressInfantry");
+	this->SuppressDeathWeapon.Read(exINI, pSection, "DeathWeapon.Suppress");
+	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
+
+	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
+	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
+	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
+	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
+
+#ifdef COMPILE_PORTED_DP_FEATURES_
+	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
+	{
+		char tempBuffer[0x80];
+		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
+		{
+			const auto pArmor = ArmorTypeClass::Array[i].get();
+			IMPL_SNPRNINTF(tempBuffer, sizeof(flag), "%s.%s.", pBaseKey, pArmor->Name.data());
+			DamageTextPerArmor[i].Read(exINI, pSection, tempBuffer);
+		}
+	};
+
+	ReadHitTextData("DamageText");
+
+#endif
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
+	this->PaintBallData.Read(exINI, pSection);
+#endif
+#pragma endregion
+
+	this->AttachedEffect.Read(exINI);
+	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
+	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
+	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
+	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
+	this->Culling_BelowHP.Read(exINI, pSection, "Culling.%sBelowHealth");
+	this->Culling_Chance.Read(exINI, pSection, "Culling.%sChance");
+
+	this->RelativeDamage.Read(exINI, pSection, "RelativeDamage");
+	this->RelativeDamage_AirCraft.Read(exINI, pSection, "RelativeDamage.Aircraft");
+	this->RelativeDamage_Unit.Read(exINI, pSection, "RelativeDamage.Vehicles");
+	this->RelativeDamage_Infantry.Read(exINI, pSection, "RelativeDamage.Infantry");
+	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
+	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
+
+	this->Launchs.clear();
+	for (size_t i = 0; ; ++i)
+	{
+		char nBuff[0x80];
+		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
+		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
+		LaunchWhat_Dummy.Read(exINI, pSection, nBuff, true);
+
+		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
+			break;
+
+		LauchSWData nData;
+		if (!nData.Read(exINI, pSection, i, LaunchWhat_Dummy))
+			break;
+
+		this->Launchs.push_back(std::move(nData));
+	}
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -433,324 +750,6 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 }
 
 std::vector<std::string> UnParsedThing::UnparsedList {};
-
-std::chrono::steady_clock::time_point StartTime_WH;
-void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
-{
-	auto pThis = this->Get();
-	const char* pSection = pThis->ID;
-	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), pSection);
-	//StartTime_WH = std::chrono::high_resolution_clock::now();
-	// writing custom verses parser just because
-	if (pINI->ReadString(pSection, GameStrings::Verses(), Phobos::readDefval, Phobos::readBuffer))
-	{
-		int idx = 0;
-		char* context = nullptr;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			this->Verses[idx].Parse_NoCheck(cur);
-
-			++idx;
-			if (idx > 10)
-			{
-				break;
-			}
-		}
-	}
-
-	ArmorTypeClass::LoadForWarhead(pINI, pThis);
-
-	//auto stop = std::chrono::high_resolution_clock::now();
-	//auto ret = std::chrono::duration_cast<std::chrono::microseconds>(StartTime_WH - stop);
-	//GameDebugLog::Log("WH[%s] Reading verses Taking %d ms\n", pSection ,ret.count());
-
-	if (!pINI->GetSection(pSection)) {
-		return;
-	}
-
-	INI_EX exINI(pINI);
-
-	//this will break targeting , so use it with caution !
-	pThis->IsOrganic = pINI->ReadBool(pSection, "IsOrganic",
-		//this->Verses[4].Verses == 0.0 && this->Verses[6].Verses == 0.0
-		false
-	);
-
-	// Miscs
-	this->Reveal.Read(exINI, pSection, "Reveal");
-
-	Nullable<bool> spySat;
-	spySat.Read(exINI, pSection, GameStrings::SpySat());
-
-	if (spySat.isset() && spySat.Get())
-		this->Reveal = -1;
-
-	this->BigGap.Read(exINI, pSection, "BigGap");
-	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
-	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
-	this->SplashList_PickRandom.Read(exINI, pSection, "SplashList.PickRandom");
-	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
-	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
-	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
-	this->AnimList_ShowOnZeroDamage.Read(exINI, pSection, "AnimList.ShowOnZeroDamage");
-	this->DecloakDamagedTargets.Read(exINI, pSection, "DecloakDamagedTargets");
-	this->ShakeIsLocal.Read(exINI, pSection, "ShakeIsLocal");
-
-	// Crits
-	this->Crit_Chance.Read(exINI, pSection, "Crit.Chance");
-	this->Crit_ApplyChancePerTarget.Read(exINI, pSection, "Crit.ApplyChancePerTarget");
-	this->Crit_ExtraDamage.Read(exINI, pSection, "Crit.ExtraDamage");
-	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead");
-	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
-	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
-	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
-	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
-	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
-	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
-	this->Crit_SuppressOnIntercept.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
-
-	this->MindControl_Anim.Read(exINI, pSection, "MindControl.Anim");
-
-	// Ares tags
-	// http://ares-developers.github.io/Ares-docs/new/warheads/general.html
-	this->AffectsEnemies.Read(exINI, pSection, "AffectsEnemies");
-	this->AffectsOwner.Read(exINI, pSection, "AffectsOwner");
-	this->EffectsRequireDamage.Read(exINI, pSection, "EffectsRequireDamage");
-	this->EffectsRequireVerses.Read(exINI, pSection, "EffectsRequireVerses");
-	this->AllowZeroDamage.Read(exINI, pSection, "AllowZeroDamage");
-
-	// Shields
-	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
-	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
-	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
-	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
-	this->Shield_BreakWeapon.Read(exINI, pSection, "Shield.BreakWeapon", true);
-	this->Shield_AbsorbPercent.Read(exINI, pSection, "Shield.AbsorbPercent");
-	this->Shield_PassPercent.Read(exINI, pSection, "Shield.PassPercent");
-	this->Shield_Respawn_Duration.Read(exINI, pSection, "Shield.Respawn.Duration");
-	this->Shield_Respawn_Amount.Read(exINI, pSection, "Shield.Respawn.Amount");
-	this->Shield_Respawn_Rate_InMinutes.Read(exINI, pSection, "Shield.Respawn.Rate");
-	this->Shield_Respawn_Rate = (int)(this->Shield_Respawn_Rate_InMinutes * 900);
-	this->Shield_Respawn_ResetTimer.Read(exINI, pSection, "Shield.Respawn.RestartTimer");
-	this->Shield_SelfHealing_Duration.Read(exINI, pSection, "Shield.SelfHealing.Duration");
-	this->Shield_SelfHealing_Amount.Read(exINI, pSection, "Shield.SelfHealing.Amount");
-	this->Shield_SelfHealing_Rate_InMinutes.Read(exINI, pSection, "Shield.SelfHealing.Rate");
-	this->Shield_SelfHealing_Rate = (int)(this->Shield_SelfHealing_Rate_InMinutes * 900);
-	this->Shield_SelfHealing_ResetTimer.Read(exINI, pSection, "Shield.SelfHealing.RestartTimer");
-	this->Shield_AttachTypes.Read(exINI, pSection, "Shield.AttachTypes");
-	this->Shield_RemoveTypes.Read(exINI, pSection, "Shield.RemoveTypes");
-	this->Shield_ReplaceOnly.Read(exINI, pSection, "Shield.ReplaceOnly");
-	this->Shield_ReplaceNonRespawning.Read(exINI, pSection, "Shield.ReplaceNonRespawning");
-	this->Shield_InheritStateOnReplace.Read(exINI, pSection, "Shield.InheritStateOnReplace");
-	this->Shield_MinimumReplaceDelay.Read(exINI, pSection, "Shield.MinimumReplaceDelay");
-	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
-
-	this->NotHuman_DeathSequence.Read(exINI, pSection, "NotHuman.DeathSequence");
-
-	// Transact
-	this->Transact.Read(exINI, pSection, "Transact");
-
-	this->TransactMoney_Ally.Read(exINI, pSection, "TransactMoney.Ally");
-	this->TransactMoney_Enemy.Read(exINI, pSection, "TransactMoney.Enemy");
-	this->Transact_AffectsEnemies.Read(exINI, pSection, "TransactMoney.AffectsEnemies");
-	this->Transact_AffectsAlly.Read(exINI, pSection, "TransactMoney.AffectsAlly");
-	this->Transact_AffectsOwner.Read(exINI, pSection, "TransactMoney.AffectsOwner");
-
-	this->Transact_SpreadAmongTargets.Read(exINI, pSection, "Transact.SpreadAmongTargets");
-	this->Transact_Experience_Value.Read(exINI, pSection, "Transact.Experience.Value");
-	this->Transact_Experience_Source_Flat.Read(exINI, pSection, "Transact.Experience.Source.Flat");
-	this->Transact_Experience_Source_Percent.Read(exINI, pSection, "Transact.Experience.Source.Percent");
-	this->Transact_Experience_Source_Percent_CalcFromTarget.Read(exINI, pSection, "Transact.Experience.Source.Percent.CalcFromTarget");
-	this->Transact_Experience_Target_Flat.Read(exINI, pSection, "Transact.Experience.Target.Flat");
-	this->Transact_Experience_Target_Percent.Read(exINI, pSection, "Transact.Experience.Target.Percent");
-	this->Transact_Experience_Target_Percent_CalcFromSource.Read(exINI, pSection, "Transact.Experience.Target.Percent.CalcFromSource");
-	this->Transact_Experience_IgnoreNotTrainable.Read(exINI, pSection, "Transact.Experience.IgnoreNotTrainable");
-
-	this->TransactMoney_Display.Read(exINI, pSection, "TransactMoney.Display");
-	this->TransactMoney_Display_Houses.Read(exINI, pSection, "TransactMoney.Display.Houses");
-	this->TransactMoney_Display_AtFirer.Read(exINI, pSection, "TransactMoney.Display.AtFirer");
-	this->TransactMoney_Display_Offset.Read(exINI, pSection, "TransactMoney.Display.Offset");
-
-	this->StealMoney.Read(exINI, pSection, "StealMoney.Amount");
-	this->Steal_Display_Houses.Read(exINI, pSection, "StealMoney.Display.Houses");
-	this->Steal_Display.Read(exINI, pSection, "StealMoney.Display");
-	this->Steal_Display_Offset.Read(exINI, pSection, "StealMoney.Display.Offset");
-
-	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeathAnim");
-	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
-	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
-
-	this->GattlingStage.Read(exINI, pSection, "TargetGattlingStage");
-	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
-	this->ReloadAmmo.Read(exINI, pSection, "TargetReloadAmmo");
-
-	this->MindControl_Threshold.Read(exINI, pSection, "MindControl.Threshold");
-	this->MindControl_Threshold_Inverse.Read(exINI, pSection, "MindControl.Threshold.Inverse");
-	this->MindControl_AlternateDamage.Read(exINI, pSection, "MindControl.AlternateDamage");
-	this->MindControl_AlternateWarhead.Read(exINI, pSection, "MindControl.AlternateWarhead", true);
-	this->MindControl_CanKill.Read(exINI, pSection, "MindControl.CanKill");
-
-	this->DetonateOnAllMapObjects.Read(exINI, pSection, "DetonateOnAllMapObjects");
-	this->DetonateOnAllMapObjects_RequireVerses.Read(exINI, pSection, "DetonateOnAllMapObjects.RequireVerses");
-	this->DetonateOnAllMapObjects_AffectTargets.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTargets");
-	this->DetonateOnAllMapObjects_AffectHouses.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectHouses");
-	this->DetonateOnAllMapObjects_AffectTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.AffectTypes");
-	this->DetonateOnAllMapObjects_IgnoreTypes.Read(exINI, pSection, "DetonateOnAllMapObjects.IgnoreTypes");
-
-	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
-	this->RevengeWeapon_GrantDuration.Read(exINI, pSection, "RevengeWeapon.GrantDuration");
-	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
-	this->RevengeWeapon_Cumulative.Read(exINI, pSection, "RevengeWeapon.Cumulative");
-	this->RevengeWeapon_MaxCount.Read(exINI, pSection, "RevengeWeapon.MaxCount");
-
-#pragma region Otamaa
-
-	this->SquidSplash.Read(exINI, pSection, "Parasite.SplashAnims");
-	this->TemporalExpiredAnim.Read(exINI, pSection, "Temporal.ExpiredAnim");
-	this->TemporalDetachDamageFactor.Read(exINI, pSection, "Temporal.ExpiredDamageFactor");
-	this->TemporalExpiredApplyDamage.Read(exINI, pSection, "Temporal.ExpiredApplyDamage");
-	this->DebrisAnimTypes.Read(exINI, pSection, "DebrisAnims");
-	this->Flammability.Read(exINI, pSection, "FlameChance");
-
-	this->Launchs.clear();
-	for (size_t i = 0; ; ++i)
-	{
-		LauchSWData nData;
-		if (!nData.Read(exINI, pSection, i))
-			break;
-
-		this->Launchs.push_back((nData));
-	}
-
-	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
-	this->Parasite_GrappleAnim.Read(exINI, pSection, "Parasite.GrappleAnim");
-	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
-	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
-	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
-	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
-
-	if (ArmorHitAnim.size() < ArmorTypeClass::Array.size())
-		ArmorHitAnim.resize(ArmorTypeClass::Array.size());
-
-	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
-	{
-		char flag[0x40];
-		Nullable<AnimTypeClass*> pAnimReaded;
-		IMPL_SNPRNINTF(flag, sizeof(flag), "%s.%s", "HitAnim", ArmorTypeClass::Array[i]->Name.data());
-		pAnimReaded.Read(exINI, pSection, flag, true);
-
-		if (!pAnimReaded.isset())
-			continue;
-
-		ArmorHitAnim[i] = pAnimReaded.Get();
-	}
-
-	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
-	this->Remover.Read(exINI, pSection, "Remover");
-	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
-	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
-	this->Sound.Read(exINI, pSection, GameStrings::Sound());
-
-	// Code disabled , require Ares 3.0 ++
-	this->Converts.Read(exINI, pSection, "Converts");
-	this->Converts_From.Read(exINI, pSection, "Converts.From");
-	this->Converts_To.Read(exINI, pSection, "Converts.To");
-	//
-
-	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
-	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
-	this->AffectOwner_Damage_Mod.Read(exINI, pSection, "AffectOwner.DamageModifier");
-	this->AffectAlly_Damage_Mod.Read(exINI, pSection, "AffectAlly.DamageModifier");
-
-	this->AttachTag.Read(pINI, pSection, "AttachTag");
-	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
-	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
-	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
-
-	//this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
-	//this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
-	//this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
-	//this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
-	//this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
-	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
-
-	//TODO :Evaluate this
-	//this->DirectionalArmor_FrontField = std::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
-	//this->DirectionalArmor_FrontField = std::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
-	//this->DirectionalArmor_BackField = std::min(this->DirectionalArmor_BackField.Get(), 1.0f);
-	//this->DirectionalArmor_BackField = std::max(this->DirectionalArmor_BackField.Get(), 0.0f);
-
-	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
-	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");
-	this->RecalculateDistanceDamage_Add.Read(exINI, pSection, "RecalculateDistanceDamage.Add");
-	this->RecalculateDistanceDamage_Multiply.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply");
-	this->RecalculateDistanceDamage_Add_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Add.Factor");
-	this->RecalculateDistanceDamage_Multiply_Factor.Read(exINI, pSection, "RecalculateDistanceDamage.Multiply.Factor");
-	this->RecalculateDistanceDamage_Max.Read(exINI, pSection, "RecalculateDistanceDamage.Max");
-	this->RecalculateDistanceDamage_Min.Read(exINI, pSection, "RecalculateDistanceDamage.Min");
-	this->RecalculateDistanceDamage_Display.Read(exINI, pSection, "RecalculateDistanceDamage.Display");
-	this->RecalculateDistanceDamage_Display_AtFirer.Read(exINI, pSection, "RecalculateDistanceDamage.Display.AtFirer");
-	this->RecalculateDistanceDamage_Display_Offset.Read(exINI, pSection, "RecalculateDistanceDamage.Display.Offset");
-	this->RecalculateDistanceDamage_ProcessVerses.Read(exINI, pSection, "RecalculateDistanceDamage.Add.ProcessVerses");
-
-	this->Berzerk_dur.Read(exINI, pSection, "Berzerk.Duration");
-	this->Berzerk_cap.Read(exINI, pSection, "Berzerk.Cap");
-	this->Berzerk_dealDamage.Read(exINI, pSection, "Berzerk.DealDamage");
-	this->IC_Flash.Read(exINI, pSection, "IronCurtain.Flash");
-
-	this->PreventScatter.Read(exINI, pSection, "PreventScatter");
-
-	this->DieSound_Override.Read(exINI, pSection, "DieSound.Override");
-	this->VoiceSound_Override.Read(exINI, pSection, "VoiceSound.Override");
-
-	this->SuppressDeathWeapon_Vehicles.Read(exINI, pSection, "DeathWeapon.SuppressVehicles");
-	this->SuppressDeathWeapon_Infantry.Read(exINI, pSection, "DeathWeapon.SuppressInfantry");
-	this->SuppressDeathWeapon.Read(exINI, pSection, "DeathWeapon.Suppress");
-	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
-
-	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
-	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
-	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
-	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
-
-#ifdef COMPILE_PORTED_DP_FEATURES_
-	auto ReadHitTextData = [this, &exINI, pSection](const char* pBaseKey, bool bAllocate = true)
-	{
-		char tempBuffer[0x80];
-		for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i) {
-			const auto pArmor = ArmorTypeClass::Array[i].get();
-			IMPL_SNPRNINTF(tempBuffer, sizeof(flag), "%s.%s.", pBaseKey, pArmor->Name.data());
-			DamageTextPerArmor[i].Read(exINI, pSection, tempBuffer);
-		}
-	};
-
-	ReadHitTextData("DamageText");
-
-#endif
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
-	this->PaintBallData.Read(exINI, pSection);
-#endif
-#pragma endregion
-
-	this->AttachedEffect.Read(exINI);
-	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
-	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
-	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
-	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
-	this->Culling_BelowHP.Read(exINI, pSection, "Culling.%sBelowHealth");
-	this->Culling_Chance.Read(exINI, pSection, "Culling.%sChance");
-
-	this->RelativeDamage.Read(exINI, pSection, "RelativeDamage");
-	this->RelativeDamage_AirCraft.Read(exINI, pSection, "RelativeDamage.Aircraft");
-	this->RelativeDamage_Unit.Read(exINI, pSection, "RelativeDamage.Vehicles");
-	this->RelativeDamage_Infantry.Read(exINI, pSection, "RelativeDamage.Infantry");
-	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
-	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
-}
 
 AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 {

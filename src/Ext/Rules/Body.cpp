@@ -238,7 +238,8 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 
 	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName)
 	{
-		pRules->ReadString(GameStrings::General(), pKey, "", Phobos::readBuffer);
+		if (!pRules->ReadString(GameStrings::General(), pKey, "", Phobos::readBuffer))
+			return;
 
 		char* context = nullptr;
 		std::vector<int> typelist;
@@ -271,7 +272,8 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 	{
 		char* context = nullptr;
 		auto const pKeyName = pRules->GetKeyName(pGenPrereq, i);
-		pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer);
+		if (!pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer))
+			continue;
 
 		std::vector<int> objectsList;
 		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
@@ -289,7 +291,6 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 			if (IS_SAME_STR_(Catagory.c_str(), pKeyName))
 			{
 				bFound = true;
-				Lists.clear();
 				Lists = objectsList;
 			}
 		}
@@ -371,14 +372,18 @@ namespace ObjectTypeParser
 		if (!pINI->GetSection(pSection))
 			return;
 
-		auto const nKeyCount = pINI->GetKeyCount(pSection);
-		nVecDest.reserve(nKeyCount);
+		const auto nKeyCount = pINI->GetKeyCount(pSection);
+		
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
 
 		for (int i = 0; i < nKeyCount; ++i)
 		{
-			std::vector<T*> _Buffer;
 			char* context = nullptr;
-			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
+			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer))
+				continue;
 
 			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
 				cur; cur = strtok_s(nullptr, Delims, &context))
@@ -393,7 +398,7 @@ namespace ObjectTypeParser
 
 				if (buffer)
 				{
-					_Buffer.push_back(buffer);
+					nVecDest[i].push_back(buffer);
 					if (bVerbose)
 						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
 				}
@@ -405,8 +410,6 @@ namespace ObjectTypeParser
 					}
 				}
 			}
-
-			nVecDest.push_back(_Buffer);
 		}
 	}
 
@@ -416,7 +419,10 @@ namespace ObjectTypeParser
 			return;
 
 		auto const nKeyCount = pINI->GetKeyCount(pSection);
-		nVecDest.reserve(nKeyCount);
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
 
 		for (int i = 0; i < nKeyCount; ++i)
 		{
@@ -431,13 +437,12 @@ namespace ObjectTypeParser
 			{
 				cur = CRT::strtrim(cur);
 
-				objectsList.emplace_back(cur);
+				nVecDest[i].emplace_back(cur);
 
 				if (bVerbose)
 					Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
 			}
 
-			nVecDest.push_back(objectsList);
 		}
 	}
 };
@@ -454,15 +459,8 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
-	//for (auto pTTYpeArray : *TechnoTypeClass::Array) {
-	//	if (auto pTTYpeExt = TechnoTypeExt::ExtMap.Find(pTTYpeArray))
-	//		pTTYpeExt->LoadFromINIFile_EvaluateSomeVariables(pINI);
-	//}
-
 #pragma region Otamaa
 
-	
-		;
 
 	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
 

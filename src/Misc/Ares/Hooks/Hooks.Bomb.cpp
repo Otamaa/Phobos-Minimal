@@ -45,10 +45,10 @@ namespace Funcs
 				pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 				pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
-				int index = pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound);
-				if (index != -1 && pSource->Owner->ControlledByPlayer())
+				if (pSource->Owner->ControlledByPlayer())
 				{
-					VocClass::PlayAt(index, pBomb->Target->Location, nullptr);
+					VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
+					, pBomb->Target->Location);
 				}
 			}
 		}

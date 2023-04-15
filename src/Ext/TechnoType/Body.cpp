@@ -56,6 +56,7 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 	ParticleSystems_DamageSparks.reserve(4);
 
 	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
+	this->Is_Cow = IS_SAME_STR_N(this->Get()->ID, "COW");
 
 	if (Is_AircraftType(Get()))
 	{
@@ -88,7 +89,7 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, si
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerBarrels[nIdx];
 
-	if((nIdx - TechnoTypeClass::MaxWeapons) >TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
+	if ((nIdx - TechnoTypeClass::MaxWeapons) > TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
 		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than BarrelData ! \n", pThis->ID);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
@@ -100,12 +101,13 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerTurrets[nIdx];
 
-	if((nIdx - TechnoTypeClass::MaxWeapons) >TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
+	if ((nIdx - TechnoTypeClass::MaxWeapons) > TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
 		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than TurretData ! \n", pThis->ID);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
 		[nIdx - TechnoTypeClass::MaxWeapons];
 }
+
 //void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 //{
 //	auto const pOffs = this->TurretOffset.GetEx();
@@ -222,8 +224,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
-	Is_Cow = IS_SAME_STR_N(pSection, "COW");
-
+	
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
@@ -287,13 +288,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Slaved_ReturnTo.Read(exINI, pSection, "Slaved.ReturnTo");
 
-		//
-
 		this->ShieldType.Read(exINI, pSection, "ShieldType");
-
-		if (!IS_SAME_STR_(this->ShieldType->Name.data(),DEFAULT_STR2))
-			Debug::Log("TType[%s] with Shield Type [%s] ! \n", pSection, this->ShieldType->Name.data());
-
 		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
 		this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());
@@ -642,6 +637,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		if (Prerequisite_Lists.Get() > 0)
 		{
+			Prerequisite_ListVector.resize(Prerequisite_Lists.Get());
+
 			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
 			{
 				char keySection[0x100];
@@ -651,8 +648,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 				char* context2 = nullptr;
 				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
 
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2); 
-					cur; 
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
+					cur;
 					cur = strtok_s(nullptr, Phobos::readDelims, &context2))
 				{
 					cur = CRT::strtrim(cur);
@@ -660,17 +657,15 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 					if (idx >= 0)
 					{
-						objectsList.push_back(idx);
+						Prerequisite_ListVector[i].push_back(idx);
 					}
 					else
 					{
 						int index = HouseExt::FindGenericPrerequisite(cur);
 						if (index < 0)
-							objectsList.push_back(index);
+							Prerequisite_ListVector[i].push_back(index);
 					}
 				}
-
-				Prerequisite_ListVector.push_back(objectsList);
 			}
 		}
 #pragma endregion Prereq
@@ -704,7 +699,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 
 		this->AttachedEffect.Read(exINI);
-		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmomEffectAnim", true);
+		this->NoAmmoEffectAnim.Read(exINI, pSection, "NoAmmoEffectAnim", true);
 		this->AttackFriendlies_WeaponIdx.Read(exINI, pSection, "AttackFriendlies.WeaponIdx");
 		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
 		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
@@ -725,7 +720,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Promote_Elite_Eva.Read(exINI, pSection, "EVA.ElitePromoted");
 		this->Promote_Vet_Eva.Read(exINI, pSection, "EVA.VeteranPromoted");
 
-			
+
 		this->Promote_Elite_Flash.Read(exINI, pSection, "Promote.EliteFlash");
 		this->Promote_Vet_Flash.Read(exINI, pSection, "Promote.VeteranFlash");
 
@@ -818,8 +813,54 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		// refinery and storage
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 
-	}
+		if (Is_AircraftType(pThis))
+		{
+			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
+			this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
 
+			this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");
+			this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
+			this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
+			this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
+
+			// Disabled , rare but can crash after S/L
+			this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
+			//
+
+			this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
+			this->CustomMissileData.Read(exINI, pSection, "Missile");
+			this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
+			this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
+			this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
+			this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
+			this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
+			this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
+			this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
+			this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
+			this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
+			this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
+
+			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
+			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
+			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon");
+			this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
+
+			this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
+			this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
+			this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
+			this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
+
+			//No code
+			this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
+			this->MyDiveData.Read(exINI, pSection);
+			this->MyPutData.Read(exINI, pSection);
+			this->MyFighterData.Read(exINI, pSection, pThis);
+#endif
+		}
+	}
 
 	// Art tags
 	if (pArtIni->GetSection(pArtSection))
@@ -909,54 +950,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 	auto pThis = Get();
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
-
-	this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
-	this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
-
-	this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");
-	this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
-	this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
-	this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
-
-	// Disabled , rare but can crash after S/L
-	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
-	//
-
-	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
-	this->CustomMissileData.Read(exINI, pSection, "Missile");
-	this->CustomMissileData.GetEx()->Type = static_cast<AircraftTypeClass*>(pThis);
-	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
-	this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
-	this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
-	this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
-	this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
-	this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
-	this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
-	this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
-	this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
-
-	this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
-	this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
-	this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon");
-	this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
-
-	this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
-	this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
-	this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
-	this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
-
-	//No code
-	this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
-	this->MyDiveData.Read(exINI, pSection);
-	this->MyPutData.Read(exINI, pSection);
-	this->MyFighterData.Read(exINI, pSection, pThis);
-#endif
 }
 
-void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
+void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass * pINI)
 {
 	//auto pThis = Get();
 	//const char* pSection = pThis->ID;
@@ -964,7 +960,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* p
 
 }
 
-void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, bool a4)
+void ImageStatusses::ReadVoxel(ImageStatusses & arg0, const char* const nKey, bool a4)
 {
 	char buffer[0x60];
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.VXL", nKey);
@@ -1007,7 +1003,7 @@ void ImageStatusses::ReadVoxel(ImageStatusses& arg0, const char* const nKey, boo
 	CCFileV.~CCFileClass();
 }
 
-void TechnoTypeExt::InitImageData(ImageVector& nVec, size_t size)
+void TechnoTypeExt::InitImageData(ImageVector & nVec, size_t size)
 {
 	if (size <= 0)
 		return;
@@ -1015,7 +1011,7 @@ void TechnoTypeExt::InitImageData(ImageVector& nVec, size_t size)
 	nVec.resize(size);
 }
 
-void TechnoTypeExt::ClearImageData(ImageVector& nVec, size_t pos)
+void TechnoTypeExt::ClearImageData(ImageVector & nVec, size_t pos)
 {
 	if (nVec.empty())
 		return;
@@ -1093,7 +1089,7 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 	}
 }
 
-bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger)
+bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass * pThis, TechnoTypeClass * pPassanger)
 {
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis);
 
@@ -1102,7 +1098,7 @@ bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* p
 }
 
 template <typename T>
-void TechnoTypeExt::ExtData::Serialize(T& Stm)
+void TechnoTypeExt::ExtData::Serialize(T & Stm)
 {
 	Stm
 		.Process(this->HealthBar_Hide)
@@ -1560,43 +1556,43 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 #endif
 
 	Stm.Process(this->AttachedEffect)
-	   .Process(this->NoAmmoEffectAnim)
-	   .Process(this->AttackFriendlies_WeaponIdx)
-	   .Process(this->PipScaleIndex)
-	   .Process(this->AmmoPip)
-	   .Process(this->AmmoPip_Offset)
-	   .Process(this->AmmoPip_Palette)
+		.Process(this->NoAmmoEffectAnim)
+		.Process(this->AttackFriendlies_WeaponIdx)
+		.Process(this->PipScaleIndex)
+		.Process(this->AmmoPip)
+		.Process(this->AmmoPip_Offset)
+		.Process(this->AmmoPip_Palette)
 
 		.Process(this->Insignia_Weapon)
 		.Process(this->InsigniaFrame_Weapon)
 		.Process(this->InsigniaFrames_Weapon)
-	;
+		;
 }
 
-void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader & Stm)
 {
 	Extension<TechnoTypeClass>::LoadFromStream(Stm);
 	this->Serialize(Stm);
 }
 
-void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
+void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter & Stm)
 {
 	Extension<TechnoTypeClass>::SaveToStream(Stm);
 	this->Serialize(Stm);
 }
 
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Load(PhobosStreamReader& stm, bool registerForChange)
+bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Load(PhobosStreamReader & stm, bool registerForChange)
 {
 	return this->Serialize(stm);
 }
 
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Save(PhobosStreamWriter& stm) const
+bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Save(PhobosStreamWriter & stm) const
 {
 	return const_cast<LaserTrailDataEntry*>(this)->Serialize(stm);
 }
 
 template <typename T>
-bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
+bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T & stm)
 {
 	return stm
 		.Process(idxType)
@@ -1605,13 +1601,13 @@ bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
 		.Success();
 }
 
-bool TechnoTypeExt::LoadGlobals(PhobosStreamReader& Stm)
+bool TechnoTypeExt::LoadGlobals(PhobosStreamReader & Stm)
 {
 	return Stm
 		.Success();
 }
 
-bool TechnoTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
+bool TechnoTypeExt::SaveGlobals(PhobosStreamWriter & Stm)
 {
 	return Stm
 		.Success();
@@ -1684,7 +1680,8 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
 	//}
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem)) {
+	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
+	{
 		pExt->LoadFromINI(pINI);
 	}
 
@@ -1692,15 +1689,15 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 }
 
 ////hook before stuffs got pop-ed to remove crash possibility
-DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
-{
-	GET(AircraftTypeClass*, pItem, ESI);
-	GET(CCINIClass* const, pINI, EBX);
-
-	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
-
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
-		pExt->LoadFromINIFile_Aircraft(pINI);
-
-	return 0x41CD82;
-}
+//DEFINE_HOOK(0x41CD74, AircraftTypeClass_LoadFromINI, 0x6)
+//{
+//	GET(AircraftTypeClass*, pItem, ESI);
+//	GET(CCINIClass* const, pINI, EBX);
+//
+//	R->AL(pINI->ReadBool(pItem->ID, GameStrings::FlyBack(), R->CL()));
+//
+//	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
+//		pExt->LoadFromINIFile_Aircraft(pINI);
+//
+//	return 0x41CD82;
+//}

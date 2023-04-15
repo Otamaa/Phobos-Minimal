@@ -379,17 +379,12 @@ public:
 			if constexpr (UpSound == BunkerSoundMode::Up)
 			{
 				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-
-				if (nSound != -1)
-					VocClass::PlayAt(nSound, pThis->Location);
+				VocClass::PlayIndexAtPos(nSound, pThis->Location);
 			}
 			else
 			{
 				const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-
-				if (nSound != -1)
-					VocClass::PlayAt(nSound, pThis->Location);
-
+				VocClass::PlayIndexAtPos(nSound, pThis->Location);
 			}
 		}
 	};

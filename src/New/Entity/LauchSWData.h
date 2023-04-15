@@ -3,6 +3,7 @@
 
 #include <Utilities/TemplateDef.h>
 
+class SuperWeaponTypeClass;
 struct LauchSWData final
 {
 	int LaunchWhat;
@@ -21,7 +22,7 @@ struct LauchSWData final
 	AffectedHouse LaunchSW_DisplayMoney_Houses;
 	Point2D LaunchSW_DisplayMoney_Offset;
 
-	bool Read(INI_EX& exINI, const char* pID, int Prefix);
+	bool Read(INI_EX& exINI, const char* pID, int Prefix , SuperWeaponTypeClass* pReaded);
 
 	LauchSWData() : LaunchWhat { -1 }
 		, LaunchWaitcharge { false }

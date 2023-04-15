@@ -217,6 +217,9 @@ public:
 		, field_58 { 0.0 }
 	{ }
 
+	LevitateLocomotionClass(noinit_t) : LocomotionClass {noinit_t()}
+	{ }
+
 public:
 	LevitateCharacteristics Characteristic;
 	int State; // State?

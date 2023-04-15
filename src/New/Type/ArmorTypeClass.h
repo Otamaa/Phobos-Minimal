@@ -27,16 +27,16 @@ public:
 		, PA_Tag {}
 	{ 
 		char buffer[0x100];
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
 		BaseTag = buffer;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.ForceFire", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
 		FF_Tag = buffer;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.Retaliate", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
 		RT_Tag = buffer;
 
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.%s.PassiveAcquire", "Versus", pTitle);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
 		PA_Tag = buffer;
 	}
 

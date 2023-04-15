@@ -111,6 +111,8 @@ public:
 	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct &coords, int a3 = 0)
 		{ JMP_STD(0x750E20); }
 
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct &coords,  AudioController* pCtrl)
+		{ JMP_STD(0x750E20); }
 	//Properties
 
 public:

@@ -1,17 +1,11 @@
 #include "LauchSWData.h"
 
-bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix)
+#include <SuperWeaponTypeClass.h>
+
+bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTypeClass* pReaded)
 {
-	char nBuff[0x100];
-
-	Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
-	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", Prefix);
-	LaunchWhat_Dummy.Read(exINI, pID, nBuff, true);
-
-	if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
-		return false;
-
-	LaunchWhat = LaunchWhat_Dummy->ArrayIndex;
+	char nBuff[0x80];
+	LaunchWhat = pReaded->ArrayIndex;
 
 	Valueable<bool> bool_Dummy { LaunchWaitcharge };
 	IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.WaitForCharge", Prefix);

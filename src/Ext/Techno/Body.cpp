@@ -578,7 +578,7 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 
 			if (!pThis->OverloadDeathSoundPlayed)
 			{
-				VocClass::PlayAt(pOwnerTypeExt->Overload_DeathSound.Get(RulesClass::Instance->MasterMindOverloadDeathSound), pOwner->Location, 0);
+				VocClass::PlayIndexAtPos(pOwnerTypeExt->Overload_DeathSound.Get(RulesClass::Instance->MasterMindOverloadDeathSound), pOwner->Location, 0);
 				pThis->OverloadDeathSoundPlayed = true;
 			}
 
@@ -764,10 +764,7 @@ void TechnoExt::PutPassengersInCoords(TechnoClass* pTransporter, const CoordStru
 			}
 		}
 
-		if (nSound != -1)
-		{
-			VocClass::PlayAt(nSound, nDest, nullptr);
-		}
+		VocClass::PlayIndexAtPos(nSound, nDest);
 
 		if (pAnimToPlay)
 		{
@@ -1805,8 +1802,7 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 					pPassenger->LiberateMember();
 
 					auto const& nReportSound = pDelType->ReportSound;
-					if (nReportSound.Get(-1) != -1)
-						VocClass::PlayAt(nReportSound.Get(), pThis->Location, nullptr);
+					VocClass::PlayIndexAtPos(nReportSound.Get(), pThis->Location);
 
 					auto const pThisOwner = pThis->GetOwningHouse();
 
@@ -2911,8 +2907,8 @@ void TechnoExt::ExtData::UpdateGattlingOverloadDamage()
 
 			if (!GattlingDmageSound)
 			{
-				if (pTypeExt->Gattling_Overload_DeathSound.Get(-1) >= 0)
-					VocClass::PlayAt(pTypeExt->Gattling_Overload_DeathSound, pThis->Location, 0);
+				if (pTypeExt->Gattling_Overload_DeathSound.isset())
+					VocClass::PlayIndexAtPos(pTypeExt->Gattling_Overload_DeathSound, pThis->Location, 0);
 
 				GattlingDmageSound = true;
 			}

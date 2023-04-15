@@ -20,26 +20,22 @@ void AnimTypeExt::ExtData::InitializeConstants()
 	SpawnsMultiple_amouts.reserve(8);
 	ConcurrentAnim.reserve(8);
 	Launchs.reserve(8);
+	const char* pID = this->Get()->ID;
+
+	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
+	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 }
 
 void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 {
 	const char* pID = this->Get()->ID;
 
-	SpecialDraw = IS_SAME_STR_(pID, RING1_NAME);
-	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
-
-	//if (!pINI)
-	//{
-	//	Debug::FatalErrorAndExit(__FUNCTION__" Missing CCINIClass Pointer somehow WTF ?  , at [%x - %s]\n", this->Get(), pID);
-	//}
-
 	if (!pINI->GetSection(pID))
 		return;
 
 	INI_EX exINI(pINI);
 	this->Palette.Read(pINI, pID, "CustomPalette");
-	this->CreateUnit.Read(exINI, pID, "CreateUnit" , true);
+	this->CreateUnit.Read(exINI, pID, "CreateUnit");
 	this->CreateUnit_Facing.Read(exINI, pID, "CreateUnit.Facing");
 	this->CreateUnit_InheritDeathFacings.Read(exINI, pID, "CreateUnit.InheritFacings");
 	this->CreateUnit_InheritTurretFacings.Read(exINI, pID, "CreateUnit.InheritTurretFacings");
@@ -57,7 +53,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
 	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
-	this->Weapon.Read(exINI, pID, "Weapon" , true);
+	this->Weapon.Read(exINI, pID, "Weapon");
 	this->Damage_Delay.Read(exINI, pID, "Damage.Delay");
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
@@ -73,17 +69,6 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");
 
 #pragma region Otamaa
-
-	//Launchs
-	this->Launchs.clear();
-	for (size_t i = 0; ; ++i)
-	{
-		LauchSWData nData;
-		if (!nData.Read(exINI, pID, i))
-			break;
-
-		this->Launchs.push_back(std::move(nData));
-	}
 
 	this->ParticleRangeMin.Read(exINI, pID, "SpawnsParticle.RangeMinimum");
 	this->ParticleRangeMax.Read(exINI, pID, "SpawnsParticle.RangeMaximum");
@@ -103,8 +88,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	{
 		auto const nBaseSize = (int)this->SpawnsMultiple.size();
 		this->SpawnsMultiple_amouts.clear();
-		this->SpawnsMultiple_amouts.resize(nBaseSize);
-		std::fill(this->SpawnsMultiple_amouts.begin(), this->SpawnsMultiple_amouts.end(), 1);
+		this->SpawnsMultiple_amouts.resize(nBaseSize,1);
 
 		if (exINI.ReadString(pID, "SpawnsMultiple.Amount"))
 		{
@@ -137,10 +121,25 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->ShouldFogRemove.Read(exINI, pID, "ShouldFogRemove");
 	this->AttachedSystem.Read(exINI, pID, "AttachedSystem");
 
-	//if (AttachedSystem && AttachedSystem->BehavesLike != BehavesLike::Smoke)
-	//	AttachedSystem = nullptr;
+	//Launchs
+	this->Launchs.clear();
+	for (size_t i = 0; ; ++i)
+	{
+		char nBuff[0x80];
+		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
+		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
+		LaunchWhat_Dummy.Read(exINI, pID, nBuff, true);
 
-	//this->SpawnerDatas.Read(exINI, pID);
+		if (!LaunchWhat_Dummy.isset() || !LaunchWhat_Dummy.Get())
+			break;
+
+		LauchSWData nData;
+		if (!nData.Read(exINI, pID, i, LaunchWhat_Dummy))
+			break;
+
+		this->Launchs.push_back(std::move(nData));
+	}
+
 #pragma endregion
 }
 

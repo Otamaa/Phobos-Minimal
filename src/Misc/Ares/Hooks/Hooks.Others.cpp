@@ -1680,28 +1680,6 @@ DEFINE_OVERRIDE_HOOK(0x6FB5F0 , TechnoClass_DeleteGap_Optimize, 6)
 	return 0x6FB69E;
 }
 
-// weapons can take more than one round of ammo
-DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-
-	const auto nAmmo= pThis->Ammo;
-	if(nAmmo < 0)
-		return 0x6FCA26u;
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
-
-	if(pTypeExt->NoAmmoWeapon > -1)
-	{
-		if((nAmmo - WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo) >0)
-			return 0x6FCA26;
-
-	}
-
-	return (!IsDisabled || !nAmmo) ? 0x6FCA17u : 0x6FCA26u;
-}
 
 //DEFINE_OVERRIDE_HOOK_AGAIN(0x6FB4A3 , TechnoClass_CreateGap_LargeGap, 7)
 //DEFINE_OVERRIDE_HOOK(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
