@@ -165,6 +165,7 @@
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
     <ClCompile Include="src\Misc\AresData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Aircraft.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bomb.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
@@ -220,7 +221,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailsManager.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\TrailType.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Weapon\AttachFireData.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
@@ -229,6 +229,7 @@
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Overlay.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.Timers.cpp" />

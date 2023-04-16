@@ -329,7 +329,7 @@ DEFINE_OVERRIDE_HOOK(0x71AFB2, TemporalClass_Fire_HealthFactor, 5)
 	return 0x71AFB7;
 }
 
-bool Warpable(TechnoClass* pTarget)
+bool NOINLINE Warpable(TechnoClass* pTarget)
 {
 	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
 		return false;
@@ -339,7 +339,6 @@ bool Warpable(TechnoClass* pTarget)
 
 	if (Is_Building(pTarget))
 	{
-
 		if (Ares_AboutToChronoshift(pTarget))
 		{
 			return false;
@@ -347,8 +346,7 @@ bool Warpable(TechnoClass* pTarget)
 	}
 	else
 	{
-
-		if (Is_Unit(pTarget) && !TechnoExt::IsInWarfactory(pTarget))
+		if (TechnoExt::IsInWarfactory(pTarget))
 			return false;
 
 		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))

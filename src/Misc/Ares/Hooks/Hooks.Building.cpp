@@ -813,12 +813,13 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 
 	const auto nAresREsult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
 	
-	if (const auto pBuilding = type_cast<BuildingTypeClass*, true>(pItem)) {
-		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
-		{  if (nAresREsult == CanBuildResult::Buildable) {	
+	if(Is_BuildingType(pItem)){
+		const auto pBuilding = static_cast<BuildingTypeClass*>(pItem);
+		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty()) {  
+			if (nAresREsult == CanBuildResult::Buildable) {	
 				R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
 				return 0x4F8361;
-			}
+			}		
 		}
 	}
 

@@ -5212,20 +5212,31 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 //	if()
 //}
 
- //DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
- //{
- //	GET(HouseClass*, pHouse, EDI);
- //	GET(TechnoTypeClass*, pType, ESI);
-
- //	const double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
- //	R->Stack(float(pHouse->GetHouseTypeCostMult(pType) * mult) ,0xC);
- //	return 0x711F17;
- //}
-
- double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
+ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
  {
-	 const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
-	 return pThis->GetHouseTypeCostMult(pType) * mult;
+ 	GET(HouseClass*, pHouse, EDI);
+ 	GET(TechnoTypeClass*, pType, ESI);
+
+ 	const double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
+	R->EAX(int(pHouse->GetHouseTypeCostMult(pType) * mult * pHouse->GetHouseCostMult(pType) * pType->GetCost()));
+ 	return 0x711F46;
  }
 
- DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
+ //double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
+ //{
+	// const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
+	// return pThis->GetHouseTypeCostMult(pType) * mult;
+ //}
+
+ //DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
+
+ DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
+ {
+	 GET(AircraftClass*, pThis, ESI);
+
+	 if(pThis->Type->Spawned || pThis->Type->Carryall)
+	 return 0;
+
+	 pThis->SetDestination(nullptr, true);
+	 return 0x417B69;
+ }

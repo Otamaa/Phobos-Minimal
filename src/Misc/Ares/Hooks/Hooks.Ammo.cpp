@@ -71,22 +71,24 @@ void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 //weapons can take more than one round of ammo
 DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {
+	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
+	
+	if(!pThis->GetTechnoType()->Ammo || !WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
+		return Continue;
 
 	const auto nAmmo = pThis->Ammo;
 	if (nAmmo < 0)
-		return 0x6FCA26u;
+		return Continue;
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
+	if(nAmmo >= pThis->GetTechnoType()->Ammo)
+		return Continue;
 
-	if (!IsDisabled) {
-		if ((nAmmo - WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo) >= 0)
-			return 0x6FCA26;
-	}
+	if (nAmmo >= WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
+		return Continue;
 
-	return (!IsDisabled || !nAmmo) ? 0x6FCA17u : 0x6FCA26u;
+	return FireErrAmmo;
 }
 
 //remove ammo rounds depending on weapon

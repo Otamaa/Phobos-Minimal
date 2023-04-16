@@ -85,10 +85,14 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 
 	const auto pData = WaveExt::ExtMap.Find(pThis);
 
+	//::Log("WaveClass::Update Try Damage with WP [%x][%s]  ! \n", pData->Weapon, 
+	//	pData->Weapon->ID);
+
 	if (pData->Weapon && pData->Weapon->AmbientDamage) {
 		CoordStruct coords;
 		for (auto const& pCell : pThis->Cells) {
-			pThis->DamageArea(*pCell->Get3DCoords3(&coords));
+			pCell->Get3DCoords3(&coords);
+			pThis->DamageArea(coords);
 		}
 	}
 
@@ -324,9 +328,11 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 			return 0x75F432;
 	}
 
-	if(pTechnoOwner->IsSinking || pTechnoOwner->IsCrashing)
-		return 0x75F432;
+	if(const auto pTechnoVictim = generic_cast<TechnoClass*>(pVictim))
+		if(pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
+			return 0x75F432;
 
+	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);
 	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);
 	return 0x75F432;
 }

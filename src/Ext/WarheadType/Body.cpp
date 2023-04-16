@@ -49,13 +49,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
-
-	ArmorTypeClass::LoadForWarhead(pINI, pThis);
-
-	if (!pINI->GetSection(pSection)) {
-		return;
-	}
-
 	INI_EX exINI(pINI);
 
 	// writing custom verses parser just because
@@ -69,10 +62,17 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		{
 			this->Verses[idx].Parse_NoCheck(cur);
 
-			if (++idx > 10) {
+			if (++idx > 10)
+			{
 				break;
 			}
 		}
+	}
+
+	ArmorTypeClass::LoadForWarhead(pINI, pThis);
+
+	if (!pINI->GetSection(pSection)) {
+		return;
 	}
 
 	//this will break targeting , so use it with caution !

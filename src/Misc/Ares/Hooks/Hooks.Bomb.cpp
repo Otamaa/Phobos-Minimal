@@ -246,7 +246,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 	GET(BulletClass*, pBullet, ESI);
 
 	if (!pBullet->Owner || 
-		((pBullet->Owner->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None))
+		(!(pBullet->Owner->AbstractFlags & AbstractFlags::Techno)))
 		return 0x469AA4;
 
 	TechnoClass* pOwner = static_cast<TechnoClass*>(pBullet->Owner);
@@ -255,7 +255,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 		// single target or spread switch
 		if (pBullet->WH->CellSpread < 0.5f)
 		{
-			if(!pBullet->Target || ((pBullet->Target->AbstractFlags & AbstractFlags::Object) == AbstractFlags::None))
+			if(!pBullet->Target || !(pBullet->Target->AbstractFlags & AbstractFlags::Object))
 				return 0x469AA4;
 
 			// single target
