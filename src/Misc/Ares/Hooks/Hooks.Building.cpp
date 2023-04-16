@@ -140,29 +140,37 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
 
 //it seems crashing the game ?
-//DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
-//{
-//	GET(BuildingClass*, pThis, ECX);
-//	GET_STACK(int, AnimState, 0x4);
-//
-//	if (AnimState == -2) {
-//		for (auto& pAnim : pThis->Anims) {
-//			if (pAnim) {
-//				pAnim->UnInit();
-//				pAnim = nullptr;
-//			}
-//		}
-//	}
-//	else
-//	{
-//		if (auto& pAnim = pThis->Anims[AnimState]) {
-//			pAnim->UnInit();
-//			pAnim = nullptr;
-//		}
-//	}
-//
-//	return 0x451E93;
-//}
+// DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
+// {
+// 	GET(BuildingClass*, pThis, ECX);
+// 	GET_STACK(int, AnimState, 0x4);
+
+// 	if (AnimState == -2) {
+// 		for (auto& pAnim : pThis->Anims) {
+// 			if (pAnim) {
+// 				pAnim->UnInit();
+// 				pAnim = nullptr;
+// 			}
+// 		}
+// 	}
+// 	else
+// 	{
+// 		if (auto& pAnim = pThis->Anims[AnimState]) {
+// 			pAnim->UnInit();
+// 			pAnim = nullptr;
+// 		}
+// 	}
+
+// 	return 0x451E93;
+// }
+
+
+// DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
+// {
+// 	GET(AnimClass*, pAnim, ECX);
+// 	pAnim->UnInit();
+// 	return 0x451A2F;
+// }
 
 DEFINE_OVERRIDE_HOOK(0x458E1E, BuildingClass_GetOccupyRangeBonus_Demacroize, 0xA)
 {
@@ -373,13 +381,6 @@ DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 DEFINE_OVERRIDE_SKIP_HOOK(0x441163, BuildingClass_Put_DontSpawnSpotlight, 0x6, 441196)
 DEFINE_OVERRIDE_SKIP_HOOK(0x451132, BuildingClass_ProcessAnims_SuperWeaponsB, 0x6, 451145)
 DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6, 446580)
-
-DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
-{
-	GET(AnimClass*, pAnim, ECX);
-	pAnim->UnInit();
-	return 0x451A2F;
-}
 
 // EMP'd power plants don't produce power
 DEFINE_OVERRIDE_HOOK(0x44E855, BuildingClass_PowerProduced_EMP, 0x6)

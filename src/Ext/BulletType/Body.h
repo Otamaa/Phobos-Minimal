@@ -87,6 +87,10 @@ public:
 
 		Nullable<Leptons> BallisticScatterMin;
 		Nullable<Leptons> BallisticScatterMax;
+
+		// cache for the image animation's palette convert
+		OptionalStruct<ConvertClass*> ImageConvert;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
 #endif
@@ -144,6 +148,7 @@ public:
 			, LineTrailData { }
 			, BallisticScatterMin { }
 			, BallisticScatterMax { }
+			, ImageConvert { }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, Trails { }
 #endif

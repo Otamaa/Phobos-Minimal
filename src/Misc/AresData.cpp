@@ -22,7 +22,7 @@ uintptr_t AresData::GetModuleBaseAddress(const char* modName)
 	return Patch::GetModuleBaseAddress(modName);
 }
 
-void AresData::Init()
+bool AresData::Init()
 {
 	AresBaseAddress = GetModuleBaseAddress(ARES_DLL_S);
 	PhobosBaseAddress = GetModuleBaseAddress(PHOBOS_DLL_S);
@@ -31,7 +31,7 @@ void AresData::Init()
 	if (!AresBaseAddress)
 	{
 		Debug::LogDeferred("[Phobos] Failed to detect Ares. Disabling integration.\n");
-		return;
+		return false;
 	}
 	else
 	{
@@ -42,9 +42,9 @@ void AresData::Init()
 	const int PEHeaderOffset = *(DWORD*)(AresBaseAddress + 0x3c);
 	// find absolute address of PE header
 	const DWORD* PEHeaderPtr = (DWORD*)(AresBaseAddress + PEHeaderOffset);
+
 	// read the timedatestamp at 0x8 offset
-	const DWORD TimeDateStamp = *(PEHeaderPtr + 2);
-	switch (TimeDateStamp)
+	switch ((*(PEHeaderPtr + 2)))
 	{
 	case AresTimestampBytes[Version::Ares30p]:
 		AresVersionId = Version::Ares30p;
@@ -52,7 +52,7 @@ void AresData::Init()
 		Debug::LogDeferred("[Phobos] Detected Ares 3.0p1.\n");
 		break;
 	default:
-		Debug::LogDeferred("[Phobos] Detected a version of Ares that is not supported by Phobos. Disabling integration.\n");
+		Debug::LogDeferred("[Phobos] Detected a version of Ares that is not supported by this version of Phobos.\n");
 		break;
 	}
 
@@ -64,6 +64,8 @@ void AresData::Init()
 		for (int a = 0; a < AresData::AresStaticInstanceCount; a++)
 			AresData::AresStaticInstanceFinal[a] = AresData::AresBaseAddress + AresData::AresStaticInstanceTable[a];
 	}
+
+	return CanUseAres;
 }
 
 void AresData::UnInit()
@@ -143,6 +145,11 @@ bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
 int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
 {
 	return AresThiscall<GetSelfHealAmountID, int, void*>()(GetAresTechnoExt(pTechno));
+}
+
+ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
+{
+	return AresThiscall<BulletTypeExtGetConvertID, ConvertClass*, void*>()(GetAresBulletTypeExt(pThis));
 }
 
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)

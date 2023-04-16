@@ -29,6 +29,7 @@ public:
 		
 		Valueable<int> CrushableLevel;
 		#pragma region Otamaa
+		Valueable<bool> LightEnabled;
 		Nullable<int> LightVisibility;
 		Nullable<double> LightIntensity;
 		Nullable<double> LightRedTint;
@@ -57,6 +58,7 @@ public:
 			, CanBeBuiltOn { false }
 			, CrushableLevel { OwnerObject->Crushable ? 10 : 0 }
 
+			, LightEnabled { false }
 			, LightVisibility { 0 }
 			, LightIntensity { }
 			, LightRedTint { }

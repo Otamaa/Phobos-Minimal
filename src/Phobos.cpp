@@ -378,10 +378,10 @@ void Phobos::Config::Read()
 		Phobos::Config::ForbidParallelAIQueues_Aircraft = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft", Phobos::Config::AllowParallelAIQueues);
 		Phobos::Config::ForbidParallelAIQueues_Building = pINI->ReadBool(GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building", Phobos::Config::AllowParallelAIQueues);
 
-		Phobos::Misc::CustomGS = pINI->ReadBool(GENERAL_SECTION, "CustomGS", false);
-
-		if (Phobos::Misc::CustomGS)
+		if (pINI->ReadBool(GENERAL_SECTION, "CustomGS", false))
 		{
+			Phobos::Misc::CustomGS = true;
+
 			char tempBuffer[26];
 			for (size_t i = 0; i <= 6; ++i)
 			{
@@ -402,9 +402,16 @@ void Phobos::Config::Read()
 			}
 		}
 
-		if (pINI->ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", true))
+		if (pINI->ReadBool(GENERAL_SECTION, "FixTransparencyBlitters", false))
 		{
 			BlittersFix::Apply();
+		}
+
+		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
+		{
+			BYTE temp[] = { 0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0xC2, 0x04, 0x00 };
+			Patch patch { 0x69A310 , 9, temp };
+			patch.Apply();
 		}
 
 		Phobos::CloseConfig(pINI);
@@ -449,7 +456,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifndef DETACH_DEBUGGER
+#ifdef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -508,14 +515,14 @@ void Phobos::ExeRun()
 	PoseDirOverride::Apply();
 	InitAdminDebugMode();
 	InitConsole();
-	AresData::Init();
 
-	if(!AresData::CanUseAres || AresData::AresVersionId != AresData::Version::Ares30p) {
+	if(!AresData::Init()) {
 		MessageBoxW(NULL,
 		L"This version of phobos is only support Ares 3.0p1.\n\n"
 		L"Press OK to Closing the game .",
 		L"Notice", MB_OK);
 
+		Phobos::ExeTerminate();
 		exit(0);
 	}
 }

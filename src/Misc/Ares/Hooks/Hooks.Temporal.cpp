@@ -346,7 +346,7 @@ bool NOINLINE Warpable(TechnoClass* pTarget)
 	}
 	else
 	{
-		if (TechnoExt::IsInWarfactory(pTarget))
+		if (TechnoExt::IsInWarfactory(pTarget , true))
 			return false;
 
 		if (TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTarget)))

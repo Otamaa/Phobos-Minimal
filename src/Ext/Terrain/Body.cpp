@@ -30,9 +30,8 @@ void TerrainExt::ExtData::InitializeLightSource()
 	{
 		auto const TypeData = TerrainTypeExt::ExtMap.Find(this->Get()->Type);
 
-		if (!TypeData->LightIntensity.isset())
+		if (!TypeData->LightEnabled || !TypeData->LightIntensity.isset())
 			return;
-
 
 		auto const nVisibility = TypeData->LightVisibility.Get();
 
@@ -88,7 +87,7 @@ void TerrainExt::ExtData::ClearAnim()
 			AttachedAnim->UnInit();
 		}
 
-		AttachedAnim = nullptr;;
+		AttachedAnim = nullptr;
 	}
 }
 

@@ -26,6 +26,45 @@
 
 #include <Notifications.h>
 
+DEFINE_OVERRIDE_HOOK(0x4232CE , AnimClass_Draw_SetPalette, 6)
+{
+	GET(AnimTypeClass*, AnimType, EAX);
+
+	const auto pData = AnimTypeExt::ExtMap.Find(AnimType);
+
+	if (pData->Palette.Convert) {
+		R->ECX<ConvertClass*>(pData->Palette.GetConvert());
+		return 0x4232D4;
+	}
+
+	return 0;
+}
+
+NOINLINE ConvertClass* GetBulletConvert(BulletClass* pThis)
+{
+	const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	if (!pBulletTypeExt->ImageConvert.has_value()) {
+		if (const auto pAnimType = AnimTypeClass::Find(pThis->Type->ImageFile)) {
+			pBulletTypeExt->ImageConvert = 
+				AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
+		}
+	}
+
+	return pBulletTypeExt->ImageConvert.get();
+}
+
+DEFINE_OVERRIDE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette, 6)
+{
+	GET(BulletClass*, Bullet, ESI);
+
+	if(const auto pConvert = GetBulletConvert(Bullet)) {
+		R->EBX(pConvert);
+		return 0x4683D7;
+	}
+
+	return 0x0;
+}
+
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);

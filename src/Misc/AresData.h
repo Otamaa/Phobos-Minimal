@@ -12,6 +12,8 @@ class InfantryClass;
 class HouseClass;
 class SuperClass;
 struct VoxelStruct;
+class ConvertClass;
+class BulletTypeClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
 #define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
@@ -19,6 +21,7 @@ typedef int (__cdecl *CallHook)(REGISTERS* R);
 #define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
 #define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
 #define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
+#define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
 
 
 struct AresData
@@ -40,6 +43,7 @@ struct AresData
 		IsGenericPrerequisiteID = 12,
 		GetSelfHealAmountID = 13,
 		ExtMapFindID = 14,
+		BulletTypeExtGetConvertID = 15,
 	};
 
 	enum Version
@@ -53,11 +57,11 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 15;
+	static constexpr int AresFunctionCount = 16;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 1;
+	static constexpr int AresStaticInstanceCount = 2;
 
 	// timestamp bytes for each version
 	static constexpr DWORD AresTimestampBytes[AresData::AresVersionCount] =
@@ -67,7 +71,9 @@ struct AresData
 
 	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
 		0x0C2B84, //ParticleSystemExt
+		0x0C2DD0, //WeaponTypeExt
 	};
+
 	// offsets of function addresses for each version
 	static constexpr DWORD AresFunctionOffsets[AresData::AresVersionCount * AresData::AresFunctionCount] =
 	{
@@ -86,6 +92,7 @@ struct AresData
 		0x03E950, // TechnoTypeExt::ExtData::IsGenericPrerequisite
 		0x0459F0, // TechnoExt::ExtData::GetSelfHealAmount
 		0x058900, // ExtMap.Find
+		0x019A50, // BulletTypeExtGetConvert
 
 	};
 
@@ -98,7 +105,7 @@ struct AresData
 	static bool CanUseAres;
 
 	static uintptr_t GetModuleBaseAddress(const char* modName);
-	static void Init();
+	static bool Init();
 	static void UnInit();
 
 	template<int idx, typename Tret, typename... TArgs>
@@ -196,6 +203,7 @@ struct AresData
 	static void TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo);
 	static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
 	static int GetSelfHealAmount(TechnoClass* const pTechno);
+	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

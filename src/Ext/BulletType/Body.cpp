@@ -234,6 +234,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->LineTrailData)
 		.Process(this->BallisticScatterMin)
 		.Process(this->BallisticScatterMax)
+		.Process(this->ImageConvert)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Serialize(Stm);

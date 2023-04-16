@@ -34,7 +34,6 @@ int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 
 void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	auto const pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -75,20 +74,20 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 	
-	if(!pThis->GetTechnoType()->Ammo || !WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
-		return Continue;
-
 	const auto nAmmo = pThis->Ammo;
 	if (nAmmo < 0)
 		return Continue;
 
-	if(nAmmo >= pThis->GetTechnoType()->Ammo)
-		return Continue;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
 
-	if (nAmmo >= WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo)
-		return Continue;
+	if (!IsDisabled)
+	{
+		if ((nAmmo - WeaponTypeExt::ExtMap.Find(pWeapon)->Ammo) >= 0)
+			return Continue;
+	}
 
-	return FireErrAmmo;
+	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;
 }
 
 //remove ammo rounds depending on weapon

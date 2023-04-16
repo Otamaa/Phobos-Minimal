@@ -160,30 +160,31 @@ DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 }
 
 // TODO : this breaking deploy fire thing
-DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
-{
-	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
-	GET(const TechnoClass*, pThis, ESI);
-
-	//if (pThis->GetTechnoType()->AttackFriendlies && pThis->Target)
-	//{
-	//	const int nWeapon = pThis->SelectWeapon(pThis->Target);
-	//	const auto nFireErr = pThis->GetFireError(pThis->Target, nWeapon, false);
-
-	//	if (nFireErr == FireError::CANT || nFireErr == FireError::ILLEGAL)
-	//	{
-	//		return ClearTarget;
-	//	}
-
-	//	return ExtendChecks;
-	//}
-	const auto pType = pThis->GetTechnoType();
-	if (pType->AttackFriendlies && !pType->DeployFire) {
-		return ExtendChecks;
-	}
-
-	return ClearTarget;
-}
+//DEFINE_HOOK(0x6FA467, TechnoClass_AI_AttackAllies, 0x5)
+//{
+//	enum { ClearTarget = 0x0, ExtendChecks = 0x6FA472 };
+//	GET(const TechnoClass*, pThis, ESI);
+//
+//	//if (pThis->GetTechnoType()->AttackFriendlies && pThis->Target)
+//	//{
+//	//	const int nWeapon = pThis->SelectWeapon(pThis->Target);
+//	//	const auto nFireErr = pThis->GetFireError(pThis->Target, nWeapon, false);
+//
+//	//	if (nFireErr == FireError::CANT || nFireErr == FireError::ILLEGAL)
+//	//	{
+//	//		return ClearTarget;
+//	//	}
+//
+//	//	return ExtendChecks;
+//	//}
+//	const auto pType = pThis->GetTechnoType();
+//	if (pType->AttackFriendlies && !pType->DeployFire)
+//	{
+//		return ExtendChecks;
+//	}
+//
+//	return ClearTarget;
+//}
 
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
@@ -2927,8 +2928,10 @@ DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
-		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->DisableDamageSound.Get()) {
+	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+	{
+		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->DisableDamageSound.Get())
+		{
 			return R->Origin() + 0x6;
 		}
 	}
@@ -4744,13 +4747,13 @@ DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 //	return bConditionMet ? 0x6FA6AC : 0x6FA6F5;
 //}
 
-void PlayReloadEffects(TechnoClass* pThis , int report , int sound)
+void PlayReloadEffects(TechnoClass* pThis, int report, int sound)
 {
 	VocClass::PlayIndexAtPos(report, pThis->Location);
 	VocClass::PlayIndexAtPos(sound, pThis->Location);
 }
 
-DEFINE_HOOK(0x437C29 , sub_437A10_Lock_Bound_Fix, 7)
+DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 {
 	GET_STACK(int, nX_comp, 0x30);
 	GET_STACK(int, nY_comp, 0x58);
@@ -4763,7 +4766,7 @@ DEFINE_HOOK(0x437C29 , sub_437A10_Lock_Bound_Fix, 7)
 	if (nY >= nY_comp || nY < 0)
 		nY = 0;
 
-	R->EAX(pSurface->Lock(nX , nY));
+	R->EAX(pSurface->Lock(nX, nY));
 	return 0x437C30;
 }
 
@@ -4973,7 +4976,7 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 //	return 0x71453C;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 6)
+DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EBX);
@@ -5003,9 +5006,11 @@ DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
+	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
+	{
 		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-		if (!pWeapons || pWeapon != pWeapons->WeaponType) {
+		if (!pWeapons || pWeapon != pWeapons->WeaponType)
+		{
 			return 0x70039B;
 		}
 	}
@@ -5014,10 +5019,10 @@ DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 // //EvalObject
-DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
+DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
 {
-	enum { AllowAttack = 0x6F7FE9 , ContinueCheck = 0x6F7F0C };
-	GET_STACK(int , nWeapon, 0x14);
+	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
+	GET_STACK(int, nWeapon, 0x14);
 	GET(TechnoClass*, pThis, EDI);
 
 	const auto pType = pThis->GetTechnoType();
@@ -5034,7 +5039,7 @@ DEFINE_HOOK(0x6F7EFE , TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
 	return Allow ? AllowAttack : ContinueCheck;
 }
 
-DEFINE_HOOK(0x70A3E5 ,TechnoClass_DrawPipScale_Ammo_Idx, 7)
+DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {
 	GET(TechnoClass*, pThis, EBP);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
@@ -5042,7 +5047,7 @@ DEFINE_HOOK(0x70A3E5 ,TechnoClass_DrawPipScale_Ammo_Idx, 7)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x70A35D , TechnoClass_DrawPipScale_Ammo, 5)
+DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 {
 	GET(TechnoClass*, pThis, EBP);
 	GET_STACK(RectangleStruct*, pRect, 0x80);
@@ -5092,11 +5097,11 @@ DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 }
 #include <Ext/ParticleType/Body.h>
 
-DEFINE_HOOK(0x62BD69 , ParticleClass_ProcessGasBehaviour_NoWind, 6)
+DEFINE_HOOK(0x62BD69, ParticleClass_ProcessGasBehaviour_NoWind, 6)
 {
 	GET(ParticleClass*, pThis, EBP);
 
-	return pThis->Type->WindEffect == -1 
+	return pThis->Type->WindEffect == -1
 		? 0x62C200 : 0x0;
 }
 
@@ -5107,11 +5112,14 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 
 	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pType);
 
-	if (pType->WindEffect == -1) {
+	if (pType->WindEffect == -1)
+	{
 		const auto pCell = pThis->GetCell();
 		if (pCell->ContainsBridge() || (pCell->LandType != LandType::Beach && pCell->LandType != LandType::Water))
 			return 0;
-	} else {
+	}
+	else
+	{
 
 		if (!pTypeExt->DeleteWhenReachWater)
 			return 0;
@@ -5212,31 +5220,292 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 //	if()
 //}
 
- DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
- {
- 	GET(HouseClass*, pHouse, EDI);
- 	GET(TechnoTypeClass*, pType, ESI);
+DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
+{
+	GET(HouseClass*, pHouse, EDI);
+	GET(TechnoTypeClass*, pType, ESI);
 
- 	const double mult = !pHouse->ControlledByPlayer() ?  RulesExt::Global()->AI_CostMult : 1.0;
+	const double mult = !pHouse->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
 	R->EAX(int(pHouse->GetHouseTypeCostMult(pType) * mult * pHouse->GetHouseCostMult(pType) * pType->GetCost()));
- 	return 0x711F46;
- }
+	return 0x711F46;
+}
 
- //double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
- //{
-	// const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
-	// return pThis->GetHouseTypeCostMult(pType) * mult;
- //}
+//double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
+//{
+   // const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
+   // return pThis->GetHouseTypeCostMult(pType) * mult;
+//}
 
- //DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
+//DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
 
- DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
- {
-	 GET(AircraftClass*, pThis, ESI);
+DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
 
-	 if(pThis->Type->Spawned || pThis->Type->Carryall)
-	 return 0;
+	if (pThis->Type->Spawned || pThis->Type->Carryall)
+		return 0;
 
-	 pThis->SetDestination(nullptr, true);
-	 return 0x417B69;
- }
+	pThis->SetDestination(nullptr, true);
+	return 0x417B69;
+}
+
+// issue #28 : Fix vanilla YR Fog of War bugs & issues
+// Reimplement it would be nicer.
+
+bool IsLocationFogged(CoordStruct* pCoord)
+{
+	auto pCell = MapClass::Instance->GetCellAt(*pCoord);
+	if (pCell->Flags & CellFlags::EdgeRevealed)
+		return false;
+	return ((pCell->GetNeighbourCell(3u)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
+}
+
+// MapClass_RevealShroud as Xkein said
+DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
+{
+	// GET(DisplayClass*, pDisplay, ECX);
+	GET_STACK(DWORD, dwUnk, 0x4);
+	GET_STACK(DWORD, dwUnk2, 0x8);
+
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		if (!pTechno)
+			continue;
+
+		if (!dwUnk || !Is_Building(pTechno))
+		{
+			if (pTechno->GetTechnoType()->RevealToAll ||
+				(
+					pTechno->DiscoveredByCurrentPlayer &&
+					pTechno->Owner == HouseClass::CurrentPlayer() ||
+					pTechno->Owner->CurrentPlayer ||
+					pTechno->Owner->IsInPlayerControl
+					) ||
+				(
+					pTechno->Owner == HouseClass::CurrentPlayer() ||
+					HouseClass::CurrentPlayer()->ArrayIndex != -1 &&
+					pTechno->Owner->IsAlliedWith(HouseClass::CurrentPlayer())
+					))
+			{
+				pTechno->See(0, dwUnk2);
+				if (pTechno->IsInAir())
+				{
+
+					auto coord = pTechno->GetCoords();
+					MapClass::Instance->RevealArea3(
+						&coord,
+						pTechno->LastSightRange - 3,
+						pTechno->LastSightRange + 3,
+						false
+					);
+				}
+			}
+		}
+	}
+
+	return 0x4AE0A5;
+}
+
+DEFINE_HOOK(0x577EBF, MapClass_Reveal, 0x6)
+{
+	GET(CellClass*, pCell, EAX);
+
+	pCell->ShroudCounter = 0;
+	pCell->GapsCoveringThisCell = 0;
+	pCell->AltFlags |= (AltCellFlags)0x18u;
+	pCell->Flags |= (CellFlags)0x3u;
+	pCell->CleanFog();
+
+	return 0x577EE9;
+}
+
+DEFINE_HOOK(0x586683, CellClass_DiscoverTechno, 0x5)
+{
+	GET(TechnoClass*, pTechno, EAX);
+	GET(CellClass*, pCell, ESI);
+	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x18, -0x8));
+
+	bool bDiscovered = false;
+	if (pTechno)
+		bDiscovered = pTechno->DiscoveredBy(pHouse);
+	if (auto const pJumpjet = pCell->Jumpjet)
+		bDiscovered |= pJumpjet->DiscoveredBy(pHouse);
+	R->EAX(bDiscovered);
+
+	return 0x586696;
+}
+
+DEFINE_HOOK(0x4FC1FF, HouseClass_AcceptDefeat_CleanShroudFog, 0x6)
+{
+	GET(HouseClass*, pHouse, ESI);
+
+	MapClass::Instance->Reveal(pHouse);
+
+	return 0x4FC214;
+}
+
+DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x6)
+{
+	GET(ScenarioClass*, pScenario, ESI);
+
+	pScenario->SpecialFlags.StructEd.FogOfWar =
+		RulesClass::Instance->FogOfWar || R->EAX() || GameModeOptionsClass::Instance->FogOfWar;
+
+	R->ECX(pScenario);
+	return 0x6B8E8B;
+}
+
+DEFINE_HOOK(0x686C03, SetScenarioFlags_FogOfWar, 0x5)
+{
+	GET(ScenarioFlags, SFlags, EAX);
+
+	SFlags.FogOfWar = RulesClass::Instance->FogOfWar || GameModeOptionsClass::Instance->FogOfWar;
+	R->EDX<int>(*reinterpret_cast<int*>(&SFlags)); // stupid!
+
+	return 0x686C0E;
+}
+
+DEFINE_HOOK(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
+{
+	GET(ObjectClass*, pObject, ESI);
+
+	enum { Skip = 0x5F4B7F, SkipWithDrawn = 0x5F4D06, DefaultProcess = 0x5F4B48 };
+
+	if (pObject->InLimbo)
+		return Skip;
+
+	if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
+		return DefaultProcess;
+
+	if (pObject->WhatAmI() == AbstractType::Cell)
+		return DefaultProcess;
+
+	auto coord = pObject->GetCoords();
+	if (!IsLocationFogged(&coord))
+		return DefaultProcess;
+
+	pObject->NeedsRedraw = false;
+	return SkipWithDrawn;
+}
+
+DEFINE_HOOK(0x6F5190, TechnoClass_DrawExtras_CheckFog, 0x6)
+{
+	GET(TechnoClass*, pTechno, ECX);
+
+	auto coord = pTechno->GetCoords();
+
+	return IsLocationFogged(&coord) ? 0x6F5EEC : 0;
+}
+
+DEFINE_HOOK(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 0x6)
+{
+	GET(CellClass*, pCell, ESI);
+
+	if (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged())
+		return 0x4804FB;
+	return 0x4804A4;
+}
+
+DEFINE_HOOK(0x6D6EDA, TacticalClass_Overlay_CheckFog_1, 0xA)
+{
+	GET(CellClass*, pCell, EAX);
+
+	if (pCell->OverlayTypeIndex == -1 || pCell->IsFogged())
+		return 0x6D7006;
+	return 0x6D6EE4;
+}
+
+DEFINE_HOOK(0x6D70BC, TacticalClass_Overlay_CheckFog_2, 0xA)
+{
+	GET(CellClass*, pCell, EAX);
+
+	if (pCell->OverlayTypeIndex == -1 || pCell->IsFogged())
+		return 0x6D71A4;
+	return 0x6D70C6;
+}
+
+DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
+{
+	GET(TerrainClass*, pTerrain, EDI);
+
+	auto coord = pTerrain->GetCoords();
+	if (pTerrain->InLimbo || IsLocationFogged(&coord))
+		return 0x71CD8D;
+	return 0x71CC9A;
+}
+
+DEFINE_HOOK(0x5865E2, IsLocationFogged_Check, 0x5)
+{
+	GET_STACK(CoordStruct*, pCoord, 0x4);
+
+	R->EAX(IsLocationFogged(pCoord));
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
+{
+	GET(CellClass*, pCell, EAX);
+
+	auto oldfield = (unsigned int)pCell->AltFlags;
+	pCell->AltFlags = (AltCellFlags)(oldfield & 0xFFFFFFEF);
+	auto nIndex = TacticalClass::Instance->GetOcclusion(pCell->MapCoords, false);
+	if (((oldfield & 0x10) != 0 || pCell->Visibility != nIndex) && nIndex >= 0 && pCell->Visibility >= -1)
+	{
+		pCell->AltFlags |= (AltCellFlags)8u;
+		pCell->Visibility = nIndex;
+	}
+	TacticalClass::Instance->RegisterCellAsVisible(pCell);
+
+	return 0x4ACE57;
+}
+
+DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x7)
+{
+	// GET(MapClass*, pMap, ECX);
+	auto const pMap = MapClass::Instance();
+	GET_STACK(CellStruct*, pLocation, 0x4);
+	GET_STACK(HouseClass*, pHouse, 0x8);
+	// GET_STACK(bool, bUnk, 0xC);
+
+	auto const pCell = pMap->GetCellAt(*pLocation);
+	bool bFlag = bool(pCell->Flags & CellFlags::EdgeRevealed);
+	bool bReturn = !bFlag || (pCell->AltFlags & AltCellFlags::Clear);
+	bool bTemp = bReturn;
+
+	pCell->Flags = CellFlags((unsigned int)pCell->Flags & 0xFFFFFFFF | 2);
+	pCell->AltFlags = AltCellFlags((unsigned int)pCell->AltFlags & 0xFFFFFFDF | 8);
+
+	char nOcclusion = TacticalClass::Instance->GetOcclusion(*pLocation, false);
+	char nVisibility = pCell->Visibility;
+	if (nOcclusion != nVisibility)
+	{
+		nVisibility = nOcclusion;
+		bReturn = true;
+		pCell->Visibility = nOcclusion;
+	}
+	if (nVisibility == -1)
+		pCell->AltFlags |= AltCellFlags(0x10u);
+	char nFoggedOcclusion = TacticalClass::Instance->GetOcclusion(*pLocation, true);
+	char nFoggedness = pCell->Foggedness;
+	if (nFoggedOcclusion != nFoggedness)
+	{
+		nFoggedness = nFoggedOcclusion;
+		bReturn = true;
+		pCell->Foggedness = nFoggedOcclusion;
+	}
+	if (nFoggedness == -1)
+		pCell->Flags |= CellFlags(1u);
+
+	if (bReturn)
+	{
+		TacticalClass::Instance->RegisterCellAsVisible(pCell);
+		pMap->RevealCheck(pCell, pHouse, bTemp);
+	}
+	if (!bFlag && ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
+		pCell->CleanFog();
+
+	R->AL(bReturn);
+
+	return 0x4A9DC6;
+}

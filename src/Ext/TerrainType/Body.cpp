@@ -45,6 +45,7 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->CrushableLevel.Read(exINI, pSection, "CrushableLevel");
 
 #pragma region Otamaa
+	this->LightEnabled.Read(exINI, pSection, "LightEnabled");
 	this->LightVisibility.Read(exINI, pSection, GameStrings::LightVisibility());
 	this->LightIntensity.Read(exINI, pSection, GameStrings::LightIntensity());
 	this->LightRedTint.Read(exINI, pSection, GameStrings::LightRedTint());
@@ -82,6 +83,7 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->CanBeBuiltOn)
 		.Process(this->CrushableLevel)
 
+		.Process(this->LightEnabled)
 		.Process(this->LightVisibility)
 		.Process(this->LightIntensity)
 		.Process(this->LightRedTint)

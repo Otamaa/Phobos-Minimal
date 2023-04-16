@@ -253,3 +253,114 @@ DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x5200D7, InfantryClass_UpdatePanic_DontReload, 0x6, 52010B)
+
+#include <Ext/AnimType/Body.h>
+#include <Ext/Anim/Body.h>
+
+DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)
+{
+	GET(InfantryClass*, I, ESI);
+	LEA_STACK(args_ReceiveDamage*, Arguments, 0xD4);
+	GET(DWORD, InfDeath, EDI);
+
+	// if you got here, a valid DeathAnim for this InfDeath has been defined, and the game has already checked the preconditions
+	// just allocate the anim and set its owner/remap
+
+	AnimClass* Anim = GameCreate<AnimClass>(I->Type->DeathAnims[InfDeath], I->Location);
+
+	HouseClass* Invoker = (Arguments->Attacker)
+		? Arguments->Attacker->Owner
+		: Arguments->SourceHouse
+		;
+
+	AnimTypeExt::SetMakeInfOwner(Anim, Invoker, I->Owner);
+
+	R->EAX<AnimClass*>(Anim);
+	return 0x5184F2;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x518575, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+DEFINE_OVERRIDE_HOOK(0x5183DE, InfantryClass_ReceiveDamage_InfantryVirus1, 6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
+
+	// Rules->InfantryVirus animation has been created. set the owner and color.
+
+	auto pInvoker = Arguments.Attacker
+		? Arguments.Attacker->Owner
+		: Arguments.SourceHouse;
+
+	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+
+	// bonus: don't require SpawnsParticle to be present
+
+	if (ParticleSystemClass::Array->ValidIndex(pAnim->Type->SpawnsParticle))
+	{
+		return 0;
+	}
+
+	return (R->Origin() == 0x5183DE) ? 0x518422 : 0x5185B9;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x518B93, InfantryClass_ReceiveDamage_Anims, 5) // InfantryBrute
+DEFINE_OVERRIDE_HOOK_AGAIN(0x518821, InfantryClass_ReceiveDamage_Anims, 5) // InfantryNuked
+DEFINE_OVERRIDE_HOOK_AGAIN(0x5187BB, InfantryClass_ReceiveDamage_Anims, 5) // InfantryHeadPop
+DEFINE_OVERRIDE_HOOK_AGAIN(0x518755, InfantryClass_ReceiveDamage_Anims, 5) // InfantryElectrocuted
+DEFINE_OVERRIDE_HOOK_AGAIN(0x5186F2, InfantryClass_ReceiveDamage_Anims, 5) // FlamingInfantry
+DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // InfantryExplode
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EAX);
+	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
+
+	// animation has been created. set the owner and color.
+
+	auto pInvoker = Arguments.Attacker
+		? Arguments.Attacker->Owner
+		: Arguments.SourceHouse;
+
+	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+
+	return 0x5185F1;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51887B, InfantryClass_ReceiveDamage_InfantryVirus2, 0xA)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EAX);
+	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
+
+	// Rules->InfantryVirus animation has been created. set the owner, but
+	// reset the color for default (invoker).
+
+	auto pInvoker = Arguments.Attacker
+		? Arguments.Attacker->Owner
+		: Arguments.SourceHouse;
+
+	auto res = AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+	if (res == OwnerHouseKind::Invoker)
+	{
+		pAnim->LightConvert = nullptr;
+	}
+
+	return 0x5185F1;
+}
+
+DEFINE_OVERRIDE_HOOK(0x518A96, InfantryClass_ReceiveDamage_InfantryMutate, 7)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EDI);
+	REF_STACK(args_ReceiveDamage, Arguments, STACK_OFFS(0xD0, -0x4));
+
+	// Rules->InfantryMutate animation has been created. set the owner and color.
+
+	auto pInvoker = Arguments.Attacker
+		? Arguments.Attacker->Owner
+		: Arguments.SourceHouse;
+
+	AnimTypeExt::SetMakeInfOwner(pAnim, pInvoker, pThis->Owner);
+
+	return 0x518AFF;
+}
