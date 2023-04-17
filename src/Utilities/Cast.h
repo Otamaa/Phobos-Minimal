@@ -36,11 +36,11 @@ struct type_cast_impl
 			{
 				return IsObjectType(pAbstract->WhatAmI()) ? static_cast<T>(pAbstract) : nullptr;
 			} else {
-				return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
+				return GetVtableAddr(pAbstract) == Base::vtable ? static_cast<T>(pAbstract) : nullptr;
 			}
 
 		} else { 
-			return pAbstract->WhatAmI() == Base::AbsID ? static_cast<T>(pAbstract) : nullptr;
+			return GetVtableAddr(pAbstract) == Base::vtable ? static_cast<T>(pAbstract) : nullptr;
 		}
 	}
 };

@@ -33,7 +33,7 @@ void MapRevealer::RevealImpl(const CoordStruct& coords, int const radius, HouseC
 
 	if (this->AffectsHouse(pHouse) && this->IsCellAvailable(base) && radius > 0)
 	{
-		auto const spread = std::min(static_cast<size_t>(radius), CellSpreadEnumerator::Max);
+		auto const spread = MinImpl(size_t(radius), CellSpreadEnumerator::Max);
 		auto const spread_limit_sqr = (spread + 1) * (spread + 1);
 
 		auto const start = (!RulesClass::Instance->RevealByHeight && onlyOutline && spread > 2)
@@ -82,8 +82,8 @@ void MapRevealer::UpdateShroud(size_t start, size_t radius, bool fog) const
 	if (!fog)
 	{
 		auto const& base = this->Base();
-		radius = std::min(radius, CellSpreadEnumerator::Max);
-		start = std::min(start, CellSpreadEnumerator::Max - 3);
+		radius = MinImpl(radius, CellSpreadEnumerator::Max);
+		start = MinImpl(start, CellSpreadEnumerator::Max - 3);
 
 		for (CellSpreadEnumerator it(radius, start); it; ++it)
 		{

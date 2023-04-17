@@ -247,10 +247,10 @@ RectangleStruct FoggedObject::Union(const RectangleStruct& rect1, const Rectangl
 
 	return
 	{
-		std::min(rect1.X,rect2.X),
-		std::min(rect1.Y,rect2.Y),
-		std::max(rect1.X + rect1.Width,rect2.X + rect2.Width),
-		std::max(rect1.Y + rect1.Height,rect2.Y + rect2.Height)
+		MinImpl(rect1.X,rect2.X),
+		MinImpl(rect1.Y,rect2.Y),
+		MaxImpl(rect1.X + rect1.Width,rect2.X + rect2.Width),
+		MaxImpl(rect1.Y + rect1.Height,rect2.Y + rect2.Height)
 	};
 }
 

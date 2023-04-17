@@ -151,12 +151,12 @@ namespace Helpers {
 				// Positive damage.
 				if (Cap < 0) {
 					// Do not stack. Use the maximum value.
-					return std::max(Duration, CurrentValue);
+					return MaxImpl(Duration, CurrentValue);
 				}
 				else if (Cap > 0) {
 					// Cap the duration.
-					int cappedValue = std::min(ProposedDuration, Cap);
-					return std::max(CurrentValue, cappedValue);
+					int cappedValue = MinImpl(ProposedDuration, Cap);
+					return MaxImpl(CurrentValue, cappedValue);
 				}
 				else {
 					// There is no cap. Allow the duration to stack up.
@@ -165,7 +165,7 @@ namespace Helpers {
 			}
 			else {
 				// Negative damage.
-				return (Cap < 0 ? ProposedDuration : std::min(ProposedDuration, Cap));
+				return (Cap < 0 ? ProposedDuration : MinImpl(ProposedDuration, Cap));
 			}
 		}
 
@@ -338,7 +338,7 @@ namespace Helpers {
 
 			if (height <= 0) {
 				auto const spread = static_cast<size_t>(
-					std::max(static_cast<int>(widthOrRange), 0));
+					MaxImpl(static_cast<int>(widthOrRange), 0));
 
 				if (spread > 0) {
 					CellSpreadIterator<T>{}(center, spread, std::forward<Func>(action));

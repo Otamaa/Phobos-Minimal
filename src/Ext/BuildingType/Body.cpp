@@ -254,12 +254,13 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 		{
 			for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
 			{
-				auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
-				if (pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
-				{
-					fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
-					nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
-				}
+				const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
+				if(pExt->PowerPlantEnhancer_Buildings.empty() ||
+				  !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
+					continue;
+
+				fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor.Get(1.0f), static_cast<float>(nCount));
+				nAmount += pExt->PowerPlantEnhancer_Amount.Get(0) * nCount;
 			}
 
 			return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
@@ -289,14 +290,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
-
-			if (!pExt->SpeedBonus.AffectedType.empty())
-			{
-				if (!pExt->SpeedBonus.AffectedType.Contains(pType))
-				{
-					continue;
-				}
-			}
+			if(!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))
+				continue;
 
 			auto nBonus = 0.000;
 			switch ((((DWORD*)pWhat)[0]))
@@ -343,14 +338,8 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
-
-			if (!pExt->SpeedBonus.AffectedType.empty())
-			{
-				if (!pExt->SpeedBonus.AffectedType.Contains(pWhat))
-				{
-					continue;
-				}
-			}
+			if(!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
+				continue;
 
 			auto nBonus = 0.000;
 			switch ((((DWORD*)pWhat)[0]))

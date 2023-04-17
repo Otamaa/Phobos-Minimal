@@ -158,9 +158,9 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		else
 			nDamage = -MapClass::GetTotalDamage(-*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
 
-		bool affectsShield = pWHExt->Shield_AffectTypes.size() <= 0 || pWHExt->Shield_AffectTypes.Contains(this->Type);
-		double absorbPercent = affectsShield ? pWHExt->Shield_AbsorbPercent.Get(this->Type->AbsorbPercent) : this->Type->AbsorbPercent;
-		double passPercent = affectsShield ? pWHExt->Shield_PassPercent.Get(this->Type->PassPercent) : this->Type->PassPercent;
+		const bool affectsShield = pWHExt->Shield_AffectTypes.empty() || pWHExt->Shield_AffectTypes.Contains(this->Type);
+		const double absorbPercent = affectsShield ? pWHExt->Shield_AbsorbPercent.Get(this->Type->AbsorbPercent) : this->Type->AbsorbPercent;
+		const double passPercent = affectsShield ? pWHExt->Shield_PassPercent.Get(this->Type->PassPercent) : this->Type->PassPercent;
 
 		shieldDamage = (int)((double)nDamage * absorbPercent);
 		// passthrough damage shouldn't be affected by shield armor
@@ -235,7 +235,7 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 	// else if (nDamage == 0)
 	nDamageResult = healthDamage;
-	auto pExt = TechnoExt::ExtMap.Find(this->Techno);
+	const auto pExt = TechnoExt::ExtMap.Find(this->Techno);
 
 	if (nDamageResult >= 0)
 	{
@@ -255,7 +255,7 @@ void ShieldClass::ResponseAttack() const
 	if (this->Techno->Owner != HouseClass::CurrentPlayer || this->Techno->GetTechnoType()->Insignificant)
 		return;
 
-	auto const pWhat = GetVtableAddr(Techno);
+	const auto pWhat = GetVtableAddr(Techno);
 	if (pWhat == BuildingClass::vtable)
 	{
 		this->Techno->Owner->BuildingUnderAttack(static_cast<BuildingClass*>(this->Techno));
@@ -280,13 +280,11 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 	if (this->AreAnimsHidden)
 		return;
 
-	auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim.Get(nullptr);
+	const auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim.Get(nullptr);
 
-	if (pAnimType)
-	{
+	if (pAnimType) {
 		auto nCoord = this->Techno->GetCenterCoords();
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
-		{
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord)) {
 			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
 		}
 	}
@@ -300,7 +298,7 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 	if ((CanBePenetrated(pWeapon->Warhead)) || !this->HP)
 		return true;
 
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 	return (std::abs(
 		  pWHExt->GetVerses(this->Type->Armor).Verses
 		//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , this->Type->Armor)

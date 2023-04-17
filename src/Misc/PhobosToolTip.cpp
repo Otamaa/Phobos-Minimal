@@ -153,7 +153,8 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 		|| GameOptionsClass::Instance->GameSpeed == 0
 		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer()))
 	{
-		return tickTime / std::max((int)FPSCounter::CurrentFrameRate, 1);
+		const auto nCur = (int)FPSCounter::CurrentFrameRate;
+		return tickTime / MaxImpl(nCur, 1);
 	}
 
 	return tickTime / (60 / GameOptionsClass::Instance->GameSpeed);

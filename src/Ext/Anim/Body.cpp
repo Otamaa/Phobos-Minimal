@@ -140,23 +140,18 @@ bool AnimExt::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight)
 	return true;
 }
 
-bool AnimExt::DealDamageDelay(AnimClass* pThis)
+DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 {
+	enum { SkipDamage = 0x42465D, CheckIsActive = 0x42464C };
+
 	if (!pThis->Type)
-		return false; //CheckIsAlive
+		return CheckIsActive;
 
-	//if (pThis->Type->Damage <= 0.0 || !pThis->HasExtras)
-	//	return false;
-
-	auto const pExt = AnimExt::ExtMap.Find(pThis);
+	const auto pExt = AnimExt::ExtMap.Find(pThis);
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
-	int delay = pTypeExt->Damage_Delay.Get();
+	const int delay = pTypeExt->Damage_Delay.Get();
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pTypeExt->Damage_DealtByInvoker);
-
-	int damageMultiplier = 1;
-
-	if (pThis->OwnerObject && (((DWORD*)pThis->OwnerObject)[0]) == TerrainClass::vtable)
-		damageMultiplier = 5;
+	const double damageMultiplier = (pThis->OwnerObject && Is_Terrain(pThis->OwnerObject)) ? 5.0 : 1.0;
 
 	bool adjustAccum = false;
 	double damage = 0;
@@ -164,10 +159,10 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 
 	if (pTypeExt->Damage_ApplyOnce.Get()) // If damage is to be applied only once per animation loop
 	{
-		if (pThis->Animation.Value == std::max(delay - 1, 1))
-			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage)) * damageMultiplier;
+		if (pThis->Animation.Value == MaxImpl(delay - 1, 1))
+			appliedDamage = static_cast<int>(std::round(pThis->Type->Damage) * damageMultiplier);
 		else
-			return false; //CheckIsAlive
+			return SkipDamage;
 	}
 	else if (delay <= 0 || pThis->Type->Damage < 1.0) // If Damage.Delay is less than 1 or Damage is a fraction.
 	{
@@ -179,7 +174,7 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		if (damage >= 1.0)
 			appliedDamage = static_cast<int>(std::round(damage));
 		else
-			return false; //CheckIsAlive
+			return SkipDamage;
 	}
 	else
 	{
@@ -188,14 +183,14 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		pThis->Accum = damage;
 
 		if (damage < delay)
-			return false; //CheckIsAlive
+			return SkipDamage;
 
 		// Use Type->Damage as the actually dealt damage.
-		appliedDamage = static_cast<int>((pThis->Type->Damage)) * damageMultiplier;
+		appliedDamage = static_cast<int>((pThis->Type->Damage) * damageMultiplier);
 	}
 
 	if (appliedDamage <= 0 || pThis->IsPlaying)
-		return false; //CheckIsAlive
+		return  SkipDamage;
 
 	// Store fractional damage if needed, or reset the accum if hit the Damage.Delay counter.
 	if (adjustAccum)
@@ -203,8 +198,8 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 	else
 		pThis->Accum = 0.0;
 
-	const auto nCoord = pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
-	auto const nDamageResult = static_cast<int>(appliedDamage *
+	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
+	const auto nDamageResult = static_cast<int>(appliedDamage *
 		TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
@@ -227,11 +222,11 @@ bool AnimExt::DealDamageDelay(AnimClass* pThis)
 		} else {
 
 			MapClass::DamageArea(nCoord, nDamageResult, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-			//MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
+			MapClass::FlashbangWarheadAt(nDamageResult, pWarhead, nCoord); 
 		}
 	}
 
-	return true; //SkipDamageDelay
+	return CheckIsActive;
 }
 
 bool AnimExt::OnMiddle(AnimClass* pThis)
@@ -583,7 +578,7 @@ DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x422A59, AnimClass_DTOR, 0x6)
+DEFINE_HOOK(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass* const, pItem, ESI);
 	AnimExt::ExtMap.Remove(pItem);

@@ -38,7 +38,7 @@ public:
 
 			auto const sub = sourceCell - targetCell;
 			CellStruct const delta { (short)std::abs(sub.X), (short)std::abs(sub.Y) };
-			auto const maxDelta = static_cast<size_t>(std::max(delta.X, delta.Y));
+			auto const maxDelta = static_cast<size_t>(MaxImpl(delta.X, delta.Y));
 			auto const step = !maxDelta ? CoordStruct::Empty : (pTargetCoords - pSourceCoords) * (1.0 / maxDelta);
 			CoordStruct crdCur = pSourceCoords;
 			auto pCellCur = pSourceCell;

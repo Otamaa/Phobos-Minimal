@@ -61,7 +61,7 @@ struct SonicBeamDrawingData
 						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(x + y));
 						break;
 					case SonicBeamSurfacePatternType::SQUARE:
-						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(std::max(std::abs(x), std::abs(y))));
+						SonicBeamSurfacePatternTable[x][y] = (short)(std::sqrt(MaxImpl(std::abs(x), std::abs(y))));
 						break;
 					};
 				}

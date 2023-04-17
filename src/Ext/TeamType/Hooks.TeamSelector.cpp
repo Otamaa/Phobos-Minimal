@@ -239,9 +239,7 @@ DEFINE_HOOK(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 
 		// Obtain the real list of structures the house have
 		ValueableVector<BuildingTypeClass*> ownedBuildingTypes;
-		for (auto const& building : pHouse->Buildings)
-		{
-
+		for (auto const& building : pHouse->Buildings) {
 			if (!ownedBuildingTypes.Contains(building->Type))
 				ownedBuildingTypes.push_back(building->Type);
 		}

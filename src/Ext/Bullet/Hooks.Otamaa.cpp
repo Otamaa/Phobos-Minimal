@@ -80,7 +80,7 @@ DEFINE_HOOK(0x469D3C, BulletClass_Logics_Debris, 0xA)
 			if (nDebrisMaximum > 0)
 			{
 				int nAmountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
-				nAmountToSpawn = Math::LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
+				nAmountToSpawn = LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
 				nTotalSpawn -= nAmountToSpawn;
 
 				for (; nAmountToSpawn > 0; --nAmountToSpawn)

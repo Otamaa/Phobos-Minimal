@@ -574,9 +574,12 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 			if (this->Shield_ReplaceOnly)
 			{
-				if (shieldIndex >= 0)
+				if (shieldIndex >= 0){
+					const int nMax = (Shield_AttachTypes.size() - 1);
 					shieldType =
-					 Shield_AttachTypes[std::min(shieldIndex, (signed)Shield_AttachTypes.size() - 1)];
+					 Shield_AttachTypes[MinImpl(shieldIndex, nMax) ];
+				}
+
 			}
 			else
 			{
@@ -791,7 +794,7 @@ void WarheadTypeExt::ExtData::ApplyRevengeWeapon(TechnoClass* pTarget)
 					auto const nDur = this->RevengeWeapon_GrantDuration.Get();
 					auto const nTime = weapon.Timer.GetTimeLeft();
 
-					weapon.Timer.Start(std::max(nDur, nTime));
+					weapon.Timer.Start(MaxImpl(nDur, nTime));
 					return;
 				}
 

@@ -20,7 +20,7 @@ public:
 	virtual void Blit(WORD* pDst, byte* pSrc, int nLength, int nLineStart, int zBase, WORD* zBuf, WORD* aBuf, DWORD dwAlphaLevel, DWORD dwUnknown, char* zAdjustBuf)
 	{
 		// fast mapping dwAlphaLevel from [0, 2000] to [0, 254]
-		int nAlphaLookup = std::max(254, (261 * std::min(dwAlphaLevel, 0)) >> 11);
+		int nAlphaLookup = MaxImpl(254, (261 * MinImpl(dwAlphaLevel, 0)) >> 11);
 		const auto& AlphaData = AlphaRemap->Table[nAlphaLookup];
 
 		// RLE Preprocess

@@ -376,38 +376,7 @@ public:
 		return (fabs(A - B) < epsilon);
 	}
 
-	template<typename First , typename ... T>
-	static inline decltype(auto) variadic_min(const First& f, const T& ... t) {
-		const First* retval = std::addressof(f);
-		( (retval = std::addressof(std::min(*retval,t))),...);
-		return *retval;
-	}
-
-	template<typename First, typename ... T>
-	static inline decltype(auto) variadic_max(const First& f, const T& ... t)
-	{
-		const First* retval = std::addressof(f);
-		((retval = std::addressof(std::max(*retval, t))), ...);
-		return *retval;
-	}
-
-	template<typename First, typename ... T>
-	static inline decltype(auto) variadic_fmin(const First& f, const T& ... t)
-	{
-		First retval = f;
-		((retval = std::fmin(retval, t)), ...);
-		return retval;
-	}
-
-	template<typename First, typename ... T>
-	static inline decltype(auto) variadic_fmax(const First& f, const T& ... t)
-	{
-		First retval = f;
-		((retval = std::fmax(retval, t)), ...);
-		return retval;
-	}
-
-	template<bool CriticalRandomNumber = true>
+	template<bool UseCriticalRandomNumber = true>
 	static int GetRandomValue(const Point2D point, int defVal)
 	{
 		int min = point.X;
@@ -421,7 +390,7 @@ public:
 
 		if (max > 0)
 		{
-			if constexpr (CriticalRandomNumber)
+			if constexpr (UseCriticalRandomNumber)
 				return ScenarioClass::Instance->Random.RandomRanged(min, max);
 			else
 				return Random2Class::NonCriticalRandomNumber->RandomRanged(min, max);

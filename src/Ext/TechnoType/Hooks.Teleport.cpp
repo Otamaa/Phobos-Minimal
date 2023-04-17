@@ -112,7 +112,8 @@ DEFINE_HOOK(0x7194E3, TeleportLocomotionClass_ILocomotion_Process_ChronoDistance
 	GET_LOCO(ESI);
 	GET(int, val, EAX);
 
-	const auto factor = std::max(pExt->ChronoDistanceFactor.Get(RulesClass::Instance->ChronoDistanceFactor), 1);// fix factor 0 crash by force it to 1 (Vanilla bug)
+	const auto nDecided = pExt->ChronoDistanceFactor.Get(RulesClass::Instance->ChronoDistanceFactor);
+	const auto factor = MaxImpl(nDecided, 1);// fix factor 0 crash by force it to 1 (Vanilla bug)
 
 	//IDIV
 	R->EAX(val / factor);

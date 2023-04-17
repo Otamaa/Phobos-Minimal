@@ -73,7 +73,7 @@ public:
 	static TechnoClass* GetTechnoInvoker(AnimClass* pThis ,bool DealthByOwner);
 	static AbstractClass* GetTarget(AnimClass* const);
 
-	static bool DealDamageDelay(AnimClass* pThis);
+	static DWORD DealDamageDelay(AnimClass* pThis);
 	static bool OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHeight);
 	static bool OnMiddle(AnimClass* pThis);
 	static bool OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs);

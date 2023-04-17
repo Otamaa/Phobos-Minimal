@@ -670,31 +670,24 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 #pragma endregion Prereq
 
-		char tempBuffer[0x100];
+		char tempBuffer[0x25];
 
-		if (pThis->Gunner)
+		if (pThis->Gunner && this->Insignia_Weapon.empty())
 		{
 			const int weaponCount = pThis->WeaponCount;
 			this->Insignia_Weapon.resize(weaponCount);
-			this->InsigniaFrame_Weapon.resize(weaponCount);
-			this->InsigniaFrames_Weapon.resize(weaponCount);
 
 			for (int i = 0; i < weaponCount; i++)
 			{
-				Promotable<SHPStruct*> insignia { nullptr };
+				auto& Data = this->Insignia_Weapon[i];
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Weapon%d.%s", i + 1, "%s");
-				insignia.Read(exINI, pSection, tempBuffer);
-				this->Insignia_Weapon[i] = insignia;
+				Data.Shapes.Read(exINI, pSection, tempBuffer);
 
-				Promotable<int> frame = Promotable<int>(-1);
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Weapon%d.%s", i + 1, "%s");
-				frame.Read(exINI, pSection, tempBuffer);
-				this->InsigniaFrame_Weapon[i] = frame;
+				Data.Frame.Read(exINI, pSection, tempBuffer);
 
-				Valueable<Point3D> frames { {-1, -1, -1} };
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Weapon%d", i + 1);
-				frames.Read(exINI, pSection, tempBuffer);
-				this->InsigniaFrames_Weapon[i] = frames;
+				Data.Frames.Read(exINI, pSection, tempBuffer);
 			}
 		}
 
@@ -812,6 +805,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		// refinery and storage
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
+		this->VHPscan_Value.Read(exINI, pSection, "VHPscan.Value");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -1091,10 +1085,15 @@ void TechnoTypeExt::ExtData::AdjustCrushProperties()
 
 bool TechnoTypeExt::PassangersAllowed(TechnoTypeClass * pThis, TechnoTypeClass * pPassanger)
 {
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis);
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
 
-	return (pExt->PassengersWhitelist.empty() || pExt->PassengersWhitelist.Contains(pPassanger))
-		&& !pExt->PassengersBlacklist.Contains(pPassanger);
+	if(!pExt->PassengersWhitelist.empty() && !pExt->PassengersWhitelist.Contains(pPassanger))
+		return false;
+
+	if(!pExt->PassengersBlacklist.empty() && pExt->PassengersBlacklist.Contains(pPassanger))
+		return false;
+
+	return true;
 }
 
 template <typename T>
@@ -1539,6 +1538,7 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->Survivors_PilotCount)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
+		.Process(this->VHPscan_Value)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -1564,8 +1564,6 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->AmmoPip_Palette)
 
 		.Process(this->Insignia_Weapon)
-		.Process(this->InsigniaFrame_Weapon)
-		.Process(this->InsigniaFrames_Weapon)
 		;
 }
 

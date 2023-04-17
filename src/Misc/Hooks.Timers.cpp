@@ -20,8 +20,9 @@ DEFINE_HOOK(0x6D4B50, Print_Timer_On_Tactical_Start, 0x6)
 	if (Phobos::Config::RealTimeTimers_Adaptive
 		|| GameOptionsClass::Instance->GameSpeed == 0
 		|| (Phobos::Misc::CustomGS && !SessionClass::IsMultiplayer())) // TODO change when custom game speed gets merged
-	{
-		value = (int)((double)value / (std::max((double)FPSCounter::CurrentFrameRate, 1.0) / 15.0));
+	{	
+		const auto nCur = (double)FPSCounter::CurrentFrameRate;
+		value = (int)((double)value / (MaxImpl(nCur, 1.0) / 15.0));
 		return 0;
 	}
 

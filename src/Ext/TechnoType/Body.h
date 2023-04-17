@@ -599,10 +599,35 @@ public:
 		Nullable<SHPStruct*> AmmoPip;
 		Valueable<Point2D> AmmoPip_Offset;
 		CustomPalette AmmoPip_Palette;
+		struct InsigniaData
+		{
+			Promotable<SHPStruct*> Shapes { nullptr };
+			Promotable<int> Frame { -1 };
+			Valueable<Point3D> Frames { { -1 , -1 , -1 } };
 
-		std::vector<Promotable<SHPStruct*>> Insignia_Weapon;
-		std::vector<Promotable<int>> InsigniaFrame_Weapon;
-		std::vector<Point3D> InsigniaFrames_Weapon;
+			inline bool Load(PhobosStreamReader& stm, bool registerForChange) {
+				return this->Serialize(stm);
+			}
+
+			inline bool Save(PhobosStreamWriter& stm) const {
+				return const_cast<InsigniaData*>(this)->Serialize(stm);
+			}
+
+		private:
+			template <typename T>
+			inline bool Serialize(T& stm)
+			{
+				return stm
+					.Process(Shapes)
+					.Process(Frame)
+					.Process(Frames)
+					.Success();
+			}
+		};
+
+		std::vector<InsigniaData> Insignia_Weapon;
+
+		Nullable<int> VHPscan_Value;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -614,7 +639,6 @@ public:
 			, InhibitorRange { }
 			, DesignatorRange { }
 			, MindControlRangeLimit {}
-
 
 			, Phobos_EliteAbilities {}
 			, Phobos_VeteranAbilities {}
@@ -1067,8 +1091,7 @@ public:
 			, AmmoPip_Palette { CustomPalette::PaletteMode::Default }
 
 			, Insignia_Weapon {}
-			, InsigniaFrame_Weapon {}
-			, InsigniaFrames_Weapon {}
+			, VHPscan_Value {}
 		{ }
 
 		virtual ~ExtData() override = default;

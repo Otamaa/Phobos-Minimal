@@ -129,7 +129,7 @@ void SWTypeExt::WeightedRollsHandler(std::vector<int>& nResult , Valueable<doubl
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
-		size_t j = std::min(i,weightsSize - 1);
+		size_t j = MinImpl(i, weightsSize - 1);
 		index = GeneralUtils::ChooseOneWeighted(RandomBuffer, weights[j]);
 
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
@@ -160,7 +160,7 @@ void SWTypeExt::ExtData::WeightedRollsHandler(std::vector<int>& nResult, std::ve
 			continue;
 
 		// If there are more rolls than weight lists, use the last weight list
-		size_t j = std::min(i , weightsSize - 1);
+		size_t j = MinImpl(i , weightsSize - 1);
 		index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, (*weights)[j]);
 
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
@@ -306,16 +306,16 @@ void SWTypeExt::ExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, co
 		return;
 	}
 
-	if (this->LimboDelivery_Types.size())
+	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);
 
-	if (this->LimboKill_IDs.size())
+	if (!this->LimboKill_IDs.empty())
 		ApplyLimboKill(pHouse);
 
 	if (this->Detonate_Warhead.isset() || this->Detonate_Weapon.isset())
 		this->ApplyDetonation(pSW->Owner, *pCell);
 
-	if (this->SW_Next.size() > 0)
+	if (!this->SW_Next.empty())
 		this->ApplySWNext(pSW, *pCell);
 }
 

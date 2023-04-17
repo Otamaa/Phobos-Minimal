@@ -67,7 +67,7 @@ void RadSiteExt::ExtData::CreateLight()
 
 	const auto nTintFactor = this->Type->GetTintFactor();
 	const auto nRadLevelFactor = pThis->RadLevel * this->Type->GetLightFactor();
-	const auto nLightFactor = std::min(nRadLevelFactor , 2000.0);
+	const auto nLightFactor = std::clamp(nRadLevelFactor , 1.0 , 2000.0 );
 	const auto nDuration = pThis->RadDuration;
 
 	pThis->RadLevelTimer.Start(nLevelDelay);
@@ -115,7 +115,7 @@ void RadSiteExt::ExtData::SetRadLevel(int amount)
 {
 	const auto pThis = this->Get();
 	const auto nMax = this->Type->GetLevelMax();
-	const auto nDecidedamount = std::min(amount, nMax);
+	const auto nDecidedamount = MinImpl(amount,  nMax);
 	const int mult = this->Type->GetDurationMultiple();
 	pThis->RadLevel = nDecidedamount;
 	pThis->RadDuration = mult * nDecidedamount;

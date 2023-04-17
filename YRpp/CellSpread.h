@@ -21,7 +21,7 @@ public:
 	}
 
 	static size_t NumCellsFromFloat(float nSpread) {
-		return Game::F2I((nSpread + 0.99));
+		return int((nSpread + 0.99));
 	}
 
 	static const CellStruct GetCell(size_t n) {

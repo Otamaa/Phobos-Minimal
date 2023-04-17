@@ -1,33 +1,6 @@
 #include "Body.h"
 #include <TeamClass.h>
 
-//#ifdef ENABLE_NEWHOOKS
-//TODO : retest for desync
-//6EF8B0
-DEFINE_HOOK(0x6EF8B0, TeamMission_GatherAt_Enemy, 0x8)
-{
-	GET(int, nDistance, EDX);
-	GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x2C));
-	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
-
-	if (const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type))
-		R->EDX(pTeamExt->AI_SafeDIstance.isset() ? (pTeamExt->AI_SafeDIstance.Get() + pTeamM->Argument) << 8 : nDistance);
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x6EFB78, TeamMission_GatherAt_BaseTeam, 0x8)
-{
-	GET(int, nDistance, EDX);
-	GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x4C, 0x2C));
-	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
-
-	if (const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type))
-		R->EDX(pTeamExt->AI_FriendlyDistance.isset() ? (pTeamExt->AI_FriendlyDistance.Get() + pTeamM->Argument) << 8 : nDistance);
-
-	return 0x0;
-}
-
 //DEFINE_HOOK(0x6EC9AF, TeamClass_Assign_Mission_Target_CellAllowed, 0x7)
 //{
 //	GET(TeamClass*, pThis, ECX);

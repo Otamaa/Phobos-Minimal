@@ -3,6 +3,7 @@
 #include <YRPPCore.h>
 #include <cmath>
 #include <algorithm>
+#include <Base/Always.h>
 
 #define MATH_FUNC(name, address)\
 	inline NAKED double __cdecl name(double value)\
@@ -81,25 +82,25 @@ namespace Math
 	constexpr const double BINARY_ANGLE_MAGIC_ALTERNATE = -(360.0 / (65535 - 1)) * DEG_TO_RAD_ALTERNATE;
 	constexpr const double PI_BYSIXTEEN = Math::Pi / 16;
 
-	// MATH_FUNC(sqrt,	 0x4CAC40);
-	// MATH_FUNC(sin,	 0x4CACB0);
-	// MATH_FUNC(cos,	 0x4CAD00);
-	// MATH_FUNC(tan,	 0x4CAD50);
-	// MATH_FUNC(asin,	 0x4CAD80);
-	// MATH_FUNC(acos,	 0x4CADB0);
-	// MATH_FUNC(atan,	 0x4CADE0);
-	// MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
+	 MATH_FUNC(sqrt,	 0x4CAC40);
+	 MATH_FUNC(sin,	 0x4CACB0);
+	 MATH_FUNC(cos,	 0x4CAD00);
+	 MATH_FUNC(tan,	 0x4CAD50);
+	 MATH_FUNC(asin,	 0x4CAD80);
+	 MATH_FUNC(acos,	 0x4CADB0);
+	 MATH_FUNC(atan,	 0x4CADE0);
+	 MATH_FUNC_TWOVAL(atan2, 0x4CAE30);
 
-	// MATH_FUNC_FLOAT(sqrt, 0x4CB060);
-	// MATH_FUNC_FLOAT(sin, 0x4CB150);
-	// MATH_FUNC_FLOAT(cos, 0x4CB1A0);
-	// MATH_FUNC_FLOAT(asin, 0x4CB260);
-	// MATH_FUNC_FLOAT(acos, 0x4CB290);
-	// MATH_FUNC_FLOAT(tan, 0x4CB320);
-	// MATH_FUNC_FLOAT(atan, 0x4CB480);
-	// MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
+	 MATH_FUNC_FLOAT(sqrt, 0x4CB060);
+	 MATH_FUNC_FLOAT(sin, 0x4CB150);
+	 MATH_FUNC_FLOAT(cos, 0x4CB1A0);
+	 MATH_FUNC_FLOAT(asin, 0x4CB260);
+	 MATH_FUNC_FLOAT(acos, 0x4CB290);
+	 MATH_FUNC_FLOAT(tan, 0x4CB320);
+	 MATH_FUNC_FLOAT(atan, 0x4CB480);
+	 MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
 
-	// MATH_FUNC_TWOVAL(arctanfoo , 0x4CAE30);
+	MATH_FUNC_TWOVAL(arctanfoo , 0x4CAE30);
 
 	//famous Quaqe 3 Fast Inverse Square Root
 	inline float Q_invsqrt(float number)
@@ -171,71 +172,14 @@ namespace Math
 	template <typename T>
 	using value_return_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
-	template<class T>
-	inline constexpr T LessOrEqualTo(T a, T b)
-	{
-		if (a <= b) return(a);
-		return(b);
-	}
-
-	template<class T>
-	inline constexpr T MoreOrEqualTo(T a, T b)
-	{
-		if (a >= b) return(a);
-		return(b);
-	}
-
-	//template<class T>
-	//inline constexpr T min(T a, T b)
-	//{
-	//	if (a < b) return(a);
-	//	return(b);
-		//return std::min(b,a);
-	//}
-
-	//template<class T>
-	//inline constexpr T max(T a, T b)
-	//{
-	//	if (a > b) return(a);
-	//	return(b);
-	//	//return std::max(b,a);
-	//}
-
-	// template <typename T, typename T2>
-	// inline constexpr auto min(T&& a, T2&& b)
-	// {
-	// 	//if (b) less than (a) ret (b)
-	// 	//limit is (b)
-	// 	if(b < a) {
-	// 		return static_cast<value_return_t<T>>(b);
-	// 	}
-	// 	return a;
-	// }
-
-	// template <typename T, typename T2>
-	// inline constexpr auto max(T&& a, T2&& b)
-	// {
-	// 	//if (a) less than left(b) ret left(b)
-	// 	if(a < b) {
-	// 		return static_cast<value_return_t<T>>(b);
-	// 	}
-	// 	return a;
-	// }
-
 	// use the sign to select min or max.
 	// 0 means no change (maximum of 0 and a positive value)
 	inline constexpr auto limit(int value, int limit)
 	{
 		if (limit <= 0) {
-			return std::max(value, -limit);
+			return MaxImpl(value, -limit);
 		} else {
-			return std::min(value, limit);
+			return MinImpl(value, limit);
 		}
 	}
-
-	// template <typename T, typename TMin, typename TMax>
-	// inline constexpr auto clamp(T&& value, TMin&& min, TMax&& max)
-	// {
-	// 	return std::clamp(value, min, max);
-	// }
 };

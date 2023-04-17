@@ -1128,53 +1128,55 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass*
 	return { pTypeOut, pHouseOut };
 }
 
-std::tuple<CoordStruct* , SHPStruct* , int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt)
+std::tuple<CoordStruct , SHPStruct* , int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExt::ExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
 	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
-	int frameIndex = pTypeExt->InsigniaFrame.GetFromCurrentRank(pThis);
-	Point3D* insigniaFrames = pTypeExt->InsigniaFrames.GetEx();
-	CoordStruct* drawOffs = pTypeExt->InsigniaDrawOffset.GetEx();
+	const auto nCurRank = pThis->CurrentRanking;
+	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
+	Point3D insigniaFrames = pTypeExt->InsigniaFrames.Get();
+	CoordStruct drawOffs = pTypeExt->InsigniaDrawOffset.Get();
 	int DefaultFrameIdx = -1;
 
-	if (SHPStruct* pShapeFileHere = pTypeExt->Insignia.GetFromCurrentRank(pThis))
+	if (SHPStruct* pShapeFileHere = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
 	{
 		pShapeFile = pShapeFileHere;
 		isCustomInsignia = true;
 		DefaultFrameIdx = 0;
 	}
 
-	if (pTypeExt->OwnerObject()->Gunner)
+	if (pTypeExt->OwnerObject()->Gunner && !pTypeExt->Insignia_Weapon.empty())
 	{
 		const int weaponIndex = pThis->CurrentWeaponNumber;
+		auto const& data = pTypeExt->Insignia_Weapon[weaponIndex];
 
-		if (auto const pCustomShapeFile = pTypeExt->Insignia_Weapon[weaponIndex].GetFromCurrentRank(pThis)) {
+		if (auto const pCustomShapeFile = data.Shapes.GetFromSpecificRank(nCurRank)) {
 			pShapeFile = pCustomShapeFile;
 			isCustomInsignia = true;
 			DefaultFrameIdx = 0;
 		}
 
-		const int frame = pTypeExt->InsigniaFrame_Weapon[weaponIndex].GetFromCurrentRank(pThis);
+		const int frame = data.Frame.GetFromSpecificRank(nCurRank);
 
 		if (frame != -1)
 			frameIndex = frame;
 
-		const auto frames = &pTypeExt->InsigniaFrames_Weapon[weaponIndex];
+		const auto frames = data.Frames.GetEx();
 
 		if (frames->X != -1 && frames->Y != -1 && frames->Z != -1)
-			insigniaFrames = frames;
+			insigniaFrames = *frames;
 	}
 
-	int nRankPerFrames = insigniaFrames->X;
-	switch (pThis->CurrentRanking)
+	int nRankPerFrames = insigniaFrames.X;
+	switch (nCurRank)
 	{
 	case Rank::Elite:
 		DefaultFrameIdx = !isCustomInsignia ? 15 : DefaultFrameIdx;
-		nRankPerFrames = insigniaFrames->Z;
+		nRankPerFrames = insigniaFrames.Z;
 		break;
 	case Rank::Veteran:
 		DefaultFrameIdx = !isCustomInsignia ? 14 : DefaultFrameIdx;
-		nRankPerFrames = insigniaFrames->Y;
+		nRankPerFrames = insigniaFrames.Y;
 		break;
 	default:
 		break;
@@ -1212,11 +1214,12 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 
 	if (frameIndex != -1 &&  pShapeFile)
 	{
-		offset.X += (5 + drawOffs->X);
-		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + drawOffs->Y);
+		offset.X += (5 + drawOffs.X);
+		offset.Y += (!Is_Infantry(pThis) ? 4 : 2 + drawOffs.Y);
 
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2 + drawOffs->Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 
+			0, -2 + drawOffs.Z, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	return;
@@ -1703,9 +1706,9 @@ int TechnoExt::ExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterD
 	{
 		// Use passenger cost as countdown.
 		auto timerLength = static_cast<int>(pPassenger->GetTechnoType()->Cost * pDelType->CostMultiplier);
-
-		if (pDelType->Rate.Get() > 0)
-			timerLength = std::min(timerLength, pDelType->Rate.Get());
+		const auto nCostRateCap = pDelType->CostRateCap.Get(-1);
+		if (nCostRateCap > 0)
+			timerLength = MinImpl(timerLength, nCostRateCap);
 
 		nRate = timerLength;
 	}
@@ -2243,25 +2246,21 @@ void TechnoExt::ApplyDrainMoney(TechnoClass* pThis)
 
 	if ((Unsorted::CurrentFrame % nDrainDelay) == 0)
 	{
-		if (auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount))
-		{
-			if (nDrainAmount > 0)
-				nDrainAmount = std::min(nDrainAmount, (int)pThis->Owner->Available_Money());
-			else
-				nDrainAmount = std::max(nDrainAmount, -(int)pSource->Owner->Available_Money());
+		auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount);
+		if ( nDrainAmount != 0) {
+			if(!pThis->Owner->CanTransactMoney(nDrainAmount)
+				|| !pSource->Owner->CanTransactMoney(nDrainAmount) )
+				return;
 
-			if (nDrainAmount)
-			{
 				pThis->Owner->TransactMoney(-nDrainAmount);
 				pSource->Owner->TransactMoney(nDrainAmount);
 
-				if (pTypeExt->DrainMoney_Display)
-				{
-					auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
-					FlyingStrings::AddMoneyString(true, nDrainAmount, pDest,
-						pTypeExt->DrainMoney_Display_Houses, pDest->Location,
-						pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
-				}
+			if (pTypeExt->DrainMoney_Display)
+			{
+				auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
+				FlyingStrings::AddMoneyString(true, nDrainAmount, pDest,
+					pTypeExt->DrainMoney_Display_Houses, pDest->Location,
+					pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
 			}
 		}
 	}
@@ -2740,7 +2739,7 @@ void TechnoExt::ExtData::UpdateMobileRefinery()
 		{
 			const int tibValue = TiberiumClass::Array->GetItem(pCell->GetContainedTiberiumIndex())->Value;
 			const int tAmount = static_cast<int>(tValue * 1.0 / tibValue);
-			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? std::min(tAmount , pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
+			const int amount = pTypeExt->MobileRefinery_AmountPerCell ? MinImpl(tAmount , pTypeExt->MobileRefinery_AmountPerCell.Get()) : tAmount;
 			pCell->ReduceTiberium(amount);
 			const int value = static_cast<int>(amount * tibValue * pTypeExt->MobileRefinery_CashMultiplier);
 

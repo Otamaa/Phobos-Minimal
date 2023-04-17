@@ -2614,77 +2614,151 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //	return 0x0;
 //}
 
-//enum class NewVHPScan : int
-//{
-//	None = 0 ,
-//	Normal = 1 ,
-//	Strong = 2,
-//	Threat = 3,
-//	Health = 4,
-//	Damage = 5,
-//	Value = 6,
-//	Locked = 7,
-//	Non_Infantry = 8,
-//
-//
-//	count
-//};
-//
-//std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
-//{
-//   {
-//	  {"None" },
-//	{ "Normal" },
-//	{ "Strong" },
-//	{ "Threat" },
-//	{ "Health" },
-//	{ "Damage" },
-//	{ "Value" },
-//	{ "Locked" },
-//	{ "Non-Infantry" } 
-//	}
-//};
+enum class NewVHPScan : int
+{
+	None = 0 ,
+	Normal = 1 ,
+	Strong = 2,
+	Threat = 3,
+	Health = 4,
+	Damage = 5,
+	Value = 6,
+	Locked = 7,
+	Non_Infantry = 8,
 
-//DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
-//{
-//	GET(const char* const, cur, ESI);
-//
-//	int vHp = 0;
-//	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
-//	{
-//		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
-//		{
-//			vHp = i;
-//			break;
-//		}
-//	}
-//
-//	R->EAX(vHp);
-//	return 0x4775E9;
-//}
-//
-//DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
-//{
-//	R->EDX(NewVHPScanToString[R->EDI<int>()]);
-//	return 0x4775B7;
-//}
 
-//NOINLINE int* AllocArray()
-//{
-//	return new int[SuperWeaponTypeClass::Array->Count];
-//}
+	count
+};
 
-//DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
-//{
-//	GET(TechnoClass*, pThis, EDI);
-//	GET(ObjectClass*, pTarget, ESI);
-//	GET(int*, pRiskValue, EBP);
-//
-//	auto const pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
-//
-//	
-//	return 0x6F875F;
-//}
+std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+{{
+	  {"None" },
+	{ "Normal" },
+	{ "Strong" },
+	{ "Threat" },
+	{ "Health" },
+	{ "Damage" },
+	{ "Value" },
+	{ "Locked" },
+	{ "Non-Infantry" } 
+}};
+
+DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
+{
+	GET(const char* const, cur, ESI);
+
+	int vHp = 0;
+	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i) {
+		if (IS_SAME_STR_(cur, NewVHPScanToString[i])) {
+			vHp = i;
+			break;
+		}
+	}
+
+	R->EAX(vHp);
+	return 0x4775E9;
+}
+
+DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
+{
+	int nIdx = R->EDI<int>();
+		nIdx = (nIdx > (int)NewVHPScanToString.size() ? (int)NewVHPScanToString.size() : nIdx);
+	R->EDX(NewVHPScanToString[nIdx]);
+	return 0x4775B7;
+}
+
+DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
+{
+	GET(TechnoClass*, pThis, EDI);
+	GET(ObjectClass*, pTarget, ESI);
+	GET(int*, pRiskValue, EBP);
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
+	if (!pTechnoTarget)
+		pTechnoTarget = nullptr;
+
+	int nValue = pExt->VHPscan_Value.Get(2);
+	if (nValue <= 0)
+		nValue = 1;
+
+	switch (NewVHPScan(pExt->Get()->VHPScan))
+	{
+	case NewVHPScan::None:
+	{
+		if (pTarget->EstimatedHealth <= 0) {
+			*pRiskValue /= nValue;
+			break;
+		}
+
+		if (pTarget->EstimatedHealth > (pTarget->GetType()->Strength / 2))
+			break;
+
+		*pRiskValue *= nValue;
+	}
+	break;
+	case NewVHPScan::Threat:
+	{
+		*pRiskValue *= *pRiskValue / nValue;
+		break;
+	}
+	break;
+	case NewVHPScan::Health:
+	{
+		int nRes = *pRiskValue;
+		if (pTarget->EstimatedHealth > pTarget->GetType()->Strength / 2)
+			nRes = nValue * nRes;
+		else
+			nRes = nRes / nValue;
+
+		*pRiskValue = nRes;
+	}
+	break;
+	case NewVHPScan::Damage:
+	{
+		if (!pTechnoTarget) {
+			*pRiskValue = 0;
+			break;
+		} 
+
+		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * *pRiskValue;
+	}
+	break;
+	case NewVHPScan::Value:
+	{
+		if (!pTechnoTarget) {
+			*pRiskValue = 0;
+			break;
+		}
+
+		const int nSelectedWeapon = pTechnoTarget->SelectWeapon(pThis);
+		const auto nFireError = pTechnoTarget->GetFireError(pThis, nSelectedWeapon, 0);
+		if (nFireError == FireError::NONE ||
+			nFireError == FireError::FACING ||
+			nFireError == FireError::REARM ||
+			nFireError == FireError::ROTATING
+			)
+		{
+			*pRiskValue *= nValue;
+			break;
+		}
+
+		*pRiskValue /= nValue;
+	}
+	break;
+	case NewVHPScan::Non_Infantry:
+	{ 
+		if (!pTechnoTarget || Is_Infantry(pTechnoTarget)) {
+			*pRiskValue = 0;
+		}
+	}
+	break;
+	default:
+	break;
+	}
+	
+	return 0x6F875F;
+}
 
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
@@ -5019,7 +5093,7 @@ DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 // //EvalObject
-DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 5)
+DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
 	GET_STACK(int, nWeapon, 0x14);
@@ -5238,28 +5312,42 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 
 //DEFINE_JUMP(CALL,0x711F12, GET_OFFSET(HouseClass_GetTypeCostMult));
 
-DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-
-	if (pThis->Type->Spawned || pThis->Type->Carryall)
-		return 0;
-
-	pThis->SetDestination(nullptr, true);
-	return 0x417B69;
-}
+//DEFINE_HOOK(0x4179F7, AircraftClass_AssumeTaskComplete_DontCrash, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//
+//	if (pThis->Type->Spawned || pThis->Type->Carryall)
+//		return 0;
+//
+//	pThis->SetDestination(nullptr, true);
+//	return 0x417B69;
+//}
 
 // issue #28 : Fix vanilla YR Fog of War bugs & issues
 // Reimplement it would be nicer.
 
-bool IsLocationFogged(CoordStruct* pCoord)
-{
-	auto pCell = MapClass::Instance->GetCellAt(*pCoord);
-	if (pCell->Flags & CellFlags::EdgeRevealed)
-		return false;
-	return ((pCell->GetNeighbourCell(3u)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
+DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6) {
+	return R->Origin() + 0x6;
+	// clearing type pointer will cause animclass AI to crash when it still executed
 }
 
+DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n" , pThis);
+	return 0x0;
+}
+
+DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pTarget, EBP);
+
+	return !pThis->DrainTarget && !pTarget->DrainingMe ?
+		0x6F3589  : 0x6F35A8;
+}
+
+#ifdef FOW_HOOKS
 // MapClass_RevealShroud as Xkein said
 DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
 {
@@ -5319,7 +5407,7 @@ DEFINE_HOOK(0x577EBF, MapClass_Reveal, 0x6)
 	return 0x577EE9;
 }
 
-DEFINE_HOOK(0x586683, CellClass_DiscoverTechno, 0x5)
+DEFINE_HOOK(0x586683, CellClass_DiscoverTechno, 0x8)
 {
 	GET(TechnoClass*, pTechno, EAX);
 	GET(CellClass*, pCell, ESI);
@@ -5344,7 +5432,7 @@ DEFINE_HOOK(0x4FC1FF, HouseClass_AcceptDefeat_CleanShroudFog, 0x6)
 	return 0x4FC214;
 }
 
-DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x6)
+DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 {
 	GET(ScenarioClass*, pScenario, ESI);
 
@@ -5355,7 +5443,7 @@ DEFINE_HOOK(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x6)
 	return 0x6B8E8B;
 }
 
-DEFINE_HOOK(0x686C03, SetScenarioFlags_FogOfWar, 0x5)
+DEFINE_HOOK(0x686C03, SetScenarioFlags_FogOfWar, 0x6)
 {
 	GET(ScenarioFlags, SFlags, EAX);
 
@@ -5381,7 +5469,7 @@ DEFINE_HOOK(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
 		return DefaultProcess;
 
 	auto coord = pObject->GetCoords();
-	if (!IsLocationFogged(&coord))
+	if (!MapClass::Instance->IsLocationFogged(coord))
 		return DefaultProcess;
 
 	pObject->NeedsRedraw = false;
@@ -5394,7 +5482,7 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawExtras_CheckFog, 0x6)
 
 	auto coord = pTechno->GetCoords();
 
-	return IsLocationFogged(&coord) ? 0x6F5EEC : 0;
+	return MapClass::Instance->IsLocationFogged(coord) ? 0x6F5EEC : 0;
 }
 
 DEFINE_HOOK(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 0x6)
@@ -5429,19 +5517,22 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
 	GET(TerrainClass*, pTerrain, EDI);
 
 	auto coord = pTerrain->GetCoords();
-	if (pTerrain->InLimbo || IsLocationFogged(&coord))
+	if (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord))
 		return 0x71CD8D;
 	return 0x71CC9A;
 }
 
-DEFINE_HOOK(0x5865E2, IsLocationFogged_Check, 0x5)
-{
-	GET_STACK(CoordStruct*, pCoord, 0x4);
+bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord) {
+	const auto pCell = pThis->GetCellAt(pCoord);
 
-	R->EAX(IsLocationFogged(pCoord));
+	if (pCell->Flags & CellFlags::EdgeRevealed) {
+		return false;
+	}
 
-	return 0;
+	return((pCell->GetNeighbourCell(3u)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
 }
+
+DEFINE_JUMP(LJMP,0x5865E0 , GET_OFFSET(IsLocFogged))
 
 DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 {
@@ -5460,7 +5551,7 @@ DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 	return 0x4ACE57;
 }
 
-DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x7)
+DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 {
 	// GET(MapClass*, pMap, ECX);
 	auto const pMap = MapClass::Instance();
@@ -5509,3 +5600,5 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x7)
 
 	return 0x4A9DC6;
 }
+
+#endif

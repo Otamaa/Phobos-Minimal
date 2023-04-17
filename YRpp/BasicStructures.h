@@ -12,9 +12,12 @@ struct TintStruct
 	TintStruct(const ColorStruct& nColor ,  double nTintFactor) noexcept :
 		Red { 0 }, Green { 0 }, Blue { 0 }
 	{
-		Red = static_cast<int>(std::min((1000 * nColor.R / 255) * nTintFactor, 2000.0));
-		Green = static_cast<int>(std::min((1000 * nColor.G / 255) * nTintFactor, 2000.0));
-		Blue = static_cast<int>(std::min((1000 * nColor.B / 255) * nTintFactor, 2000.0));
+		auto nValR = ((1000 * nColor.R / 255) * nTintFactor);
+		Red = static_cast<int>(MinImpl(nValR, 2000.0));
+		auto nValG = ((1000 * nColor.G / 255) * nTintFactor);
+		Green = static_cast<int>(MinImpl(nValG, 2000.0));
+		auto nValB = ((1000 * nColor.B / 255) * nTintFactor);
+		Blue = static_cast<int>(MinImpl(nValB, 2000.0));
 	}
 
 	bool operator == (TintStruct const rhs) const

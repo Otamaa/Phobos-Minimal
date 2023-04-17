@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Base/SSE_Math.h>
+
 #include <YRMath.h>
 #include <GeneralStructures.h>
 /*
@@ -160,10 +160,10 @@ public:
 	{ return (X != nThat.X || Y != nThat.Y || Z != nThat.Z); }
 
 	double Magnitude_() const
-	{ return sqrt_fast_tpl(MagnitudeSquared()); }
+	{ return std::sqrt(MagnitudeSquared()); }
 
 	double Magnitude() const
-	{ return sqrt_fast_tpl(MagnitudeSquared()); }
+	{ return std::sqrt(MagnitudeSquared()); }
 
 	int MagnitudeInt() const
 	{ return static_cast<int>(Magnitude() * 0.00390625);}

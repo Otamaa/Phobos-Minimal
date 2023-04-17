@@ -261,6 +261,7 @@ public:
 		Valueable<bool> Supress_LostEva;
 		Valueable<double> Temporal_HealthFactor;
 
+		std::unordered_map<int , AnimTypeClass*> InfDeathAnims;
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -475,6 +476,7 @@ public:
 			, Temporal_WarpAway {}
 			, Supress_LostEva { false }
 			, Temporal_HealthFactor { 1.0 }
+			, InfDeathAnims { }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

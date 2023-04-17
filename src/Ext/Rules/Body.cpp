@@ -12,7 +12,9 @@
 
 //#include <Ext/TechnoType/Body.h>
 
+#include <Ext/AnimType/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/BulletType/Body.h>
 
 #include <Utilities/Macro.h>
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -43,7 +45,6 @@ void RulesExt::ExtData::InitializeConstants()
 	AIHousesLists.reserve(5);
 	AIConditionsLists.reserve(5);
 	AITriggersLists.reserve(5);
-	GenericPrerequisitesData.reserve(20);
 	AI_AutoSellHealthRatio.reserve(3);
 	WallTowers.reserve(5);
 }
@@ -230,40 +231,43 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 {
 	auto& nPrepreqNames = RulesExt::Global()->GenericPrerequisitesData;
 
-	if (nPrepreqNames.size() != 0) //everything was initiated
+	if (!nPrepreqNames.empty()) //everything was initiated
 		return;
 
 	if (pRules != CCINIClass::INI_Rules()) //it is not RulesMD , skip
 		return;
 
-	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName)
+	nPrepreqNames.resize(6); // resize it for 6
+	nPrepreqNames.reserve(10);
+
+	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName , size_t idx)
 	{
+		auto&[catagory , typelist]= nPrepreqNames[idx];
+
+		catagory = CatagoryName;
+
 		if (!pRules->ReadString(GameStrings::General(), pKey, "", Phobos::readBuffer))
 			return;
 
 		char* context = nullptr;
-		std::vector<int> typelist;
 		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
 			cur; 
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			const int idx = BuildingTypeClass::FindIndexById(cur);
-			if (idx >= 0)
-				typelist.push_back(idx);
+			const int bTypeidx = BuildingTypeClass::FindIndexById(cur);
+			if (bTypeidx >= 0)
+				typelist.push_back(bTypeidx);
 			else
 				Debug::Log("%s Failed To Find BuildingTypeIndex for %s !  \n", pKey, cur);
 		}
-
-		nPrepreqNames.emplace_back(CatagoryName, typelist);
-		typelist.clear();
 	};
 
-	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER");
-	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY");
-	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS");
-	ReadPreReQs(GameStrings::PrerequisiteRadar(), "RADAR");
-	ReadPreReQs(GameStrings::PrerequisiteTech(), "TECH");
-	ReadPreReQs(GameStrings::PrerequisiteProc(), "PROC");
+	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER" , 0);
+	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY", 1);
+	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS", 2);
+	ReadPreReQs(GameStrings::PrerequisiteRadar(), "RADAR", 3);
+	ReadPreReQs(GameStrings::PrerequisiteTech(), "TECH", 4);
+	ReadPreReQs(GameStrings::PrerequisiteProc(), "PROC", 5);
 
 	// If [GenericPrerequisites] is present will be added after these.
 	// Also the originals can be replaced by new ones
@@ -275,33 +279,36 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 		if (!pRules->ReadString(pGenPrereq, pKeyName, "", Phobos::readBuffer))
 			continue;
 
-		std::vector<int> objectsList;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
-			cur; 
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			const int idx = BuildingTypeClass::FindIndexById(cur);
-			if (idx >= 0)
-				objectsList.push_back(idx);
-		}
-
 		bool bFound = false;
 		for (auto& [Catagory, Lists] : nPrepreqNames)
 		{
 			if (IS_SAME_STR_(Catagory.c_str(), pKeyName))
 			{
 				bFound = true;
-				Lists = objectsList;
+				Lists.clear();
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+					cur;
+					cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					const int idx = BuildingTypeClass::FindIndexById(cur);
+					if (idx >= 0)
+						Lists.push_back(idx);
+				}
 			}
 		}
 
-		if (!bFound)
-		{
-			// New generic prerequisite
-			nPrepreqNames.emplace_back(pKeyName, objectsList);
-		}
+		if (!bFound) {
 
-		objectsList.clear();
+			// New generic prerequisite
+			auto& It = nPrepreqNames.emplace_back(pKeyName, std::vector<int>());
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+				const int idx = BuildingTypeClass::FindIndexById(cur);
+				if (idx >= 0)
+					It.second.push_back(idx);
+			}
+		}
 	}
 }
 
@@ -488,11 +495,11 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma endregion
 
-	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes", true);
-	ObjectTypeParser::Exec<ScriptTypeClass, true>(pINI, AIScriptsLists, "AIScriptsList", true);
-	ObjectTypeParser::Exec(pINI, AIHousesLists, "AIHousesList", true);
+	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes");
+	ObjectTypeParser::Exec(pINI, AIScriptsLists, "AIScriptsList");
+	ObjectTypeParser::Exec(pINI, AIHousesLists, "AIHousesList");
 	ObjectTypeParser::Exec(pINI, AIConditionsLists, "AIConditionsList", true, false, "/");
-	ObjectTypeParser::Exec<AITriggerTypeClass, true>(pINI, AITriggersLists, "AITriggersList", true);
+	ObjectTypeParser::Exec(pINI, AITriggersLists, "AITriggersList");
 }
 
 bool RulesExt::DetailsCurrentlyEnabled()
@@ -792,17 +799,42 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 
 	RulesExt::LoadAfterTypeData(pItem, pINI);
 
-	//for (auto const& pUnparsedData : UnParsedThing::UnparsedList)
-	//{
-	//	if (pUnparsedData.empty())
-	//		continue;
+	//Debug::Log(__FUNCTION__" Called ! \n");
+	// std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](BuildingTypeClass* pType) {
+	// 	if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
+	// 	pExt->CompleteInitialization();
+	// });
 
-	//	Debug::Log("Loading Unparsed WH[%s] from INI Files ! \n" , pUnparsedData.c_str());
-	//	if (auto const pWH = WarheadTypeClass::Find(pUnparsedData.c_str()))
-	//		pWH->LoadFromINI(pINI);
-	//}
+	// TODO :
+	INI_EX iniEx(pINI);
+	char TagBuffer[0x40];
+	std::for_each(WarheadTypeClass::Array->begin(), WarheadTypeClass::Array->end(), [&](WarheadTypeClass* pType) {
+	if (auto const pExt = WarheadTypeExt::ExtMap.Find(pType))
+		for (size_t i = InfantryTypeClass::Array->Count; i > 0; --i)
+		{
+			Nullable<AnimTypeClass*> nBuffer {};
+			IMPL_SNPRNINTF(TagBuffer,sizeof(TagBuffer),"%s.InfDeathAnim" , InfantryTypeClass::Array->GetItem(i)->ID);
+			nBuffer.Read(iniEx, pType->ID, TagBuffer);
 
-	//UnParsedThing::UnparsedList.clear();
+			if (!nBuffer.isset())
+				continue;
+
+			pExt->InfDeathAnims[i] = nBuffer;
+		}
+	});
+
+	// load these after game loading 
+	// so the game not choke up when first firing the projectiles
+	std::for_each(BulletTypeClass::Array->begin(), BulletTypeClass::Array->end(),
+	[](BulletTypeClass* pType) {
+	 if (auto const pExt = BulletTypeExt::ExtMap.Find(pType))
+		 if (!pExt->ImageConvert.has_value()) {
+			 if (const auto pAnimType = AnimTypeClass::Find(pType->ImageFile)) {
+				 pExt->ImageConvert =
+					 AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
+			 }
+		 }
+	});
 
 	return 0;
 }
@@ -823,23 +855,6 @@ DEFINE_HOOK(0x668F6A, RulesData_LoadAfterAllLogicData, 0x5)
 	GET(CCINIClass*, pINI, ESI);
 
 	RulesExt::LoadAfterAllLogicData(pItem, pINI);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x679CAF, RulesClass_LoadAfterTypeData_CompleteInitialization, 0x5)
-{
-	//Debug::Log(__FUNCTION__" Called ! \n");
-	// std::for_each(BuildingTypeClass::Array->begin(), BuildingTypeClass::Array->end(), [](BuildingTypeClass* pType) {
-	// 	if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
-	// 	pExt->CompleteInitialization();
-	// });
-
-	// TODO :
-	//std::for_each(TechnoTypeClass::Array->begin(), TechnoTypeClass::Array->end(), [](TechnoTypeClass* pType) {
-	//if (auto const pExt = TechnoTypeExt::ExtMap.Find(pType))
-	//	pExt->Initialize();
-	//});
 
 	return 0;
 }

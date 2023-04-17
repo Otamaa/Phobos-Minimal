@@ -9,7 +9,7 @@
 #include <BulletClass.h>
 
 #include <Ext/BulletType/Body.h>
-#include <Base/SSE_Math.h>
+
 
 std::vector<VerticalLaserClass*> VerticalLaserClass::Array;
 

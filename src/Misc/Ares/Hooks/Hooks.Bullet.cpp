@@ -11,6 +11,8 @@
 
 #include <HoverLocomotionClass.h>
 
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -250,7 +252,7 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 		auto const pCellSrc = MapClass::Instance->GetCellAt(cellSrc);
 
 		auto const delta = AbsoluteDifference(cellSrc - cellTarget);
-		auto const maxDelta = static_cast<size_t>(std::max(delta.X, delta.Y));
+		auto const maxDelta = static_cast<size_t>(MaxImpl(delta.X, delta.Y));
 
 		auto const step = !maxDelta ? CoordStruct::Empty
 			: (crdTarget - crdSrc) * (1.0 / maxDelta);
@@ -360,4 +362,33 @@ DEFINE_OVERRIDE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5
 
 	R->EAX(ret);
 	return 0x4CC357;
+}
+
+NOINLINE ConvertClass* GetBulletConvert(BulletClass* pThis)
+{
+	const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	if (!pBulletTypeExt->ImageConvert.has_value())
+	{
+		if (const auto pAnimType = AnimTypeClass::Find(pThis->Type->ImageFile))
+		{
+			pBulletTypeExt->ImageConvert =
+				AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
+		}
+	}
+
+	return pBulletTypeExt->ImageConvert.get();
+}
+
+
+DEFINE_OVERRIDE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette, 6)
+{
+	GET(BulletClass*, Bullet, ESI);
+
+	if (const auto pConvert = GetBulletConvert(Bullet))
+	{
+		R->EBX(pConvert);
+		return 0x4683D7;
+	}
+
+	return 0x0;
 }

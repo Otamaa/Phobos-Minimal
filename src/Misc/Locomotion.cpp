@@ -30,7 +30,7 @@ const char* REG_CLASS()
 	return buffs;
 }
 
-//DEFINE_HOOK(0x6BC4AE, WinMain_CoRegisterClassObjects_Locomotions, 0x7)
+//DEFINE_HOOK(0x6BC4AE, WinMain_CoRegisterClassObjects_Locomotions, 0x6)
 //{
 //	Debug::Log("Registering new com objects...\n");
 //	Debug::Log("Registering LevitateLocomotionClass\n");

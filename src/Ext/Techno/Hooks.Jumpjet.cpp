@@ -239,7 +239,7 @@ DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 //		{
 //			CoordStruct& source = pThis->Location;
 //			CoordStruct target = pTarget->GetCoords();
-//			DirStruct tgtDir = DirStruct(Math::arctanfoo(source.Y - target.Y, target.X - source.X));
+//			DirStruct tgtDir = DirStruct(std::atan2(source.Y - target.Y, target.X - source.X));
 //
 //			if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
 //				pLoco->Facing.Set_Desired(tgtDir);

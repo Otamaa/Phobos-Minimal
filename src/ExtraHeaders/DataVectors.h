@@ -1085,8 +1085,8 @@ void SimpleDynVecClass<T>::Delete_All(bool allow_shrink)
 template<class T>
 bool SimpleDynVecClass<T>::Grow(int new_size_hint)
 {
-	int new_size = std::max(Length() + Length() / 4, Length() + 4);
-	new_size = std::max(new_size, new_size_hint);
+	const int new_size = MaxImpl(Length() + Length() / 4, Length() + 4);
+	new_size = MaxImpl(new_size, new_size_hint);
 
 	return Resize(new_size);
 }

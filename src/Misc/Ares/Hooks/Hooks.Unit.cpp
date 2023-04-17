@@ -580,14 +580,14 @@ void DepositTiberium(TechnoClass* pThis ,float const amount, float const bonus, 
 	// would fill up storage with tiberium that doesn't exist. this is consistent with
 	// the original YR, because old GiveTiberium put it on the bank anyhow, despite its name.
 	if (bonus > 0.0) {
-		value += Game::F2I(bonus * pTiberium->Value * pHouse->Type->IncomeMult);
+		value += int(bonus * pTiberium->Value * pHouse->Type->IncomeMult);
 	}
 
 	// also add the normal tiberium to the global account?
 	if (amount > 0.0) {
 		auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		if (!pExt->Refinery_UseStorage) {
-			value += Game::F2I(amount * pTiberium->Value * pHouse->Type->IncomeMult);
+			value += int(amount * pTiberium->Value * pHouse->Type->IncomeMult);
 		}
 		else {
 			pHouse->GiveTiberium(amount, idxType);
@@ -1787,7 +1787,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 			int value = static_cast<int>(max / 2);
 			if (pType->Storage > 0)
 			{
-				value = Game::F2I(stored / pType->Storage * max);
+				value = int(stored / pType->Storage * max);
 			}
 
 			// get the spill center
@@ -1877,7 +1877,7 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 		idxVoice = pData->VoiceRepair;
 		if (idxVoice < 0)
 		{
-			if (!(IS_SAME_STR_(pType->ID, "FV")))
+			if ((IS_SAME_STR_(pType->ID, "FV")))
 			{
 				idxVoice = RulesClass::Instance->VoiceIFVRepair;
 			}

@@ -119,7 +119,7 @@ public:
 	{
 		MapRevealer const revealer(*pCoord);
 		revealer.Reveal0(*pCoord, nRadius, pHouse, bOutlineOnly, bNoShroudUpdate, bFog, bAllowRevealByHeight, bHideOnRadar);
-		revealer.UpdateShroud(0, static_cast<size_t>(std::max(nRadius, 0)), false);
+		revealer.UpdateShroud(0, static_cast<size_t>(MaxImpl(nRadius, 0)), false);
 	}
 
 	// Sight_From
@@ -135,6 +135,6 @@ public:
 		CoordStruct* Coords, int Height, int Radius, bool bSkipReveal)
 	{
 		MapRevealer const revealer(*Coords);
-		revealer.UpdateShroud(static_cast<size_t>(std::max(Height, 0)), static_cast<size_t>(std::max(Radius, 0)), bSkipReveal);
+		revealer.UpdateShroud(static_cast<size_t>(MaxImpl(Height, 0)), static_cast<size_t>(MaxImpl(Radius, 0)), bSkipReveal);
 	}
 };

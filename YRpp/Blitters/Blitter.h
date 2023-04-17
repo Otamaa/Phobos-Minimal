@@ -21,7 +21,7 @@ protected:
 	inline static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
 	{
 		// convert alvl from [0, 2000] into [0, 254]
-		int level = std::min(254, 261* std::max(0, alvl) >> 11);
+		int level = MinImpl(254, 261* MaxImpl(0, alvl) >> 11);
 		return remapper->Table[level];
 	}
 };
@@ -38,7 +38,7 @@ protected:
 	inline static WORD* Lookup_Alpha_Remapper(int alvl, AlphaLightingRemapClass* remapper)
 	{
 		// convert alvl from [0, 2000] into [0, 254]
-		int level = std::min(254, 261* std::max(0, alvl) >> 11);
+		int level = MinImpl(254, 261* MaxImpl(0, alvl) >> 11);
 		return remapper->Table[level];
 	}
 

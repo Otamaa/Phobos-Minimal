@@ -330,7 +330,7 @@ void DTA_DoAtomDamage(const ObjectClass* object_ptr, const int damageradius, con
 						{
 							Coordinate buildingcellcoord = building->Coord + Cell_Coord(*occupy, true) - Coordinate(CELL_LEPTON_W / 2, CELL_LEPTON_H / 2, 0);
 							distance = Distance(Cell_Coord(cell, true), buildingcellcoord);
-							distances[count] = std::min(distance, distances[count]);
+							distances[count] = MinImpl(distance, distances[count]);
 							occupy++;
 						}
 					}

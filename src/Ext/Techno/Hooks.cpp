@@ -396,7 +396,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 
 			// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
 			if (i != 0)
-				delay = Math::LessOrEqualTo(delay, 1);
+				delay = MaxImpl(delay , 1);
 
 			cumulativeDelay += delay;
 
@@ -516,6 +516,24 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 
 		if (pThis->GetHeight() < 10)
 		{
+			if(pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex) 
+				&& pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex])
+			{
+				AnimClass* Anim = GameCreate<AnimClass>(pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex],
+				pThis->Location);
+
+				HouseClass* const Invoker = (args.Attacker)
+					? args.Attacker->Owner
+					: args.SourceHouse
+					;
+
+				//these were MakeInf stuffs  , to make sure no behaviour chages
+				AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
+				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
+
+				Handled = true;
+			}
+			else
 			if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim)
 			{
 				AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);

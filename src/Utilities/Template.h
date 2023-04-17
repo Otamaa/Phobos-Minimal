@@ -417,9 +417,6 @@ public:
 
 	bool Contains(const T& other) const
 	{
-		if(this->empty())
-			return false;
-
 		if constexpr (std::is_pointer<T>::value) {
 			return std::any_of(this->begin(), this->end(), [&](const auto& item) {
 				return item == other;

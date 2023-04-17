@@ -21,7 +21,7 @@ public:
 		while (len--)
 		{
 			if (byte idx = *src++)
-				*abuf = std::min(idx * alvl + zval, 255);
+				*abuf = MinImpl(idx * alvl + zval, 255);
 			++abuf;
 			++dest;
 

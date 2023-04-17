@@ -176,7 +176,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 			if (nDebrisMaximum > 0)
 			{
 				int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
-				amountToSpawn = Math::LessOrEqualTo(amountToSpawn, totalSpawnAmount);
+				amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
 				totalSpawnAmount -= amountToSpawn;
 
 				for (; amountToSpawn > 0; --amountToSpawn)

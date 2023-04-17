@@ -127,7 +127,7 @@ public:
 
 	void Set_ROT(int rate)
 	{
-		ROT.SetDir((DirType)std::min(rate,127));
+		ROT.SetDir((DirType)MinImpl(rate,127));
 	}
 
 private:

@@ -96,7 +96,7 @@ DEFINE_HOOK(0x48A551, WarheadTypeClass_AnimList_SplashList, 0x6)
 		GET(int, nDamage, ECX);
 		int idx = pWHExt->SplashList_PickRandom ?
 			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->SplashList.size() - 1) :
-			std::min(pWHExt->SplashList.size() * 35 - 1, (size_t)nDamage) / 35;
+			MinImpl(pWHExt->SplashList.size() * 35 - 1, (size_t)nDamage) / 35;
 		R->EAX(pWHExt->SplashList[idx]);
 		return 0x48A5AD;
 	}
@@ -119,8 +119,8 @@ DEFINE_HOOK(0x48A5B3, WarheadTypeClass_AnimList_CritAnim, 0x6)
 	{
 		GET(int, nDamage, ECX);
 		int idx = pThis->EMEffect || pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom) ?
-			ScenarioClass::Instance->Random.RandomRanged(0, pWHExt->Crit_AnimList.size() - 1) :
-			std::min(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)nDamage) / 25;
+			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
+			MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)nDamage) / 25;
 		R->EAX(pWHExt->Crit_AnimList[idx]);
 		return 0x48A5AD;
 	}

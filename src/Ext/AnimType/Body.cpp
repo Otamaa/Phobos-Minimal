@@ -207,7 +207,8 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		}
 
 		int z = pTypeExt->CreateUnit_AlwaysSpawnOnGround ? INT32_MIN : pThis->GetCoords().Z;
-		location.Z = std::max(MapClass::Instance->GetCellFloorHeight(location), z);
+		const auto nCellHeight = MapClass::Instance->GetCellFloorHeight(location);
+		location.Z = MaxImpl(nCellHeight, z);
 
 		if (const auto pTechno = static_cast<UnitClass*>(unit->CreateObject(decidedOwner)))
 		{

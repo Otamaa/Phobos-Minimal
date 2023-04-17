@@ -113,3 +113,14 @@ typedef union {
 	} pieces;
 	uint32_t all;
 } splitint_t_little;
+
+#ifndef _useSTD
+#define MinImpl(a,b) (((a) < (b)) ? (a) : (b))
+#define MaxImpl(a,b) (((a) > (b)) ? (a) : (b))
+#else
+#define MinImp std::min
+#define MaxImpl std::max
+#endif
+
+#define LessOrEqualTo(a, b) (a <= b) ? (a) : (b);
+#define MoreOrEqualTo(a, b) (a >= b) ? (a) : (b);

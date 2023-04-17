@@ -309,8 +309,8 @@ bool PriorityQueueClass<TElement, TPriority, IsMinHeap>::Insert(PriorityQueueCla
 
 	Heapify_Up(new_count);
 
-	MaxNodePointer = std::max(MaxNodePointer, reinterpret_cast<std::uintptr_t>(node));
-	MinNodePointer = std::min(MinNodePointer, reinterpret_cast<std::uintptr_t>(node));
+	MaxNodePointer = MaxImpl(MaxNodePointer, reinterpret_cast<std::uintptr_t>(node));
+	MinNodePointer = MinImpl(MinNodePointer, reinterpret_cast<std::uintptr_t>(node));
 
 	return true;
 }
@@ -360,8 +360,8 @@ void PriorityQueueClass<TElement, TPriority, IsMinHeap>::Resize(int new_size)
 		for (int i = 1; i <= Count; ++i)
 		{
 			PriorityQueueClassNode<TElement, TPriority, IsMinHeap>* current_node = Heap[i];
-			MaxNodePointer = std::max(MaxNodePointer, reinterpret_cast<std::uintptr_t>(current_node));
-			MinNodePointer = std::min(MinNodePointer, reinterpret_cast<std::uintptr_t>(current_node));
+			MaxNodePointer = MaxImpl(MaxNodePointer, reinterpret_cast<std::uintptr_t>(current_node));
+			MinNodePointer = MinImpl(MinNodePointer, reinterpret_cast<std::uintptr_t>(current_node));
 		}
 	}
 }

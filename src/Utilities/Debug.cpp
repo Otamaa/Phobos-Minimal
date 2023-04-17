@@ -16,6 +16,10 @@ void Debug::Log(const char* pFormat, ...)
 	JMP_STD(0x4068E0);
 }
 
+void Debug::Log(const std::string& pString) {
+	Debug::Log("%s", pString.c_str());
+}
+
 void Debug::LogDeferred(const char* pFormat, ...)
 {
 	va_list args;
@@ -141,7 +145,7 @@ void Debug::DumpObj(void const* const data, size_t const len)
 	{
 		Debug::LogUnflushed("\n");
 		Debug::LogUnflushed(" %05X |", startRow);
-		auto const bytesInRow = std::min(len - startRow, 0x10u);
+		auto const bytesInRow = MinImpl(len - startRow, 0x10u);
 		for (auto i = 0u; i < bytesInRow; ++i)
 		{
 			Debug::LogUnflushed(" %02X |", bytes[startRow + i]);

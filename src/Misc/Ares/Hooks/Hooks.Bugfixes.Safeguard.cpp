@@ -27,7 +27,7 @@ DEFINE_OVERRIDE_HOOK(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 	GET(const char*, pHouse, ESI);
 
 	if (index < 0) {
-		Debug::Log("TriggerType '%s' refers to a house named '%s', which does not exist. In case no house is needed, use '<none>' explicitly.", pTrig->ID, pHouse);
+		Debug::FatalErrorAndExit("TriggerType '%s' refers to a house named '%s', which does not exist. In case no house is needed, use '<none>' explicitly.", pTrig->ID, pHouse);
 		R->EDX<HouseTypeClass*>(nullptr);
 	} else {
 		R->EDX<HouseTypeClass*>(HouseTypeClass::Array->GetItem(index));

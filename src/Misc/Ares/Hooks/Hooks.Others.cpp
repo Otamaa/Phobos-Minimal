@@ -26,45 +26,6 @@
 
 #include <Notifications.h>
 
-DEFINE_OVERRIDE_HOOK(0x4232CE , AnimClass_Draw_SetPalette, 6)
-{
-	GET(AnimTypeClass*, AnimType, EAX);
-
-	const auto pData = AnimTypeExt::ExtMap.Find(AnimType);
-
-	if (pData->Palette.Convert) {
-		R->ECX<ConvertClass*>(pData->Palette.GetConvert());
-		return 0x4232D4;
-	}
-
-	return 0;
-}
-
-NOINLINE ConvertClass* GetBulletConvert(BulletClass* pThis)
-{
-	const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	if (!pBulletTypeExt->ImageConvert.has_value()) {
-		if (const auto pAnimType = AnimTypeClass::Find(pThis->Type->ImageFile)) {
-			pBulletTypeExt->ImageConvert = 
-				AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
-		}
-	}
-
-	return pBulletTypeExt->ImageConvert.get();
-}
-
-DEFINE_OVERRIDE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette, 6)
-{
-	GET(BulletClass*, Bullet, ESI);
-
-	if(const auto pConvert = GetBulletConvert(Bullet)) {
-		R->EBX(pConvert);
-		return 0x4683D7;
-	}
-
-	return 0x0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -78,81 +39,6 @@ DEFINE_OVERRIDE_HOOK(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK_AGAIN(0x42511B, AnimClass_Expired_ScorchFlamer, 0x7)
-DEFINE_OVERRIDE_HOOK_AGAIN(0x4250C9, AnimClass_Expired_ScorchFlamer, 0x7)
-DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
-{
-	GET(AnimClass*, pThis, ESI);
-	auto pType = pThis->Type;
-
-	CoordStruct crd = pThis->GetCoords();
-
-	auto SpawnAnim = [&crd](AnimTypeClass* pType, int dist)
-	{
-		if (!pType)
-		{
-			return static_cast<AnimClass*>(nullptr);
-		}
-
-		CoordStruct crdAnim = crd;
-		if (dist > 0)
-		{
-			auto crdNear = MapClass::GetRandomCoordsNear(crd, dist, false);
-			crdAnim = MapClass::PickInfantrySublocation(crdNear, true);
-		}
-
-		auto count = ScenarioClass::Instance->Random.RandomRanged(1, 2);
-		return GameCreate<AnimClass>(pType, crdAnim, 0, count, 0x600u, 0, false);
-	};
-
-	if (pType->Flamer)
-	{
-		// always create at least one small fire
-		if (auto const pAnim1 = SpawnAnim(RulesClass::Instance->SmallFire, 64))
-			AnimExt::SetAnimOwnerHouseKind(pAnim1, pAnim1->Owner, nullptr);
-
-		// 50% to create another small fire
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
-		{
-			if (auto const pAnim2 = SpawnAnim(RulesClass::Instance->SmallFire, 160))
-				AnimExt::SetAnimOwnerHouseKind(pAnim2, pAnim2->Owner, nullptr);
-		}
-
-		// 50% chance to create a large fire
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < 50)
-		{
-			if (auto const pAnim3 = SpawnAnim(RulesClass::Instance->LargeFire, 112))
-				AnimExt::SetAnimOwnerHouseKind(pAnim3, pAnim3->Owner, nullptr);
-		}
-
-	}
-	else if (pType->Scorch)
-	{
-		// creates a SmallFire anim that is attached to the same object
-		// this anim is attached to.
-		if (pThis->GetHeight() < 10)
-		{
-			switch (pThis->GetCell()->LandType)
-			{
-			case LandType::Water:
-			case LandType::Beach:
-			case LandType::Ice:
-			case LandType::Rock:
-				break;
-			default:
-				if (auto pAnim = SpawnAnim(RulesClass::Instance->SmallFire, 0))
-				{
-					if (pThis->OwnerObject)
-					{
-						pAnim->SetOwnerObject(pThis->OwnerObject);
-					}
-				}
-			}
-		}
-	}
-
-	return 0;
-}
 
 DEFINE_OVERRIDE_HOOK(0x420A71, AlphaShapeClass_CTOR_Anims, 0x5)
 {
@@ -776,71 +662,6 @@ DEFINE_OVERRIDE_HOOK(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 		? 0x6B735C : 0x6B72FE;
 }
 
-// MakeInfantry that fails to place will just end the source animation and cleanup instead of memleaking to game end
-DEFINE_OVERRIDE_HOOK(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
-{
-	GET(AnimClass*, pThis, ESI);
-	GET(InfantryClass*, pInf, EDI);
-
-	pInf->UnInit();
-	pThis->TimeToDie = 1;
-	pThis->UnInit();
-
-	return 0x424B29;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
-{
-	enum
-	{
-		DoNotDealDamage = 0x423A92,
-		DealDamage = 0x4239F8,
-		GoToNext = 0x423A83,
-	};
-
-	GET(ObjectClass*, pObj, EDI);
-	GET(AnimClass*, pThis, EBP);
-
-	auto const pType = pThis->Type;
-	auto const nRadius = pType->DamageRadius;
-
-	if (!pObj || nRadius < 0 || CLOSE_ENOUGH(pType->Damage, 0.0) || !pType->Warhead)
-		return DoNotDealDamage;
-
-	auto const nCoord = pThis->Bounce.GetCoords();
-	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pType);
-	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
-	auto const nLoc = pObj->Location;
-	auto const nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
-
-	if (nDist < nRadius)
-	{
-		auto nDamage = (int)pType->Damage;
-		pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
-	}
-
-	//return !pObj || !pType->Warhead ||
-	//	pType->DamageRadius < 0 || pType->Damage == 0.0 ?
-	//	DoNotDealDamage : DealDamage;
-	return GoToNext;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4242CA, AnimClass_Update_FixIE_TrailerSeperation, 0x6)
-{
-	enum
-	{
-		PlayTrail = 0x4242D5,
-		SkopTrail = 0x424322,
-	};
-
-	GET(AnimTypeClass*, AT, EAX);
-	int trailSep = AT->TrailerSeperation;
-
-	R->ECX(trailSep);
-
-	return trailSep >= 1
-		? PlayTrail : SkopTrail;
-}
 
 // #896027: do not announce pointers as expired to bombs
 // if the pointed to object is staying in-game.
@@ -873,6 +694,7 @@ DEFINE_OVERRIDE_HOOK(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 	return nWhat == AbstractType::ParticleSystem ?
 		0x725917 : 0x7259DA;
 }
+
 
 DEFINE_OVERRIDE_HOOK(0x725A1F, AnnounceInvalidPointer_SkipBehind, 0x5)
 {
@@ -979,16 +801,29 @@ DEFINE_OVERRIDE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
 		? 0x6FF274 : 0x0;
 }
 
+#include <TeamClass.h>
+#include <Ext/TeamType/Body.h>
+#include <format>
+
 DEFINE_OVERRIDE_HOOK(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
+	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
+	//Debug::Log(std::format(__FUNCTION__ " Function With Type {} ! \n",pTeam->Type->ID));
+	//R->EDX(pTeamExt->AI_SafeDIstance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
 	R->EDX(RulesClass::Instance->AISafeDistance + pTeamM->Argument);
+
 	return 0x6EF8A7;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
+	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x4C, 0x2C));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
+	//Debug::Log("%s", std::format("{} Function With Type {} ! \n", __FUNCTION__, pTeam->Type->ID).c_str());
+	//const auto pTeamExt = TeamTypeExt::ExtMap.Find(pTeam->Type);
+	//R->EDX(pTeamExt->AI_FriendlyDistance.Get(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance)) + pTeamM->Argument);
 	R->EDX(RulesExt::Global()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + pTeamM->Argument);
 	return 0x6EFB6F;
 }
@@ -998,18 +833,6 @@ DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog
 	GET(OverlayTypeClass*, pThis, EAX);
 	Debug::Log("Overlay %s not really tiberium \n", pThis->ID);
 	return 0x5FDDC1;
-}
-
-DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
-{
-	enum
-	{
-		SkipDamageDelay = 0x42465D,
-		CheckIsAlive = 0x42464C
-	};
-
-	GET(AnimClass*, pThis, ESI);
-	return AnimExt::DealDamageDelay(pThis) ? SkipDamageDelay : CheckIsAlive;
 }
 
 DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
@@ -1152,7 +975,6 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 	auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
 	pSuperExt->Temp_IsPlayer = isPlayer;
 	pSuperExt->Temp_CellStruct = *pCell;
-
 
 	if (AresData::SW_Activate(pSuper, *pCell, isPlayer))
 	{
@@ -2010,6 +1832,7 @@ DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 	WWMouseClass::Instance->ShowCursor();
 	return 0x4B76A0;
 }
+
 template<size_t idx>
 static void* AresExtMap_Find(void* const key)
 {

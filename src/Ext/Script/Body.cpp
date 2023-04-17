@@ -505,7 +505,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 			{
 				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
 				{
-					auto const delay = std::max(pExt->CloakSkipTimer.GetTimeLeft(), argument);
+					auto const delay = MaxImpl(pExt->CloakSkipTimer.GetTimeLeft(), argument);
 					pExt->CloakSkipTimer.Start(delay);
 
 					// actually detect this
@@ -525,7 +525,7 @@ bool ProcessAction_Ares(TeamClass* pTeam , ScriptActionNode nNode)
 			{
 				if (auto pExt = AresTechnoExt::ExtMap::Find(pCur))
 				{
-					auto const delay = std::max(pExt->DisableWeaponTimer.GetTimeLeft(), argument);
+					auto const delay = MaxImpl(pExt->DisableWeaponTimer.GetTimeLeft(), argument);
 					pExt->DisableWeaponTimer.Start(delay);
 
 					// actually detect this
@@ -1083,7 +1083,7 @@ beginLoad:
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
 		auto pType = pUnit->GetTechnoType();
-		maxSizeLimit = std::max(maxSizeLimit, pType->SizeLimit);
+		maxSizeLimit = MaxImpl(maxSizeLimit, pType->SizeLimit);
 	}
 	// No transports remaining
 	if (maxSizeLimit == 0)

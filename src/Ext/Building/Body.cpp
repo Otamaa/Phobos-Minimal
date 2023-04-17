@@ -32,7 +32,7 @@ void BuildingExt::ExtData::InitializeConstants()
 
 void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
-	if (!pAttackerHouse || !pTargetHouse)
+	if (!pAttackerHouse || !pTargetHouse || LimboIDs.empty())
 		return;
 
 	if (!EnumFunctions::CanTargetHouse(Affects.Get(), pAttackerHouse, pTargetHouse))
@@ -156,11 +156,12 @@ bool BuildingExt::ExtData::RubbleYell(bool beingRepaired)
 			if (strength <= -1 && strength >= -100)
 			{
 				// percentage of original health
-				pNew->Health = std::max((-strength * pNew->Type->Strength) / 100, 1);
+				const auto nDecided = ((-strength * pNew->Type->Strength) / 100);
+				pNew->Health = MaxImpl(nDecided, 1);
 			}
 			else if (strength > 0)
 			{
-				pNew->Health = std::min(strength, pNew->Type->Strength);
+				pNew->Health = MinImpl(strength, pNew->Type->Strength);
 			} /* else Health = Strength*/
 
 			// The building is created?

@@ -37,6 +37,7 @@ void WarheadTypeExt::ExtData::InitializeConstants()
 	Shield_AffectTypes.reserve(8);
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
+	InfDeathAnims.reserve(200);
 	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
 }
 
@@ -267,10 +268,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
 
 	//TODO :Evaluate this
-	//this->DirectionalArmor_FrontField = std::min(this->DirectionalArmor_FrontField.Get(), 1.0f);
-	//this->DirectionalArmor_FrontField = std::max(this->DirectionalArmor_FrontField.Get(), 0.0f);
-	//this->DirectionalArmor_BackField = std::min(this->DirectionalArmor_BackField.Get(), 1.0f);
-	//this->DirectionalArmor_BackField = std::max(this->DirectionalArmor_BackField.Get(), 0.0f);
+	//this->DirectionalArmor_FrontField = MinImpl(this->DirectionalArmor_FrontField.Get(), 1.0f);
+	//this->DirectionalArmor_FrontField = MaxImpl(this->DirectionalArmor_FrontField.Get(), 0.0f);
+	//this->DirectionalArmor_BackField = MinImpl(this->DirectionalArmor_BackField.Get(), 1.0f);
+	//this->DirectionalArmor_BackField = MaxImpl(this->DirectionalArmor_BackField.Get(), 0.0f);
 
 	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
 	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");
@@ -573,12 +574,13 @@ FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(Tech
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 		return FullMapDetonateResult::TargetHouseNotEligible;
 
-	if ((!this->DetonateOnAllMapObjects_AffectTypes.empty() &&
-		!this->DetonateOnAllMapObjects_AffectTypes.Contains(pType)) ||
-		this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
-	{
+	if(!this->DetonateOnAllMapObjects_AffectTypes.empty() 
+		&& !this->DetonateOnAllMapObjects_AffectTypes.Contains(pType))
 		return FullMapDetonateResult::TargetRestricted;
-	}
+
+	if (!this->DetonateOnAllMapObjects_IgnoreTypes.empty() &&
+		this->DetonateOnAllMapObjects_IgnoreTypes.Contains(pType))
+		return FullMapDetonateResult::TargetRestricted;
 
 	return FullMapDetonateResult::TargetValid;
 }
@@ -1021,6 +1023,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Temporal_WarpAway)
 		.Process(this->Supress_LostEva)
 		.Process(this->Temporal_HealthFactor)
+		.Process(this->InfDeathAnims)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -1040,10 +1043,8 @@ bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 	auto const abs = GetVtableAddr(pVictim);
 	auto const pVictimType = pVictim->GetTechnoType();
 
-	if (!SuppressDeathWeapon_Exclude.empty())
-	{
-		return !SuppressDeathWeapon_Exclude.Contains(pVictimType);
-	}
+	if (!SuppressDeathWeapon_Exclude.empty() && SuppressDeathWeapon_Exclude.Contains(pVictimType) )
+		return false;
 
 	if (abs == UnitClass::vtable && SuppressDeathWeapon_Vehicles)
 		return true;

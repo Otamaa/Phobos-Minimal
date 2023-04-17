@@ -447,10 +447,10 @@ DEFINE_HOOK(0x6D3470, TacticalClass_DrawFoggedObject, 0x8)
 
 	if (finalRect.Width > 0 && finalRect.Height > 0)
 	{
-		finalRect.X = std::max(finalRect.X, 0);
-		finalRect.Y = std::max(finalRect.Y, 0);
-		finalRect.Width = std::min(finalRect.Width, DSurface::ViewBounds->Width - finalRect.X);
-		finalRect.Height = std::min(finalRect.Height, DSurface::ViewBounds->Height - finalRect.Y);
+		finalRect.X = MaxImpl(finalRect.X, 0);
+		finalRect.Y = MaxImpl(finalRect.Y, 0);
+		finalRect.Width = MinImpl(finalRect.Width, DSurface::ViewBounds->Width - finalRect.X);
+		finalRect.Height = MinImpl(finalRect.Height, DSurface::ViewBounds->Height - finalRect.Y);
 
 		for (const auto pObject : FoggedObject::FoggedObjects)
 			pObject->Render(finalRect);
