@@ -81,8 +81,4 @@ template<int s> struct SIZEOF_ ## t ## _IS; \
 struct foo { int a,b; }; \
 SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 
-#define VTABLE_SET(item, addr) ((int*)item)[0] = addr
-#define VTABLE_SET_AT(item, pos, addr) ((int*)item)[pos] = addr
-#define VTABLE_GET(item) (((int*)item)[0])
-
 struct noinit_t final {};

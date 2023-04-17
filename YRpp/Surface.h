@@ -158,9 +158,9 @@ public:
 
 	static inline constexpr DWORD vtable = 0x7E2104;
 	
-	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTABLE_SET(this , vtable); }
+	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this , vtable); }
 	XSurface(int width, int height) JMP_THIS(0x5FE020);
-	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTABLE_SET(this, vtable); }
+	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTable::Set(this, vtable); }
 	virtual ~XSurface() { JMP_THIS(0x4115A0); }
 
 	virtual bool Copy_From(RectangleStruct& toarea, RectangleStruct& torect, Surface* fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, bool trans_blit = false, bool a7 = true) override JMP_THIS(0x7BBCF0);
@@ -237,8 +237,8 @@ public:
 	static inline constexpr DWORD vtable = 0x7E2070;
 	static constexpr reference<BSurface, 0xB2D928> const VoxelSurface {};
 
-	BSurface() : XSurface(), BufferPtr() { VTABLE_SET(this, vtable); }
-	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTABLE_SET(this, vtable); }
+	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
+	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
 	virtual ~BSurface() { JMP_THIS(0x411650); }
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4115F0);
@@ -368,6 +368,7 @@ static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct
 
 #pragma warning(pop)
 #pragma endregion CommonFunction
+
 class NOVTABLE DSurface : public XSurface
 {
 public:
@@ -563,6 +564,7 @@ public:
 	LPDDSURFACEDESC VideoSurfaceDescription;
 };
 static_assert(sizeof(DSurface) == 0x24, "Invalid Size !");
+
 struct RGB32
 {
 	char R;

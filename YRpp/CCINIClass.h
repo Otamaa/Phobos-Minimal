@@ -12,6 +12,7 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GameStrings.h>
+#include <Helpers/VTable.h>
 
 class TechnoTypeClass;
 
@@ -428,7 +429,7 @@ public:
 	CCINIClass() : INIClass(false) {
 		THISCALL(0x535AA0);
 		Digested = false;
-		VTABLE_SET(this, vtable);
+		VTable::Set(this, vtable);
 	}
 
 	virtual ~CCINIClass() RX;

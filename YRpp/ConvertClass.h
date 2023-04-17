@@ -20,6 +20,10 @@ class DSurface;
 class ConvertClass
 {
 public:
+	enum BytesPerPixel {
+		One, Two
+	};
+
 	static constexpr inline DWORD vtable = 0x7E5358;
 	static constexpr constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
 
@@ -39,14 +43,13 @@ public:
 
 	static void Recalc_Color_Remap_Tables(int a1, int a2, int a3, int a4) JMP_THIS(0x491100);
 
-	inline unsigned inline_01(unsigned index)
+	inline constexpr unsigned inline_01(unsigned index)
 	{
 		switch (BytesPerPixel)
 		{
-		default:
-		case 1:
+		case BytesPerPixel::One:
 			return reinterpret_cast<uint8_t*>(BufferA)[index];
-		case 2:
+		case BytesPerPixel::Two:
 			return reinterpret_cast<uint16_t*>(BufferA)[index];
 		};
 	}
@@ -55,10 +58,9 @@ public:
 	{
 		switch (BytesPerPixel)
 		{
-		default:
-		case 1:
+		case BytesPerPixel::One:
 			return reinterpret_cast<uint8_t*>(BufferMid)[index];
-		case 2:
+		case BytesPerPixel::Two:
 			return reinterpret_cast<uint16_t*>(BufferMid)[index];
 		};
 	}
@@ -81,14 +83,14 @@ public:
 
 protected:
 	explicit __forceinline ConvertClass(noinit_t) {
-	//	*((unsigned long*)this) = (unsigned long)0x7E5358;
+	//VTable::Set(this,0x7E5358);
 	}
 
 	//===========================================================================
 	//===== Properties ==========================================================
 	//===========================================================================
 public:
-	int BytesPerPixel;
+	BytesPerPixel BytesPerPixel;
 	Blitter* Blitters[50];
 	RLEBlitter* RLEBlitters[39];
 	int ShadeCount; //16C
@@ -145,8 +147,8 @@ public:
 	BytePalette const* UsedPalette2;
 	BYTE* IndexesToIgnore;
 	int RefCount;
-	TintStruct Color1;
-	TintStruct Color2;
+	DECLARE_PROPERTY(TintStruct , Color1);
+	DECLARE_PROPERTY(TintStruct , Color2);
 	bool Tinted;
 	PROTECTED_PROPERTY(BYTE, align_1B1[3]);
 };

@@ -13,6 +13,7 @@ public:
 	static constexpr reference<bool, 0x884B8Fu> const Bound{};
 	static constexpr reference<CCToolTip*, 0x887368u> const Instance {};
 	static constexpr reference<ColorStruct, 0xB0FA1Cu> const ToolTipTextColor{};
+	static inline constexpr DWORD vtable = 0x7F74C4;
 
 	virtual ~CCToolTip() JMP_THIS(0x7784A0);
 
@@ -22,8 +23,8 @@ public:
 
 	//Constructors
 	CCToolTip(HWND hWnd) noexcept
-		: ToolTipManager(hWnd) 
-	{ VTABLE_SET(this, 0x7F74C4); }
+		: ToolTipManager(hWnd)
+	{ VTable::Set(this, vtable); }
 
 	//Properties
 public:

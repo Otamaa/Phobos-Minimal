@@ -89,11 +89,12 @@ VoxelStruct* TechnoTypeExt::GetBarrelsVoxelData(TechnoTypeClass* const pThis, si
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerBarrels[nIdx];
 
-	if ((nIdx - TechnoTypeClass::MaxWeapons) > TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
-		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than BarrelData ! \n", pThis->ID);
+	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
+	if (nAdditional > TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData.size())
+		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! \n", pThis->ID , nAdditional);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->BarrelImageData
-		[nIdx - TechnoTypeClass::MaxWeapons];
+		[nAdditional];
 }
 
 VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx)
@@ -101,11 +102,12 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 	if (nIdx < TechnoTypeClass::MaxWeapons)
 		return &pThis->ChargerTurrets[nIdx];
 
-	if ((nIdx - TechnoTypeClass::MaxWeapons) > TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
-		Debug::Log(__FUNCTION__" [%s] Size Is Bigger than TurretData ! \n", pThis->ID);
+	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
+	if (nAdditional > TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData.size())
+		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! \n", pThis->ID , nAdditional);
 
 	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
-		[nIdx - TechnoTypeClass::MaxWeapons];
+		[nAdditional];
 }
 
 //void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)

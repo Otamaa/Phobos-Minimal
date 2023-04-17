@@ -51,8 +51,6 @@ DEFINE_OVERRIDE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 			return 0x4232D4;
 		}
 
-	} else {
-		Debug::Log("Drawing [0x%x] Anim without Type ! \n" , pThis);
 	}
 
 	return 0;

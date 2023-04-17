@@ -1,6 +1,7 @@
 #pragma once
+#include <Helpers/VTable.h>
 
-#define GetVtableAddr(var) (((DWORD*)var)[0])
+#define GetVtableAddr(var) (VTable::Get(var))
 
 #define Is_Aircraft(var) (GetVtableAddr(var) == AircraftClass::vtable)
 #define Is_Infantry(var) (GetVtableAddr(var) == InfantryClass::vtable)
