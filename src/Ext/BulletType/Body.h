@@ -216,4 +216,5 @@ public:
 
 	static double GetAdjustedGravity(BulletTypeClass* pType);
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
+	static ConvertClass* GetBulletConvert(BulletTypeClass* pType);
 };

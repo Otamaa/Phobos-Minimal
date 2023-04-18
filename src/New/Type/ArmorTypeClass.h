@@ -9,37 +9,16 @@ class ArmorTypeClass final : public Enumerable<ArmorTypeClass>
 public:
 
 	int DefaultTo;
-	PhobosFixedString<32> DefaultString;
+	std::string DefaultString;
 	VersesData DefaultVerses;
 
 	std::string BaseTag;
 	std::string FF_Tag;
 	std::string RT_Tag;
 	std::string PA_Tag;
+	std::string HitAnim_Tag;
 
-	ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeClass>(pTitle)
-		, DefaultTo{ -1 }
-		, DefaultString { }
-		, DefaultVerses { }
-		, BaseTag {}
-		, FF_Tag {}
-		, RT_Tag {}
-		, PA_Tag {}
-	{ 
-		char buffer[0x100];
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
-		BaseTag = buffer;
-
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
-		FF_Tag = buffer;
-
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
-		RT_Tag = buffer;
-
-		IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
-		PA_Tag = buffer;
-	}
-
+	ArmorTypeClass(const char* const pTitle);
 	virtual ~ArmorTypeClass() override = default;
 	static void AddDefaults();
 

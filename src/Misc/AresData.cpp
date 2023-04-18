@@ -152,6 +152,11 @@ ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
 	return AresThiscall<BulletTypeExtGetConvertID, ConvertClass*, void*>()(GetAresBulletTypeExt(pThis));
 }
 
+void AresData::WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim)
+{
+	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
+}
+
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
 {
 	if (AresDllHmodule != NULL) {

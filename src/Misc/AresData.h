@@ -14,15 +14,33 @@ class SuperClass;
 struct VoxelStruct;
 class ConvertClass;
 class BulletTypeClass;
+class WarheadTypeClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
+//TODO : port these
 #define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
 #define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
 #define GetAresHouseExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x16084))
 #define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
 #define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
 #define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
+#define GetAresAresWarheadTypeExt(wh) ((void*)wh->unused_1CC)
 
+#define Is_DriverKilled(techno) (*(bool*)((char*)techno->align_154 + 0x9C))
+#define GetSonarTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x44))
+#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x50))
+#define GetSelfHealingCombatTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x5C))
+#define Ares_ParasiteWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xB))
+#define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
+#define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
+#define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
+#define Ares_TemporalWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xA))
+#define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
+#define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
+
+#define GetSonarDur(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0xF8))
+#define GetDisableWeaponDur(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0xFC))
+#define GetFlashDuration(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0x100))
 
 struct AresData
 {
@@ -44,6 +62,7 @@ struct AresData
 		GetSelfHealAmountID = 13,
 		ExtMapFindID = 14,
 		BulletTypeExtGetConvertID = 15,
+		ApplyKillDriverID = 16,
 	};
 
 	enum Version
@@ -57,7 +76,7 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 16;
+	static constexpr int AresFunctionCount = 17;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
@@ -93,6 +112,7 @@ struct AresData
 		0x0459F0, // TechnoExt::ExtData::GetSelfHealAmount
 		0x058900, // ExtMap.Find
 		0x019A50, // BulletTypeExtGetConvert
+		0x0537F0, // WhExt::ApplyKillDriver
 
 	};
 
@@ -204,6 +224,7 @@ struct AresData
 	static bool IsGenericPrerequisite(TechnoTypeClass* const pThis);
 	static int GetSelfHealAmount(TechnoClass* const pTechno);
 	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
+	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

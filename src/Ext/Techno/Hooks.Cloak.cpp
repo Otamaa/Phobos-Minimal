@@ -24,14 +24,3 @@ DEFINE_HOOK(0x45455B, BuildingClass_VisualCharacter_CloakVisibility, 0x5)
 
 	return CheckMutualAlliance;
 }
-
-DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Decloak, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0xC4, -0xC));
-
-	if (WarheadTypeExt::ExtMap.Find(pWarhead)->DecloakDamagedTargets.Get())
-		pThis->Uncloak(false);
-
-	return 0x702823;
-}

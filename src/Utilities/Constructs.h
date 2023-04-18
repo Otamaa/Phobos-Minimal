@@ -234,7 +234,8 @@ public:
 // a poor man's map with contiguous storage
 template <typename TKey, typename TValue>
 class PhobosMap {
-	using container_t = std::vector<std::pair<TKey, TValue>>;
+	using pair_t = std::pair<TKey, TValue>;
+	using container_t = std::vector<pair_t>;
 public:
 
 	TValue& operator[] (const TKey& key) {
@@ -311,6 +312,11 @@ public:
 	void reserve(size_t newsize) {
 		values.reserve(newsize);
 	}
+
+	void resize(size_t newsize) {
+		values.resize(newsize);
+	}
+
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		this->clear();

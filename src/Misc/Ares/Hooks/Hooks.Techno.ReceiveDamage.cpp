@@ -18,6 +18,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <Misc/AresData.h>
+
 #include <Conversions.h>
 
 DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
@@ -31,9 +33,11 @@ DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
 	return (pThis->ForceShielded == 1) ? 0x701A65 : 0x701A69;
 }
 
+bool IsDamaging = false;
 DEFINE_OVERRIDE_HOOK(0x701914, TechnoClass_ReceiveDamage_Damaging, 0x7)
 {
-	R->Stack(0xE, R->EAX() > 0);
+	//R->Stack(0xE, R->EAX() > 0);
+	IsDamaging = R->EAX() > 0;
 	return 0;
 }
 
@@ -161,4 +165,76 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_SuppressUnitLost, 6)
  {
  	GET_STACK(WarheadTypeClass*, WH, STACK_OFFS(0x44, -0xC));
  	return WH && !Is_MaliciousWH(WH) ? 0x738535u : 0u;
+ }
+
+
+ std::array<const char* const, 6u> DamageState_to_srings
+ { {
+	 "Unaffected" , "Unchanged" , "NowYellow" , "NowRed" , "NowDead" , "PostMortem"
+ } };
+
+ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermarth, 0xA)
+ {
+	 GET(TechnoClass* const, pThis, ESI);
+	 GET_STACK(WarheadTypeClass* const, pWarhead, 0xD0);
+	 GET_STACK(TechnoClass* const, pAttacker, 0xD4);
+	 GET_STACK(DamageState, nDamageResult, 0x20);
+	 GET_STACK(int* const, pDamamge, 0xC8);
+	 GET_STACK(bool, bIgnoreDamage, 0xD8);
+	 //GET_STACK(void*, bSomething, 0x12); //
+
+	 const bool bResult = nDamageResult == DamageState::Unaffected ? 0x702823 : 0x0;
+	 bool bAffected = false;
+	 const auto pType = pThis->GetTechnoType();
+
+	 if ((int)nDamageResult || bIgnoreDamage || !IsDamaging || *pDamamge) {
+		 if ((int)nDamageResult && IsDamaging) {
+			 const auto nValue = GetSelfHealingDleayAmount(pType);
+			 if (nValue > 0) {
+				 auto& nSelfHealingTime = GetSelfHealingCombatTimer(pThis);
+				 nSelfHealingTime.Start(nValue);
+			 }
+			 IsDamaging = false;
+		 }
+	 } else {
+		 bAffected = true;
+	 }
+
+	 if (pWarhead) {
+
+		 const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+
+		 if (pWHExt->DecloakDamagedTargets.Get())
+			 pThis->Uncloak(false);
+
+		 if ((!bAffected || !pWHExt->EffectsRequireDamage) &&
+			 (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(pType->Armor).Verses >= 0.0001))) {
+
+			 AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
+			 const auto nSonarDur = GetSonarDur(pWarhead);
+
+			 if (nSonarDur > 0) {
+				 auto& nSonarTime = GetSonarTimer(pThis);
+				 if (nSonarDur > nSonarTime.GetTimeLeft()) {
+					 nSonarTime.Start(nSonarDur);
+				 }
+			 }
+
+			 const auto nDisableWeaponDur = GetDisableWeaponDur(pWarhead);
+
+			 if (nDisableWeaponDur > 0) {
+				 auto& nDisableWeaponTime = GetDisableWeaponTimer(pThis);
+				 if (nDisableWeaponDur > nDisableWeaponTime.GetTimeLeft()) {
+					 nDisableWeaponTime.Start(nDisableWeaponDur);
+				 }
+			 }
+
+			 const auto nFlashDur = GetFlashDuration(pWarhead);
+			 if (nFlashDur > 0 && nFlashDur > pThis->Flashing.DurationRemaining) {
+				 pThis->Flash(nFlashDur);
+			 }
+		 }
+	 }
+
+	 return bResult;
  }

@@ -33,7 +33,7 @@ DEFINE_OVERRIDE_HOOK(0x424538, AnimClass_AI_DamageDelay, 0x6)
 	GET(AnimClass*, pThis, ESI);
 
 	if (pThis->InLimbo)
-		return SkipDamageDelay;
+		return CheckIsAlive;
 
 	return AnimExt::DealDamageDelay(pThis);
 }

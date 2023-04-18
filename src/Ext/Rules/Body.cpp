@@ -432,9 +432,7 @@ namespace ObjectTypeParser
 		nVecDest.resize(nKeyCount);
 
 		for (int i = 0; i < nKeyCount; ++i)
-		{
-			std::vector<std::string> objectsList;
-
+		{		
 			char* context = nullptr;
 			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
 
@@ -449,7 +447,6 @@ namespace ObjectTypeParser
 				if (bVerbose)
 					Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
 			}
-
 		}
 	}
 };
@@ -827,13 +824,7 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	// so the game not choke up when first firing the projectiles
 	std::for_each(BulletTypeClass::Array->begin(), BulletTypeClass::Array->end(),
 	[](BulletTypeClass* pType) {
-	 if (auto const pExt = BulletTypeExt::ExtMap.Find(pType))
-		 if (!pExt->ImageConvert.has_value()) {
-			 if (const auto pAnimType = AnimTypeClass::Find(pType->ImageFile)) {
-				 pExt->ImageConvert =
-					 AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
-			 }
-		 }
+		BulletTypeExt::GetBulletConvert(pType);
 	});
 
 	return 0;

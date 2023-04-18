@@ -217,6 +217,8 @@ public:
 		ValueableVector<LaserTrailDataEntry> LaserTrailData;
 		Valueable<CSFText> EnemyUIName;
 		Valueable<bool> UseDisguiseMovementSpeed;
+
+		Valueable<bool> DrawInsignia;
 		Promotable<SHPStruct*> Insignia;
 		Promotable<int> InsigniaFrame;
 		Nullable<bool> Insignia_ShowEnemy;
@@ -738,6 +740,7 @@ public:
 			, LaserTrailData {}
 			, EnemyUIName {}
 			, UseDisguiseMovementSpeed {}
+			, DrawInsignia { true }
 			, Insignia {}
 			, InsigniaFrame { -1 }
 			, Insignia_ShowEnemy {}

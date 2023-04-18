@@ -958,8 +958,6 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 	return 0x0;
 }
 
-#define GetAresAresWarheadTypeExt(wh) ((void*)wh->unused_1CC)
-
 #include <Misc/AresData.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
@@ -1267,10 +1265,6 @@ DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	R->EAX(nAmount > 0 || nAmount != 0);
 	return 0x70BF46;
 }
-
-// TODO : port this
-#define Is_DriverKilled(techno) \
-(*(bool*)((char*)techno->align_154 + 0x9C))
 
 DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 {
@@ -1997,8 +1991,6 @@ DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
 
 	return 0x62C309;
 }
-
-#define Ares_ParasiteWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xB))
 
 DEFINE_OVERRIDE_HOOK(0x62A020, ParasiteClass_Update, 0xA)
 {

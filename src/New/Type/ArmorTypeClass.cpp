@@ -9,6 +9,33 @@
 
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
+ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeClass>(pTitle)
+	, DefaultTo { -1 }
+	, DefaultString { }
+	, DefaultVerses { }
+	, BaseTag {}
+	, FF_Tag {}
+	, RT_Tag {}
+	, PA_Tag {}
+	, HitAnim_Tag {}
+{
+	char buffer[0x100];
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
+	BaseTag = buffer;
+
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.ForceFire", pTitle);
+	FF_Tag = buffer;
+
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.Retaliate", pTitle);
+	RT_Tag = buffer;
+
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s.PassiveAcquire", pTitle);
+	PA_Tag = buffer;
+
+	IMPL_SNPRNINTF(buffer, sizeof(buffer), "HitAnim.%s", pTitle);
+	HitAnim_Tag = buffer;
+}
+
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
 {
 	return "ArmorTypes";
@@ -45,8 +72,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		char buffer[0x64];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
-		if (!this->DefaultVerses.Parse(buffer))
-		{
+		if (!this->DefaultVerses.Parse(buffer)) {
 			this->DefaultString = buffer;
 		}
 	}
@@ -54,10 +80,12 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 void ArmorTypeClass::EvaluateDefault()
 {
-	if (!IsDefault(Name.data()) && DefaultTo == -1)
-	{
-		DefaultTo = FindIndexById(DefaultString.data());
-		DefaultString = "\0";
+	if (IsDefault(Name.data()))
+		return;
+
+	if (DefaultTo == -1 && !DefaultString.empty()) {
+		DefaultTo = FindIndexById(DefaultString.c_str());
+		DefaultString.clear();
 	}
 }
 
@@ -142,6 +170,7 @@ void ArmorTypeClass::Serialize(T& Stm)
 		.Process(this->FF_Tag)
 		.Process(this->RT_Tag)
 		.Process(this->PA_Tag)
+		.Process(this->HitAnim_Tag)
 		;
 }
 

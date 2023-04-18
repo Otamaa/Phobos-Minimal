@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 #include <Ext/WeaponType/Body.h>
@@ -38,6 +39,21 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 
 	//an dummy bullet , huh
 	return pType;
+}
+
+ConvertClass* BulletTypeExt::GetBulletConvert(BulletTypeClass* pType)
+{
+	const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	if (!pBulletTypeExt->ImageConvert.has_value())
+	{
+		if (const auto pAnimType = AnimTypeClass::Find(pType->ImageFile))
+		{
+			pBulletTypeExt->ImageConvert =
+				AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
+		}
+	}
+
+	return pBulletTypeExt->ImageConvert.get();
 }
 
 void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)

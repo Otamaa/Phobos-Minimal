@@ -21,6 +21,8 @@
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
 
+#include <Misc/AresData.h>
+
 // TODO : require complete port of More IFV turrents
 // 746B89 = UnitClass_GetUIName, 8
 
@@ -291,11 +293,6 @@ DEFINE_OVERRIDE_HOOK(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 }
 
 // TODO : port this
-#define Is_DriverKilled(techno) \
-(*(bool*)((char*)techno->align_154 + 0x9C))
-
-#define GetDisableWeaponTimer(techno) \
-(*(CDTimerClass*)((char*)techno->align_154 + 0x50))
 
 DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
@@ -813,9 +810,6 @@ DEFINE_OVERRIDE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 		0x74416C : 0x744129;
 }
 
-#define Is_NavalYardSpied(var) \
-(*(bool*)((char*)GetAresHouseExt(var) + 0x48))
-
 DEFINE_OVERRIDE_HOOK_AGAIN(0x735678, UnitClass_Init_Academy, 6) // inlined in CTOR
 DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 {
@@ -1198,12 +1192,12 @@ struct TurrentDummy
 		if (pThis->TurretCount <= 0)
 			return 0x5F8A60;
 
-		auto const nRemaining = pThis->TurretCount - 17;
+		auto const nRemaining = pThis->TurretCount - TechnoTypeClass::MaxWeapons;
 		if (nRemaining > 0)
 		{
 			TechnoTypeExt::ClearImageData(pTypeExt->BarrelImageData);
 			if (pTypeExt->BarrelImageData.size() <= (size_t)(nRemaining)) {
-				pTypeExt->BarrelImageData.resize((size_t)nRemaining);
+				pTypeExt->BarrelImageData.resize((size_t)nRemaining + 1);
 			}
 		}
 
@@ -1252,12 +1246,12 @@ struct TurrentDummy
 		if (pThis->TurretCount <= 0)
 			return 0x5F8844;
 
-		auto const nRemaining = pThis->TurretCount - 17;
+		auto const nRemaining = pThis->TurretCount - TechnoTypeClass::MaxWeapons;
 		if (nRemaining > 0)
 		{
 			TechnoTypeExt::ClearImageData(pTypeExt->BarrelImageData);
 			if (pTypeExt->TurretImageData.size() <= (size_t)(nRemaining)) {
-				pTypeExt->TurretImageData.resize((size_t)nRemaining);
+				pTypeExt->TurretImageData.resize((size_t)nRemaining + 1);
 			}
 		}
 

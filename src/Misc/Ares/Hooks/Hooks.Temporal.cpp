@@ -26,10 +26,6 @@
 #include <Misc/AresData.h>
 #include <Notifications.h>
 
-// TODO :
-#define Ares_TemporalWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xA))
-#define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
-
 // TODO : still not correct !
 //DEFINE_HOOK(718279, TeleportLocomotionClass_MakeRoom, 5)
 //{

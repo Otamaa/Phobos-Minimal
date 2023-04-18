@@ -318,7 +318,7 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 
 	// set the override for putting, not just for creation as WW did
 	++Unsorted::IKnowWhatImDoing;
-	auto const ret = pUnit->Unlimbo(Crd, facing);
+	const auto ret = pUnit->Unlimbo(Crd, facing);
 	--Unsorted::IKnowWhatImDoing;
 
 	// should never happen, but if anything breaks, it's here
@@ -453,17 +453,15 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 		if (Vehicle->Owner->ControlledByPlayer())
 		{
 			VoxClass::Play("EVA_ReverseEngineeredVehicle");
-			VoxClass::Play("EVA_NewTechnologyAcquired");
+			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
 		}
 	}
 
-	if (auto const pTag = Grinder->AttachedTag)
-	{
-		pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
+	if (const auto FirstTag = Grinder->AttachedTag) {
+		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
 
-		if (auto const pTag2 = Grinder->AttachedTag)
-		{
-			pTag2->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+		if ( auto pSecondTag = Grinder->AttachedTag) {
+			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 		}
 	}
 
@@ -491,19 +489,18 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 		if (Infantry->Owner->ControlledByPlayer())
 		{
 			VoxClass::Play("EVA_ReverseEngineeredInfantry");
-			VoxClass::Play("EVA_NewTechnologyAcquired");
+			VoxClass::Play(GameStrings::EVA_NewTechAcquired());
 		}
 	}
 
 	//Ares 3.0 Added
-	if (auto FirstTag = Grinder->AttachedTag)
-	{
+	if (const auto FirstTag = Grinder->AttachedTag) {
 		//80
 		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
 
 		//79
-		if (auto pSecondTag = Grinder->AttachedTag)
-			FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
+		if (const auto pSecondTag = Grinder->AttachedTag)
+			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 	}
 
 	return 0;
@@ -827,12 +824,6 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	R->EAX(nAresREsult);
 	return 0x4F8361;
 }
-
-#define Is_FirestromWall(techno) \
-(*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
-
-#define Is_Passable(techno) \
-(*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
 
 //// make temporal weapons play nice with power toggle.
 //// previously, power state was set to true unconditionally.

@@ -227,10 +227,8 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 	{
-		char flag[0x40];
 		Nullable<AnimTypeClass*> pAnimReaded;
-		IMPL_SNPRNINTF(flag, sizeof(flag), "HitAnim.%s", ArmorTypeClass::Array[i]->Name.data());
-		pAnimReaded.Read(exINI, pSection, flag, true);
+		pAnimReaded.Read(exINI, pSection, ArmorTypeClass::Array[i]->HitAnim_Tag.c_str(), true);
 
 		if (!pAnimReaded.isset())
 			continue;

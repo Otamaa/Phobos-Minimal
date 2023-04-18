@@ -5347,6 +5347,11 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 		0x6F3589  : 0x6F35A8;
 }
 
+DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7) {
+	GET(BuildingClass*, pBld, EAX);
+	return pBld ? 0x0 : 0x71AA1A;
+}
+
 #ifdef FOW_HOOKS
 // MapClass_RevealShroud as Xkein said
 DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)

@@ -381,6 +381,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Passengers_SyncOwner_RevertOnExit.Read(exINI, pSection, "Passengers.SyncOwner.RevertOnExit");
 
 		this->UseDisguiseMovementSpeed.Read(exINI, pSection, "UseDisguiseMovementSpeed");
+		this->DrawInsignia.Read(exINI, pSection, "Insignia.Show");
 		this->Insignia.Read(exINI, pSection, "Insignia.%s");
 		this->InsigniaFrame.Read(exINI, pSection, "InsigniaFrame.%s");
 		this->Insignia_ShowEnemy.Read(exINI, pSection, "Insignia.ShowEnemy");
@@ -757,9 +758,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->FallRate_NoParachuteMax.Read(exINI, pSection, "FallRate.NoParachuteMax");
 
 		// Dont need to be SL ?
-		const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
-		TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
-		TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+		//const bool Eligible = pThis->TurretCount >= TechnoTypeClass::MaxWeapons;
+		//TechnoTypeExt::InitImageData(this->BarrelImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
+		//TechnoTypeExt::InitImageData(this->TurretImageData, Eligible ? (pThis->TurretCount - TechnoTypeClass::MaxWeapons) + 1 : 0);
 
 		this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
 
@@ -1211,6 +1212,8 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->Passengers_SyncOwner_RevertOnExit)
 		.Process(this->Aircraft_DecreaseAmmo)
 		.Process(this->UseDisguiseMovementSpeed)
+
+		.Process(this->DrawInsignia)
 		.Process(this->Insignia)
 		.Process(this->InsigniaFrame)
 		.Process(this->Insignia_ShowEnemy)

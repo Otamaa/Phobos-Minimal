@@ -7,6 +7,7 @@
 #include <ColorStruct.h>
 
 #include <Helpers/CompileTime.h>
+#include <Helpers/VTable.h>
 
 #include <ddraw.h>
 
@@ -17,7 +18,9 @@ class ColorScheme;
 class NOVTABLE Surface
 {
 public:
-	Surface() : Width(0), Height(0) { }
+	static constexpr inline DWORD vtable = 0x7E2198;
+	
+	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
 	virtual ~Surface() { JMP_THIS(0x4115D0); }
 
@@ -145,7 +148,6 @@ public:
 		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect,pSrcRect, bUnk1, bUnk2);
 	}
 
-
 public:
 	int Width;
 	int Height;
@@ -258,7 +260,7 @@ protected:
 	void* Get_Buffer_Ptr(int x, int y) { return (unsigned char*)BufferPtr.Get_Buffer() + (x * Get_Bytes_Per_Pixel()) + (y * Get_Pitch()); }
 
 protected:
-	MemoryBuffer BufferPtr;
+	DECLARE_PROPERTY(MemoryBuffer , BufferPtr);
 };
 static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 

@@ -57,9 +57,7 @@ namespace DamageFireAnims
 		if (!pFire.empty() &&
 			!pTypeext->DamageFire_Offs.empty())
 		{
-			while (pExt->DamageFireAnims.size() < pTypeext->DamageFire_Offs.size()) {
-				pExt->DamageFireAnims.push_back(nullptr);
-			}
+			pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
 
 			for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
 			{

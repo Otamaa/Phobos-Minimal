@@ -30,9 +30,9 @@ protected:
 	explicit __forceinline DropPodLocomotionClass(noinit_t)
 		: LocomotionClass(noinit_t())
 	{
-		//VTable::Set(this, vtable,0);
-		//VTable::Set(this, ILoco_vtable,0);
-		//VTable::Set(this, IPiggy_vtable , 0x18);
+		VTable::Set(this, vtable,0);
+		VTable::Set(this, ILoco_vtable, 0x4);
+		VTable::Set(this, IPiggy_vtable , 0x18);
 	}
 
 	//===========================================================================

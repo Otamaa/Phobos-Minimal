@@ -18,6 +18,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <Misc/AresData.h>
+
 #include <Conversions.h>
 
 // westwood does firingUnit->WhatAmI() == abs_AircraftType
@@ -439,9 +441,16 @@ DEFINE_OVERRIDE_HOOK(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
 }
 
 // health bar for detected submerged units
-DEFINE_OVERRIDE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged, 6)
+DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 {
+	enum { SkipGameCode = 0x6F5388  , CheckDrawHealthAllowed = 0x6F538E};
+
 	GET(TechnoClass*, pThis, EBP);
+	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x98, -0x4));
+	GET(RectangleStruct*, pBounds, ESI);
+
+	if (pThis->VisualCharacter(false, nullptr) != VisualType::Hidden)
+		TechnoExt::DrawInsignia(pThis, pLocation, pBounds);
 
 	bool drawHealth = pThis->IsSelected;
 	if (!drawHealth)
@@ -452,5 +461,5 @@ DEFINE_OVERRIDE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged, 6)
 	}
 
 	R->EAX(drawHealth);
-	return 0x6F538E;
+	return CheckDrawHealthAllowed;
 }

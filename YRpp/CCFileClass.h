@@ -6,6 +6,7 @@
 #include <YRPPCore.h>
 #include <GenericList.h>
 #include <array>
+#include <Helpers/VTable.h>
 
 enum class FileAccessMode : unsigned int {
 	None = 0,
@@ -88,6 +89,7 @@ enum class FileErrorType : int
 class NOVTABLE FileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7F08BC;
 	static const char* const FileErrorToString[];
 
 	//Destructor
@@ -137,7 +139,7 @@ public:
 			return FileErrorToString[static_cast<int>(error)];
 	}
 
-	FileClass() { }
+	//FileClass() { VTable::Set(this, vtable); }
 
 protected:
 	explicit __forceinline FileClass(noinit_t)
@@ -155,6 +157,8 @@ static_assert(sizeof(FileClass) == 0x8, "Invalid size.");
 class NOVTABLE RawFileClass : public FileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7F0904;
+
 	//Destructor
 	virtual ~RawFileClass() {JMP_THIS(0x65CA00);}
 
@@ -188,7 +192,7 @@ public:
 		: RawFileClass(noinit_t())
 	{ JMP_THIS(0x65CA80); }
 
-	RawFileClass() :
+	RawFileClass() : 
 		FileClass(noinit_t()),
 		FileAccess(FileAccessMode::Read),
 		FilePointer(0),
@@ -198,7 +202,9 @@ public:
 		Date(0),
 		Time(0),
 		FileNameAllocated(false)
-	{ *((unsigned long*)this) = (unsigned long)0x7F0904; }
+	{
+		VTable::Set(this, vtable);
+	}
 
 protected:
 	explicit __forceinline RawFileClass(noinit_t)
@@ -226,6 +232,7 @@ static_assert(sizeof(RawFileClass) == 0x24, "Invalid size.");
 class NOVTABLE BufferIOFileClass : public RawFileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7E3A2C;
 	static constexpr int MinimumBufferSize = 1024;
 	//Destructor
 	virtual ~BufferIOFileClass() { JMP_THIS(0x431B80); }
@@ -298,8 +305,11 @@ static_assert(sizeof(BufferIOFileClass) == 0x54, "Invalid size.");
 class NOVTABLE CDFileClass : public BufferIOFileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7E1668;
+
 	//Destructor
 	virtual ~CDFileClass() { JMP_THIS(0x535A60); }
+
 	//FileClass
 	virtual const char* GetFileName() const override { return ((BufferIOFileClass*)(this))->GetFileName(); }
 	virtual const char* SetFileName(const char* pFileName) override { JMP_THIS(0x47AE10); }
@@ -365,6 +375,8 @@ static_assert(sizeof(CDFileClass) == 0x58, "Invalid size.");
 class NOVTABLE CCFileClass : public CDFileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7E16B0;
+
 	//Destructor
 	virtual ~CCFileClass() { JMP_THIS(0x535A70); }
 
@@ -442,6 +454,8 @@ static_assert(sizeof(CCFileClass) == 0x6C, "Invalid size.");
 class NOVTABLE RAMFileClass : public FileClass
 {
 public:
+	static constexpr inline DWORD vtable = 0x7F0874;
+
 	virtual ~RAMFileClass() { JMP_THIS(0x65C2A0); }
 
 	virtual const char* GetFileName() const override { JMP_THIS(0x65C550); }

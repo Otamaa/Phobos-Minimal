@@ -24,6 +24,12 @@ void BuildingTypeExt::ExtData::InitializeConstants()
 	OnFireIndex.reserve(8);
 	DamageFire_Offs.reserve(8);
 	DockPoseDir.reserve(Get()->NumberOfDocks);
+	GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
+	GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
+	GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
+	GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
+	GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
+
 	Type = TechnoTypeExt::ExtMap.Find(Get());
 }
 
@@ -335,14 +341,13 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
-
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
 			if(!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
 				continue;
 
 			auto nBonus = 0.000;
-			switch ((((DWORD*)pWhat)[0]))
+			switch (GetVtableAddr(pWhat))
 			{
 			case AircraftTypeClass::vtable:
 				nBonus = pExt->SpeedBonus.SpeedBonus_Aircraft;
@@ -480,11 +485,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		auto GetGarrisonAnim = [&exINI, pSection](
 			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 		{
-			auto nHouseCount = HouseTypeClass::Array()->Count;
-			char tempBuffer[0x500];
-			nVec.clear();
-			
-			for (int i = 0; i < nHouseCount; ++i)
+			char tempBuffer[0x25];			
+			for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 			{
 				Nullable<AnimTypeClass*> nBuffer;
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%s%d", pBaseFlag, i);
@@ -521,7 +523,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		this->PackupSound_PlayGlobal.Read(exINI, pSection, "PackupSoundPlayGlobal");
 
-		this->DamageFireTypes.Read(exINI, pSection, "DamageFireTypes");
+		this->DamageFireTypes.Read(exINI, pSection, GameStrings::DamageFireTypes());
 
 		this->RepairRate.Read(exINI, pSection, GameStrings::RepairRate());
 		this->RepairStep.Read(exINI, pSection, GameStrings::RepairStep());
@@ -596,12 +598,12 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		{
 			char tempMuzzleBuffer[32];
 			this->OccupierMuzzleFlashes.clear();
-			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants, Point2D::Empty);
+			this->OccupierMuzzleFlashes.resize(pThis->MaxNumberOccupants);
 
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
 				Nullable<Point2D> nMuzzleLocation;
-				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "MuzzleFlash%d", i);
+				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d",GameStrings::MuzzleFlash(), i);
 				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
 
 				if(nMuzzleLocation.isset())
@@ -616,16 +618,16 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->DamageFire_Offs.clear();
 		this->DamageFire_Offs.reserve(8u);
 
-		char tempFire_OffsBuffer[32];
+		char tempFire_OffsBuffer[0x25];
 		for (int i = 0;; ++i)
 		{
 			Nullable<Point2D> nFire_offs {};
-			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "DamageFireOffset%d", i);
+			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d",GameStrings::DamageFireOffset(), i);
 			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
 			if (!nFire_offs.isset())
 				break;
-
+			
 			this->DamageFire_Offs.push_back(nFire_offs.Get());
 		}
 #endif

@@ -1101,25 +1101,18 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass*
 {
 	HouseClass* pHouseOut = pTarget->GetOwningHouse();
 	TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
-	const bool bIsVisible = !CheckVisibility ? false : pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
+	const bool bIsVisible = !CheckVisibility ? false : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
 
 	if (pTarget->IsDisguised() && !bIsVisible)
 	{
-		if (CheckHouse)
-		{
-			if (const auto pDisguiseHouse = pTarget->GetDisguiseHouse(false))
-			{
-				if (pDisguiseHouse->Type)
-				{
-					pHouseOut = pDisguiseHouse;
-				}
+		if (CheckHouse) {
+			if (const auto pDisguiseHouse = pTarget->GetDisguiseHouse(true)) {
+				pHouseOut = pDisguiseHouse;
 			}
 		}
 
-		if (pTarget->Disguise != pTypeOut)
-		{
-			if (const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->Disguise))
-			{
+		if (pTarget->Disguise != pTypeOut) {
+			if (const auto pDisguiseType = type_cast<TechnoTypeClass*, true>(pTarget->Disguise)) {
 				return { pDisguiseType, pHouseOut };
 			}
 		}
@@ -1195,12 +1188,14 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 		return;
 
 	Point2D offset = *pLocation;
-	auto const [pTechnoType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
+	auto const&[pTechnoType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
 
 	if (!pTechnoType)
 		return;
 
 	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+	if (!pExt->DrawInsignia)
+		return;
 
 	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
 		|| HouseExt::IsObserverPlayer()

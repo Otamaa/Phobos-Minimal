@@ -143,6 +143,10 @@ struct GameStrings
 	GAMEMD_STR(Verses, 0x847C38);
 	GAMEMD_STR(Anims, 0x8302FC);
 	GAMEMD_STR(Anim, 0x817448);
+
+	GAMEMD_STR(DamageFireTypes, 0x83CF58);
+	GAMEMD_STR(MuzzleFlash, 0x81AC74);
+	GAMEMD_STR(DamageFireOffset, 0x81AC60);
 	//..
 
 	// EVA entry names
@@ -153,6 +157,7 @@ struct GameStrings
 	GAMEMD_STR(EVA_ConstructionComplete, 0x83FA80u);
 	GAMEMD_STR(EVA_UnitPromoted, 0x843138u);
 	GAMEMD_STR(EVA_UnitLost, 0x822620u);
+	GAMEMD_STR(EVA_NewTechAcquired, 0x81911Cu);
 	//...
 
 	// Messages

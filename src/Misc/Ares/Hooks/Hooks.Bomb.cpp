@@ -269,10 +269,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 			CellSpreadIterator<ObjectClass>{}(CellClass::Coord2Cell(tgtCoords),
 			static_cast<int>(pBullet->WH->CellSpread),
 			[pOwner, pWeapon](ObjectClass* pTechno) {
-				if (pTechno != pOwner && !pTechno->AttachedBomb) {
-					  Funcs::PlantBomb(pOwner, pTechno, pWeapon);
-				}
-
+				Funcs::PlantBomb(pOwner, pTechno, pWeapon);
 				return true;
 			});
 		}

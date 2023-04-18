@@ -15,6 +15,13 @@ struct CTimeDirStruct
 		Raw = (unsigned short)(TranslateFixedPoint::CompileTime(bits, 16u, (size_t)value));
 	}
 
+	DirStruct ToDirStruct() const
+	{
+		DirStruct nDuummy;
+		nDuummy.Raw = Raw;
+		return nDuummy;
+	}
+
 public:
 	unsigned short Raw;
 private:

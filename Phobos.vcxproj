@@ -486,7 +486,6 @@
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
-    <ClInclude Include="YRpp\Helpers\VTable.h" />
     <ClInclude Include="YRpp\YRPPGlobal.h" />
   </ItemGroup>
   <ItemGroup>

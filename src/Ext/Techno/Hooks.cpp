@@ -220,20 +220,6 @@ DEFINE_HOOK(0x70A4FB, TechnoClass_Draw_Pips_SelfHealGain, 0x5)
 	return SkipGameDrawing;
 }
 
-DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
-{
-	enum { SkipGameCode = 0x6F5388 };
-
-	GET(TechnoClass*, pThis, EBP);
-	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x98, -0x4));
-	GET(RectangleStruct*, pBounds, ESI);
-
-	if (pThis->VisualCharacter(false, nullptr) != VisualType::Hidden)
-		TechnoExt::DrawInsignia(pThis, pLocation, pBounds);
-
-	return SkipGameCode;
-}
-
 DEFINE_HOOK(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 {
 	enum { SkipGameCode = 0x70EFF2 };
@@ -290,8 +276,8 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 
 	if (pBuilding && pBuilding->Type->Cloning && pFoot)
 	{
-		if (AresData::CanUseAres && AresData::AresVersionId == AresData::Version::Ares30p && Is_Unit(pFoot))
-		{
+		if (Is_Unit(pFoot)) {
+
 			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
 
 			if (pFootTypeExt->Unit_AI_AlternateType.isset() && pFootTypeExt->Unit_AI_AlternateType.Get() != pFootTypeExt->Get())

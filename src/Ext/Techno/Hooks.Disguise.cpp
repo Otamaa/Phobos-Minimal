@@ -52,63 +52,56 @@ DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno)
 {
 	auto const pCurPlayer = HouseClass::CurrentPlayer();
-	if (pCurPlayer && pCurPlayer->IsObserver())
+
+	if (!pCurPlayer)
+		return false;
+
+	if (pCurPlayer->IsObserver())
 		return true;
+	
+	if (!pCurPlayer->IsControlledByHuman())
+		return false;
 
 	return EnumFunctions::CanTargetHouse(
 		RulesExt::Global()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 }
 
-DEFINE_HOOK(0x70EE53, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise1, 0xA)
+DEFINE_HOOK(0x4DEDCB, FootClass_GetImage_DisguiseBlinking, 0x7)
 {
-	enum { SkipGameCode = 0x70EE6A, ReturnTrue = 0x70EEEC };
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, accum, EAX);
-
-	if (CanBlinkDisguise(pThis))
-		return SkipGameCode;
-	else if (accum && (pThis->Owner ? !pThis->Owner->IsControlledByHuman() : false))
-		return ReturnTrue;
-
-	return SkipGameCode;
-}
-
-DEFINE_HOOK(0x70EE6A, TechnoClass_IsClearlyVisibleTo_BlinkAllyDisguise2, 0x6)
-{
-	enum { SkipCheck = 0x70EE79 };
+	enum { ContinueChecks = 0x4DEDDB, AllowBlinking = 0x4DEE15 };
 
 	GET(TechnoClass*, pThis, ESI);
 
 	if (CanBlinkDisguise(pThis))
-		return SkipCheck;
+		return AllowBlinking;
 
-	return 0;
+	return ContinueChecks;
 }
 
-DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_BlinkAllyDisguise, 0x6)
+DEFINE_HOOK(0x70EE70, TechnoClass_IsClearlyVisibleTo_DisguiseBlinking, 0x5)
 {
-	enum { SkipCheck = 0x706304 };
+	enum { ContinueChecks = 0x70EE79, DisallowBlinking = 0x70EEB6 };
 
 	GET(TechnoClass*, pThis, ESI);
 
 	if (CanBlinkDisguise(pThis))
-		return SkipCheck;
+		return ContinueChecks;
 
-	return 0;
+	return DisallowBlinking;
 }
 
-DEFINE_HOOK(0x70EDAD, TechnoClass_DisguiseBlitFlags_BlinkAllyDisguise, 0x6)
+DEFINE_HOOK(0x7062F5, TechnoClass_TechnoClass_DrawObject_DisguiseBlinking, 0x6)
 {
-	enum { SkipCheck = 0x70EDBC };
+	enum { ContinueChecks = 0x706304, DisallowBlinking = 0x70631F };
 
-	GET(TechnoClass*, pThis, EDI);
+	GET(TechnoClass*, pThis, ESI);
 
 	if (CanBlinkDisguise(pThis))
-		return SkipCheck;
+		return ContinueChecks;
 
-	return 0;
+	return DisallowBlinking;
 }
+
 #undef CAN_BLINK_DISGUISE
 
 DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
