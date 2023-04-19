@@ -24,23 +24,28 @@ typedef int (__cdecl *CallHook)(REGISTERS* R);
 #define GetAresBuildingTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0xE24))
 #define GetAresTechnoTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2FC))
 #define GetAresBulletTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x2C4))
-#define GetAresAresWarheadTypeExt(wh) ((void*)wh->unused_1CC)
+#define GetAresAresWarheadTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x1CC))
 
-#define Is_DriverKilled(techno) (*(bool*)((char*)techno->align_154 + 0x9C))
-#define GetSonarTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x44))
-#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x50))
-#define GetSelfHealingCombatTimer(techno) (*(CDTimerClass*)((char*)techno->align_154 + 0x5C))
-#define Ares_ParasiteWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xB))
+//#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(var)) + 0x50))
+#define Is_DriverKilled(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9C))
+#define GetSonarTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x44))
+#define GetSelfHealingCombatTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x5C))
+#define Ares_TemporalWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xA))
+#define Ares_ParasiteWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xB))
+
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
+
 #define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
 #define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))
-#define Ares_TemporalWeapon(var) (*(BYTE*)(((char*)GetAresTechnoExt(var)) + 0xA))
+
 #define Ares_AboutToChronoshift(var) (*(bool*)(((char*)GetAresBuildingExt(var)) + 0xD))
+
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
 
-#define GetSonarDur(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0xF8))
-#define GetDisableWeaponDur(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0xFC))
-#define GetFlashDuration(var) (*(int*)(((char*)GetAresAresWarheadTypeExt(var)) + 0x100))
+#define Is_MaliciousWH(wh) (*(bool*)((((char*)GetAresAresWarheadTypeExt(wh)) + 0x75)))
+#define GetSonarDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xF8))
+#define GetDisableWeaponDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xFC))
+#define GetFlashDuration(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0x100))
 
 struct AresData
 {

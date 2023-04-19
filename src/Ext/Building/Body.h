@@ -36,7 +36,8 @@ public:
 		CDTimerClass AutoSellTimer;
 		bool LighningNeedUpdate;
 		bool TogglePower_HasPower;
-
+		OptionalStruct<int , true> C4Damage;
+		HouseClass* C4Owner;
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, Type { nullptr }
 			, TechnoExt { nullptr }
@@ -51,6 +52,8 @@ public:
 			, AutoSellTimer { }
 			, LighningNeedUpdate { false }
 			, TogglePower_HasPower { false }
+			, C4Damage { }
+			, C4Owner { nullptr }
 		{ }
 
 		virtual ~ExtData() override = default;

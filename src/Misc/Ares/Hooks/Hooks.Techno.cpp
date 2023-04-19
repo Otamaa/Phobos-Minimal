@@ -333,61 +333,6 @@ DEFINE_HOOK(0x6FC40C, TechnoClass_CanFire_PsionicsImmune, 0x6)
 		? FireIllegal : ContinueCheck;
 }
 
-DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
-{
-	enum
-	{
-		RetNullify = 0x701C1C,
-		RetNullifyB = 0x701CC2,
-		RetObjectClassRcvDamage = 0x701DCC,
-		RetUnaffected = 0x701CFC,
-		RetCheckBuilding = 0x701D2E,
-		RetResultLight = 0x701DBA
-	};
-
-	GET(WarheadTypeClass*, pWH, EBP);
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pAttacker, 0xD4);
-	GET_STACK(HouseClass*, pAttacker_House, 0xE0);
-	GET(int*, pDamage, EBX);
-
-	if (pWH->Radiation && TechnoExt::IsRadImmune(pThis))
-		return RetNullify;
-
-	if (pWH->PsychicDamage && TechnoExt::IsPsionicsWeaponImmune(pThis))
-		return RetNullify;
-
-	if (pWH->Poison && TechnoExt::IsPoisonImmune(pThis))
-		return RetNullify;
-
-	const auto pSourceHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
-
-	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
-		return RetNullifyB;
-
-	if (pWH->Psychedelic) {
-
-		//This thing does ally check twice
-		if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis))
-			return RetUnaffected;
-
-		if (Is_Building(pThis))
-			return RetUnaffected;
-
-		if (TechnoExt::IsPsionicsImmune(pThis) || TechnoExt::IsBerserkImmune(pThis))
-			return RetUnaffected;
-
-		// there is no building involved
-		// More customizeable berzerk appying - Otamaa
-		// return boolean to decide receive damage after apply berzerk or just retun function result
-		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), pDamage))
-			return RetResultLight;
-	}
-
-	return RetObjectClassRcvDamage;
-}
-
 DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);

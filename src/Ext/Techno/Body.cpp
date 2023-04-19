@@ -1097,11 +1097,11 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 	}
 }
 
-std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass* pTarget, bool CheckHouse, bool CheckVisibility)
+std::pair<TechnoTypeClass*, HouseClass*> TechnoExt::GetDisguiseType(TechnoClass* pTarget, bool CheckHouse, bool CheckVisibility, bool bVisibleResult)
 {
 	HouseClass* pHouseOut = pTarget->GetOwningHouse();
 	TechnoTypeClass* pTypeOut = pTarget->GetTechnoType();
-	const bool bIsVisible = !CheckVisibility ? false : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
+	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
 
 	if (pTarget->IsDisguised() && !bIsVisible)
 	{
@@ -1184,28 +1184,39 @@ std::tuple<CoordStruct , SHPStruct* , int> GetInsigniaDatas(TechnoClass* pThis, 
 // Based on Ares source.
 void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if(pThis->CurrentRanking == Rank::Invalid)
+	if (pThis->CurrentRanking == Rank::Invalid)
 		return;
 
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const bool IsObserverPlayer = HouseExt::IsObserverPlayer();
 	Point2D offset = *pLocation;
-	auto const&[pTechnoType, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true);
+	TechnoTypeClass* pTechnoType = nullptr;
+	auto const& [pTechnoTyper, pOwner] = TechnoExt::GetDisguiseType(pThis, true, true, false);
+	const bool isDisguised = pTechnoTyper != pExt->Type;
+
+	if (isDisguised && IsObserverPlayer) {
+		pTechnoType = pExt->Type;
+	} else {
+		pTechnoType = pTechnoTyper;
+	}		
 
 	if (!pTechnoType)
 		return;
 
-	TechnoTypeExt::ExtData* pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
-	if (!pExt->DrawInsignia)
+	TechnoTypeExt::ExtData* pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+
+	if (!pTypeExt->DrawInsignia)
 		return;
 
 	const bool isVisibleToPlayer = (pOwner && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
-		|| HouseExt::IsObserverPlayer()
-		|| pExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
+		|| IsObserverPlayer
+		|| pTypeExt->Insignia_ShowEnemy.Get(RulesExt::Global()->EnemyInsignia);
 
 	if (!isVisibleToPlayer)
 		return;
 
 	auto const&[drawOffs, pShapeFile, frameIndex] = 
-				GetInsigniaDatas(pThis, pExt);
+				GetInsigniaDatas(pThis, pTypeExt);
 
 	if (frameIndex != -1 &&  pShapeFile)
 	{
@@ -3218,6 +3229,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_DurationTimer)
 		.Process(this->IsInTunnel)
 		.Process(this->DeployFireTimer)
+		.Process(this->DisableWeaponTimer)
 		.Process(this->RevengeWeapons)
 		.Process(this->IsDriverKilled)
 		.Process(this->GattlingDmageDelay)

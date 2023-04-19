@@ -125,7 +125,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
 	{
-		char nBuff[0x80];
+		char nBuff[0x30];
 		Nullable<SuperWeaponTypeClass*> LaunchWhat_Dummy { };
 		IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "LaunchSW%d.Type", i);
 		LaunchWhat_Dummy.Read(exINI, pID, nBuff, true);

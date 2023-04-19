@@ -83,10 +83,11 @@ void ArmorTypeClass::EvaluateDefault()
 	if (IsDefault(Name.data()))
 		return;
 
-	if (DefaultTo == -1 && !DefaultString.empty()) {
-		DefaultTo = FindIndexById(DefaultString.c_str());
-		DefaultString.clear();
-	}
+	if (!strlen(DefaultString.data()))
+		return;
+
+	if (DefaultTo == -1) {
+		DefaultTo = FindIndexById(DefaultString.data());	}
 }
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
@@ -149,13 +150,13 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	for (size_t i = 0; i < Array.size(); ++i)
 	{
 		auto nVers = &pWHExt->Verses[i];
-		if (pINI->ReadString(section, Array[i]->BaseTag.c_str(), Phobos::readDefval, ret)) {
+		if (pINI->ReadString(section, Array[i]->BaseTag.data(), Phobos::readDefval, ret)) {
 			nVers->Parse_NoCheck(ret);
 		}
 
-		nVers->Flags.ForceFire = pINI->ReadBool(section, Array[i]->FF_Tag.c_str(), nVers->Flags.ForceFire);
-		nVers->Flags.Retaliate = pINI->ReadBool(section, Array[i]->RT_Tag.c_str(), nVers->Flags.Retaliate);
-		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, Array[i]->PA_Tag.c_str(), nVers->Flags.PassiveAcquire);
+		nVers->Flags.ForceFire = pINI->ReadBool(section, Array[i]->FF_Tag.data(), nVers->Flags.ForceFire);
+		nVers->Flags.Retaliate = pINI->ReadBool(section, Array[i]->RT_Tag.data(), nVers->Flags.Retaliate);
+		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, Array[i]->PA_Tag.data(), nVers->Flags.PassiveAcquire);
 	}
 }
 

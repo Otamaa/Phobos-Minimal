@@ -1336,7 +1336,7 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 {
 
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x40];
+	char flagName[0x80];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 	if (res > 0 && flagName[res - 1] == '.')
@@ -1563,7 +1563,7 @@ template <typename T>
 void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x40];
+	char flagName[0x80];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
@@ -1647,7 +1647,7 @@ template <typename T>
 void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x40];
+	char flagName[0x80];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
@@ -1692,7 +1692,7 @@ template <typename T>
 void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
-	char flagName[0x40];
+	char flagName[0x80];
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 

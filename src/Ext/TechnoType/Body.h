@@ -117,19 +117,19 @@ public:
 		Valueable<SlaveReturnTo> Slaved_ReturnTo;
 		Valueable<ShieldTypeClass*> ShieldType;
 
-		Nullable<AnimTypeClass*> WarpOut;
-		Nullable<AnimTypeClass*> WarpIn;
-		Nullable<AnimTypeClass*> WarpAway;
-		Nullable<bool> ChronoTrigger;
-		Nullable<int> ChronoDistanceFactor;
-		Nullable<int> ChronoMinimumDelay;
-		Nullable<int> ChronoRangeMinimum;
-		Nullable<int> ChronoDelay;
+		NullablePromotable<AnimTypeClass*> WarpOut;
+		NullablePromotable<AnimTypeClass*> WarpIn;
+		NullablePromotable<AnimTypeClass*> WarpAway;
+		NullablePromotable<bool> ChronoTrigger;
+		NullablePromotable<int> ChronoDistanceFactor;
+		NullablePromotable<int> ChronoMinimumDelay;
+		NullablePromotable<int> ChronoRangeMinimum;
+		NullablePromotable<int> ChronoDelay;
 
-		Nullable<WeaponTypeClass*> WarpInWeapon;
-		Nullable<WeaponTypeClass*> WarpInMinRangeWeapon;
-		Nullable<WeaponTypeClass*> WarpOutWeapon;
-		Valueable<bool> WarpInWeapon_UseDistanceAsDamage;
+		Promotable<WeaponTypeClass*> WarpInWeapon;
+		Promotable<WeaponTypeClass*> WarpInMinRangeWeapon;
+		Promotable<WeaponTypeClass*> WarpOutWeapon;
+		Promotable<bool> WarpInWeapon_UseDistanceAsDamage;
 
 		ValueableVector<AnimTypeClass*> OreGathering_Anims;
 		ValueableVector<int> OreGathering_Tiberiums;
@@ -629,7 +629,8 @@ public:
 
 		std::vector<InsigniaData> Insignia_Weapon;
 
-		Nullable<int> VHPscan_Value;
+		Valueable<int> VHPscan_Value;
+		Valueable<int> SelfHealing_CombatDelay;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -694,9 +695,9 @@ public:
 			, ChronoMinimumDelay {}
 			, ChronoRangeMinimum {}
 			, ChronoDelay {}
-			, WarpInWeapon {}
-			, WarpInMinRangeWeapon {}
-			, WarpOutWeapon {}
+			, WarpInWeapon { nullptr }
+			, WarpInMinRangeWeapon { nullptr }
+			, WarpOutWeapon { nullptr }
 			, WarpInWeapon_UseDistanceAsDamage { false }
 			, OreGathering_Anims {}
 			, OreGathering_Tiberiums {}
@@ -1094,7 +1095,8 @@ public:
 			, AmmoPip_Palette { CustomPalette::PaletteMode::Default }
 
 			, Insignia_Weapon {}
-			, VHPscan_Value {}
+			, VHPscan_Value {2}
+			, SelfHealing_CombatDelay {0}
 		{ }
 
 		virtual ~ExtData() override = default;

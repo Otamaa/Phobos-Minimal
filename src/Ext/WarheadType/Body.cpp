@@ -228,7 +228,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
 	{
 		Nullable<AnimTypeClass*> pAnimReaded;
-		pAnimReaded.Read(exINI, pSection, ArmorTypeClass::Array[i]->HitAnim_Tag.c_str(), true);
+		pAnimReaded.Read(exINI, pSection, ArmorTypeClass::Array[i]->HitAnim_Tag.data(), true);
 
 		if (!pAnimReaded.isset())
 			continue;
@@ -242,11 +242,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
 	this->Sound.Read(exINI, pSection, GameStrings::Sound());
 
-	// Code disabled , require Ares 3.0 ++
 	this->Converts.Read(exINI, pSection, "Converts");
 	this->Converts_From.Read(exINI, pSection, "Converts.From");
 	this->Converts_To.Read(exINI, pSection, "Converts.To");
-	//
 
 	this->DeadBodies.Read(exINI, pSection, "DeadBodies");
 	this->AffectEnemies_Damage_Mod.Read(exINI, pSection, "AffectEnemies.DamageModifier");
@@ -341,6 +339,10 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->RelativeDamage_Building.Read(exINI, pSection, "RelativeDamage.Buildings");
 	this->RelativeDamage_Terrain.Read(exINI, pSection, "RelativeDamage.Terrain");
 
+	this->Sonar_Duration.Read(exINI, pSection, "Sonar.Duration");
+	this->DisableWeapons_Duration.Read(exINI, pSection, "DisableWeapons.Duration");
+	this->Flash_Duration.Read(exINI, pSection, "Flash.Duration");
+
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
 	{
@@ -425,7 +427,7 @@ void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVicti
 	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
 	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);
 
-	const auto multiply = pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
+	const auto multiply = std::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 	auto nAddDamage = add * multiply;
 	if (this->RecalculateDistanceDamage_ProcessVerses)
@@ -906,9 +908,9 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllowDamageOnSelf)
 		.Process(this->Debris_Conventional)
 
-		.Process(GattlingStage)
-		.Process(GattlingRateUp)
-		.Process(ReloadAmmo)
+		.Process(this->GattlingStage)
+		.Process(this->GattlingRateUp)
+		.Process(this->ReloadAmmo)
 
 		.Process(this->MindControl_Threshold)
 		.Process(this->MindControl_Threshold_Inverse)
@@ -931,38 +933,38 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->WasDetonatedOnAllMapObjects)
 
-		.Process(NotHuman_DeathAnim)
-		.Process(IsNukeWarhead)
-		.Process(Remover)
-		.Process(Remover_Anim)
-		.Process(ArmorHitAnim)
-		.Process(DebrisAnimTypes)
-		.Process(SquidSplash)
-		.Process(TemporalExpiredAnim)
-		.Process(TemporalExpiredApplyDamage)
-		.Process(TemporalDetachDamageFactor)
-		.Process(Parasite_DisableRocking)
-		.Process(Parasite_GrappleAnim)
-		.Process(Parasite_ParticleSys)
-		.Process(Parasite_TreatInfantryAsVehicle)
-		.Process(Parasite_InvestationWP)
-		.Process(Parasite_Damaging_Chance)
+		.Process(this->NotHuman_DeathAnim)
+		.Process(this->IsNukeWarhead)
+		.Process(this->Remover)
+		.Process(this->Remover_Anim)
+		.Process(this->ArmorHitAnim)
+		.Process(this->DebrisAnimTypes)
+		.Process(this->SquidSplash)
+		.Process(this->TemporalExpiredAnim)
+		.Process(this->TemporalExpiredApplyDamage)
+		.Process(this->TemporalDetachDamageFactor)
+		.Process(this->Parasite_DisableRocking)
+		.Process(this->Parasite_GrappleAnim)
+		.Process(this->Parasite_ParticleSys)
+		.Process(this->Parasite_TreatInfantryAsVehicle)
+		.Process(this->Parasite_InvestationWP)
+		.Process(this->Parasite_Damaging_Chance)
 
-		.Process(Flammability)
-		.Process(Launchs)
-		.Process(PermaMC)
-		.Process(Sound)
+		.Process(this->Flammability)
+		.Process(this->Launchs)
+		.Process(this->PermaMC)
+		.Process(this->Sound)
 		.Process(this->Converts)
 		.Process(this->Converts_From)
 		.Process(this->Converts_To)
-		.Process(StealMoney)
-		.Process(Steal_Display_Houses)
-		.Process(Steal_Display)
-		.Process(Steal_Display_Offset)
-		.Process(DeadBodies)
-		.Process(AffectEnemies_Damage_Mod)
-		.Process(AffectOwner_Damage_Mod)
-		.Process(AffectAlly_Damage_Mod)
+		.Process(this->StealMoney)
+		.Process(this->Steal_Display_Houses)
+		.Process(this->Steal_Display)
+		.Process(this->Steal_Display_Offset)
+		.Process(this->DeadBodies)
+		.Process(this->AffectEnemies_Damage_Mod)
+		.Process(this->AffectOwner_Damage_Mod)
+		.Process(this->AffectAlly_Damage_Mod)
 		.Process(this->AttachTag)
 		.Process(this->AttachTag_Types)
 		.Process(this->AttachTag_Ignore)
@@ -1016,12 +1018,15 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SuppressDeathWeapon_Vehicles)
 		.Process(this->SuppressDeathWeapon_Infantry)
 		.Process(this->SuppressDeathWeapon)
-		.Process(SuppressDeathWeapon_Exclude)
+		.Process(this->SuppressDeathWeapon_Exclude)
 		.Process(this->DeployedDamage)
 		.Process(this->Temporal_WarpAway)
 		.Process(this->Supress_LostEva)
 		.Process(this->Temporal_HealthFactor)
 		.Process(this->InfDeathAnims)
+		.Process(this->Sonar_Duration)
+		.Process(this->DisableWeapons_Duration)
+		.Process(this->Flash_Duration)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 

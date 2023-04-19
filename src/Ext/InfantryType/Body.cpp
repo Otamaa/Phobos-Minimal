@@ -19,6 +19,8 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	this->C4Delay.Read(exINI, pID, "C4Delay");
 	this->C4ROF.Read(exINI, pID, "C4ROF");
+	this->C4Damage.Read(exINI, pID, "C4Damage");
+
 	this->HideWhenDeployAnimPresent.Read(exINI, pID, "Deploy.HideWhenDeployAnimPresent");
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 
@@ -62,6 +64,7 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->C4Delay)
 		.Process(this->C4ROF)
+		.Process(this->C4Damage)
 		.Process(this->HideWhenDeployAnimPresent)
 		.Process(this->DeathBodies_UseDieSequenceAsIndex)
 		.Process(this->CrawlingWeaponDatas)

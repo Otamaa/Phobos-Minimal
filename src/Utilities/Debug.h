@@ -21,7 +21,6 @@ public:
 
 	static void FreeMouse();
 	static void Log(const char* pFormat, ...);
-	static void Log(const std::string& pString);
 	static void LogDeferred(const char* pFormat, ...);
 	static void LogDeferredFinalize();
 	static void LogAndMessage(const char* pFormat, ...);

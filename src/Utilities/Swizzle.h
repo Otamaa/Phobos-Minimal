@@ -32,14 +32,16 @@ public:
 	* pass in the *address* of the pointer you want to have changed
 	* caution, after the call *p will be NULL
 	*/
-	HRESULT RegisterForChange(void** p);
+	HRESULT RegisterForChange_Hook(void** p);
 
+	HRESULT RegisterForChange(void** p);
 	/**
 	* the original game objects all save their `this` pointer to the save stream
 	* that way they know what ptr they used and call this function with that old ptr and `this` as the new ptr
 	*/
 	HRESULT RegisterChange(void* was, void* is);
 
+	HRESULT RegisterChange_Hook(void* was, void* is);
 	/**
 	* this function will rewrite all registered nodes' values
 	*/

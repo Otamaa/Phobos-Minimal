@@ -22,7 +22,7 @@ DEFINE_OVERRIDE_HOOK(0x41088D, AbstractTypeClass_CTOR_IDTooLong, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 {
-	GET(int const, index, EBX);
+	GET(int const, index, EAX);
 	GET(TriggerTypeClass* const, pTrig, EBP);
 	GET(const char*, pHouse, ESI);
 

@@ -803,22 +803,24 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	// });
 
 	// TODO :
-	INI_EX iniEx(pINI);
-	char TagBuffer[0x40];
-	std::for_each(WarheadTypeClass::Array->begin(), WarheadTypeClass::Array->end(), [&](WarheadTypeClass* pType) {
-	if (auto const pExt = WarheadTypeExt::ExtMap.Find(pType))
-		for (size_t i = InfantryTypeClass::Array->Count; i > 0; --i)
-		{
-			Nullable<AnimTypeClass*> nBuffer {};
-			IMPL_SNPRNINTF(TagBuffer,sizeof(TagBuffer),"%s.InfDeathAnim" , InfantryTypeClass::Array->GetItem(i)->ID);
-			nBuffer.Read(iniEx, pType->ID, TagBuffer);
+	//INI_EX iniEx(pINI);
+	//std::for_each(WarheadTypeClass::Array->begin(), WarheadTypeClass::Array->end(), [&](WarheadTypeClass* pType) {
+	//	const auto pExt = WarheadTypeExt::ExtMap.Find(pType);
 
-			if (!nBuffer.isset())
-				continue;
+	//	for (size_t i = InfantryTypeClass::Array->Count; i > 0; --i)
+	//	{
+	//		Nullable<AnimTypeClass*> nBuffer {};
+	//		const auto nInfID = InfantryTypeClass::Array->GetItem(i)->ID;
+	//		Debug::Log("Warhead[%s] Reading DeathAnim For %s \n", pType->ID, nInfID);
+	//		IMPL_SNPRNINTF(Phobos::readBuffer,sizeof(Phobos::readBuffer),"%s.InfDeathAnim" , nInfID);
+	//		nBuffer.Read(iniEx, pType->ID, Phobos::readBuffer);
 
-			pExt->InfDeathAnims[i] = nBuffer;
-		}
-	});
+	//		if (!nBuffer.isset())
+	//			continue;
+
+	//		pExt->InfDeathAnims[i] = nBuffer;
+	//	}
+	//});
 
 	// load these after game loading 
 	// so the game not choke up when first firing the projectiles

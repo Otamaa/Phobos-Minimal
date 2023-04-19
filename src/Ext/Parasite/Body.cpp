@@ -14,7 +14,7 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 		int xOffset = 0;
 		int yOffset = 0;
 
-		nBracket = TechnoExt::GetDisguiseType(pThis).first->PixelSelectionBracketDelta;
+		nBracket = TechnoExt::GetDisguiseType, (pThis).first->PixelSelectionBracketDelta;
 
 		switch ((((DWORD*)pThis)[0]))
 		{

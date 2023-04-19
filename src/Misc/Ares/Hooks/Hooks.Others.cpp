@@ -61,25 +61,6 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
-DEFINE_OVERRIDE_HOOK(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
-{
-	GET(HouseClass*, House, EDI);
-	GET(int, triggerSide, EAX);
-
-	enum { Eligible = 0x41E8D7, NotEligible = 0x41E8A1 };
-
-	if (!triggerSide)
-	{
-		return Eligible;
-	}
-
-	--triggerSide;
-	return(triggerSide == House->SideIndex)
-		? Eligible
-		: NotEligible
-		;
-}
-
 DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 {
 	GET(AbstractClass*, pThis, ECX);

@@ -9,14 +9,14 @@ class ArmorTypeClass final : public Enumerable<ArmorTypeClass>
 public:
 
 	int DefaultTo;
-	std::string DefaultString;
+	FixedString<0x40> DefaultString;
 	VersesData DefaultVerses;
 
-	std::string BaseTag;
-	std::string FF_Tag;
-	std::string RT_Tag;
-	std::string PA_Tag;
-	std::string HitAnim_Tag;
+	FixedString<0x50> BaseTag;
+	FixedString<0x50> FF_Tag;
+	FixedString<0x50> RT_Tag;
+	FixedString<0x50> PA_Tag;
+	FixedString<0x50> HitAnim_Tag;
 
 	ArmorTypeClass(const char* const pTitle);
 	virtual ~ArmorTypeClass() override = default;

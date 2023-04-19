@@ -77,7 +77,8 @@ DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 {
 	GET(TechnoTypeClass*, technoType, EAX);
-	return (*TechnoTypeExt::ExtMap.Find(technoType)->TurretOffset.GetEx()) == CoordStruct::Empty ? 0x73B78A : 0x73B790;
+	return (*TechnoTypeExt::ExtMap.Find(technoType)->TurretOffset.GetEx()) == CoordStruct::Empty ?
+		0x73B78A : 0x73B790;
 }
 
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0

@@ -485,7 +485,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		auto GetGarrisonAnim = [&exINI, pSection](
 			PhobosMap<int, AnimTypeClass*>& nVec, const char* pBaseFlag, bool bAllocate = true, bool bParseDebug = false)
 		{
-			char tempBuffer[0x25];			
+			char tempBuffer[0x55];
 			for (int i = 0; i < HouseTypeClass::Array()->Count; ++i)
 			{
 				Nullable<AnimTypeClass*> nBuffer;

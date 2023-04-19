@@ -2678,9 +2678,9 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	if (!pTechnoTarget)
 		pTechnoTarget = nullptr;
 
-	int nValue = pExt->VHPscan_Value.Get(2);
+	int nValue = pExt->VHPscan_Value;
 	if (nValue <= 0)
-		nValue = 1;
+		nValue = 2;
 
 	switch (NewVHPScan(pExt->Get()->VHPScan))
 	{
@@ -5350,6 +5350,22 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7) {
 	GET(BuildingClass*, pBld, EAX);
 	return pBld ? 0x0 : 0x71AA1A;
+}
+
+DEFINE_HOOK(0x4400C1, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+	if (pExt->C4Damage.isset() && !pThis->Type->BridgeRepairHut) {
+		int nDamage = pExt->C4Damage.get();
+		pThis->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pThis->C4AppliedBy, false, false,
+			pExt->C4Owner);
+
+		return pThis->IsAlive ? 0x4400F2 : 0x4400EA;
+	}
+
+	pExt->C4Damage.clear();
+	return 0x0;
 }
 
 #ifdef FOW_HOOKS

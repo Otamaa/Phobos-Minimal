@@ -386,8 +386,8 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 
 	// List all Warheads here that respect CellSpread
 	const bool isCellSpreadWarhead =
-		this->RemoveDisguise ||
-		this->RemoveMindControl ||
+		//this->RemoveDisguise ||
+		//this->RemoveMindControl ||
 		this->Crit_Chance ||
 		this->Shield_Break ||
 		this->Converts ||
@@ -399,7 +399,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->GattlingStage > 0 ||
 		this->GattlingRateUp != 0 ||
 		this->AttachTag ||
-		this->DirectionalArmor ||
+		//this->DirectionalArmor ||
 		this->ReloadAmmo != 0 ||
 		(this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0) ||
 		!this->LimboKill_IDs.empty()
@@ -483,18 +483,17 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (!this->CanTargetHouse(pHouse, pTarget))
 		return;
 
-	if (!this->LimboKill_IDs.empty())
-	{
+	if (!this->LimboKill_IDs.empty()) {
 		BuildingExt::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}
 
 	this->ApplyShieldModifiers(pTarget);
 
-	if (this->RemoveDisguise)
-		this->ApplyRemoveDisguiseToInf(pHouse, pTarget);
+	//if (this->RemoveDisguise)
+	//	this->ApplyRemoveDisguiseToInf(pHouse, pTarget);
 
-	if (this->RemoveMindControl)
-		this->ApplyRemoveMindControl(pHouse, pTarget);
+	//if (this->RemoveMindControl)
+	//	this->ApplyRemoveMindControl(pHouse, pTarget);
 
 	if (this->Get()->MindControl && this->PermaMC && !pBullet)
 		this->applyPermaMC(pHouse, pTarget);
@@ -530,8 +529,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	if (this->AttachTag)
 		this->ApplyAttachTag(pTarget);
 
-	if (this->DirectionalArmor.Get())
-		this->ApplyDirectional(pBullet, pTarget);
+	//if (this->DirectionalArmor.Get())
+	//	this->ApplyDirectional(pBullet, pTarget);
 
 	if (this->RevengeWeapon.isset() && this->RevengeWeapon_GrantDuration > 0)
 		this->ApplyRevengeWeapon(pTarget);
@@ -632,7 +631,7 @@ void WarheadTypeExt::ExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoC
 		pController->CaptureManager->FreeUnit(pTarget);
 }
 
-void WarheadTypeExt::ExtData::ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget)
+void WarheadTypeExt::ExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget)
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
 	if (auto const pFoot = generic_cast<FootClass*>(pTarget))

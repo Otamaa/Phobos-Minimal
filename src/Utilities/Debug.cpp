@@ -16,10 +16,6 @@ void Debug::Log(const char* pFormat, ...)
 	JMP_STD(0x4068E0);
 }
 
-void Debug::Log(const std::string& pString) {
-	Debug::Log("%s", pString.c_str());
-}
-
 void Debug::LogDeferred(const char* pFormat, ...)
 {
 	va_list args;

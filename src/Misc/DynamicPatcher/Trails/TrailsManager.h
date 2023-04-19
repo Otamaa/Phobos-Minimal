@@ -81,7 +81,7 @@ struct TrailsReader
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{
-		char tempBuffer[0x40];
+		char tempBuffer[0x50];
 
 		if (TrailType::Array.empty())
 			return;

@@ -175,8 +175,8 @@ bool TechnoTypeExt::ExtData::IsCountedAsHarvester() const
 void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const char* pArtSection,
 	std::vector<std::vector<CoordStruct>>& nFLH, std::vector<std::vector<CoordStruct>>& nEFlh, const char* pPrefixTag)
 {
-	char tempBuffer[32];
-	char tempBufferFLH[48];
+	char tempBuffer[0x40];
+	char tempBufferFLH[0x40];
 
 	bool parseMultiWeapons = pThis->TurretCount > 0 && pThis->WeaponCount > 0;
 	auto weaponCount = parseMultiWeapons ? pThis->WeaponCount : 2;
@@ -212,7 +212,7 @@ void TechnoTypeExt::GetBurstFLHs(TechnoTypeClass* pThis, INI_EX& exArtINI, const
 
 void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<CoordStruct>& nFlh, Nullable<CoordStruct>& nEFlh, const char* pFlag)
 {
-	char tempBuffer[32];
+	char tempBuffer[0x40];
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "%sFLH", pFlag);
 	nFlh.Read(exArtINI, pArtSection, tempBuffer);
 	IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Elite%sFLH", pFlag);
@@ -293,19 +293,19 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->ShieldType.Read(exINI, pSection, "ShieldType");
 		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
-		this->WarpOut.Read(exINI, pSection, GameStrings::WarpOut());
-		this->WarpIn.Read(exINI, pSection, GameStrings::WarpIn());
-		this->WarpAway.Read(exINI, pSection, GameStrings::WarpAway());
-		this->ChronoTrigger.Read(exINI, pSection, GameStrings::ChronoTrigger());
-		this->ChronoDistanceFactor.Read(exINI, pSection, GameStrings::ChronoDistanceFactor());
-		this->ChronoMinimumDelay.Read(exINI, pSection, GameStrings::ChronoMinimumDelay());
-		this->ChronoRangeMinimum.Read(exINI, pSection, GameStrings::ChronoRangeMinimum());
-		this->ChronoDelay.Read(exINI, pSection, GameStrings::ChronoDelay());
+		this->WarpOut.Read(exINI, pSection, "%s.WarpOut");
+		this->WarpIn.Read(exINI, pSection, "%s.WarpIn");
+		this->WarpAway.Read(exINI, pSection, "%s.WarpAway");
+		this->ChronoTrigger.Read(exINI, pSection, "%s.ChronoTrigger");
+		this->ChronoDistanceFactor.Read(exINI, pSection, "%s.ChronoDistanceFactor");
+		this->ChronoMinimumDelay.Read(exINI, pSection, "%s.ChronoMinimumDelay");
+		this->ChronoRangeMinimum.Read(exINI, pSection, "%s.ChronoRangeMinimum");
+		this->ChronoDelay.Read(exINI, pSection, "%s.ChronoDelay");
 
-		this->WarpInWeapon.Read(exINI, pSection, "WarpInWeapon", true);
-		this->WarpInMinRangeWeapon.Read(exINI, pSection, "WarpInMinRangeWeapon", true);
-		this->WarpOutWeapon.Read(exINI, pSection, "WarpOutWeapon", true);
-		this->WarpInWeapon_UseDistanceAsDamage.Read(exINI, pSection, "WarpInWeapon.UseDistanceAsDamage");
+		this->WarpInWeapon.Read(exINI, pSection, "%s.WarpInWeapon");
+		this->WarpInMinRangeWeapon.Read(exINI, pSection, "%s.WarpInMinRangeWeapon");
+		this->WarpOutWeapon.Read(exINI, pSection, "%s.WarpOutWeapon");
+		this->WarpInWeapon_UseDistanceAsDamage.Read(exINI, pSection, "%s.WarpInWeapon.UseDistanceAsDamage");
 
 		this->OreGathering_Anims.Read(exINI, pSection, "OreGathering.Anims");
 		this->OreGathering_Tiberiums.Read(exINI, pSection, "OreGathering.Tiberiums");
@@ -673,7 +673,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 #pragma endregion Prereq
 
-		char tempBuffer[0x25];
+		char tempBuffer[0x40];
 
 		if (pThis->Gunner && this->Insignia_Weapon.empty())
 		{
@@ -809,6 +809,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		// refinery and storage
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		this->VHPscan_Value.Read(exINI, pSection, "VHPscan.Value");
+		this->SelfHealing_CombatDelay.Read(exINI, pSection, "SelfHealing.CombatDelay");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -866,7 +867,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		this->TurretOffset.Read(exArtINI, pArtSection, "TurretOffset");
 
-		char tempBuffer[0x20];
+		char tempBuffer[0x40];
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx<LaserTrailTypeClass> trail;
@@ -898,7 +899,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 		for (size_t i = 0;; i++)
 		{
-			char key[0x39];
+			char key[0x40];
 			Nullable<CoordStruct> alternateFLH;
 			sprintf_s(key, "AlternateFLH%u", i);
 			alternateFLH.Read(exArtINI, pArtSection, key);
@@ -1503,6 +1504,9 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->FallRate_ParachuteMax)
 		.Process(this->FallRate_NoParachuteMax)
 
+		.Process(this->BarrelImageData)
+		.Process(this->TurretImageData)
+		.Process(this->SpawnAltData)
 		.Process(this->WeaponUINameX)
 		.Process(this->NoShadowSpawnAlt)
 
@@ -1544,6 +1548,7 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)
+		.Process(this->SelfHealing_CombatDelay)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

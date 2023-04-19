@@ -18,16 +18,18 @@ public:
 
 		Nullable<double> C4Delay;
 		Nullable<int> C4ROF;
+		Nullable<int> C4Damage;
 
 		Valueable<bool> HideWhenDeployAnimPresent;
 		Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
 		WeaponStruct CrawlingWeaponDatas[4];
 		ExtData(base_type* OwnerObject) : Extension<base_type>(OwnerObject)
-			, C4Delay { }
-			, C4ROF { }
+			, C4Delay {}
+			, C4ROF {}
+			, C4Damage {}
 			, HideWhenDeployAnimPresent { false }
 			, DeathBodies_UseDieSequenceAsIndex { false }
-			, CrawlingWeaponDatas { }
+			, CrawlingWeaponDatas {}
 		{ }
 
 		virtual ~ExtData() override = default;

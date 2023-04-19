@@ -17,92 +17,50 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 {
 	GET_LOCO(ESI);
 
-	TechnoExt::PlayAnim(pExt->WarpOut.Get(RulesClass::Instance->WarpOut), pLocomotor->LinkedTo);
+	TechnoExt::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 
-	if (pExt->WarpOutWeapon.isset())
-		WeaponTypeExt::DetonateAt(pExt->WarpOutWeapon.Get(), pLocomotor->LinkedTo, pLocomotor->LinkedTo);
+	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner);
 
 	return 0x719447;
 }
-
-/*
-DEFINE_HOOK(0x719439, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0x6)
-{
-	GET_LOCO(ESI);
-
-	R->EDX<AnimTypeClass*>(pExt->WarpOut.Get(RulesGlobal->WarpOut));
-
-	if (pExt->WarpOutWeapon.isset())
-		WeaponTypeExt::DetonateAt(pExt->WarpOutWeapon.Get(), pLocomotor->LinkedTo, pLocomotor->LinkedTo);
-
-	return 0x71943F;
-}*/
 
 DEFINE_HOOK(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)
 {
 	GET_LOCO(ESI);
 
-	TechnoExt::PlayAnim(pExt->WarpIn.Get(RulesClass::Instance->WarpOut), pOwner);
+	//WarpIn is unused , maybe a type on WW side
+	TechnoExt::PlayAnim(pExt->WarpIn.GetOrDefault(pOwner ,RulesClass::Instance->WarpOut), pOwner);
 
 	const auto pTechnoExt = TechnoExt::ExtMap.Find(pOwner);
 
 	const auto& weaponType =
-		pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.Get(RulesClass::Instance->ChronoRangeMinimum)
+		pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.GetOrDefault(pOwner ,RulesClass::Instance->ChronoRangeMinimum)
 		? pExt->WarpInMinRangeWeapon : pExt->WarpInWeapon ;
 
-	if (weaponType.isset()) {
-		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage ? (pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : weaponType->Damage;
-		WeaponTypeExt::DetonateAt(weaponType, pOwner, pOwner, damage);
+	if (const auto pWeapon = weaponType.Get(pOwner)) {
+		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
+			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner, damage);
 	}
 
 	return 0x719796;
 }
 
-/*
-DEFINE_HOOK(0x719788, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0x6)
-{
-	GET_LOCO(ESI);
-
-	R->EDX<AnimTypeClass*>(pExt->WarpIn.Get(RulesGlobal->WarpOut));
-
-	if (auto pTechnoExt = TechnoExt::ExtMap.Find(pLocomotor->LinkedTo))
-	{
-		auto weaponType = pTechnoExt->LastWarpDistance < pExt->ChronoRangeMinimum.Get(RulesGlobal->ChronoRangeMinimum) ? pExt->WarpInMinRangeWeapon.Get(pExt->WarpInWeapon.isset() ? pExt->WarpInWeapon.Get() : nullptr) :
-			pExt->WarpInWeapon.isset() ? pExt->WarpInWeapon.Get() : nullptr;
-
-		if (weaponType)
-		{
-			int damage = pExt->WarpInWeapon_UseDistanceAsDamage ? (pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : weaponType->Damage;
-			WeaponTypeExt::DetonateAt(weaponType, pLocomotor->LinkedTo, pLocomotor->LinkedTo, damage);
-		}
-	}
-
-	return 0x71978E;
-}*/
-
 DEFINE_HOOK(0x719827, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
 {
 	GET_LOCO(ESI);
 
-	TechnoExt::PlayAnim(pExt->WarpAway.Get(RulesClass::Instance->WarpOut), pOwner);
+	TechnoExt::PlayAnim(pExt->WarpAway.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 	return 0x719878;
 }
-
-/*
-DEFINE_HOOK(0x71986A, TeleportLocomotionClass_ILocomotion_Process_WarpAway, 0x6)
-{
-	GET_LOCO(ESI);
-
-	R->ECX<AnimTypeClass*>(pExt->WarpAway.Get(RulesGlobal->WarpOut));
-
-	return 0x719870;
-}*/
 
 DEFINE_HOOK(0x7194D0, TeleportLocomotionClass_ILocomotion_Process_ChronoTrigger, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, EBX);
 
-	R->AL(pExt->ChronoTrigger.Get(RulesClass::Instance->ChronoTrigger));
+	R->AL(pExt->ChronoTrigger.GetOrDefault(pOwner, pRules->ChronoTrigger));
 
 	return 0x7194D6;
 }
@@ -110,9 +68,10 @@ DEFINE_HOOK(0x7194D0, TeleportLocomotionClass_ILocomotion_Process_ChronoTrigger,
 DEFINE_HOOK(0x7194E3, TeleportLocomotionClass_ILocomotion_Process_ChronoDistanceFactor, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, EBX);
 	GET(int, val, EAX);
 
-	const auto nDecided = pExt->ChronoDistanceFactor.Get(RulesClass::Instance->ChronoDistanceFactor);
+	const auto nDecided = pExt->ChronoDistanceFactor.GetOrDefault(pOwner, pRules->ChronoDistanceFactor);
 	const auto factor = MaxImpl(nDecided, 1);// fix factor 0 crash by force it to 1 (Vanilla bug)
 
 	//IDIV
@@ -125,8 +84,9 @@ DEFINE_HOOK(0x7194E3, TeleportLocomotionClass_ILocomotion_Process_ChronoDistance
 DEFINE_HOOK(0x719519, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumDelay, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, EBX);
 
-	R->EBX(pExt->ChronoMinimumDelay.Get(RulesClass::Instance->ChronoMinimumDelay));
+	R->EBX(pExt->ChronoMinimumDelay.GetOrDefault(pOwner, pRules->ChronoMinimumDelay));
 
 	return 0x71951F;
 }
@@ -134,8 +94,9 @@ DEFINE_HOOK(0x719519, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumD
 DEFINE_HOOK(0x719562, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumDelay2, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, ECX);
 
-	R->ECX(pExt->ChronoMinimumDelay.Get(RulesClass::Instance->ChronoMinimumDelay));
+	R->ECX(pExt->ChronoMinimumDelay.GetOrDefault(pOwner, pRules->ChronoMinimumDelay));
 
 	return 0x719568;
 }
@@ -143,18 +104,20 @@ DEFINE_HOOK(0x719562, TeleportLocomotionClass_ILocomotion_Process_ChronoMinimumD
 DEFINE_HOOK(0x719555, TeleportLocomotionClass_ILocomotion_Process_ChronoRangeMinimum, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, ECX);
 	GET(int, comparator, EDX);
 
 	TechnoExt::ExtMap.Find(pOwner)->LastWarpDistance = comparator;
-	const auto factor = pExt->ChronoRangeMinimum.Get(RulesClass::Instance->ChronoRangeMinimum);
+	const auto factor = pExt->ChronoRangeMinimum.GetOrDefault(pOwner, pRules->ChronoRangeMinimum);
 	return comparator < factor ? 0x71955D : 0x719576;
 }
 
 DEFINE_HOOK(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 0x6)
 {
 	GET_LOCO(ESI);
+	GET(RulesClass*, pRules, EAX);
 
-	R->ECX(pExt->ChronoDelay.Get(RulesClass::Instance->ChronoDelay));
+	R->ECX(pExt->ChronoDelay.GetOrDefault(pOwner, pRules->ChronoDelay));
 
 	return 0x719981;
 }

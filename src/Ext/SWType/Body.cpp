@@ -46,7 +46,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
 
-	char tempBuffer[32];
+	char tempBuffer[0x30];
 	for (size_t i = 0; ; ++i)
 	{
 		ValueableVector<int> weights;

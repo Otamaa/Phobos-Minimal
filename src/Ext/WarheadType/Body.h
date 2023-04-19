@@ -262,6 +262,11 @@ public:
 		Valueable<double> Temporal_HealthFactor;
 
 		std::unordered_map<int , AnimTypeClass*> InfDeathAnims;
+
+		Valueable<int> Sonar_Duration;
+		Valueable<int> DisableWeapons_Duration;
+		Valueable<int> Flash_Duration;
+
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
 #endif
@@ -477,6 +482,9 @@ public:
 			, Supress_LostEva { false }
 			, Temporal_HealthFactor { 1.0 }
 			, InfDeathAnims { }
+			, Sonar_Duration { 0 }
+			, DisableWeapons_Duration { 0 }
+			, Flash_Duration { 0 }
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 
@@ -491,11 +499,12 @@ public:
 			ArmorHitAnim.resize(Unsorted::ArmorNameArray.c_size());
 		}
 
+		void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);
+		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
+
 	private:
 		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr , BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
-		void ApplyRemoveDisguiseToInf(HouseClass* pHouse, TechnoClass* pTarget);
-		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 		void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 		void ApplyShieldModifiers(TechnoClass* pTarget);
 

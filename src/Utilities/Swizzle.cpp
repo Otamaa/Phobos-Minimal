@@ -6,9 +6,6 @@
 
 #include <SwizzleManagerClass.h>
 
-#ifdef  DISABLE_ARES_SWIZZLEHOOKS
-PhobosSwizzle PhobosSwizzle::Instance;
-
 HRESULT PhobosSwizzle::RegisterForChange(void** p)
 {
 	return SwizzleManagerClass::Instance().Swizzle(p);
@@ -18,10 +15,10 @@ HRESULT PhobosSwizzle::RegisterChange(void* was, void* is)
 {
 	return SwizzleManagerClass::Instance().Here_I_Am((long)was, is);
 }
-#else
+
 PhobosSwizzle PhobosSwizzle::Instance;
 
-HRESULT PhobosSwizzle::RegisterForChange(void** p)
+HRESULT PhobosSwizzle::RegisterForChange_Hook(void** p)
 {
 	if (p)
 	{
@@ -35,7 +32,7 @@ HRESULT PhobosSwizzle::RegisterForChange(void** p)
 	return E_POINTER;
 }
 
-HRESULT PhobosSwizzle::RegisterChange(void* was, void* is)
+HRESULT PhobosSwizzle::RegisterChange_Hook(void* was, void* is)
 {
 	auto exist = this->Changes.find(was);
 	if (exist == this->Changes.end())
@@ -81,33 +78,3 @@ void PhobosSwizzle::Clear()
 	this->Nodes.clear();
 	this->Changes.clear();
 }
-
-//DEFINE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 0x0)
-//{
-//	PhobosSwizzle::Instance.ConvertNodes();
-//	PhobosSwizzle::Instance.Clear();
-//
-//	return 0x6CF400;
-//}
-//
-//DEFINE_HOOK(0x6CF2C0, SwizzleManagerClass_Here_I_Am, 0x0)
-//{
-//	GET_STACK(void*, oldP, 0x8);
-//	GET_STACK(void*, newP, 0xC);
-//
-//	HRESULT res = PhobosSwizzle::Instance.RegisterChange(oldP, newP);
-//
-//	R->EAX<HRESULT>(res);
-//	return 0x6CF316;
-//}
-//
-//DEFINE_HOOK(0x6CF240, SwizzleManagerClass_Swizzle, 0x0)
-//{
-//	GET_STACK(void**, ptr, 0x8);
-//
-//	HRESULT res = PhobosSwizzle::Instance.RegisterForChange(ptr);
-//
-//	R->EAX<HRESULT>(res);
-//	return 0x6CF2B3;
-//}
-#endif

@@ -382,7 +382,7 @@ void Phobos::Config::Read()
 		{
 			Phobos::Misc::CustomGS = true;
 
-			char tempBuffer[26];
+			char tempBuffer[0x20];
 			for (size_t i = 0; i <= 6; ++i)
 			{
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "CustomGS%d.ChangeDelay", 6 - i);

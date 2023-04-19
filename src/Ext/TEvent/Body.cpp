@@ -278,27 +278,16 @@ DEFINE_HOOK(0x71F8C0, TEventClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71F91B, TEventClass_Load_Suffix, 0x9)
+DEFINE_HOOK(0x71F92B, TEventClass_Load_Suffix, 0x5)
 {
-	GET(TEventClass*, pItem, ESI);
-
-	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->House);
-	TEventExt::ExtMap.LoadStatic();
-	
-	return 0x71F929;
+	TEventExt::ExtMap.LoadStatic();	
+	return 0x0;
 }
 
-DEFINE_HOOK(0x71F944, TEventClass_Save_Suffix, 0x6)
+DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
 {
-	GET(HRESULT, nRest, EAX);
-
-	if(SUCCEEDED(nRest)) {
-		Debug::Log("%s Executed !  HRES : %d \n", __FUNCTION__,nRest);
-		TEventExt::ExtMap.SaveStatic();
-		return 0x71F948;
-	}
-
-	return 0x71F94A;
+	TEventExt::ExtMap.SaveStatic();
+	return 0;
 }
 
 DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)

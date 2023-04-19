@@ -22,7 +22,7 @@ public:
 		if (!pSection)
 			return;
 
-		char tempBuffer[32];
+		char tempBuffer[0x55];
 
 		for (int i = 0; ; ++i)
 		{

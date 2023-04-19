@@ -60,6 +60,7 @@ public:
 		int DelayedFire_DurationTimer;
 		bool IsInTunnel;
 		CDTimerClass DeployFireTimer;
+		CDTimerClass DisableWeaponTimer;
 
 		std::vector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
 
@@ -134,6 +135,7 @@ public:
 			, DelayedFire_DurationTimer { 0 }
 			, IsInTunnel { false }
 			, DeployFireTimer {}
+			, DisableWeaponTimer {}
 			, RevengeWeapons {}
 			, IsDriverKilled { false }
 			, GattlingDmageDelay { -1 }
@@ -310,7 +312,7 @@ private:
 
 	static int GetInitialStrength(TechnoTypeClass* pType, int nHP);
 
-	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility);
+	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility, bool bVisibleResult = false);
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
 	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select);

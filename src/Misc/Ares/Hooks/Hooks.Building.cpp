@@ -663,6 +663,12 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 				duration = 1;
 		}
 
+		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+		if(pInfext->C4Damage.isset()){
+			pBldExt->C4Damage = pInfext->C4Damage;
+		}
+
+		pBldExt->C4Owner = pThis->GetOwningHouse();
 		pBuilding->Flash(duration / 2);
 		pBuilding->C4Timer.Start(duration);
 
