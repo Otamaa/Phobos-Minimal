@@ -14,6 +14,7 @@ DEFINE_DISABLE_HOOK(0x438799, BombClass_Detonate_removeUnused3_Ares)
 DEFINE_DISABLE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy_replaceDestructorcall)
 DEFINE_DISABLE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy_replaceDestructorcall)
 DEFINE_DISABLE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged)
+DEFINE_DISABLE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette_ares)
 
 //DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR)
 //DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR)

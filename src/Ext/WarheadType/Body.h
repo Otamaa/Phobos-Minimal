@@ -24,6 +24,7 @@ struct UnParsedThing
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
 struct args_ReceiveDamage;
+class ArmorTypeClass;
 class WarheadTypeExt
 {
 public:
@@ -166,7 +167,7 @@ public:
 		Valueable<bool> Remover;
 		Valueable<AnimTypeClass*> Remover_Anim;
 
-		ValueableVector<AnimTypeClass*> ArmorHitAnim;
+		std::unordered_map<ArmorTypeClass* , AnimTypeClass*> ArmorHitAnim;
 
 		NullableVector<AnimTypeClass*> DebrisAnimTypes;
 		NullableVector<AnimTypeClass*> SquidSplash;
@@ -496,7 +497,6 @@ public:
 
 		{	
 			Verses.resize(Unsorted::ArmorNameArray.c_size());
-			ArmorHitAnim.resize(Unsorted::ArmorNameArray.c_size());
 		}
 
 		void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);

@@ -763,24 +763,6 @@ DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 
 	? 0x700DCEu : 0u;
 }
 
-// #908369, #1100953: units are still deployable when warping or falling
-DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	CellClass* pCell = pThis->GetCell();
-	CoordStruct crd = pCell->GetCoordsWithBridge();
-
-	// recreate replaced check, and also disallow if unit is still warping or dropping in.
-	return (pThis->IsUnderEMP()
-	|| pThis->IsWarpingIn()
-	|| pThis->IsFallingDown
-	|| Is_DriverKilled(pThis)
-	)
-
-	? 0x700DCE : 0x700E59;
-}
-
 DEFINE_OVERRIDE_HOOK(0x53C450, TechnoClass_CanBePermaMC, 5)
 {
 	// complete rewrite. used by psychic dominator, ai targeting, etc.
@@ -827,33 +809,6 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6F7FC5, TechnoClass_CanAutoTargetObject_Heal, 7, 6F7FDF)
-
-DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
-{
-	GET(ObjectClass*, pTarget, EDI);
-
-	bool bCond = false;
-
-	if (const auto pTech = generic_cast<TechnoClass*>(pTarget)) {
-		bCond = RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage_();
-	}
-
-	return bCond ? 0x51C947 : 0x51C939;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(HouseClass*, pHouse, EDI);
-
-	const HouseClass* pOwner = R->BL() ? pHouse : pThis->Owner;
-	bool IsAlly = false;
-	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
-		IsAlly = pTechTarget->Owner->IsAlliedWith(pOwner);
-	}
-
-	return IsAlly == (pThis->CombatDamage() <= 0)  ? 0x6FA472 : 0x6FA39D;
-}
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
 DEFINE_OVERRIDE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
@@ -1471,12 +1426,73 @@ DEFINE_OVERRIDE_HOOK(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	return 0x7091C5;
 }
 
-static constexpr std::array<const char* const, 17> SubName { {
+// #908369, #1100953: units are still deployable when warping or falling
+DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	CellClass* pCell = pThis->GetCell();
+	CoordStruct crd = pCell->GetCoordsWithBridge();
+
+	// recreate replaced check, and also disallow if unit is still warping or dropping in.
+	return (pThis->IsUnderEMP()
+	|| pThis->IsWarpingIn()
+	|| pThis->IsFallingDown
+	|| Is_DriverKilled(pThis)
+	)
+
+		? 0x700DCE : 0x700E59;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
+{
+	GET(ObjectClass*, pTarget, EDI);
+
+	if (const auto pTech = generic_cast<TechnoClass*>(pTarget)) {
+		return RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage_()
+			? 0x51C947 : 0x51C939;
+	}
+
+	return 0x51C939;
+}
+
+// this code somewhat broke targeting 
+// it created identically like ares but not working as expected , duh
+DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(HouseClass* const, pHouse, EDI);
+
+	const bool BLRes = R->BL();
+	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
+	bool IsAlly = false;
+	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
+		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+			if(pOwner->IsAlliedWith(pTargetHouse))
+				IsAlly = true;
+		}
+	}
+
+	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
+	const bool IsNegDamage = (pThis->CombatDamage() < 0);
+
+	//if (IsNegDamage && !IsAlly)
+	//	return RetNotAlly;
+	//
+	//if (IsAlly) {
+	//	return RetAlly;
+	//}
+
+	//return RetNotAlly;
+
+	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
+}
+
+static constexpr const char* const SubName [] = {
 	"Normal", "Repair" ,"MachineGun", "Flak" , "Pistol" , "Sniper" , "Shock",
 	"Explode" , "BrainBlast" , "RadCannon" , "Chrono" , "TerroristExplode" ,
 	"Cow" , "Initiate" , "Virus" , "YuriPrime" , "Guardian"
-
-} };
+};
 
 //DEFINE_HOOK(747BBD, UnitTypeClass_LoadFromINI, 6)
 //{

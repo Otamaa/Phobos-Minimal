@@ -7,7 +7,7 @@ struct module_export
 {
 	void* address;
 	const char* name;
-	unsigned short ordinal;
+	WORD ordinal;
 };
 
 // no more than 8 characters
@@ -17,11 +17,12 @@ struct module_export
 #pragma pack(push, 1)
 #pragma warning(push)
 #pragma warning( disable : 4324)
+
 struct __declspec(novtable)
 	Patch
 {
-	unsigned int offset;
-	unsigned int size;
+	size_t offset;
+	size_t size;
 	BYTE* pData;
 
 	static void ApplyStatic();
@@ -66,5 +67,15 @@ struct __declspec(novtable)
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static DWORD GetDebuggerProcessId(DWORD dwSelfProcessId);
 };
+
+struct __declspec(novtable)
+	PatchWrapper
+{
+	Patch Data;
+
+	PatchWrapper(size_t offs, size_t size, BYTE* pData) : Data { offs , size , pData }
+	{ Data.Apply(); }
+};
+
 #pragma warning(pop)
 #pragma pack(pop)

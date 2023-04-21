@@ -922,21 +922,21 @@ DEFINE_HOOK(0x46AFC4, BulletClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-//DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
-//{
-//	GET(BulletClass*, pThis, ESI);
-//	GET(void*, target, EDI);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	if (auto pExt = BulletExt::ExtMap.Find(pThis))
-//		pExt->InvalidatePointer(target, all);
-//
-//	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
-//}
+DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
+{
+	GET(BulletClass*, pThis, ESI);
+	GET(void*, target, EDI);
+	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-//static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
-//{
-//	pThis->ObjectClass::AnimPointerExpired(pTarget);
-//}
-//
-//DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))
+	if (auto pExt = BulletExt::ExtMap.Find(pThis))
+		pExt->InvalidatePointer(target, all);
+
+	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
+}
+
+static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
+{
+	pThis->ObjectClass::AnimPointerExpired(pTarget);
+}
+
+DEFINE_JUMP(VTABLE, 0x7E4744, GET_OFFSET(BulletClass_AnimPointerExpired))

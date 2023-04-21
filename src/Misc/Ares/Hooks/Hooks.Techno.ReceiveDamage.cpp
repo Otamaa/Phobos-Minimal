@@ -13,6 +13,7 @@
 
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -23,6 +24,126 @@
 #include <Misc/AresData.h>
 
 #include <Conversions.h>
+#include <New/Type/ArmorTypeClass.h>
+
+void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
+{
+	if (Unsorted::CurrentFrame % 15)
+		return;
+
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args->WH);
+	auto const pTechno = generic_cast<TechnoClass*>(pTarget);
+	auto const pType = pTarget->GetType();
+	auto const bIgnoreDefense = args->IgnoreDefenses;
+	bool bImmune_pt2 = false;
+	bool const bImmune_pt1 =
+		(pTarget->IsIronCurtained() && !bIgnoreDefense) ||
+		(pType->Immune && !bIgnoreDefense) || pTarget->InLimbo
+		;
+
+	if (pTechno)
+	{
+		const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
+		bImmune_pt2 = (pShield && pShield->IsActive())
+			|| pTechno->TemporalTargetingMe
+			|| (pTechno->ForceShielded && !bIgnoreDefense)
+			|| pTechno->BeingWarpedOut
+			|| pTechno->IsSinking
+			;
+
+	}
+
+	if (!bImmune_pt1 && !bImmune_pt2)
+	{
+		const int nArmor = (int)pType->Armor;
+
+#ifdef COMPILE_PORTED_DP_FEATURES_
+		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
+#endif
+
+		if (const auto pAnimTypeDecided = pWarheadExt->GetArmorHitAnim(nArmor))
+		{
+			CoordStruct nBuffer { 0, 0 , 0 };
+
+			if (pTechno)
+			{
+				auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+
+				if (!pTechnoTypeExt->HitCoordOffset.empty())
+				{
+					if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
+						nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
+					else
+						nBuffer = pTechnoTypeExt->HitCoordOffset[0];
+				}
+			}
+
+			auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
+			if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
+			}
+		}
+	}
+}
+
+DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
+{
+	enum
+	{
+		ContinueChecks = 0x5F5456,
+		DecideResult = 0x5F5498,
+		SkipDecideResult = 0x5F546A,
+		ReturnResultNone = 0x5F545C,
+	};
+
+	GET(ObjectClass*, pObject, ESI);
+	REF_STACK(args_ReceiveDamage, args, STACK_OFFSET(0x24, 0x4));
+
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+	const bool bIgnoreDefenses = R->BL();
+
+	ApplyHitAnim(pObject, &args);
+
+	pWHExt->ApplyRelativeDamage(pObject, &args);
+
+	if (!bIgnoreDefenses)
+	{
+		MapClass::GetTotalDamage(&args, pObject->GetType()->Armor);
+		//this already calculate distance damage from epicenter
+		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
+	}
+
+	if (*args.Damage == 0 && Is_Building(pObject))
+	{
+		auto const pBld = static_cast<BuildingClass*>(pObject);
+
+		if (!pBld->Type->CanC4)
+		{
+			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
+
+			if (!pTypeExt->CanC4_AllowZeroDamage)
+				*args.Damage = 1;
+		}
+	}
+
+	if (!bIgnoreDefenses && args.Attacker && *args.Damage > 0)
+	{
+		if (pWHExt->ApplyCulling(args.Attacker, pObject))
+			*args.Damage = pObject->Health;
+	}
+
+	const int pTypeStr = pObject->GetType()->Strength;
+	const int nDamage = *args.Damage;
+	R->EBP(pTypeStr);
+	R->Stack(0x38, pTypeStr);
+	R->ECX(nDamage);
+
+	if (!nDamage)
+		return ReturnResultNone;
+
+	return nDamage > 0 ? DecideResult : SkipDecideResult;
+}
 
 DEFINE_OVERRIDE_HOOK(0x701A5C, TechnoClass_ReceiveDamage_IronCurtainFlash, 0x7)
 {

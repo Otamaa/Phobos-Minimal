@@ -98,7 +98,6 @@ public:
 
 		std::unique_ptr<PassengerDeletionTypeClass> PassengerDeletionType;
 
-
 		Valueable<bool> Death_NoAmmo;
 		Valueable<int> Death_Countdown;
 		Valueable<KillMethod> Death_Method;
@@ -510,9 +509,9 @@ public:
 		ValueableVector<CSFText> WeaponUINameX;
 		Valueable<bool> NoShadowSpawnAlt;
 
-		std::vector<WeaponStruct> AdditionalWeaponDatas {};
-		std::vector<WeaponStruct> AdditionalEliteWeaponDatas {};
-		std::vector<int> AdditionalTurrentWeapon {};
+		std::vector<WeaponStruct> AdditionalWeaponDatas;
+		std::vector<WeaponStruct> AdditionalEliteWeaponDatas;
+		std::vector<int> AdditionalTurrentWeapon;
 
 		Valueable<bool> OmniCrusher_Aggressive;
 		Promotable<int> CrushDamage;

@@ -54,7 +54,7 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 	PassengersBlacklist.reserve(10);
 	ParticleSystems_DamageSmoke.reserve(4);
 	ParticleSystems_DamageSparks.reserve(4);
-
+	
 	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
 	this->Is_Cow = IS_SAME_STR_N(this->Get()->ID, "COW");
 
@@ -576,102 +576,102 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
-#pragma region Prereq
-		// Prerequisite.RequiredTheaters contains a list of theader names
-		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
-		char* context = nullptr;
-		pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
-
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			cur = CRT::strtrim(cur);
-			int index = Theater::FindIndex(cur);
-			if (index != -1)
-				Prerequisite_RequiredTheaters.push_back(index);
-		}
-
-		// Prerequisite with Generic Prerequistes support.
-		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
-		const char* key_prereqs = "Prerequisite";
-		context = nullptr;
-		pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
-
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			cur = CRT::strtrim(cur);
-			int idx = TechnoTypeClass::FindIndexById(cur);
-
-			if (idx >= 0)
-			{
-				Prerequisite.push_back(idx);
-			}
-			else
-			{
-				int index = HouseExt::FindGenericPrerequisite(cur);
-				if (index < 0)
-					Prerequisite.push_back(index);
-			}
-		}
-
-		// Prerequisite.Negative with Generic Prerequistes support
-		const char* key_prereqsNegative = "Prerequisite.Negative";
-		context = nullptr;
-		pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
-
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			cur = CRT::strtrim(cur);
-			int idx = TechnoTypeClass::FindIndexById(cur);
-
-			if (idx >= 0)
-			{
-				Prerequisite_Negative.push_back(idx);
-			}
-			else
-			{
-				int index = HouseExt::FindGenericPrerequisite(cur);
-				if (index < 0)
-					Prerequisite_Negative.push_back(index);
-			}
-		}
-
-		// Prerequisite.ListX with Generic Prerequistes support
-		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
-
-		if (Prerequisite_Lists.Get() > 0)
-		{
-			Prerequisite_ListVector.resize(Prerequisite_Lists.Get());
-
-			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
-			{
-				char keySection[0x100];
-				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", i);
-
-				std::vector<int> objectsList;
-				char* context2 = nullptr;
-				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
-
-				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
-					cur;
-					cur = strtok_s(nullptr, Phobos::readDelims, &context2))
-				{
-					cur = CRT::strtrim(cur);
-					int idx = TechnoTypeClass::FindIndexById(cur);
-
-					if (idx >= 0)
-					{
-						Prerequisite_ListVector[i].push_back(idx);
-					}
-					else
-					{
-						int index = HouseExt::FindGenericPrerequisite(cur);
-						if (index < 0)
-							Prerequisite_ListVector[i].push_back(index);
-					}
-				}
-			}
-		}
-#pragma endregion Prereq
+//#pragma region Prereq
+//		// Prerequisite.RequiredTheaters contains a list of theader names
+//		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
+//		char* context = nullptr;
+//		pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
+//
+//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+//		{
+//			cur = CRT::strtrim(cur);
+//			int index = Theater::FindIndex(cur);
+//			if (index != -1)
+//				Prerequisite_RequiredTheaters.push_back(index);
+//		}
+//
+//		// Prerequisite with Generic Prerequistes support.
+//		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
+//		const char* key_prereqs = "Prerequisite";
+//		context = nullptr;
+//		pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
+//
+//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+//		{
+//			cur = CRT::strtrim(cur);
+//			int idx = TechnoTypeClass::FindIndexById(cur);
+//
+//			if (idx >= 0)
+//			{
+//				Prerequisite.push_back(idx);
+//			}
+//			else
+//			{
+//				int index = HouseExt::FindGenericPrerequisite(cur);
+//				if (index < 0)
+//					Prerequisite.push_back(index);
+//			}
+//		}
+//
+//		// Prerequisite.Negative with Generic Prerequistes support
+//		const char* key_prereqsNegative = "Prerequisite.Negative";
+//		context = nullptr;
+//		pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
+//
+//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+//		{
+//			cur = CRT::strtrim(cur);
+//			int idx = TechnoTypeClass::FindIndexById(cur);
+//
+//			if (idx >= 0)
+//			{
+//				Prerequisite_Negative.push_back(idx);
+//			}
+//			else
+//			{
+//				int index = HouseExt::FindGenericPrerequisite(cur);
+//				if (index < 0)
+//					Prerequisite_Negative.push_back(index);
+//			}
+//		}
+//
+//		// Prerequisite.ListX with Generic Prerequistes support
+//		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
+//
+//		if (Prerequisite_Lists.Get() > 0)
+//		{
+//			Prerequisite_ListVector.resize(Prerequisite_Lists.Get());
+//
+//			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
+//			{
+//				char keySection[0x100];
+//				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", i);
+//
+//				std::vector<int> objectsList;
+//				char* context2 = nullptr;
+//				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
+//
+//				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
+//					cur;
+//					cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+//				{
+//					cur = CRT::strtrim(cur);
+//					int idx = TechnoTypeClass::FindIndexById(cur);
+//
+//					if (idx >= 0)
+//					{
+//						Prerequisite_ListVector[i].push_back(idx);
+//					}
+//					else
+//					{
+//						int index = HouseExt::FindGenericPrerequisite(cur);
+//						if (index < 0)
+//							Prerequisite_ListVector[i].push_back(index);
+//					}
+//				}
+//			}
+//		}
+//#pragma endregion Prereq
 
 		char tempBuffer[0x40];
 
@@ -917,10 +917,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			IMPL_SNPRNINTF(HitCoord_tempBuffer, sizeof(HitCoord_tempBuffer), "HitCoordOffset%d", i);
 			nHitBuff.Read(exArtINI, pArtSection, HitCoord_tempBuffer);
 
-			if (!nHitBuff.isset() || !nHitBuff.Get())
+			if (!nHitBuff.isset())
 				break;
 
-			this->HitCoordOffset.push_back(nHitBuff.Get());
+			this->HitCoordOffset.push_back(nHitBuff);
 		}
 
 		this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");
@@ -945,9 +945,9 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
 {
-	auto pThis = Get();
-	const char* pSection = pThis->ID;
-	INI_EX exINI(pINI);
+	//auto pThis = Get();
+	//const char* pSection = pThis->ID;
+	//INI_EX exINI(pINI);
 }
 
 void TechnoTypeExt::ExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass * pINI)
@@ -968,7 +968,6 @@ void ImageStatusses::ReadVoxel(ImageStatusses & arg0, const char* const nKey, bo
 	{
 		MotLib* pLoadedHVA = nullptr;
 		VoxLib* pLoadedVXL = GameCreate<VoxLib>(&CCFileV, false);
-
 		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.HVA", nKey);
 		CCFileClass  CCFileH { buffer };
 

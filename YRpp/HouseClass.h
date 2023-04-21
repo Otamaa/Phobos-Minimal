@@ -270,6 +270,35 @@ public:
 	virtual int	Size() const override R0;
 	//virtual void Update() override JMP_THIS(0x4F8440);
 
+	bool IsAlliedWith_(int idxHouse) const
+	{
+		if (idxHouse == this->ArrayIndex)
+		{
+			return true;
+		}
+
+		if (idxHouse >= 0)
+		{
+			return ((1u << idxHouse) & this->Allies) != 0u;
+		}
+		return false;
+	}
+
+	bool IsAlliedWith_(HouseClass const* pHouse) const
+	{
+		return pHouse && (pHouse == this || this->IsAlliedWith_(pHouse->ArrayIndex));
+	}
+
+	bool IsAlliedWith_(ObjectClass const* pObject) const
+	{
+		return pObject && this->IsAlliedWith_(pObject->GetOwningHouse());
+	}
+
+	bool IsAlliedWith_(AbstractClass const* pAbstract) const
+	{
+		return this->IsAlliedWith_(abstract_cast<const ObjectClass*>(pAbstract));
+	}
+
 	bool IsAlliedWith(int idxHouse) const
 		{ JMP_THIS(0x4F9A10); }
 

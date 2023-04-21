@@ -2030,6 +2030,8 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 			if (pBld->HasBuildup && (pBld->CurrentMission != Mission::Selling || pBld->CurrentMission != Mission::Unload))
 			{
+				auto pBldExt = BuildingExt::ExtMap.Find(pBld);
+				pBldExt->Silent = true;
 				pBld->Sell(true);
 				return;
 			}

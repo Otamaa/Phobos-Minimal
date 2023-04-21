@@ -48,6 +48,7 @@ bool CustomPalette::Read(
 		//dont init anything if it is empty
 		if (GeneralUtils::IsValidString(Phobos::readBuffer))
 		{
+			Debug::Log("Loading Palette[%s] for [%s] ! \n", Phobos::readBuffer , pSection);
 			GeneralUtils::ApplyTheaterSuffixToString(Phobos::readBuffer);
 			return this->LoadFromName(Phobos::readBuffer);
 		}
@@ -90,6 +91,9 @@ bool CustomPalette::LoadFromName(const char* PaletteName)
 
 	if (auto pPal = FileSystem::AllocatePalette(PaletteName))
 	{
+		if (IS_SAME_STR_("profxpal.pal", PaletteName))
+			Debug::Log("Here ! \n");
+
 		this->Palette.reset(pPal);
 		this->CreateConvert();
 	}
@@ -105,19 +109,16 @@ void CustomPalette::Clear()
 
 void CustomPalette::CreateConvert()
 {
+	if (!this->Palette)
+		Debug::Log("Missing Palette Data ! \n");
+
 	ConvertClass* buffer = nullptr;
 	if (this->Mode == PaletteMode::Temperate) {
-		buffer = GameCreate<ConvertClass>(
-			*this->Palette.get(), FileSystem::TEMPERAT_PAL, DSurface::Primary,
-			53, false);
+		buffer = GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false);
 	}
 	else {
-		buffer = GameCreate<ConvertClass>(
-			*this->Palette.get(), *this->Palette.get(), DSurface::Alternate,
-			1, false);
+		buffer = GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false);
 	}
-
-	//ConvertExt::GetOrSetName(buffer, Name);
 
 	this->Convert.reset(buffer);
 }

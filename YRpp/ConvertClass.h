@@ -20,8 +20,8 @@ class DSurface;
 class ConvertClass
 {
 public:
-	enum BytesPerPixel {
-		One, Two
+	enum BytesPerPixel : int {
+		One = 1, Two
 	};
 
 	static constexpr inline DWORD vtable = 0x7E5358;
@@ -78,6 +78,16 @@ public:
 	DSurface* pSurface,
 	size_t shadeCount,
 	bool skipBlitters) : ConvertClass(noinit_t()) {
+		JMP_THIS(0x48E740);
+	}
+
+	ConvertClass(
+	BytePalette const* palette,
+	BytePalette const* eightbitpalette, //???
+	DSurface* pSurface,
+	size_t shadeCount,
+	bool skipBlitters) : ConvertClass(noinit_t())
+	{
 		JMP_THIS(0x48E740);
 	}
 

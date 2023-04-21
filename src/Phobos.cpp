@@ -253,12 +253,12 @@ void Phobos::Config::Read()
 		Phobos::Config::CampaignDefaultGameSpeed = 2;
 
 	{
-		unsigned char defaultspeed = (unsigned char)Phobos::Config::CampaignDefaultGameSpeed;
-		Patch defaultspeed_patch1 { 0x55D77A , 1, &defaultspeed }; // We overwrite the instructions that force GameSpeed to 2 (GS4)
-		Patch defaultspeed_patch2 { 0x55D78D , 1, &defaultspeed }; // when speed control is off. Doesn't need a hook.
-	
-		defaultspeed_patch1.Apply();
-		defaultspeed_patch2.Apply();
+		BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
+		// We overwrite the instructions that force GameSpeed to 2 (GS4)
+		PatchWrapper defaultspeed_patch1 { 0x55D77A , sizeof(defaultspeed), &defaultspeed };
+
+		// when speed control is off. Doesn't need a hook.
+		PatchWrapper defaultspeed_patch2 { 0x55D78D , sizeof(defaultspeed), &defaultspeed };
 	}
 
 	if (CCINIClass* pINI_UIMD = Phobos::OpenConfig(UIMD_FILENAME))
@@ -409,9 +409,8 @@ void Phobos::Config::Read()
 
 		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
 		{
-			BYTE temp[] = { 0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0xC2, 0x04, 0x00 };
-			Patch patch { 0x69A310 , 9, temp };
-			patch.Apply();
+			ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310, 
+				0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0x40, 0xC2, 0x04, 0x00);
 		}
 
 		Phobos::CloseConfig(pINI);

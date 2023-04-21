@@ -364,11 +364,21 @@ DEFINE_OVERRIDE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5
 	return 0x4CC357;
 }
 
-DEFINE_OVERRIDE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette, 6)
+DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 {
-	GET(BulletClass*, Bullet, ESI);
+	GET(BulletTypeClass*, pType, EAX);
 
-	if (const auto pConvert = BulletTypeExt::GetBulletConvert(Bullet->Type)) {
+	if (!pType)
+		return 0x0;
+
+	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+
+	if (auto pConvert = pTypeExt->GetBulletConvert()) {
+		if(VTable::Get(pConvert) != ConvertClass::vtable) {
+			Debug::Log("Bullet[%s - 0x%x] Wrong BulletConvert From [%s - 0x%x]\n", pType->ID, pType , pType->ImageFile , pConvert);
+			return 0x0;
+		}
+
 		R->EBX(pConvert);
 		return 0x4683D7;
 	}

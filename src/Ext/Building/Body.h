@@ -38,6 +38,8 @@ public:
 		bool TogglePower_HasPower;
 		OptionalStruct<int , true> C4Damage;
 		HouseClass* C4Owner;
+		bool Silent;
+
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
 			, Type { nullptr }
 			, TechnoExt { nullptr }
@@ -54,6 +56,7 @@ public:
 			, TogglePower_HasPower { false }
 			, C4Damage { }
 			, C4Owner { nullptr }
+			, Silent { false }
 		{ }
 
 		virtual ~ExtData() override = default;

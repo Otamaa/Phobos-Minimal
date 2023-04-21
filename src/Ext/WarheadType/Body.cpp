@@ -222,18 +222,13 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
-	if (ArmorHitAnim.size() < ArmorTypeClass::Array.size())
-		ArmorHitAnim.resize(ArmorTypeClass::Array.size());
-
-	for (size_t i = 0; i < ArmorTypeClass::Array.size(); ++i)
+	for (auto const& ArmorType : ArmorTypeClass::Array)
 	{
 		Nullable<AnimTypeClass*> pAnimReaded;
-		pAnimReaded.Read(exINI, pSection, ArmorTypeClass::Array[i]->HitAnim_Tag.data(), true);
+		pAnimReaded.Read(exINI, pSection, ArmorType->HitAnim_Tag.data(), true);
 
-		if (!pAnimReaded.isset())
-			continue;
-
-		ArmorHitAnim[i] = pAnimReaded.Get();
+		if(pAnimReaded.isset() && pAnimReaded != nullptr)
+			ArmorHitAnim[ArmorType.get()] = pAnimReaded.Get();
 	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
@@ -757,18 +752,23 @@ AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 {
 	const auto pArmor = ArmorTypeClass::Array[Armor].get();
 
-	if (!this->ArmorHitAnim[Armor] && pArmor->DefaultTo != -1)
+	if (this->ArmorHitAnim.empty())
+		return nullptr;
+
+	if (this->ArmorHitAnim.contains(pArmor))
+		return this->ArmorHitAnim[pArmor];
+	else if (pArmor->DefaultTo != -1)
 	{
 		for (auto pDefArmor = ArmorTypeClass::Array[pArmor->DefaultTo].get();
 			pDefArmor && pDefArmor->DefaultTo != -1;
 			pDefArmor = ArmorTypeClass::Array[pDefArmor->DefaultTo].get())
 		{
-			if (auto const pDecided = this->ArmorHitAnim[pDefArmor->DefaultTo])
-				return pDecided;
+			if (this->ArmorHitAnim.contains(pDefArmor))
+				return this->ArmorHitAnim[pDefArmor];
 		}
 	}
 
-	return this->ArmorHitAnim[Armor];
+	return nullptr;
 }
 
 void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell)

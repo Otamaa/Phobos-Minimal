@@ -731,6 +731,7 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		.Process(this->TogglePower_HasPower)
 		.Process(this->C4Damage)
 		.Process(this->C4Owner)
+		.Process(this->Silent)
 		;
 }
 

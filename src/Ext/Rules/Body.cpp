@@ -802,6 +802,7 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	// 	pExt->CompleteInitialization();
 	// });
 
+	// doing stuffs here seems breaking thing , so better not to for now
 	// TODO :
 	//INI_EX iniEx(pINI);
 	//std::for_each(WarheadTypeClass::Array->begin(), WarheadTypeClass::Array->end(), [&](WarheadTypeClass* pType) {
@@ -811,7 +812,7 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	//	{
 	//		Nullable<AnimTypeClass*> nBuffer {};
 	//		const auto nInfID = InfantryTypeClass::Array->GetItem(i)->ID;
-	//		Debug::Log("Warhead[%s] Reading DeathAnim For %s \n", pType->ID, nInfID);
+	//		//Debug::Log("Warhead[%s] Reading DeathAnim For %s \n", pType->ID, nInfID);
 	//		IMPL_SNPRNINTF(Phobos::readBuffer,sizeof(Phobos::readBuffer),"%s.InfDeathAnim" , nInfID);
 	//		nBuffer.Read(iniEx, pType->ID, Phobos::readBuffer);
 
@@ -824,10 +825,11 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 
 	// load these after game loading 
 	// so the game not choke up when first firing the projectiles
-	std::for_each(BulletTypeClass::Array->begin(), BulletTypeClass::Array->end(),
-	[](BulletTypeClass* pType) {
-		BulletTypeExt::GetBulletConvert(pType);
-	});
+	//std::for_each(BulletTypeClass::Array->begin(), BulletTypeClass::Array->end(),
+	//[](BulletTypeClass* pType) {
+	//	if(auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType))
+	//		pTypeExt->GetBulletConvert();
+	//});
 
 	return 0;
 }

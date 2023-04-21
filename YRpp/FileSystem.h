@@ -102,7 +102,14 @@ public:
 	template <typename T = void>
 	static T* AllocateFile(const char* pFilename) {
 		CCFileClass file(pFilename);
-		return static_cast<T*>(file.ReadWholeFile());
+	
+		T* buffer = static_cast<T*>(file.ReadWholeFile());
+		if (!buffer)
+			GameDebugLog::Log("File[%s] Doesnt Exist ! \n",pFilename);
+
+		file.Close();
+
+		return buffer;
 	}
 
 	// allocates a new palette with the 6 bit colors converted to 8 bit

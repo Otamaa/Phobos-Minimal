@@ -89,7 +89,7 @@ public:
 		Nullable<Leptons> BallisticScatterMax;
 
 		// cache for the image animation's palette convert
-		OptionalStruct<ConvertClass*> ImageConvert;
+		OptionalStruct<const ConvertClass*> ImageConvert;
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 		TrailsReader Trails;
@@ -194,6 +194,7 @@ public:
 			return this->Get()->Floater ? nGravity * 0.5 : nGravity;
 		}
 
+		const ConvertClass* GetBulletConvert();
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -216,5 +217,4 @@ public:
 
 	static double GetAdjustedGravity(BulletTypeClass* pType);
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);
-	static ConvertClass* GetBulletConvert(BulletTypeClass* pType);
 };

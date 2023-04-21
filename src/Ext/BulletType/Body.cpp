@@ -41,19 +41,21 @@ BulletTypeClass* BulletTypeExt::GetDefaultBulletType(const char* pBullet)
 	return pType;
 }
 
-ConvertClass* BulletTypeExt::GetBulletConvert(BulletTypeClass* pType)
+const ConvertClass* BulletTypeExt::ExtData::GetBulletConvert()
 {
-	const auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pType);
-	if (!pBulletTypeExt->ImageConvert.has_value())
+	if(!this->ImageConvert.empty())
+		return  this->ImageConvert;
+	else
 	{
-		if (const auto pAnimType = AnimTypeClass::Find(pType->ImageFile))
-		{
-			pBulletTypeExt->ImageConvert =
-				AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert();
+		ConvertClass* pConvert = nullptr;
+		if (const auto pAnimType = AnimTypeClass::Find(this->Get()->ImageFile)) {
+			const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
+			pConvert = pAnimTypeExt->Palette.GetConvert();
 		}
-	}
 
-	return pBulletTypeExt->ImageConvert.get();
+		this->ImageConvert = pConvert;
+		return pConvert;
+	}
 }
 
 void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)

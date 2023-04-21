@@ -2616,8 +2616,8 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 
 enum class NewVHPScan : int
 {
-	None = 0 ,
-	Normal = 1 ,
+	None = 0,
+	Normal = 1,
 	Strong = 2,
 	Threat = 3,
 	Health = 4,
@@ -2631,7 +2631,7 @@ enum class NewVHPScan : int
 };
 
 std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
-{{
+{ {
 	  {"None" },
 	{ "Normal" },
 	{ "Strong" },
@@ -2640,16 +2640,18 @@ std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 	{ "Damage" },
 	{ "Value" },
 	{ "Locked" },
-	{ "Non-Infantry" } 
-}};
+	{ "Non-Infantry" }
+} };
 
 DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
 {
 	GET(const char* const, cur, ESI);
 
 	int vHp = 0;
-	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i) {
-		if (IS_SAME_STR_(cur, NewVHPScanToString[i])) {
+	for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
+	{
+		if (IS_SAME_STR_(cur, NewVHPScanToString[i]))
+		{
 			vHp = i;
 			break;
 		}
@@ -2662,7 +2664,7 @@ DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
 DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
 {
 	int nIdx = R->EDI<int>();
-		nIdx = (nIdx > (int)NewVHPScanToString.size() ? (int)NewVHPScanToString.size() : nIdx);
+	nIdx = (nIdx > (int)NewVHPScanToString.size() ? (int)NewVHPScanToString.size() : nIdx);
 	R->EDX(NewVHPScanToString[nIdx]);
 	return 0x4775B7;
 }
@@ -2686,7 +2688,8 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	{
 	case NewVHPScan::None:
 	{
-		if (pTarget->EstimatedHealth <= 0) {
+		if (pTarget->EstimatedHealth <= 0)
+		{
 			*pRiskValue /= nValue;
 			break;
 		}
@@ -2716,17 +2719,19 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	break;
 	case NewVHPScan::Damage:
 	{
-		if (!pTechnoTarget) {
+		if (!pTechnoTarget)
+		{
 			*pRiskValue = 0;
 			break;
-		} 
+		}
 
 		*pRiskValue = pTechnoTarget->CombatDamage(-1) / nValue * *pRiskValue;
 	}
 	break;
 	case NewVHPScan::Value:
 	{
-		if (!pTechnoTarget) {
+		if (!pTechnoTarget)
+		{
 			*pRiskValue = 0;
 			break;
 		}
@@ -2747,16 +2752,17 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 	}
 	break;
 	case NewVHPScan::Non_Infantry:
-	{ 
-		if (!pTechnoTarget || Is_Infantry(pTechnoTarget)) {
+	{
+		if (!pTechnoTarget || Is_Infantry(pTechnoTarget))
+		{
 			*pRiskValue = 0;
 		}
 	}
 	break;
 	default:
-	break;
+		break;
 	}
-	
+
 	return 0x6F875F;
 }
 
@@ -2833,130 +2839,6 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	R->AL(TechnoExt::IsCrushable(pThis, pTechno));
 
 	return SkipGameCode;
-}
-
-#include <New/Type/ArmorTypeClass.h>
-
-void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
-{
-	if (Unsorted::CurrentFrame % 15)
-		return;
-
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args->WH);
-	auto const pTechno = generic_cast<TechnoClass*>(pTarget);
-	auto const pType = pTarget->GetType();
-	auto const bIgnoreDefense = args->IgnoreDefenses;
-	bool bImmune_pt2 = false;
-	bool const bImmune_pt1 =
-		(pTarget->IsIronCurtained() && !bIgnoreDefense) ||
-		(pType->Immune && !bIgnoreDefense) || pTarget->InLimbo
-		;
-
-	if (pTechno)
-	{
-		const auto pShield = TechnoExt::ExtMap.Find(pTechno)->GetShield();
-		bImmune_pt2 = (pShield && pShield->IsActive())
-			|| pTechno->TemporalTargetingMe
-			|| (pTechno->ForceShielded && !bIgnoreDefense)
-			|| pTechno->BeingWarpedOut
-			|| pTechno->IsSinking
-			;
-
-	}
-
-	if (!bImmune_pt1 && !bImmune_pt2)
-	{
-		const int nArmor = (int)pType->Armor;
-
-#ifdef COMPILE_PORTED_DP_FEATURES_
-		TechnoClass_ReceiveDamage2_DamageText(pTechno, pDamage, pWarheadExt->DamageTextPerArmor[(int)nArmor]);
-#endif
-
-		{
-			if (const auto pAnimTypeDecided = pWarheadExt->GetArmorHitAnim(nArmor))
-			{
-				CoordStruct nBuffer { 0, 0 , 0 };
-
-				if (pTechno)
-				{
-					auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
-
-					if (!pTechnoTypeExt->HitCoordOffset.empty())
-					{
-						if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
-							nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
-						else
-							nBuffer = pTechnoTypeExt->HitCoordOffset[0];
-					}
-				}
-
-				auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
-				if (auto pAnimPlayed = GameCreate<AnimClass>(pAnimTypeDecided, nCoord))
-				{
-					AnimExt::SetAnimOwnerHouseKind(pAnimPlayed, args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(), args->Attacker, false);
-				}
-			}
-		}
-	}
-}
-
-DEFINE_HOOK(0x5F53DB, ObjectClass_ReceiveDamage_Handled, 0xA)
-{
-	enum
-	{
-		ContinueChecks = 0x5F5456,
-		DecideResult = 0x5F5498,
-		SkipDecideResult = 0x5F546A,
-		ReturnResultNone = 0x5F545C,
-	};
-
-	GET(ObjectClass*, pObject, ESI);
-	REF_STACK(args_ReceiveDamage, args, STACK_OFFSET(0x24, 0x4));
-
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
-	const bool bIgnoreDefenses = R->BL();
-
-	ApplyHitAnim(pObject, &args);
-
-	pWHExt->ApplyRelativeDamage(pObject, &args);
-
-	if (!bIgnoreDefenses)
-	{
-		MapClass::GetTotalDamage(&args, pObject->GetType()->Armor);
-		//this already calculate distance damage from epicenter
-		pWHExt->ApplyRecalculateDistanceDamage(pObject, &args);
-	}
-
-	if (*args.Damage == 0 && Is_Building(pObject))
-	{
-		auto const pBld = static_cast<BuildingClass*>(pObject);
-
-		if (!pBld->Type->CanC4)
-		{
-
-			auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
-
-			if (!pTypeExt->CanC4_AllowZeroDamage)
-				*args.Damage = 1;
-		}
-	}
-
-	if (!bIgnoreDefenses && args.Attacker && *args.Damage > 0)
-	{
-		if (pWHExt->ApplyCulling(args.Attacker, pObject))
-			*args.Damage = pObject->Health;
-	}
-
-	const int pTypeStr = pObject->GetType()->Strength;
-	const int nDamage = *args.Damage;
-	R->EBP(pTypeStr);
-	R->Stack(0x38, pTypeStr);
-	R->ECX(nDamage);
-
-	if (!nDamage)
-		return ReturnResultNone;
-
-	return nDamage > 0 ? DecideResult : SkipDecideResult;
 }
 
 DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
@@ -5326,7 +5208,8 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 // issue #28 : Fix vanilla YR Fog of War bugs & issues
 // Reimplement it would be nicer.
 
-DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6) {
+DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
+{
 	return R->Origin() + 0x6;
 	// clearing type pointer will cause animclass AI to crash when it still executed
 }
@@ -5334,7 +5217,7 @@ DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6) {
 DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
-	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n" , pThis);
+	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
 	return 0x0;
 }
 
@@ -5344,10 +5227,11 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 	GET(TechnoClass*, pTarget, EBP);
 
 	return !pThis->DrainTarget && !pTarget->DrainingMe ?
-		0x6F3589  : 0x6F35A8;
+		0x6F3589 : 0x6F35A8;
 }
 
-DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7) {
+DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
+{
 	GET(BuildingClass*, pBld, EAX);
 	return pBld ? 0x0 : 0x71AA1A;
 }
@@ -5356,7 +5240,8 @@ DEFINE_HOOK(0x4400C1, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0xA)
 {
 	GET(BuildingClass*, pThis, ESI);
 	const auto pExt = BuildingExt::ExtMap.Find(pThis);
-	if (pExt->C4Damage.isset() && !pThis->Type->BridgeRepairHut) {
+	if (pExt->C4Damage.isset() && !pThis->Type->BridgeRepairHut)
+	{
 		int nDamage = pExt->C4Damage.get();
 		pThis->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pThis->C4AppliedBy, false, false,
 			pExt->C4Owner);
@@ -5366,6 +5251,14 @@ DEFINE_HOOK(0x4400C1, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0xA)
 
 	pExt->C4Damage.clear();
 	return 0x0;
+}
+
+DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+	return pExt->Silent ? 0x447203 : 0x0;
 }
 
 #ifdef FOW_HOOKS
@@ -5543,17 +5436,19 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
 	return 0x71CC9A;
 }
 
-bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord) {
+bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
+{
 	const auto pCell = pThis->GetCellAt(pCoord);
 
-	if (pCell->Flags & CellFlags::EdgeRevealed) {
+	if (pCell->Flags & CellFlags::EdgeRevealed)
+	{
 		return false;
 	}
 
 	return((pCell->GetNeighbourCell(3u)->Flags & CellFlags::EdgeRevealed) == CellFlags::Empty);
 }
 
-DEFINE_JUMP(LJMP,0x5865E0 , GET_OFFSET(IsLocFogged))
+DEFINE_JUMP(LJMP, 0x5865E0, GET_OFFSET(IsLocFogged))
 
 DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 {
