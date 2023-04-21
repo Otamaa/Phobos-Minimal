@@ -525,6 +525,10 @@ public:
 	int GetCliffIndex_() const { JMP_THIS(0x487D50); }
 	CellClass* GetBulletObstacleCell(CellClass* cell, CoordStruct coord, BulletTypeClass* bullet, HouseClass* house) const { JMP_THIS(0x4CC360); }
 
+	bool CellClass_Tube_484AE0() const { JMP_THIS(0x484AE0); }
+	bool CellClass_Tube_484D60() const { JMP_THIS(0x484D60); }
+	bool CellClass_484F10(InfantryClass* pInf) const { JMP_THIS(0x484F10); }
+
 protected:
 	//Constructor
 	CellClass() noexcept

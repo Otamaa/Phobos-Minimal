@@ -232,7 +232,12 @@ public:
 		NullableIdx<VocClass> EnterBioReactorSound;
 		NullableIdx<VocClass> LeaveBioReactorSound;
 		std::vector<int> DockPoseDir;
+
+		Nullable<bool> EngineerRepairable;
 #pragma endregion
+
+		signed int IsTrench; 					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -263,7 +268,7 @@ public:
 			, PlacementPreview_Remap { true }
 			, PlacementPreview_Palette {}
 			, PlacementPreview_TranslucentLevel {}
-			, RadialIndicator_Visibility { }
+			, RadialIndicator_Visibility {}
 			, SpyEffect_Custom { false }
 			, SpyEffect_VictimSuperWeapon {}
 			, SpyEffect_InfiltratorSuperWeapon {}
@@ -303,8 +308,8 @@ public:
 			, BuildingBunkerDamageMult {}
 			, BuildingBunkerROFMult {}
 
-			, BunkerWallsUpSound { }
-			, BunkerWallsDownSound { }
+			, BunkerWallsUpSound {}
+			, BunkerWallsDownSound {}
 
 			, AIBuildInsteadPerDiff {}
 
@@ -322,12 +327,14 @@ public:
 			, BuildUp_UseNormalLIght { false }
 			, Power_DegradeWithHealth { true }
 			, IsJuggernaut { false }
-			, BuildingPlacementGrid_Shape { }
+			, BuildingPlacementGrid_Shape {}
 			, SpeedBonus {}
 			, RubblePalette { CustomPalette::PaletteMode::Temperate }
 			, EnterBioReactorSound {}
 			, LeaveBioReactorSound {}
-			, DockPoseDir { }
+			, DockPoseDir {}
+			, EngineerRepairable {}
+			, IsTrench { -1 }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -362,6 +369,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
+	// Short check: Is the building of a linkable kind at all?
+	static bool IsLinkable(BuildingTypeClass* pThis);
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat , HouseClass* pOwner);
@@ -388,6 +397,8 @@ public:
 			}
 		}
 	};
+
+	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
 
 	static void DisplayPlacementPreview();
 	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis , int nOccupyIdx);

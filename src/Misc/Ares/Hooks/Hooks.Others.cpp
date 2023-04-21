@@ -97,26 +97,26 @@ DEFINE_OVERRIDE_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5)
 
 std::vector<unsigned char> ShpCompression1Buffer;
 
-//DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
-//{
-//	REF_STACK(RectangleStruct const, bounds, STACK_OFFS(0x7C, 0x10));
-//	//0x89C568
-//	REF_STACK(unsigned char const*, pBuffer, STACK_OFFS(0x7C, 0x6C));
-//
-//	auto const width = static_cast<size_t>(std::clamp<short>(
-//		static_cast<short>(bounds.Width), 0, std::numeric_limits<short>::max()));
-//
-//	// buffer overrun is now not as forgiving as it was before
-//	auto& Buffer = ShpCompression1Buffer;
-//	if (Buffer.size() < width)
-//	{
-//		Buffer.insert(Buffer.end(), width - Buffer.size(), 0u);
-//	}
-//
-//	pBuffer = Buffer.data();
-//
-//	return 0x437CD4;
-//}
+DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
+{
+	REF_STACK(RectangleStruct const, bounds, STACK_OFFS(0x7C, 0x10));
+	//0x89C568
+	REF_STACK(unsigned char const*, pBuffer, STACK_OFFS(0x7C, 0x6C));
+
+	auto const width = static_cast<size_t>(std::clamp<short>(
+		static_cast<short>(bounds.Width), 0, std::numeric_limits<short>::max()));
+
+	// buffer overrun is now not as forgiving as it was before
+	auto& Buffer = ShpCompression1Buffer;
+	if (Buffer.size() < width)
+	{
+		Buffer.insert(Buffer.end(), width - Buffer.size(), 0u);
+	}
+
+	pBuffer = Buffer.data();
+
+	return 0x437CD4;
+}
 
 // this douchebag blows your base up when it thinks you're cheating
 DEFINE_OVERRIDE_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0x0)
@@ -1868,7 +1868,7 @@ std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis)
 		if (pAttacker)
 			pOwner = pAttacker->GetOwningHouse();
 	}
-
+	
 	return { pAttacker , pOwner };
 }
 

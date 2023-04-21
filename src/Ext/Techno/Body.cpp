@@ -2030,8 +2030,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 
 			if (pBld->HasBuildup && (pBld->CurrentMission != Mission::Selling || pBld->CurrentMission != Mission::Unload))
 			{
-				auto pBldExt = BuildingExt::ExtMap.Find(pBld);
-				pBldExt->Silent = true;
+				BuildingExt::ExtMap.Find(pBld)->Silent = true;
 				pBld->Sell(true);
 				return;
 			}
@@ -2517,7 +2516,7 @@ void TechnoExt::ExtData::UpdateMindControlAnim()
 	}
 }
 
-std::pair<std::vector<WeaponTypeClass*>*, std::vector<int>*> TechnoExt::ExtData::GetFireSelfData()
+std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> TechnoExt::ExtData::GetFireSelfData()
 {
 	const auto pThis = this->Get();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
@@ -2798,7 +2797,7 @@ void TechnoExt::ExtData::UpdateMobileRefinery()
 
 void TechnoExt::ExtData::UpdateRevengeWeapons()
 {
-	if (this->RevengeWeapons.begin() == this->RevengeWeapons.end())
+	if (this->RevengeWeapons.empty())
 		return;
 
 	for (size_t i = 0; i < this->RevengeWeapons.size(); i++)
@@ -2957,9 +2956,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 	if (!pThis->IsAlive)
 		return true;
 
-	const auto pAddr = (((DWORD*)pThis)[0]);
-
-	if (pAddr != InfantryClass::vtable)
+	if (VTable::Get(pThis) != InfantryClass::vtable)
 		return false;
 
 	const auto pInf = static_cast<InfantryClass*>(pThis);
@@ -3057,6 +3054,9 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 {
 	if (!Is_Unit(pThis) || pThis->IsInAir())
 		return false;
+
+	//if (pThis->IsTethered)
+	//	return true;
 
 	auto const pContact = pThis->GetNthLink();
 

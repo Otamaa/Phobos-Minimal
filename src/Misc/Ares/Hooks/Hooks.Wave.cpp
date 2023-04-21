@@ -323,14 +323,15 @@ DEFINE_HOOK(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
 	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
 	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
 
-	if (const auto pUnit = specific_cast<UnitClass*>(pVictim)){ 
-		if (pUnit->DeathFrameCounter > 0)
+	if (const auto pTechnoVictim = generic_cast<TechnoClass*>(pVictim)){ 
+		if (pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
 			return 0x75F432;
-	}
 
-	if(const auto pTechnoVictim = generic_cast<TechnoClass*>(pVictim))
-		if(pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
-			return 0x75F432;
+		if (const auto pUnit = specific_cast<UnitClass*>(pVictim)) {
+			if (pUnit->DeathFrameCounter > 0)
+				return 0x75F432;
+		}
+	}
 
 	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);
 	WarheadTypeExt::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pTechnoOwner, nDamage);

@@ -101,6 +101,9 @@ DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
 
 	if (auto const pTarget = pThis->Target)
 	{
+		if(pTarget->IsMouseHovering)
+			pTarget->IsMouseHovering = false;
+
 		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
 
 		if (const auto pShieldData = pTargetExt->GetShield()) {
@@ -193,6 +196,7 @@ double __fastcall HealthRatio_Wrapper(TechnoClass* pTechno, void* _)
 
 DEFINE_JUMP(CALL, 0x6F7F51, GET_OFFSET(HealthRatio_Wrapper));
 
+#include <Ext/BuildingType/Body.h>
 #pragma endregion TechnoClass__Evaluate_Object
 
 class AresScheme
@@ -213,7 +217,6 @@ public:
 			{
 				if (pShieldData->IsActive())
 				{
-
 					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) : nWeaponIndex);
 
 					if (pWeapon && pWeapon->WeaponType && !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead))
@@ -275,9 +278,11 @@ private:
 		if (Is_Building(pTarget))
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pTarget);
+			const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
 			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))
 			{
-				return pBuilding->Type->Repairable;
+				return pExt->EngineerRepairable.Get(pBuilding->Type->Repairable);
 			}
 			else
 			{

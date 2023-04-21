@@ -5261,6 +5261,36 @@ DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
 	return pExt->Silent ? 0x447203 : 0x0;
 }
 
+DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
+{
+	enum { retTrue = 0x51F8A6 , retFalse = 0x51F8A8 };
+	GET(CellClass*, pCell, EAX);
+
+	return pCell->CellClass_Tube_484AE0() || pCell->CellClass_Tube_484D60() ?
+		retTrue : retFalse;
+}
+
+DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
+{
+	enum { retFalse = 0x51F953};
+	GET(CellClass*, pCell, EAX);
+	GET(InfantryClass*, pThis, EDI);
+
+	if (!pCell->Tile_Is_Tunnel())
+		return retFalse;
+
+	R->EAX(pCell->CellClass_484F10(pThis));
+	return 0x51F9D5;
+}
+
+DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
+{
+	GET(CellClass*, pCell, EAX);
+	GET(TechnoClass*, pThis, ESI);
+
+	R->EBP(pThis->SelectWeapon(pCell));
+	return 0x7008FB;
+}
 #ifdef FOW_HOOKS
 // MapClass_RevealShroud as Xkein said
 DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)

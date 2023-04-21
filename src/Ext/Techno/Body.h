@@ -230,7 +230,7 @@ private:
 		void Serialize(T& Stm);
 
 	protected:
-		std::pair<std::vector<WeaponTypeClass*>*, std::vector<int>*> GetFireSelfData();
+		std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> GetFireSelfData();
 		int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData , FootClass const* pPassenger);
 	};
 

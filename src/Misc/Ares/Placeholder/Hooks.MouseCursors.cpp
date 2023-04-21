@@ -47,9 +47,6 @@
 6929FC = DisplayClass_ChooseAction_CanSell, 7
 4ABFBE = DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7
 
-51E4ED = InfantryClass_GetActionOnObject_EngineerRepairable, 6
-51FA82 = InfantryClass_GetActionOnCell_EngineerRepairable, 6
-
 51EE6B = InfantryClass_GetActionOnObject_Saboteur, 6
 51EB48 = InfantryClass_GetActionOnObject_IvanGrinder, A
 51E5BB = InfantryClass_GetActionOnObject_MultiEngineerA, 7

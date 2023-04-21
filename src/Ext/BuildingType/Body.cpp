@@ -8,7 +8,11 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
 
+#include <Misc/AresData.h>
+
 BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
+std::vector<std::string> BuildingTypeExt::trenchKinds;
+
 const DirStruct BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
 void BuildingTypeExt::ExtData::InitializeConstants()
@@ -249,6 +253,14 @@ void __fastcall BuildingTypeExt::DrawPlacementGrid(Surface* Surface, ConvertClas
 		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 }
 
+bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
+{
+	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
+
+	return Is_FirestromWall(pThis) || pExt->IsTrench >= 0;
+	
+}
+
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
 {
 	int nAmount = 0;
@@ -426,6 +438,26 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const char* pArtSection = pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
 
+	if (pINI->ReadString(pSection, "IsTrench", "", Phobos::readBuffer))
+	{
+		/*  Find the name in the list of kinds; if the list is empty, distance is 0, if the item isn't in
+			the list, the index is the current list's size(); if the returned iterator is beyond the list,
+			add the name to the list, which makes the previously calculated index (th distance) valid.
+			(changed by AlexB 2014-01-16)
+
+			I originally thought of using a map here, but I figured the probability that the kinds list
+			grows so long that the search through all kinds takes up significant time is very low, and
+			vectors are far simpler to use in this situation.
+		*/
+		const auto it = std::find_if(trenchKinds.begin(), trenchKinds.end(), [](auto const& pItem)
+		{ return pItem == Phobos::readBuffer; });
+		this->IsTrench = std::distance(trenchKinds.begin(), it);
+		if (it == trenchKinds.end())
+		{
+			trenchKinds.push_back(Phobos::readBuffer);
+		}
+	}
+
 	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
@@ -574,6 +606,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		// relocated the solid tag from artmd to rulesmd
 		this->Solid_Height.Read(exINI, pSection, "SolidHeight");
 		this->Solid_Level.Read(exINI, pSection, "SolidLevel");
+
+		this->EngineerRepairable.Read(exINI, pSection, "EngineerRepairable");
 
 		// no code attached
 		this->RubbleDestroyed.Read(exINI, pSection, "Rubble.Destroyed");
@@ -749,6 +783,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)
 		.Process(this->DockPoseDir)
+		.Process(this->EngineerRepairable)
+		.Process(this->IsTrench)
 		;
 }
 
@@ -772,13 +808,19 @@ bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm
 };
 
 bool BuildingTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
+{	
+	return Stm
+		.Process(BuildingTypeExt::trenchKinds)
+		.Success()
+		;
 }
 
 bool BuildingTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return Stm.Success();
+	return Stm
+		.Process(BuildingTypeExt::trenchKinds)
+		.Success()
+		;
 }
 
 

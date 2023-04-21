@@ -746,8 +746,6 @@ bool WarheadTypeExt::ExtData::GoBerzerkFor(FootClass* pVictim, int* damage)
 	return false; //default
 }
 
-std::vector<std::string> UnParsedThing::UnparsedList {};
-
 AnimTypeClass* WarheadTypeExt::ExtData::GetArmorHitAnim(int Armor)
 {
 	const auto pArmor = ArmorTypeClass::Array[Armor].get();

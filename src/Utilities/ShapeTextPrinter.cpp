@@ -8,6 +8,30 @@ int ShapeTextPrinter::GetSignIndex(const char sign)
 	return (std::find(SignSequence, SignSequence + SignSequenceLength, sign) - SignSequence);
 }
 
+void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const text , const int baseNumberFrame , const int baseSignFrame)
+{
+	for (int i = 0; i < strlen(text); i++)
+	{
+		int frame = 0;
+
+		if (isdigit(text[i]))
+		{
+			frame = baseNumberFrame + text[i] - '0';
+		}
+		else
+		{
+			int signIndex = GetSignIndex(text[i]);
+
+			if (signIndex < SignSequenceLength)
+				frame = baseSignFrame + signIndex;
+			else
+				return;
+		}
+
+		vFrames.push_back(frame);
+	}
+}
+
 void ShapeTextPrinter::PrintShape
 (
 	const char* text,
@@ -21,31 +45,10 @@ void ShapeTextPrinter::PrintShape
 	int iTintColor
 )
 {
-	int iLength = CRT::strlen(text);
 	std::vector<int> vFrames;
+	ShapeTextPrinter::BuildFrames(vFrames, text, data.BaseNumberFrame, data.BaseSignFrame);
 
-	for (int i = 0; i < iLength; i++)
-	{
-		int frame = 0;
-
-		if (isdigit(text[i]))
-		{
-			frame = data.BaseNumberFrame + text[i] - '0';
-		}
-		else
-		{
-			int signIndex = GetSignIndex(text[i]);
-
-			if (signIndex < SignSequenceLength)
-				frame = data.BaseSignFrame + signIndex;
-			else
-				return;
-		}
-
-		vFrames.emplace_back(frame);
-	}
-
-	for (int frame : vFrames)
+	for (const int& frame : vFrames)
 	{
 		pSurface->DrawSHP
 		(

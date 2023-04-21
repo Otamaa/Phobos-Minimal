@@ -585,6 +585,60 @@ DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	return Notinfiltratable;
 }*/
 
+DEFINE_OVERRIDE_HOOK(0x51E635 ,InfantryClass_GetActionOnObject_EngineerOverFriendlyBuilding, 5)
+ {
+	enum {
+	DontRepair = 0x51E63A,
+	DoRepair = 0x51E659,
+	SkipAll = 0x51E458 ,
+	};
+
+	GET(BuildingClass *, pTarget, ESI);
+	GET(InfantryClass *, pThis, EDI);
+	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pTarget->Type);
+
+	if((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
+	{
+		AresData::SetMouseCursorAction(90u , Action::GRepair,false);
+		R->EAX(Action::GRepair);
+		return SkipAll;
+	}
+
+	return ((R->EAX<DWORD>() & 0x4000) != 0 ) ? DontRepair : DoRepair;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
+{
+	GET(BuildingTypeClass*, pBuildingType, EBP);
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType);
+	R->AL(pTypeExt->EngineerRepairable.Get(pBuildingType->Repairable));
+	return 0x51FA88;
+}
+
+DEFINE_OVERRIDE_HOOK(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	R->CL(pTypeExt->EngineerRepairable.Get(pBuilding->Type->Repairable));
+	return 0x51E4F3;
+}
+
+// placement linking
+DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable , 6)
+{
+	GET(BuildingTypeClass* const, pType, EAX);
+	return BuildingTypeExt::IsLinkable(pType) ?
+		0x6D545Fu : 0x6D54A9u;
+}
+
+// placement linking
+DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 6)
+{
+	GET(BuildingTypeClass* const, pType, EDX);
+	return BuildingTypeExt::IsLinkable(pType) ?
+		0x6D5A66u : 0x6D5A75u;
+}
+
 DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
