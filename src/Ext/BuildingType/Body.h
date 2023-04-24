@@ -31,7 +31,8 @@ struct BuildSpeedBonus
 		, SpeedBonus_Infantry { 0.000 }
 		, SpeedBonus_Unit { 0.000 }
 		, AffectedType { }
-	{}
+	{
+	}
 
 	void Read(INI_EX& parser, const char* pSection)
 	{
@@ -156,6 +157,27 @@ public:
 		Valueable<bool> SpyEffect_InfiltratorSW_JustGrant;
 		Valueable<bool> SpyEffect_VictimSW_RealLaunch;
 
+		Valueable<bool> SpyEffect_RevealProduction;
+		Valueable<bool> SpyEffect_ResetSW;
+		Valueable<bool> SpyEffect_ResetRadar;
+		Valueable<bool> SpyEffect_RevealRadar;
+		Valueable<bool> SpyEffect_RevealRadarPersist;
+		Valueable<bool> SpyEffect_GainVeterancy;
+		Valueable<bool> SpyEffect_UnReverseEngineer;
+		Valueable<int> SpyEffect_StolenTechIndex;
+		Valueable<int> SpyEffect_StolenMoneyAmount;
+		Valueable<int> SpyEffect_StolenMoneyPercentage;
+		Valueable<int> SpyEffect_PowerOutageDuration;
+		Valueable<int> SpyEffect_SabotageDelay;
+		Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon;
+		Valueable<bool> SpyEffect_SuperWeaponPermanent;
+
+		Valueable<bool> SpyEffect_InfantryVeterancy;
+		Valueable<bool> SpyEffect_VehicleVeterancy;
+		Valueable<bool> SpyEffect_NavalVeterancy;
+		Valueable<bool> SpyEffect_AircraftVeterancy;
+		Valueable<bool> SpyEffect_BuildingVeterancy;
+
 		Valueable<bool> CanC4_AllowZeroDamage;
 		Valueable<double> C4_Modifier;
 
@@ -272,8 +294,29 @@ public:
 			, SpyEffect_Custom { false }
 			, SpyEffect_VictimSuperWeapon {}
 			, SpyEffect_InfiltratorSuperWeapon {}
-			, SpyEffect_InfiltratorSW_JustGrant { false }	
+			, SpyEffect_InfiltratorSW_JustGrant { false }
 			, SpyEffect_VictimSW_RealLaunch { false }
+
+			, SpyEffect_RevealProduction {}
+			, SpyEffect_ResetSW {}
+			, SpyEffect_ResetRadar {}
+			, SpyEffect_RevealRadar {}
+			, SpyEffect_RevealRadarPersist {}
+			, SpyEffect_GainVeterancy {}
+			, SpyEffect_UnReverseEngineer {}
+			, SpyEffect_StolenTechIndex { -1 }
+			, SpyEffect_StolenMoneyAmount { 0 }
+			, SpyEffect_StolenMoneyPercentage { 0 }
+			, SpyEffect_PowerOutageDuration { 0 }
+			, SpyEffect_SabotageDelay { 0 }
+			, SpyEffect_SuperWeapon {}
+			, SpyEffect_SuperWeaponPermanent {}
+			, SpyEffect_InfantryVeterancy {}
+			, SpyEffect_VehicleVeterancy {}
+			, SpyEffect_NavalVeterancy {}
+			, SpyEffect_AircraftVeterancy {}
+			, SpyEffect_BuildingVeterancy {}
+
 			, CanC4_AllowZeroDamage { false }
 			, C4_Modifier { 1.0 }
 			, DockUnload_Cell { { 3, 1 } }
@@ -341,7 +384,7 @@ public:
 
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 		virtual void InitializeConstants() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
+		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
 		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
 		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
@@ -373,7 +416,7 @@ public:
 	static bool IsLinkable(BuildingTypeClass* pThis);
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
-	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat , HouseClass* pOwner);
+	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);
 	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
@@ -383,7 +426,8 @@ public:
 	template<BunkerSoundMode UpSound>
 	struct BunkerSound
 	{
-		constexpr void operator ()(BuildingClass* pThis) {
+		constexpr void operator ()(BuildingClass* pThis)
+		{
 
 			if constexpr (UpSound == BunkerSoundMode::Up)
 			{
@@ -401,11 +445,11 @@ public:
 	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
 
 	static void DisplayPlacementPreview();
-	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis , int nOccupyIdx);
+	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);
 	static int CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued);
 	static int BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
 	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
-	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex,	int Brightness,	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset,	int YOffset);
+	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 };

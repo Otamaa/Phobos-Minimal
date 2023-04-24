@@ -10,7 +10,7 @@ int ShapeTextPrinter::GetSignIndex(const char sign)
 
 void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const text , const int baseNumberFrame , const int baseSignFrame)
 {
-	for (int i = 0; i < strlen(text); i++)
+	for (size_t i = 0; i < strlen(text); i++)
 	{
 		int frame = 0;
 
@@ -35,11 +35,11 @@ void ShapeTextPrinter::BuildFrames(std::vector<int>& vFrames , const char* const
 void ShapeTextPrinter::PrintShape
 (
 	const char* text,
-	ShapeTextPrintData& data,
-	Point2D posDraw,
-	RectangleStruct& rBound,
+	const ShapeTextPrintData& data,
+	Point2D* pPosDraw,
+	RectangleStruct* pRBound,
 	DSurface* pSurface,
-	Point2D offset,
+	Point2D offset, // ?
 	BlitterFlags eBlitterFlags,
 	int iBright,
 	int iTintColor
@@ -55,8 +55,8 @@ void ShapeTextPrinter::PrintShape
 			const_cast<ConvertClass*>(data.Palette),
 			const_cast<SHPStruct*>(data.Shape),
 			frame,
-			&posDraw,
-			&rBound,
+			pPosDraw,
+			pRBound,
 			BlitterFlags::None,
 			0,
 			0,
@@ -69,7 +69,7 @@ void ShapeTextPrinter::PrintShape
 			0
 		);
 
-		posDraw.X += data.Interval.X;
-		posDraw.Y += data.Interval.Y;
+		pPosDraw->X += data.Interval.X;
+		pPosDraw->Y += data.Interval.Y;
 	}
 }

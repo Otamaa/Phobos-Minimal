@@ -35,7 +35,7 @@ FORCEINLINE T GetLocomotor(FootClass* pThis)
 }
 
 template <class JumpjetLocomotionClass , bool CheckInterface>
-NOINLINE JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
+JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
 {
 	//CLSID locoCLSID {};
 	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);

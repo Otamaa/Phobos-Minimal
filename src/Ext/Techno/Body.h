@@ -223,7 +223,7 @@ public:
 		//
 		void UpdateAircraftOpentopped();
 		
-		bool NOINLINE IsInterceptor();
+		bool IsInterceptor();
 	
 private:
 		template <typename T>

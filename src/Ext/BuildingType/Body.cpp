@@ -258,7 +258,7 @@ bool BuildingTypeExt::IsLinkable(BuildingTypeClass* pThis)
 	const auto pExt = BuildingTypeExt::ExtMap.Find(pThis);
 
 	return Is_FirestromWall(pThis) || pExt->IsTrench >= 0;
-	
+
 }
 
 int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
@@ -273,7 +273,7 @@ int BuildingTypeExt::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHou
 			for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings)
 			{
 				const auto pExt = BuildingTypeExt::ExtMap.Find(pBldType);
-				if(pExt->PowerPlantEnhancer_Buildings.empty() ||
+				if (pExt->PowerPlantEnhancer_Buildings.empty() ||
 				  !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 					continue;
 
@@ -308,7 +308,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
-			if(!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))
+			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))
 				continue;
 
 			auto nBonus = 0.000;
@@ -355,7 +355,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, Hou
 	{
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
-			if(!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
+			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pWhat))
 				continue;
 
 			auto nBonus = 0.000;
@@ -495,8 +495,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		this->PlacementPreview_Show.Read(exINI, pSection, "PlacementPreview.Show");
 
-		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer)) {
-			if (GeneralUtils::IsValidString(Phobos::readBuffer)) {
+		if (pINI->GetString(pSection, "PlacementPreview.Shape", Phobos::readBuffer))
+		{
+			if (GeneralUtils::IsValidString(Phobos::readBuffer))
+			{
 				// we cannot load same SHP file twice it may produce artifact , prevent it !
 				if (CRT::strcmpi(Phobos::readBuffer, pSection) || CRT::strcmpi(Phobos::readBuffer, pArtSection))
 					this->PlacementPreview_Shape.Read(exINI, pSection, "PlacementPreview.Shape");
@@ -598,6 +600,33 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		if (this->SpyEffect_InfiltratorSuperWeapon.isset())
 			this->SpyEffect_InfiltratorSW_JustGrant.Read(exINI, pSection, "SpyEffect.InfiltratorSuperWeapon.JustGrant");
 
+		this->SpyEffect_RevealProduction.Read(exINI, pSection, "SpyEffect.RevealProduction");
+		this->SpyEffect_ResetSW.Read(exINI, pSection, "SpyEffect.ResetSuperweapons");
+		this->SpyEffect_ResetRadar.Read(exINI, pSection, "SpyEffect.ResetRadar");
+		this->SpyEffect_RevealRadar.Read(exINI, pSection, "SpyEffect.RevealRadar");
+		this->SpyEffect_RevealRadarPersist.Read(exINI, pSection, "SpyEffect.KeepRadar");
+		this->SpyEffect_GainVeterancy.Read(exINI, pSection, "SpyEffect.UnitVeterancy");
+		this->SpyEffect_StolenTechIndex.Read(exINI, pSection, "SpyEffect.StolenTechIndex");
+		this->SpyEffect_PowerOutageDuration.Read(exINI, pSection, "SpyEffect.PowerOutageDuration");
+		this->SpyEffect_StolenMoneyAmount.Read(exINI, pSection, "SpyEffect.StolenMoneyAmount");
+		this->SpyEffect_StolenMoneyPercentage.Read(exINI, pSection, "SpyEffect.StolenMoneyPercentage");
+		this->SpyEffect_SabotageDelay.Read(exINI, pSection, "SpyEffect.SabotageDelay");
+		this->SpyEffect_SuperWeapon.Read(exINI, pSection, "SpyEffect.SuperWeapon");
+		this->SpyEffect_SuperWeaponPermanent.Read(exINI, pSection, "SpyEffect.SuperWeaponPermanent");
+		this->SpyEffect_UnReverseEngineer.Read(exINI, pSection, "SpyEffect.UndoReverseEngineer");
+
+		this->SpyEffect_InfantryVeterancy.Read(exINI, pSection, "SpyEffect.InfantryVeterancy"); {}
+		this->SpyEffect_VehicleVeterancy.Read(exINI, pSection, "SpyEffect.VehicleVeterancy");
+		this->SpyEffect_NavalVeterancy.Read(exINI, pSection, "SpyEffect.NavalVeterancy");
+		this->SpyEffect_AircraftVeterancy.Read(exINI, pSection, "SpyEffect.AircraftVeterancy");
+		this->SpyEffect_BuildingVeterancy.Read(exINI, pSection, "SpyEffect.BuildingVeterancy");
+
+		if (this->SpyEffect_StolenTechIndex >= 32)
+		{
+			Debug::Log("BuildingType %s has a SpyEffect.StolenTechIndex of %d. The value has to be less than 32.\n", pSection, this->SpyEffect_StolenTechIndex.Get());
+			this->SpyEffect_StolenTechIndex = -1;
+		}
+
 		this->CanC4_AllowZeroDamage.Read(exINI, pSection, "CanC4.AllowZeroDamage");
 		this->C4_Modifier.Read(exINI, pSection, "C4Modifier");
 		this->DockUnload_Cell.Read(exINI, pSection, "DockUnloadCell");
@@ -637,10 +666,10 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			for (int i = 0; i < pThis->MaxNumberOccupants; ++i)
 			{
 				Nullable<Point2D> nMuzzleLocation;
-				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d",GameStrings::MuzzleFlash(), i);
+				IMPL_SNPRNINTF(tempMuzzleBuffer, sizeof(tempMuzzleBuffer), "%s%d", GameStrings::MuzzleFlash(), i);
 				nMuzzleLocation.Read(exArtINI, pArtSection, tempMuzzleBuffer);
 
-				if(nMuzzleLocation.isset())
+				if (nMuzzleLocation.isset())
 					this->OccupierMuzzleFlashes[i] = nMuzzleLocation.Get();
 			}
 		}
@@ -656,12 +685,12 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		for (int i = 0;; ++i)
 		{
 			Nullable<Point2D> nFire_offs {};
-			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d",GameStrings::DamageFireOffset(), i);
+			IMPL_SNPRNINTF(tempFire_OffsBuffer, sizeof(tempFire_OffsBuffer), "%s%d", GameStrings::DamageFireOffset(), i);
 			nFire_offs.Read(exArtINI, pArtSection, tempFire_OffsBuffer);
 
 			if (!nFire_offs.isset())
 				break;
-			
+
 			this->DamageFire_Offs.push_back(nFire_offs.Get());
 		}
 #endif
@@ -772,13 +801,33 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_VictimSuperWeapon)
 		.Process(this->SpyEffect_InfiltratorSuperWeapon)
 		.Process(this->SpyEffect_InfiltratorSW_JustGrant)
+		.Process(this->SpyEffect_VictimSW_RealLaunch)
+		.Process(this->SpyEffect_RevealProduction)
+		.Process(this->SpyEffect_ResetSW)
+		.Process(this->SpyEffect_ResetRadar)
+		.Process(this->SpyEffect_RevealRadar)
+		.Process(this->SpyEffect_RevealRadarPersist)
+		.Process(this->SpyEffect_GainVeterancy)
+		.Process(this->SpyEffect_UnReverseEngineer)
+		.Process(this->SpyEffect_StolenTechIndex)
+		.Process(this->SpyEffect_StolenMoneyAmount)
+		.Process(this->SpyEffect_StolenMoneyPercentage)
+		.Process(this->SpyEffect_PowerOutageDuration)
+		.Process(this->SpyEffect_SabotageDelay)
+		.Process(this->SpyEffect_SuperWeapon)
+		.Process(this->SpyEffect_SuperWeaponPermanent)
+		.Process(this->SpyEffect_InfantryVeterancy)
+		.Process(this->SpyEffect_VehicleVeterancy)
+		.Process(this->SpyEffect_NavalVeterancy)
+		.Process(this->SpyEffect_AircraftVeterancy)
+		.Process(this->SpyEffect_BuildingVeterancy)
 		.Process(this->CanC4_AllowZeroDamage)
 		.Process(this->C4_Modifier)
 		.Process(this->DockUnload_Cell)
 		.Process(this->DockUnload_Facing)
 		.Process(this->Solid_Height)
 		.Process(this->Solid_Level)
-		.Process(this->SpyEffect_VictimSW_RealLaunch)
+
 		.Process(this->RubblePalette)
 		.Process(this->EnterBioReactorSound)
 		.Process(this->LeaveBioReactorSound)
@@ -808,7 +857,7 @@ bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm
 };
 
 bool BuildingTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{	
+{
 	return Stm
 		.Process(BuildingTypeExt::trenchKinds)
 		.Success()

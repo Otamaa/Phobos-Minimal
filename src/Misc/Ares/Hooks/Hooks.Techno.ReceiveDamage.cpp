@@ -26,7 +26,7 @@
 #include <Conversions.h>
 #include <New/Type/ArmorTypeClass.h>
 
-void NOINLINE ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
+void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 {
 	if (Unsorted::CurrentFrame % 15)
 		return;
@@ -780,8 +780,3 @@ DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 
 	return 0;
 }
-
-std::array<const char* const, 6u> DamageState_to_srings
-{ {
-	"Unaffected" , "Unchanged" , "NowYellow" , "NowRed" , "NowDead" , "PostMortem"
-} };

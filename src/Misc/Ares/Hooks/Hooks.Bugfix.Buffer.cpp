@@ -9,7 +9,7 @@
 #include <AnimTypeClass.h>
 
 template<typename T, bool Allocate = false, bool Unique = false>
-static NOINLINE void ParseList(DynamicVectorClass<T>& List, CCINIClass* pINI, const char* section, const char* key) {
+static void ParseList(DynamicVectorClass<T>& List, CCINIClass* pINI, const char* section, const char* key) {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer)) {
 		List.Clear();
 		char* context = nullptr;

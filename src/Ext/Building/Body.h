@@ -38,6 +38,7 @@ public:
 		bool TogglePower_HasPower;
 		OptionalStruct<int , true> C4Damage;
 		HouseClass* C4Owner;
+		WarheadTypeClass* C4Warhead;
 		bool Silent;
 
 		ExtData(BuildingClass* OwnerObject) : Extension<BuildingClass>(OwnerObject)
@@ -56,6 +57,7 @@ public:
 			, TogglePower_HasPower { false }
 			, C4Damage { }
 			, C4Owner { nullptr }
+			, C4Warhead { nullptr }
 			, Silent { false }
 		{ }
 

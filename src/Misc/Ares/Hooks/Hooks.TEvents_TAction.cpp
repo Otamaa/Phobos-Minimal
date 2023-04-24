@@ -227,7 +227,7 @@ namespace TEventExt_dummy
 {
 	// the function return is deciding if the case is handled or not
 	// the bool result pointer is for the result of the Event itself
-	bool NOINLINE HasOccured(TEventClass* pThis, EventArgs const Args, bool* result)
+	bool HasOccured(TEventClass* pThis, EventArgs const Args, bool* result)
 	{
 		return false;
 	}

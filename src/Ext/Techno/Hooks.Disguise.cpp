@@ -49,7 +49,7 @@ DEFINE_HOOK(0x7467CA , UnitClass_CantTarget_Disguise, 0x5)
 	 0x7467FE : 0x0;
 }
 
-bool NOINLINE CanBlinkDisguise(TechnoClass* pTechno)
+bool CanBlinkDisguise(TechnoClass* pTechno)
 {
 	auto const pCurPlayer = HouseClass::CurrentPlayer();
 
@@ -179,7 +179,7 @@ DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 	return 0x746712;
 }
 
-bool NOINLINE Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat) {
+bool Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat) {
 	if(!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
 		return false;
 

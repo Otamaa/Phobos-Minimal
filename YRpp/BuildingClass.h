@@ -328,7 +328,7 @@ public:
 
 	BuildingTypeClass* Type;
 	FactoryClass* Factory;
-	CDTimerClass C4Timer;
+	CDTimerClass GoingToBlowTimer;  // used for warhead DelayKill and also C4
 	BStateType BState;
 	BStateType QueueBState;
 	DWORD OwnerCountryIndex;
@@ -387,7 +387,7 @@ public:
 	bool IsAllowedToSell; //6DC bool AI_Sellable; AI_SELLABLE under [Structures]
 	bool IsReadyToCommence; //6DD
 	bool NeedsRepairs; // AI handholder for repair logic,
-	bool C4Applied;
+	bool IsGoingToBlow; // used for warhead DelayKill and also C4
 	bool NoCrew;
 	bool IsCharging; //6E1
 	bool IsCharged;	//6E2

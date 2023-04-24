@@ -158,6 +158,14 @@ struct GameStrings
 	GAMEMD_STR(EVA_UnitPromoted, 0x843138u);
 	GAMEMD_STR(EVA_UnitLost, 0x822620u);
 	GAMEMD_STR(EVA_NewTechAcquired, 0x81911Cu);
+	GAMEMD_STR(EVA_TechnologyStolen, 0x819138u);
+	GAMEMD_STR(EVA_BuildingInfiltrated, 0x819198u);
+	GAMEMD_STR(EVA_CashStolen, 0x81916Cu);
+	GAMEMD_STR(EVA_BuildingInfCashStolen, 0x819150u);
+	GAMEMD_STR(EVA_RadarSabotaged,0x8191E4u);
+	GAMEMD_STR(EVA_BuildingInfRadarSabotaged,0x8191C4u);
+	GAMEMD_STR(EVA_PowerSabotaged,0x8191B0u);
+	GAMEMD_STR(EVA_EnemyBasePoweredDown,0x81917Cu);
 	//...
 
 	// Messages

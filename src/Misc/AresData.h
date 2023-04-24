@@ -34,6 +34,11 @@ typedef int (__cdecl *CallHook)(REGISTERS* R);
 #define Ares_ParasiteWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xB))
 
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
+#define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
+#define Is_BuildingProductionSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x4A))
+#define RadarPresist(var) (*(IndexBitfield<HouseClass*>*)((char*)GetAresHouseExt(var) + 0x44))
+#define ReverseEngineeredTechnoType(var) (*(std::vector<TechnoTypeClass*>*)((char*)GetAresHouseExt(var) + 0x34))
+#define StolenTechnoType(var) (*(std::bitset<32>*)((char*)GetAresHouseExt(var) + 0x40))
 
 #define Is_FirestromWall(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5D))
 #define Is_Passable(techno) (*(bool*)((char*)GetAresBuildingTypeExt(techno) + 0x5E))

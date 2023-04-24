@@ -1,6 +1,6 @@
 #include "Body.h"
 
-bool NOINLINE IsFlyLoco(const ILocomotion* pLoco) {
+bool IsFlyLoco(const ILocomotion* pLoco) {
 	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
 }
 

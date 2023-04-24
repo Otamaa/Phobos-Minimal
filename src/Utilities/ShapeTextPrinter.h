@@ -38,9 +38,9 @@ public:
 	static void PrintShape
 	(
 		const char* text,
-		ShapeTextPrintData& data,
-		Point2D posDraw,
-		RectangleStruct& rBound,
+		const ShapeTextPrintData& data,
+		Point2D* pPosDraw,
+		RectangleStruct* pRBound,
 		DSurface* pSurface,
 		Point2D offset = Point2D::Empty,
 		BlitterFlags eBlitterFlags = BlitterFlags::None,

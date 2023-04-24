@@ -150,7 +150,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	return 0x709D11;
 }
 
-void NOINLINE DetonateDeathWeapon(TechnoClass* pThis , TechnoTypeClass* pType ,WeaponTypeClass* pDecided , int nMult,  bool RulesDeath)
+void DetonateDeathWeapon(TechnoClass* pThis , TechnoTypeClass* pType ,WeaponTypeClass* pDecided , int nMult,  bool RulesDeath)
 {
 	if (pDecided)
 	{

@@ -19,7 +19,7 @@ namespace Fix
 		return NetworkEvent::EventLength[nInput];
 	}
 
-	NOINLINE uint8_t EventLength(uint8_t nInput)
+	uint8_t EventLength(uint8_t nInput)
 	{
 		if (nInput <= 0x2Eu)
 			return *(Fix::EventLengthArr() + nInput);

@@ -13,6 +13,8 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 
+#include <Misc/AresData.h>
+
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
 #include <TerrainTypeClass.h>
@@ -5236,29 +5238,93 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 	return pBld ? 0x0 : 0x71AA1A;
 }
 
-DEFINE_HOOK(0x4400C1, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0xA)
-{
-	GET(BuildingClass*, pThis, ESI);
-	const auto pExt = BuildingExt::ExtMap.Find(pThis);
-	if (pExt->C4Damage.isset() && !pThis->Type->BridgeRepairHut)
-	{
-		int nDamage = pExt->C4Damage.get();
-		pThis->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pThis->C4AppliedBy, false, false,
-			pExt->C4Owner);
+#include <Ext/InfantryType/Body.h>
+std::array<const char* const, 6u> DamageState_to_srings
+{ {
+	"Unaffected" , "Unchanged" , "NowYellow" , "NowRed" , "NowDead" , "PostMortem"
+} };
 
-		return pThis->IsAlive ? 0x4400F2 : 0x4400EA;
-	}
+//DEFINE_HOOK(0x440333, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//
+//	if (pExt->C4Damage.isset())
+//	{
+//		int nDamage = pExt->C4Damage.get();
+//		const auto nResult = pThis->ReceiveDamage(&nDamage, 0, pExt->C4Warhead, pThis->C4AppliedBy, false, false, pExt->C4Owner);
+//		Debug::Log("C4Damage Result [%s] ! \n", DamageState_to_srings[(int)nResult]);
+//		return 0x44035E;
+//	}
+//
+//	pExt->C4Damage.clear();
+//	return 0x0;
+//}
 
-	pExt->C4Damage.clear();
-	return 0x0;
-}
+//basically this C4 thing will always one hit kill regardless, 
+// because of fcki g weird ass ww code desing ,..
+//DEFINE_HOOK(0x442696, BuildingClass_ReceiveDamage_C4, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI)
+//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//
+//	if (pExt->C4Damage.isset())
+//	{
+//		pExt->C4Damage.clear();
+//		return 0x4426A7;
+//	}
+//
+//	return 0;
+//}
+
+//DEFINE_HOOK(0x701F60, TechnoClass_TakeDamage_IsGoingToBlow, 0x6)
+//{
+//	Debug::Log("Exec ! \n");
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x4400C1, BuildingClass_AI_C4TimerRanOut_ApplyDamage_B, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	if (pExt->C4Damage.isset())
+//	{
+//		int nDamage = pExt->C4Damage.get();
+//		pThis->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pThis->C4AppliedBy, false, false,
+//			pExt->C4Owner);
+//
+//		pExt->C4Damage.clear();
+//		return pThis->IsAlive ? 0x4400F2 : 0x4400EA;
+//	}
+//
+//	pExt->C4Damage.clear();
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x440327, BuildingClass_AI_C4DataClear, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	pExt->C4Damage.clear();
+//	pExt->C4Owner = nullptr;
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x457CA0, BuildingClass_ApplyIC_C4DataClear, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ECX);
+//	const auto pExt = BuildingExt::ExtMap.Find(pThis);
+//	pExt->C4Damage.clear();
+//	pExt->C4Owner = nullptr;
+//	return 0x0;
+//}
 
 DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-
-	const auto pExt = BuildingExt::ExtMap.Find(pThis);
-	return pExt->Silent ? 0x447203 : 0x0;
+	return BuildingExt::ExtMap.Find(pThis)->Silent ? 0x447203 : 0x0;
 }
 
 DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)

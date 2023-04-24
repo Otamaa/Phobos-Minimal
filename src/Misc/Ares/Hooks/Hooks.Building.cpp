@@ -457,10 +457,12 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 		}
 	}
 
-	if (const auto FirstTag = Grinder->AttachedTag) {
+	if (const auto FirstTag = Grinder->AttachedTag)
+	{
 		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Vehicle);
 
-		if ( auto pSecondTag = Grinder->AttachedTag) {
+		if (auto pSecondTag = Grinder->AttachedTag)
+		{
 			pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerAnything, Grinder, CellStruct::Empty, false, nullptr);
 		}
 	}
@@ -494,7 +496,8 @@ DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 	}
 
 	//Ares 3.0 Added
-	if (const auto FirstTag = Grinder->AttachedTag) {
+	if (const auto FirstTag = Grinder->AttachedTag)
+	{
 		//80
 		FirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::ReverseEngineerType, Grinder, CellStruct::Empty, false, Infantry);
 
@@ -585,26 +588,27 @@ DEFINE_HOOK(51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	return Notinfiltratable;
 }*/
 
-DEFINE_OVERRIDE_HOOK(0x51E635 ,InfantryClass_GetActionOnObject_EngineerOverFriendlyBuilding, 5)
- {
-	enum {
-	DontRepair = 0x51E63A,
-	DoRepair = 0x51E659,
-	SkipAll = 0x51E458 ,
+DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuilding, 5)
+{
+	enum
+	{
+		DontRepair = 0x51E63A,
+		DoRepair = 0x51E659,
+		SkipAll = 0x51E458,
 	};
 
-	GET(BuildingClass *, pTarget, ESI);
-	GET(InfantryClass *, pThis, EDI);
+	GET(BuildingClass*, pTarget, ESI);
+	GET(InfantryClass*, pThis, EDI);
 	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pTarget->Type);
 
-	if((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
+	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
 	{
-		AresData::SetMouseCursorAction(90u , Action::GRepair,false);
+		AresData::SetMouseCursorAction(90u, Action::GRepair, false);
 		R->EAX(Action::GRepair);
 		return SkipAll;
 	}
 
-	return ((R->EAX<DWORD>() & 0x4000) != 0 ) ? DontRepair : DoRepair;
+	return ((R->EAX<DWORD>() & 0x4000) != 0) ? DontRepair : DoRepair;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
@@ -624,7 +628,7 @@ DEFINE_OVERRIDE_HOOK(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairabl
 }
 
 // placement linking
-DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable , 6)
+DEFINE_OVERRIDE_HOOK(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);
 	return BuildingTypeExt::IsLinkable(pType) ?
@@ -655,6 +659,535 @@ DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 	return 0x51B33F;
 }
 
+bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur)
+{
+	const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
+		|| pBuilding->GetCurrentMission() == Mission::Selling)
+	{
+		pThis->AbortMotion();
+		pThis->Uncloak(false);
+		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+		pThis->ReloadTimer.Start(Rof);
+		if (!IsSaboteur)
+		{
+			pThis->Scatter(pBuilding->GetCoords(), true, true);
+		}
+		return false;
+	}
+
+	if (pBuilding->IsGoingToBlow)
+	{
+		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
+		pThis->ReloadTimer.Start(Rof);
+		if (!IsSaboteur)
+		{
+			pThis->AbortMotion();
+			//need to set target ?
+			pThis->SetDestination(nullptr, true);
+			pThis->Scatter(pBuilding->GetCoords(), true, true);
+		}
+		return false;
+	}
+
+	// sabotage
+	pBuilding->IsGoingToBlow = true;
+	pBuilding->C4AppliedBy = pThis;
+
+	const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
+
+	auto duration = (int)(delay * 900.0);
+
+	// modify good durations only
+	if (duration > 0)
+	{
+		duration = (int)(duration * pData->C4_Modifier);
+		if (duration <= 0)
+			duration = 1;
+	}
+
+	//auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
+	//if (pInfext->C4Damage.isset())
+	//{
+	//	pBldExt->C4Damage = pInfext->C4Damage;
+	//}
+	//
+	//pBldExt->C4Warhead = pInfext->C4Warhead.Get(RulesClass::Instance->C4Warhead);
+	//pBldExt->C4Owner = pThis->GetOwningHouse();
+	pBuilding->Flash(duration / 2);
+	pBuilding->GoingToBlowTimer.Start(duration);
+
+	if (!IsSaboteur)
+	{
+		pThis->SetDestination(nullptr, true);
+		pThis->Scatter(pBuilding->GetCoords(), true, true);
+	}
+
+	return true;
+}
+
+DEFINE_HOOK(0x51A521, InfantryClass_UpdatePosition_ApplyC4, 0xA)
+{
+	enum { RetFail = 0x51A59D, RetSucceeded = 0x51A65D };
+
+	GET(InfantryClass* const, pThis, ESI);
+	GET(BuildingClass* const, pBuilding, EDI);
+
+	if (!ApplyC4ToBuilding(pThis, pBuilding, false))
+		return RetFail;
+
+	return RetSucceeded;
+}
+
+struct AresBldExtStuffs
+{
+	static int GetFirstSuperWeaponIndex(BuildingClass* pThis)
+	{
+		const auto pExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+		const auto count = pExt->GetSuperWeaponCount();
+		for (auto i = 0; i < count; ++i)
+		{
+			const auto idxSW = pExt->GetSuperWeaponIndex(i, pThis->Owner);
+			if (idxSW != -1)
+			{
+				return idxSW;
+			}
+		}
+		return -1;
+	}
+
+	static void UpdateDisplayTo(BuildingClass* pThis)
+	{
+		if (pThis->Type->Radar)
+		{
+			auto pHouse = pThis->Owner;
+			pHouse->RadarVisibleTo.Clear();
+
+			pHouse->RadarVisibleTo.data |= RadarPresist(pHouse).data;
+
+			for (auto pBld : pHouse->Buildings)
+			{
+				if (!pBld->InLimbo)
+				{
+					if (BuildingTypeExt::ExtMap.Find(pBld->Type)->SpyEffect_RevealRadar)
+					{
+						pHouse->RadarVisibleTo.data |= pBld->DisplayProductionTo.data;
+					}
+				}
+			}
+			MapClass::Instance->RedrawSidebar(2);
+		}
+	}
+
+	static bool InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer)
+	{
+		auto EnteredType = EnteredBuilding->Type;
+		auto Owner = EnteredBuilding->Owner;
+		auto pTypeExt = BuildingTypeExt::ExtMap.Find(EnteredBuilding->Type);
+		//auto pEntererExt = HouseExt::ExtMap.Find(Enterer);
+		//auto pEnteredExt = HouseExt::ExtMap.Find(Owner);
+
+		if (!pTypeExt->SpyEffect_Custom) {
+			return false;
+		}
+
+		bool raiseEva = false;
+		const bool IsOwnerControlledByPlayer = Owner->ControlledByPlayer();
+		const bool IsEntererControlledByPlayer = Enterer->ControlledByPlayer();
+
+		if (IsEntererControlledByPlayer || IsOwnerControlledByPlayer)
+		{
+			CellStruct xy = EnteredBuilding->GetMapCoords();
+			if (RadarEventClass::Create(RadarEventType::BuildingInfiltrated, xy))
+			{
+				raiseEva = true;
+			}
+		}
+
+		const bool evaForOwner = IsOwnerControlledByPlayer && raiseEva;
+		const bool evaForEnterer = IsEntererControlledByPlayer && raiseEva;
+		bool effectApplied = false;
+
+		if (pTypeExt->SpyEffect_ResetRadar)
+		{
+			Owner->ReshroudMap();
+			if (!Owner->SpySatActive && evaForOwner)
+			{
+				VoxClass::Play(GameStrings::EVA_RadarSabotaged);
+			}
+			if (!Owner->SpySatActive && evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfRadarSabotaged);
+			}
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_PowerOutageDuration > 0)
+		{
+			Owner->CreatePowerOutage(pTypeExt->SpyEffect_PowerOutageDuration);
+			if (evaForOwner)
+			{
+				VoxClass::Play(GameStrings::EVA_PowerSabotaged);
+			}
+			if (evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				VoxClass::Play(GameStrings::EVA_EnemyBasePoweredDown);
+			}
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_StolenTechIndex > -1)
+		{
+			StolenTechnoType(Enterer).set(static_cast<size_t>(pTypeExt->SpyEffect_StolenTechIndex));
+			Enterer->RecheckTechTree = true;
+			if (evaForOwner)
+			{
+				VoxClass::Play(GameStrings::EVA_TechnologyStolen);
+			}
+			if (evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				VoxClass::Play(GameStrings::EVA_NewTechAcquired);
+			}
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_UnReverseEngineer)
+		{
+			Debug::Log("Undoing all Reverse Engineering achieved by house %ls\n", Owner->UIName);
+			ReverseEngineeredTechnoType(Owner).clear();
+			Owner->RecheckTechTree = true;
+
+			if (evaForOwner || evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+			}
+
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_ResetSW)
+		{
+			bool somethingReset = false;
+			const auto buildingSWCount = pTypeExt->GetSuperWeaponCount();
+			for (auto i = 0; i < buildingSWCount; ++i)
+			{
+				if (auto pSuper = Owner->Supers.GetItemOrDefault(i))
+				{
+					pSuper->Reset();
+					somethingReset = true;
+				}
+			}
+
+			for (int i = 0; i < EnteredType->Upgrades; ++i)
+			{
+				if (auto Upgrade = EnteredBuilding->Upgrades[i])
+				{
+					auto UpgradeExt = BuildingTypeExt::ExtMap.Find(Upgrade);
+					const auto upgradeSWCount = UpgradeExt->GetSuperWeaponCount();
+
+					for (auto j = 0; j < upgradeSWCount; ++j)
+					{
+						int swIdx = UpgradeExt->GetSuperWeaponIndex(j, Owner);
+						if (swIdx != -1)
+						{
+							Owner->Supers.Items[swIdx]->Reset();
+							somethingReset = true;
+						}
+					}
+				}
+			}
+
+			if (somethingReset)
+			{
+				if (evaForOwner || evaForEnterer)
+				{
+					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				}
+				effectApplied = true;
+			}
+		}
+
+		// Did you mean for not launching for real or not, Morton?
+		auto launchTheSWHere = [EnteredBuilding](int const idx, HouseClass* const pHouse, bool realLaunch = false)
+		{
+			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			{
+				if (!realLaunch || (pSuper->Granted && pSuper->IsCharged && !pSuper->IsOnHold))
+				{
+					const int oldstart = pSuper->RechargeTimer.StartTime;
+					const int oldleft = pSuper->RechargeTimer.TimeLeft;
+					pSuper->SetReadiness(true);
+					pSuper->Launch(CellClass::Coord2Cell(EnteredBuilding->GetCenterCoords()), pHouse->IsCurrentPlayer());
+					pSuper->Reset();
+					pSuper->RechargeTimer.StartTime = oldstart;
+					pSuper->RechargeTimer.TimeLeft = oldleft;
+				}
+			}
+		};
+
+		auto justGrantTheSW = [](int const idx, HouseClass* const pHouse)
+		{
+			if (const auto pSuper = pHouse->Supers.GetItem(idx))
+			{
+				if (pSuper->Granted)
+					pSuper->SetCharge(100);
+				else
+				{
+					pSuper->Grant(true, false, false);
+					if (pHouse->IsCurrentPlayer())
+						SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+				}
+				SidebarClass::Instance->RepaintSidebar(1);
+			}
+		};
+
+		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset() && !Owner->IsNeutral())
+		{
+			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Get(), Owner, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
+
+			if (evaForOwner || evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+			}
+
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_InfiltratorSuperWeapon.isset())
+		{
+			const int swidx = pTypeExt->SpyEffect_InfiltratorSuperWeapon.Get();
+
+			if (pTypeExt->SpyEffect_InfiltratorSW_JustGrant.Get())
+				justGrantTheSW(swidx, Enterer);
+			else
+				launchTheSWHere(swidx, Enterer);
+
+			if (evaForOwner || evaForEnterer) {
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+			}
+
+			effectApplied = true;
+		}
+
+		if (auto pSuperType = pTypeExt->SpyEffect_SuperWeapon)
+		{
+			const auto nIdx = pSuperType->ArrayIndex;
+			const auto pSuper = Enterer->Supers.GetItem(nIdx);
+			const bool Onetime = !pTypeExt->SpyEffect_SuperWeaponPermanent;
+			bool CanLauch = true;
+
+			if (!pSuperType->IsPowered || Enterer->PowerDrain == 0 || Enterer->PowerOutput >= Enterer->PowerDrain)
+				CanLauch = false;
+
+			const bool IsCurrentPlayer = Enterer->IsCurrentPlayer();
+
+			if (pSuper->Grant(Onetime, IsCurrentPlayer, CanLauch))
+			{
+				if (pTypeExt->SpyEffect_SuperWeaponPermanent)
+					pSuper->IsOnHold = false;
+
+				if (IsCurrentPlayer)
+				{
+					SidebarClass::Instance->AddCameo(AbstractType::Special, nIdx);
+					const auto nTab = SidebarClass::GetObjectTabIdx(AbstractType::Special, nIdx, false);
+					SidebarClass::Instance->RepaintSidebar(nTab);
+				}
+
+				if (evaForOwner || evaForEnterer)
+				{
+					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				}
+
+				effectApplied = true;
+			}
+		}
+
+		if (pTypeExt->SpyEffect_SabotageDelay > 0)
+		{
+			const int nDelay = int(pTypeExt->SpyEffect_SabotageDelay * 900.0);
+
+			if (nDelay >= 0 && !EnteredBuilding->IsGoingToBlow)
+			{
+				EnteredBuilding->IsGoingToBlow = true;
+				EnteredBuilding->GoingToBlowTimer.Start(nDelay);
+				EnteredBuilding->Flash(nDelay / 2);
+
+				if (evaForOwner || evaForEnterer)
+				{
+					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				}
+
+				effectApplied = true;
+			}
+		}
+
+		{
+			int bounty = 0;
+			int available = Owner->Available_Money();
+			if (pTypeExt->SpyEffect_StolenMoneyAmount > 0)
+			{
+				bounty = pTypeExt->SpyEffect_StolenMoneyAmount;
+			}
+			else if (pTypeExt->SpyEffect_StolenMoneyPercentage > 0)
+			{
+				bounty = available * pTypeExt->SpyEffect_StolenMoneyPercentage;
+			}
+
+			if (bounty > 0)
+			{
+				bounty = std::min(bounty, available);
+				Owner->TakeMoney(bounty);
+				Enterer->GiveMoney(bounty);
+				if (evaForOwner)
+				{
+					VoxClass::Play(GameStrings::EVA_CashStolen);
+				}
+				if (evaForEnterer)
+				{
+					VoxClass::Play(GameStrings::EVA_BuildingInfCashStolen);
+				}
+				effectApplied = true;
+			}
+		}
+
+		{
+			bool promotionStolen = false;
+			if (pTypeExt->SpyEffect_GainVeterancy)
+			{
+				switch (EnteredType->Factory)
+				{
+				case UnitTypeClass::AbsID:
+					Enterer->WarFactoryInfiltrated = true;
+					promotionStolen = true;
+					break;
+				case InfantryTypeClass::AbsID:
+					Enterer->BarracksInfiltrated = true;
+					promotionStolen = true;
+					break;
+				case AircraftTypeClass::AbsID:
+					Is_AirfieldSpied(Enterer) = true;
+					promotionStolen = true;
+					break;
+				case BuildingTypeClass::AbsID:
+					Is_BuildingProductionSpied(Enterer) = true;
+					promotionStolen = true;
+					break;
+				default:
+					break;
+				}
+			}
+			else
+			{
+				if (pTypeExt->SpyEffect_AircraftVeterancy)
+				{
+					Is_AirfieldSpied(Enterer) = true;
+					promotionStolen = true;
+				}
+
+				if (pTypeExt->SpyEffect_InfantryVeterancy)
+				{
+					Enterer->BarracksInfiltrated = true;
+					promotionStolen = true;
+				}
+
+				if (pTypeExt->SpyEffect_NavalVeterancy)
+				{
+					Is_NavalYardSpied(Enterer) = true;
+					promotionStolen = true;
+				}
+
+				if (pTypeExt->SpyEffect_VehicleVeterancy)
+				{
+					Enterer->WarFactoryInfiltrated = true;
+					promotionStolen = true;
+				}
+			}
+
+			if (promotionStolen)
+			{
+				Enterer->RecheckTechTree = true;
+				if (IsEntererControlledByPlayer) {
+					MouseClass::Instance->SidebarNeedsRepaint();
+				}
+
+				if (evaForOwner) {
+					VoxClass::Play(GameStrings::EVA_TechnologyStolen);
+				}
+
+				if (evaForEnterer) {
+					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+					VoxClass::Play(GameStrings::EVA_NewTechAcquired);
+				}
+				effectApplied = true;
+			}
+		}
+
+		/*	RA1-Style Spying, as requested in issue #633
+			This sets the respective bit to inform the game that a particular house has spied this building.
+			Knowing that, the game will reveal the current production in this building to the players who have spied it.
+			In practice, this means: If a player who has spied a factory clicks on that factory,
+			he will see the cameo of whatever is being built in the factory.
+
+			Addition 04.03.10: People complained about it not being optional. Now it is.
+		*/
+		if (pTypeExt->SpyEffect_RevealProduction)
+		{
+			EnteredBuilding->DisplayProductionTo.Add(Enterer);
+			if (evaForOwner || evaForEnterer)
+			{
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+			}
+			effectApplied = true;
+		}
+
+		if (pTypeExt->SpyEffect_RevealRadar)
+		{
+			/*	Remember the new persisting radar spy effect on the victim house itself, because
+				destroying the building would destroy the spy reveal info in the ExtData, too.
+				2013-08-12 AlexB
+			*/
+			if (pTypeExt->SpyEffect_RevealRadarPersist)
+			{
+				RadarPresist(Owner).Add(Enterer);
+			}
+
+			EnteredBuilding->DisplayProductionTo.Add(Enterer);
+			AresBldExtStuffs::UpdateDisplayTo(EnteredBuilding);
+
+			if (evaForOwner || evaForEnterer) {
+				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+			}
+
+			MapClass::Instance->Map_AI();
+			MapClass::Instance->RedrawSidebar(2);
+			effectApplied = true;
+		}
+
+		if (effectApplied) {
+			EnteredBuilding->UpdatePlacement(PlacementType::Redraw);
+		}
+
+		return true;
+	}
+};
+
+/* #633 - spy building infiltration */
+// wrapper around the entire function
+DEFINE_OVERRIDE_HOOK(0x4571E0, BuildingClass_Infiltrate, 5)
+{
+	GET(BuildingClass*, EnteredBuilding, ECX);
+	GET_STACK(HouseClass*, Enterer, 0x4);
+
+	return (AresBldExtStuffs::InfiltratedBy(EnteredBuilding, Enterer))
+		? 0x4575A2
+		: 0
+		;
+}
+
 DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 {
 	enum
@@ -675,64 +1208,23 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
+		pBuilding->C4AppliedBy = pThis;
 		pBuilding->Infiltrate(pHouse);
-		BuildingExt::HandleInfiltrate(pBuilding, pHouse);
 		return InfiltrateSucceded;
 	}
 	else
-	if (nResult == Action::NoMove)
-	{
-		const auto pInfext = InfantryTypeExt::ExtMap.Find(pThis->Type);
-
-		if (pBuilding->IsIronCurtained() || pBuilding->IsBeingWarpedOut()
-			|| pBuilding->GetCurrentMission() == Mission::Selling)
+		if (nResult == Action::NoMove)
 		{
-			pThis->AbortMotion();
-			pThis->Uncloak(false);
-			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-			pThis->ReloadTimer.Start(Rof);
-			return SkipInfiltrate;
+			if (!ApplyC4ToBuilding(pThis, pBuilding, true))
+				return SkipInfiltrate;
+
+			if (auto const pTag = pBuilding->AttachedTag)
+			{
+				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
+			}
+
+			return InfiltrateSucceded;
 		}
-		else if (pBuilding->C4Applied)
-		{
-			const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
-			pThis->ReloadTimer.Start(Rof);
-			return SkipInfiltrate;
-		}
-
-		// sabotage
-		pBuilding->C4Applied = true;
-		pBuilding->C4AppliedBy = pThis;
-
-		const auto pData = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-		const auto delay = pInfext->C4Delay.Get(RulesClass::Instance->C4Delay);
-
-		auto duration = (int)(delay * 900.0);
-
-		// modify good durations only
-		if (duration > 0)
-		{
-			duration = (int)(duration * pData->C4_Modifier);
-			if (duration <= 0)
-				duration = 1;
-		}
-
-		auto pBldExt = BuildingExt::ExtMap.Find(pBuilding);
-		if(pInfext->C4Damage.isset()){
-			pBldExt->C4Damage = pInfext->C4Damage;
-		}
-
-		pBldExt->C4Owner = pThis->GetOwningHouse();
-		pBuilding->Flash(duration / 2);
-		pBuilding->C4Timer.Start(duration);
-
-		if (auto const pTag = pBuilding->AttachedTag)
-		{
-			pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty, false, nullptr);
-		}
-
-		return InfiltrateSucceded;
-	}
 
 	return SkipInfiltrate;
 
@@ -870,14 +1362,17 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 	GET_STACK(bool const, includeInProduction, 0xC);
 
 	const auto nAresREsult = AresData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
-	
-	if(Is_BuildingType(pItem)){
+
+	if (Is_BuildingType(pItem))
+	{
 		const auto pBuilding = static_cast<BuildingTypeClass*>(pItem);
-		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty()) {  
-			if (nAresREsult == CanBuildResult::Buildable) {	
+		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
+		{
+			if (nAresREsult == CanBuildResult::Buildable)
+			{
 				R->EAX(BuildingTypeExt::CheckBuildLimit(pThis, pBuilding, includeInProduction));
 				return 0x4F8361;
-			}		
+			}
 		}
 	}
 
@@ -1204,7 +1699,8 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 		return Ignore;
 	}
 
-	if (Is_FirestromWall(pBld->Type)) {
+	if (Is_FirestromWall(pBld->Type))
+	{
 		return CheckFirestormActive;
 	}
 

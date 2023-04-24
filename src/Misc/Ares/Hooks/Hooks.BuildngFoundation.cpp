@@ -6,30 +6,24 @@
 #include <CellStruct.h>
 #include <Unsorted.h>
 
-void NOINLINE GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
+void GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
 {
-	int16_t* v6;
 	int v2 = -512;
 	int v3 = -512;
 	int v4 = 512;
 	int v5 = 512;
 
-	if (a2->X == 0x7FFF) {
-		v6 = &a2->Y;
-		if (a2->Y == 0x7FFF) {
-			a1.X = 0;
-			a1.Y = 0;
-			a1.Width = 0;
-			a1.Height = 0;
-			return ;
-		}
-	}
-	else
-	{
-		v6 = &a2->Y;
+	if (a2->X == 0x7FFF && a2->Y == 0x7FFF) {
+		a1.X = 0;
+		a1.Y = 0;
+		a1.Width = 0;
+		a1.Height = 0;
+		return;
 	}
 
-	while (1)
+	int16_t* v6 = &a2->Y;
+
+	while (true)
 	{
 		int16_t v8 = *(v6 - 1);
 		int v12 = v3;
@@ -64,7 +58,7 @@ void NOINLINE GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
 }
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x6D5573 , TacticalClass_DrawPlacement_CustomFoundation, 0x6)
-DEFINE_OVERRIDE_HOOK(0x6D50FB , TacticalClass_DrawPlacement__CustomFoundation, 0x5)
+DEFINE_OVERRIDE_HOOK(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 {
 	RectangleStruct nDispRect {};
 	const bool bOnFB = R->Origin() == 0x6D50FB;
