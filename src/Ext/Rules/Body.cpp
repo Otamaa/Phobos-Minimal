@@ -123,7 +123,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
-
+	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
 	this->AI_CostMult.Read(exINI, GENERAL_SECTION , "AICostMult");
@@ -655,6 +655,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->StealthSpeakDelay)
 		.Process(this->SubterraneanSpeakDelay)
+		.Process(this->RandomCrateMoney)
 
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)

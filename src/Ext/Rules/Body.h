@@ -120,6 +120,8 @@ public:
 
 		Valueable<double> StealthSpeakDelay;
 		Valueable<double> SubterraneanSpeakDelay;
+
+		Valueable<int> RandomCrateMoney;
 #pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -240,6 +242,9 @@ public:
 			, DecloakSound { }
 			, StealthSpeakDelay { 1.0 }
 			, SubterraneanSpeakDelay { 1.0 }
+
+			, RandomCrateMoney { 0 }
+
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
 			, DefaultSquidAnim { nullptr }

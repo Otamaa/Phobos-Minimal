@@ -698,6 +698,8 @@ public:
 
 	void SpillTiberium(int& value, CellClass* pCenter, Point2D const& nMinMax = { 0 , 2 }) const;
 
+	bool CanICloakByDefault() const;
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

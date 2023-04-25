@@ -157,6 +157,11 @@ void AresData::WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, T
 	AresThiscall<ApplyKillDriverID, ConvertClass*, void* , TechnoClass* , TechnoClass*>()(GetAresAresWarheadTypeExt(pThis) , pAttacker , pVictim);
 }
 
+void AresData::MouseCursorTypeLoadDefault()
+{
+	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
+}
+
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
 {
 	if (AresDllHmodule != NULL) {

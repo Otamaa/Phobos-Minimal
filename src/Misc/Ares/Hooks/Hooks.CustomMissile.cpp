@@ -221,7 +221,7 @@ DEFINE_OVERRIDE_HOOK(0x6634F6, RocketLocomotionClass_ILocomotion_DrawMatrix_Cust
 }
 
 // new
-// SpawnerOwner may die when this processed , what shoud it do ?
+// SpawnerOwner may die when this processed , should store the data at SpawnManagerExt or something
 DEFINE_HOOK(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 {
 	enum { Handled = 0x6624C8, Continue = 0x0 };
@@ -274,16 +274,18 @@ DEFINE_OVERRIDE_HOOK(0x6B7A72, SpawnManagerClass_Update_CustomMissile2, 6)
 }
 
 //new
-DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_PreLauch_CustomMissileTakeoffAnim, 0x6)
+DEFINE_HOOK(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x6)
 {
 	GET(AircraftClass*, pSpawned, EDI);
 
-	//TODO: AddTag
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSpawned->Type);
+	
 	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
-		if (AnimTypeClass* pType = TechnoTypeExt::ExtMap.Find(pSpawned->Type)->CustomMissileTakeoffAnim) {
+		return 0x0;
+	} else if (pTypeExt->IsCustomMissile) {
+		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim)
 			if (auto pAnim = GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false))
 				AnimExt::SetAnimOwnerHouseKind(pAnim, pSpawned->Owner, nullptr, pSpawned, true);
-		}
 	}
 
 	return 0x6B757A;

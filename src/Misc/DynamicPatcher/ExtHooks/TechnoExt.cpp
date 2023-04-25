@@ -118,55 +118,16 @@ namespace CalculatePinch
 
 			const auto ext = WeaponTypeExt::ExtMap.Find(pWeapon->WeaponType);
 
-			if ((ext->RockerPitch.Get() > 0.0f))
 			{
-				double halfPI = Math::PI / 2;
-				double theta = 0;
+				if (std::abs(ext->RockerPitch.Get()) < 0.005)
+					return;
 
-				if (pFirer->HasTurret())
-				{
-					double turretRad = pFirer->GetRealFacing().GetRadian() - halfPI;
-					double bodyRad = pFirer->PrimaryFacing.Current().GetRadian() - halfPI;
-					Matrix3D matrix3D {};
-					matrix3D.MakeIdentity();
-					matrix3D.RotateZ((float)turretRad);
-					matrix3D.RotateZ((float)-bodyRad);
-					theta = matrix3D.GetZRotation();
-				}
+				const double theta = pFirer->GetRealFacing().GetRadian<32>() -
+					pFirer->PrimaryFacing.Current().GetRadian<32>();
 
-				double gamma = (double)ext->RockerPitch.Get();
-				int lrSide = 1;
-				int fbSide = 1;
-				if (theta < 0)
-				{
-					lrSide *= -1;
-				}
-				if (theta >= halfPI || theta <= -halfPI)
-				{
-					fbSide *= -1;
-				}
+				pFirer->AngleRotatedForwards = (float)(-ext->RockerPitch.Get() * std::cos(theta));
+				pFirer->AngleRotatedSideways = (float)(ext->RockerPitch.Get() * std::sin(theta));
 
-				double pitch = gamma;
-				double roll = 0.0;
-				if (theta != 0)
-				{
-					if (std::sin(halfPI - theta) == 0.0)
-					{
-						pitch = 0.0;
-						roll = gamma * lrSide;
-					}
-					else
-					{
-						double l = std::cos(gamma);
-						double y = l / std::sin(halfPI - theta);
-						double z = std::sin(gamma);
-						double lyz = std::sqrt(std::pow(y, 2) + std::pow(z, 2));
-						pitch = std::acos(std::abs(y) / lyz) * fbSide;
-						roll = (gamma - std::abs(pitch)) * lrSide;
-					}
-				}
-				pFirer->RockingForwardsPerFrame = -(float)pitch;
-				pFirer->RockingSidewaysPerFrame = (float)roll;
 			}
 		}
 	}

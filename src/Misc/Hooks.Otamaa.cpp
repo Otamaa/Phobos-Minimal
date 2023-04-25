@@ -5357,7 +5357,8 @@ DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 	R->EBP(pThis->SelectWeapon(pCell));
 	return 0x7008FB;
 }
-#ifdef FOW_HOOKS
+
+#ifndef FOW_HOOKS
 // MapClass_RevealShroud as Xkein said
 DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
 {

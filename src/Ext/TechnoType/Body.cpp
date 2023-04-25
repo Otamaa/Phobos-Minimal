@@ -810,6 +810,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		this->VHPscan_Value.Read(exINI, pSection, "VHPscan.Value");
 		this->SelfHealing_CombatDelay.Read(exINI, pSection, "SelfHealing.CombatDelay");
+		this->CloakAllowed.Read(exINI, pSection, "Cloakable.Allowed");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -833,6 +834,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
 			this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
 			this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
+			this->CustomMissilePreLauchAnim.Read(exINI, pSection, "Missile.PreLaunchAnim");
 			this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
 			this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
 			this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
@@ -1308,6 +1310,7 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->CustomMissileWarhead)
 		.Process(this->CustomMissileEliteWarhead)
 		.Process(this->CustomMissileTakeoffAnim)
+		.Process(this->CustomMissilePreLauchAnim)
 		.Process(this->CustomMissileTrailerAnim)
 		.Process(this->CustomMissileTrailerSeparation)
 		.Process(this->CustomMissileWeapon)
@@ -1548,6 +1551,7 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)
 		.Process(this->SelfHealing_CombatDelay)
+		.Process(this->CloakAllowed)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

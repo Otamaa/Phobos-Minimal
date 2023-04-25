@@ -75,7 +75,8 @@ bool AnimExt::OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D
 		}
 		else
 		{
-			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (
+				ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
 
 			if (bSpawn)
 				SmudgeTypeClass::CreateRandomSmudge(nCoord, nOffs.X, nOffs.Y, false);

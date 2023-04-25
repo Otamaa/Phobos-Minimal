@@ -386,6 +386,13 @@ namespace DrawHeathData
 		}
 	}
 
+	void DrawIronTemporalEraseDelayBarAndNumber(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound)
+	{
+		auto icur = pThis->TemporalTargetingMe->WarpRemaining;
+		auto imax = pThis->TemporalTargetingMe->GetWarpPerStep();
+		//draw it here ? 0x71A88D
+	}
+
 }
 
 DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)

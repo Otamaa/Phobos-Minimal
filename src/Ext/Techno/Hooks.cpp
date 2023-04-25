@@ -411,15 +411,6 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	return ReturnFromFunction;
 }
 
-DEFINE_HOOK(0x6FA793, TechnoClass_AI_SelfHealGain, 0x5)
-{
-	enum { SkipGameSelfHeal = 0x6FA941 };
-
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExt::ApplyGainedSelfHeal(pThis);
-	return SkipGameSelfHeal;
-}
-
 DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);

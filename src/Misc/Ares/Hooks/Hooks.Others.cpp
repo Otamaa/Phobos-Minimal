@@ -185,9 +185,10 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer))
 	{
 		// find the pip value with the name specified
-		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(), 
-			[](NamedValue<int>const& Data) {
-			return IS_SAME_STR_(Data.Name, Phobos::readBuffer);
+		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
+			[](NamedValue<int>const& Data)
+ {
+	 return IS_SAME_STR_(Data.Name, Phobos::readBuffer);
 		});
 
 		if (it != TechnoTypeClass::PipsTypeName.end())
@@ -412,8 +413,9 @@ DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 	auto const nCount = pThis->Count;
 	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
 	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-	std::sort(nBegin, nEnd,[](const ObjectClass* A, const ObjectClass* B) {
-		return A->GetYSort() < B->GetYSort();
+	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
+ {
+	 return A->GetYSort() < B->GetYSort();
 	});
 
 	return 0x551A84;
@@ -478,7 +480,7 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 
 	return 0;
 }
-//
+
 DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogNonsense, 5, 6BBE2B)
 
 // bugfix #187: Westwood idiocy
@@ -507,26 +509,25 @@ DEFINE_OVERRIDE_HOOK(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
 {
 	GET(VoxelAnimClass*, pThis, EBX);
 
-	auto const pType = pThis->Type;
-	auto const nRadius = pType->DamageRadius;
+	const auto pType = pThis->Type;
+	const auto nRadius = pType->DamageRadius;
 
 	if (nRadius < 0 || !pType->Damage || !pType->Warhead)
 		return 0x74A934;
 
-	auto const nCoord = pThis->Bounce.GetCoords();
-	auto const pCell = MapClass::Instance->GetCellAt(nCoord);
-	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
+	const auto nCoord = pThis->Bounce.GetCoords();
+	const auto pCell = MapClass::Instance->GetCellAt(nCoord);
+	const auto pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
 
 	for (NextObject j(pCell->GetContent()); j; ++j)
 	{
-		auto const pObj = *j;
-		auto const nLoc = pObj->Location;
-		auto const nDist = abs(nLoc.X - nCoord.X) + abs(nLoc.Y - nCoord.Y);
+		const auto pObj = *j;
+		const auto nLoc = pObj->Location;
+		const auto nDist = abs(nLoc.X - nCoord.X) + abs(nLoc.Y - nCoord.Y);
 
 		if (nDist < nRadius)
 		{
-			auto nDamage = pType->Damage;
-			pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
+			pObj->ReceiveDamage(&pType->Damage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
 		}
 	}
 
@@ -707,15 +708,19 @@ DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 
 	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value))
 	{
-
-		AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-
-		if (AnimType->MakeInfantry > -1)
+		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
 		{
-			AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
-		}
+			pAnim->IsPlaying = true;
 
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, pOwner, false);
+			if (AnimType->MakeInfantry > -1)
+			{
+				AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
+			}
+			else
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+			}
+		}
 	}
 
 	R->EAX(1);
@@ -725,9 +730,9 @@ DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 {
 	int nCost = 0;
+
 	for (const auto pObj : ObjectClass::CurrentObjects())
 	{
-
 		if (const auto pTechno = generic_cast<const TechnoClass*>(pObj))
 		{
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
@@ -855,9 +860,12 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
+	if (pThis->InLimbo)
+		return 0x0;
+
 	if (auto const pOwner = pThis->SlaveOwner)
 	{
-		if (!pOwner->IsSelected || pThis->InLimbo)
+		if (!pOwner->IsSelected)
 			return 0x0;
 
 		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
@@ -865,8 +873,7 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 
 	if (auto const pOwner = pThis->SpawnOwner)
 	{
-
-		if (!pOwner->IsSelected || pThis->InLimbo)
+		if (!pOwner->IsSelected)
 			return 0x0;
 
 		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
@@ -876,7 +883,6 @@ DEFINE_HOOK(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 	{
 		if (auto const pFoot = generic_cast<FootClass*>(pThis))
 		{
-
 			if (!pFoot->BelongsToATeam())
 				return 0x0;
 
@@ -961,7 +967,9 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
-	} else {
+	}
+	else
+	{
 		TempData = pSuper;
 	}
 
@@ -979,7 +987,8 @@ DEFINE_HOOK_AGAIN(0x6CD52A, SuperClass_Launch_NotHandled, 0xA)
 DEFINE_HOOK_AGAIN(0x6CDCE3, SuperClass_Launch_NotHandled, 0xA)
 DEFINE_HOOK(0x6CDE36, SuperClass_Launch_NotHandled, 0xA)
 {
-	if (const auto pSuper = TempData) {
+	if (const auto pSuper = TempData)
+	{
 		Debug::Log("[LAUNCH] %s Normal at [0x%x] \n", pSuper->Type->ID, R->Origin());
 		const auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
@@ -1008,20 +1017,25 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (RulesClass::Instance->TiberiumExplosive) {
-		if (!ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune) {
-			if (pThis->Tiberium.GetTotalAmount() > 0.0f) {
+	if (RulesClass::Instance->TiberiumExplosive)
+	{
+		if (!ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune)
+		{
+			if (pThis->Tiberium.GetTotalAmount() > 0.0f)
+			{
 
 				// multiply the amounts with their powers and sum them up
 				int morePower = 0;
-				for (int i = 0; i < TiberiumClass::Array->Count; ++i) {
+				for (int i = 0; i < TiberiumClass::Array->Count; ++i)
+				{
 					TiberiumClass* pTiberium = TiberiumClass::Array->GetItem(i);
 					morePower += int(pThis->Tiberium.Tiberiums[i] * pTiberium->Power);
 				}
 
 				// go boom
 				WarheadTypeClass* pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead;
-				if (morePower > 0 && pWH) {
+				if (morePower > 0 && pWH)
+				{
 					CoordStruct crd = pThis->GetCoords();
 					MapClass::DamageArea(crd, morePower, pThis, pWH, pWH->Tiberium, pThis->Owner);
 				}
@@ -1039,15 +1053,20 @@ DEFINE_OVERRIDE_HOOK(0x71C7C2, TerrainClass_Update_ForestFire, 6)
 	const auto& flammability = RulesClass::Instance->TreeFlammability;
 
 	// burn spread probability this frame
-	if (flammability > 0.0) {
-		if (pThis->IsBurning && ScenarioClass::Instance->Random.RandomFromMax(99) == 0) {
+	if (flammability > 0.0)
+	{
+		if (pThis->IsBurning && ScenarioClass::Instance->Random.RandomFromMax(99) == 0)
+		{
 			const auto pCell = pThis->GetCell();
 
 			// check all neighbour cells that contain terrain objects and
 			// roll the dice for each of them.
-			for (unsigned int i = 0; i < 8; ++i) {
-				if (auto pTree = pCell->GetNeighbourCell(i)->GetTerrain(false)) {
-					if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability) {
+			for (unsigned int i = 0; i < 8; ++i)
+			{
+				if (auto pTree = pCell->GetNeighbourCell(i)->GetTerrain(false))
+				{
+					if (!pTree->IsBurning && ScenarioClass::Instance->Random.RandomDouble() < flammability)
+					{
 						pTree->Ignite();
 					}
 				}
@@ -1065,7 +1084,7 @@ DEFINE_OVERRIDE_HOOK(0x71C5D2, TerrainClass_Ignite_IsFlammable, 6)
 	enum { Ignite = 0x71C5F3, CantBurn = 0x71C69D };
 
 	// prevent objects from burning that aren't flammable also
-	return (pThis->Type->SpawnsTiberium || !pThis->Type->IsFlammable) 
+	return (pThis->Type->SpawnsTiberium || !pThis->Type->IsFlammable)
 		? CantBurn : Ignite;
 }
 
@@ -1088,10 +1107,10 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	{
 		return Skip;
 	}
+
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pTypeExt->EVA_UnitLost != -1)
-	{
+	if (pTypeExt->EVA_UnitLost != -1) {
 		RadarEventClass::Create(RadarEventType::UnitLost, pThis->GetMapCoords());
 		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost.Get(), -1, -1);
 	}
@@ -1188,7 +1207,9 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			const auto nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
 			if (nFactorySpeed > 0.0)
 			{
-				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1); i > 0; --i)
+				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1); 
+					i > 0; 
+					--i)
 				{
 					nFinalSpeed *= nFactorySpeed;
 				}
@@ -1235,7 +1256,8 @@ DEFINE_OVERRIDE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
  * Makes sense, except Aircraft that lose the target so crudely in the middle of the attack
  * (i.e. ivan bomb weapon) go wtfkerboom with an IE
  */
-DEFINE_OVERRIDE_HOOK(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5) {
+DEFINE_OVERRIDE_HOOK(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5)
+{
 	GET(TechnoClass* const, pThis, ESI);
 	return (pThis->WhatAmI() == AbstractType::Aircraft) ? 0x6FA4D1 : 0;
 }
@@ -1248,25 +1270,71 @@ DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	return 0x70BF46;
 }
 
+//DEFINE_HOOK(0x6FA793, TechnoClass_AI_SelfHealGain, 0x5)
+//{
+//	enum { SkipGameSelfHeal = 0x6FA941 };
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	TechnoExt::ApplyGainedSelfHeal(pThis);
+//	return SkipGameSelfHeal;
+//}
+
 DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 {
+	enum { 
+		ContineCheckUpdateSelfHeal = 0x6FA75A ,
+		SkipAnySelfHeal = 0x6FA941,
+	};
+
 	GET(TechnoClass* const, pThis, ESI);
+
+	if (!pThis->IsAlive || pThis->InLimbo) {
+		return SkipAnySelfHeal;
+	}
 
 	// prevent crashing and sinking technos from self-healing
 	if (pThis->IsCrashing || pThis->IsSinking || Is_DriverKilled(pThis)) {
-		return 0x6FA941;
+		return SkipAnySelfHeal;
+	}
+
+	const auto nUnit = specific_cast<UnitClass*>(pThis);
+	if (nUnit && nUnit->DeathFrameCounter > 0) {
+		return SkipAnySelfHeal;
 	}
 
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
-	if (auto const amount = AresData::GetSelfHealAmount(pThis))
-	{
-		pThis->Health += amount;
+	const auto nAmount = AresData::GetSelfHealAmount(pThis);
 
-		R->ECX(pThis);
-		return 0x6FA75A;
+	if (nAmount > 0 || nAmount != 0) {
+
+		const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+
+		pThis->Health += nAmount;
+
+		if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+			|| pThis->GetHeight() < -10))
+		{
+			const auto pWhat = GetVtableAddr(pThis);
+			const bool isBuilding = pWhat == BuildingClass::vtable;
+
+			if (isBuilding) {
+				const auto pBuilding = static_cast<BuildingClass*>(pThis);
+				pBuilding->UpdatePlacement(PlacementType::Redraw);
+				pBuilding->ToggleDamagedAnims(false);
+			}
+
+			if (pWhat == UnitClass::vtable || isBuilding) {
+				if (auto& dmgParticle = pThis->DamageParticleSystem) {
+					dmgParticle->UnInit();
+					dmgParticle = nullptr;
+				}
+			}
+		}		
 	}
 
-	return 0x6FA793;
+	TechnoExt::ApplyGainedSelfHeal(pThis);
+
+	return SkipAnySelfHeal;
 }
 
 // spark particle systems created at random intervals
@@ -1355,15 +1423,19 @@ DEFINE_OVERRIDE_HOOK(0x732C30, TechnoClass_IDMatches, 5)
 	bool match = false;
 
 	// find any match
-	for (auto i = pNames->begin(); i < pNames->end(); ++i) {
-		if (IS_SAME_STR_(*i, id)) {
-			if (pThis->CanBeSelectedNow()) {
+	for (auto i = pNames->begin(); i < pNames->end(); ++i)
+	{
+		if (IS_SAME_STR_(*i, id))
+		{
+			if (pThis->CanBeSelectedNow())
+			{
 				match = true;
 				break;
 			}
 
 			// buildings are exempt if they can't undeploy
-			if (Is_Building(pThis) && pType->UndeploysInto) {
+			if (Is_Building(pThis) && pType->UndeploysInto)
+			{
 				match = true;
 				break;
 			}
@@ -1382,7 +1454,8 @@ DEFINE_OVERRIDE_HOOK(0x6F3950, TechnoClass_GetCrewCount, 8)
 	// previous default for crew count was -1
 	int count = TechnoTypeExt::ExtMap.Find(pType)->Survivors_PilotCount.Get();
 	// default to original formula
-	if (count < 0) {
+	if (count < 0)
+	{
 		count = pType->Crewed ? 1 : 0;
 	}
 
@@ -1404,7 +1477,7 @@ DEFINE_OVERRIDE_HOOK(0x70E2B0, TechnoClass_IronCurtain, 5)
 
 	pThis->IronCurtainTimer.Start(int(duration * modifier));
 	pThis->IronTintStage = 0;
-	pThis->ForceShielded = force  ? TRUE : FALSE;
+	pThis->ForceShielded = force ? TRUE : FALSE;
 
 	R->EAX(DamageState::Unaffected);
 	return 0x70E2FD;
@@ -1428,7 +1501,7 @@ DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	GET(void*, ptr, EBP);
 	REF_STACK(bool, remove, STACK_OFFS(0x20, -0x8));
 
-	if (auto pSM = pThis->SpawnManager)
+	if (const auto pSM = pThis->SpawnManager)
 	{
 		// ignore disappearing owner
 		if (remove || pSM->Owner != ptr)
@@ -1482,7 +1555,7 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x70CAD8, TechnoClass_DealParticleDamage_DontDestroyCliff, 9, 70CB30)
 
-DEFINE_OVERRIDE_HOOK(0x70CBB0 ,TechnoClass_DealParticleDamage_AmbientDamage, 6)
+DEFINE_OVERRIDE_HOOK(0x70CBB0, TechnoClass_DealParticleDamage_AmbientDamage, 6)
 {
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 
@@ -1502,7 +1575,7 @@ DEFINE_OVERRIDE_HOOK(0x0CBDA, TechnoClass_DealParticleDamage, 6)
 }
 
 // the fuck , game calling `MapClass[]` multiple times , fixed it 
-DEFINE_OVERRIDE_HOOK(0x6FB5F0 , TechnoClass_DeleteGap_Optimize, 6)
+DEFINE_OVERRIDE_HOOK(0x6FB5F0, TechnoClass_DeleteGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
 
@@ -1529,7 +1602,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB5F0 , TechnoClass_DeleteGap_Optimize, 6)
 //	return R->Origin() + 0xD;
 //}
 
-DEFINE_OVERRIDE_HOOK(0x6FB306 , TechnoClass_CreateGap_Optimize, 6)
+DEFINE_OVERRIDE_HOOK(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 {
 	GET(CellClass*, pCell, EAX);
 
@@ -1752,7 +1825,8 @@ DEFINE_OVERRIDE_HOOK(0x58FE7B, RMG_PlaceNSBridge, 8)
 // fix for ultra-fast processors overrunning the performance evaluator function
 DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 {
-	if (!R->EAX()) {
+	if (!R->EAX())
+	{
 		R->EAX(1);
 	}
 
@@ -1812,7 +1886,7 @@ DEFINE_OVERRIDE_HOOK(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 template<size_t idx>
 static void* AresExtMap_Find(void* const key)
 {
-	return AresData::AresThiscall<AresData::FunctionIndices::ExtMapFindID, void*, DWORD , void*>()(AresData::AresStaticInstanceFinal[idx], key);
+	return AresData::AresThiscall<AresData::FunctionIndices::ExtMapFindID, void*, DWORD, void*>()(AresData::AresStaticInstanceFinal[idx], key);
 }
 
 #include <Ext/ParticleSystem/Body.h>
@@ -1823,7 +1897,7 @@ struct AresParticleExtData
 	InitState State;
 	int Type;
 	ParticleTypeClass* HoldType;
-	/*	std::vector<T> usually compiled like these 
+	/*	std::vector<T> usually compiled like these
 	* struct std_vector_T // size 0xC
 	* {
 	*	 T* first;
@@ -1868,7 +1942,7 @@ std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis)
 		if (pAttacker)
 			pOwner = pAttacker->GetOwningHouse();
 	}
-	
+
 	return { pAttacker , pOwner };
 }
 
@@ -1957,7 +2031,7 @@ DEFINE_OVERRIDE_HOOK(0x62C2C2, ParticleClass_Update_Gas_Damage, 6)
 		if (pTechno->IsSinking || pTechno->IsCrashing || pTechno->TemporalTargetingMe)
 			return 0x62C309;
 
-		if(!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
+		if (!Is_Building(pTechno) && TechnoExt::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTechno)))
 			return 0x62C309;
 	}
 
@@ -1982,6 +2056,271 @@ DEFINE_OVERRIDE_HOOK(0x62A7B1, Parasite_ExitUnit, 9)
 	return 0x62A7BA;
 }
 
+DEFINE_OVERRIDE_HOOK(0x48248D, CellClass_CrateBeingCollected_MoneyRandom, 6)
+{
+	GET(int, nCur, EAX);
+	const auto nAdd = RulesExt::Global()->RandomCrateMoney;
+
+	if (nAdd > 0)
+		nCur += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
+
+	R->EDI(nCur);
+	return 0x4824A7;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	const auto pTechnoType = pThis->GetTechnoType();
+	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
+
+	int nFallRate = 1;
+	int nMaxFallRate = bAnimAttached ? RulesClass::Instance->ParachuteMaxFallRate : RulesClass::Instance->NoParachuteMaxFallRate;
+
+	if (pTechnoType)
+	{
+		const auto pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
+		nFallRate = !bAnimAttached ? pExt->FallRate_NoParachute.Get() : pExt->FallRate_Parachute.Get();
+		auto& nCustomMaxFallRate = !bAnimAttached ? pExt->FallRate_NoParachuteMax : pExt->FallRate_ParachuteMax;
+
+		if (nCustomMaxFallRate.isset())
+			nMaxFallRate = nCustomMaxFallRate.Get();
+	}
+
+	if (pThis->FallRate - nFallRate >= nMaxFallRate)
+		nMaxFallRate = pThis->FallRate - nFallRate;
+
+	pThis->FallRate = nMaxFallRate;
+	return 0x5F3FFD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x481C6C, CellClass_CrateBeingCollected_Armor1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+	return (AE_ArmorMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_OVERRIDE_HOOK(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
+{
+	GET(FootClass*, Unit, EDI);
+	return (AE_SpeedMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_OVERRIDE_HOOK(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+	return (AE_FirePowerMult(Unit) == 1.0) ? 0x481D52 : 0x481C86;
+}
+
+DEFINE_OVERRIDE_HOOK(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
+{
+	GET(TechnoClass*, Unit, EDI);
+
+	if (Unit->CanICloakByDefault() || AE_Cloak(Unit))
+	{
+		return 0x481C86;
+	}
+
+	// cloaking forbidden for type
+	return  (!TechnoTypeExt::ExtMap.Find(Unit->GetTechnoType())->CloakAllowed) ? 0x481C86 : 0x481D52;
+}
+
+//overrides on actual crate effect applications
+DEFINE_OVERRIDE_HOOK(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
+{
+	GET(TechnoClass*, Unit, EDX);
+	AE_Cloak(Unit) = true;
+	AresData::RecalculateStat(Unit);
+	return 0x482956;
+}
+
+DEFINE_OVERRIDE_HOOK(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
+{
+	GET(TechnoClass*, Unit, ECX);
+	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
+
+	auto& nArmor = AE_ArmorMult(Unit);
+	if (nArmor == 1.0)
+	{
+		nArmor = Pow_ArmorMultiplier;
+		AresData::RecalculateStat(Unit);
+		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x482E89;
+	}
+	return 0x482E92;
+}
+
+DEFINE_OVERRIDE_HOOK(0x48303A, CellClass_CrateBeingCollected_Speed2, 6)
+{
+	GET(FootClass*, Unit, EDI);
+	GET_STACK(double, Pow_SpeedMultiplier, 0x20);
+
+	// removed aircraft check
+	// these originally not allow those to gain speed mult
+
+	auto& nSpeed = AE_SpeedMult(Unit);
+	if (nSpeed == 1.0)
+	{
+		nSpeed = Pow_SpeedMultiplier;
+		AresData::RecalculateStat(Unit);
+		R->CL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x483078;
+	}
+	return 0x483081;
+}
+
+DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
+{
+	GET(TechnoClass*, Unit, ECX);
+	GET_STACK(double, Pow_FirepowerMultiplier, 0x20);
+
+	auto& nFP = AE_FirePowerMult(Unit);
+	if (nFP == 1.0)
+	{
+		nFP = Pow_FirepowerMultiplier;
+		AresData::RecalculateStat(Unit);
+		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
+		return 0x483258;
+	}
+	return 0x483261;
+}
+
+DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
+{
+	// issue #198: animate the paradrop cursor
+	MouseCursor::GetCursor(MouseCursorType::ParaDrop).FrameRate = 4;
+
+	// issue #214: also animate the chronosphere cursor
+	MouseCursor::GetCursor(MouseCursorType::Chronosphere).FrameRate = 4;
+
+	// issue #1380: the iron curtain cursor
+	MouseCursor::GetCursor(MouseCursorType::IronCurtain).FrameRate = 4;
+
+	// animate the engineer damage cursor
+	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
+
+	AresData::MouseCursorTypeLoadDefault();
+	return 0;
+}
+
+struct TechnoExt_Stuffs
+{
+	static bool IsPowered(TechnoClass* pThis)
+	{
+		auto pType = pThis->GetTechnoType();
+		auto& nPoweredPtr = PoweredUnitUptr(pThis);
+
+		if (pType->PoweredUnit)
+		{
+			for (const auto& pBuilding : pThis->Owner->Buildings)
+			{
+				if (pBuilding->Type->PowersUnit == pType
+					&& pBuilding->RegisteredAsPoweredUnitSource
+					&& !pBuilding->IsUnderEMP()) // alternatively, HasPower, IsPowerOnline()
+				{
+					return true;
+				}
+			}
+			// if we reach this, we found no building that currently powers this object
+			return false;
+		}
+		else if (nPoweredPtr)
+		{
+			// #617
+			return nPoweredPtr->Powered;
+		}
+
+		return true;
+	}
+};
+
+DEFINE_OVERRIDE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	// don't sparkle on EMP, Operator, ....
+	return TechnoExt_Stuffs::IsPowered(pThis)
+		? 0x7361A9 : 0;
+}
+
+// merge two small visceroids into one large visceroid
+DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
+{
+	GET(UnitClass*, pThis, EBP);
+
+	auto const Allow = [](UnitClass* pUnit)
+	{
+		if (!pUnit->IsAlive)
+			return false;
+
+		if (pUnit->InLimbo)
+			return false;
+
+		if (pUnit->TemporalTargetingMe)
+			return false;
+
+		if (Is_DriverKilled(pUnit))
+			return false;
+
+		if (pUnit->BerzerkDurationLeft)
+			return false;
+
+		if (pUnit->LocomotorSource)
+			return false;
+
+		if (TechnoExt::IsInWarfactory(pUnit))
+			return false;
+
+		return true;
+	};
+
+	// fleshbag erotic
+	if (UnitTypeClass* pLargeType = RulesClass::Instance->LargeVisceroid)
+	{
+		if (pThis->Type->SmallVisceroid && Allow(pThis))
+		{
+			if (UnitClass* pDest = specific_cast<UnitClass*>(pThis->Destination))
+			{
+				if (pDest->Type->SmallVisceroid && Allow(pDest))
+				{
+
+					// nice to meat you!
+					auto crdMe = pThis->GetCoords();
+					auto crdHim = pDest->GetCoords();
+
+					auto cellMe = CellClass::Coord2Cell(crdMe);
+					auto cellHim = CellClass::Coord2Cell(crdHim);
+
+					// two become one
+					if (cellMe == cellHim)
+					{
+
+						pDest->Type = pLargeType;
+						pDest->Health = pLargeType->Strength;
+						pDest->EstimatedHealth = pDest->Health;
+
+						pDest->Target = nullptr;
+						pDest->Destination = nullptr;
+						pDest->Stun();
+
+						pDest->IsSelected = pThis->IsSelected;
+
+						CellClass* pCell = MapClass::Instance->GetCellAt(pDest->LastMapCoords);
+						pDest->UpdateThreatInCell(pCell);
+
+						pDest->QueueMission(Mission::Guard, true);
+
+						pThis->UnInit();
+						return 0x73B0A5;
+					}
+				}
+			}
+		}
+	}
+
+	return 0;
+}
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)

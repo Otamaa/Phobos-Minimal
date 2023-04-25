@@ -984,33 +984,6 @@ DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	const auto pTechnoType = pThis->GetTechnoType();
-	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
-
-	int nFallRate = 1;
-	int nMaxFallRate = bAnimAttached ? RulesClass::Instance->ParachuteMaxFallRate : RulesClass::Instance->NoParachuteMaxFallRate;
-
-	if (pTechnoType)
-	{
-		const auto pExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
-		nFallRate = !bAnimAttached ? pExt->FallRate_NoParachute.Get() : pExt->FallRate_Parachute.Get();
-		auto& nCustomMaxFallRate = !bAnimAttached ? pExt->FallRate_NoParachuteMax : pExt->FallRate_ParachuteMax;
-
-		if (nCustomMaxFallRate.isset())
-			nMaxFallRate = nCustomMaxFallRate.Get();
-	}
-
-	if (pThis->FallRate - nFallRate >= nMaxFallRate)
-		nMaxFallRate = pThis->FallRate - nFallRate;
-
-	pThis->FallRate = nMaxFallRate;
-	return 0x5F3FFD;
-}
-
 DEFINE_OVERRIDE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
 {
 	enum { DoNotDrawShadow = 0x73C5C9, ShadowAlreadyDrawn = 0x0 };

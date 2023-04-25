@@ -21,15 +21,15 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	GET(TechnoTypeClass*, pType, EAX);
 	GET(TechnoClass*, pThis, ESI);
 
-	//const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	//if (Is_Unit(pThis) && pExt->TankDisguiseAsTank.Get())
-	//{
-	//	pThis->Disguised = false;
-	//	pThis->DisguisedAsHouse = nullptr;
-	//	pThis->Disguise = nullptr;
-	//	return 0x6F424B;
-	//}
+	if (Is_Unit(pThis) && pExt->TankDisguiseAsTank.Get())
+	{
+		pThis->Disguised = false;
+		pThis->DisguisedAsHouse = nullptr;
+		pThis->Disguise = nullptr;
+		return 0x6F424B;
+	}
 
 	if (Is_Infantry(pThis)) {
 		if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
@@ -155,8 +155,6 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 //}
 #endif
 
-#ifdef ENABLE_MOREDISGUISEHOOKS
-
 #pragma region Otamaa
 
 #include <Ext/TechnoType/Body.h>
@@ -164,28 +162,51 @@ DEFINE_HOOK(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 
 #include <TerrainTypeClass.h>
 
-DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
+DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 {
-	GET(UnitClass*, pTarget, ESI);
-	GET(UnitClass*, pThis, EDI);
+	GET(UnitClass*, pThis, ESI);
 
-	if (pTarget->IsDisguised() || !TechnoTypeExt::ExtMap.Find(pThis->Type)
+	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
+		->TankDisguiseAsTank.Get())
+		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
+
+
+	return 0x7364A1;
+}
+
+DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
 		->TankDisguiseAsTank.Get())
 		return 0x0;
 
-	pThis->Disguise = pTarget->Type;
+	R->EAX(pThis->Type);
+	return 0x746A6C;
+}
+
+DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
+{
+	GET(AbstractClass*, pTarget, ESI);
+	GET(UnitClass*, pThis, EDI);
+
+	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
+
+	if (!pObjectT || pObjectT->IsDisguised())
+		return 0x0;
+
+	if (!Is_Unit(pObjectT) || !TechnoTypeExt::ExtMap.Find(pThis->Type)
+		->TankDisguiseAsTank.Get())
+		return 0x0;
+
+	pThis->Disguise = static_cast<UnitClass*>(pTarget)->Type;
 	pThis->DisguisedAsHouse = pTarget->GetOwningHouse();
 
 	return 0x746712;
 }
 
-bool Allowed(const TechnoTypeExt::ExtData* pThis, TechnoTypeClass* pThat) {
-	if(!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
-		return false;
-
-	return true;
-}
-
+#ifdef aaa
 DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 {
 	GET(UnitClass*, pThis, ECX);
@@ -267,30 +288,6 @@ DEFINE_HOOK(0x746670, UnitClass_DisguiseAs_Override, 0x5)
 	}
 
 	return 0x746714;
-}
-
-DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
-		->TankDisguiseAsTank.Get())
-		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
-
-
-	return 0x7364A1;
-}
-
-DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
-		->TankDisguiseAsTank.Get())
-		return 0x0;
-
-	R->EAX(pThis->Type);
-	return 0x746A6C;
 }
 
 DEFINE_HOOK(0x522718, InfantryClass_DisguiseAs_Allowed, 0x8)

@@ -172,14 +172,11 @@ DEFINE_OVERRIDE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb, 6)
 	GET(TechnoClass*, Target, EBP);
 	GET(WarheadTypeClass*, Warhead, EDI);
 
-	if (Warhead->BombDisarm && Target->AttachedBomb) {
-		if (!BombExt::ExtMap.Find(Target->AttachedBomb)
-			->Weapon->Ivan_Detachable) {
-			return 0x6FCBBE;
-		}
-	}
+	if(!Warhead->BombDisarm || !Target->AttachedBomb)
+		return 0x0;
 
-	return 0;
+	return !BombExt::ExtMap.Find(Target->AttachedBomb)
+		->Weapon->Ivan_Detachable ? 0x6FCBBE : 0x0;
 }
 
 // 51E488, 5

@@ -676,7 +676,7 @@ bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuildin
 		}
 		return false;
 	}
-
+	else
 	if (pBuilding->IsGoingToBlow)
 	{
 		const int Rof = pInfext->C4ROF.Get(pThis->GetROF(1));
@@ -1105,6 +1105,12 @@ struct AresBldExtStuffs
 					Enterer->WarFactoryInfiltrated = true;
 					promotionStolen = true;
 				}
+
+				if (pTypeExt->SpyEffect_BuildingVeterancy)
+				{
+					Is_BuildingProductionSpied(Enterer) = true;
+					promotionStolen = true;
+				}
 			}
 
 			if (promotionStolen)
@@ -1208,7 +1214,6 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
 			return SkipInfiltrate;
 
-		pBuilding->C4AppliedBy = pThis;
 		pBuilding->Infiltrate(pHouse);
 		return InfiltrateSucceded;
 	}

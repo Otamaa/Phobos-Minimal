@@ -288,7 +288,7 @@ DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 	return WH && !Is_MaliciousWH(WH) ? 0x738535u : 0u;
 }
 
-DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermarth, 0xA)
+DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, 0xD0);

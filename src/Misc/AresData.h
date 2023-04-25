@@ -17,6 +17,16 @@ class BulletTypeClass;
 class WarheadTypeClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
+class PoweredUnitClass
+{
+public:
+	TechnoClass* Techno;
+	int LastScan;
+	bool Powered;
+};
+
+static_assert(sizeof(PoweredUnitClass) == 0xC, "Invalid Size !");
+
 //TODO : port these
 #define GetAresTechnoExt(var) (void*)(*(uintptr_t*)((char*)var + 0x154))
 #define GetAresBuildingExt(var)  (void*)(*(uintptr_t*)((char*)var + 0x71C))
@@ -32,6 +42,13 @@ typedef int (__cdecl *CallHook)(REGISTERS* R);
 #define GetSelfHealingCombatTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x5C))
 #define Ares_TemporalWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xA))
 #define Ares_ParasiteWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xB))
+
+#define AE_ArmorMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x88))
+#define AE_Cloak(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x98))
+#define AE_FirePowerMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x80))
+#define AE_SpeedMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x90))
+
+#define PoweredUnitUptr(techno) (*(std::unique_ptr<PoweredUnitClass>*)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 
 #define Is_NavalYardSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x48))
 #define Is_AirfieldSpied(var) (*(bool*)((char*)GetAresHouseExt(var) + 0x49))
@@ -73,6 +90,7 @@ struct AresData
 		ExtMapFindID = 14,
 		BulletTypeExtGetConvertID = 15,
 		ApplyKillDriverID = 16,
+		MouseCursorTypeLoadDefaultID = 17 ,
 	};
 
 	enum Version
@@ -86,7 +104,7 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 17;
+	static constexpr int AresFunctionCount = 18;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
@@ -123,6 +141,7 @@ struct AresData
 		0x058900, // ExtMap.Find
 		0x019A50, // BulletTypeExtGetConvert
 		0x0537F0, // WhExt::ApplyKillDriver
+		0x007100, // MouseCursorTypeLoadDefault
 
 	};
 
@@ -235,6 +254,7 @@ struct AresData
 	static int GetSelfHealAmount(TechnoClass* const pTechno);
 	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
+	static void MouseCursorTypeLoadDefault();
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

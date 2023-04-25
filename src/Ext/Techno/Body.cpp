@@ -1198,7 +1198,7 @@ void TechnoExt::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleSt
 		pTechnoType = pExt->Type;
 	} else {
 		pTechnoType = pTechnoTyper;
-	}		
+	}
 
 	if (!pTechnoType)
 		return;
@@ -2156,9 +2156,6 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 
 void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 {
-	if (!pThis->IsAlive || pThis->InLimbo || pThis->IsSinking || pThis->IsCrashing)
-		return;
-
 	TechnoTypeClass* pType = pThis->GetTechnoType();
 	const int healthDeficit = pType->Strength - pThis->Health;
 

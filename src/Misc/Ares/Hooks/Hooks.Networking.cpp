@@ -4,10 +4,11 @@
 #include <Helpers/Macro.h>
 #include <Base/Always.h>
 
-// Untested atm , maybe not working
+// was desynct all time 
+// not sure WTF is happening
 namespace Fix
 {
-	static constexpr constant_ptr<uint8_t, 0x8208ECu> const EventLengthArr {};
+	static constexpr reference<uint8_t, 0x8208ECu,36u> const EventLengthArr {};
 
 	unsigned int EventLength_Hares(int nInput)
 	{
@@ -19,10 +20,10 @@ namespace Fix
 		return NetworkEvent::EventLength[nInput];
 	}
 
-	uint8_t EventLength(uint8_t nInput)
+	uint8_t NOINLINE EventLength(uint8_t nInput)
 	{
 		if (nInput <= 0x2Eu)
-			return *(Fix::EventLengthArr() + nInput);
+			return Fix::EventLengthArr[nInput];
 		if (nInput == 0x60u)
 			return 10u;
 		if (nInput == 0x61u)
@@ -66,5 +67,5 @@ DEFINE_OVERRIDE_HOOK(0x64B704, sub_64B660_PayloadSize, 0x8)
 	R->EDX(nFix);
 	R->EBP(nFix);
 
-	return (nSize == 31u) ? 0x64B710 : 0x64B71D;
+	return (nSize == 0x1Fu) ? 0x64B710 : 0x64B71D;
 }

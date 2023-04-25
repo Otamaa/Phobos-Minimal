@@ -38,7 +38,7 @@ void WarheadTypeExt::ExtData::InitializeConstants()
 	Shield_AttachTypes.reserve(8);
 	Shield_RemoveTypes.reserve(8);
 	InfDeathAnims.reserve(200);
-	this->IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
+	IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
 }
 
 void WarheadTypeExt::ExtData::Initialize()

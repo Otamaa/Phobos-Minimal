@@ -283,6 +283,12 @@ CellStruct FootClass::GetRandomDirection(FootClass* pFoot)
 	return nRet;
 }
 
+bool TechnoClass::CanICloakByDefault() const
+{
+	const auto tType = this->GetTechnoType();
+	return tType->Cloakable || this->HasAbility(AbilityType::Cloak);
+}
+
 int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 	const auto& rules = *RulesClass::Instance;
 

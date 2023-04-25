@@ -306,6 +306,7 @@ public:
 		Valueable<WarheadTypeClass*> CustomMissileWarhead;
 		Valueable<WarheadTypeClass*> CustomMissileEliteWarhead;
 		Valueable<AnimTypeClass*> CustomMissileTakeoffAnim;
+		Valueable<AnimTypeClass*> CustomMissilePreLauchAnim;
 		Valueable<AnimTypeClass*> CustomMissileTrailerAnim;
 		Valueable<int> CustomMissileTrailerSeparation;
 		Valueable<WeaponTypeClass*> CustomMissileWeapon;
@@ -401,7 +402,7 @@ public:
 		Nullable<bool> CloakMove;
 		Nullable<bool> PassiveAcquire_AI;
 		Valueable<bool> TankDisguiseAsTank;
-		ValueableVector<TechnoTypeClass*> DisguiseDisAllowed;
+		ValueableVector<ObjectTypeClass*> DisguiseDisAllowed;
 		Valueable<bool> ChronoDelay_Immune;
 		std::vector<LineTrailData> LineTrailData;
 		Nullable<int> PoseDir;
@@ -630,6 +631,7 @@ public:
 
 		Valueable<int> VHPscan_Value;
 		Valueable<int> SelfHealing_CombatDelay;
+		Valueable<bool> CloakAllowed;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -829,6 +831,7 @@ public:
 			, CustomMissileWarhead { nullptr }
 			, CustomMissileEliteWarhead { nullptr }
 			, CustomMissileTakeoffAnim { nullptr }
+			, CustomMissilePreLauchAnim { nullptr }
 			, CustomMissileTrailerAnim { nullptr }
 			, CustomMissileTrailerSeparation { 3 }
 			, CustomMissileWeapon { nullptr }
@@ -1096,6 +1099,7 @@ public:
 			, Insignia_Weapon {}
 			, VHPscan_Value {2}
 			, SelfHealing_CombatDelay {0}
+			, CloakAllowed { true }
 		{ }
 
 		virtual ~ExtData() override = default;

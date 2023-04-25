@@ -271,13 +271,11 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 
 			if (auto const Warhead = pWeapon->Warhead)
 			{
-
 				auto const pTempOwner = pThis->Owner;
 				auto const peWHext = WarheadTypeExt::ExtMap.Find(Warhead);
 
 				if (auto pExpireAnim = peWHext->TemporalExpiredAnim.Get())
 				{
-
 					auto nCoord = pTarget->GetCenterCoords();
 
 					if (auto const pAnim = GameCreate<AnimClass>(pExpireAnim, nCoord))
@@ -294,7 +292,6 @@ DEFINE_HOOK(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 
 					if (pThis->WarpRemaining > 0)
 					{
-
 						auto damage = int((pTargetStreght * ((1.0 - pThis->WarpRemaining / 10.0 / pTargetStreght)
 							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
 

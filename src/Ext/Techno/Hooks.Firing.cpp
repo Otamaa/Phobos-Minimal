@@ -11,10 +11,87 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <JumpjetLocomotionClass.h>
+#include <TerrainTypeClass.h>
+#include <OverlayTypeClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 #endif
+
+bool DisguiseAllowed(const TechnoTypeExt::ExtData* pThis, ObjectTypeClass* pThat)
+{
+	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
+		return false;
+
+	return true;
+}
+
+//unnessesary i think , already put check at `CanFire` lets hope AI not freaking out about it !
+//DEFINE_HOOK(0x70EF00, TechnoClass_CanFireAt_Disguise, 0x7)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EDI);
+//
+//	if (const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pTarget))->WeaponType)
+//	{
+//		if (pTarget->AbstractFlags & AbstractFlags::Object) {
+//			auto const pObjectT = static_cast<ObjectClass*>(pTarget);
+//			ObjectTypeClass* pObjectDisguise = pObjectT->GetDisguise(true);
+//
+//			if (pWeapon->Warhead->MakesDisguise &&
+//				!DisguiseAllowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), 
+//					pObjectDisguise))
+//			{
+//				R->EAX(false);
+//				return 0x70EFC1;
+//			}
+//
+//			if (pObjectDisguise) {
+//				const auto nVtable = GetVtableAddr(pObjectDisguise);
+//				if (nVtable == TerrainTypeClass::vtable)
+//				{
+//					if ((RulesClass::Instance->TreeTargeting || pWeapon->TerrainFire))
+//					{
+//						R->EAX(true);
+//						return 0x70EFC1;
+//					}
+//				}
+//				else if (nVtable == OverlayTypeClass::vtable && static_cast<OverlayTypeClass*>(pObjectDisguise)->IsARock)
+//				{
+//					if(pWeapon->TerrainFire)
+//					{
+//						R->EAX(true);
+//						return 0x70EFC1;
+//					}
+//				}
+//			}
+//
+//			if (Is_Terrain(pTarget) && (RulesClass::Instance->TreeTargeting || pWeapon->TerrainFire))
+//			{ 
+//				R->EAX(true);
+//				return 0x70EFC1;
+//			}
+//		}
+//		else if (pWeapon->TerrainFire)
+//		{
+//			if (Is_Cell(pTarget))
+//			{
+//				auto const pCellT = static_cast<CellClass*>(pTarget);
+//				const auto nIdx = pCellT->OverlayTypeIndex;
+//
+//				if (nIdx != -1 && OverlayTypeClass::Array->GetItem(nIdx)->IsARock)
+//				{
+//					R->EAX(true);
+//					return 0x70EFC1;
+//				}
+//			}
+//		}
+//	}
+//
+//
+//	R->EAX(false);
+//	return 0x70EFC1;
+//}
 
 // Pre-Firing Checks
 DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
@@ -24,6 +101,13 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
 
 	enum { FireIllegal = 0x6FCB7E, Continue = 0x0 , FireCant = 0x6FCD29 };
+
+	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
+
+	if (pWeapon->Warhead->MakesDisguise && pObjectT) {
+		if (!DisguiseAllowed(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType()), pObjectT->GetDisguise(true)))
+			return FireIllegal;
+	}
 
 	// Ares TechnoClass_GetFireError_OpenToppedGunnerTemporal
 	// gunners and opentopped together do not support temporals, because the gunner
@@ -39,8 +123,6 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	//if (!TechnoExt::FireOnceAllowFiring(pThis, pWeapon, pTarget))
 	//	return FireCant;
-
-	auto const pObjectT = generic_cast<ObjectClass*>(pTarget);
 
 	if (!TechnoExt::ObjectHealthAllowFiring(pObjectT, pWeapon))
 		return FireIllegal;
