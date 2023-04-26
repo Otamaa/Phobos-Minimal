@@ -4,7 +4,7 @@
 
 #include <Utilities/Enum.h>
 #include <Ext/Abstract/Body.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
 //#include "AnimSpawnerDatas.h"
@@ -19,7 +19,7 @@ public:
 	class ExtData final : public Extension<AnimTypeClass>
 	{
 	public:
-		CustomPalette Palette;
+		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<UnitTypeClass*> CreateUnit;
 		Valueable<unsigned short> CreateUnit_Facing;
 		Valueable<bool> CreateUnit_InheritDeathFacings;
@@ -83,7 +83,7 @@ public:
 
 		//AnimSpawnerDatas SpawnerDatas;
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
-			, Palette { CustomPalette::PaletteMode::Temperate }
+			, Palette { }
 			, CreateUnit { }
 			, CreateUnit_Facing { 0 }
 			, CreateUnit_InheritDeathFacings { false }

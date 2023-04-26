@@ -44,7 +44,7 @@ void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	this->Trails.Read(exINI, pID, false);
 #endif
 
-	this->Palette.Read(pINI, pID, "CustomPalette");
+	this->Palette.Read(exINI, pID, "CustomPalette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 }
 

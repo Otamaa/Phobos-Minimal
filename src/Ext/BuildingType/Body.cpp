@@ -121,9 +121,19 @@ void BuildingTypeExt::DisplayPlacementPreview()
 	nPoint.Y += nOffsetY;
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExt::Global()->BuildingPlacementPreview_TranslucentLevel.Get()));
 	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
-	const auto pPalette = pTypeExt->PlacementPreview_Remap.Get() ? pBuilding->GetRemapColour() : pTypeExt->PlacementPreview_Palette.GetOrDefaultConvert(FileSystem::UNITx_PAL());
 
-	DSurface::Temp()->DrawSHP(pPalette, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	ConvertClass* pDecidedPal = FileSystem::UNITx_PAL();
+
+	if (!pTypeExt->PlacementPreview_Remap.Get()) {
+		if (const auto pCustom = pTypeExt->PlacementPreview_Palette) {
+			pDecidedPal = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
+		}
+
+	} else {
+		pDecidedPal = pBuilding->GetRemapColour();
+	}
+
+	DSurface::Temp()->DrawSHP(pDecidedPal, Selected, nFrame, &nPoint, &nREct, nFlag, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 }
 
 bool BuildingTypeExt::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner)
@@ -510,7 +520,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->PlacementPreview_ShapeFrame.Read(exINI, pSection, "PlacementPreview.ShapeFrame");
 		this->PlacementPreview_Offset.Read(exINI, pSection, "PlacementPreview.Offset");
 		this->PlacementPreview_Remap.Read(exINI, pSection, "PlacementPreview.Remap");
-		this->PlacementPreview_Palette.Read(pINI, pSection, "PlacementPreview.Palette");
+		this->PlacementPreview_Palette.Read(exINI, pSection, "PlacementPreview.Palette");
 		this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
 
 #pragma region Otamaa
@@ -574,7 +584,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->BunkerWallsUpSound.Read(exINI, pSection, GameStrings::BunkerWallsUpSound());
 		this->BunkerWallsDownSound.Read(exINI, pSection, GameStrings::BunkerWallsDownSound());
 
-		this->PipShapes01Palette.Read(exINI.GetINI(), pSection, "PipShapes.Palette");
+		this->PipShapes01Palette.Read(exINI, pSection, "PipShapes.Palette");
 		this->PipShapes01Remap.Read(exINI, pSection, "PipShapes.Remap");
 
 		this->IsJuggernaut.Read(exINI, pSection, "IsJuggernaut");
@@ -695,7 +705,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 #endif
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
-		this->RubblePalette.Read(exArtINI.GetINI(), pArtSection, "Rubble.Palette");
+		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
 #pragma endregion
 	}
 }

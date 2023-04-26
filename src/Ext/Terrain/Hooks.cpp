@@ -57,7 +57,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 	GET(TerrainClass*, pThis, ESI);
 	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0x3C, -0x4));
 
-	auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
 	auto const nCoords = pThis->GetCenterCoords();
 	VocClass::PlayIndexAtPos(pTerrainExt->DestroySound.Get(-1), nCoords);
 	const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
@@ -69,7 +69,7 @@ DEFINE_HOOK(0x71BB2C, TerrainClass_ReceiveDamage_NowDead_Add_light, 0x6)
 		}
 	}
 
-	if (auto const nBounty = pTerrainExt->Bounty.Get()) {
+	if (const auto nBounty = pTerrainExt->Bounty.Get()) {
 		if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty)) {
 			pAttackerHoue->TransactMoney(nBounty);
 			FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
@@ -106,9 +106,10 @@ DEFINE_HOOK(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 	GET(ConvertClass*, pConvert, EDX);
 	GET(TerrainTypeClass*, pThisType, EAX);
 
-	if (auto const pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType))
-	{
-		pConvert = pTerrainExt->CustomPalette.GetOrDefaultConvert(pConvert);
+	const auto pTerrainExt = TerrainTypeExt::ExtMap.Find(pThisType);
+
+	if (const auto pConvertData = pTerrainExt->CustomPalette) {
+		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 
 	R->EDX(pConvert);
@@ -125,13 +126,9 @@ DEFINE_HOOK(0x71B9BB, TerraiClass_ReceiveDamage_IsTiberiumSpawn, 0x5) //A
 
 	GET(const TerrainClass*, pThis, ESI);
 
-	auto const pTerrainTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
-
-	if (!pTerrainTypeExt)
-		return RetOriginalFunct;
-
-	auto const nDamage = pTerrainTypeExt->Damage.Get(100);
-	auto const pWH = pTerrainTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
+	const auto pTerrainTypeExt = TerrainTypeExt::ExtMap.Find(pThis->Type);
+	const auto nDamage = pTerrainTypeExt->Damage.Get(100);
+	const auto pWH = pTerrainTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
 
 	if (auto const pAnim = MapClass::SelectDamageAnimation(nDamage, pWH, MapClass::Instance->GetCellAt(pThis->Location)->LandType, pThis->Location))
 	{

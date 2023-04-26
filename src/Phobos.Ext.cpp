@@ -33,6 +33,8 @@
 
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
+#include <New/Type/PaletteManager.h>
+#include <New/Type/ArmorTypeClass.h>
 
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
@@ -251,6 +253,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 // Add more class names as you like
 using PhobosTypeRegistry =  TypeRegistry <
 #pragma region OtamaaStuffs
+	PaletteManager,
 	BombExt,
 	CaptureExt,
 	SHPRefExt,

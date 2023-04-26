@@ -144,7 +144,7 @@ public:
 		Nullable<int> PlacementPreview_ShapeFrame;
 		Valueable<CoordStruct> PlacementPreview_Offset;
 		Valueable<bool> PlacementPreview_Remap;
-		CustomPalette PlacementPreview_Palette;
+		Valueable<PaletteManager*> PlacementPreview_Palette; //CustomPalette::PaletteMode::Default
 		Nullable<int> PlacementPreview_TranslucentLevel;
 
 		Nullable<AffectedHouse> RadialIndicator_Visibility;
@@ -232,7 +232,7 @@ public:
 		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveThree;
 		PhobosMap<int, AnimTypeClass*> GarrisonAnim_ActiveFour;
 
-		CustomPalette PipShapes01Palette;
+		Valueable<PaletteManager*> PipShapes01Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<bool> PipShapes01Remap;
 
 		Nullable<AnimTypeClass*> TurretAnim_LowPower;
@@ -249,7 +249,7 @@ public:
 		Nullable<SHPStruct*> BuildingPlacementGrid_Shape;
 		BuildSpeedBonus SpeedBonus;
 
-		CustomPalette RubblePalette;
+		Valueable<PaletteManager*> RubblePalette; //CustomPalette::PaletteMode::Temperates
 
 		NullableIdx<VocClass> EnterBioReactorSound;
 		NullableIdx<VocClass> LeaveBioReactorSound;
@@ -362,7 +362,7 @@ public:
 			, GarrisonAnim_ActiveThree {}
 			, GarrisonAnim_ActiveFour {}
 
-			, PipShapes01Palette { CustomPalette::PaletteMode::Temperate }
+			, PipShapes01Palette { }
 			, PipShapes01Remap { false }
 
 			, TurretAnim_LowPower {}
@@ -372,7 +372,7 @@ public:
 			, IsJuggernaut { false }
 			, BuildingPlacementGrid_Shape {}
 			, SpeedBonus {}
-			, RubblePalette { CustomPalette::PaletteMode::Temperate }
+			, RubblePalette {}
 			, EnterBioReactorSound {}
 			, LeaveBioReactorSound {}
 			, DockPoseDir {}

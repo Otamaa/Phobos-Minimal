@@ -212,10 +212,10 @@ public:
 	virtual int GetHeight() const R0;
 	virtual void SetHeight(DWORD dwUnk) RX;
 	virtual int GetZ() const R0;
-	virtual bool IsBeingWarpedOut() const R0;
-	virtual bool IsWarpingIn() const R0;
-	virtual bool IsWarpingSomethingOut() const R0;
-	virtual bool IsNotWarping() const R0;
+	virtual bool IsBeingWarpedOut() const R0; //1D4 70C5B0
+	virtual bool IsWarpingIn() const R0; // 70C5C0
+	virtual bool IsWarpingSomethingOut() const R0; //70C5D0
+	virtual bool IsNotWarping() const R0; //70C5F0
 	virtual LightConvertClass *GetRemapColour() const R0;
 
 	int DistanceFrom(AbstractClass *that) const

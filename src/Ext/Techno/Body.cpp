@@ -1024,52 +1024,39 @@ void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, 
 	if (!pTypeExt->UseCustomSelectBrd.Get(RulesExt::Global()->UseSelectBrd.Get(Phobos::Config::EnableSelectBrd)))
 		return;
 
-	SHPStruct* GlbSelectBrdSHP = nullptr;
-
-	if (isInfantry)
-		GlbSelectBrdSHP = RulesExt::Global()->SHP_SelectBrdSHP_INF.Get();
-	else
-		GlbSelectBrdSHP = RulesExt::Global()->SHP_SelectBrdSHP_UNIT.Get();
-
-	SHPStruct* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP.Get(GlbSelectBrdSHP);
+	SHPStruct* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP.isset() ? 
+		pTypeExt->SHP_SelectBrdSHP.Get() : 
+		(isInfantry ? RulesExt::Global()->SHP_SelectBrdSHP_INF : RulesExt::Global()->SHP_SelectBrdSHP_UNIT).Get();
 
 	if (!SelectBrdSHP)
 		return;
 
-	ConvertClass* GlbSelectBrdPAL = nullptr;
-
-	if (isInfantry)
-		GlbSelectBrdPAL = RulesExt::Global()->SHP_SelectBrdPAL_INF.GetConvert();
-	else
-		GlbSelectBrdPAL = RulesExt::Global()->SHP_SelectBrdPAL_UNIT.GetConvert();
-
-	ConvertClass* SelectBrdPAL = pTypeExt->SHP_SelectBrdPAL.GetOrDefaultConvert(GlbSelectBrdPAL);
+	ConvertClass* SelectBrdPAL = (pTypeExt->SHP_SelectBrdPAL ?
+		pTypeExt->SHP_SelectBrdPAL :
+		(isInfantry ? RulesExt::Global()->SHP_SelectBrdPAL_INF : RulesExt::Global()->SHP_SelectBrdPAL_UNIT))
+		->GetConvert<PaletteManager::Mode::Temperate>();
 
 	if (!SelectBrdPAL)
 		return;
 
 	Point2D vPos = { 0, 0 };
 	Point2D vLoc = *pLocation;
-	Point2D vOfs = { 0, 0 };
 	int frame, XOffset, YOffset;
 
-	Point3D glbSelectbrdFrame = isInfantry ?
-		RulesExt::Global()->SelectBrd_Frame_Infantry.Get() :
-		RulesExt::Global()->SelectBrd_Frame_Unit.Get();
+	const Point3D selectbrdFrame = (pTypeExt->SelectBrd_Frame.isset() ? pTypeExt->SelectBrd_Frame
+		: (isInfantry ? RulesExt::Global()->SelectBrd_Frame_Infantry : RulesExt::Global()->SelectBrd_Frame_Unit)).Get();
 
-	Point3D selectbrdFrame = pTypeExt->SelectBrd_Frame.Get(glbSelectbrdFrame);
-
-	auto const nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExt::Global()->SelectBrd_DefaultTranslucentLevel.Get()));
-	auto const canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
+	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->SelectBrd_TranslucentLevel.Get(RulesExt::Global()->SelectBrd_DefaultTranslucentLevel.Get()));
+	const auto canSee = sIsDisguised && pThis->DisguisedAsHouse ? pThis->DisguisedAsHouse->IsAlliedWith(HouseClass::CurrentPlayer) :
 		pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)
 		|| HouseExt::IsObserverPlayer()
 		|| pTypeExt->SelectBrd_ShowEnemy.Get(RulesExt::Global()->SelectBrd_DefaultShowEnemy.Get());
 
-	vOfs = pTypeExt->SelectBrd_DrawOffset.Get(isInfantry ?
-		RulesExt::Global()->SelectBrd_DrawOffset_Infantry.Get() : RulesExt::Global()->SelectBrd_DrawOffset_Unit.Get());
+	const Point2D offs = (pTypeExt->SelectBrd_DrawOffset.isset() ? pTypeExt->SelectBrd_DrawOffset : (isInfantry ?
+		RulesExt::Global()->SelectBrd_DrawOffset_Infantry : RulesExt::Global()->SelectBrd_DrawOffset_Unit)).Get();
 
-	XOffset = vOfs.X;
-	YOffset = pTypeExt->Get()->PixelSelectionBracketDelta + vOfs.Y;
+	XOffset = offs.X;
+	YOffset = pTypeExt->Get()->PixelSelectionBracketDelta + offs.Y;
 	vLoc.Y -= 5;
 
 	if (iLength == 8)
@@ -3244,7 +3231,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->SkipLowDamageCheck)
 		.Process(this->AttachedAnim)
 		.Process(this->KillActionCalled)
-		.Process(this->ToProtectDelay)
+		.Process(this->WarpedOutDelay)
 		.Process(this->AltOccupation)
 		.Process(this->MyOriginalTemporal)
 #ifdef COMPILE_PORTED_DP_FEATURES

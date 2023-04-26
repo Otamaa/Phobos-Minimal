@@ -91,9 +91,6 @@ bool CustomPalette::LoadFromName(const char* PaletteName)
 
 	if (auto pPal = FileSystem::AllocatePalette(PaletteName))
 	{
-		if (IS_SAME_STR_("profxpal.pal", PaletteName))
-			Debug::Log("Here ! \n");
-
 		this->Palette.reset(pPal);
 		this->CreateConvert();
 	}

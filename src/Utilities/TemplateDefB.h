@@ -1,6 +1,7 @@
 #pragma once
 
 #include <New/Type/ColorTypeClass.h>
+
 #include "TemplateDef.h"
 
 namespace detail

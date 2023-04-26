@@ -69,9 +69,10 @@ public:
 		Valueable<AffectedHouse> DisguiseBlinkingVisibility;
 
 		Valueable<SHPStruct*> SHP_SelectBrdSHP_INF;
-		CustomPalette SHP_SelectBrdPAL_INF;
+		Valueable<PaletteManager*> SHP_SelectBrdPAL_INF; //CustomPalette::PaletteMode::Temperate
+
 		Valueable<SHPStruct*> SHP_SelectBrdSHP_UNIT;
-		CustomPalette SHP_SelectBrdPAL_UNIT;
+		Valueable<PaletteManager*> SHP_SelectBrdPAL_UNIT; //CustomPalette::PaletteMode::Temperate
 
 		Nullable<bool> UseSelectBrd;
 
@@ -196,9 +197,9 @@ public:
 			, DisguiseBlinkingVisibility { AffectedHouse::Owner }
 
 			, SHP_SelectBrdSHP_INF { nullptr }
-			, SHP_SelectBrdPAL_INF { CustomPalette::PaletteMode::Temperate }
+			, SHP_SelectBrdPAL_INF {}
 			, SHP_SelectBrdSHP_UNIT { nullptr }
-			, SHP_SelectBrdPAL_UNIT { CustomPalette::PaletteMode::Temperate }
+			, SHP_SelectBrdPAL_UNIT {}
 			, UseSelectBrd {}
 
 			, SelectBrd_Frame_Infantry { {0,0,0} }

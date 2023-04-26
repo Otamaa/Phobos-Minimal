@@ -87,14 +87,17 @@ DEFINE_HOOK(0x47F860, CellClass_DrawOverlay_Tiberium, 0x8) // B
 	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Intensity_Terrain);
 	const int nOreTint = std::clamp(nTint, 0, 1000);
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
-	const auto pPalette = pTibExt->Palette.GetOrDefaultConvert(FileSystem::x_PAL.get());
+	ConvertClass* pDecided = FileSystem::x_PAL();
+	if (const auto pCustom = pTibExt->Palette) {
+		pDecided = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
+	}
 
 	SHPStruct* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)
 		pZShape = IsometricTileTypeClass::SlopeZshape[nSlope];	//this is just pointers to files in ram, no vector #tomsons26
 
-	DSurface::Temp->DrawSHP(pPalette, pShape, pThis->OverlayData, &nPos, pBound, BlitterFlags(0x4E00), 0, nZAdjust, ZGradient::Ground, nOreTint, 0, pZShape, 0, 0, 0);
-	DSurface::Temp->DrawSHP(pPalette, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	DSurface::Temp->DrawSHP(pDecided, pShape, pThis->OverlayData, &nPos, pBound, BlitterFlags(0x4E00), 0, nZAdjust, ZGradient::Ground, nOreTint, 0, pZShape, 0, 0, 0);
+	DSurface::Temp->DrawSHP(pDecided, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 
 	return 0x47FB86;
 }
@@ -112,10 +115,15 @@ DEFINE_HOOK(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 		return 0x47F637;
 
 	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pCell->Rubble);
-	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
+
+	ConvertClass* pDecided = pCell->LightConvert;
+	if (const auto pCustom = pBTypeExt->RubblePalette) {
+		pDecided = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
+	}
+
 	auto const zAdjust = - 2 - nOffset;
 
-	DSurface::Temp()->DrawSHP(pPalette, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
+	DSurface::Temp()->DrawSHP(pDecided, pImage, nFrame, pPoint, pRect, BlitterFlags(0x4601),
 	0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 
 	return 0x47F637;
@@ -145,10 +153,14 @@ DEFINE_HOOK(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 	//	return 0x47FB86;
 
 	auto const pBTypeExt = BuildingTypeExt::ExtMap.Find(pRubble);
-	ConvertClass* pPalette = pBTypeExt->RubblePalette.GetOrDefaultConvert(pCell->LightConvert);
-	auto const zAdjust = nVal - nOffset - 2;
+	ConvertClass* pDecided = pCell->LightConvert;
+	if (const auto pCustom = pBTypeExt->RubblePalette) {
+		pDecided = pCustom->GetConvert<PaletteManager::Mode::Temperate>();
+	}
 
-	DSurface::Temp()->DrawSHP(pPalette, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
+	const auto zAdjust = nVal - nOffset - 2;
+
+	DSurface::Temp()->DrawSHP(pDecided, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
 	0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
 
 	return 0x47FB86;

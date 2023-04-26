@@ -87,7 +87,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	#pragma region Otamaa
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
-	this->GClock_Palette.Read(exINI.GetINI(), pSection, "GClock.Palette");
+	this->GClock_Palette.Read(exINI, pSection, "GClock.Palette");
 
 	// code disabled , unfinished
 	this->ChargeTimer.Read(exINI, pSection, "Timer.ChargeMode");

@@ -59,6 +59,8 @@
 #include <iostream>
 #include <string_view>
 
+#include <New/Type/PaletteManager.h>
+
 namespace detail
 {
 
@@ -125,6 +127,33 @@ namespace detail
 
 		if (value.ValueCount > 0)
 			return true;
+
+		return false;
+	}
+
+	template <>
+	inline bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (!GeneralUtils::IsValidString(parser.value()))
+				return false;
+
+			std::string flag = _strlwr(parser.value());
+			if (flag.find(".pal") == std::string::npos) {
+					flag += ".pal";
+			}
+
+			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
+			{
+				value = nResult;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a Palette Name");
+			}
+		}
 
 		return false;
 	}

@@ -17,7 +17,7 @@ public:
 	class ExtData final : public Extension<TiberiumClass>
 	{
 	public:
-		CustomPalette Palette;
+		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Nullable<AnimTypeClass*> OreTwinkle;
 		Nullable<int> OreTwinkleChance;
 		Nullable<int> Ore_TintLevel;
@@ -41,7 +41,7 @@ public:
 		Valueable<int> DebrisChance;
 
 		ExtData(TiberiumClass* OwnerObject) : Extension<TiberiumClass>(OwnerObject)
-			, Palette { CustomPalette::PaletteMode::Temperate }
+			, Palette { }
 			, OreTwinkle {}
 			, OreTwinkleChance {}
 			, Ore_TintLevel {}

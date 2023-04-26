@@ -2,9 +2,8 @@
 #include <SuperWeaponTypeClass.h>
 
 #include <Helpers/Macro.h>
-//#include <Utilities/Container.h>
 #include <Ext/Abstract/Body.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 
 class SuperClass;
 class SWTypeExt
@@ -56,7 +55,7 @@ public:
 		#pragma region Otamaa
 		Nullable<SHPStruct*> GClock_Shape;
 		Nullable<int> GClock_Transculency;
-		CustomPalette GClock_Palette;
+		Valueable<PaletteManager*> GClock_Palette; //CustomPalette::PaletteMode::Default
 		Valueable<bool> ChargeTimer;
 		Valueable<bool> ChargeTimer_Backwards;
 		#pragma endregion

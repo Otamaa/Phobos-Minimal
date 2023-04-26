@@ -14,7 +14,7 @@ void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
-	this->Palette.Read(pINI, pSection, "CustomPalette");
+	this->Palette.Read(exINI, pSection, "CustomPalette");
 	this->OreTwinkle.Read(exINI, pSection,"OreTwinkle");
 	this->OreTwinkleChance.Read(exINI, pSection, "OreTwinkleChance");
 	this->Ore_TintLevel.Read(exINI, pSection, "OreTintLevel");

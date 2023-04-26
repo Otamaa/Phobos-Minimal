@@ -46,11 +46,10 @@ DEFINE_OVERRIDE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 	const auto pData = AnimTypeExt::ExtMap.TryFind(pThis->Type);
 	
 	if (pData ) {
-		if(pData->Palette.Convert) { 
-			R->ECX<ConvertClass*>(pData->Palette.GetConvert());
+		if(const auto pConvertData = pData->Palette) {
+			R->ECX<ConvertClass*>(pConvertData->GetConvert<PaletteManager::Mode::Temperate>());
 			return 0x4232D4;
 		}
-
 	}
 
 	return 0;

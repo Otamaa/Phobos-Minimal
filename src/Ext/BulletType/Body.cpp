@@ -49,8 +49,9 @@ const ConvertClass* BulletTypeExt::ExtData::GetBulletConvert()
 	{
 		ConvertClass* pConvert = nullptr;
 		if (const auto pAnimType = AnimTypeClass::Find(this->Get()->ImageFile)) {
-			const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
-			pConvert = pAnimTypeExt->Palette.GetConvert();
+			if(const auto pConvertData = AnimTypeExt::ExtMap.Find(pAnimType)->Palette){
+				pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+			}
 		}
 
 		this->ImageConvert = pConvert;

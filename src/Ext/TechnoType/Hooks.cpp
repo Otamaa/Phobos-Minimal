@@ -160,19 +160,35 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 
 	if (idxTiberium != -1)
 	{
-		auto const pData = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pData = TechnoTypeExt::ExtMap.Find(pType);
 		const auto idxArray = pData->OreGathering_Tiberiums.IndexOf(idxTiberium);
 
 		if (idxArray != -1)
 		{
-			auto const pAnimType = !pData->OreGathering_Anims.empty() ? pData->OreGathering_Anims[idxArray] : nullptr;
-			auto const nFramesPerFacing = !pData->OreGathering_FramesPerDir.empty() ? pData->OreGathering_FramesPerDir[idxArray] : 15;
+			AnimTypeClass* pAnimType = nullptr;
+			int nFramesPerFacing = 15;
+
+			if (!pData->OreGathering_Anims.empty())
+			{
+				if (idxArray < pData->OreGathering_Anims.size())
+					pAnimType = pData->OreGathering_Anims[idxArray];
+				else
+					pAnimType = pData->OreGathering_Anims[pData->OreGathering_Anims.size()];
+			}
+
+			if (!pData->OreGathering_FramesPerDir.empty())
+			{
+				if (idxArray < pData->OreGathering_FramesPerDir.size())
+					nFramesPerFacing = pData->OreGathering_FramesPerDir[idxArray];
+				else
+					nFramesPerFacing = pData->OreGathering_FramesPerDir[pData->OreGathering_FramesPerDir.size()];
+			}
 
 			if (pAnimType)
 			{
 				pSHP = pAnimType->GetImage();
-				if (auto const pPalette = AnimTypeExt::ExtMap.Find(pAnimType)->Palette.GetConvert())
-					pDrawer = pPalette;
+				if (auto const pPalette = AnimTypeExt::ExtMap.Find(pAnimType)->Palette)
+					pDrawer = pPalette->GetConvert<PaletteManager::Mode::Temperate>();
 			}
 
 			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % nFramesPerFacing;

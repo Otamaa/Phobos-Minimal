@@ -390,7 +390,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->InitialStrength_Cloning.Read(exINI, pSection, "InitialStrength.Cloning");
 
 		this->SHP_SelectBrdSHP.Read(exINI, pSection, "SelectBrd.SHP");
-		this->SHP_SelectBrdPAL.Read(pINI, pSection, "SelectBrd.PAL");
+		this->SHP_SelectBrdPAL.Read(exINI, pSection, "SelectBrd.PAL");
 		this->UseCustomSelectBrd.Read(exINI, pSection, "UseCustomSelectBrd");
 		this->SelectBrd_Frame.Read(exINI, pSection, "SelectBrd.Frame");
 		this->SelectBrd_DrawOffset.Read(exINI, pSection, "SelectBrd.DrawOffset");
@@ -437,14 +437,14 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->HealthBarSHP_Selected.Read(exINI, pSection, "HealthBarSHP.Selected");
 		this->HealthBarSHPBracketOffset.Read(exINI, pSection, "HealthBarSHP.BracketOffset");
 		this->HealthBarSHP_HealthFrame.Read(exINI, pSection, "HealthBarSHP.HealthFrame");
-		this->HealthBarSHP_Palette.Read(pINI, pSection, "HealthBarSHP.Palette");
+		this->HealthBarSHP_Palette.Read(exINI, pSection, "HealthBarSHP.Palette");
 		this->HealthBarSHP_PointOffset.Read(exINI, pSection, "HealthBarSHP.Point2DOffset");
 		this->HealthbarRemap.Read(exINI, pSection, "HealthBarSHP.Remap");
 
 		this->PipShapes02.Read(exINI, pSection, "PipShapes.Foot");
 		this->PipGarrison.Read(exINI, pSection, "PipShapes.Garrison");
 		this->PipGarrison_FrameIndex.Read(exINI, pSection, "PipShapes.GarrisonFrameIndex");
-		this->PipGarrison_Palette.Read(pINI, pSection, "PipShapes.GarrisonPalette");
+		this->PipGarrison_Palette.Read(exINI, pSection, "PipShapes.GarrisonPalette");
 		this->PipShapes01.Read(exINI, pSection, "PipShapes.Building");
 
 		this->Is_Cow.Read(exINI, pSection, "IsCow");
@@ -479,7 +479,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Disable_C4WarheadExp.Read(exINI, pSection, "Crash.DisableC4WarheadExplosion");
 		this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 		this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
-		this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
+		this->GClock_Palette.Read(exINI, pSection, "GClock.Palette");
 
 		this->ROF_Random.Read(exINI, pSection, "ROF.AddRandom");
 		this->Rof_RandomMinMax.Read(exINI, pSection, "ROF.RandomMinMax");
@@ -700,7 +700,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->PipScaleIndex.Read(exINI, pSection, "PipScaleIndex");
 		this->AmmoPip.Read(exINI, pSection, "AmmoPip");
 		this->AmmoPip_Offset.Read(exINI, pSection, "AmmoPipOffset");
-		this->AmmoPip_Palette.Read(exINI.GetINI(), pSection, "AmmoPipPalette");
+		this->AmmoPip_Palette.Read(exINI, pSection, "AmmoPipPalette");
 
 		// #346, #464, #970, #1014
 		this->PassengersGainExperience.Read(exINI, pSection, "Experience.PromotePassengers");

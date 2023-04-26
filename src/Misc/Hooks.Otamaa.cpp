@@ -2246,23 +2246,23 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	//auto amount_a = int(totalaccum / pType->Storage * nMax + 0.5);
 	//auto amount_b = int(nStorage_1 / pType->Storage * nMax + 0.5);
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	Point2D nOffs {};
-	auto const pBuilding = Is_Building(pTechno) ? static_cast<BuildingClass*>(pTechno) : nullptr;
-	auto const pShape = pBuilding ?
+	const auto pBuilding = Is_Building(pTechno) ? static_cast<BuildingClass*>(pTechno) : nullptr;
+	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 
-	ConvertClass* nPal = nullptr;
+	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuilding)
-	{
-		auto const pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+	if (pBuilding) {
+
+		const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 		if (pBuildingTypeExt->PipShapes01Remap)
 			nPal = pTechno->GetRemapColour();
-		else
-			nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
+		else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 	else
 	{
@@ -2271,7 +2271,7 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	auto GetFrames = [&]()
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		if (amount_Riparious > 0)
 		{
@@ -2507,26 +2507,25 @@ void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRe
 	if (nMax <= 0)
 		return;
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 	Point2D nOffs {};
 
-	auto const pBuilding = specific_cast<BuildingClass*>(pTechno);
-	auto const pShape = pBuilding ?
+	const auto pBuilding = specific_cast<BuildingClass*>(pTechno);
+	const auto pShape = pBuilding ?
 		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) : pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
 
-	ConvertClass* nPal = nullptr;
+	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
 	if (pBuilding)
 	{
-		auto const pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+		const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 		if (pBuildingTypeExt->PipShapes01Remap)
 			nPal = pTechno->GetRemapColour();
-		else
-			nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
-	}
-	else
-	{
+		else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+
+	} else {
 		nPal = FileSystem::THEATER_PAL();
 	}
 
@@ -5019,8 +5018,12 @@ DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 		const int nFrame = int((1.0 - (pThis->Ammo / pTypeExt->Get()->Ammo)) * pSHApe->Frames);
 		Point2D offs { nX, nY };
 		offs += pTypeExt->AmmoPip_Offset.Get();
+		ConvertClass* pConvert = FileSystem::PALETTE_PAL();
+		if (const auto pConvertData = pTypeExt->AmmoPip_Palette) {
+			pConvert = pConvertData->GetConvert<PaletteManager::Mode::Default>();
+		}
 
-		DSurface::Temp->DrawSHP(pTypeExt->AmmoPip_Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL), pSHApe,
+		DSurface::Temp->DrawSHP(pConvert, pSHApe,
 			nFrame, &offs, pRect, (BlitterFlags)0x600u, 0, 0, 1000, 0, 0, nullptr, 0, 0, 0);
 
 		return 0x70A4EC;
@@ -5225,11 +5228,13 @@ DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 
 DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
+	enum { CheckAlly = 0x6F3589 , ContinueCheck = 0x6F35A8 };
+
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTarget, EBP);
 
 	return !pThis->DrainTarget && !pTarget->DrainingMe ?
-		0x6F3589 : 0x6F35A8;
+		CheckAlly : ContinueCheck;
 }
 
 DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
@@ -5358,7 +5363,7 @@ DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 	return 0x7008FB;
 }
 
-#ifndef FOW_HOOKS
+#ifdef FOW_HOOKS
 // MapClass_RevealShroud as Xkein said
 DEFINE_HOOK(0x4ADFF0, DisplayClass_All_To_Look_Ground, 0x5)
 {
@@ -5493,34 +5498,32 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawExtras_CheckFog, 0x6)
 
 	auto coord = pTechno->GetCoords();
 
-	return MapClass::Instance->IsLocationFogged(coord) ? 0x6F5EEC : 0;
+	return MapClass::Instance->IsLocationFogged(coord) 
+		? 0x6F5EEC : 0;
 }
 
 DEFINE_HOOK(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 0x6)
 {
 	GET(CellClass*, pCell, ESI);
-
-	if (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged())
-		return 0x4804FB;
-	return 0x4804A4;
+	
+	return (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged()) ? 
+		0x4804FB : 0x4804A4;
 }
 
 DEFINE_HOOK(0x6D6EDA, TacticalClass_Overlay_CheckFog_1, 0xA)
 {
 	GET(CellClass*, pCell, EAX);
 
-	if (pCell->OverlayTypeIndex == -1 || pCell->IsFogged())
-		return 0x6D7006;
-	return 0x6D6EE4;
+	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ? 
+		0x6D7006 : 0x6D6EE4;
 }
 
 DEFINE_HOOK(0x6D70BC, TacticalClass_Overlay_CheckFog_2, 0xA)
 {
 	GET(CellClass*, pCell, EAX);
 
-	if (pCell->OverlayTypeIndex == -1 || pCell->IsFogged())
-		return 0x6D71A4;
-	return 0x6D70C6;
+	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ?
+		0x6D71A4 : 0x6D70C6;
 }
 
 DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
@@ -5528,9 +5531,9 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
 	GET(TerrainClass*, pTerrain, EDI);
 
 	auto coord = pTerrain->GetCoords();
-	if (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord))
-		return 0x71CD8D;
-	return 0x71CC9A;
+
+	return (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord)) ? 
+		0x71CD8D : 0x71CC9A;
 }
 
 bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
@@ -5553,12 +5556,15 @@ DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 
 	auto oldfield = (unsigned int)pCell->AltFlags;
 	pCell->AltFlags = (AltCellFlags)(oldfield & 0xFFFFFFEF);
+
 	auto nIndex = TacticalClass::Instance->GetOcclusion(pCell->MapCoords, false);
+	
 	if (((oldfield & 0x10) != 0 || pCell->Visibility != nIndex) && nIndex >= 0 && pCell->Visibility >= -1)
 	{
 		pCell->AltFlags |= (AltCellFlags)8u;
 		pCell->Visibility = nIndex;
 	}
+
 	TacticalClass::Instance->RegisterCellAsVisible(pCell);
 
 	return 0x4ACE57;
@@ -5566,13 +5572,19 @@ DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 
 DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 {
-	// GET(MapClass*, pMap, ECX);
-	auto const pMap = MapClass::Instance();
+	GET(MapClass*, pMap, ECX);
 	GET_STACK(CellStruct*, pLocation, 0x4);
 	GET_STACK(HouseClass*, pHouse, 0x8);
-	// GET_STACK(bool, bUnk, 0xC);
+	GET_STACK(bool, bUnk, 0xC);
 
 	auto const pCell = pMap->GetCellAt(*pLocation);
+
+	//if (bUnk) {
+	//	pCell->IncreaseShroudCounter();
+	//} else {
+	//	pCell->ReduceShroudCounter();
+	//}
+
 	bool bFlag = bool(pCell->Flags & CellFlags::EdgeRevealed);
 	bool bReturn = !bFlag || (pCell->AltFlags & AltCellFlags::Clear);
 	bool bTemp = bReturn;

@@ -16,10 +16,12 @@ DEFINE_HOOK(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	if (pTarget) {
+	if (pTarget)
+	{
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && Is_Bullet(pTarget)) {
+		if (TechnoExt::ExtMap.Find(pThis)->IsInterceptor() && Is_Bullet(pTarget))
+		{
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
@@ -132,50 +134,51 @@ DEFINE_HOOK(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTargetTechno, EBP);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
-    //GET_STACK(WeaponTypeClass*, pPrimary,0x14);
-   	//GET_STACK(WeaponTypeClass*, pSecondary ,0x10);
+	//GET_STACK(WeaponTypeClass*, pPrimary,0x14);
+	//GET_STACK(WeaponTypeClass*, pSecondary ,0x10);
 
-	enum { 
-		Primary = 0x6F37AD, 
-		Secondary = 0x6F3745, 
+	enum
+	{
+		Primary = 0x6F37AD,
+		Secondary = 0x6F3745,
 		Secondary_b = 0x6F3807,
 		FurtherCheck = 0x6F3754,
-		OriginalCheck = 0x6F36E3 
+		OriginalCheck = 0x6F36E3
 	};
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-		bool allowFallback = !pTypeExt->NoSecondaryWeaponFallback;
-		bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
-		const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
-		
+	bool allowFallback = !pTypeExt->NoSecondaryWeaponFallback;
+	bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
+	const int weaponIndex = TechnoExt::PickWeaponIndex(pThis, pTargetTechno, pTarget, 0, 1, allowFallback, allowAAFallback);
+
 	/*	if (IS_SAME_STR_("LYNXBUFF", pThis->get_ID()) && pTargetTechno && IS_SAME_STR_("LTNKUP", pTargetTechno->get_ID()))
 			Debug::Log("LynxBuff Trying To fire[%d] After HP check! \n", weaponIndex);*/
 
-		if (weaponIndex != -1)
-			return weaponIndex == 1 ? Secondary : Primary;
+	if (weaponIndex != -1)
+		return weaponIndex == 1 ? Secondary : Primary;
 
-		if (!pTargetTechno)
-			return Primary;
+	if (!pTargetTechno)
+		return Primary;
 
-		if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
+	if (const auto pShield = TechnoExt::ExtMap.Find(pTargetTechno)->GetShield())
+	{
+		if (pShield->IsActive())
 		{
-			if (pShield->IsActive())
+			const auto secondary = pThis->GetWeapon(1)->WeaponType;
+			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && secondary && secondary->Projectile->AA;
+
+			if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
 			{
-				const auto secondary = pThis->GetWeapon(1)->WeaponType;
-				const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && secondary && secondary->Projectile->AA;
-
-				if (secondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExt::CanFireNoAmmoWeapon(pThis, 1)))
-				{
-					if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
-						return Secondary;
-					else
-						return FurtherCheck;
-				}
-
-				return Primary;
+				if (!pShield->CanBeTargeted(pThis->GetWeapon(0)->WeaponType))
+					return Secondary;
+				else
+					return FurtherCheck;
 			}
+
+			return Primary;
 		}
+	}
 
 	return OriginalCheck;
 
@@ -247,12 +250,14 @@ DEFINE_HOOK(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 			}
 		}
 
-		if (!skipRemainingChecks) {
+		if (!skipRemainingChecks)
+		{
 
 			if (std::abs(
 				//GeneralUtils::GetWarheadVersusArmor(pWeaponOdd->Warhead , pTargetTechno->GetTechnoType()->Armor)
 				WarheadTypeExt::ExtMap.Find(pWeaponOdd->Warhead)->GetVerses(pTargetTechno->GetTechnoType()->Armor).Verses
-				) == 0.0) {
+			) == 0.0)
+			{
 				chosenWeaponIndex = evenWeaponIndex;
 			}
 			else

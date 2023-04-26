@@ -34,7 +34,7 @@ void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 		return;
 
 	INI_EX exINI(pINI);
-	this->Palette.Read(pINI, pID, "CustomPalette");
+	this->Palette.Read(exINI, pID, "CustomPalette");
 	this->CreateUnit.Read(exINI, pID, "CreateUnit");
 	this->CreateUnit_Facing.Read(exINI, pID, "CreateUnit.Facing");
 	this->CreateUnit_InheritDeathFacings.Read(exINI, pID, "CreateUnit.InheritFacings");

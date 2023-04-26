@@ -109,7 +109,7 @@ public:
 
 		UniqueGamePtr<AnimClass> AttachedAnim;
 		bool KillActionCalled;
-		CDTimerClass ToProtectDelay;
+		CDTimerClass WarpedOutDelay;
 		OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 		TemporalClass* MyOriginalTemporal;
 		Armor CurrentArmor;
@@ -175,7 +175,7 @@ public:
 			, MyFighterData { }
 			, AttachedAnim { }
 			, KillActionCalled { false }
-			, ToProtectDelay { }
+			, WarpedOutDelay { }
 			, AltOccupation { }
 			, MyOriginalTemporal { nullptr }
 			, CurrentArmor { Armor::None }

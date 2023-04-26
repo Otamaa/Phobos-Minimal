@@ -24,7 +24,7 @@ public:
 		TrailsReader Trails;
 #endif
 		Valueable<bool> ReadjustZ;
-		CustomPalette Palette;
+		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<double> DamageRange;
 		Valueable<bool> DeleteWhenReachWater;
 
@@ -34,7 +34,7 @@ public:
 			, Trails { }
 #endif
 			, ReadjustZ { true }
-			, Palette { CustomPalette::PaletteMode::Temperate }
+			, Palette {}
 			, DamageRange { 0.0 }
 			, DeleteWhenReachWater { false }
 		{ }

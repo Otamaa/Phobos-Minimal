@@ -102,12 +102,12 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 		{
 			const auto pExt = TechnoTypeExt::ExtMap.Find(pInfantry->Type);
 
-			if (auto const pGarrisonPip = pExt->PipGarrison.Get(nullptr))
-			{
+			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr)) {
 				pPipFile = pGarrisonPip;
 				nPipFrameIndex = pExt->PipGarrison_FrameIndex.Get();
 				nPipFrameIndex = std::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
-				pPalette = pExt->PipGarrison_Palette.GetOrDefaultConvert(pPalette);
+				if(auto const pConvertData = pExt->PipGarrison_Palette)
+					pPalette = pConvertData->GetConvert<PaletteManager::Mode::Default>();
 			}
 			else
 			{

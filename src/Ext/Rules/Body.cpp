@@ -189,11 +189,11 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->UseSelectBrd.Read(exINI, AUDIOVISUAL_SECTION, "UseSelectBrd");
 	this->SHP_SelectBrdSHP_INF.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.SHP.Infantry");
-	this->SHP_SelectBrdPAL_INF.Read(pINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Infantry");
+	this->SHP_SelectBrdPAL_INF.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Infantry");
 	this->SelectBrd_Frame_Infantry.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.Frame.Infantry");
 	this->SelectBrd_DrawOffset_Infantry.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DrawOffset.Infantry");
 	this->SHP_SelectBrdSHP_UNIT.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.SHP.Unit");
-	this->SHP_SelectBrdPAL_UNIT.Read(pINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Unit");
+	this->SHP_SelectBrdPAL_UNIT.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.PAL.Unit");
 	this->SelectBrd_Frame_Unit.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.Frame.Unit");
 	this->SelectBrd_DrawOffset_Unit.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DrawOffset.Unit");
 	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, AUDIOVISUAL_SECTION, "SelectBrd.DefaultTranslucentLevel");

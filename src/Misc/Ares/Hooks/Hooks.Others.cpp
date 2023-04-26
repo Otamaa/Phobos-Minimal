@@ -1982,9 +1982,13 @@ DEFINE_OVERRIDE_HOOK(0x62D015, ParticleClass_Draw_Palette, 6)
 {
 	GET(ParticleClass*, pThis, EDI);
 
+	ConvertClass* pConvert = FileSystem::ANIM_PAL();
 	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type);
-	R->EDX(pTypeExt->Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()));
+	if (const auto pConvertData = pTypeExt->Palette) {
+		pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	}
 
+	R->EDX(pConvert);
 	return 0x62D01B;
 }
 

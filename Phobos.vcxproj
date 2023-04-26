@@ -195,6 +195,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
+    <ClCompile Include="src\New\Type\PaletteManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Utilities\Ares3_Parser.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
@@ -425,6 +426,7 @@
     <ClInclude Include="src\New\Type\ColorTypeClass.h" />
     <ClInclude Include="src\New\Type\CursorTypeClass.h" />
     <ClInclude Include="src\New\Type\HoverTypeClass.h" />
+    <ClInclude Include="src\New\Type\PaletteManager.h" />
     <ClInclude Include="src\New\Type\RadTypeClass.h" />
     <ClInclude Include="src\New\Type\ShieldTypeClass.h" />
     <ClInclude Include="src\New\Type\LaserTrailTypeClass.h" />

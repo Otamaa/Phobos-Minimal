@@ -57,7 +57,7 @@ void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Damage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDamage");
 	this->AreaDamage.Read(exINI, pSection, "SpawnsTiberium.ExplodeDealAreaDamage");
 
-	this->CustomPalette.Read(exINI.GetINI(), pSection, "CustomPalette");
+	this->CustomPalette.Read(exINI, pSection, "CustomPalette");
 #pragma endregion
 
 	this->Bounty.Read(exINI, pSection, "Bounty");

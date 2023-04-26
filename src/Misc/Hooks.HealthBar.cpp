@@ -52,12 +52,14 @@ DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	ConvertClass* nPal = nullptr;
+	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuildingTypeExt->PipShapes01Remap)
+	if (pBuildingTypeExt->PipShapes01Remap) {
 		nPal = pThis->GetRemapColour();
-	else
-		nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
+	}
+	else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
+		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	}
 
 	R->EDX(nPal);
 	return 0x6F675F;
@@ -69,12 +71,14 @@ DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 	GET(SHPReference*, pDefaultPip, EAX);
 
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-	ConvertClass* nPal = nullptr;
+	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuildingTypeExt->PipShapes01Remap)
+	if (pBuildingTypeExt->PipShapes01Remap) {
 		nPal = pThis->GetRemapColour();
-	else
-		nPal = pBuildingTypeExt->PipShapes01Palette.GetOrDefaultConvert(FileSystem::THEATER_PAL());
+	}
+	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette) {
+		nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
+	}
 
 	//PipShapes01Palette
 	R->EDX(nPal);//
@@ -234,8 +238,11 @@ namespace DrawHeathData
 		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 		const auto pPipsShape = pTypeExt->HealthBarSHP.Get(FileSystem::PIPS_SHP());
 		const auto pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
-		const auto pPalette = pTypeExt->HealthbarRemap.Get() && pTechConvert ? pTechConvert :
-			pTypeExt->HealthBarSHP_Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL());
+		ConvertClass* pPalette = FileSystem::PALETTE_PAL();
+		if (pTypeExt->HealthbarRemap.Get())
+			pPalette = pTechConvert;
+		else if (const auto pConvertData = pTypeExt->HealthBarSHP_Palette)
+			pPalette = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 
 		Point2D nLocation = *pLocation;
 		nLocation += pTypeExt->HealthBarSHP_PointOffset.Get();

@@ -227,7 +227,7 @@ public:
 		Valueable<PartialVector2D<double>> InitialStrength_Cloning;
 
 		Nullable<SHPStruct*> SHP_SelectBrdSHP;
-		CustomPalette SHP_SelectBrdPAL;
+		Valueable<PaletteManager*> SHP_SelectBrdPAL; //CustomPalette::PaletteMode::Temperate
 		Nullable<bool> UseCustomSelectBrd;
 		Nullable<Point3D> SelectBrd_Frame;
 		Nullable<Point2D> SelectBrd_DrawOffset;
@@ -341,7 +341,7 @@ public:
 		Nullable<SHPStruct*> PipShapes02;
 		Nullable<SHPStruct*> PipGarrison;
 		Valueable<int> PipGarrison_FrameIndex;
-		CustomPalette PipGarrison_Palette;
+		Valueable<PaletteManager*> PipGarrison_Palette; //CustomPalette::PaletteMode::Default
 
 		Valueable<bool> HealthNumber_Show;
 		Valueable<bool> HealthNumber_Percent;
@@ -352,13 +352,14 @@ public:
 		Nullable<SHPStruct*> HealthBarSHP_Selected;
 		Valueable<int> HealthBarSHPBracketOffset;
 		Valueable<CoordStruct> HealthBarSHP_HealthFrame;
-		CustomPalette HealthBarSHP_Palette;
+		Valueable<PaletteManager*> HealthBarSHP_Palette; //CustomPalette::PaletteMode::Temperate
+
 		Valueable<Point2D> HealthBarSHP_PointOffset;
 		Valueable<bool> HealthbarRemap;
 
 		Nullable<SHPStruct*> GClock_Shape;
 		Nullable<int> GClock_Transculency;
-		CustomPalette GClock_Palette;
+		Valueable<PaletteManager*> GClock_Palette; //CustomPalette::PaletteMode::Default
 
 		Valueable<bool> ROF_Random;
 		Nullable<Point2D> Rof_RandomMinMax;
@@ -600,7 +601,7 @@ public:
 
 		Nullable<SHPStruct*> AmmoPip;
 		Valueable<Point2D> AmmoPip_Offset;
-		CustomPalette AmmoPip_Palette;
+		Valueable<PaletteManager*> AmmoPip_Palette; //CustomPalette::PaletteMode::Default
 		struct InsigniaData
 		{
 			Promotable<SHPStruct*> Shapes { nullptr };
@@ -750,7 +751,7 @@ public:
 			, InsigniaDrawOffset { {0 , 0 , 0} }
 			, InitialStrength_Cloning { { 0.0, 0.0 } }
 			, SHP_SelectBrdSHP {  }
-			, SHP_SelectBrdPAL { CustomPalette::PaletteMode::Temperate }
+			, SHP_SelectBrdPAL {}
 			, UseCustomSelectBrd {}
 			, SelectBrd_Frame { {-1,-1,-1} }
 			, SelectBrd_DrawOffset {}
@@ -1094,7 +1095,7 @@ public:
 			, PipScaleIndex { }
 			, AmmoPip { }
 			, AmmoPip_Offset { }
-			, AmmoPip_Palette { CustomPalette::PaletteMode::Default }
+			, AmmoPip_Palette { }
 
 			, Insignia_Weapon {}
 			, VHPscan_Value {2}

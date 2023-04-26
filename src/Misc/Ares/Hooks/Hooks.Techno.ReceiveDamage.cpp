@@ -302,6 +302,7 @@ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 	const bool bResult = nDamageResult == DamageState::Unaffected ? 0x702823 : 0x0;
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if ((int)nDamageResult || bIgnoreDamage || !IsDamaging || *pDamamge)
 	{
@@ -331,8 +332,7 @@ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 			(!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(pType->Armor).Verses >= 0.0001)))
 		{
 
-			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
-			const auto pExt = TechnoExt::ExtMap.Find(pThis);
+			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);	
 
 			if (pWHExt->Sonar_Duration > 0)
 			{
@@ -578,7 +578,7 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	auto it = pExt->ParticleSystems_DamageSmoke.GetElements(pType->DamageParticleSystems);
-	auto allowAny = pExt->ParticleSystems_DamageSmoke.HasValue();
+	const auto allowAny = pExt->ParticleSystems_DamageSmoke.HasValue();
 
 	for (auto pSystem : it)
 	{
