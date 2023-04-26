@@ -55,8 +55,8 @@ DEFINE_OVERRIDE_HOOK(0x51F628, InfantryClass_Guard_Doggie, 0x5)
 
 DEFINE_OVERRIDE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
 {
-	GET(InfantryClass*, pThis, EBP);
-	GET(AbstractClass*, pTarget, EBX);
+	GET(InfantryClass* const, pThis, EBP);
+	GET(AbstractClass* const, pTarget, EBX);
 
 	// doggie cannot crawl; has to stand up and run
 	const bool doggieStandUp = pTarget && pThis->Crawling && pThis->Type->Doggie;
@@ -67,7 +67,8 @@ DEFINE_OVERRIDE_HOOK(0x51ABD7, InfantryClass_SetDestination_Doggie, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	auto pType = pThis->Type;
+
+	const auto pType = pThis->Type;
 
 	if (!pType->Doggie) {
 		return 0;
@@ -102,7 +103,7 @@ DEFINE_OVERRIDE_HOOK(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 // #1008047: the C4 did not work correctly in YR, because some ability checks were missing
 DEFINE_OVERRIDE_HOOK(0x51C325, InfantryClass_IsCellOccupied_C4Ability, 0x6)
 {
-	GET(InfantryClass*, pThis, EBP);
+	GET(InfantryClass* const, pThis, EBP);
 
 	return (pThis->Type->C4 || pThis->HasAbility(AbilityType::C4)) ?
 		0x51C37D : 0x51C335;
@@ -110,7 +111,7 @@ DEFINE_OVERRIDE_HOOK(0x51C325, InfantryClass_IsCellOccupied_C4Ability, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass* const, pThis, ESI);
 
 	return (!pThis->Type->C4 && !pThis->HasAbility(AbilityType::C4)) ?
 		0x51A7F4 : 0x51A4E6;
@@ -119,7 +120,7 @@ DEFINE_OVERRIDE_HOOK(0x51A4D2, InfantryClass_UpdatePosition_C4Ability, 0x6)
 // do not prone in water
 DEFINE_OVERRIDE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass* const, pThis, ESI);
 	const auto pCell = pThis->GetCell();
 	return (pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water) &&
 		!pCell->ContainsBridge() ? 0x5201DC : 0x0;
@@ -127,8 +128,8 @@ DEFINE_OVERRIDE_HOOK(0x5201CC, InfantryClass_UpdatePanic_ProneWater, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x51F716, InfantryClass_Mi_Unload_Undeploy, 0x5)
 {
-	GET(InfantryTypeClass*, pThisType, ECX);
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryTypeClass* const, pThisType, ECX);
+	GET(InfantryClass* const, pThis, ESI);
 
 	if (pThisType->UndeployDelay < 0)
 		pThis->PlayAnim(DoType::Undeploy, true, false);
@@ -146,7 +147,7 @@ DEFINE_OVERRIDE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 		SkipPlay = 0x51D8BF
 	};
 
-	GET(InfantryClass*, I, ESI);
+	GET(InfantryClass* const, I, ESI);
 
 	return (I->Transporter || I->Type->MovementZone != MovementZone::AmphibiousDestroyer)
 		? SkipPlay : Play ;
@@ -154,9 +155,9 @@ DEFINE_OVERRIDE_HOOK(0x51D799, InfantryClass_PlayAnim_WaterSound, 0x7)
 
 DEFINE_OVERRIDE_HOOK(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 {
-	GET(InfantryClass*, pThis, EBP);
+	GET(InfantryClass* const, pThis, EBP);
 
-	auto const pTargetTechno = generic_cast<TechnoClass*>(pThis->Target);
+	const auto pTargetTechno = generic_cast<TechnoClass* const>(pThis->Target);
 
 	if (!pTargetTechno || RulesClass::Instance->ConditionGreen <= pTargetTechno->GetHealthPercentage())
 		pThis->SetTarget(nullptr);
@@ -170,7 +171,7 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x6FCFA4, TechnoClass_GetROF_BuildingHack, 0x5, 6FCFC1
 
 DEFINE_OVERRIDE_HOOK(0x51BCB2, InfantryClass_Update_Reload, 0x6)
 {
-	GET(InfantryClass*, I, ESI);
+	GET(InfantryClass* const, I, ESI);
 
 	if (I->InLimbo) {
 		return 0x51BDCF;
@@ -184,7 +185,7 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x51F1D8, InfantryClass_ActionOnObject_IvanBombs, 0x6,
 
 DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 {
-	GET(InfantryClass*, pThis, EBP);
+	GET(InfantryClass* const, pThis, EBP);
 	GET_STACK(int, idxWeapon, STACK_OFFS(0x34, 0x24));
 
 	if (pThis->IsCloseEnough(pThis->Target, idxWeapon)) {
@@ -204,11 +205,10 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 	GET(InfantryClass* const, pThis, ECX);
 
 	if (pThis->Type->Teleporter) {
-		auto const pLoco = pThis->Locomotor.get();
+		auto pLoco = pThis->Locomotor.get();
 
-		if ((((DWORD*)pLoco)[0] == TeleportLocomotionClass::ILoco_vtable)) {
-			auto const pTele = static_cast<TeleportLocomotionClass*>(pLoco);
-			pTele->LastCoords = CoordStruct::Empty;
+		if (VTable::Get(pLoco) == TeleportLocomotionClass::ILoco_vtable) {
+			static_cast<TeleportLocomotionClass*>(pLoco)->LastCoords = CoordStruct::Empty;
 		}
 	}
 
@@ -218,18 +218,17 @@ DEFINE_OVERRIDE_HOOK(0x51DF27, InfantryClass_Remove_Teleport, 0x6)
 DEFINE_HOOK(0x5243E3, InfantryTypeClass_AllowDamageSparks, 0xB)
 {
 	GET(InfantryTypeClass*, pThis, ESI)
-		auto bIsCyborg = R->AL();
-	GET(INIClass*, pINI, EBP);
+	GET(INIClass* const, pINI, EBP);
 
-	pThis->DamageSparks = pINI->ReadBool(pThis->ID, "AllowDamageSparks", bIsCyborg);
+	pThis->DamageSparks = pINI->ReadBool(pThis->ID, "AllowDamageSparks", R->AL());
 
 	return 0x5243EE;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51E3B0, InfantryClass_GetActionOnObject_EMP, 0x7)
 {
-	GET(InfantryClass*, pInfantry, ECX);
-	GET_STACK(TechnoClass*, pTarget, 0x4);
+	GET(InfantryClass* const, pInfantry, ECX);
+	GET_STACK(TechnoClass* const, pTarget, 0x4);
 
 	// infantry should really not be able to deploy then EMP'd.
 	if ((pInfantry == pTarget) && pInfantry->Type->Deployer && pInfantry->IsUnderEMP()) {

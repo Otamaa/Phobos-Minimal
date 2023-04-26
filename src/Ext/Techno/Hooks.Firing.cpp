@@ -469,7 +469,7 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	{
 		const auto pLoco = pThis->Locomotor.get();
 
-		if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::ILoco_vtable)
+		if (VTable::Get(pLoco) == JumpjetLocomotionClass::ILoco_vtable)
 		{
 			auto jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
 

@@ -407,7 +407,7 @@ DEFINE_HOOK(0x5206F9, InfantryClass_UpdateFiringState_AIDeploy, 0x8)
 
 			if (!pTarget
 				|| ((pTarget->AbstractFlags & AbstractFlags::Object) == AbstractFlags::None)
-				|| !pHouseOwner->IsAlliedWith(pTarget))
+				|| !pHouseOwner->IsAlliedWith_(pTarget))
 			{
 
 				if (pType->Deployer && (((int)pThis->SequenceAnim) - 27 > 3))

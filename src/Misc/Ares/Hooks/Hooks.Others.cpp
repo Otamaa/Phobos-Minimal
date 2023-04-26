@@ -186,9 +186,8 @@ DEFINE_OVERRIDE_HOOK(0x4748A0, INIClass_GetPipIdx, 0x7)
 	{
 		// find the pip value with the name specified
 		const auto it = std::find_if(TechnoTypeClass::PipsTypeName.begin(), TechnoTypeClass::PipsTypeName.end(),
-			[](NamedValue<int>const& Data)
- {
-	 return IS_SAME_STR_(Data.Name, Phobos::readBuffer);
+			[](NamedValue<int>const& Data) {
+			 return IS_SAME_STR_(Data.Name, Phobos::readBuffer);
 		});
 
 		if (it != TechnoTypeClass::PipsTypeName.end())

@@ -24,8 +24,8 @@ DEFINE_HOOK(0x457188, BuildingClass_Radar_Cloak_Observer_A, 0xA)
 {
 	enum { Show = 0x4571C4, Continue = 0x0 };
 
-	GET(TechnoClass*, pTechno, EDI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, EDI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Show;
@@ -40,8 +40,8 @@ DEFINE_HOOK(0x70D386, BuildingClass_Radar_Cloak_Observer_B, 0xA)
 {
 	enum { Show = 0x70D3CD, Continue = 0x0, };
 
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ESI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Show;
@@ -54,15 +54,10 @@ DEFINE_HOOK(0x70D386, BuildingClass_Radar_Cloak_Observer_B, 0xA)
 
 DEFINE_HOOK(0x4AE62B, DisplayClass_HelpText_CheckCloak_Observer, 0x5)
 {
-	enum
-	{
-		CheckInvisible = 0x4AE654,
-		SetpCurPlayer = 0x4AE630,
-		Continue = 0x0,
-	};
+	enum { CheckInvisible = 0x4AE654, SetpCurPlayer = 0x4AE630, Continue = 0x0	};
 
-	GET(TechnoClass*, pTechno, ECX);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ECX);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return CheckInvisible;
@@ -75,14 +70,10 @@ DEFINE_HOOK(0x4AE62B, DisplayClass_HelpText_CheckCloak_Observer, 0x5)
 
 DEFINE_HOOK(0x4ABE3C, DisplayClass_Mouse_Left_Release_Cloak_Observer, 0xA)
 {
-	enum
-	{
-		Select = 0x4ABE4A,
-		Continue = 0x0,
-	};
+	enum { Select = 0x4ABE4A, Continue = 0x0 };
 
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ESI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Select;
@@ -95,14 +86,10 @@ DEFINE_HOOK(0x4ABE3C, DisplayClass_Mouse_Left_Release_Cloak_Observer, 0xA)
 
 DEFINE_HOOK(0x6F4F10, TechnoClass_6F4EB0_Cloak_Observer, 0x5)
 {
-	enum
-	{
-		DonotUnselect = 0x6F4F3A,
-		CheckSensed = 0x6F4F21,
-	};
+	enum { DonotUnselect = 0x6F4F3A, CheckSensed = 0x6F4F21 };
 
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ESI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return DonotUnselect;
@@ -121,8 +108,8 @@ DEFINE_HOOK(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak_Observer, 0x5)
 {
 	enum { Allow =  0x69256B , Continue = 0x0};
 
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ESI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
@@ -137,8 +124,8 @@ DEFINE_HOOK(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak_Observer, 0x5)
 {
 	enum { Allow = 0x6925F0, Continue = 0x0 };
 
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, ESI);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
@@ -153,8 +140,8 @@ DEFINE_HOOK(0x6DA412, Tactical_Select_At_Observer, 0x6)
 {
 	enum { Allow = 0x6DA43E, Continue = 0x0 };
 
-	GET(TechnoClass*, pTechno, EAX);
-	auto const pCurPlayer = HouseClass::CurrentPlayer();
+	GET(TechnoClass* const, pTechno, EAX);
+	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
@@ -175,13 +162,13 @@ DEFINE_HOOK(0x5F58CB, ObjectClass_Mark_SkipThis, 0x7)
 
 DEFINE_HOOK(0x727B3E, TriggerTypeClass_CalculateCRC_ValidateHouse, 0x6)
 {
-	GET(TriggerTypeClass*, pThis, ESI);
+	GET(TriggerTypeClass* const, pThis, ESI);
 	return pThis->House ? 0x0 : 0x727B55;
 }
 
 DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 {
-  GET(TechnoClass*  , pThis , ECX);
+  GET(TechnoClass* const, pThis , ECX);
  
   if (pThis->MindControlledBy && pThis->MindControlledBy->CaptureManager)
   {
@@ -194,19 +181,19 @@ DEFINE_HOOK(0x70F820, TechnoClass_GetOriginalOwner_ValidateCaptureManager, 0x6)
 
 DEFINE_HOOK(0x6F49D2, TechnoClass_Reveal_ValidateHouse, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	return pThis->Owner ? 0x0 : 0x6F4A31;
 }
 
 DEFINE_HOOK(0x70AF66, TechnoClass_70AF50_Sight_ValidateHouse, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	return pThis->Owner ? 0x0 : 0x70B1C7;
 }
 
 DEFINE_HOOK(0x65DC17, Do_Reinforcement_ValidateHouse, 0x6)
 {
-	GET(FootClass*, pReinforcee, EBP);
+	GET(FootClass* const, pReinforcee, EBP);
 
 	if (!pReinforcee->Owner) {
 		R->EAX(Edge::North);
@@ -219,7 +206,7 @@ DEFINE_HOOK(0x65DC17, Do_Reinforcement_ValidateHouse, 0x6)
 DEFINE_HOOK(0x447563, BuildingClass_WhatAction_SellExploitFix , 0x6)
 {
 	enum { ActionNoneRet = 0x447558 , Continue =  0x0};
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 
 	if (!pThis->CanBeSold() && pThis->Type->ConstructionYard) {
 		return ActionNoneRet;

@@ -175,22 +175,20 @@ DEFINE_HOOK(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
 //	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
 //}
 
-DEFINE_HOOK(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
-{
-	enum { PlayDeadSequence = 0x518362 , ContinueCheckForJumpJet = 0x5185F1  };
-	GET(InfantryClass*, pThis, ESI);
-	GET(InfantryTypeClass*, pThisType, EAX);
-
-	if (pThisType->JumpJet ) {
-
-		if(pThisType->Explodes)
-			TechnoExt::PlayAnim(RulesClass::Instance->InfantryExplode, pThis);
-
-		return ContinueCheckForJumpJet;
-	}
-
-	return PlayDeadSequence;
-}
+//DEFINE_HOOK(0x518313, InfantryClass_ReceiveDamage_JumpjetExplode, 0x6)
+//{
+//	enum { NonJumpJet = 0x518362 ,  ContinueChecks = 0x51831D , SkipPlayExplode = 0x5185F1 };
+//	GET(InfantryClass*, pThis, ESI);
+//	GET(InfantryTypeClass*, pThisType, EAX);
+//
+//	if (pThisType->JumpJet) {
+//		return pThisType->Explodes || pThis->HasAbility(AbilityType::Explodes)
+//			? ContinueChecks : SkipPlayExplode;
+//		return ContinueChecks;
+//	}
+//
+//	return NonJumpJet;
+//}
 
 DEFINE_HOOK(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 {

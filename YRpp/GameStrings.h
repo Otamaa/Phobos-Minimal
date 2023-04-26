@@ -147,6 +147,10 @@ struct GameStrings
 	GAMEMD_STR(DamageFireTypes, 0x83CF58);
 	GAMEMD_STR(MuzzleFlash, 0x81AC74);
 	GAMEMD_STR(DamageFireOffset, 0x81AC60);
+
+	GAMEMD_STR(AnimList, 0x847D94);
+	GAMEMD_STR(DebrisMaximums, 0x844374);
+	GAMEMD_STR(DebrisTypes, 0x844384);
 	//..
 
 	// EVA entry names

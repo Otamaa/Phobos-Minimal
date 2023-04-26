@@ -9,9 +9,7 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 , Convert {}
 , Palette {}
 {
-	std::string buffer = pTitle;
-	GeneralUtils::ApplyTheaterSuffixToString(buffer.data());
-	this->LoadFromName(buffer.c_str());
+	this->LoadFromName(GeneralUtils::ApplyTheaterSuffixToString(pTitle).c_str());
 }
 
 void PaletteManager::Clear_Internal()

@@ -295,7 +295,7 @@ DEFINE_OVERRIDE_HOOK(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x
 	// to not allow civilians to overrun a player
 	if (const auto pTargetTarget = abstract_cast<TechnoClass*>(pTarget->Target)) {
 		const auto pOwner = pThis->Owner;
-		if (pOwner->IsAlliedWith(pTargetTarget)) {
+		if (pOwner->IsAlliedWith_(pTargetTarget)) {
 			const auto pData = RulesExt::Global();
 
 			if (pOwner->IsControlledByHuman() ? 

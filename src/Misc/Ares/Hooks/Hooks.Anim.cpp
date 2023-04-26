@@ -44,7 +44,7 @@ DEFINE_OVERRIDE_HOOK(0x4232CE, AnimClass_Draw_SetPalette, 6)
 	//GET(AnimTypeClass*, AnimType, EAX);
 
 	const auto pData = AnimTypeExt::ExtMap.TryFind(pThis->Type);
-	
+
 	if (pData ) {
 		if(const auto pConvertData = pData->Palette) {
 			R->ECX<ConvertClass*>(pConvertData->GetConvert<PaletteManager::Mode::Temperate>());
@@ -81,21 +81,22 @@ DEFINE_OVERRIDE_HOOK(0x4239F0, AnimClass_UpdateBounce_Damage, 0x8)
 	GET(ObjectClass*, pObj, EDI);
 	GET(AnimClass*, pThis, EBP);
 
-	auto const pType = pThis->Type;
-	auto const nRadius = pType->DamageRadius;
+	const auto pType = pThis->Type;
+	const auto nRadius = pType->DamageRadius;
 
 	if (!pObj || nRadius < 0 || CLOSE_ENOUGH(pType->Damage, 0.0) || !pType->Warhead)
 		return DoNotDealDamage;
 
-	auto const nCoord = pThis->Bounce.GetCoords();
-	auto const pAnimTypeExt = AnimTypeExt::ExtMap.Find(pType);
+	const auto nCoord = pThis->Bounce.GetCoords();
+	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pType);
 	TechnoClass* const pInvoker = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker);
-	auto const nLoc = pObj->Location;
-	auto const nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
+	const auto nLoc = pObj->Location;
+	const auto nDist = abs(nLoc.Y - nCoord.Y) + abs(nLoc.X - nCoord.X);
 
 	if (nDist < nRadius) {
 		auto nDamage = (int)pType->Damage;
-		pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
+		pObj->ReceiveDamage(&nDamage, TacticalClass::AdjustForZ(nDist), pType->Warhead,
+					  pInvoker, false, false, pInvoker ? pInvoker->Owner : pThis->Owner);
 	}
 
 	//return !pObj || !pType->Warhead ||
@@ -140,11 +141,11 @@ DEFINE_OVERRIDE_HOOK(0x42513F, AnimClass_Expired_ScorchFlamer, 0x7)
 		CoordStruct crdAnim = crd;
 		if (dist > 0)
 		{
-			auto crdNear = MapClass::GetRandomCoordsNear(crd, dist, false);
+			const auto crdNear = MapClass::GetRandomCoordsNear(crd, dist, false);
 			crdAnim = MapClass::PickInfantrySublocation(crdNear, true);
 		}
 
-		auto count = ScenarioClass::Instance->Random.RandomRanged(1, 2);
+		const auto count = ScenarioClass::Instance->Random.RandomRanged(1, 2);
 		return GameCreate<AnimClass>(pType, crdAnim, 0, count, 0x600u, 0, false);
 	};
 

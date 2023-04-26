@@ -122,3 +122,19 @@ DEFINE_OVERRIDE_HOOK(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 
 	return 0x77255F;
 }
+
+// == WarheadType ==
+DEFINE_OVERRIDE_HOOK(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
+{
+	GET(WarheadTypeClass*, pThis, ESI);
+	GET(const char*, pSection, EBP);
+	GET(CCINIClass*, pINI, EDI);
+
+	ParseList<AnimTypeClass*, true>(pThis->AnimList, pINI, pSection, GameStrings::AnimList);
+	ParseList(pThis->DebrisMaximums, pINI, pSection, GameStrings::DebrisMaximums);
+	ParseList<VoxelAnimTypeClass*, true>(pThis->DebrisTypes, pINI, pSection, GameStrings::DebrisTypes);
+
+	return 0x75D75D;
+}
+
+DEFINE_OVERRIDE_SKIP_HOOK(0x75DAE6, WarheadTypeClass_LoadFromINI_SkipLists, 9, 75DDCC)

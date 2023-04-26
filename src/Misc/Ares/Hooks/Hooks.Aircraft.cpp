@@ -244,7 +244,7 @@ DEFINE_OVERRIDE_HOOK(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
 
 	if (!pCargo->Unlimbo(*pCoord, (DirType)(((nFacing.Raw >> 7) + 1) >> 1)))
 		return RetFailed;
-	
+
 	const auto pCargoType = pCargo->GetTechnoType();
 	const auto pCorgoTypeExt = TechnoTypeExt::ExtMap.Find(pCargoType);
 	const auto nRot = pCargoType->ROT;

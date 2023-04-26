@@ -109,7 +109,7 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
@@ -139,7 +139,7 @@ DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	pExt->UpdateAircraftOpentopped();
@@ -172,7 +172,7 @@ DEFINE_HOOK(0x4DA63B, FootClass_AI_AfterRadSite, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (pThis->SpawnOwner && pExt->IsMissisleSpawn)
 	{
@@ -218,7 +218,7 @@ DEFINE_HOOK(0x4DA698, FootClass_AI_IsMovingNow, 0x8)
 	GET(FootClass*, pThis, ESI);
 	GET8(bool, IsMovingNow, AL);
 
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	 DriveDataFunctional::AI(pExt);

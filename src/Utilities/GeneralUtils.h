@@ -267,6 +267,44 @@ public:
 		return false;
 	}
 
+	//
+	//  Lowercases string
+	//
+	template <typename T>
+	static std::basic_string<T> lowercase(const std::basic_string<T>& s)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin(), s2.end(), s2.begin(),
+			[](const T v) { return static_cast<T>(std::tolower(v)); });
+		return s2;
+	}
+
+	//
+	// Uppercases string
+	//
+	template <typename T>
+	static std::basic_string<T> uppercase(const std::basic_string<T>& s)
+	{
+		std::basic_string<T> s2 = s;
+		std::transform(s2.begin(), s2.end(), s2.begin(),
+			[](const T v) { return static_cast<T>(std::toupper(v)); });
+		return s2;
+	}
+
+	static std::string inline ApplyTheaterSuffixToString(const std::string& str)
+	{
+		std::string buffer = lowercase(str);
+
+		if (buffer.find("~~~") != std::string::npos) {
+			const auto pExtension = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
+			buffer[0] = pExtension[0];
+			buffer[1] = pExtension[1];
+			buffer[2] = pExtension[2];
+		}
+
+		return buffer;
+	}
+
 	static CellClass* GetCell(CellClass* pIn, CoordStruct& InOut, size_t nSpread, bool EmptyCell)
 	{
 		if(!pIn)

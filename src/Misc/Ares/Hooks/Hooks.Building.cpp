@@ -27,10 +27,9 @@
 DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 {
 	GET(BuildingClass*, Item, ESI);
-	GET(BuildingTypeClass*, pType, EAX);
+	GET(BuildingTypeClass* const, pType, EAX);
 
-	if (pType->Cloakable)
-	{
+	if (pType->Cloakable) {
 		Item->Cloakable = true;
 	}
 
@@ -40,7 +39,7 @@ DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 // if this is a radar, drop the new owner from the bitfield
 DEFINE_OVERRIDE_HOOK(0x448D95, BuildingClass_ChangeOwnership_OldSpy2, 0x8)
 {
-	GET(HouseClass*, newOwner, EDI);
+	GET(HouseClass* const, newOwner, EDI);
 	GET(BuildingClass*, pThis, ESI);
 
 	if (pThis->DisplayProductionTo.Contains(newOwner))
@@ -54,7 +53,7 @@ DEFINE_OVERRIDE_HOOK(0x448D95, BuildingClass_ChangeOwnership_OldSpy2, 0x8)
 DEFINE_OVERRIDE_HOOK_AGAIN(0x4557BC, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 DEFINE_OVERRIDE_HOOK(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 {
-	GET(CellClass*, pCell, ESI);
+	GET(CellClass* const, pCell, ESI);
 
 	// mark detected buildings for redraw
 	if (auto pBld = pCell->GetBuilding())
@@ -73,7 +72,7 @@ DEFINE_OVERRIDE_HOOK(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 // owner, then activate it a few instructions later for the new owner.
 DEFINE_OVERRIDE_HOOK(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
 {
-	GET(BuildingClass*, pBld, ESI);
+	GET(BuildingClass* , pBld, ESI);
 
 	if (pBld->Type->SensorArray)
 	{
@@ -111,12 +110,11 @@ DEFINE_OVERRIDE_HOOK(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
 // sensor arrays show SensorsSight instead of CloakRadiusInCells
 DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
-	auto pType = pThis->Type;
+	GET(BuildingClass* const , pThis, ESI);
 
-	if (pType->SensorArray)
+	if (pThis->Type->SensorArray)
 	{
-		R->EAX(pType->SensorsSight);
+		R->EAX(pThis->Type->SensorsSight);
 		return 0x45674B;
 	}
 
@@ -127,8 +125,8 @@ DEFINE_OVERRIDE_HOOK(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
 // the Log call uses the values as if nothing happened.
 DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 {
-	GET(BuildingClass*, pThis, EDI);
-	GET(InfantryClass*, pInf, ESI);
+	GET(BuildingClass* const, pThis, EDI);
+	GET(InfantryClass* const, pInf, ESI);
 
 	R->EDX(pThis ? pThis->Type->Name : GameStrings::NoneStr());
 	R->EAX(pInf ? pInf->Type->Name : GameStrings::NoneStr());
@@ -139,38 +137,44 @@ DEFINE_OVERRIDE_HOOK(0x4430E8, BuildingClass_Demolish_LogCrash, 0x6)
 // bugfix #231: DestroyAnims don't remap and cause reconnection errors
 DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
 
-//it seems crashing the game ?
-// DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
-// {
-// 	GET(BuildingClass*, pThis, ECX);
-// 	GET_STACK(int, AnimState, 0x4);
+DEFINE_OVERRIDE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(int, AnimState, 0x4);
 
-// 	if (AnimState == -2) {
-// 		for (auto& pAnim : pThis->Anims) {
-// 			if (pAnim) {
-// 				pAnim->UnInit();
-// 				pAnim = nullptr;
-// 			}
-// 		}
-// 	}
-// 	else
-// 	{
-// 		if (auto& pAnim = pThis->Anims[AnimState]) {
-// 			pAnim->UnInit();
-// 			pAnim = nullptr;
-// 		}
-// 	}
+	if(!Is_FirestromWall(pThis->Type))
+		return 0x0;
 
-// 	return 0x451E93;
-// }
+	if (AnimState == -2) {
+		for (auto& pAnim : pThis->Anims) {
+			if (pAnim) {
+				pAnim->UnInit();
+				pAnim = nullptr;
+			}
+		}
+	}
+	else
+	{
+		if (auto& pAnim = pThis->Anims[AnimState]) {
+			pAnim->UnInit();
+			pAnim = nullptr;
+		}
+	}
 
+	return 0x451E93;
+}
 
-// DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
-// {
-// 	GET(AnimClass*, pAnim, ECX);
-// 	pAnim->UnInit();
-// 	return 0x451A2F;
-// }
+DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
+{
+	GET(BuildingClass* const , pThis , ESI);
+
+	if(!Is_FirestromWall(pThis->Type))
+		return 0x0;
+
+	GET(AnimClass*, pAnim, ECX);
+	pAnim->UnInit();
+	return 0x451A2F;
+}
 
 DEFINE_OVERRIDE_HOOK(0x458E1E, BuildingClass_GetOccupyRangeBonus_Demacroize, 0xA)
 {
@@ -185,8 +189,8 @@ DEFINE_OVERRIDE_HOOK(0x458E1E, BuildingClass_GetOccupyRangeBonus_Demacroize, 0xA
 // restore pip count for tiberium storage (building and house)
 DEFINE_OVERRIDE_HOOK(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 {
-	GET(BuildingClass*, pThis, ECX);
-	GET(BuildingTypeClass*, pType, ESI);
+	GET(BuildingClass* const , pThis, ECX);
+	GET(BuildingTypeClass* const, pType, ESI);
 
 	double amount = 0.0;
 	if (pType->Storage > 0)
@@ -225,7 +229,7 @@ DEFINE_OVERRIDE_HOOK(0x457533, BuildingClass_Infiltrate_Standard, 0x6)
 // infantry exiting hospital get their focus reset, but not for armory
 DEFINE_OVERRIDE_HOOK(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
 {
-	GET(BuildingTypeClass*, pType, EDX);
+	GET(BuildingTypeClass* const, pType, EDX);
 	R->AL(pType->Hospital || pType->Armory);
 	return 0x444D2C;
 }
@@ -251,8 +255,8 @@ DEFINE_OVERRIDE_HOOK(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 // do not crash if the EMP cannon primary has no Report sound
 DEFINE_OVERRIDE_HOOK(0x44D4CA, BuildingClass_Mi_Missile_NoReport, 0x9)
 {
-	GET(TechnoTypeClass*, pType, EAX);
-	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET(TechnoTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
 
 	return !pType->IsGattling && pWeapon->Report.Count ?
 		0x44D4D4 : 0x44D51F;
@@ -263,14 +267,14 @@ DEFINE_OVERRIDE_HOOK(0x44D4CA, BuildingClass_Mi_Missile_NoReport, 0x9)
 DEFINE_OVERRIDE_HOOK(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
 {
 	//GET(BuildingClass*, pThis, EBP);
-	GET(TechnoClass*, pTrainee, EAX);
+	GET(TechnoClass* const, pTrainee, EAX);
 	return pTrainee ? 0 : 0x44BB3C;
 }
 
 // remember that this building ejected its survivors already
 DEFINE_OVERRIDE_HOOK(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
 {
-	GET(BuildingClass* const, pThis, EBP);
+	GET(BuildingClass*, pThis, EBP);
 	pThis->NoCrew = true;
 	return 0;
 }
@@ -280,7 +284,7 @@ DEFINE_OVERRIDE_HOOK(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
 // even if it isn't, they build a possible infinite loop.
 DEFINE_OVERRIDE_HOOK(0x44A5F0, BuildingClass_Mi_Selling_EngineerFreeze, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(BuildingClass* const, pThis, EBP);
 	GET(InfantryTypeClass*, pType, ESI);
 	LEA_STACK(bool*, pEngineerSpawned, 0x13);
 
@@ -334,7 +338,7 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 // Added more conditions , especially for AI better to set is as Hunt
 DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
 {
-	GET(UnitClass*, pFreeUnit, EDI);
+	GET(UnitClass* const, pFreeUnit, EDI);
 
 	Mission nMissions = Mission::None;
 	if ((pFreeUnit->Type->Harvester || pFreeUnit->Type->Weeder)
@@ -359,21 +363,21 @@ DEFINE_OVERRIDE_HOOK(0x446E9F, BuildingClass_Place_FreeUnit_Mission, 0x6)
 // didn't capture the building yet.
 DEFINE_OVERRIDE_HOOK(0x4467D6, BuildingClass_Place_NeedsEngineer, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(BuildingClass* const, pThis, EBP);
 	R->AL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
 	return 0x4467DC;
 }
 
 DEFINE_OVERRIDE_HOOK(0x454BF7, BuildingClass_UpdatePowered_NeedsEngineer, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	R->CL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
 	return 0x454BFD;
 }
 
 DEFINE_OVERRIDE_HOOK(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	R->CL(pThis->Type->Powered || (pThis->Type->NeedsEngineer && !pThis->HasEngineer));
 	return 0x451A5A;
 }
@@ -385,15 +389,15 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x44656D, BuildingClass_Place_SuperWeaponAnimsB, 0x6, 
 // EMP'd power plants don't produce power
 DEFINE_OVERRIDE_HOOK(0x44E855, BuildingClass_PowerProduced_EMP, 0x6)
 {
-	GET(BuildingClass*, pBld, ESI);
+	GET(BuildingClass* const, pBld, ESI);
 	return ((pBld->EMPLockRemaining > 0) ? 0x44E873 : 0);
 }
 
 // removing hardcoded references to GAWALL and NAWALL as part of #709
 DEFINE_OVERRIDE_HOOK(0x440709, BuildingClass_Unlimbo_RemoveHarcodedWall, 0x6)
 {
-	GET(CellClass*, Cell, EDI);
-	int idxOverlay = Cell->OverlayTypeIndex;
+	GET(CellClass* const , Cell, EDI);
+	const int idxOverlay = Cell->OverlayTypeIndex;
 	return idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall ? 0x44071A : 0x440725;
 }
 
@@ -414,7 +418,7 @@ DEFINE_OVERRIDE_HOOK(0x45E416, BuildingTypeClass_CTOR_Initialize, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDisabled, 0x6)
 {
-	GET(BuildingClass*, pBld, ECX);
+	GET(BuildingClass* const, pBld, ECX);
 
 	// add the EMP check to the limbo check
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
@@ -444,8 +448,8 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 
 DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 {
-	GET(UnitClass*, Vehicle, EBP);
-	GET(BuildingClass*, Grinder, EBX);
+	GET(UnitClass* const, Vehicle, EBP);
+	GET(BuildingClass* const, Grinder, EBX);
 
 	// TODO : bring  ReverseEngineer in later
 	if (AresData::ReverseEngineer(Grinder, Vehicle->Type))
@@ -482,8 +486,8 @@ DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)
 
 DEFINE_OVERRIDE_HOOK(0x5198AD, InfantryClass_UpdatePosition_EnteredGrinder, 0x6)
 {
-	GET(InfantryClass*, Infantry, ESI);
-	GET(BuildingClass*, Grinder, EBX);
+	GET(InfantryClass* const, Infantry, ESI);
+	GET(BuildingClass* const, Grinder, EBX);
 
 	// TODO : bring  ReverseEngineer in later
 	if (AresData::ReverseEngineer(Grinder, Infantry->Type))
@@ -597,11 +601,12 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 		SkipAll = 0x51E458,
 	};
 
-	GET(BuildingClass*, pTarget, ESI);
-	GET(InfantryClass*, pThis, EDI);
-	BuildingTypeExt::ExtData* pData = BuildingTypeExt::ExtMap.Find(pTarget->Type);
+	GET(BuildingClass* const, pTarget, ESI);
+	GET(InfantryClass* const, pThis, EDI);
 
-	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith(pThis))
+	const auto pData = BuildingTypeExt::ExtMap.Find(pTarget->Type);
+
+	if ((pData->RubbleIntact || pData->RubbleIntactRemove) && pTarget->Owner->IsAlliedWith_(pThis))
 	{
 		AresData::SetMouseCursorAction(90u, Action::GRepair, false);
 		R->EAX(Action::GRepair);
@@ -613,17 +618,17 @@ DEFINE_OVERRIDE_HOOK(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFrien
 
 DEFINE_OVERRIDE_HOOK(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 {
-	GET(BuildingTypeClass*, pBuildingType, EBP);
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuildingType);
-	R->AL(pTypeExt->EngineerRepairable.Get(pBuildingType->Repairable));
+	GET(BuildingTypeClass* const , pBuildingType, EBP);
+	R->AL(BuildingTypeExt::ExtMap.Find(pBuildingType)
+		->EngineerRepairable.Get(pBuildingType->Repairable));
 	return 0x51FA88;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 {
-	GET(BuildingClass*, pBuilding, ESI);
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
-	R->CL(pTypeExt->EngineerRepairable.Get(pBuilding->Type->Repairable));
+	GET(BuildingClass* const, pBuilding, ESI);
+	R->CL(BuildingTypeExt::ExtMap.Find(pBuilding->Type)
+		->EngineerRepairable.Get(pBuilding->Type->Repairable));
 	return 0x51E4F3;
 }
 
@@ -646,7 +651,7 @@ DEFINE_OVERRIDE_HOOK(0x6D5A5C, TacticalClass_DrawPlacement_FireWall_IsLInkable, 
 DEFINE_OVERRIDE_HOOK(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	GET(ObjectClass*, pTarget, EDI);
+	GET(ObjectClass* const, pTarget, EDI);
 
 	if (const auto pBldObject = specific_cast<BuildingClass*>(pTarget))
 	{
@@ -1179,7 +1184,168 @@ struct AresBldExtStuffs
 
 		return true;
 	}
+
+	//static DWORD GetFirewallFlags(BuildingClass* pThis)
+	//{
+	//	auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
+	//	DWORD flags = 0;
+	//	for (size_t direction = 0; direction < 8; direction += 2)
+	//	{
+	//		auto pNeighbour = pCell->GetNeighbourCell(direction);
+	//		if (auto pBld = pNeighbour->GetBuilding())
+	//		{
+	//			if (pBld->Type->FirestormWall && pBld->Owner == pThis->Owner && !pBld->InLimbo && pBld->IsAlive)
+	//			{
+	//				flags |= 1 << (direction >> 1);
+	//			}
+	//		}
+	//	}
+	//	return flags;
+	//}
+
+	//static void UpdateFirewall(BuildingClass* pThis , bool const changedState)
+	//{
+	//	auto const active = pThis->Owner->FirestormActive;
+	//
+	//	if (!changedState)
+	//	{
+	//		// update only the idle anim
+	//		auto& Anim = pThis->GetAnim(BuildingAnimSlot::SpecialTwo);
+	//
+	//		// (0b0101 || 0b1010) == part of a straight line
+	//		auto const connections = pThis->FirestormWallFrame & 0xF;
+	//		if (active && Unsorted::CurrentFrame & 7 && !Anim
+	//			&& connections != 0b0101 && connections != 0b1010
+	//			&& (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
+	//		{
+	//			if (AnimTypeClass* pType = RulesExt::Global()->FirestormIdleAnim)
+	//			{
+	//				auto const crd = pThis->GetCoords() - CoordStruct { 740, 740, 0 };
+	//				Anim = GameCreate<AnimClass>(pType, crd, 0, 1, 0x604, -10);
+	//				Anim->IsBuildingAnim = true;
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// update the frame, cell passability and active anim
+	//		auto const idxFrame = AresBldExtStuffs::GetFirewallFlags(pThis)
+	//			+ (active ? 32u : 0u);
+	//
+	//		if (pThis->FirestormWallFrame != idxFrame)
+	//		{
+	//			pThis->FirestormWallFrame = idxFrame;
+	//			pThis->GetCell()->Setup(0xFFFFFFFF);
+	//			pThis->UpdatePlacement(PlacementType::Redraw);
+	//		}
+	//
+	//		auto& Anim = pThis->GetAnim(BuildingAnimSlot::Special);
+	//
+	//		auto const connections = idxFrame & 0xF;
+	//		if (active && connections != 0b0101 && connections != 0b1010 && !Anim)
+	//		{
+	//			if (auto const& pType = RulesExt::Global()->FirestormActiveAnim)
+	//			{
+	//				auto const crd = pThis->GetCoords() - CoordStruct { 128, 128, 0 };
+	//				Anim = GameCreate<AnimClass>(pType, crd, 1, 0, 0x600, -10);
+	//				Anim->IsFogged = pThis->IsFogged;
+	//				Anim->IsBuildingAnim = true;
+	//			}
+	//		}
+	//		else if (Anim)
+	//		{
+	//			Anim->UnInit();
+	//		}
+	//	}
+	//
+	//	if (active)
+	//	{
+	//		AresBldExtStuffs::ImmolateVictims(pThis);
+	//	}
+	//}
+
+	//static void UpdateFirewallLinks(BuildingClass* pThis)
+	//{
+	//	if (pThis->Type->FirestormWall)
+	//	{
+	//		// update this
+	//		if (!pThis->InLimbo && pThis->IsAlive)
+	//		{
+	//			AresBldExtStuffs::UpdateFirewall(pThis , true);
+	//		}
+	//
+	//		// and all surrounding buildings
+	//		auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
+	//		for (auto i = 0u; i < 8; i += 2)
+	//		{
+	//			auto const pNeighbour = pCell->GetNeighbourCell(i);
+	//			if (auto const pBld = pNeighbour->GetBuilding())
+	//			{
+	//				AresBldExtStuffs::UpdateFirewall(pBld, true);
+	//			}
+	//		}
+	//	}
+	//}
+
+	//static void ImmolateVictims(BuildingClass* pThis)
+	//{
+	//	auto const pCell = pThis->GetCell();
+	//	for (NextObject object(pCell->FirstObject); object; ++object)
+	//	{
+	//		if (auto pFoot = abstract_cast<FootClass*>(*object))
+	//		{
+	//			if (!pFoot->GetType()->IgnoresFirestorm)
+	//			{
+	//				AresBldExtStuffs::ImmolateVictim(pThis , pFoot , true);
+	//			}
+	//		}
+	//	}
+	//}
+
+	//static bool ImmolateVictim(BuildingClass* pThis ,ObjectClass* const pVictim, bool const destroy)
+	//{
+	//	if (pVictim && pVictim->Health > 0)
+	//	{
+	//		const auto pRulesExt = RulesExt::Global();
+	//
+	//		if (destroy)
+	//		{
+	//			auto const pWarhead = pRulesExt->FirestormWarhead.Get(RulesClass::Instance->C4Warhead);
+	//
+	//			auto damage = pVictim->Health;
+	//			pVictim->ReceiveDamage(&damage, 0, pWarhead, nullptr, true, true,
+	//				pThis->Owner);
+	//		}
+	//
+	//		const auto pType = ((pVictim->GetHeight() < 100)
+	//			? pRulesExt->FirestormGroundAnim
+	//			: pRulesExt->FirestormAirAnim).Get();
+	//
+	//		if (pType)
+	//		{
+	//			auto const crd = pVictim->GetCoords();
+	//			GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, -10, false);
+	//		}
+	//
+	//		return true;
+	//	}
+	//
+	//	return false;
+	//}
+
 };
+
+// Fixing this wont change anything unless i change 
+// everything that reference this function , for fuck sake
+//DEFINE_OVERRIDE_HOOK(0x4440378, BuildingClass_Update_FirestormWall, 6)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//
+//	if(Is_FirestromWall(pThis->Type))
+//		AresBldExtStuffs::UpdateFirewall(pThis , false);
+//
+//	return 0;
+//}
 
 /* #633 - spy building infiltration */
 // wrapper around the entire function
@@ -1210,8 +1376,8 @@ DEFINE_OVERRIDE_HOOK(0x519FF8, InfantryClass_UpdatePosition_Saboteur, 6)
 
 	if (nResult == Action::Move) // this one will Infiltrate instead
 	{
-		auto const pHouse = pThis->Owner;
-		if (!pThis->Type->Agent || pHouse->IsAlliedWith(pBuilding))
+		const auto pHouse = pThis->Owner;
+		if (!pThis->Type->Agent || pHouse->IsAlliedWith_(pBuilding))
 			return SkipInfiltrate;
 
 		pBuilding->Infiltrate(pHouse);
@@ -1281,10 +1447,10 @@ namespace Get
 
 DEFINE_OVERRIDE_HOOK(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing, 5)
 {
-	GET(UnitClass*, pUnit, ESI);
-	GET(DirStruct*, nCurrentFacing, EAX);
+	GET(UnitClass* const, pUnit, ESI);
+	GET(DirStruct* const, nCurrentFacing, EAX);
 
-	auto nDecidedFacing = Get::UnloadFacing(pUnit);
+	const auto nDecidedFacing = Get::UnloadFacing(pUnit);
 
 	if (*nCurrentFacing == nDecidedFacing)
 		return 0x73771B;
@@ -1296,10 +1462,10 @@ DEFINE_OVERRIDE_HOOK(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing,
 
 DEFINE_OVERRIDE_HOOK(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
 {
-	GET(UnitClass*, pUnit, ESI);
-	GET(DirStruct*, nCurrentFacing, EAX);
+	GET(UnitClass* const , pUnit, ESI);
+	GET(DirStruct* const , nCurrentFacing, EAX);
 
-	auto nDecidedFacing = Get::UnloadFacing(pUnit);
+	const auto nDecidedFacing = Get::UnloadFacing(pUnit);
 
 	if (*nCurrentFacing == nDecidedFacing || pUnit->IsRotating)
 		return 0x73DFBD;
@@ -1311,10 +1477,10 @@ DEFINE_OVERRIDE_HOOK(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
 
 DEFINE_OVERRIDE_HOOK(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell, 7)
 {
-	GET(CellStruct*, pCell, EAX);
-	GET(BuildingClass*, pThis, ESI);
+	GET(CellStruct* const, pCell, EAX);
+	GET(BuildingClass* const, pThis, ESI);
 
-	auto nBuff = Get::UnloadCell(pThis);
+	const auto nBuff = Get::UnloadCell(pThis);
 	R->DX(pCell->X + nBuff.X);
 	R->AX(pCell->Y + nBuff.Y);
 
@@ -1323,28 +1489,28 @@ DEFINE_OVERRIDE_HOOK(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell
 
 DEFINE_OVERRIDE_HOOK(0x73E013, UnitClass_Mi_Unload_DockUnloadCell1, 6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x73E05F;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73E17F, UnitClass_Mi_Unload_DockUnloadCell2, 6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x73E1CB;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73E2BF, UnitClass_Mi_Unload_DockUnloadCell3, 6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x73E30B;
 }
 
 DEFINE_OVERRIDE_HOOK(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 {
-	GET(UnitClass*, pThis, EBP);
+	GET(UnitClass* const, pThis, EBP);
 	R->EAX(Get::BuildingUnload(pThis));
 	return 0x741C28;
 }
@@ -1717,12 +1883,12 @@ DEFINE_OVERRIDE_HOOK(0x73F7B0, UnitClass_IsCellOccupied, 6)
 // take care they don't show up for the original game
 DEFINE_OVERRIDE_HOOK(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 
 	bool showTiberium = true;
 	if (Is_Building(pThis))
 	{
-		const auto pBld = static_cast<BuildingClass*>(pThis);
+		const auto pBld = static_cast<BuildingClass* const>(pThis);
 		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
 		{
 			// show only if this refinery uses storage. otherwise, the original

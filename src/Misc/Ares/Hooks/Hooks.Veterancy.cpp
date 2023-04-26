@@ -56,7 +56,7 @@ struct TechnoExperienceData
 			return false;
 
 		const auto pTTransporterData = TechnoTypeExt::ExtMap.Find(pTransporter->GetTechnoType());
-		const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith(pKiller);
+		const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith_(pKiller);
 
 		if (pKiller->InOpenToppedTransport)
 		{
@@ -108,7 +108,7 @@ struct TechnoExperienceData
 		// mind-controllers get experience, too.
 		if (auto pController = pExpReceiver->MindControlledBy)
 		{
-			if (!pController->Owner->IsAlliedWith(pVictim->Owner))
+			if (!pController->Owner->IsAlliedWith_(pVictim->Owner))
 			{
 
 				// get the mind controllers extended properties
@@ -229,7 +229,7 @@ struct TechnoExperienceData
 		{
 			// no way to get experience by proxy by an enemy unit. you cannot
 			// promote your mind-controller by capturing friendly units.
-			if (pExpReceiver->Owner->IsAlliedWith(pKiller))
+			if (pExpReceiver->Owner->IsAlliedWith_(pKiller))
 			{
 
 				// if this is a non-missile spawn, handle the spawn manually and switch over to the

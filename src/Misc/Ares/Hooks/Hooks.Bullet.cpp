@@ -21,7 +21,7 @@
 
 DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 {
-	GET(TechnoClass*, Target, ECX);
+	GET(TechnoClass* const, Target, ECX);
 
 	switch (Target->InWhichLayer())
 	{
@@ -38,14 +38,14 @@ DEFINE_OVERRIDE_HOOK(0x469467, BulletClass_DetonateAt_CanTemporalTarget, 0x5)
 // there is a valid tag. this is the only faulty call of this kind.
 DEFINE_OVERRIDE_HOOK(0x4692A2, BulletClass_DetonateAt_RaiseAttackedByHouse, 0x6)
 {
-	GET(ObjectClass*, pVictim, EDI);
+	GET(ObjectClass* const, pVictim, EDI);
 	return pVictim->AttachedTag ? 0 : 0x4692BD;
 }
 
 // Overpowerer no longer just infantry
 DEFINE_OVERRIDE_HOOK(0x4693B0, BulletClass_DetonateAt_Overpower, 0x6)
 {
-	GET(TechnoClass*, pT, ECX);
+	GET(TechnoClass* const, pT, ECX);
 	switch (GetVtableAddr(pT))
 	{
 	case InfantryClass::vtable:
@@ -137,7 +137,7 @@ bool AresTrajectoryHelper::IsWallHit(
 			{
 				auto const& index = pCheck->WallOwnerIndex;
 				return !RulesClass::Instance->AlliedWallTransparency
-					|| !HouseClass::Array->Items[index]->IsAlliedWith(pOwner);
+					|| !HouseClass::Array->Items[index]->IsAlliedWith_(pOwner);
 			}
 		}
 	}
@@ -162,7 +162,7 @@ bool AresTrajectoryHelper::IsBuildingHit(
 
 		// does the building let allies through?
 		auto const isTransparent = RulesExt::Global()->AlliedSolidTransparency
-			&& pBld->Owner->IsAlliedWith(pOwner);
+			&& pBld->Owner->IsAlliedWith_(pOwner);
 
 		if (isTransparent)
 		{
@@ -297,7 +297,7 @@ CellClass* AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 		else if (auto const pBld = pCell->GetBuilding())
 		{
 			// only willingfully fire through enemy buildings
-			if (!pOwner->IsAlliedWith(pBld))
+			if (!pOwner->IsAlliedWith_(pBld))
 			{
 				auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBld->Type);
 
@@ -324,9 +324,9 @@ DEFINE_OVERRIDE_HOOK(0x4CC360, TrajectoryHelper_GetObstacle, 5)
 	GET_STACK(BulletTypeClass* const, pType, 0x14);
 	GET_STACK(HouseClass const* const, pOwner, 0x18);
 
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
-	auto const ret = AresTrajectoryHelper::GetObstacle(
+	const auto ret = AresTrajectoryHelper::GetObstacle(
 		pCellSource, pCellTarget, nullptr, nullptr, pCellBullet, crdCur, pType,
 		pTypeExt, pOwner);
 
@@ -341,9 +341,9 @@ DEFINE_OVERRIDE_HOOK(0x4CC100, TrajectoryHelper_FindFirstObstacle, 7)
 	GET_STACK(BulletTypeClass* const, pType, 0x4);
 	GET_STACK(HouseClass* const, pOwner, 0x8);
 
-	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType);
+	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
-	auto const ret = AresTrajectoryHelper::FindFirstObstacle(
+	const auto ret = AresTrajectoryHelper::FindFirstObstacle(
 		*pSource, *pTarget, nullptr, nullptr, pType, pTypeExt, pOwner);
 
 	R->EAX(ret);
@@ -357,7 +357,7 @@ DEFINE_OVERRIDE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5
 	GET_STACK(WeaponTypeClass const* const, pWeapon, 0x4);
 	GET_STACK(HouseClass* const, pOwner, 0x8);
 
-	auto const ret = AresTrajectoryHelper::FindFirstImpenetrableObstacle(
+	const auto ret = AresTrajectoryHelper::FindFirstImpenetrableObstacle(
 		*pSource, *pTarget, nullptr, nullptr, pWeapon, pOwner);
 
 	R->EAX(ret);
@@ -366,19 +366,14 @@ DEFINE_OVERRIDE_HOOK(0x4CC310, TrajectoryHelper_FindFirstImpenetrableObstacle, 5
 
 DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 {
-	GET(BulletTypeClass*, pType, EAX);
+	GET(BulletTypeClass* const, pType, EAX);
 
 	if (!pType)
 		return 0x0;
 
 	const auto pTypeExt = BulletTypeExt::ExtMap.Find(pType);
 
-	if (auto pConvert = pTypeExt->GetBulletConvert()) {
-		if(VTable::Get(pConvert) != ConvertClass::vtable) {
-			Debug::Log("Bullet[%s - 0x%x] Wrong BulletConvert From [%s - 0x%x]\n", pType->ID, pType , pType->ImageFile , pConvert);
-			return 0x0;
-		}
-
+	if (const auto pConvert = pTypeExt->GetBulletConvert()) {
 		R->EBX(pConvert);
 		return 0x4683D7;
 	}

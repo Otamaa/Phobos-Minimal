@@ -2,7 +2,7 @@
 
 DEFINE_OVERRIDE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 {
-	GET(AircraftClass*, pThis, ESI);
+	GET(AircraftClass* const, pThis, ESI);
 
 	if (pThis->Deactivated) {
 		R->EAX(Action::None);
@@ -14,7 +14,7 @@ DEFINE_OVERRIDE_HOOK(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x4D7D58, FootClass_ActionOnCell_Deactivated, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 	return (pThis->Deactivated)
 		? 0x4D7D62
 		: 0
@@ -23,14 +23,14 @@ DEFINE_OVERRIDE_HOOK(0x4D7D58, FootClass_ActionOnCell_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x4436F7, BuildingClass_ActionOnCell_Deactivated, 0x5)
 {
-	GET(BuildingClass*, pThis, ECX);
+	GET(BuildingClass* const, pThis, ECX);
 	return (pThis->Deactivated)
 		? 0x443729 : 0 ;
 }
 
 DEFINE_OVERRIDE_HOOK(0x447548, BuildingClass_GetActionOnCell_Deactivated, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 
 	if (pThis->Deactivated) {
 		R->EBX(Action::None);
@@ -42,8 +42,8 @@ DEFINE_OVERRIDE_HOOK(0x447548, BuildingClass_GetActionOnCell_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x4D74EC, FootClass_ActionOnObject_Deactivated, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
-	GET_STACK(Action, nAction, 0x10C);
+	GET(FootClass* const, pThis, ESI);
+	GET_STACK(Action const, nAction, 0x10C);
 
 	return (nAction != Action::Detonate && (pThis->Deactivated || pThis->Berzerk))
 		? 0x4D77EC
@@ -53,7 +53,7 @@ DEFINE_OVERRIDE_HOOK(0x4D74EC, FootClass_ActionOnObject_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
 {
-	GET(InfantryClass*, pThis, EDI);
+	GET(InfantryClass* const, pThis, EDI);
 	if (pThis->Deactivated)
 	{
 		R->EBX(Action::None);
@@ -64,7 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass* const, pThis, ESI);
 	return (pThis->Deactivated)
 		? 0x51D6E6
 		: 0
@@ -73,7 +73,7 @@ DEFINE_OVERRIDE_HOOK(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 	if (pThis->Deactivated) {
 		R->EAX(Action::None);
 		return 0x740805;
@@ -83,7 +83,7 @@ DEFINE_OVERRIDE_HOOK(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 
 DEFINE_OVERRIDE_HOOK(0x5200B3, InfantryClass_UpdatePanic_Deactivated, 6)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass* const, pThis, ESI);
 	if (pThis->Deactivated) {
 		if (pThis->PanicDurationLeft > 0) {
 			--pThis->PanicDurationLeft;

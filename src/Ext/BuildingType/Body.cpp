@@ -460,7 +460,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			vectors are far simpler to use in this situation.
 		*/
 		const auto it = std::find_if(trenchKinds.begin(), trenchKinds.end(), [](auto const& pItem)
-		{ return pItem == Phobos::readBuffer; });
+						{ return pItem == Phobos::readBuffer; });
 		this->IsTrench = std::distance(trenchKinds.begin(), it);
 		if (it == trenchKinds.end())
 		{

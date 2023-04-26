@@ -58,7 +58,7 @@ namespace Funcs
 	{
 		if (pThis == pThat && ObjectClass::CurrentObjects->Count == 1)
 		{
-			if (auto const pBomb = pThis->AttachedBomb)
+			if (const auto pBomb = pThis->AttachedBomb)
 			{
 				if (pBomb->OwnerHouse->ControlledByPlayer())
 				{
@@ -88,7 +88,7 @@ namespace Funcs
 
 			if (pThat->AbstractFlags & AbstractFlags::Techno)
 			{
-				if (pThis->Owner->IsAlliedWith(pThat) && pThat->IsSelectable())
+				if (pThis->Owner->IsAlliedWith_(pThat) && pThat->IsSelectable())
 				{
 					return Action::Select;
 				}
@@ -99,10 +99,7 @@ namespace Funcs
 	}
 };
 
-DEFINE_OVERRIDE_HOOK(0x438FD7, BombListClass_Plant_AttachSound, 7)
-{
-	return 0x439022;
-}
+DEFINE_OVERRIDE_SKIP_HOOK(0x438FD7 , BombListClass_Plant_AttachSound, 7 , 439022);
 
 DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 {
@@ -117,13 +114,13 @@ DEFINE_OVERRIDE_HOOK(0x438A00, BombClass_GetCurrentFrame, 6)
 		if (pThis->Type == BombType::NormalBomb)
 		{
 			// -1 so that last iteration has room to flicker. order is important
-			int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
-			int lifetime = (Unsorted::CurrentFrame - pThis->PlantingFrame);
+			const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
+			const int lifetime = (Unsorted::CurrentFrame - pThis->PlantingFrame);
 			frame = lifetime / (delay / (pSHP->Frames - 1));
 
 			// flicker over a time period
-			int rate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
-			int period = 2 * rate;
+			const int rate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
+			const int period = 2 * rate;
 			if (Unsorted::CurrentFrame % period >= rate)
 			{
 				++frame;
@@ -167,22 +164,30 @@ DEFINE_OVERRIDE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 
 // 6FCBAD, 6
 // custom ivan bomb disarm 1
-DEFINE_OVERRIDE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb, 6)
+DEFINE_HOOK(0x6FCB8D , TechnoClass_GetObjectActivityState_IvanBomb, 6)
 {
-	GET(TechnoClass*, Target, EBP);
-	GET(WarheadTypeClass*, Warhead, EDI);
+	enum { ContinueCheck = 0x6FCBCD , ReturnFireIllegal = 0x6FCBBE };
 
-	if(!Warhead->BombDisarm || !Target->AttachedBomb)
-		return 0x0;
+	GET(TechnoClass* const, pTarget, EBP);
+	GET(WarheadTypeClass* const, pWarhead, EDI);
 
-	return !BombExt::ExtMap.Find(Target->AttachedBomb)
-		->Weapon->Ivan_Detachable ? 0x6FCBBE : 0x0;
+	if(pWarhead->BombDisarm && pTarget->AttachedBomb) {
+		if(!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable) {
+			return ReturnFireIllegal;
+		}
+	}
+
+	if(pWarhead->IvanBomb && pTarget->AttachedBomb) {
+		return ReturnFireIllegal;
+	}
+
+	return ContinueCheck;
 }
 
 // 51E488, 5
 DEFINE_OVERRIDE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 {
-	GET(TechnoClass*, Target, ESI);
+	GET(TechnoClass* const, Target, ESI);
 	return !BombExt::ExtMap.Find(Target->AttachedBomb)
 			->Weapon->Ivan_Detachable
 		? 0x51E49E : 0x0;
@@ -223,7 +228,7 @@ DEFINE_JUMP(VTABLE, 0x7E3D4C, GET_OFFSET(BombExt::GetOwningHouse));
 //new
 DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const , pThis, EBP);
 	GET(CoordStruct*, pCoordBuffA, ECX);
 	R->EAX(pThis->GetCenterCoords(pCoordBuffA));
 	return 0x6F5201;
@@ -233,14 +238,14 @@ DEFINE_HOOK(0x6F51F8, TechnoClass_DrawExtras_IvanBombImage_Pos, 0x9)
 // custom ivan bomb detonation 3
 DEFINE_OVERRIDE_HOOK(0x438879, BombClass_Detonate_CanKillBridge, 6)
 {
-	GET(BombClass*, Bomb, ESI);
-	return  BombExt::ExtMap.Find(Bomb)->Weapon->Ivan_KillsBridges
+	GET(BombClass* const, Bomb, ESI);
+	return BombExt::ExtMap.Find(Bomb)->Weapon->Ivan_KillsBridges
 		? 0 : 0x438989;
 }
 
 DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 {
-	GET(BulletClass*, pBullet, ESI);
+	GET(BulletClass* const, pBullet, ESI);
 
 	if (!pBullet->Owner || 
 		(!(pBullet->Owner->AbstractFlags & AbstractFlags::Techno)))
@@ -282,10 +287,11 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 // deglobalized manual detonation settings
 DEFINE_OVERRIDE_HOOK(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
 {
-	GET(TechnoClass*, pThis, EDI);
+	GET(TechnoClass* const, pThis, EDI);
+
 	const auto pExt = BombExt::ExtMap.Find(pThis->AttachedBomb);
 
-	const bool canDetonate = (pExt->Get()->Type == BombType::NormalBomb)
+	const bool canDetonate = (pThis->AttachedBomb->Type == BombType::NormalBomb)
 		? pExt->Weapon->Ivan_CanDetonateTimeBomb.Get(RulesClass::Instance->CanDetonateTimeBomb)
 		: pExt->Weapon->Ivan_CanDetonateDeathBomb.Get(RulesClass::Instance->CanDetonateDeathBomb);
 
@@ -294,7 +300,7 @@ DEFINE_OVERRIDE_HOOK(0x6FFFB1, TechnoClass_GetCursorOverObject_IvanBombs, 8)
 
 DEFINE_OVERRIDE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(ObjectClass*, pThat, 0x1C);
 
 	if (pThis->Deactivated) {
@@ -307,7 +313,7 @@ DEFINE_OVERRIDE_HOOK(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 
 DEFINE_OVERRIDE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 {
-	GET(UnitClass*, pThis, ECX);
+	GET(UnitClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
 
 	if (pThis->Deactivated) {
@@ -320,7 +326,7 @@ DEFINE_OVERRIDE_HOOK(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 
 DEFINE_OVERRIDE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 {
-	GET(InfantryClass*, pThis, EDI);
+	GET(InfantryClass* const, pThis, EDI);
 	GET_STACK(ObjectClass*, pThat, 0x3C);
 
 	if (pThis->Deactivated) {
@@ -333,7 +339,7 @@ DEFINE_OVERRIDE_HOOK(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 
 DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 {
-	GET(AircraftClass*, pThis, ECX);
+	GET(AircraftClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
 
 	if (pThis->Deactivated) {
@@ -346,7 +352,7 @@ DEFINE_OVERRIDE_HOOK(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
 
 DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 {
-	GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
 
 	if (Funcs::CanDetonate(pThis, pObject)) {
@@ -359,12 +365,11 @@ DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 
 DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 {
-	GET(BuildingClass*, pStructure, ESI);
+	GET(BuildingClass* const, pStructure, ESI);
 
-	if(pStructure->AttachedBomb){
-		if (BombExt::ExtMap.Find(pStructure->AttachedBomb)->
-			Weapon->Ivan_DetonateOnSell.Get())
-			pStructure->AttachedBomb->Detonate();
+	if(const auto pBomb = pStructure->AttachedBomb){
+		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
+			pBomb->Detonate();
 	}
 
 	return 0;
@@ -372,13 +377,11 @@ DEFINE_OVERRIDE_HOOK(0x4471D5, BuildingClass_Sell_DetonateNoBuildup, 6)
 
 DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 {
-	GET(BuildingClass*, pStructure, EBP);
+	GET(BuildingClass* const, pStructure, EBP);
 
-	if (pStructure->AttachedBomb)
-	{
-		if (BombExt::ExtMap.Find(pStructure->AttachedBomb)
-			->Weapon->Ivan_DetonateOnSell.Get())
-			pStructure->AttachedBomb->Detonate();
+	if (const auto pBomb = pStructure->AttachedBomb) {
+		if (BombExt::ExtMap.Find(pBomb) ->Weapon->Ivan_DetonateOnSell.Get())
+			pBomb->Detonate();
 	}
 
 	return 0;
@@ -386,13 +389,11 @@ DEFINE_OVERRIDE_HOOK(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
 
 DEFINE_OVERRIDE_HOOK(0x4D9F7B, FootClass_Sell_Detonate, 6)
 {
-	GET(FootClass*, pSellee, ESI);
+	GET(FootClass* const, pSellee, ESI);
 
-	if (pSellee->AttachedBomb)
-	{
-		if (BombExt::ExtMap.Find(pSellee->AttachedBomb)
-			->Weapon->Ivan_DetonateOnSell.Get())
-			pSellee->AttachedBomb->Detonate();
+	if (const auto pBomb = pSellee->AttachedBomb) {
+		if (BombExt::ExtMap.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
+			pBomb->Detonate();
 	}
 
 	return 0;

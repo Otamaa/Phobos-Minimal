@@ -32,7 +32,7 @@ DEFINE_HOOK(0x777C41, UI_ApplyAppIcon, 0x9)
 
 DEFINE_HOOK(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
 {
-	GET(bool, esi, ESI);
+	GET(bool const, esi, ESI);
 	return(Phobos::UI::DisableEmptySpawnPositions || !esi) ? 0x640CE2: 0x640B93;
 }
 
@@ -72,31 +72,31 @@ DEFINE_HOOK(0x641EE0, PreviewClass_ReadPreview, 0x6)
 
 DEFINE_HOOK(0x4A25E0, CreditsClass_GraphicLogic_Additionals , 0x7)
 {
-	auto const pPlayer = HouseClass::CurrentPlayer();
+	const auto pPlayer = HouseClass::CurrentPlayer();
 	if (HouseExt::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
 		return 0x0;
 
-	auto const pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
+	const auto pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
 
 	if (!pSide)
 		return 0x0;
 
 	//GET(CreditClass*, pThis, EBP);
 
-	auto const pSideExt = SideExt::ExtMap.Find(pSide);
+	const auto pSideExt = SideExt::ExtMap.Find(pSide);
 	wchar_t counter[0x20];
 
 	if (Phobos::UI::ShowHarvesterCounter)
 	{	
-		auto const nActive = HouseExt::ActiveHarvesterCount(pPlayer);
-		auto const nTotal = HouseExt::TotalHarvesterCount(pPlayer);
-		auto const nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
+		const auto nActive = HouseExt::ActiveHarvesterCount(pPlayer);
+		const auto nTotal = HouseExt::TotalHarvesterCount(pPlayer);
+		const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
-		ColorStruct const clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
+		const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
 			? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 			? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-			swprintf_s(counter, L"%ls%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		swprintf_s(counter, L"%ls%d/%d", Phobos::UI::HarvesterLabel, nActive, nTotal);
 
 		Point2D vPos {
 			DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -177,12 +177,12 @@ DEFINE_HOOK(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 0x5)
 		rFalse_ = 0x6A8468
 	};
 
-	GET_STACK(TechnoTypeClass*, pLeft, STACK_OFFS(0x1C, 0x8));
-	GET_STACK(TechnoTypeClass*, pRight, STACK_OFFS(0x1C, 0x4));
-	GET_STACK(int, idxLeft, STACK_OFFS(0x1C, -0x8));
-	GET_STACK(int, idxRight, STACK_OFFS(0x1C, -0x10));
-	GET_STACK(AbstractType, rttiLeft, STACK_OFFS(0x1C, -0x4));
-	GET_STACK(AbstractType, rttiRight, STACK_OFFS(0x1C, -0xC));
+	GET_STACK(TechnoTypeClass* const, pLeft, STACK_OFFS(0x1C, 0x8));
+	GET_STACK(TechnoTypeClass* const, pRight, STACK_OFFS(0x1C, 0x4));
+	GET_STACK(int const, idxLeft, STACK_OFFS(0x1C, -0x8));
+	GET_STACK(int const, idxRight, STACK_OFFS(0x1C, -0x10));
+	GET_STACK(AbstractType const, rttiLeft, STACK_OFFS(0x1C, -0x4));
+	GET_STACK(AbstractType const, rttiRight, STACK_OFFS(0x1C, -0xC));
 
 	const auto pLeftTechnoExt = TechnoTypeExt::ExtMap.TryFind(pLeft);
 	const auto pRightTechnoExt = TechnoTypeExt::ExtMap.TryFind(pRight);

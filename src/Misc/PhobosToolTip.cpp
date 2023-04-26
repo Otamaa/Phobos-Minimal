@@ -88,7 +88,7 @@ inline int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 
 inline int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 {
-	if (auto const pBldType = type_cast<BuildingTypeClass*>(pType))
+	if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))
 		return pBldType->PowerBonus - pBldType->PowerDrain;
 
 	return 0;
@@ -112,14 +112,14 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (!pType)
 		return;
 
-	auto const pData = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pData = TechnoTypeExt::ExtMap.Find(pType);
 
-	int nBuildTime = this->GetBuildTime(pType);
-	int nSec = TickTimeToSeconds(nBuildTime) % 60;
-	int nMin = TickTimeToSeconds(nBuildTime) / 60 /* % 60*/;
+	const int nBuildTime = this->GetBuildTime(pType);
+	const int nSec = TickTimeToSeconds(nBuildTime) % 60;
+	const int nMin = TickTimeToSeconds(nBuildTime) / 60 /* % 60*/;
 	// int nHour = TickTimeToSeconds(nBuildTime) / 60 / 60;
 
-	int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
+	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
 
 	std::wostringstream oss;
 	oss << pType->UIName << L"\n"
@@ -162,13 +162,13 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 
 void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 {
-	auto const pData = SWTypeExt::ExtMap.Find(pType);
+	const auto pData = SWTypeExt::ExtMap.Find(pType);
 
 	std::wostringstream oss;
 	oss << pType->UIName;
 	bool showCost = false;
 
-	if (int nCost = std::abs(pData->Money_Amount))
+	if (const int nCost = std::abs(pData->Money_Amount))
 	{
 		oss << L"\n";
 
@@ -184,8 +184,8 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 		if (!showCost)
 			oss << L"\n";
 
-		int nSec = TickTimeToSeconds(pType->RechargeTime) % 60;
-		int nMin = TickTimeToSeconds(pType->RechargeTime) / 60 /* % 60*/;
+		const int nSec = TickTimeToSeconds(pType->RechargeTime) % 60;
+		const int nMin = TickTimeToSeconds(pType->RechargeTime) / 60 /* % 60*/;
 		// int nHour = TickTimeToSeconds(pType->RechargeTime) / 60 / 60;
 
 		oss << (showCost ? L" " : L"") << Phobos::UI::TimeLabel
@@ -201,7 +201,6 @@ void PhobosToolTip::HelpText(SuperWeaponTypeClass* pType)
 }
 
 // Hooks
-
 DEFINE_HOOK(0x6A9316, SidebarClass_StripClass_HelpText, 0x6)
 {
 	PhobosToolTip::Instance.IsCameo = true;
@@ -286,7 +285,7 @@ DEFINE_HOOK(0x478F77, CCToolTip_Draw2_SetY, 0x6)
 	{
 		LEA_STACK(RectangleStruct*, Rect, STACK_OFFS(0x3C, 0x20));
 
-		int const maxHeight = DSurface::ViewBounds->Height - 32;
+		const int maxHeight = DSurface::ViewBounds->Height - 32;
 
 		if (Rect->Height > maxHeight)
 			Rect->Y += maxHeight - Rect->Height;
@@ -374,7 +373,7 @@ DEFINE_HOOK(0x479029, CCToolTip_Draw2_SetPadding, 0x5)
 	return 0;
 }
 
-void __declspec(naked) _CCToolTip_Draw2_FillRect_RET()
+void NAKED _CCToolTip_Draw2_FillRect_RET()
 {
 	ADD_ESP(8); // We need to handle origin two push here...
 	JMP(0x478FE1);
@@ -390,9 +389,9 @@ DEFINE_HOOK(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 		// Should we make some SideExt items as static to improve the effeciency?
 		// Though it might not be a big improvement... - secsome
 		const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
-		if (auto const pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
+		if (const auto pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
 		{
-			if (auto const pData = SideExt::ExtMap.Find(pSide))
+			if (const auto pData = SideExt::ExtMap.Find(pSide))
 			{
 				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 

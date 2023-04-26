@@ -307,37 +307,34 @@ namespace Funcs
 			return;
 
 		const auto pOwner = pTunnel->Owner;
-		const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(), [pTunnel](BuildingClass* pBld)
-{
+		const auto It = std::find_if_not(pOwner->Buildings.begin(), pOwner->Buildings.end(),
+		[pTunnel](BuildingClass* pBld) {
 
-	if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-	{
-		const auto nCurMission = pBld->CurrentMission;
-		if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
-		{
-			const auto pThatExt = DummyBuildingTypeExt::Get(pBld->Type);
-			const auto pThisExt = DummyBuildingTypeExt::Get(pTunnel->Type);
-			if (pThatExt->TunnelType == pThisExt->TunnelType)
-			{
-				return false;
+			if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap) {
+				const auto nCurMission = pBld->CurrentMission;
+				if (nCurMission != Mission::Construction && nCurMission != Mission::Selling && pTunnel != pBld)
+				{
+					const auto pThatExt = DummyBuildingTypeExt::Get(pBld->Type);
+					const auto pThisExt = DummyBuildingTypeExt::Get(pTunnel->Type);
+					if (pThatExt->TunnelType == pThisExt->TunnelType)
+					{
+						return false;
+					}
+				}
 			}
-		}
-	}
 
-	return true;
+			return true;
 		});
 
 
 		if (It != pOwner->Buildings.end())
 		{
-			std::for_each(pTunnelData->begin(), pTunnelData->end(), [=](FootClass* pFoot)
- {
+			std::for_each(pTunnelData->begin(), pTunnelData->end(), [=](FootClass* pFoot) {
+	 			if (auto pTeam = pFoot->Team)
+		 			pTeam->RemoveMember(pFoot);
 
-	 if (auto pTeam = pFoot->Team)
-		 pTeam->RemoveMember(pFoot);
-
-	 pFoot->RegisterDestruction(pKiller);
-	 pFoot->UnInit();
+	 			pFoot->RegisterDestruction(pKiller);
+				pFoot->UnInit();
 			});
 		}
 	}

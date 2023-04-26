@@ -8,6 +8,7 @@
 #include <EvadeClass.h>
 
 #include <GameStrings.h>
+#include <Utilities/Constructs.h>
 
 namespace RetryDialogFlag
 {
@@ -39,16 +40,18 @@ DEFINE_HOOK(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 			return Cancel;
 
 		case WWMessageBox::Result::Button2:
+		{
 			auto pDialog = GameCreate<LoadOptionsClass>();
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
 			const bool bIsAboutToLoad = pDialog->LoadDialog();
 			RetryDialogFlag::IsCalledFromRetryDialog = false;
-			GameDelete<true>(pDialog);
+			GameDelete<true , false>(pDialog);
 
 			if (!bIsAboutToLoad)
 				continue;
 
 			ThemeClass::Instance->Stop();
+		}
 			break;
 		}
 

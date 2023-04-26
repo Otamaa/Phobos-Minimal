@@ -24,7 +24,7 @@
 #pragma region Funcs
 int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	auto const pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
 	for (int i = pExt->Ammo; i > 0; --i)
 		pThis->DecreaseAmmo();
@@ -34,8 +34,8 @@ int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 
 void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (GetAmmo(pThis, pWeapon) > 0) {
 		if (!Is_Aircraft(pThis)) {
@@ -51,7 +51,7 @@ void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 		}
 
 		if (Is_Building(pThis)) {
-			auto const Ammo = reinterpret_cast<BuildingClass*>(pThis)->Type->Ammo;
+			const auto Ammo = reinterpret_cast<BuildingClass*>(pThis)->Type->Ammo;
 			if (Ammo > 0 && pThis->Ammo < Ammo)
 				pThis->StartReloading();
 		}
@@ -65,7 +65,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
-	
+
 	const auto nAmmo = pThis->Ammo;
 	if (nAmmo < 0)
 		return Continue;
@@ -127,9 +127,9 @@ DEFINE_OVERRIDE_HOOK(0x51DF8C, InfantryClass_Fire_Ammo, 6)
 // variable amounts of rounds to reload
 DEFINE_OVERRIDE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 {
-	GET(TechnoClass* const, pThis, ESI);
-	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pType);
+	GET(TechnoClass*, pThis, ESI);
+	const auto pType = pThis->GetTechnoType();
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	int amount = pExt->ReloadAmount;
 	if (!pThis->Ammo)
@@ -138,8 +138,7 @@ DEFINE_OVERRIDE_HOOK(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 	}
 
 	// clamping to support negative values
-	auto const ammo = pThis->Ammo + amount;
-	pThis->Ammo = std::clamp(ammo, 0, pType->Ammo);
+	pThis->Ammo = std::clamp((pThis->Ammo + amount), 0, pType->Ammo);
 
 	return 0x6FB061;
 }

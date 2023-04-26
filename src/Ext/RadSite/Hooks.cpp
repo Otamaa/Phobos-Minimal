@@ -62,7 +62,7 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 
 			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
 			auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
-		
+
 			[=](auto const pSite) {
 				auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
 				if (pRadExt->Type != pDefault)

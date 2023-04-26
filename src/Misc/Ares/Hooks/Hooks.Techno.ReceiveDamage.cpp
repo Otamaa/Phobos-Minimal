@@ -406,9 +406,8 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 
 	if (pWH->Psychedelic)
 	{
-
 		//This thing does ally check twice
-		if (pSourceHouse && pSourceHouse->IsAlliedWith(pThis))
+		if (pSourceHouse && pSourceHouse->IsAlliedWith_(pThis))
 			return RetUnaffected;
 
 		if (Is_Building(pThis))
@@ -436,28 +435,29 @@ DEFINE_OVERRIDE_HOOK(0x737F86, UnitClass_ReceiveDamage_Survivours, 0x6)
 	GET_STACK(bool, ignoreDefenses, 0x58);
 	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x44, -0x18));
 
-	if (!ignoreDefenses)
-	{
-		// TODO : full port this
-		AresData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses);
-	}
-
-	if (pType->OpenTopped)
-	{
+	if (pType->OpenTopped) {
 		pThis->MarkPassengersAsExited();
 	}
 
-	if (!preventPassangersEscape)
+	bool SurvivourSparned = false;
+	if (!ignoreDefenses)
 	{
-		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		// TODO : full port this
+		SurvivourSparned = true;
+		AresData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses);
+	}
+
+	if (!preventPassangersEscape && !SurvivourSparned)
+	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 		// passenger escape chances
-		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+		const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
 
 		// eject or kill all passengers
 		while (pThis->Passengers.GetFirstPassenger())
 		{
-			auto const pPassenger = pThis->RemoveFirstPassenger();
+			const auto pPassenger = pThis->RemoveFirstPassenger();
 			bool trySpawn = false;
 			if (passengerChance > 0)
 			{
@@ -480,7 +480,8 @@ DEFINE_OVERRIDE_HOOK(0x737F86, UnitClass_ReceiveDamage_Survivours, 0x6)
 	}
 
 	R->EBX(-1);
-	return 0x737F97;
+	//return 0x737F97;
+	return 0x73838A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
@@ -491,24 +492,26 @@ DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
 	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x14, -0x18));
 
 	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
+	bool SurvivourSparned = false;
 
 	if (!ignoreDefenses)
 	{
 		// TODO : complete port this
+		SurvivourSparned = true;
 		AresData::SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses);
 	}
 
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
-	if (!preventPassangersEscape)
+	if (!preventPassangersEscape && !SurvivourSparned)
 	{
 		// passenger escape chances
-		auto const passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+		const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
 
 		// eject or kill all passengers
 		while (pThis->Passengers.GetFirstPassenger())
 		{
-			auto const pPassenger = pThis->RemoveFirstPassenger();
+			const auto pPassenger = pThis->RemoveFirstPassenger();
 			bool trySpawn = false;
 
 			if (passengerChance > 0)
@@ -657,7 +660,8 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 DEFINE_OVERRIDE_HOOK(0x737CE4, UnitClass_ReceiveDamage_ShipyardRepair, 6)
 {
 	GET(BuildingTypeClass*, pType, ECX);
-	return (pType->WeaponsFactory && !pType->Naval) ? 0x737CEE : 0x737D31;
+	return (pType->WeaponsFactory && !pType->Naval)
+	? 0x737CEE : 0x737D31;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51849A, InfantryClass_ReceiveDamage_DeathAnim, 5)

@@ -18,7 +18,7 @@
 
 DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 {
-	GET(FootClass*, pThis, EBX);
+	GET(FootClass* const, pThis, EBX);
 	GET_STACK(bool, bSomething, 0x12);
 
 	if (pThis->BunkerLinkedItem || pThis->ShouldLoseTargetNow || pThis->InOpenToppedTransport)
@@ -30,9 +30,9 @@ DEFINE_HOOK(0x4D5776, FootClass_ApproachTarget_Passive, 0x6)
 
 DEFINE_OVERRIDE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 {
-	GET(BuildingClass*, pBld, EAX);
+	GET(BuildingClass* const, pBld, EAX);
 	GET(CoordStruct*, pBuffer, ECX);
-	GET(TechnoClass*, pDocker, ESI);
+	GET(TechnoClass* const, pDocker, ESI);
 	R->EAX(pBld->GetDockCoords(pBuffer, pDocker));
 	return 0x4D9EE7;
 }
@@ -41,7 +41,7 @@ DEFINE_OVERRIDE_HOOK(0x4D9EE1, FootClass_CanBeSold_Dock, 0x6)
 // current speed in case the unit is turning.
 DEFINE_OVERRIDE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 	R->AL(pThis->Locomotor.get()->Is_Moving());
 	return 0x4DBDE3;
 }
@@ -50,8 +50,8 @@ DEFINE_OVERRIDE_HOOK(0x4DBDD4, FootClass_IsCloakable_CloakStop, 0x6)
 // the Occupier handling will leave a dangling Destination pointer.
 DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
 {
-	GET(InfantryClass*, pInfantry, ESI);
-	GET(InfantryTypeClass*, pType, EAX);
+	GET(InfantryClass* const, pInfantry, ESI);
+	GET(InfantryTypeClass* const, pType, EAX);
 
 	if (pType->VehicleThief 
 		&& pInfantry->Destination 
@@ -66,13 +66,13 @@ DEFINE_OVERRIDE_HOOK(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief,
 // respect the remove state when updating the parasite.
 DEFINE_OVERRIDE_HOOK(0x4D99AA, FootClass_PointerGotInvalid_Parasite, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
-	GET(AbstractClass*, ptr, EDI);
+	GET(FootClass* const, pThis, ESI);
+	GET(AbstractClass* const, ptr, EDI);
 	GET(bool, remove, EBX);
 
 	// pass the real remove state, instead of always true. this was unused
 	// in the original game, but now propagates the real value.
-	if (auto pParasiteOwner = pThis->ParasiteEatingMe) {
+	if (const auto pParasiteOwner = pThis->ParasiteEatingMe) {
 		if (pParasiteOwner->Health > 0) {
 			pParasiteOwner->ParasiteImUsing->PointerExpired(ptr, remove);
 		}
@@ -92,7 +92,7 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x4DB37C, FootClass_Remove_Airspace, 0x6, 4DB3A4)
 // update parasite coords along with the host
 DEFINE_OVERRIDE_HOOK(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
 {
-	GET(FootClass*, F, ESI);
+	GET(FootClass* const, F, ESI);
 
 	if (F->ParasiteEatingMe) {
 		F->ParasiteEatingMe->SetLocation(F->Location);
@@ -130,14 +130,14 @@ DEFINE_OVERRIDE_HOOK(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 // stops movement sound from being played while unit is being pulled by a magnetron (see terror drone)
 DEFINE_OVERRIDE_HOOK(0x7101CF, FootClass_ImbueLocomotor, 0x7)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 	pThis->Audio7.AudioEventHandleEndLooping();
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 
 	if (pThis->__PlayingMovingSound) {
 		return 0x4DAAEE;

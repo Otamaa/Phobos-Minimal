@@ -34,7 +34,7 @@
 
 DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(Point2D, nPoint, STACK_OFFS(0x78, 0x50));
 	GET_STACK(RectangleStruct, nBound, STACK_OFFS(0x78, 0x50));
 
@@ -71,7 +71,7 @@ DEFINE_JUMP(LJMP, 0x546C8B, 0x546CBF);
 DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
 	GET(VeinholeMonsterClass*, pThis, ESI);
-	GET(TerrainTypeClass*, pThisTree, EDX);
+	GET(TerrainTypeClass* const, pThisTree, EDX);
 
 	if (pThis->GetType() && pThisTree)
 		pThis->GetType()->Armor = pThisTree->Armor;
@@ -82,9 +82,9 @@ DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 // thse were removed to completely disable vein
 DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
 {
-	GET(RulesClass*, pRules, EAX);
+	GET(RulesClass* const, pRules, EAX);
 
-	auto const nRand = pRules->VeinholeShrinkRate > 0 ?
+	const auto nRand = pRules->VeinholeShrinkRate > 0 ?
 		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeShrinkRate + nRand);
@@ -93,8 +93,8 @@ DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
 
 DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
 {
-	GET(RulesClass*, pRules, EAX);
-	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
+	GET(RulesClass* const, pRules, EAX);
+	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
 		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
@@ -103,9 +103,9 @@ DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
 
 DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
 {
-	GET(RulesClass*, pRules, ECX);
+	GET(RulesClass* const, pRules, ECX);
 
-	auto const nRand = pRules->VeinholeGrowthRate > 0 ?
+	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
 		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
 
 	R->EAX(pRules->VeinholeGrowthRate + nRand);
@@ -127,7 +127,7 @@ DEFINE_JUMP(CALL, 0x74D5BC, GET_OFFSET(DrawShape_VeinHole));
 
 DEFINE_HOOK(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 {
-	auto const nTheater = ScenarioClass::Instance->Theater;
+	const auto nTheater = ScenarioClass::Instance->Theater;
 	SmudgeTypeClass::TheaterInit(nTheater);
 	VeinholeMonsterClass::TheaterInit(nTheater);
 	return 0x4AD0A8;
@@ -139,8 +139,8 @@ DEFINE_HOOK(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 	R->Stack(0x2C, R->EDX());
 	R->Stack(0x30, R->EAX());
 	LEA_STACK(CoordStruct*, pCoord, 0x28);
-	auto const pRules = RulesExt::Global();
-	auto const pParticle = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
+	const auto pRules = RulesExt::Global();
+	const auto pParticle = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
 	R->EAX(ParticleSystemClass::Instance->SpawnParticle(pParticle, pCoord));
 	return 0x74D100;
 }
@@ -191,7 +191,7 @@ DEFINE_HOOK(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 DEFINE_HOOK_AGAIN(0x46684A, BulletClass_AI_TrailerInheritOwner, 0x5)
 DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 {
-	GET(BulletClass*, pThis, EBP);
+	GET(BulletClass* const, pThis, EBP);
 	//GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x1AC, 0x184));
 
 	//Eax is discarded anyway
@@ -209,15 +209,11 @@ DEFINE_HOOK(0x466886, BulletClass_AI_TrailerInheritOwner, 0x5)
 
 DEFINE_HOOK(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 {
-	enum
-	{
-		CreateMuzzleAnim = 0x6FF39C,
-		SkipCreateMuzzleAnim = 0x6FF43F
-	};
+	enum { CreateMuzzleAnim = 0x6FF39C, SkipCreateMuzzleAnim = 0x6FF43F };
 
 	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(AnimTypeClass*, pMuzzleAnimType, EDI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+	GET(AnimTypeClass* const, pMuzzleAnimType, EDI);
 	GET_STACK(CoordStruct, nFLH, STACK_OFFS(0xB4, 0x6C));
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
@@ -240,10 +236,8 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 {
 	enum
 	{
-		Goto2NdCheck = 0x6FF427,
-		DontSetAnim = 0x6FF43F,
-		AdjustCoordsForBuilding = 0x6FF3D9,
-		Continue = 0x0
+		Goto2NdCheck = 0x6FF427, DontSetAnim = 0x6FF43F, 
+		AdjustCoordsForBuilding = 0x6FF3D9, Continue = 0x0
 	};
 
 	GET(TechnoClass* const, pThis, ESI);
@@ -262,7 +256,7 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 #pragma region WallTower
 DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	R->ECX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x4405CF : 0x440606;
@@ -270,7 +264,7 @@ DEFINE_HOOK(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 
 DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	R->EDX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
@@ -278,7 +272,7 @@ DEFINE_HOOK(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 
 DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
 {
-	GET(BuildingClass*, pThis, EDI);
+	GET(BuildingClass* const, pThis, EDI);
 	R->EDX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
@@ -286,7 +280,7 @@ DEFINE_HOOK(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
 
 DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	R->ECX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x445AED : 0x445B81;
@@ -294,7 +288,7 @@ DEFINE_HOOK(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 
 DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(BuildingClass* const, pThis, EBP);
 	R->ECX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
@@ -302,7 +296,7 @@ DEFINE_HOOK(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 
 DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, EBX);
+	GET(BuildingTypeClass* const, pThis, EBX);
 	R->EDX(RulesClass::Instance());
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x45EF23 : 0x45F00B;
@@ -310,11 +304,11 @@ DEFINE_HOOK(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 
 DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 {
-	GET(int, nHouseIDx, EAX);
-	GET(CellClass*, pCell, EDI);
-	GET(int, idxOverlay, ECX);
-	GET_STACK(BuildingTypeClass*, PlacingObject, STACK_OFFS(0x18, -0x8));
-	GET_STACK(HouseClass*, PlacingOwner, STACK_OFFS(0x18, -0xC));
+	GET(int const, nHouseIDx, EAX);
+	GET(CellClass* const, pCell, EDI);
+	GET(int const, idxOverlay, ECX);
+	GET_STACK(BuildingTypeClass* const, PlacingObject, STACK_OFFS(0x18, -0x8));
+	GET_STACK(HouseClass* const, PlacingOwner, STACK_OFFS(0x18, -0xC));
 
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
@@ -378,14 +372,14 @@ DEFINE_HOOK(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 
 DEFINE_HOOK(0x4FE546, BuildingClass_AI_WallTowers, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, EAX);
+	GET(BuildingTypeClass* const, pThis, EAX);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
 }
 
 DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 {
-	GET(int, nNodeBuilding, EAX);
+	GET(int const, nNodeBuilding, EAX);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 
 	if (nNodeBuilding == -1 || Nvec.empty())
@@ -398,21 +392,21 @@ DEFINE_HOOK(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 
 DEFINE_HOOK(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, EAX);
+	GET(BuildingTypeClass* const, pThis, EAX);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50735C : 0x507306;
 }
 
 DEFINE_HOOK(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, ECX);
+	GET(BuildingTypeClass* const, pThis, ECX);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50A980 : 0x50AB90;
 }
 
 DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 {
-	GET(BuildingClass*, pThis, EBX);
+	GET(BuildingClass* const, pThis, EBX);
 	R->EAX(pThis->Type);
 	const auto& Nvec = RulesExt::Global()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x50A9EA : 0x50AB3D;
@@ -481,7 +475,7 @@ DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 {
 	GET(ILocomotion* const, pILoco, ESI);
 
-	auto const pLoco = static_cast<DriveLocomotionClass* const>(pILoco);
+	const auto pLoco = static_cast<DriveLocomotionClass* const>(pILoco);
 
 	if (const auto pFoot = pLoco->LinkedTo)
 	{
@@ -497,16 +491,16 @@ DEFINE_HOOK(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
 
 DEFINE_HOOK(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 {
-	GET(ILocomotion*, pLoco, ESI);
-	auto const pDrive = static_cast<DriveLocomotionClass*>(pLoco);
+	GET(ILocomotion* const, pLoco, ESI);
+	const auto pDrive = static_cast<DriveLocomotionClass* const>(pLoco);
 	TechnoExt::PlayAnim(RulesClass::Instance->Wake, pDrive->LinkedTo);
 	return 0x4B0828;
 }
 
 DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 {
-	GET(ILocomotion*, pLoco, ESI);
-	auto const pShip = static_cast<ShipLocomotionClass*>(pLoco);
+	GET(ILocomotion* const, pLoco, ESI);
+	const auto pShip = static_cast<ShipLocomotionClass* const>(pLoco);
 	TechnoExt::PlayAnim(RulesClass::Instance->Wake, pShip->LinkedTo);
 	return 0x69FEF0;
 }
@@ -514,7 +508,7 @@ DEFINE_HOOK(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
-	GET(AircraftClass*, pThis, ESI);
+	GET(AircraftClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
@@ -526,7 +520,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
@@ -537,7 +531,7 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 
 DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET(AnimClass*, pAnim, EDI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x30));
 	GET(int, nIdx, EAX);
@@ -553,8 +547,8 @@ DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
 
 DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
 	GET(AnimClass*, pAnim, EBX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0xC4, 0x3C));
 	GET(int, nIdx, EDI);
@@ -588,11 +582,7 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 
 DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
-	enum
-	{
-		Skip = 0x70383C,
-		CheckIsSelected = 0x703828,
-	};
+	enum { Skip = 0x70383C,	CheckIsSelected = 0x703828 };
 
 	return R->ESI<TechnoClass*>()->Owner->IsControlledByHuman()
 		? Skip : CheckIsSelected;
@@ -601,7 +591,7 @@ DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 DEFINE_HOOK(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
 {
 	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	const bool Allow = RulesExt::Global()->AutoAttackICedTarget.Get() || pThis->Owner->ControlledByPlayer();
@@ -619,8 +609,8 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 		CantPassiveAcquire = 0x70927D,
 	};
 
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
@@ -663,8 +653,8 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 		SetAL = 0x6F8266,
 	};
 
-	GET(TechnoClass*, pTarget, ESI);
-	GET(TechnoTypeClass*, pTargetType, EBP);
+	GET(TechnoClass* const, pTarget, ESI);
+	GET(TechnoTypeClass* const, pTargetType, EBP);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 
@@ -707,13 +697,9 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 {
-	enum
-	{
-		Skip = 0x4DC1A0,
-		Continue = 0x0
-	};
+	enum { Skip = 0x4DC1A0, Continue = 0x0 };
 
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -738,13 +724,9 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 {
-	enum
-	{
-		Skip = 0x4DC328,
-		Continue = 0x0
-	};
+	enum { Skip = 0x4DC328, Continue = 0x0 };
 
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -772,7 +754,7 @@ DEFINE_HOOK(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 DEFINE_HOOK(0x4DBDB6, FootClass_IsCloakable_CloakMove, 0x6)
 {
 	enum { Continue = 0x0, ReturnFalse = 0x4DBDEB };
-	GET(FootClass*, pThis, ESI);
+	GET(FootClass* const, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
@@ -873,12 +855,12 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 
 DEFINE_HOOK(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 {
-	return R->ESI<InfantryClass*>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
+	return R->ESI<InfantryClass* const>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
 }
 
 static void ClearShit(TechnoTypeClass* a1)
 {
-	auto pObjectToSelect = MapClass::Instance->NextObject(
+	const auto pObjectToSelect = MapClass::Instance->NextObject(
 		ObjectClass::CurrentObjects->Count ? ObjectClass::CurrentObjects->GetItem(0) : nullptr);
 
 	auto pNext = pObjectToSelect;
@@ -941,8 +923,8 @@ static void ClearShit(TechnoTypeClass* a1)
 
 DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
@@ -959,7 +941,7 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 
 DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 {
-	return !R->ESI<TechnoClass*>()->InLimbo ? 0x0 : 0x6FA24A;
+	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
 //
@@ -988,7 +970,7 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto pType = pThis->GetTechnoType())
+	if (const auto pType = pThis->GetTechnoType())
 	{
 		if (pType->PoweredUnit && pThis->Owner)
 		{
@@ -1014,7 +996,7 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
 	enum { NullifyDamage = 0x701AC6, ContinueCheck = 0x701ADB };
 
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(bool, bIgnore, 0xD8);
 
 	const bool IsCurrentlyDamageImmune = pThis->IsBeingWarpedOut()
@@ -1034,17 +1016,17 @@ DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 
 DEFINE_HOOK(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
 {
-	GET(TechnoTypeClass*, pType, EAX);
-	GET(FootClass*, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
+	GET(FootClass* const, pThis, ESI);
 
 	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
 }
 
 DEFINE_HOOK(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 {
-	GET(TemporalClass*, pThis, ESI);
+	GET(TemporalClass* const, pThis, ESI);
 
-	auto pTargetTemp = pThis->Target->TemporalImUsing;
+	const auto pTargetTemp = pThis->Target->TemporalImUsing;
 
 	if (pTargetTemp && pTargetTemp->Target)
 		pTargetTemp->LetGo();
@@ -1097,7 +1079,7 @@ DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 #ifdef COMPILE_PORTED_DP_FEATURES
 DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 {
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 
 	if (R->AL())
 	{
@@ -1139,13 +1121,13 @@ DEFINE_HOOK(0x73DDC0, UnitClass_Mi_Unload_DeployIntoSpeed, 0x6)
 
 DEFINE_HOOK(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
 {
-	GET(UnitTypeClass*, pType, EAX);
+	GET(UnitTypeClass* const, pType, EAX);
 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 }
 
 DEFINE_HOOK(0x51D45B, InfantryClass_Scatter_Process, 0x6)
 {
-	GET(InfantryClass*, pThis, ESI);
+	GET(InfantryClass* const, pThis, ESI);
 
 	if (pThis->Type->JumpJet && pThis->Type->HoverAttack)
 	{
@@ -1202,22 +1184,18 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 
 DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 {
-	enum
-	{
-		returnfalse = 0x62A976,
-		continuecheck = 0x0,
-		continuecheckB = 0x62A933
-	};
+	enum { returnfalse = 0x62A976, continuecheck = 0x0, continuecheckB = 0x62A933 };
 
-	GET(FootClass*, pVictim, ESI);
+	GET(FootClass* const, pVictim, ESI);
 
 	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() ||
-		TechnoExt::IsChronoDelayDamageImmune(pVictim) ? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
+		TechnoExt::IsChronoDelayDamageImmune(pVictim) 
+		? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
 DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 {
-	GET(SidebarClass*, pThis, ESI);
+	GET(SidebarClass* const, pThis, ESI);
 
 	if (Phobos::Config::TogglePowerInsteadOfRepair)
 		pThis->SetTogglePowerMode(-1);
@@ -1229,7 +1207,7 @@ DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
 
 DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 {
-	GET(SidebarClass*, pThis, ESI);
+	GET(SidebarClass* const, pThis, ESI);
 	R->AL(Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode);
 	return 0x6A7AE7;
 }
@@ -1238,7 +1216,7 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
 
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 
 	if (Is_Building(pThis))
 	{
@@ -1302,15 +1280,15 @@ DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 
 DEFINE_HOOK(0x6F09C4, TeamTypeClass_CreateOneOf_RemoveLog, 0x5)
 {
-	GET_STACK(HouseClass*, pHouse, STACK_OFFS(0x8, -0x4));
+	GET_STACK(HouseClass* const, pHouse, STACK_OFFS(0x8, -0x4));
 	R->EDI(pHouse);
 	return 0x6F09D5;
 }
 
 DEFINE_HOOK(0x6F0A3F, TeamTypeClass_CreateOneOf_CreateLog, 0x6)
 {
-	GET(TeamTypeClass*, pThis, ESI);
-	GET(HouseClass*, pHouse, EDI);
+	GET(TeamTypeClass* const, pThis, ESI);
+	GET(HouseClass* const, pHouse, EDI);
 	Debug::Log("[%x][%s] Creating a new team named '%s'.\n", pHouse, pHouse ? pHouse->get_ID() : NONE_STR2, pThis->ID);
 	R->EAX(YRMemory::Allocate(sizeof(TeamClass)));
 	return 0x6F0A5A;
@@ -1321,8 +1299,8 @@ DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 
 DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 {
-	GET(FactoryClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
+	GET(FactoryClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
 	Debug::Log("[%x] Factory with Owner '%s' Abandoning production of '%s' \n", pThis, pThis->Owner ? pThis->Owner->get_ID() : NONE_STR2, pType->ID);
 	R->ECX(pThis->Object);
 	return 0x4CA021;
@@ -1330,27 +1308,27 @@ DEFINE_HOOK(0x4CA00D, FactoryClass_AbandonProduction_Log, 0x9)
 
 DEFINE_HOOK(0x4430F4, BuildingClass_Destroyed_SurvivourLog, 0x6)
 {
-	GET(BuildingClass*, pThis, EDI);
-	GET(InfantryTypeClass*, pSurvivour, EAX);
-	GET(BuildingTypeClass*, pThisType, EDX);
+	GET(BuildingClass* const, pThis, EDI);
+	GET(InfantryTypeClass* const, pSurvivour, EAX);
+	GET(BuildingTypeClass* const, pThisType, EDX);
 	Debug::Log("[%x][%s] Creating survivor type '%s' \n", pThis, pThisType->ID, pSurvivour->ID);
 	return 0x443109;
 }
 
 DEFINE_HOOK(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 {
-	GET(FootClass*, pThis, EDI);
+	GET(FootClass* const, pThis, EDI);
 	Debug::Log("[%x][%s] Transport just recieved orders to go home after unloading \n", pThis, pThis->get_ID());
 	return 0x6E93D6;
 }
 
 DEFINE_HOOK(0x6EF9BD, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 {
-	GET(int, nCellX, EAX);
-	GET(int, nCellY, EDX);
-	GET(TeamClass*, pThis, ESI);
-	GET(TechnoClass*, pTechno, EDI);
-	GET(TeamTypeClass*, pTeamType, ECX);
+	GET(int const, nCellX, EAX);
+	GET(int const, nCellY, EDX);
+	GET(TeamClass* const, pThis, ESI);
+	GET(TechnoClass* const, pTechno, EDI);
+	GET(TeamTypeClass* const, pTeamType, ECX);
 	Debug::Log("[%x][%s] Team with Owner '%s' has chosen ( %d , %d ) for its GatherAtEnemy cell.\n", pThis, pTeamType->ID, pTechno->Owner ? pTechno->Owner->get_ID() : NONE_STR2, nCellX, nCellY);
 	return 0x6EF9D0;
 }
@@ -2021,9 +1999,9 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 {
 	enum { ContinueCheck = 0x5F54C4, ResultHalf = 0x5F54B8 };
 
-	GET(int, nCurStr, EDX);
-	GET(int, nMaxStr, EBP);
-	GET(int, nDamage, ECX);
+	GET(int const, nCurStr, EDX);
+	GET(int const, nMaxStr, EBP);
+	GET(int const, nDamage, ECX);
 
 	const auto curstr = int(nMaxStr * RulesClass::Instance->ConditionYellow);
 	return (nCurStr >= curstr && (nCurStr - nDamage) < curstr) ? ResultHalf : ContinueCheck;
@@ -2099,12 +2077,10 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
 
-	GET(TechnoClass*, pTechno, ESI);
+	GET(TechnoClass* const, pTechno, ESI);
 
-	if (Is_Building(pTechno))
-	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
-		{
+	if (Is_Building(pTechno)) {
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1) {
 			return DoNotDraw;
 		}
 	}
@@ -2116,12 +2092,10 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D978F };
 
-	GET(TechnoClass*, pTechno, EBX);
+	GET(TechnoClass* const, pTechno, EBX);
 
-	if (pTechno->WhatAmI() == AbstractType::Building)
-	{
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
-		{
+	if (Is_Building(pTechno)) {
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1) {
 			return DoNotDraw;
 		}
 	}
@@ -2133,14 +2107,14 @@ DEFINE_HOOK(0x6D9466, TacticalClass_Render_BuildingInLimboDeliveryC, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D9587 };
 
-	GET(BuildingClass*, pBuilding, EBX);
+	GET(BuildingClass* const, pBuilding, EBX);
 	return BuildingExt::ExtMap.Find(pBuilding)->LimboID != -1 ? DoNotDraw : Draw;
 }
 
 static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 {
 	GET(AnimClass*, pThis, ESI);
-	GET(AnimTypeClass*, pAnimType, EAX);
+	GET(AnimTypeClass* const, pAnimType, EAX);
 	GET(int, nNumParticles, ECX);
 
 	const auto pType = ParticleTypeClass::Array->Items[pAnimType->SpawnsParticle];
@@ -2177,9 +2151,9 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 
 DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 {
-	GET(BuildingClass*, pThis, ECX);
+	GET(BuildingClass* const, pThis, ECX);
 	GET_STACK(CoordStruct*, pCoord, 0x4);
-	GET_STACK(TechnoClass*, pDocker, 0x8);
+	GET_STACK(TechnoClass* const, pDocker, 0x8);
 
 	auto const pType = pThis->Type;
 	if (pType->Helipad)
@@ -2204,7 +2178,7 @@ DEFINE_HOOK(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 
 DEFINE_HOOK(0x73AED4, UnitClass_PCP_DamageSelf_C4WarheadAnimCheck, 0x8)
 {
-	GET(UnitClass*, pThis, EBP);
+	GET(UnitClass* const, pThis, EBP);
 	GET(AnimClass*, pAllocatedMem, ESI);
 	GET(LandType const, nLand, EBX);
 
@@ -2566,7 +2540,7 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 		int Number;
 	};
 
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	GET_STACK(PipDataStruct, pDatas, STACK_OFFS(0x74, 0x24));
 	//GET_STACK(SHPStruct*, pShapes, STACK_OFFS(0x74, 0x68));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFSET(0x74, 0xC));
@@ -2672,12 +2646,12 @@ DEFINE_HOOK(0x4775B0, CCINIClass_ReadVHPScan_ReplaceArray, 0x7)
 
 DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 {
-	GET(TechnoClass*, pThis, EDI);
-	GET(ObjectClass*, pTarget, ESI);
+	GET(TechnoClass* const, pThis, EDI);
+	GET(ObjectClass* const, pTarget, ESI);
 	GET(int*, pRiskValue, EBP);
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	auto pTechnoTarget = generic_cast<TechnoClass*>(pTarget);
+	auto pTechnoTarget = generic_cast<TechnoClass* const>(pTarget);
 	if (!pTechnoTarget)
 		pTechnoTarget = nullptr;
 
@@ -2769,7 +2743,7 @@ DEFINE_HOOK(0x6F8721, TechnoClass_EvalObject_VHPScan, 0x7)
 
 DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 {
-	GET(InfantryClass*, pThis, ECX);
+	GET(InfantryClass* const, pThis, ECX);
 
 	enum { SkipWholeFunction = 0x5192BC, Continue = 0x0 };
 
@@ -2784,10 +2758,10 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 {
 	GET(int, nRangeBonus, EDI);
-	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, ECX);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(AbstractClass* const, pTarget, ECX);
 
-	if (auto const pFoot = abstract_cast<FootClass*>(pTarget))
+	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget))
 	{
 		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
@@ -2807,7 +2781,7 @@ DEFINE_JUMP(VTABLE, 0x7F5D20, 0x523250);
 
 DEFINE_HOOK(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
-	GET(FootClass*, pFoot, EAX);
+	GET(FootClass* const, pFoot, EAX);
 
 	if (const auto pTeam = pFoot->Team)
 	{
@@ -2835,8 +2809,8 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 {
 	enum { SkipGameCode = 0x5F6D90 };
 
-	GET(ObjectClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pTechno, STACK_OFFSET(0x8, -0x4));
+	GET(ObjectClass* const, pThis, ECX);
+	GET_STACK(TechnoClass* const, pTechno, STACK_OFFSET(0x8, -0x4));
 	R->AL(TechnoExt::IsCrushable(pThis, pTechno));
 
 	return SkipGameCode;
@@ -2844,8 +2818,8 @@ DEFINE_HOOK(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 
 DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 {
-	GET(ParasiteClass*, pThis, ESI);
-	GET(WarheadTypeClass*, pWH, EDI);
+	GET(ParasiteClass* const, pThis, ESI);
+	GET(WarheadTypeClass* const, pWH, EDI);
 
 	enum { ApplyDamage = 0x629D19, GainExperience = 0x629BF3, SkipGainExperience = 0x629C5D };
 
@@ -2858,9 +2832,9 @@ DEFINE_HOOK(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 
 DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 {
-	GET(BuildingClass*, pBuilding, EDI);
+	GET(BuildingClass* const, pBuilding, EDI);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)
+	const auto nSound = BuildingTypeExt::ExtMap.Find(pBuilding->Type)
 		->EnterBioReactorSound.Get(RulesClass::Instance->EnterBioReactorSound);
 
 	VocClass::PlayIndexAtPos(nSound, pBuilding->GetCoords(), 0);
@@ -2870,9 +2844,9 @@ DEFINE_HOOK(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 
 DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(BuildingClass* const, pThis, EBP);
 
-	auto const nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)
+	const auto nSound = BuildingTypeExt::ExtMap.Find(pThis->Type)
 		->LeaveBioReactorSound.Get(RulesClass::Instance->LeaveBioReactorSound);
 
 	VocClass::PlayIndexAtPos(nSound, pThis->GetCoords(), 0);
@@ -2883,9 +2857,9 @@ DEFINE_HOOK(0x44DBBC, InfantryClass_PCP_Leave_Bio_Reactor_Sound, 0x7)
 DEFINE_HOOK_AGAIN(0x702777, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
 DEFINE_HOOK(0x4426DB, BuildingClass_ReceiveDamage_DisableDamageSound, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+	if (const auto pBuilding = specific_cast<BuildingClass* const>(pThis))
 	{
 		if (BuildingTypeExt::ExtMap.Find(pBuilding->Type)->DisableDamageSound.Get())
 		{
@@ -2900,9 +2874,9 @@ DEFINE_JUMP(LJMP, 0x702765, 0x7027AE); // this just an duplicate
 
 DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
-	GET(TechnoClass*, pProduct, ESI);
+	GET(TechnoClass* const, pProduct, ESI);
 
-	auto const pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType());
+	const auto pTechnoTypeExt = TechnoTypeExt::ExtMap.Find(pProduct->GetTechnoType());
 
 	if (pTechnoTypeExt->Eva_Complete.isset())
 	{
@@ -2918,14 +2892,10 @@ DEFINE_HOOK(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 
 DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
 {
-	enum
-	{
-		ReturnNoVoiceCreate = 0x4FB804,
-		Continue = 0x0
-	};
+	enum { ReturnNoVoiceCreate = 0x4FB804, Continue = 0x0 };
 
-	GET(HouseClass*, pThis, EDI);
-	GET(TechnoClass*, pTechno, EBP);
+	GET(HouseClass* const, pThis, EDI);
+	GET(TechnoClass* const, pTechno, EBP);
 
 	if (pTechno)
 	{
@@ -2946,7 +2916,7 @@ DEFINE_HOOK(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) 
 
 DEFINE_HOOK(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComplete, 0x5)
 {
-	GET(TechnoClass*, pTech, ESI);
+	GET(TechnoClass* const, pTech, ESI);
 
 	if (pTech && Is_Building(pTech)
 	 && pTech->Owner
@@ -2973,9 +2943,9 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 {
 #ifdef COMPILE_PORTED_DP_FEATURES
 
-	GET(BuildingClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBP);
-	GET_STACK(BulletClass*, pBullet, STACK_OFFSET(0xF0, -0xA4));
+	GET(BuildingClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
+	GET_STACK(BulletClass* const, pBullet, STACK_OFFSET(0xF0, -0xA4));
 	LEA_STACK(CoordStruct*, pCoord, STACK_OFFSET(0xF0, -0x8C));
 
 	if (pWeapon && pBullet)
@@ -3023,7 +2993,7 @@ DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
 DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
 {
 	enum { CanUse = 0x639DDD, ContinueCheck = 0x639E03 };
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	return Is_Foot(pThis)
 		? CanUse : ContinueCheck;
 }
@@ -3081,10 +3051,10 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 
 DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {
-	GET(UnitClass*, pThis, EBP);
+	GET(UnitClass* const, pThis, EBP);
 	const auto deploysInto = pThis->Type->DeploysInto;
 	CellStruct mapCoords = pThis->InlineMapCoords();
-	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords);
+	R->Stack(STACK_OFFSET(0x28, -0x10), mapCoords.Pack());
 
 	const short width = deploysInto->GetFoundationWidth();
 	const short height = deploysInto->GetFoundationHeight(false);
@@ -3094,7 +3064,7 @@ DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 	if (height > 2)
 		mapCoords.Y -= static_cast<short>(std::ceil(height / 2.0) - 1);
 
-	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords);
+	R->Stack(STACK_OFFSET(0x28, -0x14), mapCoords.Pack());
 
 	return 0x7394BE;
 }
@@ -4289,6 +4259,7 @@ DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 	TechnoExt::SetMissionAfterBerzerk(pThis);
 	return 0x6F9F6E;
 }
+
 //
 //DEFINE_HOOK(0x70F8D8, TechnoClass_GoBerzerkFor_SetMission, 0x6)
 //{
@@ -4326,10 +4297,10 @@ DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 
 DEFINE_HOOK(0x6FF4B0, TechnoClass_FireAt_TargetLaser, 0x5)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
 	if (!pTypeExt->TargetLaser_WeaponIdx.empty()
 		&& !pTypeExt->TargetLaser_WeaponIdx.Contains(pExt->CurrentWeaponIdx))
@@ -4365,7 +4336,7 @@ DEFINE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 0x6)
 
 DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
-	GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass* const, pThis, ECX);
 
 	bool ret = true;
 	if (const auto pFoot = generic_cast<FootClass*>(pThis))
@@ -4387,7 +4358,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 			ret = false;
 
 		const auto pLoco = pFoot->Locomotor.get();
-		if ((((DWORD*)pLoco)[0] == HoverLocomotionClass::ILoco_vtable))
+		if (VTable::Get(pLoco) == HoverLocomotionClass::ILoco_vtable)
 			ret = false;
 	}
 
@@ -4424,8 +4395,6 @@ DEFINE_HOOK(0x40A554, AudioDriverStar_AnnoyingBufferLogDisable_B, 0x6)
 struct TechnoExt_Gscript
 {
 	CDTimerClass TargetingDelayTimer {};
-
-
 
 	static TechnoExt_Gscript* Get(TechnoClass* pThis)
 	{
@@ -4556,7 +4525,7 @@ DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
 
 DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 
 	return pThis->IsCrashing || pThis->Health < 0 ?
 		0x708FAD : 0x0;
@@ -4576,7 +4545,7 @@ DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
 
 DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
-	GET(CellClass*, pCell, ESI);
+	GET(CellClass* const, pCell, ESI);
 
 	return pCell->IsFogged() ? 0x6D7BB8 : 0x0;
 }
@@ -4602,9 +4571,9 @@ DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
 DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
-	GET(CellClass*, pCell, EDI);
+	GET(CellClass* const, pCell, EDI);
 
-	if (auto pTerrain = pCell->GetTerrain(false))
+	if (const auto pTerrain = pCell->GetTerrain(false))
 	{
 		if (pTerrain->IsAlive)
 		{
@@ -4640,10 +4609,10 @@ DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
 DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
 {
 	GET(DriveLocomotionClass*, pLoco, EBP);
-	GET(CellClass*, pCell, EBX);
+	GET(CellClass* const, pCell, EBX);
 
 	const auto pLinkedTo = pLoco->LinkedTo;
-	if (auto pTerrain = pCell->GetTerrain(false))
+	if (const auto pTerrain = pCell->GetTerrain(false))
 	{
 		if (pTerrain->IsAlive)
 		{
@@ -4712,8 +4681,8 @@ void PlayReloadEffects(TechnoClass* pThis, int report, int sound)
 
 DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 {
-	GET_STACK(int, nX_comp, 0x30);
-	GET_STACK(int, nY_comp, 0x58);
+	GET_STACK(int const, nX_comp, 0x30);
+	GET_STACK(int const, nY_comp, 0x58);
 	GET(Surface*, pSurface, ECX);
 	GET(int, nX, EAX);
 	GET(int, nY, EDX);
@@ -4935,8 +4904,8 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 
 DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
 
 	const auto pTransporter = pThis->Transporter;
 
@@ -4954,9 +4923,9 @@ DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 
 DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, EAX);
-	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
+	GET(WeaponTypeClass* const, pWeapon, EBP);
 
 	if (!pType->AttackFriendlies)
 		return 0x70039B;
@@ -4979,8 +4948,8 @@ DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
-	GET_STACK(int, nWeapon, 0x14);
-	GET(TechnoClass*, pThis, EDI);
+	GET_STACK(int const, nWeapon, 0x14);
+	GET(TechnoClass* const, pThis, EDI);
 
 	const auto pType = pThis->GetTechnoType();
 
@@ -4998,7 +4967,7 @@ DEFINE_HOOK(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
 
 DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	R->ESP(pTypeExt->PipScaleIndex.Get(13));
 	return 0x0;
@@ -5006,10 +4975,10 @@ DEFINE_HOOK(0x70A3E5, TechnoClass_DrawPipScale_Ammo_Idx, 7)
 
 DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	GET_STACK(RectangleStruct*, pRect, 0x80);
-	GET_STACK(int, nX, 0x50);
-	GET_STACK(int, nY, 0x54);
+	GET_STACK(int const, nX, 0x50);
+	GET_STACK(int const, nY, 0x54);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 	if (pTypeExt->AmmoPip.isset())
@@ -5035,8 +5004,8 @@ DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 {
 	enum { Crush = 0x741599, ContinueCheck = 0x741562 };
-	GET(UnitClass*, pThis, ESI);
-	GET(int, range, EAX);
+	GET(UnitClass* const, pThis, ESI);
+	GET(int const, range, EAX);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
@@ -5047,9 +5016,9 @@ DEFINE_HOOK(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 {
 	enum { DoNotCrush = 0x743A39, ContinueCheck = 0x7439B9 };
-	GET(UnitClass*, pThis, ESI);
-	GET(int, range, EAX);
-	GET(RulesClass*, pRules, ECX);
+	GET(UnitClass* const, pThis, ESI);
+	GET(int const, range, EAX);
+	GET(RulesClass* const, pRules, ECX);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
@@ -5060,7 +5029,7 @@ DEFINE_HOOK(0x7439AD, UnitClass_ShouldCrush_CrushRange, 0x6)
 
 DEFINE_HOOK(0x62BD69, ParticleClass_ProcessGasBehaviour_NoWind, 6)
 {
-	GET(ParticleClass*, pThis, EBP);
+	GET(ParticleClass* const, pThis, EBP);
 
 	return pThis->Type->WindEffect == -1
 		? 0x62C200 : 0x0;
@@ -5069,7 +5038,7 @@ DEFINE_HOOK(0x62BD69, ParticleClass_ProcessGasBehaviour_NoWind, 6)
 DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 {
 	GET(ParticleClass*, pThis, EBP);
-	GET(ParticleTypeClass*, pType, EDI);
+	GET(ParticleTypeClass* const, pType, EDI);
 
 	const auto pTypeExt = ParticleTypeExt::ExtMap.Find(pType);
 
@@ -5164,13 +5133,13 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 
 DEFINE_HOOK(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 {
-	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoTypeClass* const, pType, EAX);
 	return TechnoTypeExt::ExtMap.Find(pType)->NoManualEject.Get() ? 0x73DCD3 : 0x0;
 }
 
 DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 {
-	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoTypeClass* const , pType, EAX);
 	return TechnoTypeExt::ExtMap.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
 }
 
@@ -5183,8 +5152,8 @@ DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 
 DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 {
-	GET(HouseClass*, pHouse, EDI);
-	GET(TechnoTypeClass*, pType, ESI);
+	GET(HouseClass* const, pHouse, EDI);
+	GET(TechnoTypeClass* const, pType, ESI);
 
 	const double mult = !pHouse->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
 	R->EAX(int(pHouse->GetHouseTypeCostMult(pType) * mult * pHouse->GetHouseCostMult(pType) * pType->GetCost()));
@@ -5221,7 +5190,7 @@ DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 
 DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 {
-	GET(AnimClass*, pThis, ESI);
+	GET(AnimClass* const, pThis, ESI);
 	Debug::Log("Anim[0x%x] detaching Type Pointer ! \n", pThis);
 	return 0x0;
 }
@@ -5230,8 +5199,8 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
 	enum { CheckAlly = 0x6F3589 , ContinueCheck = 0x6F35A8 };
 
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pTarget, EBP);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass* const, pTarget, EBP);
 
 	return !pThis->DrainTarget && !pTarget->DrainingMe ?
 		CheckAlly : ContinueCheck;
@@ -5239,7 +5208,7 @@ DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 
 DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 {
-	GET(BuildingClass*, pBld, EAX);
+	GET(BuildingClass* const, pBld, EAX);
 	return pBld ? 0x0 : 0x71AA1A;
 }
 
@@ -5328,14 +5297,14 @@ std::array<const char* const, 6u> DamageState_to_srings
 
 DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	return BuildingExt::ExtMap.Find(pThis)->Silent ? 0x447203 : 0x0;
 }
 
 DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
 {
 	enum { retTrue = 0x51F8A6 , retFalse = 0x51F8A8 };
-	GET(CellClass*, pCell, EAX);
+	GET(CellClass* const, pCell, EAX);
 
 	return pCell->CellClass_Tube_484AE0() || pCell->CellClass_Tube_484D60() ?
 		retTrue : retFalse;
@@ -5344,8 +5313,8 @@ DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice,
 DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
 {
 	enum { retFalse = 0x51F953};
-	GET(CellClass*, pCell, EAX);
-	GET(InfantryClass*, pThis, EDI);
+	GET(CellClass* const, pCell, EAX);
+	GET(InfantryClass* const, pThis, EDI);
 
 	if (!pCell->Tile_Is_Tunnel())
 		return retFalse;
@@ -5356,8 +5325,8 @@ DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_
 
 DEFINE_HOOK(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
 {
-	GET(CellClass*, pCell, EAX);
-	GET(TechnoClass*, pThis, ESI);
+	GET(CellClass* const, pCell, EAX);
+	GET(TechnoClass* const, pThis, ESI);
 
 	R->EBP(pThis->SelectWeapon(pCell));
 	return 0x7008FB;

@@ -3923,7 +3923,8 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 		{
 			// Finding the objects from the list that actually exists in the map
 
-			auto const objectFromIter = std::find_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [objectsListIter, pTeam](TechnoClass* objectFromList)
+			auto const objectFromIter = std::find_if(TechnoClass::Array->begin(),
+				TechnoClass::Array->end(), [objectsListIter, pTeam](TechnoClass* objectFromList)
 					{
 						if (TechnoExt::IsActive(objectFromList, false) && objectsListIter.contains(objectFromList->GetTechnoType()))
 						{
@@ -3951,7 +3952,8 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 						return pTech == (*objectFromIter)->GetTechnoType();
 					});
 
-				validIndexes.push_back(std::distance(objectsList.begin(), nObjListIter));
+				if(nObjListIter != objectsList.end())
+					validIndexes.push_back(std::distance(objectsList.begin(), nObjListIter));
 			}
 
 			if (!validIndexes.empty())
@@ -4054,8 +4056,12 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 
 			if ((*objectFromIter) && objectFromIter != TechnoClass::Array->end())
 			{
-				auto const nITerHere = std::find_if(objectsList.begin(), objectsList.end(), [objectFromIter](TechnoTypeClass* pTech) { return pTech == (*objectFromIter)->GetTechnoType(); });
-				validIndexes.push_back(std::distance(objectsList.begin(), nITerHere));
+				auto const nITerHere = std::find_if(objectsList.begin(), objectsList.end(),
+				[objectFromIter](TechnoTypeClass* pTech)
+				 { return pTech == (*objectFromIter)->GetTechnoType(); });
+
+				if(nITerHere != objectsList.end())
+					validIndexes.push_back(std::distance(objectsList.begin(), nITerHere));
 			}
 
 			if (!validIndexes.empty())

@@ -29,7 +29,7 @@
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
 DEFINE_HOOK(0x423365, Phobos_BugFixes_SHPShadowCheck, 0x8)
 {
-	GET(AnimClass*, pAnim, ESI);
+	GET(AnimClass* const, pAnim, ESI);
 	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
 		0x42336D :
 		0x4233EE;
@@ -55,8 +55,8 @@ DEFINE_HOOK(0x5F53AA, ObjectClass_ReceiveDamage_DyingFix, 0x6)
 {
 	enum { PostMortem = 0x5F583E, ContinueCheck = 0x5F53B0 };
 
-	GET(int, health, EAX);
-	GET(ObjectClass*, pThis, ESI);
+	GET(int const, health, EAX);
+	GET(ObjectClass* const, pThis, ESI);
 
 	if (health <= 0 || !pThis->IsAlive)
 		return PostMortem;
@@ -66,8 +66,8 @@ DEFINE_HOOK(0x5F53AA, ObjectClass_ReceiveDamage_DyingFix, 0x6)
 
 DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_DyingFix, 0x5)
 {
-	GET(FootClass*, pThis, ESI);
-	GET(DamageState, result, EAX);
+	GET(FootClass* const, pThis, ESI);
+	GET(DamageState const, result, EAX);
 
 	if (result != DamageState::PostMortem)
 		if ((pThis->IsSinking || (!pThis->IsAttackedByLocomotor && pThis->IsCrashing)))
@@ -78,8 +78,8 @@ DEFINE_HOOK(0x4D7431, FootClass_ReceiveDamage_DyingFix, 0x5)
 
 DEFINE_HOOK(0x737D57, UnitClass_ReceiveDamage_DyingFix, 0x7)
 {
-	GET(UnitClass*, pThis, ESI);
-	GET(DamageState, result, EAX);
+	GET(UnitClass* const, pThis, ESI);
+	GET(DamageState const, result, EAX);
 
 	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
 	if (result == DamageState::NowDead)
@@ -149,7 +149,7 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto pType = pThis->GetTechnoType();
+	const auto pType = pThis->GetTechnoType();
 
 	// If DebrisMaximums has one value, then legacy behavior is used
 	if (pType->DebrisMaximums.Count == 1 &&
@@ -210,7 +210,7 @@ DEFINE_JUMP(LJMP, 0x4ABBD5, 0x4ABBD5 + 7); // DisplayClass_MouseLeftRelease_Hotk
 
 DEFINE_HOOK(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 {
-	GET(TechnoClass*, pObject, ESI);
+	GET(TechnoClass* const, pObject, ESI);
 
 	pObject->ClearSidebarTabObject();
 
@@ -232,7 +232,7 @@ DEFINE_HOOK(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
 // Author: secsome
 DEFINE_HOOK(0x44377E, BuildingClass_ActiveClickWith, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(CellStruct*, pCell, STACK_OFFS(0x84, -0x8));
 
 	if (pThis->GetTechnoType()->UndeploysInto)
@@ -272,7 +272,7 @@ DEFINE_HOOK(0x51BB6E, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // InfantryCl
 	if (pThis->TemporalTargetingMe)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
-		if (((int*)pThis->TemporalTargetingMe)[0] == TemporalClass::vtable)
+		if (VTable::Get(pThis->TemporalTargetingMe) == TemporalClass::vtable)
 			pThis->TemporalTargetingMe->Update();
 		else // It should had being warped out, delete this object
 		{
@@ -290,9 +290,10 @@ DEFINE_HOOK(0x51BB6E, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // InfantryCl
 DEFINE_HOOK_AGAIN(0x41EEE3, AITriggerTypeClass_Condition_SupportPowersup, 0x7)	//AITriggerTypeClass_OwnerHouseOwns_SupportPowersup
 DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITriggerTypeClass_EnemyHouseOwns_SupportPowersup
 {
-	GET(HouseClass*, pHouse, EDX);
-	GET(int, idxBld, EBP);
-	auto const pType = BuildingTypeClass::Array->Items[idxBld];
+	GET(HouseClass* const, pHouse, EDX);
+	GET(int const, idxBld, EBP);
+
+	const auto pType = BuildingTypeClass::Array->Items[idxBld];
 	int count = BuildingTypeExt::GetUpgradesAmount(pType, pHouse);
 
 	if (count == -1)
@@ -307,23 +308,24 @@ DEFINE_HOOK(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITr
 // Author: Uranusian
 DEFINE_HOOK(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, ECX);
+	GET(BuildingTypeClass* const, pThis, ECX);
 
 	return RulesClass::Instance->EWGates.FindItemIndex(pThis) == -1 ? 0 : 0x441065;
 }
 
 DEFINE_HOOK(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, ECX);
+	GET(BuildingTypeClass* const, pThis, ECX);
 
 	return RulesClass::Instance->NSGates.FindItemIndex(pThis) == -1 ? 0 : 0x4410F3;
 }
 
 DEFINE_HOOK(0x480552, CellClass_AttachesToNeighbourOverlay_Gate, 0x7)
 {
-	GET(CellClass*, pThis, EBP);
-	GET(int, idxOverlay, EBX);
-	GET_STACK(int, state, STACK_OFFS(0x10, -0x8));
+	GET(CellClass* const, pThis, EBP);
+	GET(int const, idxOverlay, EBX);
+	GET_STACK(int const, state, STACK_OFFS(0x10, -0x8));
+
 	const bool isWall = idxOverlay != -1 && OverlayTypeClass::Array->GetItem(idxOverlay)->Wall;
 	enum { Attachable = 0x480549 };
 
@@ -363,8 +365,8 @@ DEFINE_HOOK(0x6C919F, StandaloneScore_SinglePlayerScoreDialog_ActualTime, 0x5)
 // Author: secsome
 DEFINE_HOOK(0x706389, TechnoClass_DrawAsSHP_TintAndIntensity, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, nIntensity, EBP);
+	GET(TechnoClass* const, pThis, ESI);
+	GET(int const, nIntensity, EBP);
 	REF_STACK(int, nTintColor, STACK_OFFS(0x54, -0x2C));
 
 	bool NeedUpdate = false;
@@ -422,7 +424,7 @@ DEFINE_HOOK(0x6FA781, TechnoClass_AI_SelfHealing_BuildingGraphics, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis))
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis))
 	{
 		if (pBuilding->IsThisBreathing())
 		{
@@ -436,9 +438,9 @@ DEFINE_HOOK(0x6FA781, TechnoClass_AI_SelfHealing_BuildingGraphics, 0x6)
 
 DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 {
-	GET(FlyLocomotionClass*, pThis, ESI);
+	GET(FlyLocomotionClass* const, pThis, ESI);
 
-	if (auto const pLinked = pThis->LinkedTo)
+	if (const auto pLinked = pThis->LinkedTo)
 	{
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
@@ -452,9 +454,9 @@ DEFINE_HOOK(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 
 DEFINE_HOOK(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 {
-	GET(FlyLocomotionClass*, pThis, ECX);
+	GET(FlyLocomotionClass* const, pThis, ECX);
 
-	if (auto const pLinked = pThis->LinkedTo)
+	if (const auto pLinked = pThis->LinkedTo)
 	{
 		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
 			TechnoExt::GetCurrentSpeedMultiplier(pLinked);
@@ -647,7 +649,7 @@ DEFINE_HOOK(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 {
 	enum { DontDrawBib = 0x43D8EE };
 
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
 }
 
@@ -690,7 +692,7 @@ DEFINE_HOOK(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 
 	cell = { (short)((XP + YP) / 2),(short)((YP - XP) / 2) };
 
-	auto pCell = MapClass::Instance->TryGetCellAt(cell);
+	const auto pCell = MapClass::Instance->TryGetCellAt(cell);
 	if (!pCell)
 		return SkipSpawn;
 
@@ -745,7 +747,7 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 // Enable sorted add for Air/Top layers to fix issues with attached anims etc.
 DEFINE_HOOK(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
 {
-	GET(Layer, layer, EDI);
+	GET(Layer const, layer, EDI);
 	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
 	return 0;
 }
@@ -755,15 +757,15 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 {
 	enum { ContinueChecks = 0x51A9A0, SkipKilling = 0x51A9EB };
 
-	GET(InfantryClass*, pThis, ESI);
-	GET(LandType, landType, EBX);
+	GET(InfantryClass* const, pThis, ESI);
+	GET(LandType const, landType, EBX);
 
 	if (landType == LandType::Rock)
 		return ContinueChecks;
 
 	if (landType == LandType::Water) {
-		if (GroundType::Array[static_cast<int>(landType)]
-			.Cost[static_cast<int>(pThis->Type->SpeedType)] == 0.0)
+		if (GroundType::Array[int(landType)]
+			.Cost[int(pThis->Type->SpeedType)] == 0.0)
 			return ContinueChecks;
 	}
 
@@ -788,7 +790,7 @@ DEFINE_HOOK(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pFlipper = pThis->DirectRockerLinkedUnit;
+	const auto pFlipper = pThis->DirectRockerLinkedUnit;
 	pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance->C4Warhead,
 		nullptr, true, false, pFlipper ? pFlipper->Owner : nullptr);
 
@@ -830,7 +832,7 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 {
 	enum { IsNaval = 0x4438BC, NotNaval = 0x4438C9 };
 
-	GET(BuildingTypeClass*, pBuildingType, EAX);
+	GET(BuildingTypeClass* const, pBuildingType, EAX);
 
 	if (pBuildingType->Naval || pBuildingType->SpeedType == SpeedType::Float)
 		return IsNaval;

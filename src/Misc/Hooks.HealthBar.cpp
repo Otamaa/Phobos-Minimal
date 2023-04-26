@@ -9,30 +9,33 @@
 
 DEFINE_HOOK(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, ECX);
 
-	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes01.Get(pPipShape01));
+	R->ECX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+		->PipShapes01.Get(pPipShape01));
 
 	return 0;
 }
 
 DEFINE_HOOK(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape01, EAX);
 
-	R->EAX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes01.Get(pPipShape01));
+	R->EAX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+		->PipShapes01.Get(pPipShape01));
 
 	return 0;
 }
 
 DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 {
-	GET(TechnoClass*, pThis, EBP);
+	GET(TechnoClass* const, pThis, EBP);
 	GET(SHPStruct*, pPipShape02, EBX);
 
-	R->EBX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->PipShapes02.Get(pPipShape02));
+	R->EBX(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())
+		->PipShapes02.Get(pPipShape02));
 
 	return 0;
 }
@@ -40,7 +43,7 @@ DEFINE_HOOK(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
 //6F6759 , EDX ,6F675F
 DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 
 	const auto pThisExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	R->EDX(pThisExt->PipShapes01.Get(FileSystem::PIPS_SHP()));
@@ -50,7 +53,7 @@ DEFINE_HOOK(0x6F6722, TechnoClass_DrawHealth_Building_PipFile_B, 0x6)
 
 DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
@@ -67,7 +70,7 @@ DEFINE_HOOK(0x6F6759, TechnoClass_DrawHealth_Building_PipFile_B_pal, 0x6)
 
 DEFINE_HOOK(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(BuildingClass* const, pThis, ESI);
 	GET(SHPReference*, pDefaultPip, EAX);
 
 	const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
@@ -404,7 +407,7 @@ namespace DrawHeathData
 
 DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET(int, iLength, EBX);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
@@ -422,7 +425,7 @@ DEFINE_HOOK(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
 
 DEFINE_HOOK(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 

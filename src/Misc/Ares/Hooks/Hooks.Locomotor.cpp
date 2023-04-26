@@ -19,7 +19,7 @@
 DEFINE_OVERRIDE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
 {
 	// do not divide by zero
-	GET(int, count, EBP);
+	GET(int const, count, EBP);
 	return count ? 0 : 0x4B5FAD;
 }
 
@@ -27,6 +27,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x
 DEFINE_OVERRIDE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
+
 	FootClass* pFoot = hLoco->Owner ? hLoco->Owner : hLoco->LinkedTo;
 
 	if (!pFoot->Destination)
@@ -38,8 +39,11 @@ DEFINE_OVERRIDE_HOOK(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 DEFINE_OVERRIDE_HOOK(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 {
 	GET(HoverLocomotionClass const* const, hLoco, ESI);
+
 	hLoco->sub_514F70(true);
-	auto pFoot = hLoco->LinkedTo;
+
+	FootClass* pFoot = hLoco->LinkedTo ? hLoco->LinkedTo : hLoco->Owner;
+
 	if (!pFoot->Destination)
 		pFoot->SetSpeedPercentage(0.0);
 
@@ -70,25 +74,25 @@ DEFINE_OVERRIDE_HOOK(0x4B619F, DropPodLocomotionClass_ILocomotion_MoveTo_Atmosph
 
 DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
-	GET(FlyLocomotionClass* const, pThis, ESI);
-	auto const pObject = pThis->LinkedTo;
-	auto const pType = pObject->GetTechnoType();
+	GET(FlyLocomotionClass*, pThis, ESI);
+	const auto pObject = pThis->LinkedTo;
+	const auto pType = pObject->GetTechnoType();
 
 	if (pType->HunterSeeker) {
-		if (auto const pTarget = pObject->Target) {
+		if (const auto pTarget = pObject->Target) {
 
 			// update the target's position, considering units in tunnels
 			auto crd = pTarget->GetCoords();
 
-			auto const abs = GetVtableAddr(pTarget);
+			const auto abs = GetVtableAddr(pTarget);
 			if (abs == UnitClass::vtable || abs == InfantryClass::vtable) {
-				auto const pFoot = static_cast<FootClass*>(pObject);
+				const auto pFoot = static_cast<FootClass* const>(pObject);
 				if (pFoot->TubeIndex >= 0) {
 					crd = pFoot->CurrentMechPos;
 				}
 			}
 
-			auto const height = MapClass::Instance->GetCellFloorHeight(crd);
+			const auto  height = MapClass::Instance->GetCellFloorHeight(crd);
 
 			if (crd.Z < height) {
 				crd.Z = height;
@@ -97,7 +101,7 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 			pThis->MovingDestination = crd;
 
 			// update the facing
-			auto const crdSource = pObject->GetCoords();
+			const auto crdSource = pObject->GetCoords();
 
 			DirStruct const tmp(double(crdSource.Y - crd.Y), double(crd.X - crdSource.X));
 			pObject->PrimaryFacing.Set_Current(tmp);
@@ -110,9 +114,9 @@ DEFINE_OVERRIDE_HOOK(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_Update
 
 DEFINE_OVERRIDE_HOOK(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 {
-	GET(FlyLocomotionClass* const, pThis, ESI);
-	auto const pObject = pThis->LinkedTo;
-	auto const pType = pObject->GetTechnoType();
+	GET(FlyLocomotionClass*, pThis, ESI);
+	const auto pObject = pThis->LinkedTo;
+	const auto pType = pObject->GetTechnoType();
 
 	if (pType->HunterSeeker) {
 		if (!pObject->Target) {
@@ -141,8 +145,8 @@ DEFINE_OVERRIDE_HOOK(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeek
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
-	auto const pObject = pLoco->LinkedTo;
-	auto const pType = pObject->GetTechnoType();
+	const auto pObject = pLoco->LinkedTo;
+	const auto pType = pObject->GetTechnoType();
 
 	if (pType->HunterSeeker) {
 		if (!pObject->Target) {

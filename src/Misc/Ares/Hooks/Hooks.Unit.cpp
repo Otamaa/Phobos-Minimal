@@ -49,7 +49,7 @@ DEFINE_OVERRIDE_HOOK(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
 	GET(BuildingClass*, pBuilding, ESI);
 	GET(UnitClass*, pThis, EBX);
 
-	return pThis && pBuilding->Owner->IsAlliedWith(pThis) ? 0x0 : 0x73F823;
+	return pThis && pBuilding->Owner->IsAlliedWith_(pThis) ? 0x0 : 0x73F823;
 }
 
 // #1171643: keep the last passenger if this is a gunner, not just
@@ -211,7 +211,13 @@ DEFINE_OVERRIDE_HOOK(0x739B8A, UnitClass_SimpleDeploy_Facing, 0x6)
 DEFINE_OVERRIDE_HOOK(0x74642C, UnitClass_ReceiveGunner, 6)
 {
 	GET(UnitClass*, Unit, ESI);
-	TechnoExt::ExtMap.Find(Unit)->MyOriginalTemporal = Unit->TemporalImUsing;
+
+	const auto pTemp = Unit->TemporalImUsing;
+
+	if(pTemp)
+		pTemp->LetGo();
+
+	TechnoExt::ExtMap.Find(Unit)->MyOriginalTemporal = pTemp;
 	Unit->TemporalImUsing = nullptr;
 	return 0;
 }
@@ -566,7 +572,7 @@ DEFINE_OVERRIDE_HOOK(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 }
 
 #include <SlaveManagerClass.h>
-DEFINE_OVERRIDE_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock, 6) { return 0x73E6CF; }
+DEFINE_OVERRIDE_SKIP_HOOK(0x73E66D, UnitClass_Mi_Harvest_SkipDock, 6 , 73E6CF);
 
 DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 {
@@ -653,7 +659,7 @@ DEFINE_OVERRIDE_HOOK(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
 	GET(UnitClass*, pThis, EBP);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumShortScan));
-	return R->Origin() + 6;
+	return R->Origin() + 0x6;
 }
 
 DEFINE_OVERRIDE_HOOK_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
@@ -662,7 +668,7 @@ DEFINE_OVERRIDE_HOOK(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 	GET(UnitClass*, pThis, EBP);
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumLongScan));
-	return R->Origin() + 6;
+	return R->Origin() + 0x6;
 }
 
 DEFINE_OVERRIDE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
@@ -723,13 +729,8 @@ DEFINE_OVERRIDE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
 	GET(UnitClass*, pThis, ESI);
 	GET(wchar_t*, pGunnerName, EAX);
 
-	auto pName = pThis->Type->UIName;
-
-	auto pSpace = L"";
-	if (pName && *pName && pGunnerName && *pGunnerName) {
-		pSpace = L" ";
-	}
-
+	const auto pName = pThis->Type->UIName;
+	const auto pSpace = (pName && *pName && pGunnerName && *pGunnerName) ? L" " : L"";
 	_snwprintf_s(pThis->ToolTipText, sizeof(pThis->ToolTipText), L"%s%s%s", pGunnerName, pSpace, pName);
 
 	R->EAX(pThis->ToolTipText);
@@ -740,8 +741,7 @@ DEFINE_OVERRIDE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 {
 	GET(UnitClass const* const, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualUnload ? 0x740115u : 0u;
+	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
@@ -749,8 +749,7 @@ DEFINE_OVERRIDE_HOOK(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6
 	enum { RetDefault = 0, NoUnload = 0x417DF4 };
 
 	GET(AircraftClass const* const, pThis, ESI);
-	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualUnload ? 0x417DF4u : 0u;
+	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
@@ -758,8 +757,7 @@ DEFINE_OVERRIDE_HOOK(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 
 	// this techno is known to be a unit
 	GET(UnitClass const* const, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExt::ExtMap.Find(pType)->NoManualUnload || pThis->BunkerLinkedItem 
+	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem 
 	? 0x700DCEu : 0u;
 }
 
@@ -804,7 +802,8 @@ DEFINE_OVERRIDE_HOOK(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 {
 	//GET(UnitClass const* const, pThis, ESI);
 	GET(TechnoTypeClass*, pTargetType, EAX);
-	const bool enterable = pTargetType->Passengers > 0 && !TechnoTypeExt::ExtMap.Find(pTargetType)->NoManualEnter;
+	const bool enterable = pTargetType->Passengers > 0 &&
+	!TechnoTypeExt::ExtMap.Find(pTargetType)->NoManualEnter;
 	return enterable ? 0x740324u : 0x74037Au;
 }
 
@@ -977,9 +976,7 @@ DEFINE_OVERRIDE_HOOK(0x715320, TechnoTypeClass_LoadFromINI_EarlyReader, 6)
 	GET(TechnoTypeClass*, pType, EBP);
 
 	INI_EX exINI(pINI);
-	TechnoTypeExt::ExtData* pData = TechnoTypeExt::ExtMap.Find(pType);
-
-	pData->WaterImage.Read(exINI, pType->ID, "WaterImage");
+	TechnoTypeExt::ExtMap.Find(pType)->WaterImage.Read(exINI, pType->ID, "WaterImage");
 
 	return 0;
 }
@@ -991,8 +988,8 @@ DEFINE_OVERRIDE_HOOK(0x73C485, UnitClass_DrawVXL_NoSpawnAlt_SkipShadow, 8)
 	GET(UnitClass*, pThis, EBP);
 	auto const pSpawnManager = pThis->SpawnManager;
 
-	if (pThis->Type->NoSpawnAlt 
-		&& pSpawnManager 
+	if (pThis->Type->NoSpawnAlt
+		&& pSpawnManager
 		&& pSpawnManager->CountDockedSpawns() < pSpawnManager->SpawnCount
 		)
 	{
@@ -1024,7 +1021,10 @@ DEFINE_OVERRIDE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 		return retAddr;
 	}
 
-	if (U->CloakState != CloakState::Uncloaked || U->Type->Underwater || U->Type->SmallVisceroid || U->Type->LargeVisceroid)
+	if (U->CloakState != CloakState::Uncloaked ||
+		U->Type->Underwater ||
+		U->Type->SmallVisceroid || U->Type->LargeVisceroid
+	)
 	{
 		return retAddr;
 	}
@@ -1060,7 +1060,6 @@ DEFINE_OVERRIDE_HOOK(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 
 DEFINE_OVERRIDE_HOOK(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
 {
-
 	if (ShadowAlreadyDrawn) {
 		ShadowAlreadyDrawn = false;
 		return 0x706007;
@@ -1158,9 +1157,8 @@ DEFINE_OVERRIDE_HOOK(0x7015EB, TechnoClass_ChangeOwnership_Prereqs, 7)
 DEFINE_OVERRIDE_HOOK(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
-	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	return pExt->OmniCrusher_Aggressive ? 0u : 0x741685u;
+	return TechnoTypeExt::ExtMap.Find(pThis->Type)->OmniCrusher_Aggressive
+		? 0u : 0x741685u;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7418AA, UnitClass_CrushCell_CrushDamage, 6)
@@ -1404,17 +1402,15 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	CellClass* pCell = pThis->GetCell();
-	CoordStruct crd = pCell->GetCoordsWithBridge();
+	const CellClass* pCell = pThis->GetCell();
+	const CoordStruct crd = pCell->GetCoordsWithBridge();
 
 	// recreate replaced check, and also disallow if unit is still warping or dropping in.
 	return (pThis->IsUnderEMP()
 	|| pThis->IsWarpingIn()
 	|| pThis->IsFallingDown
 	|| Is_DriverKilled(pThis)
-	)
-
-		? 0x700DCE : 0x700E59;
+	) ? 0x700DCE : 0x700E59;
 }
 
 DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
@@ -1422,14 +1418,15 @@ DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 	GET(ObjectClass*, pTarget, EDI);
 
 	if (const auto pTech = generic_cast<TechnoClass*>(pTarget)) {
-		return RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage_()
-			? 0x51C947 : 0x51C939;
+		if(RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage_()) {
+			return 0x51C947;
+		}
 	}
 
 	return 0x51C939;
 }
 
-// this code somewhat broke targeting 
+// this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
 DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 {
@@ -1441,7 +1438,7 @@ DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 	bool IsAlly = false;
 	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
 		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-			if(pOwner->IsAlliedWith(pTargetHouse))
+			if(pOwner->IsAlliedWith_(pTargetHouse))
 				IsAlly = true;
 		}
 	}
