@@ -22,19 +22,15 @@ public:
 	{
 	public:
 
-		LightSourceClass* LighSource;
+		UniqueGamePtrB<LightSourceClass> LighSource;
 		AnimClass* AttachedAnim;
 
 		ExtData(TerrainClass* OwnerObject) : Extension<TerrainClass>(OwnerObject)
-			, LighSource { nullptr }
+			, LighSource { }
 			, AttachedAnim { nullptr }
 		{ }
 
-		virtual ~ExtData() override
-		{
-			ClearLightSource();
-			ClearAnim();
-		}
+		virtual ~ExtData() override = default;
 
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 		virtual bool InvalidateIgnorable(void* const ptr) const override {

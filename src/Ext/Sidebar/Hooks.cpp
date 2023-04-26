@@ -11,7 +11,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 
 	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
 		sprintf_s(filename, "tab%02dpp.shp", i);
-		SidebarExt::TabProducingProgress[i] = GameCreate<SHPReference>(filename);
+		SidebarExt::TabProducingProgress[i].reset(GameCreate<SHPReference>(filename));
 	}
 
 	return 0;
@@ -20,10 +20,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
 	for (auto& nShps : SidebarExt::TabProducingProgress) {
-		if (nShps) {
-			GameDelete<true>(nShps);
-			nShps = nullptr;
-		}
+		nShps.reset();
 	}
 
 	return 0;

@@ -20,14 +20,15 @@
 
 static const HoverTypeClass* GetHover(TechnoClass* pThis)
 {
-	auto const pDefault = HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
+	if (pThis) {
+		auto const pTechnoType = pThis->GetTechnoType();
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
-	if (!pThis)
-		return pDefault;
+		if (pTypeExt->HoverType.isset())
+			return pTypeExt->HoverType;
+	}
 
-	auto const pTechnoType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
-	return pTypeExt->HoverType.Get(pDefault);
+	return HoverTypeClass::FindOrAllocate(DEFAULT_STR2);
 }
 
 static TechnoClass* GetOwner(HoverLocomotionClass* pThis)
@@ -103,7 +104,8 @@ DEFINE_HOOK(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 			if (const auto pAnimType = GetHover(Linked)->GetAboveWaterAnim())
 			{
 				const auto nCoord = Linked->GetCoords();
-				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord)){
+				if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
+				{
 					AnimExt::SetAnimOwnerHouseKind(pAnim, Linked->Owner, nullptr, Linked, false);
 				}
 			}
@@ -141,9 +143,10 @@ DEFINE_HOOK(0x5167FC, HoverLocomotionClass_515ED0_ScoldSound, 0x5)
 
 DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
 {
-	GET(HoverLocomotionClass* const, pLoco, ESI);
-	const auto nBoostExt = GetHover(GetOwner(pLoco))->GetBoost();
-	pLoco->__Boost += nBoostExt;
+	GET(HoverLocomotionClass* , pLoco, ESI);
+	const auto pThis = GetOwner(pLoco);
+	const auto nBoostExt = GetHover(pThis)->GetBoost();
+	pLoco->__Boost = nBoostExt;
 	return 0x516152;
 }
 #endif

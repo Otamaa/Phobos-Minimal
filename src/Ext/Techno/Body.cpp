@@ -3175,7 +3175,7 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 
 	if (pExt->DelayedFire_Anim)
 	{
-		pExt->DelayedFire_Anim.release();
+		pExt->DelayedFire_Anim.reset();
 	}
 
 	pExt->DelayedFire_Anim_LoopCount = 1;

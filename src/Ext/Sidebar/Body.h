@@ -41,7 +41,7 @@ private:
 public:
 	static IStream* g_pStm;
 
-	static ArrayWrapper<SHPStruct* , 4u> TabProducingProgress;
+	static std::array<UniqueGamePtrB<SHPStruct> , 4u>TabProducingProgress;
 
 	static void Allocate(SidebarClass* pThis);
 	static void Remove(SidebarClass* pThis);

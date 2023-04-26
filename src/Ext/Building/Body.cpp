@@ -596,14 +596,14 @@ void BuildingExt::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int
 		auto const pBuildingExt = BuildingExt::ExtMap.Find(pBuilding);
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->TechnoExt->Shield.release();
+		pBuildingExt->TechnoExt->Shield.reset();
 		pBuildingExt->TechnoExt->Trails.clear();
 		pBuildingExt->TechnoExt->RevengeWeapons.clear();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		pBuildingExt->TechnoExt->DamageSelfState.release();
-		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallState.release();
+		pBuildingExt->TechnoExt->DamageSelfState.reset();
+		pBuildingExt->TechnoExt->MyGiftBox.reset();
+		pBuildingExt->TechnoExt->PaintBallState.reset();
 		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
 		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();

@@ -15,7 +15,7 @@ void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	if (this->InvalidateIgnorable(ptr))
 		return;
 
-	if (this->LighSource == ptr) {
+	if (this->LighSource.get() == ptr) {
 		this->LighSource = nullptr;
 	}
 
@@ -43,8 +43,8 @@ void TerrainExt::ExtData::InitializeLightSource()
 
 		if (const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint))
 		{
-			this->LighSource = light;
-			this->LighSource->Activate();
+			light->Activate();
+			this->LighSource.reset(light);
 		}
 	}
 }
@@ -94,11 +94,7 @@ void TerrainExt::ExtData::ClearAnim()
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	if (LighSource)
-	{
-		GameDelete<true, false>(LighSource);
-		LighSource = nullptr;
-	}
+	LighSource.reset();
 }
 
 void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
@@ -126,10 +122,10 @@ void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)
 
 void TerrainExt::CleanUp(TerrainClass* pThis)
 {
-	if (!pThis || !pThis->Type)
+	if (!pThis)
 		return;
 
-	if(auto const TerrainExt = TerrainExt::ExtMap.TryFind(pThis)) {
+	if(auto const TerrainExt = TerrainExt::ExtMap.Find(pThis)) {
 		TerrainExt->ClearLightSource();
 		TerrainExt->ClearAnim();
 	}
@@ -216,7 +212,12 @@ DEFINE_HOOK(0x71B824, TerrainClass_DTOR, 0x5)
 			pItem->AnnounceExpiredPointer();
 	}
 
-	TerrainExt::ExtMap.Remove(pItem);
+	if(auto pExt = TerrainExt::ExtMap.TryFind(pItem)) {
+		pExt->ClearLightSource();
+		pExt->ClearAnim();
+		delete pExt;
+		TerrainExt::ExtMap.ClearExtAttribute(pItem);
+	}
 
 	return 0x71B845;
 }

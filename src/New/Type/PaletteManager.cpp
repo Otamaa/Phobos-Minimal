@@ -16,9 +16,9 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 
 void PaletteManager::Clear_Internal()
 {
-	Palette.release();
-	Convert_Temperate.release();
-	Convert.release();
+	Palette.reset();
+	Convert_Temperate.reset();
+	Convert.reset();
 }
 
 void PaletteManager::CreateConvert()

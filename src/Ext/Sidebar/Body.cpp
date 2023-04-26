@@ -5,7 +5,7 @@
 
 std::unique_ptr<SidebarExt::ExtData> SidebarExt::Data = nullptr;
 
-ArrayWrapper<SHPStruct*, 4u> SidebarExt::TabProducingProgress;
+std::array<UniqueGamePtrB<SHPStruct>, 4u> SidebarExt::TabProducingProgress;
 void SidebarExt::ExtData::InitializeConstants() { }
 
 void SidebarExt::Allocate(SidebarClass* pThis)
@@ -35,7 +35,7 @@ void SidebarExt::DrawProducingProgress()
 		const int YBase = 197 + pSideExt->Sidebar_ProducingProgress_Offset.Get().Y;
 
 		for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-			if (const auto pSHP = SidebarExt::TabProducingProgress[i]) {
+			if (const auto pSHP = SidebarExt::TabProducingProgress[i].get()) {
 
 				const auto rtti = i == 0 || i == 1 ? AbstractType::BuildingType : AbstractType::InfantryType;
 				FactoryClass* pFactory = nullptr;
@@ -91,12 +91,14 @@ void SidebarExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
 
 bool SidebarExt::LoadGlobals(PhobosStreamReader& Stm)
 {
-	return Stm.Success();
+	return Stm
+		.Success();
 }
 
 bool SidebarExt::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return Stm.Success();
+	return Stm
+		.Success();
 }
 
 
