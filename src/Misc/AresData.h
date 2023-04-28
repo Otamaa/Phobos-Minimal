@@ -69,6 +69,21 @@ static_assert(sizeof(PoweredUnitClass) == 0xC, "Invalid Size !");
 #define GetDisableWeaponDur(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0xFC))
 #define GetFlashDuration(wh) (*(int*)(((char*)GetAresAresWarheadTypeExt(wh)) + 0x100))
 
+enum class NewFactoryState
+{
+	NoFactory = 0, // there is no factory building for this
+	NotFound = 1, //
+	Unpowered = 2, //
+	Available_Alternative = 3, // Ares 3.0
+	Available_Primary = 4 // Ares 3.0
+};
+
+struct AresFactoryStateRet
+{
+	NewFactoryState state;
+	BuildingClass* Factory;
+};
+
 struct AresData
 {
 	enum FunctionIndices
@@ -91,6 +106,8 @@ struct AresData
 		BulletTypeExtGetConvertID = 15,
 		ApplyKillDriverID = 16,
 		MouseCursorTypeLoadDefaultID = 17 ,
+		HouseExtHasFactoryID = 18,
+		HouseExtGetBuildLimitRemainingID = 19,
 	};
 
 	enum Version
@@ -104,7 +121,7 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 18;
+	static constexpr int AresFunctionCount = 20;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
@@ -142,7 +159,8 @@ struct AresData
 		0x019A50, // BulletTypeExtGetConvert
 		0x0537F0, // WhExt::ApplyKillDriver
 		0x007100, // MouseCursorTypeLoadDefault
-
+		0x0217C0, // HouseExtHasFactory
+		0x0212F0, // HouseExtGetBuildLimitRemaining
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
@@ -160,6 +178,7 @@ struct AresData
 	template<int idx, typename Tret, typename... TArgs>
 	struct AresStdcall
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = Tret(__stdcall*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -170,6 +189,7 @@ struct AresData
 	template<int idx, typename... TArgs>
 	struct AresStdcall<idx, void, TArgs...>
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = void(__stdcall*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -180,6 +200,7 @@ struct AresData
 	template<int idx, typename Tret, typename... TArgs>
 	struct AresCdecl
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = Tret(__cdecl*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -190,6 +211,7 @@ struct AresData
 	template<int idx, typename... TArgs>
 	struct AresCdecl<idx, void, TArgs...>
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = void(__cdecl*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -200,6 +222,7 @@ struct AresData
 	template<int idx, typename Tret, typename... TArgs>
 	struct AresFastcall
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = Tret(__fastcall*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -210,6 +233,7 @@ struct AresData
 	template<int idx, typename... TArgs>
 	struct AresFastcall<idx, void, TArgs...>
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = void(__fastcall*)(TArgs...);
 		decltype(auto) operator()(TArgs... args) const
 		{
@@ -220,6 +244,7 @@ struct AresData
 	template<int idx, typename Tret, typename TThis, typename... TArgs>
 	struct AresThiscall
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = Tret(__fastcall*)(TThis, void*, TArgs...);
 		decltype(auto) operator()(TThis pThis, TArgs... args) const
 		{
@@ -230,6 +255,7 @@ struct AresData
 	template<int idx, typename TThis, typename... TArgs>
 	struct AresThiscall<idx, void, TThis, TArgs...>
 	{
+		static_assert(idx < AresData::AresFunctionCount, "Index Out Of Bound !");
 		using fp_type = void(__fastcall*)(TThis, void*, TArgs...);
 		void operator()(TThis pThis, TArgs... args) const
 		{
@@ -255,6 +281,9 @@ struct AresData
 	static ConvertClass* GetBulletTypeConvert(BulletTypeClass* pThis);
 	static void WarheadTypeExt_ExtData_ApplyKillDriver(WarheadTypeClass* pThis, TechnoClass* const pAttacker, TechnoClass* const pVictim);
 	static void MouseCursorTypeLoadDefault();
+
+	static AresFactoryStateRet* HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7);
+	static int HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType);
 
 	static int NOINLINE CallAresBuildingClass_Infiltrate(REGISTERS* R);
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);

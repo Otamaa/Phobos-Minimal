@@ -162,6 +162,16 @@ void AresData::MouseCursorTypeLoadDefault()
 	AresStdcall<MouseCursorTypeLoadDefaultID, void>()();
 }
 
+AresFactoryStateRet* AresData::HouseExt_HasFactory(AresFactoryStateRet* nBuff, HouseClass const* const Owner, TechnoTypeClass const* const pType, bool bSkipAircraft, bool bRequirePower, bool bCheckCanBuild, bool a7)
+{
+	return AresStdcall<HouseExtHasFactoryID, AresFactoryStateRet*  , AresFactoryStateRet* , HouseClass const*, TechnoTypeClass const*, bool, bool , bool , bool>()(nBuff, Owner, pType , bSkipAircraft , bRequirePower , bCheckCanBuild , a7);
+}
+
+int AresData::HouseExt_GetBuildLimitRemaining(HouseClass const* const Owner, TechnoTypeClass const* const pType)
+{
+	return AresStdcall<HouseExtGetBuildLimitRemainingID, int , HouseClass const*, TechnoTypeClass const*>()(Owner, pType);
+}
+
 int AresData::CallAresBuildingClass_Infiltrate(REGISTERS* R)
 {
 	if (AresDllHmodule != NULL) {

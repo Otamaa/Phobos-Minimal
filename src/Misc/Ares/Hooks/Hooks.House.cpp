@@ -16,6 +16,122 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <Misc/AresData.h>
+
+DEFINE_OVERRIDE_HOOK(0x5F7900, ObjectTypeClass_FindFactory, 5)
+{
+	GET(TechnoTypeClass*, pThis, ECX);
+	GET_STACK(HouseClass*, pHouse, 0x10);
+	GET_STACK(bool, bSkipAircraft, 0x4);
+	GET_STACK(bool, bRequirePower, 0x8);
+	GET_STACK(bool, bCheckCanBuild, 0xC);
+
+	AresFactoryStateRet nBuffer;
+
+	AresData::HouseExt_HasFactory(&nBuffer ,
+	pHouse,
+	pThis,
+	bSkipAircraft,
+	bRequirePower,
+	bCheckCanBuild,
+	false);
+
+	R->EAX(nBuffer.state >= NewFactoryState::Available_Alternative ? 
+		nBuffer.Factory : nullptr);
+
+	return 0x5F7A89;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
+{
+	GET(TechnoClass*, pFactoryObject, ESI);
+
+	AresFactoryStateRet nBuffer;
+	AresData::HouseExt_HasFactory(&nBuffer,
+	pFactoryObject->GetOwningHouse(), pFactoryObject->GetTechnoType(), false, true, false, true);
+
+	if (nBuffer.state == NewFactoryState::Unpowered)
+		return 0x6AB95A;
+
+	R->EAX(nBuffer.Factory);
+	return 0x6AB320;
+}
+
+DEFINE_OVERRIDE_HOOK(0x50B370, HouseClass_ShouldDisableCameo, 5)
+{
+	GET(HouseClass const* const, pThis, ECX);
+	GET_STACK(TechnoTypeClass const* const, pType, 0x4);
+
+	auto ret = false;
+
+	if (pType)
+	{
+		auto const abs = pType->WhatAmI();
+		auto const pFactory = pThis->GetPrimaryFactory(
+			abs, pType->Naval, BuildCat::DontCare);
+
+		// special logic for AirportBound
+		if (abs == AbstractType::AircraftType)
+		{
+			auto const pAType = static_cast<AircraftTypeClass const*>(pType);
+			if (pAType->AirportBound)
+			{
+				auto ownedAircraft = 0;
+				auto queuedAircraft = 0;
+
+				for (auto const& pAircraft : RulesClass::Instance->PadAircraft)
+				{
+					ownedAircraft += pThis->CountOwnedAndPresent(pAircraft);
+					if (pFactory)
+					{
+						queuedAircraft += pFactory->CountTotal(pAircraft);
+					}
+				}
+
+				// #896082: also check BuildLimit, and not always return the
+				// result of this comparison directly. originally, it would
+				// return false here, too, allowing more units than the
+				// BuildLimit permitted.
+				if (ownedAircraft + queuedAircraft >= pThis->AirportDocks)
+				{
+					R->EAX(true);
+					return 0x50B669;
+				}
+			}
+		}
+
+		auto queued = 0;
+		if (pFactory)
+		{
+			queued = pFactory->CountTotal(pType);
+
+			// #1286800: build limit > 1 and queues
+			// the object in production is counted twice: it appears in this
+			// factory queue, and it is already counted in the house's counters.
+			// this only affects positive build limits, for negative ones
+			// players could queue up one more than BuildLimit.
+			if (auto const pObject = pFactory->Object)
+			{
+				if (pObject->GetType() == pType && pType->BuildLimit > 0)
+				{
+					--queued;
+				}
+			}
+		}
+
+		// #1521738: to stay consistent, use the new method to calculate this
+		if (AresData::HouseExt_GetBuildLimitRemaining(pThis, pType) - queued <= 0)
+		{ ret = true; } else {
+			AresFactoryStateRet state;
+			AresData::HouseExt_HasFactory(&state ,pThis, pType, true, true, false, true);
+			ret = (state.state < NewFactoryState::Available_Alternative);
+		}
+	}
+
+	R->EAX(ret);
+	return 0x50B669;
+}
+
 DEFINE_OVERRIDE_SKIP_HOOK(0x50928C, HouseClass_Update_Factories_Queues_SkipBrokenDTOR, 0x5, 5092A3)
 
 // reject negative indexes. if the index is the result of the function above, this
