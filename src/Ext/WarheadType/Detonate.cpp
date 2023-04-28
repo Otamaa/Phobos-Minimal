@@ -562,7 +562,7 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			{
 				ratio = pExt->Shield->GetHealthRatio();
 				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-				pExt->Shield.reset();
+				pExt->Shield.release();
 			}
 		}
 

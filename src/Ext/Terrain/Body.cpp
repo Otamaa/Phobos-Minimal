@@ -94,7 +94,7 @@ void TerrainExt::ExtData::ClearAnim()
 //called when it Dtor ed , for more optimal
 void TerrainExt::ExtData::ClearLightSource()
 {
-	LighSource.reset();
+	LighSource.release();
 }
 
 void TerrainExt::Unlimbo(TerrainClass* pThis, CoordStruct* pCoord)

@@ -28,7 +28,12 @@ DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 	REF_STACK(bool, bLoadFailed, 0x13);
 	GET(ObjectTypeClass*, pThis, ESI);
 
-	if (!pThis || (!Is_AircraftType(pThis) && !Is_UnitType(pThis) && !Is_InfantryType(pThis) && !Is_BuildingType(pThis)))
+	if (!pThis || 
+		(!Is_AircraftType(pThis) && 
+			!Is_UnitType(pThis) && 
+			!Is_InfantryType(pThis) && 
+			!Is_BuildingType(pThis))
+		)
 		return 0x5F8640;
 
 	TechnoTypeClass* const pType = reinterpret_cast<TechnoTypeClass*>(pThis);

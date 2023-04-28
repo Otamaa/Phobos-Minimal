@@ -20,7 +20,7 @@ DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 DEFINE_HOOK(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 {
 	for (auto& nShps : SidebarExt::TabProducingProgress) {
-		nShps.reset();
+		nShps.release();
 	}
 
 	return 0;

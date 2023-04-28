@@ -257,14 +257,31 @@ public:
 
 		if (auto pSuffix = CRT::strstr(str, "~~~"))
 		{
-			auto pExtension = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
+			const auto pExtension = Theater::Get(ScenarioClass::Instance->Theater)->Extension;
 			pSuffix[0] = pExtension[0];
 			pSuffix[1] = pExtension[1];
 			pSuffix[2] = pExtension[2];
+			Debug::Log("Found designated string, Replacing [%s] to [%s] \n", str, pSuffix);
 			return true;
 		}
 
 		return false;
+	}
+
+	template <size_t size>
+	static inline void lowercase(char (&nBuff)[size] , char const (&nData)[size])
+	{
+		for (size_t i = 0; i < size; ++i) {
+			nBuff[i] = (char)std::tolower(nData[i]);
+		}
+	}
+
+	template <size_t size>
+	static inline void uppercase(char(&nBuff)[size], char(&nData)[size])
+	{
+		for (size_t i = 0; i < size; ++i) {
+			nBuff[i] = (char)std::toupper(nData[i]);
+		}
 	}
 
 	//
@@ -293,13 +310,21 @@ public:
 
 	static std::string inline ApplyTheaterSuffixToString(const std::string& str)
 	{
-		std::string buffer = lowercase(str);
+		std::string buffer = str;
 
-		if (buffer.find("~~~") != std::string::npos) {
-			const auto pExtension = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
-			buffer[0] = pExtension[0];
-			buffer[1] = pExtension[1];
-			buffer[2] = pExtension[2];
+		const auto nPos = buffer.find("~~~");
+		if (nPos != std::string::npos)
+		{
+			std::string pTheater = 
+				Theater::Get(ScenarioClass::Instance->Theater)->Extension;
+			pTheater = lowercase(pTheater);
+
+			//only set the 3 characters without the terminator string
+			buffer.replace(nPos, 3, pTheater);
+
+			Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
+				nPos, str.c_str(), buffer.c_str());
+
 		}
 
 		return buffer;

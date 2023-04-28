@@ -14,15 +14,17 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 
 void PaletteManager::Clear_Internal()
 {
-	Palette.reset();
-	Convert_Temperate.reset();
-	Convert.reset();
+	Palette.release();
+	Convert_Temperate.release();
+	Convert.release();
 }
 
 void PaletteManager::CreateConvert()
 {
-	if (!this->Palette)
-		Debug::FatalErrorAndExit("[%s] Missing Palette Data ! \n" , this->Name.data());
+	if (!this->Palette) {
+		Debug::Log("[%s] Missing Palette Data ! \n" , this->Name.data());
+		return;
+	}
 
 	this->Convert_Temperate.reset(GameCreate<ConvertClass>(this->Palette.get(), &FileSystem::TEMPERAT_PAL(), DSurface::Primary(), 53, false));
 	this->Convert.reset(GameCreate<ConvertClass>(this->Palette.get(), this->Palette.get(), DSurface::Alternate(), 1, false));
@@ -36,6 +38,11 @@ void PaletteManager::LoadFromName(const char* PaletteName)
 	{
 		this->Palette.reset(pPal);
 		this->CreateConvert();
+	}
+	else
+	{
+		Debug::Log("[%s] Palette FailedToLoad ! \n", this->Name.data());
+		return;
 	}
 }
 

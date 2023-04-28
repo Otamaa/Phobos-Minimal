@@ -85,7 +85,7 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	}
 	break;
 	default:
-		pType.reset();
+		pType.release();
 		return false;
 	}
 
@@ -138,7 +138,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 				//const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pType.get());
 				//if (!(pBounceType->BounceAmount > 0))
 				//{
-					pType.reset();
+					pType.release();
 				//}
 			}
 		}
@@ -253,7 +253,7 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 		pTraj = std::make_unique<WaveTrajectory>(pBullet, pType);
 		break;
 	default:
-		pTraj.reset();
+		pTraj.release();
 		return false;
 		break;
 	}
@@ -320,7 +320,7 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 			break;
 
 		default:
-			pTraj.reset();
+			pTraj.release();
 			return;
 		}
 

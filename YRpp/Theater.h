@@ -42,3 +42,6 @@ public:
 	int		unknown_int_68;
 	int		unknown_int_6C;
 };
+
+static_assert(sizeof(Theater) == 0x70, "Invalid Size !");
+static_assert(offsetof(Theater, Extension) == 0x4E, "Theater ClassMember Shifted !");

@@ -55,15 +55,14 @@
 #include <Helpers/Enumerators.h>
 #include <Utilities/EnumFunctions.h>
 
+#include <New/Type/PaletteManager.h>
+
 #include <array>
 #include <iostream>
 #include <string_view>
 
-#include <New/Type/PaletteManager.h>
-
 namespace detail
 {
-
 	template <typename T>
 	inline bool read(T& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -146,6 +145,9 @@ namespace detail
 
 			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
 			{
+				if (!nResult->Palette)
+					return false;
+
 				value = nResult;
 				return true;
 			}
@@ -530,9 +532,16 @@ namespace detail
 					flag += ".shp";
 				}
 
-				if (flag.find("~") != std::string::npos)
+				const auto nPos = flag.find("~");
+				if (nPos != std::string::npos)
 				{
-					flag.replace(flag.begin() + flag.find("~"), flag.end(), Theater::GetTheater(ScenarioClass::Instance->Theater).Letter);
+					std::string pTheater =
+						Theater::Get(ScenarioClass::Instance->Theater)->Letter;
+					pTheater = GeneralUtils::lowercase(pTheater);
+
+					flag.replace(nPos, 1, pTheater);
+					Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
+					nPos, pValue, flag.c_str());
 				}
 
 				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
