@@ -624,9 +624,7 @@ DEFINE_OVERRIDE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 
 	const auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	if (nKickFrameDelay < 0 ||
-		nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame
-		)
+	if (nKickFrameDelay < 0 || pThis->LastScanFrame + nKickFrameDelay >= Unsorted::CurrentFrame )
 		return 0x6B10C6;
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
@@ -677,7 +675,7 @@ DEFINE_OVERRIDE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	const auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
+	return(nFrame < 0 || pThis->CurrentMissionStartTime + nFrame >= Unsorted::CurrentFrame) ?
 		0x740854 : 0x74083B;
 }
 
@@ -687,7 +685,7 @@ DEFINE_OVERRIDE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	const auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
+	return(nFrame < 0 || pThis->CurrentMissionStartTime + nFrame >= Unsorted::CurrentFrame) ?
 		0x74416C : 0x744129;
 }
 
@@ -1428,35 +1426,35 @@ DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
 
 // this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
-DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pHouse, EDI);
-
-	const bool BLRes = R->BL();
-	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
-	bool IsAlly = false;
-	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
-		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-			if(pOwner->IsAlliedWith_(pTargetHouse))
-				IsAlly = true;
-		}
-	}
-
-	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
-	const bool IsNegDamage = (pThis->CombatDamage() < 0);
-
-	//if (IsNegDamage && !IsAlly)
-	//	return RetNotAlly;
-	//
-	//if (IsAlly) {
-	//	return RetAlly;
-	//}
-
-	//return RetNotAlly;
-
-	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
-}
+//DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(HouseClass* const, pHouse, EDI);
+//
+//	const bool BLRes = R->BL();
+//	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
+//	bool IsAlly = false;
+//	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
+//		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+//			if(pOwner->IsAlliedWith_(pTargetHouse))
+//				IsAlly = true;
+//		}
+//	}
+//
+//	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
+//	const bool IsNegDamage = (pThis->CombatDamage() < 0);
+//
+//	//if (IsNegDamage && !IsAlly)
+//	//	return RetNotAlly;
+//	//
+//	//if (IsAlly) {
+//	//	return RetAlly;
+//	//}
+//
+//	//return RetNotAlly;
+//
+//	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
+//}
 
 static constexpr const char* const SubName [] = {
 	"Normal", "Repair" ,"MachineGun", "Flak" , "Pistol" , "Sniper" , "Shock",

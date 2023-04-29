@@ -262,6 +262,7 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 		}
 	};
 
+	//the order is based on ares code , dont change it !
 	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER" , 0);
 	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY", 1);
 	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS", 2);
@@ -442,7 +443,7 @@ namespace ObjectTypeParser
 			{
 				cur = CRT::strtrim(cur);
 
-				nVecDest[i].emplace_back(cur);
+				nVecDest[i].push_back(cur);
 
 				if (bVerbose)
 					Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
@@ -482,8 +483,6 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft");
 	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
-
-	this->WallTowers.Read(exINI, GENERAL_SECTION, "WallTowers");
 
 	if (pThis->WallTower)
 		this->WallTowers.push_back(pThis->WallTower);

@@ -1141,23 +1141,7 @@ DEFINE_OVERRIDE_HOOK(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x713C10, TechnoTypeClass_LoadFromINI_SkipLists2, 7)
-{
-	GET(TechnoTypeClass*, pThis, EBP);
-	GET(const CoordStruct*, pResult, EAX);
-	pThis->NaturalParticleSystemLocation = *pResult;
-	return 0x713E1A;
-}
-
 DEFINE_OVERRIDE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
-
-DEFINE_OVERRIDE_HOOK(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
-{
-	GET(TechnoTypeClass*, pThis, EBP);
-	GET(Category, category, EAX);
-	pThis->Category = category;
-	return 0x713264;
-}
 
 DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 {

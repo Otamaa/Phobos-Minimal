@@ -574,16 +574,16 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 // smoke particle systems created when a techno is damaged
 DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 {
-	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass* const, pThis, ESI);
 	REF_STACK(DynamicVectorClass<ParticleSystemTypeClass const*>, Systems, 0x30);
 
-	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pType = pThis->GetTechnoType();
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	auto it = pExt->ParticleSystems_DamageSmoke.GetElements(pType->DamageParticleSystems);
+	const auto it = pExt->ParticleSystems_DamageSmoke.GetElements(pType->DamageParticleSystems);
 	const auto allowAny = pExt->ParticleSystems_DamageSmoke.HasValue();
 
-	for (auto pSystem : it)
+	for (const auto pSystem : it)
 	{
 		if (allowAny || pSystem->BehavesLike == BehavesLike::Smoke)
 		{

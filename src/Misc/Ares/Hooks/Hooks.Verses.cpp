@@ -35,13 +35,14 @@ DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 
 void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd)
 {
-	//if (IS_SAME_STR_(pTarget->get_ID(), "LTNKUP"))
+	//if (IS_SAME_STR_(pWH->get_ID(), "InfernoWH"))
 	//{
 	//	//auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
 
-	//	Debug::Log("[%s] WH[%s] against oild Flag :  FF %d , PA %d , RR %d [%fl] \n",
+	//	Debug::Log("[%s] WH[%s] against [%s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
 	//			pAdd,
 	//			pWH->get_ID(),
+	//			pTarget->get_ID(),
 	//			pData->Flags.ForceFire,
 	//			pData->Flags.PassiveAcquire,
 	//			pData->Flags.Retaliate,
@@ -98,9 +99,11 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 		;
 }
 
+#include <Ext/Bomb/Body.h>
+
 DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 {
-	enum { FireIllegal = 0x6FCB7E, ContinueCheck = 0x6FCB8D, };
+	enum { FireIllegal = 0x6FCB7E, ContinueCheck = 0x6FCBCD, };
 
 	GET(ObjectClass*, pTarget, EBP);
 	GET(WarheadTypeClass*, pWH, EDI);
@@ -111,10 +114,22 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 
 	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
-	return vsData->Flags.ForceFire || vsData->Verses != 0.0
-		? ContinueCheck
-		: FireIllegal
-		;
+	if (!(vsData->Flags.ForceFire || vsData->Verses != 0.0))
+		return FireIllegal;
+
+	if (pWH->BombDisarm)
+	{
+		if (!pTarget->AttachedBomb)
+			return FireIllegal;
+
+		if (!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+			return FireIllegal;
+	}
+
+	if (pWH->IvanBomb && pTarget->AttachedBomb)
+		return FireIllegal;
+
+	return  ContinueCheck;
 }
 
 DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)

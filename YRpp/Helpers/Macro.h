@@ -26,11 +26,16 @@
 #define GET_BASE(clsname, var, offset) \
 	clsname var = R->Base<clsname>(offset);
 
-#define STACK_OFFS(cur_offset, wanted_offset) \
-		(cur_offset - wanted_offset)
+static inline constexpr int STACK_OFFS(int cur_offset , int wanted_offset){
+	 return cur_offset - wanted_offset;
+}
 
-#define STACK_OFFSET(cur_offset, wanted_offset) \
-		(cur_offset + wanted_offset)
+static inline constexpr int STACK_OFFSET(int cur_offset , int wanted_offset){
+	 return cur_offset + wanted_offset;
+}
+
+// #define STACK_OFFSET(cur_offset, wanted_offset) \
+// 		(cur_offset + wanted_offset)
 
 // swizzle shorthand
 #define SWIZZLE(var) \

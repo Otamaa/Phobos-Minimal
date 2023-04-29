@@ -15,6 +15,7 @@ class  DECLSPEC_UUID("703E044A-0FB1-11D2-8172-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::ParticleSystemType;
+	static constexpr inline DWORD vtable = 0x7F00A8;
 	static constexpr reference<TypeList<ParticleSystemTypeClass*>, 0x7F4F9Cu> const TypeListArray{};
 	static constexpr reference<const char*, 0x836EE0, 5u> const BehavesString {};
 
@@ -35,7 +36,7 @@ public:
 	}
 
 	static ParticleSystemTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x644630);
+		JMP_STD(0x644890);
 	}
 
 	static NOINLINE int __fastcall FindIndexById(const char* pID)

@@ -380,3 +380,52 @@ DEFINE_HOOK(0x46837F, BulletClass_DrawSHP_SetAnimPalette, 6)
 
 	return 0x0;
 }
+
+#include <Ext/WarheadType/Body.h>
+#include <Ext/Bullet/Body.h>
+
+DEFINE_OVERRIDE_HOOK(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
+{
+	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
+
+	GET(BulletClass* const, pThis, ESI);
+	GET(AnimTypeClass* const, AnimType, EBX);
+	LEA_STACK(CoordStruct*, XYZ, 0x64);
+
+	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+
+	if (AnimClass* Anim = GameCreate<AnimClass>(AnimType, XYZ, 0, 1, (AnimFlag)0x2600, -15, false))
+	{
+		HouseClass* pInvoker = nullptr ;
+		HouseClass* pVictim = nullptr;
+
+		if (const TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target)) {
+			pVictim = Target->Owner;
+		}
+
+		if (const auto pTech = pThis->Owner) {
+			pInvoker = pThis->Owner->GetOwningHouse();
+			if (auto const pAnimExt = AnimExt::ExtMap.Find(Anim))
+				pAnimExt->Invoker = pTech;
+
+		} else {
+			if (auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+				pInvoker = pBulletExt->Owner;
+		}
+
+		if (Anim->Type->MakeInfantry > -1)
+		{
+			AnimTypeExt::SetMakeInfOwner(Anim, pInvoker, pVictim);
+		}
+		else
+		{
+			AnimExt::SetAnimOwnerHouseKind(Anim, pInvoker, pVictim, pInvoker);
+		}
+
+	}else if (pWarheadExt->IsNukeWarhead.Get())
+	{
+		return NukeWarheadExtras;
+	}
+
+	return Continue;
+}

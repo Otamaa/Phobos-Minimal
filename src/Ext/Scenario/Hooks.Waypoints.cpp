@@ -5,8 +5,6 @@
 
 #include <MapClass.h>
 
-#define WAYPOINTSNAME GameStrings::Waypoints()
-
 DEFINE_HOOK(0x68BCC0, ScenarioClass_Get_Waypoint_Location, 0xB)
 {
 	GET_STACK(CellStruct*, pCell, 0x4);
@@ -58,14 +56,14 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 {
 	GET_STACK(INIClass* const, pINI, 0x4);
 
-	for (int i = 0; i < pINI->GetKeyCount(WAYPOINTSNAME); ++i)
+	for (int i = 0; i < pINI->GetKeyCount(GameStrings::Waypoints()); ++i)
 	{
-		const auto pName = pINI->GetKeyName(WAYPOINTSNAME, i);
+		const auto pName = pINI->GetKeyName(GameStrings::Waypoints(), i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
-			Debug::Log("[Developer Warning] Failed to parse waypoint %s.\n", pName);
+			Debug::Log("[Phobos Developer Warning] Failed to parse waypoint %s.\n", pName);
 
-		int nCoord = pINI->ReadInteger(WAYPOINTSNAME, pName, 0);
+		int nCoord = pINI->ReadInteger(GameStrings::Waypoints(), pName, 0);
 
 		CellStruct buffer = CellStruct::Empty;
 
@@ -77,10 +75,10 @@ DEFINE_HOOK(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 			if (auto const pCell = MapClass::Instance->GetCellAt(buffer))
 				pCell->Flags |= CellFlags::IsWaypoint;
 			else if (ScenarioExt::CellParsed)
-				Debug::Log("[Developer Warning] Can not get waypoint %d : [%d, %d]!\n", id, buffer.X, buffer.Y);
+				Debug::Log("[Phobos Developer Warning] Can not get waypoint %d : [%d, %d]!\n", id, buffer.X, buffer.Y);
 		}
 		else
-			Debug::Log("[Developer Warning] Invalid waypoint %d!\n", id);
+			Debug::Log("[Phobos Developer Warning] Invalid waypoint %d!\n", id);
 
 
 		//Debug::Log("Parse waypoint Result [%d][%d, %d] ! \n", id, buffer.X, buffer.Y);
@@ -99,15 +97,15 @@ DEFINE_HOOK(0x6874E7, ScenarioClass_ReadINI_CellParsed, 0x6)
 DEFINE_HOOK(0x68BE90, ScenarioClass_Write_Waypoints, 0x5) //was 5 and crash ?
 {
 	GET_STACK(INIClass*, pINI, 0x4);
-	pINI->Clear(WAYPOINTSNAME, nullptr);
+	pINI->Clear(GameStrings::Waypoints(), nullptr);
 	char buffer[32];
 	for (const auto& [nidx,nCell] : ScenarioExt::Global()->Waypoints)
 	{
 		if (!nCell.IsValid())
 			continue;
 
-		sprintf_s(buffer, "%d", nidx);
-		pINI->WriteInteger(WAYPOINTSNAME, buffer, nCell.X + 1000 * nCell.Y, false);
+		IMPL_SNPRNINTF(buffer, sizeof(buffer), "%d", nidx);
+		pINI->WriteInteger(GameStrings::Waypoints(), buffer, nCell.X + 1000 * nCell.Y, false);
 	}
 
 	return 0x68BF1F;
@@ -169,10 +167,10 @@ DEFINE_HOOK(0x763690, String_To_Waypoint, 0x7)
 	GET(char*, pString, ECX);
 
 	int n = 0;
-	int len = CRT::strlen(pString);
+	int len = strlen(pString);
 	for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
 	{
-		int c = CRT::toupper(pString[i]);
+		int c = std::toupper(pString[i]);
 		if (c < 'A' || c > 'Z') return 0;
 		n += ((int)c - 64) * j;
 	}
@@ -275,4 +273,3 @@ DEFINE_HOOK(0x68AF45, Scen_Waypoint_Call_4, 0x6)
 //
 //	R->EDX(ScenarioExt::Global()->Waypoints());
 //}
-#undef WAYPOINTSNAME

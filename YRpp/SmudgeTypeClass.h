@@ -11,6 +11,7 @@ class DECLSPEC_UUID("5AF2CE78-0634-11D2-ACA4-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::SmudgeType;
+	static constexpr inline DWORD vtable = 0x7F3528;
 
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<SmudgeTypeClass*>, 0xA8EC18u> const Array {};

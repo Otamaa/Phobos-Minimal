@@ -5597,7 +5597,6 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 
 #endif
 
-
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
 DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 {
@@ -5628,4 +5627,11 @@ DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 	//discarded
 	pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce);
 	return 0x448BED;
+}
+
+DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
+{
+	GET(MapSurfaceData*, ptr, EBP);
+
+	return ptr ? 0x0 : 0x722604;
 }

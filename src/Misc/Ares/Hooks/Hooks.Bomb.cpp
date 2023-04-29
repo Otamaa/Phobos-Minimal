@@ -164,25 +164,27 @@ DEFINE_OVERRIDE_HOOK(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 
 // 6FCBAD, 6
 // custom ivan bomb disarm 1
-DEFINE_HOOK(0x6FCB8D , TechnoClass_GetObjectActivityState_IvanBomb, 6)
-{
-	enum { ContinueCheck = 0x6FCBCD , ReturnFireIllegal = 0x6FCBBE };
-
-	GET(TechnoClass* const, pTarget, EBP);
-	GET(WarheadTypeClass* const, pWarhead, EDI);
-
-	if(pWarhead->BombDisarm && pTarget->AttachedBomb) {
-		if(!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable) {
-			return ReturnFireIllegal;
-		}
-	}
-
-	if(pWarhead->IvanBomb && pTarget->AttachedBomb) {
-		return ReturnFireIllegal;
-	}
-
-	return ContinueCheck;
-}
+//DEFINE_HOOK(0x6FCB8D , TechnoClass_GetObjectActivityState_IvanBomb, 6)
+//{
+//	enum { ContinueCheck = 0x6FCBCD , ReturnFireIllegal = 0x6FCBBE };
+//
+//	GET(TechnoClass* const, pTarget, EBP);
+//	GET(WarheadTypeClass* const, pWarhead, EDI);
+//
+//	if(pWarhead->BombDisarm) {
+//		if (!pTarget->AttachedBomb)
+//			return ReturnFireIllegal;
+//
+//		if(!BombExt::ExtMap.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable) {
+//			return ReturnFireIllegal;
+//		}
+//	} 
+//	if(pWarhead->IvanBomb && pTarget->AttachedBomb) {
+//		return ReturnFireIllegal;
+//	}
+//
+//	return ContinueCheck;
+//}
 
 // 51E488, 5
 DEFINE_OVERRIDE_HOOK(0x51E488, InfantryClass_GetCursorOverObject2, 5)

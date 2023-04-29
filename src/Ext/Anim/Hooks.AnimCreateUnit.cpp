@@ -58,41 +58,41 @@ DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 #include <Ext/Bullet/Body.h>
 
 // this set after ares set their ownership
-DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
-{
-	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
+// DEFINE_HOOK(0x469C98, BulletClass_Logics_DamageAnimSelected, 0x9) //was 0
+// {
+// 	enum { Continue = 0x469D06, NukeWarheadExtras = 0x469CAF };
 
-	GET(BulletClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EAX);
+// 	GET(BulletClass*, pThis, ESI);
+// 	GET(AnimClass*, pAnim, EAX);
 
-	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+// 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
 
-	if (pAnim && pAnim->Type) {
-		HouseClass* pInvoker =  nullptr;
-		HouseClass* pVictim = nullptr;
+// 	if (pAnim && pAnim->Type) {
+// 		HouseClass* pInvoker =  nullptr;
+// 		HouseClass* pVictim = nullptr;
 
-		if(auto pTech = pThis->Owner) {
-			pInvoker = pThis->Owner->GetOwningHouse();
-			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
-				pAnimExt->Invoker = pTech;
-		}
-		else
-		{
-			if(auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
-			pInvoker = pBulletExt->Owner;
-		}
+// 		if(auto pTech = pThis->Owner) {
+// 			pInvoker = pThis->Owner->GetOwningHouse();
+// 			if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+// 				pAnimExt->Invoker = pTech;
+// 		}
+// 		else
+// 		{
+// 			if(auto const pBulletExt = BulletExt::ExtMap.Find(pThis))
+// 			pInvoker = pBulletExt->Owner;
+// 		}
 
-		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))
-			pVictim = Target->Owner;
+// 		if (TechnoClass* Target = generic_cast<TechnoClass*>(pThis->Target))
+// 			pVictim = Target->Owner;
 
-		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+// 		AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
 
-	} else if (pWarheadExt->IsNukeWarhead.Get()) {
-		return NukeWarheadExtras;
-	}
+// 	} else if (pWarheadExt->IsNukeWarhead.Get()) {
+// 		return NukeWarheadExtras;
+// 	}
 
-	return Continue;
-}
+// 	return Continue;
+// }
 //
 //DEFINE_HOOK(0x6E2368, ActionClass_PlayAnimAt, 0x7)
 //{

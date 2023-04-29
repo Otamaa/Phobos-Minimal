@@ -61,8 +61,8 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 
 			if (pTarget == pNode->Unit)
 			{
-				if (pTarget->MindControlRingAnim)
-				{
+				if (pTarget->MindControlRingAnim) {
+					pTarget->MindControlRingAnim->TimeToDie = true;
 					pTarget->MindControlRingAnim->UnInit();
 					pTarget->MindControlRingAnim = nullptr;
 				}
@@ -78,7 +78,8 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				}
 
 				// Fix : Player defeated should not get this unit.
-				auto const pOriginOwner = pNode->OriginalOwner->Defeated ?
+				const auto pOriginOwner = !pNode->OriginalOwner ||
+					pNode->OriginalOwner->Defeated ?
 					HouseExt::FindNeutral() : pNode->OriginalOwner;
 
 				pTarget->SetOwningHouse(pOriginOwner, !bSilent);

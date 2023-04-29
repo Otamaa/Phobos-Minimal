@@ -16,16 +16,16 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 	if (!pTechnoTo)
 		return;
 
-	// anim must be transfered before `Free` call , because it will invalidate it !
+	// anim must be transfered before `Free` call , because it will get invalidated !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
 	{
+		pTechnoFrom->MindControlRingAnim = nullptr;
+
 		// kill previous anim if any
-		auto ToAnim = &pTechnoTo->MindControlRingAnim;
-
-		if (*ToAnim)
-			(*ToAnim)->TimeToDie = 1;
-
-		*ToAnim = Anim;
+		if (pTechnoTo->MindControlRingAnim) {
+			pTechnoTo->MindControlRingAnim->TimeToDie = true;
+			pTechnoTo->MindControlRingAnim->UnInit();
+		}
 
 		const auto pWhat = (VTable::Get(pTechnoTo));
 		const auto pBld = pWhat == BuildingClass::vtable ?
@@ -45,7 +45,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 		if (pBld)
 			Anim->ZAdjust = -1024;
 
-		pTechnoFrom->MindControlRingAnim = nullptr;
+		pTechnoTo->MindControlRingAnim = Anim;
 	}
 
 	if (const auto MCHouse = pTechnoFrom->MindControlledByHouse) {

@@ -203,18 +203,15 @@ namespace detail
 				++result;
 			}
 
-			if (!found)
-				goto error;
-
-			switch (result)
-			{
-			case 1: value = HorizontalPosition::Left; return true;
-			case 2: value = HorizontalPosition::Center; return true;
-			case 3: value = HorizontalPosition::Right; return true;
-			default:
-			error:
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Horizontal Position can be either Left, Center/Centre or Right");
-				break;
+			} else {
+				switch (result)
+				{
+				case 1: value = HorizontalPosition::Left; return true;
+				case 2: value = HorizontalPosition::Center; return true;
+				case 3: value = HorizontalPosition::Right; return true;
+				}
 			}
 		}
 		return false;
@@ -599,23 +596,21 @@ namespace detail
 				++result;
 			}
 
-			if (!found)
-			{
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a free-slave option, default to killer");
-				return false;
-			}
-
-			switch (result)
-			{
-			case 0: value = SlaveReturnTo::Killer; return true;
-			case 1: value = SlaveReturnTo::Master; return true;
-			case 2:
-			case 3:
-			case 4: value = SlaveReturnTo::Suicide; return true;
-			case 5: value = SlaveReturnTo::Neutral; return true;
-			case 6: value = SlaveReturnTo::Civilian; return true;
-			case 7: value = SlaveReturnTo::Special; return true;
-			case 8: value = SlaveReturnTo::Random; return true;
+			} else {
+				switch (result)
+				{
+				case 0: value = SlaveReturnTo::Killer; return true;
+				case 1: value = SlaveReturnTo::Master; return true;
+				case 2:
+				case 3:
+				case 4: value = SlaveReturnTo::Suicide; return true;
+				case 5: value = SlaveReturnTo::Neutral; return true;
+				case 6: value = SlaveReturnTo::Civilian; return true;
+				case 7: value = SlaveReturnTo::Special; return true;
+				case 8: value = SlaveReturnTo::Random; return true;
+				}
 			}
 		}
 		return false;
@@ -638,21 +633,19 @@ namespace detail
 				++result;
 			}
 
-			if (!found)
-			{
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a kill method, default disabled");
-				return false;
-			}
+			} else {
+				switch (result)
+				{
+				case 0: value = KillMethod::None; return true;
+				case 1:
+				case 2: value = KillMethod::Explode; return true;
+				case 3: value = KillMethod::Vanish; return true;
+				case 4: value = KillMethod::Sell; return true;
+				case 5: value = KillMethod::Random; return true;
 
-			switch (result)
-			{
-			case 0: value = KillMethod::None; return true;
-			case 1:
-			case 2: value = KillMethod::Explode; return true;
-			case 3: value = KillMethod::Vanish; return true;
-			case 4: value = KillMethod::Sell; return true;
-			case 5: value = KillMethod::Random; return true;
-
+				}
 			}
 		}
 		return false;
@@ -685,15 +678,15 @@ namespace detail
 
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] IronCurtainFlag can be either kill, invulnerable, ignore or random");
 
-			}
-
-			switch (result)
-			{
-			case 0: value = IronCurtainFlag::Default; return true;
-			case 1: value = IronCurtainFlag::Kill; return true;
-			case 2: value = IronCurtainFlag::Invulnerable; return true;
-			case 3: value = IronCurtainFlag::Ignore; return true;
-			case 4: value = IronCurtainFlag::Random; return true;
+			} else {
+				switch (result)
+				{
+				case 0: value = IronCurtainFlag::Default; return true;
+				case 1: value = IronCurtainFlag::Kill; return true;
+				case 2: value = IronCurtainFlag::Invulnerable; return true;
+				case 3: value = IronCurtainFlag::Ignore; return true;
+				case 4: value = IronCurtainFlag::Random; return true;
+				}
 			}
 		}
 
@@ -781,7 +774,7 @@ namespace detail
 			{
 				if (IS_SAME_STR_(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i]))
 				{
-					value = OwnerHouseKind::Default;
+					value = OwnerHouseKind(i);
 					return true;
 				}
 			}
@@ -820,16 +813,15 @@ namespace detail
 				++result;
 			}
 
-			if (!found)// no match ever found 
-			{
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a targeting mode");
-				return false;
-			}
-
-			switch (result)
-			{
-			case 0: value = SuperWeaponAITargetingMode::NoTarget; return true;
-			default: value = static_cast<SuperWeaponAITargetingMode>(result); return true;
+			} else {
+				if(result == 0 ){ 
+					value = SuperWeaponAITargetingMode::NoTarget; return true;
+				} else { 
+					value = static_cast<SuperWeaponAITargetingMode>(result);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -841,6 +833,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			char* context = nullptr;
+			auto resultData = AffectedTarget::None;
 
 			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				cur;
@@ -858,32 +851,31 @@ namespace detail
 					++result;
 				}
 
-				if (!found) // no match ever found
-					goto error;
-
-				switch (result)
-				{
-				case 0: value |= AffectedTarget::None; break;
-				case 1: value |= AffectedTarget::Land; break;
-				case 2: value |= AffectedTarget::Water; break;
-				case 14:
-				case 3: value |= AffectedTarget::NoContent; break;
-				case 4: value |= AffectedTarget::Infantry; break;
-				case 5:
-				case 6: value |= AffectedTarget::Unit; break;
-				case 7:
-				case 8: value |= AffectedTarget::Building; break;
-				case 9: value |= AffectedTarget::Aircraft; break;
-				case 10: value |= AffectedTarget::All; break;
-				case 11: value |= AffectedTarget::AllCells; break;
-				case 12: value |= AffectedTarget::AllTechnos; break;
-				case 13: value |= AffectedTarget::AllContents; break;
-				default:
-				error:
+				if (!found) {
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected target");
-					break;
+					return false;
+				} else {
+					switch (result)
+					{
+					case 0: resultData |= AffectedTarget::None; break;
+					case 1: resultData |= AffectedTarget::Land; break;
+					case 2: resultData |= AffectedTarget::Water; break;
+					case 14:
+					case 3: resultData |= AffectedTarget::NoContent; break;
+					case 4: resultData |= AffectedTarget::Infantry; break;
+					case 5:
+					case 6: resultData |= AffectedTarget::Unit; break;
+					case 7:
+					case 8: resultData |= AffectedTarget::Building; break;
+					case 9: resultData |= AffectedTarget::Aircraft; break;
+					case 10: resultData |= AffectedTarget::All; break;
+					case 11: resultData |= AffectedTarget::AllCells; break;
+					case 12: resultData |= AffectedTarget::AllTechnos; break;
+					case 13: resultData |= AffectedTarget::AllContents; break;
+					}
 				}
 
+				value = resultData;
 			}
 		}
 		return false;
@@ -915,6 +907,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
+			auto resultData = AffectedHouse::None;
 			char* context = nullptr;
 			for (auto pCur = strtok_s(parser.value(),
 				Phobos::readDelims, &context);
@@ -933,25 +926,27 @@ namespace detail
 					++result;
 				}
 
-				if (!found)
-					goto error;
-
-				switch (result)
-				{
-				case 1:
-				case 2: value |= AffectedHouse::Owner; break;
-				case 3:
-				case 4: value |= AffectedHouse::Allies; break;
-				case 5:
-				case 6: value |= AffectedHouse::Enemies; break;
-				case 7: value |= AffectedHouse::Team; break;
-				case 8: value |= AffectedHouse::NotOwner; break;
-				case 9: value |= AffectedHouse::All; break;
-				default:
-				error:
+				if (!found) {
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected house");
-					break;
+					return false;
+				} else{
+					switch (result)
+					{
+					case 1:
+					case 2: resultData |= AffectedHouse::Owner; break;
+					case 3:
+					case 4: resultData |= AffectedHouse::Allies; break;
+					case 5:
+					case 6: resultData |= AffectedHouse::Enemies; break;
+					case 7: resultData |= AffectedHouse::Team; break;
+					case 8: resultData |= AffectedHouse::NotOwner; break;
+					case 9: resultData |= AffectedHouse::All; break;
+					default:
+						break;
+					}
 				}
+
+				value = resultData;
 			}
 		}
 		return false;
@@ -974,19 +969,16 @@ namespace detail
 				++result;
 			}
 
-			if (!found)
-				goto error;
-
-			switch (result)
-			{
-			case 1: value = AttachedAnimFlag::Hides; return true;
-			case 2: value = AttachedAnimFlag::Temporal; return true;
-			case 3:	value = AttachedAnimFlag::Paused; return true;
-			case 4: value = AttachedAnimFlag::PausedTemporal; return true;
-			default:
-			error:
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a AttachedAnimFlag");
-				break;
+			} else {
+				switch (result)
+				{
+				case 1: value = AttachedAnimFlag::Hides; return true;
+				case 2: value = AttachedAnimFlag::Temporal; return true;
+				case 3:	value = AttachedAnimFlag::Paused; return true;
+				case 4: value = AttachedAnimFlag::PausedTemporal; return true;
+				}
 			}
 		}
 		return false;
@@ -1029,18 +1021,15 @@ namespace detail
 				++result;
 			}
 
-			if (!found)
-				goto error;
-
-			switch (result)
-			{
-			case 1: value = TextAlign::Left; return true;
-			case 2: value = TextAlign::Center; return true;
-			case 3: value = TextAlign::Right; return true;
-			default:
-			error:
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Text Alignment can be either Left, Center/Centre or Right");
-				break;
+			} else {
+				switch (result)
+				{
+				case 1: value = TextAlign::Left; return true;
+				case 2: value = TextAlign::Center; return true;
+				case 3: value = TextAlign::Right; return true;
+				}
 			}
 		}
 
@@ -1268,9 +1257,7 @@ namespace detail
 	}
 }
 
-
 // Valueable
-
 template <typename T>
 void NOINLINE Valueable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
@@ -1289,9 +1276,7 @@ bool Valueable<T>::Save(PhobosStreamWriter& Stm) const
 	return Savegame::WritePhobosStream(Stm, this->Value);
 }
 
-
 // ValueableIdx
-
 template <typename Lookuper>
 void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
@@ -1310,9 +1295,7 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 	}
 }
 
-
 // Nullable
-
 template <typename T>
 void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
@@ -1345,9 +1328,7 @@ bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 	return ret;
 }
 
-
 // NullableIdx
-
 template <typename Lookuper>
 void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
@@ -1368,7 +1349,6 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 }
 
 // Promotable
-
 template <typename T>
 void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
@@ -1415,9 +1395,7 @@ bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
 		&& Savegame::WritePhobosStream(Stm, this->Elite);
 }
 
-
 // NullablePromotable
-
 template <typename T>
 void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
@@ -1463,9 +1441,7 @@ bool NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 		&& Savegame::WritePhobosStream(Stm, this->Elite);
 }
 
-
 // ValueableVector
-
 template <typename T>
 void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 {
@@ -1524,7 +1500,6 @@ bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 }
 
 // NullableVector
-
 template <typename T>
 void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
@@ -1563,9 +1538,7 @@ bool NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 	return false;
 }
 
-
 // ValueableIdxVector
-
 template <typename Lookuper>
 void NOINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
@@ -1576,9 +1549,7 @@ void NOINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSe
 	}
 }
 
-
 // NullableIdxVector
-
 template <typename Lookuper>
 void NOINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
@@ -1680,7 +1651,6 @@ bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 }
 
 // DamageableVector
-
 template <typename T>
 void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
@@ -1725,7 +1695,6 @@ bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 }
 
 // PromotableVector
-
 template <typename T>
 void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
@@ -1859,7 +1828,6 @@ bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
 }
 
 // TimedWarheadEffect
-
 template <typename T>
 bool TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
