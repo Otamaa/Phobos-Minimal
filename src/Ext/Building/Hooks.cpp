@@ -107,12 +107,7 @@ DEFINE_HOOK(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 	GET(BuildingTypeClass*, pThis, ECX);
 
 	const auto pExt = TechnoTypeExt::ExtMap.Find(pThis);
-
-	if (pExt->ConsideredVehicle.isset()) {
-		R->EAX(pExt->ConsideredVehicle.Get());
-		return ReturnFromFunction;
-	}
-
-	return Continue;
+	R->EAX(pExt->ConsideredVehicle.Get(pThis->UndeploysInto && pThis->Foundation == Foundation::_1x1));
+	return ReturnFromFunction;
 }
 

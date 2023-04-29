@@ -38,6 +38,7 @@ public:
 
 	//TechnoClass
 	virtual void Destroyed(ObjectClass* Killer) override RX;
+	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x4DBED0);
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override R0;
 	virtual bool IsInSameZoneAs(AbstractClass* pTarget) override JMP_THIS(0x4DBA50);
 	virtual bool IsInSameZone(const CoordStruct* nZone) override JMP_THIS(0x4D3810);

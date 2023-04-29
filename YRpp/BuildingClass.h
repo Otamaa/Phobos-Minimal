@@ -60,7 +60,9 @@ public:
 	//TechnoClass
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
 	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x44D760);
+	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x448260);
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override JMP_THIS(0x458A80);
+
 
 	//BuildingClass
 	virtual CellStruct FindBuildingExitCell(TechnoClass* pDocker, CellStruct nDefault) const JMP_THIS(0x44EFB0);

@@ -7,6 +7,7 @@
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -100,15 +101,17 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 	return 0;
 }
 
-DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl, 0x6)
+DEFINE_HOOK(0x4692BD, BulletClass_Logics_ApplyMindControl_Override, 0x6)
 {
 	GET(BulletClass*, pThis, ESI);
 
-	auto const pTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
-	auto const pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
-	auto const pTechno = generic_cast<TechnoClass*>(pThis->Target);
+	const auto pTypeExt = WarheadTypeExt::ExtMap.Find(pThis->WH);
+	const auto pControlledAnimType = pTypeExt->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
+	const auto pTechno = generic_cast<TechnoClass*>(pThis->Target);
+	const auto Controller = pThis->Owner;
 
-	R->AL(CaptureExt::CaptureUnit(pThis->Owner->CaptureManager, pTechno, pControlledAnimType));
+	R->AL(CaptureExt::CaptureUnit(Controller->CaptureManager,
+		pTechno, TechnoTypeExt::ExtMap.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim, false  , pControlledAnimType));
 
 	return 0x4692D5;
 }

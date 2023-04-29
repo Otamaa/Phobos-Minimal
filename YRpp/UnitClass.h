@@ -43,7 +43,8 @@ public:
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x740EE0); }
 	virtual int SelectWeapon(AbstractClass* pTarget) const override JMP_THIS(0x746CD0);
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override JMP_THIS(0x740FD0);
-	
+	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x7463A0);
+
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override JMP_THIS(0x7414E0);
 	//UnitClass

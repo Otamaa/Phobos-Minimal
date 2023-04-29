@@ -49,14 +49,14 @@ public:
 	static bool CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget);
 	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
-		bool bRemoveFirst, AnimTypeClass* pControlledAnimType = RulesClass::Instance->ControlledAnimationType);
-	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno,
-		AnimTypeClass* pControlledAnimType = RulesClass::Instance->ControlledAnimationType);
+		bool bRemoveFirst, bool bSilent , AnimTypeClass* pControlledAnimType);
+	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot);
 
 	static int FixIdx(const Iterator<int>& iter, int nInput) {
 		return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];
 	}
 
+	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
 	static bool AllowDrawLink(TechnoTypeClass* pType);
 };

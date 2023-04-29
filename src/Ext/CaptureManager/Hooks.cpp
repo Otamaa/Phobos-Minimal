@@ -25,7 +25,7 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 	return 0x472287;
 }
 
-DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit, 0x7)
+DEFINE_HOOK(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
 {
 	GET(CaptureManagerClass*, pThis, ECX);
 	GET_STACK(TechnoClass*, pTechno, 0x4);

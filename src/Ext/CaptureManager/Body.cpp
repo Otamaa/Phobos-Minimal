@@ -2,10 +2,26 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 CaptureExt::ExtContainer CaptureExt::ExtMap;
 
 void CaptureExt::ExtData::InitializeConstants() { }
+
+AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback)
+{
+	if (!pFallback)
+		pFallback = RulesClass::Instance->ControlledAnimationType;
+
+	const int wpidx = pController->SelectWeapon(pTarget);
+	if (wpidx >= 0)
+	{
+		if (const auto pWH = pController->GetWeapon(wpidx)->WeaponType->Warhead)
+			return WarheadTypeExt::ExtMap.Find(pWH)->MindControl_Anim.Get(pFallback);
+	}
+
+	return pFallback;
+}
 
 bool CaptureExt::AllowDrawLink(TechnoTypeClass* pType)
 {
@@ -34,27 +50,30 @@ bool CaptureExt::CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget)
 
 bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)
 {
-	if (pTarget) {
-
-		for (int i = pManager->ControlNodes.Count - 1; i >= 0; --i) {
-
+	if (pTarget)
+	{
+		for (int i = pManager->ControlNodes.Count - 1; i >= 0; --i)
+		{
 			const auto pNode = pManager->ControlNodes[i];
 
 			if (!pNode)
 				continue;
 
-			if (pTarget == pNode->Unit) {
-				if (pTarget->MindControlRingAnim) {
+			if (pTarget == pNode->Unit)
+			{
+				if (pTarget->MindControlRingAnim)
+				{
 					pTarget->MindControlRingAnim->UnInit();
 					pTarget->MindControlRingAnim = nullptr;
 				}
 
-				if (!bSilent) {
+				if (!bSilent)
+				{
 					int nSound = pTarget->GetTechnoType()->MindClearedSound;
 
 					if (nSound == -1)
 						nSound = RulesClass::Instance->MindClearedSound;
-	
+
 					VocClass::PlayIndexAtPos(nSound, pTarget->GetCoords());
 				}
 
@@ -62,14 +81,15 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 				auto const pOriginOwner = pNode->OriginalOwner->Defeated ?
 					HouseExt::FindNeutral() : pNode->OriginalOwner;
 
-				pTarget->SetOwningHouse(pOriginOwner);
+				pTarget->SetOwningHouse(pOriginOwner, !bSilent);
 				pManager->DecideUnitFate(pTarget);
 				pTarget->MindControlledBy = nullptr;
 
-				if (pManager->ControlNodes.RemoveAt(i)) {
+				if (pManager->ControlNodes.RemoveAt(i))
+				{
 					GameDelete<false, false>(pNode);
 				}
-		
+
 				return true;
 			}
 		}
@@ -78,8 +98,9 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 	return false;
 }
 
+// new CaptureUnit function that inclued new features
 bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
-	bool bRemoveFirst, AnimTypeClass* pControlledAnimType)
+	bool bRemoveFirst, bool bSilent, AnimTypeClass* pControlledAnimType)
 {
 	if (CaptureExt::CanCapture(pManager, pTarget))
 	{
@@ -99,24 +120,25 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		{
 			pManager->ControlNodes.AddItem(pControlNode);
 
-			if (pTarget->SetOwningHouse(pManager->Owner->Owner))
+			if (pTarget->SetOwningHouse(pManager->Owner->Owner, !bSilent))
 			{
 				pTarget->MindControlledBy = pManager->Owner;
 
 				pManager->DecideUnitFate(pTarget);
 
-				const auto pWhat = (((DWORD*)pTarget)[0]);
-				const auto pBld = pWhat == BuildingClass::vtable ? static_cast<BuildingClass*>(pTarget) : nullptr;
-				const auto pType = pTarget->GetTechnoType();
-				CoordStruct location = pTarget->GetCoords();
-
-				if (pBld)
-					location.Z += pBld->Type->Height * Unsorted::LevelHeight;
-				else
-					location.Z += pType->MindControlRingOffset;
-
 				if (auto const pAnimType = pControlledAnimType)
 				{
+					const auto pWhat = (VTable::Get(pTarget));
+					const auto pBld = pWhat == BuildingClass::vtable ? static_cast<BuildingClass*>(pTarget) : nullptr;
+					const auto pType = pTarget->GetTechnoType();
+					CoordStruct location = pTarget->GetCoords();
+
+					if (pBld)
+						location.Z += pBld->Type->Height * Unsorted::LevelHeight;
+					else
+						location.Z += pType->MindControlRingOffset;
+
+
 					if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
 					{
 						pTarget->MindControlRingAnim = pAnim;
@@ -127,13 +149,6 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 					}
 				}
 
-//#ifdef ENABLE_NEWHOOKS
-				//if ((pWhat == AbstractType::Unit || pWhat == AbstractType::Infantry || pWhat == AbstractType::Aircraft) && pTarget->Target && pManager->Owner->Owner->IsControlledByHuman()) {
-				//	pTarget->SetTarget(nullptr);
-				//	pTarget->Override_Mission(Mission::Guard, nullptr,nullptr);
-				//	pTarget->SetDestination(pTarget->GetCell(), true);
-				//}
-//#endif
 				return true;
 			}
 		}
@@ -142,10 +157,15 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 	return false;
 }
 
-bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, AnimTypeClass* pControlledAnimType)
+// Used For Replacing Vanilla Call function !
+bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno)
 {
-	if (pTechno) {
-		return CaptureExt::CaptureUnit(pManager, pTechno, TechnoTypeExt::ExtMap.Find(pManager->Owner->GetTechnoType())->MultiMindControl_ReleaseVictim, pControlledAnimType);
+	if (pTechno)
+	{
+		const auto Controller = pManager->Owner;
+		return CaptureExt::CaptureUnit(pManager, pTechno,
+		TechnoTypeExt::ExtMap.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim,
+		false, RulesClass::Instance->ControlledAnimationType);
 	}
 
 	return false;

@@ -5596,3 +5596,36 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 }
 
 #endif
+
+
+// Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
+DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
+{
+	GET(UnitClass* const, pThis, EDI);
+	GET(HouseClass* const, pNewOwner, EBX);
+	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0xC, 0x8));
+
+	R->EAX(pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce));
+	return 0x7463E6;
+}
+
+DEFINE_HOOK(0x4DBF05, FootClass_SetOwningHouse_FixArgs, 0x5)
+{
+	GET(FootClass* const, pThis, ESI);
+	GET(HouseClass* const, pNewOwner, EAX);
+	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0xC, 0x8));
+
+	R->AL(pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce));
+	return 0x4DBF0F;
+}
+
+DEFINE_HOOK(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
+{
+	GET(FootClass* const, pThis, ESI);
+	GET(HouseClass* const, pNewOwner, EDI);
+	GET_STACK(bool const, bAnnounce, STACK_OFFSET(0x58, 0x8));
+
+	//discarded
+	pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce);
+	return 0x448BED;
+}

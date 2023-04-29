@@ -9,49 +9,75 @@
 #include <UnitClass.h>
 
 #include <Ext/CaptureManager/Body.h>
-
-namespace MindControlFixTemp
-{
-	bool isMindControlBeingTransferred = false;
-}
+#include <Ext/WarheadType/Body.h>
 
 void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
 {
-	if (auto Controller = pTechnoFrom->MindControlledBy)
-	{
-		if (auto Manager = Controller->CaptureManager)
-		{
-			MindControlFixTemp::isMindControlBeingTransferred = true;
+	if (!pTechnoTo)
+		return;
 
-			CaptureExt::FreeUnit(Manager, pTechnoFrom, true);
-			CaptureExt::CaptureUnit(Manager, pTechnoTo, true);
-
-			if (Is_Building(pTechnoTo))
-			{
-				pTechnoTo->QueueMission(Mission::Construction, 0);
-				pTechnoTo->Mission_Construction();
-			}
-
-			MindControlFixTemp::isMindControlBeingTransferred = false;
-		}
-	}
-	else if (auto MCHouse = pTechnoFrom->MindControlledByHouse)
-	{
-		pTechnoTo->MindControlledByHouse = MCHouse;
-		pTechnoFrom->MindControlledByHouse = nullptr;
-	}
-
+	// anim must be transfered before `Free` call , because it will invalidate it !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
 	{
+		// kill previous anim if any
 		auto ToAnim = &pTechnoTo->MindControlRingAnim;
 
 		if (*ToAnim)
 			(*ToAnim)->TimeToDie = 1;
 
 		*ToAnim = Anim;
+
+		const auto pWhat = (VTable::Get(pTechnoTo));
+		const auto pBld = pWhat == BuildingClass::vtable ?
+			static_cast<BuildingClass*>(pTechnoTo) : nullptr;
+		const auto pType = pTechnoTo->GetTechnoType();
+
+		CoordStruct location = pTechnoTo->GetCoords();
+
+		if (pBld)
+			location.Z += pBld->Type->Height * Unsorted::LevelHeight;
+		else
+			location.Z += pType->MindControlRingOffset;
+
+		Anim->SetLocation(location);
 		Anim->SetOwnerObject(pTechnoTo);
-		pTechnoFrom->MindControlRingAnim= nullptr;
+
+		if (pBld)
+			Anim->ZAdjust = -1024;
+
+		pTechnoFrom->MindControlRingAnim = nullptr;
 	}
+
+	if (const auto MCHouse = pTechnoFrom->MindControlledByHouse) {
+
+		pTechnoTo->MindControlledByHouse = MCHouse;
+		pTechnoFrom->MindControlledByHouse = nullptr;
+	}
+	else
+	{
+		//ares perma MC 
+		pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit;
+
+		if (auto Controller = pTechnoFrom->MindControlledBy)
+		{
+			if (auto Manager = Controller->CaptureManager)
+			{
+				const bool Succeeded =
+					CaptureExt::FreeUnit(Manager, pTechnoFrom, true)
+					&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr);
+
+				if (Succeeded)
+				{
+					if (Is_Building(pTechnoTo))
+					{
+						pTechnoTo->QueueMission(Mission::Construction, 0);
+						pTechnoTo->Mission_Construction();
+					}
+				}
+			}
+		}
+	}
+
 }
 
 DEFINE_HOOK(0x739956, UnitClass_Deploy_TransferMindControl, 0x6)
@@ -96,10 +122,4 @@ DEFINE_HOOK(0x7396AD, UnitClass_Deploy_CreateBuilding, 0x6)
 	R->EDX<HouseClass*>(pUnit->GetOriginalOwner());
 
 	return 0x7396B3;
-}
-
-DEFINE_HOOK(0x448460, BuildingClass_Captured_MuteSound, 0x6)
-{
-	return MindControlFixTemp::isMindControlBeingTransferred ?
-		0x44848F : 0;
 }
