@@ -146,6 +146,65 @@ const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
 	return "<unknown>";
 }
 
+#include <New/Type/TheaterTypeClass.h>
+
+bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
+{
+	str = _strlwr(str);
+
+	if (auto pSuffix = CRT::strstr(str, "~~~"))
+	{
+		std::string pTheater =
+			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
+		pTheater = GeneralUtils::lowercase(pTheater);
+		pSuffix[0] = pTheater[0];
+		pSuffix[1] = pTheater[1];
+		pSuffix[2] = pTheater[2];
+		Debug::Log("Found designated string, Replacing [%s] to [%s] \n", str, pSuffix);
+		return true;
+	}
+
+	return false;
+}
+
+bool GeneralUtils::ApplyTheaterExtToString(std::string flag)
+{
+	const auto nPos = flag.find("~");
+	if (nPos != std::string::npos)
+	{
+		std::string pTheater =
+			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Letter.c_str();
+		pTheater = GeneralUtils::lowercase(pTheater);
+
+		flag.replace(nPos, 1, pTheater);
+		return true;
+	}
+
+	return false;
+}
+
+std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
+{
+	std::string buffer = str;
+
+	const auto nPos = buffer.find("~~~");
+	if (nPos != std::string::npos)
+	{
+		std::string pTheater =
+			TheaterTypeClass::FindFromTheaterType(ScenarioClass::Instance->Theater)->Extension.c_str();
+		pTheater = GeneralUtils::lowercase(pTheater);
+
+		//only set the 3 characters without the terminator string
+		buffer.replace(nPos, 3, pTheater);
+
+		Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
+			nPos, str.c_str(), buffer.c_str());
+
+	}
+
+	return buffer;
+}
+
 #pragma region Otamaa
 const int GeneralUtils::GetAnimIndexFromFacing(FootClass* pFoot, int nVectorSize)
 {

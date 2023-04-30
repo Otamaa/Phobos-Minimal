@@ -257,7 +257,7 @@ public:
 		static int __cdecl fclose(FILE *)
 			{ JMP_STD(0x7CA75B); }
 
-		static void __cdecl _makepath(char* arg1 , const char* arg2, const char* arg3 ,  const char* arg4, const char* arg5)
+		static void __cdecl _makepath(char* path, const char* drive, const char* dir,  const char* fname, const char* ext)
 			{ JMP_STD(0x7C9FF0); }
 
 		//Critical sections

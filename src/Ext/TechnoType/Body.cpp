@@ -1552,6 +1552,7 @@ void TechnoTypeExt::ExtData::Serialize(T & Stm)
 		.Process(this->VHPscan_Value)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->CloakAllowed)
+		.Process(this->AlternateTheaterArt)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

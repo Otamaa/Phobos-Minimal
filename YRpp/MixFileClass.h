@@ -122,9 +122,6 @@ public:
     static void* __fastcall Retrieve(const char *pFilename, bool bLoadAsSHP = false)
 		{ JMP_STD(0x5B40B0); }
 
-	static void* Retrieve(char* name, bool forceShapeCache)
-		{ JMP_STD(0x5B40B0); }
-
 	static bool __fastcall Offset(const char* filename, void*& data,
 		MixFileClass*& mixfile, int& offset, int& length)
 	{ JMP_STD(0x5B4430); }

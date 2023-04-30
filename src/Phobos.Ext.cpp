@@ -58,9 +58,12 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/OverlayType/Body.h>
+
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/ColorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
+#include <New/Type/TheaterTypeClass.h>
+
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
@@ -253,6 +256,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 // Add more class names as you like
 using PhobosTypeRegistry =  TypeRegistry <
 #pragma region OtamaaStuffs
+	TheaterTypeClass,
 	PaletteManager,
 	BombExt,
 	CaptureExt,

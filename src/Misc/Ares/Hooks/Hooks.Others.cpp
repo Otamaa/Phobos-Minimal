@@ -2173,7 +2173,9 @@ DEFINE_OVERRIDE_HOOK(0x483226, CellClass_CrateBeingCollected_Firepower2, 6)
 	return 0x483261;
 }
 
-DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
+#include <New/Type/TheaterTypeClass.h>
+
+DEFINE_OVERRIDE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 {
 	// issue #198: animate the paradrop cursor
 	MouseCursor::GetCursor(MouseCursorType::ParaDrop).FrameRate = 4;
@@ -2188,6 +2190,9 @@ DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 5)
 	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
 
 	AresData::MouseCursorTypeLoadDefault();
+	TheaterTypeClass::LoadAllTheatersToArray();
+
+
 	return 0;
 }
 

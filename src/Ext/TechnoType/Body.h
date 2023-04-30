@@ -633,6 +633,7 @@ public:
 		Valueable<int> VHPscan_Value;
 		Valueable<int> SelfHealing_CombatDelay;
 		Valueable<bool> CloakAllowed;
+		Valueable<bool> AlternateTheaterArt;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -1101,6 +1102,7 @@ public:
 			, VHPscan_Value {2}
 			, SelfHealing_CombatDelay {0}
 			, CloakAllowed { true }
+			, AlternateTheaterArt { false }
 		{ }
 
 		virtual ~ExtData() override = default;

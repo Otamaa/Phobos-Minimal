@@ -529,17 +529,7 @@ namespace detail
 					flag += ".shp";
 				}
 
-				const auto nPos = flag.find("~");
-				if (nPos != std::string::npos)
-				{
-					std::string pTheater =
-						Theater::Get(ScenarioClass::Instance->Theater)->Letter;
-					pTheater = GeneralUtils::lowercase(pTheater);
-
-					flag.replace(nPos, 1, pTheater);
-					Debug::Log("Found designated string at [%d] Replacing [%s] to [%s] \n",
-					nPos, pValue, flag.c_str());
-				}
+				GeneralUtils::ApplyTheaterExtToString(flag);
 
 				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
 				{

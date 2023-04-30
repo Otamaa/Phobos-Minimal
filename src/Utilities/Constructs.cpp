@@ -56,6 +56,11 @@ bool CustomPalette::Read(
 	return false;
 }
 
+bool __fastcall CustomPalette::Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
+{
+	return pThis->Read(pINI , pSection,pKey,pDefault);
+}
+
 bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->Clear();

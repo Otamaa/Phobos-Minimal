@@ -496,6 +496,11 @@ void InitConsole()
 	}
 }
 
+bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
+{
+	return pThis->Read(pEx->GetINI(), pSection, pKey, pDefault);
+}
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -506,16 +511,13 @@ void Phobos::ExeRun()
 		L"Press OK to Closing the game .",
 		L"Notice", MB_OK);
 
+		Phobos::ExeTerminate();
 		exit(0);
 	}
-
 	#endif
-	Patch::ApplyStatic();
-	PoseDirOverride::Apply();
-	InitAdminDebugMode();
-	InitConsole();
 
-	if(!AresData::Init()) {
+	if (!AresData::Init())
+	{
 		MessageBoxW(NULL,
 		L"This version of phobos is only support Ares 3.0p1.\n\n"
 		L"Press OK to Closing the game .",
@@ -524,10 +526,28 @@ void Phobos::ExeRun()
 		Phobos::ExeTerminate();
 		exit(0);
 	}
+
+	DWORD protect_flag;
+	for (auto const& nData : AresData::AresCustomPaletteReadFuncFinal)
+	{
+		const auto Data = _CALL(nData, GET_OFFSET(CustomPalette_Read_Static));
+		VirtualProtect((LPVOID)nData, sizeof(Data), PAGE_EXECUTE_READWRITE, &protect_flag);
+		memcpy((LPVOID)nData, (LPVOID)(&Data), sizeof(Data));
+		VirtualProtect((LPVOID)nData, sizeof(Data), protect_flag, nullptr);
+	}
+
+	Patch::ApplyStatic();
+	PoseDirOverride::Apply();
+	InitAdminDebugMode();
+	InitConsole();
 }
+
+DEFINE_JUMP(CALL, 0x00, 0x00);
+#include <New/Type/TheaterTypeClass.h>
 
 void Phobos::ExeTerminate()
 {
+	TheaterTypeClass::Array.clear();
 	AresData::UnInit();
 	Phobos::Otamaa::ExeTerminated = true;
 	Console::Release();

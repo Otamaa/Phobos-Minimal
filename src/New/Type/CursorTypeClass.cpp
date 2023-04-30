@@ -73,7 +73,7 @@ void CursorTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	auto const pKey = this->Name.data();
 
-	if (strcmp(pKey, MouseCursorTypeToStrings[0]))
+	if (IS_SAME_STR_(pKey, MouseCursorTypeToStrings[0]))
 		return;
 
 	INI_EX exINI { pINI };

@@ -248,6 +248,7 @@ bool HouseExt::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const 
 	// Prerequisite.RequiredTheaters check
 	if (pItemExt->Prerequisite_RequiredTheaters.size() > 0)
 	{
+		//TODO : custom theater
 		int currentTheaterIndex = (int)ScenarioClass::Instance->Theater;
 		if (pItemExt->Prerequisite_RequiredTheaters.IndexOf(currentTheaterIndex) < 0)
 			return false;

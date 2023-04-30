@@ -6,6 +6,9 @@
 #include <Utilities/Patch.h>
 #include <tlhelp32.h>
 
+#include <Utilities/Constructs.h>
+#include <Utilities/Macro.h>
+
 class TechnoClass;
 class TechnoTypeClass;
 
@@ -15,6 +18,7 @@ HMODULE AresData::AresDllHmodule = nullptr;
 AresData::Version AresData::AresVersionId = AresData::Version::Unknown;
 bool AresData::CanUseAres = false;
 DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
+DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
 DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 
 uintptr_t AresData::GetModuleBaseAddress(const char* modName)
@@ -58,11 +62,15 @@ bool AresData::Init()
 
 	if (CanUseAres && GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, ARES_DLL, &AresDllHmodule))
 	{
-		for (int i = 0; i < AresData::AresFunctionCount; i++)
-			AresData::AresFunctionOffsetsFinal[i] = AresData::AresBaseAddress + AresData::AresFunctionOffsets[i * AresData::AresVersionCount + AresVersionId];
+		for (int a = 0; a < AresData::AresFunctionCount; a++)
+			AresData::AresFunctionOffsetsFinal[a] = AresData::AresBaseAddress + AresData::AresFunctionOffsets[a * AresData::AresVersionCount + AresVersionId];
 
-		for (int a = 0; a < AresData::AresStaticInstanceCount; a++)
-			AresData::AresStaticInstanceFinal[a] = AresData::AresBaseAddress + AresData::AresStaticInstanceTable[a];
+		for (int b = 0; b < AresData::AresStaticInstanceCount; b++)
+			AresData::AresStaticInstanceFinal[b] = AresData::AresBaseAddress + AresData::AresStaticInstanceTable[b * AresData::AresVersionCount + AresVersionId];
+
+		for (int c = 0; c < AresData::AresCustomPaletteReadCount; c++)
+			AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AresData::AAresCustomPaletteReadTable[c * AresData::AresVersionCount + AresVersionId];
+
 	}
 
 	return CanUseAres;

@@ -16,6 +16,7 @@ struct GameStrings
 	GAMEMD_STR(_800, 0x8297DCu);
 	GAMEMD_STR(_640, 0x8297E0u);
 	GAMEMD_STR(AllStr, 0x81811Cu);
+	GAMEMD_STR(C_SHADOW_SHP ,0x82960C);
 	// <none>
 	GAMEMD_STR(NoneStr, 0x817474u);
 	// none
@@ -27,6 +28,9 @@ struct GameStrings
 	GAMEMD_STR(Suicide, 0x843050u);
 	//..
 
+	//
+	GAMEMD_STR(dot_SHP, 0x81834Cu);
+	// ..
 	// mix file names
 	GAMEMD_STR(LOCALMD_MIX, 0x826644u);
 	GAMEMD_STR(RA2MD_MIX, 0x82667Cu);

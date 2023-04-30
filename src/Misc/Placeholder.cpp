@@ -1,3 +1,28 @@
+DEFINE_HOOK(0x5349E3, ScenarioClass_InitMixes, 0x6)
+{
+	GET(TheaterType, nType, EDI);
+	GET(char*, pControlFileBuffer, EAX);
+	LEA_STACK(char*, pDataMixBuffer, STACK_OFFS(0x6C, 0x10));
+	LEA_STACK(char*, pDataMix2Buffer, STACK_OFFS(0x6C, 0x30));
+	LEA_STACK(char*, pDataMDMixBuffer, STACK_OFFS(0x6C, 0x20));
+	LEA_STACK(char*, pDataMDMix2Buffer, STACK_OFFS(0x6C, 0x40));
+
+	Log::Exec(__FUNCTION__, CURRENT_THEATER);
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType(nType);
+
+	const auto pExt = pTheater->Extension.data();
+	R->Stack(STACK_OFFS(0x6C, 0x58), pExt);
+	wsprintfA(pControlFileBuffer, "%s.MIX", pTheater->ControlFileName.data());
+	wsprintfA(pDataMixBuffer, "%s.MIX", pTheater->PaletteFileName.data());
+	wsprintfA(pDataMix2Buffer, "%s.MIX", pExt);
+	wsprintfA(pDataMDMixBuffer, "%sMD.MIX", pTheater->ArtFileName.data());
+	wsprintfA(pDataMDMix2Buffer, "%sMD.MIX", pTheater->ControlFileName.data());
+	wsprintfA(pDataMix2Buffer, "%s.MIX", pExt);
+
+	return 0x534A4D;
+}
+
+
 //DEFINE_HOOK(0x56BD8B, MapClass_PlaceCrate_InMapFix, 0x5)
 //{
 //	enum { CreateCrate = 0x56BE7B, DontCreate = 0x56BE91 };

@@ -108,6 +108,8 @@ struct AresData
 		MouseCursorTypeLoadDefaultID = 17 ,
 		HouseExtHasFactoryID = 18,
 		HouseExtGetBuildLimitRemainingID = 19,
+
+		CustomPaletteReadFronINIID = 20,
 	};
 
 	enum Version
@@ -121,11 +123,13 @@ struct AresData
 	static uintptr_t PhobosBaseAddress;
 
 	// number of Ares functions we use
-	static constexpr int AresFunctionCount = 20;
+	static constexpr int AresFunctionCount = 21;
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
 	static constexpr int AresStaticInstanceCount = 2;
+	//number of call for `CustomPalette::ReadFromINI`
+	static constexpr int AresCustomPaletteReadCount = 5;
 
 	// timestamp bytes for each version
 	static constexpr DWORD AresTimestampBytes[AresData::AresVersionCount] =
@@ -161,10 +165,20 @@ struct AresData
 		0x007100, // MouseCursorTypeLoadDefault
 		0x0217C0, // HouseExtHasFactory
 		0x0212F0, // HouseExtGetBuildLimitRemaining
+		0x077210, // CustomPaletteReadFronINI
+	};
+
+	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
+		0x005B59, //Ares UI
+		0x00A544, //AnimTypeExt
+		0x029CF1, //ParticleTypeExt
+		0x03456B, //SWTypeExt
+		0x03F0AB, //TechnoTypeExt
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
 	static DWORD AresFunctionOffsetsFinal[AresData::AresFunctionCount];
+	static DWORD AresCustomPaletteReadFuncFinal[AresCustomPaletteReadCount];
 	static DWORD AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 	// numeric id of currently used version, zero-indexed, -1 is unknown or missing
 	static Version AresVersionId;
