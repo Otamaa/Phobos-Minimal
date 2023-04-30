@@ -125,12 +125,17 @@ public:
 
 	static MouseCursorType NOINLINE ByWeapon(TechnoClass* pThis, int nWeaponIdx, bool OutOfRange)
 	{
+		if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+			if(!pBuilding->IsPowerOnline())
+				return OutOfRange ? MouseCursorType::NoEnter : MouseCursorType::Enter;
+		}
+
 		if (auto pWeaponS = pThis->GetWeapon(nWeaponIdx))
 		{
 			if (pWeaponS->WeaponType)
 			{
 				return OutOfRange ?
-					MouseCursorType::NoEnter : MouseCursorType::Enter; //Dummy
+					MouseCursorType::AttackOutOfRange : MouseCursorType::Attack; //Dummy
 			}
 		}
 

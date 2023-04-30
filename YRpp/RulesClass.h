@@ -868,12 +868,12 @@ public:
 	double			 PathDelay;
 	int				 BlockagePathDelay;
 	double			 MovieTime;
-	int				 TiberiumShortScan;
-	int				 TiberiumLongScan;
-	int				 SlaveMinerShortScan;
-	int				 SlaveMinerSlaveScan;
-	int				 SlaveMinerLongScan;
-	int				 SlaveMinerScanCorrection;
+	Leptons			 TiberiumShortScan;
+	Leptons			 TiberiumLongScan;
+	Leptons			 SlaveMinerShortScan;
+	Leptons			 SlaveMinerSlaveScan;
+	Leptons			 SlaveMinerLongScan;
+	Leptons			 SlaveMinerScanCorrection;
 	int				 SlaveMinerKickFrameDelay;
 	int				 LightningDeferment;
 	int				 LightningDamage;

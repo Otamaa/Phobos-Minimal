@@ -489,9 +489,9 @@ public:
 
 		Valueable<TechnoTypeClass*> Convert_Deploy;
 
-		Nullable<int> Harvester_LongScan;
-		Nullable<int> Harvester_ShortScan;
-		Nullable<int> Harvester_ScanCorrection;
+		Nullable<Leptons> Harvester_LongScan;
+		Nullable<Leptons> Harvester_ShortScan;
+		Nullable<Leptons> Harvester_ScanCorrection;
 		
 		Nullable<int> Harvester_TooFarDistance;
 		Nullable<int> Harvester_KickDelay;

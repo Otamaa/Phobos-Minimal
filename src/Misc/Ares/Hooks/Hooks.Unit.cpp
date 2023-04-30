@@ -579,7 +579,7 @@ DEFINE_OVERRIDE_HOOK(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
 	GET(InfantryClass*, pSlave, ESI);
 	//GET(SlaveManagerClass*, pThis, EDI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->Type);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlave->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerSlaveScan));
 	return 0x6AF74E;
 }
@@ -589,7 +589,7 @@ DEFINE_OVERRIDE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
 	return R->Origin() + 0x6;
@@ -598,7 +598,7 @@ DEFINE_OVERRIDE_HOOK(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 DEFINE_OVERRIDE_HOOK(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_ScanCorrection.Get(RulesClass::Instance->SlaveMinerScanCorrection));
 	return 0x6B01A9;
@@ -609,7 +609,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x6B00BD, SlaveManagerClass_UpdateMiner_LongScan, 6)
 DEFINE_OVERRIDE_HOOK(0x6AFDFC, SlaveManagerClass_UpdateMiner_LongScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pSlaveOwner->GetTechnoType());
 
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->SlaveMinerLongScan));
 	return R->Origin() + 0x6;
@@ -619,12 +619,10 @@ DEFINE_OVERRIDE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Owner->GetTechnoType());
+	auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-
-	const auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
-
-	if (nKickFrameDelay < 0 || pThis->LastScanFrame + nKickFrameDelay >= Unsorted::CurrentFrame )
+	if (nKickFrameDelay < 0 || nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame )
 		return 0x6B10C6;
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
@@ -634,7 +632,7 @@ DEFINE_OVERRIDE_HOOK(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 DEFINE_OVERRIDE_HOOK(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	R->EDX(pTypeExt->Harvester_TooFarDistance.Get(RulesClass::Instance->HarvesterTooFarDistance));
 	return 0x73EC14;
 }
@@ -643,7 +641,7 @@ DEFINE_OVERRIDE_HOOK(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	R->EDX(pTypeExt->Harvester_TooFarDistance.Get(RulesClass::Instance->ChronoHarvTooFarDistance));
 	return 0x73EE46;
@@ -655,7 +653,7 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
 DEFINE_OVERRIDE_HOOK(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumShortScan));
 	return R->Origin() + 0x6;
 }
@@ -664,28 +662,28 @@ DEFINE_OVERRIDE_HOOK_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 DEFINE_OVERRIDE_HOOK(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumLongScan));
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
 	return R->Origin() + 0x6;
 }
 
 DEFINE_OVERRIDE_HOOK(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	const auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || pThis->CurrentMissionStartTime + nFrame >= Unsorted::CurrentFrame) ?
+	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
 		0x740854 : 0x74083B;
 }
 
 DEFINE_OVERRIDE_HOOK(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-	const auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
+	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || pThis->CurrentMissionStartTime + nFrame >= Unsorted::CurrentFrame) ?
+	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
 		0x74416C : 0x744129;
 }
 
