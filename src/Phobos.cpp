@@ -542,7 +542,6 @@ void Phobos::ExeRun()
 	InitConsole();
 }
 
-DEFINE_JUMP(CALL, 0x00, 0x00);
 #include <New/Type/TheaterTypeClass.h>
 
 void Phobos::ExeTerminate()

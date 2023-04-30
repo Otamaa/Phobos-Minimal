@@ -17,6 +17,7 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 		return;
 
 	INI_EX exIni(pINI);
+
 	UIName.Read(exIni, pSection, "UIName");
 	ControlFileName.Read(pINI, pSection, "ControlFileName");
 	ArtFileName.Read(pINI, pSection, "ArtFileName");
@@ -27,6 +28,11 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 	IsArctic.Read(exIni, pSection, "IsArtic");
 	IsAllowedInMapGenerator.Read(exIni, pSection, "IsAllowedInMapGenerator");
 	LowRadarBrightness1.Read(exIni, pSection, "LowRadarBrightness");
+
+	PaletteUnit.Read(pINI, pSection, "PaletteUnit");
+	PaletteISO.Read(pINI, pSection, "PaletteISO");
+	TerrainControl.Read(pINI, pSection, "TerrainControl");
+	PaletteOverlay.Read(pINI, pSection, "PaletteOverlay");
 }
 
 bool TheaterTypeClass::IsDefaultTheater()
@@ -528,7 +534,6 @@ DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 {
 	GET_STACK(TheaterType, nTheater, 0xC);
 	const auto nIdend = TheaterTypeClass::FindFromTheaterType(nTheater)->Name.data();
-	Debug::Log(__FUNCTION__" Exec Theater[%s] \n", nIdend);
 	R->EDX(nIdend);
 	return 0x4758DA;
 }
@@ -556,9 +561,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strcat(pNameProcessed,"PAL");
 	CRT::strupr(pNameProcessed);
 
-	const auto pManager = PaletteManager::FindOrAllocate(pNameProcessed);
-
-	R->EAX(pManager->Palette.get());
+	R->EAX(PaletteManager::FindOrAllocate(pNameProcessed)->Palette.get());
 	return 0x6276A4;
 }
 
@@ -570,4 +573,49 @@ DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x0)
 	R->ECX<DWORD>(R->ESP());
 	return 0x74D468;
 }
+
+DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
+{
+	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteUnit.data();
+	if(strlen(data)){
+		R->ESI(PaletteManager::FindOrAllocate(data)->Palette.get());
+		return 0x534CCA;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
+{
+	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteISO.data();
+	if (strlen(data)) {
+		R->ECX<char*>(data);
+		return 0x5454A2;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
+{
+	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->TerrainControl.data();
+	if (strlen(data)) {
+		R->ECX<char*>(data);
+		return 0x545513;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
+{
+	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteOverlay.data();
+	if (strlen(data)) {
+		R->EAX(PaletteManager::FindOrAllocate(data)->Palette.get());
+		return 0x534C09;
+	}
+
+	return 0x0;
+}
+
 #undef CURRENT_THEATER

@@ -32,7 +32,11 @@ public:
 		unknown_float_64(0.0f),
 		unknown_int_68(0),
 		unknown_int_6C(0),
-		FallbackTheater(TheaterType::Temperate)
+		FallbackTheater(TheaterType::Temperate),
+		PaletteUnit (),
+		PaletteISO(),
+		TerrainControl(),
+		PaletteOverlay()
 	{ UIName = "Name:<none>"; }
 
 	virtual ~TheaterTypeClass() override = default;
@@ -55,6 +59,10 @@ public:
 			.Process(unknown_int_68)
 			.Process(unknown_int_6C)
 			.Process(FallbackTheater)
+			.Process(PaletteUnit)
+			.Process(PaletteISO)
+			.Process(TerrainControl)
+			.Process(PaletteOverlay)
 			;
 	}
 
@@ -77,6 +85,10 @@ public:
 			.Process(unknown_int_68)
 			.Process(unknown_int_6C)
 			.Process(FallbackTheater)
+			.Process(PaletteUnit)
+			.Process(PaletteISO)
+			.Process(TerrainControl)
+			.Process(PaletteOverlay)
 			;
 	}
 
@@ -117,4 +129,9 @@ public:
 	Valueable<int> unknown_int_68;
 	Valueable<int> unknown_int_6C;
 	TheaterType FallbackTheater;
+
+	PhobosFixedString<0x80> PaletteUnit;
+	PhobosFixedString<0x80> PaletteISO;
+	PhobosFixedString<0x80> TerrainControl;
+	PhobosFixedString<0x80> PaletteOverlay;
 };
