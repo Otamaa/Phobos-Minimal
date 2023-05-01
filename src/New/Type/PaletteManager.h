@@ -12,6 +12,7 @@ public:
 		Temperate = 1
 	};
 
+	FixedString<32> CachedName;
 	UniqueGamePtrB<ConvertClass> Convert_Temperate;
 	UniqueGamePtrB<ConvertClass> Convert;
 	UniqueGamePtr<BytePalette> Palette;
@@ -37,9 +38,11 @@ public:
 		return nRet ? nRet : pDefault;
 	}
 
+	bool LoadFromCachedName();
 private:
 
 	void Clear_Internal();
 	void CreateConvert();
 	void LoadFromName(const char* PaletteName);
+
 };

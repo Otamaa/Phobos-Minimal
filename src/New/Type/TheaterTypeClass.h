@@ -32,8 +32,7 @@ public:
 		unknown_float_64(0.0f),
 		unknown_int_68(0),
 		unknown_int_6C(0),
-		FallbackTheater(TheaterType::Temperate),
-		PaletteUnit (),
+		PaletteUnit(),
 		PaletteISO(),
 		TerrainControl(),
 		PaletteOverlay(),
@@ -41,7 +40,15 @@ public:
 		RootMixMD(),
 		ExpansionMDMix(),
 		SuffixMix(),
-		DataMix()
+		DataMix(),
+
+		TerrainTypeExtension(),
+		SmudgeTypeExtension(),
+		AnimTypeExtension(),
+		OverlayTypeExtension(),
+		IsometricTileTypeExtension(),
+		BuildingTypeExtension(),
+		FallbackTheaterExtension()
 	{ UIName = "Name:<none>"; }
 
 	virtual ~TheaterTypeClass() override = default;
@@ -88,7 +95,6 @@ private:
 			.Process(unknown_float_64)
 			.Process(unknown_int_68)
 			.Process(unknown_int_6C)
-			.Process(FallbackTheater)
 			.Process(PaletteUnit)
 			.Process(PaletteISO)
 			.Process(TerrainControl)
@@ -99,6 +105,14 @@ private:
 			.Process(ExpansionMDMix)
 			.Process(SuffixMix)
 			.Process(DataMix)
+
+			.Process(TerrainTypeExtension)
+			.Process(SmudgeTypeExtension)
+			.Process(AnimTypeExtension)
+			.Process(OverlayTypeExtension)
+			.Process(IsometricTileTypeExtension)
+			.Process(BuildingTypeExtension)
+			.Process(FallbackTheaterExtension)
 			;
 	}
 
@@ -127,7 +141,6 @@ public:
 	Valueable<float> unknown_float_64;
 	Valueable<int> unknown_int_68;
 	Valueable<int> unknown_int_6C;
-	TheaterType FallbackTheater;
 
 	PhobosFixedString<0x80> PaletteUnit;
 	PhobosFixedString<0x80> PaletteISO;
@@ -139,4 +152,15 @@ public:
 	PhobosFixedString<16> ExpansionMDMix;
 	PhobosFixedString<16> SuffixMix;
 	PhobosFixedString<16> DataMix;
+
+	//TODO S/L
+	PhobosFixedString<4> TerrainTypeExtension;
+	PhobosFixedString<4> SmudgeTypeExtension;
+	PhobosFixedString<4> AnimTypeExtension;
+	PhobosFixedString<4> OverlayTypeExtension;
+	PhobosFixedString<4> IsometricTileTypeExtension;
+	PhobosFixedString<4> BuildingTypeExtension;
+
+	PhobosFixedString<4> FallbackTheaterExtension;
+
 };

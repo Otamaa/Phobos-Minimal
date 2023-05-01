@@ -30,7 +30,7 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 	LowRadarBrightness1.Read(exIni, pSection, "LowRadarBrightness");
 
 	PaletteUnit.Read(pINI, pSection, "PaletteUnit");
-	PaletteISO.Read(pINI, pSection, "PaletteISO");
+	PaletteISO.Read(pINI, pSection, "IsometricPalette");
 	TerrainControl.Read(pINI, pSection, "TerrainControl");
 	PaletteOverlay.Read(pINI, pSection, "PaletteOverlay");
 
@@ -39,6 +39,13 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 	ExpansionMDMix.Read(pINI, pSection, "ExpansionMDMix");
 	SuffixMix.Read(pINI, pSection, "ExtensionMix");
 	DataMix.Read(pINI, pSection, "ArtMix");
+	TerrainTypeExtension.Read(pINI, pSection, "TerrainTypeExtension");
+	SmudgeTypeExtension.Read(pINI, pSection, "SmudgeTypeExtension");
+	AnimTypeExtension.Read(pINI, pSection, "AnimTypeExtension");
+	OverlayTypeExtension.Read(pINI, pSection, "OverlayTypeExtension");
+	IsometricTileTypeExtension.Read(pINI, pSection, "IsometricTileTypeExtension");
+	BuildingTypeExtension.Read(pINI, pSection, "BuildingTypeExtension");
+	FallbackTheaterExtension.Read(pINI, pSection, "FallbackTheaterExtension");
 }
 
 bool TheaterTypeClass::IsDefaultTheater()
@@ -128,6 +135,7 @@ void TheaterTypeClass::AddDefaults()
 		pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
 		pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
 		pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
+		pTheater->FallbackTheaterExtension = ".TEM";
 	}
 }
 
@@ -139,72 +147,87 @@ TheaterTypeClass* TheaterTypeClass::FindFromTheaterType(TheaterType nType)
 
 #define CURRENT_THEATER (*ScenarioClass::Instance).Theater
 
-//TODO : 
-// Ares CustomPalette using the array adress to get stuffs , if we put index that more than those 
-// it is possible it will cause out of bound error
-namespace Log
-{
-	bool bEnableLog = false;
-
-	void Exec(const char* pFunct, TheaterType nTheater)
-	{
-		if (bEnableLog)
-		{
-			Debug::Log("%s Executed! for [%d = %s] \n", pFunct, nTheater, 
-				TheaterTypeClass::FindFromTheaterType(nTheater)->Name.data());
-		}
-	}
-
-	void Exec(const char* pFunct, int nIdx, const char* pTheaterName)
-	{
-		if (bEnableLog)
-			Debug::Log("%s Executed! for [%d = %s] \n", pFunct, nIdx, pTheaterName);
-	}
-}
-
 DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x0)
 {
 	GET(char*, nTheaterName, ECX);
 
-	auto nIdx = TheaterTypeClass::FindIndexById(nTheaterName);
-
-	R->EAX<int>(nIdx);
+	R->EAX<int>(TheaterTypeClass::FindIndexById(nTheaterName));
 	return 0x48DC12;
 }
 
 #pragma region IsoTileTypeHooks
 
+DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
+{
+	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteISO;
+	if (data)
+	{
+		R->ECX<char*>(data.data());
+		return 0x5454A2;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
+{
+	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->TerrainControl;
+	if (data)
+	{
+		R->ECX<char*>(data.data());
+		return 0x545513;
+	}
+
+	return 0x0;
+}
+
 DEFINE_HOOK(0x5452F2, IsometricTileTypeClass_TheaterType_Slope, 0x6)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x5452F8;
 }
 
 //Isometric pal = ISO+Extension.pal
 DEFINE_HOOK(0x54547F, IsometricTileTypeClass_TheaterType_ISOPal, 0x6)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x545485;
 }
 
 //Ini  file = ControlFilename+MD.ini
 DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_TheaterType_IniFile, 0x6)
 {
-	R->EDX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->ControlFileName.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EDX(pTheater->ControlFileName.data());
 	return 0x5454F6;
 }
 
-//here theater index is multiplied by `sizeof(Theater` !
+//here theater index is multiplied by `sizeof(Theater)` !
 DEFINE_HOOK(0x546662, IsometricTileTypeClass_TheaterType_makepath, 0x6)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x546668;
 }
 
 DEFINE_HOOK(0x546753, IsometricTileTypeClass_TheaterType_MMx, 0x6)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->MMExtension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX(pTheater->MMExtension.data());
 	return 0x546759;
+}
+
+DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater , 0x5)
+{
+	GET(char*, pFileName, EDX);
+	LEA_STACK(char*, pBuffer, STACK_OFFS(0x10, 0x2C0));
+	GET_STACK(bool, bSomething, STACK_OFFS(0x10, 0x9FE));
+	
+	CRT::_makepath(pBuffer, 0, 0, pFileName , TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->FallbackTheaterExtension.data());
+	R->AL(bSomething);
+	return 0x54684F;
 }
 
 namespace _ReplaceMakePath
@@ -222,13 +245,10 @@ namespace _ReplaceMakePath
 
 	//void __cdecl Exec2(char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5)
 	//{
-	//	CRT::_makepath(arg1, arg2, arg3, arg4, TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	//	CRT::_makepath(arg1, arg2, arg3, arg4, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
 	//}
 }
-//
-////these were fallback theater if some file doest exist
-//DEFINE_JUMP(CALL, 0x546843, GET_OFFSET(_ReplaceMakePath::Exec2)); //roadtile tem
-// Marble madness 546793 // tem
+
 //DEFINE_JUMP(CALL, 0x54692B, GET_OFFSET(_ReplaceMakePath::Exec2)); //roadtile urb
 #pragma endregion
 
@@ -258,7 +278,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	GET(ObjectTypeClass* const, pType, ECX);
 
 	auto const scenarioTheater = ScenarioClass::Instance->Theater;
-	auto const& TheaterData = TheaterTypeClass::FindFromTheaterType(scenarioTheater);
+	auto const& TheaterData = TheaterTypeClass::FindFromTheaterType_NoCheck(scenarioTheater);
 
 	TechnoTypeExt::ExtData* pTypeData = nullptr;
 
@@ -361,7 +381,7 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 		{
 			if (c1 == 'A' || c1 == 'T')
 			{
-				basename[1] = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Letter.data()[0];
+				basename[1] = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Letter.data()[0];
 			}
 		}
 	}
@@ -384,33 +404,6 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 #include <Ext/Scenario/Body.h>
 #include <Misc/AresData.h>
 
-//DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Root, 0x6)
-//{
-//	GET(TheaterType, nType, EDI);
-//	R->EBX(TheaterTypeClass::FindFromTheaterType(nType)->ControlFileName.data());
-//	return 0x5349E9;
-//}
-//
-//DEFINE_HOOK(0x5349EA, ScenarioClass_InitTheater_Root_Mix, 0x5)
-//{
-//	GET(TheaterType, nType, EDI);
-//	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(nType)->RootMix;
-//
-//	if (data)
-//		R->Stack(0x8, data.data());
-//
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x534A3C, ScenarioClass_initTheater_TheaterType_Name, 0x6)
-//{
-//	LEA_STACK(char*, pDataMix, STACK_OFFSET(0xA8, 0x50));
-//
-//	GameDebugLog::Log("Theater DataMix[%s] !\n", pDataMix);
-//	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Name.data());
-//	return 0x534A42;
-//}
-
 DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
@@ -418,7 +411,7 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);
 
-	const auto& pTheater = TheaterTypeClass::FindFromTheaterType(nType);
+	const auto& pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
 
 	// buffer size 16
 	LEA_STACK(char*, pRootMix, STACK_OFFS(0x6C, 0x50));
@@ -476,7 +469,11 @@ DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 
 DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 {
-	return TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->IsArctic ? 0x534AA6 : 0x534AD6;
+	enum { AllocateMix = 0x534AA6 , NextFunc = 0x534AD6 };
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	//this one usefull for loading additional mix files
+	return pTheater->RootMixMD || pTheater->IsArctic ?
+		AllocateMix : NextFunc;
 }
 
 #pragma endregion
@@ -485,84 +482,96 @@ DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 //AnimType
 DEFINE_HOOK(0x4279BB, AnimTypeClass_TheaterSuffix_1, 0x6)
 {
-	R->EDX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EDX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x4279C1;
 }
 
 DEFINE_HOOK(0x427AF1, AnimTypeClass_TheaterSuffix_2, 0x5)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x427AF6;
 }
 
 DEFINE_HOOK(0x428903, AnimTypeClass_TheaterSuffix_3, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x428909;
 }
 
 DEFINE_HOOK(0x428CBF, AnimTypeClass_TheaterSuffix_4, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EAX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x428CC5;
 }
 
 //BuildingType 
 DEFINE_HOOK(0x45E9FD, BuildingTypeClass_TheaterSuffix_1, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->BuildingTypeExtension ? pTheater->BuildingTypeExtension : pTheater->Extension).data());
 	return 0x45EA03;
 }
 
 DEFINE_HOOK(0x45EA60, BuildingTypeClass_TheaterSuffix_2, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->BuildingTypeExtension ? pTheater->BuildingTypeExtension : pTheater->Extension).data());
 	return 0x45EA66;
 }
 
 //OverlayType
 DEFINE_HOOK(0x5FE673, OverlayTypeClass_TheaterSuffix_1, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FE679;
 }
 
 DEFINE_HOOK(0x5FEB94, OverlayTypeClass_TheaterSuffix_2, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FEB9A;
 }
 
 DEFINE_HOOK(0x5FEE42, OverlayTypeClass_TheaterSuffix_3, 0x6)
 {
-	R->EDX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->EDX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FEE48;
 }
 
 //SmudgeTypes
 DEFINE_HOOK(0x6B54CF, SmudgeTypesClass_TheaterSuffix_1, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->SmudgeTypeExtension ? pTheater->SmudgeTypeExtension : pTheater->Extension).data());
 	return 0x6B54D5;
 }
 
 DEFINE_HOOK(0x6B57A7, SmudgeTypesClass_TheaterSuffix_2, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->SmudgeTypeExtension ? pTheater->SmudgeTypeExtension : pTheater->Extension).data());
 	return 0x6B57AD;
 }
 
 //TerrainType 
 DEFINE_HOOK(0x71DCE4, TerrainTypeClass_TheaterSuffix, 0x6)
 {
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	R->ECX((pTheater->TerrainTypeExtension ? pTheater->TerrainTypeExtension : pTheater->Extension).data());
 	return 0x71DCEA;
 }
 
-//objectType
+//objectType , this maybe alredy overriden by ares
 DEFINE_HOOK(0x5F915C, ObjectTypeClass_TheaterSuffix_3, 0x6)
 {
-	R->EDX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	R->EDX(TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
 	return 0x5F9162;
 }
 
@@ -571,46 +580,47 @@ DEFINE_HOOK(0x5F915C, ObjectTypeClass_TheaterSuffix_3, 0x6)
 #pragma region CellAndTerrainStuffs
 DEFINE_HOOK(0x483DE5, CellClass_CheckPassability_Artict, 0x6)
 {
-	return TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->IsArctic ? 0x483E0C : 0x483DF5;
+	return TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->IsArctic ? 0x483E0C : 0x483DF5;
 }
 
 DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 {
 	GET(ScenarioClass*, pScen, ECX);
-	R->EAX(TheaterTypeClass::FindFromTheaterType(pScen->Theater)->IsArctic ? 12 : 14);
+	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 12 : 14);
 	return 0;
 }
 
 DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 {
 	GET(ScenarioClass*, pScen, EAX);
-	return TheaterTypeClass::FindFromTheaterType(pScen->Theater)->IsArctic ? 0x71C08D : 0x71C07F;
+	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 0x71C08D : 0x71C07F;
 }
 
 DEFINE_HOOK(0x71C076, TerrainClass_SetOccupyBit_Theater, 0x7)
 {
 	GET(ScenarioClass*, pScen, EAX);
-	return TheaterTypeClass::FindFromTheaterType(pScen->Theater)->IsArctic ? 0x71C12D : 0x71C11F;
+	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 0x71C12D : 0x71C11F;
 }
 
 DEFINE_HOOK(0x47C318, CellClass_ClellColor_AdjustBrightness, 0x6)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->LowRadarBrightness1.Get());
+	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->LowRadarBrightness1.Get());
 	return 0x47C31E;
 }
 
 DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 {
 	GET_STACK(TheaterType, nTheater, 0xC);
-	R->EDX(TheaterTypeClass::FindFromTheaterType(nTheater)->Name.data());
+	R->EDX(TheaterTypeClass::FindFromTheaterType_NoCheck(nTheater)->Name.data());
 	return 0x4758DA;
 }
 #pragma endregion
 
+//RMG not fully supported YET !
 DEFINE_HOOK(0x5997C0, RMGClass_TheaterType_initRandomMap, 0x6)
 {
 	GET(TheaterType, nIndex, EAX);
-	R->ECX(TheaterTypeClass::FindFromTheaterType(nIndex)->Name.data());
+	R->ECX(TheaterTypeClass::FindFromTheaterType_NoCheck(nIndex)->Name.data());
 	return 0x5997C6;
 }
 
@@ -624,7 +634,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	LEA_STACK(char*, pNameProcessed, STACK_OFFS(0x424, 0x400));
 
 	CRT::strcpy(pNameProcessed, pOriginalName);
-	CRT::strcat(pNameProcessed, TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
+	CRT::strcat(pNameProcessed, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
 	CRT::strcat(pNameProcessed, ".");
 	CRT::strcat(pNameProcessed,"PAL");
 	CRT::strupr(pNameProcessed);
@@ -637,14 +647,14 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x0)
 {
 	GET(TheaterType, index, ECX);
-	R->EAX(TheaterTypeClass::FindFromTheaterType(index)->Extension.data());
+	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.data());
 	R->ECX<DWORD>(R->ESP());
 	return 0x74D468;
 }
 
 DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
-	auto const& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteUnit;
+	auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit;
 	if(data){
 		// game will make `qmemcopy` of this , so dont worry
 		R->ESI(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
@@ -654,31 +664,9 @@ DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
-{
-	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteISO;
-	if (data) {
-		R->ECX<char*>(data.data());
-		return 0x5454A2;
-	}
-
-	return 0x0;
-}
-
-DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
-{
-	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->TerrainControl;
-	if (data) {
-		R->ECX<char*>(data.data());
-		return 0x545513;
-	}
-
-	return 0x0;
-}
-
 DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 {
-	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteOverlay;
+	const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay;
 	if (data) {
 		R->EAX(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
 		return 0x534C09;

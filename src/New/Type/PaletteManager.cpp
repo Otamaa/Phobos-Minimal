@@ -9,7 +9,8 @@ PaletteManager::PaletteManager(const char* const pTitle) : Enumerable<PaletteMan
 , Convert {}
 , Palette {}
 {
-	this->LoadFromName(GeneralUtils::ApplyTheaterSuffixToString(pTitle).c_str());
+	this->CachedName = GeneralUtils::ApplyTheaterSuffixToString(pTitle).c_str();
+	this->LoadFromCachedName();
 }
 
 void PaletteManager::Clear_Internal()
@@ -46,6 +47,21 @@ void PaletteManager::LoadFromName(const char* PaletteName)
 	}
 }
 
+bool PaletteManager::LoadFromCachedName()
+{
+	this->Clear_Internal();
+
+	if (auto pPal = FileSystem::AllocatePalette(this->CachedName.data()))
+	{
+		this->Palette.reset(pPal);
+		this->CreateConvert();
+		return true;
+	}
+
+	Debug::Log("[%s] - [%s] Palette  FailedToLoad ! \n", this->Name.data(), this->CachedName.data());
+	return false;
+}
+
 void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 {
 	this->Clear_Internal();
@@ -54,6 +70,9 @@ void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 	if (Stm.Load(hasPalette) && hasPalette) {
 		this->Palette.reset(GameCreate<BytePalette>());
 		if (Stm.Load(*this->Palette)) {
+			this->CachedName =
+				GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
+
 			this->CreateConvert();
 		}
 	}
