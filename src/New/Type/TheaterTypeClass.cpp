@@ -33,6 +33,12 @@ void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 	PaletteISO.Read(pINI, pSection, "PaletteISO");
 	TerrainControl.Read(pINI, pSection, "TerrainControl");
 	PaletteOverlay.Read(pINI, pSection, "PaletteOverlay");
+
+	RootMix.Read(pINI, pSection, "ControlMix");
+	RootMixMD.Read(pINI, pSection, "ControlMDMix");
+	ExpansionMDMix.Read(pINI, pSection, "ExpansionMDMix");
+	SuffixMix.Read(pINI, pSection, "ExtensionMix");
+	DataMix.Read(pINI, pSection, "ArtMix");
 }
 
 bool TheaterTypeClass::IsDefaultTheater()
@@ -110,6 +116,7 @@ void TheaterTypeClass::AddDefaults()
 		pTheater->ControlFileName = Theater::Array[i].ControlFileName;
 		pTheater->ArtFileName = Theater::Array[i].ArtFileName;
 		pTheater->Extension = Theater::Array[i].Extension;
+		pTheater->PaletteFileName = Theater::Array[i].PaletteFileName;
 		pTheater->MMExtension = Theater::Array[i].MMExtension;
 		pTheater->Letter = Theater::Array[i].Letter;
 		pTheater->IsArctic = i == (size_t)TheaterType::Snow;
@@ -255,9 +262,8 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 
 	TechnoTypeExt::ExtData* pTypeData = nullptr;
 
-	if (TechnoTypeClass* const pThisTechno = type_cast<TechnoTypeClass* const>(pType))
-	{
-		pTypeData = TechnoTypeExt::ExtMap.Find(reinterpret_cast<TechnoTypeClass*>(pType));
+	if (TechnoTypeClass* const pThisTechno = type_cast<TechnoTypeClass* const>(pType)) {
+		pTypeData = TechnoTypeExt::ExtMap.Find(pThisTechno);
 	}
 
 	char basename[MAX_PATH];
@@ -366,48 +372,111 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 #pragma region ScenarioClass_InitTheater
 
 //How mix loaded ? 
-// controlfilename.mix
-// ArtFileName.mix
-// Extension.mix
-// PaletteFileName+md.mix
-// controlfilename+md.mix
+// controlfilename.mix - inside RA2 mix ,overlay and tree stuffs , must ?
+// ArtFileName.mix - inside RA2 mix , c_shadow , civ building shp , majority of terrain files , terraub files us must
+// Extension.mix - inside RA2 mix ,wake1 , wake2 ,ammo01 shp , ignorable ?
+// PaletteFileName+md.mix inside RA2MD mix , mostly building shp , ignorable ?
+// controlfilename+md.mix inside RA2MD mix , mostly building shp , ignorable ?
+// palette can be specified with : "PaletteUnit" "PaletteISO"  "PaletteOverlay"
+// ini file for theater control can be specified with : "TerrainControl"
+// if both not specified , game will decide it with their naming convention
 
 #include <Ext/Scenario/Body.h>
+#include <Misc/AresData.h>
 
-DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_TheaterType_ControlFileName, 0x6)
+//DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Root, 0x6)
+//{
+//	GET(TheaterType, nType, EDI);
+//	R->EBX(TheaterTypeClass::FindFromTheaterType(nType)->ControlFileName.data());
+//	return 0x5349E9;
+//}
+//
+//DEFINE_HOOK(0x5349EA, ScenarioClass_InitTheater_Root_Mix, 0x5)
+//{
+//	GET(TheaterType, nType, EDI);
+//	auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(nType)->RootMix;
+//
+//	if (data)
+//		R->Stack(0x8, data.data());
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x534A3C, ScenarioClass_initTheater_TheaterType_Name, 0x6)
+//{
+//	LEA_STACK(char*, pDataMix, STACK_OFFSET(0xA8, 0x50));
+//
+//	GameDebugLog::Log("Theater DataMix[%s] !\n", pDataMix);
+//	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Name.data());
+//	return 0x534A42;
+//}
+
+DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
-	R->EBX(TheaterTypeClass::FindFromTheaterType(nType)->ControlFileName.data());
-	return 0x5349E9;
-}
+	ScenarioClass::Instance->Theater = nType;
+	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
+	GET(wsprintfA_ptr, pFunc, EBP);
 
-DEFINE_HOOK(0x5349F2, ScenarioClass_InitTheater_TheaterType_ArtMix, 0x6)
-{
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->ArtFileName.data());
-	return 0x5349F8;
-}
+	const auto& pTheater = TheaterTypeClass::FindFromTheaterType(nType);
 
-DEFINE_HOOK(0x534A05, ScenarioClass_InitTheater_TheaterType_Control, 0x6)
-{
-	R->EAX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
-	return 0x534A0B;
-}
+	// buffer size 16
+	LEA_STACK(char*, pRootMix, STACK_OFFS(0x6C, 0x50));
 
-DEFINE_HOOK(0x534A1C, ScenarioClass_initTheater_TheaterType_MdMix, 0x6)
-{
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteFileName.data());
-	return 0x534A22;
+	if (!pTheater->RootMix)
+		pFunc(pRootMix, "%s.MIX", pTheater->ControlFileName.data());
+	else
+		CRT::strcpy(pRootMix, pTheater->RootMix.c_str());
+
+	// buffer size 16
+	LEA_STACK(char*, pRootMixMD, STACK_OFFS(0x6C, 0x40));
+
+	if (!pTheater->RootMixMD)
+		pFunc(pRootMixMD, "%sMD.MIX", pTheater->ControlFileName.data());
+	else
+		CRT::strcpy(pRootMixMD, pTheater->RootMixMD.c_str());
+
+	// buffer size 16
+	LEA_STACK(char*, pExpansionMixMD, STACK_OFFS(0x6C, 0x20));
+
+	if (!pTheater->ExpansionMDMix)
+		pFunc(pExpansionMixMD, "%sMD.MIX", pTheater->PaletteFileName.data());
+	else
+		CRT::strcpy(pExpansionMixMD, pTheater->ExpansionMDMix.c_str());
+
+	// buffer size 16
+	LEA_STACK(char*, pSuffixMix, STACK_OFFS(0x6C, 0x30));
+
+	if (!pTheater->SuffixMix)
+		pFunc(pSuffixMix, "%s.MIX", pTheater->Extension.data());
+	else
+		CRT::strcpy(pSuffixMix, pTheater->SuffixMix.c_str());
+
+	// buffer size 16
+	LEA_STACK(char*, pDataMix, STACK_OFFS(0x6C, 0x10));
+
+	if (!pTheater->DataMix)
+		pFunc(pDataMix, "%s.MIX", pTheater->ArtFileName.data());
+	else
+		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
+	
+	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n", pTheater->Name.data() ,
+	pRootMix , pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix );
+
+	// any errors triggered before this line are irrelevant
+	// caused by reading the section while only certain flags from it are needed
+	// and before other global lists are initialized
+	Debug_bTrackParseErrors = true;
+	Game::SetProgress(8);
+	R->EBX(pTheater->ControlFileName.data());
+	R->Stack(STACK_OFFS(0x6C, 0x58), pTheater->Extension.data());
+	
+	return 0x0534A68;
 }
 
 DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 {
 	return TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->IsArctic ? 0x534AA6 : 0x534AD6;
-}
-
-DEFINE_HOOK(0x534A3C, ScenarioClass_initTheater_TheaterType_Name, 0x6)
-{
-	R->ECX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Name.data());
-	return 0x534A42;
 }
 
 #pragma endregion
@@ -491,7 +560,7 @@ DEFINE_HOOK(0x71DCE4, TerrainTypeClass_TheaterSuffix, 0x6)
 }
 
 //objectType
-DEFINE_HOOK(0x5F915C, objectTypeClass_TheaterSuffix_3, 0x6)
+DEFINE_HOOK(0x5F915C, ObjectTypeClass_TheaterSuffix_3, 0x6)
 {
 	R->EDX(TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->Extension.data());
 	return 0x5F9162;
@@ -533,8 +602,7 @@ DEFINE_HOOK(0x47C318, CellClass_ClellColor_AdjustBrightness, 0x6)
 DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 {
 	GET_STACK(TheaterType, nTheater, 0xC);
-	const auto nIdend = TheaterTypeClass::FindFromTheaterType(nTheater)->Name.data();
-	R->EDX(nIdend);
+	R->EDX(TheaterTypeClass::FindFromTheaterType(nTheater)->Name.data());
 	return 0x4758DA;
 }
 #pragma endregion
@@ -576,9 +644,10 @@ DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x0)
 
 DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
-	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteUnit.data();
-	if(strlen(data)){
-		R->ESI(PaletteManager::FindOrAllocate(data)->Palette.get());
+	auto const& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteUnit;
+	if(data){
+		// game will make `qmemcopy` of this , so dont worry
+		R->ESI(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
 		return 0x534CCA;
 	}
 
@@ -587,9 +656,9 @@ DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 
 DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 {
-	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteISO.data();
-	if (strlen(data)) {
-		R->ECX<char*>(data);
+	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteISO;
+	if (data) {
+		R->ECX<char*>(data.data());
 		return 0x5454A2;
 	}
 
@@ -598,9 +667,9 @@ DEFINE_HOOK(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 
 DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
 {
-	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->TerrainControl.data();
-	if (strlen(data)) {
-		R->ECX<char*>(data);
+	auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->TerrainControl;
+	if (data) {
+		R->ECX<char*>(data.data());
 		return 0x545513;
 	}
 
@@ -609,9 +678,9 @@ DEFINE_HOOK(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
 
 DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 {
-	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteOverlay.data();
-	if (strlen(data)) {
-		R->EAX(PaletteManager::FindOrAllocate(data)->Palette.get());
+	const auto& data = TheaterTypeClass::FindFromTheaterType(CURRENT_THEATER)->PaletteOverlay;
+	if (data) {
+		R->EAX(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
 		return 0x534C09;
 	}
 

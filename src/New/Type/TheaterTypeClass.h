@@ -36,60 +36,23 @@ public:
 		PaletteUnit (),
 		PaletteISO(),
 		TerrainControl(),
-		PaletteOverlay()
+		PaletteOverlay(),
+		RootMix(),
+		RootMixMD(),
+		ExpansionMDMix(),
+		SuffixMix(),
+		DataMix()
 	{ UIName = "Name:<none>"; }
 
 	virtual ~TheaterTypeClass() override = default;
 	virtual void LoadFromStream(PhobosStreamReader& Stm)
 	{
-		Stm
-			.Process(UIName)
-			.Process(ControlFileName)
-			.Process(ArtFileName)
-			.Process(PaletteFileName)
-			.Process(Extension)
-			.Process(MMExtension)
-			.Process(Letter)
-			.Process(IsArctic)
-			.Process(IsAllowedInMapGenerator)
-			.Process(LowRadarBrightness1)
-			.Process(HighRadarBrightness)
-			.Process(unknown_float_60)
-			.Process(unknown_float_64)
-			.Process(unknown_int_68)
-			.Process(unknown_int_6C)
-			.Process(FallbackTheater)
-			.Process(PaletteUnit)
-			.Process(PaletteISO)
-			.Process(TerrainControl)
-			.Process(PaletteOverlay)
-			;
+		this->Swizzle(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		Stm
-			.Process(UIName)
-			.Process(ControlFileName)
-			.Process(ArtFileName)
-			.Process(PaletteFileName)
-			.Process(Extension)
-			.Process(MMExtension)
-			.Process(Letter)
-			.Process(IsArctic)
-			.Process(IsAllowedInMapGenerator)
-			.Process(LowRadarBrightness1)
-			.Process(HighRadarBrightness)
-			.Process(unknown_float_60)
-			.Process(unknown_float_64)
-			.Process(unknown_int_68)
-			.Process(unknown_int_6C)
-			.Process(FallbackTheater)
-			.Process(PaletteUnit)
-			.Process(PaletteISO)
-			.Process(TerrainControl)
-			.Process(PaletteOverlay)
-			;
+		this->Swizzle(Stm);
 	}
 
 	virtual void LoadFromINI(CCINIClass* pINI) override;
@@ -97,11 +60,47 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static TheaterTypeClass* FindFromTheaterType(TheaterType nType);
-	
+	static TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
+		return Array[(int)nType].get();
+	}
+
 	// no !
 	static void Clear() {}
 
 private:
+
+	template<typename T>
+	void Swizzle(T& Stm)
+	{
+		Stm
+			.Process(UIName)
+			.Process(ControlFileName)
+			.Process(ArtFileName)
+			.Process(PaletteFileName)
+			.Process(Extension)
+			.Process(MMExtension)
+			.Process(Letter)
+			.Process(IsArctic)
+			.Process(IsAllowedInMapGenerator)
+			.Process(LowRadarBrightness1)
+			.Process(HighRadarBrightness)
+			.Process(unknown_float_60)
+			.Process(unknown_float_64)
+			.Process(unknown_int_68)
+			.Process(unknown_int_6C)
+			.Process(FallbackTheater)
+			.Process(PaletteUnit)
+			.Process(PaletteISO)
+			.Process(TerrainControl)
+			.Process(PaletteOverlay)
+
+			.Process(RootMix)
+			.Process(RootMixMD)
+			.Process(ExpansionMDMix)
+			.Process(SuffixMix)
+			.Process(DataMix)
+			;
+	}
 
 	bool IsDefaultTheater();
 	static CCINIClass* GetConfigINI();
@@ -134,4 +133,10 @@ public:
 	PhobosFixedString<0x80> PaletteISO;
 	PhobosFixedString<0x80> TerrainControl;
 	PhobosFixedString<0x80> PaletteOverlay;
+
+	PhobosFixedString<16> RootMix;
+	PhobosFixedString<16> RootMixMD;
+	PhobosFixedString<16> ExpansionMDMix;
+	PhobosFixedString<16> SuffixMix;
+	PhobosFixedString<16> DataMix;
 };

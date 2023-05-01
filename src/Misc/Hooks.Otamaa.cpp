@@ -5179,9 +5179,6 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 //	return 0x417B69;
 //}
 
-// issue #28 : Fix vanilla YR Fog of War bugs & issues
-// Reimplement it would be nicer.
-
 DEFINE_HOOK(0x422A59, AnimClass_DTOR_DoNotClearType, 0x6)
 {
 	return R->Origin() + 0x6;

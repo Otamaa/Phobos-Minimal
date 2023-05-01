@@ -66,7 +66,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "[Phobos] Dump ObjectInfo runs.\n");
 	const auto pType = pFoot->GetTechnoType();
 	const auto nFootMapCoords = pFoot->InlineMapCoords();
-	Append(buffer, "ID = %s, ", pType->ID);
+	Append(buffer, "ID = %s, ", pType->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);
 	Append(buffer, "Loc = (%d, %d), ", nFootMapCoords.X, nFootMapCoords.Y);
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
@@ -75,21 +75,21 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 
 	if (pFoot->BelongsToATeam())
 	{
-
-		auto pTeam = pFoot->Team;
-		auto pTeamType = pFoot->Team->Type;
+		const auto pTeam = pFoot->Team;
+		const auto pTeamType = pFoot->Team->Type;
 		bool found = false;
 
 		for (int i = 0; i < AITriggerTypeClass::Array->Count && !found; i++)
 		{
-			auto pTriggerTeam1Type = AITriggerTypeClass::Array->GetItem(i)->Team1;
-			auto pTriggerTeam2Type = AITriggerTypeClass::Array->GetItem(i)->Team2;
+			const auto pTriggerType = AITriggerTypeClass::Array->GetItem(i);
 
-			if (pTeamType && ((pTriggerTeam1Type && pTriggerTeam1Type == pTeamType) || (pTriggerTeam2Type && pTriggerTeam2Type == pTeamType)))
+			if (pTeamType && ((pTriggerType->Team1 && pTriggerType->Team1 == pTeamType) || (pTriggerType->Team2 && pTriggerType->Team2 == pTeamType)))
 			{
 				found = true;
-				auto pTriggerType = AITriggerTypeClass::Array->GetItem(i);
-				Append(buffer, "TriggerID = %s, weights [Current, Min, Max]: %f, %f, %f", pTriggerType->ID, pTriggerType->Weight_Current, pTriggerType->Weight_Minimum, pTriggerType->Weight_Maximum);
+				Append(buffer, "TriggerID = %s, weights [Current, Min, Max]: %f, %f, %f", 
+					pTriggerType->ID, pTriggerType->Weight_Current, 
+					pTriggerType->Weight_Minimum, 
+					pTriggerType->Weight_Maximum);
 			}
 		}
 
@@ -119,10 +119,9 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 			{		
 				if (pFirst->Target->AbstractFlags & AbstractFlags::Object)
 				{
-					const auto pTarget = static_cast<ObjectClass*>(pFirst->Target);
-					pTargetStr = pTarget->get_ID();
+					pTargetStr = static_cast<ObjectClass*>(pFirst->Target)->get_ID();
 				}
-				else if ((((DWORD*)pFirst->Target)[0]) == CellClass::vtable)
+				else if (Is_cell(pFirst->Target))
 				{
 					pTargetStr = "Cell";
 				}
@@ -134,12 +133,12 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		}
 		else
 		{
-			Append(buffer, "Passengers: %s", pFirst->GetTechnoType()->ID);
+			Append(buffer, "Passengers: %s", pFirst->get_ID());
 			for (NextObject j(pFoot->Passengers.FirstPassenger->NextObject);
 				j && ((*j)->AbstractFlags & AbstractFlags::Foot);
 				++j)
 			{
-				Append(buffer, ", %s", static_cast<FootClass*>(*j)->GetTechnoType()->ID);
+				Append(buffer, ", %s", static_cast<FootClass*>(*j)->get_ID());
 			}
 		}
 
@@ -153,7 +152,6 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 		|| pFoot->CurrentMission == Mission::Enter
 		)
 	{
-
 		if (pFoot->Target)
 		{
 			if (pFoot->Target->AbstractFlags & AbstractFlags::Object)
@@ -161,7 +159,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 				const auto pTarget = static_cast<ObjectClass*>(pFoot->Target);
 				Append(buffer, "Target = %s, Dist = %d, Loc = (%d, %d)\n", pTarget->get_ID(), (pTarget->DistanceFrom(pFoot) / 256), pTarget->InlineMapCoords().X, pTarget->InlineMapCoords().Y);
 			}
-			else if ((((DWORD*)pFoot->Target)[0]) == CellClass::vtable)
+			else if (Is_cell(pFoot->Target))
 			{
 				const auto pTargetCell = static_cast<CellClass*>(pFoot->Target);
 				Append(buffer, "Target = Cell, Dist = %d, Loc = (%d, %d)\n", static_cast<int>(pTargetCell->GetCoords().DistanceFrom(pFoot->GetCoords()) / 256), pTargetCell->MapCoords.X, pTargetCell->MapCoords.Y);
@@ -214,16 +212,15 @@ template<typename T>
 void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 {
 	Append(buffer, "[Phobos] Dump ObjectInfo runs.\n");
-	const auto pType = pBuilding->GetTechnoType();
 	const auto nFootMapCoords = pBuilding->InlineMapCoords();
-	Append(buffer, "ID = %s, ", pType->ID);
+	Append(buffer, "ID = %s, ", pBuilding->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pBuilding->Owner->get_ID(), pBuilding->Owner->PlainName);
 	Append(buffer, "fp = %fl , am = %fl ,", pBuilding->FirepowerMultiplier, pBuilding->ArmorMultiplier);
 	Append(buffer, "Loc = (%d, %d)\n", nFootMapCoords.X, nFootMapCoords.Y);
 
 	if (pBuilding->Factory && pBuilding->Factory->Object)
 	{
-		Append(buffer, "Production: %s (%d%%)\n", pBuilding->Factory->Object->GetTechnoType()->ID, (pBuilding->Factory->GetProgress() * 100 / 54));
+		Append(buffer, "Production: %s (%d%%)\n", pBuilding->Factory->Object->get_ID(), (pBuilding->Factory->GetProgress() * 100 / 54));
 	}
 
 	if (pBuilding->Type->Refinery || pBuilding->Type->ResourceGatherer)

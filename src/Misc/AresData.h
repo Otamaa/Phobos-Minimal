@@ -127,7 +127,7 @@ struct AresData
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = 1;
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 2;
+	static constexpr int AresStaticInstanceCount = 3;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -140,6 +140,8 @@ struct AresData
 	static constexpr DWORD AresStaticInstanceTable[AresStaticInstanceCount] = {
 		0x0C2B84, //ParticleSystemExt
 		0x0C2DD0, //WeaponTypeExt
+
+		0x0C2A00, //Debug::bTrackParserErrors
 	};
 
 	// offsets of function addresses for each version
@@ -303,3 +305,5 @@ struct AresData
 	static int NOINLINE CallAresArmorType_FindIndex(REGISTERS* R);
 
 };
+
+#define Debug_bTrackParseErrors (*(reinterpret_cast<bool*>(AresData::AresStaticInstanceFinal[2])))
