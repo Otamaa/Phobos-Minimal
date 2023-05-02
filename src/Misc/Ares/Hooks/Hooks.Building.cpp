@@ -27,9 +27,8 @@
 DEFINE_OVERRIDE_HOOK(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 {
 	GET(BuildingClass*, Item, ESI);
-	GET(BuildingTypeClass* const, pType, EAX);
 
-	if (pType->Cloakable) {
+	if (Item->Type->Cloakable) {
 		Item->Cloakable = true;
 	}
 
@@ -142,9 +141,6 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
 //	GET(BuildingClass*, pThis, ECX);
 //	GET_STACK(int, AnimState, 0x4);
 //
-//	if(!Is_FirestromWall(pThis->Type))
-//		return 0x0;
-//
 //	if (AnimState == -2) {
 //		for (auto& pAnim : pThis->Anims) {
 //			if (pAnim) {
@@ -167,9 +163,6 @@ DEFINE_OVERRIDE_SKIP_HOOK(0x441D25, BuildingClass_Destroy, 0xA, 441D37);
 //DEFINE_OVERRIDE_HOOK(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
 //{
 //	GET(BuildingClass* const , pThis , ESI);
-//
-//	if(!Is_FirestromWall(pThis->Type))
-//		return 0x0;
 //
 //	GET(AnimClass*, pAnim, ECX);
 //	pAnim->UnInit();

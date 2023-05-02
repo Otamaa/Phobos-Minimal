@@ -1669,35 +1669,6 @@ DEFINE_HOOK(0x452831, BuildingClass_UpdateOverpowerState, 0x6)
 		0x45283C : 0x45289C;
 }*/
 
-
-//#include <Ext/WeaponType/Body.h>
-//
-//crash ?
-//DEFINE_HOOK(0x6FCA30 , TechnoClass_GetFireError_DecloakToFire, 0x6)
-//{
-//	enum
-//	{
-//		FireErrorCloaked = 0x6FCA4F,
-//		ContinueCheck = 0x6FCA5E
-//	};
-//
-//	GET(const TechnoClass*, pThis, ESI);
-//	GET(const WeaponTypeClass*, pWeapon, EBX);
-//
-//	if(const auto pTransport = pThis->Transporter)
-//		if(pTransport->CloakState == CloakState::Cloaked) return FireErrorCloaked;
-//
-//	if (pThis->CloakState == CloakState::Uncloaked)
-//		return ContinueCheck;
-//
-//	const auto pExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-//	if (pExt && pExt->Decloak_InstantFire.isset())
-//		if(!pExt->Decloak_InstantFire.Get() && pThis->WhatAmI() != AbstractType::Aircraft)
-//			return FireErrorCloaked;
-//
-//	return (pThis->CloakState == CloakState::Cloaked) ? FireErrorCloaked : ContinueCheck;
-//}
-
 DEFINE_HOOK(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
@@ -3031,17 +3002,17 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //	return CheckMission;
 //}
 
-//broke inf reloading
-//DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
-//{
-//	GET(InfantryClass*, pThis, ESI);
-//	const auto pType = pThis->Type;
-//
-//	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload)
-//		pThis->StartReloading();
-//
-//	return 0;
-//}
+// DEFINE_HOOK(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
+// {
+// 	GET(InfantryClass*, pThis, ESI);
+// 	const auto pType = pThis->Type;
+
+// 	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload 
+// 		&& !pThis->ReloadTimer.HasStarted())
+// 		pThis->StartReloading();
+
+// 	return 0;
+// }
 
 //static constexpr CompileTimeMatrix3D Mtx {};
 //static constexpr Point2D Data {};
@@ -4919,6 +4890,7 @@ DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 		return 0x6FCA4F;
 
 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
+	//return 0x0;
 }
 
 DEFINE_HOOK(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)

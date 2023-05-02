@@ -824,13 +824,8 @@ DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 {
 	GET(TechnoTypeClass*, pThis, EDI);
 
-	if (pThis->PaletteFile[0] == 0)
-	{
-		return 0x716DAA;
-	}
-
 	pThis->Palette = nullptr;
-	return 0x716D9D;
+	return pThis->PaletteFile[0] == 0 ? 0x716DAA : 0x716D9D;
 }
 
 DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)

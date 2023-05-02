@@ -184,7 +184,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Remove.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Strips.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.SwizzleManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tactical.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.ReceiveDamage.cpp" />
@@ -237,7 +236,6 @@
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.Timers.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
-    <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\Misc\Locomotion.cpp" />
     <ClCompile Include="src\Misc\Patches.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />

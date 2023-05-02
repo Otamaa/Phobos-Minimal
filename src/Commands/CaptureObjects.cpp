@@ -28,6 +28,7 @@ const wchar_t* CaptureObjectsCommandClass::GetUIDescription() const
 	return GeneralUtils::LoadStringUnlessMissing("TXT_CAPTUREOBJECTS_DESC", L"Take ownership of any selected objects.");
 }
 
+#include <Misc/AresData.h>
 
 void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 {
@@ -51,8 +52,13 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 		if (object->GetOwningHouse() == pToOwner)
 			return;
 
-		if (TechnoClass* techno = static_cast<TechnoClass*>(object))
+		if (TechnoClass* techno = static_cast<TechnoClass*>(object)) {
+
+			if (Is_DriverKilled(techno))
+				Is_DriverKilled(techno) = false;
+
 			techno->SetOwningHouse(pToOwner);
+		}
 
 	});
 

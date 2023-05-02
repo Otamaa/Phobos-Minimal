@@ -52,15 +52,9 @@ public:
 	{ UIName = "Name:<none>"; }
 
 	virtual ~TheaterTypeClass() override = default;
-	virtual void LoadFromStream(PhobosStreamReader& Stm)
-	{
-		this->Swizzle(Stm);
-	}
+	virtual void LoadFromStream(PhobosStreamReader& Stm);
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
-	{
-		this->Swizzle(Stm);
-	}
+	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	virtual void LoadFromINI(CCINIClass* pINI) override;
 

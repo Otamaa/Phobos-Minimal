@@ -135,7 +135,7 @@ void TheaterTypeClass::AddDefaults()
 		pTheater->unknown_float_64 = Theater::Array[i].unknown_float_64;
 		pTheater->unknown_int_68 = Theater::Array[i].unknown_int_68;
 		pTheater->unknown_int_6C = Theater::Array[i].unknown_int_6C;
-		pTheater->FallbackTheaterExtension = ".TEM";
+		pTheater->FallbackTheaterExtension = "TEM";
 	}
 }
 
@@ -146,6 +146,17 @@ TheaterTypeClass* TheaterTypeClass::FindFromTheaterType(TheaterType nType)
 }
 
 #define CURRENT_THEATER (*ScenarioClass::Instance).Theater
+
+void TheaterTypeClass::LoadFromStream(PhobosStreamReader& Stm)
+{
+	//Debug::Log("Loading TheaterTypeClass ! \n");
+	//this->Swizzle(Stm);
+}
+
+void TheaterTypeClass::SaveToStream(PhobosStreamWriter& Stm)
+{
+	//this->Swizzle(Stm);
+}
 
 DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x0)
 {
@@ -229,28 +240,9 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater , 0x5)
 	R->AL(bSomething);
 	return 0x54684F;
 }
-
-namespace _ReplaceMakePath
-{
-	void __cdecl Exec(char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5 //this were real theater input
-	)
-	{
-		CRT::_makepath(arg1, arg2, arg3, arg4, TheaterTypeClass::Array[(int)TheaterType::Temperate]->Extension.data());
-	}
-
-	void __cdecl Exec_urb(char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5)
-	{
-		CRT::_makepath(arg1, arg2, arg3, arg4, TheaterTypeClass::Array[(int)TheaterType::Urban]->Extension.data());
-	}
-
-	//void __cdecl Exec2(char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5)
-	//{
-	//	CRT::_makepath(arg1, arg2, arg3, arg4, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
-	//}
-}
-
 //DEFINE_JUMP(CALL, 0x54692B, GET_OFFSET(_ReplaceMakePath::Exec2)); //roadtile urb
 #pragma endregion
+
 
 #pragma region AresHooks
 #include <Utilities/Cast.h>
@@ -318,7 +310,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 		pType->ArcticArtInUse = false;
 	}
 
-	auto const pExt = (pType->Theater ? TheaterData->Extension.data() : "SHP");
+	auto const pExt = (pType->Theater ? TheaterData->Extension.c_str() : "SHP");
 	IMPL_SNPRNINTF(basename, sizeof(basename), "%s.%s", pType->ImageFile, pExt);
 
 	if (!pType->Theater && pType->NewTheater && scenarioTheater != TheaterType::None)
@@ -329,7 +321,7 @@ DEFINE_OVERRIDE_HOOK(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 			auto const c1 = static_cast<unsigned char>(basename[1]) & ~0x20;
 			if (c1 == 'A' || c1 == 'T')
 			{
-				basename[1] = TheaterData->Letter[0];
+				basename[1] = TheaterData->Letter.data()[0];
 			}
 		}
 	}
@@ -381,13 +373,15 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 		{
 			if (c1 == 'A' || c1 == 'T')
 			{
-				basename[1] = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Letter.data()[0];
+				basename[1] = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)
+					->Letter.data()[0];
 			}
 		}
 	}
 	return 0x5F9702;
 }
 #pragma endregion
+
 
 #pragma region ScenarioClass_InitTheater
 
@@ -477,6 +471,7 @@ DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 }
 
 #pragma endregion
+
 
 #pragma region replacedMakepath
 //AnimType
@@ -602,10 +597,14 @@ DEFINE_HOOK(0x71C076, TerrainClass_SetOccupyBit_Theater, 0x7)
 	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 0x71C12D : 0x71C11F;
 }
 
-DEFINE_HOOK(0x47C318, CellClass_ClellColor_AdjustBrightness, 0x6)
+DEFINE_HOOK(0x47C30C, CellClass_CellColor_AdjustBrightness, 0x7)
 {
-	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->LowRadarBrightness1.Get());
-	return 0x47C31E;
+	GET(TheaterType, nTheater, EAX);
+	GET(ColorStruct*, pThatColor, ECX);
+	LEA_STACK(ColorStruct*, pThisColor, STACK_OFFS(0x14, 0xC));
+
+	R->EAX(pThisColor->AdjustBrightness(pThatColor , TheaterTypeClass::FindFromTheaterType_NoCheck(nTheater)->LowRadarBrightness1.Get()));
+	return 0x47C329;
 }
 
 DEFINE_HOOK(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
@@ -624,6 +623,7 @@ DEFINE_HOOK(0x5997C0, RMGClass_TheaterType_initRandomMap, 0x6)
 	return 0x5997C6;
 }
 
+
 DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
 
 #include <MixFileClass.h>
@@ -639,7 +639,11 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strcat(pNameProcessed,"PAL");
 	CRT::strupr(pNameProcessed);
 
-	R->EAX(PaletteManager::FindOrAllocate(pNameProcessed)->Palette.get());
+	Debug::Log("Loading [%s] as [%s] !\n", pOriginalName, pNameProcessed);
+	// cant use PaletteManager atm , because this will be modified after load done 
+	// so if PaletteManager used , that mean the color enries will get modified 
+	// for second time !
+	R->EAX(MixFileClass::Retrieve(pNameProcessed , false));
 	return 0x6276A4;
 }
 
@@ -656,8 +660,7 @@ DEFINE_HOOK(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
 	auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit;
 	if(data){
-		// game will make `qmemcopy` of this , so dont worry
-		R->ESI(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
+		R->ESI(MixFileClass::Retrieve(data.c_str(), false));
 		return 0x534CCA;
 	}
 
@@ -668,7 +671,7 @@ DEFINE_HOOK(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 {
 	const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay;
 	if (data) {
-		R->EAX(PaletteManager::FindOrAllocate(data.c_str())->Palette.get());
+		R->EAX(MixFileClass::Retrieve(data.c_str(), false));
 		return 0x534C09;
 	}
 

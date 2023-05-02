@@ -58,6 +58,21 @@ bool PaletteManager::LoadFromCachedName()
 		return true;
 	}
 
+	//load pal direcly from game mixes if not found
+	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(this->CachedName.data(), false))
+	{
+		for (auto& color : pPal->Entries)
+		{
+			color.R <<= 2;
+			color.G <<= 2;
+			color.B <<= 2;
+		}
+
+		this->Palette.reset(pPal);
+		this->CreateConvert();
+		return true;
+	}
+
 	Debug::Log("[%s] - [%s] Palette  FailedToLoad ! \n", this->Name.data(), this->CachedName.data());
 	return false;
 }

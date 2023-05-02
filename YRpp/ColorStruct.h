@@ -120,6 +120,14 @@ struct ColorStruct
 		return tmp;
 	}
 
+	ColorStruct* AdjustBrightness(const ColorStruct* towards, float amount)
+	{
+		this->R = (BYTE)std::clamp((towards->R * amount), 0.0f, 255.0f);
+		this->G = (BYTE)std::clamp((towards->G * amount), 0.0f, 255.0f);
+		this->B = (BYTE)std::clamp((towards->B * amount), 0.0f, 255.0f);
+		return this;
+	}
+
 	ColorStruct* Lerp(ColorStruct& lower, ColorStruct& upper, float adjust) const
 	{ JMP_THIS(0x661020); }
 

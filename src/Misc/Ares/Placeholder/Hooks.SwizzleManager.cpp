@@ -26,6 +26,9 @@
 
 #include <Notifications.h>
 
+/// i forgot that ares swizzle manager system is tightly integrated 
+/// so replacing the hook mean we need to replace absolutely everything , lmao
+/// 
 DEFINE_OVERRIDE_HOOK(0x6CF350, SwizzleManagerClass_ConvertNodes, 7)
 {
 	PhobosSwizzle::Instance.ConvertNodes();

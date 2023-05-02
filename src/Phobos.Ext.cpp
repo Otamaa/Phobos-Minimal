@@ -256,7 +256,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 // Add more class names as you like
 using PhobosTypeRegistry =  TypeRegistry <
 #pragma region OtamaaStuffs
-	TheaterTypeClass,
+	//TheaterTypeClass,
 	PaletteManager,
 	BombExt,
 	CaptureExt,
