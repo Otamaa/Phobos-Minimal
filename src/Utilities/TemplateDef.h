@@ -86,6 +86,112 @@ namespace detail
 		return false;
 	}
 
+#pragma region Pointers
+	template <>
+	inline bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (!GeneralUtils::IsValidString(parser.value()))
+				return false;
+
+			std::string flag = _strlwr(parser.value());
+			if (flag.find(".pal") == std::string::npos)
+			{
+				flag += ".pal";
+			}
+
+			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
+			{
+				if (!nResult->Palette)
+					return false;
+
+				value = nResult;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a Palette Name");
+			}
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto const pValue = parser.value();
+			auto const parsed = !allocate ? TechnoTypeClass::Find(pValue) : nullptr;
+			if (parsed || INIClass::IsBlank(pValue))
+			{
+				value = parsed;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
+			}
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<Theater_SHPStruct*>(Theater_SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			std::string Result = GeneralUtils::ApplyTheaterSuffixToString(parser.c_str());
+
+			if (Result.find(".shp") == std::string::npos)
+			{
+				Result += ".shp";
+			}
+
+			if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
+			{
+				value = reinterpret_cast<Theater_SHPStruct*>(pImage);
+				return true;
+			}
+
+			Debug::Log("[Phobos] Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, parser.value());
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			auto const pValue = _strlwr(parser.value());
+
+			if (GeneralUtils::IsValidString(pValue))
+			{
+				std::string flag = pValue;
+
+				if (flag.find(".shp") == std::string::npos)
+				{
+					flag += ".shp";
+				}
+
+				GeneralUtils::ApplyTheaterExtToString(flag);
+
+				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
+				{
+					value = pImage;
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+#pragma endregion
+
+#pragma region PartialVector
 	template <>
 	inline bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -129,54 +235,368 @@ namespace detail
 
 		return false;
 	}
+#pragma endregion
+
+#pragma region structandval
+	template <>
+	inline bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadBool(pSection, pKey, &value)) {
+
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid boolean value [1, true, yes, 0, false, no]");
+
+			return false;
+		}
+
+		return true;
+	}
 
 	template <>
-	inline bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<int>(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
+		if (!parser.ReadInteger(pSection, pKey, &value))
 		{
-			if (!GeneralUtils::IsValidString(parser.value()))
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
+
+			return false;
+
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<unsigned short>(unsigned short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		short buffer;
+		if (parser.ReadShort(pSection, pKey, &buffer))
+		{
+			if (buffer < 0){ 
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short between 0 and 65535 inclusive");
 				return false;
-
-			std::string flag = _strlwr(parser.value());
-			if (flag.find(".pal") == std::string::npos) {
-					flag += ".pal";
-			}
-
-			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
-			{
-				if (!nResult->Palette)
-					return false;					
-
-				value = nResult;
+			} else{
+				value = static_cast<unsigned short>(buffer);
 				return true;
 			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a Palette Name");
-			}
+
+		}else if (!parser.empty()){ 
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid unsigned short");
 		}
 
 		return false;
 	}
 
 	template <>
-	inline bool read(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<short>(short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadShort(pSection, pKey, &value))
+		{
+			if (!parser.empty()) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid short");
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<BYTE>(BYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadBytes(pSection, pKey, &value)) {
+
+			if(!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<float>(float& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadFloat(pSection, pKey, &value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<double>(double& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadDouble(pSection, pKey, &value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<CellStruct>(CellStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Short(pSection, pKey, (short*)&value))
+		{
+			if(!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid CellStruct");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<Point2D>(Point2D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid Point2D");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<Point3D>(Point3D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid Point3D");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<RectangleStruct>(RectangleStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read4Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid RectangleStruct");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<Point2DBYTE>(Point2DBYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Bytes(pSection, pKey, (BYTE*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid 3 BYTE Value");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<CoordStruct>(CoordStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid CoordStruct");
+
+			return false;
+		}
+		return true;
+	}
+
+	template <>
+	inline bool read<Vector3D<BYTE>>(Vector3D<BYTE>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)&value))
+		{
+			if (!parser.empty()) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 BYTE Value");
+			}
+
+			return false;
+		}
+		 
+		return true;
+	}
+
+	template <>
+	inline bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Double(pSection, pKey, (double*)&value))
+		{
+			if (!parser.empty()) {
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 2 floating point Value");
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<CSFText>(CSFText& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const pValue = parser.value();
-			auto const parsed = !allocate ? TechnoTypeClass::Find(pValue) : nullptr;
-			if (parsed || INIClass::IsBlank(pValue))
+			value = parser.value();
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		auto ret = false;
+
+		char pFlagName[0x40];
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PauseFrames", pKey);
+		ret |= read(value.PauseFrames, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TiltFrames", pKey);
+		ret |= read(value.TiltFrames, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchInitial", pKey);
+		ret |= read(value.PitchInitial, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchFinal", pKey);
+		ret |= read(value.PitchFinal, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TurnRate", pKey);
+		ret |= read(value.TurnRate, parser, pSection, pFlagName);
+
+		// sic! integer read like a float.
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.RaiseRate", pKey);
+		float buffer = 0.0f;
+		if (read(buffer, parser, pSection, pFlagName))
+		{
+			value.RaiseRate = Game::F2I(buffer);
+			ret = true;
+		}
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Acceleration", pKey);
+		ret |= read(value.Acceleration, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Altitude", pKey);
+		ret |= read(value.Altitude, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Damage", pKey);
+		ret |= read(value.Damage, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.EliteDamage", pKey);
+		ret |= read(value.EliteDamage, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.BodyLength", pKey);
+		ret |= read(value.BodyLength, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.LazyCurve", pKey);
+		ret |= read(value.LazyCurve, parser, pSection, pFlagName);
+
+		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Type", pKey);
+		ret |= read(value.Type, parser, pSection, pFlagName);
+
+		return ret;
+	}
+
+	template <>
+	inline bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		double buffer;
+		if(parser.ReadDouble(pSection, pKey, &buffer))
+		{
+			value = Leptons(buffer);
+			return true;
+		}
+
+		if (!parser.empty())
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
+
+		return false;
+	}
+
+	template <>
+	inline bool read<SWRange>(SWRange& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			char* p = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			if (p && *p)
 			{
-				value = parsed;
+				value.WidthOrRange = float(atof(p));
+				value.Height = 0;
+
+				p = strtok_s(nullptr, Phobos::readDelims, &context);
+				if (p && *p)
+				{
+					value.Height = atoi(p);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+#pragma endregion
+
+#pragma region Enumstuffs
+
+	template <>
+	inline bool read<Armor>(Armor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.ReadArmor(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valid ArmorType");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	inline bool read<Edge>(Edge& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.empty())
+			return false;
+
+		for (size_t i = 0; i < CellClass::EdgeToStrings.size(); ++i)
+		{
+			if (IS_SAME_STR_(parser.value(), CellClass::EdgeToStrings[i]))
+			{
+				value = (Edge)i;
 				return true;
 			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
-			}
 		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
 		return false;
 	}
 
@@ -203,9 +623,12 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Horizontal Position can be either Left, Center/Centre or Right");
-			} else {
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
+			}
+			else
+			{
 				switch (result)
 				{
 				case 1: value = HorizontalPosition::Left; return true;
@@ -237,7 +660,7 @@ namespace detail
 			if (result == 0 || !found)
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(),
-				"[Phobos] Content.VariableFormat can be either none, prefixed, suffixed or fraction");
+				"Content.VariableFormat can be either none, prefixed, suffixed or fraction");
 				return false;
 			}
 			else
@@ -263,282 +686,9 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Vertical Position can be either Top, Center/Centre or Bottom");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
 
 		}
-		return false;
-	}
-
-	template <>
-	inline bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		bool buffer;
-		if (parser.ReadBool(pSection, pKey, &buffer))
-		{
-			value = buffer;
-			return true;
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid boolean value [1, true, yes, 0, false, no]");
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<int>(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer;
-		if (parser.ReadInteger(pSection, pKey, &buffer))
-		{
-			value = buffer;
-			return true;
-
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
-		}
-
-		return false;
-	}
-
-	template <>
-	inline bool read<unsigned short>(unsigned short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer;
-		if (parser.ReadInteger(pSection, pKey, &buffer))
-		{
-			buffer = abs(buffer);
-			value = static_cast<unsigned short>(buffer);
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<short>(short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer;
-		if (parser.ReadInteger(pSection, pKey, &buffer))
-		{
-			value = static_cast<short>(buffer);
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<BYTE>(BYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer;
-		if (parser.ReadInteger(pSection, pKey, &buffer))
-		{
-			buffer = abs(buffer);
-			if (buffer <= 255 && buffer >= 0)
-			{
-				value = static_cast<BYTE>(buffer); // shut up shut up shut up C4244
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number between 0 and 255 inclusive.");
-			}
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<float>(float& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		float buffer;
-		if (parser.ReadFloat(pSection, pKey, &buffer))
-		{
-			value = (buffer);
-			return true;
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<double>(double& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		double buffer;
-		if (parser.ReadDouble(pSection, pKey, &buffer))
-		{
-			value = buffer;
-			return true;
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<CellStruct>(CellStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		Point2D pBuffer {};
-		if (parser.Read2Integers(pSection, pKey, (int*)&pBuffer))
-		{
-			value.X = (short)pBuffer.X;
-			value.Y = (short)pBuffer.Y;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Point2D>(Point2D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read2Integers(pSection, pKey, (int*)&value))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Point3D>(Point3D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read3Integers(pSection, pKey, (int*)&value))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<RectangleStruct>(RectangleStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read4Integers(pSection, pKey, (int*)&value))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Point2DBYTE>(Point2DBYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read2Bytes(pSection, pKey, (BYTE*)&value))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<CoordStruct>(CoordStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read3Integers(pSection, pKey, (int*)&value))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Vector3D<BYTE>>(Vector3D<BYTE>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		Vector3D<BYTE> buffer {};
-		if (parser.Read3Bytes(pSection, pKey, reinterpret_cast<BYTE*>(&buffer)))
-		{
-			value = buffer;
-			return true;
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid 3 BYTE Value");
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.Read2Double(pSection, pKey, (double*)&value))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	template <>
-	inline bool read<CSFText>(CSFText& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			value = parser.value();
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<Theater_SHPStruct*>(Theater_SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto const pValue = parser.value();
-			GeneralUtils::ApplyTheaterSuffixToString(pValue);
-
-			std::string Result = pValue;
-
-			if (Result.find(".shp") == std::string::npos)
-			{
-				Result += ".shp";
-			}
-
-			if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
-			{
-				value = reinterpret_cast<Theater_SHPStruct*>(pImage);
-				return true;
-			}
-			else
-			{
-				Debug::Log("[Phobos] Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
-			}
-		}
-		return false;
-	}
-
-	template <>
-	inline bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto const pValue = _strlwr(parser.value());
-
-			if (GeneralUtils::IsValidString(pValue))
-			{
-				std::string flag = pValue;
-
-				if (flag.find(".shp") == std::string::npos)
-				{
-					flag += ".shp";
-				}
-
-				GeneralUtils::ApplyTheaterExtToString(flag);
-
-				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
-				{
-					value = pImage;
-					return true;
-				}
-			}
-		}
-
 		return false;
 	}
 
@@ -561,7 +711,7 @@ namespace detail
 			}
 			else
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a self heal gain type");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
 				return false;
 			}
 			return true;
@@ -586,9 +736,12 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a free-slave option, default to killer");
-			} else {
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
+			}
+			else
+			{
 				switch (result)
 				{
 				case 0: value = SlaveReturnTo::Killer; return true;
@@ -623,9 +776,12 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a kill method, default disabled");
-			} else {
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
+			}
+			else
+			{
 				switch (result)
 				{
 				case 0: value = KillMethod::None; return true;
@@ -666,9 +822,11 @@ namespace detail
 					return true;
 				}
 
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] IronCurtainFlag can be either kill, invulnerable, ignore or random");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
 
-			} else {
+			}
+			else
+			{
 				switch (result)
 				{
 				case 0: value = IronCurtainFlag::Default; return true;
@@ -678,78 +836,6 @@ namespace detail
 				case 4: value = IronCurtainFlag::Random; return true;
 				}
 			}
-		}
-
-		return false;
-	}
-
-	template <>
-	inline bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		auto ret = false;
-
-		char pFlagName[0x40];
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PauseFrames", pKey);
-		ret |= read(value.PauseFrames, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TiltFrames", pKey);
-		ret |= read(value.TiltFrames, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchInitial", pKey);
-		ret |= read(value.PitchInitial, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.PitchFinal", pKey);
-		ret |= read(value.PitchFinal, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.TurnRate", pKey);
-		ret |= read(value.TurnRate, parser, pSection, pFlagName);
-
-		// sic! integer read like a float.
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.RaiseRate", pKey);
-		float buffer;
-		if (read(buffer, parser, pSection, pFlagName))
-		{
-			value.RaiseRate = Game::F2I(buffer);
-			ret = true;
-		}
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Acceleration", pKey);
-		ret |= read(value.Acceleration, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Altitude", pKey);
-		ret |= read(value.Altitude, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Damage", pKey);
-		ret |= read(value.Damage, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.EliteDamage", pKey);
-		ret |= read(value.EliteDamage, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.BodyLength", pKey);
-		ret |= read(value.BodyLength, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.LazyCurve", pKey);
-		ret |= read(value.LazyCurve, parser, pSection, pFlagName);
-
-		IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), "%s.Type", pKey);
-		ret |= read(value.Type, parser, pSection, pFlagName);
-
-		return ret;
-	}
-
-	template <>
-	inline bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		double buffer;
-
-		if (parser.ReadDouble(pSection, pKey, &buffer))
-		{
-			value = Leptons(buffer);
-			return true;
-		}
-		else if (!parser.empty())
-		{
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
 		}
 
 		return false;
@@ -769,7 +855,7 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a owner house kind");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
 		}
 		return false;
 	}
@@ -803,12 +889,18 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a targeting mode");
-			} else {
-				if(result == 0 ){ 
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting mode");
+			}
+			else
+			{
+				if (result == 0)
+				{
 					value = SuperWeaponAITargetingMode::NoTarget; return true;
-				} else { 
+				}
+				else
+				{
 					value = static_cast<SuperWeaponAITargetingMode>(result);
 					return true;
 				}
@@ -841,10 +933,13 @@ namespace detail
 					++result;
 				}
 
-				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected target");
+				if (!found)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
 					return false;
-				} else {
+				}
+				else
+				{
 					switch (result)
 					{
 					case 0: resultData |= AffectedTarget::None; break;
@@ -864,9 +959,142 @@ namespace detail
 					case 13: resultData |= AffectedTarget::AllContents; break;
 					}
 				}
-
-				value = resultData;
 			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<SuperWeaponTarget>(SuperWeaponTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			auto resultData = SuperWeaponTarget::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+					err :
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a SW target");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= SuperWeaponTarget::None; break;
+					case 1: goto err;
+					case 2: resultData |= SuperWeaponTarget::Water; break;
+					case 14:
+					case 3: resultData |= SuperWeaponTarget::Empty; break;
+					case 4: resultData |= SuperWeaponTarget::Infantry; break;
+					case 5:
+					case 6: resultData |= SuperWeaponTarget::Unit; break;
+					case 7:
+					case 8: resultData |= SuperWeaponTarget::Building; break;
+					case 9: goto err;
+					case 10: resultData |= SuperWeaponTarget::All; break;
+					case 11: resultData |= SuperWeaponTarget::AllCells; break;
+					case 12: resultData |= SuperWeaponTarget::AllTechnos; break;
+					case 13: resultData |= SuperWeaponTarget::AllContents; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<TargetingConstraint>(TargetingConstraint& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			auto resultData = TargetingConstraint::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::TargetingConstraint_ToStrings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found)
+				{
+				err:
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting constraint");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= TargetingConstraint::None; break;
+					case 1: goto err; break;
+					case 2: resultData |= TargetingConstraint::DefensifeCellClear; break;
+					case 3: resultData |= TargetingConstraint::Enemy; break;
+					case 4: resultData |= TargetingConstraint::LighningStormInactive; break;
+					case 5: resultData |= TargetingConstraint::DominatorInactive; break;
+					case 6: resultData |= TargetingConstraint::Attacked; break;
+					case 7: resultData |= TargetingConstraint::OffensiveCellSet; break;
+					case 8: resultData |= TargetingConstraint::DefensiveCellSet; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
+	inline bool read<TargetingPreference>(TargetingPreference& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			size_t i = 0;
+			while (IMPL_STRCMPI(parser.value(), EnumFunctions::TargetingPreference_ToStrings[i]))
+			{
+				if (i >= EnumFunctions::TargetingPreference_ToStrings.size()) {
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting preference");
+					return false;
+				}
+			}
+
+			value = TargetingPreference(i);
+			return true;
 		}
 		return false;
 	}
@@ -876,9 +1104,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::LandType_ToStrings.size(); ++i)
+			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::LandType_ToStrings[i]))
+				if (IS_SAME_STR_(parser.value(), CellClass::LandTypeToStrings[i]))
 				{
 					value = LandType(i);
 					return true;
@@ -886,7 +1114,7 @@ namespace detail
 			}
 
 			if (!INIClass::IsBlank(parser.value()) && !allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valind LandType");
 		}
 
 		return false;
@@ -916,10 +1144,13 @@ namespace detail
 					++result;
 				}
 
-				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a affected house");
+				if (!found)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
 					return false;
-				} else{
+				}
+				else
+				{
 					switch (result)
 					{
 					case 1:
@@ -931,13 +1162,15 @@ namespace detail
 					case 7: resultData |= AffectedHouse::Team; break;
 					case 8: resultData |= AffectedHouse::NotOwner; break;
 					case 9: resultData |= AffectedHouse::All; break;
+					case 10: resultData |= AffectedHouse::NotAllies;  break;
 					default:
 						break;
 					}
 				}
-
-				value = resultData;
 			}
+
+			value = resultData;
+			return true;
 		}
 		return false;
 	}
@@ -959,9 +1192,12 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a AttachedAnimFlag");
-			} else {
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
+			}
+			else
+			{
 				switch (result)
 				{
 				case 1: value = AttachedAnimFlag::Hides; return true;
@@ -988,7 +1224,7 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected an area fire target");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
 
 		}
 		return false;
@@ -1011,9 +1247,12 @@ namespace detail
 				++result;
 			}
 
-			if (!found) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Text Alignment can be either Left, Center/Centre or Right");
-			} else {
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
+			}
+			else
+			{
 				switch (result)
 				{
 				case 1: value = TextAlign::Left; return true;
@@ -1031,9 +1270,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::LayerType_ToStrings.size(); ++i)
+			for (size_t i = 0; i < CellClass::LayerToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::LayerType_ToStrings[i]))
+				if (IS_SAME_STR_(parser.value(), CellClass::LayerToStrings[i]))
 				{
 					value = Layer(i);
 					return true;
@@ -1041,7 +1280,7 @@ namespace detail
 			}
 
 			if (!INIClass::IsBlank(parser.value()) && !allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expect a Valid Layer !");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
 
 		}
 
@@ -1069,7 +1308,7 @@ namespace detail
 			}
 
 			if (!allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expect a Valid AbstractType !");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
 		}
 
 		return false;
@@ -1115,12 +1354,14 @@ namespace detail
 
 			if (!INIClass::IsBlank(parser.value()) && !bAllocate)
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid TileType !");
 			}
 		}
 		return false;
 	}
+#pragma endregion
 
+#pragma region Vectorstuffs
 	template <>
 	inline bool read<TypeList<int>>(TypeList<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
@@ -1148,7 +1389,7 @@ namespace detail
 	}
 
 	template <typename T>
-	void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
@@ -1164,7 +1405,7 @@ namespace detail
 	}
 
 	template <typename T>
-	void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
@@ -1176,7 +1417,7 @@ namespace detail
 	}
 
 	template <typename T>
-	void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
+	inline void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
@@ -1227,7 +1468,7 @@ namespace detail
 	}
 
 	template <typename Lookuper, typename T>
-	void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
+	inline void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
 	{
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
@@ -1245,6 +1486,8 @@ namespace detail
 			}
 		}
 	}
+#pragma endregion
+
 }
 
 // Valueable
@@ -1273,7 +1516,16 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 	if (parser.ReadString(pSection, pKey))
 	{
 		const char* val = parser.value();
-		int idx = Lookuper::FindIndexById(val);
+		int idx = -1;
+
+		if constexpr (std::is_pointer<Lookuper>::value)
+		{
+			using base_type = std::remove_pointer_t<Lookuper>;
+			idx = base_type::FindIndexById(val);
+		}
+		else
+			idx = Lookuper::FindIndexById(val);
+
 		if (idx != -1 || INIClass::IsBlank(val))
 		{
 			this->Value = idx;
@@ -1400,7 +1652,8 @@ void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSec
 	}
 
 	T placeholder {};
-	if (detail::read(placeholder, parser, pSection, flagName)) {
+	if (detail::read(placeholder, parser, pSection, flagName))
+	{
 		this->SetAll(placeholder);
 	}
 

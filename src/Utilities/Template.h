@@ -656,31 +656,6 @@ public:
 	inline bool Save(PhobosStreamWriter& Stm) const;
 };
 
-class ArmorType
-{
-public:
-	Nullable<int> Value;
-
-	ArmorType(int value)  noexcept : Value { value }
-	{ }
-
-	ArmorType(Armor value) noexcept : Value { static_cast<int>(value) }
-	{ }
-
-	ArmorType() noexcept = default;
-	~ArmorType() noexcept = default;
-
-	operator Armor() const { return  (Armor)this->Value.Get(); }
-	operator int() const { return this->Value.Get(); }
-
-	inline bool isset() const { return this->Value.isset(); }
-	bool Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false);
-	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange) { return Stm.Process(Value); }
-	inline bool Save(PhobosStreamWriter& Stm) const { return Stm.Process(Value); }
-
-};
-
-
 template<typename T>
 class DamageableVector
 {

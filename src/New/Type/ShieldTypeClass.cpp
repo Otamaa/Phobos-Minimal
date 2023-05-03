@@ -20,7 +20,7 @@ AnimTypeClass* ShieldTypeClass::GetIdleAnimType(bool isDamaged, double healthRat
 void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name;
-	if (strcmp(pSection, DEFAULT_STR2) == 0)
+	if (IMPL_STRCMP(pSection, DEFAULT_STR2) == 0)
 		return;
 
 	INI_EX exINI(pINI);

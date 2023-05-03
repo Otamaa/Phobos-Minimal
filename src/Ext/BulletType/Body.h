@@ -25,7 +25,7 @@ public:
 	{
 	public:
 		Valueable<int> Health;
-		ArmorType Armor;
+		Nullable<Armor> Armor;
 		Valueable<bool> Interceptable;
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
 		Nullable<double> Gravity;
@@ -99,7 +99,7 @@ public:
 		std::unique_ptr<PhobosTrajectoryType> TrajectoryType;
 		ExtData(BulletTypeClass* OwnerObject) : Extension<BulletTypeClass>(OwnerObject)
 			, Health { 0 }
-			, Armor { -1 }
+			, Armor { }
 			, Interceptable { false }
 			, LaserTrail_Types {}
 			, Gravity {}

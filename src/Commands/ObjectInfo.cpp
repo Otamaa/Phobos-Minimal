@@ -199,8 +199,8 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
-			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
-			Append(buffer, "CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor.Get());
+			Append(buffer, "CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor.Get(), pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 		}
 	}
 
@@ -266,8 +266,8 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
-			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor);
-			Append(buffer, "CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor, pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
+			auto const pShieldArmor = ArmorTypeClass::FindFromIndex((int)pTechnoExt->CurrentShieldType->Armor.Get());
+			Append(buffer, "CurShield (%s) , Armor = %s (%d) , HP = (%d / %d) ", pShieldData->GetType()->Name.data(), pShieldArmor->Name.data(), (int)pTechnoExt->CurrentShieldType->Armor.Get(), pShieldData->GetHP(), pTechnoExt->CurrentShieldType->Strength);
 
 		}
 	}

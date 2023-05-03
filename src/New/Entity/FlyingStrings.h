@@ -5,12 +5,15 @@ By AlexB and Joshy
 */
 
 #pragma once
-#include <vector>
+#include <Phobos.h>
+
 #include <ColorScheme.h>
 #include <CoordStruct.h>
 #include <Utilities/Enum.h>
 
 class TechnoClass;
+class HouseClass;
+class CellClass;
 class FlyingStrings
 {
 private:
@@ -23,7 +26,6 @@ private:
 		COLORREF Color;
 		TextPrintType TextPrintType;
 		std::wstring Text;
-
 	};
 
 	static constexpr int Duration = 75;

@@ -32,10 +32,46 @@
 
 #pragma once
 
-#include <Phobos.h>
+#include <GeneralDefinitions.h>
+
+enum class SuperWeaponTarget : unsigned char
+{
+	None = 0x0,
+	Land = 0x1,
+	Water = 0x2,
+	Empty = 0x4,
+	Infantry = 0x8,
+	Unit = 0x10,
+	Building = 0x20,
+
+	All = 0xFF,
+	AllCells = Land | Water,
+	AllTechnos = Infantry | Unit | Building,
+	AllContents = Empty | AllTechnos
+};
+MAKE_ENUM_FLAGS(SuperWeaponTarget);
+
+enum class TargetingConstraint : int
+{
+	None = 0x0,
+	OffensiveCellClear = 0x1,
+	DefensifeCellClear = 0x2,
+	Enemy = 0x4,
+	LighningStormInactive = 0x8,
+	DominatorInactive = 0x10,
+	Attacked = 0x20,
+	LowPower = 0x40,
+	OffensiveCellSet = 0x80,
+	DefensiveCellSet = 0x0100,
+};
+MAKE_ENUM_FLAGS(TargetingConstraint);
+
+enum class TargetingPreference : char
+{
+	None = 0, Offensive, Devensive
+};
 
 //TODO HelpText
-
 enum class AresNewTriggerAction : int
 {
 	AuxiliaryPower = 146,
@@ -77,7 +113,7 @@ enum class AresTriggerEvents : int
 
 enum class NewMouseCursorType : unsigned int
 {
-	Tote,
+	Tote = 0,
 	EngineerDamage,
 	TogglePower,
 	NoTogglePower,
@@ -98,9 +134,9 @@ enum class IronCurtainFlag : int
 	Random = 3,
 };
 
-enum class AreaFireReturnFlag : int
+enum class AreaFireReturnFlag : char
 {
-	Continue ,
+	Continue = 0,
 	ContinueAndReturn,
 	DoNotFire ,
 	SkipSetTarget,
@@ -202,7 +238,8 @@ enum class AirAttackStatusIDB : int
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
 
-enum class SuperWeaponAITargetingMode {
+enum class SuperWeaponAITargetingMode
+{
 	None = 0,
 	Nuke = 1,
 	LightningStorm = 2,
@@ -217,7 +254,13 @@ enum class SuperWeaponAITargetingMode {
 	Base = 11,
 	MultiMissile = 12,
 	HunterSeeker = 13,
-	EnemyBase = 14
+	EnemyBase = 14,
+	IronCurtain = 15,
+	Attack = 16,
+	LowPower = 17,
+	LowPowerAttack = 18,
+	Droppod = 19,
+	LighningRandom = 20
 };
 
 enum class AffectedTarget : unsigned char {
@@ -323,54 +366,6 @@ enum class FeedBackType
 	WeaponFire = 0 ,
 	HealthLevel = 1,
 	ReceiveDamage = 2
-};
-
-class MouseCursorHotSpotX {
-public:
-	typedef MouseHotSpotX Value;
-
-	static bool Parse(char* key, Value* value) {
-		if (key && value) {
-			if (IS_SAME_STR_(key, "left")) {
-				*value = MouseHotSpotX::Left;
-			}
-			else if (IS_SAME_STR_(key, "right")) {
-				*value = MouseHotSpotX::Right;
-			}
-			else if (IS_SAME_STR_(key, "center")) {
-				*value = MouseHotSpotX::Center;
-			}
-			else {
-				return false;
-			}
-			return true;
-		}
-		return false;
-	}
-};
-
-class MouseCursorHotSpotY {
-public:
-	typedef MouseHotSpotY Value;
-
-	static bool Parse(char* key, Value* value) {
-		if (key && value) {
-			if (IS_SAME_STR_(key, "top")) {
-				*value = MouseHotSpotY::Top;
-			}
-			else if (IS_SAME_STR_(key, "bottom")) {
-				*value = MouseHotSpotY::Bottom;
-			}
-			else if (IS_SAME_STR_(key, "middle")) {
-				*value = MouseHotSpotY::Middle;
-			}
-			else {
-				return false;
-			}
-			return true;
-		}
-		return false;
-	}
 };
 
 enum class InterceptedStatus : int

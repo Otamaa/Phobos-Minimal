@@ -4,6 +4,7 @@
 #include <FPSCounter.h>
 #include <GameOptionsClass.h>
 
+#include <New/Type/CursorTypeClass.h>
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
@@ -51,8 +52,6 @@ void RulesExt::ExtData::InitializeConstants()
 
 void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 {
-	ArmorTypeClass::LoadFromINIList_New(pINI, false);
-	ColorTypeClass::LoadFromINIList_New(pINI, false);
 }
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
@@ -61,8 +60,9 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 	ArmorTypeClass::LoadFromINIList_New(pINI, false);
 	//Debug::Log(__FUNCTION__" Reading ColorType ! \n");
 	ColorTypeClass::LoadFromINIList_New(pINI, false);
+	//Debug::Log(__FUNCTION__" Reading CursorType ! \n");
+	CursorTypeClass::LoadFromINIList_New(pINI, true);
 
-		//Debug::Log(__FUNCTION__" Called ! \n");
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
 		//Debug::Log(__FUNCTION__" AddDefault RadType ! \n");

@@ -465,16 +465,18 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 {
 	if (pTechno)
 	{
+		const auto pType = pTechno->GetTechnoType();
+
 		if (pTechno->InLimbo
 			|| !pTechno->IsOnMap
 			|| !pTechno->IsAlive
 			|| !pTechno->Health
 			|| pTechno->IsSinking
-			|| !pTechno->GetTechnoType()
+			|| !pType
 			)
 			return false;
 
-		if (pTechno->GetTechnoType()->Immune)
+		if (pType->Immune)
 			return false;
 
 		if (auto const pBld = specific_cast<BuildingClass*>(pTechno))
@@ -501,7 +503,7 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 
 		if (!SkipVerses && EffectsRequireVerses.Get())
 		{
-			auto nArmor = pTechno->GetTechnoType()->Armor;
+			auto nArmor = pType->Armor;
 			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
 
 			if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())

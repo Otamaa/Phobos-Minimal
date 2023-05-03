@@ -9,7 +9,8 @@
 #include <BitFont.h>
 #include <Dimensions.h>
 
-#include <string_view>
+#include <HouseClass.h>
+#include <CellClass.h>
 
 #include <Utilities/EnumFunctions.h>
 

@@ -217,7 +217,8 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);
 
-	ArmorTypeClass::AddDefaults();
+	if(ArmorTypeClass::Array.empty())
+	 ArmorTypeClass::AddDefaults();
 
 	GET_STACK(const char*, Section, 0x4);
 	GET_STACK(const char*, Key, 0x8);
@@ -230,7 +231,7 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 
 		if (nResult < 0) {
 			nResult = fallback; //always
-			Debug::INIParseFailed(Section, Key, buf);
+			Debug::INIParseFailed(Section, Key, buf , "Expect Valid ArmorType !");
 		}
 	}
 

@@ -217,6 +217,7 @@ struct GameStrings
 	GAMEMD_STR(VeteranUnits, 0x825298);
 	GAMEMD_STR(VeteranAircraft, 0x825288);
 
+	GAMEMD_STR(TurretOffset, 0x8433B0u);
 	//..
 
 	// EVA entry names

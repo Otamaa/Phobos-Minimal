@@ -243,7 +243,6 @@ DEFINE_HOOK(0x546833, IsometricTileTypeClass_FallbackTheater , 0x5)
 //DEFINE_JUMP(CALL, 0x54692B, GET_OFFSET(_ReplaceMakePath::Exec2)); //roadtile urb
 #pragma endregion
 
-
 #pragma region AresHooks
 #include <Utilities/Cast.h>
 #include <Ext/TechnoType/Body.h>
@@ -382,7 +381,6 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 }
 #pragma endregion
 
-
 #pragma region ScenarioClass_InitTheater
 
 //How mix loaded ? 
@@ -471,7 +469,6 @@ DEFINE_HOOK(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 }
 
 #pragma endregion
-
 
 #pragma region replacedMakepath
 //AnimType
@@ -622,7 +619,6 @@ DEFINE_HOOK(0x5997C0, RMGClass_TheaterType_initRandomMap, 0x6)
 	R->ECX(TheaterTypeClass::FindFromTheaterType_NoCheck(nIndex)->Name.data());
 	return 0x5997C6;
 }
-
 
 DEFINE_JUMP(LJMP, 0x6275B7, 0x627680);
 

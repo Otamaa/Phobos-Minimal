@@ -489,7 +489,8 @@ public:
 
 	const CSFText& operator = (const char* label) {
 		if (this->Label != label) {
-			this->Label = label;
+			this->Label.assign(label);
+
 			this->Text = nullptr;
 
 			if (this->Label) {

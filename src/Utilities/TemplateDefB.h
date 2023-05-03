@@ -9,37 +9,39 @@ namespace detail
 	template <>
 	inline bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		ColorStruct buffer {};
+		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value))) {
+			if (!parser.empty()) {
 
-		if (parser.Read3Bytes(pSection, pKey, reinterpret_cast<BYTE*>(&buffer))) {
-			value.R = std::clamp<BYTE>(buffer.R, (BYTE)0, ColorStruct::Max);
-			value.G = std::clamp<BYTE>(buffer.G, (BYTE)0, ColorStruct::Max);
-			value.B = std::clamp<BYTE>(buffer.B, (BYTE)0, ColorStruct::Max);
-
-			return true;
-
-		} else if (!parser.empty() && strlen(parser.value())) {
-
-			if(auto const& pColorClass = ColorTypeClass::Find(parser.value())) {
-				value = pColorClass->ToColor();
-				return true;
-			}
-
-			for (size_t i = 0; i < EnumFunctions::DefaultGameColor_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::DefaultGameColor_ToStrings[i])) {
-					value = Drawing::DefaultColors[i];
+				if (auto const& pColorClass = ColorTypeClass::Find(parser.value()))
+				{
+					value = pColorClass->ToColor();
 					return true;
 				}
-			}
 
-			if (auto const& nResult = ColorScheme::Find(parser.value())) {
-				value = nResult->BaseColor;
-				return true;
-			}
+				for (size_t i = 0; i < EnumFunctions::DefaultGameColor_ToStrings.size(); ++i)
+				{
+					if (IS_SAME_STR_(parser.value(), EnumFunctions::DefaultGameColor_ToStrings[i]))
+					{
+						value = Drawing::DefaultColors[i];
+						return true;
+					}
+				}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color ");
+				if (ColorScheme::Array->Count)
+				{
+					if (auto const& nResult = ColorScheme::Find(parser.value()))
+					{
+						value = nResult->BaseColor;
+						return true;
+					}
+				}
+
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color ");
+				return false;
+			}
 		}
-		return false;
+
+		return true;
 	}
 
 	template <>

@@ -41,6 +41,12 @@ struct FixedString {
 	*/
 	FixedString& operator= (FixedString const& value) noexcept = default;
 
+	// assignt char to designated value without checking !
+	void assign(const T* const value) noexcept {
+		// free function to not templatize on size
+		detail::string_copy_n(this->chars, value, Size - 1);
+	}
+
 	FixedString& operator= (const T* const value) noexcept {
 		if(value) {
 			if(value != this->chars) {

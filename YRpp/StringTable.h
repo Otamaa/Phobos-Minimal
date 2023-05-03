@@ -13,6 +13,8 @@
 #define CSF_LABEL_SIGNATURE 0x4C424C20 //" LBL"
 #define CSF_VALUE_SIGNATURE 0x53545220 //" RTS"
 #define CSF_EXVALUE_SIGNATURE 0x53545257 //"WRTS"
+#define CSF_SOURCE_NAME "YR++"
+#define MISSINGS_LABEL L"MISSING:"
 
 enum class CSFLanguages : unsigned int {
 	US = 0,
@@ -81,7 +83,7 @@ public:
 	static const wchar_t* __fastcall LoadString(
 		const char* pLabel,
 		char* pOutExtraData = nullptr,
-		const char* pSourceCodeFileName = "Dummy",
+		const char* pSourceCodeFileName = CSF_SOURCE_NAME,
 		int nSourceCodeFileLine = 0)
 			{ JMP_STD(0x734E60); }
 
@@ -89,10 +91,13 @@ public:
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
-		const char* pFile = "Dummy",
+		const char* pFile = CSF_SOURCE_NAME,
 		int nLine = 0)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, GameStrings::NoneStr()) && CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
+		if (pLabel && 
+			CRT::strlen(pLabel) &&
+			CRT::strcmpi(pLabel, GameStrings::NoneStr()) && 
+			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 			return LoadString(pLabel, pSpeech, pFile, nLine);
 		else
 			return pDefault;
@@ -102,13 +107,16 @@ public:
 		const char* pLabel,
 		const wchar_t* pDefault = L"",
 		char* pSpeech = nullptr,
-		const char* pFile = "Dummy",
+		const char* pFile = CSF_SOURCE_NAME,
 		int nLine = 0)
 	{
-		if (pLabel && CRT::strlen(pLabel) && CRT::strcmpi(pLabel, GameStrings::NoneStr()) && CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
+		if (pLabel && 
+			CRT::strlen(pLabel) && 
+			CRT::strcmpi(pLabel, GameStrings::NoneStr()) &&
+			CRT::strcmpi(pLabel, GameStrings::NoneStrb()))
 		{
 			auto lpValue = LoadString(pLabel, pSpeech, pFile, nLine);
-			if (CRT::wcsncmp(lpValue, L"MISSING:", 8u))
+			if (CRT::wcsncmp(lpValue, MISSINGS_LABEL, 8u))
 				return lpValue;
 		}
 

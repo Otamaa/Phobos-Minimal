@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
+#include <Utilities/Constructs.h>
 #include <Utilities/VersesData.h>
 
 class ArmorTypeClass final : public Enumerable<ArmorTypeClass>

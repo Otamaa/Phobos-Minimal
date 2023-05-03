@@ -436,32 +436,6 @@ static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
 std::unordered_map<Action, std::pair<MouseCursorType, bool>> MouseClassExt::CursorIdx;
 
-DEFINE_HOOK(0x531703, Game_InitBulkData_LoadCursorData, 0x5)
-{
-	// issue #198: animate the paradrop cursor
-	MouseCursor::GetCursor(MouseCursorType::ParaDrop).FrameRate = 4;
-
-	// issue #214: also animate the chronosphere cursor
-	MouseCursor::GetCursor(MouseCursorType::Chronosphere).FrameRate = 4;
-
-	// issue #1380: the iron curtain cursor
-	MouseCursor::GetCursor(MouseCursorType::IronCurtain).FrameRate = 4;
-
-	// animate the engineer damage cursor
-	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
-
-	//Load the default regardless
-	CursorTypeClass::AddDefaults();
-
-	if (auto pINI = CCINIClass::LoadINIFile("Mouse.ini"))
-	{
-		CursorTypeClass::LoadFromINIList_New(pINI, true);
-		CCINIClass::UnloadINIFile(pINI);
-	}
-
-	return 0x0;
-}
-
 //ares reset their cursor here 
 DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
 {

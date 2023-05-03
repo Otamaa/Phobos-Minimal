@@ -252,7 +252,7 @@ public:
 	}
 
 	static bool ApplyTheaterSuffixToString(char* str);
-	static bool ApplyTheaterExtToString(std::string flag);
+	static bool ApplyTheaterExtToString(std::string& flag);
 	static std::string ApplyTheaterSuffixToString(const std::string& str);
 
 	template <size_t size>

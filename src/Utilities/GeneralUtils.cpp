@@ -167,7 +167,7 @@ bool GeneralUtils::ApplyTheaterSuffixToString(char* str)
 	return false;
 }
 
-bool GeneralUtils::ApplyTheaterExtToString(std::string flag)
+bool GeneralUtils::ApplyTheaterExtToString(std::string& flag)
 {
 	const auto nPos = flag.find("~");
 	if (nPos != std::string::npos)

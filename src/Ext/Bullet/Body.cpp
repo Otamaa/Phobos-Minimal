@@ -675,7 +675,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 	if (pThisTypeExt->Armor.isset())
 	{
 		auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor).Verses;
+		auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor.Get()).Verses;
 		if (((std::abs(versus) >= 0.001)))
 		{
 			canAffect = true;

@@ -107,8 +107,9 @@ static	void __fastcall _Log_NoDigest(const char* pFormat, ...)
 	if (!AnnoyingAudioLogSutffs::bDisableNoDigestLog)
 		Debug::Log(pFormat);
 }
-DEFINE_JUMP(CALL,0x5FDDB9, GET_OFFSET(_Log_NotTib));
 DEFINE_JUMP(CALL,0x69A79D, GET_OFFSET(_Log_NoDigest));
+DEFINE_JUMP(CALL,0x5FDDB9, GET_OFFSET(_Log_NotTib));
+
 
 //To prevent Compiler Optimization
 static bool Dummy = false;

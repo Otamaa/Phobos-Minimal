@@ -5,6 +5,8 @@
 #include <Ext/Abstract/Body.h>
 #include <Utilities/TemplateDefB.h>
 
+#include <New/Type/CursorTypeClass.h>
+
 class SuperClass;
 class SWTypeExt
 {
@@ -63,6 +65,11 @@ public:
 		Valueable<int> SW_Priority;
 		Nullable<int> SW_Damage;
 
+		ValueableIdx<CursorTypeClass*> CursorType;
+		ValueableIdx<CursorTypeClass*> NoCursorType;
+		Valueable<SWRange> SW_Range;
+		ValueableIdx<ColorScheme> Message_ColorScheme;
+
 		ExtData(SuperWeaponTypeClass* OwnerObject) : Extension<SuperWeaponTypeClass>(OwnerObject)
 			, Money_Amount { 0 }
 			, UIDescription {}
@@ -107,6 +114,10 @@ public:
 
 			, SW_Priority { 0 }
 			, SW_Damage { }
+			, CursorType { -1 }
+			, NoCursorType { -1 }
+			, SW_Range {}
+			, Message_ColorScheme { -1 }
 		{ }
 
 
@@ -128,6 +139,7 @@ public:
 		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
 
 		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+		virtual void LoadFromRulesFile(CCINIClass* pINI) override;
 		virtual ~ExtData() override  = default;
 		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
 		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }

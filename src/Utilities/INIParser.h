@@ -37,13 +37,6 @@
 #include <Phobos.h>
 #include <CCINIClass.h>
 
-#ifndef NANOPRINTF_IMPLEMENTATION
-#define IMPL_SNPRNINTF _snprintf_s
-#else
-#include <ExtraHeaders/nanoprintf.h>
-#define IMPL_SNPRNINTF npf_snprintf
-#endif
-
 class INI_EX {
 	CCINIClass* IniFile;
 
@@ -61,6 +54,10 @@ public:
 	explicit INI_EX(CCINIClass& iniFile) noexcept
 		: IniFile { &iniFile }
 	{ }
+
+	const char* c_str() const {
+		return Phobos::readBuffer;
+	}
 
 	char* value() const {
 		return Phobos::readBuffer;
@@ -117,7 +114,7 @@ public:
 	// basic string reader
 	size_t ReadString(const char* pSection, const char* pKey) {
 		auto const res = IniFile->ReadString(
-			pSection, pKey, "", this->value(), this->max_size());
+			pSection, pKey, Phobos::readDefval, this->value(), this->max_size());
 		return static_cast<size_t>(res);
 	}
 
@@ -230,8 +227,19 @@ public:
 		return Read<float, 3>(pSection, pKey, nBuffer);
 	}
 
+	bool ReadShort(const char* pSection, const char* pKey, short* nBuffer)
+	{
+		return Read<short, 1>(pSection, pKey, nBuffer);
+	}
+
+	bool Read2Short(const char* pSection, const char* pKey, short* nBuffer)
+	{
+		return Read<short, 2>(pSection, pKey, nBuffer);
+	}
+
 	bool ReadArmor(const char *pSection, const char *pKey, int *nBuffer) {
 		*nBuffer = IniFile->ReadArmorType(pSection, pKey, *nBuffer);
 		return (*nBuffer != -1);
 	}
+
 };

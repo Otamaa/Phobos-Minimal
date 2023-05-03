@@ -1651,11 +1651,18 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * 1.0);
-		float y = static_cast<float>(pOffs->Y * 1.0);
-		float z = static_cast<float>(pOffs->Z * 1.0);
-		mtx.Translate(x, y, z);
+		const auto & pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
+		if(pOffs.isset()){
+			float x = static_cast<float>(pOffs->X * 1.0);
+			float y = static_cast<float>(pOffs->Y * 1.0);
+			float z = static_cast<float>(pOffs->Z * 1.0);
+			mtx.Translate(x, y, z);
+		}
+		else
+		{
+			mtx.TranslateX((float)pType->TurretOffset);
+		}
+
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		float angle = static_cast<float>(turretRad - bodyRad);
@@ -2357,12 +2364,18 @@ void TechnoExt::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool is
 	// turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		auto const pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.GetEx();
-		float x = static_cast<float>(pOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float y = static_cast<float>(pOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-		float z = static_cast<float>(pOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
+		if(nOffs.isset()) {
+			float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+			float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+			float z = static_cast<float>(nOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 
-		mtx.Translate(x, y, z);
+			mtx.Translate(x, y, z);
+		}
+		else
+		{
+			mtx.TranslateX((float)pType->TurretOffset);
+		}
 
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
@@ -3162,7 +3175,7 @@ bool TechnoExt::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass
 
 	if (pShieldData->IsActive())
 	{
-		R->EAX(pShieldData->GetType()->Armor);
+		R->EAX(pShieldData->GetType()->Armor.Get());
 		return true;
 	}
 

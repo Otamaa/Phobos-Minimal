@@ -74,6 +74,10 @@ public:
 	static inline constexpr int BridgeHeight = BridgeLevels * Unsorted::LevelHeight;
 	static constexpr constant_ptr<CellClass,0xABDC50u> const Instance{};
 	static constexpr reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
+	static constexpr reference<const char* const, 0x81DA28u , 12u> const LandTypeToStrings {};
+	static constexpr reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
+	static constexpr reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};
+	static constexpr reference<const char* const, 0x7E1B60u, 5u> const EdgeToStrings {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x485200);
@@ -102,9 +106,8 @@ public:
 		if (!(int)tileType)
 			return false;
 
-		const uintptr_t addr = TileArray[(int)tileType];
-		EPILOG_THISCALL;
-		JMP(addr);
+		using fp_type = bool(__fastcall*)(const CellClass*, void*);
+		return reinterpret_cast<fp_type>(TileArray[(int)tileType])(this, nullptr);
 	}
 
 	#define ISTILE(tileset, addr) \
@@ -389,11 +392,7 @@ public:
 
 	static CoordStruct Cell2Coord(const CellStruct &cell, int z = 0)
 	{
-		CoordStruct ret;
-		ret.X = cell.X * 256 + 128;
-		ret.Y = cell.Y * 256 + 128;
-		ret.Z = z;
-		return ret;
+		return { cell.X * 256 + 128  , cell.Y * 256 + 128 ,z};
 	}
 
 	static CellStruct Coord2Cell(const CoordStruct &crd)

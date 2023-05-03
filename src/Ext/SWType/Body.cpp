@@ -30,6 +30,11 @@ void SWTypeExt::ExtData::InitializeConstants()
 	SW_NegBuildings.reserve(10);
 }
 
+void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
+{ 
+	INI_EX exINI(pINI);
+}
+
 void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 {
 	auto pThis = this->Get();
@@ -37,6 +42,9 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	if (!pINI->GetSection(pSection))
 		return;
+
+	if (pINI == CCINIClass::INI_Rules)
+		this->LoadFromRulesFile(pINI);
 
 	INI_EX exINI(pINI);
 	this->Money_Amount.Read(exINI, pSection, "Money.Amount");
@@ -97,6 +105,12 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	this->SW_Priority.Read(exINI, pSection, "SW.Priority");
 	this->SW_Damage.Read(exINI, pSection, "SW.Damage");
+
+	this->CursorType.Read(exINI, pSection, "Cursor");
+	this->NoCursorType.Read(exINI, pSection, "NoCursor");
+	this->SW_Range.Read(exINI, pSection, "SW.Range");
+	this->Message_ColorScheme.Read(exINI, pSection, "Message.ColorScheme");
+
 }
 // =============================
 // load / save
@@ -516,6 +530,10 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ChargeTimer_Backwards)
 		.Process(this->SW_Priority)
 		.Process(this->SW_Damage)
+		.Process(this->CursorType)
+		.Process(this->NoCursorType)
+		.Process(this->SW_Range)
+		.Process(this->Message_ColorScheme)
 		;
 
 }

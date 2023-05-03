@@ -183,24 +183,25 @@ public:
 
 template<>
 inline bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
+
 	switch (toupper(static_cast<unsigned char>(*pValue))) {
 	case '1':
 	case 'T':
 	case 'Y':
-		if (outValue) {
-			*outValue = true;
-		}
+	{ 
+		*outValue = true;
 		return true;
+	}
 	case '0':
 	case 'F':
 	case 'N':
-		if (outValue) {
-			*outValue = false;
-		}
+	{ 
+		*outValue = false;
 		return true;
-	default:
-		return false;
+	}	
 	}
+
+	return false;
 };
 
 template<>
@@ -218,9 +219,7 @@ inline bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
 
 	int buffer = 0;
 	if (sscanf_s(pValue, pFmt, &buffer) == 1) {
-		if (outValue) {
-			*outValue = buffer;
-		}
+		*outValue = buffer;
 		return true;
 	}
 	return false;
@@ -233,9 +232,8 @@ inline bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
 		if (strchr(pValue, '%')) {
 			buffer *= 0.01;
 		}
-		if (outValue) {
-			*outValue = buffer;
-		}
+
+		*outValue = buffer;
 		return true;
 	}
 
@@ -246,9 +244,7 @@ template<>
 inline bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
 	double buffer = 0.0;
 	if (Parser<double>::TryParse(pValue, &buffer)) {
-		if (outValue) {
-			*outValue = static_cast<float>(buffer);
-		}
+		*outValue = static_cast<float>(buffer);
 		return true;
 	}
 	return false;
@@ -271,80 +267,26 @@ inline bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
 	WORD buffer;
 	if (sscanf_s(pValue, pFmt, &buffer) == 1) {
 		if (buffer <= UCHAR_MAX) {
-			if (outValue) {
-				*outValue = static_cast<BYTE>(buffer);
-			}
+			*outValue = static_cast<BYTE>(buffer);
 			return true;
 		}
 	}
 	return false;
 };
 
-template<typename T>
-class MultiParser
+template<>
+inline bool Parser<short>::TryParse(const char* pValue, OutType* outValue)
 {
-public:
-	using OutType = T;
-	using BaseType = std::remove_pointer_t<T>;
+	int buffer = 0;
+	if (!Parser<int>::TryParse(pValue, &buffer))
+		return false;
 
-	static size_t Parse(const char* pValue, OutType* outValue, size_t count)
-	{
-		char buffer[0x80];
-		for (size_t i = 0; i < count; ++i)
-		{
-			// skip the leading spaces
-			while (isspace(static_cast<unsigned char>(*pValue)))
-			{
-				++pValue;
-			}
+	if (buffer > std::numeric_limits<short>::max())
+		return false;
 
-			// read the next part
-			int n = 0;
-			if (sscanf_s(pValue, "%[^,]%n", buffer, sizeof(buffer), &n) != 1)
-			{
-				return i;
-			}
+	if (buffer < std::numeric_limits<short>::min())
+		return false;
 
-			// skip all read chars and the comma
-			pValue += n;
-			if (*pValue)
-			{
-				++pValue;
-			}
-
-			// trim the trailing spaces
-			while (n && isspace(static_cast<unsigned char>(buffer[n - 1])))
-			{
-				buffer[n-- - 1] = '\0';
-			}
-
-			// interprete the value
-			if (!Parser<OutType>::TryParse(buffer, &outValue[i]))
-			{
-				return i;
-			}
-		}
-
-		return count;
-	}
-
-	static bool TryParse(const char* pValue, OutType* outValue, size_t count)
-	{
-		OutType buffer[count] = {};
-
-		if (Parse(pValue, buffer) != count)
-		{
-			return false;
-		}
-
-		if (outValue)
-		{
-			for (size_t i = 0; i < count; ++i)
-			{
-				outValue[i] = buffer[i];
-			}
-		}
-
-		return true;
-	}
-};
+	*outValue = static_cast<short>(buffer);
+	return true;
+}
