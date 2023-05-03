@@ -83,7 +83,7 @@ public:
 		Valueable<bool> Interceptor_ConsiderWeaponRange;
 		Valueable<bool> Interceptor_OnlyTargetBullet;
 
-		Nullable<CoordStruct> TurretOffset;
+		Nullable<PartialVector3D<int>> TurretOffset;
 		Valueable<bool> Powered_KillSpawns;
 		Valueable<bool> Spawn_LimitedRange;
 		Valueable<int> Spawn_LimitedExtraRange;
@@ -224,7 +224,7 @@ public:
 		Valueable<Point3D> InsigniaFrames;
 		Valueable<CoordStruct> InsigniaDrawOffset;
 
-		Valueable<PartialVector2D<double>> InitialStrength_Cloning;
+		Nullable<PartialVector2D<double>> InitialStrength_Cloning;
 
 		Nullable<SHPStruct*> SHP_SelectBrdSHP;
 		Valueable<PaletteManager*> SHP_SelectBrdPAL; //CustomPalette::PaletteMode::Temperate
@@ -750,7 +750,7 @@ public:
 			, Insignia_ShowEnemy {}
 			, InsigniaFrames { { -1, -1, -1 } }
 			, InsigniaDrawOffset { {0 , 0 , 0} }
-			, InitialStrength_Cloning { { 0.0, 0.0 } }
+			, InitialStrength_Cloning {}
 			, SHP_SelectBrdSHP {  }
 			, SHP_SelectBrdPAL {}
 			, UseCustomSelectBrd {}
@@ -1139,8 +1139,6 @@ public:
 	static ExtContainer ExtMap;
 	static double TurretMultiOffsetDefaultMult;
 	static double TurretMultiOffsetOneByEightMult;
-
-	//static inline void ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor = 1.0);
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);

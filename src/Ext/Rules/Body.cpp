@@ -13,6 +13,7 @@
 
 //#include <Ext/TechnoType/Body.h>
 
+#include <Ext/WarheadType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -80,7 +81,8 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	for (auto& pArmor : ArmorTypeClass::Array) {
+	for (auto& pArmor : ArmorTypeClass::Array)
+	{
 		pArmor->EvaluateDefault();
 	}
 
@@ -101,8 +103,32 @@ void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (pINI == CCINIClass::INI_Rules)
-		Data->InitializeAfterTypeData(pThis);
+	{
+		INI_EX iniEX(pINI);
 
+		char buffer[0x30];
+		for (auto const& pInfType : *InfantryTypeClass::Array) {
+
+			if (!pInfType)
+				continue;
+
+			for (auto const& pWarhead : *WarheadTypeClass::Array) {
+				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead)) {
+					Nullable<AnimTypeClass*> nBuffer {};
+					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
+					nBuffer.Read(iniEX, pWarhead->ID, buffer);
+
+					if (!nBuffer.isset() || !nBuffer.Get())
+						continue;
+
+					//Debug::Log("Found specific InfDeathAnim for [WH : %s Inf : %s Anim %s]\n", pWarhead->ID, pInfType->ID, nBuffer->ID);
+					pExt->InfDeathAnims[pInfType->ArrayIndex] = nBuffer;
+				}
+			}
+		}
+
+		Data->InitializeAfterTypeData(pThis);
+	}
 
 	Data->LoadAfterTypeData(pThis, pINI);
 }
@@ -116,8 +142,8 @@ void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	//Allocate Default bullet
-	if(!BulletTypeClass::Find(DEFAULT_STR2))
-	GameCreate<BulletTypeClass>(DEFAULT_STR2);
+	if (!BulletTypeClass::Find(DEFAULT_STR2))
+		GameCreate<BulletTypeClass>(DEFAULT_STR2);
 
 	INI_EX exINI(pINI);
 
@@ -126,7 +152,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
-	this->AI_CostMult.Read(exINI, GENERAL_SECTION , "AICostMult");
+	this->AI_CostMult.Read(exINI, GENERAL_SECTION, "AICostMult");
 
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
@@ -240,9 +266,9 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 	nPrepreqNames.resize(6); // resize it for 6
 	nPrepreqNames.reserve(10);
 
-	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName , size_t idx)
+	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName, size_t idx)
 	{
-		auto&[catagory , typelist]= nPrepreqNames[idx];
+		auto& [catagory, typelist] = nPrepreqNames[idx];
 
 		catagory = CatagoryName;
 
@@ -250,8 +276,8 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 			return;
 
 		char* context = nullptr;
-		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); 
-			cur; 
+		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+			cur;
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			const int bTypeidx = BuildingTypeClass::FindIndexById(cur);
@@ -263,7 +289,7 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 	};
 
 	//the order is based on ares code , dont change it !
-	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER" , 0);
+	ReadPreReQs(GameStrings::PrerequisitePower(), "POWER", 0);
 	ReadPreReQs(GameStrings::PrerequisiteFactory(), "FACTORY", 1);
 	ReadPreReQs(GameStrings::PrerequisiteBarracks(), "BARRACKS", 2);
 	ReadPreReQs(GameStrings::PrerequisiteRadar(), "RADAR", 3);
@@ -298,13 +324,15 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 			}
 		}
 
-		if (!bFound) {
+		if (!bFound)
+		{
 
 			// New generic prerequisite
 			auto& It = nPrepreqNames.emplace_back(pKeyName, std::vector<int>());
 			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
 			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
 				const int idx = BuildingTypeClass::FindIndexById(cur);
 				if (idx >= 0)
 					It.second.push_back(idx);
@@ -314,142 +342,19 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 }
 
 void RulesExt::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
-{}
+{ }
 
 void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
-{}
+{ }
 
 // this runs between the before and after type data loading methods for rules ini
-void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis) { }
+void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
+{
+
+}
 
 namespace ObjectTypeParser
 {
-	template<typename T, bool Alloc = false>
-	void Exec(CCINIClass* pINI, DynamicVectorClass<DynamicVectorClass<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
-	{
-		if (!pINI->GetSection(pSection))
-			return;
-
-		for (int i = 0; i < pINI->GetKeyCount(pSection); ++i)
-		{
-			DynamicVectorClass<T*> _Buffer;
-			char* context = nullptr;
-			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
-
-			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
-				cur; cur = strtok_s(nullptr, Delims, &context))
-			{
-				cur = CRT::strtrim(cur);
-
-				T* buffer;
-				Parser<T*>::TryParse(cur, &buffer);
-
-				if (buffer)
-				{
-					if (_Buffer.AddItem(buffer))
-						if (bVerbose)
-							Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.Count, cur);
-				}
-				else
-				{
-
-					if constexpr (!Alloc)
-					{
-						if (bDebug)
-						{
-							Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.Count, cur);
-						}
-					}
-					else
-					{
-						if (_Buffer.AddItem(GameCreate<T>(cur)))
-							if (bVerbose)
-								Debug::Log("ObjectTypeParser DEBUG: Allocated [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.Count, cur);
-					}
-				}
-			}
-
-			nVecDest.AddItem(_Buffer);
-			_Buffer.Clear();
-		}
-	}
-
-	template<typename T, bool Alloc = false>
-	void Exec(CCINIClass* pINI, std::vector<std::vector<T*>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
-	{
-		if (!pINI->GetSection(pSection))
-			return;
-
-		const auto nKeyCount = pINI->GetKeyCount(pSection);
-		
-		if (!nKeyCount)
-			return;
-
-		nVecDest.resize(nKeyCount);
-
-		for (int i = 0; i < nKeyCount; ++i)
-		{
-			char* context = nullptr;
-			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer))
-				continue;
-
-			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
-				cur; cur = strtok_s(nullptr, Delims, &context))
-			{
-				cur = CRT::strtrim(cur);
-
-				T* buffer = nullptr;
-				if constexpr (!Alloc)
-					buffer = T::Find(cur);
-				else
-					buffer = T::FindOrAllocate(cur);
-
-				if (buffer)
-				{
-					nVecDest[i].push_back(buffer);
-					if (bVerbose)
-						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
-				}
-				else
-				{
-					if (bDebug)
-					{
-						Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.size(), cur);
-					}
-				}
-			}
-		}
-	}
-
-	void Exec(CCINIClass* pINI, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
-	{
-		if (!pINI->GetSection(pSection))
-			return;
-
-		auto const nKeyCount = pINI->GetKeyCount(pSection);
-		if (!nKeyCount)
-			return;
-
-		nVecDest.resize(nKeyCount);
-
-		for (int i = 0; i < nKeyCount; ++i)
-		{		
-			char* context = nullptr;
-			pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), "", Phobos::readBuffer);
-
-			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
-				cur;
-				cur = strtok_s(nullptr, Delims, &context))
-			{
-				cur = CRT::strtrim(cur);
-
-				nVecDest[i].push_back(cur);
-
-				if (bVerbose)
-					Debug::Log("ObjectTypeParser DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
-			}
-		}
-	}
 };
 
 // this should load everything that TypeData is not dependant on
@@ -491,11 +396,11 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 #pragma endregion
 
-	ObjectTypeParser::Exec(pINI, AITargetTypesLists, "AITargetTypes");
-	ObjectTypeParser::Exec(pINI, AIScriptsLists, "AIScriptsList");
-	ObjectTypeParser::Exec(pINI, AIHousesLists, "AIHousesList");
-	ObjectTypeParser::Exec(pINI, AIConditionsLists, "AIConditionsList", true, false, "/");
-	ObjectTypeParser::Exec(pINI, AITriggersLists, "AITriggersList");
+	detail::ParseVector(pINI, AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector(pINI, AIScriptsLists, "AIScriptsList");
+	detail::ParseVector(pINI, AIHousesLists, "AIHousesList");
+	detail::ParseVector(pINI, AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector(pINI, AITriggersLists, "AITriggersList");
 }
 
 bool RulesExt::DetailsCurrentlyEnabled()
@@ -801,35 +706,6 @@ DEFINE_HOOK(0x679CAF, RulesData_LoadAfterTypeData, 0x5)
 	// 	if (auto const pExt = BuildingTypeExt::ExtMap.Find(pType))
 	// 	pExt->CompleteInitialization();
 	// });
-
-	// doing stuffs here seems breaking thing , so better not to for now
-	// TODO :
-	//INI_EX iniEx(pINI);
-	//std::for_each(WarheadTypeClass::Array->begin(), WarheadTypeClass::Array->end(), [&](WarheadTypeClass* pType) {
-	//	const auto pExt = WarheadTypeExt::ExtMap.Find(pType);
-
-	//	for (size_t i = InfantryTypeClass::Array->Count; i > 0; --i)
-	//	{
-	//		Nullable<AnimTypeClass*> nBuffer {};
-	//		const auto nInfID = InfantryTypeClass::Array->GetItem(i)->ID;
-	//		//Debug::Log("Warhead[%s] Reading DeathAnim For %s \n", pType->ID, nInfID);
-	//		IMPL_SNPRNINTF(Phobos::readBuffer,sizeof(Phobos::readBuffer),"%s.InfDeathAnim" , nInfID);
-	//		nBuffer.Read(iniEx, pType->ID, Phobos::readBuffer);
-
-	//		if (!nBuffer.isset())
-	//			continue;
-
-	//		pExt->InfDeathAnims[i] = nBuffer;
-	//	}
-	//});
-
-	// load these after game loading 
-	// so the game not choke up when first firing the projectiles
-	//std::for_each(BulletTypeClass::Array->begin(), BulletTypeClass::Array->end(),
-	//[](BulletTypeClass* pType) {
-	//	if(auto const pTypeExt = BulletTypeExt::ExtMap.Find(pType))
-	//		pTypeExt->GetBulletConvert();
-	//});
 
 	return 0;
 }

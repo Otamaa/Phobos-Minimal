@@ -111,7 +111,7 @@ namespace detail
 			}
 			else
 			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a Palette Name");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a Palette Name");
 			}
 		}
 
@@ -244,7 +244,7 @@ namespace detail
 		if (!parser.ReadBool(pSection, pKey, &value)) {
 
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid boolean value [1, true, yes, 0, false, no]");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid boolean value [1, true, yes, 0, false, no]");
 
 			return false;
 		}
@@ -258,7 +258,7 @@ namespace detail
 		if (!parser.ReadInteger(pSection, pKey, &value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
 
 			return false;
 
@@ -282,7 +282,7 @@ namespace detail
 			}
 
 		}else if (!parser.empty()){ 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid unsigned short");
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short");
 		}
 
 		return false;
@@ -294,7 +294,7 @@ namespace detail
 		if (!parser.ReadShort(pSection, pKey, &value))
 		{
 			if (!parser.empty()) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid short");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid short");
 			}
 
 			return false;
@@ -309,7 +309,7 @@ namespace detail
 		if (!parser.ReadBytes(pSection, pKey, &value)) {
 
 			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid number");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
 
 			return false;
 		}
@@ -323,7 +323,7 @@ namespace detail
 		if (!parser.ReadFloat(pSection, pKey, &value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
 
 			return false;
 		}
@@ -337,7 +337,7 @@ namespace detail
 		if (!parser.ReadDouble(pSection, pKey, &value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid floating point number");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
 
 			return false;
 		}
@@ -351,7 +351,7 @@ namespace detail
 		if (!parser.Read2Short(pSection, pKey, (short*)&value))
 		{
 			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid CellStruct");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid CellStruct");
 
 			return false;
 		}
@@ -365,7 +365,7 @@ namespace detail
 		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid Point2D");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Point2D");
 
 			return false;
 		}
@@ -379,7 +379,7 @@ namespace detail
 		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid Point3D");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Point3D");
 
 			return false;
 		}
@@ -393,7 +393,7 @@ namespace detail
 		if (!parser.Read4Integers(pSection, pKey, (int*)&value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid RectangleStruct");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid RectangleStruct");
 
 			return false;
 		}
@@ -407,7 +407,7 @@ namespace detail
 		if (!parser.Read2Bytes(pSection, pKey, (BYTE*)&value))
 		{
 			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a valid 3 BYTE Value");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 BYTE Value");
 
 			return false;
 		}

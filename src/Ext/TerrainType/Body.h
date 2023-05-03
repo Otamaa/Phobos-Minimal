@@ -18,8 +18,8 @@ public:
 		Valueable<PaletteManager*> CustomPalette; //CustomPalette::PaletteMode::Temperate
 		Valueable<int> SpawnsTiberium_Type;
 		Valueable<int> SpawnsTiberium_Range;
-		Valueable<Point2D> SpawnsTiberium_GrowthStage;
-		Valueable<Point2D> SpawnsTiberium_CellsPerAnim;
+		Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
+		Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
 		Nullable<AnimTypeClass*> DestroyAnim;
 		NullableIdx<VocClass> DestroySound;
 		Nullable<ColorStruct> MinimapColor;

@@ -217,7 +217,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 			{
 				const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->DeathUnitFacing.has_value())
 					? pExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
-					? ScenarioClass::Instance->Random.RandomRangedSpecific<unsigned short>(0, 255) : pTypeExt->CreateUnit_Facing.Get();
+					? ScenarioClass::Instance->Random.RandomRangedSpecific<short>(0, 255) : (short)pTypeExt->CreateUnit_Facing.Get();
 
 				if (pCell)
 					pTechno->OnBridge = pCell->ContainsBridge();
@@ -230,12 +230,12 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 					if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
 					{
 						++Unsorted::IKnowWhatImDoing;
-						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
+						success = pTechno->Unlimbo(location, DirType(resultingFacing));
 						--Unsorted::IKnowWhatImDoing;
 					}
 					else
 					{
-						success = pTechno->Unlimbo(location, static_cast<DirType>(resultingFacing));
+						success = pTechno->Unlimbo(location, DirType(resultingFacing));
 					}
 				}
 

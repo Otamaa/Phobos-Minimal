@@ -114,14 +114,12 @@ public:
 	static bool TryParse(const char* pValue, OutType* outValue) {
 		OutType buffer[Count] = {};
 
-		if (Parse(pValue, buffer) != Count) {
+		if (Parse(pValue, &buffer) != Count) {
 			return false;
 		}
 
-		if (outValue) {
-			for (size_t i = 0; i < Count; ++i) {
-				outValue[i] = buffer[i];
-			}
+		for (size_t i = 0; i < Count; ++i) {
+			outValue[i] = buffer[i];
 		}
 
 		return true;

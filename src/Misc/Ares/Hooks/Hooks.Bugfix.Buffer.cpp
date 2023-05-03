@@ -338,7 +338,7 @@ DEFINE_OVERRIDE_HOOK(0x66F34B, Buf_RepairBay, 5)
 DEFINE_OVERRIDE_SKIP_HOOK(0x66DD13, Buf_WeatherArt, 6, 66DF19)
 DEFINE_OVERRIDE_SKIP_HOOK(0x66DB93, Buf_BridgeExplosions, 6, 66DC96)
 
-DEFINE_OVERRIDE_HOOK(0x511D16, Buf_CountryVeteran, 9)
+DEFINE_OVERRIDE_HOOK(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 {
 	GET(HouseTypeClass*, pHouseType, EBX);
 	GET(CCINIClass*, pINI, ESI);

@@ -807,13 +807,12 @@ CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& 
 
 	if (isOnTurret)
 	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-		if (pTypeExt->TurretOffset.isset()) {
-			turretOffset = pTypeExt->TurretOffset;
-		} else {
-			turretOffset.X = pType->TurretOffset;
-		}
+		const auto& nTurretOffset = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
+		turretOffset.X = nTurretOffset.X;
+		turretOffset.Y = nTurretOffset.Y;
+		turretOffset.Z = nTurretOffset.Z;
 	}
+
 	return GetFLHAbsoluteCoords(pTechno, flh, isOnTurret, flipY, turretOffset, nextFrame);
 }
 

@@ -5604,3 +5604,26 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 
 	return ptr ? 0x0 : 0x722604;
 }
+
+//skip vanilla TurretOffset read
+DEFINE_JUMP(LJMP,0x715876, 0x71589A);
+
+DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
+
+	enum { AdvanceLoop = 0x508FF6, Continue = 0x508F91 };
+
+	GET(BuildingClass const*, pBuilding, ECX);
+
+	if (!pBuilding->Type->SpySat)
+	{
+		for (const auto& pUpGrade : pBuilding->Upgrades)
+		{
+			if (pUpGrade && pUpGrade->SpySat)
+				return Continue;
+		}
+
+		return AdvanceLoop;
+	}
+
+	return Continue;
+}

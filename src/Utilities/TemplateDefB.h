@@ -36,7 +36,7 @@ namespace detail
 					}
 				}
 
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color ");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color");
 				return false;
 			}
 		}
@@ -57,7 +57,7 @@ namespace detail
 			}
 
 			if (!INIClass::IsBlank(parser.value())) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace detail
 			}
 
 			if (!INIClass::IsBlank(parser.value())) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a target zone scan type");
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
 			}		
 		}
 
@@ -166,15 +166,15 @@ namespace detail
 	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey , &nBuffer) && nBuffer >= 0 && nBuffer < 8)
+		if (parser.ReadInteger(pSection, pKey , &nBuffer) && nBuffer >= 0 && nBuffer <= 8)
 		{
 			value = (DirType8)nBuffer;
 			return true;
 		}
 		else
 		{
-			if(strlen(parser.value()))
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a facing between 0 and 8");
+			if(!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 8");
 		}
 
 		return false;
@@ -184,18 +184,119 @@ namespace detail
 	inline bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer < 32)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 32)
 		{
 			value = (DirType32)nBuffer;
 			return true;
 		}
 		else
 		{
-			if (strlen(parser.value()))
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "[Phobos] Expected a facing between 0 and 32");
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 32");
 		}
 
 		return false;
+	}
+
+	template <>
+	inline bool read<DirType>(DirType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		int nBuffer = -1;
+		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 255)
+		{
+			value = (DirType)nBuffer;
+			return true;
+		}
+		else
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 255");
+		}
+
+		return false;
+	}
+
+	template<typename T, bool Alloc = false>
+	inline void ParseVector(CCINIClass* pINI, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	{
+		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+		using baseType = std::remove_pointer_t<T>;
+
+		if (!pINI->GetSection(pSection))
+			return;
+
+		const auto nKeyCount = pINI->GetKeyCount(pSection);
+
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			char* context = nullptr;
+			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), Phobos::readDefval, Phobos::readBuffer))
+				continue;
+
+			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+				cur; cur = strtok_s(nullptr, Delims, &context))
+			{
+				const auto res = CRT::strtrim(cur);
+
+				T buffer = nullptr;
+				if constexpr (!Alloc)
+					buffer = baseType::Find(res);
+				else
+					buffer = baseType::FindOrAllocate(res);
+
+				if (buffer)
+				{
+					nVecDest[i].push_back(buffer);
+
+					if (bVerbose)
+						Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), res);
+				}
+				else
+				{
+					if (bDebug)
+					{
+						Debug::Log("ParseVector DEBUG: [%s][%d]: Error parsing [%s]\n", pSection, nVecDest.size(), res);
+					}
+				}
+			}
+		}
+	}
+
+	inline void ParseVector(CCINIClass* pINI, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
+	{
+		if (!pINI->GetSection(pSection))
+			return;
+
+		const auto nKeyCount = pINI->GetKeyCount(pSection);
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			char* context = nullptr;
+			if (!pINI->ReadString(pSection, pINI->GetKeyName(pSection, i), Phobos::readDefval, Phobos::readBuffer))
+				continue;
+
+			for (char* cur = strtok_s(Phobos::readBuffer, Delims, &context);
+				cur;
+				cur = strtok_s(nullptr, Delims, &context))
+			{
+				const auto res = CRT::strtrim(cur);
+
+				if(res && res[0] && strlen(res))
+					nVecDest[i].push_back(res);
+
+				if (bVerbose)
+					Debug::Log("ParseVector DEBUG: [%s][%d]: Verose parsing [%s]\n", pSection, nVecDest.size(), cur);
+			}
+		}
 	}
 
 }

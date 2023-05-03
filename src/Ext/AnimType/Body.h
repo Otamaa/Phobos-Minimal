@@ -21,7 +21,7 @@ public:
 	public:
 		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<UnitTypeClass*> CreateUnit;
-		Valueable<unsigned short> CreateUnit_Facing;
+		Valueable<DirType> CreateUnit_Facing;
 		Valueable<bool> CreateUnit_InheritDeathFacings;
 		Valueable<bool> CreateUnit_InheritTurretFacings;
 		Valueable<bool> CreateUnit_RemapAnim;
@@ -85,7 +85,7 @@ public:
 		ExtData(AnimTypeClass* OwnerObject) : Extension<AnimTypeClass>(OwnerObject)
 			, Palette { }
 			, CreateUnit { }
-			, CreateUnit_Facing { 0 }
+			, CreateUnit_Facing { DirType::North }
 			, CreateUnit_InheritDeathFacings { false }
 			, CreateUnit_InheritTurretFacings { false }
 			, CreateUnit_RemapAnim { false }

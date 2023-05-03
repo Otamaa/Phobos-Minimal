@@ -284,31 +284,27 @@ DEFINE_HOOK(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 {
 	GET(BuildingClass*, pBuilding, ESI);
-	GET(FootClass*, pFoot, EDI);
+	GET(TechnoClass*, pTechno, EDI);
 
-	if (pBuilding && pBuilding->Type->Cloning && pFoot)
+	if (pBuilding && pBuilding->Type->Cloning && pTechno)
 	{
-		if (Is_Unit(pFoot)) {
+		const auto pClonedType = pTechno->GetTechnoType();
+		if (Is_Unit(pTechno)) {
 
-			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pFoot->GetTechnoType());
+			auto const pFootTypeExt = TechnoTypeExt::ExtMap.Find(pClonedType);
 
 			if (pFootTypeExt->Unit_AI_AlternateType.isset() && pFootTypeExt->Unit_AI_AlternateType.Get() != pFootTypeExt->Get())
-				if (!AresData::ConvertTypeTo(pFoot, pFootTypeExt->Unit_AI_AlternateType))
+				if (!AresData::ConvertTypeTo(static_cast<FootClass*>(pTechno), pFootTypeExt->Unit_AI_AlternateType))
 					Debug::Log("Unit AI AlternateType Conversion failed ! \n");
 		}
 
-		if (auto const pTypeUnit = pFoot->GetTechnoType())
+		const auto& nStr =  TechnoTypeExt::ExtMap.Find(pBuilding->Type)->InitialStrength_Cloning;
+		if (nStr.isset())
 		{
-			auto const& ranges = TechnoTypeExt::ExtMap.Find(pBuilding->GetTechnoType())->InitialStrength_Cloning.Get();
-
-			if (ranges.X || ranges.Y)
-			{
-				const double percentage = ranges.X >= ranges.Y ? ranges.X :
-					static_cast<double>(ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(ranges.X * 100), static_cast<int>(ranges.Y * 100)) / 100.0);
-				const int strength = std::clamp(static_cast<int>(pTypeUnit->Strength * percentage), 1, pTypeUnit->Strength);
-				pFoot->Health = strength;
-				pFoot->EstimatedHealth = strength;
-			}
+			const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr.Get());
+			const int strength = std::clamp(static_cast<int>(pClonedType->Strength * rStr), 1, pClonedType->Strength);
+			pTechno->Health = strength;
+			pTechno->EstimatedHealth = strength;
 		}
 	}
 

@@ -64,8 +64,9 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 		this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
 	}
 
-	this->Promote_Elite_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
-	this->Promote_Vet_Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
+	this->Promote_Elite_Eva = nPromotedEva;
+	this->Promote_Vet_Eva = nPromotedEva;
 	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 }
 
@@ -109,29 +110,6 @@ VoxelStruct* TechnoTypeExt::GetTurretVoxelData(TechnoTypeClass* const pThis, siz
 	return &TechnoTypeExt::ExtMap.Find(pThis)->TurretImageData
 		[nAdditional];
 }
-
-//void TechnoTypeExt::ExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
-//{
-//	auto const pOffs = this->TurretOffset.GetEx();
-//	float x = static_cast<float>(pOffs->X * factor);
-//	float y = static_cast<float>(pOffs->Y * factor);
-//	float z = static_cast<float>(pOffs->Z * factor);
-//
-//	mtx->Translate(x, y, z);
-//}
-//
-//void TechnoTypeExt::ApplyTurretOffset(TechnoTypeClass* pType, Matrix3D* mtx, double factor)
-//{
-//	if (const auto ext = TechnoTypeExt::ExtMap.Find(pType)) {
-//
-//		auto const pOffs = ext->TurretOffset.GetEx();
-//		float x = static_cast<float>(pOffs->X * factor);
-//		float y = static_cast<float>(pOffs->Y * factor);
-//		float z = static_cast<float>(pOffs->Z * factor);
-//
-//		mtx->Translate(x, y, z);
-//	}
-//}
 
 // Ares 0.A source
 const char* TechnoTypeExt::ExtData::GetSelectionGroupID() const
@@ -867,20 +845,13 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	{
 		INI_EX exArtINI(pArtIni);
 
-		this->TurretOffset.Read(exArtINI, pArtSection, "TurretMultiOffsets");
-
-		if (!this->TurretOffset.isset()) {
-			Valueable<PartialVector3D<int>> nPart {};
-			nPart.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
-
-			if (nPart->ValueCount > 1 && nPart->ValueCount == 3) {
-				const CoordStruct nRes { nPart->X , nPart->Y , nPart->Z };
-				this->TurretOffset = nRes;
-				Debug::Log("TechnoType[%s] Using %s as replacement for vanilla tag ! \n"
-				, pArtSection, GameStrings::TurretOffset());
-			}
+		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
+		if (!this->TurretOffset.isset())
+		{
+			//put ddedfault single value inside
+			PartialVector3D<int> nRes { pThis->TurretOffset , 0 ,0 , 1};
+			this->TurretOffset = nRes;
 		}
-
 		char tempBuffer[0x40];
 		for (size_t i = 0; ; ++i)
 		{

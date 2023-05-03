@@ -544,7 +544,7 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 	if (pThis->OverloadDamageDelay <= 0)
 	{
 
-		auto const OverloadCount = pOwnerTypeExt->Overload_Count.GetElements(RulesClass::Instance->OverloadCount);
+		const auto OverloadCount = pOwnerTypeExt->Overload_Count.GetElements(RulesClass::Instance->OverloadCount);
 
 		if (OverloadCount.empty())
 			return;
@@ -560,11 +560,11 @@ void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 			}
 		}
 
-		auto const nOverloadfr = pOwnerTypeExt->Overload_Frames.GetElements(RulesClass::Instance->OverloadFrames);
-		pThis->OverloadDamageDelay = CaptureExt::FixIdx(nOverloadfr, nCurIdx);
+		const auto nOverloadfr = pOwnerTypeExt->Overload_Frames.GetElements(RulesClass::Instance->OverloadFrames);
+		pThis->OverloadDamageDelay = nOverloadfr.GetItemAtOrMax(nCurIdx);
 
-		auto const nOverloadDmg = pOwnerTypeExt->Overload_Damage.GetElements(RulesClass::Instance->OverloadDamage);
-		auto nDamage = CaptureExt::FixIdx(nOverloadDmg, nCurIdx);
+		const auto nOverloadDmg = pOwnerTypeExt->Overload_Damage.GetElements(RulesClass::Instance->OverloadDamage);
+		auto nDamage = nOverloadDmg.GetItemAtOrMax(nCurIdx);
 
 		if (nDamage <= 0)
 		{
@@ -1651,17 +1651,11 @@ CoordStruct TechnoExt::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruc
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		const auto & pOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-		if(pOffs.isset()){
-			float x = static_cast<float>(pOffs->X * 1.0);
-			float y = static_cast<float>(pOffs->Y * 1.0);
-			float z = static_cast<float>(pOffs->Z * 1.0);
+		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
+			float x = static_cast<float>(nOffs.X * 1.0);
+			float y = static_cast<float>(nOffs.Y * 1.0);
+			float z = static_cast<float>(nOffs.Z * 1.0);
 			mtx.Translate(x, y, z);
-		}
-		else
-		{
-			mtx.TranslateX((float)pType->TurretOffset);
-		}
 
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
@@ -2364,18 +2358,12 @@ void TechnoExt::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool is
 	// turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
-		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-		if(nOffs.isset()) {
-			float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-			float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
-			float z = static_cast<float>(nOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset.Get();
+		float x = static_cast<float>(nOffs.X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float y = static_cast<float>(nOffs.Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
+		float z = static_cast<float>(nOffs.Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 
-			mtx.Translate(x, y, z);
-		}
-		else
-		{
-			mtx.TranslateX((float)pType->TurretOffset);
-		}
+		mtx.Translate(x, y, z);
 
 		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
 		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);

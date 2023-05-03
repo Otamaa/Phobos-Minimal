@@ -47,13 +47,9 @@ DEFINE_HOOK(0x6F64A9, TechnoClass_DrawHealthBar_Hide, 0x5)
 DEFINE_HOOK(0x6F3C56, TechnoClass_Transform_6F3AD0_TurretMultiOffset, 0x5) //0
 {
 	GET(TechnoTypeClass*, pType, EDX);
+	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
 
 	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-
-	if(!nOffs.isset())
-		return 0x0;
-
-	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xD8, 0x90));
 
 	float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 	float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
@@ -68,12 +64,10 @@ DEFINE_HOOK(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 {
 
 	GET(TechnoTypeClass*, pType, EBP);
+	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xCC, 0x90));
+
 	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
 
-	if(!nOffs.isset())
-		return 0x0;
-
-	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xCC, 0x90));
 	float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 	float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetDefaultMult);
 	float z = static_cast<float>(nOffs->Z * TechnoTypeExt::TurretMultiOffsetDefaultMult);
@@ -89,24 +83,16 @@ DEFINE_HOOK(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 
 	const auto& nOffs = TechnoTypeExt::ExtMap.Find(technoType)->TurretOffset;
 
-	if(!nOffs.isset())
-		return 0x0;
-
-	return nOffs.Get() == CoordStruct::Empty ?
+	return nOffs.Get() == Vector3D<int>::Empty ?
 		0x73B78A : 0x73B790;
 }
 
 DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 {
 	GET(TechnoTypeClass*, pType, EBX);
-
-	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-
-	if(!nOffs.isset())
-		return 0x0;
-
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0x1D0, 0x13C));
 
+	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
 	const double& factor = *reinterpret_cast<double*>(0xB1D008);
 
 	float x = static_cast<float>(nOffs->X * factor);
@@ -121,12 +107,9 @@ DEFINE_HOOK(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
 DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 {
 	GET(TechnoTypeClass*, pType, EAX);
-	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-
-	if(!nOffs.isset())
-		return 0x0;
-
 	LEA_STACK(Matrix3D*, mtx, 0x80);
+
+	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
 
 	float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
 	float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
@@ -140,12 +123,9 @@ DEFINE_HOOK(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 DEFINE_HOOK(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 {
 	GET(TechnoTypeClass*, pType, EDX);
-	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
-
-	if(!nOffs.isset())
-		return 0x0;
-
 	LEA_STACK(Matrix3D*, mtx, 0x60);
+
+	const auto& nOffs = TechnoTypeExt::ExtMap.Find(pType)->TurretOffset;
 
 	float x = static_cast<float>(nOffs->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
 	float y = static_cast<float>(nOffs->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
@@ -194,29 +174,12 @@ DEFINE_HOOK(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 
 		if (idxArray != -1)
 		{
-			AnimTypeClass* pAnimType = nullptr;
-			int nFramesPerFacing = 15;
+			const auto nFramesPerFacing = pData->OreGathering_FramesPerDir.GetItemAtOrDefault(idxArray , 15);
 
-			if (!pData->OreGathering_Anims.empty())
-			{
-				if (idxArray < pData->OreGathering_Anims.size())
-					pAnimType = pData->OreGathering_Anims[idxArray];
-				else
-					pAnimType = pData->OreGathering_Anims[pData->OreGathering_Anims.size()];
-			}
-
-			if (!pData->OreGathering_FramesPerDir.empty())
-			{
-				if (idxArray < pData->OreGathering_FramesPerDir.size())
-					nFramesPerFacing = pData->OreGathering_FramesPerDir[idxArray];
-				else
-					nFramesPerFacing = pData->OreGathering_FramesPerDir[pData->OreGathering_FramesPerDir.size()];
-			}
-
-			if (pAnimType)
+			if (auto pAnimType = pData->OreGathering_Anims.GetItemAtOrMax(idxArray))
 			{
 				pSHP = pAnimType->GetImage();
-				if (auto const pPalette = AnimTypeExt::ExtMap.Find(pAnimType)->Palette)
+				if (const auto pPalette = AnimTypeExt::ExtMap.Find(pAnimType)->Palette)
 					pDrawer = pPalette->GetConvert<PaletteManager::Mode::Temperate>();
 			}
 

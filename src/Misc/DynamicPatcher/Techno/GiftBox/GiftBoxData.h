@@ -22,7 +22,7 @@ public:
 	Valueable<bool> EmptyCell { false };
 	Valueable<bool> RandomType { false };
 	Valueable<bool> OpenWhenDestoryed { false };
-	Nullable<Point2D> RandomDelay { };
+	Nullable<PartialVector2D<int>> RandomDelay { };
 	Nullable<double> OpenWhenHealthPercent { };
 
 	Valueable<bool> CheckPathfind { false };

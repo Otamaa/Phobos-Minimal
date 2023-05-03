@@ -68,6 +68,37 @@ public:
 		return &this->items[count];
 	}
 
+	bool ValidIndex(int index) const {
+		return static_cast<size_t>(index) < this->size();
+	}
+
+	T GetItemAt(int nIdx) const
+	{
+		if(!this->valid() || !this->ValidIndex(nIdx))
+			return T();
+
+		return *(this->begin() + nIdx);
+	}
+
+	T GetItemAtOrMax(int nIdx) const
+	{
+		if (!this->valid())
+			return T();
+
+		if (!this->ValidIndex(nIdx))
+			nIdx = this->size();
+
+		return *(this->begin() + nIdx);
+	}
+
+	T GetItemAtOrDefault(int nIdx, const T& other) const
+	{
+		if (!this->valid() || !this->ValidIndex(nIdx))
+			return other;
+
+		return *(this->begin() + nIdx);
+	}
+
 	bool valid() const {
 		return items != nullptr;
 	}

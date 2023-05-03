@@ -456,13 +456,54 @@ public:
 		return -1;
 	}
 
+	bool ValidIndex(int index) const {
+		return static_cast<size_t>(index) < this->size();
+	}
+
+	T GetItemAt(int nIdx) const {
+
+		if (!this->ValidIndex(nIdx))
+			return T();
+
+		return *(this->begin() + nIdx);
+	}
+
+	T GetItemAtOrMax(int nIdx) const
+	{
+		if (!this->ValidIndex(nIdx))
+			nIdx = this->size();
+
+		return *(this->begin() + nIdx);
+	}
+
+	T GetItemAtOrDefault(int nIdx , const T& other) const
+	{
+		if (!this->ValidIndex(nIdx))
+			return other;
+
+		return *(this->begin() + nIdx);
+	}
+
+	void Remove(int nIdx)
+	{
+		if (!this->ValidIndex(nIdx))
+			return;
+
+		const auto It = this->cbegin() + nIdx;
+
+		if (It == this->cend())
+			return;
+
+		this->erase(It);
+	}
+
 	void PushbackUnique(const T& other) const
 	{
 		if (this->Contains(other)) return;
 		else { this->push_back(other); }
 	}
 
-	void EmpalacebackkUnique(const T& other) const
+	void EmpalacebackUnique(const T& other) const
 	{
 		if (this->Contains(other)) return;
 		else { this->empalace_back(other); }
