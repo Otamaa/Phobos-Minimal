@@ -157,6 +157,10 @@ public:
 		Valueable<bool> TeamRetaliate;
 		Valueable<double> AI_CostMult;
 
+		Valueable<double> DeactivateDim_Powered;
+		Valueable<double> DeactivateDim_EMP;
+		Valueable<double> DeactivateDim_Operator;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -274,6 +278,9 @@ public:
 			, BerserkROFMultiplier { 0.5 }
 			, TeamRetaliate { false }
 			, AI_CostMult { 1.0 }
+			, DeactivateDim_Powered { 0.5 }
+			, DeactivateDim_EMP { 0.8 }
+			, DeactivateDim_Operator { 0.65 }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

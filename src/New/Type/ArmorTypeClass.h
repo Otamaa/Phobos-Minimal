@@ -10,7 +10,7 @@ public:
 
 	int DefaultTo;
 	FixedString<0x40> DefaultString;
-	VersesData DefaultVerses;
+	VersesData DefaultVersesValue;
 
 	FixedString<0x50> BaseTag;
 	FixedString<0x50> FF_Tag;
@@ -29,6 +29,7 @@ public:
 	static bool IsDefault(const char* pName);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 	static void LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
+	static void PrepareForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
 
 	void EvaluateDefault();
 

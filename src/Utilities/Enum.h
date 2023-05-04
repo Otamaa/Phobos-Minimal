@@ -34,6 +34,11 @@
 
 #include <GeneralDefinitions.h>
 
+enum class SpotlightAttachment
+{
+	Body, Turret, Barrel
+};
+
 enum class SuperWeaponTarget : unsigned char
 {
 	None = 0x0,
@@ -158,6 +163,7 @@ enum class PhobosAbilityType : int
 	PoisonImmune = 9,
 	PsionicsWeaponImmune = 10,
 	BerzerkImmune = 11,
+	AbductorImmune = 12,
 
 	count
 };

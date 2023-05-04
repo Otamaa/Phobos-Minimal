@@ -157,6 +157,17 @@ bool TechnoExt::IsBerserkImmune(TechnoClass* pThis)
 	return HasAbility(pThis , PhobosAbilityType::BerzerkImmune);
 }
 
+bool TechnoExt::IsAbductorImmune(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->ImmuneToAbduction)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::AbductorImmune);;
+}
+
 bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
 {
 	const bool IsVet = pThis->Veterancy.IsVeteran();
@@ -3070,12 +3081,12 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
 {
 	// this whole thing does not at all account for cells which are completely occupied.
-	const auto tmpCoords = CellSpread::GetCell(ScenarioClass::Instance->Random.RandomFromMax(7));
+	const auto tmpCoords = CellSpread::AdjacentCell[ScenarioClass::Instance->Random.RandomFromMax(7)];
 
 	current.X += tmpCoords.X * distance;
 	current.Y += tmpCoords.Y * distance;
 
-	auto tmpCell = MapClass::Instance->GetCellAt(current);
+	const auto tmpCell = MapClass::Instance->TryGetCellAt(current);
 	auto target = tmpCell->FindInfantrySubposition(current, false, false, false);
 
 	target.Z = current.Z;
@@ -3086,8 +3097,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 {
 	CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
 
-	if (!pCell)
-	{
+	if (!pCell) {
 		return false;
 	}
 
@@ -3136,8 +3146,7 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	Survivor->ShouldEnterOccupiable = false;
 	Survivor->ShouldGarrisonStructure = false;
 
-	if (Select)
-	{
+	if (Select) {
 		Survivor->Select();
 	}
 

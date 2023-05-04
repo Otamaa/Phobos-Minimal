@@ -8,6 +8,7 @@
 #include <Utilities/TemplateDef.h>
 
 #include <New/Type/RadTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
@@ -40,7 +41,12 @@ public:
 		Nullable<WeaponTypeClass*> FeedbackWeapon;
 		Valueable<bool> Laser_IsSingleColor;
 		Valueable<double> Trajectory_Speed;
+
 		Valueable<bool> Abductor;
+		Valueable<AnimTypeClass*> Abductor_AnimType;
+		Valueable <bool> Abductor_ChangeOwner;
+		Valueable<double> Abductor_AbductBelowPercent;
+
 		Nullable<AnimTypeClass*>DelayedFire_Anim;
 		Valueable<int> DelayedFire_Anim_LoopCount;
 		Valueable<bool> DelayedFire_Anim_UseFLH;
@@ -107,7 +113,8 @@ public:
 		//
 		Nullable<bool> ApplyDamage; // whether Damage should be applied even if IsSonic=yes or UseFireParticles=yes
 
-
+		ValueableIdx<CursorTypeClass> Cursor_Attack;
+		ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange;
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
@@ -126,6 +133,9 @@ public:
 			, Laser_IsSingleColor { false }
 			, Trajectory_Speed { 100.0 }
 			, Abductor { false }
+			, Abductor_AnimType { nullptr }
+			, Abductor_ChangeOwner { false }
+			, Abductor_AbductBelowPercent { 1 }
 			, DelayedFire_Anim { }
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_Anim_UseFLH { true }
@@ -179,6 +189,9 @@ public:
 			, Ivan_CanDetonateDeathBomb { }
 			, Ivan_DetonateOnSell { false }
 			, ApplyDamage { }
+			, Cursor_Attack { (int)MouseCursorType::Attack }
+			, Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange }
+		
 		{ }
 
 		virtual ~ExtData() override  = default;

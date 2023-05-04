@@ -8,6 +8,7 @@
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
 
 #include <Ext/LineTrail/Body.h>
 
@@ -635,6 +636,23 @@ public:
 		Valueable<bool> CloakAllowed;
 		Valueable<bool> AlternateTheaterArt;
 
+		Valueable<bool> HijackerOneTime;
+		Valueable<int> HijackerKillPilots;
+
+		ValueableIdx<VocClass> HijackerEnterSound;
+		ValueableIdx<VocClass> HijackerLeaveSound;
+
+		Promotable<int> Survivors_PilotChance;
+
+		ValueableIdx<CursorTypeClass*> Cursor_Deploy;
+		ValueableIdx<CursorTypeClass*> Cursor_NoDeploy;
+		ValueableIdx<CursorTypeClass*> Cursor_Enter;
+		ValueableIdx<CursorTypeClass*> Cursor_NoEnter;
+		ValueableIdx<CursorTypeClass*> Cursor_Move;
+		ValueableIdx<CursorTypeClass*> Cursor_NoMove;
+
+		Valueable<bool> ImmuneToAbduction; //680, 1362
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
 			, HealthBar_Hide { false }
@@ -1103,6 +1121,20 @@ public:
 			, SelfHealing_CombatDelay {0}
 			, CloakAllowed { true }
 			, AlternateTheaterArt { false }
+			, HijackerOneTime { false }
+			, HijackerKillPilots { 0 }
+			, HijackerEnterSound { -1 }
+			, HijackerLeaveSound { -1 }
+			, Survivors_PilotChance { -1 }
+
+			, Cursor_Deploy {  (int)MouseCursorType::Deploy }
+			, Cursor_NoDeploy { (int)MouseCursorType::NoDeploy }
+			, Cursor_Enter { (int)MouseCursorType::Enter }
+			, Cursor_NoEnter { (int)MouseCursorType::NoEnter }
+			, Cursor_Move { (int)MouseCursorType::Move }
+			, Cursor_NoMove { (int)MouseCursorType::NoMove }
+
+			, ImmuneToAbduction { false }
 		{ }
 
 		virtual ~ExtData() override = default;

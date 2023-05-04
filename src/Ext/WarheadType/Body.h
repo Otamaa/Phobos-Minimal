@@ -8,6 +8,8 @@
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Entity/LauchSWData.h>
 
+#include <New/Type/ArmorTypeClass.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
@@ -496,7 +498,7 @@ public:
 #endif
 
 		{	
-			Verses.resize(Unsorted::ArmorNameArray.c_size());
+			Verses.resize(ArmorTypeClass::Array.size());
 		}
 
 		void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);

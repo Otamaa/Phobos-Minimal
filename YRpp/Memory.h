@@ -286,6 +286,13 @@ static inline void DLLDeleteArray(T* ptr, size_t capacity) {
 	Memory::DeleteArray(alloc, ptr, capacity);
 }
 
+template<bool check = true, typename T>
+static inline void DLLCallDTOR(T* ptr)
+{
+	std::allocator<T> alloc;
+	Memory::Delete<true>(std::bool_constant<check>::type(), alloc, ptr);
+}
+
 enum class DeleterType : int
 {
 	DllDeleter = 0,
@@ -330,6 +337,6 @@ struct DLLDTORCaller
 
 	template <typename T>
 	void operator ()(T* ptr) noexcept {
-		DLLDelete(ptr);
+		DLLCallDTOR(ptr);
 	}
 };

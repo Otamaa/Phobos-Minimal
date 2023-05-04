@@ -154,6 +154,10 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
 	this->AI_CostMult.Read(exINI, GENERAL_SECTION, "AICostMult");
 
+	this->DeactivateDim_Powered.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimPowered");
+	this->DeactivateDim_EMP.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimEMP");
+	this->DeactivateDim_Operator.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimOperator");
+	
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), "SpecialWeapons", "NukeWarhead");
@@ -564,6 +568,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
 		.Process(this->AI_CostMult)
+
+		.Process(this->DeactivateDim_Powered)
+		.Process(this->DeactivateDim_EMP)
+		.Process(this->DeactivateDim_Operator)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

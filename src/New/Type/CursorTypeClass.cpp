@@ -30,8 +30,11 @@ std::array<const char* const, (size_t)MouseCursorType::count> CursorTypeClass::M
 std::array<const char*, (size_t)NewMouseCursorType::count> CursorTypeClass::NewMouseCursorTypeToStrings
 {
 {
+		//86       //87					//88
 	{ "Tote" }, { "EngineerDamage" }, { "TogglePower" },
+	   //89					//90				//91
 	{ "NoTogglePower" }, { "InfantryHeal" }, { "UnitRepair" },
+	   //92					//93				//94
 	{ "TakeVehicle" }, { "Sabotage" }, { "RepairTrench" },
 }
 };

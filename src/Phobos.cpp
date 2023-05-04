@@ -99,7 +99,7 @@ const wchar_t* Phobos::VersionDescription = L"Phobos Unstable build (" _STR(BUIL
 #elif defined(COMPILE_PORTED_DP_FEATURES)
 const wchar_t* Phobos::VersionDescription = L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping.";
 #else
-const wchar_t* Phobos::VersionDescription = L"Beta version #" _STR(BUILD_NUMBER) L".provided by Otamaa" ;
+const wchar_t* Phobos::VersionDescription = L"Beta version #" _STR(BUILD_NUMBER) L".provided by Otamaa";
 #endif
 
 bool Phobos::UI::DisableEmptySpawnPositions = false;
@@ -180,7 +180,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	{
 		const auto pArg = ppArgs[i];
 
-		if (_stricmp(pArg, "-Icon") == 0) {
+		if (_stricmp(pArg, "-Icon") == 0)
+		{
 			Phobos::AppIconPath = ppArgs[++i];
 		}
 
@@ -409,7 +410,7 @@ void Phobos::Config::Read()
 
 		if (pINI->ReadBool(GENERAL_SECTION, "SkirmishUnlimitedColors", false))
 		{
-			ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310, 
+			ALLOCATE_LOCAL_PATCH(SkirmishColorPatch, 0x69A310,
 				0x8B, 0x44, 0x24, 0x04, 0xD1, 0xE0, 0x40, 0xC2, 0x04, 0x00);
 		}
 
@@ -455,7 +456,7 @@ void InitAdminDebugMode()
 			Phobos::EnableConsole = true;
 #endif
 
-#ifdef DETACH_DEBUGGER
+#ifndef DETACH_DEBUGGER
 			if (Phobos::DetachFromDebugger())
 			{
 				MessageBoxW(NULL,
@@ -504,8 +505,9 @@ bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* p
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
-	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (Patch::GetModuleBaseAddress("PatcherLoader.dll")) {
+#ifdef COMPILE_PORTED_DP_FEATURES
+	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
+	{
 		MessageBoxW(NULL,
 		L"This version of phobos is not suppose to be run with DP.\n\n"
 		L"Press OK to Closing the game .",
@@ -514,7 +516,7 @@ void Phobos::ExeRun()
 		Phobos::ExeTerminate();
 		exit(0);
 	}
-	#endif
+#endif
 
 	if (!AresData::Init())
 	{
@@ -560,7 +562,8 @@ bool Phobos::DetachFromDebugger()
 	HMODULE hModule = LoadLibraryA("ntdll.dll");
 	DWORD ret = false;
 
-	if (hModule != NULL) {
+	if (hModule != NULL)
+	{
 
 		auto const NtRemoveProcessDebug =
 			(NTSTATUS(__stdcall*)(HANDLE, HANDLE))GetProcAddress(hModule, "NtRemoveProcessDebug");
@@ -574,17 +577,21 @@ bool Phobos::DetachFromDebugger()
 		HANDLE hDebug {};
 		HANDLE hCurrentProcess = GetCurrentProcess();
 		NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
-		if (0 <= status) {
+		if (0 <= status)
+		{
 			ULONG killProcessOnExit = FALSE;
 			status = NtSetInformationDebugObject(
-				hDebug, 1, &killProcessOnExit, sizeof(ULONG),  NULL );
+				hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
 
-			if (0 <= status) {
+			if (0 <= status)
+			{
 				const auto pid = Patch::GetDebuggerProcessId(GetProcessId(hCurrentProcess));
 				status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
-				if (0 <= status) {
+				if (0 <= status)
+				{
 					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-					if (hDbgProcess != NULL) {
+					if (hDbgProcess != NULL)
+					{
 						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
 						CloseHandle(hDbgProcess);
 					}
@@ -594,7 +601,7 @@ bool Phobos::DetachFromDebugger()
 			NtClose(hDebug);
 		}
 
-		if(hCurrentProcess !=NULL)
+		if (hCurrentProcess != NULL)
 			CloseHandle(hCurrentProcess);
 
 		FreeLibrary(hModule);
@@ -765,7 +772,8 @@ SYRINGE_HANDSHAKE(pInfo)
 #pragma region hooks
 
 //DEFINE_JUMP(LJMP, 0x7CD8EA, GET_OFFSET(_ExeTerminate));
-DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5) {
+DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5)
+{
 	Phobos::ExeTerminate();
 	return 0x0;
 }
@@ -819,7 +827,7 @@ static DWORD Phobos_EndProgHandle_add()
 	return DeInt_72AC40();
 }
 
-DEFINE_JUMP(CALL,0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
+DEFINE_JUMP(CALL, 0x6BE118, GET_OFFSET(Phobos_EndProgHandle_add));
 #endif
 
 DEFINE_HOOK(0x4F4583, GScreenClass_DrawText, 0x6)

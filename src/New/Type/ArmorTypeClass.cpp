@@ -10,14 +10,14 @@
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
 
 ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeClass>(pTitle)
-	, DefaultTo { -1 }
-	, DefaultString { }
-	, DefaultVerses { }
-	, BaseTag {}
-	, FF_Tag {}
-	, RT_Tag {}
-	, PA_Tag {}
-	, HitAnim_Tag {}
+, DefaultTo { -1 }
+, DefaultString { }
+, DefaultVersesValue { }
+, BaseTag {}
+, FF_Tag {}
+, RT_Tag {}
+, PA_Tag {}
+, HitAnim_Tag {}
 {
 	char buffer[0x100];
 	IMPL_SNPRNINTF(buffer, sizeof(buffer), "Versus.%s", pTitle);
@@ -72,7 +72,8 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		char buffer[0x64];
 		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, "", buffer);
 
-		if (!this->DefaultVerses.Parse(buffer)) {
+		if (!this->DefaultVersesValue.Parse(buffer))
+		{
 			this->DefaultString = buffer;
 		}
 	}
@@ -80,14 +81,24 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 void ArmorTypeClass::EvaluateDefault()
 {
-	if (IsDefault(Name.data()))
+	if (IsDefault(this->Name.data()))
 		return;
 
-	if (!strlen(DefaultString.data()))
+	if (!strlen(this->DefaultString.data()))
 		return;
 
-	if (DefaultTo == -1) {
-		DefaultTo = FindIndexById(DefaultString.data());	}
+	if (DefaultTo == -1)
+	{
+		const auto pArmor = Find(this->DefaultString.data());
+
+		if (this->ArrayIndex < pArmor->ArrayIndex)
+			Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] which had higher array index from itself !\n",
+			this->ArrayIndex, this->Name.data(),
+			pArmor->ArrayIndex, pArmor->Name.data());
+
+
+		DefaultTo = pArmor->ArrayIndex;
+	}
 }
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
@@ -120,44 +131,53 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	}
 }
 
+void ReEvalueate(CCINIClass* pINI, WarheadTypeClass* pWH)
+{
+}
+
 void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 {
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 
-	if (!pWHExt) {
-		return;
-	}
-
-	if (pWHExt->Verses.size() < Array.size())
+	if (!pWHExt)
 	{
-		pWHExt->Verses.reserve(Array.size());
-
-		while (pWHExt->Verses.size() < Array.size())
-		{
-			auto pArmor = Array[pWHExt->Verses.size()].get();
-			const int nDefaultIdx = pArmor->DefaultTo;
-			pWHExt->Verses.push_back(
-				nDefaultIdx == -1
-					? pArmor->DefaultVerses
-					: pWHExt->Verses[nDefaultIdx]
-			);
-		}
+		return;
 	}
 
 	char ret[0x64];
 	const char* section = pWH->get_ID();
 
-	for (size_t i = 0; i < Array.size(); ++i)
+	INI_EX exINI(pINI);
+
+	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
-		auto nVers = &pWHExt->Verses[i];
-		if (pINI->ReadString(section, Array[i]->BaseTag.data(), Phobos::readDefval, ret)) {
-			nVers->Parse_NoCheck(ret);
+		const auto& pArmor = ArmorTypeClass::Array[i];
+
+		if (pINI->ReadString(section, pArmor->BaseTag.data(), Phobos::readDefval, ret))
+		{
+			pWHExt->Verses[i].Parse_NoCheck(ret);
+		}
+		else if (pArmor->DefaultTo != -1)
+		{
+			const int nDefault = pArmor->DefaultTo;
+			if (i < nDefault)
+			{
+				Debug::Log("Warhead [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
+					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
+			}
+
+			pWHExt->Verses[i] = pWHExt->Verses[nDefault];
 		}
 
-		nVers->Flags.ForceFire = pINI->ReadBool(section, Array[i]->FF_Tag.data(), nVers->Flags.ForceFire);
-		nVers->Flags.Retaliate = pINI->ReadBool(section, Array[i]->RT_Tag.data(), nVers->Flags.Retaliate);
-		nVers->Flags.PassiveAcquire = pINI->ReadBool(section, Array[i]->PA_Tag.data(), nVers->Flags.PassiveAcquire);
+		pWHExt->Verses[i].Flags.ForceFire = pINI->ReadBool(section, pArmor->FF_Tag.data(), pWHExt->Verses[i].Flags.ForceFire);
+		pWHExt->Verses[i].Flags.Retaliate = pINI->ReadBool(section, pArmor->RT_Tag.data(), pWHExt->Verses[i].Flags.Retaliate);
+		pWHExt->Verses[i].Flags.PassiveAcquire = pINI->ReadBool(section, pArmor->PA_Tag.data(), pWHExt->Verses[i].Flags.PassiveAcquire);
 	}
+}
+
+void ArmorTypeClass::PrepareForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
+{
+
 }
 
 template <typename T>
@@ -166,7 +186,7 @@ void ArmorTypeClass::Serialize(T& Stm)
 	Stm
 		.Process(this->DefaultTo)
 		.Process(this->DefaultString)
-		.Process(this->DefaultVerses)
+		.Process(this->DefaultVersesValue)
 		.Process(this->BaseTag)
 		.Process(this->FF_Tag)
 		.Process(this->RT_Tag)

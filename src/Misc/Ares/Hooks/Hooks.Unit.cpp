@@ -696,7 +696,6 @@ DEFINE_OVERRIDE_HOOK(0x74689B, UnitClass_Init_Academy, 6)
 		return 0x0;
 
 	const auto pType = pThis->Type;
-	// TODO :  complete port of these
 	if (pType->Trainable && pType->Naval && Is_NavalYardSpied(pThis->Owner)) {
 		pThis->Veterancy.SetVeteran();
 	}
@@ -1070,6 +1069,11 @@ DEFINE_OVERRIDE_HOOK(0x739956, UnitClass_Deploy_TransferStatusses, 6)
 	GET(BuildingClass*, pStructure, EBX);
 
 	AresData::TechnoTransferAffects(pUnit, pStructure);
+
+	if (pUnit->AttachedTag)
+		pStructure->AttachTrigger(pUnit->AttachedTag);
+
+	TechnoExt::TransferMindControlOnDeploy(pUnit, pStructure);
 
 	return 0;
 }

@@ -831,6 +831,21 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 			//No code
 			this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
 
+			this->Survivors_PilotChance.Read(exINI, pSection, "Survivor.%sPilotChance");
+			this->HijackerOneTime.Read(exINI, pSection, "VehicleThief.OneTime");
+			this->HijackerKillPilots.Read(exINI, pSection, "VehicleThief.KillPilots");
+			this->HijackerEnterSound.Read(exINI, pSection, "VehicleThief.EnterSound");
+			this->HijackerLeaveSound.Read(exINI, pSection, "VehicleThief.LeaveSound");
+			this->Cursor_Deploy.Read(exINI, pSection, "Cursor.Deploy");
+			this->Cursor_NoDeploy.Read(exINI, pSection, "Cursor.NoDeploy");
+			this->Cursor_Enter.Read(exINI, pSection, "Cursor.Enter");
+			this->Cursor_NoEnter.Read(exINI, pSection, "Cursor.NoEnter");
+			this->Cursor_Move.Read(exINI, pSection, "Cursor.Move");
+			this->Cursor_NoMove.Read(exINI, pSection, "Cursor.NoMove");
+
+			// #680, 1362
+			this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -1536,6 +1551,22 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->CloakAllowed)
 		.Process(this->AlternateTheaterArt)
+
+		.Process(this->HijackerOneTime)
+		.Process(this->HijackerKillPilots)
+		.Process(this->HijackerEnterSound)
+		.Process(this->HijackerLeaveSound)
+		.Process(this->Survivors_PilotChance)
+
+		.Process(this->Cursor_Deploy)
+		.Process(this->Cursor_NoDeploy)
+		.Process(this->Cursor_Enter)
+		.Process(this->Cursor_NoEnter)
+		.Process(this->Cursor_Move)
+		.Process(this->Cursor_NoMove)
+
+		.Process(this->ImmuneToAbduction)
+
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

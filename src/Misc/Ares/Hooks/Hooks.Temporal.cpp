@@ -103,83 +103,278 @@
 //	return 0x7184CE;
 //}
 
-//TODO :
-// This fuckery need more than this 
-// need to port Bulletclass::Detonate stuffs 
-// otherwise it will cause some inconsistency
-//DEFINE_HOOK(71AAAC, TemporalClass_Update_Abductor, 6)
-//{
-//	GET(TemporalClass*, pThis, ESI);
-//
-//	const auto pOwner = pThis->Owner;
-//	const auto pTempExt = TemporalExt::ExtMap.Find(pThis);
-//	const auto pWeapon = pTempExt->GetWeapon();
-//
-//	return (WeaponTypeExt::ExtMap.Find(pWeapon)->conductAbduction(pOwner, pThis->Target))
-//		? 0x71AAD5 : 0x0;
-//}
+#include <Ext/House/Body.h>
+#include <SpawnManagerClass.h>
+#include <SlaveManagerClass.h>
 
-//TODO :
-// temporal per-slot
-// HAHA AE and Jammer stuffs go brrr
-//DEFINE_HOOK(71A84E, TemporalClass_UpdateA, 5)
-//{
-//	GET(TemporalClass* const, pThis, ESI);
-//
-//	// it's not guaranteed that there is a target
-//	if (auto const pTarget = pThis->Target)
-//	{
-//		auto const pExt = TechnoExt::ExtMap.Find(pTarget);
-//		// Temporal should disable RadarJammers
-//		pExt->RadarJam = nullptr;
-//
-//		//AttachEffect handling under Temporal
-//		if (!pExt->AttachEffects_NeedTo_RecreateAnims)
-//		{
-//			for (auto& Item : pExt->AttachedEffects)
-//			{
-//				if (Item.Type->TemporalHidesAnim)
-//				{
-//					Item.KillAnim();
-//				}
-//			}
-//			pExt->AttachEffects_NeedTo_RecreateAnims = true;
-//		}
-//	}
-//
-//	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-//
-//	R->EAX(pThis->WarpRemaining);
-//	return 0x71A88D;
-//}
+bool IsEligibleSize(TechnoClass* pThis, TechnoClass* pPassanger)
+{
+	auto pThisType = pThis->GetTechnoType();
+	auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThisType);
+	auto pThatType = pPassanger->GetTechnoType();
 
-// TODO :
-// Prism fuckery 
-//DEFINE_HOOK(71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
-//{
-//	GET(TechnoClass* const, pThis, EDI);
-//
-//	// bugfix #874 B: Temporal warheads affect Warpable=no units
-//	// it has been checked: this is warpable. free captured and destroy spawned units.
-//	if (pThis->SpawnManager)
-//	{
-//		pThis->SpawnManager->KillNodes();
-//	}
-//
-//	if (pThis->CaptureManager)
-//	{
-//		pThis->CaptureManager->FreeAll();
-//	}
-//
-//	// prism forward
-//	if (pThis->WhatAmI() == AbstractType::Building)
-//	{
-//		auto const pData = BuildingExt::ExtMap.Find(reinterpret_cast<BuildingClass*>(pThis));
-//		pData->PrismForwarding.RemoveFromNetwork(true);
-//	}
-//
-//	return 0;
-//}
+	if (pThatType->Size > pThisType->SizeLimit)
+		return false;
+
+	if (pThisTypeExt->Passengers_BySize.Get())
+	{
+		if (pThatType->Size > (pThisType->Passengers - pThis->Passengers.GetTotalSize()))
+			return false;
+	}
+	else if (pThis->Passengers.NumPassengers >= pThisType->Passengers)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void DetachSpecificSpawnee(TechnoClass* Spawnee, HouseClass* NewSpawneeOwner) {
+
+	// setting up the nodes. Funnily, nothing else from the manager is needed
+	const auto& SpawnNodes = Spawnee->SpawnOwner->SpawnManager->SpawnedNodes;
+
+	//find the specific spawnee in the node
+	for (auto SpawnNode : SpawnNodes) {
+
+		if (Spawnee == SpawnNode->Unit) {
+
+			SpawnNode->Unit = nullptr;
+			Spawnee->SpawnOwner = nullptr;
+
+			SpawnNode->Status = SpawnNodeStatus::Dead;
+
+			Spawnee->SetOwningHouse(NewSpawneeOwner);
+		}
+	}
+}
+
+void FreeSpecificSlave(TechnoClass* Slave, HouseClass* Affector) {
+
+	//If you're a slave, you're an InfantryClass. But since most functions use TechnoClasses and the check can be done in that level as well
+	//it's easier to set up the recasting in this function
+	//Anybody who writes 357, take note that SlaveManager uses InfantryClasses everywhere, SpawnManager uses TechnoClasses derived from AircraftTypeClasses
+	//as I wrote it in http://bugs.renegadeprojects.com/view.php?id=357#c10331
+	//So, expand that one instead, kthx.
+
+	if (InfantryClass* pSlave = specific_cast<InfantryClass*>(Slave)) {
+		auto Manager = pSlave->SlaveOwner->SlaveManager;
+
+		//LostSlave can free the unit from the miner, so we're awesome.
+		Manager->LostSlave(pSlave);
+		pSlave->SlaveOwner = nullptr;
+
+		//OK, delinked, Now relink it to the side which separated the slave from the miner
+		pSlave->SetOwningHouse(Affector);
+	}
+}
+
+bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, AbstractClass* pTarget, CoordStruct nTargetCoords) {
+
+	// ensuring a few base parameters
+	if (!pData->Abductor || !pOwner || !pTarget) {
+		return false;
+	}
+
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pData->OwnerObject()->Warhead);
+	const auto Target = abstract_cast<FootClass*>(pTarget);
+
+	if (!Target) {
+		// the target was not a valid passenger type
+		return false;
+	}
+
+	if (nTargetCoords == CoordStruct::Empty)
+		nTargetCoords = pTarget->GetCoords();
+
+	const auto Attacker = pOwner;
+	const auto TargetType = Target->GetTechnoType();
+	const auto AttackerType = Attacker->GetTechnoType();
+
+	if (Target->InLimbo || 
+		Target->IsIronCurtained() || 
+		Target->IsSinking || 
+		!Target->IsAlive || 
+		Is_DriverKilled(Target)) {
+		return false;
+	}
+
+	//issue 1362
+	if (TechnoExt::IsAbductorImmune(Target)) {
+		return false;
+	}
+
+	if(pWHExt->CanAffectHouse(Attacker->Owner ,Target->GetOwningHouse())) {
+		return false;
+	}
+
+	//Don't abduct the target if it has more life then the abducting percent
+	if (pData->Abductor_AbductBelowPercent < Target->GetHealthPercentage()) {
+		return false;
+	}
+
+	if (!TechnoTypeExt::PassangersAllowed(AttackerType, TargetType)) {
+		return false;
+	}
+
+	// Don't abduct the target if it's too fat in general, or if there's not enough room left in the hold // alternatively, NumPassengers
+	if (!IsEligibleSize(Attacker, Target)) {
+		return false;
+	}
+
+	HouseClass* pDesiredOwner = nullptr;
+	//if it's owner meant to be changed, do it here
+	if (pData->Abductor_ChangeOwner && !TechnoExt::IsPsionicsImmune(Target)) {
+		pDesiredOwner = (Attacker->Owner);
+	}else {
+		pDesiredOwner = HouseExt::FindSpecial();
+	}
+
+	// if we ended up here, the target is of the right type, and the attacker can take it
+	// so we abduct the target...
+
+	Target->StopMoving();
+	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
+	Target->SetTarget(nullptr);
+	Target->CurrentTargets.Clear(); // Target->ShouldLoseTargetNow ?
+	Target->SetFocus(nullptr);
+	Target->QueueMission(Mission::Sleep, true);
+	Target->unknown_C4 = 0; // don't ask
+	Target->unknown_5A0 = 0;
+	Target->CurrentGattlingStage = 0;
+	Target->SetCurrentWeaponStage(0);
+
+	// the team should not wait for me
+	if (Target->BelongsToATeam()) {
+		Target->Team->LiberateMember(Target);
+	}
+
+	// if this unit is being mind controlled, break the link
+	if (const auto MindController = Target->MindControlledBy) {
+		if (const auto MC = MindController->CaptureManager) {
+			MC->FreeUnit(Target);
+		}
+	}
+
+	// if this unit is a mind controller, break the link
+	if (Target->CaptureManager) {
+		Target->CaptureManager->FreeAll();
+	}
+
+	// if this unit is currently in a state of temporal flux, get it back to our time-frame
+	if (Target->TemporalTargetingMe) {
+		Target->TemporalTargetingMe->Detach();
+	}
+
+	//if the target is spawned, detach it from it's spawner
+	if (Target->SpawnOwner) {
+		DetachSpecificSpawnee(Target, pDesiredOwner);
+	}
+
+	// if the unit is a spawner, kill the spawns
+	if (Target->SpawnManager) {
+		Target->SpawnManager->KillNodes();
+		Target->SpawnManager->ResetTarget();
+	}
+
+	//if the unit is a slave, it should be freed
+	if (Target->SlaveOwner) {
+		FreeSpecificSlave(Target, pDesiredOwner);
+	}
+
+	// If the unit is a SlaveManager, free the slaves
+	if (auto pSlaveManager = Target->SlaveManager) {
+		pSlaveManager->Killed(Attacker);
+		pSlaveManager->ZeroOutSlaves();
+		Target->SlaveManager->Owner = Target;
+	}
+
+	// if we have an abducting animation, play it
+	if (auto pAnimType = pData->Abductor_AnimType) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nTargetCoords)) {
+			pAnim->Owner = Attacker->Owner;
+		}
+	}
+
+	Target->Locomotor->Force_Track(-1, CoordStruct::Empty);
+	CoordStruct coordsUnitSource = Target->GetCoords();
+	Target->Locomotor->Mark_All_Occupation_Bits(0);
+	Target->MarkAllOccupationBits(coordsUnitSource);
+	Target->ClearPlanningTokens(nullptr);
+	Target->Flashing.DurationRemaining = 0;
+
+	//if it's owner meant to be changed, do it here
+	Target->SetOwningHouse(pDesiredOwner);
+
+	if (!Target->Limbo()) {
+		Debug::Log("Abduction: Target unit %p (%s) could not be removed.\n", Target, Target->get_ID());
+	}
+
+	Target->OnBridge = false;
+	Target->NextObject = 0;
+
+	// because we are throwing away the locomotor in a split second, piggybacking
+	// has to be stopped. otherwise the object might remain in a weird state.
+	while (LocomotionClass::End_Piggyback(Target->Locomotor)) {};
+
+	// throw away the current locomotor and instantiate
+	// a new one of the default type for this unit.
+	if (auto NewLoco = LocomotionClass::CreateInstance(TargetType->Locomotor)) {
+		Target->Locomotor = std::move(NewLoco);
+		Target->Locomotor->Link_To_Object(Target);
+	}
+
+	// handling for Locomotor weapons: since we took this unit from the Magnetron
+	// in an unfriendly way, set these fields here to unblock the unit
+	if (Target->IsAttackedByLocomotor || Target->IsLetGoByLocomotor) {
+		Target->IsAttackedByLocomotor = false;
+		Target->IsLetGoByLocomotor = false;
+	}
+
+	Target->Transporter = Attacker;
+	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith(Attacker)) {
+		Attacker->EnteredOpenTopped(Target);
+	}
+
+	if (Is_Building(Attacker)) {
+		Target->Absorbed = true;
+	}
+
+	Attacker->AddPassenger(Target);
+	Attacker->Undiscover();
+
+	if (auto v29 = Target->AttachedTag)
+		v29->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted_ByHouse), Target, CellStruct::Empty, false, Attacker);
+
+	if (Target->IsAlive) {
+		if (auto v30 = Target->AttachedTag)
+			v30->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted), Target, CellStruct::Empty, false, nullptr);
+	}
+
+	if (auto v31 = Attacker->AttachedTag)
+		v31->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething_OfHouse), Attacker, CellStruct::Empty, false, Target->GetOwningHouse());// pTarget->Owner
+
+	if (Attacker->IsAlive)
+	{
+		if (auto v32 = Attacker->AttachedTag)
+			v32->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething), Attacker, CellStruct::Empty, false, nullptr);
+	}
+
+	return true;
+}
+
+DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
+{
+	GET(TemporalClass*, pThis, ESI);
+
+	const auto pOwner = pThis->Owner;
+	const auto nWeaponIDx = Ares_TemporalWeapon(pThis->Owner);
+	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
+	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+
+	return conductAbduction(pWeaponExt , pOwner, pThis->Target , CoordStruct::Empty)
+		? 0x71AAD5 : 0x0;
+}
 
 // issue #1437: crash when warping out buildings infantry wants to garrison
 DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
@@ -217,27 +412,29 @@ DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 	return 0x71A97D;
 }
 
-int GetWarpPerStep(TemporalClass* pThis, int nStep)
+int NOINLINE GetWarpPerStep(TemporalClass* pThis, int nStep)
 {
 	int nAddStep = 0;
 	int nStepR = 0;
+	
+	if (!pThis)
+		return 0;
 
-	for (; pThis;)
+	for (TemporalClass* pTemp = pThis; pTemp; pTemp = pTemp->PrevTemporal)
 	{
 		if (nStep > 50)
 			break;
 
 		++nStep;
-		auto const pWeapon = pThis->Owner->GetWeapon(Ares_TemporalWeapon(pThis->Owner))->WeaponType;
+		auto const pWeapon = pTemp->Owner->GetWeapon(Ares_TemporalWeapon(pTemp->Owner))->WeaponType;
 
-		if (auto const pTarget = pThis->Target)
-			nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
-		else
+		//if (auto const pTarget = pTemp->Target)
+		//	nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
+		//else
 			nStepR = pWeapon->Damage;
 
 		nAddStep += nStepR;
-		pThis->WarpPerStep = nStepR;
-		pThis = pThis->PrevTemporal;
+		pTemp->WarpPerStep = nStepR;
 	}
 
 	return nAddStep;

@@ -16,6 +16,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 
+#include <Misc/AresData.h>
+
 #include <New/Type/CursorTypeClass.h>
 
 /*TODO : handle all of these i suppose
@@ -123,24 +125,26 @@ public:
 		CursorIdx[nAction].second = Shrouded;
 	}
 
-	static MouseCursorType NOINLINE ByWeapon(TechnoClass* pThis, int nWeaponIdx, bool OutOfRange)
+	static int NOINLINE ByWeapon(TechnoClass* pThis, int nWeaponIdx, bool OutOfRange)
 	{
-		if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
-			if(!pBuilding->IsPowerOnline())
-				return OutOfRange ? MouseCursorType::NoEnter : MouseCursorType::Enter;
-		}
+		//TODO :
+		//if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+		//	if(!pBuilding->IsPowerOnline())
+		//		return OutOfRange ? MouseCursorType::NoEnter : MouseCursorType::Enter;
+		//}
 
-		if (auto pWeaponS = pThis->GetWeapon(nWeaponIdx))
+		if (const auto pWeaponS = pThis->GetWeapon(nWeaponIdx))
 		{
-			if (pWeaponS->WeaponType)
+			if (const auto pWeapon = pWeaponS->WeaponType)
 			{
-				return OutOfRange ?
-					MouseCursorType::AttackOutOfRange : MouseCursorType::Attack; //Dummy
+				const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+				return ((OutOfRange ?
+					pWeaponExt->Cursor_AttackOutOfRange : pWeaponExt->Cursor_Attack).Get());
 			}
 		}
 
-		return OutOfRange ? 
-		MouseCursorType::AttackOutOfRange : MouseCursorType::Attack;
+		return int(OutOfRange ? 
+		MouseCursorType::AttackOutOfRange : MouseCursorType::Attack);
 	}
 #pragma endregion
 public:
@@ -434,122 +438,122 @@ public:
 };
 static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
-std::unordered_map<Action, std::pair<MouseCursorType, bool>> MouseClassExt::CursorIdx;
-
-//ares reset their cursor here 
-DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(const  int*, keyCode, 0x4);
-	GET_STACK(const Point2D*, mouseCoords, 0x8);
-
-	pMouse->_Update(keyCode, mouseCoords);
-	return 0x5BDF2A;
-}
-
-DEFINE_HOOK(0x5BDC80, MouseClass_Override_MouseShape_Replace, 0x7)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
-
-	R->AL(pMouse->_Override_Mouse_Shape(mouse, wsmall));
-	return 0x5BDDB3;
-}
-
-DEFINE_HOOK(0x5BDAB0, MouseClass_Small_Replace, 0x7)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(bool, wsmall, 0x4);
-
-	pMouse->_Mouse_Small(wsmall);
-	return 0x5BDB82;
-
-}
-
-DEFINE_HOOK(0x5BDBC0, MouseClass_Get_Mouse_Current_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
-
-	R->EAX(pMouse->_Get_Mouse_Current_Frame(mouse, wsmall));
-	return 0x5BDBEE;
-}
-
-DEFINE_HOOK(0x5BDB90, MouseClass_Get_Mouse_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	GET_STACK(bool, wsmall, 0x8);
-
-	R->EAX(pMouse->_Get_Mouse_Frame(mouse, wsmall));
-	return 0x5BDBB6;
-}
-
-DEFINE_HOOK(0x5BDC00, MouseClass_Get_Mouse_Hotspot_Replace, 0x5)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(Point2D*, pRet, 0x4);
-	GET_STACK(MouseCursorType, mouse, 0x8);
-
-	const auto nResult = pMouse->_Get_Mouse_Hotspot(mouse);
-	pRet->X = nResult.X;
-	pRet->Y = nResult.Y;
-	R->EAX(pRet);
-	return 0x5BDC77;
-}
-
-DEFINE_HOOK(0x5BE970, MouseClass_Get_Mouse_Start_Frame_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-
-	R->EAX(pMouse->_Get_Mouse_Start_Frame(mouse));
-	return 0x5BE984;
-}
-
-DEFINE_HOOK(0x5BE990, MouseClass_Get_Mouse_Frame_Count_Replace, 0xB)
-{
-	GET(MouseClassExt*, pMouse, ECX);
-	GET_STACK(MouseCursorType, mouse, 0x4);
-	R->EAX(pMouse->_Get_Mouse_Frame_Count(mouse));
-	return 0x5BE9A4;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
-{
-	GET(DisplayClass*, pThis, ESI);
-	GET(Action, nAction, EAX);
-	GET_STACK(bool, bMini, STACK_OFFS(0x20, -0x14));//0x34
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, 0x8)); //0x18
-	GET_STACK(bool, bIsShrouded, 0x28);
-
-	if (bIsShrouded) {
-		nAction = MouseClassExt::ValidateShroudedAction(nAction);
-	}
-
-	if (nAction == Action::Attack) {
-		// WeaponCursor
-		// doesnt work with `Deployed` techno
-		auto const& nObjectVect = ObjectClass::CurrentObjects();
-
-		if (pTarget && nObjectVect.Count == 1 && Is_Techno(nObjectVect[0])) {
-			if (!static_cast<TechnoClass*>(nObjectVect[0])->IsCloseEnoughToAttack(pTarget)) {
-					//if too far from the target
-					MouseClassExt::InsertMappedAction(
-						MouseCursorType::NoEnter
-						, Action::Attack, false);
-			}
-
-		} else {
-				nAction = Action::Harvest;
-		}
-	}
-
-	pThis->SetCursor(MouseClassExt::ValidateCursorType(nAction), bMini);
-	return 0x4AB78F;
-}
+//std::unordered_map<Action, std::pair<MouseCursorType, bool>> MouseClassExt::CursorIdx;
+//
+////ares reset their cursor here 
+//DEFINE_HOOK(0x5BDDC0, MouseClass_Update_Replace, 0x5)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(const  int*, keyCode, 0x4);
+//	GET_STACK(const Point2D*, mouseCoords, 0x8);
+//
+//	pMouse->_Update(keyCode, mouseCoords);
+//	return 0x5BDF2A;
+//}
+//
+//DEFINE_HOOK(0x5BDC80, MouseClass_Override_MouseShape_Replace, 0x7)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(MouseCursorType, mouse, 0x4);
+//	GET_STACK(bool, wsmall, 0x8);
+//
+//	R->AL(pMouse->_Override_Mouse_Shape(mouse, wsmall));
+//	return 0x5BDDB3;
+//}
+//
+//DEFINE_HOOK(0x5BDAB0, MouseClass_Small_Replace, 0x7)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(bool, wsmall, 0x4);
+//
+//	pMouse->_Mouse_Small(wsmall);
+//	return 0x5BDB82;
+//
+//}
+//
+//DEFINE_HOOK(0x5BDBC0, MouseClass_Get_Mouse_Current_Frame_Replace, 0xB)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(MouseCursorType, mouse, 0x4);
+//	GET_STACK(bool, wsmall, 0x8);
+//
+//	R->EAX(pMouse->_Get_Mouse_Current_Frame(mouse, wsmall));
+//	return 0x5BDBEE;
+//}
+//
+//DEFINE_HOOK(0x5BDB90, MouseClass_Get_Mouse_Frame_Replace, 0xB)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(MouseCursorType, mouse, 0x4);
+//	GET_STACK(bool, wsmall, 0x8);
+//
+//	R->EAX(pMouse->_Get_Mouse_Frame(mouse, wsmall));
+//	return 0x5BDBB6;
+//}
+//
+//DEFINE_HOOK(0x5BDC00, MouseClass_Get_Mouse_Hotspot_Replace, 0x5)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(Point2D*, pRet, 0x4);
+//	GET_STACK(MouseCursorType, mouse, 0x8);
+//
+//	const auto nResult = pMouse->_Get_Mouse_Hotspot(mouse);
+//	pRet->X = nResult.X;
+//	pRet->Y = nResult.Y;
+//	R->EAX(pRet);
+//	return 0x5BDC77;
+//}
+//
+//DEFINE_HOOK(0x5BE970, MouseClass_Get_Mouse_Start_Frame_Replace, 0xB)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(MouseCursorType, mouse, 0x4);
+//
+//	R->EAX(pMouse->_Get_Mouse_Start_Frame(mouse));
+//	return 0x5BE984;
+//}
+//
+//DEFINE_HOOK(0x5BE990, MouseClass_Get_Mouse_Frame_Count_Replace, 0xB)
+//{
+//	GET(MouseClassExt*, pMouse, ECX);
+//	GET_STACK(MouseCursorType, mouse, 0x4);
+//	R->EAX(pMouse->_Get_Mouse_Frame_Count(mouse));
+//	return 0x5BE9A4;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
+//{
+//	GET(DisplayClass*, pThis, ESI);
+//	GET(Action, nAction, EAX);
+//	GET_STACK(bool, bMini, STACK_OFFS(0x20, -0x14));//0x34
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, 0x8)); //0x18
+//	GET_STACK(bool, bIsShrouded, 0x28);
+//
+//	if (bIsShrouded) {
+//		nAction = MouseClassExt::ValidateShroudedAction(nAction);
+//	}
+//
+//	if (nAction == Action::Attack) {
+//		// WeaponCursor
+//		// doesnt work with `Deployed` techno
+//		auto const& nObjectVect = ObjectClass::CurrentObjects();
+//
+//		if (pTarget && nObjectVect.Count == 1 && Is_Techno(nObjectVect[0])) {
+//			if (!static_cast<TechnoClass*>(nObjectVect[0])->IsCloseEnoughToAttack(pTarget)) {
+//					//if too far from the target
+//					MouseClassExt::InsertMappedAction(
+//						MouseCursorType::NoEnter
+//						, Action::Attack, false);
+//			}
+//
+//		} else {
+//				nAction = Action::Harvest;
+//		}
+//	}
+//
+//	pThis->SetCursor(MouseClassExt::ValidateCursorType(nAction), bMini);
+//	return 0x4AB78F;
+//}
 
 // WeaponCursor
 DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
@@ -558,7 +562,7 @@ DEFINE_OVERRIDE_HOOK(0x70055D, TechnoClass_GetActionOnObject_AttackCursor, 8)
 	GET_STACK(int, nWeapon, STACK_OFFS(0x1C, 0x8));
 
 	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
-	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
+	AresData::SetMouseCursorAction(nCursor, Action::Attack, false);
 	return 0;
 }
 
@@ -568,31 +572,34 @@ DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, nWeapon, EBP);
 	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
-	MouseClassExt::InsertMappedAction(nCursor, Action::Attack, false);
+	AresData::SetMouseCursorAction(nCursor, Action::Attack, false);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors, 5)
 {
-	//GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pTarget, 0x4);
 
+	const auto pType = pThis->GetTechnoType();
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
 	// Cursor Move
-	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Move, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
 
 	// Cursor NoMove
-	MouseClassExt::InsertMappedAction(MouseCursorType::NoMindControl, Action::NoMove, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
 
-	if (pTarget->GetTechnoType())
+	if (const auto pTargetType = pTarget->GetTechnoType())
 	{
-
 		// Cursor Enter
-		MouseClassExt::InsertMappedAction(MouseCursorType::Chronosphere, Action::Repair, false);
-		MouseClassExt::InsertMappedAction(MouseCursorType::GeneticMutator, Action::Enter, false);
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Repair, false);
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Enter, false);
 		//
 
 		// Cursor NoEnter
-		MouseClassExt::InsertMappedAction(MouseCursorType::NoForceShield, Action::NoEnter, false);
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
 	}
 
 	return 0;
@@ -600,70 +607,44 @@ DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors, 5)
 
 DEFINE_OVERRIDE_HOOK(0x700600, TechnoClass_GetActionOnCell_Cursors, 5)
 {
-	//GET(TechnoClass*, pThis, ECX);
+	GET(TechnoClass*, pThis, ECX);
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	// Cursor Move
-	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Move, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
 
 	// Cursor NoMove
-	MouseClassExt::InsertMappedAction(MouseCursorType::NoMindControl, Action::NoMove, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7000CD, TechnoClass_GetActionOnObject_SelfDeployCursor, 6)
 {
-	//GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	//Cursor Deploy
-	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::AreaAttack, false);
-	MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Self_Deploy, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::AreaAttack, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::Self_Deploy, false);
 	//
 
 	//Cursor NoDeploy
-	MouseClassExt::InsertMappedAction(MouseCursorType::NoEnter, Action::NoDeploy, false);
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoDeploy.Get(), Action::NoDeploy, false);
 	return 0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x7400F0, UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6)
 {
 	GET(UnitClass*, pThis, ESI);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
 
 	if (pThis->BunkerLinkedItem) {
 		//Cursor Deploy
-		MouseClassExt::InsertMappedAction(MouseCursorType::Attack, Action::Self_Deploy, false);
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_Deploy.Get(), Action::Self_Deploy, false);
 		return 0x73FFE6;
 	}
 
 	return pThis->unknown_bool_6AC ? 0x7400FA : 0x740115;
 }
-
-//// TechnoType
-//ValueableIdx<CursorTypeClass> Cursor_Deploy;
-//ValueableIdx<CursorTypeClass> Cursor_NoDeploy;
-//ValueableIdx<CursorTypeClass> Cursor_Enter;
-//ValueableIdx<CursorTypeClass> Cursor_NoEnter;
-//ValueableIdx<CursorTypeClass> Cursor_Move;
-//ValueableIdx<CursorTypeClass> Cursor_NoMove;
-//
-//// Weapon
-//ValueableIdx<CursorTypeClass> Cursor_Attack;
-//ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange;
-
-#pragma warning( push )
-#pragma warning (disable : 4245)
-#pragma warning (disable : 4838)
-DEFINE_DISABLE_HOOK(0x5BDC8C, MouseClass_UpdateCursor)
-DEFINE_DISABLE_HOOK(0x5BDADF, MouseClass_UpdateCursorMinimapState_UseCursor)
-DEFINE_DISABLE_HOOK(0x5BDDC8, MouseClass_Update_AnimateCursor)
-DEFINE_DISABLE_HOOK(0x5BDE64, MouseClass_Update_AnimateCursor2)
-DEFINE_DISABLE_HOOK(0x5BDB90, MouseClass_GetCursorFirstFrame_Minimap)
-DEFINE_DISABLE_HOOK(0x5BE974, MouseClass_GetCursorFirstFrame)
-DEFINE_DISABLE_HOOK(0x5BE994, MouseClass_GetCursorFrameCount)
-DEFINE_DISABLE_HOOK(0x5BDBC4, MouseClass_GetCursorCurrentFrame)
-DEFINE_DISABLE_HOOK(0x5BDC1B, MouseClass_GetCursorHotSpot)
-DEFINE_DISABLE_HOOK(0x653B3A, RadarClass_GetMouseAction_CustomSWAction)
-DEFINE_DISABLE_HOOK(0x4AC20C, DisplayClass_LeftMouseButtonUp)
-DEFINE_DISABLE_HOOK(0x5BDDC0, MouseClass_Update_Reset)
-DEFINE_DISABLE_HOOK(0x4D7524, FootClass_ActionOnObject_Allow)
-DEFINE_DISABLE_HOOK(0x653CA6, RadarClass_GetMouseAction_AllowMinimap)
-#pragma warning( pop )

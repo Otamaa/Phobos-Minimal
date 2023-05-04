@@ -90,10 +90,7 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	return 0x5F659B;
 }
 
-DEFINE_OVERRIDE_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5)
-{
-	return 0x6AD16C;
-}
+DEFINE_OVERRIDE_SKIP_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5, 6AD16C);
 
 std::vector<unsigned char> ShpCompression1Buffer;
 
@@ -119,10 +116,7 @@ DEFINE_OVERRIDE_HOOK(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 }
 
 // this douchebag blows your base up when it thinks you're cheating
-DEFINE_OVERRIDE_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0x0)
-{
-	return 0x55D059;
-}
+DEFINE_OVERRIDE_SKIP_HOOK(0x55CFDF, CopyProtection_DontBlowMeUp, 0x7, 55D059);
 
 namespace ShakeScreenHandle
 {
@@ -1364,7 +1358,7 @@ DEFINE_OVERRIDE_HOOK(0x6FACD9, TechnoClass_Update_DamageSparks, 6)
 
 	GET(TechnoTypeClass*, pType, EBX);
 
-	if (pThis->GetHealthPercentage_() >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)
+	if (pThis->GetHealthPercentage() >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)
 		return 0x6FAF01;
 
 	return TechnoTypeExt::ExtMap.Find(pType)->DamageSparks.Get(pType->DamageSparks) ?
@@ -1935,7 +1929,7 @@ DEFINE_OVERRIDE_HOOK(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 	const auto pVec = Helpers::Alex::getCellSpreadItems(pThis->Location, std::ceil(pTypeExt->DamageRange.Get()));
 	const auto& [pAttacker, pOwner] = GetOwnership(pThis);
 
-	for (auto& pItem : pVec)
+	for (const auto& pItem : pVec)
 	{
 		if (pItem->Health <= 0 || !pItem->IsAlive || pItem->InLimbo)
 			continue;
@@ -2199,8 +2193,6 @@ struct TechnoExt_Stuffs
 	static bool IsPowered(TechnoClass* pThis)
 	{
 		auto pType = pThis->GetTechnoType();
-		auto& nPoweredPtr = PoweredUnitUptr(pThis);
-
 		if (pType->PoweredUnit)
 		{
 			for (const auto& pBuilding : pThis->Owner->Buildings)
@@ -2215,10 +2207,10 @@ struct TechnoExt_Stuffs
 			// if we reach this, we found no building that currently powers this object
 			return false;
 		}
-		else if (nPoweredPtr)
+		else if (const auto pPtr = PoweredUnitUptr(pThis))
 		{
 			// #617
-			return nPoweredPtr->Powered;
+			return pPtr->Powered;
 		}
 
 		return true;
@@ -2307,6 +2299,112 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 				}
 			}
 		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	const auto pType = pThis->GetTechnoType();
+	const auto nCurWp = pThis->CurrentWeaponNumber;
+	const auto& nVec = GetGunnerName(pType);
+
+	const wchar_t* Text = nullptr;
+	if (nCurWp < nVec.size())
+	{
+		Text = nVec[nCurWp].Text;
+	}
+
+	R->EAX(Text);
+
+	return Text != nullptr ? 0x746C78 : 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
+{
+	GET(UnitClass*, pThis, ECX);
+	REF_STACK(int, Value, 0x1E0);
+
+	const auto pRules = RulesExt::Global();
+	double factor = 1.0;
+
+	if (pThis->IsUnderEMP())
+	{
+		factor = pRules->DeactivateDim_EMP;
+	}
+	else if (pThis->IsDeactivated())
+	{
+
+		// use the operator check because it is more
+		// efficient than the powered check.
+		if (Is_Operated(pThis ) || AresData::IsOperated(pThis))
+		{
+			factor = pRules->DeactivateDim_Powered;
+		}
+		else
+		{
+			
+		 factor = pRules->DeactivateDim_Operator;
+		}
+	}
+
+	Value = int(Value * factor);
+
+	return 0x73C15F;
+}
+
+// temporal per-slot
+DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+{
+	GET(TemporalClass* const, pThis, ESI);
+
+	// it's not guaranteed that there is a target
+	if (auto const pTarget = pThis->Target)
+	{
+		const auto nJammer = RadarJammerUptr(pTarget);
+
+		if (nJammer)
+		{
+			RadarJammerUptr(pTarget) = nullptr;
+			AresData::JammerClassUnjamAll(nJammer);
+			AresMemory::Delete(nJammer);		
+		}
+
+		//AttachEffect handling under Temporal
+		auto const AEDataPtr = &GetAEData(pTarget);
+		AresData::UpdateAEData(AEDataPtr);
+	}
+
+	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
+
+	R->EAX(pThis->WarpRemaining);
+	return 0x71A88D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
+{
+	GET(TechnoClass* const, pThis, EDI);
+
+	// bugfix #874 B: Temporal warheads affect Warpable=no units
+	// it has been checked: this is warpable. free captured and destroy spawned units.
+	if (pThis->SpawnManager)
+	{
+		pThis->SpawnManager->KillNodes();
+	}
+
+	if (pThis->CaptureManager)
+	{
+		pThis->CaptureManager->FreeAll();
+	}
+
+	// prism forward
+	if (Is_Building(pThis))
+	{
+		const auto pBld = static_cast<BuildingClass*>(pThis);
+		const auto pRism = &PrimsForwardingPtr(pBld);
+		AresData::CPrismRemoveFromNetwork(pRism, true);
 	}
 
 	return 0;

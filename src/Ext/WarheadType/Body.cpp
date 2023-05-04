@@ -75,7 +75,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	if (!pINI->GetSection(pSection)) {
 		return;
 	}
-
 	//this will break targeting , so use it with caution !
 	exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
 
@@ -250,19 +249,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
 	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
-
-	//this->DirectionalArmor.Read(exINI, pSection, "DirectionalArmor");
-	//this->DirectionalArmor_FrontMultiplier.Read(exINI, pSection, "DirectionalArmor.FrontMultiplier");
-	//this->DirectionalArmor_SideMultiplier.Read(exINI, pSection, "DirectionalArmor.SideMultiplier");
-	//this->DirectionalArmor_BackMultiplier.Read(exINI, pSection, "DirectionalArmor.BackMultiplier");
-	//this->DirectionalArmor_FrontField.Read(exINI, pSection, "DirectionalArmor.FrontField");
-	//this->DirectionalArmor_BackField.Read(exINI, pSection, "DirectionalArmor.BackField");
-
-	//TODO :Evaluate this
-	//this->DirectionalArmor_FrontField = MinImpl(this->DirectionalArmor_FrontField.Get(), 1.0f);
-	//this->DirectionalArmor_FrontField = MaxImpl(this->DirectionalArmor_FrontField.Get(), 0.0f);
-	//this->DirectionalArmor_BackField = MinImpl(this->DirectionalArmor_BackField.Get(), 1.0f);
-	//this->DirectionalArmor_BackField = MaxImpl(this->DirectionalArmor_BackField.Get(), 0.0f);
 
 	this->RecalculateDistanceDamage.Read(exINI, pSection, "RecalculateDistanceDamage");
 	this->RecalculateDistanceDamage_IgnoreMaxDamage.Read(exINI, pSection, "RecalculateDistanceDamage.IgnoreMaxDamage");

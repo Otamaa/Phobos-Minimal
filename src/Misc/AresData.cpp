@@ -15,6 +15,8 @@ class TechnoTypeClass;
 uintptr_t AresData::PhobosBaseAddress = 0x0;
 uintptr_t AresData::AresBaseAddress = 0x0;
 HMODULE AresData::AresDllHmodule = nullptr;
+DWORD AresData::AresMemDelAddrFinal = 0x0;
+DWORD AresData::AresMemAllocAddrFinal = 0x0;
 AresData::Version AresData::AresVersionId = AresData::Version::Unknown;
 bool AresData::CanUseAres = false;
 DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
@@ -71,6 +73,8 @@ bool AresData::Init()
 		for (int c = 0; c < AresData::AresCustomPaletteReadCount; c++)
 			AresData::AresCustomPaletteReadFuncFinal[c] = AresData::AresBaseAddress + AresData::AAresCustomPaletteReadTable[c * AresData::AresVersionCount + AresVersionId];
 
+		AresData::AresMemDelAddrFinal = AresData::AresBaseAddress + 0x0077FCA;
+		AresData::AresMemAllocAddrFinal = AresData::AresBaseAddress + 0x077F9A;
 	}
 
 	return CanUseAres;
@@ -140,6 +144,11 @@ VoxelStruct* AresData::GetTurretsVoxel(TechnoTypeClass* const pThis, int index)
 	return AresThiscall<GetTurretVXLDataID, VoxelStruct*, void*, int>()(GetAresTechnoTypeExt(pThis), index);
 }
 
+VoxelStruct* AresData::GetBarrelsVoxel(TechnoTypeClass* const pThis, int index)
+{
+	return AresThiscall<GetBarrelsVoxelID, VoxelStruct*, void*, int>()(GetAresTechnoTypeExt(pThis), index);
+}
+
 void AresData::TechnoTransferAffects(TechnoClass* const pFrom, TechnoClass* const pTo)
 {
 	AresStdcall<TechnoTransferAffectsID, void, TechnoClass*, TechnoClass*>()(pFrom, pTo);
@@ -153,6 +162,11 @@ bool AresData::IsGenericPrerequisite(TechnoTypeClass* const pThis)
 int AresData::GetSelfHealAmount(TechnoClass* const pTechno)
 {
 	return AresThiscall<GetSelfHealAmountID, int, void*>()(GetAresTechnoExt(pTechno));
+}
+
+bool AresData::IsOperated(TechnoClass* const pTechno)
+{
+	return AresThiscall<IsOperatedID, bool, void*>()(GetAresTechnoExt(pTechno));
 }
 
 ConvertClass* AresData::GetBulletTypeConvert(BulletTypeClass* pThis)
@@ -204,4 +218,24 @@ int NOINLINE AresData::CallAresArmorType_FindIndex(REGISTERS* R)
 	}
 	
 	return-1;
+}
+
+std::vector<FootClass*>* AresData::GetTunnelArray(BuildingTypeClass* const pBld, HouseClass* const pOwner)
+{
+	return AresThiscall<GetTunnelArrayID, std::vector<FootClass*>*, void* , HouseClass* const>()(GetAresBuildingTypeExt(pBld) , pOwner);
+}
+
+void AresData::UpdateAEData(AEData* const pAE)
+{
+	AresThiscall<UpdateAEDataID, void, AEData* const>()(pAE);
+}
+
+void AresData::JammerClassUnjamAll(JammerClass* const pJamm)
+{
+	AresThiscall<JammerclassUnjamAllID, void, JammerClass* const>()(pJamm);
+}
+
+void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCease)
+{
+	AresThiscall<CPrismRemoveFromNetworkID, void, cPrismForwarding* const , bool>()(pThis , bCease);
 }

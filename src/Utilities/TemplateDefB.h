@@ -5,12 +5,14 @@
 #include "TemplateDef.h"
 
 namespace detail
-{ 
+{
 	template <>
 	inline bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value))) {
-			if (!parser.empty()) {
+		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value)))
+		{
+			if (!parser.empty())
+			{
 
 				if (auto const& pColorClass = ColorTypeClass::Find(parser.value()))
 				{
@@ -48,15 +50,18 @@ namespace detail
 	inline bool read(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
 		if (parser.ReadString(pSection, pKey))
-		{			
-			for (size_t i = 0; i < EnumFunctions::DamageDelayTargetFlag_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::DamageDelayTargetFlag_ToStrings[i])) {
+		{
+			for (size_t i = 0; i < EnumFunctions::DamageDelayTargetFlag_ToStrings.size(); ++i)
+			{
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::DamageDelayTargetFlag_ToStrings[i]))
+				{
 					value = (DamageDelayTargetFlag)i;
 					return true;
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value())) {
+			if (!INIClass::IsBlank(parser.value()))
+			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
 			}
 		}
@@ -69,16 +74,19 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::TargetZoneScanType_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::TargetZoneScanType_ToStrings[i])) {
+			for (size_t i = 0; i < EnumFunctions::TargetZoneScanType_ToStrings.size(); ++i)
+			{
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::TargetZoneScanType_ToStrings[i]))
+				{
 					value = (TargetZoneScanType)i;
 					return true;
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value())) {
+			if (!INIClass::IsBlank(parser.value()))
+			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
-			}		
+			}
 		}
 
 		return false;
@@ -135,7 +143,8 @@ namespace detail
 		auto ret = false;
 
 		char pFlagName[0x40];
-		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i) {
+		for (size_t i = 0; i < EnumFunctions::MouseCursorData_ToStrings.size(); ++i)
+		{
 			IMPL_SNPRNINTF(pFlagName, sizeof(pFlagName), EnumFunctions::MouseCursorData_ToStrings[i], pKey);
 			ret |= read(value.OriginalData.StartFrame, parser, pSection, pFlagName);
 		}
@@ -166,14 +175,14 @@ namespace detail
 	inline bool read<DirType8>(DirType8& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey , &nBuffer) && nBuffer >= 0 && nBuffer <= 8)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 8)
 		{
 			value = (DirType8)nBuffer;
 			return true;
 		}
 		else
 		{
-			if(!parser.empty())
+			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 8");
 		}
 
@@ -211,6 +220,35 @@ namespace detail
 		{
 			if (!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a facing between 0 and 255");
+		}
+
+		return false;
+	}
+
+	template <>
+	inline bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			if (IS_SAME_STR_(parser.value(), "body"))
+			{
+				value = SpotlightAttachment::Body;
+				return true;
+			}
+			else if (IS_SAME_STR_(parser.value(), "turret"))
+			{
+				value = SpotlightAttachment::Turret;
+				return true;
+			}
+			else if (IS_SAME_STR_(parser.value(), "barrel"))
+			{
+				value = SpotlightAttachment::Barrel;
+				return true;
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, parser.value());
+			}
 		}
 
 		return false;
@@ -290,7 +328,7 @@ namespace detail
 			{
 				const auto res = CRT::strtrim(cur);
 
-				if(res && res[0] && strlen(res))
+				if (res && res[0] && strlen(res))
 					nVecDest[i].push_back(res);
 
 				if (bVerbose)

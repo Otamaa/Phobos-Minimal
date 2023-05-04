@@ -334,6 +334,8 @@ private:
 	static bool IsPoisonImmune(TechnoClass* pThis);
 	static bool IsBerserkImmune(TechnoClass* pThis);
 
+	static bool IsAbductorImmune(TechnoClass* pThis);
+
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);

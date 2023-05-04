@@ -12,13 +12,15 @@
 #include <ArrayClasses.h>
 #include <CCINIClass.h>
 
-//#include <format>
-
+// an wrapper class to make `Type` like in the game 
+// remember to not modify the array ouside allocation new item(s) from the back
+// it will mess upt the `ArrayIndex` !
 template <typename T> class Enumerable
 {
 	typedef std::vector<std::unique_ptr<T>> container_t;
 
 public:
+
 	static container_t Array;
 
 	static int FindOrAllocateIndex(const char* Title)
@@ -38,11 +40,9 @@ public:
 	{
 		for (auto pos = Array.begin();
 			pos != Array.end();
-			++pos)
-		{
-			if (IS_SAME_STR_((*pos)->Name.data(), Title))
-			{
-				return std::distance(Array.begin(), pos);
+			++pos) {
+			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
+				return (*pos)->ArrayIndex;
 			}
 		}
 
@@ -64,14 +64,16 @@ public:
 		if (!pType)
 			return -1;
 
-		return FindIndexById(pType->Name.data());
+		return pType->ArrayIndex;
 	}
 
+	// Warning : no Idx validation !
 	static T* FindFromIndex(int Idx)
 	{
 		return Array[static_cast<size_t>(Idx)].get();
 	}
 
+	// With Idx validation ,return to the first item if Idx is invalid
 	static T* FindFromIndexFix(int Idx)
 	{
 		const auto aIdx = Idx > (int)Array.size() || Idx < 0 ? 0 : Idx;
@@ -87,6 +89,7 @@ public:
 	static void AllocateNoCheck(const char* Title)
 	{
 		Array.push_back(std::move(std::make_unique<T>(Title)));
+		Array.back()->ArrayIndex = Array.size() - 1;
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -183,6 +186,7 @@ public:
 	Enumerable(const char* Title)
 	{
 		Name = Title;
+		ArrayIndex = -1;
 	}
 
 	virtual ~Enumerable() = default;
@@ -194,4 +198,5 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
 	FixedString<32> Name;
+	int ArrayIndex;
 };

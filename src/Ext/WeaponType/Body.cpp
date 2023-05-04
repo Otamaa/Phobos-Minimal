@@ -57,6 +57,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 
 	this->Abductor.Read(exINI, pSection, "Abductor");
+	this->Abductor_AnimType.Read(exINI, pSection, "Abductor.Anim");
+	this->Abductor_ChangeOwner.Read(exINI, pSection, "Abductor.ChangeOwner");
+	this->Abductor_AbductBelowPercent.Read(exINI, pSection, "Abductor.AbductBelowPercent");
 
 	this->DelayedFire_Anim.Read(exINI, pSection, "DelayedFire.Anim");
 	this->DelayedFire_Anim_LoopCount.Read(exINI, pSection, "DelayedFire.Anim.LoopCount");
@@ -143,6 +146,9 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
 	this->Ivan_DetonateOnSell.Read(exINI, pSection, "IvanBomb.DetonateOnSell");
 	this->ApplyDamage.Read(exINI, pSection, "ApplyDamage");
+
+	this->Cursor_Attack.Read(exINI, pSection, "Cursor.Attack");
+	this->Cursor_AttackOutOfRange.Read(exINI, pSection, "Cursor.AttackOutOfRange");
 }
 
 template <typename T>
@@ -166,6 +172,9 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Laser_IsSingleColor)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Abductor)
+		.Process(this->Abductor_AnimType)
+		.Process(this->Abductor_ChangeOwner)
+		.Process(this->Abductor_AbductBelowPercent)
 		.Process(this->DelayedFire_Anim)
 		.Process(this->DelayedFire_Anim_LoopCount)
 		.Process(this->DelayedFire_Anim_UseFLH)
@@ -218,6 +227,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Ivan_CanDetonateDeathBomb)
 		.Process(this->Ivan_DetonateOnSell)
 		.Process(this->ApplyDamage)
+		.Process(this->Cursor_Attack)
+		.Process(this->Cursor_AttackOutOfRange)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

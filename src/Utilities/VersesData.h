@@ -26,3 +26,15 @@ struct VersesData
 	bool Parse(const char* str);
 	void Parse_NoCheck(const char* str);
 };
+
+struct WarheadVersesData : public VersesData
+{
+	bool IsReadedAlready;
+	double Verses;
+	WarheadFlags Flags;
+
+	bool operator ==(const WarheadVersesData& RHS) const
+	{
+		return (CLOSE_ENOUGH(this->Verses, RHS.Verses));
+	}
+};

@@ -426,61 +426,162 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	return RetObjectClassRcvDamage;
 }
 
-DEFINE_OVERRIDE_HOOK(0x737F86, UnitClass_ReceiveDamage_Survivours, 0x6)
+// If available, creates an InfantryClass instance and removes the hijacker from the victim.
+InfantryClass* RecoverHijacker(FootClass* const pThis)
 {
-	GET(UnitTypeClass*, pType, EAX);
+	auto const pType = InfantryTypeClass::Array->GetItemOrDefault(
+		pThis->HijackerInfantryType);
+
+	if (pType)
+	{
+		const auto pOwner = HijackerOwner(pThis) ?
+			HijackerOwner(pThis) : pThis->Owner;
+
+		pThis->HijackerInfantryType = -1;
+
+		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+		if (!pTypeExt->HijackerOneTime && pOwner && !pOwner->Defeated)
+		{
+			auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner));
+			pHijacker->Health = MaxImpl(HijackerHealth(pThis), 10) / 2;
+			pHijacker->Veterancy.Veterancy = HijackerVeterancy(pThis);
+			return pHijacker;
+		}
+	}
+
+	return nullptr;
+}
+
+void SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses, const bool PreventPassengersEscape)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pOwner = pThis->Owner;
+	auto const location = pThis->Location;
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	// do not ever do this again for this unit
+	if (!Is_SurvivorsDone(pThis)) {
+		Is_SurvivorsDone(pThis) = true;
+	} else {
+		return;
+	}
+
+	// always eject passengers, but crew only if not already processed.
+	if (!Is_DriverKilled(pThis) && !IgnoreDefenses)
+	{
+		// save this, because the hijacker can kill people
+		auto pilotCount = pThis->GetCrewCount();
+
+		// process the hijacker
+		if (auto const pHijacker = RecoverHijacker(pThis))
+		{
+			auto const pHijackerTypeExt = TechnoTypeExt::ExtMap.Find(pHijacker->Type);
+
+			if (!TechnoExt::EjectRandomly(pHijacker, location, 144, Select))
+			{
+				pHijacker->RegisterDestruction(pKiller);
+				pHijacker->UnInit();
+			}
+			else
+			{
+				// the hijacker will now be controlled instead of the unit
+				if (auto const pController = pThis->MindControlledBy)
+				{
+					++Unsorted::IKnowWhatImDoing; // disables sound effects
+					pController->CaptureManager->FreeUnit(pThis);
+					pController->CaptureManager->CaptureUnit(pHijacker); // does the immunetopsionics check for us
+					--Unsorted::IKnowWhatImDoing;
+					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
+				}
+
+				VocClass::PlayAt(pHijackerTypeExt->HijackerLeaveSound, location, nullptr);
+
+				// lower than 0: kill all, otherwise, kill n pilots
+				pilotCount = ((pHijackerTypeExt->HijackerKillPilots < 0) ? 0 : 
+					(pilotCount - pHijackerTypeExt->HijackerKillPilots));
+			}
+		}
+
+		int pilotChance = pTypeExt->Survivors_PilotChance.Get(pThis);
+		if (pilotChance < 0) {
+			pilotChance = static_cast<int>(RulesClass::Instance->CrewEscape * 100);
+		}
+
+		// possibly eject up to pilotCount crew members
+		if (pType->Crewed && pilotChance > 0)
+		{
+			for (int i = 0; i < pilotCount; ++i)
+			{
+				if (auto pPilotType = pThis->GetCrew())
+				{
+					if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= pilotChance)
+					{
+						auto const pPilot = static_cast<InfantryClass*>(pPilotType->CreateObject(pOwner));
+						pPilot->Health /= 2;
+						pPilot->Veterancy.Veterancy = pThis->Veterancy.Veterancy;
+
+						if (!TechnoExt::EjectRandomly(pPilot, location, 144, Select))
+						{
+							pPilot->RegisterDestruction(pKiller);
+							pPilot->UnInit();
+						}
+						else if (auto const pTag = pThis->AttachedTag)
+						{
+							if (pTag->ShouldReplace())
+							{
+								pPilot->ReplaceTag(pTag);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (PreventPassengersEscape)
+		return;
+
+	// passenger escape chances
+	const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
+
+	// eject or kill all passengers
+	while (pThis->Passengers.GetFirstPassenger())
+	{
+		auto const pPassenger = pThis->RemoveFirstPassenger();
+		bool trySpawn = false;
+		if (passengerChance > 0)
+		{
+			trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
+		}
+		else if (passengerChance == -1 && Is_Unit(pThis))
+		{
+			Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
+			trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
+		}
+
+		if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, Select))
+		{
+			continue;
+		}
+
+		// kill passenger, if not spawned
+		pPassenger->RegisterDestruction(pKiller);
+		pPassenger->UnInit();
+	}
+}
+
+DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+{
+	//GET(UnitTypeClass*, pType, EAX);
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pKiller, 0x54);
 	GET_STACK(bool, select, 0x13);
 	GET_STACK(bool, ignoreDefenses, 0x58);
 	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x44, -0x18));
 
-	if (pType->OpenTopped) {
-		pThis->MarkPassengersAsExited();
-	}
-
-	bool SurvivourSparned = false;
-	if (!ignoreDefenses)
-	{
-		// TODO : full port this
-		SurvivourSparned = true;
-		AresData::SpawnSurvivors(pThis, pKiller, select, ignoreDefenses);
-	}
-
-	if (!preventPassangersEscape && !SurvivourSparned)
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-		// passenger escape chances
-		const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
-
-		// eject or kill all passengers
-		while (pThis->Passengers.GetFirstPassenger())
-		{
-			const auto pPassenger = pThis->RemoveFirstPassenger();
-			bool trySpawn = false;
-			if (passengerChance > 0)
-			{
-				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
-			}
-			else if (passengerChance == -1 && Is_Unit(pThis))
-			{
-				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
-				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
-			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, select))
-			{
-				continue;
-			}
-
-			// kill passenger, if not spawned
-			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller, true);
-		}
-	}
+	SpawnSurvivors(pThis, pKiller, select, ignoreDefenses , preventPassangersEscape);
 
 	R->EBX(-1);
-	//return 0x737F97;
 	return 0x73838A;
 }
 
@@ -492,50 +593,11 @@ DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
 	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x14, -0x18));
 
 	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
-	bool SurvivourSparned = false;
 
-	if (!ignoreDefenses)
-	{
-		// TODO : complete port this
-		SurvivourSparned = true;
-		AresData::SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses);
-	}
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-
-	if (!preventPassangersEscape && !SurvivourSparned)
-	{
-		// passenger escape chances
-		const auto passengerChance = pTypeExt->Survivors_PassengerChance.Get(pThis);
-
-		// eject or kill all passengers
-		while (pThis->Passengers.GetFirstPassenger())
-		{
-			const auto pPassenger = pThis->RemoveFirstPassenger();
-			bool trySpawn = false;
-
-			if (passengerChance > 0)
-			{
-				trySpawn = ScenarioClass::Instance->Random.RandomRanged(1, 100) <= passengerChance;
-			}
-			else if (passengerChance == -1 && Is_Unit(pThis))
-			{
-				Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
-				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
-			}
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, bSelected))
-			{
-				continue;
-			}
-
-			// kill passenger, if not spawned
-			pPassenger->RegisterDestruction(pKiller);
-			TechnoExt::HandleRemove(pPassenger, pKiller, true);
-		}
-	}
+	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses , preventPassangersEscape);
 
 	// Crashable support for aircraft
-	const auto& nCrashable = pTypeExt->Crashable;
+	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->Type)->Crashable;
 	if (!nCrashable.Get(true))
 	{
 		R->EAX(0);
@@ -555,16 +617,14 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 	if (TechnoTypeExt::ExtMap.Find(pType)->TiberiumRemains
 		.Get(pType->TiberiumHeal && RulesExt::Global()->Tiberium_HealEnabled))
 	{
-		CoordStruct crd = pThis->GetCoords();
-		CellClass* pCenter = MapClass::Instance->GetCellAt(crd);
+		const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
 
 		// increase the tiberium for the four neighbours and center.
 		// center is retrieved by getting a neighbour cell index >= 8
 		for (auto i = 0u; i < 5u; ++i)
 		{
-			CellClass* pCell = pCenter->GetNeighbourCell(2 * i);
-			int value = ScenarioClass::Instance->Random.RandomRanged(0, 2);
-			pCell->IncreaseTiberium(0, value);
+			pCenter->GetNeighbourCell(2 * i)
+			->IncreaseTiberium(0, ScenarioClass::Instance->Random.RandomFromMax(2));
 		}
 	}
 
@@ -637,7 +697,7 @@ DEFINE_OVERRIDE_HOOK(0x702200, TechnoClass_ReceiveDamage_SpillTiberium, 6)
 			for (auto neighbour : Neighbours)
 			{
 				// spill random amount
-				int amount = ScenarioClass::Instance->Random.RandomRanged(0, 2);
+				int amount = ScenarioClass::Instance->Random.RandomFromMax(2);
 				CellClass* pCell = pCenter->GetNeighbourCell(neighbour);
 				pCell->IncreaseTiberium(0, amount);
 				value -= amount;
