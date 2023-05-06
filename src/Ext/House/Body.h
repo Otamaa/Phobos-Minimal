@@ -11,12 +11,23 @@
 class HouseExt
 {
 public:
-	static constexpr size_t Canary = 0x11111111;
-	using base_type = HouseClass;
-	static constexpr size_t ExtOffset = 0x16098;
+	static std::vector<int> AIProduction_CreationFrames;
+	static std::vector<int> AIProduction_Values;
+	static std::vector<int> AIProduction_BestChoices;
+	static std::vector<int> AIProduction_BestChoicesNaval;
+
+	static int LastGrindingBlanceUnit;
+	static int LastGrindingBlanceInf;
+	static int LastHarvesterBalance;
+	static int LastSlaveBalance;
 
 	class ExtData final : public Extension<HouseClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x11111111;
+		using base_type = HouseClass;
+		static constexpr size_t ExtOffset = 0x16098;
+
 	public:
 		PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
 		PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
@@ -85,12 +96,13 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const;
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
+		bool InvalidateIgnorable(void* ptr) const;
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 		void UpdateVehicleProduction();
 		void UpdateAutoDeathObjects();
@@ -100,19 +112,16 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<HouseExt> {
+	class ExtContainer final : public Container<HouseExt::ExtData> {
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		static bool LoadGlobals(PhobosStreamReader& Stm);
+		static bool SaveGlobals(PhobosStreamWriter& Stm);
 	};
 
 	static ExtContainer ExtMap;
-	static int LastGrindingBlanceUnit;
-	static int LastGrindingBlanceInf;
-	static int LastHarvesterBalance;
-	static int LastSlaveBalance;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);
@@ -125,6 +134,7 @@ public:
 	{
 		return 1;
 	}
+
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 
 	static bool IsObserverPlayer();
@@ -135,37 +145,22 @@ public:
 	static int FindGenericPrerequisite(const char* id);
 	static int GetHouseIndex(int param, TeamClass* pTeam, TActionClass* pTAction);
 
-	static bool IsDisabledFromShell(
-		HouseClass const* pHouse, BuildingTypeClass const* pItem);
+	static bool IsDisabledFromShell( HouseClass const* pHouse, BuildingTypeClass const* pItem);
 
-	static size_t FindOwnedIndex(
-	HouseClass const* pHouse, int idxParentCountry,
-	Iterator<TechnoTypeClass const*> items, size_t start = 0);
-
-	static size_t FindBuildableIndex(
-		HouseClass const* pHouse, int idxParentCountry,
-		Iterator<TechnoTypeClass const*> items, size_t start = 0);
+	static size_t FindOwnedIndex(HouseClass const* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
+	static size_t FindBuildableIndex(HouseClass const* pHouse, int idxParentCountry, Iterator<TechnoTypeClass const*> items, size_t start = 0);
 
 	template <typename T>
-	static T* FindOwned(
-		HouseClass const* const pHouse, int const idxParent,
-		Iterator<T*> const items, size_t const start = 0)
+	static T* FindOwned(HouseClass const* const pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
 		auto const index = FindOwnedIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
 
 	template <typename T>
-	static T* FindBuildable(
-		HouseClass const* const pHouse, int const idxParent,
-		Iterator<T*> const items, size_t const start = 0)
+	static T* FindBuildable( HouseClass const* const pHouse, int const idxParent, Iterator<T*> const items, size_t const start = 0)
 	{
 		auto const index = FindBuildableIndex(pHouse, idxParent, items, start);
 		return index < items.size() ? items[index] : nullptr;
 	}
-
-	static std::vector<int> AIProduction_CreationFrames;
-	static std::vector<int> AIProduction_Values;
-	static std::vector<int> AIProduction_BestChoices;
-	static std::vector<int> AIProduction_BestChoicesNaval;
 };

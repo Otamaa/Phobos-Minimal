@@ -1,18 +1,16 @@
 #include "Body.h"
 
-ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
-
-void ParticleTypeExt::ExtData::InitializeConstants() {
+void ParticleTypeExt::ExtData::Initialize() {
 	LaserTrail_Types.reserve(2);
 }
 
-void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
+	if (parseFailAddr)
+		return;
+
 	auto pThis = this->Get();
 	const char* pID = this->Get()->ID;
-
-	if (!pINI->GetSection(pID))
-		return;
 
 	INI_EX exINI(pINI);
 
@@ -54,6 +52,7 @@ template <typename T>
 void ParticleTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->LaserTrail_Types)
 		.Process(this->ReadjustZ)
 		.Process(this->Palette)
@@ -66,33 +65,9 @@ void ParticleTypeExt::ExtData::Serialize(T& Stm)
 #endif
 }
 
-void ParticleTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<ParticleTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ParticleTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<ParticleTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool ParticleTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool ParticleTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
-
+ParticleTypeExt::ExtContainer ParticleTypeExt::ExtMap;
 ParticleTypeExt::ExtContainer::ExtContainer() : Container("ParticleTypeClass") {}
 ParticleTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -143,6 +118,6 @@ DEFINE_HOOK(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 	GET(ParticleTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
 
-	ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	ParticleTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
 	return 0;
 }

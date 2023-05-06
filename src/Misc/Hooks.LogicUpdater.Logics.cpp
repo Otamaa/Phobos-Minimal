@@ -70,7 +70,7 @@ void TechnoExt::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 #endif
 	if (!Is_Building(pThis))
 	{
-		if (pTypeExt->LaserTrailData.size() > 0 && !pExt->Type->Invisible)
+		if (!pTypeExt->LaserTrailData.empty() && !pExt->Type->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 
 		TechnoExt::InitializeLaserTrail(pThis, false);

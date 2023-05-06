@@ -18,11 +18,14 @@ class TechnoClass;
 class BulletExt
 {
 public:
-	static constexpr size_t Canary = 0x2A2A2A2A;
-	using base_type = BulletClass;
+	static TechnoClass* InRangeTempFirer;
 
 	class ExtData final : public Extension<BulletClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x2A2A2A2A;
+		using base_type = BulletClass;
+
 	public:
 		int CurrentStrength;
 		bool IsInterceptor;
@@ -71,11 +74,11 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override;
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants()override ;
+		void InvalidatePointer(void* ptr, bool bRemoved);
+		bool InvalidateIgnorable(void* ptr) const;
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	
 		void ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel);
 		void InitializeLaserTrails();
@@ -85,16 +88,14 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BulletExt> {
+	class ExtContainer final : public Container<BulletExt::ExtData> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		static bool InvalidateIgnorable(void* ptr)
 		{
-			switch ((((DWORD*)ptr)[0]))
+			switch (VTable::Get(ptr))
 			{
 			case BuildingClass::vtable:
 			case InfantryClass::vtable:
@@ -105,13 +106,31 @@ public:
 				return true;
 			}
 		}
+
+		static void InvalidatePointer(void* ptr, bool bRemoved)
+		{
+			AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr);
+		}
+
+		static bool LoadGlobals(PhobosStreamReader& Stm)
+		{
+			return Stm
+				.Process(BulletExt::InRangeTempFirer)
+				.Success();
+		}
+
+		static bool SaveGlobals(PhobosStreamWriter& Stm)
+		{
+			return Stm
+				.Process(BulletExt::InRangeTempFirer)
+				.Success();
+		}
 	};
 
-	static void InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon);
-	static void DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord = CoordStruct::Empty , HouseClass* pBulletOwner = nullptr);
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon);
+	static void DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord = CoordStruct::Empty, HouseClass* pBulletOwner = nullptr);
 
 	static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation);
 	static HouseClass* GetHouse(BulletClass* const pThis);
@@ -125,6 +144,4 @@ public:
 	static bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true);
 	static void ApplyShrapnel(BulletClass* pThis);
 	static DWORD ApplyAirburst(BulletClass* pThis);
-
-	static TechnoClass* InRangeTempFirer;
 };

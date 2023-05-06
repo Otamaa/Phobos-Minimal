@@ -12,12 +12,13 @@
 class AnimTypeExt
 {
 public:
-	using base_type = AnimTypeClass;
-	static constexpr size_t Canary = 0xEEEEEEEE;
-	//static constexpr size_t ExtOffset = 0x374;
-
 	class ExtData final : public Extension<AnimTypeClass>
 	{
+	public:
+		using base_type = AnimTypeClass;
+		static constexpr size_t Canary = 0xEEEEEEEE;
+		//static constexpr size_t ExtOffset = 0x374;
+
 	public:
 		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Valueable<UnitTypeClass*> CreateUnit;
@@ -143,12 +144,12 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InitializeConstants() override;
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void Initialize();
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void ValidateSpalshAnims();
 	private:
@@ -156,7 +157,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<AnimTypeExt>
+	class ExtContainer final : public Container<AnimTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -165,12 +166,8 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static const void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr);
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
+	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr);
 	static OwnerHouseKind SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim);
-
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 };

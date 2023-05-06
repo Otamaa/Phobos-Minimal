@@ -16,7 +16,7 @@ void ReplaceImageInfantry(InfantryTypeClass* pType)
 	{
 		//Debug::Log("[Phobos] Replacing image for %s with %s.\n", pType->ImageFile, nameBuffer);
 		char filename[0x105];
-		_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+		_makepath_s(filename, 0, 0, nameBuffer, GameStrings::dot_SHP());
 		pType->Image = GameCreate<SHPReference>(filename);
 	}
 }
@@ -38,7 +38,7 @@ void ReplaceImageUnit(UnitTypeClass* pType)
 		else
 		{
 			char filename[0x105];
-			_makepath_s(filename, 0, 0, nameBuffer, ".SHP");
+			_makepath_s(filename, 0, 0, nameBuffer, GameStrings::dot_SHP());
 			pType->Image = GameCreate<SHPReference>(filename);
 		}
 	}

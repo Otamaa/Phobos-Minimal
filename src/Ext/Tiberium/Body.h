@@ -11,11 +11,12 @@ class AnimTypeClass;
 class TiberiumExt
 {
 public:
-	static constexpr size_t Canary = 0xB16B00B5;
-	using base_type = TiberiumClass;
-
 	class ExtData final : public Extension<TiberiumClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xB16B00B5;
+		using base_type = TiberiumClass;
+
 	public:
 		Valueable<PaletteManager*> Palette; //CustomPalette::PaletteMode::Temperate
 		Nullable<AnimTypeClass*> OreTwinkle;
@@ -62,12 +63,10 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void Initialize() override { } //Init After INI Read
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize() { } //Init After INI Read
 
 		inline AnimTypeClass* GetTwinkleAnim() const {
 			return this->OreTwinkle.Get(RulesClass::Instance->OreTwinkle);
@@ -90,7 +89,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TiberiumExt>
+	class ExtContainer final : public Container<TiberiumExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -98,7 +97,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

@@ -2312,7 +2312,7 @@ DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
 	const auto& nVec = GetGunnerName(pType);
 
 	const wchar_t* Text = nullptr;
-	if (nCurWp < nVec.size())
+	if (nCurWp < (int)nVec.size())
 	{
 		Text = nVec[nCurWp].Text;
 	}

@@ -25,11 +25,12 @@ class WarheadTypeClass;
 class RulesExt
 {
 public:
-	static constexpr size_t Canary = 0x12341234;
-	using base_type = RulesClass;
-
 	class ExtData final : public Extension<RulesClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x12341234;
+		using base_type = RulesClass;
+
 	public:
 		Valueable<Point3D> Pips_Shield;
 		Valueable<Point3D> Pips_Shield_Buildings;
@@ -287,17 +288,16 @@ public:
 		{ }
 
 		virtual ~ExtData() = default;
-		void Uninitialize() { }
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
-		virtual void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
-		virtual void InitializeConstants() override;
+
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
+		void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
+
+		void Initialize();
 		void InitializeAfterTypeData(RulesClass* pThis);
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
@@ -306,7 +306,6 @@ public:
 
 private:
 	static std::unique_ptr<ExtData> Data;
-
 public:
 	static IStream* g_pStm;
 
@@ -321,6 +320,7 @@ public:
 	static void LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
+
 	static ExtData* Global()
 	{
 		return Data.get();
@@ -331,21 +331,7 @@ public:
 		Allocate(RulesClass::Instance);
 	}
 
-	static void PointerGotInvalid(void* ptr, bool removed)
-	{
-		if (auto pGlobal = Global()) {
-			if (pGlobal->InvalidateIgnorable(ptr))
-				return;
-
-			pGlobal->InvalidatePointer(ptr, removed);
-		}
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
-
 	static void FillDefaultPrerequisites(CCINIClass* pRules);
 };

@@ -30,7 +30,7 @@ DEFINE_HOOK(0x457188, BuildingClass_Radar_Cloak_Observer_A, 0xA)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Show;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Show;
 
 	return Continue;
@@ -46,7 +46,7 @@ DEFINE_HOOK(0x70D386, BuildingClass_Radar_Cloak_Observer_B, 0xA)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Show;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Show;
 
 	return Continue;
@@ -62,7 +62,7 @@ DEFINE_HOOK(0x4AE62B, DisplayClass_HelpText_CheckCloak_Observer, 0x5)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return CheckInvisible;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return CheckInvisible;
 
 	return Continue;
@@ -78,7 +78,7 @@ DEFINE_HOOK(0x4ABE3C, DisplayClass_Mouse_Left_Release_Cloak_Observer, 0xA)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Select;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Select;
 
 	return Continue;
@@ -97,7 +97,7 @@ DEFINE_HOOK(0x6F4F10, TechnoClass_6F4EB0_Cloak_Observer, 0x5)
 	if (pCurPlayer == pTechno->Owner)
 		return DonotUnselect;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return DonotUnselect;
 
 	R->EAX(pCurPlayer);
@@ -114,7 +114,7 @@ DEFINE_HOOK(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak_Observer, 0x5)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Allow;
 
 	return Continue;
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak_Observer, 0x5)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Allow;
 
 	return Continue;
@@ -146,17 +146,14 @@ DEFINE_HOOK(0x6DA412, Tactical_Select_At_Observer, 0x6)
 	if (pCurPlayer && pCurPlayer->IsObserver())
 		return Allow;
 
-	if (pTechno->Owner && pTechno->Owner->IsAlliedWith(pCurPlayer))
+	if (pTechno->Owner && pTechno->Owner->IsAlliedWith_(pCurPlayer))
 		return Allow;
 
 	return Continue;
 }
 
 //Fix crash 6F9DB6
-DEFINE_HOOK(0x5F58CB, ObjectClass_Mark_SkipThis, 0x7)
-{
-	return 0x5F58D2;
-}
+DEFINE_SKIP_HOOK(0x5F58CB, ObjectClass_Mark_SkipThis, 0x7, 5F58D2);
 
 #include <TriggerTypeClass.h>
 

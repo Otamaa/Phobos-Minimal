@@ -14,12 +14,14 @@
 class ParticleExt
 {
 public:
-	static constexpr size_t Canary = 0xAAAABBBB;
-	using base_type = ParticleClass;
-	//static constexpr size_t ExtOffset = 0x134;
 
 	class ExtData final : public Extension<ParticleClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xAAAABBBB;
+		using base_type = ParticleClass;
+		//static constexpr size_t ExtOffset = 0x134;
+
 	public:
 
 		std::vector<LaserTrailClass> LaserTrails;
@@ -34,19 +36,16 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		void Uninitialize();
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleExt>
+	class ExtContainer final : public Container<ParticleExt::ExtData>
 	{
 	public:
 		ExtContainer();

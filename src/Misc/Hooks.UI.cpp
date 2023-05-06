@@ -156,9 +156,9 @@ DEFINE_HOOK(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::R
 	_strlwr_s(pFilename);
 
 	if (_stricmp(pFilename, GameStrings::XXICON_SHP())
-		&& CRT::strstr(pFilename, ".shp"))
+		&& strstr(pFilename, GameStrings::dot_SHP()))
 	{
-		if (auto pFile = FileSystem::LoadFile(RulesExt::Global()->MissingCameo, false))
+		if (const auto pFile = FileSystem::LoadFile(RulesExt::Global()->MissingCameo.data(), false))
 		{
 			R->EAX(pFile);
 			return R->Origin() + 0xC;

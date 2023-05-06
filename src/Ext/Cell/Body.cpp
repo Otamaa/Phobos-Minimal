@@ -1,7 +1,5 @@
 #include "Body.h"
 
-CellExt::ExtContainer CellExt::ExtMap;
-
 TiberiumClass* CellExt::GetTiberium(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1)
@@ -40,37 +38,13 @@ template <typename T>
 void CellExt::ExtData::Serialize(T& Stm) {
 
 	Stm
-		//.Process(AttachedTerrain)
+		.Process(this->Initialized)
 		;
-}
-
-void CellExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<CellClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void CellExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<CellClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool CellExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool CellExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
 }
 
 // =============================
 // container
-
+CellExt::ExtContainer CellExt::ExtMap;
 CellExt::ExtContainer::ExtContainer() : Container("CellClass") { };
 CellExt::ExtContainer::~ExtContainer() = default;
 

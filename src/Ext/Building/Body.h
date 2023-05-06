@@ -15,12 +15,13 @@
 class BuildingExt
 {
 public:
-	static constexpr size_t Canary = 0x87654321;
-	using base_type = BuildingClass;
-	//static constexpr size_t ExtOffset = 0x6FC;
-
 	class ExtData final : public Extension<BuildingClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x87654321;
+		using base_type = BuildingClass;
+		//static constexpr size_t ExtOffset = 0x6FC;
+
 	public:
 		BuildingTypeExt::ExtData* Type;
 		TechnoExt::ExtData* TechnoExt;
@@ -62,11 +63,11 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override;
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+
+		void InvalidatePointer(void* ptr, bool bRemoved);
+		bool InvalidateIgnorable(void* ptr) const;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		bool HasSuperWeapon(int index, bool withUpgrades) const;
 		bool RubbleYell(bool beingRepaired);
@@ -80,7 +81,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingExt>
+	class ExtContainer final : public Container<BuildingExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -89,11 +90,7 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
-
 	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);
 	static int CountOccupiedDocks(BuildingClass* pBuilding);
 	static bool HasFreeDocks(BuildingClass* pBuilding);
@@ -101,7 +98,6 @@ public:
 	static bool DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts);
 	static CoordStruct GetCenterCoords(BuildingClass* pThis, bool includeBib = false);
 	static bool HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse);
-
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void LimboKill(BuildingClass* pBld);
 	static void ApplyLimboKill(ValueableVector<int>& LimboIDs,Valueable<AffectedHouse>& Affects , HouseClass* pTargetHouse , HouseClass* pAttackerHouse);

@@ -5,11 +5,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-WaveExt::ExtContainer WaveExt::ExtMap;
-
-void WaveExt::ExtData::Initialize()
-{ }
-
 void  WaveExt::ExtData::InitWeaponData()
 {
 	if (!this->Weapon)
@@ -154,6 +149,7 @@ template <typename T>
 void WaveExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Weapon)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
@@ -162,32 +158,9 @@ void WaveExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void WaveExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<WaveClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void WaveExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<WaveClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool WaveExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool WaveExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+WaveExt::ExtContainer WaveExt::ExtMap;
 
 WaveExt::ExtContainer::ExtContainer() : Container("WaveClass") {}
 WaveExt::ExtContainer::~ExtContainer() = default;
@@ -251,8 +224,7 @@ DEFINE_HOOK(0x75F623, WaveClass_Detach, 0x6)
 	GET_BASE(void*, pTarget, 0x4);
 	GET_BASE(bool, bRemove, 0x8);
 
-	if (auto pExt = WaveExt::ExtMap.Find(pItem))
-		pExt->InvalidatePointer(pTarget, bRemove);
+	WaveExt::ExtMap.InvalidatePointerFor(pItem, pTarget, bRemove);
 
 	return 0;
 }

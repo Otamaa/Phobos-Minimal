@@ -35,7 +35,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (!pThis || !Is_Techno(pThis))
+	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
 		return 0x0;
 
 	auto const pType = pThis->GetTechnoType();

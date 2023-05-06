@@ -18,11 +18,14 @@
 class WeaponTypeExt
 {
 public:
-	static constexpr size_t Canary = 0x22222222;
-	using base_type = WeaponTypeClass;
+	static int nOldCircumference;
 
 	class ExtData final : public Extension<WeaponTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x22222222;
+		using base_type = WeaponTypeClass;
+
 	public:
 
 		Valueable<double> DiskLaser_Radius;
@@ -195,13 +198,11 @@ public:
 		{ }
 
 		virtual ~ExtData() override  = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override;
-		virtual void InitializeConstants()override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void Initialize();
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		bool IsWave() const {
 			auto const pThis = this->OwnerObject();
@@ -217,37 +218,30 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final :public Container<WeaponTypeExt>
+	class ExtContainer final :public Container<WeaponTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		static bool LoadGlobals(PhobosStreamReader& Stm)
 		{
-			switch (GetVtableAddr(ptr))
-			{
-			case WeaponTypeClass::vtable:
-				return false;
-			}
-
-			return true;
+			return Stm
+				.Process(nOldCircumference)
+				.Success();
 		}
 
+		static bool SaveGlobals(PhobosStreamWriter& Stm)
+		{
+			return Stm
+				.Process(nOldCircumference)
+				.Success();
+		}
 	};
 
 	static ExtContainer ExtMap;
 
-	static WeaponTypeClass* Temporal_WP;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static int nOldCircumference;
-
 	static int GetBurstDelay(WeaponTypeClass* pThis , int burstIndex);
-
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner);

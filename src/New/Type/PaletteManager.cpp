@@ -80,14 +80,19 @@ bool PaletteManager::LoadFromCachedName()
 void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 {
 	this->Clear_Internal();
+	this->CachedName =
+		GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
 
 	bool hasPalette = false;
-	if (Stm.Load(hasPalette) && hasPalette) {
-		this->Palette.reset(GameCreate<BytePalette>());
-		if (Stm.Load(*this->Palette)) {
-			this->CachedName =
-				GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
+	auto ret = Stm.Load(hasPalette);
 
+	if (ret && hasPalette)
+	{
+		this->Palette.reset(GameCreate<BytePalette>());
+		ret = Stm.Load(*this->Palette);
+
+		if (ret)
+		{
 			this->CreateConvert();
 		}
 	}

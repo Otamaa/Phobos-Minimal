@@ -15,13 +15,6 @@
 #include <SmudgeTypeClass.h>
 
 //std::vector<CellClass*> AnimExt::AnimCellUpdater::Marked;
-AnimExt::ExtContainer AnimExt::ExtMap;
-
-void AnimExt::ExtData::InitializeConstants()
-{
-	CreateAttachedSystem();
-}
-
 void AnimExt::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
@@ -313,9 +306,9 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 	return nullptr;
 }
 
-bool AnimExt::ExtData::InvalidateIgnorable(void* const ptr) const
+bool AnimExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
-	switch ((((DWORD*)ptr)[0]))
+	switch (VTable::Get(ptr))
 	{
 	case BuildingClass::vtable:
 	case InfantryClass::vtable:
@@ -330,30 +323,11 @@ bool AnimExt::ExtData::InvalidateIgnorable(void* const ptr) const
 
 void AnimExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(this->Invoker, ptr);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr);
-	AnnounceInvalidPointer(this->AttachedSystem, ptr);
-}
 
-// =============================
-// load / save
-
-template <typename T>
-void AnimExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->BackupCoords)
-		.Process(this->DeathUnitFacing)
-		.Process(this->DeathUnitTurretFacing)
-		.Process(this->Invoker)
-		.Process(this->AttachedSystem)
-		.Process(this->OwnerSet)
-		//.Process(this->SpawnData)
-		.Process(this->ParentBuilding)
-		;
+	if (this->AttachedSystem && this->AttachedSystem.get() == ptr)
+		this->AttachedSystem.reset(nullptr);
 }
 
 void AnimExt::ExtData::CreateAttachedSystem()
@@ -370,17 +344,7 @@ void AnimExt::ExtData::CreateAttachedSystem()
 		nLoc.Z += 100;
 
 	if (auto const pSystem = GameCreate<ParticleSystemClass>(pData->AttachedSystem.Get(), nLoc, pThis->GetCell(), pThis, CoordStruct::Empty, pThis->GetOwningHouse()))
-		this->AttachedSystem = pSystem;
-}
-
-void AnimExt::ExtData::DeleteAttachedSystem()
-{
-	if (!this->AttachedSystem)
-		return;
-
-	this->AttachedSystem->Owner = nullptr;
-	this->AttachedSystem->UnInit();
-	this->AttachedSystem = nullptr;
+		this->AttachedSystem.reset(pSystem);
 }
 
 //Modified from Ares
@@ -422,7 +386,7 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 		// this return also will prevent Techno `Invoker` to be set !
 		return false;
 
-	if(auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
+	if (auto const pAnimExt = AnimExt::ExtMap.Find(pAnim))
 		pAnimExt->Invoker = pTechnoInvoker;
 
 	if (pTypeExt->CreateUnit.Get())
@@ -443,41 +407,6 @@ const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker
 
 	return true; //yes return true
 }
-
-//Modified from Ares
-//const bool AnimExt::SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner)
-//{
-//	auto const pExt = AnimTypeExt::ExtMap.Find(pAnim->Type);
-//
-//	if (!pExt->NoOwner)
-//	{
-//		if (!pExt->CreateUnit.Get())
-//		{
-//			if (!pAnim->Owner && pInvoker)
-//				pAnim->SetHouse(pInvoker);
-//
-//			return true; //yes return true
-//		}
-//		else
-//		{
-//			if (auto const newOwner = HouseExt::GetHouseKind(pExt->CreateUnit_Owner.Get(), true, defaultToVictimOwner ? pVictim : nullptr, pInvoker, pVictim))
-//			{
-//
-//				pAnim->SetHouse(newOwner);
-//				AnimExt::ExtMap.Find(pAnim)->OwnerSet = true;
-//
-//				if (pExt->CreateUnit_RemapAnim.Get() && !newOwner->Defeated)
-//					pAnim->LightConvert = ColorScheme::Array->Items[newOwner->ColorSchemeIndex]->LightConvert;
-//
-//				return true;//yes
-//			}
-//		}
-//	}
-//
-//	// no we dont set the owner
-//	// this return also will prevent Techno `Invoker` to be set !
-//	return false;
-//}
 
 TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 {
@@ -534,48 +463,43 @@ Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
 	return pThis->Type ? pThis->Type->Layer : Layer::Air;
 }
 
-bool AnimExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		//.Process(AnimCellUpdater::Marked)
-		.Success();
-}
+// =============================
+// load / save
 
-bool AnimExt::SaveGlobals(PhobosStreamWriter& Stm)
+template <typename T>
+void AnimExt::ExtData::Serialize(T& Stm)
 {
-	return Stm
-		//.Process(AnimCellUpdater::Marked)
-		.Success();
+	Stm
+		.Process(this->Initialized)
+		.Process(this->BackupCoords)
+		.Process(this->DeathUnitFacing)
+		.Process(this->DeathUnitTurretFacing)
+		.Process(this->Invoker)
+		.Process(this->OwnerSet)
+		.Process(this->AttachedSystem)
+		.Process(this->ParentBuilding)
+		;
 }
 
 // =============================
 // container
-void AnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<AnimClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
 
-void AnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<AnimClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
+AnimExt::ExtContainer AnimExt::ExtMap;
 AnimExt::ExtContainer::ExtContainer() : Container("AnimClass") { }
 AnimExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
-// container hooks
-
-//DEFINE_HOOK_AGAIN(0x4226F0, AnimClass_AltExt_CTOR, 0x6)
-//DEFINE_HOOK_AGAIN(0x4228D2, AnimClass_AltExt_CTOR, 0x5)
+// hooks
 
 //Only Extend Anim that Has "Type" Pointer
 DEFINE_HOOK(0x422131, AnimClass_CTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-	AnimExt::ExtMap.Allocate(pItem);
+
+	if (auto pExt = AnimExt::ExtMap.Allocate(pItem)) {
+		pExt->CreateAttachedSystem();
+	}
+
 	return 0;
 }
 
@@ -616,22 +540,8 @@ DEFINE_HOOK(0x425164, AnimClass_Detach, 0x6)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pAnimExt = AnimExt::ExtMap.Find(pThis))
-	{
-		pAnimExt->InvalidatePointer(target, all);
-	}
+	AnimExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	R->EBX(0);
 	return pThis->OwnerObject == target && target ? 0x425174 : 0x4251A3;
 }
-
-//remove from CRC
-//DEFINE_JUMP(LJMP, 0x42543A, 0x425448)
-//
-//DEFINE_HOOK_AGAIN(0x421EF4, AnimClass_CTOR_setD0, 0x6)
-//DEFINE_HOOK(0x42276D, AnimClass_CTOR_setD0, 0x6)
-//{
-//	GET(AnimClass*, pThis, ESI);
-//	pThis->unknown_D0 = 0;
-//	return R->Origin() + 0x6;
-//}

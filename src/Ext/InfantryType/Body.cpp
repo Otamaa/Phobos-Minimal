@@ -2,19 +2,13 @@
 
 #include <Ext/Infantry/Body.h>
 
-InfantryTypeExt::ExtContainer InfantryTypeExt::ExtMap;
-
-void InfantryTypeExt::ExtData::InitializeConstants()
-{
-}
-
-void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Get()->ID;
 
 	INI_EX exINI(pINI);
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	this->C4Delay.Read(exINI, pID, "C4Delay");
@@ -63,6 +57,7 @@ template <typename T>
 void InfantryTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->C4Delay)
 		.Process(this->C4ROF)
 		.Process(this->C4Damage)
@@ -73,33 +68,9 @@ void InfantryTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-bool InfantryTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool InfantryTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
-
-void InfantryTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<InfantryTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void InfantryTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<InfantryTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
+InfantryTypeExt::ExtContainer InfantryTypeExt::ExtMap;
 InfantryTypeExt::ExtContainer::ExtContainer() : Container("InfantryTypeClass") { }
 InfantryTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -157,6 +128,6 @@ DEFINE_HOOK(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xD0);
-	InfantryTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	InfantryTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
 	return 0;
 }

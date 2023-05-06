@@ -3,9 +3,8 @@
 #include <FPSCounter.h>
 #include <BitFont.h>
 
+IStream* TacticalExt::g_pStm = nullptr;
 std::unique_ptr<TacticalExt::ExtData> TacticalExt::Data = nullptr;
-
-void TacticalExt::ExtData::InitializeConstants() { }
 
 void TacticalExt::Allocate(TacticalClass* pThis)
 {
@@ -24,31 +23,9 @@ template <typename T>
 void TacticalExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		;
 }
-
-void TacticalExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TacticalClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TacticalExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TacticalClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TacticalExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool TacticalExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 
 // =============================
 // container hooks
@@ -69,8 +46,6 @@ DEFINE_HOOK(0x6D1E9B, TacticalClass_DTOR, 0xA)
 	TacticalExt::Remove(pItem);
 	return 0;
 }
-
-IStream* TacticalExt::g_pStm = nullptr;
 
 DEFINE_HOOK_AGAIN(0x6DBD20, TacticalClass_SaveLoad_Prefix, 0x7)
 DEFINE_HOOK(0x6DBE00, TacticalClass_SaveLoad_Prefix, 0x8)
@@ -93,7 +68,7 @@ DEFINE_HOOK(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(TacticalExt::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(TacticalExt::ExtData::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -110,7 +85,7 @@ DEFINE_HOOK(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
 	PhobosByteStream saver(sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(TacticalExt::Canary);
+	writer.Expect(TacticalExt::ExtData::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);

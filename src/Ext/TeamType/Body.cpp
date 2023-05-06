@@ -1,13 +1,12 @@
 #include "Body.h"
 
-TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
-void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -23,6 +22,7 @@ template <typename T>
 void TeamTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->AI_SafeDIstance)
 		.Process(this->AI_FriendlyDistance)
 		.Process(this->AttackWaypoint_AllowCell)
@@ -30,32 +30,9 @@ void TeamTypeExt::ExtData::Serialize(T& Stm)
 
 }
 
-void TeamTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TeamTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TeamTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TeamTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TeamTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TeamTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
 
 TeamTypeExt::ExtContainer::ExtContainer() : Container("TeamTypeClass") { }
 TeamTypeExt::ExtContainer::~ExtContainer() = default;
@@ -110,7 +87,7 @@ DEFINE_HOOK(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
 {
 	GET(TeamTypeClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EBX);
-	TeamTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	TeamTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x6F1535);
 	return 0x0;
 }
 

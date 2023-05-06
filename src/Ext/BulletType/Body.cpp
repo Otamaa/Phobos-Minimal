@@ -7,16 +7,8 @@
 
 #include <Utilities/Macro.h>
 
-BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 const Leptons BulletTypeExt::DefaultBulletScatterMin = Leptons { 256 };
 const Leptons BulletTypeExt::DefaultBulletScatterMax = Leptons { 512 };
-
-void BulletTypeExt::ExtData::InitializeConstants()
-{
-	this->LaserTrail_Types.reserve(2);
-	this->AirburstWeapons.reserve(2);
-	this->LineTrailData.reserve(2);
-}
 
 double BulletTypeExt::GetAdjustedGravity(BulletTypeClass* pType)
 {
@@ -56,14 +48,6 @@ const ConvertClass* BulletTypeExt::ExtData::GetBulletConvert()
 
 		this->ImageConvert = pConvert;
 		return pConvert;
-	}
-}
-
-void BulletTypeExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
-{
-	if (TrajectoryType)
-	{
-		TrajectoryType->InvalidatePointer(ptr, bRemoved);
 	}
 }
 
@@ -108,7 +92,7 @@ void  BulletTypeExt::ExtData::Uninitialize()
 // =============================
 // load / save
 
-void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	auto pArtInI = &CCINIClass::INI_Art;
@@ -116,7 +100,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (pINI->GetSection(pSection))
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 
@@ -175,7 +159,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
 	}
 
-	if (pArtInI->GetSection(pArtSection)){
+	if (pArtInI && pArtInI->GetSection(pArtSection)){
 		INI_EX exArtINI(pArtInI);
 
 		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
@@ -203,6 +187,7 @@ template <typename T>
 void BulletTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Health)
 		.Process(this->Armor)
 		.Process(this->Interceptable)
@@ -261,35 +246,9 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
 
-void BulletTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<BulletTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void BulletTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<BulletTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-//void BulletTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {}
-
-bool BulletTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool BulletTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
-
+BulletTypeExt::ExtContainer BulletTypeExt::ExtMap;
 BulletTypeExt::ExtContainer::ExtContainer() : Container("BulletTypeClass") { }
 BulletTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -354,30 +313,7 @@ DEFINE_HOOK(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 	GET(BulletTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x90);
 
-	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI);
-
-	// is this good idea ,..
-	// by setting this properties , this will break some BulletClass functionality ,..
-	//pItem->Strength = 0;
-	//pItem->Armor = Armor::None;
+	BulletTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
 
 	return 0;
 }
-
-#ifndef ENABLE_NEWEXT
-//DEFINE_JUMP(LJMP, 0x46C1B8, 0x46C1CC);
-//DEFINE_JUMP(LJMP, 0x46C1E2, 0x46C1E8);
-//DEFINE_HOOK(0x74142D, UnitClass_FireAt_Scalable, 0x6)
-//{
-//	GET(BulletTypeClass*, pBulletType, EAX);
-//	R->CL(BulletTypeExt::ExtMap.Find(pBulletType)->IsScalable.Get());
-//	return 0x741433;
-//}
-//
-//DEFINE_HOOK(0x4685EC, BulletClass_Detach_Scalable, 0x6)
-//{
-//	GET(BulletTypeClass*, pBulletType, ECX);
-//	auto pExt = BulletTypeExt::ExtMap.Find(pBulletType);
-//	return pExt && pExt->IsScalable.Get() ? 0x4685F4 : 0x46865F;
-//}
-#endif

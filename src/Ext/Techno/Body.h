@@ -31,13 +31,14 @@ class REGISTERS;
 class TechnoExt
 {
 public:
-	static constexpr size_t Canary = 0x55555555;
-	using base_type = TechnoClass;
-	//static constexpr size_t ExtOffset = 0x4FC;
-	static constexpr size_t ExtOffset = 0x34C;
-
 	class ExtData : public Extension<TechnoClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x55555555;
+		using base_type = TechnoClass;
+		//static constexpr size_t ExtOffset = 0x4FC;
+		static constexpr size_t ExtOffset = 0x34C;
+
 	public:
 		TechnoTypeClass* Type;
 		OptionalStruct<AbstractType, true> AbsType;
@@ -187,16 +188,15 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override;
+		void InvalidatePointer(void* ptr, bool bRemoved);
+		bool InvalidateIgnorable(void* ptr) const;
 
 		ShieldClass* GetShield() const {
 			return this->Shield.get();
 		}
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		bool CheckDeathConditions();
 		bool UpdateKillSelf_Slave();
@@ -234,22 +234,15 @@ private:
 		int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData , FootClass const* pPassenger);
 	};
 
-	class ExtContainer final : public Container<TechnoExt>
+	class ExtContainer final : public Container<TechnoExt::ExtData>
 
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
-
-		bool InvalidateExtDataIgnorable(void* const ptr) const {
-			return false;
-		}
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static bool IsActive(TechnoClass* pThis ,bool bCheckEMP = true , bool bCheckDeactivated = false, bool bIgnoreLimbo = false,bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
 	static bool IsAlive(TechnoClass* pThis, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
@@ -257,9 +250,9 @@ private:
 
 	static bool IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker);
 
-	static inline bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
-	static inline bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
-	static inline bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
+	static bool IsOnLimbo(TechnoClass* pThis, bool bIgnore);
+	static bool IsDeactivated(TechnoClass* pThis, bool bIgnore);
+	static bool IsUnderEMP(TechnoClass* pThis, bool bIgnore);
 
 	static int GetSizeLeft(FootClass* const pThis);
 	static void Stop(TechnoClass* pThis, Mission const& eMission = Mission::Guard);
@@ -346,7 +339,7 @@ private:
 	static bool InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget);
 	static bool TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static bool TargetFootAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon);
-	static std::pair<TechnoClass*, CellClass*> TechnoExt::GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
+	static std::pair<TechnoClass*, CellClass*> GetTargets(ObjectClass* pObjTarget, AbstractClass* pTarget);
 	static int GetDeployFireWeapon(UnitClass* pThis);
 
 	static void SetMissionAfterBerzerk(TechnoClass* pThis ,bool Immediete = false);
@@ -355,7 +348,7 @@ private:
 	static int GetThreadPosed(TechnoClass* pThis);
 
 	static bool IsReallyTechno(TechnoClass* pThis);
-protected:
+
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
 };

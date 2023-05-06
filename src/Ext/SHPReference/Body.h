@@ -9,12 +9,13 @@
 class SHPRefExt
 {
 public:
-	static constexpr DWORD Canary = 0xAB5005BA;
-	using base_type = SHPReference;
-	static constexpr size_t ExtOffset = 0x20;
-
 	class ExtData final : public Extension<SHPReference>
 	{
+	public:
+		static constexpr DWORD Canary = 0xAB5005BA;
+		using base_type = SHPReference;
+		static constexpr size_t ExtOffset = 0x20;
+
 	public:
 
 		SHPReference* Alpha;
@@ -25,13 +26,11 @@ public:
 		{}
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void InitializeConstants() override;
+		void Initialize();
 
 	};
 
-	class ExtContainer final : public Container<SHPRefExt>
+	class ExtContainer final : public Container<SHPRefExt::ExtData>
 	{
 	public:
 		ExtContainer();

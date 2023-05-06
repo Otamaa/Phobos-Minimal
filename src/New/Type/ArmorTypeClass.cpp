@@ -13,6 +13,7 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , DefaultTo { -1 }
 , DefaultString { }
 , DefaultVersesValue { }
+, IsVanillaArmor { false }
 , BaseTag {}
 , FF_Tag {}
 , RT_Tag {}
@@ -45,7 +46,8 @@ void ArmorTypeClass::AddDefaults()
 {
 	for (auto const& nDefault : Unsorted::ArmorNameArray)
 	{
-		FindOrAllocate(nDefault);
+		if (auto pVanillaArmor = FindOrAllocate(nDefault))
+			pVanillaArmor->IsVanillaArmor = true;
 	}
 }
 
@@ -81,10 +83,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 void ArmorTypeClass::EvaluateDefault()
 {
-	if (IsDefault(this->Name.data()))
-		return;
-
-	if (!strlen(this->DefaultString.data()))
+	if (IsDefault(this->Name.data()) || !strlen(this->DefaultString.data()))
 		return;
 
 	if (DefaultTo == -1)
@@ -92,10 +91,11 @@ void ArmorTypeClass::EvaluateDefault()
 		const auto pArmor = Find(this->DefaultString.data());
 
 		if (this->ArrayIndex < pArmor->ArrayIndex)
-			Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] which had higher array index from itself !\n",
+		{
+			Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] with higher array index from itself !\n",
 			this->ArrayIndex, this->Name.data(),
 			pArmor->ArrayIndex, pArmor->Name.data());
-
+		}
 
 		DefaultTo = pArmor->ArrayIndex;
 	}
@@ -131,19 +131,9 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	}
 }
 
-void ReEvalueate(CCINIClass* pINI, WarheadTypeClass* pWH)
-{
-}
-
 void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 {
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
-
-	if (!pWHExt)
-	{
-		return;
-	}
-
 	char ret[0x64];
 	const char* section = pWH->get_ID();
 
@@ -155,23 +145,72 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 
 		if (pINI->ReadString(section, pArmor->BaseTag.data(), Phobos::readDefval, ret))
 		{
+
 			pWHExt->Verses[i].Parse_NoCheck(ret);
 		}
-		else if (pArmor->DefaultTo != -1)
+		else // no custom value found
 		{
-			const int nDefault = pArmor->DefaultTo;
-			if (i < nDefault)
-			{
-				Debug::Log("Warhead [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
-			}
+			if (pArmor->DefaultTo != -1)
+			{ //evaluate armor with valid default index
+				const size_t nDefault = (size_t)pArmor->DefaultTo;
+				if (i < nDefault)
+				{
+					Debug::Log("Warhead [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
+						section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
 
-			pWHExt->Verses[i] = pWHExt->Verses[nDefault];
+					pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
+
+				}
+				else
+				{
+					pWHExt->Verses[i] = pWHExt->Verses[nDefault];
+				}
+
+			}
+			else if (!pArmor->IsVanillaArmor)
+			{ //evaluate armor with not valid default index
+				pWHExt->Verses[i] = pArmor->DefaultVersesValue;
+			}
 		}
 
 		pWHExt->Verses[i].Flags.ForceFire = pINI->ReadBool(section, pArmor->FF_Tag.data(), pWHExt->Verses[i].Flags.ForceFire);
 		pWHExt->Verses[i].Flags.Retaliate = pINI->ReadBool(section, pArmor->RT_Tag.data(), pWHExt->Verses[i].Flags.Retaliate);
 		pWHExt->Verses[i].Flags.PassiveAcquire = pINI->ReadBool(section, pArmor->PA_Tag.data(), pWHExt->Verses[i].Flags.PassiveAcquire);
+	}
+}
+
+void ArmorTypeClass::LoadForWarhead_NoParse(CCINIClass* pINI, WarheadTypeClass* pWH)
+{
+	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	const char* section = pWH->get_ID();
+
+	INI_EX exINI(pINI);
+
+	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
+	{
+		const auto& pArmor = ArmorTypeClass::Array[i];
+
+		if (pArmor->DefaultTo != -1)
+		{ 
+			const size_t nDefault = (size_t)pArmor->DefaultTo;
+
+			if (i < nDefault)
+			{
+				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
+					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
+
+				pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
+
+			}
+			else
+			{
+				pWHExt->Verses[i] = pWHExt->Verses[nDefault];
+			}
+		}
+		else if (!pArmor->IsVanillaArmor)
+		{ //evaluate armor with not valid default index
+			pWHExt->Verses[i] = pArmor->DefaultVersesValue;
+		}
 	}
 }
 
@@ -187,6 +226,7 @@ void ArmorTypeClass::Serialize(T& Stm)
 		.Process(this->DefaultTo)
 		.Process(this->DefaultString)
 		.Process(this->DefaultVersesValue)
+		.Process(this->IsVanillaArmor)
 		.Process(this->BaseTag)
 		.Process(this->FF_Tag)
 		.Process(this->RT_Tag)

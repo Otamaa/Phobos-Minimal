@@ -45,12 +45,6 @@ class Matrix3D;
 class TechnoTypeExt
 {
 public:
-	static constexpr size_t Canary = 0x11111111;
-	using base_type = TechnoTypeClass;
-#ifndef ENABLE_NEWEXT
-	//static constexpr size_t ExtOffset = 0x35C;
-	static constexpr size_t ExtOffset = 0xDF4;
-#endif
 	using ImageVector = std::vector<VoxelStruct>;
 
 	static void InitImageData(ImageVector& nVec, size_t size = 1);
@@ -58,6 +52,14 @@ public:
 
 	class ExtData : public Extension<TechnoTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x11111111;
+		using base_type = TechnoTypeClass;
+#ifndef ENABLE_NEWEXT
+		//static constexpr size_t ExtOffset = 0x35C;
+		static constexpr size_t ExtOffset = 0xDF4;
+#endif
+
 	public:
 		Valueable<bool> HealthBar_Hide;
 		Valueable<CSFText> UIDescription;
@@ -1138,17 +1140,14 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI);
+
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 		void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 		void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
+		void Initialize() ;
 
-		virtual void Initialize() override;
-		virtual void InitializeConstants() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 		bool IsCountedAsHarvester() const;
 
 		void AdjustCrushProperties();
@@ -1161,7 +1160,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TechnoTypeExt>
+	class ExtContainer final : public Container<TechnoTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -1183,7 +1182,4 @@ public:
 	static bool PassangersAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pPassanger);
 	static VoxelStruct* GetBarrelsVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
 	static VoxelStruct* GetTurretVoxelData(TechnoTypeClass* const pThis, size_t const nIdx);
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

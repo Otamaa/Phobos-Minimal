@@ -60,10 +60,13 @@ public:
 
 	static bool Tactical_IsHighPriorityInRect(TacticalClass* pThis, LTRBStruct* rect)
 	{
-		for (const auto& selected : Array)
-			if (Tactical_IsInSelectionRect(pThis, rect, selected) && ObjectClass_IsSelectable(selected.Techno))
-				if (!TechnoTypeExt::ExtMap.Find(selected.Techno->GetTechnoType())->LowSelectionPriority)
+		for (const auto& selected : Array){
+			if (Tactical_IsInSelectionRect(pThis, rect, selected) && ObjectClass_IsSelectable(selected.Techno)){
+				if (!TechnoTypeExt::ExtMap.Find(selected.Techno->GetTechnoType())->LowSelectionPriority) {
 					return true;
+				}
+			}
+		}
 
 		return false;
 	}
@@ -76,14 +79,14 @@ public:
 		if (pRect->Right <= 0 || pRect->Bottom <= 0 || pThis->SelectableCount <= 0)
 			return;
 
-		for (const auto& selected : Array)
+		for (const auto& selected : Array){
 			if (Tactical_IsInSelectionRect(pThis, pRect, selected))
 			{
 				const auto pTechno = selected.Techno;
 				const auto pTechnoType = pTechno->GetTechnoType();
 				const auto TypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
-				if (bPriorityFiltering && TypeExt && TypeExt->LowSelectionPriority)
+				if (bPriorityFiltering && TypeExt->LowSelectionPriority)
 					continue;
 
 				if (TypeExt && Game::IsTypeSelecting())
@@ -102,6 +105,7 @@ public:
 					}
 				}
 			}
+		}
 
 		Unsorted::MoveFeedback = true;
 	}

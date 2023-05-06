@@ -138,7 +138,7 @@ DEFINE_HOOK(0x424807, AnimClass_AI_Next, 0x6) //was 8
 		const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
 		if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-			pExt->DeleteAttachedSystem();
+			pExt->AttachedSystem.reset(nullptr);
 
 		if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
 			pExt->CreateAttachedSystem();
@@ -154,14 +154,10 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 
-	Mission nMission = Mission::Hunt;
-	if (pTypeExt->MakeInfantry_Mission.isset()) {
-		nMission = pTypeExt->MakeInfantry_Mission;		
-	}
-
+	const Mission nMission = pTypeExt->MakeInfantry_Mission.Get(Mission::Hunt);
 	Debug::Log("Anim[%s] with MakeInf , setting Mission[%s] ! \n", pThis->get_ID(), MissionClass::MissionToString(nMission));
 	pInf->QueueMission(nMission, false);
-	return 0x424AFE;
+	return 0x0;
 }
 
 //the stack is change , so i need to replace everything if i want just use normal hook
@@ -169,38 +165,3 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 //replace the vtable call
 void __fastcall Dummy(DWORD t, DWORD , Mission m, bool e){ }
 DEFINE_JUMP(CALL6, 0x424B04, GET_OFFSET(Dummy));
-
-#ifdef ENABLE_PHOBOS_DAMAGEDELAYANIM
-
-// Goes before and replaces Ares animation damage / weapon hook at 0x424538.
-//DEFINE_HOOK(0x42450D, AnimClass_AI_Damage, 0x6)
-//{
-//	enum
-//	{
-//		SkipDamage = 0x424665,
-//		CheckIsActive = 0x42464C,
-//		SkipDamage2 = 0x42466B,
-//		ReturnFinished = 0x424B42,
-//		Continue = 0x0
-//	};
-//
-//	GET(AnimClass*, pThis, ESI);
-//
-//	if (pThis->Type)
-//	{
-//		R->EBX(pThis->Animation.Value);
-//
-//		if (!AnimExt::DealDamageDelay(pThis))
-//		{
-//			R->EAX(pThis->Type);
-//			R->EDI(0);
-//			R->ECX(pThis->Type->MiddleFrameIndex);
-//			return SkipDamage2;
-//		}
-//
-//		return CheckIsActive;
-//	}
-//
-//	return Continue;
-//}
-#endif

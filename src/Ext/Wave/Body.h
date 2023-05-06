@@ -229,12 +229,12 @@ class WeaponTypeClass;
 class WaveExt
 {
 public:
-
-	static constexpr size_t Canary = 0xAABAAAAC;
-	using base_type = WaveClass;
-
 	class ExtData final : public Extension<WaveClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xAABAAAAC;
+		using base_type = WaveClass;
+
 	public:
 
 		WeaponTypeClass* Weapon;
@@ -278,20 +278,18 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		virtual void Initialize() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void InitWeaponData();
 		void SetWeaponType(WeaponTypeClass* pWeapon, int nIdx);
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WaveExt>
+	class ExtContainer final : public Container<WaveExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -299,9 +297,6 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon , bool FromSourceCoord = false);
 	static bool ModifyWaveColor(WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas);

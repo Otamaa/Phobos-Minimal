@@ -38,6 +38,8 @@ struct Game
 	static constexpr reference<CDTimerClass, 0x887348> const FrameTimer {};
 	static constexpr reference<CDTimerClass, 0x887328> const NFTTimer {};
 
+	static constexpr reference<int, 0x8A00A4u> const ScreenWidth {};
+
 #define GAMEMD_CLSID(_addrs ,_name) \
 	static constexpr reference<CLSID const, _addrs> const _name {};
 

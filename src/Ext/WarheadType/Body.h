@@ -18,11 +18,6 @@
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/VersesData.h>
 
-struct UnParsedThing
-{
-	static std::vector<std::string> UnparsedList;
-};
-
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
 struct args_ReceiveDamage;
@@ -30,11 +25,12 @@ class ArmorTypeClass;
 class WarheadTypeExt
 {
 public:
-	static constexpr size_t Canary = 0x22222222;
-	using base_type = WarheadTypeClass;
-
 	class ExtData final : public Extension<WarheadTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x22222222;
+		using base_type = WarheadTypeClass;
+
 	public:
 
 		Valueable<int> Reveal;
@@ -165,6 +161,8 @@ public:
 		Nullable<AnimTypeClass*> NotHuman_DeathAnim;
 
 		Valueable<bool> IsNukeWarhead;
+		ValueableIdx<AnimTypeClass*> PreImpactAnim;
+		Nullable<int> NukeFlashDuration;
 
 		Valueable<bool> Remover;
 		Valueable<AnimTypeClass*> Remover_Anim;
@@ -395,7 +393,11 @@ public:
 			, WasDetonatedOnAllMapObjects { false }
 
 			, NotHuman_DeathAnim { }
+
 			, IsNukeWarhead { false }
+			, PreImpactAnim { -1 }
+			, NukeFlashDuration { }
+
 			, Remover { false }
 			, Remover_Anim { nullptr }
 			, ArmorHitAnim { }
@@ -556,14 +558,11 @@ public:
 		}
 
 		virtual ~ExtData() override  = default;
-		void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void Initialize() override;
-		virtual void InitializeConstants()override;
 
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		virtual void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize();
 
 		AnimTypeClass* GetArmorHitAnim(int Armor);
 
@@ -572,7 +571,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<WarheadTypeExt>
+	class ExtContainer final : public Container<WarheadTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -580,8 +579,6 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void DetonateAt(WarheadTypeClass* pThis, ObjectClass* pTarget, TechnoClass* pOwner, int damage, bool targetCell = false);
 	static void DetonateAt(WarheadTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool targetCell = false);

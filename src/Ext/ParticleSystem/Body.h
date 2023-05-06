@@ -21,11 +21,12 @@ class ParticleTypeClass;
 class ParticleSystemExt
 {
 public:
-	static constexpr size_t Canary = 0xAAA2BBBB;
-	using base_type = ParticleSystemClass;
-
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public Extension<ParticleSystemClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xAAA2BBBB;
+		using base_type = ParticleSystemClass;
+
 	public:
 
 		BehavesLike Behave;
@@ -40,18 +41,16 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override  { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void InitializeConstants();
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleSystemExt>
+	class ExtContainer final : public Container<ParticleSystemExt::ExtData>
 	{
 	public:
 		ExtContainer();

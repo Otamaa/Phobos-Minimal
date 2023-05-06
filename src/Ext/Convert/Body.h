@@ -8,12 +8,13 @@
 class ConvertExt
 {
 public:
-	static constexpr DWORD Canary = 0xAACAACCC;
-	using base_type = ConvertClass;
-	static constexpr size_t ExtOffset = 0x178;
-
 	class ExtData final : public Extension<ConvertClass>
 	{
+	public:
+		static constexpr DWORD Canary = 0xAACAACCC;
+		using base_type = ConvertClass;
+		static constexpr size_t ExtOffset = 0x178;
+
 	public:
 
 		char* m_ColorDatas;
@@ -30,13 +31,9 @@ public:
 		}
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; };
-
-		virtual void InitializeConstants() override;
 	};
 
-	class ExtContainer final : public Container<ConvertExt>
+	class ExtContainer final : public Container<ConvertExt::ExtData>
 	{
 	public:
 		ExtContainer();

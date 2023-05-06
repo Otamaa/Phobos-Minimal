@@ -47,11 +47,14 @@ enum class PhobosTriggerAction : unsigned int
 class TActionExt
 {
 public:
-	static constexpr size_t Canary = 0x87154321;
-	using base_type = TActionClass;
+	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public Extension<TActionClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x87154321;
+		using base_type = TActionClass;
+
 	public:
 
 		//std::string Value1;
@@ -72,26 +75,31 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override { }
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TActionExt>
+	class ExtContainer final : public Container<TActionExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual void Clear() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override
+		void Clear() {
+			RandomTriggerPool.clear();
+		}
+
+		void InvalidatePointer(void* ptr, bool bRemoved) {
+			for (auto& nMap : RandomTriggerPool) {
+				AnnounceInvalidPointer(nMap.second, ptr);
+			}
+		}
+
+		bool InvalidateIgnorable(void* ptr)
 		{
 			switch (GetVtableAddr(ptr))
 			{
@@ -105,10 +113,9 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void RecreateLightSources();
 	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
+	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
 
 #define ACTION_FUNC(name) \
 	static bool name(TActionClass* pThis, HouseClass* pHouse, \
@@ -127,8 +134,6 @@ public:
 
 	ACTION_FUNC(DrawLaserBetweenWaypoints);
 
-	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
-
 	ACTION_FUNC(RandomTriggerPut);
 	ACTION_FUNC(RandomTriggerEnable);
 	ACTION_FUNC(RandomTriggerRemove);
@@ -140,6 +145,4 @@ public:
 	ACTION_FUNC(ToggleMCVRedeploy);
 
 #undef ACTION_FUNC
-
-	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
 };

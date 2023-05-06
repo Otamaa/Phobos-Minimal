@@ -13,11 +13,12 @@ class RadTypeClass;
 class RadSiteExt
 {
 public:
-	static constexpr size_t Canary = 0x87654321;
-	using base_type = RadSiteClass;
-
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public Extension<RadSiteClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x87654321;
+		using base_type = RadSiteClass;
+
 	public:
 		RadTypeClass* Type;
 		WeaponTypeClass* Weapon;
@@ -34,10 +35,11 @@ public:
 		{}
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
 
-		virtual bool InvalidateIgnorable(void* const ptr) const override { 
-			switch ((((DWORD*)ptr)[0]))
+		void InvalidatePointer(void* ptr, bool bRemoved);
+
+		bool InvalidateIgnorable(void* ptr) const { 
+			switch (VTable::Get(ptr))
 			{
 			case BuildingClass::vtable:
 			case AircraftClass::vtable:
@@ -50,10 +52,8 @@ public:
 			return true;
 		}
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
-		void Uninitialize() { }
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void CreateLight();
 		void Add(int amount);
@@ -66,9 +66,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt , TechnoClass* const pTech);
-
-	class ExtContainer final : public Container<RadSiteExt>
+	class ExtContainer final : public Container<RadSiteExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -77,9 +75,7 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
+	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech);
 	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _) {
 		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
 		 return pCell->GetCoordsWithBridge();

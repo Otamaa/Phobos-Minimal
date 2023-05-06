@@ -73,8 +73,9 @@ DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 	GET(VeinholeMonsterClass*, pThis, ESI);
 	GET(TerrainTypeClass* const, pThisTree, EDX);
 
-	if (pThis->GetType() && pThisTree)
-		pThis->GetType()->Armor = pThisTree->Armor;
+	auto pType = pThis->GetType();
+	if (pType && pThisTree)
+		pType->Armor = pThisTree->Armor;
 
 	return 0x0;
 }
@@ -970,12 +971,10 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	if (const auto pType = pThis->GetTechnoType())
-	{
-		if (pType->PoweredUnit && pThis->Owner)
-		{
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType->PoweredUnit && pThis->Owner) {
 			pThis->Owner->RecheckPower = true;
-		}
 	}
 
 	return 0x0;
@@ -2105,10 +2104,10 @@ static int AnimClass_Expired_SpawnsParticle(REGISTERS* R)
 		{
 			for (; nNumParticles; --nNumParticles)
 			{
-				auto v13 = abs(ScenarioClass::Instance->Random.RandomRanged(nMin, nMax));
-				auto v10 = ScenarioClass::Instance->Random.RandomDouble() * v17 + v16;
-				auto v18 = std::cos(v10);
-				auto v9 = std::sin(v10);
+				const auto v13 = abs(ScenarioClass::Instance->Random.RandomRanged(nMin, nMax));
+				const auto v10 = ScenarioClass::Instance->Random.RandomDouble() * v17 + v16;
+				const auto v18 = std::cos(v10);
+				const auto v9 = std::sin(v10);
 				CoordStruct nCoordB { nCoord.X + static_cast<int>(v13 * v18),nCoord.Y - static_cast<int>(v9 * v13), nCoord.Z };
 				nCoordB.Z = v8 + MapClass::Instance->GetCellFloorHeight(nCoordB);
 				ParticleSystemClass::Instance->SpawnParticle(pType, &nCoordB);
@@ -2721,7 +2720,7 @@ DEFINE_HOOK(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 	if (!pThis)
 		return Continue;
 
-	auto const pTypeExt = InfantryTypeExt::ExtMap.Find(pThis->Type);
+	const auto pTypeExt = InfantryTypeExt::ExtMap.Find(pThis->Type);
 	return pTypeExt->HideWhenDeployAnimPresent.Get() && pThis->DeployAnim
 		? SkipWholeFunction : Continue;
 }
@@ -2734,10 +2733,10 @@ DEFINE_HOOK(0x6F7261, TechnoClass_TargetingInRange_NavalBonus, 0x5)
 
 	if (auto const pFoot = abstract_cast<FootClass* const>(pTarget))
 	{
-		auto const pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		const auto pThisTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 		if (pFoot->GetTechnoType()->Naval && pThisTypeExt->NavalRangeBonus.isset())
 		{
-			auto const pFootCell = pFoot->GetCell();
+			const auto pFootCell = pFoot->GetCell();
 			if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
 				nRangeBonus += pThisTypeExt->NavalRangeBonus.Get();
 		}
@@ -3006,19 +3005,14 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	const auto pType = pThis->Type;
-
+//
 // 	if (pType->Ammo > 0 && pType->Ammo > pThis->Ammo && !pType->ManualReload 
 // 		&& !pThis->ReloadTimer.HasStarted())
 // 		pThis->StartReloading();
-
+//
 // 	return 0;
 // }
 
-//static constexpr CompileTimeMatrix3D Mtx {};
-//static constexpr Point2D Data {};
-//static constexpr Point3D Data2 {};
-//static constexpr CoordStruct Data3 {};
-//static constexpr CellStruct Data4 {};
 
 DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {
@@ -4219,10 +4213,7 @@ enum class CrateType : unsigned char
 //	return true;
 //}
 
-DEFINE_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6)
-{
-	return 0x69A937;
-}
+DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6 , 69A937);
 
 DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 {

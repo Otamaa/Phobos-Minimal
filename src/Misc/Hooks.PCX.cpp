@@ -17,17 +17,18 @@ DEFINE_HOOK(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 	strcpy_s(pFilename, name);
 	_strlwr_s(pFilename);
 
-	int ScreenWidth = *(int*)0x8A00A4;
 	BSurface* pcx = nullptr;
+	char nBuffer[0x40];
 
-	sprintf_s(Phobos::readBuffer, GameStrings::LSSOBS_SHP() /* "ls%sobs.shp" */,
-		ScreenWidth != 640 ? GameStrings::_800() /* "800" */ : GameStrings::_640() /* "640" */);
-	if (!_stricmp(pFilename, Phobos::readBuffer))
+	IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer) , GameStrings::LSSOBS_SHP(),
+		Game::ScreenWidth() != 640 ? GameStrings::_800() : GameStrings::_640());
+	if (!_stricmp(pFilename, nBuffer))
 	{
-		sprintf_s(Phobos::readBuffer, "ls%sobs.pcx",
-			ScreenWidth != 640 ? GameStrings::_800() : GameStrings::_640());
-		PCX::Instance->LoadFile(Phobos::readBuffer);
-		pcx = PCX::Instance->GetSurface(Phobos::readBuffer);
+		IMPL_SNPRNINTF(nBuffer, sizeof(nBuffer) , "ls%sobs.pcx",
+			Game::ScreenWidth() != 640 ? GameStrings::_800() : GameStrings::_640());
+		
+		if(PCX::Instance->LoadFile(nBuffer))
+			pcx = PCX::Instance->GetSurface(nBuffer);
 	}
 
 	if (strstr(pFilename, ".pcx") || pcx)
@@ -62,15 +63,17 @@ DEFINE_HOOK(0x552FCB, LoadProgressMgr_Draw_PCXLoadingScreen_Campaign, 0x6)
 
 	if (strstr(filename, ".pcx"))
 	{
-		PCX::Instance->LoadFile(filename);
+		BSurface* pPCX = nullptr;
 
-		if (auto const pPCX = PCX::Instance->GetSurface(filename))
-		{
+		if (PCX::Instance->LoadFile(filename))
+			pPCX = PCX::Instance->GetSurface(filename);
+
+		if (pPCX) {
 			GET_BASE(DSurface*, pSurface, 0x60);
 
-			RectangleStruct pSurfBounds = { 0, 0, pSurface->Width, pSurface->Height };
-			RectangleStruct pcxBounds = { 0, 0, pPCX->Width, pPCX->Height };
-			RectangleStruct destClip = { (pSurface->Width - pPCX->Width) / 2, (pSurface->Height - pPCX->Height) / 2, pPCX->Width, pPCX->Height };
+			RectangleStruct pSurfBounds { 0, 0, pSurface->Width, pSurface->Height };
+			RectangleStruct pcxBounds { 0, 0, pPCX->Width, pPCX->Height };
+			RectangleStruct destClip { (pSurface->Width - pPCX->Width) / 2, (pSurface->Height - pPCX->Height) / 2, pPCX->Width, pPCX->Height };
 
 			pSurface->Copy_From(pSurfBounds, destClip, pPCX, pcxBounds, pcxBounds, true, true);
 		}
@@ -152,7 +155,7 @@ DEFINE_HOOK(0x552F81, PCX_LoadingScreen_Campaign, 0x5)
 
 DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 {
-	GET_STACK(SHPStruct*, pCameo, STACK_OFFS(0x48C, 0x444));
+	GET_STACK(SHPStruct const*, pCameo, STACK_OFFS(0x48C, 0x444));
 
 	if (pCameo)
 	{
@@ -162,11 +165,8 @@ DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 		_strlwr_s(pFilename);
 
 		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP())
-			&& (CRT::strstr(pFilename, ".pcx")
-				//|| CRT::strstr(pFilename, ".png")
-				))
+			&& (strstr(pFilename, ".pcx")))
 		{
-
 			BSurface* pCXSurf = nullptr;
 
 			if (PCX::Instance->LoadFile(pFilename))
@@ -177,7 +177,7 @@ DEFINE_HOOK(0x6A99F3, StripClass_Draw_DrawMissing, 0x6)
 				GET(int, destX, ESI);
 				GET(int, destY, EBP);
 
-				RectangleStruct bounds = { destX, destY, 60, 48 };
+				RectangleStruct bounds { destX, destY, 60, 48 };
 				PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
 
 				return 0x6A9A43; //skip drawing shp cameo

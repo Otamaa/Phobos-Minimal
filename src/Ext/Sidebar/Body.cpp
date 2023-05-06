@@ -3,10 +3,9 @@
 #include <Ext/House/Body.h>
 #include <Ext/Side/Body.h>
 
-std::unique_ptr<SidebarExt::ExtData> SidebarExt::Data = nullptr;
-
+IStream* SidebarExt::g_pStm = nullptr;
 std::array<UniqueGamePtrB<SHPStruct>, 4u> SidebarExt::TabProducingProgress;
-void SidebarExt::ExtData::InitializeConstants() { }
+ std::unique_ptr<SidebarExt::ExtData> SidebarExt::Data = nullptr;
 
 void SidebarExt::Allocate(SidebarClass* pThis)
 {
@@ -74,33 +73,9 @@ template <typename T>
 void SidebarExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		;
 }
-
-void SidebarExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<SidebarClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SidebarExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<SidebarClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SidebarExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool SidebarExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 
 // =============================
 // container hooks
@@ -122,8 +97,6 @@ DEFINE_HOOK(0x6AC82F, SidebarClass_DTOR, 0x5)
 	return 0;
 }
 
-IStream* SidebarExt::g_pStm = nullptr;
-
 DEFINE_HOOK_AGAIN(0x6AC5D0, SidebarClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x6AC5E0, SidebarClass_SaveLoad_Prefix, 0x5)
 {
@@ -143,7 +116,7 @@ DEFINE_HOOK(0x6AC5DA, SidebarClass_Load_Suffix, 0x6)
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(SidebarExt::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(SidebarExt::ExtData::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -156,7 +129,7 @@ DEFINE_HOOK(0x6AC5EA, SidebarClass_Save_Suffix, 0x6)
 	PhobosByteStream saver(sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(SidebarExt::Canary);
+	writer.Expect(SidebarExt::ExtData::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);

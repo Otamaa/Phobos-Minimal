@@ -4,27 +4,10 @@
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
-AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
-
-// =============================
-// load / save
-
-
-void AITriggerTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<AITriggerTypeClass>::LoadFromStream(Stm);
-	// Nothing yet
-}
-
-void AITriggerTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<AITriggerTypeClass>::SaveToStream(Stm);
-	// Nothing yet
-}
 
 // =============================
 // container
-
+AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
 AITriggerTypeExt::ExtContainer::ExtContainer() : Container("AITriggerTypeClass") { }
 AITriggerTypeExt::ExtContainer::~ExtContainer() = default;
 

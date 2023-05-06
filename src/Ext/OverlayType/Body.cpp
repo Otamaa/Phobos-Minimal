@@ -1,16 +1,14 @@
 #include "Body.h"
 
-OverlayTypeExt::ExtContainer OverlayTypeExt::ExtMap;
-
-void OverlayTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void OverlayTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->Get();
-	const char* pSection = pThis->get_ID();
-
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
+	auto pThis = this->Get();
+	const char* pSection = pThis->get_ID();
 }
+
 // =============================
 // load / save
 
@@ -18,36 +16,14 @@ template <typename T>
 void OverlayTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		;
 }
 
-void OverlayTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<OverlayTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void OverlayTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<OverlayTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool OverlayTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool OverlayTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
 
 // =============================
 // container
-
+OverlayTypeExt::ExtContainer OverlayTypeExt::ExtMap;
 OverlayTypeExt::ExtContainer::ExtContainer() : Container("OverlayTypeClass") { }
 OverlayTypeExt::ExtContainer::~ExtContainer() = default;
 

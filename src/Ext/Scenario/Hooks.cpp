@@ -4,43 +4,57 @@
 
 #include <HouseClass.h>
 #include <Helpers/Macro.h>
+#include <ThemeClass.h>
 
 // score options
 // score music for single player missions
-DEFINE_HOOK(0x6C924F, ScoreDialog_Handle_ScoreThemeA, 0x5)
-{
-	GET(char*, pTitle, ECX);
-	GET(char*, pMessage, ESI);
-
-	const CSFText& Title = ScenarioExt::Global()->ParTitle;
-	const CSFText& Message = ScenarioExt::Global()->ParMessage;
-
-	CRT::strcpy(pTitle, Title.Label);
-	CRT::strcpy(pMessage, Message.Label);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x6C935C, ScoreDialog_Handle_ScoreThemeB, 0x5)
-{
-	REF_STACK(char*, pTheme, 0x0);
-
-	const auto& Theme = ScenarioExt::Global()->ScoreCampaignTheme;
-
-	if (Theme.isset())
-		CRT::strcpy(pTheme, Theme.Get().data());
-
-	return 0;
-}
-
-DEFINE_HOOK(0x5AE192, SelectNextMissionScenario, 0x6)
-{
-	const auto& NextMission = ScenarioExt::Global()->NextMission;
-	if (NextMission.isset())
-		R->EAX(NextMission.Get().data());
-
-	return 0;
-}
+//DEFINE_HOOK(0x6C9231, ScoreDialog_Handle_ScoreThemeA, 0xA)
+//{
+//	GET(ScenarioClass*, pScen, EAX);
+//	GET(int, ScoreA, EDI);
+//	GET(int, ScoreB, ESI);
+//
+//	char bufferTitle[0x1F];
+//	char bufferMessage[0x1F];
+//	const auto& Title = ScenarioExt::Global()->ParTitle;
+//	const auto& Message = ScenarioExt::Global()->ParMessage;
+//
+//	if (!Title.isset()) {
+//		CRT::strcpy(bufferTitle, ScoreA > ScoreB ? pScen->OverParTitle : pScen->UnderParTitle);
+//	} else {
+//		CRT::strcpy(bufferTitle, Title->data());
+//	}
+//
+//	if(!Message.isset()) {
+//		CRT::strcpy(bufferMessage, ScoreA > ScoreB ? pScen->OverParMessage : pScen->UnderParMessage);
+//	} else {
+//		CRT::strcpy(bufferMessage, Message->data());
+//	}
+//	
+//	R->ECX(bufferTitle);
+//	R->ESI(bufferMessage);
+//	return 0x6C924F;
+//}
+//
+//DEFINE_HOOK(0x6C9357, ScoreDialog_Handle_ScoreThemeB, 0x5)
+//{
+//	const auto& Theme = ScenarioExt::Global()->ScoreCampaignTheme;
+//	R->EAX(ThemeClass::Instance->FindIndex(Theme.isset() ? Theme->data() : GameStrings::SCORE()));
+//
+//	return 0x6C9366;
+//}
+//
+//DEFINE_HOOK(0x5AE11A, SelectNextMissionScenario, 0x6)
+//{
+//	const auto& NextMission = ScenarioExt::Global()->NextMission;
+//
+//	if (NextMission.isset()){
+//		R->EAX(NextMission->data());
+//		return 0x5AE120;
+//	}
+//
+//	return 0;
+//}
 
 //DEFINE_HOOK(0x6851AC, LoadGame_Initialize_IonStormClass, 0x5)
 //{

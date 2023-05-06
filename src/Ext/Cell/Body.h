@@ -10,12 +10,13 @@
 class CellExt
 {
 public:
-
-	static constexpr size_t Canary = 0x87688621;
-	using base_type = CellClass;
-
 	class ExtData final : public Extension<CellClass>
 	{
+	public:
+
+		static constexpr size_t Canary = 0x87688621;
+		using base_type = CellClass;
+
 	public:
 
 		//std::vector<TerrainClass*> AttachedTerrain;
@@ -30,24 +31,16 @@ public:
 		{ };
 
 		virtual ~ExtData() override = default;
-		virtual void Initialize() override { } //Init After INI Read
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			//AnnounceInvalidPointer(AttachedTerrain, ptr);
-			//FoggedObjects wtf ?
-		}
 
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<CellExt>
+	class ExtContainer final : public Container<CellExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -56,13 +49,9 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	// Don t call it without checking Tiberium existence
 	// otherwise crash
 	static TiberiumClass* GetTiberium(CellClass* pCell);
 	static int GetOverlayIndex(CellClass* pCell ,TiberiumClass* pTiberium);
 	static int GetOverlayIndex(CellClass* pCell);
-
 };

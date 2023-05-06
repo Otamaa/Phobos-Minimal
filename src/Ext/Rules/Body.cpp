@@ -23,24 +23,20 @@
 #include <Misc/DynamicPatcher/Trails/TrailType.h>
 #endif
 
-std::unique_ptr<RulesExt::ExtData> RulesExt::Data = nullptr;
+std::unique_ptr<RulesExt::ExtData>  RulesExt::Data = nullptr;
+IStream* RulesExt::g_pStm = nullptr;
 
 void RulesExt::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExt::ExtData>(pThis);
-	if (Data)
-		Data->EnsureConstanted();
 }
 
 void RulesExt::Remove(RulesClass* pThis)
 {
-	if (Data)
-		Data->Uninitialize();
-
 	Data = nullptr;
 }
 
-void RulesExt::ExtData::InitializeConstants()
+void RulesExt::ExtData::Initialize()
 {
 	AITargetTypesLists.reserve(5);
 	AIScriptsLists.reserve(5);
@@ -76,7 +72,7 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 	//Debug::Log(__FUNCTION__" AddDefault HoverType ! \n");
 	HoverTypeClass::AddDefaults();
 
-	Data->LoadFromINI(pINI);
+	Data->LoadFromINIFile(pINI , false);
 }
 
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
@@ -134,7 +130,7 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 }
 
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
-void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void RulesExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 
 }
@@ -443,6 +439,8 @@ void RulesExt::ExtData::Serialize(T& Stm)
 	//Debug::Log("Processing RulesExt ! \n");
 
 	Stm
+		.Process(this->Initialized)
+
 		.Process(Phobos::Config::ArtImageSwap)
 		.Process(Phobos::Otamaa::DisableCustomRadSite)
 		.Process(Phobos::Config::ShowTechnoNamesIsActive)
@@ -578,28 +576,6 @@ void RulesExt::ExtData::Serialize(T& Stm)
 #endif
 }
 
-void RulesExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<RulesClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void RulesExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<RulesClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool RulesExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool RulesExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 // =============================
 // container hooks
 
@@ -621,8 +597,6 @@ DEFINE_HOOK(0x667A30, RulesClass_DTOR, 0x5)
 	return 0;
 }
 
-IStream* RulesExt::g_pStm = nullptr;
-
 DEFINE_HOOK_AGAIN(0x674730, RulesClass_SaveLoad_Prefix, 0x6)
 DEFINE_HOOK(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 {
@@ -643,7 +617,7 @@ DEFINE_HOOK(0x678841, RulesClass_Load_Suffix, 0x7)
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(RulesExt::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(RulesExt::ExtData::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -656,7 +630,7 @@ DEFINE_HOOK(0x675205, RulesClass_Save_Suffix, 0x8)
 	PhobosByteStream saver(sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(RulesExt::Canary);
+	writer.Expect(RulesExt::ExtData::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);
@@ -758,6 +732,3 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 	return 0x0;
 }
-
-//Skip game WallTower read
-//DEFINE_JUMP(LJMP,0x66F553, 0x66F589);

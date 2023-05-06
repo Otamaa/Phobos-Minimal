@@ -9,14 +9,16 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
+
 class ParticleTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xEAEEEEEE;
-	using base_type = ParticleTypeClass;
-
 	class ExtData final : public Extension<ParticleTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xEAEEEEEE;
+		using base_type = ParticleTypeClass;
+
 	public:
 
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
@@ -40,20 +42,18 @@ public:
 		{ }
 
 		virtual ~ExtData() override  = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void *ptr, bool bRemoved) override {}
-		virtual bool InvalidateIgnorable(void* const ptr) const { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void Initialize() { }
-		virtual void InitializeConstants() override;
+
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize();
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ParticleTypeExt>
+	class ExtContainer final : public Container<ParticleTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -61,7 +61,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

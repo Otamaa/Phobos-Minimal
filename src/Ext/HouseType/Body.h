@@ -8,11 +8,12 @@
 class HouseTypeExt
 {
 public:
-	using base_type = HouseTypeClass;
-	static constexpr DWORD Canary = 0x1111111A;
-
 	class ExtData final : public Extension<HouseTypeClass>
 	{
+	public:
+		using base_type = HouseTypeClass;
+		static constexpr DWORD Canary = 0x1111111A;
+
 	public:
 		Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
 		Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
@@ -30,23 +31,26 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override { }
-		virtual void InitializeConstants() override;
-		virtual void CompleteInitialization();
-
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true;  };
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
-		void Serialize(T& Stm);
+		void Serialize(T& Stm)
+		{
+			Stm
+				.Process(this->Initialized)
+				.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
+				.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
+				.Process(this->NewTeamsSelector_GroundCategoryPercentage)
+				.Process(this->NewTeamsSelector_AirCategoryPercentage)
+				.Process(this->NewTeamsSelector_NavalCategoryPercentage)
+				;
+		}
 	};
 
-	class ExtContainer final : public Container<HouseTypeExt>
+	class ExtContainer final : public Container<HouseTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -56,6 +60,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

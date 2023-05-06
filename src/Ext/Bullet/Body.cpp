@@ -18,18 +18,7 @@
 
 #include <Utilities/Macro.h>
 
-BulletExt::ExtContainer BulletExt::ExtMap;
-TechnoClass* BulletExt::InRangeTempFirer = nullptr;
-
-void BulletExt::ExtData::InitializeConstants()
-{
-	this->BulletTrails.reserve(1);
-	this->LaserTrails.reserve(1);
-#ifdef COMPILE_PORTED_DP_FEATURES
-	this->Trails.reserve(1);
-#endif
-	//Type is not initialize here , wtf
-}
+TechnoClass* BulletExt::InRangeTempFirer;
 
 DWORD BulletExt::ApplyAirburst(BulletClass* pThis)
 {
@@ -573,9 +562,9 @@ HouseClass* BulletExt::GetHouse(BulletClass* const pThis)
 	return BulletExt::ExtMap.Find(pThis)->Owner;
 }
 
-bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
+bool BulletExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
-	switch ((((DWORD*)ptr)[0]))
+	switch (VTable::Get(ptr))
 	{
 	case BuildingClass::vtable:
 	case InfantryClass::vtable:
@@ -590,14 +579,10 @@ bool BulletExt::ExtData::InvalidateIgnorable(void* const ptr) const
 }
 
 void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
-
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(Owner , ptr);
 
-	if (Trajectory)
-		Trajectory->InvalidatePointer(ptr, bRemoved);
+	if (auto& pTraj = Trajectory)
+		pTraj->InvalidatePointer(ptr, bRemoved);
  }
 
 void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)
@@ -650,11 +635,11 @@ void BulletExt::ExtData::InitializeLaserTrails()
 {
 	const auto pThis = Get();
 
-	if (LaserTrails.size() || pThis->Type->Inviso)
+	if (!LaserTrails.empty() || pThis->Type->Inviso)
 		return;
 
 	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
-	if (!pTypeExt)
+	if (!pTypeExt || pTypeExt->LaserTrail_Types.empty())
 		return;
 
 	const auto pOwner = pThis->Owner ?
@@ -722,7 +707,7 @@ void BulletExt::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Weapon
 
 					pThis->Type = pWeaponOverride->Projectile;
 
-					if (pExt->LaserTrails.size()) {
+					if (!pExt->LaserTrails.empty()) {
 						pExt->LaserTrails.clear();
 						pExt->InitializeLaserTrails();
 					}
@@ -811,6 +796,7 @@ void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoCla
 	pThis->Explode(false);
 	pThis->UnInit();
 }
+
 // =============================
 // load / save
 
@@ -818,6 +804,7 @@ template <typename T>
 void BulletExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->CurrentStrength)
 		.Process(this->IsInterceptor)
 		.Process(this->InterceptedStatus)
@@ -838,39 +825,9 @@ void BulletExt::ExtData::Serialize(T& Stm)
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
 
-void BulletExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<BulletClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void BulletExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<BulletClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-void BulletExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) {
-	AnnounceInvalidPointer(BulletExt::InRangeTempFirer, ptr);
-}
-
-bool BulletExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(BulletExt::InRangeTempFirer)
-		.Success();
-}
-
-bool BulletExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(BulletExt::InRangeTempFirer)
-		.Success();
-}
-
 // =============================
 // container
-
+BulletExt::ExtContainer BulletExt::ExtMap;
 BulletExt::ExtContainer::ExtContainer() : Container("BulletClass") { }
 BulletExt::ExtContainer::~ExtContainer() = default;
 
@@ -928,8 +885,7 @@ DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = BulletExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
+	BulletExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
 }

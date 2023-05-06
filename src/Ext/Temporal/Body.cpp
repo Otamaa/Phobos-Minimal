@@ -1,6 +1,5 @@
  #include "Body.h"
 
-TemporalExt::ExtContainer TemporalExt::ExtMap;
 
 // =============================
 // load / save
@@ -10,36 +9,17 @@ void TemporalExt::ExtData::Serialize(T& Stm) {
 	//Debug::Log("Processing Element From TemporalExt ! \n");
 
 	Stm
-		.Process(Weapon)
+		.Process(this->Initialized)
+		.Process(this->Weapon)
 
 		;
 
 }
 
-void TemporalExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TemporalClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TemporalExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TemporalClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TemporalExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return true;// Stm.Success();
-}
-
-bool TemporalExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return true;//Stm.Success();
-}
-
 // =============================
 // container
+TemporalExt::ExtContainer TemporalExt::ExtMap;
+
 TemporalExt::ExtContainer::ExtContainer() : Container("TemporalClass") { };
 TemporalExt::ExtContainer::~ExtContainer() = default;
 

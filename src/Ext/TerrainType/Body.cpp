@@ -3,9 +3,7 @@
 #include <TerrainTypeClass.h>
 #include <Utilities/GeneralUtils.h>
 
-TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
-
-void TerrainTypeExt::ExtData::InitializeConstants()
+void TerrainTypeExt::ExtData::Initialize()
 {
 	AttachedAnim.reserve(1);
 }
@@ -20,12 +18,12 @@ int TerrainTypeExt::ExtData::GetCellsPerAnim()
 	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_CellsPerAnim.Get());
 }
 
-void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void TerrainTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -70,6 +68,7 @@ template <typename T>
 void TerrainTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->CustomPalette)
 		.Process(this->SpawnsTiberium_Type)
 		.Process(this->SpawnsTiberium_Range)
@@ -95,30 +94,6 @@ void TerrainTypeExt::ExtData::Serialize(T& Stm)
 
 }
 
-void TerrainTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TerrainTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TerrainTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TerrainTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TerrainTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TerrainTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 {
 	if (!pTerrain)
@@ -133,6 +108,7 @@ void TerrainTypeExt::Remove(TerrainClass* pTerrain)
 
 // =============================
 // container
+TerrainTypeExt::ExtContainer TerrainTypeExt::ExtMap;
 
 TerrainTypeExt::ExtContainer::ExtContainer() : Container("TerrainTypeClass") { }
 TerrainTypeExt::ExtContainer::~ExtContainer() = default;
@@ -187,7 +163,7 @@ DEFINE_HOOK(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x20C, -0x4));
 
-	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI , true);
 
 	return 0;
 }
@@ -197,7 +173,7 @@ DEFINE_HOOK(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
 	GET(TerrainTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x210, -0x4));
 
-	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	TerrainTypeExt::ExtMap.LoadFromINI(pItem, pINI , false);
 
 	return 0;
 }

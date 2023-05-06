@@ -12,11 +12,7 @@
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
-TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
-double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
-double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
-
-void TechnoTypeExt::ExtData::InitializeConstants()
+void TechnoTypeExt::ExtData::Initialize()
 {
 	OreGathering_Anims.reserve(1);
 	OreGathering_Tiberiums.reserve(1);
@@ -68,11 +64,6 @@ void TechnoTypeExt::ExtData::InitializeConstants()
 	this->Promote_Elite_Eva = nPromotedEva;
 	this->Promote_Vet_Eva = nPromotedEva;
 	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
-}
-
-void TechnoTypeExt::ExtData::Initialize()
-{
-
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -197,7 +188,7 @@ void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<C
 	nEFlh.Read(exArtINI, pArtSection, tempBuffer);
 }
 
-void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 
@@ -205,7 +196,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (pINI->GetSection(pSection))
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
@@ -856,7 +847,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	// Art tags
-	if (pArtIni->GetSection(pArtSection))
+	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtIni);
 
@@ -940,7 +931,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->Trails.Read(exArtINI, pArtSection, true);
 #endif
 	}
-
 }
 
 void TechnoTypeExt::ExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
@@ -1103,6 +1093,7 @@ template <typename T>
 void TechnoTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->HealthBar_Hide)
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
@@ -1595,18 +1586,6 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void TechnoTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TechnoTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TechnoTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TechnoTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
 bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Load(PhobosStreamReader& stm, bool registerForChange)
 {
 	return this->Serialize(stm);
@@ -1627,20 +1606,12 @@ bool TechnoTypeExt::ExtData::LaserTrailDataEntry::Serialize(T& stm)
 		.Success();
 }
 
-bool TechnoTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TechnoTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
+double TechnoTypeExt::TurretMultiOffsetDefaultMult = 1.0;
+double TechnoTypeExt::TurretMultiOffsetOneByEightMult = 0.125;
 
 // =============================
 // container
+TechnoTypeExt::ExtContainer TechnoTypeExt::ExtMap;
 
 TechnoTypeExt::ExtContainer::ExtContainer() : Container("TechnoTypeClass") { }
 TechnoTypeExt::ExtContainer::~ExtContainer() = default;
@@ -1706,10 +1677,7 @@ DEFINE_HOOK(0x716123, TechnoTypeClass_LoadFromINI, 0x5)
 	//	Debug::Log("Failed to find TechnoType %s from TechnoType::LoadFromINI with AbsType %s ! \n", pItem->get_ID(), pItem->GetThisClassName());
 	//}
 
-	if (auto pExt = TechnoTypeExt::ExtMap.Find(pItem))
-	{
-		pExt->LoadFromINI(pINI);
-	}
+	TechnoTypeExt::ExtMap.LoadFromINI(pItem, pINI, R->Origin() == 0x716132);
 
 	return 0;
 }

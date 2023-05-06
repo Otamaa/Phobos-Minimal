@@ -137,7 +137,7 @@ DEFINE_HOOK(0x71067B, TechnoClass_EnterTransport_LaserTrails, 0x7)
 
 	const auto pTechnoExt = TechnoExt::ExtMap.Find(pTechno);
 
-	if (pTechnoExt->LaserTrails.size())
+	if (!pTechnoExt->LaserTrails.empty())
 	{
 		for (auto& pLaserTrail : pTechnoExt->LaserTrails)
 		{
@@ -177,11 +177,15 @@ DEFINE_HOOK(0x4DBF13, FootClass_SetOwningHouse, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-	for (auto& trail : pExt->LaserTrails) {
-		if (trail.Type->IsHouseColor)
-			trail.CurrentColor = (pThis->Owner ? pThis->Owner : HouseExt::FindCivilianSide())
-			->LaserColor;
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+
+	if(!pExt->LaserTrails.empty()) {
+		for (auto& trail : pExt->LaserTrails) {
+			if (trail.Type->IsHouseColor)
+				trail.CurrentColor = (pThis->Owner ?
+				pThis->Owner : HouseExt::FindCivilianSide())
+				->LaserColor;
+		}
 	}
 
 	//if (pThis->Owner->IsHumanPlayer)

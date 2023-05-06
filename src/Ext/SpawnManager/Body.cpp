@@ -2,39 +2,20 @@
 
 #include <Ext/Techno/Body.h>
 
-SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
 
 // =============================
 // load / save
 template <typename T>
 void SpawnManagerExt::ExtData::Serialize(T& Stm) {
 	//Debug::Log("Processing Element From SpawnManagerExt ! \n");
-}
-
-void SpawnManagerExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	Extension<SpawnManagerClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SpawnManagerExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	Extension<SpawnManagerClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SpawnManagerExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool SpawnManagerExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
+	Stm
+		.Process(this->Initialized)
+		;
 }
 
 // =============================
 // container
+SpawnManagerExt::ExtContainer SpawnManagerExt::ExtMap;
 
 SpawnManagerExt::ExtContainer::ExtContainer() : Container("SpawnManagerClass") { };
 SpawnManagerExt::ExtContainer::~ExtContainer() = default;

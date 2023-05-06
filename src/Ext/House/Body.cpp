@@ -6,39 +6,30 @@
 
 #include <ScenarioClass.h>
 
-//Static init
-HouseExt::ExtContainer HouseExt::ExtMap;
-int HouseExt::LastHarvesterBalance = 0;
-int HouseExt::LastSlaveBalance = 0;
+std::vector<int> HouseExt::AIProduction_CreationFrames;
+std::vector<int> HouseExt::AIProduction_Values;
+std::vector<int> HouseExt::AIProduction_BestChoices;
+std::vector<int> HouseExt::AIProduction_BestChoicesNaval;
+
 int HouseExt::LastGrindingBlanceUnit = 0;
 int HouseExt::LastGrindingBlanceInf = 0;
+int HouseExt::LastHarvesterBalance = 0;
+int HouseExt::LastSlaveBalance = 0;
 
-void HouseExt::ExtData::InitializeConstants()
-{
-	PowerPlantEnhancerBuildings.reserve(50);
-	Building_BuildSpeedBonusCounter.reserve(50);
-	HouseAirFactory.reserve(50);
-	ActiveTeams.reserve(50);
-	AutoDeathObjects.reserve(50);
-	LaunchDatas.reserve(10);
-	//for (auto pSWType : *SuperWeaponTypeClass::Array())
-	//{
-	//	auto const pSW = GameCreate<SuperClass>(pSWType, this->Get());
-	//	SecondarySWType.push_back(pSW);
-	//}
-}
-
-void HouseExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pSection = this->Get()->PlainName;
+
+	if (parseFailAddr)
+		return;
 
 	INI_EX exINI(pINI);
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
 }
 
-bool HouseExt::ExtData::InvalidateIgnorable(void* const ptr) const
+bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
-	switch ((((DWORD*)ptr)[0]))
+	switch (VTable::Get(ptr))
 	{
 	case BuildingClass::vtable:
 	case InfantryClass::vtable:
@@ -54,11 +45,9 @@ bool HouseExt::ExtData::InvalidateIgnorable(void* const ptr) const
 
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
+	if(ptr != nullptr)
+		AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
 
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
-	AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
 	AnnounceInvalidPointer(Factory_BuildingType, ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
@@ -619,12 +608,6 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 	return houseIdx;
 }
 
-
-std::vector<int> HouseExt::AIProduction_CreationFrames;
-std::vector<int> HouseExt::AIProduction_Values;
-std::vector<int> HouseExt::AIProduction_BestChoices;
-std::vector<int> HouseExt::AIProduction_BestChoicesNaval;
-
 // Based on Ares' rewrite of 0x4FEA60.
 void HouseExt::ExtData::UpdateVehicleProduction()
 {
@@ -915,6 +898,7 @@ template <typename T>
 void HouseExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->HouseAirFactory)
@@ -940,19 +924,7 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void HouseExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<HouseClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void HouseExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<HouseClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool HouseExt::LoadGlobals(PhobosStreamReader& Stm)
+bool HouseExt::ExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
 		.Process(HouseExt::LastGrindingBlanceUnit)
@@ -962,7 +934,7 @@ bool HouseExt::LoadGlobals(PhobosStreamReader& Stm)
 		.Success();
 }
 
-bool HouseExt::SaveGlobals(PhobosStreamWriter& Stm)
+bool HouseExt::ExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
 		.Process(HouseExt::LastGrindingBlanceUnit)
@@ -975,6 +947,7 @@ bool HouseExt::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 
+HouseExt::ExtContainer HouseExt::ExtMap;
 HouseExt::ExtContainer::ExtContainer() : Container("HouseClass") { }
 HouseExt::ExtContainer::~ExtContainer() = default;
 
@@ -1021,7 +994,7 @@ DEFINE_HOOK(0x50114D, HouseClass_InitFromINI, 0x5)
 	GET(HouseClass* const, pThis, EBX);
 	GET(CCINIClass* const, pINI, ESI);
 
-	HouseExt::ExtMap.LoadFromINI(pThis, pINI);
+	HouseExt::ExtMap.LoadFromINI(pThis, pINI , false);
 
 	return 0;
 }

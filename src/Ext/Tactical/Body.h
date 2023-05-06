@@ -12,23 +12,22 @@
 class TacticalExt
 {
 public:
-	static constexpr size_t Canary = 0x52DEBA12;
-	using base_type = TacticalClass;
+	static IStream* g_pStm;
 
 	class ExtData final : public Extension<TacticalClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x52DEBA12;
+		using base_type = TacticalClass;
+
 	public:
 
 		ExtData(TacticalClass* OwnerObject) : Extension<TacticalClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		void Uninitialize() { }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
@@ -37,9 +36,7 @@ public:
 
 private:
 	static std::unique_ptr<ExtData> Data;
-
 public:
-	static IStream* g_pStm;
 
 	static void Allocate(TacticalClass* pThis);
 	static void Remove(TacticalClass* pThis);
@@ -53,20 +50,6 @@ public:
 	{
 		Allocate(TacticalClass::Instance);
 	}
-
-	static void PointerGotInvalid(void* ptr, bool removed)
-	{
-		if (auto pGlobal = Global())
-		{
-			if (pGlobal->InvalidateIgnorable(ptr))
-				return;
-
-			pGlobal->InvalidatePointer(ptr, removed);
-		}
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	//void DrawDebugOverlay();
 	//bool DrawCurrentCell(); //TODO

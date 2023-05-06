@@ -9,27 +9,6 @@
 
 #include <New/Entity/FlyingStrings.h>
 
-BuildingExt::ExtContainer BuildingExt::ExtMap;
-
-void BuildingExt::ExtData::InitializeConstants()
-{
-	if (!Get() || !Get()->Type)
-		return;
-
-	TechnoExt = TechnoExt::ExtMap.Find(Get());
-#ifndef ENABLE_NEWHOOKS
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(Get()->Type);
-	Type = pTypeExt;
-
-	DamageFireAnims.reserve(8);
-
-	if (!pTypeExt->DamageFire_Offs.empty())
-	{
-		DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-	}
-#endif
-}
-
 void BuildingExt::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
 	if (!pAttackerHouse || !pTargetHouse || LimboIDs.empty())
@@ -53,7 +32,6 @@ void BuildingExt::ExtData::DisplayIncomeString()
 {
 	if (Unsorted::CurrentFrame % 15 == 0)
 	{
-
 		FlyingStrings::AddMoneyString(
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
@@ -267,15 +245,12 @@ CoordStruct BuildingExt::GetCenterCoords(BuildingClass* pBuilding, bool includeB
 
 void BuildingExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(CurrentAirFactory, ptr);
 }
 
-bool BuildingExt::ExtData::InvalidateIgnorable(void* const ptr) const
+bool BuildingExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
-	switch ((((DWORD*)ptr)[0]))
+	switch (VTable::Get(ptr))
 	{
 	case BuildingClass::vtable:
 		return false;
@@ -692,6 +667,7 @@ template <typename T>
 void BuildingExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->OwnerObject()->LightSource)
 		.Process(this->Type)
 		.Process(this->TechnoExt)
@@ -713,33 +689,9 @@ void BuildingExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void BuildingExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<BuildingClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void BuildingExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<BuildingClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool BuildingExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool BuildingExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
-
+BuildingExt::ExtContainer BuildingExt::ExtMap;
 BuildingExt::ExtContainer::ExtContainer() : Container("BuildingClass") { }
 BuildingExt::ExtContainer::~ExtContainer() = default;
 
@@ -749,7 +701,19 @@ BuildingExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x43BCBD, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-	BuildingExt::ExtMap.Allocate(pItem);
+
+	if (auto pExt = BuildingExt::ExtMap.Allocate(pItem))
+	{
+		pExt->TechnoExt = TechnoExt::ExtMap.Find(pItem);
+
+		auto const pTypeExt = BuildingTypeExt::ExtMap.TryFind(pItem->Type);
+		pExt->Type = pTypeExt;
+
+		if (pTypeExt && !pTypeExt->DamageFire_Offs.empty()) {
+			pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+		}
+	}
+
 	return 0;
 }
 
@@ -785,18 +749,13 @@ DEFINE_HOOK(0x454244, BuildingClass_Save_Suffix, 0x7)
 	return 0;
 }
 
-//DEFINE_HOOK(0x41D9FB, AirstrikeClass_Setup_Remove, 0xA) {
-//	return 0x41DA05;
-//}
-
 DEFINE_HOOK(0x44E940, BuildingClass_Detach, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(void*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = BuildingExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
+	BuildingExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->LightSource == target ? 0x44E948 : 0x44E94E;
 }

@@ -7,14 +7,14 @@
 namespace VTable
 {
 	template<typename T>
-	constexpr void Set(const T ptr, uintptr_t addr, size_t offset = 0)
+	constexpr inline void Set(const T ptr, uintptr_t addr, size_t offset = 0)
 	{
 		static_assert(std::is_pointer<T>::value, "T must be a pointer");
 		reinterpret_cast<uintptr_t*>(ptr)[offset] = addr;
 	}
 
 	template<typename T>
-	constexpr uintptr_t Get(const T ptr, size_t offset = 0)
+	constexpr inline uintptr_t Get(const T ptr, size_t offset = 0)
 	{
 		static_assert(std::is_pointer<T>::value, "T must be a pointer");
 

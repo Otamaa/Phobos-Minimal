@@ -10,12 +10,10 @@
 #include <SuperWeaponTypeClass.h>
 #include <StringTable.h>
 
-SWTypeExt::ExtContainer SWTypeExt::ExtMap;
-
-bool SWTypeExt::Handled = true;
+bool SWTypeExt::Handled = false;
 SuperClass* SWTypeExt::TempSuper = nullptr;
 
-void SWTypeExt::ExtData::InitializeConstants()
+void SWTypeExt::ExtData::Initialize()
 {
 	LimboDelivery_Types.reserve(5);
 	LimboDelivery_IDs.reserve(5);
@@ -35,12 +33,12 @@ void SWTypeExt::ExtData::LoadFromRulesFile(CCINIClass* pINI)
 	INI_EX exINI(pINI);
 }
 
-void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	if (pINI == CCINIClass::INI_Rules)
@@ -499,6 +497,7 @@ template <typename T>
 void SWTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Money_Amount)
 		.Process(this->UIDescription)
 		.Process(this->CameoPriority)
@@ -538,37 +537,9 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 
 }
 
-void SWTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	Extension<SuperWeaponTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SWTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	Extension<SuperWeaponTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SWTypeExt::LoadGlobals(PhobosStreamReader& Stm) {
-	return Stm
-		.Process(SWTypeExt::TempSuper)
-		.Process(SWTypeExt::Handled)
-		.Success();
-}
-
-bool SWTypeExt::SaveGlobals(PhobosStreamWriter& Stm) {
-	return Stm
-		.Process(SWTypeExt::TempSuper)
-		.Process(SWTypeExt::Handled)
-		.Success();
-}
-
-void SWTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
-	AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);	
-};
-
 // =============================
 // container
+SWTypeExt::ExtContainer SWTypeExt::ExtMap;
 
 SWTypeExt::ExtContainer::ExtContainer() : Container("SuperWeaponTypeClass") {}
 SWTypeExt::ExtContainer::~ExtContainer() = default;
@@ -619,10 +590,6 @@ DEFINE_HOOK(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
 	GET(SuperWeaponTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x3FC);
 
-	SWTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	SWTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x6CEE50);
 	return 0;
 }
-
-#ifdef ENABLE_NEWHOOKS
-DEFINE_JUMP(LJMP, 0x6CE93A, 0x6CE972);
-#endif

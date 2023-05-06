@@ -7,40 +7,8 @@
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #endif
 
-ParticleExt::ExtContainer ParticleExt::ExtMap;
-
-void ParticleExt::ExtData::InitializeConstants()
-{
-	LaserTrails.reserve(1);
-#ifdef COMPILE_PORTED_DP_FEATURES
-	Trails.reserve(1);
-#endif
-	const auto pThis = Get();
-
-	if (auto const pTypeExt = ParticleTypeExt::ExtMap.Find(pThis->Type))
-	{
-		CoordStruct nFLH = CoordStruct::Empty;
-		const ColorStruct nColor = pThis->GetOwningHouse() ? pThis->GetOwningHouse()->LaserColor : ColorStruct::Empty;
-
-		if (LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
-		{
-			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-			for (auto const& idxTrail : pTypeExt->LaserTrail_Types) {
-				LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH);
-			}
-		}
-	}
-
-#ifdef COMPILE_PORTED_DP_FEATURES
-	TrailsManager::Construct(Get());
-#endif
-
-}
-
 // =============================
 // load / save
-
 
 template <typename T>
 void ParticleExt::ExtData::Serialize(T& Stm)
@@ -48,6 +16,7 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 	//Debug::Log("Processing Element From ParticleExt ! \n");
 
 	Stm
+		.Process(this->Initialized)
 		.Process(this->LaserTrails)
 #ifdef COMPILE_PORTED_DP_FEATURES
 		.Process(this->Trails)
@@ -55,28 +24,9 @@ void ParticleExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void ParticleExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<ParticleClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ParticleExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<ParticleClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ParticleExt::ExtData::Uninitialize() {
-	LaserTrails.clear();
-#ifdef COMPILE_PORTED_DP_FEATURES
-	Trails.clear();
-#endif
-}
-
 // =============================
 // container
-
+ParticleExt::ExtContainer ParticleExt::ExtMap;
 ParticleExt::ExtContainer::ExtContainer() : Container("ParticleClass") { }
 ParticleExt::ExtContainer::~ExtContainer() = default;
 
@@ -86,7 +36,30 @@ ParticleExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
-	ParticleExt::ExtMap.Allocate(pItem);
+
+	if (auto pExt = ParticleExt::ExtMap.Allocate(pItem))
+	{
+		if (const auto pTypeExt = ParticleTypeExt::ExtMap.TryFind(pItem->Type))
+		{
+			CoordStruct nFLH = CoordStruct::Empty;
+			const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+
+			if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
+			{
+				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+
+				for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
+				{
+					pExt->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH);
+				}
+			}
+		}
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+		TrailsManager::Construct(pItem);
+#endif
+	}
+
 	return 0;
 }
 
@@ -131,8 +104,8 @@ static void __fastcall ParticleClass_Detach(ParticleClass* pThis, void* _, Abstr
 {
 	pThis->ObjectClass::PointerExpired(pTarget ,bRemove);
 
-	if (auto pExt = ParticleExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(pTarget, bRemove);
+	//if (auto pExt = ParticleExt::ExtMap.Find(pThis))
+	//	pExt->InvalidatePointer(pTarget, bRemove);
 }
 
 DEFINE_JUMP(VTABLE, 0x7EF97C, GET_OFFSET(ParticleClass_Detach))

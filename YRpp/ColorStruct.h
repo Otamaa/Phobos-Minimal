@@ -247,8 +247,8 @@ struct BytePalette
 {
 	static inline constexpr int EntriesCount = 256;
 
-	BytePalette() noexcept : 
-		Entries{} 
+	BytePalette() noexcept :
+		Entries{}
 	{}
 
 	BytePalette(const ColorStruct& rgb) :

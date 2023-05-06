@@ -68,11 +68,13 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	bool hasPalette = false;
 	auto ret = Stm.Load(this->Mode) && Stm.Load(hasPalette);
 
-	if (ret && hasPalette) {
+	if (ret && hasPalette)
+	{
 		this->Palette.reset(GameCreate<BytePalette>());
 		ret = Stm.Load(*this->Palette);
 
-		if (ret) {
+		if (ret)
+		{
 			this->CreateConvert();
 		}
 	}

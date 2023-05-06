@@ -1,9 +1,7 @@
 #include "Body.h"
 #include <Ext/Techno/Body.h>
 
-TeamExt::ExtContainer TeamExt::ExtMap;
-
-bool TeamExt::ExtData::InvalidateIgnorable(void* const ptr) const {
+bool TeamExt::ExtData::InvalidateIgnorable(void* ptr) const {
 
 	switch (GetVtableAddr(ptr))
 	{
@@ -21,9 +19,6 @@ bool TeamExt::ExtData::InvalidateIgnorable(void* const ptr) const {
 
 void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(TeamLeader, ptr);
 	AnnounceInvalidPointer(MapPath_StartTechno, ptr);
 	AnnounceInvalidPointer(MapPath_EndTechno, ptr);
@@ -32,18 +27,6 @@ void TeamExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(MapPath_CheckedBridgeRepairHuts, ptr);
 	AnnounceInvalidPointer(PreviousScriptList, ptr);
 }
-
-void TeamExt::ExtData::InitializeConstants() {
-	PreviousScriptList.reserve(10);
-	MapPath_Grid.reserve(100);
-	MapPath_Queue.reserve(100);
-	MapPath_BridgeRepairHuts.reserve(100);
-	MapPath_ValidBridgeRepairHuts.reserve(100);
-	MapPath_CheckedBridgeRepairHuts.reserve(100);
-}
-
-void TeamExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
-
 
 bool TeamExt::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
 {
@@ -395,6 +378,7 @@ template <typename T>
 void TeamExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->WaitNoTargetAttempts)
 		.Process(this->NextSuccessWeightAward)
 		.Process(this->IdxSelectedObjectFromAIList)
@@ -439,32 +423,9 @@ void TeamExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void TeamExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TeamClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TeamExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TeamClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TeamExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TeamExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+TeamExt::ExtContainer TeamExt::ExtMap;
 
 TeamExt::ExtContainer::ExtContainer() : Container("TeamClass") { }
 TeamExt::ExtContainer::~ExtContainer() = default;
@@ -517,8 +478,7 @@ DEFINE_HOOK(0x6EAEC7, TeamClass_Detach, 0x5)
 	GET(void*, target, EAX);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (auto pExt = TeamExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
+	TeamExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
 }

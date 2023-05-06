@@ -9,11 +9,12 @@
 class SmudgeTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xBEE75008;
-	using base_type = SmudgeTypeClass;
-
 	class ExtData final : public Extension<SmudgeTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xBEE75008;
+		using base_type = SmudgeTypeClass;
+
 	public:
 
 		Valueable<bool> Clearable;
@@ -23,26 +24,21 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SmudgeTypeExt>
+	class ExtContainer final : public Container<SmudgeTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
-		~ExtContainer() = default;
+		~ExtContainer();
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

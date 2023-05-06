@@ -177,6 +177,8 @@ struct AresData
 	{
 		Unknown = -1,
 		Ares30p = 0,
+
+		vcount
 	};
 
 	static HMODULE AresDllHmodule;
@@ -188,7 +190,7 @@ struct AresData
 	// number of Ares functions we use
 	static constexpr int AresFunctionCount = FunctionIndices::count;
 	// number of Ares versions we support
-	static constexpr int AresVersionCount = 1;
+	static constexpr int AresVersionCount = Version::vcount;
 	//number of static instance
 	static constexpr int AresStaticInstanceCount = 3;
 	//number of call for `CustomPalette::ReadFromINI`

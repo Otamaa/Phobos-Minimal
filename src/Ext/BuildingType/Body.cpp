@@ -10,32 +10,8 @@
 
 #include <Misc/AresData.h>
 
-BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 std::vector<std::string> BuildingTypeExt::trenchKinds;
-
-const DirStruct BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
-
-void BuildingTypeExt::ExtData::InitializeConstants()
-{
-	AIBuildInsteadPerDiff.reserve(3);
-	PowersUp_Buildings.reserve(3);
-	PowerPlantEnhancer_Buildings.reserve(8);
-	OccupierMuzzleFlashes.reserve(Get()->MaxNumberOccupants);
-	Grinding_AllowTypes.reserve(8);
-	Grinding_DisallowTypes.reserve(8);
-	DamageFireTypes.reserve(8);
-	OnFireTypes.reserve(8);
-	OnFireIndex.reserve(8);
-	DamageFire_Offs.reserve(8);
-	DockPoseDir.reserve(Get()->NumberOfDocks);
-	GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
-	GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
-	GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
-	GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
-	GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
-
-	Type = TechnoTypeExt::ExtMap.Find(Get());
-}
+const DirStruct  BuildingTypeExt::DefaultJuggerFacing = DirStruct { 0x7FFF };
 
 int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem)
 {
@@ -47,7 +23,7 @@ int BuildingTypeExt::BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeC
 		return -BuildLimit - pHouse->CountOwnedEver(pItem);
 }
 
-int  BuildingTypeExt::CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued)
+int BuildingTypeExt::CheckBuildLimit(HouseClass const* pHouse, BuildingTypeClass const* pItem, bool includeQueued)
 {
 	enum { NotReached = 1, ReachedPermanently = -1, ReachedTemporarily = 0 };
 
@@ -441,7 +417,7 @@ int BuildingTypeExt::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass*
 	return isUpgrade ? result : -1;
 }
 
-void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
@@ -468,7 +444,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		}
 	}
 
-	if (pINI->GetSection(pSection))
+	if (!parseFailAddr)
 	{
 		INI_EX exINI(pINI);
 
@@ -720,6 +696,7 @@ template <typename T>
 void BuildingTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Type)
 		.Process(this->PowersUp_Owner)
 		.Process(this->PowersUp_Buildings)
@@ -847,18 +824,6 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void BuildingTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<BuildingTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void BuildingTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<BuildingTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
 bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm)
 {
 	BuildingTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
@@ -866,26 +831,9 @@ bool BuildingTypeExt::ExtContainer::Load(BuildingTypeClass* pThis, IStream* pStm
 	return pData != nullptr;
 };
 
-bool BuildingTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(BuildingTypeExt::trenchKinds)
-		.Success()
-		;
-}
-
-bool BuildingTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(BuildingTypeExt::trenchKinds)
-		.Success()
-		;
-}
-
-
 // =============================
 // container
-
+BuildingTypeExt::ExtContainer BuildingTypeExt::ExtMap;
 BuildingTypeExt::ExtContainer::ExtContainer() : Container("BuildingTypeClass") { }
 BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -895,7 +843,24 @@ BuildingTypeExt::ExtContainer::~ExtContainer() = default;
 DEFINE_HOOK(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-	BuildingTypeExt::ExtMap.Allocate(pItem);
+	if (auto pExt = BuildingTypeExt::ExtMap.Allocate(pItem))
+	{
+		pExt->AIBuildInsteadPerDiff.reserve(3);
+		pExt->PowersUp_Buildings.reserve(3);
+		pExt->PowerPlantEnhancer_Buildings.reserve(8);
+		pExt->Grinding_AllowTypes.reserve(8);
+		pExt->Grinding_DisallowTypes.reserve(8);
+		pExt->DamageFireTypes.reserve(8);
+		pExt->OnFireTypes.reserve(8);
+		pExt->OnFireIndex.reserve(8);
+		pExt->DamageFire_Offs.reserve(8);
+		pExt->GarrisonAnim_idle.reserve(HouseTypeClass::Array->Count);
+		pExt->GarrisonAnim_ActiveOne.reserve(HouseTypeClass::Array->Count);
+		pExt->GarrisonAnim_ActiveTwo.reserve(HouseTypeClass::Array->Count);
+		pExt->GarrisonAnim_ActiveThree.reserve(HouseTypeClass::Array->Count);
+		pExt->GarrisonAnim_ActiveFour.reserve(HouseTypeClass::Array->Count);
+		pExt->Type = TechnoTypeExt::ExtMap.Find(pItem);
+	}
 	return 0;
 }
 
@@ -937,6 +902,6 @@ DEFINE_HOOK(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
 	GET(BuildingTypeClass*, pItem, EBP);
 	GET_STACK(CCINIClass*, pINI, 0x364);
 
-	BuildingTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	BuildingTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x464A56);
 	return 0;
 }

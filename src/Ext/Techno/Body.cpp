@@ -41,8 +41,6 @@
 
 #include <memory>
 
-TechnoExt::ExtContainer TechnoExt::ExtMap;
-
 bool TechnoExt::IsCullingImmune(TechnoClass* pThis)
 {
 	return HasAbility(pThis, PhobosAbilityType::CullingImmune);
@@ -101,7 +99,7 @@ bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 
 	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if ((((DWORD*)pLoco)[0] != TeleportLocomotionClass::ILoco_vtable))
+	if (VTable::Get(pLoco) != TeleportLocomotionClass::ILoco_vtable)
 		return false;
 
 	if (!pThis->IsWarpingIn())
@@ -807,16 +805,6 @@ void TechnoExt::SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo)
 			pTo->IronTintStage = pFrom->IronTintStage;
 		}
 	}
-}
-
-void TechnoExt::ExtData::InitializeConstants()
-{
-	LaserTrails.reserve(2);
-#ifdef COMPILE_PORTED_DP_FEATURES
-	Trails.reserve(2);
-#endif
-	RevengeWeapons.reserve(100);
-	FireSelf_Count.reserve(20);
 }
 
 void TechnoExt::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
@@ -1608,9 +1596,12 @@ bool TechnoExt::HasAvailableDock(TechnoClass* pThis)
 void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 {
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pType = pThis->GetTechnoType();
 
-	if (Is_Building(pThis) || pThis->GetTechnoType()->Invisible)
+	if (Is_Building(pThis) || pType->Invisible)
 		return;
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (bIsconverted)
 		pExt->LaserTrails.clear();
@@ -1619,7 +1610,7 @@ void TechnoExt::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 	if (pExt->LaserTrails.empty())
 	{
-		for (auto const& entry : TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->LaserTrailData)
+		for (auto const& entry : pTypeExt->LaserTrailData)
 		{
 			pExt->LaserTrails.emplace_back(
 					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
@@ -2582,13 +2573,14 @@ void TechnoExt::ExtData::UpdateOnTunnelEnter()
 {
 	if (!this->IsInTunnel)
 	{
-		if (const auto pShieldData = GetShield())
+		if (auto& pShieldData = this->Shield)
 			pShieldData->SetAnimationVisibility(false);
 
-		for (auto& pLaserTrail : this->LaserTrails)
+		for(auto pos =this->LaserTrails.begin();
+			pos != this->LaserTrails.end() ; ++pos)
 		{
-			pLaserTrail.Visible = false;
-			pLaserTrail.LastLocation.clear();
+			pos->Visible = false;
+			pos->LastLocation.clear();
 		}
 
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -3087,7 +3079,8 @@ CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
 	current.Y += tmpCoords.Y * distance;
 
 	const auto tmpCell = MapClass::Instance->TryGetCellAt(current);
-	auto target = tmpCell->FindInfantrySubposition(current, false, false, false);
+	CoordStruct target;
+	tmpCell->FindInfantrySubposition(&target,current, false, false, false);
 
 	target.Z = current.Z;
 	return target;
@@ -3099,6 +3092,17 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 
 	if (!pCell) {
 		return false;
+	}
+
+	if (const auto pBld = pCell->GetBuilding())
+	{
+		if (!Is_Passable(pBld->Type))
+			return false;
+
+		if (Is_FirestromWall(pBld->Type) &&
+			pBld->Owner && 
+			pBld->Owner->FirestormActive)
+			return false;
 	}
 
 	Survivor->OnBridge = pCell->ContainsBridge();
@@ -3151,7 +3155,6 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	}
 
 	return true;
-	//! \todo Tag
 }
 
 bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
@@ -3197,7 +3200,6 @@ int TechnoExt::GetInitialStrength(TechnoTypeClass* pType, int nHP)
 	return TechnoTypeExt::ExtMap.Find(pType)->InitialStrength.Get(nHP);
 }
 
-
 // =============================
 // load / save
 
@@ -3207,6 +3209,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	//Debug::Log("Processing Element From TechnoExt ! \n");
 
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Type)
 		.Process(this->AbsType)
 		.Process(this->Shield)
@@ -3276,7 +3279,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 #endif;
 }
 
-bool TechnoExt::ExtData::InvalidateIgnorable(void* const ptr) const
+bool TechnoExt::ExtData::InvalidateIgnorable(void* ptr) const
 {
 	switch (GetVtableAddr(ptr))
 	{
@@ -3294,10 +3297,6 @@ bool TechnoExt::ExtData::InvalidateIgnorable(void* const ptr) const
 
 void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
-
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 #endif
@@ -3309,35 +3308,13 @@ void TechnoExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 #endif
 }
 
-void TechnoExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TechnoClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TechnoExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TechnoClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
+TechnoExt::ExtContainer TechnoExt::ExtMap;
 TechnoExt::ExtContainer::ExtContainer() : Container("TechnoClass") { }
 TechnoExt::ExtContainer::~ExtContainer() = default;
 
-bool TechnoExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TechnoExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container hooks
+
 DEFINE_HOOK(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
@@ -3379,8 +3356,7 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	GET(void*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
 
-	if (const auto pExt = TechnoExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
+	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->BeingManipulatedBy == target ? 0x707843 : 0x707849;
 }
@@ -3390,23 +3366,10 @@ DEFINE_HOOK(0x710443, TechnoClass_AnimPointerExpired_PhobosAdd, 6)
 	GET(AnimClass*, pAnim, EAX);
 	GET(TechnoClass*, pThis, ECX);
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		if (auto pShield = pExt->GetShield())
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		if (auto& pShield = pExt->Shield)
 			pShield->InvalidatePointer(pAnim, false);
 	}
 
 	return 0x0;
 }
-
-#ifndef ENABLE_NEWEXT
-//DEFINE_HOOK(0x6F3100, TechnoClass_CTOR_0x4FC, 0x6)
-//{
-//	R->EDX(0);
-//	return 0x6F3106;
-//}
-//
-//DEFINE_JUMP(LJMP, 0x6FA6C9, 0x6FA6CF);
-//DEFINE_JUMP(LJMP, 0x7094A9, 0x7094AF);
-//DEFINE_JUMP(LJMP, 0x70982E, 0x709834);
-#endif

@@ -8,11 +8,12 @@
 class SideExt
 {
 public:
-	static constexpr size_t Canary = 0x05B10501;
-	using base_type = SideClass;
-
 	class ExtData final : public Extension<SideClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x05B10501;
+		using base_type = SideClass;
+
 	public:
 		Valueable<int> ArrayIndex;
 		Valueable<bool> Sidebar_GDIPositions;
@@ -63,30 +64,24 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override { }
-		virtual	void InitializeConstants() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize();
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SideExt>
+	class ExtContainer final : public Container<SideExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
-	static void IniExtData(SideClass* pThis , int nIdx);
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static bool isNODSidebar();
 };

@@ -15,157 +15,98 @@
 #include "Stream.h"
 #include "Swizzle.h"
 
-/*
- * ==========================
- *	It's a kind of magic
- * ==========================
-
- * These two templates are the basis of the new class extension standard.
-
- * ==========================
-
- * Extension<T> is the parent class for the data you want to link with this instance of T
-   ( for example, [Warhead]MindControl.Permanent= should be stored in WarheadClassExt::ExtData
-	 which itself should be a derivate of Extension<WarheadTypeClass> )
-
- * ==========================
-
-   Container<TX> is the storage for all the Extension<T> which share the same T,
-	where TX is the containing class of the relevant derivate of Extension<T>. // complex, huh?
-   ( for example, there is Container<WarheadTypeExt>
-	 which contains all the custom data for all WarheadTypeClass instances,
-	 and WarheadTypeExt itself contains just statics like the Container itself )
-
-   Requires:
-	using base_type = T;
-	const DWORD Extension<T>::Canary = (any dword value easily identifiable in a byte stream)
-	class TX::ExtData : public Extension<T> { custom_data; }
-
-   Complex? Yes. That's partially why you should be happy these are premade for you.
- *
- */
-
-template <class T>
-concept HasEnsureConstanted = requires(T t) { t.InitializeConstants(); };
-template <class T>
-concept HasInitializeRuled = requires(T t) { t.InitializeRuled(); };
-template <class T>
-concept HasInitialize = requires(T t) { t.Initialize(); };
-template <class T>
-concept HasLoadFromRulesFile = requires(T t, CCINIClass * pINI) { t.LoadFromRulesFile(pINI); };
-template <class T>
-concept HasLoadFromINIFile = requires(T t, CCINIClass * pINI) { t.LoadFromINIFile(pINI); };
-template <class T>
-concept HasInvalidatePointer = requires(T t, void* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
 template <class T>
 concept HasAbsID = requires(T) { T::AbsID; };
 template <class T>
 concept HasDeriveredAbsID = requires(T) { T::AbsDerivateID; };
 template <class T>
 concept HasTypeBase = requires(T) { T::AbsTypeBase; };
+template <typename T>
+concept Initable = requires(T t) { t.Initialize(); };
+
+template <typename T>
+concept CanLoadFromINIFile =
+	requires (T t , CCINIClass* pINI, bool parseFailAddr) { t.LoadFromINIFile(pINI, parseFailAddr); };
+
+template <typename T>
+concept PointerInvalidationSubscribable =
+	requires (void* ptr, bool removed) { T::InvalidatePointer(ptr, removed); };
+
+template <typename T>
+concept ThisPointerInvalidationSubscribable =
+	requires (T t, void* ptr, bool removed) { t.InvalidatePointer(ptr, removed); };
+
+template <typename T>
+concept PointerInvalidationIgnorAble =
+	requires (void* ptr) { T::InvalidateIgnorable(ptr); };
+
+template <typename T>
+concept ThisPointerInvalidationIgnorAble =
+	requires (T t, void* ptr) { t.InvalidateIgnorable(ptr); };
+
+template <typename T>
+concept CanLoadFromStream =
+	requires (PhobosStreamReader & stm) { T::LoadFromStream(stm); };
+
+template <typename T>
+concept CanSaveToStream =
+	requires (PhobosStreamWriter & stm) { T::SaveToStream(stm); };
+
+template <typename T>
+concept CanThisLoadFromStream =
+	requires (T t, PhobosStreamReader & stm) { t.LoadFromStream(stm); };
+
+template <typename T>
+concept CanThisSaveToStream =
+	requires (T t, PhobosStreamWriter & stm) { t.SaveToStream(stm); };
 
 template <typename T>
 class Extension
 {
 	T* AttachedToObject;
+public:
 	InitState Initialized;
 
-public:
 	static const DWORD Canary;
 
-	Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
+	explicit Extension(T* const OwnerObject) : AttachedToObject { OwnerObject }
 		, Initialized { InitState::Blank }
-	{ }
-
-	const InitState GetInitStatus() const {
-		return Initialized;
+	{
 	}
-
-	Extension(const Extension& other) = delete;
-
-	void operator=(const Extension& RHS) = delete;
 
 	virtual ~Extension() = default;
 
-	// the object this Extension expands
-	T* const& Get() const {
-		return this->AttachedToObject;
-	}
-
-	T* const& OwnerObject() const {
-		return this->AttachedToObject;
-	}
-
-	void EnsureConstanted() {
-		if (this->Initialized < InitState::Constanted) {
-			this->InitializeConstants();
-	
-			this->Initialized = InitState::Constanted;
-		}
-	}
-
-	void LoadFromINI(CCINIClass* pINI)
+	inline const InitState GetInitStatus() const
 	{
-		if (!pINI)
-			return;
-
-		if (this->Initialized == InitState::Constanted) { 
-			this->Initialized = InitState::Inited;
-			this->Initialize();
-			this->LoadFromINIFile(pINI);
-			this->Initialized = InitState::Completed;
-		} else {
-
-			if(this->Initialized == InitState::Completed)
-				this->LoadFromINIFile(pINI);
-			else
-				Debug::Log("[%s] LoadFrom INI Called When Initilize not done ! \n", typeid(T).name());
-		}
+		return this->Initialized;
 	}
 
-	// must be implemented
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateIgnorable(void* const ptr) const = 0;
-
-	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
-	  Stm.Save(this->Initialized);
+	// the object this Extension expands
+	inline T* const& Get() const
+	{
+		return this->AttachedToObject;
 	}
 
-	virtual inline void LoadFromStream(PhobosStreamReader& Stm) { 
-		Stm.Load(this->Initialized);
+	inline T* const& OwnerObject() const
+	{
+		return this->AttachedToObject;
 	}
 
-protected:
-
-	// right after construction. only basic initialization tasks possible;
-	// owner object is only partially constructed! do not use global state!
-	virtual void InitializeConstants() { }
-
-	virtual void InitializeRuled() { }
-
-	// called before the first ini file is read
-	virtual void Initialize() { }
-
-	// for things that only logically work in rules - countries, sides, etc
-	virtual void LoadFromRulesFile(CCINIClass* pINI) { }
-
-	// load any ini file: rules, game mode, scenario or map
-	virtual void LoadFromINIFile(CCINIClass* pINI) { }
-
+private:
+	Extension(const Extension&) = delete;
+	Extension& operator = (const Extension&) = delete;
+	Extension& operator = (Extension&&) = delete;
 };
 
 template <class T>
 concept HasOffset = requires(T) { T::ExtOffset; };
-
-template <class T>
-concept HasInvalidateExtDataIgnorable = requires(T t, void* const ptr) { t.InvalidateExtDataIgnorable(ptr); };
 
 template <typename T>
 class Container
 {
 private:
 	using base_type = typename T::base_type;
-	using extension_type = typename T::ExtData;
+	using extension_type = typename T;
 	using base_type_ptr = base_type*;
 	using const_base_type_ptr = const base_type*;
 	using extension_type_ptr = extension_type*;
@@ -175,41 +116,34 @@ private:
 	base_type_ptr SavingObject;
 	IStream* SavingStream;
 	FixedString<0x100> Name;
-	//std::unordered_map<base_type_ptr, extension_type_ptr> ExtMap;
+
 public:
 
 	explicit Container(const char* pName) :
 		SavingObject { nullptr },
-		SavingStream { nullptr },
-		Name {}  //, ExtMap {}
+		SavingStream { nullptr }
 	{
 		Name = pName;
 	}
 
 	virtual ~Container() = default;
 
-	auto GetName() const
+	inline auto GetName() const
 	{
 		return this->Name.data();
 	}
 
-	base_type_ptr GetSavingObject() const
+	inline base_type_ptr GetSavingObject() const
 	{
 		return SavingObject;
 	}
 
-	IStream* GetStream() const
+	inline IStream* GetStream() const
 	{
 		return this->SavingStream;
 	}
 
-	void PointerGotInvalid(void* ptr, bool bRemoved) {
-		if (!this->InvalidateExtDataIgnorable(ptr)) {
-			this->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
-	void ClearExtAttribute(base_type_ptr key)
+	inline void ClearExtAttribute(base_type_ptr key)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
@@ -219,39 +153,21 @@ public:
 		//this->ExtMap.erase(key);
 	}
 
-	void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
+	inline void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
 	{
 		if constexpr (HasOffset<T>)
 			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
 		else
 			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
-
-		//this->ExtMap.emplace(key, val);
 	}
 
-	extension_type_ptr GetExtAttribute(base_type_ptr key) const
+	inline extension_type_ptr GetExtAttribute(base_type_ptr key) const
 	{
 		if constexpr (HasOffset<T>)
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
 		else
 			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
-		
-		//auto const Iter = this->ExtMap.find(key);
-		//return Iter != this->ExtMap.end() ? (*Iter).second : nullptr;
 	}
-
-	virtual void Clear() { //ExtMap.clear(); 
-	}
-
-protected:
-
-	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateExtDataIgnorable(void* const ptr) const { return true; }
-
-public:
-
-	// using virtual is good way so i can integrate different type of these
-	// not sure what is better approach
 
 	extension_type_ptr Allocate(base_type_ptr key)
 	{
@@ -262,8 +178,7 @@ public:
 
 		if (extension_type_ptr val = new extension_type(key))
 		{
-			val->EnsureConstanted();
-			this->SetExtAttribute(key,val);
+			this->SetExtAttribute(key, val);
 			return val;
 		}
 
@@ -297,7 +212,7 @@ public:
 
 	extension_type_ptr TryFind(base_type_ptr key) const
 	{
-		if(!key)
+		if (!key)
 			return nullptr;
 
 		return this->GetExtAttribute(key);
@@ -305,17 +220,59 @@ public:
 
 	void Remove(base_type_ptr key)
 	{
-		if (extension_type_ptr Item = TryFind(key)) {
+		if (extension_type_ptr Item = TryFind(key))
+		{
 			delete Item;
-
 			this->ClearExtAttribute(key);
 		}
 	}
 
-	void LoadFromINI(base_type_ptr key, CCINIClass* pINI)
+	void LoadFromINI(base_type_ptr key, CCINIClass* pINI, bool parseFailAddr)
 	{
-		if (extension_type_ptr ptr = this->TryFind(key))
-			ptr->LoadFromINI(pINI);
+		if constexpr (CanLoadFromINIFile<T>)
+		{
+			if (extension_type_ptr ptr = this->TryFind(key))
+			{
+				if (!pINI)
+				{
+					Debug::Log("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! \n", typeid(T).name());
+					return;
+				}
+
+				const auto InitStateData = ptr->Initialized;
+
+				if (InitStateData == InitState::Blank)
+				{
+					if constexpr (Initable<T>)
+						ptr->Initialize();
+
+					ptr->Initialized = InitState::Inited;
+					ptr->LoadFromINIFile(pINI, parseFailAddr);
+				}
+
+				const InitState nInitStateNegOne = InitState((int)InitStateData - 1);
+
+				if (nInitStateNegOne == InitState::Blank || nInitStateNegOne == InitState::Constanted)
+				{
+					ptr->LoadFromINIFile(pINI, parseFailAddr);
+					ptr->Initialized = InitState::Ruled;
+				}
+			}
+		}
+	}
+
+	void InvalidatePointerFor(base_type_ptr key, void* const ptr, bool bRemoved)
+	{
+		if constexpr (ThisPointerInvalidationIgnorAble<T> || ThisPointerInvalidationSubscribable<T>){
+			extension_type_ptr Extptr = this->TryFind(key);
+
+			if constexpr (ThisPointerInvalidationIgnorAble<T> && ThisPointerInvalidationSubscribable<T>){
+				if (!Extptr->InvalidateIgnorable(ptr))
+					Extptr->InvalidatePointer(ptr, bRemoved);
+			} else if constexpr (ThisPointerInvalidationSubscribable<T>) {
+					Extptr->InvalidatePointer(ptr, bRemoved);
+			}
+		}
 	}
 
 	void PrepareStream(base_type_ptr key, IStream* pStm)
@@ -376,79 +333,75 @@ protected:
 
 	extension_type_ptr SaveKey(base_type_ptr key, IStream* pStm)
 	{
-		// this really shouldn't happen
-		if (!key)
+		if constexpr (CanThisSaveToStream<T>)
 		{
-			//Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
-			return nullptr;
+			// this really shouldn't happen
+			if (!key)
+			{
+				//Debug::Log("[SaveKey] Attempted for a null pointer! WTF!\n");
+				return nullptr;
+			}
+
+			// get the value data
+			extension_type_ptr const buffer = this->Find(key);
+
+			if (!buffer)
+			{
+				//Debug::Log("[SaveKey] Could not find value.\n");
+				return nullptr;
+			}
+
+			// write the current pointer, the size of the block, and the canary
+			PhobosByteStream saver { sizeof(*buffer) };
+			PhobosStreamWriter writer { saver };
+
+			writer.Save(T::Canary);
+			writer.Save(buffer);
+
+			// save the data
+			buffer->SaveToStream(writer);
+
+			// save the block
+			if (saver.WriteBlockToStream(pStm))
+			{
+				//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+				return buffer;
+			}
 		}
 
-		// get the value data
-		extension_type_ptr const buffer = this->Find(key);
-
-		if (!buffer)
-		{
-			//Debug::Log("[SaveKey] Could not find value.\n");
-			return nullptr;
-		}
-
-		// write the current pointer, the size of the block, and the canary
-		PhobosByteStream saver { sizeof(*buffer) };
-		PhobosStreamWriter writer {saver};
-
-		writer.Save(T::Canary);
-		writer.Save(buffer);
-
-		// save the data
-		buffer->SaveToStream(writer);
-
-		// save the block
-		if (!saver.WriteBlockToStream(pStm))
-		{
-			//Debug::Log("[SaveKey] Failed to save data.\n");
-			return nullptr;
-		}
-
-		//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
-
-		return buffer;
+		//Debug::Log("[SaveKey] Failed to save data.\n");
+		return nullptr;
 	}
 
 	extension_type_ptr LoadKey(base_type_ptr key, IStream* pStm)
 	{
-		// this really shouldn't happen
-		if (!key)
+		if constexpr (CanThisLoadFromStream<T>)
 		{
-			//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
-			return nullptr;
-		}
+			// this really shouldn't happen
+			if (!key)
+			{
+				//Debug::Log("[LoadKey] Attempted for a null pointer! WTF!\n");
+				return nullptr;
+			}
 
-		this->ClearExtAttribute(key);
-		extension_type_ptr buffer = new extension_type(key);
-		this->SetExtAttribute(key,buffer);
+			this->ClearExtAttribute(key);
+			extension_type_ptr buffer = new extension_type(key);
+			this->SetExtAttribute(key, buffer);
 
-		#ifdef aaaa
-		if (buffer) {
-			//Debug::Log("[LoadKey] Found an [%x]Ext For [%s - %x] ! \n" , buffer , Name.data() , key);
-		} else {
-			//Debug::Log("[LoadKey] Could not find value For [%s - %x] Allocating !\n", Name.data(), key);
-			buffer = this->Allocate(key);
-		}
-		#endif
+			PhobosByteStream loader { 0 };
+			if (!loader.ReadBlockFromStream(pStm))
+			{
+				//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
+				return nullptr;
+			}
 
-		PhobosByteStream loader { 0 };
-		if (!loader.ReadBlockFromStream(pStm))
-		{
-			//Debug::Log("[LoadKey] Failed to read data from save stream?!\n");
-			return nullptr;
-		}
-
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
-		{
-			buffer->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-				return buffer;
+			PhobosStreamReader reader { loader };
+			if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
+			{
+				buffer->LoadFromStream(reader);
+				if (reader.ExpectEndOfBlock())
+					return buffer;
+			}
 		}
 
 		return nullptr;

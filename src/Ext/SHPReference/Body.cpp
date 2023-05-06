@@ -1,9 +1,6 @@
 #include "Body.h"
 
-//this thing causing S/L bug
-SHPRefExt::ExtContainer SHPRefExt::ExtMap;
-
-void SHPRefExt::ExtData::InitializeConstants()
+void SHPRefExt::ExtData::Initialize()
 {
 	//TODO : WTF ?
 	//auto pThis = this->Get();
@@ -52,6 +49,7 @@ void SHPRefExt::ExtData::InitializeConstants()
 
 // =============================
 // container
+SHPRefExt::ExtContainer SHPRefExt::ExtMap;
 
 SHPRefExt::ExtContainer::ExtContainer() : Container("SHPReference") { }
 SHPRefExt::ExtContainer::~ExtContainer() = default;

@@ -9,11 +9,12 @@
 class TerrainTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xBEE78007;
-	using base_type = TerrainTypeClass;
-
 	class ExtData final : public Extension<TerrainTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xBEE78007;
+		using base_type = TerrainTypeClass;
+
 	public:
 		Valueable<PaletteManager*> CustomPalette; //CustomPalette::PaletteMode::Temperate
 		Valueable<int> SpawnsTiberium_Type;
@@ -74,13 +75,10 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void InitializeConstants() override;
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void Initialize() ;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		int GetTiberiumGrowthStage();
 		int GetCellsPerAnim();
@@ -109,16 +107,12 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TerrainTypeExt> {
+	class ExtContainer final : public Container<TerrainTypeExt::ExtData> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static void Remove(TerrainClass* pTerrain);
 };

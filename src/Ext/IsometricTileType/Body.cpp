@@ -3,11 +3,10 @@
 #include <ScenarioClass.h>
 //#include <Ext/Convert/Body.h>
 
-
-IsometricTileTypeExt::ExtContainer IsometricTileTypeExt::ExtMap;
 int IsometricTileTypeExt::CurrentTileset = -1;
 
 #ifdef IsoTilePalette
+
 std::map<std::string, int> IsometricTileTypeExt::PalettesInitHelper;
 std::map<int, int> IsometricTileTypeExt::LoadedPalettesLookUp;
 std::vector<std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExt::LoadedPalettes;
@@ -68,11 +67,13 @@ void IsometricTileTypeExt::LoadPaletteFromName(int nTileset, const std::string_v
 	IsometricTileTypeExt::CustomPalettes.push_back(nullptr);
 	IsometricTileTypeExt::CustomPalettes.back().reset(FileSystem::AllocatePalette(PaletteName.data()));
 }
+
 #endif
+
 // =============================
 // load / save
 
-void IsometricTileTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void IsometricTileTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	this->Tileset = IsometricTileTypeExt::CurrentTileset;
 
@@ -100,52 +101,16 @@ template <typename T>
 void IsometricTileTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Tileset)
 	    .Process(this->BlockJumpjet)
 		;
 }
 
-void IsometricTileTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<IsometricTileTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void IsometricTileTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<IsometricTileTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool IsometricTileTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(IsometricTileTypeExt::CurrentTileset)
-#ifdef IsoTilePalette
-		.Process(IsometricTileTypeExt::PalettesInitHelper)
-		.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
-		.Process(IsometricTileTypeExt::LoadedPalettes)
-		.Process(IsometricTileTypeExt::CustomPalettes)
-#endif
-		.Success();
-}
-
-bool IsometricTileTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-
-		.Process(IsometricTileTypeExt::CurrentTileset)
-#ifdef IsoTilePalette
-		.Process(IsometricTileTypeExt::PalettesInitHelper)
-		.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
-		.Process(IsometricTileTypeExt::LoadedPalettes)
-		.Process(IsometricTileTypeExt::CustomPalettes)
-#endif
-		.Success();
-}
 // =============================
 // container
 
+IsometricTileTypeExt::ExtContainer IsometricTileTypeExt::ExtMap;
 IsometricTileTypeExt::ExtContainer::ExtContainer() : Container("IsometricTileTypeClass") { }
 IsometricTileTypeExt::ExtContainer::~ExtContainer() = default;
 

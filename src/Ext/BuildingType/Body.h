@@ -103,14 +103,19 @@ private:
 };
 
 class BuildingTypeExt
-{
+{ 
 public:
-	static constexpr size_t Canary = 0x11111111;
-	using base_type = BuildingTypeClass;
-	static constexpr size_t ExtOffset = 0x1794;
+
+	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
+	static const DirStruct DefaultJuggerFacing;
 
 	class ExtData final : public Extension<BuildingTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x11111111;
+		using base_type = BuildingTypeClass;
+		static constexpr size_t ExtOffset = 0x1794;
+
 	public:
 		TechnoTypeExt::ExtData* Type;
 		Valueable<AffectedHouse> PowersUp_Owner;
@@ -382,12 +387,14 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InitializeConstants() override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void Initialize() {
+			this->OccupierMuzzleFlashes.reserve(((BuildingTypeClass*)this->Type->Get())->MaxNumberOccupants);
+			this->DockPoseDir.reserve(((BuildingTypeClass*)this->Type->Get())->NumberOfDocks);
+		}
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void CompleteInitialization();
 		int GetSuperWeaponCount() const;
@@ -399,18 +406,32 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BuildingTypeExt>
+	class ExtContainer final : public Container<BuildingTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
 		virtual bool Load(BuildingTypeClass* pThis, IStream* pStm) override;
+
+		static bool LoadGlobals(PhobosStreamReader& Stm)
+		{
+			return Stm
+				.Process(BuildingTypeExt::trenchKinds)
+				.Success()
+				;
+		}
+
+		static bool SaveGlobals(PhobosStreamWriter& Stm)
+		{
+			return Stm
+				.Process(BuildingTypeExt::trenchKinds)
+				.Success()
+				;
+		}
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);
@@ -420,8 +441,6 @@ public:
 	static double GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat, HouseClass* pOwner);
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
-
-	static const DirStruct DefaultJuggerFacing;
 
 	template<BunkerSoundMode UpSound>
 	struct BunkerSound
@@ -441,8 +460,6 @@ public:
 			}
 		}
 	};
-
-	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
 
 	static void DisplayPlacementPreview();
 	static Point2D* GetOccupyMuzzleFlash(BuildingClass* pThis, int nOccupyIdx);

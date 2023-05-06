@@ -7,12 +7,13 @@
 class WeaponTypeClass;
 class BombExt
 {
-public:
-	static constexpr size_t Canary = 0x87659781;
-	using base_type = BombClass;
-
+	public:
 	class ExtData final : public Extension<BombClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x87659781;
+		using base_type = BombClass;
+
 	public:
 
 		WeaponTypeExt::ExtData* Weapon;
@@ -21,34 +22,25 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override { }
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BombExt>
+	class ExtContainer final : public Container<BombExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const override;
-
 	};
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static BombClass* BombTemp;
-	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void* _);
-	static DamageAreaResult __fastcall DamageArea(CoordStruct* pCoord, int Damage, TechnoClass* Source, WarheadTypeClass* Warhead, bool AffectTiberium, HouseClass* SourceHouse);
+	static HouseClass* __fastcall GetOwningHouse(BombClass* pThis, void*);
+	static void __fastcall InvalidatePointer(BombClass* pThis, void*, void* const ptr, bool removed);
 };

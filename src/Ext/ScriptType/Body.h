@@ -13,34 +13,32 @@
 class ScriptTypeExt
 {
 public:
-	static constexpr size_t Canary = 0x414B4B41;
-	using base_type = ScriptTypeClass;
-
 	class ExtData final : public Extension<ScriptTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x414B4B41;
+		using base_type = ScriptTypeClass;
+
 	public:
 
 		ValueableVector<ScriptActionNode> PhobosNode;
 		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject)
 			, PhobosNode {}
-		{ }
+		{ 
+			PhobosNode.reserve(ScriptTypeClass::MaxActions); 
+		}
 
 		virtual ~ExtData() override = default;
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InitializeConstants() override {
-			PhobosNode.reserve(ScriptTypeClass::MaxActions);
-		}
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<ScriptTypeExt>
+	class ExtContainer final : public Container<ScriptTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -48,8 +46,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 };

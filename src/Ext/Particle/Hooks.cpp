@@ -27,7 +27,7 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
 	}
 
-	if (pParticleExt->LaserTrails.size())
+	if (!pParticleExt->LaserTrails.empty())
 	{
 		const CoordStruct location = pThis->GetCoords();
 		const CoordStruct drawnCoords = location;

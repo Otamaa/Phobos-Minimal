@@ -3,18 +3,8 @@
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Cell/Body.h>
 
-TerrainExt::ExtContainer TerrainExt::ExtMap;
-
-void TerrainExt::ExtData::InitializeConstants()
-{
-
-}
-
 void TerrainExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	if (this->LighSource.get() == ptr) {
 		this->LighSource = nullptr;
 	}
@@ -137,37 +127,15 @@ template <typename T>
 void TerrainExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->LighSource)
 		.Process(this->AttachedAnim)
 		;
 }
 
-void TerrainExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TerrainClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TerrainExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TerrainClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TerrainExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TerrainExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+TerrainExt::ExtContainer TerrainExt::ExtMap;
 
 TerrainExt::ExtContainer::ExtContainer() : Container("TerrainClass") { }
 TerrainExt::ExtContainer::~ExtContainer() = default;
@@ -251,8 +219,7 @@ DEFINE_HOOK(0x71CFE3, TerrainClass_Detach, 0x6)
 	GET(void*, pObj, EDI);
 	GET_STACK(bool, bRemoved, STACK_OFFS(0x8, -0x8));
 
-	if (auto pExt = TerrainExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(pObj, bRemoved);
+	TerrainExt::ExtMap.InvalidatePointerFor(pThis, pObj, bRemoved);
 
 	return pThis->Type == pObj ? 0x71CFEB : 0x71CFF5;
 }

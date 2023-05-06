@@ -1,7 +1,5 @@
 #include "Body.h"
 
-SuperExt::ExtContainer SuperExt::ExtMap;
-
 // =============================
 // load / save
 
@@ -9,38 +7,16 @@ template <typename T>
 void SuperExt::ExtData::Serialize(T& Stm) { 
 
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
 
 		;
 }
 
-void SuperExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<SuperClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SuperExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<SuperClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SuperExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool SuperExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+SuperExt::ExtContainer SuperExt::ExtMap;
 
 SuperExt::ExtContainer::ExtContainer() : Container("SuperClass") { }
 SuperExt::ExtContainer::~ExtContainer() = default;
@@ -87,14 +63,14 @@ DEFINE_HOOK(0x6CDFE8, SuperClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
-{
-	GET(SuperClass*, pThis, ESI);
-	GET(void*, target, EAX);
-	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
-
-	if (auto pExt = SuperExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
-
-	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
-}
+//DEFINE_HOOK(0x6CE001 , SuperClass_Detach , 0x5)
+//{
+//	GET(SuperClass*, pThis, ESI);
+//	GET(void*, target, EAX);
+//	GET_STACK(bool, all, STACK_OFFS(0x4, -0x8));
+//
+//	if (auto pExt = SuperExt::ExtMap.Find(pThis))
+//		pExt->InvalidatePointer(target, all);
+//
+//	return target == pThis->Type ? 0x6CE006 : 0x6CE009;
+//}

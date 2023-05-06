@@ -17,13 +17,13 @@ enum class PhobosAINewConditionTypes : int
 
 class AITriggerTypeExt
 {
-public:
-	using base_type = AITriggerTypeClass;
-	static constexpr size_t Canary = 0x2C2C2C2C;
-	static constexpr size_t ExtOffset = 0x10C;
-
 	class ExtData final : public Extension<AITriggerTypeClass>
 	{
+	public:
+		using base_type = AITriggerTypeClass;
+		static constexpr size_t Canary = 0x2C2C2C2C;
+		static constexpr size_t ExtOffset = 0x10C;
+
 	public:
 
 		//Valueable<HouseTypeClass*> NoneOF; String ?
@@ -32,30 +32,31 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			if (this->InvalidateIgnorable(ptr))
-				return;
-		}
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true;  }
-		virtual void LoadFromStream(PhobosStreamReader& Stm);
-		virtual void SaveToStream(PhobosStreamWriter& Stm);
+	private:
+		template <typename T>
+		void Serialize(T& Stm)
+		{
+			Stm
+				.Process(this->Initialized)
+				;
+		}
 	};
 
-	class ExtContainer final : public Container<AITriggerTypeExt>
+	class ExtContainer final : public Container<AITriggerTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
-	static void ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition);
+	static ExtContainer ExtMap;
 
+	static void ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition);
 	static void DisableAITrigger(AITriggerTypeClass* pAITriggerType);
 	static void EnableAITrigger(AITriggerTypeClass* pAITriggerType);
 	static bool ReadCustomizableAICondition(HouseClass* pHouse, int pickMode, int compareMode, int Number, TechnoTypeClass* TechnoType);
 	static void CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition);
-
-	static ExtContainer ExtMap;
-
 };

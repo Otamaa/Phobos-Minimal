@@ -1,13 +1,11 @@
 #include "Body.h"
 
-SmudgeTypeExt::ExtContainer SmudgeTypeExt::ExtMap;
-
-void SmudgeTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void SmudgeTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -21,39 +19,18 @@ template <typename T>
 void SmudgeTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Clearable)
 		;
 
 }
 
-void SmudgeTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<SmudgeTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SmudgeTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<SmudgeTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SmudgeTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool SmudgeTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+SmudgeTypeExt::ExtContainer SmudgeTypeExt::ExtMap;
 
 SmudgeTypeExt::ExtContainer::ExtContainer() : Container("SmudgeTypeClass") { }
+SmudgeTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
@@ -95,19 +72,11 @@ DEFINE_HOOK(0x6B58C8, SmudgeTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6B57DA, SmudgeTypeClass_LoadFromINI_RetFalse, 0xA)
+DEFINE_HOOK_AGAIN(0x6B57DA , SmudgeTypeClass_LoadFromINI, 0xA)
+DEFINE_HOOK(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x208, -0x4));
-	SmudgeTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	SmudgeTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x6B57DA);
 	return 0x0;
-}
-
-DEFINE_HOOK(0x6B57C7, SmudgeTypeClass_LoadFromINI, 0x6)
-{
-	GET(SmudgeTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x208, -0x4));
-	pItem->Image = R->EAX<SHPStruct*>();
-	SmudgeTypeExt::ExtMap.LoadFromINI(pItem, pINI);
-	return 0x6B57CD;
 }

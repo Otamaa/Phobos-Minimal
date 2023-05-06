@@ -7,11 +7,12 @@ class TriggerClass;
 class TriggerTypeExt
 {
 public:
-	using base_type = TriggerTypeClass;
-	static constexpr size_t Canary = 0x2C2C2C2C;
-
 	class ExtData final : public Extension<TriggerTypeClass>
 	{
+	public:
+		using base_type = TriggerTypeClass;
+		static constexpr size_t Canary = 0x2C2C2C2C;
+
 	public:
 
 		int HouseParam;
@@ -20,17 +21,20 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {
-			if (this->InvalidateIgnorable(ptr))
-				return;
-		}
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true;  }
-		virtual void LoadFromStream(PhobosStreamReader& Stm);
-		virtual void SaveToStream(PhobosStreamWriter& Stm);
+	private:
+		template <typename T>
+		void Serialize(T& Stm)
+		{
+			Stm
+				.Process(this->Initialized)
+				;
+		}
 	};
 
-	class ExtContainer final : public Container<TriggerTypeExt>
+	class ExtContainer final : public Container<TriggerTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();

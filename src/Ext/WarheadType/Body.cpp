@@ -17,8 +17,7 @@
 
 #include <New/Entity/FlyingStrings.h>
 
-WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
-void WarheadTypeExt::ExtData::InitializeConstants()
+void WarheadTypeExt::ExtData::Initialize()
 {
 	Launchs.reserve(2);
 	SuppressDeathWeapon.reserve(8);
@@ -41,16 +40,16 @@ void WarheadTypeExt::ExtData::InitializeConstants()
 	IsNukeWarhead = IS_SAME_STR_N(RulesExt::Global()->NukeWarheadName.data(), this->Get()->ID);
 }
 
-void WarheadTypeExt::ExtData::Initialize()
-{
-
-}
-
-void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
+
+	if (parseFailAddr) {
+		ArmorTypeClass::LoadForWarhead_NoParse(pINI, pThis);
+		return;
+	}
 
 	// writing custom verses parser just because
 	if (exINI.ReadString(pSection, GameStrings::Verses()))
@@ -72,9 +71,6 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
 
-	if (!pINI->GetSection(pSection)) {
-		return;
-	}
 	//this will break targeting , so use it with caution !
 	exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
 
@@ -231,6 +227,17 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	}
 
 	this->IsNukeWarhead.Read(exINI, pSection, "IsNukeWarhead");
+
+	this->PreImpactAnim.Read(exINI, pSection, "PreImpactAnim");
+	if (this->IsNukeWarhead && this->PreImpactAnim == -1) {
+		this->PreImpactAnim = AnimTypeClass::FindIndexById(GameStrings::NUKEBALL());
+	}
+
+	this->NukeFlashDuration.Read(exINI, pSection, "NukeFlash.Duration");
+	if (this->IsNukeWarhead && !this->NukeFlashDuration.isset()) {
+		this->PreImpactAnim = 30;
+	}
+
 	this->Remover.Read(exINI, pSection, "Remover");
 	this->Remover_Anim.Read(exINI, pSection, "Remover.Anim");
 	this->PermaMC.Read(exINI, pSection, "MindControl.Permanent");
@@ -811,6 +818,7 @@ template <typename T>
 void WarheadTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Reveal)
 		.Process(this->BigGap)
 		.Process(this->TransactMoney)
@@ -921,6 +929,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->NotHuman_DeathAnim)
 		.Process(this->IsNukeWarhead)
+		.Process(this->PreImpactAnim)
+		.Process(this->NukeFlashDuration)
 		.Process(this->Remover)
 		.Process(this->Remover_Anim)
 		.Process(this->ArmorHitAnim)
@@ -1044,30 +1054,9 @@ bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 	return SuppressDeathWeapon.Contains(pVictimType);
 }
 
-void WarheadTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<WarheadTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void WarheadTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<WarheadTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool WarheadTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool WarheadTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 // =============================
 // container
+WarheadTypeExt::ExtContainer WarheadTypeExt::ExtMap;
 
 WarheadTypeExt::ExtContainer::ExtContainer() : Container("WarheadTypeClass") { }
 WarheadTypeExt::ExtContainer::~ExtContainer() = default;
@@ -1116,23 +1105,16 @@ DEFINE_HOOK(0x75E39C, WarheadTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+ // is return not valid
 DEFINE_HOOK_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK(0x75DEA0
-	//0x75DE9A
-	, WarheadTypeClass_LoadFromINI, 0x5)
+DEFINE_HOOK(0x75DEA0 , WarheadTypeClass_LoadFromINI, 0x5)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x150);
 
-	WarheadTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	WarheadTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x75DEAF);
 
 	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
 	return// R->Origin() == 0x75DE9A ? 0x75DEA0 : 
 		0;
 }
-
-//#ifdef ENABLE_NEWEXT
-//DEFINE_JUMP(LJMP, 0x75D798, 0x75D7AC)
-//DEFINE_JUMP(LJMP, 0x75D7B2, 0x75D7B8)
-//DEFINE_JUMP(LJMP, 0x75DFAE, 0x75DFBC)
-//

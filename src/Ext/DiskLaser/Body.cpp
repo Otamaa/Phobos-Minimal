@@ -1,38 +1,21 @@
 #include "Body.h"
 
-DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
 
 // =============================
 // load / save
 
 template <typename T>
-void DiskLaserExt::ExtData::Serialize(T& Stm) { }
-
-void DiskLaserExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
+void DiskLaserExt::ExtData::Serialize(T& Stm)
 {
-	Extension<DiskLaserClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void DiskLaserExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<DiskLaserClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool DiskLaserExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return true;
-}
-
-bool DiskLaserExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return true;
+	Stm
+		.Process(this->Initialized)
+		;
 }
 
 // =============================
 // container
 
+DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
 DiskLaserExt::ExtContainer::ExtContainer() : Container("DiskLaserClass") { };
 DiskLaserExt::ExtContainer::~ExtContainer() = default;
 

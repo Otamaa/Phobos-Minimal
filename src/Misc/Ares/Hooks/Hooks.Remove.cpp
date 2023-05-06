@@ -27,5 +27,4 @@ DEFINE_DISABLE_HOOK(0x42898A, AnimTypeClass_Save_Suffix_ares)
 DEFINE_DISABLE_HOOK(0x4287E9, AnimTypeClass_LoadFromINI_ares)
 DEFINE_DISABLE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI_ares)
 
-DEFINE_DISABLE_HOOK(0x52BA78, _YR_GameInit_Pre_ares)
 #pragma warning( pop )

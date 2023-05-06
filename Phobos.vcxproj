@@ -46,7 +46,6 @@
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Ownerships.cpp" />
     <ClCompile Include="src\Ext\Bomb\Body.cpp" />
-    <ClCompile Include="src\Ext\Bomb\Hooks.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.BuildSpeed.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.DockPoseDir.cpp" />
@@ -190,12 +189,11 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tunnel.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.VXLArtData.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Utilities\Ares3_Parser.cpp" />
@@ -284,6 +282,7 @@
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\New\Type\TheaterTypeClass.cpp" />
+    <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
@@ -296,7 +295,6 @@
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
     <ClCompile Include="src\Phobos.cpp" />
     <ClCompile Include="src\Phobos.CRT.cpp" />
-    <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Utilities\Constructs.cpp" />
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
@@ -459,6 +457,7 @@
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
     <ClInclude Include="src\Utilities\ExpressionAnalyzer.h" />
+    <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />
     <ClInclude Include="src\Utilities\LocomotionCast.h" />
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />
@@ -771,7 +770,7 @@
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Windows Kits\10\Include\10.0.22000.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>

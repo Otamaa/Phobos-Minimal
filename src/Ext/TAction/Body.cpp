@@ -20,13 +20,13 @@
 #include <TagClass.h>
 #include <numeric>
 
-TActionExt::ExtContainer TActionExt::ExtMap;
-std::map<int, std::vector<TriggerClass*>> TActionExt::RandomTriggerPool {};
+std::map<int, std::vector<TriggerClass*>> TActionExt::RandomTriggerPool;
 
 template <typename T>
 void TActionExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		//.Process(this->Value1)
 		//.Process(this->Value2)
 		//.Process(this->Parm3)
@@ -36,47 +36,9 @@ void TActionExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void TActionExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TActionClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TActionExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TActionClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TActionExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		//.Process(RandomTriggerPool, true)
-		.Success();
-}
-
-bool TActionExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		//.Process(RandomTriggerPool, true)
-		.Success();
-}
-
-void TActionExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
-	for (auto& nMap : RandomTriggerPool)
-	{
-		AnnounceInvalidPointer(nMap.second, ptr);
-	}
-}
-
-void TActionExt::ExtContainer::Clear()
-{
-	RandomTriggerPool.clear();
-}
-
 // =============================
 // container
+TActionExt::ExtContainer TActionExt::ExtMap;
 
 TActionExt::ExtContainer::ExtContainer() : Container("TActionClass") { };
 TActionExt::ExtContainer::~ExtContainer() = default;
@@ -591,10 +553,10 @@ bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 	// holds by pThis->Param5
 
 	// uses !pThis->Param5 to ensure Param5 is 0 or 1
-	auto& variables = ScenarioExt::GetVariables(pThis->Param5 != 0);
-	auto const& itr = variables.find(pThis->Value);
+	const auto variables = ScenarioExt::GetVariables(pThis->Param5 != 0);
+	auto const& itr = variables->find(pThis->Value);
 
-	if (itr != variables.end())
+	if (itr != variables->end())
 	{
 		auto& nCurrentValue = itr->second.Value;
 		// variable being found
@@ -626,10 +588,10 @@ bool TActionExt::EditVariable(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 
 bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	auto& variables = ScenarioExt::GetVariables(pThis->Param5 != 0);
-	auto const& itr = variables.find(pThis->Value);
+	const auto& variables = ScenarioExt::GetVariables(pThis->Param5 != 0);
+	const auto& itr = variables->find(pThis->Value);
 
-	if (itr != variables.end())
+	if (itr != variables->end())
 	{
 		itr->second.Value = ScenarioClass::Instance->Random.RandomRanged(pThis->Param3, pThis->Param4);
 		if (!pThis->Param5)
@@ -643,10 +605,10 @@ bool TActionExt::GenerateRandomNumber(TActionClass* pThis, HouseClass* pHouse, O
 
 bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	auto const& variables = ScenarioExt::GetVariables(pThis->Param3 != 0);
-	auto const& itr = variables.find(pThis->Value);
+	const auto& variables = ScenarioExt::GetVariables(pThis->Param3 != 0);
+	const auto& itr = variables->find(pThis->Value);
 
-	if (itr != variables.end())
+	if (itr != variables->end())
 	{
 		swprintf_s(Phobos::wideBuffer, L"%d", itr->second.Value);
 		MessageListClass::Instance->PrintMessage(Phobos::wideBuffer);
@@ -657,12 +619,12 @@ bool TActionExt::PrintVariableValue(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExt::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	auto& variables1 = ScenarioExt::GetVariables(pThis->Param5 != 0);
-	auto const& itr1 = variables1.find(pThis->Value);
-	auto& variables2 = ScenarioExt::GetVariables(pThis->Param6 != 0);
-	auto const& itr2 = variables2.find(pThis->Param4);
+	const auto& variables1 = ScenarioExt::GetVariables(pThis->Param5 != 0);
+	auto const& itr1 = variables1->find(pThis->Value);
+	const auto& variables2 = ScenarioExt::GetVariables(pThis->Param6 != 0);
+	auto const& itr2 = variables2->find(pThis->Param4);
 
-	if (itr1 != variables1.end() && itr2 != variables2.end())
+	if (itr1 != variables1->end() && itr2 != variables2->end())
 	{
 		auto& nCurrentValue = itr1->second.Value;
 		auto& nOptValue = itr2->second.Value;
@@ -1089,10 +1051,8 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 	return true;
 }
 
-
 // =============================
 // container hooks
-//
 //
 
 DEFINE_HOOK(0x6DD176, TActionClass_CTOR, 0x5)
@@ -1155,14 +1115,14 @@ DEFINE_HOOK(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
 //	return 0x6E3E4A;
 //}
 
-DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
-{
-	GET(TActionClass*, pThis, ECX);
-	GET(void*, target, EDX);
-	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-
-	if (auto pExt = TActionExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
-
-	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
-}
+//DEFINE_HOOK(0x6DD2DE, TActionClass_Detach, 0x5)
+//{
+//	GET(TActionClass*, pThis, ECX);
+//	GET(void*, target, EDX);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	if (auto pExt = TActionExt::ExtMap.Find(pThis))
+//		pExt->InvalidatePointer(target, all);
+//
+//	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
+//}

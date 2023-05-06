@@ -8,12 +8,11 @@
 class SuperExt
 {
 public:
-
-	static constexpr size_t Canary = 0x12311111;
-	using base_type = SuperClass;
-
 	class ExtData final : public Extension<SuperClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x12311111;
+		using base_type = SuperClass;
 	public:
 
 		bool Temp_IsPlayer;
@@ -24,17 +23,15 @@ public:
 		{ }
 
 		virtual ~ExtData() override  = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SuperExt>
+	class ExtContainer final : public Container<SuperExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -42,6 +39,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

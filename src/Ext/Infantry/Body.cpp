@@ -1,15 +1,5 @@
 #include "Body.h"
 
-InfantryExt::ExtContainer InfantryExt::ExtMap;
-
-void InfantryExt::ExtData::InitializeConstants()
-{
-}
-
-void InfantryExt::ExtData::InvalidatePointer(void* const ptr, bool bRemoved)
-{
-}
-
 // =============================
 // load / save
 
@@ -17,60 +7,23 @@ template <typename T>
 void InfantryExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(IsUsingDeathSequence)
-		.Process(CurrentDoType)
-		.Process(ForceFullRearmDelay)
+		.Process(this->Initialized)
+		.Process(this->IsUsingDeathSequence)
+		.Process(this->CurrentDoType)
+		.Process(this->ForceFullRearmDelay)
 		;
-}
-
-bool InfantryExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool InfantryExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
 }
 
 // =============================
 // container
 
-void InfantryExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<InfantryClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void InfantryExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<InfantryClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-
+InfantryExt::ExtContainer InfantryExt::ExtMap;
 InfantryExt::ExtContainer::ExtContainer() : Container("InfantryClass") { }
 InfantryExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
 
-//DEFINE_HOOK(0x517B44, InfantryClass_CTOR, 0xA)
-//{
-//	GET(InfantryClass*, pItem, ESI);
-//	GET(InfantryTypeClass*, pType, EAX);
-//	GET(void*, ptrs, EBX);
-//
-//	if(pType != ptrs) {
-//		InfantryExt::ExtMap.Allocate(pItem);
-//		return 0x517B4E;
-//	}
-//
-//	return 0x517BBD;
-//}
-//
 DEFINE_HOOK(0x517ACC, InfantryClass_CTOR, 0x6)
 {
 	GET(InfantryClass*, pItem, ESI);
@@ -123,9 +76,7 @@ DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
 	GET(void*, target, EDI);
 	GET_STACK(bool, all, STACK_OFFS(0x8, -0x8));
 
-	if (auto pExt = InfantryExt::ExtMap.Find(pThis)) {
-		pExt->InvalidatePointer(target, all);
-	}
+	InfantryExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
 	return pThis->Type == target ? 0x51AA2B : 0x51AA35;
 }

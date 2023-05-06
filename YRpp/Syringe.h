@@ -422,3 +422,6 @@ decl_override_hook(hook, funcname, -1) \
 
 #define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
 DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+
+#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
+DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

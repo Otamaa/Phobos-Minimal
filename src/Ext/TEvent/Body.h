@@ -56,22 +56,20 @@ enum PhobosTriggerEvent
 class TEventExt
 {
 public:
-
-	static constexpr size_t Canary = 0x91919191;
-	using base_type = TEventClass;
-
 	class ExtData final : public Extension<TEventClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x91919191;
+		using base_type = TEventClass;
+
 	public:
 		ExtData(TEventClass* const OwnerObject) : Extension<TEventClass>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
@@ -84,7 +82,7 @@ public:
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
 
-	class ExtContainer final : public Container<TEventExt>
+	class ExtContainer final : public Container<TEventExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -92,7 +90,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 };

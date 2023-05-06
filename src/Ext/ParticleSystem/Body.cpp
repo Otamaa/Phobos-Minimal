@@ -3,7 +3,6 @@
 #include <ParticleTypeClass.h>
 #include <ParticleClass.h>
 
-ParticleSystemExt::ExtContainer ParticleSystemExt::ExtMap;
 
 void ParticleSystemExt::ExtData::InitializeConstants()
 {
@@ -27,28 +26,17 @@ template <typename T>
 void ParticleSystemExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(Behave)
-		.Process(PreCalculatedParticlesData)
-		.Process(SomeArray_b)
-		.Process(AdditionalHeldType)
+		.Process(this->Initialized)
+		.Process(this->Behave)
+		.Process(this->PreCalculatedParticlesData)
+		.Process(this->SomeArray_b)
+		.Process(this->AdditionalHeldType)
 		;
-}
-
-void ParticleSystemExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<base_type>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ParticleSystemExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<base_type>::SaveToStream(Stm);
-	this->Serialize(Stm);
 }
 
 // =============================
 // container
-
+ParticleSystemExt::ExtContainer ParticleSystemExt::ExtMap;
 ParticleSystemExt::ExtContainer::ExtContainer() : Container("ParticleSystemClass") { }
 ParticleSystemExt::ExtContainer::~ExtContainer() = default;
 

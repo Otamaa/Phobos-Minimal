@@ -9,12 +9,13 @@
 class InfantryExt
 {
 public:
-	static constexpr size_t Canary = 0xACCAAAAA;
-	using base_type = InfantryClass;
-	static constexpr size_t ExtOffset = 0x6EC;
-
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public Extension<InfantryClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xACCAAAAA;
+		using base_type = InfantryClass;
+		static constexpr size_t ExtOffset = 0x6EC;
+
 	public:
 
 		bool IsUsingDeathSequence;
@@ -27,18 +28,16 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* const ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void InitializeConstants() override;
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<InfantryExt>
+	class ExtContainer final : public Container<InfantryExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -46,7 +45,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

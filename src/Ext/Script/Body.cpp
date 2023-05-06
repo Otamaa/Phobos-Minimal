@@ -14,8 +14,6 @@
 #include <Ext/Team/Body.h>
 
 #define TECHNO_IS_ALIVE(tech) TechnoExt::IsAlive(tech)
-ScriptExt::ExtContainer ScriptExt::ExtMap;
-void ScriptExt::ExtData::InitializeConstants() { }
 
 ScriptActionNode ScriptExt::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
@@ -49,33 +47,8 @@ static inline bool IsEmpty(TeamClass* pTeam)
 }
 
 // =============================
-// load / save
-
-void ScriptExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<ScriptClass>::LoadFromStream(Stm);
-	// Nothing yet
-}
-
-void ScriptExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<ScriptClass>::SaveToStream(Stm);
-	// Nothing yet
-}
-
-bool ScriptExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool ScriptExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-// =============================
 // container
+ScriptExt::ExtContainer ScriptExt::ExtMap;
 
 ScriptExt::ExtContainer::ExtContainer() : Container("ScriptClass") { }
 ScriptExt::ExtContainer::~ExtContainer() = default;
@@ -4472,10 +4445,10 @@ void ScriptExt::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nA
 template<bool IsGlobal, class _Pr>
 void ScriptExt::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number)
 {
-	auto& nVar = ScenarioExt::GetVariables(IsGlobal);
-	auto itr = nVar.find(nVariable);
+	const auto nVar = ScenarioExt::GetVariables(IsGlobal);
+	auto itr = nVar->find(nVariable);
 
-	if (itr != nVar.end())
+	if (itr != nVar->end())
 	{
 		itr->second.Value = _Pr()(itr->second.Value, Number);
 		if (IsGlobal)
@@ -4489,10 +4462,10 @@ void ScriptExt::VariableOperationHandler(TeamClass* pTeam, int nVariable, int Nu
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 void ScriptExt::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate)
 {
-	auto const& nVar = ScenarioExt::GetVariables(IsGlobal);
-	auto const& itr = nVar.find(nVarToOperate);
+	auto const nVar = ScenarioExt::GetVariables(IsGlobal);
+	auto const itr = nVar->find(nVarToOperate);
 
-	if (itr != nVar.end())
+	if (itr != nVar->end())
 		VariableOperationHandler<IsGlobal, _Pr>(pTeam, nVariable, itr->second.Value);
 
 	pTeam->StepCompleted = true;

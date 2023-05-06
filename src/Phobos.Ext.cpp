@@ -15,6 +15,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Script/Body.h>
+#include <Ext/Sidebar/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/TAction/Body.h>
@@ -35,6 +36,11 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/PaletteManager.h>
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/ColorTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
+#include <New/Type/TheaterTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
+#include <New/Type/BannerTypeClass.h>
 
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
@@ -59,11 +65,6 @@
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/OverlayType/Body.h>
 
-#include <New/Type/ArmorTypeClass.h>
-#include <New/Type/ColorTypeClass.h>
-#include <New/Type/HoverTypeClass.h>
-#include <New/Type/TheaterTypeClass.h>
-
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
@@ -76,7 +77,7 @@
 #endif
 #pragma endregion
 
-#include <New/Type/BannerTypeClass.h>
+
 //#include <New/Entity/BannerClass.h>
 
 #include <Commands/Commands.h>
@@ -104,10 +105,6 @@ template <typename T>
 concept Clearable = requires { T::Clear(); };
 
 template <typename T>
-concept PointerInvalidationSubscribable =
-	requires (void* ptr, bool removed) { T::PointerGotInvalid(ptr, removed); };
-
-template <typename T>
 concept GlobalSaveLoadable = requires
 {
 	T::LoadGlobals(std::declval<PhobosStreamReader&>());
@@ -120,20 +117,15 @@ concept DispatchesAction =
 
 #pragma endregion
 
-// calls:
-// T::Clear()
-// T::ExtMap.Clear()
 struct ClearAction
 {
 	template <typename T>
-	static bool Process()
+	static void Process()
 	{
 		if constexpr (Clearable<T>)
 			T::Clear();
 		else if constexpr (HasExtMap<T>)
 			T::ExtMap.Clear();
-
-		return true;
 	}
 };
 
@@ -143,14 +135,26 @@ struct ClearAction
 struct InvalidatePointerAction
 {
 	template <typename T>
-	static bool Process(void* ptr, bool removed)
+	static void Process(void* ptr, bool removed)
 	{
-		if constexpr (PointerInvalidationSubscribable<T>)
-			T::PointerGotInvalid(ptr, removed);
-		else if constexpr (HasExtMap<T>)
-			T::ExtMap.PointerGotInvalid(ptr, removed);
+		if constexpr (HasExtMap<T>)
+		{
+			if constexpr (PointerInvalidationIgnorAble<T>)
+				if (!T::ExtMap::InvalidateIgnorable(ptr))
+					return;
 
-		return true;
+			if constexpr (PointerInvalidationSubscribable<T>)
+				T::ExtMap::PointerGotInvalid(ptr, removed);
+		}
+		else
+		{
+			if constexpr (PointerInvalidationIgnorAble<T>)
+				if (!T::InvalidateIgnorable(ptr))
+					return;
+
+			if constexpr (PointerInvalidationSubscribable<T>)
+				T::PointerGotInvalid(ptr, removed);
+		}
 	}
 };
 
@@ -203,24 +207,27 @@ struct SaveGlobalsAction
 template <typename... RegisteredTypes>
 struct TypeRegistry
 {
-	__forceinline static void Clear()
+	constexpr __forceinline static void Clear()
 	{
-		dispatch_mass_action<ClearAction>();
+		va_list args;
+		va_start(args, count);
+
+		dispatch_void_mass_action<ClearAction>();
 	}
 
 	__forceinline static void InvalidatePointer(void* ptr, bool removed)
 	{
-		dispatch_mass_action<InvalidatePointerAction>(ptr, removed);
+		dispatch_void_mass_action<InvalidatePointerAction>(ptr, removed);
 	}
 
 	__forceinline static bool LoadGlobals(IStream* pStm)
 	{
-		return dispatch_mass_action<LoadGlobalsAction>(pStm);
+		return dispatch_bool_mass_action<LoadGlobalsAction>(pStm);
 	}
 
 	__forceinline static bool SaveGlobals(IStream* pStm)
 	{
-		return dispatch_mass_action<SaveGlobalsAction>(pStm);
+		return dispatch_bool_mass_action<SaveGlobalsAction>(pStm);
 	}
 
 private:
@@ -228,7 +235,16 @@ private:
 	// ArgTypes: the argument types to call the method dispatcher's Process() method
 	template <typename TAction, typename... ArgTypes>
 		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	__forceinline static bool dispatch_mass_action(ArgTypes... args)
+	__forceinline static void dispatch_void_mass_action(ArgTypes... args)
+	{
+		// (pack expression op ...) is a fold expression which
+		// unfolds the parameter pack into a full expression
+		(TAction::template Process<RegisteredTypes>(args...) ...);
+	}
+
+	template <typename TAction, typename... ArgTypes>
+		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
+	__forceinline static bool dispatch_bool_mass_action(ArgTypes... args)
 	{
 		// (pack expression op ...) is a fold expression which
 		// unfolds the parameter pack into a full expression
@@ -236,6 +252,7 @@ private:
 	}
 };
 
+#pragma endregion
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
@@ -250,109 +267,72 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 	//Debug::Log("Finished loading the game\n");
 }
 
-#pragma endregion
-
-#pragma region TypeReg
-// Add more class names as you like
-using PhobosTypeRegistry =  TypeRegistry <
-#pragma region OtamaaStuffs
-	//TheaterTypeClass,
-	PaletteManager,
-	BombExt,
-	CaptureExt,
-	SHPRefExt,
-	CellExt,
-	ColorTypeClass,
-	ConvertExt,
-	DiskLaserExt,
-	ParasiteExt,
-	ParticleExt,
-	ParticleTypeExt,
-	ScriptTypeExt,
-	SuperExt,
-	ArmorTypeClass,
-	TacticalExt,
-	TeamTypeExt,
-	TEventExt,
-	TerrainExt,
-	SmudgeTypeExt,
-	SpawnManagerExt,
-	TemporalExt,
-	InfantryExt,
-	InfantryTypeExt,
-#ifdef COMPILE_PORTED_DP_FEATURES
-	TrailType,
-#endif
-#pragma endregion
-	// Ext classes
-	AircraftExt,
-	AITriggerTypeExt,
-	AnimTypeExt,
-	AnimExt,
-	BuildingExt,
-	BuildingTypeExt,
-	BulletExt,
-	BulletTypeExt,
-	HouseExt,
-	HouseTypeExt,
-	RadSiteExt,
-	RulesExt,
-	ScenarioExt,
-	ScriptExt,
-	SideExt,
-	SWTypeExt,
-	TActionExt,
-	TeamExt,
-	TechnoExt,
-	TechnoTypeExt,
-	TerrainTypeExt,
-	TiberiumExt,
-	VoxelAnimExt,
-	VoxelAnimTypeExt,
-	WarheadTypeExt,
-	WeaponTypeExt,
-	WaveExt,
-	OverlayTypeExt,
-	// New classes
-	ShieldClass,
-	ShieldTypeClass,
-	LaserTrailTypeClass,
-	RadTypeClass,
-	HoverTypeClass,
-	ElectricBoltManager,
-	//VerticalLaserClass,
-#ifdef E_TriggerMPOwner
-	TriggerMPOwner,
-#endif
-	TriggerTypeExt,
-	// BannerClass,
-	BannerTypeClass,
-#ifdef ENABLE_HOMING_MISSILE
-	, HomingMissileTargetTracker
-#endif
-	// other classes
-	FlyingStrings,
-#ifdef COMPILE_PORTED_DP_FEATURES
-	ElectricBoltManager,
-#endif
-	PhobosCommandClass
->;
-#pragma endregion
-
 #pragma region Hooks
 // Global Pointer Invalidation Hooks
-DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer, 0x6)
+
+template<typename T>
+FORCEINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const removed)
+{
+	if constexpr (HasExtMap<T>)
+	{	
+		if constexpr (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
+				PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
+			if (!T::ExtMap.InvalidateIgnorable(pInvalid)) {
+				T::ExtMap.InvalidatePointer(pInvalid, removed);
+			}
+		}
+		else if(PointerInvalidationSubscribable<decltype(T::ExtMap)>)
+		{
+			T::ExtMap.InvalidatePointer(pInvalid, removed);
+		}	
+	}
+	else
+	{
+		if constexpr (PointerInvalidationIgnorAble<T> &&
+				PointerInvalidationSubscribable<T>) {
+			if (!T::InvalidateIgnorable(pInvalid)) {
+				T::InvalidatePointer(pInvalid, removed);
+			}
+		}
+		else if(PointerInvalidationSubscribable<T>)
+		{
+			T::InvalidatePointer(pInvalid, removed);
+		}
+	}
+}
+
+DEFINE_HOOK(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
-	PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
+
+	Process_InvalidatePtr<BulletExt>(pInvalid, removed);
+	Process_InvalidatePtr<SWTypeExt>(pInvalid, removed);
+	Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
 
 // Clear static data from respective classes
-DEFINE_HOOK(0x685659, Scenario_ClearClasses, 0xA)
+DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
-	PhobosTypeRegistry::Clear();
+	ArmorTypeClass::Clear();
+	BannerTypeClass::Clear();
+	ColorTypeClass::Clear();
+	CursorTypeClass::Clear();
+	ElectricBoltManager::Clear();
+	FlyingStrings::Clear();
+	PaletteManager::Clear();
+	RadTypeClass::Clear();
+	RulesExt::Clear();
+	ScenarioExt::Clear();
+	SidebarExt::Clear();
+	ShieldTypeClass::Clear();
+	TacticalExt::Clear();
+	TrailType::Clear();
+	HoverTypeClass::Clear();
+	LaserTrailTypeClass::Clear();
+	TActionExt::ExtMap.Clear();
+
 	return 0;
 }
 
@@ -374,11 +354,57 @@ DEFINE_HOOK(0x559F27, LoadOptionsClass_GetFileInfo, 0xA)
 // Phobos will save the things at the beginning of the save
 // Considering how DTA gets the scenario name, I decided to save it after Rules - secsome
 
+template<typename T>
+FORCEINLINE bool Process_Load(IStream* pStm)
+{
+	PhobosByteStream stm(0);
+	stm.ReadBlockFromStream(pStm);
+	PhobosStreamReader reader(stm);
+
+	if constexpr (HasExtMap<T>)
+		return T::ExtMap.LoadGlobals(reader) && reader.ExpectEndOfBlock();
+	else
+		return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
+}
+
+template<typename T>
+FORCEINLINE bool Process_Save(IStream* pStm)
+{
+	PhobosByteStream stm;
+	PhobosStreamWriter writer(stm);
+
+	if constexpr (HasExtMap<T>)
+		return T::ExtMap.SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
+	else
+		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
+}
+
 DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
 {
 	//Debug::Log("Saving global Phobos data\n");
 	GET(IStream*, pStm, ESI);
-	PhobosTypeRegistry::SaveGlobals(pStm);
+
+	bool ret =
+		Process_Save<BuildingTypeExt>(pStm) &&
+		Process_Save<BulletExt>(pStm) &&
+		Process_Save<HouseExt>(pStm) &&
+		Process_Save<SWTypeExt>(pStm) &&
+		Process_Save<WeaponTypeExt>(pStm) &&
+		Process_Save<ArmorTypeClass>(pStm) &&
+		Process_Save<BannerTypeClass>(pStm) &&
+		Process_Save<ColorTypeClass>(pStm) &&
+		Process_Save<CursorTypeClass>(pStm) &&
+		Process_Save<PaletteManager>(pStm) &&
+		Process_Save<RadTypeClass>(pStm) &&
+		Process_Save<ShieldTypeClass>(pStm) &&
+		Process_Save<TrailType>(pStm) &&
+		Process_Save<HoverTypeClass>(pStm) &&
+		Process_Save<LaserTrailTypeClass>(pStm)
+		;
+
+	if (!ret)
+		Debug::Log("[Phobos] Global SaveGame Failed !\n");
+
 	return 0;
 }
 
@@ -387,7 +413,28 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
 	//Debug::Log("Loading global Phobos data\n");
 	GET(IStream*, pStm, ESI);
 	Phobos::Otamaa::DoingLoadGame = true;
-	PhobosTypeRegistry::LoadGlobals(pStm);
+
+	bool ret = 
+		Process_Load<BuildingTypeExt>(pStm) &&
+		Process_Load<BulletExt>(pStm) &&
+		Process_Load<HouseExt>(pStm) &&
+		Process_Load<SWTypeExt>(pStm) &&
+		Process_Load<WeaponTypeExt>(pStm) &&
+		Process_Load<ArmorTypeClass>(pStm) &&
+		Process_Load < BannerTypeClass>(pStm) &&
+		Process_Load < ColorTypeClass>(pStm) &&
+		Process_Load < CursorTypeClass>(pStm) &&
+		Process_Load < PaletteManager>(pStm) &&
+		Process_Load < RadTypeClass>(pStm) &&
+		Process_Load < ShieldTypeClass>(pStm) &&
+		Process_Load < TrailType>(pStm) &&
+		Process_Load < HoverTypeClass>(pStm) &&
+		Process_Load < LaserTrailTypeClass>(pStm)
+		;
+	
+	if (!ret)
+		Debug::Log("[Phobos] Global LoadGame Failed !\n");
+
 	return 0;
 }
 

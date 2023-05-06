@@ -88,7 +88,7 @@ public:
 
 	// overrideable virtuals !
 	virtual void InvalidatePointer(void* ptr, bool bRemoved) { }
-	virtual bool InvalidateIgnorable(void* const ptr) const = 0;
+	virtual bool InvalidateIgnorable(void* ptr) const = 0;
 
 	virtual inline void SaveToStream(PhobosStreamWriter& Stm) { 
 		Stm.Save(this->Initialized);

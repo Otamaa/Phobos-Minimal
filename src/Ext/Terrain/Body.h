@@ -14,12 +14,13 @@
 class TerrainExt
 {
 public:
-	static constexpr size_t Canary = 0xE1E2E3E4;
-	using base_type = TerrainClass;
-	//static constexpr size_t ExtOffset = 0xD0;
-
 	class ExtData final : public Extension<TerrainClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xE1E2E3E4;
+		using base_type = TerrainClass;
+		//static constexpr size_t ExtOffset = 0xD0;
+
 	public:
 
 		UniqueGamePtrB<LightSourceClass> LighSource;
@@ -32,8 +33,8 @@ public:
 
 		virtual ~ExtData() override = default;
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override {
+		void InvalidatePointer(void* ptr, bool bRemoved);
+		bool InvalidateIgnorable(void* ptr) const {
 			switch (GetVtableAddr(ptr))
 			{
 			case AnimClass::vtable:
@@ -44,10 +45,8 @@ public:
 			return true;
 		}
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void InitializeLightSource();
 		void InitializeAnim();
@@ -62,7 +61,7 @@ public:
 
 	};
 
-	class ExtContainer final : public Container<TerrainExt>
+	class ExtContainer final : public Container<TerrainExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -73,7 +72,4 @@ public:
 
 	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
 	static void CleanUp(TerrainClass* pThis);
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 };

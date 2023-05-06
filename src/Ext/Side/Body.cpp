@@ -2,9 +2,7 @@
 
 #include <ThemeClass.h>
 
-SideExt::ExtContainer SideExt::ExtMap;
-
-void SideExt::ExtData::InitializeConstants()
+void SideExt::ExtData::Initialize()
 {
 	auto const nIdx = SideClass::Array->FindItemIndex(this->Get());
 	this->ArrayIndex = nIdx;
@@ -14,23 +12,19 @@ void SideExt::ExtData::InitializeConstants()
 bool SideExt::isNODSidebar()
 {
 	auto const PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
-	if (auto const pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex))
-	{
-		if (auto const pData = SideExt::ExtMap.Find(pSide))
-		{
-			return !pData->Sidebar_GDIPositions;
-		}
+	if (const auto pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex)) {
+		return !SideExt::ExtMap.Find(pSide)->Sidebar_GDIPositions;
 	}
+
 	return PlayerSideIndex;
 }
 
-void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
-	{
+	if (parseFailAddr) {
 		return;
 	}
 
@@ -58,29 +52,6 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
 	//this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
 }
 
-void SideExt::IniExtData(SideClass* pThis, int nIdx)
-{
-	if (Phobos::Otamaa::DoingLoadGame)
-		return;
-
-	auto const pExt = SideExt::ExtMap.TryFind(pThis);
-	if (!pExt) {
-		if (SideExt::ExtData* val = new SideExt::ExtData(pThis)) {
-			val->EnsureConstanted();
-			val->ArrayIndex = nIdx;
-			SideExt::ExtMap.SetExtAttribute(pThis, val);
-		}
-
-	} else {
-
-
-		if (pExt->ArrayIndex != nIdx)
-			pExt->ArrayIndex = nIdx;
-	}
-
-	#undef ExtData_ptr
-}
-
 // =============================
 // load / save
 
@@ -88,6 +59,7 @@ template <typename T>
 void SideExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->ArrayIndex)
 		.Process(this->Sidebar_GDIPositions)
 
@@ -115,37 +87,15 @@ void SideExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void SideExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<SideClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void SideExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<SideClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool SideExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool SideExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 // =============================
 // container
+SideExt::ExtContainer SideExt::ExtMap;
 
 SideExt::ExtContainer::ExtContainer() : Container("SideClass") { }
 SideExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
 
 DEFINE_HOOK(0x6A4609, SideClass_CTOR, 0x7)
 {
@@ -191,8 +141,9 @@ DEFINE_HOOK(0x679A10, SideClass_LoadAllFromINI, 0x5)
 {
 	GET_STACK(CCINIClass*, pINI, 0x4);
 
-	for (auto pSide : *SideClass::Array)
-		SideExt::ExtMap.Find(pSide)->LoadFromINIFile(pINI);
+	for (auto pSide : *SideClass::Array) {
+		SideExt::ExtMap.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+	}
 
 	return 0;
 }

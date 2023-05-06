@@ -17,24 +17,25 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 #endif
+
 class VoxelAnimExt
 {
 public:
-	static constexpr size_t Canary = 0xAAACAACC;
-	using base_type = VoxelAnimClass;
-	static constexpr size_t ExtOffset = 0x144;
-
 	class ExtData final : public Extension<VoxelAnimClass>
 	{
 	public:
-		//FixedString<0x32> ID;
+		static constexpr size_t Canary = 0xAAACAACC;
+		using base_type = VoxelAnimClass;
+		static constexpr size_t ExtOffset = 0x144;
+
+	public:
+
 		TechnoClass* Invoker;
 		std::vector<LaserTrailClass> LaserTrails;
 #ifdef COMPILE_PORTED_DP_FEATURES
 		std::vector<UniversalTrail> Trails;
 #endif
 		ExtData(VoxelAnimClass* OwnerObject) : Extension<VoxelAnimClass>(OwnerObject)
-			//, ID { }
 			, Invoker { nullptr }
 			, LaserTrails { }
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -43,8 +44,10 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override {
+		void InvalidatePointer(void* ptr, bool bRemoved);
+
+		bool InvalidateIgnorable(void* const ptr) const {
+
 			switch (GetVtableAddr(ptr))
 			{
 			case AircraftClass::vtable:
@@ -58,9 +61,8 @@ public:
 		}
 
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm)override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm)override;
-		virtual void InitializeConstants()override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void Uninitialize() {}
 		void InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTypeExt);
@@ -70,7 +72,7 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<VoxelAnimExt>
+	class ExtContainer final : public Container<VoxelAnimExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -78,9 +80,6 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
 
 };

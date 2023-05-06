@@ -10,29 +10,16 @@
 
 #include <New/Entity/ShieldClass.h>
 
-TEventExt::ExtContainer TEventExt::ExtMap;
-
- void TEventExt::ExtData::InitializeConstants() { }
-
 // =============================
 // load / save
 
 template <typename T>
 void TEventExt::ExtData::Serialize(T& Stm)
 {
+	Stm
+		.Process(this->Initialized)
+		;
 	//Stm;
-}
-
-void TEventExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TEventClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TEventExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TEventClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
 }
 
 // helper struct
@@ -185,10 +172,10 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 template<bool IsGlobal, class _Pr>
 bool TEventExt::VariableCheck(TEventClass* pThis)
 {
-	auto const& nVar = ScenarioExt::GetVariables(IsGlobal);
-	auto itr = nVar.find(pThis->Value);
+	const auto nVar = ScenarioExt::GetVariables(IsGlobal);
+	auto itr = nVar->find(pThis->Value);
 
-	if (itr != nVar.end())
+	if (itr != nVar->end())
 	{
 		// We uses TechnoName for our operator number
 		int nOpt = atoi(pThis->String);
@@ -201,16 +188,16 @@ bool TEventExt::VariableCheck(TEventClass* pThis)
 template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 {
-	auto const& nVar = ScenarioExt::GetVariables(IsGlobal);
-	auto itr = nVar.find(pThis->Value);
+	const auto nVar = ScenarioExt::GetVariables(IsGlobal);
+	const auto itr = nVar->find(pThis->Value);
 
-	if (itr != nVar.end())
+	if (itr != nVar->end())
 	{
 		// We uses TechnoName for our src variable index
 		int nSrcVariable = atoi(pThis->String);
-		auto itrsrc = nVar.find(nSrcVariable);
+		auto itrsrc = nVar->find(nSrcVariable);
 
-		if (itrsrc != nVar.end())
+		if (itrsrc != nVar->end())
 			return _Pr()(itr->second.Value, itrsrc->second.Value);
 	}
 
@@ -219,21 +206,10 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 
 // =============================
 // container
+TEventExt::ExtContainer TEventExt::ExtMap;
 
 TEventExt::ExtContainer::ExtContainer() : Container("TEventClass") { }
 TEventExt::ExtContainer::~ExtContainer() = default;
-
-bool TEventExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TEventExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
 
 // =============================
 // container hooks
@@ -296,13 +272,11 @@ DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)
 	GET(void*, pTarget, EDX);
 	GET_STACK(bool, bRemoved, 0x8);
 
-	if (pThis->TeamType == pTarget)
-	{
+	if (pThis->TeamType == pTarget) {
 		pThis->TeamType = nullptr;
 	}
 
-	if (auto pExt = TEventExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(pTarget, bRemoved);
+	TEventExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemoved);
 
 	return 0x71F81D;
 }

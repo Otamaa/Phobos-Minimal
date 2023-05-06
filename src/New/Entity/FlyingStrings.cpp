@@ -30,10 +30,11 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 	return false;
 }
 
-void FlyingStrings::Add(const std::wstring& text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
+void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
 {
-	Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame, Drawing::RGB2DWORD(color), TextPrintType::Center | TextPrintType::NoShadow, L"");
-	Data.back().Text = text;
+	Item item { coords, pixelOffset, Unsorted::CurrentFrame, Drawing::RGB2DWORD(color), TextPrintType::Center | TextPrintType::NoShadow, L"" };
+	PhobosCRT::wstrCopy(item.Text, text, 0x20);
+	Data.push_back(item);
 }
 
 void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
@@ -117,7 +118,7 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) == VisualType::Hidden)
 			return;
 
-		wchar_t moneyStr[0x250];
+		wchar_t moneyStr[0x20];
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty) {
@@ -165,7 +166,7 @@ void FlyingStrings::UpdateAll()
 	{
 		auto& dataItem = Data[i];
 
-		if (!dataItem.Text.empty())
+		if (dataItem.Text[0])
 		{
 			Point2D pos {};
 			Point2D tmp {};
@@ -180,11 +181,11 @@ void FlyingStrings::UpdateAll()
 					if (Unsorted::CurrentFrame > dataItem.CreationFrame + Duration - 70)
 					{
 						pos.Y -= (Unsorted::CurrentFrame - dataItem.CreationFrame);
-						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text.c_str(), DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
+						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text, DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
 					}
 					else
 					{
-						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text.c_str(), DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
+						Fancy_Text_Print_Wide_REF(&tmp, dataItem.Text, DSurface::Temp(), &bound, &pos, dataItem.Color, 0, dataItem.TextPrintType, 1);
 					}
 				}
 			}

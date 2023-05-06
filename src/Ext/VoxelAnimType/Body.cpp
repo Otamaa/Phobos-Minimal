@@ -1,18 +1,16 @@
 #include "Body.h"
 
-VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
-
-void VoxelAnimTypeExt::ExtData::InitializeConstants(){
+void VoxelAnimTypeExt::ExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
-void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Get()->ID;
 	INI_EX exINI(pINI);
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
@@ -38,8 +36,8 @@ template <typename T>
 void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(LaserTrail_Types)
-
 		.Process(SplashList)
 		.Process(SplashList_Pickrandom)
 		.Process(Warhead_Detonate)
@@ -54,32 +52,9 @@ void VoxelAnimTypeExt::ExtData::Serialize(T& Stm)
 #endif
 }
 
-void VoxelAnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<VoxelAnimTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void VoxelAnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<VoxelAnimTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool VoxelAnimTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool VoxelAnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+VoxelAnimTypeExt::ExtContainer VoxelAnimTypeExt::ExtMap;
 
 VoxelAnimTypeExt::ExtContainer::ExtContainer() : Container("VoxelVoxelAnimTypeClass") {}
 VoxelAnimTypeExt::ExtContainer::~ExtContainer() = default;
@@ -128,6 +103,7 @@ DEFINE_HOOK(0x74B8E8, VoxelAnimTypeClass_Save_Suffix, 0x5)
 	return 0;
 }
 
+DEFINE_HOOK_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x74B561, VoxelAnimTypeClass_LoadFromINI, 0x5)
 DEFINE_HOOK_AGAIN(0x74B54A, VoxelAnimTypeClass_LoadFromINI, 0x5)
@@ -137,7 +113,7 @@ DEFINE_HOOK(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 	GET(VoxelAnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0x4);
 
-	VoxelAnimTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	VoxelAnimTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
 
 	return 0;
 }

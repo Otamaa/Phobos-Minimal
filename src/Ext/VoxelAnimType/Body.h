@@ -17,11 +17,12 @@
 class VoxelAnimTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xAAAEEEEE;
-	using base_type = VoxelAnimTypeClass;
-
 	class ExtData final : public Extension<VoxelAnimTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0xAAAEEEEE;
+		using base_type = VoxelAnimTypeClass;
+
 	public:
 
 		ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
@@ -55,23 +56,19 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void Initialize();
 
-		virtual void Initialize() override { }
-		virtual void InitializeConstants()override;
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<VoxelAnimTypeExt>
+	class ExtContainer final : public Container<VoxelAnimTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -79,7 +76,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

@@ -17,13 +17,18 @@
 class BulletTypeExt
 {
 public:
-	static constexpr size_t Canary = 0xF00DF00D;
-	using base_type = BulletTypeClass;
-	//static constexpr size_t ExtOffset = 0x2EC;
+	static const Leptons DefaultBulletScatterMin;
+	static const Leptons DefaultBulletScatterMax;
 
 	class ExtData final : public Extension<BulletTypeClass>
 	{
 	public:
+		static constexpr size_t Canary = 0xF00DF00D;
+		using base_type = BulletTypeClass;
+		//static constexpr size_t ExtOffset = 0x2EC;
+
+	public:
+
 		Valueable<int> Health;
 		Nullable<Armor> Armor;
 		Valueable<bool> Interceptable;
@@ -156,14 +161,10 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void Initialize() override  { }
-		virtual void InitializeConstants()override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return false; }
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 		void Uninitialize();
 
@@ -200,20 +201,13 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<BulletTypeExt> {
+	class ExtContainer final : public Container<BulletTypeExt::ExtData> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
 	static ExtContainer ExtMap;
-	//static  std::pair<CompileTimeLeptons, CompileTimeLeptons> DefaultBulletScatter { CompileTimeLeptons(256) , CompileTimeLeptons(512) };
-
-	static const Leptons DefaultBulletScatterMin;
-	static const Leptons DefaultBulletScatterMax;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static double GetAdjustedGravity(BulletTypeClass* pType);
 	static BulletTypeClass* GetDefaultBulletType(const char* pBullet = nullptr);

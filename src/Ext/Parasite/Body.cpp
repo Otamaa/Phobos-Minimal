@@ -2,8 +2,6 @@
 
 #include <Ext/Techno/Body.h>
 
-ParasiteExt::ExtContainer ParasiteExt::ExtMap;
-
 void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 #ifdef PARASITE_PIPS
@@ -47,42 +45,20 @@ void TechnoExt::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Rectan
 #endif
 }
 
-
 // =============================
 // load / save
 template <typename T>
 void ParasiteExt::ExtData::Serialize(T& Stm) {
 	//Debug::Log("Processing Element From ParasiteExt ! \n");
 	Stm
+		.Process(this->Initialized)
 		.Process(this->LastVictimLocation)
 		;
 }
 
-void ParasiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm) {
-	Extension<ParasiteClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ParasiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm) {
-	Extension<ParasiteClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool ParasiteExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool ParasiteExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
-
+ParasiteExt::ExtContainer ParasiteExt::ExtMap;
 ParasiteExt::ExtContainer::ExtContainer() : Container("ParasiteClass") { };
 ParasiteExt::ExtContainer::~ExtContainer() = default;
 

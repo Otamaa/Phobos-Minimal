@@ -7,16 +7,8 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-RadSiteExt::ExtContainer RadSiteExt::ExtMap;
-
-void RadSiteExt::ExtData::InitializeConstants()
-{ }
-
 void RadSiteExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(TechOwner, ptr);
 	AnnounceInvalidPointer(HouseOwner, ptr);
 }
@@ -168,6 +160,7 @@ template <typename T>
 void RadSiteExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Weapon)
 		.Process(this->Type)
 		.Process(this->TechOwner)
@@ -177,34 +170,9 @@ void RadSiteExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void RadSiteExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<RadSiteClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void RadSiteExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<RadSiteClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-//void RadSiteExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved) { }
-
-bool RadSiteExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool RadSiteExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+RadSiteExt::ExtContainer RadSiteExt::ExtMap;
 
 RadSiteExt::ExtContainer::ExtContainer() : Container("RadSiteClass") { };
 RadSiteExt::ExtContainer::~ExtContainer() = default;
@@ -323,8 +291,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){ 
-		if (auto pExt = RadSiteExt::ExtMap.Find(pThis))
-			pExt->InvalidatePointer(pTarget, bRemove);
+		RadSiteExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
 	}
 }
 

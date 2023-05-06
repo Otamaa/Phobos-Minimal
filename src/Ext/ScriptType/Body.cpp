@@ -1,12 +1,10 @@
 #include "Body.h"
 
-ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
-
-void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Get()->ID;
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -19,36 +17,14 @@ template <typename T>
 void ScriptTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(PhobosNode)
+		.Process(this->Initialized)
+		.Process(this->PhobosNode)
 		;
-}
-
-void ScriptTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<ScriptTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ScriptTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<ScriptTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool ScriptTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool ScriptTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
 }
 
 // =============================
 // container
+ScriptTypeExt::ExtContainer ScriptTypeExt::ExtMap;
 
 ScriptTypeExt::ExtContainer::ExtContainer() : Container("ScriptTypeClass") { }
 ScriptTypeExt::ExtContainer::~ExtContainer() = default;

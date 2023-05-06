@@ -11,30 +11,28 @@
 class CaptureExt
 {
 public:
-
-	static constexpr size_t Canary = 0x87654121;
-	using base_type = CaptureManagerClass;
-
-	class ExtData final : public Extension<base_type>
+	class ExtData final : public Extension<CaptureManagerClass>
 	{
+	public:
+
+		static constexpr size_t Canary = 0x87654121;
+		using base_type = CaptureManagerClass;
+
 	public:
 
 		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject)
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<CaptureExt>
+	class ExtContainer final : public Container<CaptureExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -43,20 +41,11 @@ public:
 
 	static ExtContainer ExtMap;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 	static bool CanCapture(CaptureManagerClass* pManager, TechnoClass* pTarget);
 	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);
-	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
-		bool bRemoveFirst, bool bSilent , AnimTypeClass* pControlledAnimType);
+	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bRemoveFirst, bool bSilent , AnimTypeClass* pControlledAnimType);
 	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno);
 	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot);
-
-	static int FixIdx(const Iterator<int>& iter, int nInput) {
-		return iter.empty() ? 0 : iter[nInput > static_cast<int>(iter.size()) ? static_cast<int>(iter.size()) : nInput];
-	}
-
 	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
 	static bool AllowDrawLink(TechnoTypeClass* pType);
 };

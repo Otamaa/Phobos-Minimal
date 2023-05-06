@@ -7,8 +7,6 @@
 #include <TriggerClass.h>
 #include <TagTypeClass.h>
 
-TriggerTypeExt::ExtContainer TriggerTypeExt::ExtMap;
-
 HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
 {
 	if (param == 8997) {
@@ -98,23 +96,8 @@ HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const
 //}
 
 // =============================
-// load / save
-
-void TriggerTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TriggerTypeClass>::LoadFromStream(Stm);
-	// Nothing yet
-}
-
-void TriggerTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TriggerTypeClass>::SaveToStream(Stm);
-	// Nothing yet
-}
-
-// =============================
 // container
-
+TriggerTypeExt::ExtContainer TriggerTypeExt::ExtMap;
 TriggerTypeExt::ExtContainer::ExtContainer() : Container("TriggerTypeClass") { }
 TriggerTypeExt::ExtContainer::~ExtContainer() = default;
 

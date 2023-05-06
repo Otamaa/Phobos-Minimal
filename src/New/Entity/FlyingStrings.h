@@ -25,7 +25,7 @@ private:
 		int CreationFrame;
 		COLORREF Color;
 		TextPrintType TextPrintType;
-		std::wstring Text;
+		wchar_t Text[0x20];
 	};
 
 	static constexpr int Duration = 75;
@@ -35,7 +35,7 @@ private:
 
 public:
 	static void Clear();
-	static void Add(const std::wstring& text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
+	static void Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
 	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , const ColorStruct& nOverrideColor = ColorStruct::Empty);
 	static void AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, const ColorStruct& nOverrideColor = ColorStruct::Empty);
 	static void AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor);

@@ -4,15 +4,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Utilities/Macro.h>
 
-WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
-WeaponTypeClass* WeaponTypeExt::Temporal_WP = nullptr;
 int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
 
 void WeaponTypeExt::ExtData::Initialize()
-{
-}
-
-void WeaponTypeExt::ExtData::InitializeConstants()
 {
 	Burst_Delays.reserve(10);
 	this->RadType = RadTypeClass::Find(RADIATION_SECTION);
@@ -21,12 +15,12 @@ void WeaponTypeExt::ExtData::InitializeConstants()
 // =============================
 // load / save
 
-void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -104,7 +98,6 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 		this->RockerPitch = this->RockerPitch.Get() * (Math::PI / 2);
 	}
 
-
 	this->MyAttachFireDatas.Read(exINI, pSection);
 #endif
 #pragma endregion
@@ -155,6 +148,7 @@ template <typename T>
 void WeaponTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->DiskLaser_Radius)
 		.Process(this->DiskLaser_Circumference)
 		.Process(this->Rad_NoOwner)
@@ -256,40 +250,6 @@ int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	return -1;
 }
 
-void WeaponTypeExt::ExtContainer::InvalidatePointer(void* ptr, bool bRemoved)
-{
-	AnnounceInvalidPointer(WeaponTypeExt::Temporal_WP, ptr);
-}
-
-void WeaponTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<WeaponTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-
-}
-
-void WeaponTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<WeaponTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool WeaponTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(Temporal_WP)
-		.Process(nOldCircumference)
-		.Success();
-}
-
-bool WeaponTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(Temporal_WP)
-		.Process(nOldCircumference)
-		.Success();
-}
-
 void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner)
 {
 	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage);
@@ -353,6 +313,7 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 }
 // =============================
 // container
+WeaponTypeExt::ExtContainer WeaponTypeExt::ExtMap;
 
 WeaponTypeExt::ExtContainer::ExtContainer() : Container("WeaponTypeClass") { }
 WeaponTypeExt::ExtContainer::~ExtContainer() = default;
@@ -404,7 +365,7 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	GET(WeaponTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xE4);
 
-	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x7729D6);
 
 	return 0;
 }

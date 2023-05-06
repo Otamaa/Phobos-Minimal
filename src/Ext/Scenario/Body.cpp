@@ -1,25 +1,25 @@
 #include "Body.h"
 
-std::unique_ptr<ScenarioExt::ExtData> ScenarioExt::Data = nullptr;
-
+IStream* ScenarioExt::g_pStm = nullptr;
 bool ScenarioExt::CellParsed = false;
+std::unique_ptr< ScenarioExt::ExtData>  ScenarioExt::Data = nullptr;
 
-std::map<int, ExtendedVariable>& ScenarioExt::ScenarioExt::GetVariables(bool IsGlobal)
+std::map<int, ExtendedVariable>* ScenarioExt::GetVariables(bool IsGlobal)
 {
 	if (IsGlobal)
-		return ScenarioExt::Global()->Global_Variables;
+		return &ScenarioExt::Global()->Global_Variables;
 	
-	return ScenarioExt::Global()->Local_Variables;
+	return &ScenarioExt::Global()->Local_Variables;
 }
 
 void ScenarioExt::ExtData::SetVariableToByID(const bool IsGlobal, int nIndex, char bState)
 {
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
-	auto& dict = ScenarioExt::GetVariables(IsGlobal);
-	const auto itr = dict.find(nIndex);
+	const auto dict = ScenarioExt::GetVariables(IsGlobal);
+	const auto itr = dict->find(nIndex);
 
-	if (itr != dict.end() && itr->second.Value != bState)
+	if (itr != dict->end() && itr->second.Value != bState)
 	{
 		itr->second.Value = bState;
 		ScenarioClass::Instance->VariablesChanged = true;
@@ -34,10 +34,10 @@ void ScenarioExt::ExtData::GetVariableStateByID(const bool IsGlobal,int nIndex, 
 {
 	//Debug::Log("%s , Executed !\n", __FUNCTION__);
 
-	const auto& dict = ScenarioExt::GetVariables(IsGlobal);
-	const auto itr = dict.find(nIndex);
+	const auto dict = ScenarioExt::GetVariables(IsGlobal);
+	const auto itr = dict->find(nIndex);
 
-	if (itr != dict.end())
+	if (itr != dict->end())
 		*pOut = static_cast<char>(itr->second.Value);
 	else
 		Debug::Log("Failed When Trying to Get [%d]Variables with Indx [%d] \n", (int)IsGlobal, nIndex);
@@ -50,8 +50,8 @@ void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 	//Debug::Log("%s , Executed For %s Variables !\n", __FUNCTION__, pString);
 
 	if (!IsGlobal) // Local variables need to be read again
-		ScenarioExt::GetVariables(false).clear();
-	else if (!ScenarioExt::GetVariables(true).empty()) // Global variables had been loaded, DO NOT CHANGE THEM
+		ScenarioExt::GetVariables(false)->clear();
+	else if (!ScenarioExt::GetVariables(true)->empty()) // Global variables had been loaded, DO NOT CHANGE THEM
 		return;
 
 	const char* const pVariableNames = GameStrings::VariableNames();
@@ -64,12 +64,12 @@ void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 
 		if (sscanf_s(pKey, "%d", &nIndex) == 1)
 		{
-			auto& var = ScenarioExt::GetVariables(IsGlobal)[nIndex];
+			auto& var = (*ScenarioExt::GetVariables(IsGlobal))[nIndex];
 			pINI->ReadString(pVariableNames, pKey, pKey, Phobos::readBuffer);
 			char* buffer = nullptr;
 			strcpy_s(var.Name, strtok_s(Phobos::readBuffer, Phobos::readDelims, &buffer));
 			if (auto pState = strtok_s(nullptr, Phobos::readDelims, &buffer))
-				var.Value = CRT::atoi(pState);
+				var.Value = atoi(pState);
 			else
 				var.Value = 0;
 
@@ -81,22 +81,16 @@ void ScenarioExt::ExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 void ScenarioExt::Allocate(ScenarioClass* pThis)
 {
 	Data = std::make_unique<ScenarioExt::ExtData>(pThis);
-
-	if (Data)
-		Data->EnsureConstanted();
 }
 
 void ScenarioExt::Remove(ScenarioClass* pThis)
 {
-	if (Data)
-		Data->Uninitialize();
-
 	Data = nullptr;
 }
 
 void ScenarioExt::LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI)
 {
-	Data->LoadFromINI(pINI);
+	Data->LoadFromINIFile(pINI , false);
 }
 
 void ScenarioExt::ExtData::LoadBasicFromINIFile(CCINIClass* pINI)
@@ -106,9 +100,6 @@ void ScenarioExt::ExtData::LoadBasicFromINIFile(CCINIClass* pINI)
 
 void ScenarioExt::ExtData::FetchVariables(ScenarioClass* pScen)
 {
-	ParTitle = pScen->OverParTitle;
-	ParMessage = pScen->OverParMessage;
-
 	// Initialize
 	DefaultAmbientOriginal = pScen->AmbientOriginal;
 	DefaultAmbientCurrent = pScen->AmbientCurrent;
@@ -118,11 +109,12 @@ void ScenarioExt::ExtData::FetchVariables(ScenarioClass* pScen)
 	CurrentTint_Tiles = pScen->NormalLighting.Tint;
 }
 
-void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void ScenarioExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	// auto pThis = this->Get();
 
 	// INI_EX exINI(pINI);
+
 }
 
 // =============================
@@ -135,6 +127,8 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 	//Debug::Log("Processing ScenarioExt ! \n");
 	Stm
 
+		.Process(SessionClass::Instance->Config)
+		.Process(this->Initialized)
 		.Process(this->Waypoints)
 		.Process(this->Local_Variables)
 		.Process(this->Global_Variables)
@@ -157,37 +151,6 @@ void ScenarioExt::ExtData::Serialize(T& Stm)
 
 
 }
-
-void ScenarioExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	// Extra datas
-	//Debug::Log("Loading Scenario Configs ! \n");
-	Stm.Process(SessionClass::Instance->Config);
-
-	Extension<ScenarioClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void ScenarioExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	// Extra datas
-	//Debug::Log("Saving Scenario Configs ! \n");
-	Stm.Process(SessionClass::Instance->Config);
-
-	Extension<ScenarioClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool ScenarioExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool ScenarioExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 
 // =============================
 // container hooks
@@ -212,8 +175,6 @@ DEFINE_HOOK(0x6BEB7D, ScenarioClass_DTOR, 0x6)
 	return 0;
 }
 
-IStream* ScenarioExt::g_pStm = nullptr;
-
 DEFINE_HOOK_AGAIN(0x689470, ScenarioClass_SaveLoad_Prefix, 0x5)
 DEFINE_HOOK(0x689310, ScenarioClass_SaveLoad_Prefix, 0x5)
 {
@@ -233,7 +194,7 @@ DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
 	{
 		PhobosStreamReader Reader(Stm);
 
-		if (Reader.Expect(ScenarioExt::Canary) && Reader.RegisterChange(buffer))
+		if (Reader.Expect(ScenarioExt::ExtData::Canary) && Reader.RegisterChange(buffer))
 			buffer->LoadFromStream(Reader);
 	}
 
@@ -247,7 +208,7 @@ DEFINE_HOOK(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 		+ sizeof(*buffer));
 	PhobosStreamWriter writer(saver);
 
-	writer.Expect(ScenarioExt::Canary);
+	writer.Expect(ScenarioExt::ExtData::Canary);
 	writer.RegisterChange(buffer);
 
 	buffer->SaveToStream(writer);

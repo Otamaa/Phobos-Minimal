@@ -4,10 +4,6 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-CaptureExt::ExtContainer CaptureExt::ExtMap;
-
-void CaptureExt::ExtData::InitializeConstants() { }
-
 AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback)
 {
 	if (!pFallback)
@@ -181,40 +177,23 @@ void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot)
 // load / save
 
 template <typename T>
-void CaptureExt::ExtData::Serialize(T& Stm) { }
+void CaptureExt::ExtData::Serialize(T& Stm) { 
 
-void CaptureExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<CaptureManagerClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
+	Stm
+		.Process(this->Initialized)
+
+		;
+
 }
 
-void CaptureExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<CaptureManagerClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool CaptureExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool CaptureExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
 // =============================
 // container
-
+CaptureExt::ExtContainer CaptureExt::ExtMap;
 CaptureExt::ExtContainer::ExtContainer() : Container("CaptureManagerClass") { };
 CaptureExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks
-
 
 //DEFINE_HOOK(0x471887, CaptureManagerClass_CTOR, 0x6)
 //{

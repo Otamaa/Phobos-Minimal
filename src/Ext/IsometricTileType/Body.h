@@ -12,31 +12,6 @@
 class IsometricTileTypeExt
 {
 public:
-	static constexpr DWORD Canary = 0x91577125;
-	using base_type = IsometricTileTypeClass;
-
-	class ExtData final : public Extension<IsometricTileTypeClass>
-	{
-	public:
-		Valueable<int> Tileset;
-		Valueable<bool> BlockJumpjet;
-		ExtData(IsometricTileTypeClass* OwnerObject) : Extension<IsometricTileTypeClass>(OwnerObject)
-			, Tileset { -1 }
-			, BlockJumpjet { false }
-		{ }
-
-		virtual ~ExtData() override  = default;
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
 	static int CurrentTileset;
 #ifdef IsoTilePalette
 
@@ -46,17 +21,66 @@ public:
 	static std::vector<UniqueGamePtr<BytePalette>> CustomPalettes;
 
 	static LightConvertClass* IsometricTileTypeExt::InitDrawer(int nLookUpIdx, int red, int green, int blue);
-	static void LoadPaletteFromName(int nTileset,const std::string_view PaletteName);
+	static void LoadPaletteFromName(int nTileset, const std::string_view PaletteName);
 #endif
-	class ExtContainer final : public Container<IsometricTileTypeExt>
+
+	class ExtData final : public Extension<IsometricTileTypeClass>
+	{
+	public:
+		static constexpr DWORD Canary = 0x91577125;
+		using base_type = IsometricTileTypeClass;
+
+	public:
+		Valueable<int> Tileset;
+		Valueable<bool> BlockJumpjet;
+		ExtData(IsometricTileTypeClass* OwnerObject) : Extension<IsometricTileTypeClass>(OwnerObject)
+			, Tileset { -1 }
+			, BlockJumpjet { false }
+		{ }
+
+		virtual ~ExtData() override  = default;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); } 
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	private:
+		template <typename T>
+		void Serialize(T& Stm);
+	};
+
+	class ExtContainer final : public Container<IsometricTileTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
+
+		static bool LoadGlobals(PhobosStreamReader& Stm)
+		{
+			return Stm
+				.Process(IsometricTileTypeExt::CurrentTileset)
+#ifdef IsoTilePalette
+				.Process(IsometricTileTypeExt::PalettesInitHelper)
+				.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
+				.Process(IsometricTileTypeExt::LoadedPalettes)
+				.Process(IsometricTileTypeExt::CustomPalettes)
+#endif
+				.Success();
+		}
+
+		static bool SaveGlobals(PhobosStreamWriter& Stm)
+		{
+			return Stm
+
+				.Process(IsometricTileTypeExt::CurrentTileset)
+#ifdef IsoTilePalette
+				.Process(IsometricTileTypeExt::PalettesInitHelper)
+				.Process(IsometricTileTypeExt::LoadedPalettesLookUp)
+				.Process(IsometricTileTypeExt::LoadedPalettes)
+				.Process(IsometricTileTypeExt::CustomPalettes)
+#endif
+				.Success();
+		}
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

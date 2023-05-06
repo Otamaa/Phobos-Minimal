@@ -4,14 +4,17 @@
 #include <FactoryClass.h>
 #include <FileSystem.h>
 #include <Ext/Side/Body.h>
+#include <Phobos.h>
 
 DEFINE_HOOK(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {
 	char filename[0x20];
 
 	for (int i = 0; i < (int)SidebarExt::TabProducingProgress.size(); i++) {
-		sprintf_s(filename, "tab%02dpp.shp", i);
-		SidebarExt::TabProducingProgress[i].reset(GameCreate<SHPReference>(filename));
+		IMPL_SNPRNINTF(filename,sizeof(filename), "tab%02dpp%s", i , GameStrings::dot_SHP());
+
+		if(const auto pFile = FileSystem::LoadSHPFile(filename))
+			SidebarExt::TabProducingProgress[i].reset(pFile);
 	}
 
 	return 0;

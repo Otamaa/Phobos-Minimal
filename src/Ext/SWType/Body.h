@@ -11,11 +11,15 @@ class SuperClass;
 class SWTypeExt
 {
 public:
-	static constexpr size_t Canary = 0x11111111;
-	using base_type = SuperWeaponTypeClass;
+	static bool Handled;
+	static SuperClass* TempSuper;
 
 	class ExtData final : public Extension<SuperWeaponTypeClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x11111111;
+		using base_type = SuperWeaponTypeClass;
+
 	public:
 
 		Valueable<int> Money_Amount;
@@ -138,14 +142,12 @@ public:
 		void ApplyDetonation(HouseClass* pHouse, const CellStruct& cell);
 		void ApplySWNext(SuperClass* pSW, const CellStruct& cell);
 
-		virtual void LoadFromINIFile(CCINIClass* pINI) override;
-		virtual void LoadFromRulesFile(CCINIClass* pINI) override;
+		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		void LoadFromRulesFile(CCINIClass* pINI);
 		virtual ~ExtData() override  = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual	void InitializeConstants() override;
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+		void Initialize() ;
 
 	private:
 
@@ -158,14 +160,18 @@ public:
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<SWTypeExt>
+	class ExtContainer final : public Container<SWTypeExt::ExtData>
 	{
 	public:
 		ExtContainer();
 		~ExtContainer();
 
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override;
-		virtual bool InvalidateExtDataIgnorable(void* const ptr) const {
+		static void InvalidatePointer(void* ptr, bool bRemoved)
+		{
+			AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
+		}
+
+		static  bool InvalidateIgnorable(void* ptr) {
 			switch (GetVtableAddr(ptr))
 			{
 			case SuperClass::vtable:
@@ -174,18 +180,27 @@ public:
 
 			return true;
 		}
+
+		static bool LoadGlobals(PhobosStreamReader& Stm)
+		{
+			return Stm
+				.Process(SWTypeExt::TempSuper)
+				.Process(SWTypeExt::Handled)
+				.Success();
+		}
+
+		static bool SaveGlobals(PhobosStreamWriter& Stm)
+		{
+			return Stm
+				.Process(SWTypeExt::TempSuper)
+				.Process(SWTypeExt::Handled)
+				.Success();
+		}
 	};
 
 	static ExtContainer ExtMap;
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult , Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
-
-	static bool Handled;
-	static SuperClass* TempSuper;
-
-private:
 	static void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);
 };

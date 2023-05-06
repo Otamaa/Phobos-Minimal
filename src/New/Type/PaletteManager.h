@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Constructs.h>
+#include <Utilities/GameUniquePointers.h>
 
 class PaletteManager final : public Enumerable<PaletteManager>
 {

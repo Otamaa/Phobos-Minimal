@@ -103,12 +103,10 @@ bool SpiralTrajectory::OnAI()
 	{
 		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
-		if (pBulletExt->LaserTrails.size())
-			pBulletExt->LaserTrails.clear();
+		pBulletExt->LaserTrails.clear();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-		if (pBulletExt->Trails.size())
-			pBulletExt->Trails.clear();
+		pBulletExt->Trails.clear();
 #endif
 
 		return true;

@@ -3,8 +3,6 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <New/Entity/LaserTrailClass.h>
 
-VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
-
 TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pThis->Type);
@@ -31,9 +29,6 @@ TechnoClass* VoxelAnimExt::GetTechnoOwner(VoxelAnimClass* pThis)
 
 void VoxelAnimExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if (this->InvalidateIgnorable(ptr))
-		return;
-
 	AnnounceInvalidPointer(Invoker, ptr);
 }
 
@@ -41,38 +36,19 @@ void VoxelAnimExt::ExtData::InitializeLaserTrails(VoxelAnimTypeExt::ExtData* pTy
 {
 	auto pThis = Get();
 
-	if (LaserTrails.size())
+	if (!LaserTrails.empty())
 		return;
 
 	auto const pInvoker = VoxelAnimExt::GetTechnoOwner(pThis);
 	auto const pOwner = pThis->OwnerHouse ? 
 		pThis->OwnerHouse : pInvoker ? pInvoker->Owner : HouseExt::FindCivilianSide();
 
-	if(pTypeExt->LaserTrail_Types.size() > 0)
-	LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+	if(!pTypeExt->LaserTrail_Types.empty())
+		LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 	for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 	{
 		LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
-	}
-}
-
-void VoxelAnimExt::ExtData::InitializeConstants()
-{
-	LaserTrails.reserve(1);
-#ifdef COMPILE_PORTED_DP_FEATURES
-	Trails.reserve(1);
-#endif
-	if (auto pTypeExt = VoxelAnimTypeExt::ExtMap.Find(Get()->Type))
-	{
-		//ID = Get()->Type->ID;
-		if (pTypeExt->LaserTrail_Types.size() > 0)
-			LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-		InitializeLaserTrails(pTypeExt);
-#ifdef COMPILE_PORTED_DP_FEATURES
-		TrailsManager::Construct(Get());
-#endif
 	}
 }
 
@@ -84,7 +60,7 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 	//Debug::Log("Processing Element From VoxelAnimExt ! \n");
 
 	 Stm
-		//.Process(ID)
+		.Process(this->Initialized)
 		.Process(Invoker)
 		.Process(LaserTrails)
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -93,32 +69,9 @@ void VoxelAnimExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void VoxelAnimExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<VoxelAnimClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void VoxelAnimExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<VoxelAnimClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool VoxelAnimExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool VoxelAnimExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
 // =============================
 // container
+VoxelAnimExt::ExtContainer VoxelAnimExt::ExtMap;
 
 VoxelAnimExt::ExtContainer::ExtContainer() : Container("VoxelAnimClass") { }
 VoxelAnimExt::ExtContainer::~ExtContainer() = default;
@@ -126,14 +79,24 @@ VoxelAnimExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-//DEFINE_HOOK_AGAIN(0x7498C3, VoxelAnimClass_CTOR, 0x5)
-//DEFINE_HOOK(0x7498B0, VoxelAnimClass_CTOR, 0x5)
-
 DEFINE_HOOK(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	VoxelAnimExt::ExtMap.Allocate(pItem);
+	if (auto pExt = VoxelAnimExt::ExtMap.Allocate(pItem))
+	{
+		if (const auto pTypeExt = VoxelAnimTypeExt::ExtMap.TryFind(pItem->Type))
+		{
+			//ID = Get()->Type->ID;
+			if (!pTypeExt->LaserTrail_Types.empty())
+				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+
+			pExt->InitializeLaserTrails(pTypeExt);
+#ifdef COMPILE_PORTED_DP_FEATURES
+			TrailsManager::Construct(pItem);
+#endif
+		}
+	}
 
 	return 0;
 }
@@ -182,9 +145,7 @@ DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x3)
 static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)
 {
 	pThis->ObjectClass::PointerExpired(pTarget, bRemove);
-
-	if (auto pExt = VoxelAnimExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(pTarget, bRemove);
+	VoxelAnimExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
 }
 
 DEFINE_JUMP(VTABLE ,0x7F6340 , GET_OFFSET(VoxelAnimClass_Detach))

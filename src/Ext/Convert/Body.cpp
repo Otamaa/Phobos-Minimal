@@ -4,11 +4,8 @@
 #include <Utilities/Macro.h>
 
 ConvertExt::ExtContainer ConvertExt::ExtMap;
-
 ConvertExt::ExtContainer::ExtContainer() : Container("ConvertClass") {}
 ConvertExt::ExtContainer::~ExtContainer() = default;
-
-void ConvertExt::ExtData::InitializeConstants() { }
 
 //DEFINE_HOOK(0x48EBD6, ConvertClass_CTOR, 0x5)
 //{

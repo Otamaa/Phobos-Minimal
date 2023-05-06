@@ -181,11 +181,12 @@ enum class PhobosScripts : unsigned int
 class ScriptExt
 {
 public:
-	static constexpr size_t Canary = 0x3B3B3B3B;
-	using base_type = ScriptClass;
-
 	class ExtData final : public Extension<ScriptClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x3B3B3B3B;
+		using base_type = ScriptClass;
+
 	public:
 		// Nothing yet
 
@@ -194,25 +195,23 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override {}
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-
-		virtual void InitializeConstants() override;
+	private:
+		template <typename T>
+		void Serialize(T& Stm)
+		{
+			Stm
+				.Process(this->Initialized)
+				;
+		}
 	};
 
-	class ExtContainer final : public Container<ScriptExt> {
+	class ExtContainer final : public Container<ScriptExt::ExtData> {
 	public:
 		ExtContainer();
 		~ExtContainer();
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void ProcessAction(TeamClass * pTeam);
 	static void ExecuteTimedAreaGuardAction(TeamClass * pTeam);
@@ -247,10 +246,13 @@ public:
 
 	static bool IsExtVariableAction(int action);
 	static void VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg);
+
 	template<bool IsGlobal, class _Pr>
 	static void VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number);
+
 	template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 	static void VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate);
+
 	static void RallyUnitInMap(TeamClass* pTeam, int nArg);
 
 	static bool IsValidFriendlyTarget(TeamClass* pTeam, int group, TechnoClass* target, bool isSelfNaval, bool isSelfAircraft, bool isFriendly);
@@ -307,7 +309,6 @@ public:
 	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
 	static bool FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis, TechnoClass* pTarget);
 
-private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 };

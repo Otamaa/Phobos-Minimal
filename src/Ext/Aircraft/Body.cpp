@@ -8,7 +8,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 
-//AircraftExt::ExtContainer AircraftExt::ExtMap;
+#include <AircraftClass.h>
 
 void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
@@ -69,25 +69,6 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 		{
 			const auto pDestCell = MapClass::Instance->GetCellAt(pDest->GetCoords());
 
-			//if (const auto pTerrain = pDestCell->GetTerrain(false)) {
-			//	const auto pExt = TerrainTypeExt::ExtMap.Find(pTerrain->Type);
-
-			//	if (pExt->IsPassable)
-			//		return true;
-
-			//	if (Is_Unit(pPassanger))
-			//	{
-			//		if (pTerrain->Type->Crushable)
-			//		{
-			//			if (TechnoTypeExt::ExtMap.Find(pPassanger->GetTechnoType())
-			//				->CrushLevel.Get(pPassanger) > pExt->CrushableLevel)
-			//			{
-			//				return true;
-			//			}
-			//		}
-			//	}
-			//}
-
 			return pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, -1, pPassanger->GetTechnoType()->MovementZone, -1, false)
 				&& pDestCell->OverlayTypeIndex == -1;
 		}
@@ -96,47 +77,6 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 	return false;
 
 }
-// =============================
-// load / save
-
-//template <typename T>
-//void AircraftExt::ExtData::Serialize(T& Stm)
-//{
-//	Stm
-//
-//
-//		;
-//}
-//
-//void AircraftExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-//{
-//	TExtension<AircraftClass>::LoadFromStream(Stm);
-//	this->Serialize(Stm);
-//}
-//
-//void AircraftExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-//{
-//	TExtension<AircraftClass>::SaveToStream(Stm);
-//	this->Serialize(Stm);
-//}
-//
-//bool AircraftExt::LoadGlobals(PhobosStreamReader& Stm)
-//{
-//	return Stm
-//		.Success();
-//}
-//
-//bool AircraftExt::SaveGlobals(PhobosStreamWriter& Stm)
-//{
-//	return Stm
-//		.Success();
-//}
-
-// =============================
-// container
-
-//AircraftExt::ExtContainer::ExtContainer() : TExtensionContainer("AircraftClass") { }
-//AircraftExt::ExtContainer::~ExtContainer() = default;
 
 #ifdef ENABLE_NEWHOOKS
 DEFINE_HOOK(0x413F6A, AircraftClass_CTOR, 0x7)

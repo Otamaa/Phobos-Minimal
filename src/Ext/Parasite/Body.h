@@ -8,11 +8,12 @@
 class ParasiteExt
 {
 public:
-	static constexpr size_t Canary = 0x99954321;
-	using base_type = ParasiteClass;
-
 	class ExtData final : public Extension<ParasiteClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x99954321;
+		using base_type = ParasiteClass;
+
 	public:
 
 		CoordStruct LastVictimLocation;
@@ -21,11 +22,8 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; };
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override { }
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
@@ -33,7 +31,7 @@ public:
 	};
 
 
-	class ExtContainer final : public Container<ParasiteExt>
+	class ExtContainer final : public Container<ParasiteExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -41,7 +39,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 };

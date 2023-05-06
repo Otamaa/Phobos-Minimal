@@ -184,7 +184,7 @@ bool ArtilleryTrajectory::OnAI()
 	{
 		auto pBulletExt = BulletExt::ExtMap.Find(pBullet);
 
-		if (pBulletExt->LaserTrails.size())
+		if (!pBulletExt->LaserTrails.empty())
 			pBulletExt->LaserTrails.clear();
 #ifdef COMPILE_PORTED_DP_FEATURES
 		if (pBulletExt->Trails.size())

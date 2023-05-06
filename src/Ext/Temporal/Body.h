@@ -9,12 +9,12 @@ class WeaponTypeClass;
 class TemporalExt
 {
 public:
-
-	static constexpr size_t Canary = 0x82229781;
-	using base_type = TemporalClass;
-
 	class ExtData final : public Extension<TemporalClass>
 	{
+	public:
+		static constexpr size_t Canary = 0x82229781;
+		using base_type = TemporalClass;
+
 	public:
 
 		WeaponTypeClass* Weapon;
@@ -23,18 +23,15 @@ public:
 		{ }
 
 		virtual ~ExtData() override = default;
-		virtual void InvalidatePointer(void* ptr, bool bRemoved) override { }
-		virtual bool InvalidateIgnorable(void* const ptr) const override { return true; }
-		virtual void LoadFromStream(PhobosStreamReader& Stm) override;
-		virtual void SaveToStream(PhobosStreamWriter& Stm) override;
-		virtual void InitializeConstants() override { }
+		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
 	private:
 		template <typename T>
 		void Serialize(T& Stm);
 	};
 
-	class ExtContainer final : public Container<TemporalExt>
+	class ExtContainer final : public Container<TemporalExt::ExtData>
 	{
 	public:
 		ExtContainer();
@@ -43,8 +40,4 @@ public:
 	};
 
 	static ExtContainer ExtMap;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
 };

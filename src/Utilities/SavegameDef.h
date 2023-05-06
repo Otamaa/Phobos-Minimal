@@ -4,7 +4,7 @@
 
 #include "Savegame.h"
 
-//#include <ExtraHeaders/DataVectors.h>
+#include <Utilities/GameUniquePointers.h>
 
 #include <unordered_map>
 #include <vector>
@@ -550,6 +550,44 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unique_ptr<T>& Value) const
 		{
 			return PersistObject(Stm, Value.get());
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<UniqueGamePtr<BytePalette>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, UniqueGamePtr<BytePalette>& Value, bool RegisterForChange) const
+		{
+			bool hasvalue = false;
+			const auto ret = Stm.Load(hasvalue);
+	
+			if (ret && hasvalue) {
+				auto ptrNew = GameCreate<BytePalette>();
+				for (int i = 0; i < BytePalette::EntriesCount; ++i) {
+					ColorStruct nDummy;
+					Stm.Load(nDummy);
+					ptrNew->Entries[i] = nDummy;
+				}
+
+				Value.reset(ptrNew);
+				return true;
+			}
+
+			Value.reset(nullptr);
+			return ret;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const UniqueGamePtr<BytePalette>& Value) const
+		{
+			const bool Exist = Value.get() != nullptr;
+			Stm.Save(Exist);
+			if(Exist){
+				for (const auto& color : Value.get()->Entries) {
+					Stm.Save(color);
+				}
+			}
+
+			return true;
 		}
 	};
 

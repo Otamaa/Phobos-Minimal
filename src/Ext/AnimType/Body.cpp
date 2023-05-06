@@ -12,8 +12,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
-AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
-void AnimTypeExt::ExtData::InitializeConstants()
+void AnimTypeExt::ExtData::Initialize()
 {
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 	SpawnsMultiple.reserve(8);
@@ -26,11 +25,11 @@ void AnimTypeExt::ExtData::InitializeConstants()
 	IsInviso = IS_SAME_STR_(pID, INVISO_NAME);
 }
 
-void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void AnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Get()->ID;
 
-	if (!pINI->GetSection(pID))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -298,7 +297,7 @@ OwnerHouseKind AnimTypeExt::SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvok
 	return pAnimData->MakeInfantryOwner;
 }
 
-const void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
+void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
 	const auto pType = pThis->GetTechnoType();
 	if (!pType->DestroyAnim.Count)
@@ -355,6 +354,8 @@ template <typename T>
 void AnimTypeExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
+
 		.Process(this->Palette)
 		.Process(this->CreateUnit)
 		.Process(this->CreateUnit_Facing)
@@ -413,30 +414,7 @@ void AnimTypeExt::ExtData::Serialize(T& Stm)
 		;
 }
 
-void AnimTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<AnimTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void AnimTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<AnimTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool AnimTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool AnimTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
+AnimTypeExt::ExtContainer AnimTypeExt::ExtMap;
 AnimTypeExt::ExtContainer::ExtContainer() : Container("AnimTypeClass") { }
 AnimTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -487,32 +465,6 @@ DEFINE_HOOK(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 	GET(AnimTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xBC);
 
-	AnimTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	AnimTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x4287E9);
 	return 0;
 }
-
-#ifndef ENABLE_NEWEXT
-
-//DEFINE_HOOK(0x42772A, AnimTypeClass_CTOR_ShouldFogRemove, 0x7)
-//{
-//	GET(AnimTypeClass*, pItem, ESI);
-//	pItem->ShouldFogRemove = 0;
-//	return 0x427731;
-//}
-//
-//DEFINE_HOOK(0x4282C2, AnimTypeClass_ReadFromINI_Replace, 0x6)
-//{
-//	GET(AnimTypeClass*, pItem, ESI);
-//	pItem->IsAnimatedTiberium = R->AL();
-//	return 0x4282DC;
-//}
-//
-//DEFINE_JUMP(LJMP, 0x4282DC, 0x4282E2);
-//
-//DEFINE_HOOK(0x42301E, AnimClass_DrawIt_ShouldFogRemove_Ext, 0x6)
-//{
-//	GET(AnimTypeClass*, pType, EAX);
-//	R->CL(AnimTypeExt::ExtMap.Find(pType)->ShouldFogRemove);
-//	return 0x423024;
-//}
-#endif

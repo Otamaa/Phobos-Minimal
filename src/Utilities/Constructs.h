@@ -42,7 +42,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <memory>
 #include <vector>
 #include <functional>
 
@@ -52,17 +51,10 @@
 #include "INIParser.h"
 
 #include "PhobosFixedString.h"
+#include "GameUniquePointers.h"
+
 #include "Savegame.h"
 #include "Debug.h"
-
-
-class ConvertClass;
-
-template <typename T>
-using UniqueGamePtr = std::unique_ptr<T, GameDeleter>;
-
-template <typename T>
-using UniqueGamePtrB = std::unique_ptr<T,GameDTORCaller>;
 
 template<typename T>
 using Scope = std::unique_ptr<T>;
@@ -79,6 +71,7 @@ constexpr Ref<T> CreateRef(Args&& ... args)
 {
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
+
 //doesnt work with array !
 //make new one !
 template<typename T , typename... TArgs>

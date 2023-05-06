@@ -1,15 +1,11 @@
 #include "Body.h"
 
-TiberiumExt::ExtContainer TiberiumExt::ExtMap;
-
-// void TiberiumExt::ExtData::InvalidatePointer(void *ptr, bool bRemoved) {}
-
-void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI)
+void TiberiumExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -102,13 +98,13 @@ int TiberiumExt::ExtData::GetDebrisChance() const
 	return this->DebrisChance;
 }
 
-
 // =============================
 // container
 template <typename T>
 void TiberiumExt::ExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Initialized)
 		.Process(this->Palette)
 		.Process(this->OreTwinkle)
 		.Process(this->OreTwinkleChance)
@@ -129,30 +125,7 @@ void TiberiumExt::ExtData::Serialize(T& Stm)
 	;
 }
 
-void TiberiumExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<TiberiumClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void TiberiumExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<TiberiumClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
-bool TiberiumExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Success();
-}
-
-bool TiberiumExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Success();
-}
-
+TiberiumExt::ExtContainer TiberiumExt::ExtMap;
 TiberiumExt::ExtContainer::ExtContainer() : Container("TiberiumClass") {}
 TiberiumExt::ExtContainer::~ExtContainer() = default;
 
@@ -203,22 +176,7 @@ DEFINE_HOOK(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	GET(TiberiumClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xC4, -0x4));
 
-	TiberiumExt::ExtMap.LoadFromINI(pItem, pINI);
+	TiberiumExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x721CE9);
 
 	return 0;
 }
-
-// Replace EC check here
-//DEFINE_HOOK(0x5FDD85, OverlayClass_Get_Tiberium_ReplaceEC, 0x6)
-//{
-//	GET(TiberiumClass*, pThis, EAX);
-//	R->EBP(TiberiumExt::ExtMap.Find(pThis)->Replaced_EC);
-//	return 0x5FDD8B;
-//}
-//
-//DEFINE_HOOK(0x721CC6, TiberiumClass_ReadINI_ReplaceEC, 0xA)
-//{
-//	GET(TiberiumClass*, pItem, ESI);
-//	TiberiumExt::ExtMap.Find(pItem)->Replaced_EC = 8;
-//	return 0x721CD0;
-//}

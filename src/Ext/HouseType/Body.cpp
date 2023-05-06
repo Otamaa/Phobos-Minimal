@@ -2,21 +2,15 @@
 
 #include <Utilities/GeneralUtils.h>
 
-HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
-
-void HouseTypeExt::ExtData::InitializeConstants()
-{
-}
-
 // =============================
 // load / save
 
-void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
+void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (!pINI->GetSection(pSection))
+	if (parseFailAddr)
 		return;
 
 	INI_EX exINI(pINI);
@@ -30,55 +24,15 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* const pINI)
 	//
 }
 
-void HouseTypeExt::ExtData::CompleteInitialization()
-{
-	auto const pThis = this->Get();
-	UNREFERENCED_PARAMETER(pThis);
-}
-
-template <typename T>
-void HouseTypeExt::ExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
-		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
-		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
-		.Process(this->NewTeamsSelector_AirCategoryPercentage)
-		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
-		;
-}
-
-void HouseTypeExt::ExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	Extension<HouseTypeClass>::LoadFromStream(Stm);
-	this->Serialize(Stm);
-}
-
-void HouseTypeExt::ExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	Extension<HouseTypeClass>::SaveToStream(Stm);
-	this->Serialize(Stm);
-}
-
 bool HouseTypeExt::ExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
 {
 	HouseTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
 	return pData != nullptr;
 };
 
-bool HouseTypeExt::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm.Success();
-}
-
-bool HouseTypeExt::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm.Success();
-}
-
 // =============================
 // container
-
+HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
 HouseTypeExt::ExtContainer::ExtContainer() : Container("HouseTypeClass") { }
 HouseTypeExt::ExtContainer::~ExtContainer() = default;
 
@@ -141,7 +95,7 @@ DEFINE_HOOK(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
 	GET(HouseTypeClass*, pItem, EBX);
 	GET_BASE(CCINIClass*, pINI, 0x8);
 
-	HouseTypeExt::ExtMap.LoadFromINI(pItem, pINI);
+	HouseTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
 
 	return 0;
 }
