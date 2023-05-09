@@ -20,6 +20,7 @@ struct VoxelStruct;
 class ConvertClass;
 class BulletTypeClass;
 class WarheadTypeClass;
+class BuildingLightClass;
 typedef int (__cdecl *CallHook)(REGISTERS* R);
 
 class PoweredUnitClass
@@ -33,9 +34,9 @@ public:
 static_assert(sizeof(PoweredUnitClass) == 0xC, "Invalid Size !");
 struct AEData
 {
-	DWORD* ArrBegin;
-	DWORD* ArrEnd;
+	DWORD* ArrFirst;
 	DWORD* ArrLast;
+	DWORD* ArrEnd;
 	int Delay;
 	bool NeedToRecreateAnim;
 };
@@ -81,6 +82,10 @@ class cPrismForwarding
 #define GetSelfHealingCombatTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x5C))
 #define Ares_TemporalWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xA))
 #define Ares_ParasiteWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xB))
+
+#define AresGarrisonedIn (techno) (*(BuildingClass**)(((char*)GetAresTechnoExt(techno)) + 0xC))
+#define AresEMPSparkleAnim (techno) (*(AnimClass**)(((char*)GetAresTechnoExt(techno)) + 0x10))
+#define AresBuildingLight (techno) (*(BuildingLightClass**)(((char*)GetAresTechnoExt(techno)) + 0x38))
 
 #define AE_ArmorMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x88))
 #define AE_Cloak(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x98))

@@ -39,8 +39,9 @@ namespace detail
 				}
 
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid R,G,B color");
-				return false;
 			}
+
+			return false;
 		}
 
 		return true;

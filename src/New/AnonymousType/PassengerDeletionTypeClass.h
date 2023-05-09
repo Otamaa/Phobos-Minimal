@@ -16,6 +16,11 @@ public:
 
 	PassengerDeletionTypeClass(TechnoTypeClass* pOwnerType);
 
+	PassengerDeletionTypeClass(const PassengerDeletionTypeClass& other) = default;
+	PassengerDeletionTypeClass& operator=(const PassengerDeletionTypeClass& other) = default;
+
+	~PassengerDeletionTypeClass() noexcept = default;
+
 	TechnoTypeClass* OwnerType;
 
 	Valueable<int> Rate;

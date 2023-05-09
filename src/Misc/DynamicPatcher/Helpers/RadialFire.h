@@ -20,6 +20,11 @@ struct RadialFireHelper
 		: Burst { burst }, Degrees { 0 }, Delta { 0 }, DeltaZ { 0.0f }
 	{ InitData(dir, splitAngle); }
 
+	RadialFireHelper(const RadialFireHelper& other) = default;
+	RadialFireHelper& operator=(const RadialFireHelper& other) = default;
+
+	~RadialFireHelper() = default;
+
 	VelocityClass GetBulletVelocity(int index)
 	{
 		int z = 0;

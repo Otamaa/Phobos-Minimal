@@ -440,10 +440,11 @@ NOINLINE InfantryClass* RecoverHijacker(FootClass* const pThis)
 		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 		if (!pTypeExt->HijackerOneTime && pOwner && !pOwner->Defeated)
 		{
-			auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner));
-			pHijacker->Health = MaxImpl(HijackerHealth(pThis), 10) / 2;
-			pHijacker->Veterancy.Veterancy = HijackerVeterancy(pThis);
-			return pHijacker;
+			if(auto const pHijacker = static_cast<InfantryClass*>(pType->CreateObject(pOwner))) {
+				pHijacker->Health = MaxImpl(HijackerHealth(pThis), 10) / 2;
+				pHijacker->Veterancy.Veterancy = HijackerVeterancy(pThis);
+				return pHijacker;
+			}
 		}
 	}
 
@@ -483,7 +484,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 				pHijacker->RegisterDestruction(pKiller);
 
 				if (pHijacker->IsAlive) {
-					GameDelete<true>(pHijacker);
+					pHijacker->UnInit();
 				}
 			}
 			else
@@ -530,7 +531,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 							pPilot->RegisterDestruction(pKiller);
 
 							if (pPilot->IsAlive) {
-								GameDelete<true>(pPilot);
+								pPilot->UnInit();
 							}
 						}
 						else if (auto const pTag = pThis->AttachedTag)
@@ -581,49 +582,49 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 	}
 }
 
-DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
-{
-	//GET(UnitTypeClass*, pType, EAX);
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x54);
-	GET_STACK(bool, select, 0x13);
-	GET_STACK(bool, ignoreDefenses, 0x58);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x44, -0x18));
-
-	SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
-
-	R->EBX(-1);
-	return 0x73838A;
-}
-
-DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pKiller, 0x28);
-	GET_STACK(int, ignoreDefenses, 0x20);
-	GET_STACK(bool, preventPassangersEscape, STACK_OFFS(0x14, -0x18));
-
-	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
-
-	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses, preventPassangersEscape);
-
-	return 0x0;
-}
-
-bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
-{
-	// Crashable support for aircraft
-	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
-	if (nCrashable.isset() && !nCrashable.Get()) {
-		return false;
-	}
-
-	// call the address direcly instead of vtable
-	return pThis->FootClass::Crash(pSource);
-}
+//DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+//{
+//	//GET(UnitTypeClass*, pType, EAX);
+//	GET(UnitClass*, pThis, ESI);
+//	GET_STACK(TechnoClass*, pKiller, 0x54);
+//	GET_STACK(bool, select, 0x13);
+//	GET_STACK(bool, ignoreDefenses, 0x58);
+//	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
+//
+//	SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
+//
+//	R->EBX(-1);
+//	return 0x73838A;
+//}
+//
+//DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
+//{
+//	GET(AircraftClass*, pThis, ESI);
+//	GET_STACK(TechnoClass*, pKiller, 0x28);
+//	GET_STACK(int, ignoreDefenses, 0x20);
+//	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x14, 0x18));
+//
+//	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
+//
+//	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses, preventPassangersEscape);
+//
+//	return 0x0;
+//}
+//
+//bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
+//{
+//	// Crashable support for aircraft
+//	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
+//	if (nCrashable.isset() && !nCrashable.Get()) {
+//		return false;
+//	}
+//
+//	// call the address direcly instead of vtable
+//	return pThis->FootClass::Crash(pSource);
+//}
 
 //replace an vtable call
-DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
+//DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
 
 // spawn tiberium when a unit dies. this is a minor part of the
 // tiberium heal feature. the actual healing happens in FootClass_Update.

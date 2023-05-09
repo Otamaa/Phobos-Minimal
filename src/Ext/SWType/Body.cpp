@@ -38,7 +38,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (parseFailAddr)
+	if (!pINI->GetSection(pSection))
 		return;
 
 	if (pINI == CCINIClass::INI_Rules)

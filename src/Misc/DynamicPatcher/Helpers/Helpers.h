@@ -147,61 +147,7 @@ public:
 		const CoordStruct& bulletSourcePos = CoordStruct::Empty,
 		bool radialFire = false, int splitAngle = 180);
 
-	static void DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget)
-	{
-		// IsLaser
-		if (pWeapon->IsLaser)
-		{
-			LaserType laserType = LaserType(false);
-			ColorStruct houseColor = ColorStruct::Empty;
-
-			if (pWeapon->IsHouseColor && pAttacker && pAttacker->Owner)
-				houseColor = pAttacker->Owner->LaserColor;
-
-			laserType.InnerColor = pWeapon->LaserInnerColor;
-			laserType.OuterColor = pWeapon->LaserOuterColor;
-			laserType.OuterSpread = pWeapon->LaserOuterSpread;
-			laserType.IsHouseColor = pWeapon->IsHouseColor; // house color will be 
-			laserType.Duration = pWeapon->LaserDuration;
-			/*
-			WeaponTypeExt ext = WeaponTypeExt.ExtMap.Find(pWeapon);
-			if (null != ext)
-			{
-				if (ext.LaserThickness > 0)
-				{
-					laserType.Thickness = ext.LaserThickness;
-				}
-				laserType.Fade = ext.LaserFade;
-				laserType.IsSupported = ext.IsSupported;
-			}*/
-
-			EffectHelpers::DrawLine(sourcePos, targetPos, laserType, houseColor);
-		}
-
-		// IsRadBeam
-		if (pWeapon->IsRadBeam)
-		{
-			RadBeamType radBeamType = RadBeamType::RadBeam;
-			if (pWeapon->Warhead && pWeapon->Warhead->Temporal)
-				radBeamType = RadBeamType::Temporal;
-
-			BeamType beamType = BeamType(radBeamType);
-			EffectHelpers::DrawBeam(sourcePos, targetPos, beamType, ColorStruct::Empty);
-		}
-
-		//IsElectricBolt
-		if (pWeapon->IsElectricBolt)
-		{
-			if (pAttacker && pTarget)
-			{
-				EffectHelpers::DrawBolt(pAttacker, pTarget, pWeapon, sourcePos);
-			}
-			else
-			{
-				EffectHelpers::DrawBolt(sourcePos, targetPos, pWeapon->IsAlternateColor);
-			}
-		}
-	}
+	static void DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget);
 
 	static void AttachedParticleSystem(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, AbstractClass* pTarget, TechnoClass* pAttacker, CoordStruct& targetPos)
 	{

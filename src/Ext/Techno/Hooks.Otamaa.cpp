@@ -360,7 +360,7 @@ DEFINE_HOOK(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
 	GET(InfantryClass*, pThis, ESI);
 
 	R->EDI(R->EAX());
-	R->BL(TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Is_Cow.Get());
+	R->BL(TechnoTypeExt::ExtMap.Find(pThis->Type)->Is_Cow.Get());
 	return 0x51CEAA;
 }
 

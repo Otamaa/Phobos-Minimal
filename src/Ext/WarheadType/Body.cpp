@@ -46,8 +46,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
-	if (parseFailAddr) {
-		ArmorTypeClass::LoadForWarhead_NoParse(pINI, pThis);
+	if (!pINI->GetSection(pSection)) {	
 		return;
 	}
 
@@ -393,6 +392,38 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 		else if (AffectsOwner.Get() && nOwnerMod.isset())
 		{
 			*pArgs->Damage = static_cast<int>(nDamage * nOwnerMod.Get());
+		}
+	}
+}
+
+void WarheadTypeExt::ExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
+{
+	const char* section = OwnerObject->ID;
+
+	for (size_t i = 0; i < this->Verses.size(); ++i)
+	{
+		const auto& pArmor = ArmorTypeClass::Array[i];
+
+		if (pArmor->DefaultTo != -1)
+		{
+			const size_t nDefault = (size_t)pArmor->DefaultTo;
+
+			if (i < nDefault)
+			{
+				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
+					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
+
+				this->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
+
+			}
+			else
+			{
+				this->Verses[i] = this->Verses[nDefault];
+			}
+		}
+		else
+		{ //evaluate armor with not valid default index
+			this->Verses[i] = pArmor->DefaultVersesValue;
 		}
 	}
 }

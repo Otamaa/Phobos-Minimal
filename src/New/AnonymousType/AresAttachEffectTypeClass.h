@@ -42,5 +42,8 @@ public:
 
 	~AresAttachEffectTypeClass() noexcept = default;
 
+	AresAttachEffectTypeClass(const AresAttachEffectTypeClass& other) = default;
+	AresAttachEffectTypeClass& operator=(const AresAttachEffectTypeClass& other) = default;
+
 	void Read(INI_EX& exINI);
 };

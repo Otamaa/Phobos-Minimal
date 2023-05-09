@@ -2,6 +2,7 @@
 
 #include <GeneralStructures.h>
 #include <ObjectClass.h>
+#include <GeneralDefinitions.h>
 
 class DECLSPEC_UUID("54822258-D8A8-11D1-B462-006097C6A979")
 	NOVTABLE BuildingLightClass : public ObjectClass
@@ -11,6 +12,7 @@ public:
 
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<BuildingLightClass*>, 0x8B4190u> const Array{};
+	static constexpr inline DWORD vtable = 0x7E3AD0;
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
@@ -55,11 +57,11 @@ protected:
 public:
 
 	double Speed;
-	CoordStruct field_B8;
-	CoordStruct field_C4;
+	DECLARE_PROPERTY(CoordStruct, field_B8);
+	DECLARE_PROPERTY(CoordStruct, field_C4);
 	double Acceleration;
 	bool Direction;
 	SpotlightBehaviour BehaviourMode;
-	ObjectClass * FollowingObject;
-	TechnoClass * OwnerObject;
+	ObjectClass* FollowingObject;
+	TechnoClass* OwnerObject;
 };

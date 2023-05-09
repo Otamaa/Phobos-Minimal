@@ -501,12 +501,15 @@ public:
 
 		{	
 			Verses.resize(ArmorTypeClass::Array.size());
+			this->EvaluateArmor(OwnerObject);
 		}
 
 		void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);
 		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 
 	private:
+
+		void EvaluateArmor(WarheadTypeClass* OwnerObject);
 		void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner = nullptr , BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 		void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);

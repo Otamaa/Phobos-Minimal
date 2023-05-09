@@ -47,12 +47,27 @@ public:
 		DrawFrame {-1}
 	{ }
 
+	ElectricBoltClass(CoordStruct const& start, CoordStruct const& end , ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3, int z_adjust) :
+		StartCoord { start },
+		EndCoord { end },
+		ZAdjust { z_adjust },
+		Deviation { EBOLT_DEFAULT_DEVIATION },
+		Lifetime { EBOLT_DEFAULT_LIFETIME },
+		IterationCount { EBOLT_DEFAULT_INTERATIONS },
+		LineColor1 { col1 },
+		LineColor2 { col2 },
+		LineColor3 { col3 },
+		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
+		LineDrawList {},
+		DrawFrame { -1 }
+	{ }
+
 	~ElectricBoltClass() {
 		Clear();
 	}
 
 	void Draw_It();
-	void Create(CoordStruct& start, CoordStruct& end, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
+	static void Create(CoordStruct const& start, CoordStruct const& end, ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
 
 	void Flag_To_Delete() { Lifetime = 0; }
 
@@ -70,6 +85,8 @@ public:
 		return Random2Class::NonCriticalRandomNumber()(a, b);
 	}
 
+	ElectricBoltClass(const ElectricBoltClass& other) = default;
+	ElectricBoltClass& operator=(const ElectricBoltClass& other) = default;
 
 private:
 	void Clear();

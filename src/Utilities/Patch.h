@@ -2,6 +2,7 @@
 
 #include <Base/Always.h>
 #include <vector>
+#include <string>
 
 struct module_export
 {
@@ -27,6 +28,8 @@ struct __declspec(novtable)
 
 	static void ApplyStatic();
 	void Apply();
+
+	static std::vector<std::pair<std::string, uintptr_t>> LoadedModules;
 
 	template<typename TFrom, typename To>
 	static inline void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -66,6 +69,7 @@ struct __declspec(novtable)
 	static std::vector<module_export> enumerate_module_exports(HMODULE handle);
 	static uintptr_t GetModuleBaseAddress(const char* modName);
 	static DWORD GetDebuggerProcessId(DWORD dwSelfProcessId);
+	static void PrintAllModuleAndBaseAddr();
 };
 
 struct __declspec(novtable)

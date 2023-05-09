@@ -42,6 +42,9 @@ public:
 
 	~LaserType() = default;
 
+	LaserType(const LaserType& other) = default;
+	LaserType& operator=(const LaserType& other) = default;
+
 	void SetInnerColor(int R, int G, int B)
 	{ InnerColor = ColorStruct((byte)R, (byte)G, (byte)B); }
 
@@ -85,6 +88,9 @@ public:
 	};
 
 	~BeamType() = default;
+
+	BeamType(const BeamType& other) = default;
+	BeamType& operator=(const BeamType& other) = default;
 
 	void SetBeamType(RadBeamType radBeamType)
 	{
@@ -136,6 +142,9 @@ public:
 	};
 
 	~BoltType() = default;
+
+	BoltType(const BoltType& other) = default;
+	BoltType& operator=(const BoltType& other) = default;
 
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -305,18 +314,7 @@ public:
 
 	static void DrawBolt(CoordStruct& sourcePos, CoordStruct& targetPos, BoltType& type)
 	{
-		ElectricBoltManager::ElectricBoltArray.emplace_back();
-
-		if (auto pBolt = &ElectricBoltManager::ElectricBoltArray.back())
-		{
-			pBolt->LineColor1 = type.Color1.Get();
-			pBolt->LineColor2 = type.Color2.Get();
-			pBolt->LineColor3 = type.Color3.Get();
-			pBolt->ZAdjust = 0;
-			pBolt->StartCoord = (sourcePos);
-			pBolt->EndCoord = (targetPos);
-			pBolt->Create(sourcePos, targetPos, 0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
-		}
+		ElectricBoltClass::Create(sourcePos, targetPos, type.Color1 , type.Color2 , type.Color3, 0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
 	}
 
 	static void DrawBolt(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos)

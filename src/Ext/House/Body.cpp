@@ -16,11 +16,14 @@ int HouseExt::LastGrindingBlanceInf = 0;
 int HouseExt::LastHarvesterBalance = 0;
 int HouseExt::LastSlaveBalance = 0;
 
+CDTimerClass HouseExt::CloakEVASpeak;
+CDTimerClass HouseExt::SubTerraneanEVASpeak;
+
 void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pSection = this->Get()->PlainName;
 
-	if (parseFailAddr)
+	if (!pINI->GetSection(pSection))
 		return;
 
 	INI_EX exINI(pINI);

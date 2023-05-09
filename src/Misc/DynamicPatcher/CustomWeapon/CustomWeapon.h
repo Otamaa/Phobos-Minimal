@@ -10,22 +10,17 @@ class WeaponTypeClass;
 class TechnoClass;
 struct CustomWeaponManager
 {
-	//std::queue<SimulateBurst> simulateBurstQueue;
 	std::vector<SimulateBurst> simulateBurstQueue {};
-
-	CustomWeaponManager() = default;
-	~CustomWeaponManager() = default;
 
 	void Clear()
 	{
 		simulateBurstQueue.clear();
-		simulateBurstQueue.reserve(100);
 	}
 
-	void reserve(size_t newsize)
-	{
+	void reserve(size_t newsize) {
 		simulateBurstQueue.reserve(newsize);
 	}
+
 	void Update(TechnoClass* pAttacker);
 	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult, FireBulletToTarget callback);
 	void SimulateBurstFire(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst);
@@ -67,12 +62,12 @@ struct FireWeaponManager
 	std::vector<DelayFireWeapon> DelayFires {};
 	CustomWeaponManager CWeaponManager {};
 
-	FireWeaponManager() = default;
-	~FireWeaponManager() = default;
+	//FireWeaponManager() = default;
+	//~FireWeaponManager() = default;
 
 	void Init() { 
-		DelayFires.reserve(100);
-		CWeaponManager.reserve(100);
+		// DelayFires.reserve(100);
+		// CWeaponManager.reserve(100);
 	}
 
 	void Clear();

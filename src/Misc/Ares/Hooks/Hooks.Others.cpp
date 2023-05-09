@@ -61,6 +61,16 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
+//#define HIDWORD(l) ((DWORD)(((DWORDLONG)(l)>>32)&0xFFFFFFFF))
+//
+//static NOINLINE int64_t Fixup(int64_t A, int64_t B)
+//{
+//	if (HIDWORD(A) | HIDWORD(B))
+//		return A * B;
+//	else
+//		return uint64_t(((unsigned int)A) * ((unsigned int)B));
+//}
+
 DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 {
 	GET(AbstractClass*, pThis, ECX);
@@ -68,9 +78,9 @@ DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 
 	auto const nThisCoord = pThis->GetCoords();
 	auto const nThatCoord = pThat->GetCoords();
-	auto const nXY =
-		((nThisCoord.Y - nThatCoord.Y) * (nThisCoord.Y - nThatCoord.Y)) +
-		((nThisCoord.X - nThatCoord.X) * (nThisCoord.X - nThatCoord.X));
+	const auto nY = (int64_t(nThisCoord.Y - nThatCoord.Y) * int64_t(nThisCoord.Y - nThatCoord.Y));
+	const auto nX = (int64_t(nThisCoord.X - nThatCoord.X) * int64_t(nThisCoord.X - nThatCoord.X));
+	const auto nXY = nX + nY;
 
 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
 	return 0x5F6559;
@@ -82,9 +92,9 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 	auto const nThisCoord = pThis->GetCoords();
 	GET_STACK(CoordStruct*, pThatCoord, 0x4);
 
-	auto const nXY =
-		((nThisCoord.Y - pThatCoord->Y) * (nThisCoord.Y - pThatCoord->Y)) +
-		((nThisCoord.X - pThatCoord->X) * (nThisCoord.X - pThatCoord->X));
+	const auto nY = (int64_t(nThisCoord.Y - pThatCoord->Y) * int64_t(nThisCoord.Y - pThatCoord->Y));
+	const auto nX = (int64_t(nThisCoord.X - pThatCoord->X) * int64_t(nThisCoord.X - pThatCoord->X));
+	const auto nXY = nX + nY;
 
 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
 	return 0x5F659B;
@@ -407,8 +417,8 @@ DEFINE_OVERRIDE_HOOK(0x551A30, LayerClass_YSortReorder, 0x5)
 	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
 	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
 	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
- {
-	 return A->GetYSort() < B->GetYSort();
+ 	{
+	 	return A->GetYSort() < B->GetYSort();
 	});
 
 	return 0x551A84;
@@ -1090,9 +1100,8 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 		|| pType->DontScore
 		|| pType->Insignificant
 		|| pType->Spawned
-		|| !pThis->Owner->ControlledByPlayer()
-	)
-	{
+		|| (pThis->Owner && !pThis->Owner->ControlledByPlayer())
+	) {
 		return Skip;
 	}
 
@@ -1470,29 +1479,23 @@ DEFINE_OVERRIDE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(void*, ptr, EBP);
+	GET(AbstractClass*, ptr, EBP);
 	REF_STACK(bool, remove, STACK_OFFS(0x20, -0x8));
 
 	if (const auto pSM = pThis->SpawnManager)
 	{
 		// ignore disappearing owner
-		if (remove || pSM->Owner != ptr)
-		{
-			R->ECX(pSM);
-			return 0x707B23;
+		if (remove || pSM->Owner != ptr) {
+			pSM->UnlinkPointer(ptr);
 		}
 	}
 
 	return 0x707B29;
 }
 
-CDTimerClass CloakEVASpeak {};
-CDTimerClass SubTerraneanEVASpeak {};
-
 void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate)
 {
-	if (!nTimer.GetTimeLeft())
-	{
+	if (!nTimer.GetTimeLeft()) {
 		nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
 		VoxClass::Play(pEva);
 	}
@@ -1503,18 +1506,18 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, detect, 0x10);
 
-	auto pType = pThis->GetTechnoType();
-	auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (detect && pTypeExt->SensorArray_Warn)
 	{
 		switch (detect)
 		{
 		case 1:
-			PlayEva("EVA_CloakedUnitDetected", CloakEVASpeak, RulesExt::Global()->StealthSpeakDelay);
+			PlayEva("EVA_CloakedUnitDetected", HouseExt::CloakEVASpeak, RulesExt::Global()->StealthSpeakDelay);
 			break;
 		case 2:
-			PlayEva("EVA_SubterraneanUnitDetected", SubTerraneanEVASpeak, RulesExt::Global()->SubterraneanSpeakDelay);
+			PlayEva("EVA_SubterraneanUnitDetected", HouseExt::SubTerraneanEVASpeak, RulesExt::Global()->SubterraneanSpeakDelay);
 			break;
 		}
 
@@ -2304,111 +2307,112 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
-{
-	GET(TechnoClass*, pThis, ESI);
-	const auto pType = pThis->GetTechnoType();
-	const auto nCurWp = pThis->CurrentWeaponNumber;
-	const auto& nVec = GetGunnerName(pType);
+//DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	const auto pType = pThis->GetTechnoType();
+//	const auto nCurWp = pThis->CurrentWeaponNumber;
+//	const auto& nVec = GetGunnerName(pType);
+//
+//	const wchar_t* Text = nullptr;
+//	if (nCurWp < (int)nVec.size())
+//	{
+//		Text = nVec[nCurWp].Text;
+//	}
+//
+//	R->EAX(Text);
+//
+//	return Text != nullptr ? 0x746C78 : 0;
+//}
 
-	const wchar_t* Text = nullptr;
-	if (nCurWp < (int)nVec.size())
-	{
-		Text = nVec[nCurWp].Text;
-	}
-
-	R->EAX(Text);
-
-	return Text != nullptr ? 0x746C78 : 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
-{
-	GET(UnitClass*, pThis, ECX);
-	REF_STACK(int, Value, 0x1E0);
-
-	const auto pRules = RulesExt::Global();
-	double factor = 1.0;
-
-	if (pThis->IsUnderEMP())
-	{
-		factor = pRules->DeactivateDim_EMP;
-	}
-	else if (pThis->IsDeactivated())
-	{
-
-		// use the operator check because it is more
-		// efficient than the powered check.
-		if (Is_Operated(pThis ) || AresData::IsOperated(pThis))
-		{
-			factor = pRules->DeactivateDim_Powered;
-		}
-		else
-		{
-			
-		 factor = pRules->DeactivateDim_Operator;
-		}
-	}
-
-	Value = int(Value * factor);
-
-	return 0x73C15F;
-}
+//DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
+//{
+//	GET(UnitClass*, pThis, ECX);
+//	REF_STACK(int, Value, 0x1E0);
+//
+//	const auto pRules = RulesExt::Global();
+//	double factor = 1.0;
+//
+//	if (pThis->IsUnderEMP())
+//	{
+//		factor = pRules->DeactivateDim_EMP;
+//	}
+//	else if (pThis->IsDeactivated())
+//	{
+//
+//		// use the operator check because it is more
+//		// efficient than the powered check.
+//		if (Is_Operated(pThis ) || AresData::IsOperated(pThis))
+//		{
+//			factor = pRules->DeactivateDim_Powered;
+//		}
+//		else
+//		{
+//			
+//		 factor = pRules->DeactivateDim_Operator;
+//		}
+//	}
+//
+//	Value = int(Value * factor);
+//
+//	return 0x73C15F;
+//}
 
 // temporal per-slot
-DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
-{
-	GET(TemporalClass* const, pThis, ESI);
+//DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+//{
+//	GET(TemporalClass* const, pThis, ESI);
+//
+//	// it's not guaranteed that there is a target
+//	if (auto const pTarget = pThis->Target)
+//	{
+//		const auto nJammer = RadarJammerUptr(pTarget);
+//
+//		if (nJammer)
+//		{
+//			RadarJammerUptr(pTarget) = nullptr;
+//			AresData::JammerClassUnjamAll(nJammer);
+//			AresMemory::Delete(nJammer);		
+//		}
+//
+//		//AttachEffect handling under Temporal
+//		auto const AEDataPtr = &GetAEData(pTarget);
+//		AresData::UpdateAEData(AEDataPtr);
+//	}
+//
+//	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
+//
+//	R->EAX(pThis->WarpRemaining);
+//	return 0x71A88D;
+//}
 
-	// it's not guaranteed that there is a target
-	if (auto const pTarget = pThis->Target)
-	{
-		const auto nJammer = RadarJammerUptr(pTarget);
+//DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
+//{
+//	GET(TechnoClass* const, pThis, EDI);
+//
+//	// bugfix #874 B: Temporal warheads affect Warpable=no units
+//	// it has been checked: this is warpable. free captured and destroy spawned units.
+//	if (pThis->SpawnManager)
+//	{
+//		pThis->SpawnManager->KillNodes();
+//	}
+//
+//	if (pThis->CaptureManager)
+//	{
+//		pThis->CaptureManager->FreeAll();
+//	}
+//
+//	// prism forward
+//	if (Is_Building(pThis))
+//	{
+//		const auto pBld = static_cast<BuildingClass*>(pThis);
+//		const auto pRism = &PrimsForwardingPtr(pBld);
+//		AresData::CPrismRemoveFromNetwork(pRism, true);
+//	}
+//
+//	return 0;
+//}
 
-		if (nJammer)
-		{
-			RadarJammerUptr(pTarget) = nullptr;
-			AresData::JammerClassUnjamAll(nJammer);
-			AresMemory::Delete(nJammer);		
-		}
-
-		//AttachEffect handling under Temporal
-		auto const AEDataPtr = &GetAEData(pTarget);
-		AresData::UpdateAEData(AEDataPtr);
-	}
-
-	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-
-	R->EAX(pThis->WarpRemaining);
-	return 0x71A88D;
-}
-
-DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
-{
-	GET(TechnoClass* const, pThis, EDI);
-
-	// bugfix #874 B: Temporal warheads affect Warpable=no units
-	// it has been checked: this is warpable. free captured and destroy spawned units.
-	if (pThis->SpawnManager)
-	{
-		pThis->SpawnManager->KillNodes();
-	}
-
-	if (pThis->CaptureManager)
-	{
-		pThis->CaptureManager->FreeAll();
-	}
-
-	// prism forward
-	if (Is_Building(pThis))
-	{
-		const auto pBld = static_cast<BuildingClass*>(pThis);
-		const auto pRism = &PrimsForwardingPtr(pBld);
-		AresData::CPrismRemoveFromNetwork(pRism, true);
-	}
-
-	return 0;
-}
 //TODO : 
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)

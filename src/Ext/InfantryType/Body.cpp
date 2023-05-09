@@ -8,7 +8,7 @@ void InfantryTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 
 	INI_EX exINI(pINI);
 
-	if (parseFailAddr)
+	if (!pINI->GetSection(pID))
 		return;
 
 	this->C4Delay.Read(exINI, pID, "C4Delay");

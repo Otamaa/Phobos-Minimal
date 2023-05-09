@@ -523,7 +523,7 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
 	}
 
-	if (this->Converts && AresData::AresDllHmodule != nullptr)
+	if (this->Converts)
 		this->ApplyUpgrade(pHouse, pTarget);
 
 	if (this->AttachTag)

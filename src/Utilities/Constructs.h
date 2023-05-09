@@ -123,8 +123,17 @@ public:
 		return Savegame::WritePhobosStream(Stm, this->value);
 	}
 
+	~TheaterSpecificSHP() {
+		GameDelete<true, true>(value);
+		value = nullptr;
+	}
+
 private:
 	SHPStruct* value { nullptr };
+
+protected:
+	TheaterSpecificSHP(const TheaterSpecificSHP& other) = delete;
+	TheaterSpecificSHP& operator=(const TheaterSpecificSHP& other) = delete;
 };
 
 class CustomPalette {
@@ -140,6 +149,7 @@ public:
 
 	CustomPalette() = default;
 	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode) {};
+	~CustomPalette() = default;
 
 	ConvertClass* GetConvert() const {
 		return this->Convert.get();
@@ -165,6 +175,10 @@ public:
 private:
 	void Clear();
 	void CreateConvert();
+
+protected:
+	CustomPalette(const CustomPalette& other) = delete;
+	CustomPalette& operator=(const CustomPalette& other) = delete;
 };
 
 // vector of char* with builtin storage
@@ -226,6 +240,9 @@ public:
 			this->Tokenize();
 		}
 	}
+protected:
+	VectorNames(const VectorNames& other) = delete;
+	VectorNames& operator=(const VectorNames& other) = delete;
 };
 
 // a poor man's map with contiguous storage
@@ -396,6 +413,8 @@ public:
 		*this = pFilename;
 	}
 
+	~PhobosPCXFile() = default;
+
 	PhobosPCXFile& operator = (const char* pFilename) {
 		this->filename = pFilename;
 		auto& data = this->filename.data();
@@ -466,6 +485,10 @@ private:
 	bool resolve;
 	mutable bool checked;
 	mutable bool exists;
+
+protected:
+	PhobosPCXFile(const PhobosPCXFile& other) = delete;
+	PhobosPCXFile& operator=(const PhobosPCXFile& other) = delete;
 };
 
 // provides storage for a csf label with automatic lookup.
@@ -477,8 +500,11 @@ public:
 	explicit CSFText(const char* label) noexcept {
 		*this = label;
 	}
+	
+	~CSFText() noexcept = default;
 
 	CSFText& operator = (CSFText const& rhs) = default;
+	CSFText(const CSFText& other) = default;
 
 	const CSFText& operator = (const char* label) {
 		if (this->Label != label) {
@@ -518,8 +544,11 @@ public:
 		return true;
 	}
 
+public:
+
 	FixedString<0x20> Label;
 	const wchar_t* Text{ nullptr };
+
 };
 
 // a wrapper for an optional value
@@ -533,6 +562,11 @@ struct OptionalStruct {
 		this->HasValue = true;
 		return *this;
 	}
+
+	~OptionalStruct() noexcept { this->clear(); }
+
+	OptionalStruct(const OptionalStruct& other) = default;
+	OptionalStruct& operator=(const OptionalStruct& other) = default;
 
 	operator T& () noexcept {
 		return this->Value;

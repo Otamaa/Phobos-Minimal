@@ -60,7 +60,7 @@ public:
 
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords, HouseClass* pOwner) override { return false; } //yes, it return false directly, I agree with the below
-	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }; // ! this just returns NULL instead of creating the anim, fucking slackers
+	virtual ObjectClass* CreateObject(HouseClass* owner) override;
 
 	//AnimTypeClass
 	virtual SHPStruct* LoadAnimImage() JMP_THIS(0x428C30);

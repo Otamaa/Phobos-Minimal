@@ -24,9 +24,8 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (parseFailAddr) {
+	if (!pINI->GetSection(pSection))
 		return;
-	}
 
 	INI_EX exINI(pINI);
 	this->Sidebar_GDIPositions.Read(exINI, pSection, "Sidebar.GDIPositions");

@@ -126,6 +126,9 @@ public:
 		Data = std::make_unique<DamageSelfType>(DData);
 	}
 
+	DamageSelfState(const DamageSelfState& other) = default;
+	DamageSelfState& operator=(const DamageSelfState& other) = default;
+
 	static void OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData);
 
 	int GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArmor, WarheadTypeClass* pWH);

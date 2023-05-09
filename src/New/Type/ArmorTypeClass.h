@@ -30,7 +30,7 @@ public:
 	static bool IsDefault(const char* pName);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 	static void LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
-	static void LoadForWarhead_NoParse(CCINIClass* pINI, WarheadTypeClass* pWH);
+	static void LoadForWarhead_NoParse(WarheadTypeClass* pWH);
 	static void PrepareForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
 
 	void EvaluateDefault();

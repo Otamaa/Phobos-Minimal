@@ -118,6 +118,12 @@ public:
 
 		ValueableIdx<CursorTypeClass> Cursor_Attack;
 		ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange;
+
+		Nullable<ColorStruct> Bolt_Color1;
+		Nullable<ColorStruct> Bolt_Color2;
+		Nullable<ColorStruct> Bolt_Color3;
+		Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys;
+
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
 			, DiskLaser_Radius { 38.2 }
 			, DiskLaser_Circumference { 240 }
@@ -194,7 +200,10 @@ public:
 			, ApplyDamage { }
 			, Cursor_Attack { (int)MouseCursorType::Attack }
 			, Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange }
-		
+			, Bolt_Color1 { }
+			, Bolt_Color2 { }
+			, Bolt_Color3 { }
+			, Bolt_ParticleSys { }
 		{ }
 
 		virtual ~ExtData() override  = default;

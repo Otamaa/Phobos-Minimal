@@ -42,6 +42,10 @@ struct LauchSWData final
 	{ }
 
 	virtual ~LauchSWData() = default;
+
+	LauchSWData(const LauchSWData& other) = default;
+	LauchSWData& operator=(const LauchSWData& other) = default;
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 

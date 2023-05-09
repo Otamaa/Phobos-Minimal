@@ -70,13 +70,13 @@ DEFINE_HOOK(0x521B14, InfantryClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
-{
-	GET(InfantryClass* const, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFS(0x8, -0x8));
+// DEFINE_HOOK(0x51AA23, InfantryClass_Detach, 0x6)
+// {
+// 	GET(InfantryClass* const, pThis, ESI);
+// 	GET(void*, target, EDI);
+// 	GET_STACK(bool, all, STACK_OFFS(0x8, -0x8));
 
-	InfantryExt::ExtMap.InvalidatePointerFor(pThis, target, all);
+// 	InfantryExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
-	return pThis->Type == target ? 0x51AA2B : 0x51AA35;
-}
+// 	return pThis->Type == target ? 0x51AA2B : 0x51AA35;
+// }

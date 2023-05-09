@@ -25,6 +25,9 @@ struct TrailData
 
 	virtual ~TrailData() = default;
 
+	TrailData(const TrailData& other) = default;
+	TrailData& operator=(const TrailData& other) = default;
+
 	inline bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		//Debug::Log("Processing Element From TrailData ! \n");
@@ -78,6 +81,9 @@ struct TrailsReader
 	explicit TrailsReader() : CurrentData {} { CurrentData.reserve(2); };
 
 	virtual ~TrailsReader() = default;
+
+	TrailsReader(const TrailsReader& other) = default;
+	TrailsReader& operator=(const TrailsReader& other) = default;
 
 	void Read(INI_EX& nParser, const char* pSection, bool IsForTechno)
 	{

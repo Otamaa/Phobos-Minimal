@@ -732,3 +732,8 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 
 	return 0x0;
 }
+
+//DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
+//{
+//	return 0x0;
+//}

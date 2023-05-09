@@ -354,7 +354,7 @@ public:
 		Nullable<SHPStruct*> HealthBarSHP;
 		Nullable<SHPStruct*> HealthBarSHP_Selected;
 		Valueable<int> HealthBarSHPBracketOffset;
-		Valueable<CoordStruct> HealthBarSHP_HealthFrame;
+		Valueable<Point3D> HealthBarSHP_HealthFrame;
 		Valueable<PaletteManager*> HealthBarSHP_Palette; //CustomPalette::PaletteMode::Temperate
 
 		Valueable<Point2D> HealthBarSHP_PointOffset;

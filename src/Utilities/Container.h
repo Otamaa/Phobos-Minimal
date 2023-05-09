@@ -245,15 +245,15 @@ public:
 				{
 					if constexpr (Initable<T>)
 						ptr->Initialize();
-
+					
 					ptr->Initialized = InitState::Inited;
-					ptr->LoadFromINIFile(pINI, parseFailAddr);
+					goto ruled;
 				}
 
 				const InitState nInitStateNegOne = InitState((int)InitStateData - 1);
 
-				if (nInitStateNegOne == InitState::Blank || nInitStateNegOne == InitState::Constanted)
-				{
+				if (nInitStateNegOne == InitState::Blank || nInitStateNegOne == InitState::Constanted) {
+					ruled:
 					ptr->LoadFromINIFile(pINI, parseFailAddr);
 					ptr->Initialized = InitState::Ruled;
 				}
@@ -265,6 +265,9 @@ public:
 	{
 		if constexpr (ThisPointerInvalidationIgnorAble<T> || ThisPointerInvalidationSubscribable<T>){
 			extension_type_ptr Extptr = this->TryFind(key);
+
+			if (!Extptr || !bRemoved) // newer ares check for 2nd args 
+				return;
 
 			if constexpr (ThisPointerInvalidationIgnorAble<T> && ThisPointerInvalidationSubscribable<T>){
 				if (!Extptr->InvalidateIgnorable(ptr))

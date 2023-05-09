@@ -239,6 +239,7 @@ struct GameStrings
 	GAMEMD_STR(EVA_BuildingInfRadarSabotaged, 0x8191C4u);
 	GAMEMD_STR(EVA_PowerSabotaged, 0x8191B0u);
 	GAMEMD_STR(EVA_EnemyBasePoweredDown, 0x81917Cu);
+
 	//...
 
 	// Messages

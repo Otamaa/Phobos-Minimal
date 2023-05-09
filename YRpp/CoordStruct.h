@@ -62,12 +62,16 @@ public:
 	//	return std::make_tuple(X, Y, Z);
 	//}
 
-	CellStruct TocellStruct()
+	CellStruct FORCEINLINE TocellStruct()
 	{
 		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };
 	}
 
-	__forceinline operator bool() const {
+	FORCEINLINE operator bool() const {
+		return X || Y || Z;
+	}
+
+	bool FORCEINLINE IsValid() const {
 		return X || Y || Z;
 	}
 

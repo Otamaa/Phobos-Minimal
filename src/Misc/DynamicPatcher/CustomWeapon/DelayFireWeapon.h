@@ -44,6 +44,9 @@ struct DelayFireWeapon
 
 	~DelayFireWeapon() = default;
 
+	DelayFireWeapon(const DelayFireWeapon& other) = default;
+	DelayFireWeapon& operator=(const DelayFireWeapon& other) = default;
+
 	bool TimesUp() const;
 	void ReduceOnce();
 	bool NotDone() const;
@@ -54,6 +57,7 @@ struct DelayFireWeapon
 private:
 	template <typename T>
 	bool Serialize(T& Stm);
+
 };
 
 template <>

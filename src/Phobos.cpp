@@ -505,6 +505,7 @@ bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* p
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
 	{
@@ -781,6 +782,7 @@ DEFINE_HOOK(0x6BE131, Game_ExeTerminate, 0x5)
 DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 	Phobos::ExeRun();
+	Patch::PrintAllModuleAndBaseAddr();
 	return 0;
 }
 

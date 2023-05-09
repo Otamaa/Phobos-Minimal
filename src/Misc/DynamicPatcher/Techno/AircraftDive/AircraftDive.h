@@ -32,6 +32,9 @@ public:
 
 	~AircraftDive() = default;
 
+	AircraftDive(const AircraftDive& other) = default;
+	AircraftDive& operator=(const AircraftDive& other) = default;
+
 	int Diving()
 	{
 		if (--Delay < 0)

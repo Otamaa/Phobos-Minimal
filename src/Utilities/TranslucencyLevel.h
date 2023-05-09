@@ -14,6 +14,10 @@ public:
 		*this = nInt;
 	}
 
+	TranslucencyLevel(const TranslucencyLevel& other) = default;
+	TranslucencyLevel& operator=(const TranslucencyLevel& other) = default;
+	~TranslucencyLevel() = default;
+
 	TranslucencyLevel& operator = (int nInt)
 	{
 		switch (nInt)

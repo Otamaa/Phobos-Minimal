@@ -320,18 +320,15 @@ DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
 	enum { SkipVoxVocPlay = 0x4D9FB5 };
 	GET(FootClass*, pThis, ESI);
 
-	{
-		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-
-		if(pTypeExt->EVA_Sold.isset()) {
-			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
-		} else {
-			VoxClass::Play(GameStrings::EVA_UnitSold());
-		}
-
-		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-		VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+	if(pTypeExt->EVA_Sold.isset()) {
+		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
+	} else {
+		VoxClass::Play(GameStrings::EVA_UnitSold());
 	}
+
+	//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
+	VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
 
 	return SkipVoxVocPlay;
 }
@@ -343,7 +340,7 @@ DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	// Currently only used with infantry, so a performance saving measure.
-	if (auto pInf = specific_cast<InfantryClass*>(pThis))
+	if (const auto pInf = specific_cast<InfantryClass*>(pThis))
 	{
 		const auto pExt = InfantryExt::ExtMap.Find(pInf);
 		if (pExt->ForceFullRearmDelay)
@@ -505,7 +502,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 
 		if (pThis->GetHeight() < 10)
 		{
-			if(pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex) 
+			if(pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex)
 				&& pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex])
 			{
 				AnimClass* Anim = GameCreate<AnimClass>(pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex],

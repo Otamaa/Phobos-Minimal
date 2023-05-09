@@ -100,7 +100,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (!parseFailAddr)
+	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
 

@@ -128,4 +128,7 @@ private:
 	double LastTechnoHealthRatio;
 
 	ShieldTypeClass* Type;
+private:
+	ShieldClass(const ShieldClass& other) = delete;
+	ShieldClass& operator=(const ShieldClass& other) = delete;
 };

@@ -1275,3 +1275,13 @@ void TechnoClass::SpillTiberium(int& value, CellClass* pCenter, Point2D const& n
 		}
 	}
 }
+
+ObjectClass* AnimTypeClass::CreateObject(HouseClass* owner)
+{
+	if (auto pAnim = GameCreate<AnimClass>(this, CoordStruct::Empty)) {
+		pAnim->SetHouse(owner);
+		return (ObjectClass*)pAnim;
+	}
+
+	return nullptr;
+}; // ! this just returns NULL instead of creating the anim, fucking slackers

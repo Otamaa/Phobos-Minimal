@@ -11,6 +11,7 @@
 
 class TechnoClass;
 class TechnoTypeClass;
+class BuildingLightClass;
 
 uintptr_t AresData::PhobosBaseAddress = 0x0;
 uintptr_t AresData::AresBaseAddress = 0x0;
@@ -85,8 +86,8 @@ void AresData::UnInit()
 	if (!AresBaseAddress)
 		return;
 
-	if (CanUseAres)
-		FreeLibrary(AresDllHmodule);
+	//if (CanUseAres)
+	//	FreeLibrary(AresDllHmodule);
 }
 
 bool AresData::ConvertTypeTo(TechnoClass* pFoot, TechnoTypeClass* pConvertTo)

@@ -4,7 +4,7 @@ void ScriptTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 {
 	const char* pID = this->Get()->ID;
 
-	if (parseFailAddr)
+	if (!pINI->GetSection(pID))
 		return;
 
 	INI_EX exINI(pINI);

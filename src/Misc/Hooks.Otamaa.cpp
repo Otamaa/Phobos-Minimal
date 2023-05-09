@@ -706,7 +706,6 @@ DEFINE_HOOK(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 	if (pTypeExt->CommandLine_Attack_Color.isset())
 	{
-
 		GET(CoordStruct*, pMovingDestCoord, EAX);
 		GET(int, nFLH_X, EBP);
 		GET(int, nFLH_Y, EBX);
@@ -5605,10 +5604,8 @@ DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
 
 	GET(BuildingClass const*, pBuilding, ECX);
 
-	if (!pBuilding->Type->SpySat)
-	{
-		for (const auto& pUpGrade : pBuilding->Upgrades)
-		{
+	if (!pBuilding->Type->SpySat) {
+		for (const auto& pUpGrade : pBuilding->Upgrades) {
 			if (pUpGrade && pUpGrade->SpySat)
 				return Continue;
 		}
@@ -5617,4 +5614,49 @@ DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
 	}
 
 	return Continue;
+}
+
+// TODO: ifv / prism turret, multibody shadow.
+DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+{
+
+	GET(FootClass*, pThis, ESI);
+	const auto pType = pThis->GetTechnoType();
+	const auto tur = pThis->CurrentTurretNumber != -1 ? 
+		AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber) : 
+		&pType->TurretVoxel;
+
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (tur->VXL && tur->HVA)
+	{
+		GET_STACK(Point2D, shadow_point, STACK_OFFSET(0x18, 0x28));
+		GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
+		GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
+		GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
+		LEA_STACK(Point2D*, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
+		GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
+
+		Matrix3D mtx;
+		mtx.MakeIdentity();
+		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<65536>()));
+		const auto offset = pExt->TurretOffset.GetEx();
+		float x = static_cast<float>(offset->X * 0.125);
+		float y = static_cast<float>(offset->Y * 0.125);
+		float z = static_cast<float>(offset->Z * 0.125);
+		mtx.Translate(x, y, z);
+		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix, &mtx);
+
+		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
+
+		const auto bar = pThis->CurrentTurretNumber != -1 ? 
+			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber) : &pType->BarrelVoxel;
+
+		if (bar->VXL && bar->HVA){
+
+			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
+		}
+	}
+
+	return 0;
 }

@@ -16,6 +16,10 @@ public :
 		: Distance { nDistance }, X {x} , Y {y}
 	{ }
 
+	MapPathCellElement(const MapPathCellElement& other) = default;
+	MapPathCellElement& operator=(const MapPathCellElement& other) = default;
+	~MapPathCellElement() = default;
+
 	//need to define a == operator so it can be used in array classes
 	bool operator==(const MapPathCellElement& other) const {
 		return (X == other.X && Y == other.Y);

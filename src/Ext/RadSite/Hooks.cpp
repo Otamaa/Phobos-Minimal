@@ -169,19 +169,24 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 
 	AbstractClass* pTarget = nullptr; //default WWP nullptr
 
-	auto const pWeapon = pThis->GetDeployWeapon()->WeaponType;
+	const auto pWeaponstr = pThis->GetDeployWeapon();
 
-	if (pWeapon
-		&& pWeapon->DecloakToFire
-		&& (pThis->CloakState == CloakState::Cloaked || pThis->CloakState == CloakState::Cloaking))
-	{
-		// FYI this are hack to immediately stop the Cloaking
-		// since this function is always failing to decloak and set target when cell is occupied
-		// something is wrong somewhere  # Otamaa
-		pThis->CloakDelayTimer.Start(
-			static_cast<int>(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));
+	if(pWeaponstr) {
 
-		pTarget = pThis->GetCell();
+		const auto pWeapon = pWeaponstr->WeaponType;
+
+		if (pWeapon
+			&& pWeapon->DecloakToFire
+			&& (pThis->CloakState == CloakState::Cloaked || pThis->CloakState == CloakState::Cloaking))
+		{
+			// FYI this are hack to immediately stop the Cloaking
+			// since this function is always failing to decloak and set target when cell is occupied
+			// something is wrong somewhere  # Otamaa
+			pThis->CloakDelayTimer.Start(
+				static_cast<int>(pThis->Type->Sequence->GetSequence(DoType::DeployedFire).CountFrames * 900.0));
+
+			pTarget = pThis->GetCell();
+		}
 	}
 
 	pThis->SetTarget(pTarget); //Here we go
@@ -279,7 +284,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 
 	GET(FootClass* const, pThis, ESI);
 
-	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || !pThis->IsCrashing)
+	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
 		return CheckOtherState;
 
 	if (pThis->IsInAir())

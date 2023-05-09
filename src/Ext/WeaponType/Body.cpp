@@ -20,7 +20,7 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
-	if (parseFailAddr)
+	if (!pINI->GetSection(pSection))
 		return;
 
 	INI_EX exINI(pINI);
@@ -142,6 +142,11 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 	this->Cursor_Attack.Read(exINI, pSection, "Cursor.Attack");
 	this->Cursor_AttackOutOfRange.Read(exINI, pSection, "Cursor.AttackOutOfRange");
+
+	this->Bolt_Color1.Read(exINI, pSection, "Bolt.Color1");
+	this->Bolt_Color2.Read(exINI, pSection, "Bolt.Color2");
+	this->Bolt_Color3.Read(exINI, pSection, "Bolt.Color3");
+	this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
 }
 
 template <typename T>
@@ -223,6 +228,11 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->ApplyDamage)
 		.Process(this->Cursor_Attack)
 		.Process(this->Cursor_AttackOutOfRange)
+
+		.Process(this->Bolt_Color1)
+		.Process(this->Bolt_Color2)
+		.Process(this->Bolt_Color3)
+		.Process(this->Bolt_ParticleSys)
 		;
 
 #ifdef COMPILE_PORTED_DP_FEATURES

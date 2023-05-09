@@ -21,6 +21,9 @@ public:
 	{ }
 
 	~ShapeTextPrintData() = default;
+
+	ShapeTextPrintData(const ShapeTextPrintData& other) = default;
+	ShapeTextPrintData& operator=(const ShapeTextPrintData& other) = default;
 };
 
 class ShapeTextPrinter

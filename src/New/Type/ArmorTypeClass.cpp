@@ -167,10 +167,6 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 				}
 
 			}
-			else if (!pArmor->IsVanillaArmor)
-			{ //evaluate armor with not valid default index
-				pWHExt->Verses[i] = pArmor->DefaultVersesValue;
-			}
 		}
 
 		pWHExt->Verses[i].Flags.ForceFire = pINI->ReadBool(section, pArmor->FF_Tag.data(), pWHExt->Verses[i].Flags.ForceFire);
@@ -179,12 +175,10 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	}
 }
 
-void ArmorTypeClass::LoadForWarhead_NoParse(CCINIClass* pINI, WarheadTypeClass* pWH)
+void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 {
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 	const char* section = pWH->get_ID();
-
-	INI_EX exINI(pINI);
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{

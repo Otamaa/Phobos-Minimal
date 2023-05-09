@@ -6,11 +6,11 @@ void ParticleTypeExt::ExtData::Initialize() {
 
 void ParticleTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (parseFailAddr)
-		return;
-
 	auto pThis = this->Get();
 	const char* pID = this->Get()->ID;
+
+	if (!pINI->GetSection(pID))
+		return;
 
 	INI_EX exINI(pINI);
 

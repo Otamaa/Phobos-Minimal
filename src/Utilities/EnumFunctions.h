@@ -70,9 +70,7 @@ class HouseClass;
 class CellClass;
 class EnumFunctions final
 {
-	EnumFunctions() = delete;
-	EnumFunctions(const EnumFunctions&) = delete;
-	EnumFunctions(EnumFunctions&&) = delete;
+	NO_CONSTRUCT_CLASS(EnumFunctions)
 public:
 
 	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;

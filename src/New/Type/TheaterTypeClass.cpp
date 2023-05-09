@@ -584,8 +584,13 @@ DEFINE_HOOK(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
 
 DEFINE_HOOK(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 {
+	enum { setArticOccupy = 0x71C08D , setTemperatOccupy = 0x71C07F };
 	GET(ScenarioClass*, pScen, EAX);
-	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? 0x71C08D : 0x71C07F;
+	//Debug::Log("Clearing OccupyBit for [%d] \n", (int)pScen->Theater);
+	if ((int)pScen->Theater == -1)
+		return setTemperatOccupy;
+
+	return TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater)->IsArctic ? setArticOccupy : setTemperatOccupy;
 }
 
 DEFINE_HOOK(0x71C076, TerrainClass_SetOccupyBit_Theater, 0x7)
@@ -635,11 +640,13 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strcat(pNameProcessed,"PAL");
 	CRT::strupr(pNameProcessed);
 
-	Debug::Log("Loading [%s] as [%s] !\n", pOriginalName, pNameProcessed);
+	const auto pFile =  MixFileClass::Retrieve(pNameProcessed, false);
+	const auto nRest = !pFile ? "Failed to" : "Successfully";
+	Debug::Log("%s load [%s] as [%s] !\n", nRest , pOriginalName, pNameProcessed);
 	// cant use PaletteManager atm , because this will be modified after load done 
 	// so if PaletteManager used , that mean the color enries will get modified 
 	// for second time !
-	R->EAX(MixFileClass::Retrieve(pNameProcessed , false));
+	R->EAX(pFile);
 	return 0x6276A4;
 }
 

@@ -196,7 +196,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
 
-	if (!parseFailAddr)
+	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
@@ -704,6 +704,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
 
 		this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
+
 		this->NoManualFire.Read(exINI, pSection, "NoManualFire");
 		this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
 		this->NoManualEject.Read(exINI, pSection, "NoManualEject");

@@ -735,7 +735,6 @@ DEFINE_OVERRIDE_HOOK(0x746C55, UnitClass_GetUIName_Space, 6)
 DEFINE_OVERRIDE_HOOK(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 {
 	GET(UnitClass const* const, pThis, ESI);
-
 	return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 
@@ -1063,17 +1062,22 @@ DEFINE_OVERRIDE_HOOK(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_HOOK(0x739956, UnitClass_Deploy_TransferStatusses, 6)
+DEFINE_OVERRIDE_HOOK_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mi_Selling_SyncShieldStatus
+DEFINE_OVERRIDE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_Deploy_SyncShieldStatus
 {
-	GET(UnitClass*, pUnit, EBP);
-	GET(BuildingClass*, pStructure, EBX);
+	GET(TechnoClass*, pFrom, EBP);
+	GET(TechnoClass*, pTo, EBX);
 
-	AresData::TechnoTransferAffects(pUnit, pStructure);
+	AresData::TechnoTransferAffects(pFrom, pTo);
+	TechnoExt::TransferMindControlOnDeploy(pFrom, pTo);
+	ShieldClass::SyncShieldToAnother(pFrom, pTo);
+	TechnoExt::SyncIronCurtainStatus(pFrom, pTo);
 
-	if (pUnit->AttachedTag)
-		pStructure->AttachTrigger(pUnit->AttachedTag);
+	if (pFrom->AttachedTag)
+		pTo->AttachTrigger(pFrom->AttachedTag);
 
-	TechnoExt::TransferMindControlOnDeploy(pUnit, pStructure);
+	if(R->Origin() == 0x44A03C)
+		pTo->QueueMission(Mission::Hunt, true);
 
 	return 0;
 }

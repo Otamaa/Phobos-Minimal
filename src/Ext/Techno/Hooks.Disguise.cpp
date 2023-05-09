@@ -8,7 +8,7 @@ DEFINE_HOOK(0x522790, InfantryClass_SetDisguise_PermaDisguise_DefaultDisguise, 0
 	GET(InfantryTypeClass*, pType, EAX);
 	GET(InfantryClass*, pThis, ECX);
 
-	if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
+	if (const auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 		pThis->Disguise = pDisguiseType;
 		return 0x5227BF;// EC / D7 / E4
 	}
@@ -32,7 +32,7 @@ DEFINE_HOOK(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 	}
 
 	if (Is_Infantry(pThis)) {
-		if (auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
+		if (const auto pDisguiseType = TechnoExt::SetInfDefaultDisguise(pThis, pType)) {
 
 			pThis->Disguise = pDisguiseType;
 			return 0x6F424B;

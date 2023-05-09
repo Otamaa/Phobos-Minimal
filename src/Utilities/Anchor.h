@@ -15,6 +15,10 @@ public:
 		: Horizontal { hPos }, Vertical { vPos }
 	{ }
 
+	Anchor(const Anchor& other) = default;
+	Anchor& operator=(const Anchor& other) = default;
+	~Anchor() = default;
+
 	// Maps enum values to offset relative to width
 	double GetRelativeOffsetHorizontal() const;
 	// Maps enum values to offset relative to height

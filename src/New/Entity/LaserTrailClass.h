@@ -50,6 +50,9 @@ public:
 
 	virtual ~LaserTrailClass() = default;
 
+	LaserTrailClass(const LaserTrailClass& other) = default;
+	LaserTrailClass& operator=(const LaserTrailClass& other) = default;
+
 	bool Update(CoordStruct const& location);
 	void FixZLoc(bool forWho);
 

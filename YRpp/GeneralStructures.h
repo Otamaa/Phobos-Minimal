@@ -23,6 +23,10 @@ class Fixed;
 struct SWRange {
 	SWRange(float widthOrRange = -1.0f, int height = -1) : WidthOrRange(widthOrRange), Height(height) {}
 	SWRange(int widthOrRange, int height = -1) : WidthOrRange(static_cast<float>(widthOrRange)), Height(height) {}
+	~SWRange() = default;
+
+	SWRange(const SWRange& other) = default;
+	SWRange& operator=(const SWRange& other) = default;
 
 	float range() const {
 		return this->WidthOrRange;
@@ -74,6 +78,14 @@ public:
 
 	constexpr TimerClass() = default;
 	TimerClass(int duration) { this->Start(duration); }
+	~TimerClass() = default;
+
+	TimerClass(const TimerClass& other) {
+		this->StartTime = other.StartTime;
+		this->TimeLeft = other.TimeLeft;
+	}
+
+	TimerClass& operator=(const TimerClass& other) = default;
 
 	void Start(int duration) {
 		this->StartTime = this->CurrentTime;

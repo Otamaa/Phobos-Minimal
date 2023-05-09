@@ -24,7 +24,7 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 
 		for(; !simulateBurstQueue.empty();){
 
-			SimulateBurst burst = simulateBurstQueue[0];
+			SimulateBurst burst = *simulateBurstQueue.begin();
 			simulateBurstQueue.erase(simulateBurstQueue.begin());
 
 			if (burst.Index < burst.Burst)
@@ -47,7 +47,7 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 					}
 				}
 
-				simulateBurstQueue.push_back(burst);
+				simulateBurstQueue.push_back(std::move(burst));
 			}
 		}
 	}
@@ -65,9 +65,9 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 
 	if (pShooter && pWeapon && (!pAttacker->Transporter || pWeapon->FireInTransport))
 	{
-		if (auto const typeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
+		if (const auto typeExt = WeaponTypeExt::ExtMap.Find(pWeapon))
 		{
-			AttachFireData& fireData = typeExt->MyAttachFireDatas;
+			const AttachFireData& fireData = typeExt->MyAttachFireDatas;
 			CoordStruct fireFLH = flh;
 
 			if (TechnoClass* pTransporter = pAttacker->Transporter)
@@ -130,7 +130,7 @@ void CustomWeaponManager::SimulateBurstFire(TechnoClass* pShooter, TechnoClass* 
 {
 	if (burst.FireData.SimulateBurstMode == 3)
 	{
-		SimulateBurst b2 = burst.Clone();
+		SimulateBurst b2 = burst;
 		b2.FlipY *= -1;
 		SimulateBurstFireOnce(pShooter, pAttacker, pTarget, pWeapon, b2);
 	}
@@ -152,14 +152,14 @@ void GetBulletVelocity(VelocityClass& nVel, CoordStruct& sourcePos, CoordStruct&
 	}
 }
 
-void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, SimulateBurst& burst)
+void CustomWeaponManager::SimulateBurstFireOnce(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon,SimulateBurst& burst)
 {
 	// Pointer<TechnoClass> pShooter = WhoIsShooter(pShooter);
 	CoordStruct sourcePos = Helpers_DP::GetFLHAbsoluteCoords(pShooter, burst.FLH, true, burst.FlipY);
 	CoordStruct targetPos = pTarget->GetCoords();
 	VelocityClass bulletVelocity {};
 	GetBulletVelocity(bulletVelocity, sourcePos, targetPos, pShooter, burst.Burst, burst.FireData.RadialAngle, burst.FireData.RadialFire , burst.Index);
-	auto pBullet = Helpers_DP::FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
+	const auto pBullet = Helpers_DP::FireBulletTo(pAttacker, pTarget, pWeapon, sourcePos, targetPos, bulletVelocity);
 
 	if (burst.Callback && pBullet) {
 		burst.Callback(burst.Index, burst.Burst, pBullet, pTarget);
@@ -175,13 +175,10 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 
 void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if(!simulateBurstQueue.empty()){
-		for (size_t pos = 0; pos < simulateBurstQueue.size(); pos++) {
-			auto const& sBData = simulateBurstQueue[pos];
-			if (sBData.Target == ptr || sBData.Shooter == ptr)
-			{
-				simulateBurstQueue.erase(simulateBurstQueue.begin() + pos); //because it queue , we need to remove it instead
-			}
+	for (size_t i = 0; i < simulateBurstQueue.size(); ++i) {
+		auto& nQueue = simulateBurstQueue[i];
+		if (nQueue.Target == ptr || nQueue.Shooter == ptr) {
+			simulateBurstQueue.erase(simulateBurstQueue.begin() + i); //because it queue , we need to remove it instead
 		}
 	}
 }
@@ -189,7 +186,7 @@ void  CustomWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
 void FireWeaponManager::Clear()
 {
 	DelayFires.clear();
-	DelayFires.reserve(100);
+	//DelayFires.reserve(100);
 }
 
 void FireWeaponManager::FireWeaponManager_Clear()
@@ -214,16 +211,11 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 }
 
 void FireWeaponManager::InvalidatePointer(void* ptr, bool bRemoved)
-{
-	if(!DelayFires.empty()) {	
-		for (size_t pos = 0; pos < DelayFires.size(); pos++) {
-			if (DelayFires[pos].Target == ptr) {
-				//Debug::Log("Found Invalid Target from FireWeaponManager ! , Cleaning Up ! \n");
-				DelayFires.erase(DelayFires.begin() + pos); //because it queue , we need to remove it instead
-			}
-		}
+{	
+	for (auto nPos = DelayFires.begin(); nPos != DelayFires.end(); ++nPos) {
+		if(nPos->Target == ptr)
+			DelayFires.erase(nPos); //because it queue , we need to remove it instead
 	}
-
 
 	CWeaponManager.InvalidatePointer(ptr, bRemoved);
 }
@@ -232,7 +224,7 @@ void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 {
 	for (; !DelayFires.empty();)
 	{
-		auto delayFire = std::move(DelayFires[0]);
+		DelayFireWeapon delayFire = *DelayFires.begin();
 		DelayFires.erase(DelayFires.begin());
 
 		if (delayFire.TimesUp())
@@ -249,7 +241,7 @@ void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 		}
 
 		if (delayFire.NotDone()) {
-			DelayFires.emplace_back(std::move(delayFire));
+			DelayFires.push_back(std::move(delayFire));
 		}
 	}
 

@@ -59,6 +59,9 @@ public:
 
 	~UniversalTrail() = default;
 
+	UniversalTrail(const UniversalTrail& other) = default;
+	UniversalTrail& operator=(const UniversalTrail& other) = default;
+
 	void ClearLastLocation() {
 		LastLocation.clear();
 	}

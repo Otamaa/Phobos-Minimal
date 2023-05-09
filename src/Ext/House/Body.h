@@ -21,6 +21,9 @@ public:
 	static int LastHarvesterBalance;
 	static int LastSlaveBalance;
 
+	static CDTimerClass CloakEVASpeak;
+	static CDTimerClass SubTerraneanEVASpeak;
+
 	class ExtData final : public Extension<HouseClass>
 	{
 	public:
@@ -119,6 +122,12 @@ public:
 
 		static bool LoadGlobals(PhobosStreamReader& Stm);
 		static bool SaveGlobals(PhobosStreamWriter& Stm);
+		void Clear()
+		{
+			CloakEVASpeak.Stop();
+			SubTerraneanEVASpeak.Stop();
+		}
+
 	};
 
 	static ExtContainer ExtMap;

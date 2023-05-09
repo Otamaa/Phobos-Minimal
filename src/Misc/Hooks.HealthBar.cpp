@@ -266,7 +266,7 @@ namespace DrawHeathData
 		const int nLength = (bIsInfantry ? 8 : 17);
 		const int nYDelta = nBracketDelta - (bIsInfantry ? 24 : 25);
 		const int nDraw = pThis->IsAlive ? std::clamp((int)(std::round(pThis->GetHealthPercentage() * nLength)), 1, nLength) : 0;
-		CoordStruct const nHealthFrame = pTypeExt->HealthBarSHP_HealthFrame.Get();
+		Point3D const nHealthFrame = pTypeExt->HealthBarSHP_HealthFrame.Get();
 		int nHealthFrameResult = nHealthFrame.Y; //Green
 
 		if (pThis->IsYellowHP())
@@ -398,8 +398,8 @@ namespace DrawHeathData
 
 	void DrawIronTemporalEraseDelayBarAndNumber(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound)
 	{
-		auto icur = pThis->TemporalTargetingMe->WarpRemaining;
-		auto imax = pThis->TemporalTargetingMe->GetWarpPerStep();
+		//auto icur = pThis->TemporalTargetingMe->WarpRemaining;
+		//auto imax = pThis->TemporalTargetingMe->GetWarpPerStep();
 		//draw it here ? 0x71A88D
 	}
 

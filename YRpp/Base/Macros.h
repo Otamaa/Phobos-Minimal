@@ -223,4 +223,5 @@
 #define NO_CONSTRUCT_CLASS(classname)\
 classname() = delete;\
 classname(const classname&) = delete;\
-classname(classname&&) = delete;
+classname(classname&&) = delete; \
+classname& operator=(const classname& other) = delete; 

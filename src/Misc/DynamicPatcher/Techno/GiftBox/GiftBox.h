@@ -29,6 +29,9 @@ public:
 
 	~GiftBox() = default;
 
+	GiftBox(const GiftBox& other) = default;
+	GiftBox& operator=(const GiftBox& other) = default;
+
 	bool CanOpen()
 	{
 		return !IsOpen && Timeup();

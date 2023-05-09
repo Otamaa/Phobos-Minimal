@@ -444,7 +444,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		}
 	}
 
-	if (!parseFailAddr)
+	if (pINI->GetSection(pSection))
 	{
 		INI_EX exINI(pINI);
 

@@ -5,6 +5,9 @@
 #include <Phobos.h>
 
 #include <tlhelp32.h>
+#include <Psapi.h>
+
+std::vector<std::pair<std::string, uintptr_t>> Patch::LoadedModules;
 
 int GetSection(const char* sectionName, void** pVirtualAddress)
 {
@@ -136,4 +139,33 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 	}
 	CloseHandle(hSnapshot);
 	return dwParentProcessId;
-};
+}
+
+void Patch::PrintAllModuleAndBaseAddr()
+{	// Get a handle to the current process
+	HANDLE hProcess = GetCurrentProcess();
+
+	// Enumerate the loaded modules in the process
+	HMODULE hModules[1024];
+	DWORD cbNeeded;
+	if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
+	{
+		const int moduleCount = static_cast<int>(cbNeeded / sizeof(HMODULE));
+		for (int i = 0; i < moduleCount; ++i)
+		{
+			// Get the base name of the module
+			CHAR moduleName[MAX_PATH] = { 0 };
+			if (GetModuleBaseNameA(hProcess, hModules[i], moduleName, sizeof(moduleName)))
+			{
+				// Get information about the module
+				MODULEINFO info = { 0 };
+				if (GetModuleInformation(hProcess, hModules[i], &info, sizeof(info)))
+				{
+					Patch::LoadedModules.emplace_back(moduleName , (uintptr_t)info.lpBaseOfDll);
+					// Print the module's name and base address using Debug::Log
+					Debug::LogDeferred("%s: Base address = %p\n", moduleName, info.lpBaseOfDll);
+				}
+			}
+		}
+	}
+}

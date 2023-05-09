@@ -29,13 +29,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
-	if (GetVtableAddr(args.WH) != WarheadTypeClass::vtable)
-		return 0x0;
-
-	auto const pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
-
-	//if (pWHExt->IgnoreDefense)
-	//	args->IgnoreDefenses = true;
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 
 	pWHExt->ApplyDamageMult(pThis, &args);
 
@@ -126,17 +120,6 @@ DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 	if (const auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield())
 		pShieldData->OnRemove();
 
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //BuildingClass_Mi_Selling_SyncShieldStatus
-DEFINE_HOOK(0x739956, DeploysInto_UndeploysInto_SyncShieldStatus, 0x6) //UnitClass_Deploy_SyncShieldStatus
-{
-	GET(TechnoClass*, pFrom, EBP);
-	GET(TechnoClass*, pTo, EBX);
-
-	ShieldClass::SyncShieldToAnother(pFrom, pTo);
-	TechnoExt::SyncIronCurtainStatus(pFrom, pTo);
 	return 0;
 }
 
@@ -248,7 +231,6 @@ public:
 			{
 				if (pShieldData->IsActive())
 				{
-
 					const auto pWeapon = pThis->GetWeapon(nWeaponIndex < 0 ? pThis->SelectWeapon(pObj) : nWeaponIndex);
 
 					if (pWeapon && pWeapon->WeaponType && !pShieldData->CanBePenetrated(pWeapon->WeaponType->Warhead))
@@ -275,9 +257,8 @@ public:
 private:
 	static bool CanApplyEngineerActions(InfantryClass* pThis, ObjectClass* pTarget)
 	{
-		if (Is_Building(pTarget))
+		if (const auto pBuilding = specific_cast<BuildingClass*>(pTarget))
 		{
-			const auto pBuilding = static_cast<BuildingClass*>(pTarget);
 			const auto pExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 			if (HouseClass::CurrentPlayer->IsAlliedWith(pBuilding))

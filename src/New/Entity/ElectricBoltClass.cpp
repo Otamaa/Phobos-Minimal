@@ -61,8 +61,10 @@ void ElectricBoltClass::Draw_It()
 	}
 }
 
-void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjust ,ParticleSystemTypeClass* pSys , bool particleSysCoordFlip)
+void ElectricBoltClass::Create(CoordStruct const& start, CoordStruct const& end, ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3, int z_adjust ,ParticleSystemTypeClass* pSys , bool particleSysCoordFlip)
 {
+	ElectricBoltManager::ElectricBoltArray.emplace_back(start, end, col1, col2, col3, z_adjust);
+
 	/**
 	 *  Spawn a spark particle at the destination of the electric bolt.
 	 */
@@ -73,7 +75,6 @@ void ElectricBoltClass::Create(CoordStruct& start, CoordStruct& end, int z_adjus
 
 		GameCreate<ParticleSystemClass>(pSys, nLoc);
 	}
-
 }
 
 void ElectricBoltClass::Plot_Bolt(CoordStruct& start, CoordStruct& end)
@@ -252,7 +253,7 @@ void ElectricBoltClass::Draw_Bolts()
 		TacticalClass::Instance->CoordsToClient(&data.Start,&start_pixel);
 		TacticalClass::Instance->CoordsToClient(&data.End,&end_pixel);
 
-		auto nRect = DSurface::ViewBounds();
+		RectangleStruct nRect = DSurface::ViewBounds();
 
 		int start_z = data.StartZ - Game::AdjustForZ(data.Start.Z) - 2;
 		int end_z = data.EndZ - Game::AdjustForZ(data.End.Z) - 2;
@@ -265,10 +266,6 @@ void ElectricBoltClass::Draw_Bolts()
 
 void ElectricBoltManager::Clear()
 {
-	//for (int i = 0; i < (int)ElectricBoltArray.size(); ++i) {
-	//	GameDelete<true>(ElectricBoltArray[i]);
-	//}
-
 	ElectricBoltArray.clear();
 }
 
@@ -277,23 +274,12 @@ void ElectricBoltManager::Draw_All()
 	if (ElectricBoltArray.empty())
 		return;
 
-	for (int i = ElectricBoltArray.size() - 1; i >= 0; --i) {
-		auto ebolt = &ElectricBoltArray[i];
-
-		if (!ebolt) {
-			continue;
-		}
-
-		/**
-		 *  Draw the current bolt line-set.
-		 */
-		ebolt->Draw_It();
-
-		/**
-		 *  Electric bolt has expired, delete it.
-		 */
-		if (ebolt->Lifetime <= 0) {
+	for (size_t i = 0; i < ElectricBoltArray.size(); ++i) {
+		auto& pBolt = ElectricBoltArray[i];
+		if (pBolt.Lifetime <= 0) {
 			ElectricBoltArray.erase(ElectricBoltArray.begin() + i);
+		} else {
+			pBolt.Draw_It();
 		}
 	}
 }

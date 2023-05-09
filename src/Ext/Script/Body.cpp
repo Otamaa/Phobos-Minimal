@@ -1110,7 +1110,7 @@ beginLoad:
 	{
 		auto pPassengerType = pPassenger->GetTechnoType();
 		// Is legal loadable unit ?
-		if ((((DWORD*)pPassengerType)[0]) != AircraftTypeClass::vtable &&
+		if (!Is_Aircraft(pPassenger) &&
 			!pPassengerType->ConsideredAircraft &&
 			TECHNO_IS_ALIVE(pPassenger))
 		{
@@ -1307,6 +1307,7 @@ void ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
 				}
 			}
 		}
+
 		if (target)
 		{
 			if (isSelfAircraft)
@@ -1372,7 +1373,7 @@ void ScriptExt::RallyUnitInMap(TeamClass* pTeam, int nArg)
 
 bool ScriptExt::IsValidRallyTarget(TeamClass* pTeam, FootClass* pFoot, int nType)
 {
-	const auto type = (((DWORD*)pFoot)[0]);
+	const auto type = VTable::Get(pFoot);
 	auto pTechnoType = pFoot->GetTechnoType();
 	TaskForceClass* pTaskforce = pTeam->Type->TaskForce;
 	if (!pTechnoType)
@@ -1589,10 +1590,11 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 
 		if (!pUnit->Spawned && pUnit->Owner)
 		{
-			if (pUnit->GetTechnoType()->Ammo > 0 && pUnit->Ammo < pUnit->GetTechnoType()->Ammo)
+			const auto pType = pUnit->GetTechnoType();
+			if (pType->Ammo > 0 && pUnit->Ammo < pType->Ammo)
 			{
 				// If an aircraft object have AirportBound it must be evaluated
-				if ((((DWORD*)pUnit)[0]) == AircraftClass::vtable)
+				if (Is_Aircraft(pUnit))
 				{
 					const auto pAircraft = static_cast<AircraftClass*>(pUnit);
 
@@ -1621,7 +1623,7 @@ void ScriptExt::WaitUntilFullAmmoAction(TeamClass* pTeam)
 						return;
 					}
 				}
-				else if (pUnit->GetTechnoType()->Reload != 0) // Don't skip units that can reload themselves
+				else if (pType->Reload != 0) // Don't skip units that can reload themselves
 					return;
 			}
 		}
@@ -1783,7 +1785,6 @@ void ScriptExt::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown = -
 				}
 			}
 		}
-
 
 		if (nUnits >= 0
 			&& nUnits == nTogether
@@ -2400,7 +2401,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 
 			if (!agentMode)
 			{
-				if (object->GetType()->Immune)
+				if (objectType->Immune)
 					continue;
 
 					if(weaponType) {
@@ -2423,7 +2424,7 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 					continue;
 			}
 
-			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pTechno->GetTechnoType());
+			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
 
 			// Check map zone
 			if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
@@ -4644,16 +4645,14 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 		auto const& nHouseList = RulesExt::Global()->AIHousesLists;
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
-			auto const& objectsList = nHouseList[(idxHousesList)];
-			for (auto const& pHouseType : objectsList)
+			for (const auto& pHouseType : nHouseList[(idxHousesList)])
 			{
 				for (auto& angerNode : pTeam->Owner->AngerNodes)
 				{
-
 					if (!angerNode.House->Type)
 						continue;
 
-					if (IS_SAME_STR_(angerNode.House->Type->ID, pHouseType.data()))
+					if (IS_SAME_STR_(angerNode.House->Type->ID, pHouseType.c_str()))
 					{
 						angerNode.AngerLevel += pTeamData->AngerNodeModifier;
 						changeFailed = false;
@@ -5951,46 +5950,37 @@ void ScriptExt::ConditionalJump_CheckObjects(TeamClass* pTeam)
 	{
 		// This action finished
 		pTeam->StepCompleted = true;
-
 		return;
 	}
 
 	int index = pTeamData->ConditionalJump_Index;
 	auto const& nAITargetType = RulesExt::Global()->AITargetTypesLists;
 
-	if (!nAITargetType.empty() && index >= 0 && nAITargetType.size() > 0)
+	if (!nAITargetType.empty() && index >= 0)
 	{
-		auto const& objectsList = nAITargetType[(index)];
+		const auto objectsList = make_iterator(nAITargetType[(index)]);
 
-		if (objectsList.empty())
+		if (objectsList.empty()) {
+			pTeam->StepCompleted = true;
 			return;
-
-		for (auto const pTechno : *TechnoClass::Array())
-		{
-			if (!TechnoExt::IsAlive(pTechno))
-				continue;
-
-			if (auto pTechnoType = pTechno->GetTechnoType())
-			{
-				if ((!pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
-					|| (pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
-						&& pTechno->IsMindControlled()
-						&& !pTeam->FirstUnit->Owner->IsAlliedWith(pTechno->MindControlledBy))))
-				{
-					for (int i = 0; i < (int)objectsList.size(); i++)
-					{
-						if (objectsList[i] == pTechnoType)
-						{
-							countValue++;
-							break;
-						}
-					}
-				}
-			}
 		}
 
-		int comparatorValue = pTeamData->ConditionalJump_ComparatorValue;
-		pTeamData->ConditionalJump_Evaluation = ScriptExt::ConditionalJump_MakeEvaluation(pTeamData->ConditionalJump_ComparatorMode, countValue, comparatorValue);
+		countValue = std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](TechnoClass* pTechno) {
+			if (TechnoExt::IsAlive(pTechno)) {
+
+			const auto pTechnoType = pTechno->GetTechnoType();
+				if ((!pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
+					|| (pTeam->FirstUnit->Owner->IsAlliedWith(pTechno)
+					&& pTechno->IsMindControlled()
+					&& !pTeam->FirstUnit->Owner->IsAlliedWith(pTechno->MindControlledBy)))) {
+						return objectsList.contains(pTechnoType);
+				}
+			}
+
+			return false;
+		});
+
+		pTeamData->ConditionalJump_Evaluation = ScriptExt::ConditionalJump_MakeEvaluation(pTeamData->ConditionalJump_ComparatorMode, countValue, pTeamData->ConditionalJump_ComparatorValue);
 	}
 
 	// This action finished

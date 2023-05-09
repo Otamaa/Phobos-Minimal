@@ -182,7 +182,7 @@ public:
 			, CurrentArmor { Armor::None }
 			, SupressEVALost { false }
 #endif;
-		{ 		
+		{
 			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
 		}
 
@@ -222,9 +222,8 @@ public:
 		void UpdateLaserTrails();
 		//
 		void UpdateAircraftOpentopped();
-		
+
 		bool IsInterceptor();
-	
 private:
 		template <typename T>
 		void Serialize(T& Stm);

@@ -332,6 +332,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();
 	TActionExt::ExtMap.Clear();
+	HouseExt::ExtMap.Clear();
 
 	return 0;
 }
@@ -379,7 +380,7 @@ FORCEINLINE bool Process_Save(IStream* pStm)
 		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
 }
 
-DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
+DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 {
 	//Debug::Log("Saving global Phobos data\n");
 	GET(IStream*, pStm, ESI);
@@ -408,7 +409,7 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
+DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 {
 	//Debug::Log("Loading global Phobos data\n");
 	GET(IStream*, pStm, ESI);
@@ -421,15 +422,15 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos, 0x6)
 		Process_Load<SWTypeExt>(pStm) &&
 		Process_Load<WeaponTypeExt>(pStm) &&
 		Process_Load<ArmorTypeClass>(pStm) &&
-		Process_Load < BannerTypeClass>(pStm) &&
-		Process_Load < ColorTypeClass>(pStm) &&
-		Process_Load < CursorTypeClass>(pStm) &&
-		Process_Load < PaletteManager>(pStm) &&
-		Process_Load < RadTypeClass>(pStm) &&
-		Process_Load < ShieldTypeClass>(pStm) &&
-		Process_Load < TrailType>(pStm) &&
-		Process_Load < HoverTypeClass>(pStm) &&
-		Process_Load < LaserTrailTypeClass>(pStm)
+		Process_Load<BannerTypeClass>(pStm) &&
+		Process_Load<ColorTypeClass>(pStm) &&
+		Process_Load<CursorTypeClass>(pStm) &&
+		Process_Load<PaletteManager>(pStm) &&
+		Process_Load<RadTypeClass>(pStm) &&
+		Process_Load<ShieldTypeClass>(pStm) &&
+		Process_Load<TrailType>(pStm) &&
+		Process_Load<HoverTypeClass>(pStm) &&
+		Process_Load<LaserTrailTypeClass>(pStm)
 		;
 	
 	if (!ret)

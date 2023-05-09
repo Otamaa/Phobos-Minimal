@@ -19,7 +19,7 @@ struct SimulateBurst
 	int Index;
 	CDTimerClass Timer;
 
-	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range, AttachFireData fireData, int flipY, FireBulletToTarget callback)
+	SimulateBurst(WeaponTypeClass* pWeaponType, TechnoClass* pShooter, AbstractClass* pTarget, CoordStruct flh, int burst, int minRange, int range,const AttachFireData& fireData, int flipY, FireBulletToTarget callback)
 		:WeaponType { pWeaponType }
 		, Shooter { pShooter }
 		, Target { pTarget }
@@ -33,7 +33,7 @@ struct SimulateBurst
 		, Flag { flipY }
 		, Index { 0 }
 		, Timer { fireData.SimulateBurstDelay }
-	{ }
+	{  }
 
 	SimulateBurst()
 		:WeaponType { nullptr }
@@ -52,19 +52,6 @@ struct SimulateBurst
 	{ }
 
 	~SimulateBurst() = default;
-
-	SimulateBurst Clone() {
-		SimulateBurst newObj = SimulateBurst(WeaponType, Shooter, Target, FLH, Burst, MinRange, Range, FireData, FlipY,Callback);
-		newObj.Index = Index;
-		return newObj;
-	}
-
-	//SimulateBurst& operator = (const SimulateBurst& other)
-	//{
-	//	memcpy_s(this, sizeof(SimulateBurst), &other, sizeof(SimulateBurst));
-	//	Timer.Start(FireData.SimulateBurstDelay);
-	//	return *this;
-	//}
 
 	bool CanFire() {
 		if (Timer.Expired())
@@ -96,6 +83,9 @@ struct SimulateBurst
 	bool Save(PhobosStreamWriter& Stm)
 	{ return Serialize(Stm); }
 
+	SimulateBurst(const SimulateBurst& other) = default;
+	SimulateBurst& operator=(const SimulateBurst& other) = default;
+
 private:
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -116,5 +106,15 @@ private:
 			.Process(Timer)
 			.Success()
 			;
+	}
+
+};
+
+template <>
+struct Savegame::ObjectFactory<SimulateBurst>
+{
+	std::unique_ptr<SimulateBurst> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<SimulateBurst>();
 	}
 };

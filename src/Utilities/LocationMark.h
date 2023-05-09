@@ -29,6 +29,10 @@ struct LocationMark
 		, Direction { }
 	{ }
 
+	LocationMark(const LocationMark& other) = default;
+	LocationMark& operator=(const LocationMark& other) = default;
+	~LocationMark() = default;
+
 	inline bool IsValid() const
 	{
 		return (Location != CoordStruct::Empty);

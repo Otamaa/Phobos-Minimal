@@ -239,7 +239,7 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 
 	if (pWhatVictim == InfantryClass::vtable)
 	{
-		auto const& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
+		const auto& crushableLevel = static_cast<InfantryClass*>(pVictim)->IsDeployed() ?
 			pVictimTechnoTypeExt->DeployCrushableLevel :
 			pVictimTechnoTypeExt->CrushableLevel;
 
@@ -876,14 +876,14 @@ std::pair<bool, CoordStruct> TechnoExt::GetBurstFLH(TechnoClass* pThis, int weap
 	if (!pThis || weaponIndex < 0)
 		return { FLHFound , FLH };
 
-	auto const pickedFLHs = PickFLHs(pThis);
+	const auto pickedFLHs = PickFLHs(pThis);
 
 	if (!pickedFLHs->empty())
 	{
-		if ((int)pickedFLHs->at(weaponIndex).size() > pThis->CurrentBurstIndex)
+		if ((int)(*pickedFLHs)[weaponIndex].size() > pThis->CurrentBurstIndex)
 		{
 			FLHFound = true;
-			FLH = pickedFLHs->at(weaponIndex)[pThis->CurrentBurstIndex];
+			FLH = (*pickedFLHs)[weaponIndex][pThis->CurrentBurstIndex];
 		}
 	}
 
@@ -916,7 +916,7 @@ const Nullable<CoordStruct>* TechnoExt::GetInfrantyCrawlFLH(InfantryClass* pThis
 			if (weaponIndex == 0)
 			{
 				return pThis->Veterancy.IsElite() ?
-#ifdef COMPILE_PORTED_DP_FEATURES						
+#ifdef COMPILE_PORTED_DP_FEATURES
 					pTechnoType->E_PronePrimaryFireFLH.isset() ?
 					&pTechnoType->E_PronePrimaryFireFLH :
 					&pTechnoType->Elite_PrimaryCrawlFLH
@@ -964,10 +964,9 @@ std::pair<bool, CoordStruct> TechnoExt::GetInfantryFLH(InfantryClass* pThis, int
 	if (!pThis || weaponIndex < 0)
 		return { false , CoordStruct::Empty };
 
-	auto const pickedFLH = TechnoExt::GetInfrantyCrawlFLH(pThis, weaponIndex);
+	const auto pickedFLH = TechnoExt::GetInfrantyCrawlFLH(pThis, weaponIndex);
 
-	if (pickedFLH && pickedFLH->isset() && pickedFLH->Get())
-	{
+	if (pickedFLH && pickedFLH->isset() && pickedFLH->Get()) {
 		return { true , pickedFLH->Get() };
 	}
 
@@ -2954,7 +2953,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
 
-	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get() 
+	if (!pInf->SlaveOwner && (pTypeExt->Death_WithMaster.Get()
 		|| pTypeExt->Slaved_ReturnTo == SlaveReturnTo::Suicide)) {
 
 		const KillMethod nMethod = pTypeExt->Death_Method.Get();
@@ -3355,6 +3354,9 @@ DEFINE_HOOK(0x70783B, TechnoClass_Detach, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(void*, target, EBP);
 	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+
+	//if (!Is_Techno(pThis))
+	//	Debug::Log("TechnoClass_Detach Called with gargabage ptr[%x] !\n", pThis);
 
 	TechnoExt::ExtMap.InvalidatePointerFor(pThis, target, all);
 
