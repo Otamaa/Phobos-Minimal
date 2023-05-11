@@ -735,6 +735,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->NoShadowSpawnAlt.Read(exINI, pSection, "NoShadowSpawnAlt");
 
 		this->OmniCrusher_Aggressive.Read(exINI, pSection, "OmniCrusher.Aggressive");
+		this->CrusherDecloak.Read(exINI, pSection, "Crusher.Decloak");
+		this->Crusher_SupressLostEva.Read(exINI, pSection, "Crusher.UnitLost.Suppress");
+
+		this->CrushFireDeathWeapon.Read(exINI, pSection, "CrushFireDeathWeaponChance.%s");
 		this->CrushDamage.Read(exINI, pSection, "CrushDamage.%s");
 		this->CrushRange.Read(exINI, pSection, "CrushRange.%s");
 		this->CrushDamageWarhead.Read(exINI, pSection, "CrushDamage.Warhead");
@@ -859,6 +863,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			PartialVector3D<int> nRes { pThis->TurretOffset , 0 ,0 , 1};
 			this->TurretOffset = nRes;
 		}
+		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
+
 		char tempBuffer[0x40];
 		for (size_t i = 0; ; ++i)
 		{
@@ -1118,6 +1124,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->InhibitorRange)
 		.Process(this->DesignatorRange)
 		.Process(this->TurretOffset)
+		.Process(this->TurretShadow)
 		.Process(this->Powered_KillSpawns)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
@@ -1506,6 +1513,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->AdditionalEliteWeaponDatas)
 		.Process(this->AdditionalTurrentWeapon)
 		.Process(this->OmniCrusher_Aggressive)
+		.Process(this->CrusherDecloak)
+		.Process(this->Crusher_SupressLostEva)
+		.Process(this->CrushFireDeathWeapon)
 		.Process(this->CrushDamage)
 		.Process(this->CrushDamageWarhead)
 		.Process(this->CrushRange)

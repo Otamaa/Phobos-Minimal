@@ -611,69 +611,75 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 	return houseIdx;
 }
 
-// Based on Ares' rewrite of 0x4FEA60.
-void HouseExt::ExtData::UpdateVehicleProduction()
+bool HouseExt::ExtData::UpdateHarvesterProduction()
 {
-	auto pThis = this->Get();
-	auto const AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
-	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
-	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
+	auto pThis = this->OwnerObject();
+	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
+	const auto idxParentCountry = pThis->Type->FindParentCountryIndex();
+	const auto pHarvesterUnit = HouseExt::FindOwned(pThis, idxParentCountry, make_iterator(RulesClass::Instance->HarvesterUnit));
 
-	if (skipGround && skipNaval)
-		return;
-
-	if (!skipGround)
+	if (pHarvesterUnit)
 	{
-		auto const idxParentCountry = pThis->Type->FindParentCountryIndex();
-		auto const pHarvester = HouseExt::FindOwned(pThis, idxParentCountry, make_iterator(RulesClass::Instance->HarvesterUnit));
+		const auto harvesters = pThis->CountResourceGatherers;
+		const auto maxHarvesters = HouseExt::FindBuildable(
+			pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery))
+			? RulesClass::Instance->HarvestersPerRefinery[AIDifficulty] * pThis->CountResourceDestinations
+			: RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
 
-		if (pHarvester)
+		if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
+			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
+			&& pThis->TechLevel >= pHarvesterUnit->TechLevel)
 		{
-			//Buildable harvester found
-			auto const harvesters = pThis->CountResourceGatherers;
-
-			auto maxHarvesters = HouseExt::FindBuildable(
-				pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery))
-				? RulesClass::Instance->HarvestersPerRefinery[AIDifficulty] * pThis->CountResourceDestinations
-				: RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
-
-			if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
-				&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
-				&& pThis->TechLevel >= pHarvester->TechLevel)
-			{
-				pThis->ProducingUnitTypeIndex = pHarvester->ArrayIndex;
-				return;
-			}
+			pThis->ProducingUnitTypeIndex = pHarvesterUnit->ArrayIndex;
+			return true;
 		}
-		else
+	}
+	else
+	{
+		const auto maxHarvesters = RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
+
+		if (pThis->CountResourceGatherers < maxHarvesters)
 		{
-			//No buildable harvester found
-			auto const maxHarvesters = RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
+			const auto pRefinery = HouseExt::FindBuildable(
+				pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery));
 
-			if (pThis->CountResourceGatherers < maxHarvesters)
+			if (pRefinery)
 			{
-				auto const pRefinery = HouseExt::FindBuildable(
-					pThis, idxParentCountry, make_iterator(RulesClass::Instance->BuildRefinery));
-
-				if (pRefinery)
+				if (auto const pSlaveMiner = pRefinery->UndeploysInto)
 				{
-					//awesome way to find out whether this building is a slave miner, isn't it? ...
-					if (auto const pSlaveMiner = pRefinery->UndeploysInto)
+					if (pSlaveMiner->ResourceDestination)
 					{
 						pThis->ProducingUnitTypeIndex = pSlaveMiner->ArrayIndex;
-						return;
+						return true;
 					}
 				}
 			}
 		}
 	}
 
+	return false;
+}
+
+// Based on Ares' rewrite of 0x4FEA60.
+void HouseExt::ExtData::UpdateVehicleProduction()
+{
+	const auto pThis = this->Get();
+	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
+	const bool skipGround = pThis->ProducingUnitTypeIndex != -1;
+	const bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
+
+	if (skipGround && skipNaval)
+		return;
+
+	if (!skipGround && this->UpdateHarvesterProduction())
+		return;
+
 	auto& creationFrames = HouseExt::AIProduction_CreationFrames;
 	auto& values = HouseExt::AIProduction_Values;
 	auto& bestChoices = HouseExt::AIProduction_BestChoices;
 	auto& bestChoicesNaval = HouseExt::AIProduction_BestChoicesNaval;
 
-	auto const count = static_cast<unsigned int>(UnitTypeClass::Array->Count);
+	const auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
 
@@ -693,14 +699,17 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 		DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
 		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
 
-		for (auto currentMember : taskForceMembers)
+		for (auto const& currentMember : taskForceMembers)
 		{
-			if ((((DWORD*)currentMember)[0]) != UnitTypeClass::vtable ||
+			if (!currentMember)
+				continue;
+
+			if (Is_UnitType(currentMember) ||
 				(skipGround && !currentMember->Naval) ||
 				(skipNaval && currentMember->Naval))
 				continue;
 
-			auto const index = static_cast<unsigned int>(currentMember->GetArrayIndex());
+			const auto index = static_cast<size_t>(currentMember->GetArrayIndex());
 			++values[index];
 
 			if (teamCreationFrame < creationFrames[index])
@@ -710,7 +719,7 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 	for (auto unit : *UnitClass::Array)
 	{
-		auto const index = static_cast<unsigned int>(unit->GetType()->GetArrayIndex());
+		const auto index = static_cast<unsigned int>(unit->GetType()->GetArrayIndex());
 
 		if (values[index] > 0 && unit->CanBeRecruited(pThis))
 			--values[index];
@@ -728,8 +737,8 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 	for (auto i = 0u; i < count; ++i)
 	{
-		auto const type = UnitTypeClass::Array->Items[static_cast<int>(i)];
-		int currentValue = values[i];
+		const auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
+		const int currentValue = values[i];
 
 		if (currentValue <= 0 || pThis->CanBuild(type, false, false) == CanBuildResult::Unbuildable
 			|| type->GetActualCost(pThis) > pThis->Available_Money())
@@ -759,7 +768,7 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 		}
 	}
 
-	int earliestOdds = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
+	const int earliestOdds = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
 
 	if (!skipGround)
 	{
@@ -767,10 +776,10 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 		{
 			pThis->ProducingUnitTypeIndex = earliestTypenameIndex;
 		}
-		else if (auto const size = static_cast<int>(bestChoices.size()))
+		else if (const auto size = static_cast<int>(bestChoices.size()))
 		{
 			int randomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
-			pThis->ProducingUnitTypeIndex = bestChoices[static_cast<unsigned int>(randomChoice)];
+			pThis->ProducingUnitTypeIndex = bestChoices[static_cast<size_t>(randomChoice)];
 		}
 	}
 
@@ -780,10 +789,10 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 		{
 			this->ProducingNavalUnitTypeIndex = earliestTypenameIndexNaval;
 		}
-		else if (auto const size = static_cast<int>(bestChoicesNaval.size()))
+		else if (const auto size = static_cast<int>(bestChoicesNaval.size()))
 		{
 			int randomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
-			this->ProducingNavalUnitTypeIndex = bestChoicesNaval[static_cast<unsigned int>(randomChoice)];
+			this->ProducingNavalUnitTypeIndex = bestChoicesNaval[static_cast<size_t>(randomChoice)];
 		}
 	}
 }

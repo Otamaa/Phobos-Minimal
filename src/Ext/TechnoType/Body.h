@@ -87,6 +87,7 @@ public:
 		Valueable<bool> Interceptor_OnlyTargetBullet;
 
 		Nullable<PartialVector3D<int>> TurretOffset;
+		Valueable<bool> TurretShadow;
 		Valueable<bool> Powered_KillSpawns;
 		Valueable<bool> Spawn_LimitedRange;
 		Valueable<int> Spawn_LimitedExtraRange;
@@ -519,6 +520,10 @@ public:
 		std::vector<int> AdditionalTurrentWeapon;
 
 		Valueable<bool> OmniCrusher_Aggressive;
+		Valueable<bool> CrusherDecloak;
+		Valueable<bool> Crusher_SupressLostEva;
+
+		Promotable<float> CrushFireDeathWeapon;
 		Promotable<int> CrushDamage;
 		Nullable<WarheadTypeClass*> CrushDamageWarhead;
 		NullablePromotable<Leptons> CrushRange;
@@ -682,6 +687,7 @@ public:
 			, Interceptor_ConsiderWeaponRange { false }
 			, Interceptor_OnlyTargetBullet { false }
 			, TurretOffset {}
+			, TurretShadow { true }
 			, Powered_KillSpawns { false }
 			, Spawn_LimitedRange { false }
 			, Spawn_LimitedExtraRange { 0 }
@@ -1051,6 +1057,10 @@ public:
 			, AdditionalEliteWeaponDatas {}
 			, AdditionalTurrentWeapon {}
 			, OmniCrusher_Aggressive { false }
+			, CrusherDecloak { true }
+			, Crusher_SupressLostEva { false }
+
+			, CrushFireDeathWeapon { 0.0f }
 			, CrushDamage { }
 			, CrushDamageWarhead { }
 			, CrushRange { }

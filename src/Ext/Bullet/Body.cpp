@@ -587,10 +587,13 @@ void BulletExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved) {
 
 void BulletExt::ExtData::ApplyRadiationToCell(CoordStruct const& nCoord, int Spread, int RadLevel)
 {
+	if (!MapClass::Instance->IsWithinUsableArea(nCoord))
+		return;
+
 	const auto pThis = this->Get();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Find(RADIATION_SECTION));
+	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Array[0].get());
 
 		auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 			[=](auto const pSite) {

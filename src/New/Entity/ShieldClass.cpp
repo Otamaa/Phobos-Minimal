@@ -102,21 +102,18 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 {
 	const auto pFromExt = TechnoExt::ExtMap.Find(pFrom);
 	const auto pToExt = TechnoExt::ExtMap.Find(pTo);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTo->GetTechnoType());
 
-	if (!pToExt || !pFromExt)
+	if (!pToExt || !pFromExt || !pFromExt->Shield)
 		return;
 
-	if (pFromExt->Shield)
-	{
-		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-		pToExt->Shield = std::make_unique<ShieldClass>(pTo);
-		pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
-		pToExt->Shield->Available = pFromExt->Shield->Available;
-		pToExt->Shield->HP = pFromExt->Shield->HP;
-	}
+	if(pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
+		return;
 
-	if (Is_Building(pFrom) && pFromExt->Shield)
-		pFromExt->Shield = nullptr;
+	pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
+	pToExt->Shield.reset(pFromExt->Shield.release());
+	pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
+	pFromExt->Shield = nullptr;
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }

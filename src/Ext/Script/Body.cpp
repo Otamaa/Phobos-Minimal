@@ -936,7 +936,7 @@ void ScriptExt::DistributedLoadOntoTransport(TeamClass* pTeam, int nArg)
 		return;
 	}
 
-	auto timer = pFoot->BlockagePathTimer;
+	//auto timer = pFoot->BlockagePathTimer;
 	// Wait for timer stop
 	if (pTeam->GuardAreaTimer.TimeLeft > 0)
 	{
@@ -1295,7 +1295,13 @@ void ScriptExt::FollowFriendlyByGroup(TeamClass* pTeam, int group)
 				{
 					auto pScript = pTeam->CurrentScript;
 					pTeam->StepCompleted = true;
-					Debug::Log("AI Scripts - FollowFriendlyByGroup: [%s] [%s](line: %d = %d,%d) Attempting To derefence nullptr teamPosition ! )\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument);
+					auto const& nCur = pScript->GetCurrentAction();
+					Debug::Log("AI Scripts - FollowFriendlyByGroup: [%s] [%s](line: %d = %d,%d) Attempting To derefence nullptr teamPosition ! )\n", 
+						pTeam->Type->ID, 
+						pScript->Type->ID, 
+						pScript->CurrentMission, 
+						nCur.Action,
+						nCur.Argument);
 					return;
 				}
 
@@ -1455,7 +1461,16 @@ void ScriptExt::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = fals
 
 	// This action finished
 	pTeam->StepCompleted = bSucceeded;
-	Debug::Log("AI Scripts - Set_ForceJump_Countdown: [%s] [%s](line: %d = %d,%d) %s Set Timed Jump -> (Countdown: %d, repeat action: %d)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, bSucceeded ? "Done" : "Failed", count, repeatLine);
+	auto const& nCur = pScript->GetCurrentAction();
+	Debug::Log("AI Scripts - Set_ForceJump_Countdown: [%s] [%s](line: %d = %d,%d) %s Set Timed Jump -> (Countdown: %d, repeat action: %d)\n", 
+		pTeam->Type->ID, 
+		pScript->Type->ID, 
+		pScript->CurrentMission, 
+		nCur.Action,
+		nCur.Argument,
+		bSucceeded ? "Done" : "Failed", 
+		count, 
+		repeatLine);
 }
 
 void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
@@ -1474,7 +1489,14 @@ void ScriptExt::Stop_ForceJump_Countdown(TeamClass* pTeam)
 
 	// This action finished
 	pTeam->StepCompleted = bSucceeded;
-	Debug::Log("AI Scripts - Stop_ForceJump_Countdown: [%s] [%s](line: %d = %d,%d): %s Stopped Timed Jump\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, bSucceeded ? "Done" : "Failed");
+	auto const& nCur = pScript->GetCurrentAction();
+	Debug::Log("AI Scripts - Stop_ForceJump_Countdown: [%s] [%s](line: %d = %d,%d): %s Stopped Timed Jump\n", 
+		pTeam->Type->ID, 
+		pScript->Type->ID, 
+		pScript->CurrentMission, 
+		nCur.Action,
+		nCur.Argument,
+		bSucceeded ? "Done" : "Failed");
 }
 
 void ScriptExt::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
@@ -1865,7 +1887,17 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 	if (!pTeamData)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
+		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			pScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -1901,7 +1933,17 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
+		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			pScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -1953,7 +1995,16 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 				// This action finished
 				pTeam->StepCompleted = true;
-				Debug::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+				auto const& nNext = pScript->GetNextAction();
+				Debug::Log("AI Scripts - Attack: [%s] [%s] (line: %d = %d,%d) Force the jump to next line: %d = %d,%d (This action wont repeat)\n", 
+					pTeam->Type->ID, 
+					pScript->Type->ID, 
+					pScript->CurrentMission, 
+					nNext.Action,
+					nNext.Argument,
+					pScript->CurrentMission + 1, 
+					nNext.Action,
+					nNext.Argument);
 
 				return;
 			}
@@ -2014,7 +2065,17 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
+		Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			pScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -2060,7 +2121,16 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 
 		if (selectedTarget)
 		{
-			Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pLeaderUnit->GetTechnoType()->get_ID(), pLeaderUnit->UniqueID, selectedTarget->GetTechnoType()->get_ID(), selectedTarget->UniqueID);
+			auto const& nCur = pScript->GetCurrentAction();
+			Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n", 
+				pTeam->Type->ID, 
+				pScript->Type->ID, 
+				pScript->CurrentMission, 
+				nCur.Action,
+				nCur.Argument,
+				pLeaderUnitType->ID,
+				pLeaderUnit->UniqueID, 
+				pLeaderUnitType->ID, selectedTarget->UniqueID);
 
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
@@ -2180,16 +2250,18 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 			if (pTeamData->FailedCounter <= 0 || pTeamData->FailedCounter < 4)
 			{
 				pTeamData->FailedCounter++;
+				auto const& nCur = pScript->GetCurrentAction();
+				auto const& nNext = pScript->GetNextAction();
 				Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Leader [%s] (UID: %lu) can't find a new target)\n",
 					pTeam->Type->ID,
 					pScript->Type->ID,
 					pScript->CurrentMission,
-					pScript->GetCurrentAction().Action,
-					pScript->GetCurrentAction().Argument,
+					nCur.Action,
+					nCur.Argument,
 					pScript->CurrentMission + 1,
-					pScript->GetNextAction().Action,
-					pScript->GetNextAction().Argument,
-					pLeaderUnit->GetTechnoType()->get_ID(),
+					nNext.Action,
+					nNext.Argument,
+					pLeaderUnitType->ID,
 					pLeaderUnit->UniqueID);
 			}
 			else
@@ -2341,7 +2413,17 @@ void ScriptExt::Mission_Attack(TeamClass* pTeam, bool repeatAction = true, int c
 			{
 				pTeamData->IdxSelectedObjectFromAIList = -1;
 				pTeam->StepCompleted = true;
-				Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to NEXT line: %d = %d,%d (Naval is unable to target ground)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+				auto const& nCur = pScript->GetCurrentAction();
+				auto const& nNext = pScript->GetNextAction();
+				Debug::Log("AI Scripts - Mission_Attack: [%s] [%s] (line: %d = %d,%d) Jump to NEXT line: %d = %d,%d (Naval is unable to target ground)\n", 
+					pTeam->Type->ID, 
+					pScript->Type->ID, 
+					pScript->CurrentMission, 
+					nCur.Action,
+					nCur.Argument,
+					pScript->CurrentMission + 1, 
+					nNext.Action,
+					nNext.Argument);
 
 				return;
 			}
@@ -2374,6 +2456,10 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 			continue;
 
 		if(object->Location == CoordStruct::Empty)
+			continue;
+
+		const auto nFootMapCoords = object->InlineMapCoords();
+		if(nFootMapCoords == CellStruct::Empty)
 			continue;
 
 		const auto objectType = object->GetTechnoType();
@@ -3163,6 +3249,8 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 
 			}
 		}
+
+		return false;
 	}
 	case 39:
 		// Occupyable Civilian  Building
@@ -3175,7 +3263,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			if (pBuilding && pBTypeHere->CanBeOccupied && pBuilding->Occupants.Count < pBTypeHere->MaxNumberOccupants && pBuilding->Owner == pTeamLeader->Owner && pBTypeHere->CanOccupyFire)
 				return true;
 		}
-		break;
+		return false;
 	case 40:
 		// Self Building with Grinding=yes
 		if (auto pBuilding = specific_cast<BuildingClass*>(pTechno))
@@ -3189,7 +3277,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			}
 		}
 
-		break;
+		return false;
 
 	case 41:
 		// Building with Spyable=yes
@@ -3201,7 +3289,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 			}
 		}
 
-		break;
+		return false;
 
 
 		/*
@@ -3228,7 +3316,7 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 				return pTypeExt->IsHero.Get();
 			}
 		}
-		break;
+		return false;
 	}
 	}
 
@@ -3426,7 +3514,9 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 		else
 		{
 			pTeam->StepCompleted = true;
-			Debug::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n", pTeam->Type->ID, pNewScript->ID);
+			Debug::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n", 
+				pTeam->Type->ID, 
+				pNewScript->ID);
 
 			return;
 		}
@@ -3436,7 +3526,9 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 	if (changeFailed)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID);
+		Debug::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID);
 	}
 }
 
@@ -3486,7 +3578,17 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 	if (!pTeamData)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n", pTeam->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->Type->ID, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
+		Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n", 
+			pTeam->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			pScript->Type->ID, 
+			pScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -3513,7 +3615,17 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 		// This action finished
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
+		Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: No team members alive)\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			pScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -3577,7 +3689,17 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 		if (selectedTarget)
 		{
-			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pLeaderUnit->GetTechnoType()->get_ID(), pLeaderUnit->UniqueID, selectedTarget->GetTechnoType()->get_ID(), selectedTarget->UniqueID);
+			const auto& nCurAct = pScript->GetCurrentAction();
+			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Leader [%s] (UID: %lu) selected [%s] (UID: %lu) as target.\n", 
+				pTeam->Type->ID, 
+				pScript->Type->ID, 
+				pScript->CurrentMission, 
+				nCurAct.Action,
+				nCurAct.Argument,
+				pLeaderUnitType->ID,
+				pLeaderUnit->UniqueID, 
+				pLeaderUnitType->ID,
+				selectedTarget->UniqueID);
 
 			pTeam->Focus = selectedTarget;
 			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
@@ -3650,9 +3772,19 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 			if (pTeamData->CloseEnough >= 0)
 				pTeamData->CloseEnough = -1;
 
+			const auto& nCur = pScript->GetCurrentAction();
+			const auto& nNext = pScript->GetNextAction();
 			// This action finished
 			pTeam->StepCompleted = true;
-			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (new target NOT FOUND)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (new target NOT FOUND)\n", 
+				pTeam->Type->ID, 
+				pScript->Type->ID, 
+				pScript->CurrentMission, 
+				nCur.Action,
+				nCur.Argument,
+				pScript->CurrentMission + 1, 
+				nNext.Action,
+				nNext.Argument);
 
 			return;
 		}
@@ -3675,7 +3807,18 @@ void ScriptExt::Mission_Move(TeamClass* pTeam, int calcThreatMode = 0, bool pick
 
 			// This action finished
 			pTeam->StepCompleted = true;
-			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Reason: Reached destination)\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, pScript->CurrentMission + 1, pScript->GetNextAction().Action, pScript->GetNextAction().Argument);
+			const auto& nCur = pScript->GetCurrentAction();
+			const auto& nNext = pScript->GetNextAction();
+
+			Debug::Log("AI Scripts - Mission_Move: [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d (Reason: Reached destination)\n", 
+				pTeam->Type->ID, 
+				pScript->Type->ID, 
+				pScript->CurrentMission, 
+				nCur.Action,
+				nCur.Argument,
+				pScript->CurrentMission + 1, 
+				nNext.Action,
+				nNext.Argument);
 
 			return;
 		}
@@ -3934,7 +4077,16 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 			{
 				idxSelectedObject = validIndexes[(ScenarioClass::Instance->Random.RandomRanged(0, validIndexes.size() - 1))];
 				selected = true;
-				Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList[(idxSelectedObject)]->ID);
+				const auto& nCur = pScript->GetCurrentAction();
+				Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", 
+					pTeam->Type->ID, 
+					pTeam->CurrentScript->Type->ID, 
+					pScript->CurrentMission, 
+					nCur.Action,
+					nCur.Argument,
+					attackAITargetType, 
+					idxSelectedObject, 
+					objectsList[(idxSelectedObject)]->ID);
 			}
 		}
 
@@ -3948,7 +4100,15 @@ void ScriptExt::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, 
 	if (!selected)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, validIndexes.size());
+		const auto& nCur = pScript->GetCurrentAction();
+		Debug::Log("AI Scripts - AttackListRandom: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pScript->CurrentMission,
+			nCur.Action,
+			nCur.Argument,
+			attackAITargetType, 
+			validIndexes.size());
 	}
 }
 
@@ -4042,7 +4202,16 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 			{
 				idxSelectedObject = validIndexes[(ScenarioClass::Instance->Random.RandomRanged(0, validIndexes.size() - 1))];
 				selected = true;
-				Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, idxSelectedObject, objectsList[(idxSelectedObject)]->ID);
+				const auto& nCur = pScript->GetCurrentAction();
+				Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Picked a random Techno from the list index [AITargetTypes][%d][%d] = %s\n",
+					pTeam->Type->ID, 
+					pTeam->CurrentScript->Type->ID,
+					pScript->CurrentMission, 
+					nCur.Action,
+					nCur.Argument,
+					attackAITargetType, 
+					idxSelectedObject, 
+					objectsList[(idxSelectedObject)]->ID);
 			}
 		}
 
@@ -4056,7 +4225,15 @@ void ScriptExt::Mission_Move_List1Random(TeamClass* pTeam, int calcThreatMode, b
 	if (!selected)
 	{
 		pTeam->StepCompleted = true;
-		Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pScript->CurrentMission, pScript->GetCurrentAction().Action, pScript->GetCurrentAction().Argument, attackAITargetType, validIndexes.size());
+		const auto& nCur = pScript->GetCurrentAction();
+		Debug::Log("AI Scripts - Mission_Move_List1Random: [%s] [%s] (line: %d = %d,%d) Failed to pick a random Techno from the list index [AITargetTypes][%d]! Valid Technos in the list: %d\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCur.Action,
+			nCur.Argument,
+			attackAITargetType, 
+			validIndexes.size());
 	}
 }
 
@@ -4246,10 +4423,14 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	{
 		// This action finished
 		pTeam->StepCompleted = true;
+		const auto& nNext = pTeam->CurrentScript->GetNextAction();
 		Debug::Log("AI Scripts - SkipNextAction: ScripType: [%s] [%s] (line: %d) Jump to next line: %d = %d,%d -> (No TeamExt / No team members alive)\n",
-			pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission,
-			pTeam->CurrentScript->CurrentMission + 1, pTeam->CurrentScript->GetNextAction().Action,
-			pTeam->CurrentScript->GetNextAction().Argument);
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission,
+			pTeam->CurrentScript->CurrentMission + 1, 
+			nNext.Action,
+			nNext.Argument);
 
 		return;
 	}
@@ -4265,10 +4446,15 @@ void ScriptExt::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 
 	if (ScenarioClass::Instance->Random.PercentChance(successPercentage))
 	{
+		const auto& specific = ScriptExt::GetSpecificAction(pTeam->CurrentScript, 2);
 		Debug::Log("AI Scripts - SkipNextAction: ScripType: [%s] [%s] (line: %d) Next script line skipped successfuly. Next line will be: %d = %d,%d\n",
-			pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, pTeam->CurrentScript->CurrentMission + 2,
-			ScriptExt::GetSpecificAction(pTeam->CurrentScript, 2).Action,
-			ScriptExt::GetSpecificAction(pTeam->CurrentScript, 2).Argument);
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			pTeam->CurrentScript->CurrentMission + 2,
+			specific.Action,
+			specific.Argument);
+
 		pTeam->CurrentScript->CurrentMission++;
 	}
 
@@ -4666,8 +4852,13 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 	if (changeFailed)
 	{
 		pTeam->StepCompleted = true;
-		auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log(" __FUNCTION__ : [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument);
+		auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+		Debug::Log(" __FUNCTION__ : [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			nCurAction.Action, 
+			nCurAction.Argument);
 	}
 
 	ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
@@ -4726,8 +4917,13 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 	if (changes == 0)
 	{
 		pTeam->StepCompleted = true;
-		auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log("__FUNCTION__ : [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument);
+		auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+		Debug::Log("__FUNCTION__ : [%s] [%s] (line: %d = %d,%d): Failed to modify hate values against other houses\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			nCurAction.Action, 
+			nCurAction.Argument);
 	}
 
 	ScriptExt::UpdateEnemyHouseIndex(pTeam->Owner);
@@ -4817,8 +5013,14 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 			if (angerNode.House == selectedHouse)
 			{
 				angerNode.AngerLevel = newHateLevel;
-				auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-				Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Picked a new house as enemy [%s]\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, angerNode.House->Type->ID);
+				auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+				Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Picked a new house as enemy [%s]\n", 
+					pTeam->Type->ID, 
+					pTeam->CurrentScript->Type->ID, 
+					pTeam->CurrentScript->CurrentMission, 
+					nCurAction.Action, 
+					nCurAction.Argument, 
+					angerNode.House->Type->ID);
 			}
 		}
 
@@ -4826,8 +5028,13 @@ void ScriptExt::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mode = 
 	}
 	else
 	{
-		auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument);
+		auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+		Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			nCurAction.Action, 
+			nCurAction.Argument);
 	}
 
 	// This action finished
@@ -4932,9 +5139,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
-
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): Selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -4979,8 +5192,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID,
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5034,8 +5254,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5079,8 +5306,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5135,8 +5369,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5180,8 +5421,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID,
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5225,8 +5473,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 		if (enemyHouse)
 		{
-			auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+			auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+			Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+				pTeam->Type->ID, 
+				pTeam->CurrentScript->Type->ID, 
+				pTeam->CurrentScript->CurrentMission, 
+				nCurAction.Action, 
+				nCurAction.Argument, 
+				enemyHouse->Type->ID, 
+				enemyHouse->ArrayIndex);
 		}
 
 		return enemyHouse;
@@ -5323,8 +5578,15 @@ HouseClass* ScriptExt::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int 
 
 	if (enemyHouse)
 	{
-		auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, enemyHouse->Type->ID, enemyHouse->ArrayIndex);
+		auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+		Debug::Log("__FUNCTION__: [%s] [%s] (line: %d = %d,%d): selected House [%s] (index: %d)\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			nCurAction.Action, 
+			nCurAction.Argument, 
+			enemyHouse->Type->ID, 
+			enemyHouse->ArrayIndex);
 	}
 
 	return enemyHouse;
@@ -5379,8 +5641,14 @@ void ScriptExt::OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode = -1)
 		break;
 	}
 
-	auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-	Debug::Log("OverrideOnlyTargetHouseEnemy : [%s] [%s] (line: %d = %d,%d): New Team -> OnlyTargetHouseEnemy value: %d\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, pTeamData->OnlyTargetHouseEnemy);
+	auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+	Debug::Log("OverrideOnlyTargetHouseEnemy : [%s] [%s] (line: %d = %d,%d): New Team -> OnlyTargetHouseEnemy value: %d\n",
+		pTeam->Type->ID,
+		pTeam->CurrentScript->Type->ID,
+		pTeam->CurrentScript->CurrentMission, 
+		nCurAction.Action, 
+		nCurAction.Argument, 
+		pTeamData->OnlyTargetHouseEnemy);
 
 	// This action finished
 	pTeam->StepCompleted = true;
@@ -5416,8 +5684,16 @@ void ScriptExt::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 			if (angerNode.House->ArrayIndex == idxHouse && !angerNode.House->Defeated)
 			{
 				angerNode.AngerLevel += pTeamData->AngerNodeModifier;
-				auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-				Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Modified anger level against [%s](index: %d) with value: %d\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, angerNode.House->Type->ID, angerNode.House->ArrayIndex, angerNode.AngerLevel);
+				auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+				Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Modified anger level against [%s](index: %d) with value: %d\n", 
+					pTeam->Type->ID, 
+					pTeam->CurrentScript->Type->ID, 
+					pTeam->CurrentScript->CurrentMission,
+					nCurAction.Action,
+					nCurAction.Argument, 
+					angerNode.House->Type->ID, 
+					angerNode.House->ArrayIndex, 
+					angerNode.AngerLevel);
 			}
 		}
 	}
@@ -5477,7 +5753,7 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 		if (index < 0)
 		{
 			if (index == -1)
-				index = ScenarioClass::Instance->Random.RandomRanged(0, objectsList.size() - 1);
+				index = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
 			if (index == -2)
 				index = pTeam->Owner->ArrayIndex;
@@ -5536,8 +5812,14 @@ void ScriptExt::AggroHouse(TeamClass* pTeam, int index = -1)
 	}
 	else
 	{
-		auto const nCurAction = pTeam->CurrentScript->GetCurrentAction();
-		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house with index: %d\n", pTeam->Type->ID, pTeam->CurrentScript->Type->ID, pTeam->CurrentScript->CurrentMission, nCurAction.Action, nCurAction.Argument, index);
+		auto const& nCurAction = pTeam->CurrentScript->GetCurrentAction();
+		Debug::Log("DEBUG: [%s] [%s] (line: %d = %d,%d): Failed to pick a new hated house with index: %d\n", 
+			pTeam->Type->ID, 
+			pTeam->CurrentScript->Type->ID, 
+			pTeam->CurrentScript->CurrentMission, 
+			nCurAction.Action, 
+			nCurAction.Argument, 
+			index);
 	}
 
 	// This action finished
@@ -5591,9 +5873,17 @@ void ScriptExt::ConditionalJumpIfTrue(TeamClass* pTeam, int newScriptLine = -1)
 
 	if (pTeamData->ConditionalJump_Evaluation)
 	{
-		auto const nAcurAct = pScript->GetCurrentAction();
-		auto const nAPrevAct = ScriptExt::GetSpecificAction(pScript, (scriptArgument - 1));
-		Debug::Log("ConditionalJumpIfTrue : [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, nAcurAct.Action, nAcurAct.Argument, scriptArgument - 1, nAPrevAct.Action, nAPrevAct.Argument);
+		auto const& nAcurAct = pScript->GetCurrentAction();
+		auto const& nAPrevAct = ScriptExt::GetSpecificAction(pScript, (scriptArgument - 1));
+		Debug::Log("ConditionalJumpIfTrue : [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission,
+			nAcurAct.Action, 
+			nAcurAct.Argument, 
+			scriptArgument - 1, 
+			nAPrevAct.Action, 
+			nAPrevAct.Argument);
 
 		// Start conditional jump!
 		// This is magic: for example, for jumping into line 0 of the script list you have to point to the "-1" line so in the next AI iteration the current line will be increased by 1 and then it will point to the desired line 0
@@ -5638,9 +5928,17 @@ void ScriptExt::ConditionalJumpIfFalse(TeamClass* pTeam, int newScriptLine = -1)
 
 	if (!pTeamData->ConditionalJump_Evaluation)
 	{
-		auto const nAcurAct = pScript->GetCurrentAction();
-		auto const nAPrevAct = ScriptExt::GetSpecificAction(pScript, (scriptArgument - 1));
-		Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, nAcurAct.Action, nAcurAct.Argument, scriptArgument - 1, nAPrevAct.Action, nAPrevAct.Argument);
+		auto const& nAcurAct = pScript->GetCurrentAction();
+		auto const& nAPrevAct = ScriptExt::GetSpecificAction(pScript, (scriptArgument - 1));
+		Debug::Log("DEBUG: [%s] [%s] %d = %d,%d - Conditional Jump was a success! - New Line: %d = %d,%d\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nAcurAct.Action, 
+			nAcurAct.Argument, 
+			scriptArgument - 1, 
+			nAPrevAct.Action, 
+			nAPrevAct.Argument);
 
 		// Start conditional jump!
 		// This is magic: for example, for jumping into line 0 of the script list you have to point to the "-1" line so in the next AI iteration the current line will be increased by 1 and then it will point to the desired line 0
@@ -6181,8 +6479,14 @@ void ScriptExt::JumpBackToPreviousScript(TeamClass* pTeam)
 	else
 	{
 		const auto pScript = pTeam->CurrentScript;
-		auto const nCurAct = pScript->GetCurrentAction();
-		Debug::Log("JumpBackToPreviousScript : [%s] [%s](line: %d = %d,%d): Can't find the previous script! This script action must be used after PickRandomScript.\n", pTeam->Type->ID, pScript->Type->ID, pScript->CurrentMission, nCurAct.Action, nCurAct.Argument);
+		auto const& nCurAct = pScript->GetCurrentAction();
+		Debug::Log("JumpBackToPreviousScript : [%s] [%s](line: %d = %d,%d): Can't find the previous script! This script action must be used after PickRandomScript.\n", 
+			pTeam->Type->ID, 
+			pScript->Type->ID, 
+			pScript->CurrentMission, 
+			nCurAct.Action, 
+			nCurAct.Argument);
+
 		pTeam->StepCompleted = true;
 		return;
 	}
@@ -6397,8 +6701,8 @@ void ScriptExt::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 
 	if (!pTeamData)
 	{
-		auto const nCur = pScript->GetCurrentAction();
-		auto const nNext = pScript->GetNextAction();
+		auto const& nCur = pScript->GetCurrentAction();
+		auto const& nNext = pScript->GetNextAction();
 
 		pTeam->StepCompleted = true;
 		Debug::Log("RepairDestroyedBridge : [%s] [%s] (line: %d = %d,%d) Jump to next line: %d = %d,%d -> (Reason: ExtData found)\n",

@@ -57,6 +57,8 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		GET_STACK(int, amount, 0xC);
 
 		const auto pCell = MapClass::Instance->GetCellAt(location);
+		if(!pCell)
+			return Handled;
 
 		if (!pThis) {
 

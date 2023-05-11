@@ -111,6 +111,8 @@ public:
 		void UpdateAutoDeathObjects();
 
 	private:
+		bool UpdateHarvesterProduction();
+
 		template <typename T>
 		void Serialize(T& Stm);
 	};
@@ -124,6 +126,16 @@ public:
 		static bool SaveGlobals(PhobosStreamWriter& Stm);
 		void Clear()
 		{
+			AIProduction_CreationFrames.clear();
+			AIProduction_Values.clear();
+			AIProduction_BestChoices.clear();
+			AIProduction_BestChoicesNaval.clear();
+
+			LastGrindingBlanceUnit = 0;
+			LastGrindingBlanceInf = 0;
+			LastHarvesterBalance = 0;
+			LastSlaveBalance = 0;
+
 			CloakEVASpeak.Stop();
 			SubTerraneanEVASpeak.Stop();
 		}

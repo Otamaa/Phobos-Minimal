@@ -152,6 +152,11 @@ void AnimTypeExt::CreateUnit_MarkCell(AnimClass* pThis)
 	if (pTypeExt->CreateUnit.Get())
 	{
 		auto Location = pThis->GetCoords();
+		
+		if (!MapClass::Instance->IsWithinUsableArea(Location))
+			return;
+		
+		AnimExt::ExtMap.Find(pThis)->AllowCreateUnit = true;
 
 		if (auto pCell = pThis->GetCell())
 			Location = pCell->GetCoordsWithBridge();
@@ -177,16 +182,26 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		return;
 
 	const auto pTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
+	const auto pAnimExt = AnimExt::ExtMap.Find(pThis);
 
 	if (const auto unit = pTypeExt->CreateUnit.Get())
 	{
+		//invalid coords and cell is not marked , so dont !
+		if (!pAnimExt->AllowCreateUnit)
+			return;
+
+		CoordStruct location = pThis->GetCoords();
+
+		if (!MapClass::Instance->IsWithinUsableArea(location))
+			return;
+
 		HouseClass* decidedOwner = GetOwnerForSpawned(pThis);
 
 		//if (!AnimExt::ExtMap.Find(pThis)->OwnerSet)
 		//	decidedOwner = HouseExt::GetHouseKind(pTypeExt->CreateUnit_Owner.Get(), true, nullptr, decidedOwner, nullptr);
 		bool allowBridges = unit->SpeedType != SpeedType::Float;
 		auto pCell = pThis->GetCell();
-		CoordStruct location = pThis->GetCoords();
+
 
 		if (pCell && allowBridges)
 			location = pCell->GetCoordsWithBridge();
@@ -199,7 +214,7 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 				unit->SpeedType, -1, unit->MovementZone, false, 1, 1, true,
 				false, false, allowBridges, CellStruct::Empty, false, false);
 
-			pCell = MapClass::Instance->TryGetCellAt(nCell);
+			pCell = MapClass::Instance->GetCellAt(nCell);
 
 			if (pCell && allowBridges)
 				location = pCell->GetCoordsWithBridge();
@@ -212,29 +227,30 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 		if (const auto pTechno = static_cast<UnitClass*>(unit->CreateObject(decidedOwner)))
 		{
 			bool success = false;
-			const auto pExt = AnimExt::ExtMap.Find(pThis);
+
 			{
-				const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && pExt->DeathUnitFacing.has_value())
-					? pExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
+				const short resultingFacing = (pTypeExt->CreateUnit_InheritDeathFacings.Get() && 
+					  pAnimExt->DeathUnitFacing.has_value())
+					? pAnimExt->DeathUnitFacing.get() : pTypeExt->CreateUnit_RandomFacing.Get()
 					? ScenarioClass::Instance->Random.RandomRangedSpecific<short>(0, 255) : (short)pTypeExt->CreateUnit_Facing.Get();
 
 				if (pCell)
-					pTechno->OnBridge = pCell->ContainsBridge();
-
-				const BuildingClass* pBuilding = pCell ?
-					pCell->GetBuilding() : MapClass::Instance->GetCellAt(location)->GetBuilding();
-
-				if (!pBuilding)
 				{
-					if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+					pTechno->OnBridge = pCell->ContainsBridge();
+					const BuildingClass* pBuilding = pCell->GetBuilding();
+
+					if (pCell->IsValidMapCoords() && !pBuilding)
 					{
-						++Unsorted::IKnowWhatImDoing;
-						success = pTechno->Unlimbo(location, DirType(resultingFacing));
-						--Unsorted::IKnowWhatImDoing;
-					}
-					else
-					{
-						success = pTechno->Unlimbo(location, DirType(resultingFacing));
+						if (!pTypeExt->CreateUnit_ConsiderPathfinding.Get())
+						{
+							++Unsorted::IKnowWhatImDoing;
+							success = pTechno->Unlimbo(location, DirType(resultingFacing));
+							--Unsorted::IKnowWhatImDoing;
+						}
+						else
+						{
+							success = pTechno->Unlimbo(location, DirType(resultingFacing));
+						}
 					}
 				}
 
@@ -260,9 +276,8 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 						decidedOwner->RecheckTechTree = 1;
 					}
 
-					if (pTechno->HasTurret() && pExt->DeathUnitTurretFacing.has_value())
-					{
-						pTechno->SecondaryFacing.Set_Desired(pExt->DeathUnitTurretFacing.get());
+					if (pTechno->HasTurret() && pAnimExt->DeathUnitTurretFacing.has_value()) {
+						pTechno->SecondaryFacing.Set_Desired(pAnimExt->DeathUnitTurretFacing.get());
 					}
 
 
@@ -299,6 +314,11 @@ OwnerHouseKind AnimTypeExt::SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvok
 
 void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 {
+	const auto location = pThis->GetCoords();
+
+	if (!MapClass::Instance->IsWithinUsableArea(location))
+		return;
+
 	const auto pType = pThis->GetTechnoType();
 	if (!pType->DestroyAnim.Count)
 		return;
@@ -313,7 +333,7 @@ void AnimTypeExt::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller)
 	if (!pAnimType)
 		return;
 
-	if (auto pAnim = GameCreate<AnimClass>(pAnimType, pThis->GetCoords()))
+	if (auto pAnim = GameCreate<AnimClass>(pAnimType, location))
 	{
 		const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pAnimType);
 		auto pAnimExt = AnimExt::ExtMap.Find(pAnim);

@@ -476,6 +476,7 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeathUnitTurretFacing)
 		.Process(this->Invoker)
 		.Process(this->OwnerSet)
+		.Process(this->AllowCreateUnit)
 		.Process(this->AttachedSystem)
 		.Process(this->ParentBuilding)
 		;

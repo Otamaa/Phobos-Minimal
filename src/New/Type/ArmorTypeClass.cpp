@@ -152,20 +152,14 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 		{
 			if (pArmor->DefaultTo != -1)
 			{ //evaluate armor with valid default index
-				const size_t nDefault = (size_t)pArmor->DefaultTo;
+				const auto nDefault = pArmor->DefaultTo;
 				if (i < nDefault)
 				{
 					Debug::Log("Warhead [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-						section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
-
-					pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
-
-				}
-				else
-				{
-					pWHExt->Verses[i] = pWHExt->Verses[nDefault];
+						section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());			
 				}
 
+				pWHExt->Verses[i] = pWHExt->Verses[nDefault];
 			}
 		}
 

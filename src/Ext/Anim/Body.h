@@ -24,7 +24,7 @@ public:
 		OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
 		TechnoClass* Invoker;
 		bool OwnerSet;
-
+		bool AllowCreateUnit;
 		// This is a failsafe that is only set if this is a building animation 
 		// and the building is not on same cell as the animation.
 		BuildingClass* ParentBuilding;
@@ -37,6 +37,7 @@ public:
 			, DeathUnitTurretFacing { }
 			, Invoker { nullptr }
 			, OwnerSet { false }
+			, AllowCreateUnit { false }
 			, ParentBuilding {}
 
 			, AttachedSystem { nullptr }

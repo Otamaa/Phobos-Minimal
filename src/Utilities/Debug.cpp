@@ -38,7 +38,7 @@ void Debug::LogAndMessage(const char* pFormat, ...)
 	Log("%s", StringBuffer);
 	va_end(args);
 	wchar_t buffer[0x1000];
-	CRT::mbstowcs(buffer, StringBuffer, 0x1000);
+	mbstowcs(buffer, StringBuffer, 0x1000);
 	MessageListClass::Instance->PrintMessage(buffer);
 }
 
@@ -76,15 +76,11 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	FatalExit(static_cast<int>(nExitCode));
 }
 
-DEFINE_PATCH( // Add new line after "Init Secondary Mixfiles....."
-	/* Offset */ 0x825F9B,
-	/*   Data */ '\n'
-);
+void __SUNINI_TORA2MD(const char* pFormat, ...) {
+	GameDebugLog::Log("-------- Loading RA2MD.INI settings --------\n");
+}
+DEFINE_JUMP(CALL, 0x5FA636, GET_OFFSET(__SUNINI_TORA2MD));
 
-DEFINE_PATCH( // Replace SUN.INI with RA2MD.INI in the debug.log
-	/* Offset */ 0x8332F4,
-	/*   Data */ "-------- Loading RA2MD.INI settings --------\n"
-);
 #pragma region Otamaa
 void Debug::DumpStack(const char* function, REGISTERS* R, size_t len, int startAt)
 {
@@ -236,7 +232,6 @@ void Debug::FatalError(const char* Message, ...)
 	Debug::FatalError(false);
 }
 #pragma endregion
-
 
 static DWORD _Real_Debug_Log = 0x4A4AF9;
 void __declspec(naked) _Fake_Debug_Log()

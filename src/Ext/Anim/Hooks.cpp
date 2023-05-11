@@ -79,6 +79,10 @@ DEFINE_HOOK(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5
 				Layer nRes = Layer::Ground;
 
 				if (auto const pFoot = generic_cast<FootClass*>(pThis->OwnerObject)) {
+
+					if(pFoot->IsCrashing ||  pFoot->IsSinking)
+						return RetLayerGround;
+
 					if (auto const pLocomotor = pFoot->Locomotor.get())
 						nRes = pLocomotor->In_Which_Layer();
 				}

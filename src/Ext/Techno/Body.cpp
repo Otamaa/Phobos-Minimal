@@ -1967,7 +1967,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
 
-	auto const pWhat = GetVtableAddr(pThis);
+	auto const pWhat = VTable::Get(pThis);
 	KillMethod nOpt = deathOption;
 	if (deathOption == KillMethod::Random)
 	{
@@ -1981,11 +1981,12 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	case KillMethod::Explode:
 	{
 	Kill:
-		const auto nResult = pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+		if(pThis) { 
+			const auto nResult = pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 
-		if (nResult != DamageState::NowDead && nResult != DamageState::PostMortem)
-			goto vanish;
-
+			if (nResult != DamageState::NowDead && nResult != DamageState::PostMortem)
+				goto vanish;
+		}
 
 	}break;
 	case KillMethod::Vanish:

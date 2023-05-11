@@ -4529,77 +4529,77 @@ DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
 
 #include <Ext/TerrainType/Body.h>
 
-DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
-{
-	GET(UnitClass*, pThis, EBP);
-	GET(CellClass* const, pCell, EDI);
-
-	if (const auto pTerrain = pCell->GetTerrain(false))
-	{
-		if (pTerrain->IsAlive)
-		{
-			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium &&
-				!pType->Immune &&
-				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
-				pTerrain->Type->Crushable
-				)
-			{
-				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
-					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
-				{
-					VocClass::PlayIndexAtPos(pType->CrushSound, pThis->Location);
-					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
-
-					if (pThis->Type->TiltsWhenCrushes)
-						pThis->RockingForwardsPerFrame += 0.02f;
-
-					pThis->iscrusher_6B5 = false;
-				}
-			}
-		}
-	}
-
-	R->EAX(pCell->OverlayTypeIndex);
-	return pCell->OverlayTypeIndex != -1 ? 0x73B00A : 0x73B074;
-}
+// DEFINE_HOOK(0x73B002, UnitClass_UpdatePosition_CrusherTerrain, 0x6)
+// {
+// 	GET(UnitClass*, pThis, EBP);
+// 	GET(CellClass* const, pCell, EDI);
+//
+// 	if (const auto pTerrain = pCell->GetTerrain(false))
+// 	{
+// 		if (pTerrain->IsAlive)
+// 		{
+// 			const auto pType = pTerrain->Type;
+// 			if (!pType->SpawnsTiberium &&
+// 				!pType->Immune &&
+// 				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
+// 				pTerrain->Type->Crushable
+// 				)
+// 			{
+// 				if (TechnoTypeExt::ExtMap.Find(pThis->Type)->CrushLevel.Get(pThis) >
+// 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+// 				{
+// 					VocClass::PlayIndexAtPos(pType->CrushSound, pThis->Location);
+// 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
+//
+// 					if (pThis->Type->TiltsWhenCrushes)
+// 						pThis->RockingForwardsPerFrame += 0.02f;
+//
+// 					pThis->iscrusher_6B5 = false;
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	R->EAX(pCell->OverlayTypeIndex);
+// 	return pCell->OverlayTypeIndex != -1 ? 0x73B00A : 0x73B074;
+// }
 
 // 5B1020 , for mechLoco
 // 5B1404 , for mechLoco
 // 6A1025 , for shipLoco
-DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
-{
-	GET(DriveLocomotionClass*, pLoco, EBP);
-	GET(CellClass* const, pCell, EBX);
-
-	const auto pLinkedTo = pLoco->LinkedTo;
-	if (const auto pTerrain = pCell->GetTerrain(false))
-	{
-		if (pTerrain->IsAlive)
-		{
-			const auto pType = pTerrain->Type;
-			if (!pType->SpawnsTiberium &&
-				!pType->Immune &&
-				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
-				pTerrain->Type->Crushable
-				)
-			{
-				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
-					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
-				{
-					VocClass::PlayIndexAtPos(pType->CrushSound, pLinkedTo->Location);
-					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
-
-					if (pLinkedTo->GetTechnoType()->TiltsWhenCrushes)
-						pLinkedTo->RockingForwardsPerFrame = -0.05f;
-				}
-			}
-		}
-	}
-
-	R->EAX(pCell->OverlayTypeIndex);
-	return pCell->OverlayTypeIndex != -1 ? 0x4B19A1 : 0x4B1A04;
-}
+// DEFINE_HOOK(0x4B1999, DriveLocomotionClass_4B0F20_CrusherTerrain, 0x6)
+// {
+// 	GET(DriveLocomotionClass*, pLoco, EBP);
+// 	GET(CellClass* const, pCell, EBX);
+//
+// 	const auto pLinkedTo = pLoco->LinkedTo;
+// 	if (const auto pTerrain = pCell->GetTerrain(false))
+// 	{
+// 		if (pTerrain->IsAlive)
+// 		{
+// 			const auto pType = pTerrain->Type;
+// 			if (!pType->SpawnsTiberium &&
+// 				!pType->Immune &&
+// 				!TerrainTypeExt::ExtMap.Find(pType)->IsPassable &&
+// 				pTerrain->Type->Crushable
+// 				)
+// 			{
+// 				if (TechnoTypeExt::ExtMap.Find(pLinkedTo->GetTechnoType())->CrushLevel.Get(pLinkedTo) >
+// 					TerrainTypeExt::ExtMap.Find(pType)->CrushableLevel)
+// 				{
+// 					VocClass::PlayIndexAtPos(pType->CrushSound, pLinkedTo->Location);
+// 					pTerrain->ReceiveDamage(&pTerrain->Health, 0, RulesClass::Instance->C4Warhead, pLinkedTo, true, true, pLinkedTo->Owner);
+//
+// 					if (pLinkedTo->GetTechnoType()->TiltsWhenCrushes)
+// 						pLinkedTo->RockingForwardsPerFrame = -0.05f;
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	R->EAX(pCell->OverlayTypeIndex);
+// 	return pCell->OverlayTypeIndex != -1 ? 0x4B19A1 : 0x4B1A04;
+// }
 
 // this shit is something fuckup check 
 // it check if not unit then check if itself is not infantry is building 
@@ -5619,14 +5619,16 @@ DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
 // TODO: ifv / prism turret, multibody shadow.
 DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 {
-
 	GET(FootClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();
+	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (!pExt->TurretShadow)
+		return 0x0;
+
 	const auto tur = pThis->CurrentTurretNumber != -1 ? 
 		AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber) : 
 		&pType->TurretVoxel;
-
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (tur->VXL && tur->HVA)
 	{
@@ -5639,11 +5641,11 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 		Matrix3D mtx;
 		mtx.MakeIdentity();
-		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<65536>()));
+		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>()));
 		const auto offset = pExt->TurretOffset.GetEx();
-		float x = static_cast<float>(offset->X * 0.125);
-		float y = static_cast<float>(offset->Y * 0.125);
-		float z = static_cast<float>(offset->Z * 0.125);
+		float x = static_cast<float>(offset->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float y = static_cast<float>(offset->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+		float z = static_cast<float>(offset->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
 		mtx.Translate(x, y, z);
 		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix, &mtx);
 
@@ -5653,7 +5655,6 @@ DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber) : &pType->BarrelVoxel;
 
 		if (bar->VXL && bar->HVA){
-
 			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
 		}
 	}

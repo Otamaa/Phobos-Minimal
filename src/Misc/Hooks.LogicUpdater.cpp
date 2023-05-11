@@ -40,9 +40,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-
+	
 	if (pThis->Location == CoordStruct::Empty) {
 
+		CheckRemove:
 		bool bRemove = !pType->Spawned;
 		if (Is_Building(pThis))
 		{
@@ -56,6 +57,12 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 			TechnoExt::HandleRemove(pThis);
 			return 0x0;
 		}
+	}
+	else
+	{
+		const auto nFootMapCoords = pThis->InlineMapCoords();
+		if (nFootMapCoords == CellStruct::Empty)
+			goto CheckRemove;
 	}
 
 	// Set only if unset or type is changed

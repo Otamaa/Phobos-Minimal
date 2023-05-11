@@ -69,17 +69,14 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			using base_type = std::remove_pointer_t<T>;
+			const auto pValue = parser.value();
 
-			auto const pValue = parser.value();
-			auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue);
-
-			if (parsed || INIClass::IsBlank(pValue))
+			if (auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue))
 			{
 				value = parsed;
 				return true;
 			}
-			else
-			{
+			else if (!INIClass::IsBlank(pValue)) {
 				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
 			}
 		}
@@ -123,15 +120,13 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const pValue = parser.value();
-			auto const parsed = !allocate ? TechnoTypeClass::Find(pValue) : nullptr;
-			if (parsed || INIClass::IsBlank(pValue))
+			const auto pValue = parser.value();
+			if (const auto parsed = TechnoTypeClass::Find(pValue))
 			{
 				value = parsed;
 				return true;
 			}
-			else
-			{
+			else if(!INIClass::IsBlank(pValue)) {
 				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
 			}
 		}

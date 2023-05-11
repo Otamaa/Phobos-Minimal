@@ -161,7 +161,7 @@ struct SonicBeamDrawingData
 		/**
 		 *  Re-color the buffer pixel.
 		 */
-		ColorStruct result;
+		ColorStruct result {};
 
 		/**
 		 *  Clear beam, not color change.

@@ -72,7 +72,7 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 	//Debug::Log(__FUNCTION__" AddDefault HoverType ! \n");
 	HoverTypeClass::AddDefaults();
 
-	Data->LoadFromINIFile(pINI , false);
+	Data->LoadFromINIFile(pINI, false);
 }
 
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
@@ -103,13 +103,16 @@ void RulesExt::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		INI_EX iniEX(pINI);
 
 		char buffer[0x30];
-		for (auto const& pInfType : *InfantryTypeClass::Array) {
+		for (auto const& pInfType : *InfantryTypeClass::Array)
+		{
 
 			if (!pInfType)
 				continue;
 
-			for (auto const& pWarhead : *WarheadTypeClass::Array) {
-				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead)) {
+			for (auto const& pWarhead : *WarheadTypeClass::Array)
+			{
+				if (auto const pExt = WarheadTypeExt::ExtMap.TryFind(pWarhead))
+				{
 					Nullable<AnimTypeClass*> nBuffer {};
 					IMPL_SNPRNINTF(buffer, sizeof(buffer), "%s.InfDeathAnim", pInfType->ID);
 					nBuffer.Read(iniEX, pWarhead->ID, buffer);
@@ -153,7 +156,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DeactivateDim_Powered.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimPowered");
 	this->DeactivateDim_EMP.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimEMP");
 	this->DeactivateDim_Operator.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimOperator");
-	
+
 #pragma region Otamaa
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), "SpecialWeapons", "NukeWarhead");
@@ -727,6 +730,32 @@ DEFINE_HOOK(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
 			//Debug::Log("Finding Neutral Country Index[%d] ! \n", pRulesGlobal->NeutralCountryIndex);
 			pRulesGlobal->SpecialCountryIndex = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special());
 			//Debug::Log("Finding Special Country Index[%d] ! \n", pRulesGlobal->SpecialCountryIndex);
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
+{
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
+	{
+		for (auto const& it : *HouseClass::Array)
+		{
+			Debug::Log("Player Name: %s IsCurrentPlayer: %u; ColorScheme: %s; ID: %d; HouseType: %s; Edge: %d; StartingAllies: %u; Startspot: %d,%d; Visionary: %d; MapIsClear: %u; Money: %d\n",
+			it->PlainName ? it->PlainName : NONE_STR,
+			it->IsHumanPlayer,
+			ColorScheme::Array->GetItem(it->ColorSchemeIndex)->ID,
+			it->ArrayIndex,
+			HouseTypeClass::Array->GetItem(it->Type->ArrayIndex)->Name,
+			it->Edge,
+			it->StartingAllies.data,
+			it->StartingCell.X,
+			it->StartingCell.Y,
+			it->Visionary,
+			it->MapIsClear,
+			it->Available_Money()
+			);
 		}
 	}
 

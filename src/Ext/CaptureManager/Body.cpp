@@ -123,7 +123,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 				pManager->DecideUnitFate(pTarget);
 
-				if (auto const pAnimType = pControlledAnimType)
+				if (pControlledAnimType)
 				{
 					const auto pWhat = (VTable::Get(pTarget));
 					const auto pBld = pWhat == BuildingClass::vtable ? static_cast<BuildingClass*>(pTarget) : nullptr;
@@ -136,7 +136,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 						location.Z += pType->MindControlRingOffset;
 
 
-					if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
+					if (auto const pAnim = GameCreate<AnimClass>(pControlledAnimType, location))
 					{
 						pTarget->MindControlRingAnim = pAnim;
 						pAnim->SetOwnerObject(pTarget);

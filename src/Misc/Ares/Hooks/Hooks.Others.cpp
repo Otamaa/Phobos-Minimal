@@ -2307,56 +2307,56 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 	return 0;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	const auto pType = pThis->GetTechnoType();
-//	const auto nCurWp = pThis->CurrentWeaponNumber;
-//	const auto& nVec = GetGunnerName(pType);
-//
-//	const wchar_t* Text = nullptr;
-//	if (nCurWp < (int)nVec.size())
-//	{
-//		Text = nVec[nCurWp].Text;
-//	}
-//
-//	R->EAX(Text);
-//
-//	return Text != nullptr ? 0x746C78 : 0;
-//}
+DEFINE_OVERRIDE_HOOK(0x746B89, UnitClass_GetUIName, 8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	const auto pType = pThis->GetTechnoType();
+	const auto nCurWp = pThis->CurrentWeaponNumber;
+	const auto& nVec = GetGunnerName(pType);
 
-//DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
-//{
-//	GET(UnitClass*, pThis, ECX);
-//	REF_STACK(int, Value, 0x1E0);
-//
-//	const auto pRules = RulesExt::Global();
-//	double factor = 1.0;
-//
-//	if (pThis->IsUnderEMP())
-//	{
-//		factor = pRules->DeactivateDim_EMP;
-//	}
-//	else if (pThis->IsDeactivated())
-//	{
-//
-//		// use the operator check because it is more
-//		// efficient than the powered check.
-//		if (Is_Operated(pThis ) || AresData::IsOperated(pThis))
-//		{
-//			factor = pRules->DeactivateDim_Powered;
-//		}
-//		else
-//		{
-//			
-//		 factor = pRules->DeactivateDim_Operator;
-//		}
-//	}
-//
-//	Value = int(Value * factor);
-//
-//	return 0x73C15F;
-//}
+	const wchar_t* Text = nullptr;
+	if (nCurWp < (int)nVec.size())
+	{
+		Text = nVec[nCurWp].Text;
+	}
+
+	R->EAX(Text);
+
+	return Text != nullptr ? 0x746C78 : 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
+{
+	GET(UnitClass*, pThis, ECX);
+	REF_STACK(int, Value, 0x1E0);
+
+	const auto pRules = RulesExt::Global();
+	double factor = 1.0;
+
+	if (pThis->IsUnderEMP())
+	{
+		factor = pRules->DeactivateDim_EMP;
+	}
+	else if (pThis->IsDeactivated())
+	{
+
+		// use the operator check because it is more
+		// efficient than the powered check.
+		if (Is_Operated(pThis ) || AresData::IsOperated(pThis))
+		{
+			factor = pRules->DeactivateDim_Powered;
+		}
+		else
+		{
+			
+		 factor = pRules->DeactivateDim_Operator;
+		}
+	}
+
+	Value = int(Value * factor);
+
+	return 0x73C15F;
+}
 
 // temporal per-slot
 //DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)

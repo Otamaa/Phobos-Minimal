@@ -582,49 +582,49 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 	}
 }
 
-//DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
-//{
-//	//GET(UnitTypeClass*, pType, EAX);
-//	GET(UnitClass*, pThis, ESI);
-//	GET_STACK(TechnoClass*, pKiller, 0x54);
-//	GET_STACK(bool, select, 0x13);
-//	GET_STACK(bool, ignoreDefenses, 0x58);
-//	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
-//
-//	SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
-//
-//	R->EBX(-1);
-//	return 0x73838A;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//	GET_STACK(TechnoClass*, pKiller, 0x28);
-//	GET_STACK(int, ignoreDefenses, 0x20);
-//	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x14, 0x18));
-//
-//	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
-//
-//	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses, preventPassangersEscape);
-//
-//	return 0x0;
-//}
-//
-//bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
-//{
-//	// Crashable support for aircraft
-//	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
-//	if (nCrashable.isset() && !nCrashable.Get()) {
-//		return false;
-//	}
-//
-//	// call the address direcly instead of vtable
-//	return pThis->FootClass::Crash(pSource);
-//}
+DEFINE_OVERRIDE_HOOK(0x737F97, UnitClass_ReceiveDamage_Survivours, 0xA)
+{
+	//GET(UnitTypeClass*, pType, EAX);
+	GET(UnitClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pKiller, 0x54);
+	GET_STACK(bool, select, 0x13);
+	GET_STACK(bool, ignoreDefenses, 0x58);
+	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x44, 0x18));
+
+	SpawnSurvivors(pThis, pKiller, select, ignoreDefenses, preventPassangersEscape);
+
+	R->EBX(-1);
+	return 0x73838A;
+}
+
+DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pKiller, 0x28);
+	GET_STACK(int, ignoreDefenses, 0x20);
+	GET_STACK(bool, preventPassangersEscape, STACK_OFFSET(0x14, 0x18));
+
+	const bool bSelected = pThis->IsSelected && pThis->Owner && pThis->Owner->ControlledByPlayer();
+
+	SpawnSurvivors(pThis, pKiller, bSelected, ignoreDefenses, preventPassangersEscape);
+
+	return 0x0;
+}
+
+bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
+{
+	// Crashable support for aircraft
+	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
+	if (nCrashable.isset() && !nCrashable.Get()) {
+		return false;
+	}
+
+	// call the address direcly instead of vtable
+	return pThis->FootClass::Crash(pSource);
+}
 
 //replace an vtable call
-//DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
+DEFINE_JUMP(CALL6, 0x416694, GET_OFFSET(FootClass_Crash_));
 
 // spawn tiberium when a unit dies. this is a minor part of the
 // tiberium heal feature. the actual healing happens in FootClass_Update.
@@ -651,6 +651,7 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 }
 
 // smoke particle systems created when a techno is damaged
+//#pragma optimize("", off )
 DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -672,6 +673,7 @@ DEFINE_OVERRIDE_HOOK(0x702894, TechnoClass_ReceiveDamage_SmokeParticles, 6)
 
 	return 0x702938;
 }
+//#pragma optimize("", on)
 
 constexpr unsigned int Neighbours[] = {
 	9, 0, 2, 0, 0,

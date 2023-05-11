@@ -16,6 +16,12 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 	if (!pTechnoTo)
 		return;
 
+	const auto pTechnoToType = pTechnoTo->GetTechnoType();
+
+	if (TechnoExt::IsPsionicsImmune(pTechnoTo)) {
+		return;
+	}
+
 	// anim must be transfered before `Free` call , because it will get invalidated !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
 	{
@@ -30,14 +36,14 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 		const auto pWhat = (VTable::Get(pTechnoTo));
 		const auto pBld = pWhat == BuildingClass::vtable ?
 			static_cast<BuildingClass*>(pTechnoTo) : nullptr;
-		const auto pType = pTechnoTo->GetTechnoType();
+
 
 		CoordStruct location = pTechnoTo->GetCoords();
 
 		if (pBld)
 			location.Z += pBld->Type->Height * Unsorted::LevelHeight;
 		else
-			location.Z += pType->MindControlRingOffset;
+			location.Z += pTechnoToType->MindControlRingOffset;
 
 		Anim->SetLocation(location);
 		Anim->SetOwnerObject(pTechnoTo);
@@ -52,9 +58,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 
 		pTechnoTo->MindControlledByHouse = MCHouse;
 		pTechnoFrom->MindControlledByHouse = nullptr;
-	}
-	else
-	{
+	} else {
 		//ares perma MC 
 		pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit;
 
@@ -77,7 +81,6 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 			}
 		}
 	}
-
 }
 
 DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)

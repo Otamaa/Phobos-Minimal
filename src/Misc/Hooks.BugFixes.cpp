@@ -856,7 +856,7 @@ DEFINE_JUMP(VTABLE, 0x7ECDF4, GET_OFFSET(JumpjetLocomotionClass_Can_Fire))
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
 DEFINE_JUMP(LJMP, 0x447709, 0x447727);
-//
+
 //// AG=no projectiles shouldn't fire at land.
 //DEFINE_HOOK(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
 //{
@@ -868,3 +868,33 @@ DEFINE_JUMP(LJMP, 0x447709, 0x447727);
 //	return !pWeapon->Projectile->AG && !pTarget->IsInAir() ?
 //		RetFireIllegal : Continue;
 //}
+
+// Do not display SuperAnimThree for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
+DEFINE_HOOK(0x44643E, BuildingClass_Place_SuperAnim, 0x6)
+{
+	enum { UseSuperAnimOne = 0x4464F6 };
+
+	GET(BuildingClass*, pThis, EBP);
+	GET(SuperClass*, pSuper, EAX);
+
+	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0)
+	{
+		R->ECX(pThis);
+		return UseSuperAnimOne;
+	}
+
+	return 0;
+}
+
+// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
+DEFINE_HOOK(0x451033, BuildingClass_AnimationAI_SuperAnim, 0x6)
+{
+	enum { SkipSuperAnimCode = 0x451048 };
+
+	GET(SuperClass*, pSuper, EAX);
+
+	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0)
+		return SkipSuperAnimCode;
+
+	return 0;
+}

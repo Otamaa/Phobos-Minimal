@@ -500,7 +500,6 @@ public:
 #endif
 
 		{	
-			Verses.resize(ArmorTypeClass::Array.size());
 			this->EvaluateArmor(OwnerObject);
 		}
 

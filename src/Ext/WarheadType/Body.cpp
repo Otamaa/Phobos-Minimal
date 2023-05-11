@@ -398,31 +398,16 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 
 void WarheadTypeExt::ExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
 {
-	const char* section = OwnerObject->ID;
+	const auto nArmorArrSize = ArmorTypeClass::Array.size();
+	Verses.resize(nArmorArrSize);
 
-	for (size_t i = 0; i < this->Verses.size(); ++i)
+	for (size_t i = 0; i < nArmorArrSize; ++i)
 	{
 		const auto& pArmor = ArmorTypeClass::Array[i];
 
-		if (pArmor->DefaultTo != -1)
-		{
-			const size_t nDefault = (size_t)pArmor->DefaultTo;
-
-			if (i < nDefault)
-			{
-				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
-
-				this->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
-
-			}
-			else
-			{
-				this->Verses[i] = this->Verses[nDefault];
-			}
-		}
-		else
-		{ //evaluate armor with not valid default index
+		if (pArmor->DefaultTo != -1) {
+			this->Verses[i] = ArmorTypeClass::Array[(size_t)pArmor->DefaultTo]->DefaultVersesValue;
+		} else { //evaluate armor with not valid default index
 			this->Verses[i] = pArmor->DefaultVersesValue;
 		}
 	}
