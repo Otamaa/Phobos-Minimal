@@ -103,7 +103,8 @@ void ArmorTypeClass::EvaluateDefault()
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
-	ArmorTypeClass::AddDefaults();
+	if(Array.empty())
+		ArmorTypeClass::AddDefaults();
 
 	if (!pINI)
 		return;

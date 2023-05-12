@@ -1,5 +1,3 @@
-#ifndef ENABLE_NEWHOOKS
-//TODO : desync test
 #include <New/Type/HoverTypeClass.h>
 
 #include <Ext/TechnoType/Body.h>
@@ -149,4 +147,3 @@ DEFINE_HOOK(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
 	pLoco->__Boost = nBoostExt;
 	return 0x516152;
 }
-#endif

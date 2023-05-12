@@ -1,7 +1,7 @@
 #include "Body.h"
 
 #include <BuildingClass.h>
-#ifndef DUMMY_HOOKS
+#ifdef DUMMY_HOOKS
 //DEFINE_HOOK(0x6F7288, OccupyWeaponRange_SkipRange, 5)
 //{
 //	return 0x6F72C8;

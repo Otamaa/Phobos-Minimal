@@ -235,7 +235,7 @@ DEFINE_HOOK(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+//DEFINE_HOOK_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 DEFINE_HOOK(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
@@ -266,17 +266,17 @@ DEFINE_HOOK(0x71F94A, TEventClass_Save_Suffix, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)
-{
-	GET(TEventClass*, pThis, ECX);
-	GET(void*, pTarget, EDX);
-	GET_STACK(bool, bRemoved, 0x8);
-
-	if (pThis->TeamType == pTarget) {
-		pThis->TeamType = nullptr;
-	}
-
-	TEventExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemoved);
-
-	return 0x71F81D;
-}
+//DEFINE_HOOK(0x71F811, TEventClass_Detach, 0x5)
+//{
+//	GET(TEventClass*, pThis, ECX);
+//	GET(void*, pTarget, EDX);
+//	GET_STACK(bool, bRemoved, 0x8);
+//
+//	if (pThis->TeamType == pTarget) {
+//		pThis->TeamType = nullptr;
+//	}
+//
+//	TEventExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemoved);
+//
+//	return 0x71F81D;
+//}

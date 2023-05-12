@@ -1521,11 +1521,11 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 		else
 			idx = Lookuper::FindIndexById(val);
 
-		if (idx != -1 || INIClass::IsBlank(val))
+		if (idx != -1)
 		{
 			this->Value = idx;
 		}
-		else
+		else if(!INIClass::IsBlank(val))
 		{
 			Debug::INIParseFailed(pSection, pKey, val);
 		}
@@ -1573,12 +1573,12 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 	{
 		const char* val = parser.value();
 		int idx = Lookuper::FindIndexById(val);
-		if (idx != -1 || INIClass::IsBlank(val))
+		if (idx != -1)
 		{
 			this->Value = idx;
 			this->HasValue = true;
 		}
-		else
+		else if(!INIClass::IsBlank(val))
 		{
 			Debug::INIParseFailed(pSection, pKey, val, nullptr);
 		}

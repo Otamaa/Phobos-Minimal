@@ -1529,7 +1529,7 @@ DEFINE_OVERRIDE_HOOK(0x4F7870, HouseClass_CanBuild, 7)
 
 	if (Is_BuildingType(pItem))
 	{
-		const auto pBuilding = static_cast<BuildingTypeClass*>(pItem);
+		const auto pBuilding = static_cast<BuildingTypeClass* const>(pItem);
 		if (!BuildingTypeExt::ExtMap.Find(pBuilding)->PowersUp_Buildings.empty())
 		{
 			if (nAresREsult == CanBuildResult::Buildable)

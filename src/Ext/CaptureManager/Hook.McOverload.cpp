@@ -13,14 +13,11 @@ DEFINE_HOOK(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	TechnoExt::UpdateMCOverloadDamage(pThis);
+	if(pThis->IsAlive && !pThis->InLimbo)
+		TechnoExt::UpdateMCOverloadDamage(pThis);
+
+	if(!pThis->IsAlive)
+		return ReturnFunc;
 
 	return SelfHeal;
-	/*
-		if(!pThis->IsAlive)
-			return ReturnFunc;
-
-		return pThis->InLimbo ?
-			   DoNotSelfHeal : SelfHeal;
-	 */
 }

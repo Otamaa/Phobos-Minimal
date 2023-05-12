@@ -534,12 +534,9 @@ ObjectTypeClass* TechnoExt::SetInfDefaultDisguise(TechnoClass* const pThis, Tech
 
 void TechnoExt::UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
-	if (!pOwner->IsAlive)
-		return;
-
 	auto pThis = pOwner->CaptureManager;
 
-	if (!pThis || !pOwner->IsAlive)
+	if(!pThis)
 		return;
 
 	if (!pThis->InfiniteMindControl)
@@ -2151,9 +2148,9 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 
 	if (pThis->Health && healthDeficit > 0)
 	{
-		const auto pWhat = GetVtableAddr(pThis);
-		const bool isBuilding = pWhat == BuildingClass::vtable;
-		const bool isOrganic = pWhat == InfantryClass::vtable || (pWhat == UnitClass::vtable && pType->Organic);
+		const auto pWhat = pThis->WhatAmI();
+		const bool isBuilding = pWhat == AbstractType::Building;
+		const bool isOrganic = pWhat == AbstractType::Infantry || (pWhat == AbstractType::Unit && pType->Organic);
 		const auto defaultSelfHealType = isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
 		bool applyHeal = false;
 		int amount = 0;
@@ -2216,7 +2213,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 					pBuilding->ToggleDamagedAnims(false);
 				}
 
-				if (pWhat == UnitClass::vtable || pWhat == BuildingClass::vtable)
+				if (pWhat == AbstractType::Unit || isBuilding)
 				{
 					if (auto& dmgParticle = pThis->DamageParticleSystem)
 					{

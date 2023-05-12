@@ -1262,14 +1262,14 @@ DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 
 DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 {
-	enum { 
+	enum {
 		ContineCheckUpdateSelfHeal = 0x6FA75A ,
 		SkipAnySelfHeal = 0x6FA941,
 	};
 
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (!pThis->IsAlive || pThis->InLimbo) {
+	if (pThis->InLimbo) {
 		return SkipAnySelfHeal;
 	}
 
@@ -1283,34 +1283,15 @@ DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 		return SkipAnySelfHeal;
 	}
 
+	if(!GetAresTechnoExt(pThis)) {
+		return SkipAnySelfHeal;
+	}
+
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
 	const auto nAmount = AresData::GetSelfHealAmount(pThis);
 
 	if (nAmount > 0 || nAmount != 0) {
-
-		const bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-
 		pThis->Health += nAmount;
-
-		if (wasDamaged && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
-			|| pThis->GetHeight() < -10))
-		{
-			const auto pWhat = GetVtableAddr(pThis);
-			const bool isBuilding = pWhat == BuildingClass::vtable;
-
-			if (isBuilding) {
-				const auto pBuilding = static_cast<BuildingClass*>(pThis);
-				pBuilding->UpdatePlacement(PlacementType::Redraw);
-				pBuilding->ToggleDamagedAnims(false);
-			}
-
-			if (pWhat == UnitClass::vtable || isBuilding) {
-				if (auto& dmgParticle = pThis->DamageParticleSystem) {
-					dmgParticle->UnInit();
-					dmgParticle = nullptr;
-				}
-			}
-		}		
 	}
 
 	TechnoExt::ApplyGainedSelfHeal(pThis);

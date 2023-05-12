@@ -23,8 +23,8 @@ DEFINE_HOOK(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the 
 	const auto pParticleExt = ParticleExt::ExtMap.TryFind(pThis);
 
 	if (!pParticleExt) {
-		return 0;
 		Debug::Log("Particle[%x - %s] , Without Ext , Returning ! \n", pThis, pThis->get_ID());
+		return 0;
 	}
 
 	if (!pParticleExt->LaserTrails.empty())
