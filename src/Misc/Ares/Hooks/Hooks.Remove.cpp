@@ -16,6 +16,7 @@ DEFINE_DISABLE_HOOK(0x451E40, BuildingClass_DestroyNthAnim_Destroy_replaceDestru
 DEFINE_DISABLE_HOOK(0x6F5388, TechnoClass_DrawExtras_Submerged_ares)
 DEFINE_DISABLE_HOOK(0x468379, BulletClass_DrawSHP_SetAnimPalette_ares)
 DEFINE_DISABLE_HOOK(0x6FCBAD, TechnoClass_GetObjectActivityState_IvanBomb_ares)
+DEFINE_DISABLE_HOOK(0x51E748, InfantryClass_GetActionOnObject_NoSelfGuardArea_ares)
 
 DEFINE_DISABLE_HOOK(0x42784B, AnimTypeClass_CTOR_ares)
 DEFINE_DISABLE_HOOK(0x428EA8, AnimTypeClass_SDDTOR_ares)

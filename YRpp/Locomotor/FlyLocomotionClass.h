@@ -1,13 +1,14 @@
-//Locomotor = {B7B49766-E576-11d3-9BD9-00104B972FE8}
-
 #pragma once
+#include "LocomotionClass.h"
 
-#include <LocomotionClass.h>
-
-class DECLSPEC_UUID("B7B49766-E576-11d3-9BD9-00104B972FE8") NOVTABLE
-	RocketLocomotionClass : public LocomotionClass
+class DECLSPEC_UUID("4A582746-9839-11d1-B709-00A024DDAFD1") NOVTABLE
+	FlyLocomotionClass : public LocomotionClass
 {
 public:
+	static constexpr inline uintptr_t vtable = 0x7E8AC0;
+	static constexpr inline uintptr_t ILoco_vtable = 0x7E89F4; // vtable + 4
+	static constexpr inline CLSID ClassGUID = __uuidof(FlyLocomotionClass);
+
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
 	virtual ULONG __stdcall AddRef() override R0;
@@ -32,34 +33,26 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
-	virtual ~RocketLocomotionClass() RX;
+	virtual ~FlyLocomotionClass() RX;
 
 	//LocomotionClass
 	virtual	int Size() override R0;
 
-	//RocketLocomotionClass
-	double GetCurrentAngle() const
-	{ JMP_THIS(0x662240); }
+	//FlyLocomotionClass
 
-	bool IsInDelay() const
-	{ JMP_THIS(0x661F90); }
-
-	bool Func_6620F0(DWORD nIn) const {
-		JMP_THIS(0x6620F0);
-	}
 	//Constructor
-	RocketLocomotionClass()
-		: RocketLocomotionClass(noinit_t())
-	{ JMP_THIS(0x661EC0); }
+	FlyLocomotionClass()
+		: FlyLocomotionClass(noinit_t())
+	{ JMP_THIS(0x4CC9A0); }
 
 protected:
-	explicit __forceinline RocketLocomotionClass(noinit_t)
+	explicit __forceinline FlyLocomotionClass(noinit_t)
 		: LocomotionClass(noinit_t())
 	{
 		//vtftable
-		//*((unsigned long*)this) = (unsigned long)0x7F0BE8;
+	//	*((unsigned long*)this) = (unsigned long)0x7E8AC0;
 		// ILoco
-		//*((unsigned long*)this + 1) = (unsigned long)0x7F0B1C;
+	//	*((unsigned long*)this + 1) = (unsigned long)0x7E89F4;
 	}
 
 	//===========================================================================
@@ -68,16 +61,23 @@ protected:
 
 public:
 
+	bool AirportBound;
 	CoordStruct MovingDestination;
-	RepeatableTimerStruct MissionTimer;
-	CDTimerClass TrailerTimer; //timer34
-	int MissionState;
-	DWORD unknown_44;
+	CoordStruct XYZ2;
+	bool HasMoveOrder;
+	int FlightLevel;
+	double TargetSpeed;
 	double CurrentSpeed;
-	bool unknown_bool_4C;
-	bool SpawnerIsElite;
-	float CurrentPitch;
+	bool IsTakingOff;
+	bool IsLanding;
+	bool WasLanding;
+	bool unknown_bool_53;
+	DWORD unknown_54;
 	DWORD unknown_58;
-	DWORD unknown_5C;
+	bool IsElevating;
+	bool unknown_bool_5D;
+	bool unknown_bool_5E;
+	bool unknown_bool_5F;
 };
-//static_assert(sizeof(RocketLocomotionClass) == 0x60);
+
+static_assert(sizeof(FlyLocomotionClass) == 0x60);

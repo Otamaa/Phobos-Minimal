@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -19,7 +17,7 @@
 
 #include <Conversions.h>
 
-#include <RocketLocomotionClass.h>
+#include <Locomotor/Cast.h>
 #include <SpawnManagerClass.h>
 
 #pragma region RocketLocoHooks

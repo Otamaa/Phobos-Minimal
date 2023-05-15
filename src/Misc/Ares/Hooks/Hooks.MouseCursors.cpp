@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -60,14 +58,6 @@
 44731C = BuildingClass_GetActionOnObject_Tunnel, 6
 51ED8E = InfantryClass_GetActionOnObject_Tunnel, 6
 7004AD = TechnoClass_GetActionOnObject_Saboteur, 6
-
-
-417DD2 = AircraftClass_GetActionOnObject_NoManualUnload, 6
-740031 = UnitClass_GetActionOnObject_NoManualUnload, 6
-7008D4 = TechnoClass_GetActionOnCell_NoManualFire, 6
-700536 = TechnoClass_GetActionOnObject_NoManualFire, 6
-74031A = UnitClass_GetActionOnObject_NoManualEnter, 6
-51E748 = InfantryClass_GetActionOnObject_NoSelfGuardArea, 8
 
 447218 = BuildingClass_GetActionOnObject_Deactivated, 6
 73FD5A = UnitClass_GetActionOnObject_Deactivated, 5

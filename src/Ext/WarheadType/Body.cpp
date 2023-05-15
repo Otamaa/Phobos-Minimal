@@ -47,6 +47,14 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	INI_EX exINI(pINI);
 
 	if (!pINI->GetSection(pSection)) {	
+		for (size_t i = Verses.size(); i < ArmorTypeClass::Array.size(); ++i) {
+			auto& pArmor = ArmorTypeClass::Array[i];
+			const int nDefaultIdx = pArmor->DefaultTo;
+			Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
+					? pArmor->DefaultVersesValue
+					: Verses[nDefaultIdx]
+			);
+		}
 		return;
 	}
 
@@ -398,19 +406,24 @@ void WarheadTypeExt::ExtData::ApplyDamageMult(TechnoClass* pVictim, args_Receive
 
 void WarheadTypeExt::ExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
 {
-	const auto nArmorArrSize = ArmorTypeClass::Array.size();
-	Verses.resize(nArmorArrSize);
+	//const auto nArmorArrSize = ArmorTypeClass::Array.size();
+	Verses.resize(Unsorted::ArmorNameArray.size());
 
-	for (size_t i = 0; i < nArmorArrSize; ++i)
-	{
-		const auto& pArmor = ArmorTypeClass::Array[i];
-
-		if (pArmor->DefaultTo != -1) {
-			this->Verses[i] = ArmorTypeClass::Array[(size_t)pArmor->DefaultTo]->DefaultVersesValue;
-		} else { //evaluate armor with not valid default index
-			this->Verses[i] = pArmor->DefaultVersesValue;
-		}
-	}
+	//for (size_t i = 0; i < nArmorArrSize; ++i)
+	//{
+	//	const auto& pArmor = ArmorTypeClass::Array[i];
+	//	if(i < this->Verses.size()){
+	//		if (pArmor->DefaultTo != -1) {
+	//			this->Verses[i] = ArmorTypeClass::Array[(size_t)pArmor->DefaultTo]->DefaultVersesValue;
+	//		} else { //evaluate armor with not valid default index
+	//			this->Verses[i] = pArmor->DefaultVersesValue;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		this->Verses.push_back(pArmor->DefaultVersesValue);
+	//	}
+	//}
 }
 
 void WarheadTypeExt::ExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs)

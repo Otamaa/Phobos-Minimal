@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Building/Body.h>
@@ -416,27 +414,6 @@ DEFINE_OVERRIDE_HOOK(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDi
 	// add the EMP check to the limbo check
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
 		0x44583E : 0x4456F3;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
-{
-	GET(TechnoClass*, pTechno, EAX);
-
-	if (pTechno->AttachedTag)
-	{
-		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
-	}
-
-	if (pTechno->IsAlive)
-	{
-		if (pTechno->AttachedTag)
-		{
-			//66
-			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
-		}
-	}
-
-	return 0x4368D9;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73A1BC, UnitClass_UpdatePosition_EnteredGrinder, 0x7)

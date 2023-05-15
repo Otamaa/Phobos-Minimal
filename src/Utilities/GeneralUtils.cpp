@@ -11,6 +11,8 @@
 #include <Ext/Techno/Body.h>
 #include <TranslateFixedPoints.h>
 
+#include <Locomotor/CLSIDs.h>
+
 bool GeneralUtils::IsValidString(const char* str)
 {
 	if (str == nullptr || strlen(str) == 0 || INIClass::IsBlank(str))
@@ -98,47 +100,47 @@ const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)
 
 const char* GeneralUtils::GetLocomotionName(const CLSID& clsid)
 {
-	if (clsid == LocomotionClass::CLSIDs::Drive())
+	if (clsid == CLSIDs::Drive())
 	{
 		return "Drive";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Drive())
+	else if (clsid == CLSIDs::Drive())
 	{
 		return "Fly";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Jumpjet())
+	else if (clsid == CLSIDs::Jumpjet())
 	{
 		return "Jumpjet";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Droppod())
+	else if (clsid == CLSIDs::Droppod())
 	{
 		return "Droppod";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Tunnel())
+	else if (clsid == CLSIDs::Tunnel())
 	{
 		return "Tunnel";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Walk())
+	else if (clsid == CLSIDs::Walk())
 	{
 		return "Walk";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Mech())
+	else if (clsid == CLSIDs::Mech())
 	{
 		return "Mech";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Teleport())
+	else if (clsid == CLSIDs::Teleport())
 	{
 		return "Teleport";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Rocket())
+	else if (clsid == CLSIDs::Rocket())
 	{
 		return "Rocket";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Hover())
+	else if (clsid == CLSIDs::Hover())
 	{
 		return "Hover";
 	}
-	else if (clsid == LocomotionClass::CLSIDs::Ship())
+	else if (clsid == CLSIDs::Ship())
 	{
 		return "Ship";
 	}

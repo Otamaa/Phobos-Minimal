@@ -10,12 +10,14 @@
 #include "ShowTechnoNames.h"
 #include "SetVeterancy.h"
 #include "ShowTeamLeader.h"
+#include "RevealMap.h"
 
 #define Make(arg)\
 		Make<arg>();
 
 DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 {
+	Make(RevealMapCommandClass);
 	Make(ObjectInfoCommandClass);
 	Make(NextIdleHarvesterCommandClass);
 	Make(QuickSaveCommandClass);

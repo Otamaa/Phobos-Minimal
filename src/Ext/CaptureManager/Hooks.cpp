@@ -13,7 +13,6 @@ DEFINE_HOOK(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
 
 	const auto pAttacker = pThis->Owner;
 	const auto pAttackerType = pAttacker->GetTechnoType();
-
 	if (CaptureExt::AllowDrawLink(pAttackerType)) {
 		auto nVictimCoord = pVictim->Location;
 		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;

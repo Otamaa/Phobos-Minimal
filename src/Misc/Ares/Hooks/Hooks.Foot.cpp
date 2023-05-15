@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -150,33 +148,3 @@ DEFINE_OVERRIDE_HOOK(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 
 	return 0x4DAA70;
 }
-
-//#include <Ext/Techno/Body.h>
-//
-//DEFINE_HOOK(0x4DA56E, FootClass_Update_RadImmune, 0xA)
-//{
-//	enum { RetImmune = 0x4DA63B , Continue = 0x4DA593};
-//
-//	GET(FootClass*, pThis, ESI);
-//
-//	if (pThis->InLimbo)
-//		return RetImmune;
-//
-//	if (pThis->IsInAir())
-//		return RetImmune;
-//
-//	auto const pUnit = specific_cast<UnitClass*>(pThis);
-//
-//	if (pThis->GetTechnoType()->Immune ||
-//		pThis->IsIronCurtained() ||
-//		!pThis->IsInPlayfield ||
-//		pThis->TemporalTargetingMe || (pUnit && pUnit->DeathFrameCounter > 0))
-//	{
-//		return RetImmune;
-//	}
-//
-//	if (pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pThis))
-//		return RetImmune;
-//
-//	return TechnoExt::IsRadImmune(pThis) ? RetImmune : Continue;
-//}

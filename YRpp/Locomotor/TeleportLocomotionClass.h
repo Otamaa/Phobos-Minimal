@@ -1,17 +1,15 @@
-//Locomotor = {4A582747-9839-11d1-B709-00A024DDAFD1}
-
 #pragma once
-
-#include <LocomotionClass.h>
+#include "LocomotionClass.h"
 
 class  DECLSPEC_UUID("4A582747-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	TeleportLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline DWORD vtable = 0x7F50CC;
-	static constexpr inline DWORD ILoco_vtable = 0x7F5000;
-	static constexpr inline DWORD IPiggy_vtable = 0x7F4FDC;
-	
+	static constexpr inline uintptr_t vtable = 0x7F50CC;
+	static constexpr inline uintptr_t ILoco_vtable = 0x7F5000;
+	static constexpr inline uintptr_t IPiggy_vtable = 0x7F4FDC;
+	static constexpr inline CLSID ClassGUID = __uuidof(TeleportLocomotionClass);
+
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
 	virtual ULONG __stdcall AddRef() override R0;

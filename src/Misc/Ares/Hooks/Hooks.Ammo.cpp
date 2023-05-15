@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>

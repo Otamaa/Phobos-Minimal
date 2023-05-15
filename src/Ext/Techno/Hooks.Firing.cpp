@@ -10,7 +10,7 @@
 #include <Utilities/EnumFunctions.h>
 #include <Ext/TechnoType/Body.h>
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
 
@@ -158,8 +158,8 @@ DEFINE_HOOK(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		if (!TechnoExt::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 
-		if (!TechnoExt::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
-			return FireIllegal;
+		//if (!TechnoExt::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
+		//	return FireIllegal;
 
 		if (!TechnoExt::TargetFootAllowFiring(pTargetTechno, pWeapon))
 			return FireIllegal;
@@ -467,12 +467,8 @@ DEFINE_HOOK(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	}
 	else // 0x736FB6
 	{
-		const auto pLoco = pThis->Locomotor.get();
-
-		if (VTable::Get(pLoco) == JumpjetLocomotionClass::ILoco_vtable)
+		if (auto jjLoco = locomotion_cast<JumpjetLocomotionClass*, true>(pThis->Locomotor))
 		{
-			auto jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
-
 			//wrong destination check and wrong Is_Moving usage for jumpjets, should have used Is_Moving_Now
 			if (jjLoco->NextState != JumpjetLocomotionClass::State::Cruising)
 			{
@@ -520,10 +516,7 @@ DEFINE_HOOK(0x736EE9, UnitClass_UpdateFiring_FireErrorIsOK, 0x6)
 
 			if (pThis->GetRealFacing() != tgtDir)
 			{
-				const auto pLoco = pThis->Locomotor.get();
-
-				if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::ILoco_vtable) {
-					JumpjetLocomotionClass*  jjLoco = static_cast<JumpjetLocomotionClass*>(pLoco);
+				if (auto jjLoco = locomotion_cast<JumpjetLocomotionClass*, true>(pThis->Locomotor)) {
 					jjLoco->Facing.Set_Desired(tgtDir);
 				}
 				else

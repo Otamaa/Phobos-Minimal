@@ -1,6 +1,6 @@
 #pragma once
 
-#include <LocomotionClass.h>
+#include <Locomotor\LocomotionClass.h>
 #include <FootClass.h>
 #include <VocClass.h>
 #include <DebugLog.h>

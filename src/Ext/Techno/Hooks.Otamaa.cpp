@@ -12,6 +12,8 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/AnimType/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -432,6 +434,115 @@ DEFINE_HOOK(0x4B05EE, DriveLocoClass_InfCheck_Extend , 0x5)
 // init inside type check 
 // should be no problem here
 
+DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
+{
+	enum
+	{
+		Delete = 0x518619,
+		DoOtherAffects = 0x518515,
+		IsHuman = 0x5185C8,
+		CheckAndReturnDamageResultDestroyed = 0x5185F1,
+		PlayInfDeaths = 0x5185CE
+	};
+
+	GET(InfantryClass* const, pThis, ESI);
+	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
+	GET(DWORD, InfDeath, EDI);
+
+	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
+
+	if (!pThis->Type->NotHuman)
+	{
+		--InfDeath;
+		R->EDI(InfDeath);
+
+		bool Handled = false;
+
+		if (pThis->GetHeight() < 10)
+		{
+			if (pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex)
+				&& pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex])
+			{
+				AnimClass* Anim = GameCreate<AnimClass>(pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex],
+				pThis->Location);
+
+				HouseClass* const Invoker = (args.Attacker)
+					? args.Attacker->Owner
+					: args.SourceHouse
+					;
+
+				//these were MakeInf stuffs  , to make sure no behaviour chages
+				AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
+				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
+
+				Handled = true;
+			}
+			else
+				if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim)
+				{
+					AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);
+
+					HouseClass* const Invoker = (args.Attacker)
+						? args.Attacker->Owner
+						: args.SourceHouse
+						;
+
+					//these were MakeInf stuffs  , to make sure no behaviour chages
+					AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
+					AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
+
+					Handled = true;
+				}
+		}
+
+		return (Handled || InfDeath >= 10)
+			? CheckAndReturnDamageResultDestroyed
+			: PlayInfDeaths
+			;
+
+		//return IsHuman;
+	}
+
+	R->ECX(pThis);
+
+	if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
+		{
+			auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
+			pAnim->ZAdjust = pThis->GetZAdjustment();
+		}
+	}
+	else
+	{
+		auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
+		// Die1-Die5 sequences are offset by 10
+		constexpr auto Die = [](int x) { return x + 10; };
+
+		int resultSequence = Die(1);
+
+		if (!whSequence.isset()
+			&& TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
+		{
+			resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
+		}
+		else if (whSequence.isset())
+		{
+			resultSequence = std::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
+		}
+
+		InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;
+
+		//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
+		if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true))
+		{
+			return DoOtherAffects;
+		}
+	}
+
+	return Delete;
+}
 
 DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 {

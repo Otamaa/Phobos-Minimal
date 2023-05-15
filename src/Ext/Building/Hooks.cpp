@@ -92,11 +92,18 @@ DEFINE_HOOK(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 	GET(BuildingClass* const, pThis, ESI);
 	if(SessionClass::IsCampaign())
 	{
-		if (!pThis->BeingProduced ||
-			!HouseExt::ExtMap.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
+		if(!pThis->BeingProduced)
+			return ShouldNotRebuild;
+
+		// Preplaced structures are already managed before
+		if (BuildingExt::ExtMap.Find(pThis)->IsCreatedFromMapFile)
+			return ShouldNotRebuild;
+
+		if (!HouseExt::ExtMap.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty])
 		return ShouldNotRebuild;
 	}
 
+	// Vanilla instruction: always repairable in other game modes
 	return ContinueCheck;
 }
 

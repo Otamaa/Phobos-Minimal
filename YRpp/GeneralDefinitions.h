@@ -19,6 +19,21 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class Locomotors : int
+{
+	Drive = 0,
+	Jumpjet = 1,
+	Hover = 2,
+	Rocket = 3,
+	Tunnel = 4,
+	Walk = 5,
+	Droppod = 6,
+	Fly = 7,
+	Teleport = 8,
+	Mech = 9,
+	Ship = 10,
+};
+
 enum class Panning : int
 {
 	Left = 0x0000,

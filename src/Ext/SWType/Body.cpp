@@ -84,7 +84,7 @@ void SWTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_ForbiddenHouses = pINI->ReadHouseTypesList(pSection, "SW.ForbiddenHouses", this->SW_ForbiddenHouses);
 	this->SW_AuxBuildings.Read(exINI, pSection, "SW.AuxBuildings");
 	this->SW_NegBuildings.Read(exINI, pSection, "SW.NegBuildings");
-
+	this->SW_InitialReady.Read(exINI, pSection, "SW.InitialReady");
 	this->Detonate_Warhead.Read(exINI, pSection, "Detonate.Warhead" , true);
 	this->Detonate_Weapon.Read(exINI, pSection, "Detonate.Weapon", true);
 	this->Detonate_Damage.Read(exINI, pSection, "Detonate.Damage");
@@ -518,6 +518,7 @@ void SWTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SW_ForbiddenHouses)
 		.Process(this->SW_AuxBuildings)
 		.Process(this->SW_NegBuildings)
+		.Process(this->SW_InitialReady)
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
 		.Process(this->GClock_Palette)

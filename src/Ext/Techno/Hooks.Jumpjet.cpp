@@ -5,23 +5,7 @@
 
 #include <Utilities/Macro.h>
 
-#include <JumpjetLocomotionClass.h>
-
-static JumpjetLocomotionClass* GetLoco(ILocomotion* ILoco)
-{
-	if ((((DWORD*)ILoco)[0] == JumpjetLocomotionClass::ILoco_vtable))
-		return static_cast<JumpjetLocomotionClass*>(ILoco);
-
-	return nullptr;
-}
-
-static JumpjetLocomotionClass* GetLoco(LocomotionClass* pLoco)
-{
-	if ((((DWORD*)pLoco)[0] == JumpjetLocomotionClass::vtable))
-		return static_cast<JumpjetLocomotionClass*>(pLoco);
-
-	return nullptr;
-}
+#include <Locomotor/Cast.h>
 
 // Fix [JumpjetControls] obsolete in RA2/YR
 // Author: Uranusian

@@ -2466,80 +2466,84 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 		if (!objectType)
 			continue;
 
-		// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
-		const int weaponIndex = pTechno->SelectWeapon(object);
-
-		if (const auto nWeaponType = pTechno->GetWeapon(weaponIndex)) { 
-
-
-			auto weaponType = nWeaponType->WeaponType;
-
-			auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
-			// int weaponDamage = 0;
-			// if (weaponType)
-			// {
-			// 	weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
-			// }
-			//
-			// If the target can't be damaged then isn't a valid target
-			//if (weaponType && weaponDamage <= 0 && !agentMode)
-			//	continue;
-
-			if (!agentMode)
-			{
-				if (objectType->Immune)
-					continue;
-
-					if(weaponType) {
-						auto nArmor = objectType->Armor;
-						if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
-							if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
-								nArmor = pObjectExt->GetShield()->GetType()->Armor;
-
-						auto const& nVerses =
-						//GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead , nArmor);
-						std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)->GetVerses(nArmor).Verses);
-						if(!(nVerses >= 0.001))
-						   continue;
-				}
-
-				if (object->IsInAir() && !unitWeaponsHaveAA)
-					continue;
-
-				if (!object->IsInAir() && !unitWeaponsHaveAG)
-					continue;
-			}
-
-			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
-
-			// Check map zone
-			if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
-				continue;
-		}
-
-		// Don't pick underground units
-		if (object->InWhichLayer() == Layer::Underground)
+		if (pTechno->GetFireError(object, pTechno->SelectWeapon(object), false) != FireError::OK)
 			continue;
 
-		// Stealth ground unit check
-		if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
-			continue;
+		//// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
+		//const int weaponIndex = pTechno->SelectWeapon(object);
 
-		// Submarines aren't a valid target
-		if (object->CloakState == CloakState::Cloaked
-			&& objectType->Underwater
-			&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never || pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
-		{
-			continue;
-		}
+		//if (const auto nWeaponType = pTechno->GetWeapon(weaponIndex)) { 
 
-		// Land not OK for the Naval unit
-		if (objectType->Naval
-			&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-			&& object->GetCell()->LandType != LandType::Water)
-		{
-			continue;
-		}
+
+		//	auto weaponType = nWeaponType->WeaponType;
+
+		//	auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
+		//	// int weaponDamage = 0;
+		//	// if (weaponType)
+		//	// {
+		//	// 	weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
+		//	// }
+		//	//
+		//	// If the target can't be damaged then isn't a valid target
+		//	//if (weaponType && weaponDamage <= 0 && !agentMode)
+		//	//	continue;
+
+		//	if (!agentMode)
+		//	{
+		//		if (objectType->Immune)
+		//			continue;
+
+		//			if(weaponType) {
+		//				auto nArmor = objectType->Armor;
+		//				if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
+		//					if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
+		//						nArmor = pObjectExt->GetShield()->GetType()->Armor;
+
+		//				auto const& nVerses =
+		//				//GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead , nArmor);
+		//				std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)->GetVerses(nArmor).Verses);
+		//				if(!(nVerses >= 0.001))
+		//				   continue;
+		//		}
+
+		//		if (object->IsInAir() && !unitWeaponsHaveAA)
+		//			continue;
+
+		//		if (!object->IsInAir() && !unitWeaponsHaveAG)
+		//			continue;
+		//	}
+
+		//	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
+
+		//	// Check map zone
+		//	if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
+		//		continue;
+		//}
+
+		//// Don't pick underground units
+		//if (object->InWhichLayer() == Layer::Underground)
+		//	continue;
+
+		//// Stealth ground unit check
+		//if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
+		//	continue;
+
+		//// Submarines aren't a valid target
+		//if (object->CloakState == CloakState::Cloaked
+		//	&& objectType->Underwater
+		//	&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never || pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+		//{
+		//	continue;
+		//}
+
+		//// Land not OK for the Naval unit
+		//if (objectType->Naval
+		//	&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+		//	&& object->GetCell()->LandType != LandType::Water)
+		//{
+		//	continue;
+		//}
+
 
 		// OnlyTargetHouseEnemy forces targets of a specific (hated) house
 		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)

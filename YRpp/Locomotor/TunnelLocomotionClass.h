@@ -1,7 +1,5 @@
 #pragma once
-
-#include <LocomotionClass.h>
-#include <CoordStruct.h>
+#include "LocomotionClass.h"
 
 class ALIGN(4) DECLSPEC_UUID("4A582743-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	TunnelLocomotionClass : public LocomotionClass
@@ -20,8 +18,9 @@ public:
 		DUG_OUT = 0x7,
 	};
 	
-	static inline constexpr DWORD vtable = 0x7F5AF0;
-	static inline constexpr DWORD ILoco_vtable = 0x7F5A24;
+	static constexpr inline uintptr_t vtable = 0x7F5AF0;
+	static constexpr inline uintptr_t ILoco_vtable = 0x7F5A24;
+	static constexpr inline CLSID ClassGUID = __uuidof(TunnelLocomotionClass);
 
 	//Destructor
 	virtual ~TunnelLocomotionClass() RX;

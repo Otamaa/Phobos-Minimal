@@ -9,17 +9,17 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Anim/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
+#include <Locomotor/TunnelLocomotionClass.h>
 
 #include <Misc/AresData.h>
 
@@ -64,22 +64,6 @@ DEFINE_OVERRIDE_HOOK(0x73D81E, UnitClass_Mi_Unload_LastPassenger, 0x5)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x7388EB, UnitClass_ActionOnObject_IvanBombs, 0x6, 7388FD)
 
-DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pAttacker, EDI);
-
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
-		}
-	}
-
-	return 0x0;
-}
-
 DEFINE_OVERRIDE_SKIP_HOOK(0x73C733, UnitClass_DrawSHP_SkipTurretedShadow, 7, 73C7AC)
 
 DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
@@ -97,14 +81,6 @@ DEFINE_OVERRIDE_HOOK(0x741206, UnitClass_CanFire, 0x6)
 		? 0x741210u
 		: 0x741229u
 		;
-}
-
-DEFINE_OVERRIDE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
-{
-	GET(ObjectClass*, pTarget, EDI);
-
-	return RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage() ?
-		0x741121 : 0x74113A;
 }
 
 DEFINE_OVERRIDE_HOOK(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
@@ -827,11 +803,134 @@ DEFINE_OVERRIDE_HOOK(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
 	return 0x6F8F25;
 }
 
+bool NOINLINE FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget , WeaponTypeClass* pWeapon)
+{
+	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
+	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	const auto pThatShield = pThatTechnoExt->GetShield();
+
+	if (pThatShield && pThatShield->IsActive())
+	{
+		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
+		{
+			if (pThatShield->GetType()->CanBeHealed)
+			{
+				const bool IsFullHP = pThatShield->GetHealthRatio() >= nRulesGreen;
+				if (!IsFullHP) {
+					return true;
+				} else {
+					if(pThatShield->GetType()->PassthruNegativeDamage)
+						goto checkTechnoHealth;
+				}
+			}
+
+			return false;
+		}
+	}
+
+	checkTechnoHealth:
+	return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
+}
+
+DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
+{
+	enum { retFireIllegal = 0x51C939 , retContinue = 0x51C947 };
+	GET(InfantryClass*, pThis, EBX);
+	GET(ObjectClass*, pTarget, EDI);
+	GET_STACK(int , nWeaponIdx , STACK_OFFSET(0x20 , 0x8));
+
+	const auto pThatTechno = generic_cast<TechnoClass*>(pTarget);
+
+	if (!pThatTechno){
+		return retFireIllegal;
+	}
+
+	return FiringAllowed(pThis , pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
+		retContinue : retFireIllegal;
+
+}
+
+DEFINE_OVERRIDE_HOOK(0x741113, UnitClass_CanFire_Heal, 0xA)
+{
+	enum { retFireIllegal = 0x74113A , retContinue = 0x741149 };
+	GET(UnitClass*, pThis, ESI);
+	GET(TechnoClass*, pThatTechno, EDI);
+	GET_STACK(int , nWeaponIdx , STACK_OFFSET(0x1C , 0x8));
+
+	return FiringAllowed(pThis, pThatTechno , pThis->GetWeapon(nWeaponIdx)->WeaponType ) ?
+		retContinue : retFireIllegal ;
+}
+
+DEFINE_HOOK(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
+{
+	enum { SetHealthRatio = 0x6F7F56 , ContinueCheck = 0x6F7F6D , retFalse = 0x6F894F };
+	GET(TechnoClass*, pThis, EDI);
+	GET(ObjectClass*, pThat, ESI);
+
+	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
+	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+
+	if (!pThatTechno){
+		return pThat->GetHealthPercentage_() >= nRulesGreen ?
+			retFalse : ContinueCheck;
+	}
+
+	return FiringAllowed(pThis,pThatTechno ,pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
+		 ContinueCheck : retFalse;
+
+}
+
+std::pair<bool , int> NOINLINE HealActionProhibited(bool CheckKeyPress,TechnoClass* pTarget ,WeaponTypeClass* pWeapon)
+{
+	const auto pThatTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	const auto pThatShield = pThatTechnoExt->GetShield();
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
+
+	if (CheckKeyPress) {
+		if (WWKeyboardClass::Instance->IsForceMoveKeyPressed())
+			return {true , -1};
+	}
+
+	if (pThatShield && pThatShield->IsActive())
+	{
+		const auto pShieldType = pThatShield->GetType();
+
+		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0) {
+			return { true , -1 };
+		}
+
+		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
+		{
+			if (pShieldType->CanBeHealed)
+			{
+				const bool IsFullHp = pThatShield->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
+
+				if (!IsFullHp) {
+					return { false ,  pShieldType->HealCursorType.Get(-1) };
+				}else {
+
+					if (pThatShield->GetType()->PassthruNegativeDamage)
+						return { pTarget->IsFullHP() , -1 };
+					else
+						return { true , -1 };
+				}
+			}
+
+			return { true , -1 };
+		}
+	}
+
+	if (pWHExt->GetVerses(pThatTechnoExt->Type->Armor).Verses <= 0.0)
+		return { true , -1 };
+
+	return { pTarget->IsFullHP() , -1 };
+}
+
 DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 {
 	enum
 	{
-		ActionGueardArea = 0x51E748,
+		ActionGuardArea = 0x51E748,
 		NextCheck = 0x51E757,
 		NextCheck2 = 0x51E7A6,
 		DoActionHeal = 0x51E739
@@ -841,24 +940,19 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 	GET(ObjectClass*, pThat, ESI);
 
 	if (pThis == pThat)
-		return ActionGueardArea;
+		return TechnoTypeExt::ExtMap.Find(pThis->Type)->NoSelfGuardArea ? NextCheck2 : ActionGuardArea;
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
 	if (!pThatTechno)
 		return NextCheck;
 
 	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType;
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	const auto pType = pThatTechno->GetTechnoType();
-	const auto& Verses = pWHExt->GetVerses(pType->Armor).Verses;
+	const auto pThatType = pThatTechno->GetTechnoType();
+	const auto&[ret ,nCursorShield] = HealActionProhibited(true ,pThatTechno, pWeapon);
 
-	if (pThatTechno->IsFullHP() || WWKeyboardClass::Instance->IsForceMoveKeyPressed() || Verses <= 0.0)
-	{
-		if (Is_Building(pThatTechno))
-		{
-			const auto pBuilding = static_cast<BuildingClass*>(pThatTechno);
-			if (pBuilding->Type->Grinding)
-			{
+	if (ret) {
+		if (const auto pBuilding = specific_cast<BuildingClass*>(pThatTechno)) {
+			if (pBuilding->Type->Grinding) {
 				return NextCheck2;
 			}
 		}
@@ -866,7 +960,7 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 		return NextCheck;
 	}
 
-	const size_t nCursor = (pType->Organic || Is_Infantry(pThat)) ? 90 : 91;
+	const size_t nCursor = nCursorShield != -1 ? (size_t)nCursorShield : (pThatType->Organic || Is_Infantry(pThat)) ? 90 : 91;
 	//TODO : properly port this
 	AresData::SetMouseCursorAction(nCursor, Action::Heal, false);
 	return DoActionHeal;
@@ -874,45 +968,40 @@ DEFINE_OVERRIDE_HOOK(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 
 DEFINE_OVERRIDE_HOOK(0x73FDBD, UnitClass_GetActionOnObject_Heal, 5)
 {
-	GET(UnitClass*, pThis, EDI);
-	GET(ObjectClass*, pThat, ESI);
+	enum { ContinueCheck = 0x73FE48 , CheckIfTargetIsBuilding = 0x73FE2F, DoActionSelect = 0x73FE3B , DoActionGRepair = 0x73FE22 , CheckObjectHP = 0x73FE08 };
+	GET(UnitClass*, pThis, ESI);
+	GET(ObjectClass*, pThat, EDI);
 	GET(Action, nAct, EBX);
 
 	if (nAct == Action::GuardArea)
-		return 0x73FE48;
+		return ContinueCheck;
 
 	const auto pThatTechno = generic_cast<TechnoClass*>(pThat);
+	if(WWKeyboardClass::Instance->IsForceMoveKeyPressed() || 
+		pThis == pThat || 
+		!pThatTechno || 
+		!pThat->IsSurfaced()
+	  )
+		return DoActionSelect;
 
-	if (WWKeyboardClass::Instance->IsForceMoveKeyPressed() ||
-		!pThatTechno ||
-		pThatTechno->IsFullHP() ||
-		!pThat->IsSurfaced())
-	{
-		return 0x73FE3B;
-	}
-
-	if (Is_Aircraft(pThat))
-	{
-		const auto pAir = static_cast<AircraftClass*>(pThat);
-		if (pAir->GetCell()->GetBuilding())
-		{
-			return 0x73FE3B;
+	if (auto const pAir = specific_cast<AircraftClass*>(pThat)) {
+		if (pAir->GetCell()->GetBuilding()) {
+			return ContinueCheck;
 		}
 	}
 
-	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType;
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	const auto pType = pThat->GetTechnoType();
-	const auto& Verses = pWHExt->GetVerses(pType->Armor).Verses;
+	auto pThatType = pThat->GetTechnoType();
+	const auto& [ret, nCursorSelected] = HealActionProhibited(false, pThatTechno, 
+			    pThis->GetWeapon(pThis->SelectWeapon(pThat))->WeaponType);
 
-	if (Verses <= 0.0)
-		return 0x73FE3B;
+	if(ret)
+		return DoActionSelect;
 
-	const size_t nCursor = (pType->Organic || Is_Infantry(pThat)) ? 90 : 91;
+	size_t nCursor = nCursorSelected != -1 ? (size_t)nCursorSelected : (pThatType->Organic || Is_Infantry(pThat)) ? 90 : 91;
 	//TODO : properly port this
 	AresData::SetMouseCursorAction(nCursor, Action::GRepair, false);
 
-	return 0x73FE08;
+	return DoActionGRepair;//0x73FE08;
 }
 
 UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis)
@@ -1291,9 +1380,6 @@ DEFINE_OVERRIDE_HOOK(0x735584, UnitClass_CTOR_TurretROT, 6)
 	return 0x73558A;
 }
 
-#include <TunnelLocomotionClass.h>
-#include <Ext/Anim/Body.h>
-
 namespace AresHadleTunnelLocoStuffs
 {
 	void Handle(FootClass* pOwner, bool DugIN = false, bool PlayAnim = false)
@@ -1507,52 +1593,29 @@ DEFINE_OVERRIDE_HOOK(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	) ? 0x700DCE : 0x700E59;
 }
 
-DEFINE_OVERRIDE_HOOK(0x51C913, InfantryClass_CanFire_Heal, 7)
-{
-	GET(ObjectClass*, pTarget, EDI);
-
-	if (const auto pTech = generic_cast<TechnoClass*>(pTarget))
-	{
-		if (RulesClass::Instance->ConditionGreen > pTarget->GetHealthPercentage_())
-		{
-			return 0x51C947;
-		}
-	}
-
-	return 0x51C939;
-}
 
 // this code somewhat broke targeting
 // it created identically like ares but not working as expected , duh
-//DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//	GET(HouseClass* const, pHouse, EDI);
-//
-//	const bool BLRes = R->BL();
-//	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
-//	bool IsAlly = false;
-//	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
-//		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-//			if(pOwner->IsAlliedWith_(pTargetHouse))
-//				IsAlly = true;
-//		}
-//	}
-//
-//	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
-//	const bool IsNegDamage = (pThis->CombatDamage() < 0);
-//
-//	//if (IsNegDamage && !IsAlly)
-//	//	return RetNotAlly;
-//	//
-//	//if (IsAlly) {
-//	//	return RetAlly;
-//	//}
-//
-//	//return RetNotAlly;
-//
-//	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
-//}
+DEFINE_OVERRIDE_HOOK(0x6FA361, TechnoClass_Update_LoseTarget, 5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(HouseClass* const, pHouse, EDI);
+
+	const bool BLRes = R->BL();
+	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse ;
+	bool IsAlly = false;
+	if (const auto pTechTarget = generic_cast<TechnoClass*>(pThis->Target)) {
+		if(const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
+			if(pOwner->IsAlliedWith_(pTargetHouse))
+				IsAlly = true;
+		}
+	}
+
+	enum { RetNotAlly = 0x6FA472 , RetAlly = 0x6FA39D};
+	const bool IsNegDamage = (pThis->CombatDamage() < 0);
+
+	return IsAlly == IsNegDamage ? RetNotAlly : RetAlly;
+}
 
 static constexpr const char* const SubName[] = {
 	"Normal", "Repair" ,"MachineGun", "Flak" , "Pistol" , "Sniper" , "Shock",

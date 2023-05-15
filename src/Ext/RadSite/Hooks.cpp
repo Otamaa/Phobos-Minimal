@@ -7,6 +7,7 @@
 #include <ScenarioClass.h>
 
 #include <Ext/BuildingType/Body.h>
+#include <Ext/Building/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
@@ -57,29 +58,31 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 		GET_STACK(int, amount, 0xC);
 
 		const auto pCell = MapClass::Instance->GetCellAt(location);
-		if(!pCell)
+		if (!pCell)
 			return Handled;
 
-		if (!pThis) {
+		if (!pThis)
+		{
 
 			const auto pDefault = RadTypeClass::Find(RADIATION_SECTION);
 			auto const it = std::find_if(RadSiteClass::Array->begin(), RadSiteClass::Array->end(),
 
-			[=](auto const pSite) {
-				auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
-				if (pRadExt->Type != pDefault)
-					return false;
+			[=](auto const pSite)
+ {
+	 auto const pRadExt = RadSiteExt::ExtMap.Find(pSite);
+	 if (pRadExt->Type != pDefault)
+		 return false;
 
-				if (pSite->BaseCell != location)
-					return false;
+	 if (pSite->BaseCell != location)
+		 return false;
 
-				if (spread != pSite->Spread)
-					return false;
+	 if (spread != pSite->Spread)
+		 return false;
 
-				if (pThis->WeaponType != pRadExt->Weapon)
-					return false;
+	 if (pThis->WeaponType != pRadExt->Weapon)
+		 return false;
 
-				return true;
+	 return true;
 			});
 
 			if (it != RadSiteClass::Array->end())
@@ -88,7 +91,8 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 				const auto nMax = pDefault->GetLevelMax();
 				const auto nCurrent = (*it)->GetCurrentRadLevel();
 
-				if (nCurrent + amount > nMax) {
+				if (nCurrent + amount > nMax)
+				{
 					nAmount = nMax - nCurrent;
 				}
 
@@ -96,9 +100,11 @@ DEFINE_HOOK(0x46ADE0, BulletClass_ApplyRadiation_NoBullet, 0x5)
 				return Handled;
 			}
 
-			RadSiteExt::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr , nullptr);
-		
-		} else {
+			RadSiteExt::CreateInstance(pCell->GetCoordsWithBridge(), spread, amount, nullptr, nullptr);
+
+		}
+		else
+		{
 			BulletExt::ExtMap.Find(pThis)->ApplyRadiationToCell(pCell->GetCoordsWithBridge(), spread, amount);
 		}
 
@@ -150,7 +156,8 @@ DEFINE_HOOK(0x5213B4, InfantryClass_AIDeployment_CheckRad, 0x7)
 
 					});
 
-				if (it != RadSiteClass::Array->end()) {
+				if (it != RadSiteClass::Array->end())
+				{
 					radLevel = static_cast<int>(RadSiteExt::ExtMap.Find((*it))->GetRadLevelAt(currentCoord));
 				}
 
@@ -173,8 +180,8 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 
 	const auto pWeaponstr = pThis->GetDeployWeapon();
 
-	if(pWeaponstr) {
-
+	if (pWeaponstr)
+	{
 		const auto pWeapon = pWeaponstr->WeaponType;
 
 		if (pWeapon
@@ -196,22 +203,28 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 	return 0x521484;
 }
 
-#include <Ext/Building/Body.h>
-// Too OP, be aware
-DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
+DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 {
+	enum { Dead = 0x440573, Continue = 0x0};
+
+	GET(BuildingClass* const, pBuilding, ECX);
+
+	if (!pBuilding->IsAlive)
+		return Dead;
+
+	const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
-		GET(BuildingClass* const, pBuilding, ECX);
+		if (!RadSiteClass::Array->Count)
+			return Continue;
 
-		if (pBuilding->InLimbo  || 
+		if (pBuilding->InLimbo ||
 			TechnoExt::IsRadImmune(pBuilding))
-			return 0;
-
-		const auto pExt = BuildingExt::ExtMap.Find(pBuilding);
+			return Continue;
 
 		if (pExt->LimboID != -1)
-			return 0;
+			return Continue;
 
 		if (pBuilding->IsIronCurtained() ||
 			pBuilding->BeingWarpedOut ||
@@ -219,33 +232,34 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 			pBuilding->Type->Immune
 			)
 		{
-			return 0;
+			return Continue;
 		}
 
 		if (pBuilding->IsAlive && pBuilding->Health > 0)
 		{
-			auto buildingCoords = pBuilding->InlineMapCoords();
+			const auto nCurCoord = pBuilding->InlineMapCoords();
 			for (auto pFoundation = pBuilding->GetFoundationData(false);
-				*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation) {
-
-				const auto nCellStruct = buildingCoords + *pFoundation;
+				*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+			{
+				const auto nLoc = nCurCoord + (*pFoundation);
 
 				// Loop for each different radiation stored in the RadSites container
 				for (auto pRadSite : *RadSiteClass::Array())
 				{
 					const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+
 					// Check the distance, if not in range, just skip this one
-					const double orDistance = pRadSite->BaseCell.DistanceFrom(nCellStruct);
+					const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
 					if (static_cast<int>(orDistance) > pRadSite->Spread)
 						continue;
 
 					const RadTypeClass* pType = pRadExt->Type;
 					const int delay = pType->GetBuildingApplicationDelay();
-					if ((delay <= 0) 
+					if ((delay <= 0)
 						|| (Unsorted::CurrentFrame % (delay + RadSiteClass::Array->Count)))
 						continue;
 
-					const auto nRadLevel = pRadExt->GetRadLevelAt(nCellStruct);
+					const auto nRadLevel = pRadExt->GetRadLevelAt(orDistance);
 					if (nRadLevel == 0.0 || !pType->GetWarhead())
 						continue;
 
@@ -254,17 +268,14 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 					if (damage == 0)
 						continue;
 
-					if (pBuilding->IsAlive && pBuilding->Health > 0) // simple fix for previous issues
-					{
-						if (!pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)) || !(pBuilding->Health > 0))
-							return 0;
-					}
+					if (!pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
+						return Dead;
 				}
 			}
 		}
 	}
 
-	return 0;
+	return Continue;
 }
 
 // skip Frame % RadApplicationDelay
@@ -277,14 +288,19 @@ DEFINE_HOOK(0x43FB23, BuildingClass_AI, 0x5)
 // Hook Adjusted to support Ares RadImmune Ability check
 DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 {
-	enum { 
-		CheckOtherState = 0x4DA63B, 
+	enum
+	{
+		CheckOtherState = 0x4DA63B,
 		SkipEverything = 0x4DAF00,
-		Continue = 0x0 ,
+		Continue = 0x0,
 		ProcessRadSiteCheckVanilla = 0x4DA59F,
 	};
 
 	GET(FootClass* const, pThis, ESI);
+	const auto nLoc = pThis->InlineMapCoords();
+
+	if(!RadSiteClass::Array->Count)
+		return CheckOtherState;
 
 	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
 		return CheckOtherState;
@@ -305,12 +321,11 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 	if (pThis->IsBeingWarpedOut() || TechnoExt::IsChronoDelayDamageImmune(pThis))
 		return CheckOtherState;
 
-	if(TechnoExt::IsRadImmune(pThis))
-		return CheckOtherState ;
+	if (TechnoExt::IsRadImmune(pThis))
+		return CheckOtherState;
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
-		auto const nLoc = CellClass::Coord2Cell(pThis->Location);
 		// Loop for each different radiation stored in the RadSites container
 		for (auto pRadSite : *RadSiteClass::Array())
 		{
@@ -322,12 +337,12 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 
 			const RadTypeClass* pType = pRadExt->Type;
 			const int RadApplicationDelay = pType->GetApplicationDelay();
-			if ((RadApplicationDelay <= 0) 
+			if ((RadApplicationDelay <= 0)
 				|| (Unsorted::CurrentFrame % (RadApplicationDelay + RadSiteClass::Array->Count)))
 				continue;
 
 			// for more precise dmg calculation
-			const double nRadLevel = pRadExt->GetRadLevelAt(nLoc);
+			const double nRadLevel = pRadExt->GetRadLevelAt(orDistance);
 			if (nRadLevel <= 0.0 || !pType->GetWarhead())
 				continue;
 
@@ -336,14 +351,11 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 			if (damage == 0)
 				continue;
 
-			if (pThis->IsAlive && !pThis->IsSinking && !pThis->IsCrashing) {
-
-				if (!pRadExt->ApplyRadiationDamage(pThis,damage, static_cast<int>(orDistance)))
-					return SkipEverything;
-			}
+			if (!pRadExt->ApplyRadiationDamage(pThis, damage, static_cast<int>(orDistance)))
+				return SkipEverything;
 		}
 
-		return pThis->IsAlive ? CheckOtherState : SkipEverything;
+		return CheckOtherState;
 	}
 
 	return ProcessRadSiteCheckVanilla;

@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
@@ -264,6 +262,10 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 	return 0x518016u;
 }
 
+#ifdef COMPILE_PORTED_DP_FEATURES
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#endif
+
 DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_SuppressUnitLost, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -271,9 +273,16 @@ DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_SuppressUnitLost, 6)
 
 	const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWarhead);
 	auto pTechExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	if (pWarheadExt->Supress_LostEva.Get())
 		pTechExt->SupressEVALost = true;
+
+#ifdef COMPILE_PORTED_DP_FEATURES
+
+	GiftBoxFunctional::Destroy(pTechExt, pTypeExt);
+#endif
 
 	return 0x0;
 }
@@ -288,18 +297,17 @@ DEFINE_OVERRIDE_HOOK(0x7384BD, UnitClass_ReceiveDamage_OreMinerUnderAttack, 6)
 	return WH && !Is_MaliciousWH(WH) ? 0x738535u : 0u;
 }
 
-DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
+DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_STACK(WarheadTypeClass* const, pWarhead, 0xD0);
 	GET_STACK(TechnoClass* const, pAttacker, 0xD4);
-	GET_STACK(DamageState, nDamageResult, 0x20);
+	GET_STACK(DamageState const, nDamageResult, 0x20);
 	GET_STACK(int* const, pDamamge, 0xC8);
-	GET_STACK(bool, bIgnoreDamage, 0xD8);
-	GET_STACK(HouseClass*, pAttacker_House, STACK_OFFSET(0xC4, 0x18));
+	GET_STACK(bool const, bIgnoreDamage, 0xD8);
+	GET_STACK(HouseClass* const, pAttacker_House, STACK_OFFSET(0xC4, 0x18));
 	//GET_STACK(void*, bSomething, 0x12); //
 
-	const bool bResult = nDamageResult == DamageState::Unaffected ? 0x702823 : 0x0;
 	bool bAffected = false;
 	const auto pType = pThis->GetTechnoType();
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
@@ -328,10 +336,11 @@ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		if (pWHExt->DecloakDamagedTargets.Get())
 			pThis->Uncloak(false);
 
-		if ((!bAffected || !pWHExt->EffectsRequireDamage) &&
-			(!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(pType->Armor).Verses >= 0.0001)))
+		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
+		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(pType->Armor).Verses >= 0.0001));
+		
+		if ( bCond1 && bCond2)
 		{
-
 			AresData::WarheadTypeExt_ExtData_ApplyKillDriver(pWarhead, pAttacker, pThis);
 
 			if (pWHExt->Sonar_Duration > 0)
@@ -368,7 +377,7 @@ DEFINE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		}
 	}
 
-	return bResult;
+	return nDamageResult == DamageState::Unaffected ? 0x702823 : 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
@@ -455,7 +464,6 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 {
 	auto const pType = pThis->GetTechnoType();
 	auto const pOwner = pThis->Owner;
-	auto const location = pThis->Location;
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
 	// do not ever do this again for this unit
@@ -479,7 +487,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 		{
 			auto const pHijackerTypeExt = TechnoTypeExt::ExtMap.Find(pHijacker->Type);
 
-			if (!TechnoExt::EjectRandomly(pHijacker, location, 144, Select))
+			if (!TechnoExt::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
 
@@ -499,7 +507,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
-				VocClass::PlayAt(pHijackerTypeExt->HijackerLeaveSound, location, nullptr);
+				VocClass::PlayAt(pHijackerTypeExt->HijackerLeaveSound, pThis->Location, nullptr);
 
 				// lower than 0: kill all, otherwise, kill n pilots
 				pilotCount = ((pHijackerTypeExt->HijackerKillPilots < 0) ? 0 :
@@ -526,7 +534,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 						pPilot->Health /= 2;
 						pPilot->Veterancy.Veterancy = pThis->Veterancy.Veterancy;
 
-						if (!TechnoExt::EjectRandomly(pPilot, location, 144, Select))
+						if (!TechnoExt::EjectRandomly(pPilot, pThis->Location, 144, Select))
 						{
 							pPilot->RegisterDestruction(pKiller);
 
@@ -567,7 +575,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
 
-			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, location, 128, Select))
+			if (trySpawn && TechnoExt::EjectRandomly(pPassenger, pThis->Location, 128, Select))
 			{
 				continue;
 			}
@@ -805,7 +813,7 @@ DEFINE_OVERRIDE_HOOK(0x518698, InfantryClass_ReceiveDamage_Anims, 5) // Infantry
 
 	// animation has been created. set the owner and color.
 
-	auto pInvoker = Arguments.Attacker
+	const auto pInvoker = Arguments.Attacker
 		? Arguments.Attacker->Owner
 		: Arguments.SourceHouse;
 
@@ -864,4 +872,104 @@ DEFINE_OVERRIDE_HOOK(0x518CB3, InfantryClass_ReceiveDamage_Doggie, 0x6)
 	}
 
 	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
+{
+	GET(ObjectClass*, pObject, ESI);
+	GET(ObjectClass*, pAttacker, EDI);
+
+	if (R->EBP<DamageState>() != DamageState::NowDead && pObject->IsAlive)
+	{
+		auto v3 = pObject->AttachedTag;
+		if (!v3 || (v3->RaiseEvent(TriggerEvent::AttackedByAnybody, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
+		{
+			if (auto v4 = pObject->AttachedTag)
+				v4->RaiseEvent(TriggerEvent::AttackedByHouse, pObject, CellStruct::Empty, false, pAttacker);
+		}
+	}
+
+	if (pObject->IsAlive)
+	{
+		auto pFirstTag = pObject->AttachedTag;
+		//84
+		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
+		{
+			if (auto pSecondTag = pObject->AttachedTag)
+				// 83
+				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
+		}
+	}
+
+	return 0x5F580C;
+}
+
+DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(TechnoClass*, pAttacker, EDI);
+
+	if (pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+		}
+	}
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pAttacker, EDI);
+
+	if (pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			// 85 
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(HouseClass*, pAttacker, EDI);
+
+	if (pThis->IsAlive && pAttacker)
+	{
+		if (auto pTag = pThis->AttachedTag)
+		{
+			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
+{
+	GET(TechnoClass*, pTechno, EAX);
+
+	if (pTechno->AttachedTag)
+	{
+		pTechno->AttachedTag->RaiseEvent(TriggerEvent::EnemyInSpotlight, pTechno, CellStruct::Empty, 0, 0);
+	}
+
+	if (pTechno->IsAlive)
+	{
+		if (pTechno->AttachedTag)
+		{
+			//66
+			pTechno->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::EnemyInSpotlightNow, pTechno, CellStruct::Empty, 0, 0);
+		}
+	}
+
+	return 0x4368D9;
 }

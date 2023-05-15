@@ -3,9 +3,9 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
-#include <HoverLocomotionClass.h>
-#include <DriveLocomotionClass.h>
-#include <DropPodLocomotionClass.h>
+
+#include <Locomotor/HoverLocomotionClass.h>
+
 /*; hover vehicle characteristics
 
 1484    HoverHeight=120         ; height of hovering vehicles

@@ -170,18 +170,14 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8
-{
-	GET(TechnoClass*, pThis, ESI);
+// DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8
+// {
+// 	GET(TechnoClass*, pThis, ESI);
 
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		if (auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())) {
-			GiftBoxFunctional::Destroy(pExt, pTypeExt);
-		 }
-	}
 
-	return 0;
-}
+
+// 	return 0;
+// }
 
 DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
 {

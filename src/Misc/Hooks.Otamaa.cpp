@@ -19,17 +19,15 @@
 #include <VeinholeMonsterClass.h>
 #include <TerrainTypeClass.h>
 #include <SmudgeTypeClass.h>
-#include <TunnelLocomotionClass.h>
 #include <IsometricTileTypeClass.h>
 
 #include <TiberiumClass.h>
-#include <JumpjetLocomotionClass.h>
 #include <FPSCounter.h>
 #include <GameOptionsClass.h>
-#include <DriveLocomotionClass.h>
-#include <ShipLocomotionClass.h>
 
 #include <Memory.h>
+
+#include <Locomotor/Cast.h>
 #pragma endregion
 
 DEFINE_HOOK(0x6FA2C7, TechnoClass_AI_DrawBehindAnim, 0x8) //was 4
@@ -4293,8 +4291,6 @@ DEFINE_HOOK(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 0x6)
 	return 0x448AC8;
 }
 
-#include <HoverLocomotionClass.h>
-
 DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
@@ -4318,8 +4314,7 @@ DEFINE_HOOK(0x70FB50, TechnoClass_Bunkerable, 0x5)
 		if (pFoot->ParasiteEatingMe)
 			ret = false;
 
-		const auto pLoco = pFoot->Locomotor.get();
-		if (VTable::Get(pLoco) == HoverLocomotionClass::ILoco_vtable)
+		if (locomotion_cast<HoverLocomotionClass*>(pFoot->Locomotor))
 			ret = false;
 	}
 
@@ -4497,12 +4492,12 @@ DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
-{
-	//GET(TechnoClass*, pThis, ESI);
-	//TODO DamageArgs
-	return 0x0;
-}
+// DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
+// {
+// 	//GET(TechnoClass*, pThis, ESI);
+// 	//TODO DamageArgs
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {

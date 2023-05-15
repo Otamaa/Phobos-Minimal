@@ -107,23 +107,39 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	if (!pToExt || !pFromExt || !pFromExt->Shield)
 		return;
 
-	if(pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
-		return;
-
-	pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-	pToExt->Shield.reset(pFromExt->Shield.release());
-	pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
-	pFromExt->Shield = nullptr;
+	if (pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
+	{
+		if(pToExt->Shield) {
+			const auto nFromPrecentage = int(pFromExt->Shield->GetHealthRatio() * pToExt->Shield->Type->Strength);
+			pToExt->Shield->HP = nFromPrecentage;
+			if (nFromPrecentage > 0) {
+				pToExt->Shield->Available = true;
+				pToExt->Shield->UpdateIdleAnim();
+			}
+		}
+	}
+	else
+	{
+		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
+		pToExt->Shield.reset(pFromExt->Shield.release());
+		pToExt->Shield->KillAnim();
+		pToExt->Shield->Techno = pTo;
+		pToExt->Shield->CurTechnoType = pFromExt->Shield->CurTechnoType;
+		pToExt->Shield->CreateAnim();
+		pFromExt->Shield = nullptr;
+	}
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
 
 bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 {
-	if (const auto pThis = generic_cast<TechnoClass*>(pAttached)) {
+	if (const auto pThis = generic_cast<TechnoClass*>(pAttached))
+	{
 		const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
-		if (auto const pShield = pExt->GetShield()) {
+		if (auto const pShield = pExt->GetShield())
+		{
 			return pShield->HP <= 0;
 		}
 	}
@@ -139,16 +155,21 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args->WH);
 
 	if (!pWHExt || !this->HP || this->Temporal || *args->Damage == 0 ||
-		this->Techno->IsIronCurtained() || CanBePenetrated(args->WH))
+		this->Techno->IsIronCurtained())
 	{
 		return;
 	}
 
-	int nDamage = 0;
-	int shieldDamage = 0;
-	int healthDamage = 0;
+	if(CanBePenetrated(args->WH))
+		return;
 
-	if (pWHExt->CanTargetHouse(args->SourceHouse, this->Techno) && !args->WH->Temporal)
+	const auto pSource = args->Attacker ? args->Attacker->Owner : args->SourceHouse;
+	int nDamage = 0;
+	int DamageToShield = 0;
+	int PassableDamageAnount = 0;
+	const bool ShieldStillInfullHP = (this->Type->Strength - this->HP) == 0;
+
+	if (pWHExt->CanTargetHouse(pSource, this->Techno) && !args->WH->Temporal)
 	{
 		if (*args->Damage > 0)
 			nDamage = MapClass::GetTotalDamage(*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
@@ -159,92 +180,102 @@ void ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		const double absorbPercent = affectsShield ? pWHExt->Shield_AbsorbPercent.Get(this->Type->AbsorbPercent) : this->Type->AbsorbPercent;
 		const double passPercent = affectsShield ? pWHExt->Shield_PassPercent.Get(this->Type->PassPercent) : this->Type->PassPercent;
 
-		shieldDamage = (int)((double)nDamage * absorbPercent);
+		DamageToShield = (int)((double)nDamage * absorbPercent);
 		// passthrough damage shouldn't be affected by shield armor
-		healthDamage = (int)((double)*args->Damage * passPercent);
+		PassableDamageAnount = (int)((double)*args->Damage * passPercent);
 	}
 
-	if (Phobos::Debug_DisplayDamageNumbers && shieldDamage != 0)
-		TechnoExt::DisplayDamageNumberString(this->Techno, shieldDamage, true , args->WH);
-
 	int nDamageResult = 0;
+	bool IsShielRequreFeeback = true;
+
+	if (DamageToShield == 0)
 	{
-		if (shieldDamage > 0)
+		auto nPassableDamageAnountCopy = PassableDamageAnount;
+		if (Phobos::Debug_DisplayDamageNumbers && (nPassableDamageAnountCopy) != 0)
+			TechnoExt::DisplayDamageNumberString(this->Techno, (nPassableDamageAnountCopy), true, args->WH);
+
+		nDamageResult = PassableDamageAnount;
+	}
+	else if (DamageToShield > 0)
+	{
+		const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+
+		this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
+		this->ResponseAttack();
+
+		if (pWHExt->DecloakDamagedTargets)
+			this->Techno->Uncloak(false);
+
+		const auto nHPCopy = this->HP;
+		int residueDamage = DamageToShield - this->HP;
+		//positive residual , mean that shield cant take all the damage 
+		//the shield will be broken
+		if (residueDamage >= 0)
 		{
-			const int rate = this->Timers_SelfHealing_Warhead.InProgress() ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
+			residueDamage = int((double)(residueDamage) /
+			//GeneralUtils::GetWarheadVersusArmor(args->WH , this->Type->Armor)
+			pWHExt->GetVerses(this->Type->Armor).Verses
+			); //only absord percentage damage
 
-			this->Timers_SelfHealing.Start(rate); // when attacked, restart the timer
-			this->ResponseAttack();
+			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
+				TechnoExt::DisplayDamageNumberString(this->Techno, (nHPCopy), true, args->WH);
 
-			if (pWHExt->DecloakDamagedTargets)
-				this->Techno->Uncloak(false);
+			this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
 
-			int residueDamage = shieldDamage - this->HP;
-			if (residueDamage >= 0)
-			{
-
-				residueDamage = int((double)(residueDamage) /
-				//GeneralUtils::GetWarheadVersusArmor(args->WH , this->Type->Armor)
-				pWHExt->GetVerses(this->Type->Armor).Verses
-				); //only absord percentage damage
-
-				this->BreakShield(pWHExt->Shield_BreakAnim.Get(nullptr), pWHExt->Shield_BreakWeapon.Get(nullptr));
-
-				nDamageResult = this->Type->AbsorbOverDamage ? healthDamage : residueDamage + healthDamage;
-			}
-			else
-			{
-				this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
-				this->HP = -residueDamage;
-
-				UpdateIdleAnim();
-
-				nDamageResult = healthDamage;
-			}
+			//rest of the damage will be passed to the techno
+			nDamageResult = this->Type->AbsorbOverDamage ? PassableDamageAnount : residueDamage + PassableDamageAnount;
 		}
-		else if (shieldDamage < 0)
+		else //negative residual damage
+			// that mean the damage can be sustained with the sield
 		{
-			const int nLostHP = this->Type->Strength - this->HP;
-			if (!nLostHP)
-			{
-				int result = *args->Damage;
-				if (result *
-				 pWHExt->GetVerses(this->Techno->GetTechnoType()->Armor).Verses
-				 //GeneralUtils::GetWarheadVersusArmor(args->WH , this->Techno->GetTechnoType()->Armor)
-				 > 0)
-					result = 0;
+			auto nResidualCopy = residueDamage;
+			if (Phobos::Debug_DisplayDamageNumbers && (-nResidualCopy)  != 0)
+				TechnoExt::DisplayDamageNumberString(this->Techno, (-nResidualCopy), true, args->WH);
 
-				nDamageResult = result;
-			}
-
-			const int nRemainLostHP = nLostHP + shieldDamage;
-
-			if (nRemainLostHP < 0)
-				this->HP = this->Type->Strength;
-			else
-				this->HP -= shieldDamage;
+			this->WeaponNullifyAnim(pWHExt->Shield_HitAnim.Get(nullptr));
+			this->HP = MaxImpl(this->HP + residueDamage, 0);
 
 			UpdateIdleAnim();
 
+			//absorb all the damage
 			nDamageResult = 0;
 		}
 	}
-
-	// else if (nDamage == 0)
-	nDamageResult = healthDamage;
-	const auto pExt = TechnoExt::ExtMap.Find(this->Techno);
-
-	if (nDamageResult >= 0)
+	else if (DamageToShield < 0) //negative damage
 	{
-		*args->Damage = nDamageResult;
+		// if the shield still in full HP 
+		// heal the shield user instead
+		if (ShieldStillInfullHP) {
+			if (MapClass::GetTotalDamage(DamageToShield, args->WH, this->CurTechnoType->Armor, args->DistanceToEpicenter) < 0)
+				IsShielRequreFeeback = !this->Type->PassthruNegativeDamage;
+		} else { //otherwise we heal the shield
+			if (this->Type->CanBeHealed) {
+				auto nDamageCopy = DamageToShield;
 
-		if (auto const pTag = this->Techno->AttachedTag)
-			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, this->Techno,
-				CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
+				if (Phobos::Debug_DisplayDamageNumbers && DamageToShield != 0)
+					TechnoExt::DisplayDamageNumberString(this->Techno, DamageToShield, true, args->WH);
+
+				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
+				this->UpdateIdleAnim();
+			}
+		}
+
+		nDamageResult = 0;
 	}
 
-	if (nDamageResult == 0)
-		pExt->SkipLowDamageCheck = true;
+	//replace damage
+	if (nDamageResult > 0) {
+		if (auto const pTag = this->Techno->AttachedTag)
+			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::ShieldBroken, this->Techno,
+				CellStruct::Empty, false, args->Attacker);//where is this? is this correct?	
+	}
+
+	if (IsShielRequreFeeback)
+	{
+		*args->Damage = nDamageResult;
+		TechnoExt::ExtMap.Find(this->Techno)->SkipLowDamageCheck = true;
+	}
+
 }
 
 void ShieldClass::ResponseAttack() const
@@ -261,7 +292,8 @@ void ShieldClass::ResponseAttack() const
 	{
 		const auto pUnit = static_cast<UnitClass*>(this->Techno);
 
-		if (pUnit->Type->Harvester) {
+		if (pUnit->Type->Harvester)
+		{
 			if (RadarEventClass::Create(
 				RadarEventType::HarvesterAttacked,
 				CellClass::Coord2Cell(pUnit->GetDestination(pUnit))))
@@ -279,9 +311,11 @@ void ShieldClass::WeaponNullifyAnim(AnimTypeClass* pHitAnim)
 
 	const auto pAnimType = pHitAnim ? pHitAnim : this->Type->HitAnim.Get(nullptr);
 
-	if (pAnimType) {
+	if (pAnimType)
+	{
 		auto nCoord = this->Techno->GetCenterCoords();
-		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord)) {
+		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord))
+		{
 			AnimExt::SetAnimOwnerHouseKind(pAnim, Techno->GetOwningHouse(), nullptr, Techno);
 		}
 	}
@@ -292,14 +326,11 @@ bool ShieldClass::CanBeTargeted(WeaponTypeClass* pWeapon) const
 	if (!pWeapon)
 		return false;
 
-	if ((CanBePenetrated(pWeapon->Warhead)) || !this->HP)
+	if (this->CanBePenetrated(pWeapon->Warhead))
 		return true;
 
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
-	return (std::abs(
-		  pWHExt->GetVerses(this->Type->Armor).Verses
-		//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , this->Type->Armor)
-		) >= 0.001);
+	return (std::abs( pWHExt->GetVerses(this->Type->Armor).Verses ) >= 0.001);
 }
 
 bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const
@@ -356,14 +387,16 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 
 void ShieldClass::OnUpdate()
 {
-	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter) {
+	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	{
 		return;
 	}
 
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
 
-	if (Is_Building(this->Techno)) {
+	if (Is_Building(this->Techno))
+	{
 		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
 			return;
 	}
@@ -656,9 +689,10 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 
 	this->LastBreakFrame = Unsorted::CurrentFrame;
 
-	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr)) {
+	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr))
+	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
-		WeaponTypeExt::DetonateAt(pWeaponType , pTarget , this->Techno);
+		WeaponTypeExt::DetonateAt(pWeaponType, pTarget, this->Techno);
 	}
 }
 

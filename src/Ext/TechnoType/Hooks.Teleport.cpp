@@ -1,14 +1,14 @@
 #include "Body.h"
-#include <LocomotionClass.h>
-#include <TeleportLocomotionClass.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+#include <Locomotor/Cast.h>
+
 #define GET_LOCO(reg_Loco) \
 	GET(ILocomotion*, Loco, reg_Loco); \
-	const TeleportLocomotionClass* pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
+	TeleportLocomotionClass* pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
 	TechnoClass* pOwner =  pLocomotor->LinkedTo ? pLocomotor->LinkedTo : pLocomotor->Owner; \
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExt::ExtData *pExt = TechnoTypeExt::ExtMap.Find(pType);

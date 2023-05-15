@@ -70,13 +70,14 @@ namespace detail
 		{
 			using base_type = std::remove_pointer_t<T>;
 			const auto pValue = parser.value();
+			auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue);
 
-			if (auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue))
+			if (parsed || INIClass::IsBlank(pValue))
 			{
 				value = parsed;
 				return true;
 			}
-			else if (!INIClass::IsBlank(pValue)) {
+			else {
 				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
 			}
 		}
@@ -121,12 +122,14 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			const auto pValue = parser.value();
-			if (const auto parsed = TechnoTypeClass::Find(pValue))
+			const auto parsed = TechnoTypeClass::Find(pValue);
+
+			if (parsed || INIClass::IsBlank(pValue))
 			{
 				value = parsed;
 				return true;
 			}
-			else if(!INIClass::IsBlank(pValue)) {
+			else {
 				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
 			}
 		}
@@ -1099,17 +1102,21 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), CellClass::LandTypeToStrings[i]))
-				{
+			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), CellClass::LandTypeToStrings[i])) {
 					value = LandType(i);
 					return true;
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()) && !allocate)
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valind LandType");
+			if (INIClass::IsBlank(parser.value()))
+			{
+				value = LandType::Clear;
+				return true;
+
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valind LandType");
 		}
 
 		return false;
@@ -1317,17 +1324,13 @@ namespace detail
 			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i)
 			{
 				const auto& [name, ID] = EnumFunctions::LocomotorPairs_ToStrings[i];
-				if (IS_SAME_STR_(parser.value(), name) || IS_SAME_STR_(parser.value(), ID))
-				{
+				if (IS_SAME_STR_(parser.value(), name) || IS_SAME_STR_(parser.value(), ID)) {
 					value = Locomotors(i);
 					return true;
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()) && !allocate)
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
-			}
+			Debug::INIParseFailed(pSection, pKey, parser.value(), nullptr);
 		}
 
 		return false;
@@ -1347,10 +1350,12 @@ namespace detail
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()) && !bAllocate)
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid TileType !");
+			if (INIClass::IsBlank(parser.value())) {
+				value = TileType::ClearToSandLAT;
+				return true;
 			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid TileType !");
 		}
 		return false;
 	}
@@ -1374,7 +1379,7 @@ namespace detail
 					value.AddItem(buffer);
 					return true;
 				}
-				else if (!INIClass::IsBlank(pCur))
+				else
 				{
 					Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 				}
@@ -1471,11 +1476,11 @@ namespace detail
 			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			int idx = Lookuper::FindIndexById(pCur);
-			if (idx != -1)
+			if (idx != -1 || INIClass::IsBlank(pCur))
 			{
 				vector.push_back(idx);
 			}
-			else if (!INIClass::IsBlank(pCur))
+			else
 			{
 				Debug::INIParseFailed(pSection, pKey, pCur);
 			}
@@ -1521,11 +1526,11 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 		else
 			idx = Lookuper::FindIndexById(val);
 
-		if (idx != -1)
+		if (idx != -1 || INIClass::IsBlank(val))
 		{
 			this->Value = idx;
 		}
-		else if(!INIClass::IsBlank(val))
+		else
 		{
 			Debug::INIParseFailed(pSection, pKey, val);
 		}
@@ -1573,12 +1578,12 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 	{
 		const char* val = parser.value();
 		int idx = Lookuper::FindIndexById(val);
-		if (idx != -1)
+		if (idx != -1 || INIClass::IsBlank(val)) //if it is blank , count as read , but return -1
 		{
 			this->Value = idx;
 			this->HasValue = true;
 		}
-		else if(!INIClass::IsBlank(val))
+		else
 		{
 			Debug::INIParseFailed(pSection, pKey, val, nullptr);
 		}

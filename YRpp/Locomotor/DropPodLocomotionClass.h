@@ -1,5 +1,5 @@
 #pragma once
-#include <LocomotionClass.h>
+#include "LocomotionClass.h"
 
 enum DropPodDirType : BYTE
 {
@@ -14,9 +14,10 @@ class DECLSPEC_UUID("4A582745-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 {
 public:
 	// TODO stub virtuals implementations
-	static constexpr inline DWORD vtable = 0x7E8344;
-	static constexpr inline DWORD ILoco_vtable = 0x7E8278;
-	static constexpr inline DWORD IPiggy_vtable = 0x7E8254;
+	static constexpr inline uintptr_t vtable = 0x7E8344;
+	static constexpr inline uintptr_t ILoco_vtable = 0x7E8278;
+	static constexpr inline uintptr_t IPiggy_vtable = 0x7E8254;
+	static constexpr inline CLSID ClassGUID = __uuidof(DropPodLocomotionClass);
 
 	//Destructor
 	virtual ~DropPodLocomotionClass() RX;

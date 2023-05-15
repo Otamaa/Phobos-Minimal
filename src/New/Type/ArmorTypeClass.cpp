@@ -103,7 +103,7 @@ void ArmorTypeClass::EvaluateDefault()
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 {
-	if(Array.empty())
+	if (Array.empty())
 		ArmorTypeClass::AddDefaults();
 
 	if (!pINI)
@@ -135,29 +135,38 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 {
 	auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
-	char ret[0x64];
 	const char* section = pWH->get_ID();
 
 	INI_EX exINI(pINI);
+	for (size_t i = pWHExt->Verses.size(); i < Array.size(); ++i) {
+		auto& pArmor = Array[i];
+		const int nDefaultIdx = pArmor->DefaultTo;
+		pWHExt->Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
+				? pArmor->DefaultVersesValue
+				: pWHExt->Verses[nDefaultIdx]
+		);
+	}
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
 		const auto& pArmor = ArmorTypeClass::Array[i];
 
-		if (pINI->ReadString(section, pArmor->BaseTag.data(), Phobos::readDefval, ret))
+		if (exINI.ReadString(section, pArmor->BaseTag.data()) > 0)
 		{
-
-			pWHExt->Verses[i].Parse_NoCheck(ret);
+			pWHExt->Verses[i].Parse_NoCheck(exINI.value());
 		}
-		else // no custom value found
+		else
 		{
 			if (pArmor->DefaultTo != -1)
-			{ //evaluate armor with valid default index
+			{
 				const auto nDefault = pArmor->DefaultTo;
-				if (i < nDefault)
+				if ((int)i < nDefault)
 				{
-					Debug::Log("Warhead [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-						section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());			
+					const auto pDefault = ArmorTypeClass::Array[nDefault].get();
+					if (exINI.ReadString(section, pDefault->BaseTag.data()) > 0)
+					{
+						pWHExt->Verses[nDefault].Parse_NoCheck(exINI.value());
+					}
 				}
 
 				pWHExt->Verses[i] = pWHExt->Verses[nDefault];
@@ -180,7 +189,7 @@ void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 		const auto& pArmor = ArmorTypeClass::Array[i];
 
 		if (pArmor->DefaultTo != -1)
-		{ 
+		{
 			const size_t nDefault = (size_t)pArmor->DefaultTo;
 
 			if (i < nDefault)

@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -61,16 +59,6 @@ DEFINE_OVERRIDE_HOOK(0x421798, AlphaShapeClass_SDDTOR_Anims, 0x6)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x565215, MapClass_CTOR_NoInit_Crates, 0x6, 56522D)
 
-//#define HIDWORD(l) ((DWORD)(((DWORDLONG)(l)>>32)&0xFFFFFFFF))
-//
-//static NOINLINE int64_t Fixup(int64_t A, int64_t B)
-//{
-//	if (HIDWORD(A) | HIDWORD(B))
-//		return A * B;
-//	else
-//		return uint64_t(((unsigned int)A) * ((unsigned int)B));
-//}
-
 DEFINE_OVERRIDE_HOOK(0x5F6515, AbstractClass_Distance2DSquared_1, 0x8)
 {
 	GET(AbstractClass*, pThis, ECX);
@@ -98,6 +86,60 @@ DEFINE_OVERRIDE_HOOK(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 	R->EAX(nXY >= INT_MAX ? INT_MAX : nXY);
 	return 0x5F659B;
+}
+DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
+{
+	GET(TActionClass*, pThis, ECX);
+	GET_STACK(HouseClass*, pOwner, 0x4);
+	//GET_STACK(TechnoClass*, pInvoker, 0x8);
+	//GET_STACK(TriggerClass*, pTrigger, 0xC);
+	//GET_STACK(CellStruct*, pCell, 0x10);
+
+	auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+	auto nCoord = CellClass::Cell2Coord(nCell);
+	nCoord.Z = MapClass::Instance->GetZPos(&nCoord);
+	auto pCellTarget = MapClass::Instance->GetCellAt(nCell);
+	nCoord = pCellTarget->GetCoordsWithBridge();
+
+	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value))
+	{
+		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+		{
+			pAnim->IsPlaying = true;
+
+			if (AnimType->MakeInfantry > -1)
+			{
+				AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
+			}
+			else
+			{
+				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
+			}
+		}
+	}
+
+	R->EAX(1);
+	return 0x6E2387;
+}
+
+DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
+{
+	enum
+	{
+		DeleteDamageAreaVector = 0x48A4B7,
+		ContinueFunction = 0x4892DD,
+	};
+
+	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+	GET(int, Damage, ESI);
+
+	if (!pWarhead
+		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
+		|| !Damage && !WarheadTypeExt::ExtMap.Find(pWarhead)->AllowZeroDamage)
+		return DeleteDamageAreaVector;
+
+	R->ESI(pWarhead);
+	return ContinueFunction;
 }
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6AD0ED, Game_AllowSinglePlay, 0x5, 6AD16C);
@@ -341,36 +383,6 @@ DEFINE_OVERRIDE_HOOK(0x4899BE, DamageArea_CellSpread3, 0x8)
 	delete pIter;
 
 	return 0x4899DA;
-}
-
-DEFINE_OVERRIDE_HOOK(0x5F57B5, ObjectClass_ReceiveDamage_Trigger, 0x6)
-{
-	GET(ObjectClass*, pObject, ESI);
-	GET(ObjectClass*, pAttacker, EDI);
-
-	if (R->EBP<DamageState>() != DamageState::NowDead && pObject->IsAlive)
-	{
-		auto v3 = pObject->AttachedTag;
-		if (!v3 || (v3->RaiseEvent(TriggerEvent::AttackedByAnybody, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
-		{
-			if (auto v4 = pObject->AttachedTag)
-				v4->RaiseEvent(TriggerEvent::AttackedByHouse, pObject, CellStruct::Empty, false, pAttacker);
-		}
-	}
-
-	if (pObject->IsAlive)
-	{
-		auto pFirstTag = pObject->AttachedTag;
-		//84
-		if (!pFirstTag || (pFirstTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse, pObject, CellStruct::Empty, false, pAttacker), pObject->IsAlive))
-		{
-			if (auto pSecondTag = pObject->AttachedTag)
-				// 83
-				pSecondTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByAnybody, pObject, CellStruct::Empty, false, pAttacker);
-		}
-	}
-
-	return 0x5F580C;
 }
 
 DEFINE_OVERRIDE_HOOK(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
@@ -695,41 +707,6 @@ DEFINE_OVERRIDE_HOOK(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 	return nLoopVal < 4 ? 0x6E20E0 : 0x0;
 }
 
-DEFINE_HOOK(0x6E2290, ActionClass_PlayAnimAt, 0x6)
-{
-	GET(TActionClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pOwner, 0x4);
-	//GET_STACK(TechnoClass*, pInvoker, 0x8);
-	//GET_STACK(TriggerClass*, pTrigger, 0xC);
-	//GET_STACK(CellStruct*, pCell, 0x10);
-
-	auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
-	auto nCoord = CellClass::Cell2Coord(nCell);
-	nCoord.Z = MapClass::Instance->GetZPos(&nCoord);
-	auto pCellTarget = MapClass::Instance->GetCellAt(nCell);
-	nCoord = pCellTarget->GetCoordsWithBridge();
-
-	if (AnimTypeClass* AnimType = AnimTypeClass::Array->GetItemOrDefault(pThis->Value))
-	{
-		if (AnimClass* pAnim = GameCreate<AnimClass>(AnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
-		{
-			pAnim->IsPlaying = true;
-
-			if (AnimType->MakeInfantry > -1)
-			{
-				AnimTypeExt::SetMakeInfOwner(pAnim, pOwner, nullptr);
-			}
-			else
-			{
-				AnimExt::SetAnimOwnerHouseKind(pAnim, pOwner, nullptr, false);
-			}
-		}
-	}
-
-	R->EAX(1);
-	return 0x6E2387;
-}
-
 DEFINE_OVERRIDE_HOOK(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 {
 	int nCost = 0;
@@ -830,26 +807,6 @@ DEFINE_OVERRIDE_HOOK(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 
 	pThis->Palette = nullptr;
 	return pThis->PaletteFile[0] == 0 ? 0x716DAA : 0x716D9D;
-}
-
-DEFINE_OVERRIDE_HOOK(0x4892BE, DamageArea_NullDamage, 0x6)
-{
-	enum
-	{
-		DeleteDamageAreaVector = 0x48A4B7,
-		ContinueFunction = 0x4892DD,
-	};
-
-	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
-	GET(int, Damage, ESI);
-
-	if (!pWarhead
-		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
-		|| !Damage && !WarheadTypeExt::ExtMap.Find(pWarhead)->AllowZeroDamage)
-		return DeleteDamageAreaVector;
-
-	R->ESI(pWarhead);
-	return ContinueFunction;
 }
 
 #include <Commands/ShowTeamLeader.h>
@@ -1109,8 +1066,9 @@ DEFINE_OVERRIDE_HOOK(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 
 	if (pTypeExt->EVA_UnitLost != -1) {
 		RadarEventClass::Create(RadarEventType::UnitLost, pThis->GetMapCoords());
-		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost.Get(), -1, -1);
 	}
+
+	VoxClass::PlayIndex(pTypeExt->EVA_UnitLost.Get(), -1, -1);
 
 	return Skip;
 }
@@ -1250,15 +1208,6 @@ DEFINE_OVERRIDE_HOOK(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 	R->EAX(nAmount > 0 || nAmount != 0);
 	return 0x70BF46;
 }
-
-//DEFINE_HOOK(0x6FA793, TechnoClass_AI_SelfHealGain, 0x5)
-//{
-//	enum { SkipGameSelfHeal = 0x6FA941 };
-//
-//	GET(TechnoClass*, pThis, ESI);
-//	TechnoExt::ApplyGainedSelfHeal(pThis);
-//	return SkipGameSelfHeal;
-//}
 
 DEFINE_OVERRIDE_HOOK(0x6FA743, TechnoClass_Update_SelfHeal, 0xA)
 {
@@ -1450,9 +1399,7 @@ DEFINE_OVERRIDE_HOOK(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(const char*, pID, EDI);
 
-	bool ret = TechnoTypeExt::HasSelectionGroupID(pThis->GetTechnoType(), pID);
-
-	R->EAX<int>(ret);
+	R->EAX<int>(TechnoTypeExt::HasSelectionGroupID(pThis->GetTechnoType(), pID));
 	return 0x7327B2;
 }
 
@@ -1474,14 +1421,6 @@ DEFINE_OVERRIDE_HOOK(0x707B19, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	return 0x707B29;
 }
 
-void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate)
-{
-	if (!nTimer.GetTimeLeft()) {
-		nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
-		VoxClass::Play(pEva);
-	}
-}
-
 DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -1489,6 +1428,13 @@ DEFINE_OVERRIDE_HOOK(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected,
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	auto PlayEva = [](const char* pEva, CDTimerClass& nTimer, double nRate) {
+		if (!nTimer.GetTimeLeft()) {
+			nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
+			VoxClass::Play(pEva);
+		}
+	};
 
 	if (detect && pTypeExt->SensorArray_Warn)
 	{
@@ -1781,8 +1727,7 @@ DEFINE_OVERRIDE_HOOK(0x58FE7B, RMG_PlaceNSBridge, 8)
 // fix for ultra-fast processors overrunning the performance evaluator function
 DEFINE_OVERRIDE_HOOK(0x5CB0B1, Game_QueryPerformance, 5)
 {
-	if (!R->EAX())
-	{
+	if (!R->EAX()) {
 		R->EAX(1);
 	}
 

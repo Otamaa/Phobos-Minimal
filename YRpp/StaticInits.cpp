@@ -23,7 +23,6 @@
 #include <FactoryClass.h>
 #include <ScenarioClass.h>
 #include <FootClass.h>
-#include <LocomotionClass.h>
 #include <GameOptionsClass.h>
 #include <WWMouseClass.h>
 #include <CoordStruct.h>

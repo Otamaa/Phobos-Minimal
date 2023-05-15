@@ -7,13 +7,9 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
-#include <LocomotionClass.h>
 
-#include <DriveLocomotionClass.h>
-#include <ShipLocomotionClass.h>
-#include <WalkLocomotionClass.h>
-#include <MechLocomotionClass.h>
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
+
 #include <FootClass.h>
 
 void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget)
@@ -681,10 +677,8 @@ DirStruct Helpers_DP::GetDirectionRelative(TechnoClass* pMaster, int dir, bool i
 		double targetRad = targetDir.GetRadian();
 		DirStruct sourceDir = pMaster->PrimaryFacing.Current();
 
-		auto const pLoco = pFoot->Locomotor.get();
-		if ((((DWORD*)pLoco)[0]) == JumpjetLocomotionClass::ILoco_vtable)
-		{
-			sourceDir = static_cast<JumpjetLocomotionClass*>(pLoco)->Facing.Current();
+		if (auto const pLoco = locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor)) {
+			sourceDir = pLoco->Facing.Current();
 		}
 
 		if (isOnTurret || Is_Aircraft(pFoot))
@@ -706,7 +700,7 @@ void Helpers_DP::ForceStopMoving(ILocomotion* loco)
 	loco->Stop_Moving();
 	loco->Mark_All_Occupation_Bits(0);
 
-	switch ((((DWORD*)loco)[0])) // :p - Otamaa
+	switch (VTable::Get(loco)) // :p - Otamaa
 	{
 	case DriveLocomotionClass::ILoco_vtable:
 	{

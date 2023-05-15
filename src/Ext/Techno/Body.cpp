@@ -25,7 +25,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 
-#include <JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
 #include <Misc/AresData.h>
 
@@ -315,7 +315,7 @@ int TechnoExt::GetThreadPosed(TechnoClass* pThis)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	if (const auto pShieldData = pExt->GetShield()) {
-		if (pShieldData->IsAvailable()) {
+		if (pShieldData->IsActive()) {
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())
 				return pExt->Type->ThreatPosed + pShiedType->ThreadPosed.Get();
@@ -479,12 +479,27 @@ bool TechnoExt::InterceptorAllowFiring(TechnoClass* pThis, ObjectClass* pTarget)
 bool TechnoExt::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	const auto pTargetTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead);
 
-	if (const auto pShieldData = pTargetTechnoExt->Shield.get())
-	{
-		if (pShieldData->IsActive() && !pShieldData->CanBeTargeted(pWeapon))
-		{
-			return false;
+	if (const auto pShieldData = pTargetTechnoExt->Shield.get()) {
+		if (pShieldData->IsActive()) {
+			if (!pShieldData->CanBePenetrated(pWeapon->Warhead))
+			{
+				if (pWHExt->GetVerses(pShieldData->GetType()->Armor).Verses < 0.0 && pShieldData->GetType()->CanBeHealed)
+				{
+					const bool IsFullHP = pShieldData->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
+					if (!IsFullHP)
+						return true;
+					else
+					{
+						if(pShieldData->GetType()->PassthruNegativeDamage) {
+							return !(pShieldData->GetHealthRatio() >= RulesClass::Instance->ConditionGreen);
+						}				
+					}
+				}
+
+				return false;
+			}
 		}
 	}
 
@@ -1236,7 +1251,7 @@ void TechnoExt::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 		return;
 
 	const auto pType = pThis->GetTechnoType();
-	const auto pLoco = GetLocomotorType<JumpjetLocomotionClass, false>(pFoot);
+	const auto pLoco = locomotion_cast<JumpjetLocomotionClass*, true>(pFoot->Locomotor);
 
 	if (pLoco && pThis->IsInAir()
 		&& !pType->TurretSpins)
@@ -1979,9 +1994,13 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 	{
 	Kill:
 		if(pThis) { 
-			const auto nResult = pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+			pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 
-			if (nResult != DamageState::NowDead && nResult != DamageState::PostMortem)
+			int nCounter = 0;
+			if (auto pUnit = specific_cast<UnitClass*>(pThis))
+				nCounter = pUnit->DeathFrameCounter;
+
+			if (pThis->IsAlive && !nCounter)
 				goto vanish;
 		}
 
@@ -2053,9 +2072,6 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 bool TechnoExt::ExtData::CheckDeathConditions()
 {
 	auto const pThis = this->Get();
-	if (!pThis->IsAlive)
-		return true;
-
 	const auto pTypeThis = this->Type;
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(this->Type);
 
@@ -2071,7 +2087,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		if (pTypeThis->Ammo > 0 && pThis->Ammo <= 0)
 		{
 			TechnoExt::KillSelf(pThis, nMethod , pVanishAnim);
-			return true;
+			return !pThis->IsAlive;
 		}
 	}
 
@@ -2103,7 +2119,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		{
 			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
 
-			return true;
+			return !pThis->IsAlive;
 		}
 	}
 
@@ -2117,7 +2133,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		{
 			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
 
-			return true;
+			return !pThis->IsAlive;
 		}
 	}
 
@@ -2134,7 +2150,7 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 		else if (Death_Countdown.Completed())
 		{
 			TechnoExt::KillSelf(pThis, nMethod, pVanishAnim);
-			return true;
+			return !pThis->IsAlive;
 		}
 	}
 
@@ -2938,9 +2954,6 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 {
 	auto const pThis = this->Get();
 
-	if (!pThis->IsAlive)
-		return true;
-
 	if (VTable::Get(pThis) != InfantryClass::vtable)
 		return false;
 
@@ -2960,7 +2973,7 @@ bool TechnoExt::ExtData::UpdateKillSelf_Slave()
 			TechnoExt::KillSelf(pInf, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	}
 
-	return true;
+	return !pThis->IsAlive;
 }
 
 // Compares two weapons and returns index of which one is eligible to fire against current target (0 = first, 1 = second), or -1 if neither works.
@@ -3162,16 +3175,17 @@ bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, 
 
 bool TechnoExt::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
-	auto const pShieldData = TechnoExt::ExtMap.Find(pTarget)->Shield.get();
+	auto const pTargetTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+	auto const pShieldData = pTargetTechnoExt->Shield.get();
 
 	if (!pShieldData)
 		return false;
 
-	if (pShieldData->CanBePenetrated(pWeapon->Warhead))
-	{ return false; }
-
 	if (pShieldData->IsActive())
 	{
+		if (pShieldData->CanBePenetrated(pWeapon->Warhead))
+			return false;
+
 		R->EAX(pShieldData->GetType()->Armor.Get());
 		return true;
 	}

@@ -81,10 +81,7 @@ static bool ClearVector(Tbase* pBase)
 
 #pragma region Construct
 template<typename T>
-void TrailsManager::Construct(T* pOwner, bool IsConverted)
-{
-	Debug::Log(__FUNCTION__" %s Not have specified Function to use ! \n", typeid(T).name());
-}
+void TrailsManager::Construct(T* pOwner, bool IsConverted) { }
 
 template<>
 void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)

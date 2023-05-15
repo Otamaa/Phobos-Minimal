@@ -72,22 +72,4 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 		//Debug::Log("Giving Money to Player ! \n");
 		pHouseExt->CaptureObjectExecuted = true;
 	}
-
-	//HouseClass::CurrentPlayer()->Visionary = true;
-
-	//Debug::Log("Giving RevealMap to Player Start ! \n");
-	//static_assert(offsetof(HouseClass, PlanningPaths) == 0x210, "HouseClass ClassMember Shifted !");
-	//static_assert(offsetof(HouseClass, Visionary) == 0x240, "HouseClass ClassMember Shifted !");
-	//static_assert(offsetof(HouseClass, MapIsClear) == 0x241, "HouseClass ClassMember Shifted !");
-	MapClass::Instance->Reveal(HouseClass::CurrentPlayer());
-	//Debug::Log("Giving RevealMap to Player Done ! \n");
-	//if (!HouseClass::CurrentPlayer->Visionary)
-	//{
-	//	HouseClass::CurrentPlayer->Visionary = 1;
-	//	MapClass::Instance->CellIteratorReset();
-	//	for (auto i = MapClass::Instance->CellIteratorNext(); i; i = MapClass::Instance->CellIteratorNext())
-	//		RadarClass::Instance->MapCell(i->MapCoords, HouseClass::CurrentPlayer());
-
-	//	GScreenClass::Instance->MarkNeedsRedraw(1);
-	//}
 }

@@ -66,10 +66,10 @@
 #include <MPTeams.h>
 
 //LocomotionClass Tree
-#include <LocomotionClass.h>
-#include <FlyLocomotionClass.h>
-#include <RocketLocomotionClass.h>
-#include <TeleportLocomotionClass.h>
+#include <Locomotor/LocomotionClass.h>
+#include <Locomotor/FlyLocomotionClass.h>
+#include <Locomotor/RocketLocomotionClass.h>
+#include <Locomotor/TeleportLocomotionClass.h>
 
 //GScreenClass Tree
 #include <SidebarClass.h>

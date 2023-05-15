@@ -59,6 +59,7 @@ public:
 		void Add(int amount);
 		void SetRadLevel(int amount);
 		const double GetRadLevelAt(CellStruct const& cell);
+		const double GetRadLevelAt(double distance);
 		const bool ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
 	private:

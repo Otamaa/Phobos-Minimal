@@ -51,7 +51,7 @@ void TechnoTypeExt::ExtData::Initialize()
 	ParticleSystems_DamageSmoke.reserve(4);
 	ParticleSystems_DamageSparks.reserve(4);
 
-	this->ShieldType = ShieldTypeClass::Find(DEFAULT_STR2);
+	this->ShieldType = ShieldTypeClass::Array[0].get();
 	this->Is_Cow = IS_SAME_STR_N(this->Get()->ID, "COW");
 
 	if (Is_AircraftType(Get()))
@@ -704,7 +704,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->PassengersBlacklist.Read(exINI, pSection, "Passengers.Disallowed");
 
 		this->NoManualUnload.Read(exINI, pSection, "NoManualUnload");
-
+		this->NoSelfGuardArea.Read(exINI, pSection, "NoSelfGuardArea");
 		this->NoManualFire.Read(exINI, pSection, "NoManualFire");
 		this->NoManualEnter.Read(exINI, pSection, "NoManualEnter");
 		this->NoManualEject.Read(exINI, pSection, "NoManualEject");
@@ -895,17 +895,17 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
 		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
-		for (size_t i = 0;; i++)
+		char key[0x40];
+		for (size_t i = 5;; i++)
 		{
-			char key[0x40];
 			Nullable<CoordStruct> alternateFLH;
-			sprintf_s(key, "AlternateFLH%u", i);
+			IMPL_SNPRNINTF(key, sizeof(key), "AlternateFLH%u", i);
 			alternateFLH.Read(exArtINI, pArtSection, key);
 
-			if (i >= 5U && !alternateFLH.isset())
+			if (!alternateFLH.isset())
 				break;
 
-			this->AlternateFLHs.emplace_back(alternateFLH.Get());
+			this->AlternateFLHs.push_back(alternateFLH.Get());
 		}
 
 		char HitCoord_tempBuffer[0x20];
@@ -1480,6 +1480,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->PassengersWhitelist)
 		.Process(this->PassengersBlacklist)
 		.Process(this->NoManualUnload)
+		.Process(this->NoSelfGuardArea)
 		.Process(this->NoManualFire)
 		.Process(this->NoManualEnter)
 		.Process(this->NoManualEject)

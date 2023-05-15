@@ -31,31 +31,62 @@
 #include <New/Entity/HomingMissileTargetTracker.h>
 #include <Commands/ShowTechnoNames.h>
 
+#include <Locomotor/TunnelLocomotionClass.h>
+
+DEFINE_HOOK(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
+{
+	GET(ILocomotion*, pThis, ESI);
+
+	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+
+	if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
+	{
+		pShieldData->SetAnimationVisibility(false);
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
+{
+	GET(ILocomotion*, pThis, ESI);
+
+	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+
+	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
+	{
+		if (const auto pShieldData = TechnoExt::ExtMap.Find(pLoco->LinkedTo)->GetShield())
+			pShieldData->SetAnimationVisibility(true);
+	}
+
+	return 0;
+}
+
 DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 {
+	enum { retDead = 0x6FB004 , Continue = 0x0};
+
 	GET(TechnoClass*, pThis, ECX);
 
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
-		return 0x0;
+		return retDead;
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
-	
+	const auto IsBuilding = Is_Building(pThis);
+	bool IsInLimboDelivered = false;
+
+	if(IsBuilding) {
+		IsInLimboDelivered = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
+	}
+
 	if (pThis->Location == CoordStruct::Empty) {
 
 		CheckRemove:
-		bool bRemove = !pType->Spawned;
-		if (Is_Building(pThis))
-		{
-			auto const pBldExt = BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis));
-			if (pBldExt->LimboID != -1)
-				bRemove = false;
-		}
-
-		if (bRemove) {
+		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExt::HandleRemove(pThis);
-			return 0x0;
+			return retDead;
 		}
 	}
 	else
@@ -73,10 +104,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
 	if (pExt->UpdateKillSelf_Slave())
-		return 0x0;
+		return retDead;
 
 	if (pExt->CheckDeathConditions())
-		return 0x0;
+		return retDead;
 
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();

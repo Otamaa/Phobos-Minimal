@@ -1,8 +1,7 @@
 #pragma once
 
-#include <LocomotionClass.h>
+#include <Locomotor/Cast.h>
 #include <FootClass.h>
-#include <JumpjetLocomotionClass.h>
 
 template <class T, bool CheckInterface = false>
 FORCEINLINE T GetLocomotor(FootClass* pThis)
@@ -37,12 +36,6 @@ FORCEINLINE T GetLocomotor(FootClass* pThis)
 template <class JumpjetLocomotionClass , bool CheckInterface>
 JumpjetLocomotionClass* GetLocomotorType(FootClass* pThis)
 {
-	//CLSID locoCLSID {};
 	const auto pILoco = GetLocomotor<JumpjetLocomotionClass* , CheckInterface>(pThis);
-
-	//it is already return as JumpJetLoco on the top , but we check the CLSID here to make sure
-	//we got real T* pointer instead of something else
-	return //(SUCCEEDED(pILoco->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(T)) ?
-		(((DWORD*)pILoco)[0] == JumpjetLocomotionClass::vtable) ? //faster
-			static_cast<JumpjetLocomotionClass*>(pILoco) : nullptr;
+	return locomotion_cast<JumpjetLocomotionClass*>(pILoco);
 }

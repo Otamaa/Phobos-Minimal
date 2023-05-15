@@ -40,19 +40,17 @@ DEFINE_HOOK(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 }
 
 DEFINE_HOOK(0x423BC8, AnimClass_Update_CreateUnit_MarkOccupationBits, 0x6)
-//DEFINE_HOOK(0x4226F0, AnimClass_CTOR_CreateUnit_MarkOccupationBits, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 	AnimTypeExt::CreateUnit_MarkCell(pThis);
-	return (pThis->Type->MakeInfantry != -1) ? 0x423BD6 : 0x423C03;
-
+	return 0;
 }
 
 DEFINE_HOOK(0x424932, AnimClass_Update_CreateUnit_ActualAffects, 0x6)
 {
 	GET(AnimClass* const, pThis, ESI);
 	AnimTypeExt::CreateUnit_Spawn(pThis);
-	return (pThis->Type->MakeInfantry != -1) ? 0x42493E : 0x424B31;
+	return 0;
 }
 
 #include <Ext/Bullet/Body.h>

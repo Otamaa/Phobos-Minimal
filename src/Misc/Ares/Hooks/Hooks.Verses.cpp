@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -33,38 +31,20 @@ DEFINE_OVERRIDE_HOOK(0x75DDCC, WarheadTypeClass_GetVerses_Skipvanilla, 0x7)
 	return 0x75DE98;
 }
 
-void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd)
-{
-	//if (IS_SAME_STR_(pWH->get_ID(), "InfernoWH"))
-	//{
-	//	//auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
-
-	//	Debug::Log("[%s] WH[%s] against [%s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
-	//			pAdd,
-	//			pWH->get_ID(),
-	//			pTarget->get_ID(),
-	//			pData->Flags.ForceFire,
-	//			pData->Flags.PassiveAcquire,
-	//			pData->Flags.Retaliate,
-	//			pData->Verses);
-	//}
-}
-
-//DEFINE_HOOK(0x6FF349, TechnoClass_FireAt_ReportSound, 0x6)
+//void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass* pWH, const char* pAdd , size_t arrSize )
 //{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(WeaponTypeClass*, pWeapon, EBX);
+//	auto const pArmor = ArmorTypeClass::FindFromIndex(nArmor);
 //
-//	if (IS_SAME_STR_(pThis->get_ID(), "MPLN") && pWeapon->Report.Count)
-//	{
-//		auto nSound = pThis->weapon_sound_randomnumber_3C8;
-//		Debug::Log("MPLN TechnoClass FireAt , ReporSound Result [%d] Idx[%d] count [%d] \n"
-//			, pWeapon->Report[nSound % pWeapon->Report.Count] 
-//			, nSound % pWeapon->Report.Count
-//			, pWeapon->Report.Count);
-//	}
-//
-//	return 0x0;
+//	Debug::Log("[%s] WH[%d][%s] against [%d - %s] Flag :  FF %d , PA %d , RR %d [%fl] \n",
+//			pAdd,
+//			arrSize,
+//			pWH->get_ID(),
+//			nArmor,
+//			pArmor->Name.data(),
+//			pData->Flags.ForceFire,
+//			pData->Flags.PassiveAcquire,
+//			pData->Flags.Retaliate,
+//			pData->Verses);
 //}
 
 DEFINE_OVERRIDE_HOOK(0x489235, GetTotalDamage_Verses, 0x8)
@@ -91,8 +71,6 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
-
 	return vsData->Flags.PassiveAcquire  //|| !(vsData->Verses <= 0.02)
 		? ContinueCheck
 		: ReturnFalse
@@ -111,8 +89,6 @@ DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
-
-	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 
 	if (!(vsData->Flags.ForceFire || vsData->Verses != 0.0))
 		return FireIllegal;
@@ -145,8 +121,6 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 
 	double nMult = 0.0;
 
-	Debug(pThis, (int)pThisType->Armor, vsData, pTargetWH, __FUNCTION__);
-
 	if (pTarget->Target == pThis)
 		nMult = -(mult * vsData->Verses);
 	else
@@ -168,7 +142,6 @@ DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Ve
 	const auto pData = WarheadTypeExt::ExtMap.Find(pWH);
 	const auto vsData = &pData->Verses[nArmor];
 
-	Debug(pTarget, nArmor, vsData, pWH, __FUNCTION__);
 	R->Stack(0x10, dCoeff * vsData->Verses + dmult);
 	return 0x70CF58;
 }

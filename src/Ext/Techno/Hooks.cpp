@@ -5,7 +5,6 @@
 #include <BuildingClass.h>
 #include <ScenarioClass.h>
 #include <UnitClass.h>
-#include <JumpjetLocomotionClass.h>
 #include <SlaveManagerClass.h>
 
 #include <Ext/Anim/Body.h>
@@ -315,22 +314,27 @@ DEFINE_HOOK(0x443C81, BuildingClass_ExitObject_InitialClonedHealth, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x4D9F8A, FootClass_Sell_Sellsound, 0x5)
+DEFINE_HOOK(0x4D9F7B, FootClass_Sell, 0x6)
 {
-	enum { SkipVoxVocPlay = 0x4D9FB5 };
+	enum { ReadyToVanish = 0x4D9FCB };
 	GET(FootClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-	if(pTypeExt->EVA_Sold.isset()) {
-		VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
-	} else {
-		VoxClass::Play(GameStrings::EVA_UnitSold());
-	}
+	int money = pThis->GetRefund();
+	pThis->Owner->GiveMoney(money);
 
-	//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-	VocClass::PlayIndexAtPos(pTypeExt->SellSound.Get(RulesClass::Instance->SellSound), pThis->Location);
+	if (pThis->Owner->IsControlledByCurrentPlayer())
+	{
+		const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+		if(pTypeExt->EVA_Sold.isset()) {
+			VoxClass::PlayIndex(pTypeExt->EVA_Sold.Get());
+		} else {
+			VoxClass::Play(GameStrings::EVA_UnitSold());
+	}	}
 
-	return SkipVoxVocPlay;
+	//DisplayIncome
+	//FlyingStrings::AddMoneyString(money, pThis->Owner, RulesExt::Global()->DisplayIncome_Houses.Get(), pThis->Location);
+
+	return ReadyToVanish;
 }
 
 DEFINE_HOOK(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
@@ -474,114 +478,4 @@ DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_FlyingStrings, 0x7)
 #endif
 
 	return 0;
-}
-
-DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
-{
-	enum
-	{
-		Delete = 0x518619,
-		DoOtherAffects = 0x518515,
-		IsHuman = 0x5185C8,
-		CheckAndReturnDamageResultDestroyed = 0x5185F1,
-		PlayInfDeaths = 0x5185CE
-	};
-
-	GET(InfantryClass* const, pThis, ESI);
-	REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
-	GET(DWORD, InfDeath, EDI);
-
-	auto const pWarheadExt = WarheadTypeExt::ExtMap.Find(args.WH);
-
-	if (!pThis->Type->NotHuman)
-	{
-		--InfDeath;
-		R->EDI(InfDeath);
-
-		bool Handled = false;
-
-		if (pThis->GetHeight() < 10)
-		{
-			if(pWarheadExt->InfDeathAnims.contains(pThis->Type->ArrayIndex)
-				&& pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex])
-			{
-				AnimClass* Anim = GameCreate<AnimClass>(pWarheadExt->InfDeathAnims[pThis->Type->ArrayIndex],
-				pThis->Location);
-
-				HouseClass* const Invoker = (args.Attacker)
-					? args.Attacker->Owner
-					: args.SourceHouse
-					;
-
-				//these were MakeInf stuffs  , to make sure no behaviour chages
-				AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
-				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
-
-				Handled = true;
-			}
-			else
-			if (AnimTypeClass* deathAnim = pWarheadExt->InfDeathAnim)
-			{
-				AnimClass* Anim = GameCreate<AnimClass>(deathAnim, pThis->Location);
-
-				HouseClass* const Invoker = (args.Attacker)
-					? args.Attacker->Owner
-					: args.SourceHouse
-					;
-
-				//these were MakeInf stuffs  , to make sure no behaviour chages
-				AnimExt::ExtMap.Find(Anim)->Invoker = args.Attacker;
-				AnimTypeExt::SetMakeInfOwner(Anim, Invoker, pThis->Owner);
-
-				Handled = true;
-			}
-		}
-
-		return (Handled || InfDeath >= 10)
-			? CheckAndReturnDamageResultDestroyed
-			: PlayInfDeaths
-			;
-
-		//return IsHuman;
-	}
-
-	R->ECX(pThis);
-
-	if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
-	{
-		if (auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location))
-		{
-			auto pInvoker = args.Attacker ? args.Attacker->GetOwningHouse() : nullptr;
-			AnimExt::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), args.Attacker, true);
-			pAnim->ZAdjust = pThis->GetZAdjustment();
-		}
-	}
-	else
-	{
-		auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
-		// Die1-Die5 sequences are offset by 10
-		constexpr auto Die = [](int x) { return x + 10; };
-
-		int resultSequence = Die(1);
-
-		if (!whSequence.isset()
-			&& TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
-		{
-			resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
-		}
-		else if (whSequence.isset())
-		{
-			resultSequence = std::clamp(Die(abs(whSequence.Get())), Die(1), Die(5));
-		}
-
-		InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence = true;
-
-		//BugFix : when the sequence not declared , it keep the infantry alive ! , wtf WW ?!
-		if (pThis->PlayAnim(static_cast<DoType>(resultSequence), true))
-		{
-			return DoOtherAffects;
-		}
-	}
-
-	return Delete;
 }

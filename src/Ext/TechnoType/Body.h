@@ -484,6 +484,7 @@ public:
 		ValueableVector<TechnoTypeClass*> PassengersBlacklist;
 
 		Valueable<bool> NoManualUnload;
+		Valueable<bool> NoSelfGuardArea;
 		Valueable<bool> NoManualFire;
 		Valueable<bool> NoManualEnter;
 		Valueable<bool> NoManualEject;
@@ -1025,6 +1026,7 @@ public:
 			, PassengersBlacklist { }
 
 			, NoManualUnload { false }
+			, NoSelfGuardArea { false }
 			, NoManualFire { false }
 			, NoManualEnter { false }
 			, NoManualEject { false }

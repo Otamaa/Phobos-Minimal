@@ -9,44 +9,10 @@
 #include <Helpers/CompileTime.h>
 #include <Matrix3D.h>
 
-enum class Locomotors
-{
-	Drive = 0,
-	Jumpjet = 1,
-	Hover = 2,
-	Rocket = 3,
-	Tunnel = 4,
-	Walk = 5,
-	Droppod = 6,
-	Fly = 7,
-	Teleport = 8,
-	Mech = 9,
-	Ship = 10,
-};
-
 class LocomotionClass : public IPersistStream, public ILocomotion
 {
 public:
-	class CLSIDs
-	{
-	public:
-	#define LOCO_CLSID(_name,_addrs) \
-	static constexpr reference<CLSID const, _addrs> const _name {};
 
-		LOCO_CLSID(Drive, 0x7E9A30u)
-		LOCO_CLSID(Jumpjet, 0x7E9AC0u)
-		LOCO_CLSID(Hover, 0x7E9A40u)
-		LOCO_CLSID(Rocket, 0x7E9AD0u)
-		LOCO_CLSID(Tunnel, 0x7E9A50u)
-		LOCO_CLSID(Walk, 0x7E9A60u)
-		LOCO_CLSID(Droppod, 0x7E9A70u)
-		LOCO_CLSID(Fly, 0x7E9A80u)
-		LOCO_CLSID(Teleport, 0x7E9A90u)
-		LOCO_CLSID(Mech, 0x7E9AA0u)
-		LOCO_CLSID(Ship, 0x7E9AB0u)
-
-	#undef LOCO_CLSID
-	};
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, LPVOID* ppvObject) { JMP_STD(0x55A9B0); }
 	virtual ULONG __stdcall AddRef() { JMP_STD(0x55A950); }

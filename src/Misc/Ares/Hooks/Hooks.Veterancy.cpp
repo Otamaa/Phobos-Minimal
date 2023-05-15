@@ -10,8 +10,6 @@
 #include <Utilities/Debug.h>
 #include <Misc/AresData.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/TechnoType/Body.h>

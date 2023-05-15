@@ -2,6 +2,40 @@
 
 Enumerable<ShieldTypeClass>::container_t Enumerable<ShieldTypeClass>::Array;
 
+ShieldTypeClass::ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
+, Strength { 0 }
+, InitialStrength {}
+, Armor { Armor::None }
+, Powered { false }
+, Respawn { 0.0 }
+, Respawn_Rate { 0 }
+, SelfHealing { 0.0 }
+, SelfHealing_Rate { 0 }
+, AbsorbOverDamage { false }
+, BracketDelta { 0 }
+, IdleAnim_OfflineAction { AttachedAnimFlag::Hides }
+, IdleAnim_TemporalAction { AttachedAnimFlag::Hides }
+, IdleAnim {}
+, IdleAnimDamaged {}
+, BreakAnim {}
+, HitAnim {}
+, BreakWeapon {}
+, AbsorbPercent { 1.0 }
+, PassPercent { 0.0 }
+, AllowTransfer {}
+, Pips { { -1,-1,-1 } }
+, Pips_Background_SHP {}
+, Pips_Building { { -1,-1,-1 } }
+, Pips_Building_Empty {}
+, ImmuneToPsychedelic { false }
+, ThreadPosed { }
+, ImmuneToCrit { false }
+, BreakWeapon_TargetSelf { true }
+, PassthruNegativeDamage { false }
+, CanBeHealed { false }
+, HealCursorType { }
+{};
+
 const char* Enumerable<ShieldTypeClass>::GetMainSection()
 {
 	return "ShieldTypes";
@@ -74,6 +108,10 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
 
 	this->BreakWeapon_TargetSelf.Read(exINI , pSection , "BreakWeapon.TargetSelf");
+
+	this->PassthruNegativeDamage.Read(exINI, pSection, "PassthruNegativeDamage");
+	this->CanBeHealed.Read(exINI, pSection, "Repairable");
+	this->HealCursorType.Read(exINI, pSection, "RepairCursor");
 }
 
 template <typename T>
@@ -107,6 +145,9 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->ThreadPosed)
 		.Process(this->ImmuneToCrit)
 		.Process(this->BreakWeapon_TargetSelf)
+		.Process(this->PassthruNegativeDamage)
+		.Process(this->CanBeHealed)
+		.Process(this->HealCursorType)
 		;
 }
 

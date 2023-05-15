@@ -9,8 +9,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-#include <HoverLocomotionClass.h>
-
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -195,39 +193,6 @@ DEFINE_OVERRIDE_HOOK(0x6FA2C7, TechnoClass_Update_DrawHidden, 0x8)
 
 DEFINE_OVERRIDE_SKIP_HOOK(0x6FFF9E, TechnoClass_GetActionOnObject_IvanBombsB, 0x8, 700006)
 
-DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pAttacker, EDI);
-
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			// 85 
-			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
-		}
-	}
-
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(HouseClass*, pAttacker, EDI);
-
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
-		}
-	}
-
-	return 0;
-}
-
 DEFINE_OVERRIDE_HOOK(0x6FF2D1, TechnoClass_FireAt_Facings, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -408,3 +373,4 @@ DEFINE_HOOK(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 	R->EAX(drawHealth);
 	return CheckDrawHealthAllowed;
 }
+

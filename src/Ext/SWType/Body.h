@@ -51,7 +51,7 @@ public:
 		DWORD SW_ForbiddenHouses;
 		ValueableVector<BuildingTypeClass*> SW_AuxBuildings;
 		ValueableVector<BuildingTypeClass*> SW_NegBuildings;
-
+		Valueable<bool> SW_InitialReady;
 		Nullable<WarheadTypeClass*> Detonate_Warhead;
 		Nullable<WeaponTypeClass*> Detonate_Weapon;
 		Nullable<int> Detonate_Damage;
@@ -104,7 +104,7 @@ public:
 			, SW_ForbiddenHouses { 0u }
 			, SW_AuxBuildings {}
 			, SW_NegBuildings {}
-
+			, SW_InitialReady { false }
 			, Detonate_Warhead {}
 			, Detonate_Weapon {}
 			, Detonate_Damage {}

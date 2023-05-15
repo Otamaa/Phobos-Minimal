@@ -6,6 +6,8 @@
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
+#include <New/Type/CursorTypeClass.h>
+
 class ShieldTypeClass final : public Enumerable<ShieldTypeClass>
 {
 public:
@@ -43,40 +45,12 @@ public:
 
 	Valueable<bool> BreakWeapon_TargetSelf;
 
+	Valueable<bool> PassthruNegativeDamage;
+	Valueable<bool> CanBeHealed;
+	NullableIdx<CursorTypeClass> HealCursorType;
 public:
 
-	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
-		, Strength { 0 }
-		, InitialStrength {}
-		, Armor { Armor::None }
-		, Powered { false }
-		, Respawn { 0.0 }
-		, Respawn_Rate { 0 }
-		, SelfHealing { 0.0 }
-		, SelfHealing_Rate { 0 }
-		, AbsorbOverDamage { false }
-		, BracketDelta { 0 }
-		, IdleAnim_OfflineAction {AttachedAnimFlag::Hides}
-		, IdleAnim_TemporalAction {AttachedAnimFlag::Hides}
-		, IdleAnim {}
-		, IdleAnimDamaged {}
-		, BreakAnim {}
-		, HitAnim {}
-		, BreakWeapon {}
-		, AbsorbPercent { 1.0 }
-		, PassPercent { 0.0 }
-		, AllowTransfer {}
-		, Pips { { -1,-1,-1 } }
-		, Pips_Background_SHP {}
-		, Pips_Building { { -1,-1,-1 } }
-		, Pips_Building_Empty {}
-		, ImmuneToPsychedelic { false }
-		, ThreadPosed { }
-		, ImmuneToCrit { false }
-		, BreakWeapon_TargetSelf { true }
-
-	{};
-
+	ShieldTypeClass::ShieldTypeClass(const char* const pTitle);
 	virtual ~ShieldTypeClass() override  = default;
 	//{
 	//	if(Pips_Background_SHP.Get(nullptr)) {

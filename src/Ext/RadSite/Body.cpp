@@ -117,7 +117,6 @@ void RadSiteExt::ExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 {
-
 	const auto pThis = this->Get();
 	const auto currentLevel = pThis->GetCurrentRadLevel();
 
@@ -131,6 +130,22 @@ const double RadSiteExt::ExtData::GetRadLevelAt(CellStruct const& cell)
 		? 0.0 : (nMax - nDistance) / nMax * currentLevel;
 }
 
+const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
+{
+	const auto pThis = this->Get();
+	const auto currentLevel = pThis->GetCurrentRadLevel();
+
+	if (currentLevel <= 0)
+		return 0.0;
+
+	const auto nMax = static_cast<double>(pThis->Spread);
+
+	return (distance > nMax)
+		? 0.0 : (nMax - distance) / nMax * currentLevel;
+
+}
+
+//return false mean it is already death
 const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
 {
 	const auto pWarhead = this->Type->GetWarhead();
@@ -138,19 +153,15 @@ const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int d
 	if (!this->Type->GetWarheadDetonate())
 	{
 		HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
-		if (pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner) == DamageState::NowDead)
-			return false;
+		pTarget->ReceiveDamage(&damage, distance, pWarhead, this->TechOwner, false, true, pOwner);
 	}
 	else
 	{
 		auto const coords = pTarget->GetCoords();
 		WarheadTypeExt::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage);
-
-		if (!pTarget->IsAlive)
-			return false;
 	}
 
-	return true;
+	return pTarget->IsAlive;
 }
 
 // =============================

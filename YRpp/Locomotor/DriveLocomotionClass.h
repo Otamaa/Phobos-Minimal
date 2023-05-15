@@ -1,15 +1,13 @@
-//Locomotor = {4A582741-9839-11d1-B709-00A024DDAFD1}
-
 #pragma once
-
-#include <LocomotionClass.h>
+#include "LocomotionClass.h"
 
 class DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE DriveLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
-	static constexpr inline DWORD vtable = 0x7E7F7C;
-	static constexpr inline DWORD ILoco_vtable = 0x7E7EB0;
+	static constexpr inline uintptr_t vtable = 0x7E7F7C;
+	static constexpr inline uintptr_t ILoco_vtable = 0x7E7EB0;
+	static constexpr inline CLSID ClassGUID = __uuidof(DriveLocomotionClass);
 
 	// TODO stub virtuals implementations
 	//IUnknown

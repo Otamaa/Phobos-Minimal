@@ -295,6 +295,9 @@ void AnimTypeExt::CreateUnit_Spawn(AnimClass* pThis)
 
 OwnerHouseKind AnimTypeExt::SetMakeInfOwner(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim)
 {
+	if (!pAnim)
+		return OwnerHouseKind::Neutral;
+
 	auto pAnimData = AnimTypeExt::ExtMap.Find(pAnim->Type);
 
 	auto newOwner = HouseExt::GetHouseKind(pAnimData->MakeInfantryOwner, true,

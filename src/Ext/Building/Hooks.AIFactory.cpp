@@ -32,7 +32,7 @@ DEFINE_HOOK(0x4401BB, Factory_AI_PickWithFreeDocks, 0x6) //was C
 	return 0;
 }
 
-DEFINE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType, 0xA)
+DEFINE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EDX);
 
@@ -43,7 +43,7 @@ DEFINE_HOOK(0x443CCA, BuildingClass_KickOutUnit_AircraftType, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType, 0xA)
+DEFINE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
 {
 	GET(HouseClass*, pHouse, EAX);
 
@@ -54,7 +54,7 @@ DEFINE_HOOK(0x44531F, BuildingClass_KickOutUnit_BuildingType, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType, 0x6)
+DEFINE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
 {
 	GET(HouseClass*, pHouse, EAX);
 
@@ -65,7 +65,7 @@ DEFINE_HOOK(0x444131, BuildingClass_KickOutUnit_InfantryType, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType, 0x6)
+DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 {
 	GET(UnitClass*, pUnit, EDI);
 	GET(BuildingClass*, pFactory, ESI);
@@ -87,7 +87,7 @@ DEFINE_HOOK(0x444119, BuildingClass_KickOutUnit_UnitType, 0x6)
 	return 0;
 }
 
-DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
+DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction_Phobos, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
@@ -130,7 +130,7 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
+DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory_Phobos, 0x6)
 {
 	enum { Skip = 0x4503CA };
 
@@ -140,24 +140,24 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	if (pOwner && pOwner->Production && Phobos::Config::AllowParallelAIQueues)
 	{
 		HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
-		BuildingClass* currFactory = nullptr;
+		BuildingClass** currFactory = nullptr;
 
 		switch (pBuilding->Type->Factory)
 		{
 		case AbstractType::BuildingType:
-			currFactory = pData->Factory_BuildingType;
+			currFactory = &pData->Factory_BuildingType;
 			break;
 		case AbstractType::UnitType:
 			if (!pBuilding->Type->Naval)
-				currFactory = pData->Factory_VehicleType;
+				currFactory = &pData->Factory_VehicleType;
 			else
-				currFactory = pData->Factory_NavyType;
+				currFactory = &pData->Factory_NavyType;
 			break;
 		case AbstractType::InfantryType:
-			currFactory = pData->Factory_InfantryType;
+			currFactory = &pData->Factory_InfantryType;
 			break;
 		case AbstractType::AircraftType:
-			currFactory = pData->Factory_AircraftType;
+			currFactory = &pData->Factory_AircraftType;
 			break;
 		default:
 			break;
@@ -165,12 +165,15 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 
 		if (!currFactory)
 		{
-			currFactory = pBuilding;
+			*currFactory = pBuilding;
+			return 0;
+		}else if (!*currFactory)
+		{
+			*currFactory = pBuilding;
 			return 0;
 		}
-		else if (currFactory != pBuilding)
+		else if (*currFactory != pBuilding)
 		{
-
 			switch (pBuilding->Type->Factory)
 			{
 			case AbstractType::BuildingType:
@@ -200,7 +203,7 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory, 0x6)
 			}
 			break;
 			default:
-				return 0;
+				break;
 			}
 		}
 	}

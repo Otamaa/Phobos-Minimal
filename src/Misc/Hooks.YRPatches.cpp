@@ -91,7 +91,10 @@ DEFINE_HOOK(0x6F4F10, TechnoClass_6F4EB0_Cloak_Observer, 0x5)
 	GET(TechnoClass* const, pTechno, ESI);
 	const auto pCurPlayer = HouseClass::CurrentPlayer();
 
-	if (pCurPlayer && pCurPlayer->IsObserver())
+	if(!pCurPlayer)
+		return DonotUnselect;
+
+	if (pCurPlayer->IsObserver())
 		return DonotUnselect;
 
 	if (pCurPlayer == pTechno->Owner)

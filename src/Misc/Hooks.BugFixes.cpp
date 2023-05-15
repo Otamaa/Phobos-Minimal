@@ -9,8 +9,6 @@
 #include <VoxelAnimClass.h>
 #include <BulletClass.h>
 #include <HouseClass.h>
-#include <FlyLocomotionClass.h>
-#include <JumpjetLocomotionClass.h>
 #include <TemporalClass.h>
 #include <CellClass.h>
 
@@ -20,11 +18,14 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/SWType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/EnumFunctions.h>
+
+#include <Locomotor/Cast.h>
 
 //Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
 DEFINE_HOOK(0x423365, Phobos_BugFixes_SHPShadowCheck, 0x8)
@@ -843,8 +844,7 @@ DEFINE_HOOK(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
 FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 {
 	// do not use explicit toggle for this
-	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == 
-				JumpjetLocomotionClass::State::Crashing)
+	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == JumpjetLocomotionClass::State::Crashing)
 		return FireError::CANT;
 
 	return FireError::OK;
@@ -877,7 +877,7 @@ DEFINE_HOOK(0x44643E, BuildingClass_Place_SuperAnim, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	GET(SuperClass*, pSuper, EAX);
 
-	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0)
+	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0 && !SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
 	{
 		R->ECX(pThis);
 		return UseSuperAnimOne;
@@ -893,8 +893,85 @@ DEFINE_HOOK(0x451033, BuildingClass_AnimationAI_SuperAnim, 0x6)
 
 	GET(SuperClass*, pSuper, EAX);
 
-	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0)
+	if (pSuper->RechargeTimer.StartTime == 0 && pSuper->RechargeTimer.TimeLeft == 0 && !SWTypeExt::ExtMap.Find(pSuper->Type)->SW_InitialReady)
 		return SkipSuperAnimCode;
+
+	return 0;
+}
+
+// Updates layers of all animations attached to the given techno.
+void UpdateAttachedAnimLayers(TechnoClass* pThis)
+{
+	// Skip if has no attached animations.
+	if (!pThis || !pThis->HasParachute || !pThis->IsAlive)
+		return;
+
+	// Could possibly be faster to track the attached anims in TechnoExt but the profiler doesn't show this as a performance hog so whatever.
+	for (auto pAnim : *AnimClass::Array)
+	{
+		if (pAnim->OwnerObject != pThis)
+			continue;
+
+		DisplayClass::Instance->SubmitObject(pAnim);
+	}
+}
+
+DEFINE_HOOK(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, EAX);
+
+	UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
+{
+	GET(TechnoClass*, pLinkedTo, ECX);
+
+	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
+		UpdateAttachedAnimLayers(pLinkedTo);
+
+	return 0;
+}
+
+DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
+{
+	GET(TechnoClass*, pTechno, EBX);
+	LEA_STACK(CoordStruct*, pHomeCoords, STACK_OFFSET(0x6C, -0x30));
+
+	if (pTechno->WhatAmI() == AbstractType::Building)
+		return 0;
+
+	const auto pCell = MapClass::Instance->GetCellAt(*pHomeCoords);
+	const auto pTechnoType = pTechno->GetTechnoType();
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
+	{
+		const auto nCoord = pCell->GetCoordsWithBridge();
+		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), nCoord.X, nCoord.Y, nCoord.Z);
+		return 0x688FB9;
+
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
+{
+	GET(TechnoClass*, pTechno, EDI);
+	LEA_STACK(CoordStruct*, pCellCoords, STACK_OFFSET(0x6C, -0xC));
+
+	if (pTechno->WhatAmI() == AbstractType::Building)
+		return 0;
+
+	const auto pCell = MapClass::Instance->GetCellAt(*pCellCoords);
+	const auto pTechnoType = pTechno->GetTechnoType();
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
+	{
+		const auto nCoord = pCell->GetCoordsWithBridge();
+		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), nCoord.X, nCoord.Y, nCoord.Z);
+		return 0x689295;
+	}
 
 	return 0;
 }
