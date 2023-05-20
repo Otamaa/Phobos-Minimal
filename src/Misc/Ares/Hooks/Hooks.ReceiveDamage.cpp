@@ -255,7 +255,8 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 	// yes, let's make sure the pointer's safe AFTER we've dereferenced it... Failstwood!
 	if (pWH)
 	{
-		*pDamage = static_cast<int>(*pDamage * WarheadTypeExt::ExtMap.Find(pWH)->DeployedDamage);
+		const auto nMult = WarheadTypeExt::ExtMap.Find(pWH)->DeployedDamage.Get(I);
+		*pDamage = static_cast<int>(*pDamage * nMult);
 		return 0x517FF9u;
 	}
 
@@ -398,17 +399,22 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 	GET_STACK(HouseClass*, pAttacker_House, 0xE0);
 	GET(int*, pDamage, EBX);
 
-	if (pWH->Radiation && TechnoExt::IsRadImmune(pThis))
+	const auto nRank = pThis->Veterancy.GetRemainingLevel();
+
+	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
+	if(pWHExt->ImmunityType.isset() && TechnoExt::HasImmunity(nRank, pThis , pWHExt->ImmunityType.Get()))
 		return RetNullify;
 
-	if (pWH->PsychicDamage && TechnoExt::IsPsionicsWeaponImmune(pThis))
+	if (pWH->Radiation && TechnoExt::IsRadImmune(nRank, pThis))
 		return RetNullify;
 
-	if (pWH->Poison && TechnoExt::IsPoisonImmune(pThis))
+	if (pWH->PsychicDamage && TechnoExt::IsPsionicsWeaponImmune(nRank, pThis))
+		return RetNullify;
+
+	if (pWH->Poison && TechnoExt::IsPoisonImmune(nRank, pThis))
 		return RetNullify;
 
 	const auto pSourceHouse = pAttacker ? pAttacker->Owner : pAttacker_House;
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWH);
 
 	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
 		return RetNullifyB;
@@ -422,7 +428,7 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		if (Is_Building(pThis))
 			return RetUnaffected;
 
-		if (TechnoExt::IsPsionicsImmune(pThis) || TechnoExt::IsBerserkImmune(pThis))
+		if (TechnoExt::IsPsionicsImmune(nRank, pThis) || TechnoExt::IsBerserkImmune(nRank, pThis))
 			return RetUnaffected;
 
 		// there is no building involved
@@ -430,6 +436,18 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 		// return boolean to decide receive damage after apply berzerk or just retun function result
 		if (!pWHExt->GoBerzerkFor(static_cast<FootClass*>(pThis), pDamage))
 			return RetResultLight;
+	}
+	else
+	{
+		// restoring TS berzerk cyborg
+		if (auto pInf = specific_cast<InfantryClass*>(pThis)) {
+			if (RulesClass::Instance->BerzerkAllowed && pInf->Type->Cyborg && pThis->IsYellowHP()) {
+				if (!pInf->Berzerk) { 
+					pInf->Berzerk = true;
+					pInf->GoBerzerkFor(10);
+				}
+			}
+		}
 	}
 
 	return RetObjectClassRcvDamage;
@@ -492,7 +510,8 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 				pHijacker->RegisterDestruction(pKiller);
 
 				if (pHijacker->IsAlive) {
-					pHijacker->UnInit();
+					GameDelete<true,false>(pHijacker);
+					//pHijacker->UnInit();
 				}
 			}
 			else
@@ -539,7 +558,8 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 							pPilot->RegisterDestruction(pKiller);
 
 							if (pPilot->IsAlive) {
-								pPilot->UnInit();
+								GameDelete<true,false>(pPilot);
+								//pPilot->UnInit();
 							}
 						}
 						else if (auto const pTag = pThis->AttachedTag)
@@ -584,6 +604,7 @@ void NOINLINE SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller,
 			pPassenger->RegisterDestruction(pKiller);
 
 			if (pPassenger->IsAlive) {
+				//GameDelete<true,false>(pPassenger);
 				pPassenger->UnInit();
 			}
 		}

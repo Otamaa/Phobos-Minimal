@@ -26,4 +26,5 @@ concept CanBeAbstractType = std::is_base_of<AbstractTypeClass, T>::value;
 
 template<typename T>
 concept IsTechno = std::is_base_of<TecnoTypeClass, T>::value;
+
 #endif

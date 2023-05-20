@@ -58,8 +58,9 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 			if (pTarget == pNode->Unit)
 			{
 				if (pTarget->MindControlRingAnim) {
-					pTarget->MindControlRingAnim->TimeToDie = true;
-					pTarget->MindControlRingAnim->UnInit();
+					GameDelete<true,false>(pTarget->MindControlRingAnim);
+					//pTarget->MindControlRingAnim->TimeToDie = true;
+					//pTarget->MindControlRingAnim->UnInit();
 					pTarget->MindControlRingAnim = nullptr;
 				}
 

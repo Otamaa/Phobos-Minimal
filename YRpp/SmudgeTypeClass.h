@@ -16,15 +16,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<SmudgeTypeClass*>, 0xA8EC18u> const Array {};
 
-	static NOINLINE SmudgeTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(SmudgeTypeClass)
 
 	static SmudgeTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x6B5910);

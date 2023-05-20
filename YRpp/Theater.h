@@ -16,7 +16,7 @@ public:
 		return &Array[static_cast<int>(theater)];
 	}
 
-	static int __fastcall FindIndex(const char* pName)
+	static int __fastcall FindIndexById(const char* pName)
 		{ JMP_STD(0x48DBE0); }
 
 	static void __fastcall Init(TheaterType theater)

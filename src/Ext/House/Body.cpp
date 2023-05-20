@@ -242,7 +242,7 @@ bool HouseExt::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const 
 	{
 		//TODO : custom theater
 		int currentTheaterIndex = (int)ScenarioClass::Instance->Theater;
-		if (pItemExt->Prerequisite_RequiredTheaters.IndexOf(currentTheaterIndex) < 0)
+		if (!pItemExt->Prerequisite_RequiredTheaters.Contains(currentTheaterIndex))
 			return false;
 	}
 
@@ -563,9 +563,8 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 			}
 		}
 
-		if (housesListIdx.size() > 0)
-			houseIdx = 
-			housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
+		if (!housesListIdx.empty())
+			houseIdx = housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 		else
 			return -1;
 
@@ -596,9 +595,8 @@ int HouseExt::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionClass*
 			}
 		}
 
-		if (housesListIdx.size() > 0)
-			houseIdx =
-			housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
+		if (!housesListIdx.empty())
+			houseIdx = housesListIdx[ScenarioClass::Instance->Random.RandomFromMax(housesListIdx.size() - 1)];
 		else
 			return -1;
 
@@ -772,27 +770,25 @@ void HouseExt::ExtData::UpdateVehicleProduction()
 
 	if (!skipGround)
 	{
-		if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < earliestOdds)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < earliestOdds)
 		{
 			pThis->ProducingUnitTypeIndex = earliestTypenameIndex;
 		}
 		else if (const auto size = static_cast<int>(bestChoices.size()))
 		{
-			int randomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
-			pThis->ProducingUnitTypeIndex = bestChoices[static_cast<size_t>(randomChoice)];
+			pThis->ProducingUnitTypeIndex = bestChoices[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
 		}
 	}
 
 	if (!skipNaval)
 	{
-		if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < earliestOdds)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < earliestOdds)
 		{
 			this->ProducingNavalUnitTypeIndex = earliestTypenameIndexNaval;
 		}
 		else if (const auto size = static_cast<int>(bestChoicesNaval.size()))
 		{
-			int randomChoice = ScenarioClass::Instance->Random.RandomRanged(0, size - 1);
-			this->ProducingNavalUnitTypeIndex = bestChoicesNaval[static_cast<size_t>(randomChoice)];
+			this->ProducingNavalUnitTypeIndex = bestChoicesNaval[static_cast<size_t>(ScenarioClass::Instance->Random.RandomFromMax(size - 1))];
 		}
 	}
 }

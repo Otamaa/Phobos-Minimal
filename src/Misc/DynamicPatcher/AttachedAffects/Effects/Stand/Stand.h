@@ -176,8 +176,8 @@ private:
 		}
 		else
 		{
-			//pStand->UnInit();
-			GameDelete(pStand);
+			pStand->UnInit();
+			//GameDelete(pStand);
 		}
 
 		pStand = nullptr;

@@ -692,7 +692,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon.Get(nullptr))
 	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
-		WeaponTypeExt::DetonateAt(pWeaponType, pTarget, this->Techno);
+		WeaponTypeExt::DetonateAt(pWeaponType, pTarget, this->Techno,true);
 	}
 }
 
@@ -781,6 +781,7 @@ void ShieldClass::KillAnim()
 	{
 		if (this->IdleAnim->Type) //this anim doesnt have type pointer , just detach it 
 		{
+			//GameDelete<true,false>(this->IdleAnim);
 			this->IdleAnim->TimeToDie = true;
 			this->IdleAnim->UnInit();
 		}

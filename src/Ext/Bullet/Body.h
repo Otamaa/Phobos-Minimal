@@ -135,7 +135,7 @@ public:
 	static Fuse FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation);
 	static HouseClass* GetHouse(BulletClass* const pThis);
 	static bool ApplyMCAlternative(BulletClass* pThis);
-	static NOINLINE void HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove);
+	static NOINLINE bool HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove);
 	static NOINLINE bool IsReallyAlive(BulletClass* pThis);
 
 	static VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst = false);

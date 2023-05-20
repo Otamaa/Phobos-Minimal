@@ -60,16 +60,16 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 			&& pTechno->IsOnMap
 			&& !pTechno->Absorbed
 			&& pTechno->Owner
-			&& ((!pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 0)
-				|| (pTechno->Owner->IsAlliedWith(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 1)
+			&& ((!pTechno->Owner->IsAlliedWith_(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 0)
+				|| (pTechno->Owner->IsAlliedWith_(pHouse) && !pTechno->Owner->IsNeutral() && pickMode == 1)
 				|| (pTechno->Owner == pHouse && pickMode == 2)
 				|| (!pTechno->Owner->IsNeutral() && pickMode == 3)
-				|| (pTechno->Owner->IsControlledByHuman() && !pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 4)
-				|| (pTechno->Owner->IsControlledByHuman() && pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 5)
-				|| (pTechno->Owner->IsControlledByHuman() && pickMode == 6)
-				|| (!pTechno->Owner->IsControlledByHuman() && !pTechno->Owner->IsNeutral() && !pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 7)
-				|| (!pTechno->Owner->IsControlledByHuman() && !pTechno->Owner->IsNeutral() && pTechno->Owner->IsAlliedWith(pHouse) && pickMode == 8)
-				|| (!pTechno->Owner->IsControlledByHuman() && !pTechno->Owner->IsNeutral() && pickMode == 9)
+				|| (pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 4)
+				|| (pTechno->Owner->IsControlledByHuman_() && pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 5)
+				|| (pTechno->Owner->IsControlledByHuman_() && pickMode == 6)
+				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && !pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 7)
+				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && pTechno->Owner->IsAlliedWith_(pHouse) && pickMode == 8)
+				|| (!pTechno->Owner->IsControlledByHuman_() && !pTechno->Owner->IsNeutral() && pickMode == 9)
 				|| (pTechno->Owner->IsNeutral() && pickMode == 10)
 				|| (pickMode == 11)
 				))
@@ -90,7 +90,7 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 
 void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition)
 {
-	auto const& AIConditionsLists = RulesExt::Global()->AIConditionsLists;
+	auto& AIConditionsLists = RulesExt::Global()->AIConditionsLists;
 
 	int essentialRequirementsCount = -1;
 	int leastOptionalRequirementsCount = -1;
@@ -99,7 +99,7 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 
 	if (!AIConditionsLists.empty() && condition < (int)AIConditionsLists.size())
 	{
-		const auto& thisAICondition = AIConditionsLists[condition];
+		auto& thisAICondition = AIConditionsLists[condition];
 
 		if (thisAICondition.size() < 2)
 		{
@@ -109,15 +109,14 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		}
 
 		//parse first string
-		auto FirstAIConditionString = thisAICondition[0];
 		char* context = nullptr;
 		char* cur[3];
-		cur[0] = strtok_s(FirstAIConditionString.data(), Phobos::readDelims, &context);
+		cur[0] = strtok_s(thisAICondition[0].data(), Phobos::readDelims, &context);
 		int j = 0;
 		while (cur[j])
 		{
 			j++;
-			cur[j] = strtok_s(NULL, ",", &context);
+			cur[j] = strtok_s(NULL, Phobos::readDelims, &context);
 		}
 
 		if (cur[0])
@@ -133,14 +132,13 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 		//parse other strings
 		for (int i = 1; i < (int)thisAICondition.size(); i++)
 		{
-			auto AIConditionString = thisAICondition[i];
 			int pickMode = -1;
 			int compareMode = -1;
 			int Number = -1;
 			TechnoTypeClass* TechnoType;
 
 			char* cur2[5];
-			cur2[0] = strtok_s(AIConditionString.data(), Phobos::readDelims, &context);
+			cur2[0] = strtok_s(thisAICondition[i].data(), Phobos::readDelims, &context);
 			int k = 0;
 			while (cur2[k])
 			{

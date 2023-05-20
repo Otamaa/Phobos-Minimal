@@ -21,8 +21,8 @@ void SpawnSupportData::Read(INI_EX& nParser, const char* pSection)
 
 	if (Enable)
 	{
-		SupportWeapon.Read(nParser, pSection, "SupportSpawns.Weapon", true);
-		EliteSupportWeapon.Read(nParser, pSection, "SupportSpawns.EliteWeapon", true);
+		SupportWeapon.Read(nParser, pSection, "SupportSpawns.Weapon");
+		EliteSupportWeapon.Read(nParser, pSection, "SupportSpawns.EliteWeapon");
 
 		if (!EliteSupportWeapon)
 			SupportWeapon = EliteSupportWeapon;

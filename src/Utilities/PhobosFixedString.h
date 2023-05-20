@@ -18,7 +18,7 @@ public:
 	{
 		if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer, FixedString<Capacity>::Size))
 		{
-			if (!INIClass::IsBlank(Phobos::readBuffer))
+			if (!GameStrings::IsBlank(Phobos::readBuffer))
 			{
 				*this = Phobos::readBuffer;
 			}

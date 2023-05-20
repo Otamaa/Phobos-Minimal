@@ -41,15 +41,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<BuildingTypeClass*>, 0xA83C68u> const Array {};
 
-	static NOINLINE BuildingTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(BuildingTypeClass)
 
 	static BuildingTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x4653C0);

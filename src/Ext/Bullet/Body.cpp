@@ -457,7 +457,7 @@ void BulletExt::ApplyShrapnel(BulletClass* pThis)
 	}
 }
 
-void BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
+bool BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRemove)
 {
 	if (bDetonate)
 		pThis->Detonate(pThis->GetCoords());
@@ -466,8 +466,6 @@ void BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRem
 	{
 		if (!pThis->InLimbo)
 			pThis->Limbo();
-
-		pThis->UnInit();
 
 		const auto pTechno = pThis->Owner;
 		const bool isLimbo =
@@ -483,7 +481,12 @@ void BulletExt::HandleBulletRemove(BulletClass* pThis, bool bDetonate, bool bRem
 			pTechno->SetLocation(pThis->GetCoords());
 			pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 		}
+
+		GameDelete<true,false>(pThis);
+		return true;
 	}
+
+	return false;
 }
 
 bool BulletExt::ApplyMCAlternative(BulletClass* pThis)
@@ -797,6 +800,7 @@ void BulletExt::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoCla
 	pThis->Limbo();
 	pThis->SetLocation(nCoord);
 	pThis->Explode(false);
+	//GameDelete<true,false>(pThis);
 	pThis->UnInit();
 }
 

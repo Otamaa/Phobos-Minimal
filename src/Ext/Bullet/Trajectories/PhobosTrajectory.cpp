@@ -114,7 +114,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 
 	TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
 
-	if (!INIClass::IsBlank(Phobos::readBuffer)) {
+	if (!GameStrings::IsBlank(Phobos::readBuffer)) {
 		for (size_t i = 0; i < TrajectoryTypeToSrings.size(); ++i) {
 			if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i])) {
 				nFlag = static_cast<TrajectoryFlag>(i);

@@ -7,6 +7,7 @@
 #include "ShowHealthPercent.h"
 #include "DamageDisplay.h"
 #include "FrameStep.h"
+#include "ShowAnimNames.h"
 #include "ShowTechnoNames.h"
 #include "SetVeterancy.h"
 #include "ShowTeamLeader.h"
@@ -24,6 +25,7 @@ DEFINE_HOOK(0x533066, CommandClassCallback_Register, 0x6)
 	Make(CaptureObjectsCommandClass);
 	Make(ShowHealthPercentCommandClass);
 	Make(DamageDisplayCommandClass);
+	Make(ShowAnimNameCommandClass);
 	Make(ShowTechnoNameCommandClass);
 	Make(SetVeterancyCommandClass);
 	Make(FrameByFrameCommandClass);

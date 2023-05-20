@@ -11,6 +11,8 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
+#include <Misc/AresData.h>
+
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
@@ -43,7 +45,7 @@ namespace Funcs
 				pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 				pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
-				if (pSource->Owner->ControlledByPlayer())
+				if (pSource->Owner && pSource->Owner->ControlledByPlayer())
 				{
 					VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
 					, pBomb->Target->Location);
@@ -58,6 +60,9 @@ namespace Funcs
 		{
 			if (const auto pBomb = pThis->AttachedBomb)
 			{
+				if(!pBomb->OwnerHouse)
+					return false;
+
 				if (pBomb->OwnerHouse->ControlledByPlayer())
 				{
 					const auto pData = BombExt::ExtMap.Find(pBomb);
@@ -78,15 +83,17 @@ namespace Funcs
 
 	Action GetAction(TechnoClass* pThis, ObjectClass* pThat)
 	{
+		if(!pThat)
+			return Action::None;
+
 		if (CanDetonate(pThis, pThat))
 			return Action::Detonate;
 
 		if (pThis == pThat && ObjectClass::CurrentObjects->Count == 1)
 		{
-
 			if (pThat->AbstractFlags & AbstractFlags::Techno)
 			{
-				if (pThis->Owner->IsAlliedWith_(pThat) && pThat->IsSelectable())
+				if (pThis->Owner && pThis->Owner->IsAlliedWith_(pThat) && pThat->IsSelectable())
 				{
 					return Action::Select;
 				}
@@ -247,7 +254,7 @@ DEFINE_OVERRIDE_HOOK(0x46934D, IvanBombs_Spread, 6)
 {
 	GET(BulletClass* const, pBullet, ESI);
 
-	if (!pBullet->Owner || 
+	if (!pBullet->Owner ||
 		(!(pBullet->Owner->AbstractFlags & AbstractFlags::Techno)))
 		return 0x469AA4;
 
@@ -358,6 +365,30 @@ DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_IvanBombsA, 5)
 	if (Funcs::CanDetonate(pThis, pObject)) {
 		R->EAX(Action::Detonate);
 		return 0x7005EF;
+	}
+
+	const auto pType = pThis->GetTechnoType();
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	// Cursor Move
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
+
+	// Cursor NoMove
+	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
+
+	if(!pObject)
+		return 0x0;
+
+	if (const auto pTargetType = pObject->GetTechnoType())
+	{
+		// Cursor Enter
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Repair, false);
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Enter, false);
+		//
+
+		// Cursor NoEnter
+		AresData::SetMouseCursorAction(pTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
 	}
 
 	return 0x0;

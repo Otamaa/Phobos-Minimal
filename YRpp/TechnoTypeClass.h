@@ -86,6 +86,7 @@ public:
 	static inline constexpr auto MaxWeapons = 18;
 
 	static constexpr reference<NamedValue<int>, 0x81B958u, 11u> const PipsTypeName {};
+	static constexpr reference<NamedValue<int>, 0x81B9B0u, 4u> const PipScaleTypeName {};
 	static constexpr reference<int, 0x7F4890, 40u> const BodyShapeStage {};
 	static constexpr reference<int, 0x7F4890, 8u> const BodyShapeStage_Force8 {}; //used by ares 
 
@@ -99,44 +100,9 @@ public:
 
 	static constexpr constant_ptr<DynamicVectorClass<TechnoTypeClass*>, 0xA8EB00u> const Array {};
 
-	static NOINLINE TechnoTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *TechnoTypeClass::Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
 
-		return nullptr;
-	}
-
-	/* Require SpeedType to be set !
-	static NOINLINE TechnoTypeClass* FindOrAllocate(const char* pID)
-	{
-		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
-			return nullptr; 
-		}
-
-		if (auto pRet = Find(pID)) {
-			return pRet;
-		}
-
-		return GameCreate<TechnoTypeClass>(pID);
-	}
-	*/
-
-	static NOINLINE int __fastcall FindIndexById(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < TechnoTypeClass::Array->Count; ++i) {
-			if (!CRT::strcmpi(TechnoTypeClass::Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_Find(TechnoTypeClass)
+	IMPL_FindIndexById(TechnoTypeClass)
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
@@ -147,7 +113,7 @@ public:
 	virtual ~TechnoTypeClass() override JMP_THIS(0x7179A0);
 
 	//AbstractClass
-	
+
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x712170);
 

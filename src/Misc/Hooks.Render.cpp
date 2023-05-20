@@ -15,6 +15,7 @@
 #include <VeinholeMonsterClass.h>
 
 #include <Commands/ShowTechnoNames.h>
+#include <Commands/ShowAnimNames.h>
 
 DEFINE_HOOK(0x6D466E, TacticalClass_Render_ReplaceEbolt, 0x5)
 {
@@ -37,7 +38,7 @@ DEFINE_HOOK(0x4F4583, GScreenClass_Render ,0x6) //B
 #endif
 	FlyingStrings::UpdateAll();
 	ShowTechnoNameCommandClass::AI();
-
+	ShowAnimNameCommandClass::AI();
 	return 0;
 }
 

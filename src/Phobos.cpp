@@ -664,6 +664,15 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	case DLL_PROCESS_ATTACH:
 	{
 		Phobos::hInstance = hInstance;
+		/**
+		*  Set the FPU mode to match the game (rounding towards zero [chop mode]).
+		*/
+		_set_controlfp(_RC_CHOP, _MCW_RC);
+
+		/**
+		 *  And this is required for the std c++ lib.
+		 */
+		fesetround(FE_TOWARDZERO);
 #ifdef ENABLE_ENCRYPTION_HOOKS
 		Imports::ReadFile = ReadFIle_;
 		Imports::CreateFileA = CreateFileA_;

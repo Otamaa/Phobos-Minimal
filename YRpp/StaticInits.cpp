@@ -1284,3 +1284,9 @@ ObjectClass* AnimTypeClass::CreateObject(HouseClass* owner)
 
 	return nullptr;
 }; // ! this just returns NULL instead of creating the anim, fucking slackers
+
+bool GameStrings::IsBlank(const char* pValue)
+{
+	return CRT::strcmpi(pValue, NoneStr()) == 0
+		|| CRT::strcmpi(pValue, NoneStrb()) == 0;
+}

@@ -72,7 +72,7 @@ namespace detail
 			const auto pValue = parser.value();
 			auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue);
 
-			if (parsed || INIClass::IsBlank(pValue))
+			if (parsed || GameStrings::IsBlank(pValue))
 			{
 				value = parsed;
 				return true;
@@ -124,7 +124,7 @@ namespace detail
 			const auto pValue = parser.value();
 			const auto parsed = TechnoTypeClass::Find(pValue);
 
-			if (parsed || INIClass::IsBlank(pValue))
+			if (parsed || GameStrings::IsBlank(pValue))
 			{
 				value = parsed;
 				return true;
@@ -214,6 +214,17 @@ namespace detail
 
 	template <>
 	inline bool read<PartialVector3D<int>>(PartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, (int*)&value);
+
+		if (value.ValueCount > 0)
+			return true;
+
+		return false;
+	}
+	
+	template <>
+	inline bool read<ReversePartialVector3D<int>>(ReversePartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, (int*)&value);
 
@@ -525,10 +536,14 @@ namespace detail
 	inline bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		double buffer;
-		if(parser.ReadDouble(pSection, pKey, &buffer))
+		if (parser.ReadDouble(pSection, pKey, &buffer))
 		{
-			value = Leptons(buffer);
-			return true;
+			if (buffer == -1.0) { //vanilla
+				return false;
+			} else {
+				value = Leptons(buffer);
+				return true;
+			}
 		}
 
 		if (!parser.empty())
@@ -814,7 +829,7 @@ namespace detail
 
 			if (!found)
 			{
-				if (INIClass::IsBlank(parser.value()))
+				if (GameStrings::IsBlank(parser.value()))
 				{
 					value = IronCurtainFlag::Default;
 					return true;
@@ -1109,7 +1124,7 @@ namespace detail
 				}
 			}
 
-			if (INIClass::IsBlank(parser.value()))
+			if (GameStrings::IsBlank(parser.value()))
 			{
 				value = LandType::Clear;
 				return true;
@@ -1281,7 +1296,7 @@ namespace detail
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()) && !allocate)
+			if (!GameStrings::IsBlank(parser.value()) && !allocate)
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
 
 		}
@@ -1350,7 +1365,7 @@ namespace detail
 				}
 			}
 
-			if (INIClass::IsBlank(parser.value())) {
+			if (GameStrings::IsBlank(parser.value())) {
 				value = TileType::ClearToSandLAT;
 				return true;
 			}
@@ -1391,6 +1406,7 @@ namespace detail
 	template <typename T>
 	inline void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
+		vector.clear();
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
 			pCur;
@@ -1399,7 +1415,7 @@ namespace detail
 			auto buffer = T();
 			if (Parser<T>::Parse(pCur, &buffer))
 				vector.push_back(buffer);
-			else if (!INIClass::IsBlank(pCur))
+			else if (!GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1410,8 +1426,7 @@ namespace detail
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
-		{
-			vector.clear();
+		{	
 			detail::parse_Alloc_values(vector, parser, pSection, pKey, bAllocate);
 		}
 	}
@@ -1420,8 +1435,8 @@ namespace detail
 	inline void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate = false)
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
-
 		using base_type = std::remove_pointer_t<T>;
+		vector.clear();
 
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
@@ -1431,9 +1446,9 @@ namespace detail
 			auto buffer = base_type::FindOrAllocate(pCur);
 			bool parseSucceeded = buffer != nullptr;
 
-			if (parseSucceeded)
+			if (parseSucceeded || GameStrings::IsBlank(pCur))
 				vector.push_back(buffer);
-			else if (!INIClass::IsBlank(pCur))
+			else
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1441,6 +1456,7 @@ namespace detail
 	template <>
 	inline void parse_values(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
+		vector.clear();
 		char* context = nullptr;
 		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
 			cur;
@@ -1455,6 +1471,7 @@ namespace detail
 	template <>
 	inline void parse_values(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
+		vector.clear();
 		char* context = nullptr;
 		for (auto cur = strtok_s(parser.value(),
 			Phobos::readDelims, &context);
@@ -1470,13 +1487,14 @@ namespace detail
 	template <typename Lookuper, typename T>
 	inline void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
 	{
+		vector.clear();
 		char* context = nullptr;
 		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
 			pCur;
 			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			int idx = Lookuper::FindIndexById(pCur);
-			if (idx != -1 || INIClass::IsBlank(pCur))
+			if (idx != -1 || GameStrings::IsBlank(pCur))
 			{
 				vector.push_back(idx);
 			}
@@ -1526,7 +1544,7 @@ void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection,
 		else
 			idx = Lookuper::FindIndexById(val);
 
-		if (idx != -1 || INIClass::IsBlank(val))
+		if (idx != -1 || GameStrings::IsBlank(val))
 		{
 			this->Value = idx;
 		}
@@ -1578,7 +1596,7 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 	{
 		const char* val = parser.value();
 		int idx = Lookuper::FindIndexById(val);
-		if (idx != -1 || INIClass::IsBlank(val)) //if it is blank , count as read , but return -1
+		if (idx != -1 || GameStrings::IsBlank(val)) //if it is blank , count as read , but return -1
 		{
 			this->Value = idx;
 			this->HasValue = true;
@@ -1592,7 +1610,7 @@ void NOINLINE NullableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, 
 
 // Promotable
 template <typename T>
-void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool allocate)
 {
 
 	// read the common flag, with the trailing dot being stripped
@@ -1605,20 +1623,20 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 	}
 
 	T placeholder {};
-	if (detail::read(placeholder, parser, pSection, flagName))
+	if (detail::read(placeholder, parser, pSection, flagName , allocate))
 	{
 		this->SetAll(placeholder);
 	}
 
 	// read specific flags
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
-	detail::read(this->Rookie, parser, pSection, flagName);
+	detail::read(this->Rookie, parser, pSection, flagName, allocate);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
-	detail::read(this->Veteran, parser, pSection, flagName);
+	detail::read(this->Veteran, parser, pSection, flagName, allocate);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
-	detail::read(this->Elite, parser, pSection, flagName);
+	detail::read(this->Elite, parser, pSection, flagName, allocate);
 };
 
 template <typename T>
@@ -1812,7 +1830,7 @@ void NOINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSec
 
 // Damageable
 template <typename T>
-void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool Alloc)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x80];
@@ -1822,13 +1840,13 @@ void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, co
 	if (res > 0 && flagName[res - 1] == '.')
 		flagName[res - 1] = '\0';
 
-	this->BaseValue.Read(parser, pSection, flagName);
+	this->BaseValue.Read(parser, pSection, flagName , Alloc);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
-	this->ConditionYellow.Read(parser, pSection, flagName);
+	this->ConditionYellow.Read(parser, pSection, flagName, Alloc);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
-	this->ConditionRed.Read(parser, pSection, flagName);
+	this->ConditionRed.Read(parser, pSection, flagName, Alloc);
 };
 
 template <typename T>

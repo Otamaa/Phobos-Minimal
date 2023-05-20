@@ -33,7 +33,7 @@ public:
 	static void LoadForWarhead_NoParse(WarheadTypeClass* pWH);
 	static void PrepareForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
 
-	void EvaluateDefault();
+	static void EvaluateDefault();
 
 private:
 	template <typename T>

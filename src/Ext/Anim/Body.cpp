@@ -195,23 +195,24 @@ DWORD AnimExt::DealDamageDelay(AnimClass* pThis)
 	const auto nCoord = pExt && pExt->BackupCoords.has_value() ? pExt->BackupCoords.get() : pThis->GetCoords();
 	const auto nDamageResult = static_cast<int>(appliedDamage *
 		TechnoExt::GetDamageMult(pInvoker, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+	const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
 
 	if (auto const pWeapon = pTypeExt->Weapon.Get(nullptr))
 	{
 		AbstractClass* pTarget = AnimExt::GetTarget(pThis);
-		WeaponTypeExt::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, nDamageResult);
+		// use target loc instead of anim loc , it doesnt work well with bridges
+		WeaponTypeExt::DetonateAt(pWeapon, pTarget ? pTarget->GetCoords() : nCoord, pTarget, pInvoker, nDamageResult , false);
 	}
 	else
 	{
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->GetOwningHouse() : nullptr;
-
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
 			AbstractClass* pTarget = AnimExt::GetTarget(pThis);
-			WarheadTypeExt::DetonateAt(pWarhead, pTarget, nCoord, pInvoker, nDamageResult);
+			// use target loc instead of anim loc , it doesnt work well with bridges
+			WarheadTypeExt::DetonateAt(pWarhead, pTarget , pTarget ? pTarget->GetCoords() : nCoord, pInvoker, nDamageResult);
 
 		} else {
 
@@ -277,6 +278,10 @@ AbstractClass* AnimExt::GetTarget(AnimClass* pThis)
 {
 	auto const pType = pThis->Type;
 	auto const pTypeExt = AnimTypeExt::ExtMap.Find(pType);
+
+	if (!pTypeExt->Damage_TargetFlag.isset()) {
+		return pThis->OwnerObject ? (AbstractClass*)pThis->OwnerObject : pThis->GetCell();
+	}
 
 	switch (pTypeExt->Damage_TargetFlag.Get())
 	{
@@ -419,14 +424,14 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 
 	if (pThis->OwnerObject)
 	{
-		switch ((((DWORD*)pThis->OwnerObject)[0]))
+		switch (pThis->OwnerObject->WhatAmI())
 		{
-		case BuildingClass::vtable:
-		case UnitClass::vtable:
-		case InfantryClass::vtable:
-		case AircraftClass::vtable:
+		case BuildingClass::AbsID:
+		case UnitClass::AbsID:
+		case InfantryClass::AbsID:
+		case AircraftClass::AbsID:
 			return static_cast<TechnoClass*>(pThis->OwnerObject);
-		case BulletClass::vtable:
+		case BulletClass::AbsID:
 			return static_cast<BulletClass*>(pThis->OwnerObject)->Owner;
 		}
 	}
@@ -479,6 +484,7 @@ void AnimExt::ExtData::Serialize(T& Stm)
 		.Process(this->AllowCreateUnit)
 		.Process(this->AttachedSystem)
 		.Process(this->ParentBuilding)
+		.Process(this->CreateUnitLocation)
 		;
 }
 

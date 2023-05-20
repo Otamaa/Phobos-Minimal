@@ -12,6 +12,38 @@
 
 #include <FootClass.h>
 
+void EffectHelpers::DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon)
+{
+	const auto pTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
+	if (pTypeExt->WeaponBolt_Data.isset())
+		ElectricBoltClass::Create(sourcePos, targetPos,
+		pTypeExt->WeaponBolt_Data.Get(), 0,
+		pTypeExt->Bolt_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem), false);
+	else
+	{
+		BoltType type {};
+		type.IsAlternateColor = pWeapon->IsAlternateColor;
+
+		if (pTypeExt->Bolt_Color1.isset())
+			type.Color1 = pTypeExt->Bolt_Color1.Get();
+
+		if (pTypeExt->Bolt_Color2.isset())
+			type.Color2 = pTypeExt->Bolt_Color2.Get();
+
+		if (pTypeExt->Bolt_Color2.isset())
+			type.Color2 = pTypeExt->Bolt_Color2.Get();
+
+		if (pTypeExt->Bolt_ParticleSys.isset())
+			type.ParticleSystem = pTypeExt->Bolt_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem);
+
+		type.Color1_disable = pTypeExt->Bolt_Disable1;
+		type.Color2_disable = pTypeExt->Bolt_Disable2;
+		type.Color3_disable = pTypeExt->Bolt_Disable3;
+
+		EffectHelpers::DrawBolt(sourcePos, targetPos, type);
+	}
+}
+
 void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourcePos, CoordStruct& targetPos, TechnoClass* pAttacker, AbstractClass* pTarget)
 {
 	// IsLaser
@@ -63,23 +95,7 @@ void Helpers_DP::DrawBulletEffect(WeaponTypeClass* pWeapon, CoordStruct& sourceP
 		}
 		else
 		{
-			BoltType type {};
-			type.IsAlternateColor = pWeapon->IsAlternateColor;
-			const auto pWExt = WeaponTypeExt::ExtMap.Find(pWeapon);
-
-			if (pWExt->Bolt_Color1.isset())
-				type.Color1 = pWExt->Bolt_Color1.Get();
-
-			if (pWExt->Bolt_Color2.isset())
-				type.Color2 = pWExt->Bolt_Color2.Get();
-
-			if (pWExt->Bolt_Color2.isset())
-				type.Color2 = pWExt->Bolt_Color2.Get();
-
-			if (pWExt->Bolt_ParticleSys.isset())
-				type.ParticleSystem = pWExt->Bolt_ParticleSys.Get();
-
-			EffectHelpers::DrawBolt(sourcePos, targetPos, type);
+			EffectHelpers::DrawBolt(sourcePos, targetPos, pWeapon);
 		}
 	}
 }
@@ -1060,6 +1076,7 @@ BulletClass* Helpers_DP::FireBullet(TechnoClass* pAttacker, AbstractClass* pTarg
 	if (pWeapon->Projectile->Inviso && !pWeapon->Projectile->Airburst)
 	{
 		pBullet->Detonate(targetPos);
+		//GameDelete<true,false>(pBullet);
 		pBullet->UnInit();
 
 		return nullptr;

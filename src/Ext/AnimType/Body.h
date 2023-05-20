@@ -43,7 +43,7 @@ public:
 		Valueable<bool> Damage_DealtByInvoker;
 		Valueable<bool> Damage_ApplyOnce;
 		Valueable<bool> Damage_ConsiderOwnerVeterancy;
-		Valueable<DamageDelayTargetFlag> Damage_TargetFlag;
+		Nullable<DamageDelayTargetFlag> Damage_TargetFlag;
 		Nullable<Mission> MakeInfantry_Mission;
 
 		Valueable<bool> Warhead_Detonate;
@@ -107,7 +107,7 @@ public:
 			, Damage_DealtByInvoker { false }
 			, Damage_ApplyOnce{ false }
 			, Damage_ConsiderOwnerVeterancy { true }
-			, Damage_TargetFlag { DamageDelayTargetFlag::Cell }
+			, Damage_TargetFlag {}
 			, Warhead_Detonate { false }
 
 			, SplashList {}

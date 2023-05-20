@@ -10,6 +10,8 @@
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
+#include <New/Entity/ElectricBoltClass.h>
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
@@ -32,9 +34,7 @@ public:
 		Valueable<int> DiskLaser_Circumference;
 		Nullable<RadTypeClass*> RadType;
 		Valueable<bool> Rad_NoOwner;
-		Valueable<bool> Bolt_Disable1;
-		Valueable<bool> Bolt_Disable2;
-		Valueable<bool> Bolt_Disable3;
+
 		Valueable<int> Strafing_Shots;
 		Valueable<bool> Strafing_SimulateBurst;
 		Valueable<AffectedTarget> CanTarget;
@@ -49,6 +49,8 @@ public:
 		Valueable<AnimTypeClass*> Abductor_AnimType;
 		Valueable <bool> Abductor_ChangeOwner;
 		Valueable<double> Abductor_AbductBelowPercent;
+		Valueable<bool> Abductor_Temporal;
+		Valueable<int> Abductor_MaxHealth;
 
 		Nullable<AnimTypeClass*>DelayedFire_Anim;
 		Valueable<int> DelayedFire_Anim_LoopCount;
@@ -119,9 +121,16 @@ public:
 		ValueableIdx<CursorTypeClass> Cursor_Attack;
 		ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange;
 
+		Nullable<BoltData> WeaponBolt_Data;
+
 		Nullable<ColorStruct> Bolt_Color1;
 		Nullable<ColorStruct> Bolt_Color2;
 		Nullable<ColorStruct> Bolt_Color3;
+
+		Valueable<bool> Bolt_Disable1;
+		Valueable<bool> Bolt_Disable2;
+		Valueable<bool> Bolt_Disable3;
+
 		Nullable<ParticleSystemTypeClass*> Bolt_ParticleSys;
 
 		ExtData(WeaponTypeClass* OwnerObject) : Extension<WeaponTypeClass>(OwnerObject)
@@ -129,9 +138,6 @@ public:
 			, DiskLaser_Circumference { 240 }
 			, RadType {}
 			, Rad_NoOwner { true }
-			, Bolt_Disable1 { false }
-			, Bolt_Disable2 { false }
-			, Bolt_Disable3 { false }
 			, Strafing_Shots { 5 }
 			, Strafing_SimulateBurst { false }
 			, CanTarget { AffectedTarget::All }
@@ -144,7 +150,10 @@ public:
 			, Abductor { false }
 			, Abductor_AnimType { nullptr }
 			, Abductor_ChangeOwner { false }
-			, Abductor_AbductBelowPercent { 1 }
+			, Abductor_AbductBelowPercent { 100 }
+			, Abductor_Temporal { false }
+			, Abductor_MaxHealth { 0 }
+
 			, DelayedFire_Anim { }
 			, DelayedFire_Anim_LoopCount { 1 }
 			, DelayedFire_Anim_UseFLH { true }
@@ -200,9 +209,13 @@ public:
 			, ApplyDamage { }
 			, Cursor_Attack { (int)MouseCursorType::Attack }
 			, Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange }
+			, WeaponBolt_Data {}
 			, Bolt_Color1 { }
 			, Bolt_Color2 { }
 			, Bolt_Color3 { }
+			, Bolt_Disable1 { false }
+			, Bolt_Disable2 { false }
+			, Bolt_Disable3 { false }
 			, Bolt_ParticleSys { }
 		{ }
 
@@ -251,9 +264,9 @@ public:
 	static ExtContainer ExtMap;
 
 	static int GetBurstDelay(WeaponTypeClass* pThis , int burstIndex);
-	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner);
-	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
-	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner);
-	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage);
-	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage);
+	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage);
+	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage);
+	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage);
+	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage);
+	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage , bool AddDamage);
 };

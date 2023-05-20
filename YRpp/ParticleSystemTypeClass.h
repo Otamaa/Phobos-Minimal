@@ -25,33 +25,13 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<ParticleSystemTypeClass*>, 0xA83D68u> const Array {};
 
-	static NOINLINE ParticleSystemTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(ParticleSystemTypeClass)
 
 	static ParticleSystemTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x644890);
 	}
 
-	static NOINLINE int __fastcall FindIndexById(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_FindIndexById(ParticleSystemTypeClass)
 
 	static int __fastcall FindIndexByIdOrAllocate(const char* pID) {
 		JMP_STD(0x644630);

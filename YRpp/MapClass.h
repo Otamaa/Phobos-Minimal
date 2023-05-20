@@ -236,17 +236,21 @@ public:
 	CellClass* operator[] (const CellStruct&  cell)
 	{ JMP_THIS(0x5657A0); }
 
-	//Non-virtual
+	//Non-virtuals
+	
+	// Get cellclasspointe with cellstruct Pointer but it will return nullptr if invalid !
 	CellClass* TryGetCellAt(const CellStruct& MapCoords) const {
 		int idx = GetCellIndex(MapCoords);
 		return (idx >= 0 && idx < 0x40000) ? Cells[idx] : nullptr;
 	}
 
+	// Get cellclasspointer with coords but it will return nullptr if invalid !
 	CellClass* TryGetCellAt(const CoordStruct& Crd) const {
 		CellStruct cell = CellClass::Coord2Cell(Crd);
 		return TryGetCellAt(cell);
 	}
 
+	// Get cellclasspointer with cellstruct but it will return to instance pointer if invalid !
 	CellClass* GetCellAt(const CellStruct &MapCoords) const {
 		auto pCell = TryGetCellAt(MapCoords);
 
@@ -258,14 +262,17 @@ public:
 		return pCell;
 	}
 
+	// Get cellclasspointer with coords but it will return to instance pointer if invalid !
 	CellClass* GetCellAt(const CoordStruct &Crd) const {
 		CellStruct cell = CellClass::Coord2Cell(Crd);
 		return GetCellAt(cell);
 	}
 
+	// Get cellclasspointer with pointe2d location but it will return to instance pointer if invalid !
 	CellClass* GetTargetCell(Point2D& location)
 		{ JMP_THIS(0x565730); }
 
+	// Is cellclass pointer is valid after using `TryGetCellAt` !
 	bool CellExists(const CellStruct &MapCoords) const {
 		return TryGetCellAt(MapCoords) != nullptr;
 	}

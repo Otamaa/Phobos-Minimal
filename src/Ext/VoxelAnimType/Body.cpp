@@ -23,7 +23,7 @@ void VoxelAnimTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	this->ExplodeOnWater.Read(exINI, pID, "ExplodeOnWater");
 	this->Damage_DealtByOwner.Read(exINI, pID, "Damage.DealtByOwner");
 	this->ExpireDamage_ConsiderInvokerVet.Read(exINI, pID, "ExpireDamage.ConsiderInvokerVeterancy");
-	this->Weapon.Read(exINI, pID, "Weapon", true);
+	this->Weapon.Read(exINI, pID, "Weapon" , true);
 #ifdef COMPILE_PORTED_DP_FEATURES
 	this->Trails.Read(exINI, pID, false);
 #endif

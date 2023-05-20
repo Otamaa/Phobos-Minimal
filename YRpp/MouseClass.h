@@ -82,8 +82,8 @@ struct MouseCursorDataStruct
 	MouseCursorDataStruct() = default;
 
 	MouseCursorDataStruct(
-		int frame, int count, int interval, 
-		int miniFrame, int miniCount,  int miniInterval , 
+		int frame, int count, int interval,
+		int miniFrame, int miniCount,  int miniInterval ,
 		MouseHotSpotX hotX, MouseHotSpotY hotY
 	) : OriginalData { frame , count, interval, miniFrame, miniCount, hotX, hotY },
 		SmallFrameRate(miniInterval)
@@ -93,7 +93,7 @@ struct MouseCursorDataStruct
 		OriginalData { nData },
 		SmallFrameRate { miniInterval }
 	{ }
-	
+
 	~MouseCursorDataStruct() noexcept = default;
 
 public:

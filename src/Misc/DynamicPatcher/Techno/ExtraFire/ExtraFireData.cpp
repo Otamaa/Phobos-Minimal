@@ -3,15 +3,16 @@
 
 void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 {
-	detail::ReadVectorsAlloc(AttachedWeapon.PrimaryWeapons, parserRules, pSection_rules, "ExtraFire.Primary");
-	detail::ReadVectorsAlloc(AttachedWeapon.SecondaryWeapons, parserRules, pSection_rules, "ExtraFire.Secondary");
+	detail::parse_values(AttachedWeapon.PrimaryWeapons, parserRules, pSection_rules, "ExtraFire.Primary");
+	detail::parse_values(AttachedWeapon.SecondaryWeapons, parserRules, pSection_rules, "ExtraFire.Secondary");
 
-	detail::ReadVectorsAlloc(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
-	detail::ReadVectorsAlloc(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
+	detail::parse_values(AttachedWeapon.ElitePrimaryWeapons, parserRules, pSection_rules, "ExtraFire.ElitePrimary");
+	detail::parse_values(AttachedWeapon.EliteSecondaryWeapons, parserRules, pSection_rules, "ExtraFire.EliteSecondary");
 
 	char nBuff[0x200];
-	std::vector<WeaponTypeClass*> nDummyVec_;
 	int nSize = 0;
+	AttachedWeapon.WeaponX.clear();
+	AttachedWeapon.EliteWeaponX.clear();
 
 	for (int a = 0; a < INT_MAX; a++)
 	{
@@ -21,30 +22,29 @@ void ExtraFireData::ReadRules(INI_EX& parserRules, const char* pSection_rules)
 			break;
 
 		++nSize;
-		nDummyVec_.clear();
-		detail::parse_Alloc_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
-		AttachedWeapon.WeaponX.push_back(nDummyVec_);
+		std::vector<WeaponTypeClass*> Extra_WPN;
+		detail::parse_Alloc_values<WeaponTypeClass*>(Extra_WPN, parserRules, pSection_rules, nBuff, true);
+		AttachedWeapon.WeaponX.push_back(Extra_WPN);
 	}
 
-	if (!(nSize < 0))
+	if (!AttachedWeapon.WeaponX.empty())
 	{
+		AttachedWeapon.EliteWeaponX.resize(nSize);
+
 		for (int b = 0; b < nSize; b++)
 		{
 			IMPL_SNPRNINTF(nBuff, sizeof(nBuff), "ExtraFire.EliteWeapon%d", b + 1);
 
-			if (!parserRules.ReadString(pSection_rules, nBuff))
-			{
-				AttachedWeapon.EliteWeaponX.push_back(AttachedWeapon.WeaponX[b]);
+			if (!parserRules.ReadString(pSection_rules, nBuff)) {
+				AttachedWeapon.EliteWeaponX[b] = AttachedWeapon.WeaponX[b];
 				continue;
 			}
 
-			nDummyVec_.clear();
-			detail::parse_Alloc_values<WeaponTypeClass*>(nDummyVec_, parserRules, pSection_rules, nBuff, true);
-			AttachedWeapon.EliteWeaponX.push_back(nDummyVec_);
+			std::vector<WeaponTypeClass*> Extra_WPNE;
+			detail::parse_Alloc_values<WeaponTypeClass*>(Extra_WPNE, parserRules, pSection_rules, nBuff, true);
+			AttachedWeapon.EliteWeaponX[b] = Extra_WPNE;
 		}
 	}
-
-	nDummyVec_.clear();
 
 }
 
@@ -65,7 +65,7 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 	if (!AttachedFLH.EliteSecondaryWeaponFLH.isset())
 		AttachedFLH.EliteSecondaryWeaponFLH = AttachedFLH.SecondaryWeaponFLH;
 
-	char nBuffArt[0x200];
+	char nBuffArt[0x40];
 	int nSize = 0;
 
 	for (int i = 0; i < INT_MAX; i++)
@@ -82,14 +82,16 @@ void ExtraFireData::ReadArt(INI_EX& parserArt, const char* pSection_Art)
 		AttachedFLH.WeaponXFLH.push_back(nBuffRead_);
 	}
 
-	if (!(nSize < 0))
+	if (!AttachedFLH.WeaponXFLH.empty())
 	{
+		AttachedFLH.EliteWeaponXFLH.reserve(nSize);
+
 		for (int i = 0; i < nSize; i++)
 		{
 			Nullable<CoordStruct> nBuffReadE_;
 			IMPL_SNPRNINTF(nBuffArt, sizeof(nBuffArt), "ExtraFire.EliteWeapon%dFLH", i + 1);
 			nBuffReadE_.Read(parserArt, pSection_Art, nBuffArt);
-			AttachedFLH.EliteWeaponXFLH.push_back(nBuffReadE_.Get(AttachedFLH.WeaponXFLH[i]));
+			AttachedFLH.EliteWeaponXFLH[i] = nBuffReadE_.Get(AttachedFLH.WeaponXFLH[i]);
 		}
 	}
 }

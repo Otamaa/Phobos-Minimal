@@ -19,7 +19,7 @@ class NOVTABLE Surface
 {
 public:
 	static constexpr inline DWORD vtable = 0x7E2198;
-	
+
 	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
 	virtual ~Surface() { JMP_THIS(0x4115D0); }

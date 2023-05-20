@@ -48,15 +48,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<WarheadTypeClass*>, 0x8874C0u> const Array {};
 
-	static NOINLINE WarheadTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(WarheadTypeClass)
 
 	static WarheadTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x75E3B0);

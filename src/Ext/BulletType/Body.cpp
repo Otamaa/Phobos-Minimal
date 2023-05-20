@@ -148,7 +148,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->BallisticScatter_Max.Read(exINI, pSection, "BallisticScatter.Max");
 
 		this->Interceptable_DeleteOnIntercept.Read(exINI, pSection, "Interceptable.DeleteOnIntercept");
-		this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride", true);
+		this->Interceptable_WeaponOverride.Read(exINI, pSection, "Interceptable.WeaponOverride" , true);
 
 		this->BallisticScatterMin.Read(exINI, pSection, "BallisticScatter.Min");
 		this->BallisticScatterMax.Read(exINI, pSection, "BallisticScatter.Max");

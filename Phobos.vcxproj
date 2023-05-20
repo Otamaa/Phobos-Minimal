@@ -26,6 +26,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\ShowAnimNames.cpp" />
     <ClCompile Include="src\Commands\RevealMap.cpp" />
     <ClCompile Include="src\Commands\CaptureObjects.cpp" />
     <ClCompile Include="src\Commands\Commands.cpp" />
@@ -196,6 +197,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Utilities\Ares3_Parser.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
@@ -304,6 +306,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\ShowAnimNames.h" />
     <ClInclude Include="src\Commands\RevealMap.h" />
     <ClInclude Include="src\Commands\CaptureObjects.h" />
     <ClInclude Include="src\Commands\DamageDisplay.h" />
@@ -426,6 +429,7 @@
     <ClInclude Include="src\New\Type\ColorTypeClass.h" />
     <ClInclude Include="src\New\Type\CursorTypeClass.h" />
     <ClInclude Include="src\New\Type\HoverTypeClass.h" />
+    <ClInclude Include="src\New\Type\ImmunityTypeClass.h" />
     <ClInclude Include="src\New\Type\PaletteManager.h" />
     <ClInclude Include="src\New\Type\RadTypeClass.h" />
     <ClInclude Include="src\New\Type\ShieldTypeClass.h" />
@@ -776,6 +780,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

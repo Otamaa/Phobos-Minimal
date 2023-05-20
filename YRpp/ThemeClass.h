@@ -71,6 +71,8 @@ public:
 	void Scan()
 		{ JMP_THIS(0x7207F0) }
 
+public:
+
 	int CurrentTheme; // the playing theme's index
 	int LastTheme; // the theme that cannot be selected randomly
 	int QueuedTheme; // the next theme to be played

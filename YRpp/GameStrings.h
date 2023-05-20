@@ -220,6 +220,12 @@ struct GameStrings
 	GAMEMD_STR(VeteranAircraft, 0x825288);
 
 	GAMEMD_STR(TurretOffset, 0x8433B0u);
+
+	GAMEMD_STR(Ammo , 0x81BBE0);
+	GAMEMD_STR(Tiberium , 0x817278);
+	GAMEMD_STR(Passengers, 0x81BBD4);
+	GAMEMD_STR(Power, 0x81938C);
+	GAMEMD_STR(MindControl , 0x81BBC8);
 	//..
 
 	// EVA entry names
@@ -334,6 +340,8 @@ struct GameStrings
 	GAMEMD_STR(Civilian, 0x818164u);
 	GAMEMD_STR(Special, 0x817318);
 	// ..
+
+	static bool IsBlank(const char* pValue);
 };
 
 #undef GAMEMD_STR

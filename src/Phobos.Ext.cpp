@@ -318,6 +318,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	ArmorTypeClass::Clear();
 	BannerTypeClass::Clear();
 	ColorTypeClass::Clear();
+	ImmunityTypeClass::Clear();
 	CursorTypeClass::Clear();
 	ElectricBoltManager::Clear();
 	FlyingStrings::Clear();
@@ -386,20 +387,21 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 	GET(IStream*, pStm, ESI);
 
 	bool ret =
+		Process_Save<PaletteManager>(pStm) &&
+		Process_Save<CursorTypeClass>(pStm) &&
+		Process_Save<ArmorTypeClass>(pStm) &&
+		Process_Save<ImmunityTypeClass>(pStm) &&
+		Process_Save<ColorTypeClass>(pStm) &&
+		Process_Save<HouseExt>(pStm) &&
+		Process_Save<WeaponTypeExt>(pStm) &&
+		Process_Save<SWTypeExt>(pStm) &&
 		Process_Save<BuildingTypeExt>(pStm) &&
 		Process_Save<BulletExt>(pStm) &&
-		Process_Save<HouseExt>(pStm) &&
-		Process_Save<SWTypeExt>(pStm) &&
-		Process_Save<WeaponTypeExt>(pStm) &&
-		Process_Save<ArmorTypeClass>(pStm) &&
-		Process_Save<BannerTypeClass>(pStm) &&
-		Process_Save<ColorTypeClass>(pStm) &&
-		Process_Save<CursorTypeClass>(pStm) &&
-		Process_Save<PaletteManager>(pStm) &&
 		Process_Save<RadTypeClass>(pStm) &&
 		Process_Save<ShieldTypeClass>(pStm) &&
-		Process_Save<TrailType>(pStm) &&
 		Process_Save<HoverTypeClass>(pStm) &&
+		Process_Save<BannerTypeClass>(pStm) &&
+		Process_Save<TrailType>(pStm) &&
 		Process_Save<LaserTrailTypeClass>(pStm)
 		;
 
@@ -416,20 +418,21 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 	Phobos::Otamaa::DoingLoadGame = true;
 
 	bool ret = 
+		Process_Load<PaletteManager>(pStm) &&
+		Process_Load<CursorTypeClass>(pStm) &&
+		Process_Load<ArmorTypeClass>(pStm) &&
+		Process_Load<ImmunityTypeClass>(pStm) &&
+		Process_Load<ColorTypeClass>(pStm) &&
+		Process_Load<HouseExt>(pStm) &&
+		Process_Load<WeaponTypeExt>(pStm) &&
+		Process_Load<SWTypeExt>(pStm) &&
 		Process_Load<BuildingTypeExt>(pStm) &&
 		Process_Load<BulletExt>(pStm) &&
-		Process_Load<HouseExt>(pStm) &&
-		Process_Load<SWTypeExt>(pStm) &&
-		Process_Load<WeaponTypeExt>(pStm) &&
-		Process_Load<ArmorTypeClass>(pStm) &&
-		Process_Load<BannerTypeClass>(pStm) &&
-		Process_Load<ColorTypeClass>(pStm) &&
-		Process_Load<CursorTypeClass>(pStm) &&
-		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
 		Process_Load<ShieldTypeClass>(pStm) &&
-		Process_Load<TrailType>(pStm) &&
 		Process_Load<HoverTypeClass>(pStm) &&
+		Process_Load<BannerTypeClass>(pStm) &&
+		Process_Load<TrailType>(pStm) &&
 		Process_Load<LaserTrailTypeClass>(pStm)
 		;
 	

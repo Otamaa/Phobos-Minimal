@@ -32,21 +32,8 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<TaskForceClass*>, 0xA8E8D0u> const Array {};
 
-	template<bool Name = false>
-	static NOINLINE TaskForceClass* Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if constexpr (Name){
-				if (!CRT::strcmpi(pItem->Name, pID))
-					return pItem;
-			}else{
-				if (!CRT::strcmpi(pItem->ID, pID))
-					return pItem;
-			}
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(TaskForceClass)
+	IMPL_FindByName(TaskForceClass)
 
 	static TaskForceClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x6E85F0);

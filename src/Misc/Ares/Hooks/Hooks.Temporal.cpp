@@ -211,6 +211,10 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 		return false;
 	}
 
+  if (pData->Abductor_MaxHealth > 0 && pData->Abductor_MaxHealth < Target->Health){
+   		return false;
+	}
+
 	if (!TechnoTypeExt::PassangersAllowed(AttackerType, TargetType)) {
 		return false;
 	}
@@ -370,7 +374,7 @@ DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	return conductAbduction(pWeaponExt , pOwner, pThis->Target , CoordStruct::Empty)
+	return pWeaponExt->Abductor_Temporal && conductAbduction(pWeaponExt , pOwner, pThis->Target , CoordStruct::Empty)
 		? 0x71AAD5 : 0x0;
 }
 

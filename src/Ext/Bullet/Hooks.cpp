@@ -24,6 +24,7 @@
 
 DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 {
+	enum { retContunue = 0x0 , retDead = 0x466781 };
 	GET(BulletClass* const, pThis, EBP);
 
 	const auto pBulletExt = BulletExt::ExtMap.Find(pThis);
@@ -54,11 +55,13 @@ DEFINE_HOOK(0x466705, BulletClass_AI, 0x6) //8
 
 		if (abs(ThisCoord.DistanceFrom(TargetCoords))
 			<= pTypeExt->PreExplodeRange.Get(0) * 256)
-			BulletExt::HandleBulletRemove(pThis, true, true);
+			if (BulletExt::HandleBulletRemove(pThis, true, true))
+				return retDead;
 	}
 
 	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted) {
-		BulletExt::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true);
+		if (BulletExt::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true))
+			return retDead;
 	}
 
 	// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
@@ -153,14 +156,14 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 		? DetonateBullet : Continue;
 }
 
-DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
-{
-	enum { ContinueFlow = 0, IgnoreMindControl = 0x469AA4 };
-
-	GET(BulletClass*, pBullet, ESI);
-
-	return BulletExt::ApplyMCAlternative(pBullet) ? IgnoreMindControl : ContinueFlow;
-}
+//DEFINE_HOOK(0x469211, BulletClass_Logics_MindControlAlternative1, 0x6)
+//{
+//	enum { ContinueFlow = 0, IgnoreMindControl = 0x469AA4 };
+//
+//	GET(BulletClass*, pBullet, ESI);
+//
+//	return BulletExt::ApplyMCAlternative(pBullet) ? IgnoreMindControl : ContinueFlow;
+//}
 
 DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 {

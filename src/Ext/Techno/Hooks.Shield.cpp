@@ -37,6 +37,15 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);
 		}
+		//else
+		//{
+		//	if (pThis->Owner == HouseClass::CurrentPlayer 
+		//		&& pThis->OnBridge 
+		//		&& (pThis->CurrentMission == Mission::Harmless || pThis->CurrentMission == Mission::Sleep))
+		//	{
+		//		Debug::Log("GereIam !\n");
+		//	}
+		//}
 	}
 
 	return 0;

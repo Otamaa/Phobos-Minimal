@@ -2463,87 +2463,84 @@ TechnoClass* ScriptExt::GreatestThreat(TechnoClass* pTechno, int method, int cal
 			continue;
 
 		const auto objectType = object->GetTechnoType();
-		if (!objectType)
-			continue;
-
-		if (pTechno->GetFireError(object, pTechno->SelectWeapon(object), false) != FireError::OK)
-			continue;
+		//if (pTechno->GetFireError(object, pTechno->SelectWeapon(object), true) != FireError::OK)
+		//	continue;
 
 		//// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
-		//const int weaponIndex = pTechno->SelectWeapon(object);
+		const int weaponIndex = pTechno->SelectWeapon(object);
 
-		//if (const auto nWeaponType = pTechno->GetWeapon(weaponIndex)) { 
+		if (const auto nWeaponType = pTechno->GetWeapon(weaponIndex)) { 
 
+			auto weaponType = nWeaponType->WeaponType;
 
-		//	auto weaponType = nWeaponType->WeaponType;
+			auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
+			 int weaponDamage = 0;
 
-		//	auto const& [unitWeaponsHaveAA, unitWeaponsHaveAG] = CheckWeaponsTargetingCapabilites(weaponType, weaponType, agentMode);
-		//	// int weaponDamage = 0;
-		//	// if (weaponType)
-		//	// {
-		//	// 	weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
-		//	// }
-		//	//
-		//	// If the target can't be damaged then isn't a valid target
-		//	//if (weaponType && weaponDamage <= 0 && !agentMode)
-		//	//	continue;
+			 const auto pVictimExt = TechnoExt::ExtMap.Find(object);
+			 Armor nArmor = objectType->Armor;
+			 if (auto const pShield = pVictimExt->GetShield()) {
+				 if (pShield->IsActive())
+					 nArmor = pShield->GetArmor();
+			 }
 
-		//	if (!agentMode)
-		//	{
-		//		if (objectType->Immune)
-		//			continue;
+			 if (weaponType) {
+			 	weaponDamage = MapClass::GetTotalDamage(pTechno->CombatDamage(weaponIndex), weaponType->Warhead, nArmor, 0);
+			 }
+			
+			// If the target can't be damaged then isn't a valid target
+			if (weaponType && weaponDamage <= 0 && !agentMode)
+				continue;
 
-		//			if(weaponType) {
-		//				auto nArmor = objectType->Armor;
-		//				if (auto pObjectExt = TechnoExt::ExtMap.Find(object))
-		//					if (pObjectExt->GetShield() && pObjectExt->GetShield()->IsActive() && pObjectExt->CurrentShieldType)
-		//						nArmor = pObjectExt->GetShield()->GetType()->Armor;
+			if (!agentMode)
+			{
+				if (objectType->Immune)
+					continue;
 
-		//				auto const& nVerses =
-		//				//GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead , nArmor);
-		//				std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)->GetVerses(nArmor).Verses);
-		//				if(!(nVerses >= 0.001))
-		//				   continue;
-		//		}
+					if(weaponType) {
+						auto const& nVerses =
+						//GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead , nArmor);
+						std::abs(WarheadTypeExt::ExtMap.Find(weaponType->Warhead)->GetVerses(nArmor).Verses);
+						if(!(nVerses >= 0.001))
+						   continue;
+				}
 
-		//		if (object->IsInAir() && !unitWeaponsHaveAA)
-		//			continue;
+				if (object->IsInAir() && !unitWeaponsHaveAA)
+					continue;
 
-		//		if (!object->IsInAir() && !unitWeaponsHaveAG)
-		//			continue;
-		//	}
+				if (!object->IsInAir() && !unitWeaponsHaveAG)
+					continue;
+			}
 
-		//	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
+			auto const pTypeExt = TechnoTypeExt::ExtMap.Find(objectType);
 
-		//	// Check map zone
-		//	if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
-		//		continue;
-		//}
+			// Check map zone
+			if (!TechnoExt::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
+				continue;
+		}
 
-		//// Don't pick underground units
-		//if (object->InWhichLayer() == Layer::Underground)
-		//	continue;
+		// Don't pick underground units
+		if (object->InWhichLayer() == Layer::Underground)
+			continue;
 
-		//// Stealth ground unit check
-		//if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
-		//	continue;
+		// Stealth ground unit check
+		if (object->CloakState == CloakState::Cloaked && !objectType->Naval)
+			continue;
 
-		//// Submarines aren't a valid target
-		//if (object->CloakState == CloakState::Cloaked
-		//	&& objectType->Underwater
-		//	&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never || pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
-		//{
-		//	continue;
-		//}
+		// Submarines aren't a valid target
+		if (object->CloakState == CloakState::Cloaked
+			&& objectType->Underwater
+			&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never || pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+		{
+			continue;
+		}
 
-		//// Land not OK for the Naval unit
-		//if (objectType->Naval
-		//	&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-		//	&& object->GetCell()->LandType != LandType::Water)
-		//{
-		//	continue;
-		//}
-
+		// Land not OK for the Naval unit
+		if (objectType->Naval
+			&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+			&& object->GetCell()->LandType != LandType::Water)
+		{
+			continue;
+		}
 
 		// OnlyTargetHouseEnemy forces targets of a specific (hated) house
 		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
@@ -3203,11 +3200,11 @@ bool ScriptExt::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attac
 	}
 	case 33:
 	{
-		auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
-
+		const auto pTypeBuilding = specific_cast<BuildingTypeClass*>(pTechnoType);
+		const auto pBldExt = BuildingTypeExt::ExtMap.Find(pTypeBuilding);
 		// Capturable Structure or Repair Hut
 		return (pTypeBuilding
-			&& (pTypeBuilding->Capturable
+			&& (pBldExt->EngineerRepairable.Get(pTypeBuilding->Capturable)
 				|| (pTypeBuilding->BridgeRepairHut
 					&& pTypeBuilding->Repairable)));
 	}
@@ -3471,22 +3468,17 @@ void ScriptExt::CreateNewCurrentScript(TeamClass* pThis, ScriptTypeClass* pNewTy
 
 ScriptTypeClass* ScriptExt::GetFromAIScriptList(size_t nIdx)
 {
-	auto const& nBaseVec = RulesExt::Global()->AIScriptsLists;
+	const auto& nBaseVec = RulesExt::Global()->AIScriptsLists;
 
 	if (nBaseVec.empty() || nIdx < 0 || nIdx > nBaseVec.size())
 		return nullptr;
 
-	auto const& objectsList = nBaseVec[nIdx];
+	const auto& objectsList = nBaseVec[nIdx];
 
 	if (objectsList.empty())
 		return nullptr;
 
-	const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
-
-	if (ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject])
-		return pNewScript;
-
-	return nullptr;
+	return objectsList[ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1)];
 }
 
 void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
@@ -3519,7 +3511,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 		{
 			pTeam->StepCompleted = true;
 			Debug::Log("AI Scripts - PickRandomScript: [%s] Aborting Script change because [%s] has 0 Action scripts!\n", 
-				pTeam->Type->ID, 
+				pTeam->Type->ID,
 				pNewScript->ID);
 
 			return;
@@ -3531,7 +3523,7 @@ void ScriptExt::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 	{
 		pTeam->StepCompleted = true;
 		Debug::Log("AI Scripts - PickRandomScript: [%s] [%s] Failed to change the Team Script with a random one!\n", 
-			pTeam->Type->ID, 
+			pTeam->Type->ID,
 			pTeam->CurrentScript->Type->ID);
 	}
 }
@@ -4835,14 +4827,14 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 		auto const& nHouseList = RulesExt::Global()->AIHousesLists;
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
-			for (const auto& pHouseType : nHouseList[(idxHousesList)])
+			for (auto& angerNode : pTeam->Owner->AngerNodes)
 			{
-				for (auto& angerNode : pTeam->Owner->AngerNodes)
-				{
-					if (!angerNode.House->Type)
-						continue;
+				if (!angerNode.House->Type)
+					continue;
 
-					if (IS_SAME_STR_(angerNode.House->Type->ID, pHouseType.c_str()))
+				for (const auto& pData : nHouseList[(idxHousesList)])
+				{
+					if (IS_SAME_STR_(angerNode.House->Type->ID, pData.c_str()))
 					{
 						angerNode.AngerLevel += pTeamData->AngerNodeModifier;
 						changeFailed = false;

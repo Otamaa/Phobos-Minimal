@@ -736,6 +736,8 @@ DEFINE_HOOK(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 
 	if (auto& pAnim = pBld->MindControlRingAnim)
 	{
+		//GameDelete<true,false>(pAnim);
+		pAnim->TimeToDie = true;
 		pAnim->UnInit();
 		pAnim = nullptr;
 	}
@@ -947,10 +949,8 @@ DEFINE_HOOK(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 	const auto pTechnoType = pTechno->GetTechnoType();
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
 	{
-		const auto nCoord = pCell->GetCoordsWithBridge();
-		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), nCoord.X, nCoord.Y, nCoord.Z);
+		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
 		return 0x688FB9;
-
 	}
 
 	return 0;
@@ -968,8 +968,7 @@ DEFINE_HOOK(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 	const auto pTechnoType = pTechno->GetTechnoType();
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, (int)MovementZone::None, MovementZone::Normal, -1, 1))
 	{
-		const auto nCoord = pCell->GetCoordsWithBridge();
-		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), nCoord.X, nCoord.Y, nCoord.Z);
+		Debug::Log("Techno[%s - %s] Not Allowed to exist at cell [%d . %d] !\n", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
 		return 0x689295;
 	}
 

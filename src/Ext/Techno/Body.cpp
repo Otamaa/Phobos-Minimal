@@ -76,17 +76,6 @@ bool TechnoExt::IsCritImmune(TechnoClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::CritImmune);
 }
 
-bool TechnoExt::ExtData::IsInterceptor()
-{
-	auto const pThis = this->Get();
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
-
-	if (pTypeExt->Interceptor)
-		return true;
-
-	return HasAbility(pThis, PhobosAbilityType::Interceptor);
-}
-
 bool TechnoExt::IsChronoDelayDamageImmune(FootClass* pThis)
 {
 	if (!pThis)
@@ -163,7 +152,26 @@ bool TechnoExt::IsAbductorImmune(TechnoClass* pThis)
 	if (pTypeExt->ImmuneToAbduction)
 		return true;
 
-	return HasAbility(pThis, PhobosAbilityType::AbductorImmune);;
+	return HasAbility(pThis, PhobosAbilityType::AbductorImmune);
+}
+
+bool TechnoExt::IsAssaulter(InfantryClass* pThis)
+{
+	if (pThis->Type->Assaulter)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::Assaulter);
+}
+
+bool TechnoExt::ExtData::IsInterceptor()
+{
+	auto const pThis = this->Get();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(Type);
+
+	if (pTypeExt->Interceptor)
+		return true;
+
+	return HasAbility(pThis, PhobosAbilityType::Interceptor);
 }
 
 bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
@@ -177,15 +185,194 @@ bool TechnoExt::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (IsVet) {
+	if (IsVet)
+	{
 		return pTypeExt->Phobos_VeteranAbilities.at((int)nType);
 	}
-	else if (IsElite) {
+	else if (IsElite)
+	{
 		return  pTypeExt->Phobos_VeteranAbilities.at((int)nType) || pTypeExt->Phobos_EliteAbilities.at((int)nType);
 	}
 
 	return false;
 }
+
+bool TechnoExt::HasImmunity(TechnoClass* pThis, int nType)
+{
+	const bool IsVet = pThis->Veterancy.IsVeteran();
+	const bool IsElite = pThis->Veterancy.IsElite();
+
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (IsVet)
+	{
+		return pTypeExt->R_ImmuneToType.Contains(nType) || pTypeExt->V_ImmuneToType.Contains(nType);
+	}
+	else if (IsElite)
+	{
+		return  pTypeExt->R_ImmuneToType.Contains(nType) ||
+			pTypeExt->V_ImmuneToType.Contains((int)nType) ||
+			pTypeExt->E_ImmuneToType.Contains((int)nType);
+	}
+
+	return pTypeExt->R_ImmuneToType.Contains(nType);
+}
+
+bool TechnoExt::IsCullingImmune(Rank vet, TechnoClass* pThis)
+{
+	return HasAbility(vet, pThis, PhobosAbilityType::CullingImmune);
+}
+
+bool TechnoExt::IsEMPImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToEMP)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::EmpImmune);
+}
+
+bool TechnoExt::IsPsionicsImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+
+	if (pType->ImmuneToPsionics)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::PsionicsImmune);
+}
+
+bool TechnoExt::IsCritImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeExt->ImmuneToCrit)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::CritImmune);
+}
+
+bool TechnoExt::IsChronoDelayDamageImmune(Rank vet, FootClass* pThis)
+{
+	if (!pThis)
+		return false;
+
+	auto const pLoco = pThis->Locomotor.get();
+
+	if (!pLoco)
+		return false;
+
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (VTable::Get(pLoco) != TeleportLocomotionClass::ILoco_vtable)
+		return false;
+
+	if (!pThis->IsWarpingIn())
+		return false;
+
+	if (pTypeExt->ChronoDelay_Immune.Get())
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::ChronoDelayDamageImmune);
+}
+
+bool TechnoExt::IsRadImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToRadiation)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::RadImmune);
+}
+
+bool TechnoExt::IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToPsionicWeapons)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::PsionicsWeaponImmune);
+}
+
+bool TechnoExt::IsPoisonImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	if (pType->ImmuneToPoison)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::PoisonImmune);
+}
+
+bool TechnoExt::IsBerserkImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->ImmuneToBerserk.Get())
+		return true;
+
+	const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	const auto pShield = pExt->GetShield();
+
+	if (pShield && pShield->IsActive() && pExt->CurrentShieldType->ImmuneToPsychedelic)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::BerzerkImmune);
+}
+
+bool TechnoExt::IsAbductorImmune(Rank vet, TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	if (pTypeExt->ImmuneToAbduction)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::AbductorImmune);
+}
+
+bool TechnoExt::IsAssaulter(Rank vet, InfantryClass* pThis)
+{
+	if (pThis->Type->Assaulter)
+		return true;
+
+	return HasAbility(vet, pThis, PhobosAbilityType::Assaulter);
+}
+
+
+bool TechnoExt::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (vet == Rank::Veteran)
+	{
+		return pTypeExt->Phobos_VeteranAbilities.at((int)nType);
+	}
+	else if (vet == Rank::Elite)
+	{
+		return  pTypeExt->Phobos_VeteranAbilities.at((int)nType) || pTypeExt->Phobos_EliteAbilities.at((int)nType);
+	}
+
+	return false;
+}
+
+bool TechnoExt::HasImmunity(Rank vet, TechnoClass* pThis, int nType)
+{
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (vet == Rank::Veteran)
+	{
+		return pTypeExt->R_ImmuneToType.Contains(nType) || pTypeExt->V_ImmuneToType.Contains(nType);
+	}
+	else if (vet == Rank::Elite)
+	{
+		return  pTypeExt->R_ImmuneToType.Contains(nType) || pTypeExt->V_ImmuneToType.Contains((int)nType) || pTypeExt->E_ImmuneToType.Contains((int)nType);
+	}
+
+	return pTypeExt->R_ImmuneToType.Contains(nType);
+}
+
 
 #include <Ext/TerrainType/Body.h>
 
@@ -206,7 +393,7 @@ bool TechnoExt::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 
 	if (!pVictimTechno)
 	{
-		if(auto const pTerrain = static_cast<TerrainClass*>(pVictim))
+		if(auto const pTerrain = specific_cast<TerrainClass*>(pVictim))
 		{
 			if(pTerrain->Type->Immune || pTerrain->Type->SpawnsTiberium || !pTerrain->Type->Crushable)
 				return false;
@@ -990,18 +1177,17 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	if (!pThis || !pPassenger)
 		return CoordStruct::Empty;
 
+	//guarantee
 	if (maxAttempts < 1)
 		maxAttempts = 1;
 
 	CellClass* pCell = pThis->GetCell();
 	CellStruct placeCoords = CellStruct::Empty;
 	auto pTypePassenger = pPassenger->GetTechnoType();
-	CoordStruct finalLocation = CoordStruct::Empty;
 	SpeedType speedType = SpeedType::Track;
 	MovementZone movementZone = MovementZone::Normal;
 
-	if (!Is_AircraftType(pTypePassenger))
-	{
+	if (!Is_AircraftType(pTypePassenger)) {
 		speedType = pTypePassenger->SpeedType;
 		movementZone = pTypePassenger->MovementZone;
 	}
@@ -1010,21 +1196,17 @@ CoordStruct TechnoExt::PassengerKickOutLocation(TechnoClass* pThis, FootClass* p
 	{
 		placeCoords = pCell->MapCoords - CellStruct { (short)(ExtDistance.X / 2), (short)(ExtDistance.Y / 2) };
 		placeCoords = MapClass::Instance->NearByLocation(placeCoords, speedType, -1, movementZone, false, ExtDistance.X, ExtDistance.Y, true, false, false, false, CellStruct::Empty, false, false);
+		
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 
 		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) || pCell->MapCoords == CellStruct::Empty)
-			break;
+		{
+			pPassenger->OnBridge = pCell->ContainsBridge();
+			return pCell->GetCoordsWithBridge();
+		}
 	}
 
-	pCell = MapClass::Instance->TryGetCellAt(placeCoords);
-
-	if (pCell)
-	{
-		pPassenger->OnBridge = pCell->ContainsBridge();
-		finalLocation = pCell->GetCoordsWithBridge();
-	}
-
-	return finalLocation;
+	return CoordStruct::Empty;
 }
 
 void TechnoExt::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool sIsDisguised)
@@ -1635,7 +1817,7 @@ bool TechnoExt::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponTyp
 	if (!pWeaponType)
 		return false;
 
-	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis);
+	WeaponTypeExt::DetonateAt(pWeaponType, pThis, pThis , true);
 	return true;
 }
 
@@ -1919,7 +2101,7 @@ bool TechnoExt::CanFireNoAmmoWeapon(TechnoClass* pThis, int weaponIndex)
 	return false;
 }
 
-void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove)
+void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool SkipTrackingRemove, bool Delete)
 {
 	// kill passenger cargo to prevent memleak
 	pThis->KillPassengers(pSource);
@@ -1949,12 +2131,10 @@ void TechnoExt::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool Skip
 
 	pThis->RemoveFromTargetingAndTeam();
 
-	//for (auto const pBullet : *BulletClass::Array)
-	//	if (pBullet && pBullet->Target == pThis)
-	//		pBullet->LoseTarget();
-
-	pThis->UnInit();
-
+	if (Delete)
+		GameDelete<true, false>(pThis);
+	else
+		pThis->UnInit();
 }
 
 void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
@@ -1974,40 +2154,34 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 	}
 }
 
+KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
+{
+	if (deathOption == KillMethod::Random) {
+		return static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
+	}
+
+	return deathOption;
+}
+
 void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill, AnimTypeClass* pVanishAnim)
 {
 	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
 
 	auto const pWhat = VTable::Get(pThis);
-	KillMethod nOpt = deathOption;
-	if (deathOption == KillMethod::Random)
-	{
-		nOpt = static_cast<KillMethod>(ScenarioClass::Instance->Random.RandomRanged((int)KillMethod::Explode, (int)KillMethod::Sell));
-	}
 
-	//Debug::Log("TechnoExt::KillObject -  Killing Techno[%x - %s] with Method [%d] ! \n", pThis, pThis->get_ID(), (int)nOpt);
-
-	switch (nOpt)
+	switch (GetKillMethod(deathOption))
 	{
 	case KillMethod::Explode:
 	{
-	Kill:
 		if(pThis) { 
-			pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
-
-			int nCounter = 0;
-			if (auto pUnit = specific_cast<UnitClass*>(pThis))
-				nCounter = pUnit->DeathFrameCounter;
-
-			if (pThis->IsAlive && !nCounter)
-				goto vanish;
+			auto nHealth = pThis->Health;
+			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
 		}
 
 	}break;
 	case KillMethod::Vanish:
 	{
-	vanish:
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
 
@@ -2061,8 +2235,9 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 			}
 		}
 
-		//Debug::Log("Techno [%s] can't be sold, killing it instead\n", pThis->get_ID());
-		goto Kill;
+		if (pThis && pThis->IsAlive) {
+			pThis->ReceiveDamage(&pThis->Health, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+		}
 
 	}break;
 	}
@@ -2145,7 +2320,6 @@ bool TechnoExt::ExtData::CheckDeathConditions()
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
 			if (pThis->Owner)
 				HouseExt::ExtMap.Find(pThis->Owner)->AutoDeathObjects.insert(pThis, nMethod);
-
 		}
 		else if (Death_Countdown.Completed())
 		{
@@ -2233,6 +2407,7 @@ void TechnoExt::ApplyGainedSelfHeal(TechnoClass* pThis)
 				{
 					if (auto& dmgParticle = pThis->DamageParticleSystem)
 					{
+						//GameDelete<true,false>(dmgParticle);
 						dmgParticle->UnInit();
 						dmgParticle = nullptr;
 					}
@@ -2577,7 +2752,7 @@ void TechnoExt::ExtData::UpdateFireSelf()
 
 			FireSelf_Count[i] = ROF;
 
-			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis);
+			WeaponTypeExt::DetonateAt(FireSelf_Weapon->at(i), pThis, pThis , true);
 		}
 	}
 }
@@ -3083,26 +3258,23 @@ bool TechnoExt::IsInWarfactory(TechnoClass* pThis, bool bCheckNaval)
 CoordStruct TechnoExt::GetPutLocation(CoordStruct current, int distance)
 {
 	// this whole thing does not at all account for cells which are completely occupied.
-	const auto tmpCoords = CellSpread::AdjacentCell[ScenarioClass::Instance->Random.RandomFromMax(7)];
+	const auto& tmpCoords = CellSpread::AdjacentCell[ScenarioClass::Instance->Random.RandomFromMax(7)];
 
 	current.X += tmpCoords.X * distance;
 	current.Y += tmpCoords.Y * distance;
 
 	const auto tmpCell = MapClass::Instance->TryGetCellAt(current);
-	CoordStruct target;
-	tmpCell->FindInfantrySubposition(&target,current, false, false, false);
 
-	target.Z = current.Z;
-	return target;
+	if(!tmpCell) {
+		return CoordStruct::Empty;
+	}
+
+	return tmpCell->FindInfantrySubposition(current, false, false, false, current.Z);
 }
 
 bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 {
-	CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
-
-	if (!pCell) {
-		return false;
-	}
+	const CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
 
 	if (const auto pBld = pCell->GetBuilding())
 	{
@@ -3170,12 +3342,20 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select)
 {
 	CoordStruct destLoc = GetPutLocation(location, distance);
+
+	if(destLoc == CoordStruct::Empty || MapClass::Instance->IsWithinUsableArea(destLoc))
+		return false;
+
 	return EjectSurvivor(pEjectee, destLoc, select);
 }
 
 bool TechnoExt::ReplaceArmor(REGISTERS* R, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	auto const pTargetTechnoExt = TechnoExt::ExtMap.Find(pTarget);
+
+	if (!pTargetTechnoExt)
+		return false;
+
 	auto const pShieldData = pTargetTechnoExt->Shield.get();
 
 	if (!pShieldData)

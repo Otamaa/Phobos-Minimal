@@ -23,27 +23,9 @@ public:
 	static const AbstractBaseType AbsTypeBase = AbstractBaseType::ObjectType;
 	static constexpr constant_ptr<DynamicVectorClass<ObjectTypeClass*>, 0xAC1418u> const Array {};
 
-	static NOINLINE ObjectTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
-
-	static NOINLINE ObjectTypeClass* __fastcall FindOrAllocate(const char* pID)
-	{
-		if (!pID || CRT::strcmpi(pID, GameStrings::NoneStr()) == 0 || CRT::strcmpi(pID, GameStrings::NoneStrb()) == 0)
-			return nullptr;
-
-		if (auto pRet = Find(pID)) {
-			return pRet;
-		}
-
-		return GameCreate<ObjectTypeClass>(pID);
-	}
+	IMPL_Find(ObjectTypeClass)
+	IMPL_FindByName(ObjectTypeClass)
+	IMPL_FindOrAllocate(ObjectTypeClass)
 
 	static int __fastcall FindIndexById(const char* pID) {
 		JMP_STD(0x5F9990);

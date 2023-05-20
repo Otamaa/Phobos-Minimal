@@ -64,7 +64,7 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 
-	GET(ObjectClass*, pTarget, ESI);
+	//GET(ObjectClass*, pTarget, ESI);
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
 
@@ -132,7 +132,7 @@ DEFINE_OVERRIDE_HOOK(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_
 
 DEFINE_OVERRIDE_HOOK(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
 {
-	GET(ObjectClass*, pTarget, ESI);
+	//GET(ObjectClass*, pTarget, ESI);
 	//GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(WarheadTypeClass*, pWH, ECX);
 	GET(int, nArmor, EAX);
@@ -197,15 +197,20 @@ DEFINE_OVERRIDE_HOOK(0x4753F0, ArmorType_FindIndex, 0xA)
 	GET_STACK(const char*, Key, 0x8);
 	GET_STACK(int, fallback, 0xC);
 
-	int nResult = fallback;
+	int nResult = 0;
 	char buf[0x64];
 	if (pINI->ReadString(Section, Key, Phobos::readDefval, buf)) {
-		nResult = ArmorTypeClass::FindIndexById(buf);
+		const int nIdx = ArmorTypeClass::FindIndexById(buf);
 
-		if (nResult < 0) {
-			nResult = fallback; //always
+		if (nIdx < 0) {
+
+			if(fallback >= 0)
+				nResult = fallback; //always
+
 			Debug::INIParseFailed(Section, Key, buf , "Expect Valid ArmorType !");
 		}
+		else
+			nResult = nIdx;
 	}
 
 	R->EAX(nResult);

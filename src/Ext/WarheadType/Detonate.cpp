@@ -135,6 +135,8 @@ void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 
 	if (auto& pAnim = pTargetTechno->MindControlRingAnim)
 	{
+		//GameDelete<true,false>(pAnim);
+		pAnim->TimeToDie = true;
 		pAnim->UnInit();
 		pAnim = nullptr;
 	}
@@ -342,7 +344,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 	{
 		for (auto const& pWeapon : this->DetonatesWeapons)
 		{
-			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner);
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner, true);
 		}
 	}
 

@@ -994,6 +994,16 @@ public:
 };
 
 template<typename T>
+class ReversePartialVector3D
+{
+public:
+	T Z;
+	T Y;
+	T X;
+	size_t ValueCount;
+};
+
+template<typename T>
 class PartialVector4D : public Vector4D<T>
 {
 public:

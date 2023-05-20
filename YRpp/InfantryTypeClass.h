@@ -18,39 +18,41 @@ struct DoStruct
 
 struct DoInfoStruct
 {
-	int StartFrame;
-	int CountFrames;
-	int FacingMultiplier;
-	DoTypeFacing Facing;
-	int SoundCount;
-	int Sound1StartFrame;
-	int Sound1Index; // VocClass
-	int Sound2StartFrame;
-	int Sound2Index; // VocClass
+	int StartFrame; //8
+	int CountFrames; //12
+	int FacingMultiplier; //16
+	DoTypeFacing Facing; //20
+	int SoundCount; //24
+	int Sound1StartFrame; //28
+	int Sound1Index; // 32,  VocClass
+	int Sound2StartFrame; //36
+	int Sound2Index; // 40 ,VocClass
 };
 
 //static_assert(sizeof(DoInfoStruct) == 0x24);
 //static_assert(sizeof(DoType) == 0x4);
 
-struct DoControls final : public ArrayWrapper<DoInfoStruct ,42u>
+struct DoControls
 {
 	static inline constexpr int MaxCount = 42;
 	static constexpr reference<DoStruct, 0x7EAF7Cu, MaxCount> const MasterArray { };
 
 	DoInfoStruct GetSequence(DoType sequence) const {
-		return this->at((int)sequence);
+		return this->Data[(int)sequence];
 	}
 
 	DoInfoStruct GetSequence(DoType sequence) {
-		return this->at((int)sequence);
+		return this->Data[(int)sequence];
 	}
 
 	static DoStruct& GetSequenceData(DoType sequence) {
 		return MasterArray[(int)sequence];
 	}
+
+	DoInfoStruct Data[MaxCount];
 };
 
-static_assert(sizeof(DoControls) == (42 * sizeof(DoInfoStruct)), "Invalid Size !");
+static_assert(sizeof(DoControls) == (DoControls::MaxCount * sizeof(DoInfoStruct)), "Invalid Size !");
 
 class DECLSPEC_UUID("AE8B33D8-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE InfantryTypeClass : public TechnoTypeClass
@@ -62,15 +64,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<InfantryTypeClass*>, 0xA8E348u> const Array {};
 
-	static NOINLINE InfantryTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(InfantryTypeClass)
 
 	static InfantryTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x524CB0);

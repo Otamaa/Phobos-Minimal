@@ -86,11 +86,11 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->IdleAnim_OfflineAction.Read(exINI, pSection, "IdleAnim.OfflineAction");
 	this->IdleAnim_TemporalAction.Read(exINI, pSection, "IdleAnim.TemporalAction");
 
-	this->IdleAnim.Read(exINI, pSection, "IdleAnim.%s");
-	this->IdleAnimDamaged.Read(exINI, pSection, "IdleAnimDamaged.%s");
+	this->IdleAnim.Read(exINI, pSection, "IdleAnim.%s" , nullptr, true);
+	this->IdleAnimDamaged.Read(exINI, pSection, "IdleAnimDamaged.%s", nullptr, true);
 
-	this->BreakAnim.Read(exINI, pSection, "BreakAnim");
-	this->HitAnim.Read(exINI, pSection, "HitAnim");
+	this->BreakAnim.Read(exINI, pSection, "BreakAnim", true);
+	this->HitAnim.Read(exINI, pSection, "HitAnim", true);
 	this->BreakWeapon.Read(exINI, pSection, "BreakWeapon", true);
 	
 	this->AbsorbPercent.Read(exINI, pSection, "AbsorbPercent");

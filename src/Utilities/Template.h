@@ -342,7 +342,7 @@ public:
 		this->Elite = this->Veteran = this->Rookie = val;
 	}
 
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr, bool allocate = false);
 
 	const T* GetEx(TechnoClass* pTechno) const noexcept {
 		return &this->Get(pTechno);
@@ -417,7 +417,7 @@ public:
 
 	bool Contains(const T& other) const
 	{
-		if constexpr (std::is_pointer<T>::value) {
+		if constexpr (std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value) {
 			for (auto pos = this->begin();
 					pos != this->end();
 					++pos)
@@ -484,18 +484,18 @@ public:
 		return *(this->begin() + nIdx);
 	}
 
-	void Remove(int nIdx)
-	{
-		if (!this->ValidIndex(nIdx))
-			return;
+	//void Remove(int nIdx)
+	//{
+	//	if (!this->ValidIndex(nIdx))
+	//		return;
 
-		const auto It = this->cbegin() + nIdx;
+	//	const auto It = this->cbegin() + nIdx;
 
-		if (It == this->cend())
-			return;
+	//	if (It == this->cend())
+	//		return;
 
-		this->erase(It);
-	}
+	//	this->erase(It);
+	//}
 
 	void PushbackUnique(const T& other) const
 	{
@@ -619,7 +619,7 @@ public:
 	}
 
 	~Damageable() = default;
-	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
+	inline void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
 
 	const T* GetEx(TechnoClass* pTechno) const noexcept
 	{

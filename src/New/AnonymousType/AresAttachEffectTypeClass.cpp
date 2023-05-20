@@ -47,7 +47,7 @@ void AresAttachEffectTypeClass::Read(INI_EX& exINI)
 	auto const pSection = this->Owner->ID;
 	this->Duration.Read(exINI, pSection, "AttachEffect.Duration");
 	this->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
-	this->AnimType.Read(exINI, pSection, "AttachEffect.Animation", true);
+	this->AnimType.Read(exINI, pSection, "AttachEffect.Animation");
 	this->AnimResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
 	this->TemporalHidesAnim.Read(exINI, pSection, "AttachEffect.TemporalHidesAnim");
 	this->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");

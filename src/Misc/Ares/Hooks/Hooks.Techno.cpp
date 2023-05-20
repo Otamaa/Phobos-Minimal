@@ -290,12 +290,26 @@ DEFINE_OVERRIDE_HOOK(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 	return 0x7162BC;
 }
 
-DEFINE_HOOK(0x6FC40C, TechnoClass_CanFire_PsionicsImmune, 0x6)
+DEFINE_HOOK(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 {
 	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
+
+	GET(WarheadTypeClass* , pWarhead , EAX);
 	GET(TechnoClass*, pTarget, EBP);
-	return TechnoExt::IsPsionicsImmune(pTarget)
-		? FireIllegal : ContinueCheck;
+
+	if(pTarget)	{
+		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
+
+		//const auto pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead);
+		//if(pWHExt->ImmunityType.isset() &&
+		//	 TechnoExt::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
+		//	return FireIllegal;
+
+		if(pWarhead->Psychedelic && TechnoExt::IsPsionicsImmune(pTarget))
+			return FireIllegal;
+	}
+
+	return ContinueCheck;
 }
 
 DEFINE_OVERRIDE_HOOK(0x744216, UnitClass_UnmarkOccupationBits, 0x6)

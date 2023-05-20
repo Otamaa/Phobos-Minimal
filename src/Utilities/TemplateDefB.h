@@ -61,7 +61,7 @@ namespace detail
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()))
+			if (!GameStrings::IsBlank(parser.value()))
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid DamageDelayTargetFlag");
 			}
@@ -84,7 +84,7 @@ namespace detail
 				}
 			}
 
-			if (!INIClass::IsBlank(parser.value()))
+			if (!GameStrings::IsBlank(parser.value()))
 			{
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a target zone scan type");
 			}
@@ -212,10 +212,15 @@ namespace detail
 	inline bool read<DirType>(DirType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		int nBuffer = -1;
-		if (parser.ReadInteger(pSection, pKey, &nBuffer) && nBuffer >= 0 && nBuffer <= 255)
+		if (parser.ReadInteger(pSection, pKey, &nBuffer))
 		{
-			value = (DirType)nBuffer;
-			return true;
+			if (nBuffer == -1) //uhh ROTE using -1 , so it will generate bunch of debug log
+				return false;
+
+			if(nBuffer >= 0 && nBuffer <= 255){
+				value = (DirType)nBuffer;
+				return true;
+			}
 		}
 		else
 		{
@@ -260,6 +265,7 @@ namespace detail
 	{
 		static_assert(std::is_pointer<T>::value, "Pointer Required !");
 		using baseType = std::remove_pointer_t<T>;
+		nVecDest.clear();
 
 		if (!pINI->GetSection(pSection))
 			return;
@@ -288,7 +294,7 @@ namespace detail
 				else
 					buffer = baseType::FindOrAllocate(res);
 
-				if (buffer)
+				if (buffer || GameStrings::IsBlank(cur))
 				{
 					nVecDest[i].push_back(buffer);
 
@@ -308,6 +314,8 @@ namespace detail
 
 	inline void ParseVector(CCINIClass* pINI, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims)
 	{
+		nVecDest.clear();
+
 		if (!pINI->GetSection(pSection))
 			return;
 
@@ -337,5 +345,73 @@ namespace detail
 			}
 		}
 	}
+
+	template<typename T, bool Allocate = false, bool Unique = false>
+	inline void ParseVector(DynamicVectorClass<T>& List, CCINIClass* pINI, const char* section, const char* key)
+	{
+		if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer))
+		{
+			List.Clear();
+			char* context = nullptr;
+
+			if constexpr (std::is_pointer<T>())
+			{
+				using BaseType = std::remove_pointer_t<T>;
+
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur;
+					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					BaseType* buffer = nullptr;
+					if constexpr (Allocate)
+					{
+						buffer = BaseType::FindOrAllocate(cur);
+					}
+					else
+					{
+						buffer = BaseType::Find(cur);
+					}
+
+					if (buffer)
+					{
+						if constexpr (!Unique)
+						{
+							List.AddItem(buffer);
+						}
+						else if(!GameStrings::IsBlank(cur))
+						{
+							List.AddUnique(buffer);
+						}
+					}
+					else if(!GameStrings::IsBlank(cur))
+					{
+						Debug::INIParseFailed(section, key, cur);
+					}
+				}
+			}
+			else
+			{
+				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur;
+					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					T buffer = T();
+					if (Parser<T>::TryParse(cur, &buffer))
+					{
+						if constexpr (!Unique)
+						{
+							List.AddItem(buffer);
+						}
+						else
+						{
+							List.AddUnique(buffer);
+						}
+					}
+					else if (!GameStrings::IsBlank(cur))
+					{
+						Debug::INIParseFailed(section, key, cur);
+					}
+				}
+			}
+		}
+	};
 
 }

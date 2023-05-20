@@ -6,8 +6,7 @@
 #include <CRT.h>
 #include <ArrayClasses.h>
 #include <GeneralStructures.h>
-
-#include <Helpers/CompileTime.h>
+#include <GameStrings.h>
 
 class LightConvertClass;
 
@@ -32,9 +31,11 @@ public:
 /*
  * trap! most schemes are duplicated - ShadeCount 1 and ShadeCount 53
 */
-	static NOINLINE ColorScheme* __fastcall Find(const char* pID, int ShadeCount = 1) {
+	static NOINLINE ColorScheme* FC Find(const char* pID, int ShadeCount = 1) {
+		if (GameStrings::IsBlank(pID))
+			return nullptr;
 
-		for (auto & pItem : *Array) {
+		for (auto& pItem : *Array) {
 			if (!CRT::strcmpi(pItem->ID, pID)) {
 				if (pItem->ShadeCount == ShadeCount) {
 					return pItem;
@@ -45,23 +46,27 @@ public:
 		return nullptr;
 	}
 
-	static NOINLINE int __fastcall FindIndex(const char* pID, int ShadeCount = 1) {
+	static NOINLINE int FC FindIndex(const char* pID, int ShadeCount = 1) {
+
 		for(int i = 0; i < Array->Count; ++i) {
-			ColorScheme* pItem = Array->GetItem(i);
+
+			if((&Array->Items[i]) == Array->end())
+				return -1;
+
+			const ColorScheme* pItem = Array->GetItem(i);
+
 			if(!CRT::strcmpi(pItem->ID, pID)) {
 				if(pItem->ShadeCount == ShadeCount) {
 					return i;
 				}
 			}
 		}
+
 		return -1;
 	}
 
-	static NOINLINE int __fastcall FindIndexById(const char* pID) {
-
-		if (!pID)
-			return -1;
-
+	// this does not check the `ShadeCount`
+	static NOINLINE int FC FindIndexById(const char* pID) {
 		for (int i = 0; i < Array->Count; ++i) {
 			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
 				return i;
@@ -71,7 +76,7 @@ public:
 		return -1;
 	}
 
-	static ColorScheme * __fastcall FindOrAllocate(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
+	static ColorScheme * FC FindOrAllocate(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
 		{ JMP_THIS(0x68C9C0); }
 
 	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& BaseColor) const

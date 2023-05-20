@@ -53,15 +53,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<ScriptTypeClass*>, 0x8B41C8u> const Array {};
 
-	static NOINLINE ScriptTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(ScriptTypeClass)
 
 	static ScriptTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x691C00);

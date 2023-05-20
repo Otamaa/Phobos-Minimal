@@ -5,8 +5,8 @@ void OverlayTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	if (parseFailAddr)
 		return;
 
-	auto pThis = this->Get();
-	const char* pSection = pThis->get_ID();
+	//auto pThis = this->Get();
+	//const char* pSection = pThis->get_ID();
 }
 
 // =============================

@@ -85,7 +85,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		CheckRemove:
 		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
-			TechnoExt::HandleRemove(pThis);
+			TechnoExt::HandleRemove(pThis, nullptr, false, false);
 			return retDead;
 		}
 	}

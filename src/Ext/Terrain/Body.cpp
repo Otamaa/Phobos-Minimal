@@ -73,6 +73,7 @@ void TerrainExt::ExtData::ClearAnim()
 
 		if (AttachedAnim->Type)
 		{
+			//GameDelete<true,false>(AttachedAnim);
 			AttachedAnim->TimeToDie = true;
 			AttachedAnim->UnInit();
 		}

@@ -25,15 +25,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<BulletTypeClass*>, 0xA83C80u> const Array {};
 
-	static NOINLINE BulletTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(BulletTypeClass)
 
 	static BulletTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x46C790);

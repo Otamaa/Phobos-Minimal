@@ -281,7 +281,7 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExt::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	auto const pType = pWhat->GetTechnoType();
+	const auto pType = pWhat->GetTechnoType();
 	if (!pType)
 		return fFactor;
 
@@ -291,7 +291,6 @@ double BuildingTypeExt::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseCl
 
 	for (const auto& [pBldType, nCount] : pHouseExt->Building_BuildSpeedBonusCounter)
 	{
-
 		if (auto const pExt = BuildingTypeExt::ExtMap.TryFind(pBldType))
 		{
 			if (!pExt->SpeedBonus.AffectedType.empty() && !pExt->SpeedBonus.AffectedType.Contains(pType))

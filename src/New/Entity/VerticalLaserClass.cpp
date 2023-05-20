@@ -178,6 +178,7 @@ void  VerticalLaserClass::DealDamage(const CoordStruct& to)
 		pBullet->Limbo();
 		pBullet->SetLocation(to);
 		pBullet->Explode(true);
+		//GameDelete<true,false>(this->pBullet);
 		pBullet->UnInit();
 	}
 }

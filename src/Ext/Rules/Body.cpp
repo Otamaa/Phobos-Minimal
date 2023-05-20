@@ -10,6 +10,7 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
+#include <New/Type/ImmunityTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -53,44 +54,48 @@ void RulesExt::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
 
 void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Debug::Log(__FUNCTION__" Reading ArmorType ! \n");
-	ArmorTypeClass::LoadFromINIList_New(pINI, false);
-	//Debug::Log(__FUNCTION__" Reading ColorType ! \n");
-	ColorTypeClass::LoadFromINIList_New(pINI, false);
-	//Debug::Log(__FUNCTION__" Reading CursorType ! \n");
-	CursorTypeClass::LoadFromINIList_New(pINI, true);
-
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-	{
-		//Debug::Log(__FUNCTION__" AddDefault RadType ! \n");
-		RadTypeClass::AddDefaults();
-	}
-
-	//Debug::Log(__FUNCTION__" AddDefault ShieldType ! \n");
-	ShieldTypeClass::AddDefaults();
-
-	//Debug::Log(__FUNCTION__" AddDefault HoverType ! \n");
-	HoverTypeClass::AddDefaults();
-
 	Data->LoadFromINIFile(pINI, false);
 }
 
+// do everything before `TypeData::ReadFromINI` executed 
+// to makesure everything is properly allocated from the list
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	for (auto& pArmor : ArmorTypeClass::Array)
-	{
-		pArmor->EvaluateDefault();
-	}
+	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
+	pThis->Read_CrateRules(pINI);
+	pThis->Read_CombatDamage(pINI);
+	pThis->Read_Radiation(pINI);
+	pThis->Read_ElevationModel(pINI);
+	pThis->Read_WallModel(pINI);
+	pThis->Read_AudioVisual(pINI);
+	pThis->Read_SpecialWeapons(pINI);
+
+	ArmorTypeClass:: LoadFromINIList_New(pINI);
+	ColorTypeClass::LoadFromINIList_New(pINI);
+	CursorTypeClass::LoadFromINIList_New(pINI);
+	ImmunityTypeClass::LoadFromINIList(pINI);
+	ArmorTypeClass::EvaluateDefault();
 
 #ifdef COMPILE_PORTED_DP_FEATURES
-	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get(), false);
+	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 #endif
 
-	if (!Phobos::Otamaa::DisableCustomRadSite)
-		RadTypeClass::LoadFromINIList(pINI);
+	if (!Phobos::Otamaa::DisableCustomRadSite) {
 
+		if (RadTypeClass::Array.empty())
+			RadTypeClass::AddDefaults();
+
+		RadTypeClass::LoadFromINIList(pINI);
+	}
+
+	if (ShieldTypeClass::Array.empty())
+		ShieldTypeClass::AddDefaults();
 	ShieldTypeClass::LoadFromINIList(pINI);
+
+	if (HoverTypeClass::Array.empty())
+		HoverTypeClass::AddDefaults();
 	HoverTypeClass::LoadFromINIList(pINI);
+
 	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
 
 	Data->LoadBeforeTypeData(pThis, pINI);
@@ -146,6 +151,35 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
+#pragma region Otamaa
+
+	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType", true);
+	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
+	this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
+	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall", true);
+
+	if (!this->CarryAll_LandAnim)
+		this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
+
+	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship", true);
+
+	if (!this->DropShip_LandAnim)
+		this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
+
+	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft", true);
+	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft", true);
+
+	if (pThis->WallTower)
+		this->WallTowers.push_back(pThis->WallTower);
+
+#pragma endregion
+
+	detail::ParseVector(pINI, this->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*, true>(pINI, this->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector(pINI, this->AIHousesLists, "AIHousesList");
+	detail::ParseVector(pINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*, true>(pINI, this->AITriggersLists, "AITriggersList");
+
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
 	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
@@ -158,6 +192,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DeactivateDim_Operator.Read(exINI, AUDIOVISUAL_SECTION, "DeactivateDimOperator");
 
 #pragma region Otamaa
+	this->AI_SpyMoneyStealPercent.Read(exINI, GENERAL_SECTION, "AI.SpyMoneyStealPercent");
 	this->AutoAttackICedTarget.Read(exINI, COMBATDAMAGE_SECTION, "Firing.AllowICedTargetForAI");
 	this->NukeWarheadName.Read(exINI.GetINI(), "SpecialWeapons", "NukeWarhead");
 	this->AI_AutoSellHealthRatio.Read(exINI, GENERAL_SECTION, "AI.AutoSellHealthRatio");
@@ -237,6 +272,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->OverlayExplodeThreshold.Read(exINI, GENERAL_SECTION, "OverlayExplodeThreshold");
 	this->AlliedSolidTransparency.Read(exINI, COMBATDAMAGE_SECTION, "AlliedSolidTransparency");
 	this->DecloakSound.Read(exINI, AUDIOVISUAL_SECTION, "DecloakSound");
+	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
 
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
@@ -249,10 +285,8 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
 
-	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
-
 	// Section Generic Prerequisites
-	//FillDefaultPrerequisites(pINI);
+	FillDefaultPrerequisites(pINI);
 
 }
 
@@ -267,7 +301,6 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 		return;
 
 	nPrepreqNames.resize(6); // resize it for 6
-	nPrepreqNames.reserve(10);
 
 	auto ReadPreReQs = [pRules, &nPrepreqNames](const char* pKey, const char* CatagoryName, size_t idx)
 	{
@@ -329,7 +362,6 @@ void RulesExt::FillDefaultPrerequisites(CCINIClass* pRules)
 
 		if (!bFound)
 		{
-
 			// New generic prerequisite
 			auto& It = nPrepreqNames.emplace_back(pKeyName, std::vector<int>());
 			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
@@ -352,9 +384,7 @@ void RulesExt::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 
 // this runs between the before and after type data loading methods for rules ini
 void RulesExt::ExtData::InitializeAfterTypeData(RulesClass* const pThis)
-{
-
-}
+{ }
 
 namespace ObjectTypeParser
 {
@@ -372,38 +402,6 @@ void RulesExt::ExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
-#pragma region Otamaa
-
-
-	this->VeinholeParticle.Read(exINI, AUDIOVISUAL_SECTION, "VeinholeSpawnParticleType");
-
-	this->DefaultVeinParticle = ParticleTypeClass::FindOrAllocate(GameStrings::GASCLUDM1());
-	this->DefaultSquidAnim = AnimTypeClass::FindOrAllocate(GameStrings::SQDG());
-	this->CarryAll_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Carryall");
-
-	if (!this->CarryAll_LandAnim)
-		this->CarryAll_LandAnim = AnimTypeClass::Find(GameStrings::CARYLAND());
-
-	this->DropShip_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Dropship");
-
-	if (!this->DropShip_LandAnim)
-		this->DropShip_LandAnim = AnimTypeClass::Find(GameStrings::DROPLAND());
-
-	this->Aircraft_LandAnim.Read(exINI, AUDIOVISUAL_SECTION, "LandingAnim.Aircraft");
-	this->Aircraft_TakeOffAnim.Read(exINI, AUDIOVISUAL_SECTION, "TakeOffAnim.Aircraft");
-
-	if (pThis->WallTower)
-		this->WallTowers.push_back(pThis->WallTower);
-
-	this->AI_SpyMoneyStealPercent.Read(exINI, GENERAL_SECTION, "AI.SpyMoneyStealPercent");
-
-#pragma endregion
-
-	detail::ParseVector(pINI, AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector(pINI, AIScriptsLists, "AIScriptsList");
-	detail::ParseVector(pINI, AIHousesLists, "AIHousesList");
-	detail::ParseVector(pINI, AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector(pINI, AITriggersLists, "AITriggersList");
 }
 
 bool RulesExt::DetailsCurrentlyEnabled()
@@ -762,6 +760,19 @@ DEFINE_HOOK(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	return 0x0;
 }
 
+//DEFINE_HOOK(0x679C92, RulesClass_ReadAllFromINI_ReIterate, 0x7)
+//{
+//	GET(CCINIClass*, pINI, ESI);
+//
+//	for (auto pAnim : *AnimTypeClass::Array) {
+//		pAnim->LoadFromINI(pINI);
+//	}
+//
+//	return 0x0;
+//}
+
+DEFINE_JUMP(LJMP, 0x668F2B ,0x668F63); // move all these reading before type reading 
+DEFINE_JUMP(LJMP, 0x66919B, 0x6691B7); // remove reading warhead from `SpecialWeapon`
 //DEFINE_HOOK(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 //{
 //	return 0x0;

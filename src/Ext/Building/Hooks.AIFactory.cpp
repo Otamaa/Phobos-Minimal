@@ -130,6 +130,34 @@ DEFINE_HOOK(0x4CA07A, FactoryClass_AbandonProduction_Phobos, 0x8)
 	return 0;
 }
 
+BuildingClass** GetFactory(AbstractType AbsType ,bool naval , HouseExt::ExtData* pData)
+{
+	BuildingClass** currFactory = nullptr;
+
+	switch (AbsType)
+	{
+	case AbstractType::BuildingType:
+		currFactory = &pData->Factory_BuildingType;
+		break;
+	case AbstractType::UnitType:
+		if (!naval)
+			currFactory = &pData->Factory_VehicleType;
+		else
+			currFactory = &pData->Factory_NavyType;
+		break;
+	case AbstractType::InfantryType:
+		currFactory = &pData->Factory_InfantryType;
+		break;
+	case AbstractType::AircraftType:
+		currFactory = &pData->Factory_AircraftType;
+		break;
+	default:
+		break;
+	}
+
+	return currFactory;
+}
+
 DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory_Phobos, 0x6)
 {
 	enum { Skip = 0x4503CA };
@@ -140,34 +168,13 @@ DEFINE_HOOK(0x4502F4, BuildingClass_Update_Factory_Phobos, 0x6)
 	if (pOwner && pOwner->Production && Phobos::Config::AllowParallelAIQueues)
 	{
 		HouseExt::ExtData* pData = HouseExt::ExtMap.Find(pOwner);
-		BuildingClass** currFactory = nullptr;
+		BuildingClass** currFactory = GetFactory(pBuilding->Type->Factory , pBuilding->Type->Naval , pData);
 
-		switch (pBuilding->Type->Factory)
-		{
-		case AbstractType::BuildingType:
-			currFactory = &pData->Factory_BuildingType;
-			break;
-		case AbstractType::UnitType:
-			if (!pBuilding->Type->Naval)
-				currFactory = &pData->Factory_VehicleType;
-			else
-				currFactory = &pData->Factory_NavyType;
-			break;
-		case AbstractType::InfantryType:
-			currFactory = &pData->Factory_InfantryType;
-			break;
-		case AbstractType::AircraftType:
-			currFactory = &pData->Factory_AircraftType;
-			break;
-		default:
-			break;
+		if (!currFactory) {
+			Game::RaiseError(E_POINTER);
 		}
-
-		if (!currFactory)
-		{
-			*currFactory = pBuilding;
-			return 0;
-		}else if (!*currFactory)
+		else
+		if (!*currFactory)
 		{
 			*currFactory = pBuilding;
 			return 0;

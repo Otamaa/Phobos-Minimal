@@ -438,7 +438,7 @@ public:
 	CoordStruct* FindInfantrySubposition(CoordStruct* pOutBuffer, const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords)
 		{ JMP_THIS(0x481180); }
 
-	CoordStruct FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords) {
+	CoordStruct FindInfantrySubposition(const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords , int Zcoords) {
 		CoordStruct outBuffer;
 		this->FindInfantrySubposition(&outBuffer, coords, ignoreContents, alt, useCellCoords);
 		return outBuffer;

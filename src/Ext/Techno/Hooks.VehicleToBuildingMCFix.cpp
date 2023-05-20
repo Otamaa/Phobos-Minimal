@@ -29,8 +29,9 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 
 		// kill previous anim if any
 		if (pTechnoTo->MindControlRingAnim) {
-			pTechnoTo->MindControlRingAnim->TimeToDie = true;
-			pTechnoTo->MindControlRingAnim->UnInit();
+			GameDelete<true,false>(pTechnoTo->MindControlRingAnim);
+			//pTechnoTo->MindControlRingAnim->TimeToDie = true;
+			//pTechnoTo->MindControlRingAnim->UnInit();
 		}
 
 		const auto pWhat = (VTable::Get(pTechnoTo));

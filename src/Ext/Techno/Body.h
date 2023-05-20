@@ -296,7 +296,7 @@ private:
 	static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry , bool IsDisguised);
 	static void SyncIronCurtainStatus(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
-	static void HandleRemove(TechnoClass* pThis , TechnoClass* pSource = nullptr , bool SkipTrackingRemove = false);
+	static void HandleRemove(TechnoClass* pThis , TechnoClass* pSource = nullptr , bool SkipTrackingRemove = false , bool Delete = true);
 	static void PutPassengersInCoords(TechnoClass* pTransporter, const CoordStruct& nCoord, AnimTypeClass* pAnimToPlay, int nSound, bool bForce);
 	static int PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechno, AbstractClass* pTarget, int weaponIndexOne, int weaponIndexTwo, bool allowFallback = true , bool allowAAFallback = true);
 
@@ -307,28 +307,47 @@ private:
 	static std::pair<TechnoTypeClass*,HouseClass*> GetDisguiseType(TechnoClass* pTarget , bool CheckHouse , bool CheckVisibility, bool bVisibleResult = false);
 
 	static CoordStruct PassengerKickOutLocation(TechnoClass* pThis, FootClass* pPassenger, int maxAttempts = 1);
+	// Return false if the `location` is invalid
 	static bool EjectRandomly(FootClass* pEjectee, CoordStruct const& location, int distance, bool select);
+	// Always Make Sure `CoordStruct` is valid before using this
 	static bool EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select);
+	// Return `Empty` if the next location on distance is invalid
 	static CoordStruct GetPutLocation(CoordStruct current, int distance);
 
 	static bool AllowedTargetByZone(TechnoClass* pThis, TechnoClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon = nullptr, std::optional<std::reference_wrapper<const ZoneType>> zone = std::nullopt);
 
 	static void UpdateMCOverloadDamage(TechnoClass* pOwner);
 	static ObjectTypeClass* SetInfDefaultDisguise(TechnoClass* const pThis, TechnoTypeClass* const pType);
+
 	static bool IsCritImmune(TechnoClass* pThis);
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);
 	static bool IsEMPImmune(TechnoClass* pThis);
 	static bool IsChronoDelayDamageImmune(FootClass* pThis);
 	static bool IsRadImmune(TechnoClass* pThis);
-
 	static bool IsPsionicsWeaponImmune(TechnoClass* pThis);
 	static bool IsPoisonImmune(TechnoClass* pThis);
 	static bool IsBerserkImmune(TechnoClass* pThis);
-
 	static bool IsAbductorImmune(TechnoClass* pThis);
+	static bool IsAssaulter(InfantryClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
+	static bool HasImmunity(TechnoClass* pThis, int nType);
+
+	static bool IsCritImmune(Rank vet, TechnoClass* pThis);
+	static bool IsPsionicsImmune(Rank vet, TechnoClass* pThis);
+	static bool IsCullingImmune(Rank vet, TechnoClass* pThis);
+	static bool IsEMPImmune(Rank vet, TechnoClass* pThis);
+	static bool IsChronoDelayDamageImmune(Rank vet, FootClass* pThis);
+	static bool IsRadImmune(Rank vet, TechnoClass* pThis);
+	static bool IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis);
+	static bool IsPoisonImmune(Rank vet, TechnoClass* pThis);
+	static bool IsBerserkImmune(Rank vet, TechnoClass* pThis);
+	static bool IsAbductorImmune(Rank vet, TechnoClass* pThis);
+	static bool IsAssaulter(Rank vet, InfantryClass* pThis);
+
+	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
+	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);

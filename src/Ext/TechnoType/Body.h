@@ -9,6 +9,7 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
+#include <New/Type/ImmunityTypeClass.h>
 
 #include <Ext/LineTrail/Body.h>
 
@@ -72,6 +73,10 @@ public:
 
 		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities;
 		MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities;
+
+		ValueableIdxVector<ImmunityTypeClass> E_ImmuneToType;
+		ValueableIdxVector<ImmunityTypeClass> V_ImmuneToType;
+		ValueableIdxVector<ImmunityTypeClass> R_ImmuneToType;
 
 		Valueable<bool> Interceptor;
 		Valueable<AffectedHouse> Interceptor_CanTargetHouses;
@@ -660,6 +665,7 @@ public:
 		ValueableIdx<CursorTypeClass*> Cursor_NoMove;
 
 		Valueable<bool> ImmuneToAbduction; //680, 1362
+		Valueable<bool> UseROFAsBurstDelays;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -674,6 +680,10 @@ public:
 
 			, Phobos_EliteAbilities {}
 			, Phobos_VeteranAbilities {}
+
+			, E_ImmuneToType {}
+			, V_ImmuneToType {}
+			, R_ImmuneToType {}
 
 			, Interceptor { false }
 			, Interceptor_CanTargetHouses { AffectedHouse::Enemies }
@@ -1149,6 +1159,7 @@ public:
 			, Cursor_NoMove { (int)MouseCursorType::NoMove }
 
 			, ImmuneToAbduction { false }
+			, UseROFAsBurstDelays { false }
 		{ }
 
 		virtual ~ExtData() override = default;

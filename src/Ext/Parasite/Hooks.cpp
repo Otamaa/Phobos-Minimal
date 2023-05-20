@@ -142,7 +142,7 @@ DEFINE_HOOK(0x62A222, ParasiteClass_AI_DealDamage, 0x6)
 	}
 
 	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
-		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner);
+		WeaponTypeExt::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true);
 		return SkipDamaging;
 	}
 

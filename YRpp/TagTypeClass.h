@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AbstractTypeClass.h>
+#include <GameStrings.h>
 
 //forward declarations
 class CCINIClass;
@@ -15,52 +16,17 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<TagTypeClass*>, 0xB0E780u> const Array {};
 
-	static NOINLINE TagTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(TagTypeClass)
 
 	static TagTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x6E6310);
 	}
 
-	static NOINLINE int __fastcall FindIndexById(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-	static NOINLINE int __fastcall FindIndexByName(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->Name, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_FindIndexById(TagTypeClass)
+	IMPL_FindIndexByName(TagTypeClass)
 
 	static NOINLINE int __fastcall FindIndexByIdAndName(const char* pID)
 	{
-		if(!pID)
-			return -1;
 
 		for (int i = 0; i < Array->Count; ++i) {
 			auto const pItem = Array->Items[i];

@@ -8,6 +8,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
 
+#include <New/Type/TheaterTypeClass.h>
+
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
@@ -191,7 +193,6 @@ void TechnoTypeExt::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullable<C
 void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
-
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
@@ -207,6 +208,10 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 		this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
 		this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
+
+		this->E_ImmuneToType.Read(exINI, pSection, "EliteImmuneTo");
+		this->V_ImmuneToType.Read(exINI, pSection, "VeteranImmuneTo");
+		this->R_ImmuneToType.Read(exINI, pSection, "RookieImmuneTo");
 
 		this->ImmuneToEMP.Read(exINI, pSection, "ImmuneToEMP");
 
@@ -535,7 +540,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->DeployFire_UpdateFacing.Read(exINI, pSection, "DeployFire.CheckFacing");
 		this->Fake_Of.Read(exINI, pSection, "FakeOf");
 		this->CivilianEnemy.Read(exINI, pSection, "CivilianEnemy");
-		this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerzerk");
+		this->ImmuneToBerserk.Read(exINI, pSection, "ImmuneToBerserk");
 		this->Berzerk_Modifier.Read(exINI, pSection, "Berzerk.Modifier");
 		this->IgnoreToProtect.Read(exINI, pSection, "ToProtect.Ignore");
 		this->TargetLaser_Time.Read(exINI, pSection, "TargetLaser.Time");
@@ -545,102 +550,110 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->ConsideredNaval.Read(exINI, pSection, "ConsideredNaval");
 		this->ConsideredVehicle.Read(exINI, pSection, "ConsideredVehicle");
 
-		//#pragma region Prereq
-		//		// Prerequisite.RequiredTheaters contains a list of theader names
-		//		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
-		//		char* context = nullptr;
-		//		pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer);
-		//
-		//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		//		{
-		//			cur = CRT::strtrim(cur);
-		//			int index = Theater::FindIndex(cur);
-		//			if (index != -1)
-		//				Prerequisite_RequiredTheaters.push_back(index);
-		//		}
-		//
-		//		// Prerequisite with Generic Prerequistes support.
-		//		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
-		//		const char* key_prereqs = "Prerequisite";
-		//		context = nullptr;
-		//		pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer);
-		//
-		//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		//		{
-		//			cur = CRT::strtrim(cur);
-		//			int idx = TechnoTypeClass::FindIndexById(cur);
-		//
-		//			if (idx >= 0)
-		//			{
-		//				Prerequisite.push_back(idx);
-		//			}
-		//			else
-		//			{
-		//				int index = HouseExt::FindGenericPrerequisite(cur);
-		//				if (index < 0)
-		//					Prerequisite.push_back(index);
-		//			}
-		//		}
-		//
-		//		// Prerequisite.Negative with Generic Prerequistes support
-		//		const char* key_prereqsNegative = "Prerequisite.Negative";
-		//		context = nullptr;
-		//		pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer);
-		//
-		//		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		//		{
-		//			cur = CRT::strtrim(cur);
-		//			int idx = TechnoTypeClass::FindIndexById(cur);
-		//
-		//			if (idx >= 0)
-		//			{
-		//				Prerequisite_Negative.push_back(idx);
-		//			}
-		//			else
-		//			{
-		//				int index = HouseExt::FindGenericPrerequisite(cur);
-		//				if (index < 0)
-		//					Prerequisite_Negative.push_back(index);
-		//			}
-		//		}
-		//
-		//		// Prerequisite.ListX with Generic Prerequistes support
-		//		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
-		//
-		//		if (Prerequisite_Lists.Get() > 0)
-		//		{
-		//			Prerequisite_ListVector.resize(Prerequisite_Lists.Get());
-		//
-		//			for (int i = 1; i <= Prerequisite_Lists.Get(); i++)
-		//			{
-		//				char keySection[0x100];
-		//				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", i);
-		//
-		//				std::vector<int> objectsList;
-		//				char* context2 = nullptr;
-		//				pINI->ReadString(pSection, keySection, "", Phobos::readBuffer);
-		//
-		//				for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
-		//					cur;
-		//					cur = strtok_s(nullptr, Phobos::readDelims, &context2))
-		//				{
-		//					cur = CRT::strtrim(cur);
-		//					int idx = TechnoTypeClass::FindIndexById(cur);
-		//
-		//					if (idx >= 0)
-		//					{
-		//						Prerequisite_ListVector[i].push_back(idx);
-		//					}
-		//					else
-		//					{
-		//						int index = HouseExt::FindGenericPrerequisite(cur);
-		//						if (index < 0)
-		//							Prerequisite_ListVector[i].push_back(index);
-		//					}
-		//				}
-		//			}
-		//		}
-		//#pragma endregion Prereq
+#pragma region Prereq
+		// Prerequisite.RequiredTheaters contains a list of theader names
+		const char* key_prereqTheaters = "Prerequisite.RequiredTheaters";
+
+		if (pINI->ReadString(pSection, key_prereqTheaters, "", Phobos::readBuffer))
+		{
+			char* context = nullptr;
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				cur = CRT::strtrim(cur);
+				int index = TheaterTypeClass::FindIndexById(cur);
+				if (index != -1)
+					this->Prerequisite_RequiredTheaters.push_back(index);
+			}
+		}
+
+		// Prerequisite with Generic Prerequistes support.
+		// Note: I have no idea of what could happen in all the game engine logics if I push the negative indexes of the Ares generic prerequisites directly into the original Prerequisite tag... for that reason this tag is duplicated for working with it
+		const char* key_prereqs = "Prerequisite";
+		if (pINI->ReadString(pSection, key_prereqs, "", Phobos::readBuffer))
+		{
+			char* context = nullptr;
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				cur = CRT::strtrim(cur);
+				int idx = TechnoTypeClass::FindIndexById(cur);
+
+				if (idx >= 0)
+				{
+					this->Prerequisite.push_back(idx);
+				}
+				else
+				{
+					int index = HouseExt::FindGenericPrerequisite(cur);
+					if (index < 0)
+						this->Prerequisite.push_back(index);
+				}
+			}
+		}
+
+		// Prerequisite.Negative with Generic Prerequistes support
+		const char* key_prereqsNegative = "Prerequisite.Negative";
+
+		if (pINI->ReadString(pSection, key_prereqsNegative, "", Phobos::readBuffer))
+		{
+			char* context = nullptr;
+			for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context); cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				cur = CRT::strtrim(cur);
+				int idx = TechnoTypeClass::FindIndexById(cur);
+
+				if (idx >= 0)
+				{
+					this->Prerequisite_Negative.push_back(idx);
+				}
+				else
+				{
+					int index = HouseExt::FindGenericPrerequisite(cur);
+					if (index < 0)
+						this->Prerequisite_Negative.push_back(index);
+				}
+			}
+		}
+
+		// Prerequisite.ListX with Generic Prerequistes support
+		this->Prerequisite_Lists.Read(exINI, pSection, "Prerequisite.Lists");
+
+		if (this->Prerequisite_Lists > 0)
+		{
+			this->Prerequisite_ListVector.resize(Prerequisite_Lists);
+
+			for (int i = 0; i < Prerequisite_Lists; i++)
+			{
+				char keySection[0x100];
+				IMPL_SNPRNINTF(keySection, sizeof(keySection), "Prerequisite.List%d", (i + 1));
+
+				if (pINI->ReadString(pSection, keySection, "", Phobos::readBuffer))
+				{
+					char* context2 = nullptr;
+					for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context2);
+						cur;
+						cur = strtok_s(nullptr, Phobos::readDelims, &context2))
+					{
+						cur = CRT::strtrim(cur);
+						int idx = TechnoTypeClass::FindIndexById(cur);
+
+						if (idx >= 0)
+						{
+							this->Prerequisite_ListVector[i].push_back(idx);
+						}
+						else
+						{
+							int index = HouseExt::FindGenericPrerequisite(cur);
+							if (index < 0)
+								this->Prerequisite_ListVector[i].push_back(index);
+						}
+					}
+				}
+			}
+		}
+
+#pragma endregion Prereq
 
 		char tempBuffer[0x40];
 
@@ -816,7 +829,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
 			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
-			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon");
+			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon",nullptr , true);
 			this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
 
 			this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
@@ -841,7 +854,7 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 			// #680, 1362
 			this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
-
+			this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
 #ifdef COMPILE_PORTED_DP_FEATURES
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -857,15 +870,20 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		INI_EX exArtINI(pArtIni);
 
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
+		
 		if (!this->TurretOffset.isset())
 		{
 			//put ddedfault single value inside
-			PartialVector3D<int> nRes { pThis->TurretOffset , 0 ,0 , 1};
+			PartialVector3D<int> nRes { pThis->TurretOffset , 0 ,0 , 1 };
 			this->TurretOffset = nRes;
 		}
+
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 
 		char tempBuffer[0x40];
+		char HitCoord_tempBuffer[0x20];
+		char alternateFLHbuffer[0x40];
+
 		for (size_t i = 0; ; ++i)
 		{
 			NullableIdx<LaserTrailTypeClass> trail;
@@ -886,21 +904,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->LaserTrailData.emplace_back(trail.Get(), flh.Get(), isOnTurret.Get());
 		}
 
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
-		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
-
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
-		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
-
-		char key[0x40];
-		for (size_t i = 5;; i++)
+		for (size_t i = 5; ; ++i)
 		{
 			Nullable<CoordStruct> alternateFLH;
-			IMPL_SNPRNINTF(key, sizeof(key), "AlternateFLH%u", i);
-			alternateFLH.Read(exArtINI, pArtSection, key);
+			IMPL_SNPRNINTF(alternateFLHbuffer, sizeof(alternateFLHbuffer), "AlternateFLH%u", i);
+			alternateFLH.Read(exArtINI, pArtSection, alternateFLHbuffer);
 
 			if (!alternateFLH.isset())
 				break;
@@ -908,7 +916,6 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			this->AlternateFLHs.push_back(alternateFLH.Get());
 		}
 
-		char HitCoord_tempBuffer[0x20];
 		for (size_t i = 0; ; ++i)
 		{
 			Nullable<CoordStruct> nHitBuff;
@@ -926,7 +933,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Spawner_SpawnOffsets.Read(exArtINI, pArtSection, "SpawnOffset");
 		this->Spawner_SpawnOffsets_OverrideWeaponFLH.Read(exArtINI, pArtSection, "SpawnOffsetOverrideFLH");
 
-		LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
+		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
+
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, WeaponBurstFLHs, EliteWeaponBurstFLHs, "");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, DeployedWeaponBurstFLHs, EliteDeployedWeaponBurstFLHs, "Deployed");
+		TechnoTypeExt::GetBurstFLHs(pThis, exArtINI, pArtSection, CrouchedWeaponBurstFLHs, EliteCrouchedWeaponBurstFLHs, "Prone");
+
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, PronePrimaryFireFLH, E_PronePrimaryFireFLH, "PronePrimaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, ProneSecondaryFireFLH, E_ProneSecondaryFireFLH, "ProneSecondaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedPrimaryFireFLH, E_DeployedPrimaryFireFLH, "DeployedPrimaryFire");
+		TechnoTypeExt::GetFLH(exArtINI, pArtSection, DeployedSecondaryFireFLH, E_DeployedSecondaryFireFLH, "DeployedSecondaryFire");
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 
@@ -1107,6 +1123,9 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->MindControlRangeLimit)
 		.Process(this->Phobos_EliteAbilities)
 		.Process(this->Phobos_VeteranAbilities)
+		.Process(this->E_ImmuneToType)
+		.Process(this->V_ImmuneToType)
+		.Process(this->R_ImmuneToType)
 		.Process(this->Interceptor)
 		.Process(this->Interceptor_CanTargetHouses)
 		.Process(this->Interceptor_GuardRange)
@@ -1569,7 +1588,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Cursor_NoMove)
 
 		.Process(this->ImmuneToAbduction)
-
+		.Process(this->UseROFAsBurstDelays)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -1633,7 +1652,7 @@ TechnoTypeExt::ExtContainer::~ExtContainer() = default;
 
 DEFINE_HOOK(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
-	GET(TechnoTypeClass* const, pItem, ESI);
+	GET(TechnoTypeClass* , pItem, ESI);
 	TechnoTypeExt::ExtMap.Allocate(pItem);
 	return 0;
 }

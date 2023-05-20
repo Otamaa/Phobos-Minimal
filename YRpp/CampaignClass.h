@@ -13,29 +13,8 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<CampaignClass*>, 0xA83CF8u> const Array {};
 
-	static NOINLINE CampaignClass* Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
-
-	//Was inlined
-	static NOINLINE CampaignClass* FindOrAllocate(const char* pID)
-	{
-		if (!CRT::strcmpi(pID, GameStrings::NoneStr()) || !CRT::strcmpi(pID, GameStrings::NoneStrb())) {
-			return nullptr;
-		}
-
-		if(auto pRet = Find(pID)) {
-			return pRet;
-		}
-
-		return GameCreate<CampaignClass>(pID);
-	}
+	IMPL_Find(CampaignClass)
+	IMPL_FindOrAllocate(CampaignClass)	//Was inlined
 
 	static int __fastcall FindIndexById(const char* pID) {
 		JMP_STD(0x46CC90);

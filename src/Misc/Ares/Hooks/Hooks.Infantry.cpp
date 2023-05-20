@@ -18,6 +18,28 @@
 
 #include <Misc/AresData.h>
 
+
+DEFINE_OVERRIDE_HOOK(0x523932, InfantryTypeClass_CTOR_Initialize, 8)
+{
+	GET(InfantryTypeClass*, pItem, ESI)
+
+		for (int i = 0; i < DoControls::MaxCount; ++i)
+		{
+			auto& nSeq = pItem->Sequence->Data[i];
+			nSeq.StartFrame = 0;
+			nSeq.CountFrames = 0;
+			nSeq.FacingMultiplier = 0;
+			nSeq.Facing = DoTypeFacing(-1);
+			nSeq.SoundCount = 0;
+			nSeq.Sound1StartFrame = 0;
+			nSeq.Sound1Index = -1;
+			nSeq.Sound2StartFrame = 0;
+			nSeq.Sound2Index = -1;
+		}
+
+	return 0x523970;
+}
+
 //
 // skip old logic's way to determine the cursor
 // Was 7
@@ -186,6 +208,11 @@ DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 	GET(InfantryClass* const, pThis, EBP);
 	GET_STACK(int, idxWeapon, STACK_OFFS(0x34, 0x24));
 
+	const auto pWeapon = pThis->GetWeapon(idxWeapon);
+
+	//if (pWeapon && pWeapon->WeaponType->DecloakToFire) {
+	//	pThis->Uncloak(false);
+	//}else
 	if (pThis->IsCloseEnough(pThis->Target, idxWeapon)) {
 		pThis->Uncloak(false);
 	}

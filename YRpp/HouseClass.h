@@ -562,6 +562,15 @@ public:
 	//	return result;
 	//}
 
+	bool IsControlledByHuman_() const
+	{
+		bool result = this->CurrentPlayer;
+		if(SessionClass::Instance->GameMode == GameMode::Campaign) {
+			result = result || this->IsInPlayerControl;
+		}
+		return result;
+	}
+	
 	// whether the human player on this PC can control this house
 	bool ControlledByPlayer() const { JMP_THIS(0x50B6F0); }
 	//{
@@ -571,6 +580,14 @@ public:
 	//	return this->CurrentPlayer || this->IsInPlayerControl;
 	//}
 
+	bool ControlledByPlayer_() const
+	{
+		if(SessionClass::Instance->GameMode != GameMode::Campaign) {
+			return this->IsCurrentPlayer();
+		}
+		return this->CurrentPlayer || this->IsInPlayerControl;
+	}
+	
 	// Target ought to be Object, I imagine, but cell doesn't work then
 	void __fastcall SendSpyPlanes(int AircraftTypeIdx, int AircraftAmount, Mission SetMission, AbstractClass *Target, ObjectClass *Destination)
 		{ JMP_STD(0x65EAB0); }

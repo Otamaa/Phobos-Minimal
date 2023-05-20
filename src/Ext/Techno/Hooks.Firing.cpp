@@ -235,7 +235,7 @@ DEFINE_HOOK(0x6FF43F, TechnoClass_FireAt_FeedbackWeapon, 0x6)//8
 			if (pThis->InOpenToppedTransport && !fbWeapon->FireInTransport)
 				return 0;
 
-			WeaponTypeExt::DetonateAt(fbWeapon, pThis, pThis);
+			WeaponTypeExt::DetonateAt(fbWeapon, pThis, pThis , true);
 		}
 	}
 

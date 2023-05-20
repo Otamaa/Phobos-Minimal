@@ -30,9 +30,40 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::Pi * 2);
 	}
 
-	this->Bolt_Disable1.Read(exINI, pSection, "Bolt.Disable1");
-	this->Bolt_Disable2.Read(exINI, pSection, "Bolt.Disable2");
-	this->Bolt_Disable3.Read(exINI, pSection, "Bolt.Disable3");
+	Nullable<int> Bolt_Count{};
+	Bolt_Count.Read(exINI, pSection, "Bolt.Count");
+
+	if (Bolt_Count.isset())
+	{
+		const int nCount = Bolt_Count.Get();
+
+		this->WeaponBolt_Data.GetEx()->count = nCount;
+		this->WeaponBolt_Data.GetEx()->ColorData.resize(nCount);
+		this->WeaponBolt_Data.GetEx()->Disabled.resize(nCount);
+
+		char buffer_bolt[0x30];
+		for (int i = 0; i < (nCount); ++i)
+		{
+			Valueable<bool> boltDisable_dummy {false};
+			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Disable%d", i + 1);
+			boltDisable_dummy.Read(exINI, pSection, buffer_bolt);
+			this->WeaponBolt_Data.GetEx()->Disabled[i] = boltDisable_dummy.Get();
+
+			Valueable<ColorStruct> boltColor_dummy {};
+			IMPL_SNPRNINTF(buffer_bolt, sizeof(buffer_bolt), "Bolt.Color%d", i + 1);
+			boltColor_dummy.Read(exINI, pSection, buffer_bolt);
+			this->WeaponBolt_Data.GetEx()->ColorData[i] = boltColor_dummy.Get();
+		}
+	}
+	else
+	{
+		this->Bolt_Color1.Read(exINI, pSection, "Bolt.Color1");
+		this->Bolt_Color2.Read(exINI, pSection, "Bolt.Color2");
+		this->Bolt_Color3.Read(exINI, pSection, "Bolt.Color3");
+		this->Bolt_Disable1.Read(exINI, pSection, "Bolt.Disable1");
+		this->Bolt_Disable2.Read(exINI, pSection, "Bolt.Disable2");
+		this->Bolt_Disable3.Read(exINI, pSection, "Bolt.Disable3");
+	}
 
 	if (!Phobos::Otamaa::DisableCustomRadSite)
 	{
@@ -54,6 +85,8 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Abductor_AnimType.Read(exINI, pSection, "Abductor.Anim");
 	this->Abductor_ChangeOwner.Read(exINI, pSection, "Abductor.ChangeOwner");
 	this->Abductor_AbductBelowPercent.Read(exINI, pSection, "Abductor.AbductBelowPercent");
+	this->Abductor_Temporal.Read(exINI, pSection, "Abductor.Temporal");
+	this->Abductor_MaxHealth.Read(exINI, pSection, "Abductor.MaxHealth");
 
 	this->DelayedFire_Anim.Read(exINI, pSection, "DelayedFire.Anim");
 	this->DelayedFire_Anim_LoopCount.Read(exINI, pSection, "DelayedFire.Anim.LoopCount");
@@ -109,20 +142,22 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Wave_IsBigLaser.Read(exINI, pSection, "Wave.IsBigLaser");
 	this->Wave_IsHouseColor.Read(exINI, pSection, "Wave.IsHouseColor");
 
-	if (this->IsWave() && !this->Wave_IsHouseColor) {
+	if (this->IsWave() && !this->Wave_IsHouseColor)
+	{
 		this->Wave_Color.Read(exINI, pSection, "Wave.Color");
 		this->Wave_Intent.Read(exINI, pSection, "Wave.Intensity");
 	}
 
 	static constexpr std::array<const char* const, sizeof(this->Wave_Reverse)> WaveReverseAgainst
 	{
-	{   { "Wave.ReverseAgainstVehicles" } , { "Wave.ReverseAgainstAircraft" } ,
-		{ "Wave.ReverseAgainstBuildings" } , { "Wave.ReverseAgainstInfantry" } ,
-		{ "Wave.ReverseAgainstOthers"}
-	}
+		{   { "Wave.ReverseAgainstVehicles" }, { "Wave.ReverseAgainstAircraft" },
+			{ "Wave.ReverseAgainstBuildings" }, { "Wave.ReverseAgainstInfantry" },
+			{ "Wave.ReverseAgainstOthers" }
+		}
 	};
 
-	for (size_t i = 0; i < WaveReverseAgainst.size(); ++i) {
+	for (size_t i = 0; i < WaveReverseAgainst.size(); ++i)
+	{
 		this->Wave_Reverse[i] = pINI->ReadBool(pSection, WaveReverseAgainst[i], this->Wave_Reverse[i]);
 	}
 
@@ -143,9 +178,6 @@ void WeaponTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 	this->Cursor_Attack.Read(exINI, pSection, "Cursor.Attack");
 	this->Cursor_AttackOutOfRange.Read(exINI, pSection, "Cursor.AttackOutOfRange");
 
-	this->Bolt_Color1.Read(exINI, pSection, "Bolt.Color1");
-	this->Bolt_Color2.Read(exINI, pSection, "Bolt.Color2");
-	this->Bolt_Color3.Read(exINI, pSection, "Bolt.Color3");
 	this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
 }
 
@@ -174,6 +206,8 @@ void WeaponTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Abductor_AnimType)
 		.Process(this->Abductor_ChangeOwner)
 		.Process(this->Abductor_AbductBelowPercent)
+		.Process(this->Abductor_Temporal)
+		.Process(this->Abductor_MaxHealth)
 		.Process(this->DelayedFire_Anim)
 		.Process(this->DelayedFire_Anim_LoopCount)
 		.Process(this->DelayedFire_Anim_UseFLH)
@@ -253,54 +287,19 @@ int WeaponTypeExt::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 
 		if (nSize > (unsigned)burstIndex)
 			return pExt->Burst_Delays[burstIndex - 1];
-		else 
+		else
 			return pExt->Burst_Delays[nSize - 1];
 	}
 
 	return -1;
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage)
 {
-	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage);
+	WeaponTypeExt::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage);
 }
 
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
-{
-	if(pThis->Warhead->NukeMaker) {
-		if (!pTarget) {
-			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
-			return;
-		}
-	}
-
-	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
-
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, true))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
-	}
-}
-
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner)
-{
-	WeaponTypeExt::DetonateAt(pThis, coords, pOwner, pThis->Damage);
-}
-
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage)
-{
-	if(!coords) {
-		Debug::Log("WeaponTypeExt::DetonateAt Coords empty ! ");
-		return;
-	}
-
-	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords) , pOwner, damage);
-}
-
-void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage)
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage)
 {
 	if (pThis->Warhead->NukeMaker)
 	{
@@ -315,7 +314,45 @@ void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords
 	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
 
 	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, true))
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
+	{
+		pBullet->SetWeaponType(pThis);
+		BulletExt::DetonateAt(pBullet, pTarget, pOwner);
+	}
+}
+
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage)
+{
+	WeaponTypeExt::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage);
+}
+
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage)
+{
+	if (!coords)
+	{
+		Debug::Log("WeaponTypeExt::DetonateAt Coords empty ! ");
+		return;
+	}
+
+	WeaponTypeExt::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage);
+}
+
+void WeaponTypeExt::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage)
+{
+	if (pThis->Warhead->NukeMaker)
+	{
+		if (!pTarget)
+		{
+			Debug::Log("WeaponTypeExt::DetonateAt , cannot execute when invalid Target is present , need to be avail ! \n");
+			return;
+		}
+	}
+
+	auto pBulletTypeExt = BulletTypeExt::ExtMap.Find(pThis->Projectile);
+	auto pExt = WeaponTypeExt::ExtMap.Find(pThis);
+
+	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
 	{
 		pBullet->SetWeaponType(pThis);
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
@@ -375,7 +412,7 @@ DEFINE_HOOK(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 	GET(WeaponTypeClass*, pItem, ESI);
 	GET_STACK(CCINIClass*, pINI, 0xE4);
 
-	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x7729D6);
+	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
 
 	return 0;
 }

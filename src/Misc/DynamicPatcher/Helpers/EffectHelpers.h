@@ -130,10 +130,17 @@ public:
 	Valueable<bool> ParticleSystem_coordFlip;
 	Valueable<ParticleSystemTypeClass*> ParticleSystem;
 
+	Valueable<bool> Color1_disable;
+	Valueable<bool> Color2_disable;
+	Valueable<bool> Color3_disable;
+
 	BoltType() :
 		IsAlternateColor { false }
 		, ParticleSystem_coordFlip { false }
 		, ParticleSystem { nullptr }
+		, Color1_disable {}
+		, Color2_disable {}
+		, Color3_disable {}
 	{
 		auto const nDraw = FileSystem::PALETTE_PAL();
 		Color1 = ColorStruct(nDraw->BufferMid[IsAlternateColor ? 5 : 10]);
@@ -156,6 +163,9 @@ public:
 			.Process(Color1)
 			.Process(Color2)
 			.Process(Color3)
+			.Process(Color1_disable)
+			.Process(Color2_disable)
+			.Process(Color3_disable)
 			.Success()
 			;
 	}
@@ -305,6 +315,8 @@ public:
 		}
 	}
 
+	static void DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, WeaponTypeClass* pWeapon);
+
 	static void DrawBolt(CoordStruct sourcePos, CoordStruct targetPos, bool alternate = false)
 	{
 		BoltType type = BoltType();
@@ -314,7 +326,9 @@ public:
 
 	static void DrawBolt(CoordStruct& sourcePos, CoordStruct& targetPos, BoltType& type)
 	{
-		ElectricBoltClass::Create(sourcePos, targetPos, type.Color1 , type.Color2 , type.Color3, 0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
+		ElectricBoltClass::Create(sourcePos, targetPos, type.Color1 , type.Color2 , type.Color3,
+		type.Color1_disable, type.Color2_disable, type.Color3_disable ,
+		0, type.ParticleSystem.Get(), type.ParticleSystem_coordFlip.Get());
 	}
 
 	static void DrawBolt(TechnoClass* pShooter, AbstractClass* pTarget, WeaponTypeClass* pWeapon, CoordStruct& sourcePos)

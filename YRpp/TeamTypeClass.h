@@ -23,7 +23,9 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<TeamTypeClass*>, 0xA8ECA0u> const Array {};
 
-	static TeamTypeClass* __fastcall Find(const char* pID) {
+	IMPL_Find(TeamTypeClass)
+
+	static TeamTypeClass* __fastcall FindByNameAndId(const char* pID) {
 		JMP_STD(0x6F0FC0);
 	}
 
@@ -31,34 +33,8 @@ public:
 		JMP_STD(0x6F1920);
 	}
 
-	static int __fastcall FindIndexById(const char* pID) {
-
-		if(!pID)
-		return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-
-		return -1;
-	}
-
-	static int __fastcall FindIndexByName(const char* pID) {
-
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->Name, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_FindIndexById(TeamTypeClass)
+	IMPL_FindIndexByName(TeamTypeClass)
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

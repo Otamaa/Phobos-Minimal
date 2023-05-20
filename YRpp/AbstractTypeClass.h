@@ -6,6 +6,7 @@
 #include <CRT.h>
 #include <AbstractClass.h>
 #include <Memory.h>
+#include <GameStrings.h>
 
 //forward declarations
 class CCINIClass;
@@ -17,6 +18,41 @@ enum class AbstractBaseType : int
 	TechnoType
 };
 
+#define IMPL_Find(Type)\
+static NOINLINE Type##* FC Find(const char* pID) {\
+if (GameStrings::IsBlank(pID)) return nullptr; \
+for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
+if(CRT::strcmpi((*nPos)->ID, pID) == 0) return (*nPos); \
+return nullptr; }
+
+#define IMPL_FindByName(Type)\
+static NOINLINE Type##* FC FindByName(const char* pName) {\
+if (GameStrings::IsBlank(pName)) return nullptr; \
+for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
+if(CRT::strcmpi((*nPos)->Name, pName) == 0) return (*nPos); \
+return nullptr; }
+
+#define IMPL_FindOrAllocate(Type)\
+static NOINLINE Type##* FC FindOrAllocate(const char* pID) {\
+if (GameStrings::IsBlank(pID)) return nullptr; \
+for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
+if(CRT::strcmpi((*nPos)->ID, pID) == 0) return (*nPos); \
+return GameCreate<Type##>(pID); }
+
+#define IMPL_FindIndexById(Type)\
+static NOINLINE int FC FindIndexById(const char* pID) {\
+if(Type##::Array->Count <= 0) return -1; \
+for (int i = 0; i <  Type##::Array->Count; ++i)\
+if (!CRT::strcmpi(Type##::Array->Items[i]->ID, pID)) return i;\
+return -1;}
+
+#define IMPL_FindIndexByName(Type)\
+static NOINLINE int FC FindIndexByName(const char* pName) {\
+if(Type##::Array->Count <= 0) return -1; \
+for (int i = 0; i < Type##::Array->Count; ++i)\
+if (!CRT::strcmpi(Type##::Array->Items[i]->Name, pName)) return i; \
+return -1;}
+
 //#pragma pack(push, 4)
 class NOVTABLE AbstractTypeClass : public AbstractClass
 {
@@ -27,41 +63,10 @@ public:
 	//Static
 	static constexpr constant_ptr<DynamicVectorClass<AbstractTypeClass*>, 0xA8E968u> const Array {};
 
-	static NOINLINE AbstractTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){ 
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem; 
-		}
-
-		return nullptr;
-	}
-
-	static NOINLINE AbstractTypeClass* __fastcall FindOrAllocate(const char* pID)
-	{
-		if (!pID || CRT::strcmpi(pID, GameStrings::NoneStr()) == 0 || CRT::strcmpi(pID, GameStrings::NoneStrb()) == 0)
-			return nullptr;
-
-		if (auto pRet = Find(pID)) {
-			return pRet;
-		}
-
-		return GameCreate<AbstractTypeClass>(pID);
-	}
-
-	static NOINLINE int __fastcall FindIndexById(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_Find(AbstractTypeClass)
+	IMPL_FindByName(AbstractTypeClass)
+	IMPL_FindOrAllocate(AbstractTypeClass)
+	IMPL_FindIndexById(AbstractTypeClass)
 
 	//Destructor
 	virtual ~AbstractTypeClass() JMP_THIS(0x410C30);

@@ -222,7 +222,9 @@ bool ProximityFunctional::ManualDetonation(BulletClass* pBullet, CoordStruct sou
 	{
 		pBullet->Detonate(sourcePos);
 		pBullet->Limbo();
+		//GameDelete<true,false>(pBullet);
 		pBullet->UnInit();
+		return true;
 	}
 	else if (pTarget)
 	{

@@ -55,7 +55,7 @@ struct Initializer
 //BAAAAH THIS FILE IS HELL - rewrite requested :P -pd
 //WAAAAH - rewrite in progress :D
 
-class MPGameModeClass
+class NOVTABLE MPGameModeClass
 {
 public:
 	//global arrays
@@ -260,7 +260,7 @@ public:
 };
 
 
-class MPBattleClass : public MPGameModeClass
+class NOVTABLE MPBattleClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPBattleClass()
@@ -286,7 +286,7 @@ protected:
 };
 
 
-class MPManBattleClass : public MPGameModeClass
+class NOVTABLE MPManBattleClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPManBattleClass()
@@ -310,7 +310,7 @@ protected:
 };
 
 
-class MPFreeForAllClass : public MPGameModeClass
+class NOVTABLE MPFreeForAllClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPFreeForAllClass()
@@ -349,7 +349,7 @@ protected:
 };
 
 
-class MPMegawealthClass : public MPGameModeClass
+class NOVTABLE MPMegawealthClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPMegawealthClass()
@@ -370,7 +370,7 @@ protected:
 };
 
 
-class MPUnholyAllianceClass : public MPGameModeClass
+class NOVTABLE MPUnholyAllianceClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPUnholyAllianceClass()
@@ -406,7 +406,7 @@ protected:
 };
 
 
-class MPSiegeClass : public MPGameModeClass
+class NOVTABLE MPSiegeClass : public MPGameModeClass
 {
 	//Destructor
 	virtual ~MPSiegeClass()

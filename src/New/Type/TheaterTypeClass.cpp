@@ -158,7 +158,7 @@ void TheaterTypeClass::SaveToStream(PhobosStreamWriter& Stm)
 	//this->Swizzle(Stm);
 }
 
-DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x0)
+DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);
 
@@ -651,7 +651,7 @@ DEFINE_HOOK(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 }
 
 // Picked from Ares custom theater branch
-DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x0)
+DEFINE_HOOK(0x74D45A, TheaterTypeClass_ProcessVeinhole, 0x6)
 {
 	GET(TheaterType, index, ECX);
 	R->EAX(TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.data());

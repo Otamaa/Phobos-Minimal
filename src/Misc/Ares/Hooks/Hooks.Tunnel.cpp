@@ -394,7 +394,8 @@ void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass*
 		pTeam->RemoveMember(pFoot);
 
 	pFoot->RegisterDestruction(pKiller);
-	pFoot->UnInit();
+	GameDelete<true,false>(pFoot);
+	//pFoot->UnInit();
 		});
 	}
 }

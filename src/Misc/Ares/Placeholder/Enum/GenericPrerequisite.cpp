@@ -109,7 +109,7 @@ void Prereqs::ParseAlternate(CCINIClass* pINI, const char* section, const char* 
 			{
 				Vec.push_back(pType);
 			}
-			else if (!INIClass::IsBlank(cur))
+			else if (!GameStrings::IsBlank(cur))
 			{
 				Debug::INIParseFailed(section, key, cur);
 			}

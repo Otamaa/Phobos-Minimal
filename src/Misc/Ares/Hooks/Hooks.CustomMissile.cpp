@@ -169,7 +169,7 @@ DEFINE_OVERRIDE_HOOK(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 	if (pExt->IsCustomMissile) {
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon) {
-			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner);
+			WeaponTypeExt::DetonateAt(pWeapon, coords, pOwner , true);
 			return 0x6632CC;
 		}
 	}

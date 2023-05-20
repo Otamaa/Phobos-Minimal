@@ -42,7 +42,7 @@ public:
 			pos != Array.end();
 			++pos) {
 			if (IS_SAME_STR_((*pos)->Name.data(), Title)) {
-				return (*pos)->ArrayIndex;
+				return std::distance(Array.begin() , pos);
 			}
 		}
 
@@ -64,7 +64,7 @@ public:
 		if (!pType)
 			return -1;
 
-		return pType->ArrayIndex;
+		return FindIndexById(pType->Name.data());
 	}
 
 	// Warning : no Idx validation !
@@ -88,8 +88,7 @@ public:
 
 	static void AllocateNoCheck(const char* Title)
 	{
-		Array.push_back(std::move(std::make_unique<T>(Title)));
-		Array.back()->ArrayIndex = Array.size() - 1;
+		Array.push_back(std::move(std::make_unique<T>(Title)));	
 	}
 
 	static T* FindOrAllocate(const char* Title)
@@ -186,7 +185,6 @@ public:
 	Enumerable(const char* Title)
 	{
 		Name = Title;
-		ArrayIndex = -1;
 	}
 
 	virtual ~Enumerable() = default;
@@ -198,5 +196,4 @@ public:
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
 	FixedString<32> Name;
-	int ArrayIndex;
 };

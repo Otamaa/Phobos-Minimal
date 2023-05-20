@@ -46,15 +46,17 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
+	for (size_t i = Verses.size(); i < ArmorTypeClass::Array.size(); ++i)
+	{
+		auto& pArmor = ArmorTypeClass::Array[i];
+		const int nDefaultIdx = pArmor->DefaultTo;
+		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
+				? pArmor->DefaultVersesValue
+				: Verses[nDefaultIdx]
+		);
+	}
+
 	if (!pINI->GetSection(pSection)) {	
-		for (size_t i = Verses.size(); i < ArmorTypeClass::Array.size(); ++i) {
-			auto& pArmor = ArmorTypeClass::Array[i];
-			const int nDefaultIdx = pArmor->DefaultTo;
-			Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
-					? pArmor->DefaultVersesValue
-					: Verses[nDefaultIdx]
-			);
-		}
 		return;
 	}
 
@@ -291,6 +293,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->SuppressDeathWeapon_Infantry.Read(exINI, pSection, "DeathWeapon.SuppressInfantry");
 	this->SuppressDeathWeapon.Read(exINI, pSection, "DeathWeapon.Suppress");
 	this->SuppressDeathWeapon_Exclude.Read(exINI, pSection, "DeathWeapon.SuppressExclude");
+	this->SuppressDeathWeapon_Chance.Read(exINI ,pSection, "DeathWeapon.SuppressChance", true);
 
 	this->DeployedDamage.Read(exINI, pSection, "Damage.Deployed");
 	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
@@ -337,6 +340,7 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 	this->Sonar_Duration.Read(exINI, pSection, "Sonar.Duration");
 	this->DisableWeapons_Duration.Read(exINI, pSection, "DisableWeapons.Duration");
 	this->Flash_Duration.Read(exINI, pSection, "Flash.Duration");
+	this->ImmunityType.Read(exINI, pSection, "ImmunityType");
 
 	this->Launchs.clear();
 	for (size_t i = 0; ; ++i)
@@ -355,6 +359,9 @@ void WarheadTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAd
 
 		this->Launchs.push_back(std::move(nData));
 	}
+
+
+
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -836,6 +843,7 @@ void WarheadTypeExt::DetonateAt(WarheadTypeClass* pThis, AbstractClass* pTarget,
 	if (BulletClass* pBullet = BulletTypeExt::ExtMap.Find(pType)->CreateBullet(pTarget, pOwner,
 		damage, pThis, 0, 0, pThis->Bright, true))
 	{
+		pBullet->MoveTo(coords, { 0 ,0, 0 });
 		BulletExt::DetonateAt(pBullet, pTarget, pOwner, coords);
 	}
 }
@@ -1044,6 +1052,8 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SuppressDeathWeapon_Infantry)
 		.Process(this->SuppressDeathWeapon)
 		.Process(this->SuppressDeathWeapon_Exclude)
+		.Process(this->SuppressDeathWeapon_Chance)
+
 		.Process(this->DeployedDamage)
 		.Process(this->Temporal_WarpAway)
 		.Process(this->Supress_LostEva)
@@ -1052,6 +1062,7 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->Sonar_Duration)
 		.Process(this->DisableWeapons_Duration)
 		.Process(this->Flash_Duration)
+		.Process(this->ImmunityType)
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		.Process(DamageTextPerArmor)
 
@@ -1068,19 +1079,25 @@ void WarheadTypeExt::ExtData::Serialize(T& Stm)
 
 bool WarheadTypeExt::ExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim)
 {
-	auto const abs = GetVtableAddr(pVictim);
+	auto const absType = GetVtableAddr(pVictim);
 	auto const pVictimType = pVictim->GetTechnoType();
 
-	if (!SuppressDeathWeapon_Exclude.empty() && SuppressDeathWeapon_Exclude.Contains(pVictimType) )
+	if (SuppressDeathWeapon_Exclude.Contains(pVictimType) )
 		return false;
 
-	if (abs == UnitClass::vtable && SuppressDeathWeapon_Vehicles)
-		return true;
+	if (absType == UnitClass::vtable && !SuppressDeathWeapon_Vehicles)
+		return false;
 
-	if (abs == InfantryClass::vtable && SuppressDeathWeapon_Infantry)
-		return true;
+	if (absType == InfantryClass::vtable && !SuppressDeathWeapon_Infantry)
+		return false;
 
-	return SuppressDeathWeapon.Contains(pVictimType);
+	if(!SuppressDeathWeapon.Contains(pVictimType))
+	 	return false;
+
+	if(SuppressDeathWeapon_Chance.isset())
+		return ScenarioClass::Instance->Random.RandomDouble() >= abs(SuppressDeathWeapon_Chance.Get());
+
+	return true;
 }
 
 // =============================

@@ -36,7 +36,6 @@
 700AA8 = TechnoClass_GetActionOnCell_AttackCursor, 8
 7000CD = TechnoClass_GetActionOnObject_SelfDeployCursor, 6
 7400F0 = UnitClass_GetActionOnObject_SelfDeployCursor_Bunker, 6
-6FFEC0 = TechnoClass_GetActionOnObject_Cursors, 5
 700600 = TechnoClass_GetActionOnCell_Cursors, 5
 
 ; \Misc\Actions.cpp // SW ?
@@ -73,7 +72,6 @@
 73FDBD = UnitClass_GetActionOnObject_Heal, 5
 51E3B0 = InfantryClass_GetActionOnObject_EMP, 7
 
-6FFEC0 = TechnoClass_GetActionOnObject_IvanBombsA, 5
 6FFF9E = TechnoClass_GetActionOnObject_IvanBombsB, 8
 
 51E488 = InfantryClass_GetActionOnObject2, 5
@@ -563,35 +561,6 @@ DEFINE_OVERRIDE_HOOK(0x700AA8, TechnoClass_GetActionOnCell_AttackCursor, 8)
 	GET(int, nWeapon, EBP);
 	const auto nCursor = MouseClassExt::ByWeapon(pThis, nWeapon, false);
 	AresData::SetMouseCursorAction(nCursor, Action::Attack, false);
-	return 0;
-}
-
-DEFINE_OVERRIDE_HOOK(0x6FFEC0, TechnoClass_GetActionOnObject_Cursors, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(ObjectClass*, pTarget, 0x4);
-
-	const auto pType = pThis->GetTechnoType();
-
-	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-
-	// Cursor Move
-	AresData::SetMouseCursorAction(pTypeExt->Cursor_Move.Get(), Action::Move, false);
-
-	// Cursor NoMove
-	AresData::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
-
-	if (const auto pTargetType = pTarget->GetTechnoType())
-	{
-		// Cursor Enter
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Repair, false);
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_Enter.Get(), Action::Enter, false);
-		//
-
-		// Cursor NoEnter
-		AresData::SetMouseCursorAction(pTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
-	}
-
 	return 0;
 }
 

@@ -20,7 +20,7 @@ DEFINE_HOOK(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 0
 	TechnoExt::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
-		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner);
+		WeaponTypeExt::DetonateAt(pWeapon, pOwner, pOwner , true);
 
 	return 0x719447;
 }

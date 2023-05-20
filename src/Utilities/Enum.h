@@ -164,6 +164,7 @@ enum class PhobosAbilityType : int
 	PsionicsWeaponImmune = 10,
 	BerzerkImmune = 11,
 	AbductorImmune = 12,
+	Assaulter = 13,
 
 	count
 };

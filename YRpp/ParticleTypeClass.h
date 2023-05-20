@@ -20,15 +20,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<ParticleTypeClass*>, 0xA83D98u> const Array {};
 
-	static NOINLINE ParticleTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(ParticleTypeClass)
 
 	static ParticleTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x645820);

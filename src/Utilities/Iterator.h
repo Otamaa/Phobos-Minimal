@@ -108,7 +108,7 @@ public:
 	}
 
 	bool contains(const T& other) const {
-		if constexpr (std::is_pointer<T>::value) {
+		if constexpr (std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value) {
 			return std::any_of(this->begin(), this->end(), [&](const auto item)
 			{
 				return item == other;

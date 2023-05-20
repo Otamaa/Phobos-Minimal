@@ -107,6 +107,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 		pThis->WaveIntensity = Intensity;
 		if (Intensity < 0)
 		{
+			//GameDelete<true,false>(pThis);
 			pThis->UnInit();
 		} else {
 			pThis->ObjectClass::Update();
@@ -121,6 +122,7 @@ DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)
 		pThis->LaserIntensity = Intensity;
 		if (Intensity < 32)
 		{
+			//GameDelete<true,false>(pThis);
 			pThis->UnInit();
 		}
 

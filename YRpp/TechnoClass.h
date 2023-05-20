@@ -281,8 +281,8 @@ public:
 	virtual bool vt_entry_310() const R0;
 	virtual bool CanDeploySlashUnload() const R0;
 	virtual int GetROF(int nWeapon) const R0;
-	virtual int GetGuardRange(int dwUnk) const R0;
-	virtual bool vt_entry_320() const R0;
+	virtual int GetGuardRange(int dwUnk) const R0; // -1 = ret -1  , 0 = check something , 1 = min range , 2++ = max range
+	virtual bool IsAllowedToLeaveMap() const R0; // 0x320
 	virtual bool IsRadarVisible(int* pOutDetection) const R0; // out value will be set to 1 if unit is cloaked and 2 if it is subterranean, otherwise it's unchanged
 	virtual bool IsSensorVisibleToPlayer() const R0;
 	virtual bool IsSensorVisibleToHouse(HouseClass *House) const R0;

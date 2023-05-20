@@ -235,7 +235,7 @@ DEFINE_HOOK(0x6FF3CD, TechnoClass_FireAt_AnimOwner, 0x7)
 {
 	enum
 	{
-		Goto2NdCheck = 0x6FF427, DontSetAnim = 0x6FF43F, 
+		Goto2NdCheck = 0x6FF427, DontSetAnim = 0x6FF43F,
 		AdjustCoordsForBuilding = 0x6FF3D9, Continue = 0x0
 	};
 
@@ -581,7 +581,7 @@ DEFINE_HOOK(0x702484, TechnoClass_ReceiveDamage_AnimDebris, 0x6)
 
 DEFINE_HOOK(0x703819, TechnoClass_Cloak_Deselect, 0x6)
 {
-	enum { Skip = 0x70383C,	CheckIsSelected = 0x703828 };
+	enum { Skip = 0x70383C, CheckIsSelected = 0x703828 };
 
 	return R->ESI<TechnoClass*>()->Owner->IsControlledByHuman()
 		? Skip : CheckIsSelected;
@@ -970,8 +970,9 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 
 	const auto pType = pThis->GetTechnoType();
 
-	if (pType->PoweredUnit && pThis->Owner) {
-			pThis->Owner->RecheckPower = true;
+	if (pType->PoweredUnit && pThis->Owner)
+	{
+		pThis->Owner->RecheckPower = true;
 	}
 
 	return 0x0;
@@ -1033,6 +1034,8 @@ DEFINE_HOOK(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 	return 0x71B17B;
 }
 
+// Also fix :
+// https://bugs.launchpad.net/ares/+bug/1901825
 DEFINE_HOOK(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 {
 	GET(TemporalClass*, pThis, ECX);
@@ -1185,7 +1188,7 @@ DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
 	GET(FootClass* const, pVictim, ESI);
 
 	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() ||
-		TechnoExt::IsChronoDelayDamageImmune(pVictim) 
+		TechnoExt::IsChronoDelayDamageImmune(pVictim)
 		? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
@@ -2046,8 +2049,10 @@ DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 	GET(TechnoClass* const, pTechno, ESI);
 
-	if (Is_Building(pTechno)) {
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1) {
+	if (Is_Building(pTechno))
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
+		{
 			return DoNotDraw;
 		}
 	}
@@ -2061,8 +2066,10 @@ DEFINE_HOOK(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 
 	GET(TechnoClass* const, pTechno, EBX);
 
-	if (Is_Building(pTechno)) {
-		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1) {
+	if (Is_Building(pTechno))
+	{
+		if (BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
+		{
 			return DoNotDraw;
 		}
 	}
@@ -2196,13 +2203,14 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 
 	ConvertClass* nPal = FileSystem::THEATER_PAL();
 
-	if (pBuilding) {
+	if (pBuilding)
+	{
 
 		const auto pBuildingTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
 
 		if (pBuildingTypeExt->PipShapes01Remap)
 			nPal = pTechno->GetRemapColour();
-		else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+		else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
 			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 	}
 	else
@@ -2463,11 +2471,9 @@ void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRe
 
 		if (pBuildingTypeExt->PipShapes01Remap)
 			nPal = pTechno->GetRemapColour();
-		else if(const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+		else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
 			nPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
 
-	} else {
-		nPal = FileSystem::THEATER_PAL();
 	}
 
 	for (int i = 0; i < nMax; i++)
@@ -2574,7 +2580,7 @@ enum class NewVHPScan : int
 
 std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 { {
-	  {"None" },
+	{"None" },
 	{ "Normal" },
 	{ "Strong" },
 	{ "Threat" },
@@ -2583,7 +2589,7 @@ std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
 	{ "Value" },
 	{ "Locked" },
 	{ "Non-Infantry" }
-} };
+	} };
 
 DEFINE_HOOK(0x4775F4, CCINIClass_ReadVHPScan_new, 0x5)
 {
@@ -2934,27 +2940,28 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 	return 0;
 }
 
-DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_DeadBodies, 0x8)
-{
-	GET(InfantryClass*, pThis, ESI);
-	// REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
+// DEFINE_HOOK(0x518B98, InfantryClass_ReceiveDamage_UnInit, 0x8)
+// {
+// 	GET(InfantryClass*, pThis, ESI);
+// 	// REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
 
-	// if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet) {
-	// 	auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
-	// 	if (!pWHExt->DeadBodies.empty()) {
-	// 		if (AnimTypeClass* pSelected = pWHExt->DeadBodies.at(
-	// 			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->DeadBodies.size() - 1)))
-	// 		{
-	// 			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
-	// 				AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->GetOwningHouse(), true);
-	// 			}
-	// 		}
-	// 	}
-	// }
+// 	// if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet) {
+// 	// 	auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
+// 	// 	if (!pWHExt->DeadBodies.empty()) {
+// 	// 		if (AnimTypeClass* pSelected = pWHExt->DeadBodies.at(
+// 	// 			ScenarioClass::Instance->Random.RandomFromMax(pWHExt->DeadBodies.size() - 1)))
+// 	// 		{
+// 	// 			if (const auto pAnim = GameCreate<AnimClass>(pSelected, pThis->GetCoords(), 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
+// 	// 				AnimExt::SetAnimOwnerHouseKind(pAnim, args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->GetOwningHouse(), true);
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// }
 
-	pThis->UnInit();
-	return 0x518BA0;
-}
+// 	R->ECX(pThis);
+// 	pThis->UnInit();
+// 	return 0x518BA0;
+// }
 
 //TODO : Add PerTechnoOverride
 DEFINE_HOOK(0x639DD8, TechnoClass_PlanningManager_DecideEligible, 0x5)
@@ -4210,7 +4217,7 @@ enum class CrateType : unsigned char
 //	return true;
 //}
 
-DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6 , 69A937);
+DEFINE_SKIP_HOOK(0x69A797, Game_DisableNoDigestLog, 0x6, 69A937);
 
 DEFINE_HOOK(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
 {
@@ -4365,8 +4372,8 @@ struct TechnoTypeExt_Gscript
 	Valueable<bool> TroopCrawler {};
 	Promotable<bool> Promoted_PalaySpotlight { };
 	Promotable<SpotlightFlags> Promoted_PalaySpotlight_bit
-	{ SpotlightFlags::NoGreen | SpotlightFlags::NoRed ,
-		SpotlightFlags::NoRed ,
+	{ SpotlightFlags::NoGreen | SpotlightFlags::NoRed,
+		SpotlightFlags::NoRed,
 		SpotlightFlags::NoGreen | SpotlightFlags::NoBlue
 	};
 
@@ -4409,7 +4416,7 @@ struct TechnoTypeExt_Gscript
 //
 //	auto const pTechnoExt = TechnoExt_Gscript::Get(pThis);
 //	pTechnoExt->TargetingDelayTimer.Start(ScenarioClass::Instance->Random.RandomRanged(30, 50));
-//	
+//
 //	return 0x0;
 //}
 
@@ -4472,12 +4479,12 @@ struct TechnoTypeExt_Gscript
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
-{
-	//GET(TechnoClass*, pThis, ESI);
+// DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
+// {
+// 	//GET(TechnoClass*, pThis, ESI);
 
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 {
@@ -4487,10 +4494,10 @@ DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 		0x708FAD : 0x0;
 }
 
-DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
-{
-	return 0x0;
-}
+// DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
+// {
+// 	return 0x0;
+// }
 
 // DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
 // {
@@ -4512,15 +4519,15 @@ DEFINE_HOOK(0x6EE17E, MoveCrameraToWaypoint_CancelFollowTarget, 0x8)
 	return 0x0;
 }
 
-DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
-{
-	return 0x0;
-}
+// DEFINE_HOOK(0x55AFB3, LogicClass_Update_Early, 0x6)
+// {
+// 	return 0x0;
+// }
 
-DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
-{
-	return 0x0;
-}
+// DEFINE_HOOK(0x55B582, LogicClass_Update_AfterTeamClass, 0x6)
+// {
+// 	return 0x0;
+// }
 
 #include <Ext/TerrainType/Body.h>
 
@@ -4836,7 +4843,7 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 //	GET(const char*, pSection, EBX);
 //
 //	if (pCCINI->ReadString(pSection, (const char*)0x843BB4, Phobos::readDefval, Phobos::readBuffer)) {
-//		if (INIClass::IsBlank(Phobos::readBuffer)) {
+//		if (GameStrings::IsBlank(Phobos::readBuffer)) {
 //			pThis->RequiredHouses = -1;
 //			return 0x71453C;
 //		}
@@ -4945,7 +4952,8 @@ DEFINE_HOOK(0x70A35D, TechnoClass_DrawPipScale_Ammo, 5)
 		Point2D offs { nX, nY };
 		offs += pTypeExt->AmmoPip_Offset.Get();
 		ConvertClass* pConvert = FileSystem::PALETTE_PAL();
-		if (const auto pConvertData = pTypeExt->AmmoPip_Palette) {
+		if (const auto pConvertData = pTypeExt->AmmoPip_Palette)
+		{
 			pConvert = pConvertData->GetConvert<PaletteManager::Mode::Default>();
 		}
 
@@ -5017,6 +5025,7 @@ DEFINE_HOOK(0x62C361, ParticleClass_ProcessGasBehaviour_DisOnWater, 6)
 	}
 
 	pThis->hasremaining = 1;
+	//GameDelete<true,false>(pThis);
 	pThis->UnInit();
 	return 0x62C394;
 }
@@ -5096,7 +5105,7 @@ DEFINE_HOOK(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 
 DEFINE_HOOK(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
 {
-	GET(TechnoTypeClass* const , pType, EAX);
+	GET(TechnoTypeClass* const, pType, EAX);
 	return TechnoTypeExt::ExtMap.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
 }
 
@@ -5151,7 +5160,7 @@ DEFINE_HOOK(0x4251AB, AnimClass_Detach_LogTypeDetached, 0x6)
 
 DEFINE_HOOK(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 {
-	enum { CheckAlly = 0x6F3589 , ContinueCheck = 0x6F35A8 };
+	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8 };
 
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTarget, EBP);
@@ -5169,8 +5178,8 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 #include <Ext/InfantryType/Body.h>
 std::array<const char* const, 6u> DamageState_to_srings
 { {
-	"Unaffected" , "Unchanged" , "NowYellow" , "NowRed" , "NowDead" , "PostMortem"
-} };
+		"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
+	} };
 
 //DEFINE_HOOK(0x440333, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0x6)
 //{
@@ -5257,7 +5266,7 @@ DEFINE_HOOK(0x447195, BuildingClass_SellBack_Silent, 0x6)
 
 DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
 {
-	enum { retTrue = 0x51F8A6 , retFalse = 0x51F8A8 };
+	enum { retTrue = 0x51F8A6, retFalse = 0x51F8A8 };
 	GET(CellClass* const, pCell, EAX);
 
 	return pCell->CellClass_Tube_484AE0() || pCell->CellClass_Tube_484D60() ?
@@ -5266,7 +5275,7 @@ DEFINE_HOOK(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice,
 
 DEFINE_HOOK(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
 {
-	enum { retFalse = 0x51F953};
+	enum { retFalse = 0x51F953 };
 	GET(CellClass* const, pCell, EAX);
 	GET(InfantryClass* const, pThis, EDI);
 
@@ -5421,15 +5430,15 @@ DEFINE_HOOK(0x6F5190, TechnoClass_DrawExtras_CheckFog, 0x6)
 
 	auto coord = pTechno->GetCoords();
 
-	return MapClass::Instance->IsLocationFogged(coord) 
+	return MapClass::Instance->IsLocationFogged(coord)
 		? 0x6F5EEC : 0;
 }
 
 DEFINE_HOOK(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 0x6)
 {
 	GET(CellClass*, pCell, ESI);
-	
-	return (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged()) ? 
+
+	return (pCell->SmudgeTypeIndex == -1 || pCell->IsFogged()) ?
 		0x4804FB : 0x4804A4;
 }
 
@@ -5437,7 +5446,7 @@ DEFINE_HOOK(0x6D6EDA, TacticalClass_Overlay_CheckFog_1, 0xA)
 {
 	GET(CellClass*, pCell, EAX);
 
-	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ? 
+	return (pCell->OverlayTypeIndex == -1 || pCell->IsFogged()) ?
 		0x6D7006 : 0x6D6EE4;
 }
 
@@ -5455,7 +5464,7 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
 
 	auto coord = pTerrain->GetCoords();
 
-	return (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord)) ? 
+	return (pTerrain->InLimbo || MapClass::Instance->IsLocationFogged(coord)) ?
 		0x71CD8D : 0x71CC9A;
 }
 
@@ -5481,7 +5490,7 @@ DEFINE_HOOK(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 	pCell->AltFlags = (AltCellFlags)(oldfield & 0xFFFFFFEF);
 
 	auto nIndex = TacticalClass::Instance->GetOcclusion(pCell->MapCoords, false);
-	
+
 	if (((oldfield & 0x10) != 0 || pCell->Visibility != nIndex) && nIndex >= 0 && pCell->Visibility >= -1)
 	{
 		pCell->AltFlags |= (AltCellFlags)8u;
@@ -5591,16 +5600,18 @@ DEFINE_HOOK(0x7225F3, TiberiumClass_Spread_nullptrheap, 0x7)
 }
 
 //skip vanilla TurretOffset read
-DEFINE_JUMP(LJMP,0x715876, 0x71589A);
+DEFINE_JUMP(LJMP, 0x715876, 0x71589A);
 
-DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
-
+DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades, 0x6)
+{
 	enum { AdvanceLoop = 0x508FF6, Continue = 0x508F91 };
 
 	GET(BuildingClass const*, pBuilding, ECX);
 
-	if (!pBuilding->Type->SpySat) {
-		for (const auto& pUpGrade : pBuilding->Upgrades) {
+	if (!pBuilding->Type->SpySat)
+	{
+		for (const auto& pUpGrade : pBuilding->Upgrades)
+		{
 			if (pUpGrade && pUpGrade->SpySat)
 				return Continue;
 		}
@@ -5611,48 +5622,271 @@ DEFINE_HOOK(0x508F82, HouseClass_AI_checkSpySat_IncludeUpgrades , 0x6) {
 	return Continue;
 }
 
-// TODO: ifv / prism turret, multibody shadow.
-DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+// TODO: more update from the PR
+//DEFINE_HOOK(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
+//{
+//	GET(FootClass*, pThis, ESI);
+//	const auto pType = pThis->GetTechnoType();
+//	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//	if (!pExt->TurretShadow)
+//		return 0x0;
+//
+//	const auto tur = pThis->CurrentTurretNumber != -1 ?
+//		AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber) :
+//		&pType->TurretVoxel;
+//
+//	if (tur->VXL && tur->HVA)
+//	{
+//		GET_STACK(Point2D, shadow_point, STACK_OFFSET(0x18, 0x28));
+//		GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
+//		GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
+//		GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
+//		LEA_STACK(Point2D*, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
+//		GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
+//
+//		Matrix3D mtx;
+//		mtx.MakeIdentity();
+//		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>()));
+//		const auto offset = pExt->TurretOffset.GetEx();
+//		float x = static_cast<float>(offset->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+//		float y = static_cast<float>(offset->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+//		float z = static_cast<float>(offset->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
+//		mtx.Translate(x, y, z);
+//		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix, &mtx);
+//
+//		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
+//
+//		const auto bar = pThis->CurrentTurretNumber != -1 ?
+//			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber) : &pType->BarrelVoxel;
+//
+//		if (bar->VXL && bar->HVA)
+//		{
+//			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
+//		}
+//	}
+//
+//	return 0;
+//}
+
+#pragma region Assaulter
+//https://blueprints.launchpad.net/ares/+spec/assaulter-veterancy
+//522A09
+DEFINE_HOOK(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 {
-	GET(FootClass*, pThis, ESI);
-	const auto pType = pThis->GetTechnoType();
-	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+	enum { retTrue = 0x522A11, retFalse = 0x522A45 };
 
-	if (!pExt->TurretShadow)
-		return 0x0;
+	GET(InfantryClass*, pThis, ESI);
 
-	const auto tur = pThis->CurrentTurretNumber != -1 ? 
-		AresData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber) : 
-		&pType->TurretVoxel;
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
 
-	if (tur->VXL && tur->HVA)
+//51F580 
+DEFINE_HOOK(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
+{
+	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//51F493 
+DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
+{
+	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//51968E 
+DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
+{
+	enum { retTrue = 0x519698, retFalse = 0x5196A6 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//4D4BA0
+DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
+{
+	enum { retTrue = 0x4D4BAA, retFalse = 0x4D4BB4 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+
+//457DAD , TODO : port ares one , so it become only one hook
+DEFINE_HOOK(0x457DAD, InfantryClass_CanBeOccupied_Assaulter, 0x6)
+{
+	enum { retTrue = 0x457DB7, retFalse = 0x457DA3 };
+
+	GET(InfantryClass*, pThis, ESI);
+
+	return TechnoExt::IsAssaulter(pThis) ? retTrue : retFalse;
+}
+#pragma endregion
+
+static constexpr auto LastPipScaleIdx = (int)PipScale::MindControl + 2;
+std::array<const char* const, LastPipScaleIdx> AdditionalPip {
 	{
-		GET_STACK(Point2D, shadow_point, STACK_OFFSET(0x18, 0x28));
-		GET_STACK(Surface*, pSurface, STACK_OFFSET(0x18, 0x24));
-		GET_STACK(bool, a9, STACK_OFFSET(0x18, 0x20)); // unknown usage
-		GET_STACK(Point2D*, a4, STACK_OFFSET(0x18, 0x14)); // unknown usage
-		LEA_STACK(Point2D*, a3, STACK_OFFSET(0x18, -0x10)); // unknown usage
-		GET_STACK(int, angle, STACK_OFFSET(0x18, 0xC));
+		{ NONE_STR2 },
+		{ GameStrings::Ammo() },
+		{ GameStrings::Tiberium() },
+		{ GameStrings::Passengers() },
+		{ GameStrings::Power() },
+		{ GameStrings::MindControl() },
+		{ "Spawner" },
+	}
+};
 
-		Matrix3D mtx;
-		mtx.MakeIdentity();
-		mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>()));
-		const auto offset = pExt->TurretOffset.GetEx();
-		float x = static_cast<float>(offset->X * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float y = static_cast<float>(offset->Y * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		float z = static_cast<float>(offset->Z * TechnoTypeExt::TurretMultiOffsetOneByEightMult);
-		mtx.Translate(x, y, z);
-		Matrix3D::MatrixMultiply(&mtx, &Game::VoxelDefaultMatrix, &mtx);
+DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+{
+	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
+	LEA_STACK(char*, buffer, 0x8);
+	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
+	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
 
-		pThis->DrawVoxelShadow(tur, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
-
-		const auto bar = pThis->CurrentTurretNumber != -1 ? 
-			AresData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber) : &pType->BarrelVoxel;
-
-		if (bar->VXL && bar->HVA){
-			pThis->DrawVoxelShadow(bar, 0, angle, 0, a4, a3, &mtx, a9, pSurface, shadow_point);
+	for (size_t i = 1; i < AdditionalPip.size(); ++i)
+	{
+		if (CRT::strcmpi(buffer, AdditionalPip[i]) == 0)
+		{
+			R->EAX(PipScale(i));
+			return seteax;
 		}
 	}
 
-	return 0;
+	if (!GameStrings::IsBlank(buffer))
+		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipType !");
+
+	return retzero;
 }
+
+// TODO : complete replacement !
+DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
+{
+	GET(TechnoClass*, pThis, EBP);
+
+	if ((int)pThis->GetTechnoType()->PipScale != 6)
+	{
+		R->EBX(0);
+		return 0x709B7F;
+	}
+
+	return 0x0;
+}
+
+DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
+{
+	enum { retEmpty = 0x4812EC, retContinue = 0x0, retResult = 0x481313 };
+	GET(CellClass*, pThis, ECX);
+	GET_STACK(CoordStruct*, pResult, 0x4);
+
+	if (!pThis)
+	{
+		Debug::Log("GameTrying to FindFree spot but this pointer is nullptr ! \n");
+		*pResult = CoordStruct::Empty;
+		R->EAX(pResult);
+		return retResult;
+	}
+
+	return retContinue;
+}
+
+//DEFINE_HOOK(0x4899FE, MapClass_DamageArea_DamageGroup_BeforeTechnoGetDamaged, 0x9)
+//{
+//	GET_BASE(WarheadTypeClass*, pWH, 0xC);
+//	GET(TechnoClass*, pTarget, ESI);
+//
+//	const auto pType = pTarget->GetTechnoType();
+//
+//	if (IS_SAME_STR_("HuskWH", pWH->ID) && pTarget->OnBridge)
+//	{
+//		Debug::Log("[%s] Here !" , pType->ID);
+//	}
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_SoundFrame, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	const int nCurSeq = (int)pThis->SequenceAnim;
+
+	if (nCurSeq == -1) {
+		//Debug::Log("Infantry[%s] Updating Sequence with -1 ? , WTF ? \n", pThis->Type->ID);
+		return 0x520EF4;
+	}
+
+	const auto pDoInfo = &pThis->Type->Sequence->Data[nCurSeq];
+
+	if(!pDoInfo->SoundCount)
+		return 0x520EF4;
+
+	for (int i = 0; i < pDoInfo->SoundCount; ++i)
+	{
+		if (pThis->Animation.HasChanged)
+		{
+			const int nCount = pDoInfo->CountFrames <= 1 ? 1 : pDoInfo->CountFrames;
+			const auto nData = pThis->Animation.Value % nCount;
+
+			if (nData == pDoInfo->Sound1StartFrame)
+			{
+				VocClass::PlayAt(pDoInfo->Sound1Index, pThis->Location);
+			}
+			else if (nData == pDoInfo->Sound2StartFrame)
+			{
+				VocClass::PlayAt(pDoInfo->Sound2Index, pThis->Location);
+			}
+		}
+	}
+
+	return 0x520EF4;
+}
+
+//TODO Garrison/Ungarrison eva and sound
+// NPExt Stuffs
+//DEFINE_HOOK(0x6FC96E, TechnoClass_GetFireError_BurstAsRofDelay, 0x5)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	enum { retFireErrRearm = 0x6FC940 , retContinueCheck = 0x6FC981 };
+//
+//	const auto pType = pThis->GetTechnoType();
+//	const auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+//
+//	if (R->EAX<int>())
+//	{
+//		if (!pExt->UseROFAsBurstDelays && pThis->CurrentBurstIndex)
+//		{
+//			auto& nTime = pThis->DiskLaserTimer;
+//
+//			if (nTime.StartTime != -1)
+//			{
+//				const auto nSpend = nTime.CurrentTime - nTime.StartTime;
+//				if (nSpend >= nTime.TimeLeft)
+//					return retContinueCheck;
+//
+//				nTime.TimeLeft -= nSpend;
+//			}
+//
+//			if (!nTime.TimeLeft)
+//				return retContinueCheck;
+//		}
+//
+//		return retFireErrRearm;
+//	}
+//
+//	return retContinueCheck;
+//}
+
+//UseAlternateFLH 0x5A0
+// 0x6F3C82 ....
+// there is some change here , need to check for other for compatibility
+
+// PrismSupportDelay , promotable , deglobalized !

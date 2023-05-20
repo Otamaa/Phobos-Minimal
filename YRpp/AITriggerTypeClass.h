@@ -28,33 +28,13 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<AITriggerTypeClass*>, 0xA8B200u> const Array {};
 
-	static NOINLINE AITriggerTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(AITriggerTypeClass)
 
 	static AITriggerTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x41FCA0);
 	}
 
-	static NOINLINE int __fastcall FindIndexById(const char* pID)
-	{
-		if(!pID)
-			return -1;
-
-		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
+	IMPL_FindIndexById(AITriggerTypeClass)
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

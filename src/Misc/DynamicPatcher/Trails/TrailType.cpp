@@ -71,9 +71,9 @@ void TrailType::LoadFromINI(CCINIClass* pINI)
 		break;
 	case TrailMode::ANIM: //working
 	{
-		AnimTrailType.StartDrivingAnim.Read(exINI, pSection, "Anim.Start", true);
-		AnimTrailType.WhileDrivingAnim.Read(exINI, pSection, "Anim.While", true);
-		AnimTrailType.StopDrivingAnim.Read(exINI, pSection, "Anim.Stop", true);
+		AnimTrailType.StartDrivingAnim.Read(exINI, pSection, "Anim.Start",true);
+		AnimTrailType.WhileDrivingAnim.Read(exINI, pSection, "Anim.While",true);
+		AnimTrailType.StopDrivingAnim.Read(exINI, pSection, "Anim.Stop",true);
 	}
 		break;
 	}

@@ -16,7 +16,7 @@ public:
 	Valueable<int> InitialDelay;
 	Valueable<bool> CloakVisible;
 
-	LaserTrailTypeClass(const char* pTitle = NONE_STR) : Enumerable<LaserTrailTypeClass> { pTitle }
+	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
 		, Color { Drawing::DefaultColors[(int)DefaultColorList::Red] }
 		, FadeDuration { 64 }

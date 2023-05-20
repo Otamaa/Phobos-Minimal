@@ -12,15 +12,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<AircraftTypeClass*>, 0xA8B218u> const Array {};
 
-	static NOINLINE AircraftTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(AircraftTypeClass)
 
 	static AircraftTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x41CEF0);

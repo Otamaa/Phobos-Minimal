@@ -319,8 +319,9 @@ DEFINE_OVERRIDE_HOOK(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
 	// should never happen, but if anything breaks, it's here
 	if (!ret)
 	{
+		GameDelete<true,false>(pUnit);
 		// do not keep the player alive if it couldn't be placed
-		pUnit->UnInit();
+		//pUnit->UnInit();
 	}
 
 	return ret ? 0x44A010u : 0x44A16Bu;

@@ -24,15 +24,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<WeaponTypeClass*>, 0x887568u> const Array {};
 
-	static NOINLINE WeaponTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(WeaponTypeClass)
 
 	static WeaponTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x772FA0);

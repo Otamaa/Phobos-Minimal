@@ -365,7 +365,7 @@ DEFINE_HOOK(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	GET(InfantryClass*, pThis, EBP);
 	GET(int, firingFrame, EDX);
 
-	int weaponIndex = pThis->SelectWeapon(pThis->Target);
+	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
 	const auto pWeaponstruct = pThis->GetWeapon(weaponIndex);
 
 	if (!pWeaponstruct)
@@ -437,13 +437,13 @@ DEFINE_HOOK(0x702672, TechnoClass_ReceiveDamage_RevengeWeapon, 0x5)
 		if (pTypeExt && pTypeExt->RevengeWeapon.isset() &&
 			EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
 		{
-			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis);
+			WeaponTypeExt::DetonateAt(pTypeExt->RevengeWeapon.Get(), pSource, pThis, true);
 		}
 
 		for (const auto& weapon : pExt->RevengeWeapons)
 		{
 			if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, pSource->Owner))
-				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis);
+				WeaponTypeExt::DetonateAt(weapon.Value, pSource, pThis , true);
 		}
 	}
 

@@ -9,6 +9,7 @@
 #include <New/Entity/LauchSWData.h>
 
 #include <New/Type/ArmorTypeClass.h>
+#include <New/Type/ImmunityTypeClass.h>
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Others/DamageText.h>
@@ -256,7 +257,8 @@ public:
 		Valueable<bool> SuppressDeathWeapon_Infantry;
 		ValueableVector<TechnoTypeClass*> SuppressDeathWeapon;
 		ValueableVector<TechnoTypeClass*> SuppressDeathWeapon_Exclude;
-		Valueable<double> DeployedDamage;
+		Nullable<double> SuppressDeathWeapon_Chance;
+		Promotable<double> DeployedDamage;
 
 		Nullable<AnimTypeClass*> Temporal_WarpAway;
 		Valueable<bool> Supress_LostEva;
@@ -267,6 +269,8 @@ public:
 		Valueable<int> Sonar_Duration;
 		Valueable<int> DisableWeapons_Duration;
 		Valueable<int> Flash_Duration;
+
+		NullableIdx<ImmunityTypeClass> ImmunityType;
 
 #ifdef COMPILE_PORTED_DP_FEATURES_
 		PhobosMap<int, DamageTextTypeData> DamageTextPerArmor;
@@ -482,6 +486,7 @@ public:
 			, SuppressDeathWeapon_Infantry { false }
 			, SuppressDeathWeapon { }
 			, SuppressDeathWeapon_Exclude { }
+			, SuppressDeathWeapon_Chance { }
 			, DeployedDamage { 1.00 }
 			, Temporal_WarpAway {}
 			, Supress_LostEva { false }
@@ -490,6 +495,7 @@ public:
 			, Sonar_Duration { 0 }
 			, DisableWeapons_Duration { 0 }
 			, Flash_Duration { 0 }
+			, ImmunityType {}
 #ifdef COMPILE_PORTED_DP_FEATURES_
 			,DamageTextPerArmor { }
 

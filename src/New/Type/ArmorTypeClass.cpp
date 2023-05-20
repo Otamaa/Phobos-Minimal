@@ -83,21 +83,26 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 
 void ArmorTypeClass::EvaluateDefault()
 {
-	if (IsDefault(this->Name.data()) || !strlen(this->DefaultString.data()))
-		return;
+	for (size_t i = 0; i < Array.size(); ++i) {
+		auto& pArmor = Array[i];
 
-	if (DefaultTo == -1)
-	{
-		const auto pArmor = Find(this->DefaultString.data());
+		if (IsDefault(pArmor->Name.data()) || !pArmor->DefaultString || !strlen(pArmor->DefaultString.data()))
+			continue;
 
-		if (this->ArrayIndex < pArmor->ArrayIndex)
+		if (pArmor->DefaultTo == -1)
 		{
-			Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] with higher array index from itself !\n",
-			this->ArrayIndex, this->Name.data(),
-			pArmor->ArrayIndex, pArmor->Name.data());
-		}
+			const auto nDefault = FindIndexById(pArmor->DefaultString.data());
+			const auto pDefault = Array[nDefault].get();
 
-		DefaultTo = pArmor->ArrayIndex;
+			if (i < nDefault)
+			{
+				Debug::Log("[Phobos] Armor[%d - %s] Trying to reference Armor[%d - %s] with higher array index from itself !\n",
+				i, pArmor->Name.data(),
+				nDefault, pDefault->Name.data());
+			}
+
+			pArmor->DefaultTo = nDefault;
+		}
 	}
 }
 
@@ -138,14 +143,15 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	const char* section = pWH->get_ID();
 
 	INI_EX exINI(pINI);
-	for (size_t i = pWHExt->Verses.size(); i < Array.size(); ++i) {
-		auto& pArmor = Array[i];
-		const int nDefaultIdx = pArmor->DefaultTo;
-		pWHExt->Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
-				? pArmor->DefaultVersesValue
-				: pWHExt->Verses[nDefaultIdx]
-		);
-	}
+	//for (size_t i = pWHExt->Verses.size(); i < Array.size(); ++i)
+	//{
+	//	auto& pArmor = Array[i];
+	//	const int nDefaultIdx = pArmor->DefaultTo;
+	//	pWHExt->Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
+	//			? pArmor->DefaultVersesValue
+	//			: pWHExt->Verses[nDefaultIdx]
+	//	);
+	//}
 
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
@@ -195,7 +201,7 @@ void ArmorTypeClass::LoadForWarhead_NoParse(WarheadTypeClass* pWH)
 			if (i < nDefault)
 			{
 				Debug::Log("Warhead - ret NoSection - [%s] - Armor [%d - %s] Trying to reference to it default [%d - %s] armor value but it not yet parsed ! \n",
-					section, pArmor->ArrayIndex, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
+					section, i, pArmor->Name.data(), nDefault, ArmorTypeClass::Array[nDefault]->Name.data());
 
 				pWHExt->Verses[i] = ArmorTypeClass::Array[nDefault]->DefaultVersesValue;
 

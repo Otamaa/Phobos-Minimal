@@ -30,6 +30,7 @@ public:
 		BuildingClass* ParentBuilding;
 
 		UniqueParticleSystemClassPtr AttachedSystem;
+		CoordStruct CreateUnitLocation;
 
 		ExtData(base_type* OwnerObject) : Extension<AnimClass>(OwnerObject)
 			, BackupCoords {}
@@ -41,6 +42,7 @@ public:
 			, ParentBuilding {}
 
 			, AttachedSystem { nullptr }
+			, CreateUnitLocation {}
 		{ }
 
 		virtual ~ExtData() override = default;

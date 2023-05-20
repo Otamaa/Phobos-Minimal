@@ -21,15 +21,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<VoxelAnimTypeClass*>, 0xA8EB28u> const Array {};
 
-	static NOINLINE VoxelAnimTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(VoxelAnimTypeClass)
 
 	static VoxelAnimTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x74B960);

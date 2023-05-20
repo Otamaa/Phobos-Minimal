@@ -380,9 +380,6 @@ public:
 	TypeList<int>* GetTypeList(TypeList<int>* ret , const char* pSection , const char* pKey , TypeList<int> def)
 		{ JMP_THIS(0x475D70); }
 
-	static bool IsBlank(const char *pValue)
-		{ return CRT::strcmpi(pValue, GameStrings::NoneStr()) == 0  || CRT::strcmpi(pValue, GameStrings::NoneStrb()) == 0; }
-
 	//Properties
 
 public:

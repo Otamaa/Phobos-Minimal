@@ -60,7 +60,8 @@ DEFINE_HOOK(0x6E427D, TActionClass_CreateBuildingAt, 0x9)
 
 		if (!pBld->ForceCreate(coord))
 		{
-			pBld->UnInit();
+			GameDelete<true,false>(pBld);
+			//pBld->UnInit();
 		}
 		else
 		{

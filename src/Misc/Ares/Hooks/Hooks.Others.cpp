@@ -496,7 +496,7 @@ DEFINE_OVERRIDE_HOOK(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
 	return 0;
 }
 
-DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogNonsense, 5, 6BBE2B)
+DEFINE_OVERRIDE_SKIP_HOOK(0x6BB9DD, WinMain_LogClassSizes, 5, 6BBE2B)
 
 // bugfix #187: Westwood idiocy
 //DEFINE_OVERRIDE_SKIP_HOOK(0x5F698F, ObjectClass_GetCell, 5, 5F69B2)
@@ -1146,8 +1146,8 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 			const auto nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
 			if (nFactorySpeed > 0.0)
 			{
-				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1); 
-					i > 0; 
+				for (int i = (pOwner->FactoryCount(pThis->WhatAmI(), Is_Unit(pThis) ? pType->Naval : false) - 1);
+					i > 0;
 					--i)
 				{
 					nFinalSpeed *= nFactorySpeed;
@@ -1169,19 +1169,19 @@ DEFINE_OVERRIDE_HOOK(0x6F47A0, TechnoClass_GetBuildTime, 5)
 
 DEFINE_OVERRIDE_HOOK(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
 {
-	GET(TechnoTypeClass*, pThis, ECX);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pThis);
-	auto const nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);
-	auto const nCost = pTypeExt->BuildTime_Cost.Get(pThis->Cost);
+	GET(TechnoTypeClass* const, pThis, ECX);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis);
+	const auto nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);
+	const auto nCost = pTypeExt->BuildTime_Cost.Get(pThis->Cost);
 
-	R->EAX(nSeed * nCost / 1000.0 * 900.0);
+	R->EAX(int(nSeed * nCost / 1000.0 * 900.0));
 	return 0x711EDE;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
 {
-	GET(BuildingTypeClass*, pBuildingProduct, ESI);
-	auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pBuildingProduct);
+	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pBuildingProduct);
 
 	bool IsAWall = pBuildingProduct->Wall;
 	if (pBuildingProduct->Wall && pTypeExt->BuildTime_Speed.isset())
@@ -2221,8 +2221,8 @@ DEFINE_OVERRIDE_HOOK(0x739F21, UnitClass_UpdatePosition_Visceroid, 6)
 						pDest->UpdateThreatInCell(pCell);
 
 						pDest->QueueMission(Mission::Guard, true);
-
-						pThis->UnInit();
+						GameDelete<true,false>(pThis);
+						//pThis->UnInit();
 						return 0x73B0A5;
 					}
 				}

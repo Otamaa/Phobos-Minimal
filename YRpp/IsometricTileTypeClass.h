@@ -3,6 +3,7 @@
 #include <ObjectTypeClass.h>
 #include <Drawing.h>
 #include <FileFormats/IsoTileImageStruct.h>
+#include <CCINIClass.h>
 
 struct TileInsert
 {
@@ -21,15 +22,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<IsometricTileTypeClass*>, 0xA8ED28u> const Array {};
 
-	static NOINLINE IsometricTileTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(IsometricTileTypeClass)
 
 	static int __fastcall FindIndexById(const char* pID) {
 		JMP_STD(0x544CE0);

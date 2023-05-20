@@ -17,15 +17,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<TerrainTypeClass*>, 0xA8E318u> const Array {};
 
-	static NOINLINE TerrainTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(TerrainTypeClass)
 
 	static TerrainTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x71E2A0);

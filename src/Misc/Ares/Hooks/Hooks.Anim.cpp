@@ -60,7 +60,8 @@ DEFINE_OVERRIDE_HOOK(0x424B23, AnimClass_Update_FailedToUnlimboInfantry, 0x6)
 	GET(AnimClass*, pThis, ESI);
 	GET(InfantryClass*, pInf, EDI);
 
-	pInf->UnInit();
+	GameDelete<true,false>(pInf);
+	//pInf->UnInit();
 	pThis->TimeToDie = 1;
 	pThis->UnInit();
 

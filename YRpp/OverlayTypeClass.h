@@ -20,15 +20,7 @@ public:
 	//Array
 	static constexpr constant_ptr<DynamicVectorClass<OverlayTypeClass*>, 0xA83D80u> const Array {};
 
-	static NOINLINE OverlayTypeClass* __fastcall Find(const char* pID)
-	{
-		for (auto pItem : *Array){
-			if (!CRT::strcmpi(pItem->ID, pID))
-				return pItem;
-		}
-
-		return nullptr;
-	}
+	IMPL_Find(OverlayTypeClass)
 
 	static OverlayTypeClass* __fastcall FindOrAllocate(const char* pID) {
 		JMP_STD(0x5FEC70);
