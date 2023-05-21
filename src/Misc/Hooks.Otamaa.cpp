@@ -5732,37 +5732,35 @@ DEFINE_HOOK(0x457DAD, InfantryClass_CanBeOccupied_Assaulter, 0x6)
 }
 #pragma endregion
 
-static constexpr auto LastPipScaleIdx = (int)PipScale::MindControl + 2;
-std::array<const char* const, LastPipScaleIdx> AdditionalPip {
-	{
-		{ NONE_STR2 },
-		{ GameStrings::Ammo() },
-		{ GameStrings::Tiberium() },
-		{ GameStrings::Passengers() },
-		{ GameStrings::Power() },
-		{ GameStrings::MindControl() },
-		{ "Spawner" },
-	}
-};
-
 DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 {
 	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
+
 	LEA_STACK(char*, buffer, 0x8);
 	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
 	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
 
-	for (size_t i = 1; i < AdditionalPip.size(); ++i)
+	static const auto AdditionalPip =
 	{
-		if (CRT::strcmpi(buffer, AdditionalPip[i]) == 0)
-		{
-			R->EAX(PipScale(i));
+		GameStrings::Ammo() ,
+		GameStrings::Tiberium() ,
+		GameStrings::Passengers() ,
+		GameStrings::Power() ,
+		GameStrings::MindControl() ,
+		"Spawner"
+	};
+
+	auto it = AdditionalPip.begin();
+
+	for (size_t i = 0; i < AdditionalPip.size(); ++i) {
+		if (CRT::strcmpi(buffer, *it++) == 0) {
+			R->EAX(PipScale(i + 1));
 			return seteax;
 		}
 	}
 
 	if (!GameStrings::IsBlank(buffer))
-		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipType !");
+		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
 
 	return retzero;
 }
@@ -5789,7 +5787,7 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 
 	if (!pThis)
 	{
-		Debug::Log("GameTrying to FindFree spot but this pointer is nullptr ! \n");
+		//Debug::Log("GameTrying to FindFree spot but this pointer is nullptr ! \n");
 		*pResult = CoordStruct::Empty;
 		R->EAX(pResult);
 		return retResult;
@@ -5813,7 +5811,7 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_SoundFrame, 0x6)
+DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_PreventOutOfBoundArrayRead, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
@@ -5824,7 +5822,7 @@ DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_SoundFrame, 0x6)
 		return 0x520EF4;
 	}
 
-	const auto pDoInfo = &pThis->Type->Sequence->Data[nCurSeq];
+	/*const auto pDoInfo = &pThis->Type->Sequence->Data[nCurSeq];
 
 	if(!pDoInfo->SoundCount)
 		return 0x520EF4;
@@ -5847,7 +5845,9 @@ DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_SoundFrame, 0x6)
 		}
 	}
 
-	return 0x520EF4;
+	return 0x520EF4;*/
+
+	return 0x0;
 }
 
 //TODO Garrison/Ungarrison eva and sound

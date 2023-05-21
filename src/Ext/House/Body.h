@@ -69,6 +69,12 @@ public:
 		PhobosMap<int, LauchData> LaunchDatas;
 		bool CaptureObjectExecuted;
 		CDTimerClass DiscoverEvaDelay;
+		struct TunnelData {
+			std::vector<FootClass*> Vector;
+			int MaxCap;
+		};
+
+		std::vector<TunnelData> Tunnels;
 		ExtData(HouseClass* OwnerObject) : Extension<HouseClass>(OwnerObject)
 			, PowerPlantEnhancerBuildings {}
 			, Building_BuildSpeedBonusCounter {}
@@ -96,6 +102,8 @@ public:
 			, LaunchDatas {}
 			, CaptureObjectExecuted { false }
 			, DiscoverEvaDelay {}
+
+			, Tunnels {}
 		{ }
 
 		virtual ~ExtData() override = default;

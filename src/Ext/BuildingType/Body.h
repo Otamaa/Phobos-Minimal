@@ -11,6 +11,8 @@
 
 #include <Ext/TechnoType/Body.h>
 
+#include <New/Type/TunnelTypeClass.h>
+
 enum class BunkerSoundMode : int
 {
 	Up, Down
@@ -265,6 +267,8 @@ public:
 
 		signed int IsTrench; 					//!< Enables moving between segments - saves ID of a kind of trench. \sa trenchKinds
 
+		ValueableIdx<TunnelTypeClass> TunnelType;
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -383,6 +387,7 @@ public:
 			, DockPoseDir {}
 			, EngineerRepairable {}
 			, IsTrench { -1 }
+			, TunnelType { -1 }
 		{ }
 
 		virtual ~ExtData() override = default;

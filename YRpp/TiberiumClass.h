@@ -39,7 +39,7 @@ public:
 		Heap = GameCreate<TPriorityQueueClass<MapSurfaceData>>(nCount);
 	}
 
-	void Destruct()
+	void KillFootClass()
 	{
 		GameDelete<true>(Heap);
 		Heap = nullptr;

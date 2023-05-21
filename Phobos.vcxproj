@@ -189,6 +189,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Temporal.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.TEvents_TAction.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Tunnel.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Unit.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Verses.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
@@ -197,6 +198,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.YRPatches.cpp" />
+    <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
     <ClCompile Include="src\Misc\Ares\Utilities\Ares3_Parser.cpp" />
@@ -423,6 +425,7 @@
     <ClInclude Include="src\New\Entity\HomingMissileTargetTracker.h" />
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
+    <ClInclude Include="src\New\Type\TunnelTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\LevitateLocomotionClass.h" />
     <ClInclude Include="src\New\Type\ArmorTypeClass.h" />
     <ClInclude Include="src\New\Type\BannerTypeClass.h" />

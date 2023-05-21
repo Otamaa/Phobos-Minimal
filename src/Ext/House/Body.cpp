@@ -48,9 +48,10 @@ bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const
 
 void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 {
-	if(ptr != nullptr)
-		AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
+	if (ptr == nullptr)
+		return;
 
+	AnnounceInvalidPointer(HouseAirFactory, reinterpret_cast<BuildingClass*>(ptr));
 	AnnounceInvalidPointer(Factory_BuildingType, ptr);
 	AnnounceInvalidPointer(Factory_InfantryType, ptr);
 	AnnounceInvalidPointer(Factory_VehicleType, ptr);
@@ -58,8 +59,13 @@ void HouseExt::ExtData::InvalidatePointer(void* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_AircraftType, ptr);
 	AnnounceInvalidPointer(ActiveTeams, ptr);
 
-	if (!AutoDeathObjects.empty() && ptr != nullptr) {
+	if (!AutoDeathObjects.empty()) {
 		AutoDeathObjects.erase(reinterpret_cast<TechnoClass*>(ptr));
+	}
+
+	if (!Tunnels.empty()) {
+		for (auto& nTun : Tunnels)
+			AnnounceInvalidPointer(nTun.Vector , ptr);
 	}
 }
 
@@ -929,6 +935,8 @@ void HouseExt::ExtData::Serialize(T& Stm)
 		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
+
+		.Process(this->Tunnels)
 		;
 }
 

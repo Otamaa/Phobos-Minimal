@@ -51,10 +51,10 @@ void ShowAnimNameCommandClass::AI()
 	{
 		//auto const pCiv = HouseExt::FindCivilianSide();
 
-		for (auto pTech : *AnimClass::Array())
-		{
-			if (!pTech->Type)
-				continue;
+		//for (auto pTech : *AnimClass::Array())
+		//{
+		//	if (!pTech->Type)
+		//		continue;
 
 			//if (auto pCell = pTech->GetCell())
 			//{
@@ -65,10 +65,10 @@ void ShowAnimNameCommandClass::AI()
 			//if (!IS_SAME_STR_("ROTEEMP4", pTech->Type->ID) /*&& !IS_SAME_STR_("INVISO", pTech->Type->ID)*/)
 			//	continue;
 
-			if (auto const pTechnoOwnerObject = pTech->OwnerObject) {
-				if (!pTechnoOwnerObject->IsAlive)
-					Debug::Log("Anim [%s] Attahed to DeadObject[%s - %x] , WTF ?\n", pTech->Type->ID, pTechnoOwnerObject->get_ID());
-			}
+			//if (auto const pTechnoOwnerObject = pTech->OwnerObject) {
+			//	if (!pTechnoOwnerObject->IsAlive || !pTechnoOwnerObject->IsOnMap)
+			//		Debug::Log("Anim [%s - %x] Attahed to DeadObject[%s - %x] , WTF ?\n", pTech->Type->ID , pTech , pTechnoOwnerObject->get_ID() , pTechnoOwnerObject);
+			//}
 
 			//std::wstring pText(sizeof(pTech->Type->ID) + 0x1, L'#');
 			//mbstowcs(&pText[0], pTech->Type->ID, 0x18 );
@@ -88,6 +88,6 @@ void ShowAnimNameCommandClass::AI()
 			//	Point2D tmp { 0,0 };
 			//	Fancy_Text_Print_Wide(tmp, pText.c_str(), DSurface::Temp(), bound, pos, ColorScheme::Array->GetItem(pResultOwner->ColorSchemeIndex), 0, TextPrintType::Center, 1);
 			//}
-		}
+		//}
 	}
 }

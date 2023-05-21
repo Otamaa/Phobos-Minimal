@@ -1517,7 +1517,7 @@ enum class NetworkEvents : unsigned char {
 	MegaMissionF = 0x5,
 	Idle = 0x6,
 	Scatter = 0x7,
-	Destruct = 0x8,
+	KillFootClass = 0x8,
 	Deploy = 0x9,
 	Detonate = 0xA,
 	Place = 0xB,

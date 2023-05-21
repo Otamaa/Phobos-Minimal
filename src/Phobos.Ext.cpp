@@ -41,6 +41,7 @@
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/BannerTypeClass.h>
+#include <New/Type/TunnelTypeClass.h>
 
 #pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
@@ -334,6 +335,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	LaserTrailTypeClass::Clear();
 	TActionExt::ExtMap.Clear();
 	HouseExt::ExtMap.Clear();
+	TunnelTypeClass::Clear();
 
 	return 0;
 }
@@ -402,7 +404,8 @@ DEFINE_HOOK(0x67D32C, SaveGame_Phobos_Global, 0x5)
 		Process_Save<HoverTypeClass>(pStm) &&
 		Process_Save<BannerTypeClass>(pStm) &&
 		Process_Save<TrailType>(pStm) &&
-		Process_Save<LaserTrailTypeClass>(pStm)
+		Process_Save<LaserTrailTypeClass>(pStm) && 
+		Process_Save<TunnelTypeClass>(pStm)
 		;
 
 	if (!ret)
@@ -433,7 +436,8 @@ DEFINE_HOOK(0x67E826, LoadGame_Phobos_Global, 0x6)
 		Process_Load<HoverTypeClass>(pStm) &&
 		Process_Load<BannerTypeClass>(pStm) &&
 		Process_Load<TrailType>(pStm) &&
-		Process_Load<LaserTrailTypeClass>(pStm)
+		Process_Load<LaserTrailTypeClass>(pStm) &&
+		Process_Load<TunnelTypeClass>(pStm)
 		;
 	
 	if (!ret)

@@ -2146,12 +2146,36 @@ struct TechnoExt_Stuffs
 	}
 };
 
+bool IsPowered(TechnoClass* pThis) {
+	const auto pType = pThis->GetTechnoType();
+
+	if (pType && pType->PoweredUnit) {
+		for (const auto& pBuilding : pThis->Owner->Buildings) {
+			if (pBuilding->Type->PowersUnit == pType
+				&& pBuilding->RegisteredAsPoweredUnitSource
+				&& !pBuilding->IsUnderEMP()) // alternatively, HasPower, IsPowerOnline()
+			{
+				return true;
+			}
+		}
+		// if we reach this, we found no building that currently powers this object
+		return false;
+	}
+	else if (auto pPoweredUnit = PoweredUnitUptr(pThis)) {
+		// #617
+		return pPoweredUnit->Powered;
+	}
+
+	// object doesn't need a particular powering structure, therefore, for the purposes of the game, it IS powered
+	return true;
+}
+
 DEFINE_OVERRIDE_HOOK(0x736135, UnitClass_Update_Deactivated, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
 	// don't sparkle on EMP, Operator, ....
-	return TechnoExt_Stuffs::IsPowered(pThis)
+	return IsPowered(pThis)
 		? 0x7361A9 : 0;
 }
 

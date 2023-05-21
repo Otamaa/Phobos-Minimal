@@ -494,7 +494,7 @@ public:
 		Valueable<bool> NoManualEnter;
 		Valueable<bool> NoManualEject;
 
-		Valueable<bool> Passengers_BySize;
+		Nullable<bool> Passengers_BySize;
 		Nullable<bool> Crashable;
 
 		Valueable<TechnoTypeClass*> Convert_Deploy;
@@ -1041,7 +1041,7 @@ public:
 			, NoManualEnter { false }
 			, NoManualEject { false }
 
-			, Passengers_BySize { true }
+			, Passengers_BySize { }
 			, Crashable { }
 
 			, Convert_Deploy { nullptr }

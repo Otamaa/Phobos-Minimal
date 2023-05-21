@@ -18,7 +18,7 @@ public:
 	}
 
 	//74E8A0 Delete SpreadData
-	void Destruct()
+	void KillFootClass()
 	{
 
 	    GameDelete<true ,true>(Heap);
@@ -90,7 +90,7 @@ public:
 	{ JMP_THIS(0x74EA30); }
 
 	void ClearGrowthData()
-	{ GrowthLogic.Destruct(); }
+	{ GrowthLogic.KillFootClass(); }
 
 	void Recalculate() const
 	{ JMP_THIS(0x74E930); }

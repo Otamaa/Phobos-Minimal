@@ -635,6 +635,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->RubbleDestroyedRemove.Read(exINI, pSection, "Rubble.Destroyed.Remove");
 		this->RubbleIntactRemove.Read(exINI, pSection, "Rubble.Intact.Remove");
 		//
+
+		this->TunnelType.Read(exINI, pSection, "Tunnel");
 	}
 #pragma endregion
 
@@ -820,6 +822,7 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->DockPoseDir)
 		.Process(this->EngineerRepairable)
 		.Process(this->IsTrench)
+		.Process(this->TunnelType)
 		;
 }
 

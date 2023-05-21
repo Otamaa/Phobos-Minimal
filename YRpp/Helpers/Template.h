@@ -66,11 +66,11 @@ void AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 template<typename T>
 void AnnounceInvalidPointer(std::vector<T>& elem, void* ptr)
 {
-	static_assert(std::is_pointer<T>::value,"Pointer Required !");
+	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 
-	for (auto pos = elem.begin(); pos != elem.end(); ++pos ) {
-		if ((*pos) == ptr) {
-			elem.erase(pos);
+	for (size_t i = 0; i < elem.size(); i++) {
+		if (elem[i] == ptr) {
+			elem.erase(elem.begin() + i);
 		}
 	}
 }

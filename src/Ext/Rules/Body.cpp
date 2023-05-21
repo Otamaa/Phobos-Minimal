@@ -11,6 +11,7 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/HoverTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
+#include <New/Type/TunnelTypeClass.h>
 
 //#include <Ext/TechnoType/Body.h>
 
@@ -61,6 +62,8 @@ void RulesExt::LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 // to makesure everything is properly allocated from the list
 void RulesExt::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
+	TunnelTypeClass::LoadFromINIList(pINI);
+
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
 	pThis->Read_CombatDamage(pINI);
