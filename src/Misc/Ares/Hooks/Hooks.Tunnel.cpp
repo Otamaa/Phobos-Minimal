@@ -189,7 +189,6 @@ bool NOINLINE CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass
 
 static std::vector<int> PipData;
 
-#pragma optimize("", off )
 NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail)
 {
 	int nPassangersTotal = pType->GetPipMax();
@@ -250,6 +249,11 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 		{
 			const int nTotal = pTunnelData->MaxCap > nPassangersTotal ? nPassangersTotal : pTunnelData->MaxCap;
 			PipData.resize(nTotal);
+
+			if (pTunnelData->Vector.size() > nTotal){
+				Fail = true;
+				return &PipData;
+			}
 
 			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
 			{
@@ -366,18 +370,19 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 
 	return 0x70A4EC;
 }
-#pragma optimize("", on )
 
 std::pair<bool,FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
 {
 	auto pPassenger = *std::prev(pVector->end());
-	pPassenger->OnBridge = pTunnel->OnBridge;
 	auto nCoord = pTunnel->GetCoords();
+
+	const auto nBldFacing = ((((short)pTunnel->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
+
+	pPassenger->OnBridge = pTunnel->OnBridge;
 	pPassenger->SetLocation(nCoord);
 
-	bool Succeeded = false;
 	++Unsorted::IKnowWhatImDoing();
-	Succeeded = pPassenger->Unlimbo(nCoord, (DirType)((((short)pTunnel->PrimaryFacing.Current().Raw >> 7) + 1) >> 1));
+	bool Succeeded = pPassenger->Unlimbo(nCoord, (DirType)nBldFacing);
 	--Unsorted::IKnowWhatImDoing();
 
 	pVector->pop_back();
@@ -488,8 +493,8 @@ DEFINE_OVERRIDE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
-	GET(CellStruct*, CellArr, EDX);
-	GET(CellStruct, nCell, EDI);
+	GET(CellStruct*, CellArr, EDI);
+	GET(CellStruct, nCell, EDX);
 	GET_STACK(int, nDev, 0x30);
 
 	const auto nTunnelVec = GetTunnels(pThis->Type, pThis->Owner);
@@ -510,7 +515,7 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 	return 0x0;
 }
 
-bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel)
+bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false)
 {
 	const auto facing = (((((short)pTunnel->PrimaryFacing.Current().Raw + 0x8000) >> 12) + 1) >> 1);
 	const auto Loc = pTunnel->GetMapCoords();
@@ -572,7 +577,9 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel)
 
 	if (Succeeded)
 	{
-		VocClass::PlayIndexAtPos(pTunnel->Type->LeaveTransportSound, pTunnel->Location);
+		if(!silent)
+			VocClass::PlayIndexAtPos(pTunnel->Type->LeaveTransportSound, pTunnel->Location);
+
 		pFoot->QueueMission(Mission::Move, false);
 		pFoot->SetDestination(IsLessThanseven ? NextCell : CurrentAdj, true);
 		return true;
@@ -604,6 +611,7 @@ DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 }
 
 //NOT DONE YET
+#pragma optimize("", off )
 DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
 {
 	enum
@@ -667,8 +675,11 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 	{
 		const auto nTunnelVec = GetTunnels(pType, pThis->Owner);
 
+		if (pRecepient->IsMindControlled())
+			return RetRadioNegative;
+
 		// out of limit
-		if ((int)nTunnelVec->Vector.size() > nTunnelVec->MaxCap)
+		if ((int)nTunnelVec->Vector.size() >= nTunnelVec->MaxCap)
 		{
 			R->EBX(pType);
 			return ContineCheck;
@@ -712,6 +723,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 		return RetRadioNegative;
 	}
 }
+#pragma optimize("", on )
 
 DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {

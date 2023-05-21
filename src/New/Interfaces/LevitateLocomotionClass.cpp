@@ -47,7 +47,7 @@ void LevitateLocomotionClass::ProcessHovering()
 	{
 		const auto nCoord = LinkedTo->GetCenterCoords();
 		const auto nZ = MapClass::Instance->GetCellFloorHeight(nCoord);
-		const CellStruct nAdjentCoord = CellSpread::AdjacentCoord[(((unsigned char)LinkedTo->PathDirections[0]) & 7)];
+		const CellStruct nAdjentCoord = CellSpread::AdjacentCell[(((unsigned char)LinkedTo->PathDirections[0]) & 7)];
 		const auto nDestCoord = nCoord + CoordStruct { (int)nAdjentCoord.X, (int)nAdjentCoord.Y,0 };
 
 		if (!(MapClass::Instance->GetCellFloorHeight(nDestCoord) <= nZ))

@@ -751,7 +751,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
 
 	if (IsRailgun && Is_Aircraft(pThis))
 	{
-		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun ! \n", pThis->get_ID());
+		Debug::Log("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !\n", pThis->get_ID());
 		//return 0x6FF274;
 	}
 
@@ -797,7 +797,7 @@ DEFINE_OVERRIDE_HOOK(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 DEFINE_OVERRIDE_HOOK(0x5FDDA4, OverlayClass_GetTiberiumType_NotReallyTiberiumLog, 0x6)
 {
 	GET(OverlayTypeClass*, pThis, EAX);
-	Debug::Log("Overlay %s not really tiberium \n", pThis->ID);
+	Debug::Log("Overlay %s not really tiberium\n", pThis->ID);
 	return 0x5FDDC1;
 }
 
@@ -918,7 +918,7 @@ DEFINE_OVERRIDE_HOOK(0x6CC390, SuperClass_Launch, 0x6)
 
 	if (AresData::SW_Activate(pSuper, *pCell, isPlayer))
 	{
-		Debug::Log("[LAUNCH] %s Handled \n", pSuper->Type->ID);
+		Debug::Log("[LAUNCH] %s Handled\n", pSuper->Type->ID);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 		return 0x6CDE40;
@@ -944,7 +944,7 @@ DEFINE_HOOK(0x6CDE36, SuperClass_Launch_NotHandled, 0xA)
 {
 	if (const auto pSuper = TempData)
 	{
-		Debug::Log("[LAUNCH] %s Normal at [0x%x] \n", pSuper->Type->ID, R->Origin());
+		Debug::Log("[LAUNCH] %s Normal at [0x%x]\n", pSuper->Type->ID, R->Origin());
 		const auto pSuperExt = SuperExt::ExtMap.Find(pSuper);
 		const auto pSWExt = SWTypeExt::ExtMap.Find(pSuper->Type);
 		pSWExt->FireSuperWeapon(pSuper, pSuper->Owner, &pSuperExt->Temp_CellStruct, pSuperExt->Temp_IsPlayer);
@@ -952,7 +952,7 @@ DEFINE_HOOK(0x6CDE36, SuperClass_Launch_NotHandled, 0xA)
 	}
 	else
 	{
-		Debug::Log("[LAUNCH] SW as Normal but SuperPointer is somewhat invalid at [0x%x]! \n", R->Origin());
+		Debug::Log("[LAUNCH] SW as Normal but SuperPointer is somewhat invalid at [0x%x]!\n", R->Origin());
 	}
 
 	return 0x0;

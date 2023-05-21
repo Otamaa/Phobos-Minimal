@@ -7,37 +7,31 @@ class CellSpread
 {
 public:
 	// between -256 -> 256
-	static constexpr reference<CellStruct, 0x89F6D8, 8u> const AdjacentCoord{};
+	static constexpr reference<Point2D, 0x89F6D8, 8u> const AdjacentPoint{};
+
 	// between -1 -> 1
 	static constexpr reference<CellStruct, 0x89F688, 8u> const AdjacentCell{};
 	static constexpr reference<size_t, 0x7ED3D0, 12u> const CellNums{};
 	static constexpr reference<CellStruct, 0xABD490, 369u> const CellOfssets{};
 
 	static size_t NumCells(size_t nSpread) {
-		if (nSpread > CellNums.size()) {
-			return nSpread * 256;
-		}
 		return CellNums[nSpread];
 	}
 
 	static size_t NumCellsFromFloat(float nSpread) {
-		return int((nSpread + 0.99));
+		return int(nSpread);
 	}
 
 	static const CellStruct GetCell(size_t n) {
-		if (n > CellOfssets.size()) {
-			return CellStruct::Empty;
-		}
-
 		return CellOfssets[n];
 	}
 
 	static const CellStruct GetNeighbourOffset(size_t direction) {
-		if(direction > AdjacentCoord.size()) {
+		if(direction > AdjacentCell.size()) {
 			return CellStruct::Empty;
 		}
 
-		return AdjacentCoord[direction];
+		return AdjacentCell[direction];
 	}
 
 	static size_t GetDistance(int dx, int dy) {
