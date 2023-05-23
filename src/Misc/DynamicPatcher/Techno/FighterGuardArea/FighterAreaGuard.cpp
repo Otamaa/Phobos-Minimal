@@ -32,6 +32,7 @@ void FighterAreaGuard::OnUpdate()
 	switch (State)
 	{
 	case AircraftGuardState::READY:
+	{
 
 		if (bool inAir = pTechno->IsInAir())
 		{
@@ -75,13 +76,16 @@ void FighterAreaGuard::OnUpdate()
 				CoordStruct sourcePos = pTechno->GetCoords();
 				if (const auto pCell = MapClass::Instance->TryGetCellAt(sourcePos))
 				{
-					SetupDestination(pCell->GetCoordsWithBridge());
+					auto nPos = pCell->GetCoordsWithBridge();
+					SetupDestination(nPos);
 					this->State = AircraftGuardState::GUARD;
 				}
 			}
 		}
-		break;
+	}
+	break;
 	case AircraftGuardState::STOP:
+	{
 
 		if (pTechno->GetHeight() <= 0)
 		{
@@ -96,9 +100,10 @@ void FighterAreaGuard::OnUpdate()
 			State = AircraftGuardState::READY;
 			return;
 		}
-		break;
+	}
+	break;
 	case AircraftGuardState::ATTACK:
-
+	{
 		const auto pTarget = pTechno->Target;
 
 		if (!pTarget)
@@ -123,8 +128,10 @@ void FighterAreaGuard::OnUpdate()
 				pTechno->SetTarget(nullptr);
 			}
 		}
-		break;
+	}
+	break;
 	case AircraftGuardState::RELOAD:
+	{
 
 		if (!pTechno->IsInAir() && pTechno->Ammo >= pTypeExt->MyFighterData.MaxAmmo)
 		{
@@ -132,9 +139,11 @@ void FighterAreaGuard::OnUpdate()
 			locomotion->Move_To(destCenter);
 			pTechno->ForceMission(Mission::Area_Guard);
 		}
-		break;
+	}
+	break;
 	case AircraftGuardState::GUARD:
 	case AircraftGuardState::ROLLING:
+	{
 		switch (pTechno->CurrentMission)
 		{
 		case Mission::Guard:
@@ -215,7 +224,8 @@ void FighterAreaGuard::OnUpdate()
 				}
 			}
 		}
-		break;
+	}
+	break;
 	}
 }
 
@@ -258,7 +268,8 @@ void FighterAreaGuard::StartAreaGuard()
 
 bool FighterAreaGuard::SetupDestination()
 {
-	return SetupDestination(OwnerObject->Locomotor->Destination());
+	auto nDest = OwnerObject->Locomotor->Destination();
+	return SetupDestination(nDest);
 }
 
 bool FighterAreaGuard::SetupDestination(CoordStruct& dest)
@@ -442,38 +453,33 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 		return false;
 
 	auto pOwnerHouse = pTarget->GetOwningHouse();
-	if (pOwnerHouse)
+
+	if (pTarget->IsDisguised() && !pTarget->IsClearlyVisibleTo(pThis->Owner))
+		pOwnerHouse = pTarget->GetDisguiseHouse(true);
+
+	if (!pOwnerHouse)
 		return false;
 
-	bool pick = false;
-	if (!pTarget->IsDisguised() ||
-		pTarget->IsClearlyVisibleTo(pThis->Owner) ||
-		!(pOwnerHouse = pTarget->GetDisguiseHouse(true))
-		&& !pOwnerHouse->IsAlliedWith(pThis->Owner))
+	if (pOwnerHouse->IsAlliedWith(pThis->Owner))
+		return false;
+
+	if (pOwnerHouse == HouseExt::FindCivilianSide())
 	{
-		pick = true;
-		if (pTarget->Owner == HouseExt::FindCivilianSide())
+
+		auto AutoRepel = [](HouseClass* pHouse)
 		{
-			pick = pTargetTypeExt->CivilianEnemy;
+			return
+				(pHouse->IsControlledByHuman() ?
+					RulesExt::Global()->AutoRepelAI : RulesExt::Global()->AutoRepelPlayer).Get();
+		};
 
-			auto AutoRepel = [](HouseClass* pHouse)
-			{
-				return
-					(pHouse->IsControlledByHuman() ?
-						RulesExt::Global()->AutoRepelAI : RulesExt::Global()->AutoRepelPlayer).Get();
-			};
-
-			if (!pick && AutoRepel(pThis->Owner) && pTarget->Target)
-			{
-				if (auto pTargetTargetTech = generic_cast<TechnoClass*>(pTarget->Target))
-					pick = pThis->Owner->IsAlliedWith(pTargetTargetTech);
-			}
+		if (!pTargetTypeExt->CivilianEnemy && AutoRepel(pThis->Owner) && pTarget->Target)
+		{
+			if (auto pTargetTargetTech = generic_cast<TechnoClass*>(pTarget->Target))
+				if (pThis->Owner->IsAlliedWith(pTargetTargetTech))
+					pTarget = pTargetTargetTech;
 		}
 	}
 
-	if (pick)
-	{
-		pick = CanAttack(pTarget, true);
-	}
-	return pick;
+	return CanAttack(pTarget, true);
 }
