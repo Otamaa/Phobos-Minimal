@@ -208,7 +208,7 @@ DEFINE_OVERRIDE_HOOK(0x52070F, InfantryClass_UpdateFiringState_Uncloak, 0x5)
 	GET(InfantryClass* const, pThis, EBP);
 	GET_STACK(int, idxWeapon, STACK_OFFS(0x34, 0x24));
 
-	const auto pWeapon = pThis->GetWeapon(idxWeapon);
+	//const auto pWeapon = pThis->GetWeapon(idxWeapon);
 
 	//if (pWeapon && pWeapon->WeaponType->DecloakToFire) {
 	//	pThis->Uncloak(false);

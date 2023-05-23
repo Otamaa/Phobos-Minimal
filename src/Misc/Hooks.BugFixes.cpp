@@ -153,28 +153,23 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 	const auto pType = pThis->GetTechnoType();
 
 	// If DebrisMaximums has one value, then legacy behavior is used
-	if (pType->DebrisMaximums.Count == 1 &&
-		pType->DebrisMaximums.GetItem(0) > 0 &&
-		pType->DebrisTypes.Count > 0)
-	{
-		return 0;
-	}
+	//if (pType->DebrisMaximums.Count == 1 &&
+	//	pType->DebrisMaximums.GetItem(0) > 0 &&
+	//	pType->DebrisTypes.Count > 0)
+	//{
+	//	return 0;
+	//}
+	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris - 1);
 
-	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(
-		pType->MinDebris, pType->MaxDebris);
-
-	if (pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
+	if (pType->DebrisTypes.Count > 0)
 	{
 		auto nCoords = pThis->GetCoords();
 
 		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
 		{
-			if(currentIndex > pType->DebrisMaximums.Count)
-				break;
+			const auto nDebrisMaximum = currentIndex > pType->DebrisMaximums.Count ? 0 : pType->DebrisMaximums[currentIndex];
 
-			auto const nDebrisMaximum = pType->DebrisMaximums[currentIndex];
-
-			if (nDebrisMaximum > 0)
+			if (totalSpawnAmount > 0)
 			{
 				int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
 				amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);

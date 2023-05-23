@@ -271,7 +271,7 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Tiberium_DamageEnabled.Read(exINI, GENERAL_SECTION, "TiberiumDamageEnabled");
 	this->Tiberium_HealEnabled.Read(exINI, GENERAL_SECTION, "TiberiumHealEnabled");
 	this->Tiberium_ExplosiveWarhead.Read(exINI, COMBATDAMAGE_SECTION, "TiberiumExplosiveWarhead");
-
+	this->Tiberium_ExplosiveAnim.Read(exINI, AUDIOVISUAL_SECTION, "TiberiumExplosiveAnim");
 	this->OverlayExplodeThreshold.Read(exINI, GENERAL_SECTION, "OverlayExplodeThreshold");
 	this->AlliedSolidTransparency.Read(exINI, COMBATDAMAGE_SECTION, "AlliedSolidTransparency");
 	this->DecloakSound.Read(exINI, AUDIOVISUAL_SECTION, "DecloakSound");
@@ -532,6 +532,7 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->Tiberium_DamageEnabled)
 		.Process(this->Tiberium_HealEnabled)
 		.Process(this->Tiberium_ExplosiveWarhead)
+		.Process(this->Tiberium_ExplosiveAnim)
 		.Process(this->OverlayExplodeThreshold)
 		.Process(this->AlliedSolidTransparency)
 		.Process(this->DecloakSound)

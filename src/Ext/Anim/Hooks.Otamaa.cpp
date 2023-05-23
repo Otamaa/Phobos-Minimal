@@ -81,6 +81,14 @@ DEFINE_HOOK(0x42264D, AnimClass_Init, 0x5)
 	return 0x0;
 }
 
+//TODO :
+DEFINE_HOOK(0x424785, AnimClass_OnLoop, 6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	return 0;
+}
+
 #ifdef ENABLE_NEWHOOKS
 TODO : retest for desync
 

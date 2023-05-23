@@ -336,6 +336,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	TActionExt::ExtMap.Clear();
 	HouseExt::ExtMap.Clear();
 	TunnelTypeClass::Clear();
+	WeaponTypeExt::ExtMap.Clear();
 
 	return 0;
 }

@@ -17,7 +17,6 @@ DEFINE_HOOK(0x6FD5FC, TechnoClass_CreateEbolt_UnnessesaryData, 0xA)
 
 namespace BoltTemp
 {
-	std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
 	const WeaponTypeExt::ExtData* pType = nullptr;
 }
 
@@ -29,7 +28,7 @@ DEFINE_HOOK(0x6FD494, TechnoClass_FireEBolt_SetExtMap_AfterAres, 0x7)
 	if (pWeapon) {
 		auto const pWpTypeExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 		if(pWpTypeExt->Bolt_Disable1 || pWpTypeExt->Bolt_Disable2 || pWpTypeExt->Bolt_Disable3){
-			BoltTemp::boltWeaponTypeExt.emplace(pBolt, pWpTypeExt);
+			WeaponTypeExt::boltWeaponTypeExt.emplace(pBolt, pWpTypeExt);
 		}
 	}
 
@@ -40,7 +39,7 @@ DEFINE_HOOK(0x4C2951, EBolt_DTOR, 0x5)
 {
 	GET(EBolt* const, pBolt, ECX);
 
-	BoltTemp::boltWeaponTypeExt.erase(pBolt);
+	WeaponTypeExt::boltWeaponTypeExt.erase(pBolt);
 	
 	return 0;
 }
@@ -49,7 +48,7 @@ DEFINE_HOOK(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
 	GET_STACK(EBolt* const, pBolt, 0x40);
 
-	auto const& nMap = BoltTemp::boltWeaponTypeExt;
+	auto const& nMap = WeaponTypeExt::boltWeaponTypeExt;
 
 	if (nMap.contains(pBolt)) {
 		if (auto const pWeaponLinked = nMap.at(pBolt)) {

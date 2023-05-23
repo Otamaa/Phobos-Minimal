@@ -163,6 +163,14 @@ bool TechnoExt::IsAssaulter(InfantryClass* pThis)
 	return HasAbility(pThis, PhobosAbilityType::Assaulter);
 }
 
+bool TechnoExt::IsParasiteImmune(TechnoClass* pThis)
+{
+	if (pThis->GetTechnoType()->Parasiteable)
+		return false;
+
+	return HasAbility(pThis, PhobosAbilityType::ParasiteImmune);
+}
+
 bool TechnoExt::ExtData::IsInterceptor()
 {
 	auto const pThis = this->Get();
@@ -338,6 +346,14 @@ bool TechnoExt::IsAssaulter(Rank vet, InfantryClass* pThis)
 		return true;
 
 	return HasAbility(vet, pThis, PhobosAbilityType::Assaulter);
+}
+
+bool TechnoExt::IsParasiteImmune(Rank vet, TechnoClass* pThis)
+{
+	if (pThis->GetTechnoType()->Parasiteable)
+		return false;
+
+	return HasAbility(vet , pThis, PhobosAbilityType::ParasiteImmune);
 }
 
 
@@ -3289,8 +3305,9 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 
 	Survivor->OnBridge = pCell->ContainsBridge();
 
-	int floorZ = pCell->GetCoordsWithBridge().Z;
-	bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
+	const int floorZ = pCell->GetCoordsWithBridge().Z;
+	const bool chuted = (loc.Z - floorZ > 2 * Unsorted::LevelHeight);
+
 	if (chuted)
 	{
 		// HouseClass::CreateParadrop does this when building passengers for a paradrop... it might be a wise thing to mimic!
@@ -3316,8 +3333,9 @@ bool TechnoExt::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select)
 	// don't ask, don't tell
 	if (chuted)
 	{
-		bool scat = Survivor->OnBridge;
-		auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
+		const bool scat = Survivor->OnBridge;
+		const auto occupation = scat ? pCell->AltOccupationFlags : pCell->OccupationFlags;
+
 		if ((occupation & 0x1C) == 0x1C)
 		{
 			pCell->ScatterContent(CoordStruct::Empty, true, true, scat);
@@ -3343,7 +3361,7 @@ bool TechnoExt::EjectRandomly(FootClass* pEjectee, CoordStruct const& location, 
 {
 	CoordStruct destLoc = GetPutLocation(location, distance);
 
-	if(destLoc == CoordStruct::Empty || MapClass::Instance->IsWithinUsableArea(destLoc))
+	if(destLoc == CoordStruct::Empty || !MapClass::Instance->IsWithinUsableArea(destLoc))
 		return false;
 
 	return EjectSurvivor(pEjectee, destLoc, select);
@@ -3379,7 +3397,7 @@ void TechnoExt::ResetDelayFireAnim(TechnoClass* pThis)
 
 	if (pExt->DelayedFire_Anim)
 	{
-		pExt->DelayedFire_Anim.release();
+		pExt->DelayedFire_Anim.reset(nullptr);
 	}
 
 	pExt->DelayedFire_Anim_LoopCount = 1;

@@ -71,6 +71,7 @@ DEFINE_OVERRIDE_HOOK(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
 // customizable berserk fire rate modification
 DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 {
+	enum { SkipROF = 0x6FF2BE , SetROF = 0x6FF29E };
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, ROF, EAX);
 
@@ -81,7 +82,7 @@ DEFINE_OVERRIDE_HOOK(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
 	}
 
 	R->EAX(ROF);
-	return 0x6FF29E;
+	return SetROF;
 }
 
 DEFINE_OVERRIDE_HOOK(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)

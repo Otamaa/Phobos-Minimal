@@ -378,6 +378,7 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\DebugUtilities.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\EffectHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\Helpers.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Helpers\PhysicsHelper.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\RadialFire.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Helpers\VectorHelpers.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Others\DamageText.h" />

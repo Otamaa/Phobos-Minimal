@@ -97,31 +97,6 @@ REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 
-// Ares-hook jmp to this offset
-DEFINE_HOOK(0x71A88D, TemporalClass_AI_Shield, 0x8) //0
-{
-	GET(TemporalClass*, pThis, ESI);
-
-	if (auto const pTarget = pThis->Target)
-	{
-		if(pTarget->IsMouseHovering)
-			pTarget->IsMouseHovering = false;
-
-		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
-
-		if (const auto pShieldData = pTargetExt->GetShield()) {
-			if (pShieldData->IsAvailable())
-				pShieldData->OnTemporalUpdate(pThis);
-		}
-
-		//pTargetExt->UpdateFireSelf();
-		//pTargetExt->UpdateRevengeWeapons();
-	}
-
-	// Recovering vanilla instructions that were broken by a hook call
-	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
-}
-
 DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);

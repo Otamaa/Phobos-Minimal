@@ -240,6 +240,8 @@ public:
 		void Serialize(T& Stm);
 	};
 
+	static std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> boltWeaponTypeExt;
+
 	class ExtContainer final :public Container<WeaponTypeExt::ExtData>
 	{
 	public:
@@ -258,6 +260,11 @@ public:
 			return Stm
 				.Process(nOldCircumference)
 				.Success();
+		}
+
+		static void Clear()
+		{
+			boltWeaponTypeExt.clear();
 		}
 	};
 

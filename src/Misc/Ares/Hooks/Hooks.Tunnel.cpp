@@ -401,9 +401,7 @@ DEFINE_OVERRIDE_HOOK(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	GET(BuildingClass*, pTarget, EDI);
 
 	if (auto pTunnelData = GetTunnels(pTarget->Type, pTarget->Owner))
-	{
 		DestroyTunnel(&pTunnelData->Vector, pTarget, generic_cast<TechnoClass*>(pKiller));
-	}
 
 	return 0;
 }
@@ -611,7 +609,7 @@ DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 }
 
 //NOT DONE YET
-#pragma optimize("", off )
+//#pragma optimize("", off )
 DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
 {
 	enum
@@ -621,109 +619,229 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 		RetRadioRoger = 0x43C535
 	};
 
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pRecepient, EDI);
+	GET(BuildingClass*, pThisBld, ESI);
+	GET(TechnoClass*, pRecpt, EDI);
 
-	auto const nMission = pThis->GetCurrentMission();
+	const auto  nMission = pThisBld->GetCurrentMission();
 
-	if (nMission == Mission::Construction || nMission == Mission::Selling || pThis->BState == BStateType::Construction)
+	if (pThisBld->BState == BStateType::Construction || nMission == Mission::Construction || nMission == Mission::Selling)
 		return RetRadioNegative;
 
-	auto const pType = pThis->Type;
-	auto const pRecipientType = pRecepient->GetTechnoType();
-	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+	const auto pBldType = pThisBld->Type;
+	const auto pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBldType);
+	const auto pRectpType = pRecpt->GetTechnoType();
 
-	if (pRecipientType->MovementZone != MovementZone::Amphibious && pType->Naval != pRecipientType->Naval)
+	if (pRectpType->MovementZone != MovementZone::Amphibious &&
+	pBldType->Naval != pRectpType->Naval)
 		return RetRadioNegative;
 
-	if ((pRecipientType->BalloonHover || pRecipientType->JumpJet)
-		|| !pThis->HasPower
-		|| !TechnoTypeExt::PassangersAllowed(pType, pRecipientType))
+	if ((pRectpType->BalloonHover || pRectpType->JumpJet)
+		|| !pThisBld->HasPower
+		|| !TechnoTypeExt::PassangersAllowed(pBldType, pRectpType))
 		return RetRadioNegative;
 
-	const bool IsUnitAbsorb = pType->UnitAbsorb;
-	const bool IsInfAbsorb = pType->InfantryAbsorb;
-	bool Absorber = false;
-	const bool Istunnel = pTypeExt->TunnelType >= 0;
 
-	if (IsUnitAbsorb || IsInfAbsorb)
-	{
-		Absorber = true;
-	}
-	else if (!Istunnel)
-	{
-		if (!pThis->HasFreeLink(pRecepient) && !Unsorted::IKnowWhatImDoing())
-		{
-			return RetRadioNegative;
-		}
-		else
-		{
-			R->EBX(pType);
-			return ContineCheck;
-		}
-	}
+	const bool IsUnitAbsorber = pBldType->UnitAbsorb;
+	const bool IsInfAbsorber = pBldType->InfantryAbsorb;
+	bool IsAbsorber = false;
+	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
 
-	if (auto const pCapture = pRecepient->CaptureManager)
-	{
-		if (pCapture->IsControllingSomething())
-		{
-			return RetRadioNegative;
-		}
-	}
-
-	if (Istunnel)
-	{
-		const auto nTunnelVec = GetTunnels(pType, pThis->Owner);
-
-		if (pRecepient->IsMindControlled())
-			return RetRadioNegative;
-
-		// out of limit
-		if ((int)nTunnelVec->Vector.size() >= nTunnelVec->MaxCap)
-		{
-			R->EBX(pType);
-			return ContineCheck;
-		}
-
-		if (pType->SizeLimit < pRecipientType->Size)
-		{
-			R->EBX(pType);
-			return ContineCheck;
-		}
-
-		return RetRadioRoger;
-	}
-
-	if (!Absorber)
-	{
-		R->EBX(pType);
-		return ContineCheck;
+	if (IsUnitAbsorber || IsInfAbsorber) {
+		IsAbsorber = 1;
 	}
 	else
 	{
-		auto const pRecpWhat = pRecepient->WhatAmI();
-		if ((pRecpWhat == AbstractType::Infantry && IsUnitAbsorb)
-			|| (pRecpWhat == AbstractType::Infantry && IsInfAbsorb))
+		if (!IsTunnel)
 		{
-			if (pThis->Passengers.NumPassengers >= pType->Passengers)
-			{
-				R->EBX(pType);
-				return ContineCheck;
-			}
+			if (!pThisBld->HasFreeLink(pRecpt) && !Unsorted::IKnowWhatImDoing())
+				return RetRadioNegative;
 
-			if (pType->SizeLimit < pRecipientType->Size)
-			{
-				R->EBX(pType);
-				return ContineCheck;
-			}
+			goto retContinueCheck;
+		}
+	}
 
-			return RetRadioRoger;
+	const auto pCaptureManager = pRecpt->CaptureManager;
+	if (!pCaptureManager)
+	{
+		if (IsTunnel)
+			goto CheckTunnelVector;
+
+		goto ContinueMoreCheck;
+	}
+
+	if (pCaptureManager->IsControllingSomething())
+		return RetRadioNegative;
+
+	if (!IsTunnel)
+	{
+
+	ContinueMoreCheck:
+		if (!IsAbsorber)
+			goto retContinueCheck;
+
+		const auto nWhat = pRecpt->WhatAmI();
+		bool v12;
+
+		if (nWhat == AbstractType::Unit)
+		{
+			v12 = !IsUnitAbsorber;
+		}
+		else
+		{
+			if (nWhat != AbstractType::Infantry)
+				goto CheckPasangers;
+
+			v12 = !IsInfAbsorber;
+		}
+
+		if (!v12)
+		{
+
+		CheckPasangers:
+			if (pThisBld->Passengers.NumPassengers >= pBldType->Passengers)
+				goto retContinueCheck;
+			
+			goto CheckSize;
 		}
 
 		return RetRadioNegative;
 	}
+
+	if (pRecpt->IsMindControlled())
+		return RetRadioNegative;
+
+CheckTunnelVector:
+	const auto pTunnelData = GetTunnels(pBldType, pThisBld->Owner);
+
+	if ((int)pTunnelData->Vector.size() >= pTunnelData->MaxCap)
+	{
+
+	retContinueCheck:
+		R->EBX(pBldType);
+		return ContineCheck;
+	}
+
+CheckSize:
+	if (pBldType->SizeLimit < pRectpType->Size)
+		goto retContinueCheck;
+
+	return RetRadioRoger;
 }
-#pragma optimize("", on )
+
+//DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
+//{
+//	enum
+//	{
+//		RetRadioNegative = 0x43C3F0,
+//		ContineCheck = 0x43C4F8,
+//		RetRadioRoger = 0x43C535
+//	};
+//
+//	GET(BuildingClass*, pThis, ESI);
+//	GET(TechnoClass*, pRecepient, EDI);
+//
+//	auto const nMission = pThis->GetCurrentMission();
+//
+//	if (nMission == Mission::Construction || nMission == Mission::Selling || pThis->BState == BStateType::Construction)
+//		return RetRadioNegative;
+//
+//	auto const pType = pThis->Type;
+//	auto const pRecipientType = pRecepient->GetTechnoType();
+//	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
+//
+//	if (pRecipientType->MovementZone != MovementZone::Amphibious && 
+//		pType->Naval != pRecipientType->Naval)
+//		return RetRadioNegative;
+//
+//	if ((pRecipientType->BalloonHover || pRecipientType->JumpJet)
+//		|| !pThis->HasPower
+//		|| !TechnoTypeExt::PassangersAllowed(pType, pRecipientType))
+//		return RetRadioNegative;
+//
+//	const bool IsUnitAbsorb = pType->UnitAbsorb;
+//	const bool IsInfAbsorb = pType->InfantryAbsorb;
+//	bool Absorber = false;
+//	const bool Istunnel = pTypeExt->TunnelType >= 0;
+//
+//	if (IsUnitAbsorb || IsInfAbsorb)
+//	{
+//		Absorber = true;
+//	}
+//	else if (!Istunnel)
+//	{
+//		if (!pThis->HasFreeLink(pRecepient) && !Unsorted::IKnowWhatImDoing())
+//		{
+//			return RetRadioNegative;
+//		}
+//		else
+//		{
+//			R->EBX(pType);
+//			return ContineCheck;
+//		}
+//	}
+//
+//	if (auto const pCapture = pRecepient->CaptureManager)
+//	{
+//		if (pCapture->IsControllingSomething())
+//		{
+//			return RetRadioNegative;
+//		}
+//	}
+//
+//	if (Istunnel)
+//	{
+//		const auto nTunnelVec = GetTunnels(pType, pThis->Owner);
+//
+//		if (pRecepient->IsMindControlled())
+//			return RetRadioNegative;
+//
+//		// out of limit
+//		if ((int)nTunnelVec->Vector.size() >= nTunnelVec->MaxCap)
+//		{
+//			R->EBX(pType);
+//			return ContineCheck;
+//		}
+//
+//		if (pType->SizeLimit < pRecipientType->Size)
+//		{
+//			R->EBX(pType);
+//			return ContineCheck;
+//		}
+//
+//		return RetRadioRoger;
+//	}
+//
+//	if (!Absorber)
+//	{
+//		R->EBX(pType);
+//		return ContineCheck;
+//	}
+//	else
+//	{
+//		auto const pRecpWhat = pRecepient->WhatAmI();
+//		if ((pRecpWhat == AbstractType::Infantry && IsUnitAbsorb)
+//			|| (pRecpWhat == AbstractType::Infantry && IsInfAbsorb))
+//		{
+//			if (pThis->Passengers.NumPassengers >= pType->Passengers)
+//			{
+//				R->EBX(pType);
+//				return ContineCheck;
+//			}
+//
+//			if (pType->SizeLimit < pRecipientType->Size)
+//			{
+//				R->EBX(pType);
+//				return ContineCheck;
+//			}
+//
+//			return RetRadioRoger;
+//		}
+//
+//		return RetRadioNegative;
+//	}
+//}
+
+//#pragma optimize("", on )
 
 DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {
@@ -741,8 +859,7 @@ DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		return CanEnter;
 
 	bool Enterable = false;
-	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
-	{
+	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget)) {
 		Enterable = BuildingTypeExt::ExtMap.Find(pBuildingTarget->Type)->TunnelType >= 0;
 	}
 
@@ -757,8 +874,7 @@ DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	if (const auto nTunnelVec = GetTunnels(pBld->Type, pBld->Owner))
-	{
+	if (const auto nTunnelVec = GetTunnels(pBld->Type, pBld->Owner)) {
 		return CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
 	}
 

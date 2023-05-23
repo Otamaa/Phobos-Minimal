@@ -511,7 +511,7 @@ DEFINE_HOOK(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x414ED0;
 }
@@ -523,9 +523,68 @@ DEFINE_HOOK(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
 	GameConstruct(pAnim, TechnoTypeExt::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x7365BB;
+}
+
+DEFINE_HOOK(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
+{
+	GET(AnimTypeClass*, pExplType, EDI);
+	GET(UnitClass*, pThis, ESI);
+
+	if (pExplType)
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	}
+
+	return 0x738748;
+}
+
+DEFINE_HOOK(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(int, X, ECX);
+	GET(int, Y, EDX);
+	GET(int, Z, EAX);
+	GET(int, zAdd, EDI);
+
+	const auto nRandType = ScenarioClass::Instance->Random.Random() % pThis->Type->Explosion.Count;
+	const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
+	CoordStruct nLoc { X , Y , Z + zAdd };
+	if (auto const pType = pThis->Type->Explosion.GetItemOrDefault(nRandType))
+	{
+		if (auto pAnim = GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+
+	}
+
+	return 0x441A24;
+}
+
+DEFINE_HOOK(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	LEA_STACK(CoordStruct*, pCoord, 0x64 - 0x54);
+
+	if (auto pType = AnimTypeClass::Find("FIRE3"))
+	{
+		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
+		if (auto pAnim = GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false))
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	}
+
+	return 0x441B1F;
+}
+
+DEFINE_HOOK(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EAX);
+
+	AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	return 0x0;
 }
 
 DEFINE_HOOK(0x70253F, TechnoClass_ReceiveDamage_Metallic_AnimDebris, 0x6)
@@ -613,10 +672,10 @@ DEFINE_HOOK(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
 
-	if (pThis->Owner
+	if (pTypeExt->PassiveAcquire_AI.isset()
+		&& pThis->Owner
 		&& !pThis->Owner->IsControlledByHuman()
-		&& !pThis->Owner->IsNeutral()
-		&& pTypeExt->PassiveAcquire_AI.isset())
+		&& !pThis->Owner->IsNeutral())
 	{
 		return pTypeExt->PassiveAcquire_AI.Get() ?
 			ContinueCheck : CantPassiveAcquire;
@@ -657,11 +716,11 @@ DEFINE_HOOK(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pTargetType);
 
-	if (pTarget->Owner && pTarget->Owner->IsControlledByHuman())
-		return Continue;
-
 	if (pTypeExt->AI_LegalTarget.isset())
 	{
+		if (pTarget->Owner && pTarget->Owner->IsControlledByHuman())
+			return Continue;
+
 		return pTypeExt->AI_LegalTarget.Get() ?
 			ContinueChecks : ReturnFalse;
 	}
@@ -839,7 +898,7 @@ DEFINE_HOOK(0x4F9AF0, HouseClass_IsAlly_AbstractClass, 0x7)
 //	Debug::Log("[%d] %s Warhead Destroying %s ! \n ", pWH, pWH->ID, pThis->get_ID());
 //	return 0x0;
 //}
-//
+
 //DEFINE_HOOK(0x4A9004, MouseClass_CanPlaceHere_SkipSelf, 0x6)
 //{
 //	if (auto const pHouse = HouseClass::Array->GetItem(R->EAX<int>()))
@@ -928,6 +987,7 @@ DEFINE_HOOK(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 
 	if (TechnoExt::ExtMap.Find(pThis)->DelayedFire_DurationTimer <= 0)
 	{
+		//this may crash the game , since the object got deleted after killself ,..
 		if (pWeaponExt->RemoveTechnoAfterFiring.Get())
 			TechnoExt::KillSelf(pThis, KillMethod::Vanish);
 		else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
@@ -942,7 +1002,6 @@ DEFINE_HOOK(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
 }
 
-//
 //DEFINE_HOOK(0x67E875, LoadGame_Start_AfterMouse, 0x6)
 //{
 //	Unsorted::CursorSize = nullptr;
@@ -977,17 +1036,6 @@ DEFINE_HOOK(0x70FBE0, TechnoClass_Deactivate, 0x6)
 
 	return 0x0;
 }
-
-#ifdef Ares_3_0_p1
-DEFINE_HOOK(0x7463A8, UnitClass_Captured_DriverKilled, 0x6)
-{
-	enum { Failed = 0x7463EC, Continue = 0x0 };
-	GET(UnitClass*, pThis, EDI);
-
-	auto const bDriverKilled = (*(bool*)((char*)pThis->align_154 + 0x9C));
-	return bDriverKilled ? Failed : Continue;
-}
-#endif
 
 DEFINE_HOOK(0x701AAD, TechnoClass_ReceiveDamage_WarpedOutBy_Add, 0xA)
 {
@@ -1181,15 +1229,24 @@ DEFINE_HOOK(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 //	return 0x0;
 //}
 
-DEFINE_HOOK(0x62A929, ParasiteClass_CanInfect_Additional, 0x6)
+DEFINE_HOOK(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
 {
-	enum { returnfalse = 0x62A976, continuecheck = 0x0, continuecheckB = 0x62A933 };
-
+	enum { continuecheck = 0x62A929, returnfalse = 0x62A976, continuecheckB = 0x62A933 };
 	GET(FootClass* const, pVictim, ESI);
 
-	return pVictim->IsIronCurtained() || pVictim->IsBeingWarpedOut() ||
-		TechnoExt::IsChronoDelayDamageImmune(pVictim)
-		? returnfalse : !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
+	if (TechnoExt::IsParasiteImmune(pVictim))
+		return returnfalse;
+
+	if (pVictim->IsIronCurtained())
+		return returnfalse;
+
+	if (pVictim->IsBeingWarpedOut())
+		return returnfalse;
+
+	if (TechnoExt::IsChronoDelayDamageImmune(pVictim))
+		return returnfalse;
+
+	return !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
 DEFINE_HOOK(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
@@ -1453,7 +1510,7 @@ DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 //	R->EAX(pThis->Locomotor.get()->Draw_Matrix(pMtx,pKey));
 //	return Skip;
 //}
-//
+
 //DEFINE_HOOK(0x73C864, UnitClass_drawcode_AttachmentAdjust, 0x6)
 //{
 //	enum { Skip = 0x73C87D };
@@ -2007,42 +2064,6 @@ DEFINE_HOOK(0x5F54A8, ObjectClass_ReceiveDamage_ConditionYellow, 0x6)
 //	return 0x73C725;
 //}
 
-//DEFINE_HOOK(0x529A14, INIClass_ReadPoint2D_CheckDefault, 0x5)
-//{
-//	GET(Point2D*, pDefault, ECX);
-//
-//	if (!pDefault)
-//		R->EDX(Point2D::Empty);
-//	else
-//		return 0x0;
-//
-//	return 0x529A16;
-//
-//}
-
-////this literally replace everything , omegalul
-//DEFINE_HOOK(0x7353C0, UnitClass_CTOR_ReplaceType, 0x7)
-//{
-//	//GET(UnitClass*, pThis, ECX);
-//	GET_STACK(UnitTypeClass*, pSetType, 0x4);
-//	GET_STACK(HouseClass*, pOwner, 0x8);
-//
-//	UnitTypeClass* pDecided = pSetType;
-//
-//	if (pSetType && pOwner && !pOwner->ControlledByPlayer()) {
-//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pSetType);
-//
-//		if (pTypeExt->Unit_AI_AlternateType.isset()) {
-//			auto const pNewType = pTypeExt->Unit_AI_AlternateType.Get(pSetType);
-//			Debug::Log("Replacing CTORed [%s] House AI Unit [%s] to [%s] ! \n", pOwner->get_ID() , pSetType->ID, pNewType->ID);
-//			pDecided = pNewType;
-//		}
-//	}
-//
-//	R->Stack(0x4, pDecided);
-//	return 0x7353EC;
-//}
-
 DEFINE_HOOK(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
 	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
@@ -2279,175 +2300,6 @@ void DrawTiberiumPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pR
 	}
 }
 
-//TODO : dynamic array ?
-//void DrawCargoPips_NotBySize(TechnoClass* pThis, int nMaxPip, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
-//{
-//	if (!nMaxPip)
-//		return;
-//
-//	int nTotal_size = pThis->Passengers.GetTotalSize();
-//	int nCur_size = pThis->Passengers.NumPassengers;
-//	auto const pBld = specific_cast<BuildingClass*>(pThis);
-//	auto const pShape = pBld ? FileSystem::PIPS_SHP() : FileSystem::PIPS2_SHP();
-//	auto nPipState = std::make_unique<int>(sizeof(int) * nMaxPip);
-//	std::memset(nPipState.get(), 0, sizeof(int) * nMaxPip); //zero the array
-//
-//	if (pBld && pBld->Absorber())
-//	{
-//		if (nCur_size > 0)
-//		{
-//			auto pPassengers = pThis->Passengers.GetFirstPassenger();
-//
-//			for (int i = 0; i < nCur_size; ++i)
-//			{
-//
-//				if (!pPassengers)
-//					break;
-//
-//				switch (pPassengers->WhatAmI())
-//				{
-//				case AbstractType::Unit:
-//					nPipState.get()[i] = (int)(static_cast<InfantryClass*>(pPassengers)->Type->Pip);
-//					break;
-//				case AbstractType::Infantry:
-//					nPipState.get()[i] = (int)PipIndex::Red;
-//					break;
-//				default:
-//					nPipState.get()[i] = (int)PipIndex::White;
-//					break;
-//				}
-//
-//				pPassengers = static_cast<FootClass*>(pPassengers->NextObject);
-//			}
-//		}
-//	}
-//	else
-//	{
-//		if (nTotal_size >= nMaxPip)
-//		{
-//			nPipState.reset();
-//			return;
-//		}
-//
-//		auto pPassengers = pThis->Passengers.GetFirstPassenger();
-//
-//		for (int i = 0; i < nCur_size; ++i)
-//		{
-//
-//			if (!pPassengers)
-//				break;
-//
-//			switch (pPassengers->WhatAmI())
-//			{
-//			case AbstractType::Unit:
-//			{
-//				int nSize = int(pPassengers->GetTechnoType()->SizeLimit - 1.0);
-//				if (nSize > 0)
-//				{
-//					auto nArr = &nPipState.get()[nTotal_size];
-//					nTotal_size -= nSize;
-//					do
-//					{
-//						*nArr-- = (int)PipIndex::White;
-//					}
-//					while (--nSize);
-//				}
-//				nPipState.get()[nTotal_size] = (int)PipIndex::Blue;
-//			} break;
-//			case AbstractType::Infantry:
-//			{
-//				int nSize = int(pPassengers->GetTechnoType()->SizeLimit - 1.0);
-//				if (nSize > 0)
-//				{
-//					auto nArr = &nPipState.get()[nTotal_size];
-//					nTotal_size -= nSize;
-//					do
-//					{
-//						*nArr-- = (int)PipIndex::White;
-//					}
-//					while (--nSize);
-//				}
-//				nPipState.get()[nTotal_size] = (int)(static_cast<InfantryClass*>(pPassengers)->Type->Pip);
-//			}
-//			break;
-//			default:
-//				nPipState.get()[nTotal_size] = (int)PipIndex::Green;
-//				break;
-//			}
-//
-//			pPassengers = static_cast<FootClass*>(pPassengers->NextObject);
-//			--nTotal_size;
-//		}
-//	}
-//
-//	Point2D nOffs {};
-//	Point2D nPointHere {};
-//
-//	if (pThis->GetTechnoType()->Gunner)
-//	{
-//		CC_Draw_Shape(
-//			DSurface::Temp(),
-//			FileSystem::THEATER_PAL(),
-//			pShape,
-//			*nPipState.get(),
-//			nPoints,
-//			pRect,
-//			0x600,
-//			0,
-//			0,
-//			0,
-//			1000,
-//			0,
-//			0,
-//			0,
-//			0,
-//			0);
-//
-//		nOffs.X = 1;
-//		nOffs.Y = 1;
-//		nPointHere.Y = 2 * nOffsetY;
-//		nPointHere.X = 2 * nOffsetX;
-//
-//	}
-//
-//	Point2D nOffsB {};
-//
-//	if (nOffs.X < nMaxPip)
-//	{
-//		int nYOffsHere = nOffsetY * nOffs.Y;
-//		int nXOffsHere = nOffsetX * nOffs.X;
-//		auto nArr = &nPipState.get()[nOffs.Y];
-//		int nMaxPipHere = nMaxPip - nOffs.Y;
-//
-//		do
-//		{
-//			Point2D nPointHereB { nXOffsHere + nPointHere.X + nPoints->X ,nYOffsHere + nPoints->Y + nPointHere.Y };
-//			CC_Draw_Shape(
-//			DSurface::Temp(),
-//			FileSystem::THEATER_PAL(),
-//			pShape,
-//			*nArr,
-//			&nPointHereB,
-//			pRect,
-//			0x600,
-//			0,
-//			0,
-//			0,
-//			1000,
-//			0,
-//			0,
-//			0,
-//			0,
-//			0);
-//			nYOffsHere += nOffsetY;
-//			nXOffsHere += nOffsetX;
-//			nArr++;
-//			--nMaxPipHere;
-//		}
-//		while (!(nMaxPipHere == 1));
-//	}
-//}
-
 void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 {
 	const auto pType = pTechno->GetTechnoType();
@@ -2537,7 +2389,7 @@ DEFINE_HOOK(0x70A1F6, TechnoClass_DrawPips_Tiberium, 0x6)
 //
 //	return 0;
 //}
-//
+
 //DEFINE_HOOK(0x70DA6D, TechnoClass_SensorAI_ObserverSkipWarn, 0x6)
 //{
 //	return HouseExt::IsObserverPlayer() ? 0x70DADC : 0x0;
@@ -2944,7 +2796,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 // {
 // 	GET(InfantryClass*, pThis, ESI);
 // 	// REF_STACK(args_ReceiveDamage const, args, STACK_OFFS(0xD0, -0x4));
-
+//
 // 	// if (!InfantryExt::ExtMap.Find(pThis)->IsUsingDeathSequence && !pThis->Type->JumpJet) {
 // 	// 	auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 // 	// 	if (!pWHExt->DeadBodies.empty()) {
@@ -2957,7 +2809,7 @@ DEFINE_HOOK(0x44D455, BuildingClass_Mission_Missile_EMPPulseBulletWeapon, 0x8)
 // 	// 		}
 // 	// 	}
 // 	// }
-
+//
 // 	R->ECX(pThis);
 // 	pThis->UnInit();
 // 	return 0x518BA0;
@@ -3016,7 +2868,6 @@ DEFINE_HOOK(0x4242F4, AnimClass_Trail_Override, 0x6)
 //
 // 	return 0;
 // }
-
 
 DEFINE_HOOK(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 {
@@ -3173,102 +3024,6 @@ FunctionreturnType KickoutTechnoType(BuildingClass* pProduction, KickOutProducti
 //	case FunctionreturnType::Failed : 
 //		return 0x444EDE; // decrease mutex
 //	}
-//}
-
-//struct TunnelTypeClass
-//{
-//	static std::vector<std::unique_ptr<TunnelTypeClass>> Array;
-//
-//	Valueable<int> Size {};
-//};
-//std::vector<std::unique_ptr<TunnelTypeClass>> TunnelTypeClass::Array {};
-//
-//struct HouseExt_Ares
-//{
-//	HouseClass* AttachedTo;
-//	static PhobosMap<TunnelTypeClass*, std::vector<FootClass*>> Tunnels;
-//};
-//
-//PhobosMap<TunnelTypeClass*, std::vector<FootClass*>> HouseExt_Ares::Tunnels {};
-//
-//std::vector<FootClass*>* Isunnel(int Idx, HouseClass* pHouse)
-//{
-//
-//	if (Idx <= TunnelTypeClass::Array.size()) {
-//		return &HouseExt_Ares::Tunnels[TunnelTypeClass::Array.at(Idx).get()];
-//	}
-//
-//	return nullptr;
-//}
-//
-//bool SizeEligible(int Idx, HouseClass* pHouse)
-//{
-//	if (Idx <= TunnelTypeClass::Array.size())
-//	{
-//		auto const pTunnel = TunnelTypeClass::Array.at(Idx).get();
-//		auto const& pTunnelData = HouseExt_Ares::Tunnels[pTunnel];
-//		return pTunnelData.size() < pTunnel->Size;
-//	}
-//}
-//
-//bool DestroyTunnelContents(std::vector<FootClass*>* pVec , BuildingClass* pTargetBld , TechnoClass* pKiller)
-//{
-//	if (pVec->begin() == pVec->end())
-//		return false;
-//
-//	auto const pOwner = pTargetBld->Owner;
-//	
-//	//find same tunnel from current owner
-//	auto const bSameTypeExist = std::any_of(pOwner->Buildings.begin(), pOwner->Buildings.end(),
-//		[&](BuildingClass* pBld) {
-//
-//			if (pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-//			{
-//				auto const nCurMission = pBld->CurrentMission;
-//				if (nCurMission != Mission::Construction
-//				  && nCurMission != Mission::Selling
-//				  && pBld != pTargetBld
-//				  //&& pBld->Type->BuildingTypeExt_ExtData->TunnelType == pTargetBld->Type->BuildingTypeExt_ExtData->TunnelType
-//					)
-//				{
-//					return true;
-//				}
-//			}
-//			return false;
-//		});
-//		
-//	if (!bSameTypeExist) {
-//
-//		for (size_t i = 0; i < pVec->size(); ++i) {
-//			auto const pFoot = pVec->at(i);
-//
-//			if (pFoot->OldTeam)
-//				pFoot->OldTeam->RemoveMember(pFoot);
-//
-//			pFoot->RegisterDestruction(pKiller);
-//			pFoot->UnInit();
-//			pVec->erase(pVec->begin() + i);
-//		}
-//
-//		return true;
-//	}
-//
-//	return false;
-//}
-//
-//DWORD BuildingClass_Demolish_tunnel(REGISTERS* R)
-//{
-//	GET_STACK(AbstractClass*, pKiller, 0x90);
-//	GET(BuildingClass*, pThis, EDI);
-//
-//	if (auto pTunnel = Isunnel(0, pThis->Owner))
-//	{
-//		auto const pTechno = generic_cast<TechnoClass*>(pKiller);
-//
-//		DestroyTunnelContents(pTunnel, pThis, pTechno);
-//	}
-//	
-//	return 0x0;
 //}
 
 #include <Powerups.h>
@@ -4391,22 +4146,17 @@ struct TechnoTypeExt_Gscript
 		auto const pTypeExt = pThis->GetTechnoType();
 		auto const pExt = TechnoTypeExt_Gscript::Get(pTypeExt);
 
-		if (pExt->Promoted_PlayAnim.Get(pThis))
-		{
-			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50))
-			{
+		if (pExt->Promoted_PalaySpotlight.Get(pThis)) {
+			if (auto pSpot = GameCreate<SpotlightClass>(pThis->Location, 50)) {
 				pSpot->DisableFlags = pExt->Promoted_PalaySpotlight_bit.Get(pThis);
 			}
 		}
 
 
-		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis))
-		{
+		if (auto pAnimType = pExt->Promoted_PlayAnim.Get(pThis)) {
 			GameCreate<AnimClass>(pAnimType, pThis->Location, 0, 1, 0x600u, 0, 0);
 		}
-
 	}
-
 };
 
 //DEFINE_HOOK_AGAIN(0x736A22,UnitClass_UpdateTurret_ApplyTarget_ClearFlags, 0xA)
@@ -4481,8 +4231,8 @@ struct TechnoTypeExt_Gscript
 
 // DEFINE_HOOK(0x708F5E, TechnoClass_ResponseToSelect_PlaySound, 0xA)
 // {
-// 	//GET(TechnoClass*, pThis, ESI);
-
+// 	GET(TechnoClass*, pThis, ESI);
+//
 // 	return 0x0;
 // }
 
@@ -4781,7 +4531,7 @@ bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct
 //
 //	return pType->Turret ? 0x74101E : 0x74124D;
 //}
-//
+
 //DEFINE_HOOK(0x7369F2, UnitClass_UpdateFacing_TurretLimit, 8)
 //{
 //	GET(UnitClass*, pThis, ESI);
@@ -5178,8 +4928,8 @@ DEFINE_HOOK(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
 #include <Ext/InfantryType/Body.h>
 std::array<const char* const, 6u> DamageState_to_srings
 { {
-		"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
-	} };
+	"Unaffected", "Unchanged", "NowYellow", "NowRed", "NowDead", "PostMortem"
+} };
 
 //DEFINE_HOOK(0x440333, BuildingClass_AI_C4TimerRanOut_ApplyDamage, 0x6)
 //{
@@ -5248,7 +4998,7 @@ std::array<const char* const, 6u> DamageState_to_srings
 //	pExt->C4Owner = nullptr;
 //	return 0x0;
 //}
-//
+
 //DEFINE_HOOK(0x457CA0, BuildingClass_ApplyIC_C4DataClear, 0x6)
 //{
 //	GET(BuildingClass*, pThis, ECX);
@@ -5704,7 +5454,7 @@ DEFINE_HOOK(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 //51968E 
 DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
 {
-	enum { retTrue = 0x519698, retFalse = 0x5196A6 };
+	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
 
 	GET(InfantryClass*, pThis, ESI);
 
@@ -5714,7 +5464,7 @@ DEFINE_HOOK(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
 //4D4BA0
 DEFINE_HOOK(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
 {
-	enum { retTrue = 0x4D4BAA, retFalse = 0x4D4BB4 };
+	enum { retTrue = 0x4D4BB4, retFalse = 0x4D4BAA };
 
 	GET(InfantryClass*, pThis, ESI);
 
@@ -5752,8 +5502,10 @@ DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 
 	auto it = AdditionalPip.begin();
 
-	for (size_t i = 0; i < AdditionalPip.size(); ++i) {
-		if (CRT::strcmpi(buffer, *it++) == 0) {
+	for (size_t i = 0; i < AdditionalPip.size(); ++i)
+	{
+		if (CRT::strcmpi(buffer, *it++) == 0)
+		{
 			R->EAX(PipScale(i + 1));
 			return seteax;
 		}
@@ -5787,7 +5539,6 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 
 	if (!pThis)
 	{
-		//Debug::Log("GameTrying to FindFree spot but this pointer is nullptr ! \n");
 		*pResult = CoordStruct::Empty;
 		R->EAX(pResult);
 		return retResult;
@@ -5814,41 +5565,149 @@ DEFINE_HOOK(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 DEFINE_HOOK(0x520E75, InfantryClass_SequenceAI_PreventOutOfBoundArrayRead, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
+	return (int)pThis->SequenceAnim == -1 ? 0x520EF4 : 0x0;
+}
 
-	const int nCurSeq = (int)pThis->SequenceAnim;
+DEFINE_HOOK(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
+{
+	GET(InfantryClass*, pThis, EBP);
+	return pThis->Type->NoShadow ? 0x51958A : 0x0;
+}
 
-	if (nCurSeq == -1) {
-		//Debug::Log("Infantry[%s] Updating Sequence with -1 ? , WTF ? \n", pThis->Type->ID);
-		return 0x520EF4;
+DEFINE_HOOK(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
+{
+	GET(UnitClass*, pThis, ESI);
+	return pThis->Disguise && Is_Unit(pThis->Disguise) ? 0x746A9C : 0;
+}
+
+// DEFINE_HOOK(0x746B6B, UnitClass_Disguise_FullName , 7)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//    if (pThis->IsDisguised())
+//    {
+//		if(!pThis->Owner)
+//			return 0x746B48;
+//
+//		const auto pPlayer = HouseClass::CurrentPlayer();
+//		if(!pPlayer || (pThis->Owner != pPlayer))
+//			return 0x746B48;
+//
+//		if(!pThis->Owner->IsAlliedWith_(pPlayer))
+//			return 0x746B48;
+//    }
+//
+//    return 0;
+//}
+
+// it only work when first created , when captured or change owner
+// it wont change ,.. need more stuffs
+//DEFINE_HOOK(0x45197B, BuildingClass_AnimLogic_SetOwner, 0x6)
+//{
+//	GET(AnimClass*, pAnim, EBP);
+//	GET(BuildingClass*, pThis, ESI);
+//
+//	if (pAnim && pAnim->Owner != pThis->Owner)
+//		pAnim->Owner = pThis->Owner;
+//
+//	return 0x0;
+//}
+
+DEFINE_HOOK(0x4D423A , FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+
+	const auto pType = pThis->GetTechnoType();
+	if (Is_Unit(pThis) && pType->IsSubterranean && pType->ResourceGatherer) {
+		pThis->QueueMission(Mission::Harvest, false);
 	}
-
-	/*const auto pDoInfo = &pThis->Type->Sequence->Data[nCurSeq];
-
-	if(!pDoInfo->SoundCount)
-		return 0x520EF4;
-
-	for (int i = 0; i < pDoInfo->SoundCount; ++i)
-	{
-		if (pThis->Animation.HasChanged)
-		{
-			const int nCount = pDoInfo->CountFrames <= 1 ? 1 : pDoInfo->CountFrames;
-			const auto nData = pThis->Animation.Value % nCount;
-
-			if (nData == pDoInfo->Sound1StartFrame)
-			{
-				VocClass::PlayAt(pDoInfo->Sound1Index, pThis->Location);
-			}
-			else if (nData == pDoInfo->Sound2StartFrame)
-			{
-				VocClass::PlayAt(pDoInfo->Sound2Index, pThis->Location);
-			}
-		}
-	}
-
-	return 0x520EF4;*/
-
 	return 0x0;
 }
+
+//DEFINE_HOOK(0x740AEF , UnitClass_MissionMove_test , 0x6)
+//{
+//	Debug::Log("%s HereIam\n", __FUNCTION__);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x4D41D6, FootClass_BasePath_Surfacing_Harvester, 0x5)
+//{
+//	GET(FootClass*, pThis, EBP);
+//
+//	const auto pType = pThis->GetTechnoType();
+//
+//	if (pType->ResourceGatherer)
+//	{
+//		pThis->QueueMission(Mission::Harvest, true);
+//		return 0x4D41E5;
+//	}
+//
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x729B25, TunnelLoco_729AA0, 0x7)
+//{
+//	Debug::Log("%s HereIam\n", __FUNCTION__);
+//	return 0x0;
+//}
+//
+//DEFINE_HOOK(0x742084, UnitClass_AssignDest_Subterranean_test, 0x6)
+//{
+//	Debug::Log("%s HereIam\n", __FUNCTION__);
+//	return 0x0;
+//}
+
+//DEFINE_HOOK(0x4CF3CB, FlyLocomotionClass_4CEFB0 , 5)
+//{
+// GET(DirStruct*, pDir, EAX);
+// GET(DirStruct*, pDirB, EDX);
+// GET(void**, pPtr , ESI);
+//
+// TechnoClass* pTechno = (TechnoClass*)(*pPtr);
+//
+// if (pTechno->IsInAir() &&
+//	(pTechno->GetTechnoType()->Spawned || pTechno->CurrentMission != Mission::Enter))
+// {
+//	 if (pDir)
+//	 {
+//		 pDir->Raw = (pTechno->TurretFacing().GetValue(), 0u);
+//	 }
+//	 else if (pDirB)
+//	 {
+//		 pDirB->Raw = (pTechno->TurretFacing().GetValue(), 0u);
+//	 }
+// }
+//
+// return 0;
+//}
+
+//  DEFINE_HOOK(0x6F3B5C, UnitClassClass_GetFLH_UnbindTurret , 6)
+// {
+// 	enum { retNotTechno = 0x6F3C1A , retContinue = 0x6F3B62, retSetMtx = 0x6F3C52};
+// 	GET(TechnoClass*, pThis, EBX);
+// 	GET_STACK(int , weaponIdx , 0xE0);
+// 	LEA_STACK(Matrix3D* , pResult , 0x48);
+//
+//     if (pThis)
+//     {
+// 		Matrix3D nDummy {};
+// 		std::memcpy(pResult ,&nDummy, sizeof(Matrix3D) );
+//         return retSetMtx;
+//
+// 		return retContinue;
+//     }
+//
+//     return retNotTechno;
+// }
+
+// better put it at 0x6F3D22 ,..
+// replacing getFLH so it safe some execution time
+// DEFINE_HOOK(0x6F3D2F, UnitClassClass_GetFLH_OnTarget , 5)
+// {
+//     GET(TechnoClass*, pTarget, EBX);
+// 	R->EAX<CoordStruct*>();
+//     return 0;
+// }
 
 //TODO Garrison/Ungarrison eva and sound
 // NPExt Stuffs

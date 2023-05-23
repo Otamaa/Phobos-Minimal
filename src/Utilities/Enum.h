@@ -165,6 +165,7 @@ enum class PhobosAbilityType : int
 	BerzerkImmune = 11,
 	AbductorImmune = 12,
 	Assaulter = 13,
+	ParasiteImmune = 14 ,
 
 	count
 };

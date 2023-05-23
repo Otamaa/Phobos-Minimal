@@ -115,6 +115,7 @@ public:
 		Valueable<bool> Tiberium_DamageEnabled;
 		Valueable<bool> Tiberium_HealEnabled;
 		Valueable<WarheadTypeClass*> Tiberium_ExplosiveWarhead;
+		Valueable<AnimTypeClass*> Tiberium_ExplosiveAnim;
 
 		Valueable<int> OverlayExplodeThreshold;
 		Valueable<bool> AlliedSolidTransparency;
@@ -243,6 +244,7 @@ public:
 			, Tiberium_DamageEnabled { false }
 			, Tiberium_HealEnabled { false }
 			, Tiberium_ExplosiveWarhead { nullptr }
+			, Tiberium_ExplosiveAnim { nullptr }
 			, OverlayExplodeThreshold { 0 }
 			, AlliedSolidTransparency { true }
 			, DecloakSound { }

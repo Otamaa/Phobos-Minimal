@@ -185,6 +185,9 @@ public:
 		Valueable<bool> SpyEffect_AircraftVeterancy;
 		Valueable<bool> SpyEffect_BuildingVeterancy;
 
+		Valueable<bool> ZShapePointMove_OnBuildup;
+		Valueable<int> SellBuildupLength;
+
 		Valueable<bool> CanC4_AllowZeroDamage;
 		Valueable<double> C4_Modifier;
 
@@ -325,6 +328,9 @@ public:
 			, SpyEffect_NavalVeterancy {}
 			, SpyEffect_AircraftVeterancy {}
 			, SpyEffect_BuildingVeterancy {}
+
+			, ZShapePointMove_OnBuildup { false }
+			, SellBuildupLength { 23 }
 
 			, CanC4_AllowZeroDamage { false }
 			, C4_Modifier { 1.0 }

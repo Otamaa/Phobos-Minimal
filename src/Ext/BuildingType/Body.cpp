@@ -637,6 +637,8 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		//
 
 		this->TunnelType.Read(exINI, pSection, "Tunnel");
+
+		this->SellBuildupLength.Read(exINI, pSection, "SellBuildupLength");
 	}
 #pragma endregion
 
@@ -661,6 +663,7 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 			}
 		}
 
+		this->ZShapePointMove_OnBuildup.Read(exArtINI, pSection, "ZShapePointMove.OnBuildup");
 #pragma region Otamaa
 		this->HealthOnfire.Read(exArtINI, pArtSection, "OnFire.Health");
 
@@ -809,6 +812,8 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SpyEffect_NavalVeterancy)
 		.Process(this->SpyEffect_AircraftVeterancy)
 		.Process(this->SpyEffect_BuildingVeterancy)
+		.Process(this->ZShapePointMove_OnBuildup)
+		.Process(this->SellBuildupLength)
 		.Process(this->CanC4_AllowZeroDamage)
 		.Process(this->C4_Modifier)
 		.Process(this->DockUnload_Cell)

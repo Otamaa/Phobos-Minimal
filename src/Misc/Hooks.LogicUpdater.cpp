@@ -292,6 +292,51 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	return 0x0;
 }
 
+DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
+DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	return 0;
+}
+
+
+DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
+DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
+DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
+DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
+// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
+{
+	GET(TechnoClass*, pThis, ESI);
+	return 0;
+}
+
+// Ares-hook jmp to this offset
+DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0
+{
+	GET(TemporalClass*, pThis, ESI);
+
+	if (auto const pTarget = pThis->Target)
+	{
+		if (pTarget->IsMouseHovering)
+			pTarget->IsMouseHovering = false;
+
+		auto const pTargetExt = TechnoExt::ExtMap.Find(pTarget);
+
+		if (const auto pShieldData = pTargetExt->GetShield())
+		{
+			if (pShieldData->IsAvailable())
+				pShieldData->OnTemporalUpdate(pThis);
+		}
+
+		//pTargetExt->UpdateFireSelf();
+		//pTargetExt->UpdateRevengeWeapons();
+	}
+
+	// Recovering vanilla instructions that were broken by a hook call
+	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
+}
+
 //
 //DEFINE_HOOK(0x55B5FB, LogicClass_AI_AfterEMPulse, 0x6)
 //{

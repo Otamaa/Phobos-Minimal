@@ -75,6 +75,7 @@ DEFINE_OVERRIDE_HOOK(0x75FA29, WaveClass_Draw_Colors, 0x6)
 	const auto nData = WaveExt::GetWaveColor(pThis);
 	std::memcpy(&AresCreateWave::TempColor, &nData, sizeof(WaveColorData));
 	return 0x0;
+
 }
 
 DEFINE_OVERRIDE_HOOK(0x760F50, WaveClass_Update, 0x6)

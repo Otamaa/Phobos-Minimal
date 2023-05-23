@@ -5,6 +5,7 @@
 #include <Utilities/Macro.h>
 
 int WeaponTypeExt::nOldCircumference = DiskLaserClass::Radius;
+std::unordered_map<EBolt*, const WeaponTypeExt::ExtData*> WeaponTypeExt::boltWeaponTypeExt;
 
 void WeaponTypeExt::ExtData::Initialize()
 {

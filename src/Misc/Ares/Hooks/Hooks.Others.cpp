@@ -978,7 +978,6 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 		{
 			if (pThis->Tiberium.GetTotalAmount() > 0.0f)
 			{
-
 				// multiply the amounts with their powers and sum them up
 				int morePower = 0;
 				for (int i = 0; i < TiberiumClass::Array->Count; ++i)
@@ -987,12 +986,19 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 					morePower += int(pThis->Tiberium.Tiberiums[i] * pTiberium->Power);
 				}
 
-				// go boom
-				WarheadTypeClass* pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead;
-				if (morePower > 0 && pWH)
+				if (morePower > 0)
 				{
 					CoordStruct crd = pThis->GetCoords();
-					MapClass::DamageArea(crd, morePower, pThis, pWH, pWH->Tiberium, pThis->Owner);
+					if(auto pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead) {
+
+						MapClass::DamageArea(crd, morePower, pThis, pWH, pWH->Tiberium, pThis->Owner);
+					}
+
+					if(auto pAnim = RulesExt::Global()->Tiberium_ExplosiveAnim)
+					{
+						if (auto pA = GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false))
+							AnimExt::SetAnimOwnerHouseKind(pA, pThis->Owner, nullptr, false);
+					}
 				}
 			}
 		}
@@ -2297,8 +2303,7 @@ DEFINE_OVERRIDE_HOOK(0x73C143, UnitClass_DrawVXL_Deactivated, 5)
 			factor = pRules->DeactivateDim_Powered;
 		}
 		else
-		{
-			
+		{		
 		 factor = pRules->DeactivateDim_Operator;
 		}
 	}

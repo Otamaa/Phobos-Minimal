@@ -330,6 +330,7 @@ private:
 	static bool IsBerserkImmune(TechnoClass* pThis);
 	static bool IsAbductorImmune(TechnoClass* pThis);
 	static bool IsAssaulter(InfantryClass* pThis);
+	static bool IsParasiteImmune(TechnoClass* pThis);
 
 	static bool HasAbility(TechnoClass* pThis , PhobosAbilityType nType);
 	static bool HasImmunity(TechnoClass* pThis, int nType);
@@ -345,6 +346,7 @@ private:
 	static bool IsBerserkImmune(Rank vet, TechnoClass* pThis);
 	static bool IsAbductorImmune(Rank vet, TechnoClass* pThis);
 	static bool IsAssaulter(Rank vet, InfantryClass* pThis);
+	static bool IsParasiteImmune(Rank vet, TechnoClass* pThis);
 
 	static bool HasAbility(Rank vet , TechnoClass* pThis, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);

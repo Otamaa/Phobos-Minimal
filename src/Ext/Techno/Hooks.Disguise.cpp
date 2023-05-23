@@ -174,17 +174,17 @@ DEFINE_HOOK(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
 	return 0x7364A1;
 }
 
-DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
+// DEFINE_HOOK(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
+// {
+// 	GET(UnitClass*, pThis, ESI);
 
-	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
-		->TankDisguiseAsTank.Get())
-		return 0x0;
+// 	if (!TechnoTypeExt::ExtMap.Find(pThis->Type)
+// 		->TankDisguiseAsTank.Get())
+// 		return 0x0;
 
-	R->EAX(pThis->Type);
-	return 0x746A6C;
-}
+// 	R->EAX(pThis->Type);
+// 	return 0x746A6C;
+// }
 
 DEFINE_HOOK(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 {

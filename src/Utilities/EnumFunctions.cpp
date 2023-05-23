@@ -18,7 +18,7 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
 	{ "PSIONICSIMMUNE" } , { "CULLINGIMMUNE" } , { "EMPIMMUNE" } ,
 	{ "RADIMMUNE" } , { "PROTECTED_DRIVER" } , { "UNWARPABLE" } , 
 	{ "POISONIMMUNE" } , { "PSIONICSWEAPONIMMUNE" } , { "BERSERKIMMUNE" } ,
-	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" }
+	{ "ABDUCTORIMMUNE" } , { "ASSAULTER" } , { "PARASITEIMMUNE" }
  }
 };
 

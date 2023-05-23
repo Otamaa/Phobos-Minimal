@@ -210,7 +210,7 @@ DEFINE_HOOK(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
 	auto const pCell = pThis->GetCell();
 	const bool isLand = !pCell ? true : 
 	pCell->LandType != LandType::Water || pCell->ContainsBridge();
-	
+
 	if (!isLand && pWHExt->Debris_Conventional.Get())
 		return SkipGameCode;
 

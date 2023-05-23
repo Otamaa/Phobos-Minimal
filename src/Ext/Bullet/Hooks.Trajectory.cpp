@@ -30,6 +30,48 @@ DEFINE_HOOK(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
 	return 0;
 }
 
+//TODO :
+//DEFINE_HOOK(0x4677A8, BulletClass_AI_ChangeVelocity_Locked , 9)
+//{
+//	//GET(BulletClass*, pThis, EBP);
+//	GET_STACK(VelocityClass, nVel, 0x1AC - 0x140);
+//	REF_STACK(CoordStruct, nResultCoord, 0x1AC - 0x184);
+//
+//	nResultCoord.X = (int)nVel.X;
+//	nResultCoord.Y= (int)nVel.Y;
+//	nResultCoord.Z= (int)nVel.Z;
+//    return 0x4677D3;
+//}
+
+//TODO :
+//DEFINE_HOOK(0x466E05, BulletClass_CheckHight_UnderGround  , 8)
+//{
+//	GET(BulletClass*, pThis, EBP);
+//    R->Stack(0x18, true);
+//    R->Stack(0x20, true);
+//
+//	R->EAX(pThis->GetHeight());
+//    return 0x466E1E;
+//}
+
+//TODO : stack modifier shenanegans
+//DEFINE_HOOK(0x4683E7, BulletClass_DrawSHP_Bright ,  9)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//    //R->Stack(0, status.PaintballState.Data.GetBright(1000));
+//    return 0;
+//}
+
+//TODO : stack modifier shenanegans
+//DEFINE_HOOK(0x46B201, BulletClass_DrawVXL_Color , 7)
+//{
+//	GET_STACK(BulletClass*, pThis, 0x10 - 0x4);
+//	//R->EDI(BlitterFlags.None);
+//    //R->Stack(0, ColorStruct.Red.ToColorAdd().Add2RGB565());
+// 	//R->Stack(0x118, PaintballState.Data.GetBright(bright));
+//    return 0;
+//}
+
 DEFINE_HOOK(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 {
 	GET(BulletClass*, pThis, EBP);

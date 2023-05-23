@@ -398,7 +398,7 @@ DEFINE_OVERRIDE_HOOK(0x71A900, TemporalClass_Update_WarpAway, 6)
 
 // bugfix #379: Temporal friendly kills give veterancy
 // bugfix #1266: Temporal kills gain double experience
-// 
+// TODO :add DP stuffs here
 DEFINE_OVERRIDE_HOOK(0x71A917, TemporalClass_Update_Erase, 5)
 {
 	GET(TemporalClass*, pThis, ESI);

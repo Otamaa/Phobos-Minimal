@@ -1,8 +1,7 @@
 #include "Body.h"
+#include <Ext/AnimType/Body.h>
 #include <Utilities/Macro.h>
 
-#ifdef CHECK_DESYNC
-//TODO : retest for desync
 DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 {
 	GET(AnimTypeClass*, pBounceAnim, ECX);
@@ -13,36 +12,46 @@ DEFINE_HOOK(0x423991, AnimClass_BounceAI_BounceAnim, 0x5)
 	HouseClass* pHouse = pThis->Owner ? pThis->Owner : ((pObject) ? pObject->GetOwningHouse() : nullptr);
 
 	auto nCoord = pThis->GetCoords();
-	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0))
-	{
+	if (auto pAnim = GameCreate<AnimClass>(pBounceAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0)) {
 		AnimExt::SetAnimOwnerHouseKind(pAnim, pHouse, nullptr, pObject, false);
 	}
 
 	return 0x4239D3;
 }
 
-//TODO : retest for desync
-DEFINE_HOOK(0x423F8A, AnimClass_Spawns_Override, 0x7)
+DEFINE_HOOK(0x423F31, AnimClass_Spawns_Override, 0x6)
 {
-	GET(const AnimClass* const, pThis, ESI);
-	GET(int, nVal, EAX);
-	GET_STACK(const CoordStruct, nCoord, 0x4C);
+	GET(AnimClass*, pThis, ESI);
+	GET_STACK(int, X, 0x88 - 0x4C);
+	GET_STACK(int, Y, 0x88 - 0x48);
+	GET_STACK(int, Z, 0x88 - 0x44);
+
+	CoordStruct nCoord { X , Y , Z };
+
+	if(!pThis->Type->Spawns  || pThis->Type->SpawnCount <= 0)
+		return 0x423FC6;
+
+	const auto nMax = ScenarioClass::Instance->Random.RandomFromMax((pThis->Type->SpawnCount * 2));
+
+	if(nMax <= 0)
+		return 0x423FC6;
 
 	const auto pAnimTypeExt = AnimTypeExt::ExtMap.Find(pThis->Type);
 	TechnoClass* pTech = AnimExt::GetTechnoInvoker(pThis, pAnimTypeExt->Damage_DealtByInvoker.Get());
 	HouseClass* pOwner = pThis->Owner ? pThis->Owner : pTech ? pTech->GetOwningHouse() : nullptr;
-	const int nDelay = pAnimTypeExt->Spawns_Delay.Get();
+	auto nDelay = pAnimTypeExt->Spawns_Delay.Get();
 
-	//auto nCoord = pThis->Bounce.GetCoords();
-	for (int i = nVal; i > 0; --i) {
-		if(auto pMem = GameCreate<AnimClass>(pThis->Type->Spawns, nCoord, nDelay, 1, 0x600 , 0, false)) {
+	for (int i = nMax; i > 0; --i) {
+		if (auto pMem = GameCreate<AnimClass>(pThis->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false)) {
 			AnimExt::SetAnimOwnerHouseKind(pMem, pOwner, nullptr, pTech, false);
 		}
 	}
 
+	R->Stack(0x88 - 0x4C , nCoord.X);
+	R->Stack(0x88 - 0x48 , nCoord.Y);
+	R->Stack(0x88 - 0x44 , nCoord.Z);
 	return 0x423FC6;
 }
-#endif
 
 // Bruh ,..
 DEFINE_JUMP(VTABLE, 0x7E3390, GET_OFFSET(AnimExt::GetOwningHouse_Wrapper));
