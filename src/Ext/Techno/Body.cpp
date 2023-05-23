@@ -2860,6 +2860,9 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
+	if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
+		this->MyFighterData.reset(nullptr);
+
 #endif
 }
 
@@ -3471,6 +3474,7 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->CurrentWeaponIdx)
 		.Process(this->CurrentArmor)
 		.Process(this->SupressEVALost)
+		.Process(this->MyFighterData)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif
@@ -3483,7 +3487,6 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 	this->MyDiveData.Serialize(Stm);
 	//this->MyJJData.Serialize(Stm);
 	this->MySpawnSuport.Serialize(Stm);
-	this->MyFighterData.Serialize(Stm);
 
 #endif;
 }

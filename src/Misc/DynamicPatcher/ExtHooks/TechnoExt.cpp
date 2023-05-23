@@ -272,4 +272,66 @@ DEFINE_HOOK(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
 	R->EDI(nGuarRange);
 	return 0x6F903E;
 }
+
+DEFINE_HOOK(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+
+	auto pExt = TechnoExt::ExtMap.Find(pTechno);
+
+	if (!pExt->MyFighterData)
+		return 0x0;
+
+	if(pExt->MyFighterData->IsAreaGuardRolling())
+		return 0x41A6AC;
+
+	return 0;
+}
+
+DEFINE_HOOK(0x41A96C, AircraftClass_Mission_GuardArea_NoTarget_Enter , 6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+
+	auto pExt = TechnoExt::ExtMap.Find(pTechno);
+
+	if (!pExt->MyFighterData)
+		return 0x0;
+
+	pExt->MyFighterData->StartAreaGuard();
+
+	return 0x41A97A;
+}
+
+DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
+{
+	GET(ILocomotion*, Iloco, ESI);
+
+	const FlyLocomotionClass* pFly = static_cast<FlyLocomotionClass*>(Iloco);
+	auto pExt = TechnoExt::ExtMap.Find(pFly->LinkedTo);
+
+	if (!pExt->MyFighterData)
+		return 0x0;
+
+	if (pFly->LinkedTo->GetTechnoType()->RollAngle != 0) {
+		auto const& pData  = pExt->MyFighterData;
+		if (pData->State == AircraftGuardState::ROLLING) {
+			return pData->Clockwise ? 0x4CF7B0 : 0x4CF7DF;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
+{
+	GET(ObjectClass*, pObj, ESI);
+	
+	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
+		auto pExt = TechnoExt::ExtMap.Find(pTechno);
+		if (pExt->MyFighterData)
+			pExt->MyFighterData->OnStopCommand();
+	}
+
+	return 0;
+}
 #endif

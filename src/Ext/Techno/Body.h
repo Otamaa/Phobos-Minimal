@@ -103,7 +103,7 @@ public:
 		AircraftDive MyDiveData;
 		//JJFacingToTarget MyJJData;
 		SpawnSupport MySpawnSuport;
-		FighterAreaGuard MyFighterData;
+		std::unique_ptr<FighterAreaGuard> MyFighterData;
 
 #endif;
 	#pragma endregion
@@ -173,7 +173,7 @@ public:
 			, MyDiveData { }
 			//, MyJJData { }
 			, MySpawnSuport { }
-			, MyFighterData { }
+			, MyFighterData { nullptr }
 			, AttachedAnim { }
 			, KillActionCalled { false }
 			, WarpedOutDelay { }

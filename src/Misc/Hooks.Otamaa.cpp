@@ -5520,9 +5520,10 @@ DEFINE_HOOK(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 // TODO : complete replacement !
 DEFINE_HOOK(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
 {
-	GET(TechnoClass*, pThis, EBP);
+	//GET(TechnoClass*, pThis, EBP);
+	GET(TechnoTypeClass*, pType, EAX);
 
-	if ((int)pThis->GetTechnoType()->PipScale != 6)
+	if ((int)pType->PipScale != 6)
 	{
 		R->EBX(0);
 		return 0x709B7F;
@@ -5621,6 +5622,7 @@ DEFINE_HOOK(0x4D423A , FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	if (Is_Unit(pThis) && pType->IsSubterranean && pType->ResourceGatherer) {
 		pThis->QueueMission(Mission::Harvest, false);
 	}
+
 	return 0x0;
 }
 

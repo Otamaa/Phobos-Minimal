@@ -6,5 +6,6 @@
 struct FighterAreaGuardFunctional
 {
 	static void AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTypeExt);
+
 };
 #endif

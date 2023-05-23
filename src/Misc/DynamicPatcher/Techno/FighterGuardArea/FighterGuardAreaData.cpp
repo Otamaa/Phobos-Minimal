@@ -2,22 +2,20 @@
 #ifdef COMPILE_PORTED_DP_FEATURES
 void FighterAreaGuardData::Read(INI_EX& parser, const char* pSection, TechnoTypeClass* pType)
 {
-	Valueable<bool> bFAreaGuard { AreaGuard };
-	bFAreaGuard.Read(parser, pSection, "Fighter.AreaGuard");
-	AreaGuard = bFAreaGuard.Get();
+	this->AreaGuard.Read(parser, pSection ,"Fighter.AreaGuard");
+	this->AutoGuard.Read(parser, pSection ,"Fighter.AutoGuard");
+	this->DefaultToGuard.Read(parser, pSection ,"Fighter.DefaultToGuard");
 
-	if (AreaGuard)
-	{
-		Valueable<int> nRange { GuardRange };
-		nRange.Read(parser, pSection, "Fighter.GuardRange");
-		GuardRange = nRange.Get();
+	this->Enable = AreaGuard || AutoGuard || DefaultToGuard;
 
-		bFAreaGuard = AutoFire;
-		bFAreaGuard.Read(parser, pSection, "Fighter.AutoFire");
-		AutoFire = bFAreaGuard.Get();
-
-		if (pType->Ammo > MaxAmmo)
-			MaxAmmo = pType->Ammo;
-	}
+	this->GuardRange.Read(parser, pSection ,"Fighter.GuardRange");
+	this->AutoFire.Read(parser, pSection ,"Fighter.AutoFire");
+	this->MaxAmmo.Read(parser, pSection ,"Fighter.Ammo");
+	this->MaxAmmo.Read(parser, pSection ,"Fighter.HoldAmmo");
+	this->GuardRadius.Read(parser, pSection ,"Fighter.GuardRadius");
+	this->FindRangeAroundSelf.Read(parser, pSection ,"Fighter.FindRangeAroundSelf");
+	this->ChaseRange.Read(parser, pSection ,"Fighter.ChaseRange");
+	this->Clockwise.Read(parser, pSection ,"Fighter.Clockwise");
+	this->Randomwise.Read(parser, pSection ,"Fighter.Randomwise");
 }
 #endif

@@ -104,11 +104,12 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 		{
 			const auto pExt = TechnoTypeExt::ExtMap.Find(pInfantry->Type);
 
-			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr)) {
+			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr))
+			{
 				pPipFile = pGarrisonPip;
 				nPipFrameIndex = pExt->PipGarrison_FrameIndex.Get();
 				nPipFrameIndex = std::clamp(nPipFrameIndex, 0, (int)pGarrisonPip->Frames);
-				if(auto const pConvertData = pExt->PipGarrison_Palette)
+				if (auto const pConvertData = pExt->PipGarrison_Palette)
 					pPalette = pConvertData->GetConvert<PaletteManager::Mode::Default>();
 			}
 			else
@@ -152,7 +153,7 @@ DEFINE_HOOK(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	return 0x709D11;
 }
 
-void DetonateDeathWeapon(TechnoClass* pThis , TechnoTypeClass* pType ,WeaponTypeClass* pDecided , int nMult,  bool RulesDeath)
+void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeClass* pDecided, int nMult, bool RulesDeath)
 {
 	if (pDecided)
 	{
@@ -182,16 +183,22 @@ DEFINE_HOOK(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	// tags : "%sDeathWeapon (%s replaced with rank level);
 	WeaponTypeClass* pWeaponResult = TechnoTypeExt::ExtMap.Find(pType)->DeathWeapon.GetOrDefault(pThis, pType->DeathWeapon);
 
-	if (!pWeaponResult) {
+	if (!pWeaponResult)
+	{
 		auto const pPrimary = pThis->GetWeapon(0);
 
-		if (pPrimary && pPrimary->WeaponType) {
+		if (pPrimary && pPrimary->WeaponType)
+		{
 			DetonateDeathWeapon(pThis, pType, pPrimary->WeaponType, nMult, false);
-		} else {
+		}
+		else
+		{
 			DetonateDeathWeapon(pThis, pType, RulesClass::Instance->DeathWeapon, nMult, true);
 		}
 
-	} else {
+	}
+	else
+	{
 		DetonateDeathWeapon(pThis, pType, pWeaponResult, nMult, false);
 	}
 
@@ -311,7 +318,8 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 	int nResult = 0;
 	auto const pExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
 
-	if (pExt->ROF_Random.Get()) {
+	if (pExt->ROF_Random.Get())
+	{
 		auto const& nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(nData);
 	}
@@ -570,8 +578,18 @@ DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
 	//}
 
 	AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+	if (Is_Aircraft(pThis))
+	{
+		if (pTypeExt->MyFighterData.Enable)
+		{
+			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
+			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
+		}
+	}
+
 #endif
-	TechnoExt::InitializeItems(pThis , pType);
+	TechnoExt::InitializeItems(pThis, pType);
 
 	return 0x0;
 }

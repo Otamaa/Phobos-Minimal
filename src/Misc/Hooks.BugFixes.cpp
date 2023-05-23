@@ -161,35 +161,34 @@ DEFINE_HOOK(0x702299, TechnoClass_ReceiveDamage_DebrisMaximumsFix, 0xA)
 	//}
 	auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris - 1);
 
-	if (pType->DebrisTypes.Count > 0)
+	if (pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
 	{
 		auto nCoords = pThis->GetCoords();
 
 		for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
 		{
-			const auto nDebrisMaximum = currentIndex > pType->DebrisMaximums.Count ? 0 : pType->DebrisMaximums[currentIndex];
+			if (currentIndex > pType->DebrisMaximums.Count)
+				break;
 
-			if (totalSpawnAmount > 0)
+			const auto nDebrisMaximum = pType->DebrisMaximums[currentIndex];
+			int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum;
+			amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
+			totalSpawnAmount -= amountToSpawn;
+
+			for (; amountToSpawn > 0; --amountToSpawn)
 			{
-				int amountToSpawn = abs(int(ScenarioClass::Instance->Random.Random())) % nDebrisMaximum + 1;
-				amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
-				totalSpawnAmount -= amountToSpawn;
-
-				for (; amountToSpawn > 0; --amountToSpawn)
+				if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
+					&nCoords, pThis->Owner))
 				{
-					if (auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.GetItem(currentIndex),
-						&nCoords, pThis->Owner))
-						{
-							if (auto pExt = VoxelAnimExt::ExtMap.FindOrAllocate(pVoxAnim))
-								pExt->Invoker = pThis;
-						}
+					if (auto pExt = VoxelAnimExt::ExtMap.FindOrAllocate(pVoxAnim))
+						pExt->Invoker = pThis;
 				}
+			}
 
-				if (totalSpawnAmount <= 0)
-				{
-					totalSpawnAmount = 0;
-					break;
-				}
+			if (totalSpawnAmount <= 0)
+			{
+				totalSpawnAmount = 0;
+				break;
 			}
 		}
 	}
@@ -564,7 +563,7 @@ DEFINE_HOOK(0x4DACDD, FootClass_CrashingVoice, 0x6)
 				if (pThis->Owner->IsControlledByCurrentPlayer())
 					VocClass::PlayIndexAtPos(pType->VoiceCrashing, nCoord);
 
-					VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->Audio7);
 
 			}
 			else
@@ -761,7 +760,8 @@ DEFINE_HOOK(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
 	if (landType == LandType::Rock)
 		return ContinueChecks;
 
-	if (landType == LandType::Water) {
+	if (landType == LandType::Water)
+	{
 		if (GroundType::Array[int(landType)]
 			.Cost[int(pThis->Type->SpeedType)] == 0.0)
 			return ContinueChecks;
