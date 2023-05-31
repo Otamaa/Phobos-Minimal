@@ -398,7 +398,7 @@ bool FighterAreaGuard::CanAttack(TechnoClass* pTarget, bool isPassiveAcquire)
 	{
 		const auto pWH = pWeapon->WeaponType->Warhead;
 		const auto pWarheadExt = WarheadTypeExt::ExtMap.Find(pWH);
-		const auto versus = &pWarheadExt->GetVerses(pTarget->GetType()->Armor);
+		const auto versus = &pWarheadExt->GetVerses(TechnoExt::GetTechnoArmor(pTarget , pWH));
 
 		if (isPassiveAcquire)
 		{
@@ -420,7 +420,9 @@ bool FighterAreaGuard::CanAttack(TechnoClass* pTarget, bool isPassiveAcquire)
 
 bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 {
-	auto pThis = OwnerObject;
+	//TODO : there is some manual check for `CivilianEnemy` stuffs , idk how that really work
+	//		 so remove it atm
+	//auto pThis = OwnerObject;
 	if (!pTarget
 				|| pTarget->InLimbo
 				|| !pTarget->IsAlive
@@ -451,35 +453,6 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 
 	if (pTargetTypeExt->IsDummy)
 		return false;
-
-	auto pOwnerHouse = pTarget->GetOwningHouse();
-
-	if (pTarget->IsDisguised() && !pTarget->IsClearlyVisibleTo(pThis->Owner))
-		pOwnerHouse = pTarget->GetDisguiseHouse(true);
-
-	if (!pOwnerHouse)
-		return false;
-
-	if (pOwnerHouse->IsAlliedWith(pThis->Owner))
-		return false;
-
-	if (pOwnerHouse == HouseExt::FindCivilianSide())
-	{
-
-		auto AutoRepel = [](HouseClass* pHouse)
-		{
-			return
-				(pHouse->IsControlledByHuman() ?
-					RulesExt::Global()->AutoRepelAI : RulesExt::Global()->AutoRepelPlayer).Get();
-		};
-
-		if (!pTargetTypeExt->CivilianEnemy && AutoRepel(pThis->Owner) && pTarget->Target)
-		{
-			if (auto pTargetTargetTech = generic_cast<TechnoClass*>(pTarget->Target))
-				if (pThis->Owner->IsAlliedWith(pTargetTargetTech))
-					pTarget = pTargetTargetTech;
-		}
-	}
 
 	return CanAttack(pTarget, true);
 }

@@ -12,6 +12,7 @@
 
 bool SWTypeExt::Handled = false;
 SuperClass* SWTypeExt::TempSuper = nullptr;
+SuperClass* SWTypeExt::LauchData = nullptr;
 
 void SWTypeExt::ExtData::Initialize()
 {

@@ -267,7 +267,7 @@ DEFINE_OVERRIDE_HOOK(0x517FC1, InfantryClass_ReceiveDamage_DeployedDamage, 0x6)
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #endif
 
-DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_SuppressUnitLost, 6)
+DEFINE_OVERRIDE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed , 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(WarheadTypeClass*, pWarhead, 0xD0);
@@ -318,9 +318,10 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 		if ((int)nDamageResult && IsDamaging)
 		{
 			const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-			if (pTypeExt->SelfHealing_CombatDelay > 0)
-			{
-				GetSelfHealingCombatTimer(pThis).Start(pTypeExt->SelfHealing_CombatDelay);
+			const auto amount = pTypeExt->SelfHealing_CombatDelay.Get(pThis);
+
+			if (amount > 0) {
+				pExt->SelfHealing_CombatDelay.Start(amount);
 			}
 		}
 	}
@@ -338,7 +339,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 			pThis->Uncloak(false);
 
 		const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
-		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(pType->Armor).Verses >= 0.0001));
+		const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExt::GetTechnoArmor(pThis, pWarhead)).Verses >= 0.0001));
 		
 		if ( bCond1 && bCond2)
 		{
@@ -371,8 +372,7 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 				pWHExt->ApplyRemoveDisguise(pHouse, pThis);
 			}
 
-			if (pWHExt->RemoveMindControl)
-			{
+			if (pWHExt->RemoveMindControl) {
 				pWHExt->ApplyRemoveMindControl(pHouse, pThis);
 			}
 		}
@@ -421,11 +421,11 @@ DEFINE_OVERRIDE_HOOK(0x701BFE, TechnoClass_ReceiveDamage_Abilities, 0x6)
 
 	if (pWH->Psychedelic)
 	{
-		//This thing does ally check twice
-		if (pSourceHouse && pSourceHouse->IsAlliedWith_(pThis))
+		if (Is_Building(pThis))
 			return RetUnaffected;
 
-		if (Is_Building(pThis))
+		//This thing does ally check twice
+		if (pSourceHouse && pSourceHouse->IsAlliedWith_(pThis))
 			return RetUnaffected;
 
 		if (TechnoExt::IsPsionicsImmune(nRank, pThis) || TechnoExt::IsBerserkImmune(nRank, pThis))
@@ -640,7 +640,7 @@ DEFINE_OVERRIDE_HOOK(0x41668B, AircraftClass_ReceiveDamage_Survivours, 0x6)
 	return 0x0;
 }
 
-bool __fastcall FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
+bool FC FootClass_Crash_(FootClass* pThis , DWORD , ObjectClass* pSource)
 {
 	// Crashable support for aircraft
 	const auto& nCrashable = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType())->Crashable;
@@ -930,10 +930,8 @@ DEFINE_OVERRIDE_HOOK(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 	GET(UnitClass*, pThis, ESI);
 	GET(TechnoClass*, pAttacker, EDI);
 
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
+	if (pThis && pThis->IsAlive && pAttacker) {
+		if (auto pTag = pThis->AttachedTag) {
 			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
 	}
@@ -946,10 +944,8 @@ DEFINE_OVERRIDE_HOOK(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pAttacker, EDI);
 
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
+	if (pThis && pThis->IsAlive && pAttacker) {
+		if (auto pTag = pThis->AttachedTag) {
 			// 85 
 			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
 		}
@@ -963,10 +959,8 @@ DEFINE_OVERRIDE_HOOK(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(HouseClass*, pAttacker, EDI);
 
-	if (pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
+	if (pThis && pThis->IsAlive && pAttacker) {
+		if (auto pTag = pThis->AttachedTag) {
 			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker);
 		}
 	}
@@ -994,3 +988,54 @@ DEFINE_OVERRIDE_HOOK(0x4368C9, BuildingLightClass_Update_Trigger, 0x5)
 
 	return 0x4368D9;
 }
+
+//DEFINE_HOOK(0x489A01, MapClass_DamageArea_LoopDamageGroups, 0x6)
+//{
+//	enum { AdvanceLoop = 0x489AC1 , SetStack1FTrue = 0x489ABC , Continue = 0x0};
+//
+//	GET(ObjectClass*, pTarget, ESI);
+//	GET(int , nDistance , EDI);
+//	GET_BASE(TechnoClass*, pSource, 0x8);
+//	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+//	GET_BASE(HouseClass*, pHouse, 0x14);
+//	GET_STACK(bool , IsIroncurtained , 0x17);
+//	GET_STACK(int , cellSpread , 0x68);
+//	GET_STACK(int , damage , 0x24);
+//
+//
+//	char dummy[0x70];
+//	if(pSource) {
+//		IMPL_SNPRNINTF(dummy,sizeof(dummy),"%x - %s" , (size_t)pSource , pSource->get_ID());
+//	}else{
+//		std::strcpy(dummy,"Unknown");
+//	}
+//
+//	if(!pTarget->IsAlive)
+//		return AdvanceLoop;
+//
+//	const auto pWhat = pTarget->WhatAmI();
+//
+//	if(pWhat == BulletClass::AbsID)
+//		Debug::Log("Bullet[%x - %s] Getting hit by [%s] Warhead [%s] !\n" , pTarget,pTarget->get_ID() ,dummy , pWarhead->ID);
+//	
+//	{
+//
+//		if(pWhat == BuildingClass::AbsID && static_cast<BuildingClass*>(pTarget)->Type->InvisibleInGame)
+//			return AdvanceLoop;
+//
+//		if(!IsIroncurtained || pTarget->IsIronCurtained())
+//		{
+//			if(pWhat == AircraftClass::AbsID && pTarget->IsInAir())
+//				nDistance /= 2;
+//
+//			if(pTarget->Health > 0 && pTarget->IsOnMap && !pTarget->InLimbo && nDistance <= cellSpread)
+//			{
+//				pTarget->ReceiveDamage(&damage ,nDistance ,pWarhead ,pSource , false ,false ,pHouse);
+//				return SetStack1FTrue;
+//			}
+//		}
+//	}
+//
+//	return AdvanceLoop;
+//	//return Continue;
+//}

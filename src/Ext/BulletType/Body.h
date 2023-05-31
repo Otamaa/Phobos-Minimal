@@ -84,6 +84,8 @@ public:
 		Valueable<bool> BounceOnVehicle;
 		//
 
+		Valueable<bool> SubjectToTrenches; //! if false, this projectile/weapon *always* passes through to the occupants, regardless of UC.PassThrough
+
 		Nullable<double> PreExplodeRange;
 		Nullable <double> Trajectory_Speed;
 		Nullable<int> Proximity_Range;
@@ -145,6 +147,8 @@ public:
 			, BounceOnBuilding { false }
 			, BounceOnInfantry { false }
 			, BounceOnVehicle { false }
+
+			, SubjectToTrenches { true }
 
 			, PreExplodeRange { }
 			, Trajectory_Speed { }

@@ -24,7 +24,7 @@ DEFINE_HOOK(0x6F7E24, TechnoClass_EvaluateObject_SetContext, 0x6)
 
 // #issue 88 : shield logic
 // TODO : Emp reset shield
-DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
+DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Early, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
@@ -32,6 +32,7 @@ DEFINE_HOOK(0x701900, TechnoClass_ReceiveDamage_Shield, 0x6)
 	const auto pWHExt = WarheadTypeExt::ExtMap.Find(args.WH);
 
 	pWHExt->ApplyDamageMult(pThis, &args);
+	//SkipAllReaction = false
 
 	if (!args.IgnoreDefenses) {
 		if (auto pShieldData = TechnoExt::ExtMap.Find(pThis)->GetShield()) {
@@ -97,7 +98,7 @@ REPLACE_ARMOR(0x708AEB, ESI, EBP, TechnoClass_ShouldRetaliate_Shield) //
 
 #undef REPLACE_ARMOR
 
-DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_Shield, 0x5)
+DEFINE_HOOK(0x6F6AC4, TechnoClass_Remove_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 

@@ -161,7 +161,7 @@ public:
 	static void EnableUnderscore(bool enable);
 	static void Write(const char* str, int len);
 	static void WriteLine(const char* str, int len);
-	static void __fastcall WriteWithVArgs(const char* pFormat, va_list args);
+	static void FC WriteWithVArgs(const char* pFormat, va_list args);
 	static void WriteFormat(const char* pFormat, ...);
 
 private:

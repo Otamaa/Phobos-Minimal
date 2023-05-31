@@ -149,6 +149,8 @@ const double RadSiteExt::ExtData::GetRadLevelAt(double distance)
 const bool RadSiteExt::ExtData::ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance)
 {
 	const auto pWarhead = this->Type->GetWarhead();
+	if (pTarget->InLimbo || !pTarget->Health || pTarget->IsSinking || pTarget->IsCrashing)
+		return false; 
 
 	if (!this->Type->GetWarheadDetonate())
 	{
@@ -299,7 +301,7 @@ DEFINE_HOOK(0x65B464, RadSiteClass_Save_Suffix, 0x5)
 //}
 //#endif
 
-static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
+static void FC RadSiteClass_Detach(RadSiteClass* pThis, void* _, AbstractClass* pTarget, bool bRemove)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){ 
 		RadSiteExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);
@@ -308,7 +310,7 @@ static void __fastcall RadSiteClass_Detach(RadSiteClass* pThis, void* _, Abstrac
 
 DEFINE_JUMP(VTABLE, 0x7F0838, GET_OFFSET(RadSiteClass_Detach));
 
-static HouseClass* __fastcall RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
+static HouseClass* FC RadSiteClass_OwningHouse(RadSiteClass* pThis, void* _)
 {
 	if (!Phobos::Otamaa::DisableCustomRadSite){ 
 		if (const auto pExt = RadSiteExt::ExtMap.Find(pThis)){

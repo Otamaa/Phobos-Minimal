@@ -442,7 +442,7 @@ TechnoClass* AnimExt::GetTechnoInvoker(AnimClass* pThis, bool DealthByOwner)
 	return nullptr;
 }
 
-Layer __fastcall AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
+Layer FC AnimExt::GetLayer_patch(AnimClass* pThis, void* _)
 {
 	if (!pThis->OwnerObject)
 		return pThis->Type ? pThis->Type->Layer : Layer::Air;

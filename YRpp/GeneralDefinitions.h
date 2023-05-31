@@ -1048,7 +1048,9 @@ enum class PlacementType : int {
 	Remove = 0,
 	Put = 1,
 	Redraw = 2,
-	AddContent = 3
+	AddContent = 3,
+	OverlapDown = 4,
+	OverlapUp = 5
 };
 
 enum class MouseHotSpotX : int {

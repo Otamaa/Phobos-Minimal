@@ -37,6 +37,7 @@
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #endif
 
 #include <memory>
@@ -1174,6 +1175,30 @@ const Nullable<CoordStruct>* TechnoExt::GetInfrantyCrawlFLH(InfantryClass* pThis
 	return nullptr;
 }
 
+const Armor TechnoExt::GetTechnoArmor(TechnoClass* pThis , WarheadTypeClass* pWarhead)
+{
+	auto const pTargetTechnoExt = TechnoExt::ExtMap.Find(pThis);
+	auto nArmor = pThis->GetTechnoType()->Armor;
+
+	if (!pTargetTechnoExt)
+		return nArmor;
+
+	auto const pShieldData = pTargetTechnoExt->Shield.get();
+
+	if (!pShieldData)
+		return nArmor;
+
+	if (pShieldData->IsActive())
+	{
+		if (pShieldData->CanBePenetrated(pWarhead))
+			return nArmor;
+
+		return pShieldData->GetType()->Armor.Get();
+	}
+
+	return nArmor;
+}
+
 std::pair<bool, CoordStruct> TechnoExt::GetInfantryFLH(InfantryClass* pThis, int weaponIndex)
 {
 	if (!pThis || weaponIndex < 0)
@@ -2083,7 +2108,7 @@ void TechnoExt::ExtData::UpdateEatPassengers()
 
 
 					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
-					TechnoExt::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis);
+					TechnoExt::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis ,false ,false);
 				}
 
 				this->PassengerDeletionTimer.Stop();
@@ -2162,7 +2187,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, bool isPeaceful)
 		if (!pThis->InLimbo)
 			pThis->Limbo();
 
-		TechnoExt::HandleRemove(pThis);
+		TechnoExt::HandleRemove(pThis, nullptr, false, false);
 	}
 	else
 	{
@@ -2215,7 +2240,7 @@ void TechnoExt::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		TechnoExt::HandleRemove(pThis);
+		TechnoExt::HandleRemove(pThis ,nullptr, false , false);
 
 	}break;
 	case KillMethod::Sell:
@@ -2836,6 +2861,15 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 	this->Type = currentType;
 	auto const pTypeExtData = TechnoTypeExt::ExtMap.Find(currentType);
 
+	if (auto pSpawnManager = pThis->SpawnManager) {
+		if (currentType->Spawns && pSpawnManager->SpawnType != currentType->Spawns) {
+			pSpawnManager->SpawnType = currentType->Spawns;
+			pSpawnManager->SpawnCount = currentType->SpawnsNumber;
+			pSpawnManager->RegenRate = currentType->SpawnRegenRate;
+			pSpawnManager->ReloadRate = currentType->SpawnReloadRate;
+		}
+	}
+
 	TechnoExt::InitializeLaserTrail(pThis, true);
 
 	// Reset Shield
@@ -2860,8 +2894,24 @@ void TechnoExt::ExtData::UpdateType(TechnoTypeClass* currentType)
 
 #ifdef COMPILE_PORTED_DP_FEATURES
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
+
 	if (!pTypeExtData->MyFighterData.Enable && this->MyFighterData)
 		this->MyFighterData.reset(nullptr);
+	else if (pTypeExtData->MyFighterData.Enable && !this->MyFighterData)
+	{
+		this->MyFighterData = std::make_unique<FighterAreaGuard>();
+		this->MyFighterData->OwnerObject = (AircraftClass*)pThis;
+	}
+
+	if(!pTypeExtData->DamageSelfData.Enable && this->DamageSelfState)
+		this->DamageSelfState.reset(nullptr);
+	else if (!this->DamageSelfState)
+		DamageSelfState::OnPut(this->DamageSelfState, pTypeExtData->DamageSelfData);
+
+	if (!pTypeExtData->MyGiftBoxData.Enable && this->MyGiftBox)
+		this->MyGiftBox.reset(nullptr);
+	else if (!this->MyGiftBox)
+		GiftBoxFunctional::Init(this, pTypeExtData);
 
 #endif
 }
@@ -3475,6 +3525,8 @@ void TechnoExt::ExtData::Serialize(T& Stm)
 		.Process(this->CurrentArmor)
 		.Process(this->SupressEVALost)
 		.Process(this->MyFighterData)
+		.Process(this->SelfHealing_CombatDelay)
+		.Process(this->PayloadCreated)
 #ifdef ENABLE_HOMING_MISSILE
 		.Process(this->MissileTargetTracker)
 #endif

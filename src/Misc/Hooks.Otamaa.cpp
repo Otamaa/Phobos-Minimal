@@ -79,39 +79,39 @@ DEFINE_HOOK(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 }
 
 // thse were removed to completely disable vein
-DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
-{
-	GET(RulesClass* const, pRules, EAX);
+//DEFINE_HOOK(0x74D376, VeinholeMonsterClass_AI_TSRandomRate_1, 0x6)
+//{
+//	GET(RulesClass* const, pRules, EAX);
+//
+//	const auto nRand = pRules->VeinholeShrinkRate > 0 ?
+//		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
+//
+//	R->EAX(pRules->VeinholeShrinkRate + nRand);
+//	return 0x74D37C;
+//}
+//
+//DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
+//{
+//	GET(RulesClass* const, pRules, EAX);
+//	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
+//		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
+//
+//	R->EAX(pRules->VeinholeGrowthRate + nRand);
+//	return 0x74C5E7;
+//}
+//
+//DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
+//{
+//	GET(RulesClass* const, pRules, ECX);
+//
+//	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
+//		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
+//
+//	R->EAX(pRules->VeinholeGrowthRate + nRand);
+//	return 0x74D2AA;
+//}
 
-	const auto nRand = pRules->VeinholeShrinkRate > 0 ?
-		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeShrinkRate / 2) : 0;
-
-	R->EAX(pRules->VeinholeShrinkRate + nRand);
-	return 0x74D37C;
-}
-
-DEFINE_HOOK(0x74C5E1, VeinholeMonsterClass_CTOR_TSRandomRate, 0x6)
-{
-	GET(RulesClass* const, pRules, EAX);
-	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
-
-	R->EAX(pRules->VeinholeGrowthRate + nRand);
-	return 0x74C5E7;
-}
-
-DEFINE_HOOK(0x74D2A4, VeinholeMonsterClass_AI_TSRandomRate_2, 0x6)
-{
-	GET(RulesClass* const, pRules, ECX);
-
-	const auto nRand = pRules->VeinholeGrowthRate > 0 ?
-		ScenarioClass::Instance->Random.RandomFromMax(pRules->VeinholeGrowthRate / 2) : 0;
-
-	R->EAX(pRules->VeinholeGrowthRate + nRand);
-	return 0x74D2AA;
-}
-
-static	void __fastcall DrawShape_VeinHole
+static	void FC DrawShape_VeinHole
 (Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
  BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape,
  int ZShapeFrame, int XOffset, int YOffset
@@ -433,7 +433,7 @@ DEFINE_HOOK(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 //	return 0;
 //}
 
-static bool __fastcall AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis, void*)
+static bool FC AircraftTypeClass_CanUseWaypoint(AircraftTypeClass* pThis, void*)
 {
 	return !pThis->Spawned;
 }
@@ -2002,21 +2002,7 @@ static void Detonate(TechnoClass* pTarget, HouseClass* pOwner, CoordStruct const
 }
 
 //TODO , check stack , make this working
-DEFINE_HOOK(0x489A97, ExplosionDamage_DetonateOnEachTarget, 0x7)
-{
-	GET(BulletClass*, pThis, EBP);
-	GET(ObjectClass*, pTarget, ESI);
-	GET_BASE(HouseClass*, pHouse, 0x14);
-	GET_BASE(const CoordStruct*, pCoords, 0x8);
 
-	if (auto const pWHExt = WarheadTypeExt::ExtMap.Find(pThis->WH))
-	{
-		if (auto pTechnp = generic_cast<TechnoClass*>(pTarget))
-			pWHExt->Detonate(pThis->Owner, pHouse, pThis, *pCoords);
-	}
-
-	return 0x0;
-}
 #endif
 
 
@@ -4244,17 +4230,10 @@ DEFINE_HOOK(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
 		0x708FAD : 0x0;
 }
 
-// DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
-// {
-// 	return 0x0;
-// }
-
-// DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_ResultDestroyed, 0x6)
-// {
-// 	//GET(TechnoClass*, pThis, ESI);
-// 	//TODO DamageArgs
-// 	return 0x0;
-// }
+DEFINE_HOOK(0x518077, InfantryClass_ReceiveDamage_ResultDestroyed, 0x6)
+{
+	return 0x0;
+}
 
 DEFINE_HOOK(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
@@ -4473,28 +4452,28 @@ DEFINE_HOOK(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 
 // the unit seems dont like it 
 // something missing
-bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct* Dir)
-{
-	if (!Dir && !pTarget)
-		return true;
-
-	auto nPriFacing = (short)pThis->PrimaryFacing.Current().Raw;
-	auto nUnsigned_RawFacing = Dir ? (short)Dir->Raw : (short)pThis->GetDirectionOverObject(pTarget).Raw;
-
-	int v8 = (((nPriFacing >> 7) + 1) >> 1);
-	int v9 = (((nUnsigned_RawFacing >> 7) + 1) >> 1);
-
-	if (abs(v8 - v9) <= nMax)
-		return true;
-
-	short v10 = short((v9 <= 127) ? v9 : (v9 - 256));
-	short v12 = short((v8 <= 127) ? v8 : (v8 - 256));
-
-	if (abs(v12 - v10) > nMax)
-		return false;
-
-	return true;
-}
+//bool IsAllowToTurn(UnitClass* pThis, AbstractClass* pTarget, int nMax, DirStruct* pTargetDir)
+//{
+//	if (!pTargetDir && !pTarget)
+//		return true;
+//
+//	auto nPriFacing = (short)pThis->PrimaryFacing.Current().Raw;
+//	auto nTargetDir = pTargetDir ? (short)pTargetDir->Raw : (short)pThis->GetDirectionOverObject(pTarget).Raw;
+//
+//	int nFrom = (((nPriFacing >> 7) + 1) >> 1);
+//	int nTo = (((nTargetDir >> 7) + 1) >> 1);
+//
+//	if (abs(nFrom - nTo) <= nMax)
+//		return true;
+//	
+//	short n_To_s = (nTo <= 127) ? nTo : (nTo - 256);
+//	short n_From_s = (nFrom <= 127) ? nFrom : (nFrom - 256);
+//
+//	if (abs(n_From_s - n_To_s) > nMax)
+//		return false;
+//
+//	return true;
+//}
 
 //DEFINE_HOOK(0x741229, UnitClass_GetFireError_Facing, 6)
 //{
@@ -4876,7 +4855,7 @@ DEFINE_HOOK(0x711F0F, TechnoTypeClass_GetCost_AICostMult, 0x8)
 	return 0x711F46;
 }
 
-//double __fastcall HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
+//double FC HouseClass_GetTypeCostMult(HouseClass* pThis, DWORD, TechnoTypeClass* pType)
 //{
    // const double mult = !pThis->ControlledByPlayer() ? RulesExt::Global()->AI_CostMult : 1.0;
    // return pThis->GetHouseTypeCostMult(pType) * mult;
@@ -5218,7 +5197,7 @@ DEFINE_HOOK(0x71CC8C, TerrainClass_DrawIfVisible, 0x6)
 		0x71CD8D : 0x71CC9A;
 }
 
-bool __fastcall IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
+bool FC IsLocFogged(MapClass* pThis, DWORD, CoordStruct* pCoord)
 {
 	const auto pCell = pThis->GetCellAt(pCoord);
 
@@ -5311,6 +5290,18 @@ DEFINE_HOOK(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 #endif
 
 // Various call of TechnoClass::SetOwningHouse not respecting overloaded 2nd args fix !
+
+bool FC InfantryClass_SetOwningHouse(InfantryClass* const pThis , DWORD , HouseClass* pNewOwner , bool bAnnounce) {
+	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
+}
+
+bool FC AircraftClass_SetOwningHouse(AircraftClass* const pThis, DWORD, HouseClass* pNewOwner, bool bAnnounce) {
+	return pThis->FootClass::SetOwningHouse(pNewOwner, bAnnounce);
+}
+
+//DEFINE_JUMP(LJMP, 0x7E2678, GET_OFFSET(InfantryClass_SetOwningHouse));
+//DEFINE_JUMP(LJMP, 0x7EB42C, GET_OFFSET(AircraftClass_SetOwningHouse));
+
 DEFINE_HOOK(0x7463DC, UnitClass_SetOwningHouse_FixArgs, 0x5)
 {
 	GET(UnitClass* const, pThis, EDI);
@@ -5626,37 +5617,116 @@ DEFINE_HOOK(0x4D423A , FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	return 0x0;
 }
 
-//DEFINE_HOOK(0x740AEF , UnitClass_MissionMove_test , 0x6)
+DEFINE_HOOK(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	if (auto const pInf = RulesClass::Instance->AnimToInfantry.GetItemOrDefault(pThis->Type->MakeInfantry)) { 
+		if(auto const pCreatedInf = pInf->CreateObject(pThis->Owner)) {
+			R->EAX(pCreatedInf);
+			return 0x424A1F;
+		}
+	}
+
+	return 0x424B0A;
+}
+
+DEFINE_HOOK(0x70F837, TechnoClass_GetOriginalOwner_PermaMCed, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+
+	if (pThis->MindControlledByAUnit)
+		return 0x70F841;
+
+	return 0x0;
+}
+
+// do some pre-validation evenbefore function going to be executed 
+// save some cpu cycle
+DEFINE_HOOK(0x486920, CellClass_TriggerVein_Precheck, 0x6)
+{
+	return RulesClass::Instance->VeinAttack ? 0x0 : 0x486A6B;
+}
+
+// this thing do some placement check twice 
+// this can be bad because the `GrowthLogic` data inside not inited properly !
+DEFINE_HOOK(0x74C688, VeinholeMonsterClass_CTOR_SkipPlacementCheck, 0x7)
+{
+	return 0x74C697;
+}
+
+DEFINE_HOOK(0x5FC668, OverlayTypeClass_Mark_Veinholedummies, 0x7)
+{
+	GET(CellStruct*, pPos, EBX);
+
+	if (VeinholeMonsterClass::IsCellEligibleForVeinHole(pPos))
+	{
+		auto pCell = MapClass::Instance->GetCellAt(pPos);
+		//this dummy overlay placed so it can be replace later with real veins
+		for (int i = 0; i < 8; ++i)
+		{
+			auto v11 = pCell->GetAdjacentCell(i);
+			v11->OverlayTypeIndex = 0x7E; //dummy image -> replaced with vein ? 
+			;
+			v11->OverlayData = 30u; //max it out
+			v11->RedrawForVeins();
+			//v11->Flags |= CellFlags(0x80u); //what ?
+		}
+
+		pCell->OverlayTypeIndex = 0xA7; //VeiholeDummy -> used to place veinhole monster
+		pCell->OverlayData = 0;
+		++Unsorted::IKnowWhatImDoing();
+		GameCreate<VeinholeMonsterClass>(pPos);
+		--Unsorted::IKnowWhatImDoing();
+	}
+
+	return 0x5FD1FA;
+}
+
+DEFINE_HOOK(0x489671, MapClass_DamageArea_Veinhole, 0x6)
+{
+	GET(CellClass*, pCell, EBX);
+	GET(OverlayTypeClass*, pOverlay, EAX);
+
+	if (pOverlay->ArrayIndex == 0xA7) {
+
+		GET_STACK(int, nDamage, 0x24);
+		GET(WarheadTypeClass*, pWarhead, ESI);
+		GET_BASE(TechnoClass*, pSource, 0x8);
+		GET_BASE(HouseClass*, pHouse, 0x14);
+		GET(CoordStruct*, pCenter, EDI);
+
+		for (auto pMonster : *VeinholeMonsterClass::Array) {
+			if (!pMonster->InLimbo && (pMonster->MonsterCell.DistanceFromI(pCell->MapCoords) <= 0))
+				pMonster->ReceiveDamage(&nDamage, 
+					pCenter->DistanceFromI(CellClass::Cell2Coord(pMonster->MonsterCell)), 
+					pWarhead, 
+					pSource, 
+					false, 
+					false, 
+					pSource && !pHouse ? pSource->Owner : pHouse
+				);
+
+		}
+	}
+
+	return 0x0;
+}
+
+// TODO :
+//  - Weeder 
+//  - Ice stuffs using WW pointer heap logic
+//  - proper damaging function for veins
+// 
+//fcking heap pointer is deleted after some time 
+//who the fuck doing that ?
+//DEFINE_HOOK(0x74D847, VeinholeMonsterClass_AI_HeapIsZero, 0x6)
 //{
-//	Debug::Log("%s HereIam\n", __FUNCTION__);
-//	return 0x0;
-//}
+//	GET(VeinholeMonsterClass*, pThis, ESI);
 //
-//DEFINE_HOOK(0x4D41D6, FootClass_BasePath_Surfacing_Harvester, 0x5)
-//{
-//	GET(FootClass*, pThis, EBP);
+//	pThis->RegisterAffectedCells();
 //
-//	const auto pType = pThis->GetTechnoType();
-//
-//	if (pType->ResourceGatherer)
-//	{
-//		pThis->QueueMission(Mission::Harvest, true);
-//		return 0x4D41E5;
-//	}
-//
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x729B25, TunnelLoco_729AA0, 0x7)
-//{
-//	Debug::Log("%s HereIam\n", __FUNCTION__);
-//	return 0x0;
-//}
-//
-//DEFINE_HOOK(0x742084, UnitClass_AssignDest_Subterranean_test, 0x6)
-//{
-//	Debug::Log("%s HereIam\n", __FUNCTION__);
-//	return 0x0;
+//	return pThis->GrowthLogic.Heap->Count ? 0x74D84D : 0x74D877;
 //}
 
 //DEFINE_HOOK(0x4CF3CB, FlyLocomotionClass_4CEFB0 , 5)

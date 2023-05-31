@@ -703,6 +703,8 @@ public:
 	void SpillTiberium(int& value, CellClass* pCenter, Point2D const& nMinMax = { 0 , 2 }) const;
 
 	bool CanICloakByDefault() const;
+	void TurnFacing(const DirStruct& nDir);
+	void ClearAllTarget();
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
@@ -862,8 +864,8 @@ public:
 	DECLARE_PROPERTY(TransitionTimer, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass
 
 	DECLARE_PROPERTY(FacingClass, BarrelFacing);
-	DECLARE_PROPERTY(FacingClass, PrimaryFacing);
-	DECLARE_PROPERTY(FacingClass, SecondaryFacing);
+	DECLARE_PROPERTY(FacingClass, PrimaryFacing); //Facing
+	DECLARE_PROPERTY(FacingClass, SecondaryFacing); // TurretFacing
 	int              CurrentBurstIndex;
 	DECLARE_PROPERTY(CDTimerClass, TargetLaserTimer);
 	short            weapon_sound_randomnumber_3C8;
@@ -875,9 +877,9 @@ public:
 	bool             IsUseless; //3D0
 	bool			 IsTickedOff; //HasBeenAttacked //3D1
 	bool			 Cloakable; //3D2
-	bool			 IsPrimaryFactory; //3D3
-	//bool			 IsLoaner; // 3D4
-	//bool			 IsLocked; // 3D5
+	bool			 IsPrimaryFactory; //3D3 IsLoaner
+	bool			 IsALoaner; // 3D4
+	bool			 IsLocked; // 3D5
 	bool			 Spawned; // 3D6
 	bool             IsInPlayfield; // 3D7
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);

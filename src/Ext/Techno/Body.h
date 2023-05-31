@@ -115,6 +115,8 @@ public:
 		TemporalClass* MyOriginalTemporal;
 		Armor CurrentArmor;
 		bool SupressEVALost;
+		CDTimerClass SelfHealing_CombatDelay;
+		bool PayloadCreated;
 
 		ExtData(TechnoClass* OwnerObject) : Extension<TechnoClass>(OwnerObject)
 			, Type { nullptr }
@@ -181,6 +183,8 @@ public:
 			, MyOriginalTemporal { nullptr }
 			, CurrentArmor { Armor::None }
 			, SupressEVALost { false }
+			, SelfHealing_CombatDelay { }
+			, PayloadCreated { false }
 #endif;
 		{
 			//MyWeaponManager.CWeaponManager = std::make_unique<CustomWeaponManager>();
@@ -371,4 +375,5 @@ private:
 
 	static const std::vector<std::vector<CoordStruct>>* PickFLHs(TechnoClass* pThis);
 	static const Nullable<CoordStruct>* GetInfrantyCrawlFLH(InfantryClass* pThis, int weaponIndex);
+	static const Armor GetTechnoArmor(TechnoClass* pThis, WarheadTypeClass* pWarhead);
 };

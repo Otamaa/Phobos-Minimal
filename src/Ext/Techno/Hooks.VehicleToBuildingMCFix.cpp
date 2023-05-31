@@ -13,14 +13,8 @@
 
 void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo)
 {
-	if (!pTechnoTo)
+	if (!pTechnoTo || TechnoExt::IsPsionicsImmune(pTechnoTo))
 		return;
-
-	const auto pTechnoToType = pTechnoTo->GetTechnoType();
-
-	if (TechnoExt::IsPsionicsImmune(pTechnoTo)) {
-		return;
-	}
 
 	// anim must be transfered before `Free` call , because it will get invalidated !
 	if (auto Anim = pTechnoFrom->MindControlRingAnim)
@@ -44,7 +38,7 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 		if (pBld)
 			location.Z += pBld->Type->Height * Unsorted::LevelHeight;
 		else
-			location.Z += pTechnoToType->MindControlRingOffset;
+			location.Z += pTechnoTo->GetTechnoType()->MindControlRingOffset;
 
 		Anim->SetLocation(location);
 		Anim->SetOwnerObject(pTechnoTo);
@@ -56,28 +50,27 @@ void TechnoExt::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClas
 	}
 
 	if (const auto MCHouse = pTechnoFrom->MindControlledByHouse) {
-
 		pTechnoTo->MindControlledByHouse = MCHouse;
 		pTechnoFrom->MindControlledByHouse = nullptr;
-	} else {
-		//ares perma MC 
-		pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit;
-
-		if (auto Controller = pTechnoFrom->MindControlledBy)
+	} else if(pTechnoTo->MindControlledByAUnit && !pTechnoFrom->MindControlledBy) {
+			pTechnoTo->MindControlledByAUnit = pTechnoFrom->MindControlledByAUnit;
+	} else if (auto Controller = pTechnoFrom->MindControlledBy) {
+		if (auto Manager = Controller->CaptureManager)
 		{
-			if (auto Manager = Controller->CaptureManager)
-			{
-				const bool Succeeded =
-					CaptureExt::FreeUnit(Manager, pTechnoFrom, true)
-					&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr);
+			const bool Succeeded =
+				CaptureExt::FreeUnit(Manager, pTechnoFrom, true)
+				&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr);
 
-				if (Succeeded)
+			if (Succeeded)
+			{
+				if (Is_Building(pTechnoTo))
 				{
-					if (Is_Building(pTechnoTo))
-					{
-						pTechnoTo->QueueMission(Mission::Construction, 0);
-						pTechnoTo->Mission_Construction();
-					}
+					// Capturing the building after unlimbo before buildup has finished or even started appears to throw certain things off,
+					// Hopefully this is enough to fix most of it like anims playing prematurely etc.
+					static_cast<BuildingClass*>(pTechnoTo)->ActuallyPlacedOnMap = false;
+					static_cast<BuildingClass*>(pTechnoTo)->DestroyNthAnim(BuildingAnimSlot::All);
+					pTechnoTo->QueueMission(Mission::Construction, 0);
+					pTechnoTo->Mission_Construction();
 				}
 			}
 		}
@@ -88,6 +81,12 @@ DEFINE_HOOK(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 {
 	GET(BuildingClass*, pStructure, EBP);
 	R->ECX<HouseClass*>(pStructure->GetOriginalOwner());
+
+	// Remember MC ring animation.
+	if (pStructure->IsMindControlled()) {
+		auto const pTechnoExt = TechnoExt::ExtMap.Find(pStructure);
+		pTechnoExt->UpdateMindControlAnim();
+	}
 
 	return 0x449E34;
 }

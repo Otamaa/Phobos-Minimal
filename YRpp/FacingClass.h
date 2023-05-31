@@ -83,7 +83,7 @@ public:
 
 	DirStruct Current(int offset = 0) const
 	{
-		auto ret = this->DesiredFacing;
+		DirStruct ret = this->DesiredFacing;
 		if (Is_Rotating()) {
 			short diff = Difference_Raw();
 			short num_steps = short(NumSteps());

@@ -230,7 +230,7 @@ DEFINE_HOOK(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
 	return 0x0;
 }
 
-static void __fastcall StripClass_Draw_GClockSHP(
+static void FC StripClass_Draw_GClockSHP(
 	Surface* Surface,
 	ConvertClass* Pal,
 	SHPStruct* SHP,

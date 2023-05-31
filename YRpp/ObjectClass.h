@@ -123,8 +123,8 @@ public:
 
 	// stupid! guess what happens again?
 	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const R0; //GetPosition_2
-	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0;
-	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0;
+	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0; //0xB0 mcoord_4263D0 
+	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0; //0xB4 Exit_Coord
 	virtual int GetYSort() const R0;
 	virtual bool IsOnBridge(TechnoClass* pDocker = nullptr) const R0; // pDocker is passed to GetDestination
 	virtual bool IsStandingStill() const R0;

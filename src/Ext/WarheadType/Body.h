@@ -512,6 +512,8 @@ public:
 		void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget);
 		void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget);
 
+		bool applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
+
 	private:
 
 		void EvaluateArmor(WarheadTypeClass* OwnerObject);
@@ -530,7 +532,6 @@ public:
 		//Otamaa
 		void applyTransactMoney(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct const& coords);
 		void applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target);
-		void applyPermaMC(HouseClass* const Owner, AbstractClass* const Target);
 
 		void ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTarget);
 

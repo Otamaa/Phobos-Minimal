@@ -162,6 +162,9 @@ DEFINE_HOOK(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);
 
+	//if (TheaterTypeClass::Array.empty())
+	//	TheaterTypeClass::LoadAllTheatersToArray();
+
 	R->EAX<int>(TheaterTypeClass::FindIndexById(nTheaterName));
 	return 0x48DC12;
 }
@@ -399,6 +402,7 @@ DEFINE_OVERRIDE_HOOK(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 DEFINE_HOOK(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
+
 	ScenarioClass::Instance->Theater = nType;
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);

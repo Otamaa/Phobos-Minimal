@@ -108,10 +108,11 @@ DEFINE_OVERRIDE_HOOK(0x51DF8C, InfantryClass_Fire_Ammo, 6)
 	GET(InfantryClass*, pThis, ESI);
 	GET_STACK(int, nWeaponIdx, 0x10);
 
-	const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType;
-	const auto pWP = WeaponTypeExt::ExtMap.Find(pWeapon);
+	const auto pWeaponS = pThis->GetWeapon(nWeaponIdx);
+	if (!pWeaponS || !pWeaponS->WeaponType)
+		return 0x0;
 
-	if (pWP->Ammo > 0)
+	if (WeaponTypeExt::ExtMap.Find(pWeaponS->WeaponType)->Ammo > 0)
 	{
 		if (pThis->Type->Ammo > 0 && pThis->Ammo < pThis->Type->Ammo)
 		{

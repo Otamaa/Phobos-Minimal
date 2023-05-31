@@ -78,9 +78,9 @@ public:
 	static bool OnMiddle_SpawnParticle(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
 
-	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
+	static Layer FC GetLayer_patch(AnimClass* pThis, void* _);
 
-	static HouseClass* __fastcall GetOwningHouse_Wrapper(AnimClass* pThis, void* _) {
+	static HouseClass* FC GetOwningHouse_Wrapper(AnimClass* pThis, void* _) {
 		return pThis->Owner;
 	}
 };

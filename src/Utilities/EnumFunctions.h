@@ -97,6 +97,8 @@ public:
 	static std::array<const char* const, 5u> BannerNumberType_ToStrings;
 	static std::array<const char* const, 9u> TargetingConstraint_ToStrings;
 	static std::array<const char* const, 3u> TargetingPreference_ToStrings;
+	static std::array<const char* const, 3u> SelfHealGainType_ToStrings;
+	static std::array<const char* const, 5u> ChronoSparkleDisplayPosition_ToStrings;
 
 	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false);

@@ -1,14 +1,14 @@
 #pragma once
 #include "LocomotionClass.h"
 
-class  DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
+class  //DECLSPEC_UUID("92612C46-F71F-11d1-AC9F-006008055BB5") NOVTABLE
 	JumpjetLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
 	static constexpr inline uintptr_t vtable = 0x7ECE34;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7ECD68;
 	static constexpr inline uintptr_t IPiggy_vtable = 0x7ECD44;
-	static constexpr inline CLSID ClassGUID = __uuidof(JumpjetLocomotionClass);
+	static const inline CLSID ClassGUID = CLSIDs::Jumpjet();
 
 	enum State
 	{

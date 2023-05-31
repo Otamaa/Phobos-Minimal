@@ -71,22 +71,7 @@ DEFINE_HOOK(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
 	return pExt && pExt->VirtualUnit ? 0x6925E6 : 0x0;
 }
 #endif
-DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_DP, 0x7)
-{
-	GET(TechnoClass*, pThis, EDI);
 
-	auto pUnit = specific_cast<UnitClass*>(pThis);
-	const bool bNotSlectable = pUnit && pUnit->DeatFrameCounter > 0;
-
-	bool Slectable = true;
-
-	#ifdef COMPILE_PORTED_DP_FEATURES
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-		Slectable = !pExt->VirtualUnit.Get();
-	#endif
-
-	return Slectable || !bNotSlectable ? 0x0 : 0x5F45A9;
-}
 
 
 static bool CeaseFire(TechnoClass* pThis)
@@ -133,6 +118,28 @@ namespace CalculatePinch
 	}
 }
 
+// DEFINE_HOOK(0x5F45A0, TechnoClass_Selectable_Early , 0x7)
+// {
+// 	GET(TechnoClass*, pThis, EDI);
+
+// 	const auto pUnit = specific_cast<UnitClass*>(pThis);
+// 	const bool bNotSlectable = pUnit && pUnit->DeathFrameCounter > 0;
+
+// 	bool Slectable = true;
+
+// 	#ifdef COMPILE_PORTED_DP_FEATURES
+// 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+// 		Slectable = !pExt->VirtualUnit.Get();
+// 	#endif
+
+// 	return Slectable || !bNotSlectable ? 0x0 : 0x5F45A9;
+
+// 	if(!bNotSlectable)
+// 		return 0x5F45A9;
+
+// 	return 0x0;
+// }
+
 DEFINE_HOOK(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -170,16 +177,7 @@ DEFINE_HOOK(0x6FDD61, TechnoClass_FireAt_OverrideWeapon, 0x5)
 	return 0;
 }
 
-// DEFINE_HOOK(0x702050, TechnoClass_ReceiveDamage_Destroyed, 0x6) //8
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-
-
-
-// 	return 0;
-// }
-
-DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_DP, 0x7)
+DEFINE_HOOK(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
 {
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(CoordStruct*, pCoord, (0x4));
@@ -203,23 +201,6 @@ DEFINE_HOOK(0x6FC016, TechnoClass_Select_SkipVoice, 0x8)
 	const auto pExt = TechnoExt::ExtMap.Find(pThis);
 	return pExt && pExt->SkipVoice ? 0x6FC01E :0x0;
 }
-
-//DEFINE_HOOK(0x701DFF, TechnoClass_ReceiveDamage_AfterObjectClassCall, 0x7) //9
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	//GET(int*, pRealDamage , EBX);
-//	GET(WarheadTypeClass*, pWH , EBP);
-//	GET(DamageState, damageState , EDI);
-//
-//	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-//	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
-//
-//	if(pExt && pTypeExt) {
-//		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, pWH, damageState);
-//	}
-//
-//	return 0x0;
-//}
 
 WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 {
@@ -322,10 +303,22 @@ DEFINE_HOOK(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling , 5)
 	return 0;
 }
 
+DEFINE_HOOK_AGAIN(0x730DEB, ObjectClass_GuardCommand ,6 ) //Building
+DEFINE_HOOK(0x730E56, ObjectClass_GuardCommand , 6)
+{
+	GET(ObjectClass*, pObj, ESI);
+
+	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
+
+	}
+
+   return 0;
+}
+
 DEFINE_HOOK(0x730EEB, ObjectClass_StopCommand, 6)
 {
 	GET(ObjectClass*, pObj, ESI);
-	
+
 	if (auto pTechno = generic_cast<TechnoClass*>(pObj)) {
 		auto pExt = TechnoExt::ExtMap.Find(pTechno);
 		if (pExt->MyFighterData)

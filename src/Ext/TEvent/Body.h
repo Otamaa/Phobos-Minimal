@@ -50,6 +50,8 @@ enum PhobosTriggerEvent
 
 	ShieldBroken = 600,
 
+	HousesDestroyed = 601,
+
 	count
 };
 
@@ -90,4 +92,6 @@ public:
 	};
 
 	static ExtContainer ExtMap;
+
+	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
 };

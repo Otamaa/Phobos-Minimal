@@ -272,6 +272,10 @@ public:
 
 		ValueableIdx<TunnelTypeClass> TunnelType;
 
+		Valueable<double> UCPassThrough; 					//!< How many percent of the shots pass through the building to the occupants? 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+		Valueable<double> UCFatalRate; 					//!< Chance of an occupant getting killed instantly when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 0.0.
+		Valueable<double> UCDamageMultiplier; 				//!< How many percent of normal damage are applied if an occupant is hit when a bullet passes through. 0.0 = 0%, 1.0 = 100%; Defaults to 1.0.
+
 		ExtData(BuildingTypeClass* OwnerObject) : Extension<BuildingTypeClass>(OwnerObject)
 			, Type { nullptr }
 			, PowersUp_Owner { AffectedHouse::Owner }
@@ -394,6 +398,9 @@ public:
 			, EngineerRepairable {}
 			, IsTrench { -1 }
 			, TunnelType { -1 }
+			, UCPassThrough { 0.0 }
+			, UCFatalRate { 0.0 }
+			, UCDamageMultiplier { 1.0 }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -478,6 +485,6 @@ public:
 	static int BuildLimitRemaining(HouseClass const* pHouse, BuildingTypeClass const* pItem);
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);
 
-	static bool __fastcall IsFactory(BuildingClass* pThis, void* _);
-	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
+	static bool FC IsFactory(BuildingClass* pThis, void* _);
+	static void FC DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 };

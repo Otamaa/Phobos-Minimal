@@ -49,9 +49,8 @@ DEFINE_HOOK(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTarget, EBP);
 
-	R->AL(CaptureExt::CanCapture(pThis->CaptureManager, pTarget));
-
-	return 0x6FCB40;
+	return CaptureExt::CanCapture(pThis->CaptureManager, pTarget) ?
+	 0x6FCB53  : 0x6FCB44 ;
 }
 
 DEFINE_HOOK(0x4DBF23, FootClass_ChangeOwner_IAmNowHuman, 0x6)

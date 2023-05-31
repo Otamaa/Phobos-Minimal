@@ -45,7 +45,7 @@ struct LevitateCharacteristics
 	{}
 };
 
-_COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));
+//_COM_SMARTPTR_TYPEDEF(IPiggyback, __uuidof(IPiggyback));
 
 class DECLSPEC_UUID("3DC0B295-6546-11D3-80B0-00902792494C") 
 	LevitateLocomotionClass : public LocomotionClass 
@@ -74,7 +74,7 @@ public:
 	virtual HRESULT __stdcall IsDirty() { return LocomotionClass::IsDirty(); }
 	virtual HRESULT __stdcall Load(IStream* pStm) {
 
-		HRESULT hr = LocomotionClass::Load(pStm);
+		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
 		if (SUCCEEDED(hr))
 		{
 			// Insert any data to be loaded here.
@@ -85,7 +85,7 @@ public:
 
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty)  {
 
-		HRESULT hr = LocomotionClass::Save(pStm , fClearDirty);
+		HRESULT hr = LocomotionClass::Internal_Save(this, pStm , fClearDirty);
 		if (SUCCEEDED(hr))
 		{
 			// Insert any data to be loaded here.
@@ -178,11 +178,57 @@ public:
 	virtual int __stdcall Get_Speed_Accum() override { return LocomotionClass::Get_Speed_Accum(); }
 
 	//IPiggy
-	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override { return S_OK; };	//Piggybacks a locomotor onto this one.
-	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override { return S_OK; };//End piggyback process and restore locomotor interface pointer.
-	virtual bool __stdcall Is_Ok_To_End() override { return true; };	//Is it ok to end the piggyback process?
-	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { return S_OK; };	//Fetches piggybacked locomotor class ID.
-	virtual bool __stdcall Is_Piggybacking() override { return true; };	//Is it currently piggy backing another locomotor?
+	virtual HRESULT __stdcall Begin_Piggyback(ILocomotion* pointer) override {
+		if (!pointer) {
+			return 0x80004003;
+		}
+
+		//idk ,..
+		if (this->PiggyTO) {
+			return 0x80004005;
+		}
+
+		this->PiggyTO = pointer;
+		pointer->AddRef();
+		return S_OK;
+	
+	};
+
+	//Piggybacks a locomotor onto this one.
+	virtual HRESULT __stdcall End_Piggyback(ILocomotion** pointer) override {
+
+		if (!pointer) {
+			return 0x80004003;
+		}
+
+		const auto v3 = this->PiggyTO;
+		if (!v3) {
+			//the implementation here can be specific to the locomotor itself 
+			//Jumpjet and Teleport has different stuffs include
+			return 1;
+		}
+
+		*pointer = std::exchange(this->PiggyTO , nullptr);
+
+		return S_OK; 
+	};//End piggyback process and restore locomotor interface pointer.
+	
+	virtual bool __stdcall Is_Ok_To_End() override { 
+		
+		return !SUCCEEDED(this->IsDirty()); // the implementation is different based on each loco
+		// here we check certain state
+	};	//Is it ok to end the piggyback process?
+
+	virtual HRESULT __stdcall Piggyback_CLSID(GUID* classid) override { 
+		CLSID clsId = *classid;
+		// it similar to these , but the error should be returned from function instead of contained
+		this->ChangeLocomotorTo(this->LinkedTo, clsId);
+		return S_OK;
+	};	//Fetches piggybacked locomotor class ID.
+
+	virtual bool __stdcall Is_Piggybacking() override { 
+		return this->PiggyTO;
+	};	//Is it currently piggy backing another locomotor?
 
 	void ProcessHovering();
 	void DoPhase1();
@@ -233,4 +279,5 @@ public:
 	double CurrentSpeed; // CurrentSpeed?
 	double Dampen; // Dampen? 50
 	double field_58;
+	ILocomotion* PiggyTO;
 };

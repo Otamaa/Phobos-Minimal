@@ -327,6 +327,7 @@ DEFINE_HOOK(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	RadTypeClass::Clear();
 	RulesExt::Clear();
 	ScenarioExt::Clear();
+	SWTypeExt::ExtMap.Clear();
 	SidebarExt::Clear();
 	ShieldTypeClass::Clear();
 	TacticalExt::Clear();

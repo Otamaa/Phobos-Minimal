@@ -25,7 +25,7 @@
 // 662496
 // 66235D
 
-//static DamageAreaResult __fastcall _RocketLocomotionClass_DamageArea(
+//static DamageAreaResult FC _RocketLocomotionClass_DamageArea(
 //	CoordStruct* pCoord,
 //	int Damage,
 //	TechnoClass* Source,

@@ -36,7 +36,7 @@ int __stdcall Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 	return 0;
 }
 
-void __fastcall Phobos_HandleMouseThread()
+void FC Phobos_HandleMouseThread()
 {
 
 	if (!MouseThreadParameter::Mutex())

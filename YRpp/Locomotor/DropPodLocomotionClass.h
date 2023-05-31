@@ -9,7 +9,7 @@ enum DropPodDirType : BYTE
 	DPOD_DIR_SW,
 };
 
-class DECLSPEC_UUID("4A582745-9839-11d1-B709-00A024DDAFD1") NOVTABLE
+class //DECLSPEC_UUID("4A582745-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	DropPodLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
@@ -17,10 +17,25 @@ public:
 	static constexpr inline uintptr_t vtable = 0x7E8344;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7E8278;
 	static constexpr inline uintptr_t IPiggy_vtable = 0x7E8254;
-	static constexpr inline CLSID ClassGUID = __uuidof(DropPodLocomotionClass);
+	static const inline CLSID ClassGUID = CLSIDs::Droppod();
+
+	//IUnknown
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
+	virtual ULONG __stdcall AddRef() override R0;
+	virtual ULONG __stdcall Release() override R0;
+
+	//IPersist
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
-	virtual ~DropPodLocomotionClass() RX;
+	virtual ~DropPodLocomotionClass() override RX;
+
+	//LocomotionClass
+	virtual int Size() override R0;
 
 	//Constructor
 	DropPodLocomotionClass()

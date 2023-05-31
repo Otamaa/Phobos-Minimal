@@ -485,11 +485,20 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	return true;
 }
+#include <LoadOptionsClass.h>
 
 bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (SessionClass::Instance->GameMode == GameMode::Campaign || SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
+		auto nMessage = StringTable::LoadString(GameStrings::TXT_SAVING_GAME());
+		auto pUI = UI::sub_623230((LPARAM)nMessage, 0, 0);
+		WWMouseClass::Instance->HideCursor();
+
+		if (pUI) {
+			UI::FocusOnWindow(pUI);
+		}
+
 		auto PrintMessage = [](const wchar_t* pMessage)
 		{
 			MessageListClass::Instance->PrintMessage(
@@ -508,14 +517,20 @@ bool TActionExt::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* 
 		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
 			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 
-		PrintMessage(StringTable::LoadString(GameStrings::TXT_SAVING_GAME));
-
 		wchar_t fDescription[0x80] = { 0 };
 		wcscpy_s(fDescription, ScenarioClass::Instance->UINameLoaded);
 		wcscat_s(fDescription, L" - ");
 		wcscat_s(fDescription, StringTable::LoadString(pThis->Text));
 
-		if (ScenarioClass::Instance->SaveGame(fName, fDescription))
+		bool Status = ScenarioClass::Instance->SaveGame(fName, fDescription);
+
+		WWMouseClass::Instance->ShowCursor();
+
+		if (pUI) {
+			UI::EndDialog(pUI);
+		}
+
+		if (Status)
 			PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
 		else
 			PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));

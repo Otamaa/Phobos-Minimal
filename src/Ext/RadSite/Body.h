@@ -77,7 +77,7 @@ public:
 	static ExtContainer ExtMap;
 
 	static void CreateInstance(CoordStruct const& nCoord, int spread, int amount, WeaponTypeExt::ExtData* pWeaponExt, TechnoClass* const pTech);
-	static CoordStruct __fastcall GetAltCoords_Wrapper(RadSiteClass* pThis, void* _) {
+	static CoordStruct FC GetAltCoords_Wrapper(RadSiteClass* pThis, void* _) {
 		auto const pCell = MapClass::Instance->GetCellAt(pThis->BaseCell);
 		 return pCell->GetCoordsWithBridge();
 	}

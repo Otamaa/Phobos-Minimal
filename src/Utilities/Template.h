@@ -417,7 +417,7 @@ public:
 
 	bool Contains(const T& other) const
 	{
-		if constexpr (std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value) {
+		if constexpr (direct_comparable<T>) {
 			for (auto pos = this->begin();
 					pos != this->end();
 					++pos)
@@ -435,7 +435,7 @@ public:
 
 	int IndexOf(const T& other) const
 	{
-		if constexpr (std::is_pointer<T>::value)
+		if constexpr (direct_comparable<T>)
 		{
 			for (auto pos = this->begin();
 				pos != this->end();
@@ -483,19 +483,6 @@ public:
 
 		return *(this->begin() + nIdx);
 	}
-
-	//void Remove(int nIdx)
-	//{
-	//	if (!this->ValidIndex(nIdx))
-	//		return;
-
-	//	const auto It = this->cbegin() + nIdx;
-
-	//	if (It == this->cend())
-	//		return;
-
-	//	this->erase(It);
-	//}
 
 	void PushbackUnique(const T& other) const
 	{

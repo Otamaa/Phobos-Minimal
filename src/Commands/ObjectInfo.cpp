@@ -12,6 +12,7 @@
 #include <Helpers/Enumerators.h>
 #include <IsometricTileTypeClass.h>
 #include <TerrainTypeClass.h>
+#include <VeinholeMonsterClass.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
@@ -325,26 +326,25 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 		{
 			if (auto pCell = MapClass::Instance->GetCellAt(WWMouseClass::Instance->GetCellUnderCursor()))
 			{
+				const auto nCoord = pCell->GetCoordsWithBridge();
+				Append(buffer, "Cell At [%d - %d - %d]/[%d - %d] OverlayData [%d]\n", nCoord.Y, nCoord.Y, nCoord.Z, pCell->MapCoords.X, pCell->MapCoords.Y, pCell->OverlayData);
 
 				const auto nTile = pCell->IsoTileTypeIndex;
 				if (const auto pTile = IsometricTileTypeClass::Array->GetItemOrDefault(nTile))
 				{
-					Append(buffer, "[%d]TileType At Cell[%d , %d] is %s \n", nTile, pCell->MapCoords.X, pCell->MapCoords.Y, pTile->ID);
+					Append(buffer, "[%d]TileType is %s\n", nTile, pTile->ID);
 				}
 
 				const auto nOverlay = pCell->OverlayTypeIndex;
 				if (const auto pOverlay = OverlayTypeClass::Array->GetItemOrDefault(nOverlay))
 				{
-					Append(buffer, "[%d]OverlayType is %s ", nOverlay, pOverlay->ID);
+					Append(buffer, "[%d]OverlayType is %s\n", nOverlay, pOverlay->ID);
 				}
 
-				for (auto pTerrain : *TerrainClass::Array)
+				if (auto pTerrain = pCell->GetTerrain(false))
 				{
-					if (pTerrain->Type && pTerrain->GetCell() == pCell)
-					{
-						auto const pArmor = ArmorTypeClass::FindFromIndex((int)pTerrain->Type->Armor);
-						Append(buffer, "[%x]TerrainType is %s , Armor = %s (%d) , str = %d / %d \n", pTerrain, pTerrain->get_ID(), pArmor->Name.data(), (int)pTerrain->Type->Armor, pTerrain->Health, pTerrain->Type->Strength);
-					}
+					auto const pArmor = ArmorTypeClass::FindFromIndex((int)pTerrain->Type->Armor);
+					Append(buffer, "[%x]TerrainType is %s , Armor = %s (%d) , str = %d / %d\n", pTerrain, pTerrain->Type->ID, pArmor->Name.data(), (int)pTerrain->Type->Armor, pTerrain->Health, pTerrain->Type->Strength);
 				}
 
 				Display(buffer);

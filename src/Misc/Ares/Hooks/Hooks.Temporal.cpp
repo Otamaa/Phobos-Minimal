@@ -11,7 +11,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
-#include <Ext/TechnoType/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
@@ -23,83 +23,6 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <Misc/AresData.h>
 #include <Notifications.h>
-
-// TODO : still not correct !
-//DEFINE_HOOK(718279, TeleportLocomotionClass_MakeRoom, 5)
-//{
-//	GET(CoordStruct*, pCoord, EAX);
-//	GET(TeleportLocomotionClass*, pLoco, EBP);
-//
-//	auto const pLinked = pLoco->LinkedTo;
-//	auto const pLinkedIsInf = pLinked->WhatAmI() == AbstractType::Infantry;
-//	auto const pCell = Map.TryGetCellAt(*pCoord);
-//
-//	R->Stack(0x48, false);
-//	R->EBX(pCell->OverlayTypeIndex);
-//	R->EDI(0);
-//
-//	for (NextObject obj(pCell->GetContent()); obj; ++obj)
-//	{
-//
-//		auto const pObj = (*obj);
-//		auto const bIsObjFoot = pObj->AbstractFlags & AbstractFlags::Foot;
-//		auto const pObjIsInf = pObj->WhatAmI() == AbstractType::Infantry;
-//		auto bIsObjectInvicible = pObj->IsIronCurtained();
-//		auto const pType = pObj->GetTechnoType();
-//		auto const pTypeExt = TechnoTypeExt::ExtMap.Find(pType);
-//
-//		if (pType && !pTypeExt->Chronoshift_Crushable)
-//			bIsObjectInvicible = true;
-//
-//		if (!bIsObjectInvicible && pObjIsInf && pLinkedIsInf)
-//		{
-//			auto const bEligible = pLinked->Owner && !pLinked->Owner->IsAlliedWith(pObj);
-//			auto const pAttackerHouse = bEligible ? pLinked->Owner : nullptr;
-//			auto const pAttackerTechno = bEligible ? pLinked : nullptr;
-//
-//			auto nCoord = pObj->GetCoords();
-//			if (nCoord == *pCoord)
-//			{
-//				auto nDamage = pObj->Health;
-//				pObj->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//			}
-//		}
-//		else if (bIsObjectInvicible || !bIsObjFoot)
-//		{
-//			if (bIsObjectInvicible)
-//			{
-//				auto const pObjHouse = pObj->GetOwningHouse();
-//				auto const pAttackerHouse = pObjHouse && !pObjHouse->IsAlliedWith(pObj) ? pObjHouse : nullptr;
-//				auto const pAttackerTechno = reinterpret_cast<TechnoClass*>(pObj);
-//
-//				auto nDamage = pLinked->Health;
-//				pLinked->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//			}
-//			else if (!bIsObjFoot)
-//			{
-//				R->Stack(0x48, true);
-//			}
-//		}
-//		else
-//		{
-//
-//			auto const bEligible = pLinked->Owner && !pLinked->Owner->IsAlliedWith(pObj);
-//			auto const pAttackerHouse = bEligible ? pLinked->Owner : nullptr;
-//			auto const pAttackerTechno = bEligible ? pLinked : nullptr;
-//			auto nDamage = pObj->Health;
-//			pObj->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, pAttackerTechno, true, false, pAttackerHouse);
-//		}
-//	}
-//
-//	auto const nFlag300 = CellFlags::Bridge | CellFlags::Unknown_200;
-//	if ((pCell->Flags & nFlag300) == CellFlags::Bridge)
-//		R->Stack(0x48, true);
-//
-//	R->Stack(0x20, pLinked->GetMapCoords());
-//	R->EAX(true);
-//
-//	return 0x7184CE;
-//}
 
 #include <Ext/House/Body.h>
 #include <SpawnManagerClass.h>
@@ -294,7 +217,8 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	// if we have an abducting animation, play it
 	if (auto pAnimType = pData->Abductor_AnimType) {
 		if (auto pAnim = GameCreate<AnimClass>(pAnimType, nTargetCoords)) {
-			pAnim->Owner = Attacker->Owner;
+			AnimExt::SetAnimOwnerHouseKind(pAnim, Attacker->Owner , Target->Owner, Attacker, false);
+
 		}
 	}
 
@@ -365,6 +289,115 @@ bool conductAbduction(WeaponTypeExt::ExtData* pData , TechnoClass* pOwner, Abstr
 	return true;
 }
 
+bool applyOccupantDamage(BulletClass* pThis)
+{
+	auto const pBuilding = abstract_cast<BuildingClass*>(pThis->Target);
+
+	// if that pointer is null, something went wrong
+	if (!pBuilding) {
+		return false;
+	}
+
+	auto const pTypeExt = BulletTypeExt::ExtMap.Find(pThis->Type);
+	auto const pBldTypeExt = BuildingTypeExt::ExtMap.Find(pBuilding->Type);
+
+	auto const occupants = pBuilding->Occupants.Count;
+	auto const& passThrough = pBldTypeExt->UCPassThrough;
+
+	if (!occupants || !passThrough) {
+		return false;
+	}
+
+	auto& Random = ScenarioClass::Instance->Random;
+	if (pTypeExt->SubjectToTrenches && Random.RandomDouble() >= passThrough) {
+		return false;
+	}
+
+	auto const idxPoorBastard = Random.RandomFromMax(occupants - 1);
+	auto const pPoorBastard = pBuilding->Occupants[idxPoorBastard];
+
+	auto const& fatalRate = pBldTypeExt->UCFatalRate;
+	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
+	{
+		pPoorBastard->Destroyed(pThis->Owner);
+		pPoorBastard->UnInit();
+		pBuilding->Occupants.RemoveAt(idxPoorBastard);
+		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
+	}
+	else
+	{
+		auto const& multiplier = pBldTypeExt->UCDamageMultiplier.Get();
+		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
+		pPoorBastard->ReceiveDamage(&adjustedDamage, 0, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse());
+	}
+
+	if (pBuilding->FiringOccupantIndex >= pBuilding->GetOccupantCount()) {
+		pBuilding->FiringOccupantIndex = 0;
+	}
+
+	// if the last occupant was killed and this building was raided,
+	// it needs to be returned to its owner. (Bug #700)
+	AresData::EvalRaidStatus(pBuilding);
+
+	return true;
+}
+
+DEFINE_OVERRIDE_HOOK(0x46920B, BulletClass_Detonate, 6)
+{
+	enum { CheckIvanBomb = 0x469343, ConituneMindControlCheck = 0x46921F, SkipEverything = 0x469AA4, Continue = 0x0 };
+
+	GET(BulletClass* const, pThis, ESI);
+	GET_BASE(const CoordStruct* const, pCoordsDetonation, 0x8);
+
+	auto const pWarhead = pThis->WH;
+	auto const pWHExt = WarheadTypeExt::ExtMap.Find(pWarhead); 
+	auto const pWeaponExt = WeaponTypeExt::ExtMap.TryFind(pThis->WeaponType);
+
+	auto const pOwnerHouse = pThis->Owner ? pThis->Owner->Owner : nullptr;
+
+	// this snapping stuff does not belong here. it should go into BulletClass::Fire
+	auto coords = *pCoordsDetonation;
+	auto snapped = false;
+
+	static auto const SnapDistance = 64;
+	if (pThis->Target && pThis->DistanceFrom(pThis->Target) < SnapDistance) {
+		coords = pThis->Target->GetCoords();
+		snapped = true;
+	}
+
+	// these effects should be applied no matter what happens to the target
+	AresData::applyIonCannon(pWarhead , &coords);
+
+	bool targetStillOnMap = true;
+	if (snapped && pWeaponExt && conductAbduction(pWeaponExt, pThis->Owner, pThis->Target, coords)) {
+		// ..and neuter the bullet, since it's not supposed to hurt the prisoner after the abduction
+		pThis->Health = 0;
+		pThis->DamageMultiplier = 0;
+		pThis->Limbo();
+		targetStillOnMap = false;
+	}
+
+	// if the target gets abducted, there's nothing there to apply IC, EMP, etc. to
+	// mind that conductAbduction() neuters the bullet, so if you wish to change
+	// this check, you have to fix that as well
+	if (targetStillOnMap) {
+
+		auto const damage = pThis->WeaponType ? pThis->WeaponType->Damage : 0;
+		AresData::applyIC(pWarhead, &coords, pOwnerHouse, damage);
+		AresData::applyEMP(pWarhead, &coords, pThis->Owner);
+		AresData::applyAE(pWarhead, &coords, pOwnerHouse);
+
+		if (snapped && applyOccupantDamage(pThis)) {
+			// ..and neuter the bullet, since it's not supposed to hurt the prisoner after the abduction
+			pThis->Health = 0;
+			pThis->DamageMultiplier = 0;
+			pThis->Limbo();
+		}
+	}
+
+	return pWHExt->applyPermaMC(pOwnerHouse, pThis->Target) ? 0x469AA4u : 0u;
+}
+
 DEFINE_OVERRIDE_HOOK(0x71AAAC, TemporalClass_Update_Abductor, 6)
 {
 	GET(TemporalClass*, pThis, ESI);
@@ -387,13 +420,21 @@ DEFINE_OVERRIDE_HOOK(0x71AA52, TemporalClass_Update_AnnounceInvalidPointer, 0x8)
 }
 
 // issue 472: deglob WarpAway
-DEFINE_OVERRIDE_HOOK(0x71A900, TemporalClass_Update_WarpAway, 6)
+DEFINE_HOOK(0x71A8BD, TemporalClass_Update_WarpAway, 5)
 {
 	GET(TemporalClass*, pThis, ESI);
 	const auto nWeaponIDx = Ares_TemporalWeapon(pThis->Owner);
 	auto const pWeapon = pThis->Owner->GetWeapon(nWeaponIDx)->WeaponType;
-	R->EDX<AnimTypeClass*>(WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Global()->WarpAway));
-	return 0x71A906;
+
+	const auto pTarget = pThis->Target;
+
+	if(auto pAnimType = WarheadTypeExt::ExtMap.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
+		if(auto pAnim = GameCreate<AnimClass>(pAnimType,pTarget->Location ,0,1, AnimFlag(0x600),0,0)) {
+			AnimExt::SetAnimOwnerHouseKind(pAnim, pThis->Owner ? pThis->Owner->Owner : nullptr, pTarget ? pTarget->Owner : nullptr, pThis->Owner, false);
+		}
+	}
+
+	return 0x71A90E;
 }
 
 // bugfix #379: Temporal friendly kills give veterancy

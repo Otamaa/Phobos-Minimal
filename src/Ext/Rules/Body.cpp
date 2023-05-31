@@ -42,7 +42,7 @@ void RulesExt::ExtData::Initialize()
 {
 	AITargetTypesLists.reserve(5);
 	AIScriptsLists.reserve(5);
-	AIHousesLists.reserve(5);
+	AIHateHousesLists.reserve(5);
 	AIConditionsLists.reserve(5);
 	AITriggersLists.reserve(5);
 	AI_AutoSellHealthRatio.reserve(3);
@@ -179,13 +179,16 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	detail::ParseVector(pINI, this->AITargetTypesLists, "AITargetTypes");
 	detail::ParseVector<ScriptTypeClass*, true>(pINI, this->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector(pINI, this->AIHousesLists, "AIHousesList");
+	detail::ParseVector<HouseTypeClass* , true>(pINI, this->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*, true>(pINI, this->AIHousesLists, "AIHousesList");
 	detail::ParseVector(pINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
 	detail::ParseVector<AITriggerTypeClass*, true>(pINI, this->AITriggersLists, "AITriggersList");
 
 	this->StealthSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "StealthSpeakDelay");
 	this->SubterraneanSpeakDelay.Read(exINI, AUDIOVISUAL_SECTION, "SubterraneanSpeakDelay");
 	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
+	this->ChronoSparkleDisplayDelay.Read(exINI, GameStrings::General, "ChronoSparkleDisplayDelay");
+	this->ChronoSparkleBuildingDisplayPositions.Read(exINI, GameStrings::General, "ChronoSparkleBuildingDisplayPositions");
 	this->BerserkROFMultiplier.Read(exINI, COMBATDAMAGE_SECTION, "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GENERAL_SECTION, "TeamRetaliate");
 	this->AI_CostMult.Read(exINI, GENERAL_SECTION, "AICostMult");
@@ -276,6 +279,13 @@ void RulesExt::ExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AlliedSolidTransparency.Read(exINI, COMBATDAMAGE_SECTION, "AlliedSolidTransparency");
 	this->DecloakSound.Read(exINI, AUDIOVISUAL_SECTION, "DecloakSound");
 	this->IC_Flash.Read(exINI, AUDIOVISUAL_SECTION, "IronCurtainFlash");
+
+	this->ChainReact_Multiplier.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.Multiplier");
+	this->ChainReact_SpreadChance.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.SpreadChance");
+	this->ChainReact_MinDelay.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.MinDelay");
+	this->ChainReact_MaxDelay.Read(exINI, COMBATDAMAGE_SECTION, "ChainReact.MaxDelay");
+
+	this->ChronoInfantryCrush.Read(exINI, GENERAL_SECTION, "ChronoInfantryCrush");
 
 	//TODO :Disabled atm
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
@@ -458,9 +468,10 @@ void RulesExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->AITargetTypesLists)
 		.Process(this->AIScriptsLists)
-		.Process(this->AIHousesLists)
+		.Process(this->AIHateHousesLists)
 		.Process(this->AIConditionsLists)
 		.Process(this->AITriggersLists)
+		.Process(this->AIHousesLists)
 
 		.Process(this->JumpjetCrash)
 		.Process(this->JumpjetNoWobbles)
@@ -568,6 +579,9 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->SubterraneanSpeakDelay)
 		.Process(this->RandomCrateMoney)
 
+		.Process(this->ChronoSparkleDisplayDelay)
+		.Process(this->ChronoSparkleBuildingDisplayPositions)
+
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
 		.Process(this->AI_CostMult)
@@ -575,6 +589,12 @@ void RulesExt::ExtData::Serialize(T& Stm)
 		.Process(this->DeactivateDim_Powered)
 		.Process(this->DeactivateDim_EMP)
 		.Process(this->DeactivateDim_Operator)
+
+		.Process(this->ChainReact_Multiplier)
+		.Process(this->ChainReact_SpreadChance)
+		.Process(this->ChainReact_MinDelay)
+		.Process(this->ChainReact_MaxDelay)
+		.Process(this->ChronoInfantryCrush)
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES
 	MyPutData.Serialize(Stm);

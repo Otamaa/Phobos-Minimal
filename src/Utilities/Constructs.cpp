@@ -56,7 +56,7 @@ bool CustomPalette::Read(
 	return false;
 }
 
-bool __fastcall CustomPalette::Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
+bool FC CustomPalette::Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
 {
 	return pThis->Read(pINI , pSection,pKey,pDefault);
 }

@@ -12,7 +12,7 @@
 class ExtSelection
 {
 public:
-	using callback_type = bool(__fastcall*)(ObjectClass*);
+	using callback_type = bool(FC*)(ObjectClass*);
 
 	static inline class TacticalSelectablesHelper
 	{
@@ -84,6 +84,10 @@ public:
 			{
 				const auto pTechno = selected.Techno;
 				const auto pTechnoType = pTechno->GetTechnoType();
+				
+				if (!pTechnoType)
+					continue;
+
 				const auto TypeExt = TechnoTypeExt::ExtMap.Find(pTechnoType);
 
 				if (bPriorityFiltering && TypeExt->LowSelectionPriority)
@@ -111,7 +115,7 @@ public:
 	}
 
 	static // Reversed from Tactical::MakeSelection
-	void __fastcall Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type fpCheckCallback)
+	void FC Tactical_MakeFilteredSelection(TacticalClass* pThis, void*_, callback_type fpCheckCallback)
 	{
 		if (pThis->Band.Left || pThis->Band.Top) {
 			int nLeft = pThis->Band.Left;

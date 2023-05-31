@@ -7,11 +7,12 @@ template<typename T, typename Pr = std::less<T>>
 class PointerHeapClass
 {
 public:
+
 	PointerHeapClass(int capacity)
 	{
 		Count = 0;
 		Capacity = capacity;
-		Datas = (T**)YRMemory::Allocate(sizeof(T*) * (Capacity + 1));
+		Datas = (T**)YRMemory::Allocate(sizeof(T*) * (capacity + 1));
 		LMost = (T*)nullptr;
 		RMost = (T*)0xFFFFFFFF;
 
@@ -108,6 +109,7 @@ public:
 	}
 
 private:
+
 	void ClearAll()
 	{
 		std::memset(Datas, 0, sizeof(T*) * (Capacity + 1));

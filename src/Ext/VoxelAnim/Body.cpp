@@ -142,7 +142,7 @@ DEFINE_HOOK(0x74AA24, VoxelAnimClass_Save_Suffix, 0x3)
 	return 0;
 }
 
-static void __fastcall VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)
+static void FC VoxelAnimClass_Detach(VoxelAnimClass* pThis,void* _, AbstractClass* pTarget, bool bRemove)
 {
 	pThis->ObjectClass::PointerExpired(pTarget, bRemove);
 	VoxelAnimExt::ExtMap.InvalidatePointerFor(pThis, pTarget, bRemove);

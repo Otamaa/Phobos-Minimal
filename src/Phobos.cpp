@@ -497,7 +497,7 @@ void InitConsole()
 	}
 }
 
-bool __fastcall CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
+bool FC CustomPalette_Read_Static(CustomPalette* pThis, DWORD, INI_EX* pEx, const char* pSection, const char* pKey, const char* pDefault)
 {
 	return pThis->Read(pEx->GetINI(), pSection, pKey, pDefault);
 }
@@ -827,7 +827,7 @@ DEFINE_HOOK(0x52BA78, _YR_GameInit_Pre, 0x5)
 	return 0;
 }
 
-static DWORD __fastcall DeInt_72AC40()
+static DWORD FC DeInt_72AC40()
 { JMP_STD(0x72AC40); }
 
 static DWORD Phobos_EndProgHandle_add()

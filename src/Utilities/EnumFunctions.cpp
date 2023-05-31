@@ -199,10 +199,24 @@ std::array<const char* const, 9u> EnumFunctions::TargetingConstraint_ToStrings
 }
 };
 
-std::array<const char* const, 3u> TargetingPreference_ToStrings
+std::array<const char* const, 3u> EnumFunctions::TargetingPreference_ToStrings
 {
 {
 	{NONE_STR2} , {"defensive"} , {"offensive"}
+}
+};
+
+std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
+{
+{
+		{GameStrings::NoneStrb()}, { GameStrings::Infantry() }, { GameStrings::Units() }
+}
+};
+std::array<const char* const, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
+{
+{
+	{GameStrings::NoneStrb()}, {"Building"}, { "occupants" }, { "occupantslots" } ,
+	{ "all" }
 }
 };
 

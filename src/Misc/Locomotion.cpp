@@ -13,10 +13,14 @@ void REG_CLASS()
 {
 	DWORD dwRegister = 0;
 	TClassFactory<T>* ptr = GameCreate<TClassFactory<T>>();
-	HRESULT hr = CoRegisterClassObject(__uuidof(T), ptr, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
+	
+	if (ptr == nullptr) {
+		Debug::Log("TClassFactory<%s> memory allocation failed.\n", typeid(T).name());
+		return;
+	}
 
-	if (FAILED(hr)) {
-		Debug::Log("CoRegisterClassObject(TClassFactory<%s>) failed with error code % d.\n", typeid(T).name(), GetLastError());
+	if (FAILED(CoRegisterClassObject(__uuidof(T), ptr, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister))) {
+		Debug::Log("CoRegisterClassObject(TClassFactory<%s>) failed with error code %d.\n", typeid(T).name(), GetLastError());
 	} else {
 		Debug::Log("%s factory registered.\n", typeid(T).name());
 	}

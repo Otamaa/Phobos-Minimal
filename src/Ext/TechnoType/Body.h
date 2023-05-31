@@ -564,10 +564,13 @@ public:
 		ValueableIdx<VocClass> VoiceRepair;
 		Valueable<int> ReloadAmount;
 		Nullable<int> EmptyReloadAmount;
+
+		Nullable<bool> TiberiumProof;
 		Valueable<bool> TiberiumSpill;
 		Nullable<bool> TiberiumRemains;
-		Valueable<bool> SensorArray_Warn;
+		Nullable<int> TiberiumTransmogrify;
 
+		Valueable<bool> SensorArray_Warn;
 		Valueable<double> IronCurtain_Modifier;
 		Valueable<double> ForceShield_Modifier;
 		Valueable<int> Survivors_PilotCount; //!< Defines the number of pilots inside this vehicle if Crewed=yes; maximum number of pilots who can survive. Defaults to 0 if Crewed=no; defaults to 1 if Crewed=yes. // NOTE: Flag in INI is called Survivor.Pilots
@@ -645,8 +648,11 @@ public:
 		std::vector<InsigniaData> Insignia_Weapon;
 
 		Valueable<int> VHPscan_Value;
-		Valueable<int> SelfHealing_CombatDelay;
 		Valueable<bool> CloakAllowed;
+
+		ValueableVector<TechnoTypeClass*> InitialPayload_Types;
+		ValueableVector<int> InitialPayload_Nums;
+
 		Valueable<bool> AlternateTheaterArt;
 
 		Valueable<bool> HijackerOneTime;
@@ -666,6 +672,13 @@ public:
 
 		Valueable<bool> ImmuneToAbduction; //680, 1362
 		Valueable<bool> UseROFAsBurstDelays;
+
+		Valueable<bool> Chronoshift_Crushable;
+
+		Nullable<double> SelfHealing_Rate;
+		Promotable<int> SelfHealing_Amount;
+		Promotable<double> SelfHealing_Max;
+		Promotable<int> SelfHealing_CombatDelay;
 
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
@@ -928,7 +941,7 @@ public:
 			, GClock_Transculency { }
 			, GClock_Palette { }
 
-			, ROF_Random { false }
+			, ROF_Random { true }
 			, Rof_RandomMinMax { }
 
 			, Eva_Complete { }
@@ -1100,8 +1113,12 @@ public:
 			, VoiceRepair { -1 }
 			, ReloadAmount { 1 }
 			, EmptyReloadAmount { }
+
+			, TiberiumProof {}
 			, TiberiumSpill { false }
-			, TiberiumRemains {  }
+			, TiberiumRemains {}
+			, TiberiumTransmogrify {}
+		
 			, SensorArray_Warn { true }
 			, IronCurtain_Modifier { 1.0 }
 			, ForceShield_Modifier { 1.0 }
@@ -1142,8 +1159,10 @@ public:
 
 			, Insignia_Weapon {}
 			, VHPscan_Value {2}
-			, SelfHealing_CombatDelay {0}
 			, CloakAllowed { true }
+			, InitialPayload_Types { }
+			, InitialPayload_Nums { }
+
 			, AlternateTheaterArt { false }
 			, HijackerOneTime { false }
 			, HijackerKillPilots { 0 }
@@ -1160,6 +1179,11 @@ public:
 
 			, ImmuneToAbduction { false }
 			, UseROFAsBurstDelays { false }
+			, Chronoshift_Crushable{ true }
+			, SelfHealing_Rate { }
+			, SelfHealing_Amount { 1 }
+			, SelfHealing_Max { 1.0 }
+			, SelfHealing_CombatDelay { 0 }
 		{ }
 
 		virtual ~ExtData() override = default;

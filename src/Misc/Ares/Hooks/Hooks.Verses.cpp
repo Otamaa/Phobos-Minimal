@@ -16,6 +16,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/Bomb/Body.h>
 
 #include <New/Type/ArmorTypeClass.h>
 
@@ -76,8 +77,6 @@ DEFINE_OVERRIDE_HOOK(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
 		: ReturnFalse
 		;
 }
-
-#include <Ext/Bomb/Body.h>
 
 DEFINE_OVERRIDE_HOOK(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 {

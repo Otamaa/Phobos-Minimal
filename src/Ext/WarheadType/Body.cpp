@@ -530,18 +530,8 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, b
 		if (pTechno->IsBeingWarpedOut())
 			return false;
 
-		if (!SkipVerses && EffectsRequireVerses.Get())
-		{
-			auto nArmor = pType->Armor;
-			const auto pExt = TechnoExt::ExtMap.Find(pTechno);
-
-			if (pExt->CurrentShieldType && pExt->GetShield() && pExt->GetShield()->IsActive())
-				nArmor = pExt->CurrentShieldType->Armor;
-
-			return (std::abs(
-				//GeneralUtils::GetWarheadVersusArmor(this->Get() , nArmor)
-				this->GetVerses(nArmor).Verses
-			) >= 0.001);
+		if (!SkipVerses && EffectsRequireVerses.Get()) {
+			return (std::abs(this->GetVerses(TechnoExt::GetTechnoArmor(pTechno , this->Get())).Verses) >= 0.001);
 		}
 
 		return true;
@@ -589,13 +579,13 @@ bool WarheadTypeExt::ExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, 
 
 FullMapDetonateResult WarheadTypeExt::ExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner)
 {
+	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
+		return FullMapDetonateResult::TargetNotEligible;
+
 	if (!CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
 		return FullMapDetonateResult::TargetNotDamageable;
 
 	auto const pType = pTechno->GetTechnoType();
-
-	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
-		return FullMapDetonateResult::TargetNotEligible;
 
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 		return FullMapDetonateResult::TargetHouseNotEligible;

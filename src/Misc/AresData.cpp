@@ -240,3 +240,38 @@ void AresData::CPrismRemoveFromNetwork(cPrismForwarding* const pThis, bool bCeas
 {
 	AresThiscall<CPrismRemoveFromNetworkID, void, cPrismForwarding* const , bool>()(pThis , bCease);
 }
+
+void  AresData::applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget){
+	AresThiscall<applyIonCannonID , void, void* , CoordStruct*>()(GetAresAresWarheadTypeExt(pWH) , pTarget);
+}
+
+bool AresData::applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget) {
+	return AresThiscall<applyPermaMCID, bool, void*, HouseClass*, AbstractClass*>()(GetAresAresWarheadTypeExt(pWH), pOwner , pTarget);
+}
+
+void AresData::applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage) {
+	AresThiscall<applyICID, void, void*, CoordStruct* , HouseClass*, int>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner, Damage);
+}
+
+void AresData::applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner) {
+	AresThiscall<applyEMPID, void, void*, CoordStruct* , TechnoClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
+}
+
+void AresData::applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner) {
+	AresThiscall<applyAEID, void, void*, CoordStruct* , HouseClass*>()(GetAresAresWarheadTypeExt(pWH), pTarget , pOwner);
+}
+
+void AresData::EvalRaidStatus(BuildingClass* pBuilding)
+{
+	AresThiscall<EvalRaidStatusID, void, void*>()(GetAresBuildingExt(pBuilding));
+}
+
+bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwner)
+{
+	return AresThiscall<IsActiveFirestormWallID, bool, BuildingClass* , HouseClass* >()(pBuilding , pOwner);
+}
+
+bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool Destroy)
+{
+	return AresThiscall<ImmolateVictimID, bool, void*, FootClass*, bool>()(GetAresBuildingExt(pBuilding), pTarget , Destroy);
+}

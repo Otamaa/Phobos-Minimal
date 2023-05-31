@@ -183,23 +183,19 @@ void PaintBall::DrawSHP_Paintball_BuildAnim(TechnoClass* pTech, REGISTERS* R)
 
 void PaintBall::Update(TechnoClass* pThis)
 {
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
-	if (pExt->PaintBallState)
+	if (this->IsActive())
 	{
-		if (pExt->PaintBallState->IsActive())
+		if (Is_Building(pThis))
 		{
-			if (Is_Building(pThis))
-			{
 				BuildingExt::ExtMap.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-			}
+		}
 
-		}
-		else
-		{
-			pExt->PaintBallState->Disable(true);
-		}
 	}
+	else
+	{
+		this->Disable(true);
+	}
+
 }
 
 void PaintBall::DrawVXL_Paintball(TechnoClass* pTech, REGISTERS* R, bool isBuilding)

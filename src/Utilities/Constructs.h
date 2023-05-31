@@ -163,7 +163,7 @@ public:
 		CCINIClass* pINI, const char* pSection, const char* pKey,
 		const char* pDefault = "");
 
-	static bool __fastcall Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey,
+	static bool FC Read_Static(CustomPalette* pThis, DWORD, CCINIClass* pINI, const char* pSection, const char* pKey,
 		const char* pDefault);
 
 	bool LoadFromName(const char* PaletteName);

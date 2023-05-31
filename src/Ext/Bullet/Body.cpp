@@ -897,7 +897,7 @@ DEFINE_HOOK(0x4685BE, BulletClass_Detach, 0x6)
 	return pThis->NextAnim == target ? 0x4685C6 :0x4685CC;
 }
 
-static void __fastcall BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
+static void FC BulletClass_AnimPointerExpired(BulletClass* pThis, void* _, AnimClass* pTarget)
 {
 	pThis->ObjectClass::AnimPointerExpired(pTarget);
 }

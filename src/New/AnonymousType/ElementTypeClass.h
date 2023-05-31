@@ -91,8 +91,9 @@ public:
 	class Elemet
 	{
 	public:
+		TechnoClass* Invoker;
 		CDTimerClass Duration;
-		std::unique_ptr<ElementTypeClass> Type {};
+		ElementTypeClass* Type {};
 
 		Elemet(int dur, const ElementTypeClass& nElement) :
 			Duration {}, Type {}

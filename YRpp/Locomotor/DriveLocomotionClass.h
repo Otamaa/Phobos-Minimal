@@ -1,13 +1,13 @@
 #pragma once
 #include "LocomotionClass.h"
 
-class DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
+class //DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE DriveLocomotionClass : public LocomotionClass, public IPiggyback
 {
 public:
 	static constexpr inline uintptr_t vtable = 0x7E7F7C;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7E7EB0;
-	static constexpr inline CLSID ClassGUID = __uuidof(DriveLocomotionClass);
+	static const inline CLSID ClassGUID = CLSIDs::Drive();
 
 	// TODO stub virtuals implementations
 	//IUnknown

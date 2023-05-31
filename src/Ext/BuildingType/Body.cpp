@@ -223,7 +223,7 @@ int BuildingTypeExt::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Buildi
 
 }
 
-bool __fastcall BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
+bool FC BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
 {
 	if (!pThis || !pThis->Type)
 		return false;
@@ -231,7 +231,7 @@ bool __fastcall BuildingTypeExt::IsFactory(BuildingClass* pThis, void* _)
 	return pThis->Type->Factory == AbstractType::AircraftType || pThis->IsFactory();
 }
 
-void __fastcall BuildingTypeExt::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+void FC BuildingTypeExt::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
 	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExt::Global()->PlacementGrid_TranslucentLevel.Get());
 
@@ -639,6 +639,11 @@ void BuildingTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 		this->TunnelType.Read(exINI, pSection, "Tunnel");
 
 		this->SellBuildupLength.Read(exINI, pSection, "SellBuildupLength");
+
+		// added on 11.11.09 for #221 and children (Trenches)
+		this->UCPassThrough.Read(exINI, pSection, "UC.PassThrough");
+		this->UCFatalRate.Read(exINI, pSection, "UC.FatalRate");
+		this->UCDamageMultiplier.Read(exINI, pSection, "UC.DamageMultiplier");
 	}
 #pragma endregion
 
@@ -828,6 +833,9 @@ void BuildingTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->EngineerRepairable)
 		.Process(this->IsTrench)
 		.Process(this->TunnelType)
+		.Process(this->UCPassThrough)
+		.Process(this->UCFatalRate)
+		.Process(this->UCDamageMultiplier)
 		;
 }
 

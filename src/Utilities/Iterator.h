@@ -36,6 +36,9 @@
 #include <vector>
 
 template<typename T>
+concept direct_comparable = std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value;
+
+template<typename T>
 class Iterator {
 private:
 	const T* items{ nullptr };
@@ -108,7 +111,7 @@ public:
 	}
 
 	bool contains(const T& other) const {
-		if constexpr (std::is_pointer<T>::value || std::is_integral<T>::value || has_operator_equal<T>::value) {
+		if constexpr (direct_comparable<T>) {
 			return std::any_of(this->begin(), this->end(), [&](const auto item)
 			{
 				return item == other;

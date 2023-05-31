@@ -156,10 +156,14 @@ DEFINE_HOOK(0x71B943, TerrainClass_ReceiveDamage_WoodDestroyer_Force, 0x6)
 
 DEFINE_HOOK(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 {
-	//GET(ObjectClass*, pThis, ESI);
+	GET(ObjectClass*, pThis, ESI);
 	GET(ObjectTypeClass*, pType, EBX);
 
 	enum { FurtherCheck = 0x5F501B, NoUpdate = 0x5F5045 };
+
+	if(pThis->WhatAmI() == AbstractType::VeinholeMonster) {
+		return FurtherCheck;
+	}
 
 	if (!pType->IsLogic)
 		return NoUpdate;

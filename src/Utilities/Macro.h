@@ -15,7 +15,7 @@ struct PointerOffset
 
 struct MiscTools
 {
-	static DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)
+	static DWORD FC RelativeOffset(void const* pFrom, void const* pTo)
 	{
 		auto const from = reinterpret_cast<DWORD>(pFrom);
 		auto const to = reinterpret_cast<DWORD>(pTo);

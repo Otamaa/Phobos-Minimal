@@ -13,29 +13,19 @@ public:
 	{
 		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
 		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
-		CRT::_memset(States, 0, sizeof(bool) * nCount); //0x7D75E0 reserve ?
+		std::memset(States, 0, sizeof(bool) * nCount);
 		Heap = GameCreate<PointerHeapClass<MapSurfaceData>>(nCount);
 	}
 
-	//74E8A0 Delete SpreadData
-	void KillFootClass()
+	//74E8A0
+	void Deconstruct()
 	{
-
 	    GameDelete<true ,true>(Heap);
 		Heap = nullptr;
-
-		if (Datas)
-		{
-			YRMemory::Deallocate(Datas);
-			Datas = nullptr;
-		}
-
-		if (States)
-		{
-			YRMemory::Deallocate(States);
-			States = nullptr;
-		}
-
+		GameDelete<false, true>(Datas);
+		Datas = nullptr;
+		GameDelete<false, true>(States);
+		States = nullptr;
 		Count = 0;
 	}
 
@@ -52,7 +42,7 @@ class DECLSPEC_UUID("5192D06A-C632-11D2-B90B-006008C809ED")
 public:
 	static const AbstractType AbsID = AbstractType::VeinholeMonster;
 
-	//static constexpr reference<bool*, 0xA83DC8u> const IsCurrentPosAffected {}; //WrongAddress
+	static constexpr reference<bool*, 0xB1D2F0u> const IsCurrentPosAffected {};
 	static constexpr reference<SHPStruct*, 0xB1D2ECu> const VeinSHPData {};
 	static constexpr constant_ptr<DynamicVectorClass<VeinholeMonsterClass*>, 0xB1D290u> const Array {};
 
@@ -90,7 +80,7 @@ public:
 	{ JMP_THIS(0x74EA30); }
 
 	void ClearGrowthData()
-	{ GrowthLogic.KillFootClass(); }
+	{ GrowthLogic.Deconstruct(); }
 
 	void Recalculate() const
 	{ JMP_THIS(0x74E930); }
@@ -107,30 +97,20 @@ public:
 	void UpdateGrowth() const
 	{ JMP_THIS(0x74D7C0); }
 
+	void RegisterAffectedCells() const
+	{ JMP_THIS(0x74E1C0); }
 
 	static void __fastcall ClearVeinGrowthData()
-	{  JMP_STD(0x74E100);
-
-		/*
-		//pop back ?
-		for (int i = Array->Count - 1; i >= 0; --i)
-		{
-			auto pVeinholes = Array->GetItem(i);
-			pVeinholes->ClearGrowthData();
-		}
-
-		if (IsCurrentPosAffected())
-		{
-			YRMemory::Deallocate(Make_Pointer<bool>(0xA83DC8u));
-			IsCurrentPosAffected = nullptr;
-		}*/
-	}
+	{  JMP_STD(0x74E100); }
 
 	//called 687A80
 	static void __fastcall InitVeiGrowhData(bool bAllocate = true)
 	{ JMP_STD(0x74DE90); }
 
 	static bool __fastcall IsCellEligibleForVeinHole(CellStruct& nWhere)
+	{ JMP_STD(0x74D670); }
+
+	static bool __fastcall IsCellEligibleForVeinHole(CellStruct* pWhere)
 	{ JMP_STD(0x74D670); }
 
 	static void __fastcall TheaterInit(TheaterType nType)

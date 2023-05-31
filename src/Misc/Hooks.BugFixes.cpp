@@ -273,7 +273,7 @@ DEFINE_HOOK(0x51BB6E, TechnoClass_AI_TemporalTargetingMe_Fix, 0x6) // InfantryCl
 		{
 			pThis->TemporalTargetingMe = nullptr;
 			pThis->Limbo();
-			TechnoExt::HandleRemove(pThis);
+			TechnoExt::HandleRemove(pThis ,nullptr, false , false);
 		}
 	}
 

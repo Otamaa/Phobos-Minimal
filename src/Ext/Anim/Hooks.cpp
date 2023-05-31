@@ -7,17 +7,17 @@
 
 #include <Ext/AnimType/Body.h>
 
-DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EBP);
-
-	auto const pAnimExt = AnimExt::ExtMap.Find(pAnim);
-	pAnimExt->ParentBuilding = pThis;
-	pAnimExt->Invoker = pThis;
-
-	return 0;
-}
+//DEFINE_HOOK(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	GET(AnimClass*, pAnim, EBP);
+//
+//	auto const pAnimExt = AnimExt::ExtMap.Find(pAnim);
+//	pAnimExt->ParentBuilding = pThis;
+//	pAnimExt->Invoker = pThis;
+//
+//	return 0;
+//}
 
 DEFINE_HOOK(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
 {
@@ -167,5 +167,5 @@ DEFINE_HOOK(0x424AEC, AnimClass_AI_SetMission, 0x6)
 //the stack is change , so i need to replace everything if i want just use normal hook
 //this make it unnessesary
 //replace the vtable call
-void __fastcall Dummy(DWORD t, DWORD , Mission m, bool e){ }
+void FC Dummy(DWORD t, DWORD , Mission m, bool e){ }
 DEFINE_JUMP(CALL6, 0x424B04, GET_OFFSET(Dummy));

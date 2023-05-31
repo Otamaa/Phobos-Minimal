@@ -99,6 +99,7 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
+	this->ImageConvert.clear();
 
 	if (pINI->GetSection(pSection))
 	{
@@ -157,6 +158,17 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 		this->Proximity_Range.Read(exINI, pSection, "Proximity.Range");
 		this->IsScalable.Read(exINI, pSection, GameStrings::Scalable());
+
+		//code disabled , unfinished
+		this->BounceAmount.Read(exINI, pSection, "Bounce.Amount");
+		this->BounceHitWeapon.Read(exINI, pSection, "Bounce.HitWeapon", true);
+		this->BounceOnTerrain.Read(exINI, pSection, "Bounce.OnTerrain");
+		this->BounceOnBuilding.Read(exINI, pSection, "Bounce.OnBuilding");
+		this->BounceOnInfantry.Read(exINI, pSection, "Bounce.OnInfantry");
+		this->BounceOnVehicle.Read(exINI, pSection, "Bounce.OnVehicle");
+		//
+
+		this->SubjectToTrenches.Read(exINI, pSection, "SubjectToTrenches");
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
@@ -165,15 +177,6 @@ void BulletTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
 		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 #pragma region Otamaa
-
-		//code disabled , unfinished
-		this->BounceAmount.Read(exArtINI, pArtSection, "Bounce.Amount");
-		this->BounceHitWeapon.Read(exArtINI, pArtSection, "Bounce.HitWeapon", true);
-		this->BounceOnTerrain.Read(exArtINI, pArtSection, "Bounce.OnTerrain");
-		this->BounceOnBuilding.Read(exArtINI, pArtSection, "Bounce.OnBuilding");
-		this->BounceOnInfantry.Read(exArtINI, pArtSection, "Bounce.OnInfantry");
-		this->BounceOnVehicle.Read(exArtINI, pArtSection, "Bounce.OnVehicle");
-		//
 
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
 #ifdef COMPILE_PORTED_DP_FEATURES
@@ -231,6 +234,7 @@ void BulletTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BounceOnBuilding)
 		.Process(this->BounceOnInfantry)
 		.Process(this->BounceOnVehicle)
+		.Process(this->SubjectToTrenches)
 		.Process(this->PreExplodeRange)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Proximity_Range)

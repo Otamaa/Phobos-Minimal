@@ -2,7 +2,11 @@
 
 #include <Utilities/SavegameDef.h>
 
+#include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
+
+#include <Ext/Script/Body.h>
+
 #include <BuildingClass.h>
 #include <InfantryClass.h>
 #include <UnitClass.h>
@@ -160,6 +164,8 @@ bool TEventExt::Occured(TEventClass* pThis, EventArgs const& args , bool& bRetur
 		break;
 	case PhobosTriggerEvent::ShieldBroken:
 		bReturn = ShieldClass::TEventIsShieldBroken(args.Object);
+	case PhobosTriggerEvent::HousesDestroyed:
+		return TEventExt::HousesAreDestroyedTEvent(pThis);
 		break;
 	default:
 		bReturn = false;
@@ -202,6 +208,34 @@ bool TEventExt::VariableCheckBinary(TEventClass* pThis)
 	}
 
 	return false;
+}
+
+bool TEventExt::HousesAreDestroyedTEvent(TEventClass* pThis)
+{
+	const int nIdxVariable = pThis->Value; //atoi(pThis->String);
+
+	const auto& nHouseList = RulesExt::Global()->AIHousesLists;
+
+	if (nHouseList.empty() || (size_t)nIdxVariable >= nHouseList.size()) {
+		Debug::Log("Map event %d: [AIHousesList] is empty. This event can't continue.\n", (int)pThis->EventKind);
+		return false;
+	}
+
+	const auto housesList = Iterator(nHouseList[nIdxVariable]);
+
+	if (housesList.empty()) {
+		Debug::Log("Map event %d: [AIHousesList](%d) is empty. This event can't continue.\n", (int)pThis->EventKind, nIdxVariable);
+		return false;
+	}
+
+	for (auto pTechno : *TechnoClass::Array) {
+		if (ScriptExt::IsUnitAvailable(pTechno, false, true)) {
+			if (pTechno->Owner && housesList.contains(pTechno->Owner->Type))
+				return false;
+		}
+	}
+
+	return true;
 }
 
 // =============================

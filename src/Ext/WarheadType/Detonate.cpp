@@ -111,15 +111,14 @@ void WarheadTypeExt::ExtData::ApplyUpgrade(HouseClass* pHouse, TechnoClass* pTar
 	}
 }
 
-void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
+bool WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* const Target)
 {
-	if (!Owner)
-		return;
+	if (!Owner || !this->PermaMC)
+		return false;
 
 	const auto pTargetTechno = abstract_cast<TechnoClass*>(Target);
-
-	if (!pTargetTechno || TechnoExt::IsPsionicsImmune(pTargetTechno))
-		return;
+	if (!this->CanDealDamage(pTargetTechno) || TechnoExt::IsPsionicsImmune(pTargetTechno))
+		return false;
 
 	const auto pType = pTargetTechno->GetTechnoType();
 
@@ -127,35 +126,32 @@ void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 		pController->CaptureManager->FreeUnit(pTargetTechno);
 	}
 
-	auto const pOriginalOwner = pTargetTechno->GetOwningHouse();
-	pTargetTechno->SetOwningHouse(Owner, true);
+	const auto pOriginalOwner = pTargetTechno->GetOwningHouse();
+	pTargetTechno->SetOwningHouse(Owner);
 	pTargetTechno->MindControlledByAUnit = true;
 	pTargetTechno->QueueMission(Mission::Guard, false);
 	pTargetTechno->OriginallyOwnedByHouse = pOriginalOwner;
+	pTargetTechno->MindControlledByHouse = nullptr;
 
 	if (auto& pAnim = pTargetTechno->MindControlRingAnim)
 	{
-		//GameDelete<true,false>(pAnim);
 		pAnim->TimeToDie = true;
 		pAnim->UnInit();
 		pAnim = nullptr;
 	}
 
-	auto const pBld = specific_cast<BuildingClass*>(pTargetTechno);
-
-	CoordStruct location = pTargetTechno->GetCoords();
-
-	if (pBld)
-	{
-		location.Z += pBld->Type->Height * Unsorted::LevelHeight;
-	}
-	else
-	{
-		location.Z += pType->MindControlRingOffset;
-	}
-
 	if (auto const pAnimType = RulesClass::Instance->PermaControlledAnimationType)
 	{
+		auto const pBld = specific_cast<BuildingClass*>(pTargetTechno);
+
+		CoordStruct location = pTargetTechno->GetCoords();
+
+		if (pBld) {
+			location.Z += pBld->Type->Height * Unsorted::LevelHeight;
+		} else {
+			location.Z += pType->MindControlRingOffset;
+		}
+
 		if (auto const pAnim = GameCreate<AnimClass>(pAnimType, location))
 		{
 			pTargetTechno->MindControlRingAnim = pAnim;
@@ -166,6 +162,8 @@ void WarheadTypeExt::ExtData::applyPermaMC(HouseClass* const Owner, AbstractClas
 			}
 		}
 	}
+
+	return true;
 }
 
 void WarheadTypeExt::ExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* const Target)
@@ -384,7 +382,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 
 	this->HasCrit = false;
 	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-	const bool ISPermaMC = this->PermaMC && !pBullet;
+	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
 	// List all Warheads here that respect CellSpread
 	const bool isCellSpreadWarhead =
@@ -397,7 +395,7 @@ void WarheadTypeExt::ExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, 
 		this->Shield_SelfHealing_Duration > 0 ||
 		this->Shield_AttachTypes.size() > 0 ||
 		this->Shield_RemoveTypes.size() > 0 ||
-		this->Transact || ISPermaMC ||
+		this->Transact || //ISPermaMC ||
 		this->GattlingStage > 0 ||
 		this->GattlingRateUp != 0 ||
 		this->AttachTag ||
@@ -497,8 +495,8 @@ void WarheadTypeExt::ExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass*
 	//if (this->RemoveMindControl)
 	//	this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	if (this->Get()->MindControl && this->PermaMC && !pBullet)
-		this->applyPermaMC(pHouse, pTarget);
+	//if (this->Get()->MindControl && this->PermaMC && !pBullet)
+	//	this->applyPermaMC(pHouse, pTarget);
 
 	if (this->Crit_Chance && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
 		this->ApplyCrit(pHouse, pTarget, pOwner);
@@ -552,24 +550,23 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 	{
 		int shieldIndex = -1;
-		double ratio = 1.0;
+		double oldRatio = 1.0;
 
 		// Remove shield.
-		if (pExt->GetShield())
-		{
-			const auto shieldType = pExt->Shield->GetType();
-			shieldIndex = this->Shield_RemoveTypes.IndexOf(shieldType);
+		if (pExt->Shield) {
+
+			shieldIndex = this->Shield_RemoveTypes.IndexOf(pExt->Shield->GetType());
 
 			if (shieldIndex >= 0)
 			{
-				ratio = pExt->Shield->GetHealthRatio();
-				pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-				pExt->Shield.release();
+				oldRatio = pExt->Shield->GetHealthRatio();
+				pExt->CurrentShieldType = ShieldTypeClass::Array[0].get();
+				pExt->Shield.reset(nullptr);
 			}
 		}
 
 		// Attach shield.
-		if (!Shield_AttachTypes.empty())
+		if (!this->Shield_AttachTypes.empty())
 		{
 			ShieldTypeClass* shieldType = nullptr;
 
@@ -593,11 +590,11 @@ void WarheadTypeExt::ExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 					pExt->Shield->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay)))
 				{
 					pExt->CurrentShieldType = shieldType;
-					pExt->Shield = (std::make_unique<ShieldClass>(pTarget, true));
+					pExt->Shield = std::make_unique<ShieldClass>(pTarget, true);
 
 					if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
 					{
-						pExt->Shield->SetHP((int)(shieldType->Strength * ratio));
+						pExt->Shield->SetHP((int)(shieldType->Strength * oldRatio));
 
 						if (pExt->Shield->GetHP() == 0)
 							pExt->Shield->SetRespawn(shieldType->Respawn_Rate, shieldType->Respawn, shieldType->Respawn_Rate, true);

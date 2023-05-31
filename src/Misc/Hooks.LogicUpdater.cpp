@@ -69,7 +69,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	if (!pThis || !Is_Techno(pThis) || !pThis->IsAlive)
-		return retDead;
+		return Continue;
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExt::ExtMap.Find(pThis);
@@ -86,7 +86,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 		if (!pType->Spawned && !IsInLimboDelivered) {
 			Debug::Log("Techno[%x : %s] With Invalid Location ! , Removing ! \n", pThis, pThis->get_ID());
 			TechnoExt::HandleRemove(pThis, nullptr, false, false);
-			return retDead;
+			return Continue;
 		}
 	}
 	else
@@ -104,10 +104,10 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 	pExt->IsInTunnel = false; // TechnoClass::AI is only called when not in tunnel.
 
 	if (pExt->UpdateKillSelf_Slave())
-		return retDead;
+		return Continue;
 
 	if (pExt->CheckDeathConditions())
-		return retDead;
+		return Continue;
 
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
@@ -124,7 +124,7 @@ DEFINE_HOOK(0x6F9E50, TechnoClass_AI_Early, 0x5)
 
 	pExt->UpdateRevengeWeapons();
 
-	return 0x0;
+	return Continue;
 }
 
 DEFINE_HOOK_AGAIN(0x703789, TechnoClass_CloakUpdateMCAnim, 0x6) // TechnoClass_Do_Cloak
@@ -147,10 +147,10 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto pExt = TechnoExt::ExtMap.Find(pThis);
-
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
+
+	auto pExt = TechnoExt::ExtMap.Find(pThis);
 
 	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pExt->Type);
 
@@ -161,16 +161,19 @@ DEFINE_HOOK(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 	GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	if (pExt->PaintBallState) {
-		pExt->PaintBallState->Update(pThis);
-	}
+	if(pThis->IsAlive){
+		if (auto& pPBState = pExt->PaintBallState) {
+			pPBState->Update(pThis);
+		}
 
-	if (pExt->DamageSelfState) {
-		pExt->DamageSelfState->TechnoClass_Update_DamageSelf(pThis);
+		if (auto& pDSState = pExt->DamageSelfState) {
+			pDSState->TechnoClass_Update_DamageSelf(pThis);
+		}
 	}
 #endif
 
-	return 0x6F9EBB;
+	return pThis->IsAlive ? 0x6F9EBB : 0x6FAFFD;
+
 }
 
 DEFINE_HOOK(0x414DA1, AircraftClass_AI_FootClass_AI, 0x7)
@@ -292,13 +295,13 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 	return 0x0;
 }
 
-DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
-DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	return 0;
-}
+//DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
+//DEFINE_HOOK(0x6FAF7A, TechnoClass_LateUpdate, 7)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	return 0;
+//}
 
 
 DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building

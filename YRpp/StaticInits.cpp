@@ -1290,3 +1290,34 @@ bool GameStrings::IsBlank(const char* pValue)
 	return CRT::strcmpi(pValue, NoneStr()) == 0
 		|| CRT::strcmpi(pValue, NoneStrb()) == 0;
 }
+
+void TechnoClass::TurnFacing(const DirStruct& nDir)
+{
+	if (this->GetTechnoType()->Turret)
+	{
+		this->SecondaryFacing.Set_Current(nDir);
+	}
+	else
+	{
+		this->PrimaryFacing.Set_Current(nDir);
+	}
+}
+
+void TechnoClass::ClearAllTarget()
+{
+	this->Target = nullptr;
+	this->SetTarget(nullptr);
+	this->QueueMission(Mission::Stop, true);
+
+	if (auto pManager = this->SpawnManager)
+	{
+		pManager->Target = nullptr;
+		pManager->NewTarget = nullptr;
+		pManager->SetTarget(nullptr);
+	}
+
+	if (auto pTemporal = this->TemporalImUsing)
+	{
+		pTemporal->LetGo();
+	}
+}

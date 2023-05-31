@@ -155,12 +155,22 @@ public:
 		return nBuffer;
 	}
 
+	Point2D* ApplyMatrix_Pixel(Point2D *coords, Point2D *offset)
+		{ JMP_THIS(0x6D2070); }
+
+	Point2D ApplyMatrix_Pixel(Point2D Input)
+	{
+		Point2D nBuffer;
+		ApplyMatrix_Pixel(&nBuffer, &Input);
+		return nBuffer;
+	}
+
 	void Coordoordmap_math_6D62E0(int v16, int v37, int* x2, int* a4) const {
 		JMP_THIS(0x6D62E0);
 	}
 
 	int GetRamp(CoordStruct* pCoord) const { JMP_THIS(0x6D6AD0); }
-	
+
 	TacticalClass() noexcept
 		: TacticalClass(noinit_t())
 	{ JMP_THIS(0x6D1C20); }

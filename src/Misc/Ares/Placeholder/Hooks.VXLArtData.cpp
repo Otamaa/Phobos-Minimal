@@ -23,6 +23,8 @@
 
 #include <Misc/AresData.h>
 
+//S/L not working for these atm
+
 //DEFINE_OVERRIDE_HOOK(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 //{
 //	REF_STACK(bool, bLoadFailed, 0x13);

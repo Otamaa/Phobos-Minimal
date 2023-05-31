@@ -7,7 +7,7 @@
 #include <Ext/BulletType/Body.h>
 
 #pragma region Otamaa
-static void __fastcall TriggerCrashWeapon_Wrapper(AircraftClass* pThis, DWORD, int nMult) {
+static void FC TriggerCrashWeapon_Wrapper(AircraftClass* pThis, DWORD, int nMult) {
 	AircraftExt::TriggerCrashWeapon(pThis, nMult);
 }
 

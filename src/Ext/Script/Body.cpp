@@ -4824,7 +4824,7 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 
 	if (idxHousesList >= 0)
 	{
-		auto const& nHouseList = RulesExt::Global()->AIHousesLists;
+		auto const& nHouseList = RulesExt::Global()->AIHateHousesLists;
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
 			for (auto& angerNode : pTeam->Owner->AngerNodes)
@@ -4834,7 +4834,7 @@ void ScriptExt::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = -1)
 
 				for (const auto& pData : nHouseList[(idxHousesList)])
 				{
-					if (IS_SAME_STR_(angerNode.House->Type->ID, pData.c_str()))
+					if (angerNode.House->Type == pData)
 					{
 						angerNode.AngerLevel += pTeamData->AngerNodeModifier;
 						changeFailed = false;
@@ -4883,7 +4883,7 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 
 	if (idxHousesList >= 0)
 	{
-		auto const& nHouseList = RulesExt::Global()->AIHousesLists;
+		auto const& nHouseList = RulesExt::Global()->AIHateHousesLists;
 
 		if (!nHouseList.empty() && idxHousesList < (int)nHouseList.size())
 		{
@@ -4892,14 +4892,13 @@ void ScriptExt::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHousesList
 			if (!objectsList.empty())
 			{
 				const int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
-				const auto& pHouseType = objectsList[IdxSelectedObject];
 
 				for (auto& angerNode : pTeam->Owner->AngerNodes)
 				{
 					if (angerNode.House->Defeated || !angerNode.House->Type)
 						continue;
 
-					if (IS_SAME_STR_(angerNode.House->Type->ID, pHouseType.data()) == 0)
+					if (angerNode.House->Type == objectsList[IdxSelectedObject])
 					{
 						angerNode.AngerLevel += pTeamData->AngerNodeModifier;
 						changes++;
@@ -7158,6 +7157,24 @@ bool ScriptExt::FindLinkedPath(TeamClass* pTeam, TechnoClass* pThis = nullptr, T
 	return found;
 }
 #undef TECHNO_IS_ALIVE
+
+bool ScriptExt::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed, bool allowSubterranean)
+{
+	if (!pTechno)
+		return false;
+
+	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0
+		&& !pTechno->InLimbo && !pTechno->Transporter && !pTechno->Absorbed;
+
+	bool isSubterranean = allowSubterranean && pTechno->InWhichLayer() == Layer::Underground;
+	isAvailable &= pTechno->IsOnMap || isSubterranean;
+
+	if (checkIfInTransportOrAbsorbed)
+		isAvailable &= !pTechno->Absorbed && !pTechno->Transporter;
+
+	return isAvailable;
+}
+
 //
 //DEFINE_HOOK(0x6913F8, ScriptClass_CTOR, 0x5)
 //{

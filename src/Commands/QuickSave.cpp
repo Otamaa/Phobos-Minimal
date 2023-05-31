@@ -31,6 +31,25 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 	if (SessionClass::Instance->GameMode == GameMode::Campaign
 		|| SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
+		auto nMessage = StringTable::LoadString(GameStrings::TXT_SAVING_GAME());
+		auto pUI = UI::sub_623230((LPARAM)nMessage, 0, 0);
+		WWMouseClass::Instance->HideCursor();
+
+		if (pUI)
+		{
+			UI::FocusOnWindow(pUI);
+		}
+
+		auto PrintMessage = [](const wchar_t* pMessage)
+		{
+			MessageListClass::Instance->PrintMessage(
+				pMessage,
+				RulesClass::Instance->MessageDelay,
+				HouseClass::CurrentPlayer->ColorSchemeIndex,
+				true
+			);
+		};
+
 		char fName[0x80];
 		SYSTEMTIME time {};
 
@@ -38,12 +57,6 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 
 		_snprintf_s(fName, 0x7F, "Map.%04u%02u%02u-%02u%02u%02u-%05u.sav",
 			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-
-		MessageListClass::Instance->PrintMessage(
-		StringTable::LoadString(GameStrings::TXT_SAVING_GAME()),
-		RulesClass::Instance->MessageDelay,
-		HouseClass::CurrentPlayer->ColorSchemeIndex,
-		true);
 
 		wchar_t fDescription[0x80] = { 0 };
 		if (SessionClass::Instance->GameMode == GameMode::Campaign)
@@ -53,21 +66,19 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 
 		wcscat_s(fDescription, L" - ");
 		wcscat_s(fDescription, GeneralUtils::LoadStringUnlessMissing("TXT_QUICKSAVE_SUFFIX", L"Quicksaved"));
+		bool Status = ScenarioClass::SaveGame(fName, fDescription);
+	
+		WWMouseClass::Instance->ShowCursor();
 
-		if (ScenarioClass::SaveGame(fName, fDescription)) {
-			MessageListClass::Instance->PrintMessage(
-			StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED()),
-			RulesClass::Instance->MessageDelay,
-			HouseClass::CurrentPlayer->ColorSchemeIndex,
-			true);
+		if (pUI)
+		{
+			UI::EndDialog(pUI);
 		}
-		else {
-			MessageListClass::Instance->PrintMessage(
-			StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME()),
-			RulesClass::Instance->MessageDelay,
-			HouseClass::CurrentPlayer->ColorSchemeIndex,
-			true);
-		}
+
+		if (Status)
+			PrintMessage(StringTable::LoadString(GameStrings::TXT_GAME_WAS_SAVED));
+		else
+			PrintMessage(StringTable::LoadString(GameStrings::TXT_ERROR_SAVING_GAME));
 	}
 	else
 	{

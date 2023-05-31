@@ -165,11 +165,15 @@ DEFINE_HOOK(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 //	return BulletExt::ApplyMCAlternative(pBullet) ? IgnoreMindControl : ContinueFlow;
 //}
 
-DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
+DEFINE_HOOK(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 {
 	enum { ReturnFromFunction = 0x46A2FB };
 
 	GET(BulletClass* const, pThis, ESI);
+
+	if (!BulletExt::IsReallyAlive(pThis)) {		
+		return ReturnFromFunction;
+	}
 
 	if (pThis->WH)
 	{
@@ -178,16 +182,73 @@ DEFINE_HOOK(0x4690C1, BulletClass_Logics_DetonateOnAllMapObjects, 0x8)
 		if (pWHExt->DetonateOnAllMapObjects && !pWHExt->WasDetonatedOnAllMapObjects)
 		{
 			pWHExt->WasDetonatedOnAllMapObjects = true;
+			const auto pHouse = BulletExt::GetHouse(pThis);
 
-			for (auto const pTechno : *TechnoClass::Array)
+			for (auto const pTechno : *UnitClass::Array)
 			{
-				if (pWHExt->EligibleForFullMapDetonation(pTechno, BulletExt::GetHouse(pThis)) == FullMapDetonateResult::TargetValid)
+				const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, pHouse);
+
+				if (nRes == FullMapDetonateResult::TargetValid)
 				{
 					pThis->Target = pTechno;
 					pThis->Detonate(pTechno->Location);
 
 					if (!BulletExt::IsReallyAlive(pThis))
-						break;
+					{
+						pWHExt->WasDetonatedOnAllMapObjects = false;
+						return ReturnFromFunction;
+					}
+				}
+			}
+
+			for (auto const pTechno : *InfantryClass::Array)
+			{
+				const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, pHouse);
+
+				if (nRes == FullMapDetonateResult::TargetValid)
+				{
+					pThis->Target = pTechno;
+					pThis->Detonate(pTechno->Location);
+
+					if (!BulletExt::IsReallyAlive(pThis))
+					{
+						pWHExt->WasDetonatedOnAllMapObjects = false;
+						return ReturnFromFunction;
+					}
+				}
+			}
+
+			for (auto const pTechno : *AircraftClass::Array)
+			{
+				const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, pHouse);
+
+				if (nRes == FullMapDetonateResult::TargetValid)
+				{
+					pThis->Target = pTechno;
+					pThis->Detonate(pTechno->Location);
+
+					if (!BulletExt::IsReallyAlive(pThis))
+					{
+						pWHExt->WasDetonatedOnAllMapObjects = false;
+						return ReturnFromFunction;
+					}
+				}
+			}
+
+			for (auto const pTechno : *BuildingClass::Array)
+			{
+				const auto nRes = pWHExt->EligibleForFullMapDetonation(pTechno, BulletExt::GetHouse(pThis));
+
+				if (nRes == FullMapDetonateResult::TargetValid)
+				{
+					pThis->Target = pTechno;
+					pThis->Detonate(pTechno->Location);
+
+					if (!BulletExt::IsReallyAlive(pThis))
+					{
+						pWHExt->WasDetonatedOnAllMapObjects = false;
+						return ReturnFromFunction;
+					}
 				}
 			}
 

@@ -205,6 +205,17 @@ public:
 		return ret;
 	}
 
+	CoordStruct* GetCoordsWith50Height(CoordStruct* pRet) const {
+		JMP_THIS(0x4263D0);
+	}
+
+	CoordStruct GetCoordsWith50Height() const
+	{
+		CoordStruct ret;
+		this->GetCoordsWith50Height(&ret);
+		return ret;
+	}
+
 	//Operators
 	bool operator < (const AbstractClass& rhs) const {
 		return this->UniqueID < rhs.UniqueID;

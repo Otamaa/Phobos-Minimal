@@ -65,7 +65,9 @@ void TechnoTypeExt::ExtData::Initialize()
 	const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
 	this->Promote_Elite_Eva = nPromotedEva;
 	this->Promote_Vet_Eva = nPromotedEva;
-	this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
+
+	if(!Is_BuildingType(Get()))
+		this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 }
 
 AnimTypeClass* TechnoTypeExt::GetSinkAnim(TechnoClass* pThis)
@@ -782,8 +784,12 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->VoiceRepair.Read(exINI, pSection, "VoiceIFVRepair");
 		this->ReloadAmount.Read(exINI, pSection, "ReloadAmount");
 		this->EmptyReloadAmount.Read(exINI, pSection, "EmptyReloadAmount");
+
+		this->TiberiumProof.Read(exINI, pSection, "TiberiumProof");
 		this->TiberiumSpill.Read(exINI, pSection, "TiberiumSpill");
 		this->TiberiumRemains.Read(exINI, pSection, "TiberiumRemains");
+		this->TiberiumTransmogrify.Read(exINI, pSection, "TiberiumTransmogrify");
+
 		// sensors
 		this->SensorArray_Warn.Read(exINI, pSection, "SensorArray.Warn");
 
@@ -796,8 +802,16 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		// refinery and storage
 		this->Refinery_UseStorage.Read(exINI, pSection, "Refinery.UseStorage");
 		this->VHPscan_Value.Read(exINI, pSection, "VHPscan.Value");
-		this->SelfHealing_CombatDelay.Read(exINI, pSection, "SelfHealing.CombatDelay");
+
+		this->SelfHealing_Rate.Read(exINI, pSection, "SelfHealing.Rate");
+		this->SelfHealing_Amount.Read(exINI, pSection, "SelfHealing.%sAmount");
+		this->SelfHealing_Max.Read(exINI, pSection, "SelfHealing.%sMax");
+		this->SelfHealing_CombatDelay.Read(exINI, pSection, "SelfHealing.%sCombatDelay");
+
 		this->CloakAllowed.Read(exINI, pSection, "Cloakable.Allowed");
+
+		this->InitialPayload_Types.Read(exINI, pSection, "InitialPayload.Types");
+		this->InitialPayload_Nums.Read(exINI, pSection, "InitialPayload.Nums");
 
 		if (Is_AircraftType(pThis))
 		{
@@ -855,6 +869,8 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 			// #680, 1362
 			this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
 			this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
+			this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 			this->MyDiveData.Read(exINI, pSection);
@@ -1561,8 +1577,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->VoiceRepair)
 		.Process(this->ReloadAmount)
 		.Process(this->EmptyReloadAmount)
+		.Process(this->TiberiumProof)
 		.Process(this->TiberiumSpill)
 		.Process(this->TiberiumRemains)
+		.Process(this->TiberiumTransmogrify)
 		.Process(this->SensorArray_Warn)
 		.Process(this->IronCurtain_Modifier)
 		.Process(this->ForceShield_Modifier)
@@ -1570,8 +1588,15 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->Refinery_UseStorage)
 		.Process(this->VHPscan_Value)
+
+		.Process(this->SelfHealing_Rate)
+		.Process(this->SelfHealing_Amount)
+		.Process(this->SelfHealing_Max)
 		.Process(this->SelfHealing_CombatDelay)
+
 		.Process(this->CloakAllowed)
+		.Process(this->InitialPayload_Types)
+		.Process(this->InitialPayload_Nums)
 		.Process(this->AlternateTheaterArt)
 
 		.Process(this->HijackerOneTime)
@@ -1589,6 +1614,7 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 
 		.Process(this->ImmuneToAbduction)
 		.Process(this->UseROFAsBurstDelays)
+		.Process(this->Chronoshift_Crushable)
 #pragma endregion
 		;
 #ifdef COMPILE_PORTED_DP_FEATURES

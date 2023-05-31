@@ -14,6 +14,8 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
 
+#include <VeinholeMonsterClass.h>
+
 #pragma region DETONATION
 
 bool DetonationInDamageArea = true;
@@ -21,13 +23,13 @@ bool DetonationInDamageArea = true;
 DEFINE_HOOK(0x46920B, BulletClass_Logics, 0x6)
 {
 	GET(BulletClass* const, pThis, ESI);
+	GET_BASE(const CoordStruct*, pCoords, 0x8);
 
-	if (pThis && pThis->WH) {
-		GET_BASE(const CoordStruct*, pCoords, 0x8);
-
+	if (pThis && pThis->WH)
+	{
 		auto const pExt = BulletExt::ExtMap.Find(pThis);
 		auto const pTechno = pThis ? pThis->Owner : nullptr;
-		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner :nullptr;
+		auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
 
 		WarheadTypeExt::ExtMap.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
 	}
@@ -61,18 +63,21 @@ DEFINE_HOOK(0x489286, MapClass_DamageArea, 0x6)
 		if (ShakeAllow)
 		{
 			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo));
 
 			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY ,Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo));
 		}
 
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 
-		if(!pWHExt->Launchs.empty())  {
-			for (const auto& Lauch : pWHExt->Launchs) {
-				if (Lauch.LaunchWhat) {
-					Helpers::Otamaa::LauchSW(Lauch,pDecidedOwner, *pCoords);
+		if (!pWHExt->Launchs.empty())
+		{
+			for (const auto& Lauch : pWHExt->Launchs)
+			{
+				if (Lauch.LaunchWhat)
+				{
+					Helpers::Otamaa::LauchSW(Lauch, pDecidedOwner, *pCoords);
 				}
 			}
 		}

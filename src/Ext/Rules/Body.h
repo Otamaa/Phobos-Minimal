@@ -39,9 +39,10 @@ public:
 
 		std::vector<std::vector<TechnoTypeClass*>> AITargetTypesLists;
 		std::vector<std::vector<ScriptTypeClass*>> AIScriptsLists;
-		std::vector<std::vector<std::string>> AIHousesLists;
+		std::vector<std::vector<HouseTypeClass*>> AIHateHousesLists;
 		std::vector<std::vector<std::string>> AIConditionsLists;
 		std::vector<std::vector<AITriggerTypeClass*>> AITriggersLists;
+		std::vector<std::vector<HouseTypeClass*>> AIHousesLists;
 
 		Valueable<double> JumpjetCrash;
 		Valueable<bool> JumpjetNoWobbles;
@@ -125,6 +126,9 @@ public:
 		Valueable<double> SubterraneanSpeakDelay;
 
 		Valueable<int> RandomCrateMoney;
+
+		Valueable<int> ChronoSparkleDisplayDelay;
+		Valueable<ChronoSparkleDisplayPosition> ChronoSparkleBuildingDisplayPositions;
 #pragma region Otamaa
 
 		Nullable<ParticleTypeClass*> VeinholeParticle;
@@ -163,6 +167,13 @@ public:
 		Valueable<double> DeactivateDim_EMP;
 		Valueable<double> DeactivateDim_Operator;
 
+		Valueable<int> ChainReact_Multiplier;
+		Valueable<int> ChainReact_SpreadChance;
+		Valueable<int> ChainReact_MinDelay;
+		Valueable<int> ChainReact_MaxDelay;
+
+		Valueable<bool> ChronoInfantryCrush;
+
 #ifdef COMPILE_PORTED_DP_FEATURES
 		AircraftPutDataRules MyPutData;
 #endif
@@ -173,11 +184,14 @@ public:
 			, Pips_Shield_Buildings { { -1,-1,-1 } }
 			, RadApplicationDelay_Building { 0 }
 			, MissingCameo { GameStrings::XXICON_SHP() }
+
 			, AITargetTypesLists { }
 			, AIScriptsLists { }
-			, AIHousesLists { }
+			, AIHateHousesLists { }
 			, AIConditionsLists { }
 			, AITriggersLists { }
+			, AIHousesLists { }
+
 			, JumpjetCrash { 5.0 }
 			, JumpjetNoWobbles { false }
 			, JumpjetAllowLayerDeviation { true }
@@ -253,6 +267,9 @@ public:
 
 			, RandomCrateMoney { 0 }
 
+			, ChronoSparkleDisplayDelay { 24 }
+			, ChronoSparkleBuildingDisplayPositions { ChronoSparkleDisplayPosition::OccupantSlots }
+
 			, VeinholeParticle { }
 			, DefaultVeinParticle { nullptr }
 			, DefaultSquidAnim { nullptr }
@@ -284,6 +301,11 @@ public:
 			, DeactivateDim_Powered { 0.5 }
 			, DeactivateDim_EMP { 0.8 }
 			, DeactivateDim_Operator { 0.65 }
+			, ChainReact_Multiplier { 5 }
+			, ChainReact_SpreadChance { 80 }
+			, ChainReact_MinDelay { 15 }
+			, ChainReact_MaxDelay { 120 }
+			, ChronoInfantryCrush { true }
 #ifdef COMPILE_PORTED_DP_FEATURES
 			, MyPutData { }
 #endif

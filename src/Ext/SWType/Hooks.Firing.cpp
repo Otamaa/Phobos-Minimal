@@ -99,7 +99,7 @@ DEFINE_HOOK(0x6D4A71, TacticalClass_Render_ClearSW, 0x5)
 
 namespace Timer
 {
-	void __fastcall DrawTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
+	void FC DrawTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
 	{
 		if (!SWTypeExt::TempSuper || !SWTimerTemp::SuperExt || !SWTimerTemp::SuperExt->ChargeTimer.Get()) {
 			TacticalClass::PrintTimer(arg1, scheme, interval, string, pBlinkTimer, pBlinkState);

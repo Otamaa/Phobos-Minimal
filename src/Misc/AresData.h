@@ -8,6 +8,9 @@
 #include <ArrayClasses.h>
 #include <vector>
 
+#include <CoordStruct.h>
+
+class AbstractClass;
 class TechnoClass;
 class TechnoTypeClass;
 class FootClass;
@@ -32,6 +35,13 @@ public:
 };
 
 static_assert(sizeof(PoweredUnitClass) == 0xC, "Invalid Size !");
+
+struct DataBundleDetonate
+{
+	CoordStruct* pCoord;
+	void* ptr;
+};
+
 struct AEData
 {
 	DWORD* ArrFirst;
@@ -83,9 +93,9 @@ class cPrismForwarding
 #define Ares_TemporalWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xA))
 #define Ares_ParasiteWeapon(techno) (*(BYTE*)(((char*)GetAresTechnoExt(techno)) + 0xB))
 
-#define AresGarrisonedIn (techno) (*(BuildingClass**)(((char*)GetAresTechnoExt(techno)) + 0xC))
-#define AresEMPSparkleAnim (techno) (*(AnimClass**)(((char*)GetAresTechnoExt(techno)) + 0x10))
-#define AresBuildingLight (techno) (*(BuildingLightClass**)(((char*)GetAresTechnoExt(techno)) + 0x38))
+#define AresGarrisonedIn(techno) (*(BuildingClass**)(((char*)GetAresTechnoExt(techno)) + 0xC))
+#define AresEMPSparkleAnim(techno) (*(AnimClass**)(((char*)GetAresTechnoExt(techno)) + 0x10))
+#define AresBuildingLight(techno) (*(BuildingLightClass**)(((char*)GetAresTechnoExt(techno)) + 0x38))
 
 #define AE_ArmorMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x88))
 #define AE_Cloak(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x98))
@@ -163,18 +173,30 @@ struct AresData
 		ExtMapFindID = 14,
 		BulletTypeExtGetConvertID = 15,
 		ApplyKillDriverID = 16,
-		MouseCursorTypeLoadDefaultID = 17 ,
+		MouseCursorTypeLoadDefaultID = 17,
 		HouseExtHasFactoryID = 18,
 		HouseExtGetBuildLimitRemainingID = 19,
 
 		CustomPaletteReadFronINIID = 20,
-		GetBarrelsVoxelID = 21 ,
-		IsOperatedID = 22 ,
+		GetBarrelsVoxelID = 21,
+		IsOperatedID = 22,
 		GetTunnelArrayID = 23,
 		UpdateAEDataID = 24,
 		JammerclassUnjamAllID = 25,
 		CPrismRemoveFromNetworkID = 26,
 
+
+		//WHextfunc 
+		applyIonCannonID = 27, //52790 , pWHExt , CoordStruct*
+		applyPermaMCID = 28, //53980 , pWHExt , AbstractClass*
+		applyICID = 29, // 53540 , pWHExt , HouseClass* , int
+		applyEMPID = 30, // 53520 , pWHExt , CoordStruct* , TechnoClass*
+		applyAEID = 31, // 533B0 , pWHExt , CoordStruct* , TechnoClass*
+		applyOccupantDamageID = 32, // 53940 , BulletClass* 
+
+		EvalRaidStatusID = 33,
+		IsActiveFirestormWallID = 34, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
+		ImmolateVictimID = 35, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
 		count
 	};
 
@@ -197,7 +219,7 @@ struct AresData
 	// number of Ares versions we support
 	static constexpr int AresVersionCount = Version::vcount;
 	//number of static instance
-	static constexpr int AresStaticInstanceCount = 3;
+	static constexpr int AresStaticInstanceCount = 4;
 	//number of call for `CustomPalette::ReadFromINI`
 	static constexpr int AresCustomPaletteReadCount = 5;
 
@@ -213,6 +235,8 @@ struct AresData
 		0x0C2DD0, //WeaponTypeExt
 
 		0x0C2A00, //Debug::bTrackParserErrors
+
+		0x0C2A54, //HouseExt::FSW
 	};
 
 	// offsets of function addresses for each version
@@ -245,6 +269,17 @@ struct AresData
 		0x059650, // UpdateAEData
 		0x0693D0, // JammerClassUnjamAll
 		0x0192A0, // CPrismRemoveFromNetwork
+
+		0x052790, // applyIonCannon , pWHExt , CoordStruct*
+		0x053980, // applyPermaMC , pWHExt , AbstractClass*
+		0x053540, // applyIC ,  pWHExt , HouseClass* , int
+		0x053520, // applyEMP , pWHExt , CoordStruct* , TechnoClass*
+		0x0533B0, // applyAE , pWHExt , CoordStruct* , TechnoClass*
+		0x053940, // applyOccupantDamage , BulletClass* 
+
+		0x013C50, //BuildingExt  EvalRaidStatus
+		0x012D00, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
+		0x0124C0, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -253,6 +288,7 @@ struct AresData
 		0x029CF1, //ParticleTypeExt
 		0x03456B, //SWTypeExt
 		0x03F0AB, //TechnoTypeExt
+
 	};
 
 	// storage for absolute addresses of functions (module base + offset)
@@ -387,6 +423,16 @@ struct AresData
 	static void UpdateAEData(AEData* const pAE);
 	static void JammerClassUnjamAll(JammerClass* const pJamm);
 	static void CPrismRemoveFromNetwork(cPrismForwarding* const pThis , bool bCease);
+
+	static void applyIonCannon(WarheadTypeClass* pWH, CoordStruct* pTarget);
+	static bool applyPermaMC(WarheadTypeClass* pWH, HouseClass* pOwner, AbstractClass* pTarget);
+	static void applyIC(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner, int Damage);
+	static void applyEMP(WarheadTypeClass* pWH, CoordStruct* pTarget, TechnoClass* pOwner);
+	static void applyAE(WarheadTypeClass* pWH, CoordStruct* pTarget, HouseClass* pOwner);
+
+	static void EvalRaidStatus(BuildingClass* pBuilding);
+	static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
+	static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
 };
 
 namespace AresMemory
@@ -500,6 +546,7 @@ struct AresDTORCaller
 };
 
 #define Debug_bTrackParseErrors (*(reinterpret_cast<bool*>(AresData::AresStaticInstanceFinal[2])))
+#define ActiveSFW (*(reinterpret_cast<SuperClass**>(AresData::AresStaticInstanceFinal[3])))
 #define PoweredUnitUptr(techno) (*(PoweredUnitClass**)(((char*)GetAresTechnoExt(techno)) + 0x1C))
 #define RadarJammerUptr(techno) (*(JammerClass**)(((char*)GetAresTechnoExt(techno)) + 0x18))
 #define RegisteredJammers(techno) (*(PhobosMap<TechnoClass*, bool>*)(((char*)GetAresBuildingExt(techno)) + 0x40))

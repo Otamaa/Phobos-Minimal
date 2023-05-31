@@ -7,6 +7,9 @@
 #include <SpotlightClass.h>
 #include <LaserDrawClass.h>
 
+// have an idea how it works little bit 
+// need more stuffs to finish this !
+// 
 struct ParticleSystemExt_ExtData
 {
 	struct __declspec(align(4)) ParticleSysExt_someDatas

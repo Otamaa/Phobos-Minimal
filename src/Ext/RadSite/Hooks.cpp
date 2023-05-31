@@ -205,7 +205,7 @@ DEFINE_HOOK(0x521478, InfantryClass_AIDeployment_FireNotOKCloakFix, 0x6) // 4
 
 DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 {
-	enum { Dead = 0x440573, Continue = 0x0};
+	enum { Dead = 0x440573, Continue = 0x0 };
 
 	GET(BuildingClass* const, pBuilding, ECX);
 
@@ -235,42 +235,39 @@ DEFINE_HOOK(0x43FB29, BuildingClass_AI_Radiation, 0x8)
 			return Continue;
 		}
 
-		if (pBuilding->IsAlive && pBuilding->Health > 0)
+		const auto nCurCoord = pBuilding->InlineMapCoords();
+		for (auto pFoundation = pBuilding->GetFoundationData(false);
+			*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 		{
-			const auto nCurCoord = pBuilding->InlineMapCoords();
-			for (auto pFoundation = pBuilding->GetFoundationData(false);
-				*pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+			const auto nLoc = nCurCoord + (*pFoundation);
+
+			// Loop for each different radiation stored in the RadSites container
+			for (auto pRadSite : *RadSiteClass::Array())
 			{
-				const auto nLoc = nCurCoord + (*pFoundation);
+				const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
 
-				// Loop for each different radiation stored in the RadSites container
-				for (auto pRadSite : *RadSiteClass::Array())
-				{
-					const auto pRadExt = RadSiteExt::ExtMap.Find(pRadSite);
+				// Check the distance, if not in range, just skip this one
+				const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
+				if (static_cast<int>(orDistance) > pRadSite->Spread)
+					continue;
 
-					// Check the distance, if not in range, just skip this one
-					const double orDistance = pRadSite->BaseCell.DistanceFrom(nLoc);
-					if (static_cast<int>(orDistance) > pRadSite->Spread)
-						continue;
+				const RadTypeClass* pType = pRadExt->Type;
+				const int delay = pType->GetBuildingApplicationDelay();
+				if ((delay <= 0)
+					|| (Unsorted::CurrentFrame % delay))
+					continue;
 
-					const RadTypeClass* pType = pRadExt->Type;
-					const int delay = pType->GetBuildingApplicationDelay();
-					if ((delay <= 0)
-						|| (Unsorted::CurrentFrame % (delay + RadSiteClass::Array->Count)))
-						continue;
+				const auto nRadLevel = pRadExt->GetRadLevelAt(orDistance);
+				if (nRadLevel == 0.0 || !pType->GetWarhead())
+					continue;
 
-					const auto nRadLevel = pRadExt->GetRadLevelAt(orDistance);
-					if (nRadLevel == 0.0 || !pType->GetWarhead())
-						continue;
+				const auto damage = static_cast<int>((nRadLevel)*pType->GetLevelFactor());
 
-					const auto damage = static_cast<int>((nRadLevel)*pType->GetLevelFactor());
+				if (damage == 0)
+					continue;
 
-					if (damage == 0)
-						continue;
-
-					if (!pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
-						return Dead;
-				}
+				if (!pRadExt->ApplyRadiationDamage(pBuilding, damage, static_cast<int>(orDistance)))
+					return Dead;
 			}
 		}
 	}
@@ -299,7 +296,9 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 	GET(FootClass* const, pThis, ESI);
 	const auto nLoc = pThis->InlineMapCoords();
 
-	if(!RadSiteClass::Array->Count)
+	R->BL(false);
+
+	if (!RadSiteClass::Array->Count)
 		return CheckOtherState;
 
 	if (pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
@@ -338,7 +337,7 @@ DEFINE_HOOK(0x4DA554, FootClass_AI_Radiation, 0x5)
 			const RadTypeClass* pType = pRadExt->Type;
 			const int RadApplicationDelay = pType->GetApplicationDelay();
 			if ((RadApplicationDelay <= 0)
-				|| (Unsorted::CurrentFrame % (RadApplicationDelay + RadSiteClass::Array->Count)))
+				|| (Unsorted::CurrentFrame % RadApplicationDelay))
 				continue;
 
 			// for more precise dmg calculation

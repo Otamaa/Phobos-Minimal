@@ -55,7 +55,7 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 		if (pWeapon->Burst < 2 && WeaponTypeExt::ExtMap.Find(pWeapon)->Strafing_SimulateBurst)
 			pThis->CurrentBurstIndex = (int)shotNumber;
 
-		pThis->Fire(pTarget, WeaponIdx);
+		pThis->AircraftClass::Fire(pTarget, WeaponIdx);
 	}
 }
 

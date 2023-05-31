@@ -255,7 +255,7 @@ CellClass* AresTrajectoryHelper::FindFirstObstacle(
 		auto const step = !maxDelta ? CoordStruct::Empty
 			: (crdTarget - crdSrc) * (1.0 / maxDelta);
 
-		auto crdCur = crdSrc;
+		CoordStruct crdCur = crdSrc;
 		auto pCellCur = pCellSrc;
 		for (size_t i = 0; i < maxDelta; ++i)
 		{

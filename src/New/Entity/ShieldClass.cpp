@@ -111,11 +111,11 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	{
 		if(pToExt->Shield) {
 			const auto nFromPrecentage = int(pFromExt->Shield->GetHealthRatio() * pToExt->Shield->Type->Strength);
-			pToExt->Shield->HP = nFromPrecentage;
-			if (nFromPrecentage > 0) {
-				pToExt->Shield->Available = true;
-				pToExt->Shield->UpdateIdleAnim();
-			}
+			pToExt->Shield->SetHP((int)nFromPrecentage);
+
+			if (pToExt->Shield->GetHP() == 0)
+				pToExt->Shield->SetRespawn(pTypeExt->ShieldType->Respawn_Rate, pTypeExt->ShieldType->Respawn, pTypeExt->ShieldType->Respawn_Rate, true);
+
 		}
 	}
 	else

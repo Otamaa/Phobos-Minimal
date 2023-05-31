@@ -1153,7 +1153,7 @@ public:
 	DECLARE_PROPERTY_ARRAY(ZoneInfoStruct, ZoneInfos, 5);
 	int                   LATime;
 	int                   LAEnemy;
-	void*                   ToCapture;
+	BuildingClass*                   ToCapture;
 //	IndexBitfield<HouseTypeClass *> RadarVisibleTo; // these house types(!?!, fuck you WW) can see my radar
 	IndexBitfield<HouseClass *> RadarVisibleTo;  // this crap is being rewritten to use house indices instead of house types
 	int                   SiloMoney;

@@ -99,6 +99,9 @@ bool NOINLINE FindSameTunnel(BuildingClass* pTunnel)
 
 void NOINLINE KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 {
+	if (!pFoot)
+		return;
+
 	if (auto pTeam = pFoot->Team)
 		pTeam->RemoveMember(pFoot);
 
@@ -111,14 +114,18 @@ void NOINLINE DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass*
 	if (FindSameTunnel(pTunnel))
 		return;
 
-	for (auto nPos = pTunnelData->begin(); nPos != pTunnelData->end(); ++nPos)
-	{
+	for (auto nPos = pTunnelData->begin(); nPos != pTunnelData->end(); ++nPos) {
 		KillFootClass(*nPos, pKiller);
 	}
+
+	pTunnelData->clear();
 }
 
 NOINLINE HouseExt::ExtData::TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 {
+	if (!pHouse)
+		return nullptr;
+
 	auto pHouseExt = HouseExt::ExtMap.Find(pHouse);
 
 	if (nTunnelIdx >= pHouseExt->Tunnels.size())
@@ -207,7 +214,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 
 		if (!pTunnelData)
 		{
-			if (pThis->Passengers.NumPassengers >= nPassangersTotal)
+			if (pThis->Passengers.NumPassengers > nPassangersTotal)
 			{
 				Fail = true;
 				return &PipData;
@@ -222,7 +229,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 			{
 				const auto pPassengerType = pPassenger->GetTechnoType();
 
-				auto nSize = pTypeExt->Passengers_BySize.Get(!Absorber) ? (int)pPassengerType->Size : 1 ;
+				auto nSize = pTypeExt->Passengers_BySize.Get(!Absorber) ? (int)pPassengerType->Size : 1;
 				if (nSize <= 0)
 					nSize = 1;
 
@@ -250,7 +257,8 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 			const int nTotal = pTunnelData->MaxCap > nPassangersTotal ? nPassangersTotal : pTunnelData->MaxCap;
 			PipData.resize(nTotal);
 
-			if (pTunnelData->Vector.size() > nTotal){
+			if ((int)pTunnelData->Vector.size() > nTotal)
+			{
 				Fail = true;
 				return &PipData;
 			}
@@ -273,7 +281,7 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 	}
 	else
 	{
-		if (pThis->Passengers.NumPassengers >= nPassangersTotal)
+		if (pThis->Passengers.NumPassengers > nPassangersTotal)
 		{
 			Fail = true;
 			return &PipData;
@@ -283,12 +291,12 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 
 		int nCargoSize = 0;
 		for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
-			pPassenger; 
+			pPassenger;
 			pPassenger = generic_cast<FootClass*>(pPassenger->NextObject))
 		{
 			const auto pPassengerType = pPassenger->GetTechnoType();
 
-			auto nSize = pTypeExt->Passengers_BySize.Get(true) ? (int)pPassengerType->Size : 1 ;
+			auto nSize = pTypeExt->Passengers_BySize.Get(true) ? (int)pPassengerType->Size : 1;
 			if (nSize <= 0)
 				nSize = 1;
 
@@ -300,8 +308,9 @@ NOINLINE std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTy
 
 			//fetch first cargo size and change the pip
 			PipData[nCargoSize] = nPip;
-			for (int i = nSize - 1; i > 0; --i) { //check if the extra size is there and increment it to 
-												// total size
+			for (int i = nSize - 1; i > 0; --i)
+			{ //check if the extra size is there and increment it to 
+		   // total size
 				PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
 			}
 
@@ -371,7 +380,7 @@ DEFINE_OVERRIDE_HOOK(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
 	return 0x70A4EC;
 }
 
-std::pair<bool,FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
+std::pair<bool, FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
 {
 	auto pPassenger = *std::prev(pVector->end());
 	auto nCoord = pTunnel->GetCoords();
@@ -387,7 +396,8 @@ std::pair<bool,FootClass*> NOINLINE UnlimboOne(std::vector<FootClass*>* pVector,
 
 	pVector->pop_back();
 
-	if (Succeeded) {
+	if (Succeeded)
+	{
 		pPassenger->Scatter(CoordStruct::Empty, true, false);
 		return { true,  pPassenger };
 	}
@@ -424,7 +434,7 @@ DEFINE_OVERRIDE_HOOK(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pTarget, EBX);
 
-	if (pThis->GetCurrentMission() != Mission::Eaten)
+	if (pThis->GetCurrentMission() != Mission::Enter)
 		return Nothing;
 
 	if (pThis->Destination != pTarget)
@@ -473,7 +483,8 @@ DEFINE_OVERRIDE_HOOK(0x43C716, BuildingClass_ReceivedRadioCommand_RequestComplet
 		DoNothing = 0x0,
 	};
 
-	return BuildingTypeExt::ExtMap.Find(pThis->Type)->TunnelType > -1 ? ProcessTechnoClassRadio : DoNothing;
+	return BuildingTypeExt::ExtMap.Find(pThis->Type)->TunnelType > -1 
+		? ProcessTechnoClassRadio : DoNothing;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
@@ -486,6 +497,28 @@ DEFINE_OVERRIDE_HOOK(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 		FindSameTunnel = !nTunnelVec->Vector.empty();
 
 	return FindSameTunnel ? RetActionSelf : Nothing;
+}
+
+DEFINE_HOOK(0x7014B9, TechnoClass_SetOwningHouse_Tunnel, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (auto pBuilding = specific_cast<BuildingClass*>(pThis)) {
+
+		const auto nTunnelVec = GetTunnels(pBuilding->Type, pThis->Owner);
+
+		if (!nTunnelVec || FindSameTunnel(pBuilding))
+			return 0x0;
+
+		for (auto nPos = nTunnelVec->Vector.begin(); 
+			nPos != nTunnelVec->Vector.end(); ++nPos) {
+			KillFootClass(*nPos, nullptr);
+		}
+
+		nTunnelVec->Vector.clear();
+	}
+
+	return 0x0;
 }
 
 DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
@@ -501,14 +534,19 @@ DEFINE_OVERRIDE_HOOK(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePasseng
 		return 0x0;
 
 	int nOffset = 0;
-	while(std::begin(nTunnelVec->Vector) != std::end(nTunnelVec->Vector))
+	auto nPos = nTunnelVec->Vector.end();
+
+	while (std::begin(nTunnelVec->Vector) != std::end(nTunnelVec->Vector))
 	{
 		nOffset++;
 		auto const& [status, pPtr] = UnlimboOne(&nTunnelVec->Vector, pThis, (nCell.X + CellArr[nOffset % nDev].X) | ((nCell.Y + CellArr[nOffset % nDev].Y) << 16));
-		if (!status){
+		if (!status)
+		{
 			KillFootClass(pPtr, nullptr);
 		}
 	}
+
+	nTunnelVec->Vector.clear();
 
 	return 0x0;
 }
@@ -575,7 +613,7 @@ bool NOINLINE UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent =
 
 	if (Succeeded)
 	{
-		if(!silent)
+		if (!silent)
 			VocClass::PlayIndexAtPos(pTunnel->Type->LeaveTransportSound, pTunnel->Location);
 
 		pFoot->QueueMission(Mission::Move, false);
@@ -590,7 +628,8 @@ void NOINLINE HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* 
 {
 	auto nPos = pTunnelData->end();
 
-	if (pTunnelData->begin() != nPos) {
+	if (pTunnelData->begin() != nPos)
+	{
 		UnloadOnce(*std::prev(nPos), pTunnel);
 		pTunnelData->pop_back();
 	}
@@ -608,8 +647,6 @@ DEFINE_OVERRIDE_HOOK(0x44D8A7, BuildingClass_Mi_Unload_Tunnel, 6)
 	return 0x44DC84;
 }
 
-//NOT DONE YET
-//#pragma optimize("", off )
 DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
 {
 	enum
@@ -624,7 +661,9 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 
 	const auto  nMission = pThisBld->GetCurrentMission();
 
-	if (pThisBld->BState == BStateType::Construction || nMission == Mission::Construction || nMission == Mission::Selling)
+	if (pThisBld->BState == BStateType::Construction ||
+		nMission == Mission::Construction ||
+		nMission == Mission::Selling)
 		return RetRadioNegative;
 
 	const auto pBldType = pThisBld->Type;
@@ -646,8 +685,9 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 	bool IsAbsorber = false;
 	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
 
-	if (IsUnitAbsorber || IsInfAbsorber) {
-		IsAbsorber = 1;
+	if (IsUnitAbsorber || IsInfAbsorber)
+	{
+		IsAbsorber = true;
 	}
 	else
 	{
@@ -700,7 +740,7 @@ DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_
 		CheckPasangers:
 			if (pThisBld->Passengers.NumPassengers >= pBldType->Passengers)
 				goto retContinueCheck;
-			
+
 			goto CheckSize;
 		}
 
@@ -728,121 +768,6 @@ CheckSize:
 	return RetRadioRoger;
 }
 
-//DEFINE_OVERRIDE_HOOK(0x43C326, BuildingClass_ReceivedRadioCommand_QueryCanEnter_Tunnel, 0xA)
-//{
-//	enum
-//	{
-//		RetRadioNegative = 0x43C3F0,
-//		ContineCheck = 0x43C4F8,
-//		RetRadioRoger = 0x43C535
-//	};
-//
-//	GET(BuildingClass*, pThis, ESI);
-//	GET(TechnoClass*, pRecepient, EDI);
-//
-//	auto const nMission = pThis->GetCurrentMission();
-//
-//	if (nMission == Mission::Construction || nMission == Mission::Selling || pThis->BState == BStateType::Construction)
-//		return RetRadioNegative;
-//
-//	auto const pType = pThis->Type;
-//	auto const pRecipientType = pRecepient->GetTechnoType();
-//	auto const pTypeExt = BuildingTypeExt::ExtMap.Find(pThis->Type);
-//
-//	if (pRecipientType->MovementZone != MovementZone::Amphibious && 
-//		pType->Naval != pRecipientType->Naval)
-//		return RetRadioNegative;
-//
-//	if ((pRecipientType->BalloonHover || pRecipientType->JumpJet)
-//		|| !pThis->HasPower
-//		|| !TechnoTypeExt::PassangersAllowed(pType, pRecipientType))
-//		return RetRadioNegative;
-//
-//	const bool IsUnitAbsorb = pType->UnitAbsorb;
-//	const bool IsInfAbsorb = pType->InfantryAbsorb;
-//	bool Absorber = false;
-//	const bool Istunnel = pTypeExt->TunnelType >= 0;
-//
-//	if (IsUnitAbsorb || IsInfAbsorb)
-//	{
-//		Absorber = true;
-//	}
-//	else if (!Istunnel)
-//	{
-//		if (!pThis->HasFreeLink(pRecepient) && !Unsorted::IKnowWhatImDoing())
-//		{
-//			return RetRadioNegative;
-//		}
-//		else
-//		{
-//			R->EBX(pType);
-//			return ContineCheck;
-//		}
-//	}
-//
-//	if (auto const pCapture = pRecepient->CaptureManager)
-//	{
-//		if (pCapture->IsControllingSomething())
-//		{
-//			return RetRadioNegative;
-//		}
-//	}
-//
-//	if (Istunnel)
-//	{
-//		const auto nTunnelVec = GetTunnels(pType, pThis->Owner);
-//
-//		if (pRecepient->IsMindControlled())
-//			return RetRadioNegative;
-//
-//		// out of limit
-//		if ((int)nTunnelVec->Vector.size() >= nTunnelVec->MaxCap)
-//		{
-//			R->EBX(pType);
-//			return ContineCheck;
-//		}
-//
-//		if (pType->SizeLimit < pRecipientType->Size)
-//		{
-//			R->EBX(pType);
-//			return ContineCheck;
-//		}
-//
-//		return RetRadioRoger;
-//	}
-//
-//	if (!Absorber)
-//	{
-//		R->EBX(pType);
-//		return ContineCheck;
-//	}
-//	else
-//	{
-//		auto const pRecpWhat = pRecepient->WhatAmI();
-//		if ((pRecpWhat == AbstractType::Infantry && IsUnitAbsorb)
-//			|| (pRecpWhat == AbstractType::Infantry && IsInfAbsorb))
-//		{
-//			if (pThis->Passengers.NumPassengers >= pType->Passengers)
-//			{
-//				R->EBX(pType);
-//				return ContineCheck;
-//			}
-//
-//			if (pType->SizeLimit < pRecipientType->Size)
-//			{
-//				R->EBX(pType);
-//				return ContineCheck;
-//			}
-//
-//			return RetRadioRoger;
-//		}
-//
-//		return RetRadioNegative;
-//	}
-//}
-
-//#pragma optimize("", on )
-
 DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 {
 	enum
@@ -859,7 +784,8 @@ DEFINE_OVERRIDE_HOOK(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		return CanEnter;
 
 	bool Enterable = false;
-	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget)) {
+	if (const auto pBuildingTarget = specific_cast<BuildingClass*>(pTarget))
+	{
 		Enterable = BuildingTypeExt::ExtMap.Find(pBuildingTarget->Type)->TunnelType >= 0;
 	}
 
@@ -874,7 +800,8 @@ DEFINE_OVERRIDE_HOOK(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	if (const auto nTunnelVec = GetTunnels(pBld->Type, pBld->Owner)) {
+	if (const auto nTunnelVec = GetTunnels(pBld->Type, pBld->Owner))
+	{
 		return CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
 	}
 

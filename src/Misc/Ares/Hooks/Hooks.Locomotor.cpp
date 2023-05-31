@@ -16,6 +16,57 @@
 
 #include <Locomotor/HoverLocomotionClass.h>
 
+DEFINE_OVERRIDE_HOOK(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
+{
+	LEA_STACK(CoordStruct*, pCoord, 0x3C);
+	GET(TeleportLocomotionClass*, pLoco, EBP);
+
+	auto pCell = MapClass::Instance->TryGetCellAt(*pCoord);
+	R->Stack(0x48 , false);
+	const bool bLinkedIsInfantry = pLoco->LinkedTo->WhatAmI() == AbstractType::Infantry;
+	R->EBX(pCell->OverlayTypeIndex);
+	R->EDI(false);
+
+	for (auto pObj = pCell->GetContent(); pObj; pObj = pObj->NextObject)
+	{
+		auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
+		bool bIsImmune = pObj->IsIronCurtained();
+		auto pType = pObj->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExt::ExtMap.TryFind(pType);
+
+		if (pTypeExt && !pTypeExt->Chronoshift_Crushable)
+			bIsImmune = 1;
+
+		if (!RulesExt::Global()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
+			break;
+
+		if (!bIsImmune && bObjIsInfantry && bLinkedIsInfantry)
+		{
+			auto nCoord = pObj->GetCoords();
+			if (nCoord.X == pCoord->X && nCoord.Y == pCoord->Y && nCoord.Z == pCoord->Z) {
+				pObj->ReceiveDamage(&pObj->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+			}
+		}
+		else if (bIsImmune || ((pObj->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None))
+		{
+			if ((pObj->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None) {
+				R->Stack(0x48, true);
+			} else if(bIsImmune) {
+				pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+			}
+		} else {
+			pObj->ReceiveDamage(&pObj->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+		}
+	}
+
+	if ((pCell->Flags & CellFlags(0x100)) != CellFlags(0) && (pCell->Flags & CellFlags(0x200)) == CellFlags(100))
+		R->Stack(0x48, true);
+
+	R->Stack(0x20 , pLoco->LinkedTo->GetCellAgain());
+	R->EAX(true);
+	return 0x7184CE;
+}
+
 DEFINE_OVERRIDE_HOOK(0x4B5F9E, DropPodLocomotionClass_ILocomotion_Process_Report, 0x6)
 {
 	// do not divide by zero

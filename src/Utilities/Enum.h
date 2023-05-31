@@ -170,6 +170,18 @@ enum class PhobosAbilityType : int
 	count
 };
 
+enum class ChronoSparkleDisplayPosition : unsigned char
+{
+	None = 0x0,
+	Building = 0x1,
+	Occupants = 0x2,
+	OccupantSlots = 0x3,
+
+	All = 0xFF,
+};
+
+MAKE_ENUM_FLAGS(ChronoSparkleDisplayPosition);
+
 enum class TargetZoneScanType : int
 {
 	Same = 0,

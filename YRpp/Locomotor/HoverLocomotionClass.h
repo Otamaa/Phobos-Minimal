@@ -1,16 +1,31 @@
 #pragma once
 #include "LocomotionClass.h"
 
-class DECLSPEC_UUID("4A582742-9839-11d1-B709-00A024DDAFD1") NOVTABLE
+class //DECLSPEC_UUID("4A582742-9839-11d1-B709-00A024DDAFD1") NOVTABLE
 	HoverLocomotionClass : public LocomotionClass
 {
 public:
 	static constexpr inline uintptr_t vtable = 0x7EADC8;
 	static constexpr inline uintptr_t ILoco_vtable = 0x7EACFC;
-	static constexpr inline CLSID ClassGUID = __uuidof(HoverLocomotionClass);
+	static const inline CLSID ClassGUID = CLSIDs::Hover();
+
+	//IUnknown
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
+	virtual ULONG __stdcall AddRef() override R0;
+	virtual ULONG __stdcall Release() override R0;
+
+	//IPersist
+	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
+
+	//IPersistStream
+	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
 
 	//Destructor
-	virtual ~HoverLocomotionClass() RX;
+	virtual ~HoverLocomotionClass() override RX;
+
+	//LocomotionClass
+	virtual int Size() override R0;
 
 	//HoverLocomotionClass
 	int sub_514F70(bool bArg) const {

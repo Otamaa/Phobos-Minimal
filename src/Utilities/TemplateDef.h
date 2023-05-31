@@ -504,7 +504,7 @@ namespace detail
 		float buffer = 0.0f;
 		if (read(buffer, parser, pSection, pFlagName))
 		{
-			value.RaiseRate = Game::F2I(buffer);
+			value.RaiseRate = int(buffer);
 			ret = true;
 		}
 
@@ -581,36 +581,49 @@ namespace detail
 #pragma region Enumstuffs
 
 	template <>
-	inline bool read<Armor>(Armor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (!parser.ReadArmor(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect Valid ArmorType");
+		if (parser.ReadString(pSection, pKey)) {
+			for (size_t i = 0; i < EnumFunctions::Rank_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::Rank_ToStrings[i]))
+				{
+					value = Rank(i);
+					return true;
+				}
+			}
 
-			return false;
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self Rank type");
 		}
 
-		return true;
+		return false;
+	}
+
+	template <>
+	inline bool read<Armor>(Armor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		return parser.ReadArmor(pSection, pKey, (int*)&value);
 	}
 
 	template <>
 	inline bool read<Edge>(Edge& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.empty())
-			return false;
-
-		for (size_t i = 0; i < CellClass::EdgeToStrings.size(); ++i)
+		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), CellClass::EdgeToStrings[i]))
+			for (size_t i = 0; i < CellClass::EdgeToStrings.size(); ++i)
 			{
-				value = (Edge)i;
-				return true;
+				if (IS_SAME_STR_(parser.value(), CellClass::EdgeToStrings[i]))
+				{
+					value = (Edge)i;
+					return true;
+				}
 			}
-		}
 
-		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
-		return false;
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
+			
+			return false;
+		}
 	}
 
 	template <>
@@ -699,7 +712,8 @@ namespace detail
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
 
 		}
 		return false;
@@ -710,25 +724,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if (IS_SAME_STR_(parser.value(), GameStrings::NoneStrb()))
-			{
-				value = SelfHealGainType::None;
+			for (size_t i = 0; i < EnumFunctions::SelfHealGainType_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::SelfHealGainType_ToStrings[i])) {
+					value = SelfHealGainType(i);
+					return true;
+				}
 			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Infantry()))
-			{
-				value = SelfHealGainType::Infantry;
-			}
-			else if (IS_SAME_STR_(parser.value(), GameStrings::Units()))
-			{
-				value = SelfHealGainType::Units;
-			}
-			else
-			{
+
+			if(!parser.empty())
 				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
-				return false;
-			}
-			return true;
 		}
+
 		return false;
 	}
 
@@ -946,7 +952,7 @@ namespace detail
 					++result;
 				}
 
-				if (!found)
+				if (!found || result == size_t(AffectedTarget::None))
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
 					return false;
@@ -977,6 +983,54 @@ namespace detail
 			value = resultData;
 			return true;
 		}
+		return false;
+	}
+
+	template <>
+	inline bool read<ChronoSparkleDisplayPosition>(ChronoSparkleDisplayPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			auto resultData = ChronoSparkleDisplayPosition::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::ChronoSparkleDisplayPosition_ToStrings)
+				{
+					if (IS_SAME_STR_(cur, pStrings))
+					{
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found || result == (size_t)ChronoSparkleDisplayPosition::None)
+				{
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a chrono sparkle position type");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 1: resultData |= ChronoSparkleDisplayPosition::Building; break;
+					case 2: resultData |= ChronoSparkleDisplayPosition::Occupants; break;
+					case 3: resultData |= ChronoSparkleDisplayPosition::OccupantSlots; break;
+					case 4: resultData |= ChronoSparkleDisplayPosition::All; break;
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+
 		return false;
 	}
 
@@ -1161,7 +1215,7 @@ namespace detail
 					++result;
 				}
 
-				if (!found)
+				if (!found || result == (size_t)AffectedHouse::None)
 				{
 					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected house");
 					return false;

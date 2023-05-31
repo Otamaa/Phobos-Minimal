@@ -26,6 +26,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\PlaceVeinholeMonster.cpp" />
     <ClCompile Include="src\Commands\ShowAnimNames.cpp" />
     <ClCompile Include="src\Commands\RevealMap.cpp" />
     <ClCompile Include="src\Commands\CaptureObjects.cpp" />
@@ -122,6 +123,7 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Cloak.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
@@ -195,6 +197,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Veterancy.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Wave.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
+    <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
     <ClCompile Include="src\Misc\Hooks.Blowfish.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
@@ -202,7 +205,6 @@
     <ClCompile Include="src\New\Type\TunnelTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ImmunityTypeClass.cpp" />
     <ClCompile Include="src\New\Type\PaletteManager.cpp" />
-    <ClCompile Include="src\Misc\Ares\Utilities\Ares3_Parser.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\Hooks.PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\AttachedAffects\Effects\PaintBall\PaintBall.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\CustomWeapon\CustomWeapon.cpp" />
@@ -309,6 +311,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
     <ClInclude Include="src\Commands\ShowAnimNames.h" />
     <ClInclude Include="src\Commands\RevealMap.h" />
     <ClInclude Include="src\Commands\CaptureObjects.h" />
@@ -411,6 +414,8 @@
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupport.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportData.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Techno\SpawnSupport\SpawnSupportFunctional.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Data.h" />
+    <ClInclude Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\Trails.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailsManager.h" />
     <ClInclude Include="src\Misc\DynamicPatcher\Trails\TrailType.h" />

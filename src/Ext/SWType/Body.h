@@ -13,6 +13,7 @@ class SWTypeExt
 public:
 	static bool Handled;
 	static SuperClass* TempSuper;
+	static SuperClass* LauchData;
 
 	class ExtData final : public Extension<SuperWeaponTypeClass>
 	{
@@ -169,6 +170,7 @@ public:
 		static void InvalidatePointer(void* ptr, bool bRemoved)
 		{
 			AnnounceInvalidPointer(SWTypeExt::TempSuper, ptr);
+			AnnounceInvalidPointer(SWTypeExt::LauchData, ptr);
 		}
 
 		static  bool InvalidateIgnorable(void* ptr) {
@@ -186,6 +188,7 @@ public:
 			return Stm
 				.Process(SWTypeExt::TempSuper)
 				.Process(SWTypeExt::Handled)
+				.Process(SWTypeExt::LauchData)
 				.Success();
 		}
 
@@ -194,12 +197,18 @@ public:
 			return Stm
 				.Process(SWTypeExt::TempSuper)
 				.Process(SWTypeExt::Handled)
+				.Process(SWTypeExt::LauchData)
 				.Success();
+		}
+
+		static void Clear()
+		{
+			SWTypeExt::LauchData = nullptr;
+			SWTypeExt::TempSuper = nullptr;
 		}
 	};
 
 	static ExtContainer ExtMap;
-
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult , Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
 	static void Launch(HouseClass* pHouse, SWTypeExt::ExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell);

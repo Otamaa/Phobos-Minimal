@@ -132,7 +132,8 @@ TiberiumExt::ExtContainer::~ExtContainer() = default;
 // =============================
 // container hooks
 
-DEFINE_HOOK(0x7217CC, TiberiumClass_CTOR, 0x5)
+// was 7217CC
+DEFINE_HOOK(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
 	TiberiumExt::ExtMap.Allocate(pItem);

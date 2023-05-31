@@ -320,14 +320,15 @@ DEFINE_HOOK(0x6FD0A6, TechnoClass_RearmDelay_RandomROF, 0x5)
 
 	if (pExt->ROF_Random.Get())
 	{
-		auto const& nData = pExt->Rof_RandomMinMax.Get({ 0,2 });
-		nResult += GeneralUtils::GetRangedRandomOrSingleValue(nData);
+		const auto nDefault = Point2D{RulesExt::Global()->ROF_RandomDelay->X , RulesExt::Global()->ROF_RandomDelay->Y };
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
 	}
 
 	const auto pWeaponExt = WeaponTypeExt::ExtMap.Find(pWeapon);
 
-	auto const& range = pWeaponExt->ROF_RandomDelay.Get(RulesExt::Global()->ROF_RandomDelay);
-	nResult += GeneralUtils::GetRangedRandomOrSingleValue(range);
+	if(pWeaponExt->ROF_RandomDelay.isset()){
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
+	}
 
 	R->EAX(nResult);
 	return 0x6FD0B5;
@@ -552,7 +553,7 @@ DEFINE_HOOK(0x5184F7, InfantryClass_ReceiveDamage_NotHuman, 0x6)
 	return Delete;
 }
 
-DEFINE_HOOK(0x6F42ED, TechnoClass_Init_DP, 0xA)
+DEFINE_HOOK(0x6F42ED, TechnoClass_Init_Early, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 

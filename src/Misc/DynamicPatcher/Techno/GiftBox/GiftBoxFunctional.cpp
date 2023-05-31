@@ -70,7 +70,7 @@ void GiftBoxFunctional::AI(TechnoExt::ExtData* pExt, TechnoTypeExt::ExtData* pTy
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
 			pExt->Get()->Limbo();
-			TechnoExt::HandleRemove(pExt->Get());
+			TechnoExt::HandleRemove(pExt->Get(),nullptr , false , false);
 			return;
 		}
 

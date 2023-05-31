@@ -40,6 +40,11 @@ public:
 	{
 		return (a - *this).Magnitude();
 	}
+
+	int DistanceFromI(const CellStruct& a) const
+	{
+		return int((a - *this).Magnitude());
+	}
 	//distance from another vector, squared
 	double DistanceFromSquared(const CellStruct& a) const
 	{
