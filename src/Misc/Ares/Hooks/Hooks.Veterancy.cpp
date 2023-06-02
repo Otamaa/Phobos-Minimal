@@ -26,7 +26,6 @@
 
 struct TechnoExperienceData
 {
-
 	static void AddAirstrikeFactor(TechnoClass*& pKiller, double& d_factor)
 	{
 		// before we do any other logic, check if this kill was committed by an

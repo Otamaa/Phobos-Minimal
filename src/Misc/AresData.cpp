@@ -24,6 +24,19 @@ DWORD AresData::AresFunctionOffsetsFinal[AresData::AresFunctionCount];
 DWORD AresData::AresCustomPaletteReadFuncFinal[AresData::AresCustomPaletteReadCount];
 DWORD AresData::AresStaticInstanceFinal[AresData::AresStaticInstanceCount];
 
+bool EMPulse::IsDeactivationAdvisable(TechnoClass* Target)
+{
+	switch (Target->CurrentMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+	case Mission::Unload:
+		return false;
+	}
+
+	return true;
+}
+
 uintptr_t AresData::GetModuleBaseAddress(const char* modName)
 {
 	return Patch::GetModuleBaseAddress(modName);
@@ -274,4 +287,39 @@ bool AresData::IsActiveFirestormWall(BuildingClass* pBuilding, HouseClass* pOwne
 bool AresData::ImmolateVictim(BuildingClass* pBuilding, FootClass* pTarget, bool Destroy)
 {
 	return AresThiscall<ImmolateVictimID, bool, void*, FootClass*, bool>()(GetAresBuildingExt(pBuilding), pTarget , Destroy);
+}
+
+void AresData::DisableEMPEffect(TechnoClass* pTechno)
+{
+	AresStdcall<DisableEMPAffectID, void, TechnoClass*>()(pTechno);
+}
+
+bool AresData::CloakDisallowed(TechnoClass* pTechno, bool allowPassive)
+{
+	return AresThiscall<CloakDisallowedID, bool, void*, bool>()(GetAresTechnoExt(pTechno), allowPassive);
+}
+
+bool AresData::CloakAllowed(TechnoClass* pTechno)
+{
+	return AresThiscall<CloadAllowedID, bool, void*>()(GetAresTechnoExt(pTechno));
+}
+
+bool AresData::RemoveAE(AEData* pAE)
+{
+	return AresThiscall<RemoveAEID, bool , AEData*>()(pAE);
+}
+
+void AresData::FlyingStringsAdd(TechnoClass* pTech, bool bSomething)
+{
+	AresThiscall<FlyingStringsAddID, void, void*, bool>()(GetAresTechnoExt(pTech), bSomething);
+}
+
+void AresData::CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller)
+{
+	AresThiscall <CalculateBountyID, void, void*, TechnoClass*>()(GetAresTechnoExt(pThis), pKiller);
+}
+
+void AresData::SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight)
+{
+	AresThiscall<SetSpotlightID, void, void*, BuildingLightClass*>()(GetAresTechnoExt(pThis), pSpotlight);
 }

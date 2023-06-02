@@ -38,6 +38,11 @@ public:
 		Nullable<int> GClock_Transculency;
 		//CustomPalette GClock_Palette {};
 
+		Nullable<int> SurvivorDivisor;
+		Nullable<InfantryTypeClass*> Crew;
+		Nullable<InfantryTypeClass*> Engineer;
+		Nullable<InfantryTypeClass*> Technician;
+
 		ExtData(SideClass* OwnerObject) : Extension<SideClass>(OwnerObject)
 			, ArrayIndex { -1 }
 			, Sidebar_GDIPositions { false }
@@ -61,6 +66,11 @@ public:
 			, GClock_Shape { }
 			, GClock_Transculency { }
 			//, GClock_Palette { }
+
+			, SurvivorDivisor { }
+			, Crew { }
+			, Engineer { }
+			, Technician{ }
 		{ }
 
 		virtual ~ExtData() override = default;
@@ -69,6 +79,14 @@ public:
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 		void Initialize();
+
+		int GetSurvivorDivisor() const;
+		int GetDefaultSurvivorDivisor() const;
+
+		InfantryTypeClass* GetCrew() const;
+		InfantryTypeClass* GetDefaultCrew() const;
+		InfantryTypeClass* GetEngineer() const;
+		InfantryTypeClass* GetTechnician() const;
 
 	private:
 		template <typename T>

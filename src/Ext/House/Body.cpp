@@ -3,6 +3,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/Side/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <ScenarioClass.h>
 
@@ -28,6 +30,62 @@ void HouseExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 	exINI.Read3Bool(pSection, "RepairBaseNodes", this->RepairBaseNodes);
+}
+
+int HouseExt::GetSurvivorDivisor(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->SurvivorDivisor.isset())
+		return pTypeExt->SurvivorDivisor.Get();
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetSurvivorDivisor();
+	}
+
+	return 0;
+}
+
+InfantryTypeClass* HouseExt::GetCrew(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->Crew.isset())
+		return pTypeExt->Crew.Get();
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetCrew();
+	}
+
+	return RulesClass::Instance->Technician;
+}
+
+InfantryTypeClass* HouseExt::GetEngineer(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->Engineer.isset())
+		return pTypeExt->Engineer.Get();
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetEngineer();
+	}
+
+	return RulesClass::Instance->Engineer;
+}
+
+InfantryTypeClass* HouseExt::GetTechnician(HouseClass* pHouse)
+{
+	const auto pTypeExt = HouseTypeExt::ExtMap.TryFind(pHouse->Type);
+
+	if (pTypeExt && pTypeExt->Technician.isset())
+		return pTypeExt->Technician.Get();
+
+	if (const auto pSide = HouseExt::GetSide(pHouse)) {
+		return SideExt::ExtMap.Find(pSide)->GetTechnician();
+	}
+
+	return RulesClass::Instance->Technician;
 }
 
 bool HouseExt::ExtData::InvalidateIgnorable(void* ptr) const

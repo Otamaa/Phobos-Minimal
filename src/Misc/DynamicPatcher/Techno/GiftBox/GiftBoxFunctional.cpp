@@ -4,6 +4,7 @@
 #include "GiftBox.h"
 #include "GiftBoxData.h"
 
+
 const bool OpenDisallowed(TechnoClass* const pTechno)
 {
 	if (pTechno)

@@ -20,10 +20,6 @@
 // better port these
 // DEFINE_HOOK(6FB757, TechnoClass_UpdateCloak, 8)
 
-//TODO :
-// better port these :s
-// DEFINE_HOOK(6FAF0D, TechnoClass_Update_EMPLock, 6)
-
 /* TODO : Addition Weapon shenanegans , need to port whole TechnoClass::Update
 DEFINE_HOOK(717890, TechnoTypeClass_SetWeaponTurretIndex, 8)
 {

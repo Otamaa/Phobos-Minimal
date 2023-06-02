@@ -19,6 +19,56 @@ bool SideExt::isNODSidebar()
 	return PlayerSideIndex;
 }
 
+int SideExt::ExtData::GetSurvivorDivisor() const {
+	return this->SurvivorDivisor.Get(this->GetDefaultSurvivorDivisor());
+}
+
+int SideExt::ExtData::GetDefaultSurvivorDivisor() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 0:
+		return RulesClass::Instance->AlliedSurvivorDivisor;
+	case 1:
+		return RulesClass::Instance->SovietSurvivorDivisor;
+	case 2:
+		return RulesClass::Instance->ThirdSurvivorDivisor;
+	}
+
+	// 100 is the base of the default value
+	return 100 * (this->ArrayIndex + 1);
+}
+
+InfantryTypeClass* SideExt::ExtData::GetCrew() const
+{
+	return this->Crew.Get(this->GetDefaultCrew());
+}
+
+InfantryTypeClass* SideExt::ExtData::GetDefaultCrew() const
+{
+	switch (this->ArrayIndex)
+	{
+	case 0:
+		return RulesClass::Instance->AlliedCrew;
+	case 1:
+		return RulesClass::Instance->SovietCrew;
+	case 2:
+		return RulesClass::Instance->ThirdCrew;
+	}
+
+	return RulesClass::Instance->AlliedCrew;
+}
+
+InfantryTypeClass* SideExt::ExtData::GetEngineer() const
+{
+	return this->Engineer.Get(RulesClass::Instance->Engineer);
+}
+
+InfantryTypeClass* SideExt::ExtData::GetTechnician() const
+{
+	return this->Technician.Get(RulesClass::Instance->Technician);
+}
+
 void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
@@ -49,6 +99,11 @@ void SideExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
 	//this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
+
+	this->SurvivorDivisor.Read(exINI, pSection, "SurvivorDivisor");
+	this->Crew.Read(exINI, pSection, "Crew", true);
+	this->Engineer.Read(exINI, pSection, "Engineer", true);
+	this->Technician.Read(exINI, pSection, "Technician", true);
 }
 
 // =============================
@@ -83,6 +138,12 @@ void SideExt::ExtData::Serialize(T& Stm)
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
 		//.Process(this->GClock_Palette)
+
+
+		.Process(this->SurvivorDivisor)
+		.Process(this->Crew)
+		.Process(this->Engineer)
+		.Process(this->Technician)
 		;
 }
 

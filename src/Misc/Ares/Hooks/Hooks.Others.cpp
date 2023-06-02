@@ -992,7 +992,6 @@ DEFINE_OVERRIDE_HOOK(0x738749, UnitClass_Destroy_TiberiumExplosive, 6)
 					CoordStruct crd = pThis->GetCoords();
 					if (auto pWH = RulesExt::Global()->Tiberium_ExplosiveWarhead)
 					{
-
 						MapClass::DamageArea(crd, morePower, pThis, pWH, pWH->Tiberium, pThis->Owner);
 					}
 
@@ -1120,68 +1119,76 @@ DEFINE_OVERRIDE_HOOK(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
-DEFINE_OVERRIDE_HOOK(0x489270, CellClass_ChainReact, 5)
+DEFINE_OVERRIDE_HOOK(0x489270, CellChainReact, 5)
 {
 	GET(CellStruct*, cell, ECX);
 
-	auto pCell = MapClass::Instance->GetCellAt(cell);
+	const auto pCell = MapClass::Instance->GetCellAt(*cell);
+
+	if (pCell->OverlayData <= 0)
+		return 0x0;
+
 	auto idxTib = pCell->GetContainedTiberiumIndex();
 
 	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(idxTib);
+
+	if (!pTib)
+		return 0x0;
+
 	OverlayTypeClass* pOverlay = OverlayTypeClass::Array->GetItemOrDefault(pCell->OverlayTypeIndex);
 
-	if (pTib && pOverlay && pOverlay->ChainReaction && pCell->OverlayData > 1)
+	if (!pOverlay || !pOverlay->ChainReaction)
+		return 0x0;
+
+	CoordStruct crd = pCell->GetCoords();
+
+	if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < (RulesExt::Global()->ChainReact_Multiplier * pCell->OverlayData))
 	{
-		CoordStruct crd = pCell->GetCoords();
+		bool wasFullGrown = (pCell->OverlayData >= 11);
 
-		if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < RulesExt::Global()->ChainReact_Multiplier * pCell->OverlayData)
+		unsigned char delta = pCell->OverlayData / 2;
+		int damage = pTib->Power * delta;
+
+		// remove some of the tiberium
+		pCell->OverlayData -= delta;
+		pCell->MarkForRedraw();
+
+		// get the warhead
+		auto pExt = TiberiumExt::ExtMap.Find(pTib);
+		auto pWarhead = pExt->GetExplosionWarhead();
+
+		// create an explosion
+		if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd))
 		{
-			bool wasFullGrown = (pCell->OverlayData >= 11);
+			GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, 0);
+		}
 
-			unsigned char delta = pCell->OverlayData / 2;
-			int damage = pTib->Power * delta;
+		// damage the area, without affecting tiberium
+		MapClass::DamageArea(crd, damage, nullptr, pWarhead, false, nullptr);
 
-			// remove some of the tiberium
-			pCell->OverlayData -= delta;
-			pCell->MarkForRedraw();
-
-			// get the warhead
-			auto pExt = TiberiumExt::ExtMap.Find(pTib);
-			auto pWarhead = pExt->GetExplosionWarhead();
-
-			// create an explosion
-			if (auto pType = MapClass::SelectDamageAnimation(4 * damage, pWarhead, pCell->LandType, crd))
+		// spawn some animation on the neighbour cells
+		if (auto pType = AnimTypeClass::Find("INVISO"))
+		{
+			for (size_t i = 0; i < 8; ++i)
 			{
-				GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, 0);
-			}
+				auto pNeighbour = pCell->GetNeighbourCell(i);
 
-			// damage the area, without affecting tiberium
-			MapClass::DamageArea(crd, damage, nullptr, pWarhead, false, nullptr);
-
-			// spawn some animation on the neighbour cells
-			if (auto pType = AnimTypeClass::Find("INVISO"))
-			{
-				for (size_t i = 0; i < 8; ++i)
+				if (pNeighbour->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2)
 				{
-					auto pNeighbour = pCell->GetNeighbourCell(i);
-
-					if (pCell->GetContainedTiberiumIndex() != -1 && pNeighbour->OverlayData > 2)
+					if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < RulesExt::Global()->ChainReact_SpreadChance)
 					{
-						if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < RulesExt::Global()->ChainReact_SpreadChance)
-						{
-							int delay = ScenarioClass::Instance->Random.RandomRanged(RulesExt::Global()->ChainReact_MinDelay, RulesExt::Global()->ChainReact_MaxDelay);
-							crd = pNeighbour->GetCoords();
+						int delay = ScenarioClass::Instance->Random.RandomRanged(RulesExt::Global()->ChainReact_MinDelay, RulesExt::Global()->ChainReact_MaxDelay);
+						crd = pNeighbour->GetCoords();
 
-							GameCreate<AnimClass>(pType, crd, delay, 1, 0x600, 0);
-						}
+						GameCreate<AnimClass>(pType, crd, delay, 1, 0x600, 0);
 					}
 				}
 			}
+		}
 
-			if (wasFullGrown)
-			{
-				pTib->RegisterForGrowth(cell);
-			}
+		if (wasFullGrown)
+		{
+			pTib->RegisterForGrowth(cell);
 		}
 	}
 
@@ -2849,10 +2856,13 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update, 6)
 						health = pExt->GetHealStep(pThis);
 					}
 
-					if (health != 0) {
-						if (!(Unsorted::CurrentFrame % int(delay * 900.0))) {
+					if (health != 0)
+					{
+						if (!(Unsorted::CurrentFrame % int(delay * 900.0)))
+						{
 							pThis->Health += health;
-							if (pThis->Health > pType->Strength) {
+							if (pThis->Health > pType->Strength)
+							{
 								pThis->Health = pType->Strength;
 							}
 						}
@@ -2867,51 +2877,292 @@ DEFINE_OVERRIDE_HOOK(0x4DA53E, FootClass_Update, 6)
 
 
 // temporal per-slot
-//DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
-//{
-//	GET(TemporalClass* const, pThis, ESI);
-//
-//	// it's not guaranteed that there is a target
-//	if (auto const pTarget = pThis->Target)
-//	{
-//		if (auto nJammer = std::exchange(RadarJammerUptr(pTarget), nullptr)) {
-//			AresData::JammerClassUnjamAll(nJammer);
-//			AresMemory::Delete(nJammer);
-//		}
-//
-//		//AttachEffect handling under Temporal
-//		AresData::UpdateAEData(&GetAEData(pTarget));
-//	}
-//
-//	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-//
-//	R->EAX(pThis->WarpRemaining);
-//	return 0x71A88D;
-//}
-//
-//DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
-//{
-//	GET(TechnoClass* const, pThis, EDI);
-//
-//	// bugfix #874 B: Temporal warheads affect Warpable=no units
-//	// it has been checked: this is warpable. free captured and destroy spawned units.
-//	if (pThis->SpawnManager)
-//	{
-//		pThis->SpawnManager->KillNodes();
-//	}
-//
-//	if (pThis->CaptureManager)
-//	{
-//		pThis->CaptureManager->FreeAll();
-//	}
-//
-//	// prism forward
-//	if (Is_Building(pThis))
-//	{
-//		const auto pBld = static_cast<BuildingClass*>(pThis);
-//		const auto pRism = &PrimsForwardingPtr(pBld);
-//		AresData::CPrismRemoveFromNetwork(pRism, true);
-//	}
-//
-//	return 0;
-//}
+DEFINE_OVERRIDE_HOOK(0x71A84E, TemporalClass_UpdateA, 5)
+{
+	GET(TemporalClass* const, pThis, ESI);
+
+	// it's not guaranteed that there is a target
+	if (auto const pTarget = pThis->Target)
+	{
+		if (auto nJammer = std::exchange(RadarJammerUptr(pTarget), nullptr))
+		{
+			AresData::JammerClassUnjamAll(nJammer);
+			AresMemory::Delete(nJammer);
+		}
+
+		//AttachEffect handling under Temporal
+		AresData::UpdateAEData(&GetAEData(pTarget));
+	}
+
+	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
+
+	R->EAX(pThis->WarpRemaining);
+	return 0x71A88D;
+}
+
+DEFINE_OVERRIDE_HOOK(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
+{
+	GET(TechnoClass* const, pThis, EDI);
+
+	// bugfix #874 B: Temporal warheads affect Warpable=no units
+	// it has been checked: this is warpable. free captured and destroy spawned units.
+	if (pThis->SpawnManager)
+	{
+		pThis->SpawnManager->KillNodes();
+	}
+
+	if (pThis->CaptureManager)
+	{
+		pThis->CaptureManager->FreeAll();
+	}
+
+	// prism forward
+	if (Is_Building(pThis))
+	{
+		AresData::CPrismRemoveFromNetwork(&PrimsForwardingPtr(static_cast<BuildingClass*>(pThis)), true);
+	}
+
+	return 0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	// original code.
+	if (pThis->EMPLockRemaining)
+	{
+		--pThis->EMPLockRemaining;
+		if (!pThis->EMPLockRemaining)
+		{
+			// the forced vacation just ended. we use our own
+			// function here that is quicker in retrieving the
+			// EMP animation and does more stuff.
+			AresData::DisableEMPEffect(pThis);
+		}
+		else
+		{
+			// deactivate units that were unloading afterwards
+			if (!pThis->Deactivated && EMPulse::IsDeactivationAdvisable(pThis))
+			{
+				// update the current mission
+				AresEMPLastMission(pThis) = pThis->CurrentMission;
+				pThis->Deactivate();
+			}
+		}
+	}
+
+	return 0x6FAFFD;
+}
+
+// replace the cloak checking functions to include checks for new features
+DEFINE_OVERRIDE_HOOK(0x6FB757, TechnoClass_UpdateCloak, 8)
+{
+	GET(TechnoClass*, pThis, ESI);
+	return !AresData::CloakDisallowed(pThis, false) ? 0x6FB7FD : 0x6FB75F;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
+{
+	GET(TechnoClass*, pThis, ECX);
+	// the original code would not disallow cloaking as long as
+	// pThis->Cloakable is set, but this prevents CloakStop from
+	// working, because it overrides IsCloakable().
+	R->EAX(AresData::CloakDisallowed(pThis, true));
+	return 0x6FBDBC;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
+{
+	GET(TechnoClass*, pThis, ECX);
+	R->EAX(AresData::CloakAllowed(pThis));
+	return 0x6FBF93;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6F6AC9, TechnoClass_Remove_Early, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	// if the removed object is a radar jammer, unjam all jammed radars
+	if (auto pRJ = std::exchange(RadarJammerUptr(pThis), nullptr)) {
+		AresData::JammerClassUnjamAll(pRJ);
+		AresMemory::Delete(pRJ);
+	}
+
+	// #617 powered units
+	if (auto pPower = std::exchange(PoweredUnitUptr(pThis), nullptr)) {
+		AresMemory::Delete(pPower);
+	}
+
+	//#1573, #1623, #255 attached effects
+	if (AresData::RemoveAE(&GetAEData(pThis)))
+		AresData::RecalculateStat(pThis);
+
+	if (TechnoValueAmount(pThis) != 0) {
+		AresData::FlyingStringsAdd(pThis, true);
+	}
+
+	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
+}
+
+DEFINE_OVERRIDE_HOOK(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
+{
+	GET(TechnoClass*, pVictim, ESI);
+	GET(TechnoClass*, pKiller, EDI);
+
+	//TODO : portThese
+	if(pKiller && TechnoTypeExt::ExtMap.Find(pKiller->GetTechnoType())->Bounty)
+		AresData::CalculateBounty(pVictim, pKiller);
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
+DEFINE_OVERRIDE_HOOK(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pTypeData = TechnoTypeExt::ExtMap.Find(pThis->GetTechnoType());
+
+	if (pTypeData->HasSpotlight) {
+		AresData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
+	}
+
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x6FD0BF , TechnoClass_GetROF_AttachEffect, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto nRof = AE_ROF(pThis);
+	__asm { fmul nRof };
+	return 0x0;
+}
+
+DEFINE_OVERRIDE_HOOK(0x451330, BuildingClass_GetCrewCount, 0xA)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	int count = 0;
+
+	if (!pThis->NoCrew && pThis->Type->Crewed)
+	{
+		auto pHouse = pThis->Owner;
+
+		// get the divisor
+		int divisor = HouseExt::GetSurvivorDivisor(pHouse);
+
+		if (divisor > 0)
+		{
+			// if captured, less survivors
+			if (pThis->HasBeenCaptured)
+			{
+				divisor *= 2;
+			}
+
+			// value divided by "cost per survivor"
+			count = pThis->Type->GetRefund(pHouse, 0) / divisor;
+
+			// clamp between 1 and 5
+			if (count < 1)
+			{
+				count = 1;
+			}
+			if (count > 5)
+			{
+				count = 5;
+			}
+		}
+	}
+
+	R->EAX(count);
+	return 0x4513CD;
+}
+
+DEFINE_OVERRIDE_HOOK(0x707D20, TechnoClass_GetCrew, 5)
+{
+	GET(TechnoClass*, pThis, ECX);
+	auto pType = pThis->GetTechnoType();
+	auto pExt = TechnoTypeExt::ExtMap.Find(pType);
+
+	auto pHouse = pThis->Owner;
+	InfantryTypeClass* pCrewType = nullptr;
+
+	// YR defaults to 15 for armed objects,
+	int TechnicianChance = pThis->IsArmed() ? 15 : 0;
+
+	// Ares < 0.5 defaulted to 0 for non-buildings.
+	if (abstract_cast<FootClass*>(pThis)) {
+		TechnicianChance = 0;
+	}
+	TechnicianChance = pExt->Crew_TechnicianChance.Get(TechnicianChance);
+
+	if (pType->Crewed)
+	{
+		// for civilian houses always technicians. random for others
+		bool isTechnician = false;
+		if (pHouse->Type->SideIndex == -1)
+		{
+			isTechnician = true;
+		}
+		else if (TechnicianChance > 0 && 
+			ScenarioClass::Instance->Random.RandomRanged(0, 99) < TechnicianChance)
+		{
+			isTechnician = true;
+		}
+
+		// chose the appropriate type
+		if (!isTechnician)
+		{
+			// customize with this techno's pilot type
+			// only use it if non-null, as documented
+			const auto& nVec = GetPilotTypeVec(pType);
+
+			if ((size_t)pHouse->SideIndex >= nVec.size())
+			{
+				pCrewType = HouseExt::GetCrew(pHouse);
+			}
+			else if(auto pPilotType = nVec.at(pHouse->SideIndex))
+			{
+				pCrewType = pPilotType;
+			}
+			else
+			{
+				pCrewType = HouseExt::GetCrew(pHouse);
+			}
+		}
+		else
+		{
+			// either civilian side or chance
+			pCrewType = HouseExt::GetTechnician(pHouse);
+		}
+	}
+
+	R->EAX(pCrewType);
+	return 0x707DCF;
+}
+
+NOINLINE InfantryTypeClass* GetBuildingCrew(BuildingClass* pThis, int nChance)
+{
+	// with some luck, and if the building has not been captured, spawn an engineer
+	if (!pThis->HasBeenCaptured
+		&& nChance > 0
+		&& ScenarioClass::Instance->Random.RandomRanged(0, 99) < nChance)
+	{
+		return HouseExt::GetEngineer(pThis->Owner);
+	}
+
+	return pThis->TechnoClass::GetCrew();
+}
+
+DEFINE_OVERRIDE_HOOK(0x44EB10, BuildingClass_GetCrew, 9)
+{
+	GET(BuildingClass*, pThis, ECX);
+
+	// YR defaults to 25 for buildings producing buildings
+	R->EAX(GetBuildingCrew(pThis, TechnoTypeExt::ExtMap.Find(pThis->Type)->
+		Crew_EngineerChance.Get((pThis->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0)));
+
+	return 0x44EB5B;
+}

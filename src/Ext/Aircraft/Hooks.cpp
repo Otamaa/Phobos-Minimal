@@ -27,39 +27,39 @@
 //}
 
 #ifndef SecondMode
-//DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
-//{
-//	GET(AircraftClass* const, pThis, ECX);
-//
-//	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
-//
-//	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
-//		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 
-//		//|| !pExt->Aircraft_DecreaseAmmo.Get()
-//		)
-//	{
-//		return 0;
-//	}
-//
-//	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
-//	const auto pWeaponStr = pThis->GetWeapon(weaponIndex);
-//
-//	if (pWeaponStr) {
-//		if (pWeaponStr->WeaponType) {
-//			int fireCount = pThis->MissionStatus - 4;
-//			if (fireCount > 1 && 
-//				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
-//
-//					if (!pThis->Ammo)
-//						pThis->__DoingOverfly = false;
-//
-//				pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
-//			}
-//		}
-//	}
-//
-//	return 0;
-//}
+DEFINE_HOOK(0x417FE9, AircraftClass_Mission_Attack_StrafeShots, 0x7)
+{
+	GET(AircraftClass* const, pThis, ECX);
+
+	//auto pExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
+	if (pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
+		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe 
+		//|| !pExt->Aircraft_DecreaseAmmo.Get()
+		)
+	{
+		return 0;
+	}
+
+	const int weaponIndex = pThis->SelectWeapon(pThis->Target);
+	const auto pWeaponStr = pThis->GetWeapon(weaponIndex);
+
+	if (pWeaponStr) {
+		if (pWeaponStr->WeaponType) {
+			int fireCount = pThis->MissionStatus - 4;
+			if (fireCount > 1 && 
+				WeaponTypeExt::ExtMap.Find(pWeaponStr->WeaponType)->Strafing_Shots < fireCount) {
+
+					if (!pThis->Ammo)
+						pThis->__DoingOverfly = false;
+
+				pThis->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			}
+		}
+	}
+
+	return 0;
+}
 
 //was 8
 #define Hook_AircraftBurstFix(addr , Mode , ret)\
@@ -68,22 +68,22 @@ GET(AircraftClass* const, pThis, ESI); \
 AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::##Mode##); return ret; }
 
 
-	//Hook_AircraftBurstFix(0x4186B6, FireAt, 0x4186D7)
-	//Hook_AircraftBurstFix(0x418805, Strafe2, 0x418826)
-	//Hook_AircraftBurstFix(0x418914, Strafe3, 0x418935)
-	//Hook_AircraftBurstFix(0x418A23, Strafe4, 0x418A44)
-	//Hook_AircraftBurstFix(0x418B1F, Strafe5, 0x418B40)
+	Hook_AircraftBurstFix(0x4186B6, FireAt, 0x4186D7)
+	Hook_AircraftBurstFix(0x418805, Strafe2, 0x418826)
+	Hook_AircraftBurstFix(0x418914, Strafe3, 0x418935)
+	Hook_AircraftBurstFix(0x418A23, Strafe4, 0x418A44)
+	Hook_AircraftBurstFix(0x418B1F, Strafe5, 0x418B40)
 
-//DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
-//{
-//	GET(AircraftClass*, pThis, ESI);
-//
-//	pThis->unknown_bool_6C8 = true;
-//
-//	AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt);
-//
-//	return 0x418478;
-//}
+DEFINE_HOOK(0x418403, AircraftClass_Mission_Attack_FireAtTarget_BurstFix, 0x6) //8
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	pThis->loseammo_6c8 = true;
+
+	AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt);
+
+	return 0x418478;
+}
 
 #undef Hook_AircraftBurstFix
 #endif
@@ -115,9 +115,11 @@ enum class AirAttackStatusP : int
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
 
-//#pragma optimize("", off )
+#pragma optimize("", off )
 int Mission_Attack(AircraftClass* pThis)
 {
+	const auto pTypeExt = TechnoTypeExt::ExtMap.Find(pThis->Type);
+
 	if (/*!SecondFiringMethod &&*/ !(pThis->MissionStatus < (int)AirAttackStatus::FireAtTarget2_Strafe
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe))
 	{
@@ -143,20 +145,21 @@ int Mission_Attack(AircraftClass* pThis)
 	case AirAttackStatusP::AIR_ATT_VALIDATE_AZ:
 	{
 		pThis->__DoingOverfly = false;
-		pThis->MissionStatus = (pThis->Target ? -9 : 0) + (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
+		
+		pThis->MissionStatus = //(pThis->Target ? -9 : 0) + (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE
+			!pThis->Target ? 11 : (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
+
 		return 1;
 	}
 	case AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION:
 	{
 		pThis->__DoingOverfly = false;
 
-		if (pThis->unknown_bool_6C8)
+		if (pThis->loseammo_6c8)
 		{
-			const auto v6 = pThis->Ammo;
-			pThis->unknown_bool_6C8 = false;
-
+			pThis->loseammo_6c8 = false;
 			/*if(!SecondFiringMethod)*/
-				pThis->Ammo = v6 - 1;
+				pThis->Ammo -= 1;
 		}
 
 		if (pThis->Target && pThis->Ammo)
@@ -175,13 +178,12 @@ int Mission_Attack(AircraftClass* pThis)
 	}
 	case AirAttackStatusP::AIR_ATT_FLY_TO_POSITION:
 	{
-		if (pThis->unknown_bool_6C8)
+		if (pThis->loseammo_6c8)
 		{
-			const auto v10 = pThis->Ammo;
-			pThis->unknown_bool_6C8 = 0;
+			pThis->loseammo_6c8 = 0;
 
 			/*if(!SecondFiringMethod)*/
-				pThis->Ammo = v10 - 1;
+				pThis->Ammo -= 1;
 		}
 
 		pThis->__DoingOverfly = false;
@@ -255,7 +257,7 @@ int Mission_Attack(AircraftClass* pThis)
 		}
 		else
 		{
-			pThis->MissionStatus = 1;
+			pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION;
 			return 1;
 		}
 	}
@@ -269,9 +271,8 @@ int Mission_Attack(AircraftClass* pThis)
 
 		if (/*SecondFiringMethod ||*/ !pThis->Is_Strafe())
 		{
-			const auto nDir = pThis->GetDirectionOverObject(pThis->Target);
-			pThis->PrimaryFacing.Set_Desired(nDir);
-			pThis->SecondaryFacing.Set_Desired(nDir);
+			pThis->PrimaryFacing.Set_Desired(pThis->GetDirectionOverObject(pThis->Target));
+			pThis->SecondaryFacing.Set_Desired(pThis->GetDirectionOverObject(pThis->Target));
 		}
 
 		auto v26 = pThis->SelectWeapon(pThis->Target);
@@ -281,9 +282,10 @@ int Mission_Attack(AircraftClass* pThis)
 		{
 		case FireError::OK:
 		{
-			pThis->unknown_bool_6C8 = 1;
+			pThis->loseammo_6c8 = 1;
 
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt , v26);
+			//pThis->Fire(pThis->Target, v26);
 
 			if(pThis->Target) 
 			{
@@ -298,17 +300,19 @@ int Mission_Attack(AircraftClass* pThis)
 				return pPrimary->ROF;
 			}
 
-			if (!pThis->Is_Locked()) {
-				pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1;
-				return 1;
+			if (pThis->Is_Locked())
+			{
+				const auto v37 = pThis->Ammo;
+				bool v38 = v37 == 0;
+				bool v39 = v37 < 0;
+				pThis->__DoingOverfly = 1;
+				pThis->MissionStatus = !v39 && !v38 ?
+					(int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION : (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
+				return pPrimary->ROF;
 			}
 
-			auto v37 = pThis->Ammo;
-			bool v38 = v37 == 0;
-			bool v39 = v37 < 0;
-			pThis->__DoingOverfly = 1;
-			pThis->MissionStatus = !v39 && !v38 ? 1 : (int)AirAttackStatusP::AIR_ATT_RETURN_TO_BASE;
-			return pPrimary->ROF;
+			pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1;
+			return 1;
 		}
 		case FireError::FACING:
 		{
@@ -328,15 +332,11 @@ int Mission_Attack(AircraftClass* pThis)
 			}
 			else
 			{
-				pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? 
-					1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
+				pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ?
+					(int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
 			}
 
-			if (!pThis->Is_Strafe()) {
-				return 1;
-			}
-
-			return 45;
+			return !pThis->Is_Strafe() ? 1 : 45;
 		}
 		case FireError::REARM:
 		{
@@ -369,9 +369,8 @@ int Mission_Attack(AircraftClass* pThis)
 	{
 		if (pThis->Target)
 		{
-			const auto nDir = pThis->GetDirectionOverObject(pThis->Target);
-			pThis->PrimaryFacing.Set_Desired(nDir);
-			pThis->SecondaryFacing.Set_Desired(nDir);
+			pThis->PrimaryFacing.Set_Desired(pThis->GetDirectionOverObject(pThis->Target));
+			pThis->SecondaryFacing.Set_Desired(pThis->GetDirectionOverObject(pThis->Target));
 
 			auto v44 = pThis->SelectWeapon(pThis->Target);
 
@@ -380,7 +379,8 @@ int Mission_Attack(AircraftClass* pThis)
 			case FireError::OK:
 			{
 				AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::FireAt , v44);
-			
+				//pThis->Fire(pThis->Target, v44);
+
 				if (pThis->Target)
 				{
 					MapClass::Instance->GetCellAt(pThis->Target->GetCoords())
@@ -394,7 +394,9 @@ int Mission_Attack(AircraftClass* pThis)
 					return int(v92->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 				}
 
-				pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ? (int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION : 4;
+				pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ?
+					(int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
+
 				const auto v92 = pThis->GetCurrentMissionControl();
 				return int(v92->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 			}
@@ -409,13 +411,12 @@ int Mission_Attack(AircraftClass* pThis)
 
 				if (!pThis->IsCloseEnoughToAttack(pThis->Target) || pThis->Is_Strafe())
 				{
-					pThis->MissionStatus = 1;
+					pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 				else
 				{
-					BYTE v45 = -(int)RulesClass::Instance->CurleyShuffle;
-					v45 = v45 & 0xFD;
-					pThis->MissionStatus = v45 + 4;
+					pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ? 
+						(int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
 				}
 
 				if (!pThis->Is_Strafe())
@@ -445,14 +446,15 @@ int Mission_Attack(AircraftClass* pThis)
 					const auto v92 = pThis->GetCurrentMissionControl();
 					return int(v92->Rate * 900.0) + ScenarioClass::Instance->Random.RandomFromMax(2);
 				}
+
 				if (pThis->IsCloseEnoughToAttack(pThis->Target))
 				{
-					pThis->MissionStatus = RulesClass::Instance->CurleyShuffle ?
-						1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
+					pThis->MissionStatus = pTypeExt->CurleyShuffle.Get(RulesClass::Instance->CurleyShuffle) ?
+						(int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET1 : (int)AirAttackStatusP::AIR_ATT_FIRE_AT_TARGET0;
 				}
 				else
 				{
-					pThis->MissionStatus = 1;
+					pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION;
 				}
 
 				const auto v92 = pThis->GetCurrentMissionControl();
@@ -493,6 +495,7 @@ int Mission_Attack(AircraftClass* pThis)
 
 			auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe2 , v52);
+			//pThis->Fire(pThis->Target, v52);
 
 			if (pThis->Target)
 			{
@@ -537,6 +540,7 @@ int Mission_Attack(AircraftClass* pThis)
 
 			auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe3, v26);
+			//pThis->Fire(pThis->Target, v26);
 
 			if (pThis->Target)
 			{
@@ -581,6 +585,7 @@ int Mission_Attack(AircraftClass* pThis)
 
 			auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 			AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe4, v26);
+			//pThis->Fire(pThis->Target, v26);
 
 			if (pThis->Target)
 			{
@@ -614,6 +619,7 @@ int Mission_Attack(AircraftClass* pThis)
 			{
 				auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 				AircraftExt::FireBurst(pThis, pThis->Target, AircraftFireMode::Strafe5, v26);
+				//pThis->Fire(pThis->Target, v26);
 
 				if (pThis->Target)
 				{
@@ -643,13 +649,12 @@ int Mission_Attack(AircraftClass* pThis)
 	}
 	case AirAttackStatusP::AIR_ATT_RETURN_TO_BASE:
 	{
-		const auto v84 = pThis->unknown_bool_6C8;
 		pThis->__DoingOverfly = 0;
 
-		if (v84)
+		if (pThis->loseammo_6c8)
 		{
 			const auto v85 = pThis->Ammo;
-			pThis->unknown_bool_6C8 = 0;
+			pThis->loseammo_6c8 = 0;
 
 			if (v85 > 0) {
 				pThis->Ammo = v85 - 1;
@@ -658,30 +663,37 @@ int Mission_Attack(AircraftClass* pThis)
 
 		if (pThis->Ammo) {
 			if (pThis->Target) {
-				pThis->MissionStatus = 1;
+				pThis->MissionStatus = (int)AirAttackStatusP::AIR_ATT_PICK_ATTACK_LOCATION;
 				return 1;
 			}
 		}
 		else if (pThis->IsALoaner || pThis->Owner->IsControlledByCurrentPlayer())
 		{
-			pThis->SetTarget(0);
+			pThis->SetTarget(nullptr);
 		}
 
-		auto v86 = pThis->Owner;
-		pThis->__DoingOverfly = 0;
-		auto v88 =  MapClass::Instance->PickCellOnEdge(v86->GetCurrentEdge(), CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
-		pThis->SetDestination(MapClass::Instance->GetCellAt(v88), true);
+		pThis->__DoingOverfly = false;
+		pThis->SetDestination(
+			MapClass::Instance->GetCellAt(
+			MapClass::Instance->PickCellOnEdge(
+			pThis->Owner->GetCurrentEdge(), 
+				CellStruct::Empty, 
+				CellStruct::Empty, 
+				SpeedType::Winged, 
+				true,
+				MovementZone::Normal)), true
+		);
 
-		pThis->retreating_idle = 0;
+		pThis->retreating_idle = false;
 		if (pThis->Airstrike && pThis->Ammo > 0)
 		{
-			pThis->QueueMission(Mission::Retreat, 0);
-			pThis->retreating_idle = 1;
+			pThis->QueueMission(Mission::Retreat, false);
+			pThis->retreating_idle = true;
 		}
 		else
 		{
-			pThis->EnterIdleMode(0, 1);
-			pThis->retreating_idle = 1;
+			pThis->EnterIdleMode(false, true);
+			pThis->retreating_idle = true;
 		}
 
 		return 1;
@@ -693,10 +705,14 @@ int Mission_Attack(AircraftClass* pThis)
 	}
 	}
 }
-//#pragma optimize("", on )
+#pragma optimize("", on )
 
-DEFINE_HOOK(0x417FE0, AircraftClass_MI_Attack_Handle, 0x6)
-{
-	R->EAX(Mission_Attack(R->ECX<AircraftClass*>()));
-	return 0x418D54;
-}
+// there is some funky shit happening here
+// the code is 90% close to decomp but it result different 
+// need to investigae 
+// disabled atm !
+//DEFINE_HOOK(0x417FE0, AircraftClass_MI_Attack_Handle, 0x6)
+//{
+//	R->EAX(Mission_Attack(R->ECX<AircraftClass*>()));
+//	return 0x418D54;
+//}

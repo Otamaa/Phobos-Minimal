@@ -582,7 +582,7 @@ public:
 	void ResumeWorkSlaveManager() const;
 	void DetechMyTemporal() const;
 
-	InfantryTypeClass* GetCrewType() const
+	InfantryTypeClass* GetPilotType() const
 	{ JMP_THIS(0x707D20); }
 
 	void KillCargo(TechnoClass* pSource) const

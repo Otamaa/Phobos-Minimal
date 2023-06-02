@@ -665,14 +665,18 @@ DEFINE_OVERRIDE_HOOK(0x702216, TechnoClass_ReceiveDamage_TiberiumHeal_SpillTiber
 	if (TechnoTypeExt::ExtMap.Find(pType)->TiberiumRemains
 		.Get(pType->TiberiumHeal && RulesExt::Global()->Tiberium_HealEnabled))
 	{
+		int nIdx = 0;
+		for (int p = 0; p < 4; p++)
+			nIdx += (pThis->Tiberium.Tiberiums[nIdx] < pThis->Tiberium.Tiberiums[p]) * (p - nIdx);
+
 		const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
 
 		// increase the tiberium for the four neighbours and center.
 		// center is retrieved by getting a neighbour cell index >= 8
-		for (auto i = 0u; i < 5u; ++i)
+		for (auto i = 0u; i < 10u; i += 2)
 		{
-			pCenter->GetNeighbourCell(2 * i)
-				->IncreaseTiberium(0, ScenarioClass::Instance->Random.RandomFromMax(2));
+			pCenter->GetNeighbourCell(i)
+				->IncreaseTiberium(nIdx, ScenarioClass::Instance->Random.RandomFromMax(2));
 		}
 	}
 

@@ -118,6 +118,8 @@ public:
 		void UpdateVehicleProduction();
 		void UpdateAutoDeathObjects();
 
+		//
+
 	private:
 		bool UpdateHarvesterProduction();
 
@@ -154,6 +156,15 @@ public:
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);
+
+	// Some non playable countries will set SideIndex to -1
+	static SideClass* HouseExt::GetSide(HouseClass* pHouse) {
+		if (!pHouse)
+			return nullptr;
+
+		return SideClass::Array->GetItemOrDefault(pHouse->SideIndex);
+	}
+
 	static HouseClass* FindCivilianSide();
 	static HouseClass* FindSpecial();
 	static HouseClass* FindNeutral();
@@ -164,6 +175,13 @@ public:
 		return 1;
 	}
 
+	//
+	static int GetSurvivorDivisor(HouseClass* pHouse);
+	static InfantryTypeClass* GetCrew(HouseClass* pHouse);
+	static InfantryTypeClass* GetEngineer(HouseClass* pHouse);
+	static InfantryTypeClass* GetTechnician(HouseClass* pHouse);
+
+	//
 	static void ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode);
 
 	static bool IsObserverPlayer();

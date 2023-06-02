@@ -680,6 +680,12 @@ public:
 		Promotable<double> SelfHealing_Max;
 		Promotable<int> SelfHealing_CombatDelay;
 
+		Valueable<bool> Bounty;
+		Valueable<bool> HasSpotlight;
+
+		Nullable<int> Crew_TechnicianChance;
+		Nullable<int> Crew_EngineerChance;
+
 		ExtData(TechnoTypeClass* OwnerObject) : Extension<TechnoTypeClass>(OwnerObject)
 
 			, HealthBar_Hide { false }
@@ -1184,6 +1190,11 @@ public:
 			, SelfHealing_Amount { 1 }
 			, SelfHealing_Max { 1.0 }
 			, SelfHealing_CombatDelay { 0 }
+			, Bounty { false }
+			, HasSpotlight { false }
+
+			, Crew_TechnicianChance { }
+			, Crew_EngineerChance { }
 		{ }
 
 		virtual ~ExtData() override = default;

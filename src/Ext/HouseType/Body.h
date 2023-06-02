@@ -15,6 +15,13 @@ public:
 		static constexpr DWORD Canary = 0x1111111A;
 
 	public:
+		bool SettingsInherited;
+
+		Nullable<int> SurvivorDivisor;
+		Nullable<InfantryTypeClass*> Crew;
+		Nullable<InfantryTypeClass*> Engineer;
+		Nullable<InfantryTypeClass*> Technician;
+
 		Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
 		Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
 		Nullable<double> NewTeamsSelector_GroundCategoryPercentage;
@@ -22,6 +29,13 @@ public:
 		Nullable<double> NewTeamsSelector_AirCategoryPercentage;
 
 		ExtData(HouseTypeClass* OwnerObject) : Extension<HouseTypeClass>(OwnerObject)
+			, SettingsInherited { false }
+
+			, SurvivorDivisor { }
+			, Crew { }
+			, Engineer { }
+			, Technician { }
+
 			, NewTeamsSelector_MergeUnclassifiedCategoryWith { }
 			, NewTeamsSelector_UnclassifiedCategoryPercentage { }
 			, NewTeamsSelector_GroundCategoryPercentage { }
@@ -35,19 +49,10 @@ public:
 		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
+		void InheritSettings(HouseTypeClass* pThis);
 	private:
 		template <typename T>
-		void Serialize(T& Stm)
-		{
-			Stm
-				.Process(this->Initialized)
-				.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
-				.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
-				.Process(this->NewTeamsSelector_GroundCategoryPercentage)
-				.Process(this->NewTeamsSelector_AirCategoryPercentage)
-				.Process(this->NewTeamsSelector_NavalCategoryPercentage)
-				;
-		}
+		void Serialize(T& Stm);
 	};
 
 	class ExtContainer final : public Container<HouseTypeExt::ExtData>

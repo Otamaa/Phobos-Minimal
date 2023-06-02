@@ -506,18 +506,18 @@ void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
 
-#ifdef COMPILE_PORTED_DP_FEATURES
-	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
-	{
-		MessageBoxW(NULL,
-		L"This version of phobos is not suppose to be run with DP.\n\n"
-		L"Press OK to Closing the game .",
-		L"Notice", MB_OK);
-
-		Phobos::ExeTerminate();
-		exit(0);
-	}
-#endif
+//#ifdef COMPILE_PORTED_DP_FEATURES
+//	if (Patch::GetModuleBaseAddress("PatcherLoader.dll"))
+//	{
+//		MessageBoxW(NULL,
+//		L"This version of phobos is not suppose to be run with DP.\n\n"
+//		L"Press OK to Closing the game .",
+//		L"Notice", MB_OK);
+//
+//		Phobos::ExeTerminate();
+//		exit(0);
+//	}
+//#endif
 
 	if (!AresData::Init())
 	{

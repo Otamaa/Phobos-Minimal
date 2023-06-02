@@ -12,7 +12,7 @@
 #include <comip.h>
 #include <comdef.h>
 
-_COM_SMARTPTR_TYPEDEF(IFlyControl, __uuidof(IFlyControl));
+//_COM_SMARTPTR_TYPEDEF(IFlyControl, __uuidof(IFlyControl));
 
 //AircraftClass
 class DECLSPEC_UUID("0E272DC2-9C0F-11D1-B709-00A024DDAFD1")
@@ -116,7 +116,7 @@ protected:
 public:
 
 	AircraftTypeClass* Type;
-	bool unknown_bool_6C8; //loseAmmo
+	bool loseammo_6c8; //loseAmmo
 	bool HasPassengers;	//parachutes
 	bool IsKamikaze; // when crashing down, duh
 	TechnoClass* DockedTo;

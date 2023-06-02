@@ -303,16 +303,15 @@ DEFINE_HOOK(0x43FE69, BuildingClass_AI_Add, 0xA)
 //	return 0;
 //}
 
-
-DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
-DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
-DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
-DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
-// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
-{
-	GET(TechnoClass*, pThis, ESI);
-	return 0;
-}
+//DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate , 6) //Building
+//DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate , 6) //Infantry
+//DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate , 6) //Unit
+//DEFINE_HOOK(0x414CF2, TechnoClass_WarpUpdate ,6) //Aircraft
+//// If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	return 0;
+//}
 
 // Ares-hook jmp to this offset
 DEFINE_HOOK(0x71A88D, TemporalClass_AI_Add, 0x8) //0

@@ -1268,6 +1268,30 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
 	return 0x6A7AE7;
 }
 
+DEFINE_HOOK(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
+{
+	GET(BuildingClass*, pBld, EDI);
+
+	return (!pBld->DiscoveredByCurrentPlayer && BuildingExt::ExtMap.Find(pBld)->LimboID != -1) ?
+		0x508CEE : 0x0;
+}
+
+DEFINE_HOOK(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
+{
+	GET(BuildingClass*, pBld, EAX);
+
+	return (!pBld->DiscoveredByCurrentPlayer && BuildingExt::ExtMap.Find(pBld)->LimboID != -1) ?
+		0x508EEF : 0x0;
+}
+
+DEFINE_HOOK(0x508FCE, HouseClass_SpySat_LimboDeliver, 0x6)
+{
+	GET(BuildingClass*, pBld, ECX);
+
+	return (!pBld->DiscoveredByCurrentPlayer &&  BuildingExt::ExtMap.Find(pBld)->LimboID != -1) ?
+		0x508FE1 : 0x0;
+}
+
 DEFINE_HOOK(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
 	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
@@ -4594,6 +4618,7 @@ DEFINE_HOOK(0x73D909, UnitClass_Mi_Unload_LastPassengerOut, 8)
 //	return 0x71453C;
 //}
 
+//TechnoClass_GetWeaponState
 DEFINE_OVERRIDE_HOOK(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);

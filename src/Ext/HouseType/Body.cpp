@@ -2,18 +2,41 @@
 
 #include <Utilities/GeneralUtils.h>
 
-// =============================
-// load / save
+void HouseTypeExt::ExtData::InheritSettings(HouseTypeClass* pThis)
+{
+	if (auto ParentCountry = pThis->FindParentCountry()) {
+		if (const auto ParentData = HouseTypeExt::ExtMap.Find(ParentCountry)) {
+			this->SurvivorDivisor = ParentData->SurvivorDivisor;
+			this->Crew = ParentData->Crew;
+			this->Engineer = ParentData->Engineer;
+			this->Technician = ParentData->Technician;
+		}
+	}
+
+	this->SettingsInherited = true;
+}
+
 
 void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->Get();
 	const char* pSection = pThis->ID;
 
+	if (!this->SettingsInherited && *pThis->ParentCountry && IS_SAME_STR_(pThis->ParentCountry, pThis->ID))
+	{
+		this->InheritSettings(pThis);
+	}
+
 	if (!pINI->GetSection(pSection))
 		return;
 
 	INI_EX exINI(pINI);
+
+	this->SurvivorDivisor.Read(exINI, pSection, "SurvivorDivisor");
+	this->Crew.Read(exINI, pSection, "Crew", true);
+	this->Engineer.Read(exINI, pSection, "Engineer", true);
+	this->Technician.Read(exINI, pSection, "Technician", true);
+
 
 	// Disabled atm
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, pSection, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
@@ -24,17 +47,39 @@ void HouseTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr
 	//
 }
 
+template <typename T>
+void  HouseTypeExt::ExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->Initialized)
+		.Process(this->SettingsInherited)
+
+		.Process(this->SurvivorDivisor)
+		.Process(this->Crew)
+		.Process(this->Engineer)
+		.Process(this->Technician)
+
+		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
+		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
+		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
+		.Process(this->NewTeamsSelector_AirCategoryPercentage)
+		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
+		;
+}
+
+// =============================
+// container
+
+HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
+HouseTypeExt::ExtContainer::ExtContainer() : Container("HouseTypeClass") { }
+HouseTypeExt::ExtContainer::~ExtContainer() = default;
+
 bool HouseTypeExt::ExtContainer::Load(HouseTypeClass* pThis, IStream* pStm)
 {
 	HouseTypeExt::ExtData* pData = this->LoadKey(pThis, pStm);
 	return pData != nullptr;
 };
 
-// =============================
-// container
-HouseTypeExt::ExtContainer HouseTypeExt::ExtMap;
-HouseTypeExt::ExtContainer::ExtContainer() : Container("HouseTypeClass") { }
-HouseTypeExt::ExtContainer::~ExtContainer() = default;
 
 // =============================
 // container hooks

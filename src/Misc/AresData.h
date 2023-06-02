@@ -68,6 +68,11 @@ class cPrismForwarding
 	int DamageReserve;
 };
 
+struct EMPulse
+{
+	static bool IsDeactivationAdvisable(TechnoClass* Target);
+};
+
 // TODO : Allocation and deallocation for Ares vector and pointer stuffs
 // becarefull when doing operation that involve those , it can result on undefine behaviour
 
@@ -97,10 +102,15 @@ class cPrismForwarding
 #define AresEMPSparkleAnim(techno) (*(AnimClass**)(((char*)GetAresTechnoExt(techno)) + 0x10))
 #define AresBuildingLight(techno) (*(BuildingLightClass**)(((char*)GetAresTechnoExt(techno)) + 0x38))
 
+#define AresEMPLastMission(techno) (*(Mission*)(((char*)GetAresTechnoExt(techno)) + 0x14))
+
+#define TechnoValueAmount(techno) (*(int*)(((char*)GetAresTechnoExt(techno)) + 0xA8))
+
 #define AE_ArmorMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x88))
 #define AE_Cloak(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x98))
 #define AE_FirePowerMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x80))
 #define AE_SpeedMult(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x90))
+#define AE_ROF(techno) (*(double*)(((char*)GetAresTechnoExt(techno)) + 0x78))
 
 #define GetAEData(techno) (*(AEData*)(((char*)GetAresTechnoExt(techno)) + 0x20))
 
@@ -124,6 +134,7 @@ class cPrismForwarding
 //
 #define GetSelfHealingDleayAmount(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x4A8))
 #define GetGunnerName(var) (*(std::vector<CSFText>*)(((char*)GetAresTechnoTypeExt(var)) + 0xC8))
+#define GetPilotTypeVec(var) (*(std::vector<InfantryTypeClass*>*)(((char*)GetAresTechnoTypeExt(var)) + 0x8))
 #define GetNoSpawnAlt(var) (*(VoxelStruct**)(((char*)GetAresTechnoTypeExt(var)) + 0x1E0))
 #define GetCursorDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x590))
 #define GetCursorNoDeploy(var) (*(int*)(((char*)GetAresTechnoTypeExt(var)) + 0x594))
@@ -197,6 +208,16 @@ struct AresData
 		EvalRaidStatusID = 33,
 		IsActiveFirestormWallID = 34, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
 		ImmolateVictimID = 35, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
+
+		DisableEMPAffectID = 36 ,
+		CloakDisallowedID = 37 ,
+		CloadAllowedID = 38 ,
+		RemoveAEID = 39,
+
+		FlyingStringsAddID = 40,
+		CalculateBountyID = 41,
+		SetSpotlightID = 42,
+
 		count
 	};
 
@@ -280,6 +301,16 @@ struct AresData
 		0x013C50, //BuildingExt  EvalRaidStatus
 		0x012D00, //BuildingExt  IsActiveFirestormWall BuildingClass* HouseClass*
 		0x0124C0, //BuildingExt  ImmolateVictim BuildingClassExt* FootClass* bool
+
+		0x063550, //EMPulse_DisableEmpaffect
+		0x044520, //TechnoExt CloakDisallowed
+
+		0x044470, //TechnoExt CloadAllowed
+
+		0x059580, //TechnoExt::RemoveAE
+		0x044F70, //TechnoExt::FlyingStringsAdd
+		0x043D10, //TechnoExt::CalculateBounty
+		0x046F90, //TechnoExt::SetSpotlight
 	};
 
 	static constexpr DWORD AAresCustomPaletteReadTable[AresCustomPaletteReadCount] = {
@@ -433,6 +464,17 @@ struct AresData
 	static void EvalRaidStatus(BuildingClass* pBuilding);
 	static bool IsActiveFirestormWall(BuildingClass* pBuilding , HouseClass* pOwner);
 	static bool ImmolateVictim(BuildingClass* pBuilding , FootClass* pTarget , bool Destroy);
+
+	static void DisableEMPEffect(TechnoClass* pTechno);
+	static bool CloakDisallowed(TechnoClass* pTechno, bool allowPassive);
+	static bool CloakAllowed(TechnoClass* pTechno);
+
+	static bool RemoveAE(AEData* pAE);
+
+	static void FlyingStringsAdd(TechnoClass* pTech, bool bSomething);
+	static void CalculateBounty(TechnoClass* pThis, TechnoClass* pKiller);
+	static void SetSpotlight(TechnoClass* pThis , BuildingLightClass* pSpotlight);
+
 };
 
 namespace AresMemory

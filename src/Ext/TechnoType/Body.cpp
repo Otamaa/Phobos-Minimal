@@ -813,6 +813,11 @@ void TechnoTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAdd
 		this->InitialPayload_Types.Read(exINI, pSection, "InitialPayload.Types");
 		this->InitialPayload_Nums.Read(exINI, pSection, "InitialPayload.Nums");
 
+		this->Bounty.Read(exINI, pSection, "Bounty");
+		this->HasSpotlight.Read(exINI, pSection, "HasSpotlight");
+		this->Crew_TechnicianChance.Read(exINI, pSection, "Crew.TechnicianChance");
+		this->Crew_EngineerChance.Read(exINI, pSection, "Crew.EngineerChance");
+
 		if (Is_AircraftType(pThis))
 		{
 			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
@@ -1593,7 +1598,8 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->SelfHealing_Amount)
 		.Process(this->SelfHealing_Max)
 		.Process(this->SelfHealing_CombatDelay)
-
+		.Process(this->Bounty)
+		.Process(this->HasSpotlight)
 		.Process(this->CloakAllowed)
 		.Process(this->InitialPayload_Types)
 		.Process(this->InitialPayload_Nums)
@@ -1603,7 +1609,10 @@ void TechnoTypeExt::ExtData::Serialize(T& Stm)
 		.Process(this->HijackerKillPilots)
 		.Process(this->HijackerEnterSound)
 		.Process(this->HijackerLeaveSound)
+
 		.Process(this->Survivors_PilotChance)
+		.Process(this->Crew_TechnicianChance)
+		.Process(this->Crew_EngineerChance)
 
 		.Process(this->Cursor_Deploy)
 		.Process(this->Cursor_NoDeploy)
