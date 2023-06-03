@@ -337,34 +337,36 @@ void Phobos::Config::Read()
 
 	if (CCINIClass* pINI = Phobos::OpenConfig(GameStrings::RULESMD_INI))
 	{
-		if (!Phobos::Otamaa::IsAdmin)
-		{
-			std::string ModNameTemp;
-			pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
-			ModNameTemp = Phobos::readBuffer;
+		// there is only few mod(s) that using this 
+		// just add your mod name or remove these code if you dont like it 
+		//if (!Phobos::Otamaa::IsAdmin)
+		//{
+		//	std::string ModNameTemp;
+		//	pINI->ReadString(GENERAL_SECTION, "Name", "", Phobos::readBuffer);
+		//	ModNameTemp = Phobos::readBuffer;
 
-			if (!ModNameTemp.empty())
-			{
-				std::size_t nFInd = ModNameTemp.find("Rise of the East");
+		//	if (!ModNameTemp.empty())
+		//	{
+		//		std::size_t nFInd = ModNameTemp.find("Rise of the East");
 
-				if (nFInd == std::string::npos)
-					nFInd = ModNameTemp.find("Ion Shock");
+		//		if (nFInd == std::string::npos)
+		//			nFInd = ModNameTemp.find("Ion Shock");
 
-				if (nFInd == std::string::npos)
-					nFInd = ModNameTemp.find("New War");
+		//		if (nFInd == std::string::npos)
+		//			nFInd = ModNameTemp.find("New War");
 
-				if (nFInd == std::string::npos)
-					nFInd = ModNameTemp.find("NewWar");
+		//		if (nFInd == std::string::npos)
+		//			nFInd = ModNameTemp.find("NewWar");
 
-				if (nFInd == std::string::npos)
-				{
-					MessageBoxW(NULL,
-						L"This is not Official Phobos Build.\n\n"
-						L"Please contact original Mod Author for Assistance !.",
-						L"Warning !", MB_OK);
-				}
-			}
-		}
+		//		if (nFInd == std::string::npos)
+		//		{
+		//			MessageBoxW(NULL,
+		//				L"This is not Official Phobos Build.\n\n"
+		//				L"Please contact original Mod Author for Assistance !.",
+		//				L"Warning !", MB_OK);
+		//		}
+		//	}
+		//}
 
 		if (!Phobos::Otamaa::IsAdmin)
 			Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);

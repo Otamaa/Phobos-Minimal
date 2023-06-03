@@ -15,10 +15,10 @@
 #define VERSION_MINOR 5
 
 // Indicates minor changes, like vanilla bugfixes, unhardcodings or hacks
-#define VERSION_REVISION 20
+#define VERSION_REVISION 50
 
 // Indicates Phobos-related bugfixes only
-#define VERSION_PATCH 100
+#define VERSION_PATCH 150
 
 #pragma endregion
 
