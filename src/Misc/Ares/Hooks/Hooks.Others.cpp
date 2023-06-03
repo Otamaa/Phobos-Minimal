@@ -3693,8 +3693,7 @@ bool ScriptExt_Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bTh
 	{
 		const auto nDur = pTeamMission->Argument;
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember) {
-			const auto pExt = TechnoExt::ExtMap.Find(pUnit);
-			auto& nTimer = pExt->DisableWeaponTimer;
+			auto& nTimer = GetDisableWeaponTimer(pUnit);
 			if (nDur > nTimer.GetTimeLeft()) {
 				nTimer.Start(nDur);
 			} else if (nDur <= 0) {

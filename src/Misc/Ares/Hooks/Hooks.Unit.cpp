@@ -279,8 +279,9 @@ DEFINE_OVERRIDE_HOOK(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
 	GET(TechnoClass*, pThis, ESI);
-	const auto pExt = TechnoExt::ExtMap.Find(pThis);
-	return pExt->DisableWeaponTimer.InProgress()
+	//const auto pExt = TechnoExt::ExtMap.Find(pThis);
+	//restored it to use ares one , until Script and TEvent/TAction fully ported !
+	return GetDisableWeaponTimer(pThis) /*pExt->DisableWeaponTimer*/.InProgress()
 		? FireRange : ContinueCheck;
 }
 

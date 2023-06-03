@@ -89,7 +89,7 @@ struct EMPulse
 #define GetAresAresWarheadTypeExt(var) (void*)(*(uintptr_t*)((char*)var + 0x1CC))
 
 // TechnoExt
-//#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(var)) + 0x50))
+#define GetDisableWeaponTimer(techno) (*(CDTimerClass*)(((char*)GetAresTechnoExt(techno)) + 0x50))
 #define Is_DriverKilled(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9C))
 #define Is_SurvivorsDone(techno) (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9B))
 #define Is_Operated(techno)  (*(bool*)(((char*)GetAresTechnoExt(techno)) + 0x9D))

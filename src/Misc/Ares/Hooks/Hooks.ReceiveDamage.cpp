@@ -342,9 +342,10 @@ DEFINE_OVERRIDE_HOOK(0x702819, TechnoClass_ReceiveDamage_Aftermath, 0xA)
 
 			if (pWHExt->DisableWeapons_Duration > 0)
 			{
-				if (pWHExt->DisableWeapons_Duration > pExt->DisableWeaponTimer.GetTimeLeft())
+				auto& nTimer = GetDisableWeaponTimer(pThis);
+				if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
 				{
-					pExt->DisableWeaponTimer.Start(pWHExt->DisableWeapons_Duration);
+					nTimer.Start(pWHExt->DisableWeapons_Duration);
 				}
 			}
 
